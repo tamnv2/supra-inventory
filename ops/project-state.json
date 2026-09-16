@@ -5,23 +5,17 @@
   "timezone": "Asia/Ho_Chi_Minh",
   "repository": "tamnv2/supra-inventory",
   "state_model": "REPO_NATIVE_CONTINUITY",
-  "authority_order": [
-    "latest_explicit_owner_command",
-    "ops/project-state.json",
-    "docs/OWNER_DECISIONS.md",
-    "ops/resource-registry.json",
-    "live_source_and_ci_evidence",
-    "generated_handover_view",
-    "older_handovers_and_chat_memory"
-  ],
+  "authority_order": ["latest_explicit_owner_command","ops/project-state.json","docs/OWNER_DECISIONS.md","ops/resource-registry.json","live_source_and_ci_evidence","generated_handover_view","older_handovers_and_chat_memory"],
   "current_status": {
-    "beta": "BUSINESS_API_AND_ADMIN_SKU_FOUNDATION_LIVE",
+    "beta": "ROLE_BASED_WEB_ANDROID_LIVE_REALTIME_SERVER_SOURCE_PENDING_CI",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 3,
     "business_api": "IMPLEMENTED_AND_DEPLOYED_BETA",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS",
     "web": "ROLE_BASED_REPORTER_ADMIN_UI_DEPLOYED_PASS",
-    "android": "ROLE_BASED_PICKER_REPORTER_UI_SOURCE_PENDING_CI",
+    "android": "ROLE_BASED_PICKER_REPORTER_UI_SIGNED_OTA_BETA_PASS",
+    "latest_beta_apk": "beta-vc24",
+    "realtime": "WEBSOCKET_TICKET_PRESENCE_SELECTIVE_INVALIDATION_SOURCE_PENDING_CI_DEPLOY",
     "network_scope": "PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_BY_OWNER_DECISION"
   },
   "hard_guards": [
@@ -55,7 +49,6 @@
     "Runtime service accounts and scoped SA-key organization policy exception",
     "Beta Drive OAuth refresh token and runtime secrets",
     "Public canonical GitHub repo and Beta CI/CD",
-    "Web and Android Beta foundations",
     "Server-authoritative username/password to Firebase custom-token session flow",
     "Root bootstrap and password change foundation",
     "Admin/Root HR-source validation API and Web settings UI",
@@ -71,11 +64,11 @@
     "Ticket/batch/event/audit recording",
     "Admin report monitoring backend",
     "Role-specific Reporter/Admin/Root Web operating UI — Beta deploy PASS",
+    "Android Picker/Reporter/Admin/Root operational UI with local SKU catalog cache — signed Beta beta-vc24 build/release PASS",
     "Final network decision: PDA runtime supported; Office network unsupported"
   ],
   "pending_build": [
-    "Verify/build/sign/release Android Picker/Reporter role UI with local SKU catalog cache",
-    "WebSocket realtime protocol and presence handling",
+    "Verify/deploy WebSocket ticket/presence/selective invalidation server protocol and wire Web/Android clients",
     "FCM device registration and delivery flows",
     "User management and HR provisioning/sync lifecycle",
     "Backup/archive executor with checkpoint/retry/retention safety",
@@ -84,7 +77,7 @@
     "Owner business acceptance"
   ],
   "field_pending": [
-    "Owner physical-PDA confirmation of the current Beta login/business build remains distinct from backend Root login PASS unless newer evidence is recorded."
+    "Owner physical-PDA confirmation of the current Beta business build remains distinct from CI signed APK PASS unless newer evidence is recorded."
   ],
   "open_decisions_do_not_invent": [
     "Exact SKU-reset confirmation semantics originally described as random '6 chữ'.",
@@ -95,8 +88,8 @@
     "Any new offline-create-report behavior; do not add direct-to-Sheet fallback unless Owner explicitly approves it."
   ],
   "next_action": {
-    "primary": "Verify/build/sign/release Android Picker/Reporter role UI with local SKU catalog cache, then implement WebSocket realtime/presence and FCM.",
-    "method": "Fresh-read live source first; keep server authority; commit small reversible changes; run CI/deploy/smoke and continue to terminal PASS.",
+    "primary": "Deploy and smoke-test WebSocket realtime server protocol, wire Web and Android foreground clients, then implement FCM background delivery.",
+    "method": "Transactions remain authoritative and commit before best-effort invalidation; reconnect resyncs from server; run CI/deploy/smoke to terminal PASS.",
     "stable_guard": "Do not activate Stable."
   },
   "continuity_policy": {
@@ -106,13 +99,6 @@
     "owner_decision_requires_ledger_update": true,
     "resource_identifier_change_requires_registry_update": true,
     "handover_current_is_generated_view": true,
-    "future_session_bootstrap": [
-      "AGENTS.md",
-      "ops/project-state.json",
-      "docs/OWNER_DECISIONS.md",
-      "ops/resource-registry.json",
-      "docs/handovers/HANDOVER_CURRENT.md",
-      "recent commits and relevant live source"
-    ]
+    "future_session_bootstrap": ["AGENTS.md","ops/project-state.json","docs/OWNER_DECISIONS.md","ops/resource-registry.json","docs/handovers/HANDOVER_CURRENT.md","recent commits and relevant live source"]
   }
 }
