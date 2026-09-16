@@ -29,6 +29,15 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Verify Firebase Web config
+        env:
+          FIREBASE_WEB_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA }}
+        run: |
+          set -euo pipefail
+          [ -n "${FIREBASE_WEB_API_KEY_BETA:-}" ] || { echo "FIREBASE_WEB_API_KEY_BETA is missing"; exit 1; }
+          [ "${#FIREBASE_WEB_API_KEY_BETA}" -ge 20 ] || { echo "FIREBASE_WEB_API_KEY_BETA looks invalid"; exit 1; }
+          echo "Firebase Web API key presence PASS"
+
       - name: Install Web dependencies
         working-directory: web
         run: npm install --ignore-scripts --no-audit --no-fund
@@ -72,7 +81,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
         run: npx --yes wrangler@4 deploy --config wrangler.beta.toml --keep-vars
 
-      - name: Verify Beta health and SQLite schema
+      - name: Verify Beta health, Root secret and SQLite schema
         env:
           BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
         run: |
@@ -86,12 +95,13 @@ jobs:
             env_name="$(jq -r '.environment // empty' "$tmp" 2>/dev/null || true)"
             missing_count="$(jq -r '.missing_bindings | length' "$tmp" 2>/dev/null || echo 999)"
             refresh_configured="$(jq -r '.oauth_refresh_token_configured // false' "$tmp" 2>/dev/null || echo false)"
+            root_secret_configured="$(jq -r '.root_bootstrap_secret_configured // false' "$tmp" 2>/dev/null || echo false)"
             storage_ok="$(jq -r '.storage.ok // false' "$tmp" 2>/dev/null || echo false)"
             schema_version="$(jq -r '.storage.schema_version // 0' "$tmp" 2>/dev/null || echo 0)"
             expected_schema="$(jq -r '.storage.expected_schema_version // 0' "$tmp" 2>/dev/null || echo 0)"
-            echo "health attempt=$attempt http=${code:-000} status=${status:-n/a} env=${env_name:-n/a} missing=${missing_count:-999} refresh=${refresh_configured:-false} storage=${storage_ok:-false} schema=${schema_version:-0}/${expected_schema:-0}"
-            if [ "$code" = "200" ] && [ "$status" = "ok" ] && [ "$env_name" = "beta" ] && [ "$missing_count" = "0" ] && [ "$refresh_configured" = "true" ] && [ "$storage_ok" = "true" ] && [ "$schema_version" = "$expected_schema" ] && [ "$schema_version" != "0" ]; then
-              echo "Beta health + SQLite PASS: $url"
+            echo "health attempt=$attempt http=${code:-000} status=${status:-n/a} env=${env_name:-n/a} missing=${missing_count:-999} refresh=${refresh_configured:-false} root_secret=${root_secret_configured:-false} storage=${storage_ok:-false} schema=${schema_version:-0}/${expected_schema:-0}"
+            if [ "$code" = "200" ] && [ "$status" = "ok" ] && [ "$env_name" = "beta" ] && [ "$missing_count" = "0" ] && [ "$refresh_configured" = "true" ] && [ "$root_secret_configured" = "true" ] && [ "$storage_ok" = "true" ] && [ "$schema_version" = "$expected_schema" ] && [ "$schema_version" != "0" ]; then
+              echo "Beta health + Root secret + SQLite PASS: $url"
               exit 0
             fi
             [ "$attempt" -ge 12 ] || sleep 5
