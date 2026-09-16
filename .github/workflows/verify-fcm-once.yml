@@ -1,0 +1,159 @@
+name: Verify FCM Beta Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/verify-fcm-once.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    environment: beta
+    env:
+      BETA_KEYSTORE_B64: ${{ secrets.BETA_KEYSTORE_B64 }}
+      BETA_KEYSTORE_PASSWORD: ${{ secrets.BETA_KEYSTORE_PASSWORD }}
+      BETA_KEY_ALIAS: ${{ secrets.BETA_KEY_ALIAS }}
+      BETA_KEY_PASSWORD: ${{ secrets.BETA_KEY_PASSWORD }}
+      FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.6.0"
+
+      - name: Build Web assets
+        working-directory: web
+        env:
+          VITE_API_BASE_URL: https://inventory-beta.supra.cc.cd
+          VITE_FIREBASE_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+          VITE_FIREBASE_AUTH_DOMAIN: supra-inventory-beta.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID: supra-inventory-beta
+          VITE_FIREBASE_APP_ID: 1:572322098890:web:96459cf386b3fb6f400e33
+          VITE_FIREBASE_MESSAGING_SENDER_ID: "572322098890"
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run build
+
+      - name: Typecheck service
+        working-directory: service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+
+      - name: Deploy FCM foundation to Beta Worker
+        working-directory: service
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+          FIREBASE_WEB_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+        run: npx --yes wrangler@4 deploy --config wrangler.beta.toml --keep-vars --var "FIREBASE_WEB_API_KEY:${FIREBASE_WEB_API_KEY}"
+
+      - name: Smoke Beta service and notification auth guard
+        env:
+          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          for attempt in $(seq 1 12); do
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}/health" || true)"
+            status="$(jq -r '.status // empty' "$tmp" 2>/dev/null || true)"
+            [ "$code" = "200" ] && [ "$status" = "ok" ] && break
+            [ "$attempt" -ge 12 ] || sleep 5
+          done
+          [ "$code" = "200" ] && [ "$status" = "ok" ] || { echo "Beta health failed"; cat "$tmp"; exit 1; }
+
+          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' -X POST "https://${BETA_HOSTNAME}/api/notifications/device" -H 'content-type: application/json' --data '{"device_id":"ci-device-0001","token":"invalid-ci-token","platform":"ANDROID"}')"
+          [ "$code" = "401" ] || { echo "Notification endpoint expected unauthenticated HTTP 401, got $code"; cat "$tmp"; exit 1; }
+          jq -e '.error == "AUTH_REQUIRED"' "$tmp" >/dev/null || { echo "Notification auth guard mismatch"; cat "$tmp"; exit 1; }
+          echo "FCM device route + auth guard PASS"
+
+      - name: Prepare signed Android beta-vc27
+        run: |
+          set -euo pipefail
+          [ -n "${BETA_KEYSTORE_B64:-}" ] && [ -n "${BETA_KEYSTORE_PASSWORD:-}" ] && [ -n "${BETA_KEY_ALIAS:-}" ] && [ -n "${BETA_KEY_PASSWORD:-}" ] || { echo "Beta signing secrets missing"; exit 1; }
+          key_path="$RUNNER_TEMP/supra-inventory-beta.jks"
+          printf '%s' "$BETA_KEYSTORE_B64" | base64 --decode > "$key_path"
+          keytool -list -keystore "$key_path" -storepass "$BETA_KEYSTORE_PASSWORD" -alias "$BETA_KEY_ALIAS" >/dev/null
+          echo "BETA_KEYSTORE_PATH=$key_path" >> "$GITHUB_ENV"
+          echo "APP_VERSION_CODE=27" >> "$GITHUB_ENV"
+          echo "APP_VERSION_NAME=0.2.0-beta.27" >> "$GITHUB_ENV"
+
+      - name: Build signed Android FCM Beta
+        run: |
+          set -euo pipefail
+          gradle -p android :app:assembleRelease --no-daemon
+          mkdir -p android/dist
+          cp android/app/build/outputs/apk/release/app-release.apk android/dist/supra-inventory-beta.apk
+          sha256sum android/dist/supra-inventory-beta.apk > android/dist/supra-inventory-beta.apk.sha256
+
+      - name: Publish beta-vc27
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="beta-vc27"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" android/dist/supra-inventory-beta.apk android/dist/supra-inventory-beta.apk.sha256 --clobber
+          else
+            gh release create "$tag" android/dist/supra-inventory-beta.apk android/dist/supra-inventory-beta.apk.sha256 --title "SUPRA Inventory Beta 0.2.0-beta.27" --notes "Beta Android FCM background notification foundation. Stable is not affected."
+          fi
+
+      - name: Finalize canonical state and remove one-time workflow
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          apk = Path('android/dist/supra-inventory-beta.apk')
+          digest = hashlib.sha256(apk.read_bytes()).hexdigest()
+          size = apk.stat().st_size
+
+          p = Path('ops/project-state.json')
+          state = json.loads(p.read_text(encoding='utf-8'))
+          state['current_status']['fcm'] = 'DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BUILD_PASS_FIELD_DELIVERY_PENDING'
+          state['current_status']['android'] = 'ROLE_BASED_PICKER_REPORTER_REALTIME_FCM_SIGNED_OTA_BETA_PASS'
+          state['current_status']['latest_beta_apk'] = 'beta-vc27'
+          completed = state['completed_capabilities']
+          line = 'FCM device registration + targeted background notification foundation — Beta Worker deploy and signed Android beta-vc27 build PASS'
+          if line not in completed: completed.append(line)
+          state['pending_build'] = [x for x in state['pending_build'] if 'FCM device registration' not in x]
+          state['pending_build'].insert(0, 'Field-verify FCM delivery on a physical logged-in PDA; technical foundation is deployed')
+          state['next_action']['primary'] = 'Build user management + HR provisioning/sync lifecycle while FCM physical-device delivery remains a field acceptance check.'
+          p.write_text(json.dumps(state, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+          p = Path('ops/resource-registry.json')
+          registry = json.loads(p.read_text(encoding='utf-8'))
+          registry['notifications']['source_status'] = 'DEPLOYED_BUILD_PASS_FIELD_DELIVERY_PENDING'
+          beta = registry['environments']['beta']
+          beta['latest_signed_beta_release'] = 'beta-vc27'
+          beta['latest_signed_beta_release_name'] = 'SUPRA Inventory Beta 0.2.0-beta.27'
+          beta['latest_signed_beta_apk_sha256'] = digest
+          beta['latest_signed_beta_apk_size_bytes'] = size
+          beta['android_source_status'] = 'ROLE_BASED_PICKER_REPORTER_REALTIME_FCM_SIGNED_OTA_PASS'
+          built = registry['application_build_completed']
+          if 'fcm_device_and_delivery_flows_foundation' not in built: built.append('fcm_device_and_delivery_flows_foundation')
+          registry['application_build_pending'] = [x for x in registry['application_build_pending'] if x != 'fcm_device_and_delivery_flows_verify']
+          registry['application_build_pending'].insert(0, 'fcm_physical_device_delivery_acceptance')
+          p.write_text(json.dumps(registry, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          print('FCM_STATE_FINALIZED', digest, size)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/verify-fcm-once.yml
+          git add ops/project-state.json ops/resource-registry.json
+          git commit -m "chore(state): mark FCM Beta foundation verified"
+          git push origin HEAD:main
