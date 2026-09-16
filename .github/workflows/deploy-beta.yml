@@ -99,9 +99,10 @@ jobs:
             status="$(jq -r '.status // empty' "$tmp" 2>/dev/null || true)"
             env_name="$(jq -r '.environment // empty' "$tmp" 2>/dev/null || true)"
             missing_count="$(jq -r '.missing_bindings | length' "$tmp" 2>/dev/null || echo 999)"
-            echo "health attempt=$attempt http=${code:-000} status=${status:-n/a} environment=${env_name:-n/a} missing=${missing_count:-999}"
+            refresh_configured="$(jq -r '.oauth_refresh_token_configured // false' "$tmp" 2>/dev/null || echo false)"
+            echo "health attempt=$attempt http=${code:-000} status=${status:-n/a} environment=${env_name:-n/a} missing=${missing_count:-999} refresh_token=${refresh_configured:-false}"
 
-            if [ "$code" = "200" ] && [ "$status" = "ok" ] && [ "$env_name" = "beta" ] && [ "$missing_count" = "0" ]; then
+            if [ "$code" = "200" ] && [ "$status" = "ok" ] && [ "$env_name" = "beta" ] && [ "$missing_count" = "0" ] && [ "$refresh_configured" = "true" ]; then
               echo "Beta health PASS: $url"
               exit 0
             fi
