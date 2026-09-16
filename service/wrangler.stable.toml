@@ -1,0 +1,9 @@
+name = "supra-inventory-stable"
+main = "src/index.ts"
+compatibility_date = "2026-09-16"
+workers_dev = true
+keep_vars = true
+
+[vars]
+APP_ENV = "stable"
+PROJECT_KEY = "supra-inventory"
