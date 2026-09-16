@@ -128,6 +128,29 @@ jobs:
           jq -e '.error == "INVALID_CREDENTIALS"' "$tmp" >/dev/null || { echo "Root bootstrap path did not return expected JSON"; head -c 500 "$tmp"; exit 1; }
           echo "Beta auth API routing + Root bootstrap path PASS"
 
+      - name: Verify Beta business API capability and auth guards
+        env:
+          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+
+          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}/api/system/capabilities")"
+          [ "$code" = "200" ] || { echo "Capabilities expected HTTP 200, got $code"; head -c 500 "$tmp"; exit 1; }
+          jq -e '.business_api.version == 1 and .business_api.sku_master == "implemented" and .business_api.picker_report_withdraw == "implemented" and .business_api.reporter_priority_resolve_correction == "implemented"' "$tmp" >/dev/null || { echo "Business capability marker missing"; head -c 700 "$tmp"; exit 1; }
+
+          for path in "/api/skus" "/api/picker/reports" "/api/reporter/queue" "/api/admin/reports"; do
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}${path}")"
+            [ "$code" = "401" ] || { echo "Unauthenticated ${path} expected HTTP 401, got $code"; head -c 500 "$tmp"; exit 1; }
+            jq -e '.error == "AUTH_REQUIRED"' "$tmp" >/dev/null || { echo "${path} auth guard JSON mismatch"; head -c 500 "$tmp"; exit 1; }
+          done
+
+          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' -X POST "https://${BETA_HOSTNAME}/api/admin/skus/import" -H 'content-type: application/json' --data '{"request_id":"ci-probe-0001","items":[]}')"
+          [ "$code" = "401" ] || { echo "Unauthenticated SKU import expected HTTP 401, got $code"; head -c 500 "$tmp"; exit 1; }
+          jq -e '.error == "AUTH_REQUIRED"' "$tmp" >/dev/null || { echo "SKU import auth guard JSON mismatch"; head -c 500 "$tmp"; exit 1; }
+          echo "Beta business API capability + auth guards PASS"
+
       - name: Verify Beta Web shell
         env:
           BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
