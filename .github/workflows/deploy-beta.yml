@@ -29,9 +29,27 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Deploy Beta Worker
+      - name: Upload Beta Worker version
         working-directory: service
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
-        run: npx --yes wrangler@4 deploy --config wrangler.beta.toml --keep-vars
+        run: |
+          TAG="ci-${GITHUB_SHA::12}"
+          npx --yes wrangler@4 versions upload \
+            --config wrangler.beta.toml \
+            --keep-vars \
+            --tag "$TAG" \
+            --message "GitHub Actions $GITHUB_SHA"
+
+      - name: Deploy uploaded Beta version
+        working-directory: service
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        run: |
+          TAG="ci-${GITHUB_SHA::12}"
+          npx --yes wrangler@4 versions deploy \
+            --config wrangler.beta.toml \
+            --version-tag "$TAG" \
+            --yes
