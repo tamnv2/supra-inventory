@@ -1,0 +1,37 @@
+name: Verify Beta Firebase Auth
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/verify-firebase-auth-beta.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-firebase-auth:
+    runs-on: ubuntu-latest
+    environment: beta
+    steps:
+      - name: Verify Firebase Authentication backend exists
+        env:
+          FIREBASE_WEB_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+        run: |
+          set -euo pipefail
+          [ -n "${FIREBASE_WEB_API_KEY_BETA:-}" ] || { echo "FIREBASE_WEB_API_KEY_BETA missing"; exit 1; }
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          code="$(curl -sS --connect-timeout 10 --max-time 30 -o "$tmp" -w '%{http_code}' \
+            -X POST "https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${FIREBASE_WEB_API_KEY_BETA}" \
+            -H 'content-type: application/json' \
+            --data '{"token":"invalid-ci-probe-token","returnSecureToken":true}')"
+          message="$(jq -r '.error.message // empty' "$tmp" 2>/dev/null || true)"
+          echo "Firebase Auth probe http=$code message=${message:-none}"
+          [ "$message" != "CONFIGURATION_NOT_FOUND" ] || { echo "Firebase Authentication is not initialized"; exit 1; }
+          [ "$code" = "400" ] || { echo "Unexpected Firebase Auth HTTP $code"; cat "$tmp"; exit 1; }
+          case "$message" in
+            INVALID_CUSTOM_TOKEN*|INVALID_CUSTOM_TOKEN) echo "Firebase Authentication initialized PASS" ;;
+            *) echo "Firebase Auth exists but returned unexpected probe response: $message"; exit 1 ;;
+          esac
