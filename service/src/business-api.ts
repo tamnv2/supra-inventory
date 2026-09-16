@@ -19,6 +19,7 @@ interface InternalUser {
 
 const CORE_OBJECT_NAME = "inventory-core";
 const REPORTER_ROLES: AppRole[] = ["REPORTER", "ADMIN", "ROOT"];
+const REPORTER_TAGS = ["role:REPORTER", "role:ADMIN", "role:ROOT"];
 
 function json(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload, null, 2), {
@@ -91,6 +92,48 @@ function actor(user: InternalUser): { user_id: string; employee_code: string | n
   return { user_id: user.user_id, employee_code: user.employee_code };
 }
 
+async function realtimeAfter(
+  response: Response,
+  env: BusinessEnv,
+  options: {
+    event: string;
+    scopes: string[];
+    tags?: string[];
+    batchId?: string;
+    includeBatchPickerUsers?: boolean;
+    metadata?: Record<string, unknown>;
+  },
+): Promise<Response> {
+  if (!response.ok) return response;
+
+  let batchId = options.batchId || "";
+  if (!batchId) {
+    try {
+      const payload = (await response.clone().json()) as {
+        batch_id?: string;
+        ticket?: { batch_id?: string };
+      };
+      batchId = String(payload.batch_id || payload.ticket?.batch_id || "");
+    } catch {
+      batchId = "";
+    }
+  }
+
+  try {
+    await corePost(env, "/realtime/broadcast", {
+      event: options.event,
+      scopes: options.scopes,
+      tags: options.tags || [],
+      batch_id: batchId || null,
+      include_batch_picker_users: Boolean(options.includeBatchPickerUsers),
+      metadata: options.metadata || {},
+    });
+  } catch {
+    // Realtime is best-effort. Authoritative transaction success must not be rolled back by notification failure.
+  }
+  return response;
+}
+
 export async function handleBusinessApi(request: Request, env: BusinessEnv): Promise<Response | null> {
   const url = new URL(request.url);
   const key = `${request.method} ${url.pathname}`;
@@ -127,7 +170,12 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv): Pro
   if (key === "POST /api/picker/reports") {
     const user = await requireUser(request, env, ["PICKER"]);
     const body = await parseObjectBody(request);
-    return corePost(env, "/business/reports/create", { ...body, actor: actor(user) });
+    const response = await corePost(env, "/business/reports/create", { ...body, actor: actor(user) });
+    return realtimeAfter(response, env, {
+      event: "report_created",
+      scopes: ["reporter_queue"],
+      tags: [...REPORTER_TAGS, `user:${user.user_id}`],
+    });
   }
 
   if (key === "GET /api/picker/reports") {
@@ -141,7 +189,12 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv): Pro
   if (key === "POST /api/picker/reports/withdraw") {
     const user = await requireUser(request, env, ["PICKER"]);
     const body = await parseObjectBody(request);
-    return corePost(env, "/business/reports/withdraw", { ...body, actor: actor(user) });
+    const response = await corePost(env, "/business/reports/withdraw", { ...body, actor: actor(user) });
+    return realtimeAfter(response, env, {
+      event: "report_withdrawn",
+      scopes: ["reporter_queue", "picker_reports"],
+      tags: [...REPORTER_TAGS, `user:${user.user_id}`],
+    });
   }
 
   if (key === "GET /api/reporter/queue") {
@@ -154,13 +207,29 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv): Pro
   if (key === "POST /api/reporter/batches/resolve") {
     const user = await requireUser(request, env, REPORTER_ROLES);
     const body = await parseObjectBody(request);
-    return corePost(env, "/business/reporter/resolve", { ...body, actor: actor(user) });
+    const batchId = String(body.batch_id || "").trim();
+    const response = await corePost(env, "/business/reporter/resolve", { ...body, actor: actor(user) });
+    return realtimeAfter(response, env, {
+      event: "batch_resolved",
+      scopes: ["reporter_queue", "reporter_recent", "picker_reports"],
+      tags: REPORTER_TAGS,
+      batchId,
+      includeBatchPickerUsers: true,
+    });
   }
 
   if (key === "POST /api/reporter/batches/correct") {
     const user = await requireUser(request, env, REPORTER_ROLES);
     const body = await parseObjectBody(request);
-    return corePost(env, "/business/reporter/correct", { ...body, actor: actor(user) });
+    const batchId = String(body.batch_id || "").trim();
+    const response = await corePost(env, "/business/reporter/correct", { ...body, actor: actor(user) });
+    return realtimeAfter(response, env, {
+      event: "batch_corrected",
+      scopes: ["reporter_recent", "picker_reports"],
+      tags: REPORTER_TAGS,
+      batchId,
+      includeBatchPickerUsers: true,
+    });
   }
 
   if (key === "GET /api/admin/reports") {

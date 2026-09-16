@@ -7,6 +7,8 @@ interface ReadApiEnv {
 
 interface InternalUser {
   user_id: string;
+  employee_code?: string | null;
+  display_name?: string;
   role: AppRole;
   status: "ACTIVE" | "DISABLED";
 }
@@ -44,6 +46,43 @@ async function requireUser(request: Request, env: ReadApiEnv, roles?: AppRole[])
 
 export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<Response | null> {
   const url = new URL(request.url);
+
+  if (request.method === "POST" && url.pathname === "/api/realtime/ticket") {
+    const user = await requireUser(request, env);
+    let body: { client_type?: string } = {};
+    try {
+      body = (await request.json()) as { client_type?: string };
+    } catch {
+      body = {};
+    }
+    const clientType = String(body.client_type || "").toUpperCase();
+    if (!["WEB", "ANDROID"].includes(clientType)) return json({ error: "INVALID_CLIENT_TYPE" }, 400);
+    return core(env).fetch("https://inventory-core.internal/realtime/ticket", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        user_id: user.user_id,
+        employee_code: user.employee_code || null,
+        display_name: user.display_name || "",
+        role: user.role,
+        client_type: clientType,
+      }),
+    });
+  }
+
+  if (request.method === "GET" && url.pathname === "/api/realtime/connect") {
+    const ticket = String(url.searchParams.get("ticket") || "").trim();
+    const headers = new Headers();
+    headers.set("Upgrade", request.headers.get("Upgrade") || "");
+    headers.set("Connection", request.headers.get("Connection") || "Upgrade");
+    return core(env).fetch(`https://inventory-core.internal/realtime/connect?ticket=${encodeURIComponent(ticket)}`, { headers });
+  }
+
+  if (request.method === "GET" && url.pathname === "/api/realtime/presence") {
+    await requireUser(request, env, ["ADMIN", "ROOT"]);
+    return core(env).fetch("https://inventory-core.internal/read/realtime/presence");
+  }
+
   if (request.method !== "GET") return null;
 
   if (url.pathname === "/api/skus/catalog-info") {
