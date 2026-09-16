@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   web:
@@ -46,6 +46,11 @@ jobs:
   android:
     runs-on: ubuntu-latest
     environment: beta
+    env:
+      BETA_KEYSTORE_B64: ${{ secrets.BETA_KEYSTORE_B64 }}
+      BETA_KEYSTORE_PASSWORD: ${{ secrets.BETA_KEYSTORE_PASSWORD }}
+      BETA_KEY_ALIAS: ${{ secrets.BETA_KEY_ALIAS }}
+      BETA_KEY_PASSWORD: ${{ secrets.BETA_KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -63,14 +68,58 @@ jobs:
           [ -n "${FIREBASE_API_KEY_BETA:-}" ] || { echo "FIREBASE_WEB_API_KEY_BETA is missing from Beta variable/secret scope"; exit 1; }
           [ "${#FIREBASE_API_KEY_BETA}" -ge 20 ] || { echo "FIREBASE_WEB_API_KEY_BETA looks invalid"; exit 1; }
           echo "Firebase config presence PASS"
-      - name: Assemble Beta debug APK
+      - name: Prepare Beta version and signing
+        run: |
+          set -euo pipefail
+          echo "APP_VERSION_CODE=${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+          echo "APP_VERSION_NAME=0.2.0-beta.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+          if [ -n "${BETA_KEYSTORE_B64:-}" ] && [ -n "${BETA_KEYSTORE_PASSWORD:-}" ] && [ -n "${BETA_KEY_ALIAS:-}" ] && [ -n "${BETA_KEY_PASSWORD:-}" ]; then
+            key_path="$RUNNER_TEMP/supra-inventory-beta.jks"
+            printf '%s' "$BETA_KEYSTORE_B64" | base64 --decode > "$key_path"
+            keytool -list -keystore "$key_path" -storepass "$BETA_KEYSTORE_PASSWORD" -alias "$BETA_KEY_ALIAS" >/dev/null
+            echo "BETA_KEYSTORE_PATH=$key_path" >> "$GITHUB_ENV"
+            echo "SIGNING_READY=true" >> "$GITHUB_ENV"
+            echo "Fixed Beta signing key PASS"
+          else
+            echo "SIGNING_READY=false" >> "$GITHUB_ENV"
+            echo "Beta signing secrets are not configured; building debug artifact only. Auto-update release publishing will stay disabled."
+          fi
+      - name: Assemble Android 11+ Beta APK
         env:
           FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
-        run: gradle -p android :app:assembleDebug --no-daemon
+        run: |
+          set -euo pipefail
+          rm -rf android/dist
+          mkdir -p android/dist
+          if [ "$SIGNING_READY" = "true" ]; then
+            gradle -p android :app:assembleRelease --no-daemon
+            cp android/app/build/outputs/apk/release/app-release.apk android/dist/supra-inventory-beta.apk
+          else
+            gradle -p android :app:assembleDebug --no-daemon
+            cp android/app/build/outputs/apk/debug/app-debug.apk android/dist/supra-inventory-beta.apk
+          fi
+          sha256sum android/dist/supra-inventory-beta.apk > android/dist/supra-inventory-beta.apk.sha256
       - name: Publish Beta APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: supra-inventory-beta-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: |
+            android/dist/supra-inventory-beta.apk
+            android/dist/supra-inventory-beta.apk.sha256
           if-no-files-found: error
           retention-days: 7
+      - name: Publish signed Beta auto-update release
+        if: env.SIGNING_READY == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="beta-vc${APP_VERSION_CODE}"
+          title="SUPRA Inventory Beta ${APP_VERSION_NAME}"
+          notes="Beta Android 11+ auto-update build. versionCode=${APP_VERSION_CODE}. Stable is not affected."
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" android/dist/supra-inventory-beta.apk android/dist/supra-inventory-beta.apk.sha256 --clobber
+          else
+            gh release create "$tag" android/dist/supra-inventory-beta.apk android/dist/supra-inventory-beta.apk.sha256 --title "$title" --notes "$notes"
+          fi
+          echo "Published Beta release $tag"
