@@ -9,8 +9,8 @@
     "deploy:stable": "echo 'Stable deployment is owner-gated' && exit 1"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260916.0",
+    "@cloudflare/workers-types": "^5.20260916.1",
     "typescript": "^5.9.2",
-    "wrangler": "^4.37.1"
+    "wrangler": "^4.132.0"
   }
 }
