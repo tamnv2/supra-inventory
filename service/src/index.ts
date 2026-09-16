@@ -8,6 +8,7 @@ interface Env {
   APP_ENV: string;
   PROJECT_KEY: string;
   FIREBASE_PROJECT_ID: string;
+  FIREBASE_WEB_API_KEY?: string;
   INVENTORY_CORE: DurableObjectNamespace;
   ASSETS?: Fetcher;
   GOOGLE_RUNTIME_SA_JSON?: string;
@@ -30,6 +31,22 @@ interface InternalUser {
   password_changed_at: string | null;
 }
 
+interface FirebaseExchangeResponse {
+  idToken?: string;
+  refreshToken?: string;
+  expiresIn?: string;
+  localId?: string;
+  error?: { message?: string };
+}
+
+interface FirebaseRefreshResponse {
+  id_token?: string;
+  refresh_token?: string;
+  expires_in?: string;
+  user_id?: string;
+  error?: { message?: string };
+}
+
 const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 const OAUTH_STATE_COOKIE = "inventory_oauth_state";
 const CORE_OBJECT_NAME = "inventory-core";
@@ -40,6 +57,7 @@ const REQUIRED_RUNTIME_BINDINGS = [
   "GOOGLE_DRIVE_OAUTH_REDIRECT_URI",
   "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
   "FIREBASE_PROJECT_ID",
+  "FIREBASE_WEB_API_KEY",
 ] as const;
 
 function json(payload: unknown, status = 200, extraHeaders?: HeadersInit): Response {
@@ -163,8 +181,65 @@ function publicUser(user: InternalUser): Omit<InternalUser, "password_salt" | "p
   return safe;
 }
 
+async function parseUpstreamJson<T>(response: Response): Promise<T> {
+  const text = await response.text();
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new Error(`firebase_upstream_invalid_json_http_${response.status}`);
+  }
+}
+
+async function exchangeCustomToken(env: Env, customToken: string): Promise<{ id_token: string; refresh_token: string; expires_in: number }> {
+  if (!env.FIREBASE_WEB_API_KEY) throw new Error("firebase_web_api_key_missing");
+  const response = await fetch(
+    `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${encodeURIComponent(env.FIREBASE_WEB_API_KEY)}`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json", accept: "application/json" },
+      body: JSON.stringify({ token: customToken, returnSecureToken: true }),
+    },
+  );
+  const payload = await parseUpstreamJson<FirebaseExchangeResponse>(response);
+  if (!response.ok || !payload.idToken || !payload.refreshToken) {
+    throw new Error(`firebase_custom_token_exchange_failed:${payload.error?.message || response.status}`);
+  }
+  return {
+    id_token: payload.idToken,
+    refresh_token: payload.refreshToken,
+    expires_in: Math.max(60, Number(payload.expiresIn || 3600)),
+  };
+}
+
+async function refreshSession(request: Request, env: Env): Promise<Response> {
+  if (!env.FIREBASE_WEB_API_KEY) return json({ error: "FIREBASE_RUNTIME_NOT_CONFIGURED" }, 503);
+  const body = (await request.json()) as { refresh_token?: string };
+  const refreshToken = String(body.refresh_token || "").trim();
+  if (!refreshToken) return json({ error: "REFRESH_TOKEN_REQUIRED" }, 400);
+
+  const response = await fetch(`https://securetoken.googleapis.com/v1/token?key=${encodeURIComponent(env.FIREBASE_WEB_API_KEY)}`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded", accept: "application/json" },
+    body: new URLSearchParams({ grant_type: "refresh_token", refresh_token: refreshToken }),
+  });
+  let payload: FirebaseRefreshResponse;
+  try {
+    payload = await parseUpstreamJson<FirebaseRefreshResponse>(response);
+  } catch {
+    return json({ error: "FIREBASE_REFRESH_UPSTREAM_INVALID_RESPONSE" }, 502);
+  }
+  if (!response.ok || !payload.id_token || !payload.refresh_token) {
+    return json({ error: "FIREBASE_REFRESH_FAILED", message: payload.error?.message || `HTTP ${response.status}` }, 401);
+  }
+  return json({
+    id_token: payload.id_token,
+    refresh_token: payload.refresh_token,
+    expires_in: Math.max(60, Number(payload.expires_in || 3600)),
+  });
+}
+
 async function login(request: Request, env: Env): Promise<Response> {
-  if (!env.GOOGLE_RUNTIME_SA_JSON) return json({ error: "AUTH_RUNTIME_NOT_CONFIGURED" }, 503);
+  if (!env.GOOGLE_RUNTIME_SA_JSON || !env.FIREBASE_WEB_API_KEY) return json({ error: "AUTH_RUNTIME_NOT_CONFIGURED" }, 503);
   const body = (await request.json()) as { username?: string; password?: string };
   const username = String(body.username || "").trim().toLowerCase();
   const password = String(body.password || "");
@@ -188,7 +263,12 @@ async function login(request: Request, env: Env): Promise<Response> {
     app_user_id: user.user_id,
     employee_code: user.employee_code || "",
   });
-  return json({ custom_token: customToken, user: publicUser({ ...user, firebase_uid: firebaseUid }) });
+  try {
+    const session = await exchangeCustomToken(env, customToken);
+    return json({ ...session, user: publicUser({ ...user, firebase_uid: firebaseUid }) });
+  } catch (error) {
+    return json({ error: "FIREBASE_LOGIN_EXCHANGE_FAILED", message: error instanceof Error ? error.message : "Firebase login exchange failed" }, 502);
+  }
 }
 
 async function changePassword(request: Request, env: Env): Promise<Response> {
@@ -262,7 +342,7 @@ export default {
       if (request.method === "GET" && url.pathname === "/api/system/capabilities") {
         const core = await checkCore(env);
         return json({
-          environment: env.APP_ENV, firebase_auth: "custom_token_server_authority", durable_objects_sqlite: core.ok,
+          environment: env.APP_ENV, firebase_auth: "worker_exchanged_firebase_id_token", durable_objects_sqlite: core.ok,
           realtime_foreground: "websocket_planned_on_inventory_core", background_notifications: "firebase_cloud_messaging",
           hr_source_setup: { mode: "web_admin_input", required_input: ["google_sheet_url", "tab_name"], validation: ["valid_google_sheet_link", "exact_tab_name", "MNV_column", "Ho_ten_column"], public_setup_endpoint: false },
           root_password_initialized: Boolean(core.root_password_initialized), stable_release: "owner_gated",
@@ -270,6 +350,7 @@ export default {
       }
 
       if (request.method === "POST" && url.pathname === "/api/auth/login") return login(request, env);
+      if (request.method === "POST" && url.pathname === "/api/auth/refresh") return refreshSession(request, env);
       if (request.method === "GET" && url.pathname === "/api/auth/me") return json({ user: publicUser(await requireUser(request, env)) });
       if (request.method === "PUT" && url.pathname === "/api/auth/change-password") return changePassword(request, env);
 
@@ -296,6 +377,7 @@ export default {
       if (request.method === "GET" && url.pathname === "/api/oauth/google/start") return startGoogleOAuth(env);
       if (request.method === "GET" && url.pathname === "/api/oauth/google/callback") return googleOAuthCallback(request, env);
 
+      if (url.pathname.startsWith("/api/")) return json({ error: "not_found" }, 404);
       if ((request.method === "GET" || request.method === "HEAD") && env.ASSETS) return env.ASSETS.fetch(request);
       return json({ error: "not_found" }, 404);
     } catch (error) {
