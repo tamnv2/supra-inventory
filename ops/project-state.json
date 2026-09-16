@@ -21,9 +21,9 @@
     "business_api": "IMPLEMENTED_AND_DEPLOYED_BETA",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS",
     "web": "ROLE_BASED_REPORTER_ADMIN_UI_DEPLOYED_PASS",
-    "android": "ROLE_BASED_PICKER_REPORTER_UI_SIGNED_OTA_BETA_PASS",
-    "latest_beta_apk": "beta-vc24",
-    "realtime": "WEBSOCKET_SERVER_WEB_CLIENT_DEPLOYED_PASS_ANDROID_CLIENT_CI_TRIGGERED",
+    "android": "ROLE_BASED_PICKER_REPORTER_REALTIME_SIGNED_OTA_BETA_PASS",
+    "latest_beta_apk": "beta-vc26",
+    "realtime": "WEBSOCKET_SERVER_WEB_ANDROID_FOREGROUND_DEPLOYED_PASS",
     "network_scope": "PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_BY_OWNER_DECISION"
   },
   "hard_guards": [
@@ -72,14 +72,14 @@
     "Ticket/batch/event/audit recording",
     "Admin report monitoring backend",
     "Role-specific Reporter/Admin/Root Web operating UI — Beta deploy PASS",
-    "Android Picker/Reporter/Admin/Root operational UI with local SKU catalog cache — signed Beta beta-vc24 build/release PASS",
+    "Android Picker/Reporter/Admin/Root operational UI with local SKU catalog cache",
     "WebSocket one-time-ticket authentication, hibernatable presence and selective invalidation server protocol — Beta deploy/typecheck PASS",
-    "Final network decision: PDA runtime supported; Office network unsupported",
-    "Web foreground realtime invalidation client — Beta build/deploy PASS"
+    "Web foreground realtime invalidation client — Beta build/deploy PASS",
+    "Android foreground realtime invalidation client — signed Beta beta-vc26 build/release PASS",
+    "Final network decision: PDA runtime supported; Office network unsupported"
   ],
   "pending_build": [
-    "Verify/build/sign/release Android foreground realtime client",
-    "FCM device registration and delivery flows",
+    "FCM device registration and background delivery flows",
     "User management and HR provisioning/sync lifecycle",
     "Backup/archive executor with checkpoint/retry/retention safety",
     "Reporting/export UI and APIs",
@@ -87,7 +87,7 @@
     "Owner business acceptance"
   ],
   "field_pending": [
-    "Owner physical-PDA confirmation of the current Beta business build remains distinct from CI signed APK PASS unless newer evidence is recorded."
+    "Owner physical-PDA confirmation of the current Beta business/realtime build remains distinct from CI signed APK PASS unless newer evidence is recorded."
   ],
   "open_decisions_do_not_invent": [
     "Exact SKU-reset confirmation semantics originally described as random '6 chữ'.",
@@ -98,8 +98,8 @@
     "Any new offline-create-report behavior; do not add direct-to-Sheet fallback unless Owner explicitly approves it."
   ],
   "next_action": {
-    "primary": "Verify/build/sign/release Android foreground realtime client, then implement FCM background delivery.",
-    "method": "Transactions remain authoritative and commit before best-effort invalidation; reconnect resyncs from server; run CI/deploy/smoke to terminal PASS.",
+    "primary": "Implement FCM device registration and background delivery, then user management and HR provisioning/sync lifecycle.",
+    "method": "Keep FCM as background notification only; business state remains server-authoritative via API/SQLite and foreground WebSocket resync.",
     "stable_guard": "Do not activate Stable."
   },
   "continuity_policy": {
