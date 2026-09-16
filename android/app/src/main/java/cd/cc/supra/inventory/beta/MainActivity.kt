@@ -7,8 +7,10 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.text.InputType
+import android.text.method.PasswordTransformationMethod
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -36,15 +38,49 @@ class MainActivity : Activity() {
             layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         }
         val title = TextView(this).apply { text = "SUPRA Inventory — Beta"; textSize = 24f }
-        val version = TextView(this).apply { text = "Phiên bản ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) — Android 11+"; textSize = 13f }
-        val username = EditText(this).apply { hint = "Tên đăng nhập"; setText("root"); inputType = InputType.TYPE_CLASS_TEXT }
-        val password = EditText(this).apply { hint = "Mật khẩu"; inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD }
+        val version = TextView(this).apply {
+            text = "Phiên bản ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) — Android 11+"
+            textSize = 13f
+        }
+        val username = EditText(this).apply {
+            hint = "Tên đăng nhập"
+            setText("root")
+            isSingleLine = true
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+        }
+        val password = EditText(this).apply {
+            hint = "Mật khẩu"
+            isSingleLine = true
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            transformationMethod = PasswordTransformationMethod.getInstance()
+        }
+        val showPassword = CheckBox(this).apply { text = "Hiện mật khẩu" }
         val login = Button(this).apply { text = "Đăng nhập" }
         val logout = Button(this).apply { text = "Đăng xuất"; isEnabled = false }
         updateButton = Button(this).apply { text = "Kiểm tra cập nhật" }
         status = TextView(this).apply { text = "Khởi tạo..." }
-        root.addView(title); root.addView(version); root.addView(username); root.addView(password); root.addView(login); root.addView(logout); root.addView(updateButton); root.addView(status)
+
+        root.addView(title)
+        root.addView(version)
+        root.addView(username)
+        root.addView(password)
+        root.addView(showPassword)
+        root.addView(login)
+        root.addView(logout)
+        root.addView(updateButton)
+        root.addView(status)
         setContentView(root)
+
+        showPassword.setOnCheckedChangeListener { _, checked ->
+            if (checked) {
+                password.transformationMethod = null
+                password.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            } else {
+                password.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+                password.transformationMethod = PasswordTransformationMethod.getInstance()
+            }
+            password.setSelection(password.text.length)
+        }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             status.text = "Thiết bị cần Android 11 trở lên."
@@ -57,6 +93,7 @@ class MainActivity : Activity() {
             login.isEnabled = false
             return
         }
+
         val options = FirebaseOptions.Builder()
             .setApiKey(BuildConfig.FIREBASE_API_KEY)
             .setProjectId(BuildConfig.FIREBASE_PROJECT_ID)
@@ -68,7 +105,9 @@ class MainActivity : Activity() {
 
         login.setOnClickListener {
             val user = username.text.toString().trim().lowercase()
-            val pass = password.text.toString()
+            val rawPass = password.text.toString()
+            // Some PDA IMEs append Enter/CRLF. Strip only those control characters; do not trim normal spaces.
+            val pass = rawPass.trimEnd('\r', '\n')
             if (!user.matches(Regex("[a-z0-9._-]{1,64}")) || pass.isBlank()) {
                 status.text = "Tên đăng nhập hoặc mật khẩu không hợp lệ."
                 return@setOnClickListener
@@ -81,18 +120,27 @@ class MainActivity : Activity() {
                     idToken = session.idToken
                     refreshToken = session.refreshToken
                     runOnUiThread {
+                        password.setText("")
                         status.text = "Đăng nhập thành công. ${session.displayName} (${session.role})"
                         logout.isEnabled = true
                         login.isEnabled = true
                     }
                 } catch (error: Exception) {
+                    val message = error.message ?: "Đăng nhập thất bại."
+                    val ascii = pass.all { it.code in 32..126 }
+                    val edgeWhitespace = pass.isNotEmpty() && (pass.first().isWhitespace() || pass.last().isWhitespace())
                     runOnUiThread {
-                        status.text = error.message ?: "Đăng nhập thất bại."
+                        status.text = if (message.contains("INVALID_CREDENTIALS", ignoreCase = true)) {
+                            "INVALID_CREDENTIALS | v${BuildConfig.VERSION_CODE} | user=$user | passLen=${pass.length} | ASCII=$ascii | edgeSpace=$edgeWhitespace | API=${BuildConfig.API_BASE_URL}"
+                        } else {
+                            message
+                        }
                         login.isEnabled = true
                     }
                 }
             }.start()
         }
+
         logout.setOnClickListener {
             idToken = null
             refreshToken = null
@@ -133,7 +181,9 @@ class MainActivity : Activity() {
         val code = connection.responseCode
         val stream = if (code in 200..299) connection.inputStream else connection.errorStream
         val text = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
-        val payload = try { JSONObject(text) } catch (_: Exception) {
+        val payload = try {
+            JSONObject(text)
+        } catch (_: Exception) {
             throw IllegalStateException("API trả dữ liệu không hợp lệ (HTTP $code).")
         }
         if (code !in 200..299) {
@@ -253,7 +303,7 @@ class MainActivity : Activity() {
             setRequestProperty("User-Agent", "SUPRA-Inventory-Beta/${BuildConfig.VERSION_NAME}")
             if (method == "POST") {
                 doOutput = true
-                setRequestProperty("Content-Type", "application/json")
+                setRequestProperty("Content-Type", "application/json; charset=utf-8")
             }
         }
 
