@@ -5,15 +5,23 @@
   "timezone": "Asia/Ho_Chi_Minh",
   "repository": "tamnv2/supra-inventory",
   "state_model": "REPO_NATIVE_CONTINUITY",
-  "authority_order": ["latest_explicit_owner_command","ops/project-state.json","docs/OWNER_DECISIONS.md","ops/resource-registry.json","live_source_and_ci_evidence","generated_handover_view","older_handovers_and_chat_memory"],
+  "authority_order": [
+    "latest_explicit_owner_command",
+    "ops/project-state.json",
+    "docs/OWNER_DECISIONS.md",
+    "ops/resource-registry.json",
+    "live_source_and_ci_evidence",
+    "generated_handover_view",
+    "older_handovers_and_chat_memory"
+  ],
   "current_status": {
     "beta": "BUSINESS_API_AND_ADMIN_SKU_FOUNDATION_LIVE",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 3,
     "business_api": "IMPLEMENTED_AND_DEPLOYED_BETA",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS",
-    "web": "ROLE_BASED_REPORTER_ADMIN_UI_SOURCE_PENDING_CI_DEPLOY",
-    "android": "BUILD_PASS_SIGNED_OTA_FOUNDATION",
+    "web": "ROLE_BASED_REPORTER_ADMIN_UI_DEPLOYED_PASS",
+    "android": "ROLE_BASED_PICKER_REPORTER_UI_SOURCE_PENDING_CI",
     "network_scope": "PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_BY_OWNER_DECISION"
   },
   "hard_guards": [
@@ -54,6 +62,7 @@
     "Fixed Beta APK signing and signed OTA release foundation",
     "SQLite business schema v3",
     "Chunked SKU Excel import supporting 10k-50k rows with preview/conflict confirmation/idempotent retry — Beta deploy and smoke PASS",
+    "SKU catalog version/read-model endpoints for large PDA cache sync",
     "SKU bulk search backend",
     "Picker create/list/withdraw workflows",
     "Picker+SKU open dedupe and same-SKU batch grouping",
@@ -61,11 +70,11 @@
     "SKIP_ALLOWED to HAS_STOCK correction window",
     "Ticket/batch/event/audit recording",
     "Admin report monitoring backend",
+    "Role-specific Reporter/Admin/Root Web operating UI — Beta deploy PASS",
     "Final network decision: PDA runtime supported; Office network unsupported"
   ],
   "pending_build": [
-    "Verify/deploy role-specific Reporter/Admin Web UI and supporting read-model endpoints",
-    "Complete Android Picker/Reporter product UI instead of login/update skeleton, including local SKU catalog cache",
+    "Verify/build/sign/release Android Picker/Reporter role UI with local SKU catalog cache",
     "WebSocket realtime protocol and presence handling",
     "FCM device registration and delivery flows",
     "User management and HR provisioning/sync lifecycle",
@@ -74,7 +83,9 @@
     "Load/resilience/quota testing",
     "Owner business acceptance"
   ],
-  "field_pending": ["Owner physical-PDA confirmation of the current Beta login build remains distinct from backend Root login PASS unless newer evidence is recorded."],
+  "field_pending": [
+    "Owner physical-PDA confirmation of the current Beta login/business build remains distinct from backend Root login PASS unless newer evidence is recorded."
+  ],
   "open_decisions_do_not_invent": [
     "Exact SKU-reset confirmation semantics originally described as random '6 chữ'.",
     "Final multi-device/session policy per account.",
@@ -84,7 +95,7 @@
     "Any new offline-create-report behavior; do not add direct-to-Sheet fallback unless Owner explicitly approves it."
   ],
   "next_action": {
-    "primary": "Verify/deploy role-specific Web operating UI, then build Android Picker/Reporter flows with local SKU catalog cache; continue to WebSocket/presence and FCM.",
+    "primary": "Verify/build/sign/release Android Picker/Reporter role UI with local SKU catalog cache, then implement WebSocket realtime/presence and FCM.",
     "method": "Fresh-read live source first; keep server authority; commit small reversible changes; run CI/deploy/smoke and continue to terminal PASS.",
     "stable_guard": "Do not activate Stable."
   },
@@ -95,6 +106,13 @@
     "owner_decision_requires_ledger_update": true,
     "resource_identifier_change_requires_registry_update": true,
     "handover_current_is_generated_view": true,
-    "future_session_bootstrap": ["AGENTS.md","ops/project-state.json","docs/OWNER_DECISIONS.md","ops/resource-registry.json","docs/handovers/HANDOVER_CURRENT.md","recent commits and relevant live source"]
+    "future_session_bootstrap": [
+      "AGENTS.md",
+      "ops/project-state.json",
+      "docs/OWNER_DECISIONS.md",
+      "ops/resource-registry.json",
+      "docs/handovers/HANDOVER_CURRENT.md",
+      "recent commits and relevant live source"
+    ]
   }
 }
