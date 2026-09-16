@@ -1,6 +1,6 @@
 # SUPRA Inventory Android — Beta
 
-Current scope is Beta only.
+Current scope is Beta only; Stable is intentionally untouched.
 
 - Package: `cd.cc.supra.inventory.beta`
 - Firebase project: `supra-inventory-beta`
@@ -9,4 +9,4 @@ Current scope is Beta only.
 - AGP: 9.4.0 / JDK 17 / compileSdk 37
 - Firebase Android BoM: 34.19.0
 
-The Firebase API key is injected through Gradle property `FIREBASE_API_KEY` or environment variable `FIREBASE_API_KEY_BETA`; it is not hard-coded. No Stable package/config is created in this test phase.
+Login is `username/password → Worker → Firebase custom token → Firebase session`. The Firebase API key is injected through Gradle property `FIREBASE_API_KEY` or environment variable `FIREBASE_API_KEY_BETA`.

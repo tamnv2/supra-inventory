@@ -1,8 +1,22 @@
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 interface CoreEnv {
   APP_ENV: string;
   PROJECT_KEY: string;
+}
+
+type AppRole = "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
+
+interface InternalUser {
+  user_id: string;
+  firebase_uid: string | null;
+  employee_code: string | null;
+  display_name: string;
+  role: AppRole;
+  status: "ACTIVE" | "DISABLED";
+  password_salt: string | null;
+  password_hash: string | null;
+  password_changed_at: string | null;
 }
 
 function response(payload: unknown, status = 200): Response {
@@ -23,15 +37,18 @@ export class InventoryCore {
   constructor(state: DurableObjectState, env: CoreEnv) {
     this.state = state;
     this.env = env;
+    this.state.blockConcurrencyWhile(async () => this.initializeSchema());
+  }
 
-    this.state.blockConcurrencyWhile(async () => {
-      this.initializeSchema();
-    });
+  private hasColumn(tableName: string, columnName: string): boolean {
+    return this.state.storage.sql
+      .exec<{ name: string }>(`PRAGMA table_info(${tableName})`)
+      .toArray()
+      .some((column) => column.name === columnName);
   }
 
   private initializeSchema(): void {
     const sql = this.state.storage.sql;
-
     sql.exec(`
       PRAGMA foreign_keys = ON;
 
@@ -76,9 +93,7 @@ export class InventoryCore {
       CREATE UNIQUE INDEX IF NOT EXISTS idx_users_employee_code
         ON users(employee_code)
         WHERE employee_code IS NOT NULL AND employee_code <> '';
-
-      CREATE INDEX IF NOT EXISTS idx_users_role_status
-        ON users(role, status);
+      CREATE INDEX IF NOT EXISTS idx_users_role_status ON users(role, status);
 
       CREATE TABLE IF NOT EXISTS sku_master (
         sku TEXT PRIMARY KEY,
@@ -87,9 +102,7 @@ export class InventoryCore {
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
-
-      CREATE INDEX IF NOT EXISTS idx_sku_master_product_name
-        ON sku_master(product_name);
+      CREATE INDEX IF NOT EXISTS idx_sku_master_product_name ON sku_master(product_name);
 
       CREATE TABLE IF NOT EXISTS report_batches (
         batch_id TEXT PRIMARY KEY,
@@ -104,12 +117,8 @@ export class InventoryCore {
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
-
-      CREATE INDEX IF NOT EXISTS idx_report_batches_priority
-        ON report_batches(status, first_report_at);
-
-      CREATE INDEX IF NOT EXISTS idx_report_batches_sku_status
-        ON report_batches(sku, status);
+      CREATE INDEX IF NOT EXISTS idx_report_batches_priority ON report_batches(status, first_report_at);
+      CREATE INDEX IF NOT EXISTS idx_report_batches_sku_status ON report_batches(sku, status);
 
       CREATE TABLE IF NOT EXISTS report_tickets (
         ticket_id TEXT PRIMARY KEY,
@@ -126,13 +135,9 @@ export class InventoryCore {
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (batch_id) REFERENCES report_batches(batch_id)
       );
-
       CREATE UNIQUE INDEX IF NOT EXISTS idx_open_ticket_picker_sku
-        ON report_tickets(picker_employee_code, sku)
-        WHERE status = 'OPEN';
-
-      CREATE INDEX IF NOT EXISTS idx_report_tickets_batch
-        ON report_tickets(batch_id, status, reported_at);
+        ON report_tickets(picker_employee_code, sku) WHERE status = 'OPEN';
+      CREATE INDEX IF NOT EXISTS idx_report_tickets_batch ON report_tickets(batch_id, status, reported_at);
 
       CREATE TABLE IF NOT EXISTS report_events (
         event_id TEXT PRIMARY KEY,
@@ -146,9 +151,7 @@ export class InventoryCore {
         FOREIGN KEY (batch_id) REFERENCES report_batches(batch_id),
         FOREIGN KEY (ticket_id) REFERENCES report_tickets(ticket_id)
       );
-
-      CREATE INDEX IF NOT EXISTS idx_report_events_batch_time
-        ON report_events(batch_id, created_at);
+      CREATE INDEX IF NOT EXISTS idx_report_events_batch_time ON report_events(batch_id, created_at);
 
       CREATE TABLE IF NOT EXISTS fcm_devices (
         device_id TEXT PRIMARY KEY,
@@ -160,9 +163,7 @@ export class InventoryCore {
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
-
-      CREATE INDEX IF NOT EXISTS idx_fcm_devices_user_enabled
-        ON fcm_devices(user_id, enabled);
+      CREATE INDEX IF NOT EXISTS idx_fcm_devices_user_enabled ON fcm_devices(user_id, enabled);
 
       CREATE TABLE IF NOT EXISTS presence_sessions (
         connection_id TEXT PRIMARY KEY,
@@ -173,9 +174,7 @@ export class InventoryCore {
         connected_at TEXT NOT NULL,
         last_seen_at TEXT NOT NULL
       );
-
-      CREATE INDEX IF NOT EXISTS idx_presence_last_seen
-        ON presence_sessions(last_seen_at);
+      CREATE INDEX IF NOT EXISTS idx_presence_last_seen ON presence_sessions(last_seen_at);
 
       CREATE TABLE IF NOT EXISTS archive_checkpoints (
         stream_name TEXT PRIMARY KEY,
@@ -196,10 +195,17 @@ export class InventoryCore {
         metadata_json TEXT,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
-
-      CREATE INDEX IF NOT EXISTS idx_audit_log_time
-        ON audit_log(created_at);
+      CREATE INDEX IF NOT EXISTS idx_audit_log_time ON audit_log(created_at);
     `);
+
+    if (!this.hasColumn("users", "password_salt")) sql.exec("ALTER TABLE users ADD COLUMN password_salt TEXT");
+    if (!this.hasColumn("users", "password_hash")) sql.exec("ALTER TABLE users ADD COLUMN password_hash TEXT");
+    if (!this.hasColumn("users", "password_changed_at")) sql.exec("ALTER TABLE users ADD COLUMN password_changed_at TEXT");
+
+    sql.exec(
+      `INSERT OR IGNORE INTO users (user_id, firebase_uid, employee_code, display_name, role, status)
+       VALUES ('root', NULL, 'root', 'Root', 'ROOT', 'ACTIVE')`,
+    );
 
     sql.exec(
       `INSERT INTO schema_meta (key, value, updated_at)
@@ -216,53 +222,96 @@ export class InventoryCore {
     return Number(row?.value || 0);
   }
 
+  private getUserByUsername(username: string): InternalUser | null {
+    const rows = this.state.storage.sql.exec<InternalUser>(
+      `SELECT user_id, firebase_uid, employee_code, display_name, role, status,
+              password_salt, password_hash, password_changed_at
+         FROM users
+        WHERE lower(employee_code) = lower(?) OR lower(user_id) = lower(?)
+        LIMIT 1`,
+      username,
+      username,
+    ).toArray();
+    return rows[0] ?? null;
+  }
+
+  private getUserByFirebaseUid(uid: string): InternalUser | null {
+    const rows = this.state.storage.sql.exec<InternalUser>(
+      `SELECT user_id, firebase_uid, employee_code, display_name, role, status,
+              password_salt, password_hash, password_changed_at
+         FROM users WHERE firebase_uid = ? LIMIT 1`,
+      uid,
+    ).toArray();
+    return rows[0] ?? null;
+  }
+
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
 
     if (request.method === "GET" && url.pathname === "/health") {
+      const root = this.getUserByUsername("root");
       return response({
         status: "ok",
         component: "durable-object-sqlite",
         environment: this.env.APP_ENV,
         schema_version: this.getSchemaVersion(),
         expected_schema_version: SCHEMA_VERSION,
+        root_password_initialized: Boolean(root?.password_hash && root?.password_salt),
       });
     }
 
+    if (request.method === "GET" && url.pathname === "/auth/user-by-username") {
+      const username = (url.searchParams.get("username") || "").trim();
+      return response({ user: username ? this.getUserByUsername(username) : null });
+    }
+
+    if (request.method === "GET" && url.pathname === "/auth/user-by-firebase-uid") {
+      const uid = (url.searchParams.get("uid") || "").trim();
+      return response({ user: uid ? this.getUserByFirebaseUid(uid) : null });
+    }
+
+    if (request.method === "PUT" && url.pathname === "/auth/link-firebase-uid") {
+      const body = (await request.json()) as { user_id?: string; firebase_uid?: string };
+      if (!body.user_id || !body.firebase_uid) return response({ error: "invalid_input" }, 400);
+      this.state.storage.sql.exec(
+        `UPDATE users SET firebase_uid = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`,
+        body.firebase_uid,
+        body.user_id,
+      );
+      return response({ status: "linked" });
+    }
+
+    if (request.method === "PUT" && url.pathname === "/auth/set-password") {
+      const body = (await request.json()) as { user_id?: string; password_salt?: string; password_hash?: string };
+      if (!body.user_id || !body.password_salt || !body.password_hash) return response({ error: "invalid_input" }, 400);
+      this.state.storage.sql.exec(
+        `UPDATE users
+            SET password_salt = ?, password_hash = ?, password_changed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+          WHERE user_id = ?`,
+        body.password_salt,
+        body.password_hash,
+        body.user_id,
+      );
+      return response({ status: "password_saved" });
+    }
+
     if (request.method === "GET" && url.pathname === "/config/hr-source") {
-      const rows = this.state.storage.sql
-        .exec<{
-          sheet_id: string;
-          sheet_url: string;
-          tab_name: string;
-          mnv_header: string;
-          full_name_header: string;
-          header_row: number;
-          data_row_count: number;
-          verified_at: string;
-          updated_at: string;
-        }>(
-          `SELECT sheet_id, sheet_url, tab_name, mnv_header, full_name_header,
-                  header_row, data_row_count, verified_at, updated_at
-             FROM hr_source_config WHERE id = 1`,
-        )
-        .toArray();
+      const rows = this.state.storage.sql.exec<{
+        sheet_id: string; sheet_url: string; tab_name: string; mnv_header: string; full_name_header: string;
+        header_row: number; data_row_count: number; verified_at: string; updated_at: string;
+      }>(
+        `SELECT sheet_id, sheet_url, tab_name, mnv_header, full_name_header,
+                header_row, data_row_count, verified_at, updated_at
+           FROM hr_source_config WHERE id = 1`,
+      ).toArray();
       return response({ configured: rows.length === 1, source: rows[0] ?? null });
     }
 
     if (request.method === "PUT" && url.pathname === "/config/hr-source") {
       const body = (await request.json()) as {
-        sheet_id: string;
-        sheet_url: string;
-        tab_name: string;
-        mnv_header: string;
-        full_name_header: string;
-        header_row: number;
-        data_row_count: number;
-        verified_at: string;
-        updated_by?: string;
+        sheet_id: string; sheet_url: string; tab_name: string; mnv_header: string; full_name_header: string;
+        header_row: number; data_row_count: number; verified_at: string; updated_by?: string;
       };
-
       this.state.storage.sql.exec(
         `INSERT INTO hr_source_config (
            id, sheet_id, sheet_url, tab_name, mnv_header, full_name_header,
@@ -279,17 +328,9 @@ export class InventoryCore {
            verified_at = excluded.verified_at,
            updated_at = CURRENT_TIMESTAMP,
            updated_by = excluded.updated_by`,
-        body.sheet_id,
-        body.sheet_url,
-        body.tab_name,
-        body.mnv_header,
-        body.full_name_header,
-        body.header_row,
-        body.data_row_count,
-        body.verified_at,
-        body.updated_by ?? null,
+        body.sheet_id, body.sheet_url, body.tab_name, body.mnv_header, body.full_name_header,
+        body.header_row, body.data_row_count, body.verified_at, body.updated_by ?? null,
       );
-
       return response({ status: "saved" });
     }
 

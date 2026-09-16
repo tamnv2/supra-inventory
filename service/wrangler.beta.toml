@@ -17,6 +17,11 @@ class_name = "InventoryCore"
 type = "durable-object"
 storage = "sqlite"
 
+[assets]
+directory = "../web/dist"
+binding = "ASSETS"
+run_worker_first = true
+
 [secrets]
 required = [
   "GOOGLE_RUNTIME_SA_JSON",
@@ -27,6 +32,7 @@ required = [
 [vars]
 APP_ENV = "beta"
 PROJECT_KEY = "supra-inventory"
+FIREBASE_PROJECT_ID = "supra-inventory-beta"
 
 [observability]
 enabled = true

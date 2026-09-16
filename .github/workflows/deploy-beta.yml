@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "service/**"
+      - "web/**"
       - ".github/workflows/deploy-beta.yml"
   workflow_dispatch:
 
@@ -28,6 +29,21 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Install Web dependencies
+        working-directory: web
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Build Web Beta
+        working-directory: web
+        env:
+          VITE_API_BASE_URL: https://inventory-beta.supra.cc.cd
+          VITE_FIREBASE_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY_BETA }}
+          VITE_FIREBASE_AUTH_DOMAIN: supra-inventory-beta.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID: supra-inventory-beta
+          VITE_FIREBASE_APP_ID: 1:572322098890:web:96459cf386b3fb6f400e33
+          VITE_FIREBASE_MESSAGING_SENDER_ID: "572322098890"
+        run: npm run build
+
       - name: Install service dependencies
         working-directory: service
         run: npm install --ignore-scripts --no-audit --no-fund
@@ -42,21 +58,14 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
         run: |
           set -euo pipefail
-          verify="$(curl -sS \
-            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/tokens/verify")"
+          verify="$(curl -sS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/tokens/verify")"
           [ "$(echo "$verify" | jq -r '.success')" = "true" ] || { echo "Cloudflare token verify failed"; exit 1; }
           [ "$(echo "$verify" | jq -r '.result.status')" = "active" ] || { echo "Cloudflare token is not active"; exit 1; }
-
-          service_code="$(curl -sS -o /dev/null -w '%{http_code}' \
-            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/services/supra-inventory-beta")"
+          service_code="$(curl -sS -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/services/supra-inventory-beta")"
           [ "$service_code" = "200" ] || { echo "Beta Worker API preflight failed: HTTP $service_code"; exit 1; }
           echo "Cloudflare Beta preflight PASS"
 
-      # Durable Object lifecycle changes cannot use `wrangler versions upload`.
-      # `wrangler deploy` atomically reconciles the declarative SQLite class export.
-      - name: Deploy Beta Worker and Durable Object
+      - name: Deploy Beta Worker, Web assets and Durable Object
         working-directory: service
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
@@ -71,7 +80,6 @@ jobs:
           url="https://${BETA_HOSTNAME}/health"
           tmp="$(mktemp)"
           trap 'rm -f "$tmp"' EXIT
-
           for attempt in $(seq 1 12); do
             code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "$url" || true)"
             status="$(jq -r '.status // empty' "$tmp" 2>/dev/null || true)"
@@ -82,17 +90,12 @@ jobs:
             schema_version="$(jq -r '.storage.schema_version // 0' "$tmp" 2>/dev/null || echo 0)"
             expected_schema="$(jq -r '.storage.expected_schema_version // 0' "$tmp" 2>/dev/null || echo 0)"
             echo "health attempt=$attempt http=${code:-000} status=${status:-n/a} env=${env_name:-n/a} missing=${missing_count:-999} refresh=${refresh_configured:-false} storage=${storage_ok:-false} schema=${schema_version:-0}/${expected_schema:-0}"
-
-            if [ "$code" = "200" ] && [ "$status" = "ok" ] && [ "$env_name" = "beta" ] && \
-               [ "$missing_count" = "0" ] && [ "$refresh_configured" = "true" ] && \
-               [ "$storage_ok" = "true" ] && [ "$schema_version" = "$expected_schema" ] && [ "$schema_version" != "0" ]; then
+            if [ "$code" = "200" ] && [ "$status" = "ok" ] && [ "$env_name" = "beta" ] && [ "$missing_count" = "0" ] && [ "$refresh_configured" = "true" ] && [ "$storage_ok" = "true" ] && [ "$schema_version" = "$expected_schema" ] && [ "$schema_version" != "0" ]; then
               echo "Beta health + SQLite PASS: $url"
               exit 0
             fi
-
             [ "$attempt" -ge 12 ] || sleep 5
           done
-
           echo "Beta health FAILED. Safe response body follows:"
           cat "$tmp"
           exit 1
@@ -104,15 +107,10 @@ jobs:
           set -euo pipefail
           headers="$(mktemp)"
           trap 'rm -f "$headers"' EXIT
-          code="$(curl -sS --connect-timeout 5 --max-time 15 -D "$headers" -o /dev/null -w '%{http_code}' \
-            "https://${BETA_HOSTNAME}/api/oauth/google/start")"
+          code="$(curl -sS --connect-timeout 5 --max-time 15 -D "$headers" -o /dev/null -w '%{http_code}' "https://${BETA_HOSTNAME}/api/oauth/google/start")"
           location="$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^[^:]*:[[:space:]]*/, ""); sub(/\r$/, ""); print; exit}' "$headers")"
           cookie="$(awk 'BEGIN{IGNORECASE=1} /^set-cookie:/ {print; exit}' "$headers")"
-
           [ "$code" = "302" ] || { echo "Expected OAuth HTTP 302"; exit 1; }
-          case "$location" in
-            https://accounts.google.com/o/oauth2/v2/auth*) ;;
-            *) echo "Unexpected OAuth redirect target"; exit 1 ;;
-          esac
+          case "$location" in https://accounts.google.com/o/oauth2/v2/auth*) ;; *) echo "Unexpected OAuth redirect target"; exit 1 ;; esac
           echo "$cookie" | grep -qi 'inventory_oauth_state=' || { echo "OAuth state cookie missing"; exit 1; }
           echo "Beta OAuth start PASS"

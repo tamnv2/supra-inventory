@@ -1,28 +1,45 @@
 import { InventoryCore } from "./core";
+import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole } from "./auth";
+import { validateHrSheetSource } from "./hr-source";
 
 export { InventoryCore };
 
 interface Env {
   APP_ENV: string;
   PROJECT_KEY: string;
+  FIREBASE_PROJECT_ID: string;
   INVENTORY_CORE: DurableObjectNamespace;
+  ASSETS?: Fetcher;
   GOOGLE_RUNTIME_SA_JSON?: string;
   GOOGLE_DRIVE_OAUTH_CLIENT_ID?: string;
   GOOGLE_DRIVE_OAUTH_CLIENT_SECRET?: string;
   GOOGLE_DRIVE_OAUTH_REDIRECT_URI?: string;
   GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN?: string;
+  ROOT_BOOTSTRAP_PASSWORD?: string;
+}
+
+interface InternalUser {
+  user_id: string;
+  firebase_uid: string | null;
+  employee_code: string | null;
+  display_name: string;
+  role: AppRole;
+  status: "ACTIVE" | "DISABLED";
+  password_salt: string | null;
+  password_hash: string | null;
+  password_changed_at: string | null;
 }
 
 const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 const OAUTH_STATE_COOKIE = "inventory_oauth_state";
 const CORE_OBJECT_NAME = "inventory-core";
-
 const REQUIRED_RUNTIME_BINDINGS = [
   "GOOGLE_RUNTIME_SA_JSON",
   "GOOGLE_DRIVE_OAUTH_CLIENT_ID",
   "GOOGLE_DRIVE_OAUTH_CLIENT_SECRET",
   "GOOGLE_DRIVE_OAUTH_REDIRECT_URI",
   "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
+  "FIREBASE_PROJECT_ID",
 ] as const;
 
 function json(payload: unknown, status = 200, extraHeaders?: HeadersInit): Response {
@@ -59,129 +76,168 @@ function readCookie(request: Request, name: string): string | null {
 }
 
 function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 }
 
 function oauthBindingsReady(env: Env): boolean {
-  return Boolean(
-    env.GOOGLE_DRIVE_OAUTH_CLIENT_ID &&
-      env.GOOGLE_DRIVE_OAUTH_CLIENT_SECRET &&
-      env.GOOGLE_DRIVE_OAUTH_REDIRECT_URI,
-  );
+  return Boolean(env.GOOGLE_DRIVE_OAUTH_CLIENT_ID && env.GOOGLE_DRIVE_OAUTH_CLIENT_SECRET && env.GOOGLE_DRIVE_OAUTH_REDIRECT_URI);
 }
 
 function coreStub(env: Env): DurableObjectStub {
   return env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName(CORE_OBJECT_NAME));
 }
 
+async function coreJson<T>(env: Env, path: string, init?: RequestInit): Promise<T> {
+  const response = await coreStub(env).fetch(`https://inventory-core.internal${path}`, init);
+  const payload = (await response.json()) as T;
+  if (!response.ok) throw new Error(`core_http_${response.status}`);
+  return payload;
+}
+
 async function checkCore(env: Env): Promise<{
-  ok: boolean;
-  status: string;
-  schema_version?: number;
-  expected_schema_version?: number;
+  ok: boolean; status: string; schema_version?: number; expected_schema_version?: number; root_password_initialized?: boolean;
 }> {
   try {
-    const response = await coreStub(env).fetch("https://inventory-core.internal/health");
-    const payload = (await response.json()) as {
-      status?: string;
-      schema_version?: number;
-      expected_schema_version?: number;
-    };
+    const payload = await coreJson<{
+      status?: string; schema_version?: number; expected_schema_version?: number; root_password_initialized?: boolean;
+    }>(env, "/health");
     return {
-      ok:
-        response.ok &&
-        payload.status === "ok" &&
-        payload.schema_version === payload.expected_schema_version,
+      ok: payload.status === "ok" && payload.schema_version === payload.expected_schema_version,
       status: payload.status || "unknown",
       schema_version: payload.schema_version,
       expected_schema_version: payload.expected_schema_version,
+      root_password_initialized: payload.root_password_initialized,
     };
   } catch {
     return { ok: false, status: "unavailable" };
   }
 }
 
+async function getUserByUsername(env: Env, username: string): Promise<InternalUser | null> {
+  const payload = await coreJson<{ user: InternalUser | null }>(env, `/auth/user-by-username?username=${encodeURIComponent(username)}`);
+  return payload.user;
+}
+
+async function getUserByFirebaseUid(env: Env, uid: string): Promise<InternalUser | null> {
+  const payload = await coreJson<{ user: InternalUser | null }>(env, `/auth/user-by-firebase-uid?uid=${encodeURIComponent(uid)}`);
+  return payload.user;
+}
+
+async function savePassword(env: Env, userId: string, password: string): Promise<void> {
+  const derived = await hashPassword(password);
+  await coreJson(env, "/auth/set-password", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ user_id: userId, password_salt: derived.salt, password_hash: derived.hash }),
+  });
+}
+
+async function ensureFirebaseUid(env: Env, user: InternalUser): Promise<string> {
+  if (user.firebase_uid) return user.firebase_uid;
+  const uid = user.user_id;
+  await coreJson(env, "/auth/link-firebase-uid", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ user_id: user.user_id, firebase_uid: uid }),
+  });
+  return uid;
+}
+
+async function requireUser(request: Request, env: Env, roles?: AppRole[]): Promise<InternalUser> {
+  const token = readBearerToken(request);
+  if (!token) throw new Response(JSON.stringify({ error: "AUTH_REQUIRED" }), { status: 401, headers: { "content-type": "application/json" } });
+  let identity;
+  try {
+    identity = await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID);
+  } catch {
+    throw new Response(JSON.stringify({ error: "INVALID_AUTH_TOKEN" }), { status: 401, headers: { "content-type": "application/json" } });
+  }
+  const user = await getUserByFirebaseUid(env, identity.uid);
+  if (!user || user.status !== "ACTIVE") throw new Response(JSON.stringify({ error: "USER_NOT_ACTIVE" }), { status: 403, headers: { "content-type": "application/json" } });
+  if (roles && !roles.includes(user.role)) throw new Response(JSON.stringify({ error: "FORBIDDEN" }), { status: 403, headers: { "content-type": "application/json" } });
+  return user;
+}
+
+function publicUser(user: InternalUser): Omit<InternalUser, "password_salt" | "password_hash"> {
+  const { password_salt: _salt, password_hash: _hash, ...safe } = user;
+  return safe;
+}
+
+async function login(request: Request, env: Env): Promise<Response> {
+  if (!env.GOOGLE_RUNTIME_SA_JSON) return json({ error: "AUTH_RUNTIME_NOT_CONFIGURED" }, 503);
+  const body = (await request.json()) as { username?: string; password?: string };
+  const username = String(body.username || "").trim().toLowerCase();
+  const password = String(body.password || "");
+  if (!/^[a-z0-9._-]{1,64}$/.test(username) || !password) return json({ error: "INVALID_CREDENTIALS" }, 401);
+
+  let user = await getUserByUsername(env, username);
+  if (!user || user.status !== "ACTIVE") return json({ error: "INVALID_CREDENTIALS" }, 401);
+
+  if (!user.password_hash || !user.password_salt) {
+    if (user.role !== "ROOT" || !env.ROOT_BOOTSTRAP_PASSWORD) {
+      return json({ error: "PASSWORD_NOT_INITIALIZED", message: "Tài khoản chưa được khởi tạo mật khẩu." }, 503);
+    }
+    await savePassword(env, user.user_id, env.ROOT_BOOTSTRAP_PASSWORD);
+    user = (await getUserByUsername(env, username))!;
+  }
+
+  if (!(await verifyPassword(password, user.password_salt!, user.password_hash!))) return json({ error: "INVALID_CREDENTIALS" }, 401);
+  const firebaseUid = await ensureFirebaseUid(env, user);
+  const customToken = await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON, firebaseUid, {
+    app_role: user.role,
+    app_user_id: user.user_id,
+    employee_code: user.employee_code || "",
+  });
+  return json({ custom_token: customToken, user: publicUser({ ...user, firebase_uid: firebaseUid }) });
+}
+
+async function changePassword(request: Request, env: Env): Promise<Response> {
+  const user = await requireUser(request, env);
+  const body = (await request.json()) as { current_password?: string; new_password?: string };
+  const current = String(body.current_password || "");
+  const next = String(body.new_password || "");
+  if (!user.password_salt || !user.password_hash || !(await verifyPassword(current, user.password_salt, user.password_hash))) {
+    return json({ error: "CURRENT_PASSWORD_INVALID" }, 400);
+  }
+  await savePassword(env, user.user_id, next);
+  return json({ status: "password_changed" });
+}
+
 async function startGoogleOAuth(env: Env): Promise<Response> {
   if (!oauthBindingsReady(env)) return json({ error: "oauth_not_configured" }, 503);
-
   const state = randomState();
   const params = new URLSearchParams({
-    client_id: env.GOOGLE_DRIVE_OAUTH_CLIENT_ID!,
-    redirect_uri: env.GOOGLE_DRIVE_OAUTH_REDIRECT_URI!,
-    response_type: "code",
-    scope: DRIVE_SCOPE,
-    access_type: "offline",
-    prompt: "consent",
-    include_granted_scopes: "true",
-    state,
+    client_id: env.GOOGLE_DRIVE_OAUTH_CLIENT_ID!, redirect_uri: env.GOOGLE_DRIVE_OAUTH_REDIRECT_URI!, response_type: "code",
+    scope: DRIVE_SCOPE, access_type: "offline", prompt: "consent", include_granted_scopes: "true", state,
   });
-
   return new Response(null, {
     status: 302,
     headers: {
       location: `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`,
       "set-cookie": `${OAUTH_STATE_COOKIE}=${encodeURIComponent(state)}; Path=/api/oauth/google; Max-Age=600; HttpOnly; Secure; SameSite=Lax`,
-      "cache-control": "no-store",
-      "referrer-policy": "no-referrer",
+      "cache-control": "no-store", "referrer-policy": "no-referrer",
     },
   });
 }
 
 async function googleOAuthCallback(request: Request, env: Env): Promise<Response> {
   if (!oauthBindingsReady(env)) return json({ error: "oauth_not_configured" }, 503);
-
   const url = new URL(request.url);
   const oauthError = url.searchParams.get("error");
   if (oauthError) return html(`<h1>OAuth cancelled/failed</h1><p>${escapeHtml(oauthError)}</p>`, 400);
-
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
   const expectedState = readCookie(request, OAUTH_STATE_COOKIE);
-  if (!code || !state || !expectedState || state !== expectedState) {
-    return html("<h1>OAuth state validation failed</h1><p>Start the flow again from /api/oauth/google/start.</p>", 400);
-  }
-
+  if (!code || !state || !expectedState || state !== expectedState) return html("<h1>OAuth state validation failed</h1>", 400);
   const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      code,
-      client_id: env.GOOGLE_DRIVE_OAUTH_CLIENT_ID!,
-      client_secret: env.GOOGLE_DRIVE_OAUTH_CLIENT_SECRET!,
-      redirect_uri: env.GOOGLE_DRIVE_OAUTH_REDIRECT_URI!,
-      grant_type: "authorization_code",
-    }),
+    method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ code, client_id: env.GOOGLE_DRIVE_OAUTH_CLIENT_ID!, client_secret: env.GOOGLE_DRIVE_OAUTH_CLIENT_SECRET!, redirect_uri: env.GOOGLE_DRIVE_OAUTH_REDIRECT_URI!, grant_type: "authorization_code" }),
   });
-
-  const tokenPayload = (await tokenResponse.json()) as {
-    refresh_token?: string;
-    error?: string;
-    error_description?: string;
-  };
-
-  if (!tokenResponse.ok) {
-    const detail = tokenPayload.error_description || tokenPayload.error || "token_exchange_failed";
-    return html(`<h1>Token exchange failed</h1><p>${escapeHtml(detail)}</p>`, 502, {
-      "set-cookie": `${OAUTH_STATE_COOKIE}=; Path=/api/oauth/google; Max-Age=0; HttpOnly; Secure; SameSite=Lax`,
-    });
-  }
-
-  if (!tokenPayload.refresh_token) {
-    return html(
-      "<h1>No refresh token returned</h1><p>Start again from /api/oauth/google/start and approve consent.</p>",
-      502,
-      { "set-cookie": `${OAUTH_STATE_COOKIE}=; Path=/api/oauth/google; Max-Age=0; HttpOnly; Secure; SameSite=Lax` },
-    );
-  }
-
-  const refreshToken = escapeHtml(tokenPayload.refresh_token);
+  const tokenPayload = (await tokenResponse.json()) as { refresh_token?: string; error?: string; error_description?: string };
+  if (!tokenResponse.ok) return html(`<h1>Token exchange failed</h1><p>${escapeHtml(tokenPayload.error_description || tokenPayload.error || "token_exchange_failed")}</p>`, 502);
+  if (!tokenPayload.refresh_token) return html("<h1>No refresh token returned</h1>", 502);
   return html(
-    `<!doctype html><html><head><meta charset="utf-8"><title>SUPRA Inventory OAuth</title></head><body style="font-family:system-ui;max-width:900px;margin:40px auto;padding:0 20px"><h1>Google Drive OAuth thành công</h1><p>Copy giá trị dưới đây vào Cloudflare Worker secret <code>GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN</code>. Không gửi token qua chat, email hoặc commit vào GitHub.</p><textarea readonly style="width:100%;height:160px">${refreshToken}</textarea><p>Sau khi lưu secret thành công, đóng trang này.</p></body></html>`,
+    `<!doctype html><html><head><meta charset="utf-8"><title>SUPRA Inventory OAuth</title></head><body style="font-family:system-ui;max-width:900px;margin:40px auto;padding:0 20px"><h1>Google Drive OAuth thành công</h1><p>Copy giá trị dưới đây vào Cloudflare Worker secret <code>GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN</code>. Không gửi token qua chat/email/GitHub.</p><textarea readonly style="width:100%;height:160px">${escapeHtml(tokenPayload.refresh_token)}</textarea></body></html>`,
     200,
     { "set-cookie": `${OAUTH_STATE_COOKIE}=; Path=/api/oauth/google; Max-Age=0; HttpOnly; Secure; SameSite=Lax` },
   );
@@ -190,59 +246,61 @@ async function googleOAuthCallback(request: Request, env: Env): Promise<Response
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    try {
+      if (request.method === "GET" && url.pathname === "/health") {
+        const bindingPresence = Object.fromEntries(REQUIRED_RUNTIME_BINDINGS.map((name) => [name, Boolean(env[name])]));
+        const missing = REQUIRED_RUNTIME_BINDINGS.filter((name) => !env[name]);
+        const core = await checkCore(env);
+        const healthy = missing.length === 0 && core.ok;
+        return json({
+          status: healthy ? "ok" : "degraded", service: env.PROJECT_KEY || "supra-inventory", environment: env.APP_ENV || "unknown",
+          required_bindings: bindingPresence, oauth_refresh_token_configured: Boolean(env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN),
+          root_bootstrap_secret_configured: Boolean(env.ROOT_BOOTSTRAP_PASSWORD), storage: core, missing_bindings: missing, timestamp: new Date().toISOString(),
+        }, healthy ? 200 : 503);
+      }
 
-    if (request.method === "GET" && url.pathname === "/") {
-      return json({
-        service: env.PROJECT_KEY || "supra-inventory",
-        environment: env.APP_ENV || "unknown",
-        status: "running",
-        health: "/health",
-      });
+      if (request.method === "GET" && url.pathname === "/api/system/capabilities") {
+        const core = await checkCore(env);
+        return json({
+          environment: env.APP_ENV, firebase_auth: "custom_token_server_authority", durable_objects_sqlite: core.ok,
+          realtime_foreground: "websocket_planned_on_inventory_core", background_notifications: "firebase_cloud_messaging",
+          hr_source_setup: { mode: "web_admin_input", required_input: ["google_sheet_url", "tab_name"], validation: ["valid_google_sheet_link", "exact_tab_name", "MNV_column", "Ho_ten_column"], public_setup_endpoint: false },
+          root_password_initialized: Boolean(core.root_password_initialized), stable_release: "owner_gated",
+        });
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/auth/login") return login(request, env);
+      if (request.method === "GET" && url.pathname === "/api/auth/me") return json({ user: publicUser(await requireUser(request, env)) });
+      if (request.method === "PUT" && url.pathname === "/api/auth/change-password") return changePassword(request, env);
+
+      if (request.method === "GET" && url.pathname === "/api/admin/hr-source") {
+        await requireUser(request, env, ["ADMIN", "ROOT"]);
+        return coreStub(env).fetch("https://inventory-core.internal/config/hr-source");
+      }
+      if (request.method === "PUT" && url.pathname === "/api/admin/hr-source") {
+        const user = await requireUser(request, env, ["ADMIN", "ROOT"]);
+        if (!env.GOOGLE_RUNTIME_SA_JSON) return json({ error: "GOOGLE_RUNTIME_NOT_CONFIGURED" }, 503);
+        const body = (await request.json()) as { sheet_url?: string; tab_name?: string };
+        try {
+          const validated = await validateHrSheetSource(env.GOOGLE_RUNTIME_SA_JSON, { sheet_url: String(body.sheet_url || ""), tab_name: String(body.tab_name || "") });
+          await coreJson(env, "/config/hr-source", {
+            method: "PUT", headers: { "content-type": "application/json" },
+            body: JSON.stringify({ ...validated, updated_by: user.user_id }),
+          });
+          return json({ status: "saved", source: validated });
+        } catch (error) {
+          return json({ error: "HR_SOURCE_INVALID", message: error instanceof Error ? error.message : "HR source validation failed" }, 400);
+        }
+      }
+
+      if (request.method === "GET" && url.pathname === "/api/oauth/google/start") return startGoogleOAuth(env);
+      if (request.method === "GET" && url.pathname === "/api/oauth/google/callback") return googleOAuthCallback(request, env);
+
+      if ((request.method === "GET" || request.method === "HEAD") && env.ASSETS) return env.ASSETS.fetch(request);
+      return json({ error: "not_found" }, 404);
+    } catch (error) {
+      if (error instanceof Response) return error;
+      return json({ error: "internal_error" }, 500);
     }
-
-    if (request.method === "GET" && url.pathname === "/health") {
-      const bindingPresence = Object.fromEntries(
-        REQUIRED_RUNTIME_BINDINGS.map((name) => [name, Boolean(env[name])]),
-      );
-      const missing = REQUIRED_RUNTIME_BINDINGS.filter((name) => !env[name]);
-      const core = await checkCore(env);
-      const healthy = missing.length === 0 && core.ok;
-
-      return json(
-        {
-          status: healthy ? "ok" : "degraded",
-          service: env.PROJECT_KEY || "supra-inventory",
-          environment: env.APP_ENV || "unknown",
-          required_bindings: bindingPresence,
-          oauth_refresh_token_configured: Boolean(env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN),
-          storage: core,
-          missing_bindings: missing,
-          timestamp: new Date().toISOString(),
-        },
-        healthy ? 200 : 503,
-      );
-    }
-
-    if (request.method === "GET" && url.pathname === "/api/system/capabilities") {
-      const core = await checkCore(env);
-      return json({
-        environment: env.APP_ENV,
-        durable_objects_sqlite: core.ok,
-        realtime_foreground: "websocket_planned_on_inventory_core",
-        background_notifications: "firebase_cloud_messaging",
-        hr_source_setup: {
-          mode: "web_admin_input",
-          required_input: ["google_sheet_url", "tab_name"],
-          validation: ["valid_google_sheet_link", "exact_tab_name", "MNV_column", "Ho_ten_column"],
-          public_setup_endpoint: false,
-        },
-        stable_release: "owner_gated",
-      });
-    }
-
-    if (request.method === "GET" && url.pathname === "/api/oauth/google/start") return startGoogleOAuth(env);
-    if (request.method === "GET" && url.pathname === "/api/oauth/google/callback") return googleOAuthCallback(request, env);
-
-    return json({ error: "not_found" }, 404);
   },
 } satisfies ExportedHandler<Env>;

@@ -11,6 +11,9 @@ import android.widget.TextView
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 
 class MainActivity : Activity() {
     private var auth: FirebaseAuth? = null
@@ -18,7 +21,6 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(40, 56, 40, 40)
@@ -30,13 +32,7 @@ class MainActivity : Activity() {
         val login = Button(this).apply { text = "Đăng nhập" }
         val logout = Button(this).apply { text = "Đăng xuất"; isEnabled = false }
         status = TextView(this).apply { text = "Khởi tạo..." }
-
-        root.addView(title)
-        root.addView(username)
-        root.addView(password)
-        root.addView(login)
-        root.addView(logout)
-        root.addView(status)
+        root.addView(title); root.addView(username); root.addView(password); root.addView(login); root.addView(logout); root.addView(status)
         setContentView(root)
 
         if (BuildConfig.FIREBASE_API_KEY.isBlank()) {
@@ -44,7 +40,6 @@ class MainActivity : Activity() {
             login.isEnabled = false
             return
         }
-
         val options = FirebaseOptions.Builder()
             .setApiKey(BuildConfig.FIREBASE_API_KEY)
             .setProjectId(BuildConfig.FIREBASE_PROJECT_ID)
@@ -56,24 +51,57 @@ class MainActivity : Activity() {
         status.text = "Sẵn sàng đăng nhập Beta."
 
         login.setOnClickListener {
-            val rawUsername = username.text.toString().trim().lowercase()
-            if (!rawUsername.matches(Regex("[a-z0-9._-]{1,64}"))) {
-                status.text = "Tên đăng nhập không hợp lệ."
+            val user = username.text.toString().trim().lowercase()
+            val pass = password.text.toString()
+            if (!user.matches(Regex("[a-z0-9._-]{1,64}")) || pass.isBlank()) {
+                status.text = "Tên đăng nhập hoặc mật khẩu không hợp lệ."
                 return@setOnClickListener
             }
-            val email = "$rawUsername@auth.supra-inventory.local"
+            login.isEnabled = false
             status.text = "Đang đăng nhập..."
-            auth?.signInWithEmailAndPassword(email, password.text.toString())
-                ?.addOnSuccessListener {
-                    status.text = "Đăng nhập Firebase thành công. UID=${it.user?.uid ?: ""}"
-                    logout.isEnabled = true
+            Thread {
+                try {
+                    val token = requestCustomToken(user, pass)
+                    runOnUiThread {
+                        auth?.signInWithCustomToken(token)
+                            ?.addOnSuccessListener {
+                                status.text = "Đăng nhập thành công. UID=${it.user?.uid ?: ""}"
+                                logout.isEnabled = true
+                                login.isEnabled = true
+                            }
+                            ?.addOnFailureListener {
+                                status.text = it.message ?: "Firebase sign-in thất bại."
+                                login.isEnabled = true
+                            }
+                    }
+                } catch (error: Exception) {
+                    runOnUiThread {
+                        status.text = error.message ?: "Đăng nhập thất bại."
+                        login.isEnabled = true
+                    }
                 }
-                ?.addOnFailureListener { status.text = it.message ?: "Đăng nhập thất bại." }
+            }.start()
         }
         logout.setOnClickListener {
-            auth?.signOut()
-            logout.isEnabled = false
-            status.text = "Đã đăng xuất."
+            auth?.signOut(); logout.isEnabled = false; status.text = "Đã đăng xuất."
         }
+    }
+
+    private fun requestCustomToken(username: String, password: String): String {
+        val connection = (URL("${BuildConfig.API_BASE_URL}/api/auth/login").openConnection() as HttpURLConnection).apply {
+            requestMethod = "POST"
+            connectTimeout = 10_000
+            readTimeout = 15_000
+            doOutput = true
+            setRequestProperty("Content-Type", "application/json")
+        }
+        val body = JSONObject().put("username", username).put("password", password).toString()
+        connection.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+        val code = connection.responseCode
+        val stream = if (code in 200..299) connection.inputStream else connection.errorStream
+        val text = stream.bufferedReader().use { it.readText() }
+        val payload = JSONObject(text)
+        if (code !in 200..299) throw IllegalStateException(payload.optString("message", payload.optString("error", "HTTP $code")))
+        return payload.getString("custom_token")
     }
 }
