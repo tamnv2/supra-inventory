@@ -51,7 +51,12 @@
       "archive_sheet": {
         "name": "Inventory Archive - Beta",
         "spreadsheet_id": "1WU9RDUEevE74Twyq1aA80xvL3Wr1mTA21PRA8ypIMOA",
-        "tabs": ["Archive_Manifest", "Archive_Tickets", "Archive_Batches", "Archive_Events"]
+        "tabs": [
+          "Archive_Manifest",
+          "Archive_Tickets",
+          "Archive_Batches",
+          "Archive_Events"
+        ]
       }
     },
     "stable": {
@@ -62,8 +67,14 @@
   "hr_source": {
     "mode": "CONFIGURED_BY_ADMIN_OR_ROOT_FROM_WEB_UI",
     "fixed_sheet": false,
-    "required_input": ["google_sheet_url", "exact_tab_name"],
-    "required_columns": ["MNV", "Họ tên"],
+    "required_input": [
+      "google_sheet_url",
+      "exact_tab_name"
+    ],
+    "required_columns": [
+      "MNV",
+      "Họ tên"
+    ],
     "validation_module": "service/src/hr-source.ts",
     "storage": "InventoryCore.hr_source_config",
     "public_unauthenticated_setup": false,
@@ -95,10 +106,14 @@
     "foreground": "WEBSOCKET_ON_INVENTORY_CORE",
     "authentication": "SHORT_LIVED_ONE_TIME_TICKET_ISSUED_AFTER_FIREBASE_ID_TOKEN_AUTH",
     "durable_object_mode": "HIBERNATABLE_WEBSOCKET_API",
-    "routing_tags": ["role", "user", "client"],
+    "routing_tags": [
+      "role",
+      "user",
+      "client"
+    ],
     "presence_api": "ADMIN_ROOT_ONLY",
     "delivery_semantics": "TRANSACTION_COMMIT_FIRST_THEN_BEST_EFFORT_INVALIDATION_CLIENT_RESYNC",
-    "source_status": "SERVER_PROTOCOL_PENDING_CI_DEPLOY"
+    "source_status": "SERVER_AND_WEB_CLIENT_DEPLOYED_PASS_ANDROID_CLIENT_SOURCE_COMMITTED_PENDING_CI"
   },
   "environments": {
     "beta": {
@@ -218,10 +233,11 @@
     "web_admin_sku_excel_import_10k_50k",
     "web_role_based_reporter_admin_operations_ui",
     "android_picker_role_ui_with_local_sku_cache",
-    "android_reporter_admin_root_operations_ui"
+    "android_reporter_admin_root_operations_ui",
+    "web_foreground_realtime_client"
   ],
   "application_build_pending": [
-    "websocket_realtime_protocol_deploy_and_client_wiring",
+    "android_foreground_realtime_client_verify",
     "fcm_device_and_delivery_flows",
     "user_management_and_hr_provisioning",
     "backup_archive_execution",

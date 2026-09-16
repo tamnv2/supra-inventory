@@ -5,7 +5,15 @@
   "timezone": "Asia/Ho_Chi_Minh",
   "repository": "tamnv2/supra-inventory",
   "state_model": "REPO_NATIVE_CONTINUITY",
-  "authority_order": ["latest_explicit_owner_command","ops/project-state.json","docs/OWNER_DECISIONS.md","ops/resource-registry.json","live_source_and_ci_evidence","generated_handover_view","older_handovers_and_chat_memory"],
+  "authority_order": [
+    "latest_explicit_owner_command",
+    "ops/project-state.json",
+    "docs/OWNER_DECISIONS.md",
+    "ops/resource-registry.json",
+    "live_source_and_ci_evidence",
+    "generated_handover_view",
+    "older_handovers_and_chat_memory"
+  ],
   "current_status": {
     "beta": "ROLE_BASED_WEB_ANDROID_LIVE",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -15,7 +23,7 @@
     "web": "ROLE_BASED_REPORTER_ADMIN_UI_DEPLOYED_PASS",
     "android": "ROLE_BASED_PICKER_REPORTER_UI_SIGNED_OTA_BETA_PASS",
     "latest_beta_apk": "beta-vc24",
-    "realtime": "WEBSOCKET_SERVER_DEPLOYED_PASS_WEB_CLIENT_SOURCE_PENDING_CI",
+    "realtime": "WEBSOCKET_SERVER_WEB_CLIENT_DEPLOYED_PASS_ANDROID_CLIENT_SOURCE_COMMITTED_PENDING_CI",
     "network_scope": "PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_BY_OWNER_DECISION"
   },
   "hard_guards": [
@@ -66,10 +74,11 @@
     "Role-specific Reporter/Admin/Root Web operating UI — Beta deploy PASS",
     "Android Picker/Reporter/Admin/Root operational UI with local SKU catalog cache — signed Beta beta-vc24 build/release PASS",
     "WebSocket one-time-ticket authentication, hibernatable presence and selective invalidation server protocol — Beta deploy/typecheck PASS",
-    "Final network decision: PDA runtime supported; Office network unsupported"
+    "Final network decision: PDA runtime supported; Office network unsupported",
+    "Web foreground realtime invalidation client — Beta build/deploy PASS"
   ],
   "pending_build": [
-    "Verify/deploy Web foreground realtime client, then wire Android foreground realtime client",
+    "Verify/build/sign/release Android foreground realtime client",
     "FCM device registration and delivery flows",
     "User management and HR provisioning/sync lifecycle",
     "Backup/archive executor with checkpoint/retry/retention safety",
@@ -89,7 +98,7 @@
     "Any new offline-create-report behavior; do not add direct-to-Sheet fallback unless Owner explicitly approves it."
   ],
   "next_action": {
-    "primary": "Verify/deploy Web foreground realtime client, wire Android foreground client, then implement FCM background delivery.",
+    "primary": "Verify/build/sign/release Android foreground realtime client, then implement FCM background delivery.",
     "method": "Transactions remain authoritative and commit before best-effort invalidation; reconnect resyncs from server; run CI/deploy/smoke to terminal PASS.",
     "stable_guard": "Do not activate Stable."
   },
@@ -100,6 +109,13 @@
     "owner_decision_requires_ledger_update": true,
     "resource_identifier_change_requires_registry_update": true,
     "handover_current_is_generated_view": true,
-    "future_session_bootstrap": ["AGENTS.md","ops/project-state.json","docs/OWNER_DECISIONS.md","ops/resource-registry.json","docs/handovers/HANDOVER_CURRENT.md","recent commits and relevant live source"]
+    "future_session_bootstrap": [
+      "AGENTS.md",
+      "ops/project-state.json",
+      "docs/OWNER_DECISIONS.md",
+      "ops/resource-registry.json",
+      "docs/handovers/HANDOVER_CURRENT.md",
+      "recent commits and relevant live source"
+    ]
   }
 }

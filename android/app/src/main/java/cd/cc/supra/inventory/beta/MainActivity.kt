@@ -45,6 +45,7 @@ class MainActivity : Activity() {
     private lateinit var skuCache: SkuCatalogCache
     private lateinit var status: TextView
     private lateinit var updateButton: Button
+    private var realtimeClient: AndroidRealtimeClient? = null
 
     private var pendingInstallFile: File? = null
     private var searchRunnable: Runnable? = null
@@ -129,6 +130,8 @@ class MainActivity : Activity() {
     override fun onDestroy() {
         searchRunnable?.let { ui.removeCallbacks(it) }
         ui.removeCallbacks(withdrawTicker)
+        realtimeClient?.stop()
+        realtimeClient = null
         super.onDestroy()
     }
 
@@ -142,6 +145,8 @@ class MainActivity : Activity() {
     }
 
     private fun renderLogin(message: String = "Sẵn sàng đăng nhập Beta.") {
+        realtimeClient?.stop()
+        realtimeClient = null
         withdrawButtons.clear()
         pickerSnapshotReady = false
         pickerStatusSnapshot.clear()
@@ -271,6 +276,8 @@ class MainActivity : Activity() {
                     .setMessage("Phiên làm việc hiện tại sẽ kết thúc.")
                     .setNegativeButton("Huỷ", null)
                     .setPositiveButton("Đăng xuất") { _, _ ->
+                        realtimeClient?.stop()
+                        realtimeClient = null
                         api.clearSession()
                         renderLogin("Đã đăng xuất.")
                     }
@@ -295,6 +302,25 @@ class MainActivity : Activity() {
         }
 
         setContentView(wrapScroll(root))
+        startRealtime(session)
+    }
+
+    private fun startRealtime(session: AppSession) {
+        realtimeClient?.stop()
+        realtimeClient = AndroidRealtimeClient(
+            api = api,
+            baseUrl = BuildConfig.API_BASE_URL.trimEnd('/'),
+        ) { scopes ->
+            runOnUiThread {
+                if (api.session == null || isFinishing) return@runOnUiThread
+                if (session.role == "PICKER") {
+                    if (scopes.contains("picker_reports")) refreshPickerReports()
+                    if (scopes.contains("sku_catalog")) syncSkuCatalog(auto = true)
+                } else if (scopes.contains("reporter_queue") || scopes.contains("reporter_recent")) {
+                    refreshReporterData()
+                }
+            }
+        }.also { it.start() }
     }
 
     private fun renderPicker(root: LinearLayout) {

@@ -111,6 +111,16 @@ class InventoryApi(
         return next
     }
 
+    fun createRealtimeTicket(): String {
+        val payload = request(
+            method = "POST",
+            path = "/api/realtime/ticket",
+            body = JSONObject().put("client_type", "ANDROID"),
+        )
+        return payload.optString("ticket").takeIf { it.isNotBlank() }
+            ?: throw IllegalStateException("Service không cấp được realtime ticket.")
+    }
+
     fun getCatalogInfo(): CatalogInfo {
         val payload = request("GET", "/api/skus/catalog-info")
         return CatalogInfo(
