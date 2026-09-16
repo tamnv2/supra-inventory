@@ -20,6 +20,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Verify Firebase config
+        env:
+          FIREBASE_WEB_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA }}
+        run: |
+          set -euo pipefail
+          [ -n "${FIREBASE_WEB_API_KEY_BETA:-}" ] || { echo "FIREBASE_WEB_API_KEY_BETA is missing"; exit 1; }
+          [ "${#FIREBASE_WEB_API_KEY_BETA}" -ge 20 ] || { echo "FIREBASE_WEB_API_KEY_BETA looks invalid"; exit 1; }
+          echo "Firebase config presence PASS"
       - name: Install Web dependencies
         working-directory: web
         run: npm install --ignore-scripts --no-audit --no-fund
@@ -45,6 +53,14 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "9.6.0"
+      - name: Verify Firebase config
+        env:
+          FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA }}
+        run: |
+          set -euo pipefail
+          [ -n "${FIREBASE_API_KEY_BETA:-}" ] || { echo "FIREBASE_WEB_API_KEY_BETA is missing"; exit 1; }
+          [ "${#FIREBASE_API_KEY_BETA}" -ge 20 ] || { echo "FIREBASE_WEB_API_KEY_BETA looks invalid"; exit 1; }
+          echo "Firebase config presence PASS"
       - name: Assemble Beta debug APK
         env:
           FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA }}
