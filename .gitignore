@@ -1,0 +1,36 @@
+# Secrets / credentials
+*.pem
+*.p12
+*.jks
+*.keystore
+*service-account*.json
+*runtime*.json
+.env
+.env.*
+!.env.example
+
+# Firebase generated/config files kept local until source bootstrap policy is finalized
+**/google-services.json
+**/firebase-config.local.*
+
+# Node / Cloudflare
+node_modules/
+.wrangler/
+dist/
+coverage/
+
+# Android / Gradle
+.gradle/
+**/build/
+local.properties
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Logs / temp
+*.log
+*.tmp
+*.bak
