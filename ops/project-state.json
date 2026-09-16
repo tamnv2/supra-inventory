@@ -19,7 +19,7 @@
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 3,
     "business_api": "IMPLEMENTED_AND_DEPLOYED_BETA",
-    "web": "LIVE_BUILD_AND_SMOKE_PASS_WITH_ADMIN_SKU_IMPORT_FOUNDATION",
+    "web": "50K_SKU_IMPORT_SOURCE_UPDATE_PENDING_CI_DEPLOY",
     "android": "BUILD_PASS_SIGNED_OTA_FOUNDATION",
     "network_scope": "PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_BY_OWNER_DECISION"
   },
@@ -44,7 +44,8 @@
     "Operational authority is Worker + InventoryCore SQLite; Google Sheets is not a competing primary transaction store.",
     "HR source is configured by Admin/Root using Google Sheet URL + exact tab name and is saved only after backend validation.",
     "Detailed operational retention target is about 60 days; unresolved items survive retention until resolved; long-term archive is batched to Drive/Sheets.",
-    "Foreground realtime uses WebSocket; background notification uses FCM; client reload is not synchronization logic."
+    "Foreground realtime uses WebSocket; background notification uses FCM; client reload is not synchronization logic.",
+    "SKU Excel imports must support 10,000-50,000 rows, use bounded idempotent chunks, merge identical duplicate rows, require an explicit choice for conflicting names inside the file, retain old SKUs absent from a later file, and require confirmation before renaming an existing SKU."
   ],
   "completed_capabilities": [
     "Cloudflare Beta Worker/custom domain/InventoryCore SQLite provisioning",
@@ -69,11 +70,12 @@
     "Final network decision: PDA runtime supported; Office network unsupported"
   ],
   "pending_build": [
+    "Verify and deploy 10k-50k SKU import source changes: chunked preview/apply, in-file conflict choice, existing-name confirmation, retry idempotency",
+    "Complete role-specific Web product UI for Reporter/Admin/Root instead of foundation-only cards",
+    "Complete Android Picker/Reporter product UI instead of login/update skeleton",
     "WebSocket realtime protocol and presence handling",
     "FCM device registration and delivery flows",
     "User management and HR provisioning/sync lifecycle",
-    "Android Picker report UI",
-    "Android Reporter queue/resolve/correct UI",
     "Backup/archive executor with checkpoint/retry/retention safety",
     "Reporting/export UI and APIs",
     "Load/resilience/quota testing",
@@ -91,7 +93,7 @@
     "Any new offline-create-report behavior; do not add direct-to-Sheet fallback unless Owner explicitly approves it."
   ],
   "next_action": {
-    "primary": "Implement Beta WebSocket realtime protocol and presence on InventoryCore, then FCM delivery, then Android Picker/Reporter business UI.",
+    "primary": "Verify/deploy large SKU import changes, then build the previously approved role-specific Web and Android flows, followed by WebSocket realtime/presence and FCM.",
     "method": "Fresh-read live source first; keep server authority; commit small reversible changes; run CI/deploy/smoke and continue to terminal PASS.",
     "stable_guard": "Do not activate Stable."
   },

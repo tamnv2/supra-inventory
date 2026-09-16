@@ -19,14 +19,23 @@ export interface SkuItem {
   updated_at?: string;
 }
 
-export interface SkuImportResult {
+export interface SkuNameChangeConflict {
+  sku: string;
+  current_product_name: string;
+  incoming_product_name: string;
+}
+
+export interface SkuImportChunkResult {
   status: string;
   total: number;
   inserted: number;
   updated: number;
   unchanged: number;
   source_hash: string | null;
-  imported_at: string;
+  imported_at?: string;
+  conflict_count?: number;
+  requires_confirmation?: boolean;
+  conflicts?: SkuNameChangeConflict[];
   idempotent_replay?: boolean;
 }
 
@@ -188,10 +197,24 @@ export async function saveHrSource(sheetUrl: string, tabName: string): Promise<u
   }));
 }
 
-export async function importSkuItems(items: SkuItem[]): Promise<SkuImportResult> {
+export async function importSkuChunk(
+  items: SkuItem[],
+  options: {
+    requestId: string;
+    sourceHash: string;
+    dryRun?: boolean;
+    confirmNameChanges?: boolean;
+  },
+): Promise<SkuImportChunkResult> {
   return readJson(await authorizedFetch("/api/admin/skus/import", {
     method: "POST",
-    body: JSON.stringify({ request_id: crypto.randomUUID(), items }),
+    body: JSON.stringify({
+      request_id: options.requestId,
+      source_hash: options.sourceHash,
+      dry_run: Boolean(options.dryRun),
+      confirm_name_changes: Boolean(options.confirmNameChanges),
+      items,
+    }),
   }));
 }
 

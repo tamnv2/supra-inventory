@@ -111,8 +111,9 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv): Pro
     const user = await requireUser(request, env, ["ADMIN", "ROOT"]);
     const body = await parseObjectBody(request);
     const items = Array.isArray(body.items) ? body.items : [];
-    const sourceHash = await sha256Hex(JSON.stringify(items));
-    return corePost(env, "/business/skus/import", { ...body, source_hash: sourceHash, actor: actor(user) });
+    const suppliedHash = String(body.source_hash || "").trim();
+    const sourceHash = suppliedHash || (await sha256Hex(JSON.stringify(items)));
+    return corePost(env, "/business/skus/import-v2", { ...body, source_hash: sourceHash, actor: actor(user) });
   }
 
   if (key === "GET /api/skus") {

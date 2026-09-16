@@ -1,4 +1,5 @@
 import { handleBusinessRequest, initializeBusinessSchema } from "./business-core";
+import { handleSkuImportCoreRequest } from "./sku-import-core";
 
 const SCHEMA_VERSION = 3;
 
@@ -337,6 +338,9 @@ export class InventoryCore {
       );
       return response({ status: "saved" });
     }
+
+    const skuImport = await handleSkuImportCoreRequest(this.state, request);
+    if (skuImport) return skuImport;
 
     const business = await handleBusinessRequest(this.state, request);
     if (business) return business;

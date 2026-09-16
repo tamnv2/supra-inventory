@@ -1,12 +1,25 @@
-import { readSheet } from "read-excel-file/universal";
+import { readSheet } from "read-excel-file/browser";
 
 export interface ParsedSkuItem {
   sku: string;
   product_name: string;
 }
 
+export interface ParsedSkuConflictCandidate {
+  product_name: string;
+  rows: number[];
+}
+
+export interface ParsedSkuConflict {
+  sku: string;
+  candidates: ParsedSkuConflictCandidate[];
+}
+
 export interface ParsedSkuWorkbook {
   items: ParsedSkuItem[];
+  conflicts: ParsedSkuConflict[];
+  source_hash: string;
+  total_data_rows: number;
   header_row: number;
   sku_header: string;
   product_name_header: string;
@@ -14,11 +27,18 @@ export interface ParsedSkuWorkbook {
   merged_duplicate_rows: number;
 }
 
-const MAX_ROWS = 5000;
+const MAX_DATA_ROWS = 50_000;
+const MAX_FILE_BYTES = 50 * 1024 * 1024;
 const HEADER_SCAN_ROWS = 20;
 
 function text(value: unknown): string {
   if (value instanceof Date) return value.toISOString();
+  if (typeof value === "number") {
+    if (Number.isInteger(value) && !Number.isSafeInteger(value)) {
+      throw new Error("SKU dạng số vượt giới hạn chính xác của trình duyệt. Hãy định dạng cột SKU thành Text trong Excel rồi tải lại.");
+    }
+    return String(value);
+  }
   return String(value ?? "").trim();
 }
 
@@ -51,50 +71,95 @@ function findHeader(rows: unknown[][]): { rowIndex: number; skuIndex: number; na
   return null;
 }
 
+async function sha256File(file: File): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
 export async function parseSkuExcel(file: File): Promise<ParsedSkuWorkbook> {
   if (!file.name.toLowerCase().endsWith(".xlsx")) throw new Error("Chỉ hỗ trợ file Excel .xlsx.");
-  if (file.size > 15 * 1024 * 1024) throw new Error("File Excel vượt quá 15 MB.");
+  if (file.size > MAX_FILE_BYTES) throw new Error("File Excel vượt quá 50 MB. Hãy tách file hoặc loại các cột không phục vụ SKU/Tên sản phẩm.");
 
-  const rows = (await readSheet(file)) as unknown[][];
+  const [rows, sourceHash] = await Promise.all([readSheet(file) as Promise<unknown[][]>, sha256File(file)]);
   if (!rows.length) throw new Error("File Excel không có dữ liệu.");
 
   const header = findHeader(rows);
   if (!header) throw new Error("Không tìm thấy đủ cột SKU và Tên sản phẩm trong 20 dòng đầu.");
 
-  const bySku = new Map<string, { product_name: string; firstRow: number }>();
+  const variants = new Map<string, Map<string, number[]>>();
+  const invalidRows: string[] = [];
   let skippedBlankRows = 0;
-  let mergedDuplicateRows = 0;
-  let validDataRows = 0;
+  let totalDataRows = 0;
 
   for (let rowIndex = header.rowIndex + 1; rowIndex < rows.length; rowIndex += 1) {
-    const sku = text(rows[rowIndex][header.skuIndex]);
-    const productName = text(rows[rowIndex][header.nameIndex]).replace(/\s+/g, " ");
+    let sku = "";
+    let productName = "";
+    try {
+      sku = text(rows[rowIndex][header.skuIndex]);
+      productName = text(rows[rowIndex][header.nameIndex]).replace(/\s+/g, " ");
+    } catch (error) {
+      invalidRows.push(`Dòng ${rowIndex + 1}: ${error instanceof Error ? error.message : "SKU không hợp lệ"}`);
+      continue;
+    }
     if (!sku && !productName) {
       skippedBlankRows += 1;
       continue;
     }
-    validDataRows += 1;
-    if (validDataRows > MAX_ROWS) throw new Error(`File vượt quá ${MAX_ROWS} dòng dữ liệu cho một lần nhập.`);
-    if (!sku || !productName) throw new Error(`Dòng ${rowIndex + 1} thiếu SKU hoặc Tên sản phẩm.`);
-    if (sku.length > 128) throw new Error(`Dòng ${rowIndex + 1}: SKU quá dài.`);
-    if (productName.length > 500) throw new Error(`Dòng ${rowIndex + 1}: Tên sản phẩm quá dài.`);
-
-    const previous = bySku.get(sku);
-    if (!previous) {
-      bySku.set(sku, { product_name: productName, firstRow: rowIndex + 1 });
+    totalDataRows += 1;
+    if (totalDataRows > MAX_DATA_ROWS) {
+      throw new Error(`File vượt quá ${MAX_DATA_ROWS.toLocaleString("vi-VN")} dòng dữ liệu. Giới hạn này bảo vệ trình duyệt; file 10.000–50.000 dòng được hỗ trợ.`);
+    }
+    if (!sku || !productName) {
+      invalidRows.push(`Dòng ${rowIndex + 1}: thiếu ${!sku ? "SKU" : "Tên sản phẩm"}.`);
       continue;
     }
-    if (previous.product_name !== productName) {
-      throw new Error(`SKU ${sku} có nhiều tên khác nhau tại dòng ${previous.firstRow} và ${rowIndex + 1}. Hãy xử lý xung đột trước khi nhập.`);
+    if (sku.length > 128) {
+      invalidRows.push(`Dòng ${rowIndex + 1}: SKU quá dài.`);
+      continue;
     }
-    mergedDuplicateRows += 1;
+    if (productName.length > 500) {
+      invalidRows.push(`Dòng ${rowIndex + 1}: Tên sản phẩm quá dài.`);
+      continue;
+    }
+
+    let names = variants.get(sku);
+    if (!names) {
+      names = new Map<string, number[]>();
+      variants.set(sku, names);
+    }
+    const rowNumbers = names.get(productName) || [];
+    rowNumbers.push(rowIndex + 1);
+    names.set(productName, rowNumbers);
   }
 
-  const items = [...bySku.entries()].map(([sku, value]) => ({ sku, product_name: value.product_name }));
-  if (!items.length) throw new Error("Không có SKU hợp lệ sau dòng tiêu đề.");
+  if (invalidRows.length) {
+    const sample = invalidRows.slice(0, 100).join("\n");
+    const suffix = invalidRows.length > 100 ? `\n... còn ${invalidRows.length - 100} dòng lỗi khác.` : "";
+    throw new Error(`Có ${invalidRows.length} dòng dữ liệu không hợp lệ:\n${sample}${suffix}`);
+  }
+
+  const items: ParsedSkuItem[] = [];
+  const conflicts: ParsedSkuConflict[] = [];
+  let mergedDuplicateRows = 0;
+
+  for (const [sku, names] of variants) {
+    const candidates = [...names.entries()].map(([product_name, rowNumbers]) => ({ product_name, rows: rowNumbers }));
+    const totalOccurrences = candidates.reduce((sum, candidate) => sum + candidate.rows.length, 0);
+    mergedDuplicateRows += Math.max(0, totalOccurrences - candidates.length);
+    if (candidates.length === 1) {
+      items.push({ sku, product_name: candidates[0].product_name });
+    } else {
+      conflicts.push({ sku, candidates });
+    }
+  }
+
+  if (!items.length && !conflicts.length) throw new Error("Không có SKU hợp lệ sau dòng tiêu đề.");
 
   return {
     items,
+    conflicts,
+    source_hash: sourceHash,
+    total_data_rows: totalDataRows,
     header_row: header.rowIndex + 1,
     sku_header: text(rows[header.rowIndex][header.skuIndex]),
     product_name_header: text(rows[header.rowIndex][header.nameIndex]),
