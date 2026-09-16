@@ -1,0 +1,112 @@
+name: Apply Concept 3 Admin Reporting Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/apply-concept3-admin-reporting.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    environment: beta
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Apply archive reconcile + Concept 3 admin reporting
+        run: |
+          set -euo pipefail
+          python3 tools/apply_concept3_admin_reporting.py
+          git diff --check
+          python3 tools/project_state_guard.py
+
+      - name: Build Web assets
+        working-directory: web
+        env:
+          VITE_API_BASE_URL: https://inventory-beta.supra.cc.cd
+          VITE_FIREBASE_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+          VITE_FIREBASE_AUTH_DOMAIN: supra-inventory-beta.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID: supra-inventory-beta
+          VITE_FIREBASE_APP_ID: 1:572322098890:web:96459cf386b3fb6f400e33
+          VITE_FIREBASE_MESSAGING_SENDER_ID: "572322098890"
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run build
+
+      - name: Typecheck service
+        working-directory: service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+
+      - name: Deploy Beta
+        working-directory: service
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+          FIREBASE_WEB_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+        run: npx --yes wrangler@4 deploy --config wrangler.beta.toml --keep-vars --var "FIREBASE_WEB_API_KEY:${FIREBASE_WEB_API_KEY}"
+
+      - name: Smoke schema routes and auth guards
+        env:
+          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+
+          for attempt in $(seq 1 18); do
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}/health" || true)"
+            status="$(jq -r '.status // empty' "$tmp" 2>/dev/null || true)"
+            schema="$(jq -r '.storage.schema_version // 0' "$tmp" 2>/dev/null || true)"
+            expected="$(jq -r '.storage.expected_schema_version // 0' "$tmp" 2>/dev/null || true)"
+            [ "$code" = "200" ] && [ "$status" = "ok" ] && [ "$schema" = "4" ] && [ "$expected" = "4" ] && break
+            [ "$attempt" -ge 18 ] || sleep 5
+          done
+          [ "$code" = "200" ] && [ "$status" = "ok" ] && [ "$schema" = "4" ] && [ "$expected" = "4" ] || { echo "Schema v4 health failed"; cat "$tmp"; exit 1; }
+
+          check_guard() {
+            method="$1"
+            path="$2"
+            body="${3:-}"
+            ok=0
+            for attempt in $(seq 1 18); do
+              if [ "$method" = "POST" ]; then
+                code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' -X POST "https://${BETA_HOSTNAME}${path}" -H 'content-type: application/json' --data "$body" || true)"
+              else
+                code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}${path}" || true)"
+              fi
+              error="$(jq -r '.error // empty' "$tmp" 2>/dev/null || true)"
+              if [ "$code" = "401" ] && [ "$error" = "AUTH_REQUIRED" ]; then ok=1; break; fi
+              [ "$attempt" -ge 18 ] || sleep 5
+            done
+            [ "$ok" = "1" ] || { echo "Auth guard failed for ${method} ${path}: HTTP ${code}"; cat "$tmp"; exit 1; }
+          }
+
+          check_guard GET "/api/admin/archive/status"
+          check_guard POST "/api/admin/archive/run" '{}'
+          check_guard GET "/api/admin/dashboard?from=2026-09-10T17:00:00.000Z&to=2026-09-17T17:00:00.000Z"
+          check_guard GET "/api/admin/reporting?from=2026-09-10T17:00:00.000Z&to=2026-09-17T17:00:00.000Z&limit=100&offset=0"
+          echo "Schema v4 + archive + admin dashboard/reporting guards PASS"
+
+      - name: Commit canonical deployed source
+        run: |
+          set -euo pipefail
+          python3 tools/project_state_guard.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/apply-concept3-admin-reporting.yml tools/apply_concept3_admin_reporting.py .github/workflows/apply-archive-once.yml || true
+          git add service/src service/wrangler.beta.toml web/src ops/project-state.json ops/resource-registry.json docs/OWNER_DECISIONS.md tools/apply_archive_retention.py
+          git commit -m "feat(admin): ship Concept 3 dashboard reporting and archive reconcile"
+          git push origin HEAD:main
