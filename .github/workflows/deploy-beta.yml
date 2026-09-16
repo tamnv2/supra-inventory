@@ -29,6 +29,32 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Cloudflare token preflight
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          check_endpoint() {
+            label="$1"
+            url="$2"
+            tmp="$(mktemp)"
+            code="$(curl -sS -o "$tmp" -w '%{http_code}' \
+              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              -H 'Content-Type: application/json' \
+              "$url")"
+            success="$(jq -r '.success // false' "$tmp" 2>/dev/null || echo false)"
+            err_code="$(jq -r '.errors[0].code // empty' "$tmp" 2>/dev/null || true)"
+            err_msg="$(jq -r '.errors[0].message // empty' "$tmp" 2>/dev/null || true)"
+            echo "$label: http=$code success=$success error_code=${err_code:-none} error_message=${err_msg:-none}"
+            rm -f "$tmp"
+          }
+
+          check_endpoint "script-api" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/supra-inventory-beta"
+          check_endpoint "service-api" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/services/supra-inventory-beta"
+
       - name: Upload Beta Worker version
         working-directory: service
         env:
