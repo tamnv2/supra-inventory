@@ -162,12 +162,12 @@
       "web_source_status": "ROLE_BASED_REPORTER_ADMIN_UI_DEPLOYED_PASS",
       "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
       "web_admin_report_monitoring": "ROLE_BASED_OPERATIONS_UI_DEPLOYED_PASS",
-      "android_source_status": "ROLE_BASED_PICKER_REPORTER_REALTIME_SIGNED_OTA_PASS",
+      "android_source_status": "ROLE_BASED_PICKER_REPORTER_REALTIME_FCM_SIGNED_OTA_PASS",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
-      "latest_signed_beta_release": "beta-vc25",
-      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.25",
-      "latest_signed_beta_apk_sha256": "fa2126078e0fc6776292ae71f2028ff55ae4059ac908faec869eb4e09a9b97a4",
+      "latest_signed_beta_release": "beta-vc27",
+      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.27",
+      "latest_signed_beta_apk_sha256": "59409e9086b0dcf0a04c3a36a360004d50a4aff05a68265b86baf4b6213b4dc4",
       "latest_signed_beta_apk_size_bytes": 9149854,
       "auth_rbac_status": "IMPLEMENTED_RUNTIME_READY",
       "auth_api_route_smoke": "PASS",
@@ -235,10 +235,11 @@
     "android_picker_role_ui_with_local_sku_cache",
     "android_reporter_admin_root_operations_ui",
     "web_foreground_realtime_client",
-    "android_foreground_realtime_client"
+    "android_foreground_realtime_client",
+    "fcm_device_and_delivery_flows_foundation"
   ],
   "application_build_pending": [
-    "fcm_device_and_delivery_flows_verify",
+    "fcm_physical_device_delivery_acceptance",
     "user_management_and_hr_provisioning",
     "backup_archive_execution",
     "reporting_and_exports",
@@ -257,6 +258,6 @@
     "device_registry": "InventoryCore.fcm_devices",
     "routing": "ROLE_OR_USER_BATCH_TARGETS",
     "delivery_semantics": "BEST_EFFORT_AFTER_COMMITTED_TRANSACTION",
-    "source_status": "PENDING_CI_DEPLOY"
+    "source_status": "DEPLOYED_BUILD_PASS_FIELD_DELIVERY_PENDING"
   }
 }
