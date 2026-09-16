@@ -14,6 +14,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.math.min
 
+// Foreground realtime invalidation client. Authoritative data is always re-read from the API after an event.
 class AndroidRealtimeClient(
     private val api: InventoryApi,
     private val baseUrl: String,
