@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "project": {
+    "key": "supra-inventory",
+    "display_name": "SUPRA Inventory — Báo hàng",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "repository": "tamnv2/supra-inventory",
+    "repository_id": 1372407002
+  },
+  "organization": {
+    "google_organization_id": "215296023899",
+    "service_account_key_policy": {
+      "constraint": "iam.disableServiceAccountKeyCreation",
+      "default_enforced": true,
+      "exception_tag_key": "disableServiceAccountKeyCreation",
+      "inventory_tag_value": "not_enforced"
+    }
+  },
+  "cloudflare": {
+    "zone": "supra.cc.cd",
+    "account_id_source": "github_variable:CF_ACCOUNT_ID",
+    "zone_id_source": "github_variable:CF_ZONE_ID"
+  },
+  "drive": {
+    "root": {
+      "name": "Inventory",
+      "folder_id": "1aNt8PULfMvJC8CKKbQyf5suLPtGo2PRF"
+    },
+    "beta": {
+      "name": "Inventory/Beta",
+      "folder_id": "1J5bQDqPoQcEPkYIk41x7t-9Nz_HaSnMC"
+    },
+    "stable": {
+      "name": "Inventory/Stable",
+      "folder_id": "1T6723_2ILNsS2GcvCHGSY5ZenkAj0VYN"
+    }
+  },
+  "environments": {
+    "beta": {
+      "status": "INFRA_SETUP_IN_PROGRESS",
+      "gcp_project_id": "supra-inventory-beta",
+      "gcp_project_number": "572322098890",
+      "worker_name": "supra-inventory-beta",
+      "hostname": "inventory-beta.supra.cc.cd",
+      "runtime_service_account": "inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com",
+      "android_package": "cd.cc.supra.inventory.beta",
+      "firebase_android_app_id": "1:572322098890:android:3e483937876cbcc0400e33",
+      "firebase_web_app_id": "1:572322098890:web:96459cf386b3fb6f400e33",
+      "oauth_client_name": "inventory-beta-drive",
+      "oauth_redirect_uri": "https://inventory-beta.supra.cc.cd/api/oauth/google/callback",
+      "oauth_scope": "https://www.googleapis.com/auth/drive.file",
+      "cloudflare_runtime_secret": "GOOGLE_RUNTIME_SA_JSON",
+      "cloudflare_oauth_client_id_variable": "GOOGLE_DRIVE_OAUTH_CLIENT_ID",
+      "cloudflare_oauth_client_secret": "GOOGLE_DRIVE_OAUTH_CLIENT_SECRET",
+      "cloudflare_oauth_redirect_uri_variable": "GOOGLE_DRIVE_OAUTH_REDIRECT_URI",
+      "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA"
+    },
+    "stable": {
+      "status": "READY_NOT_LIVE_PENDING_BUILD",
+      "gcp_project_id": "supra-inventory-stable",
+      "gcp_project_number": "1004520166836",
+      "worker_name": "supra-inventory-stable",
+      "hostname": "inventory.supra.cc.cd",
+      "runtime_service_account": "inventory-stable-runtime@supra-inventory-stable.iam.gserviceaccount.com",
+      "android_package": "cd.cc.supra.inventory",
+      "firebase_android_app_id": "1:1004520166836:android:70b94fef019c46450fcee1",
+      "firebase_web_app_id": "1:1004520166836:web:36bd435a9a3a3c650fcee1",
+      "oauth_client_name": "inventory-stable-drive",
+      "oauth_redirect_uri": "https://inventory.supra.cc.cd/api/oauth/google/callback",
+      "oauth_scope": "https://www.googleapis.com/auth/drive.file",
+      "cloudflare_runtime_secret": "GOOGLE_RUNTIME_SA_JSON",
+      "cloudflare_oauth_client_id_variable": "GOOGLE_DRIVE_OAUTH_CLIENT_ID",
+      "cloudflare_oauth_client_secret": "GOOGLE_DRIVE_OAUTH_CLIENT_SECRET",
+      "cloudflare_oauth_redirect_uri_variable": "GOOGLE_DRIVE_OAUTH_REDIRECT_URI",
+      "deployment": "OWNER_GATED_NO_AUTOMATIC_STABLE_DEPLOY"
+    }
+  },
+  "github_variables": [
+    "PROJECT_KEY",
+    "CF_ACCOUNT_ID",
+    "CF_ZONE_ID",
+    "CF_WORKER_BETA",
+    "CF_WORKER_STABLE",
+    "BETA_HOSTNAME",
+    "STABLE_HOSTNAME"
+  ],
+  "pending": [
+    "oauth_refresh_tokens_after_callback_endpoint_exists",
+    "hr_sheet_source",
+    "durable_objects_and_sqlite_schema",
+    "android_and_web_source_bootstrap",
+    "apk_signing",
+    "root_and_application_users",
+    "beta_custom_domain_after_health_check",
+    "stable_release_owner_acceptance"
+  ]
+}
