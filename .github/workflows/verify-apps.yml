@@ -67,3 +67,10 @@ jobs:
         env:
           FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
         run: gradle -p android :app:assembleDebug --no-daemon
+      - name: Publish Beta APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supra-inventory-beta-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
