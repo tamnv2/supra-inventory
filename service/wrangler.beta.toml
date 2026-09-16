@@ -1,0 +1,9 @@
+name = "supra-inventory-beta"
+main = "src/index.ts"
+compatibility_date = "2026-09-16"
+workers_dev = true
+keep_vars = true
+
+[vars]
+APP_ENV = "beta"
+PROJECT_KEY = "supra-inventory"
