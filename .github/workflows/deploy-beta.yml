@@ -44,15 +44,20 @@ jobs:
               -H 'Content-Type: application/json' \
               "$url")"
             success="$(jq -r '.success // false' "$tmp" 2>/dev/null || echo false)"
+            status="$(jq -r '.result.status // empty' "$tmp" 2>/dev/null || true)"
             err_code="$(jq -r '.errors[0].code // empty' "$tmp" 2>/dev/null || true)"
             err_msg="$(jq -r '.errors[0].message // empty' "$tmp" 2>/dev/null || true)"
-            echo "$label: http=$code success=$success error_code=${err_code:-none} error_message=${err_msg:-none}"
+            echo "$label: http=$code success=$success status=${status:-n/a} error_code=${err_code:-none} error_message=${err_msg:-none}"
             rm -f "$tmp"
           }
 
-          check_endpoint "script-api" \
+          check_endpoint "token-verify" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/tokens/verify"
+          check_endpoint "beta-script-api" \
             "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/supra-inventory-beta"
-          check_endpoint "service-api" \
+          check_endpoint "stable-script-api" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/supra-inventory-stable"
+          check_endpoint "beta-service-api" \
             "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/services/supra-inventory-beta"
 
       - name: Upload Beta Worker version
