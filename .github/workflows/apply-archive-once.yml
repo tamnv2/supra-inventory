@@ -1,0 +1,113 @@
+name: Apply Archive Retention Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/apply-archive-once.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    environment: beta
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Apply archive retention patch
+        run: |
+          set -euo pipefail
+          python3 tools/apply_archive_retention.py
+          git diff --check
+          python3 tools/project_state_guard.py
+
+      - name: Build Web assets
+        working-directory: web
+        env:
+          VITE_API_BASE_URL: https://inventory-beta.supra.cc.cd
+          VITE_FIREBASE_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+          VITE_FIREBASE_AUTH_DOMAIN: supra-inventory-beta.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID: supra-inventory-beta
+          VITE_FIREBASE_APP_ID: 1:572322098890:web:96459cf386b3fb6f400e33
+          VITE_FIREBASE_MESSAGING_SENDER_ID: "572322098890"
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run build
+
+      - name: Typecheck service
+        working-directory: service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+
+      - name: Deploy archive retention to Beta
+        working-directory: service
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+          FIREBASE_WEB_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+        run: npx --yes wrangler@4 deploy --config wrangler.beta.toml --keep-vars --var "FIREBASE_WEB_API_KEY:${FIREBASE_WEB_API_KEY}"
+
+      - name: Smoke schema v4 and archive auth guard
+        env:
+          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          for attempt in $(seq 1 12); do
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}/health" || true)"
+            status="$(jq -r '.status // empty' "$tmp" 2>/dev/null || true)"
+            schema="$(jq -r '.storage.schema_version // 0' "$tmp" 2>/dev/null || true)"
+            expected="$(jq -r '.storage.expected_schema_version // 0' "$tmp" 2>/dev/null || true)"
+            [ "$code" = "200" ] && [ "$status" = "ok" ] && [ "$schema" = "4" ] && [ "$expected" = "4" ] && break
+            [ "$attempt" -ge 12 ] || sleep 5
+          done
+          [ "$code" = "200" ] && [ "$status" = "ok" ] && [ "$schema" = "4" ] && [ "$expected" = "4" ] || { echo "Schema v4 health failed"; cat "$tmp"; exit 1; }
+
+          code="$(curl -sS -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}/api/admin/archive/status")"
+          [ "$code" = "401" ] && jq -e '.error == "AUTH_REQUIRED"' "$tmp" >/dev/null || { echo "Archive status auth guard failed"; cat "$tmp"; exit 1; }
+          code="$(curl -sS -o "$tmp" -w '%{http_code}' -X POST "https://${BETA_HOSTNAME}/api/admin/archive/run" -H 'content-type: application/json' --data '{}')"
+          [ "$code" = "401" ] && jq -e '.error == "AUTH_REQUIRED"' "$tmp" >/dev/null || { echo "Archive run auth guard failed"; cat "$tmp"; exit 1; }
+          echo "Archive schema + guards PASS"
+
+      - name: Finalize state and commit deployed source
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('ops/project-state.json')
+          state = json.loads(p.read_text(encoding='utf-8'))
+          state['current_status']['archive'] = 'IDEMPOTENT_SHEET_ARCHIVE_AND_SAFE_60D_RETENTION_BETA_DEPLOY_PASS'
+          line = 'Archive/retention executor: fixed-range Google Sheet archive + SQLite markers/checkpoint + cleanup only archived final batches older than 60 days — Beta deploy/schema v4 PASS'
+          if line not in state['completed_capabilities']: state['completed_capabilities'].append(line)
+          state['pending_build'] = [x for x in state['pending_build'] if 'Verify/deploy archive executor' not in x]
+          state['next_action']['primary'] = 'Implement reporting/export UI and APIs, then load/resilience/quota testing and Owner business acceptance.'
+          p.write_text(json.dumps(state, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+          p = Path('ops/resource-registry.json')
+          registry = json.loads(p.read_text(encoding='utf-8'))
+          registry['archive']['source_status'] = 'BETA_DEPLOY_SCHEMA_V4_PASS'
+          built = registry['application_build_completed']
+          if 'backup_archive_execution' not in built: built.append('backup_archive_execution')
+          registry['application_build_pending'] = [x for x in registry['application_build_pending'] if x != 'backup_archive_execution_verify']
+          p.write_text(json.dumps(registry, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          PY
+          python3 tools/project_state_guard.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/apply-archive-once.yml
+          git add service/src service/wrangler.beta.toml ops/project-state.json ops/resource-registry.json tools/apply_archive_retention.py
+          git commit -m "feat(archive): deploy idempotent archive and safe retention"
+          git push origin HEAD:main
