@@ -2,54 +2,59 @@
 
 Status date: 2026-09-16
 
-This document records infrastructure readiness only. It does not authorize a Stable release.
+This document records current Beta readiness. It does not authorize or modify Stable.
 
-## Beta — ready for application build
+## Beta — application foundation ready for Owner test
 
 - Cloudflare Worker: `supra-inventory-beta`
 - Custom domain: `inventory-beta.supra.cc.cd`
 - Durable Object binding: `INVENTORY_CORE`
 - Durable Object class: `InventoryCore`
 - Storage backend: SQLite
-- Schema version: `1`
-- CI gate verifies TypeScript, Cloudflare token, deploy, SQLite schema health, required runtime bindings, and Google OAuth start.
+- Beta schema version: `2`
+- CI verifies Firebase client configuration, TypeScript, Cloudflare token, deploy, required runtime bindings, Root bootstrap secret presence, SQLite schema health, Web shell and Google OAuth start.
 - Google runtime service-account credential is stored only as a Cloudflare secret.
 - Google Drive OAuth client secret and refresh token are stored only as Cloudflare secrets.
-- Firebase Android and Web apps are registered for Beta.
-- Google Drive API is enabled.
+- Firebase Android and Web apps are registered and their Beta client API key is wired into Web/Android builds without committing it into source.
+- Web Beta builds and serves successfully from the custom domain.
+- Android Beta package `cd.cc.supra.inventory.beta` builds successfully.
+- CI publishes the debug APK as artifact `supra-inventory-beta-apk` with 7-day retention.
+- Root bootstrap secret is configured in Cloudflare. The Root password hash is initialized lazily on first login and only PBKDF2-SHA256 derived material is stored in SQLite; Root can change the password from the authenticated UI.
 
 ## Stable — configuration prepared, not provisioned/live
 
-Stable source/config is prepared with the same `InventoryCore` + SQLite topology, but Stable remains Owner-gated. No CI job deploys Stable and the repository script intentionally blocks Stable deployment.
+Stable remains Owner-gated and has not been deployed, provisioned for traffic, or modified by the Beta test work. No CI job deploys Stable and the repository script intentionally blocks Stable deployment.
 
-Before a future Stable release, the Owner must explicitly authorize deployment and the Stable Google Drive refresh token must be configured. The first authorized Stable deploy will provision its separate Durable Object namespace and SQLite storage.
+Before a future Stable release, the Owner must explicitly authorize deployment and complete the Stable-only runtime setup required at that time.
 
 ## HR Sheet source
 
-HR Sheet is intentionally **not** a fixed infrastructure resource.
+HR source remains an Admin/Root-configured application setting rather than a hard-coded source.
 
-The Admin/Root web UI will accept:
+The Web Admin/Root UI accepts:
 
 1. Google Sheet URL.
 2. Exact tab name.
 
-Backend validation contract is already implemented in `service/src/hr-source.ts`:
+The backend validates:
 
-- URL must be a valid `docs.google.com/spreadsheets/d/<id>` link.
-- Runtime service account must be able to read the Sheet.
-- Exact tab name must exist.
-- Header area must contain `MNV` and `Họ tên` (accepted normalized equivalents are handled by the validator).
-- Verified source metadata is stored in `InventoryCore` SQLite, not in source code.
+- URL is a valid `docs.google.com/spreadsheets/d/<id>` link;
+- runtime service account can read the Sheet;
+- exact tab name exists;
+- header area contains `MNV` and `Họ tên` or accepted normalized equivalents.
 
-The public Worker does not expose an unauthenticated HR setup endpoint. The Web build must call this validator only behind Admin/Root authorization.
+Verified source metadata is stored in `InventoryCore` SQLite. There is no unauthenticated public HR setup endpoint.
 
-## SQLite schema baseline
+For Beta test preparation, the test HR Sheet contains 500 generated employees and the Beta runtime service account has confirmed Reader access. The actual source selection is still saved only through authenticated Admin/Root setup.
 
-Schema v1 prepares storage for:
+## SQLite schema v2 baseline
+
+Schema v2 currently covers:
 
 - application configuration;
 - HR source configuration;
 - application users and roles (`PICKER`, `REPORTER`, `ADMIN`, `ROOT`);
+- password salt/hash/change timestamp fields for server-authoritative application login;
 - SKU master;
 - report tickets;
 - grouped processing batches;
@@ -67,30 +72,36 @@ Business invariants prepared at schema level include:
 - role/status constraints;
 - no location/bin inventory model.
 
-## Application build contracts
+## Authentication and client baseline
 
-Web and Android should now target only the environment-specific Worker API:
+The Beta authentication path is:
 
-- Beta: `https://inventory-beta.supra.cc.cd`
-- Stable: `https://inventory.supra.cc.cd` (do not use until Stable release authorization)
+`username/password → Beta Worker → server-side credential verification → Firebase custom token → Firebase client session`
 
-Application code must not contain Google private keys, OAuth client secrets, refresh tokens, Cloudflare tokens, root/admin passwords, or APK signing secrets.
+This prevents relying on open Firebase email/password self-registration for application accounts. Application roles remain server-authoritative.
 
-Firebase client identifiers/configuration are environment-specific. Android package IDs remain:
+Implemented application foundation:
 
-- Beta: `cd.cc.supra.inventory.beta`
-- Stable: `cd.cc.supra.inventory`
+- Web login shell;
+- Android Beta shell;
+- Firebase client initialization;
+- custom-token authentication foundation;
+- Root role and bootstrap secret;
+- authenticated password-change flow;
+- Admin/Root HR-source setup API + Web UI;
+- Web live-shell smoke check;
+- Android debug APK build + artifact pipeline.
 
-## Still part of application build, not infrastructure setup
+## Still pending application implementation
 
-- authenticated Admin/Root HR-source setup UI and API route;
-- Firebase Auth/RBAC flows and Root bootstrap UX;
-- WebSocket realtime protocol on `InventoryCore`;
-- FCM device registration and delivery flows;
+These are the next application nodes, not missing service provisioning:
+
+- WebSocket realtime protocol and presence handling;
+- FCM device registration and background delivery flows;
 - SKU Excel import UX/API;
-- report/resolve/correct/withdraw workflows;
+- report / resolve / correct / withdraw workflows;
 - backup/archive execution logic;
 - reporting screens and export logic;
-- Android/Web source implementation and tests;
-- APK signing/release material;
-- Stable promotion after Owner acceptance.
+- load/resilience tests;
+- APK production signing/release material;
+- Stable promotion only after explicit Owner acceptance.
