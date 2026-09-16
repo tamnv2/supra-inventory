@@ -24,10 +24,20 @@ interface FirebaseJwtClaims {
   email?: string;
 }
 
+interface FirebaseJwk extends JsonWebKey {
+  kid?: string;
+}
+
 const FIREBASE_JWK_URL = "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
 const CUSTOM_TOKEN_AUD = "https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit";
 const PASSWORD_ITERATIONS = 120_000;
-let jwkCache: { expiresAt: number; keys: JsonWebKey[] } | null = null;
+let jwkCache: { expiresAt: number; keys: FirebaseJwk[] } | null = null;
+
+function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  const copy = new Uint8Array(bytes.byteLength);
+  copy.set(bytes);
+  return copy.buffer;
+}
 
 function base64UrlEncode(input: Uint8Array | string): string {
   const bytes = typeof input === "string" ? new TextEncoder().encode(input) : input;
@@ -57,7 +67,7 @@ function pemToArrayBuffer(pem: string): ArrayBuffer {
   const binary = atob(normalized);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
-  return bytes.buffer;
+  return toArrayBuffer(bytes);
 }
 
 function parseServiceAccount(raw: string): ServiceAccountJson {
@@ -89,7 +99,7 @@ function base64ToBytes(value: string): Uint8Array {
 async function derivePasswordHash(password: string, salt: Uint8Array): Promise<Uint8Array> {
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
   const bits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", hash: "SHA-256", salt, iterations: PASSWORD_ITERATIONS },
+    { name: "PBKDF2", hash: "SHA-256", salt: toArrayBuffer(salt), iterations: PASSWORD_ITERATIONS },
     key,
     256,
   );
@@ -143,11 +153,11 @@ export async function createFirebaseCustomToken(
   return `${unsigned}.${base64UrlEncode(new Uint8Array(signature))}`;
 }
 
-async function getFirebaseJwks(): Promise<JsonWebKey[]> {
+async function getFirebaseJwks(): Promise<FirebaseJwk[]> {
   if (jwkCache && jwkCache.expiresAt > Date.now()) return jwkCache.keys;
   const response = await fetch(FIREBASE_JWK_URL, { headers: { accept: "application/json" } });
   if (!response.ok) throw new Error(`firebase_jwk_http_${response.status}`);
-  const payload = (await response.json()) as { keys?: JsonWebKey[] };
+  const payload = (await response.json()) as { keys?: FirebaseJwk[] };
   const keys = payload.keys || [];
   if (!keys.length) throw new Error("firebase_jwk_empty");
   const cacheControl = response.headers.get("cache-control") || "";
@@ -173,7 +183,7 @@ export async function verifyFirebaseIdToken(token: string, projectId: string): P
 }
 
 async function verifyWithKey(
-  jwk: JsonWebKey,
+  jwk: FirebaseJwk,
   parts: string[],
   claims: FirebaseJwtClaims,
   projectId: string,
@@ -188,7 +198,7 @@ async function verifyWithKey(
   const verified = await crypto.subtle.verify(
     "RSASSA-PKCS1-v1_5",
     key,
-    base64UrlDecode(parts[2]),
+    toArrayBuffer(base64UrlDecode(parts[2])),
     new TextEncoder().encode(`${parts[0]}.${parts[1]}`),
   );
   if (!verified) throw new Error("firebase_signature_invalid");
