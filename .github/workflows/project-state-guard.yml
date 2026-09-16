@@ -1,0 +1,63 @@
+name: Project State Guard
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  continuity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate canonical project state
+        run: python tools/project_state_guard.py
+
+      - name: Require state update for meaningful implementation changes
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            BASE="$PR_BASE_SHA"
+          else
+            BASE="$BEFORE_SHA"
+          fi
+
+          if [[ -z "${BASE:-}" || "$BASE" =~ ^0+$ ]]; then
+            BASE="$(git rev-parse HEAD^ 2>/dev/null || true)"
+          fi
+          if [[ -z "${BASE:-}" ]]; then
+            echo "No previous commit to compare; structural validation only."
+            exit 0
+          fi
+
+          git diff --name-only "$BASE" "$GITHUB_SHA" > /tmp/changed.txt
+          cat /tmp/changed.txt
+
+          if grep -Eq '^(service/|web/|android/|ops/resource-registry\.json$|\.github/workflows/(deploy-beta|verify-apps|verify-firebase-auth-beta)\.yml$)' /tmp/changed.txt; then
+            if ! grep -qx 'ops/project-state.json' /tmp/changed.txt; then
+              echo "Meaningful implementation/runtime change detected without ops/project-state.json update."
+              echo "Update canonical project state in the same change set; do not rely on a later manual handover."
+              exit 1
+            fi
+          fi
+
+          echo "PROJECT_STATE_CHANGE_COUPLING_PASS"
