@@ -1,6 +1,7 @@
 import { InventoryCore } from "./core";
 import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole } from "./auth";
 import { handleBusinessApi } from "./business-api";
+import { handleReadApi } from "./read-api";
 import { validateHrSheetSource } from "./hr-source";
 
 export { InventoryCore };
@@ -385,6 +386,9 @@ export default {
           return json({ error: "HR_SOURCE_INVALID", message: error instanceof Error ? error.message : "HR source validation failed" }, 400);
         }
       }
+
+      const readResponse = await handleReadApi(request, env);
+      if (readResponse) return readResponse;
 
       const businessResponse = await handleBusinessApi(request, env);
       if (businessResponse) return businessResponse;
