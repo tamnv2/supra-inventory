@@ -162,13 +162,13 @@
       "web_source_status": "CONCEPT3_ADMIN_DASHBOARD_REPORTING_ROLE_UI_DEPLOYED_PASS",
       "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
       "web_admin_report_monitoring": "ROLE_BASED_OPERATIONS_UI_DEPLOYED_PASS",
-      "android_source_status": "CONCEPT3_ROLE_UI_SOURCE_BUILD_PENDING_SIGNED_OTA_CI",
+      "android_source_status": "CONCEPT3_ROLE_UI_SIGNED_OTA_PASS",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
-      "latest_signed_beta_release": "beta-vc27",
-      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.27",
-      "latest_signed_beta_apk_sha256": "59409e9086b0dcf0a04c3a36a360004d50a4aff05a68265b86baf4b6213b4dc4",
-      "latest_signed_beta_apk_size_bytes": 9149854,
+      "latest_signed_beta_release": "beta-vc28",
+      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.28",
+      "latest_signed_beta_apk_sha256": "1ff0e17628355381ae1210e1ee925c63d88252c9be551e3b1a250d283e8edcb0",
+      "latest_signed_beta_apk_size_bytes": 9149890,
       "auth_rbac_status": "IMPLEMENTED_RUNTIME_READY",
       "auth_api_route_smoke": "PASS",
       "root_bootstrap_path_smoke": "PASS",
@@ -240,7 +240,8 @@
     "user_management_and_hr_provisioning",
     "business_sqlite_schema_v4_archive",
     "backup_archive_execution",
-    "admin_dashboard_reporting_concept3"
+    "admin_dashboard_reporting_concept3",
+    "android_concept3_unified_ui"
   ],
   "application_build_pending": [
     "fcm_physical_device_delivery_acceptance",
@@ -300,7 +301,7 @@
   "ui_design": {
     "authority": "OWNER_SELECTED_CONCEPT_3",
     "web": "LIGHT_GREEN_OPERATIONAL_DEPLOYED_PASS",
-    "android": "LIGHT_GREEN_OPERATIONAL_SOURCE_PENDING_SIGNED_CI",
+    "android": "LIGHT_GREEN_OPERATIONAL_SIGNED_OTA_PASS",
     "scope_guard": "VISUAL_SYSTEM_ONLY_BUSINESS_RULES_REMAIN_AUTHORITATIVE"
   }
 }
