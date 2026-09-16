@@ -1,6 +1,11 @@
+import { InventoryCore } from "./core";
+
+export { InventoryCore };
+
 interface Env {
   APP_ENV: string;
   PROJECT_KEY: string;
+  INVENTORY_CORE: DurableObjectNamespace;
   GOOGLE_RUNTIME_SA_JSON?: string;
   GOOGLE_DRIVE_OAUTH_CLIENT_ID?: string;
   GOOGLE_DRIVE_OAUTH_CLIENT_SECRET?: string;
@@ -10,12 +15,14 @@ interface Env {
 
 const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 const OAUTH_STATE_COOKIE = "inventory_oauth_state";
+const CORE_OBJECT_NAME = "inventory-core";
 
 const REQUIRED_RUNTIME_BINDINGS = [
   "GOOGLE_RUNTIME_SA_JSON",
   "GOOGLE_DRIVE_OAUTH_CLIENT_ID",
   "GOOGLE_DRIVE_OAUTH_CLIENT_SECRET",
   "GOOGLE_DRIVE_OAUTH_REDIRECT_URI",
+  "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
 ] as const;
 
 function json(payload: unknown, status = 200, extraHeaders?: HeadersInit): Response {
@@ -68,10 +75,39 @@ function oauthBindingsReady(env: Env): boolean {
   );
 }
 
-async function startGoogleOAuth(env: Env): Promise<Response> {
-  if (!oauthBindingsReady(env)) {
-    return json({ error: "oauth_not_configured" }, 503);
+function coreStub(env: Env): DurableObjectStub {
+  return env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName(CORE_OBJECT_NAME));
+}
+
+async function checkCore(env: Env): Promise<{
+  ok: boolean;
+  status: string;
+  schema_version?: number;
+  expected_schema_version?: number;
+}> {
+  try {
+    const response = await coreStub(env).fetch("https://inventory-core.internal/health");
+    const payload = (await response.json()) as {
+      status?: string;
+      schema_version?: number;
+      expected_schema_version?: number;
+    };
+    return {
+      ok:
+        response.ok &&
+        payload.status === "ok" &&
+        payload.schema_version === payload.expected_schema_version,
+      status: payload.status || "unknown",
+      schema_version: payload.schema_version,
+      expected_schema_version: payload.expected_schema_version,
+    };
+  } catch {
+    return { ok: false, status: "unavailable" };
   }
+}
+
+async function startGoogleOAuth(env: Env): Promise<Response> {
+  if (!oauthBindingsReady(env)) return json({ error: "oauth_not_configured" }, 503);
 
   const state = randomState();
   const params = new URLSearchParams({
@@ -97,20 +133,15 @@ async function startGoogleOAuth(env: Env): Promise<Response> {
 }
 
 async function googleOAuthCallback(request: Request, env: Env): Promise<Response> {
-  if (!oauthBindingsReady(env)) {
-    return json({ error: "oauth_not_configured" }, 503);
-  }
+  if (!oauthBindingsReady(env)) return json({ error: "oauth_not_configured" }, 503);
 
   const url = new URL(request.url);
   const oauthError = url.searchParams.get("error");
-  if (oauthError) {
-    return html(`<h1>OAuth cancelled/failed</h1><p>${escapeHtml(oauthError)}</p>`, 400);
-  }
+  if (oauthError) return html(`<h1>OAuth cancelled/failed</h1><p>${escapeHtml(oauthError)}</p>`, 400);
 
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
   const expectedState = readCookie(request, OAUTH_STATE_COOKIE);
-
   if (!code || !state || !expectedState || state !== expectedState) {
     return html("<h1>OAuth state validation failed</h1><p>Start the flow again from /api/oauth/google/start.</p>", 400);
   }
@@ -142,11 +173,9 @@ async function googleOAuthCallback(request: Request, env: Env): Promise<Response
 
   if (!tokenPayload.refresh_token) {
     return html(
-      "<h1>No refresh token returned</h1><p>Start again from /api/oauth/google/start and approve consent. The flow already requests offline access and prompt=consent.</p>",
+      "<h1>No refresh token returned</h1><p>Start again from /api/oauth/google/start and approve consent.</p>",
       502,
-      {
-        "set-cookie": `${OAUTH_STATE_COOKIE}=; Path=/api/oauth/google; Max-Age=0; HttpOnly; Secure; SameSite=Lax`,
-      },
+      { "set-cookie": `${OAUTH_STATE_COOKIE}=; Path=/api/oauth/google; Max-Age=0; HttpOnly; Secure; SameSite=Lax` },
     );
   }
 
@@ -154,9 +183,7 @@ async function googleOAuthCallback(request: Request, env: Env): Promise<Response
   return html(
     `<!doctype html><html><head><meta charset="utf-8"><title>SUPRA Inventory OAuth</title></head><body style="font-family:system-ui;max-width:900px;margin:40px auto;padding:0 20px"><h1>Google Drive OAuth thành công</h1><p>Copy giá trị dưới đây vào Cloudflare Worker secret <code>GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN</code>. Không gửi token qua chat, email hoặc commit vào GitHub.</p><textarea readonly style="width:100%;height:160px">${refreshToken}</textarea><p>Sau khi lưu secret thành công, đóng trang này.</p></body></html>`,
     200,
-    {
-      "set-cookie": `${OAUTH_STATE_COOKIE}=; Path=/api/oauth/google; Max-Age=0; HttpOnly; Secure; SameSite=Lax`,
-    },
+    { "set-cookie": `${OAUTH_STATE_COOKIE}=; Path=/api/oauth/google; Max-Age=0; HttpOnly; Secure; SameSite=Lax` },
   );
 }
 
@@ -178,28 +205,43 @@ export default {
         REQUIRED_RUNTIME_BINDINGS.map((name) => [name, Boolean(env[name])]),
       );
       const missing = REQUIRED_RUNTIME_BINDINGS.filter((name) => !env[name]);
+      const core = await checkCore(env);
+      const healthy = missing.length === 0 && core.ok;
 
       return json(
         {
-          status: missing.length === 0 ? "ok" : "degraded",
+          status: healthy ? "ok" : "degraded",
           service: env.PROJECT_KEY || "supra-inventory",
           environment: env.APP_ENV || "unknown",
           required_bindings: bindingPresence,
           oauth_refresh_token_configured: Boolean(env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN),
+          storage: core,
           missing_bindings: missing,
           timestamp: new Date().toISOString(),
         },
-        missing.length === 0 ? 200 : 503,
+        healthy ? 200 : 503,
       );
     }
 
-    if (request.method === "GET" && url.pathname === "/api/oauth/google/start") {
-      return startGoogleOAuth(env);
+    if (request.method === "GET" && url.pathname === "/api/system/capabilities") {
+      const core = await checkCore(env);
+      return json({
+        environment: env.APP_ENV,
+        durable_objects_sqlite: core.ok,
+        realtime_foreground: "websocket_planned_on_inventory_core",
+        background_notifications: "firebase_cloud_messaging",
+        hr_source_setup: {
+          mode: "web_admin_input",
+          required_input: ["google_sheet_url", "tab_name"],
+          validation: ["valid_google_sheet_link", "exact_tab_name", "MNV_column", "Ho_ten_column"],
+          public_setup_endpoint: false,
+        },
+        stable_release: "owner_gated",
+      });
     }
 
-    if (request.method === "GET" && url.pathname === "/api/oauth/google/callback") {
-      return googleOAuthCallback(request, env);
-    }
+    if (request.method === "GET" && url.pathname === "/api/oauth/google/start") return startGoogleOAuth(env);
+    if (request.method === "GET" && url.pathname === "/api/oauth/google/callback") return googleOAuthCallback(request, env);
 
     return json({ error: "not_found" }, 404);
   },
