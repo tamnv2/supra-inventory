@@ -18,6 +18,7 @@ interface InternalUser {
 }
 
 const CORE_OBJECT_NAME = "inventory-core";
+const REPORTER_ROLES: AppRole[] = ["REPORTER", "ADMIN", "ROOT"];
 
 function json(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload, null, 2), {
@@ -143,20 +144,20 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv): Pro
   }
 
   if (key === "GET /api/reporter/queue") {
-    await requireUser(request, env, ["REPORTER"]);
+    await requireUser(request, env, REPORTER_ROLES);
     const params = new URLSearchParams();
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
     return coreGet(env, `/business/reporter/queue?${params.toString()}`);
   }
 
   if (key === "POST /api/reporter/batches/resolve") {
-    const user = await requireUser(request, env, ["REPORTER"]);
+    const user = await requireUser(request, env, REPORTER_ROLES);
     const body = await parseObjectBody(request);
     return corePost(env, "/business/reporter/resolve", { ...body, actor: actor(user) });
   }
 
   if (key === "POST /api/reporter/batches/correct") {
-    const user = await requireUser(request, env, ["REPORTER"]);
+    const user = await requireUser(request, env, REPORTER_ROLES);
     const body = await parseObjectBody(request);
     return corePost(env, "/business/reporter/correct", { ...body, actor: actor(user) });
   }
