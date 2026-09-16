@@ -1,0 +1,53 @@
+name: Verify Beta Apps
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "android/**"
+      - ".github/workflows/verify-apps.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Web dependencies
+        working-directory: web
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Build Web Beta
+        working-directory: web
+        env:
+          VITE_API_BASE_URL: https://inventory-beta.supra.cc.cd
+          VITE_FIREBASE_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY_BETA }}
+          VITE_FIREBASE_AUTH_DOMAIN: supra-inventory-beta.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID: supra-inventory-beta
+          VITE_FIREBASE_APP_ID: 1:572322098890:web:96459cf386b3fb6f400e33
+          VITE_FIREBASE_MESSAGING_SENDER_ID: "572322098890"
+        run: npm run build
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.6.0"
+      - name: Install Android SDK 37
+        run: yes | sdkmanager "platforms;android-37" "build-tools;36.0.0" >/dev/null
+      - name: Assemble Beta debug APK
+        env:
+          FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA }}
+        run: gradle -p android :app:assembleDebug --no-daemon
