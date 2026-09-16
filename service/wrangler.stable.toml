@@ -1,9 +1,36 @@
 name = "supra-inventory-stable"
 main = "src/index.ts"
 compatibility_date = "2026-09-16"
-workers_dev = true
+workers_dev = false
+preview_urls = false
 keep_vars = true
+
+# OWNER-GATED: configuration only. Do not deploy or attach this route until Owner release approval.
+[[routes]]
+pattern = "inventory.supra.cc.cd"
+custom_domain = true
+
+[[durable_objects.bindings]]
+name = "INVENTORY_CORE"
+class_name = "InventoryCore"
+
+[exports.InventoryCore]
+type = "durable-object"
+storage = "sqlite"
+
+[secrets]
+required = [
+  "GOOGLE_RUNTIME_SA_JSON",
+  "GOOGLE_DRIVE_OAUTH_CLIENT_SECRET",
+  "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN"
+]
 
 [vars]
 APP_ENV = "stable"
 PROJECT_KEY = "supra-inventory"
+
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
