@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "project": {
     "key": "supra-inventory",
     "display_name": "SUPRA Inventory — Báo hàng",
@@ -19,7 +19,11 @@
   "cloudflare": {
     "zone": "supra.cc.cd",
     "account_id_source": "github_variable:CF_ACCOUNT_ID",
-    "zone_id_source": "github_variable:CF_ZONE_ID"
+    "zone_id_source": "github_variable:CF_ZONE_ID",
+    "durable_object_class": "InventoryCore",
+    "durable_object_binding": "INVENTORY_CORE",
+    "durable_object_storage": "sqlite",
+    "sqlite_schema_version": 1
   },
   "drive": {
     "root": {
@@ -35,9 +39,18 @@
       "folder_id": "1T6723_2ILNsS2GcvCHGSY5ZenkAj0VYN"
     }
   },
+  "hr_source": {
+    "mode": "CONFIGURED_BY_ADMIN_OR_ROOT_FROM_WEB_UI",
+    "fixed_sheet": false,
+    "required_input": ["google_sheet_url", "exact_tab_name"],
+    "required_columns": ["MNV", "Họ tên"],
+    "validation_module": "service/src/hr-source.ts",
+    "storage": "InventoryCore.hr_source_config",
+    "public_unauthenticated_setup": false
+  },
   "environments": {
     "beta": {
-      "status": "INFRA_BASELINE_PASS_PENDING_DATA_AND_STATE",
+      "status": "BACKEND_INFRA_READY_FOR_APP_BUILD",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -45,6 +58,10 @@
       "custom_domain_status": "ACTIVE",
       "health_status": "PASS",
       "ci_deploy_status": "PASS",
+      "durable_object_status": "PROVISIONED_PASS",
+      "durable_object_class": "InventoryCore",
+      "durable_object_storage": "sqlite",
+      "sqlite_schema_version": 1,
       "runtime_service_account": "inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com",
       "android_package": "cd.cc.supra.inventory.beta",
       "firebase_android_app_id": "1:572322098890:android:3e483937876cbcc0400e33",
@@ -61,11 +78,15 @@
       "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA"
     },
     "stable": {
-      "status": "READY_NOT_LIVE_PENDING_BUILD",
+      "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
       "gcp_project_id": "supra-inventory-stable",
       "gcp_project_number": "1004520166836",
       "worker_name": "supra-inventory-stable",
       "hostname": "inventory.supra.cc.cd",
+      "durable_object_status": "DECLARED_NOT_PROVISIONED_OWNER_GATED",
+      "durable_object_class": "InventoryCore",
+      "durable_object_storage": "sqlite",
+      "sqlite_schema_version": 1,
       "runtime_service_account": "inventory-stable-runtime@supra-inventory-stable.iam.gserviceaccount.com",
       "android_package": "cd.cc.supra.inventory",
       "firebase_android_app_id": "1:1004520166836:android:70b94fef019c46450fcee1",
@@ -91,13 +112,22 @@
     "BETA_HOSTNAME",
     "STABLE_HOSTNAME"
   ],
-  "pending": [
+  "application_build_pending": [
+    "authenticated_hr_sheet_setup_ui_and_route",
+    "firebase_auth_and_rbac",
+    "root_bootstrap",
+    "websocket_realtime_protocol",
+    "fcm_device_and_delivery_flows",
+    "sku_excel_import",
+    "report_resolve_correct_withdraw_workflows",
+    "backup_archive_execution",
+    "reporting_and_exports",
+    "android_and_web_source",
+    "apk_signing"
+  ],
+  "release_pending": [
     "stable_oauth_refresh_token_owner_gated",
-    "hr_sheet_source",
-    "durable_objects_and_sqlite_schema",
-    "android_and_web_source_bootstrap",
-    "apk_signing",
-    "root_and_application_users",
+    "stable_first_durable_object_provisioning_owner_gated",
     "stable_release_owner_acceptance"
   ]
 }
