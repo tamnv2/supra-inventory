@@ -83,15 +83,19 @@
       "android_package": "cd.cc.supra.inventory.beta",
       "firebase_android_app_id": "1:572322098890:android:3e483937876cbcc0400e33",
       "firebase_web_app_id": "1:572322098890:web:96459cf386b3fb6f400e33",
-      "firebase_auth_flow": "USERNAME_PASSWORD_TO_WORKER_TO_FIREBASE_CUSTOM_TOKEN",
+      "firebase_auth_flow": "USERNAME_PASSWORD_TO_WORKER_TO_FIREBASE_CUSTOM_TOKEN_TO_WORKER_EXCHANGED_ID_TOKEN",
+      "firebase_identity_toolkit_browser_dependency": "REMOVED_FOR_LOGIN",
       "firebase_web_api_key_variable": "FIREBASE_WEB_API_KEY_BETA",
+      "firebase_web_api_key_worker_binding": "FIREBASE_WEB_API_KEY",
       "firebase_web_api_key_configured": true,
       "root_user": "root",
       "root_role": "ROOT",
       "root_bootstrap_secret": "ROOT_BOOTSTRAP_PASSWORD",
       "root_bootstrap_secret_configured": true,
-      "root_password_initialization": "LAZY_ON_FIRST_LOGIN_THEN_CHANGEABLE_BY_ROOT",
+      "root_password_initialization": "INITIALIZED_AND_CI_PROBED",
       "root_password_storage": "PBKDF2_SHA256_HASH_ONLY_IN_SQLITE",
+      "beta_pbkdf2_iterations": 100000,
+      "stable_password_kdf_review_required": true,
       "oauth_client_name": "inventory-beta-drive",
       "oauth_redirect_uri": "https://inventory-beta.supra.cc.cd/api/oauth/google/callback",
       "oauth_scope": "https://www.googleapis.com/auth/drive.file",
@@ -107,6 +111,8 @@
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
       "auth_rbac_status": "IMPLEMENTED_RUNTIME_READY",
+      "auth_api_route_smoke": "PASS",
+      "root_bootstrap_path_smoke": "PASS",
       "hr_settings_ui_status": "IMPLEMENTED_WEB_ADMIN_ROOT"
     },
     "stable": {
@@ -149,13 +155,15 @@
     "web_source_bootstrap",
     "android_beta_source_bootstrap",
     "firebase_client_runtime_configuration",
-    "firebase_custom_token_auth_foundation",
+    "firebase_worker_exchanged_auth_session",
     "server_side_rbac_foundation",
     "root_user_schema_and_password_change_flow",
     "root_bootstrap_secret_runtime_configuration",
     "authenticated_hr_sheet_setup_route",
     "web_admin_root_hr_settings_ui",
     "beta_web_live_smoke_gate",
+    "beta_auth_api_smoke_gate",
+    "beta_root_bootstrap_smoke_gate",
     "beta_apk_debug_artifact_pipeline"
   ],
   "application_build_pending": [
@@ -168,6 +176,7 @@
     "apk_signing"
   ],
   "release_pending": [
+    "stable_password_kdf_and_rate_limit_review",
     "stable_oauth_refresh_token_owner_gated",
     "stable_first_durable_object_provisioning_owner_gated",
     "stable_release_owner_acceptance"
