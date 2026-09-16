@@ -7,7 +7,7 @@
   "state_model": "REPO_NATIVE_CONTINUITY",
   "authority_order": ["latest_explicit_owner_command","ops/project-state.json","docs/OWNER_DECISIONS.md","ops/resource-registry.json","live_source_and_ci_evidence","generated_handover_view","older_handovers_and_chat_memory"],
   "current_status": {
-    "beta": "ROLE_BASED_WEB_ANDROID_LIVE_REALTIME_SERVER_SOURCE_COMMITTED_PENDING_CI",
+    "beta": "ROLE_BASED_WEB_ANDROID_LIVE",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 3,
     "business_api": "IMPLEMENTED_AND_DEPLOYED_BETA",
