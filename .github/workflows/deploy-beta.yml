@@ -84,3 +84,33 @@ jobs:
             --config wrangler.beta.toml \
             --version-tag "$TAG" \
             --yes
+
+      - name: Verify Beta health on custom domain
+        env:
+          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+        run: |
+          set -euo pipefail
+          url="https://${BETA_HOSTNAME}/health"
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+
+          for attempt in $(seq 1 12); do
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "$url" || true)"
+            status="$(jq -r '.status // empty' "$tmp" 2>/dev/null || true)"
+            env_name="$(jq -r '.environment // empty' "$tmp" 2>/dev/null || true)"
+            missing_count="$(jq -r '.missing_bindings | length' "$tmp" 2>/dev/null || echo 999)"
+            echo "health attempt=$attempt http=${code:-000} status=${status:-n/a} environment=${env_name:-n/a} missing=${missing_count:-999}"
+
+            if [ "$code" = "200" ] && [ "$status" = "ok" ] && [ "$env_name" = "beta" ] && [ "$missing_count" = "0" ]; then
+              echo "Beta health PASS: $url"
+              exit 0
+            fi
+
+            if [ "$attempt" -lt 12 ]; then
+              sleep 5
+            fi
+          done
+
+          echo "Beta health FAILED. Safe response body follows:"
+          cat "$tmp"
+          exit 1
