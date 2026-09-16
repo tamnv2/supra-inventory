@@ -696,6 +696,171 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
   });
 }
 
+function reportingRange(url: URL): { from: string; to: string; error?: string } {
+  const from = String(url.searchParams.get("from") || "").trim();
+  const to = String(url.searchParams.get("to") || "").trim();
+  if (!from || !to || Number.isNaN(Date.parse(from)) || Number.isNaN(Date.parse(to)) || Date.parse(from) >= Date.parse(to)) {
+    return { from, to, error: "INVALID_REPORTING_RANGE" };
+  }
+  if (Date.parse(to) - Date.parse(from) > 60 * 86_400_000) {
+    return { from, to, error: "REPORTING_RANGE_TOO_LARGE" };
+  }
+  return { from, to };
+}
+
+function normalizeReportingLimit(value: string | null): number {
+  const parsed = Number(value || 100);
+  return Math.max(1, Math.min(500, Number.isFinite(parsed) ? Math.trunc(parsed) : 100));
+}
+
+function normalizeOffset(value: string | null): number {
+  const parsed = Number(value || 0);
+  return Math.max(0, Math.min(100_000, Number.isFinite(parsed) ? Math.trunc(parsed) : 0));
+}
+
+function adminDashboard(state: DurableObjectState, url: URL): BusinessResult {
+  const range = reportingRange(url);
+  if (range.error) return { status: 400, payload: { error: range.error, max_range_days: 60 } };
+  const spanMs = Date.parse(range.to) - Date.parse(range.from);
+  const bucketFormat = spanMs <= 2 * 86_400_000 ? "%Y-%m-%dT%H:00" : "%Y-%m-%d";
+
+  const ticketSummary = firstRow(state.storage.sql.exec<SqlRow>(
+    `SELECT COUNT(*) AS reports_count,
+            COUNT(DISTINCT sku) AS unique_sku_count,
+            COUNT(DISTINCT picker_employee_code) AS affected_picker_count
+       FROM report_tickets
+      WHERE reported_at >= ? AND reported_at < ?`,
+    range.from, range.to,
+  ).toArray()) || {};
+
+  const pendingSummary = firstRow(state.storage.sql.exec<SqlRow>(
+    `SELECT COUNT(DISTINCT b.batch_id) AS pending_batch_count,
+            COUNT(t.ticket_id) AS pending_picker_count
+       FROM report_batches b
+       LEFT JOIN report_tickets t ON t.batch_id = b.batch_id AND t.status = 'OPEN'
+      WHERE b.status = 'PENDING'`,
+  ).toArray()) || {};
+
+  const resolvedSummary = firstRow(state.storage.sql.exec<SqlRow>(
+    `SELECT COUNT(*) AS resolved_batch_count,
+            AVG((julianday(resolved_at) - julianday(first_report_at)) * 1440.0) AS avg_resolution_minutes
+       FROM report_batches
+      WHERE resolved_at >= ? AND resolved_at < ?
+        AND status IN ('HAS_STOCK','SKIP_ALLOWED')`,
+    range.from, range.to,
+  ).toArray()) || {};
+
+  const reportTimeline = state.storage.sql.exec<SqlRow>(
+    `SELECT strftime(?, reported_at, '+7 hours') AS bucket, COUNT(*) AS count
+       FROM report_tickets
+      WHERE reported_at >= ? AND reported_at < ?
+      GROUP BY bucket ORDER BY bucket ASC`,
+    bucketFormat, range.from, range.to,
+  ).toArray();
+  const resolvedTimeline = state.storage.sql.exec<SqlRow>(
+    `SELECT strftime(?, resolved_at, '+7 hours') AS bucket, COUNT(*) AS count
+       FROM report_batches
+      WHERE resolved_at >= ? AND resolved_at < ?
+        AND status IN ('HAS_STOCK','SKIP_ALLOWED')
+      GROUP BY bucket ORDER BY bucket ASC`,
+    bucketFormat, range.from, range.to,
+  ).toArray();
+  const timelineMap = new Map<string, { bucket: string; reports: number; resolved: number }>();
+  for (const row of reportTimeline) {
+    const bucket = String(row.bucket || "");
+    if (bucket) timelineMap.set(bucket, { bucket, reports: Number(row.count || 0), resolved: 0 });
+  }
+  for (const row of resolvedTimeline) {
+    const bucket = String(row.bucket || "");
+    if (!bucket) continue;
+    const current = timelineMap.get(bucket) || { bucket, reports: 0, resolved: 0 };
+    current.resolved = Number(row.count || 0);
+    timelineMap.set(bucket, current);
+  }
+
+  const outcomes = state.storage.sql.exec<SqlRow>(
+    `SELECT status, COUNT(*) AS count
+       FROM report_batches
+      WHERE first_report_at >= ? AND first_report_at < ?
+      GROUP BY status ORDER BY count DESC`,
+    range.from, range.to,
+  ).toArray().map((row) => ({ status: String(row.status), count: Number(row.count || 0) }));
+
+  const topSkus = state.storage.sql.exec<SqlRow>(
+    `SELECT b.sku, b.product_name,
+            COUNT(t.ticket_id) AS report_count,
+            COUNT(DISTINCT t.picker_employee_code) AS picker_count
+       FROM report_tickets t
+       JOIN report_batches b ON b.batch_id = t.batch_id
+      WHERE t.reported_at >= ? AND t.reported_at < ?
+      GROUP BY b.sku, b.product_name
+      ORDER BY report_count DESC, picker_count DESC, b.sku ASC
+      LIMIT 8`,
+    range.from, range.to,
+  ).toArray().map((row) => ({
+    sku: String(row.sku), product_name: String(row.product_name),
+    report_count: Number(row.report_count || 0), picker_count: Number(row.picker_count || 0),
+  }));
+
+  return {
+    status: 200,
+    payload: {
+      period: { from: range.from, to: range.to, bucket: spanMs <= 2 * 86_400_000 ? "hour" : "day" },
+      kpis: {
+        reports_count: Number(ticketSummary.reports_count || 0),
+        unique_sku_count: Number(ticketSummary.unique_sku_count || 0),
+        affected_picker_count: Number(ticketSummary.affected_picker_count || 0),
+        pending_batch_count: Number(pendingSummary.pending_batch_count || 0),
+        pending_picker_count: Number(pendingSummary.pending_picker_count || 0),
+        resolved_batch_count: Number(resolvedSummary.resolved_batch_count || 0),
+        avg_resolution_minutes: resolvedSummary.avg_resolution_minutes == null ? null : Math.round(Number(resolvedSummary.avg_resolution_minutes) * 10) / 10,
+      },
+      timeline: [...timelineMap.values()].sort((a, b) => a.bucket.localeCompare(b.bucket)),
+      outcomes,
+      top_skus: topSkus,
+    },
+  };
+}
+
+function adminReporting(state: DurableObjectState, url: URL): BusinessResult {
+  const range = reportingRange(url);
+  if (range.error) return { status: 400, payload: { error: range.error, max_range_days: 60 } };
+  const statusValue = String(url.searchParams.get("status") || "").trim();
+  const validStatus = ["PENDING", "HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(statusValue) ? statusValue : "";
+  const query = String(url.searchParams.get("query") || "").trim().slice(0, 500);
+  const limit = normalizeReportingLimit(url.searchParams.get("limit"));
+  const offset = normalizeOffset(url.searchParams.get("offset"));
+
+  const where: string[] = ["b.first_report_at >= ?", "b.first_report_at < ?"];
+  const args: SqlStorageValue[] = [range.from, range.to];
+  if (validStatus) { where.push("b.status = ?"); args.push(validStatus); }
+  if (query) { where.push("(b.sku LIKE ? OR b.product_name LIKE ?)"); args.push(`%${query}%`, `%${query}%`); }
+  const clause = where.join(" AND ");
+
+  const totalRow = firstRow(state.storage.sql.exec<SqlRow>(
+    `SELECT COUNT(*) AS total FROM report_batches b WHERE ${clause}`,
+    ...args,
+  ).toArray()) || {};
+
+  const rows = state.storage.sql.exec<SqlRow>(
+    `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.resolved_at,
+            b.resolved_by_user_id, b.resolution, b.correction_deadline_at,
+            SUM(CASE WHEN t.status = 'OPEN' THEN 1 ELSE 0 END) AS open_ticket_count,
+            COUNT(t.ticket_id) AS total_ticket_count,
+            CASE WHEN b.resolved_at IS NULL THEN NULL
+                 ELSE ROUND((julianday(b.resolved_at) - julianday(b.first_report_at)) * 1440.0, 1) END AS duration_minutes
+       FROM report_batches b
+       LEFT JOIN report_tickets t ON t.batch_id = b.batch_id
+      WHERE ${clause}
+      GROUP BY b.batch_id
+      ORDER BY b.first_report_at DESC, b.batch_id DESC
+      LIMIT ? OFFSET ?`,
+    ...args, limit, offset,
+  ).toArray();
+
+  return { status: 200, payload: { items: rows, count: rows.length, total: Number(totalRow.total || 0), limit, offset, from: range.from, to: range.to, status: validStatus, query } };
+}
+
 function adminReports(state: DurableObjectState, url: URL): BusinessResult {
   const limit = normalizeLimit(url.searchParams.get("limit"), 100);
   const status = String(url.searchParams.get("status") || "").trim();
@@ -746,6 +911,8 @@ export async function handleBusinessRequest(state: DurableObjectState, request: 
   else if (request.method === "GET" && url.pathname === "/business/reporter/queue") result = reporterQueue(state, url);
   else if (request.method === "POST" && url.pathname === "/business/reporter/resolve") result = await resolveBatch(state, request);
   else if (request.method === "POST" && url.pathname === "/business/reporter/correct") result = await correctBatch(state, request);
+  else if (request.method === "GET" && url.pathname === "/business/admin/dashboard") result = adminDashboard(state, url);
+  else if (request.method === "GET" && url.pathname === "/business/admin/reporting") result = adminReporting(state, url);
   else if (request.method === "GET" && url.pathname === "/business/admin/reports") result = adminReports(state, url);
 
   return result ? response(result.payload, result.status) : null;

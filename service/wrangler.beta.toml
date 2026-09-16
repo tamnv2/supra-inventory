@@ -33,9 +33,14 @@ required = [
 APP_ENV = "beta"
 PROJECT_KEY = "supra-inventory"
 FIREBASE_PROJECT_ID = "supra-inventory-beta"
+ARCHIVE_SHEET_ID = "1WU9RDUEevE74Twyq1aA80xvL3Wr1mTA21PRA8ypIMOA"
+RETENTION_DAYS = "60"
 
 [observability]
 enabled = true
 
 [observability.logs]
 enabled = true
+
+[triggers]
+crons = ["15 20 * * *"]

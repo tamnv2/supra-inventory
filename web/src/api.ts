@@ -111,6 +111,31 @@ export interface HrSyncPreview {
   collisions: Array<{ employee_code: string; role: string; user_id: string }>;
 }
 
+export interface AdminDashboard {
+  period: { from: string; to: string; bucket: "hour" | "day" };
+  kpis: {
+    reports_count: number; unique_sku_count: number; affected_picker_count: number;
+    pending_batch_count: number; pending_picker_count: number; resolved_batch_count: number;
+    avg_resolution_minutes: number | null;
+  };
+  timeline: Array<{ bucket: string; reports: number; resolved: number }>;
+  outcomes: Array<{ status: "PENDING" | "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED"; count: number }>;
+  top_skus: Array<{ sku: string; product_name: string; report_count: number; picker_count: number }>;
+}
+
+export interface AdminReportingRow {
+  batch_id: string; sku: string; product_name: string;
+  status: "PENDING" | "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED";
+  first_report_at: string; resolved_at: string | null; resolved_by_user_id: string | null;
+  resolution: "HAS_STOCK" | "SKIP_ALLOWED" | null; correction_deadline_at: string | null;
+  open_ticket_count: number; total_ticket_count: number; duration_minutes: number | null;
+}
+
+export interface AdminReportingPage {
+  items: AdminReportingRow[]; count: number; total: number; limit: number; offset: number;
+  from: string; to: string; status: string; query: string;
+}
+
 export interface AdminReportBatch {
   batch_id: string;
   sku: string;
@@ -280,6 +305,18 @@ export async function resolveReporterBatch(batchId: string, resolution: "HAS_STO
 
 export async function correctReporterBatch(batchId: string): Promise<unknown> {
   return readJson(await authorizedFetch("/api/reporter/batches/correct", { method: "POST", body: JSON.stringify({ request_id: crypto.randomUUID(), batch_id: batchId }) }));
+}
+
+export async function getAdminDashboard(from: string, to: string): Promise<AdminDashboard> {
+  const params = new URLSearchParams({ from, to });
+  return readJson(await authorizedFetch(`/api/admin/dashboard?${params.toString()}`));
+}
+
+export async function getAdminReporting(options: { from: string; to: string; status?: string; query?: string; limit?: number; offset?: number }): Promise<AdminReportingPage> {
+  const params = new URLSearchParams({ from: options.from, to: options.to, limit: String(options.limit || 100), offset: String(options.offset || 0) });
+  if (options.status) params.set("status", options.status);
+  if (options.query) params.set("query", options.query);
+  return readJson(await authorizedFetch(`/api/admin/reporting?${params.toString()}`));
 }
 
 export async function getAdminReports(limit = 100, status = ""): Promise<{ items: AdminReportBatch[]; count: number }> {

@@ -7,6 +7,8 @@ import {
   createManagedUser,
   applyHrPickerSync,
   getHrSource,
+  getAdminDashboard,
+  getAdminReporting,
   listManagedUsers,
   previewHrPickerSync,
   resetManagedUserPassword,
@@ -23,6 +25,8 @@ import {
   saveHrSource,
   searchSkus,
   type AppProfile,
+  type AdminDashboard,
+  type AdminReportingRow,
   type ManagedUser,
   type HrSyncPreview,
   type BatchPickerTicket,
@@ -35,7 +39,7 @@ import { parseSkuExcel, type ParsedSkuWorkbook } from "./sku-excel";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const SKU_CHUNK_SIZE = 1000;
-type Section = "operations" | "sku" | "hr" | "account";
+type Section = "dashboard" | "operations" | "reports" | "sku" | "hr" | "account";
 
 let profile: AppProfile | null = getStoredProfile();
 let activeSection: Section = "operations";
@@ -53,6 +57,49 @@ let pendingImportId = "";
 let pendingDatabaseConflicts: SkuNameChangeConflict[] = [];
 let managedUsers: ManagedUser[] = [];
 let hrSyncPreview: HrSyncPreview | null = null;
+let dashboardData: AdminDashboard | null = null;
+let adminReportRows: AdminReportingRow[] = [];
+let adminReportTotal = 0;
+let adminReportOffset = 0;
+const ADMIN_REPORT_PAGE_SIZE = 100;
+let dashboardFromDate = dateInputDaysAgo(6);
+let dashboardToDate = dateInputDaysAgo(0);
+let reportFromDate = dateInputDaysAgo(6);
+let reportToDate = dateInputDaysAgo(0);
+let reportStatus = "";
+let reportQuery = "";
+
+function dateInputDaysAgo(days: number): string {
+  const date = new Date(Date.now() - days * 86_400_000);
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function apiRange(fromDate: string, toDate: string): { from: string; to: string } {
+  const from = new Date(`${fromDate}T00:00:00+07:00`);
+  const toStart = new Date(`${toDate}T00:00:00+07:00`);
+  if (Number.isNaN(from.getTime()) || Number.isNaN(toStart.getTime()) || from.getTime() > toStart.getTime()) throw new Error("Khoảng ngày không hợp lệ.");
+  return { from: from.toISOString(), to: new Date(toStart.getTime() + 86_400_000).toISOString() };
+}
+
+function statusClass(value: string): string {
+  if (value === "HAS_STOCK") return "ok";
+  if (value === "SKIP_ALLOWED") return "skip";
+  if (value === "PENDING") return "pending";
+  return "closed";
+}
+
+function statusSymbol(value: string): string {
+  if (value === "HAS_STOCK") return "✓";
+  if (value === "SKIP_ALLOWED") return "→";
+  if (value === "PENDING") return "!";
+  return "↩";
+}
+
+function metricNumber(value: number | null | undefined): string {
+  return Number(value || 0).toLocaleString("vi-VN");
+}
 
 function escapeHtml(value: unknown): string {
   return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
@@ -94,8 +141,9 @@ function statusLabel(value: string): string {
 function renderNav(): string {
   if (!profile) return "";
   const tabs: Array<[Section, string]> = [];
-  if (canOperate()) tabs.push(["operations", "Vận hành"]);
-  if (canManage()) tabs.push(["sku", "Master SKU"], ["hr", "Nhân sự"]);
+  if (canManage()) tabs.push(["dashboard", "Tổng quan"]);
+  if (canOperate()) tabs.push(["operations", "Hàng chờ"]);
+  if (canManage()) tabs.push(["reports", "Báo cáo"], ["sku", "Master SKU"], ["hr", "Nhân sự"]);
   tabs.push(["account", "Tài khoản"]);
   if (!tabs.some(([id]) => id === activeSection)) activeSection = tabs[0][0];
   return `<nav class="tabs">${tabs.map(([id, label]) => `<button class="tab ${activeSection === id ? "active" : ""}" data-section="${id}">${escapeHtml(label)}</button>`).join("")}</nav>`;
@@ -113,6 +161,48 @@ function renderOperations(): string {
   const hasStock = recentRows.filter((item) => item.status === "HAS_STOCK").length;
   const skipped = recentRows.filter((item) => item.status === "SKIP_ALLOWED").length;
   return `<section class="page-stack"><div class="section-head"><div><p class="eyebrow">Điều phối Inventory</p><h2>Danh sách cần xử lý</h2><p class="muted">Ưu tiên tự động: nhiều Picker bị ảnh hưởng hơn trước; bằng nhau thì báo đầu sớm hơn.</p></div><button id="refresh-operations" class="secondary">Tải lại</button></div><div class="metrics"><div class="metric"><span>Đợt đang chờ</span><strong>${queueRows.length}</strong></div><div class="metric"><span>Picker đang ảnh hưởng</span><strong>${affected}</strong></div><div class="metric"><span>Đã có hàng gần đây</span><strong>${hasStock}</strong></div><div class="metric"><span>Được skip gần đây</span><strong>${skipped}</strong></div></div><article class="card"><h3>Đang xử lý</h3>${queueRows.length ? `<div class="operation-list">${queueRows.map((row) => `<div class="operation-card"><div class="operation-main"><div><div class="sku-code">${escapeHtml(row.sku)}</div><div class="product-name">${escapeHtml(row.product_name)}</div><div class="operation-meta"><span>${Number(row.affected_picker_count)} Picker</span><span>Chờ ${escapeHtml(ageLabel(row.first_report_at))}</span><span>Báo đầu ${escapeHtml(fmtDate(row.first_report_at))}</span></div></div><div class="operation-actions"><button class="success" data-resolve="HAS_STOCK" data-batch="${escapeHtml(row.batch_id)}">Đã có hàng</button><button class="warning-btn" data-resolve="SKIP_ALLOWED" data-batch="${escapeHtml(row.batch_id)}">Cho phép skip</button><button class="secondary" data-detail-batch="${escapeHtml(row.batch_id)}">${batchDetails.has(row.batch_id) ? "Ẩn Picker" : "Chi tiết Picker"}</button></div></div>${renderBatchDetails(row.batch_id)}</div>`).join("")}</div>` : `<div class="empty-state">Không có SKU đang chờ xử lý.</div>`}</article><article class="card"><h3>Kết quả gần đây</h3>${recentRows.length ? `<div class="table-wrap"><table><thead><tr><th>SKU</th><th>Sản phẩm</th><th>Kết quả</th><th>Picker</th><th>Thời gian xử lý</th><th>Sửa kết quả</th></tr></thead><tbody>${recentRows.map((row) => { const correctable = row.status === "SKIP_ALLOWED" && Boolean(row.correction_deadline_at) && Date.now() <= Date.parse(row.correction_deadline_at!); return `<tr><td><b>${escapeHtml(row.sku)}</b></td><td>${escapeHtml(row.product_name)}</td><td><span class="status ${row.status === "HAS_STOCK" ? "ok" : "skip"}">${escapeHtml(statusLabel(row.status))}</span></td><td>${Number(row.affected_picker_count)}</td><td>${escapeHtml(fmtDate(row.resolved_at))}</td><td>${correctable ? `<button data-correct-batch="${escapeHtml(row.batch_id)}" class="secondary">Sửa thành Có hàng</button><div class="tiny">Hạn ${escapeHtml(fmtDate(row.correction_deadline_at))}</div>` : "—"}</td></tr>`; }).join("")}</tbody></table></div>` : `<div class="empty-state">Chưa có kết quả gần đây.</div>`}</article></section>`;
+}
+
+function renderDashboard(): string {
+  const data = dashboardData;
+  const k = data?.kpis;
+  const maxTrend = Math.max(1, ...(data?.timeline || []).flatMap((row) => [row.reports, row.resolved]));
+  const outcomeTotal = Math.max(1, (data?.outcomes || []).reduce((sum, row) => sum + row.count, 0));
+  return `<section class="page-stack dashboard-page">
+    <div class="section-head dashboard-title"><div><p class="eyebrow">Điều hành hôm nay</p><h2>Tổng quan báo hàng</h2><p class="muted">Theo dõi tín hiệu quan trọng; mở Báo cáo khi cần drill-down chi tiết.</p></div><button id="refresh-dashboard" class="secondary">Làm mới</button></div>
+    <form id="dashboard-filter" class="filter-bar" aria-label="Bộ lọc thời gian dashboard">
+      <div class="preset-group"><button type="button" class="chip" data-dashboard-preset="today">Hôm nay</button><button type="button" class="chip" data-dashboard-preset="7">7 ngày</button><button type="button" class="chip" data-dashboard-preset="30">30 ngày</button></div>
+      <label>Từ ngày<input name="fromDate" type="date" value="${escapeHtml(dashboardFromDate)}" required /></label>
+      <label>Đến ngày<input name="toDate" type="date" value="${escapeHtml(dashboardToDate)}" required /></label>
+      <button>Áp dụng</button>
+    </form>
+    <div class="dashboard-metrics">
+      <div class="metric primary"><span>Báo thiếu trong kỳ</span><strong>${metricNumber(k?.reports_count)}</strong><small>ticket Picker tạo</small></div>
+      <div class="metric"><span>SKU bị báo</span><strong>${metricNumber(k?.unique_sku_count)}</strong><small>SKU khác nhau</small></div>
+      <div class="metric"><span>Picker bị ảnh hưởng</span><strong>${metricNumber(k?.affected_picker_count)}</strong><small>Picker khác nhau</small></div>
+      <div class="metric attention"><span>Đợt đang chờ</span><strong>${metricNumber(k?.pending_batch_count)}</strong><small>${metricNumber(k?.pending_picker_count)} Picker đang chờ</small></div>
+    </div>
+    <div class="dashboard-grid two-one">
+      <article class="card"><div class="card-head"><div><h3>Xu hướng báo hàng</h3><p class="muted tiny">Báo mới và batch đã xử lý theo ${data?.period.bucket === "hour" ? "giờ" : "ngày"}.</p></div><div class="legend"><span><i class="legend-dot reports"></i>Báo mới</span><span><i class="legend-dot resolved"></i>Đã xử lý</span></div></div>
+        ${(data?.timeline || []).length ? `<div class="trend-chart" role="img" aria-label="Biểu đồ xu hướng báo hàng">${data!.timeline.map((row) => `<div class="trend-column"><div class="bars"><span class="bar reports" style="height:${Math.max(3, row.reports / maxTrend * 100)}%" title="Báo mới: ${row.reports}"></span><span class="bar resolved" style="height:${Math.max(3, row.resolved / maxTrend * 100)}%" title="Đã xử lý: ${row.resolved}"></span></div><small>${escapeHtml(row.bucket.slice(data?.period.bucket === "hour" ? 11 : 5))}</small></div>`).join("")}</div>` : `<div class="empty-state">Chưa có dữ liệu trong khoảng đã chọn.</div>`}
+      </article>
+      <article class="card"><h3>Kết quả xử lý</h3><div class="outcome-list">${(data?.outcomes || []).map((row) => `<div class="outcome-row"><div><span class="status ${statusClass(row.status)}">${statusSymbol(row.status)} ${escapeHtml(statusLabel(row.status))}</span><b>${metricNumber(row.count)}</b></div><div class="progress-track"><span style="width:${Math.max(2, row.count / outcomeTotal * 100)}%"></span></div></div>`).join("") || `<div class="empty-state">Chưa có dữ liệu.</div>`}</div><div class="resolution-summary"><span>Đã xử lý trong kỳ</span><strong>${metricNumber(k?.resolved_batch_count)}</strong><span>Thời gian xử lý TB</span><strong>${k?.avg_resolution_minutes == null ? "—" : `${k.avg_resolution_minutes.toLocaleString("vi-VN")} phút`}</strong></div></article>
+    </div>
+    <article class="card"><div class="card-head"><div><h3>SKU được báo nhiều</h3><p class="muted tiny">Dựa trên ticket phát sinh trong khoảng thời gian đã chọn.</p></div><button id="dashboard-open-reports" class="secondary">Mở báo cáo chi tiết</button></div>
+      ${(data?.top_skus || []).length ? `<div class="table-wrap compact"><table><thead><tr><th>SKU</th><th>Tên sản phẩm</th><th>Số lượt báo</th><th>Picker ảnh hưởng</th></tr></thead><tbody>${data!.top_skus.map((row) => `<tr><td><b>${escapeHtml(row.sku)}</b></td><td>${escapeHtml(row.product_name)}</td><td>${metricNumber(row.report_count)}</td><td>${metricNumber(row.picker_count)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty-state">Chưa có SKU được báo trong khoảng này.</div>`}
+    </article>
+  </section>`;
+}
+
+function renderAdminReports(): string {
+  const page = Math.floor(adminReportOffset / ADMIN_REPORT_PAGE_SIZE) + 1;
+  const pages = Math.max(1, Math.ceil(adminReportTotal / ADMIN_REPORT_PAGE_SIZE));
+  return `<section class="page-stack"><div class="section-head"><div><p class="eyebrow">Phân tích chi tiết</p><h2>Báo cáo</h2><p class="muted">Lọc theo thời gian, trạng thái hoặc SKU; dữ liệu nóng tối đa 60 ngày.</p></div><button id="export-reports" class="secondary">Xuất CSV</button></div>
+    <form id="report-filter" class="filter-bar report-filter"><label>Từ ngày<input name="fromDate" type="date" value="${escapeHtml(reportFromDate)}" required /></label><label>Đến ngày<input name="toDate" type="date" value="${escapeHtml(reportToDate)}" required /></label><label>Trạng thái<select name="status"><option value="">Tất cả</option>${["PENDING","HAS_STOCK","SKIP_ALLOWED","CLOSED"].map((value) => `<option value="${value}" ${reportStatus === value ? "selected" : ""}>${escapeHtml(statusLabel(value))}</option>`).join("")}</select></label><label class="grow">SKU / Tên sản phẩm<input name="query" value="${escapeHtml(reportQuery)}" placeholder="Tìm SKU hoặc tên sản phẩm" /></label><button>Lọc</button></form>
+    <article class="card report-card"><div class="card-head"><div><h3>Kết quả</h3><p class="muted tiny">${metricNumber(adminReportTotal)} batch · Trang ${page}/${pages}</p></div><div class="pagination"><button id="report-prev" class="secondary" ${adminReportOffset <= 0 ? "disabled" : ""}>Trước</button><button id="report-next" class="secondary" ${adminReportOffset + ADMIN_REPORT_PAGE_SIZE >= adminReportTotal ? "disabled" : ""}>Sau</button></div></div>
+      ${adminReportRows.length ? `<div class="table-wrap report-table"><table><thead><tr><th>Thời gian báo</th><th>SKU</th><th>Tên sản phẩm</th><th>Trạng thái</th><th>Picker</th><th>Thời gian xử lý</th><th>Người xử lý</th><th>Chi tiết</th></tr></thead><tbody>${adminReportRows.map((row) => `<tr><td>${escapeHtml(fmtDate(row.first_report_at))}</td><td><b>${escapeHtml(row.sku)}</b></td><td>${escapeHtml(row.product_name)}</td><td><span class="status ${statusClass(row.status)}">${statusSymbol(row.status)} ${escapeHtml(statusLabel(row.status))}</span></td><td>${metricNumber(row.total_ticket_count)}${Number(row.open_ticket_count) ? ` · <b>${metricNumber(row.open_ticket_count)} chờ</b>` : ""}</td><td>${row.duration_minutes == null ? "—" : `${Number(row.duration_minutes).toLocaleString("vi-VN")} phút`}</td><td>${escapeHtml(row.resolved_by_user_id || "—")}</td><td><button class="secondary small-btn" data-detail-batch="${escapeHtml(row.batch_id)}">${batchDetails.has(row.batch_id) ? "Ẩn Picker" : "Xem Picker"}</button></td></tr>${batchDetails.has(row.batch_id) ? `<tr class="detail-row"><td colspan="8">${renderBatchDetails(row.batch_id)}</td></tr>` : ""}`).join("")}</tbody></table></div>` : `<div class="empty-state">Không có dữ liệu phù hợp bộ lọc.</div>`}
+    </article>
+  </section>`;
 }
 
 function renderSkuRows(): string {
@@ -148,7 +238,9 @@ function renderAccountPage(): string {
 }
 
 function renderContent(): string {
+  if (activeSection === "dashboard" && canManage()) return renderDashboard();
   if (activeSection === "operations" && canOperate()) return renderOperations();
+  if (activeSection === "reports" && canManage()) return renderAdminReports();
   if (activeSection === "sku" && canManage()) return renderSkuPage();
   if (activeSection === "hr" && canManage()) return renderHrPage();
   return renderAccountPage();
@@ -165,9 +257,9 @@ function render(): void {
     return;
   }
 
-  app.innerHTML = `<main class="app-shell"><aside class="sidebar"><div class="brand"><div class="brand-mark small">SI</div><div><strong>SUPRA Inventory</strong><span>Beta</span></div></div>${renderNav()}<div class="sidebar-foot"><div class="user-mini"><strong>${escapeHtml(profile.display_name)}</strong><span>${escapeHtml(profile.employee_code || profile.user_id)} · ${escapeHtml(profile.role)}</span></div><button id="logout" class="secondary full">Đăng xuất</button></div></aside><section class="workspace"><header class="workspace-head"><div><h1>${activeSection === "operations" ? "Vận hành báo hàng" : activeSection === "sku" ? "Master SKU" : activeSection === "hr" ? "Nhân sự" : "Tài khoản"}</h1><p class="muted">Mạng: ${navigator.onLine ? "Online" : "Offline"} · Dịch vụ: Beta</p></div><div class="header-badges"><span class="badge env">BETA</span><span class="badge">${escapeHtml(profile.role)}</span></div></header>${message ? `<div class="notice">${escapeHtml(message)}</div>` : ""}${renderContent()}</section></main>`;
+  app.innerHTML = `<main class="app-shell"><aside class="sidebar"><div class="brand"><div class="brand-mark small">SI</div><div><strong>SUPRA Inventory</strong><span>Beta</span></div></div>${renderNav()}<div class="sidebar-foot"><div class="user-mini"><strong>${escapeHtml(profile.display_name)}</strong><span>${escapeHtml(profile.employee_code || profile.user_id)} · ${escapeHtml(profile.role)}</span></div><button id="logout" class="secondary full">Đăng xuất</button></div></aside><section class="workspace"><header class="workspace-head"><div><h1>${activeSection === "dashboard" ? "Tổng quan" : activeSection === "operations" ? "Hàng chờ xử lý" : activeSection === "reports" ? "Báo cáo" : activeSection === "sku" ? "Master SKU" : activeSection === "hr" ? "Nhân sự" : "Tài khoản"}</h1><p class="muted">Mạng: ${navigator.onLine ? "Online" : "Offline"} · Dịch vụ: Beta</p></div><div class="header-badges"><span class="badge env">BETA</span><span class="badge">${escapeHtml(profile.role)}</span></div></header>${message ? `<div class="notice" role="status" aria-live="polite">${escapeHtml(message)}</div>` : ""}${renderContent()}</section></main>`;
 
-  document.querySelectorAll<HTMLButtonElement>("[data-section]").forEach((button) => button.addEventListener("click", () => { activeSection = button.dataset.section as Section; message = ""; render(); }));
+  document.querySelectorAll<HTMLButtonElement>("[data-section]").forEach((button) => button.addEventListener("click", () => void handleSectionChange(button.dataset.section as Section)));
   document.querySelector<HTMLButtonElement>("#logout")?.addEventListener("click", handleLogout);
   document.querySelector<HTMLFormElement>("#password-form")?.addEventListener("submit", handlePasswordChange);
   document.querySelector<HTMLFormElement>("#hr-form")?.addEventListener("submit", handleHrSave);
@@ -186,6 +278,14 @@ function render(): void {
   document.querySelector<HTMLButtonElement>("#sku-search")?.addEventListener("click", () => void handleSkuSearch());
   document.querySelector<HTMLButtonElement>("#sku-recent")?.addEventListener("click", () => void loadSkus(""));
   document.querySelector<HTMLInputElement>("#sku-query")?.addEventListener("keydown", (event) => { if (event.key === "Enter") { event.preventDefault(); void handleSkuSearch(); } });
+  document.querySelector<HTMLButtonElement>("#refresh-dashboard")?.addEventListener("click", () => void loadAdminDashboard());
+  document.querySelector<HTMLButtonElement>("#dashboard-open-reports")?.addEventListener("click", () => void handleSectionChange("reports"));
+  document.querySelector<HTMLFormElement>("#dashboard-filter")?.addEventListener("submit", handleDashboardFilter);
+  document.querySelectorAll<HTMLButtonElement>("[data-dashboard-preset]").forEach((button) => button.addEventListener("click", () => void handleDashboardPreset(button.dataset.dashboardPreset || "7")));
+  document.querySelector<HTMLFormElement>("#report-filter")?.addEventListener("submit", handleReportFilter);
+  document.querySelector<HTMLButtonElement>("#report-prev")?.addEventListener("click", () => void changeReportPage(-1));
+  document.querySelector<HTMLButtonElement>("#report-next")?.addEventListener("click", () => void changeReportPage(1));
+  document.querySelector<HTMLButtonElement>("#export-reports")?.addEventListener("click", () => void exportAdminReportsCsv());
   document.querySelector<HTMLButtonElement>("#refresh-operations")?.addEventListener("click", () => void loadOperations());
   document.querySelectorAll<HTMLButtonElement>("[data-resolve]").forEach((button) => button.addEventListener("click", () => void handleResolve(button.dataset.batch || "", button.dataset.resolve as "HAS_STOCK" | "SKIP_ALLOWED")));
   document.querySelectorAll<HTMLButtonElement>("[data-correct-batch]").forEach((button) => button.addEventListener("click", () => void handleCorrect(button.dataset.correctBatch || "")));
@@ -198,8 +298,9 @@ async function handleLogin(event: SubmitEvent): Promise<void> {
   busy = true; message = ""; render();
   try {
     profile = await loginWithPassword(String(form.get("username") || ""), String(form.get("password") || ""));
-    activeSection = canOperate(profile) ? "operations" : "account";
-    if (canOperate(profile)) await loadOperations(false);
+    activeSection = canManage(profile) ? "dashboard" : canOperate(profile) ? "operations" : "account";
+    if (canManage(profile)) await loadAdminDashboard(false);
+    else if (canOperate(profile)) await loadOperations(false);
     message = "Đăng nhập thành công.";
   } catch (error) {
     profile = null; clearSession(); message = error instanceof Error ? error.message : "Đăng nhập thất bại.";
@@ -208,7 +309,81 @@ async function handleLogin(event: SubmitEvent): Promise<void> {
 
 function resetSkuImportState(): void { pendingWorkbook = null; pendingImportItems = null; pendingSourceHash = ""; pendingImportId = ""; pendingDatabaseConflicts = []; }
 function cancelSkuImport(): void { resetSkuImportState(); skuStatus = "Đã huỷ lượt nhập SKU. Dữ liệu chưa xác nhận đổi tên không bị cập nhật."; render(); }
-function handleLogout(): void { clearSession(); profile = null; message = ""; skuStatus = ""; skuRows = []; queueRows = []; recentRows = []; managedUsers = []; hrSyncPreview = null; batchDetails.clear(); resetSkuImportState(); render(); }
+function handleLogout(): void { clearSession(); profile = null; message = ""; skuStatus = ""; skuRows = []; queueRows = []; recentRows = []; managedUsers = []; hrSyncPreview = null; dashboardData = null; adminReportRows = []; adminReportTotal = 0; adminReportOffset = 0; batchDetails.clear(); resetSkuImportState(); render(); }
+
+async function handleSectionChange(section: Section): Promise<void> {
+  activeSection = section; message = ""; render();
+  if (section === "dashboard" && canManage()) await loadAdminDashboard();
+  else if (section === "operations" && canOperate()) await loadOperations();
+  else if (section === "reports" && canManage()) await loadAdminReporting();
+  else if (section === "hr" && canManage()) await loadManagedUsers();
+}
+
+async function loadAdminDashboard(renderAfter = true): Promise<void> {
+  if (!canManage()) return;
+  try { const range = apiRange(dashboardFromDate, dashboardToDate); dashboardData = await getAdminDashboard(range.from, range.to); }
+  catch (error) { message = error instanceof Error ? error.message : "Không tải được dashboard."; }
+  if (renderAfter) render();
+}
+
+async function handleDashboardFilter(event: SubmitEvent): Promise<void> {
+  event.preventDefault(); const form = new FormData(event.currentTarget as HTMLFormElement);
+  dashboardFromDate = String(form.get("fromDate") || dashboardFromDate); dashboardToDate = String(form.get("toDate") || dashboardToDate);
+  await loadAdminDashboard();
+}
+
+async function handleDashboardPreset(preset: string): Promise<void> {
+  const days = preset === "today" ? 1 : preset === "30" ? 30 : 7;
+  dashboardToDate = dateInputDaysAgo(0); dashboardFromDate = dateInputDaysAgo(days - 1); await loadAdminDashboard();
+}
+
+async function loadAdminReporting(renderAfter = true): Promise<void> {
+  if (!canManage()) return;
+  try {
+    const range = apiRange(reportFromDate, reportToDate);
+    const result = await getAdminReporting({ ...range, status: reportStatus, query: reportQuery, limit: ADMIN_REPORT_PAGE_SIZE, offset: adminReportOffset });
+    adminReportRows = result.items; adminReportTotal = result.total;
+  } catch (error) { message = error instanceof Error ? error.message : "Không tải được báo cáo."; }
+  if (renderAfter) render();
+}
+
+async function handleReportFilter(event: SubmitEvent): Promise<void> {
+  event.preventDefault(); const form = new FormData(event.currentTarget as HTMLFormElement);
+  reportFromDate = String(form.get("fromDate") || reportFromDate); reportToDate = String(form.get("toDate") || reportToDate);
+  reportStatus = String(form.get("status") || ""); reportQuery = String(form.get("query") || "").trim(); adminReportOffset = 0;
+  await loadAdminReporting();
+}
+
+async function changeReportPage(direction: number): Promise<void> {
+  adminReportOffset = Math.max(0, Math.min(Math.max(0, adminReportTotal - 1), adminReportOffset + direction * ADMIN_REPORT_PAGE_SIZE));
+  await loadAdminReporting();
+}
+
+function csvCell(value: unknown): string {
+  let text = String(value ?? "");
+  if (/^[=+\-@]/.test(text)) text = `'${text}`;
+  return `"${text.replaceAll('"', '""')}"`;
+}
+
+async function exportAdminReportsCsv(): Promise<void> {
+  if (!canManage()) return;
+  const range = apiRange(reportFromDate, reportToDate); const rows: AdminReportingRow[] = []; const chunkSize = 500; const maxRows = 20_000;
+  message = "Đang chuẩn bị file CSV..."; render();
+  try {
+    for (let offset = 0; offset < maxRows; offset += chunkSize) {
+      const page = await getAdminReporting({ ...range, status: reportStatus, query: reportQuery, limit: chunkSize, offset });
+      rows.push(...page.items);
+      if (offset + page.items.length >= page.total || page.items.length < chunkSize) break;
+    }
+    if (rows.length >= maxRows) throw new Error(`Kết quả vượt ${maxRows.toLocaleString("vi-VN")} dòng. Hãy thu hẹp bộ lọc trước khi xuất.`);
+    const header = ["Batch ID","Thời gian báo","Thời gian xử lý","Phút xử lý","SKU","Tên sản phẩm","Trạng thái","Kết quả","Tổng Picker","Picker đang chờ","Người xử lý"];
+    const lines = [header.map(csvCell).join(","), ...rows.map((row) => [row.batch_id,row.first_report_at,row.resolved_at || "",row.duration_minutes ?? "",row.sku,row.product_name,statusLabel(row.status),row.resolution || "",row.total_ticket_count,row.open_ticket_count,row.resolved_by_user_id || ""].map(csvCell).join(","))];
+    const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const href = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = href; a.download = `supra-inventory-report_${reportFromDate}_${reportToDate}.csv`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(href);
+    message = `Đã xuất ${rows.length.toLocaleString("vi-VN")} dòng CSV.`;
+  } catch (error) { message = error instanceof Error ? error.message : "Không xuất được CSV."; }
+  render();
+}
 
 async function handlePasswordChange(event: SubmitEvent): Promise<void> {
   event.preventDefault(); const form = new FormData(event.currentTarget as HTMLFormElement);
@@ -379,7 +554,7 @@ async function loadSkus(query: string): Promise<void> { try { skuRows = (await s
 
 async function restoreSession(): Promise<void> {
   if (!hasSession()) { render(); return; }
-  try { profile = await getMyProfile(); activeSection = canOperate(profile) ? "operations" : "account"; if (canOperate(profile)) await loadOperations(false); }
+  try { profile = await getMyProfile(); activeSection = canManage(profile) ? "dashboard" : canOperate(profile) ? "operations" : "account"; if (canManage(profile)) await loadAdminDashboard(false); else if (canOperate(profile)) await loadOperations(false); }
   catch (error) { clearSession(); profile = null; message = error instanceof Error ? error.message : "Phiên đăng nhập không còn hợp lệ."; }
   render();
 }

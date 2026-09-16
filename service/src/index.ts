@@ -4,6 +4,7 @@ import { handleBusinessApi } from "./business-api";
 import { handleReadApi } from "./read-api";
 import { handleNotificationApi } from "./notification-api";
 import { handleUserManagementApi } from "./user-management-api";
+import { archiveStatus, runArchive } from "./archive";
 import { validateHrSheetSource } from "./hr-source";
 
 export { InventoryCore };
@@ -21,6 +22,8 @@ interface Env {
   GOOGLE_DRIVE_OAUTH_REDIRECT_URI?: string;
   GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN?: string;
   ROOT_BOOTSTRAP_PASSWORD?: string;
+  ARCHIVE_SHEET_ID?: string;
+  RETENTION_DAYS?: string;
 }
 
 interface InternalUser {
@@ -369,6 +372,16 @@ export default {
       if (request.method === "GET" && url.pathname === "/api/auth/me") return json({ user: publicUser(await requireUser(request, env)) });
       if (request.method === "PUT" && url.pathname === "/api/auth/change-password") return changePassword(request, env);
 
+      if (request.method === "GET" && url.pathname === "/api/admin/archive/status") {
+        await requireUser(request, env, ["ADMIN", "ROOT"]);
+        return archiveStatus(env);
+      }
+      if (request.method === "POST" && url.pathname === "/api/admin/archive/run") {
+        await requireUser(request, env, ["ROOT"]);
+        try { return json(await runArchive(env)); }
+        catch (error) { return json({ error: "ARCHIVE_RUN_FAILED", message: error instanceof Error ? error.message : "archive_failed" }, 502); }
+      }
+
       if (request.method === "GET" && url.pathname === "/api/admin/hr-source") {
         await requireUser(request, env, ["ADMIN", "ROOT"]);
         return coreStub(env).fetch("https://inventory-core.internal/config/hr-source");
@@ -411,5 +424,8 @@ export default {
       if (error instanceof Response) return error;
       return json({ error: "internal_error" }, 500);
     }
+  },
+  async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(runArchive(env).then(() => undefined).catch((error) => console.error("archive_scheduled_failed", error instanceof Error ? error.message : "unknown")));
   },
 } satisfies ExportedHandler<Env>;

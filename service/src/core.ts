@@ -3,8 +3,9 @@ import { handleSkuImportCoreRequest } from "./sku-import-core";
 import { handleReadModelCoreRequest } from "./read-model-core";
 import { handleNotificationCoreRequest } from "./notifications-core";
 import { handleUserManagementCoreRequest } from "./user-management-core";
+import { handleArchiveCoreRequest } from "./archive-core";
 
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 
 interface CoreEnv {
   APP_ENV: string;
@@ -191,6 +192,14 @@ export class InventoryCore {
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
 
+      CREATE TABLE IF NOT EXISTS archive_exports (
+        batch_id TEXT PRIMARY KEY,
+        archive_run_id TEXT NOT NULL,
+        manifest_id TEXT NOT NULL,
+        archived_at TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_archive_exports_archived_at ON archive_exports(archived_at);
+
       CREATE TABLE IF NOT EXISTS audit_log (
         audit_id TEXT PRIMARY KEY,
         actor_user_id TEXT,
@@ -344,6 +353,9 @@ export class InventoryCore {
 
     const skuImport = await handleSkuImportCoreRequest(this.state, request);
     if (skuImport) return skuImport;
+
+    const archive = await handleArchiveCoreRequest(this.state, request);
+    if (archive) return archive;
 
     const userManagement = await handleUserManagementCoreRequest(this.state, request);
     if (userManagement) return userManagement;

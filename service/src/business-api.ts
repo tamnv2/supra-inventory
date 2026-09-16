@@ -196,6 +196,8 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     "POST /api/reporter/batches/resolve",
     "POST /api/reporter/batches/correct",
     "GET /api/admin/reports",
+    "GET /api/admin/dashboard",
+    "GET /api/admin/reporting",
   ]);
   if (!supported.has(key)) return null;
 
@@ -306,6 +308,15 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
       body: "{sku} đã được sửa kết quả thành Có hàng.",
     });
     return result;
+  }
+
+  if (key === "GET /api/admin/dashboard" || key === "GET /api/admin/reporting") {
+    await requireUser(request, env, ["ADMIN", "ROOT"]);
+    const params = new URLSearchParams();
+    for (const name of ["from", "to", "status", "query", "limit", "offset"]) {
+      if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+    }
+    return coreGet(env, `${key.endsWith("dashboard") ? "/business/admin/dashboard" : "/business/admin/reporting"}?${params.toString()}`);
   }
 
   if (key === "GET /api/admin/reports") {

@@ -23,7 +23,7 @@
     "durable_object_class": "InventoryCore",
     "durable_object_binding": "INVENTORY_CORE",
     "durable_object_storage": "sqlite",
-    "beta_sqlite_schema_version": 3
+    "beta_sqlite_schema_version": 4
   },
   "network_scope": {
     "picker_reporter": "PDA_ONLY_ON_PDA_NETWORK_WITH_INTERNET",
@@ -130,7 +130,7 @@
       "durable_object_status": "PROVISIONED_PASS",
       "durable_object_class": "InventoryCore",
       "durable_object_storage": "sqlite",
-      "sqlite_schema_version": 3,
+      "sqlite_schema_version": 4,
       "runtime_service_account": "inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com",
       "android_package": "cd.cc.supra.inventory.beta",
       "firebase_android_app_id": "1:572322098890:android:3e483937876cbcc0400e33",
@@ -159,7 +159,7 @@
       "cloudflare_oauth_refresh_token_secret": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
       "oauth_refresh_token_configured": true,
       "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA",
-      "web_source_status": "ROLE_BASED_REPORTER_ADMIN_UI_DEPLOYED_PASS",
+      "web_source_status": "CONCEPT3_ADMIN_DASHBOARD_REPORTING_ROLE_UI_DEPLOYED_PASS",
       "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
       "web_admin_report_monitoring": "ROLE_BASED_OPERATIONS_UI_DEPLOYED_PASS",
       "android_source_status": "ROLE_BASED_PICKER_REPORTER_REALTIME_FCM_SIGNED_OTA_PASS",
@@ -173,7 +173,7 @@
       "auth_api_route_smoke": "PASS",
       "root_bootstrap_path_smoke": "PASS",
       "hr_settings_ui_status": "IMPLEMENTED_WEB_ADMIN_ROOT",
-      "business_api_status": "IMPLEMENTED_DEPLOYED_SCHEMA_V3"
+      "business_api_status": "IMPLEMENTED_DEPLOYED_SCHEMA_V4"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -184,7 +184,7 @@
       "durable_object_status": "DECLARED_NOT_PROVISIONED_OWNER_GATED",
       "durable_object_class": "InventoryCore",
       "durable_object_storage": "sqlite",
-      "sqlite_schema_version_source": 3,
+      "sqlite_schema_version_source": 4,
       "runtime_service_account": "inventory-stable-runtime@supra-inventory-stable.iam.gserviceaccount.com",
       "android_package": "cd.cc.supra.inventory",
       "firebase_android_app_id": "1:1004520166836:android:70b94fef019c46450fcee1",
@@ -237,12 +237,13 @@
     "web_foreground_realtime_client",
     "android_foreground_realtime_client",
     "fcm_device_and_delivery_flows_foundation",
-    "user_management_and_hr_provisioning"
+    "user_management_and_hr_provisioning",
+    "business_sqlite_schema_v4_archive",
+    "backup_archive_execution",
+    "admin_dashboard_reporting_concept3"
   ],
   "application_build_pending": [
     "fcm_physical_device_delivery_acceptance",
-    "backup_archive_execution",
-    "reporting_and_exports",
     "load_and_resilience_tests"
   ],
   "release_pending": [
@@ -266,6 +267,34 @@
     "default_password_source": "PROTECTED_ROOT_BOOTSTRAP_PASSWORD_SECRET_REUSED_FOR_INITIAL_MANAGED_LOGIN",
     "root_protection": "NOT_MANAGEABLE_BY_NORMAL_ACCOUNT_API",
     "hr_sync": "PREVIEW_THEN_EXPLICIT_APPLY",
+    "source_status": "BETA_DEPLOY_BUILD_PASS"
+  },
+  "archive": {
+    "beta_sheet_id": "1WU9RDUEevE74Twyq1aA80xvL3Wr1mTA21PRA8ypIMOA",
+    "tabs": [
+      "Archive_Manifest",
+      "Archive_Tickets",
+      "Archive_Batches",
+      "Archive_Events"
+    ],
+    "execution": "DAILY_03_15_ASIA_HO_CHI_MINH_AND_ROOT_MANUAL",
+    "idempotency": "FIXED_ROW_RANGES_FROM_SQLITE_CHECKPOINT_PLUS_ARCHIVE_MARKERS",
+    "retention_days": 60,
+    "cleanup_guard": "ONLY_FINAL_BATCHES_WITH_ARCHIVE_EXPORT_MARKER",
+    "pending_survives_retention": true,
+    "source_status": "BETA_DEPLOY_SCHEMA_V4_PASS"
+  },
+  "admin_dashboard": {
+    "audience": [
+      "ADMIN",
+      "ROOT"
+    ],
+    "design": "CONCEPT_3_LIGHT_GREEN_OPERATIONAL",
+    "data_source": "INVENTORY_CORE_SQLITE_AGGREGATE_ENDPOINT",
+    "default_period_days": 7,
+    "max_hot_reporting_range_days": 60,
+    "csv_export": "EXPLICIT_CLIENT_EXPORT_PAGED_500_MAX_20000",
+    "refresh": "EXPLICIT_OR_REALTIME_INVALIDATION_NO_AGGRESSIVE_POLLING",
     "source_status": "BETA_DEPLOY_BUILD_PASS"
   }
 }
