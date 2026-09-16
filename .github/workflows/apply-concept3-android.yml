@@ -32,6 +32,15 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/apply_concept3_android.py
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt')
+          text = p.read_text(encoding='utf-8')
+          old = 'session.employeeCode ?: session.userId'
+          if old not in text:
+              raise SystemExit('Expected generated identity expression not found')
+          p.write_text(text.replace(old, 'session.employeeCode ?: "Tài khoản hệ thống"', 1), encoding='utf-8')
+          PY
           git diff --check
           python3 tools/project_state_guard.py
 
