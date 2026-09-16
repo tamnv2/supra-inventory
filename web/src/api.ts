@@ -11,6 +11,39 @@ export interface AppProfile {
   password_changed_at: string | null;
 }
 
+export interface SkuItem {
+  sku: string;
+  product_name: string;
+  source_hash?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface SkuImportResult {
+  status: string;
+  total: number;
+  inserted: number;
+  updated: number;
+  unchanged: number;
+  source_hash: string | null;
+  imported_at: string;
+  idempotent_replay?: boolean;
+}
+
+export interface AdminReportBatch {
+  batch_id: string;
+  sku: string;
+  product_name: string;
+  status: "PENDING" | "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED";
+  first_report_at: string;
+  resolved_at: string | null;
+  resolved_by_user_id: string | null;
+  resolution: "HAS_STOCK" | "SKIP_ALLOWED" | null;
+  correction_deadline_at: string | null;
+  open_ticket_count: number;
+  total_ticket_count: number;
+}
+
 interface StoredSession {
   id_token: string;
   refresh_token: string;
@@ -153,4 +186,22 @@ export async function saveHrSource(sheetUrl: string, tabName: string): Promise<u
   return readJson(await authorizedFetch("/api/admin/hr-source", {
     method: "PUT", body: JSON.stringify({ sheet_url: sheetUrl, tab_name: tabName }),
   }));
+}
+
+export async function importSkuItems(items: SkuItem[]): Promise<SkuImportResult> {
+  return readJson(await authorizedFetch("/api/admin/skus/import", {
+    method: "POST",
+    body: JSON.stringify({ request_id: crypto.randomUUID(), items }),
+  }));
+}
+
+export async function searchSkus(query = "", limit = 50): Promise<{ items: SkuItem[]; count: number }> {
+  const params = new URLSearchParams({ query, limit: String(limit) });
+  return readJson(await authorizedFetch(`/api/skus?${params.toString()}`));
+}
+
+export async function getAdminReports(limit = 100, status = ""): Promise<{ items: AdminReportBatch[]; count: number }> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (status) params.set("status", status);
+  return readJson(await authorizedFetch(`/api/admin/reports?${params.toString()}`));
 }
