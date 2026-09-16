@@ -110,6 +110,19 @@ jobs:
           cat "$tmp"
           exit 1
 
+      - name: Verify Beta Web shell
+        env:
+          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}/")"
+          [ "$code" = "200" ] || { echo "Beta Web root returned HTTP $code"; exit 1; }
+          grep -Fq '<div id="app"></div>' "$tmp" || { echo "Beta Web shell marker missing"; exit 1; }
+          grep -Fq 'SUPRA Inventory' "$tmp" || { echo "Beta Web title marker missing"; exit 1; }
+          echo "Beta Web shell PASS"
+
       - name: Verify Beta Google OAuth start
         env:
           BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
