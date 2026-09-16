@@ -79,7 +79,8 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
-        run: npx --yes wrangler@4 deploy --config wrangler.beta.toml --keep-vars
+          FIREBASE_WEB_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+        run: npx --yes wrangler@4 deploy --config wrangler.beta.toml --keep-vars --var "FIREBASE_WEB_API_KEY:${FIREBASE_WEB_API_KEY}"
 
       - name: Verify Beta health, Root secret and SQLite schema
         env:
@@ -110,18 +111,22 @@ jobs:
           cat "$tmp"
           exit 1
 
-      - name: Verify Beta auth API routing
+      - name: Verify Beta auth API routing and Root bootstrap path
         env:
           BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
           trap 'rm -f "$tmp"' EXIT
-          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' -X POST "https://${BETA_HOSTNAME}/api/auth/login" -H 'content-type: application/json' --data '{"username":"__ci_probe__","password":"invalid"}')"
-          content_type="$(curl -sSI --connect-timeout 5 --max-time 15 "https://${BETA_HOSTNAME}/health" | awk 'BEGIN{IGNORECASE=1} /^content-type:/ {sub(/\r$/, ""); print; exit}')"
-          [ "$code" = "401" ] || { echo "Auth API expected HTTP 401, got $code"; echo "Safe response:"; head -c 500 "$tmp"; exit 1; }
+
+          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' -X POST "https://${BETA_HOSTNAME}/api/auth/login" -H 'content-type: application/json' -H 'accept: application/json' --data '{"username":"__ci_probe__","password":"invalid"}')"
+          [ "$code" = "401" ] || { echo "Auth API expected HTTP 401, got $code"; head -c 500 "$tmp"; exit 1; }
           jq -e '.error == "INVALID_CREDENTIALS"' "$tmp" >/dev/null || { echo "Auth API did not return expected JSON"; head -c 500 "$tmp"; exit 1; }
-          echo "Beta auth API routing PASS (${content_type:-content-type unknown})"
+
+          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' -X POST "https://${BETA_HOSTNAME}/api/auth/login" -H 'content-type: application/json' -H 'accept: application/json' --data '{"username":"root","password":"__definitely_wrong_ci_password__"}')"
+          [ "$code" = "401" ] || { echo "Root bootstrap probe expected HTTP 401, got $code"; head -c 500 "$tmp"; exit 1; }
+          jq -e '.error == "INVALID_CREDENTIALS"' "$tmp" >/dev/null || { echo "Root bootstrap path did not return expected JSON"; head -c 500 "$tmp"; exit 1; }
+          echo "Beta auth API routing + Root bootstrap path PASS"
 
       - name: Verify Beta Web shell
         env:
