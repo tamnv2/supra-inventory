@@ -40,7 +40,11 @@ function response(payload: unknown, status = 200): Response {
   });
 }
 
-function validId(value: string): boolean {
+function validUserId(value: string): boolean {
+  return /^[A-Za-z0-9._:-]{1,128}$/.test(value);
+}
+
+function validDeviceId(value: string): boolean {
   return /^[A-Za-z0-9._:-]{8,128}$/.test(value);
 }
 
@@ -50,7 +54,7 @@ async function upsertDevice(state: DurableObjectState, request: Request): Promis
   const deviceId = String(body.device_id || "").trim();
   const token = String(body.token || "").trim();
   const platform = String(body.platform || "ANDROID").toUpperCase();
-  if (!validId(userId) || !validId(deviceId) || !token || token.length > 4096 || !["ANDROID", "WEB"].includes(platform)) {
+  if (!validUserId(userId) || !validDeviceId(deviceId) || !token || token.length > 4096 || !["ANDROID", "WEB"].includes(platform)) {
     return response({ error: "INVALID_NOTIFICATION_DEVICE" }, 400);
   }
   const at = new Date().toISOString();
@@ -73,7 +77,7 @@ async function removeDevice(state: DurableObjectState, request: Request): Promis
   const body = (await request.json()) as DeviceBody;
   const userId = String(body.user_id || "").trim();
   const deviceId = String(body.device_id || "").trim();
-  if (!validId(userId) || !validId(deviceId)) return response({ error: "INVALID_NOTIFICATION_DEVICE" }, 400);
+  if (!validUserId(userId) || !validDeviceId(deviceId)) return response({ error: "INVALID_NOTIFICATION_DEVICE" }, 400);
   const at = new Date().toISOString();
   state.storage.sql.exec(
     `UPDATE fcm_devices SET enabled = 0, updated_at = ?, last_seen_at = ? WHERE device_id = ? AND user_id = ?`,
@@ -112,7 +116,7 @@ async function notificationTargets(state: DurableObjectState, request: Request):
   const users = new Set<string>();
   for (const value of Array.isArray(body.user_ids) ? body.user_ids : []) {
     const userId = String(value).trim();
-    if (validId(userId)) users.add(userId);
+    if (validUserId(userId)) users.add(userId);
   }
   for (const userId of targetUsersForRoles(state, (Array.isArray(body.roles) ? body.roles : []).map(String))) users.add(userId);
   const batchId = String(body.batch_id || "").trim();
@@ -438,26 +442,6 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     });
     return result;''',
         "business-create-fcm")
-
-    replace_once(business,
-        '''    return realtimeAfter(response, env, {
-      event: "report_withdrawn",
-      scopes: ["reporter_queue", "picker_reports"],
-      tags: [...REPORTER_TAGS, `user:${user.user_id}`],
-    });''',
-        '''    const result = await realtimeAfter(response, env, {
-      event: "report_withdrawn",
-      scopes: ["reporter_queue", "picker_reports"],
-      tags: [...REPORTER_TAGS, `user:${user.user_id}`],
-    });
-    scheduleFcm(result, env, ctx, {
-      event: "report_withdrawn",
-      target: { roles: REPORTER_ROLES },
-      title: "SUPRA Inventory · Báo đã thu hồi",
-      body: "Một báo hết hàng vừa được Picker thu hồi.",
-    });
-    return result;''',
-        "business-withdraw-fcm")
 
     replace_once(business,
         '''    return realtimeAfter(response, env, {

@@ -111,6 +111,20 @@ class InventoryApi(
         return next
     }
 
+    fun registerNotificationDevice(deviceId: String, token: String): JSONObject =
+        request(
+            method = "POST",
+            path = "/api/notifications/device",
+            body = JSONObject().put("device_id", deviceId).put("token", token).put("platform", "ANDROID"),
+        )
+
+    fun unregisterNotificationDevice(deviceId: String): JSONObject =
+        request(
+            method = "DELETE",
+            path = "/api/notifications/device",
+            body = JSONObject().put("device_id", deviceId).put("platform", "ANDROID"),
+        )
+
     fun createRealtimeTicket(): String {
         val payload = request(
             method = "POST",

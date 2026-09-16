@@ -22,9 +22,10 @@
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS",
     "web": "ROLE_BASED_REPORTER_ADMIN_UI_DEPLOYED_PASS",
     "android": "ROLE_BASED_PICKER_REPORTER_REALTIME_SIGNED_OTA_BETA_PASS",
-    "latest_beta_apk": "beta-vc26",
-    "realtime": "WEBSOCKET_SERVER_WEB_ANDROID_FOREGROUND_DEPLOYED_PASS",
-    "network_scope": "PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_BY_OWNER_DECISION"
+    "latest_beta_apk": "beta-vc25",
+    "realtime": "WEBSOCKET_SERVER_WEB_ANDROID_CLIENT_DEPLOYED_SIGNED_PASS",
+    "network_scope": "PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_BY_OWNER_DECISION",
+    "fcm": "DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_SOURCE_PENDING_CI_DEPLOY"
   },
   "hard_guards": [
     "Do not import assumptions or resources from other projects.",
@@ -76,10 +77,11 @@
     "WebSocket one-time-ticket authentication, hibernatable presence and selective invalidation server protocol — Beta deploy/typecheck PASS",
     "Web foreground realtime invalidation client — Beta build/deploy PASS",
     "Android foreground realtime invalidation client — signed Beta beta-vc26 build/release PASS",
-    "Final network decision: PDA runtime supported; Office network unsupported"
+    "Final network decision: PDA runtime supported; Office network unsupported",
+    "Android foreground realtime invalidation client — signed Beta beta-vc25 build/release PASS"
   ],
   "pending_build": [
-    "FCM device registration and background delivery flows",
+    "Verify/deploy FCM device registration + role/user targeted background notification source",
     "User management and HR provisioning/sync lifecycle",
     "Backup/archive executor with checkpoint/retry/retention safety",
     "Reporting/export UI and APIs",
@@ -98,7 +100,7 @@
     "Any new offline-create-report behavior; do not add direct-to-Sheet fallback unless Owner explicitly approves it."
   ],
   "next_action": {
-    "primary": "Implement FCM device registration and background delivery, then user management and HR provisioning/sync lifecycle.",
+    "primary": "Verify/deploy FCM device registration and background delivery, then build user management + HR provisioning/sync lifecycle.",
     "method": "Keep FCM as background notification only; business state remains server-authoritative via API/SQLite and foreground WebSocket resync.",
     "stable_guard": "Do not activate Stable."
   },

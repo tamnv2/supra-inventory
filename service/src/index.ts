@@ -2,6 +2,7 @@ import { InventoryCore } from "./core";
 import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole } from "./auth";
 import { handleBusinessApi } from "./business-api";
 import { handleReadApi } from "./read-api";
+import { handleNotificationApi } from "./notification-api";
 import { validateHrSheetSource } from "./hr-source";
 
 export { InventoryCore };
@@ -326,7 +327,7 @@ async function googleOAuthCallback(request: Request, env: Env): Promise<Response
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     try {
       if (request.method === "GET" && url.pathname === "/health") {
@@ -387,10 +388,13 @@ export default {
         }
       }
 
+      const notificationResponse = await handleNotificationApi(request, env);
+      if (notificationResponse) return notificationResponse;
+
       const readResponse = await handleReadApi(request, env);
       if (readResponse) return readResponse;
 
-      const businessResponse = await handleBusinessApi(request, env);
+      const businessResponse = await handleBusinessApi(request, env, ctx);
       if (businessResponse) return businessResponse;
 
       if (request.method === "GET" && url.pathname === "/api/oauth/google/start") return startGoogleOAuth(env);

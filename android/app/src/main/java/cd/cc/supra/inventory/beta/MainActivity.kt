@@ -1,8 +1,12 @@
 package cd.cc.supra.inventory.beta
 
 import android.app.Activity
+import android.Manifest
 import android.app.AlertDialog
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -29,6 +33,7 @@ import android.widget.TextView
 import androidx.core.content.FileProvider
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
+import com.google.firebase.messaging.FirebaseMessaging
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
@@ -37,6 +42,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.ArrayDeque
+import java.util.UUID
 import kotlin.math.max
 
 class MainActivity : Activity() {
@@ -46,6 +52,12 @@ class MainActivity : Activity() {
     private lateinit var status: TextView
     private lateinit var updateButton: Button
     private var realtimeClient: AndroidRealtimeClient? = null
+    private val notificationDeviceId: String by lazy {
+        val prefs = getSharedPreferences("notification_device", MODE_PRIVATE)
+        prefs.getString("device_id", null) ?: UUID.randomUUID().toString().also {
+            prefs.edit().putString("device_id", it).apply()
+        }
+    }
 
     private var pendingInstallFile: File? = null
     private var searchRunnable: Runnable? = null
@@ -115,6 +127,7 @@ class MainActivity : Activity() {
             .setGcmSenderId(BuildConfig.FIREBASE_MESSAGING_SENDER_ID)
             .build()
         if (FirebaseApp.getApps(this).isEmpty()) FirebaseApp.initializeApp(this, options)
+        createNotificationChannel()
 
         api = InventoryApi(
             baseUrl = BuildConfig.API_BASE_URL.trimEnd('/'),
@@ -276,10 +289,7 @@ class MainActivity : Activity() {
                     .setMessage("Phiên làm việc hiện tại sẽ kết thúc.")
                     .setNegativeButton("Huỷ", null)
                     .setPositiveButton("Đăng xuất") { _, _ ->
-                        realtimeClient?.stop()
-                        realtimeClient = null
-                        api.clearSession()
-                        renderLogin("Đã đăng xuất.")
+                        logoutWithNotificationCleanup()
                     }
                     .show()
             }
@@ -303,6 +313,52 @@ class MainActivity : Activity() {
 
         setContentView(wrapScroll(root))
         startRealtime(session)
+        registerBackgroundNotifications()
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val manager = getSystemService(NotificationManager::class.java)
+        val channel = NotificationChannel(
+            "inventory_operations",
+            "SUPRA Inventory · Nghiệp vụ",
+            NotificationManager.IMPORTANCE_HIGH,
+        ).apply {
+            description = "Cảnh báo báo hàng khi ứng dụng chạy nền"
+        }
+        manager.createNotificationChannel(channel)
+    }
+
+    private fun registerBackgroundNotifications() {
+        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 701)
+        }
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            val token = if (task.isSuccessful) task.result else null
+            if (token.isNullOrBlank() || api.session == null) return@addOnCompleteListener
+            Thread {
+                try {
+                    api.registerNotificationDevice(notificationDeviceId, token)
+                } catch (_: Exception) {
+                    // Registration retries on the next login; foreground realtime remains available.
+                }
+            }.start()
+        }
+    }
+
+    private fun logoutWithNotificationCleanup() {
+        realtimeClient?.stop()
+        realtimeClient = null
+        Thread {
+            try {
+                api.unregisterNotificationDevice(notificationDeviceId)
+            } catch (_: Exception) {
+                // Logout remains local even if the unregister request cannot reach the service.
+            } finally {
+                api.clearSession()
+                runOnUiThread { renderLogin("Đã đăng xuất.") }
+            }
+        }.start()
     }
 
     private fun startRealtime(session: AppSession) {

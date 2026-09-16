@@ -113,7 +113,7 @@
     ],
     "presence_api": "ADMIN_ROOT_ONLY",
     "delivery_semantics": "TRANSACTION_COMMIT_FIRST_THEN_BEST_EFFORT_INVALIDATION_CLIENT_RESYNC",
-    "source_status": "SERVER_AND_WEB_CLIENT_DEPLOYED_PASS_ANDROID_CLIENT_SOURCE_COMMITTED_PENDING_CI"
+    "source_status": "SERVER_WEB_ANDROID_DEPLOYED_SIGNED_PASS"
   },
   "environments": {
     "beta": {
@@ -162,13 +162,13 @@
       "web_source_status": "ROLE_BASED_REPORTER_ADMIN_UI_DEPLOYED_PASS",
       "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
       "web_admin_report_monitoring": "ROLE_BASED_OPERATIONS_UI_DEPLOYED_PASS",
-      "android_source_status": "ROLE_BASED_PICKER_REPORTER_UI_SIGNED_OTA_PASS",
+      "android_source_status": "ROLE_BASED_PICKER_REPORTER_REALTIME_SIGNED_OTA_PASS",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
-      "latest_signed_beta_release": "beta-vc24",
-      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.24",
-      "latest_signed_beta_apk_sha256": "c1cd4639893d48f1e616a04a5b73216e6a221ecd3ab2576c75ecf143b6fce484",
-      "latest_signed_beta_apk_size_bytes": 8501787,
+      "latest_signed_beta_release": "beta-vc25",
+      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.25",
+      "latest_signed_beta_apk_sha256": "fa2126078e0fc6776292ae71f2028ff55ae4059ac908faec869eb4e09a9b97a4",
+      "latest_signed_beta_apk_size_bytes": 9149854,
       "auth_rbac_status": "IMPLEMENTED_RUNTIME_READY",
       "auth_api_route_smoke": "PASS",
       "root_bootstrap_path_smoke": "PASS",
@@ -234,11 +234,11 @@
     "web_role_based_reporter_admin_operations_ui",
     "android_picker_role_ui_with_local_sku_cache",
     "android_reporter_admin_root_operations_ui",
-    "web_foreground_realtime_client"
+    "web_foreground_realtime_client",
+    "android_foreground_realtime_client"
   ],
   "application_build_pending": [
-    "android_foreground_realtime_client_verify",
-    "fcm_device_and_delivery_flows",
+    "fcm_device_and_delivery_flows_verify",
     "user_management_and_hr_provisioning",
     "backup_archive_execution",
     "reporting_and_exports",
@@ -249,5 +249,14 @@
     "stable_oauth_refresh_token_owner_gated",
     "stable_first_durable_object_provisioning_owner_gated",
     "stable_release_owner_acceptance"
-  ]
+  ],
+  "notifications": {
+    "background": "FCM_HTTP_V1",
+    "authentication": "SHORT_LIVED_OAUTH2_FROM_GOOGLE_RUNTIME_SA_JSON",
+    "oauth_scope": "https://www.googleapis.com/auth/firebase.messaging",
+    "device_registry": "InventoryCore.fcm_devices",
+    "routing": "ROLE_OR_USER_BATCH_TARGETS",
+    "delivery_semantics": "BEST_EFFORT_AFTER_COMMITTED_TRANSACTION",
+    "source_status": "PENDING_CI_DEPLOY"
+  }
 }

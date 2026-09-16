@@ -1,8 +1,10 @@
 import { readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
+import { sendFcmNotifications } from "./fcm";
 
 interface BusinessEnv {
   FIREBASE_PROJECT_ID: string;
   INVENTORY_CORE: DurableObjectNamespace;
+  GOOGLE_RUNTIME_SA_JSON?: string;
 }
 
 interface InternalUser {
@@ -134,7 +136,54 @@ async function realtimeAfter(
   return response;
 }
 
-export async function handleBusinessApi(request: Request, env: BusinessEnv): Promise<Response | null> {
+type NotificationTarget = {
+  roles?: AppRole[];
+  userIds?: string[];
+  batchId?: string;
+};
+
+function scheduleFcm(
+  response: Response,
+  env: BusinessEnv,
+  ctx: ExecutionContext | undefined,
+  options: {
+    event: string;
+    target: NotificationTarget;
+    title: string;
+    body: string;
+  },
+): void {
+  if (!ctx || !env.GOOGLE_RUNTIME_SA_JSON || !response.ok) return;
+  ctx.waitUntil((async () => {
+    try {
+      const targetResponse = await corePost(env, "/notifications/targets", {
+        roles: options.target.roles || [],
+        user_ids: options.target.userIds || [],
+        batch_id: options.target.batchId || null,
+      });
+      if (!targetResponse.ok) return;
+      const targetPayload = (await targetResponse.json()) as {
+        tokens?: string[];
+        batch?: { sku?: string; product_name?: string } | null;
+      };
+      const tokens = targetPayload.tokens || [];
+      if (!tokens.length) return;
+      const batchSku = String(targetPayload.batch?.sku || "");
+      await sendFcmNotifications(env.GOOGLE_RUNTIME_SA_JSON!, env.FIREBASE_PROJECT_ID, tokens, {
+        title: options.title,
+        body: options.body.replace("{sku}", batchSku || "SKU"),
+        data: {
+          event: options.event,
+          batch_id: options.target.batchId || "",
+        },
+      });
+    } catch {
+      // Background notification is best-effort and must never change the committed business result.
+    }
+  })());
+}
+
+export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?: ExecutionContext): Promise<Response | null> {
   const url = new URL(request.url);
   const key = `${request.method} ${url.pathname}`;
   const supported = new Set([
@@ -171,11 +220,23 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv): Pro
     const user = await requireUser(request, env, ["PICKER"]);
     const body = await parseObjectBody(request);
     const response = await corePost(env, "/business/reports/create", { ...body, actor: actor(user) });
-    return realtimeAfter(response, env, {
+    const result = await realtimeAfter(response, env, {
       event: "report_created",
       scopes: ["reporter_queue"],
       tags: [...REPORTER_TAGS, `user:${user.user_id}`],
     });
+    let sku = String(body.sku || "").trim();
+    try {
+      const payload = (await response.clone().json()) as { ticket?: { sku?: string } };
+      sku = String(payload.ticket?.sku || sku);
+    } catch {}
+    scheduleFcm(result, env, ctx, {
+      event: "report_created",
+      target: { roles: REPORTER_ROLES },
+      title: "SUPRA Inventory · SKU cần xử lý",
+      body: `${sku || "SKU"} vừa được Picker báo hết hàng.`,
+    });
+    return result;
   }
 
   if (key === "GET /api/picker/reports") {
@@ -209,13 +270,21 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv): Pro
     const body = await parseObjectBody(request);
     const batchId = String(body.batch_id || "").trim();
     const response = await corePost(env, "/business/reporter/resolve", { ...body, actor: actor(user) });
-    return realtimeAfter(response, env, {
+    const result = await realtimeAfter(response, env, {
       event: "batch_resolved",
       scopes: ["reporter_queue", "reporter_recent", "picker_reports"],
       tags: REPORTER_TAGS,
       batchId,
       includeBatchPickerUsers: true,
     });
+    const resolution = String(body.resolution || "");
+    scheduleFcm(result, env, ctx, {
+      event: "batch_resolved",
+      target: { batchId },
+      title: resolution === "HAS_STOCK" ? "SUPRA Inventory · Đã có hàng" : "SUPRA Inventory · Được skip",
+      body: resolution === "HAS_STOCK" ? "{sku} đã được Reporter xác nhận có hàng." : "{sku} đã được Reporter cho phép skip.",
+    });
+    return result;
   }
 
   if (key === "POST /api/reporter/batches/correct") {
@@ -223,13 +292,20 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv): Pro
     const body = await parseObjectBody(request);
     const batchId = String(body.batch_id || "").trim();
     const response = await corePost(env, "/business/reporter/correct", { ...body, actor: actor(user) });
-    return realtimeAfter(response, env, {
+    const result = await realtimeAfter(response, env, {
       event: "batch_corrected",
       scopes: ["reporter_recent", "picker_reports"],
       tags: REPORTER_TAGS,
       batchId,
       includeBatchPickerUsers: true,
     });
+    scheduleFcm(result, env, ctx, {
+      event: "batch_corrected",
+      target: { batchId },
+      title: "SUPRA Inventory · Cập nhật kết quả",
+      body: "{sku} đã được sửa kết quả thành Có hàng.",
+    });
+    return result;
   }
 
   if (key === "GET /api/admin/reports") {
