@@ -37,11 +37,14 @@
   },
   "environments": {
     "beta": {
-      "status": "INFRA_SETUP_IN_PROGRESS",
+      "status": "INFRA_BASELINE_PASS_PENDING_DATA_AND_STATE",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
       "hostname": "inventory-beta.supra.cc.cd",
+      "custom_domain_status": "ACTIVE",
+      "health_status": "PASS",
+      "ci_deploy_status": "PASS",
       "runtime_service_account": "inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com",
       "android_package": "cd.cc.supra.inventory.beta",
       "firebase_android_app_id": "1:572322098890:android:3e483937876cbcc0400e33",
@@ -53,6 +56,8 @@
       "cloudflare_oauth_client_id_variable": "GOOGLE_DRIVE_OAUTH_CLIENT_ID",
       "cloudflare_oauth_client_secret": "GOOGLE_DRIVE_OAUTH_CLIENT_SECRET",
       "cloudflare_oauth_redirect_uri_variable": "GOOGLE_DRIVE_OAUTH_REDIRECT_URI",
+      "cloudflare_oauth_refresh_token_secret": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
+      "oauth_refresh_token_configured": true,
       "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA"
     },
     "stable": {
@@ -72,6 +77,8 @@
       "cloudflare_oauth_client_id_variable": "GOOGLE_DRIVE_OAUTH_CLIENT_ID",
       "cloudflare_oauth_client_secret": "GOOGLE_DRIVE_OAUTH_CLIENT_SECRET",
       "cloudflare_oauth_redirect_uri_variable": "GOOGLE_DRIVE_OAUTH_REDIRECT_URI",
+      "cloudflare_oauth_refresh_token_secret": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
+      "oauth_refresh_token_configured": false,
       "deployment": "OWNER_GATED_NO_AUTOMATIC_STABLE_DEPLOY"
     }
   },
@@ -85,13 +92,12 @@
     "STABLE_HOSTNAME"
   ],
   "pending": [
-    "oauth_refresh_tokens_after_callback_endpoint_exists",
+    "stable_oauth_refresh_token_owner_gated",
     "hr_sheet_source",
     "durable_objects_and_sqlite_schema",
     "android_and_web_source_bootstrap",
     "apk_signing",
     "root_and_application_users",
-    "beta_custom_domain_after_health_check",
     "stable_release_owner_acceptance"
   ]
 }
