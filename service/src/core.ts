@@ -7,7 +7,7 @@ interface CoreEnv {
 
 type AppRole = "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
 
-interface InternalUser {
+interface InternalUser extends Record<string, SqlStorageValue> {
   user_id: string;
   firebase_uid: string | null;
   employee_code: string | null;
