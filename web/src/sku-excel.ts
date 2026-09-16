@@ -11,6 +11,7 @@ export interface ParsedSkuWorkbook {
   sku_header: string;
   product_name_header: string;
   skipped_blank_rows: number;
+  merged_duplicate_rows: number;
 }
 
 const MAX_ROWS = 5000;
@@ -25,6 +26,8 @@ function normalizeHeader(value: unknown): string {
   return text(value)
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
     .toLowerCase()
     .replace(/[_\-.]+/g, " ")
     .replace(/\s+/g, " ")
@@ -58,8 +61,11 @@ export async function parseSkuExcel(file: File): Promise<ParsedSkuWorkbook> {
   const header = findHeader(rows);
   if (!header) throw new Error("Không tìm thấy đủ cột SKU và Tên sản phẩm trong 20 dòng đầu.");
 
-  const items: ParsedSkuItem[] = [];
+  const bySku = new Map<string, { product_name: string; firstRow: number }>();
   let skippedBlankRows = 0;
+  let mergedDuplicateRows = 0;
+  let validDataRows = 0;
+
   for (let rowIndex = header.rowIndex + 1; rowIndex < rows.length; rowIndex += 1) {
     const sku = text(rows[rowIndex][header.skuIndex]);
     const productName = text(rows[rowIndex][header.nameIndex]).replace(/\s+/g, " ");
@@ -67,25 +73,25 @@ export async function parseSkuExcel(file: File): Promise<ParsedSkuWorkbook> {
       skippedBlankRows += 1;
       continue;
     }
+    validDataRows += 1;
+    if (validDataRows > MAX_ROWS) throw new Error(`File vượt quá ${MAX_ROWS} dòng dữ liệu cho một lần nhập.`);
     if (!sku || !productName) throw new Error(`Dòng ${rowIndex + 1} thiếu SKU hoặc Tên sản phẩm.`);
     if (sku.length > 128) throw new Error(`Dòng ${rowIndex + 1}: SKU quá dài.`);
     if (productName.length > 500) throw new Error(`Dòng ${rowIndex + 1}: Tên sản phẩm quá dài.`);
-    items.push({ sku, product_name: productName });
-    if (items.length > MAX_ROWS) throw new Error(`File vượt quá ${MAX_ROWS} SKU cho một lần nhập.`);
+
+    const previous = bySku.get(sku);
+    if (!previous) {
+      bySku.set(sku, { product_name: productName, firstRow: rowIndex + 1 });
+      continue;
+    }
+    if (previous.product_name !== productName) {
+      throw new Error(`SKU ${sku} có nhiều tên khác nhau tại dòng ${previous.firstRow} và ${rowIndex + 1}. Hãy xử lý xung đột trước khi nhập.`);
+    }
+    mergedDuplicateRows += 1;
   }
 
+  const items = [...bySku.entries()].map(([sku, value]) => ({ sku, product_name: value.product_name }));
   if (!items.length) throw new Error("Không có SKU hợp lệ sau dòng tiêu đề.");
-
-  const seen = new Set<string>();
-  const duplicates = new Set<string>();
-  for (const item of items) {
-    if (seen.has(item.sku)) duplicates.add(item.sku);
-    seen.add(item.sku);
-  }
-  if (duplicates.size) {
-    const preview = [...duplicates].slice(0, 20).join(", ");
-    throw new Error(`File có SKU trùng lặp: ${preview}${duplicates.size > 20 ? "..." : ""}`);
-  }
 
   return {
     items,
@@ -93,5 +99,6 @@ export async function parseSkuExcel(file: File): Promise<ParsedSkuWorkbook> {
     sku_header: text(rows[header.rowIndex][header.skuIndex]),
     product_name_header: text(rows[header.rowIndex][header.nameIndex]),
     skipped_blank_rows: skippedBlankRows,
+    merged_duplicate_rows: mergedDuplicateRows,
   };
 }
