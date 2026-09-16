@@ -110,6 +110,19 @@ jobs:
           cat "$tmp"
           exit 1
 
+      - name: Verify Beta auth API routing
+        env:
+          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' -X POST "https://${BETA_HOSTNAME}/api/auth/login" -H 'content-type: application/json' --data '{"username":"__ci_probe__","password":"invalid"}')"
+          content_type="$(curl -sSI --connect-timeout 5 --max-time 15 "https://${BETA_HOSTNAME}/health" | awk 'BEGIN{IGNORECASE=1} /^content-type:/ {sub(/\r$/, ""); print; exit}')"
+          [ "$code" = "401" ] || { echo "Auth API expected HTTP 401, got $code"; echo "Safe response:"; head -c 500 "$tmp"; exit 1; }
+          jq -e '.error == "INVALID_CREDENTIALS"' "$tmp" >/dev/null || { echo "Auth API did not return expected JSON"; head -c 500 "$tmp"; exit 1; }
+          echo "Beta auth API routing PASS (${content_type:-content-type unknown})"
+
       - name: Verify Beta Web shell
         env:
           BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
