@@ -15,6 +15,7 @@ permissions:
 jobs:
   web:
     runs-on: ubuntu-latest
+    environment: beta
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,10 +23,10 @@ jobs:
           node-version: "22"
       - name: Verify Firebase config
         env:
-          FIREBASE_WEB_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA }}
+          FIREBASE_WEB_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
         run: |
           set -euo pipefail
-          [ -n "${FIREBASE_WEB_API_KEY_BETA:-}" ] || { echo "FIREBASE_WEB_API_KEY_BETA is missing"; exit 1; }
+          [ -n "${FIREBASE_WEB_API_KEY_BETA:-}" ] || { echo "FIREBASE_WEB_API_KEY_BETA is missing from Beta variable/secret scope"; exit 1; }
           [ "${#FIREBASE_WEB_API_KEY_BETA}" -ge 20 ] || { echo "FIREBASE_WEB_API_KEY_BETA looks invalid"; exit 1; }
           echo "Firebase config presence PASS"
       - name: Install Web dependencies
@@ -35,7 +36,7 @@ jobs:
         working-directory: web
         env:
           VITE_API_BASE_URL: https://inventory-beta.supra.cc.cd
-          VITE_FIREBASE_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY_BETA }}
+          VITE_FIREBASE_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
           VITE_FIREBASE_AUTH_DOMAIN: supra-inventory-beta.firebaseapp.com
           VITE_FIREBASE_PROJECT_ID: supra-inventory-beta
           VITE_FIREBASE_APP_ID: 1:572322098890:web:96459cf386b3fb6f400e33
@@ -44,6 +45,7 @@ jobs:
 
   android:
     runs-on: ubuntu-latest
+    environment: beta
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -55,13 +57,13 @@ jobs:
           gradle-version: "9.6.0"
       - name: Verify Firebase config
         env:
-          FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA }}
+          FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
         run: |
           set -euo pipefail
-          [ -n "${FIREBASE_API_KEY_BETA:-}" ] || { echo "FIREBASE_WEB_API_KEY_BETA is missing"; exit 1; }
+          [ -n "${FIREBASE_API_KEY_BETA:-}" ] || { echo "FIREBASE_WEB_API_KEY_BETA is missing from Beta variable/secret scope"; exit 1; }
           [ "${#FIREBASE_API_KEY_BETA}" -ge 20 ] || { echo "FIREBASE_WEB_API_KEY_BETA looks invalid"; exit 1; }
           echo "Firebase config presence PASS"
       - name: Assemble Beta debug APK
         env:
-          FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA }}
+          FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
         run: gradle -p android :app:assembleDebug --no-daemon
