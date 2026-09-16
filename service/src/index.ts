@@ -1,5 +1,6 @@
 import { InventoryCore } from "./core";
 import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole } from "./auth";
+import { handleBusinessApi } from "./business-api";
 import { validateHrSheetSource } from "./hr-source";
 
 export { InventoryCore };
@@ -342,8 +343,19 @@ export default {
       if (request.method === "GET" && url.pathname === "/api/system/capabilities") {
         const core = await checkCore(env);
         return json({
-          environment: env.APP_ENV, firebase_auth: "worker_exchanged_firebase_id_token", durable_objects_sqlite: core.ok,
-          realtime_foreground: "websocket_planned_on_inventory_core", background_notifications: "firebase_cloud_messaging",
+          environment: env.APP_ENV,
+          firebase_auth: "worker_exchanged_firebase_id_token",
+          durable_objects_sqlite: core.ok,
+          business_api: {
+            version: 1,
+            sku_master: "implemented",
+            picker_report_withdraw: "implemented",
+            reporter_priority_resolve_correction: "implemented",
+            admin_monitoring: "implemented",
+            mutation_idempotency: "required_request_id",
+          },
+          realtime_foreground: "websocket_planned_on_inventory_core",
+          background_notifications: "firebase_cloud_messaging",
           hr_source_setup: { mode: "web_admin_input", required_input: ["google_sheet_url", "tab_name"], validation: ["valid_google_sheet_link", "exact_tab_name", "MNV_column", "Ho_ten_column"], public_setup_endpoint: false },
           root_password_initialized: Boolean(core.root_password_initialized), stable_release: "owner_gated",
         });
@@ -373,6 +385,9 @@ export default {
           return json({ error: "HR_SOURCE_INVALID", message: error instanceof Error ? error.message : "HR source validation failed" }, 400);
         }
       }
+
+      const businessResponse = await handleBusinessApi(request, env);
+      if (businessResponse) return businessResponse;
 
       if (request.method === "GET" && url.pathname === "/api/oauth/google/start") return startGoogleOAuth(env);
       if (request.method === "GET" && url.pathname === "/api/oauth/google/callback") return googleOAuthCallback(request, env);
