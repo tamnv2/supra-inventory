@@ -30,7 +30,9 @@ interface FirebaseJwk extends JsonWebKey {
 
 const FIREBASE_JWK_URL = "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
 const CUSTOM_TOKEN_AUD = "https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit";
-const PASSWORD_ITERATIONS = 120_000;
+// Cloudflare Workers currently caps PBKDF2 at 100,000 iterations.
+// Keep Beta at the platform maximum; revisit the password KDF before Stable promotion.
+const PASSWORD_ITERATIONS = 100_000;
 let jwkCache: { expiresAt: number; keys: FirebaseJwk[] } | null = null;
 
 function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
