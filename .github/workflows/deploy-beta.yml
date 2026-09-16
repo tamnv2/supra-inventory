@@ -114,3 +114,24 @@ jobs:
           echo "Beta health FAILED. Safe response body follows:"
           cat "$tmp"
           exit 1
+
+      - name: Verify Beta Google OAuth start
+        env:
+          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+        run: |
+          set -euo pipefail
+          headers="$(mktemp)"
+          trap 'rm -f "$headers"' EXIT
+          code="$(curl -sS --connect-timeout 5 --max-time 15 -D "$headers" -o /dev/null -w '%{http_code}' \
+            "https://${BETA_HOSTNAME}/api/oauth/google/start")"
+          location="$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^[^:]*:[[:space:]]*/, ""); sub(/\r$/, ""); print; exit}' "$headers")"
+          cookie="$(awk 'BEGIN{IGNORECASE=1} /^set-cookie:/ {print; exit}' "$headers")"
+
+          echo "oauth-start http=$code"
+          case "$location" in
+            https://accounts.google.com/o/oauth2/v2/auth*) ;;
+            *) echo "Unexpected OAuth redirect target"; exit 1 ;;
+          esac
+          echo "$cookie" | grep -qi 'inventory_oauth_state=' || { echo "OAuth state cookie missing"; exit 1; }
+          [ "$code" = "302" ] || { echo "Expected HTTP 302"; exit 1; }
+          echo "Beta OAuth start PASS"
