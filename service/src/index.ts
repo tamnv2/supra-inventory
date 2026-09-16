@@ -3,6 +3,7 @@ import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebas
 import { handleBusinessApi } from "./business-api";
 import { handleReadApi } from "./read-api";
 import { handleNotificationApi } from "./notification-api";
+import { handleUserManagementApi } from "./user-management-api";
 import { validateHrSheetSource } from "./hr-source";
 
 export { InventoryCore };
@@ -252,7 +253,7 @@ async function login(request: Request, env: Env): Promise<Response> {
   if (!user || user.status !== "ACTIVE") return json({ error: "INVALID_CREDENTIALS" }, 401);
 
   if (!user.password_hash || !user.password_salt) {
-    if (user.role !== "ROOT" || !env.ROOT_BOOTSTRAP_PASSWORD) {
+    if (!env.ROOT_BOOTSTRAP_PASSWORD) {
       return json({ error: "PASSWORD_NOT_INITIALIZED", message: "Tài khoản chưa được khởi tạo mật khẩu." }, 503);
     }
     await savePassword(env, user.user_id, env.ROOT_BOOTSTRAP_PASSWORD);
@@ -387,6 +388,9 @@ export default {
           return json({ error: "HR_SOURCE_INVALID", message: error instanceof Error ? error.message : "HR source validation failed" }, 400);
         }
       }
+
+      const userManagementResponse = await handleUserManagementApi(request, env);
+      if (userManagementResponse) return userManagementResponse;
 
       const notificationResponse = await handleNotificationApi(request, env);
       if (notificationResponse) return notificationResponse;

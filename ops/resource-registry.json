@@ -236,11 +236,11 @@
     "android_reporter_admin_root_operations_ui",
     "web_foreground_realtime_client",
     "android_foreground_realtime_client",
-    "fcm_device_and_delivery_flows_foundation"
+    "fcm_device_and_delivery_flows_foundation",
+    "user_management_and_hr_provisioning"
   ],
   "application_build_pending": [
     "fcm_physical_device_delivery_acceptance",
-    "user_management_and_hr_provisioning",
     "backup_archive_execution",
     "reporting_and_exports",
     "load_and_resilience_tests"
@@ -259,5 +259,13 @@
     "routing": "ROLE_OR_USER_BATCH_TARGETS",
     "delivery_semantics": "BEST_EFFORT_AFTER_COMMITTED_TRANSACTION",
     "source_status": "DEPLOYED_BUILD_PASS_FIELD_DELIVERY_PENDING"
+  },
+  "user_management": {
+    "hierarchy": "ROOT_CREATES_ADMIN__ADMIN_CREATES_REPORTER__PICKER_FROM_HR",
+    "picker_missing_from_hr": "DISABLE_RETAIN_HISTORY",
+    "default_password_source": "PROTECTED_ROOT_BOOTSTRAP_PASSWORD_SECRET_REUSED_FOR_INITIAL_MANAGED_LOGIN",
+    "root_protection": "NOT_MANAGEABLE_BY_NORMAL_ACCOUNT_API",
+    "hr_sync": "PREVIEW_THEN_EXPLICIT_APPLY",
+    "source_status": "BETA_DEPLOY_BUILD_PASS"
   }
 }

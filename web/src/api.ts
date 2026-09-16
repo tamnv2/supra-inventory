@@ -87,6 +87,30 @@ export interface BatchPickerTicket {
   resolved_at: string | null;
 }
 
+export interface ManagedUser {
+  user_id: string;
+  firebase_uid: string | null;
+  employee_code: string | null;
+  display_name: string;
+  role: "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
+  status: "ACTIVE" | "DISABLED";
+  password_initialized: boolean;
+  password_changed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HrSyncPreview {
+  status: "preview";
+  total_source: number;
+  create: number;
+  reactivate: number;
+  rename: number;
+  disable: number;
+  unchanged: number;
+  collisions: Array<{ employee_code: string; role: string; user_id: string }>;
+}
+
 export interface AdminReportBatch {
   batch_id: string;
   sku: string;
@@ -262,4 +286,47 @@ export async function getAdminReports(limit = 100, status = ""): Promise<{ items
   const params = new URLSearchParams({ limit: String(limit) });
   if (status) params.set("status", status);
   return readJson(await authorizedFetch(`/api/admin/reports?${params.toString()}`));
+}
+
+
+export async function listManagedUsers(query = "", role = "", status = ""): Promise<{ items: ManagedUser[]; count: number }> {
+  const params = new URLSearchParams({ limit: "1000" });
+  if (query) params.set("query", query);
+  if (role) params.set("role", role);
+  if (status) params.set("status", status);
+  return readJson(await authorizedFetch(`/api/admin/users?${params.toString()}`));
+}
+
+export async function createManagedUser(username: string, displayName: string, role: "ADMIN" | "REPORTER"): Promise<ManagedUser> {
+  const result = await readJson<{ user: ManagedUser }>(await authorizedFetch("/api/admin/users", {
+    method: "POST",
+    body: JSON.stringify({ request_id: crypto.randomUUID(), username, display_name: displayName, role }),
+  }));
+  return result.user;
+}
+
+export async function updateManagedUser(userId: string, displayName: string, status: "ACTIVE" | "DISABLED"): Promise<ManagedUser> {
+  const result = await readJson<{ user: ManagedUser }>(await authorizedFetch("/api/admin/users", {
+    method: "PATCH",
+    body: JSON.stringify({ request_id: crypto.randomUUID(), user_id: userId, display_name: displayName, status }),
+  }));
+  return result.user;
+}
+
+export async function resetManagedUserPassword(userId: string): Promise<void> {
+  await readJson(await authorizedFetch("/api/admin/users/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ request_id: crypto.randomUUID(), user_id: userId }),
+  }));
+}
+
+export async function previewHrPickerSync(): Promise<HrSyncPreview> {
+  return readJson(await authorizedFetch("/api/admin/hr-sync/preview", { method: "POST", body: "{}" }));
+}
+
+export async function applyHrPickerSync(): Promise<unknown> {
+  return readJson(await authorizedFetch("/api/admin/hr-sync/apply", {
+    method: "POST",
+    body: JSON.stringify({ request_id: crypto.randomUUID(), confirm: true }),
+  }));
 }

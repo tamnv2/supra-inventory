@@ -4,7 +4,13 @@ import {
   changeMyPassword,
   clearSession,
   correctReporterBatch,
+  createManagedUser,
+  applyHrPickerSync,
   getHrSource,
+  listManagedUsers,
+  previewHrPickerSync,
+  resetManagedUserPassword,
+  updateManagedUser,
   getMyProfile,
   getReporterBatchTickets,
   getReporterQueue,
@@ -17,6 +23,8 @@ import {
   saveHrSource,
   searchSkus,
   type AppProfile,
+  type ManagedUser,
+  type HrSyncPreview,
   type BatchPickerTicket,
   type ReporterBatch,
   type ReporterRecentBatch,
@@ -43,6 +51,8 @@ let pendingImportItems: SkuItem[] | null = null;
 let pendingSourceHash = "";
 let pendingImportId = "";
 let pendingDatabaseConflicts: SkuNameChangeConflict[] = [];
+let managedUsers: ManagedUser[] = [];
+let hrSyncPreview: HrSyncPreview | null = null;
 
 function escapeHtml(value: unknown): string {
   return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
@@ -126,7 +136,11 @@ function renderSkuPage(): string {
 }
 
 function renderHrPage(): string {
-  return `<section class="page-stack"><div><p class="eyebrow">Nguồn nhân sự</p><h2>Google Sheet nhân sự</h2><p class="muted">Chỉ lưu cấu hình khi backend đọc được file, đúng tab và có MNV + Họ tên.</p></div><article class="card"><form id="hr-form" class="stack"><label>Google Sheet URL<input name="sheetUrl" type="url" required /></label><label>Tên tab chính xác<input name="tabName" value="Nhân sự" required /></label><button>Xác nhận & cập nhật</button></form><button id="load-hr" class="secondary block-gap">Đọc cấu hình hiện tại</button><pre id="hr-result"></pre></article></section>`;
+  const createRole = profile?.role === "ROOT" ? "ADMIN" : "REPORTER";
+  const manageableRole = createRole;
+  const preview = hrSyncPreview ? `<div class="detail-panel"><strong>Preview đồng bộ Picker</strong><div class="operation-meta"><span>Nguồn: ${hrSyncPreview.total_source}</span><span>Thêm: ${hrSyncPreview.create}</span><span>Kích hoạt lại: ${hrSyncPreview.reactivate}</span><span>Đổi tên: ${hrSyncPreview.rename}</span><span>Ngừng hoạt động: ${hrSyncPreview.disable}</span><span>Không đổi: ${hrSyncPreview.unchanged}</span></div>${hrSyncPreview.collisions.length ? `<p class="message">Có ${hrSyncPreview.collisions.length} MNV trùng tài khoản không phải Picker. Chưa được phép đồng bộ.</p>` : `<button id="apply-hr-sync" class="block-gap">Xác nhận đồng bộ Picker</button>`}</div>` : "";
+  const userRows = managedUsers.length ? `<div class="table-wrap"><table><thead><tr><th>MNV/User</th><th>Họ tên</th><th>Role</th><th>Trạng thái</th><th>Mật khẩu</th><th>Thao tác</th></tr></thead><tbody>${managedUsers.map((user) => { const canEdit = user.role === manageableRole; return `<tr><td><b>${escapeHtml(user.employee_code || user.user_id)}</b></td><td>${escapeHtml(user.display_name)}</td><td>${escapeHtml(user.role)}</td><td>${user.status === "ACTIVE" ? "Hoạt động" : "Ngừng hoạt động"}</td><td>${user.password_initialized ? "Đã khởi tạo" : "Mặc định"}</td><td>${canEdit ? `<button class="secondary" data-user-toggle="${escapeHtml(user.user_id)}" data-next-status="${user.status === "ACTIVE" ? "DISABLED" : "ACTIVE"}" data-user-name="${escapeHtml(user.display_name)}">${user.status === "ACTIVE" ? "Ngừng hoạt động" : "Mở lại"}</button><button class="secondary" data-user-reset="${escapeHtml(user.user_id)}">Reset mật khẩu</button>` : "—"}</td></tr>`; }).join("")}</tbody></table></div>` : `<p class="muted">Chưa tải danh sách tài khoản.</p>`;
+  return `<section class="page-stack"><div><p class="eyebrow">Nhân sự & tài khoản</p><h2>Quản lý nhân sự</h2><p class="muted">Picker lấy từ HR Sheet. ROOT tạo ADMIN; ADMIN tạo REPORTER. Tài khoản mất khỏi HR không bị xoá lịch sử mà chuyển ngừng hoạt động.</p></div><article class="card"><h3>Nguồn Google Sheet</h3><form id="hr-form" class="stack"><label>Google Sheet URL<input name="sheetUrl" type="url" required /></label><label>Tên tab chính xác<input name="tabName" value="Nhân sự" required /></label><button>Xác nhận & cập nhật</button></form><div class="actions block-gap"><button id="load-hr" class="secondary">Đọc cấu hình</button><button id="preview-hr-sync" class="secondary">Kiểm tra đồng bộ Picker</button></div><pre id="hr-result"></pre>${preview}</article><article class="card"><h3>Tạo ${createRole}</h3><form id="managed-user-form" class="inline-form"><input name="username" placeholder="MNV / tên đăng nhập" required /><input name="displayName" placeholder="Họ tên" required /><button>Tạo ${createRole}</button></form><p class="tiny">Tài khoản mới dùng mật khẩu mặc định từ bootstrap secret; không lưu mật khẩu trong source.</p></article><article class="card"><div class="section-head"><div><h3>Danh sách tài khoản</h3><p class="muted">ROOT được bảo vệ; Picker do HR quản lý; chỉ role thuộc phạm vi của cấp hiện tại mới có nút thao tác.</p></div><button id="load-users" class="secondary">Tải lại</button></div>${userRows}</article></section>`;
 }
 
 function renderAccountPage(): string {
@@ -158,6 +172,12 @@ function render(): void {
   document.querySelector<HTMLFormElement>("#password-form")?.addEventListener("submit", handlePasswordChange);
   document.querySelector<HTMLFormElement>("#hr-form")?.addEventListener("submit", handleHrSave);
   document.querySelector<HTMLButtonElement>("#load-hr")?.addEventListener("click", handleHrLoad);
+  document.querySelector<HTMLButtonElement>("#preview-hr-sync")?.addEventListener("click", () => void handleHrSyncPreview());
+  document.querySelector<HTMLButtonElement>("#apply-hr-sync")?.addEventListener("click", () => void handleHrSyncApply());
+  document.querySelector<HTMLFormElement>("#managed-user-form")?.addEventListener("submit", handleManagedUserCreate);
+  document.querySelector<HTMLButtonElement>("#load-users")?.addEventListener("click", () => void loadManagedUsers());
+  document.querySelectorAll<HTMLButtonElement>("[data-user-toggle]").forEach((button) => button.addEventListener("click", () => void handleManagedUserToggle(button)));
+  document.querySelectorAll<HTMLButtonElement>("[data-user-reset]").forEach((button) => button.addEventListener("click", () => void handleManagedUserReset(button.dataset.userReset || "")));
   document.querySelector<HTMLFormElement>("#sku-import-form")?.addEventListener("submit", handleSkuImport);
   document.querySelector<HTMLButtonElement>("#resolve-file-conflicts")?.addEventListener("click", () => void handleFileConflictResolution());
   document.querySelector<HTMLButtonElement>("#confirm-db-name-changes")?.addEventListener("click", () => void applySkuImport(true));
@@ -188,7 +208,7 @@ async function handleLogin(event: SubmitEvent): Promise<void> {
 
 function resetSkuImportState(): void { pendingWorkbook = null; pendingImportItems = null; pendingSourceHash = ""; pendingImportId = ""; pendingDatabaseConflicts = []; }
 function cancelSkuImport(): void { resetSkuImportState(); skuStatus = "Đã huỷ lượt nhập SKU. Dữ liệu chưa xác nhận đổi tên không bị cập nhật."; render(); }
-function handleLogout(): void { clearSession(); profile = null; message = ""; skuStatus = ""; skuRows = []; queueRows = []; recentRows = []; batchDetails.clear(); resetSkuImportState(); render(); }
+function handleLogout(): void { clearSession(); profile = null; message = ""; skuStatus = ""; skuRows = []; queueRows = []; recentRows = []; managedUsers = []; hrSyncPreview = null; batchDetails.clear(); resetSkuImportState(); render(); }
 
 async function handlePasswordChange(event: SubmitEvent): Promise<void> {
   event.preventDefault(); const form = new FormData(event.currentTarget as HTMLFormElement);
@@ -206,6 +226,60 @@ async function handleHrSave(event: SubmitEvent): Promise<void> {
 async function handleHrLoad(): Promise<void> {
   try { const output = document.querySelector<HTMLElement>("#hr-result"); if (output) output.textContent = JSON.stringify(await getHrSource(), null, 2); }
   catch (error) { message = error instanceof Error ? error.message : "Không đọc được nguồn nhân sự."; render(); }
+}
+
+async function loadManagedUsers(renderAfter = true): Promise<void> {
+  if (!canManage()) return;
+  try { managedUsers = (await listManagedUsers()).items; }
+  catch (error) { message = error instanceof Error ? error.message : "Không tải được tài khoản."; }
+  if (renderAfter) render();
+}
+
+async function handleManagedUserCreate(event: SubmitEvent): Promise<void> {
+  event.preventDefault();
+  if (!profile || !["ROOT","ADMIN"].includes(profile.role)) return;
+  const form = new FormData(event.currentTarget as HTMLFormElement);
+  const role = profile.role === "ROOT" ? "ADMIN" : "REPORTER";
+  try {
+    await createManagedUser(String(form.get("username") || ""), String(form.get("displayName") || ""), role);
+    message = `Đã tạo ${role}. Tài khoản dùng mật khẩu mặc định cho lần đăng nhập đầu.`;
+    (event.currentTarget as HTMLFormElement).reset();
+    await loadManagedUsers(false);
+  } catch (error) { message = error instanceof Error ? error.message : "Không tạo được tài khoản."; }
+  render();
+}
+
+async function handleManagedUserToggle(button: HTMLButtonElement): Promise<void> {
+  const userId = button.dataset.userToggle || "";
+  const nextStatus = button.dataset.nextStatus as "ACTIVE" | "DISABLED";
+  const displayName = button.dataset.userName || "";
+  if (!userId || !nextStatus || !window.confirm(`${nextStatus === "DISABLED" ? "Ngừng hoạt động" : "Mở lại"} tài khoản ${displayName}?`)) return;
+  try { await updateManagedUser(userId, displayName, nextStatus); message = "Đã cập nhật trạng thái tài khoản."; await loadManagedUsers(false); }
+  catch (error) { message = error instanceof Error ? error.message : "Không cập nhật được tài khoản."; }
+  render();
+}
+
+async function handleManagedUserReset(userId: string): Promise<void> {
+  if (!userId || !window.confirm("Reset mật khẩu về mật khẩu mặc định và vô hiệu phiên hiện tại của tài khoản này?")) return;
+  try { await resetManagedUserPassword(userId); message = "Đã reset mật khẩu về mặc định."; await loadManagedUsers(false); }
+  catch (error) { message = error instanceof Error ? error.message : "Không reset được mật khẩu."; }
+  render();
+}
+
+async function handleHrSyncPreview(): Promise<void> {
+  busy = true; message = "Đang đọc nguồn HR và đối chiếu Picker..."; render();
+  try { hrSyncPreview = await previewHrPickerSync(); message = "Đối chiếu HR hoàn tất. Kiểm tra số liệu trước khi xác nhận."; }
+  catch (error) { hrSyncPreview = null; message = error instanceof Error ? error.message : "Không đối chiếu được HR."; }
+  finally { busy = false; render(); }
+}
+
+async function handleHrSyncApply(): Promise<void> {
+  if (!hrSyncPreview || hrSyncPreview.collisions.length) return;
+  if (!window.confirm(`Xác nhận đồng bộ ${hrSyncPreview.total_source} Picker? Sẽ thêm ${hrSyncPreview.create}, kích hoạt lại ${hrSyncPreview.reactivate}, đổi tên ${hrSyncPreview.rename}, và chuyển ngừng hoạt động ${hrSyncPreview.disable} Picker không còn trong nguồn.`)) return;
+  busy = true; render();
+  try { await applyHrPickerSync(); hrSyncPreview = null; message = "Đồng bộ Picker từ HR Sheet thành công."; await loadManagedUsers(false); }
+  catch (error) { message = error instanceof Error ? error.message : "Không đồng bộ được Picker."; }
+  finally { busy = false; render(); }
 }
 
 async function loadOperations(renderAfter = true): Promise<void> {

@@ -2,6 +2,7 @@ import { handleBusinessRequest, initializeBusinessSchema } from "./business-core
 import { handleSkuImportCoreRequest } from "./sku-import-core";
 import { handleReadModelCoreRequest } from "./read-model-core";
 import { handleNotificationCoreRequest } from "./notifications-core";
+import { handleUserManagementCoreRequest } from "./user-management-core";
 
 const SCHEMA_VERSION = 3;
 
@@ -343,6 +344,9 @@ export class InventoryCore {
 
     const skuImport = await handleSkuImportCoreRequest(this.state, request);
     if (skuImport) return skuImport;
+
+    const userManagement = await handleUserManagementCoreRequest(this.state, request);
+    if (userManagement) return userManagement;
 
     const notifications = await handleNotificationCoreRequest(this.state, request);
     if (notifications) return notifications;

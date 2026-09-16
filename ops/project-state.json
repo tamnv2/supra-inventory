@@ -25,7 +25,8 @@
     "latest_beta_apk": "beta-vc27",
     "realtime": "WEBSOCKET_SERVER_WEB_ANDROID_CLIENT_DEPLOYED_SIGNED_PASS",
     "network_scope": "PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_BY_OWNER_DECISION",
-    "fcm": "DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BUILD_PASS_FIELD_DELIVERY_PENDING"
+    "fcm": "DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BUILD_PASS_FIELD_DELIVERY_PENDING",
+    "user_management": "ROOT_ADMIN_HIERARCHY_AND_HR_PICKER_SYNC_BETA_DEPLOY_PASS"
   },
   "hard_guards": [
     "Do not import assumptions or resources from other projects.",
@@ -79,11 +80,11 @@
     "Android foreground realtime invalidation client — signed Beta beta-vc26 build/release PASS",
     "Final network decision: PDA runtime supported; Office network unsupported",
     "Android foreground realtime invalidation client — signed Beta beta-vc25 build/release PASS",
-    "FCM device registration + targeted background notification foundation — Beta Worker deploy and signed Android beta-vc27 build PASS"
+    "FCM device registration + targeted background notification foundation — Beta Worker deploy and signed Android beta-vc27 build PASS",
+    "User management: ROOT→ADMIN, ADMIN→REPORTER, preview-confirm HR→PICKER sync with missing Pickers disabled/retained — Beta deploy/build PASS"
   ],
   "pending_build": [
     "Field-verify FCM delivery on a physical logged-in PDA; technical foundation is deployed",
-    "User management and HR provisioning/sync lifecycle",
     "Backup/archive executor with checkpoint/retry/retention safety",
     "Reporting/export UI and APIs",
     "Load/resilience/quota testing",
@@ -101,7 +102,7 @@
     "Any new offline-create-report behavior; do not add direct-to-Sheet fallback unless Owner explicitly approves it."
   ],
   "next_action": {
-    "primary": "Build user management + HR provisioning/sync lifecycle while FCM physical-device delivery remains a field acceptance check.",
+    "primary": "Implement backup/archive executor with checkpoint/retry/retention safety, then reporting/export and load/resilience testing.",
     "method": "Keep FCM as background notification only; business state remains server-authoritative via API/SQLite and foreground WebSocket resync.",
     "stable_guard": "Do not activate Stable."
   },
