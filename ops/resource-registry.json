@@ -162,7 +162,7 @@
       "web_source_status": "CONCEPT3_ADMIN_DASHBOARD_REPORTING_ROLE_UI_DEPLOYED_PASS",
       "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
       "web_admin_report_monitoring": "ROLE_BASED_OPERATIONS_UI_DEPLOYED_PASS",
-      "android_source_status": "ROLE_BASED_PICKER_REPORTER_REALTIME_FCM_SIGNED_OTA_PASS",
+      "android_source_status": "CONCEPT3_ROLE_UI_SOURCE_BUILD_PENDING_SIGNED_OTA_CI",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
       "latest_signed_beta_release": "beta-vc27",
@@ -296,5 +296,11 @@
     "csv_export": "EXPLICIT_CLIENT_EXPORT_PAGED_500_MAX_20000",
     "refresh": "EXPLICIT_OR_REALTIME_INVALIDATION_NO_AGGRESSIVE_POLLING",
     "source_status": "BETA_DEPLOY_BUILD_PASS"
+  },
+  "ui_design": {
+    "authority": "OWNER_SELECTED_CONCEPT_3",
+    "web": "LIGHT_GREEN_OPERATIONAL_DEPLOYED_PASS",
+    "android": "LIGHT_GREEN_OPERATIONAL_SOURCE_PENDING_SIGNED_CI",
+    "scope_guard": "VISUAL_SYSTEM_ONLY_BUSINESS_RULES_REMAIN_AUTHORITATIVE"
   }
 }

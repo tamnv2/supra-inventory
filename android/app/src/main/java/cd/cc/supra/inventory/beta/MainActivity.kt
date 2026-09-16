@@ -6,6 +6,7 @@ import android.app.AlertDialog
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.Typeface
@@ -46,6 +47,15 @@ import java.util.UUID
 import kotlin.math.max
 
 class MainActivity : Activity() {
+    private val conceptGreen = Color.parseColor("#087443")
+    private val conceptGreenDark = Color.parseColor("#0B4D32")
+    private val conceptGreenSoft = Color.parseColor("#E5F4EC")
+    private val conceptSurface = Color.parseColor("#F4F8F5")
+    private val conceptLine = Color.parseColor("#DBE7DF")
+    private val conceptText = Color.parseColor("#15241C")
+    private val conceptMuted = Color.parseColor("#66756D")
+    private val conceptOrange = Color.parseColor("#B45309")
+    private val conceptOrangeSoft = Color.parseColor("#FFF0D9")
     private val ui = Handler(Looper.getMainLooper())
     private lateinit var api: InventoryApi
     private lateinit var skuCache: SkuCatalogCache
@@ -167,21 +177,11 @@ class MainActivity : Activity() {
         resultAlertShowing = false
 
         val root = page()
-        root.addView(TextView(this).apply {
-            text = "SUPRA Inventory"
-            textSize = 27f
-            setTypeface(typeface, Typeface.BOLD)
-        })
-        root.addView(TextView(this).apply {
-            text = "BÁO HÀNG · BETA"
-            textSize = 13f
-            setTextColor(Color.parseColor("#4F46E5"))
-        })
-        root.addView(TextView(this).apply {
-            text = "Phiên bản ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) · Android 11+"
-            textSize = 12f
-            setTextColor(Color.DKGRAY)
-        })
+        addBrandHeader(
+            root,
+            subtitle = "Báo hàng · Beta",
+            meta = "Phiên bản ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) · Android 11+",
+        )
 
         val loginCard = card()
         loginCard.addView(sectionTitle("Đăng nhập"))
@@ -209,9 +209,12 @@ class MainActivity : Activity() {
         status = TextView(this).apply {
             text = message
             textSize = 13f
-            setPadding(0, dp(12), 0, dp(8))
+            setTextColor(conceptGreenDark)
+            setPadding(dp(12), dp(10), dp(12), dp(10))
+            background = roundedBackground(conceptGreenSoft, conceptLine, 10)
         }
         root.addView(status)
+        applyConcept3Tree(root)
         setContentView(wrapScroll(root))
 
         showPassword.setOnCheckedChangeListener { _, checked ->
@@ -260,16 +263,21 @@ class MainActivity : Activity() {
         selectedSku = null
 
         val root = page()
-        root.addView(TextView(this).apply {
-            text = "SUPRA Inventory — Beta"
-            textSize = 22f
+        addBrandHeader(root, subtitle = "Kho vận · Báo hàng", meta = "Beta")
+        val identityCard = card()
+        identityCard.addView(TextView(this).apply {
+            text = session.displayName
+            textSize = 18f
             setTypeface(typeface, Typeface.BOLD)
+            setTextColor(conceptText)
         })
-        root.addView(TextView(this).apply {
-            text = "${session.displayName} · ${session.employeeCode ?: "—"} · ${roleLabel(session.role)}"
-            textSize = 13f
-            setTextColor(Color.DKGRAY)
+        identityCard.addView(TextView(this).apply {
+            text = "${session.employeeCode ?: "Tài khoản hệ thống"} · ${roleLabel(session.role)}"
+            textSize = 12.5f
+            setTextColor(conceptMuted)
+            setPadding(0, dp(3), 0, 0)
         })
+        root.addView(identityCard)
 
         val actions = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -301,7 +309,9 @@ class MainActivity : Activity() {
         status = TextView(this).apply {
             text = "Đã đăng nhập. Đang tải dữ liệu..."
             textSize = 13f
-            setPadding(0, dp(8), 0, dp(8))
+            setTextColor(conceptGreenDark)
+            setPadding(dp(12), dp(10), dp(12), dp(10))
+            background = roundedBackground(conceptGreenSoft, conceptLine, 10)
         }
         root.addView(status)
 
@@ -311,6 +321,7 @@ class MainActivity : Activity() {
             else -> root.addView(TextView(this).apply { text = "Vai trò ${session.role} chưa được hỗ trợ trên PDA." })
         }
 
+        applyConcept3Tree(root)
         setContentView(wrapScroll(root))
         startRealtime(session)
         registerBackgroundNotifications()
@@ -384,7 +395,7 @@ class MainActivity : Activity() {
         root.addView(TextView(this).apply {
             text = "Nhập hoặc quét tối thiểu 3 ký tự. Gợi ý tìm trực tiếp trên catalog đã cache trong PDA."
             textSize = 13f
-            setTextColor(Color.DKGRAY)
+            setTextColor(conceptMuted)
         })
 
         val catalogCard = card()
@@ -529,7 +540,7 @@ class MainActivity : Activity() {
         if (items.isEmpty()) {
             box.addView(TextView(this).apply {
                 text = if (skuCache.count == 0) "Chưa có catalog local. Hãy đồng bộ Master SKU." else "Không tìm thấy SKU phù hợp."
-                setTextColor(Color.DKGRAY)
+                setTextColor(conceptMuted)
                 setPadding(0, dp(6), 0, dp(6))
             })
             return
@@ -542,6 +553,7 @@ class MainActivity : Activity() {
                 setOnClickListener { selectSku(item) }
             })
         }
+        applyConcept3Tree(box)
     }
 
     private fun selectSku(item: SkuItem) {
@@ -627,7 +639,7 @@ class MainActivity : Activity() {
             card.addView(TextView(this).apply {
                 text = "Báo lúc ${fmtDate(row.reportedAt)}"
                 textSize = 12f
-                setTextColor(Color.DKGRAY)
+                setTextColor(conceptMuted)
             })
 
             if (businessStatus == "Đang xử lý" && row.status == "OPEN") {
@@ -648,6 +660,7 @@ class MainActivity : Activity() {
             }
             box.addView(card)
         }
+        applyConcept3Tree(box)
     }
 
     private fun detectPickerResultChanges(rows: List<PickerReport>) {
@@ -710,13 +723,13 @@ class MainActivity : Activity() {
         root.addView(TextView(this).apply {
             text = "Ưu tiên: nhiều Picker bị ảnh hưởng hơn trước; bằng nhau thì báo đầu sớm hơn."
             textSize = 13f
-            setTextColor(Color.DKGRAY)
+            setTextColor(conceptMuted)
         })
         if (role == "ADMIN" || role == "ROOT") {
             root.addView(TextView(this).apply {
                 text = "PDA tập trung vận hành Reporter. Quản trị Master SKU / nhân sự thực hiện trên Website."
                 textSize = 12f
-                setTextColor(Color.parseColor("#6B7280"))
+                setTextColor(conceptMuted)
             })
         }
 
@@ -780,7 +793,7 @@ class MainActivity : Activity() {
             card.addView(TextView(this).apply {
                 text = "${row.affectedPickerCount} Picker · chờ ${ageLabel(row.firstReportAt)} · báo đầu ${fmtDate(row.firstReportAt)}"
                 textSize = 12f
-                setTextColor(Color.DKGRAY)
+                setTextColor(conceptMuted)
                 setPadding(0, dp(4), 0, dp(6))
             })
 
@@ -802,6 +815,7 @@ class MainActivity : Activity() {
             })
             box.addView(card)
         }
+        applyConcept3Tree(box)
     }
 
     private fun renderReporterRecent(rows: List<ReporterRecent>) {
@@ -833,11 +847,12 @@ class MainActivity : Activity() {
                 card.addView(TextView(this).apply {
                     text = "Hạn sửa ${fmtDate(row.correctionDeadlineAt)}"
                     textSize = 11f
-                    setTextColor(Color.DKGRAY)
+                    setTextColor(conceptMuted)
                 })
             }
             box.addView(card)
         }
+        applyConcept3Tree(box)
     }
 
     private fun confirmResolve(batch: ReporterBatch, resolution: String) {
@@ -972,7 +987,7 @@ class MainActivity : Activity() {
         "Đã có hàng" -> Color.parseColor("#047857")
         "Được skip" -> Color.parseColor("#B45309")
         "Picker thu hồi" -> Color.parseColor("#6B7280")
-        else -> Color.parseColor("#1D4ED8")
+        else -> conceptOrange
     }
 
     private fun fmtDate(value: String?): String {
@@ -1002,45 +1017,124 @@ class MainActivity : Activity() {
         return "${minutes / 60}h ${minutes % 60}m"
     }
 
+    private fun roundedBackground(fill: Int, stroke: Int = conceptLine, radiusDp: Int = 12): GradientDrawable =
+        GradientDrawable().apply {
+            setColor(fill)
+            cornerRadius = dp(radiusDp).toFloat()
+            setStroke(dp(1), stroke)
+        }
+
+    private fun addBrandHeader(root: LinearLayout, subtitle: String, meta: String) {
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, 0, 0, dp(14))
+        }
+        row.addView(TextView(this).apply {
+            text = "SI"
+            textSize = 18f
+            gravity = Gravity.CENTER
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(Color.WHITE)
+            background = roundedBackground(conceptGreen, conceptGreen, 11)
+            layoutParams = LinearLayout.LayoutParams(dp(46), dp(46)).apply { marginEnd = dp(11) }
+        })
+        row.addView(LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = weightedParams()
+            addView(TextView(this@MainActivity).apply {
+                text = "SUPRA Inventory"
+                textSize = 22f
+                setTypeface(typeface, Typeface.BOLD)
+                setTextColor(conceptText)
+            })
+            addView(TextView(this@MainActivity).apply {
+                text = subtitle
+                textSize = 12.5f
+                setTextColor(conceptGreen)
+            })
+        })
+        if (meta.isNotBlank()) row.addView(TextView(this).apply {
+            text = meta
+            textSize = 11f
+            setTextColor(conceptMuted)
+            gravity = Gravity.END
+        })
+        root.addView(row)
+    }
+
+    private fun styleButton(button: Button) {
+        val label = button.text.toString().lowercase()
+        val warning = label.contains("skip")
+        val secondary = listOf("cập nhật", "đăng xuất", "tải lại", "đồng bộ", "xem picker", "kiểm tra cập nhật", "thu hồi", "sửa thành").any { label.contains(it) }
+        val fill = when { warning -> conceptOrangeSoft; secondary -> Color.WHITE; else -> conceptGreen }
+        val textColor = when { warning -> conceptOrange; secondary -> conceptGreenDark; else -> Color.WHITE }
+        val stroke = when { warning -> Color.parseColor("#F2C78B"); secondary -> conceptLine; else -> conceptGreen }
+        button.isAllCaps = false
+        button.minHeight = dp(48)
+        button.setTextColor(textColor)
+        button.background = roundedBackground(fill, stroke, 10)
+        button.setPadding(dp(14), dp(10), dp(14), dp(10))
+    }
+
+    private fun styleInput(input: EditText) {
+        input.minHeight = dp(52)
+        input.setTextColor(conceptText)
+        input.setHintTextColor(Color.parseColor("#84928A"))
+        input.background = roundedBackground(Color.WHITE, Color.parseColor("#CFDCD4"), 10)
+        input.setPadding(dp(13), dp(10), dp(13), dp(10))
+    }
+
+    private fun applyConcept3Tree(view: View) {
+        when (view) {
+            is Button -> styleButton(view)
+            is EditText -> styleInput(view)
+            is CheckBox -> view.buttonTintList = ColorStateList.valueOf(conceptGreen)
+        }
+        if (view is ViewGroup) {
+            for (index in 0 until view.childCount) applyConcept3Tree(view.getChildAt(index))
+        }
+    }
+
     private fun page(): LinearLayout = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
-        setPadding(dp(18), dp(24), dp(18), dp(30))
+        setPadding(dp(18), dp(20), dp(18), dp(30))
+        setBackgroundColor(conceptSurface)
         layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 
     private fun wrapScroll(content: View): ScrollView = ScrollView(this).apply {
         isFillViewport = true
+        setBackgroundColor(conceptSurface)
         addView(content)
     }
 
     private fun sectionTitle(text: String): TextView = TextView(this).apply {
         this.text = text
-        textSize = 20f
+        textSize = 19f
         setTypeface(typeface, Typeface.BOLD)
-        setPadding(0, dp(16), 0, dp(8))
+        setTextColor(conceptText)
+        setPadding(0, dp(18), 0, dp(8))
     }
 
     private fun emptyState(text: String): TextView = TextView(this).apply {
         this.text = text
         textSize = 13f
-        setTextColor(Color.DKGRAY)
-        setPadding(dp(12), dp(16), dp(12), dp(16))
+        setTextColor(conceptMuted)
+        setPadding(dp(14), dp(16), dp(14), dp(16))
+        background = roundedBackground(Color.parseColor("#F7FAF8"), conceptLine, 10)
     }
 
     private fun card(): LinearLayout = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
-        setPadding(dp(14), dp(12), dp(14), dp(12))
-        background = GradientDrawable().apply {
-            setColor(Color.WHITE)
-            cornerRadius = dp(12).toFloat()
-            setStroke(dp(1), Color.parseColor("#E5E7EB"))
-        }
+        setPadding(dp(14), dp(13), dp(14), dp(13))
+        background = roundedBackground(Color.WHITE, conceptLine, 12)
         layoutParams = LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT,
         ).apply {
             topMargin = dp(8)
-            bottomMargin = dp(4)
+            bottomMargin = dp(5)
         }
     }
 

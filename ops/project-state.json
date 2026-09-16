@@ -21,7 +21,7 @@
     "business_api": "IMPLEMENTED_AND_DEPLOYED_BETA",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS",
     "web": "CONCEPT3_ADMIN_DASHBOARD_REPORTING_AND_ROLE_OPERATIONS_BETA_DEPLOY_PASS",
-    "android": "ROLE_BASED_PICKER_REPORTER_REALTIME_FCM_SIGNED_OTA_BETA_PASS",
+    "android": "CONCEPT3_ROLE_UI_SOURCE_BUILD_PENDING_SIGNED_OTA_CI",
     "latest_beta_apk": "beta-vc27",
     "realtime": "WEBSOCKET_SERVER_WEB_ANDROID_CLIENT_DEPLOYED_SIGNED_PASS",
     "network_scope": "PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_BY_OWNER_DECISION",
@@ -85,7 +85,8 @@
     "FCM device registration + targeted background notification foundation — Beta Worker deploy and signed Android beta-vc27 build PASS",
     "User management: ROOT→ADMIN, ADMIN→REPORTER, preview-confirm HR→PICKER sync with missing Pickers disabled/retained — Beta deploy/build PASS",
     "Archive/retention executor: fixed-range Google Sheet archive + SQLite markers/checkpoint + cleanup only archived final batches older than 60 days — Beta deploy/schema v4 PASS",
-    "Admin/Root Concept 3 operational dashboard + filtered paginated reporting + chunked CSV export — Beta deploy/build PASS"
+    "Admin/Root Concept 3 operational dashboard + filtered paginated reporting + chunked CSV export — Beta deploy/build PASS",
+    "Android/PDA Concept 3 visual refactor preserving Picker/Reporter role workflows — source patched, signed Beta CI pending"
   ],
   "pending_build": [
     "Field-verify FCM delivery on a physical logged-in PDA; technical foundation is deployed",
@@ -104,7 +105,7 @@
     "Any new offline-create-report behavior; do not add direct-to-Sheet fallback unless Owner explicitly approves it."
   ],
   "next_action": {
-    "primary": "Apply Concept 3 visual system to Android/PDA role workflows, then run load/resilience/quota testing and Owner business acceptance.",
+    "primary": "Verify signed Concept 3 Android/PDA Beta release, then run load/resilience/quota testing and Owner business acceptance.",
     "method": "Keep FCM as background notification only; business state remains server-authoritative via API/SQLite and foreground WebSocket resync.",
     "stable_guard": "Do not activate Stable."
   },
