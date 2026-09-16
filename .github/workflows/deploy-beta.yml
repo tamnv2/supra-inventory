@@ -4,8 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "service/src/**"
-      - "service/wrangler.beta.toml"
+      - "service/**"
       - ".github/workflows/deploy-beta.yml"
   workflow_dispatch:
 
@@ -29,63 +28,42 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Install service dependencies
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Typecheck service
+        working-directory: service
+        run: npm run typecheck
+
       - name: Cloudflare token preflight
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
         run: |
           set -euo pipefail
-          check_endpoint() {
-            label="$1"
-            url="$2"
-            tmp="$(mktemp)"
-            code="$(curl -sS -o "$tmp" -w '%{http_code}' \
-              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-              -H 'Content-Type: application/json' \
-              "$url")"
-            success="$(jq -r '.success // false' "$tmp" 2>/dev/null || echo false)"
-            status="$(jq -r '.result.status // empty' "$tmp" 2>/dev/null || true)"
-            err_code="$(jq -r '.errors[0].code // empty' "$tmp" 2>/dev/null || true)"
-            err_msg="$(jq -r '.errors[0].message // empty' "$tmp" 2>/dev/null || true)"
-            echo "$label: http=$code success=$success status=${status:-n/a} error_code=${err_code:-none} error_message=${err_msg:-none}"
-            rm -f "$tmp"
-          }
+          verify="$(curl -sS \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/tokens/verify")"
+          [ "$(echo "$verify" | jq -r '.success')" = "true" ] || { echo "Cloudflare token verify failed"; exit 1; }
+          [ "$(echo "$verify" | jq -r '.result.status')" = "active" ] || { echo "Cloudflare token is not active"; exit 1; }
 
-          check_endpoint "token-verify" \
-            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/tokens/verify"
-          check_endpoint "beta-script-api" \
-            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/supra-inventory-beta"
-          check_endpoint "stable-script-api" \
-            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/supra-inventory-stable"
-          check_endpoint "beta-service-api" \
-            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/services/supra-inventory-beta"
+          service_code="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/services/supra-inventory-beta")"
+          [ "$service_code" = "200" ] || { echo "Beta Worker API preflight failed: HTTP $service_code"; exit 1; }
+          echo "Cloudflare Beta preflight PASS"
 
-      - name: Upload Beta Worker version
+      # Durable Object lifecycle changes cannot use `wrangler versions upload`.
+      # `wrangler deploy` atomically reconciles the declarative SQLite class export.
+      - name: Deploy Beta Worker and Durable Object
         working-directory: service
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
-        run: |
-          TAG="ci-${GITHUB_SHA::12}"
-          npx --yes wrangler@4 versions upload \
-            --config wrangler.beta.toml \
-            --keep-vars \
-            --tag "$TAG" \
-            --message "GitHub Actions $GITHUB_SHA"
+        run: npx --yes wrangler@4 deploy --config wrangler.beta.toml --keep-vars
 
-      - name: Deploy uploaded Beta version
-        working-directory: service
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
-        run: |
-          TAG="ci-${GITHUB_SHA::12}"
-          npx --yes wrangler@4 versions deploy \
-            --config wrangler.beta.toml \
-            --version-tag "$TAG" \
-            --yes
-
-      - name: Verify Beta health on custom domain
+      - name: Verify Beta health and SQLite schema
         env:
           BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
         run: |
@@ -100,16 +78,19 @@ jobs:
             env_name="$(jq -r '.environment // empty' "$tmp" 2>/dev/null || true)"
             missing_count="$(jq -r '.missing_bindings | length' "$tmp" 2>/dev/null || echo 999)"
             refresh_configured="$(jq -r '.oauth_refresh_token_configured // false' "$tmp" 2>/dev/null || echo false)"
-            echo "health attempt=$attempt http=${code:-000} status=${status:-n/a} environment=${env_name:-n/a} missing=${missing_count:-999} refresh_token=${refresh_configured:-false}"
+            storage_ok="$(jq -r '.storage.ok // false' "$tmp" 2>/dev/null || echo false)"
+            schema_version="$(jq -r '.storage.schema_version // 0' "$tmp" 2>/dev/null || echo 0)"
+            expected_schema="$(jq -r '.storage.expected_schema_version // 0' "$tmp" 2>/dev/null || echo 0)"
+            echo "health attempt=$attempt http=${code:-000} status=${status:-n/a} env=${env_name:-n/a} missing=${missing_count:-999} refresh=${refresh_configured:-false} storage=${storage_ok:-false} schema=${schema_version:-0}/${expected_schema:-0}"
 
-            if [ "$code" = "200" ] && [ "$status" = "ok" ] && [ "$env_name" = "beta" ] && [ "$missing_count" = "0" ] && [ "$refresh_configured" = "true" ]; then
-              echo "Beta health PASS: $url"
+            if [ "$code" = "200" ] && [ "$status" = "ok" ] && [ "$env_name" = "beta" ] && \
+               [ "$missing_count" = "0" ] && [ "$refresh_configured" = "true" ] && \
+               [ "$storage_ok" = "true" ] && [ "$schema_version" = "$expected_schema" ] && [ "$schema_version" != "0" ]; then
+              echo "Beta health + SQLite PASS: $url"
               exit 0
             fi
 
-            if [ "$attempt" -lt 12 ]; then
-              sleep 5
-            fi
+            [ "$attempt" -ge 12 ] || sleep 5
           done
 
           echo "Beta health FAILED. Safe response body follows:"
@@ -128,11 +109,10 @@ jobs:
           location="$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^[^:]*:[[:space:]]*/, ""); sub(/\r$/, ""); print; exit}' "$headers")"
           cookie="$(awk 'BEGIN{IGNORECASE=1} /^set-cookie:/ {print; exit}' "$headers")"
 
-          echo "oauth-start http=$code"
+          [ "$code" = "302" ] || { echo "Expected OAuth HTTP 302"; exit 1; }
           case "$location" in
             https://accounts.google.com/o/oauth2/v2/auth*) ;;
             *) echo "Unexpected OAuth redirect target"; exit 1 ;;
           esac
           echo "$cookie" | grep -qi 'inventory_oauth_state=' || { echo "OAuth state cookie missing"; exit 1; }
-          [ "$code" = "302" ] || { echo "Expected HTTP 302"; exit 1; }
           echo "Beta OAuth start PASS"
