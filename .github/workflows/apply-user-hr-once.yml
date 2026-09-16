@@ -1,0 +1,112 @@
+name: Apply User HR Management Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/apply-user-hr-once.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    environment: beta
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Apply user and HR management patch
+        run: |
+          set -euo pipefail
+          python3 tools/apply_user_hr_management.py
+          git diff --check
+          python3 tools/project_state_guard.py
+
+      - name: Build Web
+        working-directory: web
+        env:
+          VITE_API_BASE_URL: https://inventory-beta.supra.cc.cd
+          VITE_FIREBASE_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+          VITE_FIREBASE_AUTH_DOMAIN: supra-inventory-beta.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID: supra-inventory-beta
+          VITE_FIREBASE_APP_ID: 1:572322098890:web:96459cf386b3fb6f400e33
+          VITE_FIREBASE_MESSAGING_SENDER_ID: "572322098890"
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run build
+
+      - name: Typecheck service
+        working-directory: service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+
+      - name: Deploy Beta Worker and Web
+        working-directory: service
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+          FIREBASE_WEB_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+        run: npx --yes wrangler@4 deploy --config wrangler.beta.toml --keep-vars --var "FIREBASE_WEB_API_KEY:${FIREBASE_WEB_API_KEY}"
+
+      - name: Smoke health and account-management guards
+        env:
+          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          for attempt in $(seq 1 12); do
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}/health" || true)"
+            status="$(jq -r '.status // empty' "$tmp" 2>/dev/null || true)"
+            [ "$code" = "200" ] && [ "$status" = "ok" ] && break
+            [ "$attempt" -ge 12 ] || sleep 5
+          done
+          [ "$code" = "200" ] && [ "$status" = "ok" ] || { echo "Health failed"; cat "$tmp"; exit 1; }
+
+          code="$(curl -sS -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}/api/admin/users")"
+          [ "$code" = "401" ] && jq -e '.error == "AUTH_REQUIRED"' "$tmp" >/dev/null || { echo "Users auth guard failed"; cat "$tmp"; exit 1; }
+
+          code="$(curl -sS -o "$tmp" -w '%{http_code}' -X POST "https://${BETA_HOSTNAME}/api/admin/hr-sync/preview" -H 'content-type: application/json' --data '{}')"
+          [ "$code" = "401" ] && jq -e '.error == "AUTH_REQUIRED"' "$tmp" >/dev/null || { echo "HR sync auth guard failed"; cat "$tmp"; exit 1; }
+          echo "User management + HR sync public guard PASS"
+
+      - name: Finalize canonical state and commit deployed source
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('ops/project-state.json')
+          state = json.loads(p.read_text(encoding='utf-8'))
+          state['current_status']['user_management'] = 'ROOT_ADMIN_HIERARCHY_AND_HR_PICKER_SYNC_BETA_DEPLOY_PASS'
+          line = 'User management: ROOT→ADMIN, ADMIN→REPORTER, preview-confirm HR→PICKER sync with missing Pickers disabled/retained — Beta deploy/build PASS'
+          if line not in state['completed_capabilities']: state['completed_capabilities'].append(line)
+          state['pending_build'] = [x for x in state['pending_build'] if 'Verify/deploy ROOT→ADMIN' not in x]
+          state['next_action']['primary'] = 'Implement backup/archive executor with checkpoint/retry/retention safety, then reporting/export and load/resilience testing.'
+          p.write_text(json.dumps(state, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+          p = Path('ops/resource-registry.json')
+          registry = json.loads(p.read_text(encoding='utf-8'))
+          registry['user_management']['source_status'] = 'BETA_DEPLOY_BUILD_PASS'
+          built = registry['application_build_completed']
+          if 'user_management_and_hr_provisioning' not in built: built.append('user_management_and_hr_provisioning')
+          registry['application_build_pending'] = [x for x in registry['application_build_pending'] if x != 'user_management_hr_provisioning_verify']
+          p.write_text(json.dumps(registry, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          PY
+          python3 tools/project_state_guard.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/apply-user-hr-once.yml
+          git add service/src web/src ops/project-state.json ops/resource-registry.json docs/OWNER_DECISIONS.md tools/apply_user_hr_management.py
+          git commit -m "feat(users): deploy account hierarchy and HR picker sync"
+          git push origin HEAD:main
