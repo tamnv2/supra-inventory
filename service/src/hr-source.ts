@@ -50,10 +50,10 @@ function pemToArrayBuffer(pem: string): ArrayBuffer {
   return bytes.buffer;
 }
 
-async function getServiceAccountAccessToken(rawServiceAccountJson: string): Promise<{
-  accessToken: string;
-  clientEmail: string;
-}> {
+export async function getServiceAccountAccessToken(
+  rawServiceAccountJson: string,
+  scope = SHEETS_READ_SCOPE,
+): Promise<{ accessToken: string; clientEmail: string }> {
   let credentials: ServiceAccountJson;
   try {
     credentials = JSON.parse(rawServiceAccountJson) as ServiceAccountJson;
@@ -71,7 +71,7 @@ async function getServiceAccountAccessToken(rawServiceAccountJson: string): Prom
   const claims = base64Url(
     JSON.stringify({
       iss: credentials.client_email,
-      scope: SHEETS_READ_SCOPE,
+      scope,
       aud: tokenUri,
       iat: now,
       exp: now + 3600,
