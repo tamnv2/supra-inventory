@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "project": {
     "key": "supra-inventory",
     "display_name": "SUPRA Inventory — Báo hàng",
@@ -23,7 +23,13 @@
     "durable_object_class": "InventoryCore",
     "durable_object_binding": "INVENTORY_CORE",
     "durable_object_storage": "sqlite",
-    "beta_sqlite_schema_version": 2
+    "beta_sqlite_schema_version": 3
+  },
+  "network_scope": {
+    "picker_reporter": "PDA_ONLY_ON_PDA_NETWORK_WITH_INTERNET",
+    "admin_web": "REQUIRES_NETWORK_WITH_PROJECT_INTERNET_ACCESS",
+    "office_network": "UNSUPPORTED_BY_OWNER_DECISION_IT_FILTERS_REQUIRED_RUNTIME_ENDPOINTS",
+    "office_fallback_research": "CLOSED_DO_NOT_REOPEN_WITHOUT_OWNER_COMMAND"
   },
   "drive": {
     "root": {
@@ -63,9 +69,31 @@
     "public_unauthenticated_setup": false,
     "authenticated_api_status": "IMPLEMENTED_BETA"
   },
+  "business_api": {
+    "status": "IMPLEMENTED_AND_DEPLOYED_BETA",
+    "core_module": "service/src/business-core.ts",
+    "public_router": "service/src/business-api.ts",
+    "mutation_idempotency": "REQUIRED_REQUEST_ID",
+    "transaction_model": "DURABLE_OBJECT_SQLITE_TRANSACTION_SYNC",
+    "implemented": [
+      "sku_bulk_import",
+      "sku_search",
+      "picker_report_create",
+      "picker_report_list",
+      "picker_withdraw_within_60_seconds",
+      "same_sku_pending_batch_grouping",
+      "picker_sku_open_dedupe",
+      "reporter_priority_queue",
+      "reporter_resolve_has_stock",
+      "reporter_resolve_skip_allowed",
+      "skip_to_has_stock_correction_within_5_minutes",
+      "ticket_batch_event_audit",
+      "admin_report_monitoring"
+    ]
+  },
   "environments": {
     "beta": {
-      "status": "APP_FOUNDATION_READY_FOR_OWNER_TEST",
+      "status": "BUSINESS_API_AND_ADMIN_SKU_FOUNDATION_LIVE",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -78,7 +106,7 @@
       "durable_object_status": "PROVISIONED_PASS",
       "durable_object_class": "InventoryCore",
       "durable_object_storage": "sqlite",
-      "sqlite_schema_version": 2,
+      "sqlite_schema_version": 3,
       "runtime_service_account": "inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com",
       "android_package": "cd.cc.supra.inventory.beta",
       "firebase_android_app_id": "1:572322098890:android:3e483937876cbcc0400e33",
@@ -94,6 +122,7 @@
       "root_bootstrap_secret_configured": true,
       "root_password_initialization": "INITIALIZED_AND_CI_PROBED",
       "root_password_storage": "PBKDF2_SHA256_HASH_ONLY_IN_SQLITE",
+      "root_backend_login_owner_probe": "PASS_HTTP_200_ROLE_ROOT",
       "beta_pbkdf2_iterations": 100000,
       "stable_password_kdf_review_required": true,
       "oauth_client_name": "inventory-beta-drive",
@@ -107,13 +136,17 @@
       "oauth_refresh_token_configured": true,
       "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA",
       "web_source_status": "LIVE_BUILD_AND_SMOKE_PASS",
-      "android_source_status": "BUILD_PASS_ARTIFACT_PUBLISHED",
+      "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
+      "web_admin_report_monitoring": "IMPLEMENTED_FOUNDATION",
+      "android_source_status": "BUILD_PASS_SIGNED_OTA_RELEASE_FOUNDATION",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
+      "latest_signed_beta_release": "beta-vc18",
       "auth_rbac_status": "IMPLEMENTED_RUNTIME_READY",
       "auth_api_route_smoke": "PASS",
       "root_bootstrap_path_smoke": "PASS",
-      "hr_settings_ui_status": "IMPLEMENTED_WEB_ADMIN_ROOT"
+      "hr_settings_ui_status": "IMPLEMENTED_WEB_ADMIN_ROOT",
+      "business_api_status": "IMPLEMENTED_DEPLOYED_SCHEMA_V3"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -124,7 +157,7 @@
       "durable_object_status": "DECLARED_NOT_PROVISIONED_OWNER_GATED",
       "durable_object_class": "InventoryCore",
       "durable_object_storage": "sqlite",
-      "sqlite_schema_version": 1,
+      "sqlite_schema_version_source": 3,
       "runtime_service_account": "inventory-stable-runtime@supra-inventory-stable.iam.gserviceaccount.com",
       "android_package": "cd.cc.supra.inventory",
       "firebase_android_app_id": "1:1004520166836:android:70b94fef019c46450fcee1",
@@ -164,16 +197,23 @@
     "beta_web_live_smoke_gate",
     "beta_auth_api_smoke_gate",
     "beta_root_bootstrap_smoke_gate",
-    "beta_apk_debug_artifact_pipeline"
+    "beta_fixed_apk_signing",
+    "beta_signed_ota_release_foundation",
+    "business_sqlite_schema_v3",
+    "sku_master_backend_api",
+    "report_resolve_correct_withdraw_backend_workflows",
+    "admin_report_monitoring_backend",
+    "web_admin_sku_excel_import_foundation"
   ],
   "application_build_pending": [
     "websocket_realtime_protocol",
     "fcm_device_and_delivery_flows",
-    "sku_excel_import",
-    "report_resolve_correct_withdraw_workflows",
+    "user_management_and_hr_provisioning",
+    "picker_report_android_ui",
+    "reporter_queue_android_ui",
     "backup_archive_execution",
     "reporting_and_exports",
-    "apk_signing"
+    "load_and_resilience_tests"
   ],
   "release_pending": [
     "stable_password_kdf_and_rate_limit_review",
