@@ -1,16 +1,16 @@
 # Architecture Baseline
 
-Status: infrastructure bootstrap, implementation not yet started.
+Status: **Beta backend infrastructure ready for Web/Android application build**. Stable configuration is prepared but remains Owner-gated and not live.
 
 ## Runtime topology
 
-`Web / Android APK → Cloudflare Worker → Durable Objects + SQLite`
+`Web / Android APK → Cloudflare Worker → InventoryCore Durable Object → SQLite`
 
 Supporting services:
 
 - Firebase Authentication for application identity/auth flows.
 - Firebase Cloud Messaging for background notification delivery.
-- Google Sheets as controlled HR/source input where required.
+- Google Sheets as an Admin/Root-configured HR source.
 - Google Drive / Sheets for batch backup and archive flows.
 - GitHub as canonical public source repository.
 
@@ -22,6 +22,9 @@ Supporting services:
 - Worker: `supra-inventory-beta`
 - Hostname: `inventory-beta.supra.cc.cd`
 - Android package: `cd.cc.supra.inventory.beta`
+- Durable Object: `InventoryCore`
+- Storage: SQLite schema v1
+- CI deploy + health + schema gate: PASS
 
 ### Stable
 
@@ -29,7 +32,26 @@ Supporting services:
 - Worker: `supra-inventory-stable`
 - Hostname: `inventory.supra.cc.cd`
 - Android package: `cd.cc.supra.inventory`
-- Stable stays owner-gated and not live until explicit acceptance/release.
+- Durable Object/SQLite configuration mirrors Beta but is not provisioned until an explicit Owner-approved Stable deployment.
+- Stable stays Owner-gated and not live until explicit acceptance/release.
+
+## HR source model
+
+There is no fixed HR Sheet resource in infrastructure.
+
+Admin/Root will configure the source from the Web UI by entering:
+
+1. Google Sheet URL.
+2. Exact tab name.
+
+The service validator checks:
+
+- correct Google Sheets URL shape;
+- runtime service-account read access;
+- exact tab existence;
+- required `MNV` and `Họ tên` columns (with normalized accepted equivalents).
+
+Only verified metadata is stored in `InventoryCore` SQLite. No unauthenticated public setup endpoint is allowed.
 
 ## Business baseline
 
@@ -50,12 +72,38 @@ Supporting services:
 - Detailed service retention target is approximately 60 days, while unresolved pending items are retained beyond that boundary.
 - Reporting must distinguish report ticket, processing batch, and event; do not infer whole-warehouse fill rate or OOS rate without valid denominators.
 
-## Pending design/build
+## SQLite schema v1 baseline
 
-- Durable Object classes/bindings and SQLite schema.
+Prepared tables cover:
+
+- app/runtime configuration;
+- HR source configuration;
+- users/RBAC data;
+- SKU master;
+- report tickets;
+- processing batches;
+- report events;
+- FCM devices;
+- presence sessions;
+- archive checkpoints;
+- audit logs.
+
+A partial unique index enforces one unresolved/open report per Picker + SKU.
+
+## Application build pending
+
+These are application implementation tasks, not missing infrastructure services:
+
 - Auth/RBAC implementation and Root bootstrap.
-- HR Sheet schema/source binding.
+- Authenticated Admin/Root HR Sheet setup route + UI.
+- WebSocket realtime protocol and presence handling.
+- FCM registration/delivery flows.
+- SKU Excel import flow.
+- Report/resolve/correct/withdraw logic.
+- Backup/archive execution logic.
+- Reporting model and exports.
 - Web and Android application source.
-- Backup/archive jobs.
-- Reporting model.
-- Load and resilience tests.
+- Load/resilience tests.
+- APK signing/release material.
+
+See `docs/SERVICE_READINESS.md` and `ops/resource-registry.json` for canonical readiness state.
