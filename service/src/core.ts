@@ -1,4 +1,6 @@
-const SCHEMA_VERSION = 2;
+import { handleBusinessRequest, initializeBusinessSchema } from "./business-core";
+
+const SCHEMA_VERSION = 3;
 
 interface CoreEnv {
   APP_ENV: string;
@@ -202,6 +204,8 @@ export class InventoryCore {
     if (!this.hasColumn("users", "password_hash")) sql.exec("ALTER TABLE users ADD COLUMN password_hash TEXT");
     if (!this.hasColumn("users", "password_changed_at")) sql.exec("ALTER TABLE users ADD COLUMN password_changed_at TEXT");
 
+    initializeBusinessSchema(this.state);
+
     sql.exec(
       `INSERT OR IGNORE INTO users (user_id, firebase_uid, employee_code, display_name, role, status)
        VALUES ('root', NULL, 'root', 'Root', 'ROOT', 'ACTIVE')`,
@@ -333,6 +337,9 @@ export class InventoryCore {
       );
       return response({ status: "saved" });
     }
+
+    const business = await handleBusinessRequest(this.state, request);
+    if (business) return business;
 
     return response({ error: "not_found" }, 404);
   }
