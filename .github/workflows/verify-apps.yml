@@ -46,7 +46,7 @@ jobs:
         with:
           gradle-version: "9.6.0"
       - name: Install Android SDK 37
-        run: yes | sdkmanager "platforms;android-37" "build-tools;36.0.0" >/dev/null
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37" "build-tools;36.0.0" >/dev/null
       - name: Assemble Beta debug APK
         env:
           FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA }}
