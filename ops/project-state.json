@@ -15,7 +15,7 @@
     "web": "ROLE_BASED_REPORTER_ADMIN_UI_DEPLOYED_PASS",
     "android": "ROLE_BASED_PICKER_REPORTER_UI_SIGNED_OTA_BETA_PASS",
     "latest_beta_apk": "beta-vc24",
-    "realtime": "WEBSOCKET_TICKET_PRESENCE_SELECTIVE_INVALIDATION_SOURCE_COMMITTED_PENDING_CI_DEPLOY",
+    "realtime": "WEBSOCKET_SERVER_DEPLOYED_PASS_WEB_CLIENT_SOURCE_PENDING_CI",
     "network_scope": "PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_BY_OWNER_DECISION"
   },
   "hard_guards": [
@@ -65,10 +65,11 @@
     "Admin report monitoring backend",
     "Role-specific Reporter/Admin/Root Web operating UI — Beta deploy PASS",
     "Android Picker/Reporter/Admin/Root operational UI with local SKU catalog cache — signed Beta beta-vc24 build/release PASS",
+    "WebSocket one-time-ticket authentication, hibernatable presence and selective invalidation server protocol — Beta deploy/typecheck PASS",
     "Final network decision: PDA runtime supported; Office network unsupported"
   ],
   "pending_build": [
-    "Verify/deploy WebSocket ticket/presence/selective invalidation server protocol and wire Web/Android clients",
+    "Verify/deploy Web foreground realtime client, then wire Android foreground realtime client",
     "FCM device registration and delivery flows",
     "User management and HR provisioning/sync lifecycle",
     "Backup/archive executor with checkpoint/retry/retention safety",
@@ -88,7 +89,7 @@
     "Any new offline-create-report behavior; do not add direct-to-Sheet fallback unless Owner explicitly approves it."
   ],
   "next_action": {
-    "primary": "Deploy and smoke-test WebSocket realtime server protocol, wire Web and Android foreground clients, then implement FCM background delivery.",
+    "primary": "Verify/deploy Web foreground realtime client, wire Android foreground client, then implement FCM background delivery.",
     "method": "Transactions remain authoritative and commit before best-effort invalidation; reconnect resyncs from server; run CI/deploy/smoke to terminal PASS.",
     "stable_guard": "Do not activate Stable."
   },
