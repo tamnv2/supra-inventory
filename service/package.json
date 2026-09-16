@@ -1,0 +1,16 @@
+{
+  "name": "@supra-inventory/service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "deploy:beta": "wrangler deploy --config wrangler.beta.toml --keep-vars",
+    "deploy:stable": "echo 'Stable deployment is owner-gated' && exit 1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260916.0",
+    "typescript": "^5.9.2",
+    "wrangler": "^4.37.1"
+  }
+}
