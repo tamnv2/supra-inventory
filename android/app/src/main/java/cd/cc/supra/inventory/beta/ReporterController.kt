@@ -37,7 +37,7 @@ class ReporterController(
         val tabs = LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER
-            setPadding(0, kit.dp(8), 0, kit.dp(4))
+            setPadding(0, kit.dp(8), 0, kit.dp(5))
         }
         addTab(tabs, Filter.PENDING, "Đang xử lý")
         addTab(tabs, Filter.HAS_STOCK, "Đã có hàng")
@@ -81,10 +81,10 @@ class ReporterController(
     private fun addTab(row: LinearLayout, value: Filter, label: String) {
         val button = Button(activity).apply {
             text = label
-            textSize = 9.5f
+            textSize = 10.5f
             maxLines = 2
-            minHeight = kit.dp(48)
-            layoutParams = LinearLayout.LayoutParams(0, kit.dp(50), 1f).apply {
+            minHeight = kit.dp(52)
+            layoutParams = LinearLayout.LayoutParams(0, kit.dp(54), 1f).apply {
                 marginStart = kit.dp(2)
                 marginEnd = kit.dp(2)
             }
@@ -129,52 +129,42 @@ class ReporterController(
             return
         }
         for (row in queue) {
-            val card = kit.card(Color.WHITE, kit.line, 10)
+            val card = kit.card(Color.WHITE, kit.line, 11)
             card.addView(TextView(activity).apply {
                 text = "${row.sku} - ${row.productName}"
-                textSize = 18f
+                textSize = 19.5f
                 maxLines = 1
                 ellipsize = TextUtils.TruncateAt.END
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(kit.text)
             })
-            val info = LinearLayout(activity).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
-            }
-            info.addView(TextView(activity).apply {
+            card.addView(TextView(activity).apply {
                 text = "Báo lần đầu lúc: ${timestamp(row.firstReportAt)} - ${row.affectedPickerCount} lượt báo"
-                textSize = 11.5f
+                textSize = 12.5f
                 maxLines = 2
                 setTextColor(kit.muted)
-                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-            })
-            info.addView(Button(activity).apply {
-                text = "Xem Picker ›"
-                textSize = 9.5f
-                kit.styleSecondary(this)
-                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, kit.dp(38))
+                setPadding(0, kit.dp(4), 0, kit.dp(2))
+                contentDescription = "Xem ${row.affectedPickerCount} Picker báo SKU ${row.sku}"
                 setOnClickListener { showTickets(row) }
             })
-            card.addView(info)
             val actions = LinearLayout(activity).apply {
                 orientation = LinearLayout.HORIZONTAL
-                setPadding(0, kit.dp(6), 0, 0)
+                setPadding(0, kit.dp(7), 0, 0)
             }
             actions.addView(Button(activity).apply {
                 text = "CÓ HÀNG"
-                textSize = 12.5f
+                textSize = 14f
                 setTypeface(typeface, Typeface.BOLD)
-                layoutParams = LinearLayout.LayoutParams(0, kit.dp(48), 1f).apply { marginEnd = kit.dp(3) }
+                layoutParams = LinearLayout.LayoutParams(0, kit.dp(54), 1f).apply { marginEnd = kit.dp(4) }
                 kit.stylePrimary(this)
                 setOnClickListener { confirmResolve(row, "HAS_STOCK") }
             })
             actions.addView(Button(activity).apply {
                 text = "CHO SKIP HÀNG"
                 contentDescription = "Cho phép skip"
-                textSize = 12f
+                textSize = 13.5f
                 setTypeface(typeface, Typeface.BOLD)
-                layoutParams = LinearLayout.LayoutParams(0, kit.dp(48), 1f).apply { marginStart = kit.dp(3) }
+                layoutParams = LinearLayout.LayoutParams(0, kit.dp(54), 1f).apply { marginStart = kit.dp(4) }
                 kit.styleDanger(this)
                 setOnClickListener { confirmResolve(row, "SKIP_ALLOWED") }
             })
@@ -200,19 +190,19 @@ class ReporterController(
                 "SKIP_ALLOWED" -> Triple(kit.skipFill, kit.skipStroke, kit.red)
                 else -> Triple(kit.graySoft, kit.line, kit.muted)
             }
-            val card = kit.card(colors.first, colors.second, 10)
+            val card = kit.card(colors.first, colors.second, 11)
             val titleRow = LinearLayout(activity).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
             }
             titleRow.addView(TextView(activity).apply {
                 text = "${row.sku} - ${row.productName}"
-                textSize = 17f
+                textSize = 18.5f
                 maxLines = 1
                 ellipsize = TextUtils.TruncateAt.END
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(kit.text)
-                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = kit.dp(5) }
+                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = kit.dp(6) }
             })
             titleRow.addView(TextView(activity).apply {
                 text = when (state) {
@@ -220,10 +210,10 @@ class ReporterController(
                     "SKIP_ALLOWED" -> "Đã cho skip"
                     else -> "Picker thu hồi"
                 }
-                textSize = 10f
+                textSize = 11.5f
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(colors.third)
-                setPadding(kit.dp(7), kit.dp(4), kit.dp(7), kit.dp(4))
+                setPadding(kit.dp(8), kit.dp(5), kit.dp(8), kit.dp(5))
                 background = kit.rounded(colors.first, colors.second, 999)
             })
             card.addView(titleRow)
@@ -233,16 +223,16 @@ class ReporterController(
                 } else {
                     "Xử lý: ${timestamp(row.resolvedAt)} - ${row.affectedPickerCount} lượt báo"
                 }
-                textSize = 11.5f
+                textSize = 12.5f
                 setTextColor(kit.muted)
-                setPadding(0, kit.dp(4), 0, 0)
+                setPadding(0, kit.dp(5), 0, 0)
             })
             if (state == "SKIP_ALLOWED" && millis(row.correctionDeadlineAt) > System.currentTimeMillis()) {
                 card.addView(Button(activity).apply {
                     text = "Sửa thành Đã có hàng"
-                    textSize = 10.5f
+                    textSize = 11.5f
                     kit.styleSecondary(this)
-                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, kit.dp(40)).apply { topMargin = kit.dp(6) }
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, kit.dp(42)).apply { topMargin = kit.dp(7) }
                     setOnClickListener { confirmCorrection(row) }
                 })
             }
@@ -334,10 +324,10 @@ class ReporterController(
 
     private fun empty(value: String): TextView = TextView(activity).apply {
         text = value
-        textSize = 12f
+        textSize = 12.5f
         setTextColor(kit.muted)
-        setPadding(kit.dp(12), kit.dp(14), kit.dp(12), kit.dp(14))
+        setPadding(kit.dp(12), kit.dp(16), kit.dp(12), kit.dp(16))
         background = kit.rounded(Color.WHITE, kit.line, 10)
-        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = kit.dp(5) }
+        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = kit.dp(6) }
     }
 }
