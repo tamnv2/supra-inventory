@@ -29,7 +29,8 @@
     "user_management": "ROOT_ADMIN_HIERARCHY_AND_HR_PICKER_SYNC_BETA_DEPLOY_PASS",
     "archive": "IDEMPOTENT_SHEET_ARCHIVE_AND_SAFE_60D_RETENTION_BETA_DEPLOY_PASS",
     "admin_dashboard": "CONCEPT3_OPERATIONAL_DASHBOARD_AND_REPORTING_BETA_DEPLOY_PASS",
-    "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS"
+    "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
+    "ui_design_guard": "PERMANENT_CONCEPT3_WEB_ANDROID_CI_ACTIVE"
   },
   "hard_guards": [
     "Do not import assumptions or resources from other projects.",
@@ -89,7 +90,8 @@
     "Admin/Root Concept 3 operational dashboard + filtered paginated reporting + chunked CSV export — Beta deploy/build PASS",
     "Android/PDA Concept 3 visual refactor preserving Picker/Reporter role workflows — signed Beta beta-vc28 build/release PASS",
     "Quota/resilience v1: schema v5 materialized catalog metadata + delta-first PDA sync + reporting timestamp indexes + 50-request non-destructive Beta health burst — PASS",
-    "Concept 3 finish polish: Web humanized HR source/status/responsive UX + Android semantic status badges/alerts/control spacing — Beta Web deploy and signed beta-vc30 PASS"
+    "Concept 3 finish polish: Web humanized HR source/status/responsive UX + Android semantic status badges/alerts/control spacing — Beta Web deploy and signed beta-vc30 PASS",
+    "Permanent Concept 3 UI regression guard: static design invariants + Web production build + Android debug build on future UI changes"
   ],
   "pending_build": [
     "Field-verify FCM delivery on a physical logged-in PDA; technical foundation is deployed",
