@@ -34,7 +34,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm tools/apply_authority_complete.py
+          git rm -f tools/apply_authority_complete.py
           git add AGENTS.md docs ops tools/authority_guard.py
           git commit -m "feat(authority): complete project context scope specs and operating protocol"
           git push origin HEAD:main
