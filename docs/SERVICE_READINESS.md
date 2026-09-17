@@ -3,24 +3,31 @@
 > DERIVED VIEW. Canonical live status is `ops/project-state.json`; resource identity is `ops/resource-registry.json`. CI must fail if key markers below drift from canonical state.
 
 - Project: `supra-inventory`
-- Beta: `LEGACY_OPERATIONAL_V2_MAIN_736DB693__F01_RUNTIME_DEPLOY_AND_RELEASE_GATE_PASS`
+- Beta: `F02_F05_RUNTIME_PASS_MAIN_641D106F__F06_F07_SOURCE_IN_PROGRESS`
 - Stable: `CONFIG_READY_OWNER_GATED_NOT_LIVE`
 - SQLite schema: `5`
-- Web: `LEGACY_OPERATIONAL_UI_V2_BETA_DEPLOY_PASS_736DB693`
-- Android: `LEGACY_OPERATIONAL_UI_V2_SIGNED_BETA_VC37_RUNTIME_GATED_PASS`
+- Web: `F02_F05_BETA_DEPLOY_PASS_641D106F__F06_F07_WEB_SOURCE_IN_PROGRESS`
+- Android: `SIGNED_BETA_VC37_RUNTIME_BASELINE__F06_F07_ANDROID_SOURCE_IN_PROGRESS`
 - Latest signed Beta APK: `beta-vc37`
-- Realtime: `F02_F05_PICKER_AUTHORIZED_PROJECTION_SOURCE_IN_PROGRESS__F06_F07_CURSOR_PENDING`
+- Realtime: `F02_F05_RUNTIME_PASS__F06_F07_GLOBAL_SCAN_APPLIED_CURSOR_SOURCE_IN_PROGRESS`
 - FCM: `DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BASELINE__OPERATIONAL_V2_CORRELATION_SOURCE_BUILD_PASS_PENDING_RUNTIME`
 - UI design guard: `LEGACY_OPERATIONAL_UI_V2_SOURCE_SERVICE_WEB_ANDROID_PASS`
 
 ## Runtime readiness
 
-- F01 source/build/authority gates: PASS via PR #15.
-- F01 Beta runtime/release eligibility: PASS, evidenced by `beta-vc37` being published from `736db693` under the new workflow that requires the matching Deploy Beta run to complete successfully.
-- Operational V2 health now validates the extension schema marker in addition to base schema 5.
-- Unauthenticated business probes return auth responses before Operational V2 readiness work.
-- Direct vc37 APK hash/size remains unrecorded in canonical state until re-read from the release asset.
+- Main `641d106f` / PR #17: F02–F05 Beta runtime PASS.
+- Deploy run `35287719792`: health `schema=5/5`, Operational V2 `2/2`, business auth guards, Web shell and OAuth start all PASS.
+- Current signed Android baseline remains `beta-vc37` because F02–F05 did not modify Android.
+- Stable remains Owner-gated and has not been activated.
+
+## F06/F07 source readiness in progress
+
+- Operational V2 source target: schema `3`.
+- Server delta uses global scan cursor plus role projection and explicit epoch/retention/resync metadata.
+- Web/Android keep an applied cursor and retry dirty state when read-model application fails.
+- Android refresh-in-flight invalidations are queued through dirty rerun/completion instead of being dropped.
+- Realtime cursor regression, service typecheck, Web build, Android build and protected PR gates are pending.
 
 ## Next action
 
-Complete F02–F05 PR/CI/Beta runtime verification, then implement F06–F07. Physical PDA/UI/FCM/ACK acceptance remains separate. Stable remains Owner-gated.
+Complete F06/F07 PR/CI, merge only on PASS, verify Beta Operational V2 `3/3`, then verify the matching runtime-gated signed Android release. Physical PDA/FCM/Owner acceptance remains separate.
