@@ -7,12 +7,10 @@
   "state_model": "REPO_NATIVE_CONTINUITY_COMPLETE",
   "authority_order": [
     "latest_explicit_owner_command",
-    "ops/project-state.json",
-    "docs/OWNER_DECISIONS.md",
-    "ops/resource-registry.json",
-    "live_source_and_ci_evidence",
-    "generated_handover_view",
-    "older_handovers_and_chat_memory"
+    "ops/authority-manifest.json_bootstrap_order",
+    "current_source_recent_commits_ci_runtime_evidence",
+    "generated_derived_views",
+    "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
     "beta": "ROLE_BASED_WEB_ANDROID_LIVE",
@@ -113,7 +111,7 @@
     "Any new offline-create-report behavior; do not add direct-to-Sheet fallback unless Owner explicitly approves it."
   ],
   "next_action": {
-    "primary": "Owner field-test current Beta beta-vc30 on Web/PDA; future AI sessions bootstrap from GitHub authority v2 and apply new feedback on Beta. Stable remains gated.",
+    "primary": "Owner field-test current Beta beta-vc30 on Web/PDA; future AI sessions must bootstrap from ops/authority-manifest.json and canonical GitHub sources before applying new feedback on Beta. Stable remains gated.",
     "method": "Keep FCM as background notification only; business state remains server-authoritative via API/SQLite and foreground WebSocket resync.",
     "stable_guard": "Do not activate Stable."
   },
@@ -125,13 +123,9 @@
     "resource_identifier_change_requires_registry_update": true,
     "handover_current_is_generated_view": true,
     "future_session_bootstrap": [
-      "AGENTS.md",
-      "ops/project-state.json",
-      "docs/OWNER_DECISIONS.md",
-      "ops/resource-registry.json",
-      "docs/handovers/HANDOVER_CURRENT.md",
-      "recent commits and relevant live source"
-    ]
+      "ops/authority-manifest.json -> bootstrap_order"
+    ],
+    "resource_identifier_change_requires_scope_and_registry_update": true
   },
   "authority": {
     "manifest": "ops/authority-manifest.json",
@@ -139,7 +133,10 @@
     "decisions": "docs/OWNER_DECISIONS.md",
     "specs": "docs/specs/",
     "generated_views_are_authoritative": false,
-    "chat_memory_authoritative": false
+    "chat_memory_authoritative": false,
+    "scope": "ops/project-scope.json",
+    "operating_protocol": "docs/OPERATING_PROTOCOL.md",
+    "model": "REPO_NATIVE_COMPLETE"
   },
   "workboard": {
     "in_progress": [],
