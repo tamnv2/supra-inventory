@@ -38,11 +38,11 @@ export async function readHrEmployees(rawServiceAccountJson: string, source: Sto
   const rows = values.values || [];
   const headerIndex = Math.max(0, Number(source.header_row || 1) - 1);
   const headers = rows[headerIndex] || [];
-  const mnvWanted = normalizeHeader(source.mnv_header);
+  const employeeCodeWanted = normalizeHeader(source.mnv_header);
   const nameWanted = normalizeHeader(source.full_name_header);
-  const mnvIndex = headers.findIndex((cell) => normalizeHeader(String(cell || "")) === mnvWanted);
+  const employeeCodeIndex = headers.findIndex((cell) => normalizeHeader(String(cell || "")) === employeeCodeWanted);
   const nameIndex = headers.findIndex((cell) => normalizeHeader(String(cell || "")) === nameWanted);
-  if (mnvIndex < 0 || nameIndex < 0) throw new Error("Header MNV/Họ tên của nguồn nhân sự đã thay đổi. Hãy xác nhận lại cấu hình nguồn.");
+  if (employeeCodeIndex < 0 || nameIndex < 0) throw new Error("Tên cột Mã nhân viên/Họ và tên của nguồn nhân sự đã thay đổi. Hãy xác nhận lại cấu hình nguồn.");
 
   const byCode = new Map<string, Set<string>>();
   const invalidRows: number[] = [];
@@ -51,7 +51,7 @@ export async function readHrEmployees(rawServiceAccountJson: string, source: Sto
     const row = rows[index] || [];
     if (!row.some((cell) => String(cell || "").trim())) continue;
     sourceRowCount += 1;
-    const employeeCode = String(row[mnvIndex] || "").trim().toLowerCase();
+    const employeeCode = String(row[employeeCodeIndex] || "").trim().toLowerCase();
     const displayName = String(row[nameIndex] || "").trim().replace(/\s+/g, " ");
     if (!/^[a-z0-9._-]{1,64}$/.test(employeeCode) || !displayName || displayName.length > 200) {
       invalidRows.push(index + 1);
