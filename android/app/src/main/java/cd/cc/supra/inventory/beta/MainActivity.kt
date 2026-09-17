@@ -1290,7 +1290,7 @@ class MainActivity : Activity() {
         if (code !in 200..299) throw IllegalStateException("Update API HTTP $code")
         val release = org.json.JSONObject(text)
         val tag = release.optString("tag_name")
-        val versionCode = Regex("^beta-vc(\d+)$").find(tag)?.groupValues?.getOrNull(1)?.toIntOrNull()
+        val versionCode = Regex("^beta-vc(\\d+)$").find(tag)?.groupValues?.getOrNull(1)?.toIntOrNull()
             ?: throw IllegalStateException("Release Beta không hợp lệ.")
         val assets = release.optJSONArray("assets") ?: throw IllegalStateException("Release Beta thiếu APK.")
         var apkUrl = ""
