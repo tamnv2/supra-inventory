@@ -1,4 +1,4 @@
-import { handleOperationalV2CoreRequest, operationalV2Readiness, pickerCanReceiveRealtimeEvent, pickerRealtimeSnapshot } from "./operational-v2-core";
+import { handleOperationalV2CoreRequest, operationalV2Readiness, pickerCanReceiveRealtimeEvent, pickerRealtimeSnapshot, realtimeStreamMetadata } from "./operational-v2-core";
 
 type SqlRow = Record<string, SqlStorageValue>;
 
@@ -182,7 +182,14 @@ async function createRealtimeTicket(state: DurableObjectState, request: Request)
     expires_at: expiresAt,
   };
   await state.storage.put(`${REALTIME_TICKET_PREFIX}${ticket}`, value);
-  return response({ ticket, expires_at: new Date(expiresAt).toISOString(), latest_seq: latestRealtimeSeq(state) });
+  const stream = realtimeStreamMetadata(state);
+  return response({
+    ticket,
+    expires_at: new Date(expiresAt).toISOString(),
+    latest_seq: stream.latest_seq,
+    retained_from_seq: stream.retained_from_seq,
+    stream_epoch: stream.stream_epoch,
+  });
 }
 
 async function connectRealtime(state: DurableObjectState, request: Request, url: URL): Promise<Response> {
@@ -220,10 +227,13 @@ async function connectRealtime(state: DurableObjectState, request: Request, url:
   state.setWebSocketAutoResponse(new WebSocketRequestResponsePair("ping", "pong"));
 
   try {
+    const stream = realtimeStreamMetadata(state);
     server.send(JSON.stringify({
       type: "connected",
       connection_id: attachment.connection_id,
-      latest_seq: latestRealtimeSeq(state),
+      latest_seq: stream.latest_seq,
+      retained_from_seq: stream.retained_from_seq,
+      stream_epoch: stream.stream_epoch,
       server_time: connectedAt,
     }));
   } catch {
