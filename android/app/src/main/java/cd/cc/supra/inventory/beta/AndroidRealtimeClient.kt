@@ -14,7 +14,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.math.min
 
-// Foreground realtime invalidation client. Authoritative data is always re-read from the API after an event.
+// Foreground realtime: ordered sequence + bounded delta recovery. Database/API remain authoritative.
 class AndroidRealtimeClient(
     private val api: InventoryApi,
     private val baseUrl: String,
@@ -31,6 +31,8 @@ class AndroidRealtimeClient(
     @Volatile private var connecting = false
     @Volatile private var socket: WebSocket? = null
     @Volatile private var reconnectDelayMs = 1_000L
+    @Volatile private var recovering = false
+    @Volatile private var lastSeq = 0L
 
     fun start() {
         if (!stopped) return
@@ -86,16 +88,15 @@ class AndroidRealtimeClient(
         override fun onMessage(webSocket: WebSocket, text: String) {
             try {
                 val payload = JSONObject(text)
-                if (payload.optString("type") != "invalidate") return
-                val array = payload.optJSONArray("scopes") ?: return
-                val scopes = linkedSetOf<String>()
-                for (index in 0 until array.length()) {
-                    val value = array.optString(index).trim()
-                    if (value.isNotBlank()) scopes += value
+                when (payload.optString("type")) {
+                    "connected" -> {
+                        val latest = payload.optLong("latest_seq", 0L)
+                        if (latest > lastSeq) recoverDeltaAsync("connected")
+                    }
+                    "invalidate" -> handleInvalidate(payload)
                 }
-                if (scopes.isNotEmpty()) onInvalidate(scopes)
             } catch (_: Exception) {
-                // Ignore malformed frames; authoritative API snapshots remain the source of truth.
+                reconcileAuthoritatively()
             }
         }
 
@@ -116,6 +117,82 @@ class AndroidRealtimeClient(
         }
     }
 
+    private fun handleInvalidate(payload: JSONObject) {
+        val seq = payload.optLong("seq", 0L)
+        if (seq <= 0L) {
+            reconcileAuthoritatively()
+            return
+        }
+        if (seq <= lastSeq) return
+        if (lastSeq > 0L && seq > lastSeq + 1L) {
+            recoverDeltaAsync("sequence_gap")
+            return
+        }
+        lastSeq = seq
+        dispatchScopes(readScopes(payload))
+    }
+
+    private fun recoverDeltaAsync(reason: String) {
+        if (stopped || recovering || executor.isShutdown) return
+        recovering = true
+        executor.execute {
+            try {
+                recoverDelta(reason)
+            } finally {
+                recovering = false
+            }
+        }
+    }
+
+    private fun recoverDelta(reason: String) {
+        var cursor = lastSeq
+        val scopes = linkedSetOf<String>()
+        try {
+            repeat(8) {
+                if (stopped) return
+                val page = api.getRealtimeDelta(cursor, 100)
+                val ordered = page.events.filter { it.seq > cursor }.sortedBy { it.seq }
+                for (event in ordered) {
+                    if (event.seq <= cursor) continue
+                    if (cursor > 0L && event.seq > cursor + 1L) {
+                        reconcileAuthoritatively()
+                        return
+                    }
+                    cursor = event.seq
+                    scopes += event.scopes
+                }
+                if (page.cursorSeq > cursor) cursor = page.cursorSeq
+                lastSeq = cursor
+                if (page.complete) {
+                    dispatchScopes(scopes)
+                    return
+                }
+            }
+            reconcileAuthoritatively()
+        } catch (_: Exception) {
+            if (reason.isNotBlank()) reconcileAuthoritatively()
+        }
+    }
+
+    private fun readScopes(payload: JSONObject): Set<String> {
+        val array = payload.optJSONArray("scopes") ?: return emptySet()
+        val scopes = linkedSetOf<String>()
+        for (index in 0 until array.length()) {
+            val value = array.optString(index).trim()
+            if (value.isNotBlank()) scopes += value
+        }
+        return scopes
+    }
+
+    private fun dispatchScopes(scopes: Set<String>) {
+        if (scopes.isEmpty() || stopped) return
+        mainHandler.post { if (!stopped) onInvalidate(scopes) }
+    }
+
+    private fun reconcileAuthoritatively() {
+        dispatchScopes(setOf("picker_reports", "reporter_queue", "reporter_recent", "sku_catalog"))
+    }
+
     private fun scheduleReconnect() {
         if (stopped) return
         val delay = reconnectDelayMs
@@ -125,8 +202,8 @@ class AndroidRealtimeClient(
 
     private fun websocketUrl(ticket: String): String {
         val root = when {
-            baseUrl.startsWith("https://") -> "wss://${baseUrl.removePrefix("https://")}" 
-            baseUrl.startsWith("http://") -> "ws://${baseUrl.removePrefix("http://")}" 
+            baseUrl.startsWith("https://") -> "wss://${baseUrl.removePrefix("https://")}"
+            baseUrl.startsWith("http://") -> "ws://${baseUrl.removePrefix("http://")}"
             else -> baseUrl
         }.trimEnd('/')
         val encoded = URLEncoder.encode(ticket, StandardCharsets.UTF_8.toString())
