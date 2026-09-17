@@ -1,8 +1,8 @@
 export interface HrSourceInput {
   sheet_url: string;
   tab_name: string;
-  employee_code_header: string;
-  full_name_header: string;
+  employee_code_header?: string;
+  full_name_header?: string;
 }
 
 export interface HrSourceValidationResult {
@@ -161,11 +161,12 @@ export async function validateHrSheetSource(
 ): Promise<HrSourceValidationResult> {
   const sheetUrl = input.sheet_url.trim();
   const tabName = input.tab_name.trim();
-  const employeeCodeHeader = input.employee_code_header.trim();
-  const fullNameHeader = input.full_name_header.trim();
+  const employeeCodeHeader = String(input.employee_code_header || "").trim();
+  const fullNameHeader = String(input.full_name_header || "").trim();
   if (!tabName) throw new Error("Tên tab không được để trống");
-  if (!employeeCodeHeader) throw new Error("Tên cột Mã nhân viên không được để trống");
-  if (!fullNameHeader) throw new Error("Tên cột Họ và tên không được để trống");
+  if (!employeeCodeHeader || !fullNameHeader) {
+    throw new Error("Hãy nhập tên cột Mã nhân viên và tên cột Họ và tên trước khi xác nhận nguồn nhân sự.");
+  }
   if (normalizeHeader(employeeCodeHeader) === normalizeHeader(fullNameHeader)) {
     throw new Error("Cột Mã nhân viên và cột Họ và tên phải là hai cột khác nhau.");
   }
