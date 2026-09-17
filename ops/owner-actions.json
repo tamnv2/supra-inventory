@@ -5,22 +5,25 @@
   "actions": [
     {
       "id": "OA001",
-      "status": "VERIFYING_BY_PR_FLOW",
+      "status": "PASS",
       "title": "Protect main with an active GitHub branch ruleset",
       "resource_key": "repo",
       "provider": "GitHub",
       "reason_owner_only": "The connected GitHub tool can read rulesets/branch protection but does not expose repository-administration write actions for creating them.",
-      "current_evidence": {
+      "completion_evidence": {
         "main_protected": true,
-        "branch_api_observed_after_owner_setup": true,
-        "legacy_branch_protection_fields_are_not_used_to_judge_ruleset_configuration": true,
-        "required_checks_expected": [
+        "branch_api_verified_after_owner_setup": true,
+        "protected_flow_pr": 1,
+        "protected_flow_head_sha": "f2dc39575d3e69a65ada04020029c449dec969b8",
+        "required_checks_passed": [
           "authority",
           "continuity"
         ],
-        "verification_method": "Create this authority change on a non-main branch, open PR to main, require authority + continuity to pass, then merge through protected main. Mark PASS only after this PR path succeeds."
+        "merge_result": "PASS",
+        "merge_commit_sha": "d9d758837c5726d21c7b427d17579390857252d4",
+        "verification_summary": "A non-main branch was created, PR #1 was opened against main, both required GitHub Actions checks passed, the PR became mergeable, and GitHub merged it successfully into protected main."
       },
-      "target_configuration": {
+      "active_configuration": {
         "ruleset_name": "main-protection",
         "enforcement": "Active",
         "target": "default branch (main)",
@@ -35,7 +38,8 @@
         "block_force_pushes": true,
         "restrict_deletions": true,
         "require_signed_commits": false,
-        "note": "No manual review approval or signed commits are required. Normal AI changes use branch -> PR -> required CI -> merge."
+        "manual_owner_approval_required_for_normal_ai_changes": false,
+        "normal_change_path": "branch -> PR -> authority + continuity -> merge"
       },
       "owner_ui_path": [
         "Repository tamnv2/supra-inventory",
@@ -44,8 +48,8 @@
         "Rulesets",
         "main-protection"
       ],
-      "completion_evidence": "Protected-main PR flow succeeds only after authority + continuity checks pass, with no direct-main workflow needed.",
-      "after_owner_completion": "AI verifies through the protected PR flow and then updates this action to PASS."
+      "completed_at": "2026-09-17",
+      "remaining_owner_action": null
     }
   ]
 }
