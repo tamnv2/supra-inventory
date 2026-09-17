@@ -27,6 +27,8 @@ class ReporterController(
     private val timeFmt = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(zone)
     private val dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy").withZone(zone)
     private var refreshing = false
+    private var refreshDirty = false
+    private val refreshWaiters = mutableListOf<(Boolean) -> Unit>()
     private var filter = Filter.PENDING
     private val buttons = linkedMapOf<Filter, Button>()
     private var listBox: LinearLayout? = null
@@ -50,28 +52,53 @@ class ReporterController(
         refresh()
     }
 
-    fun onRealtime(scopes: Set<String>) {
-        if (scopes.contains("reporter_queue") || scopes.contains("reporter_recent")) refresh()
+    fun onRealtime(scopes: Set<String>, completion: (Boolean) -> Unit) {
+        if (scopes.contains("reporter_queue") || scopes.contains("reporter_recent")) refresh(completion)
+        else completion(true)
     }
 
-    fun refresh() {
-        if (refreshing) return
+    fun refresh(onComplete: ((Boolean) -> Unit)? = null) {
+        onComplete?.let { refreshWaiters += it }
+        if (refreshing) {
+            refreshDirty = true
+            return
+        }
         refreshing = true
         Thread {
             try {
                 val nextQueue = api.getReporterQueue(100)
                 val nextRecent = api.getReporterRecent(100)
                 activity.runOnUiThread {
-                    refreshing = false
                     queue = nextQueue
                     recent = nextRecent
                     renderSelected()
                     setStatus("Đã cập nhật ${nextQueue.size} SKU đang xử lý.")
+                    refreshing = false
+                    if (refreshDirty) {
+                        refreshDirty = false
+                        refresh()
+                    } else {
+                        finishRefreshWaiters(true)
+                    }
                 }
             } catch (e: Exception) {
-                activity.runOnUiThread { refreshing = false; setStatus(friendlyError(e)) }
+                activity.runOnUiThread {
+                    refreshing = false
+                    refreshDirty = false
+                    setStatus(friendlyError(e))
+                    finishRefreshWaiters(false)
+                }
             }
         }.start()
+    }
+
+    private fun finishRefreshWaiters(success: Boolean) {
+        if (refreshWaiters.isEmpty()) return
+        val waiters = refreshWaiters.toList()
+        refreshWaiters.clear()
+        for (waiter in waiters) {
+            try { waiter(success) } catch (_: Exception) { }
+        }
     }
 
     private fun addTab(row: LinearLayout, value: Filter, label: String) {
