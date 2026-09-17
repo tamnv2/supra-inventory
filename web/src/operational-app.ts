@@ -43,6 +43,7 @@ import {
   type SlaResponse,
 } from "./api";
 import { parseSkuExcel, type ParsedSkuWorkbook } from "./sku-excel";
+import { registerRealtimeApplier, type RealtimeEventFrame } from "./realtime-client";
 import {
   createPickerReport,
   getPickerReportsV2,
@@ -598,36 +599,49 @@ async function importSkuWorkbook(): Promise<void> {
   setNotice("success", `Hoàn tất cập nhật ${items.length.toLocaleString("vi-VN")} SKU.`);
 }
 
-async function reconcileActive(): Promise<void> {
+async function reconcileActive(): Promise<boolean> {
   const scrollY = window.scrollY;
   try {
     if ((activeSection === "operations" || activeSection === "results") && roleOperate()) await loadOperations();
     else if (activeSection === "picker" && profile?.role === "PICKER") await loadPicker();
+    else return true;
     render();
     requestAnimationFrame(() => window.scrollTo({ top: scrollY }));
+    return true;
   } catch {
-    // Keep current UI snapshot; next reconnect/delta can retry.
+    // Realtime client keeps the applied cursor unchanged and retries dirty state.
+    return false;
   }
 }
 
-window.addEventListener("supra:realtime-status", (event) => {
-  const detail = (event as CustomEvent<{ state?: string; lastSeq?: number }>).detail || {};
-  realtimeState = detail.state || realtimeState;
-  realtimeLastSeq = Number(detail.lastSeq || realtimeLastSeq);
-  const node = document.querySelector<HTMLElement>("#connection-state");
-  if (node) { node.className = `connection ${realtimeState}`; node.textContent = realtimeState === "connected" ? `Realtime · #${realtimeLastSeq}` : realtimeState; }
-});
+registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
+  realtimeLastSeq = context.cursorSeq;
+  if (context.source === "reconcile") return reconcileActive();
 
-window.addEventListener("supra:realtime", (event) => {
-  const detail = (event as CustomEvent<{ events?: Array<{ scopes?: string[]; seq?: number }> }>).detail || {};
-  const events = detail.events || [];
-  realtimeLastSeq = Math.max(realtimeLastSeq, ...events.map((row) => Number(row.seq || 0)));
   const scopes = new Set(events.flatMap((row) => row.scopes || []));
-  if (profile?.role === "PICKER" && scopes.has("picker_reports")) void reconcileActive();
-  if (roleOperate() && (scopes.has("reporter_queue") || scopes.has("reporter_recent"))) void reconcileActive();
+  const pickerRelevant = profile?.role === "PICKER" && activeSection === "picker" && scopes.has("picker_reports");
+  const reporterRelevant =
+    roleOperate() &&
+    (activeSection === "operations" || activeSection === "results") &&
+    (scopes.has("reporter_queue") || scopes.has("reporter_recent"));
+
+  if (!pickerRelevant && !reporterRelevant) return true;
+  return reconcileActive();
 });
 
-window.addEventListener("supra:reconcile", () => void reconcileActive());
+window.addEventListener("supra:realtime-status", (event) => {
+  const detail = (event as CustomEvent<{ state?: string; lastSeq?: number; dirty?: boolean }>).detail || {};
+  realtimeState = detail.state || realtimeState;
+  realtimeLastSeq = Number(detail.lastSeq ?? realtimeLastSeq);
+  const node = document.querySelector<HTMLElement>("#connection-state");
+  if (node) {
+    node.className = `connection ${realtimeState}`;
+    const dirtySuffix = detail.dirty ? " · đang khôi phục" : "";
+    node.textContent = realtimeState === "connected"
+      ? `Realtime · #${realtimeLastSeq}${dirtySuffix}`
+      : `${realtimeState}${dirtySuffix}`;
+  }
+});
 window.addEventListener("online", () => { realtimeState = "connecting"; render(); });
 window.addEventListener("offline", () => { realtimeState = "offline"; render(); });
 
