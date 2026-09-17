@@ -1,0 +1,43 @@
+name: Apply Repo Authority V2 Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/apply-repo-authority-v2.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Apply repo-native authority v2 migration
+        run: |
+          set -euo pipefail
+          python3 tools/apply_repo_authority_v2.py
+          python3 tools/project_state_guard.py
+          python3 tools/authority_guard.py
+          git diff --check
+          grep -Fq 'beta-vc30' docs/handovers/HANDOVER_CURRENT.md
+          grep -Fq 'SQLite schema: `5`' docs/handovers/HANDOVER_CURRENT.md
+          ! grep -Fq 'beta-vc24' docs/handovers/HANDOVER_CURRENT.md
+          ! grep -Fq 'schema v1' docs/ARCHITECTURE.md
+          ! grep -Fq 'schema version: `2`' docs/SERVICE_READINESS.md
+          echo "Authority V2 migration verification PASS"
+      - name: Commit canonical authority v2
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/apply-repo-authority-v2.yml tools/apply_repo_authority_v2.py
+          git add AGENTS.md docs ops tools/authority_guard.py .github/workflows/authority-guard.yml
+          git commit -m "feat(authority): make GitHub canonical project memory v2"
+          git push origin HEAD:main
