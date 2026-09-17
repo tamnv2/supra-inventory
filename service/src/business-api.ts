@@ -112,6 +112,13 @@ async function ensureOperationalV2(env: BusinessEnv): Promise<Response | null> {
   }
 }
 
+function requiredRolesForBusinessRoute(key: string): AppRole[] | undefined {
+  if (key.startsWith("POST /api/picker/") || key.startsWith("GET /api/picker/")) return ["PICKER"];
+  if (key.startsWith("GET /api/reporter/") || key.startsWith("POST /api/reporter/")) return REPORTER_ROLES;
+  if (key.startsWith("GET /api/admin/") || key.startsWith("POST /api/admin/") || key.startsWith("PUT /api/admin/")) return ["ADMIN", "ROOT"];
+  return undefined;
+}
+
 async function realtimeAfter(
   response: Response,
   env: BusinessEnv,
@@ -249,11 +256,13 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   ]);
   if (!supported.has(key)) return null;
 
+  // Authentication/authorization must happen before any readiness probe. An unauthenticated
+  // request must never trigger schema work or turn an expected 401/403 into a readiness 503.
+  const user = await requireUser(request, env, requiredRolesForBusinessRoute(key));
   const initializationFailure = await ensureOperationalV2(env);
   if (initializationFailure) return initializationFailure;
 
   if (key === "POST /api/admin/skus/import") {
-    const user = await requireUser(request, env, ["ADMIN", "ROOT"]);
     const body = await parseObjectBody(request);
     const items = Array.isArray(body.items) ? body.items : [];
     const suppliedHash = String(body.source_hash || "").trim();
@@ -262,7 +271,6 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   }
 
   if (key === "GET /api/skus") {
-    await requireUser(request, env);
     const params = new URLSearchParams();
     if (url.searchParams.has("query")) params.set("query", url.searchParams.get("query") || "");
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
@@ -270,7 +278,6 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   }
 
   if (key === "POST /api/picker/reports") {
-    const user = await requireUser(request, env, ["PICKER"]);
     const body = await parseObjectBody(request);
     const response = await corePost(env, "/business/reports/create", { ...body, actor: actor(user) });
     const result = await realtimeAfter(response, env, {
@@ -293,7 +300,6 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   }
 
   if (key === "GET /api/picker/reports") {
-    const user = await requireUser(request, env, ["PICKER"]);
     if (!user.employee_code) return json({ error: "PICKER_EMPLOYEE_CODE_REQUIRED" }, 409);
     const params = new URLSearchParams({ user_id: user.user_id, employee_code: user.employee_code });
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
@@ -301,7 +307,6 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   }
 
   if (key === "POST /api/picker/reports/withdraw") {
-    const user = await requireUser(request, env, ["PICKER"]);
     const body = await parseObjectBody(request);
     const response = await corePost(env, "/business/reports/withdraw", { ...body, actor: actor(user) });
     return realtimeAfter(response, env, {
@@ -312,14 +317,12 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   }
 
   if (key === "GET /api/picker/results") {
-    const user = await requireUser(request, env, ["PICKER"]);
     const params = new URLSearchParams({ user_id: user.user_id });
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
     return coreGet(env, `/operational/picker/results?${params.toString()}`);
   }
 
   if (key === "POST /api/picker/results/receipt") {
-    const user = await requireUser(request, env, ["PICKER"]);
     const body = await parseObjectBody(request);
     const response = await corePost(env, "/operational/picker/result-stage", { ...body, actor: actor(user) });
     const stage = String(body.stage || "").toUpperCase();
@@ -332,14 +335,12 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   }
 
   if (key === "GET /api/reporter/queue") {
-    await requireUser(request, env, REPORTER_ROLES);
     const params = new URLSearchParams();
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
     return coreGet(env, `/operational/reporter/queue?${params.toString()}`);
   }
 
   if (key === "POST /api/reporter/batches/resolve") {
-    const user = await requireUser(request, env, REPORTER_ROLES);
     const body = await parseObjectBody(request);
     const batchId = String(body.batch_id || "").trim();
     const response = await corePost(env, "/business/reporter/resolve", { ...body, actor: actor(user) });
@@ -361,7 +362,6 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   }
 
   if (key === "POST /api/reporter/batches/correct") {
-    const user = await requireUser(request, env, REPORTER_ROLES);
     const body = await parseObjectBody(request);
     const batchId = String(body.batch_id || "").trim();
     const response = await corePost(env, "/business/reporter/correct", { ...body, actor: actor(user) });
@@ -382,18 +382,15 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   }
 
   if (key === "GET /api/admin/sla") {
-    await requireUser(request, env, ["ADMIN", "ROOT"]);
     return coreGet(env, "/operational/sla");
   }
 
   if (key === "PUT /api/admin/sla") {
-    const user = await requireUser(request, env, ["ADMIN", "ROOT"]);
     const body = await parseObjectBody(request);
     return corePut(env, "/operational/sla", { ...body, actor: actor(user) });
   }
 
   if (key === "GET /api/admin/operational-insights") {
-    await requireUser(request, env, ["ADMIN", "ROOT"]);
     const params = new URLSearchParams();
     for (const name of ["from", "to"]) {
       if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
@@ -402,7 +399,6 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   }
 
   if (key === "GET /api/admin/dashboard" || key === "GET /api/admin/reporting") {
-    await requireUser(request, env, ["ADMIN", "ROOT"]);
     const params = new URLSearchParams();
     for (const name of ["from", "to", "status", "query", "limit", "offset"]) {
       if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
@@ -411,7 +407,6 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   }
 
   if (key === "GET /api/admin/reports") {
-    await requireUser(request, env, ["ADMIN", "ROOT"]);
     const params = new URLSearchParams();
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
     if (url.searchParams.has("status")) params.set("status", url.searchParams.get("status") || "");

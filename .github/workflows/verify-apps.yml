@@ -86,6 +86,28 @@ jobs:
             android/dist/supra-inventory-beta.apk.sha256
           if-no-files-found: error
           retention-days: 7
+      - name: Require successful Beta runtime gate for this source
+        if: env.SIGNING_READY == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 60); do
+            run_json="$(gh run list --workflow deploy-beta.yml --commit "$GITHUB_SHA" --limit 20 --json databaseId,status,conclusion,headSha 2>/dev/null || true)"
+            run_id="$(echo "$run_json" | jq -r --arg sha "$GITHUB_SHA" '[.[] | select(.headSha == $sha)][0].databaseId // empty')"
+            status="$(echo "$run_json" | jq -r --arg sha "$GITHUB_SHA" '[.[] | select(.headSha == $sha)][0].status // empty')"
+            conclusion="$(echo "$run_json" | jq -r --arg sha "$GITHUB_SHA" '[.[] | select(.headSha == $sha)][0].conclusion // empty')"
+            echo "runtime gate attempt=$attempt run=${run_id:-pending} status=${status:-pending} conclusion=${conclusion:-pending}"
+            if [ "$status" = "completed" ]; then
+              [ "$conclusion" = "success" ] || { echo "Beta runtime gate failed for source $GITHUB_SHA (run $run_id: $conclusion)"; exit 1; }
+              echo "Beta runtime gate PASS for source $GITHUB_SHA (run $run_id)"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Beta runtime gate did not reach terminal success for source $GITHUB_SHA" >&2
+          exit 1
+
       - name: Publish signed Beta auto-update release
         if: env.SIGNING_READY == 'true'
         env:

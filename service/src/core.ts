@@ -4,6 +4,7 @@ import { handleReadModelCoreRequest } from "./read-model-core";
 import { handleNotificationCoreRequest } from "./notifications-core";
 import { handleUserManagementCoreRequest } from "./user-management-core";
 import { handleArchiveCoreRequest } from "./archive-core";
+import { initializeOperationalV2Schema, operationalV2Readiness } from "./operational-v2-core";
 
 const SCHEMA_VERSION = 5;
 
@@ -236,6 +237,7 @@ export class InventoryCore {
     if (!this.hasColumn("users", "password_changed_at")) sql.exec("ALTER TABLE users ADD COLUMN password_changed_at TEXT");
 
     initializeBusinessSchema(this.state);
+    initializeOperationalV2Schema(this.state);
 
     sql.exec(
       `INSERT OR IGNORE INTO users (user_id, firebase_uid, employee_code, display_name, role, status)
@@ -285,14 +287,16 @@ export class InventoryCore {
 
     if (request.method === "GET" && url.pathname === "/health") {
       const root = this.getUserByUsername("root");
+      const operationalV2 = operationalV2Readiness(this.state);
       return response({
-        status: "ok",
+        status: operationalV2.ready ? "ok" : "degraded",
         component: "durable-object-sqlite",
         environment: this.env.APP_ENV,
         schema_version: this.getSchemaVersion(),
         expected_schema_version: SCHEMA_VERSION,
+        operational_v2: operationalV2,
         root_password_initialized: Boolean(root?.password_hash && root?.password_salt),
-      });
+      }, operationalV2.ready ? 200 : 503);
     }
 
     if (request.method === "GET" && url.pathname === "/auth/user-by-username") {

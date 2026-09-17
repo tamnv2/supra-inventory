@@ -15,6 +15,8 @@ type SlaConfig = {
 type RealtimeRole = "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
 
 const SLA_CONFIG_KEY = "operational_sla_v1";
+const OPERATIONAL_SCHEMA_KEY = "operational_v2_schema_version";
+export const OPERATIONAL_V2_SCHEMA_VERSION = 1;
 const MAX_DELTA_LIMIT = 200;
 
 function json(payload: unknown, status = 200): Response {
@@ -33,6 +35,46 @@ function hasColumn(state: DurableObjectState, tableName: string, columnName: str
     .exec<{ name: string }>(`PRAGMA table_info(${tableName})`)
     .toArray()
     .some((row) => row.name === columnName);
+}
+
+function hasSqlObject(state: DurableObjectState, type: "table" | "trigger", name: string): boolean {
+  return Boolean(first(
+    state.storage.sql
+      .exec<SqlRow>("SELECT name FROM sqlite_master WHERE type = ? AND name = ? LIMIT 1", type, name)
+      .toArray(),
+  ));
+}
+
+function storedOperationalSchemaVersion(state: DurableObjectState): number {
+  const row = first(
+    state.storage.sql
+      .exec<SqlRow>("SELECT value FROM schema_meta WHERE key = ? LIMIT 1", OPERATIONAL_SCHEMA_KEY)
+      .toArray(),
+  );
+  const value = Number(row?.value || 0);
+  return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
+}
+
+export function operationalV2Readiness(state: DurableObjectState): {
+  ready: boolean;
+  schema_version: number;
+  expected_schema_version: number;
+} {
+  const schemaVersion = storedOperationalSchemaVersion(state);
+  const ready =
+    schemaVersion >= OPERATIONAL_V2_SCHEMA_VERSION &&
+    hasColumn(state, "report_batches", "version") &&
+    hasColumn(state, "report_batches", "previous_batch_id") &&
+    hasColumn(state, "report_batches", "last_report_at") &&
+    hasSqlObject(state, "table", "realtime_events") &&
+    hasSqlObject(state, "table", "result_acknowledgements") &&
+    hasSqlObject(state, "trigger", "trg_v2_report_event_stream") &&
+    hasSqlObject(state, "trigger", "trg_v2_result_ack_targets");
+  return {
+    ready,
+    schema_version: schemaVersion,
+    expected_schema_version: OPERATIONAL_V2_SCHEMA_VERSION,
+  };
 }
 
 function first<T extends SqlRow>(rows: T[]): T | null {
@@ -118,6 +160,7 @@ function currentBatchSnapshot(state: DurableObjectState, batchId: string): Recor
 }
 
 export function initializeOperationalV2Schema(state: DurableObjectState): void {
+  if (operationalV2Readiness(state).ready) return;
   const sql = state.storage.sql;
 
   if (!hasColumn(state, "report_batches", "version")) {
@@ -267,6 +310,14 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
        GROUP BY t.picker_user_id;
     END;
   `);
+
+  sql.exec(
+    `INSERT INTO schema_meta (key, value, updated_at)
+     VALUES (?, ?, CURRENT_TIMESTAMP)
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP`,
+    OPERATIONAL_SCHEMA_KEY,
+    String(OPERATIONAL_V2_SCHEMA_VERSION),
+  );
 }
 
 function reporterQueue(state: DurableObjectState, url: URL): Response {

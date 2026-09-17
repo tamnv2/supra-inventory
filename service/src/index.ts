@@ -121,17 +121,30 @@ async function coreJson<T>(env: Env, path: string, init?: RequestInit): Promise<
 }
 
 async function checkCore(env: Env): Promise<{
-  ok: boolean; status: string; schema_version?: number; expected_schema_version?: number; root_password_initialized?: boolean;
+  ok: boolean;
+  status: string;
+  schema_version?: number;
+  expected_schema_version?: number;
+  operational_v2?: { ready?: boolean; schema_version?: number; expected_schema_version?: number };
+  root_password_initialized?: boolean;
 }> {
   try {
     const payload = await coreJson<{
-      status?: string; schema_version?: number; expected_schema_version?: number; root_password_initialized?: boolean;
+      status?: string;
+      schema_version?: number;
+      expected_schema_version?: number;
+      operational_v2?: { ready?: boolean; schema_version?: number; expected_schema_version?: number };
+      root_password_initialized?: boolean;
     }>(env, "/health");
     return {
-      ok: payload.status === "ok" && payload.schema_version === payload.expected_schema_version,
+      ok:
+        payload.status === "ok" &&
+        payload.schema_version === payload.expected_schema_version &&
+        payload.operational_v2?.ready === true,
       status: payload.status || "unknown",
       schema_version: payload.schema_version,
       expected_schema_version: payload.expected_schema_version,
+      operational_v2: payload.operational_v2,
       root_password_initialized: payload.root_password_initialized,
     };
   } catch {
@@ -366,8 +379,10 @@ export default {
             reporter_priority_resolve_correction: "implemented",
             admin_monitoring: "implemented",
             mutation_idempotency: "required_request_id",
+            operational_v2_ready: core.operational_v2?.ready === true,
+            operational_v2_schema_version: core.operational_v2?.schema_version ?? 0,
           },
-          realtime_foreground: "websocket_planned_on_inventory_core",
+          realtime_foreground: "websocket_sequence_delta_on_inventory_core",
           background_notifications: "firebase_cloud_messaging",
           hr_source_setup: { mode: "web_admin_input", required_input: ["google_sheet_url", "tab_name"], validation: ["valid_google_sheet_link", "exact_tab_name", "configured_employee_code_column", "configured_full_name_column"], public_setup_endpoint: false },
           root_password_initialized: Boolean(core.root_password_initialized), stable_release: "owner_gated",
