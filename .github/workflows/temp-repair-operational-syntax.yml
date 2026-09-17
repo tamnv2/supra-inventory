@@ -1,0 +1,38 @@
+name: Temp Repair Operational Syntax
+
+on:
+  push:
+    branches:
+      - feat/legacy-operational-rebaseline-v1
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/legacy-operational-rebaseline-v1
+      - name: Repair one template literal token
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('web/src/operational-app.ts')
+          s = p.read_text(encoding='utf-8')
+          old = 'Trạng thái `sla_state` do server tính theo thời gian báo đầu tiên.'
+          new = 'Trạng thái sla_state do server tính theo thời gian báo đầu tiên.'
+          if old in s:
+              p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+          if git diff --quiet -- web/src/operational-app.ts; then
+            echo 'No repair needed.'
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add web/src/operational-app.ts
+          git commit -m 'fix(web): repair SLA template literal'
+          git push origin HEAD:feat/legacy-operational-rebaseline-v1
