@@ -179,6 +179,43 @@ function event(
     JSON.stringify(payload),
     createdAt,
   );
+
+  if (batchId && (eventType === "BATCH_RESOLVED" || eventType === "BATCH_CORRECTED")) {
+    const resolution = eventType === "BATCH_CORRECTED"
+      ? String(payload.to || "")
+      : String(payload.resolution || "");
+    if (resolution === "HAS_STOCK" || resolution === "SKIP_ALLOWED") {
+      const batch = firstRow(
+        state.storage.sql
+          .exec<SqlRow>(
+            `SELECT batch_id, sku, product_name, version
+               FROM report_batches
+              WHERE batch_id = ?
+              LIMIT 1`,
+            batchId,
+          )
+          .toArray(),
+      );
+      if (batch) {
+        state.storage.sql.exec(
+          `INSERT OR IGNORE INTO result_event_snapshots (
+             result_event_id, batch_id, batch_version, event_type,
+             sku, product_name, resolution, result_at, created_at
+           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          eventId,
+          batchId,
+          Number(batch.version || 1),
+          eventType,
+          String(batch.sku || ""),
+          String(batch.product_name || ""),
+          resolution,
+          createdAt,
+          createdAt,
+        );
+      }
+    }
+  }
+
   return eventId;
 }
 
