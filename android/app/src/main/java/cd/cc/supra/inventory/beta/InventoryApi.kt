@@ -11,6 +11,7 @@ import java.util.UUID
 data class AppSession(
     val idToken: String,
     val refreshToken: String,
+    val userId: String,
     val displayName: String,
     val role: String,
     val employeeCode: String?,
@@ -106,7 +107,11 @@ data class RealtimeDelta(
     val events: List<RealtimeDeltaEvent>,
     val latestSeq: Long,
     val cursorSeq: Long,
-    val complete: Boolean,
+    val retainedFromSeq: Long,
+    val streamEpoch: String,
+    val hasMore: Boolean,
+    val resyncRequired: Boolean,
+    val resyncReason: String?,
 )
 
 class ApiException(
@@ -135,6 +140,7 @@ class InventoryApi(
         val next = AppSession(
             idToken = payload.optString("id_token"),
             refreshToken = payload.optString("refresh_token"),
+            userId = user.optString("user_id", username),
             displayName = user.optString("display_name", username),
             role = user.optString("role", "AUTH"),
             employeeCode = nullable(user, "employee_code"),
@@ -160,15 +166,21 @@ class InventoryApi(
             ?: throw IllegalStateException("Service không cấp được realtime ticket.")
     }
 
-    fun getRealtimeDelta(afterSeq: Long, limit: Int = 100): RealtimeDelta {
-        val payload = request("GET", "/api/realtime/delta?after_seq=${afterSeq.coerceAtLeast(0)}&limit=${limit.coerceIn(1, 200)}")
+    fun getRealtimeDelta(afterSeq: Long, streamEpoch: String, limit: Int = 100): RealtimeDelta {
+        val epochParam = if (streamEpoch.isBlank()) "" else "&stream_epoch=${enc(streamEpoch)}"
+        val payload = request(
+            "GET",
+            "/api/realtime/delta?after_seq=${afterSeq.coerceAtLeast(0)}&limit=${limit.coerceIn(1, 200)}$epochParam",
+        )
         val array = payload.optJSONArray("events") ?: JSONArray()
         val events = ArrayList<RealtimeDeltaEvent>(array.length())
         for (index in 0 until array.length()) {
             val row = array.optJSONObject(index) ?: continue
             val scopesArray = row.optJSONArray("scopes") ?: JSONArray()
             val scopes = linkedSetOf<String>()
-            for (i in 0 until scopesArray.length()) scopesArray.optString(i).trim().takeIf { it.isNotBlank() }?.let { scopes += it }
+            for (i in 0 until scopesArray.length()) {
+                scopesArray.optString(i).trim().takeIf { it.isNotBlank() }?.let { scopes += it }
+            }
             events += RealtimeDeltaEvent(
                 seq = row.optLong("seq", 0L),
                 event = row.optString("event", row.optString("event_type")),
@@ -182,7 +194,11 @@ class InventoryApi(
             events = events,
             latestSeq = payload.optLong("latest_seq", 0L),
             cursorSeq = payload.optLong("cursor_seq", afterSeq),
-            complete = payload.optBoolean("complete", true),
+            retainedFromSeq = payload.optLong("retained_from_seq", 0L),
+            streamEpoch = payload.optString("stream_epoch"),
+            hasMore = payload.optBoolean("has_more", payload.optBoolean("complete", true).not()),
+            resyncRequired = payload.optBoolean("resync_required", false),
+            resyncReason = nullable(payload, "resync_reason"),
         )
     }
 
