@@ -19,7 +19,7 @@
     "business_api": "IMPLEMENTED_AND_DEPLOYED_BETA_SCHEMA_V5",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS",
     "web": "PRACTICAL_BALANCED_CANONICAL_SOURCE_BETA_DEPLOY_SMOKE_PASS",
-    "android": "PRACTICAL_BALANCED_SIGNED_BETA_VC34_APPROVED_OPERATIONAL_LAYOUT_PASS",
+    "android": "SIGNED_BETA_VC34_TECHNICAL_PASS_FIELD_UI_REJECTED_REMEDIATION_IN_PROGRESS",
     "latest_beta_apk": "beta-vc34",
     "realtime": "WEBSOCKET_SERVER_WEB_ANDROID_CLIENT_DEPLOYED_SIGNED_PASS",
     "network_scope": "PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_BY_OWNER_DECISION",
@@ -28,7 +28,7 @@
     "archive": "IDEMPOTENT_SHEET_ARCHIVE_AND_SAFE_60D_RETENTION_BETA_DEPLOY_PASS",
     "admin_dashboard": "OPERATIONAL_DASHBOARD_AND_REPORTING_BETA_DEPLOY_PASS",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "PRACTICAL_BALANCED_CANONICAL_SOURCE_GUARD_PASS",
+    "ui_design_guard": "SOURCE_GUARD_EXTENDED_FOR_PHYSICAL_PDA_LAYOUT_REGRESSION_PENDING_PR_CI",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS"
   },
   "hard_guards": [
@@ -103,15 +103,17 @@
     "Android Practical Balanced signed OTA beta-vc31: monotonic versionCode 31 from prior vc30, exact source commit d7bfd1a0897ec760300a4c5d484b95d91444dc2d, APK SHA-256 7f57cec90aad16cdc1747ae8cbe543948ce4fcabca96f5859b16d4087e384f1c, release publish PASS",
     "Android Beta vc32 remediation: PR #6 authority/continuity/UI/build PASS; Beta Worker deploy + health/auth/business/Web/OAuth smoke PASS; signed beta-vc32 versionCode 32 published from 444f89d9ace5b5405f4f436b3be27869f16571e2, APK SHA-256 4fc20b00397bf0af7f149aef5fd9d42e68ee6f3223f8e84efb4349075c654884, size 9168718 bytes; mandatory update login gate, adaptive launcher icon, narrow-screen cleanup and legacy Picker password bootstrap are technical runtime PASS",
     "Android Beta vc33 native remediation: PR #8 authority/continuity/Practical Balanced source/Worker typecheck/Web production/Android debug PASS; merged source 21cc34e82c229fc686801e8f00476438555f89cb; post-merge authority/continuity/UI build guards PASS; signed beta-vc33 versionCode 33 published, APK SHA-256 192c39ee66e68795af147a8ab4f0b8164207fe41e93ad445e75c0c63045adda5, size 9168694 bytes; native narrow-screen UI, direct operational labels/footer, adaptive launcher icon, single fail-closed latest-version login gate, APK download/SHA-256 verification/installer handoff, and removal of Application-level post-layout UI rewriting are technical release PASS",
-    "Android Beta vc34 Owner-approved operational layout: PR #10 authority/continuity/Practical Balanced source + Worker typecheck + Web production + Android debug PASS; merged source c056e842467b2b9e03f6a03e3de4187991361200; post-merge Project State Guard, Repo Authority Guard, UI Design Guard and Beta Worker deploy PASS; signed beta-vc34 versionCode 34 published, APK SHA-256 80708e58281b67256f6f7a69e5c4ed9aa9dfaafef4b053657a5c68ae77feda52, size 9185074 bytes; compact BÁO HÀNG 1291 header, Picker one-row SKU entry/today status cards, Reporter four-state tabs with equal CÓ HÀNG/CHO SKIP HÀNG actions, and real CLOSED withdrawal batches for Picker thu hồi are technical runtime/release PASS."
+    "Android Beta vc34 technical release: PR #10 authority/continuity/Practical Balanced source + Worker typecheck + Web production + Android debug PASS; merged source c056e842467b2b9e03f6a03e3de4187991361200; post-merge Project State Guard, Repo Authority Guard, UI Design Guard and Beta Worker deploy PASS; signed beta-vc34 versionCode 34 published, APK SHA-256 80708e58281b67256f6f7a69e5c4ed9aa9dfaafef4b053657a5c68ae77feda52, size 9185074 bytes. Physical PDA evidence on 2026-09-17 rejected its visual implementation because the header was truncated and the Picker/Reporter content was over-compressed relative to the approved layout."
   ],
   "pending_build": [
+    "Complete Android physical-PDA layout parity remediation through branch → PR → required guards → merge → next signed Beta release",
     "Field-verify FCM delivery on a physical logged-in PDA; technical foundation is deployed",
     "Owner business/UI acceptance of Practical Balanced Beta Web/PDA",
     "Isolated business-mutation load acceptance after Owner scale target is defined"
   ],
   "field_pending": [
-    "Owner physical-PDA verification of signed beta-vc34 remains required for field/UI acceptance: approved Picker/Reporter layout, update gate/install handoff, Picker login/default-password behavior, launcher icon and role workflows.",
+    "beta-vc34 FIELD/UI REJECTED on physical PDA on 2026-09-17: BÁO HÀNG 1291 header truncates on the narrow device, typography/actions/cards are materially smaller and denser than the approved Picker/Reporter mockups, Picker catalog status consumes operational area after successful sync, and Reporter Xem Picker control squeezes the primary card context.",
+    "Owner physical-PDA verification is required only after the remediation is merged and a new signed Beta APK is published; technical CI alone is not field acceptance.",
     "Physical logged-in PDA FCM delivery remains field-pending."
   ],
   "open_decisions_do_not_invent": [
@@ -123,8 +125,8 @@
     "Any new offline-create-report behavior; do not add direct-to-Sheet fallback unless Owner explicitly approves it."
   ],
   "next_action": {
-    "primary": "Owner field-test signed beta-vc34 on a physical PDA: confirm the approved Picker/Reporter layout, update gate/install handoff, Picker login/default-password behavior, launcher icon and operational role workflows; report numbered findings if any.",
-    "method": "Use beta-vc34 as the current technical Beta baseline. Source/PR/guard/deploy/sign/release evidence is PASS; physical-device and Owner business acceptance remain separate evidence levels.",
+    "primary": "Finish the vc34 physical-PDA UI remediation on fix/android-vc35-pda-layout-parity, pass authority/continuity/UI/build PR gates, merge to main, publish the next signed Beta APK, then request physical PDA verification.",
+    "method": "Preserve all approved business semantics. Fix the implementation mismatch: remove the fixed header meta column, scale operational typography/actions for narrow PDA use, hide successful catalog-sync noise, remove the squeezed Reporter picker-detail button, and extend the UI guard against these regressions. Do not claim field acceptance from source/build PASS.",
     "stable_guard": "Do not activate Stable."
   },
   "continuity_policy": {
@@ -151,14 +153,17 @@
     "model": "REPO_NATIVE_COMPLETE"
   },
   "workboard": {
-    "in_progress": [],
+    "in_progress": [
+      "Physical-PDA layout parity remediation for Picker/Reporter on branch fix/android-vc35-pda-layout-parity"
+    ],
     "next": [
-      "Owner field-test signed beta-vc34 on physical PDA and report numbered findings if any",
+      "Pass PR authority + continuity + UI/build guards, merge, and publish next signed Beta APK",
+      "Owner field-test the remediated signed Beta APK on the same physical PDA",
       "Field-verify foreground realtime and background FCM delivery on a logged-in physical PDA",
       "Run isolated business-mutation load acceptance after Owner defines scale target/test boundary"
     ],
     "blocked_or_owner_field_dependent": [
-      "Owner business/UI acceptance of beta-vc34 on physical PDA",
+      "Owner business/UI acceptance remains pending until a remediated signed Beta APK exists",
       "Physical PDA FCM delivery acceptance",
       "Isolated mutation load acceptance requires an Owner workload target/test boundary"
     ],
@@ -169,8 +174,8 @@
       "signed_beta_apk_sha256": "80708e58281b67256f6f7a69e5c4ed9aa9dfaafef4b053657a5c68ae77feda52",
       "signed_beta_apk_size_bytes": 9185074,
       "runtime_source_commit": "c056e842467b2b9e03f6a03e3de4187991361200",
-      "runtime_ui_baseline": "PRACTICAL_BALANCED_OWNER_APPROVED_OPERATIONAL_LAYOUT",
-      "verification_basis": "PR #10 authority + continuity + Practical Balanced source guard + Worker typecheck + Web production + Android debug PASS; merged source c056e842467b2b9e03f6a03e3de4187991361200; post-merge Project State Guard + Repo Authority Guard + UI Design Guard + Beta Worker deploy PASS; signed Android beta-vc34 release publish PASS with monotonic 33→34 versionCode."
+      "runtime_ui_baseline": "PRACTICAL_BALANCED_VC34_TECHNICAL_PASS_FIELD_UI_REJECTED",
+      "verification_basis": "PR #10 and post-merge guards/release proved technical PASS only. Owner-provided physical PDA photos on 2026-09-17 are field evidence that vc34 does not visually match the approved layout; field/UI acceptance is therefore rejected and remediation is in progress."
     }
   },
   "authority_setup": {
