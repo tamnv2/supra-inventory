@@ -378,7 +378,7 @@ function renderSla(): string {
   const insight = operationalInsights?.sla;
   return `<section><div class="page-head"><div><h1>Cấu hình SLA</h1><p>SLA chỉ cảnh báo/escalate; không tự Có hàng hoặc tự Skip và không đổi công thức ưu tiên queue.</p></div></div>
     <div class="section-grid"><form id="sla-form" class="card"><h3>Ngưỡng xử lý</h3>${slaResponse && !slaResponse.configured ? `<div class="notice warning">SLA chưa cấu hình</div>` : ""}<div class="form-grid"><div class="field"><span>Cảnh báo sau (phút)</span><input name="warning" type="number" min="1" max="10080" value="${esc(sla?.warning_minutes || "")}" required /></div><div class="field"><span>Escalate sau (phút)</span><input name="escalation" type="number" min="2" max="20160" value="${esc(sla?.escalation_minutes || "")}" required /></div></div><button class="btn" style="margin-top:12px">Lưu SLA</button></form>
-      <div class="card"><h3>Trạng thái hiện tại</h3><div class="metrics"><div class="metric"><span>Cảnh báo</span><strong>${Number(insight?.warning_count || 0)}</strong></div><div class="metric"><span>Escalated</span><strong>${Number(insight?.escalated_count || 0)}</strong></div></div><div class="tiny muted">Trạng thái `sla_state` do server tính theo thời gian báo đầu tiên.</div></div></div>
+      <div class="card"><h3>Trạng thái hiện tại</h3><div class="metrics"><div class="metric"><span>Cảnh báo</span><strong>${Number(insight?.warning_count || 0)}</strong></div><div class="metric"><span>Escalated</span><strong>${Number(insight?.escalated_count || 0)}</strong></div></div><div class="tiny muted">Trạng thái sla_state do server tính theo thời gian báo đầu tiên.</div></div></div>
   </section>`;
 }
 
