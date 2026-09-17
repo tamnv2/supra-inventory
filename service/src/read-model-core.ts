@@ -388,7 +388,7 @@ async function realtimeBroadcast(state: DurableObjectState, request: Request): P
       event,
       event_id: eventIdentity,
       seq: eventRow ? Number(eventRow.seq || 0) : null,
-      scopes,
+      scopes: attachment.role === "PICKER" ? scopes.filter((scope) => scope === "picker_reports") : scopes,
       batch_id: batchId || null,
       batch_version: eventBatchVersion,
       snapshot,
