@@ -14,7 +14,7 @@ Never collapse these levels into one generic “done”.
 
 ## Current field frontier
 
-The current proven technical Beta baseline remains `beta-vc33`, schema v5, until a newer signed release completes the full branch → PR → guarded merge → deploy/build/release evidence chain. `beta-vc33` passed native narrow-screen UI/update-gate remediation and remains the rollback/reference baseline while the Owner-approved Picker/Reporter operational layout is implemented.
+The current proven technical Beta baseline is `beta-vc34`, schema v5. PR #10 passed authority, continuity and Practical Balanced source/build guards; merged source is `c056e842467b2b9e03f6a03e3de4187991361200`. Post-merge Project State Guard, Repo Authority Guard, UI Design Guard and Beta Worker deploy passed, and signed `beta-vc34` was published with versionCode 34, APK SHA-256 `80708e58281b67256f6f7a69e5c4ed9aa9dfaafef4b053657a5c68ae77feda52`, size `9185074` bytes. The Owner-approved compact `BÁO HÀNG 1291` header, Picker one-row SKU entry/today status cards, Reporter four-state tabs/equal actions and real `CLOSED` withdrawal batches are therefore technical source/build/deploy/sign/release PASS.
 
 Physical logged-in PDA FCM delivery and Owner field/business acceptance remain separate pending evidence even after technical build/deploy PASS.
 
