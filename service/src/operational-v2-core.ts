@@ -420,16 +420,28 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
             b.resolved_at, b.resolved_by_user_id, b.resolution, b.correction_deadline_at,
             b.version, b.previous_batch_id, p.resolved_at AS previous_resolved_at,
-            COUNT(DISTINCT t.ticket_id) AS affected_picker_count,
-            COUNT(DISTINCT a.target_user_id) AS ack_target_count,
-            COUNT(DISTINCT CASE WHEN a.acknowledged_at IS NOT NULL THEN a.target_user_id END) AS acknowledged_count
+            CASE
+              WHEN b.status = 'CLOSED' THEN
+                (SELECT COUNT(DISTINCT COALESCE(t.picker_user_id, t.picker_employee_code))
+                   FROM report_tickets t
+                  WHERE t.batch_id = b.batch_id AND t.status = 'WITHDRAWN')
+              ELSE
+                (SELECT COUNT(DISTINCT COALESCE(t.picker_user_id, t.picker_employee_code))
+                   FROM report_tickets t
+                  WHERE t.batch_id = b.batch_id AND t.status = 'RESOLVED')
+            END AS affected_picker_count,
+            (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id) AS total_ticket_count,
+            (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'WITHDRAWN') AS withdrawn_ticket_count,
+            (SELECT COUNT(DISTINCT a.target_user_id)
+               FROM result_acknowledgements a
+              WHERE a.batch_id = b.batch_id AND a.batch_version = b.version) AS ack_target_count,
+            (SELECT COUNT(DISTINCT a.target_user_id)
+               FROM result_acknowledgements a
+              WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
+                AND a.acknowledged_at IS NOT NULL) AS acknowledged_count
        FROM report_batches b
-       LEFT JOIN report_tickets t ON t.batch_id = b.batch_id
        LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
-       LEFT JOIN result_acknowledgements a
-         ON a.batch_id = b.batch_id AND a.batch_version = b.version
       WHERE b.status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')
-      GROUP BY b.batch_id
       ORDER BY COALESCE(b.resolved_at, b.updated_at) DESC
       LIMIT ?`,
     limit,
