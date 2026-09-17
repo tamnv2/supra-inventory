@@ -7,14 +7,23 @@ import android.graphics.Typeface
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 
 class InventoryApplication : Application(), Application.ActivityLifecycleCallbacks {
-    private val footerText = "Phát triển và duy trì bởi: tamnv2 - Chuyên viên Pick Pack 1291"
+    private val footerText = "Phát triển bởi: tamnv2 - Chuyên viên Pick Pack 1291"
+    @Volatile private var updateGate = UpdateGate.CHECKING
+    @Volatile private var updateCheckRunning = false
+    @Volatile private var lastUpdateCheckAt = 0L
+
+    private enum class UpdateGate { CHECKING, CURRENT, REQUIRED, FAILED }
 
     override fun onCreate() {
         super.onCreate()
@@ -25,10 +34,45 @@ class InventoryApplication : Application(), Application.ActivityLifecycleCallbac
         val decor = activity.window.decorView
         decor.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> applyOperationalUi(activity) }
         decor.post { applyOperationalUi(activity) }
+        startVersionGate(activity, force = false)
     }
 
     override fun onActivityResumed(activity: Activity) {
         activity.window.decorView.post { applyOperationalUi(activity) }
+        if (updateGate == UpdateGate.FAILED && System.currentTimeMillis() - lastUpdateCheckAt >= 5_000L) {
+            startVersionGate(activity, force = true)
+        }
+    }
+
+    private fun startVersionGate(activity: Activity, force: Boolean) {
+        if (updateCheckRunning) return
+        if (!force && updateGate != UpdateGate.CHECKING) return
+        updateCheckRunning = true
+        lastUpdateCheckAt = System.currentTimeMillis()
+        Thread {
+            updateGate = try {
+                val connection = (URL(BuildConfig.UPDATE_RELEASE_API).openConnection() as HttpURLConnection).apply {
+                    connectTimeout = 10_000
+                    readTimeout = 20_000
+                    instanceFollowRedirects = true
+                    setRequestProperty("Accept", "application/vnd.github+json")
+                    setRequestProperty("User-Agent", "SUPRA-Inventory-Beta/${BuildConfig.VERSION_NAME}")
+                }
+                val code = connection.responseCode
+                val text = (if (code in 200..299) connection.inputStream else connection.errorStream)
+                    ?.bufferedReader()?.use { it.readText() }.orEmpty()
+                connection.disconnect()
+                if (code !in 200..299) throw IllegalStateException("HTTP $code")
+                val tag = JSONObject(text).optString("tag_name")
+                val latest = Regex("^beta-vc(\\d+)$").find(tag)?.groupValues?.getOrNull(1)?.toIntOrNull()
+                    ?: throw IllegalStateException("release_tag_invalid")
+                if (latest > BuildConfig.VERSION_CODE) UpdateGate.REQUIRED else UpdateGate.CURRENT
+            } catch (_: Exception) {
+                UpdateGate.FAILED
+            }
+            updateCheckRunning = false
+            activity.runOnUiThread { applyOperationalUi(activity) }
+        }.start()
     }
 
     private fun applyOperationalUi(activity: Activity) {
@@ -40,6 +84,9 @@ class InventoryApplication : Application(), Application.ActivityLifecycleCallbac
     private fun styleTree(view: View, activity: Activity) {
         if (view is TextView) {
             val current = view.text?.toString().orEmpty()
+
+            if (current == "Đang dùng bản mới nhất.") updateGate = UpdateGate.CURRENT
+
             val updated = current
                 .replace("MNV / tên đăng nhập", "Mã nhân viên / tên đăng nhập")
                 .replace("Điều phối Inventory", "Hàng chờ xử lý")
@@ -47,6 +94,7 @@ class InventoryApplication : Application(), Application.ActivityLifecycleCallbac
                 .replace("Báo của tôi", "Lịch sử báo hàng")
                 .replace("Kết quả gần đây", "Kết quả xử lý gần đây")
                 .replace("Tải lại danh sách vận hành", "Làm mới hàng chờ xử lý")
+                .replace("Phát triển và duy trì bởi: tamnv2 - Chuyên viên Pick Pack 1291", footerText)
             if (updated != current) view.text = updated
 
             if (view is EditText) {
@@ -55,6 +103,18 @@ class InventoryApplication : Application(), Application.ActivityLifecycleCallbac
                     .replace("MNV / tên đăng nhập", "Mã nhân viên / tên đăng nhập")
                     .replace("MNV", "Mã nhân viên")
                 if (nextHint != hint) view.hint = nextHint
+            }
+
+            val text = view.text?.toString().orEmpty()
+            if (text.startsWith("Phiên bản ") && text.contains("Android 11+")) {
+                view.visibility = View.GONE
+            }
+            if (
+                text.startsWith("Nhập hoặc quét tối thiểu 3 ký tự") ||
+                text.startsWith("Ưu tiên: nhiều Picker bị ảnh hưởng hơn trước") ||
+                text.startsWith("PDA tập trung vận hành Reporter")
+            ) {
+                view.visibility = View.GONE
             }
 
             val family = if (view.textSize / resources.displayMetrics.scaledDensity >= 18f) "sans-serif-medium" else "sans-serif"
@@ -69,6 +129,32 @@ class InventoryApplication : Application(), Application.ActivityLifecycleCallbac
                     view.setCompoundDrawables(icon, null, null, null)
                 }
             }
+
+            if (view is Button && view.text?.toString() == "Đăng nhập") {
+                when (updateGate) {
+                    UpdateGate.CURRENT -> {
+                        if (view.tag == "update-gate") {
+                            view.tag = null
+                            view.isEnabled = true
+                            view.alpha = 1f
+                        }
+                    }
+                    else -> {
+                        view.tag = "update-gate"
+                        view.isEnabled = false
+                        view.alpha = 0.55f
+                    }
+                }
+            }
+
+            if (text == "Sẵn sàng đăng nhập Beta.") {
+                when (updateGate) {
+                    UpdateGate.CHECKING -> view.text = "Đang kiểm tra phiên bản..."
+                    UpdateGate.REQUIRED -> view.text = "Có bản cập nhật mới. Cần cập nhật trước khi đăng nhập."
+                    UpdateGate.FAILED -> view.text = "Chưa xác minh được phiên bản. Hãy kiểm tra kết nối và thử lại cập nhật."
+                    UpdateGate.CURRENT -> view.text = "Sẵn sàng đăng nhập."
+                }
+            }
         }
         if (view is ViewGroup) {
             for (index in 0 until view.childCount) styleTree(view.getChildAt(index), activity)
@@ -80,7 +166,14 @@ class InventoryApplication : Application(), Application.ActivityLifecycleCallbac
         val root = scroll.getChildAt(0) as? LinearLayout ?: return
         for (index in 0 until root.childCount) {
             val child = root.getChildAt(index)
-            if (child is TextView && child.text?.toString() == footerText) return
+            if (child is TextView) {
+                val text = child.text?.toString().orEmpty()
+                if (text == footerText) return
+                if (text.startsWith("Phát triển và duy trì bởi:")) {
+                    child.text = footerText
+                    return
+                }
+            }
         }
         root.addView(TextView(activity).apply {
             text = footerText
