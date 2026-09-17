@@ -108,6 +108,8 @@ export interface HrSyncPreview {
   rename: number;
   disable: number;
   unchanged: number;
+  inactive_existing: number;
+  not_in_source: number;
   collisions: Array<{ employee_code: string; role: string; user_id: string }>;
 }
 
@@ -288,8 +290,11 @@ export async function changeMyPassword(currentPassword: string, newPassword: str
 }
 
 export async function getHrSource(): Promise<HrSourceResponse> { return readJson(await authorizedFetch("/api/admin/hr-source")); }
-export async function saveHrSource(sheetUrl: string, tabName: string): Promise<HrSourceSaveResponse> {
-  return readJson(await authorizedFetch("/api/admin/hr-source", { method: "PUT", body: JSON.stringify({ sheet_url: sheetUrl, tab_name: tabName }) }));
+export async function saveHrSource(sheetUrl: string, tabName: string, employeeCodeHeader: string, fullNameHeader: string): Promise<HrSourceSaveResponse> {
+  return readJson(await authorizedFetch("/api/admin/hr-source-v2", {
+    method: "PUT",
+    body: JSON.stringify({ sheet_url: sheetUrl, tab_name: tabName, employee_code_header: employeeCodeHeader, full_name_header: fullNameHeader }),
+  }));
 }
 
 export async function importSkuChunk(items: SkuItem[], options: { requestId: string; sourceHash: string; dryRun?: boolean; confirmNameChanges?: boolean }): Promise<SkuImportChunkResult> {
@@ -357,10 +362,10 @@ export async function listManagedUsers(query = "", role = "", status = ""): Prom
   return readJson(await authorizedFetch(`/api/admin/users?${params.toString()}`));
 }
 
-export async function createManagedUser(username: string, displayName: string, role: "ADMIN" | "REPORTER"): Promise<ManagedUser> {
+export async function createManagedUser(username: string, displayName: string, role: "ADMIN" | "REPORTER", password: string): Promise<ManagedUser> {
   const result = await readJson<{ user: ManagedUser }>(await authorizedFetch("/api/admin/users", {
     method: "POST",
-    body: JSON.stringify({ request_id: crypto.randomUUID(), username, display_name: displayName, role }),
+    body: JSON.stringify({ request_id: crypto.randomUUID(), username, display_name: displayName, role, password }),
   }));
   return result.user;
 }
@@ -373,10 +378,17 @@ export async function updateManagedUser(userId: string, displayName: string, sta
   return result.user;
 }
 
-export async function resetManagedUserPassword(userId: string): Promise<void> {
-  await readJson(await authorizedFetch("/api/admin/users/reset-password", {
+export async function setManagedUserPassword(userId: string, password: string): Promise<void> {
+  await readJson(await authorizedFetch("/api/admin/users/password", {
+    method: "PUT",
+    body: JSON.stringify({ request_id: crypto.randomUUID(), user_id: userId, password }),
+  }));
+}
+
+export async function updatePickerAccounts(action: "ENABLE" | "DISABLE" | "DELETE", userIds: string[]): Promise<{ status: string; action: string; affected: number }> {
+  return readJson(await authorizedFetch("/api/admin/pickers/bulk", {
     method: "POST",
-    body: JSON.stringify({ request_id: crypto.randomUUID(), user_id: userId }),
+    body: JSON.stringify({ request_id: crypto.randomUUID(), action, all: false, user_ids: userIds }),
   }));
 }
 

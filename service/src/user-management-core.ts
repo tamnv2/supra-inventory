@@ -119,7 +119,10 @@ async function updateManagedUser(state: DurableObjectState, request: Request): P
   const status = String(body.status || target.status).toUpperCase() as UserStatus;
   if (!displayName || displayName.length > 200 || !["ACTIVE","DISABLED"].includes(status)) return response({ error: "INVALID_USER_UPDATE" }, 400);
   state.storage.sql.exec(`UPDATE users SET display_name = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`, displayName, status, userId);
-  if (status === "DISABLED") state.storage.sql.exec(`UPDATE fcm_devices SET enabled = 0, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`, userId);
+  if (status === "DISABLED") {
+    state.storage.sql.exec(`UPDATE fcm_devices SET enabled = 0, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`, userId);
+    state.storage.sql.exec(`DELETE FROM presence_sessions WHERE user_id = ?`, userId);
+  }
   audit(state, actor, "USER_UPDATE", "USER", userId, { display_name: displayName, status, role: target.role });
   return response({ status: "updated", user: safeUser(getUser(state, userId)!) });
 }
@@ -255,7 +258,7 @@ async function hrApply(state: DurableObjectState, request: Request): Promise<Res
         state.storage.sql.exec(
           `INSERT INTO users (user_id, firebase_uid, employee_code, display_name, role, status, created_at, updated_at, password_salt, password_hash, password_changed_at)
            VALUES (?, NULL, ?, ?, 'PICKER', 'ACTIVE', ?, ?, ?, ?, ?)`,
-          `picker:${code}`, code, name, at, at, body.picker_password_salt, body.picker_password_hash, at,
+          `picker:${code}:${crypto.randomUUID()}`, code, name, at, at, body.picker_password_salt, body.picker_password_hash, at,
         );
       } else if (current.display_name !== name) {
         state.storage.sql.exec(`UPDATE users SET display_name = ?, updated_at = ? WHERE user_id = ?`, name, at, current.user_id);
