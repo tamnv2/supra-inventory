@@ -43,7 +43,9 @@ Passwords/secrets are runtime-only. Repo contains no password value.
 - New ADMIN/REPORTER account creation requires the authorized manager to set an explicit password.
 - Managed password maintenance is **direct password change**, not “reset to default”.
 - Manager-set password changes rotate session/Firebase identity authority and disable prior notification/session presence for the target.
-- Only newly provisioned PICKER accounts use the protected Picker default-password runtime secret defined by Owner; its plaintext value must never be committed/logged.
+- Newly provisioned PICKER accounts use the protected Picker default-password runtime secret defined by Owner; its plaintext value must never be committed/logged.
+- Legacy PICKER accounts that already exist but have no password hash/salt lazily initialize from the same protected Picker default at first successful password attempt, so they do not remain permanently blocked by `PASSWORD_NOT_INITIALIZED`.
+- The legacy fallback may use the protected Root bootstrap secret only when the dedicated Picker default binding is absent in Beta; no plaintext password is stored in source.
 - Existing authenticated users may change their own password through the normal account flow.
 
 ## Stable hardening still open

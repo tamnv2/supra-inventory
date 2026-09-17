@@ -22,6 +22,7 @@ interface Env {
   GOOGLE_DRIVE_OAUTH_REDIRECT_URI?: string;
   GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN?: string;
   ROOT_BOOTSTRAP_PASSWORD?: string;
+  PICKER_DEFAULT_PASSWORD?: string;
   ARCHIVE_SHEET_ID?: string;
   RETENTION_DAYS?: string;
 }
@@ -256,10 +257,16 @@ async function login(request: Request, env: Env): Promise<Response> {
   if (!user || user.status !== "ACTIVE") return json({ error: "INVALID_CREDENTIALS" }, 401);
 
   if (!user.password_hash || !user.password_salt) {
-    if (user.role !== "ROOT" || user.user_id !== "root" || !env.ROOT_BOOTSTRAP_PASSWORD) {
+    let bootstrapPassword: string | null = null;
+    if (user.role === "ROOT" && user.user_id === "root" && env.ROOT_BOOTSTRAP_PASSWORD) {
+      bootstrapPassword = env.ROOT_BOOTSTRAP_PASSWORD;
+    } else if (user.role === "PICKER") {
+      bootstrapPassword = env.PICKER_DEFAULT_PASSWORD || env.ROOT_BOOTSTRAP_PASSWORD || null;
+    }
+    if (!bootstrapPassword) {
       return json({ error: "PASSWORD_NOT_INITIALIZED", message: "Tài khoản chưa được khởi tạo mật khẩu." }, 503);
     }
-    await savePassword(env, user.user_id, env.ROOT_BOOTSTRAP_PASSWORD);
+    await savePassword(env, user.user_id, bootstrapPassword);
     user = (await getUserByUsername(env, username))!;
   }
 
