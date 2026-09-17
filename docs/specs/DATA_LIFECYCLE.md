@@ -118,4 +118,14 @@ Each `BATCH_RESOLVED` / `BATCH_CORRECTED` result event preserves an immutable sn
 - Existing historical result events may be backfilled only from durable event payload/time/version evidence. Current batch resolution must not be used to rewrite an older event.
 - Correction therefore retains both the prior result event and the new correction result event with separate ACK lifecycles.
 - Ticket, result-target and acknowledgement aggregates are computed independently before presentation; joins across multiple one-to-many tables must not multiply counts.
+## Realtime stream epoch, scan cursor and applied state
 
+The realtime event table uses one global monotonically increasing sequence. Authorization can remove rows from an individual client's projection, so per-user visible events are not a contiguous numeric sequence.
+
+The server maintains a persistent `stream_epoch` for the current sequence space. Delta responses expose `retained_from_seq`, `latest_seq`, global scanned `cursor_seq`, `has_more` and explicit `resync_required` metadata.
+
+Clients distinguish:
+- **scanned cursor**: server position examined while producing an authorized delta page;
+- **applied cursor**: position whose relevant authoritative read-model effects have been successfully applied by that client.
+
+Only the applied cursor is persisted as recovered client state. If read-model application fails after a page/socket event arrives, the client remains dirty at the prior applied cursor and retries/reconciles. Epoch changes, a cursor ahead of the current stream, or a cursor older than retained history require an explicit authoritative reconcile before the client commits the replacement cursor.
