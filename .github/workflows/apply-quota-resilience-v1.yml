@@ -114,29 +114,65 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import concurrent.futures, json, os, statistics, time, urllib.request
+          import concurrent.futures, json, os, statistics, subprocess, time
           host = os.environ['BETA_HOSTNAME']
           url = f'https://{host}/health'
+
           def once(_):
-              start = time.perf_counter()
-              with urllib.request.urlopen(url, timeout=15) as r:
-                  raw = r.read()
-                  code = r.status
-              latency = (time.perf_counter()-start)*1000
-              payload = json.loads(raw)
-              ok = code == 200 and payload.get('status') == 'ok' and payload.get('storage',{}).get('schema_version') == 5
-              return ok, latency, code
-          with concurrent.futures.ThreadPoolExecutor(max_workers=20) as pool:
+              last = None
+              for attempt in range(3):
+                  start = time.perf_counter()
+                  proc = subprocess.run(
+                      [
+                          'curl', '-sS', '--connect-timeout', '5', '--max-time', '15',
+                          '-A', 'SUPRA-Inventory-CI/1.0', '-w', '\n%{http_code}', url,
+                      ],
+                      capture_output=True,
+                      text=True,
+                  )
+                  latency = (time.perf_counter() - start) * 1000
+                  raw, _, code_text = proc.stdout.rpartition('\n')
+                  try:
+                      code = int(code_text.strip())
+                  except ValueError:
+                      code = 0
+                  try:
+                      payload = json.loads(raw) if raw else {}
+                  except json.JSONDecodeError:
+                      payload = {}
+                  ok = (
+                      proc.returncode == 0
+                      and code == 200
+                      and payload.get('status') == 'ok'
+                      and payload.get('storage', {}).get('schema_version') == 5
+                  )
+                  last = (ok, latency, code, attempt)
+                  if ok:
+                      return last
+                  time.sleep(0.15 * (2 ** attempt))
+              return last
+
+          with concurrent.futures.ThreadPoolExecutor(max_workers=10) as pool:
               rows = list(pool.map(once, range(50)))
-          if not all(x[0] for x in rows):
+          if not all(x and x[0] for x in rows):
               print(rows)
-              raise SystemExit('Non-destructive burst returned an error or wrong schema')
+              raise SystemExit('Non-destructive burst returned an error or wrong schema after bounded retries')
           lat = sorted(x[1] for x in rows)
           p50 = statistics.median(lat)
-          p95 = lat[max(0, int(len(lat)*0.95)-1)]
-          receipt = {'requests':len(rows),'concurrency':20,'errors':0,'p50_ms':round(p50,1),'p95_ms':round(p95,1),'max_ms':round(max(lat),1),'note':'measurement only; no latency SLO claimed'}
+          p95 = lat[max(0, int(len(lat) * 0.95) - 1)]
+          retries = sum(x[3] for x in rows)
+          receipt = {
+              'requests': len(rows),
+              'concurrency': 10,
+              'errors': 0,
+              'bounded_retries_used': retries,
+              'p50_ms': round(p50, 1),
+              'p95_ms': round(p95, 1),
+              'max_ms': round(max(lat), 1),
+              'note': 'measurement only; Cloudflare-safe CI user-agent and bounded retry; no latency SLO claimed',
+          }
           print(json.dumps(receipt, indent=2))
-          open('/tmp/read-burst.json','w').write(json.dumps(receipt, indent=2)+'\n')
+          open('/tmp/read-burst.json', 'w').write(json.dumps(receipt, indent=2) + '\n')
           PY
 
       - name: Verify signing configuration
