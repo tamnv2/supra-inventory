@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths:
+      - "service/**"
       - "web/**"
       - "android/**"
       - "docs/specs/UI_DESIGN_SYSTEM.md"
@@ -13,6 +14,7 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "service/**"
       - "web/**"
       - "android/**"
       - "docs/specs/UI_DESIGN_SYSTEM.md"
@@ -50,6 +52,12 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/ui_design_guard.py
+
+      - name: Typecheck Worker service
+        working-directory: service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
 
       - name: Build Web production gate
         working-directory: web
