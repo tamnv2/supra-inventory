@@ -58,23 +58,40 @@ Admin/Root Web keeps management functions available but does not crowd the opera
 - Avoid post-layout decorative transformations that can change business layout unpredictably. Any runtime UI normalization must be narrow, deterministic and must not compete with the primary screen layout.
 - Version/update state is functional status, not a header decoration.
 
+### Owner-approved operational header
+
+After login, Picker/Reporter/Admin/Root PDA uses one compact operational header:
+- left: `BÁO HÀNG 1291` and `Mã nhân viên - Họ tên`;
+- right: compact `Log` and `Thoát` actions;
+- below/right: role and short Beta build marker;
+- do not reintroduce long technical/version prose or a separate oversized identity card.
+
+`Log` is local/session operational feedback only; it is not a second server transaction store.
+
 ### Picker
-First visual priority:
-1. search/scan SKU;
-2. selected SKU + product name;
-3. large `Báo SKU hết hàng` action;
-4. `Lịch sử báo hàng` / current results;
-5. 60-second withdrawal action only when server allows it.
+
+First visual priority and approved composition:
+1. one horizontal row containing the SKU input `Nhập tối thiểu 3 số SKU vào đây` and the prominent `BÁO HẾT HÀNG` button;
+2. exact SKU selection still derives product name from the synchronized catalog; suggestions remain functional but compact;
+3. `Lịch sử báo hàng hôm nay` directly below the entry area;
+4. each history card shows `SKU - Tên sản phẩm`, report time and an explicit status label;
+5. status background family: pending/yellow, has-stock/green, skip/red-pink, withdrawn/neutral gray;
+6. 60-second withdrawal remains available only when the server-authoritative rule permits it.
 
 ### Reporter
-First visual priority:
-1. `Hàng chờ xử lý` sorted by server priority;
-2. SKU + product name + affected Picker count + waiting context;
-3. large `Có hàng` and `Cho phép skip` actions;
-4. affected Picker detail;
-5. recent results/correction window.
+
+First visual priority and approved composition:
+1. top four-state filter row: `Đang xử lý`, `Đã có hàng`, `Đã cho skip`, `Picker thu hồi`;
+2. pending queue remains server-priority ordered;
+3. each pending card shows `SKU - Tên sản phẩm`, first report time and affected report/Picker count;
+4. the card exposes affected Picker detail without displacing the two main actions;
+5. two equal primary actions occupy one row: green `CÓ HÀNG` and red/pink `CHO SKIP HÀNG`;
+6. resolved/withdrawn tabs use corresponding status-tinted cards;
+7. `Picker thu hồi` is backed by actual closed-withdrawal batch data; it is not a decorative placeholder;
+8. the 5-minute `SKIP_ALLOWED → HAS_STOCK` correction remains available when the server deadline allows it.
 
 ### Admin/Root on PDA
+
 PDA remains operationally focused. Admin/Root inherit Reporter operation capability and may see concise management entry points, but deep HR/Master SKU/reporting administration remains Web-first.
 
 ## Android mandatory update gate
