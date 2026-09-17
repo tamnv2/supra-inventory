@@ -7,6 +7,7 @@
     "docs/PROJECT_CONTEXT.md",
     "ops/project-scope.json",
     "ops/project-state.json",
+    "ops/owner-actions.json",
     "docs/OWNER_DECISIONS.md",
     "docs/specs/README.md",
     "docs/specs/ROLE_WORKFLOWS.md",
@@ -27,7 +28,10 @@
     "context_scope": "docs/PROJECT_CONTEXT.md",
     "owner_decisions": "docs/OWNER_DECISIONS.md",
     "work_state": "ops/project-state.json",
+    "owner_manual_actions": "ops/owner-actions.json",
     "resource_registry": "ops/resource-registry.json",
+    "project_scope": "ops/project-scope.json",
+    "operating_protocol": "docs/OPERATING_PROTOCOL.md",
     "product_specs": [
       "docs/specs/ROLE_WORKFLOWS.md",
       "docs/specs/AUTH_RBAC.md",
@@ -44,9 +48,7 @@
       "web/",
       "android/"
     ],
-    "ci": ".github/workflows/",
-    "project_scope": "ops/project-scope.json",
-    "operating_protocol": "docs/OPERATING_PROTOCOL.md"
+    "ci": ".github/workflows/"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -63,6 +65,9 @@
     "resource_change": [
       "ops/project-scope.json",
       "ops/resource-registry.json"
+    ],
+    "owner_only_manual_action_change": [
+      "ops/owner-actions.json"
     ],
     "derived_view_freshness": "CI_FAIL_IF_CURRENT_STATE_MARKERS_MISMATCH"
   },
