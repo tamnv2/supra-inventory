@@ -16,12 +16,12 @@
     "beta": "LEGACY_OPERATIONAL_V2_MAIN_736DB693__F01_RUNTIME_DEPLOY_AND_RELEASE_GATE_PASS",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 5,
-    "business_api": "OPERATIONAL_V2_READINESS_AUTH_GUARD_RUNTIME_PASS__F02_F07_PENDING",
+    "business_api": "F02_F05_IMMUTABLE_RESULT_PICKER_PROJECTION_COUNT_FIX_SOURCE_IN_PROGRESS__RUNTIME_F01_BASELINE_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS",
     "web": "LEGACY_OPERATIONAL_UI_V2_BETA_DEPLOY_PASS_736DB693",
     "android": "LEGACY_OPERATIONAL_UI_V2_SIGNED_BETA_VC37_RUNTIME_GATED_PASS",
     "latest_beta_apk": "beta-vc37",
-    "realtime": "OPERATIONAL_V2_SEQ_DELTA_ACK_BETA_DEPLOY_PASS__F02_F07_PENDING",
+    "realtime": "F02_F05_PICKER_AUTHORIZED_PROJECTION_SOURCE_IN_PROGRESS__F06_F07_CURSOR_PENDING",
     "network_scope": "ONLINE_ONLY_PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_NO_OFFLINE_BUSINESS_MODE",
     "fcm": "DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BASELINE__OPERATIONAL_V2_CORRELATION_SOURCE_BUILD_PASS_PENDING_RUNTIME",
     "user_management": "EXPANDED_ROOT_ADMIN_PICKER_LIFECYCLE_FLEXIBLE_HR_DIRECT_PASSWORD_LEGACY_PICKER_BOOTSTRAP_DEPLOYED_BUILD_PASS",
@@ -99,8 +99,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Implement F02-F05: immutable result event content, Picker-authorized realtime projection and correct ticket/ACK aggregates; then deploy/verify Beta before F06-F07.",
-    "method": "Preserve D048/D049 event/version history and current role boundaries. Add regression evidence for Skip→Có hàng correction, withdrawn Picker targets and cross-Picker delta/broadcast privacy.",
+    "primary": "Complete F02-F05 through protected PR and Beta runtime verification, then start F06-F07.",
+    "method": "Use immutable result_event_id snapshots, role-projected Picker realtime payloads, exact result targets and independent ticket/ACK aggregates. Preserve event history and existing D048/D049 semantics.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -128,14 +128,16 @@
   },
   "workboard": {
     "in_progress": [
-      "F02-F05: immutable result-event snapshot, Picker-only realtime projection/privacy, and exact ticket/ACK counts",
-      "F06-F07: authorized global-sequence cursor contract and applied-state cursor recovery after F02-F05 contract lands"
+      "F02: immutable result-event snapshots for resolve/correction and pending ACK reads",
+      "F03: Picker-specific delta/WebSocket projection and exact result-event notification targeting",
+      "F04: remove ticket x ACK join fanout from operational/realtime batch snapshots",
+      "F05: exclude withdrawn Picker tickets from resolved affected/ACK/FCM targets"
     ],
     "next": [
-      "Implement F02-F05 on a new protected branch with regression fixtures for correction history, Picker privacy and fanout-free counts",
-      "Merge only after authority/continuity/source-build gates PASS, then run Beta runtime verification",
-      "Implement F06-F07 cursor/application semantics and client dirty-recovery on Web/Android",
-      "Continue later P1 UI/FCM/cache/OTA/reporting/archive items after F01-F07"
+      "Run Operational V2 regression fixture + Worker typecheck + Web/Android build guards on the F02-F05 PR",
+      "Merge only after authority/continuity/source-build PASS",
+      "Deploy Beta and verify extension schema v2 readiness plus runtime business smoke",
+      "Then implement F06-F07 delta cursor and applied-state recovery semantics"
     ],
     "blocked_or_owner_field_dependent": [
       "Final physical-PDA UI/business acceptance after new signed Beta is available",
@@ -143,15 +145,14 @@
       "Isolated mutation load acceptance still requires an Owner workload target/test boundary"
     ],
     "last_source_build_evidence": {
-      "branch": "main",
-      "head": "736db6937f76d39382e627e3e2fc5c3a19e27299",
-      "pr": 15,
-      "authority_guard": "PASS",
-      "project_state_guard": "PASS",
-      "ui_design_guard": "PASS",
-      "service_typecheck": "PASS",
-      "web_production_build": "PASS",
-      "android_debug_build": "PASS"
+      "branch": "fix/result-event-privacy-counts",
+      "base_main": "a3802ae386e39b80e1b5997af764fe3f1a5419c2",
+      "operational_extension_source_target": 2,
+      "regression_fixture": "ADDED_PENDING_CI",
+      "service_typecheck": "PENDING_PR_CI",
+      "web_production_build": "PENDING_PR_CI",
+      "android_debug_build": "PENDING_PR_CI",
+      "runtime_deploy": "PENDING"
     },
     "last_runtime_evidence": {
       "schema": 5,

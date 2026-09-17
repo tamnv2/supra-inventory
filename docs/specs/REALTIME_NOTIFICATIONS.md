@@ -103,3 +103,13 @@ Technical registration/delivery foundation from the previous baseline is not eno
 - Beta runtime smoke for the above.
 
 Physical logged-in PDA delivery/display/explicit ACK remains a separate field acceptance level after technical PASS.
+## Result-event projection integrity
+
+Critical result payload is immutable per `result_event_id`.
+
+- A correction creates a new result event/version; it must not rewrite the earlier event's resolution, timestamp, SKU/product snapshot or ACK identity.
+- Picker delta/WebSocket projection is scoped to the authenticated Picker principal. A Picker must not receive another Picker's ticket, actor identity, employee code, ACK state or aggregate operational detail merely because both tickets belong to the same batch.
+- Picker realtime frames expose only Picker-relevant scopes and a role-projected snapshot; Reporter/Admin/Root may receive the broader operational projection allowed by RBAC.
+- Event `batch_version` is the version captured when the event was emitted. A newer current batch version may be exposed separately but must not replace the historical event version.
+- Result notification targets are the exact result-event targets; a Picker withdrawn before resolution is not a result/FCM target.
+

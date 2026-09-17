@@ -147,3 +147,12 @@ Only Owner confirmation marks business/UI acceptance.
 ## Load acceptance
 
 Non-destructive CI tests may use declared synthetic tiers. Destructive/mutation load acceptance requires an isolated workload boundary and an Owner-defined operational scale target; do not invent production forecasts.
+## Result-event/privacy/count regression acceptance
+
+- Resolve Skip at event/version A, leave it unacknowledged, then correct to Có hàng at event/version B: event A still reads `SKIP_ALLOWED` with its original time/version; event B reads `HAS_STOCK`.
+- Two Pickers sharing one batch: a ticket event owned only by Picker B is absent from Picker A delta/socket projection.
+- A batch-level result event is delivered only to Picker principals targeted by that exact result event.
+- A Picker withdrawn before resolution remains visible in withdrawal history but is excluded from result targets, FCM targets and resolved affected-Picker denominator.
+- Fixture with 3 tickets, 2 result targets and 1 ACK must report total tickets=3, result targets=2 and acknowledged=1; no join fanout is permitted.
+- Picker realtime payload contains no other Picker employee code/display name/ticket/ACK state or Reporter-only aggregates.
+

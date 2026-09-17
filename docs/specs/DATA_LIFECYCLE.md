@@ -110,3 +110,12 @@ Archive format may be extended with recurrence/version/ACK summary fields in a b
 ## Environment isolation
 
 Beta and Stable data are isolated. Do not copy Beta runtime data into Stable by default. Stable schema source may be prepared in code but Stable provisioning/migration/deploy remains Owner-gated.
+## Immutable critical result snapshot
+
+Each `BATCH_RESOLVED` / `BATCH_CORRECTED` result event preserves an immutable snapshot keyed by `result_event_id` containing at least batch/version, SKU, product name, resolution and result time.
+
+- Pending-result/ACK reads use this event snapshot, not mutable current batch resolution.
+- Existing historical result events may be backfilled only from durable event payload/time/version evidence. Current batch resolution must not be used to rewrite an older event.
+- Correction therefore retains both the prior result event and the new correction result event with separate ACK lifecycles.
+- Ticket, result-target and acknowledgement aggregates are computed independently before presentation; joins across multiple one-to-many tables must not multiply counts.
+

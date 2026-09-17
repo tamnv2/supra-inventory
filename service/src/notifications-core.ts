@@ -81,7 +81,10 @@ function targetUsersForBatch(state: DurableObjectState, batchId: string): string
     .exec<SqlRow>(
       `SELECT DISTINCT picker_user_id AS user_id
          FROM report_tickets
-        WHERE batch_id = ? AND picker_user_id IS NOT NULL AND picker_user_id <> ''`,
+        WHERE batch_id = ?
+          AND status = 'RESOLVED'
+          AND picker_user_id IS NOT NULL
+          AND picker_user_id <> ''`,
       batchId,
     )
     .toArray()
@@ -89,8 +92,22 @@ function targetUsersForBatch(state: DurableObjectState, batchId: string): string
     .filter(Boolean);
 }
 
+function targetUsersForResultEvent(state: DurableObjectState, resultEventId: string): string[] {
+  if (!resultEventId) return [];
+  return state.storage.sql
+    .exec<SqlRow>(
+      `SELECT DISTINCT target_user_id AS user_id
+         FROM result_acknowledgements
+        WHERE result_event_id = ?`,
+      resultEventId,
+    )
+    .toArray()
+    .map((row) => String(row.user_id || "").trim())
+    .filter(Boolean);
+}
+
 async function notificationTargets(state: DurableObjectState, request: Request): Promise<Response> {
-  const body = (await request.json()) as { roles?: unknown[]; user_ids?: unknown[]; batch_id?: string };
+  const body = (await request.json()) as { roles?: unknown[]; user_ids?: unknown[]; batch_id?: string; result_event_id?: string };
   const users = new Set<string>();
   for (const value of Array.isArray(body.user_ids) ? body.user_ids : []) {
     const userId = String(value).trim();
@@ -98,7 +115,13 @@ async function notificationTargets(state: DurableObjectState, request: Request):
   }
   for (const userId of targetUsersForRoles(state, (Array.isArray(body.roles) ? body.roles : []).map(String))) users.add(userId);
   const batchId = String(body.batch_id || "").trim();
-  for (const userId of targetUsersForBatch(state, batchId)) users.add(userId);
+  const resultEventId = String(body.result_event_id || "").trim();
+  const resultTargets = targetUsersForResultEvent(state, resultEventId);
+  if (resultTargets.length) {
+    for (const userId of resultTargets) users.add(userId);
+  } else {
+    for (const userId of targetUsersForBatch(state, batchId)) users.add(userId);
+  }
 
   const tokens = new Set<string>();
   for (const userId of users) {

@@ -11,7 +11,7 @@
 - Web: `LEGACY_OPERATIONAL_UI_V2_BETA_DEPLOY_PASS_736DB693`
 - Android: `LEGACY_OPERATIONAL_UI_V2_SIGNED_BETA_VC37_RUNTIME_GATED_PASS`
 - Latest signed Beta APK: `beta-vc37`
-- Realtime: `OPERATIONAL_V2_SEQ_DELTA_ACK_BETA_DEPLOY_PASS__F02_F07_PENDING`
+- Realtime: `F02_F05_PICKER_AUTHORIZED_PROJECTION_SOURCE_IN_PROGRESS__F06_F07_CURSOR_PENDING`
 - FCM: `DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BASELINE__OPERATIONAL_V2_CORRELATION_SOURCE_BUILD_PASS_PENDING_RUNTIME`
 - UI design guard: `LEGACY_OPERATIONAL_UI_V2_SOURCE_SERVICE_WEB_ANDROID_PASS`
 
@@ -26,7 +26,7 @@
 
 ## Current work
 
-- F02–F05: immutable result event content, Picker-only realtime projection/privacy, and count integrity.
+- F02–F05 implementation is active on `fix/result-event-privacy-counts`: immutable result snapshots, Picker-authorized realtime projection, exact targets and fanout-free counts.
 - F06–F07 follow after the event/read-model contract is fixed.
 - Stable remains untouched / OWNER-GATED.
 
