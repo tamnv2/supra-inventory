@@ -207,6 +207,7 @@ function scheduleFcm(
         roles: options.target.roles || [],
         user_ids: options.target.userIds || [],
         batch_id: batchId || null,
+        result_event_id: resultEventId || null,
       });
       if (!targetResponse.ok) return;
       const targetPayload = (await targetResponse.json()) as {
