@@ -16,9 +16,11 @@ import androidx.core.content.ContextCompat
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.WeakHashMap
 
 class InventoryApplication : Application(), Application.ActivityLifecycleCallbacks {
     private val footerText = "Phát triển bởi: tamnv2 - Chuyên viên Pick Pack 1291"
+    private val styledContentRoots = WeakHashMap<Activity, View?>()
     @Volatile private var updateGate = UpdateGate.CHECKING
     @Volatile private var updateCheckRunning = false
     @Volatile private var lastUpdateCheckAt = 0L
@@ -32,16 +34,24 @@ class InventoryApplication : Application(), Application.ActivityLifecycleCallbac
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         val decor = activity.window.decorView
-        decor.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> applyOperationalUi(activity) }
-        decor.post { applyOperationalUi(activity) }
+        decor.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> applyIfContentChanged(activity) }
+        decor.post { applyIfContentChanged(activity, force = true) }
         startVersionGate(activity, force = false)
     }
 
     override fun onActivityResumed(activity: Activity) {
-        activity.window.decorView.post { applyOperationalUi(activity) }
+        activity.window.decorView.post { applyIfContentChanged(activity, force = true) }
         if (updateGate == UpdateGate.FAILED && System.currentTimeMillis() - lastUpdateCheckAt >= 5_000L) {
             startVersionGate(activity, force = true)
         }
+    }
+
+    private fun applyIfContentChanged(activity: Activity, force: Boolean = false) {
+        val content = activity.findViewById<ViewGroup>(android.R.id.content) ?: return
+        val currentRoot = content.getChildAt(0)
+        if (!force && styledContentRoots[activity] === currentRoot) return
+        styledContentRoots[activity] = currentRoot
+        applyOperationalUi(activity)
     }
 
     private fun startVersionGate(activity: Activity, force: Boolean) {
@@ -71,7 +81,7 @@ class InventoryApplication : Application(), Application.ActivityLifecycleCallbac
                 UpdateGate.FAILED
             }
             updateCheckRunning = false
-            activity.runOnUiThread { applyOperationalUi(activity) }
+            activity.runOnUiThread { applyIfContentChanged(activity, force = true) }
         }.start()
     }
 
@@ -147,7 +157,7 @@ class InventoryApplication : Application(), Application.ActivityLifecycleCallbac
                 }
             }
 
-            if (text == "Sẵn sàng đăng nhập Beta.") {
+            if (text == "Sẵn sàng đăng nhập Beta." || text == "Đang kiểm tra phiên bản..." || text.startsWith("Chưa xác minh được phiên bản")) {
                 when (updateGate) {
                     UpdateGate.CHECKING -> view.text = "Đang kiểm tra phiên bản..."
                     UpdateGate.REQUIRED -> view.text = "Có bản cập nhật mới. Cần cập nhật trước khi đăng nhập."
@@ -201,5 +211,7 @@ class InventoryApplication : Application(), Application.ActivityLifecycleCallbac
     override fun onActivityPaused(activity: Activity) = Unit
     override fun onActivityStopped(activity: Activity) = Unit
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
-    override fun onActivityDestroyed(activity: Activity) = Unit
+    override fun onActivityDestroyed(activity: Activity) {
+        styledContentRoots.remove(activity)
+    }
 }
