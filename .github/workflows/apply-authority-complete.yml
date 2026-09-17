@@ -19,22 +19,38 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Apply complete authority model
+      - name: Normalize final canonical references
         run: |
           set -euo pipefail
-          sed -i 's/:false/:False/g' tools/apply_authority_complete.py
-          python3 tools/apply_authority_complete.py
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('ops/project-state.json')
+          s = json.loads(p.read_text(encoding='utf-8'))
+          s['authority_order'] = [
+            'latest_explicit_owner_command',
+            'ops/authority-manifest.json_bootstrap_order',
+            'current_source_recent_commits_ci_runtime_evidence',
+            'generated_derived_views',
+            'older_handovers_and_chat_memory_noncanonical'
+          ]
+          s['next_action']['primary'] = 'Owner field-test current Beta beta-vc30 on Web/PDA; future AI sessions must bootstrap from ops/authority-manifest.json and canonical GitHub sources before applying new feedback on Beta. Stable remains gated.'
+          s['continuity_policy']['future_session_bootstrap'] = ['ops/authority-manifest.json -> bootstrap_order']
+          s['continuity_policy']['resource_identifier_change_requires_scope_and_registry_update'] = True
+          s['authority']['scope'] = 'ops/project-scope.json'
+          s['authority']['operating_protocol'] = 'docs/OPERATING_PROTOCOL.md'
+          s['authority']['model'] = 'REPO_NATIVE_COMPLETE'
+          p.write_text(json.dumps(s, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          PY
           python3 tools/project_state_guard.py
           python3 tools/authority_guard.py
           python3 tools/public_repo_secret_guard.py
           git diff --check
-          echo "AUTHORITY_COMPLETE_VERIFY_PASS"
-      - name: Commit canonical authority
+      - name: Commit final authority normalization
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm -f tools/apply_authority_complete.py
-          git add AGENTS.md docs ops tools/authority_guard.py
-          git commit -m "feat(authority): complete project context scope specs and operating protocol"
+          git add ops/project-state.json
+          git commit -m "docs(authority): normalize complete bootstrap references"
           git push origin HEAD:main
