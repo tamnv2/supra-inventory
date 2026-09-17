@@ -21,6 +21,7 @@ Primary objective:
 - Typography uses a Roboto/Noto Sans/system-sans family direction with consistent hierarchy across Web and Android; do not add a remote font dependency merely for appearance.
 - Touch targets remain large enough for PDA use, while data tables on Web stay compact.
 - Status never relies on color alone; use text/icon/shape semantics.
+- Explanatory copy must be limited to information needed to complete the current business action. Do not expose design rationale, AI/Owner discussion text, implementation commentary or other non-operational prose in the product UI.
 
 ## Product icon language
 
@@ -31,6 +32,8 @@ Primary product mark represents **SKU/package + operational alert**. Navigation 
 - Master SKU/catalog;
 - people/account management;
 - account/security.
+
+Android launcher icon uses an adaptive icon with the green brand color filling the launcher mask and no extra white wrapper/background around the colored icon.
 
 Do not use unrelated map, delivery-route, stock-quantity or incident-photo iconography.
 
@@ -48,7 +51,12 @@ Reporter Web prioritizes the unresolved SKU queue, affected Picker count, waitin
 
 Admin/Root Web keeps management functions available but does not crowd the operational queue with decorative analytics.
 
-## Android/PDA information architecture
+## Android/PDA layout rules
+
+- Android is designed for narrow PDA/phone widths first; do not place a long version string beside the product title in the same constrained horizontal row.
+- Product title, role/workflow title, forms and primary actions must keep stable alignment and spacing across supported Android 11+ devices.
+- Avoid post-layout decorative transformations that can change business layout unpredictably. Any runtime UI normalization must be narrow, deterministic and must not compete with the primary screen layout.
+- Version/update state is functional status, not a header decoration.
 
 ### Picker
 First visual priority:
@@ -69,11 +77,18 @@ First visual priority:
 ### Admin/Root on PDA
 PDA remains operationally focused. Admin/Root inherit Reporter operation capability and may see concise management entry points, but deep HR/Master SKU/reporting administration remains Web-first.
 
+## Android mandatory update gate
+
+- Beta Android checks the canonical signed Beta release before allowing login.
+- If the installed `versionCode` is lower than the latest valid Beta release, login remains disabled until the update is installed.
+- If the app cannot verify the release state, the login gate fails closed and exposes a concise update/retry status rather than allowing an unverifiable old build to log in.
+- Normal Android security rules still apply: the app may automatically detect, download, SHA-256 verify and open the package installer, but installation confirmation remains controlled by Android unless the device is managed with elevated installation authority.
+
 ## Persistent product credit
 
 Web and Android show this small centered footer at the bottom without consuming meaningful operating area:
 
-`Phát triển và duy trì bởi: tamnv2 - Chuyên viên Pick Pack 1291`
+`Phát triển bởi: tamnv2 - Chuyên viên Pick Pack 1291`
 
 ## Scope guard
 
