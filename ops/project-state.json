@@ -18,17 +18,17 @@
     "sqlite_schema": 5,
     "business_api": "IMPLEMENTED_AND_DEPLOYED_BETA_SCHEMA_V5",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS",
-    "web": "PRACTICAL_BALANCED_CANONICAL_SOURCE_PR4_VALIDATION",
-    "android": "PRACTICAL_BALANCED_CANONICAL_SOURCE_AND_MONOTONIC_OTA_PR4_VALIDATION",
-    "latest_beta_apk": "beta-vc30",
+    "web": "PRACTICAL_BALANCED_CANONICAL_SOURCE_BETA_DEPLOY_SMOKE_PASS",
+    "android": "PRACTICAL_BALANCED_SIGNED_BETA_VC31_MONOTONIC_OTA_PASS",
+    "latest_beta_apk": "beta-vc31",
     "realtime": "WEBSOCKET_SERVER_WEB_ANDROID_CLIENT_DEPLOYED_SIGNED_PASS",
     "network_scope": "PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_BY_OWNER_DECISION",
     "fcm": "DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BUILD_PASS_FIELD_DELIVERY_PENDING",
-    "user_management": "EXPANDED_ROOT_ADMIN_PICKER_LIFECYCLE_FLEXIBLE_HR_DIRECT_PASSWORD_PR4_VALIDATION",
+    "user_management": "EXPANDED_ROOT_ADMIN_PICKER_LIFECYCLE_FLEXIBLE_HR_DIRECT_PASSWORD_IMPLEMENTED_DEPLOYED_BUILD_PASS",
     "archive": "IDEMPOTENT_SHEET_ARCHIVE_AND_SAFE_60D_RETENTION_BETA_DEPLOY_PASS",
     "admin_dashboard": "OPERATIONAL_DASHBOARD_AND_REPORTING_BETA_DEPLOY_PASS",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "PRACTICAL_BALANCED_CANONICAL_SOURCE_GUARD_PR4_VALIDATION",
+    "ui_design_guard": "PRACTICAL_BALANCED_CANONICAL_SOURCE_GUARD_PASS",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS"
   },
   "hard_guards": [
@@ -94,18 +94,18 @@
     "Quota/resilience v1: schema v5 materialized catalog metadata + delta-first PDA sync + reporting timestamp indexes + 50-request non-destructive Beta health burst — PASS",
     "Concept 3 finish polish — Beta Web deploy and signed beta-vc30 PASS, retained as last runtime baseline before Practical Balanced",
     "Repo-native authority v2: canonical context + Owner decision ledger + product specs + live workboard + stale-view CI guard",
-    "Repo authority complete: project context + exact ID/name project scope + durable decisions + full product specs + live workboard + automation protocol + public-repo security + stale/secret guards"
+    "Repo authority complete: project context + exact ID/name project scope + durable decisions + full product specs + live workboard + automation protocol + public-repo security + stale/secret guards",
+    "Practical Balanced canonical Web source: explicit business labels, consistent typography, business-relevant iconography and approved footer credit — Beta Web/Worker deploy smoke PASS",
+    "Expanded account controls: ROOT inherits Admin/Reporter and manages Admin/Reporter/Picker; Admin manages Reporter/Picker; direct managed-password flow; configurable HR headers; explicit one/many/all Picker lifecycle; HR absence policy no automatic disable/delete/reactivate — source guard, service typecheck, Web build and Beta deploy PASS",
+    "Android Practical Balanced signed OTA beta-vc31: monotonic versionCode 31 from prior vc30, exact source commit d7bfd1a0897ec760300a4c5d484b95d91444dc2d, APK SHA-256 7f57cec90aad16cdc1747ae8cbe543948ce4fcabca96f5859b16d4087e384f1c, release publish PASS"
   ],
   "pending_build": [
-    "PR #4 authority + continuity + Practical Balanced source guard + Worker typecheck + Web production build + Android debug build terminal PASS",
-    "After PR #4 merge: Beta Worker/Web deploy smoke and signed Android release with monotonic versionCode greater than beta-vc30",
-    "Runtime smoke for expanded Root/Admin account hierarchy, direct managed-password flow, flexible HR header mapping and manual Picker lifecycle",
     "Field-verify FCM delivery on a physical logged-in PDA; technical foundation is deployed",
-    "Owner business acceptance",
+    "Owner business/UI acceptance of Practical Balanced Beta Web/PDA",
     "Isolated business-mutation load acceptance after Owner scale target is defined"
   ],
   "field_pending": [
-    "Owner physical-PDA confirmation of the new Practical Balanced Beta build after signed release remains distinct from CI PASS.",
+    "Owner physical-PDA and Web confirmation of the Practical Balanced beta-vc31 build remains distinct from CI/deploy PASS.",
     "Physical logged-in PDA FCM delivery remains field-pending."
   ],
   "open_decisions_do_not_invent": [
@@ -117,8 +117,8 @@
     "Any new offline-create-report behavior; do not add direct-to-Sheet fallback unless Owner explicitly approves it."
   ],
   "next_action": {
-    "primary": "Complete PR #4 through authority + continuity + canonical UI/source + service/Web/Android checks; repair until terminal PASS; merge; then require Beta deploy smoke and signed beta-vc31-or-higher evidence before updating runtime baseline. Stable remains gated.",
-    "method": "Treat ops/project-state.json and runtime evidence as authoritative; beta-vc30 remains the accepted Android runtime baseline until a signed versionCode greater than 30 is published successfully.",
+    "primary": "Owner field-test Practical Balanced Beta Web/PDA using the deployed Web runtime and signed beta-vc31; field-verify FCM on a physical logged-in PDA; report numbered findings if any. Stable remains gated.",
+    "method": "Use beta-vc31 and current Beta Web deployment as the accepted technical runtime baseline. Technical source/build/deploy/release gates are PASS; do not reopen completed implementation without new evidence.",
     "stable_guard": "Do not activate Stable."
   },
   "continuity_policy": {
@@ -145,31 +145,26 @@
     "model": "REPO_NATIVE_COMPLETE"
   },
   "workboard": {
-    "in_progress": [
-      "PR #4 canonical Practical Balanced Web source reconciliation",
-      "PR #4 Root/Admin/Reporter/Picker RBAC and direct managed-password hardening",
-      "PR #4 configurable HR headers and explicit Picker one/many/all lifecycle",
-      "PR #4 Android Beta monotonic versionCode release hardening"
-    ],
+    "in_progress": [],
     "next": [
-      "Repair PR #4 CI until authority, continuity, canonical UI source, service, Web and Android checks all PASS",
-      "Merge PR #4 only after all required checks PASS",
-      "Verify Beta Worker/Web deploy and signed Android beta-vc31-or-higher release",
-      "Record final runtime commit/release/hash evidence in canonical state/resource registry",
-      "Owner field-test resulting Beta Web/PDA and report numbered business/UI findings",
-      "Field-verify foreground realtime and background FCM delivery on a logged-in physical PDA"
+      "Owner field-test Practical Balanced Beta Web/PDA and report numbered business/UI findings if any",
+      "Field-verify foreground realtime and background FCM delivery on a logged-in physical PDA",
+      "Run isolated business-mutation load acceptance after Owner defines scale target/test boundary"
     ],
     "blocked_or_owner_field_dependent": [
-      "Owner business acceptance",
+      "Owner business/UI acceptance",
       "Physical PDA FCM delivery acceptance",
       "Isolated mutation load acceptance requires an Owner workload target/test boundary"
     ],
     "last_runtime_evidence": {
       "schema": 5,
-      "signed_beta_release": "beta-vc30",
-      "runtime_source_commit": "8e2d6f440b312206e231ece4e4e51d3b3172b785",
-      "runtime_ui_baseline": "CONCEPT3_SUPERSEDED_BY_PRACTICAL_BALANCED_SOURCE_PENDING_DEPLOY",
-      "verification_basis": "Existing beta-vc30 Web/APK deploy/signing PASS remains runtime baseline until current Practical Balanced branch completes CI/deploy/release."
+      "signed_beta_release": "beta-vc31",
+      "signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.31",
+      "signed_beta_apk_sha256": "7f57cec90aad16cdc1747ae8cbe543948ce4fcabca96f5859b16d4087e384f1c",
+      "signed_beta_apk_size_bytes": 9167082,
+      "runtime_source_commit": "d7bfd1a0897ec760300a4c5d484b95d91444dc2d",
+      "runtime_ui_baseline": "PRACTICAL_BALANCED",
+      "verification_basis": "PR #4 authority + continuity + canonical UI source guard + Worker typecheck + Web production + Android debug PASS; main Beta Worker/Web deploy smoke PASS; signed Android beta-vc31 release PASS with monotonic 30→31 versionCode."
     }
   },
   "authority_setup": {
