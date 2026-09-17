@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "authority_model": "REPO_NATIVE_V2",
+  "project_key": "supra-inventory",
+  "bootstrap_order": [
+    "AGENTS.md",
+    "docs/PROJECT_CONTEXT.md",
+    "ops/project-state.json",
+    "docs/OWNER_DECISIONS.md",
+    "docs/specs/README.md",
+    "docs/specs/ROLE_WORKFLOWS.md",
+    "docs/specs/FORMS.md",
+    "docs/specs/UI_DESIGN_SYSTEM.md",
+    "ops/resource-registry.json",
+    "recent_commits_and_ci",
+    "relevant_live_source"
+  ],
+  "canonical_sources": {
+    "context_scope": "docs/PROJECT_CONTEXT.md",
+    "owner_decisions": "docs/OWNER_DECISIONS.md",
+    "work_state": "ops/project-state.json",
+    "resource_registry": "ops/resource-registry.json",
+    "product_specs": "docs/specs/",
+    "implementation": [
+      "service/",
+      "web/",
+      "android/"
+    ],
+    "ci": ".github/workflows/"
+  },
+  "derived_views": [
+    "docs/handovers/HANDOVER_CURRENT.md",
+    "docs/SERVICE_READINESS.md"
+  ],
+  "update_coupling": {
+    "owner_requirement_change": [
+      "docs/OWNER_DECISIONS.md",
+      "relevant docs/specs/*"
+    ],
+    "meaningful_implementation_change": [
+      "ops/project-state.json"
+    ],
+    "resource_change": [
+      "ops/resource-registry.json"
+    ],
+    "derived_view_freshness": "CI_FAIL_IF_CURRENT_STATE_MARKERS_MISMATCH"
+  },
+  "security": {
+    "repository_visibility": "public",
+    "secret_values_allowed_in_repo": false,
+    "operational_identifier_policy": "MINIMIZE_PUBLIC_EXPOSURE__PREFER_ALIASES_AND_RUNTIME_VARIABLES_FOR_NEW_SENSITIVE_OPERATIONAL_IDS",
+    "chat_memory_authority": "NON_CANONICAL_RETRIEVAL_AID_ONLY"
+  }
+}

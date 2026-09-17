@@ -4,7 +4,7 @@
   "display_name": "SUPRA Inventory — Báo hàng",
   "timezone": "Asia/Ho_Chi_Minh",
   "repository": "tamnv2/supra-inventory",
-  "state_model": "REPO_NATIVE_CONTINUITY",
+  "state_model": "REPO_NATIVE_CONTINUITY_V2",
   "authority_order": [
     "latest_explicit_owner_command",
     "ops/project-state.json",
@@ -91,7 +91,8 @@
     "Android/PDA Concept 3 visual refactor preserving Picker/Reporter role workflows — signed Beta beta-vc28 build/release PASS",
     "Quota/resilience v1: schema v5 materialized catalog metadata + delta-first PDA sync + reporting timestamp indexes + 50-request non-destructive Beta health burst — PASS",
     "Concept 3 finish polish: Web humanized HR source/status/responsive UX + Android semantic status badges/alerts/control spacing — Beta Web deploy and signed beta-vc30 PASS",
-    "Permanent Concept 3 UI regression guard: static design invariants + Web production build + Android debug build on future UI changes"
+    "Permanent Concept 3 UI regression guard: static design invariants + Web production build + Android debug build on future UI changes",
+    "Repo-native authority v2: canonical context + Owner decision ledger + product specs + live workboard + stale-view CI guard"
   ],
   "pending_build": [
     "Field-verify FCM delivery on a physical logged-in PDA; technical foundation is deployed",
@@ -110,7 +111,7 @@
     "Any new offline-create-report behavior; do not add direct-to-Sheet fallback unless Owner explicitly approves it."
   ],
   "next_action": {
-    "primary": "Physical PDA field verification of role workflows/realtime/FCM, then Owner business acceptance and any Owner-reported UI adjustments. Stable remains gated.",
+    "primary": "Owner field-test current Beta beta-vc30 on Web/PDA; future AI sessions bootstrap from GitHub authority v2 and apply new feedback on Beta. Stable remains gated.",
     "method": "Keep FCM as background notification only; business state remains server-authoritative via API/SQLite and foreground WebSocket resync.",
     "stable_guard": "Do not activate Stable."
   },
@@ -129,5 +130,32 @@
       "docs/handovers/HANDOVER_CURRENT.md",
       "recent commits and relevant live source"
     ]
+  },
+  "authority": {
+    "manifest": "ops/authority-manifest.json",
+    "context": "docs/PROJECT_CONTEXT.md",
+    "decisions": "docs/OWNER_DECISIONS.md",
+    "specs": "docs/specs/",
+    "generated_views_are_authoritative": false,
+    "chat_memory_authoritative": false
+  },
+  "workboard": {
+    "in_progress": [],
+    "next": [
+      "Owner field-test beta-vc30 on physical PDA/Web and report business/UI findings for iterative Beta adjustment",
+      "Field-verify foreground realtime and background FCM delivery on a logged-in physical PDA",
+      "Define Owner workload target before isolated destructive/mutation load acceptance"
+    ],
+    "blocked_or_owner_field_dependent": [
+      "Owner business acceptance",
+      "Physical PDA FCM delivery acceptance",
+      "Isolated mutation load acceptance requires an Owner workload target/test boundary"
+    ],
+    "last_runtime_evidence": {
+      "schema": 5,
+      "signed_beta_release": "beta-vc30",
+      "concept3_runtime_source_commit": "8e2d6f440b312206e231ece4e4e51d3b3172b785",
+      "verification_basis": "GitHub Actions Concept 3 finish deploy/smoke/signing PASS plus permanent UI guard PASS"
+    }
   }
 }

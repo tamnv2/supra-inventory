@@ -1,0 +1,92 @@
+# PROJECT_CONTEXT — SUPRA Inventory
+
+Status: **CANONICAL PROJECT CONTEXT**. Read this before any project work.
+
+## Identity
+
+- Project key: `supra-inventory`
+- Product name: `SUPRA Inventory — Báo hàng`
+- Canonical GitHub repository: `tamnv2/supra-inventory`
+- GitHub repository ID: `1372407002`
+- Default branch: `main`
+- Timezone: `Asia/Ho_Chi_Minh`
+- Repository visibility: Public
+
+This project is independent. Never import scope, logic, credentials, resources, or assumptions from Pick Pack 1291, Pickface Damage 1291, SupraCore, VHDCHY, or any other project.
+
+## Product scope
+
+The product manages the **SKU out-of-stock reporting and resolution workflow**.
+
+In scope:
+- SKU + product name master data.
+- Picker reports that a SKU is out of stock.
+- Reporter processing queue and resolution.
+- Admin/Root operations, HR source, account management, dashboard/reporting, archive/retention.
+- Web + Android/PDA clients.
+- Server-authoritative realtime synchronization.
+
+Explicitly out of scope unless Owner reopens it:
+- bin/location/pickface inventory management;
+- stock quantity management;
+- Office-network fallback/provider research;
+- a new offline primary transaction path or direct-to-Sheet business writes.
+
+## Roles
+
+- `PICKER`: MNV-based operational user; reports out-of-stock SKU, views own reports, may withdraw an unresolved mistaken report within 60 seconds.
+- `REPORTER`: processes the priority queue; resolves `HAS_STOCK` or `SKIP_ALLOWED`; may correct `SKIP_ALLOWED` to `HAS_STOCK` within five minutes.
+- `ADMIN`: inherits Reporter operations; manages Reporter accounts, Picker provisioning from HR, Master SKU, dashboard/reporting, settings allowed to Admin.
+- `ROOT`: highest application role; inherits Admin/Reporter operations and manages Admin accounts. ROOT is protected from normal subordinate management flows.
+
+The service is authoritative for identity, role, deadlines and state transitions. Client-supplied role is never trusted.
+
+## Runtime topology
+
+`Web / Android PDA → Cloudflare Worker → InventoryCore Durable Object → SQLite`
+
+Supporting systems:
+- Firebase Authentication for application identity/session exchange.
+- Firebase Cloud Messaging for background notifications.
+- Google Sheets as Admin/Root-configured HR source.
+- Google Drive/Sheets for batched archive/supporting exports.
+- GitHub for code, durable Owner decisions, specifications, work state and CI/deploy evidence.
+
+## Environment identity
+
+### Beta
+- GCP/Firebase project: `supra-inventory-beta`
+- Worker: `supra-inventory-beta`
+- Host: `inventory-beta.supra.cc.cd`
+- Android package: `cd.cc.supra.inventory.beta`
+- Durable Object: `InventoryCore`
+- Current SQLite schema and build/release status: **read `ops/project-state.json`; do not copy a version number from this document.**
+
+### Stable
+- GCP/Firebase project: `supra-inventory-stable`
+- Worker/config name: `supra-inventory-stable`
+- Host: `inventory.supra.cc.cd`
+- Android package: `cd.cc.supra.inventory`
+- Stable is **OWNER-GATED**. Configuration may exist; deployment/provisioning/public traffic/real-user bootstrap/Stable release requires an explicit current Owner command.
+
+## Canonical authority graph
+
+Read in this order before mutation:
+1. Current explicit Owner command in the active conversation.
+2. `AGENTS.md`.
+3. `docs/PROJECT_CONTEXT.md` — identity and scope.
+4. `ops/project-state.json` — live work state: done / in-progress / next / blockers / runtime evidence.
+5. `docs/OWNER_DECISIONS.md` — durable Owner-approved decisions and open decisions.
+6. `docs/specs/` — approved product forms, workflows and design system.
+7. `ops/resource-registry.json` — resource aliases/identifiers and environment status.
+8. Current source code + recent commits + CI/deploy evidence.
+9. Generated/derived views such as `docs/handovers/HANDOVER_CURRENT.md` and `docs/SERVICE_READINESS.md`.
+10. Chat memory/old handovers are retrieval aids only and never override current repo authority.
+
+If canonical sources conflict in a way that could change behavior or target resources, fail closed and reconcile before mutation.
+
+## Continuity contract
+
+GitHub is the durable project memory. Chat is the control surface, not the source of truth.
+
+Every Owner-approved requirement must be captured in GitHub in the same workstream. Every meaningful implementation change must update project state in the same change set. Generated summaries are never manually authoritative.

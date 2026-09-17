@@ -1,36 +1,36 @@
 # HANDOVER_CURRENT — SUPRA Inventory
 
-> GENERATED/DERIVED CONTINUITY VIEW. Do not use this file as the primary source of truth and do not ask the Owner to recreate it manually. Canonical state lives in `ops/project-state.json`, Owner decisions in `docs/OWNER_DECISIONS.md`, and resource identifiers in `ops/resource-registry.json`. Always fresh-read live repo/CI before mutation.
+> GENERATED/DERIVED CONTINUITY VIEW. **Never bootstrap from this file alone.** Canonical context/state/decisions/specs/resources live in the files listed by `ops/authority-manifest.json`. CI must fail if key status markers here drift from `ops/project-state.json`.
 
-## Current project status
+## Current status
 
 - Project: `SUPRA Inventory — Báo hàng` (`supra-inventory`).
-- Canonical repo: `tamnv2/supra-inventory`, branch `main`, Public.
-- Beta Web: role-based Reporter/Admin/Root operations UI deployed PASS.
-- Beta Android: role-based Picker/Reporter/Admin/Root operational UI with local SKU catalog cache; signed OTA `beta-vc24` PASS.
-- SKU Excel: 10k–50k row chunked preview/confirm/import deployed PASS.
-- Business API / SQLite schema v3: deployed PASS.
-- Realtime: WebSocket one-time-ticket + presence + selective invalidation server source is the current CI/deploy frontier.
-- Stable: config-only, Owner-gated, not live.
+- Beta: `ROLE_BASED_WEB_ANDROID_LIVE`
+- Stable: `CONFIG_READY_OWNER_GATED_NOT_LIVE`
+- SQLite schema: `5`
+- Web: `CONCEPT3_FINISH_POLISH_BETA_DEPLOY_PASS`
+- Android: `CONCEPT3_FINISH_POLISH_SIGNED_OTA_BETA_PASS`
+- Latest signed Beta APK: `beta-vc30`
+- Realtime: `WEBSOCKET_SERVER_WEB_ANDROID_CLIENT_DEPLOYED_SIGNED_PASS`
+- FCM: `DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BUILD_PASS_FIELD_DELIVERY_PENDING`
+- Admin dashboard/reporting: `CONCEPT3_OPERATIONAL_DASHBOARD_AND_REPORTING_BETA_DEPLOY_PASS`
+- Quota/resilience: `INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS`
 
-## Current build frontier
+## Workboard
 
-1. Deploy/smoke WebSocket realtime server protocol.
-2. Wire foreground realtime into Web and Android clients.
-3. FCM device registration and background delivery.
-4. User management + HR provisioning/sync lifecycle.
-5. Archive/retention executor.
-6. Reporting/export.
-7. Load/resilience/quota tests.
-8. Owner business acceptance.
+### In progress
+- None
 
-## Non-negotiable guards
+### Next
+- Owner field-test beta-vc30 on physical PDA/Web and report business/UI findings for iterative Beta adjustment
+- Field-verify foreground realtime and background FCM delivery on a logged-in physical PDA
+- Define Owner workload target before isolated destructive/mutation load acceptance
 
-- Stable stays untouched unless Owner explicitly commands release/provision/promotion.
-- Worker + InventoryCore SQLite is transaction authority.
-- Realtime notifications are best-effort invalidations after transaction commit; reconnect always resyncs authoritative state.
-- No secrets in repo/chat/logs.
-- No Office-network fallback research unless Owner reopens it.
-- No location/bin inventory scope.
+### Blocked / Owner-field dependent
+- Owner business acceptance
+- Physical PDA FCM delivery acceptance
+- Isolated mutation load acceptance requires an Owner workload target/test boundary
 
-No manual end-of-session handover is required.
+## Continuity rule
+
+No manual end-of-session handover is required. A new AI session must bootstrap from `AGENTS.md` and `ops/authority-manifest.json`, then read canonical files before mutation.

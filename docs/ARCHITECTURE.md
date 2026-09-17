@@ -1,109 +1,43 @@
-# Architecture Baseline
+# Architecture — SUPRA Inventory
 
-Status: **Beta backend infrastructure ready for Web/Android application build**. Stable configuration is prepared but remains Owner-gated and not live.
+Status: **CANONICAL STRUCTURAL SPEC**. Current version/build/readiness numbers belong in `ops/project-state.json`, not here.
 
-## Runtime topology
+## Topology
 
-`Web / Android APK → Cloudflare Worker → InventoryCore Durable Object → SQLite`
+`Web / Android PDA → Cloudflare Worker → InventoryCore Durable Object → SQLite`
 
-Supporting services:
+Supporting systems:
+- Firebase Authentication: identity/session exchange.
+- FCM: background best-effort notification.
+- Google Sheets: configurable HR source.
+- Google Drive/Sheets: batched archive/supporting exports.
+- GitHub: source, durable Owner decisions/specs/work state, CI/deploy evidence.
 
-- Firebase Authentication for application identity/auth flows.
-- Firebase Cloud Messaging for background notification delivery.
-- Google Sheets as an Admin/Root-configured HR source.
-- Google Drive / Sheets for batch backup and archive flows.
-- GitHub as canonical public source repository.
+## Authority boundaries
+
+- Business transaction authority: Worker + InventoryCore SQLite.
+- Client state is not authoritative; reconnect/resume must resync from API.
+- Foreground realtime: WebSocket invalidation/resync.
+- Background: FCM notification; delivery failure must not fail a committed business mutation.
+- Google Sheets is not a competing transaction store.
+
+## Data model semantics
+
+Keep separate:
+- report ticket: one Picker's report;
+- processing batch: grouped work for a SKU;
+- lifecycle/audit event: state-change history.
+
+Open dedupe: Picker + SKU. Multiple Pickers may share one batch while retaining individual tickets.
 
 ## Environment isolation
 
-### Beta
+Beta and Stable have separate project/application/runtime identities. Stable remains Owner-gated. Do not copy Beta runtime data into Stable.
 
-- GCP/Firebase project: `supra-inventory-beta`
-- Worker: `supra-inventory-beta`
-- Hostname: `inventory-beta.supra.cc.cd`
-- Android package: `cd.cc.supra.inventory.beta`
-- Durable Object: `InventoryCore`
-- Storage: SQLite schema v1
-- CI deploy + health + schema gate: PASS
+## Security boundary
 
-### Stable
+Secrets stay in runtime secret stores / GitHub secrets, never source. Public operational metadata should be minimized. Read `docs/SECURITY_BOUNDARIES.md` and `ops/resource-registry.json`.
 
-- GCP/Firebase project: `supra-inventory-stable`
-- Worker: `supra-inventory-stable`
-- Hostname: `inventory.supra.cc.cd`
-- Android package: `cd.cc.supra.inventory`
-- Durable Object/SQLite configuration mirrors Beta but is not provisioned until an explicit Owner-approved Stable deployment.
-- Stable stays Owner-gated and not live until explicit acceptance/release.
+## Current implementation status
 
-## HR source model
-
-There is no fixed HR Sheet resource in infrastructure.
-
-Admin/Root will configure the source from the Web UI by entering:
-
-1. Google Sheet URL.
-2. Exact tab name.
-
-The service validator checks:
-
-- correct Google Sheets URL shape;
-- runtime service-account read access;
-- exact tab existence;
-- required `MNV` and `Họ tên` columns (with normalized accepted equivalents).
-
-Only verified metadata is stored in `InventoryCore` SQLite. No unauthenticated public setup endpoint is allowed.
-
-## Business baseline
-
-- Project focuses on SKU + product name; no bin/location inventory management.
-- Roles: Picker, Reporter, Admin, Root.
-- Picker signs in by employee code (MNV).
-- Picker reports out-of-stock SKU.
-- Reporter resolves with `Đã có hàng` or `Cho phép skip`.
-- A `skip` result may be corrected to `Có hàng` within five minutes.
-- Picker may withdraw an accidental report within 60 seconds if unresolved.
-- Dedupe unresolved reports by picker + SKU.
-- Multiple pickers reporting the same SKU are grouped into the same processing batch.
-- Reporter priority: more affected pickers first; if equal, earlier first report first.
-- UI is realtime and must not depend on full-page reload for state synchronization.
-- WebSocket is the primary foreground realtime channel; FCM supports background delivery.
-- Presence target is approximately 60 seconds or better.
-- SKU master imports from Excel.
-- Detailed service retention target is approximately 60 days, while unresolved pending items are retained beyond that boundary.
-- Reporting must distinguish report ticket, processing batch, and event; do not infer whole-warehouse fill rate or OOS rate without valid denominators.
-
-## SQLite schema v1 baseline
-
-Prepared tables cover:
-
-- app/runtime configuration;
-- HR source configuration;
-- users/RBAC data;
-- SKU master;
-- report tickets;
-- processing batches;
-- report events;
-- FCM devices;
-- presence sessions;
-- archive checkpoints;
-- audit logs.
-
-A partial unique index enforces one unresolved/open report per Picker + SKU.
-
-## Application build pending
-
-These are application implementation tasks, not missing infrastructure services:
-
-- Auth/RBAC implementation and Root bootstrap.
-- Authenticated Admin/Root HR Sheet setup route + UI.
-- WebSocket realtime protocol and presence handling.
-- FCM registration/delivery flows.
-- SKU Excel import flow.
-- Report/resolve/correct/withdraw logic.
-- Backup/archive execution logic.
-- Reporting model and exports.
-- Web and Android application source.
-- Load/resilience tests.
-- APK signing/release material.
-
-See `docs/SERVICE_READINESS.md` and `ops/resource-registry.json` for canonical readiness state.
+Do not maintain a duplicate checklist here. Read `ops/project-state.json` and current CI/deploy evidence.

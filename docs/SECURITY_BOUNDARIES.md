@@ -2,81 +2,52 @@
 
 ## Public repository policy
 
-The repository is public. Public source must contain only code, documentation, and non-secret resource identifiers.
+The repository is public. Store code, durable non-secret project knowledge and only the operational metadata needed for reproducible work.
 
 Never commit:
+- service-account JSON/private keys;
+- OAuth client secrets or refresh tokens;
+- Cloudflare API tokens;
+- Android signing keystores/passwords;
+- root/admin passwords;
+- session/access tokens;
+- private API keys.
 
-- service-account JSON/private keys
-- OAuth client secrets
-- OAuth refresh tokens
-- Cloudflare API tokens
-- Android signing keystores or passwords
-- root/admin passwords
-- session/access tokens
-- private API keys
+GitHub Actions **variables are for non-sensitive configuration**. Sensitive values belong in secrets/runtime secret stores. GitHub secret scanning/push protection helps detect supported credentials, but ordinary resource IDs such as Drive/Sheet IDs may not be treated as secrets; therefore exposure minimization is still required.
 
-## Cloudflare secrets
+## Operational identifier policy
 
-Each environment stores its own runtime credentials in its own Worker.
+For new resources:
+1. Publicly store logical resource name/alias and environment.
+2. Prefer GitHub/Cloudflare runtime variables for exact operational IDs when automation can consume them without exposing them in source.
+3. Publicly record an exact non-secret ID only when it is required for reproducible automation and the exposure is acceptable.
+4. Never record access tokens/credential values, even if convenient.
 
-Required secret/variable names:
+Legacy exact IDs already committed to public Git history remain historical public metadata. Removing them from HEAD alone does not erase history. Any future privacy hardening must be treated as a deliberate migration, not cosmetic redaction.
 
-- `GOOGLE_RUNTIME_SA_JSON` — Secret
-- `GOOGLE_DRIVE_OAUTH_CLIENT_ID` — Variable
-- `GOOGLE_DRIVE_OAUTH_CLIENT_SECRET` — Secret
-- `GOOGLE_DRIVE_OAUTH_REDIRECT_URI` — Variable
-- `GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN` — Secret
+## Cloudflare/runtime secrets
 
-Beta and Stable values must never be cross-used.
-
-Wrangler configuration declares required secret names only; secret values remain only in Cloudflare.
+Environment credentials stay environment-specific. Beta and Stable values must never be cross-used. Wrangler/source declares secret names only; values remain in runtime secret stores.
 
 ## Durable Object / SQLite boundary
 
-- Beta `InventoryCore` is provisioned with SQLite storage.
-- Stable declares the same class/storage topology but is not provisioned until an Owner-authorized Stable deployment.
-- Durable Object lifecycle changes use `wrangler deploy`; version-upload/gradual deployment is not used for class lifecycle changes.
-- The Worker health endpoint may expose only status/schema version, never stored business data.
+- Beta `InventoryCore` is the current operational store.
+- Stable is Owner-gated until explicit release/provision command.
+- Health endpoints may expose status/schema/binding presence only, not secrets or business data.
 
-## HR source boundary
+## HR boundary
 
-HR Sheet is configured by Admin/Root from the Web UI, not hard-coded in the repository.
+Admin/Root configures HR source through authenticated UI. Backend validates URL, exact tab and required MNV + Họ tên columns before save. Minimum read access is preferred.
 
-- The system validates Google Sheet URL, exact tab name, and required `MNV` + `Họ tên` columns.
-- Verified metadata is stored in `InventoryCore` SQLite.
-- The public Worker must not expose an unauthenticated endpoint that can save/change HR source configuration.
-- The source Sheet should grant only the minimum read access required to the environment-specific runtime identity.
+## IAM/OAuth
 
-## Google service-account key policy
+- Keep organization-wide service-account-key restrictions; only documented project exceptions are allowed.
+- Do not broaden runtime IAM roles without reviewed need.
+- Current Google Drive scope remains `drive.file` unless a documented requirement proves it insufficient.
 
-Organization default remains protected by `iam.disableServiceAccountKeyCreation`.
+## CI/deploy
 
-Only the two SUPRA Inventory projects are exceptions through the existing tag condition. Do not disable the constraint organization-wide.
-
-Runtime service accounts use narrowly scoped Firebase roles; do not broaden to Owner/Editor/Firebase Admin unless a concrete requirement is reviewed first.
-
-## OAuth scope
-
-Current Drive scope:
-
-`https://www.googleapis.com/auth/drive.file`
-
-Do not broaden to full Drive scopes unless a documented application requirement proves this insufficient.
-
-## Cloudflare CI token
-
-The current Beta compatibility deployment token is broader than the original per-Worker token because the original granular token returned Cloudflare API code `10000` for Worker APIs. Treat the compatibility token as a Beta-only CI credential.
-
-Do not reuse it for Stable. Before Stable release, reassess whether Cloudflare granular Worker permissions can replace the broader compatibility token.
-
-## Stable release boundary
-
-Stable is not an automatic deployment target. Stable credentials, Durable Object provisioning, public routing, signing material, and release actions remain Owner-gated.
-
-## Operational hygiene
-
-- Verify target project/environment before cloud mutations.
-- Rotate service-account keys and OAuth credentials when exposure is suspected.
-- Do not log secrets or entire authorization payloads.
-- Health endpoints may report only presence/absence of required bindings, never their values.
+- Environment secrets are consumed only by jobs that need them.
+- Do not print authorization payloads or credential values.
 - Prefer least privilege and environment isolation.
+- Stable deploy remains Owner-gated.
