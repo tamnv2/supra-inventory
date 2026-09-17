@@ -22,8 +22,4 @@ jobs:
           python3 tools/project_state_guard.py
           python3 tools/authority_guard.py
       - name: Public repository secret-value heuristic guard
-        run: |
-          set -euo pipefail
-          ! git grep -nE -- '-----BEGIN (RSA |EC |OPENSSH |)?PRIVATE KEY-----' -- ':!*.lock'
-          ! git grep -nE -- '(GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN|CF_API_TOKEN_INVENTORY_BETA|BETA_KEYSTORE_PASSWORD|ROOT_BOOTSTRAP_PASSWORD)[[:space:]]*=[[:space:]]*["'"'][^$<{][^"'"']+' -- ':!*.md' ':!*.py' || { echo 'Potential committed secret value'; exit 1; }
-          echo "PUBLIC_REPO_SECRET_HEURISTIC_PASS"
+        run: python3 tools/public_repo_secret_guard.py
