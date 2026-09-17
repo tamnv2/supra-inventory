@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "purpose": "Canonical tracker for unavoidable Owner-only manual actions. AI must minimize these and recheck immediately after Owner completion.",
+  "actions": [
+    {
+      "id": "OA001",
+      "status": "PENDING_OWNER_MANUAL",
+      "title": "Protect main with an active GitHub branch ruleset",
+      "resource_key": "repo",
+      "provider": "GitHub",
+      "reason_owner_only": "The connected GitHub tool can read rulesets/branch protection but does not expose repository-administration write actions for creating them.",
+      "current_evidence": {
+        "rulesets": 0,
+        "main_protected": false,
+        "required_checks_verified": [
+          "authority",
+          "continuity"
+        ]
+      },
+      "target_configuration": {
+        "ruleset_name": "main-protection",
+        "enforcement": "Active",
+        "target": "default branch (main)",
+        "require_pull_request_before_merge": true,
+        "required_approvals": 0,
+        "require_status_checks": [
+          "authority",
+          "continuity"
+        ],
+        "required_check_source": "GitHub Actions",
+        "require_branch_up_to_date_before_merge": true,
+        "block_force_pushes": true,
+        "restrict_deletions": true,
+        "require_signed_commits": false,
+        "note": "Do not require manual review approval or signed commits: current automation uses unsigned GitHub Actions/connector commits. After protection is active, AI changes use branch -> PR -> required CI -> merge, so Owner approval is not needed for every normal Beta change."
+      },
+      "owner_ui_path": [
+        "Repository tamnv2/supra-inventory",
+        "Settings",
+        "Rules",
+        "Rulesets",
+        "New ruleset",
+        "New branch ruleset"
+      ],
+      "completion_evidence": "GitHub rulesets API shows an Active ruleset targeting main/default branch with required checks authority + continuity and force-push/deletion protection.",
+      "after_owner_completion": "AI rechecks ruleset and updates this action to PASS."
+    }
+  ]
+}
