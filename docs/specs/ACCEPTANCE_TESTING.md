@@ -14,7 +14,7 @@ Never collapse these levels into one generic “done”.
 
 ## Current field frontier
 
-The last deployed/signed baseline before the current change is `beta-vc31`, schema v5. The current Android-focused change addresses physical-device evidence from the Owner: narrow-screen login/header breakage, legacy Picker password initialization, mandatory latest-version login gating, adaptive launcher icon treatment and removal of non-operational UI prose. Until the current branch passes required CI, Beta deploy and signed APK publishing, these changes are **source/spec pending verification**, not runtime PASS.
+The current technical Beta baseline is `beta-vc32`, schema v5. PR #6 passed authority, continuity, Practical Balanced source validation, Worker typecheck, Web production and Android debug gates; the merged main commit passed Beta Worker deploy/health/auth/business/Web/OAuth smoke and published the signed monotonic Android release `beta-vc32`. The narrow-screen login/header remediation, legacy Picker password initialization path, mandatory latest-version login gate, adaptive launcher icon treatment and removal of non-operational UI prose are therefore **technical runtime/release PASS**. Physical-device behavior and Owner business acceptance remain separate evidence levels.
 
 Physical logged-in PDA FCM delivery and Owner field/business acceptance remain separate pending evidence even after technical build/deploy PASS.
 
