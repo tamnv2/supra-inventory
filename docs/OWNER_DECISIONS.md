@@ -64,7 +64,7 @@ Purpose: preserve Owner-approved requirements across chats without relying on ma
 - The fixed HR-header assumption from D013 is `SUPERSEDED` by configurable source-column mapping in D033.
 - The old account hierarchy/default-reset/auto-disable behavior from D023 is `SUPERSEDED` by D034, D035 and D037.
 - Concept 3 visual authority from D024 is `SUPERSEDED` by Practical Balanced / Phương án 1 in D036. Dashboard/reporting business structure from D025 remains active independent of visual skin.
-- The exact old footer wording inside D036 is superseded by D040; the rest of D036 remains active.
+- The exact old footer wording inside D036 is superseded by D040 for Android/PDA only; Web retains its existing credit wording and the rest of D036 remains active.
 
 ## Open decisions — do not invent
 

@@ -12,7 +12,7 @@ Read the matching spec before changing that area:
 - `REALTIME_NOTIFICATIONS.md` — WebSocket/FCM semantics.
 - `DATA_LIFECYCLE.md` — ticket/batch/event data semantics, archive and retention.
 - `REPORTING_DASHBOARD.md` — Admin/Root dashboard/reporting authority.
-- `UI_DESIGN_SYSTEM.md` — Owner-selected Concept 3 design authority.
+- `UI_DESIGN_SYSTEM.md` — Owner-selected Practical Balanced / Phương án 1 design authority.
 - `ACCEPTANCE_TESTING.md` — CI/runtime/device/Owner acceptance levels and regression expectations.
 
 Also canonical:

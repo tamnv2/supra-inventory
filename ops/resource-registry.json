@@ -164,21 +164,23 @@
       "web_source_status": "PRACTICAL_BALANCED_CANONICAL_SOURCE_DEPLOYED_SMOKE_PASS",
       "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
       "web_admin_report_monitoring": "ROLE_BASED_OPERATIONS_UI_DEPLOYED_PASS",
-      "android_source_status": "PRACTICAL_BALANCED_SIGNED_OTA_VC31_PASS",
+      "android_source_status": "PRACTICAL_BALANCED_SIGNED_BETA_VC32_MANDATORY_UPDATE_GATE_PASS",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
-      "latest_signed_beta_release": "beta-vc31",
-      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.31",
-      "latest_signed_beta_apk_sha256": "7f57cec90aad16cdc1747ae8cbe543948ce4fcabca96f5859b16d4087e384f1c",
-      "latest_signed_beta_apk_size_bytes": 9167082,
-      "auth_rbac_status": "EXPANDED_ROOT_ADMIN_REPORTER_PICKER_LIFECYCLE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
+      "latest_signed_beta_release": "beta-vc32",
+      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.32",
+      "latest_signed_beta_apk_sha256": "4fc20b00397bf0af7f149aef5fd9d42e68ee6f3223f8e84efb4349075c654884",
+      "latest_signed_beta_apk_size_bytes": 9168718,
+      "auth_rbac_status": "EXPANDED_ROOT_ADMIN_REPORTER_PICKER_LIFECYCLE_WITH_LEGACY_PICKER_BOOTSTRAP_DEPLOYED_BUILD_PASS",
       "auth_api_route_smoke": "PASS",
       "root_bootstrap_path_smoke": "PASS",
       "hr_settings_ui_status": "CONFIGURABLE_URL_TAB_EMPLOYEE_AND_NAME_HEADERS_DEPLOYED_PASS",
       "business_api_status": "IMPLEMENTED_DEPLOYED_SCHEMA_V5",
-      "latest_signed_beta_release_source_commit": "d7bfd1a0897ec760300a4c5d484b95d91444dc2d",
+      "latest_signed_beta_release_source_commit": "444f89d9ace5b5405f4f436b3be27869f16571e2",
       "managed_password_status": "DIRECT_CREATE_AND_CHANGE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
-      "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS"
+      "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
+      "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
+      "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -253,7 +255,8 @@
     "expanded_root_admin_reporter_picker_account_controls",
     "configurable_hr_headers_and_manual_picker_lifecycle",
     "direct_managed_password_create_change",
-    "android_practical_balanced_signed_beta_vc31_monotonic_ota_pass"
+    "android_practical_balanced_signed_beta_vc31_monotonic_ota_pass",
+    "android_vc32_mandatory_update_gate_adaptive_icon_legacy_picker_bootstrap_pass"
   ],
   "application_build_pending": [
     "fcm_physical_device_delivery_acceptance",
@@ -280,9 +283,10 @@
     "default_password_source": "PROTECTED_PICKER_DEFAULT_PASSWORD_RUNTIME_SECRET_WITH_LEGACY_ROOT_BOOTSTRAP_FALLBACK",
     "root_protection": "ROOT_NOT_MANAGEABLE_BY_NORMAL_ACCOUNT_API_AND_ONLY_ROOT_CAN_BOOTSTRAP_FROM_ROOT_SECRET",
     "hr_sync": "PREVIEW_THEN_EXPLICIT_APPLY_NO_AUTOMATIC_DISABLE_DELETE_OR_REACTIVATE",
-    "source_status": "IMPLEMENTED_DEPLOYED_BUILD_PASS",
+    "source_status": "IMPLEMENTED_DEPLOYED_BUILD_PASS_WITH_LEGACY_PICKER_BOOTSTRAP",
     "managed_passwords": "AUTHORIZED_MANAGER_DIRECT_SET_AND_CHANGE",
-    "picker_lifecycle": "EXPLICIT_ONE_MANY_ALL_ENABLE_DISABLE_DELETE"
+    "picker_lifecycle": "EXPLICIT_ONE_MANY_ALL_ENABLE_DISABLE_DELETE",
+    "legacy_uninitialized_picker_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK"
   },
   "archive": {
     "beta_sheet_id": "1WU9RDUEevE74Twyq1aA80xvL3Wr1mTA21PRA8ypIMOA",
@@ -315,7 +319,7 @@
   "ui_design": {
     "authority": "OWNER_SELECTED_PRACTICAL_BALANCED_OPTION_1",
     "web": "PRACTICAL_BALANCED_CANONICAL_SOURCE_DEPLOYED_SMOKE_PASS",
-    "android": "PRACTICAL_BALANCED_SIGNED_BETA_VC31_PASS",
+    "android": "PRACTICAL_BALANCED_SIGNED_BETA_VC32_MANDATORY_UPDATE_GATE_PASS",
     "scope_guard": "PRACTICAL_BALANCED_VISUAL_SYSTEM_WITH_CANONICAL_BUSINESS_CONTROLS_BUSINESS_RULES_REMAIN_AUTHORITATIVE"
   },
   "quota_resilience": {

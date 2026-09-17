@@ -19,12 +19,12 @@
     "business_api": "IMPLEMENTED_AND_DEPLOYED_BETA_SCHEMA_V5",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS",
     "web": "PRACTICAL_BALANCED_CANONICAL_SOURCE_BETA_DEPLOY_SMOKE_PASS",
-    "android": "PRACTICAL_BALANCED_SIGNED_BETA_VC31_MONOTONIC_OTA_PASS",
-    "latest_beta_apk": "beta-vc31",
+    "android": "PRACTICAL_BALANCED_SIGNED_BETA_VC32_MANDATORY_UPDATE_GATE_PASS",
+    "latest_beta_apk": "beta-vc32",
     "realtime": "WEBSOCKET_SERVER_WEB_ANDROID_CLIENT_DEPLOYED_SIGNED_PASS",
     "network_scope": "PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_BY_OWNER_DECISION",
     "fcm": "DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BUILD_PASS_FIELD_DELIVERY_PENDING",
-    "user_management": "EXPANDED_ROOT_ADMIN_PICKER_LIFECYCLE_FLEXIBLE_HR_DIRECT_PASSWORD_IMPLEMENTED_DEPLOYED_BUILD_PASS",
+    "user_management": "EXPANDED_ROOT_ADMIN_PICKER_LIFECYCLE_FLEXIBLE_HR_DIRECT_PASSWORD_LEGACY_PICKER_BOOTSTRAP_DEPLOYED_BUILD_PASS",
     "archive": "IDEMPOTENT_SHEET_ARCHIVE_AND_SAFE_60D_RETENTION_BETA_DEPLOY_PASS",
     "admin_dashboard": "OPERATIONAL_DASHBOARD_AND_REPORTING_BETA_DEPLOY_PASS",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
@@ -99,17 +99,16 @@
     "Repo authority complete: project context + exact ID/name project scope + durable decisions + full product specs + live workboard + automation protocol + public-repo security + stale/secret guards",
     "Practical Balanced canonical Web source: explicit business labels, consistent typography, business-relevant iconography and approved footer credit — Beta Web/Worker deploy smoke PASS",
     "Expanded account controls: ROOT inherits Admin/Reporter and manages Admin/Reporter/Picker; Admin manages Reporter/Picker; direct managed-password flow; configurable HR headers; explicit one/many/all Picker lifecycle; HR absence policy no automatic disable/delete/reactivate — source guard, service typecheck, Web build and Beta deploy PASS",
-    "Android Practical Balanced signed OTA beta-vc31: monotonic versionCode 31 from prior vc30, exact source commit d7bfd1a0897ec760300a4c5d484b95d91444dc2d, APK SHA-256 7f57cec90aad16cdc1747ae8cbe543948ce4fcabca96f5859b16d4087e384f1c, release publish PASS"
+    "Android Practical Balanced signed OTA beta-vc31: monotonic versionCode 31 from prior vc30, exact source commit d7bfd1a0897ec760300a4c5d484b95d91444dc2d, APK SHA-256 7f57cec90aad16cdc1747ae8cbe543948ce4fcabca96f5859b16d4087e384f1c, release publish PASS",
+    "Android Beta vc32 remediation: PR #6 authority/continuity/UI/build PASS; Beta Worker deploy + health/auth/business/Web/OAuth smoke PASS; signed beta-vc32 versionCode 32 published from 444f89d9ace5b5405f4f436b3be27869f16571e2, APK SHA-256 4fc20b00397bf0af7f149aef5fd9d42e68ee6f3223f8e84efb4349075c654884, size 9168718 bytes; mandatory update login gate, adaptive launcher icon, narrow-screen cleanup and legacy Picker password bootstrap are technical runtime PASS"
   ],
   "pending_build": [
-    "Android vc32 remediation is in progress: legacy Picker default-password initialization, mandatory latest-version login gate, narrow-screen UI cleanup, adaptive launcher icon and concise operational text must pass PR CI, Beta deploy and signed release publishing.",
     "Field-verify FCM delivery on a physical logged-in PDA; technical foundation is deployed",
     "Owner business/UI acceptance of Practical Balanced Beta Web/PDA",
     "Isolated business-mutation load acceptance after Owner scale target is defined"
   ],
   "field_pending": [
-    "Owner physical-PDA verification of the Android vc32 remediation will be required after the signed build is published.",
-    "Owner physical-PDA and Web confirmation of the Practical Balanced beta-vc31 baseline remains distinct from CI/deploy PASS.",
+    "Owner physical-PDA verification of beta-vc32 login/update/UI/icon behavior remains field acceptance; technical runtime/release is PASS.",
     "Physical logged-in PDA FCM delivery remains field-pending."
   ],
   "open_decisions_do_not_invent": [
@@ -121,8 +120,8 @@
     "Any new offline-create-report behavior; do not add direct-to-Sheet fallback unless Owner explicitly approves it."
   ],
   "next_action": {
-    "primary": "Finish Android vc32 remediation through branch -> PR -> authority + continuity + UI/build checks -> merge; then automatically verify Beta Worker deploy and signed monotonic APK release before asking for physical-device acceptance.",
-    "method": "Keep beta-vc31 as the current runtime baseline until post-merge evidence proves the new release. Do not mark vc32 runtime PASS from source or PR CI alone.",
+    "primary": "Owner field-test signed beta-vc32 on a physical PDA: confirm update gate/install flow, Picker login/default-password behavior, narrow-screen UI alignment, launcher icon and operational workflows; record numbered findings if any.",
+    "method": "Use beta-vc32 as the current technical Beta baseline. Technical build/deploy/release is PASS; device/Owner business acceptance remains separate.",
     "stable_guard": "Do not activate Stable."
   },
   "continuity_policy": {
@@ -149,34 +148,26 @@
     "model": "REPO_NATIVE_COMPLETE"
   },
   "workboard": {
-    "in_progress": [
-      "Android vc32 remediation on branch fix/android-vc32-update-ui-picker-password",
-      "Legacy Picker password bootstrap from protected runtime default",
-      "Mandatory latest-Beta update gate before Android login",
-      "Narrow-screen Android header/text cleanup and adaptive launcher icon"
-    ],
+    "in_progress": [],
     "next": [
-      "Open PR and pass authority + continuity + UI/build checks",
-      "Merge only after required checks PASS",
-      "Poll Beta Worker deploy and signed Android release until terminal PASS",
-      "Owner field-test the resulting signed APK on physical PDA",
+      "Owner field-test signed beta-vc32 on physical PDA and report numbered findings if any",
       "Field-verify foreground realtime and background FCM delivery on a logged-in physical PDA",
       "Run isolated business-mutation load acceptance after Owner defines scale target/test boundary"
     ],
     "blocked_or_owner_field_dependent": [
-      "Owner business/UI acceptance after signed vc32 is available",
+      "Owner business/UI acceptance of beta-vc32 on physical PDA",
       "Physical PDA FCM delivery acceptance",
       "Isolated mutation load acceptance requires an Owner workload target/test boundary"
     ],
     "last_runtime_evidence": {
       "schema": 5,
-      "signed_beta_release": "beta-vc31",
-      "signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.31",
-      "signed_beta_apk_sha256": "7f57cec90aad16cdc1747ae8cbe543948ce4fcabca96f5859b16d4087e384f1c",
-      "signed_beta_apk_size_bytes": 9167082,
-      "runtime_source_commit": "d7bfd1a0897ec760300a4c5d484b95d91444dc2d",
+      "signed_beta_release": "beta-vc32",
+      "signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.32",
+      "signed_beta_apk_sha256": "4fc20b00397bf0af7f149aef5fd9d42e68ee6f3223f8e84efb4349075c654884",
+      "signed_beta_apk_size_bytes": 9168718,
+      "runtime_source_commit": "444f89d9ace5b5405f4f436b3be27869f16571e2",
       "runtime_ui_baseline": "PRACTICAL_BALANCED",
-      "verification_basis": "PR #4 authority + continuity + canonical UI source guard + Worker typecheck + Web production + Android debug PASS; main Beta Worker/Web deploy smoke PASS; signed Android beta-vc31 release PASS with monotonic 30→31 versionCode."
+      "verification_basis": "PR #6 authority + continuity + Practical Balanced source guard + Worker typecheck + Web production + Android debug PASS; main Beta Worker deploy/health/auth/business/Web/OAuth smoke PASS; signed Android beta-vc32 release publish PASS with monotonic 31→32 versionCode."
     }
   },
   "authority_setup": {

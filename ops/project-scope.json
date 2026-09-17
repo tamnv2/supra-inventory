@@ -328,6 +328,11 @@
       "name": "BETA_KEY_PASSWORD",
       "storage": "GitHub Actions secret",
       "value_in_repo": false
+    },
+    {
+      "name": "PICKER_DEFAULT_PASSWORD",
+      "storage": "Cloudflare Worker secret",
+      "value_in_repo": false
     }
   ],
   "explicit_out_of_scope": [
