@@ -235,7 +235,7 @@ function renderLogin(): void {
   </section></main>`;
   document.querySelector<HTMLFormElement>("#login-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
+    const data = new FormData(event.currentTarget as HTMLFormElement);
     void run(async () => {
       profile = await loginWithPassword(String(data.get("username") || "").trim(), String(data.get("password") || ""));
       activeSection = profile.role === "PICKER" ? "picker" : "operations";
@@ -429,7 +429,7 @@ async function loadPicker(): Promise<void> {
   pickerReports = reports.items;
   pickerResults = results.items;
   for (const result of pickerResults.filter((row) => !row.acknowledged_at && !markedResultEvents.has(row.result_event_id))) {
-    markedResultEvents.add(row.result_event_id);
+    markedResultEvents.add(result.result_event_id);
     void markPickerResult(result.result_event_id, result.batch_id, result.batch_version, "RECEIVED")
       .then(() => markPickerResult(result.result_event_id, result.batch_id, result.batch_version, "DISPLAYED"))
       .catch(() => markedResultEvents.delete(result.result_event_id));
@@ -547,25 +547,25 @@ function bindSection(): void {
   document.querySelector<HTMLButtonElement>("#apply-sku-import")?.addEventListener("click", () => void run(importSkuWorkbook));
 
   document.querySelector<HTMLFormElement>("#hr-source-form")?.addEventListener("submit", (event) => {
-    event.preventDefault(); const data = new FormData(event.currentTarget); void run(async () => { await saveHrSource(String(data.get("sheetUrl") || ""), String(data.get("tabName") || ""), String(data.get("employeeCodeHeader") || ""), String(data.get("fullNameHeader") || "")); hrSource = await getHrSource(); hrPreview = null; setNotice("success", "Đã xác nhận và ghim nguồn nhân sự."); });
+    event.preventDefault(); const data = new FormData(event.currentTarget as HTMLFormElement); void run(async () => { await saveHrSource(String(data.get("sheetUrl") || ""), String(data.get("tabName") || ""), String(data.get("employeeCodeHeader") || ""), String(data.get("fullNameHeader") || "")); hrSource = await getHrSource(); hrPreview = null; setNotice("success", "Đã xác nhận và ghim nguồn nhân sự."); });
   });
   document.querySelector<HTMLButtonElement>("#preview-hr")?.addEventListener("click", () => void run(async () => { hrPreview = await previewHrPickerSync(); }));
   document.querySelector<HTMLButtonElement>("#apply-hr")?.addEventListener("click", () => void run(async () => { await applyHrPickerSync(); hrPreview = await previewHrPickerSync(); setNotice("success", "Đã áp dụng đồng bộ Picker."); }));
 
   document.querySelector<HTMLButtonElement>("#refresh-users")?.addEventListener("click", () => void run(async () => { managedUsers = (await listManagedUsers()).items; }));
-  document.querySelector<HTMLFormElement>("#create-user-form")?.addEventListener("submit", (event) => { event.preventDefault(); const data = new FormData(event.currentTarget); void run(async () => { await createManagedUser(String(data.get("username") || ""), String(data.get("displayName") || ""), String(data.get("role") || "REPORTER") as "ADMIN" | "REPORTER", String(data.get("password") || "")); managedUsers = (await listManagedUsers()).items; setNotice("success", "Đã tạo tài khoản."); }); });
+  document.querySelector<HTMLFormElement>("#create-user-form")?.addEventListener("submit", (event) => { event.preventDefault(); const data = new FormData(event.currentTarget as HTMLFormElement); void run(async () => { await createManagedUser(String(data.get("username") || ""), String(data.get("displayName") || ""), String(data.get("role") || "REPORTER") as "ADMIN" | "REPORTER", String(data.get("password") || "")); managedUsers = (await listManagedUsers()).items; setNotice("success", "Đã tạo tài khoản."); }); });
   document.querySelectorAll<HTMLInputElement>("[data-user-select]").forEach((box) => box.addEventListener("change", () => { const id = box.dataset.userSelect || ""; if (box.checked) selectedUserIds.add(id); else selectedUserIds.delete(id); }));
   document.querySelectorAll<HTMLButtonElement>("[data-picker-action]").forEach((button) => button.addEventListener("click", () => { const action = button.dataset.pickerAction as "ENABLE" | "DISABLE" | "DELETE"; const ids = [...selectedUserIds]; if (!ids.length) { setNotice("warning", "Chọn ít nhất một Picker."); render(); return; } if (action === "DELETE" && !window.confirm(`Xóa ${ids.length} Picker đã chọn? Lịch sử nghiệp vụ vẫn được giữ.`)) return; void run(async () => { await updatePickerAccounts(action, ids); managedUsers = (await listManagedUsers()).items; selectedUserIds.clear(); setNotice("success", "Đã cập nhật Picker."); }); }));
   document.querySelectorAll<HTMLButtonElement>("[data-edit-user]").forEach((button) => button.addEventListener("click", () => { const user = managedUsers.find((row) => row.user_id === button.dataset.editUser); if (!user) return; const name = window.prompt("Họ tên", user.display_name); if (name == null) return; const status = window.confirm("OK = ACTIVE, Cancel = DISABLED") ? "ACTIVE" : "DISABLED"; void run(async () => { await updateManagedUser(user.user_id, name.trim(), status); managedUsers = (await listManagedUsers()).items; }); }));
   document.querySelectorAll<HTMLButtonElement>("[data-password-user]").forEach((button) => button.addEventListener("click", () => { const password = window.prompt("Nhập mật khẩu mới"); if (!password) return; void run(async () => { await setManagedUserPassword(button.dataset.passwordUser || "", password); setNotice("success", "Đã đổi mật khẩu tài khoản."); }); }));
 
-  document.querySelector<HTMLFormElement>("#sla-form")?.addEventListener("submit", (event) => { event.preventDefault(); const data = new FormData(event.currentTarget); void run(async () => { const warning = Number(data.get("warning")); const escalation = Number(data.get("escalation")); if (!Number.isInteger(warning) || !Number.isInteger(escalation) || warning < 1 || escalation <= warning) throw new Error("Escalate phải lớn hơn cảnh báo và cả hai phải là số nguyên dương."); await saveAdminSla(warning, escalation); await loadSla(); setNotice("success", "Đã lưu cấu hình SLA."); }); });
-  document.querySelector<HTMLFormElement>("#dashboard-filter")?.addEventListener("submit", (event) => { event.preventDefault(); const data = new FormData(event.currentTarget); dashboardFrom = String(data.get("from")); dashboardTo = String(data.get("to")); void run(loadDashboard); });
-  document.querySelector<HTMLFormElement>("#report-filter")?.addEventListener("submit", (event) => { event.preventDefault(); const data = new FormData(event.currentTarget); reportFrom = String(data.get("from")); reportTo = String(data.get("to")); reportStatus = String(data.get("status") || ""); reportQuery = String(data.get("query") || ""); reportOffset = 0; void run(loadReports); });
+  document.querySelector<HTMLFormElement>("#sla-form")?.addEventListener("submit", (event) => { event.preventDefault(); const data = new FormData(event.currentTarget as HTMLFormElement); void run(async () => { const warning = Number(data.get("warning")); const escalation = Number(data.get("escalation")); if (!Number.isInteger(warning) || !Number.isInteger(escalation) || warning < 1 || escalation <= warning) throw new Error("Escalate phải lớn hơn cảnh báo và cả hai phải là số nguyên dương."); await saveAdminSla(warning, escalation); await loadSla(); setNotice("success", "Đã lưu cấu hình SLA."); }); });
+  document.querySelector<HTMLFormElement>("#dashboard-filter")?.addEventListener("submit", (event) => { event.preventDefault(); const data = new FormData(event.currentTarget as HTMLFormElement); dashboardFrom = String(data.get("from")); dashboardTo = String(data.get("to")); void run(loadDashboard); });
+  document.querySelector<HTMLFormElement>("#report-filter")?.addEventListener("submit", (event) => { event.preventDefault(); const data = new FormData(event.currentTarget as HTMLFormElement); reportFrom = String(data.get("from")); reportTo = String(data.get("to")); reportStatus = String(data.get("status") || ""); reportQuery = String(data.get("query") || ""); reportOffset = 0; void run(loadReports); });
   document.querySelector<HTMLButtonElement>("#report-prev")?.addEventListener("click", () => { reportOffset = Math.max(0, reportOffset - REPORT_PAGE_SIZE); void run(loadReports); });
   document.querySelector<HTMLButtonElement>("#report-next")?.addEventListener("click", () => { reportOffset += REPORT_PAGE_SIZE; void run(loadReports); });
   document.querySelector<HTMLButtonElement>("#refresh-system")?.addEventListener("click", () => void run(async () => { serviceHealth = await getServiceHealth(); }));
-  document.querySelector<HTMLFormElement>("#password-form")?.addEventListener("submit", (event) => { event.preventDefault(); const data = new FormData(event.currentTarget); void run(async () => { await changeMyPassword(String(data.get("current") || ""), String(data.get("next") || "")); setNotice("success", "Đã đổi mật khẩu."); }); });
+  document.querySelector<HTMLFormElement>("#password-form")?.addEventListener("submit", (event) => { event.preventDefault(); const data = new FormData(event.currentTarget as HTMLFormElement); void run(async () => { await changeMyPassword(String(data.get("current") || ""), String(data.get("next") || "")); setNotice("success", "Đã đổi mật khẩu."); }); });
 }
 
 async function importSkuWorkbook(): Promise<void> {
