@@ -52,9 +52,11 @@
     "Operational authority is Worker + InventoryCore SQLite; Google Sheets is not a competing primary transaction store.",
     "HR source is configured by Admin/Root using Google Sheet URL, exact tab name, configurable Mã nhân viên column and configurable Họ và tên column, saved only after backend validation.",
     "ROOT inherits all Admin and Reporter capabilities and may create/manage Admin and Reporter plus manage Picker lifecycle; Admin may create/manage Reporter and manage Picker lifecycle.",
-    "Managed Admin/Reporter passwords are set directly by authorized managers; only newly provisioned Picker accounts use the protected runtime default password.",
+    "Managed Admin/Reporter passwords are set directly by authorized managers; Picker provisioning uses the protected runtime default password and legacy uninitialized Picker accounts initialize from that same protected default on first login.",
     "HR sync does not automatically disable/delete absent Pickers or reactivate deliberately disabled Pickers; Admin/Root explicitly open, disable or delete one, many or all Picker accounts.",
-    "Practical Balanced / Phương án 1 is the active UI direction, prioritizing Picker/Reporter SKU/report work and using explicit business labels, relevant icons, consistent typography and the approved footer credit.",
+    "Practical Balanced / Phương án 1 is the active UI direction, prioritizing Picker/Reporter SKU/report work and using explicit business labels, relevant icons and consistent typography.",
+    "Android/PDA Beta must verify it is the latest valid signed Beta version before login; an older or unverifiable build cannot log in.",
+    "Android/PDA UI is narrow-screen-first, removes non-operational explanatory/design-discussion text, uses a full-brand adaptive launcher icon without an added white wrapper, and uses the shorter Android product credit.",
     "Detailed operational retention target is about 60 days; unresolved items survive retention until resolved; long-term archive is batched to Drive/Sheets.",
     "Foreground realtime uses WebSocket; background notification uses FCM; client reload is not synchronization logic.",
     "SKU Excel imports support 10,000-50,000 rows, use bounded idempotent chunks, merge identical duplicate rows, require an explicit choice for conflicting names inside the file, retain old SKUs absent from a later file, and require confirmation before renaming an existing SKU.",
@@ -100,12 +102,14 @@
     "Android Practical Balanced signed OTA beta-vc31: monotonic versionCode 31 from prior vc30, exact source commit d7bfd1a0897ec760300a4c5d484b95d91444dc2d, APK SHA-256 7f57cec90aad16cdc1747ae8cbe543948ce4fcabca96f5859b16d4087e384f1c, release publish PASS"
   ],
   "pending_build": [
+    "Android vc32 remediation is in progress: legacy Picker default-password initialization, mandatory latest-version login gate, narrow-screen UI cleanup, adaptive launcher icon and concise operational text must pass PR CI, Beta deploy and signed release publishing.",
     "Field-verify FCM delivery on a physical logged-in PDA; technical foundation is deployed",
     "Owner business/UI acceptance of Practical Balanced Beta Web/PDA",
     "Isolated business-mutation load acceptance after Owner scale target is defined"
   ],
   "field_pending": [
-    "Owner physical-PDA and Web confirmation of the Practical Balanced beta-vc31 build remains distinct from CI/deploy PASS.",
+    "Owner physical-PDA verification of the Android vc32 remediation will be required after the signed build is published.",
+    "Owner physical-PDA and Web confirmation of the Practical Balanced beta-vc31 baseline remains distinct from CI/deploy PASS.",
     "Physical logged-in PDA FCM delivery remains field-pending."
   ],
   "open_decisions_do_not_invent": [
@@ -117,8 +121,8 @@
     "Any new offline-create-report behavior; do not add direct-to-Sheet fallback unless Owner explicitly approves it."
   ],
   "next_action": {
-    "primary": "Owner field-test Practical Balanced Beta Web/PDA using the deployed Web runtime and signed beta-vc31; field-verify FCM on a physical logged-in PDA; report numbered findings if any. Stable remains gated.",
-    "method": "Use beta-vc31 and current Beta Web deployment as the accepted technical runtime baseline. Technical source/build/deploy/release gates are PASS; do not reopen completed implementation without new evidence.",
+    "primary": "Finish Android vc32 remediation through branch -> PR -> authority + continuity + UI/build checks -> merge; then automatically verify Beta Worker deploy and signed monotonic APK release before asking for physical-device acceptance.",
+    "method": "Keep beta-vc31 as the current runtime baseline until post-merge evidence proves the new release. Do not mark vc32 runtime PASS from source or PR CI alone.",
     "stable_guard": "Do not activate Stable."
   },
   "continuity_policy": {
@@ -145,14 +149,22 @@
     "model": "REPO_NATIVE_COMPLETE"
   },
   "workboard": {
-    "in_progress": [],
+    "in_progress": [
+      "Android vc32 remediation on branch fix/android-vc32-update-ui-picker-password",
+      "Legacy Picker password bootstrap from protected runtime default",
+      "Mandatory latest-Beta update gate before Android login",
+      "Narrow-screen Android header/text cleanup and adaptive launcher icon"
+    ],
     "next": [
-      "Owner field-test Practical Balanced Beta Web/PDA and report numbered business/UI findings if any",
+      "Open PR and pass authority + continuity + UI/build checks",
+      "Merge only after required checks PASS",
+      "Poll Beta Worker deploy and signed Android release until terminal PASS",
+      "Owner field-test the resulting signed APK on physical PDA",
       "Field-verify foreground realtime and background FCM delivery on a logged-in physical PDA",
       "Run isolated business-mutation load acceptance after Owner defines scale target/test boundary"
     ],
     "blocked_or_owner_field_dependent": [
-      "Owner business/UI acceptance",
+      "Owner business/UI acceptance after signed vc32 is available",
       "Physical PDA FCM delivery acceptance",
       "Isolated mutation load acceptance requires an Owner workload target/test boundary"
     ],
