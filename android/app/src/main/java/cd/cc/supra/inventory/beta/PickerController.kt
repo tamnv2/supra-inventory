@@ -42,6 +42,8 @@ class PickerController(
     private var searchGeneration = 0
     private var syncing = false
     private var refreshing = false
+    private var refreshDirty = false
+    private val refreshWaiters = mutableListOf<(Boolean) -> Unit>()
     private var resultDialogShowing = false
     private val stagedResults = mutableSetOf<String>()
     private var input: EditText? = null
@@ -156,9 +158,10 @@ class PickerController(
         refresh()
     }
 
-    fun onRealtime(scopes: Set<String>) {
-        if (scopes.contains("picker_reports")) refresh()
+    fun onRealtime(scopes: Set<String>, completion: (Boolean) -> Unit) {
         if (scopes.contains("sku_catalog")) syncCatalog(auto = true)
+        if (scopes.contains("picker_reports")) refresh(completion)
+        else completion(true)
     }
 
     fun destroy() {
@@ -282,24 +285,49 @@ class PickerController(
         }.start()
     }
 
-    fun refresh() {
-        if (refreshing) return
+    fun refresh(onComplete: ((Boolean) -> Unit)? = null) {
+        onComplete?.let { refreshWaiters += it }
+        if (refreshing) {
+            refreshDirty = true
+            return
+        }
         refreshing = true
         Thread {
             try {
                 val reports = api.getPickerReports(100)
                 val results = api.getPickerResults(50)
                 activity.runOnUiThread {
-                    refreshing = false
                     pendingResults = results
                     renderHistory(reports)
                     stageAndShowNextResult()
                     updateReportEnabled()
+                    refreshing = false
+                    if (refreshDirty) {
+                        refreshDirty = false
+                        refresh()
+                    } else {
+                        finishRefreshWaiters(true)
+                    }
                 }
             } catch (e: Exception) {
-                activity.runOnUiThread { refreshing = false; updateReportEnabled(); setStatus(friendlyError(e)) }
+                activity.runOnUiThread {
+                    refreshing = false
+                    refreshDirty = false
+                    updateReportEnabled()
+                    setStatus(friendlyError(e))
+                    finishRefreshWaiters(false)
+                }
             }
         }.start()
+    }
+
+    private fun finishRefreshWaiters(success: Boolean) {
+        if (refreshWaiters.isEmpty()) return
+        val waiters = refreshWaiters.toList()
+        refreshWaiters.clear()
+        for (waiter in waiters) {
+            try { waiter(success) } catch (_: Exception) { }
+        }
     }
 
     private fun stageAndShowNextResult() {

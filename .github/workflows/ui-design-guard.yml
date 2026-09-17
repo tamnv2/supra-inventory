@@ -56,6 +56,9 @@ jobs:
       - name: Run Operational V2 regression fixtures
         run: python3 tools/operational_v2_regression.py
 
+      - name: Run realtime cursor regression fixtures
+        run: python3 tools/realtime_cursor_regression.py
+
       - name: Typecheck Worker service
         working-directory: service
         run: |

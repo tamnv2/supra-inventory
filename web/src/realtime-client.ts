@@ -1,6 +1,7 @@
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || window.location.origin).replace(/\/$/, "");
 const SESSION_KEY = "supra_inventory_beta_session_v1";
-const LAST_SEQ_PREFIX = "supra_inventory_realtime_seq_v2:";
+const APPLIED_SEQ_PREFIX = "supra_inventory_realtime_applied_seq_v3:";
+const STREAM_EPOCH_PREFIX = "supra_inventory_realtime_epoch_v3:";
 
 type StoredSession = {
   id_token?: string;
@@ -20,22 +21,50 @@ export type RealtimeEventFrame = {
   metadata?: Record<string, unknown>;
   server_time?: string;
   latest_seq?: number;
+  retained_from_seq?: number;
+  stream_epoch?: string;
 };
 
 type DeltaResponse = {
   events?: RealtimeEventFrame[];
   cursor_seq?: number;
   latest_seq?: number;
+  retained_from_seq?: number;
+  stream_epoch?: string;
+  has_more?: boolean;
+  resync_required?: boolean;
+  resync_reason?: string | null;
   complete?: boolean;
 };
+
+export type RealtimeApplyContext = {
+  source: "socket" | "delta" | "reconcile";
+  reason: string;
+  cursorSeq: number;
+  streamEpoch: string;
+};
+
+export type RealtimeApplier = (
+  events: RealtimeEventFrame[],
+  context: RealtimeApplyContext,
+) => Promise<boolean>;
 
 let socket: WebSocket | null = null;
 let connecting = false;
 let reconnectTimer: number | null = null;
+let dirtyTimer: number | null = null;
 let reconnectDelay = 1000;
 let connectedUserId = "";
-let lastSeq = 0;
+let appliedSeq = 0;
+let streamEpoch = "";
 let recovering = false;
+let dirty = false;
+let applier: RealtimeApplier | null = null;
+let processing: Promise<void> = Promise.resolve();
+
+export function registerRealtimeApplier(next: RealtimeApplier): void {
+  applier = next;
+}
 
 function readSession(): StoredSession | null {
   try {
@@ -50,36 +79,47 @@ function readSession(): StoredSession | null {
 }
 
 function seqStorageKey(userId: string): string {
-  return `${LAST_SEQ_PREFIX}${userId}`;
+  return `${APPLIED_SEQ_PREFIX}${userId}`;
 }
 
-function loadLastSeq(userId: string): number {
+function epochStorageKey(userId: string): string {
+  return `${STREAM_EPOCH_PREFIX}${userId}`;
+}
+
+function loadAppliedState(userId: string): void {
   const parsed = Number(sessionStorage.getItem(seqStorageKey(userId)) || 0);
-  return Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : 0;
+  appliedSeq = Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : 0;
+  streamEpoch = String(sessionStorage.getItem(epochStorageKey(userId)) || "");
 }
 
-function saveLastSeq(userId: string, value: number): void {
-  lastSeq = Math.max(0, Math.trunc(value || 0));
-  sessionStorage.setItem(seqStorageKey(userId), String(lastSeq));
+function saveAppliedState(userId: string, cursorSeq: number, epoch: string): void {
+  appliedSeq = Math.max(0, Math.trunc(cursorSeq || 0));
+  if (epoch) streamEpoch = epoch;
+  sessionStorage.setItem(seqStorageKey(userId), String(appliedSeq));
+  if (streamEpoch) sessionStorage.setItem(epochStorageKey(userId), streamEpoch);
+  emitStatus(socket?.readyState === WebSocket.OPEN ? "connected" : "reconnecting");
 }
 
-function emitStatus(state: "connected" | "connecting" | "reconnecting" | "offline", detail: Record<string, unknown> = {}): void {
-  window.dispatchEvent(new CustomEvent("supra:realtime-status", { detail: { state, lastSeq, ...detail } }));
-}
-
-function emitEvents(events: RealtimeEventFrame[], source: "socket" | "delta"): void {
-  if (!events.length) return;
-  window.dispatchEvent(new CustomEvent("supra:realtime", { detail: { events, source, lastSeq } }));
-}
-
-function emitReconcile(reason: string): void {
-  window.dispatchEvent(new CustomEvent("supra:reconcile", { detail: { reason, lastSeq } }));
+function emitStatus(
+  state: "connected" | "connecting" | "reconnecting" | "offline",
+  detail: Record<string, unknown> = {},
+): void {
+  window.dispatchEvent(new CustomEvent("supra:realtime-status", {
+    detail: { state, lastSeq: appliedSeq, appliedSeq, streamEpoch, dirty, ...detail },
+  }));
 }
 
 function clearReconnectTimer(): void {
   if (reconnectTimer !== null) {
     window.clearTimeout(reconnectTimer);
     reconnectTimer = null;
+  }
+}
+
+function clearDirtyTimer(): void {
+  if (dirtyTimer !== null) {
+    window.clearTimeout(dirtyTimer);
+    dirtyTimer = null;
   }
 }
 
@@ -92,6 +132,14 @@ function closeSocket(): void {
   if (current && current.readyState <= WebSocket.OPEN) {
     try { current.close(1000, "session-ended"); } catch { /* no-op */ }
   }
+}
+
+function enqueue(task: () => Promise<void>): void {
+  processing = processing
+    .then(task)
+    .catch(() => {
+      markDirty("processing_failed");
+    });
 }
 
 function scheduleReconnect(): void {
@@ -109,7 +157,22 @@ function scheduleReconnect(): void {
   reconnectDelay = Math.min(15_000, Math.round(reconnectDelay * 1.8));
 }
 
-async function requestTicket(token: string): Promise<{ ticket: string; latest_seq: number }> {
+function markDirty(reason: string): void {
+  dirty = true;
+  emitStatus(socket?.readyState === WebSocket.OPEN ? "connected" : "reconnecting", { dirty_reason: reason });
+  if (dirtyTimer !== null) return;
+  dirtyTimer = window.setTimeout(() => {
+    dirtyTimer = null;
+    enqueue(() => recoverDelta(`dirty:${reason}`));
+  }, 1500);
+}
+
+async function requestTicket(token: string): Promise<{
+  ticket: string;
+  latest_seq: number;
+  retained_from_seq: number;
+  stream_epoch: string;
+}> {
   const response = await fetch(`${API_BASE_URL}/api/realtime/ticket`, {
     method: "POST",
     headers: {
@@ -120,10 +183,21 @@ async function requestTicket(token: string): Promise<{ ticket: string; latest_se
     body: JSON.stringify({ client_type: "WEB" }),
   });
   const text = await response.text();
-  let payload: { ticket?: string; latest_seq?: number; error?: string } = {};
+  let payload: {
+    ticket?: string;
+    latest_seq?: number;
+    retained_from_seq?: number;
+    stream_epoch?: string;
+    error?: string;
+  } = {};
   try { payload = JSON.parse(text) as typeof payload; } catch { payload = {}; }
   if (!response.ok || !payload.ticket) throw new Error(payload.error || `realtime_ticket_http_${response.status}`);
-  return { ticket: payload.ticket, latest_seq: Number(payload.latest_seq || 0) };
+  return {
+    ticket: payload.ticket,
+    latest_seq: Number(payload.latest_seq || 0),
+    retained_from_seq: Number(payload.retained_from_seq || 0),
+    stream_epoch: String(payload.stream_epoch || ""),
+  };
 }
 
 function websocketUrl(ticket: string): string {
@@ -133,13 +207,46 @@ function websocketUrl(ticket: string): string {
   return url.toString();
 }
 
-async function fetchDelta(token: string, afterSeq: number): Promise<DeltaResponse> {
+async function fetchDelta(token: string, afterSeq: number, epoch: string): Promise<DeltaResponse> {
   const params = new URLSearchParams({ after_seq: String(Math.max(0, afterSeq)), limit: "100" });
+  if (epoch) params.set("stream_epoch", epoch);
   const response = await fetch(`${API_BASE_URL}/api/realtime/delta?${params.toString()}`, {
     headers: { authorization: `Bearer ${token}`, accept: "application/json" },
   });
   if (!response.ok) throw new Error(`realtime_delta_http_${response.status}`);
   return (await response.json()) as DeltaResponse;
+}
+
+async function applyThrough(
+  events: RealtimeEventFrame[],
+  source: "socket" | "delta" | "reconcile",
+  reason: string,
+  cursorSeq: number,
+  epoch: string,
+): Promise<boolean> {
+  if (!events.length && source !== "reconcile") return true;
+  const current = applier;
+  if (!current) return false;
+  try {
+    return await current(events, { source, reason, cursorSeq, streamEpoch: epoch });
+  } catch {
+    return false;
+  }
+}
+
+async function authoritativeReconcile(reason: string, cursorSeq: number, epoch: string): Promise<boolean> {
+  const session = readSession();
+  const userId = session?.user?.user_id;
+  if (!userId) return false;
+  const ok = await applyThrough([], "reconcile", reason, cursorSeq, epoch);
+  if (!ok) {
+    markDirty(`${reason}:reconcile_apply_failed`);
+    return false;
+  }
+  dirty = false;
+  clearDirtyTimer();
+  saveAppliedState(userId, cursorSeq, epoch);
+  return true;
 }
 
 async function recoverDelta(reason: string): Promise<void> {
@@ -148,26 +255,48 @@ async function recoverDelta(reason: string): Promise<void> {
   if (!session?.id_token || !session.user?.user_id) return;
   recovering = true;
   try {
-    let cursor = lastSeq;
+    let cursor = appliedSeq;
+    let epoch = streamEpoch;
     for (let page = 0; page < 8; page += 1) {
-      const delta = await fetchDelta(session.id_token, cursor);
-      const events = Array.isArray(delta.events) ? delta.events : [];
-      const ordered = events
+      const delta = await fetchDelta(session.id_token, cursor, epoch);
+      const serverEpoch = String(delta.stream_epoch || epoch);
+      const serverCursor = Math.max(0, Number(delta.cursor_seq ?? cursor));
+      const latestSeq = Math.max(0, Number(delta.latest_seq ?? serverCursor));
+
+      if (delta.resync_required === true || (epoch && serverEpoch && epoch !== serverEpoch)) {
+        await authoritativeReconcile(
+          `${reason}:${delta.resync_reason || "stream_reset"}`,
+          latestSeq,
+          serverEpoch,
+        );
+        return;
+      }
+
+      const events = (Array.isArray(delta.events) ? delta.events : [])
         .filter((event) => Number(event.seq || 0) > cursor)
         .sort((a, b) => Number(a.seq || 0) - Number(b.seq || 0));
-      for (const event of ordered) {
-        const seq = Number(event.seq || 0);
-        if (seq > cursor) cursor = seq;
+
+      const applied = await applyThrough(events, "delta", reason, serverCursor, serverEpoch);
+      if (!applied) {
+        markDirty(`${reason}:delta_apply_failed`);
+        return;
       }
-      if (ordered.length) emitEvents(ordered, "delta");
-      const serverCursor = Number(delta.cursor_seq ?? cursor);
-      if (serverCursor > cursor) cursor = serverCursor;
-      saveLastSeq(session.user.user_id, cursor);
-      if (delta.complete !== false) return;
+
+      dirty = false;
+      clearDirtyTimer();
+      saveAppliedState(session.user.user_id, serverCursor, serverEpoch);
+      cursor = serverCursor;
+      epoch = serverEpoch;
+
+      const hasMore = delta.has_more === true || (delta.has_more == null && delta.complete === false);
+      if (!hasMore) return;
+      if (serverCursor >= latestSeq) return;
     }
-    emitReconcile(`${reason}:delta_limit`);
+
+    // Page budget is only a continuation boundary. Never mark unseen pages as applied.
+    markDirty(`${reason}:delta_page_budget`);
   } catch {
-    emitReconcile(`${reason}:delta_failed`);
+    markDirty(`${reason}:delta_fetch_failed`);
   } finally {
     recovering = false;
   }
@@ -179,32 +308,51 @@ async function handleFrame(frame: RealtimeEventFrame): Promise<void> {
   if (!userId) return;
 
   if (frame.type === "connected") {
-    const latest = Number(frame.latest_seq || 0);
-    if (lastSeq === 0) {
-      saveLastSeq(userId, latest);
-      emitReconcile("initial_authoritative_sync");
-    } else if (latest < lastSeq) {
-      saveLastSeq(userId, latest);
-      emitReconcile("server_sequence_reset");
-    } else if (latest > lastSeq) {
-      await recoverDelta("reconnect_gap");
+    const latest = Math.max(0, Number(frame.latest_seq || 0));
+    const serverEpoch = String(frame.stream_epoch || streamEpoch);
+
+    if (streamEpoch && serverEpoch && streamEpoch !== serverEpoch) {
+      await authoritativeReconcile("server_epoch_changed", latest, serverEpoch);
+      return;
     }
+    if (appliedSeq === 0 && latest > 0) {
+      await authoritativeReconcile("initial_authoritative_sync", latest, serverEpoch);
+      return;
+    }
+    if (latest < appliedSeq) {
+      await authoritativeReconcile("server_sequence_reset", latest, serverEpoch);
+      return;
+    }
+    if (!streamEpoch && serverEpoch) {
+      saveAppliedState(userId, appliedSeq, serverEpoch);
+    }
+    if (latest > appliedSeq) await recoverDelta("reconnect_gap");
     return;
   }
 
   if (frame.type !== "invalidate") return;
   const seq = Number(frame.seq || 0);
   if (!seq) {
-    emitReconcile("unsequenced_event");
+    markDirty("unsequenced_event");
     return;
   }
-  if (seq <= lastSeq) return;
-  if (seq > lastSeq + 1) {
+  if (seq <= appliedSeq) return;
+
+  // A gap in the global sequence may contain unrelated Picker events. Delta scans the
+  // global window and advances cursor_seq across authorized gaps without requiring +1.
+  if (appliedSeq > 0 && seq > appliedSeq + 1) {
     await recoverDelta("sequence_gap");
     return;
   }
-  saveLastSeq(userId, seq);
-  emitEvents([frame], "socket");
+
+  const applied = await applyThrough([frame], "socket", "socket_event", seq, streamEpoch);
+  if (!applied) {
+    markDirty("socket_apply_failed");
+    return;
+  }
+  dirty = false;
+  clearDirtyTimer();
+  saveAppliedState(userId, seq, streamEpoch);
 }
 
 async function ensureRealtime(): Promise<void> {
@@ -216,7 +364,7 @@ async function ensureRealtime(): Promise<void> {
   }
 
   if (connectedUserId !== session.user.user_id) {
-    lastSeq = loadLastSeq(session.user.user_id);
+    loadAppliedState(session.user.user_id);
   }
   if (socket && socket.readyState === WebSocket.OPEN && connectedUserId === session.user.user_id) return;
   if (socket && socket.readyState === WebSocket.CONNECTING && connectedUserId === session.user.user_id) return;
@@ -228,8 +376,8 @@ async function ensureRealtime(): Promise<void> {
   emitStatus("connecting");
   try {
     const ticket = await requestTicket(session.id_token);
-    if (lastSeq === 0 && ticket.latest_seq > 0) {
-      // The connected frame will set the initial cursor and request an authoritative reconcile.
+    if (streamEpoch && ticket.stream_epoch && streamEpoch !== ticket.stream_epoch) {
+      // The connected frame will perform an authoritative epoch reconcile.
     }
     const next = new WebSocket(websocketUrl(ticket.ticket));
     socket = next;
@@ -241,9 +389,9 @@ async function ensureRealtime(): Promise<void> {
     next.onmessage = (event) => {
       try {
         const frame = JSON.parse(String(event.data || "{}")) as RealtimeEventFrame;
-        void handleFrame(frame);
+        enqueue(() => handleFrame(frame));
       } catch {
-        emitReconcile("malformed_realtime_frame");
+        markDirty("malformed_realtime_frame");
       }
     };
     next.onerror = () => {
@@ -264,8 +412,14 @@ async function ensureRealtime(): Promise<void> {
 
 window.setInterval(() => void ensureRealtime(), 5000);
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") void ensureRealtime();
+  if (document.visibilityState === "visible") {
+    void ensureRealtime();
+    if (dirty) markDirty("visibility_resume");
+  }
 });
-window.addEventListener("beforeunload", closeSocket);
+window.addEventListener("beforeunload", () => {
+  clearDirtyTimer();
+  closeSocket();
+});
 window.addEventListener("supra:session-changed", () => void ensureRealtime());
 void ensureRealtime();

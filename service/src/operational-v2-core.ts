@@ -16,7 +16,8 @@ type RealtimeRole = "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
 
 const SLA_CONFIG_KEY = "operational_sla_v1";
 const OPERATIONAL_SCHEMA_KEY = "operational_v2_schema_version";
-export const OPERATIONAL_V2_SCHEMA_VERSION = 2;
+const REALTIME_STREAM_EPOCH_KEY = "realtime_stream_epoch_v1";
+export const OPERATIONAL_V2_SCHEMA_VERSION = 3;
 const MAX_DELTA_LIMIT = 200;
 
 function json(payload: unknown, status = 200): Response {
@@ -55,6 +56,64 @@ function storedOperationalSchemaVersion(state: DurableObjectState): number {
   return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
 }
 
+function readRealtimeStreamEpoch(state: DurableObjectState): string {
+  const row = first(
+    state.storage.sql
+      .exec<SqlRow>("SELECT value_json FROM app_config WHERE key = ? LIMIT 1", REALTIME_STREAM_EPOCH_KEY)
+      .toArray(),
+  );
+  if (!row?.value_json) return "";
+  try {
+    const parsed = JSON.parse(String(row.value_json)) as { epoch?: unknown };
+    return String(parsed.epoch || "").trim();
+  } catch {
+    return "";
+  }
+}
+
+function ensureRealtimeStreamEpoch(state: DurableObjectState): string {
+  const existing = readRealtimeStreamEpoch(state);
+  if (existing) return existing;
+  const epoch = crypto.randomUUID();
+  const at = new Date().toISOString();
+  state.storage.sql.exec(
+    `INSERT INTO app_config (key, value_json, updated_at, updated_by)
+     VALUES (?, ?, ?, NULL)
+     ON CONFLICT(key) DO UPDATE SET
+       value_json = CASE
+         WHEN app_config.value_json IS NULL OR app_config.value_json = '' THEN excluded.value_json
+         ELSE app_config.value_json
+       END,
+       updated_at = CASE
+         WHEN app_config.value_json IS NULL OR app_config.value_json = '' THEN excluded.updated_at
+         ELSE app_config.updated_at
+       END`,
+    REALTIME_STREAM_EPOCH_KEY,
+    JSON.stringify({ epoch }),
+    at,
+  );
+  return readRealtimeStreamEpoch(state) || epoch;
+}
+
+export function realtimeStreamMetadata(state: DurableObjectState): {
+  stream_epoch: string;
+  latest_seq: number;
+  retained_from_seq: number;
+} {
+  const row = first(
+    state.storage.sql
+      .exec<SqlRow>(
+        "SELECT COALESCE(MIN(seq),0) AS retained_from_seq, COALESCE(MAX(seq),0) AS latest_seq FROM realtime_events",
+      )
+      .toArray(),
+  ) || {};
+  return {
+    stream_epoch: readRealtimeStreamEpoch(state),
+    latest_seq: Number(row.latest_seq || 0),
+    retained_from_seq: Number(row.retained_from_seq || 0),
+  };
+}
+
 export function operationalV2Readiness(state: DurableObjectState): {
   ready: boolean;
   schema_version: number;
@@ -69,6 +128,7 @@ export function operationalV2Readiness(state: DurableObjectState): {
     hasSqlObject(state, "table", "realtime_events") &&
     hasSqlObject(state, "table", "result_acknowledgements") &&
     hasSqlObject(state, "table", "result_event_snapshots") &&
+    Boolean(readRealtimeStreamEpoch(state)) &&
     hasSqlObject(state, "trigger", "trg_v2_report_event_stream") &&
     hasSqlObject(state, "trigger", "trg_v2_result_ack_targets");
   return {
@@ -370,6 +430,7 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
   `);
 
   backfillResultEventSnapshots(state);
+  ensureRealtimeStreamEpoch(state);
 
   sql.exec(
     `INSERT INTO schema_meta (key, value, updated_at)
@@ -817,46 +878,58 @@ function delta(state: DurableObjectState, url: URL): Response {
   const limit = Math.max(1, Math.min(MAX_DELTA_LIMIT, Number.isFinite(limitRaw) ? Math.trunc(limitRaw) : 100));
   const role = String(url.searchParams.get("role") || "") as RealtimeRole;
   const userId = String(url.searchParams.get("user_id") || "").trim();
+  const clientEpoch = String(url.searchParams.get("stream_epoch") || "").trim();
   if (!["PICKER", "REPORTER", "ADMIN", "ROOT"].includes(role) || !userId) {
     return json({ error: "INVALID_REALTIME_IDENTITY" }, 400);
   }
 
-  const latestRow = first(state.storage.sql.exec<SqlRow>("SELECT COALESCE(MAX(seq),0) AS latest_seq FROM realtime_events").toArray()) || {};
-  const latestSeq = Number(latestRow.latest_seq || 0);
-  const rows = state.storage.sql.exec<SqlRow>(
+  const stream = realtimeStreamMetadata(state);
+  const epochMismatch = Boolean(clientEpoch && clientEpoch !== stream.stream_epoch);
+  const cursorAhead = afterSeq > stream.latest_seq;
+  const retentionGap = stream.retained_from_seq > 0 && afterSeq < stream.retained_from_seq - 1;
+  if (epochMismatch || cursorAhead || retentionGap) {
+    return json({
+      after_seq: afterSeq,
+      events: [],
+      count: 0,
+      latest_seq: stream.latest_seq,
+      cursor_seq: stream.latest_seq,
+      retained_from_seq: stream.retained_from_seq,
+      stream_epoch: stream.stream_epoch,
+      has_more: false,
+      resync_required: true,
+      resync_reason: epochMismatch
+        ? "STREAM_EPOCH_CHANGED"
+        : (cursorAhead ? "CURSOR_AHEAD_OF_STREAM" : "CURSOR_BEFORE_RETENTION"),
+      complete: false,
+      limit,
+      scanned_count: 0,
+    });
+  }
+
+  // Scan a bounded global window, then project only events authorized for this principal.
+  // cursor_seq therefore advances across other users' global sequence numbers without
+  // pretending that an authorized Picker stream must be numerically contiguous.
+  const scanned = state.storage.sql.exec<SqlRow>(
     `SELECT e.seq, e.event_id, e.event_type, e.batch_id, e.ticket_id,
             e.batch_version, e.scopes_json, e.payload_json, e.created_at
        FROM realtime_events e
       WHERE e.seq > ?
-        AND (
-          ? <> 'PICKER'
-          OR (
-            (e.ticket_id IS NOT NULL AND EXISTS (
-              SELECT 1 FROM report_tickets t
-               WHERE t.ticket_id = e.ticket_id AND t.picker_user_id = ?
-            ))
-            OR EXISTS (
-              SELECT 1 FROM result_acknowledgements a
-               WHERE a.result_event_id = e.event_id AND a.target_user_id = ?
-            )
-            OR EXISTS (
-              SELECT 1 FROM report_events r
-               WHERE r.event_id = e.event_id AND r.actor_user_id = ?
-            )
-          )
-        )
       ORDER BY e.seq ASC
       LIMIT ?`,
     afterSeq,
-    role,
-    userId,
-    userId,
-    userId,
-    limit + 1,
+    limit,
   ).toArray();
 
-  const hasMore = rows.length > limit;
-  const selected = hasMore ? rows.slice(0, limit) : rows;
+  const selected = role === "PICKER"
+    ? scanned.filter((row) => pickerCanReceiveRealtimeEvent(
+        state,
+        String(row.event_id || ""),
+        row.ticket_id == null ? null : String(row.ticket_id),
+        userId,
+      ))
+    : scanned;
+
   const events = selected.map((row) => {
     const eventId = String(row.event_id || "");
     const eventType = String(row.event_type || "");
@@ -883,17 +956,25 @@ function delta(state: DurableObjectState, url: URL): Response {
     };
   });
 
-  const cursorSeq = hasMore
-    ? Number(selected[selected.length - 1]?.seq || afterSeq)
-    : latestSeq;
+  const cursorSeq = scanned.length
+    ? Number(scanned[scanned.length - 1]?.seq || afterSeq)
+    : Math.min(afterSeq, stream.latest_seq);
+  const hasMore = cursorSeq < stream.latest_seq;
   return json({
     after_seq: afterSeq,
     events,
     count: events.length,
-    latest_seq: latestSeq,
+    latest_seq: stream.latest_seq,
     cursor_seq: cursorSeq,
+    retained_from_seq: stream.retained_from_seq,
+    stream_epoch: stream.stream_epoch,
+    has_more: hasMore,
+    resync_required: false,
+    resync_reason: null,
+    // Compatibility marker for older clients. New clients use has_more/resync_required.
     complete: !hasMore,
     limit,
+    scanned_count: scanned.length,
   });
 }
 

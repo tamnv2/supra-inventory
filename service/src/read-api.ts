@@ -99,6 +99,7 @@ export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<
       after_seq: url.searchParams.get("after_seq") || "0",
     });
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
+    if (url.searchParams.has("stream_epoch")) params.set("stream_epoch", url.searchParams.get("stream_epoch") || "");
     return core(env).fetch(`https://inventory-core.internal/operational/realtime/delta?${params.toString()}`);
   }
 

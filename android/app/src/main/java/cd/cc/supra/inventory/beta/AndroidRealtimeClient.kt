@@ -1,5 +1,6 @@
 package cd.cc.supra.inventory.beta
 
+import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import okhttp3.OkHttpClient
@@ -10,15 +11,18 @@ import okhttp3.WebSocketListener
 import org.json.JSONObject
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.math.min
 
-// Foreground realtime: ordered sequence + bounded delta recovery. Database/API remain authoritative.
+// Foreground realtime: global scan cursor + role-authorized delta + applied-state recovery.
 class AndroidRealtimeClient(
+    context: Context,
     private val api: InventoryApi,
     private val baseUrl: String,
-    private val onInvalidate: (Set<String>) -> Unit,
+    private val userId: String,
+    private val onApply: (Set<String>, (Boolean) -> Unit) -> Unit,
 ) {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val executor = Executors.newSingleThreadExecutor()
@@ -26,13 +30,16 @@ class AndroidRealtimeClient(
         .pingInterval(20, TimeUnit.SECONDS)
         .retryOnConnectionFailure(true)
         .build()
+    private val prefs = context.getSharedPreferences("realtime_cursor_v3", Context.MODE_PRIVATE)
 
     @Volatile private var stopped = true
     @Volatile private var connecting = false
     @Volatile private var socket: WebSocket? = null
     @Volatile private var reconnectDelayMs = 1_000L
     @Volatile private var recovering = false
-    @Volatile private var lastSeq = 0L
+    @Volatile private var dirtyRecoveryScheduled = false
+    @Volatile private var appliedSeq = prefs.getLong("seq:$userId", 0L).coerceAtLeast(0L)
+    @Volatile private var streamEpoch = prefs.getString("epoch:$userId", "").orEmpty()
 
     fun start() {
         if (!stopped) return
@@ -44,6 +51,7 @@ class AndroidRealtimeClient(
     fun stop() {
         stopped = true
         connecting = false
+        dirtyRecoveryScheduled = false
         mainHandler.removeCallbacksAndMessages(null)
         socket?.close(1000, "session-ended")
         socket = null
@@ -86,17 +94,17 @@ class AndroidRealtimeClient(
         }
 
         override fun onMessage(webSocket: WebSocket, text: String) {
-            try {
-                val payload = JSONObject(text)
-                when (payload.optString("type")) {
-                    "connected" -> {
-                        val latest = payload.optLong("latest_seq", 0L)
-                        if (latest > lastSeq) recoverDeltaAsync("connected")
+            if (stopped || executor.isShutdown) return
+            executor.execute {
+                try {
+                    val payload = JSONObject(text)
+                    when (payload.optString("type")) {
+                        "connected" -> handleConnected(payload)
+                        "invalidate" -> handleInvalidate(payload)
                     }
-                    "invalidate" -> handleInvalidate(payload)
+                } catch (_: Exception) {
+                    scheduleDirtyRecovery("malformed_frame")
                 }
-            } catch (_: Exception) {
-                reconcileAuthoritatively()
             }
         }
 
@@ -117,61 +125,147 @@ class AndroidRealtimeClient(
         }
     }
 
+    private fun handleConnected(payload: JSONObject) {
+        val latest = payload.optLong("latest_seq", 0L).coerceAtLeast(0L)
+        val serverEpoch = payload.optString("stream_epoch", streamEpoch)
+
+        when {
+            streamEpoch.isNotBlank() && serverEpoch.isNotBlank() && streamEpoch != serverEpoch ->
+                reconcileAndCommit("stream_epoch_changed", latest, serverEpoch)
+            appliedSeq == 0L && latest > 0L ->
+                reconcileAndCommit("initial_authoritative_sync", latest, serverEpoch)
+            latest < appliedSeq ->
+                reconcileAndCommit("server_sequence_reset", latest, serverEpoch)
+            else -> {
+                if (streamEpoch.isBlank() && serverEpoch.isNotBlank()) saveApplied(appliedSeq, serverEpoch)
+                if (latest > appliedSeq) recoverDelta("connected")
+            }
+        }
+    }
+
     private fun handleInvalidate(payload: JSONObject) {
         val seq = payload.optLong("seq", 0L)
         if (seq <= 0L) {
-            reconcileAuthoritatively()
+            scheduleDirtyRecovery("unsequenced_event")
             return
         }
-        if (seq <= lastSeq) return
-        if (lastSeq > 0L && seq > lastSeq + 1L) {
-            recoverDeltaAsync("sequence_gap")
-            return
-        }
-        lastSeq = seq
-        dispatchScopes(readScopes(payload))
-    }
+        if (seq <= appliedSeq) return
 
-    private fun recoverDeltaAsync(reason: String) {
-        if (stopped || recovering || executor.isShutdown) return
-        recovering = true
-        executor.execute {
-            try {
-                recoverDelta(reason)
-            } finally {
-                recovering = false
-            }
+        // Global sequence gaps may contain events authorized only for another principal.
+        // Recover through server scan cursor instead of requiring Picker events to be +1.
+        if (appliedSeq > 0L && seq > appliedSeq + 1L) {
+            recoverDelta("sequence_gap")
+            return
         }
+
+        val scopes = readScopes(payload)
+        if (!applyScopesAndWait(scopes)) {
+            scheduleDirtyRecovery("socket_apply_failed")
+            return
+        }
+        saveApplied(seq, streamEpoch)
     }
 
     private fun recoverDelta(reason: String) {
-        var cursor = lastSeq
-        val scopes = linkedSetOf<String>()
+        if (stopped || recovering || executor.isShutdown) return
+        recovering = true
         try {
+            var cursor = appliedSeq
+            var epoch = streamEpoch
             repeat(8) {
                 if (stopped) return
-                val page = api.getRealtimeDelta(cursor, 100)
-                val ordered = page.events.filter { it.seq > cursor }.sortedBy { it.seq }
-                for (event in ordered) {
-                    if (event.seq <= cursor) continue
-                    if (cursor > 0L && event.seq > cursor + 1L) {
-                        reconcileAuthoritatively()
-                        return
-                    }
-                    cursor = event.seq
-                    scopes += event.scopes
-                }
-                if (page.cursorSeq > cursor) cursor = page.cursorSeq
-                lastSeq = cursor
-                if (page.complete) {
-                    dispatchScopes(scopes)
+                val page = api.getRealtimeDelta(cursor, epoch, 100)
+                val serverEpoch = page.streamEpoch.ifBlank { epoch }
+
+                if (page.resyncRequired || (epoch.isNotBlank() && serverEpoch.isNotBlank() && epoch != serverEpoch)) {
+                    reconcileAndCommit(
+                        "$reason:${page.resyncReason ?: "stream_reset"}",
+                        page.latestSeq,
+                        serverEpoch,
+                    )
                     return
                 }
+
+                val scopes = linkedSetOf<String>()
+                page.events
+                    .filter { it.seq > cursor }
+                    .sortedBy { it.seq }
+                    .forEach { event -> scopes += event.scopes }
+
+                if (!applyScopesAndWait(scopes)) {
+                    scheduleDirtyRecovery("$reason:delta_apply_failed")
+                    return
+                }
+
+                val serverCursor = page.cursorSeq.coerceAtLeast(cursor)
+                saveApplied(serverCursor, serverEpoch)
+                cursor = serverCursor
+                epoch = serverEpoch
+
+                if (!page.hasMore || cursor >= page.latestSeq) return
             }
-            reconcileAuthoritatively()
+
+            // The page budget is a continuation boundary only; unseen pages remain unapplied.
+            scheduleDirtyRecovery("$reason:delta_page_budget")
         } catch (_: Exception) {
-            if (reason.isNotBlank()) reconcileAuthoritatively()
+            scheduleDirtyRecovery("$reason:delta_fetch_failed")
+        } finally {
+            recovering = false
         }
+    }
+
+    private fun reconcileAndCommit(reason: String, cursor: Long, epoch: String) {
+        if (!applyScopesAndWait(setOf("picker_reports", "reporter_queue", "reporter_recent", "sku_catalog"))) {
+            scheduleDirtyRecovery("$reason:reconcile_apply_failed")
+            return
+        }
+        saveApplied(cursor.coerceAtLeast(0L), epoch)
+    }
+
+    private fun applyScopesAndWait(scopes: Set<String>): Boolean {
+        if (scopes.isEmpty() || stopped) return true
+        val latch = CountDownLatch(1)
+        var success = false
+        mainHandler.post {
+            if (stopped) {
+                latch.countDown()
+                return@post
+            }
+            try {
+                onApply(scopes) {
+                    success = it
+                    latch.countDown()
+                }
+            } catch (_: Exception) {
+                latch.countDown()
+            }
+        }
+        return try {
+            latch.await(20, TimeUnit.SECONDS) && success
+        } catch (_: InterruptedException) {
+            Thread.currentThread().interrupt()
+            false
+        }
+    }
+
+    private fun saveApplied(cursor: Long, epoch: String) {
+        appliedSeq = cursor.coerceAtLeast(0L)
+        if (epoch.isNotBlank()) streamEpoch = epoch
+        prefs.edit()
+            .putLong("seq:$userId", appliedSeq)
+            .putString("epoch:$userId", streamEpoch)
+            .apply()
+    }
+
+    private fun scheduleDirtyRecovery(reason: String) {
+        if (stopped || dirtyRecoveryScheduled) return
+        dirtyRecoveryScheduled = true
+        mainHandler.postDelayed({
+            dirtyRecoveryScheduled = false
+            if (!stopped && !executor.isShutdown) {
+                executor.execute { recoverDelta("dirty:$reason") }
+            }
+        }, 1_500L)
     }
 
     private fun readScopes(payload: JSONObject): Set<String> {
@@ -182,15 +276,6 @@ class AndroidRealtimeClient(
             if (value.isNotBlank()) scopes += value
         }
         return scopes
-    }
-
-    private fun dispatchScopes(scopes: Set<String>) {
-        if (scopes.isEmpty() || stopped) return
-        mainHandler.post { if (!stopped) onInvalidate(scopes) }
-    }
-
-    private fun reconcileAuthoritatively() {
-        dispatchScopes(setOf("picker_reports", "reporter_queue", "reporter_recent", "sku_catalog"))
     }
 
     private fun scheduleReconnect() {

@@ -112,4 +112,23 @@ Critical result payload is immutable per `result_event_id`.
 - Picker realtime frames expose only Picker-relevant scopes and a role-projected snapshot; Reporter/Admin/Root may receive the broader operational projection allowed by RBAC.
 - Event `batch_version` is the version captured when the event was emitted. A newer current batch version may be exposed separately but must not replace the historical event version.
 - Result notification targets are the exact result-event targets; a Picker withdrawn before resolution is not a result/FCM target.
+## Global scan cursor and applied cursor
 
+The realtime sequence is global to InventoryCore. A role-authorized client stream is therefore not required to contain numerically contiguous event sequences.
+
+Server delta contract:
+- `cursor_seq` is the highest global sequence position the server scanned for that page, including rows filtered out by role/user projection.
+- `has_more` means additional global rows remain after `cursor_seq`.
+- `stream_epoch` identifies the current realtime sequence epoch.
+- `retained_from_seq` is the oldest retained global sequence when history exists.
+- `resync_required` explicitly distinguishes an unrecoverable cursor/epoch/retention condition from ordinary pagination.
+- `resync_reason` identifies at least epoch change, cursor ahead of stream, or cursor before retained history.
+- `complete` may remain only as backward-compatible pagination metadata; new clients must use `has_more` and `resync_required`.
+
+Client contract:
+- keep an **applied cursor**, not merely the highest sequence received or scanned;
+- apply/refresh the affected authoritative read model first, then persist the returned page/socket cursor only after that application succeeds;
+- a failed read-model fetch leaves the applied cursor unchanged and marks recovery dirty so retry occurs even if no later realtime event arrives;
+- serialize realtime application per authenticated session so overlapping callbacks cannot acknowledge state out of order;
+- a global sequence gap may contain only events belonging to other principals and must be recovered through delta scanning rather than treated as missing authorized data;
+- page-budget exhaustion schedules bounded continuation/recovery; it never marks unseen pages as applied.

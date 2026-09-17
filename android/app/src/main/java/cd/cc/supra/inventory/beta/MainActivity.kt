@@ -358,13 +358,23 @@ class MainActivity : Activity() {
     private fun startRealtime(session: AppSession) {
         realtimeClient?.stop()
         realtimeClient = AndroidRealtimeClient(
+            context = applicationContext,
             api = api,
             baseUrl = BuildConfig.API_BASE_URL.trimEnd('/'),
-        ) { scopes ->
+            userId = session.userId,
+        ) { scopes, completion ->
             runOnUiThread {
-                if (api.session == null || isFinishing) return@runOnUiThread
-                if (session.role == "PICKER") pickerController?.onRealtime(scopes)
-                else reporterController?.onRealtime(scopes)
+                if (api.session == null || isFinishing) {
+                    completion(false)
+                    return@runOnUiThread
+                }
+                if (session.role == "PICKER") {
+                    val controller = pickerController
+                    if (controller != null) controller.onRealtime(scopes, completion) else completion(true)
+                } else {
+                    val controller = reporterController
+                    if (controller != null) controller.onRealtime(scopes, completion) else completion(true)
+                }
             }
         }.also { it.start() }
     }
