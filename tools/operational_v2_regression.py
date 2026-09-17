@@ -23,8 +23,8 @@ def require_source_markers() -> None:
         "immutable result snapshot table": "CREATE TABLE IF NOT EXISTS result_event_snapshots",
         "pending result reads snapshot": "JOIN result_event_snapshots s ON s.result_event_id = a.result_event_id",
         "event snapshot written at mutation": "INSERT OR IGNORE INTO result_event_snapshots",
-        "picker delta ticket ownership": "WHERE t.ticket_id = e.ticket_id AND t.picker_user_id = ?",
-        "picker delta result targeting": "WHERE a.result_event_id = e.event_id AND a.target_user_id = ?",
+        "picker delta ticket ownership": "WHERE t.ticket_id = ? AND t.picker_user_id = ?",
+        "picker delta result targeting": "WHERE a.result_event_id = ? AND a.target_user_id = ?",
         "event version stays historical": "batch_version: Number(row.batch_version || 0)",
     }
     haystacks = {
