@@ -14,7 +14,7 @@ Never collapse these levels into one generic “done”.
 
 ## Current field frontier
 
-The current technical Beta baseline is `beta-vc33`, schema v5. PR #8 passed authority, continuity, Practical Balanced source validation, Worker typecheck, Web production and Android debug gates. After merge, main again passed authority, continuity and Practical Balanced/Android debug gates, and published the signed monotonic Android release `beta-vc33` from source `21cc34e82c229fc686801e8f00476438555f89cb`. The native narrow-screen header/footer/labels, adaptive full-brand launcher icon, removal of Application-level post-layout UI rewriting, and single fail-closed latest-version login gate with automatic APK download, SHA-256 verification and Android installer handoff are therefore **technical source/build/sign/release PASS**. This Android-only change did not require a Worker runtime mutation. Physical-device behavior and Owner business acceptance remain separate evidence levels.
+The current proven technical Beta baseline remains `beta-vc33`, schema v5, until a newer signed release completes the full branch → PR → guarded merge → deploy/build/release evidence chain. `beta-vc33` passed native narrow-screen UI/update-gate remediation and remains the rollback/reference baseline while the Owner-approved Picker/Reporter operational layout is implemented.
 
 Physical logged-in PDA FCM delivery and Owner field/business acceptance remain separate pending evidence even after technical build/deploy PASS.
 
@@ -24,6 +24,12 @@ After business/UI changes, verify the affected role journey end-to-end and prese
 - Picker report/search/own-state/60-second withdrawal rules;
 - Reporter queue/batch detail/HAS_STOCK/SKIP_ALLOWED/5-minute correction;
 - Picker/Reporter workflows remain visually dominant and fast on PDA;
+- approved Android operational header shows `BÁO HÀNG 1291`, identity, `Log`, `Thoát`, role and compact Beta build state without restoring a large diagnostic/identity block;
+- Picker entry is one compact row with `Nhập tối thiểu 3 số SKU vào đây` + `BÁO HẾT HÀNG`, followed directly by `Lịch sử báo hàng hôm nay`;
+- Picker history status cards remain explicit and distinguish pending/yellow, has-stock/green, skip/red-pink and withdrawn/neutral states without relying on color alone;
+- Reporter top filters remain `Đang xử lý`, `Đã có hàng`, `Đã cho skip`, `Picker thu hồi`;
+- Reporter pending cards keep SKU/product + first-report/affected context and equal `CÓ HÀNG` / `CHO SKIP HÀNG` actions;
+- Reporter `Picker thu hồi` view is backed by real `CLOSED` withdrawal-only batch read data rather than a decorative placeholder;
 - Root inherits Admin + Reporter and can create/manage Admin and Reporter while remaining protected from subordinate management;
 - Admin can manage Reporter; Admin/Root can explicitly open/disable/delete one, many or all Picker accounts;
 - HR source accepts configured Mã nhân viên/Họ và tên column names and does not auto-disable/delete absent Pickers or auto-reactivate deliberately disabled Pickers;

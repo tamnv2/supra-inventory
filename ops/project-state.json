@@ -19,7 +19,7 @@
     "business_api": "IMPLEMENTED_AND_DEPLOYED_BETA_SCHEMA_V5",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS",
     "web": "PRACTICAL_BALANCED_CANONICAL_SOURCE_BETA_DEPLOY_SMOKE_PASS",
-    "android": "PRACTICAL_BALANCED_SIGNED_BETA_VC33_NATIVE_UI_FAIL_CLOSED_UPDATE_GATE_PASS",
+    "android": "PRACTICAL_BALANCED_VC34_APPROVED_OPERATIONAL_LAYOUT_IN_PROGRESS",
     "latest_beta_apk": "beta-vc33",
     "realtime": "WEBSOCKET_SERVER_WEB_ANDROID_CLIENT_DEPLOYED_SIGNED_PASS",
     "network_scope": "PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_BY_OWNER_DECISION",
@@ -57,6 +57,7 @@
     "Practical Balanced / Phương án 1 is the active UI direction, prioritizing Picker/Reporter SKU/report work and using explicit business labels, relevant icons and consistent typography.",
     "Android/PDA Beta must verify it is the latest valid signed Beta version before login; an older or unverifiable build cannot log in.",
     "Android/PDA UI is narrow-screen-first, removes non-operational explanatory/design-discussion text, uses a full-brand adaptive launcher icon without an added white wrapper, and uses the shorter Android product credit.",
+    "Android/PDA approved operational layout uses compact BÁO HÀNG 1291 identity/header; Picker uses one-row SKU entry plus BÁO HẾT HÀNG and today status cards; Reporter uses four state filters and equal CÓ HÀNG / CHO SKIP HÀNG actions, with Picker thu hồi backed by real CLOSED withdrawal batches.",
     "Detailed operational retention target is about 60 days; unresolved items survive retention until resolved; long-term archive is batched to Drive/Sheets.",
     "Foreground realtime uses WebSocket; background notification uses FCM; client reload is not synchronization logic.",
     "SKU Excel imports support 10,000-50,000 rows, use bounded idempotent chunks, merge identical duplicate rows, require an explicit choice for conflicting names inside the file, retain old SKUs absent from a later file, and require confirmation before renaming an existing SKU.",
@@ -104,12 +105,13 @@
     "Android Beta vc33 native remediation: PR #8 authority/continuity/Practical Balanced source/Worker typecheck/Web production/Android debug PASS; merged source 21cc34e82c229fc686801e8f00476438555f89cb; post-merge authority/continuity/UI build guards PASS; signed beta-vc33 versionCode 33 published, APK SHA-256 192c39ee66e68795af147a8ab4f0b8164207fe41e93ad445e75c0c63045adda5, size 9168694 bytes; native narrow-screen UI, direct operational labels/footer, adaptive launcher icon, single fail-closed latest-version login gate, APK download/SHA-256 verification/installer handoff, and removal of Application-level post-layout UI rewriting are technical release PASS"
   ],
   "pending_build": [
+    "Android vc34 Owner-approved Picker/Reporter operational layout: source + Reporter CLOSED withdrawal read-model implementation is in progress and must pass PR guards, Beta deploy and signed release before replacing vc33 baseline.",
     "Field-verify FCM delivery on a physical logged-in PDA; technical foundation is deployed",
     "Owner business/UI acceptance of Practical Balanced Beta Web/PDA",
     "Isolated business-mutation load acceptance after Owner scale target is defined"
   ],
   "field_pending": [
-    "Owner physical-PDA verification of signed beta-vc33 remains required for field/UI acceptance: update gate/install handoff, Picker login/default-password behavior, narrow-screen layout, launcher icon and role workflows.",
+    "Owner physical-PDA verification remains required after signed vc34: approved Picker/Reporter layout, update gate/install handoff, Picker login/default-password behavior, launcher icon and role workflows.",
     "Physical logged-in PDA FCM delivery remains field-pending."
   ],
   "open_decisions_do_not_invent": [
@@ -121,8 +123,8 @@
     "Any new offline-create-report behavior; do not add direct-to-Sheet fallback unless Owner explicitly approves it."
   ],
   "next_action": {
-    "primary": "Owner field-test signed beta-vc33 on a physical PDA: confirm update gate/install handoff, Picker login/default-password behavior, narrow-screen UI alignment, launcher icon and operational role workflows; report numbered findings if any.",
-    "method": "Use beta-vc33 as the current technical Beta baseline. Source/build/sign/release gates are PASS; physical-device and Owner business acceptance remain separate evidence levels.",
+    "primary": "Finish Android vc34 Owner-approved Picker/Reporter layout through branch -> PR -> authority + continuity + Practical Balanced build guard -> merge, then automatically verify Beta Worker deploy and signed monotonic APK release.",
+    "method": "Keep beta-vc33 as the proven runtime baseline until post-merge deploy/sign/release evidence proves vc34. Stable remains untouched.",
     "stable_guard": "Do not activate Stable."
   },
   "continuity_policy": {
@@ -149,14 +151,21 @@
     "model": "REPO_NATIVE_COMPLETE"
   },
   "workboard": {
-    "in_progress": [],
+    "in_progress": [
+      "Android vc34 approved compact BÁO HÀNG 1291 operational header",
+      "Picker one-row SKU entry/BÁO HẾT HÀNG + today status-card history layout",
+      "Reporter four-state tabs + equal CÓ HÀNG/CHO SKIP HÀNG action-card layout",
+      "Reporter recent read model includes real CLOSED batches for Picker thu hồi"
+    ],
     "next": [
-      "Owner field-test signed beta-vc33 on physical PDA and report numbered findings if any",
-      "Field-verify foreground realtime and background FCM delivery on a logged-in physical PDA",
-      "Run isolated business-mutation load acceptance after Owner defines scale target/test boundary"
+      "Open PR and pass authority + continuity + Practical Balanced Android/Worker/Web build guard",
+      "Merge only after required checks PASS",
+      "Poll Beta Worker deploy and signed Android release until terminal PASS",
+      "Record vc34 runtime evidence in canonical state/resource views",
+      "Owner field-test the resulting signed APK on physical PDA"
     ],
     "blocked_or_owner_field_dependent": [
-      "Owner business/UI acceptance of beta-vc33 on physical PDA",
+      "Owner business/UI acceptance of the next signed vc34 on physical PDA",
       "Physical PDA FCM delivery acceptance",
       "Isolated mutation load acceptance requires an Owner workload target/test boundary"
     ],
@@ -168,7 +177,7 @@
       "signed_beta_apk_size_bytes": 9168694,
       "runtime_source_commit": "21cc34e82c229fc686801e8f00476438555f89cb",
       "runtime_ui_baseline": "PRACTICAL_BALANCED_NATIVE_ANDROID",
-      "verification_basis": "PR #8 authority + continuity + Practical Balanced source guard + Worker typecheck + Web production + Android debug PASS; post-merge main authority + continuity + Practical Balanced/Android debug PASS; signed Android beta-vc33 release publish PASS with monotonic 32→33 versionCode. Android-only change required no Worker runtime mutation."
+      "verification_basis": "PR #8 authority + continuity + Practical Balanced source guard + Worker typecheck + Web production + Android debug PASS; post-merge main authority + continuity + Practical Balanced/Android debug PASS; signed Android beta-vc33 release publish PASS with monotonic 32→33 versionCode."
     }
   },
   "authority_setup": {

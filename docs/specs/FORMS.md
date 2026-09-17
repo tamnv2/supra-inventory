@@ -16,24 +16,28 @@ Rules:
 ## Picker report — Android/PDA
 
 Inputs/actions:
-- Search/select SKU from local server-synchronized catalog.
+- One horizontal operational row: SKU input `Nhập tối thiểu 3 số SKU vào đây` + primary `BÁO HẾT HÀNG` action.
+- Search/select SKU from local server-synchronized catalog; suggestions may appear compactly under the input.
 - Product name is derived from selected SKU, not free-form inventory data.
-- Submit `Báo SKU hết hàng`.
-- View `Lịch sử báo hàng` / own current and recent reports.
-- Withdraw button appears only when server rules allow unresolved withdrawal within 60 seconds.
+- Submit `Báo SKU hết hàng` only after a valid catalog SKU is selected/resolved.
+- Show `Lịch sử báo hàng hôm nay` immediately below the entry area.
+- Each history item shows `SKU - Tên sản phẩm`, report time and explicit business status.
+- Withdraw control appears only when server rules allow unresolved withdrawal within 60 seconds.
 
 Do not add location/bin or quantity fields.
 
 ## Reporter queue — Web/Android where allowed
 
 Display/actions:
+- Android top filters: `Đang xử lý`, `Đã có hàng`, `Đã cho skip`, `Picker thu hồi`.
 - SKU + product name.
-- affected Picker count.
+- affected Picker/report count.
 - report timing/priority context.
 - affected Picker ticket detail.
-- `Có hàng` (`HAS_STOCK`).
-- `Cho phép skip` (`SKIP_ALLOWED`).
+- `CÓ HÀNG` (`HAS_STOCK`).
+- `CHO SKIP HÀNG` (`SKIP_ALLOWED`).
 - correction to `HAS_STOCK` only while server 5-minute correction deadline remains valid.
+- `Picker thu hồi` must show actual closed batches produced by Picker withdrawal, not synthetic data.
 
 ## HR source — Admin/Root Web
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-# Canonical Practical Balanced guard: validate product behavior in primary source, not a DOM business patch.
+# Canonical Practical Balanced guard: validate product behavior in primary source, not a DOM/business patch.
 ROOT = Path(__file__).resolve().parents[1]
 WEB_MAIN = (ROOT / "web/src/main.ts").read_text(encoding="utf-8")
 WEB_API = (ROOT / "web/src/api.ts").read_text(encoding="utf-8")
@@ -9,12 +9,17 @@ WEB_CSS = (ROOT / "web/src/styles.css").read_text(encoding="utf-8")
 WEB_INDEX = (ROOT / "web/index.html").read_text(encoding="utf-8")
 WEB_OPS_JS = (ROOT / "web/public/operational-ui.js").read_text(encoding="utf-8")
 WEB_OPS_CSS = (ROOT / "web/public/operational-ui.css").read_text(encoding="utf-8")
-ANDROID = (ROOT / "android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt").read_text(encoding="utf-8")
+ANDROID_MAIN = (ROOT / "android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt").read_text(encoding="utf-8")
+ANDROID_UI = (ROOT / "android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryUi.kt").read_text(encoding="utf-8")
+ANDROID_PICKER = (ROOT / "android/app/src/main/java/cd/cc/supra/inventory/beta/PickerController.kt").read_text(encoding="utf-8")
+ANDROID_REPORTER = (ROOT / "android/app/src/main/java/cd/cc/supra/inventory/beta/ReporterController.kt").read_text(encoding="utf-8")
+ANDROID = "\n".join([ANDROID_MAIN, ANDROID_UI, ANDROID_PICKER, ANDROID_REPORTER])
 ANDROID_MANIFEST = (ROOT / "android/app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
 ANDROID_ADAPTIVE_ICON = (ROOT / "android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml").read_text(encoding="utf-8")
 ANDROID_ADAPTIVE_ICON_ROUND = (ROOT / "android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml").read_text(encoding="utf-8")
 SERVICE_USERS = (ROOT / "service/src/user-management-core.ts").read_text(encoding="utf-8")
 SERVICE_INDEX = (ROOT / "service/src/index.ts").read_text(encoding="utf-8")
+SERVICE_READ_MODEL = (ROOT / "service/src/read-model-core.ts").read_text(encoding="utf-8")
 VERIFY_APPS = (ROOT / ".github/workflows/verify-apps.yml").read_text(encoding="utf-8")
 DESIGN_SPEC = (ROOT / "docs/specs/UI_DESIGN_SYSTEM.md").read_text(encoding="utf-8")
 
@@ -23,6 +28,12 @@ ANDROID_CREDIT = "Phát triển bởi: tamnv2 - Chuyên viên Pick Pack 1291"
 NAV_LABELS = [
     "Tổng quan vận hành", "Hàng chờ xử lý", "Báo cáo vận hành",
     "Danh mục Master SKU", "Quản lý nhân sự", "Quản lý tài khoản",
+]
+ANDROID_LAYOUT_TOKENS = [
+    "BÁO HÀNG 1291", "Log", "Thoát",
+    "Nhập tối thiểu 3 số SKU vào đây", "BÁO HẾT HÀNG", "Lịch sử báo hàng hôm nay",
+    "Đang xử lý", "Đã có hàng", "Đã cho skip", "Picker thu hồi",
+    "CÓ HÀNG", "CHO SKIP HÀNG",
 ]
 
 checks = {
@@ -42,13 +53,15 @@ checks = {
     "web_existing_semantic_status": "status-panel" in WEB_MAIN and ".status-panel.error" in WEB_CSS and ".status-panel.success" in WEB_CSS,
     "android_no_post_layout_application": 'android:name=".InventoryApplication"' not in ANDROID_MANIFEST,
     "android_adaptive_launcher_icon": 'android:icon="@mipmap/ic_launcher"' in ANDROID_MANIFEST and 'android:roundIcon="@mipmap/ic_launcher_round"' in ANDROID_MANIFEST and "@color/inventory_icon_green" in ANDROID_ADAPTIVE_ICON and "@color/inventory_icon_green" in ANDROID_ADAPTIVE_ICON_ROUND,
-    "android_footer_credit": ANDROID_CREDIT in ANDROID,
-    "android_employee_code_full_label": "Mã nhân viên / tên đăng nhập" in ANDROID,
-    "android_business_header_icon": "ImageView" in ANDROID and "R.drawable.ic_inventory_alert" in ANDROID,
-    "android_picker_report_flow_preserved": "private fun renderPicker" in ANDROID and "Báo SKU hết hàng" in ANDROID and "Lịch sử báo hàng" in ANDROID,
-    "android_reporter_flow_preserved": "private fun renderReporter" in ANDROID and "Cho phép skip" in ANDROID,
-    "android_mandatory_update_gate": all(token in ANDROID for token in ["UpdateGate.CHECKING", "UpdateGate.REQUIRED", "UpdateGate.FAILED", "BuildConfig.UPDATE_RELEASE_API", "loginButton?.isEnabled = updateGate == UpdateGate.CURRENT"]),
-    "android_version_meta_removed_from_header": "private fun addBrandHeader(root: LinearLayout, subtitle: String)" in ANDROID and "meta: String" not in ANDROID and "Phiên bản ${BuildConfig.VERSION_NAME}" not in ANDROID,
+    "android_footer_credit": ANDROID_CREDIT in ANDROID_UI,
+    "android_employee_code_full_label": "Mã nhân viên / tên đăng nhập" in ANDROID_MAIN,
+    "android_business_header_icon": "ImageView" in ANDROID_UI and "R.drawable.ic_inventory_alert" in ANDROID_UI,
+    "android_picker_report_flow_preserved": "class PickerController" in ANDROID_PICKER and "Báo SKU hết hàng" in ANDROID_PICKER and "Lịch sử báo hàng hôm nay" in ANDROID_PICKER,
+    "android_reporter_flow_preserved": "class ReporterController" in ANDROID_REPORTER and "Cho phép skip" in ANDROID_REPORTER,
+    "android_owner_approved_operational_layout": all(token in ANDROID for token in ANDROID_LAYOUT_TOKENS),
+    "android_withdrawn_filter_real_data": "'HAS_STOCK','SKIP_ALLOWED','CLOSED'" in SERVICE_READ_MODEL and 'Filter.WITHDRAWN -> renderRecent(box, "CLOSED")' in ANDROID_REPORTER,
+    "android_mandatory_update_gate": all(token in ANDROID_MAIN for token in ["UpdateGate.CHECKING", "UpdateGate.REQUIRED", "UpdateGate.FAILED", "BuildConfig.UPDATE_RELEASE_API", "loginButton?.isEnabled = updateGate == UpdateGate.CURRENT"]),
+    "android_version_meta_removed_from_header": "private fun addBrandHeader(root: LinearLayout, subtitle: String)" in ANDROID_MAIN and "meta: String" not in ANDROID_MAIN and "Phiên bản ${BuildConfig.VERSION_NAME}" not in ANDROID_MAIN,
     "service_root_bootstrap_preserved": 'user.role === "ROOT" && user.user_id === "root" && env.ROOT_BOOTSTRAP_PASSWORD' in SERVICE_INDEX,
     "service_legacy_picker_bootstrap": 'user.role === "PICKER"' in SERVICE_INDEX and 'env.PICKER_DEFAULT_PASSWORD || env.ROOT_BOOTSTRAP_PASSWORD || null' in SERVICE_INDEX,
     "service_root_role_hierarchy": 'actorRole === "ROOT"' in SERVICE_USERS and 'targetRole === "ADMIN" || targetRole === "REPORTER"' in SERVICE_USERS,
@@ -56,7 +69,7 @@ checks = {
     "service_picker_reprovision_new_identity": 'picker:${code}:${crypto.randomUUID()}' in SERVICE_USERS,
     "android_release_monotonic": all(token in VERIFY_APPS for token in ["gh release list", "latest + 1", "Refusing to overwrite existing release", "group: beta-android-release", "cancel-in-progress: false"]),
     "android_no_explanatory_ui_patch": "InventoryApplication" not in ANDROID_MANIFEST and "Nhập hoặc quét tối thiểu 3 ký tự. Gợi ý" not in ANDROID and "Ưu tiên: nhiều Picker bị ảnh hưởng hơn trước" not in ANDROID,
-    "design_spec_practical_balanced": "Practical Balanced" in DESIGN_SPEC and "Phương án 1" in DESIGN_SPEC and "mandatory update gate" in DESIGN_SPEC.lower(),
+    "design_spec_practical_balanced": "Practical Balanced" in DESIGN_SPEC and "Phương án 1" in DESIGN_SPEC and "mandatory update gate" in DESIGN_SPEC.lower() and "Owner-approved operational header" in DESIGN_SPEC,
 }
 
 failed = [name for name, ok in checks.items() if not ok]

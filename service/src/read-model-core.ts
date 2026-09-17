@@ -108,9 +108,9 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
               COUNT(t.ticket_id) AS affected_picker_count
          FROM report_batches b
          LEFT JOIN report_tickets t ON t.batch_id = b.batch_id
-        WHERE b.status IN ('HAS_STOCK','SKIP_ALLOWED')
+        WHERE b.status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')
         GROUP BY b.batch_id
-        ORDER BY b.resolved_at DESC
+        ORDER BY COALESCE(b.resolved_at, b.updated_at) DESC
         LIMIT ?`,
       limit,
     )
