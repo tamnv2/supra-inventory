@@ -69,16 +69,18 @@
     "fixed_sheet": false,
     "required_input": [
       "google_sheet_url",
-      "exact_tab_name"
+      "exact_tab_name",
+      "employee_code_header",
+      "full_name_header"
     ],
     "required_columns": [
-      "MNV",
-      "Họ tên"
+      "configured_employee_code_column",
+      "configured_full_name_column"
     ],
     "validation_module": "service/src/hr-source.ts",
     "storage": "InventoryCore.hr_source_config",
     "public_unauthenticated_setup": false,
-    "authenticated_api_status": "IMPLEMENTED_BETA"
+    "authenticated_api_status": "CONFIGURABLE_HEADERS_IMPLEMENTED_BETA_DEPLOY_PASS"
   },
   "business_api": {
     "status": "IMPLEMENTED_AND_DEPLOYED_BETA",
@@ -159,21 +161,24 @@
       "cloudflare_oauth_refresh_token_secret": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
       "oauth_refresh_token_configured": true,
       "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA",
-      "web_source_status": "CONCEPT3_FINISH_POLISH_DEPLOYED_PASS",
+      "web_source_status": "PRACTICAL_BALANCED_CANONICAL_SOURCE_DEPLOYED_SMOKE_PASS",
       "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
       "web_admin_report_monitoring": "ROLE_BASED_OPERATIONS_UI_DEPLOYED_PASS",
-      "android_source_status": "CONCEPT3_FINISH_POLISH_SIGNED_OTA_PASS",
+      "android_source_status": "PRACTICAL_BALANCED_SIGNED_OTA_VC31_PASS",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
-      "latest_signed_beta_release": "beta-vc30",
-      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.30",
-      "latest_signed_beta_apk_sha256": "913d59b031bd5efd1c4ff728856aa313a3827fbb9da7eac7be4581a669f422ea",
-      "latest_signed_beta_apk_size_bytes": 9149890,
-      "auth_rbac_status": "IMPLEMENTED_RUNTIME_READY",
+      "latest_signed_beta_release": "beta-vc31",
+      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.31",
+      "latest_signed_beta_apk_sha256": "7f57cec90aad16cdc1747ae8cbe543948ce4fcabca96f5859b16d4087e384f1c",
+      "latest_signed_beta_apk_size_bytes": 9167082,
+      "auth_rbac_status": "EXPANDED_ROOT_ADMIN_REPORTER_PICKER_LIFECYCLE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "auth_api_route_smoke": "PASS",
       "root_bootstrap_path_smoke": "PASS",
-      "hr_settings_ui_status": "IMPLEMENTED_WEB_ADMIN_ROOT",
-      "business_api_status": "IMPLEMENTED_DEPLOYED_SCHEMA_V5"
+      "hr_settings_ui_status": "CONFIGURABLE_URL_TAB_EMPLOYEE_AND_NAME_HEADERS_DEPLOYED_PASS",
+      "business_api_status": "IMPLEMENTED_DEPLOYED_SCHEMA_V5",
+      "latest_signed_beta_release_source_commit": "d7bfd1a0897ec760300a4c5d484b95d91444dc2d",
+      "managed_password_status": "DIRECT_CREATE_AND_CHANGE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
+      "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -243,7 +248,12 @@
     "admin_dashboard_reporting_concept3",
     "android_concept3_unified_ui",
     "quota_resilience_v1_delta_catalog_indexed_reporting",
-    "concept3_finish_web_android_polish"
+    "concept3_finish_web_android_polish",
+    "practical_balanced_web_canonical_source_beta_deploy_smoke_pass",
+    "expanded_root_admin_reporter_picker_account_controls",
+    "configurable_hr_headers_and_manual_picker_lifecycle",
+    "direct_managed_password_create_change",
+    "android_practical_balanced_signed_beta_vc31_monotonic_ota_pass"
   ],
   "application_build_pending": [
     "fcm_physical_device_delivery_acceptance",
@@ -265,12 +275,14 @@
     "source_status": "DEPLOYED_BUILD_PASS_FIELD_DELIVERY_PENDING"
   },
   "user_management": {
-    "hierarchy": "ROOT_CREATES_ADMIN__ADMIN_CREATES_REPORTER__PICKER_FROM_HR",
-    "picker_missing_from_hr": "DISABLE_RETAIN_HISTORY",
-    "default_password_source": "PROTECTED_ROOT_BOOTSTRAP_PASSWORD_SECRET_REUSED_FOR_INITIAL_MANAGED_LOGIN",
-    "root_protection": "NOT_MANAGEABLE_BY_NORMAL_ACCOUNT_API",
-    "hr_sync": "PREVIEW_THEN_EXPLICIT_APPLY",
-    "source_status": "BETA_DEPLOY_BUILD_PASS"
+    "hierarchy": "ROOT_INHERITS_ADMIN_REPORTER_MANAGES_ADMIN_REPORTER_PICKER__ADMIN_MANAGES_REPORTER_PICKER__HR_PROVISIONS_PICKER",
+    "picker_missing_from_hr": "NO_AUTOMATIC_STATUS_CHANGE_RETAIN_ACCOUNT_AND_HISTORY",
+    "default_password_source": "PROTECTED_PICKER_DEFAULT_PASSWORD_RUNTIME_SECRET_WITH_LEGACY_ROOT_BOOTSTRAP_FALLBACK",
+    "root_protection": "ROOT_NOT_MANAGEABLE_BY_NORMAL_ACCOUNT_API_AND_ONLY_ROOT_CAN_BOOTSTRAP_FROM_ROOT_SECRET",
+    "hr_sync": "PREVIEW_THEN_EXPLICIT_APPLY_NO_AUTOMATIC_DISABLE_DELETE_OR_REACTIVATE",
+    "source_status": "IMPLEMENTED_DEPLOYED_BUILD_PASS",
+    "managed_passwords": "AUTHORIZED_MANAGER_DIRECT_SET_AND_CHANGE",
+    "picker_lifecycle": "EXPLICIT_ONE_MANY_ALL_ENABLE_DISABLE_DELETE"
   },
   "archive": {
     "beta_sheet_id": "1WU9RDUEevE74Twyq1aA80xvL3Wr1mTA21PRA8ypIMOA",
@@ -301,10 +313,10 @@
     "source_status": "BETA_DEPLOY_BUILD_PASS"
   },
   "ui_design": {
-    "authority": "OWNER_SELECTED_CONCEPT_3",
-    "web": "CONCEPT3_FINISH_POLISH_DEPLOYED_PASS",
-    "android": "CONCEPT3_FINISH_POLISH_SIGNED_OTA_PASS",
-    "scope_guard": "VISUAL_SYSTEM_ONLY_BUSINESS_RULES_REMAIN_AUTHORITATIVE"
+    "authority": "OWNER_SELECTED_PRACTICAL_BALANCED_OPTION_1",
+    "web": "PRACTICAL_BALANCED_CANONICAL_SOURCE_DEPLOYED_SMOKE_PASS",
+    "android": "PRACTICAL_BALANCED_SIGNED_BETA_VC31_PASS",
+    "scope_guard": "PRACTICAL_BALANCED_VISUAL_SYSTEM_WITH_CANONICAL_BUSINESS_CONTROLS_BUSINESS_RULES_REMAIN_AUTHORITATIVE"
   },
   "quota_resilience": {
     "reference_date": "2026-09-17",
