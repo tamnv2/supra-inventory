@@ -872,7 +872,9 @@ function delta(state: DurableObjectState, url: URL): Response {
       batch_id: batchId || null,
       ticket_id: ticketId,
       batch_version: Number(row.batch_version || 0),
-      scopes: parseJsonArray(row.scopes_json),
+      scopes: role === "PICKER"
+        ? parseJsonArray(row.scopes_json).filter((scope) => scope === "picker_reports")
+        : parseJsonArray(row.scopes_json),
       metadata: role === "PICKER"
         ? pickerRealtimeMetadata(state, eventId, eventType, row.payload_json, userId)
         : parseJsonObject(row.payload_json),
