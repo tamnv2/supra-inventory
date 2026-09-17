@@ -8,23 +8,28 @@
 - Beta: `ROLE_BASED_WEB_ANDROID_LIVE`
 - Stable: `CONFIG_READY_OWNER_GATED_NOT_LIVE`
 - SQLite schema: `5`
-- Web: `CONCEPT3_FINISH_POLISH_BETA_DEPLOY_PASS`
-- Android: `CONCEPT3_FINISH_POLISH_SIGNED_OTA_BETA_PASS`
+- Web: `PRACTICAL_BALANCED_SOURCE_PENDING_CI_AND_BETA_DEPLOY`
+- Android: `PRACTICAL_BALANCED_SOURCE_PENDING_CI_SIGNED_BETA_RELEASE`
 - Latest signed Beta APK: `beta-vc30`
 - Realtime: `WEBSOCKET_SERVER_WEB_ANDROID_CLIENT_DEPLOYED_SIGNED_PASS`
 - FCM: `DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BUILD_PASS_FIELD_DELIVERY_PENDING`
-- Admin dashboard/reporting: `CONCEPT3_OPERATIONAL_DASHBOARD_AND_REPORTING_BETA_DEPLOY_PASS`
+- User management: `EXPANDED_ROOT_ADMIN_PICKER_LIFECYCLE_AND_FLEXIBLE_HR_SOURCE_PENDING_CI_DEPLOY`
+- Admin dashboard/reporting: `OPERATIONAL_DASHBOARD_AND_REPORTING_BETA_DEPLOY_PASS`
 - Quota/resilience: `INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS`
 
 ## Workboard
 
 ### In progress
-- None
+- Practical Balanced / Phương án 1 Web + Android source application on Beta branch
+- Expanded Root/Admin managed-account authority and direct password-change flow
+- Flexible HR source column mapping and explicit Picker one/many/all lifecycle management
+- Practical Balanced UI regression guard migration from superseded Concept 3
 
 ### Next
-- Owner field-test beta-vc30 on physical PDA/Web and report business/UI findings for iterative Beta adjustment
+- PR #3: pass authority + continuity + UI/build verification, repair any CI failure, then merge through protected main
+- Deploy/verify Beta Web and produce next signed Beta APK through the existing pipeline
+- Owner field-test resulting Practical Balanced Beta Web/PDA
 - Field-verify foreground realtime and background FCM delivery on a logged-in physical PDA
-- Define Owner workload target before isolated destructive/mutation load acceptance
 
 ### Blocked / Owner-field dependent
 - Owner business acceptance
