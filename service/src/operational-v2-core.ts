@@ -16,7 +16,8 @@ type RealtimeRole = "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
 
 const SLA_CONFIG_KEY = "operational_sla_v1";
 const OPERATIONAL_SCHEMA_KEY = "operational_v2_schema_version";
-export const OPERATIONAL_V2_SCHEMA_VERSION = 2;
+const REALTIME_STREAM_EPOCH_KEY = "realtime_stream_epoch_v1";
+export const OPERATIONAL_V2_SCHEMA_VERSION = 3;
 const MAX_DELTA_LIMIT = 200;
 
 function json(payload: unknown, status = 200): Response {
@@ -55,6 +56,64 @@ function storedOperationalSchemaVersion(state: DurableObjectState): number {
   return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
 }
 
+function readRealtimeStreamEpoch(state: DurableObjectState): string {
+  const row = first(
+    state.storage.sql
+      .exec<SqlRow>("SELECT value_json FROM app_config WHERE key = ? LIMIT 1", REALTIME_STREAM_EPOCH_KEY)
+      .toArray(),
+  );
+  if (!row?.value_json) return "";
+  try {
+    const parsed = JSON.parse(String(row.value_json)) as { epoch?: unknown };
+    return String(parsed.epoch || "").trim();
+  } catch {
+    return "";
+  }
+}
+
+function ensureRealtimeStreamEpoch(state: DurableObjectState): string {
+  const existing = readRealtimeStreamEpoch(state);
+  if (existing) return existing;
+  const epoch = crypto.randomUUID();
+  const at = new Date().toISOString();
+  state.storage.sql.exec(
+    `INSERT INTO app_config (key, value_json, updated_at, updated_by)
+     VALUES (?, ?, ?, NULL)
+     ON CONFLICT(key) DO UPDATE SET
+       value_json = CASE
+         WHEN app_config.value_json IS NULL OR app_config.value_json = '' THEN excluded.value_json
+         ELSE app_config.value_json
+       END,
+       updated_at = CASE
+         WHEN app_config.value_json IS NULL OR app_config.value_json = '' THEN excluded.updated_at
+         ELSE app_config.updated_at
+       END`,
+    REALTIME_STREAM_EPOCH_KEY,
+    JSON.stringify({ epoch }),
+    at,
+  );
+  return readRealtimeStreamEpoch(state) || epoch;
+}
+
+export function realtimeStreamMetadata(state: DurableObjectState): {
+  stream_epoch: string;
+  latest_seq: number;
+  retained_from_seq: number;
+} {
+  const row = first(
+    state.storage.sql
+      .exec<SqlRow>(
+        "SELECT COALESCE(MIN(seq),0) AS retained_from_seq, COALESCE(MAX(seq),0) AS latest_seq FROM realtime_events",
+      )
+      .toArray(),
+  ) || {};
+  return {
+    stream_epoch: readRealtimeStreamEpoch(state),
+    latest_seq: Number(row.latest_seq || 0),
+    retained_from_seq: Number(row.retained_from_seq || 0),
+  };
+}
+
 export function operationalV2Readiness(state: DurableObjectState): {
   ready: boolean;
   schema_version: number;
@@ -69,6 +128,7 @@ export function operationalV2Readiness(state: DurableObjectState): {
     hasSqlObject(state, "table", "realtime_events") &&
     hasSqlObject(state, "table", "result_acknowledgements") &&
     hasSqlObject(state, "table", "result_event_snapshots") &&
+    Boolean(readRealtimeStreamEpoch(state)) &&
     hasSqlObject(state, "trigger", "trg_v2_report_event_stream") &&
     hasSqlObject(state, "trigger", "trg_v2_result_ack_targets");
   return {
@@ -370,6 +430,7 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
   `);
 
   backfillResultEventSnapshots(state);
+  ensureRealtimeStreamEpoch(state);
 
   sql.exec(
     `INSERT INTO schema_meta (key, value, updated_at)
