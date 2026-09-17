@@ -28,6 +28,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -62,8 +63,13 @@ class MainActivity : Activity() {
     private val ui = Handler(Looper.getMainLooper())
     private lateinit var api: InventoryApi
     private lateinit var skuCache: SkuCatalogCache
+    private enum class UpdateGate { CHECKING, CURRENT, REQUIRED, FAILED }
+
     private lateinit var status: TextView
     private lateinit var updateButton: Button
+    private var loginButton: Button? = null
+    @Volatile private var updateGate = UpdateGate.CHECKING
+    @Volatile private var updateCheckRunning = false
     private var realtimeClient: AndroidRealtimeClient? = null
     private val notificationDeviceId: String by lazy {
         val prefs = getSharedPreferences("notification_device", MODE_PRIVATE)
@@ -150,7 +156,6 @@ class MainActivity : Activity() {
 
         ui.post(withdrawTicker)
         renderLogin()
-        checkForUpdate(silent = true)
     }
 
     override fun onDestroy() {
@@ -163,14 +168,20 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        val pending = pendingInstallFile ?: return
-        if (packageManager.canRequestPackageInstalls()) {
-            pendingInstallFile = null
-            launchInstaller(pending)
+        val pending = pendingInstallFile
+        if (pending != null) {
+            if (packageManager.canRequestPackageInstalls()) {
+                pendingInstallFile = null
+                launchInstaller(pending)
+            }
+            return
+        }
+        if (::api.isInitialized && api.session == null && updateGate != UpdateGate.CURRENT && !updateCheckRunning) {
+            checkForUpdate(silent = true)
         }
     }
 
-    private fun renderLogin(message: String = "Sẵn sàng đăng nhập Beta.") {
+    private fun renderLogin(message: String = "Đang kiểm tra phiên bản...") {
         realtimeClient?.stop()
         realtimeClient = null
         withdrawButtons.clear()
@@ -180,16 +191,12 @@ class MainActivity : Activity() {
         resultAlertShowing = false
 
         val root = page()
-        addBrandHeader(
-            root,
-            subtitle = "Báo hàng · Beta",
-            meta = "Phiên bản ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) · Android 11+",
-        )
+        addBrandHeader(root, subtitle = "Báo hàng · Beta")
 
         val loginCard = card()
         loginCard.addView(sectionTitle("Đăng nhập"))
         val username = EditText(this).apply {
-            hint = "MNV / tên đăng nhập"
+            hint = "Mã nhân viên / tên đăng nhập"
             isSingleLine = true
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
         }
@@ -200,11 +207,15 @@ class MainActivity : Activity() {
             transformationMethod = PasswordTransformationMethod.getInstance()
         }
         val showPassword = CheckBox(this).apply { text = "Hiện mật khẩu" }
-        val loginButton = Button(this).apply { text = "Đăng nhập" }
+        val login = Button(this).apply {
+            text = "Đăng nhập"
+            isEnabled = false
+        }
+        loginButton = login
         loginCard.addView(username)
         loginCard.addView(password)
         loginCard.addView(showPassword)
-        loginCard.addView(loginButton)
+        loginCard.addView(login)
         root.addView(loginCard)
 
         updateButton = Button(this).apply { text = "Kiểm tra cập nhật" }
@@ -217,8 +228,11 @@ class MainActivity : Activity() {
             background = roundedBackground(conceptGreenSoft, conceptLine, 10)
         }
         root.addView(status)
-        applyConcept3Tree(root)
+        addFooter(root)
+        applyOperationalStyles(root)
         setContentView(wrapScroll(root))
+        applyUpdateGateUi(message)
+        checkForUpdate(silent = true)
 
         showPassword.setOnCheckedChangeListener { _, checked ->
             if (checked) {
@@ -231,7 +245,11 @@ class MainActivity : Activity() {
             password.setSelection(password.text.length)
         }
 
-        loginButton.setOnClickListener {
+        login.setOnClickListener {
+            if (updateGate != UpdateGate.CURRENT) {
+                setStatus(updateGateMessage())
+                return@setOnClickListener
+            }
             val user = username.text.toString().trim().lowercase()
             val rawPass = password.text.toString()
             val pass = rawPass.trimEnd('\r', '\n')
@@ -239,7 +257,7 @@ class MainActivity : Activity() {
                 setStatus("Tên đăng nhập hoặc mật khẩu không hợp lệ.")
                 return@setOnClickListener
             }
-            loginButton.isEnabled = false
+            login.isEnabled = false
             setStatus("Đang đăng nhập...")
             Thread {
                 try {
@@ -250,7 +268,7 @@ class MainActivity : Activity() {
                     }
                 } catch (error: Exception) {
                     runOnUiThread {
-                        loginButton.isEnabled = true
+                        login.isEnabled = updateGate == UpdateGate.CURRENT
                         setStatus(friendlyError(error))
                     }
                 }
@@ -261,12 +279,13 @@ class MainActivity : Activity() {
     }
 
     private fun renderHome(session: AppSession) {
+        loginButton = null
         withdrawButtons.clear()
         searchRunnable?.let { ui.removeCallbacks(it) }
         selectedSku = null
 
         val root = page()
-        addBrandHeader(root, subtitle = "Kho vận · Báo hàng", meta = "Beta")
+        addBrandHeader(root, subtitle = "Kho vận · Báo hàng · Beta")
         val identityCard = card()
         identityCard.addView(TextView(this).apply {
             text = session.displayName
@@ -324,7 +343,8 @@ class MainActivity : Activity() {
             else -> root.addView(TextView(this).apply { text = "Vai trò ${session.role} chưa được hỗ trợ trên PDA." })
         }
 
-        applyConcept3Tree(root)
+        addFooter(root)
+        applyOperationalStyles(root)
         setContentView(wrapScroll(root))
         startRealtime(session)
         registerBackgroundNotifications()
@@ -395,12 +415,6 @@ class MainActivity : Activity() {
 
     private fun renderPicker(root: LinearLayout) {
         root.addView(sectionTitle("Báo SKU hết hàng"))
-        root.addView(TextView(this).apply {
-            text = "Nhập hoặc quét tối thiểu 3 ký tự. Gợi ý tìm trực tiếp trên catalog đã cache trong PDA."
-            textSize = 13f
-            setTextColor(conceptMuted)
-        })
-
         val catalogCard = card()
         catalogStatusView = TextView(this).apply { text = "Catalog: đang đọc cache local..." }
         val sync = Button(this).apply {
@@ -424,7 +438,7 @@ class MainActivity : Activity() {
         }
         skuSuggestions = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         reportButton = Button(this).apply {
-            text = "Báo hết hàng"
+            text = "Báo SKU hết hàng"
             isEnabled = false
             setOnClickListener { submitPickerReport() }
         }
@@ -439,7 +453,7 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER_VERTICAL
         }
         reportsHeader.addView(TextView(this).apply {
-            text = "Báo của tôi"
+            text = "Lịch sử báo hàng"
             textSize = 20f
             setTypeface(typeface, Typeface.BOLD)
             layoutParams = weightedParams()
@@ -556,7 +570,7 @@ class MainActivity : Activity() {
                 setOnClickListener { selectSku(item) }
             })
         }
-        applyConcept3Tree(box)
+        applyOperationalStyles(box)
     }
 
     private fun selectSku(item: SkuItem) {
@@ -657,7 +671,7 @@ class MainActivity : Activity() {
             }
             box.addView(card)
         }
-        applyConcept3Tree(box)
+        applyOperationalStyles(box)
     }
 
     private fun detectPickerResultChanges(rows: List<PickerReport>) {
@@ -716,22 +730,10 @@ class MainActivity : Activity() {
     }
 
     private fun renderReporter(root: LinearLayout, role: String) {
-        root.addView(sectionTitle("Điều phối Inventory"))
-        root.addView(TextView(this).apply {
-            text = "Ưu tiên: nhiều Picker bị ảnh hưởng hơn trước; bằng nhau thì báo đầu sớm hơn."
-            textSize = 13f
-            setTextColor(conceptMuted)
-        })
-        if (role == "ADMIN" || role == "ROOT") {
-            root.addView(TextView(this).apply {
-                text = "PDA tập trung vận hành Reporter. Quản trị Master SKU / nhân sự thực hiện trên Website."
-                textSize = 12f
-                setTextColor(conceptMuted)
-            })
-        }
+        root.addView(sectionTitle("Hàng chờ xử lý"))
 
         root.addView(Button(this).apply {
-            text = "Tải lại danh sách vận hành"
+            text = "Làm mới hàng chờ xử lý"
             setOnClickListener { refreshReporterData() }
         })
 
@@ -739,7 +741,7 @@ class MainActivity : Activity() {
         reporterQueueBox = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(reporterQueueBox)
 
-        root.addView(sectionTitle("Kết quả gần đây"))
+        root.addView(sectionTitle("Kết quả xử lý gần đây"))
         reporterRecentBox = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(reporterRecentBox)
 
@@ -796,7 +798,7 @@ class MainActivity : Activity() {
 
             val actionRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             actionRow.addView(Button(this).apply {
-                text = "Đã có hàng"
+                text = "Có hàng"
                 layoutParams = weightedParams()
                 setOnClickListener { confirmResolve(row, "HAS_STOCK") }
             })
@@ -812,7 +814,7 @@ class MainActivity : Activity() {
             })
             box.addView(card)
         }
-        applyConcept3Tree(box)
+        applyOperationalStyles(box)
     }
 
     private fun renderReporterRecent(rows: List<ReporterRecent>) {
@@ -851,7 +853,7 @@ class MainActivity : Activity() {
             }
             box.addView(card)
         }
-        applyConcept3Tree(box)
+        applyOperationalStyles(box)
     }
 
     private fun confirmResolve(batch: ReporterBatch, resolution: String) {
@@ -1055,43 +1057,46 @@ class MainActivity : Activity() {
             setStroke(dp(1), stroke)
         }
 
-    private fun addBrandHeader(root: LinearLayout, subtitle: String, meta: String) {
+    private fun addBrandHeader(root: LinearLayout, subtitle: String) {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             setPadding(0, 0, 0, dp(14))
         }
-        row.addView(TextView(this).apply {
-            text = "SI"
-            textSize = 18f
-            gravity = Gravity.CENTER
-            setTypeface(typeface, Typeface.BOLD)
-            setTextColor(Color.WHITE)
-            background = roundedBackground(conceptGreen, conceptGreen, 11)
-            layoutParams = LinearLayout.LayoutParams(dp(46), dp(46)).apply { marginEnd = dp(11) }
+        row.addView(ImageView(this).apply {
+            setImageResource(R.drawable.ic_inventory_alert)
+            scaleType = ImageView.ScaleType.CENTER_INSIDE
+            contentDescription = "SUPRA Inventory"
+            layoutParams = LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginEnd = dp(12) }
         })
         row.addView(LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            layoutParams = weightedParams()
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
             addView(TextView(this@MainActivity).apply {
                 text = "SUPRA Inventory"
                 textSize = 22f
+                maxLines = 1
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(conceptText)
             })
             addView(TextView(this@MainActivity).apply {
                 text = subtitle
                 textSize = 12.5f
+                maxLines = 1
                 setTextColor(conceptGreen)
             })
         })
-        if (meta.isNotBlank()) row.addView(TextView(this).apply {
-            text = meta
-            textSize = 11f
-            setTextColor(conceptMuted)
-            gravity = Gravity.END
-        })
         root.addView(row)
+    }
+
+    private fun addFooter(root: LinearLayout) {
+        root.addView(TextView(this).apply {
+            text = "Phát triển bởi: tamnv2 - Chuyên viên Pick Pack 1291"
+            textSize = 10f
+            gravity = Gravity.CENTER
+            setTextColor(conceptMuted)
+            setPadding(dp(8), dp(16), dp(8), dp(4))
+        })
     }
 
     private fun styleButton(button: Button) {
@@ -1124,14 +1129,14 @@ class MainActivity : Activity() {
         view.layoutParams = params
     }
 
-    private fun applyConcept3Tree(view: View) {
+    private fun applyOperationalStyles(view: View) {
         when (view) {
             is Button -> { styleButton(view); addVerticalControlSpacing(view) }
             is EditText -> { styleInput(view); addVerticalControlSpacing(view) }
             is CheckBox -> { view.buttonTintList = ColorStateList.valueOf(conceptGreen); addVerticalControlSpacing(view) }
         }
         if (view is ViewGroup) {
-            for (index in 0 until view.childCount) applyConcept3Tree(view.getChildAt(index))
+            for (index in 0 until view.childCount) applyOperationalStyles(view.getChildAt(index))
         }
     }
 
@@ -1187,7 +1192,7 @@ class MainActivity : Activity() {
 
     private fun renderFatal(message: String) {
         val root = page()
-        addBrandHeader(root, subtitle = "Báo hàng · Beta", meta = "")
+        addBrandHeader(root, subtitle = "Báo hàng · Beta")
         val fatalCard = card()
         fatalCard.addView(TextView(this).apply {
             text = "Không thể khởi động ứng dụng"
@@ -1203,6 +1208,8 @@ class MainActivity : Activity() {
             background = roundedBackground(conceptRedSoft, Color.parseColor("#E7A5A1"), 10)
         })
         root.addView(fatalCard)
+        addFooter(root)
+        applyOperationalStyles(root)
         setContentView(wrapScroll(root))
     }
 
@@ -1213,46 +1220,79 @@ class MainActivity : Activity() {
         val checksumUrl: String,
     )
 
+    private fun updateGateMessage(): String = when (updateGate) {
+        UpdateGate.CHECKING -> "Đang kiểm tra phiên bản..."
+        UpdateGate.CURRENT -> "Sẵn sàng đăng nhập."
+        UpdateGate.REQUIRED -> "Có bản cập nhật mới. Cần cập nhật trước khi đăng nhập."
+        UpdateGate.FAILED -> "Chưa xác minh được bản cập nhật. Không thể đăng nhập. Kiểm tra mạng và thử lại."
+    }
+
+    private fun applyUpdateGateUi(message: String? = null) {
+        loginButton?.isEnabled = updateGate == UpdateGate.CURRENT && !updateCheckRunning
+        if (::updateButton.isInitialized) {
+            updateButton.isEnabled = !updateCheckRunning
+            updateButton.text = when (updateGate) {
+                UpdateGate.REQUIRED -> "Cập nhật ngay"
+                UpdateGate.FAILED -> "Thử lại cập nhật"
+                else -> "Kiểm tra cập nhật"
+            }
+        }
+        if (!message.isNullOrBlank()) setStatus(message)
+    }
+
     private fun checkForUpdate(silent: Boolean) {
-        if (!::updateButton.isInitialized) return
-        updateButton.isEnabled = false
-        if (!silent) setStatus("Đang kiểm tra phiên bản mới...")
+        if (!::updateButton.isInitialized || updateCheckRunning) return
+        updateCheckRunning = true
+        updateGate = UpdateGate.CHECKING
+        applyUpdateGateUi(if (api.session == null || !silent) "Đang kiểm tra phiên bản..." else null)
         Thread {
             try {
                 val info = fetchLatestUpdate()
-                if (info == null || info.versionCode <= BuildConfig.VERSION_CODE) {
+                if (info.versionCode <= BuildConfig.VERSION_CODE) {
+                    updateGate = UpdateGate.CURRENT
                     runOnUiThread {
-                        updateButton.isEnabled = true
-                        if (!silent) setStatus("Đang dùng bản mới nhất.")
+                        updateCheckRunning = false
+                        val message = when {
+                            api.session == null -> "Sẵn sàng đăng nhập."
+                            !silent -> "Đang dùng bản mới nhất."
+                            else -> null
+                        }
+                        applyUpdateGateUi(message)
                     }
                     return@Thread
                 }
-                runOnUiThread { setStatus("Có bản mới ${info.tag}. Đang tải và kiểm tra SHA-256...") }
+
+                updateGate = UpdateGate.REQUIRED
+                runOnUiThread {
+                    applyUpdateGateUi("Có bản cập nhật ${info.tag}. Đang tải và kiểm tra SHA-256...")
+                }
                 val apk = downloadAndVerify(info)
                 runOnUiThread {
-                    updateButton.isEnabled = true
+                    updateCheckRunning = false
+                    applyUpdateGateUi("Đã tải ${info.tag}. Cần cài đặt trước khi đăng nhập.")
                     requestInstall(apk)
                 }
             } catch (error: Exception) {
+                updateGate = UpdateGate.FAILED
                 runOnUiThread {
-                    updateButton.isEnabled = true
-                    if (!silent) setStatus("Không kiểm tra được cập nhật: ${error.message ?: "unknown"}")
+                    updateCheckRunning = false
+                    applyUpdateGateUi("Chưa xác minh được bản cập nhật. Không thể đăng nhập. Kiểm tra mạng và thử lại.")
                 }
             }
         }.start()
     }
 
-    private fun fetchLatestUpdate(): UpdateInfo? {
+    private fun fetchLatestUpdate(): UpdateInfo {
         val connection = openDownloadConnection(BuildConfig.UPDATE_RELEASE_API)
         val code = connection.responseCode
-        if (code == 404) return null
         val text = (if (code in 200..299) connection.inputStream else connection.errorStream)
             ?.bufferedReader()?.use { it.readText() }.orEmpty()
         if (code !in 200..299) throw IllegalStateException("Update API HTTP $code")
         val release = org.json.JSONObject(text)
         val tag = release.optString("tag_name")
-        val versionCode = Regex("^beta-vc(\\d+)$").find(tag)?.groupValues?.getOrNull(1)?.toIntOrNull() ?: return null
-        val assets = release.optJSONArray("assets") ?: return null
+        val versionCode = Regex("^beta-vc(\\d+)$").find(tag)?.groupValues?.getOrNull(1)?.toIntOrNull()
+            ?: throw IllegalStateException("Release Beta không hợp lệ.")
+        val assets = release.optJSONArray("assets") ?: throw IllegalStateException("Release Beta thiếu APK.")
         var apkUrl = ""
         var checksumUrl = ""
         for (index in 0 until assets.length()) {
@@ -1262,7 +1302,7 @@ class MainActivity : Activity() {
                 "supra-inventory-beta.apk.sha256" -> checksumUrl = asset.optString("browser_download_url")
             }
         }
-        if (apkUrl.isBlank() || checksumUrl.isBlank()) return null
+        if (apkUrl.isBlank() || checksumUrl.isBlank()) throw IllegalStateException("Release Beta thiếu file cập nhật hợp lệ.")
         return UpdateInfo(versionCode, tag, apkUrl, checksumUrl)
     }
 
