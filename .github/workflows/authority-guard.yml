@@ -1,0 +1,29 @@
+name: Repo Authority Guard
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  authority:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate canonical authority graph and derived-view freshness
+        run: |
+          python3 tools/project_state_guard.py
+          python3 tools/authority_guard.py
+      - name: Public repository secret-value heuristic guard
+        run: |
+          set -euo pipefail
+          ! git grep -nE -- '-----BEGIN (RSA |EC |OPENSSH |)?PRIVATE KEY-----' -- ':!*.lock'
+          ! git grep -nE -- '(GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN|CF_API_TOKEN_INVENTORY_BETA|BETA_KEYSTORE_PASSWORD|ROOT_BOOTSTRAP_PASSWORD)[[:space:]]*=[[:space:]]*["'"'][^$<{][^"'"']+' -- ':!*.md' ':!*.py' || { echo 'Potential committed secret value'; exit 1; }
+          echo "PUBLIC_REPO_SECRET_HEURISTIC_PASS"
