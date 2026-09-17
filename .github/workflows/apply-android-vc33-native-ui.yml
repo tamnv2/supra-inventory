@@ -45,6 +45,6 @@ jobs:
                   docs/specs/UI_DESIGN_SYSTEM.md \
                   ops/project-state.json
           git add -u android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApplication.kt
-          git rm tools/apply_android_vc33_native_ui.py tools/repair_android_vc33_codemod.py .github/workflows/apply-android-vc33-native-ui.yml
+          git rm -f tools/apply_android_vc33_native_ui.py tools/repair_android_vc33_codemod.py .github/workflows/apply-android-vc33-native-ui.yml
           git commit -m "fix(android): render native narrow UI and fail-closed update gate"
           git push origin HEAD:fix/android-vc33-native-ui-update-gate
