@@ -16,7 +16,7 @@ type RealtimeRole = "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
 
 const SLA_CONFIG_KEY = "operational_sla_v1";
 const OPERATIONAL_SCHEMA_KEY = "operational_v2_schema_version";
-export const OPERATIONAL_V2_SCHEMA_VERSION = 1;
+export const OPERATIONAL_V2_SCHEMA_VERSION = 2;
 const MAX_DELTA_LIMIT = 200;
 
 function json(payload: unknown, status = 200): Response {
@@ -68,6 +68,7 @@ export function operationalV2Readiness(state: DurableObjectState): {
     hasColumn(state, "report_batches", "last_report_at") &&
     hasSqlObject(state, "table", "realtime_events") &&
     hasSqlObject(state, "table", "result_acknowledgements") &&
+    hasSqlObject(state, "table", "result_event_snapshots") &&
     hasSqlObject(state, "trigger", "trg_v2_report_event_stream") &&
     hasSqlObject(state, "trigger", "trg_v2_result_ack_targets");
   return {
@@ -138,17 +139,19 @@ function currentBatchSnapshot(state: DurableObjectState, batchId: string): Recor
       `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
               b.resolved_at, b.resolution, b.correction_deadline_at, b.version, b.previous_batch_id,
               p.resolved_at AS previous_resolved_at,
-              SUM(CASE WHEN t.status = 'OPEN' THEN 1 ELSE 0 END) AS open_ticket_count,
-              COUNT(t.ticket_id) AS total_ticket_count,
-              SUM(CASE WHEN a.acknowledged_at IS NOT NULL THEN 1 ELSE 0 END) AS acknowledged_count,
-              COUNT(DISTINCT a.target_user_id) AS ack_target_count
+              (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id) AS total_ticket_count,
+              (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'OPEN') AS open_ticket_count,
+              (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'WITHDRAWN') AS withdrawn_ticket_count,
+              (SELECT COUNT(DISTINCT a.target_user_id)
+                 FROM result_acknowledgements a
+                WHERE a.batch_id = b.batch_id AND a.batch_version = b.version) AS ack_target_count,
+              (SELECT COUNT(DISTINCT a.target_user_id)
+                 FROM result_acknowledgements a
+                WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
+                  AND a.acknowledged_at IS NOT NULL) AS acknowledged_count
          FROM report_batches b
          LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
-         LEFT JOIN report_tickets t ON t.batch_id = b.batch_id
-         LEFT JOIN result_acknowledgements a
-           ON a.batch_id = b.batch_id AND a.batch_version = b.version
         WHERE b.batch_id = ?
-        GROUP BY b.batch_id
         LIMIT 1`,
       batchId,
     ).toArray(),
