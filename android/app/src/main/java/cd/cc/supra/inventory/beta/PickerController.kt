@@ -85,15 +85,16 @@ class PickerController(
             isSingleLine = true
             imeOptions = EditorInfo.IME_ACTION_SEARCH
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-            layoutParams = LinearLayout.LayoutParams(0, kit.dp(54), 1.5f).apply { marginEnd = kit.dp(8) }
+            layoutParams = LinearLayout.LayoutParams(0, kit.dp(56), 1.5f).apply { marginEnd = kit.dp(8) }
             kit.styleInput(this)
         }
         reportButton = Button(activity).apply {
             text = "BÁO HẾT HÀNG"
             contentDescription = "Báo SKU hết hàng"
-            textSize = 12f
+            textSize = 13.5f
+            setTypeface(typeface, Typeface.BOLD)
             isEnabled = false
-            layoutParams = LinearLayout.LayoutParams(0, kit.dp(54), 0.9f)
+            layoutParams = LinearLayout.LayoutParams(0, kit.dp(56), 0.9f)
             kit.styleDanger(this)
             setOnClickListener { submit() }
         }
@@ -103,27 +104,27 @@ class PickerController(
 
         selectedLabel = TextView(activity).apply {
             visibility = View.GONE
-            textSize = 12f
+            textSize = 12.5f
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(kit.greenDark)
-            setPadding(kit.dp(4), kit.dp(5), kit.dp(4), 0)
+            setPadding(kit.dp(4), kit.dp(6), kit.dp(4), 0)
         }
         root.addView(selectedLabel)
         suggestions = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
         root.addView(suggestions)
         catalogLabel = TextView(activity).apply {
             text = "Đang chuẩn bị danh mục SKU..."
-            textSize = 10f
+            textSize = 10.5f
             setTextColor(kit.muted)
-            setPadding(kit.dp(3), kit.dp(4), kit.dp(3), kit.dp(2))
+            setPadding(kit.dp(3), kit.dp(5), kit.dp(3), kit.dp(2))
         }
         root.addView(catalogLabel)
         root.addView(TextView(activity).apply {
             text = "Lịch sử báo hàng hôm nay"
-            textSize = 17f
+            textSize = 18f
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(kit.muted)
-            setPadding(kit.dp(2), kit.dp(12), kit.dp(2), kit.dp(3))
+            setPadding(kit.dp(2), kit.dp(13), kit.dp(2), kit.dp(4))
         })
         historyBox = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
         root.addView(historyBox)
@@ -167,16 +168,20 @@ class PickerController(
     private fun syncCatalog(auto: Boolean) {
         if (syncing) return
         syncing = true
+        catalogLabel?.visibility = View.VISIBLE
         if (!auto) setStatus("Đang đồng bộ Master SKU...")
         Thread {
             try {
                 if (cache.count == 0) cache.loadLocal()
                 val result = cache.sync(api) { loaded, total ->
-                    activity.runOnUiThread { catalogLabel?.text = "Đang tải danh mục: $loaded/$total SKU" }
+                    activity.runOnUiThread {
+                        catalogLabel?.visibility = View.VISIBLE
+                        catalogLabel?.text = "Đang tải danh mục: $loaded/$total SKU"
+                    }
                 }
                 activity.runOnUiThread {
                     syncing = false
-                    catalogLabel?.text = "Danh mục: ${result.count} SKU · ${if (result.updated) "vừa cập nhật" else "đã mới nhất"}"
+                    catalogLabel?.visibility = View.GONE
                     if (!auto || result.updated) setStatus("Master SKU sẵn sàng.")
                     val current = input?.text?.toString().orEmpty()
                     if (current.trim().length >= 3) scheduleSearch(current)
@@ -184,6 +189,7 @@ class PickerController(
             } catch (e: Exception) {
                 activity.runOnUiThread {
                     syncing = false
+                    catalogLabel?.visibility = View.VISIBLE
                     catalogLabel?.text = "Danh mục local: ${cache.count} SKU"
                     setStatus("${friendlyError(e)} Danh mục cũ vẫn được giữ.")
                 }
@@ -213,19 +219,19 @@ class PickerController(
         val box = suggestions ?: return
         box.removeAllViews()
         if (rows.isEmpty()) {
-            box.addView(kit.muted(if (cache.count == 0) "Chưa có danh mục local." else "Không tìm thấy SKU phù hợp.", 11f))
+            box.addView(kit.muted(if (cache.count == 0) "Chưa có danh mục local." else "Không tìm thấy SKU phù hợp.", 11.5f))
             return
         }
         for (item in rows) {
             box.addView(Button(activity).apply {
                 text = "${item.sku} - ${item.productName}"
-                textSize = 11.5f
+                textSize = 12.5f
                 maxLines = 2
                 ellipsize = TextUtils.TruncateAt.END
                 gravity = Gravity.START or Gravity.CENTER_VERTICAL
                 kit.styleSecondary(this)
                 layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                    topMargin = kit.dp(3)
+                    topMargin = kit.dp(4)
                 }
                 setOnClickListener { selectSku(item, true) }
             })
@@ -308,43 +314,43 @@ class PickerController(
                 "Picker thu hồi" -> Triple(kit.graySoft, kit.line, kit.muted)
                 else -> Triple(kit.pendingFill, kit.pendingStroke, kit.orange)
             }
-            val card = kit.card(colors.first, colors.second, 10)
+            val card = kit.card(colors.first, colors.second, 11)
             val top = LinearLayout(activity).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
             }
             top.addView(TextView(activity).apply {
                 text = "${row.sku} - ${row.productName}"
-                textSize = 17f
+                textSize = 18.5f
                 maxLines = 1
                 ellipsize = TextUtils.TruncateAt.END
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(kit.text)
-                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = kit.dp(6) }
+                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = kit.dp(7) }
             })
             top.addView(TextView(activity).apply {
                 text = state
-                textSize = 10.5f
+                textSize = 11.5f
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(colors.third)
-                setPadding(kit.dp(8), kit.dp(4), kit.dp(8), kit.dp(4))
+                setPadding(kit.dp(9), kit.dp(5), kit.dp(9), kit.dp(5))
                 background = kit.rounded(colors.first, colors.second, 999)
             })
             card.addView(top)
             card.addView(TextView(activity).apply {
                 text = "Báo hết hàng lúc: ${timestamp(row.reportedAt)}"
-                textSize = 11.5f
+                textSize = 12.5f
                 setTextColor(kit.text)
-                setPadding(0, kit.dp(4), 0, 0)
+                setPadding(0, kit.dp(5), 0, 0)
             })
             if (state == "Đang xử lý" && row.status == "OPEN") {
                 val deadline = millis(row.withdrawDeadlineAt)
                 if (deadline > System.currentTimeMillis()) {
                     val withdraw = Button(activity).apply {
                         text = "Thu hồi"
-                        textSize = 10.5f
+                        textSize = 11.5f
                         kit.styleSecondary(this)
-                        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, kit.dp(40)).apply { topMargin = kit.dp(6) }
+                        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, kit.dp(42)).apply { topMargin = kit.dp(7) }
                         setOnLongClickListener { confirmWithdraw(row); true }
                     }
                     withdrawButtons[withdraw] = deadline
@@ -419,10 +425,10 @@ class PickerController(
 
     private fun empty(value: String): TextView = TextView(activity).apply {
         text = value
-        textSize = 12f
+        textSize = 12.5f
         setTextColor(kit.muted)
-        setPadding(kit.dp(12), kit.dp(14), kit.dp(12), kit.dp(14))
+        setPadding(kit.dp(12), kit.dp(16), kit.dp(12), kit.dp(16))
         background = kit.rounded(Color.WHITE, kit.line, 10)
-        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = kit.dp(5) }
+        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = kit.dp(6) }
     }
 }

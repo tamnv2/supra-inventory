@@ -38,6 +38,8 @@ class InventoryUi(private val activity: Activity) {
     val skipFill = Color.parseColor("#FDE7E9")
     val skipStroke = Color.parseColor("#F3A2AA")
 
+    private val compactPda = activity.resources.configuration.screenWidthDp <= 380
+
     fun dp(value: Int): Int = (value * activity.resources.displayMetrics.density).toInt()
 
     fun rounded(fill: Int, stroke: Int = line, radiusDp: Int = 12): GradientDrawable =
@@ -49,7 +51,8 @@ class InventoryUi(private val activity: Activity) {
 
     fun page(): LinearLayout = LinearLayout(activity).apply {
         orientation = LinearLayout.VERTICAL
-        setPadding(dp(12), dp(12), dp(12), dp(24))
+        val horizontal = if (compactPda) 10 else 12
+        setPadding(dp(horizontal), dp(10), dp(horizontal), dp(24))
         setBackgroundColor(surface)
         layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
@@ -63,14 +66,14 @@ class InventoryUi(private val activity: Activity) {
     fun card(fill: Int = Color.WHITE, stroke: Int = line, radiusDp: Int = 12): LinearLayout =
         LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(12), dp(11), dp(12), dp(11))
+            setPadding(dp(13), dp(12), dp(13), dp(12))
             background = rounded(fill, stroke, radiusDp)
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
             ).apply {
                 topMargin = dp(6)
-                bottomMargin = dp(5)
+                bottomMargin = dp(6)
             }
         }
 
@@ -88,7 +91,8 @@ class InventoryUi(private val activity: Activity) {
     }
 
     fun styleInput(input: EditText) {
-        input.minHeight = dp(52)
+        input.minHeight = dp(54)
+        input.textSize = if (compactPda) 14f else 15f
         input.setTextColor(text)
         input.setHintTextColor(Color.parseColor("#84928A"))
         input.background = rounded(Color.WHITE, Color.parseColor("#C7D2D9"), 10)
@@ -102,7 +106,7 @@ class InventoryUi(private val activity: Activity) {
 
     private fun styleButton(button: Button, fill: Int, textColor: Int, stroke: Int) {
         button.isAllCaps = false
-        button.minHeight = dp(46)
+        button.minHeight = dp(48)
         button.minimumWidth = 0
         button.setTextColor(textColor)
         button.background = rounded(fill, stroke, 10)
@@ -145,70 +149,74 @@ class InventoryUi(private val activity: Activity) {
         onExit: () -> Unit,
     ) {
         val header = LinearLayout(activity).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.TOP
-            setPadding(dp(10), dp(9), dp(8), dp(9))
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(10), dp(9), dp(10), dp(9))
             background = rounded(Color.WHITE, line, 12)
         }
-        val left = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = dp(7) }
-            addView(title("BÁO HÀNG 1291", 22f).apply {
-                maxLines = 1
-                ellipsize = TextUtils.TruncateAt.END
-            })
-            addView(TextView(activity).apply {
-                text = "${session.employeeCode ?: "—"} - ${session.displayName}"
-                textSize = 13f
-                maxLines = 1
-                ellipsize = TextUtils.TruncateAt.END
-                setTextColor(this@InventoryUi.text)
-                setPadding(0, dp(2), 0, 0)
-            })
+
+        val titleRow = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
         }
-        val right = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.END
-            layoutParams = LinearLayout.LayoutParams(dp(134), ViewGroup.LayoutParams.WRAP_CONTENT)
-        }
-        val tools = LinearLayout(activity).apply {
+        titleRow.addView(title("BÁO HÀNG 1291", if (compactPda) 19f else 21f).apply {
+            maxLines = 1
+            ellipsize = TextUtils.TruncateAt.END
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                marginEnd = dp(6)
+            }
+        })
+        titleRow.addView(LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.END
             addView(utility("Log", onLog))
             addView(utility("Thoát", onExit))
-        }
-        right.addView(tools)
-        right.addView(LinearLayout(activity).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.END or Gravity.CENTER_VERTICAL
-            setPadding(0, dp(6), 0, 0)
-            addView(TextView(activity).apply {
-                text = roleLabel(session.role)
-                textSize = 11.5f
-                setTypeface(typeface, Typeface.BOLD)
-                setTextColor(this@InventoryUi.text)
-                setPadding(dp(3), dp(3), dp(5), dp(3))
-            })
-            addView(TextView(activity).apply {
-                text = "Beta vc${BuildConfig.VERSION_CODE}"
-                textSize = 10.5f
-                setTypeface(typeface, Typeface.BOLD)
-                setTextColor(blue)
-                setPadding(dp(7), dp(3), dp(7), dp(3))
-                background = rounded(blueSoft, Color.parseColor("#C6D8FF"), 999)
-            })
         })
-        header.addView(left)
-        header.addView(right)
+        header.addView(titleRow)
+
+        val identityRow = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, dp(6), 0, 0)
+        }
+        identityRow.addView(TextView(activity).apply {
+            text = "${session.employeeCode ?: "—"} - ${session.displayName}"
+            textSize = if (compactPda) 12.5f else 13.5f
+            maxLines = 1
+            ellipsize = TextUtils.TruncateAt.END
+            setTextColor(this@InventoryUi.text)
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                marginEnd = dp(6)
+            }
+        })
+        identityRow.addView(TextView(activity).apply {
+            text = roleLabel(session.role)
+            textSize = 11.5f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(this@InventoryUi.text)
+            setPadding(dp(3), dp(3), dp(5), dp(3))
+        })
+        identityRow.addView(TextView(activity).apply {
+            text = "Beta vc${BuildConfig.VERSION_CODE}"
+            textSize = 10.5f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(blue)
+            setPadding(dp(7), dp(3), dp(7), dp(3))
+            background = rounded(blueSoft, Color.parseColor("#C6D8FF"), 999)
+        })
+        header.addView(identityRow)
         root.addView(header)
     }
 
     private fun utility(label: String, action: () -> Unit): Button = Button(activity).apply {
         text = label
-        textSize = 10.5f
+        textSize = 11f
         maxLines = 1
-        layoutParams = LinearLayout.LayoutParams(0, dp(40), 1f).apply { marginStart = dp(3) }
+        layoutParams = LinearLayout.LayoutParams(if (compactPda) dp(54) else dp(60), dp(42)).apply {
+            marginStart = dp(4)
+        }
         styleSecondary(this)
+        minHeight = 0
+        minimumHeight = 0
         setOnClickListener { action() }
     }
 

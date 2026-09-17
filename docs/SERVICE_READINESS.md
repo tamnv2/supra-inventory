@@ -7,7 +7,7 @@
 - Stable: `CONFIG_READY_OWNER_GATED_NOT_LIVE`
 - SQLite schema: `5`
 - Web: `PRACTICAL_BALANCED_CANONICAL_SOURCE_BETA_DEPLOY_SMOKE_PASS`
-- Android: `PRACTICAL_BALANCED_SIGNED_BETA_VC34_APPROVED_OPERATIONAL_LAYOUT_PASS`
+- Android: `SIGNED_BETA_VC34_TECHNICAL_PASS_FIELD_UI_REJECTED_REMEDIATION_IN_PROGRESS`
 - Latest signed Beta APK: `beta-vc34`
 - Realtime: `WEBSOCKET_SERVER_WEB_ANDROID_CLIENT_DEPLOYED_SIGNED_PASS`
 - FCM: `DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BUILD_PASS_FIELD_DELIVERY_PENDING`
@@ -15,7 +15,7 @@
 - Archive: `IDEMPOTENT_SHEET_ARCHIVE_AND_SAFE_60D_RETENTION_BETA_DEPLOY_PASS`
 - Admin dashboard: `OPERATIONAL_DASHBOARD_AND_REPORTING_BETA_DEPLOY_PASS`
 - Quota/resilience: `INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS`
-- UI design guard: `PRACTICAL_BALANCED_CANONICAL_SOURCE_GUARD_PASS`
+- UI design guard: `SOURCE_GUARD_EXTENDED_FOR_PHYSICAL_PDA_LAYOUT_REGRESSION_PENDING_PR_CI`
 
 ## Proven runtime baseline
 
@@ -23,17 +23,18 @@
 - Signed Android release: `beta-vc34` (`SUPRA Inventory Beta 0.2.0-beta.34`)
 - APK SHA-256: `80708e58281b67256f6f7a69e5c4ed9aa9dfaafef4b053657a5c68ae77feda52`
 - APK size: `9185074` bytes
-- PR #10 authority + continuity + Practical Balanced source/build: PASS.
-- Post-merge Project State Guard + Repo Authority Guard + UI Design Guard + Beta Worker deploy: PASS.
-- Signed monotonic Android release vc33 → vc34: PASS.
+- PR #10 and post-merge guards proved technical source/build/deploy/release PASS.
+- Physical PDA field/UI evidence on 2026-09-17 rejects vc34 visual acceptance.
 
 ## Current implementation state
 
-- Approved compact `BÁO HÀNG 1291` operational header: technical runtime PASS.
-- Picker one-row SKU input + `BÁO HẾT HÀNG` and today status-card history: technical runtime PASS.
-- Reporter four-state tabs and equal `CÓ HÀNG` / `CHO SKIP HÀNG` actions: technical runtime PASS.
-- Reporter `Picker thu hồi` reads actual `CLOSED` withdrawal batches: technical runtime PASS.
+- Business workflows remain technically operational; no business-state semantics are being changed in this remediation.
+- Physical PDA mismatch identified: fixed right-side header allocation truncates `BÁO HÀNG 1291` on narrow screens.
+- Picker and Reporter text/actions/cards are too compressed compared with the approved operating layout.
+- Successful Picker catalog synchronization leaves unnecessary status text in the operating area.
+- Reporter `Xem Picker` mini-control squeezes the primary report context.
+- Remediation is in progress on `fix/android-vc35-pda-layout-parity` with regression checks added to the UI guard.
 
 ## Next action
 
-Owner field-test signed `beta-vc34` on a physical PDA. Physical-device/UI acceptance and FCM field delivery remain separate evidence levels. Stable remains Owner-gated.
+Pass branch/PR guards, merge, publish the next signed Beta APK, then perform physical-PDA UI verification. Stable remains Owner-gated.
