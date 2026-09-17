@@ -38,6 +38,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm .github/workflows/apply-repo-authority-v2.yml tools/apply_repo_authority_v2.py
-          git add AGENTS.md docs ops tools/authority_guard.py .github/workflows/authority-guard.yml
+          rm -f .github/workflows/authority-guard.yml
+          git add AGENTS.md docs ops tools/authority_guard.py
           git commit -m "feat(authority): make GitHub canonical project memory v2"
           git push origin HEAD:main
