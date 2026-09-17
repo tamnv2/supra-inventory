@@ -43,6 +43,7 @@ class InventoryApplication : Application(), Application.ActivityLifecycleCallbac
             val updated = current
                 .replace("MNV / tên đăng nhập", "Mã nhân viên / tên đăng nhập")
                 .replace("Điều phối Inventory", "Hàng chờ xử lý")
+                .replace("Báo hết hàng", "Báo SKU hết hàng")
                 .replace("Báo của tôi", "Lịch sử báo hàng")
                 .replace("Kết quả gần đây", "Kết quả xử lý gần đây")
                 .replace("Tải lại danh sách vận hành", "Làm mới hàng chờ xử lý")
@@ -60,11 +61,11 @@ class InventoryApplication : Application(), Application.ActivityLifecycleCallbac
             val style = if (view.typeface?.isBold == true) Typeface.BOLD else Typeface.NORMAL
             view.typeface = Typeface.create(family, style)
 
-            if (current.startsWith("SUPRA Inventory") && view.compoundDrawables[0] == null) {
+            if (current == "SI" && view.compoundDrawables[0] == null) {
+                view.text = ""
                 ContextCompat.getDrawable(activity, R.drawable.ic_inventory_alert)?.let { icon ->
-                    val size = dp(22)
+                    val size = dp(30)
                     icon.setBounds(0, 0, size, size)
-                    view.compoundDrawablePadding = dp(7)
                     view.setCompoundDrawables(icon, null, null, null)
                 }
             }
