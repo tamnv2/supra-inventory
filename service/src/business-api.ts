@@ -86,12 +86,30 @@ function corePost(env: BusinessEnv, path: string, body: Record<string, unknown>)
   });
 }
 
+function corePut(env: BusinessEnv, path: string, body: Record<string, unknown>): Promise<Response> {
+  return coreStub(env).fetch(`https://inventory-core.internal${path}`, {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
 function coreGet(env: BusinessEnv, path: string): Promise<Response> {
   return coreStub(env).fetch(`https://inventory-core.internal${path}`);
 }
 
 function actor(user: InternalUser): { user_id: string; employee_code: string | null } {
   return { user_id: user.user_id, employee_code: user.employee_code };
+}
+
+async function ensureOperationalV2(env: BusinessEnv): Promise<Response | null> {
+  try {
+    const response = await coreGet(env, "/operational/init");
+    if (response.ok) return null;
+    return json({ error: "OPERATIONAL_V2_NOT_READY" }, 503);
+  } catch {
+    return json({ error: "OPERATIONAL_V2_NOT_READY" }, 503);
+  }
 }
 
 async function realtimeAfter(
@@ -109,21 +127,24 @@ async function realtimeAfter(
   if (!response.ok) return response;
 
   let batchId = options.batchId || "";
-  if (!batchId) {
-    try {
-      const payload = (await response.clone().json()) as {
-        batch_id?: string;
-        ticket?: { batch_id?: string };
-      };
-      batchId = String(payload.batch_id || payload.ticket?.batch_id || "");
-    } catch {
-      batchId = "";
-    }
+  let eventId = "";
+  try {
+    const payload = (await response.clone().json()) as {
+      event_id?: string | null;
+      batch_id?: string;
+      ticket?: { batch_id?: string };
+      acknowledgement?: { batch_id?: string };
+    };
+    eventId = String(payload.event_id || "");
+    batchId = String(batchId || payload.batch_id || payload.ticket?.batch_id || payload.acknowledgement?.batch_id || "");
+  } catch {
+    // Keep best-effort broadcast behavior.
   }
 
   try {
     await corePost(env, "/realtime/broadcast", {
       event: options.event,
+      event_id: eventId || null,
       scopes: options.scopes,
       tags: options.tags || [],
       batch_id: batchId || null,
@@ -156,10 +177,29 @@ function scheduleFcm(
   if (!ctx || !env.GOOGLE_RUNTIME_SA_JSON || !response.ok) return;
   ctx.waitUntil((async () => {
     try {
+      const mutation = (await response.clone().json()) as {
+        event_id?: string | null;
+        batch_id?: string;
+        ticket?: { batch_id?: string };
+      };
+      const resultEventId = String(mutation.event_id || "");
+      const batchId = String(options.target.batchId || mutation.batch_id || mutation.ticket?.batch_id || "");
+
+      let eventSeq = "";
+      let batchVersion = "";
+      if (resultEventId) {
+        const eventResponse = await coreGet(env, `/operational/realtime/event?event_id=${encodeURIComponent(resultEventId)}`);
+        if (eventResponse.ok) {
+          const eventPayload = (await eventResponse.json()) as { event?: { seq?: number; batch_version?: number } };
+          if (eventPayload.event?.seq != null) eventSeq = String(eventPayload.event.seq);
+          if (eventPayload.event?.batch_version != null) batchVersion = String(eventPayload.event.batch_version);
+        }
+      }
+
       const targetResponse = await corePost(env, "/notifications/targets", {
         roles: options.target.roles || [],
         user_ids: options.target.userIds || [],
-        batch_id: options.target.batchId || null,
+        batch_id: batchId || null,
       });
       if (!targetResponse.ok) return;
       const targetPayload = (await targetResponse.json()) as {
@@ -174,7 +214,10 @@ function scheduleFcm(
         body: options.body.replace("{sku}", batchSku || "SKU"),
         data: {
           event: options.event,
-          batch_id: options.target.batchId || "",
+          batch_id: batchId,
+          result_event_id: resultEventId,
+          event_seq: eventSeq,
+          batch_version: batchVersion,
         },
       });
     } catch {
@@ -192,14 +235,22 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     "POST /api/picker/reports",
     "GET /api/picker/reports",
     "POST /api/picker/reports/withdraw",
+    "GET /api/picker/results",
+    "POST /api/picker/results/receipt",
     "GET /api/reporter/queue",
     "POST /api/reporter/batches/resolve",
     "POST /api/reporter/batches/correct",
     "GET /api/admin/reports",
     "GET /api/admin/dashboard",
     "GET /api/admin/reporting",
+    "GET /api/admin/operational-insights",
+    "GET /api/admin/sla",
+    "PUT /api/admin/sla",
   ]);
   if (!supported.has(key)) return null;
+
+  const initializationFailure = await ensureOperationalV2(env);
+  if (initializationFailure) return initializationFailure;
 
   if (key === "POST /api/admin/skus/import") {
     const user = await requireUser(request, env, ["ADMIN", "ROOT"]);
@@ -224,7 +275,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     const response = await corePost(env, "/business/reports/create", { ...body, actor: actor(user) });
     const result = await realtimeAfter(response, env, {
       event: "report_created",
-      scopes: ["reporter_queue"],
+      scopes: ["reporter_queue", "picker_reports"],
       tags: [...REPORTER_TAGS, `user:${user.user_id}`],
     });
     let sku = String(body.sku || "").trim();
@@ -246,7 +297,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     if (!user.employee_code) return json({ error: "PICKER_EMPLOYEE_CODE_REQUIRED" }, 409);
     const params = new URLSearchParams({ user_id: user.user_id, employee_code: user.employee_code });
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
-    return coreGet(env, `/business/picker/reports?${params.toString()}`);
+    return coreGet(env, `/operational/picker/reports?${params.toString()}`);
   }
 
   if (key === "POST /api/picker/reports/withdraw") {
@@ -255,7 +306,27 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     const response = await corePost(env, "/business/reports/withdraw", { ...body, actor: actor(user) });
     return realtimeAfter(response, env, {
       event: "report_withdrawn",
-      scopes: ["reporter_queue", "picker_reports"],
+      scopes: ["reporter_queue", "reporter_recent", "picker_reports"],
+      tags: [...REPORTER_TAGS, `user:${user.user_id}`],
+    });
+  }
+
+  if (key === "GET /api/picker/results") {
+    const user = await requireUser(request, env, ["PICKER"]);
+    const params = new URLSearchParams({ user_id: user.user_id });
+    if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
+    return coreGet(env, `/operational/picker/results?${params.toString()}`);
+  }
+
+  if (key === "POST /api/picker/results/receipt") {
+    const user = await requireUser(request, env, ["PICKER"]);
+    const body = await parseObjectBody(request);
+    const response = await corePost(env, "/operational/picker/result-stage", { ...body, actor: actor(user) });
+    const stage = String(body.stage || "").toUpperCase();
+    if (stage !== "ACKNOWLEDGED") return response;
+    return realtimeAfter(response, env, {
+      event: "result_acknowledged",
+      scopes: ["reporter_recent", "picker_reports"],
       tags: [...REPORTER_TAGS, `user:${user.user_id}`],
     });
   }
@@ -264,7 +335,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     await requireUser(request, env, REPORTER_ROLES);
     const params = new URLSearchParams();
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
-    return coreGet(env, `/business/reporter/queue?${params.toString()}`);
+    return coreGet(env, `/operational/reporter/queue?${params.toString()}`);
   }
 
   if (key === "POST /api/reporter/batches/resolve") {
@@ -308,6 +379,26 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
       body: "{sku} đã được sửa kết quả thành Có hàng.",
     });
     return result;
+  }
+
+  if (key === "GET /api/admin/sla") {
+    await requireUser(request, env, ["ADMIN", "ROOT"]);
+    return coreGet(env, "/operational/sla");
+  }
+
+  if (key === "PUT /api/admin/sla") {
+    const user = await requireUser(request, env, ["ADMIN", "ROOT"]);
+    const body = await parseObjectBody(request);
+    return corePut(env, "/operational/sla", { ...body, actor: actor(user) });
+  }
+
+  if (key === "GET /api/admin/operational-insights") {
+    await requireUser(request, env, ["ADMIN", "ROOT"]);
+    const params = new URLSearchParams();
+    for (const name of ["from", "to"]) {
+      if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+    }
+    return coreGet(env, `/operational/admin/insights?${params.toString()}`);
   }
 
   if (key === "GET /api/admin/dashboard" || key === "GET /api/admin/reporting") {
