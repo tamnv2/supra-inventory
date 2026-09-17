@@ -17,7 +17,7 @@ The prior Báo hàng 1291 product is a **business/UX reference only** for operat
 - Status always includes text; never depend on color alone.
 - Use system/Roboto/Noto-style typography without a remote font dependency.
 - Remove design rationale, implementation commentary and unnecessary explanatory prose from the product.
-- No offline-business affordance exists.
+- **No offline business mode.** No offline-business affordance exists.
 
 ## Android/PDA shared header
 
