@@ -1,4 +1,4 @@
-import { handleOperationalV2CoreRequest, initializeOperationalV2Schema } from "./operational-v2-core";
+import { handleOperationalV2CoreRequest, operationalV2Readiness } from "./operational-v2-core";
 
 type SqlRow = Record<string, SqlStorageValue>;
 
@@ -379,17 +379,15 @@ export async function handleReadModelCoreRequest(state: DurableObjectState, requ
   const url = new URL(request.url);
 
   if (url.pathname === "/operational/init") {
-    initializeOperationalV2Schema(state);
-    return response({ status: "ready", extension: "operational-v2", latest_seq: latestRealtimeSeq(state) });
+    const readiness = operationalV2Readiness(state);
+    return response(
+      { status: readiness.ready ? "ready" : "not_ready", extension: "operational-v2", ...readiness, latest_seq: latestRealtimeSeq(state) },
+      readiness.ready ? 200 : 503,
+    );
   }
   if (url.pathname.startsWith("/operational/")) {
-    initializeOperationalV2Schema(state);
     const operational = await handleOperationalV2CoreRequest(state, request);
     if (operational) return operational;
-  }
-
-  if (url.pathname.startsWith("/realtime/") || url.pathname.startsWith("/read/realtime/")) {
-    initializeOperationalV2Schema(state);
   }
 
   if (request.method === "GET" && url.pathname === "/read/skus/catalog-info") return skuCatalogInfo(state);
