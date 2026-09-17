@@ -16,26 +16,10 @@ data class AppSession(
     val employeeCode: String?,
 )
 
-data class SkuItem(
-    val sku: String,
-    val productName: String,
-)
-
-data class CatalogInfo(
-    val count: Int,
-    val version: String,
-)
-
-data class CatalogPage(
-    val items: List<SkuItem>,
-    val nextAfter: String?,
-)
-
-data class CatalogDeltaPage(
-    val items: List<SkuItem>,
-    val nextUpdatedAt: String?,
-    val nextSku: String?,
-)
+data class SkuItem(val sku: String, val productName: String)
+data class CatalogInfo(val count: Int, val version: String)
+data class CatalogPage(val items: List<SkuItem>, val nextAfter: String?)
+data class CatalogDeltaPage(val items: List<SkuItem>, val nextUpdatedAt: String?, val nextSku: String?)
 
 data class PickerReport(
     val ticketId: String,
@@ -49,6 +33,26 @@ data class PickerReport(
     val withdrawDeadlineAt: String,
     val withdrawnAt: String?,
     val resolvedAt: String?,
+    val batchVersion: Int = 1,
+    val previousBatchId: String? = null,
+    val resultEventId: String? = null,
+    val receivedAt: String? = null,
+    val displayedAt: String? = null,
+    val acknowledgedAt: String? = null,
+)
+
+data class PickerResult(
+    val resultEventId: String,
+    val batchId: String,
+    val batchVersion: Int,
+    val sku: String,
+    val productName: String,
+    val status: String,
+    val resolution: String,
+    val resolvedAt: String?,
+    val receivedAt: String?,
+    val displayedAt: String?,
+    val acknowledgedAt: String?,
 )
 
 data class ReporterBatch(
@@ -57,6 +61,12 @@ data class ReporterBatch(
     val productName: String,
     val firstReportAt: String,
     val affectedPickerCount: Int,
+    val version: Int = 1,
+    val previousBatchId: String? = null,
+    val previousResolvedAt: String? = null,
+    val recurrenceMinutes: Int? = null,
+    val slaState: String = "UNCONFIGURED",
+    val waitingMinutes: Int = 0,
 )
 
 data class ReporterRecent(
@@ -67,6 +77,10 @@ data class ReporterRecent(
     val resolvedAt: String?,
     val correctionDeadlineAt: String?,
     val affectedPickerCount: Int,
+    val version: Int = 1,
+    val previousBatchId: String? = null,
+    val ackTargetCount: Int = 0,
+    val acknowledgedCount: Int = 0,
 )
 
 data class BatchTicket(
@@ -75,6 +89,24 @@ data class BatchTicket(
     val pickerDisplayName: String,
     val status: String,
     val reportedAt: String,
+    val resultEventId: String? = null,
+    val acknowledgedAt: String? = null,
+)
+
+data class RealtimeDeltaEvent(
+    val seq: Long,
+    val event: String,
+    val eventId: String,
+    val scopes: Set<String>,
+    val batchId: String?,
+    val batchVersion: Int?,
+)
+
+data class RealtimeDelta(
+    val events: List<RealtimeDeltaEvent>,
+    val latestSeq: Long,
+    val cursorSeq: Long,
+    val complete: Boolean,
 )
 
 class ApiException(
@@ -87,13 +119,10 @@ class InventoryApi(
     private val baseUrl: String,
     private val userAgent: String,
 ) {
-    @Volatile
-    var session: AppSession? = null
+    @Volatile var session: AppSession? = null
         private set
 
-    fun clearSession() {
-        session = null
-    }
+    fun clearSession() { session = null }
 
     fun login(username: String, password: String): AppSession {
         val payload = request(
@@ -108,50 +137,62 @@ class InventoryApi(
             refreshToken = payload.optString("refresh_token"),
             displayName = user.optString("display_name", username),
             role = user.optString("role", "AUTH"),
-            employeeCode = user.optString("employee_code").takeIf { it.isNotBlank() && it != "null" },
+            employeeCode = nullable(user, "employee_code"),
         )
-        if (next.idToken.isBlank() || next.refreshToken.isBlank()) {
-            throw IllegalStateException("Phiên đăng nhập trả về không đầy đủ.")
-        }
+        if (next.idToken.isBlank() || next.refreshToken.isBlank()) throw IllegalStateException("Phiên đăng nhập trả về không đầy đủ.")
         session = next
         return next
     }
 
-    fun registerNotificationDevice(deviceId: String, token: String): JSONObject =
-        request(
-            method = "POST",
-            path = "/api/notifications/device",
-            body = JSONObject().put("device_id", deviceId).put("token", token).put("platform", "ANDROID"),
-        )
+    fun registerNotificationDevice(deviceId: String, token: String): JSONObject = request(
+        "POST", "/api/notifications/device",
+        JSONObject().put("device_id", deviceId).put("token", token).put("platform", "ANDROID"),
+    )
 
-    fun unregisterNotificationDevice(deviceId: String): JSONObject =
-        request(
-            method = "DELETE",
-            path = "/api/notifications/device",
-            body = JSONObject().put("device_id", deviceId).put("platform", "ANDROID"),
-        )
+    fun unregisterNotificationDevice(deviceId: String): JSONObject = request(
+        "DELETE", "/api/notifications/device",
+        JSONObject().put("device_id", deviceId).put("platform", "ANDROID"),
+    )
 
     fun createRealtimeTicket(): String {
-        val payload = request(
-            method = "POST",
-            path = "/api/realtime/ticket",
-            body = JSONObject().put("client_type", "ANDROID"),
-        )
+        val payload = request("POST", "/api/realtime/ticket", JSONObject().put("client_type", "ANDROID"))
         return payload.optString("ticket").takeIf { it.isNotBlank() }
             ?: throw IllegalStateException("Service không cấp được realtime ticket.")
     }
 
+    fun getRealtimeDelta(afterSeq: Long, limit: Int = 100): RealtimeDelta {
+        val payload = request("GET", "/api/realtime/delta?after_seq=${afterSeq.coerceAtLeast(0)}&limit=${limit.coerceIn(1, 200)}")
+        val array = payload.optJSONArray("events") ?: JSONArray()
+        val events = ArrayList<RealtimeDeltaEvent>(array.length())
+        for (index in 0 until array.length()) {
+            val row = array.optJSONObject(index) ?: continue
+            val scopesArray = row.optJSONArray("scopes") ?: JSONArray()
+            val scopes = linkedSetOf<String>()
+            for (i in 0 until scopesArray.length()) scopesArray.optString(i).trim().takeIf { it.isNotBlank() }?.let { scopes += it }
+            events += RealtimeDeltaEvent(
+                seq = row.optLong("seq", 0L),
+                event = row.optString("event", row.optString("event_type")),
+                eventId = row.optString("event_id"),
+                scopes = scopes,
+                batchId = nullable(row, "batch_id"),
+                batchVersion = row.optInt("batch_version", -1).takeIf { it >= 0 },
+            )
+        }
+        return RealtimeDelta(
+            events = events,
+            latestSeq = payload.optLong("latest_seq", 0L),
+            cursorSeq = payload.optLong("cursor_seq", afterSeq),
+            complete = payload.optBoolean("complete", true),
+        )
+    }
+
     fun getCatalogInfo(): CatalogInfo {
         val payload = request("GET", "/api/skus/catalog-info")
-        return CatalogInfo(
-            count = payload.optInt("count", 0),
-            version = payload.optString("version"),
-        )
+        return CatalogInfo(payload.optInt("count", 0), payload.optString("version"))
     }
 
     fun getCatalogPage(after: String, limit: Int = 2000): CatalogPage {
-        val path = "/api/skus/catalog?after=${enc(after)}&limit=$limit"
-        val payload = request("GET", path)
+        val payload = request("GET", "/api/skus/catalog?after=${enc(after)}&limit=$limit")
         val array = payload.optJSONArray("items") ?: JSONArray()
         val items = ArrayList<SkuItem>(array.length())
         for (index in 0 until array.length()) {
@@ -160,15 +201,11 @@ class InventoryApi(
             val name = row.optString("product_name").trim()
             if (sku.isNotBlank() && name.isNotBlank()) items += SkuItem(sku, name)
         }
-        return CatalogPage(
-            items = items,
-            nextAfter = payload.optString("next_after").takeIf { it.isNotBlank() && it != "null" },
-        )
+        return CatalogPage(items, nullable(payload, "next_after"))
     }
 
     fun getCatalogDelta(since: String, afterUpdatedAt: String, afterSku: String, limit: Int = 2000): CatalogDeltaPage {
-        val path = "/api/skus/catalog-delta?since=${enc(since)}&after_updated_at=${enc(afterUpdatedAt)}&after_sku=${enc(afterSku)}&limit=$limit"
-        val payload = request("GET", path)
+        val payload = request("GET", "/api/skus/catalog-delta?since=${enc(since)}&after_updated_at=${enc(afterUpdatedAt)}&after_sku=${enc(afterSku)}&limit=$limit")
         val array = payload.optJSONArray("items") ?: JSONArray()
         val items = ArrayList<SkuItem>(array.length())
         for (index in 0 until array.length()) {
@@ -177,19 +214,13 @@ class InventoryApi(
             val name = row.optString("product_name").trim()
             if (sku.isNotBlank() && name.isNotBlank()) items += SkuItem(sku, name)
         }
-        return CatalogDeltaPage(
-            items = items,
-            nextUpdatedAt = payload.optString("next_updated_at").takeIf { it.isNotBlank() && it != "null" },
-            nextSku = payload.optString("next_sku").takeIf { it.isNotBlank() && it != "null" },
-        )
+        return CatalogDeltaPage(items, nullable(payload, "next_updated_at"), nullable(payload, "next_sku"))
     }
 
-    fun createPickerReport(sku: String): JSONObject =
-        request(
-            "POST",
-            "/api/picker/reports",
-            JSONObject().put("request_id", UUID.randomUUID().toString()).put("sku", sku),
-        )
+    fun createPickerReport(sku: String): JSONObject = request(
+        "POST", "/api/picker/reports",
+        JSONObject().put("request_id", UUID.randomUUID().toString()).put("sku", sku),
+    )
 
     fun getPickerReports(limit: Int = 100): List<PickerReport> {
         val payload = request("GET", "/api/picker/reports?limit=$limit")
@@ -198,28 +229,49 @@ class InventoryApi(
         for (index in 0 until array.length()) {
             val row = array.optJSONObject(index) ?: continue
             rows += PickerReport(
-                ticketId = row.optString("ticket_id"),
-                batchId = row.optString("batch_id"),
-                sku = row.optString("sku"),
-                productName = row.optString("product_name"),
-                status = row.optString("status"),
-                batchStatus = row.optString("batch_status"),
-                resolution = row.optString("resolution").takeIf { it.isNotBlank() && it != "null" },
-                reportedAt = row.optString("reported_at"),
-                withdrawDeadlineAt = row.optString("withdraw_deadline_at"),
-                withdrawnAt = row.optString("withdrawn_at").takeIf { it.isNotBlank() && it != "null" },
-                resolvedAt = row.optString("resolved_at").takeIf { it.isNotBlank() && it != "null" },
+                ticketId = row.optString("ticket_id"), batchId = row.optString("batch_id"),
+                sku = row.optString("sku"), productName = row.optString("product_name"),
+                status = row.optString("status"), batchStatus = row.optString("batch_status"),
+                resolution = nullable(row, "resolution"), reportedAt = row.optString("reported_at"),
+                withdrawDeadlineAt = row.optString("withdraw_deadline_at"), withdrawnAt = nullable(row, "withdrawn_at"),
+                resolvedAt = nullable(row, "resolved_at"), batchVersion = row.optInt("batch_version", 1),
+                previousBatchId = nullable(row, "previous_batch_id"), resultEventId = nullable(row, "result_event_id"),
+                receivedAt = nullable(row, "received_at"), displayedAt = nullable(row, "displayed_at"),
+                acknowledgedAt = nullable(row, "acknowledged_at"),
             )
         }
         return rows
     }
 
-    fun withdrawPickerReport(ticketId: String): JSONObject =
-        request(
-            "POST",
-            "/api/picker/reports/withdraw",
-            JSONObject().put("request_id", UUID.randomUUID().toString()).put("ticket_id", ticketId),
-        )
+    fun getPickerResults(limit: Int = 100): List<PickerResult> {
+        val payload = request("GET", "/api/picker/results?limit=$limit")
+        val array = payload.optJSONArray("items") ?: JSONArray()
+        val rows = ArrayList<PickerResult>(array.length())
+        for (index in 0 until array.length()) {
+            val row = array.optJSONObject(index) ?: continue
+            rows += PickerResult(
+                resultEventId = row.optString("result_event_id"), batchId = row.optString("batch_id"),
+                batchVersion = row.optInt("batch_version", 1), sku = row.optString("sku"),
+                productName = row.optString("product_name"), status = row.optString("status"),
+                resolution = row.optString("resolution"), resolvedAt = nullable(row, "resolved_at"),
+                receivedAt = nullable(row, "received_at"), displayedAt = nullable(row, "displayed_at"),
+                acknowledgedAt = nullable(row, "acknowledged_at"),
+            )
+        }
+        return rows
+    }
+
+    fun markResultStage(resultEventId: String, stage: String): JSONObject = request(
+        "POST", "/api/picker/results/receipt",
+        JSONObject().put("request_id", UUID.randomUUID().toString()).put("result_event_id", resultEventId).put("stage", stage),
+    )
+
+    fun acknowledgeResult(resultEventId: String): JSONObject = markResultStage(resultEventId, "ACKNOWLEDGED")
+
+    fun withdrawPickerReport(ticketId: String): JSONObject = request(
+        "POST", "/api/picker/reports/withdraw",
+        JSONObject().put("request_id", UUID.randomUUID().toString()).put("ticket_id", ticketId),
+    )
 
     fun getReporterQueue(limit: Int = 100): List<ReporterBatch> {
         val payload = request("GET", "/api/reporter/queue?limit=$limit")
@@ -228,11 +280,12 @@ class InventoryApi(
         for (index in 0 until array.length()) {
             val row = array.optJSONObject(index) ?: continue
             rows += ReporterBatch(
-                batchId = row.optString("batch_id"),
-                sku = row.optString("sku"),
-                productName = row.optString("product_name"),
-                firstReportAt = row.optString("first_report_at"),
-                affectedPickerCount = row.optInt("affected_picker_count", 0),
+                batchId = row.optString("batch_id"), sku = row.optString("sku"), productName = row.optString("product_name"),
+                firstReportAt = row.optString("first_report_at"), affectedPickerCount = row.optInt("affected_picker_count", 0),
+                version = row.optInt("version", 1), previousBatchId = nullable(row, "previous_batch_id"),
+                previousResolvedAt = nullable(row, "previous_resolved_at"),
+                recurrenceMinutes = row.optInt("recurrence_minutes", -1).takeIf { it >= 0 },
+                slaState = row.optString("sla_state", "UNCONFIGURED"), waitingMinutes = row.optInt("waiting_minutes", 0),
             )
         }
         return rows
@@ -245,13 +298,11 @@ class InventoryApi(
         for (index in 0 until array.length()) {
             val row = array.optJSONObject(index) ?: continue
             rows += ReporterRecent(
-                batchId = row.optString("batch_id"),
-                sku = row.optString("sku"),
-                productName = row.optString("product_name"),
-                status = row.optString("status"),
-                resolvedAt = row.optString("resolved_at").takeIf { it.isNotBlank() && it != "null" },
-                correctionDeadlineAt = row.optString("correction_deadline_at").takeIf { it.isNotBlank() && it != "null" },
-                affectedPickerCount = row.optInt("affected_picker_count", 0),
+                batchId = row.optString("batch_id"), sku = row.optString("sku"), productName = row.optString("product_name"),
+                status = row.optString("status"), resolvedAt = nullable(row, "resolved_at"),
+                correctionDeadlineAt = nullable(row, "correction_deadline_at"), affectedPickerCount = row.optInt("affected_picker_count", 0),
+                version = row.optInt("version", 1), previousBatchId = nullable(row, "previous_batch_id"),
+                ackTargetCount = row.optInt("ack_target_count", 0), acknowledgedCount = row.optInt("acknowledged_count", 0),
             )
         }
         return rows
@@ -264,41 +315,30 @@ class InventoryApi(
         for (index in 0 until array.length()) {
             val row = array.optJSONObject(index) ?: continue
             rows += BatchTicket(
-                ticketId = row.optString("ticket_id"),
-                pickerEmployeeCode = row.optString("picker_employee_code"),
-                pickerDisplayName = row.optString("picker_display_name"),
-                status = row.optString("status"),
-                reportedAt = row.optString("reported_at"),
+                ticketId = row.optString("ticket_id"), pickerEmployeeCode = row.optString("picker_employee_code"),
+                pickerDisplayName = row.optString("picker_display_name"), status = row.optString("status"),
+                reportedAt = row.optString("reported_at"), resultEventId = nullable(row, "result_event_id"),
+                acknowledgedAt = nullable(row, "acknowledged_at"),
             )
         }
         return rows
     }
 
-    fun resolveBatch(batchId: String, resolution: String): JSONObject =
-        request(
-            "POST",
-            "/api/reporter/batches/resolve",
-            JSONObject()
-                .put("request_id", UUID.randomUUID().toString())
-                .put("batch_id", batchId)
-                .put("resolution", resolution),
-        )
+    fun resolveBatch(batchId: String, resolution: String): JSONObject = request(
+        "POST", "/api/reporter/batches/resolve",
+        JSONObject().put("request_id", UUID.randomUUID().toString()).put("batch_id", batchId).put("resolution", resolution),
+    )
 
-    fun correctBatch(batchId: String): JSONObject =
-        request(
-            "POST",
-            "/api/reporter/batches/correct",
-            JSONObject().put("request_id", UUID.randomUUID().toString()).put("batch_id", batchId),
-        )
+    fun correctBatch(batchId: String): JSONObject = request(
+        "POST", "/api/reporter/batches/correct",
+        JSONObject().put("request_id", UUID.randomUUID().toString()).put("batch_id", batchId),
+    )
 
     private fun refreshSession() {
         val current = session ?: throw ApiException(401, "AUTH_REQUIRED", "Phiên đăng nhập đã hết hạn.")
         val payload = request(
-            method = "POST",
-            path = "/api/auth/refresh",
-            body = JSONObject().put("refresh_token", current.refreshToken),
-            authorized = false,
-            allowRefreshRetry = false,
+            "POST", "/api/auth/refresh", JSONObject().put("refresh_token", current.refreshToken),
+            authorized = false, allowRefreshRetry = false,
         )
         val idToken = payload.optString("id_token")
         val refreshToken = payload.optString("refresh_token")
@@ -318,13 +358,11 @@ class InventoryApi(
     ): JSONObject {
         val current = session
         if (authorized && current == null) throw ApiException(401, "AUTH_REQUIRED", "Chưa đăng nhập.")
-
         val response = execute(method, path, body, if (authorized) current?.idToken else null)
         if (response.first == 401 && authorized && allowRefreshRetry && current?.refreshToken?.isNotBlank() == true) {
             refreshSession()
             return request(method, path, body, authorized = true, allowRefreshRetry = false)
         }
-
         val payload = parsePayload(response.second)
         if (response.first !in 200..299) {
             val code = payload.optString("error", "HTTP_${response.first}")
@@ -335,12 +373,7 @@ class InventoryApi(
         return payload
     }
 
-    private fun execute(
-        method: String,
-        path: String,
-        body: JSONObject?,
-        token: String?,
-    ): Pair<Int, String> {
+    private fun execute(method: String, path: String, body: JSONObject?, token: String?): Pair<Int, String> {
         val connection = (URL("$baseUrl$path").openConnection() as HttpURLConnection).apply {
             requestMethod = method
             connectTimeout = 10_000
@@ -355,24 +388,21 @@ class InventoryApi(
             }
         }
         return try {
-            if (body != null) {
-                connection.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
-            }
+            if (body != null) connection.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
             val code = connection.responseCode
             val stream = if (code in 200..299) connection.inputStream else connection.errorStream
             code to stream?.bufferedReader()?.use { it.readText() }.orEmpty()
-        } finally {
-            connection.disconnect()
-        }
+        } finally { connection.disconnect() }
     }
 
-    private fun parsePayload(text: String): JSONObject =
-        try {
-            if (text.isBlank()) JSONObject() else JSONObject(text)
-        } catch (_: Exception) {
-            throw IllegalStateException("API trả dữ liệu không hợp lệ.")
-        }
+    private fun parsePayload(text: String): JSONObject = try {
+        if (text.isBlank()) JSONObject() else JSONObject(text)
+    } catch (_: Exception) {
+        throw IllegalStateException("API trả dữ liệu không hợp lệ.")
+    }
 
-    private fun enc(value: String): String =
-        URLEncoder.encode(value, StandardCharsets.UTF_8.toString())
+    private fun nullable(objectValue: JSONObject, key: String): String? =
+        objectValue.optString(key).takeIf { it.isNotBlank() && it != "null" }
+
+    private fun enc(value: String): String = URLEncoder.encode(value, StandardCharsets.UTF_8.toString())
 }
