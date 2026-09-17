@@ -681,6 +681,135 @@ async function putSla(state: DurableObjectState, request: Request): Promise<Resp
   return json({ status: "saved", configured: true, sla: { ...value, updated_at: at, updated_by: actor.user_id } });
 }
 
+export function pickerCanReceiveRealtimeEvent(
+  state: DurableObjectState,
+  eventId: string,
+  ticketId: string | null,
+  userId: string,
+): boolean {
+  if (!eventId || !userId) return false;
+  const row = first(state.storage.sql.exec<SqlRow>(
+    `SELECT 1 AS allowed
+       WHERE (
+         (? IS NOT NULL AND EXISTS (
+           SELECT 1 FROM report_tickets t
+            WHERE t.ticket_id = ? AND t.picker_user_id = ?
+         ))
+         OR EXISTS (
+           SELECT 1 FROM result_acknowledgements a
+            WHERE a.result_event_id = ? AND a.target_user_id = ?
+         )
+         OR EXISTS (
+           SELECT 1 FROM report_events e
+            WHERE e.event_id = ? AND e.actor_user_id = ?
+         )
+       )
+       LIMIT 1`,
+    ticketId,
+    ticketId,
+    userId,
+    eventId,
+    userId,
+    eventId,
+    userId,
+  ).toArray());
+  return Boolean(row);
+}
+
+export function pickerRealtimeSnapshot(
+  state: DurableObjectState,
+  batchId: string,
+  eventId: string,
+  ticketId: string | null,
+  userId: string,
+): Record<string, unknown> | null {
+  if (!batchId || !userId) return null;
+  const batch = first(state.storage.sql.exec<SqlRow>(
+    `SELECT batch_id, sku, product_name, status AS batch_status,
+            resolution AS current_resolution, resolved_at AS current_resolved_at,
+            version AS current_batch_version, previous_batch_id
+       FROM report_batches
+      WHERE batch_id = ?
+      LIMIT 1`,
+    batchId,
+  ).toArray());
+  if (!batch) return null;
+
+  const ticket = first(state.storage.sql.exec<SqlRow>(
+    `SELECT ticket_id, status AS ticket_status, reported_at, withdraw_deadline_at, withdrawn_at, resolved_at
+       FROM report_tickets
+      WHERE batch_id = ? AND picker_user_id = ?
+        AND (? IS NULL OR ticket_id = ?)
+      ORDER BY reported_at DESC
+      LIMIT 1`,
+    batchId,
+    userId,
+    ticketId,
+    ticketId,
+  ).toArray());
+
+  const result = first(state.storage.sql.exec<SqlRow>(
+    `SELECT s.result_event_id, s.batch_version, s.event_type, s.resolution, s.result_at,
+            a.received_at, a.displayed_at, a.acknowledged_at
+       FROM result_event_snapshots s
+       JOIN result_acknowledgements a
+         ON a.result_event_id = s.result_event_id
+        AND a.target_user_id = ?
+      WHERE s.result_event_id = ?
+      LIMIT 1`,
+    userId,
+    eventId,
+  ).toArray());
+
+  return {
+    ...batch,
+    ticket: ticket ? { ...ticket } : null,
+    result_event: result ? { ...result } : null,
+  };
+}
+
+function pickerRealtimeMetadata(
+  state: DurableObjectState,
+  eventId: string,
+  eventType: string,
+  payloadValue: unknown,
+  userId: string,
+): Record<string, unknown> {
+  const payload = parseJsonObject(payloadValue);
+  if (eventType === "BATCH_RESOLVED" || eventType === "BATCH_CORRECTED") {
+    const result = first(state.storage.sql.exec<SqlRow>(
+      `SELECT resolution, result_at, batch_version
+         FROM result_event_snapshots
+        WHERE result_event_id = ?
+        LIMIT 1`,
+      eventId,
+    ).toArray());
+    return result
+      ? {
+          resolution: String(result.resolution || ""),
+          result_at: String(result.result_at || ""),
+          batch_version: Number(result.batch_version || 0),
+        }
+      : {};
+  }
+  if (eventType === "RESULT_ACKNOWLEDGED") {
+    return {
+      result_event_id: String(payload.result_event_id || ""),
+      batch_version: Number(payload.batch_version || 0),
+      acknowledged_by_current_user: true,
+    };
+  }
+  if (eventType === "REPORT_CREATED" || eventType === "REPORT_WITHDRAWN") {
+    return { sku: String(payload.sku || "") };
+  }
+  const actorOwnsEvent = Boolean(first(state.storage.sql.exec<SqlRow>(
+    "SELECT 1 AS owned FROM report_events WHERE event_id = ? AND actor_user_id = ? LIMIT 1",
+    eventId,
+    userId,
+  ).toArray()));
+  return actorOwnsEvent ? {} : {};
+}
+
 function delta(state: DurableObjectState, url: URL): Response {
   const afterSeqRaw = Number(url.searchParams.get("after_seq") || 0);
   const afterSeq = Math.max(0, Number.isFinite(afterSeqRaw) ? Math.trunc(afterSeqRaw) : 0);
@@ -699,14 +828,29 @@ function delta(state: DurableObjectState, url: URL): Response {
             e.batch_version, e.scopes_json, e.payload_json, e.created_at
        FROM realtime_events e
       WHERE e.seq > ?
-        AND (? <> 'PICKER' OR EXISTS (
-          SELECT 1 FROM report_tickets t
-           WHERE t.batch_id = e.batch_id AND t.picker_user_id = ?
-        ))
+        AND (
+          ? <> 'PICKER'
+          OR (
+            (e.ticket_id IS NOT NULL AND EXISTS (
+              SELECT 1 FROM report_tickets t
+               WHERE t.ticket_id = e.ticket_id AND t.picker_user_id = ?
+            ))
+            OR EXISTS (
+              SELECT 1 FROM result_acknowledgements a
+               WHERE a.result_event_id = e.event_id AND a.target_user_id = ?
+            )
+            OR EXISTS (
+              SELECT 1 FROM report_events r
+               WHERE r.event_id = e.event_id AND r.actor_user_id = ?
+            )
+          )
+        )
       ORDER BY e.seq ASC
       LIMIT ?`,
     afterSeq,
     role,
+    userId,
+    userId,
     userId,
     limit + 1,
   ).toArray();
@@ -714,17 +858,24 @@ function delta(state: DurableObjectState, url: URL): Response {
   const hasMore = rows.length > limit;
   const selected = hasMore ? rows.slice(0, limit) : rows;
   const events = selected.map((row) => {
+    const eventId = String(row.event_id || "");
+    const eventType = String(row.event_type || "");
     const batchId = String(row.batch_id || "");
-    const snapshot = batchId ? currentBatchSnapshot(state, batchId) : null;
+    const ticketId = row.ticket_id == null ? null : String(row.ticket_id);
+    const snapshot = role === "PICKER"
+      ? pickerRealtimeSnapshot(state, batchId, eventId, ticketId, userId)
+      : (batchId ? currentBatchSnapshot(state, batchId) : null);
     return {
       seq: Number(row.seq || 0),
-      event_id: String(row.event_id || ""),
-      event: String(row.event_type || ""),
+      event_id: eventId,
+      event: eventType,
       batch_id: batchId || null,
-      ticket_id: row.ticket_id == null ? null : String(row.ticket_id),
-      batch_version: snapshot ? Number(snapshot.version || row.batch_version || 0) : Number(row.batch_version || 0),
+      ticket_id: ticketId,
+      batch_version: Number(row.batch_version || 0),
       scopes: parseJsonArray(row.scopes_json),
-      metadata: parseJsonObject(row.payload_json),
+      metadata: role === "PICKER"
+        ? pickerRealtimeMetadata(state, eventId, eventType, row.payload_json, userId)
+        : parseJsonObject(row.payload_json),
       snapshot,
       server_time: String(row.created_at || ""),
     };
@@ -761,7 +912,7 @@ function realtimeEventById(state: DurableObjectState, url: URL): Response {
       event_id: String(row.event_id || ""),
       event: String(row.event_type || ""),
       batch_id: batchId || null,
-      batch_version: snapshot ? Number(snapshot.version || row.batch_version || 0) : Number(row.batch_version || 0),
+      batch_version: Number(row.batch_version || 0),
       scopes: parseJsonArray(row.scopes_json),
       metadata: parseJsonObject(row.payload_json),
       snapshot,
