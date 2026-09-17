@@ -44,11 +44,22 @@ async function requireUser(request: Request, env: ReadApiEnv, roles?: AppRole[])
   return user;
 }
 
+async function ensureOperationalV2(env: ReadApiEnv): Promise<Response | null> {
+  try {
+    const ready = await core(env).fetch("https://inventory-core.internal/operational/init");
+    return ready.ok ? null : json({ error: "OPERATIONAL_V2_NOT_READY" }, 503);
+  } catch {
+    return json({ error: "OPERATIONAL_V2_NOT_READY" }, 503);
+  }
+}
+
 export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<Response | null> {
   const url = new URL(request.url);
 
   if (request.method === "POST" && url.pathname === "/api/realtime/ticket") {
     const user = await requireUser(request, env);
+    const initFailure = await ensureOperationalV2(env);
+    if (initFailure) return initFailure;
     let body: { client_type?: string } = {};
     try {
       body = (await request.json()) as { client_type?: string };
@@ -78,8 +89,23 @@ export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<
     return core(env).fetch(`https://inventory-core.internal/realtime/connect?ticket=${encodeURIComponent(ticket)}`, { headers });
   }
 
+  if (request.method === "GET" && url.pathname === "/api/realtime/delta") {
+    const user = await requireUser(request, env);
+    const initFailure = await ensureOperationalV2(env);
+    if (initFailure) return initFailure;
+    const params = new URLSearchParams({
+      user_id: user.user_id,
+      role: user.role,
+      after_seq: url.searchParams.get("after_seq") || "0",
+    });
+    if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
+    return core(env).fetch(`https://inventory-core.internal/operational/realtime/delta?${params.toString()}`);
+  }
+
   if (request.method === "GET" && url.pathname === "/api/realtime/presence") {
     await requireUser(request, env, ["ADMIN", "ROOT"]);
+    const initFailure = await ensureOperationalV2(env);
+    if (initFailure) return initFailure;
     return core(env).fetch("https://inventory-core.internal/read/realtime/presence");
   }
 
@@ -109,15 +135,19 @@ export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<
 
   if (url.pathname === "/api/reporter/recent") {
     await requireUser(request, env, REPORTER_ROLES);
+    const initFailure = await ensureOperationalV2(env);
+    if (initFailure) return initFailure;
     const params = new URLSearchParams();
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
-    return core(env).fetch(`https://inventory-core.internal/read/reporter/recent?${params.toString()}`);
+    return core(env).fetch(`https://inventory-core.internal/operational/reporter/recent?${params.toString()}`);
   }
 
   if (url.pathname === "/api/reporter/batch-tickets") {
     await requireUser(request, env, REPORTER_ROLES);
+    const initFailure = await ensureOperationalV2(env);
+    if (initFailure) return initFailure;
     const params = new URLSearchParams({ batch_id: url.searchParams.get("batch_id") || "" });
-    return core(env).fetch(`https://inventory-core.internal/read/reporter/batch-tickets?${params.toString()}`);
+    return core(env).fetch(`https://inventory-core.internal/operational/reporter/batch-tickets?${params.toString()}`);
   }
 
   return null;

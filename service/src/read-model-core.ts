@@ -1,3 +1,5 @@
+import { handleOperationalV2CoreRequest, initializeOperationalV2Schema } from "./operational-v2-core";
+
 type SqlRow = Record<string, SqlStorageValue>;
 
 type RealtimeRole = "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
@@ -41,6 +43,15 @@ function limitOf(value: string | null, fallback: number, max: number): number {
   const parsed = Number(value || fallback);
   if (!Number.isFinite(parsed)) return fallback;
   return Math.max(1, Math.min(max, Math.trunc(parsed)));
+}
+
+function first(rows: SqlRow[]): SqlRow | null {
+  return rows[0] ?? null;
+}
+
+function latestRealtimeSeq(state: DurableObjectState): number {
+  const row = first(state.storage.sql.exec<SqlRow>("SELECT COALESCE(MAX(seq),0) AS latest_seq FROM realtime_events").toArray());
+  return Number(row?.latest_seq || 0);
 }
 
 function skuCatalogInfo(state: DurableObjectState): Response {
@@ -171,7 +182,7 @@ async function createRealtimeTicket(state: DurableObjectState, request: Request)
     expires_at: expiresAt,
   };
   await state.storage.put(`${REALTIME_TICKET_PREFIX}${ticket}`, value);
-  return response({ ticket, expires_at: new Date(expiresAt).toISOString() });
+  return response({ ticket, expires_at: new Date(expiresAt).toISOString(), latest_seq: latestRealtimeSeq(state) });
 }
 
 async function connectRealtime(state: DurableObjectState, request: Request, url: URL): Promise<Response> {
@@ -209,7 +220,12 @@ async function connectRealtime(state: DurableObjectState, request: Request, url:
   state.setWebSocketAutoResponse(new WebSocketRequestResponsePair("ping", "pong"));
 
   try {
-    server.send(JSON.stringify({ type: "connected", connection_id: attachment.connection_id, server_time: connectedAt }));
+    server.send(JSON.stringify({
+      type: "connected",
+      connection_id: attachment.connection_id,
+      latest_seq: latestRealtimeSeq(state),
+      server_time: connectedAt,
+    }));
   } catch {
     // Handshake remains authoritative even if the peer closes immediately after accept.
   }
@@ -231,6 +247,7 @@ function realtimePresence(state: DurableObjectState): Response {
     online_users: users.size,
     online_sessions: sessions.length,
     sessions,
+    latest_seq: latestRealtimeSeq(state),
     server_time: new Date().toISOString(),
   });
 }
@@ -250,37 +267,90 @@ function pickerUserTagsForBatch(state: DurableObjectState, batchId: string): str
     .filter((tag) => REALTIME_TAG_RE.test(tag));
 }
 
+function batchSnapshot(state: DurableObjectState, batchId: string): Record<string, unknown> | null {
+  if (!batchId) return null;
+  const row = first(state.storage.sql.exec<SqlRow>(
+    `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
+            b.resolved_at, b.resolution, b.correction_deadline_at, b.version, b.previous_batch_id,
+            SUM(CASE WHEN t.status = 'OPEN' THEN 1 ELSE 0 END) AS open_ticket_count,
+            COUNT(DISTINCT t.ticket_id) AS total_ticket_count,
+            COUNT(DISTINCT a.target_user_id) AS ack_target_count,
+            COUNT(DISTINCT CASE WHEN a.acknowledged_at IS NOT NULL THEN a.target_user_id END) AS acknowledged_count
+       FROM report_batches b
+       LEFT JOIN report_tickets t ON t.batch_id = b.batch_id
+       LEFT JOIN result_acknowledgements a
+         ON a.batch_id = b.batch_id AND a.batch_version = b.version
+      WHERE b.batch_id = ?
+      GROUP BY b.batch_id
+      LIMIT 1`,
+    batchId,
+  ).toArray());
+  return row ? { ...row } : null;
+}
+
+function realtimeEvent(state: DurableObjectState, eventId: string): SqlRow | null {
+  if (!eventId) return null;
+  return first(state.storage.sql.exec<SqlRow>(
+    `SELECT seq, event_id, event_type, batch_id, ticket_id, batch_version, scopes_json, payload_json, created_at
+       FROM realtime_events
+      WHERE event_id = ?
+      LIMIT 1`,
+    eventId,
+  ).toArray());
+}
+
+function parseScopes(value: unknown): string[] {
+  try {
+    const parsed = JSON.parse(String(value || "[]"));
+    return Array.isArray(parsed) ? parsed.map((item) => String(item)).filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
 async function realtimeBroadcast(state: DurableObjectState, request: Request): Promise<Response> {
   const body = (await request.json()) as {
     event?: string;
+    event_id?: string;
     tags?: unknown[];
     scopes?: unknown[];
     batch_id?: string;
     include_batch_picker_users?: boolean;
     metadata?: Record<string, unknown>;
   };
-  const event = String(body.event || "business_changed").trim().slice(0, 100);
+  const fallbackEvent = String(body.event || "business_changed").trim().slice(0, 100);
+  const eventId = String(body.event_id || "").trim();
+  const eventRow = realtimeEvent(state, eventId);
+  const event = String(eventRow?.event_type || fallbackEvent);
   const requestedTags = Array.isArray(body.tags)
     ? body.tags.map((value) => String(value)).filter((value) => REALTIME_TAG_RE.test(value))
     : [];
-  const batchId = String(body.batch_id || "").trim();
+  const batchId = String(body.batch_id || eventRow?.batch_id || "").trim();
   if (body.include_batch_picker_users && batchId) {
     requestedTags.push(...pickerUserTagsForBatch(state, batchId));
   }
   const tags = [...new Set(requestedTags)].slice(0, 200);
-  const scopes = Array.isArray(body.scopes)
+  const requestedScopes = Array.isArray(body.scopes)
     ? [...new Set(body.scopes.map((value) => String(value).trim()).filter(Boolean))].slice(0, 20)
     : [];
+  const eventScopes = eventRow ? parseScopes(eventRow.scopes_json) : [];
+  const scopes = eventScopes.length ? eventScopes : requestedScopes;
   if (!tags.length) return response({ status: "noop", sent: 0, reason: "no_valid_tags" });
 
   const sockets = new Set<WebSocket>();
   for (const tag of tags) {
     for (const socket of state.getWebSockets(tag)) sockets.add(socket);
   }
+  const snapshot = batchId ? batchSnapshot(state, batchId) : null;
   const frame = JSON.stringify({
     type: "invalidate",
     event,
+    event_id: eventId || (eventRow ? String(eventRow.event_id || "") : ""),
+    seq: eventRow ? Number(eventRow.seq || 0) : null,
     scopes,
+    batch_id: batchId || null,
+    batch_version: snapshot ? Number(snapshot.version || eventRow?.batch_version || 0) : Number(eventRow?.batch_version || 0),
+    snapshot,
     server_time: new Date().toISOString(),
     metadata: { ...(body.metadata || {}), ...(batchId ? { batch_id: batchId } : {}) },
   });
@@ -294,11 +364,34 @@ async function realtimeBroadcast(state: DurableObjectState, request: Request): P
       failed += 1;
     }
   }
-  return response({ status: "broadcasted", sent, failed, tags, scopes });
+  return response({
+    status: "broadcasted",
+    sent,
+    failed,
+    tags,
+    scopes,
+    event_id: eventId || null,
+    seq: eventRow ? Number(eventRow.seq || 0) : null,
+  });
 }
 
 export async function handleReadModelCoreRequest(state: DurableObjectState, request: Request): Promise<Response | null> {
   const url = new URL(request.url);
+
+  if (url.pathname === "/operational/init") {
+    initializeOperationalV2Schema(state);
+    return response({ status: "ready", extension: "operational-v2", latest_seq: latestRealtimeSeq(state) });
+  }
+  if (url.pathname.startsWith("/operational/")) {
+    initializeOperationalV2Schema(state);
+    const operational = await handleOperationalV2CoreRequest(state, request);
+    if (operational) return operational;
+  }
+
+  if (url.pathname.startsWith("/realtime/") || url.pathname.startsWith("/read/realtime/")) {
+    initializeOperationalV2Schema(state);
+  }
+
   if (request.method === "GET" && url.pathname === "/read/skus/catalog-info") return skuCatalogInfo(state);
   if (request.method === "GET" && url.pathname === "/read/skus/catalog") return skuCatalog(state, url);
   if (request.method === "GET" && url.pathname === "/read/skus/catalog-delta") return skuCatalogDelta(state, url);

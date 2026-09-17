@@ -53,6 +53,7 @@ class MainActivity : Activity() {
     private var loginButton: Button? = null
     private var pickerController: PickerController? = null
     private var reporterController: ReporterController? = null
+    private var adminLauncherController: AdminLauncherController? = null
     private var realtimeClient: AndroidRealtimeClient? = null
     private var statusHideTask: Runnable? = null
     private var pendingInstallFile: File? = null
@@ -206,26 +207,76 @@ class MainActivity : Activity() {
         pickerController?.destroy()
         pickerController = null
         reporterController = null
+        adminLauncherController = null
+        when (session.role) {
+            "PICKER" -> renderPickerHome(session)
+            "REPORTER" -> renderReporterHome(session, showLauncherBack = false)
+            "ADMIN" -> renderAdminLauncher(session)
+            "ROOT" -> renderAdminLauncher(session)
+            else -> {
+                val root = baseOperationalPage(session)
+                root.addView(kit.muted("Vai trò ${session.role} chưa được hỗ trợ trên PDA."))
+                finishOperationalPage(root)
+            }
+        }
+        startRealtime(session)
+        registerBackgroundNotifications()
+        recordLog("Đăng nhập ${kit.roleLabel(session.role)}: ${session.employeeCode ?: session.displayName}")
+    }
+
+    private fun baseOperationalPage(session: AppSession): LinearLayout {
         val root = kit.page()
         kit.addOperationalHeader(root, session, onLog = { showLocalLog() }, onExit = { confirmLogout() })
         status = kit.createStatusView()
         root.addView(status)
-        when (session.role) {
-            "PICKER" -> {
-                pickerController = PickerController(this, api, skuCache, kit, ::setStatus, ::friendlyError)
-                    .also { it.render(root) }
-            }
-            "REPORTER", "ADMIN", "ROOT" -> {
-                reporterController = ReporterController(this, api, kit, ::setStatus, ::friendlyError)
-                    .also { it.render(root) }
-            }
-            else -> root.addView(kit.muted("Vai trò ${session.role} chưa được hỗ trợ trên PDA."))
-        }
+        return root
+    }
+
+    private fun finishOperationalPage(root: LinearLayout) {
         kit.addFooter(root)
         setContentView(kit.wrapScroll(root))
-        startRealtime(session)
-        registerBackgroundNotifications()
-        recordLog("Đăng nhập ${kit.roleLabel(session.role)}: ${session.employeeCode ?: session.displayName}")
+    }
+
+    private fun renderPickerHome(session: AppSession) {
+        val root = baseOperationalPage(session)
+        pickerController = PickerController(this, api, skuCache, kit, ::setStatus, ::friendlyError)
+            .also { it.render(root) }
+        finishOperationalPage(root)
+    }
+
+    private fun renderReporterHome(session: AppSession, showLauncherBack: Boolean) {
+        pickerController?.destroy()
+        pickerController = null
+        reporterController = null
+        val root = baseOperationalPage(session)
+        if (showLauncherBack) {
+            root.addView(Button(this).apply {
+                text = "← Về trang ${kit.roleLabel(session.role)}"
+                kit.styleSecondary(this)
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, kit.dp(46)).apply { topMargin = kit.dp(7) }
+                setOnClickListener { renderAdminLauncher(session) }
+            })
+        }
+        reporterController = ReporterController(this, api, kit, ::setStatus, ::friendlyError)
+            .also { it.render(root) }
+        finishOperationalPage(root)
+    }
+
+    private fun renderAdminLauncher(session: AppSession) {
+        pickerController?.destroy()
+        pickerController = null
+        reporterController = null
+        val root = baseOperationalPage(session)
+        adminLauncherController = AdminLauncherController(
+            activity = this,
+            session = session,
+            kit = kit,
+            setStatus = ::setStatus,
+            onOpenOperations = { renderReporterHome(session, showLauncherBack = true) },
+            onOpenLog = { showLocalLog() },
+            onCheckUpdate = { checkForUpdate(silent = false) },
+        ).also { it.render(root) }
+        finishOperationalPage(root)
     }
 
     private fun addBrandHeader(root: LinearLayout, subtitle: String) = kit.addBrandHeader(root, subtitle)
@@ -234,6 +285,7 @@ class MainActivity : Activity() {
         pickerController?.destroy()
         pickerController = null
         reporterController = null
+        adminLauncherController = null
         realtimeClient?.stop()
         realtimeClient = null
     }
@@ -327,6 +379,7 @@ class MainActivity : Activity() {
                 "BATCH_NOT_PENDING" -> "Đợt này đã được người khác xử lý."
                 "CORRECTION_WINDOW_EXPIRED" -> "Đã hết 5 phút cho phép sửa Skip."
                 "BATCH_NOT_CORRECTABLE" -> "Đợt này không còn ở trạng thái cho phép sửa."
+                "RESULT_ACK_NOT_FOUND" -> "Kết quả cần xác nhận không còn hợp lệ cho tài khoản này."
                 "USER_NOT_ACTIVE" -> "Tài khoản đã dừng hoạt động."
                 "FORBIDDEN" -> "Tài khoản không có quyền thực hiện thao tác này."
                 "AUTH_REQUIRED", "INVALID_AUTH_TOKEN", "SESSION_REFRESH_FAILED" -> "Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại."

@@ -12,7 +12,7 @@ Status: **CANONICAL PROJECT CONTEXT**. Read this before any project work.
 - Timezone: `Asia/Ho_Chi_Minh`
 - Repository visibility: Public
 
-This project is independent. Never import scope, logic, credentials, resources, or assumptions from Pick Pack 1291, Pickface Damage 1291, SupraCore, VHDCHY, or any other project.
+This project is independent. Never import scope, credentials, resources, or architecture from Pick Pack 1291, Pickface Damage 1291, SupraCore, VHDCHY, or any other project. The prior Báo hàng 1291 product may be used only as the Owner-approved business/UX reference defined by D044; its legacy resources/backend remain out of scope.
 
 ## Product scope
 
@@ -22,6 +22,8 @@ In scope:
 - SKU + product name master data.
 - Picker reports that a SKU is out of stock.
 - Reporter processing queue and resolution.
+- Critical Picker result acknowledgement.
+- Realtime event/delta synchronization, SLA warning/escalation and shortage-episode recurrence tracking.
 - Admin/Root operations, HR source, account management, dashboard/reporting, archive/retention.
 - Web + Android/PDA clients.
 - Server-authoritative realtime synchronization.
@@ -29,14 +31,18 @@ In scope:
 Explicitly out of scope unless Owner reopens it:
 - bin/location/pickface inventory management;
 - stock quantity management;
-- Office-network fallback/provider research;
-- a new offline primary transaction path or direct-to-Sheet business writes.
+- Office-network fallback/provider research.
+
+Explicitly out of scope by active Owner decision D043:
+- any offline business mode;
+- offline report creation or offline mutation outbox;
+- direct-to-Sheet business fallback or any alternate offline transaction path.
 
 ## Roles
 
-- `PICKER`: MNV-based operational user; reports out-of-stock SKU, views own reports, may withdraw an unresolved mistaken report within 60 seconds.
+- `PICKER`: MNV-based operational user; reports out-of-stock SKU, views own reports, may withdraw an unresolved mistaken report within 60 seconds and acknowledges critical final results.
 - `REPORTER`: processes the priority queue; resolves `HAS_STOCK` or `SKIP_ALLOWED`; may correct `SKIP_ALLOWED` to `HAS_STOCK` within five minutes.
-- `ADMIN`: inherits Reporter operations; manages Reporter accounts, Picker provisioning from HR, Master SKU, dashboard/reporting, settings allowed to Admin.
+- `ADMIN`: inherits Reporter operations; manages Reporter accounts, Picker provisioning from HR, Master SKU, dashboard/reporting, allowed settings/SLA/system functions.
 - `ROOT`: highest application role; inherits Admin/Reporter operations and manages Admin accounts. ROOT is protected from normal subordinate management flows.
 
 The service is authoritative for identity, role, deadlines and state transitions. Client-supplied role is never trusted.
@@ -51,6 +57,8 @@ Supporting systems:
 - Google Sheets as Admin/Root-configured HR source.
 - Google Drive/Sheets for batched archive/supporting exports.
 - GitHub for code, durable Owner decisions, specifications, work state and CI/deploy evidence.
+
+There is no offline transaction topology.
 
 ## Environment identity
 

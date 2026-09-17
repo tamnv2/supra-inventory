@@ -119,7 +119,7 @@
   },
   "environments": {
     "beta": {
-      "status": "ROLE_BASED_WEB_ANDROID_LIVE",
+      "status": "ROLE_BASED_WEB_ANDROID_LIVE_PRE_REBASELINE_RUNTIME__LEGACY_OPERATIONAL_V2_SOURCE_BUILD_PASS_PENDING_MERGE_DEPLOY_RELEASE",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",

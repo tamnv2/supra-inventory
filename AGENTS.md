@@ -1,6 +1,6 @@
 # AGENTS.md — SUPRA Inventory
 
-This repository belongs only to `SUPRA Inventory — Báo hàng` (`supra-inventory`). Never import assumptions, credentials, resources, business rules or memories from another project.
+This repository belongs only to `SUPRA Inventory — Báo hàng` (`supra-inventory`). Never import assumptions, credentials, resources, business rules or architecture from another project. The prior Báo hàng 1291 product may be consulted only as the Owner-approved business/UX reference described by canonical decisions; its legacy resources/backend are never project authority.
 
 ## Mandatory bootstrap gate before mutation
 
@@ -67,5 +67,5 @@ Use secret *names/references* only. For new operational metadata, minimize publi
 - Worker + InventoryCore SQLite is transaction authority.
 - UI is realtime; reload is not synchronization logic.
 - No location/bin/pickface or stock-quantity inventory scope.
-- No new offline primary/direct-to-Sheet transaction path unless Owner approves.
+- **No offline business mode.** Do not add offline report creation, durable offline mutation outbox, fake offline success, direct-to-Sheet fallback or any alternate offline transaction path. This is closed by Owner decision D043, not an open future option.
 - Office-network fallback research stays closed unless Owner reopens it.

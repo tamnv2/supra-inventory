@@ -27,7 +27,7 @@ permissions:
   contents: read
 
 jobs:
-  practical-balanced:
+  legacy-operational-v2:
     runs-on: ubuntu-latest
     environment: beta
     env:
@@ -48,7 +48,7 @@ jobs:
         with:
           gradle-version: "9.6.0"
 
-      - name: Validate Practical Balanced source invariants
+      - name: Validate Legacy Operational UI V2 source invariants
         run: |
           set -euo pipefail
           python3 tools/ui_design_guard.py
