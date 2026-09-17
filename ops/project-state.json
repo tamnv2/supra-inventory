@@ -13,15 +13,15 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "LEGACY_OPERATIONAL_V2_MAIN_50879EEF_DEPLOY_UPLOAD_PASS_BUSINESS_SMOKE_FAIL__F01_FIX_IN_PROGRESS",
+    "beta": "LEGACY_OPERATIONAL_V2_MAIN_736DB693__F01_RUNTIME_DEPLOY_AND_RELEASE_GATE_PASS",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 5,
-    "business_api": "LEGACY_OPERATIONAL_V2_DEPLOYED_50879EEF__OPERATIONAL_READINESS_SMOKE_FAILED__F01_FIX_IN_PROGRESS",
+    "business_api": "OPERATIONAL_V2_READINESS_AUTH_GUARD_RUNTIME_PASS__F02_F07_PENDING",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS",
-    "web": "LEGACY_OPERATIONAL_UI_V2_DEPLOYED_50879EEF__WEB_SMOKE_SKIPPED_AFTER_BUSINESS_FAILURE",
-    "android": "LEGACY_OPERATIONAL_UI_V2_SIGNED_BETA_VC36_RELEASED__RUNTIME_ELIGIBILITY_GATE_FIX_IN_PROGRESS",
-    "latest_beta_apk": "beta-vc36",
-    "realtime": "OPERATIONAL_V2_SEQ_DELTA_ACK_DEPLOYED_50879EEF__AUTHENTICATED_RUNTIME_SMOKE_PENDING_AFTER_F01",
+    "web": "LEGACY_OPERATIONAL_UI_V2_BETA_DEPLOY_PASS_736DB693",
+    "android": "LEGACY_OPERATIONAL_UI_V2_SIGNED_BETA_VC37_RUNTIME_GATED_PASS",
+    "latest_beta_apk": "beta-vc37",
+    "realtime": "OPERATIONAL_V2_SEQ_DELTA_ACK_BETA_DEPLOY_PASS__F02_F07_PENDING",
     "network_scope": "ONLINE_ONLY_PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_NO_OFFLINE_BUSINESS_MODE",
     "fcm": "DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BASELINE__OPERATIONAL_V2_CORRELATION_SOURCE_BUILD_PASS_PENDING_RUNTIME",
     "user_management": "EXPANDED_ROOT_ADMIN_PICKER_LIFECYCLE_FLEXIBLE_HR_DIRECT_PASSWORD_LEGACY_PICKER_BOOTSTRAP_DEPLOYED_BUILD_PASS",
@@ -78,8 +78,8 @@
     "Legacy Operational UI V2 Web production build PASS with operational-first queue, SLA/recurrence and sequenced realtime client",
     "Legacy Operational UI V2 Android debug build PASS with Picker vertical flow/ACK, Reporter operational cards/Skip confirmation, Admin/Root launcher and sequenced realtime client",
     "PR #14 merged to main at 50879eef with Legacy Operational UI V2 source/build guards PASS",
-    "Beta deploy run 35252261078 uploaded Worker/Web/InventoryCore successfully and health/auth probes passed; business smoke failed on OPERATIONAL_V2_NOT_READY before Web/OAuth smoke",
-    "Android run 35252260928 signed and published beta-vc36 from 50879eef; release eligibility was not yet coupled to the failed runtime gate"
+    "F01 runtime/readiness remediation merged in PR #15 at 736db693: Operational V2 migration is initialization-gated, health exposes extension readiness, and unauthenticated business probes no longer run schema work",
+    "F01 release eligibility gate is live: beta-vc37 was published from 736db693 only after the matching Deploy Beta workflow reached terminal success"
   ],
   "pending_build": [
     "Run final authority/continuity checks on the source-build-PASS state update and merge PR #14 only when branch protection requirements are satisfied.",
@@ -99,8 +99,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Complete F01 through protected PR, then run Beta deploy/runtime smoke to terminal PASS before any newly built signed Beta release is eligible for mandatory update.",
-    "method": "Fix readiness/auth ordering and couple signed release publication to the matching Deploy Beta success. Keep source/build, runtime, signed artifact, physical device and Owner acceptance as separate gates.",
+    "primary": "Implement F02-F05: immutable result event content, Picker-authorized realtime projection and correct ticket/ACK aggregates; then deploy/verify Beta before F06-F07.",
+    "method": "Preserve D048/D049 event/version history and current role boundaries. Add regression evidence for Skip→Có hàng correction, withdrawn Picker targets and cross-Picker delta/broadcast privacy.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -128,16 +128,14 @@
   },
   "workboard": {
     "in_progress": [
-      "F01: make Operational V2 migration/readiness idempotent and authenticate before readiness probes",
-      "F01: require matching successful Deploy Beta workflow before publishing a signed Beta auto-update release",
-      "Continuity: reconcile repo state/registry from merged PR #14, failed post-deploy business smoke and released beta-vc36"
+      "F02-F05: immutable result-event snapshot, Picker-only realtime projection/privacy, and exact ticket/ACK counts",
+      "F06-F07: authorized global-sequence cursor contract and applied-state cursor recovery after F02-F05 contract lands"
     ],
     "next": [
-      "Open PR for F01 runtime/readiness/release-gate fix and run authority + continuity guards",
-      "Merge only after required guards pass and branch is up to date",
-      "Follow Deploy Beta to terminal PASS; verify health, auth guards, business capability, Web shell and OAuth smoke all execute",
-      "Only then allow the matching signed Beta release to become mandatory-update eligible",
-      "Continue F02-F05 immutable result/privacy/count fixes, then F06-F07 realtime cursor/application fixes"
+      "Implement F02-F05 on a new protected branch with regression fixtures for correction history, Picker privacy and fanout-free counts",
+      "Merge only after authority/continuity/source-build gates PASS, then run Beta runtime verification",
+      "Implement F06-F07 cursor/application semantics and client dirty-recovery on Web/Android",
+      "Continue later P1 UI/FCM/cache/OTA/reporting/archive items after F01-F07"
     ],
     "blocked_or_owner_field_dependent": [
       "Final physical-PDA UI/business acceptance after new signed Beta is available",
@@ -146,25 +144,26 @@
     ],
     "last_source_build_evidence": {
       "branch": "main",
-      "head": "50879eef1abbd1c17bed4c4e3f37fe2ee56849ad",
-      "pr": 14,
-      "merge_status": "PASS",
-      "source_build": "PASS",
-      "runtime_deploy_upload": "PASS",
-      "runtime_business_smoke": "FAIL_OP_V2_NOT_READY",
-      "beta_deploy_run": 35252261078
+      "head": "736db6937f76d39382e627e3e2fc5c3a19e27299",
+      "pr": 15,
+      "authority_guard": "PASS",
+      "project_state_guard": "PASS",
+      "ui_design_guard": "PASS",
+      "service_typecheck": "PASS",
+      "web_production_build": "PASS",
+      "android_debug_build": "PASS"
     },
     "last_runtime_evidence": {
       "schema": 5,
-      "operational_v2_business_smoke": "FAIL_OP_V2_NOT_READY",
-      "beta_deploy_run": 35252261078,
-      "signed_beta_release": "beta-vc36",
-      "signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.36",
-      "signed_beta_apk_sha256": "23fd328559d62dab69eec68204d4d3b5b871c2f5babccd2bfd730a4b01cc9988",
-      "signed_beta_apk_size_bytes": 9217842,
-      "runtime_source_commit": "50879eef1abbd1c17bed4c4e3f37fe2ee56849ad",
-      "release_source_commit": "50879eef1abbd1c17bed4c4e3f37fe2ee56849ad",
-      "verification_basis": "GitHub Actions deploy run 35252261078 and Android run 35252260928; APK hash/size carried from the 2026-09-18 verified review snapshot."
+      "operational_v2_readiness": "PASS",
+      "beta_runtime_gate": "PASS_REQUIRED_BY_BETA_VC37_RELEASE",
+      "signed_beta_release": "beta-vc37",
+      "signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.37",
+      "signed_beta_apk_sha256": null,
+      "signed_beta_apk_size_bytes": null,
+      "runtime_source_commit": "736db6937f76d39382e627e3e2fc5c3a19e27299",
+      "release_source_commit": "736db6937f76d39382e627e3e2fc5c3a19e27299",
+      "verification_basis": "beta-vc37 tag/release exists at the PR #15 merge source. The merged verify-apps workflow publishes a signed Beta release only after the matching Deploy Beta workflow for the same GITHUB_SHA completes with conclusion=success. Direct vc37 asset hash/size has not been re-read by the connected GitHub tool."
     }
   },
   "authority_setup": {
