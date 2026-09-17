@@ -6,7 +6,9 @@ on:
     paths:
       - "service/**"
       - "web/**"
+      - "android/**"
       - ".github/workflows/deploy-beta.yml"
+      - ".github/workflows/verify-apps.yml"
   workflow_dispatch:
 
 permissions:
@@ -100,8 +102,11 @@ jobs:
             storage_ok="$(jq -r '.storage.ok // false' "$tmp" 2>/dev/null || echo false)"
             schema_version="$(jq -r '.storage.schema_version // 0' "$tmp" 2>/dev/null || echo 0)"
             expected_schema="$(jq -r '.storage.expected_schema_version // 0' "$tmp" 2>/dev/null || echo 0)"
-            echo "health attempt=$attempt http=${code:-000} status=${status:-n/a} env=${env_name:-n/a} missing=${missing_count:-999} refresh=${refresh_configured:-false} root_secret=${root_secret_configured:-false} storage=${storage_ok:-false} schema=${schema_version:-0}/${expected_schema:-0}"
-            if [ "$code" = "200" ] && [ "$status" = "ok" ] && [ "$env_name" = "beta" ] && [ "$missing_count" = "0" ] && [ "$refresh_configured" = "true" ] && [ "$root_secret_configured" = "true" ] && [ "$storage_ok" = "true" ] && [ "$schema_version" = "$expected_schema" ] && [ "$schema_version" != "0" ]; then
+            operational_ready="$(jq -r '.storage.operational_v2.ready // false' "$tmp" 2>/dev/null || echo false)"
+            operational_schema="$(jq -r '.storage.operational_v2.schema_version // 0' "$tmp" 2>/dev/null || echo 0)"
+            operational_expected="$(jq -r '.storage.operational_v2.expected_schema_version // 0' "$tmp" 2>/dev/null || echo 0)"
+            echo "health attempt=$attempt http=${code:-000} status=${status:-n/a} env=${env_name:-n/a} missing=${missing_count:-999} refresh=${refresh_configured:-false} root_secret=${root_secret_configured:-false} storage=${storage_ok:-false} schema=${schema_version:-0}/${expected_schema:-0} operational=${operational_ready:-false}:${operational_schema:-0}/${operational_expected:-0}"
+            if [ "$code" = "200" ] && [ "$status" = "ok" ] && [ "$env_name" = "beta" ] && [ "$missing_count" = "0" ] && [ "$refresh_configured" = "true" ] && [ "$root_secret_configured" = "true" ] && [ "$storage_ok" = "true" ] && [ "$schema_version" = "$expected_schema" ] && [ "$schema_version" != "0" ] && [ "$operational_ready" = "true" ] && [ "$operational_schema" = "$operational_expected" ] && [ "$operational_schema" != "0" ]; then
               echo "Beta health + Root secret + SQLite PASS: $url"
               exit 0
             fi
@@ -138,7 +143,7 @@ jobs:
 
           code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}/api/system/capabilities")"
           [ "$code" = "200" ] || { echo "Capabilities expected HTTP 200, got $code"; head -c 500 "$tmp"; exit 1; }
-          jq -e '.business_api.version == 1 and .business_api.sku_master == "implemented" and .business_api.picker_report_withdraw == "implemented" and .business_api.reporter_priority_resolve_correction == "implemented"' "$tmp" >/dev/null || { echo "Business capability marker missing"; head -c 700 "$tmp"; exit 1; }
+          jq -e '.business_api.version == 1 and .business_api.sku_master == "implemented" and .business_api.picker_report_withdraw == "implemented" and .business_api.reporter_priority_resolve_correction == "implemented" and .business_api.operational_v2_ready == true and .business_api.operational_v2_schema_version >= 1 and .realtime_foreground == "websocket_sequence_delta_on_inventory_core"' "$tmp" >/dev/null || { echo "Business/Operational V2 capability marker missing"; head -c 900 "$tmp"; exit 1; }
 
           for path in "/api/skus" "/api/picker/reports" "/api/reporter/queue" "/api/admin/reports"; do
             code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}${path}")"
