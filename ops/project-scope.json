@@ -1,0 +1,343 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "display_name": "SUPRA Inventory — Báo hàng",
+  "repository": {
+    "id": 1372407002,
+    "name": "tamnv2/supra-inventory",
+    "default_branch": "main",
+    "visibility": "public"
+  },
+  "timezone": "Asia/Ho_Chi_Minh",
+  "scope_policy": {
+    "rule": "ONLY_LISTED_RESOURCES_ARE_IN_PROJECT_SCOPE",
+    "unknown_resource": "FAIL_CLOSED_RECONCILE_BEFORE_MUTATION",
+    "cross_project_import": "FORBIDDEN",
+    "stable": "OWNER_GATED"
+  },
+  "resource_identity_rule": "USE_EXACT_KNOWN_ID_WHEN_CANONICALLY_AVAILABLE; OTHERWISE_USE_CANONICAL_NAME_AND_OPTIONAL_ID_SOURCE",
+  "resources": [
+    {
+      "key": "repo",
+      "provider": "GitHub",
+      "kind": "repository",
+      "environment": "shared",
+      "id": "1372407002",
+      "name": "tamnv2/supra-inventory",
+      "exposure": "public_identifier"
+    },
+    {
+      "key": "google-org",
+      "provider": "Google Cloud",
+      "kind": "organization",
+      "environment": "shared",
+      "id": "215296023899",
+      "name": "SUPRA Inventory parent organization",
+      "exposure": "public_identifier",
+      "mutation_scope": "REFERENCE_ONLY_EXCEPT_EXISTING_INVENTORY_SERVICE_ACCOUNT_KEY_POLICY_EXCEPTION"
+    },
+    {
+      "key": "gcp-beta",
+      "provider": "Google Cloud",
+      "kind": "project",
+      "environment": "beta",
+      "id": "supra-inventory-beta",
+      "secondary_id": "572322098890",
+      "name": "supra-inventory-beta",
+      "exposure": "public_identifier"
+    },
+    {
+      "key": "gcp-stable",
+      "provider": "Google Cloud",
+      "kind": "project",
+      "environment": "stable",
+      "id": "supra-inventory-stable",
+      "secondary_id": "1004520166836",
+      "name": "supra-inventory-stable",
+      "exposure": "public_identifier",
+      "guard": "OWNER_GATED"
+    },
+    {
+      "key": "firebase-android-beta",
+      "provider": "Firebase",
+      "kind": "android_app",
+      "environment": "beta",
+      "id": "1:572322098890:android:3e483937876cbcc0400e33",
+      "name": "cd.cc.supra.inventory.beta",
+      "exposure": "public_identifier"
+    },
+    {
+      "key": "firebase-web-beta",
+      "provider": "Firebase",
+      "kind": "web_app",
+      "environment": "beta",
+      "id": "1:572322098890:web:96459cf386b3fb6f400e33",
+      "name": "SUPRA Inventory Beta Web",
+      "exposure": "public_identifier"
+    },
+    {
+      "key": "firebase-android-stable",
+      "provider": "Firebase",
+      "kind": "android_app",
+      "environment": "stable",
+      "id": "1:1004520166836:android:70b94fef019c46450fcee1",
+      "name": "cd.cc.supra.inventory",
+      "exposure": "public_identifier",
+      "guard": "OWNER_GATED"
+    },
+    {
+      "key": "firebase-web-stable",
+      "provider": "Firebase",
+      "kind": "web_app",
+      "environment": "stable",
+      "id": "1:1004520166836:web:36bd435a9a3a3c650fcee1",
+      "name": "SUPRA Inventory Stable Web",
+      "exposure": "public_identifier",
+      "guard": "OWNER_GATED"
+    },
+    {
+      "key": "cf-account",
+      "provider": "Cloudflare",
+      "kind": "account",
+      "environment": "shared",
+      "name": "Cloudflare account hosting supra.cc.cd",
+      "id_source": "github_variable:CF_ACCOUNT_ID",
+      "exposure": "runtime_configuration_reference"
+    },
+    {
+      "key": "cf-zone",
+      "provider": "Cloudflare",
+      "kind": "zone",
+      "environment": "shared",
+      "name": "supra.cc.cd",
+      "id_source": "github_variable:CF_ZONE_ID",
+      "exposure": "runtime_configuration_reference"
+    },
+    {
+      "key": "worker-beta",
+      "provider": "Cloudflare",
+      "kind": "worker",
+      "environment": "beta",
+      "name": "supra-inventory-beta",
+      "exposure": "public_identifier"
+    },
+    {
+      "key": "worker-stable",
+      "provider": "Cloudflare",
+      "kind": "worker",
+      "environment": "stable",
+      "name": "supra-inventory-stable",
+      "exposure": "public_identifier",
+      "guard": "OWNER_GATED"
+    },
+    {
+      "key": "host-beta",
+      "provider": "Cloudflare",
+      "kind": "hostname",
+      "environment": "beta",
+      "name": "inventory-beta.supra.cc.cd",
+      "exposure": "public_identifier"
+    },
+    {
+      "key": "host-stable",
+      "provider": "Cloudflare",
+      "kind": "hostname",
+      "environment": "stable",
+      "name": "inventory.supra.cc.cd",
+      "exposure": "public_identifier",
+      "guard": "OWNER_GATED"
+    },
+    {
+      "key": "inventory-core",
+      "provider": "Cloudflare",
+      "kind": "durable_object",
+      "environment": "beta",
+      "name": "InventoryCore",
+      "binding": "INVENTORY_CORE",
+      "storage": "sqlite",
+      "exposure": "public_identifier"
+    },
+    {
+      "key": "android-package-beta",
+      "provider": "Android",
+      "kind": "package",
+      "environment": "beta",
+      "name": "cd.cc.supra.inventory.beta",
+      "exposure": "public_identifier"
+    },
+    {
+      "key": "android-package-stable",
+      "provider": "Android",
+      "kind": "package",
+      "environment": "stable",
+      "name": "cd.cc.supra.inventory",
+      "exposure": "public_identifier",
+      "guard": "OWNER_GATED"
+    },
+    {
+      "key": "sa-beta",
+      "provider": "Google Cloud",
+      "kind": "service_account",
+      "environment": "beta",
+      "name": "inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com",
+      "exposure": "public_identifier"
+    },
+    {
+      "key": "sa-stable",
+      "provider": "Google Cloud",
+      "kind": "service_account",
+      "environment": "stable",
+      "name": "inventory-stable-runtime@supra-inventory-stable.iam.gserviceaccount.com",
+      "exposure": "public_identifier",
+      "guard": "OWNER_GATED"
+    },
+    {
+      "key": "oauth-beta",
+      "provider": "Google OAuth",
+      "kind": "oauth_client",
+      "environment": "beta",
+      "name": "inventory-beta-drive",
+      "redirect_uri": "https://inventory-beta.supra.cc.cd/api/oauth/google/callback",
+      "exposure": "public_identifier"
+    },
+    {
+      "key": "oauth-stable",
+      "provider": "Google OAuth",
+      "kind": "oauth_client",
+      "environment": "stable",
+      "name": "inventory-stable-drive",
+      "redirect_uri": "https://inventory.supra.cc.cd/api/oauth/google/callback",
+      "exposure": "public_identifier",
+      "guard": "OWNER_GATED"
+    },
+    {
+      "key": "drive-root",
+      "provider": "Google Drive",
+      "kind": "folder",
+      "environment": "shared",
+      "id": "1aNt8PULfMvJC8CKKbQyf5suLPtGo2PRF",
+      "name": "Inventory",
+      "exposure": "operational_metadata_existing_public"
+    },
+    {
+      "key": "drive-beta",
+      "provider": "Google Drive",
+      "kind": "folder",
+      "environment": "beta",
+      "id": "1J5bQDqPoQcEPkYIk41x7t-9Nz_HaSnMC",
+      "name": "Inventory/Beta",
+      "exposure": "operational_metadata_existing_public"
+    },
+    {
+      "key": "drive-stable",
+      "provider": "Google Drive",
+      "kind": "folder",
+      "environment": "stable",
+      "id": "1T6723_2ILNsS2GcvCHGSY5ZenkAj0VYN",
+      "name": "Inventory/Stable",
+      "exposure": "operational_metadata_existing_public",
+      "guard": "OWNER_GATED"
+    },
+    {
+      "key": "hr-sheet-beta",
+      "provider": "Google Sheets",
+      "kind": "spreadsheet",
+      "environment": "beta",
+      "id": "14UcBtXvK_uGHAiKU31Ofw3nwxsTl2IlLPUG9sX8ce7k",
+      "name": "Nhân sự _ Beta",
+      "tab": "Nhân sự",
+      "exposure": "operational_metadata_existing_public",
+      "note": "test source only; product source remains Admin/Root configurable"
+    },
+    {
+      "key": "archive-folder-beta",
+      "provider": "Google Drive",
+      "kind": "folder",
+      "environment": "beta",
+      "id": "1hVmzMziL9nKw-AEnzd8pJm6fmOdyd-5a",
+      "name": "Beta archive folder",
+      "exposure": "operational_metadata_existing_public"
+    },
+    {
+      "key": "exports-folder-beta",
+      "provider": "Google Drive",
+      "kind": "folder",
+      "environment": "beta",
+      "id": "1BgYPpoXHyr9TLzQxE2tOQEvHxfMpKtBh",
+      "name": "Beta exports folder",
+      "exposure": "operational_metadata_existing_public"
+    },
+    {
+      "key": "archive-sheet-beta",
+      "provider": "Google Sheets",
+      "kind": "spreadsheet",
+      "environment": "beta",
+      "id": "1WU9RDUEevE74Twyq1aA80xvL3Wr1mTA21PRA8ypIMOA",
+      "name": "Inventory Archive - Beta",
+      "tabs": [
+        "Archive_Manifest",
+        "Archive_Tickets",
+        "Archive_Batches",
+        "Archive_Events"
+      ],
+      "exposure": "operational_metadata_existing_public"
+    }
+  ],
+  "secret_references": [
+    {
+      "name": "GOOGLE_RUNTIME_SA_JSON",
+      "storage": "Cloudflare Worker secret",
+      "value_in_repo": false
+    },
+    {
+      "name": "GOOGLE_DRIVE_OAUTH_CLIENT_SECRET",
+      "storage": "Cloudflare Worker secret",
+      "value_in_repo": false
+    },
+    {
+      "name": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
+      "storage": "Cloudflare Worker secret",
+      "value_in_repo": false
+    },
+    {
+      "name": "ROOT_BOOTSTRAP_PASSWORD",
+      "storage": "Cloudflare Worker secret",
+      "value_in_repo": false
+    },
+    {
+      "name": "CF_API_TOKEN_INVENTORY_BETA",
+      "storage": "GitHub Actions secret",
+      "value_in_repo": false
+    },
+    {
+      "name": "BETA_KEYSTORE_BASE64",
+      "storage": "GitHub Actions secret",
+      "value_in_repo": false
+    },
+    {
+      "name": "BETA_KEYSTORE_PASSWORD",
+      "storage": "GitHub Actions secret",
+      "value_in_repo": false
+    },
+    {
+      "name": "BETA_KEY_ALIAS",
+      "storage": "GitHub Actions secret/variable as configured",
+      "value_in_repo": false
+    },
+    {
+      "name": "BETA_KEY_PASSWORD",
+      "storage": "GitHub Actions secret",
+      "value_in_repo": false
+    }
+  ],
+  "explicit_out_of_scope": [
+    "Pick Pack 1291 resources",
+    "Pickface Damage 1291 resources",
+    "SupraCore resources",
+    "VHDCHY resources",
+    "location/bin/pickface inventory management",
+    "stock quantity management",
+    "Office-network fallback/provider research unless Owner reopens it",
+    "offline primary transaction path/direct-to-Sheet business writes unless Owner approves"
+  ]
+}

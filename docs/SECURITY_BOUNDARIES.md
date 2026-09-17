@@ -51,3 +51,15 @@ Admin/Root configures HR source through authenticated UI. Backend validates URL,
 - Do not print authorization payloads or credential values.
 - Prefer least privilege and environment isolation.
 - Stable deploy remains Owner-gated.
+
+
+## Public information classification
+
+- **SECRET VALUE** — never in repo/history: private keys, SA JSON, refresh/client secrets, API tokens, signing secrets, passwords, session/access tokens.
+- **SECRET REFERENCE** — allowed: secret/variable name and storage location only.
+- **PUBLIC IDENTIFIER** — project/app/package/worker/hostname identifiers needed for reproducible automation may be recorded.
+- **OPERATIONAL METADATA** — Drive/Sheet/folder IDs are not credentials, but minimize new public exposure. Existing values already in Git history are classified in `ops/project-scope.json`; do not claim HEAD deletion makes them private.
+- **BUSINESS SPEC/DESIGN** — public by repo policy unless Owner explicitly changes repository visibility.
+- **PERSONAL/REAL OPERATIONAL DATA** — do not commit HR/business production datasets or PII to the public repo.
+
+`ops/project-scope.json` records identifier classification without storing any secret value.

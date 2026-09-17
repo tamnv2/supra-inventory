@@ -1,16 +1,24 @@
 {
   "schema_version": 1,
-  "authority_model": "REPO_NATIVE_V2",
+  "authority_model": "REPO_NATIVE_COMPLETE",
   "project_key": "supra-inventory",
   "bootstrap_order": [
     "AGENTS.md",
     "docs/PROJECT_CONTEXT.md",
+    "ops/project-scope.json",
     "ops/project-state.json",
     "docs/OWNER_DECISIONS.md",
     "docs/specs/README.md",
     "docs/specs/ROLE_WORKFLOWS.md",
+    "docs/specs/AUTH_RBAC.md",
     "docs/specs/FORMS.md",
+    "docs/specs/SKU_MASTER.md",
+    "docs/specs/REALTIME_NOTIFICATIONS.md",
+    "docs/specs/DATA_LIFECYCLE.md",
+    "docs/specs/REPORTING_DASHBOARD.md",
     "docs/specs/UI_DESIGN_SYSTEM.md",
+    "docs/specs/ACCEPTANCE_TESTING.md",
+    "docs/OPERATING_PROTOCOL.md",
     "ops/resource-registry.json",
     "recent_commits_and_ci",
     "relevant_live_source"
@@ -20,13 +28,25 @@
     "owner_decisions": "docs/OWNER_DECISIONS.md",
     "work_state": "ops/project-state.json",
     "resource_registry": "ops/resource-registry.json",
-    "product_specs": "docs/specs/",
+    "product_specs": [
+      "docs/specs/ROLE_WORKFLOWS.md",
+      "docs/specs/AUTH_RBAC.md",
+      "docs/specs/FORMS.md",
+      "docs/specs/SKU_MASTER.md",
+      "docs/specs/REALTIME_NOTIFICATIONS.md",
+      "docs/specs/DATA_LIFECYCLE.md",
+      "docs/specs/REPORTING_DASHBOARD.md",
+      "docs/specs/UI_DESIGN_SYSTEM.md",
+      "docs/specs/ACCEPTANCE_TESTING.md"
+    ],
     "implementation": [
       "service/",
       "web/",
       "android/"
     ],
-    "ci": ".github/workflows/"
+    "ci": ".github/workflows/",
+    "project_scope": "ops/project-scope.json",
+    "operating_protocol": "docs/OPERATING_PROTOCOL.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -41,6 +61,7 @@
       "ops/project-state.json"
     ],
     "resource_change": [
+      "ops/project-scope.json",
       "ops/resource-registry.json"
     ],
     "derived_view_freshness": "CI_FAIL_IF_CURRENT_STATE_MARKERS_MISMATCH"
@@ -49,6 +70,7 @@
     "repository_visibility": "public",
     "secret_values_allowed_in_repo": false,
     "operational_identifier_policy": "MINIMIZE_PUBLIC_EXPOSURE__PREFER_ALIASES_AND_RUNTIME_VARIABLES_FOR_NEW_SENSITIVE_OPERATIONAL_IDS",
-    "chat_memory_authority": "NON_CANONICAL_RETRIEVAL_AID_ONLY"
+    "chat_memory_authority": "NON_CANONICAL_RETRIEVAL_AID_ONLY",
+    "resource_scope_authority": "ops/project-scope.json"
   }
 }

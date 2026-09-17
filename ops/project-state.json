@@ -4,7 +4,7 @@
   "display_name": "SUPRA Inventory — Báo hàng",
   "timezone": "Asia/Ho_Chi_Minh",
   "repository": "tamnv2/supra-inventory",
-  "state_model": "REPO_NATIVE_CONTINUITY_V2",
+  "state_model": "REPO_NATIVE_CONTINUITY_COMPLETE",
   "authority_order": [
     "latest_explicit_owner_command",
     "ops/project-state.json",
@@ -30,7 +30,8 @@
     "archive": "IDEMPOTENT_SHEET_ARCHIVE_AND_SAFE_60D_RETENTION_BETA_DEPLOY_PASS",
     "admin_dashboard": "CONCEPT3_OPERATIONAL_DASHBOARD_AND_REPORTING_BETA_DEPLOY_PASS",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "PERMANENT_CONCEPT3_WEB_ANDROID_CI_ACTIVE"
+    "ui_design_guard": "PERMANENT_CONCEPT3_WEB_ANDROID_CI_ACTIVE",
+    "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS"
   },
   "hard_guards": [
     "Do not import assumptions or resources from other projects.",
@@ -92,7 +93,8 @@
     "Quota/resilience v1: schema v5 materialized catalog metadata + delta-first PDA sync + reporting timestamp indexes + 50-request non-destructive Beta health burst — PASS",
     "Concept 3 finish polish: Web humanized HR source/status/responsive UX + Android semantic status badges/alerts/control spacing — Beta Web deploy and signed beta-vc30 PASS",
     "Permanent Concept 3 UI regression guard: static design invariants + Web production build + Android debug build on future UI changes",
-    "Repo-native authority v2: canonical context + Owner decision ledger + product specs + live workboard + stale-view CI guard"
+    "Repo-native authority v2: canonical context + Owner decision ledger + product specs + live workboard + stale-view CI guard",
+    "Repo authority complete: project context + exact ID/name project scope + durable decisions + full product specs + live workboard + automation protocol + public-repo security + stale/secret guards"
   ],
   "pending_build": [
     "Field-verify FCM delivery on a physical logged-in PDA; technical foundation is deployed",
@@ -157,5 +159,16 @@
       "concept3_runtime_source_commit": "8e2d6f440b312206e231ece4e4e51d3b3172b785",
       "verification_basis": "GitHub Actions Concept 3 finish deploy/smoke/signing PASS plus permanent UI guard PASS"
     }
+  },
+  "authority_setup": {
+    "status": "PASS_COMPLETE",
+    "requirement_1_context_and_id_name_scope": "PASS",
+    "requirement_2_github_all_owner_approved_forms_design_logic_scenarios": "PASS_CANONICAL_SPEC_STRUCTURE",
+    "requirement_3_live_done_doing_next_state": "PASS_PROJECT_STATE_WORKBOARD",
+    "requirement_4_automation_first_owner_manual_minimized": "PASS_OPERATING_PROTOCOL",
+    "requirement_5_public_repo_security": "PASS_SECRET_REFERENCE_ONLY_AND_CI_HEURISTIC_GUARD",
+    "canonical_scope": "ops/project-scope.json",
+    "canonical_manifest": "ops/authority-manifest.json",
+    "verified_date": "2026-09-17"
   }
 }

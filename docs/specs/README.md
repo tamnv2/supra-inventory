@@ -1,11 +1,30 @@
 # Product Specification Index
 
-These files are canonical durable product knowledge and must be read before changing the matching area:
+Status: **CANONICAL SPEC INDEX**.
 
-- `ROLE_WORKFLOWS.md` — Picker/Reporter/Admin/Root scenarios and data lifecycle.
-- `FORMS.md` — approved business-facing form/action contracts.
+All Owner-approved product behavior must live in this structure; approved behavior must not exist only in chat memory.
+
+Read the matching spec before changing that area:
+- `ROLE_WORKFLOWS.md` — Picker/Reporter/Admin/Root journeys and scenario ordering.
+- `AUTH_RBAC.md` — authentication, provisioning hierarchy, role authority and unresolved Stable auth hardening.
+- `FORMS.md` — business-facing inputs/actions/forms.
+- `SKU_MASTER.md` — SKU master/import/cache synchronization.
+- `REALTIME_NOTIFICATIONS.md` — WebSocket/FCM semantics.
+- `DATA_LIFECYCLE.md` — ticket/batch/event data semantics, archive and retention.
+- `REPORTING_DASHBOARD.md` — Admin/Root dashboard/reporting authority.
 - `UI_DESIGN_SYSTEM.md` — Owner-selected Concept 3 design authority.
-- `../OWNER_DECISIONS.md` — decision ledger, superseded history and open decisions.
-- `../PROJECT_CONTEXT.md` — project identity/scope and authority graph.
+- `ACCEPTANCE_TESTING.md` — CI/runtime/device/Owner acceptance levels and regression expectations.
 
-Rule: a new Owner-approved form, workflow, design rule or scenario must update the relevant spec and `OWNER_DECISIONS.md` in the same workstream. Do not leave approved requirements only in chat history.
+Also canonical:
+- `../PROJECT_CONTEXT.md` — identity and product scope.
+- `../../ops/project-scope.json` — exact project-resource boundary by ID/name.
+- `../OWNER_DECISIONS.md` — durable decisions, supersession and open questions.
+- `../OPERATING_PROTOCOL.md` — automation-first working method.
+
+## Update coupling
+
+- Owner changes a rule → update `OWNER_DECISIONS.md` + every affected spec in the same workstream.
+- New form/workflow/design/scenario → add it to the matching spec before/with implementation.
+- Superseded behavior is marked historically; do not silently erase the decision trail.
+- Meaningful implementation change → update `ops/project-state.json`.
+- Resource change → update both `ops/project-scope.json` and `ops/resource-registry.json` as applicable.

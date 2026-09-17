@@ -74,14 +74,15 @@ Supporting systems:
 Read in this order before mutation:
 1. Current explicit Owner command in the active conversation.
 2. `AGENTS.md`.
-3. `docs/PROJECT_CONTEXT.md` — identity and scope.
-4. `ops/project-state.json` — live work state: done / in-progress / next / blockers / runtime evidence.
-5. `docs/OWNER_DECISIONS.md` — durable Owner-approved decisions and open decisions.
-6. `docs/specs/` — approved product forms, workflows and design system.
-7. `ops/resource-registry.json` — resource aliases/identifiers and environment status.
-8. Current source code + recent commits + CI/deploy evidence.
-9. Generated/derived views such as `docs/handovers/HANDOVER_CURRENT.md` and `docs/SERVICE_READINESS.md`.
-10. Chat memory/old handovers are retrieval aids only and never override current repo authority.
+3. `docs/PROJECT_CONTEXT.md` — identity and product boundary.
+4. `ops/project-scope.json` — exact external-resource scope by ID/name; unlisted resources are out of scope.
+5. `ops/project-state.json` — live work state: done / in-progress / next / blockers / runtime evidence.
+6. `docs/OWNER_DECISIONS.md` — durable Owner-approved decisions and open decisions.
+7. `docs/specs/` — approved product forms, workflows and design system.
+8. `ops/resource-registry.json` — resource aliases/identifiers and environment status.
+9. Current source code + recent commits + CI/deploy evidence.
+10. Generated/derived views such as `docs/handovers/HANDOVER_CURRENT.md` and `docs/SERVICE_READINESS.md`.
+11. Chat memory/old handovers are retrieval aids only and never override current repo authority.
 
 If canonical sources conflict in a way that could change behavior or target resources, fail closed and reconcile before mutation.
 
@@ -90,3 +91,7 @@ If canonical sources conflict in a way that could change behavior or target reso
 GitHub is the durable project memory. Chat is the control surface, not the source of truth.
 
 Every Owner-approved requirement must be captured in GitHub in the same workstream. Every meaningful implementation change must update project state in the same change set. Generated summaries are never manually authoritative.
+
+## Resource scope authority
+
+`ops/project-scope.json` is the canonical external-resource boundary. Every listed resource carries an exact known ID when appropriate, otherwise a canonical name plus an ID source. An unlisted provider project/app/worker/folder/sheet/domain is outside project scope until Owner-approved and added to the manifest.
