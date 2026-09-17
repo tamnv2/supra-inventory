@@ -63,7 +63,7 @@ checks = {
     "android_reporter_skip_confirm": "XÁC NHẬN CHO SKIP" in ANDROID_REPORTER and "affectedPickerCount" in ANDROID_REPORTER,
     "android_admin_root_launcher": "class AdminLauncherController" in ANDROID_ADMIN and all(token in ANDROID_ADMIN for token in ["Vận hành", "Quản trị", "Hệ thống", "Hàng chờ xử lý"]),
     "android_admin_not_reporter_only": '\"REPORTER\", \"ADMIN\", \"ROOT\" ->' not in ANDROID_MAIN,
-    "android_realtime_delta": "/api/realtime/delta" in ANDROID_API and "lastSeq" in ANDROID_RT and "recoverDelta" in ANDROID_RT,
+    "android_realtime_delta": "/api/realtime/delta" in ANDROID_API and "appliedSeq" in ANDROID_RT and "streamEpoch" in ANDROID_RT and "recoverDelta" in ANDROID_RT,
     "android_update_gate_preserved": all(token in ANDROID_MAIN for token in ["UpdateGate.CHECKING", "UpdateGate.REQUIRED", "UpdateGate.FAILED", "BuildConfig.UPDATE_RELEASE_API", "loginButton?.isEnabled = updateGate == UpdateGate.CURRENT"]),
     "service_operational_v2_schema": all(token in SERVICE_OPS for token in ["realtime_events", "result_acknowledgements", "previous_batch_id", "version", "operational_sla_v1"]),
     "service_delta_api": "/api/realtime/delta" in SERVICE_READ and "/operational/realtime/delta" in SERVICE_OPS,
