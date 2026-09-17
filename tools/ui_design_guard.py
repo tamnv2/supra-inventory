@@ -49,7 +49,7 @@ checks = {
     "service_root_role_hierarchy": 'actorRole === "ROOT"' in SERVICE_USERS and 'targetRole === "ADMIN" || targetRole === "REPORTER"' in SERVICE_USERS,
     "service_picker_no_auto_disable": 'reactivate: 0' in SERVICE_USERS and 'disable: 0' in SERVICE_USERS and 'absence_policy: "NO_AUTOMATIC_DISABLE"' in SERVICE_USERS,
     "service_picker_reprovision_new_identity": 'picker:${code}:${crypto.randomUUID()}' in SERVICE_USERS,
-    "android_release_monotonic": "gh release list" in VERIFY_APPS and "max_vc + 1" in VERIFY_APPS and "release tag already exists" in VERIFY_APPS,
+    "android_release_monotonic": all(token in VERIFY_APPS for token in ["gh release list", "latest + 1", "Refusing to overwrite existing release", "group: beta-android-release", "cancel-in-progress: false"]),
     "design_spec_practical_balanced": "Practical Balanced" in DESIGN_SPEC and "Phương án 1" in DESIGN_SPEC,
 }
 
