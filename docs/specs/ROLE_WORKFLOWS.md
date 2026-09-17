@@ -4,7 +4,7 @@ Status: **CANONICAL PRODUCT SPEC**. Derived only from active Owner decisions; op
 
 ## Picker workflow
 
-1. Authenticate with provisioned username/MNV + password.
+1. Authenticate with provisioned username/Mã nhân viên + password.
 2. Search the locally cached SKU catalog; catalog authority remains the server.
 3. Select SKU/product and submit an out-of-stock report.
 4. Server enforces unresolved dedupe by `Picker + SKU`.
@@ -17,19 +17,23 @@ No fake offline success is allowed. Creation of a brand-new report while fully o
 
 ## Reporter workflow
 
-1. View unresolved batches ordered by:
+1. View `Hàng chờ xử lý` ordered by:
    - higher affected Picker count first;
    - tie → earlier `first_report_at` first.
 2. Open batch detail and see affected Picker tickets.
-3. Resolve as `HAS_STOCK` or `SKIP_ALLOWED`.
+3. Resolve as `HAS_STOCK` (`Có hàng`) or `SKIP_ALLOWED` (`Cho phép skip`).
 4. `SKIP_ALLOWED` may be corrected to `HAS_STOCK` within **5 minutes server time**.
 5. Ticket, batch and lifecycle/audit event remain separate records.
+
+Web and Android both prioritize this queue; Android/PDA uses larger touch actions and less administration chrome.
 
 ## Admin workflow
 
 Admin inherits Reporter workflow and additionally:
-- manages Reporter accounts;
-- configures HR Sheet source and runs Preview → explicit Apply for Picker lifecycle;
+- creates/manages Reporter accounts;
+- configures flexible HR Sheet source including URL, exact tab, source column for Mã nhân viên and source column for Họ và tên;
+- runs Preview → explicit Apply for Picker provisioning;
+- manages Picker lifecycle independently from HR source membership: open, disable or delete one/many/all Picker accounts;
 - manages Master SKU/import;
 - uses Admin dashboard/reporting;
 - uses allowed settings/account functions.
@@ -38,17 +42,23 @@ Admin does not manage ROOT and does not create ADMIN.
 
 ## Root workflow
 
-ROOT inherits Admin + Reporter workflow and additionally:
+ROOT inherits **all Admin + Reporter workflow capabilities** and additionally:
 - creates/manages ADMIN;
+- creates/manages REPORTER directly;
+- manages Picker lifecycle with the same or higher authority than Admin;
 - accesses Root-only operations;
 - remains protected from normal subordinate account-management flows.
 
-## Account provisioning
+## Account provisioning and passwords
 
-- ROOT → creates/manages ADMIN.
-- ADMIN → creates/manages REPORTER.
-- PICKER → provisioned from configured HR Sheet by MNV.
-- Picker missing from HR source → `DISABLED`, history retained; not deleted.
+- ROOT → creates/manages ADMIN and REPORTER with an explicit password chosen at creation/change time.
+- ADMIN → creates/manages REPORTER with an explicit password chosen at creation/change time.
+- PICKER → provisioned from configured HR Sheet by Mã nhân viên.
+- Only newly provisioned PICKER accounts use the protected Owner-defined Picker default password runtime secret; plaintext is never stored in GitHub.
+- Managed password maintenance uses direct password replacement, not reset-to-default.
+- Changing HR source does not automatically disable/delete old Picker accounts.
+- Existing disabled Picker stays disabled during later HR sync until explicitly reopened.
+- Picker deletion removes the account identity while historical report/audit records remain.
 - HR synchronization is Preview → explicit Apply.
 
 ## SKU import
