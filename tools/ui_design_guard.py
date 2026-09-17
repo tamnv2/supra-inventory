@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
+# Canonical Practical Balanced guard: validate product behavior in primary source, not a DOM business patch.
 ROOT = Path(__file__).resolve().parents[1]
 WEB_MAIN = (ROOT / "web/src/main.ts").read_text(encoding="utf-8")
 WEB_API = (ROOT / "web/src/api.ts").read_text(encoding="utf-8")
