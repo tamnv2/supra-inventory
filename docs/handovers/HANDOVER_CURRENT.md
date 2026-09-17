@@ -5,43 +5,38 @@
 ## Current status
 
 - Project: `SUPRA Inventory — Báo hàng` (`supra-inventory`).
-- Beta: `F02_F05_RUNTIME_PASS_MAIN_641D106F__F06_F07_SOURCE_IN_PROGRESS`
+- Beta: `F01_F07_AUTOMATED_RUNTIME_PASS_MAIN_17C1C061__NEXT_P1_WEB_ANDROID`
 - Stable: `CONFIG_READY_OWNER_GATED_NOT_LIVE`
 - SQLite schema: `5`
-- Web: `F02_F05_BETA_DEPLOY_PASS_641D106F__F06_F07_WEB_SOURCE_IN_PROGRESS`
-- Android: `SIGNED_BETA_VC37_RUNTIME_BASELINE__F06_F07_ANDROID_SOURCE_IN_PROGRESS`
-- Latest signed Beta APK: `beta-vc37`
-- Realtime: `F02_F05_RUNTIME_PASS__F06_F07_GLOBAL_SCAN_APPLIED_CURSOR_SOURCE_IN_PROGRESS`
+- Web: `F06_F07_APPLIED_CURSOR_BETA_DEPLOY_PASS_17C1C061__NEXT_WEB_OPERATIONAL_P1`
+- Android: `F06_F07_APPLIED_CURSOR_SIGNED_BETA_VC38_RUNTIME_GATED_PASS`
+- Latest signed Beta APK: `beta-vc38`
+- Realtime: `GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_3`
 - FCM: `DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BASELINE__OPERATIONAL_V2_CORRELATION_SOURCE_BUILD_PASS_PENDING_RUNTIME`
 - UI design guard: `LEGACY_OPERATIONAL_UI_V2_SOURCE_SERVICE_WEB_ANDROID_PASS`
 
-## Proven Beta runtime
+## F01–F07 automated runtime baseline
 
-- F01 runtime/readiness/release gate is closed.
-- F02–F05 merged in PR #17 at `641d106fbb300a11d721c5ccb4e67cd27f996659`.
-- Deploy Beta run `35287719792` completed success.
-- Health reported base schema `5/5` and Operational V2 extension `2/2`.
-- Business capability/auth guards, Web shell and Google OAuth start smoke all passed.
-- F02–F05 did not change Android, so the signed device baseline remains `beta-vc37`.
+- F01 readiness/release eligibility: PASS.
+- F02–F05 immutable result, Picker projection/privacy and count integrity: Beta runtime PASS on `641d106f`.
+- F06–F07 global scan cursor, stream epoch/retention and applied-state dirty recovery: merged PR #18 at `17c1c0610dc5344ff0813436d770e843f66b3d59`.
+- Deploy Beta run `35288849052`: success; health `schema=5/5`, Operational V2 `3/3`; business auth guards, Web shell and OAuth smoke PASS.
+- Verify Beta Android run `35288849022`: matching runtime gate PASS; published `beta-vc38`.
+- `beta-vc38` APK SHA-256: `0950621118df4339c69f5b5672ecb43aeff1229ef38d81de704d96ab031ff7aa`; size `9217842` bytes.
+- Stable remains untouched / OWNER-GATED.
 
-## Current work — F06/F07
+## Next work
 
-Branch `fix/realtime-cursor-application` implements:
-- global scanned `cursor_seq` so a Picker stream need not have numerically contiguous authorized events;
-- explicit `stream_epoch`, `retained_from_seq`, `has_more`, `resync_required` and resync reason;
-- Web and Android applied cursors that persist only after authoritative read-model application succeeds;
-- serialized/dirty recovery so a failed fetch or refresh already in flight cannot silently lose an invalidation;
-- Android per-user persisted realtime cursor/epoch with server-reset recovery.
-
-Operational V2 source target is extension schema 3. PR/CI/runtime verification is still pending.
+- Web P1 operational contracts: preserve input/focus/filter/context under realtime, guard stale SKU search responses, then restore/verify management/reporting functions already required by canonical specs.
+- Android lifecycle/UI/FCM/cache/updater follows in the next package, preserving F01–F07 regression gates.
+- Physical PDA/FCM/business acceptance remains separate from automated technical PASS.
 
 ## Guards
 
 - No offline business mode.
 - No legacy 1291 resource/provider import.
 - No secrets in this public repository.
-- Stable remains untouched / OWNER-GATED.
-- Technical/runtime/release PASS remain separate from physical-device and Owner acceptance.
+- Technical/runtime/release PASS is separate from Owner field acceptance.
 
 ## Continuity rule
 
