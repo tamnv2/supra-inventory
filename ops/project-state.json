@@ -103,12 +103,13 @@
     "Android Beta vc32 remediation: PR #6 authority/continuity/UI/build PASS; Beta Worker deploy + health/auth/business/Web/OAuth smoke PASS; signed beta-vc32 versionCode 32 published from 444f89d9ace5b5405f4f436b3be27869f16571e2, APK SHA-256 4fc20b00397bf0af7f149aef5fd9d42e68ee6f3223f8e84efb4349075c654884, size 9168718 bytes; mandatory update login gate, adaptive launcher icon, narrow-screen cleanup and legacy Picker password bootstrap are technical runtime PASS"
   ],
   "pending_build": [
+    "Android vc33 native UI/update-gate remediation in progress: remove post-layout Application UI rewriter, render stable narrow-screen header/footer/labels natively, and make the login gate share the verified auto-update state machine.",
     "Field-verify FCM delivery on a physical logged-in PDA; technical foundation is deployed",
     "Owner business/UI acceptance of Practical Balanced Beta Web/PDA",
     "Isolated business-mutation load acceptance after Owner scale target is defined"
   ],
   "field_pending": [
-    "Owner physical-PDA verification of beta-vc32 login/update/UI/icon behavior remains field acceptance; technical runtime/release is PASS.",
+    "Owner physical-PDA verification of the next signed Android build remains required after native UI/update-gate remediation.",
     "Physical logged-in PDA FCM delivery remains field-pending."
   ],
   "open_decisions_do_not_invent": [
@@ -120,8 +121,8 @@
     "Any new offline-create-report behavior; do not add direct-to-Sheet fallback unless Owner explicitly approves it."
   ],
   "next_action": {
-    "primary": "Owner field-test signed beta-vc32 on a physical PDA: confirm update gate/install flow, Picker login/default-password behavior, narrow-screen UI alignment, launcher icon and operational workflows; record numbered findings if any.",
-    "method": "Use beta-vc32 as the current technical Beta baseline. Technical build/deploy/release is PASS; device/Owner business acceptance remains separate.",
+    "primary": "Finish Android vc33 native UI/update-gate remediation through branch -> PR -> authority + continuity + UI/build checks -> merge, then automatically verify Beta deploy and signed monotonic APK release.",
+    "method": "Keep beta-vc32 as the current runtime baseline until post-merge signed release evidence proves the new build. Stable remains untouched.",
     "stable_guard": "Do not activate Stable."
   },
   "continuity_policy": {
@@ -148,11 +149,17 @@
     "model": "REPO_NATIVE_COMPLETE"
   },
   "workboard": {
-    "in_progress": [],
+    "in_progress": [
+      "Android vc33 native narrow-screen UI source cleanup",
+      "Single fail-closed latest-version gate shared with APK download/install flow",
+      "Removal of Application-level post-layout business UI rewriting"
+    ],
     "next": [
-      "Owner field-test signed beta-vc32 on physical PDA and report numbered findings if any",
-      "Field-verify foreground realtime and background FCM delivery on a logged-in physical PDA",
-      "Run isolated business-mutation load acceptance after Owner defines scale target/test boundary"
+      "Open PR and pass authority + continuity + Practical Balanced Android build guard",
+      "Merge only after required checks PASS",
+      "Poll Beta Worker deploy and signed Android release until terminal PASS",
+      "Owner field-test the resulting signed APK on physical PDA",
+      "Field-verify foreground realtime and background FCM delivery on a logged-in physical PDA"
     ],
     "blocked_or_owner_field_dependent": [
       "Owner business/UI acceptance of beta-vc32 on physical PDA",

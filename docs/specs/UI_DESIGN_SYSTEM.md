@@ -84,6 +84,13 @@ PDA remains operationally focused. Admin/Root inherit Reporter operation capabil
 - If the app cannot verify the release state, the login gate fails closed and exposes a concise update/retry status rather than allowing an unverifiable old build to log in.
 - Normal Android security rules still apply: the app may automatically detect, download, SHA-256 verify and open the package installer, but installation confirmation remains controlled by Android unless the device is managed with elevated installation authority.
 
+## Android native rendering rule
+
+- Approved labels, footer, header layout and update/login gate are implemented directly in the primary Android activity/view source.
+- Do not rely on an `Application` lifecycle callback or generic post-layout view-tree traversal to hide/rename/restyle operational controls after rendering.
+- Header composition must remain stable at narrow PDA widths without a right-side version/meta element stealing title width.
+- Update verification is fail-closed before login and shares one update state machine with the download/install flow.
+
 ## Persistent product credit
 
 Web keeps the existing small centered credit:

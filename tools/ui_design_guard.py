@@ -10,7 +10,6 @@ WEB_INDEX = (ROOT / "web/index.html").read_text(encoding="utf-8")
 WEB_OPS_JS = (ROOT / "web/public/operational-ui.js").read_text(encoding="utf-8")
 WEB_OPS_CSS = (ROOT / "web/public/operational-ui.css").read_text(encoding="utf-8")
 ANDROID = (ROOT / "android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt").read_text(encoding="utf-8")
-ANDROID_APP = (ROOT / "android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApplication.kt").read_text(encoding="utf-8")
 ANDROID_MANIFEST = (ROOT / "android/app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
 ANDROID_ADAPTIVE_ICON = (ROOT / "android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml").read_text(encoding="utf-8")
 ANDROID_ADAPTIVE_ICON_ROUND = (ROOT / "android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml").read_text(encoding="utf-8")
@@ -41,21 +40,22 @@ checks = {
     "web_business_favicon": "viewBox='0 0 64 64'" in WEB_INDEX and "%23F59E0B" in WEB_INDEX,
     "web_practical_responsive": "@media (max-width:900px)" in WEB_OPS_CSS and "Roboto" in WEB_OPS_CSS,
     "web_existing_semantic_status": "status-panel" in WEB_MAIN and ".status-panel.error" in WEB_CSS and ".status-panel.success" in WEB_CSS,
-    "android_operational_application": 'android:name=".InventoryApplication"' in ANDROID_MANIFEST,
+    "android_no_post_layout_application": 'android:name=".InventoryApplication"' not in ANDROID_MANIFEST,
     "android_adaptive_launcher_icon": 'android:icon="@mipmap/ic_launcher"' in ANDROID_MANIFEST and 'android:roundIcon="@mipmap/ic_launcher_round"' in ANDROID_MANIFEST and "@color/inventory_icon_green" in ANDROID_ADAPTIVE_ICON and "@color/inventory_icon_green" in ANDROID_ADAPTIVE_ICON_ROUND,
-    "android_footer_credit": ANDROID_CREDIT in ANDROID_APP,
-    "android_employee_code_full_label": "Mã nhân viên / tên đăng nhập" in ANDROID_APP,
-    "android_business_header_icon": 'current == "SI"' in ANDROID_APP and "R.drawable.ic_inventory_alert" in ANDROID_APP,
-    "android_picker_report_flow_preserved": "private fun renderPicker" in ANDROID and 'replace("Báo hết hàng", "Báo SKU hết hàng")' in ANDROID_APP,
+    "android_footer_credit": ANDROID_CREDIT in ANDROID,
+    "android_employee_code_full_label": "Mã nhân viên / tên đăng nhập" in ANDROID,
+    "android_business_header_icon": "ImageView" in ANDROID and "R.drawable.ic_inventory_alert" in ANDROID,
+    "android_picker_report_flow_preserved": "private fun renderPicker" in ANDROID and "Báo SKU hết hàng" in ANDROID and "Lịch sử báo hàng" in ANDROID,
     "android_reporter_flow_preserved": "private fun renderReporter" in ANDROID and "Cho phép skip" in ANDROID,
-    "android_mandatory_update_gate": all(token in ANDROID_APP for token in ["UpdateGate.CHECKING", "UpdateGate.REQUIRED", "UpdateGate.FAILED", "BuildConfig.UPDATE_RELEASE_API", "view.isEnabled = false"]),
-    "android_version_meta_removed_from_header": 'text.startsWith("Phiên bản ")' in ANDROID_APP and "View.GONE" in ANDROID_APP,
+    "android_mandatory_update_gate": all(token in ANDROID for token in ["UpdateGate.CHECKING", "UpdateGate.REQUIRED", "UpdateGate.FAILED", "BuildConfig.UPDATE_RELEASE_API", "loginButton?.isEnabled = updateGate == UpdateGate.CURRENT"]),
+    "android_version_meta_removed_from_header": "private fun addBrandHeader(root: LinearLayout, subtitle: String)" in ANDROID and "meta: String" not in ANDROID and "Phiên bản ${BuildConfig.VERSION_NAME}" not in ANDROID,
     "service_root_bootstrap_preserved": 'user.role === "ROOT" && user.user_id === "root" && env.ROOT_BOOTSTRAP_PASSWORD' in SERVICE_INDEX,
     "service_legacy_picker_bootstrap": 'user.role === "PICKER"' in SERVICE_INDEX and 'env.PICKER_DEFAULT_PASSWORD || env.ROOT_BOOTSTRAP_PASSWORD || null' in SERVICE_INDEX,
     "service_root_role_hierarchy": 'actorRole === "ROOT"' in SERVICE_USERS and 'targetRole === "ADMIN" || targetRole === "REPORTER"' in SERVICE_USERS,
     "service_picker_no_auto_disable": 'reactivate: 0' in SERVICE_USERS and 'disable: 0' in SERVICE_USERS and 'absence_policy: "NO_AUTOMATIC_DISABLE"' in SERVICE_USERS,
     "service_picker_reprovision_new_identity": 'picker:${code}:${crypto.randomUUID()}' in SERVICE_USERS,
     "android_release_monotonic": all(token in VERIFY_APPS for token in ["gh release list", "latest + 1", "Refusing to overwrite existing release", "group: beta-android-release", "cancel-in-progress: false"]),
+    "android_no_explanatory_ui_patch": "InventoryApplication" not in ANDROID_MANIFEST and "Nhập hoặc quét tối thiểu 3 ký tự. Gợi ý" not in ANDROID and "Ưu tiên: nhiều Picker bị ảnh hưởng hơn trước" not in ANDROID,
     "design_spec_practical_balanced": "Practical Balanced" in DESIGN_SPEC and "Phương án 1" in DESIGN_SPEC and "mandatory update gate" in DESIGN_SPEC.lower(),
 }
 
