@@ -86,7 +86,11 @@ PDA remains operationally focused. Admin/Root inherit Reporter operation capabil
 
 ## Persistent product credit
 
-Web and Android show this small centered footer at the bottom without consuming meaningful operating area:
+Web keeps the existing small centered credit:
+
+`Phát triển và duy trì bởi: tamnv2 - Chuyên viên Pick Pack 1291`
+
+Android/PDA uses the Owner-updated shorter wording:
 
 `Phát triển bởi: tamnv2 - Chuyên viên Pick Pack 1291`
 
