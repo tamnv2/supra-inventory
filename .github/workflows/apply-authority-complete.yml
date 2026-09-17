@@ -1,0 +1,39 @@
+name: Apply Authority Complete Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/apply-authority-complete.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Apply complete authority model
+        run: |
+          set -euo pipefail
+          python3 tools/apply_authority_complete.py
+          python3 tools/project_state_guard.py
+          python3 tools/authority_guard.py
+          python3 tools/public_repo_secret_guard.py
+          git diff --check
+          echo "AUTHORITY_COMPLETE_VERIFY_PASS"
+      - name: Commit canonical authority
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm tools/apply_authority_complete.py
+          git add AGENTS.md docs ops tools/authority_guard.py
+          git commit -m "feat(authority): complete project context scope specs and operating protocol"
+          git push origin HEAD:main
