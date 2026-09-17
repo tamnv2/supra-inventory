@@ -5,6 +5,7 @@ on:
     branches: [chore/record-vc32-runtime-evidence]
     paths:
       - "tools/finalize_vc32_runtime.py"
+      - "tools/finalize_vc32_runtime_v2.py"
       - ".github/workflows/finalize-vc32-runtime.yml"
 
 permissions:
@@ -22,7 +23,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Finalize canonical runtime evidence
-        run: python3 tools/finalize_vc32_runtime.py
+        run: python3 tools/finalize_vc32_runtime_v2.py
       - name: Validate JSON and canonical guards
         run: |
           set -euo pipefail
@@ -37,6 +38,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add ops/project-scope.json ops/project-state.json ops/resource-registry.json docs/OWNER_DECISIONS.md docs/specs/README.md docs/specs/ACCEPTANCE_TESTING.md docs/handovers/HANDOVER_CURRENT.md docs/SERVICE_READINESS.md
-          git rm tools/finalize_vc32_runtime.py .github/workflows/finalize-vc32-runtime.yml
+          git rm tools/finalize_vc32_runtime.py tools/finalize_vc32_runtime_v2.py .github/workflows/finalize-vc32-runtime.yml
           git commit -m "chore: record beta-vc32 runtime evidence"
           git push origin HEAD:chore/record-vc32-runtime-evidence
