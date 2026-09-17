@@ -162,6 +162,47 @@ function currentBatchSnapshot(state: DurableObjectState, batchId: string): Recor
   return { ...row, ...(sla ? { sla_state: sla.state, waiting_minutes: sla.waiting_minutes } : {}) };
 }
 
+function backfillResultEventSnapshots(state: DurableObjectState): void {
+  const rows = state.storage.sql.exec<SqlRow>(
+    `SELECT e.event_id, e.event_type, e.batch_id, e.payload_json, e.created_at,
+            b.sku, b.product_name,
+            COALESCE(
+              (SELECT r.batch_version FROM realtime_events r WHERE r.event_id = e.event_id LIMIT 1),
+              (SELECT MAX(a.batch_version) FROM result_acknowledgements a WHERE a.result_event_id = e.event_id),
+              b.version,
+              1
+            ) AS batch_version
+       FROM report_events e
+       JOIN report_batches b ON b.batch_id = e.batch_id
+       LEFT JOIN result_event_snapshots s ON s.result_event_id = e.event_id
+      WHERE e.event_type IN ('BATCH_RESOLVED','BATCH_CORRECTED')
+        AND s.result_event_id IS NULL
+      ORDER BY e.created_at ASC, e.event_id ASC`,
+  ).toArray();
+
+  for (const row of rows) {
+    const payload = parseJsonObject(row.payload_json);
+    const resolution = row.event_type === "BATCH_CORRECTED"
+      ? String(payload.to || "")
+      : String(payload.resolution || "");
+    if (!["HAS_STOCK", "SKIP_ALLOWED"].includes(resolution)) continue;
+    state.storage.sql.exec(
+      `INSERT OR IGNORE INTO result_event_snapshots (
+         result_event_id, batch_id, batch_version, event_type, sku, product_name, resolution, result_at, created_at
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      String(row.event_id || ""),
+      String(row.batch_id || ""),
+      Number(row.batch_version || 1),
+      String(row.event_type || ""),
+      String(row.sku || ""),
+      String(row.product_name || ""),
+      resolution,
+      String(row.created_at || ""),
+      String(row.created_at || ""),
+    );
+  }
+}
+
 export function initializeOperationalV2Schema(state: DurableObjectState): void {
   if (operationalV2Readiness(state).ready) return;
   const sql = state.storage.sql;
@@ -208,6 +249,20 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
     );
     CREATE INDEX IF NOT EXISTS idx_result_ack_batch_version ON result_acknowledgements(batch_id, batch_version);
     CREATE INDEX IF NOT EXISTS idx_result_ack_target_open ON result_acknowledgements(target_user_id, acknowledged_at, created_at);
+
+    CREATE TABLE IF NOT EXISTS result_event_snapshots (
+      result_event_id TEXT PRIMARY KEY,
+      batch_id TEXT NOT NULL,
+      batch_version INTEGER NOT NULL,
+      event_type TEXT NOT NULL,
+      sku TEXT NOT NULL,
+      product_name TEXT NOT NULL,
+      resolution TEXT NOT NULL CHECK (resolution IN ('HAS_STOCK','SKIP_ALLOWED')),
+      result_at TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_result_event_snapshots_batch_version
+      ON result_event_snapshots(batch_id, batch_version);
 
     DROP TRIGGER IF EXISTS trg_v2_batch_recurrence;
     CREATE TRIGGER trg_v2_batch_recurrence
@@ -313,6 +368,8 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
        GROUP BY t.picker_user_id;
     END;
   `);
+
+  backfillResultEventSnapshots(state);
 
   sql.exec(
     `INSERT INTO schema_meta (key, value, updated_at)
@@ -438,8 +495,11 @@ function pendingResults(state: DurableObjectState, url: URL): Response {
   if (!userId) return json({ error: "USER_ID_REQUIRED" }, 400);
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT a.result_event_id, a.batch_id, a.batch_version, a.received_at, a.displayed_at, a.acknowledged_at,
-            a.created_at, b.sku, b.product_name, b.status, b.resolution, b.resolved_at
+            a.created_at,
+            s.sku, s.product_name, s.resolution AS status, s.resolution, s.result_at AS resolved_at,
+            b.status AS current_batch_status, b.resolution AS current_resolution, b.version AS current_batch_version
        FROM result_acknowledgements a
+       JOIN result_event_snapshots s ON s.result_event_id = a.result_event_id
        JOIN report_batches b ON b.batch_id = a.batch_id
       WHERE a.target_user_id = ? AND a.acknowledged_at IS NULL
       ORDER BY a.created_at ASC, a.result_event_id ASC
