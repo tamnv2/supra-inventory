@@ -6,7 +6,10 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
+        android:name=".InventoryApplication"
         android:allowBackup="false"
+        android:icon="@drawable/ic_inventory_alert"
+        android:roundIcon="@drawable/ic_inventory_alert"
         android:label="SUPRA Inventory Beta"
         android:supportsRtl="true"
         android:usesCleartextTraffic="false"
