@@ -111,6 +111,29 @@ export interface HrSyncPreview {
   collisions: Array<{ employee_code: string; role: string; user_id: string }>;
 }
 
+export interface HrSourceConfig {
+  sheet_id: string;
+  sheet_url: string;
+  tab_name: string;
+  mnv_header: string;
+  full_name_header: string;
+  header_row: number;
+  data_row_count: number;
+  verified_at: string;
+  updated_at?: string;
+  runtime_service_account?: string;
+}
+
+export interface HrSourceResponse {
+  configured: boolean;
+  source: HrSourceConfig | null;
+}
+
+export interface HrSourceSaveResponse {
+  status: "saved";
+  source: HrSourceConfig;
+}
+
 export interface AdminDashboard {
   period: { from: string; to: string; bucket: "hour" | "day" };
   kpis: {
@@ -264,8 +287,8 @@ export async function changeMyPassword(currentPassword: string, newPassword: str
   await readJson(await authorizedFetch("/api/auth/change-password", { method: "PUT", body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }) }));
 }
 
-export async function getHrSource(): Promise<unknown> { return readJson(await authorizedFetch("/api/admin/hr-source")); }
-export async function saveHrSource(sheetUrl: string, tabName: string): Promise<unknown> {
+export async function getHrSource(): Promise<HrSourceResponse> { return readJson(await authorizedFetch("/api/admin/hr-source")); }
+export async function saveHrSource(sheetUrl: string, tabName: string): Promise<HrSourceSaveResponse> {
   return readJson(await authorizedFetch("/api/admin/hr-source", { method: "PUT", body: JSON.stringify({ sheet_url: sheetUrl, tab_name: tabName }) }));
 }
 

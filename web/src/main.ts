@@ -29,6 +29,7 @@ import {
   type AdminReportingRow,
   type ManagedUser,
   type HrSyncPreview,
+  type HrSourceResponse,
   type BatchPickerTicket,
   type ReporterBatch,
   type ReporterRecentBatch,
@@ -57,6 +58,7 @@ let pendingImportId = "";
 let pendingDatabaseConflicts: SkuNameChangeConflict[] = [];
 let managedUsers: ManagedUser[] = [];
 let hrSyncPreview: HrSyncPreview | null = null;
+let hrSourceState: HrSourceResponse | null = null;
 let dashboardData: AdminDashboard | null = null;
 let adminReportRows: AdminReportingRow[] = [];
 let adminReportTotal = 0;
@@ -146,7 +148,7 @@ function renderNav(): string {
   if (canManage()) tabs.push(["reports", "Báo cáo"], ["sku", "Master SKU"], ["hr", "Nhân sự"]);
   tabs.push(["account", "Tài khoản"]);
   if (!tabs.some(([id]) => id === activeSection)) activeSection = tabs[0][0];
-  return `<nav class="tabs">${tabs.map(([id, label]) => `<button class="tab ${activeSection === id ? "active" : ""}" data-section="${id}">${escapeHtml(label)}</button>`).join("")}</nav>`;
+  return `<nav class="tabs" aria-label="Điều hướng chính">${tabs.map(([id, label]) => `<button class="tab ${activeSection === id ? "active" : ""}" data-section="${id}" ${activeSection === id ? 'aria-current="page"' : ""}>${escapeHtml(label)}</button>`).join("")}</nav>`;
 }
 
 function renderBatchDetails(batchId: string): string {
@@ -220,17 +222,26 @@ function renderDatabaseConflicts(): string {
   return `<section class="conflict-box warning"><h3>SKU đã tồn tại nhưng tên thay đổi (${pendingDatabaseConflicts.length})</h3><p>Hệ thống chưa cập nhật các tên này. Kiểm tra danh sách rồi xác nhận nếu muốn đổi tên master SKU theo file mới.</p><div class="table-wrap"><table><thead><tr><th>SKU</th><th>Tên hiện tại</th><th>Tên trong file mới</th></tr></thead><tbody>${pendingDatabaseConflicts.map((conflict) => `<tr><td><b>${escapeHtml(conflict.sku)}</b></td><td>${escapeHtml(conflict.current_product_name)}</td><td>${escapeHtml(conflict.incoming_product_name)}</td></tr>`).join("")}</tbody></table></div><div class="actions block-gap"><button id="confirm-db-name-changes">Xác nhận đổi tên & nhập dữ liệu</button><button id="cancel-sku-import" class="secondary">Huỷ lượt nhập</button></div></section>`;
 }
 
+function renderSkuStatus(): string {
+  if (!skuStatus) return "";
+  const upper = skuStatus.toUpperCase();
+  const tone = upper.includes("FAIL") || upper.includes("CHƯA HOÀN TẤT") ? "error" : upper.includes("PASS") || upper.includes("THÀNH CÔNG") ? "success" : "info";
+  return `<div id="sku-status" class="status-panel ${tone}" role="status" aria-live="polite"><div class="status-panel-title">${tone === "error" ? "Cần kiểm tra" : tone === "success" ? "Trạng thái xử lý" : "Đang xử lý"}</div><div class="status-panel-body">${escapeHtml(skuStatus).replaceAll("\n", "<br>")}</div></div>`;
+}
+
 function renderSkuPage(): string {
   const importRetry = pendingImportItems && !pendingDatabaseConflicts.length && !pendingWorkbook?.conflicts.length && !busy ? `<button id="retry-sku-apply" class="secondary block-gap">Tiếp tục / thử lại ghi dữ liệu</button>` : "";
-  return `<section class="page-stack"><div><p class="eyebrow">Danh mục hàng hóa</p><h2>Master SKU</h2><p class="muted">Chỉ quản lý SKU + Tên sản phẩm. File .xlsx 10.000–50.000 dòng được xử lý theo lô, không xóa SKU cũ chỉ vì file mới không còn dòng đó.</p></div><article class="card"><h3>Cập nhật từ Excel</h3><form id="sku-import-form" class="stack"><label>File Excel<input id="sku-file" name="skuFile" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required /></label><button ${busy ? "disabled" : ""}>${busy ? "Đang xử lý..." : "Kiểm tra & nhập SKU"}</button></form>${skuStatus ? `<pre id="sku-status">${escapeHtml(skuStatus)}</pre>` : ""}${renderFileConflicts()}${renderDatabaseConflicts()}${importRetry}</article><article class="card"><div class="section-head"><div><h3>Tra cứu Master SKU</h3><p class="muted">Tìm theo SKU hoặc tên sản phẩm.</p></div></div><div class="inline-form"><input id="sku-query" placeholder="Nhập SKU / tên sản phẩm" /><button id="sku-search" class="secondary">Tìm</button><button id="sku-recent" class="secondary">Tải danh sách</button></div><div id="sku-list">${renderSkuRows()}</div></article></section>`;
+  return `<section class="page-stack"><div><p class="eyebrow">Danh mục hàng hóa</p><h2>Master SKU</h2><p class="muted">Chỉ quản lý SKU + Tên sản phẩm. File .xlsx 10.000–50.000 dòng được xử lý theo lô, không xóa SKU cũ chỉ vì file mới không còn dòng đó.</p></div><article class="card"><h3>Cập nhật từ Excel</h3><form id="sku-import-form" class="stack"><label>File Excel<input id="sku-file" name="skuFile" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required /></label><button ${busy ? "disabled" : ""}>${busy ? "Đang xử lý..." : "Kiểm tra & nhập SKU"}</button></form>${renderSkuStatus()}${renderFileConflicts()}${renderDatabaseConflicts()}${importRetry}</article><article class="card"><div class="section-head"><div><h3>Tra cứu Master SKU</h3><p class="muted">Tìm theo SKU hoặc tên sản phẩm.</p></div></div><div class="inline-form"><input id="sku-query" placeholder="Nhập SKU / tên sản phẩm" /><button id="sku-search" class="secondary">Tìm</button><button id="sku-recent" class="secondary">Tải danh sách</button></div><div id="sku-list">${renderSkuRows()}</div></article></section>`;
 }
 
 function renderHrPage(): string {
   const createRole = profile?.role === "ROOT" ? "ADMIN" : "REPORTER";
   const manageableRole = createRole;
-  const preview = hrSyncPreview ? `<div class="detail-panel"><strong>Preview đồng bộ Picker</strong><div class="operation-meta"><span>Nguồn: ${hrSyncPreview.total_source}</span><span>Thêm: ${hrSyncPreview.create}</span><span>Kích hoạt lại: ${hrSyncPreview.reactivate}</span><span>Đổi tên: ${hrSyncPreview.rename}</span><span>Ngừng hoạt động: ${hrSyncPreview.disable}</span><span>Không đổi: ${hrSyncPreview.unchanged}</span></div>${hrSyncPreview.collisions.length ? `<p class="message">Có ${hrSyncPreview.collisions.length} MNV trùng tài khoản không phải Picker. Chưa được phép đồng bộ.</p>` : `<button id="apply-hr-sync" class="block-gap">Xác nhận đồng bộ Picker</button>`}</div>` : "";
-  const userRows = managedUsers.length ? `<div class="table-wrap"><table><thead><tr><th>MNV/User</th><th>Họ tên</th><th>Role</th><th>Trạng thái</th><th>Mật khẩu</th><th>Thao tác</th></tr></thead><tbody>${managedUsers.map((user) => { const canEdit = user.role === manageableRole; return `<tr><td><b>${escapeHtml(user.employee_code || user.user_id)}</b></td><td>${escapeHtml(user.display_name)}</td><td>${escapeHtml(user.role)}</td><td>${user.status === "ACTIVE" ? "Hoạt động" : "Ngừng hoạt động"}</td><td>${user.password_initialized ? "Đã khởi tạo" : "Mặc định"}</td><td>${canEdit ? `<button class="secondary" data-user-toggle="${escapeHtml(user.user_id)}" data-next-status="${user.status === "ACTIVE" ? "DISABLED" : "ACTIVE"}" data-user-name="${escapeHtml(user.display_name)}">${user.status === "ACTIVE" ? "Ngừng hoạt động" : "Mở lại"}</button><button class="secondary" data-user-reset="${escapeHtml(user.user_id)}">Reset mật khẩu</button>` : "—"}</td></tr>`; }).join("")}</tbody></table></div>` : `<p class="muted">Chưa tải danh sách tài khoản.</p>`;
-  return `<section class="page-stack"><div><p class="eyebrow">Nhân sự & tài khoản</p><h2>Quản lý nhân sự</h2><p class="muted">Picker lấy từ HR Sheet. ROOT tạo ADMIN; ADMIN tạo REPORTER. Tài khoản mất khỏi HR không bị xoá lịch sử mà chuyển ngừng hoạt động.</p></div><article class="card"><h3>Nguồn Google Sheet</h3><form id="hr-form" class="stack"><label>Google Sheet URL<input name="sheetUrl" type="url" required /></label><label>Tên tab chính xác<input name="tabName" value="Nhân sự" required /></label><button>Xác nhận & cập nhật</button></form><div class="actions block-gap"><button id="load-hr" class="secondary">Đọc cấu hình</button><button id="preview-hr-sync" class="secondary">Kiểm tra đồng bộ Picker</button></div><pre id="hr-result"></pre>${preview}</article><article class="card"><h3>Tạo ${createRole}</h3><form id="managed-user-form" class="inline-form"><input name="username" placeholder="MNV / tên đăng nhập" required /><input name="displayName" placeholder="Họ tên" required /><button>Tạo ${createRole}</button></form><p class="tiny">Tài khoản mới dùng mật khẩu mặc định từ bootstrap secret; không lưu mật khẩu trong source.</p></article><article class="card"><div class="section-head"><div><h3>Danh sách tài khoản</h3><p class="muted">ROOT được bảo vệ; Picker do HR quản lý; chỉ role thuộc phạm vi của cấp hiện tại mới có nút thao tác.</p></div><button id="load-users" class="secondary">Tải lại</button></div>${userRows}</article></section>`;
+  const source = hrSourceState?.source || null;
+  const sourceSummary = source ? `<div class="source-summary"><div class="source-summary-head"><div><span class="status ok">✓ Nguồn hợp lệ</span><h4>${escapeHtml(source.tab_name)}</h4></div><a class="text-link" href="${escapeHtml(source.sheet_url)}" target="_blank" rel="noopener noreferrer">Mở Google Sheet</a></div><div class="summary-grid"><div><span>Dữ liệu</span><strong>${Number(source.data_row_count || 0).toLocaleString("vi-VN")} dòng</strong></div><div><span>Cột MNV</span><strong>${escapeHtml(source.mnv_header)}</strong></div><div><span>Cột họ tên</span><strong>${escapeHtml(source.full_name_header)}</strong></div><div><span>Xác minh</span><strong>${escapeHtml(fmtDate(source.verified_at))}</strong></div></div></div>` : `<div class="source-summary empty"><span class="status closed">Chưa cấu hình</span><p class="muted">Nhập link Google Sheet và tên tab chính xác, sau đó hệ thống sẽ kiểm tra quyền đọc và hai cột MNV + Họ tên trước khi lưu.</p></div>`;
+  const preview = hrSyncPreview ? `<div class="detail-panel"><div class="section-head compact-head"><div><strong>Đối chiếu Picker</strong><p class="tiny">Kiểm tra thay đổi trước khi áp dụng vào tài khoản.</p></div><span class="badge">${hrSyncPreview.total_source.toLocaleString("vi-VN")} nhân sự nguồn</span></div><div class="summary-grid sync-grid"><div><span>Thêm</span><strong>${hrSyncPreview.create}</strong></div><div><span>Kích hoạt lại</span><strong>${hrSyncPreview.reactivate}</strong></div><div><span>Đổi tên</span><strong>${hrSyncPreview.rename}</strong></div><div><span>Ngừng hoạt động</span><strong>${hrSyncPreview.disable}</strong></div></div>${hrSyncPreview.collisions.length ? `<div class="status-panel error"><div class="status-panel-title">Không thể đồng bộ</div><div class="status-panel-body">Có ${hrSyncPreview.collisions.length} MNV đang trùng tài khoản không phải Picker.</div></div>` : `<button id="apply-hr-sync" class="block-gap">Xác nhận đồng bộ Picker</button>`}</div>` : "";
+  const userRows = managedUsers.length ? `<div class="table-wrap"><table><thead><tr><th>MNV/User</th><th>Họ tên</th><th>Role</th><th>Trạng thái</th><th>Mật khẩu</th><th>Thao tác</th></tr></thead><tbody>${managedUsers.map((user) => { const canEdit = user.role === manageableRole; return `<tr><td><b>${escapeHtml(user.employee_code || user.user_id)}</b></td><td>${escapeHtml(user.display_name)}</td><td><span class="badge role-badge">${escapeHtml(user.role)}</span></td><td><span class="status ${user.status === "ACTIVE" ? "ok" : "closed"}">${user.status === "ACTIVE" ? "Hoạt động" : "Ngừng hoạt động"}</span></td><td>${user.password_initialized ? "Đã khởi tạo" : "Mặc định"}</td><td>${canEdit ? `<div class="table-actions"><button class="secondary small-btn" data-user-toggle="${escapeHtml(user.user_id)}" data-next-status="${user.status === "ACTIVE" ? "DISABLED" : "ACTIVE"}" data-user-name="${escapeHtml(user.display_name)}">${user.status === "ACTIVE" ? "Ngừng hoạt động" : "Mở lại"}</button><button class="secondary small-btn" data-user-reset="${escapeHtml(user.user_id)}">Reset mật khẩu</button></div>` : "—"}</td></tr>`; }).join("")}</tbody></table></div>` : `<div class="empty-state">Chưa tải danh sách tài khoản.</div>`;
+  return `<section class="page-stack"><div><p class="eyebrow">Nhân sự & tài khoản</p><h2>Quản lý nhân sự</h2><p class="muted">Picker lấy từ HR Sheet. ROOT tạo ADMIN; ADMIN tạo REPORTER. Tài khoản mất khỏi HR không bị xoá lịch sử mà chuyển ngừng hoạt động.</p></div><div class="settings-grid"><article class="card"><div class="card-head"><div><h3>Nguồn Google Sheet</h3><p class="muted tiny">Nguồn được ghim sau khi backend kiểm tra hợp lệ.</p></div><button id="load-hr" class="secondary small-btn">Tải cấu hình</button></div>${sourceSummary}<form id="hr-form" class="stack block-gap"><label>Google Sheet URL<input name="sheetUrl" type="url" value="${escapeHtml(source?.sheet_url || "")}" placeholder="https://docs.google.com/spreadsheets/d/..." required /></label><label>Tên tab chính xác<input name="tabName" value="${escapeHtml(source?.tab_name || "Nhân sự")}" required /></label><button>Xác nhận & cập nhật nguồn</button></form><button id="preview-hr-sync" class="secondary full block-gap">Kiểm tra đồng bộ Picker</button>${preview}</article><article class="card"><h3>Tạo ${createRole}</h3><p class="muted tiny">${profile?.role === "ROOT" ? "Root quản lý tài khoản Admin." : "Admin quản lý tài khoản Reporter."}</p><form id="managed-user-form" class="stack block-gap"><label>Tên đăng nhập / MNV<input name="username" placeholder="Nhập tên đăng nhập" required /></label><label>Họ tên<input name="displayName" placeholder="Nhập họ tên" required /></label><button>Tạo ${createRole}</button></form><p class="tiny">Tài khoản mới dùng mật khẩu mặc định từ bootstrap secret; mật khẩu không được hiển thị hoặc lưu trong source.</p></article></div><article class="card"><div class="section-head"><div><h3>Danh sách tài khoản</h3><p class="muted tiny">ROOT được bảo vệ; Picker do HR quản lý; chỉ role thuộc phạm vi của cấp hiện tại mới có thao tác.</p></div><button id="load-users" class="secondary">Tải lại</button></div>${userRows}</article></section>`;
 }
 
 function renderAccountPage(): string {
@@ -252,12 +263,12 @@ function render(): void {
     return;
   }
   if (!hasSession() || !profile) {
-    app.innerHTML = `<main class="shell login-shell"><section class="card login-card"><div class="brand-mark">SI</div><p class="eyebrow">SUPRA Inventory — Beta</p><h1>Đăng nhập hệ thống</h1><p class="muted">Admin / Root quản trị trên Web. Picker / Reporter vận hành chính trên PDA.</p><form id="login-form" class="stack"><label>Tên đăng nhập<input name="username" autocomplete="username" value="root" required /></label><label>Mật khẩu<input name="password" type="password" autocomplete="current-password" required /></label><button ${busy ? "disabled" : ""}>${busy ? "Đang đăng nhập..." : "Đăng nhập"}</button></form>${message ? `<p class="message">${escapeHtml(message)}</p>` : ""}</section></main>`;
+    app.innerHTML = `<main class="shell login-shell"><section class="card login-card"><div class="brand-mark">SI</div><p class="eyebrow">SUPRA Inventory — Beta</p><h1>Đăng nhập hệ thống</h1><p class="muted">Admin / Root quản trị trên Web. Picker / Reporter vận hành chính trên PDA.</p><form id="login-form" class="stack"><label>Tên đăng nhập<input name="username" autocomplete="username" placeholder="Tên đăng nhập / MNV" required /></label><label>Mật khẩu<input name="password" type="password" autocomplete="current-password" required /></label><button ${busy ? "disabled" : ""}>${busy ? "Đang đăng nhập..." : "Đăng nhập"}</button></form>${message ? `<p class="message">${escapeHtml(message)}</p>` : ""}</section></main>`;
     document.querySelector<HTMLFormElement>("#login-form")?.addEventListener("submit", handleLogin);
     return;
   }
 
-  app.innerHTML = `<main class="app-shell"><aside class="sidebar"><div class="brand"><div class="brand-mark small">SI</div><div><strong>SUPRA Inventory</strong><span>Beta</span></div></div>${renderNav()}<div class="sidebar-foot"><div class="user-mini"><strong>${escapeHtml(profile.display_name)}</strong><span>${escapeHtml(profile.employee_code || profile.user_id)} · ${escapeHtml(profile.role)}</span></div><button id="logout" class="secondary full">Đăng xuất</button></div></aside><section class="workspace"><header class="workspace-head"><div><h1>${activeSection === "dashboard" ? "Tổng quan" : activeSection === "operations" ? "Hàng chờ xử lý" : activeSection === "reports" ? "Báo cáo" : activeSection === "sku" ? "Master SKU" : activeSection === "hr" ? "Nhân sự" : "Tài khoản"}</h1><p class="muted">Mạng: ${navigator.onLine ? "Online" : "Offline"} · Dịch vụ: Beta</p></div><div class="header-badges"><span class="badge env">BETA</span><span class="badge">${escapeHtml(profile.role)}</span></div></header>${message ? `<div class="notice" role="status" aria-live="polite">${escapeHtml(message)}</div>` : ""}${renderContent()}</section></main>`;
+  app.innerHTML = `<main class="app-shell"><aside class="sidebar"><div class="brand"><div class="brand-mark small">SI</div><div><strong>SUPRA Inventory</strong><span>Beta</span></div></div>${renderNav()}<div class="sidebar-foot"><div class="user-mini"><strong>${escapeHtml(profile.display_name)}</strong><span>${escapeHtml(profile.employee_code || profile.user_id)} · ${escapeHtml(profile.role)}</span></div><button id="logout" class="secondary full">Đăng xuất</button></div></aside><section class="workspace"><header class="workspace-head"><div><h1>${activeSection === "dashboard" ? "Tổng quan" : activeSection === "operations" ? "Hàng chờ xử lý" : activeSection === "reports" ? "Báo cáo" : activeSection === "sku" ? "Master SKU" : activeSection === "hr" ? "Nhân sự" : "Tài khoản"}</h1><div class="service-line"><span class="service-indicator ${navigator.onLine ? "online" : "offline"}"><i></i>${navigator.onLine ? "Đang kết nối" : "Mất kết nối"}</span><span class="muted tiny">Beta · cập nhật realtime khi có mạng</span></div></div><div class="header-badges"><span class="badge env">BETA</span><span class="badge">${escapeHtml(profile.role)}</span></div></header>${message ? `<div class="notice" role="status" aria-live="polite">${escapeHtml(message)}</div>` : ""}${renderContent()}</section></main>`;
 
   document.querySelectorAll<HTMLButtonElement>("[data-section]").forEach((button) => button.addEventListener("click", () => void handleSectionChange(button.dataset.section as Section)));
   document.querySelector<HTMLButtonElement>("#logout")?.addEventListener("click", handleLogout);
@@ -309,14 +320,14 @@ async function handleLogin(event: SubmitEvent): Promise<void> {
 
 function resetSkuImportState(): void { pendingWorkbook = null; pendingImportItems = null; pendingSourceHash = ""; pendingImportId = ""; pendingDatabaseConflicts = []; }
 function cancelSkuImport(): void { resetSkuImportState(); skuStatus = "Đã huỷ lượt nhập SKU. Dữ liệu chưa xác nhận đổi tên không bị cập nhật."; render(); }
-function handleLogout(): void { clearSession(); profile = null; message = ""; skuStatus = ""; skuRows = []; queueRows = []; recentRows = []; managedUsers = []; hrSyncPreview = null; dashboardData = null; adminReportRows = []; adminReportTotal = 0; adminReportOffset = 0; batchDetails.clear(); resetSkuImportState(); render(); }
+function handleLogout(): void { clearSession(); profile = null; message = ""; skuStatus = ""; skuRows = []; queueRows = []; recentRows = []; managedUsers = []; hrSyncPreview = null; hrSourceState = null; dashboardData = null; adminReportRows = []; adminReportTotal = 0; adminReportOffset = 0; batchDetails.clear(); resetSkuImportState(); render(); }
 
 async function handleSectionChange(section: Section): Promise<void> {
   activeSection = section; message = ""; render();
   if (section === "dashboard" && canManage()) await loadAdminDashboard();
   else if (section === "operations" && canOperate()) await loadOperations();
   else if (section === "reports" && canManage()) await loadAdminReporting();
-  else if (section === "hr" && canManage()) await loadManagedUsers();
+  else if (section === "hr" && canManage()) { await Promise.all([loadHrSource(false), loadManagedUsers(false)]); render(); }
 }
 
 async function loadAdminDashboard(renderAfter = true): Promise<void> {
@@ -394,14 +405,24 @@ async function handlePasswordChange(event: SubmitEvent): Promise<void> {
 
 async function handleHrSave(event: SubmitEvent): Promise<void> {
   event.preventDefault(); const form = new FormData(event.currentTarget as HTMLFormElement);
-  try { const result = await saveHrSource(String(form.get("sheetUrl") || ""), String(form.get("tabName") || "")); message = "Nguồn nhân sự đã được kiểm tra và cập nhật."; const output = document.querySelector<HTMLElement>("#hr-result"); if (output) output.textContent = JSON.stringify(result, null, 2); }
-  catch (error) { message = error instanceof Error ? error.message : "Không cập nhật được nguồn nhân sự."; render(); }
+  busy = true; message = "Đang kiểm tra Google Sheet..."; render();
+  try {
+    const result = await saveHrSource(String(form.get("sheetUrl") || ""), String(form.get("tabName") || ""));
+    hrSourceState = { configured: true, source: result.source };
+    hrSyncPreview = null;
+    message = `Nguồn nhân sự hợp lệ: ${Number(result.source.data_row_count || 0).toLocaleString("vi-VN")} dòng.`;
+  } catch (error) { message = error instanceof Error ? error.message : "Không cập nhật được nguồn nhân sự."; }
+  finally { busy = false; render(); }
 }
 
-async function handleHrLoad(): Promise<void> {
-  try { const output = document.querySelector<HTMLElement>("#hr-result"); if (output) output.textContent = JSON.stringify(await getHrSource(), null, 2); }
-  catch (error) { message = error instanceof Error ? error.message : "Không đọc được nguồn nhân sự."; render(); }
+async function loadHrSource(renderAfter = true): Promise<void> {
+  if (!canManage()) return;
+  try { hrSourceState = await getHrSource(); }
+  catch (error) { message = error instanceof Error ? error.message : "Không đọc được nguồn nhân sự."; }
+  if (renderAfter) render();
 }
+
+async function handleHrLoad(): Promise<void> { await loadHrSource(); }
 
 async function loadManagedUsers(renderAfter = true): Promise<void> {
   if (!canManage()) return;
@@ -559,5 +580,7 @@ async function restoreSession(): Promise<void> {
   render();
 }
 
+window.addEventListener("online", () => render());
+window.addEventListener("offline", () => render());
 render();
 void restoreSession();

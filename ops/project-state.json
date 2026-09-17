@@ -20,9 +20,9 @@
     "sqlite_schema": 5,
     "business_api": "IMPLEMENTED_AND_DEPLOYED_BETA_SCHEMA_V5",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS",
-    "web": "CONCEPT3_ADMIN_DASHBOARD_REPORTING_AND_ROLE_OPERATIONS_BETA_DEPLOY_PASS",
-    "android": "CONCEPT3_ROLE_UI_DELTA_CATALOG_SIGNED_OTA_BETA_PASS",
-    "latest_beta_apk": "beta-vc29",
+    "web": "CONCEPT3_FINISH_POLISH_BETA_DEPLOY_PASS",
+    "android": "CONCEPT3_FINISH_POLISH_SIGNED_OTA_BETA_PASS",
+    "latest_beta_apk": "beta-vc30",
     "realtime": "WEBSOCKET_SERVER_WEB_ANDROID_CLIENT_DEPLOYED_SIGNED_PASS",
     "network_scope": "PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_BY_OWNER_DECISION",
     "fcm": "DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BUILD_PASS_FIELD_DELIVERY_PENDING",
@@ -88,7 +88,8 @@
     "Archive/retention executor: fixed-range Google Sheet archive + SQLite markers/checkpoint + cleanup only archived final batches older than 60 days — Beta deploy/schema v4 PASS",
     "Admin/Root Concept 3 operational dashboard + filtered paginated reporting + chunked CSV export — Beta deploy/build PASS",
     "Android/PDA Concept 3 visual refactor preserving Picker/Reporter role workflows — signed Beta beta-vc28 build/release PASS",
-    "Quota/resilience v1: schema v5 materialized catalog metadata + delta-first PDA sync + reporting timestamp indexes + 50-request non-destructive Beta health burst — PASS"
+    "Quota/resilience v1: schema v5 materialized catalog metadata + delta-first PDA sync + reporting timestamp indexes + 50-request non-destructive Beta health burst — PASS",
+    "Concept 3 finish polish: Web humanized HR source/status/responsive UX + Android semantic status badges/alerts/control spacing — Beta Web deploy and signed beta-vc30 PASS"
   ],
   "pending_build": [
     "Field-verify FCM delivery on a physical logged-in PDA; technical foundation is deployed",
@@ -107,7 +108,7 @@
     "Any new offline-create-report behavior; do not add direct-to-Sheet fallback unless Owner explicitly approves it."
   ],
   "next_action": {
-    "primary": "Field-verify physical PDA realtime/FCM and business flows, define Owner workload target for isolated mutation load acceptance, then Owner business acceptance.",
+    "primary": "Physical PDA field verification of role workflows/realtime/FCM, then Owner business acceptance and any Owner-reported UI adjustments. Stable remains gated.",
     "method": "Keep FCM as background notification only; business state remains server-authoritative via API/SQLite and foreground WebSocket resync.",
     "stable_guard": "Do not activate Stable."
   },

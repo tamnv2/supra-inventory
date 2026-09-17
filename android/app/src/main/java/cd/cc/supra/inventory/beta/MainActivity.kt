@@ -56,6 +56,9 @@ class MainActivity : Activity() {
     private val conceptMuted = Color.parseColor("#66756D")
     private val conceptOrange = Color.parseColor("#B45309")
     private val conceptOrangeSoft = Color.parseColor("#FFF0D9")
+    private val conceptRed = Color.parseColor("#B42318")
+    private val conceptRedSoft = Color.parseColor("#FEE4E2")
+    private val conceptGraySoft = Color.parseColor("#EDF1EE")
     private val ui = Handler(Looper.getMainLooper())
     private lateinit var api: InventoryApi
     private lateinit var skuCache: SkuCatalogCache
@@ -629,13 +632,7 @@ class MainActivity : Activity() {
                 textSize = 14f
             })
             val businessStatus = pickerBusinessStatus(row)
-            card.addView(TextView(this).apply {
-                text = businessStatus
-                textSize = 14f
-                setTypeface(typeface, Typeface.BOLD)
-                setTextColor(statusColor(businessStatus))
-                setPadding(0, dp(5), 0, dp(5))
-            })
+            card.addView(statusBadge(businessStatus))
             card.addView(TextView(this).apply {
                 text = "Báo lúc ${fmtDate(row.reportedAt)}"
                 textSize = 12f
@@ -833,10 +830,12 @@ class MainActivity : Activity() {
                 setTypeface(typeface, Typeface.BOLD)
             })
             val label = if (row.status == "HAS_STOCK") "Đã có hàng" else "Được skip"
+            card.addView(statusBadge(label))
             card.addView(TextView(this).apply {
-                text = "$label · ${row.affectedPickerCount} Picker · ${fmtDate(row.resolvedAt)}"
-                setTextColor(statusColor(label))
-                textSize = 13f
+                text = "${row.affectedPickerCount} Picker · ${fmtDate(row.resolvedAt)}"
+                setTextColor(conceptMuted)
+                textSize = 12.5f
+                setPadding(0, dp(5), 0, 0)
             })
             val deadline = parseMillis(row.correctionDeadlineAt)
             if (row.status == "SKIP_ALLOWED" && deadline > System.currentTimeMillis()) {
@@ -972,7 +971,16 @@ class MainActivity : Activity() {
     }
 
     private fun setStatus(message: String) {
-        if (::status.isInitialized) status.text = message
+        if (!::status.isInitialized) return
+        status.text = message
+        val normalized = message.lowercase()
+        val isError = listOf("lỗi", "không thể", "không hợp lệ", "thất bại", "hết hạn", "không kiểm tra được", "không đồng bộ được").any { normalized.contains(it) }
+        val isAttention = !isError && listOf("đang ", "cần ", "chờ ", "hết thời gian").any { normalized.contains(it) }
+        val fill = when { isError -> conceptRedSoft; isAttention -> conceptOrangeSoft; else -> conceptGreenSoft }
+        val stroke = when { isError -> Color.parseColor("#E7A5A1"); isAttention -> Color.parseColor("#F2C78B"); else -> conceptLine }
+        val textColor = when { isError -> conceptRed; isAttention -> conceptOrange; else -> conceptGreenDark }
+        status.setTextColor(textColor)
+        status.background = roundedBackground(fill, stroke, 10)
     }
 
     private fun roleLabel(role: String): String = when (role) {
@@ -981,6 +989,29 @@ class MainActivity : Activity() {
         "ADMIN" -> "Admin"
         "ROOT" -> "Root"
         else -> role
+    }
+
+    private fun statusBadge(label: String): TextView = TextView(this).apply {
+        text = label
+        textSize = 12.5f
+        setTypeface(typeface, Typeface.BOLD)
+        setTextColor(statusColor(label))
+        val fill = when (label) {
+            "Đã có hàng" -> conceptGreenSoft
+            "Được skip", "Đang xử lý" -> conceptOrangeSoft
+            else -> conceptGraySoft
+        }
+        val stroke = when (label) {
+            "Đã có hàng" -> Color.parseColor("#C7E3D2")
+            "Được skip", "Đang xử lý" -> Color.parseColor("#F2C78B")
+            else -> conceptLine
+        }
+        background = roundedBackground(fill, stroke, 999)
+        setPadding(dp(10), dp(5), dp(10), dp(5))
+        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            topMargin = dp(7)
+            bottomMargin = dp(2)
+        }
     }
 
     private fun statusColor(label: String): Int = when (label) {
@@ -1085,11 +1116,19 @@ class MainActivity : Activity() {
         input.setPadding(dp(13), dp(10), dp(13), dp(10))
     }
 
+    private fun addVerticalControlSpacing(view: View) {
+        val parent = view.parent as? LinearLayout ?: return
+        if (parent.orientation != LinearLayout.VERTICAL || parent.indexOfChild(view) <= 0) return
+        val params = view.layoutParams as? LinearLayout.LayoutParams ?: return
+        if (params.topMargin < dp(8)) params.topMargin = dp(8)
+        view.layoutParams = params
+    }
+
     private fun applyConcept3Tree(view: View) {
         when (view) {
-            is Button -> styleButton(view)
-            is EditText -> styleInput(view)
-            is CheckBox -> view.buttonTintList = ColorStateList.valueOf(conceptGreen)
+            is Button -> { styleButton(view); addVerticalControlSpacing(view) }
+            is EditText -> { styleInput(view); addVerticalControlSpacing(view) }
+            is CheckBox -> { view.buttonTintList = ColorStateList.valueOf(conceptGreen); addVerticalControlSpacing(view) }
         }
         if (view is ViewGroup) {
             for (index in 0 until view.childCount) applyConcept3Tree(view.getChildAt(index))
@@ -1148,16 +1187,22 @@ class MainActivity : Activity() {
 
     private fun renderFatal(message: String) {
         val root = page()
-        root.addView(TextView(this).apply {
-            text = "SUPRA Inventory — Beta"
-            textSize = 24f
+        addBrandHeader(root, subtitle = "Báo hàng · Beta", meta = "")
+        val fatalCard = card()
+        fatalCard.addView(TextView(this).apply {
+            text = "Không thể khởi động ứng dụng"
+            textSize = 18f
             setTypeface(typeface, Typeface.BOLD)
+            setTextColor(conceptRed)
         })
-        root.addView(TextView(this).apply {
+        fatalCard.addView(TextView(this).apply {
             text = message
-            setTextColor(Color.RED)
-            setPadding(0, dp(12), 0, 0)
+            textSize = 13f
+            setTextColor(conceptRed)
+            setPadding(dp(12), dp(10), dp(12), dp(10))
+            background = roundedBackground(conceptRedSoft, Color.parseColor("#E7A5A1"), 10)
         })
+        root.addView(fatalCard)
         setContentView(wrapScroll(root))
     }
 

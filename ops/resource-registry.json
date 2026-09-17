@@ -159,16 +159,16 @@
       "cloudflare_oauth_refresh_token_secret": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
       "oauth_refresh_token_configured": true,
       "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA",
-      "web_source_status": "CONCEPT3_ADMIN_DASHBOARD_REPORTING_ROLE_UI_DEPLOYED_PASS",
+      "web_source_status": "CONCEPT3_FINISH_POLISH_DEPLOYED_PASS",
       "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
       "web_admin_report_monitoring": "ROLE_BASED_OPERATIONS_UI_DEPLOYED_PASS",
-      "android_source_status": "CONCEPT3_ROLE_UI_DELTA_CATALOG_SIGNED_OTA_PASS",
+      "android_source_status": "CONCEPT3_FINISH_POLISH_SIGNED_OTA_PASS",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
-      "latest_signed_beta_release": "beta-vc29",
-      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.29",
-      "latest_signed_beta_apk_sha256": "6ac6906ce9da9dceb60f357666d1afccdd3616bf32d5fa1850b67e296aa03722",
-      "latest_signed_beta_apk_size_bytes": 9149894,
+      "latest_signed_beta_release": "beta-vc30",
+      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.30",
+      "latest_signed_beta_apk_sha256": "913d59b031bd5efd1c4ff728856aa313a3827fbb9da7eac7be4581a669f422ea",
+      "latest_signed_beta_apk_size_bytes": 9149890,
       "auth_rbac_status": "IMPLEMENTED_RUNTIME_READY",
       "auth_api_route_smoke": "PASS",
       "root_bootstrap_path_smoke": "PASS",
@@ -242,7 +242,8 @@
     "backup_archive_execution",
     "admin_dashboard_reporting_concept3",
     "android_concept3_unified_ui",
-    "quota_resilience_v1_delta_catalog_indexed_reporting"
+    "quota_resilience_v1_delta_catalog_indexed_reporting",
+    "concept3_finish_web_android_polish"
   ],
   "application_build_pending": [
     "fcm_physical_device_delivery_acceptance",
@@ -301,8 +302,8 @@
   },
   "ui_design": {
     "authority": "OWNER_SELECTED_CONCEPT_3",
-    "web": "LIGHT_GREEN_OPERATIONAL_DEPLOYED_PASS",
-    "android": "LIGHT_GREEN_OPERATIONAL_SIGNED_OTA_PASS",
+    "web": "CONCEPT3_FINISH_POLISH_DEPLOYED_PASS",
+    "android": "CONCEPT3_FINISH_POLISH_SIGNED_OTA_PASS",
     "scope_guard": "VISUAL_SYSTEM_ONLY_BUSINESS_RULES_REMAIN_AUTHORITATIVE"
   },
   "quota_resilience": {
