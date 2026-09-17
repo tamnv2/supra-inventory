@@ -20,8 +20,10 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: "17"
       - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.6.0"
       - name: Repair Kotlin regex
         run: |
           python3 - <<'PY'
@@ -35,8 +37,7 @@ jobs:
           p.write_text(s.replace(bad, good, 1), encoding='utf-8')
           PY
       - name: Android debug compile
-        working-directory: android
-        run: ./gradlew :app:assembleDebug --no-daemon
+        run: gradle -p android :app:assembleDebug --no-daemon
       - name: Commit fix and remove temporary workflow
         run: |
           set -euo pipefail
