@@ -8,33 +8,36 @@
 - Beta: `ROLE_BASED_WEB_ANDROID_LIVE`
 - Stable: `CONFIG_READY_OWNER_GATED_NOT_LIVE`
 - SQLite schema: `5`
-- Web: `PRACTICAL_BALANCED_SOURCE_PENDING_CI_AND_BETA_DEPLOY`
-- Android: `PRACTICAL_BALANCED_SOURCE_PENDING_CI_SIGNED_BETA_RELEASE`
+- Web: `PRACTICAL_BALANCED_CANONICAL_SOURCE_PR4_VALIDATION`
+- Android: `PRACTICAL_BALANCED_CANONICAL_SOURCE_AND_MONOTONIC_OTA_PR4_VALIDATION`
 - Latest signed Beta APK: `beta-vc30`
 - Realtime: `WEBSOCKET_SERVER_WEB_ANDROID_CLIENT_DEPLOYED_SIGNED_PASS`
 - FCM: `DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BUILD_PASS_FIELD_DELIVERY_PENDING`
-- User management: `EXPANDED_ROOT_ADMIN_PICKER_LIFECYCLE_AND_FLEXIBLE_HR_SOURCE_PENDING_CI_DEPLOY`
+- User management: `EXPANDED_ROOT_ADMIN_PICKER_LIFECYCLE_FLEXIBLE_HR_DIRECT_PASSWORD_PR4_VALIDATION`
 - Admin dashboard/reporting: `OPERATIONAL_DASHBOARD_AND_REPORTING_BETA_DEPLOY_PASS`
 - Quota/resilience: `INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS`
+- UI design guard: `PRACTICAL_BALANCED_CANONICAL_SOURCE_GUARD_PR4_VALIDATION`
 
 ## Workboard
 
 ### In progress
-- Practical Balanced / Phương án 1 Web + Android source application on Beta branch
-- Expanded Root/Admin managed-account authority and direct password-change flow
-- Flexible HR source column mapping and explicit Picker one/many/all lifecycle management
-- Practical Balanced UI regression guard migration from superseded Concept 3
+- PR #4 canonical Practical Balanced Web source reconciliation.
+- PR #4 Root/Admin/Reporter/Picker RBAC and direct managed-password hardening.
+- PR #4 configurable HR headers and explicit Picker one/many/all lifecycle.
+- PR #4 Android Beta monotonic versionCode release hardening.
 
 ### Next
-- PR #3: pass authority + continuity + UI/build verification, repair any CI failure, then merge through protected main
-- Deploy/verify Beta Web and produce next signed Beta APK through the existing pipeline
-- Owner field-test resulting Practical Balanced Beta Web/PDA
-- Field-verify foreground realtime and background FCM delivery on a logged-in physical PDA
+- Repair PR #4 CI until authority, continuity, canonical UI source, service, Web and Android checks all PASS.
+- Merge PR #4 only after all required checks PASS.
+- Verify Beta Worker/Web deploy and signed Android `beta-vc31` or higher release.
+- Record final runtime commit/release/hash evidence in canonical state/resource registry.
+- Owner field-test resulting Beta Web/PDA and report numbered business/UI findings.
+- Field-verify foreground realtime and background FCM delivery on a logged-in physical PDA.
 
 ### Blocked / Owner-field dependent
-- Owner business acceptance
-- Physical PDA FCM delivery acceptance
-- Isolated mutation load acceptance requires an Owner workload target/test boundary
+- Owner business acceptance.
+- Physical PDA FCM delivery acceptance.
+- Isolated mutation load acceptance requires an Owner workload target/test boundary.
 
 ## Continuity rule
 

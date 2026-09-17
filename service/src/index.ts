@@ -256,7 +256,7 @@ async function login(request: Request, env: Env): Promise<Response> {
   if (!user || user.status !== "ACTIVE") return json({ error: "INVALID_CREDENTIALS" }, 401);
 
   if (!user.password_hash || !user.password_salt) {
-    if (!env.ROOT_BOOTSTRAP_PASSWORD) {
+    if (user.role !== "ROOT" || user.user_id !== "root" || !env.ROOT_BOOTSTRAP_PASSWORD) {
       return json({ error: "PASSWORD_NOT_INITIALIZED", message: "Tài khoản chưa được khởi tạo mật khẩu." }, 503);
     }
     await savePassword(env, user.user_id, env.ROOT_BOOTSTRAP_PASSWORD);
@@ -362,7 +362,7 @@ export default {
           },
           realtime_foreground: "websocket_planned_on_inventory_core",
           background_notifications: "firebase_cloud_messaging",
-          hr_source_setup: { mode: "web_admin_input", required_input: ["google_sheet_url", "tab_name"], validation: ["valid_google_sheet_link", "exact_tab_name", "MNV_column", "Ho_ten_column"], public_setup_endpoint: false },
+          hr_source_setup: { mode: "web_admin_input", required_input: ["google_sheet_url", "tab_name"], validation: ["valid_google_sheet_link", "exact_tab_name", "configured_employee_code_column", "configured_full_name_column"], public_setup_endpoint: false },
           root_password_initialized: Boolean(core.root_password_initialized), stable_release: "owner_gated",
         });
       }
@@ -389,9 +389,9 @@ export default {
       if (request.method === "PUT" && url.pathname === "/api/admin/hr-source") {
         const user = await requireUser(request, env, ["ADMIN", "ROOT"]);
         if (!env.GOOGLE_RUNTIME_SA_JSON) return json({ error: "GOOGLE_RUNTIME_NOT_CONFIGURED" }, 503);
-        const body = (await request.json()) as { sheet_url?: string; tab_name?: string };
+        const body = (await request.json()) as { sheet_url?: string; tab_name?: string; employee_code_header?: string; full_name_header?: string };
         try {
-          const validated = await validateHrSheetSource(env.GOOGLE_RUNTIME_SA_JSON, { sheet_url: String(body.sheet_url || ""), tab_name: String(body.tab_name || "") });
+          const validated = await validateHrSheetSource(env.GOOGLE_RUNTIME_SA_JSON, { sheet_url: String(body.sheet_url || ""), tab_name: String(body.tab_name || ""), employee_code_header: String(body.employee_code_header || ""), full_name_header: String(body.full_name_header || "") });
           await coreJson(env, "/config/hr-source", {
             method: "PUT", headers: { "content-type": "application/json" },
             body: JSON.stringify({ ...validated, updated_by: user.user_id }),

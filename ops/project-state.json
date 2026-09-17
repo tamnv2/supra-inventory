@@ -18,17 +18,17 @@
     "sqlite_schema": 5,
     "business_api": "IMPLEMENTED_AND_DEPLOYED_BETA_SCHEMA_V5",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS",
-    "web": "PRACTICAL_BALANCED_SOURCE_PENDING_CI_AND_BETA_DEPLOY",
-    "android": "PRACTICAL_BALANCED_SOURCE_PENDING_CI_SIGNED_BETA_RELEASE",
+    "web": "PRACTICAL_BALANCED_CANONICAL_SOURCE_PR4_VALIDATION",
+    "android": "PRACTICAL_BALANCED_CANONICAL_SOURCE_AND_MONOTONIC_OTA_PR4_VALIDATION",
     "latest_beta_apk": "beta-vc30",
     "realtime": "WEBSOCKET_SERVER_WEB_ANDROID_CLIENT_DEPLOYED_SIGNED_PASS",
     "network_scope": "PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_BY_OWNER_DECISION",
     "fcm": "DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BUILD_PASS_FIELD_DELIVERY_PENDING",
-    "user_management": "EXPANDED_ROOT_ADMIN_PICKER_LIFECYCLE_AND_FLEXIBLE_HR_SOURCE_PENDING_CI_DEPLOY",
+    "user_management": "EXPANDED_ROOT_ADMIN_PICKER_LIFECYCLE_FLEXIBLE_HR_DIRECT_PASSWORD_PR4_VALIDATION",
     "archive": "IDEMPOTENT_SHEET_ARCHIVE_AND_SAFE_60D_RETENTION_BETA_DEPLOY_PASS",
     "admin_dashboard": "OPERATIONAL_DASHBOARD_AND_REPORTING_BETA_DEPLOY_PASS",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "PRACTICAL_BALANCED_GUARD_SOURCE_PENDING_CI",
+    "ui_design_guard": "PRACTICAL_BALANCED_CANONICAL_SOURCE_GUARD_PR4_VALIDATION",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS"
   },
   "hard_guards": [
@@ -97,8 +97,9 @@
     "Repo authority complete: project context + exact ID/name project scope + durable decisions + full product specs + live workboard + automation protocol + public-repo security + stale/secret guards"
   ],
   "pending_build": [
-    "Practical Balanced Web production build, Worker typecheck/deploy smoke and Android debug/signed release verification",
-    "Expanded Root/Admin account hierarchy, direct managed-password flow, flexible HR header mapping and manual Picker lifecycle runtime smoke",
+    "PR #4 authority + continuity + Practical Balanced source guard + Worker typecheck + Web production build + Android debug build terminal PASS",
+    "After PR #4 merge: Beta Worker/Web deploy smoke and signed Android release with monotonic versionCode greater than beta-vc30",
+    "Runtime smoke for expanded Root/Admin account hierarchy, direct managed-password flow, flexible HR header mapping and manual Picker lifecycle",
     "Field-verify FCM delivery on a physical logged-in PDA; technical foundation is deployed",
     "Owner business acceptance",
     "Isolated business-mutation load acceptance after Owner scale target is defined"
@@ -116,8 +117,8 @@
     "Any new offline-create-report behavior; do not add direct-to-Sheet fallback unless Owner explicitly approves it."
   ],
   "next_action": {
-    "primary": "Complete branch feat/concept1-ui-rbac-picker-management through PR -> authority + continuity + UI/build verification -> Beta deploy/signed APK evidence -> merge; then Owner field-tests Practical Balanced Web/PDA. Stable remains gated.",
-    "method": "Keep Picker/Reporter SKU/report operations visually primary; preserve server-authoritative business state via API/SQLite, foreground WebSocket resync and FCM background notification only.",
+    "primary": "Complete PR #4 through authority + continuity + canonical UI/source + service/Web/Android checks; repair until terminal PASS; merge; then require Beta deploy smoke and signed beta-vc31-or-higher evidence before updating runtime baseline. Stable remains gated.",
+    "method": "Treat ops/project-state.json and runtime evidence as authoritative; beta-vc30 remains the accepted Android runtime baseline until a signed versionCode greater than 30 is published successfully.",
     "stable_guard": "Do not activate Stable."
   },
   "continuity_policy": {
@@ -145,18 +146,18 @@
   },
   "workboard": {
     "in_progress": [
-      "Practical Balanced / Phương án 1 Web + Android source application on Beta branch",
-      "Expanded Root/Admin managed-account authority and direct password-change flow",
-      "Flexible HR source column mapping and explicit Picker one/many/all lifecycle management",
-      "Practical Balanced UI regression guard migration from superseded Concept 3"
+      "PR #4 canonical Practical Balanced Web source reconciliation",
+      "PR #4 Root/Admin/Reporter/Picker RBAC and direct managed-password hardening",
+      "PR #4 configurable HR headers and explicit Picker one/many/all lifecycle",
+      "PR #4 Android Beta monotonic versionCode release hardening"
     ],
     "next": [
-      "Open protected-main PR and run authority, continuity, UI design, Web, service and Android checks",
-      "Repair any CI failure until terminal PASS",
-      "Deploy/verify Beta Web and produce next signed Beta APK through existing pipeline",
+      "Repair PR #4 CI until authority, continuity, canonical UI source, service, Web and Android checks all PASS",
+      "Merge PR #4 only after all required checks PASS",
+      "Verify Beta Worker/Web deploy and signed Android beta-vc31-or-higher release",
+      "Record final runtime commit/release/hash evidence in canonical state/resource registry",
       "Owner field-test resulting Beta Web/PDA and report numbered business/UI findings",
-      "Field-verify foreground realtime and background FCM delivery on a logged-in physical PDA",
-      "Define Owner workload target before isolated destructive/mutation load acceptance"
+      "Field-verify foreground realtime and background FCM delivery on a logged-in physical PDA"
     ],
     "blocked_or_owner_field_dependent": [
       "Owner business acceptance",
