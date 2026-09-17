@@ -5,54 +5,46 @@
 ## Current status
 
 - Project: `SUPRA Inventory — Báo hàng` (`supra-inventory`).
-- Beta: `ROLE_BASED_WEB_ANDROID_LIVE_PRE_REBASELINE_RUNTIME__LEGACY_OPERATIONAL_V2_SOURCE_BUILD_PASS_PENDING_MERGE_DEPLOY_RELEASE`
+- Beta: `LEGACY_OPERATIONAL_V2_MAIN_50879EEF_DEPLOY_UPLOAD_PASS_BUSINESS_SMOKE_FAIL__F01_FIX_IN_PROGRESS`
 - Stable: `CONFIG_READY_OWNER_GATED_NOT_LIVE`
 - SQLite schema: `5`
-- Web: `LEGACY_OPERATIONAL_UI_V2_SOURCE_PRODUCTION_BUILD_PASS__LIVE_RUNTIME_STILL_PRE_REBASELINE`
-- Android: `LEGACY_OPERATIONAL_UI_V2_DEBUG_BUILD_PASS__LIVE_SIGNED_BASELINE_STILL_VC35`
-- Latest signed Beta APK: `beta-vc35`
-- Realtime: `OPERATIONAL_V2_SEQ_DELTA_ACK_SOURCE_BUILD_PASS_PENDING_BETA_RUNTIME_VERIFICATION`
+- Web: `LEGACY_OPERATIONAL_UI_V2_DEPLOYED_50879EEF__WEB_SMOKE_SKIPPED_AFTER_BUSINESS_FAILURE`
+- Android: `LEGACY_OPERATIONAL_UI_V2_SIGNED_BETA_VC36_RELEASED__RUNTIME_ELIGIBILITY_GATE_FIX_IN_PROGRESS`
+- Latest signed Beta APK: `beta-vc36`
+- Realtime: `OPERATIONAL_V2_SEQ_DELTA_ACK_DEPLOYED_50879EEF__AUTHENTICATED_RUNTIME_SMOKE_PENDING_AFTER_F01`
 - FCM: `DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BASELINE__OPERATIONAL_V2_CORRELATION_SOURCE_BUILD_PASS_PENDING_RUNTIME`
 - UI design guard: `LEGACY_OPERATIONAL_UI_V2_SOURCE_SERVICE_WEB_ANDROID_PASS`
 
-## Source/build evidence
+## Verified evidence
 
-- PR: `#14` on `feat/legacy-operational-rebaseline-v1`.
-- Legacy Operational UI V2 source invariants: PASS.
-- Worker TypeScript typecheck: PASS.
-- Web production build: PASS.
-- Android debug build: PASS.
-- Source/build evidence head before state refresh: `ab4c99eecf3e698f3f7b2270788e8be756c7ea18`.
-- Runtime deployment and signed V2 release are still pending; source/build PASS must not be confused with live runtime PASS.
+- PR #14 merged to main at `50879eef1abbd1c17bed4c4e3f37fe2ee56849ad`.
+- Deploy Beta run `35252261078`: Worker/Web/InventoryCore deploy PASS; health and auth probes PASS; business/auth-guard smoke failed because `/api/reporter/queue` returned `503 OPERATIONAL_V2_NOT_READY`; later Web/OAuth smoke steps were skipped.
+- Android run `35252260928`: signed build PASS and published `beta-vc36` from `50879eef`.
+- This exposed a release-gating defect: signed release publication was independent of the matching Beta runtime smoke result.
 
-## Proven live runtime baseline
+## Current work
 
-- Runtime source commit: `a00a23727f515d208726907e4abc672243815460`
-- Signed release: `beta-vc35` / `SUPRA Inventory Beta 0.2.0-beta.35`
-- APK SHA-256: `09dd3fe51d6df9979d03bc58985fdd3f583d30be4f71e1535e72ceb9888afb38`
-- APK size: `9185074` bytes
-- Runtime UI is still the pre-rebaseline vc35 baseline until PR #14 is merged, Beta is deployed and a new signed Beta release is verified.
+- Branch `fix/beta-runtime-continuity` fixes F01.
+- Operational V2 migration is moved to Durable Object initialization with a persisted readiness marker instead of per-request trigger recreation.
+- Business routes authenticate/authorize before readiness checks.
+- `/health` and capabilities expose Operational V2 readiness.
+- Signed Beta release publication is gated on the matching `Deploy Beta Worker` workflow reaching terminal success.
+- Stable remains untouched / OWNER-GATED.
 
-## Workboard
+## Next
 
-### In progress
-- Final authority/continuity/UI guards for PR #14 after canonical state/derived-view synchronization.
-
-### Next
-- Merge PR #14 only after required checks are PASS and branch protection permits merge.
-- Deploy merged Legacy Operational V2 to Beta and run runtime smoke for health/auth/Web/realtime delta/ACK/SLA/recurrence.
-- Produce and verify the next monotonic signed Beta APK release.
-
-### Field acceptance pending
-- Physical PDA layout and business-flow acceptance on the new signed Beta.
-- Physical foreground/background FCM and explicit critical-result ACK acceptance.
-- Isolated mutation-load acceptance after an Owner-defined workload boundary.
+1. Open PR and run authority, continuity, UI/source/build checks.
+2. Merge only after required checks PASS.
+3. Follow Beta deploy/runtime smoke to terminal PASS; verify all post-deploy smoke steps execute.
+4. Continue F02–F05, then F06–F07.
+5. Keep physical PDA/FCM/business acceptance separate from automated technical PASS.
 
 ## Guards
 
 - No offline business mode.
-- Stable remains Owner-gated and untouched by this workstream.
-- No secret values belong in this public repository.
+- No legacy 1291 provider/resource import.
+- No secret values in this public repository.
+- No Stable mutation without current Owner authorization.
 
 ## Continuity rule
 
