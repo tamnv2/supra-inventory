@@ -4,6 +4,7 @@ import { handleReadModelCoreRequest } from "./read-model-core";
 import { handleNotificationCoreRequest } from "./notifications-core";
 import { handleUserManagementCoreRequest } from "./user-management-core";
 import { handleArchiveCoreRequest } from "./archive-core";
+import { handleOperationalV2CoreRequest, initializeOperationalV2Schema } from "./operational-v2-core";
 
 const SCHEMA_VERSION = 5;
 
@@ -236,6 +237,7 @@ export class InventoryCore {
     if (!this.hasColumn("users", "password_changed_at")) sql.exec("ALTER TABLE users ADD COLUMN password_changed_at TEXT");
 
     initializeBusinessSchema(this.state);
+    initializeOperationalV2Schema(this.state);
 
     sql.exec(
       `INSERT OR IGNORE INTO users (user_id, firebase_uid, employee_code, display_name, role, status)
@@ -293,6 +295,10 @@ export class InventoryCore {
         expected_schema_version: SCHEMA_VERSION,
         root_password_initialized: Boolean(root?.password_hash && root?.password_salt),
       });
+    }
+
+    if (request.method === "GET" && url.pathname === "/operational/init") {
+      return response({ status: "ok", operational_v2: true });
     }
 
     if (request.method === "GET" && url.pathname === "/auth/user-by-username") {
@@ -380,6 +386,9 @@ export class InventoryCore {
 
     const notifications = await handleNotificationCoreRequest(this.state, request);
     if (notifications) return notifications;
+
+    const operationalV2 = await handleOperationalV2CoreRequest(this.state, request);
+    if (operationalV2) return operationalV2;
 
     const readModel = await handleReadModelCoreRequest(this.state, request);
     if (readModel) return readModel;
