@@ -13,22 +13,22 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "ROLE_BASED_WEB_ANDROID_LIVE",
+    "beta": "ROLE_BASED_WEB_ANDROID_LIVE_PRE_REBASELINE_RUNTIME__LEGACY_OPERATIONAL_V2_SOURCE_BUILD_PASS_PENDING_MERGE_DEPLOY_RELEASE",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 5,
-    "business_api": "LEGACY_OPERATIONAL_V2_REBASELINE_BRANCH_IN_PROGRESS_LIVE_BASELINE_SCHEMA_V5",
+    "business_api": "LEGACY_OPERATIONAL_V2_SOURCE_BUILD_PASS_PENDING_BETA_RUNTIME_DEPLOY",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS",
-    "web": "PRACTICAL_BALANCED_CANONICAL_SOURCE_BETA_DEPLOY_SMOKE_PASS",
-    "android": "PRACTICAL_BALANCED_SIGNED_BETA_VC35_PDA_LAYOUT_REMEDIATION_TECHNICAL_PASS_FIELD_ACCEPTANCE_PENDING",
+    "web": "LEGACY_OPERATIONAL_UI_V2_SOURCE_PRODUCTION_BUILD_PASS__LIVE_RUNTIME_STILL_PRE_REBASELINE",
+    "android": "LEGACY_OPERATIONAL_UI_V2_DEBUG_BUILD_PASS__LIVE_SIGNED_BASELINE_STILL_VC35",
     "latest_beta_apk": "beta-vc35",
-    "realtime": "OPERATIONAL_V2_SEQ_DELTA_ACK_IMPLEMENTATION_IN_PROGRESS_LIVE_BASELINE_WEBSOCKET_INVALIDATION",
+    "realtime": "OPERATIONAL_V2_SEQ_DELTA_ACK_SOURCE_BUILD_PASS_PENDING_BETA_RUNTIME_VERIFICATION",
     "network_scope": "ONLINE_ONLY_PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_NO_OFFLINE_BUSINESS_MODE",
-    "fcm": "DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BUILD_PASS_OPERATIONAL_V2_CORRELATION_IN_PROGRESS",
+    "fcm": "DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BASELINE__OPERATIONAL_V2_CORRELATION_SOURCE_BUILD_PASS_PENDING_RUNTIME",
     "user_management": "EXPANDED_ROOT_ADMIN_PICKER_LIFECYCLE_FLEXIBLE_HR_DIRECT_PASSWORD_LEGACY_PICKER_BOOTSTRAP_DEPLOYED_BUILD_PASS",
     "archive": "IDEMPOTENT_SHEET_ARCHIVE_AND_SAFE_60D_RETENTION_BETA_DEPLOY_PASS",
-    "admin_dashboard": "OPERATIONAL_DASHBOARD_REPORTING_LIVE_LEGACY_OPERATIONAL_V2_SLA_RECURRENCE_EXTENSION_IN_PROGRESS",
+    "admin_dashboard": "LEGACY_OPERATIONAL_V2_SLA_RECURRENCE_WEB_SOURCE_BUILD_PASS_PENDING_RUNTIME",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "LEGACY_OPERATIONAL_UI_V2_AUTHORITY_REBASELINE_IN_PROGRESS",
+    "ui_design_guard": "LEGACY_OPERATIONAL_UI_V2_SOURCE_SERVICE_WEB_ANDROID_PASS",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS"
   },
   "hard_guards": [
@@ -74,13 +74,15 @@
     "WebSocket one-time-ticket hibernatable realtime baseline and FCM registration/targeting foundation",
     "Admin dashboard/reporting and safe archive/retention foundation",
     "Repo-native authority/context/scope/spec/state/resource/CI guards",
-    "Signed beta-vc35 remains the current live technical APK baseline before Legacy Operational UI V2"
+    "Legacy Operational V2 backend extension source/typecheck PASS: sequence/delta, batch version/recurrence, critical ACK and SLA",
+    "Legacy Operational UI V2 Web production build PASS with operational-first queue, SLA/recurrence and sequenced realtime client",
+    "Legacy Operational UI V2 Android debug build PASS with Picker vertical flow/ACK, Reporter operational cards/Skip confirmation, Admin/Root launcher and sequenced realtime client",
+    "Signed beta-vc35 remains the current live technical APK baseline until the new branch is merged/deployed/released"
   ],
   "pending_build": [
-    "Complete Operational V2 backend extension: sequence/delta, batch version/recurrence, critical result ACK, SLA settings/read models and regression tests.",
-    "Rewrite Reporter Web to operational-first dense queue and reorganize Admin/Root navigation/settings/reporting.",
-    "Rewrite Android Picker vertical layout, Reporter operational cards/Skip confirmation, Admin/Root launcher, critical ACK and sequenced realtime client.",
-    "Run authority/continuity/service/Web/Android/deploy/runtime/signed-release gates until terminal PASS.",
+    "Run final authority/continuity checks on the source-build-PASS state update and merge PR #14 only when branch protection requirements are satisfied.",
+    "Deploy merged Legacy Operational V2 to Beta and verify health, authenticated business endpoints, Web smoke, realtime delta, ACK, SLA and recurrence runtime behavior.",
+    "Produce and publish the next monotonic signed Beta APK release and verify checksum/update metadata.",
     "After technical release PASS, field-verify physical PDA layout, FCM/critical ACK and update UX with Owner."
   ],
   "field_pending": [
@@ -95,8 +97,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Complete Legacy Operational V2 implementation on feat/legacy-operational-rebaseline-v1, then PR checks, Beta deploy/runtime verification and signed Beta release until all automatable gates PASS.",
-    "method": "Authority/spec rebaseline first, then backend contract, Web operational UI, Android operational UI, CI/deploy/runtime/release evidence. Technical PASS and Owner physical-device/business acceptance remain distinct.",
+    "primary": "Complete final PR #14 guards and merge, then Beta deploy/runtime verification and signed Beta release until all automatable gates PASS.",
+    "method": "Do not redo source/build gates already PASS. Preserve source-build evidence, merge through protected main, then verify Beta runtime and signed release. Technical PASS and Owner physical-device/business acceptance remain distinct.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -124,21 +126,32 @@
   },
   "workboard": {
     "in_progress": [
-      "Legacy Operational UI V2 Owner-approved rebaseline on feat/legacy-operational-rebaseline-v1",
-      "Operational V2 backend extension: recurrence/version, realtime sequence/delta, critical ACK and SLA",
-      "Web/Android operational product rewrite follows backend contract"
+      "PR #14 final authority/continuity verification before protected merge",
+      "Beta deploy/runtime/release follows merge; Stable remains untouched"
     ],
     "next": [
-      "Open/update PR and use CI to repair service/typecheck/authority failures",
-      "Complete Web operational-first implementation and event-delta client",
-      "Complete Android Picker/Reporter/Admin-Root/ACK/event-delta implementation",
-      "Merge only after required authority + continuity + app verification PASS, then Beta runtime/release verification"
+      "Wait for final Project State Guard, Repo Authority Guard and UI Design Guard on the state-update head",
+      "Merge PR #14 when required checks are PASS and branch is up to date",
+      "Run Beta deploy/runtime endpoint/Web/realtime/ACK/SLA/recurrence verification",
+      "Build/publish next signed Beta APK with monotonic versionCode and verify OTA/checksum evidence"
     ],
     "blocked_or_owner_field_dependent": [
       "Final physical-PDA UI/business acceptance after new signed Beta is available",
       "Physical background FCM display/explicit ACK acceptance",
       "Isolated mutation load acceptance still requires an Owner workload target/test boundary"
     ],
+    "last_source_build_evidence": {
+      "branch": "feat/legacy-operational-rebaseline-v1",
+      "head_before_state_update": "ab4c99eecf3e698f3f7b2270788e8be756c7ea18",
+      "pr": 14,
+      "ui_design_guard_run": 58,
+      "ui_invariants": "PASS",
+      "service_typecheck": "PASS",
+      "web_production_build": "PASS",
+      "android_debug_build": "PASS",
+      "runtime_deploy": "PENDING",
+      "signed_release": "PENDING"
+    },
     "last_runtime_evidence": {
       "schema": 5,
       "signed_beta_release": "beta-vc35",
@@ -147,7 +160,7 @@
       "signed_beta_apk_size_bytes": 9185074,
       "runtime_source_commit": "a00a23727f515d208726907e4abc672243815460",
       "runtime_ui_baseline": "PRACTICAL_BALANCED_VC35_PDA_LAYOUT_REMEDIATION_TECHNICAL_PASS_FIELD_ACCEPTANCE_PENDING",
-      "verification_basis": "PR #12 guards + signed beta-vc35 technical release PASS. This remains the live pre-rebaseline baseline until the Legacy Operational UI V2 branch passes PR/merge/deploy/release gates."
+      "verification_basis": "PR #12 guards + signed beta-vc35 technical release PASS. This remains the live pre-rebaseline baseline until Legacy Operational UI V2 is merged, deployed and released."
     }
   },
   "authority_setup": {
@@ -159,6 +172,6 @@
     "requirement_5_public_repo_security": "PASS_SECRET_REFERENCE_ONLY_AND_CI_HEURISTIC_GUARD",
     "canonical_scope": "ops/project-scope.json",
     "canonical_manifest": "ops/authority-manifest.json",
-    "verified_date": "2026-09-17"
+    "verified_date": "2026-09-18"
   }
 }
