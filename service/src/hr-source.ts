@@ -1,6 +1,8 @@
 export interface HrSourceInput {
   sheet_url: string;
   tab_name: string;
+  employee_code_header?: string;
+  full_name_header?: string;
 }
 
 export interface HrSourceValidationResult {
@@ -8,6 +10,7 @@ export interface HrSourceValidationResult {
   sheet_url: string;
   tab_name: string;
   mnv_header: string;
+  employee_code_header: string;
   full_name_header: string;
   header_row: number;
   data_row_count: number;
@@ -117,34 +120,30 @@ function normalizeHeader(value: string): string {
     .replace(/Đ/g, "D")
     .trim()
     .toLowerCase()
-    .replace(/[_./-]+/g, " ")
     .replace(/\s+/g, " ");
 }
 
-function detectHeaders(rows: string[][]): {
-  headerRow: number;
-  mnvHeader: string;
-  fullNameHeader: string;
-} | null {
-  const mnvNames = new Set(["mnv", "ma nv", "ma nhan vien"]);
-  const fullNameNames = new Set(["ho ten", "ho va ten", "ho ten nhan vien", "ten nhan vien"]);
-
+function detectConfiguredHeaders(
+  rows: string[][],
+  employeeCodeHeader: string,
+  fullNameHeader: string,
+): { headerRow: number; employeeCodeHeader: string; fullNameHeader: string } | null {
+  const codeWanted = normalizeHeader(employeeCodeHeader);
+  const nameWanted = normalizeHeader(fullNameHeader);
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
     const row = rows[rowIndex] || [];
-    let mnvHeader = "";
-    let fullNameHeader = "";
-
+    let actualCodeHeader = "";
+    let actualNameHeader = "";
     for (const cell of row) {
-      const normalized = normalizeHeader(String(cell || ""));
-      if (!mnvHeader && mnvNames.has(normalized)) mnvHeader = String(cell);
-      if (!fullNameHeader && fullNameNames.has(normalized)) fullNameHeader = String(cell);
+      const raw = String(cell || "").trim();
+      const normalized = normalizeHeader(raw);
+      if (!actualCodeHeader && normalized === codeWanted) actualCodeHeader = raw;
+      if (!actualNameHeader && normalized === nameWanted) actualNameHeader = raw;
     }
-
-    if (mnvHeader && fullNameHeader) {
-      return { headerRow: rowIndex + 1, mnvHeader, fullNameHeader };
+    if (actualCodeHeader && actualNameHeader) {
+      return { headerRow: rowIndex + 1, employeeCodeHeader: actualCodeHeader, fullNameHeader: actualNameHeader };
     }
   }
-
   return null;
 }
 
@@ -162,7 +161,15 @@ export async function validateHrSheetSource(
 ): Promise<HrSourceValidationResult> {
   const sheetUrl = input.sheet_url.trim();
   const tabName = input.tab_name.trim();
+  const employeeCodeHeader = String(input.employee_code_header || "").trim();
+  const fullNameHeader = String(input.full_name_header || "").trim();
   if (!tabName) throw new Error("Tên tab không được để trống");
+  if (!employeeCodeHeader || !fullNameHeader) {
+    throw new Error("Hãy nhập tên cột Mã nhân viên và tên cột Họ và tên trước khi xác nhận nguồn nhân sự.");
+  }
+  if (normalizeHeader(employeeCodeHeader) === normalizeHeader(fullNameHeader)) {
+    throw new Error("Cột Mã nhân viên và cột Họ và tên phải là hai cột khác nhau.");
+  }
 
   const sheetId = parseGoogleSheetId(sheetUrl);
   const { accessToken, clientEmail } = await getServiceAccountAccessToken(rawServiceAccountJson);
@@ -182,9 +189,7 @@ export async function validateHrSheetSource(
     sheets?: Array<{ properties?: { sheetId?: number; title?: string } }>;
   };
   const exactTab = meta.sheets?.find((sheet) => sheet.properties?.title === tabName);
-  if (!exactTab) {
-    throw new Error(`Không tìm thấy tab đúng tên "${tabName}" trong Google Sheet.`);
-  }
+  if (!exactTab) throw new Error(`Không tìm thấy tab đúng tên "${tabName}" trong Google Sheet.`);
 
   const range = `'${tabName.replaceAll("'", "''")}'!A1:ZZ2000`;
   const valuesUrl = new URL(
@@ -192,24 +197,22 @@ export async function validateHrSheetSource(
   );
   valuesUrl.searchParams.set("majorDimension", "ROWS");
   const valuesResponse = await fetch(valuesUrl.toString(), { headers: authHeaders });
-  if (!valuesResponse.ok) {
-    throw new Error(`Không đọc được dữ liệu tab "${tabName}": HTTP ${valuesResponse.status}`);
-  }
+  if (!valuesResponse.ok) throw new Error(`Không đọc được dữ liệu tab "${tabName}": HTTP ${valuesResponse.status}`);
 
   const values = (await valuesResponse.json()) as { values?: string[][] };
   const rows = values.values || [];
-  const detected = detectHeaders(rows.slice(0, 20));
+  const detected = detectConfiguredHeaders(rows.slice(0, 20), employeeCodeHeader, fullNameHeader);
   if (!detected) {
-    throw new Error('Tab phải chứa đủ 2 cột "MNV" và "Họ tên" (hoặc tên cột tương đương đã chuẩn hóa).');
+    throw new Error(`Không tìm thấy đồng thời cột "${employeeCodeHeader}" và "${fullNameHeader}" trong 20 dòng đầu của tab.`);
   }
 
   const dataRows = rows.slice(detected.headerRow).filter((row) => row.some((cell) => String(cell || "").trim() !== ""));
-
   return {
     sheet_id: sheetId,
     sheet_url: sheetUrl,
     tab_name: tabName,
-    mnv_header: detected.mnvHeader,
+    mnv_header: detected.employeeCodeHeader,
+    employee_code_header: detected.employeeCodeHeader,
     full_name_header: detected.fullNameHeader,
     header_row: detected.headerRow,
     data_row_count: dataRows.length,

@@ -4,16 +4,20 @@ on:
   push:
     branches: [main]
     paths:
+      - "service/**"
       - "web/**"
       - "android/**"
+      - "docs/specs/UI_DESIGN_SYSTEM.md"
       - "tools/ui_design_guard.py"
       - "ops/project-state.json"
       - ".github/workflows/ui-design-guard.yml"
   pull_request:
     branches: [main]
     paths:
+      - "service/**"
       - "web/**"
       - "android/**"
+      - "docs/specs/UI_DESIGN_SYSTEM.md"
       - "tools/ui_design_guard.py"
       - "ops/project-state.json"
       - ".github/workflows/ui-design-guard.yml"
@@ -23,7 +27,7 @@ permissions:
   contents: read
 
 jobs:
-  concept3:
+  practical-balanced:
     runs-on: ubuntu-latest
     environment: beta
     env:
@@ -44,10 +48,16 @@ jobs:
         with:
           gradle-version: "9.6.0"
 
-      - name: Validate Concept 3 source invariants
+      - name: Validate Practical Balanced source invariants
         run: |
           set -euo pipefail
           python3 tools/ui_design_guard.py
+
+      - name: Typecheck Worker service
+        working-directory: service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
 
       - name: Build Web production gate
         working-directory: web

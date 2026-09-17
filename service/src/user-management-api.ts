@@ -1,10 +1,13 @@
-import { readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
+import { hashPassword, readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
 import { readHrEmployees, type StoredHrSource } from "./hr-sync";
+import { validateHrSheetSource } from "./hr-source";
 
 interface Env {
   FIREBASE_PROJECT_ID: string;
   INVENTORY_CORE: DurableObjectNamespace;
   GOOGLE_RUNTIME_SA_JSON?: string;
+  PICKER_DEFAULT_PASSWORD?: string;
+  ROOT_BOOTSTRAP_PASSWORD?: string;
 }
 interface User { user_id: string; employee_code: string | null; role: AppRole; status: "ACTIVE" | "DISABLED"; }
 const ROLES: AppRole[] = ["ADMIN", "ROOT"];
@@ -34,12 +37,23 @@ async function hrEmployees(env: Env) {
   }
   return read;
 }
+async function derivePassword(value: unknown): Promise<{ salt: string; hash: string }> {
+  const password = String(value || "");
+  if (!password) throw new Error("PASSWORD_REQUIRED");
+  return hashPassword(password);
+}
+async function derivePickerDefault(env: Env): Promise<{ salt: string; hash: string }> {
+  const password = env.PICKER_DEFAULT_PASSWORD || env.ROOT_BOOTSTRAP_PASSWORD || "";
+  if (!password) throw new Error("PICKER_DEFAULT_PASSWORD_NOT_CONFIGURED");
+  return hashPassword(password);
+}
 
 export async function handleUserManagementApi(request: Request, env: Env): Promise<Response | null> {
   const url = new URL(request.url);
   const supported = new Set([
     "GET /api/admin/users", "POST /api/admin/users", "PATCH /api/admin/users",
-    "POST /api/admin/users/reset-password", "POST /api/admin/hr-sync/preview", "POST /api/admin/hr-sync/apply",
+    "PUT /api/admin/users/password", "POST /api/admin/pickers/bulk",
+    "PUT /api/admin/hr-source-v2", "POST /api/admin/hr-sync/preview", "POST /api/admin/hr-sync/apply",
   ]);
   const key = `${request.method} ${url.pathname}`;
   if (!supported.has(key)) return null;
@@ -52,24 +66,65 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
   }
   if (key === "POST /api/admin/users") {
     const body = await bodyObject(request);
-    return core(env).fetch("https://inventory-core.internal/admin/users/create", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...body, actor: actor(user) }) });
+    try {
+      const derived = await derivePassword(body.password);
+      const { password: _password, ...safeBody } = body;
+      return core(env).fetch("https://inventory-core.internal/admin/users/create", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...safeBody, password_salt: derived.salt, password_hash: derived.hash, actor: actor(user) }) });
+    } catch (error) {
+      return json({ error: "INVALID_PASSWORD", message: error instanceof Error ? error.message : "Mật khẩu không hợp lệ." }, 400);
+    }
   }
   if (key === "PATCH /api/admin/users") {
     const body = await bodyObject(request);
     return core(env).fetch("https://inventory-core.internal/admin/users/update", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...body, actor: actor(user) }) });
   }
-  if (key === "POST /api/admin/users/reset-password") {
+  if (key === "PUT /api/admin/users/password") {
     const body = await bodyObject(request);
-    return core(env).fetch("https://inventory-core.internal/admin/users/reset-password", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...body, actor: actor(user) }) });
+    try {
+      const derived = await derivePassword(body.password);
+      return core(env).fetch("https://inventory-core.internal/admin/users/set-password", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ user_id: body.user_id, request_id: body.request_id, password_salt: derived.salt, password_hash: derived.hash, actor: actor(user) }) });
+    } catch (error) {
+      return json({ error: "INVALID_PASSWORD", message: error instanceof Error ? error.message : "Mật khẩu không hợp lệ." }, 400);
+    }
   }
+  if (key === "POST /api/admin/pickers/bulk") {
+    const body = await bodyObject(request);
+    return core(env).fetch("https://inventory-core.internal/admin/pickers/bulk", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...body, actor: actor(user) }) });
+  }
+  if (key === "PUT /api/admin/hr-source-v2") {
+    if (!env.GOOGLE_RUNTIME_SA_JSON) return json({ error: "GOOGLE_RUNTIME_NOT_CONFIGURED" }, 503);
+    const body = await bodyObject(request);
+    try {
+      const validated = await validateHrSheetSource(env.GOOGLE_RUNTIME_SA_JSON, {
+        sheet_url: String(body.sheet_url || ""),
+        tab_name: String(body.tab_name || ""),
+        employee_code_header: String(body.employee_code_header || ""),
+        full_name_header: String(body.full_name_header || ""),
+      });
+      const saved = await core(env).fetch("https://inventory-core.internal/config/hr-source", {
+        method: "PUT", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...validated, updated_by: user.user_id }),
+      });
+      if (!saved.ok) return saved;
+      return json({ status: "saved", source: validated });
+    } catch (error) {
+      return json({ error: "HR_SOURCE_INVALID", message: error instanceof Error ? error.message : "Nguồn nhân sự không hợp lệ." }, 400);
+    }
+  }
+
   try {
     const read = await hrEmployees(env);
     if (key === "POST /api/admin/hr-sync/preview") {
       return core(env).fetch("https://inventory-core.internal/admin/hr-sync/preview", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ actor: actor(user), employees: read.employees }) });
     }
     const body = await bodyObject(request);
-    return core(env).fetch("https://inventory-core.internal/admin/hr-sync/apply", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...body, actor: actor(user), employees: read.employees }) });
+    const pickerDefault = await derivePickerDefault(env);
+    return core(env).fetch("https://inventory-core.internal/admin/hr-sync/apply", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...body, actor: actor(user), employees: read.employees, picker_password_salt: pickerDefault.salt, picker_password_hash: pickerDefault.hash }),
+    });
   } catch (error) {
-    return json({ error: "HR_SYNC_SOURCE_FAILED", message: error instanceof Error ? error.message : "Không đọc được nguồn nhân sự." }, 400);
+    const message = error instanceof Error ? error.message : "Không đọc được nguồn nhân sự.";
+    return json({ error: "HR_SYNC_SOURCE_FAILED", message }, message === "PICKER_DEFAULT_PASSWORD_NOT_CONFIGURED" ? 503 : 400);
   }
 }

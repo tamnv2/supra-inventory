@@ -5,11 +5,11 @@ Status: **CANONICAL PRODUCT SPEC**. This documents business-facing form intent; 
 ## Login — Web + Android
 
 Inputs:
-- Username / MNV
+- Username / Mã nhân viên
 - Password
 
 Rules:
-- Do not prefill `root` or any credential.
+- Do not prefill root or any credential.
 - Backend is authoritative for role and account status.
 - Login errors must not reveal credential secrets.
 
@@ -18,8 +18,8 @@ Rules:
 Inputs/actions:
 - Search/select SKU from local server-synchronized catalog.
 - Product name is derived from selected SKU, not free-form inventory data.
-- Submit out-of-stock report.
-- View own current/recent reports.
+- Submit `Báo SKU hết hàng`.
+- View `Lịch sử báo hàng` / own current and recent reports.
 - Withdraw button appears only when server rules allow unresolved withdrawal within 60 seconds.
 
 Do not add location/bin or quantity fields.
@@ -32,7 +32,7 @@ Display/actions:
 - report timing/priority context.
 - affected Picker ticket detail.
 - `Có hàng` (`HAS_STOCK`).
-- `Cho phép bỏ qua` (`SKIP_ALLOWED`).
+- `Cho phép skip` (`SKIP_ALLOWED`).
 - correction to `HAS_STOCK` only while server 5-minute correction deadline remains valid.
 
 ## HR source — Admin/Root Web
@@ -40,27 +40,58 @@ Display/actions:
 Inputs:
 - Google Sheet URL.
 - Exact tab name.
+- Source column name mapped to `Mã nhân viên`.
+- Source column name mapped to `Họ và tên`.
 
 Backend validates before save:
 - readable Google Sheet;
 - exact tab exists;
-- required MNV + Họ tên columns.
+- both configured source columns exist together in the header area;
+- both configured columns are different.
 
-UI shows human-readable source status/row metadata. Picker sync is Preview → explicit Apply.
+The literal source headers are not fixed to `MNV` or `Họ tên`.
+
+UI shows human-readable source status/row metadata. Picker sync is Preview → explicit Apply. Applying a new source does not automatically disable or delete Picker accounts absent from that source.
 
 ## Managed user creation
 
 ROOT form:
-- username/MNV
-- display name
-- creates ADMIN only.
+- username/Mã nhân viên;
+- display name;
+- role choice: ADMIN or REPORTER;
+- explicit initial password.
 
 ADMIN form:
-- username/MNV
-- display name
-- creates REPORTER only.
+- username/Mã nhân viên;
+- display name;
+- role fixed to REPORTER;
+- explicit initial password.
 
-Normal subordinate controls may enable/disable/reset permitted accounts but must never manage ROOT.
+ROOT is never manageable through subordinate controls.
+
+## Managed password change
+
+For authorized targets:
+- input the new password directly;
+- no reset-to-default action for ADMIN/REPORTER;
+- successful change invalidates the target's prior session/notification authority as implemented.
+
+Only newly provisioned PICKER accounts use the protected runtime default-password secret approved by Owner. Plaintext must not be committed/logged/rendered from repository config.
+
+## Picker lifecycle management — Admin/Root Web
+
+Controls must support:
+- select one Picker;
+- select multiple Picker accounts;
+- select all Picker accounts;
+- `Mở lại` / ACTIVE;
+- `Ngừng hoạt động` / DISABLED;
+- `Xóa Picker` with destructive confirmation.
+
+Rules:
+- HR source membership does not automatically determine the final account status after provisioning.
+- Disabled Picker remains disabled until explicitly reopened.
+- Deleting Picker account does not delete historical report/audit data.
 
 ## Master SKU import — Admin/Root Web
 
@@ -95,4 +126,4 @@ Final export columns and any expanded Reporter dashboard visibility remain Owner
 
 ## Account/password
 
-Authenticated user may access account functions allowed by role. Password reset/bootstrap values are protected runtime secrets and must never be rendered from repo/config.
+Authenticated user may access account functions allowed by role. Password values are protected runtime data and must never be rendered from repo/config.
