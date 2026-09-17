@@ -1,0 +1,38 @@
+name: Temp Sync Beta Status
+
+on:
+  push:
+    branches:
+      - feat/legacy-operational-rebaseline-v1
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/legacy-operational-rebaseline-v1
+      - name: Sync Beta state and registry status
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('ops/resource-registry.json')
+          s = p.read_text(encoding='utf-8')
+          old = '"status": "ROLE_BASED_WEB_ANDROID_LIVE",'
+          new = '"status": "ROLE_BASED_WEB_ANDROID_LIVE_PRE_REBASELINE_RUNTIME__LEGACY_OPERATIONAL_V2_SOURCE_BUILD_PASS_PENDING_MERGE_DEPLOY_RELEASE",'
+          if old in s:
+              p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+          if git diff --quiet -- ops/resource-registry.json; then
+            echo 'No sync needed.'
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add ops/resource-registry.json
+          git commit -m 'chore(state): sync Beta registry source-build status'
+          git push origin HEAD:feat/legacy-operational-rebaseline-v1
