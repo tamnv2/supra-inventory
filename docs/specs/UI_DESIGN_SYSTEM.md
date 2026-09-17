@@ -1,123 +1,147 @@
-# UI_DESIGN_SYSTEM — Practical Balanced / Phương án 1
+# UI_DESIGN_SYSTEM — Legacy Operational UI V2
 
 Status: **CANONICAL OWNER-SELECTED DESIGN DIRECTION**.
 
-## Design authority
+## Authority
 
-Owner selected **Phương án 1 — Thực dụng cân bằng** on 2026-09-17. This supersedes the former Concept 3 visual direction. The product must look like a real warehouse operating tool, not a concept-art dashboard.
+Owner approved **Legacy Operational UI V2** on 2026-09-17. It supersedes Practical Balanced / Phương án 1 as visual/layout authority.
 
-Primary objective:
-- give maximum useful screen area and attention to Picker/Reporter work with SKU and out-of-stock reports;
-- keep Admin/Root management complete but secondary to daily operational speed;
-- keep Web and Android visually consistent without copying a desktop layout onto PDA.
+The prior Báo hàng 1291 product is a **business/UX reference only** for operational density, role separation, prominent SKU/product identity, large direct actions and minimal non-operational text. Reimplement those principles cleanly on the current SUPRA Inventory architecture. Do not import old providers, databases, resource assumptions or out-of-scope inventory fields.
 
-## Visual language
+## Core principles
 
-- Light neutral background and white working surfaces.
-- Green is the primary action/positive accent.
-- Orange is reserved for attention/warning states.
-- Red is reserved for destructive/error states.
-- Clean borders, restrained shadows, compact cards and low visual clutter.
-- Typography uses a Roboto/Noto Sans/system-sans family direction with consistent hierarchy across Web and Android; do not add a remote font dependency merely for appearance.
-- Touch targets remain large enough for PDA use, while data tables on Web stay compact.
-- Status never relies on color alone; use text/icon/shape semantics.
-- Explanatory copy must be limited to information needed to complete the current business action. Do not expose design rationale, AI/Owner discussion text, implementation commentary or other non-operational prose in the product UI.
+- Picker/Reporter business work receives maximum useful screen area.
+- SKU and product name are visually stronger than decorative headings.
+- Use light neutral surfaces, restrained borders and minimal shadow.
+- Green = positive/primary; amber = waiting/SLA attention; red/pink = Skip/destructive/error; gray = withdrawn/non-current.
+- Status always includes text; never depend on color alone.
+- Use system/Roboto/Noto-style typography without a remote font dependency.
+- Remove design rationale, implementation commentary and unnecessary explanatory prose from the product.
+- No offline-business affordance exists.
 
-## Product icon language
+## Android/PDA shared header
 
-Primary product mark represents **SKU/package + operational alert**. Navigation icons must directly describe the business module:
-- operational overview;
-- processing queue;
-- operational reporting;
-- Master SKU/catalog;
-- people/account management;
-- account/security.
+After login:
+- clearly readable `BÁO HÀNG 1291`;
+- concise `MNV · Họ tên` identity;
+- secondary role/build marker;
+- utility actions in a compact overflow/menu when that preserves narrow-screen width;
+- no long version text competing with the product title.
 
-Android launcher icon uses an adaptive icon with the green brand color filling the launcher mask and no extra white wrapper/background around the colored icon.
+The title must never collapse into a vertical character stack on narrow PDA screens.
 
-Do not use unrelated map, delivery-route, stock-quantity or incident-photo iconography.
+## Picker PDA
 
-## Web information architecture
+Canonical vertical composition:
+1. compact header/identity/tools;
+2. large SKU input (`Nhập / quét SKU` or equivalent concise hint);
+3. compact suggestions when needed;
+4. prominent selected SKU + product name block;
+5. full-width `BÁO HẾT HÀNG`;
+6. `BÁO HÔM NAY` / today history;
+7. readable status cards and conditional `Thu hồi`.
 
-Role-aware navigation labels use explicit business names of at least four visible characters:
-- `Tổng quan vận hành` — Admin/Root;
-- `Hàng chờ xử lý` — Reporter/Admin/Root;
-- `Báo cáo vận hành` — Admin/Root;
-- `Danh mục Master SKU` — Admin/Root;
-- `Quản lý nhân sự` — Admin/Root;
-- `Quản lý tài khoản` — authenticated account functions.
+Rules:
+- Do **not** restore the former one-row SKU input + report button layout.
+- Report action is enabled only for a valid selected SKU while online.
+- Pending = amber/yellow; has-stock = green; skip = red/pink; withdrawn = gray.
+- Critical final result is shown in a high-priority result surface with `XÁC NHẬN ĐÃ NHẬN`.
+- Multiple unacknowledged results are presented deterministically and none is silently lost.
 
-Reporter Web prioritizes the unresolved SKU queue, affected Picker count, waiting time, batch detail and the two approved actions `Có hàng` / `Cho phép skip`.
+## Reporter PDA
 
-Admin/Root Web keeps management functions available but does not crowd the operational queue with decorative analytics.
+- Four filters remain: `Đang xử lý`, `Đã có hàng`, `Đã cho skip`, `Picker thu hồi`.
+- Pending cards prioritize SKU, product name, affected Picker count, first report/waiting duration and SLA/recurrence context.
+- Two large actions remain visually dominant: `CÓ HÀNG` and `CHO SKIP HÀNG`.
+- Picker detail expands separately without squeezing those actions.
+- Skip opens explicit impact confirmation before commit.
+- Resolved cards may show acknowledgement progress such as `3/5 Picker đã xác nhận`; ACK is not a new batch status.
+- `Picker thu hồi` uses real withdrawal-closed data.
+- Five-minute Skip→Có hàng correction appears only while server allows it.
 
-## Android/PDA layout rules
+## Admin/Root PDA
 
-- Android is designed for narrow PDA/phone widths first; do not place a long version string beside the product title in the same constrained horizontal row.
-- Product title, role/workflow title, forms and primary actions must keep stable alignment and spacing across supported Android 11+ devices.
-- Avoid post-layout decorative transformations that can change business layout unpredictably. Any runtime UI normalization must be narrow, deterministic and must not compete with the primary screen layout.
-- Version/update state is functional status, not a header decoration.
+Admin/Root must not be rendered as only Reporter. After login show a concise launcher grouped into:
 
-### Owner-approved operational header
+### Vận hành
+- Hàng chờ xử lý
+- Kết quả gần đây
 
-After login, Picker/Reporter/Admin/Root PDA uses one compact operational header:
-- left: `BÁO HÀNG 1291` and `Mã nhân viên - Họ tên`;
-- right: compact `Log` and `Thoát` actions;
-- below/right: role and short Beta build marker;
-- do not reintroduce long technical/version prose or a separate oversized identity card.
+### Quản trị
+Role-allowed concise entry points for Picker/personnel status, accounts, Master SKU status and SLA/settings overview.
 
-`Log` is local/session operational feedback only; it is not a second server transaction store.
+### Hệ thống
+- Trạng thái dịch vụ
+- Log / Chẩn đoán
+- Cập nhật
+- account/logout utilities as appropriate
 
-### Picker
+Deep HR source editing, 10k–50k SKU import, detailed reporting and bulk administration remain Web-first. ROOT sees Root-allowed entries while normal subordinate controls still cannot manage ROOT.
 
-First visual priority and approved composition:
-1. one horizontal row containing the SKU input `Nhập tối thiểu 3 số SKU vào đây` and the prominent `BÁO HẾT HÀNG` button;
-2. exact SKU selection still derives product name from the synchronized catalog; suggestions remain functional but compact;
-3. `Lịch sử báo hàng hôm nay` directly below the entry area;
-4. each history card shows `SKU - Tên sản phẩm`, report time and an explicit status label;
-5. status background family: pending/yellow, has-stock/green, skip/red-pink, withdrawn/neutral gray;
-6. 60-second withdrawal remains available only when the server-authoritative rule permits it.
+## Web
 
-### Reporter
+Web is operational-first.
 
-First visual priority and approved composition:
-1. top four-state filter row: `Đang xử lý`, `Đã có hàng`, `Đã cho skip`, `Picker thu hồi`;
-2. pending queue remains server-priority ordered;
-3. each pending card shows `SKU - Tên sản phẩm`, first report time and affected report/Picker count;
-4. the card exposes affected Picker detail without displacing the two main actions;
-5. two equal primary actions occupy one row: green `CÓ HÀNG` and red/pink `CHO SKIP HÀNG`;
-6. resolved/withdrawn tabs use corresponding status-tinted cards;
-7. `Picker thu hồi` is backed by actual closed-withdrawal batch data; it is not a decorative placeholder;
-8. the 5-minute `SKIP_ALLOWED → HAS_STOCK` correction remains available when the server deadline allows it.
+### Reporter landing/focus
 
-### Admin/Root on PDA
+Show a dense live operational list/table before analytics:
+- SKU;
+- product name;
+- affected Picker count;
+- first report/wait duration;
+- SLA/recurrence context;
+- `CÓ HÀNG` / `CHO SKIP HÀNG`;
+- expandable Picker detail.
 
-PDA remains operationally focused. Admin/Root inherit Reporter operation capability and may see concise management entry points, but deep HR/Master SKU/reporting administration remains Web-first.
+Compact state filters/counts may sit above the list. Do not place large KPI cards or explanatory paragraphs before the live queue.
+
+### Admin/Root information architecture
+
+Group functions conceptually as:
+- **Vận hành** — live queue, results/history;
+- **Dữ liệu** — Master SKU, HR source;
+- **Quản trị** — accounts, Picker lifecycle, SLA/business settings;
+- **Báo cáo** — overview, detailed reporting, SLA/recurrence;
+- **Hệ thống** — service state, archive/sync, diagnostics/version where implemented.
+
+Dashboard is an Admin/Root analysis module, not the Reporter landing surface.
+
+## Realtime visual behavior
+
+- WebSocket updates must not reset scroll, selected filter/tab, focused SKU input or unrelated forms.
+- Patch affected rows/cards/counts when possible.
+- Sequence-gap recovery applies ordered deltas.
+- Authoritative reconcile is fallback and preserves user context where possible.
+- Full page reload is not synchronization logic.
+
+## Online-only visual behavior
+
+When service connectivity is unavailable:
+- show concise connection state;
+- disable/block business mutation actions;
+- retain safe read-only context where practical;
+- never display offline queue/outbox or `chờ đồng bộ` business states.
 
 ## Android mandatory update gate
 
-- Beta Android checks the canonical signed Beta release before allowing login.
-- If the installed `versionCode` is lower than the latest valid Beta release, login remains disabled until the update is installed.
-- If the app cannot verify the release state, the login gate fails closed and exposes a concise update/retry status rather than allowing an unverifiable old build to log in.
-- Normal Android security rules still apply: the app may automatically detect, download, SHA-256 verify and open the package installer, but installation confirmation remains controlled by Android unless the device is managed with elevated installation authority.
+- Verify canonical signed Beta release before login.
+- Older or unverifiable build cannot log in.
+- Downloaded APK is SHA-256 verified before installer handoff.
+- Where supported by the current release pipeline, additionally verify expected package/signing identity.
+- Do not weaken Android installation security.
 
-## Android native rendering rule
+## Native rendering rule
 
-- Approved labels, footer, header layout and update/login gate are implemented directly in the primary Android activity/view source.
-- Do not rely on an `Application` lifecycle callback or generic post-layout view-tree traversal to hide/rename/restyle operational controls after rendering.
-- Header composition must remain stable at narrow PDA widths without a right-side version/meta element stealing title width.
-- Update verification is fail-closed before login and shares one update state machine with the download/install flow.
+Approved labels/layout/update gate are implemented directly in primary Android source. Do not use a global post-layout view-tree rewriter to alter operational UI after render.
 
-## Persistent product credit
+## Product credit
 
-Web keeps the existing small centered credit:
+Web: `Phát triển và duy trì bởi: tamnv2 - Chuyên viên Pick Pack 1291`
 
-`Phát triển và duy trì bởi: tamnv2 - Chuyên viên Pick Pack 1291`
+Android/PDA: `Phát triển bởi: tamnv2 - Chuyên viên Pick Pack 1291`
 
-Android/PDA uses the Owner-updated shorter wording:
-
-`Phát triển bởi: tamnv2 - Chuyên viên Pick Pack 1291`
+Keep credit visually secondary.
 
 ## Scope guard
 
-Visual references are direction only. Never introduce location/bin inventory, stock quantity, maps, delivery orders, incident photos or other unapproved fields/capabilities because they appeared in a mockup.
+Reference material never authorizes bin/location/pickface, stock quantity, maps, delivery orders, incident photos, offline reporting or unrelated features.
