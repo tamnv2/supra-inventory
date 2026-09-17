@@ -9,8 +9,8 @@
 - Stable: `CONFIG_READY_OWNER_GATED_NOT_LIVE`
 - SQLite schema: `5`
 - Web: `PRACTICAL_BALANCED_CANONICAL_SOURCE_BETA_DEPLOY_SMOKE_PASS`
-- Android: `PRACTICAL_BALANCED_SIGNED_BETA_VC32_MANDATORY_UPDATE_GATE_PASS`
-- Latest signed Beta APK: `beta-vc32`
+- Android: `PRACTICAL_BALANCED_SIGNED_BETA_VC33_NATIVE_UI_FAIL_CLOSED_UPDATE_GATE_PASS`
+- Latest signed Beta APK: `beta-vc33`
 - Realtime: `WEBSOCKET_SERVER_WEB_ANDROID_CLIENT_DEPLOYED_SIGNED_PASS`
 - FCM: `DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BUILD_PASS_FIELD_DELIVERY_PENDING`
 - User management: `EXPANDED_ROOT_ADMIN_PICKER_LIFECYCLE_FLEXIBLE_HR_DIRECT_PASSWORD_LEGACY_PICKER_BOOTSTRAP_DEPLOYED_BUILD_PASS`
@@ -20,26 +20,27 @@
 
 ## Runtime evidence
 
-- Runtime source commit: `444f89d9ace5b5405f4f436b3be27869f16571e2`
-- Signed release: `beta-vc32` / `SUPRA Inventory Beta 0.2.0-beta.32`
-- APK SHA-256: `4fc20b00397bf0af7f149aef5fd9d42e68ee6f3223f8e84efb4349075c654884`
-- APK size: `9168718` bytes
-- Beta Worker/Web deploy + health/auth/business/Web/OAuth smoke: PASS
-- PR #6 authority + continuity + Practical Balanced source + Worker typecheck + Web production + Android debug: PASS
-- Android signed monotonic release: vc31 → vc32 PASS
+- Runtime source commit: `21cc34e82c229fc686801e8f00476438555f89cb`
+- Signed release: `beta-vc33` / `SUPRA Inventory Beta 0.2.0-beta.33`
+- APK SHA-256: `192c39ee66e68795af147a8ab4f0b8164207fe41e93ad445e75c0c63045adda5`
+- APK size: `9168694` bytes
+- PR #8 authority + continuity + Practical Balanced source + Worker typecheck + Web production + Android debug: PASS
+- Post-merge main authority + continuity + Practical Balanced/Android debug: PASS
+- Android signed monotonic release: vc32 → vc33 PASS
+- Android-only change: no Worker runtime mutation required.
 
 ## Workboard
 
 ### In progress
-- No automated implementation task remains for the Owner-requested vc32 remediation.
+- No automated implementation task remains for the Owner-requested APK remediation.
 
 ### Next / field acceptance
-- Owner field-test signed `beta-vc32` on a physical PDA: update gate/install, Picker login/default-password behavior, narrow-screen layout, launcher icon and role workflows.
+- Owner field-test signed `beta-vc33` on a physical PDA: update gate/install handoff, Picker login/default-password behavior, narrow-screen layout, launcher icon and role workflows.
 - Field-verify foreground realtime and background FCM delivery on a logged-in physical PDA.
 - Run isolated business-mutation load acceptance after Owner defines scale target/test boundary.
 
 ### Blocked / Owner-field dependent
-- Owner business/UI acceptance of `beta-vc32` on physical PDA.
+- Owner business/UI acceptance of `beta-vc33` on physical PDA.
 - Physical PDA FCM delivery acceptance.
 - Isolated mutation load acceptance requires an Owner workload target/test boundary.
 

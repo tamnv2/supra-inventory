@@ -164,19 +164,19 @@
       "web_source_status": "PRACTICAL_BALANCED_CANONICAL_SOURCE_DEPLOYED_SMOKE_PASS",
       "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
       "web_admin_report_monitoring": "ROLE_BASED_OPERATIONS_UI_DEPLOYED_PASS",
-      "android_source_status": "PRACTICAL_BALANCED_SIGNED_BETA_VC32_MANDATORY_UPDATE_GATE_PASS",
+      "android_source_status": "PRACTICAL_BALANCED_SIGNED_BETA_VC33_NATIVE_UI_FAIL_CLOSED_UPDATE_GATE_PASS",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
-      "latest_signed_beta_release": "beta-vc32",
-      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.32",
-      "latest_signed_beta_apk_sha256": "4fc20b00397bf0af7f149aef5fd9d42e68ee6f3223f8e84efb4349075c654884",
-      "latest_signed_beta_apk_size_bytes": 9168718,
+      "latest_signed_beta_release": "beta-vc33",
+      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.33",
+      "latest_signed_beta_apk_sha256": "192c39ee66e68795af147a8ab4f0b8164207fe41e93ad445e75c0c63045adda5",
+      "latest_signed_beta_apk_size_bytes": 9168694,
       "auth_rbac_status": "EXPANDED_ROOT_ADMIN_REPORTER_PICKER_LIFECYCLE_WITH_LEGACY_PICKER_BOOTSTRAP_DEPLOYED_BUILD_PASS",
       "auth_api_route_smoke": "PASS",
       "root_bootstrap_path_smoke": "PASS",
       "hr_settings_ui_status": "CONFIGURABLE_URL_TAB_EMPLOYEE_AND_NAME_HEADERS_DEPLOYED_PASS",
       "business_api_status": "IMPLEMENTED_DEPLOYED_SCHEMA_V5",
-      "latest_signed_beta_release_source_commit": "444f89d9ace5b5405f4f436b3be27869f16571e2",
+      "latest_signed_beta_release_source_commit": "21cc34e82c229fc686801e8f00476438555f89cb",
       "managed_password_status": "DIRECT_CREATE_AND_CHANGE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
@@ -256,7 +256,8 @@
     "configurable_hr_headers_and_manual_picker_lifecycle",
     "direct_managed_password_create_change",
     "android_practical_balanced_signed_beta_vc31_monotonic_ota_pass",
-    "android_vc32_mandatory_update_gate_adaptive_icon_legacy_picker_bootstrap_pass"
+    "android_vc32_mandatory_update_gate_adaptive_icon_legacy_picker_bootstrap_pass",
+    "android_vc33_native_ui_fail_closed_update_gate_signed_release_pass"
   ],
   "application_build_pending": [
     "fcm_physical_device_delivery_acceptance",
@@ -319,7 +320,7 @@
   "ui_design": {
     "authority": "OWNER_SELECTED_PRACTICAL_BALANCED_OPTION_1",
     "web": "PRACTICAL_BALANCED_CANONICAL_SOURCE_DEPLOYED_SMOKE_PASS",
-    "android": "PRACTICAL_BALANCED_SIGNED_BETA_VC32_MANDATORY_UPDATE_GATE_PASS",
+    "android": "PRACTICAL_BALANCED_SIGNED_BETA_VC33_NATIVE_UI_FAIL_CLOSED_UPDATE_GATE_PASS",
     "scope_guard": "PRACTICAL_BALANCED_VISUAL_SYSTEM_WITH_CANONICAL_BUSINESS_CONTROLS_BUSINESS_RULES_REMAIN_AUTHORITATIVE"
   },
   "quota_resilience": {
