@@ -13,15 +13,15 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "F02_F05_RUNTIME_PASS_MAIN_641D106F__F06_F07_SOURCE_IN_PROGRESS",
+    "beta": "F01_F07_AUTOMATED_RUNTIME_PASS_MAIN_17C1C061__NEXT_P1_WEB_ANDROID",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 5,
-    "business_api": "F02_F05_IMMUTABLE_RESULT_PRIVACY_COUNTS_RUNTIME_PASS_OP_V2_2__F06_F07_CURSOR_SOURCE_IN_PROGRESS",
+    "business_api": "F02_F05_IMMUTABLE_RESULT_PRIVACY_COUNTS_RUNTIME_PASS__F06_F07_CURSOR_RUNTIME_PASS_OP_V2_3",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS",
-    "web": "F02_F05_BETA_DEPLOY_PASS_641D106F__F06_F07_WEB_SOURCE_IN_PROGRESS",
-    "android": "SIGNED_BETA_VC37_RUNTIME_BASELINE__F06_F07_ANDROID_SOURCE_IN_PROGRESS",
-    "latest_beta_apk": "beta-vc37",
-    "realtime": "F02_F05_RUNTIME_PASS__F06_F07_GLOBAL_SCAN_APPLIED_CURSOR_SOURCE_IN_PROGRESS",
+    "web": "F06_F07_APPLIED_CURSOR_BETA_DEPLOY_PASS_17C1C061__NEXT_WEB_OPERATIONAL_P1",
+    "android": "F06_F07_APPLIED_CURSOR_SIGNED_BETA_VC38_RUNTIME_GATED_PASS",
+    "latest_beta_apk": "beta-vc38",
+    "realtime": "GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_3",
     "network_scope": "ONLINE_ONLY_PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_NO_OFFLINE_BUSINESS_MODE",
     "fcm": "DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BASELINE__OPERATIONAL_V2_CORRELATION_SOURCE_BUILD_PASS_PENDING_RUNTIME",
     "user_management": "EXPANDED_ROOT_ADMIN_PICKER_LIFECYCLE_FLEXIBLE_HR_DIRECT_PASSWORD_LEGACY_PICKER_BOOTSTRAP_DEPLOYED_BUILD_PASS",
@@ -80,7 +80,9 @@
     "PR #14 merged to main at 50879eef with Legacy Operational UI V2 source/build guards PASS",
     "F01 runtime/readiness remediation merged in PR #15 at 736db693: Operational V2 migration is initialization-gated, health exposes extension readiness, and unauthenticated business probes no longer run schema work",
     "F01 release eligibility gate is live: beta-vc37 was published from 736db693 only after the matching Deploy Beta workflow reached terminal success",
-    "F02-F05 Beta runtime PASS on main 641d106f via Deploy Beta run 35287719792: health schema 5/5, Operational V2 extension 2/2, business auth guards, Web shell and OAuth smoke all PASS"
+    "F02-F05 Beta runtime PASS on main 641d106f via Deploy Beta run 35287719792: health schema 5/5, Operational V2 extension 2/2, business auth guards, Web shell and OAuth smoke all PASS",
+    "F06-F07 Beta runtime PASS on main 17c1c061 via Deploy Beta run 35288849052: health schema 5/5, Operational V2 3/3, business auth guards, Web shell and OAuth smoke PASS",
+    "F06-F07 signed Android beta-vc38 published only after matching Deploy Beta run 35288849052 PASS; source 17c1c061, APK SHA-256 0950621118df4339c69f5b5672ecb43aeff1229ef38d81de704d96ab031ff7aa"
   ],
   "pending_build": [
     "Run final authority/continuity checks on the source-build-PASS state update and merge PR #14 only when branch protection requirements are satisfied.",
@@ -100,8 +102,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Complete F06-F07 through protected PR, Beta runtime schema 3/3 verification and matching gated signed Android release.",
-    "method": "Use global scanned cursor plus role-projected events; separate stream reset/retention from pagination; persist client applied cursor only after state application succeeds and keep dirty recovery until authoritative state is applied.",
+    "primary": "Continue P1 Web operational contract package while preserving F01-F07 runtime regressions and Beta-only scope.",
+    "method": "Prioritize stable user input/focus/filter state under realtime, stale-response guards, then management/reporting functions already required by canonical specs. Keep runtime and physical/Owner acceptance separate.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -129,16 +131,14 @@
   },
   "workboard": {
     "in_progress": [
-      "F06: global realtime sequence uses server scanned cursor, explicit stream epoch/retention/resync metadata, and no per-Picker +1 assumption",
-      "F07: Web/Android persist applied cursor only after authoritative read-model application succeeds; dirty recovery retries failed application",
-      "F07: Android Picker/Reporter refresh uses dirty rerun and completion callbacks so concurrent realtime invalidations are not dropped"
+      "F08/F15-F18: Web operational contract hardening — stable DOM/context, SKU search generation, management routes/forms and dashboard/reporting completeness",
+      "F09-F13/F21-F22: Android operational lifecycle/UI/FCM/cache/updater follow after Web contract package or where shared contracts require"
     ],
     "next": [
-      "Run realtime cursor regression + Operational V2 regression + Worker typecheck + Web production build + Android debug build on PR",
-      "Merge F06-F07 only after Repo Authority Guard and Project State Guard PASS",
-      "Verify Beta runtime Operational V2 extension schema 3/3 and full deploy smoke after merge",
-      "Because Android changes, verify matching-runtime-gated signed Beta release with monotonic versionCode after deploy PASS",
-      "Then continue P1 Web operational contracts and Android lifecycle/UI backlog"
+      "Open Web operational contract branch from main 17c1c061 and preserve F01-F07 regression guards",
+      "Fix realtime/search-driven whole-app rerender and stale async search responses without breaking current role flow",
+      "Restore/verify management and reporting behaviors already required by canonical specs",
+      "Run protected PR guards and Beta runtime smoke before moving to Android lifecycle package"
     ],
     "blocked_or_owner_field_dependent": [
       "Final physical-PDA UI/business acceptance after new signed Beta is available",
@@ -146,29 +146,33 @@
       "Isolated mutation load acceptance still requires an Owner workload target/test boundary"
     ],
     "last_source_build_evidence": {
-      "branch": "fix/realtime-cursor-application",
-      "base_main": "641d106fbb300a11d721c5ccb4e67cd27f996659",
-      "f02_f05_runtime": "PASS_DEPLOY_RUN_35287719792_OPERATIONAL_2_2",
-      "operational_extension_source_target": 3,
-      "realtime_cursor_regression": "ADDED_PENDING_CI",
-      "service_typecheck": "PENDING_PR_CI",
-      "web_production_build": "PENDING_PR_CI",
-      "android_debug_build": "PENDING_PR_CI",
-      "runtime_deploy": "PENDING"
+      "branch": "main",
+      "head": "17c1c0610dc5344ff0813436d770e843f66b3d59",
+      "pr": 18,
+      "authority_guard": "PASS",
+      "project_state_guard": "PASS",
+      "ui_design_guard": "PASS",
+      "operational_v2_regression": "PASS",
+      "realtime_cursor_regression": "PASS",
+      "service_typecheck": "PASS",
+      "web_production_build": "PASS",
+      "android_debug_build": "PASS"
     },
     "last_runtime_evidence": {
       "schema": 5,
-      "operational_v2_readiness": "PASS_2_2",
-      "beta_deploy_run": 35287719792,
-      "beta_deploy_source_commit": "641d106fbb300a11d721c5ccb4e67cd27f996659",
+      "operational_v2_readiness": "PASS_3_3",
+      "beta_deploy_run": 35288849052,
+      "beta_deploy_source_commit": "17c1c0610dc5344ff0813436d770e843f66b3d59",
       "business_auth_guards": "PASS",
       "web_shell": "PASS",
       "oauth_start": "PASS",
-      "signed_beta_release": "beta-vc37",
-      "signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.37",
-      "runtime_source_commit": "641d106fbb300a11d721c5ccb4e67cd27f996659",
-      "release_source_commit": "736db6937f76d39382e627e3e2fc5c3a19e27299",
-      "verification_basis": "Deploy Beta run 35287719792 completed success; health log reported schema=5/5 and operational=true:2/2. No Android release was produced by F02-F05 because that change set did not modify Android."
+      "signed_beta_release": "beta-vc38",
+      "signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.38",
+      "signed_beta_apk_sha256": "0950621118df4339c69f5b5672ecb43aeff1229ef38d81de704d96ab031ff7aa",
+      "signed_beta_apk_size_bytes": 9217842,
+      "runtime_source_commit": "17c1c0610dc5344ff0813436d770e843f66b3d59",
+      "release_source_commit": "17c1c0610dc5344ff0813436d770e843f66b3d59",
+      "verification_basis": "Deploy Beta run 35288849052 completed success with health schema=5/5 operational=true:3/3; Verify Beta Android run 35288849022 passed matching runtime gate and published beta-vc38."
     }
   },
   "authority_setup": {
