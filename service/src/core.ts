@@ -5,7 +5,7 @@ import { handleNotificationCoreRequest } from "./notifications-core";
 import { handleUserManagementCoreRequest } from "./user-management-core";
 import { handleArchiveCoreRequest } from "./archive-core";
 
-const SCHEMA_VERSION = 4;
+const SCHEMA_VERSION = 5;
 
 interface CoreEnv {
   APP_ENV: string;
@@ -110,6 +110,13 @@ export class InventoryCore {
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
       CREATE INDEX IF NOT EXISTS idx_sku_master_product_name ON sku_master(product_name);
+      CREATE INDEX IF NOT EXISTS idx_sku_master_updated_at_sku ON sku_master(updated_at, sku);
+
+      CREATE TABLE IF NOT EXISTS sku_catalog_meta (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        item_count INTEGER NOT NULL DEFAULT 0,
+        max_updated_at TEXT
+      );
 
       CREATE TABLE IF NOT EXISTS report_batches (
         batch_id TEXT PRIMARY KEY,
@@ -126,6 +133,8 @@ export class InventoryCore {
       );
       CREATE INDEX IF NOT EXISTS idx_report_batches_priority ON report_batches(status, first_report_at);
       CREATE INDEX IF NOT EXISTS idx_report_batches_sku_status ON report_batches(sku, status);
+      CREATE INDEX IF NOT EXISTS idx_report_batches_first_report_at_status ON report_batches(first_report_at, status);
+      CREATE INDEX IF NOT EXISTS idx_report_batches_resolved_at_status ON report_batches(resolved_at, status);
 
       CREATE TABLE IF NOT EXISTS report_tickets (
         ticket_id TEXT PRIMARY KEY,
@@ -145,6 +154,7 @@ export class InventoryCore {
       CREATE UNIQUE INDEX IF NOT EXISTS idx_open_ticket_picker_sku
         ON report_tickets(picker_employee_code, sku) WHERE status = 'OPEN';
       CREATE INDEX IF NOT EXISTS idx_report_tickets_batch ON report_tickets(batch_id, status, reported_at);
+      CREATE INDEX IF NOT EXISTS idx_report_tickets_reported_at_batch ON report_tickets(reported_at, batch_id, picker_employee_code);
 
       CREATE TABLE IF NOT EXISTS report_events (
         event_id TEXT PRIMARY KEY,
@@ -212,6 +222,14 @@ export class InventoryCore {
       );
       CREATE INDEX IF NOT EXISTS idx_audit_log_time ON audit_log(created_at);
     `);
+
+    const catalogMeta = sql.exec<{ id: number }>("SELECT id FROM sku_catalog_meta WHERE id = 1 LIMIT 1").toArray()[0];
+    if (!catalogMeta) {
+      sql.exec(
+        `INSERT INTO sku_catalog_meta (id, item_count, max_updated_at)
+         SELECT 1, COUNT(*), MAX(updated_at) FROM sku_master`,
+      );
+    }
 
     if (!this.hasColumn("users", "password_salt")) sql.exec("ALTER TABLE users ADD COLUMN password_salt TEXT");
     if (!this.hasColumn("users", "password_hash")) sql.exec("ALTER TABLE users ADD COLUMN password_hash TEXT");

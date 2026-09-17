@@ -44,10 +44,12 @@ function limitOf(value: string | null, fallback: number, max: number): number {
 }
 
 function skuCatalogInfo(state: DurableObjectState): Response {
-  const rows = state.storage.sql
-    .exec<SqlRow>("SELECT COUNT(*) AS count, MAX(updated_at) AS max_updated_at FROM sku_master")
-    .toArray();
-  const row = rows[0] || {};
+  let row = state.storage.sql
+    .exec<SqlRow>("SELECT item_count AS count, max_updated_at FROM sku_catalog_meta WHERE id = 1 LIMIT 1")
+    .toArray()[0];
+  if (!row) {
+    row = state.storage.sql.exec<SqlRow>("SELECT COUNT(*) AS count, MAX(updated_at) AS max_updated_at FROM sku_master").toArray()[0] || {};
+  }
   const count = Number(row.count || 0);
   const maxUpdatedAt = String(row.max_updated_at || "");
   return response({ count, max_updated_at: maxUpdatedAt || null, version: `${count}:${maxUpdatedAt}` });
@@ -69,6 +71,32 @@ function skuCatalog(state: DurableObjectState, url: URL): Response {
     .toArray();
   const nextAfter = rows.length === limit ? String(rows[rows.length - 1]?.sku || "") : null;
   return response({ items: rows, count: rows.length, next_after: nextAfter, limit });
+}
+
+function skuCatalogDelta(state: DurableObjectState, url: URL): Response {
+  const limit = limitOf(url.searchParams.get("limit"), 1000, 2000);
+  const since = String(url.searchParams.get("since") || "").trim();
+  const afterUpdatedAt = String(url.searchParams.get("after_updated_at") || since).trim();
+  const afterSku = String(url.searchParams.get("after_sku") || "").trim();
+  if (!since || !afterUpdatedAt) return response({ error: "CATALOG_DELTA_CURSOR_REQUIRED" }, 400);
+  const rows = state.storage.sql.exec<SqlRow>(
+    `SELECT sku, product_name, updated_at
+       FROM sku_master
+      WHERE updated_at > ? OR (updated_at = ? AND sku > ?)
+      ORDER BY updated_at ASC, sku ASC
+      LIMIT ?`,
+    afterUpdatedAt, afterUpdatedAt, afterSku, limit,
+  ).toArray();
+  const last = rows[rows.length - 1];
+  const hasNext = rows.length === limit;
+  return response({
+    items: rows,
+    count: rows.length,
+    since,
+    next_updated_at: hasNext && last ? String(last.updated_at || "") : null,
+    next_sku: hasNext && last ? String(last.sku || "") : null,
+    limit,
+  });
 }
 
 function reporterRecent(state: DurableObjectState, url: URL): Response {
@@ -273,6 +301,7 @@ export async function handleReadModelCoreRequest(state: DurableObjectState, requ
   const url = new URL(request.url);
   if (request.method === "GET" && url.pathname === "/read/skus/catalog-info") return skuCatalogInfo(state);
   if (request.method === "GET" && url.pathname === "/read/skus/catalog") return skuCatalog(state, url);
+  if (request.method === "GET" && url.pathname === "/read/skus/catalog-delta") return skuCatalogDelta(state, url);
   if (request.method === "GET" && url.pathname === "/read/reporter/recent") return reporterRecent(state, url);
   if (request.method === "GET" && url.pathname === "/read/reporter/batch-tickets") return reporterBatchTickets(state, url);
   if (request.method === "POST" && url.pathname === "/realtime/ticket") return createRealtimeTicket(state, request);

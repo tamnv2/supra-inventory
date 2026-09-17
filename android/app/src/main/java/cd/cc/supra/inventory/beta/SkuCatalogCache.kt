@@ -74,6 +74,40 @@ class SkuCatalogCache(private val context: Context) {
             return CatalogSyncResult(updated = false, count = items.size, version = currentVersion)
         }
 
+        val oldWatermark = currentVersion.substringAfter(':', "").trim()
+        if (cacheFile.exists() && items.isNotEmpty() && currentVersion.isNotBlank() && oldWatermark.isNotBlank() && items.size <= info.count) {
+            val merged = HashMap<String, SkuItem>(items.size + 64)
+            for (item in items) merged[item.sku] = item
+            var afterUpdatedAt = oldWatermark
+            var afterSku = ""
+            var deltaLoaded = 0
+            while (true) {
+                val page = api.getCatalogDelta(
+                    since = oldWatermark,
+                    afterUpdatedAt = afterUpdatedAt,
+                    afterSku = afterSku,
+                    limit = 2000,
+                )
+                for (item in page.items) merged[item.sku] = item
+                deltaLoaded += page.items.size
+                progress((items.size + deltaLoaded).coerceAtMost(info.count), info.count)
+                val nextUpdatedAt = page.nextUpdatedAt ?: break
+                val nextSku = page.nextSku ?: throw IllegalStateException("Catalog delta cursor thiếu SKU.")
+                if (nextUpdatedAt < afterUpdatedAt || (nextUpdatedAt == afterUpdatedAt && nextSku <= afterSku)) {
+                    throw IllegalStateException("Catalog delta cursor không tiến lên.")
+                }
+                afterUpdatedAt = nextUpdatedAt
+                afterSku = nextSku
+            }
+            val deltaMerged = merged.values.sortedBy { it.sku }
+            if (deltaMerged.size == info.count) {
+                saveAtomic(deltaMerged, info.version)
+                items = deltaMerged
+                return CatalogSyncResult(updated = true, count = deltaMerged.size, version = info.version)
+            }
+        }
+
+        // Bootstrap/fallback only: a fresh device or corrupt/incomplete cache downloads the full catalog.
         val downloaded = ArrayList<SkuItem>(info.count.coerceAtLeast(16))
         var after = ""
         while (true) {

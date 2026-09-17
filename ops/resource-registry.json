@@ -23,7 +23,7 @@
     "durable_object_class": "InventoryCore",
     "durable_object_binding": "INVENTORY_CORE",
     "durable_object_storage": "sqlite",
-    "beta_sqlite_schema_version": 4
+    "beta_sqlite_schema_version": 5
   },
   "network_scope": {
     "picker_reporter": "PDA_ONLY_ON_PDA_NETWORK_WITH_INTERNET",
@@ -130,7 +130,7 @@
       "durable_object_status": "PROVISIONED_PASS",
       "durable_object_class": "InventoryCore",
       "durable_object_storage": "sqlite",
-      "sqlite_schema_version": 4,
+      "sqlite_schema_version": 5,
       "runtime_service_account": "inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com",
       "android_package": "cd.cc.supra.inventory.beta",
       "firebase_android_app_id": "1:572322098890:android:3e483937876cbcc0400e33",
@@ -162,18 +162,18 @@
       "web_source_status": "CONCEPT3_ADMIN_DASHBOARD_REPORTING_ROLE_UI_DEPLOYED_PASS",
       "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
       "web_admin_report_monitoring": "ROLE_BASED_OPERATIONS_UI_DEPLOYED_PASS",
-      "android_source_status": "CONCEPT3_ROLE_UI_SIGNED_OTA_PASS",
+      "android_source_status": "CONCEPT3_ROLE_UI_DELTA_CATALOG_SIGNED_OTA_PASS",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
-      "latest_signed_beta_release": "beta-vc28",
-      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.28",
-      "latest_signed_beta_apk_sha256": "1ff0e17628355381ae1210e1ee925c63d88252c9be551e3b1a250d283e8edcb0",
-      "latest_signed_beta_apk_size_bytes": 9149890,
+      "latest_signed_beta_release": "beta-vc29",
+      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.29",
+      "latest_signed_beta_apk_sha256": "6ac6906ce9da9dceb60f357666d1afccdd3616bf32d5fa1850b67e296aa03722",
+      "latest_signed_beta_apk_size_bytes": 9149894,
       "auth_rbac_status": "IMPLEMENTED_RUNTIME_READY",
       "auth_api_route_smoke": "PASS",
       "root_bootstrap_path_smoke": "PASS",
       "hr_settings_ui_status": "IMPLEMENTED_WEB_ADMIN_ROOT",
-      "business_api_status": "IMPLEMENTED_DEPLOYED_SCHEMA_V4"
+      "business_api_status": "IMPLEMENTED_DEPLOYED_SCHEMA_V5"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -184,7 +184,7 @@
       "durable_object_status": "DECLARED_NOT_PROVISIONED_OWNER_GATED",
       "durable_object_class": "InventoryCore",
       "durable_object_storage": "sqlite",
-      "sqlite_schema_version_source": 4,
+      "sqlite_schema_version_source": 5,
       "runtime_service_account": "inventory-stable-runtime@supra-inventory-stable.iam.gserviceaccount.com",
       "android_package": "cd.cc.supra.inventory",
       "firebase_android_app_id": "1:1004520166836:android:70b94fef019c46450fcee1",
@@ -241,11 +241,12 @@
     "business_sqlite_schema_v4_archive",
     "backup_archive_execution",
     "admin_dashboard_reporting_concept3",
-    "android_concept3_unified_ui"
+    "android_concept3_unified_ui",
+    "quota_resilience_v1_delta_catalog_indexed_reporting"
   ],
   "application_build_pending": [
     "fcm_physical_device_delivery_acceptance",
-    "load_and_resilience_tests"
+    "isolated_business_mutation_load_acceptance_after_owner_scale_target"
   ],
   "release_pending": [
     "stable_password_kdf_and_rate_limit_review",
@@ -303,5 +304,24 @@
     "web": "LIGHT_GREEN_OPERATIONAL_DEPLOYED_PASS",
     "android": "LIGHT_GREEN_OPERATIONAL_SIGNED_OTA_PASS",
     "scope_guard": "VISUAL_SYSTEM_ONLY_BUSINESS_RULES_REMAIN_AUTHORITATIVE"
+  },
+  "quota_resilience": {
+    "reference_date": "2026-09-17",
+    "plan_policy": "NO_AUTO_UPGRADE_MODEL_AGAINST_FREE_ENVELOPE_UNTIL_LIVE_ENTITLEMENT_READBACK",
+    "catalog_sync": "DELTA_FIRST_FULL_BOOTSTRAP_FALLBACK_ONLY_BETA_PASS",
+    "catalog_max_design_rows": 50000,
+    "reporting": "BOUNDED_60D_INDEXED_TIME_RANGE_BETA_PASS",
+    "live_stress": "NON_DESTRUCTIVE_ONLY_WITHOUT_ISOLATED_BUSINESS_DATASET",
+    "source_status": "BETA_SCHEMA_V5_BUILD_DEPLOY_BURST_PASS",
+    "non_destructive_burst": {
+      "requests": 50,
+      "concurrency": 10,
+      "errors": 0,
+      "bounded_retries_used": 0,
+      "p50_ms": 140.2,
+      "p95_ms": 189.6,
+      "max_ms": 195.8,
+      "note": "measurement only; Cloudflare-safe CI user-agent and bounded retry; no latency SLO claimed"
+    }
   }
 }

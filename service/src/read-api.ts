@@ -98,6 +98,15 @@ export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<
     return core(env).fetch(`https://inventory-core.internal/read/skus/catalog?${params.toString()}`);
   }
 
+  if (url.pathname === "/api/skus/catalog-delta") {
+    await requireUser(request, env);
+    const params = new URLSearchParams();
+    for (const name of ["since", "after_updated_at", "after_sku", "limit"]) {
+      if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+    }
+    return core(env).fetch(`https://inventory-core.internal/read/skus/catalog-delta?${params.toString()}`);
+  }
+
   if (url.pathname === "/api/reporter/recent") {
     await requireUser(request, env, REPORTER_ROLES);
     const params = new URLSearchParams();

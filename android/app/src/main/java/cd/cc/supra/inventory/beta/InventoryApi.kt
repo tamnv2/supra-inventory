@@ -31,6 +31,12 @@ data class CatalogPage(
     val nextAfter: String?,
 )
 
+data class CatalogDeltaPage(
+    val items: List<SkuItem>,
+    val nextUpdatedAt: String?,
+    val nextSku: String?,
+)
+
 data class PickerReport(
     val ticketId: String,
     val batchId: String,
@@ -157,6 +163,24 @@ class InventoryApi(
         return CatalogPage(
             items = items,
             nextAfter = payload.optString("next_after").takeIf { it.isNotBlank() && it != "null" },
+        )
+    }
+
+    fun getCatalogDelta(since: String, afterUpdatedAt: String, afterSku: String, limit: Int = 2000): CatalogDeltaPage {
+        val path = "/api/skus/catalog-delta?since=${enc(since)}&after_updated_at=${enc(afterUpdatedAt)}&after_sku=${enc(afterSku)}&limit=$limit"
+        val payload = request("GET", path)
+        val array = payload.optJSONArray("items") ?: JSONArray()
+        val items = ArrayList<SkuItem>(array.length())
+        for (index in 0 until array.length()) {
+            val row = array.optJSONObject(index) ?: continue
+            val sku = row.optString("sku").trim()
+            val name = row.optString("product_name").trim()
+            if (sku.isNotBlank() && name.isNotBlank()) items += SkuItem(sku, name)
+        }
+        return CatalogDeltaPage(
+            items = items,
+            nextUpdatedAt = payload.optString("next_updated_at").takeIf { it.isNotBlank() && it != "null" },
+            nextSku = payload.optString("next_sku").takeIf { it.isNotBlank() && it != "null" },
         )
     }
 

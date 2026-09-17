@@ -258,6 +258,24 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
       }
     }
 
+    if (inserted > 0 || updated > 0) {
+      const meta = state.storage.sql.exec<SqlRow>("SELECT item_count FROM sku_catalog_meta WHERE id = 1 LIMIT 1").toArray()[0];
+      if (!meta) {
+        state.storage.sql.exec(
+          `INSERT INTO sku_catalog_meta (id, item_count, max_updated_at)
+           SELECT 1, COUNT(*), MAX(updated_at) FROM sku_master`,
+        );
+      } else {
+        state.storage.sql.exec(
+          `UPDATE sku_catalog_meta
+              SET item_count = item_count + ?, max_updated_at = ?
+            WHERE id = 1`,
+          inserted,
+          at,
+        );
+      }
+    }
+
     const payload = {
       status: "imported",
       total: items.length,
