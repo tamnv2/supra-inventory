@@ -9,8 +9,8 @@
 - Stable: `CONFIG_READY_OWNER_GATED_NOT_LIVE`
 - SQLite schema: `5`
 - Web: `PRACTICAL_BALANCED_CANONICAL_SOURCE_BETA_DEPLOY_SMOKE_PASS`
-- Android: `PRACTICAL_BALANCED_VC34_APPROVED_OPERATIONAL_LAYOUT_IN_PROGRESS`
-- Latest signed Beta APK: `beta-vc33`
+- Android: `PRACTICAL_BALANCED_SIGNED_BETA_VC34_APPROVED_OPERATIONAL_LAYOUT_PASS`
+- Latest signed Beta APK: `beta-vc34`
 - Realtime: `WEBSOCKET_SERVER_WEB_ANDROID_CLIENT_DEPLOYED_SIGNED_PASS`
 - FCM: `DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BUILD_PASS_FIELD_DELIVERY_PENDING`
 - User management: `EXPANDED_ROOT_ADMIN_PICKER_LIFECYCLE_FLEXIBLE_HR_DIRECT_PASSWORD_LEGACY_PICKER_BOOTSTRAP_DEPLOYED_BUILD_PASS`
@@ -20,29 +20,26 @@
 
 ## Proven runtime baseline
 
-- Runtime source commit: `21cc34e82c229fc686801e8f00476438555f89cb`
-- Signed release: `beta-vc33` / `SUPRA Inventory Beta 0.2.0-beta.33`
-- APK SHA-256: `192c39ee66e68795af147a8ab4f0b8164207fe41e93ad445e75c0c63045adda5`
-- APK size: `9168694` bytes
-- vc33 remains the rollback/reference baseline until vc34 release evidence is proven.
+- Runtime source commit: `c056e842467b2b9e03f6a03e3de4187991361200`
+- Signed release: `beta-vc34` / `SUPRA Inventory Beta 0.2.0-beta.34`
+- APK SHA-256: `80708e58281b67256f6f7a69e5c4ed9aa9dfaafef4b053657a5c68ae77feda52`
+- APK size: `9185074` bytes
+- PR #10 authority + continuity + Practical Balanced source/build: PASS.
+- Post-merge Project State Guard + Repo Authority Guard + UI Design Guard + Beta Worker deploy: PASS.
+- Signed Android release vc33 → vc34: PASS.
 
 ## Workboard
 
 ### In progress
-- Android vc34 compact `BÁO HÀNG 1291` operational header approved by Owner.
-- Picker one-row SKU entry + `BÁO HẾT HÀNG`, followed by today status-card history.
-- Reporter four-state filter row and equal `CÓ HÀNG` / `CHO SKIP HÀNG` actions.
-- Reporter `Picker thu hồi` uses real `CLOSED` withdrawal batch read data.
+- No automated implementation task remains for the approved vc34 Picker/Reporter layout.
 
-### Next
-- PR must pass authority, continuity and Practical Balanced source/build guard.
-- Merge only after required checks pass.
-- Poll Beta Worker deploy and monotonic signed Android release to terminal PASS.
-- Record vc34 runtime/release evidence back into canonical state/resource views.
-- Owner field-test signed vc34 on physical PDA.
+### Next / field acceptance
+- Owner field-test signed `beta-vc34` on a physical PDA: approved Picker/Reporter layout, update gate/install handoff, Picker login/default-password behavior, launcher icon and role workflows.
+- Field-verify foreground realtime and background FCM delivery on a logged-in physical PDA.
+- Run isolated business-mutation load acceptance after Owner defines scale target/test boundary.
 
 ### Blocked / Owner-field dependent
-- Owner business/UI acceptance of signed vc34 on physical PDA.
+- Owner business/UI acceptance of `beta-vc34` on physical PDA.
 - Physical PDA FCM delivery acceptance.
 - Isolated mutation load acceptance requires an Owner workload target/test boundary.
 
