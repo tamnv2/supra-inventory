@@ -22,6 +22,7 @@ jobs:
       - name: Apply complete authority model
         run: |
           set -euo pipefail
+          sed -i 's/:false/:False/g' tools/apply_authority_complete.py
           python3 tools/apply_authority_complete.py
           python3 tools/project_state_guard.py
           python3 tools/authority_guard.py
