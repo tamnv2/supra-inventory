@@ -108,11 +108,13 @@ export async function sendFcmNotifications(
           body: JSON.stringify({
             message: {
               token,
-              notification: { title: message.title, body: message.body },
-              data: message.data || {},
+              data: {
+                ...(message.data || {}),
+                notification_title: message.title,
+                notification_body: message.body,
+              },
               android: {
                 priority: "high",
-                notification: { channel_id: "inventory_operations" },
               },
             },
           }),
