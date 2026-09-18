@@ -394,7 +394,7 @@ function renderShell(content: string): void {
     <header class="topbar"><div class="brand"><div class="brand-mark">1291</div><div class="brand-copy"><div class="brand-title">BÁO HÀNG 1291</div><div class="brand-sub">${esc(identity)} · ${esc(profile.role)}</div></div></div>
       <div class="top-tools"><span class="connection ${esc(realtimeState)}" id="connection-state">${esc(realtimeState === "connected" ? `Realtime · #${realtimeLastSeq}` : realtimeState)}</span><button class="btn secondary small" id="logout">Thoát</button></div></header>
     <div class="layout"><aside class="sidebar">${renderNav()}</aside><main class="main">${renderNotice()}${content}<div class="credit">${PRODUCT_CREDIT}</div></main></div>
-    ${renderSkipModal()}${renderCriticalResult()}
+    <div id="overlay-root">${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}</div>
   </div>`;
   bindShell();
 }
@@ -420,21 +420,35 @@ function renderCriticalResult(): string {
   </div></div>`;
 }
 
+function renderUserModals(): string {
+  if (activeSection !== "users") return "";
+  const editUser = editUserId ? managedUsers.find((row) => row.user_id === editUserId) : null;
+  const passwordUser = passwordUserId ? managedUsers.find((row) => row.user_id === passwordUserId) : null;
+  if (editUser) {
+    return `<div class="modal"><div class="modal-box"><h2>Sửa tài khoản</h2>
+      <div class="tiny muted">${esc(editUser.employee_code || editUser.user_id)} · ${esc(editUser.role)}</div>
+      <form id="edit-user-form">
+        <div class="field"><span>Họ tên</span><input name="displayName" value="${esc(editUser.display_name)}" required /></div>
+        <div class="field" style="margin-top:10px"><span>Trạng thái</span><select name="status"><option value="ACTIVE" ${editUser.status === "ACTIVE" ? "selected" : ""}>ACTIVE</option><option value="DISABLED" ${editUser.status === "DISABLED" ? "selected" : ""}>DISABLED</option></select></div>
+        <div class="modal-actions"><button type="button" class="btn secondary" id="cancel-user-modal">Huỷ</button><button class="btn">Lưu</button></div>
+      </form>
+    </div></div>`;
+  }
+  if (passwordUser) {
+    return `<div class="modal"><div class="modal-box"><h2>Đổi mật khẩu</h2>
+      <div class="tiny muted">${esc(passwordUser.employee_code || passwordUser.user_id)} · ${esc(passwordUser.display_name)}</div>
+      <form id="password-user-form">
+        <div class="field"><span>Mật khẩu mới</span><input name="password" type="password" autocomplete="new-password" required /></div>
+        <div class="modal-actions"><button type="button" class="btn secondary" id="cancel-user-modal">Huỷ</button><button class="btn">Xác nhận đổi</button></div>
+      </form>
+    </div></div>`;
+  }
+  return "";
+}
+
 function render(): void {
   if (!profile) return renderLogin();
-  let content = "";
-  if (activeSection === "picker") content = renderPicker();
-  else if (activeSection === "operations") content = renderOperations();
-  else if (activeSection === "results") content = renderResults();
-  else if (activeSection === "sku") content = renderSku();
-  else if (activeSection === "hr") content = renderHr();
-  else if (activeSection === "users") content = renderUsers();
-  else if (activeSection === "sla") content = renderSla();
-  else if (activeSection === "dashboard") content = renderDashboard();
-  else if (activeSection === "reports") content = renderReports();
-  else if (activeSection === "system") content = renderSystem();
-  else content = renderAccount();
-  renderShell(content);
+  renderShell(activeContent());
   bindSection();
 }
 
