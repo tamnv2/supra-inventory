@@ -221,7 +221,7 @@ class MainActivity : Activity() {
         adminLauncherController = null
         when (session.role) {
             "PICKER" -> renderPickerHome(session)
-            "REPORTER" -> renderReporterHome(session, showLauncherBack = false)
+            "REPORTER" -> renderReporterHome(session, showLauncherBack = false, initialFilter = "PENDING")
             "ADMIN" -> renderAdminLauncher(session)
             "ROOT" -> renderAdminLauncher(session)
             else -> {
@@ -256,7 +256,7 @@ class MainActivity : Activity() {
         finishOperationalPage(root)
     }
 
-    private fun renderReporterHome(session: AppSession, showLauncherBack: Boolean) {
+    private fun renderReporterHome(session: AppSession, showLauncherBack: Boolean, initialFilter: String = "PENDING") {
         pickerController?.destroy()
         pickerController = null
         reporterController = null
@@ -269,7 +269,7 @@ class MainActivity : Activity() {
                 setOnClickListener { renderAdminLauncher(session) }
             })
         }
-        reporterController = ReporterController(this, api, kit, ::setStatus, ::friendlyError)
+        reporterController = ReporterController(this, api, kit, ::setStatus, ::friendlyError, initialFilter)
             .also { it.render(root) }
         finishOperationalPage(root)
     }
@@ -284,7 +284,8 @@ class MainActivity : Activity() {
             session = session,
             kit = kit,
             setStatus = ::setStatus,
-            onOpenOperations = { renderReporterHome(session, showLauncherBack = true) },
+            onOpenOperations = { renderReporterHome(session, showLauncherBack = true, initialFilter = "PENDING") },
+            onOpenResults = { renderReporterHome(session, showLauncherBack = true, initialFilter = "HAS_STOCK") },
             onOpenLog = { showLocalLog() },
             onCheckUpdate = { checkForUpdate(silent = false) },
         ).also { it.render(root) }
