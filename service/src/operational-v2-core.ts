@@ -166,13 +166,22 @@ function readSlaConfig(state: DurableObjectState): SlaConfig | null {
   }
 }
 
-function slaState(firstReportAt: string, config: SlaConfig | null): { state: string; waiting_minutes: number } {
+function slaState(firstReportAt: string, config: SlaConfig | null, nowMs = Date.now()): { state: string; waiting_minutes: number } {
   const firstMs = Date.parse(firstReportAt);
-  const waitingMinutes = Number.isFinite(firstMs) ? Math.max(0, Math.floor((Date.now() - firstMs) / 60_000)) : 0;
+  const waitingMinutes = Number.isFinite(firstMs) ? Math.max(0, Math.floor((nowMs - firstMs) / 60_000)) : 0;
   if (!config) return { state: "UNCONFIGURED", waiting_minutes: waitingMinutes };
   if (waitingMinutes >= config.escalation_minutes) return { state: "ESCALATED", waiting_minutes: waitingMinutes };
   if (waitingMinutes >= config.warning_minutes) return { state: "WARNING", waiting_minutes: waitingMinutes };
   return { state: "NORMAL", waiting_minutes: waitingMinutes };
+}
+
+function slaDeadlines(firstReportAt: string, config: SlaConfig | null): { warning_at: string | null; escalation_at: string | null } {
+  const firstMs = Date.parse(firstReportAt);
+  if (!config || !Number.isFinite(firstMs)) return { warning_at: null, escalation_at: null };
+  return {
+    warning_at: new Date(firstMs + config.warning_minutes * 60_000).toISOString(),
+    escalation_at: new Date(firstMs + config.escalation_minutes * 60_000).toISOString(),
+  };
 }
 
 function parseJsonObject(value: unknown): Record<string, unknown> {
@@ -461,6 +470,8 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
   const parsed = Number(url.searchParams.get("limit") || 100);
   const limit = Math.max(1, Math.min(200, Number.isFinite(parsed) ? Math.trunc(parsed) : 100));
   const config = readSlaConfig(state);
+  const serverNowMs = Date.now();
+  const serverNow = new Date(serverNowMs).toISOString();
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
             b.version, b.previous_batch_id, p.resolved_at AS previous_resolved_at,
@@ -475,7 +486,9 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
       LIMIT ?`,
     limit,
   ).toArray().map((row) => {
-    const sla = slaState(String(row.first_report_at || ""), config);
+    const firstReportAt = String(row.first_report_at || "");
+    const sla = slaState(firstReportAt, config, serverNowMs);
+    const deadlines = slaDeadlines(firstReportAt, config);
     const previousResolvedAt = String(row.previous_resolved_at || "");
     const recurrenceMinutes = previousResolvedAt && row.first_report_at
       ? Math.max(0, Math.round((Date.parse(String(row.first_report_at)) - Date.parse(previousResolvedAt)) / 60_000))
@@ -484,10 +497,12 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
       ...row,
       sla_state: sla.state,
       waiting_minutes: sla.waiting_minutes,
+      warning_at: deadlines.warning_at,
+      escalation_at: deadlines.escalation_at,
       recurrence_minutes: Number.isFinite(recurrenceMinutes as number) ? recurrenceMinutes : null,
     };
   });
-  return json({ items: rows, count: rows.length, sla_configured: Boolean(config), sla: config });
+  return json({ items: rows, count: rows.length, server_now: serverNow, sla_configured: Boolean(config), sla: config });
 }
 
 function reporterRecent(state: DurableObjectState, url: URL): Response {
@@ -1023,20 +1038,38 @@ function realtimeEventById(state: DurableObjectState, url: URL): Response {
 function adminInsights(state: DurableObjectState, url: URL): Response {
   const from = String(url.searchParams.get("from") || "").trim();
   const to = String(url.searchParams.get("to") || "").trim();
-  if (!from || !to || Number.isNaN(Date.parse(from)) || Number.isNaN(Date.parse(to)) || Date.parse(from) >= Date.parse(to)) {
+  const fromMs = Date.parse(from);
+  const toMs = Date.parse(to);
+  if (!from || !to || !Number.isFinite(fromMs) || !Number.isFinite(toMs) || fromMs >= toMs) {
     return json({ error: "INVALID_REPORTING_RANGE" }, 400);
   }
+  if (toMs - fromMs > 60 * 86_400_000) {
+    return json({ error: "REPORTING_RANGE_TOO_LARGE", max_range_days: 60 }, 400);
+  }
+
   const config = readSlaConfig(state);
-  const pending = state.storage.sql.exec<SqlRow>(
-    `SELECT batch_id, first_report_at FROM report_batches WHERE status = 'PENDING'`,
-  ).toArray();
   let warning = 0;
   let escalated = 0;
-  for (const row of pending) {
-    const stateValue = slaState(String(row.first_report_at || ""), config).state;
-    if (stateValue === "WARNING") warning += 1;
-    if (stateValue === "ESCALATED") escalated += 1;
+  if (config) {
+    const now = Date.now();
+    const warningCutoff = new Date(now - config.warning_minutes * 60_000).toISOString();
+    const escalationCutoff = new Date(now - config.escalation_minutes * 60_000).toISOString();
+    const slaCounts = first(
+      state.storage.sql.exec<SqlRow>(
+        `SELECT
+           COALESCE(SUM(CASE WHEN first_report_at <= ? THEN 1 ELSE 0 END),0) AS escalated_count,
+           COALESCE(SUM(CASE WHEN first_report_at <= ? AND first_report_at > ? THEN 1 ELSE 0 END),0) AS warning_count
+         FROM report_batches
+        WHERE status = 'PENDING'`,
+        escalationCutoff,
+        warningCutoff,
+        escalationCutoff,
+      ).toArray(),
+    ) || {};
+    warning = Number(slaCounts.warning_count || 0);
+    escalated = Number(slaCounts.escalated_count || 0);
   }
+
   const recurrence = state.storage.sql.exec<SqlRow>(
     `SELECT b.sku, b.product_name, COUNT(*) AS recurrence_count,
             MAX(b.first_report_at) AS latest_first_report_at
@@ -1050,6 +1083,8 @@ function adminInsights(state: DurableObjectState, url: URL): Response {
     to,
   ).toArray();
   return json({
+    period: { from, to, max_range_days: 60 },
+    server_now: new Date().toISOString(),
     sla: { configured: Boolean(config), config, warning_count: warning, escalated_count: escalated },
     recurrence: { top_skus: recurrence },
   });
