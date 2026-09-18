@@ -447,7 +447,7 @@ export class InventoryCore {
     const notifications = await handleNotificationCoreRequest(this.state, request);
     if (notifications) return notifications;
 
-    const systemMetrics = handleSystemMetricsCoreRequest(this.state, request);
+    const systemMetrics = await handleSystemMetricsCoreRequest(this.state, request);
     if (systemMetrics) return systemMetrics;
 
     const readModel = await handleReadModelCoreRequest(this.state, request);
