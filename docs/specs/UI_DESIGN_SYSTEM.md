@@ -130,6 +130,20 @@ Group functions conceptually as:
 Dashboard is an Admin/Root analysis module, not the Reporter landing surface.
 
 
+### Owner-reviewed completion audit and canonical navigation IA (D062)
+
+D062 closes the remaining Web review gaps without reworking surfaces that already passed D061 technical/runtime checks:
+
+- Admin/Root desktop navigation uses five business areas and exposes only already-approved implemented modules: **VẬN HÀNH** (`Xử lý báo thiếu`, `Kết quả gần đây`), **DỮ LIỆU** (`Danh mục SKU`, `Nguồn nhân sự`), **QUẢN TRỊ** (`Nhân sự & tài khoản`, `Thời gian nghiệp vụ`), **BÁO CÁO** (`Tổng quan hôm nay`, `Báo cáo vận hành`) and **HỆ THỐNG** (`Thiết bị & thông báo`, `Trạng thái dịch vụ`, `Nhật ký hệ thống`, `Phiên bản ứng dụng`, `Tài khoản & mật khẩu`);
+- Admin/Root default landing is the live `Xử lý báo thiếu` queue. `Tổng quan hôm nay` remains available under Báo cáo as the secondary analysis surface required by D025/D054;
+- existing `Kết quả gần đây`, configurable HR source and account/password surfaces must be directly reachable instead of existing only as hidden routable sections;
+- Reporter keeps the live queue as landing and can reach `Kết quả gần đây` plus its account/password surface; Picker keeps the report workflow as landing and can reach its account/password surface;
+- do not add placeholder navigation, new backend behavior, stock/location scope, offline behavior or any module that is not already approved/implemented;
+- dark theme coverage explicitly includes expanded Picker detail/chips, neutral and semantic badges, notice/message states, realtime toast, diagnostic/status fragments and remaining legacy report/table fragments. These surfaces must use dark-native backgrounds/borders/text rather than light cards pasted onto a dark shell;
+- sidebar group headings remain icon-led, left aligned and stronger than item labels, while the fixed sidebar may scroll independently when viewport height is insufficient;
+- D061 realtime rule remains: no generic refresh control on realtime-backed business views; the service diagnostic probe is a distinct action and remains allowed;
+- Android/PDA and Stable remain unchanged.
+
 ### Owner-reviewed dark/realtime/sidebar cleanup (D061)
 
 D061 refines the current Web review shell without changing Android/PDA:

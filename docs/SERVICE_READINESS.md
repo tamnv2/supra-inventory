@@ -3,14 +3,14 @@
 > DERIVED VIEW. Canonical live status is `ops/project-state.json`; resource identity is `ops/resource-registry.json`.
 
 - Project: `supra-inventory`
-- Web: `D061_DARK_NAV_REALTIME_CLEANUP_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Web: `D062_WEB_FINAL_QA_SOURCE_BUILD_PENDING_RUNTIME`
 - Android: `VC44_D060_EFFECTIVE_ROLE_REFRESH_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 - Latest signed review APK: `beta-vc44`
 - Web runtime source: `967365bffa8d518e8ad85d802b14753bc5f4fa1d`
 - Android beta-vc44 source: `765be7baa90e6645a592cc5137324c85fb793009`
 - Owner UI review: **IN PROGRESS — no final UI acceptance yet**
 
-## D057 baseline + D058/D059/D060/D061 Web refinements
+## D057 baseline + D058/D059/D060/D061/D062 Web refinements
 
 Visual authority:
 - old UI repository: `tam95supra-source/bao-hang-1291`
@@ -21,6 +21,7 @@ Visual authority:
 - D059 Web header/identity refinement in `docs/OWNER_DECISIONS.md`
 - D060 Root-role/theme refinement in `docs/OWNER_DECISIONS.md`
 - D061 dark/sidebar/realtime cleanup in `docs/OWNER_DECISIONS.md`
+- D062 final Web QA/canonical navigation in `docs/OWNER_DECISIONS.md`
 
 Current review endpoints:
 - Web: `https://inventory-beta.supra.cc.cd/`
@@ -53,6 +54,10 @@ Legacy backend/provider/auth/storage/database/credential code remains excluded.
 - D059 main push Repo Authority Guard, Project State Guard and UI Design Guard: PASS.
 
 Automated PASS is technical eligibility only. It is not Owner UI acceptance.
+
+## D062 source candidate
+
+`D062_WEB_FINAL_QA_SOURCE_BUILD_PENDING_RUNTIME` is the active source candidate. It does not replace the deployed D061 runtime evidence until the branch/PR guards and Beta deploy finish. Scope: canonical five-area Admin/Root navigation over existing approved modules, operational-first landing, hidden-route access repair, and remaining dark transient-surface coverage. Android beta-vc44 and Stable remain unchanged.
 
 ## D061 runtime PASS
 
@@ -103,6 +108,6 @@ Do not resume business logic/scenario rebuild until explicit Owner UI acceptance
 
 ## Next-chat resume command
 
-`Tiếp tục review UI D061`
+`Tiếp tục review UI D062`
 
 A screenshot or concise UI review note may be appended; no project-history restatement is required.
