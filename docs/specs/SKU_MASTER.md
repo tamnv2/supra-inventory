@@ -32,3 +32,12 @@ Master data contains only `SKU` + `product name`. Do not add location/bin/pickfa
 ## Open item
 
 Exact Owner semantics for the SKU-reset confirmation described historically as random “6 chữ” remain unresolved. Do not invent them.
+
+## PDA catalog atomic-cache contract
+
+- Android/PDA catalog persistence uses local SQLite, not a TSV file as the authoritative cache.
+- Delta/full synchronization writes into a staging table first.
+- The app rechecks authoritative catalog version/count before promoting staged rows.
+- Promotion to the active catalog is one local SQLite transaction.
+- If download, pagination, validation, version recheck or promotion fails, the last valid active catalog remains usable for read-only search; no partial catalog replaces it.
+- Existing legacy TSV cache may be migrated once into SQLite, then the TSV artifacts are retired.
