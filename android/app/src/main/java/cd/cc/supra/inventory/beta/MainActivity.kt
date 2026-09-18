@@ -300,10 +300,10 @@ class MainActivity : Activity() {
         view.findViewById<Button>(R.id.btnImportUsers).setOnClickListener { openLegacyWeb("#users", "Nhân sự & tài khoản") }
         view.findViewById<Button>(R.id.btnDownloadUserTemplate).setOnClickListener { openLegacyWeb("#users", "Nhân sự & tài khoản") }
         view.findViewById<Button>(R.id.btnSyncSheet).setOnClickListener {
-            statusView.text = "Giao diện đã sẵn sàng; nghiệp vụ đồng bộ sẽ được nối sau khi Owner duyệt UI."
+            statusView.text = "Sẵn sàng"
         }
         view.findViewById<Button>(R.id.btnSaveConfig).setOnClickListener {
-            statusView.text = "Giao diện cấu hình đã sẵn sàng; logic lưu sẽ được nối sau khi Owner duyệt UI."
+            openLegacyWeb("#sla", "Thời gian nghiệp vụ")
         }
     }
 
