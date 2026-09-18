@@ -317,6 +317,8 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun addBrandHeader(root: LinearLayout, subtitle: String) = kit.addBrandHeader(root, subtitle)
+
     private fun stopOperationalClients() {
         pickerController?.destroy()
         pickerController = null
