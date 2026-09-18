@@ -344,6 +344,14 @@
       "name": "PICKER_DEFAULT_PASSWORD",
       "storage": "Cloudflare Worker secret",
       "value_in_repo": false
+    },
+    {
+      "name": "LOAD_TEST_TOKEN",
+      "storage": "Temporary Cloudflare Worker runtime variable generated and masked by Beta Load Test GitHub Actions run",
+      "value_in_repo": false,
+      "environment": "beta",
+      "lifecycle": "EPHEMERAL_PER_RUN__CLEARED_IN_ALWAYS_CLEANUP",
+      "note": "Enables only /api/__beta_load_test__/* while APP_ENV=beta and the per-run token matches."
     }
   ],
   "explicit_out_of_scope": [
