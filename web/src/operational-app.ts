@@ -206,6 +206,15 @@ function statusLabel(status: string): string {
   return status;
 }
 
+function renderDatePresets(target: "dashboard" | "reports"): string {
+  return `<div class="toolbar date-presets">
+    <button type="button" class="btn secondary small" data-date-target="${target}" data-date-days="0">Hôm nay</button>
+    <button type="button" class="btn secondary small" data-date-target="${target}" data-date-days="6">7 ngày</button>
+    <button type="button" class="btn secondary small" data-date-target="${target}" data-date-days="29">30 ngày</button>
+    <button type="button" class="btn secondary small" data-date-target="${target}" data-date-days="59">60 ngày</button>
+  </div>`;
+}
+
 function renderNotice(): string {
   return notice ? `<div class="notice ${notice.type}">${esc(notice.text)}</div>` : "";
 }
