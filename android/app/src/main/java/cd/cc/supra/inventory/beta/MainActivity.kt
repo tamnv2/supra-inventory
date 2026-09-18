@@ -25,9 +25,12 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
@@ -65,6 +68,8 @@ class MainActivity : Activity() {
     private var reporterController: ReporterController? = null
     private var adminLauncherController: AdminLauncherController? = null
     private var realtimeClient: AndroidRealtimeClient? = null
+    private var contentContainer: FrameLayout? = null
+    private var activeSession: AppSession? = null
     private var statusHideTask: Runnable? = null
     private var pendingInstallFile: File? = null
     @Volatile private var updateGate = UpdateGate.CHECKING
@@ -148,77 +153,24 @@ class MainActivity : Activity() {
 
     private fun renderLogin(message: String = "Đang kiểm tra phiên bản...") {
         stopOperationalClients()
-        val root = kit.page()
-        addBrandHeader(root, subtitle = "Đăng nhập để bắt đầu nghiệp vụ")
-        val card = kit.card()
-        val username = EditText(this).apply {
-            hint = "Nhập mã nhân viên"
-            isSingleLine = true
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-            kit.styleInput(this)
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = kit.dp(8) }
-        }
-        val password = EditText(this).apply {
-            hint = "Nhập mật khẩu"
-            isSingleLine = true
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-            transformationMethod = PasswordTransformationMethod.getInstance()
-            kit.styleInput(this)
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = kit.dp(8) }
-        }
-        val showPassword = CheckBox(this).apply {
-            text = "Hiện mật khẩu"
-            textSize = 12f
-            setTextColor(kit.muted)
-        }
-        val login = Button(this).apply {
-            text = "ĐĂNG NHẬP"
-            isEnabled = false
-            kit.stylePrimary(this)
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = kit.dp(8) }
-        }
+        activeSession = null
+        contentContainer = null
+        setContentView(R.layout.activity_login)
+
+        val username = findViewById<EditText>(R.id.etEmployeeCode)
+        val password = findViewById<EditText>(R.id.etPassword)
+        val login = findViewById<Button>(R.id.btnLogin)
+        val progress = findViewById<ProgressBar>(R.id.progressLogin)
+        status = findViewById(R.id.tvLoginError)
+        updateButton = Button(this)
         loginButton = login
-        card.addView(TextView(this).apply {
-            text = "Mã nhân viên"
-            textSize = 13f
-            setTypeface(typeface, Typeface.BOLD)
-            setTextColor(kit.text)
-        })
-        card.addView(username)
-        card.addView(TextView(this).apply {
-            text = "Mật khẩu"
-            textSize = 13f
-            setTypeface(typeface, Typeface.BOLD)
-            setTextColor(kit.text)
-            setPadding(0, kit.dp(14), 0, 0)
-        })
-        card.addView(password)
-        card.addView(showPassword)
-        card.addView(login)
-        root.addView(card)
-        updateButton = Button(this).apply {
-            text = "Kiểm tra cập nhật"
-            kit.styleSecondary(this)
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = kit.dp(7) }
-        }
-        root.addView(updateButton)
-        status = kit.createStatusView(message, true)
-        root.addView(status)
-        kit.addFooter(root)
-        setContentView(kit.wrapScroll(root))
+
+        status.visibility = View.GONE
+        progress.visibility = View.VISIBLE
+        login.isEnabled = false
         applyUpdateGateUi(message)
         checkForUpdate(silent = true)
 
-        showPassword.setOnCheckedChangeListener { _, checked ->
-            if (checked) {
-                password.transformationMethod = null
-                password.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-            } else {
-                password.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-                password.transformationMethod = PasswordTransformationMethod.getInstance()
-            }
-            password.setSelection(password.text.length)
-        }
         login.setOnClickListener {
             if (updateGate != UpdateGate.CURRENT) {
                 setStatus(updateGateMessage())
@@ -231,20 +183,25 @@ class MainActivity : Activity() {
                 return@setOnClickListener
             }
             login.isEnabled = false
-            setStatus("Đang đăng nhập...")
+            progress.visibility = View.VISIBLE
+            status.visibility = View.GONE
             Thread {
                 try {
                     val session = api.login(user, pass)
-                    runOnUiThread { password.setText(""); renderHome(session) }
+                    runOnUiThread {
+                        progress.visibility = View.GONE
+                        password.setText("")
+                        renderHome(session)
+                    }
                 } catch (e: Exception) {
                     runOnUiThread {
+                        progress.visibility = View.GONE
                         login.isEnabled = updateGate == UpdateGate.CURRENT
                         setStatus(friendlyError(e))
                     }
                 }
             }.start()
         }
-        updateButton.setOnClickListener { checkForUpdate(silent = false) }
     }
 
     private fun renderHome(session: AppSession) {
@@ -254,15 +211,35 @@ class MainActivity : Activity() {
         reporterController?.destroy()
         reporterController = null
         adminLauncherController = null
+        activeSession = session
+
+        setContentView(R.layout.activity_main)
+        contentContainer = findViewById(R.id.contentContainer)
+        status = TextView(this)
+        findViewById<TextView>(R.id.tvHeaderTitle).text = "BÁO HÀNG 1291"
+        findViewById<TextView>(R.id.tvHeaderUser).text =
+            "${session.employeeCode ?: session.userId} · ${session.displayName}"
+        findViewById<TextView>(R.id.tvAppVersion).apply {
+            text = "Beta vc${BuildConfig.VERSION_CODE}"
+            setOnClickListener { checkForUpdate(silent = false) }
+        }
+        findViewById<TextView>(R.id.btnLog).setOnClickListener { showSupportDiagnostics() }
+        findViewById<TextView>(R.id.btnLogout).setOnClickListener { confirmLogout() }
+        findViewById<TextView>(R.id.btnBack).setOnClickListener {
+            if (session.role == "ADMIN" || session.role == "ROOT") renderAdminLauncher(session)
+        }
+
         when (session.role) {
             "PICKER" -> renderPickerHome(session)
             "REPORTER" -> renderReporterHome(session, showLauncherBack = false, initialFilter = "PENDING")
-            "ADMIN" -> renderAdminLauncher(session)
-            "ROOT" -> renderAdminLauncher(session)
+            "ADMIN", "ROOT" -> renderAdminLauncher(session)
             else -> {
-                val page = baseOperationalPage(session)
-                page.content.addView(kit.muted("Vai trò ${session.role} chưa được hỗ trợ trên PDA."))
-                finishOperationalPage(page)
+                contentContainer?.removeAllViews()
+                contentContainer?.addView(TextView(this).apply {
+                    text = "Vai trò ${session.role} chưa được hỗ trợ trên PDA."
+                    textSize = 14f
+                    setPadding(24, 24, 24, 24)
+                })
             }
         }
         startRealtime(session)
@@ -271,73 +248,68 @@ class MainActivity : Activity() {
         recordLog("Đăng nhập ${kit.roleLabel(session.role)}: ${session.employeeCode ?: session.displayName}")
     }
 
-    private fun baseOperationalPage(session: AppSession): OperationalPage {
-        val shell = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(kit.surface)
-            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-        }
-        kit.addOperationalHeader(shell, session, onLog = { showSupportDiagnostics() }, onExit = { confirmLogout() })
-        val content = kit.page()
-        status = kit.createStatusView()
-        content.addView(status)
-        shell.addView(kit.wrapScroll(content).apply {
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
-        })
-        return OperationalPage(shell, content)
+    private fun showBack(show: Boolean) {
+        findViewById<TextView?>(R.id.btnBack)?.visibility = if (show) View.VISIBLE else View.GONE
     }
 
-    private fun finishOperationalPage(page: OperationalPage) {
-        kit.addFooter(page.content)
-        setContentView(page.shell)
+    private fun replaceContent(layoutId: Int): View {
+        val host = contentContainer ?: error("Legacy content container not ready")
+        host.removeAllViews()
+        val view = layoutInflater.inflate(layoutId, host, false)
+        host.addView(view)
+        return view
     }
 
     private fun renderPickerHome(session: AppSession) {
-        val page = baseOperationalPage(session)
+        showBack(false)
+        val view = replaceContent(R.layout.view_picker) as LinearLayout
+        pickerController?.destroy()
         pickerController = PickerController(this, api, skuCache, kit, ::setStatus, ::friendlyError)
-            .also { it.render(page.content) }
-        finishOperationalPage(page)
+            .also { it.render(view) }
     }
 
     private fun renderReporterHome(session: AppSession, showLauncherBack: Boolean, initialFilter: String = "PENDING") {
+        showBack(showLauncherBack)
         pickerController?.destroy()
         pickerController = null
         reporterController?.destroy()
-        reporterController = null
-        val page = baseOperationalPage(session)
-        if (showLauncherBack) {
-            page.content.addView(Button(this).apply {
-                text = "← Về trang ${kit.roleLabel(session.role)}"
-                kit.styleSecondary(this)
-                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, kit.dp(46)).apply { topMargin = kit.dp(7) }
-                setOnClickListener { renderAdminLauncher(session) }
-            })
-        }
+        val view = replaceContent(R.layout.view_invent) as LinearLayout
         reporterController = ReporterController(this, api, kit, ::setStatus, ::friendlyError, initialFilter)
-            .also { it.render(page.content) }
-        finishOperationalPage(page)
+            .also { it.render(view) }
     }
 
     private fun renderAdminLauncher(session: AppSession) {
+        showBack(false)
         pickerController?.destroy()
         pickerController = null
         reporterController?.destroy()
         reporterController = null
-        val page = baseOperationalPage(session)
-        adminLauncherController = AdminLauncherController(
-            activity = this,
-            session = session,
-            kit = kit,
-            setStatus = ::setStatus,
-            onOpenOperations = { renderReporterHome(session, showLauncherBack = true, initialFilter = "PENDING") },
-            onOpenResults = { renderReporterHome(session, showLauncherBack = true, initialFilter = "HAS_STOCK") },
-            onOpenLog = { showSupportDiagnostics() },
-            onCheckUpdate = { checkForUpdate(silent = false) },
-        ).also { it.render(page.content) }
-        finishOperationalPage(page)
+        val view = replaceContent(R.layout.view_admin)
+        val statusView = view.findViewById<TextView>(R.id.tvAdminStatus)
+        statusView.text = "Sẵn sàng"
+        view.findViewById<Button>(R.id.btnOpenInventQueue).setOnClickListener {
+            renderReporterHome(session, showLauncherBack = true, initialFilter = "PENDING")
+        }
+        view.findViewById<Button>(R.id.btnImportSku).setOnClickListener { openLegacyWeb("#sku", "Danh mục SKU") }
+        view.findViewById<Button>(R.id.btnImportUsers).setOnClickListener { openLegacyWeb("#users", "Nhân sự & tài khoản") }
+        view.findViewById<Button>(R.id.btnDownloadUserTemplate).setOnClickListener { openLegacyWeb("#users", "Nhân sự & tài khoản") }
+        view.findViewById<Button>(R.id.btnSyncSheet).setOnClickListener {
+            statusView.text = "Giao diện đã sẵn sàng; nghiệp vụ đồng bộ sẽ được nối sau khi Owner duyệt UI."
+        }
+        view.findViewById<Button>(R.id.btnSaveConfig).setOnClickListener {
+            statusView.text = "Giao diện cấu hình đã sẵn sàng; logic lưu sẽ được nối sau khi Owner duyệt UI."
+        }
     }
 
-    private fun addBrandHeader(root: LinearLayout, subtitle: String) = kit.addBrandHeader(root, subtitle)
+    private fun openLegacyWeb(hash: String, label: String) {
+        try {
+            val base = BuildConfig.API_BASE_URL.trimEnd('/')
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("$base/$hash")))
+            setStatus("Đã mở $label trên Web.")
+        } catch (_: Exception) {
+            setStatus("Không thể mở $label trên Web.")
+        }
+    }
 
     private fun stopOperationalClients() {
         pickerController?.destroy()
