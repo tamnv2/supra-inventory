@@ -532,10 +532,28 @@ function renderHr(): string {
 
 function renderUsers(): string {
   const canCreateAdmin = profile?.role === "ROOT";
+  const pageStart = userTotal ? userOffset + 1 : 0;
+  const pageEnd = Math.min(userOffset + managedUsers.length, userTotal);
+  const selectedCount = allPickerSelection ? userTotal : selectedUserIds.size;
   return `<section><div class="page-head"><div><h1>Tài khoản & Picker</h1><p>ROOT quản lý Admin/Reporter; Admin quản lý Reporter; Picker lifecycle tách khỏi membership HR.</p></div><button class="btn secondary" id="refresh-users">Làm mới</button></div>
-    <form id="create-user-form" class="card form-grid three"><div class="field"><span>Mã nhân viên / username</span><input name="username" required /></div><div class="field"><span>Họ tên</span><input name="displayName" required /></div><div class="field"><span>Vai trò</span><select name="role"><option value="REPORTER">REPORTER</option>${canCreateAdmin ? `<option value="ADMIN">ADMIN</option>` : ""}</select></div><div class="field"><span>Mật khẩu khởi tạo</span><input name="password" type="password" required /></div><div><button class="btn">Tạo tài khoản</button></div></form>
-    <div class="card"><div class="toolbar"><button class="btn secondary small" data-picker-action="ENABLE">Mở lại Picker đã chọn</button><button class="btn secondary small" data-picker-action="DISABLE">Ngừng hoạt động</button><button class="btn danger small" data-picker-action="DELETE">Xóa Picker</button></div>
-      <div class="user-list">${managedUsers.length ? managedUsers.map((user) => `<div class="user-row"><input type="checkbox" data-user-select="${esc(user.user_id)}" ${selectedUserIds.has(user.user_id) ? "checked" : ""} ${user.role !== "PICKER" ? "disabled" : ""}/><div><strong>${esc(user.employee_code || user.user_id)}</strong><div class="tiny muted">${esc(user.display_name)}</div></div><span class="badge">${esc(user.role)}</span><span class="badge ${user.status === "ACTIVE" ? "ok" : "closed"}">${esc(user.status)}</span><div class="toolbar"><button class="btn secondary small" data-edit-user="${esc(user.user_id)}">Sửa</button><button class="btn secondary small" data-password-user="${esc(user.user_id)}">Đổi mật khẩu</button></div></div>`).join("") : `<div class="empty">Chưa có dữ liệu người dùng.</div>`}</div>
+    <form id="create-user-form" class="card form-grid three"><div class="field"><span>Mã nhân viên / username</span><input name="username" required /></div><div class="field"><span>Họ tên</span><input name="displayName" required /></div><div class="field"><span>Vai trò</span><select name="role"><option value="REPORTER">REPORTER</option>${canCreateAdmin ? `<option value="ADMIN">ADMIN</option>` : ""}</select></div><div class="field"><span>Mật khẩu khởi tạo</span><input name="password" type="password" autocomplete="new-password" required /></div><div><button class="btn">Tạo tài khoản</button></div></form>
+
+    <form id="user-filter-form" class="card form-grid three">
+      <div class="field"><span>Tìm tài khoản</span><input name="query" value="${esc(userQuery)}" placeholder="MNV / họ tên / user id" /></div>
+      <div class="field"><span>Vai trò</span><select name="role"><option value="">Tất cả</option>${["PICKER","REPORTER","ADMIN"].map((role) => `<option value="${role}" ${userRole === role ? "selected" : ""}>${role}</option>`).join("")}</select></div>
+      <div class="field"><span>Trạng thái</span><select name="status"><option value="">Tất cả</option><option value="ACTIVE" ${userStatus === "ACTIVE" ? "selected" : ""}>ACTIVE</option><option value="DISABLED" ${userStatus === "DISABLED" ? "selected" : ""}>DISABLED</option></select></div>
+      <div><button class="btn">Lọc</button></div>
+    </form>
+
+    <div class="card"><div class="toolbar">
+      <button class="btn secondary small" id="toggle-all-pickers">${allPickerSelection ? "Bỏ chọn tất cả Picker" : "Chọn tất cả Picker"}</button>
+      <button class="btn secondary small" data-picker-action="ENABLE">Mở lại Picker đã chọn</button>
+      <button class="btn secondary small" data-picker-action="DISABLE">Ngừng hoạt động</button>
+      <button class="btn danger small" data-picker-action="DELETE">Xóa Picker</button>
+      <span class="badge">${allPickerSelection ? "Tất cả Picker" : `${selectedCount} đã chọn`}</span>
+    </div>
+      <div class="user-list">${managedUsers.length ? managedUsers.map((user) => `<div class="user-row"><input type="checkbox" data-user-select="${esc(user.user_id)}" ${allPickerSelection || selectedUserIds.has(user.user_id) ? "checked" : ""} ${user.role !== "PICKER" || allPickerSelection ? "disabled" : ""}/><div><strong>${esc(user.employee_code || user.user_id)}</strong><div class="tiny muted">${esc(user.display_name)}</div></div><span class="badge">${esc(user.role)}</span><span class="badge ${user.status === "ACTIVE" ? "ok" : "closed"}">${esc(user.status)}</span><div class="toolbar"><button class="btn secondary small" data-edit-user="${esc(user.user_id)}">Sửa</button><button class="btn secondary small" data-password-user="${esc(user.user_id)}">Đổi mật khẩu</button></div></div>`).join("") : `<div class="empty">Không có tài khoản phù hợp.</div>`}</div>
+      <div class="status-line" style="justify-content:space-between;margin-top:12px"><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span><div class="toolbar"><button class="btn secondary small" id="user-prev" ${userOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="btn secondary small" id="user-next" ${userOffset + USER_PAGE_SIZE >= userTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </div></section>`;
 }
 
@@ -543,7 +561,7 @@ function renderSla(): string {
   const sla = slaResponse?.sla;
   const insight = operationalInsights?.sla;
   return `<section><div class="page-head"><div><h1>Cấu hình SLA</h1><p>SLA chỉ cảnh báo/escalate; không tự Có hàng hoặc tự Skip và không đổi công thức ưu tiên queue.</p></div></div>
-    <div class="section-grid"><form id="sla-form" class="card"><h3>Ngưỡng xử lý</h3>${slaResponse && !slaResponse.configured ? `<div class="notice warning">SLA chưa cấu hình</div>` : ""}<div class="form-grid"><div class="field"><span>Cảnh báo sau (phút)</span><input name="warning" type="number" min="1" max="10080" value="${esc(sla?.warning_minutes || "")}" required /></div><div class="field"><span>Escalate sau (phút)</span><input name="escalation" type="number" min="2" max="20160" value="${esc(sla?.escalation_minutes || "")}" required /></div></div><button class="btn" style="margin-top:12px">Lưu SLA</button></form>
+    <div class="section-grid"><form id="sla-form" class="card"><h3>Ngưỡng xử lý</h3>${slaResponse && !slaResponse.configured ? `<div class="notice warning">SLA chưa cấu hình</div>` : ""}<div class="form-grid"><div class="field"><span>Cảnh báo sau (phút)</span><input name="warning" type="number" min="1" max="1440" value="${esc(sla?.warning_minutes || "")}" required /></div><div class="field"><span>Escalate sau (phút)</span><input name="escalation" type="number" min="2" max="2880" value="${esc(sla?.escalation_minutes || "")}" required /></div></div><button class="btn" style="margin-top:12px">Lưu SLA</button></form>
       <div class="card"><h3>Trạng thái hiện tại</h3><div class="metrics"><div class="metric"><span>Cảnh báo</span><strong>${Number(insight?.warning_count || 0)}</strong></div><div class="metric"><span>Escalated</span><strong>${Number(insight?.escalated_count || 0)}</strong></div></div><div class="tiny muted">Trạng thái sla_state do server tính theo thời gian báo đầu tiên.</div></div></div>
   </section>`;
 }
