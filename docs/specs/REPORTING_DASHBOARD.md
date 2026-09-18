@@ -84,6 +84,17 @@ Admin/Root groups modules under business-oriented areas:
 
 Navigation may be implemented compactly, but the conceptual grouping and live-queue priority must remain clear.
 
+## D063 consolidated operational reporting
+
+- Admin/Root sees one `Tổng quan & báo cáo` navigation entry with internal `Tổng quan` and `Báo cáo chi tiết` views.
+- The overview prioritizes: current open SKU batches, affected Picker count, warning/overdue counts, authenticated online users, period report volume, unique SKU volume, resolved batches, average resolution time, outcome mix, recurring SKU and hourly/top-SKU patterns.
+- Online-user reporting comes from live authenticated realtime connections, not account status. Counts are unique per user/effective role; logout, session invalidation or realtime disconnect removes the online presence.
+- Detailed reporting reuses the same selected period and adds status/SKU/product filters, clear result labels, first-report time, resolved time, resolution duration and total report/ticket count.
+- User-facing metrics use plain Vietnamese. Forbidden unexplained labels include `P95`, `median/trung vị`, `ACK`, raw `SLA` and placeholder values presented as real metrics.
+- `Kết quả gần đây` remains inside the `Vận hành báo hàng` workspace and shows result distribution plus Picker result-receipt progress in plain language (`Picker đã nhận`).
+- Existing bounded 60-day query and pagination/export rules remain authoritative.
+
+
 ## Open item
 
 Final export columns and any expanded Reporter analytics beyond the core operational queue remain Owner-open. Do not invent employee scoring or stock/location analytics.

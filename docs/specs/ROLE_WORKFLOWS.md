@@ -101,6 +101,16 @@ For acceptance testing, the actual ROOT identity may temporarily select an effec
 7. No other role receives this selector or recovery route.
 
 
+## D063 consolidated Admin/Root workspaces
+
+- Left navigation has at most three child items per large business group. Related functions use internal tabs/sections instead of additional sidebar entries.
+- `Vận hành báo hàng`: live pending queue + recent results.
+- `Tổng quan & báo cáo`: operational overview + detailed report.
+- `Trạng thái hệ thống`: network/service/realtime/version/diagnostic state.
+- `Nhật ký`: Admin/Root Web separates Web and Android runtime logs and can inspect sanitized detail; Web manual send is available there. Android keeps manual log send from its native log surface.
+- `Nhân sự & tài khoản`: create/filter/manage actions remain role-safe and the Picker bulk lifecycle remains unchanged.
+
+
 ## Account provisioning and passwords
 
 - ROOT → creates/manages ADMIN and REPORTER with an explicit password chosen at creation/change time.

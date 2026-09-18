@@ -225,6 +225,35 @@ export interface AdminReportingPage {
   query: string;
 }
 
+export interface RealtimePresence {
+  online_users: number;
+  online_sessions: number;
+  online_users_by_role: Record<"PICKER" | "REPORTER" | "ADMIN" | "ROOT", number>;
+  online_users_by_client: Record<"WEB" | "ANDROID", number>;
+  server_time: string;
+}
+
+export interface RuntimeLogItem {
+  id: string;
+  name: string;
+  created_at: string;
+  modified_at?: string;
+  size: number;
+  severity: "INFO" | "ERROR";
+  source: "WEB" | "ANDROID";
+}
+
+export interface RuntimeLogList {
+  source: "WEB" | "ANDROID";
+  items: RuntimeLogItem[];
+  count: number;
+}
+
+export interface RuntimeLogDetail {
+  file: { id: string; name: string; created_at: string; size: number };
+  content: unknown;
+}
+
 export interface AdminReportBatch {
   batch_id: string;
   sku: string;
@@ -499,6 +528,34 @@ export async function getAdminReports(limit = 100, status = ""): Promise<{ items
   const params = new URLSearchParams({ limit: String(limit) });
   if (status) params.set("status", status);
   return readJson(await authorizedFetch(`/api/admin/reports?${params.toString()}`));
+}
+
+export async function getRealtimePresence(): Promise<RealtimePresence> {
+  return readJson(await authorizedFetch("/api/realtime/presence"));
+}
+
+export async function uploadRuntimeLog(payload: {
+  source: "WEB" | "ANDROID";
+  severity: "INFO" | "ERROR";
+  reason: string;
+  generated_at: string;
+  device: Record<string, unknown>;
+  payload: unknown;
+}): Promise<{ status: string; file?: { id?: string; name?: string; created_at?: string; size?: number } }> {
+  return readJson(await authorizedFetch("/api/logs/upload", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }));
+}
+
+export async function getRuntimeLogs(source: "WEB" | "ANDROID", limit = 50): Promise<RuntimeLogList> {
+  const params = new URLSearchParams({ source, limit: String(Math.max(1, Math.min(100, limit))) });
+  return readJson(await authorizedFetch(`/api/admin/logs?${params.toString()}`));
+}
+
+export async function getRuntimeLogDetail(fileId: string): Promise<RuntimeLogDetail> {
+  const params = new URLSearchParams({ file_id: fileId });
+  return readJson(await authorizedFetch(`/api/admin/logs/file?${params.toString()}`));
 }
 
 export async function listManagedUsers(options: {

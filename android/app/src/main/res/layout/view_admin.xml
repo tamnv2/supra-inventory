@@ -13,7 +13,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="QUẢN TRỊ INVENT"
+            android:text="QUẢN TRỊ BÁO HÀNG"
             android:textColor="@color/navy_900"
             android:textSize="21sp"
             android:textStyle="bold" />
@@ -28,7 +28,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cấu hình SLA (phút)"
+                android:text="Thiết lập thời gian nghiệp vụ (phút)"
                 android:textColor="@color/text_primary"
                 android:textSize="17sp"
                 android:textStyle="bold" />
@@ -57,7 +57,7 @@
                 android:layout_height="50dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/bg_input"
-                android:hint="Thời gian được skip"
+                android:hint="Thời gian cho phép bỏ qua"
                 android:inputType="number" />
 
             <EditText
@@ -124,7 +124,7 @@
             android:layout_height="54dp"
             android:layout_marginTop="10dp"
             android:background="@drawable/bg_button_primary"
-            android:text="MỞ HÀNG CHỜ INVENT"
+            android:text="MỞ BÁO HÀNG ĐANG CHỜ"
             android:textColor="@color/white" />
 
         <TextView

@@ -11,6 +11,7 @@ WEB_APP = read("web/src/operational-app.ts")
 WEB_UI = "\n".join([WEB_MAIN, WEB_APP])
 WEB_API = read("web/src/api.ts")
 WEB_RT = read("web/src/realtime-client.ts")
+WEB_LOGGER = read("web/src/runtime-logger.ts")
 WEB_LEGACY_BASE = read("web/src/legacy-transplant/style.css")
 WEB_FAST = read("web/src/legacy-transplant/web-fast-ui.css")
 WEB_DASH = read("web/src/legacy-transplant/workflow-dashboard-v5.css")
@@ -43,6 +44,8 @@ SERVICE_INDEX = read("service/src/index.ts")
 SERVICE_CORE = read("service/src/core.ts")
 SERVICE_READ_MODEL = read("service/src/read-model-core.ts")
 SERVICE_NOTIFICATIONS = read("service/src/notifications-core.ts")
+SERVICE_RUNTIME_LOGS = read("service/src/runtime-logs.ts")
+SERVICE_READ_MODEL = read("service/src/read-model-core.ts")
 VERIFY_APPS = read(".github/workflows/verify-apps.yml")
 DESIGN_SPEC = read("docs/specs/UI_DESIGN_SYSTEM.md")
 DECISIONS = read("docs/OWNER_DECISIONS.md")
@@ -54,6 +57,7 @@ checks = {
     "authority_d060_root_role_theme_review": "D060" in DECISIONS and "Owner-reviewed Root test-role and theme refinement" in DESIGN_SPEC,
     "authority_d061_dark_realtime_sidebar_review": "D061" in DECISIONS and "Owner-reviewed dark/realtime/sidebar cleanup" in DESIGN_SPEC,
     "authority_d062_web_completion_review": "D062" in DECISIONS and "Owner-reviewed completion audit and canonical navigation IA (D062)" in DESIGN_SPEC,
+    "authority_d063_ops_logs_reporting_review": "D063" in DECISIONS and "Owner-reviewed consolidated operations, logs, reporting and people UI (D063)" in DESIGN_SPEC,
     "authority_ui_acceptance_distinct_from_ci": "CI/build PASS" in DESIGN_SPEC and "Owner UI" in DESIGN_SPEC,
     "authority_no_offline_mode": "D043" in DECISIONS and "No offline business mode" in DESIGN_SPEC,
 
@@ -142,8 +146,8 @@ checks = {
     ]),
     "web_d060_dashboard_head_simplified": "v5-head-meta" not in WEB_APP and "Mở xử lý báo thiếu" not in WEB_APP,
     "web_legacy_left_sidebar_geometry": "grid-template-columns: 216px minmax(0, 1fr)" in WEB_FAST and "flex-direction: column" in WEB_FAST and ".nav-section-label" in WEB_FAST,
-    "web_legacy_dashboard_composition": all(token in WEB_APP for token in ["v5-root", "Tổng quan hôm nay", "v5-kpi-grid", "SKU ưu tiên", "Hiệu suất hôm nay"]),
-    "web_legacy_reporter_workspace": all(token in WEB_APP for token in ["fast-events", "fast-workspace", "fast-list", "fast-detail", "Xử lý báo thiếu"]),
+    "web_legacy_dashboard_composition": all(token in WEB_APP for token in ["v5-root", "Tổng quan & báo cáo", "business-summary-grid", "Khối lượng trong kỳ", "SKU phát sinh nhiều"]),
+    "web_legacy_reporter_workspace": all(token in WEB_APP for token in ["fast-events", "fast-workspace", "fast-list", "fast-detail", "Vận hành báo hàng"]),
     "web_d061_nav_icons": all(token in WEB_APP for token in ["function navIcon", 'class="nav-icon"', "group-operations"]) and all(token in WEB_FAST for token in ["D061 Owner Web review", ".nav-section-label", ".nav-icon"]),
     "web_d061_generic_refresh_removed": all(token not in WEB_APP for token in ["refresh-operations", "refresh-results", "refresh-picker", "refresh-users"]),
     "web_d061_dark_surface_coverage": all(token in WEB_FAST for token in ["D061 Owner Web review", ".fast-workspace", ".fast-issue-row", ".table-wrap", "tbody tr", ".ops-status-strip"]),
@@ -153,7 +157,6 @@ checks = {
         'navGroup("QUẢN TRỊ"',
         'navGroup("BÁO CÁO"',
         'navGroup("HỆ THỐNG"',
-        '"results", "Kết quả gần đây"',
         '"hr", "Nguồn nhân sự"',
         '"account", "Tài khoản & mật khẩu"',
         'if (value.role === "PICKER") return "picker";\n  return "operations";',
@@ -167,8 +170,27 @@ checks = {
         ".v5-rank-row > b",
     ]),
     "web_d062_sidebar_hierarchy": all(token in WEB_FAST for token in ["font-size: 13px !important", ".nav-section-label .nav-icon", "width: 15px"]),
+    "web_d063_nav_max_three": all(token in WEB_APP for token in [
+        'navGroup("VẬN HÀNH", [["operations", "Vận hành báo hàng"]])',
+        'navGroup("DỮ LIỆU", [["sku", "Danh mục SKU"], ["hr", "Nguồn nhân sự"]])',
+        'navGroup("QUẢN TRỊ", [["users", "Nhân sự & tài khoản"], ["sla", "Thiết lập nghiệp vụ"]])',
+        'navGroup("BÁO CÁO", [["dashboard", "Tổng quan & báo cáo"]])',
+        'navGroup("HỆ THỐNG", [["system", "Trạng thái hệ thống"], ["logs", "Nhật ký"], ["account", "Tài khoản & mật khẩu"]])',
+    ]),
+    "web_d063_merged_workspaces": all(token in WEB_APP for token in [
+        "renderOperationalTabs",
+        "renderReportTabs",
+        "Người đang online theo quyền",
+        "Thời gian xử lý bình quân",
+        "Picker đã nhận kết quả",
+    ]) and all(token not in WEB_APP for token in ["P95", "Xử lý trung vị", "Picker ACK trễ"]),
+    "web_d063_people_layout": all(token in WEB_APP for token in ["users-top-grid", "Tạo tài khoản nghiệp vụ", "Tìm và lọc tài khoản", "user-bulk-bar"]) and all(token in WEB_FAST for token in ["users-top-grid", "users-form-grid", "user-bulk-bar"]),
+    "web_d063_runtime_logs": all(token in WEB_LOGGER for token in ["scheduled_", "window_error", "unhandled_promise_rejection", "maybeSendScheduledWebLog"]) and all(token in WEB_APP for token in ["Log Web", "Log Android", "send-web-log", "Beta / Logs"]) and all(token in SERVICE_RUNTIME_LOGS for token in ["REDACTED", "LOGS_FOLDER_ID", "uploadRuntimeLog", "listRuntimeLogs"]),
+    "service_d063_presence_by_role": "online_users_by_role" in SERVICE_READ_MODEL and "online_users_by_client" in SERVICE_READ_MODEL,
+    "android_d063_runtime_logs": all(token in ANDROID_MAIN for token in ["currentRuntimeLogSlot", "scheduled_", "pending_crash", "android_crash", "Gửi lên Drive"]) and "uploadRuntimeLog" in ANDROID_API,
+    "web_d063_dark_completion": all(token in WEB_FAST for token in ["D063 Owner operations/reporting/logs/users completion", ".business-summary-card", ".logs-layout", ".users-top-grid", 'body[data-theme="dark"]']),
     "web_login_no_prefilled_root": 'value="root"' not in WEB_UI,
-    "web_skip_impact_confirmation": "XÁC NHẬN CHO SKIP" in WEB_UI and "affected_picker_count" in WEB_UI,
+    "web_skip_impact_confirmation": "XÁC NHẬN BỎ QUA" in WEB_UI and "affected_picker_count" in WEB_UI,
     "web_recurrence_surface": "previous_batch_id" in WEB_API and "Tái phát" in WEB_UI,
     "web_realtime_delta": "/api/realtime/delta" in WEB_RT and "lastSeq" in WEB_RT and "location.reload" not in WEB_RT,
     "web_existing_management_preserved": all(token in WEB_API for token in ["/api/admin/hr-source-v2", "/api/admin/users/password", "/api/admin/pickers/bulk"]),
@@ -179,8 +201,8 @@ checks = {
     "android_legacy_login_xml": all(token in ANDROID_LOGIN_XML for token in ['76dp', '23sp', '@+id/etEmployeeCode', '@+id/etPassword', '@+id/btnLogin']),
     "android_legacy_main_shell_xml": all(token in ANDROID_MAIN_XML for token in ['android:layout_height="76dp"', '@+id/contentContainer', '@+id/btnLog', '@+id/btnLogout', '@+id/tvAppVersion']),
     "android_legacy_picker_xml": all(token in ANDROID_PICKER_XML for token in ['@+id/acSkuSearch', 'android:layout_height="58dp"', '@+id/btnReportShortage', 'android:layout_height="66dp"', '@+id/listMyReports']),
-    "android_legacy_reporter_xml": all(token in ANDROID_INVENT_XML for token in ['HÀNG CHỜ INVENT', '@+id/btnRefreshIssues', '@+id/listIssues']),
-    "android_legacy_admin_xml": all(token in ANDROID_ADMIN_XML for token in ['QUẢN TRỊ INVENT', '@+id/btnOpenInventQueue', '@+id/btnImportSku']),
+    "android_legacy_reporter_xml": all(token in ANDROID_INVENT_XML for token in ['BÁO HÀNG ĐANG CHỜ XỬ LÝ', '@+id/btnRefreshIssues', '@+id/listIssues']),
+    "android_legacy_admin_xml": all(token in ANDROID_ADMIN_XML for token in ['QUẢN TRỊ BÁO HÀNG', '@+id/btnOpenInventQueue', '@+id/btnImportSku']),
     "android_legacy_row_xml": all(token in ANDROID_ROW_XML for token in ['@+id/tvIssueSku', '@+id/tvIssueProduct', '@+id/tvIssueMeta']),
     "android_legacy_palette": all(token in ANDROID_COLORS for token in ["navy_900", "navy_700", "surface_card", "text_primary", "border_strong"]),
     "android_legacy_widget_theme": "Widget.BaoHang.Button" in ANDROID_STYLES and "Widget.BaoHang.EditText" in ANDROID_STYLES,
@@ -199,7 +221,7 @@ checks = {
     "android_picker_uses_legacy_result_overlay": "R.layout.overlay_alert" in ANDROID_PICKER and "R.id.btnOverlayAck" in ANDROID_PICKER and "R.drawable.bg_overlay_skip" in ANDROID_PICKER and "R.drawable.bg_overlay_available" in ANDROID_PICKER,
     "client_ui_has_no_internal_implementation_prose": all(token not in (WEB_UI + ANDROID_ALL) for token in ["Owner duyệt UI", "sẽ được nối sau", "đang transplant", "logic lưu sẽ"]),
     "android_picker_ack": "XÁC NHẬN ĐÃ NHẬN" in ANDROID_PICKER and "acknowledgeResult" in ANDROID_API,
-    "android_reporter_skip_confirm": "XÁC NHẬN CHO SKIP" in ANDROID_REPORTER and "affectedPickerCount" in ANDROID_REPORTER,
+    "android_reporter_skip_confirm": "XÁC NHẬN BỎ QUA" in ANDROID_REPORTER and "affectedPickerCount" in ANDROID_REPORTER,
     "android_realtime_delta": "/api/realtime/delta" in ANDROID_API and "appliedSeq" in ANDROID_RT and "streamEpoch" in ANDROID_RT and "recoverDelta" in ANDROID_RT,
     "android_update_gate_preserved": all(token in ANDROID_MAIN for token in ["UpdateGate.CHECKING", "UpdateGate.REQUIRED", "UpdateGate.FAILED", "BuildConfig.UPDATE_RELEASE_API", "loginButton?.isEnabled = updateGate == UpdateGate.CURRENT"]),
 

@@ -28,10 +28,10 @@ class AdminLauncherController(
             setPadding(kit.dp(2), kit.dp(12), kit.dp(2), kit.dp(2))
         })
         section(root, "Vận hành")
-        root.addView(action("Hàng chờ xử lý", "Mở luồng Reporter realtime") {
+        root.addView(action("Hàng chờ xử lý", "Mở danh sách báo hàng đang chờ") {
             onOpenOperations()
         })
-        root.addView(action("Kết quả gần đây", "Xem kết quả xử lý và ACK") {
+        root.addView(action("Kết quả gần đây", "Xem kết quả và tình trạng Picker đã nhận") {
             onOpenResults()
         })
 
@@ -39,7 +39,7 @@ class AdminLauncherController(
         root.addView(action("Nhân sự / Picker", "Quản lý sâu trên Web") { openWeb("/#hr", "Nhân sự / Picker") })
         root.addView(action("Tài khoản", if (session.role == "ROOT") "Admin / Reporter" else "Reporter") { openWeb("/#users", "Tài khoản") })
         root.addView(action("Master SKU", "Theo dõi và cập nhật trên Web") { openWeb("/#sku", "Master SKU") })
-        root.addView(action("SLA / Cấu hình", "Thiết lập nghiệp vụ trên Web") { openWeb("/#sla", "SLA / Cấu hình") })
+        root.addView(action("Thiết lập nghiệp vụ", "Thiết lập thời gian xử lý trên Web") { openWeb("/#sla", "Thiết lập nghiệp vụ") })
 
         section(root, "Hệ thống")
         root.addView(action("Trạng thái dịch vụ", "Kiểm tra dịch vụ Beta") {

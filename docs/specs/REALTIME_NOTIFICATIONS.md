@@ -92,6 +92,16 @@ If thresholds are not configured, state is explicitly `UNCONFIGURED`; no hidden 
 
 A new same-SKU episode after a resolved episode is represented by a new batch with recurrence metadata (`previous_batch_id` or equivalent). Realtime may surface a recurrence marker, but never mutates the previous finalized batch back to pending.
 
+## Authenticated online presence (D063)
+
+- Realtime presence is derived from currently open authenticated WebSocket connections accepted by `InventoryCore`.
+- A user is online only while a valid authenticated realtime connection is active. Account `ACTIVE` status alone is not presence.
+- Logout, session invalidation, explicit role change closure and socket disconnect remove that connection from presence.
+- Multiple concurrent connections for the same user under the same effective role count as one online user for that role; session count may be higher than user count.
+- Admin/Root may read aggregate presence totals by effective role and client type for operational overview. Picker/Reporter do not receive a global presence directory.
+- Presence is ephemeral and is not historical attendance/timekeeping data.
+
+
 ## Acceptance state
 
 Technical registration/delivery foundation from the previous baseline is not enough for this rebaseline. Acceptance now requires:

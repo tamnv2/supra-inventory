@@ -130,6 +130,22 @@ Group functions conceptually as:
 Dashboard is an Admin/Root analysis module, not the Reporter landing surface.
 
 
+### Owner-reviewed consolidated operations, logs, reporting and people UI (D063)
+
+D063 refines D062 without changing the product boundary:
+
+- each Admin/Root left-navigation group exposes **no more than three child entries**; related implemented screens are presented as tabs/sections inside one business workspace rather than as fragmented navigation items;
+- Admin/Root navigation is: **VẬN HÀNH** → `Vận hành báo hàng`; **DỮ LIỆU** → `Danh mục SKU`, `Nguồn nhân sự`; **QUẢN TRỊ** → `Nhân sự & tài khoản`, `Thiết lập nghiệp vụ`; **BÁO CÁO** → `Tổng quan & báo cáo`; **HỆ THỐNG** → `Trạng thái hệ thống`, `Nhật ký`, `Tài khoản & mật khẩu`;
+- `Vận hành báo hàng` contains two internal views: `Đang xử lý` and `Kết quả gần đây`. Status summary, affected Picker count, elapsed time, recurrence and Picker result-receipt progress are presented together with the live queue/results instead of as separate tiny modules;
+- `Tổng quan & báo cáo` contains `Tổng quan` and `Báo cáo chi tiết`. Use clear Vietnamese business terms such as `Thời gian xử lý bình quân`, `SKU phát sinh lại`, `Picker đã nhận kết quả`, `Sắp quá thời gian`, `Đã quá thời gian`; do not expose unexplained `P95`, `median/trung vị`, `ACK`, raw `SLA` or placeholder metrics;
+- the overview includes authenticated online-user totals and counts by effective role. Online means an authenticated realtime connection is currently active; logout/session closure removes the connection. Multiple concurrent connections of the same user under the same effective role count as one online user for that role;
+- `Nhân sự & tài khoản` uses a professional two-panel create/filter layout, a distinct bulk-Picker action bar and a full-width account table. Visible role/status labels are business Vietnamese labels rather than raw enums;
+- `Trạng thái hệ thống` consolidates network/service/realtime/version/diagnostic information that was previously split into device/service/version entries;
+- `Nhật ký` separates `Log Web` and `Log Android`, supports manual Web upload and sanitized detail inspection for Admin/Root, and shows the fixed periodic schedule `06:00 · 12:00 · 18:00 · 24:00`;
+- dark theme must cover all D063 workspaces, tabs, summary cards, filter forms, people panels, log list/detail/status badges and remaining legacy fragments. A light-only card/pill/input/table inside dark mode is a defect;
+- presentation remains compact, local-font, icon-led and realtime-first; generic refresh buttons are still prohibited on realtime-backed business views. An explicit service diagnostic probe is not a generic refresh;
+- Android/PDA keeps its approved native structure; D063 only adds sanitized log behavior and clearer Vietnamese operational labels. Stable is unchanged.
+
 ### Owner-reviewed completion audit and canonical navigation IA (D062)
 
 D062 closes the remaining Web review gaps without reworking surfaces that already passed D061 technical/runtime checks:

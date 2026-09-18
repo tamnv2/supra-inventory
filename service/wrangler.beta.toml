@@ -34,6 +34,7 @@ APP_ENV = "beta"
 PROJECT_KEY = "supra-inventory"
 FIREBASE_PROJECT_ID = "supra-inventory-beta"
 ARCHIVE_SHEET_ID = "1WU9RDUEevE74Twyq1aA80xvL3Wr1mTA21PRA8ypIMOA"
+LOGS_FOLDER_ID = "17Ealimu__NFxeEzG3mUfivpEEacX_vgo"
 RETENTION_DAYS = "60"
 
 [observability]
