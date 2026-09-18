@@ -110,6 +110,7 @@ function applyTheme(): void {
   const resolved = themeMode === "AUTO" ? (autoThemeIsDark() ? "dark" : "light") : themeMode.toLowerCase();
   document.body.dataset.theme = resolved;
   document.documentElement.style.colorScheme = resolved;
+  document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", resolved === "dark" ? "#0f172a" : "#087443");
 }
 
 applyTheme();
