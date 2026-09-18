@@ -144,9 +144,8 @@ class MainActivity : Activity() {
     private fun renderLogin(message: String = "Đang kiểm tra phiên bản...") {
         stopOperationalClients()
         val root = kit.page()
-        addBrandHeader(root, subtitle = "Báo hàng · Beta")
+        addBrandHeader(root, subtitle = "Đăng nhập để bắt đầu nghiệp vụ")
         val card = kit.card()
-        card.addView(kit.title("Đăng nhập", 18f))
         val username = EditText(this).apply {
             hint = "Mã nhân viên / tên đăng nhập"
             isSingleLine = true
@@ -162,15 +161,32 @@ class MainActivity : Activity() {
             kit.styleInput(this)
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = kit.dp(8) }
         }
-        val showPassword = CheckBox(this).apply { text = "Hiện mật khẩu" }
+        val showPassword = CheckBox(this).apply {
+            text = "Hiện mật khẩu"
+            textSize = 12f
+            setTextColor(kit.muted)
+        }
         val login = Button(this).apply {
-            text = "Đăng nhập"
+            text = "ĐĂNG NHẬP"
             isEnabled = false
             kit.stylePrimary(this)
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = kit.dp(8) }
         }
         loginButton = login
+        card.addView(TextView(this).apply {
+            text = "Mã nhân viên"
+            textSize = 13f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(kit.text)
+        })
         card.addView(username)
+        card.addView(TextView(this).apply {
+            text = "Mật khẩu"
+            textSize = 13f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(kit.text)
+            setPadding(0, kit.dp(14), 0, 0)
+        })
         card.addView(password)
         card.addView(showPassword)
         card.addView(login)
