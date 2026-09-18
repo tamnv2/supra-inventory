@@ -132,10 +132,10 @@ class ReporterController(
     private fun addTab(row: LinearLayout, value: Filter, label: String) {
         val button = Button(activity).apply {
             text = label
-            textSize = 10.5f
+            textSize = 11f
             maxLines = 2
-            minHeight = kit.dp(52)
-            layoutParams = LinearLayout.LayoutParams(0, kit.dp(54), 1f).apply {
+            minHeight = kit.dp(58)
+            layoutParams = LinearLayout.LayoutParams(0, kit.dp(60), 1f).apply {
                 marginStart = kit.dp(2)
                 marginEnd = kit.dp(2)
             }
@@ -148,11 +148,11 @@ class ReporterController(
     private fun updateTabs() {
         for ((value, button) in buttons) {
             if (value == filter) {
-                button.setTextColor(kit.blue)
+                button.setTextColor(Color.WHITE)
                 button.setTypeface(button.typeface, Typeface.BOLD)
-                button.background = kit.rounded(kit.blueSoft, Color.parseColor("#7FB3FF"), 9)
+                button.background = kit.rounded(kit.navyMid, kit.navyMid, 9)
             } else {
-                button.setTextColor(kit.text)
+                button.setTextColor(kit.navy)
                 button.setTypeface(button.typeface, Typeface.NORMAL)
                 button.background = kit.rounded(Color.WHITE, kit.line, 9)
             }
@@ -239,14 +239,23 @@ class ReporterController(
             "WARNING" -> Color.parseColor("#EBC56E")
             else -> kit.line
         }
-        return kit.card(Color.WHITE, stroke, 11).apply {
+        return kit.card(Color.WHITE, stroke, 7).apply {
             addView(TextView(activity).apply {
-                text = "${row.sku} - ${row.productName}"
-                textSize = 19.5f
+                text = "SKU - ${row.sku}"
+                textSize = 18f
+                maxLines = 1
+                ellipsize = TextUtils.TruncateAt.END
+                setTypeface(typeface, Typeface.BOLD)
+                setTextColor(kit.navy)
+            })
+            addView(TextView(activity).apply {
+                text = row.productName
+                textSize = 12.5f
                 maxLines = 2
                 ellipsize = TextUtils.TruncateAt.END
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(kit.text)
+                setPadding(0, kit.dp(2), 0, 0)
             })
             val affectedPickerCount = row.affectedPickerCount
             val recurrence = if (row.previousBatchId != null) {
@@ -278,7 +287,7 @@ class ReporterController(
                 textSize = 14f
                 setTypeface(typeface, Typeface.BOLD)
                 layoutParams = LinearLayout.LayoutParams(0, kit.dp(56), 1f).apply { marginEnd = kit.dp(4) }
-                kit.stylePrimary(this)
+                kit.styleSuccess(this)
                 setOnClickListener { confirmHasStock(row) }
             })
             actions.addView(Button(activity).apply {
@@ -312,7 +321,7 @@ class ReporterController(
             "SKIP_ALLOWED" -> Triple(kit.skipFill, kit.skipStroke, kit.red)
             else -> Triple(kit.graySoft, kit.line, kit.muted)
         }
-        return kit.card(colors.first, colors.second, 11).apply {
+        return kit.card(colors.first, colors.second, 7).apply {
             addView(TextView(activity).apply {
                 text = "${row.sku} - ${row.productName}"
                 textSize = 18.5f
