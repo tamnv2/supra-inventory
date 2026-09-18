@@ -271,7 +271,7 @@ function saveSession(next: StoredSession | null): void {
   else sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
 }
 
-async function readJson<T>(response: Response): Promise<T> {
+export async function readJson<T>(response: Response): Promise<T> {
   const text = await response.text();
   let payload: (T & { error?: string; message?: string }) | null = null;
   try {
@@ -337,7 +337,7 @@ async function refreshSession(): Promise<void> {
   return refreshPromise;
 }
 
-async function authorizedFetch(path: string, init: RequestInit = {}): Promise<Response> {
+export async function authorizedFetch(path: string, init: RequestInit = {}): Promise<Response> {
   if (!session) throw new Error("Chưa đăng nhập.");
   if (session.expires_at <= Date.now() + 60_000) await refreshSession();
   if (!session) throw new Error("Phiên đăng nhập đã hết hạn.");
@@ -489,11 +489,20 @@ export async function getAdminReports(limit = 100, status = ""): Promise<{ items
   return readJson(await authorizedFetch(`/api/admin/reports?${params.toString()}`));
 }
 
-export async function listManagedUsers(query = "", role = "", status = ""): Promise<{ items: ManagedUser[]; count: number }> {
-  const params = new URLSearchParams({ limit: "1000" });
-  if (query) params.set("query", query);
-  if (role) params.set("role", role);
-  if (status) params.set("status", status);
+export async function listManagedUsers(options: {
+  query?: string;
+  role?: string;
+  status?: string;
+  limit?: number;
+  offset?: number;
+} = {}): Promise<{ items: ManagedUser[]; count: number; total: number; limit: number; offset: number }> {
+  const params = new URLSearchParams({
+    limit: String(options.limit || 100),
+    offset: String(options.offset || 0),
+  });
+  if (options.query) params.set("query", options.query);
+  if (options.role) params.set("role", options.role);
+  if (options.status) params.set("status", options.status);
   return readJson(await authorizedFetch(`/api/admin/users?${params.toString()}`));
 }
 
@@ -527,11 +536,12 @@ export async function setManagedUserPassword(userId: string, password: string): 
 
 export async function updatePickerAccounts(
   action: "ENABLE" | "DISABLE" | "DELETE",
-  userIds: string[],
+  userIds: string[] = [],
+  all = false,
 ): Promise<{ status: string; action: string; affected: number }> {
   return readJson(await authorizedFetch("/api/admin/pickers/bulk", {
     method: "POST",
-    body: JSON.stringify({ request_id: crypto.randomUUID(), action, all: false, user_ids: userIds }),
+    body: JSON.stringify({ request_id: crypto.randomUUID(), action, all, user_ids: all ? [] : userIds }),
   }));
 }
 

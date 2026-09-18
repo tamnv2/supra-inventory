@@ -5,38 +5,51 @@
 ## Current status
 
 - Project: `SUPRA Inventory — Báo hàng` (`supra-inventory`).
-- Beta: `F01_F07_AUTOMATED_RUNTIME_PASS_MAIN_17C1C061__NEXT_P1_WEB_ANDROID`
+- Beta: `F01_F07_RUNTIME_PASS__WEB_OPERATIONAL_P1_SOURCE_IN_PROGRESS`
 - Stable: `CONFIG_READY_OWNER_GATED_NOT_LIVE`
 - SQLite schema: `5`
-- Web: `F06_F07_APPLIED_CURSOR_BETA_DEPLOY_PASS_17C1C061__NEXT_WEB_OPERATIONAL_P1`
+- Web: `WEB_OPERATIONAL_P1_CONTEXT_SESSION_USERS_REPORTING_SOURCE_IN_PROGRESS__BETA_RUNTIME_PENDING`
 - Android: `F06_F07_APPLIED_CURSOR_SIGNED_BETA_VC38_RUNTIME_GATED_PASS`
 - Latest signed Beta APK: `beta-vc38`
 - Realtime: `GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_3`
-- FCM: `DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BASELINE__OPERATIONAL_V2_CORRELATION_SOURCE_BUILD_PASS_PENDING_RUNTIME`
+- FCM: `DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BASELINE__WEB_DISPLAY_STAGE_SOURCE_FIXED__PHYSICAL_ACCEPTANCE_PENDING`
 - UI design guard: `LEGACY_OPERATIONAL_UI_V2_SOURCE_SERVICE_WEB_ANDROID_PASS`
 
-## F01–F07 automated runtime baseline
+## Proven automated baseline
 
-- F01 readiness/release eligibility: PASS.
-- F02–F05 immutable result, Picker projection/privacy and count integrity: Beta runtime PASS on `641d106f`.
-- F06–F07 global scan cursor, stream epoch/retention and applied-state dirty recovery: merged PR #18 at `17c1c0610dc5344ff0813436d770e843f66b3d59`.
-- Deploy Beta run `35288849052`: success; health `schema=5/5`, Operational V2 `3/3`; business auth guards, Web shell and OAuth smoke PASS.
-- Verify Beta Android run `35288849022`: matching runtime gate PASS; published `beta-vc38`.
-- `beta-vc38` APK SHA-256: `0950621118df4339c69f5b5672ecb43aeff1229ef38d81de704d96ab031ff7aa`; size `9217842` bytes.
+- F01–F07 runtime remains PASS.
+- Operational V2 runtime remains extension `3/3`.
+- Signed Android baseline remains `beta-vc38`; this Web package does not change Android release identity.
 - Stable remains untouched / OWNER-GATED.
 
-## Next work
+## Current work — Web operational P1
 
-- Web P1 operational contracts: preserve input/focus/filter/context under realtime, guard stale SKU search responses, then restore/verify management/reporting functions already required by canonical specs.
-- Android lifecycle/UI/FCM/cache/updater follows in the next package, preserving F01–F07 regression gates.
-- Physical PDA/FCM/business acceptance remains separate from automated technical PASS.
+Branch `fix/web-operational-contracts` implements:
+- context-preserving active-section patching so realtime updates do not reset focused input, caret, filters/forms or local scroll context;
+- generation guards for SKU search, analytics/reporting and cross-session stale responses;
+- one Web authorized session/refresh manager shared by normal and Operational V2 API clients;
+- explicit managed-user edit/password forms instead of ambiguous browser prompts;
+- server-side managed-user filters/totals/pagination and true one/many/all Picker lifecycle actions;
+- Picker result `DISPLAYED` only after the critical result surface is actually rendered;
+- D025 Web date presets, trend/outcome surfaces, drill-down and bounded chunked CSV export;
+- Web SLA bounds aligned to server 1–1440 / <=2880 contract.
+
+Source regression/build/runtime gates are pending for this change set.
+
+## Next
+
+1. Run protected PR authority/continuity plus Web/F01-F07 regression and source-build gates.
+2. Merge only on PASS.
+3. Verify Beta runtime deploy/smoke while preserving Operational V2 `3/3`.
+4. Record runtime evidence, then continue Android lifecycle/FCM/cache/updater package.
+5. Keep physical PDA/FCM/Owner acceptance separate.
 
 ## Guards
 
 - No offline business mode.
 - No legacy 1291 resource/provider import.
 - No secrets in this public repository.
-- Technical/runtime/release PASS is separate from Owner field acceptance.
+- Stable remains OWNER-GATED.
 
 ## Continuity rule
 

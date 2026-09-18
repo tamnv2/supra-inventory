@@ -59,6 +59,9 @@ jobs:
       - name: Run realtime cursor regression fixtures
         run: python3 tools/realtime_cursor_regression.py
 
+      - name: Run Web operational regression guard
+        run: python3 tools/web_operational_regression.py
+
       - name: Typecheck Worker service
         working-directory: service
         run: |

@@ -13,20 +13,20 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "F01_F07_AUTOMATED_RUNTIME_PASS_MAIN_17C1C061__NEXT_P1_WEB_ANDROID",
+    "beta": "F01_F07_RUNTIME_PASS__WEB_OPERATIONAL_P1_SOURCE_IN_PROGRESS",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 5,
     "business_api": "F02_F05_IMMUTABLE_RESULT_PRIVACY_COUNTS_RUNTIME_PASS__F06_F07_CURSOR_RUNTIME_PASS_OP_V2_3",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS",
-    "web": "F06_F07_APPLIED_CURSOR_BETA_DEPLOY_PASS_17C1C061__NEXT_WEB_OPERATIONAL_P1",
+    "web": "WEB_OPERATIONAL_P1_CONTEXT_SESSION_USERS_REPORTING_SOURCE_IN_PROGRESS__BETA_RUNTIME_PENDING",
     "android": "F06_F07_APPLIED_CURSOR_SIGNED_BETA_VC38_RUNTIME_GATED_PASS",
     "latest_beta_apk": "beta-vc38",
     "realtime": "GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_3",
     "network_scope": "ONLINE_ONLY_PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_NO_OFFLINE_BUSINESS_MODE",
-    "fcm": "DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BASELINE__OPERATIONAL_V2_CORRELATION_SOURCE_BUILD_PASS_PENDING_RUNTIME",
-    "user_management": "EXPANDED_ROOT_ADMIN_PICKER_LIFECYCLE_FLEXIBLE_HR_DIRECT_PASSWORD_LEGACY_PICKER_BOOTSTRAP_DEPLOYED_BUILD_PASS",
+    "fcm": "DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BASELINE__WEB_DISPLAY_STAGE_SOURCE_FIXED__PHYSICAL_ACCEPTANCE_PENDING",
+    "user_management": "SERVER_PAGED_FILTERED_ONE_MANY_ALL_SOURCE_IN_PROGRESS__BETA_RUNTIME_PENDING",
     "archive": "IDEMPOTENT_SHEET_ARCHIVE_AND_SAFE_60D_RETENTION_BETA_DEPLOY_PASS",
-    "admin_dashboard": "LEGACY_OPERATIONAL_V2_SLA_RECURRENCE_WEB_SOURCE_BUILD_PASS_PENDING_RUNTIME",
+    "admin_dashboard": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_IN_PROGRESS__BETA_RUNTIME_PENDING",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
     "ui_design_guard": "LEGACY_OPERATIONAL_UI_V2_SOURCE_SERVICE_WEB_ANDROID_PASS",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS"
@@ -102,8 +102,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Continue P1 Web operational contract package while preserving F01-F07 runtime regressions and Beta-only scope.",
-    "method": "Prioritize stable user input/focus/filter state under realtime, stale-response guards, then management/reporting functions already required by canonical specs. Keep runtime and physical/Owner acceptance separate.",
+    "primary": "Complete the Web operational P1 package through protected PR and Beta runtime verification, then move to Android lifecycle/FCM/cache/updater work.",
+    "method": "Preserve focused inputs/forms/scroll under realtime, reject stale SKU/session responses, use one authorized session manager, provide explicit account forms, bounded server paging/select-all, and D025 dashboard/reporting controls. Preserve F01-F07 regression gates.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -131,14 +131,15 @@
   },
   "workboard": {
     "in_progress": [
-      "F08/F15-F18: Web operational contract hardening — stable DOM/context, SKU search generation, management routes/forms and dashboard/reporting completeness",
-      "F09-F13/F21-F22: Android operational lifecycle/UI/FCM/cache/updater follow after Web contract package or where shared contracts require"
+      "F08/F17/F18: Web stable shell/context, stale-response/session guards and explicit management forms implemented on fix/web-operational-contracts",
+      "F15/F16: Admin dashboard/reporting controls and server-paged user administration implemented; PR/CI/runtime pending",
+      "F10 Web carryover: RECEIVED is no longer immediately promoted to DISPLAYED before the critical result surface is rendered"
     ],
     "next": [
-      "Open Web operational contract branch from main 17c1c061 and preserve F01-F07 regression guards",
-      "Fix realtime/search-driven whole-app rerender and stale async search responses without breaking current role flow",
-      "Restore/verify management and reporting behaviors already required by canonical specs",
-      "Run protected PR guards and Beta runtime smoke before moving to Android lifecycle package"
+      "Run Web operational regression + F01-F07 regressions + Worker typecheck + Web production build + Android debug gate on protected PR",
+      "Merge only after Repo Authority Guard and Project State Guard PASS",
+      "Verify Beta deploy health/business auth/Web shell/OAuth runtime smoke while preserving Operational V2 3/3",
+      "Record runtime evidence in continuity, then start Android F09-F13/F21-F22 package"
     ],
     "blocked_or_owner_field_dependent": [
       "Final physical-PDA UI/business acceptance after new signed Beta is available",
@@ -146,17 +147,16 @@
       "Isolated mutation load acceptance still requires an Owner workload target/test boundary"
     ],
     "last_source_build_evidence": {
-      "branch": "main",
-      "head": "17c1c0610dc5344ff0813436d770e843f66b3d59",
-      "pr": 18,
-      "authority_guard": "PASS",
-      "project_state_guard": "PASS",
-      "ui_design_guard": "PASS",
-      "operational_v2_regression": "PASS",
-      "realtime_cursor_regression": "PASS",
-      "service_typecheck": "PASS",
-      "web_production_build": "PASS",
-      "android_debug_build": "PASS"
+      "branch": "fix/web-operational-contracts",
+      "base_main": "5d8c20adae36bcf6a0d1b826eaf32748b39fb7bc",
+      "f01_f07_runtime": "PASS_BASELINE",
+      "web_operational_regression": "ADDED_PENDING_CI",
+      "operational_v2_regression": "PENDING_PR_CI",
+      "realtime_cursor_regression": "PENDING_PR_CI",
+      "service_typecheck": "PENDING_PR_CI",
+      "web_production_build": "PENDING_PR_CI",
+      "android_debug_build": "PENDING_PR_CI",
+      "runtime_deploy": "PENDING"
     },
     "last_runtime_evidence": {
       "schema": 5,

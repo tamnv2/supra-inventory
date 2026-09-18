@@ -1,12 +1,7 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || window.location.origin).replace(/\/$/, "");
-const SESSION_KEY = "supra_inventory_beta_session_v1";
+import { authorizedFetch, readJson } from "./api";
 
-type StoredSession = {
-  id_token: string;
-  refresh_token: string;
-  expires_at: number;
-  user: { user_id: string; employee_code?: string | null; display_name?: string; role?: string };
-};
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || window.location.origin).replace(/\/$/, "");
+const operationalFetch = authorizedFetch;
 
 export type SlaState = "UNCONFIGURED" | "NORMAL" | "WARNING" | "ESCALATED";
 
@@ -133,65 +128,6 @@ export interface OperationalInsights {
     }>;
   };
   [key: string]: unknown;
-}
-
-function readSession(): StoredSession | null {
-  try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as StoredSession;
-    return parsed?.id_token && parsed?.refresh_token ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
-function saveSession(session: StoredSession): void {
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-  window.dispatchEvent(new CustomEvent("supra:session-changed"));
-}
-
-async function readJson<T>(response: Response): Promise<T> {
-  const text = await response.text();
-  let payload: (T & { error?: string; message?: string }) | null = null;
-  try { payload = JSON.parse(text) as T & { error?: string; message?: string }; }
-  catch { throw new Error(`API trả dữ liệu không hợp lệ (HTTP ${response.status}).`); }
-  if (!response.ok) throw new Error(payload.message || payload.error || `HTTP ${response.status}`);
-  return payload;
-}
-
-async function refresh(session: StoredSession): Promise<StoredSession> {
-  const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
-    method: "POST",
-    headers: { "content-type": "application/json", accept: "application/json" },
-    body: JSON.stringify({ refresh_token: session.refresh_token }),
-  });
-  const next = await readJson<{ id_token: string; refresh_token: string; expires_in: number }>(response);
-  const updated: StoredSession = {
-    ...session,
-    id_token: next.id_token,
-    refresh_token: next.refresh_token,
-    expires_at: Date.now() + Math.max(60, Number(next.expires_in || 3600)) * 1000,
-  };
-  saveSession(updated);
-  return updated;
-}
-
-export async function operationalFetch(path: string, init: RequestInit = {}): Promise<Response> {
-  let session = readSession();
-  if (!session) throw new Error("Chưa đăng nhập.");
-  if (session.expires_at <= Date.now() + 60_000) session = await refresh(session);
-  const headers = new Headers(init.headers);
-  headers.set("authorization", `Bearer ${session.id_token}`);
-  headers.set("accept", "application/json");
-  if (init.body && !headers.has("content-type")) headers.set("content-type", "application/json");
-  let response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
-  if (response.status === 401) {
-    session = await refresh(session);
-    headers.set("authorization", `Bearer ${session.id_token}`);
-    response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
-  }
-  return response;
 }
 
 export async function getReporterQueueV2(limit = 200): Promise<ReporterQueueV2> {
