@@ -7,12 +7,12 @@
 Canonical current markers:
 - SQLite schema: `6`
 - Latest Beta APK: `beta-vc44`
-- Web: `D061_DARK_NAV_REALTIME_CLEANUP_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Web: `D062_WEB_FINAL_QA_SOURCE_BUILD_PENDING_RUNTIME`
 - Android: `VC44_D060_EFFECTIVE_ROLE_REFRESH_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 
 The project is in **UI-first review**, not business-logic rebuild.
 
-- Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinements: **D058 shell + D059 header + D060 Root-role/theme + D061 dark/sidebar/realtime cleanup**.
+- Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinements: **D058 shell + D059 header + D060 Root-role/theme + D061 dark/sidebar/realtime cleanup + D062 final Web QA/IA**.
 - D061 is now deployed on Beta and technically PASS: dark-theme consistency, sidebar hierarchy/icons, redundant-copy cleanup and generic refresh removal are live for Owner review. Android/PDA broader visual review is pending separately; beta-vc44 is unchanged.
 - Owner has **not yet given UI/layout acceptance** for the current candidate.
 - Technical build/deploy/release PASS must never be interpreted as Owner UI PASS.
@@ -31,7 +31,7 @@ Current review targets:
 
 Owner can start the next chat with only:
 
-> **Tiếp tục review UI D061**
+> **Tiếp tục review UI D062**
 
 Then attach/send the current screenshot or concise review feedback, for example:
 - `Web Tổng quan: chưa OK, sidebar rộng quá`
@@ -180,6 +180,10 @@ Continuity:
 
 These facts prove technical eligibility for review only.
 
+
+### D062 source candidate — final Web QA and canonical navigation
+
+D061 runtime remains the currently deployed Web baseline while D062 is under branch/PR verification. D062 preserves already-correct D061 work and closes only the remaining gaps: canonical five-area Admin/Root navigation using existing routes, operational queue as default landing, direct access to results/HR/account surfaces, and dark-theme coverage for expanded/transient legacy surfaces. Android beta-vc44 and Stable are unchanged.
 
 ### D061 runtime PASS — dark/sidebar/realtime cleanup
 
@@ -379,4 +383,4 @@ Useful current files:
 
 No manual end-of-session handover is required. A new session must bootstrap from `ops/authority-manifest.json` and its declared `bootstrap_order` before mutation.
 
-The Owner's next-chat instruction **`Tiếp tục review UI D061`** is sufficient to resume from this point; any Web screenshot or UI review text supplied with it becomes the immediate work item.
+The Owner's next-chat instruction **`Tiếp tục review UI D062`** is sufficient to resume from this point; any Web screenshot or UI review text supplied with it becomes the immediate work item.
