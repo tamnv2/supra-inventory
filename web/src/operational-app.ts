@@ -57,7 +57,7 @@ import {
 } from "./operational-api";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
-const PRODUCT_CREDIT = "Phát triển và duy trì bởi: tamnv2 - Chuyên viên Pick Pack 1291";
+const PRODUCT_CREDIT = "Phát triển bởi: tamnv2 - Chuyên viên Pick Pack 1291";
 const SKU_CHUNK_SIZE = 1000;
 
 type Section =
@@ -408,8 +408,9 @@ function renderNav(): string {
 function renderLogin(): void {
   app.innerHTML = `<main class="login-page"><section class="login-card">
     <div class="brand-mark">1291</div>
-    <h1>BÁO HÀNG 1291</h1>
-    <div class="muted" style="margin-top:4px">Đăng nhập để bắt đầu nghiệp vụ</div>
+    <p class="eyebrow">BÁO HÀNG 1291</p>
+    <h1>Web nghiệp vụ</h1>
+    <div class="muted" style="margin-top:6px">Đăng nhập bằng tài khoản Báo hàng 1291.</div>
     ${!firebaseReady ? `<div class="notice warning" style="margin-top:16px">Thiếu cấu hình Firebase Web: ${esc(firebaseMissing.join(", "))}</div>` : ""}
     ${renderNotice()}
     <form id="login-form">
@@ -438,8 +439,12 @@ function renderShell(content: string): void {
   if (!profile) return renderLogin();
   const identity = `${profile.employee_code || profile.user_id} · ${profile.display_name}`;
   app.innerHTML = `<div class="shell role-${esc(profile.role.toLowerCase())}">
-    <header class="topbar"><div class="brand"><div class="brand-mark">1291</div><div class="brand-copy"><div class="brand-title">BÁO HÀNG 1291</div><div class="brand-sub">${esc(identity)} · ${esc(profile.role)}</div></div></div>
-      <div class="top-tools"><span class="connection ${esc(realtimeState)}" id="connection-state">${esc(realtimeState === "connected" ? `Realtime · #${realtimeLastSeq}` : realtimeState)}</span><button class="btn secondary small" id="logout">Thoát</button></div></header>
+    <header class="topbar">
+      <div class="web-heading"><p class="eyebrow">BÁO HÀNG 1291</p><h1>Web nghiệp vụ</h1>
+        <div class="health-row"><span class="connection ${esc(realtimeState)}" id="connection-state">${esc(realtimeState === "connected" ? `CẬP NHẬT · #${realtimeLastSeq}` : realtimeState)}</span></div>
+      </div>
+      <div class="user"><strong>${esc(profile.display_name)}</strong><span>${esc(identity)} · ${esc(profile.role)}</span><div class="user-actions"><button class="btn secondary small" id="logout">Thoát</button></div></div>
+    </header>
     <nav class="tabs" aria-label="Điều hướng nghiệp vụ">${renderNav()}</nav>
     <main class="main">${renderNotice()}${content}<div class="credit">${PRODUCT_CREDIT}</div></main>
     <div id="overlay-root">${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}</div>
