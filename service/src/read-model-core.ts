@@ -266,15 +266,29 @@ function realtimePresence(state: DurableObjectState): Response {
   const sockets = state.getWebSockets();
   const sessions: RealtimeAttachment[] = [];
   const users = new Set<string>();
+  const byRole: Record<RealtimeRole, Set<string>> = {
+    PICKER: new Set<string>(),
+    REPORTER: new Set<string>(),
+    ADMIN: new Set<string>(),
+    ROOT: new Set<string>(),
+  };
+  const byClient: Record<RealtimeClientType, Set<string>> = {
+    WEB: new Set<string>(),
+    ANDROID: new Set<string>(),
+  };
   for (const socket of sockets) {
     const attachment = socket.deserializeAttachment() as RealtimeAttachment | null;
     if (!attachment?.connection_id || !attachment.user_id) continue;
     sessions.push(attachment);
     users.add(attachment.user_id);
+    if (attachment.role in byRole) byRole[attachment.role].add(attachment.user_id);
+    if (attachment.client_type in byClient) byClient[attachment.client_type].add(attachment.user_id);
   }
   return response({
     online_users: users.size,
     online_sessions: sessions.length,
+    online_users_by_role: Object.fromEntries(Object.entries(byRole).map(([role, values]) => [role, values.size])),
+    online_users_by_client: Object.fromEntries(Object.entries(byClient).map(([client, values]) => [client, values.size])),
     sessions,
     latest_seq: latestRealtimeSeq(state),
     server_time: new Date().toISOString(),
