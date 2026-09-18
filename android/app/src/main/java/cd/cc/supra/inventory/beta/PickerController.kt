@@ -314,11 +314,11 @@ class PickerController(
         val isSkip = result.resolution == "SKIP_ALLOWED"
         val surface = LayoutInflater.from(activity).inflate(R.layout.overlay_alert, null, false)
         surface.setBackgroundResource(if (isSkip) R.drawable.bg_overlay_skip else R.drawable.bg_overlay_available)
-        surface.findViewById<TextView>(R.id.tvOverlayStatus).text = if (isSkip) "ĐƯỢC PHÉP SKIP" else "ĐÃ CÓ HÀNG"
+        surface.findViewById<TextView>(R.id.tvOverlayStatus).text = if (isSkip) "ĐƯỢC PHÉP BỎ QUA" else "ĐÃ CÓ HÀNG"
         surface.findViewById<TextView>(R.id.tvOverlaySku).text = result.sku
         surface.findViewById<TextView>(R.id.tvOverlayProduct).text = result.productName
         surface.findViewById<TextView>(R.id.tvOverlayMessage).text =
-            if (isSkip) "Reporter đã xác nhận SKU này được phép skip." else "Reporter đã xác nhận SKU này đã có hàng."
+            if (isSkip) "Người xử lý đã xác nhận SKU này được phép bỏ qua." else "Người xử lý đã xác nhận SKU này đã có hàng."
         surface.findViewById<TextView>(R.id.tvOverlayDismissHint).text = "Cảnh báo nghiệp vụ • cần xác nhận để tiếp tục"
         val acknowledge = surface.findViewById<Button>(R.id.btnOverlayAck).apply {
             text = "XÁC NHẬN ĐÃ NHẬN"
@@ -397,7 +397,7 @@ class PickerController(
         val state = businessStatus(row)
         val colors = when (state) {
             "Đã có hàng" -> Triple(kit.stockFill, kit.stockStroke, kit.greenDark)
-            "Cho skip hàng" -> Triple(kit.skipFill, kit.skipStroke, kit.red)
+            "Được phép bỏ qua" -> Triple(kit.skipFill, kit.skipStroke, kit.red)
             "Picker thu hồi" -> Triple(kit.graySoft, kit.line, kit.muted)
             else -> Triple(kit.pendingFill, kit.pendingStroke, kit.orange)
         }
@@ -438,7 +438,7 @@ class PickerController(
     private fun confirmWithdraw(row: PickerReport) {
         AlertDialog.Builder(activity)
             .setTitle("Thu hồi báo nhầm?")
-            .setMessage("${row.sku} - ${row.productName}\nChỉ thực hiện trong 60 giây khi Reporter chưa xử lý.")
+            .setMessage("${row.sku} - ${row.productName}\nChỉ thực hiện trong 60 giây khi Người xử lý chưa xử lý.")
             .setNegativeButton("Huỷ", null)
             .setPositiveButton("Thu hồi") { _, _ ->
                 Thread {
@@ -451,7 +451,7 @@ class PickerController(
     private fun businessStatus(row: PickerReport): String = when {
         row.status == "WITHDRAWN" || row.batchStatus == "CLOSED" -> "Picker thu hồi"
         row.resolution == "HAS_STOCK" || row.batchStatus == "HAS_STOCK" -> "Đã có hàng"
-        row.resolution == "SKIP_ALLOWED" || row.batchStatus == "SKIP_ALLOWED" -> "Cho skip hàng"
+        row.resolution == "SKIP_ALLOWED" || row.batchStatus == "SKIP_ALLOWED" -> "Được phép bỏ qua"
         else -> "Đang xử lý"
     }
 
