@@ -188,7 +188,7 @@ class ReporterController(
                 if (rows.isEmpty()) {
                     val message = when (state) {
                         "HAS_STOCK" -> "Chưa có kết quả Đã có hàng."
-                        "SKIP_ALLOWED" -> "Chưa có kết quả Đã cho skip."
+                        "SKIP_ALLOWED" -> "Chưa có kết quả Được phép bỏ qua."
                         else -> "Chưa có báo Picker thu hồi."
                     }
                     renderer.render(listOf("empty:$state"), { it }, { it }) { empty(message) }
@@ -216,7 +216,7 @@ class ReporterController(
                     val row = queue.getOrNull(position) ?: return@setOnItemClickListener
                     AlertDialog.Builder(activity)
                         .setTitle("${row.sku} - ${row.productName}")
-                        .setItems(arrayOf("CÓ HÀNG", "CHO SKIP HÀNG", "Xem Picker")) { _, which ->
+                        .setItems(arrayOf("CÓ HÀNG", "CHO PHÉP BỎ QUA", "Xem Picker")) { _, which ->
                             when (which) {
                                 0 -> confirmHasStock(row)
                                 1 -> confirmSkipImpact(row)
@@ -239,7 +239,7 @@ class ReporterController(
         val rows = recent.filter { it.status == state }
         legacySummary?.text = when (filter) {
             Filter.HAS_STOCK -> "Đã có hàng · ${rows.size}"
-            Filter.SKIP_ALLOWED -> "Đã cho skip · ${rows.size}"
+            Filter.SKIP_ALLOWED -> "Được phép bỏ qua · ${rows.size}"
             Filter.WITHDRAWN -> "Picker thu hồi · ${rows.size}"
             else -> "Đang xử lý"
         }
@@ -281,7 +281,7 @@ class ReporterController(
             val row = getItem(position)
             val label = when (row.status) {
                 "HAS_STOCK" -> "Đã có hàng"
-                "SKIP_ALLOWED" -> "Đã cho skip"
+                "SKIP_ALLOWED" -> "Được phép bỏ qua"
                 "CLOSED" -> "Picker thu hồi"
                 else -> row.status
             }
@@ -309,10 +309,10 @@ class ReporterController(
     }
 
     private fun slaLabel(state: String): String = when (state) {
-        "ESCALATED" -> "SLA quá hạn"
-        "WARNING" -> "SLA cảnh báo"
-        "NORMAL" -> "SLA bình thường"
-        else -> "SLA chưa cấu hình"
+        "ESCALATED" -> "Quá thời gian"
+        "WARNING" -> "Sắp quá thời gian"
+        "NORMAL" -> "Trong thời gian"
+        else -> "Chưa thiết lập thời gian"
     }
 
     private fun liveTiming(row: ReporterBatch): Pair<Int, String> {
@@ -377,10 +377,10 @@ class ReporterController(
                 " · Tái phát$duration"
             } else ""
             val sla = when (liveState) {
-                "ESCALATED" -> "SLA quá hạn"
-                "WARNING" -> "SLA cảnh báo"
-                "NORMAL" -> "SLA bình thường"
-                else -> "SLA chưa cấu hình"
+                "ESCALATED" -> "Quá thời gian"
+                "WARNING" -> "Sắp quá thời gian"
+                "NORMAL" -> "Trong thời gian"
+                else -> "Chưa thiết lập thời gian"
             }
             addView(TextView(activity).apply {
                 text = "$affectedPickerCount Picker · chờ $liveWaiting phút · $sla$recurrence\nBáo đầu: ${timestamp(row.firstReportAt)}"
@@ -405,8 +405,8 @@ class ReporterController(
                 setOnClickListener { confirmHasStock(row) }
             })
             actions.addView(Button(activity).apply {
-                text = "CHO SKIP HÀNG"
-                contentDescription = "Cho phép skip"
+                text = "CHO PHÉP BỎ QUA"
+                contentDescription = "Cho phép bỏ qua"
                 textSize = 13.5f
                 setTypeface(typeface, Typeface.BOLD)
                 layoutParams = LinearLayout.LayoutParams(0, kit.dp(56), 1f).apply { marginStart = kit.dp(4) }
@@ -446,7 +446,7 @@ class ReporterController(
             })
             val resultText = when (state) {
                 "HAS_STOCK" -> "Đã có hàng"
-                "SKIP_ALLOWED" -> "Đã cho skip"
+                "SKIP_ALLOWED" -> "Được phép bỏ qua"
                 else -> "Picker thu hồi"
             }
             val ackText = if (state == "CLOSED") "" else " · ${row.acknowledgedCount}/${row.ackTargetCount} Picker đã xác nhận"
@@ -483,10 +483,10 @@ class ReporterController(
     private fun confirmSkipImpact(row: ReporterBatch) {
         val affectedPickerCount = row.affectedPickerCount
         AlertDialog.Builder(activity)
-            .setTitle("CHO PHÉP SKIP?")
-            .setMessage("${row.sku} - ${row.productName}\n\nThao tác này sẽ cho phép $affectedPickerCount Picker đang bị ảnh hưởng skip SKU này.")
+            .setTitle("CHO PHÉP BỎ QUA?")
+            .setMessage("${row.sku} - ${row.productName}\n\nThao tác này sẽ cho phép $affectedPickerCount Picker đang bị ảnh hưởng bỏ qua SKU này.")
             .setNegativeButton("HUỶ", null)
-            .setPositiveButton("XÁC NHẬN CHO SKIP") { _, _ -> resolve(row, "SKIP_ALLOWED", "Cho phép skip") }
+            .setPositiveButton("XÁC NHẬN BỎ QUA") { _, _ -> resolve(row, "SKIP_ALLOWED", "Cho phép bỏ qua") }
             .show()
     }
 
@@ -505,7 +505,7 @@ class ReporterController(
     private fun confirmCorrection(row: ReporterRecent) {
         AlertDialog.Builder(activity)
             .setTitle("Sửa thành Đã có hàng?")
-            .setMessage("${row.sku} - ${row.productName}\nLịch sử skip ban đầu vẫn được giữ.")
+            .setMessage("${row.sku} - ${row.productName}\nLịch sử cho phép bỏ qua ban đầu vẫn được giữ.")
             .setNegativeButton("Huỷ", null)
             .setPositiveButton("Xác nhận") { _, _ ->
                 Thread {
