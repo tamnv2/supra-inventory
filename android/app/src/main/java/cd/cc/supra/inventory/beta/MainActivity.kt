@@ -226,6 +226,7 @@ class MainActivity : Activity() {
         loginButton = null
         pickerController?.destroy()
         pickerController = null
+        reporterController?.destroy()
         reporterController = null
         adminLauncherController = null
         when (session.role) {
@@ -268,6 +269,7 @@ class MainActivity : Activity() {
     private fun renderReporterHome(session: AppSession, showLauncherBack: Boolean, initialFilter: String = "PENDING") {
         pickerController?.destroy()
         pickerController = null
+        reporterController?.destroy()
         reporterController = null
         val root = baseOperationalPage(session)
         if (showLauncherBack) {
@@ -286,6 +288,7 @@ class MainActivity : Activity() {
     private fun renderAdminLauncher(session: AppSession) {
         pickerController?.destroy()
         pickerController = null
+        reporterController?.destroy()
         reporterController = null
         val root = baseOperationalPage(session)
         adminLauncherController = AdminLauncherController(
@@ -306,6 +309,7 @@ class MainActivity : Activity() {
     private fun stopOperationalClients() {
         pickerController?.destroy()
         pickerController = null
+        reporterController?.destroy()
         reporterController = null
         adminLauncherController = null
         realtimeClient?.stop()
