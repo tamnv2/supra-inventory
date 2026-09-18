@@ -3,11 +3,11 @@
 > DERIVED VIEW. Canonical live status is `ops/project-state.json`; resource identity is `ops/resource-registry.json`.
 
 - Project: `supra-inventory`
-- Web: `D063_CONSOLIDATED_OPS_LOGS_REPORTING_PRESENCE_UI_SOURCE_BUILD_PENDING_RUNTIME`
-- Android: `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SOURCE_BUILD_PENDING_SIGNED_RUNTIME`
-- Latest signed review APK: `beta-vc44`
-- Web runtime source: `c874eafccb732c108f466ed7095a14e1f3e39d0e`
-- Android beta-vc44 source: `765be7baa90e6645a592cc5137324c85fb793009`
+- Web: `D063_CONSOLIDATED_OPS_LOGS_REPORTING_PRESENCE_UI_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Android: `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
+- Latest signed review APK: `beta-vc45`
+- Web runtime source: `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`
+- Android beta-vc45 source: `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`
 - Owner UI review: **IN PROGRESS — no final UI acceptance yet**
 
 ## D057 baseline + D058/D059/D060/D061/D062/D063 refinements
@@ -26,9 +26,9 @@ Visual authority:
 
 Current review endpoints:
 - Web: `https://inventory-beta.supra.cc.cd/`
-- APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc44/supra-inventory-beta.apk`
+- APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc45/supra-inventory-beta.apk`
 
-D062 remains deployed while D063 is the active source/build candidate. D063 consolidates related navigation/workspaces, adds sanitized Beta runtime logs and authenticated online counts, redesigns people/reporting/results layouts and closes remaining dark-theme gaps.
+D063 is deployed on Beta and technically PASS; Owner UI acceptance is pending. D063 consolidates related navigation/workspaces, adds sanitized Beta runtime logs and authenticated online counts, redesigns people/reporting/results layouts and closes remaining dark-theme gaps.
 
 Android/PDA presentation includes transplanted old native activity/login/Picker/Invent/Admin/row/overlay XML plus drawables/colors/styles, with current controllers bound to those resources.
 
@@ -58,11 +58,11 @@ Automated PASS is technical eligibility only. It is not Owner UI acceptance.
 
 ## D063 source candidate
 
-`D063_CONSOLIDATED_OPS_LOGS_REPORTING_PRESENCE_UI_SOURCE_BUILD_PENDING_RUNTIME` is the active Web source candidate; Android source marker is `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SOURCE_BUILD_PENDING_SIGNED_RUNTIME`. `Inventory/Beta/Logs` is created and registered. D062/beta-vc44 remain the deployed/signed runtime references until D063 CI, merge, Beta deploy and signed Android release complete. Stable remains untouched.
+`D063_CONSOLIDATED_OPS_LOGS_REPORTING_PRESENCE_UI_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING` is the active Web source candidate; Android source marker is `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`. `Inventory/Beta/Logs` is created and registered. D062/beta-vc45 remain the deployed/signed runtime references until D063 CI, merge, Beta deploy and signed Android release complete. Stable remains untouched.
 
 ## D062 runtime PASS
 
-`D062_WEB_FINAL_QA_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING` is deployed on Beta. PR #42 merged at `c874eafccb732c108f466ed7095a14e1f3e39d0e`; Deploy Beta run `35347188833` PASS. Scope: canonical five-area Admin/Root navigation over existing approved modules, operational-first landing, hidden-route access repair, and remaining dark transient-surface coverage. Android beta-vc44 and Stable remain unchanged. Owner UI acceptance remains pending.
+`D062_WEB_FINAL_QA_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING` is deployed on Beta. PR #42 merged at `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`; Deploy Beta run `35347188833` PASS. Scope: canonical five-area Admin/Root navigation over existing approved modules, operational-first landing, hidden-route access repair, and remaining dark transient-surface coverage. Android beta-vc45 and Stable remain unchanged. Owner UI acceptance remains pending.
 
 ## D061 runtime PASS
 
@@ -72,7 +72,7 @@ Web-only Owner review refinement:
 - duplicate category/title and nonessential explanatory copy removed;
 - generic `Làm mới` controls removed from realtime-backed operational/results/Picker/user views;
 - D060 Root effective-role/theme semantics preserved;
-- Android beta-vc44 and Stable unchanged.
+- Android beta-vc45 and Stable unchanged.
 
 Evidence: PR #40 merged at `967365bffa8d518e8ad85d802b14753bc5f4fa1d`; Repo Authority Guard PASS; Project State Guard PASS; UI Design Guard run `35334240734` PASS; Deploy Beta run `35334240991` PASS including health/schema, auth/business guards, Web shell and Google OAuth smoke. Owner UI acceptance remains pending.
 
@@ -85,14 +85,14 @@ D060 is deployed on Beta:
 - Web identity/header/Dashboard head follows current Owner review;
 - Web theme supports persisted Auto/Light/Dark; Auto uses Asia/Ho_Chi_Minh dark 18:00–05:59;
 - SQLite schema is 6;
-- Android beta-vc44 refreshes effective role from `/api/auth/me` on resume.
+- Android beta-vc45 refreshes effective role from `/api/auth/me` on resume.
 
 Evidence:
-- PR #38 merge: `765be7baa90e6645a592cc5137324c85fb793009`.
+- PR #38 merge: `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`.
 - Deploy Beta run `35326095378`: PASS.
 - UI Design Guard run `35326095346`: PASS.
 - Verify Beta Android run `35326095361`: PASS.
-- Signed release: `beta-vc44`.
+- Signed release: `beta-vc45`.
 - APK SHA-256: `c2ee4740ebee30fcdfc0ae8dcda44f7d5116dbefe8fbaed035a885e3d98ca5fb`.
 - APK size: `9283170` bytes.
 - Stable untouched.
@@ -116,3 +116,8 @@ Do not resume business logic/scenario rebuild until explicit Owner UI acceptance
 `Tiếp tục review UI D063`
 
 A screenshot or concise UI review note may be appended; no project-history restatement is required.
+
+
+## D063 runtime PASS — 2026-09-19
+
+PR #44 merged at `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`. Repo Authority, Project State and UI Design guards PASS. Deploy Beta run `35371181168` PASS including health/schema, auth/business guards, Web shell and Google OAuth start; `LOGS_FOLDER_ID` is bound to `Inventory/Beta/Logs`. Signed Android release `beta-vc45` published from the same source; Verify Beta Android run `35371181163` PASS, APK SHA-256 `fd9882d08d0aca288114595f79e1f2447141c4fb8ed32cf5750dd001a9c58c61`. Authenticated end-to-end Web/Android log upload still requires field verification with a real signed-in client. Stable remains untouched.

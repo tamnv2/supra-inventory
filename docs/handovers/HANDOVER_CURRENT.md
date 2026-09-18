@@ -6,14 +6,14 @@
 
 Canonical current markers:
 - SQLite schema: `6`
-- Latest Beta APK: `beta-vc44`
-- Web: `D063_CONSOLIDATED_OPS_LOGS_REPORTING_PRESENCE_UI_SOURCE_BUILD_PENDING_RUNTIME`
-- Android: `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SOURCE_BUILD_PENDING_SIGNED_RUNTIME`
+- Latest Beta APK: `beta-vc45`
+- Web: `D063_CONSOLIDATED_OPS_LOGS_REPORTING_PRESENCE_UI_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Android: `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 
 The project is in **UI-first review**, not business-logic rebuild.
 
 - Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinements: **D058 shell + D059 header + D060 Root-role/theme + D061 dark/sidebar/realtime cleanup + D062 final Web QA/IA + D063 consolidated operations/logs/reporting/people review**.
-- D062 remains the deployed Beta runtime baseline while D063 is the active source/build candidate. D063 consolidates related sidebar modules to max three child entries per group, rebuilds operations/results and overview/reporting workspaces, adds authenticated online counts, professional people/accounts UI, Beta Web/Android runtime logs and further dark-theme completion. Stable is unchanged.
+- D063 is deployed on Beta and technically PASS; Owner UI acceptance is pending. D063 consolidates related sidebar modules to max three child entries per group, rebuilds operations/results and overview/reporting workspaces, adds authenticated online counts, professional people/accounts UI, Beta Web/Android runtime logs and further dark-theme completion. Stable is unchanged.
 - Owner has **not yet given UI/layout acceptance** for the current candidate.
 - Technical build/deploy/release PASS must never be interpreted as Owner UI PASS.
 - Until explicit Owner UI acceptance, work is limited to **UI/layout/presentation mismatch repair**.
@@ -21,11 +21,11 @@ The project is in **UI-first review**, not business-logic rebuild.
 
 Current review targets:
 - Web: `https://inventory-beta.supra.cc.cd/`
-- Android signed review release (broader visual review pending): `beta-vc44`
-- APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc44/supra-inventory-beta.apk`
-- Web runtime source: `c874eafccb732c108f466ed7095a14e1f3e39d0e`
-- Android beta-vc44 source: `765be7baa90e6645a592cc5137324c85fb793009`
-- Current Web runtime implementation source: `c874eafccb732c108f466ed7095a14e1f3e39d0e`
+- Android signed review release (broader visual review pending): `beta-vc45`
+- APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc45/supra-inventory-beta.apk`
+- Web runtime source: `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`
+- Android beta-vc45 source: `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`
+- Current Web runtime implementation source: `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`
 
 ## 2. Minimal command for the next chat
 
@@ -183,11 +183,11 @@ These facts prove technical eligibility for review only.
 
 ### D063 source candidate — consolidated operations, logs, reporting, presence and people UI
 
-Owner requirements are recorded as D063. The Beta Drive folder `Inventory/Beta/Logs` exists and is registered in project scope/resource state. Source work adds sanitized Web/Android scheduled/error/manual log upload, online-user counts derived from active authenticated realtime sockets, max-three-child sidebar grouping, merged `Vận hành báo hàng` and `Tổng quan & báo cáo` workspaces, a redesigned `Nhân sự & tài khoản` surface, plain-Vietnamese reporting copy and additional dark-theme coverage. D062 remains the deployed Web runtime until D063 passes branch/PR guards and merge/deploy. Latest signed Android review release remains beta-vc44 until the D063 signed build pipeline completes. Stable is untouched.
+Owner requirements are recorded as D063. The Beta Drive folder `Inventory/Beta/Logs` exists and is registered in project scope/resource state. Source work adds sanitized Web/Android scheduled/error/manual log upload, online-user counts derived from active authenticated realtime sockets, max-three-child sidebar grouping, merged `Vận hành báo hàng` and `Tổng quan & báo cáo` workspaces, a redesigned `Nhân sự & tài khoản` surface, plain-Vietnamese reporting copy and additional dark-theme coverage. D062 remains the deployed Web runtime until D063 passes branch/PR guards and merge/deploy. Latest signed Android review release remains beta-vc45 until the D063 signed build pipeline completes. Stable is untouched.
 
 ### D062 runtime PASS — final Web QA and canonical navigation
 
-D062 preserves already-correct D061 work and closes only the remaining gaps: canonical five-area Admin/Root navigation using existing routes, operational queue as default landing, direct access to results/HR/account surfaces, and dark-theme coverage for expanded/transient legacy surfaces. PR #42 merged at `c874eafccb732c108f466ed7095a14e1f3e39d0e`; Beta deploy run `35347188833` PASS including health/schema, auth/business guards, Web shell and Google OAuth smoke. Android beta-vc44 and Stable are unchanged. Owner UI acceptance remains pending.
+D062 preserves already-correct D061 work and closes only the remaining gaps: canonical five-area Admin/Root navigation using existing routes, operational queue as default landing, direct access to results/HR/account surfaces, and dark-theme coverage for expanded/transient legacy surfaces. PR #42 merged at `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`; Beta deploy run `35347188833` PASS including health/schema, auth/business guards, Web shell and Google OAuth smoke. Android beta-vc45 and Stable are unchanged. Owner UI acceptance remains pending.
 
 ### D061 runtime PASS — dark/sidebar/realtime cleanup
 
@@ -196,9 +196,9 @@ Owner review requirements now captured in D061:
 - Admin/Root sidebar group headings are larger/stronger and group/business entries use inline monochrome SVG icons with no external dependency;
 - redundant category eyebrow + page-title copy and nonessential repeated explanations are removed;
 - generic `Làm mới`/refresh controls are removed from realtime-backed operations/results/Picker/user views; semantic filters/export/support diagnostics remain;
-- Android beta-vc44 and Stable are unchanged.
+- Android beta-vc45 and Stable are unchanged.
 
-Runtime evidence: PR #40 merged at `967365bffa8d518e8ad85d802b14753bc5f4fa1d`; Repo Authority Guard PASS; Project State Guard PASS; UI Design Guard run `35334240734` PASS; Beta deploy run `35334240991` PASS including health/schema, auth/business guards, Web shell and Google OAuth smoke. Owner UI acceptance remains pending. Stable and Android beta-vc44 were not changed by D061.
+Runtime evidence: PR #40 merged at `967365bffa8d518e8ad85d802b14753bc5f4fa1d`; Repo Authority Guard PASS; Project State Guard PASS; UI Design Guard run `35334240734` PASS; Beta deploy run `35334240991` PASS including health/schema, auth/business guards, Web shell and Google OAuth smoke. Owner UI acceptance remains pending. Stable and Android beta-vc45 were not changed by D061.
 
 ### D060 runtime PASS — Root effective role + theme
 
@@ -214,16 +214,16 @@ D060 is deployed on Beta and technically eligible for Owner review:
 - Web clears role-scoped state, reroutes to the selected role landing surface and reconnects realtime;
 - Web theme selector persists `Tự động / Sáng / Tối`; Auto is dark 18:00–05:59 Asia/Ho_Chi_Minh and light 06:00–17:59;
 - dark mode covers actual shell/content/cards/tables/forms/dialogs/diagnostics/footer;
-- Android beta-vc44 refreshes `/api/auth/me` on resume and rerenders if the server effective role changed. Broader Android visual review remains pending.
+- Android beta-vc45 refreshes `/api/auth/me` on resume and rerenders if the server effective role changed. Broader Android visual review remains pending.
 
 Technical evidence:
-- PR #38 merged: `765be7baa90e6645a592cc5137324c85fb793009`.
+- PR #38 merged: `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`.
 - Repo Authority Guard: PASS.
 - Project State Guard: PASS.
 - UI Design Guard run `35326095346`: PASS.
 - Beta deploy run `35326095378`: PASS, including SQLite schema 6 health, auth/business guards, Web shell and Google OAuth smoke.
 - Verify Beta Android run `35326095361`: PASS.
-- Signed release: `beta-vc44`.
+- Signed release: `beta-vc45`.
 - APK size: `9283170` bytes.
 - APK SHA-256: `c2ee4740ebee30fcdfc0ae8dcda44f7d5116dbefe8fbaed035a885e3d98ca5fb`.
 - Owner Web/role/theme acceptance: **PENDING**.
@@ -277,7 +277,7 @@ Status: **IN PROGRESS**.
 
 D063 is under source/build verification; after Beta deploy, Owner will review the consolidated Web candidate. Android/PDA broader visual review remains pending separately.
 
-No D060 Web/theme/role-test surface or beta-vc44 Android surface should be marked Owner-approved unless the Owner explicitly says it is OK.
+No D060 Web/theme/role-test surface or beta-vc45 Android surface should be marked Owner-approved unless the Owner explicitly says it is OK.
 
 The next session must accept feedback in the Owner's normal format, e.g.:
 - `1 OK`
@@ -388,3 +388,8 @@ Useful current files:
 No manual end-of-session handover is required. A new session must bootstrap from `ops/authority-manifest.json` and its declared `bootstrap_order` before mutation.
 
 The Owner's next-chat instruction **`Tiếp tục review UI D063`** is sufficient to resume from this point; any Web screenshot or UI review text supplied with it becomes the immediate work item.
+
+
+## D063 runtime PASS — 2026-09-19
+
+PR #44 merged at `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`. Repo Authority, Project State and UI Design guards PASS. Deploy Beta run `35371181168` PASS including health/schema, auth/business guards, Web shell and Google OAuth start; `LOGS_FOLDER_ID` is bound to `Inventory/Beta/Logs`. Signed Android release `beta-vc45` published from the same source; Verify Beta Android run `35371181163` PASS, APK SHA-256 `fd9882d08d0aca288114595f79e1f2447141c4fb8ed32cf5750dd001a9c58c61`. Authenticated end-to-end Web/Android log upload still requires field verification with a real signed-in client. Stable remains untouched.
