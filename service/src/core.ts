@@ -6,7 +6,7 @@ import { handleUserManagementCoreRequest } from "./user-management-core";
 import { handleArchiveCoreRequest } from "./archive-core";
 import { initializeOperationalV2Schema, operationalV2Readiness } from "./operational-v2-core";
 
-const SCHEMA_VERSION = 5;
+const SCHEMA_VERSION = 6;
 
 interface CoreEnv {
   APP_ENV: string;
@@ -21,6 +21,8 @@ interface InternalUser extends Record<string, SqlStorageValue> {
   employee_code: string | null;
   display_name: string;
   role: AppRole;
+  base_role: AppRole;
+  role_override: AppRole | null;
   status: "ACTIVE" | "DISABLED";
   password_salt: string | null;
   password_hash: string | null;
@@ -93,6 +95,7 @@ export class InventoryCore {
         employee_code TEXT,
         display_name TEXT NOT NULL,
         role TEXT NOT NULL CHECK (role IN ('PICKER','REPORTER','ADMIN','ROOT')),
+        role_override TEXT CHECK (role_override IS NULL OR role_override IN ('PICKER','REPORTER','ADMIN')),
         status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','DISABLED')),
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -235,6 +238,7 @@ export class InventoryCore {
     if (!this.hasColumn("users", "password_salt")) sql.exec("ALTER TABLE users ADD COLUMN password_salt TEXT");
     if (!this.hasColumn("users", "password_hash")) sql.exec("ALTER TABLE users ADD COLUMN password_hash TEXT");
     if (!this.hasColumn("users", "password_changed_at")) sql.exec("ALTER TABLE users ADD COLUMN password_changed_at TEXT");
+    if (!this.hasColumn("users", "role_override")) sql.exec("ALTER TABLE users ADD COLUMN role_override TEXT");
 
     initializeBusinessSchema(this.state);
     initializeOperationalV2Schema(this.state);
@@ -261,7 +265,14 @@ export class InventoryCore {
 
   private getUserByUsername(username: string): InternalUser | null {
     const rows = this.state.storage.sql.exec<InternalUser>(
-      `SELECT user_id, firebase_uid, employee_code, display_name, role, status,
+      `SELECT user_id, firebase_uid, employee_code, display_name,
+              CASE
+                WHEN role = 'ROOT' AND role_override IN ('PICKER','REPORTER','ADMIN') THEN role_override
+                ELSE role
+              END AS role,
+              role AS base_role,
+              role_override,
+              status,
               password_salt, password_hash, password_changed_at
          FROM users
         WHERE lower(employee_code) = lower(?) OR lower(user_id) = lower(?)
@@ -274,7 +285,14 @@ export class InventoryCore {
 
   private getUserByFirebaseUid(uid: string): InternalUser | null {
     const rows = this.state.storage.sql.exec<InternalUser>(
-      `SELECT user_id, firebase_uid, employee_code, display_name, role, status,
+      `SELECT user_id, firebase_uid, employee_code, display_name,
+              CASE
+                WHEN role = 'ROOT' AND role_override IN ('PICKER','REPORTER','ADMIN') THEN role_override
+                ELSE role
+              END AS role,
+              role AS base_role,
+              role_override,
+              status,
               password_salt, password_hash, password_changed_at
          FROM users WHERE firebase_uid = ? LIMIT 1`,
       uid,
@@ -318,6 +336,26 @@ export class InventoryCore {
         body.user_id,
       );
       return response({ status: "linked" });
+    }
+
+    if (request.method === "PUT" && url.pathname === "/auth/root-role-override") {
+      const body = (await request.json()) as { user_id?: string; role?: string };
+      const userId = String(body.user_id || "").trim();
+      const nextRole = String(body.role || "").trim().toUpperCase();
+      if (!userId || !["ROOT", "ADMIN", "REPORTER", "PICKER"].includes(nextRole)) {
+        return response({ error: "invalid_input" }, 400);
+      }
+      const base = this.state.storage.sql.exec<{ role: string }>(
+        "SELECT role FROM users WHERE user_id = ? LIMIT 1",
+        userId,
+      ).toArray()[0];
+      if (!base || String(base.role) !== "ROOT") return response({ error: "root_only" }, 403);
+      this.state.storage.sql.exec(
+        "UPDATE users SET role_override = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?",
+        nextRole === "ROOT" ? null : nextRole,
+        userId,
+      );
+      return response({ user: this.getUserByUsername(userId) });
     }
 
     if (request.method === "PUT" && url.pathname === "/auth/set-password") {
