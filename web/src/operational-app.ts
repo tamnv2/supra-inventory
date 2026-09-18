@@ -802,23 +802,39 @@ function bindOverlay(): void {
 function bindSection(): void {
   document.querySelector<HTMLButtonElement>("#refresh-operations")?.addEventListener("click", () => void run(loadOperations));
   document.querySelector<HTMLButtonElement>("#refresh-results")?.addEventListener("click", () => void run(loadOperations));
+
   document.querySelectorAll<HTMLButtonElement>("[data-resolve]").forEach((button) => button.addEventListener("click", () => {
     const batchId = button.dataset.batch || "";
     const row = queueRows.find((item) => item.batch_id === batchId);
     if (!row) return;
-    void run(async () => { await resolveReporterBatch(batchId, "HAS_STOCK"); await loadOperations(); setNotice("success", `${row.sku} đã xác nhận Có hàng.`); });
+    void run(async () => {
+      await resolveReporterBatch(batchId, "HAS_STOCK");
+      await loadOperations();
+      setNotice("success", `${row.sku} đã xác nhận Có hàng.`);
+    });
   }));
   document.querySelectorAll<HTMLButtonElement>("[data-skip-batch]").forEach((button) => button.addEventListener("click", () => {
     skipConfirm = queueRows.find((item) => item.batch_id === button.dataset.skipBatch) || null;
-    render();
+    patchOverlays();
   }));
   document.querySelectorAll<HTMLButtonElement>("[data-detail]").forEach((button) => button.addEventListener("click", () => {
     const id = button.dataset.detail || "";
-    if (batchDetails.has(id)) { batchDetails.delete(id); render(); return; }
+    if (batchDetails.has(id)) {
+      batchDetails.delete(id);
+      patchActiveSection();
+      return;
+    }
     void run(async () => { batchDetails.set(id, (await getReporterBatchTickets(id)).items); });
   }));
-  document.querySelectorAll<HTMLButtonElement>("[data-correct]").forEach((button) => button.addEventListener("click", () => void run(async () => { await correctReporterBatch(button.dataset.correct || ""); await loadOperations(); setNotice("success", "Đã sửa kết quả thành Có hàng."); })));
-  document.querySelectorAll<HTMLButtonElement>("[data-result-filter]").forEach((button) => button.addEventListener("click", () => { recentFilter = button.dataset.resultFilter as typeof recentFilter; render(); }));
+  document.querySelectorAll<HTMLButtonElement>("[data-correct]").forEach((button) => button.addEventListener("click", () => void run(async () => {
+    await correctReporterBatch(button.dataset.correct || "");
+    await loadOperations();
+    setNotice("success", "Đã sửa kết quả thành Có hàng.");
+  })));
+  document.querySelectorAll<HTMLButtonElement>("[data-result-filter]").forEach((button) => button.addEventListener("click", () => {
+    recentFilter = button.dataset.resultFilter as typeof recentFilter;
+    patchActiveSection();
+  }));
 
   const pickerInput = document.querySelector<HTMLInputElement>("#picker-sku-input");
   let searchTimer = 0;
@@ -826,51 +842,249 @@ function bindSection(): void {
     pickerQuery = pickerInput.value.trim();
     pickerSelected = pickerSelected?.sku === pickerQuery ? pickerSelected : null;
     window.clearTimeout(searchTimer);
-    if (pickerQuery.length < 3) { pickerSuggestions = []; render(); return; }
-    searchTimer = window.setTimeout(() => { void searchSkus(pickerQuery, 20).then((result) => { pickerSuggestions = result.items; render(); }).catch(() => undefined); }, 180);
+    const generation = ++pickerSearchGeneration;
+    const requestedQuery = pickerQuery;
+    if (requestedQuery.length < 3) {
+      pickerSuggestions = [];
+      patchActiveSection();
+      return;
+    }
+    searchTimer = window.setTimeout(() => {
+      void searchSkus(requestedQuery, 20)
+        .then((result) => {
+          if (
+            generation !== pickerSearchGeneration ||
+            requestedQuery !== pickerQuery ||
+            activeSection !== "picker" ||
+            profile?.role !== "PICKER"
+          ) return;
+          pickerSuggestions = result.items;
+          patchActiveSection();
+        })
+        .catch(() => undefined);
+    }, 180);
   });
   document.querySelectorAll<HTMLButtonElement>("[data-pick-sku]").forEach((button) => button.addEventListener("click", () => {
+    pickerSearchGeneration += 1;
     pickerSelected = pickerSuggestions.find((item) => item.sku === button.dataset.pickSku) || null;
     pickerQuery = pickerSelected?.sku || pickerQuery;
     pickerSuggestions = [];
-    render();
+    patchActiveSection();
   }));
   document.querySelector<HTMLButtonElement>("#picker-report")?.addEventListener("click", () => {
     if (!pickerSelected || !onlineForMutation()) return;
     const sku = pickerSelected.sku;
-    void run(async () => { await createPickerReport(sku); pickerSelected = null; pickerQuery = ""; pickerSuggestions = []; await loadPicker(); setNotice("success", `${sku} đã được báo hết hàng.`); });
+    pickerSearchGeneration += 1;
+    void run(async () => {
+      await createPickerReport(sku);
+      pickerSelected = null;
+      pickerQuery = "";
+      pickerSuggestions = [];
+      await loadPicker();
+      setNotice("success", `${sku} đã được báo hết hàng.`);
+    });
   });
   document.querySelector<HTMLButtonElement>("#refresh-picker")?.addEventListener("click", () => void run(loadPicker));
-  document.querySelectorAll<HTMLButtonElement>("[data-withdraw]").forEach((button) => button.addEventListener("click", () => void run(async () => { await withdrawPickerReport(button.dataset.withdraw || ""); await loadPicker(); setNotice("success", "Đã thu hồi báo hàng."); })));
+  document.querySelectorAll<HTMLButtonElement>("[data-withdraw]").forEach((button) => button.addEventListener("click", () => void run(async () => {
+    await withdrawPickerReport(button.dataset.withdraw || "");
+    await loadPicker();
+    setNotice("success", "Đã thu hồi báo hàng.");
+  })));
 
   document.querySelector<HTMLInputElement>("#sku-file")?.addEventListener("change", (event) => {
     const file = (event.currentTarget as HTMLInputElement).files?.[0];
     if (!file) return;
-    void run(async () => { pendingWorkbook = await parseSkuExcel(file); skuConflictChoices.clear(); skuImportProgress = `Đã đọc ${pendingWorkbook.total_data_rows.toLocaleString("vi-VN")} dòng.`; });
+    void run(async () => {
+      pendingWorkbook = await parseSkuExcel(file);
+      skuConflictChoices.clear();
+      skuImportProgress = `Đã đọc ${pendingWorkbook.total_data_rows.toLocaleString("vi-VN")} dòng.`;
+    });
   });
-  document.querySelectorAll<HTMLSelectElement>("[data-sku-conflict]").forEach((select) => select.addEventListener("change", () => { if (select.value) skuConflictChoices.set(select.dataset.skuConflict || "", select.value); else skuConflictChoices.delete(select.dataset.skuConflict || ""); }));
+  document.querySelectorAll<HTMLSelectElement>("[data-sku-conflict]").forEach((select) => select.addEventListener("change", () => {
+    if (select.value) skuConflictChoices.set(select.dataset.skuConflict || "", select.value);
+    else skuConflictChoices.delete(select.dataset.skuConflict || "");
+  }));
   document.querySelector<HTMLButtonElement>("#apply-sku-import")?.addEventListener("click", () => void run(importSkuWorkbook));
 
   document.querySelector<HTMLFormElement>("#hr-source-form")?.addEventListener("submit", (event) => {
-    event.preventDefault(); const data = new FormData(event.currentTarget as HTMLFormElement); void run(async () => { await saveHrSource(String(data.get("sheetUrl") || ""), String(data.get("tabName") || ""), String(data.get("employeeCodeHeader") || ""), String(data.get("fullNameHeader") || "")); hrSource = await getHrSource(); hrPreview = null; setNotice("success", "Đã xác nhận và ghim nguồn nhân sự."); });
+    event.preventDefault();
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    void run(async () => {
+      await saveHrSource(
+        String(data.get("sheetUrl") || ""),
+        String(data.get("tabName") || ""),
+        String(data.get("employeeCodeHeader") || ""),
+        String(data.get("fullNameHeader") || ""),
+      );
+      hrSource = await getHrSource();
+      hrPreview = null;
+      setNotice("success", "Đã xác nhận và ghim nguồn nhân sự.");
+    });
   });
-  document.querySelector<HTMLButtonElement>("#preview-hr")?.addEventListener("click", () => void run(async () => { hrPreview = await previewHrPickerSync(); }));
-  document.querySelector<HTMLButtonElement>("#apply-hr")?.addEventListener("click", () => void run(async () => { await applyHrPickerSync(); hrPreview = await previewHrPickerSync(); setNotice("success", "Đã áp dụng đồng bộ Picker."); }));
+  document.querySelector<HTMLButtonElement>("#preview-hr")?.addEventListener("click", () => void run(async () => {
+    hrPreview = await previewHrPickerSync();
+  }));
+  document.querySelector<HTMLButtonElement>("#apply-hr")?.addEventListener("click", () => void run(async () => {
+    await applyHrPickerSync();
+    hrPreview = await previewHrPickerSync();
+    setNotice("success", "Đã áp dụng đồng bộ Picker.");
+  }));
 
-  document.querySelector<HTMLButtonElement>("#refresh-users")?.addEventListener("click", () => void run(async () => { managedUsers = (await listManagedUsers()).items; }));
-  document.querySelector<HTMLFormElement>("#create-user-form")?.addEventListener("submit", (event) => { event.preventDefault(); const data = new FormData(event.currentTarget as HTMLFormElement); void run(async () => { await createManagedUser(String(data.get("username") || ""), String(data.get("displayName") || ""), String(data.get("role") || "REPORTER") as "ADMIN" | "REPORTER", String(data.get("password") || "")); managedUsers = (await listManagedUsers()).items; setNotice("success", "Đã tạo tài khoản."); }); });
-  document.querySelectorAll<HTMLInputElement>("[data-user-select]").forEach((box) => box.addEventListener("change", () => { const id = box.dataset.userSelect || ""; if (box.checked) selectedUserIds.add(id); else selectedUserIds.delete(id); }));
-  document.querySelectorAll<HTMLButtonElement>("[data-picker-action]").forEach((button) => button.addEventListener("click", () => { const action = button.dataset.pickerAction as "ENABLE" | "DISABLE" | "DELETE"; const ids = [...selectedUserIds]; if (!ids.length) { setNotice("warning", "Chọn ít nhất một Picker."); render(); return; } if (action === "DELETE" && !window.confirm(`Xóa ${ids.length} Picker đã chọn? Lịch sử nghiệp vụ vẫn được giữ.`)) return; void run(async () => { await updatePickerAccounts(action, ids); managedUsers = (await listManagedUsers()).items; selectedUserIds.clear(); setNotice("success", "Đã cập nhật Picker."); }); }));
-  document.querySelectorAll<HTMLButtonElement>("[data-edit-user]").forEach((button) => button.addEventListener("click", () => { const user = managedUsers.find((row) => row.user_id === button.dataset.editUser); if (!user) return; const name = window.prompt("Họ tên", user.display_name); if (name == null) return; const status = window.confirm("OK = ACTIVE, Cancel = DISABLED") ? "ACTIVE" : "DISABLED"; void run(async () => { await updateManagedUser(user.user_id, name.trim(), status); managedUsers = (await listManagedUsers()).items; }); }));
-  document.querySelectorAll<HTMLButtonElement>("[data-password-user]").forEach((button) => button.addEventListener("click", () => { const password = window.prompt("Nhập mật khẩu mới"); if (!password) return; void run(async () => { await setManagedUserPassword(button.dataset.passwordUser || "", password); setNotice("success", "Đã đổi mật khẩu tài khoản."); }); }));
+  document.querySelector<HTMLButtonElement>("#refresh-users")?.addEventListener("click", () => void run(loadUsers));
+  document.querySelector<HTMLFormElement>("#create-user-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    void run(async () => {
+      await createManagedUser(
+        String(data.get("username") || ""),
+        String(data.get("displayName") || ""),
+        String(data.get("role") || "REPORTER") as "ADMIN" | "REPORTER",
+        String(data.get("password") || ""),
+      );
+      await loadUsers();
+      setNotice("success", "Đã tạo tài khoản.");
+    });
+  });
+  document.querySelector<HTMLFormElement>("#user-filter-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    userQuery = String(data.get("query") || "").trim();
+    userRole = String(data.get("role") || "");
+    userStatus = String(data.get("status") || "");
+    userOffset = 0;
+    selectedUserIds.clear();
+    allPickerSelection = false;
+    void run(loadUsers);
+  });
+  document.querySelector<HTMLButtonElement>("#toggle-all-pickers")?.addEventListener("click", () => {
+    allPickerSelection = !allPickerSelection;
+    selectedUserIds.clear();
+    patchActiveSection();
+  });
+  document.querySelectorAll<HTMLInputElement>("[data-user-select]").forEach((box) => box.addEventListener("change", () => {
+    const id = box.dataset.userSelect || "";
+    if (box.checked) selectedUserIds.add(id);
+    else selectedUserIds.delete(id);
+  }));
+  document.querySelectorAll<HTMLButtonElement>("[data-picker-action]").forEach((button) => button.addEventListener("click", () => {
+    const action = button.dataset.pickerAction as "ENABLE" | "DISABLE" | "DELETE";
+    const ids = [...selectedUserIds];
+    if (!allPickerSelection && !ids.length) {
+      setNotice("warning", "Chọn ít nhất một Picker hoặc chọn tất cả Picker.");
+      patchActiveSection();
+      return;
+    }
+    const targetLabel = allPickerSelection ? "tất cả Picker" : `${ids.length} Picker đã chọn`;
+    if (action === "DELETE" && !window.confirm(`Xóa ${targetLabel}? Lịch sử nghiệp vụ vẫn được giữ.`)) return;
+    void run(async () => {
+      await updatePickerAccounts(action, ids, allPickerSelection);
+      selectedUserIds.clear();
+      allPickerSelection = false;
+      await loadUsers();
+      setNotice("success", "Đã cập nhật Picker.");
+    });
+  }));
+  document.querySelectorAll<HTMLButtonElement>("[data-edit-user]").forEach((button) => button.addEventListener("click", () => {
+    editUserId = button.dataset.editUser || null;
+    passwordUserId = null;
+    patchOverlays();
+  }));
+  document.querySelectorAll<HTMLButtonElement>("[data-password-user]").forEach((button) => button.addEventListener("click", () => {
+    passwordUserId = button.dataset.passwordUser || null;
+    editUserId = null;
+    patchOverlays();
+  }));
+  document.querySelector<HTMLButtonElement>("#user-prev")?.addEventListener("click", () => {
+    userOffset = Math.max(0, userOffset - USER_PAGE_SIZE);
+    void run(loadUsers);
+  });
+  document.querySelector<HTMLButtonElement>("#user-next")?.addEventListener("click", () => {
+    userOffset += USER_PAGE_SIZE;
+    void run(loadUsers);
+  });
 
-  document.querySelector<HTMLFormElement>("#sla-form")?.addEventListener("submit", (event) => { event.preventDefault(); const data = new FormData(event.currentTarget as HTMLFormElement); void run(async () => { const warning = Number(data.get("warning")); const escalation = Number(data.get("escalation")); if (!Number.isInteger(warning) || !Number.isInteger(escalation) || warning < 1 || escalation <= warning) throw new Error("Escalate phải lớn hơn cảnh báo và cả hai phải là số nguyên dương."); await saveAdminSla(warning, escalation); await loadSla(); setNotice("success", "Đã lưu cấu hình SLA."); }); });
-  document.querySelector<HTMLFormElement>("#dashboard-filter")?.addEventListener("submit", (event) => { event.preventDefault(); const data = new FormData(event.currentTarget as HTMLFormElement); dashboardFrom = String(data.get("from")); dashboardTo = String(data.get("to")); void run(loadDashboard); });
-  document.querySelector<HTMLFormElement>("#report-filter")?.addEventListener("submit", (event) => { event.preventDefault(); const data = new FormData(event.currentTarget as HTMLFormElement); reportFrom = String(data.get("from")); reportTo = String(data.get("to")); reportStatus = String(data.get("status") || ""); reportQuery = String(data.get("query") || ""); reportOffset = 0; void run(loadReports); });
-  document.querySelector<HTMLButtonElement>("#report-prev")?.addEventListener("click", () => { reportOffset = Math.max(0, reportOffset - REPORT_PAGE_SIZE); void run(loadReports); });
-  document.querySelector<HTMLButtonElement>("#report-next")?.addEventListener("click", () => { reportOffset += REPORT_PAGE_SIZE; void run(loadReports); });
-  document.querySelector<HTMLButtonElement>("#refresh-system")?.addEventListener("click", () => void run(async () => { serviceHealth = await getServiceHealth(); }));
-  document.querySelector<HTMLFormElement>("#password-form")?.addEventListener("submit", (event) => { event.preventDefault(); const data = new FormData(event.currentTarget as HTMLFormElement); void run(async () => { await changeMyPassword(String(data.get("current") || ""), String(data.get("next") || "")); setNotice("success", "Đã đổi mật khẩu."); }); });
+  document.querySelector<HTMLFormElement>("#sla-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    void run(async () => {
+      const warning = Number(data.get("warning"));
+      const escalation = Number(data.get("escalation"));
+      if (
+        !Number.isInteger(warning) ||
+        !Number.isInteger(escalation) ||
+        warning < 1 ||
+        warning > 1440 ||
+        escalation <= warning ||
+        escalation > 2880
+      ) throw new Error("Cảnh báo phải 1–1440 phút; Escalate phải lớn hơn cảnh báo và tối đa 2880 phút.");
+      await saveAdminSla(warning, escalation);
+      await loadSla();
+      setNotice("success", "Đã lưu cấu hình SLA.");
+    });
+  });
+
+  document.querySelector<HTMLFormElement>("#dashboard-filter")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    dashboardFrom = String(data.get("from"));
+    dashboardTo = String(data.get("to"));
+    void run(loadDashboard);
+  });
+  document.querySelector<HTMLFormElement>("#report-filter")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    reportFrom = String(data.get("from"));
+    reportTo = String(data.get("to"));
+    reportStatus = String(data.get("status") || "");
+    reportQuery = String(data.get("query") || "");
+    reportOffset = 0;
+    void run(loadReports);
+  });
+  document.querySelectorAll<HTMLButtonElement>("[data-date-target][data-date-days]").forEach((button) => button.addEventListener("click", () => {
+    const days = Math.max(0, Math.min(59, Number(button.dataset.dateDays || 0)));
+    const target = button.dataset.dateTarget;
+    if (target === "dashboard") {
+      dashboardFrom = dateDaysAgo(days);
+      dashboardTo = dateDaysAgo(0);
+      void run(loadDashboard);
+    } else if (target === "reports") {
+      reportFrom = dateDaysAgo(days);
+      reportTo = dateDaysAgo(0);
+      reportOffset = 0;
+      void run(loadReports);
+    }
+  }));
+  document.querySelectorAll<HTMLButtonElement>("[data-dashboard-status], [data-dashboard-sku]").forEach((button) => button.addEventListener("click", () => {
+    reportFrom = dashboardFrom;
+    reportTo = dashboardTo;
+    reportStatus = button.dataset.dashboardStatus || "";
+    reportQuery = button.dataset.dashboardSku || "";
+    reportOffset = 0;
+    activeSection = "reports";
+    notice = null;
+    void run(loadReports);
+  }));
+  document.querySelector<HTMLButtonElement>("#report-prev")?.addEventListener("click", () => {
+    reportOffset = Math.max(0, reportOffset - REPORT_PAGE_SIZE);
+    void run(loadReports);
+  });
+  document.querySelector<HTMLButtonElement>("#report-next")?.addEventListener("click", () => {
+    reportOffset += REPORT_PAGE_SIZE;
+    void run(loadReports);
+  });
+  document.querySelector<HTMLButtonElement>("#export-reports")?.addEventListener("click", () => void run(exportReportsCsv));
+
+  document.querySelector<HTMLButtonElement>("#refresh-system")?.addEventListener("click", () => void run(async () => {
+    serviceHealth = await getServiceHealth();
+  }));
+  document.querySelector<HTMLFormElement>("#password-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    void run(async () => {
+      await changeMyPassword(String(data.get("current") || ""), String(data.get("next") || ""));
+      setNotice("success", "Đã đổi mật khẩu.");
+    });
+  });
 }
 
 async function importSkuWorkbook(): Promise<void> {
