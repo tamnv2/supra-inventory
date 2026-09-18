@@ -451,7 +451,7 @@ class MainActivity : Activity() {
             .put("catalog", JSONObject()
                 .put("count", skuCache.count)
                 .put("version", sanitizeDiagnosticText(skuCache.version).take(160)))
-            .put("recent_events", JSONArray(localLog.takeLast(80).map(::sanitizeDiagnosticText)))
+            .put("recent_events", JSONArray(localLog.toList().takeLast(80).map(::sanitizeDiagnosticText)))
             .put("recent_errors", JSONArray(errors))
 
         return root.toString(2).take(16_000)
