@@ -103,6 +103,7 @@ class InventoryUi(private val activity: Activity) {
     }
 
     fun stylePrimary(button: Button) = styleButton(button, navyMid, Color.WHITE, navyMid)
+    fun styleSuccess(button: Button) = styleButton(button, green, Color.WHITE, green)
     fun styleDanger(button: Button) = styleButton(button, red, Color.WHITE, red)
     fun styleSecondary(button: Button) = styleButton(button, Color.WHITE, navy, lineStrong)
     fun styleWarning(button: Button) = styleButton(button, orangeSoft, orange, Color.parseColor("#EBC56E"))
