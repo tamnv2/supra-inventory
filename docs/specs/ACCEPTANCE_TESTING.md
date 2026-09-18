@@ -179,3 +179,15 @@ Non-destructive CI tests may use declared synthetic tiers. Destructive/mutation 
 - Detailed reporting supports bounded paged CSV export using the current safe Beta columns without claiming those columns as the final Stable export contract.
 - Web SLA validation uses the same current bounds as the server: warning 1–1440 minutes; escalation > warning and <= 2880 minutes.
 
+## Android operational P1 regression acceptance
+
+- Picker history and Reporter operational lists use keyed rendering; realtime refresh must not rebuild the whole operational root.
+- Picker withdrawal is reachable by one visible tap followed by confirmation and still obeys the server 60-second/open-ticket rule.
+- Critical result fetch may record `RECEIVED`; `DISPLAYED` is recorded only after the blocking result dialog is actually shown.
+- Local SKU catalog uses SQLite staging + authoritative version/count recheck + transactional promotion; an interrupted or inconsistent sync must leave the previous valid catalog intact.
+- Firebase background operational messages are data-only/high-priority and are handled by `FirebaseMessagingService`; notification tap/resume triggers authoritative reconciliation.
+- FCM token rotation is retained and registered against the next/current authenticated device session.
+- Provider delivery attempts are recorded separately from client receipt/display/ACK; invalid/unregistered tokens are disabled.
+- Mandatory update verification checks canonical HTTPS source, Beta tag/channel, SHA-256, package ID, exact versionCode/versionName and trusted signing certificate before installer handoff.
+- Login is allowed only when installed versionCode exactly matches the currently verified Beta release; unexpected ahead-of-channel builds also fail closed.
+- Admin/Root launcher operations/results are distinct, and Web-first launcher entries open the exact role-authorized module instead of the generic root page.
