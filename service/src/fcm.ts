@@ -9,6 +9,13 @@ type FcmMessage = {
   data?: Record<string, string>;
 };
 
+export type FcmDeliveryAttempt = {
+  token: string;
+  status: "SENT" | "FAILED";
+  error_code: string | null;
+  invalid_token: boolean;
+};
+
 const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 const FCM_SCOPE = "https://www.googleapis.com/auth/firebase.messaging";
 let accessTokenCache: { token: string; expiresAt: number } | null = null;
@@ -78,16 +85,18 @@ export async function sendFcmNotifications(
   projectId: string,
   tokens: string[],
   message: FcmMessage,
-): Promise<{ sent: number; failed: number }> {
+): Promise<{ sent: number; failed: number; invalidTokens: string[]; attempts: FcmDeliveryAttempt[] }> {
   const unique = [...new Set(tokens.map((value) => value.trim()).filter(Boolean))].slice(0, 500);
-  if (!unique.length) return { sent: 0, failed: 0 };
+  if (!unique.length) return { sent: 0, failed: 0, invalidTokens: [], attempts: [] };
   const bearer = await accessToken(rawServiceAccountJson);
   let sent = 0;
   let failed = 0;
+  const attempts: FcmDeliveryAttempt[] = [];
   const endpoint = `https://fcm.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/messages:send`;
+
   for (let offset = 0; offset < unique.length; offset += 20) {
     const chunk = unique.slice(offset, offset + 20);
-    const results = await Promise.all(chunk.map(async (token) => {
+    const results = await Promise.all(chunk.map(async (token): Promise<FcmDeliveryAttempt> => {
       try {
         const response = await fetch(endpoint, {
           method: "POST",
@@ -108,12 +117,37 @@ export async function sendFcmNotifications(
             },
           }),
         });
-        return response.ok;
+        if (response.ok) {
+          return { token, status: "SENT", error_code: null, invalid_token: false };
+        }
+        let status = `HTTP_${response.status}`;
+        let invalid = response.status === 404;
+        try {
+          const payload = (await response.json()) as {
+            error?: { status?: string; details?: Array<{ errorCode?: string }> };
+          };
+          status = String(payload.error?.status || status);
+          invalid = invalid ||
+            status === "NOT_FOUND" ||
+            Boolean(payload.error?.details?.some((detail) => detail.errorCode === "UNREGISTERED"));
+        } catch {
+          // Keep bounded HTTP status only.
+        }
+        return { token, status: "FAILED", error_code: status.slice(0, 100), invalid_token: invalid };
       } catch {
-        return false;
+        return { token, status: "FAILED", error_code: "NETWORK_ERROR", invalid_token: false };
       }
     }));
-    for (const ok of results) ok ? sent++ : failed++;
+    for (const result of results) {
+      attempts.push(result);
+      result.status === "SENT" ? sent++ : failed++;
+    }
   }
-  return { sent, failed };
+
+  return {
+    sent,
+    failed,
+    invalidTokens: attempts.filter((attempt) => attempt.invalid_token).map((attempt) => attempt.token),
+    attempts,
+  };
 }
