@@ -121,8 +121,7 @@ const ROUTABLE_SECTIONS: Section[] = [
 
 function defaultSectionForProfile(value: AppProfile): Section {
   if (value.role === "PICKER") return "picker";
-  if (value.role === "REPORTER") return "operations";
-  return "dashboard";
+  return "operations";
 }
 
 function canAccessSection(section: Section, value: AppProfile): boolean {
@@ -509,9 +508,10 @@ function navIcon(key: string): string {
     versions: '<path d="m12 3 8 4-8 4-8-4 8-4Z"/><path d="m4 12 8 4 8-4M4 17l8 4 8-4"/>',
     account: '<circle cx="12" cy="8" r="3"/><path d="M5 20c.8-4.2 3.1-6.5 7-6.5s6.2 2.3 7 6.5"/>',
     "group-operations": '<path d="M4 12h3l2-5 4 10 2-5h5"/>',
+    "group-data": '<ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v6c0 1.7 3.1 3 7 3s7-1.3 7-3V5M5 11v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/>',
     "group-management": '<path d="M12 3 5 6v5c0 4.5 2.8 8.2 7 10 4.2-1.8 7-5.5 7-10V6l-7-3Z"/>',
-    "group-infrastructure": '<path d="M4 7h16M4 17h16M7 4v6M17 14v6"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="7" r="2"/>',
-    "group-settings": '<circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/>',
+    "group-reports": '<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>',
+    "group-system": '<circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/>',
   };
   return `<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[key] || paths.dashboard}</svg>`;
 }
@@ -521,19 +521,36 @@ function navButton(section: Section, label: string): string {
 }
 
 function navGroup(title: string, rows: Array<[Section, string]>): string {
-  const iconKey = title === "VẬN HÀNH" ? "group-operations" : title === "QUẢN LÝ" ? "group-management" : title === "HẠ TẦNG" ? "group-infrastructure" : "group-settings";
+  const iconKey = title === "VẬN HÀNH"
+    ? "group-operations"
+    : title === "DỮ LIỆU"
+      ? "group-data"
+      : title === "QUẢN TRỊ"
+        ? "group-management"
+        : title === "BÁO CÁO"
+          ? "group-reports"
+          : "group-system";
   return `<span class="nav-section-label" data-nav-section="${esc(title)}">${navIcon(iconKey)}<span>${esc(title)}</span></span>${rows.map(([id, label]) => navButton(id, label)).join("")}`;
 }
 
 function renderNav(): string {
   if (!profile) return "";
-  if (profile.role === "PICKER") return navButton("picker", "Báo thiếu hàng");
-  if (profile.role === "REPORTER") return navButton("operations", "Xử lý báo thiếu");
+  if (profile.role === "PICKER") {
+    return [navButton("picker", "Báo thiếu hàng"), navButton("account", "Tài khoản & mật khẩu")].join("");
+  }
+  if (profile.role === "REPORTER") {
+    return [
+      navButton("operations", "Xử lý báo thiếu"),
+      navButton("results", "Kết quả gần đây"),
+      navButton("account", "Tài khoản & mật khẩu"),
+    ].join("");
+  }
   return [
-    navGroup("VẬN HÀNH", [["dashboard", "Tổng quan hôm nay"], ["operations", "Xử lý báo thiếu"], ["sku", "Danh mục SKU"], ["reports", "Báo cáo vận hành"]]),
-    navGroup("QUẢN LÝ", [["users", "Nhân sự & tài khoản"], ["devices", "Thiết bị & thông báo"]]),
-    navGroup("HẠ TẦNG", [["system", "Hạ tầng & chi phí"], ["logs", "Nhật ký hệ thống"]]),
-    navGroup("THIẾT LẬP", [["sla", "Thời gian nghiệp vụ"], ["versions", "Phiên bản ứng dụng"]]),
+    navGroup("VẬN HÀNH", [["operations", "Xử lý báo thiếu"], ["results", "Kết quả gần đây"]]),
+    navGroup("DỮ LIỆU", [["sku", "Danh mục SKU"], ["hr", "Nguồn nhân sự"]]),
+    navGroup("QUẢN TRỊ", [["users", "Nhân sự & tài khoản"], ["sla", "Thời gian nghiệp vụ"]]),
+    navGroup("BÁO CÁO", [["dashboard", "Tổng quan hôm nay"], ["reports", "Báo cáo vận hành"]]),
+    navGroup("HỆ THỐNG", [["devices", "Thiết bị & thông báo"], ["system", "Trạng thái dịch vụ"], ["logs", "Nhật ký hệ thống"], ["versions", "Phiên bản ứng dụng"], ["account", "Tài khoản & mật khẩu"]]),
   ].join("");
 }
 
