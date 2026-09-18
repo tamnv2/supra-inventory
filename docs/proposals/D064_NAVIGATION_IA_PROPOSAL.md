@@ -1,6 +1,6 @@
-# D065 Navigation IA Proposal — THREE LARGE GROUPS — PENDING OWNER IMPLEMENTATION APPROVAL
+# D065/D066 Navigation IA — THREE LARGE GROUPS — OWNER APPROVED
 
-Status: **OWNER-CONSTRAINED PROPOSAL — exactly 3 large groups, at most 5 visible children per large group. Do not implement until Owner approves the exact composition.**
+Status: **OWNER APPROVED by D066 for Beta Web implementation — exactly 3 large groups, at most 5 visible children per large group.**
 
 ## Owner refinement
 
@@ -175,7 +175,7 @@ Do not force the three-group Admin IA onto Picker. Keep the single Picker operat
 
 Android/PDA remains unchanged by this proposal unless Owner explicitly extends this navigation decision to Android.
 
-## Implementation guard if Owner approves
+## Implementation guard
 
 - Recompose navigation/workspaces only; do not alter business state transitions or API behavior.
 - Merge current `Nguồn nhân sự` route into `Nhân sự & tài khoản` as an internal tab/section.
@@ -184,5 +184,5 @@ Android/PDA remains unchanged by this proposal unless Owner explicitly extends t
 - Rename `Thiết lập nghiệp vụ` to `Thời gian xử lý`.
 - Move personal `Tài khoản & mật khẩu` from sidebar to pinned identity/user control.
 - Preserve D064 `Trạng thái hệ thống` functionality and D063 logs.
-- Beta only; Stable remains OWNER-GATED.
+- Beta Web only; Stable remains OWNER-GATED.
 - Run authority/state/UI/realtime/RBAC guards and Owner visual review after implementation.

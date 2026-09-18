@@ -554,30 +554,24 @@ function navButton(section: Section, label: string): string {
 function navGroup(title: string, rows: Array<[Section, string]>): string {
   const iconKey = title === "VẬN HÀNH"
     ? "group-operations"
-    : title === "DỮ LIỆU"
-      ? "group-data"
-      : title === "QUẢN TRỊ"
-        ? "group-management"
-        : title === "BÁO CÁO"
-          ? "group-reports"
-          : "group-system";
+    : title === "QUẢN LÝ"
+      ? "group-management"
+      : "group-system";
   return `<span class="nav-section-label" data-nav-section="${esc(title)}">${navIcon(iconKey)}<span>${esc(title)}</span></span>${rows.map(([id, label]) => navButton(id, label)).join("")}`;
 }
 
 function renderNav(): string {
   if (!profile) return "";
   if (profile.role === "PICKER") {
-    return [navButton("picker", "Báo thiếu hàng"), navButton("account", "Tài khoản & mật khẩu")].join("");
+    return navButton("picker", "Báo thiếu hàng");
   }
   if (profile.role === "REPORTER") {
-    return [navButton("operations", "Vận hành báo hàng"), navButton("account", "Tài khoản & mật khẩu")].join("");
+    return navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"]]);
   }
   return [
-    navGroup("VẬN HÀNH", [["operations", "Vận hành báo hàng"]]),
-    navGroup("DỮ LIỆU", [["sku", "Danh mục SKU"], ["hr", "Nguồn nhân sự"]]),
-    navGroup("QUẢN TRỊ", [["users", "Nhân sự & tài khoản"], ["sla", "Thiết lập nghiệp vụ"]]),
-    navGroup("BÁO CÁO", [["dashboard", "Tổng quan & báo cáo"]]),
-    navGroup("HỆ THỐNG", [["system", "Trạng thái hệ thống"], ["logs", "Nhật ký"], ["account", "Tài khoản & mật khẩu"]]),
+    navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"]]),
+    navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"], ["sla", "Thời gian xử lý"]]),
+    navGroup("HỆ THỐNG", [["system", "Trạng thái hệ thống"], ["logs", "Nhật ký"]]),
   ].join("");
 }
 
@@ -637,7 +631,7 @@ function renderShell(content: string): void {
         <div class="header-controls">
           ${profile.base_role === "ROOT" ? `<label class="header-control root-role-control"><span>Kiểm tra quyền</span><select id="root-role-select">${(["ROOT","ADMIN","REPORTER","PICKER"] as AppProfile["role"][]).map((role) => `<option value="${role}" ${profile?.role === role ? "selected" : ""}>${esc(rootRoleOptionLabel(role))}</option>`).join("")}</select></label>` : ""}
           <label class="header-control theme-control"><span>Giao diện</span><select id="theme-mode"><option value="AUTO" ${themeMode === "AUTO" ? "selected" : ""}>Tự động</option><option value="LIGHT" ${themeMode === "LIGHT" ? "selected" : ""}>Sáng</option><option value="DARK" ${themeMode === "DARK" ? "selected" : ""}>Tối</option></select></label>
-          <div class="user-actions"><button id="logout" class="ghost">Đăng xuất</button></div>
+          <div class="user-actions"><button type="button" class="ghost header-account-action ${activeSection === "account" ? "active" : ""}" data-section="account">Tài khoản</button><button id="logout" class="ghost">Đăng xuất</button></div>
         </div>
       </div>
     </header>
@@ -855,10 +849,18 @@ function renderSku(): string {
   </section>`;
 }
 
+function renderPeopleTabs(current: "users" | "hr"): string {
+  return `<div class="workspace-tabs" role="tablist" aria-label="Nhân sự và tài khoản">
+    <button type="button" class="workspace-tab ${current === "users" ? "active" : ""}" data-workspace-section="users">Danh sách tài khoản</button>
+    <button type="button" class="workspace-tab ${current === "hr" ? "active" : ""}" data-workspace-section="hr">Nguồn nhân sự & đồng bộ Picker</button>
+  </div>`;
+}
+
 function renderHr(): string {
   const source = hrSource?.source;
-  return `<section class="ops-route">
-    <div class="heading"><div><h2>Nguồn danh sách nhân sự</h2></div></div>
+  return `<section class="ops-route people-workspace">
+    <div class="business-page-head"><div><h2>Nhân sự & tài khoản</h2><p>Quản lý tài khoản, nguồn nhân sự và đồng bộ Picker trong cùng một nghiệp vụ.</p></div></div>
+    ${renderPeopleTabs("hr")}
     <article class="ops-panel ops-staff-source">
       <div class="ops-panel-title"><div><h3>Google Sheet nhân sự</h3><p>Nhập link, tên tab và đúng tên cột đang sử dụng.</p></div></div>
       <form id="hr-source-form" class="ops-form-grid">
@@ -887,6 +889,7 @@ function renderUsers(): string {
   const reporterCount = managedUsers.filter((user) => user.role === "REPORTER").length;
   return `<section class="ops-route users-workspace">
     <div class="business-page-head"><div><h2>Nhân sự & tài khoản</h2><p>Tạo, tìm kiếm và quản lý tài khoản theo đúng vai trò nghiệp vụ.</p></div></div>
+    ${renderPeopleTabs("users")}
     <section class="business-summary-grid">
       <article class="business-summary-card primary"><span>Tài khoản phù hợp</span><strong>${userTotal.toLocaleString("vi-VN")}</strong><small>Theo bộ lọc hiện tại</small></article>
       <article class="business-summary-card good"><span>Đang hoạt động trên trang</span><strong>${activeCount}</strong><small>Trong ${managedUsers.length} tài khoản đang hiển thị</small></article>
