@@ -1,6 +1,6 @@
 # D065/D066 Navigation IA — THREE LARGE GROUPS — OWNER APPROVED
 
-Status: **OWNER APPROVED by D066 for Beta Web implementation — exactly 3 large groups, at most 5 visible children per large group.**
+Status: **OWNER APPROVED by D066 and DEPLOYED ON BETA — exactly 3 large groups, at most 5 visible children per large group. Owner visual acceptance remains pending.**
 
 ## Owner refinement
 
@@ -186,3 +186,11 @@ Android/PDA remains unchanged by this proposal unless Owner explicitly extends t
 - Preserve D064 `Trạng thái hệ thống` functionality and D063 logs.
 - Beta Web only; Stable remains OWNER-GATED.
 - Run authority/state/UI/realtime/RBAC guards and Owner visual review after implementation.
+
+## Runtime evidence
+
+- PR #50 merged at `2e12e6d4e94b195e3b505b3f2abe9822ca91632c`.
+- PR authority/state/UI guards PASS.
+- Main UI Design Guard run `35407227884` PASS.
+- Beta deploy run `35407227911` PASS.
+- Stable was not changed.
