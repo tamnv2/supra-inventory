@@ -280,6 +280,10 @@ class MainActivity : Activity() {
             .also { it.render(view) }
     }
 
+    private fun renderAdminResults(session: AppSession) {
+        renderReporterHome(session, showLauncherBack = true, initialFilter = "HAS_STOCK")
+    }
+
     private fun renderAdminLauncher(session: AppSession) {
         showBack(false)
         pickerController?.destroy()
