@@ -30,7 +30,8 @@
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
     "ui_design_guard": "LEGACY_OPERATIONAL_UI_V2_SOURCE_SERVICE_WEB_ANDROID_PASS",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
-    "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS"
+    "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
+    "ui_rebaseline_sequence": "OWNER_UI_FIRST_LEGACY_PARITY_GATE_ACTIVE__BUSINESS_REBUILD_DEFERRED_UNTIL_OWNER_UI_ACCEPTANCE"
   },
   "hard_guards": [
     "Do not import assumptions or resources from other projects; prior Báo hàng 1291 is UX/business reference only under D044.",
@@ -63,7 +64,8 @@
     "Diagnostics are bounded/redacted and never expose credentials/session/signing material.",
     "HR source is Admin/Root configurable with Google Sheet URL, exact tab and configurable employee/name columns; Picker lifecycle remains explicit Admin/Root authority.",
     "SKU Excel imports support 10,000-50,000 rows using bounded idempotent chunks and explicit conflict handling.",
-    "Android Beta must verify latest valid signed Beta version before login."
+    "Android Beta must verify latest valid signed Beta version before login.",
+    "UI-first sequencing: complete and obtain Owner acceptance for the legacy-reference Web + Android/PDA visual shell before rebuilding/wiring remaining logic, scenarios and business requirements."
   ],
   "completed_capabilities": [
     "Cloudflare Beta Worker/custom domain/InventoryCore SQLite provisioning",
@@ -97,7 +99,10 @@
     "F14 server-calibrated local SLA progression, F19 archive/retention lifecycle coverage, F20 bounded 60-day SQL operational insights, and F23 bounded/redacted Web/PDA diagnostics are automated runtime/release PASS"
   ],
   "pending_build": [
-    "Physical PDA/FCM business acceptance",
+    "Legacy-reference Web UI parity shell and Owner UI/layout acceptance",
+    "Legacy-reference Android/PDA UI parity shell and Owner UI/layout acceptance",
+    "Business logic/scenario rebuild and wiring only after Owner UI gate",
+    "Physical PDA/FCM business acceptance after the UI/business rebuild",
     "Isolated mutation load acceptance after Owner scale target"
   ],
   "field_pending": [
@@ -112,8 +117,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Continue Beta acceptance: physical PDA/FCM critical-result flow and Owner Web/Android functional acceptance; run isolated mutation load acceptance after the Owner workload target is fixed.",
-    "method": "Use beta-vc40 and the deployed c3756436 runtime baseline; record field acceptance separately from automated PASS and do not infer physical-device PASS from CI.",
+    "primary": "Rebaseline the complete Beta Web + Android/PDA UI from the Owner-approved prior Báo hàng 1291 visual/layout source, then obtain explicit Owner UI/layout acceptance before continuing business logic/scenario rebuild.",
+    "method": "Read legacy UI source only; port visual structure/style/interaction density onto the current architecture without importing legacy backend/resources/credentials and without intentional business-rule changes during the parity phase.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -141,19 +146,21 @@
   },
   "workboard": {
     "in_progress": [
-      "Physical Beta PDA/UI acceptance on signed beta-vc40",
-      "Physical background FCM delivery/display plus explicit critical-result acknowledgement acceptance",
-      "Owner Web/Android functional acceptance",
-      "Isolated business-mutation load acceptance after Owner workload target/test boundary is fixed"
+      "Inventory and map legacy Báo hàng 1291 Web/Android UI source to current Web/Android screens",
+      "Port complete Web visual shell/layout to the current Beta client",
+      "Port complete Android/PDA visual shell/layout to the current Beta client",
+      "Owner UI/layout acceptance gate before business rebuild"
     ],
     "next": [
-      "Run physical Beta PDA/UI and background FCM/critical-result acceptance on beta-vc40",
-      "Capture Owner Web/Android business acceptance by scenario without converting automated CI PASS into field PASS",
-      "After workload target is fixed, execute isolated mutation load acceptance and record evidence"
+      "Complete Web parity implementation and build/deploy candidate",
+      "Complete Android/PDA parity implementation and signed Beta candidate",
+      "Collect Owner UI acceptance screen-by-screen",
+      "Only after UI gate PASS, rebuild/wire canonical logic, scenarios and business requirements",
+      "After functional rebuild, resume FCM/device/load acceptance"
     ],
     "blocked_or_owner_field_dependent": [
-      "Final physical-PDA UI/business acceptance after new signed Beta is available",
-      "Physical background FCM display/explicit ACK acceptance",
+      "Owner UI/layout acceptance is required before business rebuild becomes active",
+      "Physical background FCM display/explicit ACK acceptance follows the functional rebuild",
       "Isolated mutation load acceptance still requires an Owner workload target/test boundary"
     ],
     "last_source_build_evidence": {
