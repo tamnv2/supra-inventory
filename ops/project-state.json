@@ -116,14 +116,14 @@
     "UI Design Guard run 35309444877 PASS on fa677463 with D057 presentation invariants plus Web production and Android debug build gates."
   ],
   "pending_build": [
-    "Owner screen-by-screen Web UI/layout acceptance on the deployed D058 Beta candidate",
+    "D059 Web header/identity source/build/deploy gate and Owner screen-by-screen UI acceptance",
     "Android/APK visual review after Owner resumes it",
     "Only after Owner UI gate: rebuild/wire canonical business logic/scenarios",
     "Physical notification/device acceptance after functional rebuild",
     "Isolated mutation load acceptance after Owner workload target"
   ],
   "field_pending": [
-    "Owner Web visual/layout acceptance is pending for deployed D058.",
+    "Owner Web visual/layout acceptance is pending for D059.",
     "Android/APK review remains pending separately.",
     "Technical source/build/deploy/release PASS is not Owner UI acceptance."
   ],
@@ -135,8 +135,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Continue Owner-led screen-by-screen review of deployed D058 Web. Repair only visual/layout/copy mismatches reported or confirmed during review; Android/APK remains pending.",
-    "method": "Fresh-bootstrap canonical GitHub in the next session. D058 is the active Web refinement over D057: no test strip, no AI/Owner or implementation prose, pinned topbar + Admin/Root left navigation, central-workspace scrolling, full available desktop width, fixed bottom-right credit. Owner only needs to provide the current Web screen feedback/screenshot.",
+    "primary": "Complete D059 Web-only source/build gates, merge through PR, verify Beta Web deploy, then continue Owner screen-by-screen Web review.",
+    "method": "Apply Owner D059 Web refinement over D058: corporate title, Service Cloudflare ON/OFF, event-driven Cập nhật HH:mm MM/DD/YYYY, Tên/User/Quyền + logout only, all Admin/Root left navigation aligned left, and local/system Segoe/Aptos typography. Do not modify Android in this workstream.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -164,17 +164,18 @@
   },
   "workboard": {
     "in_progress": [
-      "Owner is actively reviewing the deployed D058 Web desktop shell candidate",
-      "UI-only Web presentation mismatch repair from Owner review feedback; Android/APK review remains pending"
+      "D059 Web header/identity source candidate: corporate identity, Cloudflare ON/OFF, latest received-data timestamp, Tên/User/Quyền + logout, left-aligned Admin/Root navigation and cleaner system typography",
+      "Owner Web UI acceptance remains pending; Android/APK review remains paused"
     ],
     "next": [
-      "Continue Owner screen-by-screen Web review from the deployed D058 Beta candidate without asking Owner to repeat project history",
-      "For each rejected Web screen, repair presentation/layout/copy only and preserve D058 pinned shell/full-workspace rules",
+      "Run D059 source/build/authority/continuity guards and merge only after PASS",
+      "Verify Beta Web deployment for the merged D059 source without mutating Stable",
+      "Continue Owner screen-by-screen Web review from the deployed D059 candidate",
       "Keep Android/APK pending until Owner explicitly starts its separate review",
       "Only after explicit Owner UI acceptance resume canonical business wiring"
     ],
     "blocked_or_owner_field_dependent": [
-      "Final Web UI/layout acceptance depends on Owner visual review of the deployed D058 candidate",
+      "Final Web UI/layout acceptance depends on Owner visual review of the deployed D059 candidate",
       "Android/APK visual review is pending by Owner instruction",
       "No business rebuild is authorized while the UI gate is still in progress"
     ],
@@ -226,7 +227,7 @@
   "last_updated": "2026-09-18",
   "owner_ui_review": {
     "status": "IN_PROGRESS",
-    "phase": "D058_WEB_DESKTOP_RUNTIME_REVIEW",
+    "phase": "D059_WEB_HEADER_IDENTITY_SOURCE_REVIEW",
     "started_on": "2026-09-18",
     "review_target_web": "https://inventory-beta.supra.cc.cd/",
     "review_target_android_release": "beta-vc43",
@@ -234,8 +235,8 @@
     "visual_authority_repository": "tam95supra-source/bao-hang-1291",
     "visual_authority_commit": "8713f487386fa39c9225b180b2b8448d4a7e2b2d",
     "owner_acceptance": "NOT_YET_GIVEN",
-    "current_instruction": "Continue Web screen-by-screen UI/layout review on the deployed D058 Beta candidate. Android/APK remains pending and unchanged. Do not resume business logic/scenario rebuild until explicit Owner UI acceptance.",
-    "next_session_command": "Tiếp tục review UI D058",
+    "current_instruction": "Continue Web UI review with D059 header/identity refinement: corporate title, Cloudflare ON/OFF + event-driven update timestamp, Tên/User/Quyền identity, logout only, left-aligned Admin/Root navigation, cleaner local/system font. Android/APK remains pending and unchanged.",
+    "next_session_command": "Tiếp tục review UI D059",
     "review_feedback_protocol": "Owner may send the current Web screenshot and concise feedback; AI must bootstrap canonical repo first, apply Web presentation-only repair through branch -> PR -> authority/continuity/UI guards -> merge -> Beta deploy verification, then return the next Web review candidate. Android remains pending."
   }
 }
