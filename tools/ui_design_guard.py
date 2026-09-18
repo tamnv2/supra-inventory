@@ -47,6 +47,7 @@ DECISIONS = read("docs/OWNER_DECISIONS.md")
 checks = {
     "authority_direct_legacy_transplant": "D057" in DECISIONS and "direct legacy presentation transplant" in DESIGN_SPEC.lower(),
     "authority_d058_owner_web_review": "D058" in DECISIONS and "Owner-reviewed desktop shell refinement" in DESIGN_SPEC,
+    "authority_d059_web_header_review": "D059" in DECISIONS and "Owner-reviewed header and identity refinement" in DESIGN_SPEC,
     "authority_ui_acceptance_distinct_from_ci": "CI/build PASS" in DESIGN_SPEC and "Owner UI" in DESIGN_SPEC,
     "authority_no_offline_mode": "D043" in DECISIONS and "No offline business mode" in DESIGN_SPEC,
 
@@ -78,6 +79,33 @@ checks = {
         "max-width: none !important",
     ]),
     "web_d058_credit": "Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291" in WEB_APP,
+    "web_d059_corporate_header": all(token in WEB_APP for token in [
+        "CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN",
+        "Website nghiệp vụ Inventory 1291",
+        "Service: Cloudflare",
+        "Cập nhật:",
+    ]),
+    "web_d059_role_labels": all(token in WEB_APP for token in ["Quản trị hệ thống", "Người báo hàng", "Người lấy hàng"]),
+    "web_d059_identity_fields": all(token in WEB_APP for token in ["<b>Tên:</b>", "<b>User:</b>", "<b>Quyền:</b>", 'id="logout"']),
+    "web_d059_no_top_password": "change-password-top" not in WEB_APP,
+    "web_d059_update_timestamp_event_driven": all(token in WEB_APP for token in [
+        "lastWebUpdateAt",
+        "markWebUpdateReceived",
+        "events.length > 0",
+        "formatHeaderUpdate",
+    ]),
+    "web_d059_service_reachability": all(token in WEB_APP for token in [
+        "serviceReachable",
+        'data-state="',
+        'realtimeState === "connected"',
+    ]),
+    "web_d059_left_nav_and_font": all(token in WEB_FAST for token in [
+        "D059 Owner Web review",
+        '"Segoe UI Variable Text"',
+        '"Aptos"',
+        "text-align: left !important",
+        ".header-user-grid",
+    ]),
     "web_legacy_left_sidebar_geometry": "grid-template-columns: 216px minmax(0, 1fr)" in WEB_FAST and "flex-direction: column" in WEB_FAST and ".nav-section-label" in WEB_FAST,
     "web_legacy_dashboard_composition": all(token in WEB_APP for token in ["v5-root", "Tổng quan hôm nay", "v5-kpi-grid", "SKU ưu tiên", "Hiệu suất hôm nay"]),
     "web_legacy_reporter_workspace": all(token in WEB_APP for token in ["fast-events", "fast-workspace", "fast-list", "fast-detail", "Xử lý báo hàng"]),
