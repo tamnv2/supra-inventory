@@ -597,6 +597,7 @@ function renderLogin(): void {
     const data = new FormData(event.currentTarget as HTMLFormElement);
     void run(async () => {
       profile = await loginWithPassword(String(data.get("username") || "").trim(), String(data.get("password") || ""));
+      runtimeLogEvent(`Đăng nhập: ${profile.role}`);
       sessionViewGeneration += 1;
       activeSection = resolveInitialSection(profile);
       syncSectionHash(activeSection);
@@ -1169,9 +1170,21 @@ async function run(fn: () => Promise<void>): Promise<void> {
   if (busy) return;
   busy = true;
   notice = null;
-  try { await fn(); }
-  catch (error) { setNotice("error", error instanceof Error ? error.message : "Thao tác thất bại."); }
-  finally { busy = false; render(); }
+  try {
+    await fn();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Thao tác thất bại.";
+    runtimeLogEvent(`Lỗi tại ${activeSection}: ${message}`, "ERROR");
+    void sendWebRuntimeLog("web_operation_error", "ERROR", {
+      section: activeSection,
+      message,
+      stack: error instanceof Error ? error.stack : null,
+    });
+    setNotice("error", message);
+  } finally {
+    busy = false;
+    render();
+  }
 }
 
 async function loadOperations(): Promise<void> {
@@ -1217,13 +1230,15 @@ async function loadDashboard(): Promise<void> {
   const sessionGeneration = sessionViewGeneration;
   const userId = profile?.user_id || "";
   const range = apiRange(dashboardFrom, dashboardTo);
-  const [nextDashboard, nextInsights] = await Promise.all([
+  const [nextDashboard, nextInsights, nextPresence] = await Promise.all([
     getAdminDashboard(range.from, range.to),
     getAdminOperationalInsights(range.from, range.to),
+    getRealtimePresence(),
   ]);
   if (generation !== dashboardLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   dashboardData = nextDashboard;
   operationalInsights = nextInsights;
+  realtimePresence = nextPresence;
   markWebUpdateReceived();
 }
 
@@ -1232,17 +1247,23 @@ async function loadReports(): Promise<void> {
   const sessionGeneration = sessionViewGeneration;
   const userId = profile?.user_id || "";
   const range = apiRange(reportFrom, reportTo);
-  const result = await getAdminReporting({
-    from: range.from,
-    to: range.to,
-    status: reportStatus,
-    query: reportQuery,
-    limit: REPORT_PAGE_SIZE,
-    offset: reportOffset,
-  });
+  const [result, summary, insights] = await Promise.all([
+    getAdminReporting({
+      from: range.from,
+      to: range.to,
+      status: reportStatus,
+      query: reportQuery,
+      limit: REPORT_PAGE_SIZE,
+      offset: reportOffset,
+    }),
+    getAdminDashboard(range.from, range.to),
+    getAdminOperationalInsights(range.from, range.to),
+  ]);
   if (generation !== reportLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   reportRows = result.items;
   reportTotal = result.total;
+  reportSummary = summary;
+  reportInsights = insights;
   markWebUpdateReceived();
 }
 
@@ -1274,6 +1295,17 @@ async function loadUsers(): Promise<void> {
   }
   managedUsers = result.items;
   userTotal = result.total;
+  markWebUpdateReceived();
+}
+
+async function loadLogs(): Promise<void> {
+  if (!roleManage()) return;
+  const generation = sessionViewGeneration;
+  const userId = profile?.user_id || "";
+  const result = await getRuntimeLogs(runtimeLogSource, 60);
+  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+  runtimeLogs = result.items;
+  if (runtimeLogDetail && !runtimeLogs.some((item) => item.id === runtimeLogDetail?.file.id)) runtimeLogDetail = null;
   markWebUpdateReceived();
 }
 
@@ -1341,7 +1373,8 @@ async function loadSection(section: Section): Promise<void> {
   else if (section === "sla" && roleManage()) { await loadSla(); received = true; }
   else if (section === "dashboard" && roleManage()) { await loadDashboard(); received = true; }
   else if (section === "reports" && roleManage()) { await loadReports(); received = true; }
-  else if (["system", "devices", "logs", "versions"].includes(section)) {
+  else if (section === "logs" && roleManage()) { await loadLogs(); received = true; }
+  else if (["system", "devices", "versions"].includes(section)) {
     try {
       serviceHealth = await getServiceHealth();
       received = true;
@@ -1399,6 +1432,7 @@ function bindShell(): void {
     dashboardLoadGeneration += 1;
     reportLoadGeneration += 1;
     sessionViewGeneration += 1;
+    runtimeLogEvent("Đăng xuất");
     clearSession();
     profile = null;
     notice = null;
@@ -1486,6 +1520,39 @@ function bindOverlay(): void {
 }
 
 function bindSection(): void {
+  document.querySelectorAll<HTMLButtonElement>("[data-workspace-section]").forEach((button) => button.addEventListener("click", () => {
+    const next = button.dataset.workspaceSection as Section;
+    if (!profile || !next || next === activeSection || !canAccessSection(next, profile)) return;
+    activeSection = next;
+    syncSectionHash(next);
+    notice = null;
+    runtimeLogEvent(`Mở nghiệp vụ ${next}`);
+    void run(async () => { await loadSection(next); });
+  }));
+
+  document.querySelectorAll<HTMLButtonElement>("[data-log-source]").forEach((button) => button.addEventListener("click", () => {
+    const next = String(button.dataset.logSource || "WEB").toUpperCase() === "ANDROID" ? "ANDROID" : "WEB";
+    if (next === runtimeLogSource) return;
+    runtimeLogSource = next;
+    runtimeLogDetail = null;
+    void run(loadLogs);
+  }));
+  document.querySelectorAll<HTMLButtonElement>("[data-log-file]").forEach((button) => button.addEventListener("click", () => {
+    const fileId = button.dataset.logFile || "";
+    if (!fileId) return;
+    void run(async () => {
+      runtimeLogDetail = await getRuntimeLogDetail(fileId);
+      markWebUpdateReceived();
+    });
+  }));
+  document.querySelector<HTMLButtonElement>("#send-web-log")?.addEventListener("click", () => void run(async () => {
+    const sent = await sendWebRuntimeLog("manual_web_log", "INFO");
+    if (!sent) throw new Error("Chưa gửi được log Web. Kiểm tra kết nối rồi thử lại.");
+    runtimeLogSource = "WEB";
+    runtimeLogDetail = null;
+    await loadLogs();
+    setNotice("success", "Đã gửi log Web vào thư mục Beta / Logs.");
+  }));
   document.querySelectorAll<HTMLButtonElement>("[data-select-batch]").forEach((button) => button.addEventListener("click", () => {
     selectedBatchId = button.dataset.selectBatch || null;
     patchActiveSection();
@@ -1702,10 +1769,10 @@ function bindSection(): void {
         warning > 1440 ||
         escalation <= warning ||
         escalation > 2880
-      ) throw new Error("Cảnh báo phải 1–1440 phút; Escalate phải lớn hơn cảnh báo và tối đa 2880 phút.");
+      ) throw new Error("Thời gian quá hạn phải lớn hơn thời gian cảnh báo và tối đa 2880 phút.");
       await saveAdminSla(warning, escalation);
       await loadSla();
-      setNotice("success", "Đã lưu cấu hình SLA.");
+      setNotice("success", "Đã lưu thời gian nghiệp vụ.");
     });
   });
 
@@ -1892,9 +1959,28 @@ async function bootstrap(): Promise<void> {
   }
 }
 
+initWebRuntimeLogging(() => ({
+  section: activeSection,
+  role: profile?.role || null,
+  user_id: profile?.user_id || null,
+  realtime: { state: realtimeState, applied_seq: realtimeLastSeq },
+  service_reachable: serviceReachable,
+  queue_count: queueRows.length,
+  recent_result_count: recentRows.length,
+  current_notice: notice,
+}));
+
 window.setInterval(updateQueueClockDom, 15_000);
 window.setInterval(() => {
   if (themeMode === "AUTO") applyTheme();
+  void maybeSendScheduledWebLog();
 }, 60_000);
+window.setInterval(() => {
+  if (!profile || !roleManage() || activeSection !== "dashboard") return;
+  void getRealtimePresence().then((next) => {
+    realtimePresence = next;
+    patchActiveSection(true);
+  }).catch((error) => runtimeLogEvent(`Không cập nhật được số người online: ${error instanceof Error ? error.message : "unknown"}`, "ERROR"));
+}, 30_000);
 
 void bootstrap();
