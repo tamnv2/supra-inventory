@@ -7,17 +7,17 @@
 Canonical current markers:
 - SQLite schema: `6`
 - Latest Beta APK: `beta-vc45`
-- Web: `D063_CONSOLIDATED_OPS_LOGS_REPORTING_PRESENCE_UI_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Web: `D064_DETAILED_SYSTEM_STATUS_SOURCE_BUILD_PENDING_BETA_RUNTIME`
 - Android: `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 
 The project is in **UI-first review**, not business-logic rebuild.
 
 - Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinements: **D058 shell + D059 header + D060 Root-role/theme + D061 dark/sidebar/realtime cleanup + D062 final Web QA/IA + D063 consolidated operations/logs/reporting/people review**.
-- D063 is deployed on Beta and technically PASS; Owner UI acceptance is pending. D063 consolidates related sidebar modules to max three child entries per group, rebuilds operations/results and overview/reporting workspaces, adds authenticated online counts, professional people/accounts UI, Beta Web/Android runtime logs and further dark-theme completion. Stable is unchanged.
+- D063 runtime remains PASS. D064 is the active source/build workstream: rebuild the detailed all-service `Trạng thái hệ thống`, then run the controlled Beta-only 1,000-report load test using 100 existing Pickers and about 400 existing SKUs within 10 minutes, then present a post-test navigation IA critique/proposal. Stable is unchanged.
 - Owner has **not yet given UI/layout acceptance** for the current candidate.
 - Technical build/deploy/release PASS must never be interpreted as Owner UI PASS.
-- Until explicit Owner UI acceptance, work is limited to **UI/layout/presentation mismatch repair**.
-- Do **not** resume rebuilding/wiring the remaining logic, scenarios or business workflows yet.
+- Current explicit Owner D064 command additionally authorizes the detailed system-status metrics and controlled Beta load-test implementation described in D064.
+- Do **not** change the left-navigation grouping again during D064; after the measured load test, present the IA proposal for Owner approval first.
 
 Current review targets:
 - Web: `https://inventory-beta.supra.cc.cd/`
@@ -31,7 +31,7 @@ Current review targets:
 
 Owner can start the next chat with only:
 
-> **Tiếp tục review UI D063**
+> **Tiếp tục D064 trạng thái hệ thống + load test**
 
 Then attach/send the current screenshot or concise review feedback, for example:
 - `Web Tổng quan: chưa OK, sidebar rộng quá`
@@ -387,9 +387,13 @@ Useful current files:
 
 No manual end-of-session handover is required. A new session must bootstrap from `ops/authority-manifest.json` and its declared `bootstrap_order` before mutation.
 
-The Owner's next-chat instruction **`Tiếp tục review UI D063`** is sufficient to resume from this point; any Web screenshot or UI review text supplied with it becomes the immediate work item.
+The Owner's next-chat instruction **`Tiếp tục D064 trạng thái hệ thống + load test`** is sufficient to resume from this point; any Web screenshot or UI review text supplied with it becomes the immediate work item.
 
 
 ## D063 runtime PASS — 2026-09-19
 
 PR #44 merged at `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`. Repo Authority, Project State and UI Design guards PASS. Deploy Beta run `35371181168` PASS including health/schema, auth/business guards, Web shell and Google OAuth start; `LOGS_FOLDER_ID` is bound to `Inventory/Beta/Logs`. Signed Android release `beta-vc45` published from the same source; Verify Beta Android run `35371181163` PASS, APK SHA-256 `fd9882d08d0aca288114595f79e1f2447141c4fb8ed32cf5750dd001a9c58c61`. Authenticated end-to-end Web/Android log upload still requires field verification with a real signed-in client. Stable remains untouched.
+
+### D064 active workstream — detailed system status + controlled Beta load test
+
+D064 source adds live InventoryCore storage/table/business/realtime metrics, cached Google Drive storage/folder usage, current GitHub Beta release data, clear reference limits without billing-plan inference, and a redesigned professional system-status console with 60-second core refresh / five-minute provider cache. A Beta-only GitHub Actions workload will temporarily enable a masked random load-test gate, create real Firebase-authenticated sessions for 100 existing active Pickers, submit 1,000 normal `/api/picker/reports` requests across about 400 existing SKUs over at most 10 minutes, persist a bounded before/after aggregate, and always disable the gate. Test records remain normal Beta data for Owner inspection. After measured evidence, AI analyzes/proposes the next sidebar IA but does not implement it until Owner approval.

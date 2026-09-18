@@ -274,6 +274,7 @@
     "d063_consolidated_ops_logs_reporting_presence_ui_runtime_pass_owner_ui_pending"
   ],
   "application_build_pending": [
+    "d064_detailed_system_status_and_beta_load_test",
     "owner_d061_web_ui_acceptance_and_android_review_pending",
     "fcm_physical_device_delivery_acceptance_after_functional_rebuild",
     "isolated_business_mutation_load_acceptance_after_owner_scale_target"
@@ -336,11 +337,11 @@
     "status": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS"
   },
   "ui_design": {
-    "authority": "OWNER_SELECTED_D057_LEGACY_TRANSPLANT_WITH_D058_D059_D060_D061_D062_AND_D063_CONSOLIDATED_OPS_LOGS_REPORTING_PEOPLE_REFINEMENTS",
+    "authority": "OWNER_SELECTED_D057_LEGACY_TRANSPLANT_WITH_D058_D059_D060_D061_D062_AND_D063_CONSOLIDATED_OPS_LOGS_REPORTING_PEOPLE_REFINEMENTS_D064_DETAILED_SYSTEM_STATUS",
     "web": "D063_CONSOLIDATED_OPS_LOGS_REPORTING_PRESENCE_UI_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
     "android": "VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING",
     "scope_guard": "D063_MAX_THREE_NAV_CHILDREN__CONSOLIDATED_EXISTING_WORKFLOWS__BETA_LOGS_ONLY__NO_NEW_STOCK_LOCATION_OFFLINE_SCOPE__D057_ANDROID_NATIVE_AUTHORITY__OWNER_VISUAL_ACCEPTANCE_REQUIRED",
-    "source_candidate": "D063_BETA_RUNTIME_PASS_OWNER_UI_PENDING"
+    "source_candidate": "D064_DETAILED_SYSTEM_STATUS_SOURCE_BUILD_PENDING_BETA_RUNTIME"
   },
   "quota_resilience": {
     "reference_date": "2026-09-17",
@@ -386,5 +387,38 @@
     "latest_beta_release": "beta-vc45",
     "latest_beta_release_source": "3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982",
     "latest_beta_apk_sha256": "fd9882d08d0aca288114595f79e1f2447141c4fb8ed32cf5750dd001a9c58c61"
+  },
+  "system_status": {
+    "environment": "beta",
+    "audience": [
+      "ADMIN",
+      "ROOT"
+    ],
+    "core_metrics": "InventoryCore live database/table/business/realtime/notification/archive metrics",
+    "provider_metrics": [
+      "Google Drive storage/folders",
+      "GitHub latest Beta release"
+    ],
+    "refresh_policy": {
+      "core_seconds": 60,
+      "provider_cache_seconds": 300,
+      "manual_fresh_provider_probe": true
+    },
+    "plan_detection": "DO_NOT_INFER_CLOUDFLARE_OR_FIREBASE_BILLING_PLAN",
+    "status": "D064_SOURCE_BUILD_PENDING_RUNTIME"
+  },
+  "beta_load_test": {
+    "environment": "beta",
+    "workflow": ".github/workflows/beta-load-test.yml",
+    "generator": "tools/beta-load-test.mjs",
+    "target_reports": 1000,
+    "existing_picker_count": 100,
+    "existing_sku_count": 400,
+    "max_traffic_seconds": 600,
+    "request_path": "POST /api/picker/reports",
+    "auth_path": "REAL_FIREBASE_ID_TOKEN_PER_EXISTING_PICKER",
+    "temporary_gate": "LOAD_TEST_TOKEN__EPHEMERAL_MASKED__APP_ENV_BETA_ONLY__ALWAYS_CLEANUP",
+    "stable": "FORBIDDEN",
+    "status": "D064_SOURCE_BUILD_PENDING_RUNTIME_AND_MEASUREMENT"
   }
 }

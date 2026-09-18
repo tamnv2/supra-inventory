@@ -1,0 +1,150 @@
+name: Beta Load Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      reports:
+        description: Successful Picker reports to create
+        required: true
+        default: "1000"
+      pickers:
+        description: Existing active Pickers to use
+        required: true
+        default: "100"
+      skus:
+        description: Existing SKU Master items to exercise
+        required: true
+        default: "400"
+      duration_seconds:
+        description: Maximum traffic duration in seconds
+        required: true
+        default: "600"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supra-inventory-beta-load-test
+  cancel-in-progress: false
+
+jobs:
+  beta-load-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: beta
+    steps:
+      - name: Checkout canonical main
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Generate ephemeral Beta load-test gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          token="$(openssl rand -hex 32)"
+          echo "::add-mask::$token"
+          echo "LOAD_TEST_TOKEN=$token" >> "$GITHUB_ENV"
+
+      - name: Build Web assets for temporary Beta deploy
+        working-directory: web
+        env:
+          VITE_API_BASE_URL: https://inventory-beta.supra.cc.cd
+          VITE_FIREBASE_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+          VITE_FIREBASE_AUTH_DOMAIN: supra-inventory-beta.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID: supra-inventory-beta
+          VITE_FIREBASE_APP_ID: 1:572322098890:web:96459cf386b3fb6f400e33
+          VITE_FIREBASE_MESSAGING_SENDER_ID: "572322098890"
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run build
+
+      - name: Install Worker dependencies
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Enable temporary Beta load-test gate
+        working-directory: service
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+          FIREBASE_WEB_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4 deploy --config wrangler.beta.toml --keep-vars \
+            --var "FIREBASE_WEB_API_KEY:$FIREBASE_WEB_API_KEY" \
+            --var "SOURCE_COMMIT:$GITHUB_SHA" \
+            --var "LOAD_TEST_TOKEN:$LOAD_TEST_TOKEN"
+
+      - name: Wait for temporary load-test gate
+        env:
+          BASE_URL: https://inventory-beta.supra.cc.cd
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 20); do
+            code="$(curl -sS -o /tmp/prepare.json -w '%{http_code}' \
+              -H "x-load-test-token: $LOAD_TEST_TOKEN" \
+              "$BASE_URL/api/__beta_load_test__/prepare?pickers=1&skus=1" || true)"
+            if [ "$code" = "200" ]; then
+              echo "Temporary Beta load-test gate ready"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "Temporary load-test gate did not become ready" >&2
+          exit 1
+
+      - name: Run randomized real Picker load test
+        env:
+          BASE_URL: https://inventory-beta.supra.cc.cd
+          REPORTS: ${{ inputs.reports }}
+          PICKERS: ${{ inputs.pickers }}
+          SKUS: ${{ inputs.skus }}
+          DURATION_SECONDS: ${{ inputs.duration_seconds }}
+          CONCURRENCY: "6"
+        run: node tools/beta-load-test.mjs
+
+      - name: Upload bounded load-test result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: d064-beta-load-test-result
+          path: load-test-result.json
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Disable temporary Beta load-test gate
+        if: always()
+        working-directory: service
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+          FIREBASE_WEB_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4 deploy --config wrangler.beta.toml --keep-vars \
+            --var "FIREBASE_WEB_API_KEY:$FIREBASE_WEB_API_KEY" \
+            --var "SOURCE_COMMIT:$GITHUB_SHA" \
+            --var "LOAD_TEST_TOKEN:"
+
+      - name: Verify temporary gate is closed
+        if: always()
+        env:
+          BASE_URL: https://inventory-beta.supra.cc.cd
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 20); do
+            code="$(curl -sS -o /tmp/closed.json -w '%{http_code}' \
+              -H "x-load-test-token: $LOAD_TEST_TOKEN" \
+              "$BASE_URL/api/__beta_load_test__/prepare?pickers=1&skus=1" || true)"
+            if [ "$code" = "404" ]; then
+              echo "Temporary Beta load-test gate closed"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "Temporary load-test gate is still reachable" >&2
+          exit 1

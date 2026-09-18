@@ -45,7 +45,10 @@ SERVICE_CORE = read("service/src/core.ts")
 SERVICE_READ_MODEL = read("service/src/read-model-core.ts")
 SERVICE_NOTIFICATIONS = read("service/src/notifications-core.ts")
 SERVICE_RUNTIME_LOGS = read("service/src/runtime-logs.ts")
-SERVICE_READ_MODEL = read("service/src/read-model-core.ts")
+SERVICE_SYSTEM_STATUS = read("service/src/system-status.ts")
+SERVICE_SYSTEM_METRICS = read("service/src/system-metrics-core.ts")
+BETA_LOAD_TEST = read("tools/beta-load-test.mjs")
+BETA_LOAD_WORKFLOW = read(".github/workflows/beta-load-test.yml")
 VERIFY_APPS = read(".github/workflows/verify-apps.yml")
 DESIGN_SPEC = read("docs/specs/UI_DESIGN_SYSTEM.md")
 DECISIONS = read("docs/OWNER_DECISIONS.md")
@@ -58,6 +61,7 @@ checks = {
     "authority_d061_dark_realtime_sidebar_review": "D061" in DECISIONS and "Owner-reviewed dark/realtime/sidebar cleanup" in DESIGN_SPEC,
     "authority_d062_web_completion_review": "D062" in DECISIONS and "Owner-reviewed completion audit and canonical navigation IA (D062)" in DESIGN_SPEC,
     "authority_d063_ops_logs_reporting_review": "D063" in DECISIONS and "Owner-reviewed consolidated operations, logs, reporting and people UI (D063)" in DESIGN_SPEC,
+    "authority_d064_system_load_review": "D064" in DECISIONS and "Detailed operational system-status console (D064)" in DESIGN_SPEC,
     "authority_ui_acceptance_distinct_from_ci": "CI/build PASS" in DESIGN_SPEC and "Owner UI" in DESIGN_SPEC,
     "authority_no_offline_mode": "D043" in DECISIONS and "No offline business mode" in DESIGN_SPEC,
 
@@ -189,6 +193,37 @@ checks = {
     "service_d063_presence_by_role": "online_users_by_role" in SERVICE_READ_MODEL and "online_users_by_client" in SERVICE_READ_MODEL,
     "android_d063_runtime_logs": all(token in ANDROID_MAIN for token in ["currentRuntimeLogSlot", "scheduled_", "pending_crash", "android_crash", "Gửi lên Drive"]) and "uploadRuntimeLog" in ANDROID_API,
     "web_d063_dark_completion": all(token in WEB_FAST for token in ["D063 Owner operations/reporting/logs/users completion", ".business-summary-card", ".logs-layout", ".users-top-grid", 'body[data-theme="dark"]']),
+    "web_d064_system_status_layout": all(token in WEB_APP for token in [
+        "Cloudflare", "InventoryCore · Durable Object SQLite", "Authentication", "Cloud Messaging",
+        "Drive · Logs / Archive / Exports", "Sheets · Nhân sự / Archive", "Mã nguồn · CI/CD · APK Beta",
+        "WebSocket · Đồng bộ trực tiếp", "Dữ liệu nghiệp vụ đang chiếm hệ thống", "Bài kiểm tra tải gần nhất",
+        "95% yêu cầu dưới", "getSystemStatus(false)",
+    ]),
+    "web_d064_system_status_dark": all(token in WEB_FAST for token in [
+        "D064 detailed system status", ".system-service-grid", ".system-limit-box", ".system-meter",
+        ".system-load-grid", 'body[data-theme="dark"] .system-refresh-note',
+    ]),
+    "service_d064_system_metrics": all(token in (SERVICE_SYSTEM_STATUS + SERVICE_SYSTEM_METRICS + SERVICE_INDEX + SERVICE_CORE) for token in [
+        "/api/admin/system-status", "/admin/system-metrics", "databaseSize", "storageQuota",
+        "provider_cache_seconds", "online_users", "reports_last_10_minutes",
+    ]),
+    "service_d064_plan_not_inferred": all(token in SERVICE_SYSTEM_STATUS for token in [
+        "plan_detected: false", "Runtime không có quyền đọc entitlement", "Project billing plan không được suy đoán",
+    ]),
+    "service_d064_provider_cache": "PROVIDER_CACHE_MS = 5 * 60_000" in SERVICE_SYSTEM_STATUS and "core_seconds: 60" in SERVICE_SYSTEM_STATUS,
+    "service_d064_beta_load_gate": all(token in SERVICE_INDEX for token in [
+        'env.APP_ENV !== "beta"', "LOAD_TEST_TOKEN", '"/api/__beta_load_test__/prepare"',
+        '"/api/__beta_load_test__/session"', '"/api/__beta_load_test__/snapshot"', '"/api/__beta_load_test__/record"',
+    ]),
+    "d064_real_picker_load_generator": all(token in BETA_LOAD_TEST for token in [
+        "/api/picker/reports", "authorization: `Bearer ${session.token}`", "REPORT_TARGET",
+        "PICKER_TARGET", "SKU_TARGET", "DURATION_SECONDS", "D064_BETA_LOAD_TEST_PASS",
+    ]),
+    "d064_load_workflow_cleanup": all(token in BETA_LOAD_WORKFLOW for token in [
+        "workflow_dispatch", "Generate ephemeral Beta load-test gate", "Enable temporary Beta load-test gate",
+        "Run randomized real Picker load test", "Disable temporary Beta load-test gate", "Verify temporary gate is closed",
+        'if: always()', 'LOAD_TEST_TOKEN:"',
+    ]),
     "web_login_no_prefilled_root": 'value="root"' not in WEB_UI,
     "web_skip_impact_confirmation": "XÁC NHẬN BỎ QUA" in WEB_UI and "affected_picker_count" in WEB_UI,
     "web_recurrence_surface": "previous_batch_id" in WEB_API and "Tái phát" in WEB_UI,

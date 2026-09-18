@@ -20,6 +20,7 @@ import {
   getRealtimePresence,
   getRuntimeLogDetail,
   getRuntimeLogs,
+  getSystemStatus,
   getHrSource,
   getMyProfile,
   getReporterBatchTickets,
@@ -51,6 +52,7 @@ import {
   type RealtimePresence,
   type RuntimeLogDetail,
   type RuntimeLogItem,
+  type SystemStatusSnapshot,
   type ReporterBatch,
   type ReporterRecentBatch,
   type SkuItem,
@@ -178,6 +180,8 @@ function clearRoleScopedViewState(): void {
   realtimePresence = null;
   reportSummary = null;
   reportInsights = null;
+  serviceHealth = null;
+  systemStatus = null;
   runtimeLogs = [];
   runtimeLogDetail = null;
   selectedBatchId = null;
@@ -236,6 +240,7 @@ let reportTo = dateDaysAgo(0);
 let reportStatus = "";
 let reportQuery = "";
 let serviceHealth: Record<string, unknown> | null = null;
+let systemStatus: SystemStatusSnapshot | null = null;
 let runtimeLogSource: "WEB" | "ANDROID" = "WEB";
 let runtimeLogs: RuntimeLogItem[] = [];
 let runtimeLogDetail: RuntimeLogDetail | null = null;
@@ -1107,24 +1112,241 @@ function downloadSupportDiagnostics(): void {
   URL.revokeObjectURL(url);
 }
 
-function renderSystem(): string {
-  const safe = serviceHealth ? JSON.stringify(sanitizeDiagnosticValue(serviceHealth), null, 2) : "Chưa tải trạng thái dịch vụ.";
-  const serviceStatus = serviceReachable ? "Đang hoạt động" : "Mất kết nối";
-  return `<section class="ops-route system-workspace">
-    <div class="business-page-head"><div><h2>Trạng thái hệ thống</h2><p>Theo dõi kết nối, đồng bộ và phiên bản đang sử dụng.</p></div><button class="secondary" id="refresh-system">Kiểm tra dịch vụ</button></div>
-    <section class="business-summary-grid business-summary-grid-4">
-      <article class="business-summary-card ${navigator.onLine ? "good" : "danger"}"><span>Kết nối Internet</span><strong>${navigator.onLine ? "Bình thường" : "Mất kết nối"}</strong><small>Trạng thái mạng của trình duyệt</small></article>
-      <article class="business-summary-card ${serviceReachable ? "good" : "danger"}"><span>Dịch vụ Cloudflare</span><strong>${serviceStatus}</strong><small>Kênh nghiệp vụ hiện tại</small></article>
-      <article class="business-summary-card primary"><span>Đồng bộ thời gian thực</span><strong>${realtimeState === "connected" ? "Đã kết nối" : "Đang kết nối lại"}</strong><small>Thứ tự đồng bộ ${realtimeLastSeq}</small></article>
-      <article class="business-summary-card"><span>Phiên bản</span><strong>Web Beta</strong><small>Android: kênh Beta</small></article>
-    </section>
-    <article class="ops-panel">
-      <div class="ops-panel-title"><div><h3>Chẩn đoán kỹ thuật</h3><p>Thông tin kỹ thuật đã giới hạn và che dữ liệu nhạy cảm.</p></div></div>
-      <pre class="diagnostics">${esc(safe)}</pre>
-    </article>
-  </section>`;
+function systemObj(value: unknown): Record<string, any> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, any> : {};
 }
 
+function systemNum(value: unknown): number {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function fmtBytes(value: unknown): string {
+  const bytes = systemNum(value);
+  if (bytes <= 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let index = 0;
+  let scaled = bytes;
+  while (scaled >= 1000 && index < units.length - 1) {
+    scaled /= 1000;
+    index += 1;
+  }
+  const digits = scaled >= 100 ? 0 : scaled >= 10 ? 1 : 2;
+  return `${scaled.toFixed(digits)} ${units[index]}`;
+}
+
+function usagePercent(used: unknown, limit: unknown): number | null {
+  const a = systemNum(used);
+  const b = systemNum(limit);
+  if (a < 0 || b <= 0) return null;
+  return Math.max(0, Math.min(100, a * 100 / b));
+}
+
+function usageBar(used: unknown, limit: unknown, label = ""): string {
+  const pct = usagePercent(used, limit);
+  if (pct == null) return `<div class="system-usage-line"><span>${esc(label || "Đang dùng")}</span><strong>${fmtBytes(used)}</strong></div>`;
+  const tone = pct >= 85 ? "danger" : pct >= 65 ? "warning" : "good";
+  return `<div class="system-usage"><div class="system-usage-line"><span>${esc(label || "Đang dùng")}</span><strong>${fmtBytes(used)} / ${fmtBytes(limit)} · ${pct.toFixed(pct >= 10 ? 1 : 2)}%</strong></div><div class="system-meter"><i class="${tone}" style="width:${Math.max(.5,pct)}%"></i></div></div>`;
+}
+
+function renderSystem(): string {
+  const snapshot = systemStatus;
+  const core = systemObj(snapshot?.core);
+  const sqlite = systemObj(core.sqlite);
+  const accounts = systemObj(core.accounts);
+  const business = systemObj(core.business);
+  const realtime = systemObj(core.realtime);
+  const notifications = systemObj(core.notifications);
+  const archive = systemObj(core.archive);
+  const hr = systemObj(core.hr_source);
+  const providers = systemObj(snapshot?.providers);
+  const drive = systemObj(providers.google_drive);
+  const driveQuota = systemObj(drive.storage_quota);
+  const folders = systemObj(drive.folders);
+  const logsFolder = systemObj(folders.logs);
+  const archiveFolder = systemObj(folders.archive);
+  const exportsFolder = systemObj(folders.exports);
+  const github = systemObj(providers.github);
+  const release = systemObj(github.latest_beta_release);
+  const limits = systemObj(snapshot?.limits);
+  const workerLimits = systemObj(limits.cloudflare_workers);
+  const workerFree = systemObj(workerLimits.free);
+  const workerPaid = systemObj(workerLimits.paid);
+  const doLimits = systemObj(limits.durable_objects_sqlite);
+  const authLimits = systemObj(limits.firebase_auth);
+  const roleCounts = systemObj(accounts.by_role);
+  const accountStatus = systemObj(accounts.by_status);
+  const batchStatus = systemObj(business.batches_by_status);
+  const ticketStatus = systemObj(business.tickets_by_status);
+  const delivery = systemObj(notifications.delivery_last_24_hours);
+  const devices = systemObj(notifications.active_by_platform);
+  const tables = systemObj(sqlite.table_rows);
+  const loadTest = systemObj(core.last_load_test);
+  const driveLimit = driveQuota.limit_bytes == null ? null : systemNum(driveQuota.limit_bytes);
+  const driveUsed = driveQuota.usage_bytes == null ? null : systemNum(driveQuota.usage_bytes);
+  const dbSize = systemNum(sqlite.database_size_bytes);
+  const doLimit = systemNum(doLimits.storage_per_object_bytes);
+  const providerRefresh = String(providers.refreshed_at || "");
+  const overallOk = serviceReachable && !core.error;
+  const successfulLoad = systemNum(loadTest.successful_reports);
+
+  return `<section class="ops-route system-workspace">
+    <div class="business-page-head">
+      <div><h2>Trạng thái hệ thống</h2><p>Theo dõi dịch vụ, dung lượng, giới hạn tham chiếu và mức sử dụng thực tế của Beta.</p></div>
+      <button class="secondary" id="refresh-system">Cập nhật số liệu</button>
+    </div>
+
+    <div class="system-refresh-note">
+      <span>Cập nhật lõi mỗi 60 giây khi đang mở trang.</span>
+      <span>Google Drive / GitHub được giữ tối đa 5 phút để giảm quota.</span>
+      <span>Lần tổng hợp: <b>${esc(snapshot?.generated_at ? fmt(snapshot.generated_at) : "Chưa tải")}</b></span>
+    </div>
+
+    <section class="business-summary-grid business-summary-grid-4">
+      <article class="business-summary-card ${overallOk ? "good" : "danger"}"><span>Hệ thống nghiệp vụ</span><strong>${overallOk ? "Hoạt động" : "Cần kiểm tra"}</strong><small>Worker + InventoryCore</small></article>
+      <article class="business-summary-card primary"><span>SQLite đang dùng</span><strong>${fmtBytes(dbSize)}</strong><small>${doLimit ? `${(usagePercent(dbSize, doLimit) || 0).toFixed(3)}% mốc 10 GB / object` : "Đang đo dung lượng"}</small></article>
+      <article class="business-summary-card good"><span>Người đang online</span><strong>${systemNum(realtime.online_users)}</strong><small>${systemNum(realtime.online_sessions)} phiên realtime</small></article>
+      <article class="business-summary-card"><span>Drive tài khoản</span><strong>${driveUsed == null ? "—" : fmtBytes(driveUsed)}</strong><small>${driveLimit ? `Giới hạn ${fmtBytes(driveLimit)}` : "Google không trả giới hạn cố định"}</small></article>
+    </section>
+
+    <div class="system-service-grid">
+      <article class="ops-panel system-service-card">
+        <div class="system-service-head"><div><span class="system-provider">Cloudflare</span><h3>Worker · supra-inventory-beta</h3></div><b class="system-health ${serviceReachable ? "ok" : "bad"}">${serviceReachable ? "Đang hoạt động" : "Mất kết nối"}</b></div>
+        <p class="system-service-desc">API Web/Android, xác thực phiên, định tuyến nghiệp vụ và static Web.</p>
+        <div class="system-facts">
+          <div><span>Môi trường</span><b>Beta</b></div>
+          <div><span>Source đang chạy</span><b class="mono">${esc(String(snapshot?.source_commit || "chưa ghi build SHA").slice(0,12))}</b></div>
+          <div><span>Internet trình duyệt</span><b>${navigator.onLine ? "Bình thường" : "Mất kết nối"}</b></div>
+          <div><span>Realtime Web</span><b>${realtimeState === "connected" ? "Đã kết nối" : "Đang kết nối lại"}</b></div>
+        </div>
+        <div class="system-limit-box"><strong>Giới hạn tham chiếu Workers</strong><div>Free: ${systemNum(workerFree.requests_per_day).toLocaleString("vi-VN")} request/ngày · CPU ${systemNum(workerFree.cpu_ms_per_http_request)} ms/request · RAM ${fmtBytes(workerFree.memory_bytes_per_isolate)}</div><div>Paid: không giới hạn số request/ngày theo bảng giới hạn · CPU mặc định ${systemNum(workerPaid.cpu_ms_per_http_request_default)/1000}s, có thể nâng tối đa ${systemNum(workerPaid.cpu_ms_per_http_request_configurable_max)/1000}s · RAM ${fmtBytes(workerPaid.memory_bytes_per_isolate)}</div><small>Runtime không tự đọc được gói account nên không suy đoán Free/Paid.</small></div>
+      </article>
+
+      <article class="ops-panel system-service-card">
+        <div class="system-service-head"><div><span class="system-provider">Cloudflare</span><h3>InventoryCore · Durable Object SQLite</h3></div><b class="system-health ok">Sẵn sàng</b></div>
+        <p class="system-service-desc">Nguồn dữ liệu giao dịch chính: SKU, báo hàng, batch, realtime, audit và cấu hình.</p>
+        ${usageBar(dbSize, doLimit, "Dung lượng database")}
+        <div class="system-facts">
+          <div><span>SKU</span><b>${systemNum(business.sku_count).toLocaleString("vi-VN")}</b></div>
+          <div><span>Batch</span><b>${systemNum(tables.report_batches).toLocaleString("vi-VN")}</b></div>
+          <div><span>Lượt báo</span><b>${systemNum(tables.report_tickets).toLocaleString("vi-VN")}</b></div>
+          <div><span>Sự kiện realtime giữ lại</span><b>${systemNum(realtime.retained_events).toLocaleString("vi-VN")}</b></div>
+        </div>
+        <div class="system-limit-box"><strong>Giới hạn tham chiếu SQLite DO</strong><div>10 GB/object · Free tổng account 5 GB · Free 5 triệu dòng đọc/ngày · 100.000 dòng ghi/ngày.</div><div>Soft throughput 1 object: khoảng 1.000 request/giây; CPU mặc định 30 giây/request.</div></div>
+      </article>
+
+      <article class="ops-panel system-service-card">
+        <div class="system-service-head"><div><span class="system-provider">Firebase</span><h3>Authentication</h3></div><b class="system-health ${systemNum(accounts.total) ? "ok" : "warn"}">${systemNum(accounts.total) ? "Hoạt động" : "Chưa có dữ liệu"}</b></div>
+        <p class="system-service-desc">Nhận custom token từ Worker và phát hành phiên đăng nhập cho Web/Android.</p>
+        <div class="system-facts">
+          <div><span>Tài khoản ứng dụng</span><b>${systemNum(accounts.total).toLocaleString("vi-VN")}</b></div>
+          <div><span>Đã liên kết Firebase</span><b>${systemNum(accounts.firebase_linked).toLocaleString("vi-VN")}</b></div>
+          <div><span>Đang hoạt động</span><b>${systemNum(accountStatus.ACTIVE).toLocaleString("vi-VN")}</b></div>
+          <div><span>Đã dừng</span><b>${systemNum(accountStatus.DISABLED).toLocaleString("vi-VN")}</b></div>
+        </div>
+        <div class="system-role-mini"><span>Picker <b>${systemNum(roleCounts.PICKER)}</b></span><span>Người xử lý <b>${systemNum(roleCounts.REPORTER)}</b></span><span>Admin <b>${systemNum(roleCounts.ADMIN)}</b></span><span>Root <b>${systemNum(roleCounts.ROOT)}</b></span></div>
+        <div class="system-limit-box"><strong>Giới hạn tham chiếu Auth</strong><div>Spark Tier 1: 3.000 người dùng hoạt động/ngày. Custom-token sign-in: 45.000/phút/project. Token exchange: 18.000/phút/project.</div><small>Project billing plan không được suy đoán từ runtime.</small></div>
+      </article>
+
+      <article class="ops-panel system-service-card">
+        <div class="system-service-head"><div><span class="system-provider">Firebase</span><h3>Cloud Messaging</h3></div><b class="system-health ${systemNum(delivery.FAILED) ? "warn" : "ok"}">${systemNum(delivery.FAILED) ? "Có lỗi gửi" : "Bình thường"}</b></div>
+        <p class="system-service-desc">Thông báo nền đến Android khi có nghiệp vụ cần đồng bộ/hiển thị.</p>
+        <div class="system-facts">
+          <div><span>Thiết bị Android đang đăng ký</span><b>${systemNum(devices.ANDROID).toLocaleString("vi-VN")}</b></div>
+          <div><span>Thiết bị Web đang đăng ký</span><b>${systemNum(devices.WEB).toLocaleString("vi-VN")}</b></div>
+          <div><span>Gửi thành công 24h</span><b>${systemNum(delivery.SENT).toLocaleString("vi-VN")}</b></div>
+          <div><span>Gửi lỗi 24h</span><b>${systemNum(delivery.FAILED).toLocaleString("vi-VN")}</b></div>
+        </div>
+        <div class="system-limit-box"><strong>Cách theo dõi</strong><div>Không polling FCM. Hệ thống chỉ ghi attempt khi thực sự phát sinh notification để tránh tốn tài nguyên.</div></div>
+      </article>
+
+      <article class="ops-panel system-service-card">
+        <div class="system-service-head"><div><span class="system-provider">Google</span><h3>Drive · Logs / Archive / Exports</h3></div><b class="system-health ${drive.status === "ok" ? "ok" : "warn"}">${drive.status === "ok" ? "Đã kết nối" : "Chưa đọc được"}</b></div>
+        <p class="system-service-desc">Lưu log hỗ trợ, dữ liệu archive và file xuất; không phải nguồn giao dịch chính.</p>
+        ${driveUsed == null ? `<div class="system-usage-line"><span>Dung lượng tài khoản</span><strong>Chưa đọc được</strong></div>` : usageBar(driveUsed, driveLimit, "Dung lượng tài khoản Google")}
+        <div class="system-folder-grid">
+          <div><span>Logs</span><b>${systemNum(logsFolder.item_count)} file · ${fmtBytes(logsFolder.binary_size_bytes)}</b></div>
+          <div><span>Archive</span><b>${systemNum(archiveFolder.item_count)} file · ${fmtBytes(archiveFolder.binary_size_bytes)}</b></div>
+          <div><span>Exports</span><b>${systemNum(exportsFolder.item_count)} file · ${fmtBytes(exportsFolder.binary_size_bytes)}</b></div>
+        </div>
+        <div class="system-limit-box"><strong>Drive API</strong><div>400 triệu quota-unit/ngày trước ngưỡng tính phí công bố; files.get = 5 unit, files.list = 100 unit. Trang này cache dữ liệu Drive 5 phút.</div><small>Số liệu dung lượng tài khoản là toàn bộ Google Drive của tài khoản OAuth, không chỉ dự án Inventory.</small></div>
+      </article>
+
+      <article class="ops-panel system-service-card">
+        <div class="system-service-head"><div><span class="system-provider">Google</span><h3>Sheets · Nhân sự / Archive</h3></div><b class="system-health ${hr.configured ? "ok" : "warn"}">${hr.configured ? "Đã cấu hình" : "Chưa cấu hình"}</b></div>
+        <p class="system-service-desc">Sheet Nhân sự là nguồn cấu hình Picker; Archive Sheet lưu dữ liệu lịch sử theo batch.</p>
+        <div class="system-facts">
+          <div><span>Nhân sự nguồn</span><b>${systemNum(hr.data_row_count).toLocaleString("vi-VN")} dòng</b></div>
+          <div><span>Tab nhân sự</span><b>${esc(String(hr.tab_name || "—"))}</b></div>
+          <div><span>Batch đã archive</span><b>${systemNum(archive.exported_batches).toLocaleString("vi-VN")}</b></div>
+          <div><span>Cập nhật nguồn</span><b>${hr.updated_at ? esc(fmt(String(hr.updated_at))) : "—"}</b></div>
+        </div>
+        <div class="system-limit-box"><strong>Nguyên tắc</strong><div>Không ghi Sheet theo từng báo hàng. Giao dịch ở SQLite; Google chỉ dùng nguồn nhân sự và archive theo lô.</div></div>
+      </article>
+
+      <article class="ops-panel system-service-card">
+        <div class="system-service-head"><div><span class="system-provider">GitHub</span><h3>Mã nguồn · CI/CD · APK Beta</h3></div><b class="system-health ${github.status === "ok" ? "ok" : "warn"}">${github.status === "ok" ? "Đã kết nối" : "Chưa đọc được"}</b></div>
+        <p class="system-service-desc">Kho mã canonical, guard, deploy Beta và kênh phát hành APK cập nhật.</p>
+        <div class="system-facts">
+          <div><span>APK Beta mới nhất</span><b>${esc(String(release.tag || "—"))}</b></div>
+          <div><span>Nguồn release</span><b class="mono">${esc(String(release.source || "—").slice(0,12))}</b></div>
+          <div><span>Phát hành</span><b>${release.published_at ? esc(fmt(String(release.published_at))) : "—"}</b></div>
+          <div><span>Provider refresh</span><b>${providerRefresh ? esc(fmt(providerRefresh)) : "—"}</b></div>
+        </div>
+      </article>
+
+      <article class="ops-panel system-service-card">
+        <div class="system-service-head"><div><span class="system-provider">Realtime</span><h3>WebSocket · Đồng bộ trực tiếp</h3></div><b class="system-health ${realtimeState === "connected" ? "ok" : "warn"}">${realtimeState === "connected" ? "Đã kết nối" : "Đang nối lại"}</b></div>
+        <p class="system-service-desc">Kênh cập nhật foreground; database vẫn là nguồn sự thật.</p>
+        <div class="system-facts">
+          <div><span>Người online</span><b>${systemNum(realtime.online_users)}</b></div>
+          <div><span>Phiên online</span><b>${systemNum(realtime.online_sessions)}</b></div>
+          <div><span>Sequence mới nhất</span><b>${systemNum(realtime.max_seq).toLocaleString("vi-VN")}</b></div>
+          <div><span>Sự kiện giữ lại</span><b>${systemNum(realtime.retained_events).toLocaleString("vi-VN")}</b></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="report-section-title"><h3>Dữ liệu nghiệp vụ đang chiếm hệ thống</h3><span>Số dòng hiện tại trong InventoryCore</span></div>
+    <article class="ops-panel">
+      <div class="system-table-grid">
+        <div><span>SKU master</span><b>${systemNum(tables.sku_master).toLocaleString("vi-VN")}</b></div>
+        <div><span>Batch báo hàng</span><b>${systemNum(tables.report_batches).toLocaleString("vi-VN")}</b></div>
+        <div><span>Ticket Picker</span><b>${systemNum(tables.report_tickets).toLocaleString("vi-VN")}</b></div>
+        <div><span>Sự kiện nghiệp vụ</span><b>${systemNum(tables.report_events).toLocaleString("vi-VN")}</b></div>
+        <div><span>Sự kiện realtime</span><b>${systemNum(tables.realtime_events).toLocaleString("vi-VN")}</b></div>
+        <div><span>Xác nhận kết quả</span><b>${systemNum(tables.result_acknowledgements).toLocaleString("vi-VN")}</b></div>
+        <div><span>Audit log</span><b>${systemNum(tables.audit_log).toLocaleString("vi-VN")}</b></div>
+        <div><span>Thiết bị FCM</span><b>${systemNum(tables.fcm_devices).toLocaleString("vi-VN")}</b></div>
+      </div>
+      <div class="system-status-strip">
+        <span>10 phút gần nhất <b>${systemNum(business.reports_last_10_minutes)} lượt báo</b></span>
+        <span>24 giờ gần nhất <b>${systemNum(business.reports_last_24_hours)} lượt báo</b></span>
+        <span>Đang chờ xử lý <b>${systemNum(batchStatus.PENDING)} batch / ${systemNum(ticketStatus.OPEN)} Picker</b></span>
+      </div>
+    </article>
+
+    <div class="report-section-title"><h3>Bài kiểm tra tải gần nhất</h3><span>Chỉ chạy trên Beta</span></div>
+    <article class="ops-panel">
+      ${loadTest.test_id ? `
+        <div class="system-load-grid">
+          <div><span>Lượt báo thành công</span><b>${successfulLoad.toLocaleString("vi-VN")} / ${systemNum(loadTest.requested_reports).toLocaleString("vi-VN")}</b></div>
+          <div><span>Picker tham gia</span><b>${systemNum(loadTest.picker_count)}</b></div>
+          <div><span>SKU phát sinh</span><b>${systemNum(loadTest.unique_skus_reported)} / ${systemNum(loadTest.sku_count)}</b></div>
+          <div><span>Thời gian chạy</span><b>${systemNum(loadTest.duration_seconds).toFixed(1)} giây</b></div>
+          <div><span>Phản hồi bình quân</span><b>${systemNum(loadTest.average_ms).toFixed(1)} ms</b></div>
+          <div><span>95% yêu cầu dưới</span><b>${systemNum(loadTest.p95_ms).toFixed(1)} ms</b></div>
+        </div>
+        <p class="system-test-note">Test ID <span class="mono">${esc(String(loadTest.test_id))}</span> · hoàn thành ${esc(String(loadTest.completed_at ? fmt(String(loadTest.completed_at)) : "—"))}. Đây là phép đo Beta thực tế, không phải giới hạn lý thuyết.</p>
+      ` : `<div class="ops-empty">Chưa có bài kiểm tra tải D064 được ghi nhận.</div>`}
+    </article>
+
+    <details class="system-tech-details">
+      <summary>Thông tin kỹ thuật chi tiết</summary>
+      <pre class="diagnostics">${esc(snapshot ? JSON.stringify(sanitizeDiagnosticValue(snapshot), null, 2) : (serviceHealth ? JSON.stringify(sanitizeDiagnosticValue(serviceHealth), null, 2) : "Chưa tải trạng thái dịch vụ."))}</pre>
+    </details>
+  </section>`;
+}
 function renderLegacyDevices(): string {
   return renderSystem();
 }
@@ -1376,10 +1598,14 @@ async function loadSection(section: Section): Promise<void> {
   else if (section === "logs" && roleManage()) { await loadLogs(); received = true; }
   else if (["system", "devices", "versions"].includes(section)) {
     try {
-      serviceHealth = await getServiceHealth();
+      const [health, detailed] = await Promise.all([getServiceHealth(), getSystemStatus(false)]);
+      serviceHealth = health;
+      systemStatus = detailed;
+      serviceReachable = true;
       received = true;
     } catch {
       serviceHealth = null;
+      systemStatus = null;
       serviceReachable = false;
       patchHeaderRuntime();
     }
@@ -1828,7 +2054,11 @@ function bindSection(): void {
   document.querySelector<HTMLButtonElement>("#export-reports")?.addEventListener("click", () => void run(exportReportsCsv));
 
   document.querySelector<HTMLButtonElement>("#refresh-system")?.addEventListener("click", () => void run(async () => {
-    serviceHealth = await getServiceHealth();
+    const [health, detailed] = await Promise.all([getServiceHealth(), getSystemStatus(true)]);
+    serviceHealth = health;
+    systemStatus = detailed;
+    serviceReachable = true;
+    markWebUpdateReceived();
   }));
   document.querySelector<HTMLButtonElement>("#download-support-log")?.addEventListener("click", downloadSupportDiagnostics);
   document.querySelector<HTMLFormElement>("#password-form")?.addEventListener("submit", (event) => {
@@ -1982,5 +2212,16 @@ window.setInterval(() => {
     patchActiveSection(true);
   }).catch((error) => runtimeLogEvent(`Không cập nhật được số người online: ${error instanceof Error ? error.message : "unknown"}`, "ERROR"));
 }, 30_000);
+
+window.setInterval(() => {
+  if (!profile || !roleManage() || !["system","devices","versions"].includes(activeSection)) return;
+  void getSystemStatus(false).then((next) => {
+    systemStatus = next;
+    serviceReachable = true;
+    patchActiveSection(true);
+  }).catch((error) => {
+    runtimeLogEvent(`Không cập nhật được trạng thái hệ thống: ${error instanceof Error ? error.message : "unknown"}`, "ERROR");
+  });
+}, 60_000);
 
 void bootstrap();

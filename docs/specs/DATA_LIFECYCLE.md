@@ -101,6 +101,16 @@ Support diagnostics are bounded and redacted. They are not business authority an
 - D063 does not introduce an automatic log-deletion policy because the Owner has not specified retention yet; each file is bounded to control Drive growth.
 
 
+
+## Controlled Beta load-test data (D064)
+
+- The D064 1,000-report workload uses the normal authoritative Picker report API and therefore creates normal **Beta-only** report tickets/batches/events/audit/idempotency/realtime records. It never writes directly to SQLite and never touches Stable.
+- Load-test request IDs use a bounded `d064:<test-id>:...` prefix so idempotency records remain attributable without adding a parallel transaction path.
+- The workload is intentionally retained under the ordinary Beta lifecycle after the test so the Owner can inspect queue/UI/storage impact and archive/retention behavior. Do not silently delete or reset the measured data unless the Owner explicitly requests a Beta reset.
+- The persisted load-test summary is bounded operational metadata only: counts, timings and before/after aggregates. It must not persist Firebase ID tokens, the ephemeral load-test gate token, passwords, private/signing material or raw credentials.
+- The temporary load-test gate exists only during the GitHub Actions run, is enabled only with `APP_ENV=beta`, and is explicitly cleared in an always-run cleanup step.
+
+
 ## Retention
 
 - Detailed hot operational retention target: about 60 days.

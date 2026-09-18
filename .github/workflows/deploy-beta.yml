@@ -82,7 +82,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
           FIREBASE_WEB_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
-        run: npx --yes wrangler@4 deploy --config wrangler.beta.toml --keep-vars --var "FIREBASE_WEB_API_KEY:${FIREBASE_WEB_API_KEY}"
+        run: npx --yes wrangler@4 deploy --config wrangler.beta.toml --keep-vars --var "FIREBASE_WEB_API_KEY:${FIREBASE_WEB_API_KEY}" --var "SOURCE_COMMIT:${GITHUB_SHA}"
 
       - name: Verify Beta health, Root secret and SQLite schema
         env:
@@ -145,7 +145,7 @@ jobs:
           [ "$code" = "200" ] || { echo "Capabilities expected HTTP 200, got $code"; head -c 500 "$tmp"; exit 1; }
           jq -e '.business_api.version == 1 and .business_api.sku_master == "implemented" and .business_api.picker_report_withdraw == "implemented" and .business_api.reporter_priority_resolve_correction == "implemented" and .business_api.operational_v2_ready == true and .business_api.operational_v2_schema_version >= 1 and .realtime_foreground == "websocket_sequence_delta_on_inventory_core"' "$tmp" >/dev/null || { echo "Business/Operational V2 capability marker missing"; head -c 900 "$tmp"; exit 1; }
 
-          for path in "/api/skus" "/api/picker/reports" "/api/reporter/queue" "/api/admin/reports"; do
+          for path in "/api/skus" "/api/picker/reports" "/api/reporter/queue" "/api/admin/reports" "/api/admin/system-status"; do
             code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}${path}")"
             [ "$code" = "401" ] || { echo "Unauthenticated ${path} expected HTTP 401, got $code"; head -c 500 "$tmp"; exit 1; }
             jq -e '.error == "AUTH_REQUIRED"' "$tmp" >/dev/null || { echo "${path} auth guard JSON mismatch"; head -c 500 "$tmp"; exit 1; }

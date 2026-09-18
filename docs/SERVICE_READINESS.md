@@ -3,14 +3,14 @@
 > DERIVED VIEW. Canonical live status is `ops/project-state.json`; resource identity is `ops/resource-registry.json`.
 
 - Project: `supra-inventory`
-- Web: `D063_CONSOLIDATED_OPS_LOGS_REPORTING_PRESENCE_UI_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Web: `D064_DETAILED_SYSTEM_STATUS_SOURCE_BUILD_PENDING_BETA_RUNTIME`
 - Android: `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 - Latest signed review APK: `beta-vc45`
 - Web runtime source: `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`
 - Android beta-vc45 source: `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`
 - Owner UI review: **IN PROGRESS — no final UI acceptance yet**
 
-## D057 baseline + D058/D059/D060/D061/D062/D063 refinements
+## D057 baseline + D058/D059/D060/D061/D062/D063/D064 refinements
 
 Visual authority:
 - old UI repository: `tam95supra-source/bao-hang-1291`
@@ -23,12 +23,13 @@ Visual authority:
 - D061 dark/sidebar/realtime cleanup in `docs/OWNER_DECISIONS.md`
 - D062 final Web QA/canonical navigation in `docs/OWNER_DECISIONS.md`
 - D063 consolidated operations/logs/reporting/presence/people refinement in `docs/OWNER_DECISIONS.md`
+- D064 detailed system status + controlled Beta load test + post-test IA review in `docs/OWNER_DECISIONS.md`
 
 Current review endpoints:
 - Web: `https://inventory-beta.supra.cc.cd/`
 - APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc45/supra-inventory-beta.apk`
 
-D063 is deployed on Beta and technically PASS; Owner UI acceptance is pending. D063 consolidates related navigation/workspaces, adds sanitized Beta runtime logs and authenticated online counts, redesigns people/reporting/results layouts and closes remaining dark-theme gaps.
+D063 runtime remains PASS. D064 is the active source/build workstream: detailed all-service system status, then controlled Beta load test, then post-test navigation IA proposal.
 
 Android/PDA presentation includes transplanted old native activity/login/Picker/Invent/Admin/row/overlay XML plus drawables/colors/styles, with current controllers bound to those resources.
 
@@ -58,7 +59,7 @@ Automated PASS is technical eligibility only. It is not Owner UI acceptance.
 
 ## D063 source candidate
 
-`D063_CONSOLIDATED_OPS_LOGS_REPORTING_PRESENCE_UI_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING` is the active Web source candidate; Android source marker is `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`. `Inventory/Beta/Logs` is created and registered. D062/beta-vc45 remain the deployed/signed runtime references until D063 CI, merge, Beta deploy and signed Android release complete. Stable remains untouched.
+`D064_DETAILED_SYSTEM_STATUS_SOURCE_BUILD_PENDING_BETA_RUNTIME` is the active Web source candidate; Android source marker is `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`. `Inventory/Beta/Logs` is created and registered. D062/beta-vc45 remain the deployed/signed runtime references until D063 CI, merge, Beta deploy and signed Android release complete. Stable remains untouched.
 
 ## D062 runtime PASS
 
@@ -101,7 +102,7 @@ Automated PASS is technical eligibility only. Owner UI/theme/role-test acceptanc
 
 ## Current work frontier
 
-D063 is under source/build verification. Owner review resumes after the Beta runtime candidate is deployed; Android broader visual review remains pending separately.
+D064 is under source/build verification. After its Beta deploy, the controlled 1,000-report Beta load test must run and close its temporary gate before the navigation IA proposal is presented.
 
 For each Owner-rejected screen:
 - compare current render to the pinned old source + current Owner feedback;
@@ -113,7 +114,7 @@ Do not resume business logic/scenario rebuild until explicit Owner UI acceptance
 
 ## Next-chat resume command
 
-`Tiếp tục review UI D063`
+`Tiếp tục D064 trạng thái hệ thống + load test`
 
 A screenshot or concise UI review note may be appended; no project-history restatement is required.
 
@@ -121,3 +122,8 @@ A screenshot or concise UI review note may be appended; no project-history resta
 ## D063 runtime PASS — 2026-09-19
 
 PR #44 merged at `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`. Repo Authority, Project State and UI Design guards PASS. Deploy Beta run `35371181168` PASS including health/schema, auth/business guards, Web shell and Google OAuth start; `LOGS_FOLDER_ID` is bound to `Inventory/Beta/Logs`. Signed Android release `beta-vc45` published from the same source; Verify Beta Android run `35371181163` PASS, APK SHA-256 `fd9882d08d0aca288114595f79e1f2447141c4fb8ed32cf5750dd001a9c58c61`. Authenticated end-to-end Web/Android log upload still requires field verification with a real signed-in client. Stable remains untouched.
+
+
+## D064 active workstream
+
+Source candidate rebuilds `Trạng thái hệ thống` as a detailed provider/usage/capacity console and adds a guarded Beta-only real-Picker load-test workflow. Core metrics refresh at most every 60 seconds while visible; Google Drive/GitHub reads are cached five minutes. The load test targets 1,000 successful normal Picker reports across 100 existing active Pickers and about 400 existing SKUs within <=600 seconds. Stable is untouched. Navigation grouping is not changed by D064; a measured post-test proposal is required first.

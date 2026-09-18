@@ -4,6 +4,7 @@ import { handleReadModelCoreRequest } from "./read-model-core";
 import { handleNotificationCoreRequest } from "./notifications-core";
 import { handleUserManagementCoreRequest } from "./user-management-core";
 import { handleArchiveCoreRequest } from "./archive-core";
+import { handleSystemMetricsCoreRequest } from "./system-metrics-core";
 import { initializeOperationalV2Schema, operationalV2Readiness } from "./operational-v2-core";
 
 const SCHEMA_VERSION = 6;
@@ -283,6 +284,24 @@ export class InventoryCore {
     return rows[0] ?? null;
   }
 
+  private getUserById(userId: string): InternalUser | null {
+    const rows = this.state.storage.sql.exec<InternalUser>(
+      `SELECT user_id, firebase_uid, employee_code, display_name,
+              CASE
+                WHEN role = 'ROOT' AND role_override IN ('PICKER','REPORTER','ADMIN') THEN role_override
+                ELSE role
+              END AS role,
+              role AS base_role,
+              role_override,
+              status, password_salt, password_hash, password_changed_at, created_at, updated_at
+         FROM users
+        WHERE user_id = ?
+        LIMIT 1`,
+      userId,
+    ).toArray();
+    return rows[0] ?? null;
+  }
+
   private getUserByFirebaseUid(uid: string): InternalUser | null {
     const rows = this.state.storage.sql.exec<InternalUser>(
       `SELECT user_id, firebase_uid, employee_code, display_name,
@@ -320,6 +339,11 @@ export class InventoryCore {
     if (request.method === "GET" && url.pathname === "/auth/user-by-username") {
       const username = (url.searchParams.get("username") || "").trim();
       return response({ user: username ? this.getUserByUsername(username) : null });
+    }
+
+    if (request.method === "GET" && url.pathname === "/auth/user-by-id") {
+      const userId = (url.searchParams.get("user_id") || "").trim();
+      return response({ user: userId ? this.getUserById(userId) : null });
     }
 
     if (request.method === "GET" && url.pathname === "/auth/user-by-firebase-uid") {
@@ -422,6 +446,9 @@ export class InventoryCore {
 
     const notifications = await handleNotificationCoreRequest(this.state, request);
     if (notifications) return notifications;
+
+    const systemMetrics = await handleSystemMetricsCoreRequest(this.state, request);
+    if (systemMetrics) return systemMetrics;
 
     const readModel = await handleReadModelCoreRequest(this.state, request);
     if (readModel) return readModel;
