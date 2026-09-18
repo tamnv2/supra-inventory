@@ -121,15 +121,15 @@
   },
   "environments": {
     "beta": {
-      "status": "F01_F07_RUNTIME_PASS__WEB_OPERATIONAL_P1_SOURCE_IN_PROGRESS",
+      "status": "F01_F07_WEB_OPERATIONAL_P1_AUTOMATED_RUNTIME_PASS_MAIN_343AFFD8__NEXT_ANDROID_P1",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
       "hostname": "inventory-beta.supra.cc.cd",
       "custom_domain_status": "ACTIVE",
       "health_status": "PASS",
-      "ci_deploy_status": "F06_F07_DEPLOY_PASS_RUN_35288849052",
-      "web_smoke_status": "PASS_17C1C061",
+      "ci_deploy_status": "PASS_RUN_35291272392_MAIN_343AFFD8",
+      "web_smoke_status": "PASS_MAIN_343AFFD8",
       "app_verify_status": "ANDROID_PASS_SIGNED_RELEASE_VC38__MATCHING_RUNTIME_GATE_PASS",
       "durable_object_status": "PROVISIONED_PASS",
       "durable_object_class": "InventoryCore",
@@ -163,9 +163,9 @@
       "cloudflare_oauth_refresh_token_secret": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
       "oauth_refresh_token_configured": true,
       "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA",
-      "web_source_status": "WEB_OPERATIONAL_P1_CONTEXT_SESSION_USERS_REPORTING_SOURCE_IN_PROGRESS__BETA_RUNTIME_PENDING",
+      "web_source_status": "WEB_OPERATIONAL_P1_BETA_DEPLOY_SMOKE_PASS_343AFFD8__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
       "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
-      "web_admin_report_monitoring": "D025_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_IN_PROGRESS__BETA_RUNTIME_PENDING",
+      "web_admin_report_monitoring": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_BUILD_DEPLOY_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
       "android_source_status": "F06_F07_APPLIED_CURSOR_SIGNED_BETA_VC38_RUNTIME_GATED_PASS",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
@@ -173,7 +173,7 @@
       "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.38",
       "latest_signed_beta_apk_sha256": "0950621118df4339c69f5b5672ecb43aeff1229ef38d81de704d96ab031ff7aa",
       "latest_signed_beta_apk_size_bytes": 9217842,
-      "auth_rbac_status": "SERVER_PAGED_FILTERED_MANAGED_USERS_AND_ONE_MANY_ALL_PICKER_SOURCE_IN_PROGRESS__BETA_RUNTIME_PENDING",
+      "auth_rbac_status": "SERVER_PAGED_FILTERED_ONE_MANY_ALL_SOURCE_BUILD_DEPLOY_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
       "auth_api_route_smoke": "PASS",
       "root_bootstrap_path_smoke": "PASS",
       "hr_settings_ui_status": "CONFIGURABLE_URL_TAB_EMPLOYEE_AND_NAME_HEADERS_DEPLOYED_PASS",
@@ -262,10 +262,10 @@
     "android_vc33_native_ui_fail_closed_update_gate_signed_release_pass"
   ],
   "application_build_pending": [
-    "web_operational_p1_context_session_users_reporting_pr_ci_runtime",
     "f09_f13_f21_f22_android_operational_lifecycle",
     "f14_f19_f20_f23_sla_archive_diagnostics",
     "fcm_physical_device_delivery_acceptance",
+    "owner_web_functional_acceptance",
     "isolated_business_mutation_load_acceptance_after_owner_scale_target"
   ],
   "release_pending": [
@@ -324,7 +324,7 @@
   },
   "ui_design": {
     "authority": "OWNER_SELECTED_LEGACY_OPERATIONAL_UI_V2",
-    "web": "WEB_OPERATIONAL_P1_CONTEXT_PRESERVING_SOURCE_IN_PROGRESS__BETA_RUNTIME_PENDING",
+    "web": "WEB_OPERATIONAL_P1_BETA_DEPLOY_SMOKE_PASS_343AFFD8",
     "android": "F06_F07_APPLIED_CURSOR_SIGNED_BETA_VC38_RUNTIME_GATED_PASS",
     "scope_guard": "LEGACY_OPERATIONAL_UI_V2_WITH_CANONICAL_BUSINESS_CONTROLS_AND_CURRENT_ARCHITECTURE"
   },
