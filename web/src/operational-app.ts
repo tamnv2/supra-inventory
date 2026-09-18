@@ -684,6 +684,59 @@ async function loadUsers(): Promise<void> {
   userTotal = result.total;
 }
 
+function csvCell(value: unknown): string {
+  const text = String(value ?? "");
+  return `"${text.replaceAll('"', '""')}"`;
+}
+
+async function exportReportsCsv(): Promise<void> {
+  const range = apiRange(reportFrom, reportTo);
+  const rows: AdminReportingRow[] = [];
+  let offset = 0;
+  let total = 0;
+  const pageSize = 500;
+  const maxRows = 100_000;
+
+  do {
+    const page = await getAdminReporting({
+      from: range.from,
+      to: range.to,
+      status: reportStatus,
+      query: reportQuery,
+      limit: pageSize,
+      offset,
+    });
+    total = page.total;
+    rows.push(...page.items);
+    offset += page.items.length;
+    if (!page.items.length) break;
+    if (rows.length > maxRows) throw new Error(`Bộ lọc có hơn ${maxRows.toLocaleString("vi-VN")} dòng; hãy thu hẹp khoảng ngày trước khi xuất.`);
+  } while (offset < total);
+
+  const header = ["SKU","Tên sản phẩm","Trạng thái","Báo đầu","Xử lý","Thời gian xử lý (phút)","Ticket"];
+  const body = rows.map((row) => [
+    row.sku,
+    row.product_name,
+    statusLabel(row.status),
+    row.first_report_at,
+    row.resolved_at || "",
+    row.duration_minutes ?? "",
+    row.total_ticket_count,
+  ].map(csvCell).join(","));
+  const csv = "\uFEFF" + [header.map(csvCell).join(","), ...body].join("\r\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const stamp = new Date().toISOString().replaceAll(":", "").replaceAll("-", "").slice(0, 15);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `supra-inventory-beta-report-${stamp}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  setNotice("success", `Đã xuất ${rows.length.toLocaleString("vi-VN")} dòng CSV theo bộ lọc hiện tại.`);
+}
+
 async function loadSection(section: Section): Promise<void> {
   if (!profile) return;
   if ((section === "operations" || section === "results") && roleOperate()) await loadOperations();
