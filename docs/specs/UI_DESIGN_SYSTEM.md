@@ -152,3 +152,11 @@ Reference material never authorizes bin/location/pickface, stock quantity, maps,
 - Stable rows remain attached where their business signature is unchanged so scroll/touch context is not reset unnecessarily.
 - Picker `Thu hồi` is a normal visible tap action followed by an explicit confirmation; do not hide the action behind a long-press gesture.
 - Admin/Root launcher Web-first entries deep-link to their exact allowed module; direct links remain role-checked by the Web client before rendering.
+
+## Support diagnostics surface
+
+- Web and Android expose a support-log action using bounded technical snapshots only.
+- Allowed context includes app/build, platform/device class, network/service reachability, realtime state/cursor/epoch, catalog count/version and a bounded recent technical-error list.
+- Credentials, authorization headers, ID/refresh tokens, passwords, API keys, private/signing material and raw session stores are never included.
+- Diagnostic objects/strings/arrays are depth/count/length bounded and credential-like keys/values are redacted.
+- Generating a support log is read-only and never triggers business mutation.
