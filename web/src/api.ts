@@ -254,6 +254,16 @@ export interface RuntimeLogDetail {
   content: unknown;
 }
 
+export interface SystemStatusSnapshot {
+  generated_at: string;
+  environment: string;
+  source_commit: string | null;
+  core: Record<string, unknown>;
+  providers: Record<string, unknown>;
+  limits: Record<string, unknown>;
+  refresh_policy: Record<string, unknown>;
+}
+
 export interface AdminReportBatch {
   batch_id: string;
   sku: string;
@@ -556,6 +566,11 @@ export async function getRuntimeLogs(source: "WEB" | "ANDROID", limit = 50): Pro
 export async function getRuntimeLogDetail(fileId: string): Promise<RuntimeLogDetail> {
   const params = new URLSearchParams({ file_id: fileId });
   return readJson(await authorizedFetch(`/api/admin/logs/file?${params.toString()}`));
+}
+
+export async function getSystemStatus(fresh = false): Promise<SystemStatusSnapshot> {
+  const suffix = fresh ? "?fresh=1" : "";
+  return readJson(await authorizedFetch(`/api/admin/system-status${suffix}`));
 }
 
 export async function listManagedUsers(options: {
