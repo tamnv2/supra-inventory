@@ -7,13 +7,13 @@
 Canonical current markers:
 - SQLite schema: `6`
 - Latest Beta APK: `beta-vc45`
-- Web: `D066_THREE_GROUP_NAVIGATION_SOURCE_IMPLEMENTED__BETA_DEPLOY_PENDING`
+- Web: `D066_THREE_GROUP_NAVIGATION_BETA_RUNTIME_PASS__OWNER_VISUAL_ACCEPTANCE_PENDING`
 - Android: `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 
 The project is in **UI-first review**, not business-logic rebuild.
 
 - Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinements: **D058 shell + D059 header + D060 Root-role/theme + D061 dark/sidebar/realtime cleanup + D062 final Web QA/IA + D063 consolidated operations/logs/reporting/people review**.
-- D064 detailed `Trạng thái hệ thống` is deployed on Beta and technically PASS. Controlled Beta load test run `35376099693` also PASS: 1,000/1,000 real Picker reports, 100 existing Pickers, 400 existing SKUs in 525.423 seconds, no errors; temporary load-test gate verified closed. D065 three-group navigation was approved by Owner as D066 and is now implemented in source on the D066 branch; PR guards and Beta deploy remain to be completed before runtime PASS. Stable is unchanged.
+- D064 detailed `Trạng thái hệ thống` is deployed on Beta and technically PASS. Controlled Beta load test run `35376099693` also PASS: 1,000/1,000 real Picker reports, 100 existing Pickers, 400 existing SKUs in 525.423 seconds, no errors; temporary load-test gate verified closed. D066 three-group navigation is merged and deployed on Beta. PR #50 guards PASS; main UI Design Guard run `35407227884` PASS; Beta deploy run `35407227911` PASS. Owner visual acceptance is still pending. Stable is unchanged.
 - Owner has **not yet given UI/layout acceptance** for the current candidate.
 - Technical build/deploy/release PASS must never be interpreted as Owner UI PASS.
 - D064 system-status and controlled load-test implementation are complete. D066 now carries the approved three-group Web navigation implementation.
@@ -23,9 +23,9 @@ Current review targets:
 - Web: `https://inventory-beta.supra.cc.cd/`
 - Android signed review release (broader visual review pending): `beta-vc45`
 - APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc45/supra-inventory-beta.apk`
-- Web runtime source: `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`
+- Web runtime source: `2e12e6d4e94b195e3b505b3f2abe9822ca91632c`
 - Android beta-vc45 source: `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`
-- Current Web runtime implementation source: `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`
+- Current Web runtime implementation source: `2e12e6d4e94b195e3b505b3f2abe9822ca91632c`
 
 ## 2. Minimal command for the next chat
 
@@ -440,7 +440,7 @@ Proposal detail: `docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md`.
 Do not implement the sidebar until Owner approves/refines the exact composition.
 
 
-## D066 three-group navigation implementation — source complete, Beta runtime pending
+## D066 three-group navigation — Beta runtime PASS
 
 Owner approved the exact D065 proposal and authorized Beta Web implementation.
 
@@ -457,5 +457,35 @@ Implementation details:
 - Picker Web keeps its single `Báo thiếu hàng` workspace.
 - Android/PDA unchanged. Stable untouched and OWNER-GATED.
 
-Current source marker: `D066_THREE_GROUP_NAVIGATION_SOURCE_IMPLEMENTED__BETA_DEPLOY_PENDING`.
+Current source marker: `D066_THREE_GROUP_NAVIGATION_BETA_RUNTIME_PASS__OWNER_VISUAL_ACCEPTANCE_PENDING`.
 Next action: finish PR guards → merge → Beta deploy → record runtime PASS/continuity.
+
+## D066 runtime evidence — clean handoff
+
+Technical/runtime work for the approved three-group Web navigation is complete.
+
+- Implementation PR: **#50**
+- Main source: `2e12e6d4e94b195e3b505b3f2abe9822ca91632c`
+- PR Repo Authority Guard: **PASS** (`35407099582`)
+- PR Project State Guard: **PASS** (`35407099580`)
+- PR UI Design Guard: **PASS** (`35407099550`)
+- Main UI Design Guard: **PASS** (`35407227884`)
+- Beta deploy: **PASS** (`35407227911`)
+- Runtime smoke in deploy: health/schema, auth/business guards, Web shell and Google OAuth start all PASS
+- Stable: **untouched / OWNER-GATED**
+- Android/PDA: **unchanged**
+
+Deployed Admin/Root sidebar:
+- **VẬN HÀNH** → Xử lý báo hàng; Tổng quan & báo cáo
+- **QUẢN LÝ** → Danh mục SKU; Nhân sự & tài khoản; Thời gian xử lý
+- **HỆ THỐNG** → Trạng thái hệ thống; Nhật ký
+
+Internal consolidation:
+- Kết quả gần đây remains inside Xử lý báo hàng.
+- Nguồn nhân sự + Đồng bộ Picker are inside Nhân sự & tài khoản.
+- Personal account/password access is in the pinned top identity controls, not the business sidebar.
+- Reporter and Picker keep role-specific projections.
+
+**Next chat command:** `Kiểm tra live D066 và tiếp tục từ NEXT_ACTION`.
+
+No manual end-of-session handover is required; bootstrap from `ops/authority-manifest.json`.

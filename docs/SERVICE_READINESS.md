@@ -3,10 +3,10 @@
 > DERIVED VIEW. Canonical live status is `ops/project-state.json`; resource identity is `ops/resource-registry.json`.
 
 - Project: `supra-inventory`
-- Web: `D066_THREE_GROUP_NAVIGATION_SOURCE_IMPLEMENTED__BETA_DEPLOY_PENDING`
+- Web: `D066_THREE_GROUP_NAVIGATION_BETA_RUNTIME_PASS__OWNER_VISUAL_ACCEPTANCE_PENDING`
 - Android: `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 - Latest signed review APK: `beta-vc45`
-- Web runtime source: `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`
+- Web runtime source: `2e12e6d4e94b195e3b505b3f2abe9822ca91632c`
 - Android beta-vc45 source: `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`
 - Owner UI review: **IN PROGRESS — no final UI acceptance yet**
 
@@ -29,7 +29,7 @@ Current review endpoints:
 - Web: `https://inventory-beta.supra.cc.cd/`
 - APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc45/supra-inventory-beta.apk`
 
-D064 detailed system status is deployed on Beta and technically PASS. Controlled Beta load test run `35376099693` PASS with 1,000/1,000 real Picker reports across 100 existing Pickers and 400 existing SKUs in 525.423 seconds, no errors; temporary gate verified closed. Navigation IA was approved by Owner as D066; source implementation is complete and awaits PR guards/merge/Beta deploy.
+D064 detailed system status is deployed on Beta and technically PASS. Controlled Beta load test run `35376099693` PASS with 1,000/1,000 real Picker reports across 100 existing Pickers and 400 existing SKUs in 525.423 seconds, no errors; temporary gate verified closed. Navigation IA was approved by Owner as D066 and is deployed on Beta; PR #50 guards PASS, main UI Design Guard `35407227884` PASS, Beta deploy `35407227911` PASS.
 
 Android/PDA presentation includes transplanted old native activity/login/Picker/Invent/Admin/row/overlay XML plus drawables/colors/styles, with current controllers bound to those resources.
 
@@ -59,7 +59,7 @@ Automated PASS is technical eligibility only. It is not Owner UI acceptance.
 
 ## D063 source candidate
 
-`D066_THREE_GROUP_NAVIGATION_SOURCE_IMPLEMENTED__BETA_DEPLOY_PENDING` is the active Web source candidate; Android source marker is `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`. `Inventory/Beta/Logs` is created and registered. D062/beta-vc45 remain the deployed/signed runtime references until D063 CI, merge, Beta deploy and signed Android release complete. Stable remains untouched.
+`D066_THREE_GROUP_NAVIGATION_BETA_RUNTIME_PASS__OWNER_VISUAL_ACCEPTANCE_PENDING` is the active Web source candidate; Android source marker is `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`. `Inventory/Beta/Logs` is created and registered. D062/beta-vc45 remain the deployed/signed runtime references until D063 CI, merge, Beta deploy and signed Android release complete. Stable remains untouched.
 
 ## D062 runtime PASS
 
@@ -102,7 +102,7 @@ Automated PASS is technical eligibility only. Owner UI/theme/role-test acceptanc
 
 ## Current work frontier
 
-D064 runtime/load work is complete. D066 exact three-group Web navigation is Owner-approved and source-implemented; next action is PR guards → merge → Beta deploy → continuity PASS.
+D064 runtime/load work is complete. D066 exact three-group Web navigation is Owner-approved and Beta runtime PASS; next action is Owner visual review.
 
 For each Owner-rejected screen:
 - compare current render to the pinned old source + current Owner feedback;
@@ -145,7 +145,7 @@ Source candidate rebuilds `Trạng thái hệ thống` as a detailed provider/us
 Owner constraint: exactly 3 Admin/Root large navigation groups, maximum 5 visible children per group. Proposed composition is VẬN HÀNH (2), QUẢN LÝ (3), HỆ THỐNG (2). Exact composition remains Owner-gated before implementation. Personal account/password action moves out of the business sidebar. Android/PDA and Stable are unchanged.
 
 
-## D066 source implementation
+## D066 Beta runtime PASS
 
 Owner-approved Web navigation is now source-implemented:
 - VẬN HÀNH (2): Xử lý báo hàng; Tổng quan & báo cáo
@@ -156,4 +156,12 @@ Owner-approved Web navigation is now source-implemented:
 - Reporter/Picker projections remain role-specific
 - Android/PDA unchanged; Stable untouched
 
-Current Web marker: `D066_THREE_GROUP_NAVIGATION_SOURCE_IMPLEMENTED__BETA_DEPLOY_PENDING`.
+Current Web marker: `D066_THREE_GROUP_NAVIGATION_BETA_RUNTIME_PASS__OWNER_VISUAL_ACCEPTANCE_PENDING`.
+
+D066 runtime evidence:
+- PR #50 merged at `2e12e6d4e94b195e3b505b3f2abe9822ca91632c`
+- PR Repo Authority / Project State / UI Design guards: PASS
+- Main UI Design Guard run `35407227884`: PASS
+- Beta deploy run `35407227911`: PASS
+- Stable untouched; Android/PDA unchanged
+- Owner visual acceptance remains pending
