@@ -125,6 +125,7 @@ let editUserId: string | null = null;
 let passwordUserId: string | null = null;
 let dashboardLoadGeneration = 0;
 let reportLoadGeneration = 0;
+let sessionViewGeneration = 0;
 
 function esc(value: unknown): string {
   return String(value ?? "")
@@ -390,6 +391,7 @@ function renderLogin(): void {
     const data = new FormData(event.currentTarget as HTMLFormElement);
     void run(async () => {
       profile = await loginWithPassword(String(data.get("username") || "").trim(), String(data.get("password") || ""));
+      sessionViewGeneration += 1;
       activeSection = profile.role === "PICKER" ? "picker" : "operations";
       window.dispatchEvent(new CustomEvent("supra:session-changed"));
       await loadSection(activeSection);
@@ -610,13 +612,19 @@ async function run(fn: () => Promise<void>): Promise<void> {
 }
 
 async function loadOperations(): Promise<void> {
+  const generation = sessionViewGeneration;
+  const userId = profile?.user_id || "";
   const [queue, recent] = await Promise.all([getReporterQueue(200), getReporterRecent(200)]);
+  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   queueRows = queue.items;
   recentRows = recent.items;
 }
 
 async function loadPicker(): Promise<void> {
+  const generation = sessionViewGeneration;
+  const userId = profile?.user_id || "";
   const [reports, results] = await Promise.all([getPickerReportsV2(120), getPickerResultsV2(120)]);
+  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   pickerReports = reports.items;
   pickerResults = results.items;
   for (const result of pickerResults.filter((row) => !row.acknowledged_at && !markedResultEvents.has(row.result_event_id))) {
@@ -627,24 +635,33 @@ async function loadPicker(): Promise<void> {
 }
 
 async function loadSla(): Promise<void> {
+  const generation = sessionViewGeneration;
+  const userId = profile?.user_id || "";
   const range = apiRange(dateDaysAgo(6), dateDaysAgo(0));
-  [slaResponse, operationalInsights] = await Promise.all([getAdminSla(), getAdminOperationalInsights(range.from, range.to)]);
+  const [nextSla, nextInsights] = await Promise.all([getAdminSla(), getAdminOperationalInsights(range.from, range.to)]);
+  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+  slaResponse = nextSla;
+  operationalInsights = nextInsights;
 }
 
 async function loadDashboard(): Promise<void> {
   const generation = ++dashboardLoadGeneration;
+  const sessionGeneration = sessionViewGeneration;
+  const userId = profile?.user_id || "";
   const range = apiRange(dashboardFrom, dashboardTo);
   const [nextDashboard, nextInsights] = await Promise.all([
     getAdminDashboard(range.from, range.to),
     getAdminOperationalInsights(range.from, range.to),
   ]);
-  if (generation !== dashboardLoadGeneration) return;
+  if (generation !== dashboardLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   dashboardData = nextDashboard;
   operationalInsights = nextInsights;
 }
 
 async function loadReports(): Promise<void> {
   const generation = ++reportLoadGeneration;
+  const sessionGeneration = sessionViewGeneration;
+  const userId = profile?.user_id || "";
   const range = apiRange(reportFrom, reportTo);
   const result = await getAdminReporting({
     from: range.from,
@@ -654,12 +671,14 @@ async function loadReports(): Promise<void> {
     limit: REPORT_PAGE_SIZE,
     offset: reportOffset,
   });
-  if (generation !== reportLoadGeneration) return;
+  if (generation !== reportLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   reportRows = result.items;
   reportTotal = result.total;
 }
 
 async function loadUsers(): Promise<void> {
+  const generation = sessionViewGeneration;
+  const userId = profile?.user_id || "";
   const result = await listManagedUsers({
     query: userQuery,
     role: userRole,
@@ -667,6 +686,7 @@ async function loadUsers(): Promise<void> {
     limit: USER_PAGE_SIZE,
     offset: userOffset,
   });
+  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   if (result.total > 0 && userOffset >= result.total) {
     userOffset = Math.max(0, Math.floor((result.total - 1) / USER_PAGE_SIZE) * USER_PAGE_SIZE);
     const retry = await listManagedUsers({
@@ -676,6 +696,7 @@ async function loadUsers(): Promise<void> {
       limit: USER_PAGE_SIZE,
       offset: userOffset,
     });
+    if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
     managedUsers = retry.items;
     userTotal = retry.total;
     return;
@@ -766,6 +787,7 @@ function bindShell(): void {
     pickerSearchGeneration += 1;
     dashboardLoadGeneration += 1;
     reportLoadGeneration += 1;
+    sessionViewGeneration += 1;
     clearSession();
     profile = null;
     notice = null;
@@ -1218,6 +1240,7 @@ async function bootstrap(): Promise<void> {
   if (!hasSession()) { renderLogin(); return; }
   try {
     profile = await getMyProfile();
+    sessionViewGeneration += 1;
     activeSection = profile.role === "PICKER" ? "picker" : "operations";
     await loadSection(activeSection);
     render();
