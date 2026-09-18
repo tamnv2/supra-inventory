@@ -62,6 +62,9 @@ jobs:
       - name: Run Web operational regression guard
         run: python3 tools/web_operational_regression.py
 
+      - name: Run Android operational regression guard
+        run: python3 tools/android_operational_regression.py
+
       - name: Typecheck Worker service
         working-directory: service
         run: |
