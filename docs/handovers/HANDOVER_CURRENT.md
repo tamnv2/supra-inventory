@@ -5,36 +5,37 @@
 ## Current status
 
 - Project: `SUPRA Inventory — Báo hàng` (`supra-inventory`).
-- Beta: `F01_F13_F21_F22_RUNTIME_PASS__F14_F19_F20_F23_SOURCE_IN_PROGRESS`
+- Beta: `F01_F14_F19_F20_F21_F22_F23_AUTOMATED_RUNTIME_RELEASE_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING`
 - SQLite schema: `5`
-- Web: `WEB_P1_RUNTIME_PASS__F14_SLA_CLOCK_F23_DIAGNOSTICS_SOURCE_IN_PROGRESS`
-- Android: `VC39_RUNTIME_BASELINE__F14_SLA_CLOCK_F23_DIAGNOSTICS_SOURCE_IN_PROGRESS`
-- Latest signed Beta APK: `beta-vc39`
+- Web: `WEB_P1_F14_F20_F23_BETA_RUNTIME_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING`
+- Android: `VC40_F14_F23_SIGNED_RUNTIME_GATE_PASS__PHYSICAL_ACCEPTANCE_PENDING`
+- Latest signed Beta APK: `beta-vc40`
 - Operational V2 runtime: `4/4`.
 
-## Proven baseline
+## Automated evidence
 
-- F01–F13/F21–F22 automated runtime/release baseline remains PASS.
-- Signed Android baseline remains `beta-vc39`.
+- PR #24 merged to main at `c375643687b0f72132ffeba035f724795a1f6280`.
+- Repo Authority Guard, Project State Guard, UI Design Guard and Verify Beta Android all PASS for that SHA.
+- Deploy Beta run `35295250687` PASS.
+- Runtime health: HTTP 200, SQLite `5/5`, Operational V2 `4/4`.
+- Auth/business guards, Web shell and Google OAuth start smoke PASS.
+- Signed release `beta-vc40` was published only after the matching runtime gate PASS.
+- APK SHA-256: `7d87872a090fe825a1d2d0d208c9ceac82f4503b34c0805f9504ed7f3f35eac8`.
+- APK size: `9250662` bytes.
 
-## Current source package — F14/F19/F20/F23
+## F14/F19/F20/F23 result
 
-Branch `fix/sla-archive-insights-diagnostics` implements:
-- Reporter queue `server_now` plus absolute warning/escalation deadlines, with locally advancing Web/PDA SLA presentation and no API polling ticker;
-- operational insights maximum 60-day window and SQL aggregate SLA warning/escalated counts;
-- existing archive tabs extended with batch version/recurrence and immutable result/ACK lifecycle evidence;
-- retention cleanup covers associated result ACKs, result snapshots, realtime rows and notification delivery attempts before deleting archived hot batches;
-- bounded/redacted Web support-log JSON and PDA support diagnostics/share surface.
-
-Protected PR regression/typecheck/build/runtime/release gates are pending.
+- F14: server-calibrated local SLA progression on Web/PDA without API polling.
+- F19: archive/retention covers batch version/recurrence plus immutable result/ACK/realtime/notification-attempt lifecycle metadata.
+- F20: operational insights are bounded to 60 days and use SQL aggregate SLA counts.
+- F23: Web/PDA support diagnostics are bounded and redacted.
 
 ## Next
 
-1. Run protected PR authority/continuity plus all source regression/build gates.
-2. Repair until all gates PASS.
-3. Merge and verify matching Beta deploy/runtime smoke.
-4. Because Android diagnostics/SLA source changed, verify the matching signed Beta release gate.
-5. Record runtime/release continuity, then continue physical/load acceptance.
+1. Physical Beta PDA/UI acceptance on `beta-vc40`.
+2. Physical background FCM delivery/display plus explicit critical-result acknowledgement acceptance.
+3. Owner Web/Android functional acceptance by business scenario.
+4. Isolated mutation load acceptance after the Owner workload target/test boundary is fixed.
 
 ## Continuity rule
 
