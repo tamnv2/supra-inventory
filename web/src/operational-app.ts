@@ -108,10 +108,6 @@ function legacyRoleLabel(value: AppProfile["role"]): string {
   return "Người lấy hàng";
 }
 
-function healthChip(label: string, value: string, kind = ""): string {
-  return `<span class="health-chip ${kind}"><b>${esc(label)}</b><em>${esc(value)}</em></span>`;
-}
-
 function sectionFromHash(): Section | null {
   const raw = window.location.hash.replace(/^#/, "").trim().toLowerCase();
   return ROUTABLE_SECTIONS.includes(raw as Section) ? (raw as Section) : null;
