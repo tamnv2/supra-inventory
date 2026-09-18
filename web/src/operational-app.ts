@@ -547,7 +547,6 @@ function renderShell(content: string): void {
   const visualRole = profile.role === "PICKER" ? "PICKER" : profile.role === "REPORTER" ? "INVENT" : "ADMIN";
   document.body.dataset.role = visualRole;
   document.body.dataset.testRole = "";
-  const employee = profile.employee_code || profile.user_id;
   app.innerHTML = `<div class="app-shell role-${esc(profile.role.toLowerCase())}">
     <header class="topbar">
       <div class="header-product">
@@ -560,12 +559,15 @@ function renderShell(content: string): void {
         </div>
       </div>
       <div class="user header-user">
-        <div class="header-user-grid">
-          <span><b>Tên:</b> ${esc(profile.display_name)}</span>
-          <span><b>User:</b> ${esc(employee)}</span>
-          <span><b>Quyền:</b> ${esc(legacyRoleLabel(profile.role))}</span>
+        <div class="header-user-identity">
+          <strong>${esc(profile.display_name)}</strong>
+          <span>${esc(legacyRoleLabel(profile.role))}</span>
         </div>
-        <div class="user-actions"><button id="logout" class="ghost">Đăng xuất</button></div>
+        <div class="header-controls">
+          ${profile.base_role === "ROOT" ? `<label class="header-control root-role-control"><span>Kiểm tra quyền</span><select id="root-role-select">${(["ROOT","ADMIN","REPORTER","PICKER"] as AppProfile["role"][]).map((role) => `<option value="${role}" ${profile?.role === role ? "selected" : ""}>${esc(rootRoleOptionLabel(role))}</option>`).join("")}</select></label>` : ""}
+          <label class="header-control theme-control"><span>Giao diện</span><select id="theme-mode"><option value="AUTO" ${themeMode === "AUTO" ? "selected" : ""}>Tự động</option><option value="LIGHT" ${themeMode === "LIGHT" ? "selected" : ""}>Sáng</option><option value="DARK" ${themeMode === "DARK" ? "selected" : ""}>Tối</option></select></label>
+          <div class="user-actions"><button id="logout" class="ghost">Đăng xuất</button></div>
+        </div>
       </div>
     </header>
     <nav class="tabs" data-shell-generation="legacy-direct-transplant">${renderNav()}</nav>
@@ -845,10 +847,8 @@ function renderDashboard(): string {
   const pending = Number(k?.pending_batch_count || 0);
   const hourly = Array.from({ length: 24 }, (_, index) => Number(timeline[index]?.reports || 0));
   const maxHour = Math.max(1, ...hourly);
-  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-  const clock = new Intl.DateTimeFormat("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date());
   return `<section class="v5-root">
-    <div class="v5-page-head"><div><h2>Tổng quan hôm nay</h2></div><div class="v5-head-meta"><b>${today}</b><span>Cập nhật ${clock}</span><button class="secondary" data-section="operations">Mở xử lý báo thiếu</button></div></div>
+    <div class="v5-page-head"><div><h2>Tổng quan hôm nay</h2></div></div>
     <div class="v5-block"><div class="v5-block-head"><h3>Cần xử lý</h3></div>
       <div class="v5-kpi-grid v5-kpi-grid-3">
         <article class="v5-kpi blue"><span>Đang xử lý</span><strong>${pending}</strong><small>SKU đang mở</small></article>
@@ -1193,6 +1193,29 @@ function bindShell(): void {
     passwordUserId = null;
     void run(async () => { await loadSection(next); });
   }));
+  document.querySelector<HTMLSelectElement>("#theme-mode")?.addEventListener("change", (event) => {
+    const next = String((event.currentTarget as HTMLSelectElement).value || "AUTO").toUpperCase();
+    themeMode = next === "LIGHT" || next === "DARK" ? next : "AUTO";
+    localStorage.setItem(THEME_KEY, themeMode);
+    applyTheme();
+  });
+  document.querySelector<HTMLSelectElement>("#root-role-select")?.addEventListener("change", (event) => {
+    if (!profile || profile.base_role !== "ROOT") return;
+    const role = String((event.currentTarget as HTMLSelectElement).value || "ROOT") as AppProfile["role"];
+    if (!["ROOT", "ADMIN", "REPORTER", "PICKER"].includes(role) || role === profile.role) return;
+    void run(async () => {
+      profile = await setRootEffectiveRole(role);
+      sessionViewGeneration += 1;
+      pickerSearchGeneration += 1;
+      dashboardLoadGeneration += 1;
+      reportLoadGeneration += 1;
+      clearRoleScopedViewState();
+      activeSection = defaultSectionForProfile(profile);
+      syncSectionHash(activeSection);
+      window.dispatchEvent(new CustomEvent("supra:session-changed"));
+      await loadSection(activeSection);
+    });
+  });
   document.querySelector<HTMLButtonElement>("#logout")?.addEventListener("click", () => {
     pickerSearchGeneration += 1;
     dashboardLoadGeneration += 1;
@@ -1696,5 +1719,8 @@ async function bootstrap(): Promise<void> {
 }
 
 window.setInterval(updateQueueClockDom, 15_000);
+window.setInterval(() => {
+  if (themeMode === "AUTO") applyTheme();
+}, 60_000);
 
 void bootstrap();
