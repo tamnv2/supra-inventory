@@ -18,7 +18,7 @@
     "sqlite_schema": 5,
     "business_api": "OPERATIONAL_V2_4_RUNTIME_PASS__F20_BOUNDED_INSIGHTS_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
-    "web": "D057_DIRECT_LEGACY_PRESENTATION_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
+    "web": "D058_WEB_DESKTOP_SHELL_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
     "android": "VC43_D057_DIRECT_LEGACY_NATIVE_XML_SIGNED_RUNTIME_GATE_PASS__OWNER_UI_ACCEPTANCE_PENDING",
     "latest_beta_apk": "beta-vc43",
     "realtime": "GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_4",
@@ -28,7 +28,7 @@
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_BUILD_DEPLOY_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "D057_DIRECT_PRESENTATION_AUTOMATED_RUNTIME_RELEASE_PASS__OWNER_UI_GATE_PENDING",
+    "ui_design_guard": "D058_WEB_DESKTOP_SHELL_SOURCE_BUILD_RUNTIME_PASS__OWNER_UI_GATE_PENDING",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED"
@@ -116,15 +116,15 @@
     "UI Design Guard run 35309444877 PASS on fa677463 with D057 presentation invariants plus Web production and Android debug build gates."
   ],
   "pending_build": [
-    "D058 Web desktop shell source/build/deploy gate and Owner screen-by-screen UI/layout acceptance",
+    "Owner screen-by-screen Web UI/layout acceptance on the deployed D058 Beta candidate",
     "Android/APK visual review after Owner resumes it",
     "Only after Owner UI gate: rebuild/wire canonical business logic/scenarios",
     "Physical notification/device acceptance after functional rebuild",
     "Isolated mutation load acceptance after Owner workload target"
   ],
   "field_pending": [
-    "Owner Web visual/layout acceptance is pending for the D058 review candidate.",
-    "Android/APK review is pending separately.",
+    "Owner Web visual/layout acceptance is pending for deployed D058.",
+    "Android/APK review remains pending separately.",
     "Technical source/build/deploy/release PASS is not Owner UI acceptance."
   ],
   "open_decisions_do_not_invent": [
@@ -135,8 +135,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Complete D058 Web-only source/build gates, merge through PR, verify Beta Web deploy, then continue Owner screen-by-screen Web review.",
-    "method": "Apply current Owner review as the Web-specific refinement over D057: no test strip, no AI/Owner or implementation prose, fixed topbar + Admin/Root left navigation, central-workspace scrolling, full available desktop width, fixed bottom-right credit. Do not modify Android in this workstream.",
+    "primary": "Continue Owner-led screen-by-screen review of deployed D058 Web. Repair only visual/layout/copy mismatches reported or confirmed during review; Android/APK remains pending.",
+    "method": "Fresh-bootstrap canonical GitHub in the next session. D058 is the active Web refinement over D057: no test strip, no AI/Owner or implementation prose, pinned topbar + Admin/Root left navigation, central-workspace scrolling, full available desktop width, fixed bottom-right credit. Owner only needs to provide the current Web screen feedback/screenshot.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -164,14 +164,13 @@
   },
   "workboard": {
     "in_progress": [
-      "D058 Owner Web review repair: remove test strip and rejected explanatory copy, correct desktop shell geometry, pin top/left chrome, use full workspace and fixed product credit",
-      "Owner Web UI acceptance remains pending; Android/APK review is explicitly paused for this workstream"
+      "Owner is actively reviewing the deployed D058 Web desktop shell candidate",
+      "UI-only Web presentation mismatch repair from Owner review feedback; Android/APK review remains pending"
     ],
     "next": [
-      "Run D058 source/build/authority/continuity guards and merge only after PASS",
-      "Verify Beta Web deployment for the merged D058 source without mutating Stable",
-      "Continue Owner screen-by-screen Web review from the deployed D058 candidate",
-      "Keep Android/APK pending until Owner starts its separate review",
+      "Continue Owner screen-by-screen Web review from the deployed D058 Beta candidate without asking Owner to repeat project history",
+      "For each rejected Web screen, repair presentation/layout/copy only and preserve D058 pinned shell/full-workspace rules",
+      "Keep Android/APK pending until Owner explicitly starts its separate review",
       "Only after explicit Owner UI acceptance resume canonical business wiring"
     ],
     "blocked_or_owner_field_dependent": [
@@ -180,32 +179,32 @@
       "No business rebuild is authorized while the UI gate is still in progress"
     ],
     "last_source_build_evidence": {
-      "branch": "ui/direct-legacy-presentation-transplant",
-      "merged_pr": 31,
-      "merged_main": "fa677463b898768a60013861220fce6e6192999e",
+      "branch": "ui/d058-web-desktop-shell-review",
+      "merged_pr": 34,
+      "merged_main": "d848546d429dba60bb88e6f9686e83b05c730994",
       "repo_authority_guard": "PASS",
       "project_state_guard": "PASS",
       "ui_design_guard": "PASS",
       "operational_v2_regression": "PASS",
       "realtime_cursor_regression": "PASS",
       "web_operational_regression": "PASS",
-      "android_operational_regression": "PASS",
+      "android_operational_regression": "PASS_UNCHANGED_ANDROID",
       "operational_support_regression": "PASS",
       "service_typecheck": "PASS",
       "web_production_build": "PASS",
-      "android_debug_build": "PASS",
-      "ui_design_guard_run": 35309444877
+      "android_debug_build": "PASS_UNCHANGED_ANDROID",
+      "ui_design_guard_run": 35313797934
     },
     "last_runtime_evidence": {
       "schema": 5,
       "operational_v2_schema": "4/4",
-      "beta_deploy_run": 35309444859,
+      "beta_deploy_run": 35313918056,
       "beta_deploy_conclusion": "success",
       "health": "HTTP_200_OK",
       "business_auth_guards": "PASS",
       "web_shell": "PASS",
       "google_oauth_start": "PASS",
-      "runtime_source_commit": "fa677463b898768a60013861220fce6e6192999e",
+      "runtime_source_commit": "d848546d429dba60bb88e6f9686e83b05c730994",
       "signed_beta_release": "beta-vc43",
       "signed_beta_release_source_commit": "fa677463b898768a60013861220fce6e6192999e",
       "signed_beta_apk_sha256": "37dbc5e64cd144bbcb9dcb3787d7b65a3486907746822d95a8e902e52f9a27d8",
@@ -227,7 +226,7 @@
   "last_updated": "2026-09-18",
   "owner_ui_review": {
     "status": "IN_PROGRESS",
-    "phase": "D058_WEB_DESKTOP_SHELL_REPAIR_SOURCE_CANDIDATE",
+    "phase": "D058_WEB_DESKTOP_RUNTIME_REVIEW",
     "started_on": "2026-09-18",
     "review_target_web": "https://inventory-beta.supra.cc.cd/",
     "review_target_android_release": "beta-vc43",
@@ -235,7 +234,7 @@
     "visual_authority_repository": "tam95supra-source/bao-hang-1291",
     "visual_authority_commit": "8713f487386fa39c9225b180b2b8448d4a7e2b2d",
     "owner_acceptance": "NOT_YET_GIVEN",
-    "current_instruction": "Focus Web first. Apply Owner D058 desktop shell/layout/copy fixes only; Android/APK review is pending and must not be changed in this workstream. Do not resume business logic/scenario rebuild until explicit Owner UI acceptance.",
+    "current_instruction": "Continue Web screen-by-screen UI/layout review on the deployed D058 Beta candidate. Android/APK remains pending and unchanged. Do not resume business logic/scenario rebuild until explicit Owner UI acceptance.",
     "next_session_command": "Tiếp tục review UI D058",
     "review_feedback_protocol": "Owner may send the current Web screenshot and concise feedback; AI must bootstrap canonical repo first, apply Web presentation-only repair through branch -> PR -> authority/continuity/UI guards -> merge -> Beta deploy verification, then return the next Web review candidate. Android remains pending."
   }

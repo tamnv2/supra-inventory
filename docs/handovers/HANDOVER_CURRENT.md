@@ -7,13 +7,13 @@
 Canonical current markers:
 - SQLite schema: `5`
 - Latest Beta APK: `beta-vc43`
-- Web: `D057_DIRECT_LEGACY_PRESENTATION_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Web: `D058_WEB_DESKTOP_SHELL_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
 - Android: `VC43_D057_DIRECT_LEGACY_NATIVE_XML_SIGNED_RUNTIME_GATE_PASS__OWNER_UI_ACCEPTANCE_PENDING`
 
 The project is in **UI-first review**, not business-logic rebuild.
 
-- Active design decision: **D057 — direct legacy presentation transplant**.
-- Owner is **currently reviewing the actual Web + Android/PDA UI** produced by D057.
+- Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinement: **D058**.
+- Owner is **currently reviewing the deployed Web UI under D058**. Android/PDA review is pending separately and unchanged.
 - Owner has **not yet given UI/layout acceptance** for the current candidate.
 - Technical build/deploy/release PASS must never be interpreted as Owner UI PASS.
 - Until explicit Owner UI acceptance, work is limited to **UI/layout/presentation mismatch repair**.
@@ -21,21 +21,22 @@ The project is in **UI-first review**, not business-logic rebuild.
 
 Current review targets:
 - Web: `https://inventory-beta.supra.cc.cd/`
-- Android signed review release: `beta-vc43`
+- Android signed review release (pending separate review): `beta-vc43`
 - APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc43/supra-inventory-beta.apk`
-- Runtime/UI implementation source: `fa677463b898768a60013861220fce6e6192999e`
-- Current canonical main after runtime continuity: `11d056f4dd970eb1e3bf435628c997844f9314e6`
+- Web runtime source: `d848546d429dba60bb88e6f9686e83b05c730994`
+- Android beta-vc43 source remains: `fa677463b898768a60013861220fce6e6192999e`
+- Current canonical main runtime source: `d848546d429dba60bb88e6f9686e83b05c730994`
 
 ## 2. Minimal command for the next chat
 
 Owner can start the next chat with only:
 
-> **Tiếp tục review UI D057**
+> **Tiếp tục review UI D058**
 
 Then attach/send the current screenshot or concise review feedback, for example:
 - `Web Tổng quan: chưa OK, sidebar rộng quá`
-- `APK Picker: OK`
-- `Reporter: button khác giao diện cũ`
+- `Web Danh mục SKU: form còn lệch`
+- `Web Xử lý báo thiếu: button chưa đúng`
 
 The AI must **bootstrap GitHub first**, then continue from this review state. Do not ask Owner to repeat prior project requirements already present in the repo.
 
@@ -67,7 +68,7 @@ Owner-provided screenshots of the running old product are also visual authority.
 - after login, **full-width topbar**, not a small floating header;
 - product identity/status chips at top-left;
 - user identity/actions at top-right;
-- permission/test strip where applicable;
+- the role-test strip is removed under D058 until Owner explicitly reintroduces an appropriate test surface;
 - Admin/Root uses a **grouped left sidebar** and a large workspace to the right;
 - content density is operational and compact, not large empty whitespace;
 - dashboard/queue/cards/tables use the old product's spacing and hierarchy;
@@ -112,7 +113,7 @@ PR #31 directly transplanted old presentation styles into:
 Current Web shell was changed to use the old presentation structure:
 - full-width topbar;
 - health/status chips;
-- role-test strip where applicable;
+- no role-test strip under D058;
 - grouped left sidebar for Admin/Root;
 - old workspace composition;
 - old dashboard visual language;
@@ -179,11 +180,33 @@ Continuity:
 
 These facts prove technical eligibility for review only.
 
+
+### D058 Web Owner-review repair
+
+Owner feedback after D057 exposed a Web shell bug and explicit Web refinements. PR #34:
+- removed the inherited logged-in `shell` class that centered grid children and caused the topbar/workspace to render like a narrow centered card;
+- removed `Kiểm thử giao diện + quyền server`;
+- removed the Owner-rejected AI/implementation-style explanatory copy;
+- pins the desktop topbar and Admin/Root sidebar while the central workspace scrolls;
+- removes page-level centered `max-width` dead space for the main dashboard/report workspace;
+- fixes the small product credit at bottom-right;
+- leaves Android/APK unchanged.
+
+Technical evidence:
+- PR #34 merged to main: `d848546d429dba60bb88e6f9686e83b05c730994`.
+- PR Repo Authority Guard: PASS.
+- PR Project State Guard: PASS.
+- PR UI Design Guard run `35313797934`: PASS.
+- Beta deploy run `35313918056`: PASS.
+- Beta health/business-auth/Web-shell/Google-OAuth smoke checks: PASS.
+- Owner Web UI acceptance: **PENDING**.
+
+
 ## 8. Owner review status at chat handoff
 
 Status: **IN PROGRESS**.
 
-Owner is reviewing the rebuilt D057 UI at the time this handoff is being written.
+Owner is reviewing the deployed D058 Web candidate. Android/PDA review is pending separately.
 
 No screen in the current vc43 candidate should be marked Owner-approved unless the Owner explicitly says it is OK.
 
@@ -295,4 +318,4 @@ Useful current files:
 
 No manual end-of-session handover is required. A new session must bootstrap from `ops/authority-manifest.json` and its declared `bootstrap_order` before mutation.
 
-The Owner's next-chat instruction **`Tiếp tục review UI D057`** is sufficient to resume from this point; any screenshot or UI review text supplied with it becomes the immediate work item.
+The Owner's next-chat instruction **`Tiếp tục review UI D058`** is sufficient to resume from this point; any Web screenshot or UI review text supplied with it becomes the immediate work item.
