@@ -3,10 +3,10 @@
 > DERIVED VIEW. Canonical live status is `ops/project-state.json`; resource identity is `ops/resource-registry.json`.
 
 - Project: `supra-inventory`
-- Web: `D062_WEB_FINAL_QA_SOURCE_BUILD_PENDING_RUNTIME`
+- Web: `D062_WEB_FINAL_QA_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
 - Android: `VC44_D060_EFFECTIVE_ROLE_REFRESH_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 - Latest signed review APK: `beta-vc44`
-- Web runtime source: `967365bffa8d518e8ad85d802b14753bc5f4fa1d`
+- Web runtime source: `c874eafccb732c108f466ed7095a14e1f3e39d0e`
 - Android beta-vc44 source: `765be7baa90e6645a592cc5137324c85fb793009`
 - Owner UI review: **IN PROGRESS — no final UI acceptance yet**
 
@@ -27,7 +27,7 @@ Current review endpoints:
 - Web: `https://inventory-beta.supra.cc.cd/`
 - APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc44/supra-inventory-beta.apk`
 
-Web presentation uses the D057 transplanted modules plus D058/D059/D060/D061 refinements. D061 is deployed: coherent dark surfaces, stronger icon-led sidebar groups, reduced duplicate page copy and removal of generic refresh actions from realtime-backed views.
+Web presentation uses the D057 transplanted modules plus D058/D059/D060/D061/D062 refinements. D062 is deployed: D061 cleanup is preserved, the canonical five-area Admin/Root navigation and operational-first landing are live, and remaining dark transient/expanded surfaces are covered.
 
 Android/PDA presentation includes transplanted old native activity/login/Picker/Invent/Admin/row/overlay XML plus drawables/colors/styles, with current controllers bound to those resources.
 
@@ -55,9 +55,9 @@ Legacy backend/provider/auth/storage/database/credential code remains excluded.
 
 Automated PASS is technical eligibility only. It is not Owner UI acceptance.
 
-## D062 source candidate
+## D062 runtime PASS
 
-`D062_WEB_FINAL_QA_SOURCE_BUILD_PENDING_RUNTIME` is the active source candidate. It does not replace the deployed D061 runtime evidence until the branch/PR guards and Beta deploy finish. Scope: canonical five-area Admin/Root navigation over existing approved modules, operational-first landing, hidden-route access repair, and remaining dark transient-surface coverage. Android beta-vc44 and Stable remain unchanged.
+`D062_WEB_FINAL_QA_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING` is deployed on Beta. PR #42 merged at `c874eafccb732c108f466ed7095a14e1f3e39d0e`; Deploy Beta run `35347188833` PASS. Scope: canonical five-area Admin/Root navigation over existing approved modules, operational-first landing, hidden-route access repair, and remaining dark transient-surface coverage. Android beta-vc44 and Stable remain unchanged. Owner UI acceptance remains pending.
 
 ## D061 runtime PASS
 
@@ -96,7 +96,7 @@ Automated PASS is technical eligibility only. Owner UI/theme/role-test acceptanc
 
 ## Current work frontier
 
-Owner is reviewing the deployed D061 Web candidate. Android broader visual review remains pending separately.
+Owner is reviewing the deployed D062 Web candidate. Android broader visual review remains pending separately.
 
 For each Owner-rejected screen:
 - compare current render to the pinned old source + current Owner feedback;
