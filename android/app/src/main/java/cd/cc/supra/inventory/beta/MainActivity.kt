@@ -115,6 +115,16 @@ class MainActivity : Activity() {
         if (::api.isInitialized && api.session == null && updateGate != UpdateGate.CURRENT && !updateCheckRunning) {
             checkForUpdate(silent = true)
         }
+        if (::api.isInitialized && api.session != null && NotificationSignalStore.consumeDirty(applicationContext)) {
+            drainNotificationReceipts()
+            val picker = pickerController
+            val reporter = reporterController
+            when {
+                picker != null -> picker.refresh()
+                reporter != null -> reporter.refresh()
+                else -> setStatus("Có cập nhật nghiệp vụ mới. Mở Vận hành để xem.")
+            }
+        }
     }
 
     private fun renderLogin(message: String = "Đang kiểm tra phiên bản...") {
@@ -221,6 +231,7 @@ class MainActivity : Activity() {
         }
         startRealtime(session)
         registerBackgroundNotifications()
+        drainNotificationReceipts()
         recordLog("Đăng nhập ${kit.roleLabel(session.role)}: ${session.employeeCode ?: session.displayName}")
     }
 
@@ -326,7 +337,7 @@ class MainActivity : Activity() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val manager = getSystemService(NotificationManager::class.java)
         val channel = NotificationChannel(
-            "inventory_operations",
+            StockMessagingService.CHANNEL_ID,
             "SUPRA Inventory · Nghiệp vụ",
             NotificationManager.IMPORTANCE_HIGH,
         ).apply { description = "Cảnh báo báo hàng khi ứng dụng chạy nền" }
@@ -337,13 +348,36 @@ class MainActivity : Activity() {
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 701)
         }
+        NotificationSignalStore.latestToken(applicationContext)?.let(::registerNotificationToken)
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             val token = if (task.isSuccessful) task.result else null
-            if (token.isNullOrBlank() || api.session == null) return@addOnCompleteListener
-            Thread {
-                try { api.registerNotificationDevice(notificationDeviceId, token) } catch (_: Exception) { }
-            }.start()
+            if (token.isNullOrBlank()) return@addOnCompleteListener
+            NotificationSignalStore.saveToken(applicationContext, token)
+            registerNotificationToken(token)
         }
+    }
+
+    private fun registerNotificationToken(token: String) {
+        if (token.isBlank() || api.session == null) return
+        Thread {
+            try { api.registerNotificationDevice(notificationDeviceId, token) } catch (_: Exception) { }
+        }.start()
+    }
+
+    private fun drainNotificationReceipts() {
+        if (api.session?.role != "PICKER") return
+        val events = NotificationSignalStore.pendingResultEvents(applicationContext)
+        if (events.isEmpty()) return
+        Thread {
+            for (eventId in events) {
+                try {
+                    api.markResultStage(eventId, "RECEIVED")
+                    NotificationSignalStore.clearResultEvent(applicationContext, eventId)
+                } catch (_: Exception) {
+                    // Keep the event for a later authenticated retry.
+                }
+            }
+        }.start()
     }
 
     private fun logoutWithNotificationCleanup() {
