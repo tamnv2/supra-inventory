@@ -18,7 +18,7 @@
     "sqlite_schema": 6,
     "business_api": "OPERATIONAL_V2_4_RUNTIME_PASS__F20_BOUNDED_INSIGHTS_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
-    "web": "D063_CONSOLIDATED_OPS_LOGS_REPORTING_PRESENCE_UI_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
+    "web": "D064_DETAILED_SYSTEM_STATUS_SOURCE_BUILD_PENDING_BETA_RUNTIME",
     "android": "VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING",
     "latest_beta_apk": "beta-vc45",
     "realtime": "GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_4",
@@ -28,7 +28,7 @@
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_BUILD_DEPLOY_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "D063_CONSOLIDATED_OPS_LOGS_REPORTING_PRESENCE_UI_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
+    "ui_design_guard": "D064_SYSTEM_STATUS_LOAD_TEST_SOURCE_BUILD_PENDING",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED"
@@ -70,7 +70,8 @@
     "Only immutable base ROOT may select a temporary server-authoritative effective role ROOT/ADMIN/REPORTER/PICKER for acceptance testing; normal RBAC/realtime/role-target notifications use the effective role and ROOT can restore ROOT through the base-identity recovery selector.",
     "Web D061 requires coherent dark rendering across all reachable routes, stronger icon-led Admin/Root sidebar groups, removal of redundant page copy, and no generic refresh buttons on realtime-backed views.",
     "D062 Web completion audit uses the canonical five-area Admin/Root information architecture, exposes existing approved hidden routes, makes the live processing queue the default Admin/Root landing, and closes remaining dark-theme transient surfaces without changing business semantics.",
-    "D063 limits each large Web sidebar group to at most three child entries, consolidates related routes into business workspaces, adds sanitized Beta Web/Android runtime logs, authenticated online counts by effective role, professional reporting/results/people layouts and full dark-theme completion."
+    "D063 limits each large Web sidebar group to at most three child entries, consolidates related routes into business workspaces, adds sanitized Beta Web/Android runtime logs, authenticated online counts by effective role, professional reporting/results/people layouts and full dark-theme completion.",
+    "D064 rebuilds Trạng thái hệ thống as a detailed all-service usage/capacity console, then runs a controlled Beta-only 1,000-report real-Picker load test before proposing any next navigation IA rebuild."
   ],
   "completed_capabilities": [
     "Cloudflare Beta Worker/custom domain/InventoryCore SQLite provisioning",
@@ -128,6 +129,9 @@
     "D062 Web final QA PR #42 merged at c874eafccb732c108f466ed7095a14e1f3e39d0e after Repo Authority Guard, Project State Guard and UI Design Guard PASS; Beta deploy run 35347188833 PASS with health/schema, auth/business guards, Web shell and Google OAuth smoke."
   ],
   "pending_build": [
+    "D064 detailed system-status source/build/Deploy Beta verification",
+    "D064 controlled Beta 1000-report / 100-Picker / ~400-SKU <=10-minute load test and measured before/after evidence",
+    "D064 post-test left-navigation IA analysis/proposal for Owner approval; do not rebuild navigation before Owner decision",
     "Owner functional acceptance of Root effective-role switching across Web and resumed Android",
     "Android broader visual review after Owner resumes it",
     "Only after Owner UI gate: remaining canonical business wiring",
@@ -135,10 +139,11 @@
     "Isolated business mutation load acceptance after Owner scale target"
   ],
   "field_pending": [
-    "Owner Web visual/layout/theme acceptance is pending for the deployed D063 Beta candidate.",
-    "Authenticated end-to-end Web/Android runtime-log upload into Beta/Logs is implemented but still requires field verification with a real signed-in client; deploy/config guards only verify the Worker binding and build/runtime gates.",
-    "Physical Android crash/log upload timing can only be fully field-validated on an authenticated device.",
-    "Technical source/build/deploy/release PASS is not Owner UI acceptance."
+    "Owner Web visual/layout/theme acceptance remains pending after D064 system-status deployment.",
+    "D064 controlled load test must complete on Beta and its ephemeral gate must be verified closed afterward.",
+    "After the measured load test, navigation IA proposal remains an Owner decision before implementation.",
+    "Physical Android crash/log upload timing remains field-dependent.",
+    "Technical PASS is not Owner UI acceptance."
   ],
   "open_decisions_do_not_invent": [
     "Exact SKU-reset confirmation semantics originally described as random '6 chữ'.",
@@ -148,8 +153,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Complete D063 source/build guards, merge through PR, deploy Beta, verify runtime logs/presence/Web and signed Android release, then continue Owner screen-by-screen review.",
-    "method": "Preserve already-correct D062 surfaces. D063 consolidates sidebar modules to max 3 children/group, merges operations/results and overview/reporting workspaces, adds sanitized Beta Logs pipeline for Web/Android, authenticated online counts, redesigned people/accounts layout, plain Vietnamese reporting labels and dark completion. Stable remains untouched.",
+    "primary": "Complete D064 system status, branch guards and Beta deploy; run the 1,000-report controlled Beta load test; record measured evidence; then present the left-nav IA critique/proposal without silently changing navigation.",
+    "method": "Use actual low-cost InventoryCore/provider metrics where available, reference limits without plan guessing, 60-second core refresh and 5-minute provider cache. Load test uses existing active Pickers, existing SKUs, real Firebase-authenticated /api/picker/reports requests, ephemeral masked Beta-only gate and <=10-minute randomized traffic.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -177,20 +182,22 @@
   },
   "workboard": {
     "in_progress": [
-      "Owner D063 Web visual/layout/theme acceptance on deployed Beta",
-      "Authenticated end-to-end runtime-log upload verification from real Web and Android clients",
-      "Android broader visual review",
+      "D064 detailed all-service Trạng thái hệ thống implementation",
+      "D064 guarded real-Picker load-test workflow and measurement pipeline",
+      "D063/D064 Owner Web visual review remains pending",
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Owner reviews deployed D063 Web screens and dark theme",
-      "Use authenticated Web/Android clients to verify manual/scheduled/error log files appear in Inventory/Beta/Logs with correct names/redaction",
-      "Record field acceptance/remaining defects; repair only confirmed issues through branch -> PR -> guards",
-      "Do not mutate Stable without explicit Owner authorization"
+      "Run authority/state/UI/operational build guards for D064",
+      "Merge D064 only after branch guards PASS",
+      "Deploy Beta and verify detailed system-status auth/runtime",
+      "Dispatch Beta Load Test for 1000 successful reports / 100 existing Pickers / 400 existing SKUs / <=600s traffic",
+      "Record load-test before/after service usage and close temporary gate",
+      "Analyze current D063 navigation against measured/business workflows and present rebuild proposal to Owner"
     ],
     "blocked_or_owner_field_dependent": [
-      "Final D063 Web UI/theme acceptance depends on Owner visual review after deployed runtime PASS",
-      "Physical Android crash/log upload timing can only be fully field-validated on an authenticated device",
+      "Final navigation rebuild is intentionally blocked on Owner approval of the post-test D064 proposal",
+      "Final D064 visual acceptance depends on Owner review",
       "No Stable promotion is authorized"
     ],
     "last_source_build_evidence": {
@@ -242,7 +249,7 @@
   "last_updated": "2026-09-19",
   "owner_ui_review": {
     "status": "IN_PROGRESS",
-    "phase": "D063_BETA_RUNTIME_REVIEW",
+    "phase": "D064_SYSTEM_STATUS_BUILD_AND_LOAD_TEST",
     "started_on": "2026-09-18",
     "review_target_web": "https://inventory-beta.supra.cc.cd/",
     "review_target_android_release": "beta-vc45",
@@ -250,8 +257,8 @@
     "visual_authority_repository": "tam95supra-source/bao-hang-1291",
     "visual_authority_commit": "8713f487386fa39c9225b180b2b8448d4a7e2b2d",
     "owner_acceptance": "NOT_YET_GIVEN",
-    "current_instruction": "Build D063 exactly from Owner review: max three child nav items per group; consolidate related workflows; professional plain-Vietnamese operations/results/dashboard/reporting/people layouts; authenticated online counts; Beta Web/Android sanitized runtime logs; finish dark theme.",
-    "next_session_command": "Tiếp tục review UI D063",
+    "current_instruction": "Rebuild Trạng thái hệ thống with detailed service health/usage/limits, run the controlled 1000-report Beta test, then analyze and propose a better left-nav IA without implementing the IA until Owner approves.",
+    "next_session_command": "Tiếp tục D064 trạng thái hệ thống + load test",
     "review_feedback_protocol": "Owner may send current Beta Web/Android screenshots and concise feedback. AI must bootstrap canonical repo and repair only confirmed remaining D063 issues through branch -> PR -> guards -> Beta runtime verification. Stable remains untouched."
   }
 }
