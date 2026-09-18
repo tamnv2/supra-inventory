@@ -75,6 +75,7 @@ class MainActivity : Activity() {
     private var pendingInstallFile: File? = null
     @Volatile private var updateGate = UpdateGate.CHECKING
     @Volatile private var updateCheckRunning = false
+    @Volatile private var roleSyncRunning = false
 
     private val notificationDeviceId: String by lazy {
         val prefs = getSharedPreferences("notification_device", MODE_PRIVATE)
@@ -131,7 +132,36 @@ class MainActivity : Activity() {
         if (::api.isInitialized && api.session == null && updateGate != UpdateGate.CURRENT && !updateCheckRunning) {
             checkForUpdate(silent = true)
         }
-        if (::api.isInitialized && api.session != null) reconcileNotificationSignal()
+        if (::api.isInitialized && api.session != null) {
+            reconcileNotificationSignal()
+            syncEffectiveRole()
+        }
+    }
+
+    private fun syncEffectiveRole() {
+        if (roleSyncRunning || api.session == null) return
+        roleSyncRunning = true
+        val before = activeSession
+        Thread {
+            try {
+                val next = api.refreshProfile()
+                runOnUiThread {
+                    roleSyncRunning = false
+                    val roleChanged = before?.role != next.role
+                    val identityChanged = before?.displayName != next.displayName || before?.employeeCode != next.employeeCode
+                    if (roleChanged || identityChanged || activeSession == null) {
+                        renderHome(next)
+                    } else {
+                        activeSession = next
+                    }
+                }
+            } catch (error: Exception) {
+                runOnUiThread {
+                    roleSyncRunning = false
+                    if (api.session == null) renderLogin("Phiên đăng nhập đã hết hạn.")
+                }
+            }
+        }.start()
     }
 
     override fun onNewIntent(intent: Intent?) {
