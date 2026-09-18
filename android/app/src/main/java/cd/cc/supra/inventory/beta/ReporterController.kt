@@ -9,8 +9,10 @@ import android.os.Looper
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.ListView
 import android.widget.ScrollView
 import android.widget.TextView
 import java.time.Instant
@@ -43,6 +45,8 @@ class ReporterController(
     private val buttons = linkedMapOf<Filter, Button>()
     private var listBox: LinearLayout? = null
     private var listRenderer: KeyedLinearRenderer? = null
+    private var legacyList: ListView? = null
+    private var legacySummary: TextView? = null
     private var queue: List<ReporterBatch> = emptyList()
     private var recent: List<ReporterRecent> = emptyList()
 
@@ -54,20 +58,12 @@ class ReporterController(
     }
 
     fun render(root: LinearLayout) {
-        val tabs = LinearLayout(activity).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER
-            setPadding(0, kit.dp(8), 0, kit.dp(5))
-        }
-        addTab(tabs, Filter.PENDING, "Đang xử lý")
-        addTab(tabs, Filter.HAS_STOCK, "Đã có hàng")
-        addTab(tabs, Filter.SKIP_ALLOWED, "Đã cho skip")
-        addTab(tabs, Filter.WITHDRAWN, "Picker thu hồi")
-        root.addView(tabs)
-        listBox = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
-        listRenderer = listBox?.let(::KeyedLinearRenderer)
-        root.addView(listBox)
-        updateTabs()
+        legacySummary = root.findViewById(R.id.tvIssueSummary)
+        legacyList = root.findViewById(R.id.listIssues)
+        root.findViewById<Button>(R.id.btnRefreshIssues)?.setOnClickListener { refresh() }
+        listBox = null
+        listRenderer = null
+        buttons.clear()
         handler.removeCallbacks(slaTicker)
         handler.postDelayed(slaTicker, 15_000L)
         refresh()
@@ -160,6 +156,11 @@ class ReporterController(
     }
 
     private fun renderSelected() {
+        val legacy = legacyList
+        if (legacy != null) {
+            renderLegacyList(legacy)
+            return
+        }
         val renderer = listRenderer ?: return
         when (filter) {
             Filter.PENDING -> {
@@ -198,6 +199,57 @@ class ReporterController(
                     )
                 }
             }
+        }
+    }
+
+    private fun renderLegacyList(list: ListView) {
+        if (filter == Filter.PENDING) {
+            legacySummary?.text = if (queue.isEmpty()) "Không có SKU đang chờ xử lý." else "${queue.size} SKU đang chờ xử lý"
+            val labels = if (queue.isEmpty()) {
+                listOf("Không có SKU đang chờ xử lý.")
+            } else {
+                queue.map { row ->
+                    val timing = liveTiming(row)
+                    "${row.sku} - ${row.productName}\n${row.affectedPickerCount} Picker · chờ ${timing.first} phút"
+                }
+            }
+            list.adapter = ArrayAdapter(activity, android.R.layout.simple_list_item_1, labels)
+            list.setOnItemClickListener { _, _, position, _ ->
+                val row = queue.getOrNull(position) ?: return@setOnItemClickListener
+                AlertDialog.Builder(activity)
+                    .setTitle("${row.sku} - ${row.productName}")
+                    .setItems(arrayOf("CÓ HÀNG", "CHO SKIP HÀNG", "Xem Picker")) { _, which ->
+                        when (which) {
+                            0 -> confirmHasStock(row)
+                            1 -> confirmSkipImpact(row)
+                            2 -> showTickets(row)
+                        }
+                    }
+                    .setNegativeButton("Đóng", null)
+                    .show()
+            }
+            return
+        }
+        val state = when (filter) {
+            Filter.HAS_STOCK -> "HAS_STOCK"
+            Filter.SKIP_ALLOWED -> "SKIP_ALLOWED"
+            Filter.WITHDRAWN -> "CLOSED"
+            else -> "PENDING"
+        }
+        val rows = recent.filter { it.status == state }
+        legacySummary?.text = when (filter) {
+            Filter.HAS_STOCK -> "Đã có hàng · ${rows.size}"
+            Filter.SKIP_ALLOWED -> "Đã cho skip · ${rows.size}"
+            Filter.WITHDRAWN -> "Picker thu hồi · ${rows.size}"
+            else -> "Đang xử lý"
+        }
+        val labels = if (rows.isEmpty()) listOf("Chưa có dữ liệu.") else rows.map { row ->
+            "${row.sku} - ${row.productName}\n${row.status} · ${timestamp(row.resolvedAt)}"
+        }
+        list.adapter = ArrayAdapter(activity, android.R.layout.simple_list_item_1, labels)
+        list.setOnItemClickListener { _, _, position, _ ->
+            val row = rows.getOrNull(position) ?: return@setOnItemClickListener
+            if (row.status == "SKIP_ALLOWED" && millis(row.correctionDeadlineAt) > System.currentTimeMillis()) confirmCorrection(row)
         }
     }
 
