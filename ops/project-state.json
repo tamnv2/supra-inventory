@@ -134,8 +134,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Obtain explicit Owner screen-by-screen UI/layout acceptance for the deployed D057 direct legacy presentation Web candidate and signed beta-vc43 APK; fix only remaining presentation mismatches until that gate passes.",
-    "method": "Use the live Web and beta-vc43 only for UI/layout review against the prior running screenshots/source. Do not resume business logic/scenario rebuild until explicit Owner UI acceptance.",
+    "primary": "Continue Owner-led screen-by-screen review of the deployed D057 Web and signed beta-vc43 APK; repair only visual/layout mismatches reported or confirmed during review.",
+    "method": "Fresh-bootstrap canonical GitHub in the next session. Use tam95supra-source/bao-hang-1291 at 8713f487386fa39c9225b180b2b8448d4a7e2b2d plus D057 as visual authority. Owner only needs to provide the current screen feedback/screenshot; do not ask them to restate prior project context.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -163,18 +163,18 @@
   },
   "workboard": {
     "in_progress": [
-      "Owner UI/layout review gate for D057 direct old-presentation Web and signed beta-vc43 Android/PDA",
-      "UI-only mismatch repair if Owner rejects any screen"
+      "Owner is actively reviewing the deployed D057 Web candidate and signed beta-vc43 Android/PDA UI",
+      "UI-only presentation mismatch repair from Owner review feedback"
     ],
     "next": [
-      "Collect Owner screen-by-screen UI acceptance",
-      "Fix only presentation mismatches until Owner UI gate passes",
-      "Only after UI acceptance resume canonical business wiring"
+      "In the next chat, bootstrap ops/authority-manifest.json and continue from Owner UI review without asking Owner to repeat project history",
+      "For each rejected screen, compare current render with tam95supra-source/bao-hang-1291@8713f487386fa39c9225b180b2b8448d4a7e2b2d and repair presentation only",
+      "Run protected source/build checks, deploy/release a new review candidate, and preserve separation between technical PASS and Owner UI acceptance",
+      "Only after explicit Owner UI acceptance resume canonical business wiring"
     ],
     "blocked_or_owner_field_dependent": [
-      "Final UI/layout acceptance requires Owner visual review of the deployed Web and beta-vc43 APK",
-      "Physical notification/ACK acceptance follows the functional rebuild",
-      "Mutation load acceptance still requires an Owner workload target/test boundary"
+      "Final UI/layout acceptance depends on Owner visual review of the live Web and signed beta-vc43 review candidate",
+      "No business rebuild is authorized while Owner UI review is still in progress"
     ],
     "last_source_build_evidence": {
       "branch": "ui/direct-legacy-presentation-transplant",
@@ -221,5 +221,19 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-09-18"
+  "last_updated": "2026-09-18",
+  "owner_ui_review": {
+    "status": "IN_PROGRESS",
+    "phase": "D057_DIRECT_LEGACY_PRESENTATION_REVIEW",
+    "started_on": "2026-09-18",
+    "review_target_web": "https://inventory-beta.supra.cc.cd/",
+    "review_target_android_release": "beta-vc43",
+    "review_target_android_source_commit": "fa677463b898768a60013861220fce6e6192999e",
+    "visual_authority_repository": "tam95supra-source/bao-hang-1291",
+    "visual_authority_commit": "8713f487386fa39c9225b180b2b8448d4a7e2b2d",
+    "owner_acceptance": "NOT_YET_GIVEN",
+    "current_instruction": "Continue UI/layout review and fix presentation mismatches only. Do not resume business logic/scenario rebuild until explicit Owner UI acceptance.",
+    "next_session_command": "Tiếp tục review UI D057",
+    "review_feedback_protocol": "Owner may send a screenshot and/or concise screen feedback; AI must bootstrap canonical repo first, compare against old visual authority, fix UI-only mismatch through branch -> PR -> guards -> merge -> runtime/release, then return the next review candidate."
+  }
 }
