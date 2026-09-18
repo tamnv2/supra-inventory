@@ -47,6 +47,11 @@ import java.util.UUID
 class MainActivity : Activity() {
     private enum class UpdateGate { CHECKING, CURRENT, REQUIRED, FAILED }
 
+    private data class OperationalPage(
+        val shell: LinearLayout,
+        val content: LinearLayout,
+    )
+
     private val uiHandler = Handler(Looper.getMainLooper())
     private val logTime = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.of("Asia/Ho_Chi_Minh"))
     private val localLog = ArrayDeque<String>()
@@ -147,14 +152,14 @@ class MainActivity : Activity() {
         addBrandHeader(root, subtitle = "Đăng nhập để bắt đầu nghiệp vụ")
         val card = kit.card()
         val username = EditText(this).apply {
-            hint = "Mã nhân viên / tên đăng nhập"
+            hint = "Nhập mã nhân viên"
             isSingleLine = true
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
             kit.styleInput(this)
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = kit.dp(8) }
         }
         val password = EditText(this).apply {
-            hint = "Mật khẩu"
+            hint = "Nhập mật khẩu"
             isSingleLine = true
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
             transformationMethod = PasswordTransformationMethod.getInstance()
@@ -255,9 +260,9 @@ class MainActivity : Activity() {
             "ADMIN" -> renderAdminLauncher(session)
             "ROOT" -> renderAdminLauncher(session)
             else -> {
-                val root = baseOperationalPage(session)
-                root.addView(kit.muted("Vai trò ${session.role} chưa được hỗ trợ trên PDA."))
-                finishOperationalPage(root)
+                val page = baseOperationalPage(session)
+                page.content.addView(kit.muted("Vai trò ${session.role} chưa được hỗ trợ trên PDA."))
+                finishOperationalPage(page)
             }
         }
         startRealtime(session)
@@ -266,24 +271,32 @@ class MainActivity : Activity() {
         recordLog("Đăng nhập ${kit.roleLabel(session.role)}: ${session.employeeCode ?: session.displayName}")
     }
 
-    private fun baseOperationalPage(session: AppSession): LinearLayout {
-        val root = kit.page()
-        kit.addOperationalHeader(root, session, onLog = { showSupportDiagnostics() }, onExit = { confirmLogout() })
+    private fun baseOperationalPage(session: AppSession): OperationalPage {
+        val shell = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(kit.surface)
+            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        }
+        kit.addOperationalHeader(shell, session, onLog = { showSupportDiagnostics() }, onExit = { confirmLogout() })
+        val content = kit.page()
         status = kit.createStatusView()
-        root.addView(status)
-        return root
+        content.addView(status)
+        shell.addView(kit.wrapScroll(content).apply {
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
+        })
+        return OperationalPage(shell, content)
     }
 
-    private fun finishOperationalPage(root: LinearLayout) {
-        kit.addFooter(root)
-        setContentView(kit.wrapScroll(root))
+    private fun finishOperationalPage(page: OperationalPage) {
+        kit.addFooter(page.content)
+        setContentView(page.shell)
     }
 
     private fun renderPickerHome(session: AppSession) {
-        val root = baseOperationalPage(session)
+        val page = baseOperationalPage(session)
         pickerController = PickerController(this, api, skuCache, kit, ::setStatus, ::friendlyError)
-            .also { it.render(root) }
-        finishOperationalPage(root)
+            .also { it.render(page.content) }
+        finishOperationalPage(page)
     }
 
     private fun renderReporterHome(session: AppSession, showLauncherBack: Boolean, initialFilter: String = "PENDING") {
@@ -291,9 +304,9 @@ class MainActivity : Activity() {
         pickerController = null
         reporterController?.destroy()
         reporterController = null
-        val root = baseOperationalPage(session)
+        val page = baseOperationalPage(session)
         if (showLauncherBack) {
-            root.addView(Button(this).apply {
+            page.content.addView(Button(this).apply {
                 text = "← Về trang ${kit.roleLabel(session.role)}"
                 kit.styleSecondary(this)
                 layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, kit.dp(46)).apply { topMargin = kit.dp(7) }
@@ -301,8 +314,8 @@ class MainActivity : Activity() {
             })
         }
         reporterController = ReporterController(this, api, kit, ::setStatus, ::friendlyError, initialFilter)
-            .also { it.render(root) }
-        finishOperationalPage(root)
+            .also { it.render(page.content) }
+        finishOperationalPage(page)
     }
 
     private fun renderAdminLauncher(session: AppSession) {
@@ -310,7 +323,7 @@ class MainActivity : Activity() {
         pickerController = null
         reporterController?.destroy()
         reporterController = null
-        val root = baseOperationalPage(session)
+        val page = baseOperationalPage(session)
         adminLauncherController = AdminLauncherController(
             activity = this,
             session = session,
@@ -320,8 +333,8 @@ class MainActivity : Activity() {
             onOpenResults = { renderReporterHome(session, showLauncherBack = true, initialFilter = "HAS_STOCK") },
             onOpenLog = { showSupportDiagnostics() },
             onCheckUpdate = { checkForUpdate(silent = false) },
-        ).also { it.render(root) }
-        finishOperationalPage(root)
+        ).also { it.render(page.content) }
+        finishOperationalPage(page)
     }
 
     private fun addBrandHeader(root: LinearLayout, subtitle: String) = kit.addBrandHeader(root, subtitle)
