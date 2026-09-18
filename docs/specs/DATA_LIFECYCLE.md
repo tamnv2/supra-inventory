@@ -88,6 +88,19 @@ SLA is computed from authoritative server time and `first_report_at` for pending
 
 Support diagnostics are bounded and redacted. They are not business authority and must never store secret values. Recent technical error codes/status may be kept locally/server-side only within approved bounded diagnostics/log retention.
 
+## Runtime support logs (D063)
+
+- Beta runtime support/error logs are stored only inside `Inventory/Beta/Logs` in Google Drive. Stable remains separate and Owner-gated.
+- Sources are `WEB` and `ANDROID`. File names include source, a bounded device identifier/label and Asia/Ho_Chi_Minh timestamp; error files use the `error_` prefix.
+- Both client and service sanitize log content. Passwords, authorization headers, bearer/JWT values, refresh/access tokens, API keys, OAuth secrets, private/signing/keystore material, cookies and credential-like fields are redacted and never intentionally persisted.
+- Log payloads are bounded. They may contain app/version/device/network/realtime/catalog state, current UI section, safe runtime memory/storage data and bounded recent diagnostic events needed for troubleshooting.
+- Authenticated connected clients attempt one periodic log for each local-time slot 00:00, 06:00, 12:00 and 18:00. `24:00` is represented by the next day's `00:00` slot.
+- Web runtime errors (`window.error` / unhandled promise rejection) are sent immediately on a best-effort basis and retained locally only as a bounded pending sanitized error until an authenticated retry is possible.
+- Android runtime errors are sent immediately when an authenticated session/network is available. An uncaught crash is first persisted as a bounded sanitized crash envelope, then upload is attempted before process handoff; if that attempt cannot finish, the envelope is retried after the next authenticated start.
+- Admin/Root can list/read sanitized Web/Android log files and Web/Android users can trigger a manual client-side log upload where the client exposes that action. The service never accepts unauthenticated log upload.
+- D063 does not introduce an automatic log-deletion policy because the Owner has not specified retention yet; each file is bounded to control Drive growth.
+
+
 ## Retention
 
 - Detailed hot operational retention target: about 60 days.
