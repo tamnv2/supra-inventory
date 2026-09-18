@@ -116,15 +116,24 @@ class MainActivity : Activity() {
         if (::api.isInitialized && api.session == null && updateGate != UpdateGate.CURRENT && !updateCheckRunning) {
             checkForUpdate(silent = true)
         }
-        if (::api.isInitialized && api.session != null && NotificationSignalStore.consumeDirty(applicationContext)) {
-            drainNotificationReceipts()
-            val picker = pickerController
-            val reporter = reporterController
-            when {
-                picker != null -> picker.refresh()
-                reporter != null -> reporter.refresh()
-                else -> setStatus("Có cập nhật nghiệp vụ mới. Mở Vận hành để xem.")
-            }
+        if (::api.isInitialized && api.session != null) reconcileNotificationSignal()
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (::api.isInitialized && api.session != null) reconcileNotificationSignal()
+    }
+
+    private fun reconcileNotificationSignal() {
+        if (!NotificationSignalStore.consumeDirty(applicationContext)) return
+        drainNotificationReceipts()
+        val picker = pickerController
+        val reporter = reporterController
+        when {
+            picker != null -> picker.refresh()
+            reporter != null -> reporter.refresh()
+            else -> setStatus("Có cập nhật nghiệp vụ mới. Mở Vận hành để xem.")
         }
     }
 
