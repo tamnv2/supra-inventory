@@ -32,6 +32,10 @@ def main() -> None:
     operational_api = read("web/src/operational-api.ts")
     users_core = read("service/src/user-management-core.ts")
     users_api = read("service/src/user-management-api.ts")
+    service_index = read("service/src/index.ts")
+    core = read("service/src/core.ts")
+    read_model = read("service/src/read-model-core.ts")
+    notifications_core = read("service/src/notifications-core.ts")
 
     # F08: realtime/search updates preserve active context instead of rebuilding the full shell.
     require(app, "function captureUiContext()", "UI context capture")
@@ -79,6 +83,17 @@ def main() -> None:
     # SLA UI/server contract must agree.
     require(app, 'warning > 1440', "SLA warning upper bound")
     require(app, 'escalation > 2880', "SLA escalation upper bound")
+
+    # D060: Root can temporarily lower its effective role, and the service—not the client—enforces it.
+    require(api, "setRootEffectiveRole", "Root effective-role client API")
+    require(app, 'profile.base_role === "ROOT"', "Root selector visibility guard")
+    require(service_index, '"/api/auth/root-role"', "Root effective-role service route")
+    require(service_index, 'actor.base_role !== "ROOT"', "Root base-role authorization")
+    require(core, "role_override", "Root role override storage")
+    require(core, '"/auth/root-role-override"', "Root role override core route")
+    require(read_model, '"/realtime/close-user"', "role-change realtime revocation route")
+    require(read_model, '"role-changed"', "role-change realtime close reason")
+    require(notifications_core, "role_override", "effective-role FCM targeting")
 
     print("WEB_OPERATIONAL_REGRESSION_PASS")
 
