@@ -81,13 +81,21 @@ class PickerController(
 
     fun render(root: LinearLayout) {
         handler.post(withdrawTicker)
+        root.addView(TextView(activity).apply {
+            text = "Quét hoặc nhập SKU"
+            textSize = 18f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(kit.text)
+            setPadding(kit.dp(2), kit.dp(12), kit.dp(2), 0)
+        })
         input = EditText(activity).apply {
-            hint = "Nhập / quét SKU"
+            hint = "Nhập mã SKU…"
+            contentDescription = "Nhập / quét SKU"
             isSingleLine = true
             textSize = 20f
             imeOptions = EditorInfo.IME_ACTION_SEARCH
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, kit.dp(62)).apply { topMargin = kit.dp(10) }
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, kit.dp(58)).apply { topMargin = kit.dp(8) }
             kit.styleInput(this)
         }
         root.addView(input)
@@ -95,16 +103,16 @@ class PickerController(
         suggestions = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
         root.addView(suggestions)
 
-        selectedBox = kit.card(kit.greenSoft, Color.parseColor("#B9DCC7"), 11).apply { visibility = View.GONE }
+        selectedBox = kit.card(Color.WHITE, kit.line, 7).apply { visibility = View.GONE }
         selectedSkuLabel = TextView(activity).apply {
-            textSize = 24f
+            textSize = 22f
             setTypeface(typeface, Typeface.BOLD)
-            setTextColor(kit.greenDark)
+            setTextColor(kit.navy)
         }
         selectedNameLabel = TextView(activity).apply {
-            textSize = 14f
-            setTextColor(kit.text)
-            setPadding(0, kit.dp(4), 0, 0)
+            textSize = 15f
+            setTextColor(kit.muted)
+            setPadding(0, kit.dp(5), 0, 0)
         }
         selectedBox?.addView(selectedSkuLabel)
         selectedBox?.addView(selectedNameLabel)
@@ -113,12 +121,12 @@ class PickerController(
         reportButton = Button(activity).apply {
             text = "BÁO HẾT HÀNG"
             contentDescription = "Báo SKU hết hàng"
-            textSize = 17f
+            textSize = 20f
             setTypeface(typeface, Typeface.BOLD)
             isEnabled = false
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, kit.dp(60)).apply {
-                topMargin = kit.dp(7)
-                bottomMargin = kit.dp(7)
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, kit.dp(66)).apply {
+                topMargin = kit.dp(8)
+                bottomMargin = kit.dp(8)
             }
             kit.styleDanger(this)
             setOnClickListener { submit() }
@@ -129,15 +137,15 @@ class PickerController(
             text = "Đang chuẩn bị danh mục SKU..."
             textSize = 10.5f
             setTextColor(kit.muted)
-            setPadding(kit.dp(3), kit.dp(3), kit.dp(3), kit.dp(2))
+            setPadding(kit.dp(3), kit.dp(2), kit.dp(3), kit.dp(2))
         }
         root.addView(catalogLabel)
         root.addView(TextView(activity).apply {
             text = "BÁO HÔM NAY"
-            textSize = 18f
+            textSize = 17f
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(kit.text)
-            setPadding(kit.dp(2), kit.dp(13), kit.dp(2), kit.dp(4))
+            setPadding(kit.dp(2), kit.dp(14), kit.dp(2), kit.dp(4))
         })
         historyBox = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
         historyRenderer = historyBox?.let(::KeyedLinearRenderer)

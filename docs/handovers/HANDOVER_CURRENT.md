@@ -7,8 +7,8 @@
 - Project: `SUPRA Inventory — Báo hàng` (`supra-inventory`).
 - Beta: `F01_F14_F19_F20_F21_F22_F23_AUTOMATED_RUNTIME_RELEASE_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING`
 - SQLite schema: `5`
-- Web: `WEB_P1_F14_F20_F23_BETA_RUNTIME_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING`
-- Android: `VC40_F14_F23_SIGNED_RUNTIME_GATE_PASS__PHYSICAL_ACCEPTANCE_PENDING`
+- Web: `LEGACY_UI_PARITY_SOURCE_CANDIDATE__BUILD_DEPLOY_AND_OWNER_UI_ACCEPTANCE_PENDING`
+- Android: `LEGACY_UI_PARITY_SOURCE_CANDIDATE__BUILD_SIGNED_RELEASE_AND_OWNER_UI_ACCEPTANCE_PENDING`
 - Latest signed Beta APK: `beta-vc40`
 - Operational V2 runtime: `4/4`.
 
@@ -32,8 +32,8 @@
 
 ## Next
 
-1. Rebaseline the complete Beta Web UI from the prior Báo hàng 1291 visual/layout source.
-2. Rebaseline the complete Beta Android/PDA UI from the same visual/layout source.
+1. Run source/build guards for the legacy UI parity candidate.
+2. Deploy the Beta Web UI candidate and publish a signed Beta APK through the existing runtime/release gate.
 3. Obtain explicit Owner UI/layout acceptance screen-by-screen.
 4. Only after the UI gate passes, continue rebuilding/wiring canonical logic, scenarios and business requirements.
 5. Resume physical FCM/device/load acceptance after the functional rebuild.

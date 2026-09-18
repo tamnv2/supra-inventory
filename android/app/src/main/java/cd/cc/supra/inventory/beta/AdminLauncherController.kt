@@ -20,6 +20,13 @@ class AdminLauncherController(
     private val onCheckUpdate: () -> Unit,
 ) {
     fun render(root: LinearLayout) {
+        root.addView(TextView(activity).apply {
+            text = "QUẢN TRỊ"
+            textSize = 21f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(kit.navy)
+            setPadding(kit.dp(2), kit.dp(12), kit.dp(2), kit.dp(2))
+        })
         section(root, "Vận hành")
         root.addView(action("Hàng chờ xử lý", "Mở luồng Reporter realtime") {
             onOpenOperations()
@@ -47,7 +54,7 @@ class AdminLauncherController(
             text = label
             textSize = 15f
             setTypeface(typeface, Typeface.BOLD)
-            setTextColor(kit.text)
+            setTextColor(kit.navy)
             setPadding(kit.dp(2), kit.dp(14), kit.dp(2), kit.dp(4))
         })
     }
