@@ -130,6 +130,19 @@ Group functions conceptually as:
 Dashboard is an Admin/Root analysis module, not the Reporter landing surface.
 
 
+### Owner-reviewed dark/realtime/sidebar cleanup (D061)
+
+D061 refines the current Web review shell without changing Android/PDA:
+
+- dark theme must be coherent on all reachable Web routes, including Reporter master/detail queue, results, Master SKU, HR/user administration, SLA settings, detailed reporting, device/service surfaces, logs, versions, forms, tables, modals and support diagnostics;
+- dark mode must not leave white workspace/list/detail/table/form islands or low-contrast hard-coded light-theme text;
+- Admin/Root left-sidebar group headings are visually stronger than before and business/group entries use small monochrome inline icons that inherit current text color; do not add a remote icon/font dependency;
+- page content shows one clear business title. Remove duplicated category eyebrow + identical/near-identical title combinations where the sidebar already communicates the group;
+- explanatory copy is retained only when it changes how the user must operate or interpret state; remove decorative/repeated copy;
+- generic `Làm mới`/refresh buttons are absent on realtime-backed Web business views. WebSocket sequence/delta, dirty recovery and authoritative reconcile own freshness;
+- semantic actions remain allowed when they perform a distinct task rather than reload state, including filters/date presets, CSV export, support-log creation and an explicit service diagnostic probe;
+- realtime patches must continue preserving focused input, caret, scroll and active route/filter state.
+
 ### Owner-reviewed Root test-role and theme refinement (D060)
 
 D060 overrides D059 where the Owner explicitly refined the header again:

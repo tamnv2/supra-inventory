@@ -3,14 +3,14 @@
 > DERIVED VIEW. Canonical live status is `ops/project-state.json`; resource identity is `ops/resource-registry.json`.
 
 - Project: `supra-inventory`
-- Web: `D060_ROOT_ROLE_THEME_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Web: `D061_DARK_NAV_REALTIME_CLEANUP_SOURCE_CANDIDATE__BUILD_RUNTIME_PENDING__OWNER_UI_ACCEPTANCE_PENDING`
 - Android: `VC44_D060_EFFECTIVE_ROLE_REFRESH_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 - Latest signed review APK: `beta-vc44`
 - Web runtime source: `765be7baa90e6645a592cc5137324c85fb793009`
 - Android beta-vc44 source: `765be7baa90e6645a592cc5137324c85fb793009`
 - Owner UI review: **IN PROGRESS — no final UI acceptance yet**
 
-## D057 baseline + D058/D059/D060 Web refinements
+## D057 baseline + D058/D059/D060/D061 Web refinements
 
 Visual authority:
 - old UI repository: `tam95supra-source/bao-hang-1291`
@@ -20,12 +20,13 @@ Visual authority:
 - D058 Web shell refinement in `docs/OWNER_DECISIONS.md`
 - D059 Web header/identity refinement in `docs/OWNER_DECISIONS.md`
 - D060 Root-role/theme refinement in `docs/OWNER_DECISIONS.md`
+- D061 dark/sidebar/realtime cleanup in `docs/OWNER_DECISIONS.md`
 
 Current review endpoints:
 - Web: `https://inventory-beta.supra.cc.cd/`
 - APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc44/supra-inventory-beta.apk`
 
-Web presentation uses the D057 transplanted modules plus D058/D059/D060 Owner refinements: pinned full-width shell, corporate Inventory header, compact display-name/role identity, Root-only effective-role test selector, Auto/Light/Dark theme, left-aligned navigation, central-workspace scrolling, full remaining workspace and fixed bottom-right product credit.
+Web presentation uses the D057 transplanted modules plus D058/D059/D060 refinements. D061 source candidate adds coherent dark surfaces, stronger icon-led sidebar groups, reduced duplicate page copy and removal of generic refresh actions from realtime-backed views. Until merge/deploy PASS, Beta runtime remains D060.
 
 Android/PDA presentation includes transplanted old native activity/login/Picker/Invent/Admin/row/overlay XML plus drawables/colors/styles, with current controllers bound to those resources.
 
@@ -53,6 +54,18 @@ Legacy backend/provider/auth/storage/database/credential code remains excluded.
 
 Automated PASS is technical eligibility only. It is not Owner UI acceptance.
 
+## D061 source candidate
+
+Web-only Owner review refinement:
+- dark theme parity across all reachable operational/management/reporting/system surfaces;
+- larger sidebar section headings plus inline monochrome icons;
+- duplicate category/title and nonessential explanatory copy removed;
+- generic `Làm mới` controls removed from realtime-backed operational/results/Picker/user views;
+- D060 Root effective-role/theme semantics preserved;
+- Android beta-vc44 and Stable unchanged.
+
+Status: source candidate; PR guards/build and Beta deploy pending.
+
 ## D060 runtime PASS
 
 D060 is deployed on Beta:
@@ -78,7 +91,7 @@ Automated PASS is technical eligibility only. Owner UI/theme/role-test acceptanc
 
 ## Current work frontier
 
-Owner is actively reviewing the deployed D060 Web UI/theme/Root-role control. Android broader visual review is pending separately.
+Owner has supplied D061 Web review fixes. D061 is currently a source candidate pending authority/UI/build guards and Beta deployment; Android broader visual review remains pending separately.
 
 For each Owner-rejected screen:
 - compare current render to the pinned old source + current Owner feedback;
@@ -90,6 +103,6 @@ Do not resume business logic/scenario rebuild until explicit Owner UI acceptance
 
 ## Next-chat resume command
 
-`Tiếp tục review UI D060`
+`Tiếp tục review UI D061`
 
 A screenshot or concise UI review note may be appended; no project-history restatement is required.
