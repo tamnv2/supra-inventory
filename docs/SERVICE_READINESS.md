@@ -52,6 +52,17 @@ Legacy backend/provider/auth/storage/database/credential code remains excluded.
 
 Automated PASS is technical eligibility only. It is not Owner UI acceptance.
 
+## D060 source candidate
+
+Owner's active review now includes D060:
+- Root-only server-authoritative effective-role test mode (ROOT/ADMIN/REPORTER/PICKER);
+- existing Root realtime sockets are closed on role change; normal RBAC/realtime/role-target notification routing uses the effective role;
+- Web compact identity, stronger corporate line, simplified Dashboard head and persisted Auto/Light/Dark theme;
+- Android refreshes effective role from `/api/auth/me` on resume;
+- source SQLite target is 6; deployed Beta remains schema 5 until merge/deploy verification.
+
+D060 is not yet runtime PASS in this view. Stable remains untouched.
+
 ## Current work frontier
 
 Owner is actively reviewing the deployed D059 Web UI. Android/APK review is pending separately.
@@ -66,6 +77,6 @@ Do not resume business logic/scenario rebuild until explicit Owner UI acceptance
 
 ## Next-chat resume command
 
-`Tiếp tục review UI D059`
+`Tiếp tục review UI D060`
 
 A screenshot or concise UI review note may be appended; no project-history restatement is required.
