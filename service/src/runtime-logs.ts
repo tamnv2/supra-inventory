@@ -32,7 +32,6 @@ function scrubText(value: string): string {
   next = next.replace(/-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?-----END [^-]*PRIVATE KEY-----/gi, "[REDACTED_PRIVATE_KEY]");
   next = next.replace(/Bearer\s+[A-Za-z0-9._~+\/-]{16,}/gi, "Bearer [REDACTED]");
   next = next.replace(/eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}/g, "[REDACTED_JWT]");
-  next = next.replace(/(?i)/g, "");
   return next;
 }
 
@@ -151,7 +150,11 @@ function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
       truncated: true,
       excerpt: scrubText(JSON.stringify(sanitize(body.payload)).slice(0, 48_000)),
     };
-    content = JSON.stringify(envelope, null, 2).slice(0, 64_000);
+    content = JSON.stringify(envelope, null, 2);
+    if (content.length > 64_000) {
+      envelope.payload = { truncated: true, excerpt: "[TRUNCATED_LOG_PAYLOAD]" };
+      content = JSON.stringify(envelope, null, 2);
+    }
   }
   return { source, severity, filename, content };
 }
