@@ -5,15 +5,15 @@
 ## 1. Exact current point
 
 Canonical current markers:
-- SQLite schema: `5`
-- Latest Beta APK: `beta-vc43`
-- Web: `D059_WEB_HEADER_IDENTITY_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
-- Android: `VC43_D057_DIRECT_LEGACY_NATIVE_XML_SIGNED_RUNTIME_GATE_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- SQLite schema: `6`
+- Latest Beta APK: `beta-vc44`
+- Web: `D060_ROOT_ROLE_THEME_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Android: `VC44_D060_EFFECTIVE_ROLE_REFRESH_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 
 The project is in **UI-first review**, not business-logic rebuild.
 
-- Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinements: **D058 shell** + **D059 header/identity**.
-- Owner is **currently reviewing the deployed Web UI under D059**. Android/PDA review is pending separately and unchanged.
+- Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinements: **D058 shell + D059 header + D060 Root-role/theme**.
+- Owner is **currently reviewing the deployed Web UI under D060**. Android/PDA broader visual review is pending separately; beta-vc44 only adds effective-role refresh.
 - Owner has **not yet given UI/layout acceptance** for the current candidate.
 - Technical build/deploy/release PASS must never be interpreted as Owner UI PASS.
 - Until explicit Owner UI acceptance, work is limited to **UI/layout/presentation mismatch repair**.
@@ -21,11 +21,11 @@ The project is in **UI-first review**, not business-logic rebuild.
 
 Current review targets:
 - Web: `https://inventory-beta.supra.cc.cd/`
-- Android signed review release (pending separate review): `beta-vc43`
-- APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc43/supra-inventory-beta.apk`
-- Web runtime source: `b93175cfc62ff4504d6e28b9379b09ba4e61f809`
-- Android beta-vc43 source remains: `fa677463b898768a60013861220fce6e6192999e`
-- Current canonical main runtime source: `b93175cfc62ff4504d6e28b9379b09ba4e61f809`
+- Android signed review release (broader visual review pending): `beta-vc44`
+- APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc44/supra-inventory-beta.apk`
+- Web runtime source: `765be7baa90e6645a592cc5137324c85fb793009`
+- Android beta-vc44 source: `765be7baa90e6645a592cc5137324c85fb793009`
+- Current runtime implementation source: `765be7baa90e6645a592cc5137324c85fb793009`
 
 ## 2. Minimal command for the next chat
 
@@ -181,23 +181,34 @@ Continuity:
 These facts prove technical eligibility for review only.
 
 
-### D060 source candidate — Root effective role + theme
+### D060 runtime PASS — Root effective role + theme
 
-Current Owner instruction extends the Web review with one narrow server-authoritative testing capability:
+D060 is deployed on Beta and technically eligible for Owner review:
 
-- make the company line larger/stronger and the Website line smaller;
-- header identity becomes display name + mapped permission only; username/user id and literal Tên/User/Quyền labels are removed;
-- remove the redundant Dashboard date/update/`Mở xử lý báo thiếu` head block;
-- immutable base ROOT gets a pinned `Kiểm tra quyền` selector for ROOT / ADMIN / REPORTER / PICKER;
-- the selected role is enforced by the service as ROOT's effective role across normal HTTP RBAC, realtime projection and role-target notifications; it is not cosmetic;
-- changing role closes ROOT's active realtime sockets, and the Web clears role-scoped state/reconnects;
-- Android refreshes `/api/auth/me` on resume and rerenders when the effective role changed;
-- Web adds persisted `Tự động / Sáng / Tối`; automatic theme is dark 18:00–05:59 Asia/Ho_Chi_Minh and light 06:00–17:59;
-- dark mode covers real shell/content/cards/tables/forms/dialogs/diagnostics/footer.
-- source schema target is SQLite 6 due the Root role-override column; current deployed runtime remains schema 5 until this candidate is merged/deployed and verified.
-- Stable is untouched.
+- company line is larger/stronger; `Website nghiệp vụ Inventory 1291` is secondary/smaller;
+- header identity is display name + mapped permission only; username/user id and literal Tên/User/Quyền labels are removed;
+- redundant Dashboard date/update/`Mở xử lý báo thiếu` head metadata is removed;
+- immutable base ROOT gets `Kiểm tra quyền` selector for ROOT / ADMIN / REPORTER / PICKER;
+- the selected value is server-authoritative effective permission: normal HTTP RBAC, realtime projection and role-target FCM use the effective role;
+- existing Root realtime sockets close on role change to prevent higher-role projection from surviving;
+- base ROOT recovery path remains available so ROOT can select ROOT again;
+- Web clears role-scoped state, reroutes to the selected role landing surface and reconnects realtime;
+- Web theme selector persists `Tự động / Sáng / Tối`; Auto is dark 18:00–05:59 Asia/Ho_Chi_Minh and light 06:00–17:59;
+- dark mode covers actual shell/content/cards/tables/forms/dialogs/diagnostics/footer;
+- Android beta-vc44 refreshes `/api/auth/me` on resume and rerenders if the server effective role changed. Broader Android visual review remains pending.
 
-This is **source/build work in progress**, not runtime PASS and not Owner UI acceptance.
+Technical evidence:
+- PR #38 merged: `765be7baa90e6645a592cc5137324c85fb793009`.
+- Repo Authority Guard: PASS.
+- Project State Guard: PASS.
+- UI Design Guard run `35326095346`: PASS.
+- Beta deploy run `35326095378`: PASS, including SQLite schema 6 health, auth/business guards, Web shell and Google OAuth smoke.
+- Verify Beta Android run `35326095361`: PASS.
+- Signed release: `beta-vc44`.
+- APK size: `9283170` bytes.
+- APK SHA-256: `c2ee4740ebee30fcdfc0ae8dcda44f7d5116dbefe8fbaed035a885e3d98ca5fb`.
+- Owner Web/role/theme acceptance: **PENDING**.
+- Stable: untouched / OWNER-GATED.
 
 ### D059 Web header/identity refinement
 
@@ -245,9 +256,9 @@ Technical evidence:
 
 Status: **IN PROGRESS**.
 
-Owner is reviewing the deployed D059 Web candidate. Android/PDA review is pending separately.
+Owner is reviewing the deployed D060 Web candidate. Android/PDA broader visual review is pending separately.
 
-No screen in the current vc43 candidate should be marked Owner-approved unless the Owner explicitly says it is OK.
+No D060 Web/theme/role-test surface or beta-vc44 Android surface should be marked Owner-approved unless the Owner explicitly says it is OK.
 
 The next session must accept feedback in the Owner's normal format, e.g.:
 - `1 OK`
