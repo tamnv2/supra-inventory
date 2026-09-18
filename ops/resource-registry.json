@@ -25,7 +25,7 @@
     "durable_object_storage": "sqlite",
     "beta_sqlite_schema_version": 5,
     "beta_operational_v2_extension_schema_runtime": 3,
-    "beta_operational_v2_extension_schema_source_target": 3
+    "beta_operational_v2_extension_schema_source_target": 4
   },
   "network_scope": {
     "picker_reporter": "PDA_ONLY_ON_PDA_NETWORK_WITH_INTERNET",
@@ -121,7 +121,7 @@
   },
   "environments": {
     "beta": {
-      "status": "F01_F07_WEB_OPERATIONAL_P1_AUTOMATED_RUNTIME_PASS_MAIN_343AFFD8__NEXT_ANDROID_P1",
+      "status": "F01_F07_WEB_P1_RUNTIME_PASS__ANDROID_P1_SOURCE_IN_PROGRESS_OP_V2_TARGET_4",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -130,7 +130,7 @@
       "health_status": "PASS",
       "ci_deploy_status": "PASS_RUN_35291272392_MAIN_343AFFD8",
       "web_smoke_status": "PASS_MAIN_343AFFD8",
-      "app_verify_status": "ANDROID_PASS_SIGNED_RELEASE_VC38__MATCHING_RUNTIME_GATE_PASS",
+      "app_verify_status": "VC38_RUNTIME_BASELINE__NEXT_SIGNED_RELEASE_PENDING_ANDROID_P1_PR_DEPLOY_GATE",
       "durable_object_status": "PROVISIONED_PASS",
       "durable_object_class": "InventoryCore",
       "durable_object_storage": "sqlite",
@@ -163,10 +163,10 @@
       "cloudflare_oauth_refresh_token_secret": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
       "oauth_refresh_token_configured": true,
       "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA",
-      "web_source_status": "WEB_OPERATIONAL_P1_BETA_DEPLOY_SMOKE_PASS_343AFFD8__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
+      "web_source_status": "WEB_OPERATIONAL_P1_RUNTIME_PASS__ANDROID_LAUNCHER_HASH_DEEPLINK_SOURCE_IN_PROGRESS",
       "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
       "web_admin_report_monitoring": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_BUILD_DEPLOY_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
-      "android_source_status": "F06_F07_APPLIED_CURSOR_SIGNED_BETA_VC38_RUNTIME_GATED_PASS",
+      "android_source_status": "F09_F13_F21_F22_SOURCE_IN_PROGRESS__VC38_RUNTIME_BASELINE",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
       "latest_signed_beta_release": "beta-vc38",
@@ -177,7 +177,7 @@
       "auth_api_route_smoke": "PASS",
       "root_bootstrap_path_smoke": "PASS",
       "hr_settings_ui_status": "CONFIGURABLE_URL_TAB_EMPLOYEE_AND_NAME_HEADERS_DEPLOYED_PASS",
-      "business_api_status": "F02_F05_RUNTIME_PASS__F06_F07_CURSOR_RUNTIME_PASS_OPERATIONAL_V2_3",
+      "business_api_status": "F02_F07_RUNTIME_PASS_OP_V2_3__FCM_DELIVERY_TELEMETRY_SOURCE_TARGET_OP_V2_4_PENDING",
       "latest_signed_beta_release_source_commit": "17c1c0610dc5344ff0813436d770e843f66b3d59",
       "managed_password_status": "DIRECT_CREATE_AND_CHANGE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
@@ -262,10 +262,11 @@
     "android_vc33_native_ui_fail_closed_update_gate_signed_release_pass"
   ],
   "application_build_pending": [
-    "f09_f13_f21_f22_android_operational_lifecycle",
-    "f14_f19_f20_f23_sla_archive_diagnostics",
+    "android_p1_f09_f13_f21_f22_pr_ci_runtime_release",
+    "operational_v2_extension_schema_target_4_runtime_migration",
+    "f14_f19_f20_f23_sla_archive_insights_diagnostics",
     "fcm_physical_device_delivery_acceptance",
-    "owner_web_functional_acceptance",
+    "owner_web_android_functional_acceptance",
     "isolated_business_mutation_load_acceptance_after_owner_scale_target"
   ],
   "release_pending": [
@@ -281,7 +282,7 @@
     "device_registry": "InventoryCore.fcm_devices",
     "routing": "ROLE_OR_USER_BATCH_TARGETS",
     "delivery_semantics": "BEST_EFFORT_AFTER_COMMITTED_TRANSACTION",
-    "source_status": "DEPLOYED_BUILD_PASS_FIELD_DELIVERY_PENDING"
+    "source_status": "DATA_ONLY_SERVICE_CORRELATION_DELIVERY_ATTEMPTS_INVALID_TOKEN_CLEANUP_SOURCE_IN_PROGRESS"
   },
   "user_management": {
     "hierarchy": "ROOT_INHERITS_ADMIN_REPORTER_MANAGES_ADMIN_REPORTER_PICKER__ADMIN_MANAGES_REPORTER_PICKER__HR_PROVISIONS_PICKER",
@@ -324,8 +325,8 @@
   },
   "ui_design": {
     "authority": "OWNER_SELECTED_LEGACY_OPERATIONAL_UI_V2",
-    "web": "WEB_OPERATIONAL_P1_BETA_DEPLOY_SMOKE_PASS_343AFFD8",
-    "android": "F06_F07_APPLIED_CURSOR_SIGNED_BETA_VC38_RUNTIME_GATED_PASS",
+    "web": "WEB_OPERATIONAL_P1_RUNTIME_PASS__HASH_DEEPLINK_SOURCE_IN_PROGRESS",
+    "android": "F09_F13_F21_F22_SOURCE_IN_PROGRESS__KEYED_RENDERING_FCM_SQLITE_OTA_ROUTES",
     "scope_guard": "LEGACY_OPERATIONAL_UI_V2_WITH_CANONICAL_BUSINESS_CONTROLS_AND_CURRENT_ARCHITECTURE"
   },
   "quota_resilience": {
