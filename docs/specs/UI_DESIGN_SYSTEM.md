@@ -149,6 +149,22 @@ D065 overrides prior five-/four-group navigation grouping where they conflict, w
 - Android/PDA is unchanged unless separately authorized. Stable remains OWNER-GATED.
 
 
+
+### Owner-approved three-group navigation implementation (D066)
+
+The Owner approved the exact D065 composition for Beta Web implementation:
+
+- **VẬN HÀNH** has two visible children: `Xử lý báo hàng`, `Tổng quan & báo cáo`.
+- **QUẢN LÝ** has three visible children: `Danh mục SKU`, `Nhân sự & tài khoản`, `Thời gian xử lý`.
+- **HỆ THỐNG** has two visible children: `Trạng thái hệ thống`, `Nhật ký`.
+- No large group may exceed five visible children.
+- `Kết quả gần đây` remains an internal workspace tab under `Xử lý báo hàng`.
+- `Nguồn nhân sự` and `Đồng bộ Picker` remain internal tabs/sections under `Nhân sự & tài khoản`; they are not standalone left-nav children.
+- Personal `Tài khoản & mật khẩu` is removed from the business sidebar and exposed from the pinned top identity controls.
+- Reporter renders only the permitted VẬN HÀNH projection; Picker Web keeps its single `Báo thiếu hàng` workspace.
+- This is a Web composition change only. It must not change server RBAC, business transitions, realtime semantics, data scope, Android/PDA navigation or Stable runtime.
+
+
 ### Detailed operational system-status console (D064)
 
 - `Trạng thái hệ thống` is an Admin/Root service console, not a raw JSON diagnostics page. The primary layout is summary cards followed by service cards and data-footprint/load-test sections; raw sanitized technical JSON is secondary inside an expandable detail.
