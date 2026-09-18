@@ -66,6 +66,7 @@ export async function runArchive(env: ArchiveEnv): Promise<Record<string, unknow
     const batchRows = items.map(({ batch }) => [
       cell(batch.batch_id), cell(batch.sku), cell(batch.product_name), cell(batch.status), cell(batch.first_report_at),
       cell(batch.resolved_at), cell(batch.resolved_by_user_id), cell(batch.resolution), cell(batch.correction_deadline_at),
+      cell(batch.version), cell(batch.previous_batch_id), cell(batch.last_report_at),
       cell(batch.created_at), cell(batch.updated_at), runId,
     ]);
     const ticketRows = items.flatMap(({ tickets }) => tickets.map((ticket) => [
@@ -75,15 +76,16 @@ export async function runArchive(env: ArchiveEnv): Promise<Record<string, unknow
     ]));
     const eventRows = items.flatMap(({ events }) => events.map((event) => [
       cell(event.event_id), cell(event.batch_id), cell(event.ticket_id), cell(event.event_type), cell(event.actor_user_id),
-      cell(event.actor_employee_code), cell(event.payload_json), cell(event.created_at), runId,
+      cell(event.actor_employee_code), cell(event.payload_json), cell(event.created_at),
+      cell(event.batch_version), cell(event.result_resolution), cell(event.result_at), cell(event.acknowledgements_json), runId,
     ]));
     const manifestRows = [[manifestId, runId, new Date().toISOString(), items.length, ticketRows.length, eventRows.length, "COMMITTED"]];
 
     const headers = [
       { range: `${quoteTab("Archive_Manifest")}!A1:G1`, majorDimension: "ROWS", values: [["manifest_id","archive_run_id","archived_at","batch_count","ticket_count","event_count","status"]] },
-      { range: `${quoteTab("Archive_Batches")}!A1:L1`, majorDimension: "ROWS", values: [["batch_id","sku","product_name","status","first_report_at","resolved_at","resolved_by_user_id","resolution","correction_deadline_at","created_at","updated_at","archive_run_id"]] },
+      { range: `${quoteTab("Archive_Batches")}!A1:O1`, majorDimension: "ROWS", values: [["batch_id","sku","product_name","status","first_report_at","resolved_at","resolved_by_user_id","resolution","correction_deadline_at","version","previous_batch_id","last_report_at","created_at","updated_at","archive_run_id"]] },
       { range: `${quoteTab("Archive_Tickets")}!A1:M1`, majorDimension: "ROWS", values: [["ticket_id","batch_id","picker_user_id","picker_employee_code","sku","status","reported_at","withdraw_deadline_at","withdrawn_at","resolved_at","created_at","updated_at","archive_run_id"]] },
-      { range: `${quoteTab("Archive_Events")}!A1:I1`, majorDimension: "ROWS", values: [["event_id","batch_id","ticket_id","event_type","actor_user_id","actor_employee_code","payload_json","created_at","archive_run_id"]] },
+      { range: `${quoteTab("Archive_Events")}!A1:M1`, majorDimension: "ROWS", values: [["event_id","batch_id","ticket_id","event_type","actor_user_id","actor_employee_code","payload_json","created_at","batch_version","result_resolution","result_at","acknowledgements_json","archive_run_id"]] },
     ];
     const writes = [
       ...headers,
