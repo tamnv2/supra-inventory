@@ -18,7 +18,7 @@
     "sqlite_schema": 6,
     "business_api": "OPERATIONAL_V2_4_RUNTIME_PASS__F20_BOUNDED_INSIGHTS_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
-    "web": "D062_WEB_FINAL_QA_SOURCE_BUILD_PENDING_RUNTIME",
+    "web": "D062_WEB_FINAL_QA_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
     "android": "VC44_D060_EFFECTIVE_ROLE_REFRESH_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING",
     "latest_beta_apk": "beta-vc44",
     "realtime": "GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_4",
@@ -28,7 +28,7 @@
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_BUILD_DEPLOY_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "D062_WEB_FINAL_QA_SOURCE_BUILD_PENDING_RUNTIME",
+    "ui_design_guard": "D062_WEB_FINAL_QA_SOURCE_BUILD_RUNTIME_PASS__OWNER_UI_GATE_PENDING",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED"
@@ -123,10 +123,10 @@
     "D060 Web runtime includes stronger company header, compact name/role identity, simplified Dashboard head and persisted Auto/Light/Dark theme with Auto dark 18:00–05:59 Asia/Ho_Chi_Minh.",
     "D060 Android role-refresh source published as signed beta-vc44 from 765be7baa90e6645a592cc5137324c85fb793009 after matching Beta runtime gate PASS; APK size 9283170 bytes; SHA-256 c2ee4740ebee30fcdfc0ae8dcda44f7d5116dbefe8fbaed035a885e3d98ca5fb.",
     "D060 Verify Beta Android run 35326095361 PASS; UI Design Guard run 35326095346 PASS on main.",
-    "D061 Web dark/sidebar/realtime cleanup PR #40 merged at 967365bffa8d518e8ad85d802b14753bc5f4fa1d with Repo Authority Guard, Project State Guard and UI Design Guard PASS; Beta deploy run 35334240991 PASS."
+    "D061 Web dark/sidebar/realtime cleanup PR #40 merged at 967365bffa8d518e8ad85d802b14753bc5f4fa1d with Repo Authority Guard, Project State Guard and UI Design Guard PASS; Beta deploy run 35334240991 PASS.",
+    "D062 Web final QA PR #42 merged at c874eafccb732c108f466ed7095a14e1f3e39d0e after Repo Authority Guard, Project State Guard and UI Design Guard PASS; Beta deploy run 35347188833 PASS with health/schema, auth/business guards, Web shell and Google OAuth smoke."
   ],
   "pending_build": [
-    "D062 Web final QA source/build/deploy/runtime verification",
     "Owner functional acceptance of Root effective-role switching across Web and resumed Android",
     "Android broader visual review after Owner resumes it",
     "Only after Owner UI gate: remaining canonical business wiring",
@@ -134,9 +134,10 @@
     "Isolated business mutation load acceptance after Owner scale target"
   ],
   "field_pending": [
-    "Owner Web visual/layout/theme acceptance is pending for the D062 Beta candidate after technical runtime PASS.",
-    "Android broader visual review remains pending separately.",
-    "Technical source/build/deploy PASS is not Owner UI acceptance."
+    "Owner Web visual/layout/theme acceptance is pending for deployed D062 Beta candidate.",
+    "Root effective-role end-to-end acceptance remains Owner field-dependent.",
+    "Android beta-vc44 broader visual review remains pending separately.",
+    "Technical source/build/deploy/release PASS is not Owner UI acceptance."
   ],
   "open_decisions_do_not_invent": [
     "Exact SKU-reset confirmation semantics originally described as random '6 chữ'.",
@@ -146,8 +147,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Complete D062 source/build guards, merge through PR, verify Beta Web runtime, then continue Owner screen-by-screen review.",
-    "method": "Preserve D061 sections already correct. D062 only closes remaining Web gaps: canonical five-area Admin/Root navigation using existing approved routes, operational queue as default landing, direct access to results/HR/account surfaces, and dark-theme coverage for transient/expanded legacy surfaces. Keep D061 generic-refresh removal. Android and Stable unchanged.",
+    "primary": "Continue Owner-led screen-by-screen review of deployed D062 Web. Repair only confirmed remaining Web presentation issues until explicit Owner UI acceptance.",
+    "method": "D062 is live on Beta from c874eafccb732c108f466ed7095a14e1f3e39d0e. Preserve D057 layout authority, D060 Root effective-role/theme semantics, D061 realtime cleanup and D062 canonical five-area navigation/dark completion. Do not redo sections already correct; no generic refresh on realtime-backed views. Android broader review remains separate.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -175,49 +176,50 @@
   },
   "workboard": {
     "in_progress": [
-      "D062 Web final QA source candidate: canonical five-area Admin/Root navigation and operational-first landing",
-      "D062 Web dark completion: expanded Picker detail/chips, messages/notices, realtime toast, badges and remaining legacy report/dashboard fragments",
-      "Owner Web UI acceptance remains pending; Android broader visual review remains separate"
+      "D062 Web final QA is deployed on Beta and technically PASS; Owner visual acceptance remains pending",
+      "D062 canonical five-area Admin/Root navigation and operational-first landing are live",
+      "D062 remaining dark transient/expanded surfaces are covered; D061 generic-refresh removal is preserved",
+      "Android beta-vc44 broader visual review remains pending separately"
     ],
     "next": [
-      "Run D062 authority/continuity/UI/Web regression, Worker typecheck, Web production build and unchanged Android debug gate",
-      "Merge D062 only after required guards PASS",
-      "Verify Beta deploy/runtime and Web shell after merge",
-      "Record D062 runtime evidence in canonical state/registry",
-      "Continue Owner screen-by-screen Web review; do not mutate Stable"
+      "Owner reviews deployed D062 across Xử lý báo thiếu, Kết quả gần đây, Danh mục SKU, Nguồn nhân sự, Nhân sự & tài khoản, Báo cáo and Hệ thống routes",
+      "Owner verifies five-area sidebar hierarchy/icons and dark-mode transient states",
+      "Repair only confirmed remaining D062 Web presentation issues through branch → PR → guards → Beta deploy",
+      "Do not resume deferred business rebuild until explicit Owner UI acceptance",
+      "Do not mutate Stable"
     ],
     "blocked_or_owner_field_dependent": [
-      "Final D062 Web UI/theme acceptance depends on Owner visual review after deployed runtime PASS",
-      "Android broader visual review remains pending",
+      "Final D062 Web UI/theme acceptance depends on Owner visual review",
+      "Root effective-role end-to-end acceptance depends on Owner exercising the selector with the actual Root account",
+      "Android broader visual review remains pending by Owner instruction",
       "No Stable promotion is authorized"
     ],
     "last_source_build_evidence": {
-      "branch": "ui/d061-dark-nav-realtime-cleanup-v2",
-      "merged_pr": 40,
-      "merged_main": "967365bffa8d518e8ad85d802b14753bc5f4fa1d",
+      "branch": "ui/d062-final-web-qa",
+      "merged_pr": 42,
+      "merged_main": "c874eafccb732c108f466ed7095a14e1f3e39d0e",
       "repo_authority_guard": "PASS",
       "project_state_guard": "PASS",
-      "ui_design_guard": "PASS",
+      "ui_design_guard": "PASS_RUN_35347034939",
       "operational_v2_regression": "PASS",
       "realtime_cursor_regression": "PASS",
       "web_operational_regression": "PASS",
-      "android_operational_regression": "PASS",
+      "android_operational_regression": "PASS_UNCHANGED_ANDROID_VISUALS",
       "operational_support_regression": "PASS",
       "service_typecheck": "PASS",
       "web_production_build": "PASS",
-      "android_debug_build": "PASS",
-      "ui_design_guard_run": 35334240734
+      "android_debug_build": "PASS_UNCHANGED_ANDROID_VISUALS"
     },
     "last_runtime_evidence": {
       "schema": 6,
       "operational_v2_schema": "4/4",
-      "beta_deploy_run": 35334240991,
+      "beta_deploy_run": 35347188833,
       "beta_deploy_conclusion": "success",
       "health": "HTTP_200_OK",
       "business_auth_guards": "PASS",
       "web_shell": "PASS",
       "google_oauth_start": "PASS",
-      "runtime_source_commit": "967365bffa8d518e8ad85d802b14753bc5f4fa1d",
+      "runtime_source_commit": "c874eafccb732c108f466ed7095a14e1f3e39d0e",
       "signed_beta_release": "beta-vc44",
       "signed_beta_release_source_commit": "765be7baa90e6645a592cc5137324c85fb793009",
       "signed_beta_apk_sha256": "c2ee4740ebee30fcdfc0ae8dcda44f7d5116dbefe8fbaed035a885e3d98ca5fb",
@@ -239,7 +241,7 @@
   "last_updated": "2026-09-18",
   "owner_ui_review": {
     "status": "IN_PROGRESS",
-    "phase": "D062_WEB_FINAL_QA_SOURCE_BUILD",
+    "phase": "D062_WEB_RUNTIME_REVIEW",
     "started_on": "2026-09-18",
     "review_target_web": "https://inventory-beta.supra.cc.cd/",
     "review_target_android_release": "beta-vc44",
@@ -247,8 +249,8 @@
     "visual_authority_repository": "tam95supra-source/bao-hang-1291",
     "visual_authority_commit": "8713f487386fa39c9225b180b2b8448d4a7e2b2d",
     "owner_acceptance": "NOT_YET_GIVEN",
-    "current_instruction": "Recheck deployed D061, preserve sections already correct, and complete only remaining Web gaps through D062: canonical five-area navigation/hidden-route access, operational-first landing and full dark coverage for transient/expanded surfaces. Generic realtime refresh buttons remain removed. Android broader review remains pending.",
+    "current_instruction": "Review deployed D062 Beta Web screen-by-screen. Preserve sections already correct; report only remaining presentation issues. D062 includes canonical five-area navigation, operational-first landing and remaining dark transient-surface coverage. Android broader review remains pending.",
     "next_session_command": "Tiếp tục review UI D062",
-    "review_feedback_protocol": "Owner may send current Beta Web screenshots and concise feedback; AI must fresh-bootstrap canonical repo first. Repair only confirmed remaining Web presentation issues through branch -> PR -> guards -> Beta deploy. Stable remains untouched."
+    "review_feedback_protocol": "Owner may send current Beta Web screenshots and concise feedback. AI must fresh-bootstrap canonical repo, repair only confirmed remaining D062 Web presentation issues through branch -> PR -> guards -> Beta deploy. Stable remains untouched."
   }
 }
