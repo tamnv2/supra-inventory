@@ -1171,13 +1171,11 @@ async function importSkuWorkbook(): Promise<void> {
 }
 
 async function reconcileActive(): Promise<boolean> {
-  const scrollY = window.scrollY;
   try {
     if ((activeSection === "operations" || activeSection === "results") && roleOperate()) await loadOperations();
     else if (activeSection === "picker" && profile?.role === "PICKER") await loadPicker();
     else return true;
-    render();
-    requestAnimationFrame(() => window.scrollTo({ top: scrollY }));
+    patchActiveSection(true);
     return true;
   } catch {
     // Realtime client keeps the applied cursor unchanged and retries dirty state.
@@ -1213,8 +1211,8 @@ window.addEventListener("supra:realtime-status", (event) => {
       : `${realtimeState}${dirtySuffix}`;
   }
 });
-window.addEventListener("online", () => { realtimeState = "connecting"; render(); });
-window.addEventListener("offline", () => { realtimeState = "offline"; render(); });
+window.addEventListener("online", () => { realtimeState = "connecting"; if (profile) patchActiveSection(true); });
+window.addEventListener("offline", () => { realtimeState = "offline"; if (profile) patchActiveSection(true); });
 
 async function bootstrap(): Promise<void> {
   if (!hasSession()) { renderLogin(); return; }
