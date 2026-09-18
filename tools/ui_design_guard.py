@@ -62,6 +62,8 @@ checks = {
     "authority_d062_web_completion_review": "D062" in DECISIONS and "Owner-reviewed completion audit and canonical navigation IA (D062)" in DESIGN_SPEC,
     "authority_d063_ops_logs_reporting_review": "D063" in DECISIONS and "Owner-reviewed consolidated operations, logs, reporting and people UI (D063)" in DESIGN_SPEC,
     "authority_d064_system_load_review": "D064" in DECISIONS and "Detailed operational system-status console (D064)" in DESIGN_SPEC,
+    "authority_d065_three_group_navigation": "D065" in DECISIONS and "Owner three-group navigation refinement (D065)" in DESIGN_SPEC,
+    "authority_d066_three_group_implementation": "D066" in DECISIONS and "Owner-approved three-group navigation implementation (D066)" in DESIGN_SPEC,
     "authority_ui_acceptance_distinct_from_ci": "CI/build PASS" in DESIGN_SPEC and "Owner UI" in DESIGN_SPEC,
     "authority_no_offline_mode": "D043" in DECISIONS and "No offline business mode" in DESIGN_SPEC,
 
@@ -155,16 +157,29 @@ checks = {
     "web_d061_nav_icons": all(token in WEB_APP for token in ["function navIcon", 'class="nav-icon"', "group-operations"]) and all(token in WEB_FAST for token in ["D061 Owner Web review", ".nav-section-label", ".nav-icon"]),
     "web_d061_generic_refresh_removed": all(token not in WEB_APP for token in ["refresh-operations", "refresh-results", "refresh-picker", "refresh-users"]),
     "web_d061_dark_surface_coverage": all(token in WEB_FAST for token in ["D061 Owner Web review", ".fast-workspace", ".fast-issue-row", ".table-wrap", "tbody tr", ".ops-status-strip"]),
-    "web_d062_canonical_nav_ia": all(token in WEB_APP for token in [
-        'navGroup("VẬN HÀNH"',
+    "web_d065_three_group_nav_ia": all(token in WEB_APP for token in [
+        'navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"]])',
+        'navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"], ["sla", "Thời gian xử lý"]])',
+        'navGroup("HỆ THỐNG", [["system", "Trạng thái hệ thống"], ["logs", "Nhật ký"]])',
+        'if (value.role === "PICKER") return "picker";\n  return "operations";',
+    ]) and all(token not in WEB_APP for token in [
         'navGroup("DỮ LIỆU"',
         'navGroup("QUẢN TRỊ"',
         'navGroup("BÁO CÁO"',
-        'navGroup("HỆ THỐNG"',
+        'navButton("account", "Tài khoản & mật khẩu")',
         '"hr", "Nguồn nhân sự"',
-        '"account", "Tài khoản & mật khẩu"',
-        'if (value.role === "PICKER") return "picker";\n  return "operations";',
     ]) and "Hạ tầng & chi phí" not in WEB_APP,
+    "web_d065_personal_account_in_identity": all(token in WEB_APP for token in [
+        'class="ghost header-account-action',
+        'data-section="account">Tài khoản</button>',
+        'id="logout"',
+    ]),
+    "web_d065_people_workspace_tabs": all(token in WEB_APP for token in [
+        "function renderPeopleTabs",
+        'data-workspace-section="users"',
+        'data-workspace-section="hr"',
+        "Nguồn nhân sự & đồng bộ Picker",
+    ]),
     "web_d062_dark_transient_coverage": all(token in WEB_FAST for token in [
         "D062 final Web QA",
         ".picker-chip",
@@ -174,12 +189,11 @@ checks = {
         ".v5-rank-row > b",
     ]),
     "web_d062_sidebar_hierarchy": all(token in WEB_FAST for token in ["font-size: 13px !important", ".nav-section-label .nav-icon", "width: 15px"]),
-    "web_d063_nav_max_three": all(token in WEB_APP for token in [
-        'navGroup("VẬN HÀNH", [["operations", "Vận hành báo hàng"]])',
-        'navGroup("DỮ LIỆU", [["sku", "Danh mục SKU"], ["hr", "Nguồn nhân sự"]])',
-        'navGroup("QUẢN TRỊ", [["users", "Nhân sự & tài khoản"], ["sla", "Thiết lập nghiệp vụ"]])',
-        'navGroup("BÁO CÁO", [["dashboard", "Tổng quan & báo cáo"]])',
-        'navGroup("HỆ THỐNG", [["system", "Trạng thái hệ thống"], ["logs", "Nhật ký"], ["account", "Tài khoản & mật khẩu"]])',
+    "web_d066_nav_children_within_owner_limit": all(token in WEB_APP for token in [
+        'navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"]])',
+        'navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"], ["sla", "Thời gian xử lý"]])',
+        'navGroup("HỆ THỐNG", [["system", "Trạng thái hệ thống"], ["logs", "Nhật ký"]])',
+        'return navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"]]);',
     ]),
     "web_d063_merged_workspaces": all(token in WEB_APP for token in [
         "renderOperationalTabs",
