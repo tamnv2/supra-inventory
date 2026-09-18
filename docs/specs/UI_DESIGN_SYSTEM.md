@@ -130,6 +130,21 @@ Group functions conceptually as:
 Dashboard is an Admin/Root analysis module, not the Reporter landing surface.
 
 
+### Owner-reviewed Root test-role and theme refinement (D060)
+
+D060 overrides D059 where the Owner explicitly refined the header again:
+
+- make `CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN` the stronger/larger header line and reduce `Website nghiệp vụ Inventory 1291` to the secondary line;
+- top-right identity is two clean lines only: display name, then mapped permission label. Do not show literal `Tên:`, `User:`, `Quyền:` labels and do not display username/user id;
+- remove the redundant Dashboard head group containing date, duplicate update clock and `Mở xử lý báo thiếu`; the pinned header already carries current service/update context and navigation already exposes processing;
+- when immutable `base_role=ROOT`, show a compact `Kiểm tra quyền` selector with ROOT / ADMIN / REPORTER / PICKER. The selected value is a server-authoritative effective role, not cosmetic UI simulation;
+- when ROOT is operating under a lower effective role, normal navigation/content/actions must match that role. The Root role selector remains visible solely because immutable base identity is ROOT, allowing recovery to ROOT;
+- provide a compact `Giao diện` selector with `Tự động`, `Sáng`, `Tối`. Persist the preference locally;
+- automatic Web theme uses Asia/Ho_Chi_Minh time: dark from 18:00–05:59, light from 06:00–17:59;
+- dark mode must restyle the actual shell, content, cards, tables, forms, controls, dialogs, diagnostics, navigation and footer with readable contrast; changing only the page background is not acceptable;
+- the theme choice is presentation-only and never changes business state;
+- Android visual redesign remains pending; D060 only requires Android to refresh and render the server-authoritative effective role when the Root test role changes.
+
 ### Owner-reviewed header and identity refinement (D059)
 
 For Web, D059 further refines the D058 desktop shell:
