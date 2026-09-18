@@ -34,7 +34,7 @@ ADMIN_LAUNCHER_PATH = ROOT / "android/app/src/main/java/cd/cc/supra/inventory/be
 ANDROID_ADMIN = ADMIN_LAUNCHER_PATH.read_text(encoding="utf-8") if ADMIN_LAUNCHER_PATH.exists() else ""
 ANDROID_ALL = "\n".join([ANDROID_MAIN, ANDROID_UI, ANDROID_PICKER, ANDROID_REPORTER, ANDROID_ADMIN])
 
-WEB_CREDIT = "Phát triển và duy trì bởi: tamnv2 - Chuyên viên Pick Pack 1291"
+WEB_CREDIT = "Phát triển bởi: tamnv2 - Chuyên viên Pick Pack 1291"
 ANDROID_CREDIT = "Phát triển bởi: tamnv2 - Chuyên viên Pick Pack 1291"
 
 checks = {
@@ -45,6 +45,8 @@ checks = {
     "web_reporter_operational_first": "Hàng đang xử lý" in WEB_UI and "operation-list" in WEB_UI,
     "web_no_priority_explanatory_prose": "Ưu tiên tự động: nhiều Picker bị ảnh hưởng hơn trước" not in WEB_UI,
     "web_footer_credit": WEB_CREDIT in WEB_UI,
+    "web_legacy_horizontal_nav": '<nav class="tabs"' in WEB_APP and '<aside class="sidebar">' not in WEB_APP and ".tabs{display:flex" in WEB_CSS,
+    "web_legacy_topbar_composition": 'class="web-heading"' in WEB_APP and "Web nghiệp vụ" in WEB_APP and 'class="user"' in WEB_APP,
     "web_skip_impact_confirmation": "XÁC NHẬN CHO SKIP" in WEB_UI and "affected_picker_count" in WEB_UI,
     "web_sla_surface": "Cấu hình SLA" in WEB_UI and "sla_state" in WEB_UI,
     "web_recurrence_surface": "previous_batch_id" in WEB_API and "Tái phát" in WEB_UI,
@@ -57,6 +59,7 @@ checks = {
     "android_adaptive_launcher_icon": 'android:icon="@mipmap/ic_launcher"' in ANDROID_MANIFEST and 'android:roundIcon="@mipmap/ic_launcher_round"' in ANDROID_MANIFEST and "@color/inventory_icon_green" in ANDROID_ICON and "@color/inventory_icon_green" in ANDROID_ICON_ROUND,
     "android_footer_credit": ANDROID_CREDIT in ANDROID_UI,
     "android_header_readable": "BÁO HÀNG 1291" in ANDROID_UI and "screenWidthDp" in ANDROID_UI and "LinearLayout.LayoutParams(dp(134)" not in ANDROID_UI,
+    "android_legacy_fixed_header": "OperationalPage" in ANDROID_MAIN and "setContentView(page.shell)" in ANDROID_MAIN and "LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(76))" in ANDROID_UI,
     "android_picker_vertical": "Nhập / quét SKU" in ANDROID_PICKER and "BÁO HẾT HÀNG" in ANDROID_PICKER and "BÁO HÔM NAY" in ANDROID_PICKER and "one-row" not in ANDROID_PICKER.lower(),
     "android_picker_ack": "XÁC NHẬN ĐÃ NHẬN" in ANDROID_PICKER and "acknowledgeResult" in ANDROID_API,
     "android_reporter_filters": all(token in ANDROID_REPORTER for token in ["Đang xử lý", "Đã có hàng", "Đã cho skip", "Picker thu hồi"]),
