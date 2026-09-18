@@ -1,5 +1,12 @@
 import "./styles.css";
 import "./legacy-operational.css";
+import "./legacy-transplant/style.css";
+import "./legacy-transplant/workflow-dashboard-v5.css";
+import "./legacy-transplant/warehouse-ui-v2.css";
+import "./legacy-transplant/ops-console.css";
+import "./legacy-transplant/workflow-v3-overrides.css";
+import "./legacy-transplant/workflow-v4-ux.css";
+import "./legacy-transplant/web-fast-ui.css";
 import { firebaseMissing, firebaseReady } from "./firebase";
 import {
   applyHrPickerSync,
@@ -57,7 +64,7 @@ import {
 } from "./operational-api";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
-const PRODUCT_CREDIT = "Phát triển bởi: tamnv2 - Chuyên viên Pick Pack 1291";
+const PRODUCT_CREDIT = "Copyright 2026 - SUPRA DC HƯNG YÊN - tamnv2 - Chuyên viên Pick Pack 1291";
 const SKU_CHUNK_SIZE = 1000;
 
 type Section =
@@ -71,22 +78,38 @@ type Section =
   | "dashboard"
   | "reports"
   | "system"
+  | "devices"
+  | "logs"
+  | "versions"
   | "account";
 
 type Notice = { type: "success" | "error" | "warning"; text: string } | null;
 
 const ROUTABLE_SECTIONS: Section[] = [
-  "picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "system", "account",
+  "picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "system", "devices", "logs", "versions", "account",
 ];
 
 function defaultSectionForProfile(value: AppProfile): Section {
-  return value.role === "PICKER" ? "picker" : "operations";
+  if (value.role === "PICKER") return "picker";
+  if (value.role === "REPORTER") return "operations";
+  return "dashboard";
 }
 
 function canAccessSection(section: Section, value: AppProfile): boolean {
   if (value.role === "PICKER") return ["picker", "system", "account"].includes(section);
   if (value.role === "REPORTER") return ["operations", "results", "account"].includes(section);
   return section !== "picker";
+}
+
+function legacyRoleLabel(value: AppProfile["role"]): string {
+  if (value === "ROOT") return "Quản trị hệ thống";
+  if (value === "ADMIN") return "Quản trị hệ thống";
+  if (value === "REPORTER") return "Người báo hàng";
+  return "Người lấy hàng";
+}
+
+function healthChip(label: string, value: string, kind = ""): string {
+  return `<span class="health-chip ${kind}"><b>${esc(label)}</b><em>${esc(value)}</em></span>`;
 }
 
 function sectionFromHash(): Section | null {
@@ -154,6 +177,7 @@ let allPickerSelection = false;
 const USER_PAGE_SIZE = 100;
 let editUserId: string | null = null;
 let passwordUserId: string | null = null;
+let selectedBatchId: string | null = null;
 let dashboardLoadGeneration = 0;
 let reportLoadGeneration = 0;
 let sessionViewGeneration = 0;
@@ -353,11 +377,14 @@ function activeContent(): string {
   if (activeSection === "dashboard") return renderDashboard();
   if (activeSection === "reports") return renderReports();
   if (activeSection === "system") return renderSystem();
+  if (activeSection === "devices") return renderLegacyDevices();
+  if (activeSection === "logs") return renderLegacyLogs();
+  if (activeSection === "versions") return renderLegacyVersions();
   return renderAccount();
 }
 
 function mainMarkup(): string {
-  return `${renderNotice()}${activeContent()}<div class="credit">${PRODUCT_CREDIT}</div>`;
+  return `${renderNotice()}${activeContent()}`;
 }
 
 function patchOverlays(): void {
@@ -381,44 +408,41 @@ function patchActiveSection(preserveContext = true): void {
 }
 
 function navButton(section: Section, label: string): string {
-  return `<button class="nav-button ${activeSection === section ? "active" : ""}" data-section="${section}">${esc(label)}</button>`;
+  return `<button class="nav-button ${activeSection === section ? "active" : ""}" data-section="${section}"${activeSection === section ? ' aria-current="page"' : ""}>${esc(label)}</button>`;
 }
 
 function navGroup(title: string, rows: Array<[Section, string]>): string {
-  return `<div class="nav-group"><div class="nav-group-title">${esc(title)}</div>${rows.map(([id, label]) => navButton(id, label)).join("")}</div>`;
+  return `<span class="nav-section-label" data-nav-section="${esc(title)}">${esc(title)}</span>${rows.map(([id, label]) => navButton(id, label)).join("")}`;
 }
 
 function renderNav(): string {
   if (!profile) return "";
-  if (profile.role === "PICKER") {
-    return navGroup("Vận hành", [["picker", "Báo hàng"]]) + navGroup("Hệ thống", [["system", "Trạng thái"], ["account", "Tài khoản"]]);
-  }
-  if (profile.role === "REPORTER") {
-    return navGroup("Vận hành", [["operations", "Hàng đang xử lý"], ["results", "Kết quả gần đây"]]) + navGroup("Tài khoản", [["account", "Đổi mật khẩu"]]);
-  }
+  if (profile.role === "PICKER") return navButton("picker", "Báo thiếu hàng");
+  if (profile.role === "REPORTER") return navButton("operations", "Xử lý báo thiếu");
   return [
-    navGroup("Vận hành", [["operations", "Hàng đang xử lý"], ["results", "Kết quả gần đây"]]),
-    navGroup("Dữ liệu", [["sku", "Master SKU"], ["hr", "Nguồn nhân sự"]]),
-    navGroup("Quản trị", [["users", "Tài khoản & Picker"], ["sla", "Cấu hình SLA"]]),
-    navGroup("Báo cáo", [["dashboard", "Tổng quan"], ["reports", "Báo cáo chi tiết"]]),
-    navGroup("Hệ thống", [["system", "Trạng thái & chẩn đoán"], ["account", "Tài khoản"]]),
+    navGroup("VẬN HÀNH", [["dashboard", "Tổng quan hôm nay"], ["operations", "Xử lý báo thiếu"], ["sku", "Danh mục SKU"], ["reports", "Báo cáo vận hành"]]),
+    navGroup("QUẢN LÝ", [["users", "Nhân sự & tài khoản"], ["devices", "Thiết bị & thông báo"]]),
+    navGroup("HẠ TẦNG", [["system", "Hạ tầng & chi phí"], ["logs", "Nhật ký hệ thống"]]),
+    navGroup("THIẾT LẬP", [["sla", "Thời gian nghiệp vụ"], ["versions", "Phiên bản ứng dụng"]]),
   ].join("");
 }
 
 function renderLogin(): void {
-  app.innerHTML = `<main class="login-page"><section class="login-card">
-    <div class="brand-mark">1291</div>
-    <p class="eyebrow">BÁO HÀNG 1291</p>
-    <h1>Web nghiệp vụ</h1>
-    <div class="muted" style="margin-top:6px">Đăng nhập bằng tài khoản Báo hàng 1291.</div>
-    ${!firebaseReady ? `<div class="notice warning" style="margin-top:16px">Thiếu cấu hình Firebase Web: ${esc(firebaseMissing.join(", "))}</div>` : ""}
+  document.body.dataset.role = "";
+  document.body.dataset.testRole = "";
+  app.innerHTML = `<main class="login-shell"><section class="login-card">
+    <div class="brand">1291</div><p class="eyebrow">BÁO HÀNG 1291</p><h1>Web nghiệp vụ</h1>
+    <p class="muted">Đăng nhập bằng tài khoản Báo hàng 1291.</p>
+    ${!firebaseReady ? `<div class="message" data-type="error">Thiếu cấu hình Firebase Web: ${esc(firebaseMissing.join(", "))}</div>` : ""}
     ${renderNotice()}
     <form id="login-form">
-      <div class="field"><span>Mã nhân viên</span><input name="username" autocomplete="username" placeholder="Nhập mã nhân viên" required /></div>
-      <div class="field"><span>Mật khẩu</span><input name="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu" required /></div>
-      <button class="btn" ${busy ? "disabled" : ""}>${busy ? "Đang đăng nhập..." : "ĐĂNG NHẬP"}</button>
+      <label>Mã nhân viên<input name="username" required autocomplete="username" placeholder="Nhập mã nhân viên" /></label>
+      <label>Mật khẩu<input name="password" type="password" required autocomplete="current-password" placeholder="Nhập mật khẩu" /></label>
+      <button class="primary wide" ${busy ? "disabled" : ""}>${busy ? "Đang đăng nhập..." : "ĐĂNG NHẬP"}</button>
     </form>
-    <div class="credit">${PRODUCT_CREDIT}</div>
+    <div class="login-actions"><button id="forgot-password" type="button" class="login-link">Lấy lại mật khẩu</button></div>
+    <p class="security">Quyền được kiểm tra tại server. Web không chứa service-role key, thông tin xác thực máy chủ hoặc private key.</p>
+    <p class="security">${PRODUCT_CREDIT}</p>
   </section></main>`;
   document.querySelector<HTMLFormElement>("#login-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -437,16 +461,25 @@ function renderLogin(): void {
 
 function renderShell(content: string): void {
   if (!profile) return renderLogin();
+  const visualRole = profile.role === "PICKER" ? "PICKER" : profile.role === "REPORTER" ? "INVENT" : "ADMIN";
+  document.body.dataset.role = visualRole;
+  document.body.dataset.testRole = "";
   const employee = profile.employee_code || profile.user_id;
-  app.innerHTML = `<div class="shell role-${esc(profile.role.toLowerCase())}">
+  const testTools = roleManage() ? `<div class="test-tools"><span>Kiểm thử giao diện + quyền server:</span><button type="button">Admin Event</button><button type="button">Người báo hàng</button><button type="button">Người lấy hàng</button></div>` : "";
+  app.innerHTML = `<div class="app-shell shell role-${esc(profile.role.toLowerCase())}">
     <header class="topbar">
-      <div class="web-heading"><p class="eyebrow">BÁO HÀNG 1291</p><h1>Web nghiệp vụ</h1>
-        <div class="health-row"><span class="connection ${esc(realtimeState)}" id="connection-state">${esc(realtimeState === "connected" ? `CẬP NHẬT · #${realtimeLastSeq}` : realtimeState)}</span></div>
-      </div>
-      <div class="user"><strong>${esc(profile.display_name)}</strong><span>${esc(employee)} · ${esc(profile.role)}</span><div class="user-actions"><button class="btn secondary small" id="logout">Thoát</button></div></div>
+      <div><p class="eyebrow">BÁO HÀNG 1291</p><h1>Web nghiệp vụ</h1><div class="health-row">
+        ${healthChip("DỊCH VỤ", "HOẠT ĐỘNG", "good")}
+        ${healthChip("CẬP NHẬT", realtimeState === "connected" ? "TRỰC TUYẾN" : realtimeState, realtimeState === "connected" ? "good" : "warn")}
+        ${healthChip("BÁO CÁO", "—")}
+        ${healthChip("CHI PHÍ", "ĐANG GIÁM SÁT")}
+      </div></div>
+      <div class="user"><strong>${esc(profile.display_name)}</strong><span>${esc(legacyRoleLabel(profile.role))}</span><div class="user-actions"><button id="change-password-top" class="ghost">Đổi mật khẩu</button><button id="logout" class="ghost">Đăng xuất</button></div></div>
     </header>
-    <nav class="tabs" aria-label="Điều hướng nghiệp vụ">${renderNav()}</nav>
-    <main class="main">${renderNotice()}${content}<div class="credit">${PRODUCT_CREDIT}</div></main>
+    ${testTools}
+    <nav class="tabs" data-shell-generation="legacy-direct-transplant">${renderNav()}</nav>
+    <main id="content" class="content main">${renderNotice()}${content}</main>
+    <footer id="appCopyright" class="app-footer">${PRODUCT_CREDIT}</footer>
     <div id="overlay-root">${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}</div>
   </div>`;
   bindShell();
