@@ -271,10 +271,10 @@
     "d060_android_effective_role_refresh_signed_beta_vc44_pass",
     "d061_web_dark_nav_realtime_cleanup_runtime_pass_owner_ui_pending",
     "d062_web_final_qa_canonical_navigation_dark_completion_runtime_pass_owner_ui_pending",
-    "d063_consolidated_ops_logs_reporting_presence_ui_runtime_pass_owner_ui_pending"
+    "d063_consolidated_ops_logs_reporting_presence_ui_runtime_pass_owner_ui_pending",
+    "d064_detailed_system_status_and_controlled_beta_load_test_runtime_pass"
   ],
   "application_build_pending": [
-    "d064_detailed_system_status_and_beta_load_test",
     "owner_d061_web_ui_acceptance_and_android_review_pending",
     "fcm_physical_device_delivery_acceptance_after_functional_rebuild",
     "isolated_business_mutation_load_acceptance_after_owner_scale_target"
@@ -338,10 +338,11 @@
   },
   "ui_design": {
     "authority": "OWNER_SELECTED_D057_LEGACY_TRANSPLANT_WITH_D058_D059_D060_D061_D062_AND_D063_CONSOLIDATED_OPS_LOGS_REPORTING_PEOPLE_REFINEMENTS_D064_DETAILED_SYSTEM_STATUS",
-    "web": "D063_CONSOLIDATED_OPS_LOGS_REPORTING_PRESENCE_UI_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
+    "web": "D064_DETAILED_SYSTEM_STATUS_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
     "android": "VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING",
     "scope_guard": "D063_MAX_THREE_NAV_CHILDREN__CONSOLIDATED_EXISTING_WORKFLOWS__BETA_LOGS_ONLY__NO_NEW_STOCK_LOCATION_OFFLINE_SCOPE__D057_ANDROID_NATIVE_AUTHORITY__OWNER_VISUAL_ACCEPTANCE_REQUIRED",
-    "source_candidate": "D064_DETAILED_SYSTEM_STATUS_SOURCE_BUILD_PENDING_BETA_RUNTIME"
+    "source_candidate": "D064_RUNTIME_PASS__NAV_IA_PROPOSAL_PENDING_OWNER_DECISION",
+    "navigation_proposal": "docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md"
   },
   "quota_resilience": {
     "reference_date": "2026-09-17",
@@ -405,7 +406,7 @@
       "manual_fresh_provider_probe": true
     },
     "plan_detection": "DO_NOT_INFER_CLOUDFLARE_OR_FIREBASE_BILLING_PLAN",
-    "status": "D064_SOURCE_BUILD_PENDING_RUNTIME"
+    "status": "D064_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING"
   },
   "beta_load_test": {
     "environment": "beta",
@@ -419,6 +420,29 @@
     "auth_path": "REAL_FIREBASE_ID_TOKEN_PER_EXISTING_PICKER",
     "temporary_gate": "LOAD_TEST_TOKEN__EPHEMERAL_MASKED__APP_ENV_BETA_ONLY__ALWAYS_CLEANUP",
     "stable": "FORBIDDEN",
-    "status": "D064_SOURCE_BUILD_PENDING_RUNTIME_AND_MEASUREMENT"
+    "status": "D064_RUNTIME_PASS__TEMP_GATE_CLOSED",
+    "last_result": {
+      "run_id": 35376099693,
+      "test_id": "d064-20260918174507-c9c3822f",
+      "successful_reports": 1000,
+      "requested_reports": 1000,
+      "picker_count": 100,
+      "unique_skus_reported": 400,
+      "duration_seconds": 525.423,
+      "average_ms": 250.34,
+      "p50_ms": 235.95,
+      "p95_ms": 348.72,
+      "max_ms": 625.64,
+      "errors": 0,
+      "sqlite_delta_bytes": 2572288,
+      "row_delta": {
+        "report_batches": 400,
+        "report_tickets": 1000,
+        "report_events": 1000,
+        "realtime_events": 1000,
+        "audit_log": 1000
+      },
+      "temporary_gate": "VERIFIED_CLOSED"
+    }
   }
 }

@@ -7,17 +7,17 @@
 Canonical current markers:
 - SQLite schema: `6`
 - Latest Beta APK: `beta-vc45`
-- Web: `D064_DETAILED_SYSTEM_STATUS_SOURCE_BUILD_PENDING_BETA_RUNTIME`
+- Web: `D064_DETAILED_SYSTEM_STATUS_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
 - Android: `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 
 The project is in **UI-first review**, not business-logic rebuild.
 
 - Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinements: **D058 shell + D059 header + D060 Root-role/theme + D061 dark/sidebar/realtime cleanup + D062 final Web QA/IA + D063 consolidated operations/logs/reporting/people review**.
-- D063 runtime remains PASS. D064 is the active source/build workstream: rebuild the detailed all-service `Trạng thái hệ thống`, then run the controlled Beta-only 1,000-report load test using 100 existing Pickers and about 400 existing SKUs within 10 minutes, then present a post-test navigation IA critique/proposal. Stable is unchanged.
+- D064 detailed `Trạng thái hệ thống` is deployed on Beta and technically PASS. Controlled Beta load test run `35376099693` also PASS: 1,000/1,000 real Picker reports, 100 existing Pickers, 400 existing SKUs in 525.423 seconds, no errors; temporary load-test gate verified closed. Post-test sidebar analysis is now documented in `docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md` and awaits Owner decision before any navigation rebuild. Stable is unchanged.
 - Owner has **not yet given UI/layout acceptance** for the current candidate.
 - Technical build/deploy/release PASS must never be interpreted as Owner UI PASS.
-- Current explicit Owner D064 command additionally authorizes the detailed system-status metrics and controlled Beta load-test implementation described in D064.
-- Do **not** change the left-navigation grouping again during D064; after the measured load test, present the IA proposal for Owner approval first.
+- D064 system-status and controlled load-test implementation are complete. The only D064 product-design gate now is Owner review/refinement of the proposed navigation IA.
+- Do **not** change the left-navigation grouping until the Owner approves/refines `docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md`.
 
 Current review targets:
 - Web: `https://inventory-beta.supra.cc.cd/`
@@ -31,7 +31,7 @@ Current review targets:
 
 Owner can start the next chat with only:
 
-> **Tiếp tục D064 trạng thái hệ thống + load test**
+> **Review D064 navigation IA proposal**
 
 Then attach/send the current screenshot or concise review feedback, for example:
 - `Web Tổng quan: chưa OK, sidebar rộng quá`
@@ -387,7 +387,7 @@ Useful current files:
 
 No manual end-of-session handover is required. A new session must bootstrap from `ops/authority-manifest.json` and its declared `bootstrap_order` before mutation.
 
-The Owner's next-chat instruction **`Tiếp tục D064 trạng thái hệ thống + load test`** is sufficient to resume from this point; any Web screenshot or UI review text supplied with it becomes the immediate work item.
+The Owner's next-chat instruction **`Review D064 navigation IA proposal`** is sufficient to resume from this point; any Web screenshot or UI review text supplied with it becomes the immediate work item.
 
 
 ## D063 runtime PASS — 2026-09-19
@@ -397,3 +397,24 @@ PR #44 merged at `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`. Repo Authority, Pro
 ### D064 active workstream — detailed system status + controlled Beta load test
 
 D064 source adds live InventoryCore storage/table/business/realtime metrics, cached Google Drive storage/folder usage, current GitHub Beta release data, clear reference limits without billing-plan inference, and a redesigned professional system-status console with 60-second core refresh / five-minute provider cache. A Beta-only GitHub Actions workload will temporarily enable a masked random load-test gate, create real Firebase-authenticated sessions for 100 existing active Pickers, submit 1,000 normal `/api/picker/reports` requests across about 400 existing SKUs over at most 10 minutes, persist a bounded before/after aggregate, and always disable the gate. Test records remain normal Beta data for Owner inspection. After measured evidence, AI analyzes/proposes the next sidebar IA but does not implement it until Owner approval.
+
+
+## D064 measured load evidence — PASS
+
+- GitHub Actions run: `35376099693`
+- Test ID: `d064-20260918174507-c9c3822f`
+- 1,000 / 1,000 successful normal Picker reports
+- 100 existing active Picker identities
+- 400 existing Master SKU covered
+- Duration: 525.423 seconds
+- Average response: 250.34 ms
+- P50: 235.95 ms
+- P95: 348.72 ms
+- Max: 625.64 ms
+- Error count: 0
+- SQLite delta: +2,572,288 bytes
+- Row delta: +400 report batches, +1,000 report tickets, +1,000 report events, +1,000 realtime events, +1,000 audit rows
+- Temporary Beta load-test gate: verified closed
+- Test rows remain ordinary Beta data for Owner inspection; Stable untouched.
+
+Post-test IA proposal: `docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md`. It is proposal-only until Owner approval.
