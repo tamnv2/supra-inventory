@@ -18,7 +18,7 @@
     "sqlite_schema": 6,
     "business_api": "OPERATIONAL_V2_4_RUNTIME_PASS__F20_BOUNDED_INSIGHTS_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
-    "web": "D066_THREE_GROUP_NAVIGATION_SOURCE_IMPLEMENTED__BETA_DEPLOY_PENDING",
+    "web": "D066_THREE_GROUP_NAVIGATION_BETA_RUNTIME_PASS__OWNER_VISUAL_ACCEPTANCE_PENDING",
     "android": "VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING",
     "latest_beta_apk": "beta-vc45",
     "realtime": "GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_4",
@@ -28,7 +28,7 @@
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_BUILD_DEPLOY_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "D066_THREE_GROUP_NAVIGATION_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
+    "ui_design_guard": "D066_THREE_GROUP_NAVIGATION_BETA_RUNTIME_PASS__OWNER_VISUAL_ACCEPTANCE_PENDING",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED"
@@ -128,20 +128,20 @@
     "D060 Android role-refresh source published as signed beta-vc44 from 765be7baa90e6645a592cc5137324c85fb793009 after matching Beta runtime gate PASS; APK size 9283170 bytes; SHA-256 c2ee4740ebee30fcdfc0ae8dcda44f7d5116dbefe8fbaed035a885e3d98ca5fb.",
     "D060 Verify Beta Android run 35326095361 PASS; UI Design Guard run 35326095346 PASS on main.",
     "D061 Web dark/sidebar/realtime cleanup PR #40 merged at 967365bffa8d518e8ad85d802b14753bc5f4fa1d with Repo Authority Guard, Project State Guard and UI Design Guard PASS; Beta deploy run 35334240991 PASS.",
-    "D062 Web final QA PR #42 merged at c874eafccb732c108f466ed7095a14e1f3e39d0e after Repo Authority Guard, Project State Guard and UI Design Guard PASS; Beta deploy run 35347188833 PASS with health/schema, auth/business guards, Web shell and Google OAuth smoke."
+    "D062 Web final QA PR #42 merged at c874eafccb732c108f466ed7095a14e1f3e39d0e after Repo Authority Guard, Project State Guard and UI Design Guard PASS; Beta deploy run 35347188833 PASS with health/schema, auth/business guards, Web shell and Google OAuth smoke.",
+    "D066 Web three-group navigation PR #50 merged at 2e12e6d4e94b195e3b505b3f2abe9822ca91632c; PR Repo Authority, Project State and UI Design guards PASS; main UI Design Guard run 35407227884 PASS; Beta deploy run 35407227911 PASS including Web build, Worker typecheck/deploy, health/schema, auth/business guards, Web shell and Google OAuth start."
   ],
   "pending_build": [
     "Owner functional acceptance of Root effective-role switching across Web and resumed Android",
     "Android broader visual review after Owner resumes it",
     "Only after Owner UI gate: remaining canonical business wiring",
-    "Physical notification/device acceptance after functional rebuild",
-    "Isolated business mutation load acceptance after Owner scale target"
+    "Physical notification/device acceptance after functional rebuild"
   ],
   "field_pending": [
     "Owner Web visual/layout/theme acceptance remains pending for the deployed D064 system-status console.",
-    "Owner decision is pending on docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md before any sidebar rebuild.",
     "Physical Android crash/log upload timing remains field-dependent.",
-    "Technical PASS is not Owner UI acceptance."
+    "Technical PASS is not Owner UI acceptance.",
+    "Owner visual acceptance remains pending for the deployed D066 three-group Web navigation; technical/runtime PASS is not Owner UI acceptance."
   ],
   "open_decisions_do_not_invent": [
     "Exact SKU-reset confirmation semantics originally described as random '6 chữ'.",
@@ -151,9 +151,9 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Finish D066 through PR guards → merge → Beta deploy/runtime PASS, then record clean continuity state for the next chat. Stable remains untouched.",
-    "method": "Validate exact 3-group/7-child Web navigation, internal people-source tabs, pinned personal account action, existing realtime/RBAC regressions and production build. Merge only after authority/state/UI guards PASS.",
-    "stable_guard": "Do not activate or mutate Stable runtime."
+    "primary": "Owner visually reviews the deployed D066 three-group Beta Web navigation. If accepted, continue the remaining UI-first review from canonical NEXT_ACTION; if rejected, fix only the specified Beta presentation gap through branch → PR → guards → merge.",
+    "method": "Use https://inventory-beta.supra.cc.cd/ and verify Admin/Root sidebar is 3 groups / 7 children, Reporter projection is minimal, Nhân sự & tài khoản contains HR source/Picker sync tabs, and personal account access is in the top identity controls. Do not change business APIs/RBAC/realtime unless a separate Owner requirement is given.",
+    "stable_guard": "Stable remains OWNER-GATED and untouched."
   },
   "continuity_policy": {
     "manual_handover_required": false,
@@ -180,27 +180,28 @@
   },
   "workboard": {
     "in_progress": [
-      "D066 approved three-group Web navigation source implementation",
+      "D066 Beta Web three-group navigation technically PASS; Owner visual acceptance pending",
       "D064 detailed system-status Owner visual acceptance remains pending",
       "Android broader Owner UI acceptance remains pending",
       "Stable remains Owner-gated"
     ],
     "next": [
-      "PR guards PASS for D066",
-      "Merge D066 implementation and wait for Beta deploy PASS",
-      "Record final D066 runtime/continuity PASS for next chat"
+      "Owner visual review of deployed D066 Web navigation",
+      "Continue UI-first review/fixes only from explicit Owner feedback",
+      "After explicit Owner UI acceptance, resume remaining canonical business wiring"
     ],
     "blocked_or_owner_field_dependent": [
-      "Final D064/D066 visual acceptance depends on Owner review after Beta runtime deploy",
+      "Final D064/D066 Web visual acceptance depends on Owner review",
+      "Android broader visual/device acceptance depends on Owner field review",
       "No Stable promotion is authorized"
     ],
     "last_source_build_evidence": {
-      "branch": "feature/d063-ops-logs-reporting-presence-ui",
-      "merged_pr": 44,
-      "merged_main": "3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982",
-      "repo_authority_guard": "PASS",
-      "project_state_guard": "PASS",
-      "ui_design_guard": "PASS_RUN_35370973998",
+      "branch": "feature/d066-three-group-sidebar",
+      "merged_pr": 50,
+      "merged_main": "2e12e6d4e94b195e3b505b3f2abe9822ca91632c",
+      "repo_authority_guard": "PASS_RUN_35407099582",
+      "project_state_guard": "PASS_RUN_35407099580",
+      "ui_design_guard": "PASS_RUN_35407099550",
       "operational_v2_regression": "PASS",
       "realtime_cursor_regression": "PASS",
       "web_operational_regression": "PASS",
@@ -213,20 +214,22 @@
     "last_runtime_evidence": {
       "schema": 6,
       "operational_v2_schema": "4/4",
-      "beta_deploy_run": 35371181168,
+      "beta_deploy_run": 35407227911,
       "beta_deploy_conclusion": "success",
       "health": "HTTP_200_OK",
       "business_auth_guards": "PASS",
       "web_shell": "PASS",
       "google_oauth_start": "PASS",
-      "runtime_source_commit": "3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982",
+      "runtime_source_commit": "2e12e6d4e94b195e3b505b3f2abe9822ca91632c",
       "logs_folder_binding": "PASS_LOGS_FOLDER_ID_BOUND",
       "signed_beta_release": "beta-vc45",
       "signed_beta_release_source_commit": "3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982",
       "signed_beta_apk_sha256": "fd9882d08d0aca288114595f79e1f2447141c4fb8ed32cf5750dd001a9c58c61",
       "signed_beta_apk_size_bytes": 9283202,
       "verify_android_run": 35371181163,
-      "ui_design_guard_run": 35371181371
+      "ui_design_guard_run": 35407227884,
+      "d066_navigation": "THREE_GROUPS_2_3_2_RUNTIME_PASS",
+      "stable": "UNTOUCHED_OWNER_GATED"
     }
   },
   "authority_setup": {
@@ -243,7 +246,7 @@
   "last_updated": "2026-09-19",
   "owner_ui_review": {
     "status": "IN_PROGRESS",
-    "phase": "D066_THREE_GROUP_NAVIGATION_IMPLEMENTATION",
+    "phase": "D066_THREE_GROUP_NAVIGATION_BETA_RUNTIME_REVIEW",
     "started_on": "2026-09-18",
     "review_target_web": "https://inventory-beta.supra.cc.cd/",
     "review_target_android_release": "beta-vc45",
@@ -251,11 +254,12 @@
     "visual_authority_repository": "tam95supra-source/bao-hang-1291",
     "visual_authority_commit": "8713f487386fa39c9225b180b2b8448d4a7e2b2d",
     "owner_acceptance": "NOT_YET_GIVEN",
-    "current_instruction": "Owner approved the exact 3-group Web navigation composition; implement cleanly on Beta, preserve business logic/RBAC/realtime, then hand over from canonical repo state.",
+    "current_instruction": "Open Beta Web and review the deployed D066 3-group pinned-left navigation. Technical/runtime PASS is complete; only Owner visual acceptance remains.",
     "next_session_command": "Kiểm tra live D066 và tiếp tục từ NEXT_ACTION",
     "review_feedback_protocol": "Owner may send current Beta Web/Android screenshots and concise feedback. AI must bootstrap canonical repo and repair only confirmed remaining D063 issues through branch -> PR -> guards -> Beta runtime verification. Stable remains untouched."
   },
   "runtime_evidence": [
-    "D064 Beta Load Test run 35376099693 PASS: 1000/1000 normal Picker reports, 100 existing Picker identities, 400 existing SKUs, duration 525.423s, avg 250.34ms, p50 235.95ms, p95 348.72ms, max 625.64ms, no errors; SQLite +2572288 bytes, +400 batches, +1000 tickets, +1000 report events, +1000 realtime events, +1000 audit rows; temporary load-test gate verified closed."
+    "D064 Beta Load Test run 35376099693 PASS: 1000/1000 normal Picker reports, 100 existing Picker identities, 400 existing SKUs, duration 525.423s, avg 250.34ms, p50 235.95ms, p95 348.72ms, max 625.64ms, no errors; SQLite +2572288 bytes, +400 batches, +1000 tickets, +1000 report events, +1000 realtime events, +1000 audit rows; temporary load-test gate verified closed.",
+    "D066 Beta Web runtime PASS: PR #50 merged at 2e12e6d4e94b195e3b505b3f2abe9822ca91632c; Beta deploy run 35407227911 PASS; main UI Design Guard run 35407227884 PASS; exact Admin/Root navigation is 3 groups with 2/3/2 visible children; Stable untouched."
   ]
 }
