@@ -407,13 +407,15 @@ function renderNav(): string {
 
 function renderLogin(): void {
   app.innerHTML = `<main class="login-page"><section class="login-card">
-    <div class="brand"><div class="brand-mark">1291</div><div><h1>BÁO HÀNG 1291</h1><div class="muted tiny">SUPRA Inventory · Beta</div></div></div>
-    ${!firebaseReady ? `<div class="notice warning">Thiếu cấu hình Firebase Web: ${esc(firebaseMissing.join(", "))}</div>` : ""}
+    <div class="brand-mark">1291</div>
+    <h1>BÁO HÀNG 1291</h1>
+    <div class="muted" style="margin-top:4px">Đăng nhập để bắt đầu nghiệp vụ</div>
+    ${!firebaseReady ? `<div class="notice warning" style="margin-top:16px">Thiếu cấu hình Firebase Web: ${esc(firebaseMissing.join(", "))}</div>` : ""}
     ${renderNotice()}
     <form id="login-form">
-      <div class="field"><span>Mã nhân viên / tên đăng nhập</span><input name="username" autocomplete="username" required /></div>
-      <div class="field"><span>Mật khẩu</span><input name="password" type="password" autocomplete="current-password" required /></div>
-      <button class="btn" ${busy ? "disabled" : ""}>${busy ? "Đang đăng nhập..." : "Đăng nhập"}</button>
+      <div class="field"><span>Mã nhân viên</span><input name="username" autocomplete="username" placeholder="Nhập mã nhân viên" required /></div>
+      <div class="field"><span>Mật khẩu</span><input name="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu" required /></div>
+      <button class="btn" ${busy ? "disabled" : ""}>${busy ? "Đang đăng nhập..." : "ĐĂNG NHẬP"}</button>
     </form>
     <div class="credit">${PRODUCT_CREDIT}</div>
   </section></main>`;
@@ -435,7 +437,7 @@ function renderLogin(): void {
 function renderShell(content: string): void {
   if (!profile) return renderLogin();
   const identity = `${profile.employee_code || profile.user_id} · ${profile.display_name}`;
-  app.innerHTML = `<div class="shell">
+  app.innerHTML = `<div class="shell role-${esc(profile.role.toLowerCase())}">
     <header class="topbar"><div class="brand"><div class="brand-mark">1291</div><div class="brand-copy"><div class="brand-title">BÁO HÀNG 1291</div><div class="brand-sub">${esc(identity)} · ${esc(profile.role)}</div></div></div>
       <div class="top-tools"><span class="connection ${esc(realtimeState)}" id="connection-state">${esc(realtimeState === "connected" ? `Realtime · #${realtimeLastSeq}` : realtimeState)}</span><button class="btn secondary small" id="logout">Thoát</button></div></header>
     <div class="layout"><aside class="sidebar">${renderNav()}</aside><main class="main">${renderNotice()}${content}<div class="credit">${PRODUCT_CREDIT}</div></main></div>
