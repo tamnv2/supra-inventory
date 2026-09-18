@@ -5,41 +5,36 @@
 ## Current status
 
 - Project: `SUPRA Inventory — Báo hàng` (`supra-inventory`).
-- Beta: `F01_F13_F21_F22_ANDROID_P1_RUNTIME_RELEASE_PASS_MAIN_09F6C6C4__NEXT_F14_F19_F20_F23`
+- Beta: `F01_F13_F21_F22_RUNTIME_PASS__F14_F19_F20_F23_SOURCE_IN_PROGRESS`
 - SQLite schema: `5`
-- Web: `WEB_OPERATIONAL_P1_HASH_DEEPLINK_BETA_DEPLOY_PASS_09F6C6C4`
-- Android: `F09_F13_F21_F22_SIGNED_BETA_VC39_RUNTIME_GATED_PASS`
+- Web: `WEB_P1_RUNTIME_PASS__F14_SLA_CLOCK_F23_DIAGNOSTICS_SOURCE_IN_PROGRESS`
+- Android: `VC39_RUNTIME_BASELINE__F14_SLA_CLOCK_F23_DIAGNOSTICS_SOURCE_IN_PROGRESS`
 - Latest signed Beta APK: `beta-vc39`
-- Realtime: `GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_4`
-- FCM: `DATA_ONLY_SERVICE_CORRELATION_DELIVERY_ATTEMPTS_INVALID_TOKEN_CLEANUP_RUNTIME_RELEASE_PASS__PHYSICAL_ACCEPTANCE_PENDING`
+- Operational V2 runtime: `4/4`.
 
-## Automated runtime/release evidence
+## Proven baseline
 
-- Android P1 PR #22 merged at `09f6c6c4b70ed8d851bf7b3a617abdfaf5e98455`.
-- Protected source/build gates PASS: authority, continuity, UI invariants, Operational V2, realtime cursor, Web operational, Android operational, Worker typecheck, Web production build and Android debug build.
-- Deploy Beta run `35293918856`: PASS.
-- Health: HTTP 200, base SQLite `5/5`, Operational V2 `4/4`.
-- Auth/business guard smoke, Web shell and Google OAuth start: PASS.
-- Verify Beta Android run `35293918801`: PASS and explicitly observed the matching deploy run before release.
-- Signed release: `beta-vc39`, source `09f6c6c4`, APK size `9,250,662` bytes, SHA-256 `59ec8144b26f241ca8997e28d4c0a7cb754a1bfe83c9e6e4618bbe46c855095d`.
+- F01–F13/F21–F22 automated runtime/release baseline remains PASS.
+- Signed Android baseline remains `beta-vc39`.
 
-## Android P1 delivered
+## Current source package — F14/F19/F20/F23
 
-- keyed Picker/Reporter operational rendering;
-- visible-only critical result DISPLAYED;
-- one-tap withdrawal confirmation;
-- transactional staged SQLite SKU cache with old-cache safety;
-- high-priority data-only FCM service/correlation, lifecycle receipt reconciliation and invalid-token cleanup;
-- bounded provider delivery-attempt telemetry;
-- fail-closed OTA source/package/version/channel/signer verification;
-- exact launcher routes plus role-checked Web hash deep links.
+Branch `fix/sla-archive-insights-diagnostics` implements:
+- Reporter queue `server_now` plus absolute warning/escalation deadlines, with locally advancing Web/PDA SLA presentation and no API polling ticker;
+- operational insights maximum 60-day window and SQL aggregate SLA warning/escalated counts;
+- existing archive tabs extended with batch version/recurrence and immutable result/ACK lifecycle evidence;
+- retention cleanup covers associated result ACKs, result snapshots, realtime rows and notification delivery attempts before deleting archived hot batches;
+- bounded/redacted Web support-log JSON and PDA support diagnostics/share surface.
+
+Protected PR regression/typecheck/build/runtime/release gates are pending.
 
 ## Next
 
-1. Implement F14/F19/F20/F23.
-2. Preserve all current regression/source-build gates.
-3. Run protected PR and matching Beta deploy/runtime verification.
-4. Keep physical PDA/FCM acceptance separate from automated technical PASS.
+1. Run protected PR authority/continuity plus all source regression/build gates.
+2. Repair until all gates PASS.
+3. Merge and verify matching Beta deploy/runtime smoke.
+4. Because Android diagnostics/SLA source changed, verify the matching signed Beta release gate.
+5. Record runtime/release continuity, then continue physical/load acceptance.
 
 ## Continuity rule
 
