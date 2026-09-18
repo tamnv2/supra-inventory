@@ -7,8 +7,8 @@
 - Project: `SUPRA Inventory — Báo hàng` (`supra-inventory`).
 - Beta: `F01_F14_F19_F20_F21_F22_F23_AUTOMATED_RUNTIME_RELEASE_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING`
 - SQLite schema: `5`
-- Web: `LEGACY_UI_PARITY_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
-- Android: `VC41_LEGACY_UI_PARITY_SIGNED_RUNTIME_GATE_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Web: `LEGACY_UI_PARITY_NAV_REPAIR_SOURCE_CANDIDATE__BUILD_RUNTIME_OWNER_UI_ACCEPTANCE_PENDING`
+- Android: `VC41_RUNTIME__LEGACY_UI_PARITY_FIXED_HEADER_SOURCE_CANDIDATE__BUILD_RELEASE_OWNER_UI_ACCEPTANCE_PENDING`
 - Latest signed Beta APK: `beta-vc41`
 - Operational V2 runtime: `4/4`.
 
@@ -27,17 +27,17 @@
 ## UI-first gate
 
 - Read-only visual/layout reference: `tam95supra-source/bao-hang-1291`.
-- Web and Android/PDA visual shell is deployed/released for review.
+- The previous Web and Android/PDA visual shell is deployed/released, but two structural parity gaps are being repaired before Owner review: Web horizontal tabs and a fixed full-width Android 76dp header.
 - UI/layout acceptance is still Owner-dependent and must not be inferred from CI success.
 - Business logic/scenario rebuild remains deferred until explicit Owner UI acceptance.
 
 ## Next
 
-1. Review the deployed Web and signed `beta-vc41` APK screen-by-screen.
-2. Record each screen as accepted or rejected.
-3. Repair only UI/layout mismatches through protected PRs until the UI gate passes.
-4. Only then resume rebuilding/wiring canonical logic, scenarios and business requirements.
-5. Physical FCM/device/load acceptance follows the functional rebuild.
+1. Validate the UI-only navigation/header repair through authority/state/UI guards plus Web/Android builds.
+2. Deploy/release the repair through the existing runtime gates.
+3. Review Web and Android/PDA screen-by-screen and record each screen as accepted or rejected.
+4. Repair only UI/layout mismatches until the UI gate passes.
+5. Only then resume rebuilding/wiring canonical logic, scenarios and business requirements.
 
 ## Continuity rule
 

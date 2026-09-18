@@ -153,9 +153,10 @@ class InventoryUi(private val activity: Activity) {
         val header = LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(8), dp(7), dp(8), dp(7))
-            background = rounded(navy, navy, 7)
+            setPadding(dp(8), 0, dp(10), 0)
+            setBackgroundColor(navy)
             minimumHeight = dp(76)
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(76))
         }
 
         header.addView(ImageView(activity).apply {
@@ -188,7 +189,7 @@ class InventoryUi(private val activity: Activity) {
         header.addView(LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
-            layoutParams = LinearLayout.LayoutParams(if (compactPda) dp(92) else dp(102), ViewGroup.LayoutParams.MATCH_PARENT)
+            layoutParams = LinearLayout.LayoutParams(dp(98), ViewGroup.LayoutParams.MATCH_PARENT)
             addView(LinearLayout(activity).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER

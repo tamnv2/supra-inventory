@@ -5,8 +5,8 @@
 - Project: `supra-inventory`
 - Beta: `F01_F14_F19_F20_F21_F22_F23_AUTOMATED_RUNTIME_RELEASE_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING`
 - SQLite schema: `5`
-- Web: `LEGACY_UI_PARITY_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
-- Android: `VC41_LEGACY_UI_PARITY_SIGNED_RUNTIME_GATE_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Web: `LEGACY_UI_PARITY_NAV_REPAIR_SOURCE_CANDIDATE__BUILD_RUNTIME_OWNER_UI_ACCEPTANCE_PENDING`
+- Android: `VC41_RUNTIME__LEGACY_UI_PARITY_FIXED_HEADER_SOURCE_CANDIDATE__BUILD_RELEASE_OWNER_UI_ACCEPTANCE_PENDING`
 - Latest signed Beta APK: `beta-vc41`
 - Operational V2 runtime: `4/4`.
 
@@ -23,6 +23,10 @@ Legacy UI parity PR #27 is automated runtime/release PASS on main `d52eebe802dc2
 - Signed Beta release: `beta-vc41`.
 - APK SHA-256: `83f201008b28ec94f23fba643cff7aaff540c1a9d514798928d84da9d5789da9`.
 
+## Current UI repair candidate
+
+The next UI-only repair restores the old Web horizontal tab navigation below the topbar and keeps the Android 76dp operational header fixed, full-width and outside scrolling content.
+
 ## Next action
 
-Use the deployed Web and signed `beta-vc41` APK for explicit Owner screen-by-screen UI/layout review against the read-only Báo hàng 1291 reference. Fix UI-only mismatches until the Owner UI gate passes. Business logic/scenario rebuild remains deferred until that acceptance.
+Run protected source/build guards, then the normal runtime/release gates for this UI repair. Explicit Owner screen-by-screen UI/layout acceptance remains required before business logic/scenario rebuild resumes.

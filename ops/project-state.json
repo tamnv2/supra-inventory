@@ -18,8 +18,8 @@
     "sqlite_schema": 5,
     "business_api": "OPERATIONAL_V2_4_RUNTIME_PASS__F20_BOUNDED_INSIGHTS_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
-    "web": "LEGACY_UI_PARITY_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
-    "android": "VC41_LEGACY_UI_PARITY_SIGNED_RUNTIME_GATE_PASS__OWNER_UI_ACCEPTANCE_PENDING",
+    "web": "LEGACY_UI_PARITY_NAV_REPAIR_SOURCE_CANDIDATE__BUILD_RUNTIME_OWNER_UI_ACCEPTANCE_PENDING",
+    "android": "VC41_RUNTIME__LEGACY_UI_PARITY_FIXED_HEADER_SOURCE_CANDIDATE__BUILD_RELEASE_OWNER_UI_ACCEPTANCE_PENDING",
     "latest_beta_apk": "beta-vc41",
     "realtime": "GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_4",
     "network_scope": "ONLINE_ONLY_PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_NO_OFFLINE_BUSINESS_MODE",
@@ -28,7 +28,7 @@
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_BUILD_DEPLOY_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "LEGACY_UI_PARITY_AUTOMATED_GUARD_RUNTIME_RELEASE_PASS__OWNER_UI_GATE_PENDING",
+    "ui_design_guard": "LEGACY_UI_PARITY_NAV_HEADER_REPAIR_SOURCE_CANDIDATE__AUTOMATED_GUARD_PENDING__OWNER_UI_GATE_PENDING",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "OWNER_UI_FIRST_LEGACY_PARITY_GATE_ACTIVE__BUSINESS_REBUILD_DEFERRED_UNTIL_OWNER_UI_ACCEPTANCE"
@@ -103,13 +103,16 @@
     "Signed Android beta-vc41 published from d52eebe8 after the matching Beta runtime gate PASS; APK size 9250662 bytes; SHA-256 83f201008b28ec94f23fba643cff7aaff540c1a9d514798928d84da9d5789da9"
   ],
   "pending_build": [
+    "Run authority/state/UI guards plus Web production and Android build for the navigation/header parity repair",
+    "Deploy the Web UI repair after source/build PASS",
+    "Publish the signed Android UI repair after matching runtime gate PASS",
     "Owner screen-by-screen UI/layout acceptance",
     "Business logic/scenario rebuild and wiring only after Owner UI gate",
     "Physical PDA/FCM business acceptance after the UI/business rebuild",
     "Isolated mutation load acceptance after Owner scale target"
   ],
   "field_pending": [
-    "Owner visual/layout acceptance is required on the deployed Web and signed beta-vc41 Android/PDA candidate before business rebuild resumes.",
+    "Owner visual/layout acceptance remains pending until the horizontal Web navigation and fixed full-width Android header repair are deployed/released.",
     "Physical logged-in PDA FCM and explicit critical-result acknowledgement remain field acceptance items after the functional rebuild."
   ],
   "open_decisions_do_not_invent": [
@@ -120,8 +123,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Obtain explicit Owner screen-by-screen UI/layout acceptance for the deployed legacy-reference Web and signed beta-vc41 Android/PDA candidate; do not resume business logic/scenario rebuild before that UI gate passes.",
-    "method": "Use the deployed Beta Web plus signed beta-vc41 APK for visual review against the read-only Báo hàng 1291 reference. Record each accepted/rejected screen, repair UI-only mismatches through protected PRs, and keep business-rule rewiring deferred until explicit Owner UI acceptance.",
+    "primary": "Validate, deploy and publish the UI-only legacy parity repair: horizontal Web tabs under the topbar and a fixed full-width 76dp Android operational header; then obtain explicit Owner screen-by-screen UI/layout acceptance.",
+    "method": "Keep this change UI-only. Run protected source/build guards first, then the normal runtime/release gates. Do not resume business logic/scenario rebuild until explicit Owner UI acceptance.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -149,16 +152,19 @@
   },
   "workboard": {
     "in_progress": [
-      "Owner UI/layout acceptance gate for deployed legacy-reference Web and signed beta-vc41 Android/PDA",
-      "UI-only mismatch repair if Owner rejects any screen"
+      "Legacy Web horizontal navigation parity repair",
+      "Android fixed full-width 76dp operational header parity repair",
+      "Automated source/build/runtime/release validation before Owner UI review"
     ],
     "next": [
-      "Collect Owner UI acceptance screen-by-screen on Web and Android/PDA",
-      "Fix only UI/layout mismatches until Owner UI gate passes",
+      "Merge the UI repair only after authority/state/UI guards PASS",
+      "Deploy Web and publish signed Android candidate through matching runtime gate",
+      "Collect Owner UI acceptance screen-by-screen",
+      "Fix only remaining UI/layout mismatches until Owner UI gate passes",
       "Only after UI gate PASS, rebuild/wire canonical logic, scenarios and business requirements"
     ],
     "blocked_or_owner_field_dependent": [
-      "Owner UI/layout acceptance requires visual review of the deployed Web and signed beta-vc41 APK",
+      "Owner UI/layout acceptance requires visual review after the UI repair is deployed/released",
       "Physical background FCM display/explicit ACK acceptance follows the functional rebuild",
       "Isolated mutation load acceptance still requires an Owner workload target/test boundary"
     ],
