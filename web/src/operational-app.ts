@@ -588,7 +588,6 @@ async function loadPicker(): Promise<void> {
   for (const result of pickerResults.filter((row) => !row.acknowledged_at && !markedResultEvents.has(row.result_event_id))) {
     markedResultEvents.add(result.result_event_id);
     void markPickerResult(result.result_event_id, result.batch_id, result.batch_version, "RECEIVED")
-      .then(() => markPickerResult(result.result_event_id, result.batch_id, result.batch_version, "DISPLAYED"))
       .catch(() => markedResultEvents.delete(result.result_event_id));
   }
 }
@@ -599,15 +598,56 @@ async function loadSla(): Promise<void> {
 }
 
 async function loadDashboard(): Promise<void> {
+  const generation = ++dashboardLoadGeneration;
   const range = apiRange(dashboardFrom, dashboardTo);
-  [dashboardData, operationalInsights] = await Promise.all([getAdminDashboard(range.from, range.to), getAdminOperationalInsights(range.from, range.to)]);
+  const [nextDashboard, nextInsights] = await Promise.all([
+    getAdminDashboard(range.from, range.to),
+    getAdminOperationalInsights(range.from, range.to),
+  ]);
+  if (generation !== dashboardLoadGeneration) return;
+  dashboardData = nextDashboard;
+  operationalInsights = nextInsights;
 }
 
 async function loadReports(): Promise<void> {
+  const generation = ++reportLoadGeneration;
   const range = apiRange(reportFrom, reportTo);
-  const result = await getAdminReporting({ from: range.from, to: range.to, status: reportStatus, query: reportQuery, limit: REPORT_PAGE_SIZE, offset: reportOffset });
+  const result = await getAdminReporting({
+    from: range.from,
+    to: range.to,
+    status: reportStatus,
+    query: reportQuery,
+    limit: REPORT_PAGE_SIZE,
+    offset: reportOffset,
+  });
+  if (generation !== reportLoadGeneration) return;
   reportRows = result.items;
   reportTotal = result.total;
+}
+
+async function loadUsers(): Promise<void> {
+  const result = await listManagedUsers({
+    query: userQuery,
+    role: userRole,
+    status: userStatus,
+    limit: USER_PAGE_SIZE,
+    offset: userOffset,
+  });
+  if (result.total > 0 && userOffset >= result.total) {
+    userOffset = Math.max(0, Math.floor((result.total - 1) / USER_PAGE_SIZE) * USER_PAGE_SIZE);
+    const retry = await listManagedUsers({
+      query: userQuery,
+      role: userRole,
+      status: userStatus,
+      limit: USER_PAGE_SIZE,
+      offset: userOffset,
+    });
+    managedUsers = retry.items;
+    userTotal = retry.total;
+    return;
+  }
+  managedUsers = result.items;
+  userTotal = result.total;
 }
 
 async function loadSection(section: Section): Promise<void> {
@@ -615,7 +655,7 @@ async function loadSection(section: Section): Promise<void> {
   if ((section === "operations" || section === "results") && roleOperate()) await loadOperations();
   else if (section === "picker" && profile.role === "PICKER") await loadPicker();
   else if (section === "hr" && roleManage()) hrSource = await getHrSource();
-  else if (section === "users" && roleManage()) managedUsers = (await listManagedUsers()).items;
+  else if (section === "users" && roleManage()) await loadUsers();
   else if (section === "sla" && roleManage()) await loadSla();
   else if (section === "dashboard" && roleManage()) await loadDashboard();
   else if (section === "reports" && roleManage()) await loadReports();
