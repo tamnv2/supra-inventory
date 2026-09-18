@@ -129,6 +129,19 @@ Group functions conceptually as:
 
 Dashboard is an Admin/Root analysis module, not the Reporter landing surface.
 
+
+### Owner-reviewed desktop shell refinement (D058)
+
+For Web, D058 takes precedence over literal legacy geometry where the Owner explicitly rejected the old/current behavior:
+
+- remove the `Kiểm thử giao diện + quyền server` strip until the Owner explicitly reintroduces an appropriate test surface;
+- on desktop, the topbar remains pinned and Admin/Root left navigation remains pinned below it; the central workspace is the normal scrolling region;
+- the workspace uses the full remaining browser area and must not be centered inside an arbitrary page-level `max-width` that creates unused side gutters;
+- page-level dashboard/report wrappers also expand to the available workspace; narrow width limits are reserved only for controls whose task genuinely benefits from them, such as dialogs or password forms;
+- visible copy is limited to operational labels, user-required guidance, validation and actionable state. Do not display AI/Owner discussion, design rationale, migration notes, backend implementation commentary or technical assurances that are not required to perform the task;
+- Android/APK remains pending separate Owner review and is unchanged by this Web-only refinement.
+
+
 ## Realtime visual behavior
 
 - WebSocket updates must not reset scroll, selected filter/tab, focused SKU input or unrelated forms.
@@ -161,7 +174,7 @@ Do not replace an existing accepted legacy XML screen with an approximate progra
 
 ## Product credit
 
-Web: `Phát triển và duy trì bởi: tamnv2 - Chuyên viên Pick Pack 1291`
+Web: `Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291` — fixed at the bottom-right in small secondary text so it remains visible while the central workspace scrolls.
 
 Android/PDA: `Phát triển bởi: tamnv2 - Chuyên viên Pick Pack 1291`
 
