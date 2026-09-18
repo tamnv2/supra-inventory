@@ -539,8 +539,49 @@ function render(): void {
 }
 
 function renderOperations(): string {
-  return `<section><div class="page-head"><div><h1>Hàng đang xử lý</h1><p>${queueRows.length} SKU/batch đang chờ Reporter xử lý.</p></div><div class="toolbar"><button class="btn secondary" id="refresh-operations">Làm mới</button></div></div>
-    <div class="operation-list">${queueRows.length ? queueRows.map(renderOperationRow).join("") : `<div class="card empty">Không có SKU đang chờ xử lý.</div>`}</div></section>`;
+  const hasStockCount = recentRows.filter((row) => row.status === "HAS_STOCK").length;
+  const skipCount = recentRows.filter((row) => row.status === "SKIP_ALLOWED").length;
+  const closedCount = recentRows.filter((row) => row.status === "CLOSED").length;
+  const selected = queueRows.find((row) => row.batch_id === selectedBatchId) || queueRows[0] || null;
+  if (selected && selectedBatchId !== selected.batch_id) selectedBatchId = selected.batch_id;
+  const timing = selected ? liveQueueTiming(selected) : null;
+  const selectedDetails = selected ? batchDetails.get(selected.batch_id) : null;
+  return `<section id="fastEvents" class="fast-events">
+    <div class="fast-page-head"><div><p class="eyebrow">XỬ LÝ BÁO HÀNG</p><h2>Xử lý báo hàng</h2><p class="fast-subtitle">Realtime · cập nhật đúng SKU, không tải lại toàn màn hình.</p></div><button class="secondary" id="refresh-operations">Làm mới</button></div>
+    <div class="fast-buckets" role="tablist">
+      <button class="active">Đang xử lý <b>${queueRows.length}</b></button>
+      <button>Đã có hàng <b>${hasStockCount}</b></button>
+      <button>Đã bỏ qua <b>${skipCount}</b></button>
+      <button>Picker thu hồi <b>${closedCount}</b></button>
+    </div>
+    <div class="fast-workspace">
+      <div class="fast-list" id="fastList" aria-live="polite">
+        ${queueRows.length ? queueRows.map((row) => {
+          const rowTiming = liveQueueTiming(row);
+          const tone = rowTiming.state === "ESCALATED" ? "danger" : rowTiming.state === "WARNING" ? "open" : "work";
+          return `<button class="fast-issue-row ${selected?.batch_id === row.batch_id ? "selected" : ""}" data-select-batch="${esc(row.batch_id)}">
+            <span class="fast-sku">${esc(row.sku)}</span>
+            <span class="fast-product">${esc(row.product_name)}</span>
+            <span class="fast-meta"><b class="fast-status ${tone}">${esc(slaLabel(rowTiming.state))}</b><em>${Number(row.affected_picker_count)} Picker</em><em>${rowTiming.waiting} phút</em></span>
+          </button>`;
+        }).join("") : `<div class="fast-empty-row">Không có SKU trong nhóm này.</div>`}
+      </div>
+      <aside class="fast-detail" id="fastDetail">
+        ${selected && timing ? `<div class="fast-detail-head"><div><span>SKU đang xử lý</span><h3>${esc(selected.sku)}</h3></div><b class="fast-status ${timing.state === "ESCALATED" ? "danger" : timing.state === "WARNING" ? "open" : "work"}">${esc(slaLabel(timing.state))}</b></div>
+          <div class="fast-detail-name">${esc(selected.product_name)}</div>
+          <dl class="fast-facts">
+            <div><dt>Picker ảnh hưởng</dt><dd>${Number(selected.affected_picker_count)}</dd></div>
+            <div><dt>Chờ xử lý</dt><dd data-wait-batch="${esc(selected.batch_id)}">${timing.waiting} phút</dd></div>
+            <div><dt>Báo đầu</dt><dd>${esc(fmt(selected.first_report_at))}</dd></div>
+            <div><dt>Phiên bản</dt><dd>v${Number(selected.version || 1)}</dd></div>
+          </dl>
+          ${selected.previous_batch_id ? `<div class="fast-warning">SKU tái phát từ đợt xử lý trước.</div>` : ""}
+          <div class="fast-actions"><button class="primary" data-resolve="HAS_STOCK" data-batch="${esc(selected.batch_id)}">CÓ HÀNG</button><button class="danger" data-skip-batch="${esc(selected.batch_id)}">CHO SKIP HÀNG</button><button class="secondary" data-detail="${esc(selected.batch_id)}">${selectedDetails ? "Ẩn Picker" : "Picker"}</button></div>
+          ${selectedDetails ? `<div class="detail" style="margin-top:10px"><div class="detail-list">${selectedDetails.map((item) => `<span class="picker-chip"><strong>${esc(item.picker_employee_code)}</strong> · ${esc(item.picker_display_name || "—")} · ${esc(fmt(item.reported_at))}</span>`).join("")}</div></div>` : ""}
+        ` : `<div class="fast-empty"><strong>Chọn một SKU</strong><span>Chi tiết và thao tác sẽ hiển thị tại đây.</span></div>`}
+      </aside>
+    </div>
+  </section>`;
 }
 
 function liveQueueTiming(row: ReporterBatch): { waiting: number; state: SlaState } {
@@ -679,14 +720,57 @@ function renderDashboard(): string {
   const recurrence = operationalInsights?.recurrence?.top_skus || [];
   const timeline = dashboardData?.timeline || [];
   const outcomes = dashboardData?.outcomes || [];
-  return `<section><div class="page-head"><div><h1>Tổng quan vận hành</h1><p>Module phân tích dành cho Admin/Root; không thay thế live queue.</p></div></div>
-    <form id="dashboard-filter" class="card form-grid three"><div class="field"><span>Từ ngày</span><input name="from" type="date" value="${esc(dashboardFrom)}" /></div><div class="field"><span>Đến ngày</span><input name="to" type="date" value="${esc(dashboardTo)}" /></div><div><button class="btn">Áp dụng</button></div>${renderDatePresets("dashboard")}</form>
-    <div class="metrics"><div class="metric"><span>Báo hàng</span><strong>${Number(k?.reports_count || 0)}</strong></div><div class="metric"><span>SKU</span><strong>${Number(k?.unique_sku_count || 0)}</strong></div><div class="metric"><span>Đang chờ</span><strong>${Number(k?.pending_batch_count || 0)}</strong></div><div class="metric"><span>TB xử lý (phút)</span><strong>${k?.avg_resolution_minutes ?? "—"}</strong></div></div>
-    <div class="section-grid">
-      <div class="card"><h3>Xu hướng báo / xử lý</h3>${timeline.length ? `<div class="table-wrap"><table><thead><tr><th>Thời gian</th><th>Báo</th><th>Đã xử lý</th></tr></thead><tbody>${timeline.map((row) => `<tr><td>${esc(row.bucket)}</td><td>${Number(row.reports || 0)}</td><td>${Number(row.resolved || 0)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">Chưa có dữ liệu.</div>`}</div>
-      <div class="card"><h3>Kết quả</h3>${outcomes.length ? outcomes.map((row) => `<button class="status-line report-drill" data-dashboard-status="${esc(row.status)}" style="width:100%;justify-content:space-between;padding:9px 0;border:0;border-bottom:1px solid #e6ebe8;background:transparent;text-align:left"><span>${esc(statusLabel(row.status))}</span><strong>${Number(row.count || 0)}</strong></button>`).join("") : `<div class="empty">Chưa có dữ liệu.</div>`}</div>
-      <div class="card"><h3>Top SKU bị báo</h3>${dashboardData?.top_skus?.length ? dashboardData.top_skus.map((row) => `<button class="status-line report-drill" data-dashboard-sku="${esc(row.sku)}" style="width:100%;justify-content:space-between;padding:9px 0;border:0;border-bottom:1px solid #e6ebe8;background:transparent;text-align:left"><span><strong>${esc(row.sku)}</strong> · ${esc(row.product_name)}</span><span>${row.report_count} báo</span></button>`).join("") : `<div class="empty">Chưa có dữ liệu.</div>`}</div>
-      <div class="card"><h3>SKU tái phát</h3>${recurrence.length ? recurrence.map((row) => `<button class="status-line report-drill" data-dashboard-sku="${esc(row.sku)}" style="width:100%;justify-content:space-between;padding:9px 0;border:0;border-bottom:1px solid #e6ebe8;background:transparent;text-align:left"><span><strong>${esc(row.sku)}</strong> · ${esc(row.product_name)}</span><span class="badge">Tái phát ${row.recurrence_count}</span></button>`).join("") : `<div class="empty">Chưa ghi nhận tái phát trong kỳ.</div>`}</div>
+  const count = (status: string) => Number(outcomes.find((row) => row.status === status)?.count || 0);
+  const totalOutcomes = outcomes.reduce((sum, row) => sum + Number(row.count || 0), 0);
+  const pct = (value: number) => totalOutcomes > 0 ? Math.round(value * 100 / totalOutcomes) : 0;
+  const hasStock = count("HAS_STOCK");
+  const skipped = count("SKIP_ALLOWED");
+  const withdrawn = count("CLOSED");
+  const pending = Number(k?.pending_batch_count || 0);
+  const hourly = Array.from({ length: 24 }, (_, index) => Number(timeline[index]?.reports || 0));
+  const maxHour = Math.max(1, ...hourly);
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const clock = new Intl.DateTimeFormat("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date());
+  return `<section class="v5-root">
+    <div class="v5-page-head"><div><h2>Tổng quan hôm nay</h2></div><div class="v5-head-meta"><b>${today}</b><span>Cập nhật ${clock}</span><button class="secondary" data-section="operations">Mở xử lý báo thiếu</button></div></div>
+    <div class="v5-block"><div class="v5-block-head"><h3>Cần xử lý</h3></div>
+      <div class="v5-kpi-grid v5-kpi-grid-3">
+        <article class="v5-kpi blue"><span>Đang xử lý</span><strong>${pending}</strong><small>SKU đang mở</small></article>
+        <article class="v5-kpi"><span>Quá mốc Inventory</span><strong>${Number(operationalInsights?.sla?.escalated_count || 0)}</strong><small>${operationalInsights?.sla?.config?.escalation_minutes ?? "—"} phút</small></article>
+        <article class="v5-kpi amber"><span>Picker chờ xác nhận</span><strong>${Number(k?.pending_picker_count || 0)}</strong><small>đang ảnh hưởng</small></article>
+      </div>
+    </div>
+    <div class="v5-block"><div class="v5-block-head"><h3>Kết quả hôm nay</h3></div>
+      <div class="v5-kpi-grid v5-kpi-grid-4">
+        <article class="v5-kpi green"><span>Đã có hàng</span><strong>${hasStock}</strong><small>${pct(hasStock)}%</small></article>
+        <article class="v5-kpi"><span>Đã bỏ qua</span><strong>${skipped}</strong><small>${pct(skipped)}%</small></article>
+        <article class="v5-kpi"><span>Picker thu hồi</span><strong>${withdrawn}</strong><small>${pct(withdrawn)}%</small></article>
+        <article class="v5-kpi"><span>Tự động bỏ qua</span><strong>0</strong><small>không áp dụng</small></article>
+      </div>
+    </div>
+    <div class="v5-layout-main">
+      <article class="v5-panel"><div class="v5-panel-head"><h3>SKU ưu tiên</h3><span>${pending} SKU đang mở</span></div>
+        ${pending === 0 ? `<div class="v5-empty v5-empty-good">Không có SKU đang chờ xử lý.</div>` : `<div class="v5-priority-table">${(dashboardData?.top_skus || []).slice(0,8).map((row) => `<div class="v5-priority-row"><div><strong>${esc(row.sku)}</strong><span>${esc(row.product_name)}</span></div><b>${row.report_count} báo</b><span>${row.picker_count} Picker</span><button class="secondary" data-section="operations">Mở</button></div>`).join("")}</div>`}
+      </article>
+      <article class="v5-panel"><div class="v5-panel-head"><h3>Hiệu suất hôm nay</h3></div>
+        <div class="v5-compact-grid">
+          <div class="v5-compact-metric"><span>Lượt báo</span><b>${Number(k?.reports_count || 0)}</b></div>
+          <div class="v5-compact-metric"><span>Đợt SKU</span><b>${Number(k?.unique_sku_count || 0)}</b></div>
+          <div class="v5-compact-metric"><span>Xử lý trung vị</span><b>${k?.avg_resolution_minutes ?? "—"}</b></div>
+          <div class="v5-compact-metric"><span>P95</span><b>—</b></div>
+          <div class="v5-compact-metric"><span>Báo lại ≤30 phút</span><b>${recurrence.length}</b></div>
+          <div class="v5-compact-metric"><span>Picker ACK trễ</span><b>0</b></div>
+        </div>
+        <div class="v5-outcome-bars">
+          <div class="v5-outcome-line"><div><span>Đã có hàng</span><b>${hasStock}</b></div><div class="v5-track"><i class="green" style="width:${pct(hasStock)}%"></i></div><small>${pct(hasStock)}%</small></div>
+          <div class="v5-outcome-line"><div><span>Đã bỏ qua</span><b>${skipped}</b></div><div class="v5-track"><i class="red" style="width:${pct(skipped)}%"></i></div><small>${pct(skipped)}%</small></div>
+          <div class="v5-outcome-line"><div><span>Picker thu hồi</span><b>${withdrawn}</b></div><div class="v5-track"><i class="gray" style="width:${pct(withdrawn)}%"></i></div><small>${pct(withdrawn)}%</small></div>
+        </div>
+      </article>
+    </div>
+    <div class="v5-layout-bottom">
+      <article class="v5-panel"><div class="v5-panel-head"><h3>Phát sinh 24 giờ</h3></div><div class="v5-hourly">${hourly.map((value, hour) => `<div class="v5-hour"><i style="height:${Math.max(value ? 6 : 2, value / maxHour * 100)}%"></i><span>${hour % 3 === 0 ? String(hour).padStart(2,"0") : ""}</span></div>`).join("")}</div></article>
+      <article class="v5-panel"><div class="v5-panel-head"><h3>SKU phát sinh nhiều</h3></div>${dashboardData?.top_skus?.length ? `<div class="v5-rank-list">${dashboardData.top_skus.slice(0,8).map((row,index) => `<div class="v5-rank-row"><b>${index+1}</b><div><strong>${esc(row.sku)}</strong><span>${esc(row.product_name)}</span></div><em>${row.report_count}</em></div>`).join("")}</div>` : `<div class="v5-empty">Chưa có dữ liệu.</div>`}</article>
     </div>
   </section>`;
 }
@@ -755,6 +839,20 @@ function downloadSupportDiagnostics(): void {
 function renderSystem(): string {
   const safe = serviceHealth ? JSON.stringify(sanitizeDiagnosticValue(serviceHealth), null, 2) : "Chưa tải trạng thái dịch vụ.";
   return `<section><div class="page-head"><div><h1>Trạng thái & chẩn đoán</h1><p>Log hỗ trợ chỉ chứa trạng thái kỹ thuật đã giới hạn và che thông tin nhạy cảm.</p></div><div class="toolbar"><button class="btn secondary" id="refresh-system">Kiểm tra dịch vụ</button><button class="btn secondary" id="download-support-log">Tạo log hỗ trợ</button></div></div><div class="card"><div class="status-line"><span class="badge ${navigator.onLine ? "ok" : "escalated"}">Mạng: ${navigator.onLine ? "Online" : "Mất kết nối"}</span><span class="badge">Realtime: ${esc(realtimeState)}</span><span class="badge">Seq: ${realtimeLastSeq}</span></div></div><pre class="diagnostics">${esc(safe)}</pre></section>`;
+}
+
+
+function renderLegacyDevices(): string {
+  return `<section class="v4-devices"><div class="heading"><div><p class="eyebrow">DEVICE</p><h2>Thiết bị & thông báo</h2></div></div><article class="card"><p class="muted">Bề mặt quản lý thiết bị và trạng thái thông báo theo presentation cũ. Dữ liệu nghiệp vụ chi tiết sẽ được nối sau khi Owner duyệt UI.</p><div class="metrics"><article class="metric"><span>Kết nối hiện tại</span><strong>${navigator.onLine ? "Online" : "Offline"}</strong></article><article class="metric"><span>Realtime</span><strong>${esc(realtimeState)}</strong></article></div></article></section>`;
+}
+
+function renderLegacyLogs(): string {
+  const safe = serviceHealth ? JSON.stringify(sanitizeDiagnosticValue(serviceHealth), null, 2) : "Chưa tải trạng thái dịch vụ.";
+  return `<section><div class="heading"><div><p class="eyebrow">SYSTEM</p><h2>Nhật ký hệ thống</h2></div><button class="secondary" id="download-support-log">Tạo log hỗ trợ</button></div><article class="card"><pre class="diagnostics">${esc(safe)}</pre></article></section>`;
+}
+
+function renderLegacyVersions(): string {
+  return `<section><div class="heading"><div><p class="eyebrow">APP</p><h2>Phiên bản ứng dụng</h2></div></div><article class="card"><h3>Bản kiểm thử giao diện</h3><p class="muted">Presentation đang được transplant trực tiếp từ giao diện Báo hàng 1291 cũ. Chỉ sau khi Owner duyệt UI mới tiếp tục nối nghiệp vụ.</p></article></section>`;
 }
 
 function renderAccount(): string {
@@ -928,7 +1026,7 @@ async function loadSection(section: Section): Promise<void> {
   else if (section === "sla" && roleManage()) await loadSla();
   else if (section === "dashboard" && roleManage()) await loadDashboard();
   else if (section === "reports" && roleManage()) await loadReports();
-  else if (section === "system") serviceHealth = await getServiceHealth().catch(() => null);
+  else if (["system", "devices", "logs", "versions"].includes(section)) serviceHealth = await getServiceHealth().catch(() => null);
 }
 
 function bindShell(): void {
@@ -948,6 +1046,13 @@ function bindShell(): void {
     passwordUserId = null;
     void run(async () => { await loadSection(next); });
   }));
+  document.querySelector<HTMLButtonElement>("#change-password-top")?.addEventListener("click", () => {
+    if (!currentProfile || !canAccessSection("account", currentProfile)) return;
+    activeSection = "account";
+    syncSectionHash("account");
+    notice = null;
+    render();
+  });
   document.querySelector<HTMLButtonElement>("#logout")?.addEventListener("click", () => {
     pickerSearchGeneration += 1;
     dashboardLoadGeneration += 1;
@@ -1042,6 +1147,10 @@ function bindOverlay(): void {
 function bindSection(): void {
   document.querySelector<HTMLButtonElement>("#refresh-operations")?.addEventListener("click", () => void run(loadOperations));
   document.querySelector<HTMLButtonElement>("#refresh-results")?.addEventListener("click", () => void run(loadOperations));
+  document.querySelectorAll<HTMLButtonElement>("[data-select-batch]").forEach((button) => button.addEventListener("click", () => {
+    selectedBatchId = button.dataset.selectBatch || null;
+    patchActiveSection();
+  }));
 
   document.querySelectorAll<HTMLButtonElement>("[data-resolve]").forEach((button) => button.addEventListener("click", () => {
     const batchId = button.dataset.batch || "";
