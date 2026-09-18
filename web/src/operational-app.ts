@@ -656,27 +656,38 @@ function renderPicker(): string {
 
 function renderSku(): string {
   const wb = pendingWorkbook;
-  return `<section><div class="page-head"><div><h1>Master SKU</h1><p>Nhập Excel 10.000–50.000 dòng theo chunk an toàn; không xoá SKU cũ khi file mới không chứa.</p></div></div>
-    <div class="card"><div class="field"><span>File Excel .xlsx</span><input id="sku-file" type="file" accept=".xlsx" /></div>${skuImportProgress ? `<div class="notice">${esc(skuImportProgress)}</div>` : ""}
-      ${wb ? `<div class="status-line"><span class="badge ok">${wb.total_data_rows.toLocaleString("vi-VN")} dòng</span><span class="badge">${wb.items.length.toLocaleString("vi-VN")} SKU sẵn sàng</span><span class="badge ${wb.conflicts.length ? "warning" : "ok"}">${wb.conflicts.length} SKU xung đột trong file</span></div>` : ""}
-    </div>
-    ${wb?.conflicts.length ? `<div class="card"><h3>Xử lý SKU có nhiều tên trong file</h3>${wb.conflicts.map((conflict) => `<div class="field" style="margin-bottom:10px"><span>${esc(conflict.sku)}</span><select data-sku-conflict="${esc(conflict.sku)}"><option value="">Chọn tên sản phẩm</option>${conflict.candidates.map((candidate) => `<option value="${esc(candidate.product_name)}" ${skuConflictChoices.get(conflict.sku) === candidate.product_name ? "selected" : ""}>${esc(candidate.product_name)} · dòng ${candidate.rows.join(", ")}</option>`).join("")}</select></div>`).join("")}<button class="btn" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật Master SKU</button></div>` : wb ? `<div class="card"><button class="btn" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật Master SKU</button></div>` : ""}
+  return `<section class="ops-route">
+    <div class="heading"><div><p class="eyebrow">DỮ LIỆU</p><h2>Danh mục SKU</h2><p class="muted">Nhập file Excel và kiểm tra dữ liệu trước khi cập nhật.</p></div></div>
+    <article class="ops-panel">
+      <div class="ops-panel-title"><div><h3>Cập nhật Master SKU</h3><p>Hỗ trợ file lớn theo từng phần xử lý; dữ liệu hiện có không bị xoá chỉ vì file mới không chứa.</p></div></div>
+      <div class="ops-form-grid"><label class="span">File Excel .xlsx<input id="sku-file" type="file" accept=".xlsx" /></label></div>
+      ${skuImportProgress ? `<div class="message">${esc(skuImportProgress)}</div>` : ""}
+      ${wb ? `<section class="ops-status-strip"><span><b>${wb.total_data_rows.toLocaleString("vi-VN")}</b> dòng dữ liệu</span><span><b>${wb.items.length.toLocaleString("vi-VN")}</b> SKU sẵn sàng</span><span><b>${wb.conflicts.length}</b> xung đột</span></section>` : ""}
+    </article>
+    ${wb?.conflicts.length ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Xử lý SKU trùng mã khác tên</h3><p>Chọn đúng tên sản phẩm trước khi cập nhật.</p></div></div><div class="ops-form-grid">${wb.conflicts.map((conflict) => `<label class="span">${esc(conflict.sku)}<select data-sku-conflict="${esc(conflict.sku)}"><option value="">Chọn tên sản phẩm</option>${conflict.candidates.map((candidate) => `<option value="${esc(candidate.product_name)}" ${skuConflictChoices.get(conflict.sku) === candidate.product_name ? "selected" : ""}>${esc(candidate.product_name)} · dòng ${candidate.rows.join(", ")}</option>`).join("")}</select></label>`).join("")}</div><div class="ops-form-actions"><button class="primary" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật Master SKU</button></div></article>` : wb ? `<article class="ops-panel"><div class="ops-form-actions"><button class="primary" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật Master SKU</button></div></article>` : ""}
   </section>`;
 }
 
 function renderHr(): string {
   const source = hrSource?.source;
-  return `<section><div class="page-head"><div><h1>Nguồn nhân sự</h1><p>Google Sheet được kiểm tra trước khi ghim. Đồng bộ Picker luôn Preview → Apply.</p></div></div>
-    <form id="hr-source-form" class="card form-grid">
-      <div class="field"><span>Link Google Sheet</span><input name="sheetUrl" value="${esc(source?.sheet_url || "")}" required /></div>
-      <div class="field"><span>Tên tab</span><input name="tabName" value="${esc(source?.tab_name || "")}" required /></div>
-      <div class="field"><span>Tên cột Mã nhân viên</span><input name="employeeCodeHeader" value="${esc(source?.mnv_header || "Mã nhân viên")}" required /></div>
-      <div class="field"><span>Tên cột Họ và tên</span><input name="fullNameHeader" value="${esc(source?.full_name_header || "Họ và tên")}" required /></div>
-      <div><button class="btn">Xác nhận nguồn</button></div>
-    </form>
-    <div class="card"><div class="toolbar"><button class="btn secondary" id="preview-hr">Preview Picker</button>${hrPreview ? `<button class="btn" id="apply-hr">Apply Picker</button>` : ""}</div>
-      ${hrPreview ? `<div class="metrics" style="margin-top:12px"><div class="metric"><span>Nguồn</span><strong>${hrPreview.total_source}</strong></div><div class="metric"><span>Tạo mới</span><strong>${hrPreview.create}</strong></div><div class="metric"><span>Đổi tên</span><strong>${hrPreview.rename}</strong></div><div class="metric"><span>Không đổi</span><strong>${hrPreview.unchanged}</strong></div></div><div class="tiny muted">Không tự disable/delete/reactivate Picker chỉ vì thay nguồn HR.</div>` : `<div class="empty">Chưa preview.</div>`}
-    </div></section>`;
+  return `<section class="ops-route">
+    <div class="heading"><div><p class="eyebrow">QUẢN LÝ</p><h2>Nguồn danh sách nhân sự</h2><p class="muted">Kiểm tra nguồn trước khi xác nhận và đồng bộ Picker.</p></div></div>
+    <article class="ops-panel ops-staff-source">
+      <div class="ops-panel-title"><div><h3>Google Sheet nhân sự</h3><p>Nhập link, tên tab và đúng tên cột đang sử dụng.</p></div></div>
+      <form id="hr-source-form" class="ops-form-grid">
+        <label class="span">Link Google Sheet<input name="sheetUrl" value="${esc(source?.sheet_url || "")}" required /></label>
+        <label>Tên tab<input name="tabName" value="${esc(source?.tab_name || "")}" required /></label>
+        <label>Tên cột Mã nhân viên<input name="employeeCodeHeader" value="${esc(source?.mnv_header || "Mã nhân viên")}" required /></label>
+        <label>Tên cột Họ và tên<input name="fullNameHeader" value="${esc(source?.full_name_header || "Họ và tên")}" required /></label>
+        <div class="ops-form-actions"><button class="primary">Xác nhận nguồn</button></div>
+      </form>
+    </article>
+    <article class="ops-panel">
+      <div class="ops-panel-title"><div><h3>Đồng bộ Picker</h3><p>Kiểm tra thay đổi trước khi áp dụng.</p></div></div>
+      <div class="ops-form-actions"><button class="secondary" id="preview-hr">Xem trước</button>${hrPreview ? `<button class="primary" id="apply-hr">Áp dụng</button>` : ""}</div>
+      ${hrPreview ? `<section class="ops-status-strip"><span>Nguồn <b>${hrPreview.total_source}</b></span><span>Tạo mới <b>${hrPreview.create}</b></span><span>Đổi tên <b>${hrPreview.rename}</b></span><span>Không đổi <b>${hrPreview.unchanged}</b></span></section>` : `<div class="ops-empty">Chưa có bản xem trước.</div>`}
+    </article>
+  </section>`;
 }
 
 function renderUsers(): string {
@@ -684,34 +695,48 @@ function renderUsers(): string {
   const pageStart = userTotal ? userOffset + 1 : 0;
   const pageEnd = Math.min(userOffset + managedUsers.length, userTotal);
   const selectedCount = allPickerSelection ? userTotal : selectedUserIds.size;
-  return `<section><div class="page-head"><div><h1>Tài khoản & Picker</h1><p>ROOT quản lý Admin/Reporter; Admin quản lý Reporter; Picker lifecycle tách khỏi membership HR.</p></div><button class="btn secondary" id="refresh-users">Làm mới</button></div>
-    <form id="create-user-form" class="card form-grid three"><div class="field"><span>Mã nhân viên / username</span><input name="username" required /></div><div class="field"><span>Họ tên</span><input name="displayName" required /></div><div class="field"><span>Vai trò</span><select name="role"><option value="REPORTER">REPORTER</option>${canCreateAdmin ? `<option value="ADMIN">ADMIN</option>` : ""}</select></div><div class="field"><span>Mật khẩu khởi tạo</span><input name="password" type="password" autocomplete="new-password" required /></div><div><button class="btn">Tạo tài khoản</button></div></form>
-
-    <form id="user-filter-form" class="card form-grid three">
-      <div class="field"><span>Tìm tài khoản</span><input name="query" value="${esc(userQuery)}" placeholder="MNV / họ tên / user id" /></div>
-      <div class="field"><span>Vai trò</span><select name="role"><option value="">Tất cả</option>${["PICKER","REPORTER","ADMIN"].map((role) => `<option value="${role}" ${userRole === role ? "selected" : ""}>${role}</option>`).join("")}</select></div>
-      <div class="field"><span>Trạng thái</span><select name="status"><option value="">Tất cả</option><option value="ACTIVE" ${userStatus === "ACTIVE" ? "selected" : ""}>ACTIVE</option><option value="DISABLED" ${userStatus === "DISABLED" ? "selected" : ""}>DISABLED</option></select></div>
-      <div><button class="btn">Lọc</button></div>
-    </form>
-
-    <div class="card"><div class="toolbar">
-      <button class="btn secondary small" id="toggle-all-pickers">${allPickerSelection ? "Bỏ chọn tất cả Picker" : "Chọn tất cả Picker"}</button>
-      <button class="btn secondary small" data-picker-action="ENABLE">Mở lại Picker đã chọn</button>
-      <button class="btn secondary small" data-picker-action="DISABLE">Ngừng hoạt động</button>
-      <button class="btn danger small" data-picker-action="DELETE">Xóa Picker</button>
-      <span class="badge">${allPickerSelection ? "Tất cả Picker" : `${selectedCount} đã chọn`}</span>
-    </div>
-      <div class="user-list">${managedUsers.length ? managedUsers.map((user) => `<div class="user-row"><input type="checkbox" data-user-select="${esc(user.user_id)}" ${allPickerSelection || selectedUserIds.has(user.user_id) ? "checked" : ""} ${user.role !== "PICKER" || allPickerSelection ? "disabled" : ""}/><div><strong>${esc(user.employee_code || user.user_id)}</strong><div class="tiny muted">${esc(user.display_name)}</div></div><span class="badge">${esc(user.role)}</span><span class="badge ${user.status === "ACTIVE" ? "ok" : "closed"}">${esc(user.status)}</span><div class="toolbar"><button class="btn secondary small" data-edit-user="${esc(user.user_id)}">Sửa</button><button class="btn secondary small" data-password-user="${esc(user.user_id)}">Đổi mật khẩu</button></div></div>`).join("") : `<div class="empty">Không có tài khoản phù hợp.</div>`}</div>
-      <div class="status-line" style="justify-content:space-between;margin-top:12px"><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span><div class="toolbar"><button class="btn secondary small" id="user-prev" ${userOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="btn secondary small" id="user-next" ${userOffset + USER_PAGE_SIZE >= userTotal ? "disabled" : ""}>Trang sau</button></div></div>
-    </div></section>`;
+  return `<section class="ops-route">
+    <div class="heading"><div><p class="eyebrow">QUẢN LÝ</p><h2>Nhân sự & tài khoản</h2></div><button class="secondary" id="refresh-users">Làm mới</button></div>
+    <article class="ops-panel ops-create-user">
+      <div class="ops-panel-title"><div><h3>Tạo tài khoản</h3><p>Tạo tài khoản nghiệp vụ ngoài danh sách Picker nguồn.</p></div></div>
+      <form id="create-user-form" class="ops-form-grid">
+        <label>Mã nhân viên / username<input name="username" required /></label>
+        <label>Họ tên<input name="displayName" required /></label>
+        <label>Vai trò<select name="role"><option value="REPORTER">REPORTER</option>${canCreateAdmin ? `<option value="ADMIN">ADMIN</option>` : ""}</select></label>
+        <label>Mật khẩu khởi tạo<input name="password" type="password" autocomplete="new-password" required /></label>
+        <div class="ops-form-actions"><button class="primary">Tạo tài khoản</button></div>
+      </form>
+    </article>
+    <article class="ops-panel ops-users-panel">
+      <div class="ops-panel-title"><div><h3>Danh sách tài khoản</h3><p>${userTotal.toLocaleString("vi-VN")} tài khoản phù hợp.</p></div></div>
+      <form id="user-filter-form" class="ops-form-grid">
+        <label class="span">Tìm tài khoản<input name="query" value="${esc(userQuery)}" placeholder="MNV / họ tên / user id" /></label>
+        <label>Vai trò<select name="role"><option value="">Tất cả</option>${["PICKER","REPORTER","ADMIN"].map((role) => `<option value="${role}" ${userRole === role ? "selected" : ""}>${role}</option>`).join("")}</select></label>
+        <label>Trạng thái<select name="status"><option value="">Tất cả</option><option value="ACTIVE" ${userStatus === "ACTIVE" ? "selected" : ""}>ACTIVE</option><option value="DISABLED" ${userStatus === "DISABLED" ? "selected" : ""}>DISABLED</option></select></label>
+        <div class="ops-form-actions"><button class="secondary">Lọc</button></div>
+      </form>
+      <div class="ops-bulkbar"><button class="secondary" id="toggle-all-pickers">${allPickerSelection ? "Bỏ chọn tất cả Picker" : "Chọn tất cả Picker"}</button><button class="secondary" data-picker-action="ENABLE">Mở lại Picker đã chọn</button><button class="secondary" data-picker-action="DISABLE">Ngừng hoạt động</button><button class="danger" data-picker-action="DELETE">Xóa Picker</button><span>${allPickerSelection ? "Tất cả Picker" : `${selectedCount} đã chọn`}</span></div>
+      <div class="table-wrap"><table class="ops-users-table"><thead><tr><th></th><th>Mã nhân viên</th><th>Họ tên</th><th>Vai trò</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
+        ${managedUsers.length ? managedUsers.map((user) => `<tr><td><input type="checkbox" data-user-select="${esc(user.user_id)}" ${allPickerSelection || selectedUserIds.has(user.user_id) ? "checked" : ""} ${user.role !== "PICKER" || allPickerSelection ? "disabled" : ""}/></td><td><b>${esc(user.employee_code || user.user_id)}</b></td><td>${esc(user.display_name)}</td><td>${esc(user.role)}</td><td><span class="badge ${user.status === "ACTIVE" ? "good" : ""}">${esc(user.status)}</span></td><td><button class="secondary" data-edit-user="${esc(user.user_id)}">Sửa</button> <button class="secondary" data-password-user="${esc(user.user_id)}">Đổi mật khẩu</button></td></tr>`).join("") : `<tr><td colspan="6" class="ops-empty">Không có tài khoản phù hợp.</td></tr>`}
+      </tbody></table></div>
+      <div class="ops-pagination"><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span><div><button class="secondary" id="user-prev" ${userOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="user-next" ${userOffset + USER_PAGE_SIZE >= userTotal ? "disabled" : ""}>Trang sau</button></div></div>
+    </article>
+  </section>`;
 }
 
 function renderSla(): string {
   const sla = slaResponse?.sla;
   const insight = operationalInsights?.sla;
-  return `<section><div class="page-head"><div><h1>Cấu hình SLA</h1><p>SLA chỉ cảnh báo/escalate; không tự Có hàng hoặc tự Skip và không đổi công thức ưu tiên queue.</p></div></div>
-    <div class="section-grid"><form id="sla-form" class="card"><h3>Ngưỡng xử lý</h3>${slaResponse && !slaResponse.configured ? `<div class="notice warning">SLA chưa cấu hình</div>` : ""}<div class="form-grid"><div class="field"><span>Cảnh báo sau (phút)</span><input name="warning" type="number" min="1" max="1440" value="${esc(sla?.warning_minutes || "")}" required /></div><div class="field"><span>Escalate sau (phút)</span><input name="escalation" type="number" min="2" max="2880" value="${esc(sla?.escalation_minutes || "")}" required /></div></div><button class="btn" style="margin-top:12px">Lưu SLA</button></form>
-      <div class="card"><h3>Trạng thái hiện tại</h3><div class="metrics"><div class="metric"><span>Cảnh báo</span><strong>${Number(insight?.warning_count || 0)}</strong></div><div class="metric"><span>Escalated</span><strong>${Number(insight?.escalated_count || 0)}</strong></div></div><div class="tiny muted">Trạng thái sla_state do server tính theo thời gian báo đầu tiên.</div></div></div>
+  return `<section class="ops-route">
+    <div class="heading"><div><p class="eyebrow">THIẾT LẬP</p><h2>Thời gian nghiệp vụ</h2><p class="muted">Cấu hình mốc cảnh báo và mốc quá hạn.</p></div></div>
+    <form id="sla-form">
+      <div class="ops-settings-grid">
+        <article class="ops-setting-card"><span class="ops-step">01</span><h3>Cảnh báo</h3><p>Hiển thị cảnh báo khi SKU chờ quá mốc này.</p><label>Phút<input name="warning" type="number" min="1" max="1440" value="${esc(sla?.warning_minutes || "")}" required /></label></article>
+        <article class="ops-setting-card"><span class="ops-step">02</span><h3>Quá hạn</h3><p>Đánh dấu mức cần chú ý cao hơn; không tự xử lý SKU.</p><label>Phút<input name="escalation" type="number" min="2" max="2880" value="${esc(sla?.escalation_minutes || "")}" required /></label></article>
+      </div>
+      <div class="ops-form-actions"><button class="primary">Lưu thời gian nghiệp vụ</button></div>
+    </form>
+    <section class="ops-status-strip"><span>Cảnh báo hiện tại <b>${Number(insight?.warning_count || 0)}</b></span><span>Quá hạn hiện tại <b>${Number(insight?.escalated_count || 0)}</b></span></section>
   </section>`;
 }
 
@@ -776,10 +801,22 @@ function renderDashboard(): string {
 }
 
 function renderReports(): string {
-  return `<section><div class="page-head"><div><h1>Báo cáo chi tiết</h1><p>Truy vấn bounded theo tối đa 60 ngày; xuất CSV theo chunk từ bộ lọc hiện tại.</p></div><button class="btn secondary" id="export-reports">Xuất CSV</button></div>
-    <form id="report-filter" class="card form-grid three"><div class="field"><span>Từ ngày</span><input name="from" type="date" value="${esc(reportFrom)}" /></div><div class="field"><span>Đến ngày</span><input name="to" type="date" value="${esc(reportTo)}" /></div><div class="field"><span>Trạng thái</span><select name="status"><option value="">Tất cả</option>${["PENDING","HAS_STOCK","SKIP_ALLOWED","CLOSED"].map((state) => `<option value="${state}" ${reportStatus === state ? "selected" : ""}>${esc(statusLabel(state))}</option>`).join("")}</select></div><div class="field"><span>SKU / tên sản phẩm</span><input name="query" value="${esc(reportQuery)}" /></div><div><button class="btn">Lọc</button></div>${renderDatePresets("reports")}</form>
-    <div class="card"><div class="status-line" style="justify-content:space-between"><div><strong>${reportTotal.toLocaleString("vi-VN")} bản ghi</strong><div class="tiny muted">CSV dùng bộ cột an toàn hiện hành của Beta; bộ cột Stable cuối cùng vẫn chờ Owner chốt.</div></div><div class="toolbar"><button class="btn secondary small" id="report-prev" ${reportOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="btn secondary small" id="report-next" ${reportOffset + REPORT_PAGE_SIZE >= reportTotal ? "disabled" : ""}>Trang sau</button></div></div></div>
-    <div class="table-wrap"><table><thead><tr><th>SKU</th><th>Sản phẩm</th><th>Trạng thái</th><th>Báo đầu</th><th>Xử lý</th><th>Phút</th><th>Ticket</th></tr></thead><tbody>${reportRows.map((row) => `<tr><td><strong>${esc(row.sku)}</strong></td><td>${esc(row.product_name)}</td><td>${esc(statusLabel(row.status))}</td><td>${esc(fmt(row.first_report_at))}</td><td>${esc(fmt(row.resolved_at))}</td><td>${row.duration_minutes ?? "—"}</td><td>${row.total_ticket_count}</td></tr>`).join("") || `<tr><td colspan="7" class="empty">Chưa có dữ liệu.</td></tr>`}</tbody></table></div>
+  return `<section class="ops-route">
+    <div class="heading"><div><p class="eyebrow">VẬN HÀNH</p><h2>Báo cáo vận hành</h2></div><button class="secondary" id="export-reports">Xuất CSV</button></div>
+    <article class="ops-panel">
+      <form id="report-filter" class="ops-form-grid">
+        <label>Từ ngày<input name="from" type="date" value="${esc(reportFrom)}" /></label>
+        <label>Đến ngày<input name="to" type="date" value="${esc(reportTo)}" /></label>
+        <label>Trạng thái<select name="status"><option value="">Tất cả</option>${["PENDING","HAS_STOCK","SKIP_ALLOWED","CLOSED"].map((state) => `<option value="${state}" ${reportStatus === state ? "selected" : ""}>${esc(statusLabel(state))}</option>`).join("")}</select></label>
+        <label>SKU / tên sản phẩm<input name="query" value="${esc(reportQuery)}" /></label>
+        <div class="ops-form-actions"><button class="primary">Lọc</button></div>
+      </form>
+      ${renderDatePresets("reports")}
+    </article>
+    <article class="ops-panel">
+      <div class="ops-panel-title"><div><h3>Chi tiết</h3><p>${reportTotal.toLocaleString("vi-VN")} bản ghi.</p></div><div><button class="secondary" id="report-prev" ${reportOffset <= 0 ? "disabled" : ""}>Trang trước</button> <button class="secondary" id="report-next" ${reportOffset + REPORT_PAGE_SIZE >= reportTotal ? "disabled" : ""}>Trang sau</button></div></div>
+      <div class="table-wrap"><table><thead><tr><th>SKU</th><th>Sản phẩm</th><th>Trạng thái</th><th>Báo đầu</th><th>Xử lý</th><th>Phút</th><th>Ticket</th></tr></thead><tbody>${reportRows.map((row) => `<tr><td><strong>${esc(row.sku)}</strong></td><td>${esc(row.product_name)}</td><td>${esc(statusLabel(row.status))}</td><td>${esc(fmt(row.first_report_at))}</td><td>${esc(fmt(row.resolved_at))}</td><td>${row.duration_minutes ?? "—"}</td><td>${row.total_ticket_count}</td></tr>`).join("") || `<tr><td colspan="7" class="ops-empty">Chưa có dữ liệu.</td></tr>`}</tbody></table></div>
+    </article>
   </section>`;
 }
 
@@ -843,7 +880,7 @@ function renderSystem(): string {
 
 
 function renderLegacyDevices(): string {
-  return `<section class="v4-devices"><div class="heading"><div><p class="eyebrow">DEVICE</p><h2>Thiết bị & thông báo</h2></div></div><article class="card"><p class="muted">Bề mặt quản lý thiết bị và trạng thái thông báo theo presentation cũ. Dữ liệu nghiệp vụ chi tiết sẽ được nối sau khi Owner duyệt UI.</p><div class="metrics"><article class="metric"><span>Kết nối hiện tại</span><strong>${navigator.onLine ? "Online" : "Offline"}</strong></article><article class="metric"><span>Realtime</span><strong>${esc(realtimeState)}</strong></article></div></article></section>`;
+  return `<section><div class="heading"><div><p class="eyebrow">QUẢN LÝ</p><h2>Thiết bị & thông báo</h2></div></div><article class="ops-panel"><div class="ops-panel-title"><div><h3>Trạng thái thiết bị</h3><p>Theo dõi kết nối và kênh cập nhật.</p></div></div><section class="ops-status-strip"><span>Kết nối <b>${navigator.onLine ? "Online" : "Offline"}</b></span><span>Realtime <b>${esc(realtimeState)}</b></span><span>Seq <b>${realtimeLastSeq}</b></span></section></article></section>`;
 }
 
 function renderLegacyLogs(): string {
@@ -852,11 +889,11 @@ function renderLegacyLogs(): string {
 }
 
 function renderLegacyVersions(): string {
-  return `<section><div class="heading"><div><p class="eyebrow">APP</p><h2>Phiên bản ứng dụng</h2></div></div><article class="card"><h3>Bản kiểm thử giao diện</h3><p class="muted">Presentation đang được transplant trực tiếp từ giao diện Báo hàng 1291 cũ. Chỉ sau khi Owner duyệt UI mới tiếp tục nối nghiệp vụ.</p></article></section>`;
+  return `<section><div class="heading"><div><p class="eyebrow">THIẾT LẬP</p><h2>Phiên bản ứng dụng</h2></div></div><article class="ops-panel"><div class="ops-panel-title"><div><h3>Ứng dụng Báo hàng 1291</h3><p>Kiểm tra phiên bản Web và APK đang sử dụng.</p></div></div><section class="ops-status-strip"><span>Web <b>Đang hoạt động</b></span><span>APK <b>Beta</b></span></section></article></section>`;
 }
 
 function renderAccount(): string {
-  return `<section><div class="page-head"><div><h1>Tài khoản</h1><p>${esc(profile?.employee_code || profile?.user_id)} · ${esc(profile?.display_name)} · ${esc(profile?.role)}</p></div></div><form id="password-form" class="card" style="max-width:520px"><div class="field"><span>Mật khẩu hiện tại</span><input name="current" type="password" required /></div><div class="field" style="margin-top:10px"><span>Mật khẩu mới</span><input name="next" type="password" required /></div><button class="btn" style="margin-top:12px">Đổi mật khẩu</button></form></section>`;
+  return `<section class="ops-route"><div class="heading"><div><p class="eyebrow">TÀI KHOẢN</p><h2>Đổi mật khẩu</h2><p class="muted">${esc(profile?.employee_code || profile?.user_id)} · ${esc(profile?.display_name)}</p></div></div><article class="ops-panel" style="max-width:620px"><form id="password-form" class="ops-form-grid"><label class="span">Mật khẩu hiện tại<input name="current" type="password" required /></label><label class="span">Mật khẩu mới<input name="next" type="password" required /></label><div class="ops-form-actions"><button class="primary">Đổi mật khẩu</button></div></form></article></section>`;
 }
 
 async function run(fn: () => Promise<void>): Promise<void> {
