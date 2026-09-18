@@ -18,7 +18,7 @@
     "sqlite_schema": 6,
     "business_api": "OPERATIONAL_V2_4_RUNTIME_PASS__F20_BOUNDED_INSIGHTS_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
-    "web": "D064_DETAILED_SYSTEM_STATUS_SOURCE_BUILD_PENDING_BETA_RUNTIME",
+    "web": "D064_DETAILED_SYSTEM_STATUS_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
     "android": "VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING",
     "latest_beta_apk": "beta-vc45",
     "realtime": "GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_4",
@@ -28,7 +28,7 @@
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_BUILD_DEPLOY_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "D064_SYSTEM_STATUS_LOAD_TEST_SOURCE_BUILD_PENDING",
+    "ui_design_guard": "D064_SYSTEM_STATUS_LOAD_TEST_RUNTIME_PASS__NAV_IA_OWNER_DECISION_PENDING",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED"
@@ -129,9 +129,6 @@
     "D062 Web final QA PR #42 merged at c874eafccb732c108f466ed7095a14e1f3e39d0e after Repo Authority Guard, Project State Guard and UI Design Guard PASS; Beta deploy run 35347188833 PASS with health/schema, auth/business guards, Web shell and Google OAuth smoke."
   ],
   "pending_build": [
-    "D064 detailed system-status source/build/Deploy Beta verification",
-    "D064 controlled Beta 1000-report / 100-Picker / ~400-SKU <=10-minute load test and measured before/after evidence",
-    "D064 post-test left-navigation IA analysis/proposal for Owner approval; do not rebuild navigation before Owner decision",
     "Owner functional acceptance of Root effective-role switching across Web and resumed Android",
     "Android broader visual review after Owner resumes it",
     "Only after Owner UI gate: remaining canonical business wiring",
@@ -139,9 +136,8 @@
     "Isolated business mutation load acceptance after Owner scale target"
   ],
   "field_pending": [
-    "Owner Web visual/layout/theme acceptance remains pending after D064 system-status deployment.",
-    "D064 controlled load test must complete on Beta and its ephemeral gate must be verified closed afterward.",
-    "After the measured load test, navigation IA proposal remains an Owner decision before implementation.",
+    "Owner Web visual/layout/theme acceptance remains pending for the deployed D064 system-status console.",
+    "Owner decision is pending on docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md before any sidebar rebuild.",
     "Physical Android crash/log upload timing remains field-dependent.",
     "Technical PASS is not Owner UI acceptance."
   ],
@@ -153,8 +149,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Complete D064 system status, branch guards and Beta deploy; run the 1,000-report controlled Beta load test; record measured evidence; then present the left-nav IA critique/proposal without silently changing navigation.",
-    "method": "Use actual low-cost InventoryCore/provider metrics where available, reference limits without plan guessing, 60-second core refresh and 5-minute provider cache. Load test uses existing active Pickers, existing SKUs, real Firebase-authenticated /api/picker/reports requests, ephemeral masked Beta-only gate and <=10-minute randomized traffic.",
+    "primary": "Owner reviews the D064 navigation IA proposal. If approved or refined, implement only the approved navigation/workspace composition on Beta through branch → PR → guards → merge; keep business APIs/state unchanged and Stable untouched.",
+    "method": "Use docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md as proposal only. Current measured D064 load evidence is PASS: 1000/1000 reports, 100 existing Pickers, 400 existing SKUs, 525.423s, no errors, +2,572,288 SQLite bytes.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -182,21 +178,18 @@
   },
   "workboard": {
     "in_progress": [
-      "D064 detailed all-service Trạng thái hệ thống implementation",
-      "D064 guarded real-Picker load-test workflow and measurement pipeline",
-      "D063/D064 Owner Web visual review remains pending",
+      "D064 Owner visual review for detailed system-status console",
+      "D064 navigation IA proposal awaiting Owner decision",
+      "D063/D064 broader Owner Web visual review remains pending",
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Run authority/state/UI/operational build guards for D064",
-      "Merge D064 only after branch guards PASS",
-      "Deploy Beta and verify detailed system-status auth/runtime",
-      "Dispatch Beta Load Test for 1000 successful reports / 100 existing Pickers / 400 existing SKUs / <=600s traffic",
-      "Record load-test before/after service usage and close temporary gate",
-      "Analyze current D063 navigation against measured/business workflows and present rebuild proposal to Owner"
+      "Owner reviews D064 navigation IA proposal",
+      "If approved/refined, implement only approved sidebar/workspace composition on Beta",
+      "Re-run authority/state/UI/realtime/RBAC guards and Beta runtime review after approved IA implementation"
     ],
     "blocked_or_owner_field_dependent": [
-      "Final navigation rebuild is intentionally blocked on Owner approval of the post-test D064 proposal",
+      "Navigation rebuild blocked on Owner approval/refinement of D064 proposal",
       "Final D064 visual acceptance depends on Owner review",
       "No Stable promotion is authorized"
     ],
@@ -249,7 +242,7 @@
   "last_updated": "2026-09-19",
   "owner_ui_review": {
     "status": "IN_PROGRESS",
-    "phase": "D064_SYSTEM_STATUS_BUILD_AND_LOAD_TEST",
+    "phase": "D064_SYSTEM_STATUS_RUNTIME_PASS__NAV_IA_PROPOSAL_REVIEW",
     "started_on": "2026-09-18",
     "review_target_web": "https://inventory-beta.supra.cc.cd/",
     "review_target_android_release": "beta-vc45",
@@ -257,8 +250,11 @@
     "visual_authority_repository": "tam95supra-source/bao-hang-1291",
     "visual_authority_commit": "8713f487386fa39c9225b180b2b8448d4a7e2b2d",
     "owner_acceptance": "NOT_YET_GIVEN",
-    "current_instruction": "Rebuild Trạng thái hệ thống with detailed service health/usage/limits, run the controlled 1000-report Beta test, then analyze and propose a better left-nav IA without implementing the IA until Owner approves.",
-    "next_session_command": "Tiếp tục D064 trạng thái hệ thống + load test",
+    "current_instruction": "D064 system status and controlled load test are technically complete. Review the proposed simplified business IA before any sidebar rebuild.",
+    "next_session_command": "Review D064 navigation IA proposal",
     "review_feedback_protocol": "Owner may send current Beta Web/Android screenshots and concise feedback. AI must bootstrap canonical repo and repair only confirmed remaining D063 issues through branch -> PR -> guards -> Beta runtime verification. Stable remains untouched."
-  }
+  },
+  "runtime_evidence": [
+    "D064 Beta Load Test run 35376099693 PASS: 1000/1000 normal Picker reports, 100 existing Picker identities, 400 existing SKUs, duration 525.423s, avg 250.34ms, p50 235.95ms, p95 348.72ms, max 625.64ms, no errors; SQLite +2572288 bytes, +400 batches, +1000 tickets, +1000 report events, +1000 realtime events, +1000 audit rows; temporary load-test gate verified closed."
+  ]
 }
