@@ -3,14 +3,14 @@
 > DERIVED VIEW. Canonical live status is `ops/project-state.json`; resource identity is `ops/resource-registry.json`.
 
 - Project: `supra-inventory`
-- Web: `D059_WEB_HEADER_IDENTITY_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
-- Android: `VC43_D057_DIRECT_LEGACY_NATIVE_XML_SIGNED_RUNTIME_GATE_PASS__OWNER_UI_ACCEPTANCE_PENDING`
-- Latest signed review APK: `beta-vc43`
-- Web runtime source: `b93175cfc62ff4504d6e28b9379b09ba4e61f809`
-- Android beta-vc43 source: `fa677463b898768a60013861220fce6e6192999e`
+- Web: `D060_ROOT_ROLE_THEME_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Android: `VC44_D060_EFFECTIVE_ROLE_REFRESH_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
+- Latest signed review APK: `beta-vc44`
+- Web runtime source: `765be7baa90e6645a592cc5137324c85fb793009`
+- Android beta-vc44 source: `765be7baa90e6645a592cc5137324c85fb793009`
 - Owner UI review: **IN PROGRESS — no final UI acceptance yet**
 
-## D057 baseline + D058 shell + D059 Web header/identity refinements
+## D057 baseline + D058/D059/D060 Web refinements
 
 Visual authority:
 - old UI repository: `tam95supra-source/bao-hang-1291`
@@ -19,12 +19,13 @@ Visual authority:
 - D057 in `docs/OWNER_DECISIONS.md`
 - D058 Web shell refinement in `docs/OWNER_DECISIONS.md`
 - D059 Web header/identity refinement in `docs/OWNER_DECISIONS.md`
+- D060 Root-role/theme refinement in `docs/OWNER_DECISIONS.md`
 
 Current review endpoints:
 - Web: `https://inventory-beta.supra.cc.cd/`
-- APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc43/supra-inventory-beta.apk`
+- APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc44/supra-inventory-beta.apk`
 
-Web presentation uses the D057 transplanted modules plus D058/D059 Owner-reviewed behavior: pinned full-width shell, no role-test strip, corporate Inventory 1291 header, Cloudflare ON/OFF + latest received-data timestamp, Tên/User/Quyền + logout only, left-aligned Admin/Root navigation, central-workspace scrolling, full remaining workspace width and fixed bottom-right product credit.
+Web presentation uses the D057 transplanted modules plus D058/D059/D060 Owner refinements: pinned full-width shell, corporate Inventory header, compact display-name/role identity, Root-only effective-role test selector, Auto/Light/Dark theme, left-aligned navigation, central-workspace scrolling, full remaining workspace and fixed bottom-right product credit.
 
 Android/PDA presentation includes transplanted old native activity/login/Picker/Invent/Admin/row/overlay XML plus drawables/colors/styles, with current controllers bound to those resources.
 
@@ -52,20 +53,32 @@ Legacy backend/provider/auth/storage/database/credential code remains excluded.
 
 Automated PASS is technical eligibility only. It is not Owner UI acceptance.
 
-## D060 source candidate
+## D060 runtime PASS
 
-Owner's active review now includes D060:
-- Root-only server-authoritative effective-role test mode (ROOT/ADMIN/REPORTER/PICKER);
-- existing Root realtime sockets are closed on role change; normal RBAC/realtime/role-target notification routing uses the effective role;
-- Web compact identity, stronger corporate line, simplified Dashboard head and persisted Auto/Light/Dark theme;
-- Android refreshes effective role from `/api/auth/me` on resume;
-- source SQLite target is 6; deployed Beta remains schema 5 until merge/deploy verification.
+D060 is deployed on Beta:
+- immutable base ROOT may select effective ROOT/ADMIN/REPORTER/PICKER from Web;
+- normal HTTP RBAC, realtime projection and role-target FCM honor the effective role;
+- Root realtime sockets are revoked on role change;
+- Web identity/header/Dashboard head follows current Owner review;
+- Web theme supports persisted Auto/Light/Dark; Auto uses Asia/Ho_Chi_Minh dark 18:00–05:59;
+- SQLite schema is 6;
+- Android beta-vc44 refreshes effective role from `/api/auth/me` on resume.
 
-D060 is not yet runtime PASS in this view. Stable remains untouched.
+Evidence:
+- PR #38 merge: `765be7baa90e6645a592cc5137324c85fb793009`.
+- Deploy Beta run `35326095378`: PASS.
+- UI Design Guard run `35326095346`: PASS.
+- Verify Beta Android run `35326095361`: PASS.
+- Signed release: `beta-vc44`.
+- APK SHA-256: `c2ee4740ebee30fcdfc0ae8dcda44f7d5116dbefe8fbaed035a885e3d98ca5fb`.
+- APK size: `9283170` bytes.
+- Stable untouched.
+
+Automated PASS is technical eligibility only. Owner UI/theme/role-test acceptance remains pending.
 
 ## Current work frontier
 
-Owner is actively reviewing the deployed D059 Web UI. Android/APK review is pending separately.
+Owner is actively reviewing the deployed D060 Web UI/theme/Root-role control. Android broader visual review is pending separately.
 
 For each Owner-rejected screen:
 - compare current render to the pinned old source + current Owner feedback;
