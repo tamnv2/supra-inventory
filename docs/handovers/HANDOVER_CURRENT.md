@@ -32,8 +32,8 @@
 
 ## Next
 
-1. Rebaseline the complete Beta Web UI from the prior Báo hàng 1291 visual/layout source.
-2. Rebaseline the complete Beta Android/PDA UI from the same visual/layout source.
+1. Run source/build guards for the legacy UI parity candidate.
+2. Deploy the Beta Web UI candidate and publish a signed Beta APK through the existing runtime/release gate.
 3. Obtain explicit Owner UI/layout acceptance screen-by-screen.
 4. Only after the UI gate passes, continue rebuilding/wiring canonical logic, scenarios and business requirements.
 5. Resume physical FCM/device/load acceptance after the functional rebuild.
