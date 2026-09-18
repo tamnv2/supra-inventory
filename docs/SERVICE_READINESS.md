@@ -3,7 +3,7 @@
 > DERIVED VIEW. Canonical live status is `ops/project-state.json`; resource identity is `ops/resource-registry.json`.
 
 - Project: `supra-inventory`
-- Web: `D064_DETAILED_SYSTEM_STATUS_SOURCE_BUILD_PENDING_BETA_RUNTIME`
+- Web: `D064_DETAILED_SYSTEM_STATUS_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
 - Android: `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 - Latest signed review APK: `beta-vc45`
 - Web runtime source: `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`
@@ -29,7 +29,7 @@ Current review endpoints:
 - Web: `https://inventory-beta.supra.cc.cd/`
 - APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc45/supra-inventory-beta.apk`
 
-D063 runtime remains PASS. D064 is the active source/build workstream: detailed all-service system status, then controlled Beta load test, then post-test navigation IA proposal.
+D064 detailed system status is deployed on Beta and technically PASS. Controlled Beta load test run `35376099693` PASS with 1,000/1,000 real Picker reports across 100 existing Pickers and 400 existing SKUs in 525.423 seconds, no errors; temporary gate verified closed. Navigation IA proposal is documented and awaits Owner decision.
 
 Android/PDA presentation includes transplanted old native activity/login/Picker/Invent/Admin/row/overlay XML plus drawables/colors/styles, with current controllers bound to those resources.
 
@@ -59,7 +59,7 @@ Automated PASS is technical eligibility only. It is not Owner UI acceptance.
 
 ## D063 source candidate
 
-`D064_DETAILED_SYSTEM_STATUS_SOURCE_BUILD_PENDING_BETA_RUNTIME` is the active Web source candidate; Android source marker is `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`. `Inventory/Beta/Logs` is created and registered. D062/beta-vc45 remain the deployed/signed runtime references until D063 CI, merge, Beta deploy and signed Android release complete. Stable remains untouched.
+`D064_DETAILED_SYSTEM_STATUS_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING` is the active Web source candidate; Android source marker is `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`. `Inventory/Beta/Logs` is created and registered. D062/beta-vc45 remain the deployed/signed runtime references until D063 CI, merge, Beta deploy and signed Android release complete. Stable remains untouched.
 
 ## D062 runtime PASS
 
@@ -102,7 +102,7 @@ Automated PASS is technical eligibility only. Owner UI/theme/role-test acceptanc
 
 ## Current work frontier
 
-D064 is under source/build verification. After its Beta deploy, the controlled 1,000-report Beta load test must run and close its temporary gate before the navigation IA proposal is presented.
+D064 runtime and controlled load test are complete. Next action is Owner review/refinement of `docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md`; no sidebar rebuild before approval.
 
 For each Owner-rejected screen:
 - compare current render to the pinned old source + current Owner feedback;
@@ -114,7 +114,7 @@ Do not resume business logic/scenario rebuild until explicit Owner UI acceptance
 
 ## Next-chat resume command
 
-`Tiếp tục D064 trạng thái hệ thống + load test`
+`Review D064 navigation IA proposal`
 
 A screenshot or concise UI review note may be appended; no project-history restatement is required.
 
@@ -127,3 +127,14 @@ PR #44 merged at `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`. Repo Authority, Pro
 ## D064 active workstream
 
 Source candidate rebuilds `Trạng thái hệ thống` as a detailed provider/usage/capacity console and adds a guarded Beta-only real-Picker load-test workflow. Core metrics refresh at most every 60 seconds while visible; Google Drive/GitHub reads are cached five minutes. The load test targets 1,000 successful normal Picker reports across 100 existing active Pickers and about 400 existing SKUs within <=600 seconds. Stable is untouched. Navigation grouping is not changed by D064; a measured post-test proposal is required first.
+
+
+## D064 runtime/load PASS
+
+- Detailed all-service system-status console: Beta deploy PASS.
+- Load-test run `35376099693`: 1,000/1,000 reports, 100 existing Pickers, 400 existing SKUs, 525.423s, no errors.
+- Response timing: avg 250.34ms; P50 235.95ms; P95 348.72ms; max 625.64ms.
+- SQLite growth: +2,572,288 bytes; +400 batches; +1,000 tickets; +1,000 report events; +1,000 realtime events; +1,000 audit rows.
+- Temporary Beta load-test gate verified closed.
+- Post-test navigation proposal is stored at `docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md`; implementation is Owner-gated.
+- Stable untouched.
