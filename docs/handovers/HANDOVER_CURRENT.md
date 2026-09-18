@@ -7,13 +7,13 @@
 Canonical current markers:
 - SQLite schema: `5`
 - Latest Beta APK: `beta-vc43`
-- Web: `D058_WEB_DESKTOP_SHELL_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Web: `D059_WEB_HEADER_IDENTITY_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
 - Android: `VC43_D057_DIRECT_LEGACY_NATIVE_XML_SIGNED_RUNTIME_GATE_PASS__OWNER_UI_ACCEPTANCE_PENDING`
 
 The project is in **UI-first review**, not business-logic rebuild.
 
-- Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinement: **D058**.
-- Owner is **currently reviewing the deployed Web UI under D058**. Android/PDA review is pending separately and unchanged.
+- Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinements: **D058 shell** + **D059 header/identity**.
+- Owner is **currently reviewing the deployed Web UI under D059**. Android/PDA review is pending separately and unchanged.
 - Owner has **not yet given UI/layout acceptance** for the current candidate.
 - Technical build/deploy/release PASS must never be interpreted as Owner UI PASS.
 - Until explicit Owner UI acceptance, work is limited to **UI/layout/presentation mismatch repair**.
@@ -23,15 +23,15 @@ Current review targets:
 - Web: `https://inventory-beta.supra.cc.cd/`
 - Android signed review release (pending separate review): `beta-vc43`
 - APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc43/supra-inventory-beta.apk`
-- Web runtime source: `d848546d429dba60bb88e6f9686e83b05c730994`
+- Web runtime source: `b93175cfc62ff4504d6e28b9379b09ba4e61f809`
 - Android beta-vc43 source remains: `fa677463b898768a60013861220fce6e6192999e`
-- Current canonical main runtime source: `d848546d429dba60bb88e6f9686e83b05c730994`
+- Current canonical main runtime source: `b93175cfc62ff4504d6e28b9379b09ba4e61f809`
 
 ## 2. Minimal command for the next chat
 
 Owner can start the next chat with only:
 
-> **Tiếp tục review UI D058**
+> **Tiếp tục review UI D059**
 
 Then attach/send the current screenshot or concise review feedback, for example:
 - `Web Tổng quan: chưa OK, sidebar rộng quá`
@@ -181,6 +181,27 @@ Continuity:
 These facts prove technical eligibility for review only.
 
 
+### D059 Web header/identity refinement
+
+Owner feedback after D058 refined the product header without changing Android:
+- corporate identity now shows `CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN` and `Website nghiệp vụ Inventory 1291`;
+- old status chips are replaced by `Service: Cloudflare ON/OFF | Cập nhật: HH:mm MM/DD/YYYY`;
+- the update timestamp represents the latest authoritative information received by this Web client, including realtime business events, not a ticking local clock;
+- top-right identity shows Tên / User / Quyền plus Đăng xuất only; topbar Đổi mật khẩu is removed;
+- role labels are Quản trị hệ thống / Người báo hàng / Người lấy hàng;
+- Admin/Root left navigation is fully left-aligned;
+- Web uses a clean local/system Segoe UI Variable/Aptos/Segoe UI/Roboto/Noto Sans stack.
+
+Technical evidence:
+- PR #36 merged to main: `b93175cfc62ff4504d6e28b9379b09ba4e61f809`.
+- PR Repo Authority Guard: PASS.
+- PR Project State Guard: PASS.
+- PR UI Design Guard run `35321914326`: PASS.
+- Beta deploy run `35322055302`: PASS.
+- Main push Repo Authority Guard / Project State Guard / UI Design Guard: PASS.
+- Beta health/business-auth/Web-shell/Google-OAuth smoke checks: PASS.
+- Owner Web UI acceptance: **PENDING**.
+
 ### D058 Web Owner-review repair
 
 Owner feedback after D057 exposed a Web shell bug and explicit Web refinements. PR #34:
@@ -206,7 +227,7 @@ Technical evidence:
 
 Status: **IN PROGRESS**.
 
-Owner is reviewing the deployed D058 Web candidate. Android/PDA review is pending separately.
+Owner is reviewing the deployed D059 Web candidate. Android/PDA review is pending separately.
 
 No screen in the current vc43 candidate should be marked Owner-approved unless the Owner explicitly says it is OK.
 
@@ -318,4 +339,4 @@ Useful current files:
 
 No manual end-of-session handover is required. A new session must bootstrap from `ops/authority-manifest.json` and its declared `bootstrap_order` before mutation.
 
-The Owner's next-chat instruction **`Tiếp tục review UI D058`** is sufficient to resume from this point; any Web screenshot or UI review text supplied with it becomes the immediate work item.
+The Owner's next-chat instruction **`Tiếp tục review UI D059`** is sufficient to resume from this point; any Web screenshot or UI review text supplied with it becomes the immediate work item.
