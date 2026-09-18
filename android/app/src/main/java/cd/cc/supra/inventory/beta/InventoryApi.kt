@@ -177,6 +177,23 @@ class InventoryApi(
         JSONObject().put("device_id", deviceId).put("platform", "ANDROID"),
     )
 
+    fun uploadRuntimeLog(
+        severity: String,
+        reason: String,
+        generatedAt: String,
+        device: JSONObject,
+        payload: JSONObject,
+    ): JSONObject = request(
+        "POST", "/api/logs/upload",
+        JSONObject()
+            .put("source", "ANDROID")
+            .put("severity", severity.uppercase())
+            .put("reason", reason)
+            .put("generated_at", generatedAt)
+            .put("device", device)
+            .put("payload", payload),
+    )
+
     fun createRealtimeTicket(): String {
         val payload = request("POST", "/api/realtime/ticket", JSONObject().put("client_type", "ANDROID"))
         return payload.optString("ticket").takeIf { it.isNotBlank() }
