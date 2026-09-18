@@ -7,17 +7,17 @@
 Canonical current markers:
 - SQLite schema: `6`
 - Latest Beta APK: `beta-vc45`
-- Web: `D064_DETAILED_SYSTEM_STATUS_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Web: `D066_THREE_GROUP_NAVIGATION_SOURCE_IMPLEMENTED__BETA_DEPLOY_PENDING`
 - Android: `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 
 The project is in **UI-first review**, not business-logic rebuild.
 
 - Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinements: **D058 shell + D059 header + D060 Root-role/theme + D061 dark/sidebar/realtime cleanup + D062 final Web QA/IA + D063 consolidated operations/logs/reporting/people review**.
-- D064 detailed `Trạng thái hệ thống` is deployed on Beta and technically PASS. Controlled Beta load test run `35376099693` also PASS: 1,000/1,000 real Picker reports, 100 existing Pickers, 400 existing SKUs in 525.423 seconds, no errors; temporary load-test gate verified closed. Post-test sidebar analysis is now documented in `docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md` and awaits Owner decision before any navigation rebuild. Stable is unchanged.
+- D064 detailed `Trạng thái hệ thống` is deployed on Beta and technically PASS. Controlled Beta load test run `35376099693` also PASS: 1,000/1,000 real Picker reports, 100 existing Pickers, 400 existing SKUs in 525.423 seconds, no errors; temporary load-test gate verified closed. D065 three-group navigation was approved by Owner as D066 and is now implemented in source on the D066 branch; PR guards and Beta deploy remain to be completed before runtime PASS. Stable is unchanged.
 - Owner has **not yet given UI/layout acceptance** for the current candidate.
 - Technical build/deploy/release PASS must never be interpreted as Owner UI PASS.
-- D064 system-status and controlled load-test implementation are complete. The only D064 product-design gate now is Owner review/refinement of the proposed navigation IA.
-- Do **not** change the left-navigation grouping until the Owner approves/refines `docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md`.
+- D064 system-status and controlled load-test implementation are complete. D066 now carries the approved three-group Web navigation implementation.
+- The exact D066 left-navigation grouping is Owner-approved. Do not expand beyond the approved 3-group / max-5-child constraint without a new Owner decision.
 
 Current review targets:
 - Web: `https://inventory-beta.supra.cc.cd/`
@@ -31,7 +31,7 @@ Current review targets:
 
 Owner can start the next chat with only:
 
-> **Chốt D065 menu 3 nhóm**
+> **Kiểm tra live D066 và tiếp tục từ NEXT_ACTION**
 
 Then attach/send the current screenshot or concise review feedback, for example:
 - `Web Tổng quan: chưa OK, sidebar rộng quá`
@@ -438,3 +438,24 @@ Consolidation:
 
 Proposal detail: `docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md`.
 Do not implement the sidebar until Owner approves/refines the exact composition.
+
+
+## D066 three-group navigation implementation — source complete, Beta runtime pending
+
+Owner approved the exact D065 proposal and authorized Beta Web implementation.
+
+Approved Admin/Root pinned-left navigation:
+- **VẬN HÀNH** → `Xử lý báo hàng`, `Tổng quan & báo cáo`
+- **QUẢN LÝ** → `Danh mục SKU`, `Nhân sự & tài khoản`, `Thời gian xử lý`
+- **HỆ THỐNG** → `Trạng thái hệ thống`, `Nhật ký`
+
+Implementation details:
+- `Kết quả gần đây` stays as an internal tab of `Xử lý báo hàng`.
+- `Nguồn nhân sự` and `Đồng bộ Picker` are internal tabs/sections of `Nhân sự & tài khoản`.
+- personal account/password access is removed from the business sidebar and moved to the pinned top identity controls.
+- Reporter shows only its permitted VẬN HÀNH projection.
+- Picker Web keeps its single `Báo thiếu hàng` workspace.
+- Android/PDA unchanged. Stable untouched and OWNER-GATED.
+
+Current source marker: `D066_THREE_GROUP_NAVIGATION_SOURCE_IMPLEMENTED__BETA_DEPLOY_PENDING`.
+Next action: finish PR guards → merge → Beta deploy → record runtime PASS/continuity.
