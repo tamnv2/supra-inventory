@@ -5,27 +5,25 @@
 - Project: `supra-inventory`
 - Beta: `F01_F14_F19_F20_F21_F22_F23_AUTOMATED_RUNTIME_RELEASE_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING`
 - SQLite schema: `5`
-- Web: `LEGACY_UI_PARITY_HORIZONTAL_NAV_TOPBAR_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
-- Android: `VC42_LEGACY_UI_PARITY_FIXED_HEADER_SIGNED_RUNTIME_GATE_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Web: `DIRECT_LEGACY_PRESENTATION_TRANSPLANT_IN_PROGRESS__OWNER_UI_ACCEPTANCE_PENDING`
+- Android: `DIRECT_LEGACY_NATIVE_XML_PRESENTATION_TRANSPLANT_IN_PROGRESS__OWNER_UI_ACCEPTANCE_PENDING`
 - Latest signed Beta APK: `beta-vc42`
 - Operational V2 runtime: `4/4`.
 
-## UI parity runtime/release readiness
+## Current UI source candidate
 
-Legacy UI parity structural repair PR #29 is automated runtime/release PASS on main `d09d91583aa8f664406648c40c70e26438302375`:
-- Web horizontal tabs below topbar restored from the read-only reference.
-- Web login/topbar composition restored toward the legacy reference.
-- Android operational header is fixed, full-width, 76dp and outside scroll content.
-- Repo Authority Guard: PASS.
-- Project State Guard: PASS.
-- UI Design Guard run `35305421811`: PASS.
-- Deploy Beta run `35305421857`: PASS.
-- Verify Beta Android run `35305421853`: PASS.
-- Runtime health: SQLite `5/5`, Operational V2 `4/4`.
-- Web shell, auth/business guards and Google OAuth smoke: PASS.
-- Signed Beta release: `beta-vc42`.
-- APK SHA-256: `687a82d9a630aa301a4c875ea6218d5c12d050be10dfca40fd824917c35cb264`.
+D057 direct presentation transplant is in progress on `ui/direct-legacy-presentation-transplant`.
+
+Source work currently includes:
+- old Web base/presentation styles copied under `web/src/legacy-transplant/`;
+- Web shell restored to the prior `.app-shell` / full-width topbar / grouped left sidebar / workspace composition;
+- dashboard and live processing surfaces use the prior `v5-*` and `fast-*` presentation systems;
+- old Android native layouts for login/main/Picker/Invent/Admin/row/overlay transplanted;
+- old Android drawables, color palette and widget presentation transplanted;
+- current Android controllers are being bound to those transplanted XML IDs instead of reconstructing the accepted shell programmatically.
+
+No automated build/deploy/release result for this candidate is claimed yet. Previous release evidence remains historical only.
 
 ## Next action
 
-Use the deployed Web and signed `beta-vc42` APK for explicit Owner screen-by-screen UI/layout review. Repair only UI/layout mismatches until the UI gate passes. Business logic/scenario rebuild remains deferred until that acceptance.
+Run protected authority/state/UI guards plus Web production and Android build gates. Repair until technical PASS, then deploy/release strictly as a UI review candidate. Explicit Owner screen-by-screen UI/layout acceptance remains required before business-logic rebuild resumes.
