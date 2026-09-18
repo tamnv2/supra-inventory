@@ -8,8 +8,10 @@ import android.os.Handler
 import android.os.Looper
 import android.text.TextUtils
 import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
+import android.widget.BaseAdapter
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ListView
@@ -205,31 +207,29 @@ class ReporterController(
     private fun renderLegacyList(list: ListView) {
         if (filter == Filter.PENDING) {
             legacySummary?.text = if (queue.isEmpty()) "Không có SKU đang chờ xử lý." else "${queue.size} SKU đang chờ xử lý"
-            val labels = if (queue.isEmpty()) {
-                listOf("Không có SKU đang chờ xử lý.")
+            if (queue.isEmpty()) {
+                list.adapter = legacyTextAdapter(listOf("Không có SKU đang chờ xử lý."))
+                list.onItemClickListener = null
             } else {
-                queue.map { row ->
-                    val timing = liveTiming(row)
-                    "${row.sku} - ${row.productName}\n${row.affectedPickerCount} Picker · chờ ${timing.first} phút"
-                }
-            }
-            list.adapter = ArrayAdapter(activity, android.R.layout.simple_list_item_1, labels)
-            list.setOnItemClickListener { _, _, position, _ ->
-                val row = queue.getOrNull(position) ?: return@setOnItemClickListener
-                AlertDialog.Builder(activity)
-                    .setTitle("${row.sku} - ${row.productName}")
-                    .setItems(arrayOf("CÓ HÀNG", "CHO SKIP HÀNG", "Xem Picker")) { _, which ->
-                        when (which) {
-                            0 -> confirmHasStock(row)
-                            1 -> confirmSkipImpact(row)
-                            2 -> showTickets(row)
+                list.adapter = pendingLegacyAdapter(queue)
+                list.setOnItemClickListener { _, _, position, _ ->
+                    val row = queue.getOrNull(position) ?: return@setOnItemClickListener
+                    AlertDialog.Builder(activity)
+                        .setTitle("${row.sku} - ${row.productName}")
+                        .setItems(arrayOf("CÓ HÀNG", "CHO SKIP HÀNG", "Xem Picker")) { _, which ->
+                            when (which) {
+                                0 -> confirmHasStock(row)
+                                1 -> confirmSkipImpact(row)
+                                2 -> showTickets(row)
+                            }
                         }
-                    }
-                    .setNegativeButton("Đóng", null)
-                    .show()
+                        .setNegativeButton("Đóng", null)
+                        .show()
+                }
             }
             return
         }
+
         val state = when (filter) {
             Filter.HAS_STOCK -> "HAS_STOCK"
             Filter.SKIP_ALLOWED -> "SKIP_ALLOWED"
@@ -243,14 +243,76 @@ class ReporterController(
             Filter.WITHDRAWN -> "Picker thu hồi · ${rows.size}"
             else -> "Đang xử lý"
         }
-        val labels = if (rows.isEmpty()) listOf("Chưa có dữ liệu.") else rows.map { row ->
-            "${row.sku} - ${row.productName}\n${row.status} · ${timestamp(row.resolvedAt)}"
+        if (rows.isEmpty()) {
+            list.adapter = legacyTextAdapter(listOf("Chưa có dữ liệu."))
+            list.onItemClickListener = null
+        } else {
+            list.adapter = recentLegacyAdapter(rows)
+            list.setOnItemClickListener { _, _, position, _ ->
+                val row = rows.getOrNull(position) ?: return@setOnItemClickListener
+                if (row.status == "SKIP_ALLOWED" && millis(row.correctionDeadlineAt) > System.currentTimeMillis()) confirmCorrection(row)
+            }
         }
-        list.adapter = ArrayAdapter(activity, android.R.layout.simple_list_item_1, labels)
-        list.setOnItemClickListener { _, _, position, _ ->
-            val row = rows.getOrNull(position) ?: return@setOnItemClickListener
-            if (row.status == "SKIP_ALLOWED" && millis(row.correctionDeadlineAt) > System.currentTimeMillis()) confirmCorrection(row)
+    }
+
+    private fun pendingLegacyAdapter(rows: List<ReporterBatch>): BaseAdapter = object : BaseAdapter() {
+        override fun getCount(): Int = rows.size
+        override fun getItem(position: Int): ReporterBatch = rows[position]
+        override fun getItemId(position: Int): Long = rows[position].batchId.hashCode().toLong()
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val view = convertView ?: LayoutInflater.from(activity).inflate(R.layout.row_issue, parent, false)
+            val row = getItem(position)
+            val timing = liveTiming(row)
+            view.findViewById<TextView>(R.id.tvIssueSku).text = row.sku
+            view.findViewById<TextView>(R.id.tvIssueProduct).text = row.productName
+            view.findViewById<TextView>(R.id.tvIssueElapsed).text = "${timing.first}p"
+            view.findViewById<TextView>(R.id.tvIssueMeta).text =
+                "${row.affectedPickerCount} Picker · ${slaLabel(timing.second)}${if (row.previousBatchId != null) " · Tái phát" else ""}"
+            return view
         }
+    }
+
+    private fun recentLegacyAdapter(rows: List<ReporterRecent>): BaseAdapter = object : BaseAdapter() {
+        override fun getCount(): Int = rows.size
+        override fun getItem(position: Int): ReporterRecent = rows[position]
+        override fun getItemId(position: Int): Long = rows[position].batchId.hashCode().toLong()
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val view = convertView ?: LayoutInflater.from(activity).inflate(R.layout.row_issue, parent, false)
+            val row = getItem(position)
+            val label = when (row.status) {
+                "HAS_STOCK" -> "Đã có hàng"
+                "SKIP_ALLOWED" -> "Đã cho skip"
+                "CLOSED" -> "Picker thu hồi"
+                else -> row.status
+            }
+            view.findViewById<TextView>(R.id.tvIssueSku).text = row.sku
+            view.findViewById<TextView>(R.id.tvIssueProduct).text = row.productName
+            view.findViewById<TextView>(R.id.tvIssueElapsed).text = ""
+            view.findViewById<TextView>(R.id.tvIssueMeta).text =
+                "$label · ${timestamp(row.resolvedAt)} · ${row.affectedPickerCount} Picker"
+            return view
+        }
+    }
+
+    private fun legacyTextAdapter(labels: List<String>): BaseAdapter = object : BaseAdapter() {
+        override fun getCount(): Int = labels.size
+        override fun getItem(position: Int): String = labels[position]
+        override fun getItemId(position: Int): Long = position.toLong()
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val view = convertView ?: LayoutInflater.from(activity).inflate(R.layout.row_issue, parent, false)
+            view.findViewById<TextView>(R.id.tvIssueSku).text = labels[position]
+            view.findViewById<TextView>(R.id.tvIssueProduct).text = ""
+            view.findViewById<TextView>(R.id.tvIssueElapsed).text = ""
+            view.findViewById<TextView>(R.id.tvIssueMeta).text = ""
+            return view
+        }
+    }
+
+    private fun slaLabel(state: String): String = when (state) {
+        "ESCALATED" -> "SLA quá hạn"
+        "WARNING" -> "SLA cảnh báo"
+        "NORMAL" -> "SLA bình thường"
+        else -> "SLA chưa cấu hình"
     }
 
     private fun liveTiming(row: ReporterBatch): Pair<Int, String> {
