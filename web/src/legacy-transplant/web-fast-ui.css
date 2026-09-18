@@ -524,3 +524,218 @@ body[data-role="ADMIN_INVENT"] td {
     white-space: normal;
   }
 }
+
+
+/* D059 Owner Web review: corporate header, role identity, left-aligned navigation. */
+body {
+  font-family: "Segoe UI Variable Text", "Aptos", "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.topbar {
+  min-height: 86px !important;
+  padding: 10px 22px !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 24px !important;
+}
+
+.header-product {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+  text-align: left;
+}
+
+.topbar .company-name {
+  display: block !important;
+  margin: 0 !important;
+  color: #475569 !important;
+  font-size: 11px !important;
+  line-height: 1.25 !important;
+  font-weight: 760 !important;
+  letter-spacing: .055em !important;
+  text-transform: uppercase;
+}
+
+.topbar .header-product h1 {
+  display: block !important;
+  margin: 1px 0 3px !important;
+  color: #0f2940 !important;
+  font-size: 18px !important;
+  line-height: 1.25 !important;
+  font-weight: 720 !important;
+  letter-spacing: -.02em !important;
+}
+
+.header-runtime {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 18px;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+#service-state {
+  font-weight: 650;
+}
+
+#service-state[data-state="on"] {
+  color: #147a4f;
+}
+
+#service-state[data-state="off"] {
+  color: #b42318;
+}
+
+.header-runtime-separator {
+  color: #cbd5e1;
+}
+
+.topbar .header-user {
+  display: flex !important;
+  grid-template-columns: none !important;
+  align-items: center !important;
+  justify-content: flex-end;
+  gap: 14px !important;
+  min-width: 0;
+  text-align: left !important;
+}
+
+.header-user-grid {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  gap: 2px 12px;
+  min-width: 0;
+  color: #475569;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.header-user-grid span {
+  display: block;
+  grid-column: auto !important;
+  margin: 0 !important;
+  color: #475569 !important;
+  font-size: 11px !important;
+  white-space: nowrap;
+}
+
+.header-user-grid span:first-child {
+  grid-column: 1 / -1 !important;
+  color: #1e293b !important;
+  font-size: 12px !important;
+}
+
+.header-user-grid b {
+  color: #64748b;
+  font-weight: 650;
+}
+
+.header-user .user-actions {
+  display: flex !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  align-items: center;
+  gap: 6px;
+}
+
+.header-user .user-actions .ghost {
+  min-height: 36px !important;
+  padding: 7px 12px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 7px !important;
+  background: #fff !important;
+  color: #334155 !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+}
+
+body[data-role="ADMIN"] .tabs,
+body[data-role="ADMIN_INVENT"] .tabs {
+  align-items: stretch !important;
+  text-align: left !important;
+}
+
+body[data-role="ADMIN"] .nav-section-label,
+body[data-role="ADMIN_INVENT"] .nav-section-label {
+  width: 100%;
+  margin: 15px 0 4px !important;
+  padding: 0 10px !important;
+  text-align: left !important;
+}
+
+body[data-role="ADMIN"] .tabs button,
+body[data-role="ADMIN_INVENT"] .tabs button {
+  text-align: left !important;
+}
+
+body[data-role="PICKER"] .topbar,
+body[data-role="INVENT"] .topbar {
+  min-height: 86px !important;
+  justify-content: space-between !important;
+  padding: 10px 22px !important;
+}
+
+body[data-role="PICKER"] .topbar .company-name,
+body[data-role="PICKER"] .topbar .header-product h1 {
+  display: block !important;
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    min-height: auto !important;
+    align-items: flex-start !important;
+    flex-wrap: wrap;
+    gap: 8px 14px !important;
+    padding: 9px 12px !important;
+  }
+
+  .topbar .header-product h1 {
+    font-size: 16px !important;
+  }
+
+  .header-runtime {
+    flex-wrap: wrap;
+    white-space: normal;
+  }
+
+  .topbar .header-user {
+    width: 100%;
+    justify-content: space-between !important;
+  }
+
+  .header-user-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar .company-name {
+    font-size: 9px !important;
+  }
+
+  .topbar .header-product h1 {
+    font-size: 15px !important;
+  }
+
+  .header-runtime,
+  .header-user-grid,
+  .header-user-grid span,
+  .header-user-grid span:first-child {
+    font-size: 10px !important;
+  }
+
+  .header-user-grid {
+    grid-template-columns: 1fr;
+    gap: 1px;
+  }
+
+  .header-user-grid span:first-child {
+    grid-column: auto !important;
+  }
+}
