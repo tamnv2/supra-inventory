@@ -11,6 +11,21 @@ Status: **CANONICAL PRODUCT SPEC**.
 
 The service is authoritative. Client-provided role is never trusted.
 
+
+## Root effective-role test mode
+
+Only the immutable application identity whose base role is `ROOT` may switch its temporary effective role for acceptance testing.
+
+- Allowed effective roles: `ROOT`, `ADMIN`, `REPORTER`, `PICKER`.
+- The base role remains `ROOT`; it is not rewritten to a subordinate role.
+- Normal API authorization, realtime projection/tickets and role-target FCM routing use the **effective role**. A downgrade is therefore a real permission downgrade, not a client-side visual simulation.
+- Existing realtime sockets for ROOT are closed when the effective role changes so a connection created under a higher role cannot keep higher-role projection.
+- The Root-only role-switch route authorizes against immutable `base_role=ROOT`, so ROOT can restore `ROOT` even while its effective role is lower.
+- No ADMIN/REPORTER/PICKER account may access the role-switch route.
+- Web shows the selector only when `base_role=ROOT`. Android reads the server-authoritative effective role on resume and rerenders the role surface when it changes.
+- The selected effective role persists server-side across Web/Android sessions until ROOT changes it again.
+
+
 ## Provisioning hierarchy
 
 - ROOT may create/manage `ADMIN` and `REPORTER`.
