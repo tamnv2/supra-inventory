@@ -33,6 +33,8 @@ interface InternalUser {
   employee_code: string | null;
   display_name: string;
   role: AppRole;
+  base_role: AppRole;
+  role_override: AppRole | null;
   status: "ACTIVE" | "DISABLED";
   password_salt: string | null;
   password_hash: string | null;
@@ -197,8 +199,8 @@ async function requireUser(request: Request, env: Env, roles?: AppRole[]): Promi
   return user;
 }
 
-function publicUser(user: InternalUser): Omit<InternalUser, "password_salt" | "password_hash"> {
-  const { password_salt: _salt, password_hash: _hash, ...safe } = user;
+function publicUser(user: InternalUser): Omit<InternalUser, "password_salt" | "password_hash" | "role_override"> {
+  const { password_salt: _salt, password_hash: _hash, role_override: _override, ...safe } = user;
   return safe;
 }
 
@@ -298,6 +300,34 @@ async function login(request: Request, env: Env): Promise<Response> {
   }
 }
 
+async function setRootEffectiveRole(request: Request, env: Env): Promise<Response> {
+  const actor = await requireUser(request, env);
+  if (actor.base_role !== "ROOT") return json({ error: "FORBIDDEN" }, 403);
+  let body: { role?: string } = {};
+  try { body = (await request.json()) as { role?: string }; } catch { body = {}; }
+  const role = String(body.role || "").trim().toUpperCase() as AppRole;
+  if (!["ROOT", "ADMIN", "REPORTER", "PICKER"].includes(role)) return json({ error: "INVALID_ROLE" }, 400);
+
+  const result = await coreJson<{ user: InternalUser | null }>(env, "/auth/root-role-override", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ user_id: actor.user_id, role }),
+  });
+  if (!result.user) return json({ error: "ROOT_ROLE_UPDATE_FAILED" }, 502);
+
+  try {
+    await coreStub(env).fetch("https://inventory-core.internal/realtime/close-user", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ user_id: actor.user_id }),
+    });
+  } catch {
+    // HTTP authorization already uses the new effective role; realtime reconnect will refresh role projection.
+  }
+
+  return json({ user: publicUser(result.user) });
+}
+
 async function changePassword(request: Request, env: Env): Promise<Response> {
   const user = await requireUser(request, env);
   const body = (await request.json()) as { current_password?: string; new_password?: string };
@@ -392,6 +422,7 @@ export default {
       if (request.method === "POST" && url.pathname === "/api/auth/login") return login(request, env);
       if (request.method === "POST" && url.pathname === "/api/auth/refresh") return refreshSession(request, env);
       if (request.method === "GET" && url.pathname === "/api/auth/me") return json({ user: publicUser(await requireUser(request, env)) });
+      if (request.method === "PUT" && url.pathname === "/api/auth/root-role") return setRootEffectiveRole(request, env);
       if (request.method === "PUT" && url.pathname === "/api/auth/change-password") return changePassword(request, env);
 
       if (request.method === "GET" && url.pathname === "/api/admin/archive/status") {
