@@ -1,0 +1,11 @@
+{
+  "test_id": "D064_OWNER_REQUESTED_1000_REPORTS",
+  "requested_reports": 1000,
+  "existing_pickers": 100,
+  "existing_skus": 400,
+  "max_traffic_seconds": 600,
+  "environment": "beta",
+  "stable": "forbidden",
+  "requested_on": "2026-09-19",
+  "note": "One-shot push trigger. Remove push trigger after measured run; keep this marker as continuity evidence."
+}
