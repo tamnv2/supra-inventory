@@ -4,6 +4,12 @@
 
 ## 1. Exact current point
 
+Canonical current markers:
+- SQLite schema: `5`
+- Latest Beta APK: `beta-vc43`
+- Web: `D057_DIRECT_LEGACY_PRESENTATION_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Android: `VC43_D057_DIRECT_LEGACY_NATIVE_XML_SIGNED_RUNTIME_GATE_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+
 The project is in **UI-first review**, not business-logic rebuild.
 
 - Active design decision: **D057 — direct legacy presentation transplant**.
