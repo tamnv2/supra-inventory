@@ -18,8 +18,8 @@
     "sqlite_schema": 5,
     "business_api": "OPERATIONAL_V2_4_RUNTIME_PASS__F20_BOUNDED_INSIGHTS_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
-    "web": "DIRECT_LEGACY_PRESENTATION_TRANSPLANT_IN_PROGRESS__OWNER_UI_ACCEPTANCE_PENDING",
-    "android": "DIRECT_LEGACY_NATIVE_XML_PRESENTATION_TRANSPLANT_IN_PROGRESS__OWNER_UI_ACCEPTANCE_PENDING",
+    "web": "D057_DIRECT_LEGACY_PRESENTATION_SOURCE_BUILD_PASS__DEPLOY_OWNER_UI_REVIEW_PENDING",
+    "android": "D057_DIRECT_LEGACY_NATIVE_XML_SOURCE_BUILD_PASS__SIGNED_RELEASE_OWNER_UI_REVIEW_PENDING",
     "latest_beta_apk": "beta-vc42",
     "realtime": "GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_4",
     "network_scope": "ONLINE_ONLY_PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_NO_OFFLINE_BUSINESS_MODE",
@@ -28,7 +28,7 @@
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_BUILD_DEPLOY_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "D057_DIRECT_PRESENTATION_TRANSPLANT_SOURCE_IN_PROGRESS__OWNER_UI_GATE_PENDING",
+    "ui_design_guard": "D057_DIRECT_PRESENTATION_TECHNICAL_SOURCE_BUILD_PASS__OWNER_UI_GATE_PENDING",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED"
@@ -105,21 +105,23 @@
     "Legacy UI parity structural repair PR #29 merged at d09d9158: Web horizontal tabs plus old login/topbar composition restored; Android 76dp operational header is fixed, full-width and outside scrolling content.",
     "Beta deploy run 35305421857 PASS on d09d9158: health HTTP 200, SQLite 5/5, Operational V2 4/4, business/auth guards, Web shell and Google OAuth smoke PASS.",
     "Signed Android beta-vc42 published from d09d9158 only after matching Beta runtime gate PASS; APK size 9250662 bytes; SHA-256 687a82d9a630aa301a4c875ea6218d5c12d050be10dfca40fd824917c35cb264.",
-    "UI Design Guard run 35305421811 PASS includes explicit regression guards for Web horizontal legacy navigation and Android fixed 76dp header."
+    "UI Design Guard run 35305421811 PASS includes explicit regression guards for Web horizontal legacy navigation and Android fixed 76dp header.",
+    "D057 direct legacy Web presentation source candidate uses transplanted prior base/fast/dashboard/warehouse/ops CSS, full-width topbar/status/test strip, grouped 216px left sidebar, workspace shell, v5 dashboard, fast master-detail operations, and legacy-style management/reporting surfaces without importing legacy backend code.",
+    "D057 Android/PDA source candidate uses transplanted prior activity_login/activity_main/view_picker/view_invent/view_admin/row_issue/overlay_alert XML plus old drawables/colors/widget styles; MainActivity and Picker/Reporter controllers bind current logic to those native resources.",
+    "D057 presentation guard on run 35308615737 PASS together with Operational V2, realtime cursor, Web operational, Android operational and support regressions; Worker typecheck, Web production build and Android debug build all PASS on branch head 7e9c9f5b."
   ],
   "pending_build": [
-    "Transplant full old Web presentation shell/modules into current Web without legacy backend/provider code",
-    "Transplant old Android/PDA native XML/drawable/color/style/layout presentation into current app without legacy backend/provider code",
-    "Render required role/screens/states for visual review using current data or safe fixture/sample state where business wiring is intentionally deferred",
-    "Run source/build guards without claiming UI acceptance",
+    "Merge D057 direct presentation transplant PR after final protected checks",
+    "Deploy Web UI review candidate through normal runtime gate",
+    "Publish signed Android UI review candidate through matching runtime/release gate",
     "Owner screen-by-screen UI/layout acceptance",
     "Only after Owner UI gate: rebuild/wire canonical business logic/scenarios",
     "Physical notification/device acceptance after functional rebuild",
     "Isolated mutation load acceptance after Owner workload target"
   ],
   "field_pending": [
-    "Owner visual/layout acceptance is pending for the direct old-presentation transplant.",
-    "Technical CI/build/deploy evidence must remain distinct from Owner UI acceptance."
+    "Owner visual/layout acceptance is pending for the deployed/released D057 direct-presentation candidate.",
+    "Technical source/build/deploy/release evidence remains distinct from Owner UI acceptance."
   ],
   "open_decisions_do_not_invent": [
     "Exact SKU-reset confirmation semantics originally described as random '6 chữ'.",
@@ -129,8 +131,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Directly transplant the old Web and Android/PDA presentation layers from tam95supra-source/bao-hang-1291 into the current clients, excluding all old backend/provider/auth/storage code.",
-    "method": "Web: preserve old shell and module presentation including full-width topbar, status chips, optional role-test strip, grouped left sidebar and workspace. Android: use old native XML/drawable/color/style/layout resources instead of approximate programmatic reconstruction. Validate technical build only; collect explicit Owner UI acceptance separately.",
+    "primary": "Merge the technically validated D057 direct legacy presentation transplant, deploy/release it as a UI review candidate, then obtain explicit Owner screen-by-screen UI/layout acceptance.",
+    "method": "Keep UI review separate from business acceptance. After protected merge, follow normal Web runtime and signed Android release gates. Do not resume business logic/scenario rebuild until explicit Owner UI acceptance.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -158,36 +160,39 @@
   },
   "workboard": {
     "in_progress": [
-      "D057 direct old Web presentation transplant",
-      "D057 direct old Android/PDA native resource transplant",
-      "Authority/spec/guard rewrite so approximate UI cannot be mislabeled as parity"
+      "D057 direct old Web presentation transplant source/build PASS",
+      "D057 direct old Android/PDA native resource transplant source/build PASS",
+      "Protected merge then runtime/release validation for UI review candidate"
     ],
     "next": [
-      "Complete Web shell/screens from old presentation source",
-      "Complete APK login/header/Picker/Reporter/Admin presentation from old native resources",
-      "Run technical guards/builds",
-      "Deploy/release only as UI review candidate",
-      "Collect Owner screen-by-screen acceptance",
+      "Merge PR #31 after final checks",
+      "Follow matching Web deploy and signed Android release gates to terminal PASS",
+      "Record runtime/release continuity evidence",
+      "Collect Owner screen-by-screen UI acceptance",
+      "Fix only remaining presentation mismatches until Owner UI gate passes",
       "Only after UI acceptance resume business wiring"
     ],
     "blocked_or_owner_field_dependent": [
-      "Final UI acceptance requires Owner visual review after the direct transplant candidate exists",
+      "Final UI/layout acceptance requires Owner visual review after the D057 candidate is deployed/released",
       "Physical notification/ACK acceptance follows the functional rebuild",
       "Mutation load acceptance still requires an Owner workload target/test boundary"
     ],
     "last_source_build_evidence": {
-      "branch": "ui/legacy-parity-nav-header",
-      "merged_pr": 29,
-      "merged_main": "d09d91583aa8f664406648c40c70e26438302375",
+      "branch": "ui/direct-legacy-presentation-transplant",
+      "open_pr": 31,
+      "source_head": "7e9c9f5b999cea37a12844deaf4ea861b29bec33",
       "repo_authority_guard": "PASS",
       "project_state_guard": "PASS",
       "ui_design_guard": "PASS",
-      "deploy_beta": "PASS",
-      "verify_android": "PASS",
+      "operational_v2_regression": "PASS",
+      "realtime_cursor_regression": "PASS",
+      "web_operational_regression": "PASS",
+      "android_operational_regression": "PASS",
+      "operational_support_regression": "PASS",
+      "service_typecheck": "PASS",
       "web_production_build": "PASS",
-      "android_release_build": "PASS",
-      "ui_design_guard_run": 35305421811,
-      "verify_android_run": 35305421853
+      "android_debug_build": "PASS",
+      "ui_design_guard_run": 35308615737
     },
     "last_runtime_evidence": {
       "schema": 5,
