@@ -18,13 +18,13 @@ class StockMessagingService : FirebaseMessagingService() {
         ensureChannel()
 
         val event = message.data["event"].orEmpty()
-        val title = message.notification?.title ?: when (event) {
+        val title = message.data["notification_title"]?.takeIf { it.isNotBlank() } ?: message.notification?.title ?: when (event) {
             "batch_resolved" -> "SUPRA Inventory · Kết quả báo hàng"
             "batch_corrected" -> "SUPRA Inventory · Cập nhật kết quả"
             "report_created" -> "SUPRA Inventory · SKU cần xử lý"
             else -> "SUPRA Inventory"
         }
-        val body = message.notification?.body ?: "Có cập nhật nghiệp vụ mới."
+        val body = message.data["notification_body"]?.takeIf { it.isNotBlank() } ?: message.notification?.body ?: "Có cập nhật nghiệp vụ mới."
 
         val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
