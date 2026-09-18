@@ -45,7 +45,7 @@ DESIGN_SPEC = read("docs/specs/UI_DESIGN_SYSTEM.md")
 DECISIONS = read("docs/OWNER_DECISIONS.md")
 
 checks = {
-    "authority_direct_legacy_transplant": "D057" in DECISIONS and "Direct legacy presentation transplant" in DESIGN_SPEC,
+    "authority_direct_legacy_transplant": "D057" in DECISIONS and "direct legacy presentation transplant" in DESIGN_SPEC.lower(),
     "authority_ui_acceptance_distinct_from_ci": "CI/build PASS" in DESIGN_SPEC and "Owner UI" in DESIGN_SPEC,
     "authority_no_offline_mode": "D043" in DECISIONS and "No offline business mode" in DESIGN_SPEC,
 
