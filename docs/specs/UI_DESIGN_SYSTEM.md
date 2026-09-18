@@ -4,22 +4,32 @@ Status: **CANONICAL OWNER-SELECTED DESIGN DIRECTION**.
 
 ## Authority
 
-Owner approved **Legacy Operational UI V2** on 2026-09-17. It supersedes Practical Balanced / Phương án 1 as visual/layout authority.
+Owner approved **direct legacy presentation transplant** on 2026-09-18. This supersedes any earlier instruction to reinterpret or merely imitate the previous product.
 
-The prior Báo hàng 1291 product is a **business/UX reference only** for operational density, role separation, prominent SKU/product identity, large direct actions and minimal non-operational text. Reimplement those principles cleanly on the current SUPRA Inventory architecture. Do not import old providers, databases, resource assumptions or out-of-scope inventory fields.
+Visual/layout source-of-truth:
+- read-only UI source: `tam95supra-source/bao-hang-1291`;
+- Owner-provided screenshots of the running prior Web/APK;
+- presentation structure only.
+
+The goal is not "similar" styling. Preserve the previous product's presentation geometry and interaction shell as directly as practical: DOM/layout hierarchy, topbar/sidebar/workspace composition, spacing, density, cards/tables/actions, responsive behavior on Web, and XML/drawable/color/style/layout structure on Android/PDA.
+
+Forbidden imports remain unchanged: legacy backend/provider/auth/storage/database/credentials/resource assumptions and out-of-scope business fields are never transplanted.
 
 ## UI-first parity gate
 
 The current implementation order is Owner-mandated:
 
-1. Use the prior Báo hàng 1291 UI source at `tam95supra-source/bao-hang-1291` as a **read-only visual/layout reference**.
-2. Port/recreate the complete Web and Android/PDA visual shell first: page composition, spacing, hierarchy, navigation, cards/tables, primary actions, status treatment, login/header/footer and narrow-screen behavior.
-3. Do not redesign from scratch or replace the legacy interaction density with a new visual concept.
-4. During this phase, avoid intentional business-rule changes. Existing business/backend code may remain in place, but UI parity is the only acceptance target.
-5. Stop the UI phase only at explicit Owner UI/layout acceptance.
-6. After Owner UI acceptance, rebuild/wire the current canonical logic, scenarios and business rules into the accepted shell.
+1. Inventory the complete prior Web/APK presentation source before editing the new product.
+2. **Transplant presentation instead of redesigning it.**
+   - Web: preserve the old topbar, health/status chips, role-test strip where applicable, left grouped sidebar for Admin/Root, workspace/content composition, cards/tables/actions, empty states and responsive breakpoints.
+   - Android/PDA: preserve the old native resource hierarchy using XML layouts, drawables, colors, styles/themes and row/overlay resources. Do not rebuild the accepted shell as approximate programmatic `LinearLayout` geometry.
+3. Remove/ignore legacy backend/provider/auth/storage calls. Bind the transplanted UI only to current SUPRA Inventory adapters/data later.
+4. During the UI phase, fixture/sample data may be used to render every required state. Business mutation completeness is not the UI acceptance criterion.
+5. Validate screen-by-screen and viewport-by-viewport. CI/build PASS means only technical validity; it must never be labeled Owner UI PASS.
+6. Stop the UI phase only at explicit Owner UI/layout acceptance.
+7. Only after Owner UI acceptance may canonical logic/scenarios/business rules be rebuilt/wired into the accepted shell.
 
-Legacy backend/resource/provider/credential/database code remains forbidden to import.
+Any intentional visual divergence from the prior product requires explicit Owner approval.
 
 ## Core principles
 
@@ -145,7 +155,9 @@ When service connectivity is unavailable:
 
 ## Native rendering rule
 
-Approved labels/layout/update gate are implemented directly in primary Android source. Do not use a global post-layout view-tree rewriter to alter operational UI after render.
+The Android/PDA visual shell must use the transplanted native resource structure from the prior product wherever an equivalent screen exists: XML layouts + drawables + colors + styles/themes + row/overlay resources. Controller code binds current data/actions to those views.
+
+Do not replace an existing accepted legacy XML screen with an approximate programmatic `LinearLayout` reconstruction. Do not use a global post-layout view-tree rewriter to alter business UI after render.
 
 ## Product credit
 
