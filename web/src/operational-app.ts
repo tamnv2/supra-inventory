@@ -702,26 +702,100 @@ function bindShell(): void {
     if (!next || next === activeSection) return;
     activeSection = next;
     notice = null;
+    pickerSearchGeneration += 1;
+    dashboardLoadGeneration += 1;
+    reportLoadGeneration += 1;
+    editUserId = null;
+    passwordUserId = null;
     void run(async () => { await loadSection(next); });
   }));
   document.querySelector<HTMLButtonElement>("#logout")?.addEventListener("click", () => {
+    pickerSearchGeneration += 1;
+    dashboardLoadGeneration += 1;
+    reportLoadGeneration += 1;
     clearSession();
     profile = null;
     notice = null;
+    queueRows = [];
+    recentRows = [];
+    batchDetails.clear();
+    pickerReports = [];
+    pickerResults = [];
+    pickerSuggestions = [];
+    pickerSelected = null;
+    markedResultEvents.clear();
+    displayedResultEvents.clear();
     window.dispatchEvent(new CustomEvent("supra:session-changed"));
     renderLogin();
   });
-  document.querySelector<HTMLButtonElement>("#cancel-skip")?.addEventListener("click", () => { skipConfirm = null; render(); });
+  bindOverlay();
+}
+
+function bindOverlay(): void {
+  document.querySelector<HTMLButtonElement>("#cancel-skip")?.addEventListener("click", () => {
+    skipConfirm = null;
+    patchOverlays();
+  });
   document.querySelector<HTMLButtonElement>("#confirm-skip")?.addEventListener("click", () => {
     if (!skipConfirm) return;
     const batch = skipConfirm;
     skipConfirm = null;
-    void run(async () => { await resolveReporterBatch(batch.batch_id, "SKIP_ALLOWED"); await loadOperations(); setNotice("success", `${batch.sku} đã được cho phép skip.`); });
+    void run(async () => {
+      await resolveReporterBatch(batch.batch_id, "SKIP_ALLOWED");
+      await loadOperations();
+      setNotice("success", `${batch.sku} đã được cho phép skip.`);
+    });
   });
-  document.querySelector<HTMLButtonElement>("#ack-result")?.addEventListener("click", () => {
-    const result = pickerResults.find((row) => row.result_event_id === document.querySelector<HTMLButtonElement>("#ack-result")?.dataset.event);
+
+  const ack = document.querySelector<HTMLButtonElement>("#ack-result");
+  const visibleResult = pickerResults.find((row) => row.result_event_id === ack?.dataset.event);
+  if (ack && visibleResult && !visibleResult.acknowledged_at && !displayedResultEvents.has(visibleResult.result_event_id)) {
+    displayedResultEvents.add(visibleResult.result_event_id);
+    void markPickerResult(visibleResult.result_event_id, visibleResult.batch_id, visibleResult.batch_version, "DISPLAYED")
+      .catch(() => displayedResultEvents.delete(visibleResult.result_event_id));
+  }
+  ack?.addEventListener("click", () => {
+    const result = pickerResults.find((row) => row.result_event_id === ack.dataset.event);
     if (!result) return;
-    void run(async () => { await markPickerResult(result.result_event_id, result.batch_id, result.batch_version, "ACKNOWLEDGED"); await loadPicker(); setNotice("success", "Đã xác nhận nhận kết quả."); });
+    void run(async () => {
+      await markPickerResult(result.result_event_id, result.batch_id, result.batch_version, "ACKNOWLEDGED");
+      await loadPicker();
+      setNotice("success", "Đã xác nhận nhận kết quả.");
+    });
+  });
+
+  document.querySelector<HTMLButtonElement>("#cancel-user-modal")?.addEventListener("click", () => {
+    editUserId = null;
+    passwordUserId = null;
+    patchOverlays();
+  });
+  document.querySelector<HTMLFormElement>("#edit-user-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const userId = editUserId;
+    if (!userId) return;
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    const displayName = String(data.get("displayName") || "").trim();
+    const status = String(data.get("status") || "") as "ACTIVE" | "DISABLED";
+    void run(async () => {
+      await updateManagedUser(userId, displayName, status);
+      editUserId = null;
+      await loadUsers();
+      setNotice("success", "Đã cập nhật tài khoản.");
+    });
+  });
+  document.querySelector<HTMLFormElement>("#password-user-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const userId = passwordUserId;
+    if (!userId) return;
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    const password = String(data.get("password") || "");
+    if (!password) return;
+    void run(async () => {
+      await setManagedUserPassword(userId, password);
+      passwordUserId = null;
+      await loadUsers();
+      setNotice("success", "Đã đổi mật khẩu tài khoản.");
+    });
   });
 }
 
