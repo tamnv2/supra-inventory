@@ -801,10 +801,12 @@ async function loadSection(section: Section): Promise<void> {
 }
 
 function bindShell(): void {
+  const currentProfile = profile;
+  if (!currentProfile) return;
   document.querySelectorAll<HTMLButtonElement>("[data-section]").forEach((button) => button.addEventListener("click", () => {
     const next = button.dataset.section as Section;
     if (!next || next === activeSection) return;
-    if (!canAccessSection(next, profile)) return;
+    if (!canAccessSection(next, currentProfile)) return;
     activeSection = next;
     syncSectionHash(next);
     notice = null;
