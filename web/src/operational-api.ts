@@ -1,5 +1,8 @@
 import { authorizedFetch, readJson } from "./api";
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || window.location.origin).replace(/\/$/, "");
+const operationalFetch = authorizedFetch;
+
 export type SlaState = "UNCONFIGURED" | "NORMAL" | "WARNING" | "ESCALATED";
 
 export interface SlaConfig {
