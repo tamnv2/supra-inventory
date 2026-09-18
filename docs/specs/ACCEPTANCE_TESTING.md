@@ -14,20 +14,23 @@ Never collapse these levels into one generic “done”.
 
 ## UI-first acceptance gate
 
-Before further business-logic rebuild/wiring work is treated as the active implementation frontier:
+Before further business-logic rebuild/wiring work becomes the active implementation frontier:
 
-- Web and Android/PDA must first be rebaselined against the Owner-approved prior Báo hàng 1291 visual/layout reference;
-- parity review covers login, shell/header/navigation, role landing screens, spacing, hierarchy, cards/tables, primary action placement, status presentation, responsive/narrow-screen behavior and footer/utility placement;
-- source/build/deploy PASS is not UI acceptance;
-- only explicit Owner confirmation marks the UI/layout gate PASS;
+- D057 direct presentation transplant is the visual/layout authority;
+- Web is checked against the running prior product plus its read-only source for login, full-width topbar, health/status chips, permission-test strip where applicable, grouped left sidebar, workspace composition, cards/tables, spacing, density and responsive behavior;
+- Android/PDA is checked against the prior native resources for login, 76dp main header, role views, drawables, colors, widget styling, row/list treatment and alert surfaces;
+- equivalent-looking programmatic reconstruction does **not** satisfy parity when a prior native XML/layout resource exists;
+- fixture/sample content may be used to expose visual states while canonical mutation wiring remains intentionally deferred;
+- source/build/deploy/signed-release PASS proves only technical validity and must never be called UI PASS;
+- only explicit Owner screen-by-screen confirmation marks the UI/layout gate PASS;
 - after that gate, canonical business rules are wired/rebuilt and accepted separately by scenario;
-- this gate never authorizes importing legacy backend/resources/credentials or out-of-scope fields.
+- this gate authorizes presentation resources/structure only; legacy backend/provider/auth/storage/database/credentials and out-of-scope fields remain forbidden.
 
 ## Rebaseline frontier
 
-The previous signed Beta `beta-vc35` is only the **pre-rebaseline runtime baseline**. Its Practical Balanced/one-row Picker UI is superseded by Owner decisions D043–D055.
+The current implementation frontier is the D057 direct legacy presentation transplant. Previous UI candidates remain technical history only and are not visual baselines.
 
-The next technical baseline is accepted only after the Legacy Operational UI V2 change set passes authority/spec, service/schema, Web, Android, deploy/runtime and signed-release gates. Physical PDA/Owner acceptance remains separate even after all automatable gates pass.
+The next UI review candidate is eligible for Owner review only after authority/state guards, presentation guard, Web production build and Android build/release gates pass. Owner visual acceptance remains separate from every automated gate.
 
 ## Authority/spec acceptance
 

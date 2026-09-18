@@ -5,27 +5,38 @@
 - Project: `supra-inventory`
 - Beta: `F01_F14_F19_F20_F21_F22_F23_AUTOMATED_RUNTIME_RELEASE_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING`
 - SQLite schema: `5`
-- Web: `LEGACY_UI_PARITY_HORIZONTAL_NAV_TOPBAR_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
-- Android: `VC42_LEGACY_UI_PARITY_FIXED_HEADER_SIGNED_RUNTIME_GATE_PASS__OWNER_UI_ACCEPTANCE_PENDING`
-- Latest signed Beta APK: `beta-vc42`
+- Web: `D057_DIRECT_LEGACY_PRESENTATION_SOURCE_BUILD_PASS__DEPLOY_OWNER_UI_REVIEW_PENDING`
+- Android: `D057_DIRECT_LEGACY_NATIVE_XML_SOURCE_BUILD_PASS__SIGNED_RELEASE_OWNER_UI_REVIEW_PENDING`
+- Latest previously signed Beta APK: `beta-vc42`
 - Operational V2 runtime: `4/4`.
 
-## UI parity runtime/release readiness
+## D057 source/build readiness
 
-Legacy UI parity structural repair PR #29 is automated runtime/release PASS on main `d09d91583aa8f664406648c40c70e26438302375`:
-- Web horizontal tabs below topbar restored from the read-only reference.
-- Web login/topbar composition restored toward the legacy reference.
-- Android operational header is fixed, full-width, 76dp and outside scroll content.
+PR #31 source head `7e9c9f5b999cea37a12844deaf4ea861b29bec33` is technically validated:
 - Repo Authority Guard: PASS.
 - Project State Guard: PASS.
-- UI Design Guard run `35305421811`: PASS.
-- Deploy Beta run `35305421857`: PASS.
-- Verify Beta Android run `35305421853`: PASS.
-- Runtime health: SQLite `5/5`, Operational V2 `4/4`.
-- Web shell, auth/business guards and Google OAuth smoke: PASS.
-- Signed Beta release: `beta-vc42`.
-- APK SHA-256: `687a82d9a630aa301a4c875ea6218d5c12d050be10dfca40fd824917c35cb264`.
+- UI Design Guard run `35308615737`: PASS.
+- Operational V2 regression: PASS.
+- Realtime cursor regression: PASS.
+- Web operational regression: PASS.
+- Android operational regression: PASS.
+- Operational support regression: PASS.
+- Worker typecheck: PASS.
+- Web production build: PASS.
+- Android debug build: PASS.
+
+Presentation included in the candidate:
+- old Web base/fast/dashboard/warehouse/ops presentation styles;
+- full-width topbar/status/test strip, grouped left sidebar and workspace composition;
+- old dashboard and master/detail processing presentation;
+- legacy-style management/reporting surfaces;
+- old Android login/main/Picker/Invent/Admin/row/overlay XML;
+- old Android drawables/colors/widget styling;
+- Reporter rows use `row_issue.xml`;
+- Picker critical results use `overlay_alert.xml`.
+
+Automated PASS is only technical eligibility for UI review. It is not Owner UI acceptance.
 
 ## Next action
 
-Use the deployed Web and signed `beta-vc42` APK for explicit Owner screen-by-screen UI/layout review. Repair only UI/layout mismatches until the UI gate passes. Business logic/scenario rebuild remains deferred until that acceptance.
+Merge PR #31 after final protected checks, then deploy the Web candidate and publish the signed Android candidate through the normal matching runtime/release gate. Obtain explicit Owner screen-by-screen UI/layout acceptance before any business-logic rebuild resumes.
