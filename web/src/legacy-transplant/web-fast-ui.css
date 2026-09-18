@@ -739,3 +739,315 @@ body[data-role="PICKER"] .topbar .header-product h1 {
     grid-column: auto !important;
   }
 }
+
+
+/* D060 Owner Web review: stronger corporate title, compact identity, Root role selector and real dark mode. */
+.topbar .company-name {
+  font-size: 17px !important;
+  line-height: 1.2 !important;
+  font-weight: 760 !important;
+  letter-spacing: .025em !important;
+  color: #334155 !important;
+}
+
+.topbar .header-product h1 {
+  margin: 2px 0 4px !important;
+  font-size: 13px !important;
+  line-height: 1.25 !important;
+  font-weight: 650 !important;
+  letter-spacing: 0 !important;
+  color: #64748b !important;
+}
+
+.topbar .header-user {
+  gap: 16px !important;
+}
+
+.header-user-identity {
+  display: grid;
+  gap: 2px;
+  min-width: 118px;
+  text-align: left;
+}
+
+.header-user-identity strong {
+  color: #1e293b !important;
+  font-size: 13px !important;
+  line-height: 1.2;
+  font-weight: 720 !important;
+  white-space: nowrap;
+}
+
+.header-user-identity span {
+  color: #64748b !important;
+  font-size: 11px !important;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.header-controls {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.header-control {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+}
+
+.header-control > span {
+  color: #94a3b8 !important;
+  font-size: 9px !important;
+  line-height: 1;
+  font-weight: 700 !important;
+  letter-spacing: .025em;
+  white-space: nowrap;
+}
+
+.header-control select {
+  min-height: 34px;
+  height: 34px;
+  padding: 5px 28px 5px 9px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: #fff;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 600;
+  outline: none;
+}
+
+.root-role-control select {
+  min-width: 190px;
+}
+
+.theme-control select {
+  min-width: 92px;
+}
+
+.header-control select:focus {
+  border-color: #7aa7cc;
+  box-shadow: 0 0 0 2px rgba(15, 76, 129, .10);
+}
+
+.header-user .user-actions {
+  align-self: flex-end;
+}
+
+body[data-theme="dark"] {
+  color-scheme: dark;
+  --fast-bg: #0b1220;
+  --fast-surface: #111827;
+  --fast-line: #263244;
+  --fast-line-strong: #35445a;
+  --fast-text: #e7edf5;
+  --fast-muted: #94a3b8;
+  --fast-primary: #61a9e6;
+  --fast-primary-soft: #14273a;
+  --fast-good: #49b982;
+  --fast-good-soft: #102a21;
+  --fast-warn: #f3b35a;
+  --fast-warn-soft: #302414;
+  --fast-danger: #f0776d;
+  --fast-danger-soft: #351a1a;
+  background: #0b1220 !important;
+  color: #e7edf5 !important;
+}
+
+body[data-theme="dark"] .app-shell,
+body[data-theme="dark"] .content,
+body[data-theme="dark"] .main,
+body[data-theme="dark"] .login-shell {
+  background: #0b1220 !important;
+  color: #e7edf5 !important;
+}
+
+body[data-theme="dark"] .topbar,
+body[data-theme="dark"] .tabs,
+body[data-theme="dark"] .login-card,
+body[data-theme="dark"] .modal-box,
+body[data-theme="dark"] .critical-box,
+body[data-theme="dark"] :is(.card,.metric,.ops-metric,.ops-card,.panel,.ops-panel,.v5-panel,.v5-kpi,.fast-panel,.fast-card,.history-card,.selected-sku,.suggestions) {
+  background: #111827 !important;
+  color: #e7edf5 !important;
+  border-color: #263244 !important;
+  box-shadow: none !important;
+}
+
+body[data-theme="dark"] .topbar {
+  background: rgba(15, 23, 42, .98) !important;
+}
+
+body[data-theme="dark"] .tabs {
+  background: #0f172a !important;
+}
+
+body[data-theme="dark"] .topbar .company-name,
+body[data-theme="dark"] .header-user-identity strong,
+body[data-theme="dark"] h1,
+body[data-theme="dark"] h2,
+body[data-theme="dark"] h3,
+body[data-theme="dark"] h4,
+body[data-theme="dark"] strong,
+body[data-theme="dark"] .sku-code,
+body[data-theme="dark"] .critical-sku {
+  color: #f1f5f9 !important;
+}
+
+body[data-theme="dark"] .topbar .header-product h1,
+body[data-theme="dark"] .header-user-identity span,
+body[data-theme="dark"] .muted,
+body[data-theme="dark"] .tiny,
+body[data-theme="dark"] small,
+body[data-theme="dark"] .product-name,
+body[data-theme="dark"] .v5-panel-head span,
+body[data-theme="dark"] .v5-kpi span,
+body[data-theme="dark"] .v5-kpi small,
+body[data-theme="dark"] .header-runtime {
+  color: #94a3b8 !important;
+}
+
+body[data-theme="dark"] .nav-section-label {
+  color: #718096 !important;
+}
+
+body[data-theme="dark"] .tabs button {
+  color: #cbd5e1 !important;
+}
+
+body[data-theme="dark"] .tabs button:hover {
+  background: #162033 !important;
+}
+
+body[data-theme="dark"] .tabs button.active {
+  background: #17314a !important;
+  color: #8ec9ff !important;
+}
+
+body[data-theme="dark"] input,
+body[data-theme="dark"] select,
+body[data-theme="dark"] textarea {
+  background: #0f172a !important;
+  color: #e7edf5 !important;
+  border-color: #35445a !important;
+}
+
+body[data-theme="dark"] input::placeholder,
+body[data-theme="dark"] textarea::placeholder {
+  color: #64748b !important;
+}
+
+body[data-theme="dark"] button.secondary,
+body[data-theme="dark"] button.ghost,
+body[data-theme="dark"] .header-user .user-actions .ghost {
+  background: #162033 !important;
+  color: #dbe5f0 !important;
+  border-color: #35445a !important;
+}
+
+body[data-theme="dark"] .header-control select {
+  background: #0f172a !important;
+  color: #e7edf5 !important;
+  border-color: #35445a !important;
+}
+
+body[data-theme="dark"] .v5-compact-metric,
+body[data-theme="dark"] .v5-priority-row,
+body[data-theme="dark"] .v5-rank-row,
+body[data-theme="dark"] .ops-status-strip,
+body[data-theme="dark"] .ops-setting-card,
+body[data-theme="dark"] .ops-empty,
+body[data-theme="dark"] .v5-empty {
+  background: #0f172a !important;
+  color: #dbe5f0 !important;
+  border-color: #263244 !important;
+}
+
+body[data-theme="dark"] .v5-track {
+  background: #243044 !important;
+}
+
+body[data-theme="dark"] table,
+body[data-theme="dark"] thead,
+body[data-theme="dark"] tbody,
+body[data-theme="dark"] tr,
+body[data-theme="dark"] th,
+body[data-theme="dark"] td {
+  color: #dbe5f0 !important;
+  border-color: #263244 !important;
+}
+
+body[data-theme="dark"] th {
+  background: #0f172a !important;
+  color: #aebdd0 !important;
+}
+
+body[data-theme="dark"] tr:hover td {
+  background: #141f31 !important;
+}
+
+body[data-theme="dark"] .diagnostics,
+body[data-theme="dark"] pre {
+  background: #08101d !important;
+  color: #c9d6e4 !important;
+  border-color: #263244 !important;
+}
+
+body[data-theme="dark"] .notice,
+body[data-theme="dark"] .message {
+  border-color: #35445a !important;
+}
+
+body[data-theme="dark"] .app-footer {
+  color: #66768a !important;
+  background: rgba(11, 18, 32, .92) !important;
+}
+
+body[data-theme="dark"] #service-state[data-state="on"] {
+  color: #62d39a !important;
+}
+
+body[data-theme="dark"] #service-state[data-state="off"] {
+  color: #ff8b82 !important;
+}
+
+@media (max-width: 900px) {
+  .topbar .company-name {
+    font-size: 15px !important;
+  }
+
+  .topbar .header-product h1 {
+    font-size: 12px !important;
+  }
+
+  .topbar .header-user {
+    width: 100%;
+    align-items: flex-end !important;
+  }
+
+  .header-controls {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 620px) {
+  .header-user-identity {
+    min-width: 100%;
+  }
+
+  .header-controls {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .root-role-control {
+    flex: 1 1 190px;
+  }
+
+  .root-role-control select {
+    width: 100%;
+  }
+}
