@@ -87,6 +87,20 @@ ROOT inherits **all Admin + Reporter workflow capabilities** and additionally:
 
 ROOT PDA uses the same launcher model with Root-allowed entries; deep management remains Web-first.
 
+
+### Root permission-review workflow
+
+For acceptance testing, the actual ROOT identity may temporarily select an effective role of ROOT, ADMIN, REPORTER or PICKER from the pinned Web header control.
+
+1. Service verifies immutable `base_role=ROOT`.
+2. Service stores the effective-role override and closes existing realtime sockets for that Root identity.
+3. Web immediately clears role-scoped view state, reroutes to the selected role's normal landing surface and reconnects realtime.
+4. All normal service authorization uses the selected effective role. Root-only/Admin-only operations are genuinely forbidden while the effective role is lower.
+5. Android refreshes `/api/auth/me` on resume; if the effective role changed, it rerenders the corresponding Picker/Reporter/Admin/Root surface.
+6. The role selector remains available to the base ROOT identity on Web even while effective permission is lower, allowing ROOT to return to ROOT.
+7. No other role receives this selector or recovery route.
+
+
 ## Account provisioning and passwords
 
 - ROOT → creates/manages ADMIN and REPORTER with an explicit password chosen at creation/change time.
