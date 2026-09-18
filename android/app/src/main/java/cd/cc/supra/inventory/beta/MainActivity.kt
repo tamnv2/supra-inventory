@@ -76,6 +76,14 @@ class MainActivity : Activity() {
     @Volatile private var updateGate = UpdateGate.CHECKING
     @Volatile private var updateCheckRunning = false
     @Volatile private var roleSyncRunning = false
+    @Volatile private var lastImmediateRuntimeLogAt = 0L
+    private var previousUncaughtHandler: Thread.UncaughtExceptionHandler? = null
+    private val runtimeLogTick = object : Runnable {
+        override fun run() {
+            maybeUploadScheduledRuntimeLog()
+            uiHandler.postDelayed(this, 60_000L)
+        }
+    }
 
     private val notificationDeviceId: String by lazy {
         val prefs = getSharedPreferences("notification_device", MODE_PRIVATE)
@@ -108,11 +116,13 @@ class MainActivity : Activity() {
             userAgent = "SUPRA-Inventory-Beta/${BuildConfig.VERSION_NAME}",
         )
         skuCache = SkuCatalogCache(this)
+        installCrashRuntimeLogHandler()
         renderLogin()
     }
 
     override fun onDestroy() {
         statusHideTask?.let { uiHandler.removeCallbacks(it) }
+        uiHandler.removeCallbacks(runtimeLogTick)
         pickerController?.destroy()
         realtimeClient?.stop()
         realtimeClient = null
@@ -183,6 +193,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderLogin(message: String = "Đang kiểm tra phiên bản...") {
+        uiHandler.removeCallbacks(runtimeLogTick)
         stopOperationalClients()
         activeSession = null
         contentContainer = null
@@ -278,6 +289,9 @@ class MainActivity : Activity() {
         registerBackgroundNotifications()
         drainNotificationReceipts()
         recordLog("Đăng nhập ${kit.roleLabel(session.role)}: ${session.employeeCode ?: session.displayName}")
+        flushPendingCrashRuntimeLog()
+        uiHandler.removeCallbacks(runtimeLogTick)
+        uiHandler.post(runtimeLogTick)
     }
 
     private fun showBack(show: Boolean) {
@@ -383,7 +397,11 @@ class MainActivity : Activity() {
             .setTitle("Log hỗ trợ")
             .setView(scroll)
             .setNegativeButton("Đóng", null)
-            .setNeutralButton("Chia sẻ") { _, _ ->
+            .setNeutralButton("Gửi lên Drive") { _, _ ->
+                sendAndroidRuntimeLog("INFO", "manual_android_log", JSONObject(payload))
+                Toast.makeText(this, "Đang gửi log vào Beta / Logs.", Toast.LENGTH_SHORT).show()
+            }
+            .setPositiveButton("Chia sẻ") { _, _ ->
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
                     putExtra(Intent.EXTRA_SUBJECT, "SUPRA Inventory Beta support log")
@@ -404,27 +422,39 @@ class MainActivity : Activity() {
             .takeLast(10)
             .map(::sanitizeDiagnosticText)
 
+        val runtime = Runtime.getRuntime()
         val root = JSONObject()
-            .put("format", "supra-inventory-support-v1")
+            .put("format", "supra-inventory-support-v2")
             .put("generated_at", Instant.now().toString())
             .put("app", JSONObject()
                 .put("package", BuildConfig.APPLICATION_ID)
                 .put("version_name", BuildConfig.VERSION_NAME)
-                .put("version_code", BuildConfig.VERSION_CODE))
+                .put("version_code", BuildConfig.VERSION_CODE)
+                .put("role", activeSession?.role)
+                .put("user_id", activeSession?.userId))
             .put("device", JSONObject()
+                .put("device_id", notificationDeviceId)
                 .put("manufacturer", Build.MANUFACTURER.take(80))
                 .put("model", Build.MODEL.take(80))
                 .put("sdk_int", Build.VERSION.SDK_INT))
             .put("network", JSONObject()
                 .put("validated_internet", hasValidatedInternet())
                 .put("api_host", Uri.parse(BuildConfig.API_BASE_URL).host.orEmpty()))
+            .put("memory", JSONObject()
+                .put("used_bytes", runtime.totalMemory() - runtime.freeMemory())
+                .put("free_bytes", runtime.freeMemory())
+                .put("max_bytes", runtime.maxMemory()))
+            .put("storage", JSONObject()
+                .put("files_free_bytes", filesDir.usableSpace)
+                .put("files_total_bytes", filesDir.totalSpace))
             .put("realtime", JSONObject(realtime))
             .put("catalog", JSONObject()
                 .put("count", skuCache.count)
                 .put("version", sanitizeDiagnosticText(skuCache.version).take(160)))
+            .put("recent_events", JSONArray(localLog.takeLast(80).map(::sanitizeDiagnosticText)))
             .put("recent_errors", JSONArray(errors))
 
-        return root.toString(2).take(16_000)
+        return root.toString(2).take(32_000)
     }
 
     private fun hasValidatedInternet(): Boolean {
@@ -445,6 +475,93 @@ class MainActivity : Activity() {
     private fun recordLog(message: String) {
         if (localLog.size >= 80) localLog.removeFirst()
         localLog.addLast("${logTime.format(Instant.now())} · $message")
+    }
+
+    private fun runtimeLogPrefs() = getSharedPreferences("runtime_logs", MODE_PRIVATE)
+
+    private fun currentRuntimeLogSlot(): String {
+        val now = Instant.now().atZone(ZoneId.of("Asia/Ho_Chi_Minh"))
+        val slot = when {
+            now.hour >= 18 -> 18
+            now.hour >= 12 -> 12
+            now.hour >= 6 -> 6
+            else -> 0
+        }
+        return "%04d%02d%02d-%02d".format(now.year, now.monthValue, now.dayOfMonth, slot)
+    }
+
+    private fun androidRuntimeLogDevice(): JSONObject = JSONObject()
+        .put("device_id", notificationDeviceId)
+        .put("manufacturer", Build.MANUFACTURER.take(80))
+        .put("model", Build.MODEL.take(80))
+        .put("sdk_int", Build.VERSION.SDK_INT)
+        .put("package", BuildConfig.APPLICATION_ID)
+        .put("version_code", BuildConfig.VERSION_CODE)
+        .put("version_name", BuildConfig.VERSION_NAME)
+
+    private fun uploadAndroidRuntimeLog(severity: String, reason: String, payload: JSONObject): Boolean {
+        if (api.session == null || !hasValidatedInternet()) return false
+        return try {
+            api.uploadRuntimeLog(
+                severity = severity,
+                reason = sanitizeDiagnosticText(reason),
+                generatedAt = Instant.now().toString(),
+                device = androidRuntimeLogDevice(),
+                payload = payload,
+            )
+            true
+        } catch (error: Exception) {
+            recordLog("Lỗi gửi log: ${sanitizeDiagnosticText(error.message ?: "unknown")}")
+            false
+        }
+    }
+
+    private fun sendAndroidRuntimeLog(severity: String, reason: String, payload: JSONObject = JSONObject(buildSupportDiagnostics())) {
+        Thread {
+            val sent = uploadAndroidRuntimeLog(severity, reason, payload)
+            if (sent) recordLog("Đã gửi log $severity · $reason")
+        }.start()
+    }
+
+    private fun maybeUploadScheduledRuntimeLog() {
+        if (api.session == null || !hasValidatedInternet()) return
+        val slot = currentRuntimeLogSlot()
+        val prefs = runtimeLogPrefs()
+        if (prefs.getString("last_slot", "") == slot) return
+        Thread {
+            val sent = uploadAndroidRuntimeLog("INFO", "scheduled_$slot", JSONObject(buildSupportDiagnostics()))
+            if (sent) prefs.edit().putString("last_slot", slot).apply()
+        }.start()
+    }
+
+    private fun flushPendingCrashRuntimeLog() {
+        val prefs = runtimeLogPrefs()
+        val raw = prefs.getString("pending_crash", null) ?: return
+        Thread {
+            val payload = try { JSONObject(raw) } catch (_: Exception) { JSONObject().put("raw", sanitizeDiagnosticText(raw)) }
+            if (uploadAndroidRuntimeLog("ERROR", "deferred_android_crash", payload)) {
+                prefs.edit().remove("pending_crash").apply()
+            }
+        }.start()
+    }
+
+    private fun installCrashRuntimeLogHandler() {
+        if (previousUncaughtHandler != null) return
+        previousUncaughtHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            val payload = JSONObject()
+                .put("thread", sanitizeDiagnosticText(thread.name))
+                .put("message", sanitizeDiagnosticText(throwable.message ?: throwable.javaClass.name))
+                .put("stack", sanitizeDiagnosticText(throwable.stackTraceToString()).take(12_000))
+                .put("support", try { JSONObject(buildSupportDiagnostics()) } catch (_: Exception) { JSONObject() })
+            runtimeLogPrefs().edit().putString("pending_crash", payload.toString().take(30_000)).commit()
+            if (::api.isInitialized && api.session != null && hasValidatedInternet()) {
+                val sender = Thread { uploadAndroidRuntimeLog("ERROR", "android_crash", payload) }
+                sender.start()
+                try { sender.join(1_500L) } catch (_: InterruptedException) { }
+            }
+            previousUncaughtHandler?.uncaughtException(thread, throwable)
+        }
     }
 
     private fun createNotificationChannel() {
@@ -495,6 +612,7 @@ class MainActivity : Activity() {
     }
 
     private fun logoutWithNotificationCleanup() {
+        uiHandler.removeCallbacks(runtimeLogTick)
         stopOperationalClients()
         Thread {
             try { api.unregisterNotificationDevice(notificationDeviceId) } catch (_: Exception) { }
@@ -549,17 +667,27 @@ class MainActivity : Activity() {
 
     private fun setStatus(message: String) {
         if (!::status.isInitialized) return
+        val normalized = message.lowercase()
+        val isError = listOf("lỗi", "không thể", "không hợp lệ", "thất bại", "hết hạn", "chưa xác minh").any { normalized.contains(it) }
+        recordLog(message)
+        if (isError && api.session != null) {
+            val now = System.currentTimeMillis()
+            if (now - lastImmediateRuntimeLogAt >= 20_000L) {
+                lastImmediateRuntimeLogAt = now
+                sendAndroidRuntimeLog(
+                    "ERROR",
+                    "android_runtime_error",
+                    JSONObject(buildSupportDiagnostics()).put("message", sanitizeDiagnosticText(message)),
+                )
+            }
+        }
         if (status.parent == null && api.session != null) {
-            recordLog(message)
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
             return
         }
         statusHideTask?.let { uiHandler.removeCallbacks(it) }
         status.text = message
         status.visibility = View.VISIBLE
-        recordLog(message)
-        val normalized = message.lowercase()
-        val isError = listOf("lỗi", "không thể", "không hợp lệ", "thất bại", "hết hạn", "chưa xác minh").any { normalized.contains(it) }
         val isWorking = !isError && listOf("đang ", "cần ", "chờ ").any { normalized.contains(it) }
         val fill = when { isError -> kit.redSoft; isWorking -> kit.orangeSoft; else -> kit.greenSoft }
         val stroke = when { isError -> Color.parseColor("#E9A2AA"); isWorking -> Color.parseColor("#EBC56E"); else -> kit.line }
