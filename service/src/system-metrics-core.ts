@@ -261,7 +261,7 @@ export async function handleSystemMetricsCoreRequest(state: DurableObjectState, 
           AND status = 'ACTIVE'
           AND employee_code IS NOT NULL
           AND employee_code <> ''
-        ORDER BY RANDOM()
+        ORDER BY CASE WHEN firebase_uid IS NULL OR firebase_uid = '' THEN 1 ELSE 0 END, RANDOM()
         LIMIT ?`,
       pickerLimit,
     ).toArray();
