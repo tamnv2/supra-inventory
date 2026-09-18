@@ -21,6 +21,7 @@ class ReporterController(
     private val kit: InventoryUi,
     private val setStatus: (String) -> Unit,
     private val friendlyError: (Exception) -> String,
+    initialFilter: String = "PENDING",
 ) {
     private enum class Filter { PENDING, HAS_STOCK, SKIP_ALLOWED, WITHDRAWN }
     private val zone = ZoneId.of("Asia/Ho_Chi_Minh")
@@ -29,7 +30,12 @@ class ReporterController(
     private var refreshing = false
     private var refreshDirty = false
     private val refreshWaiters = mutableListOf<(Boolean) -> Unit>()
-    private var filter = Filter.PENDING
+    private var filter = when (initialFilter.uppercase()) {
+        "HAS_STOCK" -> Filter.HAS_STOCK
+        "SKIP_ALLOWED" -> Filter.SKIP_ALLOWED
+        "WITHDRAWN", "CLOSED" -> Filter.WITHDRAWN
+        else -> Filter.PENDING
+    }
     private val buttons = linkedMapOf<Filter, Button>()
     private var listBox: LinearLayout? = null
     private var listRenderer: KeyedLinearRenderer? = null
