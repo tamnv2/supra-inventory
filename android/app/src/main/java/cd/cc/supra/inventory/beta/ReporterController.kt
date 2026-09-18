@@ -32,6 +32,7 @@ class ReporterController(
     private var filter = Filter.PENDING
     private val buttons = linkedMapOf<Filter, Button>()
     private var listBox: LinearLayout? = null
+    private var listRenderer: KeyedLinearRenderer? = null
     private var queue: List<ReporterBatch> = emptyList()
     private var recent: List<ReporterRecent> = emptyList()
 
@@ -47,6 +48,7 @@ class ReporterController(
         addTab(tabs, Filter.WITHDRAWN, "Picker thu hồi")
         root.addView(tabs)
         listBox = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+        listRenderer = listBox?.let(::KeyedLinearRenderer)
         root.addView(listBox)
         updateTabs()
         refresh()
@@ -132,26 +134,66 @@ class ReporterController(
     }
 
     private fun renderSelected() {
-        val box = listBox ?: return
-        box.removeAllViews()
+        val renderer = listRenderer ?: return
         when (filter) {
-            Filter.PENDING -> renderPending(box)
-            Filter.HAS_STOCK -> renderRecent(box, "HAS_STOCK")
-            Filter.SKIP_ALLOWED -> renderRecent(box, "SKIP_ALLOWED")
-            Filter.WITHDRAWN -> renderRecent(box, "CLOSED")
+            Filter.PENDING -> {
+                if (queue.isEmpty()) {
+                    renderer.render(listOf("empty:pending"), { it }, { it }) { empty("Không có SKU đang chờ xử lý.") }
+                } else {
+                    renderer.render(
+                        queue,
+                        keyOf = { "pending:${it.batchId}" },
+                        signatureOf = { pendingSignature(it) },
+                        createView = { pendingCard(it) },
+                    )
+                }
+            }
+            else -> {
+                val state = when (filter) {
+                    Filter.HAS_STOCK -> "HAS_STOCK"
+                    Filter.SKIP_ALLOWED -> "SKIP_ALLOWED"
+                    Filter.WITHDRAWN -> "CLOSED"
+                    else -> "PENDING"
+                }
+                val rows = recent.filter { it.status == state }
+                if (rows.isEmpty()) {
+                    val message = when (state) {
+                        "HAS_STOCK" -> "Chưa có kết quả Đã có hàng."
+                        "SKIP_ALLOWED" -> "Chưa có kết quả Đã cho skip."
+                        else -> "Chưa có báo Picker thu hồi."
+                    }
+                    renderer.render(listOf("empty:$state"), { it }, { it }) { empty(message) }
+                } else {
+                    renderer.render(
+                        rows,
+                        keyOf = { "recent:${it.batchId}:${it.version}" },
+                        signatureOf = { recentSignature(it) },
+                        createView = { recentCard(it, state) },
+                    )
+                }
+            }
         }
     }
 
-    private fun renderPending(box: LinearLayout) {
-        if (queue.isEmpty()) { box.addView(empty("Không có SKU đang chờ xử lý.")); return }
-        for (row in queue) {
-            val stroke = when (row.slaState) {
-                "ESCALATED" -> kit.redStrong
-                "WARNING" -> Color.parseColor("#EBC56E")
-                else -> kit.line
-            }
-            val card = kit.card(Color.WHITE, stroke, 11)
-            card.addView(TextView(activity).apply {
+    private fun pendingSignature(row: ReporterBatch): String = listOf(
+        row.batchId,
+        row.version,
+        row.affectedPickerCount,
+        row.firstReportAt,
+        row.previousBatchId.orEmpty(),
+        row.recurrenceMinutes ?: -1,
+        row.slaState,
+        row.waitingMinutes,
+    ).joinToString("|")
+
+    private fun pendingCard(row: ReporterBatch): ViewGroup {
+        val stroke = when (row.slaState) {
+            "ESCALATED" -> kit.redStrong
+            "WARNING" -> Color.parseColor("#EBC56E")
+            else -> kit.line
+        }
+        return kit.card(Color.WHITE, stroke, 11).apply {
+            addView(TextView(activity).apply {
                 text = "${row.sku} - ${row.productName}"
                 textSize = 19.5f
                 maxLines = 2
@@ -170,7 +212,7 @@ class ReporterController(
                 "NORMAL" -> "SLA bình thường"
                 else -> "SLA chưa cấu hình"
             }
-            val context = TextView(activity).apply {
+            addView(TextView(activity).apply {
                 text = "$affectedPickerCount Picker · chờ ${row.waitingMinutes} phút · $sla$recurrence\nBáo đầu: ${timestamp(row.firstReportAt)}"
                 textSize = 12.5f
                 maxLines = 3
@@ -178,10 +220,12 @@ class ReporterController(
                 setPadding(0, kit.dp(5), 0, kit.dp(2))
                 contentDescription = "Xem $affectedPickerCount Picker báo SKU ${row.sku}"
                 setOnClickListener { showTickets(row) }
-            }
-            card.addView(context)
+            })
 
-            val actions = LinearLayout(activity).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, kit.dp(8), 0, 0) }
+            val actions = LinearLayout(activity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setPadding(0, kit.dp(8), 0, 0)
+            }
             actions.addView(Button(activity).apply {
                 text = "CÓ HÀNG"
                 textSize = 14f
@@ -199,29 +243,30 @@ class ReporterController(
                 kit.styleDanger(this)
                 setOnClickListener { confirmSkipImpact(row) }
             })
-            card.addView(actions)
-            box.addView(card)
+            addView(actions)
         }
     }
 
-    private fun renderRecent(box: LinearLayout, state: String) {
-        val rows = recent.filter { it.status == state }
-        if (rows.isEmpty()) {
-            box.addView(empty(when (state) {
-                "HAS_STOCK" -> "Chưa có kết quả Đã có hàng."
-                "SKIP_ALLOWED" -> "Chưa có kết quả Đã cho skip."
-                else -> "Chưa có báo Picker thu hồi."
-            }))
-            return
+    private fun recentSignature(row: ReporterRecent): String = listOf(
+        row.batchId,
+        row.version,
+        row.status,
+        row.resolvedAt.orEmpty(),
+        row.correctionDeadlineAt.orEmpty(),
+        row.affectedPickerCount,
+        row.ackTargetCount,
+        row.acknowledgedCount,
+        row.previousBatchId.orEmpty(),
+    ).joinToString("|")
+
+    private fun recentCard(row: ReporterRecent, state: String): ViewGroup {
+        val colors = when (state) {
+            "HAS_STOCK" -> Triple(kit.stockFill, kit.stockStroke, kit.greenDark)
+            "SKIP_ALLOWED" -> Triple(kit.skipFill, kit.skipStroke, kit.red)
+            else -> Triple(kit.graySoft, kit.line, kit.muted)
         }
-        for (row in rows) {
-            val colors = when (state) {
-                "HAS_STOCK" -> Triple(kit.stockFill, kit.stockStroke, kit.greenDark)
-                "SKIP_ALLOWED" -> Triple(kit.skipFill, kit.skipStroke, kit.red)
-                else -> Triple(kit.graySoft, kit.line, kit.muted)
-            }
-            val card = kit.card(colors.first, colors.second, 11)
-            card.addView(TextView(activity).apply {
+        return kit.card(colors.first, colors.second, 11).apply {
+            addView(TextView(activity).apply {
                 text = "${row.sku} - ${row.productName}"
                 textSize = 18.5f
                 maxLines = 2
@@ -236,22 +281,23 @@ class ReporterController(
             }
             val ackText = if (state == "CLOSED") "" else " · ${row.acknowledgedCount}/${row.ackTargetCount} Picker đã xác nhận"
             val recurrence = if (row.previousBatchId != null) " · Tái phát" else ""
-            card.addView(TextView(activity).apply {
+            addView(TextView(activity).apply {
                 text = "$resultText · ${row.affectedPickerCount} Picker$ackText$recurrence\n${timestamp(row.resolvedAt)}"
                 textSize = 12.5f
                 setTextColor(colors.third)
                 setPadding(0, kit.dp(5), 0, 0)
             })
             if (state == "SKIP_ALLOWED" && millis(row.correctionDeadlineAt) > System.currentTimeMillis()) {
-                card.addView(Button(activity).apply {
+                addView(Button(activity).apply {
                     text = "Sửa thành Đã có hàng"
                     textSize = 11.5f
                     kit.styleSecondary(this)
-                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, kit.dp(42)).apply { topMargin = kit.dp(7) }
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, kit.dp(42)).apply {
+                        topMargin = kit.dp(7)
+                    }
                     setOnClickListener { confirmCorrection(row) }
                 })
             }
-            box.addView(card)
         }
     }
 
