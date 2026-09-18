@@ -437,13 +437,13 @@ function renderLogin(): void {
 
 function renderShell(content: string): void {
   if (!profile) return renderLogin();
-  const identity = `${profile.employee_code || profile.user_id} · ${profile.display_name}`;
+  const employee = profile.employee_code || profile.user_id;
   app.innerHTML = `<div class="shell role-${esc(profile.role.toLowerCase())}">
     <header class="topbar">
       <div class="web-heading"><p class="eyebrow">BÁO HÀNG 1291</p><h1>Web nghiệp vụ</h1>
         <div class="health-row"><span class="connection ${esc(realtimeState)}" id="connection-state">${esc(realtimeState === "connected" ? `CẬP NHẬT · #${realtimeLastSeq}` : realtimeState)}</span></div>
       </div>
-      <div class="user"><strong>${esc(profile.display_name)}</strong><span>${esc(identity)} · ${esc(profile.role)}</span><div class="user-actions"><button class="btn secondary small" id="logout">Thoát</button></div></div>
+      <div class="user"><strong>${esc(profile.display_name)}</strong><span>${esc(employee)} · ${esc(profile.role)}</span><div class="user-actions"><button class="btn secondary small" id="logout">Thoát</button></div></div>
     </header>
     <nav class="tabs" aria-label="Điều hướng nghiệp vụ">${renderNav()}</nav>
     <main class="main">${renderNotice()}${content}<div class="credit">${PRODUCT_CREDIT}</div></main>
