@@ -180,6 +180,8 @@ function clearRoleScopedViewState(): void {
   realtimePresence = null;
   reportSummary = null;
   reportInsights = null;
+  serviceHealth = null;
+  systemStatus = null;
   runtimeLogs = [];
   runtimeLogDetail = null;
   selectedBatchId = null;
