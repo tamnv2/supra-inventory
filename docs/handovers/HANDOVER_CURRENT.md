@@ -34,4 +34,4 @@
 
 ## Continuity rule
 
-A new session must bootstrap from `ops/authority-manifest.json` and its declared `bootstrap_order` before mutation.
+No manual end-of-session handover is required. A new session must bootstrap from `ops/authority-manifest.json` and its declared `bootstrap_order` before mutation.
