@@ -66,7 +66,8 @@
     "SKU Excel imports support 10,000-50,000 rows using bounded idempotent chunks and explicit conflict handling.",
     "Android Beta must verify latest valid signed Beta version before login.",
     "UI-first sequencing: complete and obtain Owner acceptance for the legacy-reference Web + Android/PDA visual shell before rebuilding/wiring remaining logic, scenarios and business requirements.",
-    "During the UI-first phase, Web preserves the old topbar/health/test-strip/left-sidebar/workspace presentation and Android/PDA preserves the old native XML/drawable/color/style/layout structure; intentional visual divergence requires Owner approval."
+    "During the UI-first phase, Web preserves the old topbar/health/test-strip/left-sidebar/workspace presentation and Android/PDA preserves the old native XML/drawable/color/style/layout structure; intentional visual divergence requires Owner approval.",
+    "Only immutable base ROOT may select a temporary server-authoritative effective role ROOT/ADMIN/REPORTER/PICKER for acceptance testing; normal RBAC/realtime/role-target notifications use the effective role and ROOT can restore ROOT through the base-identity recovery selector."
   ],
   "completed_capabilities": [
     "Cloudflare Beta Worker/custom domain/InventoryCore SQLite provisioning",
@@ -116,15 +117,16 @@
     "UI Design Guard run 35309444877 PASS on fa677463 with D057 presentation invariants plus Web production and Android debug build gates."
   ],
   "pending_build": [
-    "Owner screen-by-screen Web UI/layout acceptance on deployed D059 Beta candidate",
-    "Android/APK visual review after Owner resumes it",
-    "Only after Owner UI gate: rebuild/wire canonical business logic/scenarios",
+    "D060 source/build/deploy: Root effective role + Web header/theme + Android effective-role refresh",
+    "Owner screen-by-screen Web UI/theme acceptance on deployed D060 Beta candidate",
+    "Android broader visual review after Owner resumes it",
+    "Only after Owner UI gate: remaining canonical business wiring",
     "Physical notification/device acceptance after functional rebuild",
     "Isolated business mutation load acceptance after Owner scale target"
   ],
   "field_pending": [
-    "Owner Web visual/layout acceptance is pending for deployed D059.",
-    "Android/APK review remains pending separately.",
+    "Owner Web visual/layout/theme acceptance is pending for D060.",
+    "Android broader visual review remains pending separately.",
     "Technical source/build/deploy/release PASS is not Owner UI acceptance."
   ],
   "open_decisions_do_not_invent": [
@@ -135,8 +137,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Continue Owner-led screen-by-screen review of deployed D059 Web. Repair only visual/layout/copy mismatches; Android/APK remains pending.",
-    "method": "Fresh-bootstrap canonical GitHub. D059 is active Web refinement over D058: corporate header, Cloudflare ON/OFF, event-driven Cập nhật HH:mm MM/DD/YYYY, Tên/User/Quyền + logout only, left-aligned Admin/Root navigation, local/system Segoe/Aptos typography. Owner only needs to provide current Web screenshot/feedback.",
+    "primary": "Complete D060 source/build gates, merge through PR, verify Beta schema/auth/Web/Android runtime, then continue Owner review.",
+    "method": "D060 overrides D059 conflicts: larger company line, smaller Website line, display name + role only, no username labels, remove duplicate Dashboard head meta, Root-only server-authoritative effective-role selector, Web Auto/Light/Dark (Auto dark 18:00–05:59 Asia/Ho_Chi_Minh), Android effective-role refresh on resume.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -164,19 +166,23 @@
   },
   "workboard": {
     "in_progress": [
-      "Owner is actively reviewing the deployed D059 Web header/identity candidate",
-      "UI-only Web presentation mismatch repair from Owner review feedback; Android/APK review remains pending"
+      "D060 source candidate: Root server-authoritative effective-role override with realtime socket revocation and effective-role notification targeting",
+      "D060 Web: stronger company line, smaller Website line, compact name/role identity, no username labels, simplified Dashboard head, Root role selector, Light/Dark/Auto theme",
+      "D060 Android: refresh server-authoritative effective role on resume; no broader Android visual redesign",
+      "Owner Web UI acceptance remains pending"
     ],
     "next": [
-      "Continue Owner screen-by-screen Web review from deployed D059 without asking Owner to repeat project history",
-      "For each rejected Web screen, repair presentation/layout/copy only and preserve D058/D059 shell/header rules",
-      "Keep Android/APK pending until Owner explicitly starts its separate review",
-      "Only after explicit Owner UI acceptance resume canonical business wiring"
+      "Run D060 authority/continuity/UI/Web/Android regression, Worker typecheck, Web production build and Android debug build",
+      "Merge D060 only after required guards PASS",
+      "Verify Beta schema 6 deployment, Root effective-role route/RBAC and Web runtime",
+      "Verify signed Android release if Android source change triggers the release pipeline",
+      "Record runtime evidence in canonical state/registry and continue Owner review",
+      "Do not mutate Stable"
     ],
     "blocked_or_owner_field_dependent": [
-      "Final Web UI/layout acceptance depends on Owner visual review of the deployed D059 candidate",
-      "Android/APK visual review is pending by Owner instruction",
-      "No business rebuild is authorized while the UI gate is still in progress"
+      "Final Web UI/theme acceptance depends on Owner visual review of deployed D060",
+      "Android broader visual review remains pending; D060 changes Android only for effective-role synchronization",
+      "No Stable promotion is authorized"
     ],
     "last_source_build_evidence": {
       "branch": "ui/d059-web-header-identity",
@@ -226,7 +232,7 @@
   "last_updated": "2026-09-18",
   "owner_ui_review": {
     "status": "IN_PROGRESS",
-    "phase": "D059_WEB_HEADER_IDENTITY_RUNTIME_REVIEW",
+    "phase": "D060_ROOT_ROLE_THEME_SOURCE_BUILD",
     "started_on": "2026-09-18",
     "review_target_web": "https://inventory-beta.supra.cc.cd/",
     "review_target_android_release": "beta-vc43",
@@ -234,8 +240,8 @@
     "visual_authority_repository": "tam95supra-source/bao-hang-1291",
     "visual_authority_commit": "8713f487386fa39c9225b180b2b8448d4a7e2b2d",
     "owner_acceptance": "NOT_YET_GIVEN",
-    "current_instruction": "Continue Web screen-by-screen UI/layout review on deployed D059: corporate header, Cloudflare service ON/OFF, event-driven latest update timestamp, Tên/User/Quyền + logout only, left-aligned Admin/Root navigation and local/system typography. Android/APK remains pending and unchanged.",
-    "next_session_command": "Tiếp tục review UI D059",
-    "review_feedback_protocol": "Owner may send the current Web screenshot and concise feedback; AI must bootstrap canonical repo first, apply Web presentation-only repair through branch -> PR -> authority/continuity/UI guards -> merge -> Beta deploy verification, then return the next Web review candidate. Android remains pending."
+    "current_instruction": "Implement and verify D060: stronger company header / smaller Website line, compact display-name + role identity without username labels, remove redundant Dashboard date/update/shortcut head, Root-only server-authoritative role selector, Web Light/Dark/Auto theme, and Android effective-role refresh. Owner UI acceptance remains pending.",
+    "next_session_command": "Tiếp tục review UI D060",
+    "review_feedback_protocol": "Owner may send the current Web screenshot and concise feedback; AI must bootstrap canonical repo first. D060 includes a narrowly authorized server-side Root effective-role test capability plus Web presentation/theme changes and Android effective-role refresh. Use branch -> PR -> authority/continuity/UI/regression guards -> merge -> Beta runtime verification. Stable remains untouched."
   }
 }
