@@ -7,13 +7,13 @@
 Canonical current markers:
 - SQLite schema: `6`
 - Latest Beta APK: `beta-vc44`
-- Web: `D062_WEB_FINAL_QA_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
-- Android: `VC44_D060_EFFECTIVE_ROLE_REFRESH_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
+- Web: `D063_CONSOLIDATED_OPS_LOGS_REPORTING_PRESENCE_UI_SOURCE_BUILD_PENDING_RUNTIME`
+- Android: `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SOURCE_BUILD_PENDING_SIGNED_RUNTIME`
 
 The project is in **UI-first review**, not business-logic rebuild.
 
-- Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinements: **D058 shell + D059 header + D060 Root-role/theme + D061 dark/sidebar/realtime cleanup + D062 final Web QA/IA**.
-- D062 is now deployed on Beta and technically PASS: D061 cleanup is preserved, canonical five-area navigation/operational-first landing is live, and remaining dark transient/expanded surfaces are covered. Android/PDA broader visual review is pending separately; beta-vc44 is unchanged.
+- Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinements: **D058 shell + D059 header + D060 Root-role/theme + D061 dark/sidebar/realtime cleanup + D062 final Web QA/IA + D063 consolidated operations/logs/reporting/people review**.
+- D062 remains the deployed Beta runtime baseline while D063 is the active source/build candidate. D063 consolidates related sidebar modules to max three child entries per group, rebuilds operations/results and overview/reporting workspaces, adds authenticated online counts, professional people/accounts UI, Beta Web/Android runtime logs and further dark-theme completion. Stable is unchanged.
 - Owner has **not yet given UI/layout acceptance** for the current candidate.
 - Technical build/deploy/release PASS must never be interpreted as Owner UI PASS.
 - Until explicit Owner UI acceptance, work is limited to **UI/layout/presentation mismatch repair**.
@@ -31,7 +31,7 @@ Current review targets:
 
 Owner can start the next chat with only:
 
-> **Tiếp tục review UI D062**
+> **Tiếp tục review UI D063**
 
 Then attach/send the current screenshot or concise review feedback, for example:
 - `Web Tổng quan: chưa OK, sidebar rộng quá`
@@ -181,6 +181,10 @@ Continuity:
 These facts prove technical eligibility for review only.
 
 
+### D063 source candidate — consolidated operations, logs, reporting, presence and people UI
+
+Owner requirements are recorded as D063. The Beta Drive folder `Inventory/Beta/Logs` exists and is registered in project scope/resource state. Source work adds sanitized Web/Android scheduled/error/manual log upload, online-user counts derived from active authenticated realtime sockets, max-three-child sidebar grouping, merged `Vận hành báo hàng` and `Tổng quan & báo cáo` workspaces, a redesigned `Nhân sự & tài khoản` surface, plain-Vietnamese reporting copy and additional dark-theme coverage. D062 remains the deployed Web runtime until D063 passes branch/PR guards and merge/deploy. Latest signed Android review release remains beta-vc44 until the D063 signed build pipeline completes. Stable is untouched.
+
 ### D062 runtime PASS — final Web QA and canonical navigation
 
 D062 preserves already-correct D061 work and closes only the remaining gaps: canonical five-area Admin/Root navigation using existing routes, operational queue as default landing, direct access to results/HR/account surfaces, and dark-theme coverage for expanded/transient legacy surfaces. PR #42 merged at `c874eafccb732c108f466ed7095a14e1f3e39d0e`; Beta deploy run `35347188833` PASS including health/schema, auth/business guards, Web shell and Google OAuth smoke. Android beta-vc44 and Stable are unchanged. Owner UI acceptance remains pending.
@@ -271,7 +275,7 @@ Technical evidence:
 
 Status: **IN PROGRESS**.
 
-Owner is reviewing the deployed D062 Web candidate. Android/PDA broader visual review is pending separately.
+D063 is under source/build verification; after Beta deploy, Owner will review the consolidated Web candidate. Android/PDA broader visual review remains pending separately.
 
 No D060 Web/theme/role-test surface or beta-vc44 Android surface should be marked Owner-approved unless the Owner explicitly says it is OK.
 
@@ -383,4 +387,4 @@ Useful current files:
 
 No manual end-of-session handover is required. A new session must bootstrap from `ops/authority-manifest.json` and its declared `bootstrap_order` before mutation.
 
-The Owner's next-chat instruction **`Tiếp tục review UI D062`** is sufficient to resume from this point; any Web screenshot or UI review text supplied with it becomes the immediate work item.
+The Owner's next-chat instruction **`Tiếp tục review UI D063`** is sufficient to resume from this point; any Web screenshot or UI review text supplied with it becomes the immediate work item.
