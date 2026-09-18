@@ -208,6 +208,135 @@ function renderNotice(): string {
   return notice ? `<div class="notice ${notice.type}">${esc(notice.text)}</div>` : "";
 }
 
+type UiFieldSnapshot = {
+  id: string;
+  name: string;
+  value: string;
+  checked: boolean | null;
+};
+
+type UiContextSnapshot = {
+  section: Section;
+  userId: string | null;
+  scrollY: number;
+  fields: UiFieldSnapshot[];
+  activeId: string;
+  activeName: string;
+  selectionStart: number | null;
+  selectionEnd: number | null;
+  scrollBoxes: Array<{ className: string; index: number; top: number; left: number }>;
+};
+
+function captureUiContext(): UiContextSnapshot | null {
+  const main = document.querySelector<HTMLElement>(".main");
+  if (!main) return null;
+  const active = document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement || document.activeElement instanceof HTMLSelectElement
+    ? document.activeElement
+    : null;
+  const fields = [...main.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("input, textarea, select")]
+    .filter((field) => !(field instanceof HTMLInputElement && field.type === "file"))
+    .map((field) => ({
+      id: field.id || "",
+      name: field.name || "",
+      value: field.value,
+      checked: field instanceof HTMLInputElement && (field.type === "checkbox" || field.type === "radio") ? field.checked : null,
+    }));
+  const scrollBoxes = [".table-wrap", ".user-list", ".history-list", ".operation-list"].flatMap((className) =>
+    [...main.querySelectorAll<HTMLElement>(className)].map((node, index) => ({
+      className,
+      index,
+      top: node.scrollTop,
+      left: node.scrollLeft,
+    })),
+  );
+  return {
+    section: activeSection,
+    userId: profile?.user_id || null,
+    scrollY: window.scrollY,
+    fields,
+    activeId: active?.id || "",
+    activeName: active?.name || "",
+    selectionStart: active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement ? active.selectionStart : null,
+    selectionEnd: active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement ? active.selectionEnd : null,
+    scrollBoxes,
+  };
+}
+
+function restoreUiContext(snapshot: UiContextSnapshot | null): void {
+  if (!snapshot || snapshot.section !== activeSection || snapshot.userId !== (profile?.user_id || null)) return;
+  const main = document.querySelector<HTMLElement>(".main");
+  if (!main) return;
+  for (const saved of snapshot.fields) {
+    let field: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null = null;
+    if (saved.id) field = document.getElementById(saved.id) as typeof field;
+    if (!field && saved.name) {
+      field = [...main.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("input, textarea, select")]
+        .find((candidate) => candidate.name === saved.name) || null;
+    }
+    if (!field) continue;
+    field.value = saved.value;
+    if (saved.checked != null && field instanceof HTMLInputElement) field.checked = saved.checked;
+  }
+  for (const saved of snapshot.scrollBoxes) {
+    const node = [...main.querySelectorAll<HTMLElement>(saved.className)][saved.index];
+    if (node) {
+      node.scrollTop = saved.top;
+      node.scrollLeft = saved.left;
+    }
+  }
+  let active: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null = null;
+  if (snapshot.activeId) active = document.getElementById(snapshot.activeId) as typeof active;
+  if (!active && snapshot.activeName) {
+    active = [...main.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("input, textarea, select")]
+      .find((candidate) => candidate.name === snapshot.activeName) || null;
+  }
+  if (active) {
+    active.focus({ preventScroll: true });
+    if ((active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) && snapshot.selectionStart != null && snapshot.selectionEnd != null) {
+      try { active.setSelectionRange(snapshot.selectionStart, snapshot.selectionEnd); } catch { /* non-text input */ }
+    }
+  }
+  requestAnimationFrame(() => window.scrollTo({ top: snapshot.scrollY }));
+}
+
+function activeContent(): string {
+  if (activeSection === "picker") return renderPicker();
+  if (activeSection === "operations") return renderOperations();
+  if (activeSection === "results") return renderResults();
+  if (activeSection === "sku") return renderSku();
+  if (activeSection === "hr") return renderHr();
+  if (activeSection === "users") return renderUsers();
+  if (activeSection === "sla") return renderSla();
+  if (activeSection === "dashboard") return renderDashboard();
+  if (activeSection === "reports") return renderReports();
+  if (activeSection === "system") return renderSystem();
+  return renderAccount();
+}
+
+function mainMarkup(): string {
+  return `${renderNotice()}${activeContent()}<div class="credit">${PRODUCT_CREDIT}</div>`;
+}
+
+function patchOverlays(): void {
+  const root = document.querySelector<HTMLElement>("#overlay-root");
+  if (!root) return;
+  root.innerHTML = `${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}`;
+  bindOverlay();
+}
+
+function patchActiveSection(preserveContext = true): void {
+  const main = document.querySelector<HTMLElement>(".main");
+  if (!main) {
+    render();
+    return;
+  }
+  const snapshot = preserveContext ? captureUiContext() : null;
+  main.innerHTML = mainMarkup();
+  bindSection();
+  patchOverlays();
+  restoreUiContext(snapshot);
+}
+
 function navButton(section: Section, label: string): string {
   return `<button class="nav-button ${activeSection === section ? "active" : ""}" data-section="${section}">${esc(label)}</button>`;
 }
