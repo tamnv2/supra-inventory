@@ -6,6 +6,7 @@ import { handleNotificationApi } from "./notification-api";
 import { handleUserManagementApi } from "./user-management-api";
 import { archiveStatus, runArchive } from "./archive";
 import { validateHrSheetSource } from "./hr-source";
+import { listRuntimeLogs, readRuntimeLog, uploadRuntimeLog } from "./runtime-logs";
 
 export { InventoryCore };
 
@@ -25,6 +26,7 @@ interface Env {
   PICKER_DEFAULT_PASSWORD?: string;
   ARCHIVE_SHEET_ID?: string;
   RETENTION_DAYS?: string;
+  LOGS_FOLDER_ID?: string;
 }
 
 interface InternalUser {
@@ -392,7 +394,7 @@ export default {
         return json({
           status: healthy ? "ok" : "degraded", service: env.PROJECT_KEY || "supra-inventory", environment: env.APP_ENV || "unknown",
           required_bindings: bindingPresence, oauth_refresh_token_configured: Boolean(env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN),
-          root_bootstrap_secret_configured: Boolean(env.ROOT_BOOTSTRAP_PASSWORD), storage: core, missing_bindings: missing, timestamp: new Date().toISOString(),
+          root_bootstrap_secret_configured: Boolean(env.ROOT_BOOTSTRAP_PASSWORD), logs_folder_configured: Boolean(env.LOGS_FOLDER_ID), storage: core, missing_bindings: missing, timestamp: new Date().toISOString(),
         }, healthy ? 200 : 503);
       }
 
@@ -414,6 +416,7 @@ export default {
           },
           realtime_foreground: "websocket_sequence_delta_on_inventory_core",
           background_notifications: "firebase_cloud_messaging",
+          runtime_logs: { drive: Boolean(env.LOGS_FOLDER_ID), sources: ["WEB", "ANDROID"], schedule: ["06:00", "12:00", "18:00", "24:00"], error_upload: "immediate_best_effort" },
           hr_source_setup: { mode: "web_admin_input", required_input: ["google_sheet_url", "tab_name"], validation: ["valid_google_sheet_link", "exact_tab_name", "configured_employee_code_column", "configured_full_name_column"], public_setup_endpoint: false },
           root_password_initialized: Boolean(core.root_password_initialized), stable_release: "owner_gated",
         });
@@ -424,6 +427,33 @@ export default {
       if (request.method === "GET" && url.pathname === "/api/auth/me") return json({ user: publicUser(await requireUser(request, env)) });
       if (request.method === "PUT" && url.pathname === "/api/auth/root-role") return setRootEffectiveRole(request, env);
       if (request.method === "PUT" && url.pathname === "/api/auth/change-password") return changePassword(request, env);
+
+      if (request.method === "POST" && url.pathname === "/api/logs/upload") {
+        const user = await requireUser(request, env);
+        let body: Record<string, unknown> = {};
+        try { body = (await request.json()) as Record<string, unknown>; } catch { body = {}; }
+        try {
+          return json(await uploadRuntimeLog(env, user, body));
+        } catch (error) {
+          return json({ error: "LOG_UPLOAD_FAILED", message: error instanceof Error ? error.message : "log_upload_failed" }, 502);
+        }
+      }
+      if (request.method === "GET" && url.pathname === "/api/admin/logs") {
+        await requireUser(request, env, ["ADMIN", "ROOT"]);
+        try {
+          return json(await listRuntimeLogs(env, url.searchParams.get("source") || "WEB", Number(url.searchParams.get("limit") || 50)));
+        } catch (error) {
+          return json({ error: "LOG_LIST_FAILED", message: error instanceof Error ? error.message : "log_list_failed" }, 502);
+        }
+      }
+      if (request.method === "GET" && url.pathname === "/api/admin/logs/file") {
+        await requireUser(request, env, ["ADMIN", "ROOT"]);
+        try {
+          return json(await readRuntimeLog(env, String(url.searchParams.get("file_id") || "")));
+        } catch (error) {
+          return json({ error: "LOG_READ_FAILED", message: error instanceof Error ? error.message : "log_read_failed" }, 502);
+        }
+      }
 
       if (request.method === "GET" && url.pathname === "/api/admin/archive/status") {
         await requireUser(request, env, ["ADMIN", "ROOT"]);
