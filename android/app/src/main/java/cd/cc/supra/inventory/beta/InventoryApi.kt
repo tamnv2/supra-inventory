@@ -153,6 +153,20 @@ class InventoryApi(
         return next
     }
 
+    fun refreshProfile(): AppSession {
+        val current = session ?: throw ApiException(401, "AUTH_REQUIRED", "Chưa đăng nhập.")
+        val payload = request("GET", "/api/auth/me")
+        val user = payload.optJSONObject("user") ?: JSONObject()
+        val next = current.copy(
+            userId = user.optString("user_id", current.userId),
+            displayName = user.optString("display_name", current.displayName),
+            role = user.optString("role", current.role),
+            employeeCode = nullable(user, "employee_code") ?: current.employeeCode,
+        )
+        session = next
+        return next
+    }
+
     fun registerNotificationDevice(deviceId: String, token: String): JSONObject = request(
         "POST", "/api/notifications/device",
         JSONObject().put("device_id", deviceId).put("token", token).put("platform", "ANDROID"),
