@@ -20,6 +20,11 @@ on:
         required: true
         default: "600"
 
+  push:
+    branches: [main]
+    paths:
+      - "ops/d064-load-test-trigger.json"
+
 permissions:
   contents: read
 
