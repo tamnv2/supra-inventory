@@ -23,4 +23,4 @@ F14/F19/F20/F23 are automated runtime/release PASS on main `c375643687b0f72132ff
 
 ## Next action
 
-Continue field/business acceptance on Beta: physical PDA/UI, background FCM plus explicit critical-result acknowledgement, Owner Web/Android functional acceptance, then isolated mutation load acceptance once its workload target is fixed.
+The active frontier is UI-first rebaseline: complete the Beta Web + Android/PDA visual/layout parity against the prior Báo hàng 1291 reference, obtain explicit Owner UI acceptance, then rebuild/wire canonical logic and scenarios inside that accepted shell. Physical FCM/device/load acceptance resumes after the functional rebuild.
