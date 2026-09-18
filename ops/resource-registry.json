@@ -24,7 +24,7 @@
     "durable_object_binding": "INVENTORY_CORE",
     "durable_object_storage": "sqlite",
     "beta_sqlite_schema_version": 5,
-    "beta_operational_v2_extension_schema_runtime": 3,
+    "beta_operational_v2_extension_schema_runtime": 4,
     "beta_operational_v2_extension_schema_source_target": 4
   },
   "network_scope": {
@@ -117,20 +117,20 @@
     ],
     "presence_api": "ADMIN_ROOT_ONLY",
     "delivery_semantics": "TRANSACTION_COMMIT_FIRST_THEN_BEST_EFFORT_INVALIDATION_CLIENT_RESYNC",
-    "source_status": "GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_3"
+    "source_status": "GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_4"
   },
   "environments": {
     "beta": {
-      "status": "F01_F07_WEB_P1_RUNTIME_PASS__ANDROID_P1_SOURCE_IN_PROGRESS_OP_V2_TARGET_4",
+      "status": "F01_F13_F21_F22_ANDROID_P1_RUNTIME_RELEASE_PASS_MAIN_09F6C6C4__NEXT_F14_F19_F20_F23",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
       "hostname": "inventory-beta.supra.cc.cd",
       "custom_domain_status": "ACTIVE",
       "health_status": "PASS",
-      "ci_deploy_status": "PASS_RUN_35291272392_MAIN_343AFFD8",
-      "web_smoke_status": "PASS_MAIN_343AFFD8",
-      "app_verify_status": "VC38_RUNTIME_BASELINE__NEXT_SIGNED_RELEASE_PENDING_ANDROID_P1_PR_DEPLOY_GATE",
+      "ci_deploy_status": "PASS_RUN_35293918856_MAIN_09F6C6C4",
+      "web_smoke_status": "PASS_MAIN_09F6C6C4",
+      "app_verify_status": "ANDROID_PASS_SIGNED_RELEASE_VC39__MATCHING_RUNTIME_GATE_PASS",
       "durable_object_status": "PROVISIONED_PASS",
       "durable_object_class": "InventoryCore",
       "durable_object_storage": "sqlite",
@@ -163,22 +163,22 @@
       "cloudflare_oauth_refresh_token_secret": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
       "oauth_refresh_token_configured": true,
       "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA",
-      "web_source_status": "WEB_OPERATIONAL_P1_RUNTIME_PASS__ANDROID_LAUNCHER_HASH_DEEPLINK_SOURCE_IN_PROGRESS",
+      "web_source_status": "WEB_OPERATIONAL_P1_HASH_DEEPLINK_BETA_DEPLOY_PASS_09F6C6C4",
       "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
       "web_admin_report_monitoring": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_BUILD_DEPLOY_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
-      "android_source_status": "F09_F13_F21_F22_SOURCE_IN_PROGRESS__VC38_RUNTIME_BASELINE",
+      "android_source_status": "F09_F13_F21_F22_SIGNED_BETA_VC39_RUNTIME_GATED_PASS",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
-      "latest_signed_beta_release": "beta-vc38",
-      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.38",
-      "latest_signed_beta_apk_sha256": "0950621118df4339c69f5b5672ecb43aeff1229ef38d81de704d96ab031ff7aa",
-      "latest_signed_beta_apk_size_bytes": 9217842,
+      "latest_signed_beta_release": "beta-vc39",
+      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.39",
+      "latest_signed_beta_apk_sha256": "59ec8144b26f241ca8997e28d4c0a7cb754a1bfe83c9e6e4618bbe46c855095d",
+      "latest_signed_beta_apk_size_bytes": 9250662,
       "auth_rbac_status": "SERVER_PAGED_FILTERED_ONE_MANY_ALL_SOURCE_BUILD_DEPLOY_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
       "auth_api_route_smoke": "PASS",
       "root_bootstrap_path_smoke": "PASS",
       "hr_settings_ui_status": "CONFIGURABLE_URL_TAB_EMPLOYEE_AND_NAME_HEADERS_DEPLOYED_PASS",
-      "business_api_status": "F02_F07_RUNTIME_PASS_OP_V2_3__FCM_DELIVERY_TELEMETRY_SOURCE_TARGET_OP_V2_4_PENDING",
-      "latest_signed_beta_release_source_commit": "17c1c0610dc5344ff0813436d770e843f66b3d59",
+      "business_api_status": "F02_F07_RUNTIME_PASS__FCM_DELIVERY_TELEMETRY_RUNTIME_PASS_OPERATIONAL_V2_4",
+      "latest_signed_beta_release_source_commit": "09f6c6c4b70ed8d851bf7b3a617abdfaf5e98455",
       "managed_password_status": "DIRECT_CREATE_AND_CHANGE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
@@ -262,8 +262,6 @@
     "android_vc33_native_ui_fail_closed_update_gate_signed_release_pass"
   ],
   "application_build_pending": [
-    "android_p1_f09_f13_f21_f22_pr_ci_runtime_release",
-    "operational_v2_extension_schema_target_4_runtime_migration",
     "f14_f19_f20_f23_sla_archive_insights_diagnostics",
     "fcm_physical_device_delivery_acceptance",
     "owner_web_android_functional_acceptance",
@@ -282,7 +280,7 @@
     "device_registry": "InventoryCore.fcm_devices",
     "routing": "ROLE_OR_USER_BATCH_TARGETS",
     "delivery_semantics": "BEST_EFFORT_AFTER_COMMITTED_TRANSACTION",
-    "source_status": "DATA_ONLY_SERVICE_CORRELATION_DELIVERY_ATTEMPTS_INVALID_TOKEN_CLEANUP_SOURCE_IN_PROGRESS"
+    "source_status": "DATA_ONLY_SERVICE_CORRELATION_DELIVERY_ATTEMPTS_INVALID_TOKEN_CLEANUP_RUNTIME_RELEASE_PASS__PHYSICAL_ACCEPTANCE_PENDING"
   },
   "user_management": {
     "hierarchy": "ROOT_INHERITS_ADMIN_REPORTER_MANAGES_ADMIN_REPORTER_PICKER__ADMIN_MANAGES_REPORTER_PICKER__HR_PROVISIONS_PICKER",
@@ -325,8 +323,8 @@
   },
   "ui_design": {
     "authority": "OWNER_SELECTED_LEGACY_OPERATIONAL_UI_V2",
-    "web": "WEB_OPERATIONAL_P1_RUNTIME_PASS__HASH_DEEPLINK_SOURCE_IN_PROGRESS",
-    "android": "F09_F13_F21_F22_SOURCE_IN_PROGRESS__KEYED_RENDERING_FCM_SQLITE_OTA_ROUTES",
+    "web": "WEB_OPERATIONAL_P1_HASH_DEEPLINK_BETA_DEPLOY_PASS_09F6C6C4",
+    "android": "F09_F13_F21_F22_SIGNED_BETA_VC39_RUNTIME_GATED_PASS",
     "scope_guard": "LEGACY_OPERATIONAL_UI_V2_WITH_CANONICAL_BUSINESS_CONTROLS_AND_CURRENT_ARCHITECTURE"
   },
   "quota_resilience": {

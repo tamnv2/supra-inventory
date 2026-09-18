@@ -5,43 +5,41 @@
 ## Current status
 
 - Project: `SUPRA Inventory — Báo hàng` (`supra-inventory`).
-- Beta: `F01_F07_WEB_P1_RUNTIME_PASS__ANDROID_P1_SOURCE_IN_PROGRESS_OP_V2_TARGET_4`
+- Beta: `F01_F13_F21_F22_ANDROID_P1_RUNTIME_RELEASE_PASS_MAIN_09F6C6C4__NEXT_F14_F19_F20_F23`
 - SQLite schema: `5`
-- Web: `WEB_OPERATIONAL_P1_RUNTIME_PASS__ANDROID_LAUNCHER_HASH_DEEPLINK_SOURCE_IN_PROGRESS`
-- Android: `F09_F13_F21_F22_SOURCE_IN_PROGRESS__VC38_RUNTIME_BASELINE`
-- Latest signed Beta APK: `beta-vc38`
-- Realtime: `GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_3`
-- FCM: `DATA_ONLY_SERVICE_CORRELATION_DELIVERY_ATTEMPTS_INVALID_TOKEN_CLEANUP_SOURCE_IN_PROGRESS__PHYSICAL_ACCEPTANCE_PENDING`
+- Web: `WEB_OPERATIONAL_P1_HASH_DEEPLINK_BETA_DEPLOY_PASS_09F6C6C4`
+- Android: `F09_F13_F21_F22_SIGNED_BETA_VC39_RUNTIME_GATED_PASS`
+- Latest signed Beta APK: `beta-vc39`
+- Realtime: `GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_4`
+- FCM: `DATA_ONLY_SERVICE_CORRELATION_DELIVERY_ATTEMPTS_INVALID_TOKEN_CLEANUP_RUNTIME_RELEASE_PASS__PHYSICAL_ACCEPTANCE_PENDING`
 
-## Proven runtime baseline
+## Automated runtime/release evidence
 
-- F01–F07 runtime remains PASS.
-- Web operational P1 runtime/deploy smoke remains PASS.
-- Current signed Android baseline remains `beta-vc38`.
-- Runtime Operational V2 remains `3/3` until this branch is merged/deployed.
+- Android P1 PR #22 merged at `09f6c6c4b70ed8d851bf7b3a617abdfaf5e98455`.
+- Protected source/build gates PASS: authority, continuity, UI invariants, Operational V2, realtime cursor, Web operational, Android operational, Worker typecheck, Web production build and Android debug build.
+- Deploy Beta run `35293918856`: PASS.
+- Health: HTTP 200, base SQLite `5/5`, Operational V2 `4/4`.
+- Auth/business guard smoke, Web shell and Google OAuth start: PASS.
+- Verify Beta Android run `35293918801`: PASS and explicitly observed the matching deploy run before release.
+- Signed release: `beta-vc39`, source `09f6c6c4`, APK size `9,250,662` bytes, SHA-256 `59ec8144b26f241ca8997e28d4c0a7cb754a1bfe83c9e6e4618bbe46c855095d`.
 
-## Android P1 source work
+## Android P1 delivered
 
-Branch `fix/android-operational-lifecycle` currently implements:
-- keyed in-place Picker history and Reporter queue/result rendering;
-- Picker result `RECEIVED` / visible-only `DISPLAYED` separation;
+- keyed Picker/Reporter operational rendering;
+- visible-only critical result DISPLAYED;
 - one-tap withdrawal confirmation;
-- transactional SQLite SKU cache with staging/version-count recheck and legacy TSV migration;
-- high-priority data-only FCM handled by `FirebaseMessagingService`, token rotation, lifecycle reconciliation and bounded provider delivery telemetry;
-- invalid/unregistered FCM token disable path;
-- strict OTA verification for trusted HTTPS source, Beta tag, SHA-256, package ID, exact versionCode/versionName and trusted signer;
-- exact Android launcher routes plus role-checked Web hash deep links;
-- Operational V2 source target `4` for notification delivery-attempt telemetry.
-
-PR/CI/runtime/release gates are still pending for this source package.
+- transactional staged SQLite SKU cache with old-cache safety;
+- high-priority data-only FCM service/correlation, lifecycle receipt reconciliation and invalid-token cleanup;
+- bounded provider delivery-attempt telemetry;
+- fail-closed OTA source/package/version/channel/signer verification;
+- exact launcher routes plus role-checked Web hash deep links.
 
 ## Next
 
-1. Run protected PR authority/continuity and all regression/source-build gates.
-2. Repair until all PR checks PASS.
-3. Merge and verify Beta deploy health with Operational V2 `4/4`.
-4. Verify matching signed Beta Android release is published only after that runtime gate passes.
-5. Record runtime/release evidence, then continue F14/F19/F20/F23.
+1. Implement F14/F19/F20/F23.
+2. Preserve all current regression/source-build gates.
+3. Run protected PR and matching Beta deploy/runtime verification.
+4. Keep physical PDA/FCM acceptance separate from automated technical PASS.
 
 ## Continuity rule
 
