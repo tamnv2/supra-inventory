@@ -251,7 +251,7 @@ async function chooseAlternatePair(job, preserveSku = true) {
 
 async function submitJob(originalJob) {
   let job = { ...originalJob };
-  let requestId = randomUUID();
+  let requestId = `d064:${testId}:${randomUUID()}`;
   let retry = 0;
 
   while (performance.now() - startedMono < TEST_DEADLINE_MS - 5_000) {
@@ -298,7 +298,7 @@ async function submitJob(originalJob) {
       const replacement = await chooseAlternatePair(job, true);
       if (!replacement) break;
       job = { ...job, ...replacement };
-      requestId = randomUUID();
+      requestId = `d064:${testId}:${randomUUID()}`;
       retry = 0;
       continue;
     }
