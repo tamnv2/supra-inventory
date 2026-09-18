@@ -34,3 +34,7 @@ Legacy backend/provider/auth/storage/database/credentials remain excluded.
 1. Owner reviews Web and APK screen-by-screen.
 2. Fix only presentation mismatches.
 3. Do not resume business-rule/scenario rebuild until explicit Owner UI acceptance.
+
+## Continuity rule
+
+No manual end-of-session handover is required. A new session must bootstrap from `ops/authority-manifest.json` and its declared `bootstrap_order` before mutation.
