@@ -7,13 +7,13 @@
 Canonical current markers:
 - SQLite schema: `6`
 - Latest Beta APK: `beta-vc44`
-- Web: `D061_DARK_NAV_REALTIME_CLEANUP_SOURCE_CANDIDATE__BUILD_RUNTIME_PENDING__OWNER_UI_ACCEPTANCE_PENDING`
+- Web: `D061_DARK_NAV_REALTIME_CLEANUP_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
 - Android: `VC44_D060_EFFECTIVE_ROLE_REFRESH_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 
 The project is in **UI-first review**, not business-logic rebuild.
 
 - Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinements: **D058 shell + D059 header + D060 Root-role/theme + D061 dark/sidebar/realtime cleanup**.
-- Owner has supplied the next Web review requirements under **D061**. The D061 source candidate fixes dark-theme consistency, sidebar hierarchy/icons, redundant copy and generic refresh buttons. Until PR/deploy PASS, the deployed Web remains D060. Android/PDA broader visual review is pending separately; beta-vc44 is unchanged.
+- D061 is now deployed on Beta and technically PASS: dark-theme consistency, sidebar hierarchy/icons, redundant-copy cleanup and generic refresh removal are live for Owner review. Android/PDA broader visual review is pending separately; beta-vc44 is unchanged.
 - Owner has **not yet given UI/layout acceptance** for the current candidate.
 - Technical build/deploy/release PASS must never be interpreted as Owner UI PASS.
 - Until explicit Owner UI acceptance, work is limited to **UI/layout/presentation mismatch repair**.
@@ -23,9 +23,9 @@ Current review targets:
 - Web: `https://inventory-beta.supra.cc.cd/`
 - Android signed review release (broader visual review pending): `beta-vc44`
 - APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc44/supra-inventory-beta.apk`
-- Web runtime source: `765be7baa90e6645a592cc5137324c85fb793009`
+- Web runtime source: `967365bffa8d518e8ad85d802b14753bc5f4fa1d`
 - Android beta-vc44 source: `765be7baa90e6645a592cc5137324c85fb793009`
-- Current runtime implementation source: `765be7baa90e6645a592cc5137324c85fb793009`
+- Current Web runtime implementation source: `967365bffa8d518e8ad85d802b14753bc5f4fa1d`
 
 ## 2. Minimal command for the next chat
 
@@ -181,7 +181,7 @@ Continuity:
 These facts prove technical eligibility for review only.
 
 
-### D061 source candidate — dark/sidebar/realtime cleanup
+### D061 runtime PASS — dark/sidebar/realtime cleanup
 
 Owner review requirements now captured in D061:
 - dark theme is coherent across currently reachable operational, management, reporting and system surfaces; no white table/workspace islands or near-invisible light-theme labels;
@@ -190,7 +190,7 @@ Owner review requirements now captured in D061:
 - generic `Làm mới`/refresh controls are removed from realtime-backed operations/results/Picker/user views; semantic filters/export/support diagnostics remain;
 - Android beta-vc44 and Stable are unchanged.
 
-Current D061 status on this branch: source candidate; authority/UI/build guards and Beta deploy must PASS before it becomes the deployed review target.
+Runtime evidence: PR #40 merged at `967365bffa8d518e8ad85d802b14753bc5f4fa1d`; Repo Authority Guard PASS; Project State Guard PASS; UI Design Guard run `35334240734` PASS; Beta deploy run `35334240991` PASS including health/schema, auth/business guards, Web shell and Google OAuth smoke. Owner UI acceptance remains pending. Stable and Android beta-vc44 were not changed by D061.
 
 ### D060 runtime PASS — Root effective role + theme
 
@@ -267,7 +267,7 @@ Technical evidence:
 
 Status: **IN PROGRESS**.
 
-Owner is reviewing the deployed D060 Web candidate. Android/PDA broader visual review is pending separately.
+Owner is reviewing the deployed D061 Web candidate. Android/PDA broader visual review is pending separately.
 
 No D060 Web/theme/role-test surface or beta-vc44 Android surface should be marked Owner-approved unless the Owner explicitly says it is OK.
 

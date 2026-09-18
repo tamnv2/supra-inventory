@@ -18,7 +18,7 @@
     "sqlite_schema": 6,
     "business_api": "OPERATIONAL_V2_4_RUNTIME_PASS__F20_BOUNDED_INSIGHTS_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
-    "web": "D061_DARK_NAV_REALTIME_CLEANUP_SOURCE_CANDIDATE__BUILD_RUNTIME_PENDING__OWNER_UI_ACCEPTANCE_PENDING",
+    "web": "D061_DARK_NAV_REALTIME_CLEANUP_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
     "android": "VC44_D060_EFFECTIVE_ROLE_REFRESH_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING",
     "latest_beta_apk": "beta-vc44",
     "realtime": "GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_4",
@@ -28,7 +28,7 @@
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_BUILD_DEPLOY_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "D061_DARK_NAV_REALTIME_CLEANUP_SOURCE_CANDIDATE__GUARDS_PENDING__OWNER_UI_GATE_PENDING",
+    "ui_design_guard": "D061_DARK_NAV_REALTIME_CLEANUP_SOURCE_BUILD_RUNTIME_PASS__OWNER_UI_GATE_PENDING",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED"
@@ -121,10 +121,10 @@
     "D060 Root effective-role source is deployed: immutable base ROOT may persist an effective ROOT/ADMIN/REPORTER/PICKER role; normal HTTP RBAC, realtime projection and role-target notification routing use the effective role and existing Root realtime sockets are revoked on change.",
     "D060 Web runtime includes stronger company header, compact name/role identity, simplified Dashboard head and persisted Auto/Light/Dark theme with Auto dark 18:00–05:59 Asia/Ho_Chi_Minh.",
     "D060 Android role-refresh source published as signed beta-vc44 from 765be7baa90e6645a592cc5137324c85fb793009 after matching Beta runtime gate PASS; APK size 9283170 bytes; SHA-256 c2ee4740ebee30fcdfc0ae8dcda44f7d5116dbefe8fbaed035a885e3d98ca5fb.",
-    "D060 Verify Beta Android run 35326095361 PASS; UI Design Guard run 35326095346 PASS on main."
+    "D060 Verify Beta Android run 35326095361 PASS; UI Design Guard run 35326095346 PASS on main.",
+    "D061 Web dark/sidebar/realtime cleanup PR #40 merged at 967365bffa8d518e8ad85d802b14753bc5f4fa1d with Repo Authority Guard, Project State Guard and UI Design Guard PASS; Beta deploy run 35334240991 PASS."
   ],
   "pending_build": [
-    "D061 Web source candidate: authority/UI/build guards, merge and Beta deploy pending",
     "Owner functional acceptance of Root effective-role switching across Web and resumed Android",
     "Android broader visual review after Owner resumes it",
     "Only after Owner UI gate: remaining canonical business wiring",
@@ -132,7 +132,7 @@
     "Isolated business mutation load acceptance after Owner scale target"
   ],
   "field_pending": [
-    "Owner Web visual/layout/theme acceptance is pending for D061 Beta candidate after deployment.",
+    "Owner Web visual/layout/theme acceptance is pending for deployed D061 Beta candidate.",
     "Root effective-role server implementation is deployed and automated guards PASS; Owner end-to-end role-switch acceptance is pending.",
     "Android beta-vc44 contains effective-role refresh, but broader Android visual review remains pending separately.",
     "Technical source/build/deploy/release PASS is not Owner UI acceptance."
@@ -145,8 +145,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Complete D061 Web dark/sidebar/realtime-cleanup guard → PR → merge → Beta deploy, then continue Owner screen-by-screen review on the deployed D061 candidate.",
-    "method": "D061 is Web-only: coherent dark surfaces on all reachable routes, larger sidebar group headings with inline monochrome icons, redundant heading/copy cleanup, and removal of generic refresh buttons from realtime-backed views. Preserve D060 Root effective-role/theme behavior and D057 business layout structure.",
+    "primary": "Continue Owner-led screen-by-screen review of deployed D061 Web, focusing dark-mode contrast/surface parity, sidebar hierarchy/icons, redundant copy removal and realtime-backed pages without generic refresh buttons. Broader Android UI remains pending.",
+    "method": "D061 is live on Beta from 967365bffa8d518e8ad85d802b14753bc5f4fa1d. Preserve D057 layout authority, D060 Root effective-role/theme semantics, and D061 Web refinements. Repair only confirmed Web UI issues until Owner acceptance; do not resume deferred business rebuild.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -174,29 +174,27 @@
   },
   "workboard": {
     "in_progress": [
-      "D061 Web presentation repair is in source candidate: dark-theme parity across operational/management/reporting surfaces",
-      "D061 left navigation adds stronger group hierarchy and business icons without external dependencies",
-      "D061 removes generic refresh buttons from realtime-backed views and redundant page copy",
+      "D061 Web dark/sidebar/realtime cleanup is deployed on Beta and technically PASS; Owner visual acceptance is pending",
       "Root effective-role D060 remains runtime-deployed; Owner end-to-end permission review remains pending",
       "Android beta-vc44 is unchanged by D061; broader Android visual review remains pending"
     ],
     "next": [
-      "Run D061 authority/UI/build guards and repair any regression",
-      "Merge D061 only after required PR checks PASS, then follow Beta deploy to terminal PASS",
-      "Owner reviews dark mode across Xử lý báo thiếu, Danh mục SKU, Nhân sự & tài khoản, Báo cáo, Thiết bị/Hệ thống routes",
+      "Owner reviews deployed D061 dark mode across Xử lý báo thiếu, Danh mục SKU, Nhân sự & tài khoản, Báo cáo, Thiết bị/Hệ thống routes",
+      "Owner reviews sidebar group sizing/icons and verifies generic refresh controls are absent from realtime-backed views",
+      "Repair any confirmed D061 Web presentation issues through branch → PR → guards → Beta deploy",
       "Keep Android broader UI review pending until Owner explicitly resumes it",
       "Do not resume deferred business rebuild until explicit Owner UI acceptance"
     ],
     "blocked_or_owner_field_dependent": [
-      "Final Web UI/theme acceptance depends on Owner visual review of deployed D061 candidate",
+      "Final Web UI/theme acceptance depends on Owner visual review of deployed D061",
       "Root effective-role end-to-end acceptance depends on Owner exercising the selector with the actual Root account",
       "Android broader visual review is pending by Owner instruction",
       "No Stable promotion is authorized"
     ],
     "last_source_build_evidence": {
-      "branch": "feature/d060-root-role-theme",
-      "merged_pr": 38,
-      "merged_main": "765be7baa90e6645a592cc5137324c85fb793009",
+      "branch": "ui/d061-dark-nav-realtime-cleanup-v2",
+      "merged_pr": 40,
+      "merged_main": "967365bffa8d518e8ad85d802b14753bc5f4fa1d",
       "repo_authority_guard": "PASS",
       "project_state_guard": "PASS",
       "ui_design_guard": "PASS",
@@ -208,18 +206,18 @@
       "service_typecheck": "PASS",
       "web_production_build": "PASS",
       "android_debug_build": "PASS",
-      "ui_design_guard_run": 35326095346
+      "ui_design_guard_run": 35334240734
     },
     "last_runtime_evidence": {
       "schema": 6,
       "operational_v2_schema": "4/4",
-      "beta_deploy_run": 35326095378,
+      "beta_deploy_run": 35334240991,
       "beta_deploy_conclusion": "success",
       "health": "HTTP_200_OK",
       "business_auth_guards": "PASS",
       "web_shell": "PASS",
       "google_oauth_start": "PASS",
-      "runtime_source_commit": "765be7baa90e6645a592cc5137324c85fb793009",
+      "runtime_source_commit": "967365bffa8d518e8ad85d802b14753bc5f4fa1d",
       "signed_beta_release": "beta-vc44",
       "signed_beta_release_source_commit": "765be7baa90e6645a592cc5137324c85fb793009",
       "signed_beta_apk_sha256": "c2ee4740ebee30fcdfc0ae8dcda44f7d5116dbefe8fbaed035a885e3d98ca5fb",
