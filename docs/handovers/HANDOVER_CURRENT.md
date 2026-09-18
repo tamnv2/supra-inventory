@@ -7,13 +7,13 @@
 Canonical current markers:
 - SQLite schema: `6`
 - Latest Beta APK: `beta-vc44`
-- Web: `D060_ROOT_ROLE_THEME_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Web: `D061_DARK_NAV_REALTIME_CLEANUP_SOURCE_CANDIDATE__BUILD_RUNTIME_PENDING__OWNER_UI_ACCEPTANCE_PENDING`
 - Android: `VC44_D060_EFFECTIVE_ROLE_REFRESH_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 
 The project is in **UI-first review**, not business-logic rebuild.
 
-- Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinements: **D058 shell + D059 header + D060 Root-role/theme**.
-- Owner is **currently reviewing the deployed Web UI under D060**. Android/PDA broader visual review is pending separately; beta-vc44 only adds effective-role refresh.
+- Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinements: **D058 shell + D059 header + D060 Root-role/theme + D061 dark/sidebar/realtime cleanup**.
+- Owner has supplied the next Web review requirements under **D061**. The D061 source candidate fixes dark-theme consistency, sidebar hierarchy/icons, redundant copy and generic refresh buttons. Until PR/deploy PASS, the deployed Web remains D060. Android/PDA broader visual review is pending separately; beta-vc44 is unchanged.
 - Owner has **not yet given UI/layout acceptance** for the current candidate.
 - Technical build/deploy/release PASS must never be interpreted as Owner UI PASS.
 - Until explicit Owner UI acceptance, work is limited to **UI/layout/presentation mismatch repair**.
@@ -31,7 +31,7 @@ Current review targets:
 
 Owner can start the next chat with only:
 
-> **Tiếp tục review UI D060**
+> **Tiếp tục review UI D061**
 
 Then attach/send the current screenshot or concise review feedback, for example:
 - `Web Tổng quan: chưa OK, sidebar rộng quá`
@@ -180,6 +180,17 @@ Continuity:
 
 These facts prove technical eligibility for review only.
 
+
+### D061 source candidate — dark/sidebar/realtime cleanup
+
+Owner review requirements now captured in D061:
+- dark theme is coherent across currently reachable operational, management, reporting and system surfaces; no white table/workspace islands or near-invisible light-theme labels;
+- Admin/Root sidebar group headings are larger/stronger and group/business entries use inline monochrome SVG icons with no external dependency;
+- redundant category eyebrow + page-title copy and nonessential repeated explanations are removed;
+- generic `Làm mới`/refresh controls are removed from realtime-backed operations/results/Picker/user views; semantic filters/export/support diagnostics remain;
+- Android beta-vc44 and Stable are unchanged.
+
+Current D061 status on this branch: source candidate; authority/UI/build guards and Beta deploy must PASS before it becomes the deployed review target.
 
 ### D060 runtime PASS — Root effective role + theme
 
@@ -368,4 +379,4 @@ Useful current files:
 
 No manual end-of-session handover is required. A new session must bootstrap from `ops/authority-manifest.json` and its declared `bootstrap_order` before mutation.
 
-The Owner's next-chat instruction **`Tiếp tục review UI D060`** is sufficient to resume from this point; any Web screenshot or UI review text supplied with it becomes the immediate work item.
+The Owner's next-chat instruction **`Tiếp tục review UI D061`** is sufficient to resume from this point; any Web screenshot or UI review text supplied with it becomes the immediate work item.
