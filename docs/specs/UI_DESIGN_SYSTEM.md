@@ -130,6 +130,21 @@ Group functions conceptually as:
 Dashboard is an Admin/Root analysis module, not the Reporter landing surface.
 
 
+### Owner-reviewed header and identity refinement (D059)
+
+For Web, D059 further refines the D058 desktop shell:
+
+- top-left product identity is corporate and operational: `CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN` then `Website nghiệp vụ Inventory 1291`;
+- replace the former status-chip cluster with one compact runtime line: `Service: Cloudflare ON/OFF | Cập nhật: HH:mm MM/DD/YYYY`;
+- `Service` reflects whether the Web client can currently reach/maintain its Cloudflare service channel; an unavailable/reconnecting/offline service surface is shown as OFF until service connectivity is re-established;
+- `Cập nhật` is the latest time this Web client receives authoritative information from the service, including realtime business events and successful role-page data loads; it is not a decorative clock;
+- top-right identity shows `Tên`, `User`, `Quyền` and `Đăng xuất`; do not keep a topbar `Đổi mật khẩu` button;
+- visible role names are business labels, not implementation enums: ADMIN/ROOT = `Quản trị hệ thống`, REPORTER = `Người báo hàng`, PICKER = `Người lấy hàng`;
+- all Admin/Root left-navigation group labels and items align left;
+- typography uses the local/system stack `Segoe UI Variable Text`, `Aptos`, `Segoe UI`, `Roboto`, `Noto Sans`, Arial/sans-serif fallback. Do not add a remote font dependency;
+- keep the D058 pinned top/left shell and full-width central workspace;
+- Android/APK is unchanged by D059 and remains pending separate Owner review.
+
 ### Owner-reviewed desktop shell refinement (D058)
 
 For Web, D058 takes precedence over literal legacy geometry where the Owner explicitly rejected the old/current behavior:
