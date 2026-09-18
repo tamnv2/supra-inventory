@@ -23,4 +23,4 @@ F14/F19/F20/F23 are automated runtime/release PASS on main `c375643687b0f72132ff
 
 ## Next action
 
-The active frontier is UI-first rebaseline: complete the Beta Web + Android/PDA visual/layout parity against the prior Báo hàng 1291 reference, obtain explicit Owner UI acceptance, then rebuild/wire canonical logic and scenarios inside that accepted shell. Physical FCM/device/load acceptance resumes after the functional rebuild.
+Validate the legacy UI parity source candidate, then deploy the Beta Web candidate and publish the signed Android/PDA candidate through the existing gates. Explicit Owner UI/layout acceptance is required before canonical business logic/scenario rebuild resumes.
