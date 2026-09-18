@@ -129,3 +129,12 @@ Clients distinguish:
 - **applied cursor**: position whose relevant authoritative read-model effects have been successfully applied by that client.
 
 Only the applied cursor is persisted as recovered client state. If read-model application fails after a page/socket event arrives, the client remains dirty at the prior applied cursor and retries/reconciles. Epoch changes, a cursor ahead of the current stream, or a cursor older than retained history require an explicit authoritative reconcile before the client commits the replacement cursor.
+
+## Notification delivery-attempt telemetry
+
+Notification-provider attempt rows are technical delivery telemetry, not business authority.
+
+- Each bounded attempt may record result/event identity, event type, device/user identity when resolvable, `SENT`/ `FAILED` provider outcome, bounded provider error code and creation time.
+- Invalid/unregistered provider tokens may be disabled from the authenticated device registry without changing business resolution.
+- Delivery-attempt retention is bounded independently from durable report/result/ACK audit; current source keeps only the newest bounded attempt window.
+- Client `RECEIVED`, `DISPLAYED` and explicit `ACKNOWLEDGED` remain separate monotonic stages.

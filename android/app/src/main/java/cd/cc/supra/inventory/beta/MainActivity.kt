@@ -6,6 +6,7 @@ import android.app.AlertDialog
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.Typeface
@@ -115,6 +116,25 @@ class MainActivity : Activity() {
         if (::api.isInitialized && api.session == null && updateGate != UpdateGate.CURRENT && !updateCheckRunning) {
             checkForUpdate(silent = true)
         }
+        if (::api.isInitialized && api.session != null) reconcileNotificationSignal()
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (::api.isInitialized && api.session != null) reconcileNotificationSignal()
+    }
+
+    private fun reconcileNotificationSignal() {
+        if (!NotificationSignalStore.consumeDirty(applicationContext)) return
+        drainNotificationReceipts()
+        val picker = pickerController
+        val reporter = reporterController
+        when {
+            picker != null -> picker.refresh()
+            reporter != null -> reporter.refresh()
+            else -> setStatus("Có cập nhật nghiệp vụ mới. Mở Vận hành để xem.")
+        }
     }
 
     private fun renderLogin(message: String = "Đang kiểm tra phiên bản...") {
@@ -210,7 +230,7 @@ class MainActivity : Activity() {
         adminLauncherController = null
         when (session.role) {
             "PICKER" -> renderPickerHome(session)
-            "REPORTER" -> renderReporterHome(session, showLauncherBack = false)
+            "REPORTER" -> renderReporterHome(session, showLauncherBack = false, initialFilter = "PENDING")
             "ADMIN" -> renderAdminLauncher(session)
             "ROOT" -> renderAdminLauncher(session)
             else -> {
@@ -221,6 +241,7 @@ class MainActivity : Activity() {
         }
         startRealtime(session)
         registerBackgroundNotifications()
+        drainNotificationReceipts()
         recordLog("Đăng nhập ${kit.roleLabel(session.role)}: ${session.employeeCode ?: session.displayName}")
     }
 
@@ -244,7 +265,7 @@ class MainActivity : Activity() {
         finishOperationalPage(root)
     }
 
-    private fun renderReporterHome(session: AppSession, showLauncherBack: Boolean) {
+    private fun renderReporterHome(session: AppSession, showLauncherBack: Boolean, initialFilter: String = "PENDING") {
         pickerController?.destroy()
         pickerController = null
         reporterController = null
@@ -257,7 +278,7 @@ class MainActivity : Activity() {
                 setOnClickListener { renderAdminLauncher(session) }
             })
         }
-        reporterController = ReporterController(this, api, kit, ::setStatus, ::friendlyError)
+        reporterController = ReporterController(this, api, kit, ::setStatus, ::friendlyError, initialFilter)
             .also { it.render(root) }
         finishOperationalPage(root)
     }
@@ -272,7 +293,8 @@ class MainActivity : Activity() {
             session = session,
             kit = kit,
             setStatus = ::setStatus,
-            onOpenOperations = { renderReporterHome(session, showLauncherBack = true) },
+            onOpenOperations = { renderReporterHome(session, showLauncherBack = true, initialFilter = "PENDING") },
+            onOpenResults = { renderReporterHome(session, showLauncherBack = true, initialFilter = "HAS_STOCK") },
             onOpenLog = { showLocalLog() },
             onCheckUpdate = { checkForUpdate(silent = false) },
         ).also { it.render(root) }
@@ -326,7 +348,7 @@ class MainActivity : Activity() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val manager = getSystemService(NotificationManager::class.java)
         val channel = NotificationChannel(
-            "inventory_operations",
+            StockMessagingService.CHANNEL_ID,
             "SUPRA Inventory · Nghiệp vụ",
             NotificationManager.IMPORTANCE_HIGH,
         ).apply { description = "Cảnh báo báo hàng khi ứng dụng chạy nền" }
@@ -337,13 +359,36 @@ class MainActivity : Activity() {
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 701)
         }
+        NotificationSignalStore.latestToken(applicationContext)?.let(::registerNotificationToken)
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             val token = if (task.isSuccessful) task.result else null
-            if (token.isNullOrBlank() || api.session == null) return@addOnCompleteListener
-            Thread {
-                try { api.registerNotificationDevice(notificationDeviceId, token) } catch (_: Exception) { }
-            }.start()
+            if (token.isNullOrBlank()) return@addOnCompleteListener
+            NotificationSignalStore.saveToken(applicationContext, token)
+            registerNotificationToken(token)
         }
+    }
+
+    private fun registerNotificationToken(token: String) {
+        if (token.isBlank() || api.session == null) return
+        Thread {
+            try { api.registerNotificationDevice(notificationDeviceId, token) } catch (_: Exception) { }
+        }.start()
+    }
+
+    private fun drainNotificationReceipts() {
+        if (api.session?.role != "PICKER") return
+        val events = NotificationSignalStore.pendingResultEvents(applicationContext)
+        if (events.isEmpty()) return
+        Thread {
+            for (eventId in events) {
+                try {
+                    api.markResultStage(eventId, "RECEIVED")
+                    NotificationSignalStore.clearResultEvent(applicationContext, eventId)
+                } catch (_: Exception) {
+                    // Keep the event for a later authenticated retry.
+                }
+            }
+        }.start()
     }
 
     private fun logoutWithNotificationCleanup() {
@@ -454,14 +499,18 @@ class MainActivity : Activity() {
         applyUpdateGateUi(if (api.session == null || !silent) "Đang kiểm tra phiên bản..." else null)
         Thread {
             try {
+                verifyInstalledSignerTrusted()
                 val info = fetchLatestUpdate()
-                if (info.versionCode <= BuildConfig.VERSION_CODE) {
+                if (info.versionCode == BuildConfig.VERSION_CODE) {
                     updateGate = UpdateGate.CURRENT
                     runOnUiThread {
                         updateCheckRunning = false
                         applyUpdateGateUi(if (api.session == null) "Sẵn sàng đăng nhập." else if (!silent) "Đang dùng bản mới nhất." else null)
                     }
                     return@Thread
+                }
+                if (info.versionCode < BuildConfig.VERSION_CODE) {
+                    throw IllegalStateException("Phiên bản cài đặt không khớp release Beta hiện hành.")
                 }
                 updateGate = UpdateGate.REQUIRED
                 runOnUiThread { applyUpdateGateUi("Có bản cập nhật ${info.tag}. Đang tải và kiểm tra SHA-256...") }
@@ -482,7 +531,7 @@ class MainActivity : Activity() {
     }
 
     private fun fetchLatestUpdate(): UpdateInfo {
-        val connection = openDownloadConnection(BuildConfig.UPDATE_RELEASE_API)
+        val connection = openTrustedConnection(BuildConfig.UPDATE_RELEASE_API, UpdateResource.RELEASE_API, null)
         val code = connection.responseCode
         val text = (if (code in 200..299) connection.inputStream else connection.errorStream)
             ?.bufferedReader()?.use { it.readText() }.orEmpty()
@@ -506,17 +555,21 @@ class MainActivity : Activity() {
     }
 
     private fun downloadAndVerify(info: UpdateInfo): File {
-        val expected = downloadText(info.checksumUrl).trim().split(Regex("\\s+"))[0].lowercase()
+        val expected = downloadText(info.checksumUrl, info.tag).trim().split(Regex("\\s+"))[0].lowercase()
         if (!expected.matches(Regex("[0-9a-f]{64}"))) throw IllegalStateException("Checksum không hợp lệ.")
         val dir = File(getExternalFilesDir(null), "updates").apply { mkdirs() }
         val temp = File(dir, "supra-inventory-beta.apk.download")
         val target = File(dir, "supra-inventory-beta.apk")
-        downloadFile(info.apkUrl, temp)
+        downloadFile(info.apkUrl, temp, info.tag)
         if (sha256(temp) != expected) {
             temp.delete()
             throw IllegalStateException("SHA-256 APK không khớp.")
         }
-        if (target.exists()) target.delete()
+        verifyDownloadedApk(temp, info)
+        if (target.exists() && !target.delete()) {
+            temp.delete()
+            throw IllegalStateException("Không thể thay file cập nhật cũ.")
+        }
         if (!temp.renameTo(target)) {
             temp.copyTo(target, overwrite = true)
             temp.delete()
@@ -544,24 +597,115 @@ class MainActivity : Activity() {
         startActivity(intent)
     }
 
-    private fun openDownloadConnection(url: String): HttpURLConnection =
-        (URL(url).openConnection() as HttpURLConnection).apply {
-            connectTimeout = 10_000
-            readTimeout = 60_000
-            instanceFollowRedirects = true
-            setRequestProperty("User-Agent", "SUPRA-Inventory-Beta/${BuildConfig.VERSION_NAME}")
-        }
+    private enum class UpdateResource { RELEASE_API, ASSET }
 
-    private fun downloadText(url: String): String {
-        val connection = openDownloadConnection(url)
+    private fun openTrustedConnection(url: String, resource: UpdateResource, tag: String?): HttpURLConnection {
+        var current = URL(url)
+        repeat(6) { redirectIndex ->
+            validateUpdateUrl(current, resource, tag, redirectIndex > 0)
+            val connection = (current.openConnection() as HttpURLConnection).apply {
+                connectTimeout = 10_000
+                readTimeout = 60_000
+                instanceFollowRedirects = false
+                setRequestProperty("User-Agent", "SUPRA-Inventory-Beta/${BuildConfig.VERSION_NAME}")
+                setRequestProperty("Accept", if (resource == UpdateResource.RELEASE_API) "application/vnd.github+json" else "*/*")
+            }
+            val code = connection.responseCode
+            if (code in setOf(301, 302, 303, 307, 308)) {
+                val location = connection.getHeaderField("Location")
+                    ?: throw IllegalStateException("Update redirect thiếu Location.")
+                connection.disconnect()
+                current = URL(current, location)
+                return@repeat
+            }
+            return connection
+        }
+        throw IllegalStateException("Update redirect vượt giới hạn.")
+    }
+
+    private fun validateUpdateUrl(url: URL, resource: UpdateResource, tag: String?, redirected: Boolean) {
+        if (url.protocol != "https") throw IllegalStateException("Update chỉ cho phép HTTPS.")
+        when (resource) {
+            UpdateResource.RELEASE_API -> {
+                if (
+                    redirected ||
+                    url.host != "api.github.com" ||
+                    url.path != "/repos/tamnv2/supra-inventory/releases/latest"
+                ) throw IllegalStateException("Update API không thuộc nguồn tin cậy.")
+            }
+            UpdateResource.ASSET -> {
+                if (!redirected) {
+                    val safeTag = tag?.takeIf { it.matches(Regex("^beta-vc\\d+$")) }
+                        ?: throw IllegalStateException("Beta tag không hợp lệ.")
+                    val prefix = "/tamnv2/supra-inventory/releases/download/$safeTag/"
+                    if (url.host != "github.com" || !url.path.startsWith(prefix)) {
+                        throw IllegalStateException("Release asset không thuộc repo Beta tin cậy.")
+                    }
+                } else {
+                    val trustedCdn = url.host == "release-assets.githubusercontent.com" ||
+                        url.host == "objects.githubusercontent.com" ||
+                        url.host.endsWith(".githubusercontent.com")
+                    if (!trustedCdn) throw IllegalStateException("Redirect cập nhật không thuộc CDN GitHub tin cậy.")
+                }
+            }
+        }
+    }
+
+    private fun downloadText(url: String, tag: String): String {
+        val connection = openTrustedConnection(url, UpdateResource.ASSET, tag)
         if (connection.responseCode !in 200..299) throw IllegalStateException("Checksum HTTP ${connection.responseCode}")
         return connection.inputStream.bufferedReader().use { it.readText() }
     }
 
-    private fun downloadFile(url: String, file: File) {
-        val connection = openDownloadConnection(url)
+    private fun downloadFile(url: String, file: File, tag: String) {
+        val connection = openTrustedConnection(url, UpdateResource.ASSET, tag)
         if (connection.responseCode !in 200..299) throw IllegalStateException("APK HTTP ${connection.responseCode}")
-        connection.inputStream.use { input -> file.outputStream().use { output -> input.copyTo(output, 64 * 1024) } }
+        connection.inputStream.use { input ->
+            file.outputStream().use { output -> input.copyTo(output, 64 * 1024) }
+        }
+    }
+
+    private fun verifyInstalledSignerTrusted() {
+        val expected = BuildConfig.TRUSTED_SIGNER_SHA256.trim().lowercase()
+        if (expected.isBlank()) {
+            if (BuildConfig.DEBUG) return
+            throw IllegalStateException("Release thiếu trusted signer fingerprint.")
+        }
+        val installed = packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
+        if (expected !in signerDigests(installed)) {
+            throw IllegalStateException("Chữ ký ứng dụng hiện tại không hợp lệ.")
+        }
+    }
+
+    private fun verifyDownloadedApk(file: File, info: UpdateInfo) {
+        val archive = packageManager.getPackageArchiveInfo(file.absolutePath, PackageManager.GET_SIGNING_CERTIFICATES)
+            ?: throw IllegalStateException("Không đọc được thông tin APK cập nhật.")
+        if (archive.packageName != BuildConfig.APPLICATION_ID) {
+            throw IllegalStateException("APK cập nhật sai package.")
+        }
+        if (archive.longVersionCode != info.versionCode.toLong()) {
+            throw IllegalStateException("APK cập nhật sai versionCode.")
+        }
+        val expectedName = "0.2.0-beta.${info.versionCode}"
+        if (archive.versionName != expectedName || info.tag != "beta-vc${info.versionCode}") {
+            throw IllegalStateException("APK cập nhật sai kênh/phiên bản Beta.")
+        }
+
+        val expectedSigner = BuildConfig.TRUSTED_SIGNER_SHA256.trim().lowercase()
+        val archiveSigners = signerDigests(archive)
+        if (expectedSigner.isBlank() || expectedSigner !in archiveSigners) {
+            throw IllegalStateException("APK cập nhật sai chữ ký.")
+        }
+    }
+
+    private fun signerDigests(info: PackageInfo): Set<String> {
+        val signing = info.signingInfo ?: return emptySet()
+        val certificates = if (signing.hasMultipleSigners()) signing.apkContentsSigners else signing.signingCertificateHistory
+        return certificates.map { certificate ->
+            MessageDigest.getInstance("SHA-256")
+                .digest(certificate.toByteArray())
+                .joinToString("") { "%02x".format(it) }
+        }.toSet()
     }
 
     private fun sha256(file: File): String {

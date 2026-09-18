@@ -17,7 +17,7 @@ type RealtimeRole = "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
 const SLA_CONFIG_KEY = "operational_sla_v1";
 const OPERATIONAL_SCHEMA_KEY = "operational_v2_schema_version";
 const REALTIME_STREAM_EPOCH_KEY = "realtime_stream_epoch_v1";
-export const OPERATIONAL_V2_SCHEMA_VERSION = 3;
+export const OPERATIONAL_V2_SCHEMA_VERSION = 4;
 const MAX_DELTA_LIMIT = 200;
 
 function json(payload: unknown, status = 200): Response {
@@ -128,6 +128,7 @@ export function operationalV2Readiness(state: DurableObjectState): {
     hasSqlObject(state, "table", "realtime_events") &&
     hasSqlObject(state, "table", "result_acknowledgements") &&
     hasSqlObject(state, "table", "result_event_snapshots") &&
+    hasSqlObject(state, "table", "notification_delivery_attempts") &&
     Boolean(readRealtimeStreamEpoch(state)) &&
     hasSqlObject(state, "trigger", "trg_v2_report_event_stream") &&
     hasSqlObject(state, "trigger", "trg_v2_result_ack_targets");
@@ -323,6 +324,21 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
     );
     CREATE INDEX IF NOT EXISTS idx_result_event_snapshots_batch_version
       ON result_event_snapshots(batch_id, batch_version);
+
+    CREATE TABLE IF NOT EXISTS notification_delivery_attempts (
+      attempt_id TEXT PRIMARY KEY,
+      event_id TEXT,
+      event_type TEXT NOT NULL,
+      device_id TEXT,
+      user_id TEXT,
+      status TEXT NOT NULL CHECK (status IN ('SENT','FAILED')),
+      error_code TEXT,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_notification_delivery_event
+      ON notification_delivery_attempts(event_id, created_at);
+    CREATE INDEX IF NOT EXISTS idx_notification_delivery_device
+      ON notification_delivery_attempts(device_id, created_at);
 
     DROP TRIGGER IF EXISTS trg_v2_batch_recurrence;
     CREATE TRIGGER trg_v2_batch_recurrence

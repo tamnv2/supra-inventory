@@ -45,7 +45,8 @@ class PickerController(
     private var refreshDirty = false
     private val refreshWaiters = mutableListOf<(Boolean) -> Unit>()
     private var resultDialogShowing = false
-    private val stagedResults = mutableSetOf<String>()
+    private val receivedResults = mutableSetOf<String>()
+    private val displayedResults = mutableSetOf<String>()
     private var input: EditText? = null
     private var suggestions: LinearLayout? = null
     private var selectedBox: LinearLayout? = null
@@ -54,6 +55,7 @@ class PickerController(
     private var reportButton: Button? = null
     private var catalogLabel: TextView? = null
     private var historyBox: LinearLayout? = null
+    private var historyRenderer: KeyedLinearRenderer? = null
     private var selected: SkuItem? = null
     private var pendingResults: List<PickerResult> = emptyList()
     private val withdrawButtons = linkedMapOf<Button, Long>()
@@ -138,6 +140,7 @@ class PickerController(
             setPadding(kit.dp(2), kit.dp(13), kit.dp(2), kit.dp(4))
         })
         historyBox = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+        historyRenderer = historyBox?.let(::KeyedLinearRenderer)
         root.addView(historyBox)
 
         input?.addTextChangedListener(object : TextWatcher {
@@ -167,6 +170,7 @@ class PickerController(
     fun destroy() {
         searchTask?.let { handler.removeCallbacks(it) }
         handler.removeCallbacks(withdrawTicker)
+        historyRenderer = null
     }
 
     private fun isOnline(): Boolean {
@@ -332,14 +336,12 @@ class PickerController(
 
     private fun stageAndShowNextResult() {
         val result = pendingResults.firstOrNull { it.acknowledgedAt == null } ?: return
-        if (!stagedResults.contains(result.resultEventId)) {
-            stagedResults += result.resultEventId
+        if (result.receivedAt == null && receivedResults.add(result.resultEventId)) {
             Thread {
                 try {
                     api.markResultStage(result.resultEventId, "RECEIVED")
-                    api.markResultStage(result.resultEventId, "DISPLAYED")
                 } catch (_: Exception) {
-                    stagedResults -= result.resultEventId
+                    receivedResults -= result.resultEventId
                 }
             }.start()
         }
@@ -358,6 +360,15 @@ class PickerController(
             .create()
             .also { dialog ->
                 dialog.setOnShowListener {
+                    if (result.displayedAt == null && displayedResults.add(result.resultEventId)) {
+                        Thread {
+                            try {
+                                api.markResultStage(result.resultEventId, "DISPLAYED")
+                            } catch (_: Exception) {
+                                displayedResults -= result.resultEventId
+                            }
+                        }.start()
+                    }
                     dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                         dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
                         Thread {
@@ -384,22 +395,46 @@ class PickerController(
     }
 
     private fun renderHistory(allRows: List<PickerReport>) {
-        val box = historyBox ?: return
-        box.removeAllViews()
-        withdrawButtons.clear()
+        val renderer = historyRenderer ?: return
         val today = LocalDate.now(zone)
         val rows = allRows.filter { reportDate(it.reportedAt) == today }
-        if (rows.isEmpty()) { box.addView(empty("Hôm nay chưa có báo hàng.")); return }
-        for (row in rows) {
-            val state = businessStatus(row)
-            val colors = when (state) {
-                "Đã có hàng" -> Triple(kit.stockFill, kit.stockStroke, kit.greenDark)
-                "Cho skip hàng" -> Triple(kit.skipFill, kit.skipStroke, kit.red)
-                "Picker thu hồi" -> Triple(kit.graySoft, kit.line, kit.muted)
-                else -> Triple(kit.pendingFill, kit.pendingStroke, kit.orange)
-            }
-            val card = kit.card(colors.first, colors.second, 11)
-            card.addView(TextView(activity).apply {
+        if (rows.isEmpty()) {
+            renderer.render(listOf("empty"), { it }, { it }) { empty("Hôm nay chưa có báo hàng.") }
+            withdrawButtons.keys.removeAll { !it.isAttachedToWindow }
+            return
+        }
+
+        renderer.render(
+            items = rows,
+            keyOf = { it.ticketId },
+            signatureOf = { historySignature(it) },
+            createView = { buildHistoryCard(it) },
+        )
+        withdrawButtons.keys.removeAll { !it.isAttachedToWindow }
+    }
+
+    private fun historySignature(row: PickerReport): String = listOf(
+        row.ticketId,
+        row.status,
+        row.batchStatus,
+        row.resolution.orEmpty(),
+        row.withdrawDeadlineAt,
+        row.withdrawnAt.orEmpty(),
+        row.resolvedAt.orEmpty(),
+        row.resultEventId.orEmpty(),
+        row.acknowledgedAt.orEmpty(),
+    ).joinToString("|")
+
+    private fun buildHistoryCard(row: PickerReport): View {
+        val state = businessStatus(row)
+        val colors = when (state) {
+            "Đã có hàng" -> Triple(kit.stockFill, kit.stockStroke, kit.greenDark)
+            "Cho skip hàng" -> Triple(kit.skipFill, kit.skipStroke, kit.red)
+            "Picker thu hồi" -> Triple(kit.graySoft, kit.line, kit.muted)
+            else -> Triple(kit.pendingFill, kit.pendingStroke, kit.orange)
+        }
+        return kit.card(colors.first, colors.second, 11).apply {
+            addView(TextView(activity).apply {
                 text = "${row.sku} - ${row.productName}"
                 textSize = 18f
                 maxLines = 2
@@ -407,7 +442,7 @@ class PickerController(
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(kit.text)
             })
-            card.addView(TextView(activity).apply {
+            addView(TextView(activity).apply {
                 text = "$state · ${timestamp(row.reportedAt)}${if (row.resultEventId != null && row.acknowledgedAt == null) " · Chưa xác nhận kết quả" else ""}"
                 textSize = 12f
                 setTextColor(colors.third)
@@ -420,14 +455,15 @@ class PickerController(
                         text = "Thu hồi"
                         textSize = 11.5f
                         kit.styleSecondary(this)
-                        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, kit.dp(42)).apply { topMargin = kit.dp(7) }
-                        setOnLongClickListener { confirmWithdraw(row); true }
+                        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, kit.dp(42)).apply {
+                            topMargin = kit.dp(7)
+                        }
+                        setOnClickListener { confirmWithdraw(row) }
                     }
                     withdrawButtons[withdraw] = deadline
-                    card.addView(withdraw)
+                    addView(withdraw)
                 }
             }
-            box.addView(card)
         }
     }
 

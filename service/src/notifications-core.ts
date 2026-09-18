@@ -147,10 +147,81 @@ async function notificationTargets(state: DurableObjectState, request: Request):
   return response({ tokens: [...tokens].slice(0, 500), target_user_count: users.size, batch });
 }
 
+async function disableTokens(state: DurableObjectState, request: Request): Promise<Response> {
+  const body = (await request.json()) as { tokens?: unknown[] };
+  const tokens = [...new Set((Array.isArray(body.tokens) ? body.tokens : []).map((value) => String(value).trim()).filter(Boolean))].slice(0, 500);
+  if (!tokens.length) return response({ status: "noop", disabled: 0 });
+  const at = new Date().toISOString();
+  let disabled = 0;
+  for (const token of tokens) {
+    state.storage.sql.exec(
+      "UPDATE fcm_devices SET enabled = 0, updated_at = ? WHERE token = ? AND enabled = 1",
+      at,
+      token,
+    );
+    const row = state.storage.sql.exec<SqlRow>(
+      "SELECT changes() AS changed",
+    ).toArray()[0];
+    disabled += Number(row?.changed || 0);
+  }
+  return response({ status: "disabled", disabled });
+}
+
+async function recordDeliveryAttempts(state: DurableObjectState, request: Request): Promise<Response> {
+  const body = (await request.json()) as {
+    event_id?: string | null;
+    event?: string;
+    attempts?: Array<{ token?: unknown; status?: unknown; error_code?: unknown }>;
+  };
+  const eventId = String(body.event_id || "").trim().slice(0, 128) || null;
+  const eventType = String(body.event || "unknown").trim().slice(0, 100) || "unknown";
+  const attempts = Array.isArray(body.attempts) ? body.attempts.slice(0, 500) : [];
+  const at = new Date().toISOString();
+  let recorded = 0;
+
+  state.storage.transactionSync(() => {
+    for (const attempt of attempts) {
+      const token = String(attempt.token || "").trim();
+      const status = String(attempt.status || "").toUpperCase();
+      if (!token || !["SENT", "FAILED"].includes(status)) continue;
+      const device = state.storage.sql.exec<SqlRow>(
+        "SELECT device_id, user_id FROM fcm_devices WHERE token = ? LIMIT 1",
+        token,
+      ).toArray()[0];
+      state.storage.sql.exec(
+        `INSERT INTO notification_delivery_attempts (
+           attempt_id, event_id, event_type, device_id, user_id, status, error_code, created_at
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        crypto.randomUUID(),
+        eventId,
+        eventType,
+        device?.device_id == null ? null : String(device.device_id),
+        device?.user_id == null ? null : String(device.user_id),
+        status,
+        String(attempt.error_code || "").trim().slice(0, 100) || null,
+        at,
+      );
+      recorded += 1;
+    }
+    state.storage.sql.exec(
+      `DELETE FROM notification_delivery_attempts
+        WHERE attempt_id IN (
+          SELECT attempt_id
+            FROM notification_delivery_attempts
+           ORDER BY created_at DESC, attempt_id DESC
+           LIMIT -1 OFFSET 5000
+        )`,
+    );
+  });
+  return response({ status: "recorded", recorded });
+}
+
 export async function handleNotificationCoreRequest(state: DurableObjectState, request: Request): Promise<Response | null> {
   const url = new URL(request.url);
   if (request.method === "POST" && url.pathname === "/notifications/device/upsert") return upsertDevice(state, request);
   if (request.method === "POST" && url.pathname === "/notifications/device/remove") return removeDevice(state, request);
   if (request.method === "POST" && url.pathname === "/notifications/targets") return notificationTargets(state, request);
+  if (request.method === "POST" && url.pathname === "/notifications/disable-tokens") return disableTokens(state, request);
+  if (request.method === "POST" && url.pathname === "/notifications/delivery-attempts") return recordDeliveryAttempts(state, request);
   return null;
 }

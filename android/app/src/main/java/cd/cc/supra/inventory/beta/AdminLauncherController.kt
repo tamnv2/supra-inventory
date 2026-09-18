@@ -15,6 +15,7 @@ class AdminLauncherController(
     private val kit: InventoryUi,
     private val setStatus: (String) -> Unit,
     private val onOpenOperations: () -> Unit,
+    private val onOpenResults: () -> Unit,
     private val onOpenLog: () -> Unit,
     private val onCheckUpdate: () -> Unit,
 ) {
@@ -24,14 +25,14 @@ class AdminLauncherController(
             onOpenOperations()
         })
         root.addView(action("Kết quả gần đây", "Xem kết quả xử lý và ACK") {
-            onOpenOperations()
+            onOpenResults()
         })
 
         section(root, "Quản trị")
-        root.addView(action("Nhân sự / Picker", "Quản lý sâu trên Web") { openWeb("/", "Nhân sự / Picker") })
-        root.addView(action("Tài khoản", if (session.role == "ROOT") "Admin / Reporter" else "Reporter") { openWeb("/", "Tài khoản") })
-        root.addView(action("Master SKU", "Theo dõi và cập nhật trên Web") { openWeb("/", "Master SKU") })
-        root.addView(action("SLA / Cấu hình", "Thiết lập nghiệp vụ trên Web") { openWeb("/", "SLA / Cấu hình") })
+        root.addView(action("Nhân sự / Picker", "Quản lý sâu trên Web") { openWeb("/#hr", "Nhân sự / Picker") })
+        root.addView(action("Tài khoản", if (session.role == "ROOT") "Admin / Reporter" else "Reporter") { openWeb("/#users", "Tài khoản") })
+        root.addView(action("Master SKU", "Theo dõi và cập nhật trên Web") { openWeb("/#sku", "Master SKU") })
+        root.addView(action("SLA / Cấu hình", "Thiết lập nghiệp vụ trên Web") { openWeb("/#sla", "SLA / Cấu hình") })
 
         section(root, "Hệ thống")
         root.addView(action("Trạng thái dịch vụ", "Kiểm tra dịch vụ Beta") {

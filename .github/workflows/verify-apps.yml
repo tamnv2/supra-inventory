@@ -55,7 +55,10 @@ jobs:
             key_path="$RUNNER_TEMP/supra-inventory-beta.jks"
             printf '%s' "$BETA_KEYSTORE_B64" | base64 --decode > "$key_path"
             keytool -list -keystore "$key_path" -storepass "$BETA_KEYSTORE_PASSWORD" -alias "$BETA_KEY_ALIAS" >/dev/null
+            signer_sha="$(keytool -exportcert -keystore "$key_path" -storepass "$BETA_KEYSTORE_PASSWORD" -alias "$BETA_KEY_ALIAS" | sha256sum | awk '{print $1}')"
+            [ "${#signer_sha}" -eq 64 ] || { echo "Unable to derive Beta signer fingerprint"; exit 1; }
             echo "BETA_KEYSTORE_PATH=$key_path" >> "$GITHUB_ENV"
+            echo "BETA_SIGNER_SHA256=$signer_sha" >> "$GITHUB_ENV"
             echo "SIGNING_READY=true" >> "$GITHUB_ENV"
             echo "Fixed Beta signing key PASS"
           else
@@ -116,7 +119,7 @@ jobs:
           set -euo pipefail
           tag="beta-vc${APP_VERSION_CODE}"
           title="SUPRA Inventory Beta ${APP_VERSION_NAME}"
-          notes="Beta Android 11+ auto-update build. versionCode=${APP_VERSION_CODE}. Source=${GITHUB_SHA}. Stable is not affected."
+          notes="Beta Android 11+ auto-update build. versionCode=${APP_VERSION_CODE}. Source=${GITHUB_SHA}."
           if gh release view "$tag" >/dev/null 2>&1; then
             echo "Refusing to overwrite existing release $tag" >&2
             exit 1

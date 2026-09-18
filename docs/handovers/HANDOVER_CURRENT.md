@@ -5,45 +5,43 @@
 ## Current status
 
 - Project: `SUPRA Inventory — Báo hàng` (`supra-inventory`).
-- Beta: `F01_F07_WEB_OPERATIONAL_P1_AUTOMATED_RUNTIME_PASS_MAIN_343AFFD8__NEXT_ANDROID_P1`
-- Stable: `CONFIG_READY_OWNER_GATED_NOT_LIVE`
+- Beta: `F01_F07_WEB_P1_RUNTIME_PASS__ANDROID_P1_SOURCE_IN_PROGRESS_OP_V2_TARGET_4`
 - SQLite schema: `5`
-- Web: `WEB_OPERATIONAL_P1_BETA_DEPLOY_SMOKE_PASS_343AFFD8__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING`
-- Android: `F06_F07_APPLIED_CURSOR_SIGNED_BETA_VC38_RUNTIME_GATED_PASS`
+- Web: `WEB_OPERATIONAL_P1_RUNTIME_PASS__ANDROID_LAUNCHER_HASH_DEEPLINK_SOURCE_IN_PROGRESS`
+- Android: `F09_F13_F21_F22_SOURCE_IN_PROGRESS__VC38_RUNTIME_BASELINE`
 - Latest signed Beta APK: `beta-vc38`
 - Realtime: `GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_3`
-- FCM: `DEVICE_REGISTRATION_AND_BACKGROUND_DELIVERY_DEPLOYED_BASELINE__WEB_VISIBLE_DISPLAY_STAGE_SOURCE_BUILD_DEPLOY_PASS__PHYSICAL_ACCEPTANCE_PENDING`
-- UI design guard: `LEGACY_OPERATIONAL_UI_V2_SOURCE_SERVICE_WEB_ANDROID_PASS`
+- FCM: `DATA_ONLY_SERVICE_CORRELATION_DELIVERY_ATTEMPTS_INVALID_TOKEN_CLEANUP_SOURCE_IN_PROGRESS__PHYSICAL_ACCEPTANCE_PENDING`
 
-## Automated runtime evidence
+## Proven runtime baseline
 
-- Web operational P1 PR #20 merged to main at `343affd88779a68b32e92c1a2799bb0ee7fc5256`.
-- Source gates PASS: authority, continuity, UI invariants, Web operational regression, Operational V2 regression, realtime cursor regression, Worker typecheck, Web production build and Android debug build.
-- Deploy Beta run `35291272392`: PASS.
-- Health: HTTP 200, base SQLite `5/5`, Operational V2 `3/3`.
-- Auth/business guard smoke, Web shell and Google OAuth start: PASS.
-- Android signed baseline remains `beta-vc38`; PR #20 did not change Android source.
+- F01–F07 runtime remains PASS.
+- Web operational P1 runtime/deploy smoke remains PASS.
+- Current signed Android baseline remains `beta-vc38`.
+- Runtime Operational V2 remains `3/3` until this branch is merged/deployed.
 
-## Web operational P1 delivered
+## Android P1 source work
 
-- realtime/connectivity patches preserve focused field, caret, form/filter values and scroll context;
-- stale/out-of-order SKU searches and cross-session responses are rejected;
-- one canonical Web session/refresh manager is shared by Operational V2 APIs;
-- managed user edit/password use explicit forms;
-- managed users use server-side filtering, totals and pagination with one/many/all Picker actions;
-- critical result DISPLAYED is recorded only when the result surface is rendered;
-- Admin dashboard/reporting includes date presets, trend/outcomes, drill-down and bounded chunked CSV;
-- Web SLA validation matches current server bounds.
+Branch `fix/android-operational-lifecycle` currently implements:
+- keyed in-place Picker history and Reporter queue/result rendering;
+- Picker result `RECEIVED` / visible-only `DISPLAYED` separation;
+- one-tap withdrawal confirmation;
+- transactional SQLite SKU cache with staging/version-count recheck and legacy TSV migration;
+- high-priority data-only FCM handled by `FirebaseMessagingService`, token rotation, lifecycle reconciliation and bounded provider delivery telemetry;
+- invalid/unregistered FCM token disable path;
+- strict OTA verification for trusted HTTPS source, Beta tag, SHA-256, package ID, exact versionCode/versionName and trusted signer;
+- exact Android launcher routes plus role-checked Web hash deep links;
+- Operational V2 source target `4` for notification delivery-attempt telemetry.
 
-Owner functional acceptance is separate from automated technical/runtime PASS.
+PR/CI/runtime/release gates are still pending for this source package.
 
 ## Next
 
-1. Start Android F09–F13/F21–F22 package from main `343affd8`.
-2. Preserve F01–F07 and Web P1 regression gates.
-3. Merge/deploy/release only through protected Beta flow.
-4. Continue F14/F19/F20/F23 after Android P1.
-5. Stable remains untouched / OWNER-GATED.
+1. Run protected PR authority/continuity and all regression/source-build gates.
+2. Repair until all PR checks PASS.
+3. Merge and verify Beta deploy health with Operational V2 `4/4`.
+4. Verify matching signed Beta Android release is published only after that runtime gate passes.
+5. Record runtime/release evidence, then continue F14/F19/F20/F23.
 
 ## Continuity rule
 

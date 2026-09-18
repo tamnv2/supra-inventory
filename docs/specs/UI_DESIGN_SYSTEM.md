@@ -145,3 +145,10 @@ Keep credit visually secondary.
 ## Scope guard
 
 Reference material never authorizes bin/location/pickface, stock quantity, maps, delivery orders, incident photos, offline reporting or unrelated features.
+
+## Android lifecycle rendering
+
+- Realtime refresh of Picker history and Reporter queue/results uses keyed in-place row replacement rather than rebuilding the whole operational screen.
+- Stable rows remain attached where their business signature is unchanged so scroll/touch context is not reset unnecessarily.
+- Picker `Thu hồi` is a normal visible tap action followed by an explicit confirmation; do not hide the action behind a long-press gesture.
+- Admin/Root launcher Web-first entries deep-link to their exact allowed module; direct links remain role-checked by the Web client before rendering.

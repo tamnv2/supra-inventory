@@ -132,3 +132,14 @@ Client contract:
 - serialize realtime application per authenticated session so overlapping callbacks cannot acknowledge state out of order;
 - a global sequence gap may contain only events belonging to other principals and must be recovered through delta scanning rather than treated as missing authorized data;
 - page-budget exhaustion schedules bounded continuation/recovery; it never marks unseen pages as applied.
+
+## Android correlated background-delivery contract
+
+- Android background FCM uses high-priority **data messages** for operational notifications so the app's `FirebaseMessagingService` receives the correlation payload and owns local notification presentation.
+- The data payload carries bounded presentation text plus `event`, `result_event_id`, `batch_id`, `event_seq` and `batch_version` where applicable.
+- `onNewToken` stores the rotated token locally; the next authenticated app lifecycle registers the latest token against the current device/user.
+- A received critical `result_event_id` is retained locally until the authenticated Picker can report at least `RECEIVED`; opening/resuming the app reconciles that signal with authoritative state.
+- Provider acceptance/failure is recorded separately from client receipt/display/ACK. Provider acceptance is never treated as Picker acknowledgement.
+- Delivery-attempt telemetry is bounded and correlated to event/device/user where known.
+- Provider responses that identify an invalid/unregistered token disable that token from later targeting.
+- Foreground WebSocket/delta remains the live synchronization channel; FCM is not a second business-state transport.
