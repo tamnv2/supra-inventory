@@ -7,6 +7,7 @@ export interface AppProfile {
   employee_code: string | null;
   display_name: string;
   role: "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
+  base_role: "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
   status: "ACTIVE" | "DISABLED";
   password_changed_at: string | null;
 }
@@ -364,6 +365,15 @@ export async function getMyProfile(): Promise<AppProfile> {
   const result = (await readJson<{ user: AppProfile }>(await authorizedFetch("/api/auth/me"))).user;
   if (session) saveSession({ ...session, user: result });
   return result;
+}
+
+export async function setRootEffectiveRole(role: "PICKER" | "REPORTER" | "ADMIN" | "ROOT"): Promise<AppProfile> {
+  const result = await readJson<{ user: AppProfile }>(await authorizedFetch("/api/auth/root-role", {
+    method: "PUT",
+    body: JSON.stringify({ role }),
+  }));
+  if (session) saveSession({ ...session, user: result.user });
+  return result.user;
 }
 
 export async function changeMyPassword(currentPassword: string, newPassword: string): Promise<void> {
