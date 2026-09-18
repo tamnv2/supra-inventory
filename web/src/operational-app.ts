@@ -34,6 +34,7 @@ import {
   saveHrSource,
   searchSkus,
   setManagedUserPassword,
+  setRootEffectiveRole,
   updateManagedUser,
   updatePickerAccounts,
   type AppProfile,
@@ -84,6 +85,34 @@ type Section =
   | "account";
 
 type Notice = { type: "success" | "error" | "warning"; text: string } | null;
+type ThemeMode = "AUTO" | "LIGHT" | "DARK";
+
+const THEME_KEY = "supra_inventory_web_theme_v1";
+
+function loadThemeMode(): ThemeMode {
+  const raw = String(localStorage.getItem(THEME_KEY) || "AUTO").toUpperCase();
+  return raw === "LIGHT" || raw === "DARK" ? raw : "AUTO";
+}
+
+function autoThemeIsDark(): boolean {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    hour: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+  const hour = Number(parts.find((part) => part.type === "hour")?.value || 0);
+  return hour >= 18 || hour < 6;
+}
+
+let themeMode: ThemeMode = loadThemeMode();
+
+function applyTheme(): void {
+  const resolved = themeMode === "AUTO" ? (autoThemeIsDark() ? "dark" : "light") : themeMode.toLowerCase();
+  document.body.dataset.theme = resolved;
+  document.documentElement.style.colorScheme = resolved;
+}
+
+applyTheme();
 
 const ROUTABLE_SECTIONS: Section[] = [
   "picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "system", "devices", "logs", "versions", "account",
@@ -106,6 +135,32 @@ function legacyRoleLabel(value: AppProfile["role"]): string {
   if (value === "ADMIN") return "Quản trị hệ thống";
   if (value === "REPORTER") return "Người báo hàng";
   return "Người lấy hàng";
+}
+
+function rootRoleOptionLabel(role: AppProfile["role"]): string {
+  if (role === "ROOT") return "ROOT · Quản trị hệ thống";
+  if (role === "ADMIN") return "ADMIN · Quản trị hệ thống";
+  if (role === "REPORTER") return "REPORTER · Người báo hàng";
+  return "PICKER · Người lấy hàng";
+}
+
+function clearRoleScopedViewState(): void {
+  queueRows = [];
+  recentRows = [];
+  batchDetails.clear();
+  pickerReports = [];
+  pickerResults = [];
+  pickerSuggestions = [];
+  pickerSelected = null;
+  managedUsers = [];
+  selectedUserIds.clear();
+  allPickerSelection = false;
+  hrPreview = null;
+  dashboardData = null;
+  reportRows = [];
+  reportTotal = 0;
+  operationalInsights = null;
+  selectedBatchId = null;
 }
 
 function sectionFromHash(): Section | null {
