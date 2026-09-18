@@ -17,6 +17,9 @@ import {
   getAdminOperationalInsights,
   getAdminReporting,
   getAdminSla,
+  getRealtimePresence,
+  getRuntimeLogDetail,
+  getRuntimeLogs,
   getHrSource,
   getMyProfile,
   getReporterBatchTickets,
@@ -45,6 +48,9 @@ import {
   type HrSyncPreview,
   type ManagedUser,
   type OperationalInsights,
+  type RealtimePresence,
+  type RuntimeLogDetail,
+  type RuntimeLogItem,
   type ReporterBatch,
   type ReporterRecentBatch,
   type SkuItem,
@@ -53,6 +59,7 @@ import {
 } from "./api";
 import { parseSkuExcel, type ParsedSkuWorkbook } from "./sku-excel";
 import { registerRealtimeApplier, type RealtimeEventFrame } from "./realtime-client";
+import { initWebRuntimeLogging, maybeSendScheduledWebLog, runtimeLogEvent, sendWebRuntimeLog } from "./runtime-logger";
 import {
   createPickerReport,
   getPickerReportsV2,
@@ -144,6 +151,14 @@ function rootRoleOptionLabel(role: AppProfile["role"]): string {
   return "PICKER · Người lấy hàng";
 }
 
+function businessRoleLabel(role: string): string {
+  if (role === "ROOT") return "Quản trị cao nhất";
+  if (role === "ADMIN") return "Quản trị";
+  if (role === "REPORTER") return "Người xử lý báo hàng";
+  if (role === "PICKER") return "Người lấy hàng";
+  return role || "—";
+}
+
 function clearRoleScopedViewState(): void {
   queueRows = [];
   recentRows = [];
@@ -160,6 +175,11 @@ function clearRoleScopedViewState(): void {
   reportRows = [];
   reportTotal = 0;
   operationalInsights = null;
+  realtimePresence = null;
+  reportSummary = null;
+  reportInsights = null;
+  runtimeLogs = [];
+  runtimeLogDetail = null;
   selectedBatchId = null;
 }
 
@@ -194,6 +214,7 @@ let recentFilter: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | "ALL" = "ALL";
 let skipConfirm: ReporterBatch | null = null;
 let slaResponse: SlaResponse | null = null;
 let operationalInsights: OperationalInsights | null = null;
+let realtimePresence: RealtimePresence | null = null;
 let managedUsers: ManagedUser[] = [];
 let selectedUserIds = new Set<string>();
 let hrSource: HrSourceResponse | null = null;
@@ -203,6 +224,8 @@ let skuConflictChoices = new Map<string, string>();
 let skuImportProgress = "";
 let dashboardData: AdminDashboard | null = null;
 let reportRows: AdminReportingRow[] = [];
+let reportSummary: AdminDashboard | null = null;
+let reportInsights: OperationalInsights | null = null;
 let reportTotal = 0;
 let reportOffset = 0;
 const REPORT_PAGE_SIZE = 100;
@@ -213,6 +236,9 @@ let reportTo = dateDaysAgo(0);
 let reportStatus = "";
 let reportQuery = "";
 let serviceHealth: Record<string, unknown> | null = null;
+let runtimeLogSource: "WEB" | "ANDROID" = "WEB";
+let runtimeLogs: RuntimeLogItem[] = [];
+let runtimeLogDetail: RuntimeLogDetail | null = null;
 let pickerQuery = "";
 let pickerSuggestions: SkuItem[] = [];
 let pickerSelected: SkuItem | null = null;
