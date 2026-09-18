@@ -130,6 +130,18 @@ Group functions conceptually as:
 Dashboard is an Admin/Root analysis module, not the Reporter landing surface.
 
 
+### Detailed operational system-status console (D064)
+
+- `Trạng thái hệ thống` is an Admin/Root service console, not a raw JSON diagnostics page. The primary layout is summary cards followed by service cards and data-footprint/load-test sections; raw sanitized technical JSON is secondary inside an expandable detail.
+- The service console must represent every active runtime/support service in the Beta model: Cloudflare Worker, InventoryCore Durable Object/SQLite, Firebase Authentication, Firebase Cloud Messaging, Google Drive, Google Sheets, GitHub release/CI channel and foreground realtime.
+- Every service card distinguishes **actual observed usage/state** from **reference limits**. The UI must not label an account Free/Paid/Spark/Blaze unless the entitlement is authoritatively readable. Where entitlement is unknown, show both relevant reference envelopes and state that the plan was not detected.
+- Actual low-cost metrics include SQLite database bytes/table row counts, current business row counts, active authenticated realtime users/sessions, FCM registered devices/delivery attempts, configured HR-source rows, archived batch count, Drive account storage and project-folder file counts where available, and latest GitHub Beta release metadata.
+- InventoryCore metrics may refresh every 60 seconds only while this page is visible. Google Drive/GitHub provider metrics are cached for at least five minutes; the explicit `Cập nhật số liệu` diagnostic action may request a fresh provider read.
+- Capacity meters and thresholds use plain Vietnamese labels. Technical provider terms may be shown where they are the actual service/product names, but unexplained internal acronyms/percentile notation must not be the primary user-facing wording.
+- The last controlled Beta load test is shown as measured evidence: successful/target reports, Picker count, unique SKU count, duration, average response and `95% yêu cầu dưới ... ms`; the raw internal field may remain `p95_ms` in machine data.
+- Dark theme covers every D064 service card, usage meter, limit box, data grid, status pill and technical detail surface with no light-only islands.
+- D064 does not change the navigation grouping yet. After the load test, the AI must provide an IA critique/proposal to the Owner; navigation changes require subsequent Owner approval.
+
 ### Owner-reviewed consolidated operations, logs, reporting and people UI (D063)
 
 D063 refines D062 without changing the product boundary:
