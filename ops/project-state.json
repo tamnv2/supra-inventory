@@ -18,8 +18,8 @@
     "sqlite_schema": 5,
     "business_api": "OPERATIONAL_V2_4_RUNTIME_PASS__F20_BOUNDED_INSIGHTS_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
-    "web": "LEGACY_UI_PARITY_HORIZONTAL_NAV_TOPBAR_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
-    "android": "VC42_LEGACY_UI_PARITY_FIXED_HEADER_SIGNED_RUNTIME_GATE_PASS__OWNER_UI_ACCEPTANCE_PENDING",
+    "web": "DIRECT_LEGACY_PRESENTATION_TRANSPLANT_IN_PROGRESS__OWNER_UI_ACCEPTANCE_PENDING",
+    "android": "DIRECT_LEGACY_NATIVE_XML_PRESENTATION_TRANSPLANT_IN_PROGRESS__OWNER_UI_ACCEPTANCE_PENDING",
     "latest_beta_apk": "beta-vc42",
     "realtime": "GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_4",
     "network_scope": "ONLINE_ONLY_PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_NO_OFFLINE_BUSINESS_MODE",
@@ -28,13 +28,13 @@
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_BUILD_DEPLOY_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "LEGACY_UI_PARITY_NAV_HEADER_AUTOMATED_GUARD_RUNTIME_RELEASE_PASS__OWNER_UI_GATE_PENDING",
+    "ui_design_guard": "D057_DIRECT_PRESENTATION_TRANSPLANT_SOURCE_IN_PROGRESS__OWNER_UI_GATE_PENDING",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
-    "ui_rebaseline_sequence": "OWNER_UI_FIRST_LEGACY_PARITY_GATE_ACTIVE__BUSINESS_REBUILD_DEFERRED_UNTIL_OWNER_UI_ACCEPTANCE"
+    "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED"
   },
   "hard_guards": [
-    "Do not import assumptions or resources from other projects; prior Báo hàng 1291 is UX/business reference only under D044.",
+    "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
     "Stable is owner-gated: no deploy, public traffic, promotion, real-user bootstrap, Stable OAuth refresh token activation, or Stable release without explicit Owner command.",
     "Never commit or log secrets, passwords, private keys, refresh tokens, signing material, or session/access tokens.",
     "Do not reopen Office fallback/provider research unless Owner explicitly reopens the requirement.",
@@ -53,7 +53,7 @@
     "Report ticket, processing batch and lifecycle/audit event remain separate semantics.",
     "Operational authority is Worker + InventoryCore SQLite; Google Sheets/Drive are source/archive/support systems only.",
     "There is no offline business mode or offline transaction fallback.",
-    "Legacy Operational UI V2 is active visual/product-layout authority; prior Báo hàng 1291 is reference only and Practical Balanced is superseded.",
+    "D057 direct legacy presentation transplant is the active visual/layout authority; old running Web/APK presentation plus read-only UI source are source-of-truth.",
     "Picker PDA uses vertical SKU input, selected SKU/product, full-width BÁO HẾT HÀNG and today history.",
     "Reporter PDA keeps four business-state filters with large CÓ HÀNG / CHO SKIP HÀNG actions and explicit Skip impact confirmation.",
     "Admin/Root PDA must have a concise operational launcher and must not render as only Reporter.",
@@ -65,7 +65,8 @@
     "HR source is Admin/Root configurable with Google Sheet URL, exact tab and configurable employee/name columns; Picker lifecycle remains explicit Admin/Root authority.",
     "SKU Excel imports support 10,000-50,000 rows using bounded idempotent chunks and explicit conflict handling.",
     "Android Beta must verify latest valid signed Beta version before login.",
-    "UI-first sequencing: complete and obtain Owner acceptance for the legacy-reference Web + Android/PDA visual shell before rebuilding/wiring remaining logic, scenarios and business requirements."
+    "UI-first sequencing: complete and obtain Owner acceptance for the legacy-reference Web + Android/PDA visual shell before rebuilding/wiring remaining logic, scenarios and business requirements.",
+    "During the UI-first phase, Web preserves the old topbar/health/test-strip/left-sidebar/workspace presentation and Android/PDA preserves the old native XML/drawable/color/style/layout structure; intentional visual divergence requires Owner approval."
   ],
   "completed_capabilities": [
     "Cloudflare Beta Worker/custom domain/InventoryCore SQLite provisioning",
@@ -107,15 +108,18 @@
     "UI Design Guard run 35305421811 PASS includes explicit regression guards for Web horizontal legacy navigation and Android fixed 76dp header."
   ],
   "pending_build": [
-    "Owner screen-by-screen UI/layout acceptance on the deployed Web and signed beta-vc42 APK",
-    "UI-only repair of any remaining visual/layout mismatch rejected by Owner",
-    "Business logic/scenario rebuild and wiring only after Owner UI gate",
-    "Physical PDA/FCM business acceptance after the UI/business rebuild",
-    "Isolated mutation load acceptance after Owner scale target"
+    "Transplant full old Web presentation shell/modules into current Web without legacy backend/provider code",
+    "Transplant old Android/PDA native XML/drawable/color/style/layout presentation into current app without legacy backend/provider code",
+    "Render required role/screens/states for visual review using current data or safe fixture/sample state where business wiring is intentionally deferred",
+    "Run source/build guards without claiming UI acceptance",
+    "Owner screen-by-screen UI/layout acceptance",
+    "Only after Owner UI gate: rebuild/wire canonical business logic/scenarios",
+    "Physical notification/device acceptance after functional rebuild",
+    "Isolated mutation load acceptance after Owner workload target"
   ],
   "field_pending": [
-    "Owner visual/layout acceptance is required on the deployed Web and signed beta-vc42 Android/PDA candidate before business rebuild resumes.",
-    "Physical logged-in PDA FCM and explicit critical-result acknowledgement remain field acceptance items after the functional rebuild."
+    "Owner visual/layout acceptance is pending for the direct old-presentation transplant.",
+    "Technical CI/build/deploy evidence must remain distinct from Owner UI acceptance."
   ],
   "open_decisions_do_not_invent": [
     "Exact SKU-reset confirmation semantics originally described as random '6 chữ'.",
@@ -125,8 +129,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Obtain explicit Owner screen-by-screen UI/layout acceptance for the deployed legacy-reference Web and signed beta-vc42 Android/PDA candidate; repair only remaining UI/layout mismatches until that gate passes.",
-    "method": "Use the deployed Web and beta-vc42 for visual review against tam95supra-source/bao-hang-1291. Record accepted/rejected screens. Do not resume business logic/scenario rebuild before explicit Owner UI acceptance.",
+    "primary": "Directly transplant the old Web and Android/PDA presentation layers from tam95supra-source/bao-hang-1291 into the current clients, excluding all old backend/provider/auth/storage code.",
+    "method": "Web: preserve old shell and module presentation including full-width topbar, status chips, optional role-test strip, grouped left sidebar and workspace. Android: use old native XML/drawable/color/style/layout resources instead of approximate programmatic reconstruction. Validate technical build only; collect explicit Owner UI acceptance separately.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -154,18 +158,22 @@
   },
   "workboard": {
     "in_progress": [
-      "Owner UI/layout acceptance gate for deployed Web and signed beta-vc42 Android/PDA",
-      "UI-only mismatch repair if Owner rejects any screen"
+      "D057 direct old Web presentation transplant",
+      "D057 direct old Android/PDA native resource transplant",
+      "Authority/spec/guard rewrite so approximate UI cannot be mislabeled as parity"
     ],
     "next": [
-      "Collect Owner UI acceptance screen-by-screen on Web and Android/PDA",
-      "Fix only remaining UI/layout mismatches until Owner UI gate passes",
-      "Only after UI gate PASS, rebuild/wire canonical logic, scenarios and business requirements"
+      "Complete Web shell/screens from old presentation source",
+      "Complete APK login/header/Picker/Reporter/Admin presentation from old native resources",
+      "Run technical guards/builds",
+      "Deploy/release only as UI review candidate",
+      "Collect Owner screen-by-screen acceptance",
+      "Only after UI acceptance resume business wiring"
     ],
     "blocked_or_owner_field_dependent": [
-      "Owner UI/layout acceptance requires visual review of the deployed Web and signed beta-vc42 APK",
-      "Physical background FCM display/explicit ACK acceptance follows the functional rebuild",
-      "Isolated mutation load acceptance still requires an Owner workload target/test boundary"
+      "Final UI acceptance requires Owner visual review after the direct transplant candidate exists",
+      "Physical notification/ACK acceptance follows the functional rebuild",
+      "Mutation load acceptance still requires an Owner workload target/test boundary"
     ],
     "last_source_build_evidence": {
       "branch": "ui/legacy-parity-nav-header",
