@@ -116,14 +116,15 @@
     "UI Design Guard run 35309444877 PASS on fa677463 with D057 presentation invariants plus Web production and Android debug build gates."
   ],
   "pending_build": [
-    "Owner screen-by-screen UI/layout acceptance on the deployed D057 Web candidate and signed beta-vc43 APK",
-    "UI-only repair of any remaining presentation mismatch rejected by Owner",
+    "D058 Web desktop shell source/build/deploy gate and Owner screen-by-screen UI/layout acceptance",
+    "Android/APK visual review after Owner resumes it",
     "Only after Owner UI gate: rebuild/wire canonical business logic/scenarios",
     "Physical notification/device acceptance after functional rebuild",
     "Isolated mutation load acceptance after Owner workload target"
   ],
   "field_pending": [
-    "Owner visual/layout acceptance is pending for the deployed/released D057 direct-presentation candidate.",
+    "Owner Web visual/layout acceptance is pending for the D058 review candidate.",
+    "Android/APK review is pending separately.",
     "Technical source/build/deploy/release PASS is not Owner UI acceptance."
   ],
   "open_decisions_do_not_invent": [
@@ -134,8 +135,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Continue Owner-led screen-by-screen review of the deployed D057 Web and signed beta-vc43 APK; repair only visual/layout mismatches reported or confirmed during review.",
-    "method": "Fresh-bootstrap canonical GitHub in the next session. Use tam95supra-source/bao-hang-1291 at 8713f487386fa39c9225b180b2b8448d4a7e2b2d plus D057 as visual authority. Owner only needs to provide the current screen feedback/screenshot; do not ask them to restate prior project context.",
+    "primary": "Complete D058 Web-only source/build gates, merge through PR, verify Beta Web deploy, then continue Owner screen-by-screen Web review.",
+    "method": "Apply current Owner review as the Web-specific refinement over D057: no test strip, no AI/Owner or implementation prose, fixed topbar + Admin/Root left navigation, central-workspace scrolling, full available desktop width, fixed bottom-right credit. Do not modify Android in this workstream.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -163,18 +164,20 @@
   },
   "workboard": {
     "in_progress": [
-      "Owner is actively reviewing the deployed D057 Web candidate and signed beta-vc43 Android/PDA UI",
-      "UI-only presentation mismatch repair from Owner review feedback"
+      "D058 Owner Web review repair: remove test strip and rejected explanatory copy, correct desktop shell geometry, pin top/left chrome, use full workspace and fixed product credit",
+      "Owner Web UI acceptance remains pending; Android/APK review is explicitly paused for this workstream"
     ],
     "next": [
-      "In the next chat, bootstrap ops/authority-manifest.json and continue from Owner UI review without asking Owner to repeat project history",
-      "For each rejected screen, compare current render with tam95supra-source/bao-hang-1291@8713f487386fa39c9225b180b2b8448d4a7e2b2d and repair presentation only",
-      "Run protected source/build checks, deploy/release a new review candidate, and preserve separation between technical PASS and Owner UI acceptance",
+      "Run D058 source/build/authority/continuity guards and merge only after PASS",
+      "Verify Beta Web deployment for the merged D058 source without mutating Stable",
+      "Continue Owner screen-by-screen Web review from the deployed D058 candidate",
+      "Keep Android/APK pending until Owner starts its separate review",
       "Only after explicit Owner UI acceptance resume canonical business wiring"
     ],
     "blocked_or_owner_field_dependent": [
-      "Final UI/layout acceptance depends on Owner visual review of the live Web and signed beta-vc43 review candidate",
-      "No business rebuild is authorized while Owner UI review is still in progress"
+      "Final Web UI/layout acceptance depends on Owner visual review of the deployed D058 candidate",
+      "Android/APK visual review is pending by Owner instruction",
+      "No business rebuild is authorized while the UI gate is still in progress"
     ],
     "last_source_build_evidence": {
       "branch": "ui/direct-legacy-presentation-transplant",
@@ -224,7 +227,7 @@
   "last_updated": "2026-09-18",
   "owner_ui_review": {
     "status": "IN_PROGRESS",
-    "phase": "D057_DIRECT_LEGACY_PRESENTATION_REVIEW",
+    "phase": "D058_WEB_DESKTOP_SHELL_REPAIR_SOURCE_CANDIDATE",
     "started_on": "2026-09-18",
     "review_target_web": "https://inventory-beta.supra.cc.cd/",
     "review_target_android_release": "beta-vc43",
@@ -232,8 +235,8 @@
     "visual_authority_repository": "tam95supra-source/bao-hang-1291",
     "visual_authority_commit": "8713f487386fa39c9225b180b2b8448d4a7e2b2d",
     "owner_acceptance": "NOT_YET_GIVEN",
-    "current_instruction": "Continue UI/layout review and fix presentation mismatches only. Do not resume business logic/scenario rebuild until explicit Owner UI acceptance.",
-    "next_session_command": "Tiếp tục review UI D057",
-    "review_feedback_protocol": "Owner may send a screenshot and/or concise screen feedback; AI must bootstrap canonical repo first, compare against old visual authority, fix UI-only mismatch through branch -> PR -> guards -> merge -> runtime/release, then return the next review candidate."
+    "current_instruction": "Focus Web first. Apply Owner D058 desktop shell/layout/copy fixes only; Android/APK review is pending and must not be changed in this workstream. Do not resume business logic/scenario rebuild until explicit Owner UI acceptance.",
+    "next_session_command": "Tiếp tục review UI D058",
+    "review_feedback_protocol": "Owner may send the current Web screenshot and concise feedback; AI must bootstrap canonical repo first, apply Web presentation-only repair through branch -> PR -> authority/continuity/UI guards -> merge -> Beta deploy verification, then return the next Web review candidate. Android remains pending."
   }
 }

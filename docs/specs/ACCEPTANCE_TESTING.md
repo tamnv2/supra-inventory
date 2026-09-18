@@ -86,6 +86,14 @@ Admin/Root:
 - SLA configuration and recurrence/SLA reporting appear only within allowed roles;
 - no stock quantity/bin/location or employee scoring is introduced.
 
+D058 desktop shell review:
+- `Kiểm thử giao diện + quyền server` is absent from the product shell until Owner explicitly reintroduces it;
+- at desktop width the topbar and Admin/Root left navigation remain pinned while normal vertical page movement occurs inside the central workspace;
+- the central workspace and page-level dashboard/report wrappers use the full available browser width rather than a centered fixed-width canvas;
+- no visible AI/Owner discussion, design rationale, migration/backend implementation prose or the specifically rejected explanatory strings remain;
+- Web credit reads `Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291`, is visually secondary, fixed bottom-right and does not disappear when workspace content scrolls;
+- Android/PDA is outside this D058 repair and remains pending separate Owner review.
+
 ## Android/PDA acceptance
 
 Shared:

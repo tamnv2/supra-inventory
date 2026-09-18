@@ -46,6 +46,7 @@ DECISIONS = read("docs/OWNER_DECISIONS.md")
 
 checks = {
     "authority_direct_legacy_transplant": "D057" in DECISIONS and "direct legacy presentation transplant" in DESIGN_SPEC.lower(),
+    "authority_d058_owner_web_review": "D058" in DECISIONS and "Owner-reviewed desktop shell refinement" in DESIGN_SPEC,
     "authority_ui_acceptance_distinct_from_ci": "CI/build PASS" in DESIGN_SPEC and "Owner UI" in DESIGN_SPEC,
     "authority_no_offline_mode": "D043" in DECISIONS and "No offline business mode" in DESIGN_SPEC,
 
@@ -59,6 +60,24 @@ checks = {
     ]),
     "web_legacy_login_shell": 'class="login-shell"' in WEB_APP and 'class="login-card"' in WEB_APP and "Lấy lại mật khẩu" in WEB_APP,
     "web_legacy_admin_shell": all(token in WEB_APP for token in ['class="app-shell', 'class="topbar"', 'class="tabs"', 'class="content main"']),
+    "web_d058_no_centering_shell_class": 'class="app-shell shell' not in WEB_APP,
+    "web_d058_test_strip_removed": "Kiểm thử giao diện + quyền server" not in WEB_APP and 'class="test-tools"' not in WEB_APP,
+    "web_d058_rejected_prose_removed": all(token not in WEB_APP for token in [
+        "Realtime · cập nhật đúng SKU, không tải lại toàn màn hình.",
+        "Hỗ trợ file lớn theo từng phần xử lý; dữ liệu hiện có không bị xoá chỉ vì file mới không chứa.",
+        "Tạo tài khoản nghiệp vụ ngoài danh sách Picker nguồn.",
+        "Theo dõi kết nối và kênh cập nhật.",
+        "Log hỗ trợ chỉ chứa trạng thái kỹ thuật đã giới hạn và che thông tin nhạy cảm.",
+        "Cấu hình mốc cảnh báo và mốc quá hạn.",
+    ]),
+    "web_d058_fixed_full_workspace": all(token in WEB_FAST for token in [
+        "D058 Owner Web review",
+        "grid-template-rows: auto minmax(0, 1fr)",
+        "overflow-y: auto",
+        ".app-footer",
+        "max-width: none !important",
+    ]),
+    "web_d058_credit": "Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291" in WEB_APP,
     "web_legacy_left_sidebar_geometry": "grid-template-columns: 216px minmax(0, 1fr)" in WEB_FAST and "flex-direction: column" in WEB_FAST and ".nav-section-label" in WEB_FAST,
     "web_legacy_dashboard_composition": all(token in WEB_APP for token in ["v5-root", "Tổng quan hôm nay", "v5-kpi-grid", "SKU ưu tiên", "Hiệu suất hôm nay"]),
     "web_legacy_reporter_workspace": all(token in WEB_APP for token in ["fast-events", "fast-workspace", "fast-list", "fast-detail", "Xử lý báo hàng"]),
