@@ -48,6 +48,20 @@ class AndroidRealtimeClient(
         connectAsync()
     }
 
+    fun diagnosticSnapshot(): Map<String, String> = linkedMapOf(
+        "state" to when {
+            stopped -> "stopped"
+            socket != null -> "connected"
+            connecting -> "connecting"
+            recovering -> "recovering"
+            else -> "disconnected"
+        },
+        "applied_seq" to appliedSeq.toString(),
+        "stream_epoch" to streamEpoch.take(80),
+        "recovering" to recovering.toString(),
+        "dirty_recovery_scheduled" to dirtyRecoveryScheduled.toString(),
+    )
+
     fun stop() {
         stopped = true
         connecting = false

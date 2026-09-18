@@ -68,6 +68,9 @@ data class ReporterBatch(
     val recurrenceMinutes: Int? = null,
     val slaState: String = "UNCONFIGURED",
     val waitingMinutes: Int = 0,
+    val warningAt: String? = null,
+    val escalationAt: String? = null,
+    val serverNow: String? = null,
 )
 
 data class ReporterRecent(
@@ -291,6 +294,7 @@ class InventoryApi(
 
     fun getReporterQueue(limit: Int = 100): List<ReporterBatch> {
         val payload = request("GET", "/api/reporter/queue?limit=$limit")
+        val serverNow = nullable(payload, "server_now")
         val array = payload.optJSONArray("items") ?: JSONArray()
         val rows = ArrayList<ReporterBatch>(array.length())
         for (index in 0 until array.length()) {
@@ -302,6 +306,8 @@ class InventoryApi(
                 previousResolvedAt = nullable(row, "previous_resolved_at"),
                 recurrenceMinutes = row.optInt("recurrence_minutes", -1).takeIf { it >= 0 },
                 slaState = row.optString("sla_state", "UNCONFIGURED"), waitingMinutes = row.optInt("waiting_minutes", 0),
+                warningAt = nullable(row, "warning_at"), escalationAt = nullable(row, "escalation_at"),
+                serverNow = serverNow,
             )
         }
         return rows

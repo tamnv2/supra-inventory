@@ -143,3 +143,10 @@ Client contract:
 - Delivery-attempt telemetry is bounded and correlated to event/device/user where known.
 - Provider responses that identify an invalid/unregistered token disable that token from later targeting.
 - Foreground WebSocket/delta remains the live synchronization channel; FCM is not a second business-state transport.
+
+## SLA clock progression without polling
+
+- Reporter queue responses include an authoritative `server_now` plus per-batch absolute `warning_at` / `escalation_at` when SLA is configured.
+- Web and Android calibrate a local presentation clock from `server_now` and advance waiting-minute/SLA labels locally.
+- Local SLA ticking is presentation-only: it must not call the API, mutate business state or change queue priority.
+- Any subsequent authoritative queue response recalibrates the client clock and replaces presentation state.

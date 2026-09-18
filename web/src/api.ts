@@ -69,6 +69,8 @@ export interface ReporterBatch {
   recurrence_minutes?: number | null;
   sla_state: SlaState;
   waiting_minutes: number;
+  warning_at?: string | null;
+  escalation_at?: string | null;
 }
 
 export interface ReporterRecentBatch {
@@ -417,7 +419,7 @@ export async function getSkuCatalogPage(after = "", limit = 2000): Promise<SkuCa
   return readJson(await authorizedFetch(`/api/skus/catalog?${params.toString()}`));
 }
 
-export async function getReporterQueue(limit = 100): Promise<{ items: ReporterBatch[]; count: number; sla_configured?: boolean; sla?: SlaConfig | null }> {
+export async function getReporterQueue(limit = 100): Promise<{ items: ReporterBatch[]; count: number; server_now?: string; sla_configured?: boolean; sla?: SlaConfig | null }> {
   return readJson(await authorizedFetch(`/api/reporter/queue?limit=${encodeURIComponent(String(limit))}`));
 }
 

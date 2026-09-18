@@ -87,3 +87,10 @@ Navigation may be implemented compactly, but the conceptual grouping and live-qu
 ## Open item
 
 Final export columns and any expanded Reporter analytics beyond the core operational queue remain Owner-open. Do not invent employee scoring or stock/location analytics.
+
+## Operational insights query bounds
+
+- Operational insights use the same maximum reporting window as the dashboard/reporting module: at most 60 days.
+- SLA warning/escalated counts are computed as a bounded SQL aggregate over pending batches; the service must not materialize every pending batch into application memory just to classify SLA state.
+- Recurrence insight remains range-bounded and top-N bounded.
+- Time-progress presentation on the live queue does not require analytics polling.

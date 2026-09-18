@@ -138,3 +138,15 @@ Notification-provider attempt rows are technical delivery telemetry, not busines
 - Invalid/unregistered provider tokens may be disabled from the authenticated device registry without changing business resolution.
 - Delivery-attempt retention is bounded independently from durable report/result/ACK audit; current source keeps only the newest bounded attempt window.
 - Client `RECEIVED`, `DISPLAYED` and explicit `ACKNOWLEDGED` remain separate monotonic stages.
+
+## Archive coverage for Operational V2 lifecycle data
+
+Archive candidates for finalized batches include the newer immutable/lifecycle metadata needed to reconstruct the shortage episode:
+
+- batch `version`, `previous_batch_id` and `last_report_at`;
+- result-event immutable `batch_version`, result resolution and result timestamp;
+- per-target receipt lifecycle (`RECEIVED`, `DISPLAYED`, `ACKNOWLEDGED`) encoded with the archived result event.
+
+The existing archive workbook/tabs remain the transport surface; no new archive resource is required for these fields.
+
+Retention cleanup may delete hot finalized data only after that batch is marked archived. Cleanup must remove associated result acknowledgements, immutable result snapshots, realtime rows and correlated notification-attempt telemetry before deleting report events/tickets/batch, preventing orphan operational rows. Unresolved batches remain outside cleanup.

@@ -10,6 +10,8 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.Typeface
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -30,6 +32,8 @@ import androidx.core.content.FileProvider
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.messaging.FirebaseMessaging
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
@@ -226,6 +230,7 @@ class MainActivity : Activity() {
         loginButton = null
         pickerController?.destroy()
         pickerController = null
+        reporterController?.destroy()
         reporterController = null
         adminLauncherController = null
         when (session.role) {
@@ -247,7 +252,7 @@ class MainActivity : Activity() {
 
     private fun baseOperationalPage(session: AppSession): LinearLayout {
         val root = kit.page()
-        kit.addOperationalHeader(root, session, onLog = { showLocalLog() }, onExit = { confirmLogout() })
+        kit.addOperationalHeader(root, session, onLog = { showSupportDiagnostics() }, onExit = { confirmLogout() })
         status = kit.createStatusView()
         root.addView(status)
         return root
@@ -268,6 +273,7 @@ class MainActivity : Activity() {
     private fun renderReporterHome(session: AppSession, showLauncherBack: Boolean, initialFilter: String = "PENDING") {
         pickerController?.destroy()
         pickerController = null
+        reporterController?.destroy()
         reporterController = null
         val root = baseOperationalPage(session)
         if (showLauncherBack) {
@@ -286,6 +292,7 @@ class MainActivity : Activity() {
     private fun renderAdminLauncher(session: AppSession) {
         pickerController?.destroy()
         pickerController = null
+        reporterController?.destroy()
         reporterController = null
         val root = baseOperationalPage(session)
         adminLauncherController = AdminLauncherController(
@@ -295,7 +302,7 @@ class MainActivity : Activity() {
             setStatus = ::setStatus,
             onOpenOperations = { renderReporterHome(session, showLauncherBack = true, initialFilter = "PENDING") },
             onOpenResults = { renderReporterHome(session, showLauncherBack = true, initialFilter = "HAS_STOCK") },
-            onOpenLog = { showLocalLog() },
+            onOpenLog = { showSupportDiagnostics() },
             onCheckUpdate = { checkForUpdate(silent = false) },
         ).also { it.render(root) }
         finishOperationalPage(root)
@@ -306,6 +313,7 @@ class MainActivity : Activity() {
     private fun stopOperationalClients() {
         pickerController?.destroy()
         pickerController = null
+        reporterController?.destroy()
         reporterController = null
         adminLauncherController = null
         realtimeClient?.stop()
@@ -321,24 +329,80 @@ class MainActivity : Activity() {
             .show()
     }
 
-    private fun showLocalLog() {
-        val content = if (localLog.isEmpty()) "Chưa có log trong phiên làm việc này." else localLog.joinToString("\n")
+    private fun showSupportDiagnostics() {
+        val payload = buildSupportDiagnostics()
         val scroll = ScrollView(this).apply {
             addView(TextView(this@MainActivity).apply {
-                text = content
-                textSize = 12f
+                text = payload
+                textSize = 11.5f
                 setTextColor(kit.text)
                 setPadding(kit.dp(14), kit.dp(8), kit.dp(14), kit.dp(8))
+                setTextIsSelectable(true)
             })
         }
         AlertDialog.Builder(this)
-            .setTitle("Log phiên làm việc")
+            .setTitle("Log hỗ trợ")
             .setView(scroll)
-            .setNegativeButton("Xoá log") { _, _ -> localLog.clear() }
-            .setPositiveButton("Đóng", null)
+            .setNegativeButton("Đóng", null)
+            .setNeutralButton("Chia sẻ") { _, _ ->
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_SUBJECT, "SUPRA Inventory Beta support log")
+                    putExtra(Intent.EXTRA_TEXT, payload)
+                }
+                startActivity(Intent.createChooser(intent, "Chia sẻ log hỗ trợ"))
+            }
             .show()
     }
 
+    private fun buildSupportDiagnostics(): String {
+        val realtime = realtimeClient?.diagnosticSnapshot().orEmpty()
+        val errors = localLog
+            .filter { line ->
+                val value = line.lowercase()
+                listOf("lỗi", "không thể", "không hợp lệ", "thất bại", "hết hạn", "chưa xác minh").any(value::contains)
+            }
+            .takeLast(10)
+            .map(::sanitizeDiagnosticText)
+
+        val root = JSONObject()
+            .put("format", "supra-inventory-support-v1")
+            .put("generated_at", Instant.now().toString())
+            .put("app", JSONObject()
+                .put("package", BuildConfig.APPLICATION_ID)
+                .put("version_name", BuildConfig.VERSION_NAME)
+                .put("version_code", BuildConfig.VERSION_CODE))
+            .put("device", JSONObject()
+                .put("manufacturer", Build.MANUFACTURER.take(80))
+                .put("model", Build.MODEL.take(80))
+                .put("sdk_int", Build.VERSION.SDK_INT))
+            .put("network", JSONObject()
+                .put("validated_internet", hasValidatedInternet())
+                .put("api_host", Uri.parse(BuildConfig.API_BASE_URL).host.orEmpty()))
+            .put("realtime", JSONObject(realtime))
+            .put("catalog", JSONObject()
+                .put("count", skuCache.count)
+                .put("version", sanitizeDiagnosticText(skuCache.version).take(160)))
+            .put("recent_errors", JSONArray(errors))
+
+        return root.toString(2).take(16_000)
+    }
+
+    private fun hasValidatedInternet(): Boolean {
+        val manager = getSystemService(ConnectivityManager::class.java) ?: return false
+        val network = manager.activeNetwork ?: return false
+        val caps = manager.getNetworkCapabilities(network) ?: return false
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+    }
+
+    private fun sanitizeDiagnosticText(value: String): String {
+        var next = value.take(500)
+        val secretPattern = Regex("(?i)(authorization|bearer|token|password|secret|private[_ -]?key|api[_ -]?key)\\s*[:=]\\s*[^\\s,;]+")
+        next = secretPattern.replace(next) { match -> "${match.groupValues[1]}=[REDACTED]" }
+        next = next.replace(Regex("eyJ[A-Za-z0-9_-]{20,}\\.[A-Za-z0-9_-]{20,}\\.[A-Za-z0-9_-]{10,}"), "[REDACTED_JWT]")
+        return next
+    }
     private fun recordLog(message: String) {
         if (localLog.size >= 80) localLog.removeFirst()
         localLog.addLast("${logTime.format(Instant.now())} · $message")

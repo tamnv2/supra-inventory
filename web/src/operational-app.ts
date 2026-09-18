@@ -41,6 +41,7 @@ import {
   type ReporterRecentBatch,
   type SkuItem,
   type SlaResponse,
+  type SlaState,
 } from "./api";
 import { parseSkuExcel, type ParsedSkuWorkbook } from "./sku-excel";
 import { registerRealtimeApplier, type RealtimeEventFrame } from "./realtime-client";
@@ -110,6 +111,7 @@ let busy = false;
 let realtimeState = "connecting";
 let realtimeLastSeq = 0;
 let queueRows: ReporterBatch[] = [];
+let queueServerOffsetMs = 0;
 let recentRows: ReporterRecentBatch[] = [];
 let batchDetails = new Map<string, BatchPickerTicket[]>();
 let recentFilter: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | "ALL" = "ALL";
@@ -500,17 +502,50 @@ function renderOperations(): string {
     <div class="operation-list">${queueRows.length ? queueRows.map(renderOperationRow).join("") : `<div class="card empty">Không có SKU đang chờ xử lý.</div>`}</div></section>`;
 }
 
+function liveQueueTiming(row: ReporterBatch): { waiting: number; state: SlaState } {
+  const now = Date.now() + queueServerOffsetMs;
+  const first = Date.parse(row.first_report_at);
+  const waiting = Number.isFinite(first) ? Math.max(0, Math.floor((now - first) / 60_000)) : Number(row.waiting_minutes || 0);
+  const escalation = row.escalation_at ? Date.parse(row.escalation_at) : NaN;
+  const warning = row.warning_at ? Date.parse(row.warning_at) : NaN;
+  const state: SlaState = Number.isFinite(escalation) && now >= escalation
+    ? "ESCALATED"
+    : Number.isFinite(warning) && now >= warning
+      ? "WARNING"
+      : row.sla_state === "UNCONFIGURED"
+        ? "UNCONFIGURED"
+        : "NORMAL";
+  return { waiting, state };
+}
+
 function renderOperationRow(row: ReporterBatch): string {
-  const sla_state = row.sla_state;
+  const timing = liveQueueTiming(row);
+  const sla_state = timing.state;
   const recurrence = row.previous_batch_id ? `<span class="badge">Tái phát${row.recurrence_minutes != null ? ` · ${Math.round(row.recurrence_minutes / 60)}h` : ""}</span>` : "";
   const details = batchDetails.get(row.batch_id);
-  return `<article class="operation-row ${sla_state === "ESCALATED" ? "escalated" : sla_state === "WARNING" ? "warning" : ""}">
+  return `<article class="operation-row ${sla_state === "ESCALATED" ? "escalated" : sla_state === "WARNING" ? "warning" : ""}" data-operation-batch="${esc(row.batch_id)}">
     <div><div class="sku-code">${esc(row.sku)}</div><div class="product-name">${esc(row.product_name)}</div></div>
     <div><div class="operation-count">${Number(row.affected_picker_count)} Picker</div><div class="tiny muted">Phiên bản ${Number(row.version || 1)}</div></div>
-    <div class="operation-meta"><span>${Number(row.waiting_minutes || 0)} phút</span><span class="badge ${sla_state === "ESCALATED" ? "escalated" : sla_state === "WARNING" ? "warning" : sla_state === "NORMAL" ? "ok" : ""}">${esc(slaLabel(sla_state))}</span>${recurrence}<span>Báo đầu ${esc(fmt(row.first_report_at))}</span></div>
+    <div class="operation-meta"><span data-wait-batch="${esc(row.batch_id)}">${timing.waiting} phút</span><span data-sla-batch="${esc(row.batch_id)}" class="badge ${sla_state === "ESCALATED" ? "escalated" : sla_state === "WARNING" ? "warning" : sla_state === "NORMAL" ? "ok" : ""}">${esc(slaLabel(sla_state))}</span>${recurrence}<span>Báo đầu ${esc(fmt(row.first_report_at))}</span></div>
     <div class="operation-actions"><button class="btn success" data-resolve="HAS_STOCK" data-batch="${esc(row.batch_id)}">CÓ HÀNG</button><button class="btn danger" data-skip-batch="${esc(row.batch_id)}">CHO SKIP HÀNG</button><button class="btn secondary" data-detail="${esc(row.batch_id)}">${details ? "Ẩn Picker" : "Picker"}</button></div>
     ${details ? `<div class="detail"><div class="detail-list">${details.map((item) => `<span class="picker-chip"><strong>${esc(item.picker_employee_code)}</strong> · ${esc(item.picker_display_name || "—")} · ${esc(fmt(item.reported_at))}</span>`).join("")}</div></div>` : ""}
   </article>`;
+}
+
+function updateQueueClockDom(): void {
+  if (activeSection !== "operations") return;
+  for (const row of queueRows) {
+    const timing = liveQueueTiming(row);
+    const wait = document.querySelector<HTMLElement>(`[data-wait-batch="${CSS.escape(row.batch_id)}"]`);
+    if (wait) wait.textContent = `${timing.waiting} phút`;
+    const badge = document.querySelector<HTMLElement>(`[data-sla-batch="${CSS.escape(row.batch_id)}"]`);
+    if (badge) {
+      badge.textContent = slaLabel(timing.state);
+      badge.className = `badge ${timing.state === "ESCALATED" ? "escalated" : timing.state === "WARNING" ? "warning" : timing.state === "NORMAL" ? "ok" : ""}`;
+    }
+    const card = document.querySelector<HTMLElement>(`[data-operation-batch="${CSS.escape(row.batch_id)}"]`);
+    if (card) card.className = `operation-row ${timing.state === "ESCALATED" ? "escalated" : timing.state === "WARNING" ? "warning" : ""}`;
+  }
 }
 
 function renderResults(): string {
@@ -623,9 +658,62 @@ function renderReports(): string {
   </section>`;
 }
 
+function sanitizeDiagnosticValue(value: unknown, depth = 0): unknown {
+  if (depth > 4) return "[TRUNCATED]";
+  if (value == null || typeof value === "boolean" || typeof value === "number") return value;
+  if (typeof value === "string") return value.slice(0, 300);
+  if (Array.isArray(value)) return value.slice(0, 20).map((item) => sanitizeDiagnosticValue(item, depth + 1));
+  if (typeof value === "object") {
+    const output: Record<string, unknown> = {};
+    for (const [key, item] of Object.entries(value as Record<string, unknown>).slice(0, 50)) {
+      output[key] = /authorization|bearer|token|password|secret|private|credential|api.?key|refresh/i.test(key)
+        ? "[REDACTED]"
+        : sanitizeDiagnosticValue(item, depth + 1);
+    }
+    return output;
+  }
+  return String(value).slice(0, 300);
+}
+
+function supportDiagnostics(): Record<string, unknown> {
+  return {
+    format: "supra-inventory-support-v1",
+    generated_at: new Date().toISOString(),
+    app: {
+      surface: "WEB",
+      host: window.location.host,
+    },
+    network: {
+      online: navigator.onLine,
+    },
+    realtime: {
+      state: realtimeState,
+      applied_seq: realtimeLastSeq,
+    },
+    ui: {
+      section: activeSection,
+    },
+    service_health: serviceHealth ? sanitizeDiagnosticValue(serviceHealth) : null,
+  };
+}
+
+function downloadSupportDiagnostics(): void {
+  const body = JSON.stringify(supportDiagnostics(), null, 2).slice(0, 16_000);
+  const blob = new Blob([body], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const stamp = new Date().toISOString().replaceAll(":", "").replaceAll("-", "").slice(0, 15);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `supra-inventory-beta-support-${stamp}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
 function renderSystem(): string {
-  const safe = serviceHealth ? JSON.stringify(serviceHealth, (key, value) => /token|password|secret|private|key/i.test(key) ? "[REDACTED]" : value, 2) : "Chưa tải trạng thái dịch vụ.";
-  return `<section><div class="page-head"><div><h1>Trạng thái & chẩn đoán</h1><p>Log hỗ trợ chỉ chứa trạng thái kỹ thuật đã giới hạn và che thông tin nhạy cảm.</p></div><button class="btn secondary" id="refresh-system">Kiểm tra dịch vụ</button></div><div class="card"><div class="status-line"><span class="badge ${navigator.onLine ? "ok" : "escalated"}">Mạng: ${navigator.onLine ? "Online" : "Mất kết nối"}</span><span class="badge">Realtime: ${esc(realtimeState)}</span><span class="badge">Seq: ${realtimeLastSeq}</span></div></div><pre class="diagnostics">${esc(safe)}</pre></section>`;
+  const safe = serviceHealth ? JSON.stringify(sanitizeDiagnosticValue(serviceHealth), null, 2) : "Chưa tải trạng thái dịch vụ.";
+  return `<section><div class="page-head"><div><h1>Trạng thái & chẩn đoán</h1><p>Log hỗ trợ chỉ chứa trạng thái kỹ thuật đã giới hạn và che thông tin nhạy cảm.</p></div><div class="toolbar"><button class="btn secondary" id="refresh-system">Kiểm tra dịch vụ</button><button class="btn secondary" id="download-support-log">Tạo log hỗ trợ</button></div></div><div class="card"><div class="status-line"><span class="badge ${navigator.onLine ? "ok" : "escalated"}">Mạng: ${navigator.onLine ? "Online" : "Mất kết nối"}</span><span class="badge">Realtime: ${esc(realtimeState)}</span><span class="badge">Seq: ${realtimeLastSeq}</span></div></div><pre class="diagnostics">${esc(safe)}</pre></section>`;
 }
 
 function renderAccount(): string {
@@ -646,6 +734,8 @@ async function loadOperations(): Promise<void> {
   const userId = profile?.user_id || "";
   const [queue, recent] = await Promise.all([getReporterQueue(200), getReporterRecent(200)]);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+  const serverNow = queue.server_now ? Date.parse(queue.server_now) : NaN;
+  queueServerOffsetMs = Number.isFinite(serverNow) ? serverNow - Date.now() : 0;
   queueRows = queue.items;
   recentRows = recent.items;
 }
@@ -1186,6 +1276,7 @@ function bindSection(): void {
   document.querySelector<HTMLButtonElement>("#refresh-system")?.addEventListener("click", () => void run(async () => {
     serviceHealth = await getServiceHealth();
   }));
+  document.querySelector<HTMLButtonElement>("#download-support-log")?.addEventListener("click", downloadSupportDiagnostics);
   document.querySelector<HTMLFormElement>("#password-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget as HTMLFormElement);
@@ -1300,5 +1391,7 @@ async function bootstrap(): Promise<void> {
     renderLogin();
   }
 }
+
+window.setInterval(updateQueueClockDom, 15_000);
 
 void bootstrap();
