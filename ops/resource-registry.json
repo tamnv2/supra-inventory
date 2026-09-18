@@ -130,8 +130,8 @@
       "hostname": "inventory-beta.supra.cc.cd",
       "custom_domain_status": "ACTIVE",
       "health_status": "PASS",
-      "ci_deploy_status": "PASS_RUN_35347188833_MAIN_C874EAFC",
-      "web_smoke_status": "PASS_MAIN_C874EAFC",
+      "ci_deploy_status": "PASS_RUN_35407227911_MAIN_2E12E6D4",
+      "web_smoke_status": "PASS_MAIN_2E12E6D4",
       "app_verify_status": "ANDROID_PASS_SIGNED_RELEASE_VC44__MATCHING_RUNTIME_GATE_PASS",
       "durable_object_status": "PROVISIONED_PASS",
       "durable_object_class": "InventoryCore",
@@ -165,7 +165,7 @@
       "cloudflare_oauth_refresh_token_secret": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
       "oauth_refresh_token_configured": true,
       "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA",
-      "web_source_status": "D062_WEB_FINAL_QA_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
+      "web_source_status": "D066_THREE_GROUP_NAVIGATION_BETA_RUNTIME_PASS__OWNER_VISUAL_ACCEPTANCE_PENDING",
       "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
       "web_admin_report_monitoring": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_BUILD_DEPLOY_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
       "android_source_status": "VC44_D060_EFFECTIVE_ROLE_REFRESH_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING",
@@ -272,12 +272,12 @@
     "d061_web_dark_nav_realtime_cleanup_runtime_pass_owner_ui_pending",
     "d062_web_final_qa_canonical_navigation_dark_completion_runtime_pass_owner_ui_pending",
     "d063_consolidated_ops_logs_reporting_presence_ui_runtime_pass_owner_ui_pending",
-    "d064_detailed_system_status_and_controlled_beta_load_test_runtime_pass"
+    "d064_detailed_system_status_and_controlled_beta_load_test_runtime_pass",
+    "d066_three_group_navigation_beta_runtime_pass"
   ],
   "application_build_pending": [
     "owner_d061_web_ui_acceptance_and_android_review_pending",
-    "fcm_physical_device_delivery_acceptance_after_functional_rebuild",
-    "isolated_business_mutation_load_acceptance_after_owner_scale_target"
+    "fcm_physical_device_delivery_acceptance_after_functional_rebuild"
   ],
   "release_pending": [
     "stable_password_kdf_and_rate_limit_review",
@@ -338,10 +338,10 @@
   },
   "ui_design": {
     "authority": "OWNER_SELECTED_D057_LEGACY_TRANSPLANT_WITH_D058_D059_D060_D061_D062_D063_D064_D065_AND_D066_APPROVED_THREE_GROUP_NAV",
-    "web": "D066_THREE_GROUP_NAVIGATION_SOURCE_IMPLEMENTED__BETA_DEPLOY_PENDING",
+    "web": "D066_THREE_GROUP_NAVIGATION_BETA_RUNTIME_PASS__OWNER_VISUAL_ACCEPTANCE_PENDING",
     "android": "VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING",
     "scope_guard": "D066_EXACT_THREE_LARGE_GROUPS__MAX_FIVE_VISIBLE_CHILDREN_EACH__PERSONAL_ACCOUNT_OUTSIDE_BUSINESS_SIDEBAR__NO_BUSINESS_API_RBAC_REALTIME_CHANGE__ANDROID_UNCHANGED__STABLE_OWNER_GATED",
-    "source_candidate": "D066_THREE_GROUP_NAVIGATION_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
+    "source_candidate": "D066_THREE_GROUP_NAVIGATION_BETA_RUNTIME_PASS__OWNER_VISUAL_ACCEPTANCE_PENDING",
     "navigation_proposal": "docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md",
     "navigation_constraint": {
       "admin_root_large_groups": 3,
@@ -362,7 +362,7 @@
         ]
       },
       "personal_account_action": "PINNED_IDENTITY_CONTROL_NOT_SIDEBAR",
-      "implementation": "OWNER_APPROVED_D066__SOURCE_IMPLEMENTED__BETA_RUNTIME_PENDING"
+      "implementation": "OWNER_APPROVED_D066__BETA_RUNTIME_PASS__OWNER_VISUAL_ACCEPTANCE_PENDING"
     }
   },
   "quota_resilience": {
