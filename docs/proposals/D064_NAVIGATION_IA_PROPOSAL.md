@@ -1,144 +1,188 @@
-# D064 Navigation IA Proposal — PENDING OWNER DECISION
+# D065 Navigation IA Proposal — THREE LARGE GROUPS — PENDING OWNER IMPLEMENTATION APPROVAL
 
-Status: **PROPOSAL ONLY — DO NOT IMPLEMENT UNTIL OWNER APPROVES**
+Status: **OWNER-CONSTRAINED PROPOSAL — exactly 3 large groups, at most 5 visible children per large group. Do not implement until Owner approves the exact composition.**
 
-## Why the current left navigation still feels wrong
+## Owner refinement
 
-The current D063/D064 sidebar is technically tidy but still reflects the implementation structure more than the daily business flow:
+The previous four-group D064 proposal is superseded for navigation design. The left navigation must now use:
 
-- `DỮ LIỆU` and `QUẢN TRỊ` split closely related people/account setup across separate groups. `Nguồn nhân sự` is a configuration source for Picker provisioning, not a daily data workspace.
-- `Nhân sự & tài khoản` and `Nguồn nhân sự` are two steps of one management process but sit in different large groups.
-- `Thiết lập nghiệp vụ` is too abstract. The actual business function is the processing-time warning/escalation configuration.
-- `Tài khoản & mật khẩu` is a personal identity action, not a system business module. Keeping it as a left-nav business item makes the sidebar longer without improving operations.
-- `Trạng thái hệ thống` is now a real monitoring console under D064; it should stay under Hệ thống, with capacity/load-test details inside it rather than spawning more sidebar entries.
-- The left navigation should optimize for frequency: live processing first, management second, analysis third, technical monitoring last.
+- exactly **3 large groups** for Admin/Root;
+- at most **5 visible child items per large group**;
+- related small functions should become tabs/sections inside one child workspace rather than additional sidebar rows;
+- personal account actions should not consume a business-navigation row.
 
-## Proposed large business groups
+## Analysis
+
+The product has three fundamentally different kinds of work:
+
+1. **VẬN HÀNH** — perform and review the shortage-reporting business flow.
+2. **QUẢN LÝ** — maintain the business inputs, users and processing rules that make the flow work.
+3. **HỆ THỐNG** — observe technical health, capacity and diagnostics.
+
+A separate top-level `BÁO CÁO` group is unnecessary in a three-group model because reporting is a read/analysis view of the same operational flow, not an independent data domain. A separate `DỮ LIỆU` group is also unnecessary because SKU master and HR/personnel sources are managed business inputs.
+
+This model follows user intent instead of implementation modules:
+- **Do the work / understand the work** → Vận hành.
+- **Configure who/what/how the work uses** → Quản lý.
+- **Check whether the platform is healthy** → Hệ thống.
+
+## Proposed Admin/Root sidebar
 
 ### 1. VẬN HÀNH
 
-**Left-nav item: `Xử lý báo hàng`**
+Visible children: **2 / maximum 5**
 
-Internal small modules/tabs:
+#### `Xử lý báo hàng`
+Internal tabs/sections:
 - `Đang chờ xử lý`
 - `Kết quả gần đây`
 
-Purpose:
-- This is the primary Reporter/Admin/Root operational surface.
-- Keep live queue, affected Picker count, elapsed time, recurrence and result acknowledgement context in one workspace.
-- Default landing for Reporter/Admin/Root remains this workspace.
+Contains:
+- Reporter priority queue;
+- affected Picker count;
+- waiting time and warning/escalation state;
+- recurrence context;
+- HAS_STOCK / SKIP_ALLOWED resolution;
+- result receipt/acknowledgement progress;
+- correction/withdraw context where role-allowed.
 
-### 2. QUẢN LÝ
+This remains the default landing for Reporter/Admin/Root because it is the highest-frequency business task.
 
-**Left-nav item: `Danh mục SKU`**
-
-Internal small modules:
-- `Tra cứu SKU`
-- `Cập nhật từ Excel`
-- `Xung đột / thay đổi tên` only when a real import needs review
-
-**Left-nav item: `Nhân sự & tài khoản`**
-
-Internal small modules/tabs:
-- `Danh sách tài khoản`
-- `Nguồn nhân sự`
-- `Đồng bộ Picker`
-
-Purpose:
-- Move the current separate `Nguồn nhân sự` route into this workspace because configuring the HR Sheet and applying Picker provisioning are one administrative process.
-- Keep role-safe create/edit/disable/delete/password operations here.
-- ROOT-only Admin management remains inside the same workspace under RBAC, not as another sidebar item.
-
-**Left-nav item: `Thời gian xử lý`**
-
-Internal small modules:
-- `Cảnh báo`
-- `Quá thời gian`
-
-Purpose:
-- Replace the vague `Thiết lập nghiệp vụ` wording with the exact setting being controlled.
-- Do not expose raw SLA jargon as the main visible label.
-
-### 3. BÁO CÁO
-
-**Left-nav item: `Tổng quan & báo cáo`**
-
-Internal small modules/tabs:
+#### `Tổng quan & báo cáo`
+Internal tabs:
 - `Tổng quan`
 - `Báo cáo chi tiết`
 
-Purpose:
-- Keep analysis separate from live operations.
-- No employee scoring/ranking and no out-of-scope stock/location metrics.
+Contains:
+- operational summary;
+- period filters;
+- trend/outcome/recurrence views;
+- online-user summary where approved;
+- detailed rows and CSV export.
 
-### 4. HỆ THỐNG
+Reason for placing it under VẬN HÀNH:
+- it analyzes the exact same shortage-reporting flow;
+- users move naturally from “what is happening now?” to “what happened / how much?”;
+- keeping a separate one-item `BÁO CÁO` large group adds hierarchy without adding a new business domain.
 
-**Left-nav item: `Trạng thái hệ thống`**
+### 2. QUẢN LÝ
 
-Internal small modules/sections:
+Visible children: **3 / maximum 5**
+
+#### `Danh mục SKU`
+Internal sections:
+- `Tra cứu`
+- `Cập nhật Excel`
+- `Xử lý xung đột` only when an import actually requires review
+
+Contains only approved SKU + product-name master functions. No stock quantity/location scope.
+
+#### `Nhân sự & tài khoản`
+Internal tabs/sections:
+- `Danh sách tài khoản`
+- `Nguồn nhân sự`
+- `Đồng bộ Picker`
+- role-safe create/change/disable/delete actions inside the relevant list/detail surface
+
+Reason for merging the former `Nguồn nhân sự` child:
+- HR Sheet configuration is not a standalone daily domain;
+- its purpose is to provision/synchronize Picker accounts;
+- source configuration + Preview/Apply + account lifecycle are one continuous administrative workflow.
+
+ROOT-only Admin management remains inside this workspace under server RBAC rather than becoming another sidebar child.
+
+#### `Thời gian xử lý`
+Internal sections:
+- `Cảnh báo`
+- `Quá thời gian`
+
+Reason:
+- this is clearer than generic `Thiết lập nghiệp vụ`;
+- it directly describes the only currently approved configurable SLA/time behavior;
+- configuration belongs with management, not with technical system health.
+
+### 3. HỆ THỐNG
+
+Visible children: **2 / maximum 5**
+
+#### `Trạng thái hệ thống`
+Internal sections:
 - `Dịch vụ`
 - `Dung lượng & giới hạn`
 - `Test tải gần nhất`
-- technical details remain expandable secondary information
+- expandable technical detail
 
-**Left-nav item: `Nhật ký`**
+Contains the D064 service/capacity console:
+Cloudflare Worker, InventoryCore/SQLite, Firebase Auth, FCM, Google Drive, Google Sheets, GitHub and realtime.
 
-Internal small modules/tabs:
+Do not split providers into separate sidebar children.
+
+#### `Nhật ký`
+Internal tabs:
 - `Web`
 - `Android`
 
-Purpose:
-- Keep diagnostics and logs together at the bottom because they are support/monitoring functions, not normal business flow.
+Contains sanitized support/error logs and manual log-send actions.
 
-## Remove from left navigation
+## Remove from the left navigation
 
-`Tài khoản & mật khẩu` should move to the pinned top-right identity area/user menu.
+### `Tài khoản & mật khẩu`
+Move to the pinned identity/user control in the top-right.
 
 Reason:
-- It is personal account maintenance, not a business module.
-- It remains reachable for every role without consuming a permanent business-nav slot.
-- ROOT effective-role selector remains pinned separately as already approved.
+- it is a personal account action, not a business domain;
+- every role still needs access, but it should follow the user identity rather than consume sidebar space;
+- ROOT effective-role selector remains separately pinned and protected.
 
-## Proposed Admin/Root sidebar
+## Final proposed structure
 
 ```text
 VẬN HÀNH
   Xử lý báo hàng
+  Tổng quan & báo cáo
 
 QUẢN LÝ
   Danh mục SKU
   Nhân sự & tài khoản
   Thời gian xử lý
 
-BÁO CÁO
-  Tổng quan & báo cáo
-
 HỆ THỐNG
   Trạng thái hệ thống
   Nhật ký
 ```
 
-This reduces the current Admin/Root information architecture from **5 large groups / 9 visible items** to **4 large groups / 7 visible business items**, while preserving all current approved capabilities through internal tabs/sections.
+Result:
+- **3 large groups exactly**
+- **7 visible children total**
+- group distribution: **2 / 3 / 2**
+- no group exceeds the Owner limit of 5
+- all currently approved Admin/Root functions remain reachable without adding hidden business behavior.
 
-## Role-specific left navigation
+## Role-specific projection
 
-### Reporter
-- `Xử lý báo hàng`
-- personal password/account action moves to the top-right identity menu
+### ROOT / ADMIN
+Show all three large groups, with individual actions still enforced by server RBAC.
 
-### Picker Web test surface
-- `Báo thiếu hàng`
-- personal password/account action moves to the top-right identity menu
+### REPORTER
+Show only:
+- **VẬN HÀNH**
+  - `Xử lý báo hàng`
 
-Android/PDA navigation is not changed by this proposal unless Owner explicitly extends the decision to Android.
+Do not show empty/unauthorized QUẢN LÝ or HỆ THỐNG groups. Personal password/account action remains in the identity control.
 
-## Recommendation for implementation order after Owner approval
+### PICKER Web test surface
+Do not force the three-group Admin IA onto Picker. Keep the single Picker operational workspace `Báo thiếu hàng`; personal password/account action moves to identity control.
 
-1. Rebuild only the navigation/workspace composition; do not alter business state or API behavior.
-2. Merge `Nguồn nhân sự` into `Nhân sự & tài khoản` as internal tabs.
-3. Rename `Thiết lập nghiệp vụ` to `Thời gian xử lý`.
-4. Move personal password/account action from sidebar to the pinned identity menu.
-5. Keep D064 `Trạng thái hệ thống` intact and use internal sections for service/capacity/load-test detail.
-6. Re-run UI/realtime/RBAC regression and Owner screen-by-screen review on Beta only.
+Android/PDA remains unchanged by this proposal unless Owner explicitly extends this navigation decision to Android.
 
-Stable remains OWNER-GATED.
+## Implementation guard if Owner approves
+
+- Recompose navigation/workspaces only; do not alter business state transitions or API behavior.
+- Merge current `Nguồn nhân sự` route into `Nhân sự & tài khoản` as an internal tab/section.
+- Keep `Kết quả gần đây` inside `Xử lý báo hàng`.
+- Move `Tổng quan & báo cáo` under the VẬN HÀNH large group without changing its data logic.
+- Rename `Thiết lập nghiệp vụ` to `Thời gian xử lý`.
+- Move personal `Tài khoản & mật khẩu` from sidebar to pinned identity/user control.
+- Preserve D064 `Trạng thái hệ thống` functionality and D063 logs.
+- Beta only; Stable remains OWNER-GATED.
+- Run authority/state/UI/realtime/RBAC guards and Owner visual review after implementation.
