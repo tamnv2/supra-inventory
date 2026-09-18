@@ -64,7 +64,7 @@ import {
 } from "./operational-api";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
-const PRODUCT_CREDIT = "Copyright 2026 - SUPRA DC HƯNG YÊN - tamnv2 - Chuyên viên Pick Pack 1291";
+const PRODUCT_CREDIT = "Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291";
 const SKU_CHUNK_SIZE = 1000;
 
 type Section =
@@ -441,7 +441,6 @@ function renderLogin(): void {
       <button class="primary wide" ${busy ? "disabled" : ""}>${busy ? "Đang đăng nhập..." : "ĐĂNG NHẬP"}</button>
     </form>
     <div class="login-actions"><button id="forgot-password" type="button" class="login-link">Lấy lại mật khẩu</button></div>
-    <p class="security">Quyền được kiểm tra tại server. Web không chứa service-role key, thông tin xác thực máy chủ hoặc private key.</p>
     <p class="security">${PRODUCT_CREDIT}</p>
   </section></main>`;
   document.querySelector<HTMLFormElement>("#login-form")?.addEventListener("submit", (event) => {
@@ -465,8 +464,7 @@ function renderShell(content: string): void {
   document.body.dataset.role = visualRole;
   document.body.dataset.testRole = "";
   const employee = profile.employee_code || profile.user_id;
-  const testTools = roleManage() ? `<div class="test-tools"><span>Kiểm thử giao diện + quyền server:</span><button type="button">Admin Event</button><button type="button">Người báo hàng</button><button type="button">Người lấy hàng</button></div>` : "";
-  app.innerHTML = `<div class="app-shell shell role-${esc(profile.role.toLowerCase())}">
+  app.innerHTML = `<div class="app-shell role-${esc(profile.role.toLowerCase())}">
     <header class="topbar">
       <div><p class="eyebrow">BÁO HÀNG 1291</p><h1>Web nghiệp vụ</h1><div class="health-row">
         ${healthChip("DỊCH VỤ", "HOẠT ĐỘNG", "good")}
@@ -476,7 +474,6 @@ function renderShell(content: string): void {
       </div></div>
       <div class="user"><strong>${esc(profile.display_name)}</strong><span>${esc(legacyRoleLabel(profile.role))}</span><div class="user-actions"><button id="change-password-top" class="ghost">Đổi mật khẩu</button><button id="logout" class="ghost">Đăng xuất</button></div></div>
     </header>
-    ${testTools}
     <nav class="tabs" data-shell-generation="legacy-direct-transplant">${renderNav()}</nav>
     <main id="content" class="content main">${renderNotice()}${content}</main>
     <footer id="appCopyright" class="app-footer">${PRODUCT_CREDIT}</footer>
@@ -547,7 +544,7 @@ function renderOperations(): string {
   const timing = selected ? liveQueueTiming(selected) : null;
   const selectedDetails = selected ? batchDetails.get(selected.batch_id) : null;
   return `<section id="fastEvents" class="fast-events">
-    <div class="fast-page-head"><div><p class="eyebrow">XỬ LÝ BÁO HÀNG</p><h2>Xử lý báo hàng</h2><p class="fast-subtitle">Realtime · cập nhật đúng SKU, không tải lại toàn màn hình.</p></div><button class="secondary" id="refresh-operations">Làm mới</button></div>
+    <div class="fast-page-head"><div><p class="eyebrow">XỬ LÝ BÁO HÀNG</p><h2>Xử lý báo hàng</h2></div><button class="secondary" id="refresh-operations">Làm mới</button></div>
     <div class="fast-buckets" role="tablist">
       <button class="active">Đang xử lý <b>${queueRows.length}</b></button>
       <button>Đã có hàng <b>${hasStockCount}</b></button>
@@ -659,7 +656,7 @@ function renderSku(): string {
   return `<section class="ops-route">
     <div class="heading"><div><p class="eyebrow">DỮ LIỆU</p><h2>Danh mục SKU</h2><p class="muted">Nhập file Excel và kiểm tra dữ liệu trước khi cập nhật.</p></div></div>
     <article class="ops-panel">
-      <div class="ops-panel-title"><div><h3>Cập nhật Master SKU</h3><p>Hỗ trợ file lớn theo từng phần xử lý; dữ liệu hiện có không bị xoá chỉ vì file mới không chứa.</p></div></div>
+      <div class="ops-panel-title"><div><h3>Cập nhật Master SKU</h3></div></div>
       <div class="ops-form-grid"><label class="span">File Excel .xlsx<input id="sku-file" type="file" accept=".xlsx" /></label></div>
       ${skuImportProgress ? `<div class="message">${esc(skuImportProgress)}</div>` : ""}
       ${wb ? `<section class="ops-status-strip"><span><b>${wb.total_data_rows.toLocaleString("vi-VN")}</b> dòng dữ liệu</span><span><b>${wb.items.length.toLocaleString("vi-VN")}</b> SKU sẵn sàng</span><span><b>${wb.conflicts.length}</b> xung đột</span></section>` : ""}
@@ -698,7 +695,7 @@ function renderUsers(): string {
   return `<section class="ops-route">
     <div class="heading"><div><p class="eyebrow">QUẢN LÝ</p><h2>Nhân sự & tài khoản</h2></div><button class="secondary" id="refresh-users">Làm mới</button></div>
     <article class="ops-panel ops-create-user">
-      <div class="ops-panel-title"><div><h3>Tạo tài khoản</h3><p>Tạo tài khoản nghiệp vụ ngoài danh sách Picker nguồn.</p></div></div>
+      <div class="ops-panel-title"><div><h3>Tạo tài khoản</h3></div></div>
       <form id="create-user-form" class="ops-form-grid">
         <label>Mã nhân viên / username<input name="username" required /></label>
         <label>Họ tên<input name="displayName" required /></label>
@@ -728,7 +725,7 @@ function renderSla(): string {
   const sla = slaResponse?.sla;
   const insight = operationalInsights?.sla;
   return `<section class="ops-route">
-    <div class="heading"><div><p class="eyebrow">THIẾT LẬP</p><h2>Thời gian nghiệp vụ</h2><p class="muted">Cấu hình mốc cảnh báo và mốc quá hạn.</p></div></div>
+    <div class="heading"><div><p class="eyebrow">THIẾT LẬP</p><h2>Thời gian nghiệp vụ</h2></div></div>
     <form id="sla-form">
       <div class="ops-settings-grid">
         <article class="ops-setting-card"><span class="ops-step">01</span><h3>Cảnh báo</h3><p>Hiển thị cảnh báo khi SKU chờ quá mốc này.</p><label>Phút<input name="warning" type="number" min="1" max="1440" value="${esc(sla?.warning_minutes || "")}" required /></label></article>
@@ -875,12 +872,12 @@ function downloadSupportDiagnostics(): void {
 
 function renderSystem(): string {
   const safe = serviceHealth ? JSON.stringify(sanitizeDiagnosticValue(serviceHealth), null, 2) : "Chưa tải trạng thái dịch vụ.";
-  return `<section><div class="page-head"><div><h1>Trạng thái & chẩn đoán</h1><p>Log hỗ trợ chỉ chứa trạng thái kỹ thuật đã giới hạn và che thông tin nhạy cảm.</p></div><div class="toolbar"><button class="btn secondary" id="refresh-system">Kiểm tra dịch vụ</button><button class="btn secondary" id="download-support-log">Tạo log hỗ trợ</button></div></div><div class="card"><div class="status-line"><span class="badge ${navigator.onLine ? "ok" : "escalated"}">Mạng: ${navigator.onLine ? "Online" : "Mất kết nối"}</span><span class="badge">Realtime: ${esc(realtimeState)}</span><span class="badge">Seq: ${realtimeLastSeq}</span></div></div><pre class="diagnostics">${esc(safe)}</pre></section>`;
+  return `<section><div class="page-head"><div><h1>Trạng thái & chẩn đoán</h1></div><div class="toolbar"><button class="btn secondary" id="refresh-system">Kiểm tra dịch vụ</button><button class="btn secondary" id="download-support-log">Tạo log hỗ trợ</button></div></div><div class="card"><div class="status-line"><span class="badge ${navigator.onLine ? "ok" : "escalated"}">Mạng: ${navigator.onLine ? "Online" : "Mất kết nối"}</span><span class="badge">Realtime: ${esc(realtimeState)}</span><span class="badge">Seq: ${realtimeLastSeq}</span></div></div><pre class="diagnostics">${esc(safe)}</pre></section>`;
 }
 
 
 function renderLegacyDevices(): string {
-  return `<section><div class="heading"><div><p class="eyebrow">QUẢN LÝ</p><h2>Thiết bị & thông báo</h2></div></div><article class="ops-panel"><div class="ops-panel-title"><div><h3>Trạng thái thiết bị</h3><p>Theo dõi kết nối và kênh cập nhật.</p></div></div><section class="ops-status-strip"><span>Kết nối <b>${navigator.onLine ? "Online" : "Offline"}</b></span><span>Realtime <b>${esc(realtimeState)}</b></span><span>Seq <b>${realtimeLastSeq}</b></span></section></article></section>`;
+  return `<section><div class="heading"><div><p class="eyebrow">QUẢN LÝ</p><h2>Thiết bị & thông báo</h2></div></div><article class="ops-panel"><div class="ops-panel-title"><div><h3>Trạng thái thiết bị</h3></div></div><section class="ops-status-strip"><span>Kết nối <b>${navigator.onLine ? "Online" : "Offline"}</b></span><span>Realtime <b>${esc(realtimeState)}</b></span><span>Seq <b>${realtimeLastSeq}</b></span></section></article></section>`;
 }
 
 function renderLegacyLogs(): string {
@@ -889,7 +886,7 @@ function renderLegacyLogs(): string {
 }
 
 function renderLegacyVersions(): string {
-  return `<section><div class="heading"><div><p class="eyebrow">THIẾT LẬP</p><h2>Phiên bản ứng dụng</h2></div></div><article class="ops-panel"><div class="ops-panel-title"><div><h3>Ứng dụng Báo hàng 1291</h3><p>Kiểm tra phiên bản Web và APK đang sử dụng.</p></div></div><section class="ops-status-strip"><span>Web <b>Đang hoạt động</b></span><span>APK <b>Beta</b></span></section></article></section>`;
+  return `<section><div class="heading"><div><p class="eyebrow">THIẾT LẬP</p><h2>Phiên bản ứng dụng</h2></div></div><article class="ops-panel"><div class="ops-panel-title"><div><h3>Ứng dụng Báo hàng 1291</h3></div></div><section class="ops-status-strip"><span>Web <b>Đang hoạt động</b></span><span>APK <b>Beta</b></span></section></article></section>`;
 }
 
 function renderAccount(): string {
