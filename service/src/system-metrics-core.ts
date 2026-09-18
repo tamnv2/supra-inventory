@@ -49,7 +49,7 @@ function realtimePresence(state: DurableObjectState): {
   };
 }
 
-export function handleSystemMetricsCoreRequest(state: DurableObjectState, request: Request): Response | null {
+export async function handleSystemMetricsCoreRequest(state: DurableObjectState, request: Request): Promise<Response | null> {
   const url = new URL(request.url);
 
   if (request.method === "GET" && url.pathname === "/admin/system-metrics") {
@@ -207,7 +207,8 @@ export function handleSystemMetricsCoreRequest(state: DurableObjectState, reques
   }
 
   if (request.method === "POST" && url.pathname === "/admin/load-test/result") {
-    return request.json().then((raw) => {
+    try {
+      const raw = await request.json();
       const body = raw && typeof raw === "object" && !Array.isArray(raw) ? raw as Record<string, unknown> : {};
       const allowed = {
         test_id: String(body.test_id || "").slice(0, 128),
@@ -242,10 +243,12 @@ export function handleSystemMetricsCoreRequest(state: DurableObjectState, reques
         status: 200,
         headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
       });
-    }).catch(() => new Response(JSON.stringify({ error: "invalid_json" }), {
-      status: 400,
-      headers: { "content-type": "application/json; charset=utf-8" },
-    }));
+    } catch {
+      return new Response(JSON.stringify({ error: "invalid_json" }), {
+        status: 400,
+        headers: { "content-type": "application/json; charset=utf-8" },
+      });
+    }
   }
 
   if (request.method === "GET" && url.pathname === "/admin/load-test/candidates") {
