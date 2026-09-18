@@ -440,7 +440,8 @@ function renderShell(content: string): void {
   app.innerHTML = `<div class="shell role-${esc(profile.role.toLowerCase())}">
     <header class="topbar"><div class="brand"><div class="brand-mark">1291</div><div class="brand-copy"><div class="brand-title">BÁO HÀNG 1291</div><div class="brand-sub">${esc(identity)} · ${esc(profile.role)}</div></div></div>
       <div class="top-tools"><span class="connection ${esc(realtimeState)}" id="connection-state">${esc(realtimeState === "connected" ? `Realtime · #${realtimeLastSeq}` : realtimeState)}</span><button class="btn secondary small" id="logout">Thoát</button></div></header>
-    <div class="layout"><aside class="sidebar">${renderNav()}</aside><main class="main">${renderNotice()}${content}<div class="credit">${PRODUCT_CREDIT}</div></main></div>
+    <nav class="tabs" aria-label="Điều hướng nghiệp vụ">${renderNav()}</nav>
+    <main class="main">${renderNotice()}${content}<div class="credit">${PRODUCT_CREDIT}</div></main>
     <div id="overlay-root">${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}</div>
   </div>`;
   bindShell();
