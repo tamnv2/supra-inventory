@@ -8,6 +8,19 @@ Owner approved **Legacy Operational UI V2** on 2026-09-17. It supersedes Practic
 
 The prior Báo hàng 1291 product is a **business/UX reference only** for operational density, role separation, prominent SKU/product identity, large direct actions and minimal non-operational text. Reimplement those principles cleanly on the current SUPRA Inventory architecture. Do not import old providers, databases, resource assumptions or out-of-scope inventory fields.
 
+## UI-first parity gate
+
+The current implementation order is Owner-mandated:
+
+1. Use the prior Báo hàng 1291 UI source at `tam95supra-source/bao-hang-1291` as a **read-only visual/layout reference**.
+2. Port/recreate the complete Web and Android/PDA visual shell first: page composition, spacing, hierarchy, navigation, cards/tables, primary actions, status treatment, login/header/footer and narrow-screen behavior.
+3. Do not redesign from scratch or replace the legacy interaction density with a new visual concept.
+4. During this phase, avoid intentional business-rule changes. Existing business/backend code may remain in place, but UI parity is the only acceptance target.
+5. Stop the UI phase only at explicit Owner UI/layout acceptance.
+6. After Owner UI acceptance, rebuild/wire the current canonical logic, scenarios and business rules into the accepted shell.
+
+Legacy backend/resource/provider/credential/database code remains forbidden to import.
+
 ## Core principles
 
 - Picker/Reporter business work receives maximum useful screen area.

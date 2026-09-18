@@ -152,6 +152,19 @@ Reporter Web opens/focuses on a dense operational list/table. KPI/dashboard cont
 - no employee performance scoring;
 - no Stable activation/deploy/release.
 
+## Owner sequencing override — 2026-09-18
+
+The active execution order is now **UI first**:
+
+1. **Visual extraction:** read only the legacy Web/Android UI source and inventory the exact reusable layout/style patterns.
+2. **Web parity shell:** reproduce the approved legacy visual hierarchy and interaction density using the current Web stack, without intentional business-rule changes.
+3. **Android/PDA parity shell:** reproduce the approved legacy login/header/Picker/Reporter/Admin presentation using the current Android stack, without intentional business-rule changes.
+4. **Owner UI gate:** deploy/build Beta UI candidates and collect explicit Owner layout acceptance. CI/build success is not acceptance.
+5. **Business rebuild/wiring:** only after the UI gate PASS, continue the canonical logic/scenario/business-rule rebuild inside the accepted shell.
+6. **Runtime/field verification:** then run business/realtime/FCM/device/load acceptance as separate evidence levels.
+
+This sequencing overrides the previous implementation frontier that treated backend/business acceptance as the immediate next action. It does not change the canonical business rules themselves.
+
 ## Implementation phases and gates
 
 ### Phase A — authority/spec rebaseline

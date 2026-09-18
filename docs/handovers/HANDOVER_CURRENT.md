@@ -32,10 +32,11 @@
 
 ## Next
 
-1. Physical Beta PDA/UI acceptance on `beta-vc40`.
-2. Physical background FCM delivery/display plus explicit critical-result acknowledgement acceptance.
-3. Owner Web/Android functional acceptance by business scenario.
-4. Isolated mutation load acceptance after the Owner workload target/test boundary is fixed.
+1. Rebaseline the complete Beta Web UI from the prior Báo hàng 1291 visual/layout source.
+2. Rebaseline the complete Beta Android/PDA UI from the same visual/layout source.
+3. Obtain explicit Owner UI/layout acceptance screen-by-screen.
+4. Only after the UI gate passes, continue rebuilding/wiring canonical logic, scenarios and business requirements.
+5. Resume physical FCM/device/load acceptance after the functional rebuild.
 
 ## Continuity rule
 

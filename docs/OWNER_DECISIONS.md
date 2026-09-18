@@ -68,6 +68,7 @@ Purpose: preserve Owner-approved requirements across chats without relying on ma
 | D053 | ACTIVE | `CHO SKIP HÀNG` is a deliberate two-step business action: first tap opens a confirmation that names the SKU/product and affected Picker count; second explicit confirmation commits. No password/OTP is required for normal Reporter Skip. |
 | D054 | ACTIVE | Web information architecture is operational-first. Reporter opens/focuses on the dense live queue. Admin/Root group functions into Vận hành, Dữ liệu, Quản trị, Báo cáo and Hệ thống. Dashboard/reporting remains available but must not displace the live Reporter queue. |
 | D055 | ACTIVE | Android mandatory-update hardening retains versionCode + APK SHA-256 verification and should additionally verify canonical package/signing identity where supported by the current release pipeline. This hardening must not weaken Android installation security or require legacy updater architecture. |
+| D056 | ACTIVE | **UI-first rebuild order is mandatory.** For the current Beta rebaseline, first port/recreate the complete Web + Android/PDA visual shell from the Owner-approved prior Báo hàng 1291 UI reference (`tam95supra-source/bao-hang-1291`, read-only UI source only) and reach explicit Owner UI/layout acceptance. Only after that UI gate may implementation continue rebuilding/wiring the approved logic, scenarios, business rules and handover requirements. Do not redesign the UI from scratch, and do not import the legacy backend, providers, credentials, databases or out-of-scope fields. |
 
 ## Superseded historical state
 
