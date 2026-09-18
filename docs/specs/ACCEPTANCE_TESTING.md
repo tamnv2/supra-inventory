@@ -164,3 +164,18 @@ Non-destructive CI tests may use declared synthetic tiers. Destructive/mutation 
 - If applying a socket/delta event triggers one failed authoritative read-model fetch and no later event arrives, the applied cursor remains at the previous value and dirty recovery retries automatically until state is applied or the session ends.
 - If an Android/Web refresh is already in flight when another relevant event arrives, mark it dirty and run another authoritative refresh after the first completes; do not discard the second invalidation.
 - Realtime callbacks for one session are serialized so an older response cannot acknowledge a newer cursor out of order.
+
+## Web operational P1 regression acceptance
+
+- While Picker is typing/scanning SKU, a realtime reconcile must preserve the focused input, value, caret and surrounding scroll context.
+- Two SKU searches finishing out of order must apply only the newest query result; a stale response must never replace current suggestions.
+- Logout/login to a different principal while an old request is in flight must not allow the old response to repopulate the new session view.
+- Web uses one authorized session/refresh manager; operational APIs must not maintain a second token/refresh store.
+- Managed-user edit uses explicit Save/Cancel and explicit ACTIVE/DISABLED selection; Cancel performs no mutation.
+- Managed password change uses a masked password input; no browser prompt is used.
+- Picker critical-result `RECEIVED` may be recorded after authoritative fetch, but `DISPLAYED` is recorded only after that result surface is actually rendered for the Picker.
+- User administration supports server-side filtering, total count and bounded pagination; Select All applies to all Picker accounts rather than only the current browser page.
+- Admin dashboard exposes shared bounded date presets, report/resolution trend, outcome breakdown and drill-down to detailed reporting.
+- Detailed reporting supports bounded paged CSV export using the current safe Beta columns without claiming those columns as the final Stable export contract.
+- Web SLA validation uses the same current bounds as the server: warning 1–1440 minutes; escalation > warning and <= 2880 minutes.
+
