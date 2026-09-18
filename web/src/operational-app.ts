@@ -646,10 +646,10 @@ function renderShell(content: string): void {
 
 function renderSkipModal(): string {
   if (!skipConfirm) return "";
-  return `<div class="modal"><div class="modal-box"><h2>CHO PHÉP SKIP?</h2>
+  return `<div class="modal"><div class="modal-box"><h2>CHO PHÉP BỎ QUA?</h2>
     <div class="sku-code">${esc(skipConfirm.sku)}</div><div class="product-name">${esc(skipConfirm.product_name)}</div>
-    <p>Thao tác này sẽ cho phép <strong>${Number(skipConfirm.affected_picker_count)} Picker</strong> đang bị ảnh hưởng skip SKU này.</p>
-    <div class="modal-actions"><button class="btn secondary" id="cancel-skip">HUỶ</button><button class="btn danger" id="confirm-skip">XÁC NHẬN CHO SKIP</button></div></div></div>`;
+    <p>Thao tác này sẽ cho phép <strong>${Number(skipConfirm.affected_picker_count)} Picker</strong> đang bị ảnh hưởng bỏ qua SKU này.</p>
+    <div class="modal-actions"><button class="btn secondary" id="cancel-skip">HUỶ</button><button class="btn danger" id="confirm-skip">XÁC NHẬN BỎ QUA</button></div></div></div>`;
 }
 
 function renderCriticalResult(): string {
@@ -658,9 +658,9 @@ function renderCriticalResult(): string {
   if (!result) return "";
   const isSkip = result.resolution === "SKIP_ALLOWED";
   return `<div class="critical-result"><div class="critical-box ${isSkip ? "skip-result" : ""}">
-    <h2>${isSkip ? "ĐƯỢC PHÉP SKIP" : "ĐÃ CÓ HÀNG"}</h2>
+    <h2>${isSkip ? "ĐƯỢC PHÉP BỎ QUA" : "ĐÃ CÓ HÀNG"}</h2>
     <div class="critical-sku">${esc(result.sku)}</div><div class="product-name">${esc(result.product_name)}</div>
-    <p>${isSkip ? "Reporter đã xác nhận SKU này được phép skip." : "Reporter đã xác nhận SKU này đã có hàng."}</p>
+    <p>${isSkip ? "Người xử lý đã xác nhận SKU này được phép bỏ qua." : "Người xử lý đã xác nhận SKU này đã có hàng."}</p>
     <button class="btn report-button ${isSkip ? "danger" : "success"}" id="ack-result" data-event="${esc(result.result_event_id)}">XÁC NHẬN ĐÃ NHẬN</button>
   </div></div>`;
 }
@@ -775,7 +775,7 @@ function renderOperationRow(row: ReporterBatch): string {
     <div><div class="sku-code">${esc(row.sku)}</div><div class="product-name">${esc(row.product_name)}</div></div>
     <div><div class="operation-count">${Number(row.affected_picker_count)} Picker</div><div class="tiny muted">Phiên bản ${Number(row.version || 1)}</div></div>
     <div class="operation-meta"><span data-wait-batch="${esc(row.batch_id)}">${timing.waiting} phút</span><span data-sla-batch="${esc(row.batch_id)}" class="badge ${sla_state === "ESCALATED" ? "escalated" : sla_state === "WARNING" ? "warning" : sla_state === "NORMAL" ? "ok" : ""}">${esc(slaLabel(sla_state))}</span>${recurrence}<span>Báo đầu ${esc(fmt(row.first_report_at))}</span></div>
-    <div class="operation-actions"><button class="btn success" data-resolve="HAS_STOCK" data-batch="${esc(row.batch_id)}">CÓ HÀNG</button><button class="btn danger" data-skip-batch="${esc(row.batch_id)}">CHO SKIP HÀNG</button><button class="btn secondary" data-detail="${esc(row.batch_id)}">${details ? "Ẩn Picker" : "Picker"}</button></div>
+    <div class="operation-actions"><button class="btn success" data-resolve="HAS_STOCK" data-batch="${esc(row.batch_id)}">CÓ HÀNG</button><button class="btn danger" data-skip-batch="${esc(row.batch_id)}">CHO PHÉP BỎ QUA</button><button class="btn secondary" data-detail="${esc(row.batch_id)}">${details ? "Ẩn Picker" : "Picker"}</button></div>
     ${details ? `<div class="detail"><div class="detail-list">${details.map((item) => `<span class="picker-chip"><strong>${esc(item.picker_employee_code)}</strong> · ${esc(item.picker_display_name || "—")} · ${esc(fmt(item.reported_at))}</span>`).join("")}</div></div>` : ""}
   </article>`;
 }
@@ -923,7 +923,7 @@ function renderSla(): string {
   const sla = slaResponse?.sla;
   const insight = operationalInsights?.sla;
   return `<section class="ops-route">
-    <div class="heading"><div><h2>Thời gian nghiệp vụ</h2></div></div>
+    <div class="heading"><div><h2>Thiết lập nghiệp vụ</h2></div></div>
     <form id="sla-form">
       <div class="ops-settings-grid">
         <article class="ops-setting-card"><span class="ops-step">01</span><h3>Cảnh báo</h3><p>Hiển thị cảnh báo khi SKU chờ quá mốc này.</p><label>Phút<input name="warning" type="number" min="1" max="1440" value="${esc(sla?.warning_minutes || "")}" required /></label></article>
@@ -1463,7 +1463,7 @@ function bindOverlay(): void {
     void run(async () => {
       await resolveReporterBatch(batch.batch_id, "SKIP_ALLOWED");
       await loadOperations();
-      setNotice("success", `${batch.sku} đã được cho phép skip.`);
+      setNotice("success", `${batch.sku} đã được cho phép bỏ qua.`);
     });
   });
 
