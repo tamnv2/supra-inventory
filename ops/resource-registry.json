@@ -60,7 +60,8 @@
           "Archive_Batches",
           "Archive_Events"
         ]
-      }
+      },
+      "logs_folder_id": "17Ealimu__NFxeEzG3mUfivpEEacX_vgo"
     },
     "stable": {
       "name": "Inventory/Stable",
@@ -272,6 +273,7 @@
     "d062_web_final_qa_canonical_navigation_dark_completion_runtime_pass_owner_ui_pending"
   ],
   "application_build_pending": [
+    "d063_consolidated_ops_logs_reporting_presence_ui",
     "owner_d061_web_ui_acceptance_and_android_review_pending",
     "fcm_physical_device_delivery_acceptance_after_functional_rebuild",
     "isolated_business_mutation_load_acceptance_after_owner_scale_target"
@@ -334,11 +336,11 @@
     "status": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS"
   },
   "ui_design": {
-    "authority": "OWNER_SELECTED_D057_LEGACY_TRANSPLANT_WITH_D058_SHELL_D059_HEADER_D060_ROOT_ROLE_THEME_D061_DARK_NAV_REALTIME_AND_D062_FINAL_WEB_QA_REFINEMENTS",
+    "authority": "OWNER_SELECTED_D057_LEGACY_TRANSPLANT_WITH_D058_D059_D060_D061_D062_AND_D063_CONSOLIDATED_OPS_LOGS_REPORTING_PEOPLE_REFINEMENTS",
     "web": "D062_WEB_FINAL_QA_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
     "android": "VC44_D060_EFFECTIVE_ROLE_REFRESH_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING",
-    "scope_guard": "D058_D059_D060_D061_D062_WEB_REFINEMENTS__D057_ANDROID_VISUAL_AUTHORITY__D060_ANDROID_ROLE_REFRESH_ONLY__NO_LEGACY_BACKEND_PROVIDER_AUTH_STORAGE_CREDENTIAL_IMPORT__OWNER_VISUAL_ACCEPTANCE_REQUIRED",
-    "source_candidate": "D062_RUNTIME_PASS_OWNER_UI_PENDING"
+    "scope_guard": "D063_MAX_THREE_NAV_CHILDREN__CONSOLIDATED_EXISTING_WORKFLOWS__BETA_LOGS_ONLY__NO_NEW_STOCK_LOCATION_OFFLINE_SCOPE__D057_ANDROID_NATIVE_AUTHORITY__OWNER_VISUAL_ACCEPTANCE_REQUIRED",
+    "source_candidate": "D063_CONSOLIDATED_OPS_LOGS_REPORTING_PRESENCE_UI_SOURCE_BUILD_PENDING_RUNTIME"
   },
   "quota_resilience": {
     "reference_date": "2026-09-17",
@@ -358,5 +360,26 @@
       "max_ms": 195.8,
       "note": "measurement only; Cloudflare-safe CI user-agent and bounded retry; no latency SLO claimed"
     }
+  },
+  "runtime_logs": {
+    "environment": "beta",
+    "folder_name": "Inventory/Beta/Logs",
+    "folder_id": "17Ealimu__NFxeEzG3mUfivpEEacX_vgo",
+    "sources": [
+      "WEB",
+      "ANDROID"
+    ],
+    "filename_rule": "[error_]source_device_YYYYMMDD_HHmmss.json",
+    "local_schedule_hcm": [
+      "00:00",
+      "06:00",
+      "12:00",
+      "18:00"
+    ],
+    "upload_auth": "AUTHENTICATED_CLIENT_ONLY",
+    "sanitization": "PASSWORD_TOKEN_CREDENTIAL_PRIVATE_SIGNING_COOKIE_FIELDS_REDACTED",
+    "max_file_bytes": 64000,
+    "android_crash_retry": "BOUNDED_SANITIZED_LOCAL_ENVELOPE_RETRY_AFTER_NEXT_AUTHENTICATED_START",
+    "status": "D063_SOURCE_BUILD_PENDING_RUNTIME"
   }
 }
