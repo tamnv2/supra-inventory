@@ -1,42 +1,45 @@
 # SERVICE_READINESS — Derived current view
 
-> DERIVED VIEW. Canonical live status is `ops/project-state.json`; resource identity is `ops/resource-registry.json`. CI must fail if key markers below drift from canonical state.
+> DERIVED VIEW. Canonical live status is `ops/project-state.json`; resource identity is `ops/resource-registry.json`.
 
 - Project: `supra-inventory`
-- Beta: `F01_F14_F19_F20_F21_F22_F23_AUTOMATED_RUNTIME_RELEASE_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING`
-- SQLite schema: `5`
-- Web: `D057_DIRECT_LEGACY_PRESENTATION_SOURCE_BUILD_PASS__DEPLOY_OWNER_UI_REVIEW_PENDING`
-- Android: `D057_DIRECT_LEGACY_NATIVE_XML_SOURCE_BUILD_PASS__SIGNED_RELEASE_OWNER_UI_REVIEW_PENDING`
-- Latest previously signed Beta APK: `beta-vc42`
-- Operational V2 runtime: `4/4`.
+- Web: `D057_DIRECT_LEGACY_PRESENTATION_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Android: `VC43_D057_DIRECT_LEGACY_NATIVE_XML_SIGNED_RUNTIME_GATE_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Latest signed Beta APK: `beta-vc43`
+- Runtime source: `fa677463b898768a60013861220fce6e6192999e`
 
-## D057 source/build readiness
+## D057 direct presentation transplant
 
-PR #31 source head `7e9c9f5b999cea37a12844deaf4ea861b29bec33` is technically validated:
+PR #31 merged to main at `fa677463`.
+
+Web presentation now uses:
+- transplanted prior base/fast/dashboard/warehouse/ops presentation styles;
+- full-width topbar and health chips;
+- grouped left sidebar for management roles;
+- old workspace density and master/detail processing composition;
+- old dashboard/reporting presentation language.
+
+Android/PDA presentation now uses:
+- transplanted `activity_login.xml`, `activity_main.xml`, `view_picker.xml`, `view_invent.xml`, `view_admin.xml`, `row_issue.xml`, `overlay_alert.xml`;
+- transplanted drawables, colors and widget styles;
+- current controllers bound to those native resources.
+
+No legacy backend/provider/auth/storage/database/credential code was imported.
+
+## Automated evidence
+
 - Repo Authority Guard: PASS.
 - Project State Guard: PASS.
-- UI Design Guard run `35308615737`: PASS.
-- Operational V2 regression: PASS.
-- Realtime cursor regression: PASS.
-- Web operational regression: PASS.
-- Android operational regression: PASS.
-- Operational support regression: PASS.
-- Worker typecheck: PASS.
-- Web production build: PASS.
-- Android debug build: PASS.
+- UI Design Guard run `35309444877`: PASS.
+- Deploy Beta run `35309444859`: PASS.
+- Verify Beta Android run `35309444931`: PASS.
+- Web production/runtime gate: PASS.
+- Signed release: `beta-vc43`.
+- APK SHA-256: `37dbc5e64cd144bbcb9dcb3787d7b65a3486907746822d95a8e902e52f9a27d8`.
+- APK size: `9283170` bytes.
 
-Presentation included in the candidate:
-- old Web base/fast/dashboard/warehouse/ops presentation styles;
-- full-width topbar/status/test strip, grouped left sidebar and workspace composition;
-- old dashboard and master/detail processing presentation;
-- legacy-style management/reporting surfaces;
-- old Android login/main/Picker/Invent/Admin/row/overlay XML;
-- old Android drawables/colors/widget styling;
-- Reporter rows use `row_issue.xml`;
-- Picker critical results use `overlay_alert.xml`.
-
-Automated PASS is only technical eligibility for UI review. It is not Owner UI acceptance.
+Automated PASS is technical eligibility only. Owner UI/layout acceptance remains pending.
 
 ## Next action
 
-Merge PR #31 after final protected checks, then deploy the Web candidate and publish the signed Android candidate through the normal matching runtime/release gate. Obtain explicit Owner screen-by-screen UI/layout acceptance before any business-logic rebuild resumes.
+Review the deployed Web and signed `beta-vc43` screen-by-screen against the prior running product. Repair only remaining presentation mismatches. Resume business logic/scenario rebuild only after explicit Owner UI acceptance.
