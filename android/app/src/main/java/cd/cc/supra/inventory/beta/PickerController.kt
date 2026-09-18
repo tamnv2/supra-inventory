@@ -16,9 +16,12 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.ListView
 import android.widget.TextView
 import java.time.Instant
 import java.time.LocalDate
@@ -48,7 +51,9 @@ class PickerController(
     private val receivedResults = mutableSetOf<String>()
     private val displayedResults = mutableSetOf<String>()
     private var input: EditText? = null
+    private var autoInput: AutoCompleteTextView? = null
     private var suggestions: LinearLayout? = null
+    private var suggestionRows: List<SkuItem> = emptyList()
     private var selectedBox: LinearLayout? = null
     private var selectedSkuLabel: TextView? = null
     private var selectedNameLabel: TextView? = null
@@ -56,6 +61,7 @@ class PickerController(
     private var catalogLabel: TextView? = null
     private var historyBox: LinearLayout? = null
     private var historyRenderer: KeyedLinearRenderer? = null
+    private var historyList: ListView? = null
     private var selected: SkuItem? = null
     private var pendingResults: List<PickerResult> = emptyList()
     private val withdrawButtons = linkedMapOf<Button, Long>()
@@ -81,77 +87,23 @@ class PickerController(
 
     fun render(root: LinearLayout) {
         handler.post(withdrawTicker)
-        root.addView(TextView(activity).apply {
-            text = "Quét hoặc nhập SKU"
-            textSize = 18f
-            setTypeface(typeface, Typeface.BOLD)
-            setTextColor(kit.text)
-            setPadding(kit.dp(2), kit.dp(12), kit.dp(2), 0)
-        })
-        input = EditText(activity).apply {
-            hint = "Nhập mã SKU…"
-            contentDescription = "Nhập / quét SKU"
-            isSingleLine = true
-            textSize = 20f
-            imeOptions = EditorInfo.IME_ACTION_SEARCH
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, kit.dp(58)).apply { topMargin = kit.dp(8) }
-            kit.styleInput(this)
-        }
-        root.addView(input)
-
-        suggestions = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
-        root.addView(suggestions)
-
-        selectedBox = kit.card(Color.WHITE, kit.line, 7).apply { visibility = View.GONE }
-        selectedSkuLabel = TextView(activity).apply {
-            textSize = 22f
-            setTypeface(typeface, Typeface.BOLD)
-            setTextColor(kit.navy)
-        }
-        selectedNameLabel = TextView(activity).apply {
-            textSize = 15f
-            setTextColor(kit.muted)
-            setPadding(0, kit.dp(5), 0, 0)
-        }
-        selectedBox?.addView(selectedSkuLabel)
-        selectedBox?.addView(selectedNameLabel)
-        root.addView(selectedBox)
-
-        reportButton = Button(activity).apply {
-            text = "BÁO HẾT HÀNG"
+        autoInput = root.findViewById(R.id.acSkuSearch)
+        input = autoInput
+        selectedSkuLabel = root.findViewById(R.id.tvSelectedSku)
+        selectedNameLabel = root.findViewById(R.id.tvSelectedProduct)
+        selectedBox = selectedSkuLabel?.parent as? LinearLayout
+        reportButton = root.findViewById<Button>(R.id.btnReportShortage)?.apply {
             contentDescription = "Báo SKU hết hàng"
-            textSize = 20f
-            setTypeface(typeface, Typeface.BOLD)
-            isEnabled = false
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, kit.dp(66)).apply {
-                topMargin = kit.dp(8)
-                bottomMargin = kit.dp(8)
-            }
-            kit.styleDanger(this)
             setOnClickListener { submit() }
         }
-        root.addView(reportButton)
+        historyList = root.findViewById(R.id.listMyReports)
+        catalogLabel = null
+        suggestions = null
+        historyBox = null
+        historyRenderer = null
 
-        catalogLabel = TextView(activity).apply {
-            text = "Đang chuẩn bị danh mục SKU..."
-            textSize = 10.5f
-            setTextColor(kit.muted)
-            setPadding(kit.dp(3), kit.dp(2), kit.dp(3), kit.dp(2))
-        }
-        root.addView(catalogLabel)
-        root.addView(TextView(activity).apply {
-            text = "BÁO HÔM NAY"
-            textSize = 17f
-            setTypeface(typeface, Typeface.BOLD)
-            setTextColor(kit.text)
-            setPadding(kit.dp(2), kit.dp(14), kit.dp(2), kit.dp(4))
-        })
-        historyBox = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
-        historyRenderer = historyBox?.let(::KeyedLinearRenderer)
-        root.addView(historyBox)
-
-        input?.addTextChangedListener(object : TextWatcher {
+        autoInput?.threshold = 1
+        autoInput?.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 val value = s?.toString().orEmpty().trim()
@@ -161,10 +113,14 @@ class PickerController(
             }
             override fun afterTextChanged(s: Editable?) = Unit
         })
-        input?.setOnEditorActionListener { _, _, _ ->
-            val exact = cache.exactSku(input?.text?.toString().orEmpty())
+        autoInput?.setOnItemClickListener { _, _, position, _ ->
+            suggestionRows.getOrNull(position)?.let { selectSku(it, true) }
+        }
+        autoInput?.setOnEditorActionListener { _, _, _ ->
+            val exact = cache.exactSku(autoInput?.text?.toString().orEmpty())
             if (exact != null) { selectSku(exact, true); true } else false
         }
+        clearSelection()
         syncCatalog(auto = true)
         refresh()
     }
@@ -238,25 +194,18 @@ class PickerController(
     }
 
     private fun renderSuggestions(rows: List<SkuItem>) {
-        val box = suggestions ?: return
-        box.removeAllViews()
-        for (item in rows) {
-            box.addView(Button(activity).apply {
-                text = "${item.sku} - ${item.productName}"
-                textSize = 12.5f
-                maxLines = 2
-                ellipsize = TextUtils.TruncateAt.END
-                gravity = Gravity.START or Gravity.CENTER_VERTICAL
-                kit.styleSecondary(this)
-                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = kit.dp(4) }
-                setOnClickListener { selectSku(item, true) }
-            })
-        }
+        suggestionRows = rows
+        val field = autoInput ?: return
+        val labels = rows.map { "${it.sku} - ${it.productName}" }
+        field.setAdapter(ArrayAdapter(activity, android.R.layout.simple_dropdown_item_1line, labels))
+        if (labels.isNotEmpty() && field.hasFocus()) field.showDropDown()
     }
 
     private fun clearSelection() {
         selected = null
-        selectedBox?.visibility = View.GONE
+        selectedSkuLabel?.text = "Chưa chọn SKU"
+        selectedNameLabel?.text = "Chọn đúng SKU cần báo"
+        selectedBox?.visibility = View.VISIBLE
         updateReportEnabled()
     }
 
@@ -269,7 +218,8 @@ class PickerController(
         selectedSkuLabel?.text = item.sku
         selectedNameLabel?.text = item.productName
         selectedBox?.visibility = View.VISIBLE
-        suggestions?.removeAllViews()
+        suggestionRows = emptyList()
+        autoInput?.dismissDropDown()
         updateReportEnabled()
     }
 
@@ -403,22 +353,20 @@ class PickerController(
     }
 
     private fun renderHistory(allRows: List<PickerReport>) {
-        val renderer = historyRenderer ?: return
+        val list = historyList ?: return
         val today = LocalDate.now(zone)
         val rows = allRows.filter { reportDate(it.reportedAt) == today }
-        if (rows.isEmpty()) {
-            renderer.render(listOf("empty"), { it }, { it }) { empty("Hôm nay chưa có báo hàng.") }
-            withdrawButtons.keys.removeAll { !it.isAttachedToWindow }
-            return
+        val labels = if (rows.isEmpty()) {
+            listOf("Hôm nay chưa có báo hàng.")
+        } else {
+            rows.map { row -> "${row.sku} - ${row.productName}\n${businessStatus(row)} · ${timestamp(row.reportedAt)}" }
         }
-
-        renderer.render(
-            items = rows,
-            keyOf = { it.ticketId },
-            signatureOf = { historySignature(it) },
-            createView = { buildHistoryCard(it) },
-        )
-        withdrawButtons.keys.removeAll { !it.isAttachedToWindow }
+        list.adapter = ArrayAdapter(activity, android.R.layout.simple_list_item_1, labels)
+        list.setOnItemClickListener { _, _, position, _ ->
+            val row = rows.getOrNull(position) ?: return@setOnItemClickListener
+            if (row.status == "OPEN" && millis(row.withdrawDeadlineAt) > System.currentTimeMillis()) confirmWithdraw(row)
+        }
+        withdrawButtons.clear()
     }
 
     private fun historySignature(row: PickerReport): String = listOf(
