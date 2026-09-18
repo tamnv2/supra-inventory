@@ -31,7 +31,7 @@ Current review targets:
 
 Owner can start the next chat with only:
 
-> **Review D064 navigation IA proposal**
+> **Chốt D065 menu 3 nhóm**
 
 Then attach/send the current screenshot or concise review feedback, for example:
 - `Web Tổng quan: chưa OK, sidebar rộng quá`
@@ -387,7 +387,7 @@ Useful current files:
 
 No manual end-of-session handover is required. A new session must bootstrap from `ops/authority-manifest.json` and its declared `bootstrap_order` before mutation.
 
-The Owner's next-chat instruction **`Review D064 navigation IA proposal`** is sufficient to resume from this point; any Web screenshot or UI review text supplied with it becomes the immediate work item.
+The Owner's next-chat instruction **`Chốt D065 menu 3 nhóm`** is sufficient to resume from this point; any Web screenshot or UI review text supplied with it becomes the immediate work item.
 
 
 ## D063 runtime PASS — 2026-09-19
@@ -418,3 +418,23 @@ D064 source adds live InventoryCore storage/table/business/realtime metrics, cac
 - Test rows remain ordinary Beta data for Owner inspection; Stable untouched.
 
 Post-test IA proposal: `docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md`. It is proposal-only until Owner approval.
+
+
+## D065 three-group navigation proposal — pending Owner exact composition approval
+
+Owner refined the post-load IA requirement: Admin/Root Web left navigation must use exactly **3 large groups**, with at most **5 visible children per group**.
+
+Current proposal:
+- **VẬN HÀNH** → `Xử lý báo hàng`, `Tổng quan & báo cáo`
+- **QUẢN LÝ** → `Danh mục SKU`, `Nhân sự & tài khoản`, `Thời gian xử lý`
+- **HỆ THỐNG** → `Trạng thái hệ thống`, `Nhật ký`
+
+Consolidation:
+- `Kết quả gần đây` stays inside `Xử lý báo hàng`;
+- `Nguồn nhân sự` + Picker sync move inside `Nhân sự & tài khoản`;
+- personal `Tài khoản & mật khẩu` moves to pinned identity/user control;
+- Reporter shows only its VẬN HÀNH projection; Picker Web keeps its single operational workflow;
+- Android/PDA unchanged; Stable untouched.
+
+Proposal detail: `docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md`.
+Do not implement the sidebar until Owner approves/refines the exact composition.

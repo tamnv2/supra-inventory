@@ -114,7 +114,7 @@ Do not resume business logic/scenario rebuild until explicit Owner UI acceptance
 
 ## Next-chat resume command
 
-`Review D064 navigation IA proposal`
+`Chốt D065 menu 3 nhóm`
 
 A screenshot or concise UI review note may be appended; no project-history restatement is required.
 
@@ -138,3 +138,8 @@ Source candidate rebuilds `Trạng thái hệ thống` as a detailed provider/us
 - Temporary Beta load-test gate verified closed.
 - Post-test navigation proposal is stored at `docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md`; implementation is Owner-gated.
 - Stable untouched.
+
+
+## D065 navigation proposal
+
+Owner constraint: exactly 3 Admin/Root large navigation groups, maximum 5 visible children per group. Proposed composition is VẬN HÀNH (2), QUẢN LÝ (3), HỆ THỐNG (2). Exact composition remains Owner-gated before implementation. Personal account/password action moves out of the business sidebar. Android/PDA and Stable are unchanged.

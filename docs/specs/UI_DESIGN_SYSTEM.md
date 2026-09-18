@@ -130,6 +130,25 @@ Group functions conceptually as:
 Dashboard is an Admin/Root analysis module, not the Reporter landing surface.
 
 
+
+### Owner three-group navigation refinement (D065)
+
+D065 overrides prior five-/four-group navigation grouping where they conflict, while preserving the approved business functions:
+
+- Admin/Root left navigation has **exactly three large groups** and each large group has at most **five visible child items**.
+- Proposed composition pending Owner implementation approval:
+  - **VẬN HÀNH** → `Xử lý báo hàng`, `Tổng quan & báo cáo`;
+  - **QUẢN LÝ** → `Danh mục SKU`, `Nhân sự & tài khoản`, `Thời gian xử lý`;
+  - **HỆ THỐNG** → `Trạng thái hệ thống`, `Nhật ký`.
+- `Kết quả gần đây` is an internal view of `Xử lý báo hàng`, not a sidebar child.
+- `Nguồn nhân sự` and Picker provisioning/synchronization are internal sections of `Nhân sự & tài khoản`, not a separate large-group child.
+- `Thiết lập nghiệp vụ` is renamed to the concrete `Thời gian xử lý` surface because only warning/escalation timing is currently approved there.
+- `Tài khoản & mật khẩu` is a personal identity action and moves to the pinned identity/user control instead of the business sidebar.
+- Reporter shows only its allowed VẬN HÀNH projection and no empty unauthorized groups. Picker Web keeps a single Picker operational workspace rather than inheriting the Admin information architecture.
+- D065 is a navigation/workspace composition decision only; it does not change business APIs, state transitions, realtime semantics, data scope or RBAC.
+- Android/PDA is unchanged unless separately authorized. Stable remains OWNER-GATED.
+
+
 ### Detailed operational system-status console (D064)
 
 - `Trạng thái hệ thống` is an Admin/Root service console, not a raw JSON diagnostics page. The primary layout is summary cards followed by service cards and data-footprint/load-test sections; raw sanitized technical JSON is secondary inside an expandable detail.

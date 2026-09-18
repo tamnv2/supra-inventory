@@ -28,7 +28,7 @@
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_BUILD_DEPLOY_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "D064_SYSTEM_STATUS_LOAD_TEST_RUNTIME_PASS__NAV_IA_OWNER_DECISION_PENDING",
+    "ui_design_guard": "D065_THREE_GROUP_NAVIGATION_PROPOSAL__OWNER_EXACT_COMPOSITION_DECISION_PENDING",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED"
@@ -71,7 +71,8 @@
     "Web D061 requires coherent dark rendering across all reachable routes, stronger icon-led Admin/Root sidebar groups, removal of redundant page copy, and no generic refresh buttons on realtime-backed views.",
     "D062 Web completion audit uses the canonical five-area Admin/Root information architecture, exposes existing approved hidden routes, makes the live processing queue the default Admin/Root landing, and closes remaining dark-theme transient surfaces without changing business semantics.",
     "D063 limits each large Web sidebar group to at most three child entries, consolidates related routes into business workspaces, adds sanitized Beta Web/Android runtime logs, authenticated online counts by effective role, professional reporting/results/people layouts and full dark-theme completion.",
-    "D064 rebuilds Trạng thái hệ thống as a detailed all-service usage/capacity console, then runs a controlled Beta-only 1,000-report real-Picker load test before proposing any next navigation IA rebuild."
+    "D064 rebuilds Trạng thái hệ thống as a detailed all-service usage/capacity console, then runs a controlled Beta-only 1,000-report real-Picker load test before proposing any next navigation IA rebuild.",
+    "D065 constrains Admin/Root Web navigation to exactly three large groups with at most five visible children per group; exact child composition is proposed for Owner approval before implementation."
   ],
   "completed_capabilities": [
     "Cloudflare Beta Worker/custom domain/InventoryCore SQLite provisioning",
@@ -149,8 +150,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Owner reviews the D064 navigation IA proposal. If approved or refined, implement only the approved navigation/workspace composition on Beta through branch → PR → guards → merge; keep business APIs/state unchanged and Stable untouched.",
-    "method": "Use docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md as proposal only. Current measured D064 load evidence is PASS: 1000/1000 reports, 100 existing Pickers, 400 existing SKUs, 525.423s, no errors, +2,572,288 SQLite bytes.",
+    "primary": "Owner reviews/refines the D065 three-group navigation composition. Do not mutate the sidebar until the exact composition is approved. After approval, implement on Beta through branch → PR → guards → merge; keep business APIs/state semantics unchanged and Stable untouched.",
+    "method": "Proposed Admin/Root IA: VẬN HÀNH → Xử lý báo hàng, Tổng quan & báo cáo; QUẢN LÝ → Danh mục SKU, Nhân sự & tài khoản, Thời gian xử lý; HỆ THỐNG → Trạng thái hệ thống, Nhật ký. Merge related small functions into internal tabs/sections and move personal account/password action to identity control.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -178,19 +179,19 @@
   },
   "workboard": {
     "in_progress": [
-      "D064 Owner visual review for detailed system-status console",
-      "D064 navigation IA proposal awaiting Owner decision",
+      "D065 three-large-group navigation proposal awaiting Owner exact-composition decision",
+      "D064 detailed system-status Owner visual review remains pending",
       "D063/D064 broader Owner Web visual review remains pending",
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Owner reviews D064 navigation IA proposal",
-      "If approved/refined, implement only approved sidebar/workspace composition on Beta",
-      "Re-run authority/state/UI/realtime/RBAC guards and Beta runtime review after approved IA implementation"
+      "Owner approves/refines D065 exact 3-group child composition",
+      "After approval, rebuild only Web sidebar/workspace composition on Beta",
+      "Re-run authority/state/UI/realtime/RBAC guards and Beta visual review"
     ],
     "blocked_or_owner_field_dependent": [
-      "Navigation rebuild blocked on Owner approval/refinement of D064 proposal",
-      "Final D064 visual acceptance depends on Owner review",
+      "D065 sidebar implementation blocked on Owner exact-composition approval",
+      "Final D064/D065 visual acceptance depends on Owner review",
       "No Stable promotion is authorized"
     ],
     "last_source_build_evidence": {
@@ -242,7 +243,7 @@
   "last_updated": "2026-09-19",
   "owner_ui_review": {
     "status": "IN_PROGRESS",
-    "phase": "D064_SYSTEM_STATUS_RUNTIME_PASS__NAV_IA_PROPOSAL_REVIEW",
+    "phase": "D065_THREE_GROUP_NAVIGATION_PROPOSAL_REVIEW",
     "started_on": "2026-09-18",
     "review_target_web": "https://inventory-beta.supra.cc.cd/",
     "review_target_android_release": "beta-vc45",
@@ -250,8 +251,8 @@
     "visual_authority_repository": "tam95supra-source/bao-hang-1291",
     "visual_authority_commit": "8713f487386fa39c9225b180b2b8448d4a7e2b2d",
     "owner_acceptance": "NOT_YET_GIVEN",
-    "current_instruction": "D064 system status and controlled load test are technically complete. Review the proposed simplified business IA before any sidebar rebuild.",
-    "next_session_command": "Review D064 navigation IA proposal",
+    "current_instruction": "Reduce Admin/Root pinned-left navigation to exactly 3 large groups, maximum 5 visible children per group. Review/refine the proposed VẬN HÀNH / QUẢN LÝ / HỆ THỐNG composition before implementation.",
+    "next_session_command": "Chốt D065 menu 3 nhóm",
     "review_feedback_protocol": "Owner may send current Beta Web/Android screenshots and concise feedback. AI must bootstrap canonical repo and repair only confirmed remaining D063 issues through branch -> PR -> guards -> Beta runtime verification. Stable remains untouched."
   },
   "runtime_evidence": [
