@@ -95,6 +95,16 @@ D058 desktop shell review:
 - Android/PDA is outside this D058 repair and remains pending separate Owner review.
 
 
+D061 Web dark/realtime/sidebar review:
+- every reachable Web route renders coherent dark surfaces when dark theme is selected; Reporter queue/detail, tables, forms and management panels contain no white content islands;
+- text, labels, table cells, form fields and status information remain clearly readable in dark mode;
+- Admin/Root sidebar group headings are visibly larger/stronger, remain left-aligned, and group/business entries show consistent monochrome icons;
+- page heads do not repeat the same context as both category eyebrow and business title;
+- no generic `Làm mới`/refresh button remains on realtime-backed Picker/Reporter/results/user views;
+- filters, export, support-log creation and the explicit service diagnostic action remain available because they are distinct operations rather than refresh substitutes;
+- realtime still preserves active input/focus/caret/scroll and uses sequence/delta/reconcile rather than page reload;
+- Android/PDA and Stable are unchanged by D061.
+
 D060 Root role/theme review:
 - corporate company line is visually stronger/larger than the secondary `Website nghiệp vụ Inventory 1291` line;
 - header identity shows display name + mapped permission only; literal `Tên:`, `User:`, `Quyền:` and username/user id are absent;
