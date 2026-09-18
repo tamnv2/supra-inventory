@@ -94,6 +94,17 @@ D058 desktop shell review:
 - Web credit reads `Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291`, is visually secondary, fixed bottom-right and does not disappear when workspace content scrolls;
 - Android/PDA is outside this D058 repair and remains pending separate Owner review.
 
+
+D059 Web header/identity review:
+- top-left shows exactly the corporate/product identity `CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN` and `Website nghiệp vụ Inventory 1291`;
+- the old four status chips are absent; one compact line shows `Service: Cloudflare ON/OFF | Cập nhật: HH:mm MM/DD/YYYY`;
+- `Cập nhật` changes when the client receives new authoritative data/realtime events and is not a continuously ticking local clock;
+- top-right displays `Tên`, `User`, mapped `Quyền`, and `Đăng xuất`; the topbar contains no `Đổi mật khẩu` action;
+- role labels are `Quản trị hệ thống`, `Người báo hàng`, and `Người lấy hàng` for ADMIN/ROOT, REPORTER and PICKER respectively;
+- every Admin/Root left-navigation group heading and item is left-aligned;
+- the Web font stack is local/system only and starts with Segoe UI Variable/Aptos/Segoe UI fallbacks;
+- D058 pinned shell/full workspace remains intact; Android/PDA is unchanged.
+
 ## Android/PDA acceptance
 
 Shared:

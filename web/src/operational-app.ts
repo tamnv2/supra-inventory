@@ -108,10 +108,6 @@ function legacyRoleLabel(value: AppProfile["role"]): string {
   return "Người lấy hàng";
 }
 
-function healthChip(label: string, value: string, kind = ""): string {
-  return `<span class="health-chip ${kind}"><b>${esc(label)}</b><em>${esc(value)}</em></span>`;
-}
-
 function sectionFromHash(): Section | null {
   const raw = window.location.hash.replace(/^#/, "").trim().toLowerCase();
   return ROUTABLE_SECTIONS.includes(raw as Section) ? (raw as Section) : null;
@@ -133,6 +129,8 @@ let notice: Notice = null;
 let busy = false;
 let realtimeState = "connecting";
 let realtimeLastSeq = 0;
+let serviceReachable = false;
+let lastWebUpdateAt: Date | null = null;
 let queueRows: ReporterBatch[] = [];
 let queueServerOffsetMs = 0;
 let recentRows: ReporterRecentBatch[] = [];
@@ -195,6 +193,37 @@ function fmt(value: string | null | undefined): string {
   if (!value) return "—";
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? value : d.toLocaleString("vi-VN", { hour12: false });
+}
+
+function formatHeaderUpdate(value: Date | null): string {
+  if (!value) return "—";
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(value);
+  const p = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${p.hour}:${p.minute} ${p.month}/${p.day}/${p.year}`;
+}
+
+function patchHeaderRuntime(): void {
+  const service = document.querySelector<HTMLElement>("#service-state");
+  if (service) {
+    service.textContent = `Service: Cloudflare ${serviceReachable ? "ON" : "OFF"}`;
+    service.dataset.state = serviceReachable ? "on" : "off";
+  }
+  const update = document.querySelector<HTMLElement>("#last-web-update");
+  if (update) update.textContent = `Cập nhật: ${formatHeaderUpdate(lastWebUpdateAt)}`;
+}
+
+function markWebUpdateReceived(): void {
+  lastWebUpdateAt = new Date();
+  serviceReachable = true;
+  patchHeaderRuntime();
 }
 
 function dateDaysAgo(days: number): string {
@@ -466,13 +495,23 @@ function renderShell(content: string): void {
   const employee = profile.employee_code || profile.user_id;
   app.innerHTML = `<div class="app-shell role-${esc(profile.role.toLowerCase())}">
     <header class="topbar">
-      <div><p class="eyebrow">BÁO HÀNG 1291</p><h1>Web nghiệp vụ</h1><div class="health-row">
-        ${healthChip("DỊCH VỤ", "HOẠT ĐỘNG", "good")}
-        ${healthChip("CẬP NHẬT", realtimeState === "connected" ? "TRỰC TUYẾN" : realtimeState, realtimeState === "connected" ? "good" : "warn")}
-        ${healthChip("BÁO CÁO", "—")}
-        ${healthChip("CHI PHÍ", "ĐANG GIÁM SÁT")}
-      </div></div>
-      <div class="user"><strong>${esc(profile.display_name)}</strong><span>${esc(legacyRoleLabel(profile.role))}</span><div class="user-actions"><button id="change-password-top" class="ghost">Đổi mật khẩu</button><button id="logout" class="ghost">Đăng xuất</button></div></div>
+      <div class="header-product">
+        <p class="company-name">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p>
+        <h1>Website nghiệp vụ Inventory 1291</h1>
+        <div class="header-runtime">
+          <span id="service-state" data-state="${serviceReachable ? "on" : "off"}">Service: Cloudflare ${serviceReachable ? "ON" : "OFF"}</span>
+          <span class="header-runtime-separator">|</span>
+          <span id="last-web-update">Cập nhật: ${formatHeaderUpdate(lastWebUpdateAt)}</span>
+        </div>
+      </div>
+      <div class="user header-user">
+        <div class="header-user-grid">
+          <span><b>Tên:</b> ${esc(profile.display_name)}</span>
+          <span><b>User:</b> ${esc(employee)}</span>
+          <span><b>Quyền:</b> ${esc(legacyRoleLabel(profile.role))}</span>
+        </div>
+        <div class="user-actions"><button id="logout" class="ghost">Đăng xuất</button></div>
+      </div>
     </header>
     <nav class="tabs" data-shell-generation="legacy-direct-transplant">${renderNav()}</nav>
     <main id="content" class="content main">${renderNotice()}${content}</main>
@@ -911,6 +950,7 @@ async function loadOperations(): Promise<void> {
   queueServerOffsetMs = Number.isFinite(serverNow) ? serverNow - Date.now() : 0;
   queueRows = queue.items;
   recentRows = recent.items;
+  markWebUpdateReceived();
 }
 
 async function loadPicker(): Promise<void> {
@@ -920,6 +960,7 @@ async function loadPicker(): Promise<void> {
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   pickerReports = reports.items;
   pickerResults = results.items;
+  markWebUpdateReceived();
   for (const result of pickerResults.filter((row) => !row.acknowledged_at && !markedResultEvents.has(row.result_event_id))) {
     markedResultEvents.add(result.result_event_id);
     void markPickerResult(result.result_event_id, result.batch_id, result.batch_version, "RECEIVED")
@@ -935,6 +976,7 @@ async function loadSla(): Promise<void> {
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   slaResponse = nextSla;
   operationalInsights = nextInsights;
+  markWebUpdateReceived();
 }
 
 async function loadDashboard(): Promise<void> {
@@ -949,6 +991,7 @@ async function loadDashboard(): Promise<void> {
   if (generation !== dashboardLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   dashboardData = nextDashboard;
   operationalInsights = nextInsights;
+  markWebUpdateReceived();
 }
 
 async function loadReports(): Promise<void> {
@@ -967,6 +1010,7 @@ async function loadReports(): Promise<void> {
   if (generation !== reportLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   reportRows = result.items;
   reportTotal = result.total;
+  markWebUpdateReceived();
 }
 
 async function loadUsers(): Promise<void> {
@@ -992,10 +1036,12 @@ async function loadUsers(): Promise<void> {
     if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
     managedUsers = retry.items;
     userTotal = retry.total;
+    markWebUpdateReceived();
     return;
   }
   managedUsers = result.items;
   userTotal = result.total;
+  markWebUpdateReceived();
 }
 
 function csvCell(value: unknown): string {
@@ -1026,6 +1072,7 @@ async function exportReportsCsv(): Promise<void> {
     if (!page.items.length) break;
     if (rows.length > maxRows) throw new Error(`Bộ lọc có hơn ${maxRows.toLocaleString("vi-VN")} dòng; hãy thu hẹp khoảng ngày trước khi xuất.`);
   } while (offset < total);
+  markWebUpdateReceived();
 
   const header = ["SKU","Tên sản phẩm","Trạng thái","Báo đầu","Xử lý","Thời gian xử lý (phút)","Ticket"];
   const body = rows.map((row) => [
@@ -1053,14 +1100,25 @@ async function exportReportsCsv(): Promise<void> {
 
 async function loadSection(section: Section): Promise<void> {
   if (!profile) return;
-  if ((section === "operations" || section === "results") && roleOperate()) await loadOperations();
-  else if (section === "picker" && profile.role === "PICKER") await loadPicker();
-  else if (section === "hr" && roleManage()) hrSource = await getHrSource();
-  else if (section === "users" && roleManage()) await loadUsers();
-  else if (section === "sla" && roleManage()) await loadSla();
-  else if (section === "dashboard" && roleManage()) await loadDashboard();
-  else if (section === "reports" && roleManage()) await loadReports();
-  else if (["system", "devices", "logs", "versions"].includes(section)) serviceHealth = await getServiceHealth().catch(() => null);
+  let received = false;
+  if ((section === "operations" || section === "results") && roleOperate()) { await loadOperations(); received = true; }
+  else if (section === "picker" && profile.role === "PICKER") { await loadPicker(); received = true; }
+  else if (section === "hr" && roleManage()) { hrSource = await getHrSource(); received = true; }
+  else if (section === "users" && roleManage()) { await loadUsers(); received = true; }
+  else if (section === "sla" && roleManage()) { await loadSla(); received = true; }
+  else if (section === "dashboard" && roleManage()) { await loadDashboard(); received = true; }
+  else if (section === "reports" && roleManage()) { await loadReports(); received = true; }
+  else if (["system", "devices", "logs", "versions"].includes(section)) {
+    try {
+      serviceHealth = await getServiceHealth();
+      received = true;
+    } catch {
+      serviceHealth = null;
+      serviceReachable = false;
+      patchHeaderRuntime();
+    }
+  }
+  if (received) markWebUpdateReceived();
 }
 
 function bindShell(): void {
@@ -1080,13 +1138,6 @@ function bindShell(): void {
     passwordUserId = null;
     void run(async () => { await loadSection(next); });
   }));
-  document.querySelector<HTMLButtonElement>("#change-password-top")?.addEventListener("click", () => {
-    if (!currentProfile || !canAccessSection("account", currentProfile)) return;
-    activeSection = "account";
-    syncSectionHash("account");
-    notice = null;
-    render();
-  });
   document.querySelector<HTMLButtonElement>("#logout")?.addEventListener("click", () => {
     pickerSearchGeneration += 1;
     dashboardLoadGeneration += 1;
@@ -1516,6 +1567,7 @@ async function reconcileActive(): Promise<boolean> {
 
 registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
   realtimeLastSeq = context.cursorSeq;
+  if (events.length > 0) markWebUpdateReceived();
   if (context.source === "reconcile") return reconcileActive();
 
   const scopes = new Set(events.flatMap((row) => row.scopes || []));
@@ -1533,6 +1585,8 @@ window.addEventListener("supra:realtime-status", (event) => {
   const detail = (event as CustomEvent<{ state?: string; lastSeq?: number; dirty?: boolean }>).detail || {};
   realtimeState = detail.state || realtimeState;
   realtimeLastSeq = Number(detail.lastSeq ?? realtimeLastSeq);
+  serviceReachable = navigator.onLine && realtimeState === "connected";
+  patchHeaderRuntime();
   const node = document.querySelector<HTMLElement>("#connection-state");
   if (node) {
     node.className = `connection ${realtimeState}`;
@@ -1542,8 +1596,18 @@ window.addEventListener("supra:realtime-status", (event) => {
       : `${realtimeState}${dirtySuffix}`;
   }
 });
-window.addEventListener("online", () => { realtimeState = "connecting"; if (profile) patchActiveSection(true); });
-window.addEventListener("offline", () => { realtimeState = "offline"; if (profile) patchActiveSection(true); });
+window.addEventListener("online", () => {
+  realtimeState = "connecting";
+  serviceReachable = false;
+  patchHeaderRuntime();
+  if (profile) patchActiveSection(true);
+});
+window.addEventListener("offline", () => {
+  realtimeState = "offline";
+  serviceReachable = false;
+  patchHeaderRuntime();
+  if (profile) patchActiveSection(true);
+});
 window.addEventListener("hashchange", () => {
   if (!profile) return;
   const requested = sectionFromHash();
