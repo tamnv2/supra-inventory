@@ -337,12 +337,33 @@
     "status": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS"
   },
   "ui_design": {
-    "authority": "OWNER_SELECTED_D057_LEGACY_TRANSPLANT_WITH_D058_D059_D060_D061_D062_AND_D063_CONSOLIDATED_OPS_LOGS_REPORTING_PEOPLE_REFINEMENTS_D064_DETAILED_SYSTEM_STATUS",
+    "authority": "OWNER_SELECTED_D057_LEGACY_TRANSPLANT_WITH_D058_D059_D060_D061_D062_AND_D063_CONSOLIDATED_OPS_LOGS_REPORTING_PEOPLE_REFINEMENTS_D064_DETAILED_SYSTEM_STATUS_D065_THREE_GROUP_NAV_CONSTRAINT",
     "web": "D064_DETAILED_SYSTEM_STATUS_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
     "android": "VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING",
     "scope_guard": "D063_MAX_THREE_NAV_CHILDREN__CONSOLIDATED_EXISTING_WORKFLOWS__BETA_LOGS_ONLY__NO_NEW_STOCK_LOCATION_OFFLINE_SCOPE__D057_ANDROID_NATIVE_AUTHORITY__OWNER_VISUAL_ACCEPTANCE_REQUIRED",
-    "source_candidate": "D064_RUNTIME_PASS__NAV_IA_PROPOSAL_PENDING_OWNER_DECISION",
-    "navigation_proposal": "docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md"
+    "source_candidate": "D065_THREE_GROUP_NAVIGATION_PROPOSAL__OWNER_EXACT_COMPOSITION_PENDING",
+    "navigation_proposal": "docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md",
+    "navigation_constraint": {
+      "admin_root_large_groups": 3,
+      "max_visible_children_per_group": 5,
+      "proposed_groups": {
+        "VẬN HÀNH": [
+          "Xử lý báo hàng",
+          "Tổng quan & báo cáo"
+        ],
+        "QUẢN LÝ": [
+          "Danh mục SKU",
+          "Nhân sự & tài khoản",
+          "Thời gian xử lý"
+        ],
+        "HỆ THỐNG": [
+          "Trạng thái hệ thống",
+          "Nhật ký"
+        ]
+      },
+      "personal_account_action": "PINNED_IDENTITY_CONTROL_NOT_SIDEBAR",
+      "implementation": "OWNER_EXACT_COMPOSITION_APPROVAL_REQUIRED"
+    }
   },
   "quota_resilience": {
     "reference_date": "2026-09-17",
