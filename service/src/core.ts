@@ -4,6 +4,7 @@ import { handleReadModelCoreRequest } from "./read-model-core";
 import { handleNotificationCoreRequest } from "./notifications-core";
 import { handleUserManagementCoreRequest } from "./user-management-core";
 import { handleArchiveCoreRequest } from "./archive-core";
+import { handleSystemMetricsCoreRequest } from "./system-metrics-core";
 import { initializeOperationalV2Schema, operationalV2Readiness } from "./operational-v2-core";
 
 const SCHEMA_VERSION = 6;
@@ -422,6 +423,9 @@ export class InventoryCore {
 
     const notifications = await handleNotificationCoreRequest(this.state, request);
     if (notifications) return notifications;
+
+    const systemMetrics = handleSystemMetricsCoreRequest(this.state, request);
+    if (systemMetrics) return systemMetrics;
 
     const readModel = await handleReadModelCoreRequest(this.state, request);
     if (readModel) return readModel;
