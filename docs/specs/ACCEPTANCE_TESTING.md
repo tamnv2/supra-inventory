@@ -12,6 +12,17 @@ Status: **CANONICAL PRODUCT SPEC**.
 
 Never collapse these levels into one generic “done”.
 
+## UI-first acceptance gate
+
+Before further business-logic rebuild/wiring work is treated as the active implementation frontier:
+
+- Web and Android/PDA must first be rebaselined against the Owner-approved prior Báo hàng 1291 visual/layout reference;
+- parity review covers login, shell/header/navigation, role landing screens, spacing, hierarchy, cards/tables, primary action placement, status presentation, responsive/narrow-screen behavior and footer/utility placement;
+- source/build/deploy PASS is not UI acceptance;
+- only explicit Owner confirmation marks the UI/layout gate PASS;
+- after that gate, canonical business rules are wired/rebuilt and accepted separately by scenario;
+- this gate never authorizes importing legacy backend/resources/credentials or out-of-scope fields.
+
 ## Rebaseline frontier
 
 The previous signed Beta `beta-vc35` is only the **pre-rebaseline runtime baseline**. Its Practical Balanced/one-row Picker UI is superseded by Owner decisions D043–D055.
