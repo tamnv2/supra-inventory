@@ -954,6 +954,7 @@ async function loadOperations(): Promise<void> {
   queueServerOffsetMs = Number.isFinite(serverNow) ? serverNow - Date.now() : 0;
   queueRows = queue.items;
   recentRows = recent.items;
+  markWebUpdateReceived();
 }
 
 async function loadPicker(): Promise<void> {
@@ -963,6 +964,7 @@ async function loadPicker(): Promise<void> {
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   pickerReports = reports.items;
   pickerResults = results.items;
+  markWebUpdateReceived();
   for (const result of pickerResults.filter((row) => !row.acknowledged_at && !markedResultEvents.has(row.result_event_id))) {
     markedResultEvents.add(result.result_event_id);
     void markPickerResult(result.result_event_id, result.batch_id, result.batch_version, "RECEIVED")
@@ -978,6 +980,7 @@ async function loadSla(): Promise<void> {
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   slaResponse = nextSla;
   operationalInsights = nextInsights;
+  markWebUpdateReceived();
 }
 
 async function loadDashboard(): Promise<void> {
@@ -992,6 +995,7 @@ async function loadDashboard(): Promise<void> {
   if (generation !== dashboardLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   dashboardData = nextDashboard;
   operationalInsights = nextInsights;
+  markWebUpdateReceived();
 }
 
 async function loadReports(): Promise<void> {
@@ -1010,6 +1014,7 @@ async function loadReports(): Promise<void> {
   if (generation !== reportLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   reportRows = result.items;
   reportTotal = result.total;
+  markWebUpdateReceived();
 }
 
 async function loadUsers(): Promise<void> {
@@ -1035,10 +1040,12 @@ async function loadUsers(): Promise<void> {
     if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
     managedUsers = retry.items;
     userTotal = retry.total;
+    markWebUpdateReceived();
     return;
   }
   managedUsers = result.items;
   userTotal = result.total;
+  markWebUpdateReceived();
 }
 
 function csvCell(value: unknown): string {
@@ -1069,6 +1076,7 @@ async function exportReportsCsv(): Promise<void> {
     if (!page.items.length) break;
     if (rows.length > maxRows) throw new Error(`Bộ lọc có hơn ${maxRows.toLocaleString("vi-VN")} dòng; hãy thu hẹp khoảng ngày trước khi xuất.`);
   } while (offset < total);
+  markWebUpdateReceived();
 
   const header = ["SKU","Tên sản phẩm","Trạng thái","Báo đầu","Xử lý","Thời gian xử lý (phút)","Ticket"];
   const body = rows.map((row) => [
