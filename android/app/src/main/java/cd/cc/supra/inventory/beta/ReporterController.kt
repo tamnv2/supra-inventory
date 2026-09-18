@@ -4,6 +4,8 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.graphics.Color
 import android.graphics.Typeface
+import android.os.Handler
+import android.os.Looper
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.ViewGroup
@@ -27,6 +29,8 @@ class ReporterController(
     private val zone = ZoneId.of("Asia/Ho_Chi_Minh")
     private val timeFmt = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(zone)
     private val dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy").withZone(zone)
+    private val handler = Handler(Looper.getMainLooper())
+    private var queueServerOffsetMs = 0L
     private var refreshing = false
     private var refreshDirty = false
     private val refreshWaiters = mutableListOf<(Boolean) -> Unit>()
@@ -41,6 +45,13 @@ class ReporterController(
     private var listRenderer: KeyedLinearRenderer? = null
     private var queue: List<ReporterBatch> = emptyList()
     private var recent: List<ReporterRecent> = emptyList()
+
+    private val slaTicker = object : Runnable {
+        override fun run() {
+            if (filter == Filter.PENDING && queue.isNotEmpty()) renderSelected()
+            handler.postDelayed(this, 15_000L)
+        }
+    }
 
     fun render(root: LinearLayout) {
         val tabs = LinearLayout(activity).apply {
@@ -57,7 +68,14 @@ class ReporterController(
         listRenderer = listBox?.let(::KeyedLinearRenderer)
         root.addView(listBox)
         updateTabs()
+        handler.removeCallbacks(slaTicker)
+        handler.postDelayed(slaTicker, 15_000L)
         refresh()
+    }
+
+    fun destroy() {
+        handler.removeCallbacks(slaTicker)
+        listRenderer = null
     }
 
     fun onRealtime(scopes: Set<String>, completion: (Boolean) -> Unit) {
@@ -77,6 +95,8 @@ class ReporterController(
                 val nextQueue = api.getReporterQueue(100)
                 val nextRecent = api.getReporterRecent(100)
                 activity.runOnUiThread {
+                    val serverNow = nextQueue.firstOrNull()?.serverNow?.let(::millis) ?: 0L
+                    queueServerOffsetMs = if (serverNow > 0L) serverNow - System.currentTimeMillis() else 0L
                     queue = nextQueue
                     recent = nextRecent
                     renderSelected()
@@ -181,19 +201,40 @@ class ReporterController(
         }
     }
 
-    private fun pendingSignature(row: ReporterBatch): String = listOf(
-        row.batchId,
-        row.version,
-        row.affectedPickerCount,
-        row.firstReportAt,
-        row.previousBatchId.orEmpty(),
-        row.recurrenceMinutes ?: -1,
-        row.slaState,
-        row.waitingMinutes,
-    ).joinToString("|")
+    private fun liveTiming(row: ReporterBatch): Pair<Int, String> {
+        val now = System.currentTimeMillis() + queueServerOffsetMs
+        val first = millis(row.firstReportAt)
+        val waiting = if (first > 0L) ((now - first).coerceAtLeast(0L) / 60_000L).toInt() else row.waitingMinutes
+        val escalation = millis(row.escalationAt)
+        val warning = millis(row.warningAt)
+        val state = when {
+            escalation > 0L && now >= escalation -> "ESCALATED"
+            warning > 0L && now >= warning -> "WARNING"
+            row.slaState == "UNCONFIGURED" -> "UNCONFIGURED"
+            else -> "NORMAL"
+        }
+        return waiting to state
+    }
+
+    private fun pendingSignature(row: ReporterBatch): String {
+        val timing = liveTiming(row)
+        return listOf(
+            row.batchId,
+            row.version,
+            row.affectedPickerCount,
+            row.firstReportAt,
+            row.previousBatchId.orEmpty(),
+            row.recurrenceMinutes ?: -1,
+            timing.second,
+            timing.first,
+        ).joinToString("|")
+    }
 
     private fun pendingCard(row: ReporterBatch): ViewGroup {
-        val stroke = when (row.slaState) {
+        val timing = liveTiming(row)
+        val liveState = timing.second
+        val liveWaiting = timing.first
+        val stroke = when (liveState) {
             "ESCALATED" -> kit.redStrong
             "WARNING" -> Color.parseColor("#EBC56E")
             else -> kit.line
@@ -212,17 +253,17 @@ class ReporterController(
                 val duration = row.recurrenceMinutes?.let { " · tái phát sau ${formatMinutes(it)}" }.orEmpty()
                 " · Tái phát$duration"
             } else ""
-            val sla = when (row.slaState) {
+            val sla = when (liveState) {
                 "ESCALATED" -> "SLA quá hạn"
                 "WARNING" -> "SLA cảnh báo"
                 "NORMAL" -> "SLA bình thường"
                 else -> "SLA chưa cấu hình"
             }
             addView(TextView(activity).apply {
-                text = "$affectedPickerCount Picker · chờ ${row.waitingMinutes} phút · $sla$recurrence\nBáo đầu: ${timestamp(row.firstReportAt)}"
+                text = "$affectedPickerCount Picker · chờ $liveWaiting phút · $sla$recurrence\nBáo đầu: ${timestamp(row.firstReportAt)}"
                 textSize = 12.5f
                 maxLines = 3
-                setTextColor(when (row.slaState) { "ESCALATED" -> kit.red; "WARNING" -> kit.orange; else -> kit.muted })
+                setTextColor(when (liveState) { "ESCALATED" -> kit.red; "WARNING" -> kit.orange; else -> kit.muted })
                 setPadding(0, kit.dp(5), 0, kit.dp(2))
                 contentDescription = "Xem $affectedPickerCount Picker báo SKU ${row.sku}"
                 setOnClickListener { showTickets(row) }
