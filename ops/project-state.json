@@ -154,14 +154,15 @@
     "last_source_build_evidence": {
       "branch": "fix/android-operational-lifecycle",
       "base_main": "8735c8a8ea6f6a0db6c4f768c929fda4dc4b58a5",
-      "head": "f3af40cb4acaad0f8c8f4d99b6fd50b69d268648",
+      "head": null,
       "android_operational_regression": "ADDED_PENDING_CI",
       "web_operational_regression": "PENDING_PR_CI",
       "operational_v2_regression": "PENDING_PR_CI",
       "realtime_cursor_regression": "PENDING_PR_CI",
       "service_typecheck": "PENDING_PR_CI",
       "web_production_build": "PENDING_PR_CI",
-      "android_debug_build": "PENDING_PR_CI"
+      "android_debug_build": "PENDING_PR_CI",
+      "note": "PR head will be recorded only after protected source/build gates reach terminal PASS."
     },
     "last_runtime_evidence": {
       "schema": 5,
