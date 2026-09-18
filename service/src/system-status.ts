@@ -246,7 +246,7 @@ export async function collectSystemStatus(env: SystemStatusEnv, forceProviders =
         token_exchanges_per_minute_project: 18_000,
         new_account_creations_per_hour_per_ip: 100,
         registered_accounts: "unlimited",
-        note: "Các mốc Spark chỉ là tham chiếu nếu project đang ở Spark; runtime hiện không tự đọc billing plan.",
+        note: "Các mốc Spark chỉ là tham chiếu. Project billing plan không được suy đoán từ runtime.",
       },
     },
     refresh_policy: {
