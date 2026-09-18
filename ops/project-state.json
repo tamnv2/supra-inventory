@@ -18,7 +18,7 @@
     "sqlite_schema": 5,
     "business_api": "OPERATIONAL_V2_4_RUNTIME_PASS__F20_BOUNDED_INSIGHTS_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
-    "web": "D058_WEB_DESKTOP_SHELL_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
+    "web": "D059_WEB_HEADER_IDENTITY_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
     "android": "VC43_D057_DIRECT_LEGACY_NATIVE_XML_SIGNED_RUNTIME_GATE_PASS__OWNER_UI_ACCEPTANCE_PENDING",
     "latest_beta_apk": "beta-vc43",
     "realtime": "GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_4",
@@ -28,7 +28,7 @@
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_BUILD_DEPLOY_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "D058_WEB_DESKTOP_SHELL_SOURCE_BUILD_RUNTIME_PASS__OWNER_UI_GATE_PENDING",
+    "ui_design_guard": "D059_WEB_HEADER_IDENTITY_SOURCE_BUILD_RUNTIME_PASS__OWNER_UI_GATE_PENDING",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED"
@@ -116,14 +116,14 @@
     "UI Design Guard run 35309444877 PASS on fa677463 with D057 presentation invariants plus Web production and Android debug build gates."
   ],
   "pending_build": [
-    "D059 Web header/identity source/build/deploy gate and Owner screen-by-screen UI acceptance",
+    "Owner screen-by-screen Web UI/layout acceptance on deployed D059 Beta candidate",
     "Android/APK visual review after Owner resumes it",
     "Only after Owner UI gate: rebuild/wire canonical business logic/scenarios",
     "Physical notification/device acceptance after functional rebuild",
-    "Isolated mutation load acceptance after Owner workload target"
+    "Isolated business mutation load acceptance after Owner scale target"
   ],
   "field_pending": [
-    "Owner Web visual/layout acceptance is pending for D059.",
+    "Owner Web visual/layout acceptance is pending for deployed D059.",
     "Android/APK review remains pending separately.",
     "Technical source/build/deploy/release PASS is not Owner UI acceptance."
   ],
@@ -135,8 +135,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Complete D059 Web-only source/build gates, merge through PR, verify Beta Web deploy, then continue Owner screen-by-screen Web review.",
-    "method": "Apply Owner D059 Web refinement over D058: corporate title, Service Cloudflare ON/OFF, event-driven Cập nhật HH:mm MM/DD/YYYY, Tên/User/Quyền + logout only, all Admin/Root left navigation aligned left, and local/system Segoe/Aptos typography. Do not modify Android in this workstream.",
+    "primary": "Continue Owner-led screen-by-screen review of deployed D059 Web. Repair only visual/layout/copy mismatches; Android/APK remains pending.",
+    "method": "Fresh-bootstrap canonical GitHub. D059 is active Web refinement over D058: corporate header, Cloudflare ON/OFF, event-driven Cập nhật HH:mm MM/DD/YYYY, Tên/User/Quyền + logout only, left-aligned Admin/Root navigation, local/system Segoe/Aptos typography. Owner only needs to provide current Web screenshot/feedback.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -164,13 +164,12 @@
   },
   "workboard": {
     "in_progress": [
-      "D059 Web header/identity source candidate: corporate identity, Cloudflare ON/OFF, latest received-data timestamp, Tên/User/Quyền + logout, left-aligned Admin/Root navigation and cleaner system typography",
-      "Owner Web UI acceptance remains pending; Android/APK review remains paused"
+      "Owner is actively reviewing the deployed D059 Web header/identity candidate",
+      "UI-only Web presentation mismatch repair from Owner review feedback; Android/APK review remains pending"
     ],
     "next": [
-      "Run D059 source/build/authority/continuity guards and merge only after PASS",
-      "Verify Beta Web deployment for the merged D059 source without mutating Stable",
-      "Continue Owner screen-by-screen Web review from the deployed D059 candidate",
+      "Continue Owner screen-by-screen Web review from deployed D059 without asking Owner to repeat project history",
+      "For each rejected Web screen, repair presentation/layout/copy only and preserve D058/D059 shell/header rules",
       "Keep Android/APK pending until Owner explicitly starts its separate review",
       "Only after explicit Owner UI acceptance resume canonical business wiring"
     ],
@@ -180,9 +179,9 @@
       "No business rebuild is authorized while the UI gate is still in progress"
     ],
     "last_source_build_evidence": {
-      "branch": "ui/d058-web-desktop-shell-review",
-      "merged_pr": 34,
-      "merged_main": "d848546d429dba60bb88e6f9686e83b05c730994",
+      "branch": "ui/d059-web-header-identity",
+      "merged_pr": 36,
+      "merged_main": "b93175cfc62ff4504d6e28b9379b09ba4e61f809",
       "repo_authority_guard": "PASS",
       "project_state_guard": "PASS",
       "ui_design_guard": "PASS",
@@ -194,18 +193,18 @@
       "service_typecheck": "PASS",
       "web_production_build": "PASS",
       "android_debug_build": "PASS_UNCHANGED_ANDROID",
-      "ui_design_guard_run": 35313797934
+      "ui_design_guard_run": 35321914326
     },
     "last_runtime_evidence": {
       "schema": 5,
       "operational_v2_schema": "4/4",
-      "beta_deploy_run": 35313918056,
+      "beta_deploy_run": 35322055302,
       "beta_deploy_conclusion": "success",
       "health": "HTTP_200_OK",
       "business_auth_guards": "PASS",
       "web_shell": "PASS",
       "google_oauth_start": "PASS",
-      "runtime_source_commit": "d848546d429dba60bb88e6f9686e83b05c730994",
+      "runtime_source_commit": "b93175cfc62ff4504d6e28b9379b09ba4e61f809",
       "signed_beta_release": "beta-vc43",
       "signed_beta_release_source_commit": "fa677463b898768a60013861220fce6e6192999e",
       "signed_beta_apk_sha256": "37dbc5e64cd144bbcb9dcb3787d7b65a3486907746822d95a8e902e52f9a27d8",
@@ -227,7 +226,7 @@
   "last_updated": "2026-09-18",
   "owner_ui_review": {
     "status": "IN_PROGRESS",
-    "phase": "D059_WEB_HEADER_IDENTITY_SOURCE_REVIEW",
+    "phase": "D059_WEB_HEADER_IDENTITY_RUNTIME_REVIEW",
     "started_on": "2026-09-18",
     "review_target_web": "https://inventory-beta.supra.cc.cd/",
     "review_target_android_release": "beta-vc43",
@@ -235,7 +234,7 @@
     "visual_authority_repository": "tam95supra-source/bao-hang-1291",
     "visual_authority_commit": "8713f487386fa39c9225b180b2b8448d4a7e2b2d",
     "owner_acceptance": "NOT_YET_GIVEN",
-    "current_instruction": "Continue Web UI review with D059 header/identity refinement: corporate title, Cloudflare ON/OFF + event-driven update timestamp, Tên/User/Quyền identity, logout only, left-aligned Admin/Root navigation, cleaner local/system font. Android/APK remains pending and unchanged.",
+    "current_instruction": "Continue Web screen-by-screen UI/layout review on deployed D059: corporate header, Cloudflare service ON/OFF, event-driven latest update timestamp, Tên/User/Quyền + logout only, left-aligned Admin/Root navigation and local/system typography. Android/APK remains pending and unchanged.",
     "next_session_command": "Tiếp tục review UI D059",
     "review_feedback_protocol": "Owner may send the current Web screenshot and concise feedback; AI must bootstrap canonical repo first, apply Web presentation-only repair through branch -> PR -> authority/continuity/UI guards -> merge -> Beta deploy verification, then return the next Web review candidate. Android remains pending."
   }

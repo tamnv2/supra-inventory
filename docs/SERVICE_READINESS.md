@@ -3,27 +3,28 @@
 > DERIVED VIEW. Canonical live status is `ops/project-state.json`; resource identity is `ops/resource-registry.json`.
 
 - Project: `supra-inventory`
-- Web: `D058_WEB_DESKTOP_SHELL_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
+- Web: `D059_WEB_HEADER_IDENTITY_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
 - Android: `VC43_D057_DIRECT_LEGACY_NATIVE_XML_SIGNED_RUNTIME_GATE_PASS__OWNER_UI_ACCEPTANCE_PENDING`
 - Latest signed review APK: `beta-vc43`
-- Web runtime source: `d848546d429dba60bb88e6f9686e83b05c730994`
+- Web runtime source: `b93175cfc62ff4504d6e28b9379b09ba4e61f809`
 - Android beta-vc43 source: `fa677463b898768a60013861220fce6e6192999e`
 - Owner UI review: **IN PROGRESS — no final UI acceptance yet**
 
-## D057 baseline + D058 Web Owner-review refinement
+## D057 baseline + D058 shell + D059 Web header/identity refinements
 
 Visual authority:
 - old UI repository: `tam95supra-source/bao-hang-1291`
 - pinned reference commit: `8713f487386fa39c9225b180b2b8448d4a7e2b2d`
 - Owner-provided old running-product screenshots
 - D057 in `docs/OWNER_DECISIONS.md`
-- D058 Web review refinement in `docs/OWNER_DECISIONS.md`
+- D058 Web shell refinement in `docs/OWNER_DECISIONS.md`
+- D059 Web header/identity refinement in `docs/OWNER_DECISIONS.md`
 
 Current review endpoints:
 - Web: `https://inventory-beta.supra.cc.cd/`
 - APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc43/supra-inventory-beta.apk`
 
-Web presentation uses the D057 transplanted modules plus D058 Owner-reviewed desktop behavior: no role-test strip, no rejected implementation prose, pinned topbar + Admin/Root sidebar, central-workspace scrolling, full remaining workspace width and fixed bottom-right product credit.
+Web presentation uses the D057 transplanted modules plus D058/D059 Owner-reviewed behavior: pinned full-width shell, no role-test strip, corporate Inventory 1291 header, Cloudflare ON/OFF + latest received-data timestamp, Tên/User/Quyền + logout only, left-aligned Admin/Root navigation, central-workspace scrolling, full remaining workspace width and fixed bottom-right product credit.
 
 Android/PDA presentation includes transplanted old native activity/login/Picker/Invent/Admin/row/overlay XML plus drawables/colors/styles, with current controllers bound to those resources.
 
@@ -44,12 +45,16 @@ Legacy backend/provider/auth/storage/database/credential code remains excluded.
 - D058 Web review repair PR #34 merged at `d848546d429dba60bb88e6f9686e83b05c730994`.
 - D058 PR UI Design Guard run `35313797934`: PASS.
 - D058 Beta deploy run `35313918056`: PASS, including health/business-auth/Web-shell/Google-OAuth smoke checks.
+- D059 Web header/identity PR #36 merged at `b93175cfc62ff4504d6e28b9379b09ba4e61f809`.
+- D059 PR UI Design Guard run `35321914326`: PASS.
+- D059 Beta deploy run `35322055302`: PASS, including health/business-auth/Web-shell/Google-OAuth smoke checks.
+- D059 main push Repo Authority Guard, Project State Guard and UI Design Guard: PASS.
 
 Automated PASS is technical eligibility only. It is not Owner UI acceptance.
 
 ## Current work frontier
 
-Owner is actively reviewing the deployed D058 Web UI. Android/APK review is pending separately.
+Owner is actively reviewing the deployed D059 Web UI. Android/APK review is pending separately.
 
 For each Owner-rejected screen:
 - compare current render to the pinned old source + current Owner feedback;
@@ -61,6 +66,6 @@ Do not resume business logic/scenario rebuild until explicit Owner UI acceptance
 
 ## Next-chat resume command
 
-`Tiếp tục review UI D058`
+`Tiếp tục review UI D059`
 
 A screenshot or concise UI review note may be appended; no project-history restatement is required.

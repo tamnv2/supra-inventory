@@ -128,8 +128,8 @@
       "hostname": "inventory-beta.supra.cc.cd",
       "custom_domain_status": "ACTIVE",
       "health_status": "PASS",
-      "ci_deploy_status": "PASS_RUN_35313918056_MAIN_D848546D",
-      "web_smoke_status": "PASS_MAIN_D848546D",
+      "ci_deploy_status": "PASS_RUN_35322055302_MAIN_B93175CF",
+      "web_smoke_status": "PASS_MAIN_B93175CF",
       "app_verify_status": "ANDROID_PASS_SIGNED_RELEASE_VC43__MATCHING_RUNTIME_GATE_PASS",
       "durable_object_status": "PROVISIONED_PASS",
       "durable_object_class": "InventoryCore",
@@ -163,7 +163,7 @@
       "cloudflare_oauth_refresh_token_secret": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
       "oauth_refresh_token_configured": true,
       "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA",
-      "web_source_status": "D058_WEB_DESKTOP_SHELL_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
+      "web_source_status": "D059_WEB_HEADER_IDENTITY_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
       "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
       "web_admin_report_monitoring": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_BUILD_DEPLOY_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
       "android_source_status": "VC43_D057_DIRECT_LEGACY_NATIVE_XML_SIGNED_RUNTIME_GATE_PASS__OWNER_UI_ACCEPTANCE_PENDING",
@@ -262,10 +262,11 @@
     "android_vc33_native_ui_fail_closed_update_gate_signed_release_pass",
     "f14_f19_f20_f23_sla_archive_insights_diagnostics_beta_runtime_release_pass",
     "d057_direct_legacy_presentation_transplant_vc43_runtime_release_pass",
-    "d058_web_desktop_shell_runtime_pass_owner_ui_pending"
+    "d058_web_desktop_shell_runtime_pass_owner_ui_pending",
+    "d059_web_header_identity_runtime_pass_owner_ui_pending"
   ],
   "application_build_pending": [
-    "owner_d057_web_android_ui_acceptance",
+    "owner_d059_web_ui_acceptance_and_android_review_pending",
     "fcm_physical_device_delivery_acceptance_after_functional_rebuild",
     "isolated_business_mutation_load_acceptance_after_owner_scale_target"
   ],
@@ -326,10 +327,10 @@
     "status": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS"
   },
   "ui_design": {
-    "authority": "OWNER_SELECTED_D057_LEGACY_TRANSPLANT_WITH_D058_WEB_REVIEW_REFINEMENT",
-    "web": "D058_WEB_DESKTOP_SHELL_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
+    "authority": "OWNER_SELECTED_D057_LEGACY_TRANSPLANT_WITH_D058_SHELL_AND_D059_HEADER_REFINEMENTS",
+    "web": "D059_WEB_HEADER_IDENTITY_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
     "android": "VC43_D057_DIRECT_LEGACY_NATIVE_XML_SIGNED_RUNTIME_GATE_PASS__OWNER_UI_ACCEPTANCE_PENDING",
-    "scope_guard": "D058_WEB_REFINEMENT__D057_ANDROID_AUTHORITY__NO_LEGACY_BACKEND_PROVIDER_AUTH_STORAGE_CREDENTIAL_IMPORT__OWNER_VISUAL_ACCEPTANCE_REQUIRED"
+    "scope_guard": "D058_D059_WEB_REFINEMENTS__D057_ANDROID_AUTHORITY__NO_LEGACY_BACKEND_PROVIDER_AUTH_STORAGE_CREDENTIAL_IMPORT__OWNER_VISUAL_ACCEPTANCE_REQUIRED"
   },
   "quota_resilience": {
     "reference_date": "2026-09-17",
