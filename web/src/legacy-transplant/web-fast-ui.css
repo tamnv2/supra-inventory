@@ -1360,3 +1360,226 @@ body[data-theme="dark"] input[type="date"] {
     display: none !important;
   }
 }
+
+
+/* D062 final Web QA: close remaining dark islands and strengthen the canonical five-area navigation. */
+.nav-section-label {
+  min-height: 26px !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  letter-spacing: .06em !important;
+}
+
+.nav-section-label .nav-icon {
+  width: 15px;
+  height: 15px;
+  flex-basis: 15px;
+}
+
+body[data-theme="dark"] :is(
+  .detail,
+  .detail-panel,
+  .detail-row td,
+  .picker-chip,
+  .operation-row
+) {
+  background: #0f172a !important;
+  color: #dbe5f0 !important;
+  border-color: #35445a !important;
+}
+
+body[data-theme="dark"] .operation-row:hover {
+  background: #141f31 !important;
+}
+
+body[data-theme="dark"] :is(
+  .operation-count,
+  .operation-meta,
+  .picker-chip,
+  .empty,
+  .fast-empty,
+  .fast-empty-row
+) {
+  color: #aebdd0 !important;
+}
+
+body[data-theme="dark"] .realtime-notice {
+  background: #10233a !important;
+  color: #a8d4f5 !important;
+  border-color: #315a7d !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .28) !important;
+}
+
+body[data-theme="dark"] .message,
+body[data-theme="dark"] .notice {
+  background: #10233a !important;
+  color: #a8d4f5 !important;
+  border-color: #315a7d !important;
+}
+
+body[data-theme="dark"] :is(
+  .notice.warning,
+  .message[data-type="warning"]
+) {
+  background: #302414 !important;
+  color: #f4c57f !important;
+  border-color: #63461c !important;
+}
+
+body[data-theme="dark"] :is(
+  .notice.error,
+  .message[data-type="error"],
+  .ops-modal-error,
+  .ops-warning-box,
+  .ops-toast[data-type="error"]
+) {
+  background: #351a1a !important;
+  color: #ffaaa3 !important;
+  border-color: #6d302c !important;
+}
+
+body[data-theme="dark"] :is(
+  .message[data-type="good"],
+  .ops-toast
+) {
+  background: #102a21 !important;
+  color: #86d5ae !important;
+  border-color: #285a43 !important;
+}
+
+body[data-theme="dark"] .badge {
+  background: #243044 !important;
+  color: #dbe5f0 !important;
+  border-color: #35445a !important;
+}
+
+body[data-theme="dark"] :is(.badge.pending,.badge.warning,.badge.warn) {
+  background: #302414 !important;
+  color: #f4c57f !important;
+  border-color: #63461c !important;
+}
+
+body[data-theme="dark"] :is(.badge.escalated,.badge.skip) {
+  background: #351a1a !important;
+  color: #ffaaa3 !important;
+  border-color: #6d302c !important;
+}
+
+body[data-theme="dark"] :is(.badge.ok,.badge.good) {
+  background: #102a21 !important;
+  color: #86d5ae !important;
+  border-color: #285a43 !important;
+}
+
+body[data-theme="dark"] .badge.closed {
+  background: #202b3a !important;
+  color: #b8c4d2 !important;
+  border-color: #35445a !important;
+}
+
+body[data-theme="dark"] :is(
+  .ops-source.source,
+  .ops-source.manual,
+  .ops-status.active,
+  .ops-status.inactive,
+  .ops-lock,
+  .ops-service-badge,
+  .ops-live-pill
+) {
+  border: 1px solid #35445a !important;
+}
+
+body[data-theme="dark"] .ops-source.source {
+  background: #243044 !important;
+  color: #dbe5f0 !important;
+}
+
+body[data-theme="dark"] .ops-source.manual {
+  background: #10233a !important;
+  color: #a8d4f5 !important;
+}
+
+body[data-theme="dark"] .ops-status.active,
+body[data-theme="dark"] .ops-service-badge.good {
+  background: #102a21 !important;
+  color: #86d5ae !important;
+}
+
+body[data-theme="dark"] .ops-status.inactive,
+body[data-theme="dark"] .ops-live-pill {
+  background: #351a1a !important;
+  color: #ffaaa3 !important;
+}
+
+body[data-theme="dark"] .ops-lock,
+body[data-theme="dark"] .ops-service-badge:not(.good) {
+  background: #302414 !important;
+  color: #f4c57f !important;
+}
+
+body[data-theme="dark"] :is(
+  .v5-priority-table,
+  .v5-table-wrap
+) {
+  border-color: #263244 !important;
+  background: #111827 !important;
+}
+
+body[data-theme="dark"] .v5-rank-row {
+  border-top-color: #263244 !important;
+}
+
+body[data-theme="dark"] .v5-rank-row > b {
+  background: #243044 !important;
+  color: #dbe5f0 !important;
+}
+
+body[data-theme="dark"] :is(
+  .v5-filter,
+  .v5-presets button,
+  .v5-table,
+  .v5-table th,
+  .v5-table td,
+  .v5-status
+) {
+  background: #0f172a !important;
+  color: #dbe5f0 !important;
+  border-color: #263244 !important;
+}
+
+body[data-theme="dark"] .v5-status.available {
+  background: #102a21 !important;
+  color: #86d5ae !important;
+}
+
+body[data-theme="dark"] .v5-status.skip_allowed {
+  background: #351a1a !important;
+  color: #ffaaa3 !important;
+}
+
+body[data-theme="dark"] :is(.v5-status.open,.v5-status.claimed,.v5-status.searching,.v5-status.replenishing) {
+  background: #14273a !important;
+  color: #9bc7f1 !important;
+}
+
+body[data-theme="dark"] .v5-skeleton {
+  background: linear-gradient(90deg, #172235 25%, #243044 38%, #172235 63%) !important;
+  background-size: 400% 100% !important;
+}
+
+body[data-theme="dark"] :is(
+  .ops-note,
+  .ops-restore-actions,
+  .ops-kv.compact
+) {
+  border-color: #263244 !important;
+}
+
+body[data-theme="dark"] .ops-step {
+  color: #64748b !important;
+}
+
+body[data-theme="dark"] select option {
+  background: #0f172a;
+  color: #e7edf5;
+}
