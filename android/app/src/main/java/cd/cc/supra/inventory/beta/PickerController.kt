@@ -90,6 +90,7 @@ class PickerController(
         })
         input = EditText(activity).apply {
             hint = "Nhập mã SKU…"
+            contentDescription = "Nhập / quét SKU"
             isSingleLine = true
             textSize = 20f
             imeOptions = EditorInfo.IME_ACTION_SEARCH
