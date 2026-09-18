@@ -141,6 +141,20 @@ export function handleSystemMetricsCoreRequest(state: DurableObjectState, reques
       audit_log: count(state, "audit_log"),
     };
 
+    const lastLoadTestRow = first(
+      state.storage.sql.exec<SqlRow>(
+        `SELECT value_json, updated_at, updated_by
+           FROM app_config
+          WHERE key = 'beta_load_test_last_v1'
+          LIMIT 1`,
+      ).toArray(),
+    );
+    let lastLoadTest: unknown = null;
+    if (lastLoadTestRow?.value_json) {
+      try { lastLoadTest = JSON.parse(String(lastLoadTestRow.value_json)); }
+      catch { lastLoadTest = null; }
+    }
+
     return new Response(JSON.stringify({
       generated_at: now.toISOString(),
       sqlite: {
@@ -177,6 +191,7 @@ export function handleSystemMetricsCoreRequest(state: DurableObjectState, reques
         exported_batches: tableRows.archive_exports,
         checkpoint: archiveCheckpoint,
       },
+      last_load_test: lastLoadTest,
       hr_source: hrSource ? {
         configured: true,
         sheet_id: String(hrSource.sheet_id || ""),
@@ -189,6 +204,48 @@ export function handleSystemMetricsCoreRequest(state: DurableObjectState, reques
       status: 200,
       headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
     });
+  }
+
+  if (request.method === "POST" && url.pathname === "/admin/load-test/result") {
+    return request.json().then((raw) => {
+      const body = raw && typeof raw === "object" && !Array.isArray(raw) ? raw as Record<string, unknown> : {};
+      const allowed = {
+        test_id: String(body.test_id || "").slice(0, 128),
+        started_at: String(body.started_at || "").slice(0, 64),
+        completed_at: String(body.completed_at || "").slice(0, 64),
+        duration_seconds: Number(body.duration_seconds || 0),
+        requested_reports: Number(body.requested_reports || 0),
+        successful_reports: Number(body.successful_reports || 0),
+        failed_reports: Number(body.failed_reports || 0),
+        picker_count: Number(body.picker_count || 0),
+        sku_count: Number(body.sku_count || 0),
+        unique_skus_reported: Number(body.unique_skus_reported || 0),
+        average_ms: Number(body.average_ms || 0),
+        p50_ms: Number(body.p50_ms || 0),
+        p95_ms: Number(body.p95_ms || 0),
+        max_ms: Number(body.max_ms || 0),
+        http_status_counts: body.http_status_counts && typeof body.http_status_counts === "object" ? body.http_status_counts : {},
+        error_counts: body.error_counts && typeof body.error_counts === "object" ? body.error_counts : {},
+        before: body.before && typeof body.before === "object" ? body.before : {},
+        after: body.after && typeof body.after === "object" ? body.after : {},
+        delta: body.delta && typeof body.delta === "object" ? body.delta : {},
+      };
+      const at = new Date().toISOString();
+      state.storage.sql.exec(
+        `INSERT INTO app_config (key, value_json, updated_at, updated_by)
+         VALUES ('beta_load_test_last_v1', ?, ?, 'github-actions-load-test')
+         ON CONFLICT(key) DO UPDATE SET value_json = excluded.value_json, updated_at = excluded.updated_at, updated_by = excluded.updated_by`,
+        JSON.stringify(allowed),
+        at,
+      );
+      return new Response(JSON.stringify({ status: "saved", updated_at: at }), {
+        status: 200,
+        headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+      });
+    }).catch(() => new Response(JSON.stringify({ error: "invalid_json" }), {
+      status: 400,
+      headers: { "content-type": "application/json; charset=utf-8" },
+    }));
   }
 
   if (request.method === "GET" && url.pathname === "/admin/load-test/candidates") {
