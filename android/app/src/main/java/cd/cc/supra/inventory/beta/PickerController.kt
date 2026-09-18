@@ -2,6 +2,7 @@ package cd.cc.supra.inventory.beta
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.app.Dialog
 import android.graphics.Color
 import android.graphics.Typeface
 import android.net.ConnectivityManager
@@ -13,6 +14,7 @@ import android.text.InputType
 import android.text.TextUtils
 import android.text.TextWatcher
 import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
@@ -310,46 +312,56 @@ class PickerController(
         if (resultDialogShowing || activity.isFinishing) return
         resultDialogShowing = true
         val isSkip = result.resolution == "SKIP_ALLOWED"
-        AlertDialog.Builder(activity)
-            .setTitle(if (isSkip) "ĐƯỢC PHÉP SKIP" else "ĐÃ CÓ HÀNG")
-            .setMessage("${result.sku} - ${result.productName}\n\n${if (isSkip) "Reporter đã xác nhận SKU này được phép skip." else "Reporter đã xác nhận SKU này đã có hàng."}")
-            .setCancelable(false)
-            .setPositiveButton("XÁC NHẬN ĐÃ NHẬN", null)
-            .create()
-            .also { dialog ->
-                dialog.setOnShowListener {
-                    if (result.displayedAt == null && displayedResults.add(result.resultEventId)) {
-                        Thread {
-                            try {
-                                api.markResultStage(result.resultEventId, "DISPLAYED")
-                            } catch (_: Exception) {
-                                displayedResults -= result.resultEventId
-                            }
-                        }.start()
+        val surface = LayoutInflater.from(activity).inflate(R.layout.overlay_alert, null, false)
+        surface.setBackgroundResource(if (isSkip) R.drawable.bg_overlay_skip else R.drawable.bg_overlay_available)
+        surface.findViewById<TextView>(R.id.tvOverlayStatus).text = if (isSkip) "ĐƯỢC PHÉP SKIP" else "ĐÃ CÓ HÀNG"
+        surface.findViewById<TextView>(R.id.tvOverlaySku).text = result.sku
+        surface.findViewById<TextView>(R.id.tvOverlayProduct).text = result.productName
+        surface.findViewById<TextView>(R.id.tvOverlayMessage).text =
+            if (isSkip) "Reporter đã xác nhận SKU này được phép skip." else "Reporter đã xác nhận SKU này đã có hàng."
+        surface.findViewById<TextView>(R.id.tvOverlayDismissHint).text = "Cảnh báo nghiệp vụ • cần xác nhận để tiếp tục"
+        val acknowledge = surface.findViewById<Button>(R.id.btnOverlayAck).apply {
+            text = "XÁC NHẬN ĐÃ NHẬN"
+            visibility = View.VISIBLE
+        }
+
+        val dialog = Dialog(activity, android.R.style.Theme_Material_Light_NoActionBar_Fullscreen).apply {
+            setContentView(surface)
+            setCancelable(false)
+        }
+        dialog.setOnShowListener {
+            dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            if (result.displayedAt == null && displayedResults.add(result.resultEventId)) {
+                Thread {
+                    try {
+                        api.markResultStage(result.resultEventId, "DISPLAYED")
+                    } catch (_: Exception) {
+                        displayedResults -= result.resultEventId
                     }
-                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
-                        Thread {
-                            try {
-                                api.acknowledgeResult(result.resultEventId)
-                                activity.runOnUiThread {
-                                    dialog.dismiss()
-                                    resultDialogShowing = false
-                                    setStatus("Đã xác nhận nhận kết quả ${result.sku}.")
-                                    refresh()
-                                }
-                            } catch (e: Exception) {
-                                activity.runOnUiThread {
-                                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
-                                    setStatus(friendlyError(e))
-                                }
-                            }
-                        }.start()
+                }.start()
+            }
+        }
+        acknowledge.setOnClickListener {
+            acknowledge.isEnabled = false
+            Thread {
+                try {
+                    api.acknowledgeResult(result.resultEventId)
+                    activity.runOnUiThread {
+                        dialog.dismiss()
+                        resultDialogShowing = false
+                        setStatus("Đã xác nhận nhận kết quả ${result.sku}.")
+                        refresh()
+                    }
+                } catch (e: Exception) {
+                    activity.runOnUiThread {
+                        acknowledge.isEnabled = true
+                        setStatus(friendlyError(e))
                     }
                 }
-                dialog.setOnDismissListener { resultDialogShowing = false }
-                dialog.show()
-            }
+            }.start()
+        }
+        dialog.setOnDismissListener { resultDialogShowing = false }
+        dialog.show()
     }
 
     private fun renderHistory(allRows: List<PickerReport>) {
