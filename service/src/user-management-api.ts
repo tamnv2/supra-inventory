@@ -61,7 +61,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
 
   if (key === "GET /api/admin/users") {
     const params = new URLSearchParams();
-    for (const name of ["query","role","status","limit"]) if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+    for (const name of ["query","role","status","limit","offset"]) if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
     return core(env).fetch(`https://inventory-core.internal/admin/users?${params.toString()}`);
   }
   if (key === "POST /api/admin/users") {
