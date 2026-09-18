@@ -69,19 +69,56 @@ function getUser(state: DurableObjectState, userId: string): UserRow | null {
 }
 
 function listUsers(state: DurableObjectState, url: URL): Response {
-  const query = String(url.searchParams.get("query") || "").trim().toLowerCase();
+  const query = String(url.searchParams.get("query") || "").trim().toLowerCase().slice(0, 200);
   const role = String(url.searchParams.get("role") || "").trim().toUpperCase();
   const status = String(url.searchParams.get("status") || "").trim().toUpperCase();
-  const limit = Math.max(1, Math.min(1000, Number(url.searchParams.get("limit") || 500) || 500));
-  let rows = state.storage.sql.exec<UserRow>(
-    `SELECT user_id, firebase_uid, employee_code, display_name, role, status, password_salt, password_hash, password_changed_at, created_at, updated_at
-       FROM users ORDER BY CASE role WHEN 'ROOT' THEN 1 WHEN 'ADMIN' THEN 2 WHEN 'REPORTER' THEN 3 ELSE 4 END, employee_code ASC, display_name ASC LIMIT 1000`,
+  const parsedLimit = Number(url.searchParams.get("limit") || 100);
+  const parsedOffset = Number(url.searchParams.get("offset") || 0);
+  const limit = Math.max(1, Math.min(200, Number.isFinite(parsedLimit) ? Math.trunc(parsedLimit) : 100));
+  const offset = Math.max(0, Math.min(100_000, Number.isFinite(parsedOffset) ? Math.trunc(parsedOffset) : 0));
+
+  const where: string[] = [];
+  const args: SqlStorageValue[] = [];
+  if (query) {
+    const like = `%${query}%`;
+    where.push("(lower(COALESCE(employee_code,'')) LIKE ? OR lower(display_name) LIKE ? OR lower(user_id) LIKE ?)");
+    args.push(like, like, like);
+  }
+  if (["PICKER","REPORTER","ADMIN","ROOT"].includes(role)) {
+    where.push("role = ?");
+    args.push(role);
+  }
+  if (["ACTIVE","DISABLED"].includes(status)) {
+    where.push("status = ?");
+    args.push(status);
+  }
+  const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
+
+  const totalRow = first(state.storage.sql.exec<SqlRow>(
+    `SELECT COUNT(*) AS total FROM users ${clause}`,
+    ...args,
+  ).toArray()) || {};
+
+  const rows = state.storage.sql.exec<UserRow>(
+    `SELECT user_id, firebase_uid, employee_code, display_name, role, status,
+            password_salt, password_hash, password_changed_at, created_at, updated_at
+       FROM users
+       ${clause}
+      ORDER BY CASE role WHEN 'ROOT' THEN 1 WHEN 'ADMIN' THEN 2 WHEN 'REPORTER' THEN 3 ELSE 4 END,
+               employee_code ASC, display_name ASC, user_id ASC
+      LIMIT ? OFFSET ?`,
+    ...args,
+    limit,
+    offset,
   ).toArray();
-  if (query) rows = rows.filter((row) => `${row.employee_code || ""} ${row.display_name} ${row.user_id}`.toLowerCase().includes(query));
-  if (["PICKER","REPORTER","ADMIN","ROOT"].includes(role)) rows = rows.filter((row) => row.role === role);
-  if (["ACTIVE","DISABLED"].includes(status)) rows = rows.filter((row) => row.status === status);
-  rows = rows.slice(0, limit);
-  return response({ items: rows.map(safeUser), count: rows.length });
+
+  return response({
+    items: rows.map(safeUser),
+    count: rows.length,
+    total: Number(totalRow.total || 0),
+    limit,
+    offset,
+  });
 }
 
 async function createManagedUser(state: DurableObjectState, request: Request): Promise<Response> {
