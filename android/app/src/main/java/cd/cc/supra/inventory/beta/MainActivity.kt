@@ -398,11 +398,11 @@ class MainActivity : Activity() {
 
     private fun sanitizeDiagnosticText(value: String): String {
         var next = value.take(500)
-        next = next.replace(Regex("(?i)(authorization|bearer|token|password|secret|private[_ -]?key|api[_ -]?key)\\s*[:=]\\s*[^\\s,;]+"), "${'
+        val secretPattern = Regex("(?i)(authorization|bearer|token|password|secret|private[_ -]?key|api[_ -]?key)\\s*[:=]\\s*[^\\s,;]+")
+        next = secretPattern.replace(next) { match -> "${match.groupValues[1]}=[REDACTED]" }
         next = next.replace(Regex("eyJ[A-Za-z0-9_-]{20,}\\.[A-Za-z0-9_-]{20,}\\.[A-Za-z0-9_-]{10,}"), "[REDACTED_JWT]")
         return next
     }
-
     private fun recordLog(message: String) {
         if (localLog.size >= 80) localLog.removeFirst()
         localLog.addLast("${logTime.format(Instant.now())} · $message")
