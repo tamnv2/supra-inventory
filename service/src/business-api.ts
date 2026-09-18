@@ -217,7 +217,7 @@ function scheduleFcm(
       const tokens = targetPayload.tokens || [];
       if (!tokens.length) return;
       const batchSku = String(targetPayload.batch?.sku || "");
-      await sendFcmNotifications(env.GOOGLE_RUNTIME_SA_JSON!, env.FIREBASE_PROJECT_ID, tokens, {
+      const delivery = await sendFcmNotifications(env.GOOGLE_RUNTIME_SA_JSON!, env.FIREBASE_PROJECT_ID, tokens, {
         title: options.title,
         body: options.body.replace("{sku}", batchSku || "SKU"),
         data: {
@@ -228,6 +228,18 @@ function scheduleFcm(
           batch_version: batchVersion,
         },
       });
+      await corePost(env, "/notifications/delivery-attempts", {
+        event_id: resultEventId || null,
+        event: options.event,
+        attempts: delivery.attempts.map((attempt) => ({
+          token: attempt.token,
+          status: attempt.status,
+          error_code: attempt.error_code,
+        })),
+      });
+      if (delivery.invalidTokens.length) {
+        await corePost(env, "/notifications/disable-tokens", { tokens: delivery.invalidTokens });
+      }
     } catch {
       // Background notification is best-effort and must never change the committed business result.
     }
