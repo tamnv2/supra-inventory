@@ -74,8 +74,37 @@ type Section =
 
 type Notice = { type: "success" | "error" | "warning"; text: string } | null;
 
+const ROUTABLE_SECTIONS: Section[] = [
+  "picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "system", "account",
+];
+
+function defaultSectionForProfile(value: AppProfile): Section {
+  return value.role === "PICKER" ? "picker" : "operations";
+}
+
+function canAccessSection(section: Section, value: AppProfile): boolean {
+  if (value.role === "PICKER") return ["picker", "system", "account"].includes(section);
+  if (value.role === "REPORTER") return ["operations", "results", "account"].includes(section);
+  return section !== "picker";
+}
+
+function sectionFromHash(): Section | null {
+  const raw = window.location.hash.replace(/^#/, "").trim().toLowerCase();
+  return ROUTABLE_SECTIONS.includes(raw as Section) ? (raw as Section) : null;
+}
+
+function resolveInitialSection(value: AppProfile): Section {
+  const requested = sectionFromHash();
+  return requested && canAccessSection(requested, value) ? requested : defaultSectionForProfile(value);
+}
+
+function syncSectionHash(section: Section): void {
+  if (window.location.hash === `#${section}`) return;
+  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${section}`);
+}
+
 let profile: AppProfile | null = getStoredProfile();
-let activeSection: Section = profile?.role === "PICKER" ? "picker" : "operations";
+let activeSection: Section = profile ? resolveInitialSection(profile) : "operations";
 let notice: Notice = null;
 let busy = false;
 let realtimeState = "connecting";
@@ -392,7 +421,8 @@ function renderLogin(): void {
     void run(async () => {
       profile = await loginWithPassword(String(data.get("username") || "").trim(), String(data.get("password") || ""));
       sessionViewGeneration += 1;
-      activeSection = profile.role === "PICKER" ? "picker" : "operations";
+      activeSection = resolveInitialSection(profile);
+      syncSectionHash(activeSection);
       window.dispatchEvent(new CustomEvent("supra:session-changed"));
       await loadSection(activeSection);
       render();
@@ -774,7 +804,9 @@ function bindShell(): void {
   document.querySelectorAll<HTMLButtonElement>("[data-section]").forEach((button) => button.addEventListener("click", () => {
     const next = button.dataset.section as Section;
     if (!next || next === activeSection) return;
+    if (!canAccessSection(next, profile)) return;
     activeSection = next;
+    syncSectionHash(next);
     notice = null;
     pickerSearchGeneration += 1;
     dashboardLoadGeneration += 1;
@@ -1235,13 +1267,27 @@ window.addEventListener("supra:realtime-status", (event) => {
 });
 window.addEventListener("online", () => { realtimeState = "connecting"; if (profile) patchActiveSection(true); });
 window.addEventListener("offline", () => { realtimeState = "offline"; if (profile) patchActiveSection(true); });
+window.addEventListener("hashchange", () => {
+  if (!profile) return;
+  const requested = sectionFromHash();
+  if (!requested || !canAccessSection(requested, profile) || requested === activeSection) return;
+  activeSection = requested;
+  notice = null;
+  pickerSearchGeneration += 1;
+  dashboardLoadGeneration += 1;
+  reportLoadGeneration += 1;
+  editUserId = null;
+  passwordUserId = null;
+  void run(async () => { await loadSection(requested); });
+});
 
 async function bootstrap(): Promise<void> {
   if (!hasSession()) { renderLogin(); return; }
   try {
     profile = await getMyProfile();
     sessionViewGeneration += 1;
-    activeSection = profile.role === "PICKER" ? "picker" : "operations";
+    activeSection = resolveInitialSection(profile);
+    syncSectionHash(activeSection);
     await loadSection(activeSection);
     render();
     window.dispatchEvent(new CustomEvent("supra:session-changed"));
