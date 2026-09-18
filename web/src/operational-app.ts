@@ -112,6 +112,17 @@ let pickerSelected: SkuItem | null = null;
 let pickerReports: PickerReportV2[] = [];
 let pickerResults: PickerResultV2[] = [];
 let markedResultEvents = new Set<string>();
+let pickerSearchGeneration = 0;
+let userQuery = "";
+let userRole = "";
+let userStatus = "";
+let userOffset = 0;
+let userTotal = 0;
+const USER_PAGE_SIZE = 100;
+let editUserId: string | null = null;
+let passwordUserId: string | null = null;
+let dashboardLoadGeneration = 0;
+let reportLoadGeneration = 0;
 
 function esc(value: unknown): string {
   return String(value ?? "")
