@@ -32,7 +32,8 @@ function candidates(state: DurableObjectState, url: URL): Response {
   const limit = limitOf(url.searchParams.get("limit"));
   const batches = state.storage.sql.exec<SqlRow>(
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.resolved_at,
-            b.resolved_by_user_id, b.resolution, b.correction_deadline_at, b.created_at, b.updated_at
+            b.resolved_by_user_id, b.resolution, b.correction_deadline_at, b.version,
+            b.previous_batch_id, b.last_report_at, b.created_at, b.updated_at
        FROM report_batches b
        LEFT JOIN archive_exports a ON a.batch_id = b.batch_id
       WHERE a.batch_id IS NULL AND b.status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')
@@ -48,10 +49,33 @@ function candidates(state: DurableObjectState, url: URL): Response {
               reported_at, withdraw_deadline_at, withdrawn_at, resolved_at, created_at, updated_at
          FROM report_tickets WHERE batch_id = ? ORDER BY reported_at ASC, ticket_id ASC`, batchId,
     ).toArray();
-    const events = state.storage.sql.exec<SqlRow>(
-      `SELECT event_id, batch_id, ticket_id, event_type, actor_user_id, actor_employee_code, payload_json, created_at
-         FROM report_events WHERE batch_id = ? ORDER BY created_at ASC, event_id ASC`, batchId,
+    const acknowledgements = state.storage.sql.exec<SqlRow>(
+      `SELECT result_event_id, target_user_id, received_at, displayed_at, acknowledged_at, created_at, updated_at
+         FROM result_acknowledgements
+        WHERE batch_id = ?
+        ORDER BY result_event_id ASC, target_user_id ASC`,
+      batchId,
     ).toArray();
+    const acknowledgementMap = new Map<string, SqlRow[]>();
+    for (const acknowledgement of acknowledgements) {
+      const eventId = String(acknowledgement.result_event_id || "");
+      const list = acknowledgementMap.get(eventId) || [];
+      list.push(acknowledgement);
+      acknowledgementMap.set(eventId, list);
+    }
+    const events = state.storage.sql.exec<SqlRow>(
+      `SELECT e.event_id, e.batch_id, e.ticket_id, e.event_type, e.actor_user_id, e.actor_employee_code,
+              e.payload_json, e.created_at,
+              s.batch_version, s.resolution AS result_resolution, s.result_at
+         FROM report_events e
+         LEFT JOIN result_event_snapshots s ON s.result_event_id = e.event_id
+        WHERE e.batch_id = ?
+        ORDER BY e.created_at ASC, e.event_id ASC`,
+      batchId,
+    ).toArray().map((event) => ({
+      ...event,
+      acknowledgements_json: JSON.stringify(acknowledgementMap.get(String(event.event_id || "")) || []),
+    }));
     return { batch, tickets, events };
   });
   return response({ items, count: items.length, checkpoint: checkpoint(state) });
@@ -118,18 +142,52 @@ async function cleanup(state: DurableObjectState, request: Request): Promise<Res
   ).toArray().map((row) => String(row.batch_id));
   if (!eligible.length) return response({ status: "cleanup_complete", deleted_batches: 0, cutoff_iso: cutoff });
 
-  let tickets = 0, events = 0;
+  let tickets = 0, events = 0, acknowledgements = 0, resultSnapshots = 0, realtimeEvents = 0, deliveryAttempts = 0;
   state.storage.transactionSync(() => {
     for (const batchId of eligible) {
       const eventCount = Number(state.storage.sql.exec<SqlRow>("SELECT COUNT(*) AS c FROM report_events WHERE batch_id = ?", batchId).toArray()[0]?.c || 0);
       const ticketCount = Number(state.storage.sql.exec<SqlRow>("SELECT COUNT(*) AS c FROM report_tickets WHERE batch_id = ?", batchId).toArray()[0]?.c || 0);
+      const ackCount = Number(state.storage.sql.exec<SqlRow>("SELECT COUNT(*) AS c FROM result_acknowledgements WHERE batch_id = ?", batchId).toArray()[0]?.c || 0);
+      const snapshotCount = Number(state.storage.sql.exec<SqlRow>("SELECT COUNT(*) AS c FROM result_event_snapshots WHERE batch_id = ?", batchId).toArray()[0]?.c || 0);
+      const realtimeCount = Number(state.storage.sql.exec<SqlRow>("SELECT COUNT(*) AS c FROM realtime_events WHERE batch_id = ?", batchId).toArray()[0]?.c || 0);
+      const attemptCount = Number(state.storage.sql.exec<SqlRow>(
+        `SELECT COUNT(*) AS c
+           FROM notification_delivery_attempts
+          WHERE event_id IN (SELECT event_id FROM report_events WHERE batch_id = ?)`,
+        batchId,
+      ).toArray()[0]?.c || 0);
+
+      state.storage.sql.exec(
+        `DELETE FROM notification_delivery_attempts
+          WHERE event_id IN (SELECT event_id FROM report_events WHERE batch_id = ?)`,
+        batchId,
+      );
+      state.storage.sql.exec("DELETE FROM result_acknowledgements WHERE batch_id = ?", batchId);
+      state.storage.sql.exec("DELETE FROM result_event_snapshots WHERE batch_id = ?", batchId);
+      state.storage.sql.exec("DELETE FROM realtime_events WHERE batch_id = ?", batchId);
       state.storage.sql.exec("DELETE FROM report_events WHERE batch_id = ?", batchId);
       state.storage.sql.exec("DELETE FROM report_tickets WHERE batch_id = ?", batchId);
       state.storage.sql.exec("DELETE FROM report_batches WHERE batch_id = ?", batchId);
-      events += eventCount; tickets += ticketCount;
+
+      events += eventCount;
+      tickets += ticketCount;
+      acknowledgements += ackCount;
+      resultSnapshots += snapshotCount;
+      realtimeEvents += realtimeCount;
+      deliveryAttempts += attemptCount;
     }
   });
-  return response({ status: "cleanup_complete", deleted_batches: eligible.length, deleted_tickets: tickets, deleted_events: events, cutoff_iso: cutoff });
+  return response({
+    status: "cleanup_complete",
+    deleted_batches: eligible.length,
+    deleted_tickets: tickets,
+    deleted_events: events,
+    deleted_acknowledgements: acknowledgements,
+    deleted_result_snapshots: resultSnapshots,
+    deleted_realtime_events: realtimeEvents,
+    deleted_delivery_attempts: deliveryAttempts,
+    cutoff_iso: cutoff,
+  });
 }
 
 function status(state: DurableObjectState): Response {
