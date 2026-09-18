@@ -64,6 +64,7 @@ class MainActivity : Activity() {
     private lateinit var status: TextView
     private lateinit var updateButton: Button
     private var loginButton: Button? = null
+    private var loginProgress: ProgressBar? = null
     private var pickerController: PickerController? = null
     private var reporterController: ReporterController? = null
     private var adminLauncherController: AdminLauncherController? = null
@@ -161,6 +162,7 @@ class MainActivity : Activity() {
         val password = findViewById<EditText>(R.id.etPassword)
         val login = findViewById<Button>(R.id.btnLogin)
         val progress = findViewById<ProgressBar>(R.id.progressLogin)
+        loginProgress = progress
         status = findViewById(R.id.tvLoginError)
         updateButton = Button(this)
         loginButton = login
@@ -249,7 +251,7 @@ class MainActivity : Activity() {
     }
 
     private fun showBack(show: Boolean) {
-        findViewById<TextView?>(R.id.btnBack)?.visibility = if (show) View.VISIBLE else View.GONE
+        findViewById<TextView>(R.id.btnBack)?.visibility = if (show) View.VISIBLE else View.GONE
     }
 
     private fun replaceContent(layoutId: Int): View {
@@ -511,6 +513,11 @@ class MainActivity : Activity() {
 
     private fun setStatus(message: String) {
         if (!::status.isInitialized) return
+        if (status.parent == null && api.session != null) {
+            recordLog(message)
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            return
+        }
         statusHideTask?.let { uiHandler.removeCallbacks(it) }
         status.text = message
         status.visibility = View.VISIBLE
@@ -546,6 +553,7 @@ class MainActivity : Activity() {
 
     private fun applyUpdateGateUi(message: String? = null) {
         loginButton?.isEnabled = updateGate == UpdateGate.CURRENT && !updateCheckRunning
+        loginProgress?.visibility = if (updateCheckRunning) View.VISIBLE else View.GONE
         if (::updateButton.isInitialized) {
             updateButton.isEnabled = !updateCheckRunning
             updateButton.text = when (updateGate) {
@@ -553,6 +561,10 @@ class MainActivity : Activity() {
                 UpdateGate.FAILED -> "Thử lại cập nhật"
                 else -> "Kiểm tra cập nhật"
             }
+        }
+        if (api.session == null && updateGate == UpdateGate.CURRENT && !updateCheckRunning) {
+            if (::status.isInitialized) status.visibility = View.GONE
+            return
         }
         if (!message.isNullOrBlank()) setStatus(message)
     }
