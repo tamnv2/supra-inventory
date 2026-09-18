@@ -18,9 +18,9 @@
     "sqlite_schema": 5,
     "business_api": "OPERATIONAL_V2_4_RUNTIME_PASS__F20_BOUNDED_INSIGHTS_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
-    "web": "LEGACY_UI_PARITY_NAV_REPAIR_SOURCE_CANDIDATE__BUILD_RUNTIME_OWNER_UI_ACCEPTANCE_PENDING",
-    "android": "VC41_RUNTIME__LEGACY_UI_PARITY_FIXED_HEADER_SOURCE_CANDIDATE__BUILD_RELEASE_OWNER_UI_ACCEPTANCE_PENDING",
-    "latest_beta_apk": "beta-vc41",
+    "web": "LEGACY_UI_PARITY_HORIZONTAL_NAV_TOPBAR_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
+    "android": "VC42_LEGACY_UI_PARITY_FIXED_HEADER_SIGNED_RUNTIME_GATE_PASS__OWNER_UI_ACCEPTANCE_PENDING",
+    "latest_beta_apk": "beta-vc42",
     "realtime": "GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_4",
     "network_scope": "ONLINE_ONLY_PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_NO_OFFLINE_BUSINESS_MODE",
     "fcm": "DATA_ONLY_SERVICE_CORRELATION_DELIVERY_ATTEMPTS_INVALID_TOKEN_CLEANUP_RUNTIME_RELEASE_PASS__PHYSICAL_ACCEPTANCE_PENDING",
@@ -28,7 +28,7 @@
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_BUILD_DEPLOY_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "LEGACY_UI_PARITY_NAV_HEADER_REPAIR_SOURCE_CANDIDATE__AUTOMATED_GUARD_PENDING__OWNER_UI_GATE_PENDING",
+    "ui_design_guard": "LEGACY_UI_PARITY_NAV_HEADER_AUTOMATED_GUARD_RUNTIME_RELEASE_PASS__OWNER_UI_GATE_PENDING",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "OWNER_UI_FIRST_LEGACY_PARITY_GATE_ACTIVE__BUSINESS_REBUILD_DEFERRED_UNTIL_OWNER_UI_ACCEPTANCE"
@@ -100,19 +100,21 @@
     "UI-first parity source port: Web shell/login/sidebar/Picker/Reporter/shared controls and Android login/header/Picker/Reporter/Admin visual system reimplemented from the read-only Báo hàng 1291 reference without importing legacy backend/resources.",
     "Legacy UI parity PR #27 merged at d52eebe8 with Repo Authority Guard, Project State Guard, UI Design Guard, Beta deploy and signed Android release gates PASS",
     "Beta deploy run 35299224830 PASS on d52eebe8: health HTTP 200, SQLite 5/5, Operational V2 4/4, business/auth guards, Web shell and Google OAuth smoke PASS",
-    "Signed Android beta-vc41 published from d52eebe8 after the matching Beta runtime gate PASS; APK size 9250662 bytes; SHA-256 83f201008b28ec94f23fba643cff7aaff540c1a9d514798928d84da9d5789da9"
+    "Signed Android beta-vc41 published from d52eebe8 after the matching Beta runtime gate PASS; APK size 9250662 bytes; SHA-256 83f201008b28ec94f23fba643cff7aaff540c1a9d514798928d84da9d5789da9",
+    "Legacy UI parity structural repair PR #29 merged at d09d9158: Web horizontal tabs plus old login/topbar composition restored; Android 76dp operational header is fixed, full-width and outside scrolling content.",
+    "Beta deploy run 35305421857 PASS on d09d9158: health HTTP 200, SQLite 5/5, Operational V2 4/4, business/auth guards, Web shell and Google OAuth smoke PASS.",
+    "Signed Android beta-vc42 published from d09d9158 only after matching Beta runtime gate PASS; APK size 9250662 bytes; SHA-256 687a82d9a630aa301a4c875ea6218d5c12d050be10dfca40fd824917c35cb264.",
+    "UI Design Guard run 35305421811 PASS includes explicit regression guards for Web horizontal legacy navigation and Android fixed 76dp header."
   ],
   "pending_build": [
-    "Run authority/state/UI guards plus Web production and Android build for the navigation/header parity repair",
-    "Deploy the Web UI repair after source/build PASS",
-    "Publish the signed Android UI repair after matching runtime gate PASS",
-    "Owner screen-by-screen UI/layout acceptance",
+    "Owner screen-by-screen UI/layout acceptance on the deployed Web and signed beta-vc42 APK",
+    "UI-only repair of any remaining visual/layout mismatch rejected by Owner",
     "Business logic/scenario rebuild and wiring only after Owner UI gate",
     "Physical PDA/FCM business acceptance after the UI/business rebuild",
     "Isolated mutation load acceptance after Owner scale target"
   ],
   "field_pending": [
-    "Owner visual/layout acceptance remains pending until the horizontal Web navigation and fixed full-width Android header repair are deployed/released.",
+    "Owner visual/layout acceptance is required on the deployed Web and signed beta-vc42 Android/PDA candidate before business rebuild resumes.",
     "Physical logged-in PDA FCM and explicit critical-result acknowledgement remain field acceptance items after the functional rebuild."
   ],
   "open_decisions_do_not_invent": [
@@ -123,8 +125,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Validate, deploy and publish the UI-only legacy parity repair: horizontal Web tabs under the topbar and a fixed full-width 76dp Android operational header; then obtain explicit Owner screen-by-screen UI/layout acceptance.",
-    "method": "Keep this change UI-only. Run protected source/build guards first, then the normal runtime/release gates. Do not resume business logic/scenario rebuild until explicit Owner UI acceptance.",
+    "primary": "Obtain explicit Owner screen-by-screen UI/layout acceptance for the deployed legacy-reference Web and signed beta-vc42 Android/PDA candidate; repair only remaining UI/layout mismatches until that gate passes.",
+    "method": "Use the deployed Web and beta-vc42 for visual review against tam95supra-source/bao-hang-1291. Record accepted/rejected screens. Do not resume business logic/scenario rebuild before explicit Owner UI acceptance.",
     "stable_guard": "Do not activate or mutate Stable runtime."
   },
   "continuity_policy": {
@@ -152,26 +154,23 @@
   },
   "workboard": {
     "in_progress": [
-      "Legacy Web horizontal navigation parity repair",
-      "Android fixed full-width 76dp operational header parity repair",
-      "Automated source/build/runtime/release validation before Owner UI review"
+      "Owner UI/layout acceptance gate for deployed Web and signed beta-vc42 Android/PDA",
+      "UI-only mismatch repair if Owner rejects any screen"
     ],
     "next": [
-      "Merge the UI repair only after authority/state/UI guards PASS",
-      "Deploy Web and publish signed Android candidate through matching runtime gate",
-      "Collect Owner UI acceptance screen-by-screen",
+      "Collect Owner UI acceptance screen-by-screen on Web and Android/PDA",
       "Fix only remaining UI/layout mismatches until Owner UI gate passes",
       "Only after UI gate PASS, rebuild/wire canonical logic, scenarios and business requirements"
     ],
     "blocked_or_owner_field_dependent": [
-      "Owner UI/layout acceptance requires visual review after the UI repair is deployed/released",
+      "Owner UI/layout acceptance requires visual review of the deployed Web and signed beta-vc42 APK",
       "Physical background FCM display/explicit ACK acceptance follows the functional rebuild",
       "Isolated mutation load acceptance still requires an Owner workload target/test boundary"
     ],
     "last_source_build_evidence": {
-      "branch": "ui/legacy-parity-port",
-      "merged_pr": 27,
-      "merged_main": "d52eebe802dc2fb7a581d2118a1d8d9af104f7e0",
+      "branch": "ui/legacy-parity-nav-header",
+      "merged_pr": 29,
+      "merged_main": "d09d91583aa8f664406648c40c70e26438302375",
       "repo_authority_guard": "PASS",
       "project_state_guard": "PASS",
       "ui_design_guard": "PASS",
@@ -179,22 +178,22 @@
       "verify_android": "PASS",
       "web_production_build": "PASS",
       "android_release_build": "PASS",
-      "ui_design_guard_run": 35299224843,
-      "verify_android_run": 35299224857
+      "ui_design_guard_run": 35305421811,
+      "verify_android_run": 35305421853
     },
     "last_runtime_evidence": {
       "schema": 5,
       "operational_v2_schema": "4/4",
-      "beta_deploy_run": 35299224830,
+      "beta_deploy_run": 35305421857,
       "beta_deploy_conclusion": "success",
       "health": "HTTP_200_OK",
       "business_auth_guards": "PASS",
       "web_shell": "PASS",
       "google_oauth_start": "PASS",
-      "runtime_source_commit": "d52eebe802dc2fb7a581d2118a1d8d9af104f7e0",
-      "signed_beta_release": "beta-vc41",
-      "signed_beta_release_source_commit": "d52eebe802dc2fb7a581d2118a1d8d9af104f7e0",
-      "signed_beta_apk_sha256": "83f201008b28ec94f23fba643cff7aaff540c1a9d514798928d84da9d5789da9",
+      "runtime_source_commit": "d09d91583aa8f664406648c40c70e26438302375",
+      "signed_beta_release": "beta-vc42",
+      "signed_beta_release_source_commit": "d09d91583aa8f664406648c40c70e26438302375",
+      "signed_beta_apk_sha256": "687a82d9a630aa301a4c875ea6218d5c12d050be10dfca40fd824917c35cb264",
       "signed_beta_apk_size_bytes": 9250662
     }
   },
