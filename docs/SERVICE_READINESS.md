@@ -3,14 +3,14 @@
 > DERIVED VIEW. Canonical live status is `ops/project-state.json`; resource identity is `ops/resource-registry.json`.
 
 - Project: `supra-inventory`
-- Web: `D062_WEB_FINAL_QA_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
-- Android: `VC44_D060_EFFECTIVE_ROLE_REFRESH_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
+- Web: `D063_CONSOLIDATED_OPS_LOGS_REPORTING_PRESENCE_UI_SOURCE_BUILD_PENDING_RUNTIME`
+- Android: `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SOURCE_BUILD_PENDING_SIGNED_RUNTIME`
 - Latest signed review APK: `beta-vc44`
 - Web runtime source: `c874eafccb732c108f466ed7095a14e1f3e39d0e`
 - Android beta-vc44 source: `765be7baa90e6645a592cc5137324c85fb793009`
 - Owner UI review: **IN PROGRESS — no final UI acceptance yet**
 
-## D057 baseline + D058/D059/D060/D061/D062 Web refinements
+## D057 baseline + D058/D059/D060/D061/D062/D063 refinements
 
 Visual authority:
 - old UI repository: `tam95supra-source/bao-hang-1291`
@@ -22,12 +22,13 @@ Visual authority:
 - D060 Root-role/theme refinement in `docs/OWNER_DECISIONS.md`
 - D061 dark/sidebar/realtime cleanup in `docs/OWNER_DECISIONS.md`
 - D062 final Web QA/canonical navigation in `docs/OWNER_DECISIONS.md`
+- D063 consolidated operations/logs/reporting/presence/people refinement in `docs/OWNER_DECISIONS.md`
 
 Current review endpoints:
 - Web: `https://inventory-beta.supra.cc.cd/`
 - APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc44/supra-inventory-beta.apk`
 
-Web presentation uses the D057 transplanted modules plus D058/D059/D060/D061/D062 refinements. D062 is deployed: D061 cleanup is preserved, the canonical five-area Admin/Root navigation and operational-first landing are live, and remaining dark transient/expanded surfaces are covered.
+D062 remains deployed while D063 is the active source/build candidate. D063 consolidates related navigation/workspaces, adds sanitized Beta runtime logs and authenticated online counts, redesigns people/reporting/results layouts and closes remaining dark-theme gaps.
 
 Android/PDA presentation includes transplanted old native activity/login/Picker/Invent/Admin/row/overlay XML plus drawables/colors/styles, with current controllers bound to those resources.
 
@@ -54,6 +55,10 @@ Legacy backend/provider/auth/storage/database/credential code remains excluded.
 - D059 main push Repo Authority Guard, Project State Guard and UI Design Guard: PASS.
 
 Automated PASS is technical eligibility only. It is not Owner UI acceptance.
+
+## D063 source candidate
+
+`D063_CONSOLIDATED_OPS_LOGS_REPORTING_PRESENCE_UI_SOURCE_BUILD_PENDING_RUNTIME` is the active Web source candidate; Android source marker is `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SOURCE_BUILD_PENDING_SIGNED_RUNTIME`. `Inventory/Beta/Logs` is created and registered. D062/beta-vc44 remain the deployed/signed runtime references until D063 CI, merge, Beta deploy and signed Android release complete. Stable remains untouched.
 
 ## D062 runtime PASS
 
@@ -96,7 +101,7 @@ Automated PASS is technical eligibility only. Owner UI/theme/role-test acceptanc
 
 ## Current work frontier
 
-Owner is reviewing the deployed D062 Web candidate. Android broader visual review remains pending separately.
+D063 is under source/build verification. Owner review resumes after the Beta runtime candidate is deployed; Android broader visual review remains pending separately.
 
 For each Owner-rejected screen:
 - compare current render to the pinned old source + current Owner feedback;
@@ -108,6 +113,6 @@ Do not resume business logic/scenario rebuild until explicit Owner UI acceptance
 
 ## Next-chat resume command
 
-`Tiếp tục review UI D062`
+`Tiếp tục review UI D063`
 
 A screenshot or concise UI review note may be appended; no project-history restatement is required.
