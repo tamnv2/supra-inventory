@@ -25,7 +25,8 @@
     "durable_object_storage": "sqlite",
     "beta_sqlite_schema_version": 5,
     "beta_operational_v2_extension_schema_runtime": 4,
-    "beta_operational_v2_extension_schema_source_target": 4
+    "beta_operational_v2_extension_schema_source_target": 4,
+    "beta_sqlite_schema_source_target": 6
   },
   "network_scope": {
     "picker_reporter": "PDA_ONLY_ON_PDA_NETWORK_WITH_INTERNET",
@@ -266,6 +267,7 @@
     "d059_web_header_identity_runtime_pass_owner_ui_pending"
   ],
   "application_build_pending": [
+    "d060_root_effective_role_web_theme_android_role_refresh",
     "owner_d059_web_ui_acceptance_and_android_review_pending",
     "fcm_physical_device_delivery_acceptance_after_functional_rebuild",
     "isolated_business_mutation_load_acceptance_after_owner_scale_target"
@@ -294,7 +296,8 @@
     "source_status": "IMPLEMENTED_DEPLOYED_BUILD_PASS_WITH_LEGACY_PICKER_BOOTSTRAP",
     "managed_passwords": "AUTHORIZED_MANAGER_DIRECT_SET_AND_CHANGE",
     "picker_lifecycle": "EXPLICIT_ONE_MANY_ALL_ENABLE_DISABLE_DELETE",
-    "legacy_uninitialized_picker_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK"
+    "legacy_uninitialized_picker_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
+    "root_effective_role_test_mode": "SOURCE_IMPLEMENTED_PENDING_BETA_RUNTIME__BASE_ROOT_ONLY__SERVER_ENFORCED"
   },
   "archive": {
     "beta_sheet_id": "1WU9RDUEevE74Twyq1aA80xvL3Wr1mTA21PRA8ypIMOA",
@@ -330,7 +333,8 @@
     "authority": "OWNER_SELECTED_D057_LEGACY_TRANSPLANT_WITH_D058_SHELL_AND_D059_HEADER_REFINEMENTS",
     "web": "D059_WEB_HEADER_IDENTITY_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING",
     "android": "VC43_D057_DIRECT_LEGACY_NATIVE_XML_SIGNED_RUNTIME_GATE_PASS__OWNER_UI_ACCEPTANCE_PENDING",
-    "scope_guard": "D058_D059_WEB_REFINEMENTS__D057_ANDROID_AUTHORITY__NO_LEGACY_BACKEND_PROVIDER_AUTH_STORAGE_CREDENTIAL_IMPORT__OWNER_VISUAL_ACCEPTANCE_REQUIRED"
+    "scope_guard": "D058_D059_WEB_REFINEMENTS__D057_ANDROID_AUTHORITY__NO_LEGACY_BACKEND_PROVIDER_AUTH_STORAGE_CREDENTIAL_IMPORT__OWNER_VISUAL_ACCEPTANCE_REQUIRED",
+    "source_candidate": "D060_ROOT_ROLE_THEME_SOURCE_BUILD_PENDING_RUNTIME"
   },
   "quota_resilience": {
     "reference_date": "2026-09-17",

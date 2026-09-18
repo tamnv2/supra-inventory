@@ -243,6 +243,25 @@ async function connectRealtime(state: DurableObjectState, request: Request, url:
   return new Response(null, { status: 101, webSocket: client });
 }
 
+async function closeRealtimeUser(state: DurableObjectState, request: Request): Promise<Response> {
+  let body: { user_id?: string } = {};
+  try { body = (await request.json()) as { user_id?: string }; } catch { body = {}; }
+  const userId = String(body.user_id || "").trim();
+  if (!/^[A-Za-z0-9._:-]{1,128}$/.test(userId)) return response({ error: "INVALID_USER_ID" }, 400);
+  let closed = 0;
+  for (const socket of state.getWebSockets()) {
+    const attachment = socket.deserializeAttachment() as RealtimeAttachment | null;
+    if (attachment?.user_id !== userId) continue;
+    try {
+      socket.close(1000, "role-changed");
+      closed += 1;
+    } catch {
+      // Socket may already be closing; role enforcement still applies on subsequent HTTP/ticket requests.
+    }
+  }
+  return response({ status: "closed", user_id: userId, closed });
+}
+
 function realtimePresence(state: DurableObjectState): Response {
   const sockets = state.getWebSockets();
   const sessions: RealtimeAttachment[] = [];
@@ -447,6 +466,7 @@ export async function handleReadModelCoreRequest(state: DurableObjectState, requ
   if (request.method === "POST" && url.pathname === "/realtime/ticket") return createRealtimeTicket(state, request);
   if (request.method === "GET" && url.pathname === "/realtime/connect") return connectRealtime(state, request, url);
   if (request.method === "GET" && url.pathname === "/read/realtime/presence") return realtimePresence(state);
+  if (request.method === "POST" && url.pathname === "/realtime/close-user") return closeRealtimeUser(state, request);
   if (request.method === "POST" && url.pathname === "/realtime/broadcast") return realtimeBroadcast(state, request);
   return null;
 }

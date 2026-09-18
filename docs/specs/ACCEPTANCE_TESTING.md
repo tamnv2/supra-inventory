@@ -95,6 +95,18 @@ D058 desktop shell review:
 - Android/PDA is outside this D058 repair and remains pending separate Owner review.
 
 
+D060 Root role/theme review:
+- corporate company line is visually stronger/larger than the secondary `Website nghiệp vụ Inventory 1291` line;
+- header identity shows display name + mapped permission only; literal `Tên:`, `User:`, `Quyền:` and username/user id are absent;
+- Dashboard `Tổng quan hôm nay` does not duplicate date/update/shortcut controls in its page head;
+- only immutable base ROOT sees the `Kiểm tra quyền` selector; ADMIN/REPORTER/PICKER do not;
+- switching ROOT → ADMIN/REPORTER/PICKER changes the server-authoritative effective role: routes outside that role return forbidden, realtime reconnects under the lower projection, and role-target notification selection honors the lower role;
+- while effective role is lower, the Web displays that role's normal navigation/landing surface but keeps the Root selector available so base ROOT can select ROOT again;
+- Android refreshes the effective role from `/api/auth/me` on resume and rerenders when the role changes;
+- Web theme selector persists `Tự động / Sáng / Tối`; automatic mode resolves dark at 18:00–05:59 Asia/Ho_Chi_Minh and light at 06:00–17:59;
+- dark mode covers shell, sidebar, content, cards, tables, forms, controls, dialogs, diagnostics and footer with readable contrast;
+- Stable remains untouched.
+
 D059 Web header/identity review:
 - top-left shows exactly the corporate/product identity `CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN` and `Website nghiệp vụ Inventory 1291`;
 - the old four status chips are absent; one compact line shows `Service: Cloudflare ON/OFF | Cập nhật: HH:mm MM/DD/YYYY`;

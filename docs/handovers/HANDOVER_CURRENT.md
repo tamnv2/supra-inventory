@@ -31,7 +31,7 @@ Current review targets:
 
 Owner can start the next chat with only:
 
-> **Tiếp tục review UI D059**
+> **Tiếp tục review UI D060**
 
 Then attach/send the current screenshot or concise review feedback, for example:
 - `Web Tổng quan: chưa OK, sidebar rộng quá`
@@ -180,6 +180,24 @@ Continuity:
 
 These facts prove technical eligibility for review only.
 
+
+### D060 source candidate — Root effective role + theme
+
+Current Owner instruction extends the Web review with one narrow server-authoritative testing capability:
+
+- make the company line larger/stronger and the Website line smaller;
+- header identity becomes display name + mapped permission only; username/user id and literal Tên/User/Quyền labels are removed;
+- remove the redundant Dashboard date/update/`Mở xử lý báo thiếu` head block;
+- immutable base ROOT gets a pinned `Kiểm tra quyền` selector for ROOT / ADMIN / REPORTER / PICKER;
+- the selected role is enforced by the service as ROOT's effective role across normal HTTP RBAC, realtime projection and role-target notifications; it is not cosmetic;
+- changing role closes ROOT's active realtime sockets, and the Web clears role-scoped state/reconnects;
+- Android refreshes `/api/auth/me` on resume and rerenders when the effective role changed;
+- Web adds persisted `Tự động / Sáng / Tối`; automatic theme is dark 18:00–05:59 Asia/Ho_Chi_Minh and light 06:00–17:59;
+- dark mode covers real shell/content/cards/tables/forms/dialogs/diagnostics/footer.
+- source schema target is SQLite 6 due the Root role-override column; current deployed runtime remains schema 5 until this candidate is merged/deployed and verified.
+- Stable is untouched.
+
+This is **source/build work in progress**, not runtime PASS and not Owner UI acceptance.
 
 ### D059 Web header/identity refinement
 
@@ -339,4 +357,4 @@ Useful current files:
 
 No manual end-of-session handover is required. A new session must bootstrap from `ops/authority-manifest.json` and its declared `bootstrap_order` before mutation.
 
-The Owner's next-chat instruction **`Tiếp tục review UI D059`** is sufficient to resume from this point; any Web screenshot or UI review text supplied with it becomes the immediate work item.
+The Owner's next-chat instruction **`Tiếp tục review UI D060`** is sufficient to resume from this point; any Web screenshot or UI review text supplied with it becomes the immediate work item.

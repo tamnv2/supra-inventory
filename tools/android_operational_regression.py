@@ -30,6 +30,7 @@ def main() -> None:
     keyed = read("android/app/src/main/java/cd/cc/supra/inventory/beta/KeyedLinearRenderer.kt")
     cache = read("android/app/src/main/java/cd/cc/supra/inventory/beta/SkuCatalogCache.kt")
     main_activity = read("android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt")
+    inventory_api = read("android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt")
     launcher = read("android/app/src/main/java/cd/cc/supra/inventory/beta/AdminLauncherController.kt")
     manifest = read("android/app/src/main/AndroidManifest.xml")
     gradle = read("android/app/build.gradle.kts")
@@ -87,6 +88,13 @@ def main() -> None:
     require(main_activity, "validateUpdateUrl", "trusted update URL verification")
     require(main_activity, "info.versionCode == BuildConfig.VERSION_CODE", "exact latest-version login gate")
     require(main_activity, "info.versionCode < BuildConfig.VERSION_CODE", "unexpected ahead-of-channel fail closed")
+
+    # D060: Android refreshes the server-authoritative effective role on resume.
+    require(inventory_api, "fun refreshProfile(): AppSession", "effective-role profile refresh API")
+    require(inventory_api, '"/api/auth/me"', "effective-role profile endpoint")
+    require(main_activity, "private fun syncEffectiveRole()", "effective-role resume sync")
+    require(main_activity, "api.refreshProfile()", "effective-role server refresh")
+    require(main_activity, "if (roleChanged || identityChanged || activeSession == null)", "role-change rerender")
 
     # F22: launcher actions have distinct targets and Web honors direct hash routes.
     require(launcher, 'openWeb("/#hr"', "HR deep link")

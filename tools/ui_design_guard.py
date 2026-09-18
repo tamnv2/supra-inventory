@@ -40,6 +40,9 @@ SERVICE_BUSINESS = read("service/src/business-api.ts")
 SERVICE_READ = read("service/src/read-api.ts")
 SERVICE_USERS = read("service/src/user-management-core.ts")
 SERVICE_INDEX = read("service/src/index.ts")
+SERVICE_CORE = read("service/src/core.ts")
+SERVICE_READ_MODEL = read("service/src/read-model-core.ts")
+SERVICE_NOTIFICATIONS = read("service/src/notifications-core.ts")
 VERIFY_APPS = read(".github/workflows/verify-apps.yml")
 DESIGN_SPEC = read("docs/specs/UI_DESIGN_SYSTEM.md")
 DECISIONS = read("docs/OWNER_DECISIONS.md")
@@ -48,6 +51,7 @@ checks = {
     "authority_direct_legacy_transplant": "D057" in DECISIONS and "direct legacy presentation transplant" in DESIGN_SPEC.lower(),
     "authority_d058_owner_web_review": "D058" in DECISIONS and "Owner-reviewed desktop shell refinement" in DESIGN_SPEC,
     "authority_d059_web_header_review": "D059" in DECISIONS and "Owner-reviewed header and identity refinement" in DESIGN_SPEC,
+    "authority_d060_root_role_theme_review": "D060" in DECISIONS and "Owner-reviewed Root test-role and theme refinement" in DESIGN_SPEC,
     "authority_ui_acceptance_distinct_from_ci": "CI/build PASS" in DESIGN_SPEC and "Owner UI" in DESIGN_SPEC,
     "authority_no_offline_mode": "D043" in DECISIONS and "No offline business mode" in DESIGN_SPEC,
 
@@ -86,7 +90,7 @@ checks = {
         "Cập nhật:",
     ]),
     "web_d059_role_labels": all(token in WEB_APP for token in ["Quản trị hệ thống", "Người báo hàng", "Người lấy hàng"]),
-    "web_d059_identity_fields": all(token in WEB_APP for token in ["<b>Tên:</b>", "<b>User:</b>", "<b>Quyền:</b>", 'id="logout"']),
+    "web_d059_identity_fields": all(token in WEB_APP for token in ['class="header-user-identity"', 'id="logout"']),
     "web_d059_no_top_password": "change-password-top" not in WEB_APP,
     "web_d059_update_timestamp_event_driven": all(token in WEB_APP for token in [
         "lastWebUpdateAt",
@@ -104,8 +108,37 @@ checks = {
         '"Segoe UI Variable Text"',
         '"Aptos"',
         "text-align: left !important",
-        ".header-user-grid",
+        ".header-user-identity",
     ]),
+    "web_d060_identity_compact": all(token in WEB_APP for token in [
+        'class="header-user-identity"',
+        "profile.display_name",
+        "legacyRoleLabel(profile.role)",
+    ]) and all(token not in WEB_APP for token in ["<b>Tên:</b>", "<b>User:</b>", "<b>Quyền:</b>"]),
+    "web_d060_root_role_selector": all(token in WEB_APP for token in [
+        'id="root-role-select"',
+        'profile.base_role === "ROOT"',
+        "setRootEffectiveRole(role)",
+        "ROOT · Quản trị hệ thống",
+        "REPORTER · Người báo hàng",
+        "PICKER · Người lấy hàng",
+    ]),
+    "web_d060_theme_selector": all(token in WEB_APP for token in [
+        'id="theme-mode"',
+        "Tự động",
+        "Sáng",
+        "Tối",
+        "autoThemeIsDark",
+        "hour >= 18 || hour < 6",
+    ]),
+    "web_d060_dark_theme": all(token in WEB_FAST for token in [
+        "D060 Owner Web review",
+        'body[data-theme="dark"]',
+        "--fast-bg: #0b1220",
+        ".header-user-identity",
+        ".root-role-control",
+    ]),
+    "web_d060_dashboard_head_simplified": "v5-head-meta" not in WEB_APP and "Mở xử lý báo thiếu" not in WEB_APP,
     "web_legacy_left_sidebar_geometry": "grid-template-columns: 216px minmax(0, 1fr)" in WEB_FAST and "flex-direction: column" in WEB_FAST and ".nav-section-label" in WEB_FAST,
     "web_legacy_dashboard_composition": all(token in WEB_APP for token in ["v5-root", "Tổng quan hôm nay", "v5-kpi-grid", "SKU ưu tiên", "Hiệu suất hôm nay"]),
     "web_legacy_reporter_workspace": all(token in WEB_APP for token in ["fast-events", "fast-workspace", "fast-list", "fast-detail", "Xử lý báo hàng"]),
@@ -126,6 +159,7 @@ checks = {
     "android_legacy_row_xml": all(token in ANDROID_ROW_XML for token in ['@+id/tvIssueSku', '@+id/tvIssueProduct', '@+id/tvIssueMeta']),
     "android_legacy_palette": all(token in ANDROID_COLORS for token in ["navy_900", "navy_700", "surface_card", "text_primary", "border_strong"]),
     "android_legacy_widget_theme": "Widget.BaoHang.Button" in ANDROID_STYLES and "Widget.BaoHang.EditText" in ANDROID_STYLES,
+    "android_d060_effective_role_refresh": "syncEffectiveRole()" in ANDROID_MAIN and "api.refreshProfile()" in ANDROID_MAIN and "fun refreshProfile()" in ANDROID_API,
     "android_main_inflates_legacy_xml": all(token in ANDROID_MAIN for token in [
         "setContentView(R.layout.activity_login)",
         "setContentView(R.layout.activity_main)",
@@ -150,6 +184,14 @@ checks = {
     "service_fcm_correlation": all(token in SERVICE_BUSINESS for token in ["result_event_id", "event_seq", "batch_version"]),
     "service_no_auto_skip": "AUTO_SKIP" not in SERVICE_OPS and "AUTO_SKIP" not in SERVICE_BUSINESS,
     "service_root_bootstrap_preserved": 'user.role === "ROOT" && user.user_id === "root" && env.ROOT_BOOTSTRAP_PASSWORD' in SERVICE_INDEX,
+    "service_d060_root_role_override": all(token in (SERVICE_INDEX + SERVICE_CORE + SERVICE_READ_MODEL + SERVICE_NOTIFICATIONS) for token in [
+        "/api/auth/root-role",
+        "base_role",
+        "role_override",
+        "/auth/root-role-override",
+        "/realtime/close-user",
+        "role-changed",
+    ]),
     "service_picker_no_auto_disable": 'absence_policy: "NO_AUTOMATIC_DISABLE"' in SERVICE_USERS,
     "android_release_monotonic": all(token in VERIFY_APPS for token in ["gh release list", "latest + 1", "Refusing to overwrite existing release", "group: beta-android-release", "cancel-in-progress: false"]),
     "web_online_only_no_outbox": "offline outbox" not in WEB_UI.lower() and "chờ đồng bộ" not in WEB_UI.lower(),

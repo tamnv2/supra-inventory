@@ -69,7 +69,7 @@ function targetUsersForRoles(state: DurableObjectState, roles: string[]): string
   if (!allowed.length) return [];
   const placeholders = allowed.map(() => "?").join(",");
   return state.storage.sql
-    .exec<SqlRow>(`SELECT user_id FROM users WHERE status = 'ACTIVE' AND role IN (${placeholders})`, ...allowed)
+    .exec<SqlRow>(`SELECT user_id FROM users WHERE status = 'ACTIVE' AND (CASE WHEN role = 'ROOT' AND role_override IN ('PICKER','REPORTER','ADMIN') THEN role_override ELSE role END) IN (${placeholders})`, ...allowed)
     .toArray()
     .map((row) => String(row.user_id || "").trim())
     .filter(Boolean);
