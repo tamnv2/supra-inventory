@@ -7,6 +7,7 @@ import { handleUserManagementApi } from "./user-management-api";
 import { archiveStatus, runArchive } from "./archive";
 import { validateHrSheetSource } from "./hr-source";
 import { listRuntimeLogs, readRuntimeLog, uploadRuntimeLog } from "./runtime-logs";
+import { collectSystemStatus } from "./system-status";
 
 export { InventoryCore };
 
@@ -27,6 +28,10 @@ interface Env {
   ARCHIVE_SHEET_ID?: string;
   RETENTION_DAYS?: string;
   LOGS_FOLDER_ID?: string;
+  ARCHIVE_FOLDER_ID?: string;
+  EXPORTS_FOLDER_ID?: string;
+  SOURCE_COMMIT?: string;
+  LOAD_TEST_TOKEN?: string;
 }
 
 interface InternalUser {
@@ -161,6 +166,11 @@ async function getUserByUsername(env: Env, username: string): Promise<InternalUs
   return payload.user;
 }
 
+async function getUserById(env: Env, userId: string): Promise<InternalUser | null> {
+  const payload = await coreJson<{ user: InternalUser | null }>(env, `/auth/user-by-id?user_id=${encodeURIComponent(userId)}`);
+  return payload.user;
+}
+
 async function getUserByFirebaseUid(env: Env, uid: string): Promise<InternalUser | null> {
   const payload = await coreJson<{ user: InternalUser | null }>(env, `/auth/user-by-firebase-uid?uid=${encodeURIComponent(uid)}`);
   return payload.user;
@@ -199,6 +209,26 @@ async function requireUser(request: Request, env: Env, roles?: AppRole[]): Promi
   if (!user || user.status !== "ACTIVE") throw new Response(JSON.stringify({ error: "USER_NOT_ACTIVE" }), { status: 403, headers: { "content-type": "application/json" } });
   if (roles && !roles.includes(user.role)) throw new Response(JSON.stringify({ error: "FORBIDDEN" }), { status: 403, headers: { "content-type": "application/json" } });
   return user;
+}
+
+async function constantTimeEqual(left: string, right: string): Promise<boolean> {
+  const encoder = new TextEncoder();
+  const [a, b] = await Promise.all([
+    crypto.subtle.digest("SHA-256", encoder.encode(left)),
+    crypto.subtle.digest("SHA-256", encoder.encode(right)),
+  ]);
+  const av = new Uint8Array(a);
+  const bv = new Uint8Array(b);
+  let diff = av.length ^ bv.length;
+  for (let index = 0; index < Math.min(av.length, bv.length); index += 1) diff |= av[index] ^ bv[index];
+  return diff === 0;
+}
+
+async function loadTestAuthorized(request: Request, env: Env): Promise<boolean> {
+  if (env.APP_ENV !== "beta" || !env.LOAD_TEST_TOKEN) return false;
+  const supplied = request.headers.get("x-load-test-token") || "";
+  if (!supplied) return false;
+  return constantTimeEqual(supplied, env.LOAD_TEST_TOKEN);
 }
 
 function publicUser(user: InternalUser): Omit<InternalUser, "password_salt" | "password_hash" | "role_override"> {
@@ -427,6 +457,74 @@ export default {
       if (request.method === "GET" && url.pathname === "/api/auth/me") return json({ user: publicUser(await requireUser(request, env)) });
       if (request.method === "PUT" && url.pathname === "/api/auth/root-role") return setRootEffectiveRole(request, env);
       if (request.method === "PUT" && url.pathname === "/api/auth/change-password") return changePassword(request, env);
+
+      if (request.method === "GET" && url.pathname === "/api/admin/system-status") {
+        await requireUser(request, env, ["ADMIN", "ROOT"]);
+        const fresh = url.searchParams.get("fresh") === "1";
+        try {
+          return json(await collectSystemStatus(env, fresh));
+        } catch (error) {
+          return json({ error: "SYSTEM_STATUS_FAILED", message: error instanceof Error ? error.message : "system_status_failed" }, 502);
+        }
+      }
+
+      if (url.pathname.startsWith("/api/__beta_load_test__/")) {
+        if (!(await loadTestAuthorized(request, env))) return json({ error: "NOT_FOUND" }, 404);
+
+        if (request.method === "GET" && url.pathname === "/api/__beta_load_test__/prepare") {
+          const pickers = Math.max(1, Math.min(200, Number(url.searchParams.get("pickers") || 100)));
+          const skus = Math.max(1, Math.min(1000, Number(url.searchParams.get("skus") || 400)));
+          return coreStub(env).fetch(`https://inventory-core.internal/admin/load-test/candidates?pickers=${pickers}&skus=${skus}`);
+        }
+
+        if (request.method === "POST" && url.pathname === "/api/__beta_load_test__/session") {
+          if (!env.GOOGLE_RUNTIME_SA_JSON || !env.FIREBASE_WEB_API_KEY) return json({ error: "AUTH_RUNTIME_NOT_CONFIGURED" }, 503);
+          let body: { user_id?: string } = {};
+          try { body = (await request.json()) as { user_id?: string }; } catch { body = {}; }
+          const userId = String(body.user_id || "").trim();
+          const user = userId ? await getUserById(env, userId) : null;
+          if (!user || user.role !== "PICKER" || user.status !== "ACTIVE" || !user.employee_code) {
+            return json({ error: "INVALID_LOAD_TEST_PICKER" }, 400);
+          }
+          const firebaseUid = await ensureFirebaseUid(env, user);
+          const customToken = await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON, firebaseUid, {
+            app_role: "PICKER",
+            app_user_id: user.user_id,
+            employee_code: user.employee_code,
+          });
+          try {
+            const session = await exchangeCustomToken(env, customToken);
+            return json({
+              id_token: session.id_token,
+              expires_in: session.expires_in,
+              user: {
+                user_id: user.user_id,
+                employee_code: user.employee_code,
+                display_name: user.display_name,
+                role: "PICKER",
+              },
+            });
+          } catch (error) {
+            return json({ error: "LOAD_TEST_SESSION_FAILED", message: error instanceof Error ? error.message : "session_failed" }, 502);
+          }
+        }
+
+        if (request.method === "GET" && url.pathname === "/api/__beta_load_test__/snapshot") {
+          return json(await collectSystemStatus(env, true));
+        }
+
+        if (request.method === "POST" && url.pathname === "/api/__beta_load_test__/record") {
+          let body: Record<string, unknown> = {};
+          try { body = (await request.json()) as Record<string, unknown>; } catch { return json({ error: "INVALID_JSON" }, 400); }
+          return coreStub(env).fetch("https://inventory-core.internal/admin/load-test/result", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(body),
+          });
+        }
+
+        return json({ error: "NOT_FOUND" }, 404);
+      }
 
       if (request.method === "POST" && url.pathname === "/api/logs/upload") {
         const user = await requireUser(request, env);
