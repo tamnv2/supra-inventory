@@ -7,13 +7,13 @@
 Canonical current markers:
 - SQLite schema: `6`
 - Latest Beta APK: `beta-vc44`
-- Web: `D062_WEB_FINAL_QA_SOURCE_BUILD_PENDING_RUNTIME`
+- Web: `D062_WEB_FINAL_QA_BETA_RUNTIME_PASS__OWNER_UI_ACCEPTANCE_PENDING`
 - Android: `VC44_D060_EFFECTIVE_ROLE_REFRESH_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 
 The project is in **UI-first review**, not business-logic rebuild.
 
 - Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinements: **D058 shell + D059 header + D060 Root-role/theme + D061 dark/sidebar/realtime cleanup + D062 final Web QA/IA**.
-- D061 is now deployed on Beta and technically PASS: dark-theme consistency, sidebar hierarchy/icons, redundant-copy cleanup and generic refresh removal are live for Owner review. Android/PDA broader visual review is pending separately; beta-vc44 is unchanged.
+- D062 is now deployed on Beta and technically PASS: D061 cleanup is preserved, canonical five-area navigation/operational-first landing is live, and remaining dark transient/expanded surfaces are covered. Android/PDA broader visual review is pending separately; beta-vc44 is unchanged.
 - Owner has **not yet given UI/layout acceptance** for the current candidate.
 - Technical build/deploy/release PASS must never be interpreted as Owner UI PASS.
 - Until explicit Owner UI acceptance, work is limited to **UI/layout/presentation mismatch repair**.
@@ -23,9 +23,9 @@ Current review targets:
 - Web: `https://inventory-beta.supra.cc.cd/`
 - Android signed review release (broader visual review pending): `beta-vc44`
 - APK: `https://github.com/tamnv2/supra-inventory/releases/download/beta-vc44/supra-inventory-beta.apk`
-- Web runtime source: `967365bffa8d518e8ad85d802b14753bc5f4fa1d`
+- Web runtime source: `c874eafccb732c108f466ed7095a14e1f3e39d0e`
 - Android beta-vc44 source: `765be7baa90e6645a592cc5137324c85fb793009`
-- Current Web runtime implementation source: `967365bffa8d518e8ad85d802b14753bc5f4fa1d`
+- Current Web runtime implementation source: `c874eafccb732c108f466ed7095a14e1f3e39d0e`
 
 ## 2. Minimal command for the next chat
 
@@ -181,9 +181,9 @@ Continuity:
 These facts prove technical eligibility for review only.
 
 
-### D062 source candidate — final Web QA and canonical navigation
+### D062 runtime PASS — final Web QA and canonical navigation
 
-D061 runtime remains the currently deployed Web baseline while D062 is under branch/PR verification. D062 preserves already-correct D061 work and closes only the remaining gaps: canonical five-area Admin/Root navigation using existing routes, operational queue as default landing, direct access to results/HR/account surfaces, and dark-theme coverage for expanded/transient legacy surfaces. Android beta-vc44 and Stable are unchanged.
+D062 preserves already-correct D061 work and closes only the remaining gaps: canonical five-area Admin/Root navigation using existing routes, operational queue as default landing, direct access to results/HR/account surfaces, and dark-theme coverage for expanded/transient legacy surfaces. PR #42 merged at `c874eafccb732c108f466ed7095a14e1f3e39d0e`; Beta deploy run `35347188833` PASS including health/schema, auth/business guards, Web shell and Google OAuth smoke. Android beta-vc44 and Stable are unchanged. Owner UI acceptance remains pending.
 
 ### D061 runtime PASS — dark/sidebar/realtime cleanup
 
@@ -271,7 +271,7 @@ Technical evidence:
 
 Status: **IN PROGRESS**.
 
-Owner is reviewing the deployed D061 Web candidate. Android/PDA broader visual review is pending separately.
+Owner is reviewing the deployed D062 Web candidate. Android/PDA broader visual review is pending separately.
 
 No D060 Web/theme/role-test surface or beta-vc44 Android surface should be marked Owner-approved unless the Owner explicitly says it is OK.
 
