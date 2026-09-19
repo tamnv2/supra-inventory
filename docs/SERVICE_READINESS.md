@@ -344,3 +344,10 @@ Current relay marker: `D076_AUTO_RTDB_RULES_DEPLOY_IN_PROGRESS__D075_SOURCE_BUIL
 D076 credential validation proved the Environment secret is present, belongs to `supra-inventory-beta`, can mint OAuth directly from its private key, and can read Firebase Rules API. The first main deploy using Firebase CLI failed opaquely during RTDB syntax-check. The repair replaces Firebase CLI with the official scoped RTDB `/.settings/rules.json` REST interface: PR checks `firebasedatabase.instances.update` plus Rules read access without mutation; main performs PUT then exact JSON readback verification.
 
 Current relay marker: `D076_RTDB_REST_DEPLOY_REPAIR_IN_PROGRESS__PR_CREDENTIAL_READ_PASS__MAIN_FIREBASE_CLI_DEPLOY_FAILED__NO_WMS_MUTATION`.
+
+
+## D076 PR validation PASS — 2026-09-19
+
+PR #72 read-only CI has verified the configured Beta service-account credential, direct OAuth token exchange, `firebasedatabase.instances.update`, and authenticated RTDB Rules GET access. No Owner IAM/Rules setup action remains. After current guards PASS, merge PR #72; the main-only workflow must PUT the canonical D075 Rules to the scoped Beta RTDB and readback-verify exact JSON before D075 field acceptance.
+
+Current relay marker: `D076_PR_VALIDATION_PASS__MAIN_RTDB_RULES_DEPLOY_PENDING__D075_RELEASE_PASS__NO_WMS_MUTATION`.
