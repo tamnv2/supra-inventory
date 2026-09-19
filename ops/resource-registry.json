@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "BETA_RUNTIME_PASS_D075_SOURCE_BUILD_RELEASE",
+      "status": "BETA_RUNTIME_PASS_D076_RTDB_RULES_DEPLOY__D075_APP_AGENT_RELEASE",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -173,7 +173,7 @@
       "web_source_status": "D071_IMMEDIATE_RESPONSE_DENSITY_D072_SYSTEM_STATUS_QUOTA_GUARD_BETA_RUNTIME_PASS__OWNER_REVIEW_PENDING",
       "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
       "web_admin_report_monitoring": "D069_XLSX_REPORT_EXPORT_BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
-      "android_source_status": "D075_SHARED_RELAY_SIGNED_BETA_VC49__RULES_PUBLISH_FIELD_TEST_PENDING",
+      "android_source_status": "D075_SHARED_RELAY_SIGNED_BETA_VC49__D076_RULES_DEPLOY_PASS__FIELD_TEST_PENDING",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
       "latest_signed_beta_release": "beta-vc49",
@@ -190,9 +190,9 @@
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
-      "relay_poc_status": "D076_PR_VALIDATION_PASS__MAIN_RULES_DEPLOY_PENDING",
+      "relay_poc_status": "D076_RULES_DEPLOY_PASS__D075_FIELD_TEST_PENDING",
       "relay_agent_release": "relay-agent-v2",
-      "firebase_rtdb_rules_deploy": "D076_PR_VALIDATION_PASS__MAIN_REST_DEPLOY_PENDING"
+      "firebase_rtdb_rules_deploy": "PASS_RUN_35451292051__REST_PUT_EXACT_READBACK"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -503,7 +503,7 @@
   "relay_poc": {
     "decision": "D075",
     "environment": "beta",
-    "status": "D076_PR_VALIDATION_PASS__MAIN_RULES_DEPLOY_PENDING__D075_APP_AGENT_RELEASE_PASS",
+    "status": "D076_RULES_DEPLOY_PASS__D075_FIELD_TEST_PENDING",
     "purpose": "Authenticated shared Picker-to-real-ADMIN Windows Agent transport proof only; no WMS mutation",
     "transport": "FIREBASE_RTDB_REST_SSE",
     "database_resource_key": "firebase-rtdb-relay-beta",
@@ -538,10 +538,11 @@
     "agent_exe_asset_id": 574866731,
     "agent_exe_size_bytes": 49664,
     "agent_checksum_asset_id": 574866732,
-    "rules_deployment": "D076_PR_VALIDATION_PASS__MAIN_RTDB_REST_DEPLOY_PENDING",
+    "rules_deployment": "D076_GITHUB_ACTIONS_MAIN_ONLY_ACTIVE_PASS",
     "rules_deploy_secret_reference": "FIREBASE_RULES_SA_JSON_BETA",
     "rules_target": "BETA_ONLY_SUPRA_INVENTORY_BETA",
     "rules_deploy_method": "OFFICIAL_RTDB_SETTINGS_RULES_REST_PUT_AND_READBACK",
-    "rules_deploy_last_evidence": "PASS_RUN_35451119822__OAUTH_INSTANCES_UPDATE_RULES_GET"
+    "rules_deploy_last_evidence": "PASS_RUN_35451292051__IAM_UPDATE__RULES_GET__RULES_PUT__EXACT_READBACK",
+    "rules_deployed_source_commit": "452feb1e25dff936617e5d1d51313438d85155eb"
   }
 }
