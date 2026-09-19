@@ -63,27 +63,67 @@ jobs:
           jq -e '.type == "service_account" and .project_id == "supra-inventory-beta" and (.client_email | endswith("@supra-inventory-beta.iam.gserviceaccount.com")) and (.private_key | startswith("-----BEGIN PRIVATE KEY-----"))' <<<"$FIREBASE_RULES_SA_JSON_BETA" >/dev/null
           echo "Beta service-account secret shape PASS"
 
-      - name: Authenticate to Google Cloud
-        id: google-auth
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
-          token_format: access_token
-          access_token_scopes: https://www.googleapis.com/auth/cloud-platform
+      - name: Materialize ephemeral ADC credential
+        shell: bash
+        env:
+          FIREBASE_RULES_SA_JSON_BETA: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+        run: |
+          set -euo pipefail
+          umask 077
+          cred="$RUNNER_TEMP/firebase-rules-sa.json"
+          printf '%s' "$FIREBASE_RULES_SA_JSON_BETA" > "$cred"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$cred" >> "$GITHUB_ENV"
+          echo "Ephemeral ADC credential ready"
 
       - name: Verify Firebase Rules IAM read access
         shell: bash
-        env:
-          GOOGLE_ACCESS_TOKEN: ${{ steps.google-auth.outputs.access_token }}
         run: |
           set -euo pipefail
-          [ -n "${GOOGLE_ACCESS_TOKEN:-}" ] || { echo "Google access token was not issued"; exit 1; }
-          tmp="$(mktemp)"
-          trap 'rm -f "$tmp"' EXIT
-          code="$(curl -sS --connect-timeout 10 --max-time 30 -o "$tmp" -w '%{http_code}' -H "Authorization: Bearer $GOOGLE_ACCESS_TOKEN" "https://firebaserules.googleapis.com/v1/projects/supra-inventory-beta/rulesets?pageSize=1")"
-          [ "$code" = "200" ] || { echo "Firebase Rules IAM read probe failed: HTTP $code"; exit 1; }
-          jq -e 'has("rulesets") or (.rulesets == null)' "$tmp" >/dev/null || { echo "Unexpected Firebase Rules API response"; exit 1; }
-          echo "Firebase Rules credential + IAM read access PASS"
+          node <<'NODE'
+          const fs = require('fs');
+          const crypto = require('crypto');
+
+          const sa = JSON.parse(fs.readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS, 'utf8'));
+          const enc = value => Buffer.from(JSON.stringify(value)).toString('base64url');
+          const now = Math.floor(Date.now() / 1000);
+          const unsigned = enc({ alg: 'RS256', typ: 'JWT' }) + '.' + enc({
+            iss: sa.client_email,
+            scope: 'https://www.googleapis.com/auth/cloud-platform',
+            aud: 'https://oauth2.googleapis.com/token',
+            iat: now,
+            exp: now + 900,
+          });
+          const signer = crypto.createSign('RSA-SHA256');
+          signer.update(unsigned);
+          signer.end();
+          const assertion = unsigned + '.' + signer.sign(sa.private_key).toString('base64url');
+
+          async function main() {
+            const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+              method: 'POST',
+              headers: { 'content-type': 'application/x-www-form-urlencoded' },
+              body: new URLSearchParams({
+                grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                assertion,
+              }),
+            });
+            if (!tokenRes.ok) throw new Error('OAuth token exchange failed: HTTP ' + tokenRes.status);
+            const token = await tokenRes.json();
+            if (!token.access_token) throw new Error('OAuth token exchange returned no access token');
+
+            const rulesRes = await fetch('https://firebaserules.googleapis.com/v1/projects/supra-inventory-beta/rulesets?pageSize=1', {
+              headers: { authorization: 'Bearer ' + token.access_token },
+            });
+            if (!rulesRes.ok) throw new Error('Firebase Rules IAM read probe failed: HTTP ' + rulesRes.status);
+            const body = await rulesRes.json();
+            if (!Object.prototype.hasOwnProperty.call(body, 'rulesets')) throw new Error('Unexpected Firebase Rules API response');
+            console.log('Firebase Rules credential + IAM read access PASS');
+          }
+          main().catch(error => {
+            console.error(error.message);
+            process.exit(1);
+          });
+          NODE
 
       - name: Setup Node
         if: github.event_name != 'pull_request'
@@ -102,3 +142,8 @@ jobs:
           set -euo pipefail
           firebase deploy --only database --project supra-inventory-beta --non-interactive
           echo "Beta RTDB Rules deploy PASS"
+
+      - name: Remove ephemeral ADC credential
+        if: always()
+        shell: bash
+        run: rm -f "${GOOGLE_APPLICATION_CREDENTIALS:-}" || true
