@@ -290,6 +290,13 @@ checks = {
         "auto_skip_minutes", "FIRST_REPORT", "PER_PICKER", "SYSTEM_TIMEOUT",
         "scheduleNextOperationalAlarm", "async alarm(): Promise<void>", "TICKET_AUTO_SKIP_ALLOWED", "BATCH_AUTO_SKIP_ALLOWED",
     ]),
+    "service_d070_alarm_runtime_guard": all(token in (SERVICE_SLA_AUTO + SERVICE_CORE) for token in [
+        'recordDeadlineOnce(state, batchId, "WARNING", null, now)',
+        "const MAX_DUE_PER_ALARM = 50",
+        "const MIN_ALARM_DELAY_MS = 1_000",
+        "Provider failure must not throw the alarm and cause platform retry storms.",
+        "await scheduleNextOperationalAlarm(this.state);",
+    ]),
     "service_d070_no_picker_resolve_api": "/api/picker/batches/resolve" not in SERVICE_BUSINESS and "/api/picker/skip" not in SERVICE_BUSINESS,
     "service_root_bootstrap_preserved": 'user.role === "ROOT" && user.user_id === "root" && env.ROOT_BOOTSTRAP_PASSWORD' in SERVICE_INDEX,
     "service_d060_root_role_override": all(token in (SERVICE_INDEX + SERVICE_CORE + SERVICE_READ_MODEL + SERVICE_NOTIFICATIONS) for token in [
