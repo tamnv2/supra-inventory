@@ -135,6 +135,24 @@ namespace SupraInventoryRelayAgent
         public DateTime ExpiresUtc;
     }
 
+    internal sealed class TransportProbeResult
+    {
+        internal string Name;
+        internal string Result;
+        internal int StatusCode;
+        internal long ElapsedMs;
+        internal string RequestedHost;
+        internal string FinalHost;
+        internal string ContentType;
+
+        internal string Summary()
+        {
+            return Name + "=" + Result +
+                (StatusCode > 0 ? "(" + StatusCode + ")" : "") +
+                (ElapsedMs >= 0 ? "/" + ElapsedMs + "ms" : "");
+        }
+    }
+
     internal sealed class AgentForm : Form
     {
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
@@ -144,6 +162,13 @@ namespace SupraInventoryRelayAgent
         private readonly Button _testOffice = new Button();
         private readonly Button _listen = new Button();
         private readonly Button _openLog = new Button();
+        private readonly Button _probeAuth = new Button();
+        private readonly Button _probeRtdb = new Button();
+        private readonly Button _probeFirestore = new Button();
+        private readonly Button _probeAppsScript = new Button();
+        private readonly Button _probeSheets = new Button();
+        private readonly Button _probeDrive = new Button();
+        private readonly Button _probeAll = new Button();
         private readonly Label _relay = new Label();
         private readonly Label _network = new Label();
         private readonly Label _identity = new Label();
