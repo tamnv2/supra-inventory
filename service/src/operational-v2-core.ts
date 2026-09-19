@@ -1,3 +1,12 @@
+import {
+  initializeSlaAutomationSchema,
+  readOperationalSlaConfig,
+  scheduleNextOperationalAlarm,
+  slaAutomationReadiness,
+  validateOperationalSlaConfig,
+  type OperationalSlaConfig,
+} from "./sla-automation";
+
 type SqlRow = Record<string, SqlStorageValue>;
 
 type Actor = {
@@ -5,19 +14,14 @@ type Actor = {
   employee_code: string | null;
 };
 
-type SlaConfig = {
-  warning_minutes: number;
-  escalation_minutes: number;
-  updated_at?: string;
-  updated_by?: string | null;
-};
+type SlaConfig = OperationalSlaConfig;
 
 type RealtimeRole = "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
 
 const SLA_CONFIG_KEY = "operational_sla_v1";
 const OPERATIONAL_SCHEMA_KEY = "operational_v2_schema_version";
 const REALTIME_STREAM_EPOCH_KEY = "realtime_stream_epoch_v1";
-export const OPERATIONAL_V2_SCHEMA_VERSION = 4;
+export const OPERATIONAL_V2_SCHEMA_VERSION = 5;
 const MAX_DELTA_LIMIT = 200;
 
 function json(payload: unknown, status = 200): Response {
@@ -129,6 +133,7 @@ export function operationalV2Readiness(state: DurableObjectState): {
     hasSqlObject(state, "table", "result_acknowledgements") &&
     hasSqlObject(state, "table", "result_event_snapshots") &&
     hasSqlObject(state, "table", "notification_delivery_attempts") &&
+    slaAutomationReadiness(state) &&
     Boolean(readRealtimeStreamEpoch(state)) &&
     hasSqlObject(state, "trigger", "trg_v2_report_event_stream") &&
     hasSqlObject(state, "trigger", "trg_v2_result_ack_targets");
@@ -144,26 +149,7 @@ function first<T extends SqlRow>(rows: T[]): T | null {
 }
 
 function readSlaConfig(state: DurableObjectState): SlaConfig | null {
-  const row = first(
-    state.storage.sql
-      .exec<SqlRow>("SELECT value_json, updated_at, updated_by FROM app_config WHERE key = ? LIMIT 1", SLA_CONFIG_KEY)
-      .toArray(),
-  );
-  if (!row?.value_json) return null;
-  try {
-    const parsed = JSON.parse(String(row.value_json)) as Partial<SlaConfig>;
-    const warning = Number(parsed.warning_minutes);
-    const escalation = Number(parsed.escalation_minutes);
-    if (!Number.isInteger(warning) || !Number.isInteger(escalation) || warning < 1 || escalation <= warning) return null;
-    return {
-      warning_minutes: warning,
-      escalation_minutes: escalation,
-      updated_at: String(row.updated_at || "") || undefined,
-      updated_by: row.updated_by == null ? null : String(row.updated_by),
-    };
-  } catch {
-    return null;
-  }
+  return readOperationalSlaConfig(state);
 }
 
 function slaState(firstReportAt: string, config: SlaConfig | null, nowMs = Date.now()): { state: string; waiting_minutes: number } {
@@ -210,7 +196,7 @@ function currentBatchSnapshot(state: DurableObjectState, batchId: string): Recor
               b.resolved_at, b.resolution, b.correction_deadline_at, b.version, b.previous_batch_id,
               p.resolved_at AS previous_resolved_at,
               (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id) AS total_ticket_count,
-              (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'OPEN') AS open_ticket_count,
+              (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL) AS open_ticket_count,
               (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'WITHDRAWN') AS withdrawn_ticket_count,
               (SELECT COUNT(DISTINCT a.target_user_id)
                  FROM result_acknowledgements a
@@ -286,6 +272,7 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
   if (!hasColumn(state, "report_batches", "last_report_at")) {
     sql.exec("ALTER TABLE report_batches ADD COLUMN last_report_at TEXT");
   }
+  initializeSlaAutomationSchema(state);
 
   sql.exec(`
     CREATE INDEX IF NOT EXISTS idx_report_batches_previous_batch ON report_batches(previous_batch_id);
@@ -392,6 +379,17 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
        WHERE batch_id = NEW.batch_id;
     END;
 
+    DROP TRIGGER IF EXISTS trg_v2_ticket_auto_skip_version;
+    CREATE TRIGGER trg_v2_ticket_auto_skip_version
+      AFTER UPDATE OF auto_skip_allowed_at ON report_tickets
+      WHEN OLD.auto_skip_allowed_at IS NULL AND NEW.auto_skip_allowed_at IS NOT NULL
+    BEGIN
+      UPDATE report_batches
+         SET version = version + 1,
+             updated_at = NEW.updated_at
+       WHERE batch_id = NEW.batch_id;
+    END;
+
     DROP TRIGGER IF EXISTS trg_v2_batch_resolution_version;
     CREATE TRIGGER trg_v2_batch_resolution_version
       AFTER UPDATE OF status, resolution ON report_batches
@@ -420,6 +418,10 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
           WHEN 'REPORT_WITHDRAWN' THEN '["reporter_queue","reporter_recent","picker_reports"]'
           WHEN 'BATCH_RESOLVED' THEN '["reporter_queue","reporter_recent","picker_reports"]'
           WHEN 'BATCH_CORRECTED' THEN '["reporter_recent","picker_reports"]'
+          WHEN 'SLA_WARNING' THEN '["reporter_queue"]'
+          WHEN 'SLA_ESCALATED' THEN '["reporter_queue","picker_reports"]'
+          WHEN 'TICKET_AUTO_SKIP_ALLOWED' THEN '["reporter_queue","reporter_recent","picker_reports"]'
+          WHEN 'BATCH_AUTO_SKIP_ALLOWED' THEN '["reporter_queue","reporter_recent","picker_reports"]'
           WHEN 'RESULT_ACKNOWLEDGED' THEN '["reporter_recent","picker_reports"]'
           ELSE '["operations"]'
         END,
@@ -431,7 +433,7 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
     DROP TRIGGER IF EXISTS trg_v2_result_ack_targets;
     CREATE TRIGGER trg_v2_result_ack_targets
       AFTER INSERT ON report_events
-      WHEN NEW.event_type IN ('BATCH_RESOLVED','BATCH_CORRECTED')
+      WHEN NEW.event_type IN ('BATCH_RESOLVED','BATCH_CORRECTED','BATCH_AUTO_SKIP_ALLOWED')
         AND NEW.batch_id IS NOT NULL
     BEGIN
       INSERT OR IGNORE INTO result_acknowledgements (
@@ -450,7 +452,37 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
          AND t.status = 'RESOLVED'
          AND t.picker_user_id IS NOT NULL
          AND t.picker_user_id <> ''
+         AND (
+           NEW.event_type = 'BATCH_CORRECTED'
+           OR (NEW.event_type = 'BATCH_AUTO_SKIP_ALLOWED' AND t.resolution_source = 'SYSTEM_TIMEOUT')
+           OR (NEW.event_type = 'BATCH_RESOLVED' AND t.resolution_source = 'REPORTER')
+         )
        GROUP BY t.picker_user_id;
+    END;
+
+    DROP TRIGGER IF EXISTS trg_v2_ticket_auto_skip_ack_target;
+    CREATE TRIGGER trg_v2_ticket_auto_skip_ack_target
+      AFTER INSERT ON report_events
+      WHEN NEW.event_type = 'TICKET_AUTO_SKIP_ALLOWED'
+        AND NEW.ticket_id IS NOT NULL
+        AND NEW.batch_id IS NOT NULL
+    BEGIN
+      INSERT OR IGNORE INTO result_acknowledgements (
+        result_event_id, batch_id, batch_version, target_user_id,
+        received_at, displayed_at, acknowledged_at, created_at, updated_at
+      )
+      SELECT NEW.event_id,
+             NEW.batch_id,
+             COALESCE((SELECT version FROM report_batches WHERE batch_id = NEW.batch_id), 1),
+             t.picker_user_id,
+             NULL, NULL, NULL,
+             NEW.created_at,
+             NEW.created_at
+        FROM report_tickets t
+       WHERE t.ticket_id = NEW.ticket_id
+         AND t.batch_id = NEW.batch_id
+         AND t.picker_user_id IS NOT NULL
+         AND t.picker_user_id <> '';
     END;
   `);
 
@@ -515,6 +547,11 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
       waiting_minutes: sla.waiting_minutes,
       warning_at: deadlines.warning_at,
       escalation_at: deadlines.escalation_at,
+      auto_skip_enabled: Boolean(config?.auto_skip_enabled),
+      auto_skip_mode: config?.auto_skip_mode || null,
+      auto_skip_at: config?.auto_skip_enabled
+        ? (config.auto_skip_mode === "FIRST_REPORT" ? (row.batch_auto_skip_at || null) : (row.next_picker_auto_skip_at || null))
+        : null,
       recurrence_minutes: Number.isFinite(recurrenceMinutes as number) ? recurrenceMinutes : null,
     };
   });
@@ -747,45 +784,73 @@ async function putSla(state: DurableObjectState, request: Request): Promise<Resp
   const body = (await request.json()) as {
     warning_minutes?: unknown;
     escalation_minutes?: unknown;
+    auto_skip_minutes?: unknown;
+    auto_skip_enabled?: unknown;
+    auto_skip_mode?: unknown;
     actor?: Actor;
   };
-  const warning = Number(body.warning_minutes);
-  const escalation = Number(body.escalation_minutes);
   const actor = body.actor;
-  if (
-    !actor?.user_id ||
-    !Number.isInteger(warning) ||
-    !Number.isInteger(escalation) ||
-    warning < 1 || warning > 1440 ||
-    escalation <= warning || escalation > 2880
-  ) {
-    return json({ error: "INVALID_SLA_CONFIG", rules: { warning_minutes: "1..1440", escalation_minutes: "> warning and <= 2880" } }, 400);
+  const validated = validateOperationalSlaConfig(body);
+  if (!actor?.user_id || !validated.ok) {
+    return json({
+      error: "INVALID_SLA_CONFIG",
+      rules: {
+        warning_minutes: "1..1440",
+        escalation_minutes: "> warning and <= 2880",
+        auto_skip_minutes: "> escalation and <= 10080",
+        auto_skip_enabled: "boolean",
+        auto_skip_mode: "FIRST_REPORT|PER_PICKER",
+      },
+    }, 400);
   }
+
+  const previous = readSlaConfig(state);
   const at = new Date().toISOString();
-  const value = { warning_minutes: warning, escalation_minutes: escalation };
-  state.storage.sql.exec(
-    `INSERT INTO app_config (key, value_json, updated_at, updated_by)
-     VALUES (?, ?, ?, ?)
-     ON CONFLICT(key) DO UPDATE SET
-       value_json = excluded.value_json,
-       updated_at = excluded.updated_at,
-       updated_by = excluded.updated_by`,
-    SLA_CONFIG_KEY,
-    JSON.stringify(value),
-    at,
-    actor.user_id,
-  );
-  state.storage.sql.exec(
-    `INSERT INTO audit_log (
-       audit_id, actor_user_id, actor_employee_code, action, target_type, target_id, metadata_json, created_at
-     ) VALUES (?, ?, ?, 'SLA_CONFIG_UPDATE', 'APP_CONFIG', ?, ?, ?)`,
-    crypto.randomUUID(),
-    actor.user_id,
-    actor.employee_code,
-    SLA_CONFIG_KEY,
-    JSON.stringify(value),
-    at,
-  );
+  const value = validated.value;
+  state.storage.transactionSync(() => {
+    state.storage.sql.exec(
+      `INSERT INTO app_config (key, value_json, updated_at, updated_by)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(key) DO UPDATE SET
+         value_json = excluded.value_json,
+         updated_at = excluded.updated_at,
+         updated_by = excluded.updated_by`,
+      SLA_CONFIG_KEY,
+      JSON.stringify(value),
+      at,
+      actor.user_id,
+    );
+
+    // Fail-safe policy change: disabling auto-skip or changing timing mode cancels
+    // all not-yet-fired automatic deadlines. Re-enabling never retroactively
+    // schedules old batches/tickets; only new reports get deadlines.
+    if (!value.auto_skip_enabled || (previous?.auto_skip_mode && previous.auto_skip_mode !== value.auto_skip_mode)) {
+      state.storage.sql.exec(
+        "UPDATE report_batches SET auto_skip_deadline_at = NULL WHERE status = 'PENDING' AND auto_skip_deadline_at IS NOT NULL",
+      );
+      state.storage.sql.exec(
+        `UPDATE report_tickets
+            SET auto_skip_deadline_at = NULL
+          WHERE status = 'OPEN'
+            AND auto_skip_allowed_at IS NULL
+            AND auto_skip_deadline_at IS NOT NULL`,
+      );
+    }
+
+    state.storage.sql.exec(
+      `INSERT INTO audit_log (
+         audit_id, actor_user_id, actor_employee_code, action, target_type, target_id, metadata_json, created_at
+       ) VALUES (?, ?, ?, 'SLA_CONFIG_UPDATE', 'APP_CONFIG', ?, ?, ?)`,
+      crypto.randomUUID(),
+      actor.user_id,
+      actor.employee_code,
+      SLA_CONFIG_KEY,
+      JSON.stringify({ ...value, previous_auto_skip_enabled: previous?.auto_skip_enabled ?? false, previous_auto_skip_mode: previous?.auto_skip_mode ?? null }),
+      at,
+    );
+  });
+
+  await scheduleNextOperationalAlarm(state);
   return json({ status: "saved", configured: true, sla: { ...value, updated_at: at, updated_by: actor.user_id } });
 }
 
@@ -820,6 +885,8 @@ export function pickerCanReceiveRealtimeEvent(
     userId,
     eventId,
     userId,
+    eventId,
+    userId,
   ).toArray());
   return Boolean(row);
 }
@@ -844,7 +911,8 @@ export function pickerRealtimeSnapshot(
   if (!batch) return null;
 
   const ticket = first(state.storage.sql.exec<SqlRow>(
-    `SELECT ticket_id, status AS ticket_status, reported_at, withdraw_deadline_at, withdrawn_at, resolved_at
+    `SELECT ticket_id, status AS ticket_status, reported_at, withdraw_deadline_at, withdrawn_at, resolved_at,
+             auto_skip_deadline_at, auto_skip_allowed_at, resolution, resolution_source
        FROM report_tickets
       WHERE batch_id = ? AND picker_user_id = ?
         AND (? IS NULL OR ticket_id = ?)
@@ -884,7 +952,7 @@ function pickerRealtimeMetadata(
   userId: string,
 ): Record<string, unknown> {
   const payload = parseJsonObject(payloadValue);
-  if (eventType === "BATCH_RESOLVED" || eventType === "BATCH_CORRECTED") {
+  if (["BATCH_RESOLVED", "BATCH_CORRECTED", "BATCH_AUTO_SKIP_ALLOWED", "TICKET_AUTO_SKIP_ALLOWED"].includes(eventType)) {
     const result = first(state.storage.sql.exec<SqlRow>(
       `SELECT resolution, result_at, batch_version
          FROM result_event_snapshots
