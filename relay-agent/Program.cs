@@ -404,14 +404,14 @@ namespace SupraInventoryRelayAgent
                 RequestJson("GET", JobsUrl(session) + "&shallow=true", null, null);
                 started.Stop();
                 Ui(() => _relay.Text = "Relay: OFFICE PASS / Google + RTDB");
-                Log("OFFICE PASS ssid=" + GetSsid() + " uid=" + Fingerprint(session.UserId) + " rtdb_ms=" + started.ElapsedMilliseconds + ".");
+                Log("OFFICE PASS ssid=" + GetSsid() + " admin=" + session.AppUserId + " instance=" + Short(_agentInstanceId) + " uid=" + Fingerprint(session.UserId) + " rtdb_ms=" + started.ElapsedMilliseconds + ".");
             }
             catch (RelayHttpException ex)
             {
                 if (ex.StatusCode == 403)
                 {
                     Ui(() => _relay.Text = "Relay: RTDB 403 / Rules");
-                    Log("OFFICE RTDB_PERMISSION_DENIED HTTP 403. HTTPS tới Firebase đã thông; kiểm tra Rules/auth.uid/path. detail=" + ex.Detail);
+                    Log("OFFICE RTDB_PERMISSION_DENIED HTTP 403. HTTPS tới Firebase đã thông; kiểm tra D075 shared Rules/ADMIN claims. detail=" + ex.Detail);
                 }
                 else
                 {
@@ -468,7 +468,7 @@ namespace SupraInventoryRelayAgent
                     {
                         retrySeconds = 5;
                         Ui(() => _relay.Text = "Relay: RTDB 403 / Rules");
-                        Log("Relay RTDB_PERMISSION_DENIED 403; HTTPS thông nhưng auth/rules/path bị từ chối. detail=" + ex.Detail);
+                        Log("Relay RTDB_PERMISSION_DENIED 403; HTTPS thông nhưng D075 ADMIN shared Rules/claims bị từ chối. detail=" + ex.Detail);
                     }
                     else
                     {
@@ -498,7 +498,7 @@ namespace SupraInventoryRelayAgent
             req.ReadWriteTimeout = 65000;
             req.KeepAlive = true;
 
-            Log("Relay SSE CONNECT host=" + AgentDiagnostics.SafeUrl(url) + " uid=" + Fingerprint(session.UserId) + " ssid=" + GetSsid());
+            Log("Relay SSE CONNECT host=" + AgentDiagnostics.SafeUrl(url) + " admin=" + session.AppUserId + " instance=" + Short(_agentInstanceId) + " uid=" + Fingerprint(session.UserId) + " ssid=" + GetSsid());
             HttpWebResponse response = null;
             try
             {
@@ -518,7 +518,7 @@ namespace SupraInventoryRelayAgent
                     using (var reader = new StreamReader(stream))
                     {
                         Ui(() => _relay.Text = "Relay: ONLINE / đang nghe");
-                        Log("Relay SSE PASS HTTP " + (int)response.StatusCode + " ssid=" + GetSsid() + " uid=" + Fingerprint(session.UserId));
+                        Log("Relay SSE PASS HTTP " + (int)response.StatusCode + " ssid=" + GetSsid() + " admin=" + session.AppUserId + " instance=" + Short(_agentInstanceId) + " uid=" + Fingerprint(session.UserId));
                         var data = new StringBuilder();
                         string line;
                         while (!token.IsCancellationRequested && (line = reader.ReadLine()) != null)
@@ -566,17 +566,74 @@ namespace SupraInventoryRelayAgent
         private void HandleJob(string jobId, Dictionary<string, object> job)
         {
             object statusObj, sourceObj;
-            if (!job.TryGetValue("status", out statusObj) || !string.Equals(Convert.ToString(statusObj), "PENDING", StringComparison.OrdinalIgnoreCase)) return;
-            if (job.TryGetValue("source", out sourceObj) && !string.Equals(Convert.ToString(sourceObj), "ANDROID_POC", StringComparison.Ordinal)) return;
-            lock (_acked) { if (_acked.Contains(jobId)) return; _acked.Add(jobId); }
-            var suffix = job.ContainsKey("suffix") ? Convert.ToString(job["suffix"]) : "";
+            if (!job.TryGetValue("status", out statusObj) ||
+                !string.Equals(Convert.ToString(statusObj), "PENDING", StringComparison.OrdinalIgnoreCase))
+                return;
+            if (job.TryGetValue("source", out sourceObj) &&
+                !string.Equals(Convert.ToString(sourceObj), "ANDROID_POC", StringComparison.Ordinal))
+                return;
+
+            lock (_acked)
+            {
+                if (_acked.Contains(jobId)) return;
+                _acked.Add(jobId);
+            }
+
+            var session = SnapshotSession();
             try
             {
-                var patch = new Dictionary<string, object> { { "status", "ACK" }, { "agent_id", Environment.MachineName }, { "agent_network", GetSsid() }, { "agent_received_at_ms", NowMs() }, { "agent_ack_at_ms", NowMs() } };
-                RequestJson("PATCH", JobUrl(SnapshotSession(), jobId), _json.Serialize(patch), "application/json");
-                Log("ACK request=" + Short(jobId) + " network=" + GetSsid() + " payload_digits=5");
+                var patch = new Dictionary<string, object>
+                {
+                    { "status", "ACK" },
+                    { "agent_id", Environment.MachineName },
+                    { "agent_instance_id", _agentInstanceId },
+                    { "agent_admin_user_id", session.AppUserId },
+                    { "agent_network", GetSsid() },
+                    { "agent_received_at_ms", NowMs() },
+                    { "agent_ack_at_ms", NowMs() }
+                };
+                RequestJson("PATCH", JobUrl(session, jobId), _json.Serialize(patch), "application/json");
+                Log(
+                    "ACK OWNED request=" + Short(jobId) +
+                    " admin=" + session.AppUserId +
+                    " machine=" + Environment.MachineName +
+                    " instance=" + Short(_agentInstanceId) +
+                    " network=" + GetSsid() +
+                    " payload_digits=5"
+                );
             }
-            catch (Exception ex) { lock (_acked) _acked.Remove(jobId); Log("ACK lỗi: " + SafeMessage(ex)); }
+            catch (RelayHttpException ex)
+            {
+                if (ex.StatusCode == 403 && JobAlreadyAcknowledgedByAnotherAgent(session, jobId))
+                {
+                    Log("ACK SKIP request=" + Short(jobId) + " another ADMIN Agent already owns ACK.");
+                    return;
+                }
+                lock (_acked) _acked.Remove(jobId);
+                Log("ACK lỗi: " + SafeMessage(ex));
+            }
+            catch (Exception ex)
+            {
+                lock (_acked) _acked.Remove(jobId);
+                Log("ACK lỗi: " + SafeMessage(ex));
+            }
+        }
+
+        private bool JobAlreadyAcknowledgedByAnotherAgent(AgentSession session, string jobId)
+        {
+            try
+            {
+                var raw = RequestJson("GET", JobUrl(session, jobId), null, null);
+                var job = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                if (job == null) return false;
+                object status;
+                return job.TryGetValue("status", out status) &&
+                    string.Equals(Convert.ToString(status), "ACK", StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private void EnsureFreshToken() { var s = SnapshotSession(); if (s.ExpiresUtc <= DateTime.UtcNow.AddMinutes(2)) RefreshDirect(); }
@@ -640,12 +697,12 @@ namespace SupraInventoryRelayAgent
 
         private static string JobsUrl(AgentSession s)
         {
-            return AgentConfig.DatabaseUrl.TrimEnd('/') + "/relay_poc/" + Uri.EscapeDataString(s.UserId) + "/jobs.json?auth=" + Uri.EscapeDataString(s.IdToken);
+            return AgentConfig.DatabaseUrl.TrimEnd('/') + "/relay_poc/jobs.json?auth=" + Uri.EscapeDataString(s.IdToken);
         }
 
         private static string JobUrl(AgentSession s, string id)
         {
-            return AgentConfig.DatabaseUrl.TrimEnd('/') + "/relay_poc/" + Uri.EscapeDataString(s.UserId) + "/jobs/" + Uri.EscapeDataString(id) + ".json?auth=" + Uri.EscapeDataString(s.IdToken);
+            return AgentConfig.DatabaseUrl.TrimEnd('/') + "/relay_poc/jobs/" + Uri.EscapeDataString(id) + ".json?auth=" + Uri.EscapeDataString(s.IdToken);
         }
 
         private static string RequestJson(string method, string url, string body, string contentType)
