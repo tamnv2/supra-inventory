@@ -180,3 +180,14 @@ Read `docs/OWNER_DECISIONS.md` open-decision table. Do not invent behavior for S
 - Success is shown only after the service confirms the mutation. Failure clears the pending state and shows an error toast; no offline/fake success is allowed.
 - Do not synchronously chain a complete Reporter queue reload after the mutation. Authoritative realtime refresh/reconcile updates the background state, with concurrent operations loads coalesced rather than multiplied.
 - This interaction rule changes perceived responsiveness only; server RBAC, idempotency, result targeting, ACK and correction semantics remain authoritative.
+
+
+## D072 — quota-first system surface exclusion
+
+For Admin/Root Web, D072 overrides earlier navigation/workflow text that exposed `Trạng thái hệ thống`.
+
+- `HỆ THỐNG` contains only `Nhật ký`.
+- There is no normal business workflow for system/provider usage monitoring.
+- Direct legacy aliases `system`, `devices` and `versions` are not routable.
+- Lightweight header connectivity/realtime state remains informational and does not run provider-usage collection.
+- Support diagnostics remain available through bounded/redacted runtime logs.
