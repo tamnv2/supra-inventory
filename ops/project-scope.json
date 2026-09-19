@@ -302,7 +302,7 @@
       "location": "asia-southeast1",
       "url": "https://supra-inventory-beta-default-rtdb.asia-southeast1.firebasedatabase.app",
       "exposure": "public_identifier",
-      "status": "OWNER_APPROVED_PROVISIONING_PENDING",
+      "status": "OWNER_CONFIRMED_PROVISIONED__FIELD_HTTP_403_AUTH_RULE_PATH_REPAIR_D074",
       "guard": "D073_POC_ONLY_NO_WMS_MUTATION_NO_STABLE"
     }
   ],
