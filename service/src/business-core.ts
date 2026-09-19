@@ -406,7 +406,7 @@ async function createReport(state: DurableObjectState, request: Request): Promis
       state.storage.sql
         .exec<BatchRow>(
           `SELECT batch_id, sku, product_name, status, first_report_at, resolved_at,
-                  resolved_by_user_id, resolution, correction_deadline_at, created_at, updated_at
+                  resolved_by_user_id, resolution, resolution_source, auto_skip_deadline_at, correction_deadline_at, created_at, updated_at
              FROM report_batches
             WHERE sku = ? AND status = 'PENDING'
             LIMIT 1`,
@@ -664,7 +664,7 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
       state.storage.sql
         .exec<BatchRow>(
           `SELECT batch_id, sku, product_name, status, first_report_at, resolved_at,
-                  resolved_by_user_id, resolution, correction_deadline_at, created_at, updated_at
+                  resolved_by_user_id, resolution, resolution_source, auto_skip_deadline_at, correction_deadline_at, created_at, updated_at
              FROM report_batches WHERE batch_id = ? LIMIT 1`,
           batchId,
         )
@@ -756,7 +756,7 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
       state.storage.sql
         .exec<BatchRow>(
           `SELECT batch_id, sku, product_name, status, first_report_at, resolved_at,
-                  resolved_by_user_id, resolution, correction_deadline_at, created_at, updated_at
+                  resolved_by_user_id, resolution, resolution_source, auto_skip_deadline_at, correction_deadline_at, created_at, updated_at
              FROM report_batches WHERE batch_id = ? LIMIT 1`,
           batchId,
         )
