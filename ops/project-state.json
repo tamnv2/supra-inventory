@@ -13,16 +13,16 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "BETA_RUNTIME_PASS_D075_SOURCE_BUILD_RELEASE",
+    "beta": "BETA_RUNTIME_PASS_D076_RTDB_RULES_DEPLOY__D075_APP_AGENT_RELEASE",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 7,
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
     "web": "D071_IMMEDIATE_RESPONSE_DENSITY_D072_SYSTEM_STATUS_QUOTA_GUARD_BETA_RUNTIME_PASS__OWNER_REVIEW_PENDING",
-    "android": "D075_SHARED_RELAY_SIGNED_BETA_VC49_BUILD_PASS__RULES_PUBLISH_FIELD_TEST_PENDING",
+    "android": "D075_SHARED_RELAY_SIGNED_BETA_VC49__D076_RULES_DEPLOY_PASS__FIELD_TEST_PENDING",
     "latest_beta_apk": "beta-vc49",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
-    "network_scope": "PDA_INTERNET_SUPPORTED__D075_SHARED_FIREBASE_RELAY_ADMIN_AGENT_BUILD_PASS__RULES_PUBLISH_FIELD_TEST_PENDING__NO_OFFLINE_BUSINESS_MODE",
+    "network_scope": "PDA_INTERNET_SUPPORTED__D075_SHARED_FIREBASE_RELAY_ADMIN_AGENT__D076_RULES_DEPLOY_PASS__FIELD_TEST_PENDING__NO_OFFLINE_BUSINESS_MODE",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "SERVER_PAGED_FILTERED_ONE_MANY_ALL__ROOT_EFFECTIVE_ROLE_TEST_RUNTIME_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D076_PR_VALIDATION_PASS__MAIN_RTDB_RULES_DEPLOY_PENDING__D075_RELEASE_PASS__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D076_RTDB_RULES_DEPLOY_PASS__D075_FIELD_TEST_PENDING__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -142,7 +142,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "D075 physical acceptance pending Owner publication of D075 RTDB Rules and real Picker PDA -> ADMIN Agent v2 field test.",
+    "D075 physical acceptance pending real Picker PDA -> real ADMIN Agent v2 ACK/RTT test; D076 Rules deployment is already PASS.",
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
     "Owner acceptance of FIRST_REPORT and PER_PICKER behavior remains field-dependent after runtime PASS.",
     "Stable promotion remains OWNER-GATED."
@@ -155,8 +155,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Merge PR #72 after all guards PASS; main workflow must PUT canonical D075 Rules to the scoped Beta RTDB and readback-verify exact JSON. Then record D076 Rules deploy PASS and proceed to physical beta-vc49 + relay-agent-v2 field test.",
-    "method": "PR #72 read-only CI already proves configured service-account OAuth, firebasedatabase.instances.update and RTDB Rules GET access. No further Owner IAM action is required. Merge only after current authority/continuity/UI gates PASS; require main Deploy Beta RTDB Rules terminal PASS.",
+    "primary": "Owner field-tests beta-vc49 + relay-agent-v2: real ADMIN Agent on laptop, Office check PASS, start listener, then any Picker PDA sends five digits and must receive ACK showing ADMIN + machine + Agent instance + RTT.",
+    "method": "No Firebase/IAM/Rules setup action remains. Use relay-agent-v2 and beta-vc49 only. D076 main run 35451292051 deployed canonical D075 Rules to Beta RTDB and readback-verified exact JSON.",
     "stable_guard": "Stable remains OWNER-GATED and untouched."
   },
   "continuity_policy": {
@@ -184,8 +184,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D076 PR validation PASS: secret/project/OAuth/instances.update/RTDB Rules read all verified; main-only PUT/readback deploy pending merge",
-      "D075 source/build/deploy/release PASS; RTDB Rules publication + physical field acceptance pending",
+      "D076 Beta RTDB Rules deploy/readback PASS; D075 physical Picker -> ADMIN Agent acceptance pending",
       "D068 Web baseline Owner-accepted/frozen",
       "D069 items 1, 2, 4 and 5 Beta runtime PASS",
       "D070 alarm runtime-availability repair deployed Beta PASS; physical timing/FCM Owner acceptance pending",
@@ -194,16 +193,13 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Merge PR #72 after guards PASS, then require main RTDB Rules PUT/readback verification PASS",
-      "PR validate firebasedatabase.instances.update + RTDB Rules read; merge; require main REST Rules PUT/readback PASS",
-      "Owner publishes D075 RTDB Rules then field-tests beta-vc49 + relay-agent-v2 with any Picker PDA and real ADMIN Agent",
+      "Owner field-tests beta-vc49 + relay-agent-v2: any Picker PDA -> shared RTDB -> real ADMIN Agent -> ACK/RTT",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
     ],
     "blocked_or_owner_field_dependent": [
-      "D075 updated RTDB Rules publication and physical Office/PDA acceptance require Owner UI/device/network action",
-      "D074 physical Office/PDA relay acceptance requires the Owner's real laptop/PDA/network; technical build/release is PASS",
+      "D075 final transport acceptance requires the Owner's real PDA/laptop/.Office@MSN field test; Firebase Rules deployment is no longer blocked",
       "D071 final visual/interaction acceptance depends on Owner live Web review",
       "D072 final Owner acceptance depends on live Web confirmation",
       "D070 physical timing/FCM delivery acceptance remains field-dependent",
@@ -233,7 +229,13 @@
       "agent_release_is_prerelease": true,
       "android_latest_release_verified": "beta-vc49",
       "scope": "D075_SHARED_PICKER_QUEUE_REAL_ADMIN_AGENT_AUDIT_AUTO_UPDATE_NO_WMS_MUTATION",
-      "stable": "UNTOUCHED_OWNER_GATED"
+      "stable": "UNTOUCHED_OWNER_GATED",
+      "d076_branch": "fix/d076-rtdb-rest-deploy",
+      "d076_merged_pr": 72,
+      "d076_merged_main": "452feb1e25dff936617e5d1d51313438d85155eb",
+      "d076_pr_rules_validation": "PASS_RUN_35451206498",
+      "d076_main_rules_deploy": "PASS_RUN_35451292051",
+      "d076_rules_method": "RTDB_SETTINGS_RULES_REST_PUT_AND_EXACT_READBACK"
     },
     "last_runtime_evidence": {
       "schema": 7,
@@ -245,7 +247,7 @@
       "business_auth_guards": "PASS",
       "web_shell": "PASS",
       "google_oauth_start": "PASS",
-      "runtime_source_commit": "9b149e56b4781eb905daa6793db6a220a045cf5a",
+      "runtime_source_commit": "452feb1e25dff936617e5d1d51313438d85155eb",
       "d070_alarm_repair": "BETA_RUNTIME_PASS",
       "d071_web": "BETA_RUNTIME_PASS_OWNER_REVIEW_PENDING",
       "d072_quota_guard": "BETA_RUNTIME_PASS_OWNER_REVIEW_PENDING",
@@ -257,9 +259,10 @@
       "signed_beta_apk_sha256": "8e2fc11e09940db061edf4c23b5973ec2be9300b2ddfc4835bcef1d3af74c439",
       "d073_relay_poc": "SOURCE_BUILD_RELEASE_PASS__RTDB_PROVISIONING_FIELD_TEST_PENDING",
       "d074_relay_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_OFFICE_FIELD_RETEST_PENDING",
-      "d075_relay_poc": "SOURCE_BUILD_DEPLOY_RELEASE_PASS__RULES_PUBLISH_FIELD_TEST_PENDING",
+      "d075_relay_poc": "SOURCE_BUILD_RELEASE_PASS__D076_RULES_DEPLOY_PASS__OWNER_FIELD_TEST_PENDING",
       "relay_agent_release": "relay-agent-v2",
-      "relay_agent_release_prerelease": true
+      "relay_agent_release_prerelease": true,
+      "d076_rtdb_rules": "PASS_RUN_35451292051__IAM_UPDATE_PASS__RULES_GET_PASS__RULES_PUT_PASS__EXACT_READBACK_PASS"
     }
   },
   "authority_setup": {
