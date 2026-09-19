@@ -8,6 +8,9 @@ export type SlaState = "UNCONFIGURED" | "NORMAL" | "WARNING" | "ESCALATED";
 export interface SlaConfig {
   warning_minutes: number;
   escalation_minutes: number;
+  auto_skip_minutes: number;
+  auto_skip_enabled: boolean;
+  auto_skip_mode: "FIRST_REPORT" | "PER_PICKER";
   updated_at?: string;
   updated_by?: string | null;
 }
@@ -27,6 +30,11 @@ export interface ReporterBatchV2 {
   sla_state: SlaState;
   waiting_minutes: number;
   recurrence_minutes?: number | null;
+  warning_at?: string | null;
+  escalation_at?: string | null;
+  auto_skip_at?: string | null;
+  auto_skip_enabled?: boolean;
+  auto_skip_mode?: "FIRST_REPORT" | "PER_PICKER" | null;
 }
 
 export interface ReporterQueueV2 {
