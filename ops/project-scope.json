@@ -313,7 +313,8 @@
       "name": "wms-supra.winmart.vn",
       "url": "https://wms-supra.winmart.vn/",
       "exposure": "public_corporate_hostname",
-      "guard": "D080_READ_ONLY_LOGIN_SESSION_CAPTURE_AND_REACHABILITY_ONLY__NO_WMS_MUTATION__NO_STABLE"
+      "guard": "D082_LOGIN_SESSION_CAPTURE_REACHABILITY_AND_CONFIRM_PAGE_REFERENCE_ONLY__NO_CLICK_SUBMIT_CONFIRM_OR_WMS_MUTATION__NO_STABLE",
+      "allowed_reference_page": "GET/UI reference https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm"
     },
     {
       "key": "supra-api-d080",
@@ -324,7 +325,8 @@
       "url": "https://api-supra.winmart.vn",
       "exposure": "public_corporate_hostname",
       "allowed_probe": "GET /sft3-hy1/api/v1/warehouse/zones",
-      "guard": "D080_SIGNED_READ_ONLY_PROBE_ONLY__NO_PICKLIST_LOOKUP_CONFIRMATION_OR_MUTATION__NO_STABLE"
+      "guard": "D082_SIGNED_READ_ONLY_ZONES_AND_PICKLIST_LIST_GET_ONLY__NO_CONFIRMATION_POST_PUT_PATCH_DELETE__NO_STABLE",
+      "allowed_lookup": "GET /sft3-hy1/api/v1/autopp/pickListConfirms"
     },
     {
       "key": "wincommerce-proxy-fallback-d080",
