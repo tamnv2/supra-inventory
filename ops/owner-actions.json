@@ -53,7 +53,7 @@
     },
     {
       "id": "OA002",
-      "status": "OPEN",
+      "status": "OWNER_CONFIRMED_DONE__FIELD_AUTH_403_UNDER_D074_REPAIR",
       "title": "Create Beta Firebase Realtime Database for D073 relay POC",
       "resource_key": "firebase-rtdb-relay-beta",
       "provider": "Firebase",
@@ -78,7 +78,12 @@
         "Rules are published with auth.uid-isolated relay_poc access",
         "PDA-to-Agent POC ACK succeeds on Office network"
       ],
-      "remaining_owner_action": "Create the Beta RTDB in Singapore using locked mode and publish the repository D073 rules."
+      "remaining_owner_action": null,
+      "completed_at": "2026-09-19",
+      "completion_evidence": {
+        "owner_confirmation": "Firebase RTDB setup done",
+        "field_evidence": "Office Agent reaches Firebase endpoint but authenticated RTDB check returns HTTP 403; D074 repairs identity/path diagnostics before deciding whether any Rules republish is required."
+      }
     }
   ]
 }
