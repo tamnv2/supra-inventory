@@ -32,7 +32,7 @@ Where SLA is configured, Admin/Root may see:
 
 When SLA is unconfigured, analytics must say so rather than infer thresholds.
 
-SLA reporting must not imply automatic Skip/resolution and must not rank employees.
+Timing reporting may distinguish configured warning/escalation/automatic-Skip policy and may distinguish `SYSTEM_TIMEOUT` from Reporter resolution. It must not rank employees.
 
 ## Recurrence reporting
 
@@ -116,3 +116,15 @@ D069 supersedes only the D025 CSV **file-format** requirement.
 - Retrieval remains bounded/chunked and may reject an excessively broad result rather than materializing an unbounded dataset.
 - The workbook contains a business-data sheet plus a compact filter/export-information sheet. Date/time cells should be typed/formatted as dates where practical.
 - This format change does not close the Owner-open final Stable export-column decision and does not authorize new employee scoring, stock quantity, bin/location or unrelated analytics.
+
+
+## D070 automatic-Skip reporting
+
+Operational/results surfaces should distinguish the source of a Skip result where useful:
+
+- Reporter/manual: normal business resolution.
+- `SYSTEM_TIMEOUT`: service granted Skip because the configured D070 automatic deadline expired without an authoritative Invent response.
+
+Approved aggregate analysis may include automatic-timeout counts/rates by period or SKU, but must not become individual employee scoring. D007 live queue ordering remains unaffected.
+
+For `PER_PICKER`, the live affected-Picker count excludes Pickers who already received their individual timeout Skip while the same batch remains pending for other Pickers. Final batch reporting still represents one shortage episode while ticket/result history preserves exact Picker-level outcomes.
