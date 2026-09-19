@@ -97,6 +97,31 @@ type Notice = { type: "success" | "error" | "warning"; text: string } | null;
 type ThemeMode = "AUTO" | "LIGHT" | "DARK";
 
 const THEME_KEY = "supra_inventory_web_theme_v1";
+const UI_ZOOM_KEY = "supra_inventory_web_zoom_v1";
+const SKIP_DELAY_KEY_PREFIX = "supra_inventory_skip_delay_v1";
+const SKIP_CONFIRM_DELAY_MS = 5_000;
+
+function loadUiZoom(): number {
+  const stored = Number(localStorage.getItem(UI_ZOOM_KEY) || 100);
+  if (!Number.isFinite(stored)) return 100;
+  return Math.max(70, Math.min(140, Math.round(stored / 10) * 10));
+}
+
+let uiZoom = loadUiZoom();
+
+function applyUiZoom(): void {
+  document.body.style.setProperty("zoom", String(uiZoom / 100));
+  const label = document.querySelector<HTMLElement>("#ui-zoom-value");
+  if (label) label.textContent = `${uiZoom}%`;
+}
+
+function skipDelayStorageKey(userId = profile?.user_id || "anonymous"): string {
+  return `${SKIP_DELAY_KEY_PREFIX}:${userId}`;
+}
+
+function loadSkipDelayEnabled(userId = profile?.user_id || "anonymous"): boolean {
+  return localStorage.getItem(skipDelayStorageKey(userId)) !== "0";
+}
 
 function loadThemeMode(): ThemeMode {
   const raw = String(localStorage.getItem(THEME_KEY) || "AUTO").toUpperCase();
@@ -147,14 +172,14 @@ function legacyRoleLabel(value: AppProfile["role"]): string {
 }
 
 function rootRoleOptionLabel(role: AppProfile["role"]): string {
-  if (role === "ROOT") return "ROOT · Quản trị hệ thống";
-  if (role === "ADMIN") return "ADMIN · Quản trị hệ thống";
-  if (role === "REPORTER") return "REPORTER · Người báo hàng";
-  return "PICKER · Người lấy hàng";
+  if (role === "ROOT") return "Quản trị hệ thống";
+  if (role === "ADMIN") return "Quản trị";
+  if (role === "REPORTER") return "Người báo hàng";
+  return "Người lấy hàng";
 }
 
 function businessRoleLabel(role: string): string {
-  if (role === "ROOT") return "Quản trị cao nhất";
+  if (role === "ROOT") return "Quản trị hệ thống";
   if (role === "ADMIN") return "Quản trị";
   if (role === "REPORTER") return "Người xử lý báo hàng";
   if (role === "PICKER") return "Người lấy hàng";
@@ -165,6 +190,10 @@ function clearRoleScopedViewState(): void {
   queueRows = [];
   recentRows = [];
   batchDetails.clear();
+  expandedBatchDetails.clear();
+  batchDetailLoads.clear();
+  stockConfirm = null;
+  skipConfirm = null;
   pickerReports = [];
   pickerResults = [];
   pickerSuggestions = [];
@@ -215,7 +244,13 @@ let queueServerOffsetMs = 0;
 let recentRows: ReporterRecentBatch[] = [];
 let batchDetails = new Map<string, BatchPickerTicket[]>();
 let recentFilter: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | "ALL" = "ALL";
+let queueFilter: "ALL" | "WARNING" | "ESCALATED" = "ALL";
 let skipConfirm: ReporterBatch | null = null;
+let stockConfirm: ReporterBatch | null = null;
+let skipConfirmOpenedAt = 0;
+let skipDelayEnabled = loadSkipDelayEnabled();
+let expandedBatchDetails = new Set<string>();
+let batchDetailLoads = new Set<string>();
 let slaResponse: SlaResponse | null = null;
 let operationalInsights: OperationalInsights | null = null;
 let realtimePresence: RealtimePresence | null = null;
@@ -401,6 +436,8 @@ type UiContextSnapshot = {
   section: Section;
   userId: string | null;
   scrollY: number;
+  mainScrollTop: number;
+  mainScrollLeft: number;
   fields: UiFieldSnapshot[];
   activeId: string;
   activeName: string;
@@ -423,7 +460,7 @@ function captureUiContext(): UiContextSnapshot | null {
       value: field.value,
       checked: field instanceof HTMLInputElement && (field.type === "checkbox" || field.type === "radio") ? field.checked : null,
     }));
-  const scrollBoxes = [".table-wrap", ".user-list", ".history-list", ".operation-list"].flatMap((className) =>
+  const scrollBoxes = [".table-wrap", ".user-list", ".history-list", ".operation-list", ".fast-list", ".log-list", ".diagnostics", ".suggestions"].flatMap((className) =>
     [...main.querySelectorAll<HTMLElement>(className)].map((node, index) => ({
       className,
       index,
@@ -432,9 +469,11 @@ function captureUiContext(): UiContextSnapshot | null {
     })),
   );
   return {
-    section: activeSection,
+    section: (main.dataset.activeSection as Section) || activeSection,
     userId: profile?.user_id || null,
     scrollY: window.scrollY,
+    mainScrollTop: main.scrollTop,
+    mainScrollLeft: main.scrollLeft,
     fields,
     activeId: active?.id || "",
     activeName: active?.name || "",
@@ -459,6 +498,8 @@ function restoreUiContext(snapshot: UiContextSnapshot | null): void {
     field.value = saved.value;
     if (saved.checked != null && field instanceof HTMLInputElement) field.checked = saved.checked;
   }
+  main.scrollTop = snapshot.mainScrollTop;
+  main.scrollLeft = snapshot.mainScrollLeft;
   for (const saved of snapshot.scrollBoxes) {
     const node = [...main.querySelectorAll<HTMLElement>(saved.className)][saved.index];
     if (node) {
@@ -505,7 +546,7 @@ function mainMarkup(): string {
 function patchOverlays(): void {
   const root = document.querySelector<HTMLElement>("#overlay-root");
   if (!root) return;
-  root.innerHTML = `${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}`;
+  root.innerHTML = `${renderStockModal()}${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}`;
   bindOverlay();
 }
 
@@ -517,6 +558,7 @@ function patchActiveSection(preserveContext = true): void {
   }
   const snapshot = preserveContext ? captureUiContext() : null;
   main.innerHTML = mainMarkup();
+  main.dataset.activeSection = activeSection;
   bindSection();
   patchOverlays();
   restoreUiContext(snapshot);
@@ -596,6 +638,7 @@ function renderLogin(): void {
     const data = new FormData(event.currentTarget as HTMLFormElement);
     void run(async () => {
       profile = await loginWithPassword(String(data.get("username") || "").trim(), String(data.get("password") || ""));
+      skipDelayEnabled = loadSkipDelayEnabled(profile.user_id);
       runtimeLogEvent(`Đăng nhập: ${profile.role}`);
       sessionViewGeneration += 1;
       activeSection = resolveInitialSection(profile);
@@ -631,24 +674,37 @@ function renderShell(content: string): void {
         <div class="header-controls">
           ${profile.base_role === "ROOT" ? `<label class="header-control root-role-control"><span>Kiểm tra quyền</span><select id="root-role-select">${(["ROOT","ADMIN","REPORTER","PICKER"] as AppProfile["role"][]).map((role) => `<option value="${role}" ${profile?.role === role ? "selected" : ""}>${esc(rootRoleOptionLabel(role))}</option>`).join("")}</select></label>` : ""}
           <label class="header-control theme-control"><span>Giao diện</span><select id="theme-mode"><option value="AUTO" ${themeMode === "AUTO" ? "selected" : ""}>Tự động</option><option value="LIGHT" ${themeMode === "LIGHT" ? "selected" : ""}>Sáng</option><option value="DARK" ${themeMode === "DARK" ? "selected" : ""}>Tối</option></select></label>
+          <div class="header-control zoom-control"><span>Cỡ chữ</span><div class="zoom-buttons"><button type="button" class="ghost" data-ui-zoom="-10" aria-label="Giảm cỡ chữ">A−</button><button type="button" class="ghost zoom-value" data-ui-zoom="0" id="ui-zoom-value" aria-label="Đặt cỡ chữ về 100%">${uiZoom}%</button><button type="button" class="ghost" data-ui-zoom="10" aria-label="Tăng cỡ chữ">A+</button></div></div>
           <div class="user-actions"><button type="button" class="ghost header-account-action ${activeSection === "account" ? "active" : ""}" data-section="account">Tài khoản</button><button id="logout" class="ghost">Đăng xuất</button></div>
         </div>
       </div>
     </header>
     <nav class="tabs" data-shell-generation="legacy-direct-transplant">${renderNav()}</nav>
-    <main id="content" class="content main">${renderNotice()}${content}</main>
+    <main id="content" class="content main" data-active-section="${esc(activeSection)}">${renderNotice()}${content}</main>
     <footer id="appCopyright" class="app-footer">${PRODUCT_CREDIT}</footer>
-    <div id="overlay-root">${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}</div>
+    <div id="overlay-root">${renderStockModal()}${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}</div>
   </div>`;
   bindShell();
 }
 
+function renderStockModal(): string {
+  if (!stockConfirm) return "";
+  return `<div class="modal"><div class="modal-box action-confirm-box"><h2>XÁC NHẬN ĐÃ CÓ HÀNG?</h2>
+    <div class="sku-code">${esc(stockConfirm.sku)}</div><div class="product-name">${esc(stockConfirm.product_name)}</div>
+    <p>Xác nhận SKU này đã có hàng. Kết quả sẽ được gửi đến <strong>${Number(stockConfirm.affected_picker_count)} Picker</strong> đang bị ảnh hưởng.</p>
+    <div class="modal-actions"><button class="btn secondary" id="cancel-stock">HUỶ</button><button class="btn success" id="confirm-stock">XÁC NHẬN ĐÃ CÓ HÀNG</button></div></div></div>`;
+}
+
 function renderSkipModal(): string {
   if (!skipConfirm) return "";
-  return `<div class="modal"><div class="modal-box"><h2>CHO PHÉP BỎ QUA?</h2>
+  const waitSeconds = skipDelayEnabled
+    ? Math.max(0, Math.ceil((skipConfirmOpenedAt + SKIP_CONFIRM_DELAY_MS - Date.now()) / 1000))
+    : 0;
+  return `<div class="modal"><div class="modal-box action-confirm-box"><h2>XÁC NHẬN BỎ QUA?</h2>
     <div class="sku-code">${esc(skipConfirm.sku)}</div><div class="product-name">${esc(skipConfirm.product_name)}</div>
-    <p>Thao tác này sẽ cho phép <strong>${Number(skipConfirm.affected_picker_count)} Picker</strong> đang bị ảnh hưởng bỏ qua SKU này.</p>
-    <div class="modal-actions"><button class="btn secondary" id="cancel-skip">HUỶ</button><button class="btn danger" id="confirm-skip">XÁC NHẬN BỎ QUA</button></div></div></div>`;
+    <p>Cho phép <strong>${Number(skipConfirm.affected_picker_count)} Picker</strong> đang bị ảnh hưởng bỏ qua SKU này.</p>
+    ${waitSeconds > 0 ? `<p class="confirm-wait">Vui lòng kiểm tra lại thông tin. Có thể xác nhận sau <strong>${waitSeconds} giây</strong>.</p>` : ""}
+    <div class="modal-actions"><button class="btn secondary" id="cancel-skip">HUỶ</button><button class="btn danger" id="confirm-skip" ${waitSeconds > 0 ? "disabled" : ""}>${waitSeconds > 0 ? `XÁC NHẬN BỎ QUA (${waitSeconds}s)` : "XÁC NHẬN BỎ QUA"}</button></div></div></div>`;
 }
 
 function renderCriticalResult(): string {
@@ -692,8 +748,10 @@ function renderUserModals(): string {
 
 function render(): void {
   if (!profile) return renderLogin();
+  const snapshot = captureUiContext();
   renderShell(activeContent());
   bindSection();
+  restoreUiContext(snapshot);
 }
 
 function renderOperationalTabs(current: "operations" | "results"): string {
@@ -703,25 +761,57 @@ function renderOperationalTabs(current: "operations" | "results"): string {
   </div>`;
 }
 
+function filteredQueueRows(): ReporterBatch[] {
+  if (queueFilter === "ALL") return queueRows;
+  return queueRows.filter((row) => liveQueueTiming(row).state === queueFilter);
+}
+
+function pickerDetailMarkup(batchId: string, details: BatchPickerTicket[] | undefined): string {
+  if (!expandedBatchDetails.has(batchId)) return "";
+  if (!details) return `<div class="detail picker-detail-panel"><div class="picker-detail-loading">Đang tải danh sách Picker...</div></div>`;
+  return `<div class="detail picker-detail-panel"><div class="picker-detail-list">${details.map((item) => `
+    <div class="picker-detail-row">
+      <strong>${esc(item.picker_employee_code)}</strong>
+      <span>${esc(item.picker_display_name || "—")}</span>
+      <time>${esc(fmt(item.reported_at))}</time>
+    </div>`).join("") || `<div class="picker-detail-loading">Không có Picker đang bị ảnh hưởng.</div>`}</div></div>`;
+}
+
+function prefetchBatchDetails(batchId: string): void {
+  if (!batchId || batchDetails.has(batchId) || batchDetailLoads.has(batchId)) return;
+  batchDetailLoads.add(batchId);
+  void getReporterBatchTickets(batchId)
+    .then((result) => {
+      batchDetails.set(batchId, result.items);
+      if (activeSection === "operations" && (selectedBatchId === batchId || expandedBatchDetails.has(batchId))) patchActiveSection(true);
+    })
+    .catch((error) => runtimeLogEvent(`Không tải được danh sách Picker: ${error instanceof Error ? error.message : "unknown"}`, "ERROR"))
+    .finally(() => batchDetailLoads.delete(batchId));
+}
+
 function renderOperations(): string {
-  const selected = queueRows.find((row) => row.batch_id === selectedBatchId) || queueRows[0] || null;
-  if (selected && selectedBatchId !== selected.batch_id) selectedBatchId = selected.batch_id;
+  const visibleRows = filteredQueueRows();
+  let selected = visibleRows.find((row) => row.batch_id === selectedBatchId) || null;
+  if (!selected && visibleRows.length) {
+    selected = visibleRows[0];
+    selectedBatchId = selected.batch_id;
+  }
   const timing = selected ? liveQueueTiming(selected) : null;
-  const selectedDetails = selected ? batchDetails.get(selected.batch_id) : null;
+  const selectedDetails = selected ? batchDetails.get(selected.batch_id) : undefined;
   const warningCount = queueRows.filter((row) => liveQueueTiming(row).state === "WARNING").length;
   const overdueCount = queueRows.filter((row) => liveQueueTiming(row).state === "ESCALATED").length;
   const affected = queueRows.reduce((sum, row) => sum + Number(row.affected_picker_count || 0), 0);
   return `<section id="fastEvents" class="fast-events ops-business-workspace">
     <div class="business-page-head"><div><h2>Vận hành báo hàng</h2><p>Theo dõi và xử lý các SKU Picker đang báo hết hàng.</p></div></div>
     ${renderOperationalTabs("operations")}
-    <section class="business-summary-grid">
-      <article class="business-summary-card primary"><span>SKU đang chờ xử lý</span><strong>${queueRows.length}</strong><small>${affected} Picker đang bị ảnh hưởng</small></article>
-      <article class="business-summary-card warning"><span>Sắp quá thời gian</span><strong>${warningCount}</strong><small>Cần ưu tiên kiểm tra</small></article>
-      <article class="business-summary-card danger"><span>Đã quá thời gian</span><strong>${overdueCount}</strong><small>Cần xử lý ngay</small></article>
+    <section class="business-summary-grid queue-summary-grid">
+      <button type="button" class="business-summary-card summary-filter-card primary ${queueFilter === "ALL" ? "active" : ""}" data-queue-filter="ALL"><span>SKU đang chờ xử lý</span><strong>${queueRows.length.toLocaleString("vi-VN")}</strong><small>${affected.toLocaleString("vi-VN")} Picker đang bị ảnh hưởng</small></button>
+      <button type="button" class="business-summary-card summary-filter-card warning ${queueFilter === "WARNING" ? "active" : ""}" data-queue-filter="WARNING"><span>Sắp quá thời gian</span><strong>${warningCount.toLocaleString("vi-VN")}</strong><small>Nhấn để xem danh sách</small></button>
+      <button type="button" class="business-summary-card summary-filter-card danger ${queueFilter === "ESCALATED" ? "active" : ""}" data-queue-filter="ESCALATED"><span>Đã quá thời gian</span><strong>${overdueCount.toLocaleString("vi-VN")}</strong><small>Nhấn để xem danh sách</small></button>
     </section>
     <div class="fast-workspace">
       <div class="fast-list" id="fastList" aria-live="polite">
-        ${queueRows.length ? queueRows.map((row) => {
+        ${visibleRows.length ? visibleRows.map((row) => {
           const rowTiming = liveQueueTiming(row);
           const tone = rowTiming.state === "ESCALATED" ? "danger" : rowTiming.state === "WARNING" ? "open" : "work";
           return `<button class="fast-issue-row ${selected?.batch_id === row.batch_id ? "selected" : ""}" data-select-batch="${esc(row.batch_id)}">
@@ -729,7 +819,7 @@ function renderOperations(): string {
             <span class="fast-product">${esc(row.product_name)}</span>
             <span class="fast-meta"><b class="fast-status ${tone}">${esc(slaLabel(rowTiming.state))}</b><em>${Number(row.affected_picker_count)} Picker</em><em>Chờ ${rowTiming.waiting} phút</em></span>
           </button>`;
-        }).join("") : `<div class="fast-empty-row">Hiện không có SKU chờ xử lý.</div>`}
+        }).join("") : `<div class="fast-empty-row">${queueFilter === "ALL" ? "Hiện không có SKU chờ xử lý." : "Không có SKU trong nhóm này."}</div>`}
       </div>
       <aside class="fast-detail" id="fastDetail">
         ${selected && timing ? `<div class="fast-detail-head"><div><span>SKU đang xử lý</span><h3>${esc(selected.sku)}</h3></div><b class="fast-status ${timing.state === "ESCALATED" ? "danger" : timing.state === "WARNING" ? "open" : "work"}">${esc(slaLabel(timing.state))}</b></div>
@@ -738,12 +828,12 @@ function renderOperations(): string {
             <div><dt>Picker bị ảnh hưởng</dt><dd>${Number(selected.affected_picker_count)}</dd></div>
             <div><dt>Thời gian chờ</dt><dd data-wait-batch="${esc(selected.batch_id)}">${timing.waiting} phút</dd></div>
             <div><dt>Thời điểm báo đầu tiên</dt><dd>${esc(fmt(selected.first_report_at))}</dd></div>
-            <div><dt>Lần xử lý</dt><dd>${Number(selected.version || 1)}</dd></div>
+            <div><dt>Báo gần nhất</dt><dd>${esc(fmt(selected.last_report_at || selected.first_report_at))}</dd></div>
           </dl>
           ${selected.previous_batch_id ? `<div class="fast-warning">SKU này phát sinh lại sau một lần xử lý trước.</div>` : ""}
-          <div class="fast-actions"><button class="primary" data-resolve="HAS_STOCK" data-batch="${esc(selected.batch_id)}">ĐÃ CÓ HÀNG</button><button class="danger" data-skip-batch="${esc(selected.batch_id)}">CHO PHÉP BỎ QUA</button><button class="secondary" data-detail="${esc(selected.batch_id)}">${selectedDetails ? "Ẩn danh sách Picker" : "Xem Picker ảnh hưởng"}</button></div>
-          ${selectedDetails ? `<div class="detail" style="margin-top:10px"><div class="detail-list">${selectedDetails.map((item) => `<span class="picker-chip"><strong>${esc(item.picker_employee_code)}</strong> · ${esc(item.picker_display_name || "—")} · ${esc(fmt(item.reported_at))}</span>`).join("")}</div></div>` : ""}
-        ` : `<div class="fast-empty"><strong>Không có SKU đang chờ</strong><span>Khi Picker phát sinh báo hết hàng, SKU sẽ xuất hiện tại đây theo thời gian thực.</span></div>`}
+          <div class="fast-actions"><button class="primary" data-resolve="HAS_STOCK" data-batch="${esc(selected.batch_id)}">ĐÃ CÓ HÀNG</button><button class="danger" data-skip-batch="${esc(selected.batch_id)}">CHO PHÉP BỎ QUA</button><button class="secondary" data-detail="${esc(selected.batch_id)}">${expandedBatchDetails.has(selected.batch_id) ? "Ẩn danh sách Picker" : "Xem Picker ảnh hưởng"}</button></div>
+          ${pickerDetailMarkup(selected.batch_id, selectedDetails)}
+        ` : `<div class="fast-empty"><strong>Không có SKU trong nhóm đang chọn</strong><span>Chọn nhóm khác để tiếp tục theo dõi.</span></div>`}
       </aside>
     </div>
   </section>`;
@@ -772,10 +862,10 @@ function renderOperationRow(row: ReporterBatch): string {
   const details = batchDetails.get(row.batch_id);
   return `<article class="operation-row ${sla_state === "ESCALATED" ? "escalated" : sla_state === "WARNING" ? "warning" : ""}" data-operation-batch="${esc(row.batch_id)}">
     <div><div class="sku-code">${esc(row.sku)}</div><div class="product-name">${esc(row.product_name)}</div></div>
-    <div><div class="operation-count">${Number(row.affected_picker_count)} Picker</div><div class="tiny muted">Phiên bản ${Number(row.version || 1)}</div></div>
+    <div><div class="operation-count">${Number(row.affected_picker_count)} Picker</div><div class="tiny muted">Báo gần nhất ${esc(fmt(row.last_report_at || row.first_report_at))}</div></div>
     <div class="operation-meta"><span data-wait-batch="${esc(row.batch_id)}">${timing.waiting} phút</span><span data-sla-batch="${esc(row.batch_id)}" class="badge ${sla_state === "ESCALATED" ? "escalated" : sla_state === "WARNING" ? "warning" : sla_state === "NORMAL" ? "ok" : ""}">${esc(slaLabel(sla_state))}</span>${recurrence}<span>Báo đầu ${esc(fmt(row.first_report_at))}</span></div>
-    <div class="operation-actions"><button class="btn success" data-resolve="HAS_STOCK" data-batch="${esc(row.batch_id)}">CÓ HÀNG</button><button class="btn danger" data-skip-batch="${esc(row.batch_id)}">CHO PHÉP BỎ QUA</button><button class="btn secondary" data-detail="${esc(row.batch_id)}">${details ? "Ẩn Picker" : "Picker"}</button></div>
-    ${details ? `<div class="detail"><div class="detail-list">${details.map((item) => `<span class="picker-chip"><strong>${esc(item.picker_employee_code)}</strong> · ${esc(item.picker_display_name || "—")} · ${esc(fmt(item.reported_at))}</span>`).join("")}</div></div>` : ""}
+    <div class="operation-actions"><button class="btn success" data-resolve="HAS_STOCK" data-batch="${esc(row.batch_id)}">CÓ HÀNG</button><button class="btn danger" data-skip-batch="${esc(row.batch_id)}">CHO PHÉP BỎ QUA</button><button class="btn secondary" data-detail="${esc(row.batch_id)}">${expandedBatchDetails.has(row.batch_id) ? "Ẩn Picker" : "Picker"}</button></div>
+    ${pickerDetailMarkup(row.batch_id, details)}
   </article>`;
 }
 
@@ -1195,7 +1285,7 @@ function renderSystem(): string {
 
   return `<section class="ops-route system-workspace">
     <div class="business-page-head">
-      <div><h2>Trạng thái hệ thống</h2><p>Theo dõi dịch vụ, dung lượng, giới hạn tham chiếu và mức sử dụng thực tế của Beta.</p></div>
+      <div><h2>Trạng thái hệ thống</h2><p>Theo dõi dịch vụ, dung lượng, giới hạn tham chiếu và mức sử dụng hiện tại.</p></div>
       <button class="secondary" id="refresh-system">Cập nhật số liệu</button>
     </div>
 
@@ -1214,15 +1304,15 @@ function renderSystem(): string {
 
     <div class="system-service-grid">
       <article class="ops-panel system-service-card">
-        <div class="system-service-head"><div><span class="system-provider">Cloudflare</span><h3>Worker · supra-inventory-beta</h3></div><b class="system-health ${serviceReachable ? "ok" : "bad"}">${serviceReachable ? "Đang hoạt động" : "Mất kết nối"}</b></div>
+        <div class="system-service-head"><div><span class="system-provider">Cloudflare</span><h3>Worker · Inventory API</h3></div><b class="system-health ${serviceReachable ? "ok" : "bad"}">${serviceReachable ? "Đang hoạt động" : "Mất kết nối"}</b></div>
         <p class="system-service-desc">API Web/Android, xác thực phiên, định tuyến nghiệp vụ và static Web.</p>
         <div class="system-facts">
-          <div><span>Môi trường</span><b>Beta</b></div>
+          <div><span>Kênh hệ thống</span><b>Kiểm thử</b></div>
           <div><span>Source đang chạy</span><b class="mono">${esc(String(snapshot?.source_commit || "chưa ghi build SHA").slice(0,12))}</b></div>
           <div><span>Internet trình duyệt</span><b>${navigator.onLine ? "Bình thường" : "Mất kết nối"}</b></div>
           <div><span>Realtime Web</span><b>${realtimeState === "connected" ? "Đã kết nối" : "Đang kết nối lại"}</b></div>
         </div>
-        <div class="system-limit-box"><strong>Giới hạn tham chiếu Workers</strong><div>Free: ${systemNum(workerFree.requests_per_day).toLocaleString("vi-VN")} request/ngày · CPU ${systemNum(workerFree.cpu_ms_per_http_request)} ms/request · RAM ${fmtBytes(workerFree.memory_bytes_per_isolate)}</div><div>Paid: không giới hạn số request/ngày theo bảng giới hạn · CPU mặc định ${systemNum(workerPaid.cpu_ms_per_http_request_default)/1000}s, có thể nâng tối đa ${systemNum(workerPaid.cpu_ms_per_http_request_configurable_max)/1000}s · RAM ${fmtBytes(workerPaid.memory_bytes_per_isolate)}</div><small>Runtime không tự đọc được gói account nên không suy đoán Free/Paid.</small></div>
+        <div class="system-limit-box"><strong>Giới hạn tham chiếu Workers</strong><div>Free: ${systemNum(workerFree.requests_per_day).toLocaleString("vi-VN")} request/ngày · CPU ${systemNum(workerFree.cpu_ms_per_http_request)} ms/request · RAM ${fmtBytes(workerFree.memory_bytes_per_isolate)}</div><div>Paid: không giới hạn số request/ngày theo bảng giới hạn · CPU mặc định ${systemNum(workerPaid.cpu_ms_per_http_request_default)/1000}s, có thể nâng tối đa ${systemNum(workerPaid.cpu_ms_per_http_request_configurable_max)/1000}s · RAM ${fmtBytes(workerPaid.memory_bytes_per_isolate)}</div><small>Giới hạn hiển thị dùng để tham chiếu; gói dịch vụ hiện tại không được nhà cung cấp trả về qua kết nối này.</small></div>
       </article>
 
       <article class="ops-panel system-service-card">
@@ -1247,8 +1337,8 @@ function renderSystem(): string {
           <div><span>Đang hoạt động</span><b>${systemNum(accountStatus.ACTIVE).toLocaleString("vi-VN")}</b></div>
           <div><span>Đã dừng</span><b>${systemNum(accountStatus.DISABLED).toLocaleString("vi-VN")}</b></div>
         </div>
-        <div class="system-role-mini"><span>Picker <b>${systemNum(roleCounts.PICKER)}</b></span><span>Người xử lý <b>${systemNum(roleCounts.REPORTER)}</b></span><span>Admin <b>${systemNum(roleCounts.ADMIN)}</b></span><span>Root <b>${systemNum(roleCounts.ROOT)}</b></span></div>
-        <div class="system-limit-box"><strong>Giới hạn tham chiếu Auth</strong><div>Spark Tier 1: 3.000 người dùng hoạt động/ngày. Custom-token sign-in: 45.000/phút/project. Token exchange: 18.000/phút/project.</div><small>Project billing plan không được suy đoán từ runtime.</small></div>
+        <div class="system-role-mini"><span>Picker <b>${systemNum(roleCounts.PICKER)}</b></span><span>Người xử lý <b>${systemNum(roleCounts.REPORTER)}</b></span><span>Quản trị <b>${systemNum(roleCounts.ADMIN)}</b></span><span>Quản trị hệ thống <b>${systemNum(roleCounts.ROOT)}</b></span></div>
+        <div class="system-limit-box"><strong>Giới hạn tham chiếu Auth</strong><div>Spark Tier 1: 3.000 người dùng hoạt động/ngày. Custom-token sign-in: 45.000/phút/project. Token exchange: 18.000/phút/project.</div><small>Giới hạn hiển thị dùng để tham chiếu; gói dịch vụ hiện tại không được nhà cung cấp trả về qua kết nối này.</small></div>
       </article>
 
       <article class="ops-panel system-service-card">
@@ -1288,10 +1378,10 @@ function renderSystem(): string {
       </article>
 
       <article class="ops-panel system-service-card">
-        <div class="system-service-head"><div><span class="system-provider">GitHub</span><h3>Mã nguồn · CI/CD · APK Beta</h3></div><b class="system-health ${github.status === "ok" ? "ok" : "warn"}">${github.status === "ok" ? "Đã kết nối" : "Chưa đọc được"}</b></div>
-        <p class="system-service-desc">Kho mã canonical, guard, deploy Beta và kênh phát hành APK cập nhật.</p>
+        <div class="system-service-head"><div><span class="system-provider">GitHub</span><h3>Mã nguồn · Phát hành ứng dụng</h3></div><b class="system-health ${github.status === "ok" ? "ok" : "warn"}">${github.status === "ok" ? "Đã kết nối" : "Chưa đọc được"}</b></div>
+        <p class="system-service-desc">Quản lý phiên bản mã nguồn và kênh phát hành cập nhật ứng dụng.</p>
         <div class="system-facts">
-          <div><span>APK Beta mới nhất</span><b>${esc(String(release.tag || "—"))}</b></div>
+          <div><span>Phiên bản ứng dụng mới nhất</span><b>${esc(String(release.tag || "—").replace(/^beta[-_]?/i, ""))}</b></div>
           <div><span>Nguồn release</span><b class="mono">${esc(String(release.source || "—").slice(0,12))}</b></div>
           <div><span>Phát hành</span><b>${release.published_at ? esc(fmt(String(release.published_at))) : "—"}</b></div>
           <div><span>Provider refresh</span><b>${providerRefresh ? esc(fmt(providerRefresh)) : "—"}</b></div>
@@ -1329,7 +1419,7 @@ function renderSystem(): string {
       </div>
     </article>
 
-    <div class="report-section-title"><h3>Bài kiểm tra tải gần nhất</h3><span>Chỉ chạy trên Beta</span></div>
+    <div class="report-section-title"><h3>Bài kiểm tra tải gần nhất</h3></div>
     <article class="ops-panel">
       ${loadTest.test_id ? `
         <div class="system-load-grid">
@@ -1340,8 +1430,8 @@ function renderSystem(): string {
           <div><span>Phản hồi bình quân</span><b>${systemNum(loadTest.average_ms).toFixed(1)} ms</b></div>
           <div><span>95% yêu cầu dưới</span><b>${systemNum(loadTest.p95_ms).toFixed(1)} ms</b></div>
         </div>
-        <p class="system-test-note">Test ID <span class="mono">${esc(String(loadTest.test_id))}</span> · hoàn thành ${esc(String(loadTest.completed_at ? fmt(String(loadTest.completed_at)) : "—"))}. Đây là phép đo Beta thực tế, không phải giới hạn lý thuyết.</p>
-      ` : `<div class="ops-empty">Chưa có bài kiểm tra tải D064 được ghi nhận.</div>`}
+        <p class="system-test-note">Test ID <span class="mono">${esc(String(loadTest.test_id))}</span> · hoàn thành ${esc(String(loadTest.completed_at ? fmt(String(loadTest.completed_at)) : "—"))}. Đây là số liệu đo thực tế tại thời điểm kiểm tra.</p>
+      ` : `<div class="ops-empty">Chưa có kết quả kiểm tra tải.</div>`}
     </article>
 
     <details class="system-tech-details">
@@ -1356,12 +1446,8 @@ function renderLegacyDevices(): string {
 
 function renderLogs(): string {
   const detail = runtimeLogDetail ? JSON.stringify(runtimeLogDetail.content, null, 2) : "";
-  const nextSchedule = "06:00 · 12:00 · 18:00 · 24:00";
   return `<section class="ops-route logs-workspace">
-    <div class="business-page-head"><div><h2>Nhật ký</h2><p>Log được che mật khẩu, token, khóa và thông tin xác thực trước khi lưu.</p></div><div class="user-row-actions"><button class="secondary" id="send-web-log">Gửi log Web ngay</button><button class="secondary" id="download-support-log">Tải log Web xuống</button></div></div>
-    <article class="ops-panel log-policy-panel">
-      <div class="ops-status-strip"><span>Tự gửi định kỳ <b>${nextSchedule}</b></span><span>Khi có lỗi <b>Gửi ngay khi có kết nối</b></span><span>Thư mục <b>Beta / Logs</b></span></div>
-    </article>
+    <div class="business-page-head"><div><h2>Nhật ký</h2></div><div class="user-row-actions"><button class="secondary" id="send-web-log">Gửi log Web ngay</button><button class="secondary" id="download-support-log">Tải log Web xuống</button></div></div>
     <div class="workspace-tabs" role="tablist" aria-label="Nguồn nhật ký">
       <button type="button" class="workspace-tab ${runtimeLogSource === "WEB" ? "active" : ""}" data-log-source="WEB">Log Web</button>
       <button type="button" class="workspace-tab ${runtimeLogSource === "ANDROID" ? "active" : ""}" data-log-source="ANDROID">Log Android</button>
@@ -1372,7 +1458,7 @@ function renderLogs(): string {
         <div class="log-list">${runtimeLogs.length ? runtimeLogs.map((item) => `<button type="button" class="log-row ${runtimeLogDetail?.file.id === item.id ? "selected" : ""}" data-log-file="${esc(item.id)}"><span class="log-severity ${item.severity === "ERROR" ? "error" : "info"}">${item.severity === "ERROR" ? "Lỗi" : "Định kỳ"}</span><div><strong>${esc(item.name)}</strong><small>${esc(fmt(item.created_at))} · ${Math.max(1, Math.round(Number(item.size || 0) / 1024))} KB</small></div></button>`).join("") : `<div class="ops-empty">Chưa có log ${runtimeLogSource === "WEB" ? "Web" : "Android"}.</div>`}</div>
       </article>
       <article class="ops-panel log-detail-panel">
-        <div class="ops-panel-title"><div><h3>Chi tiết log</h3><p>Chọn một file để xem nội dung đã được lọc thông tin nhạy cảm.</p></div></div>
+        <div class="ops-panel-title"><div><h3>Chi tiết log</h3></div></div>
         ${detail ? `<pre class="diagnostics log-detail">${esc(detail)}</pre>` : `<div class="ops-empty">Chưa chọn file log.</div>`}
       </article>
     </div>
@@ -1388,7 +1474,13 @@ function renderLegacyVersions(): string {
 }
 
 function renderAccount(): string {
-  return `<section class="ops-route"><div class="heading"><div><h2>Đổi mật khẩu</h2><p class="muted">${esc(profile?.employee_code || profile?.user_id)} · ${esc(profile?.display_name)}</p></div></div><article class="ops-panel" style="max-width:620px"><form id="password-form" class="ops-form-grid"><label class="span">Mật khẩu hiện tại<input name="current" type="password" required /></label><label class="span">Mật khẩu mới<input name="next" type="password" required /></label><div class="ops-form-actions"><button class="primary">Đổi mật khẩu</button></div></form></article></section>`;
+  return `<section class="ops-route account-workspace">
+    <div class="heading"><div><h2>Tài khoản</h2></div></div>
+    <div class="account-grid">
+      <article class="ops-panel"><div class="ops-panel-title"><div><h3>Đổi mật khẩu</h3></div></div><form id="password-form" class="ops-form-grid"><label class="span">Mật khẩu hiện tại<input name="current" type="password" required /></label><label class="span">Mật khẩu mới<input name="next" type="password" required /></label><div class="ops-form-actions"><button class="primary">Đổi mật khẩu</button></div></form></article>
+      ${roleOperate() ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Xác nhận thao tác</h3></div></div><label class="account-setting-row"><input id="skip-delay-setting" type="checkbox" ${skipDelayEnabled ? "checked" : ""}/><span><strong>Chờ 5 giây trước khi xác nhận bỏ qua</strong><small>Giúp hạn chế bấm nhầm thao tác bỏ qua SKU.</small></span></label></article>` : ""}
+    </div>
+  </section>`;
 }
 
 async function run(fn: () => Promise<void>): Promise<void> {
@@ -1412,15 +1504,41 @@ async function run(fn: () => Promise<void>): Promise<void> {
   }
 }
 
+async function loadCompleteReporterQueue(): Promise<Awaited<ReturnType<typeof getReporterQueue>>> {
+  const pageSize = 200;
+  const first = await getReporterQueue(pageSize, 0);
+  const all = [...first.items];
+  const seen = new Set(all.map((row) => row.batch_id));
+  let offset = first.items.length;
+  const total = Math.max(Number(first.total || 0), all.length);
+  while (offset < total) {
+    const page = await getReporterQueue(pageSize, offset);
+    if (!page.items.length) break;
+    for (const row of page.items) {
+      if (seen.has(row.batch_id)) continue;
+      seen.add(row.batch_id);
+      all.push(row);
+    }
+    offset += page.items.length;
+  }
+  return { ...first, items: all, count: all.length, total: Math.max(total, all.length), limit: all.length, offset: 0 };
+}
+
 async function loadOperations(): Promise<void> {
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const [queue, recent] = await Promise.all([getReporterQueue(200), getReporterRecent(200)]);
+  const [queue, recent] = await Promise.all([loadCompleteReporterQueue(), getReporterRecent(200)]);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   const serverNow = queue.server_now ? Date.parse(queue.server_now) : NaN;
   queueServerOffsetMs = Number.isFinite(serverNow) ? serverNow - Date.now() : 0;
   queueRows = queue.items;
   recentRows = recent.items;
+  if (selectedBatchId && !queueRows.some((row) => row.batch_id === selectedBatchId)) selectedBatchId = null;
+  const selected = queueRows.find((row) => row.batch_id === selectedBatchId) || filteredQueueRows()[0] || queueRows[0];
+  if (selected) {
+    selectedBatchId = selected.batch_id;
+    prefetchBatchDetails(selected.batch_id);
+  }
   markWebUpdateReceived();
 }
 
@@ -1580,7 +1698,7 @@ async function exportReportsCsv(): Promise<void> {
   const stamp = new Date().toISOString().replaceAll(":", "").replaceAll("-", "").slice(0, 15);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `supra-inventory-beta-report-${stamp}.csv`;
+  link.download = `supra-inventory-report-${stamp}.csv`;
   document.body.appendChild(link);
   link.click();
   link.remove();
@@ -1639,6 +1757,12 @@ function bindShell(): void {
     localStorage.setItem(THEME_KEY, themeMode);
     applyTheme();
   });
+  document.querySelectorAll<HTMLButtonElement>("[data-ui-zoom]").forEach((button) => button.addEventListener("click", () => {
+    const step = Number(button.dataset.uiZoom || 0);
+    uiZoom = step === 0 ? 100 : Math.max(70, Math.min(140, uiZoom + step));
+    localStorage.setItem(UI_ZOOM_KEY, String(uiZoom));
+    applyUiZoom();
+  }));
   document.querySelector<HTMLSelectElement>("#root-role-select")?.addEventListener("change", (event) => {
     if (!profile || profile.base_role !== "ROOT") return;
     const role = String((event.currentTarget as HTMLSelectElement).value || "ROOT") as AppProfile["role"];
@@ -1650,6 +1774,7 @@ function bindShell(): void {
       dashboardLoadGeneration += 1;
       reportLoadGeneration += 1;
       clearRoleScopedViewState();
+      skipDelayEnabled = loadSkipDelayEnabled(profile.user_id);
       activeSection = defaultSectionForProfile(profile);
       syncSectionHash(activeSection);
       window.dispatchEvent(new CustomEvent("supra:session-changed"));
@@ -1681,12 +1806,27 @@ function bindShell(): void {
 }
 
 function bindOverlay(): void {
+  document.querySelector<HTMLButtonElement>("#cancel-stock")?.addEventListener("click", () => {
+    stockConfirm = null;
+    patchOverlays();
+  });
+  document.querySelector<HTMLButtonElement>("#confirm-stock")?.addEventListener("click", () => {
+    if (!stockConfirm) return;
+    const batch = stockConfirm;
+    stockConfirm = null;
+    void run(async () => {
+      await resolveReporterBatch(batch.batch_id, "HAS_STOCK");
+      await loadOperations();
+      setNotice("success", `${batch.sku} đã xác nhận Có hàng.`);
+    });
+  });
   document.querySelector<HTMLButtonElement>("#cancel-skip")?.addEventListener("click", () => {
     skipConfirm = null;
     patchOverlays();
   });
   document.querySelector<HTMLButtonElement>("#confirm-skip")?.addEventListener("click", () => {
     if (!skipConfirm) return;
+    if (skipDelayEnabled && Date.now() < skipConfirmOpenedAt + SKIP_CONFIRM_DELAY_MS) return;
     const batch = skipConfirm;
     skipConfirm = null;
     void run(async () => {
@@ -1759,6 +1899,16 @@ function bindSection(): void {
     void run(async () => { await loadSection(next); });
   }));
 
+  document.querySelectorAll<HTMLButtonElement>("[data-queue-filter]").forEach((button) => button.addEventListener("click", () => {
+    const next = String(button.dataset.queueFilter || "ALL") as typeof queueFilter;
+    if (!["ALL", "WARNING", "ESCALATED"].includes(next)) return;
+    queueFilter = next;
+    const visible = filteredQueueRows();
+    if (!visible.some((row) => row.batch_id === selectedBatchId)) selectedBatchId = visible[0]?.batch_id || null;
+    patchActiveSection(false);
+    if (selectedBatchId) prefetchBatchDetails(selectedBatchId);
+  }));
+
   document.querySelectorAll<HTMLButtonElement>("[data-log-source]").forEach((button) => button.addEventListener("click", () => {
     const next = String(button.dataset.logSource || "WEB").toUpperCase() === "ANDROID" ? "ANDROID" : "WEB";
     if (next === runtimeLogSource) return;
@@ -1780,35 +1930,37 @@ function bindSection(): void {
     runtimeLogSource = "WEB";
     runtimeLogDetail = null;
     await loadLogs();
-    setNotice("success", "Đã gửi log Web vào thư mục Beta / Logs.");
+    setNotice("success", "Đã gửi log Web.");
   }));
   document.querySelectorAll<HTMLButtonElement>("[data-select-batch]").forEach((button) => button.addEventListener("click", () => {
     selectedBatchId = button.dataset.selectBatch || null;
-    patchActiveSection();
+    patchActiveSection(true);
+    if (selectedBatchId) prefetchBatchDetails(selectedBatchId);
   }));
 
   document.querySelectorAll<HTMLButtonElement>("[data-resolve]").forEach((button) => button.addEventListener("click", () => {
     const batchId = button.dataset.batch || "";
-    const row = queueRows.find((item) => item.batch_id === batchId);
-    if (!row) return;
-    void run(async () => {
-      await resolveReporterBatch(batchId, "HAS_STOCK");
-      await loadOperations();
-      setNotice("success", `${row.sku} đã xác nhận Có hàng.`);
-    });
+    stockConfirm = queueRows.find((item) => item.batch_id === batchId) || null;
+    patchOverlays();
   }));
   document.querySelectorAll<HTMLButtonElement>("[data-skip-batch]").forEach((button) => button.addEventListener("click", () => {
     skipConfirm = queueRows.find((item) => item.batch_id === button.dataset.skipBatch) || null;
+    skipConfirmOpenedAt = Date.now();
     patchOverlays();
+    if (skipConfirm && skipDelayEnabled) {
+      const batchId = skipConfirm.batch_id;
+      window.setTimeout(() => {
+        if (skipConfirm?.batch_id === batchId) patchOverlays();
+      }, SKIP_CONFIRM_DELAY_MS + 50);
+    }
   }));
   document.querySelectorAll<HTMLButtonElement>("[data-detail]").forEach((button) => button.addEventListener("click", () => {
     const id = button.dataset.detail || "";
-    if (batchDetails.has(id)) {
-      batchDetails.delete(id);
-      patchActiveSection();
-      return;
-    }
-    void run(async () => { batchDetails.set(id, (await getReporterBatchTickets(id)).items); });
+    if (!id) return;
+    if (expandedBatchDetails.has(id)) expandedBatchDetails.delete(id);
+    else expandedBatchDetails.add(id);
+    patchActiveSection(true);
+    if (expandedBatchDetails.has(id)) prefetchBatchDetails(id);
   }));
   document.querySelectorAll<HTMLButtonElement>("[data-correct]").forEach((button) => button.addEventListener("click", () => void run(async () => {
     await correctReporterBatch(button.dataset.correct || "");
@@ -1983,6 +2135,11 @@ function bindSection(): void {
   document.querySelector<HTMLButtonElement>("#user-next")?.addEventListener("click", () => {
     userOffset += USER_PAGE_SIZE;
     void run(loadUsers);
+  });
+
+  document.querySelector<HTMLInputElement>("#skip-delay-setting")?.addEventListener("change", (event) => {
+    skipDelayEnabled = (event.currentTarget as HTMLInputElement).checked;
+    localStorage.setItem(skipDelayStorageKey(), skipDelayEnabled ? "1" : "0");
   });
 
   document.querySelector<HTMLFormElement>("#sla-form")?.addEventListener("submit", (event) => {
@@ -2192,6 +2349,8 @@ async function bootstrap(): Promise<void> {
   }
 }
 
+applyUiZoom();
+
 initWebRuntimeLogging(() => ({
   section: activeSection,
   role: profile?.role || null,
@@ -2206,7 +2365,6 @@ initWebRuntimeLogging(() => ({
 window.setInterval(updateQueueClockDom, 15_000);
 window.setInterval(() => {
   if (themeMode === "AUTO") applyTheme();
-  void maybeSendScheduledWebLog();
 }, 60_000);
 window.setInterval(() => {
   if (!profile || !roleManage() || activeSection !== "dashboard") return;
