@@ -70,7 +70,8 @@ def main() -> None:
     # F23: support diagnostics are bounded/redacted and never include auth session material.
     require(web, "sanitizeDiagnosticValue", "Web diagnostics sanitizer")
     require(web, "downloadSupportDiagnostics", "Web support-log export")
-    require(web, 'slice(0, 16_000)', "Web diagnostics size bound")
+    require(web, 'slice(0, 180_000)', "Web diagnostics size bound")
+    require(web, "getWebRuntimeDiagnosticSnapshot", "rich redacted Web diagnostic snapshot")
     require(android_rt, "fun diagnosticSnapshot()", "Android realtime diagnostics")
     require(android_main, "buildSupportDiagnostics()", "Android support snapshot")
     require(android_main, "sanitizeDiagnosticText", "Android diagnostics sanitizer")
