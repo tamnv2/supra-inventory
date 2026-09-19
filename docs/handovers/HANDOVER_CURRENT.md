@@ -761,3 +761,7 @@ D082 extends the confirmation POC only to Picklist existence lookup. Existing In
 Current relay marker: `D082_READONLY_PICKLIST_LOOKUP_SOURCE_IN_PROGRESS__AGENT_V7_ANDROID_RELEASE_PENDING__D078_OFFICE_PENDING__NO_WMS_MUTATION`.
 
 Current Android marker: `D082_PICKLIST_LOOKUP_SOURCE_IN_PROGRESS__D075_SHARED_RELAY_BASELINE__D076_RULES_PASS`.
+
+## D082 release PASS — Owner home field test pending
+
+D082 is released on main commit `b746ebdd6b29d24a417863e8c117833efb153326`. Agent `relay-agent-v7` and signed Android `beta-vc50` are published; Beta runtime deploy, RTDB Rules deploy/readback, Agent build/release, Android signed release, authority/state and UI guards are PASS. Current Android marker: `D082_READONLY_PICKLIST_LOOKUP_SIGNED_BETA_VC50__AGENT_V7_RELEASE_PASS__OWNER_HOME_FIELD_TEST_PENDING`. Latest Beta APK: `beta-vc50`. Confirmation/mutation remains deferred; D078 Office transport remains pending.
