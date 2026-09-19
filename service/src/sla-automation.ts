@@ -100,11 +100,11 @@ export function readOperationalSlaConfig(state: DurableObjectState): Operational
 }
 
 export function validateOperationalSlaConfig(input: {
-  warning_minutes: unknown;
-  escalation_minutes: unknown;
-  auto_skip_minutes: unknown;
-  auto_skip_enabled: unknown;
-  auto_skip_mode: unknown;
+  warning_minutes?: unknown;
+  escalation_minutes?: unknown;
+  auto_skip_minutes?: unknown;
+  auto_skip_enabled?: unknown;
+  auto_skip_mode?: unknown;
 }): { ok: true; value: Omit<OperationalSlaConfig, "updated_at" | "updated_by"> } | { ok: false } {
   const warning = Number(input.warning_minutes);
   const escalation = Number(input.escalation_minutes);
