@@ -424,3 +424,11 @@ Current relay marker: `D081_AGENT_V6_SOURCE_IN_PROGRESS__WMS_LOGIN_WAIT_FIX__CHR
 PR #81 merged at `a0a68da1e72ba9a8f7bb728db0951b6fd2c23f47`; main Verify Beta Relay Agent run `35458750768` PASS and published `relay-agent-v6`. EXE size 84992 bytes, SHA-256 `7eca617aeb38bda403ca975e07ebdd8a323fbde19b90ef22f0d549b7b0f4b61e`. v6 removes the short per-receive WebSocket cancellation that caused the v5 first-login `Aborted` failure, allows the full five-minute official WMS login window, adds Edge→Chrome fallback, keeps WMS credentials browser-only, clears ADMIN password UI immediately, and exposes local taskbar CPU/MHz/RAM status. Owner field retest is required for first-attempt WMS capture and tray display. No WMS mutation; D078 Office transport remains separate/pending.
 
 Current relay marker: `D081_AGENT_V6_RELEASE_PASS__OWNER_FIRST_ATTEMPT_WMS_RETEST_PENDING__D078_OFFICE_PENDING__NO_WMS_MUTATION`.
+
+## D082 read-only Picklist lookup + persistent overlay — source candidate
+
+D082 extends the confirmation POC only to Picklist existence lookup. Existing Internet/RTDB PDA ↔ Agent transport remains unchanged for the Owner's home test; D078 Office transport remains pending. Agent v7 source adds a persistent topmost overlay with opacity/position persistence and locked click-through behavior, suppresses repeated WMS login while a HY1 RAM session is valid, and converts five-digit PDA requests into a signed read-only Picklist-list GET. PDA receives `CÓ PICKLIST` / `KHÔNG CÓ PICKLIST` or explicit session/schema/transport errors. Confirmation page is reference-only; no WMS mutation is authorized or implemented.
+
+Current relay marker: `D082_READONLY_PICKLIST_LOOKUP_SOURCE_IN_PROGRESS__AGENT_V7_ANDROID_RELEASE_PENDING__D078_OFFICE_PENDING__NO_WMS_MUTATION`.
+
+Current Android marker: `D082_PICKLIST_LOOKUP_SOURCE_IN_PROGRESS__D075_SHARED_RELAY_BASELINE__D076_RULES_PASS`.

@@ -8,7 +8,22 @@
         "$job": {
           ".read": "auth != null && ((auth.token.app_role == 'ADMIN' && auth.token.app_base_role == 'ADMIN') || (auth.token.app_role == 'PICKER' && data.child('picker_uid').val() == auth.uid))",
           ".write": "auth != null && ((!data.exists() && auth.token.app_role == 'PICKER' && newData.child('picker_uid').val() == auth.uid && newData.child('picker_user_id').val() == auth.token.app_user_id && newData.child('status').val() == 'PENDING') || (data.exists() && auth.token.app_role == 'ADMIN' && auth.token.app_base_role == 'ADMIN' && data.child('status').val() == 'PENDING' && newData.child('status').val() == 'ACK' && newData.child('agent_admin_user_id').val() == auth.token.app_user_id && newData.child('request_id').val() == data.child('request_id').val() && newData.child('suffix').val() == data.child('suffix').val() && newData.child('picker_uid').val() == data.child('picker_uid').val() && newData.child('picker_user_id').val() == data.child('picker_user_id').val() && newData.child('source').val() == data.child('source').val()) || (data.exists() && auth.token.app_role == 'PICKER' && data.child('picker_uid').val() == auth.uid && newData.val() == null))",
-          ".validate": "newData.val() == null || (newData.hasChildren(['request_id','suffix','status','source','picker_uid','picker_user_id','client_sent_at_ms']) && newData.child('request_id').isString() && newData.child('suffix').isString() && newData.child('suffix').val().matches(/^\\d{5}$/) && newData.child('source').val() == 'ANDROID_POC' && newData.child('picker_uid').isString() && newData.child('picker_user_id').isString() && ((newData.child('status').val() == 'PENDING') || (newData.child('status').val() == 'ACK' && newData.hasChildren(['agent_id','agent_instance_id','agent_admin_user_id','agent_network','agent_received_at_ms','agent_ack_at_ms']))))"
+          ".validate": "newData.val() == null || (newData.hasChildren(['request_id','suffix','status','source','picker_uid','picker_user_id','client_sent_at_ms']) && newData.child('request_id').isString() && newData.child('suffix').isString() && newData.child('suffix').val().matches(/^\\d{5}$/) && newData.child('source').val() == 'ANDROID_POC' && newData.child('picker_uid').isString() && newData.child('picker_user_id').isString() && ((newData.child('status').val() == 'PENDING') || (newData.child('status').val() == 'ACK' && newData.hasChildren(['agent_id','agent_instance_id','agent_admin_user_id','agent_network','agent_received_at_ms','agent_ack_at_ms']))))",
+          "lookup_status": {
+            ".validate": "newData.isString() && (newData.val() == 'FOUND' || newData.val() == 'NOT_FOUND' || newData.val() == 'WMS_SESSION_REQUIRED' || newData.val() == 'SESSION_EXPIRED' || newData.val() == 'SCHEMA_UNSUPPORTED' || newData.val() == 'FORBIDDEN' || newData.val() == 'PROXY_BLOCK' || newData.val() == 'PROXY_AUTH_REQUIRED' || newData.val() == 'TRANSPORT_FAIL' || newData.val() == 'TIMEOUT' || newData.val() == 'RATE_LIMITED' || newData.val() == 'SERVER_ERROR' || newData.val() == 'REACHABLE_REDIRECT' || newData.val() == 'BAD_REQUEST' || newData.val() == 'HTTP_ERROR' || newData.val() == 'LOOKUP_ERROR')"
+          },
+          "lookup_matches": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+          },
+          "lookup_ms": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 120000"
+          },
+          "lookup_route": {
+            ".validate": "newData.isString()"
+          },
+          "lookup_http": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 599"
+          }
         }
       }
     }

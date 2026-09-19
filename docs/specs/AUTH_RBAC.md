@@ -98,3 +98,11 @@ Picker clients must not infer, request or receive another Picker's event payload
 - Company WMS credentials are **not** entered into or stored by the Agent. WMS login remains interactive on the official `wms-supra.winmart.vn` browser page.
 - The dedicated WMS browser uses its own profile directory; browser-managed login/cookies remain under Chromium/Windows user storage behavior. Agent only captures the allowlisted Supra API request headers required by D080 into process RAM and redacts them from diagnostics.
 - DevTools remains bound to loopback `127.0.0.1` on a random ephemeral port while capture is active.
+
+## D082 — Picklist lookup authorization boundary
+
+- The relay workstation still requires a real SUPRA Inventory `base_role=ADMIN`; no new role receives WMS access.
+- The company WMS session remains a separate, user-authorized browser session. Raw WMS credentials/session/header/signature values remain secret runtime material and are never persisted into RTDB, repo, diagnostics, overlay settings or Android.
+- A valid HY1 session already in Agent RAM disables the manual `Mở WMS + lấy phiên` action. This prevents repeated login/browser capture while a usable session exists.
+- A PDA relay request is not authorization to open a company login surface. Missing/expired WMS session returns a bounded session-required status; browser login must be initiated locally by the workstation operator.
+- D082 grants only read access to the registered Picklist-list GET. It grants no confirmation/mutation authority.

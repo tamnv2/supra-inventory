@@ -109,3 +109,9 @@ Every Owner-approved requirement must be captured in GitHub in the same workstre
 ## D080 bounded company-WMS POC exception
 
 For the `Xác nhận lấy hàng` workstream only, D080 adds the registered external company endpoints `wms-supra.winmart.vn`, `api-supra.winmart.vn` and corporate proxy fallback reference to project scope for a read-only Agent connectivity/session proof. This does not import SupraCore as a project dependency and does not authorize WMS mutation. D018 remains unchanged for the normal Báo hàng runtime; the exception is bounded to D073–D080 confirmation-path research.
+
+## D082 bounded read-only Picklist lookup extension
+
+D082 extends the D073–D081 confirmation-path exception only far enough to verify Picklist existence. The existing Beta RTDB PDA ↔ Agent transport remains in use for the home test. The registered Supra API scope now includes the signed read-only Picklist-list GET; confirmation/mutation remains outside authority. The Owner-supplied WMS confirm page is a reference location only and is not an authorized action endpoint.
+
+This does not reopen Office-network fallback for the normal Báo hàng transaction path. D078 Office transport testing remains a separate physical-company-network checkpoint.

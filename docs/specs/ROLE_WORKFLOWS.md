@@ -251,3 +251,16 @@ D080 is a separate readiness step inside the Picker confirmation workstream whil
 - D080 does not load/search Picklists, confirm/click orders, or call any WMS mutation endpoint. Real confirmation logic remains deferred.
 - D078 PDA ↔ Agent Office transport testing stays pending until Owner is physically back on the company network.
 - Stable remains untouched and OWNER-GATED.
+
+## D082 — Read-only Picklist existence check
+
+Current home-test workflow:
+1. Picker/PDA remains on the already implemented Internet/RTDB relay; no Office/LAN transport change is made in D082.
+2. Picker opens `Xác nhận đơn`, enters exactly five numeric trailing Picklist digits and presses `KIỂM TRA PICKLIST`.
+3. Agent receives the bounded relay job. A real SUPRA Inventory base-role ADMIN session is still required.
+4. If no valid HY1 WMS session exists in Agent RAM, Agent does **not** open a browser from the remote PDA request. It returns `WMS_SESSION_REQUIRED` (or `SESSION_EXPIRED`) so the workstation operator can authorize login explicitly.
+5. With a valid HY1 session, Agent sends only the signed read-only Picklist-list GET and compares the trailing five digits against Picklist identity fields.
+6. PDA renders `CÓ PICKLIST` for `FOUND`, `KHÔNG CÓ PICKLIST` for a supported schema with no match, and a distinct error/session/schema message otherwise.
+7. D082 never confirms, skips, edits, clicks or mutates a Picklist. The supplied WMS confirm page is reference-only.
+
+Office sequencing is unchanged: D078 remains paused until Owner is physically at company; D082 success over the home Internet relay is not evidence that Office transport works.

@@ -32,7 +32,7 @@
     "picker_reporter": "PDA_ONLY_ON_PDA_NETWORK_WITH_INTERNET",
     "admin_web": "REQUIRES_NETWORK_WITH_PROJECT_INTERNET_ACCESS",
     "office_network": "UNSUPPORTED_BY_OWNER_DECISION_IT_FILTERS_REQUIRED_RUNTIME_ENDPOINTS",
-    "office_fallback_research": "REOPENED_ONLY_FOR_D073_D080_CONFIRMATION_PATH__D078_OFFICE_FIELD_PENDING__D080_WMS_READONLY_POC"
+    "office_fallback_research": "REOPENED_ONLY_FOR_D073_D082_CONFIRMATION_PATH__D078_OFFICE_FIELD_PENDING__D082_HOME_READONLY_PICKLIST_LOOKUP"
   },
   "drive": {
     "root": {
@@ -190,8 +190,8 @@
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
-      "relay_poc_status": "D078_AGENT_V4_RELEASE_PASS__OWNER_OFFICE_PROBE_PENDING",
-      "relay_agent_release": "relay-agent-v4",
+      "relay_poc_status": "D082_SOURCE_IN_PROGRESS__HOME_RTDB_RELAY_UNCHANGED__D078_OFFICE_PENDING",
+      "relay_agent_release": "relay-agent-v6",
       "firebase_rtdb_rules_deploy": "PASS_RUN_35451292051__REST_PUT_EXACT_READBACK"
     },
     "stable": {
@@ -501,10 +501,10 @@
     "extension_feature": false
   },
   "relay_poc": {
-    "decision": "D081",
+    "decision": "D082",
     "environment": "beta",
-    "status": "D081_AGENT_V6_RELEASE_PASS__OWNER_FIRST_ATTEMPT_WMS_RETEST_PENDING__D078_OFFICE_TRANSPORT_PENDING",
-    "purpose": "Authenticated Picker-to-ADMIN relay transport plus separate ADMIN Agent-to-Supra read-only connectivity/session proof; no WMS mutation",
+    "status": "D082_SOURCE_IN_PROGRESS__HOME_RTDB_RELAY_UNCHANGED__D078_OFFICE_TRANSPORT_PENDING",
+    "purpose": "Authenticated Picker-to-ADMIN relay carrying a bounded five-digit read-only WMS Picklist existence lookup result; no confirmation/mutation",
     "transport": "FIREBASE_RTDB_REST_SSE",
     "database_resource_key": "firebase-rtdb-relay-beta",
     "database_name": "supra-inventory-beta-default-rtdb",
@@ -512,9 +512,9 @@
     "database_url": "https://supra-inventory-beta-default-rtdb.asia-southeast1.firebasedatabase.app",
     "path": "relay_poc/jobs/{request_id}",
     "auth": "PICKER_OWN_JOB__REAL_BASE_ADMIN_SHARED_COLLECTION_AND_ACK",
-    "android": "PICKER_SHARED_QUEUE_EXACT_FIVE_DIGIT_SENDER",
+    "android": "PICKER_SHARED_QUEUE_EXACT_FIVE_DIGIT_LOOKUP_REQUEST",
     "windows_agent": "NET48_REAL_ADMIN_ONLY_DPAPI_SHARED_SSE_SANITIZED_LOG_AUTO_UPDATE",
-    "wms_mutation": "FORBIDDEN__D080_READ_ONLY_UI_AND_ZONES_GET_ONLY",
+    "wms_mutation": "FORBIDDEN__D082_ZONES_AND_PICKLIST_LIST_GET_ONLY",
     "stable": "UNTOUCHED_OWNER_GATED",
     "android_release": "beta-vc49",
     "android_apk_sha256": "CHECKSUM_RELEASE_ASSET_PUBLISHED",
@@ -544,17 +544,19 @@
     "rules_deploy_method": "OFFICIAL_RTDB_SETTINGS_RULES_REST_PUT_AND_READBACK",
     "rules_deploy_last_evidence": "PASS_RUN_35451292051__IAM_UPDATE__RULES_GET__RULES_PUT__EXACT_READBACK",
     "rules_deployed_source_commit": "452feb1e25dff936617e5d1d51313438d85155eb",
-    "agent_release_target": "relay-agent-v6",
+    "agent_release_target": "relay-agent-v7",
     "office_transport_discovery": "V4_RELEASE_PASS__FIREBASE_AUTH_RTDB_FIRESTORE_APPS_SCRIPT_SHEETS_DRIVE_READ_ONLY_PROBES__FIELD_LOG_PENDING",
     "transport_selection": "PENDING_OWNER_OFFICE_PROBE_EVIDENCE",
     "wms_session_capture": "RELEASED_V6__EDGE_PRIMARY_CHROME_FALLBACK__FULL_300S_LOGIN_WINDOW__RAM_ONLY_HEADERS__NO_WMS_PASSWORD_IN_EXE",
     "wms_probe": "WMS_UI_REACHABILITY__SIGNED_GET_WAREHOUSE_ZONES__SYSTEM_ENV_DIRECT_CORP_PROXY_ROUTES",
-    "taskbar_monitor": "RELEASED_V6__LOCAL_ONLY_CPU_PERCENT_CURRENT_MHZ_RAM_USED_TOTAL__2S__NO_PROVIDER_QUOTA"
+    "taskbar_monitor": "D082_SOURCE__ALWAYS_VISIBLE_TOPMOST_OVERLAY__OPACITY_POSITION_PERSIST__LOCKED_CLICKTHROUGH__LOCAL_ONLY",
+    "picklist_lookup": "SOURCE_D082__SIGNED_GET_AUTOPP_PICKLISTCONFIRMS__TRAILING_FIVE_DIGIT_MATCH__FAIL_CLOSED_UNKNOWN_SCHEMA",
+    "lookup_ack": "OPTIONAL_BOUNDED_STATUS_MATCH_COUNT_LATENCY_ROUTE_HTTP__NO_FULL_PICKLIST_OR_WMS_RESPONSE"
   },
   "wms_poc": {
-    "decision": "D081",
+    "decision": "D082",
     "environment": "beta_poc",
-    "status": "AGENT_V6_RELEASE_PASS__OWNER_FIRST_ATTEMPT_RETEST_PENDING",
+    "status": "D082_READONLY_PICKLIST_LOOKUP_SOURCE_IN_PROGRESS",
     "ui_resource_key": "supra-wms-ui-d080",
     "api_resource_key": "supra-api-d080",
     "proxy_resource_key": "wincommerce-proxy-fallback-d080",
@@ -578,7 +580,7 @@
     ],
     "corporate_proxy_fallback": "proxyclientdr.winmart.vn:9090",
     "mutation": "FORBIDDEN",
-    "picklist_lookup": "DEFERRED",
+    "picklist_lookup": "SIGNED_CURRENT_MONTH_TO_TODAY__HY1_WIN__CONTENT_FIVE_DIGITS__TRAILING_FIVE_EXACT__UNKNOWN_SCHEMA_FAIL_CLOSED",
     "stable": "UNTOUCHED_OWNER_GATED",
     "agent_release": "relay-agent-v6",
     "release_id": 392161587,
@@ -590,6 +592,11 @@
       "GOOGLE_CHROME"
     ],
     "wms_credentials": "OFFICIAL_BROWSER_PAGE_ONLY__NO_AGENT_FORM_OR_STORAGE",
-    "taskbar_monitor": "LOCAL_CPU_PERCENT_CURRENT_MHZ_RAM_USED_TOTAL"
+    "taskbar_monitor": "D082_ALWAYS_VISIBLE_OVERLAY__LOCAL_CPU_MHZ_RAM__LOCKED_CLICKTHROUGH",
+    "read_only_lookup": "GET /sft3-hy1/api/v1/autopp/pickListConfirms",
+    "confirm_ui_reference": "https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm",
+    "confirmation": "DEFERRED_NOT_AUTHORIZED_NOT_IMPLEMENTED",
+    "session_login_suppression": "VALID_RAM_SESSION_DISABLES_MANUAL_CAPTURE__REMOTE_PDA_NEVER_AUTO_OPENS_LOGIN",
+    "agent_release_target": "relay-agent-v7"
   }
 }

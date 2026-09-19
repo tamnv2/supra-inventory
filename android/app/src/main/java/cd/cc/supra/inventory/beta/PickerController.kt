@@ -147,11 +147,11 @@ class PickerController(
                     }
                     relayButton?.isEnabled = digits.length == 5
                     relayStatus?.text = if (digits.isEmpty()) {
-                        "Sẵn sàng nhập 5 số cuối."
+                        "Sẵn sàng nhập 5 số cuối để kiểm tra Picklist."
                     } else if (digits.length < 5) {
                         "Đã nhập " + digits.length + "/5 số."
                     } else {
-                        "Đủ 5 số. Sẵn sàng gửi test."
+                        "Đủ 5 số. Sẵn sàng kiểm tra Picklist."
                     }
                 }
             })
@@ -238,17 +238,33 @@ class PickerController(
             return
         }
         relayButton?.isEnabled = false
-        relayStatus?.text = "Đang gửi tới máy xử lý..."
-        recordLog("Relay bắt đầu gửi test 5 số; không ghi giá trị Picklist vào log")
+        relayStatus?.text = "Đang kiểm tra Picklist trên WMS..."
+        recordLog("Relay bắt đầu tra cứu Picklist theo 5 số cuối; không ghi giá trị Picklist vào log")
         Thread {
             try {
                 val result = relayPocClient.sendProbe(suffix)
                 activity.runOnUiThread {
                     relayButton?.isEnabled = relayPicklistInput?.text?.length == 5
                     val network = result.agentNetwork.takeIf { it.isNotBlank() && it != "UNKNOWN" }?.let { " • " + it }.orEmpty()
-                    relayStatus?.text = "Đã nhận: " + result.agentId + " • Admin " + result.agentAdminUserId + network + " • " + result.roundTripMs + " ms"
+                    val headline = when (result.lookupStatus) {
+                        "FOUND" -> "CÓ PICKLIST"
+                        "NOT_FOUND" -> "KHÔNG CÓ PICKLIST"
+                        "WMS_SESSION_REQUIRED", "SESSION_EXPIRED" -> "MÁY XỬ LÝ CẦN ĐĂNG NHẬP WMS"
+                        "SCHEMA_UNSUPPORTED" -> "CHƯA ĐỌC ĐƯỢC CẤU TRÚC PICKLIST"
+                        "FORBIDDEN" -> "WMS TỪ CHỐI QUYỀN TRA CỨU"
+                        "PROXY_BLOCK" -> "MẠNG CHẶN KẾT NỐI WMS"
+                        "TRANSPORT_ONLY" -> "AGENT CHƯA HỖ TRỢ TRA CỨU PICKLIST"
+                        else -> "TRA CỨU PICKLIST LỖI"
+                    }
+                    val timing = if (result.lookupMs > 0) " • WMS " + result.lookupMs + " ms" else ""
+                    relayStatus?.text = headline + "\n" +
+                        result.agentId + " • Admin " + result.agentAdminUserId + network +
+                        " • RTT " + result.roundTripMs + " ms" + timing
                     recordLog(
-                        "Relay PDA ACK rtt=" + result.roundTripMs +
+                        "Relay PDA lookup=" + result.lookupStatus +
+                            " matches=" + result.lookupMatches +
+                            " lookup_ms=" + result.lookupMs +
+                            " rtt=" + result.roundTripMs +
                             "ms admin=" + result.agentAdminUserId +
                             " agent=" + result.agentId +
                             " instance=" + result.agentInstanceId.take(12) +

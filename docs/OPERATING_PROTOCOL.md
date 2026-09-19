@@ -60,3 +60,14 @@ The Owner has resumed the confirmation workstream but is temporarily away from t
 - real Picklist lookup/confirmation/mutation requires a later explicit Owner decision after both transport sides have evidence.
 
 Every D080 implementation still follows fresh-main branch → PR → authority/continuity/Agent guards → merge → prerelease.
+
+## D082 home-test sequencing
+
+While Owner is away from company:
+- keep the already implemented Internet/RTDB PDA ↔ Agent relay unchanged;
+- test only PDA five-digit request → Agent read-only WMS Picklist-list GET → bounded result ACK;
+- do not provision or swap transport providers for Office/LAN;
+- a remote PDA request must not open a WMS login/browser window; local workstation operator establishes/refreshes WMS session explicitly;
+- confirmation page/API is reference-only and no WMS mutation is permitted.
+
+When Owner returns to company, D078 Office transport discovery resumes separately; do not infer it from a successful D082 home test.

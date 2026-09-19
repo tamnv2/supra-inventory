@@ -107,3 +107,15 @@ Trong lúc bài test PDA ↔ Agent trên mạng Office tạm hoãn, Agent v5 ki�
 - The system-tray icon now provides a local-only machine monitor for CPU %, CPU MHz and RAM used/total, refreshed about every two seconds. This consumes no project-provider quota.
 - The tray status provider is intended to later project operational counters such as confirmed Picklists and online users.
 - No WMS mutation and no Stable change.
+
+## D082 — persistent overlay + read-only Picklist lookup
+
+- Replaces hover-only machine visibility with a small topmost overlay showing local CPU %, current/approximate MHz and RAM used/total.
+- Tray menu can show/hide the overlay, select opacity, unlock it for dragging and lock it again. Locked mode is click-through/no-activate so pointer input goes to the underlying application.
+- Overlay position/opacity/visible/locked state is local non-secret configuration only.
+- A valid HY1 WMS session disables `Mở WMS + lấy phiên` to prevent repeated login. A remote PDA request never auto-opens the WMS browser.
+- The PDA five-digit request now triggers only the signed read-only `GET /sft3-hy1/api/v1/autopp/pickListConfirms`. Agent compares exact trailing five digits in recognized Picklist identity fields and returns `FOUND` / `NOT_FOUND` or an explicit fail-closed error.
+- Unknown response schema is `SCHEMA_UNSUPPORTED`; Agent logs only bounded field names/classifications/timing for adaptation, not response values.
+- The WMS confirm page is recorded only as a reference. No confirm/click and no WMS POST/PUT/PATCH/DELETE exists in D082.
+- Existing Beta RTDB home relay stays unchanged; D078 Office transport remains pending.
+- Stable is untouched.

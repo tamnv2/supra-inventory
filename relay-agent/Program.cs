@@ -178,8 +178,12 @@ namespace SupraInventoryRelayAgent
         private readonly ListBox _log = new ListBox();
         private readonly NotifyIcon _tray = new NotifyIcon();
         private readonly ToolStripMenuItem _trayStatusItem = new ToolStripMenuItem();
+        private readonly ToolStripMenuItem _trayOverlayVisibleItem = new ToolStripMenuItem();
+        private readonly ToolStripMenuItem _trayOverlayLockItem = new ToolStripMenuItem();
+        private readonly ToolStripMenuItem _trayOverlayOpacityMenu = new ToolStripMenuItem();
         private readonly SystemMonitor _systemMonitor = new SystemMonitor();
         private readonly System.Windows.Forms.Timer _trayMonitorTimer = new System.Windows.Forms.Timer();
+        private readonly StatusOverlayForm _statusOverlay;
         private readonly HashSet<string> _acked = new HashSet<string>(StringComparer.Ordinal);
         private readonly object _sessionLock = new object();
         private readonly object _wmsSessionLock = new object();
@@ -196,10 +200,14 @@ namespace SupraInventoryRelayAgent
             "SUPRA Inventory", "RelayPoc");
         private static readonly string SessionFile = Path.Combine(RelayDataDir, "session.bin");
         private static readonly string AgentInstanceFile = Path.Combine(RelayDataDir, "agent-instance-id.txt");
+        private static readonly string OverlaySettingsFile = Path.Combine(RelayDataDir, "overlay-settings.json");
 
         internal AgentForm()
         {
             _agentInstanceId = LoadOrCreateAgentInstanceId();
+            var overlaySettings = StatusOverlayForm.LoadSettings(OverlaySettingsFile);
+            _statusOverlay = new StatusOverlayForm(overlaySettings, OverlaySettingsFile);
+            _statusOverlay.SettingsChanged += RefreshOverlayMenu;
             Text = "SUPRA Inventory - Relay Test v" + AgentConfig.AgentBuild;
             Width = 780;
             Height = 680;
@@ -266,17 +274,52 @@ namespace SupraInventoryRelayAgent
             _trayStatusItem.Text = "Máy: đang đọc...";
             menu.Items.Add(_trayStatusItem);
             menu.Items.Add(new ToolStripSeparator());
+
+            _trayOverlayVisibleItem.Text = "Hiển thị bảng nổi";
+            _trayOverlayVisibleItem.CheckOnClick = false;
+            _trayOverlayVisibleItem.Click += (s, e) =>
+            {
+                _statusOverlay.SetOverlayVisible(!_statusOverlay.OverlayVisible);
+                RefreshOverlayMenu();
+            };
+            menu.Items.Add(_trayOverlayVisibleItem);
+
+            _trayOverlayLockItem.Text = "Khóa vị trí / xuyên chuột";
+            _trayOverlayLockItem.CheckOnClick = false;
+            _trayOverlayLockItem.Click += (s, e) =>
+            {
+                _statusOverlay.SetLocked(!_statusOverlay.IsLocked);
+                RefreshOverlayMenu();
+            };
+            menu.Items.Add(_trayOverlayLockItem);
+
+            _trayOverlayOpacityMenu.Text = "Độ trong bảng nổi";
+            foreach (var item in new[] { 0.40, 0.60, 0.80, 1.00 })
+            {
+                var opacity = item;
+                var opacityItem = new ToolStripMenuItem(((int)(opacity * 100)).ToString() + "%");
+                opacityItem.Tag = opacity;
+                opacityItem.Click += (s, e) =>
+                {
+                    _statusOverlay.SetOverlayOpacity(opacity);
+                    RefreshOverlayMenu();
+                };
+                _trayOverlayOpacityMenu.DropDownItems.Add(opacityItem);
+            }
+            menu.Items.Add(_trayOverlayOpacityMenu);
+            menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add("Mở Agent", null, (s, e) => RestoreFromTray());
             menu.Items.Add("Mở log", null, (s, e) => AgentDiagnostics.OpenLog());
             menu.Items.Add("Thoát", null, (s, e) => { _allowExit = true; Close(); });
             _tray.Text = "SUPRA | đang đọc tài nguyên máy"; _tray.Icon = SystemIcons.Application; _tray.ContextMenuStrip = menu; _tray.Visible = true;
+            RefreshOverlayMenu();
             _tray.DoubleClick += (s, e) => RestoreFromTray();
 
             Resize += (s, e) => { if (WindowState == FormWindowState.Minimized) { Hide(); _tray.ShowBalloonTip(1000, "SUPRA Inventory", "Relay Test Agent đang chạy nền.", ToolTipIcon.Info); } };
             FormClosing += (s, e) =>
             {
                 if (!_allowExit && e.CloseReason == CloseReason.UserClosing) { e.Cancel = true; WindowState = FormWindowState.Minimized; Hide(); return; }
-                StopListening(); _trayMonitorTimer.Stop(); _tray.Visible = false;
+                StopListening(); _trayMonitorTimer.Stop(); try { _statusOverlay.Close(); } catch { } _tray.Visible = false;
             };
 
             var timer = new System.Windows.Forms.Timer { Interval = 4000 };
@@ -292,7 +335,11 @@ namespace SupraInventoryRelayAgent
             _updateTimer.Tick += (s, e) => Task.Run(() => TryAutoUpdate(false));
             _updateTimer.Start();
 
-            Shown += (s, e) => Task.Run(() => StartupSequence());
+            Shown += (s, e) =>
+            {
+                if (_statusOverlay.OverlayVisible && !_statusOverlay.Visible) _statusOverlay.Show();
+                Task.Run(() => StartupSequence());
+            };
         }
 
         private void RestoreFromTray() { Show(); WindowState = FormWindowState.Normal; Activate(); }
@@ -306,11 +353,31 @@ namespace SupraInventoryRelayAgent
                 if (compact.Length > 63) compact = compact.Substring(0, 63);
                 _tray.Text = compact;
                 _trayStatusItem.Text = metrics.MenuText();
+                _statusOverlay.UpdateText(metrics.Compact());
             }
             catch
             {
                 _tray.Text = "SUPRA Agent";
                 _trayStatusItem.Text = "Máy: chưa đọc được tài nguyên";
+                _statusOverlay.UpdateText("SUPRA | chưa đọc được tài nguyên máy");
+            }
+        }
+
+        private void RefreshOverlayMenu()
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(RefreshOverlayMenu));
+                return;
+            }
+            _trayOverlayVisibleItem.Checked = _statusOverlay.OverlayVisible;
+            _trayOverlayLockItem.Checked = _statusOverlay.IsLocked;
+            foreach (ToolStripItem item in _trayOverlayOpacityMenu.DropDownItems)
+            {
+                var menuItem = item as ToolStripMenuItem;
+                if (menuItem == null || !(menuItem.Tag is double)) continue;
+                var value = (double)menuItem.Tag;
+                menuItem.Checked = Math.Abs(value - _statusOverlay.OverlayOpacity) < 0.02;
             }
         }
 
@@ -325,9 +392,17 @@ namespace SupraInventoryRelayAgent
                 _probeSheets.Enabled = enabled;
                 _probeDrive.Enabled = enabled;
                 _probeAll.Enabled = enabled;
-                _wmsCapture.Enabled = enabled;
+                var hasWmsSession = HasUsableWmsSession();
+                _wmsCapture.Enabled = enabled && !hasWmsSession;
+                _wmsCapture.Text = hasWmsSession ? "Phiên WMS đang OK" : "Mở WMS + lấy phiên";
                 _wmsTest.Enabled = enabled;
             });
+        }
+
+        private bool HasUsableWmsSession()
+        {
+            lock (_wmsSessionLock)
+                return _wmsSession != null && _wmsSession.IsValidHy1();
         }
 
         private void StartupSequence()
@@ -878,8 +953,16 @@ namespace SupraInventoryRelayAgent
 
         private void CaptureWmsSession()
         {
+            if (HasUsableWmsSession())
+            {
+                Ui(() => _wmsStatus.Text = "WMS: phiên HY1 đang OK · không mở lại login");
+                Log("WMS SESSION REUSE valid_in_ram=true browser_login_skipped=true values=redacted.");
+                SetProbeButtonsEnabled(true);
+                return;
+            }
+
             SetProbeButtonsEnabled(false);
-            Ui(() => _wmsStatus.Text = "WMS: đang mở Edge / chờ phiên...");
+            Ui(() => _wmsStatus.Text = "WMS: đang mở trình duyệt / chờ phiên...");
             try
             {
                 LogNetworkSnapshot("wms-session-capture");
@@ -921,7 +1004,7 @@ namespace SupraInventoryRelayAgent
                 var session = SnapshotWmsSession();
                 if (session == null || !session.IsValidHy1())
                 {
-                    Log("WMS chưa có phiên HY1 trong RAM; tự mở Edge để lấy phiên.");
+                    Log("WMS chưa có phiên HY1 trong RAM; tự mở trình duyệt để lấy phiên.");
                     session = WmsBrowserCapture.CaptureSession(300, message => Log("WMS " + message));
                     lock (_wmsSessionLock) _wmsSession = session;
                 }
@@ -931,7 +1014,7 @@ namespace SupraInventoryRelayAgent
 
                 if (string.Equals(api.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
                 {
-                    Log("WMS phiên cũ hết hạn; tự mở Edge để lấy phiên mới một lần.");
+                    Log("WMS phiên cũ hết hạn; tự mở trình duyệt để lấy phiên mới một lần.");
                     var refreshed = WmsBrowserCapture.CaptureSession(300, message => Log("WMS " + message));
                     lock (_wmsSessionLock) _wmsSession = refreshed;
                     api = WmsReadOnlyClient.ProbeApi(refreshed);
@@ -1145,13 +1228,21 @@ namespace SupraInventoryRelayAgent
 
         private void HandleJob(string jobId, Dictionary<string, object> job)
         {
-            object statusObj, sourceObj;
+            object statusObj, sourceObj, suffixObj;
             if (!job.TryGetValue("status", out statusObj) ||
                 !string.Equals(Convert.ToString(statusObj), "PENDING", StringComparison.OrdinalIgnoreCase))
                 return;
             if (job.TryGetValue("source", out sourceObj) &&
                 !string.Equals(Convert.ToString(sourceObj), "ANDROID_POC", StringComparison.Ordinal))
                 return;
+            if (!job.TryGetValue("suffix", out suffixObj)) return;
+
+            var suffix = Convert.ToString(suffixObj) ?? "";
+            if (!Regex.IsMatch(suffix, @"^\d{5}$"))
+            {
+                Log("Relay request=" + Short(jobId) + " bị từ chối vì suffix không đúng 5 số.");
+                return;
+            }
 
             lock (_acked)
             {
@@ -1159,9 +1250,39 @@ namespace SupraInventoryRelayAgent
                 _acked.Add(jobId);
             }
 
+            Task.Run(() => HandlePicklistLookupJob(jobId, suffix));
+        }
+
+        private void HandlePicklistLookupJob(string jobId, string suffix)
+        {
             var session = SnapshotSession();
             try
             {
+                WmsPicklistLookupResult lookup;
+                var wmsSession = SnapshotWmsSession();
+                if (wmsSession == null || !wmsSession.IsValidHy1())
+                {
+                    lookup = new WmsPicklistLookupResult
+                    {
+                        Result = "WMS_SESSION_REQUIRED",
+                        Route = "NONE",
+                        StatusCode = 0,
+                        ElapsedMs = 0,
+                        MatchCount = 0
+                    };
+                }
+                else
+                {
+                    lookup = WmsPicklistLookupClient.Lookup(wmsSession, suffix);
+                }
+
+                if (string.Equals(lookup.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
+                {
+                    lock (_wmsSessionLock) _wmsSession = null;
+                    Ui(() => _wmsStatus.Text = "WMS: phiên hết hạn · cần đăng nhập lại");
+                    SetProbeButtonsEnabled(true);
+                }
+
                 var patch = new Dictionary<string, object>
                 {
                     { "status", "ACK" },
@@ -1170,17 +1291,42 @@ namespace SupraInventoryRelayAgent
                     { "agent_admin_user_id", session.AppUserId },
                     { "agent_network", GetSsid() },
                     { "agent_received_at_ms", NowMs() },
-                    { "agent_ack_at_ms", NowMs() }
+                    { "agent_ack_at_ms", NowMs() },
+                    { "lookup_status", lookup.Result ?? "LOOKUP_ERROR" },
+                    { "lookup_matches", lookup.MatchCount },
+                    { "lookup_ms", Math.Max(0L, lookup.ElapsedMs) },
+                    { "lookup_route", string.IsNullOrWhiteSpace(lookup.Route) ? "NONE" : lookup.Route },
+                    { "lookup_http", lookup.StatusCode }
                 };
+
                 RequestJson("PATCH", JobUrl(session, jobId), _json.Serialize(patch), "application/json");
+
                 Log(
-                    "ACK OWNED request=" + Short(jobId) +
+                    "PICKLIST LOOKUP ACK request=" + Short(jobId) +
+                    " result=" + (lookup.Result ?? "LOOKUP_ERROR") +
+                    " matches=" + lookup.MatchCount +
+                    " lookup_ms=" + lookup.ElapsedMs +
+                    " route=" + (lookup.Route ?? "NONE") +
+                    " http=" + lookup.StatusCode +
                     " admin=" + session.AppUserId +
                     " machine=" + Environment.MachineName +
                     " instance=" + Short(_agentInstanceId) +
                     " network=" + GetSsid() +
-                    " payload_digits=5"
+                    " payload_digits=5 values=redacted"
                 );
+
+                Ui(() =>
+                {
+                    if (string.Equals(lookup.Result, "FOUND", StringComparison.Ordinal))
+                        _relay.Text = "Relay: CÓ PICKLIST · đã trả PDA";
+                    else if (string.Equals(lookup.Result, "NOT_FOUND", StringComparison.Ordinal))
+                        _relay.Text = "Relay: KHÔNG CÓ PICKLIST · đã trả PDA";
+                    else if (string.Equals(lookup.Result, "WMS_SESSION_REQUIRED", StringComparison.Ordinal) ||
+                             string.Equals(lookup.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
+                        _relay.Text = "Relay: cần phiên WMS";
+                    else
+                        _relay.Text = "Relay: tra cứu WMS " + (lookup.Result ?? "ERROR");
+                });
             }
             catch (RelayHttpException ex)
             {
@@ -1190,12 +1336,33 @@ namespace SupraInventoryRelayAgent
                     return;
                 }
                 lock (_acked) _acked.Remove(jobId);
-                Log("ACK lỗi: " + SafeMessage(ex));
+                Log("PICKLIST LOOKUP ACK lỗi: " + SafeMessage(ex));
             }
             catch (Exception ex)
             {
                 lock (_acked) _acked.Remove(jobId);
-                Log("ACK lỗi: " + SafeMessage(ex));
+                Log("PICKLIST LOOKUP lỗi: " + SafeMessage(ex));
+                try
+                {
+                    var patch = new Dictionary<string, object>
+                    {
+                        { "status", "ACK" },
+                        { "agent_id", Environment.MachineName },
+                        { "agent_instance_id", _agentInstanceId },
+                        { "agent_admin_user_id", session.AppUserId },
+                        { "agent_network", GetSsid() },
+                        { "agent_received_at_ms", NowMs() },
+                        { "agent_ack_at_ms", NowMs() },
+                        { "lookup_status", "LOOKUP_ERROR" },
+                        { "lookup_matches", 0 },
+                        { "lookup_ms", 0 },
+                        { "lookup_route", "NONE" },
+                        { "lookup_http", 0 }
+                    };
+                    RequestJson("PATCH", JobUrl(session, jobId), _json.Serialize(patch), "application/json");
+                    lock (_acked) _acked.Add(jobId);
+                }
+                catch { }
             }
         }
 
