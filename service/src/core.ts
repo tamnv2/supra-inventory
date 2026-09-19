@@ -6,12 +6,20 @@ import { handleUserManagementCoreRequest } from "./user-management-core";
 import { handleArchiveCoreRequest } from "./archive-core";
 import { handleSystemMetricsCoreRequest } from "./system-metrics-core";
 import { initializeOperationalV2Schema, operationalV2Readiness } from "./operational-v2-core";
+import {
+  processOperationalDeadlines,
+  scheduleNextOperationalAlarm,
+  type OperationalDeadlineEffect,
+} from "./sla-automation";
+import { sendFcmNotifications } from "./fcm";
 
-const SCHEMA_VERSION = 6;
+const SCHEMA_VERSION = 7;
 
 interface CoreEnv {
   APP_ENV: string;
   PROJECT_KEY: string;
+  FIREBASE_PROJECT_ID: string;
+  GOOGLE_RUNTIME_SA_JSON?: string;
 }
 
 type AppRole = "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
@@ -255,6 +263,179 @@ export class InventoryCore {
        ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP`,
       String(SCHEMA_VERSION),
     );
+  }
+
+  private async notificationTokens(roles: string[], userIds: string[]): Promise<string[]> {
+    const result = await handleNotificationCoreRequest(
+      this.state,
+      new Request("https://inventory-core.internal/notifications/targets", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ roles, user_ids: userIds }),
+      }),
+    );
+    if (!result?.ok) return [];
+    const payload = (await result.json()) as { tokens?: string[] };
+    return Array.isArray(payload.tokens) ? payload.tokens : [];
+  }
+
+  private async recordNotificationDelivery(
+    eventId: string | null,
+    event: string,
+    attempts: Array<{ token: string; status: string; error_code: string | null }>,
+    invalidTokens: string[],
+  ): Promise<void> {
+    if (attempts.length) {
+      await handleNotificationCoreRequest(
+        this.state,
+        new Request("https://inventory-core.internal/notifications/delivery-attempts", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ event_id: eventId, event, attempts }),
+        }),
+      );
+    }
+    if (invalidTokens.length) {
+      await handleNotificationCoreRequest(
+        this.state,
+        new Request("https://inventory-core.internal/notifications/disable-tokens", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ tokens: invalidTokens }),
+        }),
+      );
+    }
+  }
+
+  private async sendDeadlineFcm(
+    effect: OperationalDeadlineEffect,
+    roles: string[],
+    userIds: string[],
+    title = effect.title,
+    body = effect.body,
+    eventName = effect.event,
+  ): Promise<void> {
+    if (!this.env.GOOGLE_RUNTIME_SA_JSON || !this.env.FIREBASE_PROJECT_ID) return;
+    const tokens = await this.notificationTokens(roles, userIds);
+    if (!tokens.length) return;
+    const eventRow = this.state.storage.sql.exec<Record<string, SqlStorageValue>>(
+      "SELECT seq, batch_version FROM realtime_events WHERE event_id = ? LIMIT 1",
+      effect.event_id,
+    ).toArray()[0];
+    const delivery = await sendFcmNotifications(
+      this.env.GOOGLE_RUNTIME_SA_JSON,
+      this.env.FIREBASE_PROJECT_ID,
+      tokens,
+      {
+        title,
+        body,
+        data: {
+          event: eventName,
+          batch_id: effect.batch_id,
+          result_event_id: effect.result_event ? effect.event_id : "",
+          event_seq: eventRow?.seq == null ? "" : String(eventRow.seq),
+          batch_version: eventRow?.batch_version == null ? "" : String(eventRow.batch_version),
+          source: "SYSTEM_DEADLINE",
+        },
+      },
+    );
+    await this.recordNotificationDelivery(
+      effect.result_event ? effect.event_id : null,
+      eventName,
+      delivery.attempts.map((attempt) => ({
+        token: attempt.token,
+        status: attempt.status,
+        error_code: attempt.error_code,
+      })),
+      delivery.invalidTokens,
+    );
+  }
+
+  private async broadcastDeadlineEffect(effect: OperationalDeadlineEffect): Promise<void> {
+    const tags = [
+      ...effect.reporter_roles.map((role) => `role:${role}`),
+      ...effect.picker_user_ids.map((userId) => `user:${userId}`),
+    ];
+    await handleReadModelCoreRequest(
+      this.state,
+      new Request("https://inventory-core.internal/realtime/broadcast", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          event: effect.event,
+          event_id: effect.event_id,
+          scopes: effect.scopes,
+          tags,
+          batch_id: effect.batch_id,
+          include_batch_picker_users: false,
+          metadata: { source: "SYSTEM_DEADLINE" },
+        }),
+      }),
+    );
+  }
+
+  private reporterSummary(effect: OperationalDeadlineEffect, count: number): { title: string; body: string; event: string } {
+    if (count <= 1) return { title: effect.title, body: effect.body, event: effect.event };
+    if (effect.event === "sla_warning") {
+      return {
+        title: "SUPRA Inventory · SKU sắp quá hạn",
+        body: `${count} SKU vừa chuyển sang mức cảnh báo.`,
+        event: "sla_warning_summary",
+      };
+    }
+    if (effect.event === "sla_escalated") {
+      return {
+        title: "SUPRA Inventory · SKU quá hạn",
+        body: `${count} SKU vừa chuyển sang quá hạn.`,
+        event: "sla_escalated_summary",
+      };
+    }
+    return {
+      title: "SUPRA Inventory · Hệ thống cho phép bỏ qua",
+      body: `${count} SKU vừa được hệ thống cho phép bỏ qua do quá thời gian phản hồi.`,
+      event: "auto_skip_summary",
+    };
+  }
+
+  async alarm(): Promise<void> {
+    const effects = processOperationalDeadlines(this.state);
+    try {
+      for (const effect of effects) {
+        await this.broadcastDeadlineEffect(effect);
+      }
+
+      // Critical Picker result and overdue notices preserve exact event identity.
+      for (const effect of effects) {
+        if (effect.picker_user_ids.length) {
+          await this.sendDeadlineFcm(effect, [], effect.picker_user_ids);
+        }
+      }
+
+      // Reporter/Admin/Root background notifications are grouped per deadline level
+      // to avoid alert storms when many SKU cross a threshold together.
+      const grouped = new Map<string, OperationalDeadlineEffect[]>();
+      for (const effect of effects) {
+        const list = grouped.get(effect.event) || [];
+        list.push(effect);
+        grouped.set(effect.event, list);
+      }
+      for (const list of grouped.values()) {
+        const firstEffect = list[0];
+        if (!firstEffect?.reporter_roles.length) continue;
+        const uniqueBatchCount = new Set(list.map((item) => item.batch_id)).size;
+        const summary = this.reporterSummary(firstEffect, uniqueBatchCount);
+        await this.sendDeadlineFcm(
+          firstEffect,
+          firstEffect.reporter_roles,
+          [],
+          summary.title,
+          summary.body,
+          summary.event,
+        );
+      }
+    } finally {
+      await scheduleNextOperationalAlarm(this.state);
+    }
   }
 
   private getSchemaVersion(): number {
