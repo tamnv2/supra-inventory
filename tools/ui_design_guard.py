@@ -230,7 +230,7 @@ checks = {
     "service_d064_plan_not_inferred": all(token in SERVICE_SYSTEM_STATUS for token in [
         "plan_detected: false", "Runtime không có quyền đọc entitlement", "Project billing plan không được suy đoán",
     ]),
-    "service_d064_provider_cache": "PROVIDER_CACHE_MS = 5 * 60_000" in SERVICE_SYSTEM_STATUS and "core_seconds: 60" in SERVICE_SYSTEM_STATUS,
+    "service_d064_provider_cache": "PROVIDER_CACHE_MS = 5 * 60_000" in SERVICE_SYSTEM_STATUS and "provider_cache_seconds: includeProviders ? PROVIDER_CACHE_MS / 1000 : null" in SERVICE_SYSTEM_STATUS,
     "web_d072_system_status_excluded": all(token in WEB_APP for token in [
         'navGroup("HỆ THỐNG", [["logs", "Nhật ký"]])',
         '"picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "account"',
@@ -238,7 +238,7 @@ checks = {
         "getSystemStatus(",
         'navButton("system"',
         '["system","devices","versions"].includes(activeSection)',
-        '"refresh-system"',
+        'querySelector<HTMLButtonElement>("#refresh-system")',
     ]),
     "service_d072_system_status_quota_guard": all(token in SERVICE_INDEX for token in [
         'SYSTEM_STATUS_DISABLED_QUOTA_GUARD',
