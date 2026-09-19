@@ -595,3 +595,14 @@ Main Repo Authority Guard `35439017807`, Project State Guard `35439017780`, UI D
 Current Web marker: `D071_IMMEDIATE_RESPONSE_DENSITY_D072_SYSTEM_STATUS_QUOTA_GUARD_BETA_RUNTIME_PASS__OWNER_REVIEW_PENDING`. D071 is live for Owner review: uniform checkboxes, logical 100% at the new ~5% larger baseline, compact date controls, and immediate Reporter Có hàng/Skip pending feedback without synchronous full-queue reload. D072 is live: normal `Trạng thái hệ thống` navigation/routing/manual/60-second polling is removed, the normal admin system-status endpoint is quota-guard disabled, and the gated Beta load-test snapshot is core-only without Google Drive/GitHub provider reads. `HỆ THỐNG` exposes only `Nhật ký`.
 
 Android remains signed `beta-vc46` and unchanged by PR #63. Stable remains untouched/OWNER-GATED.
+
+
+## D073 Picker-to-Agent relay POC build/release PASS — 2026-09-19
+
+Source merged in PR #65 at `f7c596f60eac626989a58ea40492417006ee61b1`.
+
+PR Authority/Continuity/UI/Windows Agent gates PASS. Main Authority/Continuity/UI, Beta deploy `35442854000`, Verify Beta Android `35442853998`, and Verify Beta Relay Agent `35442853985` PASS. Signed Android release is `beta-vc47` with APK SHA-256 `8e2fc11e09940db061edf4c23b5973ec2be9300b2ddfc4835bcef1d3af74c439`; portable normal-user Windows Agent EXE SHA-256 is `1b51c33d53a53a0fb8b7c6a9c4f4305f7c042bbd2c97e91b082144587c7bdd73`.
+
+D073 remains a transport-only Beta POC: Picker sends exactly five test digits through Firebase RTDB and the Windows Agent returns ACK/diagnostic timing. There is no WMS lookup or mutation. `OA002` remains OPEN: create the scoped Beta RTDB in Singapore locked mode, publish `firebase/database.rules.json`, then field-test PDA → relay → laptop on Office → ACK/RTT. Stable remains OWNER-GATED and untouched.
+
+Current Android marker: `D073_RELAY_POC_SIGNED_BETA_VC47_BUILD_PASS__D070_FIELD_ACCEPTANCE_PENDING`.
