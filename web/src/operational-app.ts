@@ -452,7 +452,7 @@ function markDeadlineNoticeSeen(eventIds: string[]): string[] {
 function browserBackgroundNotice(title: string, body: string): void {
   if (document.visibilityState === "visible" || !("Notification" in window) || Notification.permission !== "granted") return;
   try {
-    new Notification(title, { body, tag: "supra-inventory-deadline", renotify: true });
+    new Notification(title, { body, tag: "supra-inventory-deadline" });
   } catch {
     // Browser notification is supplementary; realtime product state remains authoritative.
   }
