@@ -7,6 +7,7 @@ def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 WEB_MAIN = read("web/src/main.ts")
+WEB_INDEX = read("web/index.html")
 WEB_APP = read("web/src/operational-app.ts")
 WEB_UI = "\n".join([WEB_MAIN, WEB_APP])
 WEB_API = read("web/src/api.ts")
@@ -65,6 +66,7 @@ checks = {
     "authority_d065_three_group_navigation": "D065" in DECISIONS and "Owner three-group navigation refinement (D065)" in DESIGN_SPEC,
     "authority_d066_three_group_implementation": "D066" in DECISIONS and "Owner-approved three-group navigation implementation (D066)" in DESIGN_SPEC,
     "authority_d067_web_ux_refinement": "D067" in DECISIONS and "Owner-accepted Web refinement baseline (D067)" in DESIGN_SPEC,
+    "authority_d068_web_navigation_toast_performance": "D068" in DECISIONS and "Owner Web interaction refinement (D068)" in DESIGN_SPEC,
     "authority_ui_acceptance_distinct_from_ci": "CI/build PASS" in DESIGN_SPEC and "Owner UI" in DESIGN_SPEC,
     "authority_no_offline_mode": "D043" in DECISIONS and "No offline business mode" in DESIGN_SPEC,
 
@@ -209,9 +211,9 @@ checks = {
     "android_d063_runtime_logs": all(token in ANDROID_MAIN for token in ["currentRuntimeLogSlot", "scheduled_", "pending_crash", "android_crash", "Gửi lên Drive"]) and "uploadRuntimeLog" in ANDROID_API,
     "web_d063_dark_completion": all(token in WEB_FAST for token in ["D063 Owner operations/reporting/logs/users completion", ".business-summary-card", ".logs-layout", ".users-top-grid", 'body[data-theme="dark"]']),
     "web_d064_system_status_layout": all(token in WEB_APP for token in [
-        "Cloudflare", "InventoryCore · Durable Object SQLite", "Authentication", "Cloud Messaging",
-        "Drive · Logs / Archive / Exports", "Sheets · Nhân sự / Archive", "Mã nguồn · Phát hành ứng dụng",
-        "WebSocket · Đồng bộ trực tiếp", "Dữ liệu nghiệp vụ đang chiếm hệ thống", "Bài kiểm tra tải gần nhất",
+        "Cloudflare", "Cơ sở dữ liệu nghiệp vụ", "Đăng nhập & tài khoản", "Thông báo ứng dụng",
+        "Lưu trữ file", "Nguồn nhân sự & lưu trữ", "Phiên bản ứng dụng",
+        "Đồng bộ tức thời", "Dữ liệu nghiệp vụ đang lưu", "Bài kiểm tra tải gần nhất",
         "95% yêu cầu dưới", "getSystemStatus(false)",
     ]),
     "web_d064_system_status_dark": all(token in WEB_FAST for token in [
@@ -299,6 +301,15 @@ checks = {
     "web_d067_confirmations": all(token in WEB_APP for token in ["renderStockModal", 'id="confirm-stock"', "SKIP_CONFIRM_DELAY_MS", 'id="skip-delay-setting"', 'id="confirm-skip"']),
     "web_d067_log_dedupe": all(token in WEB_LOGGER for token in ["scheduledSendInFlight", "scheduledSendInFlight = true", "scheduledSendInFlight = false"]) and all(token in SERVICE_RUNTIME_LOGS for token in ["already_uploaded", "seenNames", "name ="]),
     "web_d067_clean_visible_copy": all(token not in WEB_APP for token in ["Beta / Logs", "Chỉ chạy trên Beta", "Beta thực tế", "D064 được ghi nhận", "Log được che mật khẩu", "Tự gửi định kỳ", "ROOT ·", "REPORTER ·", "PICKER ·"]),
+    "web_d068_toast_notifications": all(token in (WEB_APP + WEB_FAST) for token in ["web-toast-stack", "toastItems", "slice(-5)", "5_000", "setNotice"]) and "renderNotice()" not in WEB_APP,
+    "web_d068_browser_history": all(token in WEB_APP for token in ["history.pushState", "history.replaceState", 'window.addEventListener("popstate"', "navigateToSection", "syncSectionHistory"]),
+    "web_d068_immediate_navigation": all(token in WEB_APP for token in ["patchActiveSection(false)", "Mở ${next}: hiển thị", "refreshFastDetailOnly", "Chọn SKU hiển thị sau"]) and 'void run(async () => { await loadSection(next); });' not in WEB_APP,
+    "web_d068_active_selection": all(token in WEB_FAST for token in ["D068 Web navigation, notifications and selection clarity", ".tabs .nav-button.active", ".workspace-tab.active", ".fast-issue-row.selected", ".nav-section-label"]),
+    "web_d068_clean_visible_copy": all(token not in WEB_APP for token in [
+        "Service: Cloudflare", "InventoryCore · Durable Object SQLite", "custom token", "Không polling FCM",
+        "Drive · Logs / Archive / Exports", "Sheets · Nhân sự / Archive", "WebSocket · Đồng bộ trực tiếp",
+        "Sequence mới nhất", "Audit log", "Thông tin kỹ thuật chi tiết", "Test ID", "Master SKU", "Quản trị cao nhất"
+    ]) and "Báo hàng Beta" not in WEB_INDEX,
     "web_online_only_no_outbox": "offline outbox" not in WEB_UI.lower() and "chờ đồng bộ" not in WEB_UI.lower(),
     "android_online_only_no_outbox": "chờ đồng bộ" not in ANDROID_ALL.lower() and "outbox" not in ANDROID_ALL.lower(),
 }
