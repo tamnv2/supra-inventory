@@ -19,8 +19,8 @@
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
     "web": "D071_IMMEDIATE_RESPONSE_DENSITY_D072_SYSTEM_STATUS_QUOTA_GUARD_BETA_RUNTIME_PASS__OWNER_REVIEW_PENDING",
-    "android": "D082_PICKLIST_LOOKUP_SOURCE_IN_PROGRESS__D075_SHARED_RELAY_BASELINE__D076_RULES_PASS",
-    "latest_beta_apk": "beta-vc49",
+    "android": "D082_READONLY_PICKLIST_LOOKUP_SIGNED_BETA_VC50__AGENT_V7_RELEASE_PASS__OWNER_HOME_FIELD_TEST_PENDING",
+    "latest_beta_apk": "beta-vc50",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
     "network_scope": "PDA_INTERNET_SUPPORTED__D082_HOME_RTDB_RELAY_READONLY_PICKLIST_LOOKUP__D078_OFFICE_FIELD_PENDING__NO_OFFLINE_BUSINESS_MODE",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D082_READONLY_PICKLIST_LOOKUP_SOURCE_IN_PROGRESS__AGENT_V7_ANDROID_RELEASE_PENDING__D078_OFFICE_TRANSPORT_PENDING__NO_CONFIRMATION_MUTATION"
+    "picklist_confirmation_poc": "D082_RELEASE_PASS__OWNER_HOME_PICKLIST_LOOKUP_FIELD_TEST_PENDING__D078_OFFICE_TRANSPORT_PENDING__NO_CONFIRMATION_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -135,7 +135,6 @@
     "D066 Web three-group navigation PR #50 merged at 2e12e6d4e94b195e3b505b3f2abe9822ca91632c; PR Repo Authority, Project State and UI Design guards PASS; main UI Design Guard run 35407227884 PASS; Beta deploy run 35407227911 PASS including Web build, Worker typecheck/deploy, health/schema, auth/business guards, Web shell and Google OAuth start."
   ],
   "pending_build": [
-    "D082 Agent v7 + signed Android read-only Picklist lookup + overlay PR/CI/releases",
     "D070 PR guards/merge/Beta deploy for Worker/Web schema migration and alarm automation",
     "Signed Beta Android release/verification because D070 changes Android runtime UI/API projection",
     "Owner field acceptance of D070 timing notifications and both auto-Skip modes",
@@ -143,7 +142,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "D082 home field test after releases: verify always-visible overlay lock/click-through/opacity, valid-session login suppression, and real PDA -> Agent -> WMS Picklist existence result. D078 PDA ↔ Agent Office transport remains separately pending until Owner is at company.",
+    "D082 Owner home field test pending on relay-agent-v7 + beta-vc50: overlay visibility/opacity/position/click-through, valid-session login suppression, and real five-digit WMS Picklist lookup. D078 Office transport remains separately pending until company.",
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
     "Owner acceptance of FIRST_REPORT and PER_PICKER behavior remains field-dependent after runtime PASS.",
     "Stable promotion remains OWNER-GATED."
@@ -156,8 +155,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Complete D082 PR/CI, merge, publish relay-agent-v7 and next signed Android Beta, deploy/readback RTDB Rules, then Owner home-tests PDA five-digit -> Agent -> WMS read-only Picklist existence -> PDA result.",
-    "method": "Keep current Internet/RTDB relay. Establish WMS session locally once; while valid the login/capture action is disabled. PDA sends exactly five digits; Agent sends only signed GET pickListConfirms and returns FOUND/NOT_FOUND or explicit session/schema/transport error. Confirm page is reference-only; no WMS mutation. D078 Office transport remains paused.",
+    "primary": "Owner home-tests D082 using relay-agent-v7 + signed beta-vc50: establish one WMS session locally, verify overlay lock/click-through and login suppression, then PDA sends known five-digit Picklist suffix and receives truthful lookup result.",
+    "method": "Keep existing Internet/RTDB relay. If Agent WMS session is valid, Mở WMS + lấy phiên must be disabled. On PDA press KIỂM TRA PICKLIST. Expected FOUND/NOT_FOUND mapping or explicit fail-closed session/schema/transport status. If SCHEMA_UNSUPPORTED, provide sanitized Agent log field names only. Confirmation remains deferred; D078 Office transport remains pending.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -185,7 +184,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D082 source in progress: persistent click-through overlay, valid WMS-session login suppression, read-only Picklist existence GET, RTDB result metadata and PDA Có/Không có Picklist UI. No confirmation/mutation.",
+      "D082 source/PR/main deploy/releases PASS: relay-agent-v7, signed beta-vc50, RTDB Rules readback and Beta runtime all PASS. Owner home Picklist lookup field acceptance pending; confirmation remains deferred.",
       "D077 source/build/release PASS: relay-agent-v3 published; physical Office retest pending",
       "D076 Beta RTDB Rules deploy/readback PASS; D075 physical Picker -> ADMIN Agent acceptance pending",
       "D068 Web baseline Owner-accepted/frozen",
@@ -196,13 +195,13 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Finish D082 PR/CI/main releases, then Owner home-tests known five-digit Picklist suffix over existing RTDB relay and returns sanitized evidence only if not PASS.",
+      "Owner runs D082 home field test with a known five-digit Picklist suffix. If SCHEMA_UNSUPPORTED or other error, provide sanitized Agent log only; never provide cURL/session/token.",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
     ],
     "blocked_or_owner_field_dependent": [
-      "D082 real Picklist response schema and match require Owner's authorized WMS session/PDA field test. D078 Office transport still requires physical .Office@MSN and is unchanged.",
+      "D082 real WMS response schema and Picklist match require Owner's authorized WMS/PDA field test. D078 Office transport still requires physical .Office@MSN and is unchanged.",
       "D071 final visual/interaction acceptance depends on Owner live Web review",
       "D072 final Owner acceptance depends on live Web confirmation",
       "D070 physical timing/FCM delivery acceptance remains field-dependent",
@@ -222,13 +221,13 @@
       "beta_deploy": "PASS_RUN_35447318213",
       "verify_android": "PASS_RUN_35447318221",
       "relay_agent_build_release": "PASS_RUN_35447318236",
-      "signed_beta_release": "beta-vc49",
-      "signed_beta_apk_size_bytes": 9317178,
-      "relay_agent_release": "relay-agent-v6",
-      "relay_agent_release_id": 392161587,
-      "relay_agent_exe_asset_id": 575198396,
-      "relay_agent_exe_size_bytes": 84992,
-      "relay_agent_checksum_asset_id": 575198397,
+      "signed_beta_release": "beta-vc50",
+      "signed_beta_apk_size_bytes": 9317226,
+      "relay_agent_release": "relay-agent-v7",
+      "relay_agent_release_id": 392169408,
+      "relay_agent_exe_asset_id": 575243965,
+      "relay_agent_exe_size_bytes": 104448,
+      "relay_agent_checksum_asset_id": 575243963,
       "agent_release_is_prerelease": true,
       "android_latest_release_verified": "beta-vc49",
       "scope": "D082_HOME_RTDB_RELAY__SIGNED_READONLY_PICKLIST_LIST_GET__CLICKTHROUGH_OVERLAY__NO_CONFIRMATION_OR_WMS_MUTATION",
@@ -267,7 +266,7 @@
       "d080_pr_ui": "PASS_RUN_35457634598",
       "d080_pr_agent": "PASS_RUN_35457634523",
       "d080_main_agent_release": "PASS_RUN_35457732455",
-      "relay_agent_exe_sha256": "7eca617aeb38bda403ca975e07ebdd8a323fbde19b90ef22f0d549b7b0f4b61e",
+      "relay_agent_exe_sha256": "5df1b5bf1963c9b36aa2257bf774d1e5e9352918a5cd05fd35248d24ea5e4cb6",
       "d081_branch": "feat/d081-agent-login-wait-tray-monitor",
       "d081_merged_pr": 81,
       "d081_merged_main": "a0a68da1e72ba9a8f7bb728db0951b6fd2c23f47",
@@ -275,37 +274,55 @@
       "d081_pr_project_state": "PASS_RUN_35458654126",
       "d081_pr_ui": "PASS_RUN_35458654129",
       "d081_pr_agent": "PASS_RUN_35458654113",
-      "d081_main_agent_release": "PASS_RUN_35458750768"
+      "d081_main_agent_release": "PASS_RUN_35458750768",
+      "d082_branch": "feat/d082-readonly-picklist-lookup-overlay",
+      "d082_merged_pr": 83,
+      "d082_merged_main": "b746ebdd6b29d24a417863e8c117833efb153326",
+      "d082_pr_authority": "PASS_RUN_35460219424",
+      "d082_pr_project_state": "PASS_RUN_35460219438",
+      "d082_pr_rtdb_rules": "PASS_RUN_35460219455",
+      "d082_pr_agent": "PASS_RUN_35460219443",
+      "d082_pr_ui": "PASS_RUN_35460219419",
+      "d082_main_authority": "PASS_RUN_35460327590",
+      "d082_main_project_state": "PASS_RUN_35460327537",
+      "d082_main_rtdb_rules": "PASS_RUN_35460327532",
+      "d082_main_beta_deploy": "PASS_RUN_35460327552",
+      "d082_main_agent_release": "PASS_RUN_35460327545",
+      "d082_main_android_release": "PASS_RUN_35460327500",
+      "d082_main_ui": "PASS_RUN_35460327615",
+      "signed_beta_release_id": 392169512,
+      "signed_beta_apk_asset_id": 575244605,
+      "signed_beta_apk_sha256": "55b4f7ea8eaf4557703640458e70369d00a5969239782bff2563a167683ee6c4"
     },
     "last_runtime_evidence": {
       "schema": 7,
       "operational_v2_schema": "5/5",
-      "beta_deploy_run": 35447318213,
+      "beta_deploy_run": 35460327552,
       "beta_deploy_conclusion": "success",
       "health": "HTTP_200_OK",
       "storage": "READY",
       "business_auth_guards": "PASS",
       "web_shell": "PASS",
       "google_oauth_start": "PASS",
-      "runtime_source_commit": "452feb1e25dff936617e5d1d51313438d85155eb",
+      "runtime_source_commit": "b746ebdd6b29d24a417863e8c117833efb153326",
       "d070_alarm_repair": "BETA_RUNTIME_PASS",
       "d071_web": "BETA_RUNTIME_PASS_OWNER_REVIEW_PENDING",
       "d072_quota_guard": "BETA_RUNTIME_PASS_OWNER_REVIEW_PENDING",
       "system_status_normal_runtime": "DISABLED",
       "system_status_provider_polling": "DISABLED",
-      "signed_beta_release": "beta-vc49",
-      "signed_beta_release_source_commit": "9b149e56b4781eb905daa6793db6a220a045cf5a",
+      "signed_beta_release": "beta-vc50",
+      "signed_beta_release_source_commit": "b746ebdd6b29d24a417863e8c117833efb153326",
       "stable": "UNTOUCHED_OWNER_GATED",
-      "signed_beta_apk_sha256": "8e2fc11e09940db061edf4c23b5973ec2be9300b2ddfc4835bcef1d3af74c439",
+      "signed_beta_apk_sha256": "55b4f7ea8eaf4557703640458e70369d00a5969239782bff2563a167683ee6c4",
       "d073_relay_poc": "SOURCE_BUILD_RELEASE_PASS__RTDB_PROVISIONING_FIELD_TEST_PENDING",
       "d074_relay_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_OFFICE_FIELD_RETEST_PENDING",
       "d075_relay_poc": "SOURCE_BUILD_RELEASE_PASS__D076_RULES_DEPLOY_PASS__OWNER_FIELD_TEST_PENDING",
-      "relay_agent_release": "relay-agent-v6",
+      "relay_agent_release": "relay-agent-v7",
       "relay_agent_release_prerelease": true,
       "d076_rtdb_rules": "PASS_RUN_35451292051__IAM_UPDATE_PASS__RULES_GET_PASS__RULES_PUT_PASS__EXACT_READBACK_PASS",
       "d080_wms_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_WMS_FIELD_TEST_PENDING",
       "d081_agent": "OWNER_REPORTED_OK__SUPERSEDED_AS_NEXT_ACTION_BY_D082",
-      "d082_picklist_lookup": "SOURCE_IN_PROGRESS__FIELD_SCHEMA_PENDING"
+      "d082_picklist_lookup": "SOURCE_BUILD_DEPLOY_RELEASE_PASS__OWNER_HOME_FIELD_TEST_PENDING"
     }
   },
   "authority_setup": {
