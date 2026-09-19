@@ -38,3 +38,13 @@ Stable actions are never inferred from a Beta request. Stable provisioning/deplo
 ## Beta RTDB Rules automation
 
 D076 makes Beta Realtime Database Rules a CI-managed resource. Rules changes follow branch → PR read-only validation → authority/continuity PASS → merge → main-only REST PUT to the scoped Beta RTDB `/.settings/rules.json` endpoint → readback verification. The credential source is GitHub Environment `beta` secret `FIREBASE_RULES_SA_JSON_BETA`; its value and short-lived OAuth token are never durable project data. Stable RTDB deployment is not included and remains OWNER-GATED.
+
+
+## Workstream continuation routing
+
+D079 defines explicit repo-native routing for parallel workstreams:
+
+- Exact Owner phrase `tiếp tục build xác nhận lấy lại hàng` routes to the paused D078 confirmation/relay workstream. Fresh-bootstrap canonical GitHub state first, then resume from `relay-agent-v4` field-probe checkpoint without asking the Owner to recap prior work.
+- Báo hàng Web/APK is the default active workstream after D079. A new session that asks to continue/build Báo hàng must resume current Web/Android canonical state and must not automatically execute D078 relay work.
+- A workstream label is not a persistent Git branch. Implementation always creates a fresh short-lived branch from current `main`, then follows branch → PR → authority/continuity PASS → merge.
+- Paused workstreams remain fully recorded in `ops/project-state.json`; switching active workstream never deletes their checkpoint/evidence.
