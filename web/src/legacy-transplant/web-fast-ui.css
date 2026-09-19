@@ -2300,3 +2300,137 @@ body[data-theme="dark"] .system-health.bad { background: #351a1a !important; col
   .system-usage-line { flex-direction: column; }
   .system-usage-line strong { text-align: left; }
 }
+
+
+/* D067 Web UX refinement */
+.zoom-control { align-self: flex-end; }
+.zoom-buttons {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.zoom-buttons .ghost {
+  min-width: 34px;
+  min-height: 34px !important;
+  height: 34px;
+  padding: 5px 8px !important;
+  border: 1px solid #cbd5e1 !important;
+  background: #fff !important;
+  color: #334155 !important;
+  font-size: 11px !important;
+  line-height: 1 !important;
+}
+.zoom-buttons .zoom-value { min-width: 52px; }
+
+.summary-filter-card {
+  width: 100%;
+  min-height: 94px;
+  margin: 0;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  appearance: none;
+  box-shadow: none !important;
+}
+button.summary-filter-card.primary,
+button.summary-filter-card.warning,
+button.summary-filter-card.danger {
+  background: #fff !important;
+  color: inherit !important;
+  border-top: 1px solid #e4e7ec !important;
+  border-right: 1px solid #e4e7ec !important;
+  border-bottom: 1px solid #e4e7ec !important;
+}
+button.summary-filter-card.primary { border-left: 3px solid #3157c8 !important; }
+button.summary-filter-card.warning { border-left: 3px solid #b26a00 !important; }
+button.summary-filter-card.danger { border-left: 3px solid #b42318 !important; }
+.summary-filter-card:hover { background: #f8fafc !important; }
+.summary-filter-card.active {
+  outline: 2px solid rgba(49,87,200,.18);
+  outline-offset: 1px;
+}
+.summary-filter-card.warning.active { outline-color: rgba(178,106,0,.22); }
+.summary-filter-card.danger.active { outline-color: rgba(180,35,24,.22); }
+
+.picker-detail-panel { margin-top: 10px; padding: 0 !important; overflow: hidden; }
+.picker-detail-list { display: grid; }
+.picker-detail-row {
+  display: grid;
+  grid-template-columns: minmax(90px,120px) minmax(160px,1fr) minmax(130px,auto);
+  gap: 10px;
+  align-items: center;
+  min-height: 38px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--fast-line);
+  background: var(--fast-surface);
+  font-size: 11px;
+}
+.picker-detail-row:last-child { border-bottom: 0; }
+.picker-detail-row strong { color: var(--fast-text); }
+.picker-detail-row span,
+.picker-detail-row time { color: var(--fast-muted); }
+.picker-detail-row time { text-align: right; white-space: nowrap; }
+.picker-detail-loading { padding: 12px; color: var(--fast-muted); font-size: 11px; }
+
+.confirm-wait {
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: var(--fast-warn-soft);
+  color: var(--fast-warn);
+  font-size: 12px;
+}
+.action-confirm-box .product-name { margin-bottom: 8px; }
+
+.account-grid {
+  display: grid;
+  grid-template-columns: minmax(360px,620px) minmax(300px,520px);
+  gap: 12px;
+  align-items: start;
+}
+.account-setting-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+.account-setting-row input { margin-top: 3px; }
+.account-setting-row span { display: grid; gap: 3px; }
+.account-setting-row strong { color: var(--fast-text); font-size: 12px; }
+.account-setting-row small { color: var(--fast-muted); font-size: 11px; line-height: 1.4; }
+
+body[data-theme="dark"] .zoom-buttons .ghost {
+  background: #111827 !important;
+  color: #dbe5f0 !important;
+  border-color: #35445a !important;
+}
+body[data-theme="dark"] button.summary-filter-card.primary,
+body[data-theme="dark"] button.summary-filter-card.warning,
+body[data-theme="dark"] button.summary-filter-card.danger {
+  background: #111827 !important;
+  color: #dbe5f0 !important;
+  border-top-color: #263244 !important;
+  border-right-color: #263244 !important;
+  border-bottom-color: #263244 !important;
+}
+body[data-theme="dark"] .summary-filter-card:hover { background: #162033 !important; }
+body[data-theme="dark"] .summary-filter-card.active { background: #152238 !important; }
+body[data-theme="dark"] .picker-detail-row {
+  background: #111827 !important;
+  border-color: #263244 !important;
+}
+body[data-theme="dark"] .confirm-wait {
+  background: #3b2c13 !important;
+  color: #ffd487 !important;
+}
+
+@media (max-width: 900px) {
+  .account-grid { grid-template-columns: 1fr; }
+  .zoom-control { width: auto; }
+}
+@media (max-width: 560px) {
+  .picker-detail-row { grid-template-columns: 90px minmax(0,1fr); }
+  .picker-detail-row time { grid-column: 1 / -1; text-align: left; }
+  .zoom-buttons .ghost { min-width: 31px; padding-inline: 6px !important; }
+  .zoom-buttons .zoom-value { min-width: 46px; }
+}
