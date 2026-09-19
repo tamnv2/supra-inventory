@@ -121,6 +121,10 @@ def main() -> None:
     forbid(app, "InventoryCore · Durable Object SQLite", "internal database label")
     forbid(app, "Thông tin kỹ thuật chi tiết", "raw technical UI panel")
     forbid(app, "Master SKU", "internal master-catalogue copy")
+    require(app, "function renderRuntimeLogSummary()", "readable runtime log summary")
+    require(app, "Tóm tắt nhật ký", "human-readable log detail title")
+    forbid(app, "JSON.stringify(runtimeLogDetail.content", "raw runtime log JSON detail")
+    forbid(app, "${esc(item.name)}", "raw runtime log filename")
 
     # SLA UI/server contract must agree.
     require(app, 'warning > 1440', "SLA warning upper bound")

@@ -18,7 +18,7 @@
     "sqlite_schema": 6,
     "business_api": "OPERATIONAL_V2_4_RUNTIME_PASS__F20_BOUNDED_INSIGHTS_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
-    "web": "D068_WEB_INTERACTION_BETA_RUNTIME_PASS__OWNER_ITEM9_11_15_ACCEPTANCE_PENDING",
+    "web": "D068_CLEAN_LOG_COPY_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
     "android": "VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING",
     "latest_beta_apk": "beta-vc45",
     "realtime": "GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_4",
@@ -28,7 +28,7 @@
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_BUILD_DEPLOY_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "D068_UI_DESIGN_GUARD_MAIN_PASS",
+    "ui_design_guard": "D068_CLEAN_LOG_COPY_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED"
@@ -152,8 +152,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Owner tests only D067 item 9 and D068 requirements 11–15 on the deployed Beta Web. D067 items 1–8 and 10 are frozen and must not change.",
-    "method": "Use https://inventory-beta.supra.cc.cd/. Verify clean user-facing copy; bottom-left translucent notifications with 5-second expiry/max five; selected-background clarity; immediate menu/SKU response; larger VẬN HÀNH / QUẢN LÝ / HỆ THỐNG headings; and browser Back/Forward through prior business sections.",
+    "primary": "Complete authority/continuity/UI guards for the D068 clean-log-copy patch, merge through PR, deploy Beta, then continue Owner acceptance only for D067 item 9 and D068 requirements 11–15. D067 items 1–8 and 10 remain frozen.",
+    "method": "Verify the Beta Web keeps D068 toast/active-state/instant navigation/SKU/history behavior and that Nhật ký no longer exposes raw filenames or raw JSON technical dumps; structured operational summary remains available. Stable remains untouched.",
     "stable_guard": "Stable remains OWNER-GATED and untouched."
   },
   "continuity_policy": {
@@ -279,5 +279,8 @@
     "D066 Beta Web runtime PASS: PR #50 merged at 2e12e6d4e94b195e3b505b3f2abe9822ca91632c; Beta deploy run 35407227911 PASS; main UI Design Guard run 35407227884 PASS; exact Admin/Root navigation is 3 groups with 2/3/2 visible children; Stable untouched.",
     "D067 Beta Web runtime PASS: PR #52 merged at c2249ceea9fbb9570c3855fc2a0a421b251e3328; Repo Authority Guard 35411796234 PASS; Project State Guard 35411796230 PASS; UI Design Guard 35411796208 PASS including Worker typecheck, Web production build and Android debug build; Beta deploy 35411796215 PASS including health/schema, auth/business guards, Web shell and Google OAuth smoke; Stable untouched.",
     "D068 Beta Web runtime PASS: PR #54 merged at ba8579a157763288ff0cc3cca885e65e593917be; Repo Authority Guard 35416184056 PASS; Project State Guard 35416184002 PASS; UI Design Guard 35416184004 PASS including Worker typecheck, Web production build and Android debug build; Beta deploy 35416184023 PASS including health/schema, auth/business guards, Web shell and Google OAuth smoke; Stable untouched."
+  ],
+  "implementation_notes": [
+    "D068 follow-up clean-copy patch replaces raw runtime-log filenames/JSON detail on the normal Web Nhật ký surface with a structured operational summary; downloadable support logging remains available. Frozen D067 items 1–8 and 10 are unchanged."
   ]
 }

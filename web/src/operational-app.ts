@@ -1535,8 +1535,71 @@ function renderLegacyDevices(): string {
   return renderSystem();
 }
 
+function logSourceLabel(source: unknown): string {
+  return String(source || "").toUpperCase() === "ANDROID" ? "Android" : "Web";
+}
+
+function logSectionLabel(section: unknown): string {
+  const labels: Record<string, string> = {
+    picker: "Báo thiếu hàng",
+    operations: "Xử lý báo hàng",
+    results: "Kết quả gần đây",
+    sku: "Danh mục SKU",
+    hr: "Nguồn nhân sự",
+    users: "Nhân sự & tài khoản",
+    sla: "Thời gian xử lý",
+    dashboard: "Tổng quan",
+    reports: "Báo cáo chi tiết",
+    system: "Trạng thái hệ thống",
+    devices: "Trạng thái hệ thống",
+    logs: "Nhật ký",
+    versions: "Trạng thái hệ thống",
+    account: "Tài khoản",
+  };
+  return labels[String(section || "").toLowerCase()] || "Trang ứng dụng";
+}
+
+function renderRuntimeLogSummary(): string {
+  if (!runtimeLogDetail) return `<div class="ops-empty">Chưa chọn nhật ký.</div>`;
+  const content = systemObj(runtimeLogDetail.content);
+  const payload = systemObj(content.payload);
+  const browser = systemObj(payload.browser);
+  const connection = systemObj(browser.connection);
+  const memory = systemObj(browser.memory);
+  const state = systemObj(payload.state);
+  const realtime = systemObj(state.realtime);
+  const device = systemObj(content.device);
+  const recentEvents = Array.isArray(payload.recent_events) ? payload.recent_events : [];
+  const errorEvents = recentEvents.filter((item) => String(systemObj(item).level || "").toUpperCase() === "ERROR").length;
+  const sourceLabel = logSourceLabel(content.source || runtimeLogSource);
+  const severity = String(content.severity || "").toUpperCase() === "ERROR" ? "Có lỗi" : "Bình thường";
+  const syncState = String(realtime.state || "").toLowerCase() === "connected"
+    ? "Đã kết nối"
+    : String(realtime.state || "").toLowerCase() === "offline"
+      ? "Mất kết nối"
+      : "Đang kết nối lại";
+  const networkState = browser.online === false ? "Mất kết nối" : "Bình thường";
+  const rtt = Number(connection.rtt_ms);
+  const usedMemory = Number(memory.used_js_heap_bytes);
+  return `<div class="log-detail-summary">
+    <div class="system-facts">
+      <div><span>Nguồn</span><b>${esc(sourceLabel)}</b></div>
+      <div><span>Thời điểm</span><b>${esc(fmt(String(content.generated_at || runtimeLogDetail.file.created_at || "")))}</b></div>
+      <div><span>Tình trạng</span><b>${esc(severity)}</b></div>
+      <div><span>Thiết bị</span><b>${esc(String(device.label || device.platform || "—"))}</b></div>
+      <div><span>Trang đang mở</span><b>${esc(logSectionLabel(state.section))}</b></div>
+      <div><span>Kết nối mạng</span><b>${esc(networkState)}</b></div>
+      <div><span>Đồng bộ tức thời</span><b>${esc(syncState)}</b></div>
+      <div><span>Độ trễ mạng</span><b>${Number.isFinite(rtt) && rtt >= 0 ? `${Math.round(rtt)} ms` : "—"}</b></div>
+      <div><span>Bộ nhớ trình duyệt</span><b>${Number.isFinite(usedMemory) && usedMemory >= 0 ? fmtBytes(usedMemory) : "—"}</b></div>
+      <div><span>SKU đang chờ xử lý</span><b>${systemNum(state.queue_count).toLocaleString("vi-VN")}</b></div>
+      <div><span>Kết quả gần đây</span><b>${systemNum(state.recent_result_count).toLocaleString("vi-VN")}</b></div>
+      <div><span>Lỗi ghi nhận gần đây</span><b>${errorEvents.toLocaleString("vi-VN")}</b></div>
+    </div>
+  </div>`;
+}
+
 function renderLogs(): string {
-  const detail = runtimeLogDetail ? JSON.stringify(runtimeLogDetail.content, null, 2) : "";
   return `<section class="ops-route logs-workspace">
     <div class="business-page-head"><div><h2>Nhật ký</h2></div><div class="user-row-actions"><button class="secondary" id="send-web-log">Gửi log Web ngay</button><button class="secondary" id="download-support-log">Tải log Web xuống</button></div></div>
     <div class="workspace-tabs" role="tablist" aria-label="Nguồn nhật ký">
@@ -1545,12 +1608,12 @@ function renderLogs(): string {
     </div>
     <div class="logs-layout">
       <article class="ops-panel log-list-panel">
-        <div class="ops-panel-title"><div><h3>Log ${runtimeLogSource === "WEB" ? "Web" : "Android"} gần đây</h3><p>${runtimeLogs.length} file gần nhất.</p></div></div>
-        <div class="log-list">${runtimeLogs.length ? runtimeLogs.map((item) => `<button type="button" class="log-row ${runtimeLogDetail?.file.id === item.id ? "selected" : ""}" data-log-file="${esc(item.id)}"><span class="log-severity ${item.severity === "ERROR" ? "error" : "info"}">${item.severity === "ERROR" ? "Lỗi" : "Định kỳ"}</span><div><strong>${esc(item.name)}</strong><small>${esc(fmt(item.created_at))} · ${Math.max(1, Math.round(Number(item.size || 0) / 1024))} KB</small></div></button>`).join("") : `<div class="ops-empty">Chưa có log ${runtimeLogSource === "WEB" ? "Web" : "Android"}.</div>`}</div>
+        <div class="ops-panel-title"><div><h3>Log ${runtimeLogSource === "WEB" ? "Web" : "Android"} gần đây</h3><p>${runtimeLogs.length} bản gần nhất.</p></div></div>
+        <div class="log-list">${runtimeLogs.length ? runtimeLogs.map((item) => `<button type="button" class="log-row ${runtimeLogDetail?.file.id === item.id ? "selected" : ""}" data-log-file="${esc(item.id)}"><span class="log-severity ${item.severity === "ERROR" ? "error" : "info"}">${item.severity === "ERROR" ? "Lỗi" : "Định kỳ"}</span><div><strong>Nhật ký ${esc(logSourceLabel(item.source))}</strong><small>${esc(fmt(item.created_at))} · ${Math.max(1, Math.round(Number(item.size || 0) / 1024))} KB</small></div></button>`).join("") : `<div class="ops-empty">Chưa có log ${runtimeLogSource === "WEB" ? "Web" : "Android"}.</div>`}</div>
       </article>
       <article class="ops-panel log-detail-panel">
-        <div class="ops-panel-title"><div><h3>Chi tiết log</h3></div></div>
-        ${detail ? `<pre class="diagnostics log-detail">${esc(detail)}</pre>` : `<div class="ops-empty">Chưa chọn file log.</div>`}
+        <div class="ops-panel-title"><div><h3>Tóm tắt nhật ký</h3></div></div>
+        ${renderRuntimeLogSummary()}
       </article>
     </div>
   </section>`;
