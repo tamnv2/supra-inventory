@@ -8,6 +8,8 @@ export interface OperationalSlaConfig {
   auto_skip_minutes: number;
   auto_skip_enabled: boolean;
   auto_skip_mode: AutoSkipMode;
+  policy_version?: number;
+  effective_at?: string;
   updated_at?: string;
   updated_by?: string | null;
 }
@@ -78,6 +80,8 @@ function parseConfig(value: unknown, updatedAt?: unknown, updatedBy?: unknown): 
       auto_skip_minutes: autoSkip,
       auto_skip_enabled: parsed.auto_skip_enabled === true,
       auto_skip_mode: mode,
+      policy_version: Number(parsed.policy_version || 0) || undefined,
+      effective_at: String(parsed.effective_at || "") || undefined,
       updated_at: String(updatedAt || parsed.updated_at || "") || undefined,
       updated_by: updatedBy == null ? (parsed.updated_by == null ? null : String(parsed.updated_by)) : String(updatedBy),
     };
@@ -353,11 +357,13 @@ function processWarningAndEscalation(
   nowMs: number,
   effects: OperationalDeadlineEffect[],
 ): void {
+  if (Number(config.policy_version || 0) < 2 || !config.effective_at) return;
   const now = new Date(nowMs).toISOString();
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT b.batch_id, b.sku, b.product_name, b.first_report_at
        FROM report_batches b
       WHERE b.status = 'PENDING'
+        AND b.first_report_at >= ?
         AND (
           NOT EXISTS (
             SELECT 1 FROM sla_deadline_events d
@@ -370,6 +376,7 @@ function processWarningAndEscalation(
         )
       ORDER BY b.first_report_at ASC
       LIMIT ?`,
+    config.effective_at,
     MAX_DUE_PER_ALARM,
   ).toArray();
 
@@ -713,15 +720,17 @@ export function processOperationalDeadlines(
   return effects;
 }
 
-function earliestPendingFirstReport(state: DurableObjectState, level: "WARNING" | "ESCALATED"): string | null {
+function earliestPendingFirstReport(state: DurableObjectState, level: "WARNING" | "ESCALATED", effectiveAt: string): string | null {
   const row = first(state.storage.sql.exec<SqlRow>(
     `SELECT MIN(b.first_report_at) AS first_report_at
        FROM report_batches b
       WHERE b.status = 'PENDING'
+        AND b.first_report_at >= ?
         AND NOT EXISTS (
           SELECT 1 FROM sla_deadline_events d
            WHERE d.deadline_event_key = b.batch_id || ':' || ?
         )`,
+    effectiveAt,
     level,
   ).toArray());
   return row?.first_report_at ? String(row.first_report_at) : null;
@@ -731,9 +740,9 @@ export async function scheduleNextOperationalAlarm(state: DurableObjectState): P
   const config = readOperationalSlaConfig(state);
   const candidates: number[] = [];
 
-  if (config) {
-    const warningBase = earliestPendingFirstReport(state, "WARNING");
-    const escalationBase = earliestPendingFirstReport(state, "ESCALATED");
+  if (config && Number(config.policy_version || 0) >= 2 && config.effective_at) {
+    const warningBase = earliestPendingFirstReport(state, "WARNING", config.effective_at);
+    const escalationBase = earliestPendingFirstReport(state, "ESCALATED", config.effective_at);
     const warningAt = warningBase ? deadlineIso(warningBase, config.warning_minutes) : null;
     const escalationAt = escalationBase ? deadlineIso(escalationBase, config.escalation_minutes) : null;
     for (const value of [warningAt, escalationAt]) {
