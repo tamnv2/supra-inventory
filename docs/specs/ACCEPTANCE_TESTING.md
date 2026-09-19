@@ -280,8 +280,8 @@ Non-destructive CI tests may use declared synthetic tiers. Destructive/mutation 
 - Picker critical-result `RECEIVED` may be recorded after authoritative fetch, but `DISPLAYED` is recorded only after that result surface is actually rendered for the Picker.
 - User administration supports server-side filtering, total count and bounded pagination; Select All applies to all Picker accounts rather than only the current browser page.
 - Admin dashboard exposes shared bounded date presets, report/resolution trend, outcome breakdown and drill-down to detailed reporting.
-- Detailed reporting supports bounded paged CSV export using the current safe Beta columns without claiming those columns as the final Stable export contract.
-- Web SLA validation uses the same current bounds as the server: warning 1–1440 minutes; escalation > warning and <= 2880 minutes.
+- Detailed reporting supports bounded paged `.xlsx` export using the current safe Beta columns without claiming those columns as the final Stable export contract.
+- Web timing validation mirrors the server: warning 1–1440; escalation > warning and <=2880; auto-Skip > escalation and <=10080.
 
 ## Android operational P1 regression acceptance
 
@@ -323,9 +323,27 @@ D069 Web diagnostics / Excel / consistency / responsiveness acceptance:
 - manual/scheduled/error Web logs contain broad bounded browser/network/performance/API/render/realtime/UI diagnostic context while secret-like fields and credential material are redacted and typed form values are not captured;
 - API telemetry contains method/path/status/timing without authorization values or query-value leakage;
 - detailed-report export downloads `.xlsx`, preserves the current filters, uses bounded paged retrieval and no longer presents CSV as the current export;
-- `Thời gian xử lý` uses the common Web layout and retains server validation: warning 1–1440 minutes; escalation > warning and <= 2880 minutes;
+- `Thời gian xử lý` uses the common Web layout; D070 extends it to three ordered thresholds plus auto-Skip switch/mode with the same server bounds;
 - a final Web override layer normalizes page headings, panels, controls, tabs, tables and active states across reachable modules in both light and dark themes;
 - normal asynchronous business actions do not force a full shell rebuild; full-shell rebuild remains available for role/session/shell changes;
 - the complete Reporter queue remains authoritative while off-screen row painting may be contained for browser performance;
 - runtime logs expose enough API/render/long-task/realtime timing to distinguish network latency from client rendering delay;
-- D069 does not implement a new warning-notification policy before Owner approval; D007 ordering and D050 alert-only semantics remain unchanged.
+- D069 items 1/2/4/5 remain accepted baseline; its item-3 proposal-only gate is superseded by D070.
+
+
+D070 three-stage timing / automatic-Skip acceptance:
+- server rejects any configuration not satisfying integer `warning < escalation < auto_skip` and the documented bounds;
+- legacy two-threshold configuration never enables auto-Skip by inference;
+- first D070 activation/re-enable/mode switch does not assign automatic deadlines to pre-existing pending work;
+- disabling auto-Skip cancels not-yet-fired automatic deadlines while preserving already-fired result history;
+- `FIRST_REPORT`: new batch deadline is anchored to first report; a later Picker joining that eligible batch inherits the same deadline; due service transition targets all still-active Pickers and finalizes the batch as `SKIP_ALLOWED / SYSTEM_TIMEOUT`;
+- `PER_PICKER`: each new ticket deadline is anchored to its own report; the first timed-out Picker receives its own critical Skip result while batch remains pending for other active Pickers; affected-active count decreases; duplicate Picker+SKU remains blocked during the same episode; final active timeout finalizes the batch;
+- Reporter manual resolution racing an alarm is serialized/rechecked so only an authoritative valid transition wins;
+- final automatic `SKIP_ALLOWED` remains correctable to `HAS_STOCK` within five minutes server time;
+- warning and escalation are emitted once/idempotently; warning is not replayed after the item is already overdue;
+- Reporter/Admin/Root deadline background alerts may be grouped; exact Picker automatic-result/ACK identity is never grouped;
+- Web foreground toasts are deduplicated across replay/reconnect and browser background notices are optional permission-controlled;
+- Android receives the same deadline/automatic-result semantics through realtime/FCM and displays service-timeout source concisely;
+- D007 queue ordering is unchanged;
+- no processing-extension action is implemented;
+- Stable remains untouched/OWNER-GATED.
