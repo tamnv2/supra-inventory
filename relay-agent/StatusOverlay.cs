@@ -19,10 +19,8 @@ namespace SupraInventoryRelayAgent
 
     internal sealed class StatusOverlayForm : Form
     {
-        private const int GwlExStyle = -20;
-        private const int WsExTransparent = 0x00000020;
-        private const int WsExLayered = 0x00080000;
-        private const int WsExToolWindow = 0x00000080;
+        private const int WsExLayered = 0x80000;
+        private const int WsExToolWindow = 0x80;
         private const int WsExNoActivate = 0x08000000;
 
         private readonly Label _text = new Label();
@@ -83,9 +81,7 @@ namespace SupraInventoryRelayAgent
             get
             {
                 var cp = base.CreateParams;
-                cp.ExStyle |= WsExLayered | WsExToolWindow;
-                if (_settings.Locked)
-                    cp.ExStyle |= WsExTransparent | WsExNoActivate;
+                cp.ExStyle |= WsExLayered | WsExToolWindow | WsExNoActivate;
                 return cp;
             }
         }
@@ -206,25 +202,7 @@ namespace SupraInventoryRelayAgent
             _text.TextAlign = ContentAlignment.MiddleLeft;
             Cursor = _settings.Locked ? Cursors.Default : Cursors.SizeAll;
             BackColor = _settings.Locked ? Color.FromArgb(28, 35, 43) : Color.FromArgb(48, 63, 78);
-            ApplyClickThroughStyle();
             SendToPinnedState();
-        }
-
-        private void ApplyClickThroughStyle()
-        {
-            if (!IsHandleCreated) return;
-            try
-            {
-                var style = NativeMethods.GetWindowExStyle(Handle);
-                style |= WsExLayered | WsExToolWindow;
-                if (_settings.Locked)
-                    style |= WsExTransparent | WsExNoActivate;
-                else
-                    style &= ~(WsExTransparent | WsExNoActivate);
-
-                NativeMethods.SetWindowExStyle(Handle, style);
-            }
-            catch { }
         }
 
         private void SendToPinnedState()
@@ -332,33 +310,6 @@ namespace SupraInventoryRelayAgent
             internal static readonly IntPtr HwndTopmost = new IntPtr(-1);
             internal const uint SwpNoActivate = 0x0010;
             internal const uint SwpShowWindow = 0x0040;
-
-            [DllImport("user32.dll", EntryPoint = "GetWindowLong", SetLastError = true)]
-            private static extern int GetWindowLong32(IntPtr hWnd, int nIndex);
-
-            [DllImport("user32.dll", EntryPoint = "GetWindowLongPtr", SetLastError = true)]
-            private static extern IntPtr GetWindowLongPtr64(IntPtr hWnd, int nIndex);
-
-            [DllImport("user32.dll", EntryPoint = "SetWindowLong", SetLastError = true)]
-            private static extern int SetWindowLong32(IntPtr hWnd, int nIndex, int dwNewLong);
-
-            [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr", SetLastError = true)]
-            private static extern IntPtr SetWindowLongPtr64(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
-
-            internal static int GetWindowExStyle(IntPtr hWnd)
-            {
-                return IntPtr.Size == 8
-                    ? unchecked((int)GetWindowLongPtr64(hWnd, GwlExStyle).ToInt64())
-                    : GetWindowLong32(hWnd, GwlExStyle);
-            }
-
-            internal static void SetWindowExStyle(IntPtr hWnd, int style)
-            {
-                if (IntPtr.Size == 8)
-                    SetWindowLongPtr64(hWnd, GwlExStyle, new IntPtr(style));
-                else
-                    SetWindowLong32(hWnd, GwlExStyle, style);
-            }
 
             [DllImport("user32.dll", SetLastError = true)]
             internal static extern bool SetWindowPos(
