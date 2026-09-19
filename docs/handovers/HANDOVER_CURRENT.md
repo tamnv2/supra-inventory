@@ -7,7 +7,7 @@
 Canonical current markers:
 - SQLite schema: `6`
 - Latest Beta APK: `beta-vc45`
-- Web: `D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`
+- Web: `D070_THREE_STAGE_SLA_AUTO_SKIP_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING`
 - Android: `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 
 The project is in **UI-first review**, not business-logic rebuild.
@@ -457,8 +457,8 @@ Implementation details:
 - Picker Web keeps its single `Báo thiếu hàng` workspace.
 - Android/PDA unchanged. Stable untouched and OWNER-GATED.
 
-Current source marker: `D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`.
-Next action: finish PR guards → merge → Beta deploy → record runtime PASS/continuity.
+Current source marker: `D070_THREE_STAGE_SLA_AUTO_SKIP_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING`.
+Next action: Owner field-tests D070 on deployed Beta Web and Android beta-vc46; technical/runtime PASS is complete.
 
 ## D066 runtime evidence — clean handoff
 
@@ -493,24 +493,24 @@ No manual end-of-session handover is required; bootstrap from `ops/authority-man
 
 ## D067 active refinement — 2026-09-19
 
-Owner accepted D066 as the current Web baseline and requested 10 bounded refinements: text zoom; clickable complete pending/warning/overdue lists; latest-report detail; responsive one-row-per-Picker detail; scroll preservation; optional 5-second Skip guard; HAS_STOCK confirmation; Web-log de-duplication; clean end-user copy; and removal of the 200-row pending-queue truncation. Source marker: `D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`. Stable remains OWNER-GATED.
+Owner accepted D066 as the current Web baseline and requested 10 bounded refinements: text zoom; clickable complete pending/warning/overdue lists; latest-report detail; responsive one-row-per-Picker detail; scroll preservation; optional 5-second Skip guard; HAS_STOCK confirmation; Web-log de-duplication; clean end-user copy; and removal of the 200-row pending-queue truncation. Source marker: `D070_THREE_STAGE_SLA_AUTO_SKIP_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING`. Stable remains OWNER-GATED.
 
 
 ## D067 runtime PASS — 2026-09-19
 
-PR #52 merged at `c2249ceea9fbb9570c3855fc2a0a421b251e3328`. Repo Authority Guard `35411796234`, Project State Guard `35411796230`, UI Design Guard `35411796208` and Beta deploy `35411796215` all PASS. UI Guard includes Worker typecheck, Web production build and Android debug build; deploy verifies health/schema, auth/business guards, Web shell and Google OAuth start. Current source marker: `D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`. Next step is Owner testing of the exact 10 requested D067 items; freeze each item once marked OK. Stable remains OWNER-GATED.
+PR #52 merged at `c2249ceea9fbb9570c3855fc2a0a421b251e3328`. Repo Authority Guard `35411796234`, Project State Guard `35411796230`, UI Design Guard `35411796208` and Beta deploy `35411796215` all PASS. UI Guard includes Worker typecheck, Web production build and Android debug build; deploy verifies health/schema, auth/business guards, Web shell and Google OAuth start. Current source marker: `D070_THREE_STAGE_SLA_AUTO_SKIP_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING`. Next step is Owner testing of the exact 10 requested D067 items; freeze each item once marked OK. Stable remains OWNER-GATED.
 
 
 ## D068 active Web refinement — 2026-09-19
 
-Owner accepted and froze D067 items 1–8 and 10. D068 reopens only item 9 and adds requirements 11–15: full user-facing copy cleanup, bottom-left max-five 5-second translucent toasts, clear active backgrounds, interaction-delay repair, larger VẬN HÀNH / QUẢN LÝ / HỆ THỐNG headings, and same-page Back/Forward history. Latest Web log at 09:20 ICT showed realtime connected, service reachable, browser RTT about 50 ms, 10 Mbps reported downlink and JS heap under 3 MB; source inspection identified route rendering waiting for data load and selected-SKU full-list rerender as actionable UI delay causes. D068 is now merged and Beta runtime PASS. Source marker: `D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`. Android unchanged; Stable OWNER-GATED.
+Owner accepted and froze D067 items 1–8 and 10. D068 reopens only item 9 and adds requirements 11–15: full user-facing copy cleanup, bottom-left max-five 5-second translucent toasts, clear active backgrounds, interaction-delay repair, larger VẬN HÀNH / QUẢN LÝ / HỆ THỐNG headings, and same-page Back/Forward history. Latest Web log at 09:20 ICT showed realtime connected, service reachable, browser RTT about 50 ms, 10 Mbps reported downlink and JS heap under 3 MB; source inspection identified route rendering waiting for data load and selected-SKU full-list rerender as actionable UI delay causes. D068 is now merged and Beta runtime PASS. Source marker: `D070_THREE_STAGE_SLA_AUTO_SKIP_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING`. Android unchanged; Stable OWNER-GATED.
 
 Next command: `Kiểm tra live D068 và test mục 9, 11-15`.
 
 
 ## D068 runtime PASS — 2026-09-19
 
-PR #54 merged at `ba8579a157763288ff0cc3cca885e65e593917be`. Repo Authority Guard `35416184056`, Project State Guard `35416184002`, UI Design Guard `35416184004` and Beta deploy `35416184023` all PASS. Deploy verified health/schema, auth/business guards, Web shell and Google OAuth start. Current marker: `D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`. D067 items 1–8 and 10 remain frozen; Owner now tests only item 9 and requirements 11–15. Stable remains OWNER-GATED.
+PR #54 merged at `ba8579a157763288ff0cc3cca885e65e593917be`. Repo Authority Guard `35416184056`, Project State Guard `35416184002`, UI Design Guard `35416184004` and Beta deploy `35416184023` all PASS. Deploy verified health/schema, auth/business guards, Web shell and Google OAuth start. Current marker: `D070_THREE_STAGE_SLA_AUTO_SKIP_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING`. D067 items 1–8 and 10 remain frozen; Owner now tests only item 9 and requirements 11–15. Stable remains OWNER-GATED.
 
 
 ## D068 clean-log-copy runtime PASS — 2026-09-19
@@ -530,6 +530,16 @@ PR #58 merged at `fbd2e5c84ec2c401c784d5921b82aa6689bed2ee`. Main Repo Authority
 
 ## D070 approved three-stage timing candidate — 2026-09-19
 
-Owner approved the enhanced alert policy with three entered minute thresholds constrained as `warning < escalation < auto_skip`, an auto-Skip enable/disable switch and `FIRST_REPORT` / `PER_PICKER` timing modes. D050 no-auto-Skip is superseded. Current source candidate `D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING` implements InventoryCore Durable Object alarms, idempotent warning/escalation events, optional `SKIP_ALLOWED / SYSTEM_TIMEOUT`, exact Picker ACK targeting, grouped role alerts, Web/Android timeout surfaces, non-retroactive activation and fail-safe disable/mode-change cancellation. No extension feature is included. Stable untouched/OWNER-GATED.
+Owner approved the enhanced alert policy with three entered minute thresholds constrained as `warning < escalation < auto_skip`, an auto-Skip enable/disable switch and `FIRST_REPORT` / `PER_PICKER` timing modes. D050 no-auto-Skip is superseded. Current source candidate `D070_THREE_STAGE_SLA_AUTO_SKIP_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING` implements InventoryCore Durable Object alarms, idempotent warning/escalation events, optional `SKIP_ALLOWED / SYSTEM_TIMEOUT`, exact Picker ACK targeting, grouped role alerts, Web/Android timeout surfaces, non-retroactive activation and fail-safe disable/mode-change cancellation. No extension feature is included. Stable untouched/OWNER-GATED.
 
 D070 Android source marker: `D070_TIMEOUT_ALERT_PROJECTION_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`. Android changes are limited to timeout/deadline/result-source projection and background-alert labels; signed Beta release verification remains pending. Stable untouched.
+
+
+## D070 Beta technical/runtime PASS — 2026-09-19
+
+PR #60 merged at `3f3506a0f185d5e1a0f22ba6a908b161bae6dd6e`. Main Repo Authority Guard `35426339784`, Project State Guard `35426339862`, UI Design Guard `35426339800` and Beta deploy `35426339796` all PASS. Live health reports SQLite schema `7/7` and Operational V2 schema `5/5`; auth/business API, Web shell and Google OAuth smoke are PASS. Signed Android `beta-vc46` was published by Verify Beta Android run `35426339846` after the matching Beta runtime gate passed; APK SHA256 is `875b5bd32f22f77fbe7453020d38c60d587a97720bd14cecdae89d202e39287e`.
+
+D070 deployed behavior: three entered thresholds with strict `warning < escalation < auto_skip`; automatic Skip ON/OFF; `FIRST_REPORT` and `PER_PICKER` timing; Durable Object alarm authority; `SKIP_ALLOWED / SYSTEM_TIMEOUT`; exact Picker result/ACK targeting; grouped Reporter/Admin/Root alerts; existing 5-minute Skip→Có hàng correction; no extension feature; D007 queue ordering unchanged; activation is non-retroactive. Technical/runtime PASS is complete. Owner live timing/device/background-FCM acceptance is still required. Stable remains untouched/OWNER-GATED.
+
+
+Current Android marker: `D070_TIMEOUT_ALERT_PROJECTION_SIGNED_BETA_VC46_RUNTIME_GATE_PASS__OWNER_FIELD_ACCEPTANCE_PENDING`.
