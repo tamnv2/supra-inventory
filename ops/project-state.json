@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D080_AGENT_WMS_READONLY_SESSION_CAPTURE_IN_PROGRESS__PDA_AGENT_OFFICE_TEST_PENDING__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D080_AGENT_V5_RELEASE_PASS__OWNER_WMS_FIELD_TEST_PENDING__D078_OFFICE_TRANSPORT_PENDING__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -135,7 +135,6 @@
     "D066 Web three-group navigation PR #50 merged at 2e12e6d4e94b195e3b505b3f2abe9822ca91632c; PR Repo Authority, Project State and UI Design guards PASS; main UI Design Guard run 35407227884 PASS; Beta deploy run 35407227911 PASS including Web build, Worker typecheck/deploy, health/schema, auth/business guards, Web shell and Google OAuth start."
   ],
   "pending_build": [
-    "D080 relay-agent-v5 automatic WMS session capture + read-only connectivity probe PR/CI/release",
     "D070 PR guards/merge/Beta deploy for Worker/Web schema migration and alarm automation",
     "Signed Beta Android release/verification because D070 changes Android runtime UI/API projection",
     "Owner field acceptance of D070 timing notifications and both auto-Skip modes",
@@ -156,8 +155,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Build and release relay-agent-v5 for D080 Agent ↔ Supra WMS/API read-only testing. Owner may test D080 away from Office; keep PDA ↔ Agent Office transport matrix paused until back at company.",
-    "method": "Use an Agent-owned Edge window on 127.0.0.1 DevTools to capture the already-authorized HY1 session automatically, keep captured header values in RAM only, then test WMS UI plus signed read-only GET /sft3-hy1/api/v1/warehouse/zones through system/env/direct/corporate-proxy routes. No Picklist lookup, confirmation, click automation or WMS mutation. Branch -> PR -> authority/continuity/Agent guards -> merge -> relay-agent-v5 prerelease.",
+    "primary": "Owner runs relay-agent-v5 TEST SUPRA from any authorized network where Supra WMS is reachable. Agent should auto-open its dedicated Edge context, capture HY1 session without F12/cURL, then return WMS UI + signed zones API result. Analyze only sanitized log/result.",
+    "method": "If TEST SUPRA PASS, record D080 field evidence and keep real Picklist lookup/confirmation deferred until explicitly authorized. If it fails, classify route/proxy/session/API from sanitized Agent log and repair on a fresh branch. D078 PDA ↔ Agent .Office@MSN transport matrix remains separately pending until Owner is back at company.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -185,7 +184,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D080 Agent ↔ Supra read-only POC in progress: automatic HY1 session capture from Agent-owned Edge + WMS UI/signed API connectivity test; no WMS mutation. D078 physical Office relay test remains paused.",
+      "D080 source/PR/main build/release PASS: relay-agent-v5 is ready for Owner Agent ↔ Supra read-only field test; D078 physical PDA ↔ Agent Office matrix remains pending.",
       "D077 source/build/release PASS: relay-agent-v3 published; physical Office retest pending",
       "D076 Beta RTDB Rules deploy/readback PASS; D075 physical Picker -> ADMIN Agent acceptance pending",
       "D068 Web baseline Owner-accepted/frozen",
@@ -196,7 +195,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Finish D080 relay-agent-v5 CI/release; Owner runs TEST SUPRA from a network where WMS is available and returns only sanitized Agent log/result. Keep D078 Office TEST TẤT CẢ for later company-network field test.",
+      "Owner runs relay-agent-v5 TEST SUPRA without F12/cURL and provides sanitized result/log only; then record/repair D080. Resume D078 Office TEST TẤT CẢ later on .Office@MSN.",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
@@ -224,14 +223,14 @@
       "relay_agent_build_release": "PASS_RUN_35447318236",
       "signed_beta_release": "beta-vc49",
       "signed_beta_apk_size_bytes": 9317178,
-      "relay_agent_release": "relay-agent-v4",
-      "relay_agent_release_id": 392137381,
-      "relay_agent_exe_asset_id": 575094426,
-      "relay_agent_exe_size_bytes": 61952,
-      "relay_agent_checksum_asset_id": 574866732,
+      "relay_agent_release": "relay-agent-v5",
+      "relay_agent_release_id": 392156246,
+      "relay_agent_exe_asset_id": 575169402,
+      "relay_agent_exe_size_bytes": 80384,
+      "relay_agent_checksum_asset_id": 575169404,
       "agent_release_is_prerelease": true,
       "android_latest_release_verified": "beta-vc49",
-      "scope": "D075_SHARED_PICKER_QUEUE_REAL_ADMIN_AGENT_AUDIT_AUTO_UPDATE_NO_WMS_MUTATION",
+      "scope": "D080_AGENT_OWNED_EDGE_AUTO_SESSION_CAPTURE__WMS_UI_PLUS_SIGNED_READONLY_ZONES_GET__NO_PICKLIST_LOOKUP_OR_WMS_MUTATION",
       "stable": "UNTOUCHED_OWNER_GATED",
       "d076_branch": "fix/d076-rtdb-rest-deploy",
       "d076_merged_pr": 72,
@@ -258,7 +257,16 @@
       "d078_main_authority": "PASS_RUN_35455241759",
       "d078_main_project_state": "PASS_RUN_35455241764",
       "d078_main_ui": "PASS_RUN_35455241767",
-      "d078_main_agent": "PASS_RUN_35455241760"
+      "d078_main_agent": "PASS_RUN_35455241760",
+      "d080_branch": "feat/d080-agent-wms-readonly-session",
+      "d080_merged_pr": 79,
+      "d080_merged_main": "15b9dada520ba9810e29c0d2ff60e0374252001d",
+      "d080_pr_authority": "PASS_RUN_35457634587",
+      "d080_pr_project_state": "PASS_RUN_35457634577",
+      "d080_pr_ui": "PASS_RUN_35457634598",
+      "d080_pr_agent": "PASS_RUN_35457634523",
+      "d080_main_agent_release": "PASS_RUN_35457732455",
+      "relay_agent_exe_sha256": "27b1ca9091e19047def478881692fe7cd7d9b930586e028fe33a1605ddcf0376"
     },
     "last_runtime_evidence": {
       "schema": 7,
@@ -283,9 +291,10 @@
       "d073_relay_poc": "SOURCE_BUILD_RELEASE_PASS__RTDB_PROVISIONING_FIELD_TEST_PENDING",
       "d074_relay_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_OFFICE_FIELD_RETEST_PENDING",
       "d075_relay_poc": "SOURCE_BUILD_RELEASE_PASS__D076_RULES_DEPLOY_PASS__OWNER_FIELD_TEST_PENDING",
-      "relay_agent_release": "relay-agent-v2",
+      "relay_agent_release": "relay-agent-v5",
       "relay_agent_release_prerelease": true,
-      "d076_rtdb_rules": "PASS_RUN_35451292051__IAM_UPDATE_PASS__RULES_GET_PASS__RULES_PUT_PASS__EXACT_READBACK_PASS"
+      "d076_rtdb_rules": "PASS_RUN_35451292051__IAM_UPDATE_PASS__RULES_GET_PASS__RULES_PUT_PASS__EXACT_READBACK_PASS",
+      "d080_wms_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_WMS_FIELD_TEST_PENDING"
     }
   },
   "authority_setup": {
