@@ -169,6 +169,9 @@ namespace SupraInventoryRelayAgent
         private readonly Button _probeSheets = new Button();
         private readonly Button _probeDrive = new Button();
         private readonly Button _probeAll = new Button();
+        private readonly Button _wmsCapture = new Button();
+        private readonly Button _wmsTest = new Button();
+        private readonly Label _wmsStatus = new Label();
         private readonly Label _relay = new Label();
         private readonly Label _network = new Label();
         private readonly Label _identity = new Label();
@@ -176,7 +179,9 @@ namespace SupraInventoryRelayAgent
         private readonly NotifyIcon _tray = new NotifyIcon();
         private readonly HashSet<string> _acked = new HashSet<string>(StringComparer.Ordinal);
         private readonly object _sessionLock = new object();
+        private readonly object _wmsSessionLock = new object();
         private AgentSession _session;
+        private WmsSessionSnapshot _wmsSession;
         private CancellationTokenSource _listenCts;
         private bool _allowExit;
         private bool _updateCheckRunning;
@@ -194,8 +199,8 @@ namespace SupraInventoryRelayAgent
             _agentInstanceId = LoadOrCreateAgentInstanceId();
             Text = "SUPRA Inventory - Relay Test v" + AgentConfig.AgentBuild;
             Width = 780;
-            Height = 610;
-            MinimumSize = new Size(780, 610);
+            Height = 680;
+            MinimumSize = new Size(780, 680);
             StartPosition = FormStartPosition.CenterScreen;
             Font = new Font("Segoe UI", 9F);
             FormBorderStyle = FormBorderStyle.FixedSingle;
@@ -242,9 +247,16 @@ namespace SupraInventoryRelayAgent
 
             _probeAll.SetBounds(622, 242, 122, 32); _probeAll.Text = "TEST TẤT CẢ";
             _probeAll.Click += (s, e) => Task.Run(() => ProbeAllTransports()); Controls.Add(_probeAll);
+
+            Controls.Add(new Label { Left = 18, Top = 286, Width = 726, Height = 20, Text = "Supra WMS — tự lấy phiên từ Edge riêng, chỉ kiểm tra kết nối đọc:", ForeColor = Color.DimGray });
+            _wmsCapture.SetBounds(18, 308, 172, 32); _wmsCapture.Text = "Mở WMS + lấy phiên";
+            _wmsCapture.Click += (s, e) => Task.Run(() => CaptureWmsSession()); Controls.Add(_wmsCapture);
+            _wmsTest.SetBounds(198, 308, 142, 32); _wmsTest.Text = "TEST SUPRA";
+            _wmsTest.Click += (s, e) => Task.Run(() => TestWmsConnection()); Controls.Add(_wmsTest);
+            _wmsStatus.SetBounds(350, 311, 394, 28); _wmsStatus.Text = "WMS: chưa kiểm tra"; Controls.Add(_wmsStatus);
             SetProbeButtonsEnabled(false);
 
-            _log.SetBounds(18, 292, 726, 255); Controls.Add(_log);
+            _log.SetBounds(18, 356, 726, 255); Controls.Add(_log);
 
             var menu = new ContextMenuStrip();
             menu.Items.Add("Mở", null, (s, e) => RestoreFromTray());
@@ -283,6 +295,8 @@ namespace SupraInventoryRelayAgent
                 _probeSheets.Enabled = enabled;
                 _probeDrive.Enabled = enabled;
                 _probeAll.Enabled = enabled;
+                _wmsCapture.Enabled = enabled;
+                _wmsTest.Enabled = enabled;
             });
         }
 
@@ -823,6 +837,96 @@ namespace SupraInventoryRelayAgent
         {
             if (string.IsNullOrWhiteSpace(value)) return "";
             return Regex.Replace(value, "[^A-Za-z0-9._+;=/-]", "_").Substring(0, Math.Min(96, value.Length));
+        }
+
+        private WmsSessionSnapshot SnapshotWmsSession()
+        {
+            lock (_wmsSessionLock)
+                return _wmsSession;
+        }
+
+        private void CaptureWmsSession()
+        {
+            SetProbeButtonsEnabled(false);
+            Ui(() => _wmsStatus.Text = "WMS: đang mở Edge / chờ phiên...");
+            try
+            {
+                LogNetworkSnapshot("wms-session-capture");
+                var captured = WmsBrowserCapture.CaptureSession(180, message => Log("WMS " + message));
+                lock (_wmsSessionLock) _wmsSession = captured;
+                Ui(() => _wmsStatus.Text = "WMS: phiên HY1 đã lấy tự động");
+                Log("WMS SESSION PASS scope=HY1 storage=RAM_ONLY values=redacted.");
+            }
+            catch (Exception ex)
+            {
+                lock (_wmsSessionLock) _wmsSession = null;
+                Ui(() => _wmsStatus.Text = "WMS: chưa lấy được phiên");
+                Log("WMS SESSION FAIL " + SafeMessage(ex));
+            }
+            finally
+            {
+                SetProbeButtonsEnabled(true);
+            }
+        }
+
+        private void TestWmsConnection()
+        {
+            SetProbeButtonsEnabled(false);
+            Ui(() => _wmsStatus.Text = "WMS: đang kiểm tra kết nối...");
+            try
+            {
+                LogNetworkSnapshot("wms-readonly-test");
+                var ui = WmsReadOnlyClient.ProbeUi();
+                Log("WMS PROBE " + ui.Summary());
+
+                if (string.Equals(ui.Result, "TRANSPORT_FAIL", StringComparison.Ordinal) ||
+                    string.Equals(ui.Result, "PROXY_AUTH_REQUIRED", StringComparison.Ordinal) ||
+                    string.Equals(ui.Result, "PROXY_BLOCK", StringComparison.Ordinal))
+                {
+                    Ui(() => _wmsStatus.Text = "WMS UI: " + ui.Result + " · " + ui.Route);
+                    return;
+                }
+
+                var session = SnapshotWmsSession();
+                if (session == null || !session.IsValidHy1())
+                {
+                    Log("WMS chưa có phiên HY1 trong RAM; tự mở Edge để lấy phiên.");
+                    session = WmsBrowserCapture.CaptureSession(180, message => Log("WMS " + message));
+                    lock (_wmsSessionLock) _wmsSession = session;
+                }
+
+                var api = WmsReadOnlyClient.ProbeApi(session);
+                Log("WMS PROBE " + api.Summary());
+
+                if (string.Equals(api.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
+                {
+                    Log("WMS phiên cũ hết hạn; tự mở Edge để lấy phiên mới một lần.");
+                    var refreshed = WmsBrowserCapture.CaptureSession(180, message => Log("WMS " + message));
+                    lock (_wmsSessionLock) _wmsSession = refreshed;
+                    api = WmsReadOnlyClient.ProbeApi(refreshed);
+                    Log("WMS PROBE RETRY " + api.Summary());
+                }
+
+                if (string.Equals(api.Result, "PASS", StringComparison.Ordinal))
+                {
+                    Ui(() => _wmsStatus.Text = "WMS: PASS · API HY1 · " + api.Route + " · " + api.ElapsedMs + "ms");
+                    Log("WMS READ_ONLY PASS ui=" + ui.Result + " api=PASS route=" + api.Route + " no_mutation=true.");
+                }
+                else
+                {
+                    Ui(() => _wmsStatus.Text = "WMS API: " + api.Result + " · HTTP " + api.StatusCode);
+                    Log("WMS READ_ONLY FAIL api=" + api.Result + " http=" + api.StatusCode + " route=" + api.Route + ".");
+                }
+            }
+            catch (Exception ex)
+            {
+                Ui(() => _wmsStatus.Text = "WMS: lỗi · xem log");
+                Log("WMS TEST FAIL " + SafeMessage(ex));
+            }
+            finally
+            {
+                SetProbeButtonsEnabled(true);
+            }
         }
 
         private void TestOffice()
