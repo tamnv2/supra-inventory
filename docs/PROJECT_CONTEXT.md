@@ -119,3 +119,10 @@ This does not reopen Office-network fallback for the normal Báo hàng transacti
 ## D084 all-date PickListCode lookup refinement
 
 D084 keeps the same registered read-only WMS endpoint and existing Beta RTDB transport, but changes the lookup mechanics: no WMS date filter, `Content` remains empty, pagination is 100 records per page, and only the exact `PickListCode` field is evaluated. Values must follow the `PL` + digits form; the PDA's exact five digits are compared only with the trailing five digits of `PickListCode`. The Agent scans pages until match/exhaustion and fails closed on unsupported schema or broken pagination. D084 also makes overlay opacity/lock explicit settings while preserving locked click-through behavior. No WMS mutation is authorized.
+
+## D085 sticky Agent HA and lookup protection
+
+D085 does **not** choose the final PDA ↔ Agent transport. The existing Beta RTDB path remains the temporary implementation while D078 Office transport evidence is pending. The new coordination semantics are transport-independent product requirements: one sticky WMS-ready active Agent, 10-second failover to a standby, no-Agent guidance to the specialist desk, persistent Picker anti-spam locks, startup Picklist cache and user-mode Agent autostart.
+
+WMS session reuse is based on the dedicated browser profile with raw captured request/session values held only in Agent RAM. D085 does not authorize confirmation or any WMS mutation. Stable remains OWNER-GATED.
+
