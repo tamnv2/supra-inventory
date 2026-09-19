@@ -18,7 +18,7 @@
     "sqlite_schema": 6,
     "business_api": "OPERATIONAL_V2_4_RUNTIME_PASS__F20_BOUNDED_INSIGHTS_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
-    "web": "D068_CLEAN_LOG_COPY_BETA_RUNTIME_PASS__OWNER_ITEM9_11_15_ACCEPTANCE_PENDING",
+    "web": "D069_WEB_DIAGNOSTICS_EXCEL_UNIFIED_UI_PERF_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
     "android": "VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING",
     "latest_beta_apk": "beta-vc45",
     "realtime": "GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_4",
@@ -26,9 +26,9 @@
     "fcm": "DATA_ONLY_SERVICE_CORRELATION_DELIVERY_ATTEMPTS_INVALID_TOKEN_CLEANUP_RUNTIME_RELEASE_PASS__PHYSICAL_ACCEPTANCE_PENDING",
     "user_management": "SERVER_PAGED_FILTERED_ONE_MANY_ALL__ROOT_EFFECTIVE_ROLE_TEST_RUNTIME_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
-    "admin_dashboard": "D025_WEB_TREND_OUTCOME_DRILLDOWN_CSV_SOURCE_BUILD_DEPLOY_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
+    "admin_dashboard": "D069_XLSX_REPORT_EXPORT_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "D068_CLEAN_LOG_COPY_UI_DESIGN_GUARD_MAIN_PASS",
+    "ui_design_guard": "D069_WEB_DIAGNOSTICS_EXCEL_UNIFIED_UI_PERF_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED"
@@ -152,8 +152,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Owner tests only D067 item 9 and D068 requirements 11–15 on the deployed Beta Web. D067 items 1–8 and 10 remain frozen and must not change.",
-    "method": "Use https://inventory-beta.supra.cc.cd/. Recheck clean user-facing copy, especially Nhật ký now showing a structured summary instead of raw filenames/JSON; also verify bottom-left translucent notifications, selected-background clarity, immediate menu/SKU response, larger VẬN HÀNH / QUẢN LÝ / HỆ THỐNG headings, and browser Back/Forward through prior business sections.",
+    "primary": "Finish D069 PR guards, merge and deploy Beta for rich redacted Web diagnostics, Excel report export, unified Web presentation and UI-delay optimization. Then present the pending-SKU alert proposal for Owner approval; do not implement that alert policy yet.",
+    "method": "After Beta deploy, verify report export is .xlsx, normal actions avoid full-shell rerenders, Thời gian xử lý matches the common Web layout, runtime logs include API/render/realtime/long-task diagnostics without secrets or typed form values, and D068 accepted behavior remains intact.",
     "stable_guard": "Stable remains OWNER-GATED and untouched."
   },
   "continuity_policy": {
@@ -262,17 +262,17 @@
   "last_updated": "2026-09-19",
   "owner_ui_review": {
     "status": "IN_PROGRESS",
-    "phase": "D068_WEB_INTERACTION_RUNTIME_REVIEW",
+    "phase": "D069_WEB_DIAGNOSTICS_EXCEL_UI_PERFORMANCE_REVIEW",
     "started_on": "2026-09-18",
     "review_target_web": "https://inventory-beta.supra.cc.cd/",
     "review_target_android_release": "beta-vc45",
     "review_target_android_source_commit": "3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982",
     "visual_authority_repository": "tam95supra-source/bao-hang-1291",
     "visual_authority_commit": "8713f487386fa39c9225b180b2b8448d4a7e2b2d",
-    "owner_acceptance": "D067_ITEMS_1_8_AND_10_ACCEPTED_FROZEN__D068_ITEM9_11_15_PENDING",
-    "current_instruction": "Test only D067 item 9 and D068 requirements 11–15 on Beta. Nhật ký raw filename/JSON cleanup is now deployed. Do not change D067 items 1–8 and 10 unless Owner explicitly reopens them.",
-    "next_session_command": "Kiểm tra live D068 và test mục 9, 11-15",
-    "review_feedback_protocol": "Owner reports item 9 and requirements 11–15 as OK/not OK. AI fixes only not-OK items and preserves D067 items 1–8 and 10 plus every accepted D068 item."
+    "owner_acceptance": "D068_ALL_WEB_REVIEW_ITEMS_ACCEPTED_FROZEN",
+    "current_instruction": "Implement D069 items 1, 2, 4 and 5 on Beta Web. Item 3 enhanced pending-SKU alert policy remains proposal-only until Owner explicitly approves the exact warning channels/behavior.",
+    "next_session_command": "Kiểm tra live D069 và review log, Excel, giao diện, độ trễ",
+    "review_feedback_protocol": "Owner reviews D069 items 1, 2, 4 and 5. AI must not implement item 3 alert-policy changes until explicit Owner approval."
   },
   "runtime_evidence": [
     "D064 Beta Load Test run 35376099693 PASS: 1000/1000 normal Picker reports, 100 existing Picker identities, 400 existing SKUs, duration 525.423s, avg 250.34ms, p50 235.95ms, p95 348.72ms, max 625.64ms, no errors; SQLite +2572288 bytes, +400 batches, +1000 tickets, +1000 report events, +1000 realtime events, +1000 audit rows; temporary load-test gate verified closed.",
@@ -283,6 +283,9 @@
   ],
   "implementation_notes": [
     "D068 follow-up clean-copy patch replaces raw runtime-log filenames/JSON detail on the normal Web Nhật ký surface with a structured operational summary; downloadable support logging remains available. Frozen D067 items 1–8 and 10 are unchanged.",
-    "D068 clean-copy follow-up is deployed on Beta: normal Nhật ký UI no longer exposes raw runtime-log filenames or raw JSON; it renders a structured operational summary while support-log generation/download remains available."
+    "D068 clean-copy follow-up is deployed on Beta: normal Nhật ký UI no longer exposes raw runtime-log filenames or raw JSON; it renders a structured operational summary while support-log generation/download remains available.",
+    "Owner explicitly accepted the complete D068 Web review baseline on 2026-09-19; D068 is frozen.",
+    "D069 source candidate expands redacted Web runtime diagnostics, changes detailed-report export to .xlsx, adds a final unified Web CSS layer including a redesigned Thời gian xử lý page, and reduces unnecessary full-shell rerenders while adding render/API/realtime timing telemetry.",
+    "D069 item 3 enhanced pending-SKU alert logic remains proposal-only; no new alert delivery/escalation behavior is source-implemented before Owner approval."
   ]
 }
