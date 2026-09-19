@@ -468,3 +468,21 @@ D081 is technically PASS only when:
 7. Taskbar monitoring does not poll Cloudflare/Firebase/WMS and therefore adds no service quota consumption.
 8. D080 signed zones probe remains GET-only; no Picklist lookup/confirmation/WMS mutation is added.
 9. Stable remains untouched.
+
+## D082 — Read-only Picklist/overlay acceptance
+
+D082 technical/release PASS requires:
+1. Agent overlay is visible without hovering the tray icon, stays topmost, persists position/opacity/visibility/lock state, can be dragged only while unlocked, and locked mode uses click-through/no-activate behavior so underlying applications receive pointer input.
+2. Overlay sampling remains local-only and adds no Cloudflare/Firebase/WMS quota reads.
+3. With a valid HY1 session in RAM, Agent disables the manual WMS browser/login capture action; `TEST SUPRA` may still test the session.
+4. A PDA request when session is missing/expired returns a session-required result and never auto-launches a WMS login browser.
+5. PDA sends exactly five digits through the existing D075 RTDB path; Office/LAN transport is unchanged.
+6. Agent signs and sends only `GET /sft3-hy1/api/v1/autopp/pickListConfirms` with the approved HY1/WIN/current-month-to-today filter and `Content` equal to the five-digit input.
+7. `FOUND` is emitted only when an identified Picklist identity field ends in the exact five digits. `NOT_FOUND` is emitted only when the response schema is understood enough to support that conclusion; unknown schema returns `SCHEMA_UNSUPPORTED`.
+8. APK renders `CÓ PICKLIST` / `KHÔNG CÓ PICKLIST` distinctly from transport/session/schema errors.
+9. Logs may contain schema field names/classifications/timing but no Picklist values, WMS response values, Authorization/Token/APISID/SID/SCID/USID, signature/nonce or passwords.
+10. Source/guards contain no WMS Picklist POST/PUT/PATCH/DELETE, no confirmation API, and no code that navigates/clicks/submits the confirm-page reference.
+11. RTDB Rules validate the new optional lookup ACK metadata while remaining backward compatible during rollout.
+12. Agent v7 and signed Android Beta release pass their normal CI/release gates; Stable remains untouched.
+
+Field acceptance then requires Owner to use an authorized WMS session and known last-five values to demonstrate at least one real lookup response. Confirmation remains explicitly untested/deferred.
