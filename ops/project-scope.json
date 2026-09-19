@@ -302,7 +302,7 @@
       "location": "asia-southeast1",
       "url": "https://supra-inventory-beta-default-rtdb.asia-southeast1.firebasedatabase.app",
       "exposure": "public_identifier",
-      "status": "PROVISIONED__D075_RULES_D076_PR_VALIDATED__MAIN_DEPLOY_PENDING",
+      "status": "PROVISIONED__D075_RULES_DEPLOYED_D076_PASS__FIELD_TEST_PENDING",
       "guard": "D075_SHARED_RELAY_POC_ONLY_NO_WMS_MUTATION_NO_STABLE"
     }
   ],
@@ -370,7 +370,7 @@
       "storage": "GitHub Environment beta secret",
       "value_in_repo": false,
       "purpose": "D076 main-only Beta Firebase Realtime Database Rules deployment",
-      "status": "CONFIGURED_VALIDATED__D076_PR_PASS"
+      "status": "CONFIGURED_VALIDATED__D076_ACTIVE"
     }
   ],
   "explicit_out_of_scope": [
