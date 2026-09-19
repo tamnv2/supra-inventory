@@ -498,3 +498,15 @@ D083 is technically PASS only when:
 6. D082 Picklist read-only lookup, session suppression, RTDB transport and no-mutation guards remain unchanged.
 7. Agent build increments to v8 and releases only after the executable startup gate plus existing authority/state/UI/Agent build guards PASS.
 8. Stable remains untouched.
+
+## D084 — overlay and all-date PickListCode acceptance
+
+D084 technical PASS requires:
+1. Agent build channel increments to v9 and Windows executable startup-smoke remains PASS.
+2. Overlay settings dialog is reachable from Agent/tray and controls opacity plus lock state.
+3. Unlocked overlay can be dragged; locked overlay applies Windows click-through style without `RecreateHandle()` and cannot intercept underlying application mouse input.
+4. WMS lookup sends `FromDate=""`, `ToDate=""`, `Content=""`, `limit=100`, matching `PageIndex/page` pagination.
+5. Lookup accepts identity only from exact `PickListCode`; expected code is `PL` + digits and comparison uses exactly its final five digits.
+6. Agent paginates until FOUND or truthful exhaustion. Missing `PickListCode`, malformed values, repeated/stalled pages, or unrecognized response structure fail closed as schema error rather than false NOT_FOUND.
+7. Android relay call timeout is 120 seconds for this all-date scan.
+8. Existing signed-GET-only/no-WMS-mutation guards remain PASS; Stable remains untouched.

@@ -55,8 +55,8 @@ class RelayPocClient(
     private val jsonType = "application/json; charset=utf-8".toMediaType()
     private val http = OkHttpClient.Builder()
         .connectTimeout(5, TimeUnit.SECONDS)
-        .readTimeout(22, TimeUnit.SECONDS)
-        .callTimeout(25, TimeUnit.SECONDS)
+        .readTimeout(115, TimeUnit.SECONDS)
+        .callTimeout(120, TimeUnit.SECONDS)
         .build()
 
     fun close() {
@@ -163,7 +163,7 @@ class RelayPocClient(
             throw SocketTimeoutException("Máy xử lý chưa trả ACK.")
         } catch (error: SocketTimeoutException) {
             log("Relay timeout request=" + shortId(requestId))
-            throw IOException("Quá 20 giây chưa nhận phản hồi tra cứu từ máy xử lý.", error)
+            throw IOException("Quá 2 phút chưa nhận phản hồi tra cứu từ máy xử lý.", error)
         } finally {
             cleanup(url)
         }

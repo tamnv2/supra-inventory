@@ -27,12 +27,15 @@ namespace SupraInventoryRelayAgent
                    (string.IsNullOrWhiteSpace(Route) ? "" : "/" + Route) +
                    "/" + ElapsedMs + "ms" +
                    " matches=" + MatchCount +
-                   " candidate_fields=" + CandidateFieldCount;
+                   " picklist_codes=" + CandidateFieldCount;
         }
     }
 
     internal static class WmsPicklistLookupClient
     {
+        private const int PageSize = 100;
+        private const int AbsolutePageGuard = 10000;
+
         private sealed class Route
         {
             internal string Name;
@@ -51,8 +54,10 @@ namespace SupraInventoryRelayAgent
         private sealed class ResponseAnalysis
         {
             internal int MatchCount;
-            internal int CandidateFieldCount;
+            internal int PickListCodeCount;
+            internal int ValidPickListCodeCount;
             internal int? TotalCount;
+            internal int RecordCollectionCount = -1;
             internal readonly HashSet<string> SchemaFields = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         }
 
@@ -69,28 +74,33 @@ namespace SupraInventoryRelayAgent
                     ElapsedMs = 0
                 };
 
-            if (string.IsNullOrWhiteSpace(suffix) || suffix.Length != 5)
-                throw new ArgumentException("Picklist suffix must contain exactly five digits.", "suffix");
-            foreach (var ch in suffix)
-                if (ch < '0' || ch > '9')
-                    throw new ArgumentException("Picklist suffix must contain exactly five digits.", "suffix");
+            ValidateSuffix(suffix);
 
-            var url = BuildLookupUrl(suffix);
-            HttpPayload last = null;
-            foreach (var route in BuildRoutes(new Uri(url)))
+            long totalElapsedMs = 0;
+            var totalPickListCodes = 0;
+            var totalMatches = 0;
+            var allFields = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            string lastRoute = "NONE";
+            var lastHttp = 0;
+            string previousBodyFingerprint = null;
+
+            for (var page = 1; page <= AbsolutePageGuard; page++)
             {
-                var payload = SendOne(url, session, route);
-                last = payload;
+                var url = BuildLookupUrl(page);
+                var payload = SendPage(url, session, page, ref totalElapsedMs);
+                if (payload == null)
+                    return new WmsPicklistLookupResult
+                    {
+                        Result = "TRANSPORT_FAIL",
+                        Route = lastRoute,
+                        StatusCode = lastHttp,
+                        ElapsedMs = totalElapsedMs,
+                        MatchCount = totalMatches,
+                        CandidateFieldCount = totalPickListCodes
+                    };
 
-                AgentDiagnostics.Write(
-                    "WMS picklist-lookup result=" + payload.Result +
-                    " route=" + payload.Route +
-                    " http=" + payload.StatusCode +
-                    " ms=" + payload.ElapsedMs +
-                    " query=content_5_digits_redacted session_values=redacted");
-
-                if (payload.Result == "TRANSPORT_FAIL" || payload.Result == "PROXY_AUTH_REQUIRED")
-                    continue;
+                lastRoute = payload.Route;
+                lastHttp = payload.StatusCode;
 
                 if (payload.Result != "PASS")
                     return new WmsPicklistLookupResult
@@ -98,44 +108,203 @@ namespace SupraInventoryRelayAgent
                         Result = payload.Result,
                         Route = payload.Route,
                         StatusCode = payload.StatusCode,
-                        ElapsedMs = payload.ElapsedMs,
-                        MatchCount = 0,
-                        CandidateFieldCount = 0
+                        ElapsedMs = totalElapsedMs,
+                        MatchCount = totalMatches,
+                        CandidateFieldCount = totalPickListCodes
                     };
 
-                return AnalyzeSuccessfulResponse(payload, suffix);
+                ResponseAnalysis analysis;
+                try
+                {
+                    analysis = AnalyzePage(payload.Body, suffix);
+                }
+                catch (Exception ex)
+                {
+                    AgentDiagnostics.Write(
+                        "WMS picklist-schema page=" + page +
+                        " parse_fail=" + ex.GetType().Name +
+                        " response_values=redacted");
+                    return new WmsPicklistLookupResult
+                    {
+                        Result = "SCHEMA_UNSUPPORTED",
+                        Route = payload.Route,
+                        StatusCode = payload.StatusCode,
+                        ElapsedMs = totalElapsedMs,
+                        MatchCount = totalMatches,
+                        CandidateFieldCount = totalPickListCodes
+                    };
+                }
+
+                foreach (var field in analysis.SchemaFields)
+                    if (allFields.Count < 80) allFields.Add(field);
+
+                totalPickListCodes += analysis.PickListCodeCount;
+                totalMatches += analysis.MatchCount;
+
+                AgentDiagnostics.Write(
+                    "WMS picklist-page page=" + page +
+                    " result=PASS" +
+                    " total=" + (analysis.TotalCount.HasValue ? analysis.TotalCount.Value.ToString() : "unknown") +
+                    " records=" + analysis.RecordCollectionCount +
+                    " picklist_codes=" + analysis.PickListCodeCount +
+                    " valid_picklist_codes=" + analysis.ValidPickListCodeCount +
+                    " matches=" + analysis.MatchCount +
+                    " values=redacted");
+
+                if (analysis.MatchCount > 0)
+                    return BuildResult(
+                        "FOUND",
+                        payload,
+                        totalElapsedMs,
+                        totalMatches,
+                        totalPickListCodes,
+                        allFields);
+
+                if (analysis.TotalCount.HasValue && analysis.TotalCount.Value == 0)
+                    return BuildResult(
+                        "NOT_FOUND",
+                        payload,
+                        totalElapsedMs,
+                        0,
+                        totalPickListCodes,
+                        allFields);
+
+                if (analysis.PickListCodeCount == 0)
+                {
+                    if (analysis.RecordCollectionCount == 0)
+                        return BuildResult(
+                            "NOT_FOUND",
+                            payload,
+                            totalElapsedMs,
+                            0,
+                            totalPickListCodes,
+                            allFields);
+
+                    AgentDiagnostics.Write(
+                        "WMS picklist-schema result=SCHEMA_UNSUPPORTED reason=missing_exact_PickListCode page=" +
+                        page + " values=redacted");
+                    return BuildResult(
+                        "SCHEMA_UNSUPPORTED",
+                        payload,
+                        totalElapsedMs,
+                        0,
+                        totalPickListCodes,
+                        allFields);
+                }
+
+                if (analysis.ValidPickListCodeCount == 0)
+                {
+                    AgentDiagnostics.Write(
+                        "WMS picklist-schema result=SCHEMA_UNSUPPORTED reason=PickListCode_format_unexpected page=" +
+                        page + " values=redacted");
+                    return BuildResult(
+                        "SCHEMA_UNSUPPORTED",
+                        payload,
+                        totalElapsedMs,
+                        0,
+                        totalPickListCodes,
+                        allFields);
+                }
+
+                if (IsLastPage(page, analysis))
+                    return BuildResult(
+                        "NOT_FOUND",
+                        payload,
+                        totalElapsedMs,
+                        0,
+                        totalPickListCodes,
+                        allFields);
+
+                var fingerprint = BodyFingerprint(payload.Body);
+                if (page > 1 && !string.IsNullOrWhiteSpace(previousBodyFingerprint) &&
+                    string.Equals(previousBodyFingerprint, fingerprint, StringComparison.Ordinal))
+                {
+                    AgentDiagnostics.Write(
+                        "WMS picklist-pagination result=SCHEMA_UNSUPPORTED reason=repeated_page page=" +
+                        page + " values=redacted");
+                    return BuildResult(
+                        "SCHEMA_UNSUPPORTED",
+                        payload,
+                        totalElapsedMs,
+                        0,
+                        totalPickListCodes,
+                        allFields);
+                }
+
+                previousBodyFingerprint = fingerprint;
             }
 
+            AgentDiagnostics.Write(
+                "WMS picklist-pagination result=SCHEMA_UNSUPPORTED reason=absolute_page_guard values=redacted");
             return new WmsPicklistLookupResult
             {
-                Result = last == null ? "TRANSPORT_FAIL" : last.Result,
-                Route = last == null ? "NONE" : last.Route,
-                StatusCode = last == null ? 0 : last.StatusCode,
-                ElapsedMs = last == null ? -1 : last.ElapsedMs
+                Result = "SCHEMA_UNSUPPORTED",
+                Route = lastRoute,
+                StatusCode = lastHttp,
+                ElapsedMs = totalElapsedMs,
+                MatchCount = totalMatches,
+                CandidateFieldCount = totalPickListCodes,
+                SchemaFields = JoinSafeFields(allFields)
             };
         }
 
-        private static string BuildLookupUrl(string suffix)
+        private static void ValidateSuffix(string suffix)
         {
-            var today = DateTime.Now.Date;
-            var monthStart = new DateTime(today.Year, today.Month, 1);
+            if (string.IsNullOrWhiteSpace(suffix) || suffix.Length != 5)
+                throw new ArgumentException("Picklist suffix must contain exactly five digits.", "suffix");
+            foreach (var ch in suffix)
+                if (ch < '0' || ch > '9')
+                    throw new ArgumentException("Picklist suffix must contain exactly five digits.", "suffix");
+        }
+
+        private static string BuildLookupUrl(int page)
+        {
             var filter = new Dictionary<string, object>
             {
                 { "WarehouseCode", "HY1" },
                 { "WarehouseSiteId", "" },
                 { "ClientCode", "WIN" },
-                { "FromDate", monthStart.ToString("yyyy-MM-dd") },
-                { "ToDate", today.ToString("yyyy-MM-dd") },
-                { "Content", suffix },
+                { "FromDate", "" },
+                { "ToDate", "" },
+                { "Content", "" },
                 { "Employee", "" },
                 { "IsAllowSkipped", "" }
             };
             var sort = new Dictionary<string, object> { { "CreatedDate", "desc" } };
             return AgentConfig.WmsPicklistLookupUrl +
                    "?filter=" + Uri.EscapeDataString(Json.Serialize(filter)) +
-                   "&page=1&limit=100&PageIndex=1&RecordsPerPage=100" +
+                   "&page=" + page +
+                   "&limit=" + PageSize +
+                   "&PageIndex=" + page +
+                   "&RecordsPerPage=" + PageSize +
                    "&regionCode=null" +
                    "&sort=" + Uri.EscapeDataString(Json.Serialize(sort));
+        }
+
+        private static HttpPayload SendPage(string url, WmsSessionSnapshot session, int page, ref long totalElapsedMs)
+        {
+            HttpPayload last = null;
+            foreach (var route in BuildRoutes(new Uri(url)))
+            {
+                var payload = SendOne(url, session, route);
+                last = payload;
+                totalElapsedMs += Math.Max(0, payload.ElapsedMs);
+
+                AgentDiagnostics.Write(
+                    "WMS picklist-lookup result=" + payload.Result +
+                    " route=" + payload.Route +
+                    " http=" + payload.StatusCode +
+                    " ms=" + payload.ElapsedMs +
+                    " page=" + page +
+                    " limit=" + PageSize +
+                    " query=no_date_content_empty session_values=redacted");
+
+                if (payload.Result == "TRANSPORT_FAIL" || payload.Result == "PROXY_AUTH_REQUIRED")
+                    continue;
+
+                return payload;
+            }
+            return last;
         }
 
         private static HttpPayload SendOne(string url, WmsSessionSnapshot session, Route route)
@@ -209,56 +378,12 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private static WmsPicklistLookupResult AnalyzeSuccessfulResponse(HttpPayload payload, string suffix)
+        private static ResponseAnalysis AnalyzePage(string body, string suffix)
         {
-            ResponseAnalysis analysis;
-            try
-            {
-                var root = Json.DeserializeObject(payload.Body ?? "");
-                analysis = new ResponseAnalysis();
-                AnalyzeNode(root, null, suffix, analysis, 0);
-            }
-            catch (Exception ex)
-            {
-                AgentDiagnostics.Write("WMS picklist-schema parse_fail=" + ex.GetType().Name + " response_values=redacted");
-                return new WmsPicklistLookupResult
-                {
-                    Result = "SCHEMA_UNSUPPORTED",
-                    Route = payload.Route,
-                    StatusCode = payload.StatusCode,
-                    ElapsedMs = payload.ElapsedMs
-                };
-            }
-
-            var fields = new List<string>(analysis.SchemaFields);
-            fields.Sort(StringComparer.OrdinalIgnoreCase);
-            if (fields.Count > 30) fields.RemoveRange(30, fields.Count - 30);
-            var safeFields = string.Join(",", fields.ToArray());
-
-            var result = analysis.MatchCount > 0
-                ? "FOUND"
-                : analysis.CandidateFieldCount > 0 || (analysis.TotalCount.HasValue && analysis.TotalCount.Value == 0)
-                    ? "NOT_FOUND"
-                    : "SCHEMA_UNSUPPORTED";
-
-            AgentDiagnostics.Write(
-                "WMS picklist-schema result=" + result +
-                " total=" + (analysis.TotalCount.HasValue ? analysis.TotalCount.Value.ToString() : "unknown") +
-                " candidate_fields=" + analysis.CandidateFieldCount +
-                " matches=" + analysis.MatchCount +
-                " fields=" + safeFields +
-                " values=redacted");
-
-            return new WmsPicklistLookupResult
-            {
-                Result = result,
-                Route = payload.Route,
-                StatusCode = payload.StatusCode,
-                ElapsedMs = payload.ElapsedMs,
-                MatchCount = analysis.MatchCount,
-                CandidateFieldCount = analysis.CandidateFieldCount,
-                SchemaFields = safeFields
-            };
+            var root = Json.DeserializeObject(body ?? "");
+            var analysis = new ResponseAnalysis();
+            AnalyzeNode(root, null, suffix, analysis, 0);
+            return analysis;
         }
 
         private static void AnalyzeNode(object node, string key, string suffix, ResponseAnalysis result, int depth)
@@ -278,16 +403,22 @@ namespace SupraInventoryRelayAgent
                     if (!result.TotalCount.HasValue && IsTotalField(normalized))
                     {
                         int total;
-                        if (TryInt(pair.Value, out total) && total >= 0) result.TotalCount = total;
+                        if (TryInt(pair.Value, out total) && total >= 0)
+                            result.TotalCount = total;
                     }
 
-                    if (IsPicklistIdentityField(normalized))
+                    if (string.Equals(field, "PickListCode", StringComparison.OrdinalIgnoreCase))
                     {
                         var value = pair.Value == null ? "" : Convert.ToString(pair.Value);
                         if (!string.IsNullOrWhiteSpace(value))
                         {
-                            result.CandidateFieldCount++;
-                            if (TrailingFiveDigits(value) == suffix) result.MatchCount++;
+                            result.PickListCodeCount++;
+                            if (IsValidPickListCode(value))
+                            {
+                                result.ValidPickListCodeCount++;
+                                if (TrailingFiveDigits(value) == suffix)
+                                    result.MatchCount++;
+                            }
                         }
                     }
 
@@ -299,6 +430,8 @@ namespace SupraInventoryRelayAgent
             var array = node as object[];
             if (array != null)
             {
+                if (IsRecordCollectionField(key))
+                    result.RecordCollectionCount = Math.Max(result.RecordCollectionCount, array.Length);
                 foreach (var item in array)
                     AnalyzeNode(item, key, suffix, result, depth + 1);
                 return;
@@ -307,26 +440,35 @@ namespace SupraInventoryRelayAgent
             var list = node as ArrayList;
             if (list != null)
             {
+                if (IsRecordCollectionField(key))
+                    result.RecordCollectionCount = Math.Max(result.RecordCollectionCount, list.Count);
                 foreach (var item in list)
                     AnalyzeNode(item, key, suffix, result, depth + 1);
             }
         }
 
-        private static bool IsPicklistIdentityField(string normalized)
+        private static bool IsLastPage(int page, ResponseAnalysis analysis)
         {
-            if (string.IsNullOrWhiteSpace(normalized) || normalized.IndexOf("picklist", StringComparison.Ordinal) < 0)
-                return false;
-            if (normalized.IndexOf("status", StringComparison.Ordinal) >= 0 ||
-                normalized.IndexOf("date", StringComparison.Ordinal) >= 0 ||
-                normalized.IndexOf("time", StringComparison.Ordinal) >= 0 ||
-                normalized.IndexOf("allow", StringComparison.Ordinal) >= 0)
-                return false;
+            if (analysis.TotalCount.HasValue)
+                return page * PageSize >= analysis.TotalCount.Value;
 
-            return normalized == "picklist" ||
-                   normalized.IndexOf("code", StringComparison.Ordinal) >= 0 ||
-                   normalized.IndexOf("number", StringComparison.Ordinal) >= 0 ||
-                   normalized.EndsWith("no", StringComparison.Ordinal) ||
-                   normalized.IndexOf("id", StringComparison.Ordinal) >= 0;
+            if (analysis.RecordCollectionCount >= 0)
+                return Math.Max(analysis.RecordCollectionCount, analysis.PickListCodeCount) < PageSize;
+
+            return analysis.PickListCodeCount < PageSize;
+        }
+
+        private static bool IsRecordCollectionField(string field)
+        {
+            if (string.IsNullOrWhiteSpace(field)) return true;
+            var normalized = NormalizeField(field);
+            return normalized == "data" ||
+                   normalized == "items" ||
+                   normalized == "records" ||
+                   normalized == "rows" ||
+                   normalized == "results" ||
+                   normalized == "result" ||
+                   normalized == "list";
         }
 
         private static bool IsTotalField(string normalized)
@@ -338,22 +480,64 @@ namespace SupraInventoryRelayAgent
                    normalized == "recordscount";
         }
 
+        private static bool IsValidPickListCode(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return false;
+            var text = value.Trim();
+            if (text.Length < 7 || !text.StartsWith("PL", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            for (var i = 2; i < text.Length; i++)
+                if (text[i] < '0' || text[i] > '9')
+                    return false;
+            return true;
+        }
+
         private static string TrailingFiveDigits(string value)
         {
-            if (string.IsNullOrWhiteSpace(value)) return "";
+            if (!IsValidPickListCode(value)) return "";
             var text = value.Trim();
-            var end = text.Length - 1;
-            while (end >= 0 && char.IsWhiteSpace(text[end])) end--;
-            if (end < 4) return "";
+            return text.Substring(text.Length - 5, 5);
+        }
 
-            var digits = new char[5];
-            for (var i = 4; i >= 0; i--)
+        private static WmsPicklistLookupResult BuildResult(
+            string result,
+            HttpPayload payload,
+            long elapsedMs,
+            int matchCount,
+            int pickListCodeCount,
+            HashSet<string> fields)
+        {
+            return new WmsPicklistLookupResult
             {
-                var ch = text[end - (4 - i)];
-                if (ch < '0' || ch > '9') return "";
-                digits[i] = ch;
+                Result = result,
+                Route = payload.Route,
+                StatusCode = payload.StatusCode,
+                ElapsedMs = elapsedMs,
+                MatchCount = matchCount,
+                CandidateFieldCount = pickListCodeCount,
+                SchemaFields = JoinSafeFields(fields)
+            };
+        }
+
+        private static string JoinSafeFields(HashSet<string> source)
+        {
+            var fields = new List<string>(source);
+            fields.Sort(StringComparer.OrdinalIgnoreCase);
+            if (fields.Count > 30) fields.RemoveRange(30, fields.Count - 30);
+            return string.Join(",", fields.ToArray());
+        }
+
+        private static string BodyFingerprint(string body)
+        {
+            using (var sha = SHA256.Create())
+            {
+                var bytes = Encoding.UTF8.GetBytes(body ?? "");
+                var hash = sha.ComputeHash(bytes);
+                var sb = new StringBuilder(hash.Length * 2);
+                foreach (var item in hash) sb.Append(item.ToString("x2"));
+                return sb.ToString();
             }
-            return new string(digits);
         }
 
         private static string NormalizeField(string value)

@@ -264,3 +264,13 @@ Current home-test workflow:
 7. D082 never confirms, skips, edits, clicks or mutates a Picklist. The supplied WMS confirm page is reference-only.
 
 Office sequencing is unchanged: D078 remains paused until Owner is physically at company; D082 success over the home Internet relay is not evidence that Office transport works.
+
+## D084 — all-date PickListCode lookup
+
+- PDA still sends exactly five numeric trailing digits.
+- Agent performs only the registered signed read-only Picklist-list GET.
+- WMS filter has no date restriction: `FromDate`, `ToDate`, and `Content` are empty.
+- Agent requests 100 records per page and continues through pages until an exact match is found or the complete result set is exhausted.
+- Only exact field `PickListCode` is authoritative. Expected code shape is `PL` followed by digits; compare only its final five digits with the PDA input.
+- A malformed/unknown schema or stalled pagination fails closed; it must never be converted into `KHÔNG CÓ PICKLIST`.
+- No confirmation/mutation is added.

@@ -190,7 +190,7 @@
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
-      "relay_poc_status": "D083_AGENT_V8_RELEASE_PASS__OWNER_STARTUP_RETEST_PENDING__D082_LOOKUP_PAUSED",
+      "relay_poc_status": "D084_SOURCE_IN_PROGRESS__AGENT_V9_ANDROID_NEXT_RELEASE_PENDING",
       "relay_agent_release": "relay-agent-v8",
       "firebase_rtdb_rules_deploy": "PASS_RUN_35451292051__REST_PUT_EXACT_READBACK"
     },
@@ -501,9 +501,9 @@
     "extension_feature": false
   },
   "relay_poc": {
-    "decision": "D083",
+    "decision": "D084",
     "environment": "beta",
-    "status": "D083_AGENT_V8_RELEASE_PASS__OWNER_STARTUP_RETEST_PENDING__D082_LOOKUP_PAUSED__D078_OFFICE_PENDING",
+    "status": "D084_SOURCE_IN_PROGRESS__AGENT_V9_ANDROID_NEXT_RELEASE_PENDING__D078_OFFICE_PENDING",
     "purpose": "Authenticated Picker-to-ADMIN relay carrying a bounded five-digit read-only WMS Picklist existence lookup result; no confirmation/mutation",
     "transport": "FIREBASE_RTDB_REST_SSE",
     "database_resource_key": "firebase-rtdb-relay-beta",
@@ -544,20 +544,22 @@
     "rules_deploy_method": "OFFICIAL_RTDB_SETTINGS_RULES_REST_PUT_AND_READBACK",
     "rules_deploy_last_evidence": "PASS_RUN_35460327532__D082_OPTIONAL_LOOKUP_ACK_METADATA__EXACT_READBACK",
     "rules_deployed_source_commit": "452feb1e25dff936617e5d1d51313438d85155eb",
-    "agent_release_target": "relay-agent-v8",
+    "agent_release_target": "relay-agent-v9",
     "office_transport_discovery": "V4_RELEASE_PASS__FIREBASE_AUTH_RTDB_FIRESTORE_APPS_SCRIPT_SHEETS_DRIVE_READ_ONLY_PROBES__FIELD_LOG_PENDING",
     "transport_selection": "PENDING_OWNER_OFFICE_PROBE_EVIDENCE",
     "wms_session_capture": "RELEASED_V6__EDGE_PRIMARY_CHROME_FALLBACK__FULL_300S_LOGIN_WINDOW__RAM_ONLY_HEADERS__NO_WMS_PASSWORD_IN_EXE",
     "wms_probe": "WMS_UI_REACHABILITY__SIGNED_GET_WAREHOUSE_ZONES__SYSTEM_ENV_DIRECT_CORP_PROXY_ROUTES",
-    "taskbar_monitor": "V8_LAZY_AFTER_MAIN_SHOWN__FAILSAFE_OVERLAY__LOCKED_CLICKTHROUGH",
-    "picklist_lookup": "RELEASED_D082__SIGNED_GET_AUTOPP_PICKLISTCONFIRMS__TRAILING_FIVE_DIGIT_MATCH__FAIL_CLOSED_UNKNOWN_SCHEMA",
+    "taskbar_monitor": "D084_EXPLICIT_SETTINGS__OPACITY_LOCK_UNLOCK_DRAG__LOCKED_CROSS_APP_CLICKTHROUGH__LOCAL_PERSIST",
+    "picklist_lookup": "D084_SOURCE__GET_AUTOPP_PICKLISTCONFIRMS__NO_DATE__CONTENT_EMPTY__PAGE100__EXACT_PICKLISTCODE_TRAILING5__ALL_PAGE_SCAN_FAIL_CLOSED",
     "lookup_ack": "OPTIONAL_BOUNDED_STATUS_MATCH_COUNT_LATENCY_ROUTE_HTTP__NO_FULL_PICKLIST_OR_WMS_RESPONSE",
-    "agent_startup": "V8_RELEASE_PASS__WINDOWS_EXECUTABLE_STARTUP_SMOKE_PASS__OWNER_PHYSICAL_RETEST_PENDING"
+    "agent_startup": "V8_RELEASE_PASS__WINDOWS_EXECUTABLE_STARTUP_SMOKE_PASS__OWNER_PHYSICAL_RETEST_PENDING",
+    "android_release_target": "next_after_beta-vc50",
+    "lookup_wait": "ANDROID_120S"
   },
   "wms_poc": {
-    "decision": "D082",
+    "decision": "D084",
     "environment": "beta_poc",
-    "status": "D082_RELEASE_PASS__FIELD_TEST_PAUSED_UNTIL_D083_OWNER_STARTUP_PASS",
+    "status": "D084_SOURCE_IN_PROGRESS__ALL_DATE_PICKLISTCODE_FIELD_TEST_PENDING",
     "ui_resource_key": "supra-wms-ui-d080",
     "api_resource_key": "supra-api-d080",
     "proxy_resource_key": "wincommerce-proxy-fallback-d080",
@@ -581,7 +583,7 @@
     ],
     "corporate_proxy_fallback": "proxyclientdr.winmart.vn:9090",
     "mutation": "FORBIDDEN",
-    "picklist_lookup": "RELEASED_READ_ONLY__FIELD_SCHEMA_AND_MATCH_ACCEPTANCE_PENDING",
+    "picklist_lookup": "NO_DATE_FILTER__CONTENT_EMPTY__PAGE100__EXACT_PICKLISTCODE_PL_DIGITS_TRAILING5",
     "stable": "UNTOUCHED_OWNER_GATED",
     "agent_release": "relay-agent-v8",
     "release_id": 392175426,
@@ -593,11 +595,11 @@
       "GOOGLE_CHROME"
     ],
     "wms_credentials": "OFFICIAL_BROWSER_PAGE_ONLY__NO_AGENT_FORM_OR_STORAGE",
-    "taskbar_monitor": "D082_ALWAYS_VISIBLE_OVERLAY__LOCAL_CPU_MHZ_RAM__LOCKED_CLICKTHROUGH",
+    "taskbar_monitor": "D084_EXPLICIT_OVERLAY_SETTINGS__LOCKED_CLICKTHROUGH",
     "read_only_lookup": "GET /sft3-hy1/api/v1/autopp/pickListConfirms",
     "confirm_ui_reference": "https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm",
     "confirmation": "DEFERRED_NOT_AUTHORIZED_NOT_IMPLEMENTED",
     "session_login_suppression": "VALID_RAM_SESSION_DISABLES_MANUAL_CAPTURE__REMOTE_PDA_NEVER_AUTO_OPENS_LOGIN",
-    "agent_release_target": "relay-agent-v8"
+    "agent_release_target": "relay-agent-v9"
   }
 }

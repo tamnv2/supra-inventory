@@ -115,3 +115,7 @@ For the `Xác nhận lấy hàng` workstream only, D080 adds the registered exte
 D082 extends the D073–D081 confirmation-path exception only far enough to verify Picklist existence. The existing Beta RTDB PDA ↔ Agent transport remains in use for the home test. The registered Supra API scope now includes the signed read-only Picklist-list GET; confirmation/mutation remains outside authority. The Owner-supplied WMS confirm page is a reference location only and is not an authorized action endpoint.
 
 This does not reopen Office-network fallback for the normal Báo hàng transaction path. D078 Office transport testing remains a separate physical-company-network checkpoint.
+
+## D084 all-date PickListCode lookup refinement
+
+D084 keeps the same registered read-only WMS endpoint and existing Beta RTDB transport, but changes the lookup mechanics: no WMS date filter, `Content` remains empty, pagination is 100 records per page, and only the exact `PickListCode` field is evaluated. Values must follow the `PL` + digits form; the PDA's exact five digits are compared only with the trailing five digits of `PickListCode`. The Agent scans pages until match/exhaustion and fails closed on unsupported schema or broken pagination. D084 also makes overlay opacity/lock explicit settings while preserving locked click-through behavior. No WMS mutation is authorized.

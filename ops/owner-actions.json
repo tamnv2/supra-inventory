@@ -181,41 +181,38 @@
     },
     {
       "id": "OA006",
-      "status": "OWNER_D083_V8_STARTUP_RETEST_PENDING",
-      "title": "Home field-test read-only Picklist existence lookup and Agent overlay",
+      "status": "D084_RELEASE_PENDING",
+      "title": "Field-test all-date PickListCode lookup and explicit Agent overlay settings",
       "resource_key": "supra-api-d080",
       "provider": "Wincommerce Supra + Beta RTDB + physical authorized WMS/PDA session",
       "reason_owner_only": "Connected tools cannot use the Owner/company WMS login or physically operate the PDA/Windows desktop overlay. Source/CI can verify read-only guards, but the real WMS response schema and last-five match require an authorized field session.",
       "owner_ui_path": [],
       "shortest_test_path": [
-        "After Agent v7 and the next signed Beta APK are published, update both through their normal channels.",
-        "On the Agent, establish WMS session locally once using TEST SUPRA or Mở WMS + lấy phiên. When the session is valid, verify the login/capture button becomes disabled.",
-        "Use the overlay tray menu to unlock, move, choose opacity, then lock it. Verify clicks pass through the locked overlay to the underlying application.",
-        "On PDA Xác nhận đơn, enter five known trailing Picklist digits and press KIỂM TRA PICKLIST.",
-        "Expected result is CÓ PICKLIST or KHÔNG CÓ PICKLIST. If the real WMS response schema is not recognized, send only the sanitized Agent log containing field names/classification; never send cURL/session/token/header values."
+        "Update to relay-agent-v9 and the next signed Beta APK after D084 release.",
+        "Open Agent; use Cài đặt bảng nổi to adjust opacity.",
+        "Unlock overlay and drag it; then lock it and verify clicks pass through to the application underneath.",
+        "Establish one valid WMS session locally; repeated WMS login action must remain disabled while session is valid.",
+        "On PDA Xác nhận đơn, enter five known trailing digits from a real PickListCode such as PL... and press KIỂM TRA PICKLIST.",
+        "Expected: CÓ PICKLIST if exact PickListCode trailing five matches anywhere in the paged all-date result set; otherwise KHÔNG CÓ PICKLIST only after complete truthful exhaustion."
       ],
       "pass_criteria": [
-        "PDA uses existing Internet/RTDB relay with no Office/LAN transport change",
-        "Valid WMS session suppresses repeated login/capture",
-        "Agent performs signed read-only GET pickListConfirms only",
-        "PDA receives a truthful FOUND/NOT_FOUND result or a distinct fail-closed session/schema/transport error",
-        "Overlay is always visible, configurable, draggable unlocked and click-through while locked",
+        "Overlay opacity and lock are explicit settings",
+        "Unlocked overlay is draggable",
+        "Locked overlay cannot be selected/moved and mouse passes through across applications",
+        "WMS query has empty FromDate, ToDate and Content, limit/page size 100",
+        "Only exact PickListCode is evaluated; compare exact last five digits",
+        "Agent scans pages until match or full exhaustion and fails closed on malformed schema/pagination",
+        "PDA waits long enough for the all-date paged scan",
         "No WMS confirmation or mutation request occurs",
         "No secret WMS/session/signature values appear in repo/logs/RTDB"
       ],
       "safety": "Use only an authorized company WMS session. Do not paste cURL, passwords, Authorization/Token/APISID/SID/SCID/USID, signatures/nonces or raw WMS response data into chat/logs. Confirmation remains deferred.",
-      "remaining_owner_action": "Launch relay-agent-v8 normally. Confirm the main Agent window opens. If it opens, continue the existing D082 overlay/login/Picklist field test with beta-vc50. If it still fails, provide only the visible startup error or sanitized local Agent log.",
+      "remaining_owner_action": "After D084 Agent v9 + next signed Beta APK are published, run the shortest test path above. If lookup fails, send only sanitized Agent log classifications/field names; never send cURL/session/token/header values.",
       "prerequisites": {
-        "android_release": "beta-vc50",
-        "android_owner_launch": "PASS_REPORTED",
-        "agent_release": "relay-agent-v8",
-        "agent_release_id": 392175426,
-        "agent_exe_asset_id": 575276634,
-        "agent_exe_sha256": "310d7593eefb90fccce186fba44174578e26fce0105414c61c93a4557dc31c98",
-        "main_agent_release_run": 35461540988,
-        "executable_startup_smoke": "PASS",
-        "main_ui_guard": 35461540970,
-        "d082_lookup": "PAUSED_UNTIL_OWNER_STARTUP_PASS"
+        "agent_release_target": "relay-agent-v9",
+        "android_release_target": "next_after_beta-vc50",
+        "d084_source": "IN_PROGRESS",
+        "wms_mutation": "FORBIDDEN"
       }
     }
   ]

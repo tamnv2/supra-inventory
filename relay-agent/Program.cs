@@ -200,6 +200,7 @@ namespace SupraInventoryRelayAgent
         private readonly Button _testOffice = new Button();
         private readonly Button _listen = new Button();
         private readonly Button _openLog = new Button();
+        private readonly Button _overlaySettingsButton = new Button();
         private readonly Button _probeAuth = new Button();
         private readonly Button _probeRtdb = new Button();
         private readonly Button _probeFirestore = new Button();
@@ -274,7 +275,9 @@ namespace SupraInventoryRelayAgent
             _listen.Click += (s, e) => { if (_listenCts == null) StartListening(); else StopListening(); }; Controls.Add(_listen);
             _openLog.SetBounds(302, 176, 105, 32); _openLog.Text = "Mở log";
             _openLog.Click += (s, e) => AgentDiagnostics.OpenLog(); Controls.Add(_openLog);
-            Controls.Add(new Label { Left = 420, Top = 178, Width = 324, Height = 38, Text = "POC chỉ test truyền nhận. Không truy cập hoặc thao tác WMS.", ForeColor = Color.DimGray });
+            _overlaySettingsButton.SetBounds(414, 176, 135, 32); _overlaySettingsButton.Text = "Cài đặt bảng nổi";
+            _overlaySettingsButton.Click += (s, e) => OpenOverlaySettings(); Controls.Add(_overlaySettingsButton);
+            Controls.Add(new Label { Left = 560, Top = 178, Width = 184, Height = 38, Text = "POC chỉ đọc WMS; chưa xác nhận đơn.", ForeColor = Color.DimGray });
 
             Controls.Add(new Label { Left = 18, Top = 220, Width = 726, Height = 20, Text = "Probe transport Office — chỉ GET/read-only, không tạo dữ liệu:", ForeColor = Color.DimGray });
 
@@ -347,6 +350,7 @@ namespace SupraInventoryRelayAgent
                 _trayOverlayOpacityMenu.DropDownItems.Add(opacityItem);
             }
             menu.Items.Add(_trayOverlayOpacityMenu);
+            menu.Items.Add("Cài đặt bảng nổi...", null, (s, e) => OpenOverlaySettings());
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add("Mở Agent", null, (s, e) => RestoreFromTray());
             menu.Items.Add("Mở log", null, (s, e) => AgentDiagnostics.OpenLog());
@@ -466,6 +470,36 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private void OpenOverlaySettings()
+        {
+            InitializeStatusOverlaySafe();
+            if (_statusOverlay == null)
+            {
+                MessageBox.Show(
+                    "Bảng nổi chưa khởi tạo được. Mở log Agent để xem chẩn đoán.",
+                    "SUPRA Inventory",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                using (var settings = new OverlaySettingsForm(_statusOverlay))
+                    settings.ShowDialog(this);
+                RefreshOverlayMenu();
+            }
+            catch (Exception ex)
+            {
+                AgentDiagnostics.Write("OVERLAY settings-fail type=" + ex.GetType().Name);
+                MessageBox.Show(
+                    "Không mở được cài đặt bảng nổi. Đã ghi log cục bộ.",
+                    "SUPRA Inventory",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
+        }
+
         private void RefreshOverlayMenu()
         {
             if (InvokeRequired)
@@ -483,6 +517,7 @@ namespace SupraInventoryRelayAgent
             _trayOverlayVisibleItem.Enabled = !_overlayInitFailed;
             _trayOverlayLockItem.Enabled = !_overlayInitFailed;
             _trayOverlayOpacityMenu.Enabled = !_overlayInitFailed;
+            _overlaySettingsButton.Enabled = !_overlayInitFailed;
             if (_overlayInitFailed)
                 _trayOverlayVisibleItem.Text = "Bảng nổi lỗi - xem log";
             else

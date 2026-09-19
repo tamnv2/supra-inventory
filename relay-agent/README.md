@@ -129,3 +129,15 @@ Trong lúc bài test PDA ↔ Agent trên mạng Office tạm hoãn, Agent v5 ki�
 - Adds top-level startup crash logging plus a visible error dialog for normal launches.
 - CI now executes the built EXE with `--startup-smoke` and fails the Agent release if it cannot start and exit cleanly within 15 seconds.
 - D082 read-only Picklist behavior is unchanged. No WMS mutation. Stable untouched.
+
+## D084 — overlay settings + all-date PickListCode scan
+
+- Adds an explicit `Cài đặt bảng nổi` dialog in the Agent and tray.
+- Overlay settings: opacity and lock state. Unlocked overlay can be dragged; locked overlay applies Windows click-through so underlying applications receive mouse input.
+- Overlay settings persist locally for the current Windows user.
+- Picklist lookup no longer filters by date or PDA suffix in WMS: `FromDate`, `ToDate`, and `Content` are empty.
+- Requests 100 records per page and continues paging until a match or truthful exhaustion.
+- Only exact `PickListCode` is authoritative; expected value shape is `PL` + digits and the Agent compares exactly the final five digits with PDA input.
+- Unsupported schema, malformed PickListCode values, or stalled pagination fail closed.
+- Android relay wait is extended to 120 seconds to allow the all-date paged scan.
+- WMS access remains signed read-only GET only. No confirmation or mutation.
