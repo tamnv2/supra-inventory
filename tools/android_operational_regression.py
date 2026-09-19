@@ -104,11 +104,11 @@ def main() -> None:
     require(launcher, 'openWeb("/#sla"', "SLA deep link")
 
     # D070: Android receives exact timeout state/results without gaining resolve authority.
-    require(android_api, "autoSkipDeadlineAt", "D070 Picker automatic deadline projection")
-    require(android_api, "autoSkipAllowedAt", "D070 Picker automatic result projection")
-    require(android_api, "autoSkipAt", "D070 Reporter next automatic deadline projection")
-    require(android_picker, "Hệ thống tự động do quá hạn", "D070 Picker timeout source copy")
-    require(android_reporter, "Tự động bỏ qua", "D070 Reporter timeout timing copy")
+    require(inventory_api, "autoSkipDeadlineAt", "D070 Picker automatic deadline projection")
+    require(inventory_api, "autoSkipAllowedAt", "D070 Picker automatic result projection")
+    require(inventory_api, "autoSkipAt", "D070 Reporter next automatic deadline projection")
+    require(picker, "Hệ thống tự động do quá hạn", "D070 Picker timeout source copy")
+    require(reporter, "Tự động bỏ qua", "D070 Reporter timeout timing copy")
     require(sla_auto, "PER_PICKER", "D070 per-Picker service mode")
     require(sla_auto, "FIRST_REPORT", "D070 first-report service mode")
     require(launcher, "onOpenResults", "distinct results route")
