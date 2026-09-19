@@ -61,7 +61,7 @@ import {
 } from "./api";
 import { parseSkuExcel, type ParsedSkuWorkbook } from "./sku-excel";
 import { registerRealtimeApplier, type RealtimeEventFrame } from "./realtime-client";
-import { initWebRuntimeLogging, maybeSendScheduledWebLog, runtimeLogEvent, sendWebRuntimeLog } from "./runtime-logger";
+import { initWebRuntimeLogging, runtimeLogEvent, sendWebRuntimeLog } from "./runtime-logger";
 import {
   createPickerReport,
   getPickerReportsV2,
