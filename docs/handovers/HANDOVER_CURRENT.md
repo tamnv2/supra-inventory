@@ -634,3 +634,16 @@ Current Android marker: `D074_PICKER_SPLIT_TABS_RELAY_UID_AUTH_DIAGNOSTICS_SIGNE
 Field logs proved both endpoints can reach Firebase successfully, but D074 isolated jobs by Firebase UID while PDA used Picker 100 and the Agent used Picker 200. D075 replaces that routing with one shared Picker queue and makes the Windows Agent a real ADMIN-only workstation identity. ACK metadata identifies ADMIN user + machine + persistent Agent instance. D075 also adds SHA-256 verified automatic portable Agent updates via dedicated GitHub prereleases, which must not replace Android Beta `/releases/latest`.
 
 Current relay marker: `D075_SHARED_PICKER_QUEUE_ADMIN_ONLY_AGENT_AUTO_UPDATE_IN_PROGRESS__NO_WMS_MUTATION`.
+
+
+## D075 build/release PASS — 2026-09-19
+
+D075 merged in PR #69 at `9b149e56b4781eb905daa6793db6a220a045cf5a`. Main Repo Authority `35447318229`, Project State `35447318231`, UI Design `35447318216`, Beta deploy `35447318213`, Verify Beta Android `35447318221`, and Verify Beta Relay Agent `35447318236` all PASS.
+
+Signed Android release: `beta-vc49`. Dedicated Windows Agent prerelease: `relay-agent-v2`, EXE size 49,664 bytes. GitHub `/releases/latest` was verified to remain the non-prerelease Android Beta release, so Agent auto-update does not break Android OTA.
+
+D075 replaces UID-isolated relay routing with shared `relay_poc/jobs/{request_id}`, requires a real base-role ADMIN for the Agent, records ADMIN + machine + persistent Agent instance in ACK metadata, and adds SHA-256 verified portable Agent self-update. Pre-v2 Agent has no updater and therefore requires one manual replacement with v2; v2+ self-updates.
+
+Remaining Owner action: publish merged D075 `firebase/database.rules.json` to Beta RTDB and field-test any Picker PDA -> real ADMIN Agent v2 on Office. No WMS mutation. Stable remains OWNER-GATED.
+
+Current relay marker: `D075_SOURCE_BUILD_DEPLOY_RELEASE_PASS__RTDB_RULES_PUBLISH_AND_FIELD_TEST_PENDING__NO_WMS_MUTATION`.
