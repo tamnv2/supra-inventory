@@ -148,6 +148,31 @@
         "rules_put": "PASS",
         "exact_readback_verify": "PASS"
       }
+    },
+    {
+      "id": "OA005",
+      "status": "D080_AGENT_V5_BUILD_PENDING",
+      "title": "Field-test Agent to Supra WMS read-only automatic session capture",
+      "resource_key": "supra-wms-ui-d080",
+      "provider": "Wincommerce Supra + physical authorized WMS session",
+      "reason_owner_only": "The connected tools cannot sign in to the Owner/company WMS account or observe the local corporate-authenticated browser session. D080 removes the F12/cURL copy step but interactive WMS login remains a human authorization step when the browser session has expired.",
+      "owner_ui_path": [],
+      "shortest_test_path": [
+        "Run relay-agent-v5 as normal Windows user and sign in to the Agent with a real ADMIN account.",
+        "Press TEST SUPRA.",
+        "If the dedicated Edge WMS window asks for login, sign in normally; do not open F12 and do not copy cURL/token.",
+        "Wait for WMS: PASS · API HY1; the Edge capture window closes after session capture.",
+        "If not PASS, press Mở log and provide only the sanitized log."
+      ],
+      "pass_criteria": [
+        "Agent reaches wms-supra.winmart.vn",
+        "Agent automatically captures a valid HY1 session from its dedicated Edge request stream without F12/cURL",
+        "Signed read-only GET /sft3-hy1/api/v1/warehouse/zones returns PASS",
+        "Logs contain no Authorization/Token/APISID/SID/SCID/USID values",
+        "No Picklist lookup, confirmation or WMS mutation occurs"
+      ],
+      "safety": "Use only an account/session the Owner is authorized to use. D080 does not bypass corporate filtering and does not automate WMS mutations. Never send password/cURL/session/token in chat or logs.",
+      "remaining_owner_action": "After relay-agent-v5 is published, run TEST SUPRA once from a network where Supra WMS is reachable and send the sanitized result/log only."
     }
   ]
 }

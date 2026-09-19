@@ -32,7 +32,7 @@
     "picker_reporter": "PDA_ONLY_ON_PDA_NETWORK_WITH_INTERNET",
     "admin_web": "REQUIRES_NETWORK_WITH_PROJECT_INTERNET_ACCESS",
     "office_network": "UNSUPPORTED_BY_OWNER_DECISION_IT_FILTERS_REQUIRED_RUNTIME_ENDPOINTS",
-    "office_fallback_research": "CLOSED_DO_NOT_REOPEN_WITHOUT_OWNER_COMMAND"
+    "office_fallback_research": "REOPENED_ONLY_FOR_D073_D080_CONFIRMATION_PATH__D078_OFFICE_FIELD_PENDING__D080_WMS_READONLY_POC"
   },
   "drive": {
     "root": {
@@ -501,10 +501,10 @@
     "extension_feature": false
   },
   "relay_poc": {
-    "decision": "D075",
+    "decision": "D080",
     "environment": "beta",
-    "status": "D078_AGENT_V4_RELEASE_PASS__OWNER_OFFICE_PROBE_PENDING__RTDB_PROXY_BLOCK_CONFIRMED",
-    "purpose": "Authenticated shared Picker-to-real-ADMIN Windows Agent transport proof only; no WMS mutation",
+    "status": "D080_AGENT_WMS_READONLY_SESSION_CAPTURE_IN_PROGRESS__D078_OFFICE_TRANSPORT_FIELD_PENDING",
+    "purpose": "Authenticated Picker-to-ADMIN relay transport plus separate ADMIN Agent-to-Supra read-only connectivity/session proof; no WMS mutation",
     "transport": "FIREBASE_RTDB_REST_SSE",
     "database_resource_key": "firebase-rtdb-relay-beta",
     "database_name": "supra-inventory-beta-default-rtdb",
@@ -514,7 +514,7 @@
     "auth": "PICKER_OWN_JOB__REAL_BASE_ADMIN_SHARED_COLLECTION_AND_ACK",
     "android": "PICKER_SHARED_QUEUE_EXACT_FIVE_DIGIT_SENDER",
     "windows_agent": "NET48_REAL_ADMIN_ONLY_DPAPI_SHARED_SSE_SANITIZED_LOG_AUTO_UPDATE",
-    "wms_mutation": "FORBIDDEN_IN_POC",
+    "wms_mutation": "FORBIDDEN__D080_READ_ONLY_UI_AND_ZONES_GET_ONLY",
     "stable": "UNTOUCHED_OWNER_GATED",
     "android_release": "beta-vc49",
     "android_apk_sha256": "CHECKSUM_RELEASE_ASSET_PUBLISHED",
@@ -544,8 +544,40 @@
     "rules_deploy_method": "OFFICIAL_RTDB_SETTINGS_RULES_REST_PUT_AND_READBACK",
     "rules_deploy_last_evidence": "PASS_RUN_35451292051__IAM_UPDATE__RULES_GET__RULES_PUT__EXACT_READBACK",
     "rules_deployed_source_commit": "452feb1e25dff936617e5d1d51313438d85155eb",
-    "agent_release_target": "relay-agent-v4",
+    "agent_release_target": "relay-agent-v5",
     "office_transport_discovery": "V4_RELEASE_PASS__FIREBASE_AUTH_RTDB_FIRESTORE_APPS_SCRIPT_SHEETS_DRIVE_READ_ONLY_PROBES__FIELD_LOG_PENDING",
-    "transport_selection": "PENDING_OWNER_OFFICE_PROBE_EVIDENCE"
+    "transport_selection": "PENDING_OWNER_OFFICE_PROBE_EVIDENCE",
+    "wms_session_capture": "AGENT_OWNED_EDGE_LOOPBACK_CDP__HY1_HEADERS_RAM_ONLY__NO_F12_CURL_REQUIRED",
+    "wms_probe": "WMS_UI_REACHABILITY__SIGNED_GET_WAREHOUSE_ZONES__SYSTEM_ENV_DIRECT_CORP_PROXY_ROUTES"
+  },
+  "wms_poc": {
+    "decision": "D080",
+    "environment": "beta_poc",
+    "status": "SOURCE_IN_PROGRESS",
+    "ui_resource_key": "supra-wms-ui-d080",
+    "api_resource_key": "supra-api-d080",
+    "proxy_resource_key": "wincommerce-proxy-fallback-d080",
+    "ui_url": "https://wms-supra.winmart.vn/",
+    "api_host": "api-supra.winmart.vn",
+    "read_only_probe": "GET /sft3-hy1/api/v1/warehouse/zones",
+    "session_required_headers": [
+      "Authorization",
+      "Token",
+      "APISID",
+      "SID",
+      "SCID",
+      "USID"
+    ],
+    "session_capture": "DEDICATED_EDGE_PROFILE__CDP_LOOPBACK_127_0_0_1__VALUES_RAM_ONLY",
+    "route_order": [
+      "WINDOWS_SYSTEM_PROXY",
+      "ENV_PROXY",
+      "DIRECT",
+      "CORPORATE_PROXY_FALLBACK"
+    ],
+    "corporate_proxy_fallback": "proxyclientdr.winmart.vn:9090",
+    "mutation": "FORBIDDEN",
+    "picklist_lookup": "DEFERRED",
+    "stable": "UNTOUCHED_OWNER_GATED"
   }
 }

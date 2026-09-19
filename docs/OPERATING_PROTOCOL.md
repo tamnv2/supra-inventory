@@ -48,3 +48,15 @@ D079 defines explicit repo-native routing for parallel workstreams:
 - Báo hàng Web/APK is the default active workstream after D079. A new session that asks to continue/build Báo hàng must resume current Web/Android canonical state and must not automatically execute D078 relay work.
 - A workstream label is not a persistent Git branch. Implementation always creates a fresh short-lived branch from current `main`, then follows branch → PR → authority/continuity PASS → merge.
 - Paused workstreams remain fully recorded in `ops/project-state.json`; switching active workstream never deletes their checkpoint/evidence.
+
+## D080 Agent-to-Supra test sequencing
+
+The Owner has resumed the confirmation workstream but is temporarily away from the company Office network. D080 therefore changes only the immediate test order:
+
+- keep D078 PDA ↔ Agent `.Office@MSN` transport matrix checkpointed;
+- build/test Agent ↔ Supra WMS/API read-only connectivity now;
+- never interpret D080 success as proof that the Office relay transport works;
+- after Owner returns to company, resume the D078 `TEST TẤT CẢ` field matrix in addition to the D080 WMS evidence;
+- real Picklist lookup/confirmation/mutation requires a later explicit Owner decision after both transport sides have evidence.
+
+Every D080 implementation still follows fresh-main branch → PR → authority/continuity/Agent guards → merge → prerelease.

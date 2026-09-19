@@ -735,3 +735,9 @@ Workstream labels are logical continuity lanes, not persistent Git branches. Any
 
 Current confirmation marker: `D078_AGENT_V4_RELEASE_PASS__PAUSED_OWNER_AWAY_FROM_OFFICE__RESUME_TRIGGER_D079__NO_WMS_MUTATION`.
 Current active workstream marker: `BAO_HANG_WEB_ANDROID_ACTIVE_FOR_NEXT_SESSION`.
+
+## D080 Agent ↔ Supra read-only POC — source candidate
+
+Owner resumed `Xác nhận lấy lại hàng` but is away from the Office network, so the D078 PDA ↔ Agent transport matrix remains checkpointed. D080 proceeds with Agent ↔ Supra only: Agent-owned Edge captures HY1 session headers automatically from its own WMS request stream, no F12/cURL is required, raw values remain in RAM, and `TEST SUPRA` checks WMS UI plus signed read-only `GET /sft3-hy1/api/v1/warehouse/zones`. No Picklist lookup/confirmation/mutation is authorized. Next technical step is D080 PR guards/build → merge → relay-agent-v5 prerelease; then Owner runs TEST SUPRA and returns sanitized evidence only.
+
+Current relay marker: `D080_AGENT_WMS_READONLY_SOURCE_CANDIDATE__D078_OFFICE_FIELD_PENDING__NO_WMS_MUTATION`.

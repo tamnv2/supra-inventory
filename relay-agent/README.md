@@ -80,3 +80,19 @@ Buttons:
 - **TEST TẤT CẢ** — runs the full matrix and writes one `PROBE SUMMARY` line.
 
 Probe results distinguish Google/API reachability from `PROXY_BLOCK`. Corporate block HTML is summarized to category/rule markers rather than logged as a Firebase Rules error. No probe creates Google resources, confirms orders, accesses WMS, or bypasses company filtering.
+
+
+## D080 — Supra WMS read-only session/connectivity POC
+
+Trong lúc bài test PDA ↔ Agent trên mạng Office tạm hoãn, Agent v5 kiểm tra riêng đường **Agent ↔ Supra WMS/API**.
+
+- Không cần F12 / Copy as cURL cho luồng chuẩn.
+- **Mở WMS + lấy phiên** mở một cửa sổ Microsoft Edge riêng do Agent quản lý trên loopback DevTools `127.0.0.1`. Người dùng chỉ đăng nhập WMS nếu phiên trình duyệt yêu cầu.
+- Agent chỉ quan sát request đến `api-supra.winmart.vn` trong cửa sổ đó, lấy các header phiên cần thiết vào RAM và không ghi giá trị session/header vào log, file hay GitHub.
+- Profile Edge riêng được dùng để WMS có thể giữ trạng thái đăng nhập theo cơ chế trình duyệt; Agent không đọc/giải mã profile Edge/Chrome chính của người dùng.
+- **TEST SUPRA** kiểm tra WMS UI và một signed GET read-only tới `/sft3-hy1/api/v1/warehouse/zones`.
+- Route thử theo thứ tự: Windows/system proxy → environment proxy → direct → corporate proxy fallback; không bypass/chọc qua corporate filtering.
+- HTTP response thật như 401/403 được phân loại thành session/forbidden thay vì đổi route để che lỗi.
+- Phiên API đã capture chỉ sống trong RAM của Agent. Nếu API trả session-expired, Agent tự mở lại Edge và thử capture mới một lần.
+- D080 tuyệt đối chưa tra cứu Picklist, chưa xác nhận đơn và chưa gọi API mutation WMS.
+- Stable không thay đổi.

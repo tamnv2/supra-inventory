@@ -82,3 +82,11 @@ Picker clients must not infer, request or receive another Picker's event payload
 - Shared queue collection read and ACK mutation require `auth.token.app_role == 'ADMIN'` and `auth.token.app_base_role == 'ADMIN'`.
 - ADMIN ACK metadata must identify `agent_admin_user_id == auth.token.app_user_id`.
 - Passwords and Firebase credentials remain local/session-only and are never written to RTDB, logs, GitHub or update metadata.
+
+## D080 — WMS POC identity and secret boundary
+
+- WMS capture/probe controls are available only after the Windows Agent has restored/authenticated its existing real `base_role=ADMIN` application identity.
+- The SUPRA Inventory ADMIN identity and the company's WMS browser login are separate authorities. The Agent must never synthesize, hard-code, commit or log a company WMS credential/session.
+- Interactive WMS login is performed by the authorized user only when the dedicated browser session requires it.
+- Captured `Authorization`, `Token`, `APISID`, `SID`, `SCID`, `USID` and related request-session values live only in process memory and are excluded from diagnostic output.
+- D080 grants no WMS mutation permission and does not change application RBAC.
