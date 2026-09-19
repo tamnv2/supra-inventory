@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "DEGRADED_DURABLE_OBJECT_STORAGE_UNAVAILABLE__D070_ALARM_REPAIR_IN_PROGRESS",
+      "status": "BETA_DEGRADED_DURABLE_OBJECT_STORAGE_UNAVAILABLE__D070_REPAIR_PLUS_D072_QUOTA_GUARD_IN_PROGRESS",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
