@@ -105,6 +105,7 @@ const THEME_KEY = "supra_inventory_web_theme_v1";
 const UI_ZOOM_KEY = "supra_inventory_web_zoom_v1";
 const SKIP_DELAY_KEY_PREFIX = "supra_inventory_skip_delay_v1";
 const SKIP_CONFIRM_DELAY_MS = 5_000;
+const DEADLINE_NOTICE_KEY_PREFIX = "supra_inventory_deadline_notices_v1";
 
 function loadUiZoom(): number {
   const stored = Number(localStorage.getItem(UI_ZOOM_KEY) || 100);
@@ -425,6 +426,81 @@ function setNotice(type: NoticeType, text: string): void {
   toastItems = [...toastItems, item].slice(-5);
   renderToastItems();
   window.setTimeout(() => dismissToast(item.id), 5_000);
+}
+
+function deadlineNoticeStorageKey(userId = profile?.user_id || "anonymous"): string {
+  return `${DEADLINE_NOTICE_KEY_PREFIX}:${userId}`;
+}
+
+function seenDeadlineNoticeIds(): string[] {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(deadlineNoticeStorageKey()) || "[]");
+    return Array.isArray(parsed) ? parsed.map(String).slice(-200) : [];
+  } catch {
+    return [];
+  }
+}
+
+function markDeadlineNoticeSeen(eventIds: string[]): string[] {
+  const known = new Set(seenDeadlineNoticeIds());
+  const fresh = eventIds.filter((id) => id && !known.has(id));
+  for (const id of fresh) known.add(id);
+  localStorage.setItem(deadlineNoticeStorageKey(), JSON.stringify([...known].slice(-200)));
+  return fresh;
+}
+
+function browserBackgroundNotice(title: string, body: string): void {
+  if (document.visibilityState === "visible" || !("Notification" in window) || Notification.permission !== "granted") return;
+  try {
+    new Notification(title, { body, tag: "supra-inventory-deadline", renotify: true });
+  } catch {
+    // Browser notification is supplementary; realtime product state remains authoritative.
+  }
+}
+
+function announceDeadlineEvents(events: RealtimeEventFrame[]): void {
+  const relevant = events.filter((row) => [
+    "SLA_WARNING",
+    "SLA_ESCALATED",
+    "TICKET_AUTO_SKIP_ALLOWED",
+    "BATCH_AUTO_SKIP_ALLOWED",
+  ].includes(String(row.event || "").toUpperCase()));
+  if (!relevant.length) return;
+  const freshIds = markDeadlineNoticeSeen(relevant.map((row) => String(row.event_id || "")).filter(Boolean));
+  if (!freshIds.length) return;
+  const fresh = relevant.filter((row) => freshIds.includes(String(row.event_id || "")));
+  const count = (name: string) => fresh.filter((row) => String(row.event || "").toUpperCase() === name).length;
+  const autoCount = count("TICKET_AUTO_SKIP_ALLOWED") + count("BATCH_AUTO_SKIP_ALLOWED");
+  const escalated = count("SLA_ESCALATED");
+  const warning = count("SLA_WARNING");
+
+  if (profile?.role === "PICKER") {
+    if (autoCount) {
+      const text = autoCount === 1 ? "Hệ thống đã cho phép bỏ qua SKU quá thời gian phản hồi." : `${autoCount} SKU đã được hệ thống cho phép bỏ qua.`;
+      setNotice("warning", text);
+      browserBackgroundNotice("SUPRA Inventory · Được phép bỏ qua", text);
+    } else if (escalated) {
+      const text = escalated === 1 ? "SKU đang chờ đã quá thời gian xử lý." : `${escalated} SKU đang chờ đã quá thời gian xử lý.`;
+      setNotice("warning", text);
+      browserBackgroundNotice("SUPRA Inventory · SKU quá hạn", text);
+    }
+    return;
+  }
+
+  if (autoCount) {
+    const text = autoCount === 1 ? "Một SKU quá thời gian đã được hệ thống cho phép bỏ qua." : `${autoCount} SKU quá thời gian đã được hệ thống cho phép bỏ qua.`;
+    setNotice("warning", text);
+    browserBackgroundNotice("SUPRA Inventory · Tự động cho phép bỏ qua", text);
+  }
+  if (escalated) {
+    const text = escalated === 1 ? "Một SKU vừa chuyển sang quá hạn." : `${escalated} SKU vừa chuyển sang quá hạn.`;
+    setNotice("warning", text);
+    browserBackgroundNotice("SUPRA Inventory · SKU quá hạn", text);
+  } else if (warning) {
+    const text = warning === 1 ? "Một SKU vừa tới mốc cảnh báo." : `${warning} SKU vừa tới mốc cảnh báo.`;
+    setNotice("warning", text);
+    browserBackgroundNotice("SUPRA Inventory · SKU sắp quá hạn", text);
+  }
 }
 
 function roleManage(): boolean {
@@ -880,6 +956,7 @@ function pickerDetailMarkup(batchId: string, details: BatchPickerTicket[] | unde
       <strong>${esc(item.picker_employee_code)}</strong>
       <span>${esc(item.picker_display_name || "—")}</span>
       <time>${esc(fmt(item.reported_at))}</time>
+      <span class="picker-timeout-state">${item.auto_skip_allowed_at ? "Đã được hệ thống cho phép bỏ qua" : item.auto_skip_deadline_at ? `Tự động bỏ qua lúc ${esc(fmt(item.auto_skip_deadline_at))}` : ""}</span>
     </div>`).join("") || `<div class="picker-detail-loading">Không có Picker đang bị ảnh hưởng.</div>`}</div></div>`;
 }
 
@@ -893,6 +970,7 @@ function renderFastDetail(selected: ReporterBatch | null): string {
       <div><dt>Thời gian chờ</dt><dd data-wait-batch="${esc(selected.batch_id)}">${timing.waiting} phút</dd></div>
       <div><dt>Thời điểm báo đầu tiên</dt><dd>${esc(fmt(selected.first_report_at))}</dd></div>
       <div><dt>Báo gần nhất</dt><dd>${esc(fmt(selected.last_report_at || selected.first_report_at))}</dd></div>
+      <div><dt>Tự động cho phép bỏ qua</dt><dd>${selected.auto_skip_enabled ? (selected.auto_skip_at ? esc(fmt(selected.auto_skip_at)) : "Chỉ áp dụng báo mới") : "Đang tắt"}</dd></div>
     </dl>
     ${selected.previous_batch_id ? `<div class="fast-warning">SKU này đã phát sinh lại sau lần xử lý trước.</div>` : ""}
     <div class="fast-actions"><button class="primary" data-resolve="HAS_STOCK" data-batch="${esc(selected.batch_id)}">ĐÃ CÓ HÀNG</button><button class="danger" data-skip-batch="${esc(selected.batch_id)}">CHO PHÉP BỎ QUA</button><button class="secondary" data-detail="${esc(selected.batch_id)}">${expandedBatchDetails.has(selected.batch_id) ? "Ẩn danh sách Picker" : "Xem Picker ảnh hưởng"}</button></div>
@@ -1025,7 +1103,7 @@ function renderResults(): string {
     <article class="ops-panel">
       <div class="filters">${(["ALL", "HAS_STOCK", "SKIP_ALLOWED", "CLOSED"] as const).map((id) => `<button class="filter ${recentFilter === id ? "active" : ""}" data-result-filter="${id}">${id === "ALL" ? "Tất cả kết quả" : statusLabel(id)}</button>`).join("")}</div>
       <div class="table-wrap"><table><thead><tr><th>SKU / Sản phẩm</th><th>Kết quả</th><th>Picker ảnh hưởng</th><th>Picker đã nhận</th><th>Thời điểm xử lý</th><th>Phát sinh lại</th><th>Thao tác</th></tr></thead><tbody>
-        ${visible.map((row) => { const canCorrect = row.status === "SKIP_ALLOWED" && row.correction_deadline_at && Date.now() <= Date.parse(row.correction_deadline_at); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<button class="btn secondary small" data-correct="${esc(row.batch_id)}">Sửa thành Có hàng</button>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="7" class="empty">Chưa có kết quả phù hợp.</td></tr>`}
+        ${visible.map((row) => { const canCorrect = row.status === "SKIP_ALLOWED" && row.correction_deadline_at && Date.now() <= Date.parse(row.correction_deadline_at); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span>${row.resolution_source === "SYSTEM_TIMEOUT" ? '<div class="tiny muted">Hệ thống tự động do quá hạn</div>' : ""}</td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<button class="btn secondary small" data-correct="${esc(row.batch_id)}">Sửa thành Có hàng</button>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="7" class="empty">Chưa có kết quả phù hợp.</td></tr>`}
       </tbody></table></div>
     </article>
   </section>`;
@@ -1042,7 +1120,7 @@ function renderPicker(): string {
       ${!onlineForMutation() ? `<div class="notice warning">Cần kết nối mạng để báo hàng. Hệ thống không có chế độ offline.</div>` : ""}
     </div>
     <div class="page-head"><div><h1 style="font-size:18px">BÁO HÔM NAY</h1></div></div>
-    <div class="history-list">${reports.length ? reports.map((row) => { const state = row.batch_status === "HAS_STOCK" ? "ok" : row.batch_status === "SKIP_ALLOWED" ? "skip" : row.status === "WITHDRAWN" || row.batch_status === "CLOSED" ? "closed" : "pending"; const canWithdraw = row.status === "OPEN" && Date.now() <= Date.parse(row.withdraw_deadline_at); return `<article class="history-card ${state}"><div><strong>${esc(row.sku)}</strong><div class="product-name">${esc(row.product_name)}</div><div class="tiny muted">${esc(fmt(row.reported_at))} · ${esc(statusLabel(row.batch_status || row.status))}${row.result_event_id && !row.acknowledged_at ? " · Chưa xác nhận kết quả" : ""}</div></div>${canWithdraw ? `<button class="btn secondary small" data-withdraw="${esc(row.ticket_id)}">Thu hồi</button>` : ""}</article>`; }).join("") : `<div class="card empty">Hôm nay chưa có báo hàng.</div>`}</div>
+    <div class="history-list">${reports.length ? reports.map((row) => { const effectiveStatus = row.resolution === "SKIP_ALLOWED" ? "SKIP_ALLOWED" : row.batch_status || row.status; const state = effectiveStatus === "HAS_STOCK" ? "ok" : effectiveStatus === "SKIP_ALLOWED" ? "skip" : row.status === "WITHDRAWN" || effectiveStatus === "CLOSED" ? "closed" : "pending"; const canWithdraw = row.status === "OPEN" && !row.auto_skip_allowed_at && Date.now() <= Date.parse(row.withdraw_deadline_at); return `<article class="history-card ${state}"><div><strong>${esc(row.sku)}</strong><div class="product-name">${esc(row.product_name)}</div><div class="tiny muted">${esc(fmt(row.reported_at))} · ${esc(statusLabel(effectiveStatus))}${row.resolution_source === "SYSTEM_TIMEOUT" ? " · Hệ thống tự động do quá hạn" : ""}${row.result_event_id && !row.acknowledged_at ? " · Chưa xác nhận kết quả" : ""}</div>${row.auto_skip_deadline_at && !row.auto_skip_allowed_at ? `<div class="tiny muted">Mốc tự động: ${esc(fmt(row.auto_skip_deadline_at))}</div>` : ""}</div>${canWithdraw ? `<button class="btn secondary small" data-withdraw="${esc(row.ticket_id)}">Thu hồi</button>` : ""}</article>`; }).join("") : `<div class="card empty">Hôm nay chưa có báo hàng.</div>`}</div>
   </section>`;
 }
 
@@ -1141,20 +1219,32 @@ function renderUsers(): string {
 function renderSla(): string {
   const sla = slaResponse?.sla;
   const insight = operationalInsights?.sla;
+  const autoEnabled = sla?.auto_skip_enabled === true;
+  const mode = sla?.auto_skip_mode || "FIRST_REPORT";
   return `<section class="ops-route sla-workspace">
-    <div class="business-page-head"><div><h2>Thời gian xử lý</h2><p>Thiết lập hai mốc theo dõi cho SKU đang chờ xử lý. Các mốc chỉ cảnh báo, không tự thay đổi kết quả SKU.</p></div></div>
+    <div class="business-page-head"><div><h2>Thời gian xử lý</h2><p>Thiết lập ba mốc thời gian theo giờ hệ thống. Luôn phải theo thứ tự Cảnh báo &lt; Quá hạn &lt; Tự động cho phép bỏ qua.</p></div></div>
     <form id="sla-form" class="ops-panel sla-config-panel">
       <div class="sla-config-body">
-        <div class="ops-settings-grid">
-          <article class="ops-setting-card"><span class="ops-step">01</span><h3>Cảnh báo</h3><p>Đánh dấu SKU cần được chú ý khi thời gian chờ đạt mốc này.</p><label>Thời gian chờ (phút)<input name="warning" type="number" min="1" max="1440" value="${esc(sla?.warning_minutes || "")}" required /></label></article>
-          <article class="ops-setting-card"><span class="ops-step">02</span><h3>Quá hạn</h3><p>Nâng mức ưu tiên khi SKU tiếp tục chờ sau mốc cảnh báo.</p><label>Thời gian chờ (phút)<input name="escalation" type="number" min="2" max="2880" value="${esc(sla?.escalation_minutes || "")}" required /></label></article>
+        <div class="ops-settings-grid sla-threshold-grid">
+          <article class="ops-setting-card"><span class="ops-step">01</span><h3>Cảnh báo</h3><p>Đánh dấu vàng và thông báo cho bộ phận xử lý khi SKU đạt mốc này.</p><label>Phút<input name="warning" type="number" min="1" max="1440" value="${esc(sla?.warning_minutes || "")}" required /></label></article>
+          <article class="ops-setting-card"><span class="ops-step">02</span><h3>Quá hạn</h3><p>Đánh dấu đỏ và cảnh báo mức cao cho người liên quan.</p><label>Phút<input name="escalation" type="number" min="2" max="2880" value="${esc(sla?.escalation_minutes || "")}" required /></label></article>
+          <article class="ops-setting-card"><span class="ops-step">03</span><h3>Tự động cho phép bỏ qua</h3><p>Nếu Invent vẫn chưa phản hồi khi tới mốc này, hệ thống có thể tự cấp kết quả bỏ qua.</p><label>Phút<input name="autoSkip" type="number" min="3" max="10080" value="${esc(sla?.auto_skip_minutes || "")}" required /></label></article>
+        </div>
+        <div class="sla-auto-policy">
+          <label class="account-setting-row"><input name="autoSkipEnabled" type="checkbox" ${autoEnabled ? "checked" : ""}/><span><strong>Bật tự động cho phép Picker bỏ qua khi quá thời gian</strong><small>Tắt chức năng sẽ hủy các mốc tự động chưa chạy. Bật lại chỉ áp dụng cho báo mới, không hồi tố báo cũ.</small></span></label>
+          <div class="sla-mode-options">
+            <span>Cách tính mốc tự động</span>
+            <label><input type="radio" name="autoSkipMode" value="FIRST_REPORT" ${mode === "FIRST_REPORT" ? "checked" : ""}/> Tính từ người báo đầu tiên của SKU</label>
+            <label><input type="radio" name="autoSkipMode" value="PER_PICKER" ${mode === "PER_PICKER" ? "checked" : ""}/> Tính riêng từ thời điểm từng Picker báo</label>
+          </div>
         </div>
       </div>
-      <div class="sla-config-footer"><span class="muted tiny">Mốc quá hạn phải lớn hơn mốc cảnh báo.</span><button class="primary">Lưu thiết lập</button></div>
+      <div class="sla-config-footer"><span class="muted tiny">Ví dụ 10 → 15 → 20 phút. Thay đổi số phút không làm tự động hồi tố các deadline đã được cấp trước đó.</span><button class="primary">Lưu thiết lập</button></div>
     </form>
     <section class="sla-current-grid" aria-label="Tình trạng hiện tại">
       <article class="sla-current-card warning"><span>Đang ở mức cảnh báo</span><strong>${Number(insight?.warning_count || 0)}</strong></article>
       <article class="sla-current-card danger"><span>Đang quá hạn</span><strong>${Number(insight?.escalated_count || 0)}</strong></article>
+      <article class="sla-current-card ${autoEnabled ? "auto" : ""}"><span>Tự động cho phép bỏ qua</span><strong>${autoEnabled ? "Bật" : "Tắt"}</strong></article>
     </section>
   </section>`;
 }
@@ -1689,6 +1779,7 @@ function renderAccount(): string {
     <div class="account-grid">
       <article class="ops-panel"><div class="ops-panel-title"><div><h3>Đổi mật khẩu</h3></div></div><form id="password-form" class="ops-form-grid"><label class="span">Mật khẩu hiện tại<input name="current" type="password" required /></label><label class="span">Mật khẩu mới<input name="next" type="password" required /></label><div class="ops-form-actions"><button class="primary">Đổi mật khẩu</button></div></form></article>
       ${roleOperate() ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Xác nhận thao tác</h3></div></div><label class="account-setting-row"><input id="skip-delay-setting" type="checkbox" ${skipDelayEnabled ? "checked" : ""}/><span><strong>Chờ 5 giây trước khi xác nhận bỏ qua</strong><small>Giúp hạn chế bấm nhầm thao tác bỏ qua SKU.</small></span></label></article>` : ""}
+      ${"Notification" in window ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Thông báo nền</h3></div></div><div class="account-setting-row"><span><strong>Thông báo khi Web đang ẩn</strong><small>Trạng thái hiện tại: ${Notification.permission === "granted" ? "Đã cho phép" : Notification.permission === "denied" ? "Đã chặn trong trình duyệt" : "Chưa cấp quyền"}</small></span>${Notification.permission === "default" ? '<button class="secondary" id="request-browser-notifications">Cho phép</button>' : ""}</div></article>` : ""}
     </div>
   </section>`;
 }
@@ -2352,6 +2443,9 @@ function bindSection(): void {
     skipDelayEnabled = (event.currentTarget as HTMLInputElement).checked;
     localStorage.setItem(skipDelayStorageKey(), skipDelayEnabled ? "1" : "0");
   });
+  document.querySelector<HTMLButtonElement>("#request-browser-notifications")?.addEventListener("click", () => {
+    void Notification.requestPermission().then(() => patchActiveSection(true));
+  });
 
   document.querySelector<HTMLFormElement>("#sla-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -2359,15 +2453,27 @@ function bindSection(): void {
     void run(async () => {
       const warning = Number(data.get("warning"));
       const escalation = Number(data.get("escalation"));
+      const autoSkip = Number(data.get("autoSkip"));
+      const autoSkipEnabled = data.get("autoSkipEnabled") === "on";
+      const autoSkipMode = String(data.get("autoSkipMode") || "FIRST_REPORT") as "FIRST_REPORT" | "PER_PICKER";
       if (
         !Number.isInteger(warning) ||
         !Number.isInteger(escalation) ||
+        !Number.isInteger(autoSkip) ||
         warning < 1 ||
         warning > 1440 ||
         escalation <= warning ||
-        escalation > 2880
-      ) throw new Error("Thời gian quá hạn phải lớn hơn thời gian cảnh báo và tối đa 2880 phút.");
-      await saveAdminSla(warning, escalation);
+        escalation > 2880 ||
+        autoSkip <= escalation ||
+        autoSkip > 10080
+      ) throw new Error("Ba mốc phải là số phút nguyên và luôn theo thứ tự Cảnh báo < Quá hạn < Tự động cho phép bỏ qua.");
+      await saveAdminSla({
+        warning_minutes: warning,
+        escalation_minutes: escalation,
+        auto_skip_minutes: autoSkip,
+        auto_skip_enabled: autoSkipEnabled,
+        auto_skip_mode: autoSkipMode,
+      });
       await loadSla();
       setNotice("success", "Đã lưu thời gian nghiệp vụ.");
     });
@@ -2485,7 +2591,10 @@ async function reconcileActive(): Promise<boolean> {
 
 registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
   realtimeLastSeq = context.cursorSeq;
-  if (events.length > 0) markWebUpdateReceived();
+  if (events.length > 0) {
+    markWebUpdateReceived();
+    announceDeadlineEvents(events);
+  }
   if (context.source === "reconcile") return reconcileActive();
 
   const scopes = new Set(events.flatMap((row) => row.scopes || []));
