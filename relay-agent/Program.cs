@@ -178,8 +178,12 @@ namespace SupraInventoryRelayAgent
         private readonly ListBox _log = new ListBox();
         private readonly NotifyIcon _tray = new NotifyIcon();
         private readonly ToolStripMenuItem _trayStatusItem = new ToolStripMenuItem();
+        private readonly ToolStripMenuItem _trayOverlayVisibleItem = new ToolStripMenuItem();
+        private readonly ToolStripMenuItem _trayOverlayLockItem = new ToolStripMenuItem();
+        private readonly ToolStripMenuItem _trayOverlayOpacityMenu = new ToolStripMenuItem();
         private readonly SystemMonitor _systemMonitor = new SystemMonitor();
         private readonly System.Windows.Forms.Timer _trayMonitorTimer = new System.Windows.Forms.Timer();
+        private readonly StatusOverlayForm _statusOverlay;
         private readonly HashSet<string> _acked = new HashSet<string>(StringComparer.Ordinal);
         private readonly object _sessionLock = new object();
         private readonly object _wmsSessionLock = new object();
@@ -196,10 +200,14 @@ namespace SupraInventoryRelayAgent
             "SUPRA Inventory", "RelayPoc");
         private static readonly string SessionFile = Path.Combine(RelayDataDir, "session.bin");
         private static readonly string AgentInstanceFile = Path.Combine(RelayDataDir, "agent-instance-id.txt");
+        private static readonly string OverlaySettingsFile = Path.Combine(RelayDataDir, "overlay-settings.json");
 
         internal AgentForm()
         {
             _agentInstanceId = LoadOrCreateAgentInstanceId();
+            var overlaySettings = StatusOverlayForm.LoadSettings(OverlaySettingsFile);
+            _statusOverlay = new StatusOverlayForm(overlaySettings, OverlaySettingsFile);
+            _statusOverlay.SettingsChanged += RefreshOverlayMenu;
             Text = "SUPRA Inventory - Relay Test v" + AgentConfig.AgentBuild;
             Width = 780;
             Height = 680;
@@ -266,17 +274,52 @@ namespace SupraInventoryRelayAgent
             _trayStatusItem.Text = "Máy: đang đọc...";
             menu.Items.Add(_trayStatusItem);
             menu.Items.Add(new ToolStripSeparator());
+
+            _trayOverlayVisibleItem.Text = "Hiển thị bảng nổi";
+            _trayOverlayVisibleItem.CheckOnClick = false;
+            _trayOverlayVisibleItem.Click += (s, e) =>
+            {
+                _statusOverlay.SetOverlayVisible(!_statusOverlay.OverlayVisible);
+                RefreshOverlayMenu();
+            };
+            menu.Items.Add(_trayOverlayVisibleItem);
+
+            _trayOverlayLockItem.Text = "Khóa vị trí / xuyên chuột";
+            _trayOverlayLockItem.CheckOnClick = false;
+            _trayOverlayLockItem.Click += (s, e) =>
+            {
+                _statusOverlay.SetLocked(!_statusOverlay.IsLocked);
+                RefreshOverlayMenu();
+            };
+            menu.Items.Add(_trayOverlayLockItem);
+
+            _trayOverlayOpacityMenu.Text = "Độ trong bảng nổi";
+            foreach (var item in new[] { 0.40, 0.60, 0.80, 1.00 })
+            {
+                var opacity = item;
+                var opacityItem = new ToolStripMenuItem(((int)(opacity * 100)).ToString() + "%");
+                opacityItem.Tag = opacity;
+                opacityItem.Click += (s, e) =>
+                {
+                    _statusOverlay.SetOverlayOpacity(opacity);
+                    RefreshOverlayMenu();
+                };
+                _trayOverlayOpacityMenu.DropDownItems.Add(opacityItem);
+            }
+            menu.Items.Add(_trayOverlayOpacityMenu);
+            menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add("Mở Agent", null, (s, e) => RestoreFromTray());
             menu.Items.Add("Mở log", null, (s, e) => AgentDiagnostics.OpenLog());
             menu.Items.Add("Thoát", null, (s, e) => { _allowExit = true; Close(); });
             _tray.Text = "SUPRA | đang đọc tài nguyên máy"; _tray.Icon = SystemIcons.Application; _tray.ContextMenuStrip = menu; _tray.Visible = true;
+            RefreshOverlayMenu();
             _tray.DoubleClick += (s, e) => RestoreFromTray();
 
             Resize += (s, e) => { if (WindowState == FormWindowState.Minimized) { Hide(); _tray.ShowBalloonTip(1000, "SUPRA Inventory", "Relay Test Agent đang chạy nền.", ToolTipIcon.Info); } };
             FormClosing += (s, e) =>
             {
                 if (!_allowExit && e.CloseReason == CloseReason.UserClosing) { e.Cancel = true; WindowState = FormWindowState.Minimized; Hide(); return; }
-                StopListening(); _trayMonitorTimer.Stop(); _tray.Visible = false;
+                StopListening(); _trayMonitorTimer.Stop(); try { _statusOverlay.Close(); } catch { } _tray.Visible = false;
             };
 
             var timer = new System.Windows.Forms.Timer { Interval = 4000 };
@@ -292,7 +335,11 @@ namespace SupraInventoryRelayAgent
             _updateTimer.Tick += (s, e) => Task.Run(() => TryAutoUpdate(false));
             _updateTimer.Start();
 
-            Shown += (s, e) => Task.Run(() => StartupSequence());
+            Shown += (s, e) =>
+            {
+                if (_statusOverlay.OverlayVisible && !_statusOverlay.Visible) _statusOverlay.Show();
+                Task.Run(() => StartupSequence());
+            };
         }
 
         private void RestoreFromTray() { Show(); WindowState = FormWindowState.Normal; Activate(); }
@@ -306,11 +353,31 @@ namespace SupraInventoryRelayAgent
                 if (compact.Length > 63) compact = compact.Substring(0, 63);
                 _tray.Text = compact;
                 _trayStatusItem.Text = metrics.MenuText();
+                _statusOverlay.UpdateText(metrics.Compact());
             }
             catch
             {
                 _tray.Text = "SUPRA Agent";
                 _trayStatusItem.Text = "Máy: chưa đọc được tài nguyên";
+                _statusOverlay.UpdateText("SUPRA | chưa đọc được tài nguyên máy");
+            }
+        }
+
+        private void RefreshOverlayMenu()
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(RefreshOverlayMenu));
+                return;
+            }
+            _trayOverlayVisibleItem.Checked = _statusOverlay.OverlayVisible;
+            _trayOverlayLockItem.Checked = _statusOverlay.IsLocked;
+            foreach (ToolStripItem item in _trayOverlayOpacityMenu.DropDownItems)
+            {
+                var menuItem = item as ToolStripMenuItem;
+                if (menuItem == null || !(menuItem.Tag is double)) continue;
+                var value = (double)menuItem.Tag;
+                menuItem.Checked = Math.Abs(value - _statusOverlay.OverlayOpacity) < 0.02;
             }
         }
 
