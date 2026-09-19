@@ -262,6 +262,21 @@ For Web, D058 takes precedence over literal legacy geometry where the Owner expl
 - Android/APK remains pending separate Owner review and is unchanged by this Web-only refinement.
 
 
+
+### Owner-accepted Web refinement baseline (D067)
+
+D066 is accepted as the current Web navigation baseline. D067 changes only the requested Web operational ergonomics and must not restyle or reorganize already accepted areas without a new Owner instruction.
+
+- The pinned header adds a persisted `Cỡ chữ` control with decrease/reset/increase actions.
+- The three operational summary cards are interactive filters for all pending, warning and overdue SKU lists; pending counts/list must reflect the complete authoritative queue rather than a fixed 200-row client sample.
+- Selected SKU and all other long-list interactions preserve the current scroll/form context instead of rebuilding back to the top.
+- Affected Picker detail is fetched/cached independently of expansion and displays one Picker per row.
+- The detail fact formerly shown as `Lần xử lý` is replaced by the operationally useful latest report time.
+- Both `ĐÃ CÓ HÀNG` and `CHO PHÉP BỎ QUA` use explicit confirmation surfaces. Skip confirmation has a default 5-second disabled final action; the signed-in user may disable/re-enable that delay from Account settings.
+- Runtime log scheduling is single-flight/idempotent for an exact generated filename; the journal does not display exact duplicate filenames.
+- Product-facing copy is concise end-user language. Do not expose AI/Owner discussion, decision IDs, migration/implementation rationale, or internal environment/privilege labels such as `Beta`/`Root` in normal visible UI.
+- Android/PDA remains unchanged. Stable remains OWNER-GATED.
+
 ## Realtime visual behavior
 
 - WebSocket updates must not reset scroll, selected filter/tab, focused SKU input or unrelated forms.
