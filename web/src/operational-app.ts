@@ -1366,7 +1366,6 @@ function renderSystem(): string {
   const workerFree = systemObj(workerLimits.free);
   const workerPaid = systemObj(workerLimits.paid);
   const doLimits = systemObj(limits.durable_objects_sqlite);
-  const authLimits = systemObj(limits.firebase_auth);
   const roleCounts = systemObj(accounts.by_role);
   const accountStatus = systemObj(accounts.by_status);
   const batchStatus = systemObj(business.batches_by_status);
@@ -1385,137 +1384,133 @@ function renderSystem(): string {
 
   return `<section class="ops-route system-workspace">
     <div class="business-page-head">
-      <div><h2>Trạng thái hệ thống</h2><p>Theo dõi dịch vụ, dung lượng, giới hạn tham chiếu và mức sử dụng hiện tại.</p></div>
+      <div><h2>Trạng thái hệ thống</h2><p>Theo dõi tình trạng, mức sử dụng và giới hạn của các dịch vụ.</p></div>
       <button class="secondary" id="refresh-system">Cập nhật số liệu</button>
     </div>
 
     <div class="system-refresh-note">
-      <span>Cập nhật lõi mỗi 60 giây khi đang mở trang.</span>
-      <span>Google Drive / GitHub được giữ tối đa 5 phút để giảm quota.</span>
-      <span>Lần tổng hợp: <b>${esc(snapshot?.generated_at ? fmt(snapshot.generated_at) : "Chưa tải")}</b></span>
+      <span>Số liệu chính tự cập nhật mỗi 60 giây khi đang mở trang.</span>
+      <span>Số liệu Google Drive và GitHub cập nhật tối đa mỗi 5 phút.</span>
+      <span>Cập nhật gần nhất: <b>${esc(snapshot?.generated_at ? fmt(snapshot.generated_at) : "Chưa tải")}</b></span>
     </div>
 
     <section class="business-summary-grid business-summary-grid-4">
-      <article class="business-summary-card ${overallOk ? "good" : "danger"}"><span>Hệ thống nghiệp vụ</span><strong>${overallOk ? "Hoạt động" : "Cần kiểm tra"}</strong><small>Worker + InventoryCore</small></article>
-      <article class="business-summary-card primary"><span>SQLite đang dùng</span><strong>${fmtBytes(dbSize)}</strong><small>${doLimit ? `${(usagePercent(dbSize, doLimit) || 0).toFixed(3)}% mốc 10 GB / object` : "Đang đo dung lượng"}</small></article>
-      <article class="business-summary-card good"><span>Người đang online</span><strong>${systemNum(realtime.online_users)}</strong><small>${systemNum(realtime.online_sessions)} phiên realtime</small></article>
-      <article class="business-summary-card"><span>Drive tài khoản</span><strong>${driveUsed == null ? "—" : fmtBytes(driveUsed)}</strong><small>${driveLimit ? `Giới hạn ${fmtBytes(driveLimit)}` : "Google không trả giới hạn cố định"}</small></article>
+      <article class="business-summary-card ${overallOk ? "good" : "danger"}"><span>Hệ thống nghiệp vụ</span><strong>${overallOk ? "Hoạt động" : "Cần kiểm tra"}</strong><small>Dịch vụ chính</small></article>
+      <article class="business-summary-card primary"><span>Dữ liệu đang dùng</span><strong>${fmtBytes(dbSize)}</strong><small>${doLimit ? `${(usagePercent(dbSize, doLimit) || 0).toFixed(3)}% giới hạn vùng dữ liệu` : "Đang đo dung lượng"}</small></article>
+      <article class="business-summary-card good"><span>Người đang online</span><strong>${systemNum(realtime.online_users)}</strong><small>${systemNum(realtime.online_sessions)} phiên đang kết nối</small></article>
+      <article class="business-summary-card"><span>Google Drive</span><strong>${driveUsed == null ? "—" : fmtBytes(driveUsed)}</strong><small>${driveLimit ? `Giới hạn ${fmtBytes(driveLimit)}` : "Chưa đọc được giới hạn"}</small></article>
     </section>
 
     <div class="system-service-grid">
       <article class="ops-panel system-service-card">
-        <div class="system-service-head"><div><span class="system-provider">Cloudflare</span><h3>Worker · Inventory API</h3></div><b class="system-health ${serviceReachable ? "ok" : "bad"}">${serviceReachable ? "Đang hoạt động" : "Mất kết nối"}</b></div>
-        <p class="system-service-desc">API Web/Android, xác thực phiên, định tuyến nghiệp vụ và static Web.</p>
+        <div class="system-service-head"><div><span class="system-provider">Cloudflare</span><h3>Website & dịch vụ xử lý</h3></div><b class="system-health ${serviceReachable ? "ok" : "bad"}">${serviceReachable ? "Đang hoạt động" : "Mất kết nối"}</b></div>
+        <p class="system-service-desc">Cung cấp website và xử lý các yêu cầu nghiệp vụ.</p>
         <div class="system-facts">
-          <div><span>Kênh hệ thống</span><b>Kiểm thử</b></div>
-          <div><span>Source đang chạy</span><b class="mono">${esc(String(snapshot?.source_commit || "chưa ghi build SHA").slice(0,12))}</b></div>
-          <div><span>Internet trình duyệt</span><b>${navigator.onLine ? "Bình thường" : "Mất kết nối"}</b></div>
-          <div><span>Realtime Web</span><b>${realtimeState === "connected" ? "Đã kết nối" : "Đang kết nối lại"}</b></div>
+          <div><span>Kết nối Internet</span><b>${navigator.onLine ? "Bình thường" : "Mất kết nối"}</b></div>
+          <div><span>Đồng bộ tức thời</span><b>${realtimeState === "connected" ? "Đã kết nối" : "Đang kết nối lại"}</b></div>
+          <div><span>Người đang online</span><b>${systemNum(realtime.online_users).toLocaleString("vi-VN")}</b></div>
+          <div><span>Phiên đang kết nối</span><b>${systemNum(realtime.online_sessions).toLocaleString("vi-VN")}</b></div>
         </div>
-        <div class="system-limit-box"><strong>Giới hạn tham chiếu Workers</strong><div>Free: ${systemNum(workerFree.requests_per_day).toLocaleString("vi-VN")} request/ngày · CPU ${systemNum(workerFree.cpu_ms_per_http_request)} ms/request · RAM ${fmtBytes(workerFree.memory_bytes_per_isolate)}</div><div>Paid: không giới hạn số request/ngày theo bảng giới hạn · CPU mặc định ${systemNum(workerPaid.cpu_ms_per_http_request_default)/1000}s, có thể nâng tối đa ${systemNum(workerPaid.cpu_ms_per_http_request_configurable_max)/1000}s · RAM ${fmtBytes(workerPaid.memory_bytes_per_isolate)}</div><small>Giới hạn hiển thị dùng để tham chiếu; gói dịch vụ hiện tại không được nhà cung cấp trả về qua kết nối này.</small></div>
+        <div class="system-limit-box"><strong>Giới hạn dịch vụ tham chiếu</strong><div>Gói miễn phí: ${systemNum(workerFree.requests_per_day).toLocaleString("vi-VN")} yêu cầu/ngày · bộ nhớ ${fmtBytes(workerFree.memory_bytes_per_isolate)}.</div><div>Gói trả phí: không giới hạn số yêu cầu/ngày theo mức tham chiếu · bộ nhớ ${fmtBytes(workerPaid.memory_bytes_per_isolate)}.</div><small>Gói đang sử dụng không được trả về trực tiếp nên các mức trên chỉ dùng để đối chiếu.</small></div>
       </article>
 
       <article class="ops-panel system-service-card">
-        <div class="system-service-head"><div><span class="system-provider">Cloudflare</span><h3>InventoryCore · Durable Object SQLite</h3></div><b class="system-health ok">Sẵn sàng</b></div>
-        <p class="system-service-desc">Nguồn dữ liệu giao dịch chính: SKU, báo hàng, batch, realtime, audit và cấu hình.</p>
-        ${usageBar(dbSize, doLimit, "Dung lượng database")}
+        <div class="system-service-head"><div><span class="system-provider">Cloudflare</span><h3>Cơ sở dữ liệu nghiệp vụ</h3></div><b class="system-health ok">Sẵn sàng</b></div>
+        <p class="system-service-desc">Lưu SKU, báo hàng, lịch sử xử lý và cấu hình hệ thống.</p>
+        ${usageBar(dbSize, doLimit, "Dung lượng dữ liệu")}
         <div class="system-facts">
           <div><span>SKU</span><b>${systemNum(business.sku_count).toLocaleString("vi-VN")}</b></div>
-          <div><span>Batch</span><b>${systemNum(tables.report_batches).toLocaleString("vi-VN")}</b></div>
-          <div><span>Lượt báo</span><b>${systemNum(tables.report_tickets).toLocaleString("vi-VN")}</b></div>
-          <div><span>Sự kiện realtime giữ lại</span><b>${systemNum(realtime.retained_events).toLocaleString("vi-VN")}</b></div>
+          <div><span>Đợt xử lý</span><b>${systemNum(tables.report_batches).toLocaleString("vi-VN")}</b></div>
+          <div><span>Lượt báo Picker</span><b>${systemNum(tables.report_tickets).toLocaleString("vi-VN")}</b></div>
+          <div><span>Bản ghi cập nhật</span><b>${systemNum(realtime.retained_events).toLocaleString("vi-VN")}</b></div>
         </div>
-        <div class="system-limit-box"><strong>Giới hạn tham chiếu SQLite DO</strong><div>10 GB/object · Free tổng account 5 GB · Free 5 triệu dòng đọc/ngày · 100.000 dòng ghi/ngày.</div><div>Soft throughput 1 object: khoảng 1.000 request/giây; CPU mặc định 30 giây/request.</div></div>
+        <div class="system-limit-box"><strong>Giới hạn lưu trữ tham chiếu</strong><div>10 GB cho mỗi vùng dữ liệu · tổng miễn phí 5 GB · tối đa 5 triệu lượt đọc và 100.000 lượt ghi/ngày ở mức miễn phí.</div><div>Khả năng xử lý tham chiếu khoảng 1.000 yêu cầu/giây cho một vùng dữ liệu.</div></div>
       </article>
 
       <article class="ops-panel system-service-card">
-        <div class="system-service-head"><div><span class="system-provider">Firebase</span><h3>Authentication</h3></div><b class="system-health ${systemNum(accounts.total) ? "ok" : "warn"}">${systemNum(accounts.total) ? "Hoạt động" : "Chưa có dữ liệu"}</b></div>
-        <p class="system-service-desc">Nhận custom token từ Worker và phát hành phiên đăng nhập cho Web/Android.</p>
+        <div class="system-service-head"><div><span class="system-provider">Firebase</span><h3>Đăng nhập & tài khoản</h3></div><b class="system-health ${systemNum(accounts.total) ? "ok" : "warn"}">${systemNum(accounts.total) ? "Hoạt động" : "Chưa có dữ liệu"}</b></div>
+        <p class="system-service-desc">Quản lý đăng nhập và phiên sử dụng của người dùng.</p>
         <div class="system-facts">
           <div><span>Tài khoản ứng dụng</span><b>${systemNum(accounts.total).toLocaleString("vi-VN")}</b></div>
-          <div><span>Đã liên kết Firebase</span><b>${systemNum(accounts.firebase_linked).toLocaleString("vi-VN")}</b></div>
+          <div><span>Đã liên kết đăng nhập</span><b>${systemNum(accounts.firebase_linked).toLocaleString("vi-VN")}</b></div>
           <div><span>Đang hoạt động</span><b>${systemNum(accountStatus.ACTIVE).toLocaleString("vi-VN")}</b></div>
           <div><span>Đã dừng</span><b>${systemNum(accountStatus.DISABLED).toLocaleString("vi-VN")}</b></div>
         </div>
         <div class="system-role-mini"><span>Picker <b>${systemNum(roleCounts.PICKER)}</b></span><span>Người xử lý <b>${systemNum(roleCounts.REPORTER)}</b></span><span>Quản trị <b>${systemNum(roleCounts.ADMIN)}</b></span><span>Quản trị hệ thống <b>${systemNum(roleCounts.ROOT)}</b></span></div>
-        <div class="system-limit-box"><strong>Giới hạn tham chiếu Auth</strong><div>Spark Tier 1: 3.000 người dùng hoạt động/ngày. Custom-token sign-in: 45.000/phút/project. Token exchange: 18.000/phút/project.</div><small>Giới hạn hiển thị dùng để tham chiếu; gói dịch vụ hiện tại không được nhà cung cấp trả về qua kết nối này.</small></div>
+        <div class="system-limit-box"><strong>Giới hạn đăng nhập tham chiếu</strong><div>Mức miễn phí tham chiếu: 3.000 người dùng hoạt động/ngày.</div><small>Gói đang sử dụng không được trả về trực tiếp nên mức trên chỉ dùng để đối chiếu.</small></div>
       </article>
 
       <article class="ops-panel system-service-card">
-        <div class="system-service-head"><div><span class="system-provider">Firebase</span><h3>Cloud Messaging</h3></div><b class="system-health ${systemNum(delivery.FAILED) ? "warn" : "ok"}">${systemNum(delivery.FAILED) ? "Có lỗi gửi" : "Bình thường"}</b></div>
-        <p class="system-service-desc">Thông báo nền đến Android khi có nghiệp vụ cần đồng bộ/hiển thị.</p>
+        <div class="system-service-head"><div><span class="system-provider">Firebase</span><h3>Thông báo ứng dụng</h3></div><b class="system-health ${systemNum(delivery.FAILED) ? "warn" : "ok"}">${systemNum(delivery.FAILED) ? "Có lỗi gửi" : "Bình thường"}</b></div>
+        <p class="system-service-desc">Gửi thông báo đến thiết bị khi có kết quả hoặc thay đổi cần chú ý.</p>
         <div class="system-facts">
-          <div><span>Thiết bị Android đang đăng ký</span><b>${systemNum(devices.ANDROID).toLocaleString("vi-VN")}</b></div>
-          <div><span>Thiết bị Web đang đăng ký</span><b>${systemNum(devices.WEB).toLocaleString("vi-VN")}</b></div>
+          <div><span>Thiết bị Android</span><b>${systemNum(devices.ANDROID).toLocaleString("vi-VN")}</b></div>
+          <div><span>Thiết bị Web</span><b>${systemNum(devices.WEB).toLocaleString("vi-VN")}</b></div>
           <div><span>Gửi thành công 24h</span><b>${systemNum(delivery.SENT).toLocaleString("vi-VN")}</b></div>
           <div><span>Gửi lỗi 24h</span><b>${systemNum(delivery.FAILED).toLocaleString("vi-VN")}</b></div>
         </div>
-        <div class="system-limit-box"><strong>Cách theo dõi</strong><div>Không polling FCM. Hệ thống chỉ ghi attempt khi thực sự phát sinh notification để tránh tốn tài nguyên.</div></div>
       </article>
 
       <article class="ops-panel system-service-card">
-        <div class="system-service-head"><div><span class="system-provider">Google</span><h3>Drive · Logs / Archive / Exports</h3></div><b class="system-health ${drive.status === "ok" ? "ok" : "warn"}">${drive.status === "ok" ? "Đã kết nối" : "Chưa đọc được"}</b></div>
-        <p class="system-service-desc">Lưu log hỗ trợ, dữ liệu archive và file xuất; không phải nguồn giao dịch chính.</p>
+        <div class="system-service-head"><div><span class="system-provider">Google Drive</span><h3>Lưu trữ file</h3></div><b class="system-health ${drive.status === "ok" ? "ok" : "warn"}">${drive.status === "ok" ? "Đã kết nối" : "Chưa đọc được"}</b></div>
+        <p class="system-service-desc">Lưu nhật ký, dữ liệu lịch sử và file xuất.</p>
         ${driveUsed == null ? `<div class="system-usage-line"><span>Dung lượng tài khoản</span><strong>Chưa đọc được</strong></div>` : usageBar(driveUsed, driveLimit, "Dung lượng tài khoản Google")}
         <div class="system-folder-grid">
-          <div><span>Logs</span><b>${systemNum(logsFolder.item_count)} file · ${fmtBytes(logsFolder.binary_size_bytes)}</b></div>
-          <div><span>Archive</span><b>${systemNum(archiveFolder.item_count)} file · ${fmtBytes(archiveFolder.binary_size_bytes)}</b></div>
-          <div><span>Exports</span><b>${systemNum(exportsFolder.item_count)} file · ${fmtBytes(exportsFolder.binary_size_bytes)}</b></div>
+          <div><span>Nhật ký</span><b>${systemNum(logsFolder.item_count)} file · ${fmtBytes(logsFolder.binary_size_bytes)}</b></div>
+          <div><span>Lưu trữ</span><b>${systemNum(archiveFolder.item_count)} file · ${fmtBytes(archiveFolder.binary_size_bytes)}</b></div>
+          <div><span>File xuất</span><b>${systemNum(exportsFolder.item_count)} file · ${fmtBytes(exportsFolder.binary_size_bytes)}</b></div>
         </div>
-        <div class="system-limit-box"><strong>Drive API</strong><div>400 triệu quota-unit/ngày trước ngưỡng tính phí công bố; files.get = 5 unit, files.list = 100 unit. Trang này cache dữ liệu Drive 5 phút.</div><small>Số liệu dung lượng tài khoản là toàn bộ Google Drive của tài khoản OAuth, không chỉ dự án Inventory.</small></div>
       </article>
 
       <article class="ops-panel system-service-card">
-        <div class="system-service-head"><div><span class="system-provider">Google</span><h3>Sheets · Nhân sự / Archive</h3></div><b class="system-health ${hr.configured ? "ok" : "warn"}">${hr.configured ? "Đã cấu hình" : "Chưa cấu hình"}</b></div>
-        <p class="system-service-desc">Sheet Nhân sự là nguồn cấu hình Picker; Archive Sheet lưu dữ liệu lịch sử theo batch.</p>
+        <div class="system-service-head"><div><span class="system-provider">Google Sheets</span><h3>Nguồn nhân sự & lưu trữ</h3></div><b class="system-health ${hr.configured ? "ok" : "warn"}">${hr.configured ? "Đã cấu hình" : "Chưa cấu hình"}</b></div>
+        <p class="system-service-desc">Đọc danh sách nhân sự và lưu dữ liệu lịch sử theo đợt.</p>
         <div class="system-facts">
           <div><span>Nhân sự nguồn</span><b>${systemNum(hr.data_row_count).toLocaleString("vi-VN")} dòng</b></div>
           <div><span>Tab nhân sự</span><b>${esc(String(hr.tab_name || "—"))}</b></div>
-          <div><span>Batch đã archive</span><b>${systemNum(archive.exported_batches).toLocaleString("vi-VN")}</b></div>
+          <div><span>Đợt đã lưu trữ</span><b>${systemNum(archive.exported_batches).toLocaleString("vi-VN")}</b></div>
           <div><span>Cập nhật nguồn</span><b>${hr.updated_at ? esc(fmt(String(hr.updated_at))) : "—"}</b></div>
         </div>
-        <div class="system-limit-box"><strong>Nguyên tắc</strong><div>Không ghi Sheet theo từng báo hàng. Giao dịch ở SQLite; Google chỉ dùng nguồn nhân sự và archive theo lô.</div></div>
       </article>
 
       <article class="ops-panel system-service-card">
-        <div class="system-service-head"><div><span class="system-provider">GitHub</span><h3>Mã nguồn · Phát hành ứng dụng</h3></div><b class="system-health ${github.status === "ok" ? "ok" : "warn"}">${github.status === "ok" ? "Đã kết nối" : "Chưa đọc được"}</b></div>
-        <p class="system-service-desc">Quản lý phiên bản mã nguồn và kênh phát hành cập nhật ứng dụng.</p>
+        <div class="system-service-head"><div><span class="system-provider">GitHub</span><h3>Phiên bản ứng dụng</h3></div><b class="system-health ${github.status === "ok" ? "ok" : "warn"}">${github.status === "ok" ? "Đã kết nối" : "Chưa đọc được"}</b></div>
+        <p class="system-service-desc">Theo dõi phiên bản ứng dụng đang phát hành.</p>
         <div class="system-facts">
-          <div><span>Phiên bản ứng dụng mới nhất</span><b>${esc(String(release.tag || "—").replace(/^beta[-_]?/i, ""))}</b></div>
-          <div><span>Nguồn release</span><b class="mono">${esc(String(release.source || "—").slice(0,12))}</b></div>
-          <div><span>Phát hành</span><b>${release.published_at ? esc(fmt(String(release.published_at))) : "—"}</b></div>
-          <div><span>Provider refresh</span><b>${providerRefresh ? esc(fmt(providerRefresh)) : "—"}</b></div>
+          <div><span>Phiên bản mới nhất</span><b>${esc(String(release.tag || "—").replace(/^beta[-_]?/i, ""))}</b></div>
+          <div><span>Ngày phát hành</span><b>${release.published_at ? esc(fmt(String(release.published_at))) : "—"}</b></div>
+          <div><span>Cập nhật số liệu</span><b>${providerRefresh ? esc(fmt(providerRefresh)) : "—"}</b></div>
         </div>
       </article>
 
       <article class="ops-panel system-service-card">
-        <div class="system-service-head"><div><span class="system-provider">Realtime</span><h3>WebSocket · Đồng bộ trực tiếp</h3></div><b class="system-health ${realtimeState === "connected" ? "ok" : "warn"}">${realtimeState === "connected" ? "Đã kết nối" : "Đang nối lại"}</b></div>
-        <p class="system-service-desc">Kênh cập nhật foreground; database vẫn là nguồn sự thật.</p>
+        <div class="system-service-head"><div><span class="system-provider">Kết nối trực tiếp</span><h3>Đồng bộ tức thời</h3></div><b class="system-health ${realtimeState === "connected" ? "ok" : "warn"}">${realtimeState === "connected" ? "Đã kết nối" : "Đang nối lại"}</b></div>
+        <p class="system-service-desc">Cập nhật thay đổi giữa các thiết bị đang sử dụng.</p>
         <div class="system-facts">
           <div><span>Người online</span><b>${systemNum(realtime.online_users)}</b></div>
           <div><span>Phiên online</span><b>${systemNum(realtime.online_sessions)}</b></div>
-          <div><span>Sequence mới nhất</span><b>${systemNum(realtime.max_seq).toLocaleString("vi-VN")}</b></div>
-          <div><span>Sự kiện giữ lại</span><b>${systemNum(realtime.retained_events).toLocaleString("vi-VN")}</b></div>
+          <div><span>Mốc đồng bộ</span><b>${systemNum(realtime.max_seq).toLocaleString("vi-VN")}</b></div>
+          <div><span>Bản ghi đồng bộ còn lưu</span><b>${systemNum(realtime.retained_events).toLocaleString("vi-VN")}</b></div>
         </div>
       </article>
     </div>
 
-    <div class="report-section-title"><h3>Dữ liệu nghiệp vụ đang chiếm hệ thống</h3><span>Số dòng hiện tại trong InventoryCore</span></div>
+    <div class="report-section-title"><h3>Dữ liệu nghiệp vụ đang lưu</h3><span>Số lượng bản ghi hiện tại</span></div>
     <article class="ops-panel">
       <div class="system-table-grid">
-        <div><span>SKU master</span><b>${systemNum(tables.sku_master).toLocaleString("vi-VN")}</b></div>
-        <div><span>Batch báo hàng</span><b>${systemNum(tables.report_batches).toLocaleString("vi-VN")}</b></div>
-        <div><span>Ticket Picker</span><b>${systemNum(tables.report_tickets).toLocaleString("vi-VN")}</b></div>
-        <div><span>Sự kiện nghiệp vụ</span><b>${systemNum(tables.report_events).toLocaleString("vi-VN")}</b></div>
-        <div><span>Sự kiện realtime</span><b>${systemNum(tables.realtime_events).toLocaleString("vi-VN")}</b></div>
+        <div><span>SKU</span><b>${systemNum(tables.sku_master).toLocaleString("vi-VN")}</b></div>
+        <div><span>Đợt xử lý</span><b>${systemNum(tables.report_batches).toLocaleString("vi-VN")}</b></div>
+        <div><span>Lượt báo Picker</span><b>${systemNum(tables.report_tickets).toLocaleString("vi-VN")}</b></div>
+        <div><span>Lịch sử xử lý</span><b>${systemNum(tables.report_events).toLocaleString("vi-VN")}</b></div>
+        <div><span>Bản ghi cập nhật</span><b>${systemNum(tables.realtime_events).toLocaleString("vi-VN")}</b></div>
         <div><span>Xác nhận kết quả</span><b>${systemNum(tables.result_acknowledgements).toLocaleString("vi-VN")}</b></div>
-        <div><span>Audit log</span><b>${systemNum(tables.audit_log).toLocaleString("vi-VN")}</b></div>
-        <div><span>Thiết bị FCM</span><b>${systemNum(tables.fcm_devices).toLocaleString("vi-VN")}</b></div>
+        <div><span>Nhật ký thao tác</span><b>${systemNum(tables.audit_log).toLocaleString("vi-VN")}</b></div>
+        <div><span>Thiết bị nhận thông báo</span><b>${systemNum(tables.fcm_devices).toLocaleString("vi-VN")}</b></div>
       </div>
       <div class="system-status-strip">
         <span>10 phút gần nhất <b>${systemNum(business.reports_last_10_minutes)} lượt báo</b></span>
         <span>24 giờ gần nhất <b>${systemNum(business.reports_last_24_hours)} lượt báo</b></span>
-        <span>Đang chờ xử lý <b>${systemNum(batchStatus.PENDING)} batch / ${systemNum(ticketStatus.OPEN)} Picker</b></span>
+        <span>Đang chờ xử lý <b>${systemNum(batchStatus.PENDING)} đợt / ${systemNum(ticketStatus.OPEN)} Picker</b></span>
       </div>
     </article>
 
@@ -1530,16 +1525,12 @@ function renderSystem(): string {
           <div><span>Phản hồi bình quân</span><b>${systemNum(loadTest.average_ms).toFixed(1)} ms</b></div>
           <div><span>95% yêu cầu dưới</span><b>${systemNum(loadTest.p95_ms).toFixed(1)} ms</b></div>
         </div>
-        <p class="system-test-note">Test ID <span class="mono">${esc(String(loadTest.test_id))}</span> · hoàn thành ${esc(String(loadTest.completed_at ? fmt(String(loadTest.completed_at)) : "—"))}. Đây là số liệu đo thực tế tại thời điểm kiểm tra.</p>
+        <p class="system-test-note">Hoàn thành ${esc(String(loadTest.completed_at ? fmt(String(loadTest.completed_at)) : "—"))}. Đây là số liệu đo thực tế tại thời điểm kiểm tra.</p>
       ` : `<div class="ops-empty">Chưa có kết quả kiểm tra tải.</div>`}
     </article>
-
-    <details class="system-tech-details">
-      <summary>Thông tin kỹ thuật chi tiết</summary>
-      <pre class="diagnostics">${esc(snapshot ? JSON.stringify(sanitizeDiagnosticValue(snapshot), null, 2) : (serviceHealth ? JSON.stringify(sanitizeDiagnosticValue(serviceHealth), null, 2) : "Chưa tải trạng thái dịch vụ."))}</pre>
-    </details>
   </section>`;
 }
+
 function renderLegacyDevices(): string {
   return renderSystem();
 }
