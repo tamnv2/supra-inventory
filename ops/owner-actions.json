@@ -181,7 +181,7 @@
     },
     {
       "id": "OA006",
-      "status": "D084_RELEASE_PENDING",
+      "status": "OWNER_D084_FIELD_TEST_PENDING",
       "title": "Field-test all-date PickListCode lookup and explicit Agent overlay settings",
       "resource_key": "supra-api-d080",
       "provider": "Wincommerce Supra + Beta RTDB + physical authorized WMS/PDA session",
@@ -207,12 +207,22 @@
         "No secret WMS/session/signature values appear in repo/logs/RTDB"
       ],
       "safety": "Use only an authorized company WMS session. Do not paste cURL, passwords, Authorization/Token/APISID/SID/SCID/USID, signatures/nonces or raw WMS response data into chat/logs. Confirmation remains deferred.",
-      "remaining_owner_action": "After D084 Agent v9 + next signed Beta APK are published, run the shortest test path above. If lookup fails, send only sanitized Agent log classifications/field names; never send cURL/session/token/header values.",
+      "remaining_owner_action": "Run relay-agent-v9 + signed beta-vc51. Verify Agent starts, configure overlay opacity, unlock/drag, then lock and confirm mouse passes through. Establish one valid WMS session locally and test a known real PickListCode suffix on PDA. Send only sanitized Agent log if result is wrong or schema/pagination fails.",
       "prerequisites": {
-        "agent_release_target": "relay-agent-v9",
-        "android_release_target": "next_after_beta-vc50",
-        "d084_source": "IN_PROGRESS",
-        "wms_mutation": "FORBIDDEN"
+        "merged_pr": 87,
+        "merged_main": "4be5643827342e900f052364051b6050200d35a2",
+        "agent_release": "relay-agent-v9",
+        "agent_release_id": 392186386,
+        "agent_exe_asset_id": 575336561,
+        "agent_exe_sha256": "22fe36935ec8e33a92b0ea1febd1b183dd9a164afb21cfe48713f1cdbad3573d",
+        "android_release": "beta-vc51",
+        "android_release_id": 392186436,
+        "android_apk_asset_id": 575336837,
+        "android_apk_sha256": "b5040e3f6644655d901b55027360e52255daac89a419ddd33c37153197de461c",
+        "main_agent_release_run": 35463823056,
+        "main_android_release_run": 35463822972,
+        "main_beta_deploy_run": 35463823063,
+        "main_ui_guard": 35463822993
       }
     }
   ]
