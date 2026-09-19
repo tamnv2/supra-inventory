@@ -194,7 +194,7 @@ def main() -> None:
     require(status_overlay, "TopMost = true", "D082 always-on-top overlay")
     require(status_overlay, "SetOverlayOpacity", "D082 configurable overlay opacity")
     require(status_overlay, "SetLocked", "D082 overlay lock/unlock")
-    require(status_overlay, "overlay-settings.json", "D082 overlay persisted settings")
+    require(relay_agent, "overlay-settings.json", "D082 overlay persisted settings")
     require(relay_agent, "HasUsableWmsSession", "D082 valid WMS session reuse guard")
     require(relay_agent, '"Phiên WMS đang OK"', "D082 block repeated WMS login")
     require(relay_agent, "HandlePicklistLookupJob", "D082 relay Picklist lookup handler")
