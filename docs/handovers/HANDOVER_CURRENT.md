@@ -697,3 +697,10 @@ PR #74 merged at `a501282daeced491eda8883701a60a04b5f646eb`. Main Repo Authority
 D077 fixes the Office proxy error path by capturing `HttpWebResponse.StatusCode` and safe response metadata before disposal. The prior v2 field log had shown Office Firebase refresh PASS, then the EXE itself threw `ObjectDisposedException`, masking the actual proxy/RTDB status. v3 preserves the real HTTP error for diagnosis. D075 shared ADMIN relay and D076 deployed Rules are unchanged. No APK or WMS mutation change.
 
 Current relay marker: `D077_AGENT_V3_RELEASE_PASS__OFFICE_FIELD_RETEST_PENDING__D076_RULES_PASS__NO_WMS_MUTATION`.
+
+
+## D078 Office transport probe matrix — 2026-09-19
+
+Field evidence proves `.Office@MSN` allows Firebase Secure Token but Wincommerce proxy blocks the Beta RTDB `*.firebasedatabase.app` endpoint with an HTML URL-filter block page. D078 adds read-only Agent probes for Firebase Auth, RTDB, Firestore, Apps Script, Sheets, Drive and Test tất cả. No replacement transport is selected or provisioned until the Owner runs the matrix on the real Office laptop and returns the sanitized log.
+
+Current relay marker: `D078_OFFICE_TRANSPORT_PROBE_MATRIX_IN_PROGRESS__RTDB_PROXY_BLOCK_CONFIRMED__NO_WMS_MUTATION`.

@@ -228,3 +228,9 @@ D075 replaces the D074 per-Firebase-UID relay tree with a shared Beta transport 
 Each PENDING job contains request id, five-digit suffix, source, Picker Firebase UID, Picker application user id and client timestamp. The owning Picker can wait on the exact job path. ADMIN Agents may subscribe at the shared `jobs` collection. ACK adds the ADMIN application user id, machine, persistent Agent instance id, network and timestamps. Rules enforce first-PENDING→ACK ownership so parallel Agents cannot overwrite a prior ACK.
 
 The shared queue remains a transport POC only and is not an offline business queue.
+
+## D078 — Relay transport discovery
+
+D078 does not change the active D075 relay transport. It adds field diagnostics to decide which Google-hosted transport, if any, can replace RTDB for the Office-side Agent. Candidate order is Firestore REST first, Apps Script web/API second, with Sheets/Drive only as lower-priority fallbacks because they require polling/Workspace OAuth and are not realtime relay primitives.
+
+Until Owner field evidence is collected, RTDB remains the implemented Beta POC transport and no new relay resource is authoritative.

@@ -430,3 +430,13 @@ D074 is field-ready only when all of the following are true:
 4. Deployment uses `firebase/database.rules.json` through canonical `firebase.json`.
 5. Workflow never echoes service-account JSON/private key/access token and never targets Stable.
 6. A successful main workflow is required before D075 Rules are marked deployed.
+
+## D078 — Office transport probe matrix
+
+1. Agent exposes read-only probe actions for Firebase Auth, RTDB, Firestore, Apps Script, Sheets, Drive and Test tất cả.
+2. Probe classification distinguishes at least `PASS`/Google reachable, `AUTH_REQUIRED`, `PROXY_BLOCK`, and transport failure.
+3. Wincommerce block pages must be recognized as corporate proxy blocks and not mislabeled as Firebase Rules 403.
+4. Probe logs contain endpoint labels, safe host/final-host, HTTP status, content type and elapsed milliseconds, but never passwords/tokens/query credentials or raw five-digit Picklist values.
+5. Firestore probe uses the current Firebase ADMIN ID token only as a read-only compatibility test; D078 does not create/provision a Firestore database.
+6. Apps Script/Sheets/Drive probes are reachability tests only and do not create or mutate Google resources.
+7. Agent build/release must PASS before Owner Office field testing. No APK or WMS mutation change is included.
