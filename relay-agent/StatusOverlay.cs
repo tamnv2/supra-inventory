@@ -89,6 +89,18 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        protected override void WndProc(ref Message m)
+        {
+            const int WmNcHitTest = 0x0084;
+            const int HtTransparent = -1;
+            if (_settings.Locked && m.Msg == WmNcHitTest)
+            {
+                m.Result = new IntPtr(HtTransparent);
+                return;
+            }
+            base.WndProc(ref m);
+        }
+
         internal bool IsLocked
         {
             get { return _settings.Locked; }
