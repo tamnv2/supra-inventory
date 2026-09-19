@@ -101,7 +101,7 @@ checks = {
     "web_d059_corporate_header": all(token in WEB_APP for token in [
         "CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN",
         "Website nghiệp vụ Inventory 1291",
-        "Service: Cloudflare",
+        "Dịch vụ:",
         "Cập nhật:",
     ]),
     "web_d059_role_labels": all(token in WEB_APP for token in ["Quản trị hệ thống", "Người báo hàng", "Người lấy hàng"]),
