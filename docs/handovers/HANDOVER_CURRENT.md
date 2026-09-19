@@ -688,3 +688,12 @@ Current Android marker: `D075_SHARED_RELAY_SIGNED_BETA_VC49__D076_RULES_DEPLOY_P
 Field log shows `.PDA@MSN` RTDB GET PASS and `.Office@MSN` Firebase refresh PASS, followed by `ObjectDisposedException` before the real RTDB/proxy HTTP status could be surfaced. Source review found `ToRelayHttpException()` disposed `HttpWebResponse` and then read `StatusCode`. D077 captures status/response diagnostics before disposal, preserves sanitized error reporting, bumps the portable Agent to `relay-agent-v3`, and leaves D075 shared ADMIN relay plus D076 deployed Rules unchanged. No APK/WMS change.
 
 Current relay marker: `D077_OFFICE_PROXY_HTTP_RESPONSE_DISPOSAL_REPAIR_IN_PROGRESS__D076_RULES_PASS__NO_WMS_MUTATION`.
+
+
+## D077 Agent v3 release PASS — 2026-09-19
+
+PR #74 merged at `a501282daeced491eda8883701a60a04b5f646eb`. Main Repo Authority `35452095791`, Project State `35452095808`, UI Design `35452095855`, and Verify Beta Relay Agent `35452095820` all PASS. Dedicated prerelease `relay-agent-v3` is published; EXE asset id `575004937`, size `50176` bytes.
+
+D077 fixes the Office proxy error path by capturing `HttpWebResponse.StatusCode` and safe response metadata before disposal. The prior v2 field log had shown Office Firebase refresh PASS, then the EXE itself threw `ObjectDisposedException`, masking the actual proxy/RTDB status. v3 preserves the real HTTP error for diagnosis. D075 shared ADMIN relay and D076 deployed Rules are unchanged. No APK or WMS mutation change.
+
+Current relay marker: `D077_AGENT_V3_RELEASE_PASS__OFFICE_FIELD_RETEST_PENDING__D076_RULES_PASS__NO_WMS_MUTATION`.
