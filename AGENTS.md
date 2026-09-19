@@ -68,4 +68,4 @@ Use secret *names/references* only. For new operational metadata, minimize publi
 - UI is realtime; reload is not synchronization logic.
 - No location/bin/pickface or stock-quantity inventory scope.
 - **No offline business mode.** Do not add offline report creation, durable offline mutation outbox, fake offline success, direct-to-Sheet fallback or any alternate offline transaction path. This is closed by Owner decision D043, not an open future option.
-- Office-network fallback research stays closed unless Owner reopens it.
+- Office-network fallback research stays closed for Báo hàng/offline transactions. D073 is the explicit bounded exception: Beta may test an online Google/Firebase relay only for the new Picker `Xác nhận lấy hàng` capability; it is not a fallback path for Báo hàng and the POC must not mutate WMS.
