@@ -190,7 +190,7 @@
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
-      "relay_poc_status": "D074_SOURCE_BUILD_RELEASE_PASS__OWNER_OFFICE_RETEST_PENDING"
+      "relay_poc_status": "D075_IMPLEMENTATION_IN_PROGRESS__RULES_REPUBLISH_FIELD_TEST_PENDING"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -499,19 +499,19 @@
     "extension_feature": false
   },
   "relay_poc": {
-    "decision": "D074",
+    "decision": "D075",
     "environment": "beta",
-    "status": "D074_SOURCE_BUILD_RELEASE_PASS__OWNER_OFFICE_RETEST_PENDING",
+    "status": "D075_SHARED_PICKER_QUEUE_ADMIN_AGENT_AUTO_UPDATE_IN_PROGRESS",
     "purpose": "Authenticated PDA-to-Windows-Agent transport proof only; no WMS mutation",
     "transport": "FIREBASE_RTDB_REST_SSE",
     "database_resource_key": "firebase-rtdb-relay-beta",
     "database_name": "supra-inventory-beta-default-rtdb",
     "database_location": "asia-southeast1",
     "database_url": "https://supra-inventory-beta-default-rtdb.asia-southeast1.firebasedatabase.app",
-    "path": "relay_poc/{firebase_uid}/jobs/{request_id}",
-    "auth": "FIREBASE_ID_TOKEN_UID_ISOLATED",
+    "path": "relay_poc/jobs/{request_id}",
+    "auth": "PICKER_OWN_JOB__REAL_BASE_ADMIN_SHARED_COLLECTION_AND_ACK",
     "android": "PICKER_BOTTOM_TWO_TAB_EXACT_FIVE_DIGIT_SENDER",
-    "windows_agent": "NET48_NORMAL_USER_DPAPI_FIREBASE_UID_FROM_TOKEN_SANITIZED_LOCAL_LOG_SSE_ACK",
+    "windows_agent": "NET48_ADMIN_ONLY_DPAPI_SHARED_SSE_SANITIZED_LOG_AUTO_UPDATE",
     "wms_mutation": "FORBIDDEN_IN_POC",
     "stable": "UNTOUCHED_OWNER_GATED",
     "android_release": "beta-vc48",
@@ -527,6 +527,8 @@
       "name": "supra-inventory-relay-poc-agent",
       "zip_sha256": "72d51fc4c6ab6e77d1d5cb9c0ba124a52eddd0fad929c24ac727fadea0f51628",
       "zip_size_bytes": 19315
-    }
+    },
+    "identity_model": "PICKER_REQUEST_IDENTITY_PLUS_ADMIN_USER_MACHINE_AGENT_INSTANCE_AUDIT",
+    "update_channel": "GITHUB_PRERELEASE_RELAY_AGENT_VN_SHA256_SELF_REPLACE"
   }
 }
