@@ -338,31 +338,73 @@ export function clearSession(): void {
   saveSession(null);
 }
 
+function apiRouteSummary(path: string): { path: string; query_keys: string[] } {
+  try {
+    const url = new URL(path, window.location.origin);
+    return { path: url.pathname.slice(0, 240), query_keys: [...url.searchParams.keys()].slice(0, 20) };
+  } catch {
+    return { path: String(path || "").split("?")[0].slice(0, 240), query_keys: [] };
+  }
+}
+
+function emitApiTelemetry(detail: Record<string, unknown>): void {
+  window.dispatchEvent(new CustomEvent("supra:api-telemetry", { detail }));
+}
+
 export async function loginWithPassword(username: string, password: string): Promise<AppProfile> {
-  const result = await readJson<LoginResponse>(await fetch(`${API_BASE_URL}/api/auth/login`, {
-    method: "POST",
-    headers: { "content-type": "application/json", accept: "application/json" },
-    body: JSON.stringify({ username, password }),
-  }));
-  saveSession({
-    id_token: result.id_token,
-    refresh_token: result.refresh_token,
-    expires_at: Date.now() + Math.max(60, Number(result.expires_in || 3600)) * 1000,
-    user: result.user,
-  });
-  return result.user;
+  const started = performance.now();
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "content-type": "application/json", accept: "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+    emitApiTelemetry({
+      name: "auth_login",
+      method: "POST",
+      route: "/api/auth/login",
+      status: response.status,
+      duration_ms: performance.now() - started,
+    });
+    const result = await readJson<LoginResponse>(response);
+    saveSession({
+      id_token: result.id_token,
+      refresh_token: result.refresh_token,
+      expires_at: Date.now() + Math.max(60, Number(result.expires_in || 3600)) * 1000,
+      user: result.user,
+    });
+    return result.user;
+  } catch (error) {
+    emitApiTelemetry({
+      name: "auth_login",
+      method: "POST",
+      route: "/api/auth/login",
+      duration_ms: performance.now() - started,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
 }
 
 async function refreshSession(): Promise<void> {
   if (!session?.refresh_token) throw new Error("Phiên đăng nhập đã hết hạn.");
   if (refreshPromise) return refreshPromise;
   refreshPromise = (async () => {
+    const started = performance.now();
     try {
-      const result = await readJson<{ id_token: string; refresh_token: string; expires_in: number }>(await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
         method: "POST",
         headers: { "content-type": "application/json", accept: "application/json" },
         body: JSON.stringify({ refresh_token: session!.refresh_token }),
-      }));
+      });
+      emitApiTelemetry({
+        name: "auth_refresh",
+        method: "POST",
+        route: "/api/auth/refresh",
+        status: response.status,
+        duration_ms: performance.now() - started,
+      });
+      const result = await readJson<{ id_token: string; refresh_token: string; expires_in: number }>(response);
       saveSession({
         ...session!,
         id_token: result.id_token,
@@ -370,6 +412,13 @@ async function refreshSession(): Promise<void> {
         expires_at: Date.now() + Math.max(60, Number(result.expires_in || 3600)) * 1000,
       });
     } catch (error) {
+      emitApiTelemetry({
+        name: "auth_refresh",
+        method: "POST",
+        route: "/api/auth/refresh",
+        duration_ms: performance.now() - started,
+        error: error instanceof Error ? error.message : String(error),
+      });
       clearSession();
       throw error;
     } finally {
@@ -381,23 +430,57 @@ async function refreshSession(): Promise<void> {
 
 export async function authorizedFetch(path: string, init: RequestInit = {}): Promise<Response> {
   if (!session) throw new Error("Chưa đăng nhập.");
-  if (session.expires_at <= Date.now() + 60_000) await refreshSession();
-  if (!session) throw new Error("Phiên đăng nhập đã hết hạn.");
-  const headers = new Headers(init.headers);
-  headers.set("authorization", `Bearer ${session.id_token}`);
-  headers.set("accept", "application/json");
-  if (init.body && !headers.has("content-type")) headers.set("content-type", "application/json");
-  const response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
-  if (response.status === 401 && session?.refresh_token) {
-    await refreshSession();
-    if (!session) return response;
-    const retryHeaders = new Headers(init.headers);
-    retryHeaders.set("authorization", `Bearer ${session.id_token}`);
-    retryHeaders.set("accept", "application/json");
-    if (init.body && !retryHeaders.has("content-type")) retryHeaders.set("content-type", "application/json");
-    return fetch(`${API_BASE_URL}${path}`, { ...init, headers: retryHeaders });
+  const started = performance.now();
+  const method = String(init.method || "GET").toUpperCase();
+  const route = apiRouteSummary(path);
+  let refreshedBeforeRequest = false;
+  let retriedAfter401 = false;
+  try {
+    if (session.expires_at <= Date.now() + 60_000) {
+      refreshedBeforeRequest = true;
+      await refreshSession();
+    }
+    if (!session) throw new Error("Phiên đăng nhập đã hết hạn.");
+    const headers = new Headers(init.headers);
+    headers.set("authorization", `Bearer ${session.id_token}`);
+    headers.set("accept", "application/json");
+    if (init.body && !headers.has("content-type")) headers.set("content-type", "application/json");
+    let response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
+    if (response.status === 401 && session?.refresh_token) {
+      retriedAfter401 = true;
+      await refreshSession();
+      if (!session) return response;
+      const retryHeaders = new Headers(init.headers);
+      retryHeaders.set("authorization", `Bearer ${session.id_token}`);
+      retryHeaders.set("accept", "application/json");
+      if (init.body && !retryHeaders.has("content-type")) retryHeaders.set("content-type", "application/json");
+      response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers: retryHeaders });
+    }
+    emitApiTelemetry({
+      name: "authorized_request",
+      method,
+      route: route.path,
+      query_keys: route.query_keys,
+      status: response.status,
+      ok: response.ok,
+      refreshed_before_request: refreshedBeforeRequest,
+      retried_after_401: retriedAfter401,
+      duration_ms: performance.now() - started,
+    });
+    return response;
+  } catch (error) {
+    emitApiTelemetry({
+      name: "authorized_request",
+      method,
+      route: route.path,
+      query_keys: route.query_keys,
+      refreshed_before_request: refreshedBeforeRequest,
+      retried_after_401: retriedAfter401,
+      duration_ms: performance.now() - started,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
   }
-  return response;
 }
 
 export async function getMyProfile(): Promise<AppProfile> {

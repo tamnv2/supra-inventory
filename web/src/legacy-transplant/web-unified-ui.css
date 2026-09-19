@@ -1,0 +1,420 @@
+/* D069 unified Web presentation layer.
+   Imported last so all existing role/business views share one visual system without
+   changing business semantics or the Owner-approved three-group navigation. */
+:root {
+  --ui-bg: #f5f7fa;
+  --ui-surface: #ffffff;
+  --ui-surface-soft: #f8fafc;
+  --ui-line: #e4e7ec;
+  --ui-line-strong: #d0d5dd;
+  --ui-text: #101828;
+  --ui-muted: #667085;
+  --ui-subtle: #98a2b3;
+  --ui-primary: #24558d;
+  --ui-primary-hover: #1d4777;
+  --ui-primary-soft: #eaf2fb;
+  --ui-success: #16845b;
+  --ui-warning: #b26a00;
+  --ui-danger: #b42318;
+  --ui-radius: 10px;
+  --ui-shadow: 0 1px 2px rgba(16,24,40,.04);
+}
+
+body { background: var(--ui-bg) !important; color: var(--ui-text); }
+
+body[data-role="ADMIN"] .content,
+body[data-role="ADMIN_INVENT"] .content,
+.content.main {
+  background: var(--ui-bg) !important;
+  padding: 20px 24px 48px !important;
+}
+
+.ops-route,
+.ops-business-workspace,
+.report-workspace,
+.system-workspace,
+.logs-workspace,
+.account-workspace,
+.people-workspace,
+.picker-workspace {
+  width: 100%;
+  max-width: none !important;
+  margin: 0 !important;
+}
+
+.heading,
+.business-page-head,
+.page-head,
+.fast-page-head,
+.ops-page-heading {
+  min-height: 42px;
+  margin: 0 0 14px !important;
+  align-items: flex-start !important;
+}
+
+.heading h2,
+.business-page-head h2,
+.page-head h1,
+.fast-page-head h2,
+.ops-page-heading h2 {
+  margin: 0 !important;
+  color: var(--ui-text) !important;
+  font-size: 22px !important;
+  line-height: 1.22 !important;
+  font-weight: 760 !important;
+  letter-spacing: -.025em !important;
+}
+
+.heading p,
+.business-page-head p,
+.page-head p,
+.fast-page-head p,
+.ops-page-heading p {
+  margin: 4px 0 0 !important;
+  color: var(--ui-muted) !important;
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+}
+
+.ops-panel,
+.card,
+.ops-setting-card,
+.business-summary-card,
+.v5-kpi,
+.v5-compact-metric,
+.v4-panel,
+.v4-kpi,
+.source-summary,
+.status-panel {
+  border-color: var(--ui-line) !important;
+  border-radius: var(--ui-radius) !important;
+  background: var(--ui-surface) !important;
+  box-shadow: var(--ui-shadow) !important;
+}
+
+.ops-panel { padding: 16px !important; }
+.ops-panel-title { margin-bottom: 12px !important; }
+.ops-panel-title h3,
+.ops-setting-card h3,
+.report-section-title h3 {
+  color: var(--ui-text) !important;
+  font-size: 15px !important;
+  line-height: 1.3 !important;
+  font-weight: 720 !important;
+}
+.ops-panel-title p,
+.ops-setting-card > p,
+.report-section-title span {
+  color: var(--ui-muted) !important;
+  font-size: 11px !important;
+  line-height: 1.45 !important;
+}
+
+input,
+select,
+textarea,
+.ops-form-grid input,
+.ops-form-grid select,
+.ops-setting-card input[type="number"],
+.report-filter-row input,
+.report-filter-grid input,
+.report-filter-grid select,
+.users-form-grid input,
+.users-form-grid select {
+  min-height: 40px !important;
+  border: 1px solid var(--ui-line-strong) !important;
+  border-radius: 8px !important;
+  background: var(--ui-surface) !important;
+  color: var(--ui-text) !important;
+  box-shadow: none !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #84adff !important;
+  box-shadow: 0 0 0 3px rgba(132,173,255,.16) !important;
+}
+
+button.primary,
+.btn,
+.report-button,
+.success-action {
+  min-height: 38px !important;
+  border-radius: 8px !important;
+  background: var(--ui-primary) !important;
+  box-shadow: none !important;
+  font-weight: 700 !important;
+}
+button.primary:hover,
+.btn:hover,
+.report-button:hover,
+.success-action:hover { background: var(--ui-primary-hover) !important; }
+
+button.secondary,
+.btn.secondary,
+button.ghost {
+  min-height: 36px !important;
+  border: 1px solid var(--ui-line-strong) !important;
+  border-radius: 8px !important;
+  background: var(--ui-surface) !important;
+  color: #344054 !important;
+  box-shadow: none !important;
+}
+
+button.danger,
+.btn.danger { background: var(--ui-danger) !important; color: #fff !important; }
+button.success,
+.btn.success { background: var(--ui-success) !important; color: #fff !important; }
+
+.workspace-tabs {
+  margin-bottom: 14px !important;
+  border-color: var(--ui-line) !important;
+  background: #eef2f6 !important;
+}
+.workspace-tab { min-height: 34px !important; border-radius: 7px !important; }
+.workspace-tab.active {
+  background: var(--ui-surface) !important;
+  color: var(--ui-primary) !important;
+  box-shadow: 0 1px 3px rgba(16,24,40,.09) !important;
+}
+
+.table-wrap {
+  border: 1px solid var(--ui-line) !important;
+  border-radius: var(--ui-radius) !important;
+  background: var(--ui-surface) !important;
+}
+table { background: var(--ui-surface) !important; }
+th {
+  background: var(--ui-surface-soft) !important;
+  color: #475467 !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+th, td { border-color: #eaecf0 !important; }
+
+.business-summary-grid { gap: 10px !important; margin-bottom: 14px !important; }
+.business-summary-card { padding: 13px 14px !important; }
+.business-summary-card strong { color: var(--ui-text) !important; }
+
+.ops-form-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start;
+  gap: 8px !important;
+  padding-top: 10px !important;
+}
+
+.report-filter-panel,
+.users-filter-panel,
+.users-create-panel {
+  margin-bottom: 14px !important;
+}
+
+.filters,
+.date-presets,
+.user-row-actions {
+  gap: 7px !important;
+}
+
+.filter.active,
+.summary-filter-card.active,
+.log-row.selected,
+.fast-issue-row.selected {
+  background: var(--ui-primary-soft) !important;
+  border-color: #9fc4e2 !important;
+}
+
+/* Large live queue: avoid painting hundreds of off-screen rows. */
+.fast-issue-row {
+  content-visibility: auto;
+  contain-intrinsic-size: 58px;
+}
+
+.fast-workspace,
+.fast-list,
+.fast-detail {
+  border-radius: var(--ui-radius) !important;
+}
+
+.fast-detail { background: var(--ui-surface) !important; }
+
+/* SLA / Thời gian xử lý: same hierarchy as the rest of management screens. */
+.sla-workspace .business-page-head { margin-bottom: 14px !important; }
+.sla-config-panel { padding: 0 !important; overflow: hidden; }
+.sla-config-body { padding: 16px; }
+.sla-config-body .ops-settings-grid { gap: 12px !important; }
+.sla-config-body .ops-setting-card {
+  padding: 16px !important;
+  background: var(--ui-surface-soft) !important;
+  box-shadow: none !important;
+}
+.sla-config-body .ops-setting-card > p { min-height: 32px; margin-bottom: 12px !important; }
+.sla-config-body .ops-step {
+  top: 14px !important;
+  right: 14px !important;
+  color: #b8c0cc !important;
+}
+.sla-config-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--ui-line);
+  background: var(--ui-surface);
+}
+.sla-current-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.sla-current-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 58px;
+  padding: 12px 14px;
+  border: 1px solid var(--ui-line);
+  border-radius: var(--ui-radius);
+  background: var(--ui-surface);
+}
+.sla-current-card span { color: var(--ui-muted); font-size: 12px; }
+.sla-current-card strong { color: var(--ui-text); font-size: 20px; }
+.sla-current-card.warning { border-left: 3px solid var(--ui-warning); }
+.sla-current-card.danger { border-left: 3px solid var(--ui-danger); }
+
+/* Stronger visual consistency for navigation without changing D066 structure. */
+body[data-role="ADMIN"] .tabs .nav-button,
+body[data-role="ADMIN_INVENT"] .tabs .nav-button {
+  border-radius: 8px !important;
+}
+body[data-role="ADMIN"] .tabs .nav-button.active,
+body[data-role="ADMIN_INVENT"] .tabs .nav-button.active {
+  background: var(--ui-primary-soft) !important;
+  color: var(--ui-primary) !important;
+  box-shadow: inset 3px 0 0 var(--ui-primary) !important;
+}
+
+body[data-theme="dark"] {
+  --ui-bg: #0b1220;
+  --ui-surface: #111827;
+  --ui-surface-soft: #0f172a;
+  --ui-line: #263244;
+  --ui-line-strong: #35445a;
+  --ui-text: #e7edf5;
+  --ui-muted: #94a3b8;
+  --ui-subtle: #64748b;
+  --ui-primary: #65a5dc;
+  --ui-primary-hover: #7bb7e8;
+  --ui-primary-soft: #17314a;
+  background: var(--ui-bg) !important;
+}
+
+body[data-theme="dark"] :is(
+  .ops-panel,.card,.ops-setting-card,.business-summary-card,.v5-kpi,.v5-compact-metric,
+  .v4-panel,.v4-kpi,.source-summary,.status-panel,.sla-current-card,.sla-config-footer
+) {
+  background: var(--ui-surface) !important;
+  color: var(--ui-text) !important;
+  border-color: var(--ui-line) !important;
+}
+
+body[data-theme="dark"] .sla-config-body .ops-setting-card {
+  background: var(--ui-surface-soft) !important;
+}
+
+body[data-theme="dark"] input,
+body[data-theme="dark"] select,
+body[data-theme="dark"] textarea {
+  background: #0f172a !important;
+  color: var(--ui-text) !important;
+  border-color: var(--ui-line-strong) !important;
+}
+
+body[data-theme="dark"] button.secondary,
+body[data-theme="dark"] .btn.secondary,
+body[data-theme="dark"] button.ghost {
+  background: #162033 !important;
+  color: #dbe5f0 !important;
+  border-color: var(--ui-line-strong) !important;
+}
+
+body[data-theme="dark"] .workspace-tabs { background: #0b1220 !important; }
+body[data-theme="dark"] .workspace-tab.active,
+body[data-theme="dark"] .fast-issue-row.selected,
+body[data-theme="dark"] .log-row.selected,
+body[data-theme="dark"] .filter.active {
+  background: var(--ui-primary-soft) !important;
+  color: #b9ddfb !important;
+}
+
+body[data-theme="dark"] th { background: #0f172a !important; color: #aebdd0 !important; }
+
+@media (max-width: 900px) {
+  body[data-role="ADMIN"] .content,
+  body[data-role="ADMIN_INVENT"] .content,
+  .content.main { padding: 16px 14px 44px !important; }
+  .business-summary-grid-4 { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+}
+
+@media (max-width: 620px) {
+  .ops-settings-grid,
+  .sla-current-grid,
+  .business-summary-grid,
+  .business-summary-grid-4 { grid-template-columns: 1fr !important; }
+  .sla-config-footer,
+  .business-page-head { flex-direction: column; align-items: stretch !important; }
+}
+
+
+/* D069 owner diagnostic view: structured, readable, no raw JSON dump. */
+.log-detail-summary { display: grid; gap: 14px; min-height: 280px; }
+.diagnostic-facts { grid-template-columns: repeat(3,minmax(0,1fr)) !important; }
+.diagnostic-section {
+  border-top: 1px solid var(--ui-line);
+  padding-top: 12px;
+}
+.diagnostic-section h4 {
+  margin: 0 0 8px;
+  color: var(--ui-text);
+  font-size: 13px;
+  font-weight: 720;
+}
+.diagnostic-event-list {
+  display: grid;
+  gap: 5px;
+  max-height: 300px;
+  overflow: auto;
+}
+.diagnostic-event-row {
+  display: grid;
+  grid-template-columns: 145px 100px minmax(0,1fr) 85px;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid var(--ui-line);
+  border-radius: 7px;
+  background: var(--ui-surface-soft);
+  font-size: 10.5px;
+}
+.diagnostic-event-row > * { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.diagnostic-event-row span { color: var(--ui-muted); }
+.diagnostic-event-row b { color: var(--ui-primary); font-size: 10px; }
+.diagnostic-event-row strong { color: var(--ui-text); font-weight: 650; }
+.diagnostic-event-row em { color: var(--ui-muted); font-style: normal; text-align: right; }
+body[data-theme="dark"] .diagnostic-event-row {
+  background: var(--ui-surface-soft) !important;
+  border-color: var(--ui-line) !important;
+}
+@media (max-width: 1050px) {
+  .diagnostic-facts { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+}
+@media (max-width: 700px) {
+  .diagnostic-facts { grid-template-columns: 1fr !important; }
+  .diagnostic-event-row { grid-template-columns: 115px minmax(0,1fr) 70px; }
+  .diagnostic-event-row b { display: none; }
+}

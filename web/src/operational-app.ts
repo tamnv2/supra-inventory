@@ -7,6 +7,7 @@ import "./legacy-transplant/ops-console.css";
 import "./legacy-transplant/workflow-v3-overrides.css";
 import "./legacy-transplant/workflow-v4-ux.css";
 import "./legacy-transplant/web-fast-ui.css";
+import "./legacy-transplant/web-unified-ui.css";
 import { firebaseReady } from "./firebase";
 import {
   applyHrPickerSync,
@@ -60,8 +61,9 @@ import {
   type SlaState,
 } from "./api";
 import { parseSkuExcel, type ParsedSkuWorkbook } from "./sku-excel";
+import { downloadReportWorkbook } from "./report-excel";
 import { registerRealtimeApplier, type RealtimeEventFrame } from "./realtime-client";
-import { initWebRuntimeLogging, runtimeLogEvent, sendWebRuntimeLog } from "./runtime-logger";
+import { getWebRuntimeDiagnosticSnapshot, initWebRuntimeLogging, runtimeLogEvent, runtimeLogMetric, sendWebRuntimeLog } from "./runtime-logger";
 import {
   createPickerReport,
   getPickerReportsV2,
@@ -595,12 +597,20 @@ function patchActiveSection(preserveContext = true): void {
     render();
     return;
   }
+  const started = performance.now();
   const snapshot = preserveContext ? captureUiContext() : null;
   main.innerHTML = mainMarkup();
   main.dataset.activeSection = activeSection;
   bindSection();
   patchOverlays();
   restoreUiContext(snapshot);
+  runtimeLogMetric("RENDER", "patch_active_section", {
+    section: activeSection,
+    preserve_context: preserveContext,
+    html_chars: main.innerHTML.length,
+    dom_nodes: main.querySelectorAll("*").length,
+    queue_rows: queueRows.length,
+  }, performance.now() - started);
 }
 
 function syncNavigationSelection(): void {
@@ -838,10 +848,16 @@ function renderUserModals(): string {
 
 function render(): void {
   if (!profile) return renderLogin();
+  const started = performance.now();
   const snapshot = captureUiContext();
   renderShell(activeContent());
   bindSection();
   restoreUiContext(snapshot);
+  runtimeLogMetric("RENDER", "full_shell", {
+    section: activeSection,
+    dom_nodes: app.querySelectorAll("*").length,
+    queue_rows: queueRows.length,
+  }, performance.now() - started);
 }
 
 function renderOperationalTabs(current: "operations" | "results"): string {
@@ -887,9 +903,14 @@ function refreshFastDetailOnly(): void {
   if (activeSection !== "operations") return;
   const detail = document.querySelector<HTMLElement>("#fastDetail");
   if (!detail) return;
+  const started = performance.now();
   const selected = queueRows.find((row) => row.batch_id === selectedBatchId) || null;
   detail.innerHTML = renderFastDetail(selected);
   bindReporterActionButtons(detail);
+  runtimeLogMetric("RENDER", "reporter_detail_only", {
+    selected_batch: selected?.batch_id || null,
+    picker_detail_loaded: selected ? batchDetails.has(selected.batch_id) : false,
+  }, performance.now() - started);
 }
 
 function prefetchBatchDetails(batchId: string): void {
@@ -1120,16 +1141,21 @@ function renderUsers(): string {
 function renderSla(): string {
   const sla = slaResponse?.sla;
   const insight = operationalInsights?.sla;
-  return `<section class="ops-route">
-    <div class="heading"><div><h2>Thiết lập nghiệp vụ</h2></div></div>
-    <form id="sla-form">
-      <div class="ops-settings-grid">
-        <article class="ops-setting-card"><span class="ops-step">01</span><h3>Cảnh báo</h3><p>Hiển thị cảnh báo khi SKU chờ quá mốc này.</p><label>Phút<input name="warning" type="number" min="1" max="1440" value="${esc(sla?.warning_minutes || "")}" required /></label></article>
-        <article class="ops-setting-card"><span class="ops-step">02</span><h3>Quá hạn</h3><p>Đánh dấu mức cần chú ý cao hơn; không tự xử lý SKU.</p><label>Phút<input name="escalation" type="number" min="2" max="2880" value="${esc(sla?.escalation_minutes || "")}" required /></label></article>
+  return `<section class="ops-route sla-workspace">
+    <div class="business-page-head"><div><h2>Thời gian xử lý</h2><p>Thiết lập hai mốc theo dõi cho SKU đang chờ xử lý. Các mốc chỉ cảnh báo, không tự thay đổi kết quả SKU.</p></div></div>
+    <form id="sla-form" class="ops-panel sla-config-panel">
+      <div class="sla-config-body">
+        <div class="ops-settings-grid">
+          <article class="ops-setting-card"><span class="ops-step">01</span><h3>Cảnh báo</h3><p>Đánh dấu SKU cần được chú ý khi thời gian chờ đạt mốc này.</p><label>Thời gian chờ (phút)<input name="warning" type="number" min="1" max="1440" value="${esc(sla?.warning_minutes || "")}" required /></label></article>
+          <article class="ops-setting-card"><span class="ops-step">02</span><h3>Quá hạn</h3><p>Nâng mức ưu tiên khi SKU tiếp tục chờ sau mốc cảnh báo.</p><label>Thời gian chờ (phút)<input name="escalation" type="number" min="2" max="2880" value="${esc(sla?.escalation_minutes || "")}" required /></label></article>
+        </div>
       </div>
-      <div class="ops-form-actions"><button class="primary">Lưu thời gian nghiệp vụ</button></div>
+      <div class="sla-config-footer"><span class="muted tiny">Mốc quá hạn phải lớn hơn mốc cảnh báo.</span><button class="primary">Lưu thiết lập</button></div>
     </form>
-    <section class="ops-status-strip"><span>Cảnh báo hiện tại <b>${Number(insight?.warning_count || 0)}</b></span><span>Quá hạn hiện tại <b>${Number(insight?.escalated_count || 0)}</b></span></section>
+    <section class="sla-current-grid" aria-label="Tình trạng hiện tại">
+      <article class="sla-current-card warning"><span>Đang ở mức cảnh báo</span><strong>${Number(insight?.warning_count || 0)}</strong></article>
+      <article class="sla-current-card danger"><span>Đang quá hạn</span><strong>${Number(insight?.escalated_count || 0)}</strong></article>
+    </section>
   </section>`;
 }
 
@@ -1227,7 +1253,7 @@ function renderReports(): string {
   const count = (status: string) => Number(outcomes.find((row) => row.status === status)?.count || 0);
   const recurrenceCount = reportInsights?.recurrence?.top_skus?.length || 0;
   return `<section class="ops-route report-workspace">
-    <div class="business-page-head"><div><h2>Tổng quan & báo cáo</h2><p>Tra cứu chi tiết các đợt báo hàng theo thời gian, trạng thái và SKU.</p></div><button class="secondary" id="export-reports">Xuất CSV</button></div>
+    <div class="business-page-head"><div><h2>Tổng quan & báo cáo</h2><p>Tra cứu chi tiết các đợt báo hàng theo thời gian, trạng thái và SKU.</p></div><button class="secondary" id="export-reports">Xuất Excel</button></div>
     ${renderReportTabs("reports")}
     <article class="ops-panel report-filter-panel">
       <form id="report-filter" class="report-filter-grid">
@@ -1271,28 +1297,19 @@ function sanitizeDiagnosticValue(value: unknown, depth = 0): unknown {
 
 function supportDiagnostics(): Record<string, unknown> {
   return {
-    format: "supra-inventory-support-v1",
+    format: "supra-inventory-support-v2",
     generated_at: new Date().toISOString(),
     app: {
       surface: "WEB",
       host: window.location.host,
     },
-    network: {
-      online: navigator.onLine,
-    },
-    realtime: {
-      state: realtimeState,
-      applied_seq: realtimeLastSeq,
-    },
-    ui: {
-      section: activeSection,
-    },
+    runtime: getWebRuntimeDiagnosticSnapshot("download_support_log"),
     service_health: serviceHealth ? sanitizeDiagnosticValue(serviceHealth) : null,
   };
 }
 
 function downloadSupportDiagnostics(): void {
-  const body = JSON.stringify(supportDiagnostics(), null, 2).slice(0, 16_000);
+  const body = JSON.stringify(supportDiagnostics(), null, 2).slice(0, 180_000);
   const blob = new Blob([body], { type: "application/json;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const stamp = new Date().toISOString().replaceAll(":", "").replaceAll("-", "").slice(0, 15);
@@ -1566,11 +1583,22 @@ function renderRuntimeLogSummary(): string {
   const browser = systemObj(payload.browser);
   const connection = systemObj(browser.connection);
   const memory = systemObj(browser.memory);
+  const performanceInfo = systemObj(payload.performance);
+  const navigation = systemObj(performanceInfo.navigation);
+  const resources = systemObj(performanceInfo.resources);
   const state = systemObj(payload.state);
+  const queueState = systemObj(state.queue);
+  const recentResultState = systemObj(state.recent_results);
   const realtime = systemObj(state.realtime);
   const device = systemObj(content.device);
-  const recentEvents = Array.isArray(payload.recent_events) ? payload.recent_events : [];
-  const errorEvents = recentEvents.filter((item) => String(systemObj(item).level || "").toUpperCase() === "ERROR").length;
+  const dom = systemObj(payload.dom);
+  const recentEvents = Array.isArray(payload.recent_events) ? payload.recent_events.map(systemObj) : [];
+  const longTasks = Array.isArray(performanceInfo.long_tasks) ? performanceInfo.long_tasks.map(systemObj) : [];
+  const slowResources = Array.isArray(resources.slowest) ? resources.slowest.map(systemObj) : [];
+  const errorEvents = recentEvents.filter((item) => String(item.level || "").toUpperCase() === "ERROR");
+  const apiEvents = recentEvents.filter((item) => String(item.category || "").toUpperCase() === "API");
+  const renderEvents = recentEvents.filter((item) => String(item.category || "").toUpperCase() === "RENDER");
+  const realtimeEvents = recentEvents.filter((item) => String(item.category || "").toUpperCase() === "REALTIME");
   const sourceLabel = logSourceLabel(content.source || runtimeLogSource);
   const severity = String(content.severity || "").toUpperCase() === "ERROR" ? "Có lỗi" : "Bình thường";
   const syncState = String(realtime.state || "").toLowerCase() === "connected"
@@ -1581,8 +1609,27 @@ function renderRuntimeLogSummary(): string {
   const networkState = browser.online === false ? "Mất kết nối" : "Bình thường";
   const rtt = Number(connection.rtt_ms);
   const usedMemory = Number(memory.used_js_heap_bytes);
+  const queueTotal = Number(queueState.total ?? state.queue_count ?? 0);
+  const recentTotal = Number(recentResultState.total ?? state.recent_result_count ?? 0);
+  const averageDuration = (items: Record<string, any>[]): string => {
+    const values = items.map((item) => Number(item.duration_ms)).filter((value) => Number.isFinite(value) && value >= 0);
+    if (!values.length) return "—";
+    return `${Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)} ms`;
+  };
+  const recentEventRows = recentEvents.slice(-30).reverse().map((item) => {
+    const category = String(item.category || item.level || "APP");
+    const name = String(item.name || item.message || "Hoạt động");
+    const duration = Number(item.duration_ms);
+    return `<div class="diagnostic-event-row"><span>${esc(fmt(String(item.at || "")))}</span><b>${esc(category)}</b><strong>${esc(name)}</strong><em>${Number.isFinite(duration) && duration > 0 ? `${Math.round(duration)} ms` : ""}</em></div>`;
+  }).join("");
+  const slowResourceRows = slowResources.slice(0, 12).map((item) => `
+    <div class="diagnostic-event-row"><span>${esc(String(item.initiator || "resource"))}</span><b>${esc(String(item.path || "—"))}</b><strong>${Math.round(Number(item.duration_ms || 0))} ms</strong><em>${fmtBytes(item.transfer_size_bytes)}</em></div>
+  `).join("");
+  const longTaskRows = longTasks.slice(-12).reverse().map((item) => `
+    <div class="diagnostic-event-row"><span>${esc(fmt(String(item.at || "")))}</span><b>Tác vụ dài</b><strong>${Math.round(Number(item.duration_ms || 0))} ms</strong><em></em></div>
+  `).join("");
   return `<div class="log-detail-summary">
-    <div class="system-facts">
+    <div class="system-facts diagnostic-facts">
       <div><span>Nguồn</span><b>${esc(sourceLabel)}</b></div>
       <div><span>Thời điểm</span><b>${esc(fmt(String(content.generated_at || runtimeLogDetail.file.created_at || "")))}</b></div>
       <div><span>Tình trạng</span><b>${esc(severity)}</b></div>
@@ -1592,10 +1639,19 @@ function renderRuntimeLogSummary(): string {
       <div><span>Đồng bộ tức thời</span><b>${esc(syncState)}</b></div>
       <div><span>Độ trễ mạng</span><b>${Number.isFinite(rtt) && rtt >= 0 ? `${Math.round(rtt)} ms` : "—"}</b></div>
       <div><span>Bộ nhớ trình duyệt</span><b>${Number.isFinite(usedMemory) && usedMemory >= 0 ? fmtBytes(usedMemory) : "—"}</b></div>
-      <div><span>SKU đang chờ xử lý</span><b>${systemNum(state.queue_count).toLocaleString("vi-VN")}</b></div>
-      <div><span>Kết quả gần đây</span><b>${systemNum(state.recent_result_count).toLocaleString("vi-VN")}</b></div>
-      <div><span>Lỗi ghi nhận gần đây</span><b>${errorEvents.toLocaleString("vi-VN")}</b></div>
+      <div><span>SKU đang chờ xử lý</span><b>${queueTotal.toLocaleString("vi-VN")}</b></div>
+      <div><span>Kết quả gần đây</span><b>${recentTotal.toLocaleString("vi-VN")}</b></div>
+      <div><span>Lỗi ghi nhận gần đây</span><b>${errorEvents.length.toLocaleString("vi-VN")}</b></div>
+      <div><span>API trung bình</span><b>${averageDuration(apiEvents)}</b></div>
+      <div><span>Render trung bình</span><b>${averageDuration(renderEvents)}</b></div>
+      <div><span>Sự kiện realtime</span><b>${realtimeEvents.length.toLocaleString("vi-VN")}</b></div>
+      <div><span>Tác vụ dài</span><b>${longTasks.length.toLocaleString("vi-VN")}</b></div>
+      <div><span>DOM hiện tại</span><b>${systemNum(dom.nodes).toLocaleString("vi-VN")} phần tử</b></div>
+      <div><span>Tải trang</span><b>${navigation.duration_ms == null ? "—" : `${Math.round(Number(navigation.duration_ms))} ms`}</b></div>
     </div>
+    <section class="diagnostic-section"><h4>Hoạt động gần đây</h4><div class="diagnostic-event-list">${recentEventRows || '<div class="ops-empty">Chưa có sự kiện gần đây.</div>'}</div></section>
+    <section class="diagnostic-section"><h4>Tài nguyên tải chậm</h4><div class="diagnostic-event-list">${slowResourceRows || '<div class="ops-empty">Không có dữ liệu tài nguyên.</div>'}</div></section>
+    <section class="diagnostic-section"><h4>Tác vụ trình duyệt kéo dài</h4><div class="diagnostic-event-list">${longTaskRows || '<div class="ops-empty">Không ghi nhận tác vụ dài.</div>'}</div></section>
   </div>`;
 }
 
@@ -1637,13 +1693,16 @@ function renderAccount(): string {
   </section>`;
 }
 
-async function run(fn: () => Promise<void>): Promise<void> {
+async function run(fn: () => Promise<void>, renderMode: "section" | "full" | "none" = "section"): Promise<void> {
   if (busy) return;
+  const started = performance.now();
   busy = true;
   notice = null;
+  let failed = false;
   try {
     await fn();
   } catch (error) {
+    failed = true;
     const message = error instanceof Error ? error.message : "Thao tác thất bại.";
     runtimeLogEvent(`Lỗi tại ${activeSection}: ${message}`, "ERROR");
     void sendWebRuntimeLog("web_operation_error", "ERROR", {
@@ -1654,7 +1713,16 @@ async function run(fn: () => Promise<void>): Promise<void> {
     setNotice("error", message);
   } finally {
     busy = false;
-    render();
+    if (renderMode === "full") render();
+    else if (renderMode === "section") {
+      patchActiveSection(true);
+      syncNavigationSelection();
+    }
+    runtimeLogMetric("ACTION", "run_complete", {
+      section: activeSection,
+      render_mode: renderMode,
+      failed,
+    }, performance.now() - started, failed ? "ERROR" : "INFO");
   }
 }
 
@@ -1806,18 +1874,14 @@ async function loadLogs(): Promise<void> {
   markWebUpdateReceived();
 }
 
-function csvCell(value: unknown): string {
-  const text = String(value ?? "");
-  return `"${text.replaceAll('"', '""')}"`;
-}
-
-async function exportReportsCsv(): Promise<void> {
+async function exportReportsExcel(): Promise<void> {
   const range = apiRange(reportFrom, reportTo);
   const rows: AdminReportingRow[] = [];
   let offset = 0;
   let total = 0;
   const pageSize = 500;
   const maxRows = 100_000;
+  const started = performance.now();
 
   do {
     const page = await getAdminReporting({
@@ -1836,28 +1900,21 @@ async function exportReportsCsv(): Promise<void> {
   } while (offset < total);
   markWebUpdateReceived();
 
-  const header = ["SKU","Tên sản phẩm","Trạng thái","Báo đầu","Xử lý","Thời gian xử lý (phút)","Số lượt báo"];
-  const body = rows.map((row) => [
-    row.sku,
-    row.product_name,
-    statusLabel(row.status),
-    row.first_report_at,
-    row.resolved_at || "",
-    row.duration_minutes ?? "",
-    row.total_ticket_count,
-  ].map(csvCell).join(","));
-  const csv = "\uFEFF" + [header.map(csvCell).join(","), ...body].join("\r\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const stamp = new Date().toISOString().replaceAll(":", "").replaceAll("-", "").slice(0, 15);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `supra-inventory-report-${stamp}.csv`;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-  setNotice("success", `Đã xuất ${rows.length.toLocaleString("vi-VN")} dòng CSV theo bộ lọc hiện tại.`);
+  downloadReportWorkbook(rows, {
+    from: reportFrom,
+    to: reportTo,
+    status: reportStatus,
+    query: reportQuery,
+    generatedAt: new Date(),
+  }, statusLabel);
+  runtimeLogMetric("EXPORT", "report_excel", {
+    rows: rows.length,
+    from: reportFrom,
+    to: reportTo,
+    status: reportStatus || "ALL",
+    has_query: Boolean(reportQuery),
+  }, performance.now() - started);
+  setNotice("success", `Đã xuất ${rows.length.toLocaleString("vi-VN")} dòng ra file Excel.`);
 }
 
 async function loadSection(section: Section): Promise<void> {
@@ -1924,7 +1981,7 @@ function bindShell(): void {
       syncSectionHistory(activeSection, "replace");
       window.dispatchEvent(new CustomEvent("supra:session-changed"));
       await loadSection(activeSection);
-    });
+    }, "full");
   });
   document.querySelector<HTMLButtonElement>("#logout")?.addEventListener("click", () => {
     pickerSearchGeneration += 1;
@@ -2363,7 +2420,7 @@ function bindSection(): void {
     reportOffset += REPORT_PAGE_SIZE;
     void run(loadReports);
   });
-  document.querySelector<HTMLButtonElement>("#export-reports")?.addEventListener("click", () => void run(exportReportsCsv));
+  document.querySelector<HTMLButtonElement>("#export-reports")?.addEventListener("click", () => void run(exportReportsExcel, "none"));
 
   document.querySelector<HTMLButtonElement>("#refresh-system")?.addEventListener("click", () => void run(async () => {
     const [health, detailed] = await Promise.all([getServiceHealth(), getSystemStatus(true)]);
@@ -2497,11 +2554,50 @@ applyUiZoom();
 initWebRuntimeLogging(() => ({
   section: activeSection,
   role: profile?.role || null,
+  base_role: profile?.base_role || null,
   user_id: profile?.user_id || null,
+  theme_mode: themeMode,
+  resolved_theme: document.body.dataset.theme || null,
+  ui_zoom_percent: uiZoom,
+  busy,
   realtime: { state: realtimeState, applied_seq: realtimeLastSeq },
   service_reachable: serviceReachable,
-  queue_count: queueRows.length,
-  recent_result_count: recentRows.length,
+  queue: {
+    total: queueRows.length,
+    filter: queueFilter,
+    visible: filteredQueueRows().length,
+    selected_batch: selectedBatchId,
+    expanded_picker_details: expandedBatchDetails.size,
+    cached_picker_detail_batches: batchDetails.size,
+  },
+  recent_results: {
+    total: recentRows.length,
+    filter: recentFilter,
+  },
+  picker: {
+    query_length: pickerQuery.length,
+    suggestion_count: pickerSuggestions.length,
+    selected_sku: pickerSelected?.sku || null,
+    today_report_count: pickerReports.filter((row) => todayKey(row.reported_at) === dateDaysAgo(0)).length,
+    pending_result_count: pickerResults.filter((row) => !row.acknowledged_at).length,
+  },
+  users: {
+    loaded: managedUsers.length,
+    selected: selectedUserIds.size,
+    total: userTotal,
+  },
+  reporting: {
+    rows_loaded: reportRows.length,
+    total: reportTotal,
+    offset: reportOffset,
+    status: reportStatus || "ALL",
+    has_query: Boolean(reportQuery),
+  },
+  runtime_logs: {
+    source: runtimeLogSource,
+    loaded: runtimeLogs.length,
+    detail_open: Boolean(runtimeLogDetail),
+  },
   current_notice: notice,
 }));
 

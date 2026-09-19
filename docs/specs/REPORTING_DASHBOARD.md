@@ -65,7 +65,7 @@ Approved controls:
 
 Hot reporting range is bounded to protect SQLite/quota; current implementation is designed around up to 60 days. Dashboard aggregates are server-side/indexed rather than loading the entire raw dataset into the browser.
 
-Final CSV column set remains an open Owner decision; implementation may expose current safe columns but must not claim that layout as the final Stable export contract.
+Final export column set remains an open Owner decision; implementation may expose current safe columns but must not claim that layout as the final Stable export contract.
 
 ## Refresh model
 
@@ -105,3 +105,14 @@ Final export columns and any expanded Reporter analytics beyond the core operati
 - SLA warning/escalated counts are computed as a bounded SQL aggregate over pending batches; the service must not materialize every pending batch into application memory just to classify SLA state.
 - Recurrence insight remains range-bounded and top-N bounded.
 - Time-progress presentation on the live queue does not require analytics polling.
+
+
+## D069 Excel export
+
+D069 supersedes only the D025 CSV **file-format** requirement.
+
+- Web detailed-report export is a native Excel `.xlsx` workbook; CSV is not the current Beta export surface.
+- Export uses the same selected date/status/SKU-product filters as the detailed report.
+- Retrieval remains bounded/chunked and may reject an excessively broad result rather than materializing an unbounded dataset.
+- The workbook contains a business-data sheet plus a compact filter/export-information sheet. Date/time cells should be typed/formatted as dates where practical.
+- This format change does not close the Owner-open final Stable export-column decision and does not authorize new employee scoring, stock quantity, bin/location or unrelated analytics.

@@ -348,3 +348,18 @@ D067 items 1–8 and 10 are Owner-accepted and frozen. D068 reopens only D067 it
 - Each user-driven section/workspace transition pushes a same-document history entry. Initial login/bootstrap and forced role reroute replace the current entry. Browser Back/Forward restores the permitted section and then refreshes its data.
 - Runtime logs may record interaction/load timings for diagnosis; those timing labels are not normal visible product copy.
 - Android/PDA remains unchanged. Stable remains OWNER-GATED.
+
+
+### Owner-accepted D068 baseline and D069 unified Web refinement
+
+The Owner has accepted the complete D068 Web review. D067/D068 accepted behavior is now frozen unless explicitly reopened.
+
+D069 changes Beta Web only:
+
+- Use one final presentation layer across all reachable Web modules so headings, page spacing, panels, forms, buttons, tabs, tables, selected states and light/dark surfaces share the same visual grammar.
+- Preserve the Owner-approved three-group navigation and all role/business semantics. Visual unification must not rename or move business functions unless separately approved.
+- `Thời gian xử lý` uses the common page heading, contained settings panel, two aligned threshold cards, one clear save footer and two concise current-state cards; warning/escalation values and validation remain unchanged.
+- Normal async actions should patch the current workspace rather than rebuild the whole header/sidebar/shell. A full-shell rebuild is reserved for actual shell/role/session changes.
+- Large Reporter queues may use browser rendering containment such as `content-visibility` so off-screen rows do not consume paint/layout work while the complete authoritative queue remains available.
+- Runtime diagnostics may record bounded API latency, render duration, realtime recovery timing, long tasks, DOM/resource counts and safe interaction descriptors. Never record passwords, credentials, tokens, cookies, secret values or typed form-field values.
+- Android/PDA is unchanged. Stable remains OWNER-GATED.

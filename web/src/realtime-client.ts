@@ -62,6 +62,20 @@ let dirty = false;
 let applier: RealtimeApplier | null = null;
 let processing: Promise<void> = Promise.resolve();
 
+function emitRealtimeTelemetry(name: string, data: Record<string, unknown> = {}, durationMs?: number, error?: string): void {
+  window.dispatchEvent(new CustomEvent("supra:realtime-telemetry", {
+    detail: {
+      name,
+      duration_ms: durationMs,
+      error: error || null,
+      applied_seq: appliedSeq,
+      dirty,
+      recovering,
+      ...data,
+    },
+  }));
+}
+
 export function registerRealtimeApplier(next: RealtimeApplier): void {
   applier = next;
 }
@@ -227,9 +241,25 @@ async function applyThrough(
   if (!events.length && source !== "reconcile") return true;
   const current = applier;
   if (!current) return false;
+  const started = performance.now();
   try {
-    return await current(events, { source, reason, cursorSeq, streamEpoch: epoch });
-  } catch {
+    const ok = await current(events, { source, reason, cursorSeq, streamEpoch: epoch });
+    emitRealtimeTelemetry("apply", {
+      source,
+      reason,
+      event_count: events.length,
+      cursor_seq: cursorSeq,
+      ok,
+    }, performance.now() - started);
+    return ok;
+  } catch (error) {
+    emitRealtimeTelemetry("apply", {
+      source,
+      reason,
+      event_count: events.length,
+      cursor_seq: cursorSeq,
+      ok: false,
+    }, performance.now() - started, error instanceof Error ? error.message : String(error));
     return false;
   }
 }
@@ -253,12 +283,26 @@ async function recoverDelta(reason: string): Promise<void> {
   if (recovering) return;
   const session = readSession();
   if (!session?.id_token || !session.user?.user_id) return;
+  const started = performance.now();
+  let pages = 0;
+  let appliedEvents = 0;
   recovering = true;
+  emitRealtimeTelemetry("delta_recovery_start", { reason });
   try {
     let cursor = appliedSeq;
     let epoch = streamEpoch;
     for (let page = 0; page < 8; page += 1) {
+      pages += 1;
+      const deltaStarted = performance.now();
       const delta = await fetchDelta(session.id_token, cursor, epoch);
+      emitRealtimeTelemetry("delta_fetch", {
+        reason,
+        page: page + 1,
+        event_count: Array.isArray(delta.events) ? delta.events.length : 0,
+        cursor_seq: Number(delta.cursor_seq ?? cursor),
+        latest_seq: Number(delta.latest_seq ?? 0),
+        resync_required: delta.resync_required === true,
+      }, performance.now() - deltaStarted);
       const serverEpoch = String(delta.stream_epoch || epoch);
       const serverCursor = Math.max(0, Number(delta.cursor_seq ?? cursor));
       const latestSeq = Math.max(0, Number(delta.latest_seq ?? serverCursor));
@@ -276,6 +320,7 @@ async function recoverDelta(reason: string): Promise<void> {
         .filter((event) => Number(event.seq || 0) > cursor)
         .sort((a, b) => Number(a.seq || 0) - Number(b.seq || 0));
 
+      appliedEvents += events.length;
       const applied = await applyThrough(events, "delta", reason, serverCursor, serverEpoch);
       if (!applied) {
         markDirty(`${reason}:delta_apply_failed`);
@@ -295,10 +340,20 @@ async function recoverDelta(reason: string): Promise<void> {
 
     // Page budget is only a continuation boundary. Never mark unseen pages as applied.
     markDirty(`${reason}:delta_page_budget`);
-  } catch {
+  } catch (error) {
+    emitRealtimeTelemetry("delta_recovery_failed", {
+      reason,
+      pages,
+      applied_events: appliedEvents,
+    }, performance.now() - started, error instanceof Error ? error.message : String(error));
     markDirty(`${reason}:delta_fetch_failed`);
   } finally {
     recovering = false;
+    emitRealtimeTelemetry("delta_recovery_complete", {
+      reason,
+      pages,
+      applied_events: appliedEvents,
+    }, performance.now() - started);
   }
 }
 
@@ -385,6 +440,7 @@ async function ensureRealtime(): Promise<void> {
       connecting = false;
       reconnectDelay = 1000;
       emitStatus("connected");
+      emitRealtimeTelemetry("socket_open", { ready_state: next.readyState });
     };
     next.onmessage = (event) => {
       try {
@@ -395,9 +451,15 @@ async function ensureRealtime(): Promise<void> {
       }
     };
     next.onerror = () => {
+      emitRealtimeTelemetry("socket_error", { ready_state: next.readyState }, undefined, "websocket_error");
       // onclose performs retry.
     };
-    next.onclose = () => {
+    next.onclose = (event) => {
+      emitRealtimeTelemetry("socket_close", {
+        code: event.code,
+        clean: event.wasClean,
+        reason: String(event.reason || "").slice(0, 160),
+      });
       if (socket === next) socket = null;
       connecting = false;
       connectedUserId = "";

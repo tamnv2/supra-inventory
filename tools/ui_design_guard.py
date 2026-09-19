@@ -18,6 +18,8 @@ WEB_FAST = read("web/src/legacy-transplant/web-fast-ui.css")
 WEB_DASH = read("web/src/legacy-transplant/workflow-dashboard-v5.css")
 WEB_WAREHOUSE = read("web/src/legacy-transplant/warehouse-ui-v2.css")
 WEB_OPS = read("web/src/legacy-transplant/ops-console.css")
+WEB_UNIFIED = read("web/src/legacy-transplant/web-unified-ui.css")
+WEB_REPORT_EXCEL = read("web/src/report-excel.ts")
 
 ANDROID_MAIN = read("android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt")
 ANDROID_PICKER = read("android/app/src/main/java/cd/cc/supra/inventory/beta/PickerController.kt")
@@ -67,6 +69,7 @@ checks = {
     "authority_d066_three_group_implementation": "D066" in DECISIONS and "Owner-approved three-group navigation implementation (D066)" in DESIGN_SPEC,
     "authority_d067_web_ux_refinement": "D067" in DECISIONS and "Owner-accepted Web refinement baseline (D067)" in DESIGN_SPEC,
     "authority_d068_web_navigation_toast_performance": "D068" in DECISIONS and "Owner Web interaction refinement (D068)" in DESIGN_SPEC,
+    "authority_d069_web_diagnostics_excel_unification": "D069" in DECISIONS and "Owner-accepted D068 baseline and D069 unified Web refinement" in DESIGN_SPEC,
     "authority_ui_acceptance_distinct_from_ci": "CI/build PASS" in DESIGN_SPEC and "Owner UI" in DESIGN_SPEC,
     "authority_no_offline_mode": "D043" in DECISIONS and "No offline business mode" in DESIGN_SPEC,
 
@@ -311,6 +314,10 @@ checks = {
         "Drive · Logs / Archive / Exports", "Sheets · Nhân sự / Archive", "WebSocket · Đồng bộ trực tiếp",
         "Sequence mới nhất", "Audit log", "Thông tin kỹ thuật chi tiết", "Test ID", "Master SKU", "Quản trị cao nhất"
     ]) and "Báo hàng Beta" not in WEB_INDEX,
+    "web_d069_unified_visual_layer": all(token in WEB_APP for token in ['./legacy-transplant/web-unified-ui.css', 'class="ops-route sla-workspace"', "sla-config-footer"]) and all(token in WEB_UNIFIED for token in ["--ui-surface", ".business-page-head", ".ops-panel", ".workspace-tab.active", ".table-wrap", 'body[data-theme="dark"]']),
+    "web_d069_excel_export": all(token in (WEB_APP + WEB_REPORT_EXCEL) for token in ["exportReportsExcel", "downloadReportWorkbook", "XLSX.writeFile", ".xlsx"]) and "Xuất CSV" not in WEB_APP and "text/csv" not in WEB_APP,
+    "web_d069_rich_safe_diagnostics": all(token in (WEB_LOGGER + WEB_API + WEB_RT + SERVICE_RUNTIME_LOGS) for token in ["runtimeLogMetric", "PerformanceObserver", "supra:api-telemetry", "supra:realtime-telemetry", "192_000", "REDACTED"]) and "input.value" not in WEB_LOGGER,
+    "web_d069_scoped_rendering": all(token in WEB_APP for token in ['renderMode: "section" | "full" | "none"', 'else if (renderMode === "section")', 'run(exportReportsExcel, "none")']) and "content-visibility: auto" in WEB_UNIFIED,
     "web_online_only_no_outbox": "offline outbox" not in WEB_UI.lower() and "chờ đồng bộ" not in WEB_UI.lower(),
     "android_online_only_no_outbox": "chờ đồng bộ" not in ANDROID_ALL.lower() and "outbox" not in ANDROID_ALL.lower(),
 }
