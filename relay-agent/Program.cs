@@ -903,17 +903,23 @@ namespace SupraInventoryRelayAgent
                 }
                 catch (RelayHttpException ex)
                 {
-                    if (ex.StatusCode == 403)
+                    if (LooksLikeCorporateProxyBlock(ex.Detail))
+                    {
+                        retrySeconds = 10;
+                        Ui(() => _relay.Text = "Relay: OFFICE PROXY BLOCK / RTDB");
+                        Log("Relay PROXY_BLOCK RTDB http=" + ex.StatusCode + " category=" + ProxyCategory(ex.Detail) + " rule=" + ProxyRule(ex.Detail));
+                    }
+                    else if (ex.StatusCode == 403)
                     {
                         retrySeconds = 5;
                         Ui(() => _relay.Text = "Relay: RTDB 403 / Rules");
-                        Log("Relay RTDB_PERMISSION_DENIED 403; HTTPS thông nhưng D075 ADMIN shared Rules/claims bị từ chối. detail=" + ex.Detail);
+                        Log("Relay RTDB_PERMISSION_DENIED 403; Firebase/Rules response không phải proxy block. detail=" + SafeMessage(ex));
                     }
                     else
                     {
                         retrySeconds = 2;
                         Ui(() => _relay.Text = "Relay: HTTP " + ex.StatusCode + " · thử lại");
-                        Log("Relay HTTP_FAIL " + ex.StatusCode + " detail=" + ex.Detail);
+                        Log("Relay HTTP_FAIL " + ex.StatusCode + " detail=" + SafeMessage(ex));
                     }
                 }
                 catch (Exception ex)
