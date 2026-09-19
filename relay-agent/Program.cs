@@ -272,6 +272,20 @@ namespace SupraInventoryRelayAgent
 
         private void RestoreFromTray() { Show(); WindowState = FormWindowState.Normal; Activate(); }
 
+        private void SetProbeButtonsEnabled(bool enabled)
+        {
+            Ui(() =>
+            {
+                _probeAuth.Enabled = enabled;
+                _probeRtdb.Enabled = enabled;
+                _probeFirestore.Enabled = enabled;
+                _probeAppsScript.Enabled = enabled;
+                _probeSheets.Enabled = enabled;
+                _probeDrive.Enabled = enabled;
+                _probeAll.Enabled = enabled;
+            });
+        }
+
         private void StartupSequence()
         {
             LogNetworkSnapshot("startup");
@@ -335,6 +349,7 @@ namespace SupraInventoryRelayAgent
                     _listen.Enabled = true;
                     _testOffice.Enabled = true;
                 });
+                SetProbeButtonsEnabled(true);
                 Log("Khôi phục ADMIN Agent PASS.");
             }
             catch (Exception ex)
@@ -347,6 +362,7 @@ namespace SupraInventoryRelayAgent
                     _listen.Enabled = false;
                     _testOffice.Enabled = false;
                 });
+                SetProbeButtonsEnabled(false);
                 Log("Phiên Agent cũ bị loại; cần đăng nhập lại bằng ADMIN: " + SafeMessage(ex));
             }
         }
@@ -417,6 +433,7 @@ namespace SupraInventoryRelayAgent
                     _listen.Enabled = true;
                     _testOffice.Enabled = true;
                 });
+                SetProbeButtonsEnabled(true);
                 Log(
                     "ADMIN Agent login PASS admin=" + next.AppUserId +
                     " machine=" + Environment.MachineName +
