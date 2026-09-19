@@ -624,3 +624,6 @@ Signed Android release: `beta-vc48` (`SUPRA Inventory Beta 0.2.0-beta.48`), APK 
 Implemented: RTDB path from Firebase ID-token `sub` on Android and Agent; explicit RTDB 403/Rules classification; persistent sanitized local Agent diagnostics; Picker bottom-pinned **Báo hết hàng / Xác nhận đơn** tabs; denser Picker UI; exact-five-digit input with enabled send and IME Done support. D074 still performs no WMS lookup/mutation.
 
 Next action is physical Owner field test of beta-vc48 + rebuilt Agent on `.Office@MSN`. If Office check still returns 403, use **Mở log** and provide the sanitized log for analysis. Stable remains OWNER-GATED.
+
+
+Current Android marker: `D074_PICKER_SPLIT_TABS_RELAY_UID_AUTH_DIAGNOSTICS_SIGNED_BETA_VC48_BUILD_PASS__OWNER_FIELD_RETEST_PENDING`.
