@@ -313,7 +313,7 @@ export class InventoryCore {
     userIds: string[],
     title = effect.title,
     body = effect.body,
-    eventName = effect.event,
+    eventName: string = effect.event,
     correlateResult = true,
   ): Promise<void> {
     if (!this.env.GOOGLE_RUNTIME_SA_JSON || !this.env.FIREBASE_PROJECT_ID) return;
