@@ -439,6 +439,8 @@ export default {
             sku_master: "implemented",
             picker_report_withdraw: "implemented",
             reporter_priority_resolve_correction: "implemented",
+            three_stage_sla_auto_skip: "implemented",
+            auto_skip_modes: ["FIRST_REPORT", "PER_PICKER"],
             admin_monitoring: "implemented",
             mutation_idempotency: "required_request_id",
             operational_v2_ready: core.operational_v2?.ready === true,
