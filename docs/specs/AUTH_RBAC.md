@@ -71,3 +71,14 @@ Do not invent Stable Root MFA/recovery, final password KDF, rate limit or lockou
 Realtime sequence numbers are global infrastructure metadata, not proof that a user is authorized to view every event occupying those numbers. Delta scanning may advance `cursor_seq` across rows excluded by RBAC while returning only the role/user-projected events authorized for the authenticated principal.
 
 Picker clients must not infer, request or receive another Picker's event payload merely to make sequence numbers contiguous. Reporter/Admin/Root projections continue to follow their approved inherited capabilities. A resync never weakens normal RBAC; authoritative reconcile reads remain authenticated role-specific endpoints.
+
+
+## D075 — Relay Agent RBAC
+
+- Relay Agent is an ADMIN workstation identity, not a Picker identity.
+- Agent pairing/login requires both effective role and immutable base role to equal `ADMIN`; ROOT effective-role simulation does not qualify.
+- Firebase custom tokens include `app_role`, `app_base_role`, and `app_user_id` for relay Rules.
+- Shared relay Rules allow PICKER to create/read/delete only requests where `picker_uid == auth.uid`.
+- Shared queue collection read and ACK mutation require `auth.token.app_role == 'ADMIN'` and `auth.token.app_base_role == 'ADMIN'`.
+- ADMIN ACK metadata must identify `agent_admin_user_id == auth.token.app_user_id`.
+- Passwords and Firebase credentials remain local/session-only and are never written to RTDB, logs, GitHub or update metadata.
