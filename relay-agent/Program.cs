@@ -4,8 +4,11 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Net;
+using System.Net.NetworkInformation;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
@@ -18,18 +21,106 @@ namespace SupraInventoryRelayAgent
         [STAThread]
         private static void Main()
         {
+            AgentDiagnostics.Initialize();
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             try
             {
                 WebRequest.DefaultWebProxy = WebRequest.GetSystemWebProxy();
                 if (WebRequest.DefaultWebProxy != null)
                     WebRequest.DefaultWebProxy.Credentials = CredentialCache.DefaultNetworkCredentials;
+                AgentDiagnostics.Write("SYSTEM proxy=windows-default tls=TLS1.2");
             }
-            catch { }
+            catch (Exception ex)
+            {
+                AgentDiagnostics.Write("SYSTEM proxy-init-failed " + ex.GetType().Name);
+            }
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new AgentForm());
+        }
+    }
+
+    internal static class AgentDiagnostics
+    {
+        private static readonly object Gate = new object();
+        private static readonly Regex JwtPattern = new Regex(@"eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}", RegexOptions.Compiled);
+        private static readonly Regex SecretPattern = new Regex(@"(?i)(authorization|bearer|token|password|secret|private[_ -]?key|api[_ -]?key|cookie|refresh[_ -]?token|id[_ -]?token)\s*[:=]\s*[^\s,;]+", RegexOptions.Compiled);
+        private static readonly Regex QuerySecretPattern = new Regex(@"(?i)([?&](?:auth|key|access_token|token)=)[^&\s]+", RegexOptions.Compiled);
+        internal static string LogFile { get; private set; }
+
+        internal static void Initialize()
+        {
+            try
+            {
+                var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SUPRA Inventory", "RelayPoc", "Logs");
+                Directory.CreateDirectory(dir);
+                LogFile = Path.Combine(dir, "relay-agent-" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + "-" + Process.GetCurrentProcess().Id + ".log");
+                Write("START version=" + Assembly.GetExecutingAssembly().GetName().Version + " os=" + Environment.OSVersion.VersionString + " clr=" + Environment.Version + " process64=" + Environment.Is64BitProcess + " machine=" + Environment.MachineName);
+            }
+            catch
+            {
+                LogFile = "";
+            }
+        }
+
+        internal static string Sanitize(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return "";
+            var next = value.Length > 4000 ? value.Substring(0, 4000) : value;
+            next = QuerySecretPattern.Replace(next, "$1[REDACTED]");
+            next = SecretPattern.Replace(next, m => m.Groups[1].Value + "=[REDACTED]");
+            next = JwtPattern.Replace(next, "[REDACTED_JWT]");
+            return next;
+        }
+
+        internal static string SafeUrl(string url)
+        {
+            try
+            {
+                var uri = new Uri(url);
+                return uri.GetLeftPart(UriPartial.Path);
+            }
+            catch
+            {
+                return Sanitize(url);
+            }
+        }
+
+        internal static void Write(string message)
+        {
+            var line = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + "  " + Sanitize(message);
+            try
+            {
+                lock (Gate)
+                {
+                    if (!string.IsNullOrWhiteSpace(LogFile))
+                        File.AppendAllText(LogFile, line + Environment.NewLine, Encoding.UTF8);
+                }
+            }
+            catch { }
+        }
+
+        internal static void OpenLog()
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(LogFile) && File.Exists(LogFile))
+                    Process.Start("explorer.exe", "/select,\"" + LogFile + "\"");
+            }
+            catch { }
+        }
+    }
+
+    internal sealed class RelayHttpException : Exception
+    {
+        internal int StatusCode { get; private set; }
+        internal string Detail { get; private set; }
+        internal RelayHttpException(int statusCode, string detail, string operation)
+            : base(operation + " HTTP " + statusCode + (string.IsNullOrWhiteSpace(detail) ? "" : " - " + detail))
+        {
+            StatusCode = statusCode;
+            Detail = detail ?? "";
         }
     }
 
@@ -38,6 +129,7 @@ namespace SupraInventoryRelayAgent
         public string IdToken;
         public string RefreshToken;
         public string UserId;
+        public string AppUserId;
         public DateTime ExpiresUtc;
     }
 
@@ -49,6 +141,7 @@ namespace SupraInventoryRelayAgent
         private readonly Button _pair = new Button();
         private readonly Button _testOffice = new Button();
         private readonly Button _listen = new Button();
+        private readonly Button _openLog = new Button();
         private readonly Label _relay = new Label();
         private readonly Label _network = new Label();
         private readonly Label _identity = new Label();
@@ -86,11 +179,13 @@ namespace SupraInventoryRelayAgent
             _password.SetBounds(375, 136, 160, 26); _password.UseSystemPasswordChar = true; Controls.Add(_password);
             _pair.SetBounds(545, 135, 105, 28); _pair.Text = "Ghép Agent"; _pair.Click += (s, e) => Task.Run(() => PairLogin()); Controls.Add(_pair);
 
-            _testOffice.SetBounds(18, 176, 150, 32); _testOffice.Text = "Kiểm tra Office"; _testOffice.Enabled = false;
+            _testOffice.SetBounds(18, 176, 135, 32); _testOffice.Text = "Kiểm tra Office"; _testOffice.Enabled = false;
             _testOffice.Click += (s, e) => Task.Run(() => TestOffice()); Controls.Add(_testOffice);
-            _listen.SetBounds(178, 176, 150, 32); _listen.Text = "Nghe relay"; _listen.Enabled = false;
+            _listen.SetBounds(160, 176, 135, 32); _listen.Text = "Nghe relay"; _listen.Enabled = false;
             _listen.Click += (s, e) => { if (_listenCts == null) StartListening(); else StopListening(); }; Controls.Add(_listen);
-            Controls.Add(new Label { Left = 345, Top = 180, Width = 305, Height = 40, Text = "POC chỉ nhận 5 số và trả ACK. Không truy cập hoặc thao tác WMS.", ForeColor = Color.DimGray });
+            _openLog.SetBounds(302, 176, 105, 32); _openLog.Text = "Mở log";
+            _openLog.Click += (s, e) => AgentDiagnostics.OpenLog(); Controls.Add(_openLog);
+            Controls.Add(new Label { Left = 420, Top = 178, Width = 230, Height = 44, Text = "POC chỉ nhận 5 số và trả ACK. Không truy cập hoặc thao tác WMS.", ForeColor = Color.DimGray });
 
             _log.SetBounds(18, 225, 632, 220); Controls.Add(_log);
 
@@ -109,7 +204,7 @@ namespace SupraInventoryRelayAgent
 
             var timer = new System.Windows.Forms.Timer { Interval = 4000 };
             timer.Tick += (s, e) => _network.Text = "Mạng: " + GetSsid(); timer.Start();
-            Shown += (s, e) => Task.Run(() => RestoreSession());
+            Shown += (s, e) => Task.Run(() => { LogNetworkSnapshot("startup"); RestoreSession(); });
         }
 
         private void RestoreFromTray() { Show(); WindowState = FormWindowState.Normal; Activate(); }
@@ -119,55 +214,132 @@ namespace SupraInventoryRelayAgent
             try
             {
                 var stored = LoadStoredSession();
-                if (stored == null) return;
+                if (stored == null)
+                {
+                    Log("Chưa có phiên Agent đã lưu trên Windows user này.");
+                    return;
+                }
                 lock (_sessionLock) _session = stored;
+                Log("Đã đọc phiên ghép từ Windows DPAPI; đang làm mới Firebase qua Google.");
                 RefreshDirect();
-                Ui(() => { _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser(); _listen.Enabled = true; _testOffice.Enabled = true; });
-                Log("Khôi phục phiên đã ghép bằng Windows DPAPI.");
+                Ui(() =>
+                {
+                    _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser();
+                    _listen.Enabled = true;
+                    _testOffice.Enabled = true;
+                });
+                Log("Khôi phục phiên đã ghép thành công.");
             }
-            catch (Exception ex) { Log("Chưa thể khôi phục phiên: " + SafeMessage(ex)); }
+            catch (Exception ex)
+            {
+                Log("Chưa thể khôi phục phiên: " + SafeMessage(ex));
+            }
         }
 
         private void PairLogin()
         {
             string username = "", password = "";
-            UiSync(() => { username = _username.Text.Trim(); password = _password.Text; _pair.Enabled = false; });
-            if (username.Length == 0 || password.Length == 0) { Log("Nhập tài khoản và mật khẩu khi laptop đang ở mạng truy cập được Cloudflare."); Ui(() => _pair.Enabled = true); return; }
+            UiSync(() =>
+            {
+                username = _username.Text.Trim();
+                password = _password.Text;
+                _pair.Enabled = false;
+            });
+            if (username.Length == 0 || password.Length == 0)
+            {
+                Log("Nhập tài khoản và mật khẩu khi laptop đang ở mạng truy cập được Cloudflare.");
+                Ui(() => _pair.Enabled = true);
+                return;
+            }
+
             try
             {
+                LogNetworkSnapshot("pair-login");
                 var payload = new Dictionary<string, object> { { "username", username }, { "password", password } };
                 var root = Map(_json.DeserializeObject(RequestJson("POST", AgentConfig.ApiBaseUrl + "/api/auth/login", _json.Serialize(payload), "application/json")));
                 var user = Map(root["user"]);
+                var idToken = Convert.ToString(root["id_token"]);
+                var refreshToken = Convert.ToString(root["refresh_token"]);
+                var firebaseUid = FirebaseUidFromIdToken(idToken);
+                var audience = FirebaseAudienceFromIdToken(idToken);
+                if (!string.Equals(audience, AgentConfig.FirebaseProjectId, StringComparison.Ordinal))
+                    throw new InvalidOperationException("Firebase token sai project audience.");
+
                 var next = new AgentSession
                 {
-                    IdToken = Convert.ToString(root["id_token"]),
-                    RefreshToken = Convert.ToString(root["refresh_token"]),
-                    UserId = Convert.ToString(user["user_id"]),
+                    IdToken = idToken,
+                    RefreshToken = refreshToken,
+                    UserId = firebaseUid,
+                    AppUserId = Convert.ToString(user["user_id"]),
                     ExpiresUtc = DateTime.UtcNow.AddSeconds(ParseInt(root, "expires_in", 3600) - 60)
                 };
-                if (string.IsNullOrWhiteSpace(next.IdToken) || string.IsNullOrWhiteSpace(next.RefreshToken) || string.IsNullOrWhiteSpace(next.UserId)) throw new InvalidOperationException("Phiên ghép không đầy đủ.");
+                if (string.IsNullOrWhiteSpace(next.IdToken) || string.IsNullOrWhiteSpace(next.RefreshToken) ||
+                    string.IsNullOrWhiteSpace(next.UserId) || string.IsNullOrWhiteSpace(next.AppUserId))
+                    throw new InvalidOperationException("Phiên ghép không đầy đủ.");
+
                 lock (_sessionLock) _session = next;
                 SaveStoredSession(next);
-                Ui(() => { _password.Clear(); _identity.Text = "Agent: " + Environment.MachineName + " / " + next.UserId; _listen.Enabled = true; _testOffice.Enabled = true; });
-                Log("Ghép Agent thành công. Chuyển laptop sang Office rồi bấm Kiểm tra Office.");
+                Ui(() =>
+                {
+                    _password.Clear();
+                    _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser();
+                    _listen.Enabled = true;
+                    _testOffice.Enabled = true;
+                });
+                Log("Ghép Agent PASS app_user=" + next.AppUserId + " firebase_uid=" + Fingerprint(next.UserId) + " aud=" + audience + ". Chuyển laptop sang Office rồi bấm Kiểm tra Office.");
             }
-            catch (Exception ex) { Log("Ghép Agent thất bại: " + SafeMessage(ex)); }
-            finally { Ui(() => _pair.Enabled = true); }
+            catch (Exception ex)
+            {
+                Log("Ghép Agent thất bại: " + SafeMessage(ex));
+            }
+            finally
+            {
+                Ui(() => _pair.Enabled = true);
+            }
         }
 
         private void TestOffice()
         {
-            Ui(() => { _testOffice.Enabled = false; _relay.Text = "Relay: đang kiểm tra Google..."; });
+            Ui(() =>
+            {
+                _testOffice.Enabled = false;
+                _relay.Text = "Relay: đang kiểm tra Google...";
+            });
+            LogNetworkSnapshot("office-check");
+
             try
             {
                 RefreshDirect();
+                Ui(() => _relay.Text = "Relay: Google OK · đang kiểm tra RTDB...");
                 var session = SnapshotSession();
+                var started = Stopwatch.StartNew();
                 RequestJson("GET", JobsUrl(session) + "&shallow=true", null, null);
+                started.Stop();
                 Ui(() => _relay.Text = "Relay: OFFICE PASS / Google + RTDB");
-                Log("OFFICE PASS: Google token refresh + RTDB đọc được trên " + GetSsid() + ".");
+                Log("OFFICE PASS ssid=" + GetSsid() + " uid=" + Fingerprint(session.UserId) + " rtdb_ms=" + started.ElapsedMilliseconds + ".");
             }
-            catch (Exception ex) { Ui(() => _relay.Text = "Relay: OFFICE FAIL"); Log("OFFICE FAIL: " + SafeMessage(ex)); }
-            finally { Ui(() => _testOffice.Enabled = true); }
+            catch (RelayHttpException ex)
+            {
+                if (ex.StatusCode == 403)
+                {
+                    Ui(() => _relay.Text = "Relay: RTDB 403 / Rules");
+                    Log("OFFICE RTDB_PERMISSION_DENIED HTTP 403. HTTPS tới Firebase đã thông; kiểm tra Rules/auth.uid/path. detail=" + ex.Detail);
+                }
+                else
+                {
+                    Ui(() => _relay.Text = "Relay: HTTP " + ex.StatusCode);
+                    Log("OFFICE HTTP_FAIL " + ex.StatusCode + " detail=" + ex.Detail);
+                }
+            }
+            catch (Exception ex)
+            {
+                Ui(() => _relay.Text = "Relay: lỗi mạng/transport");
+                Log("OFFICE TRANSPORT_FAIL " + SafeMessage(ex));
+            }
+            finally
+            {
+                Ui(() => _testOffice.Enabled = true);
+            }
         }
 
         private void StartListening()
@@ -192,33 +364,95 @@ namespace SupraInventoryRelayAgent
         {
             while (!token.IsCancellationRequested)
             {
-                try { EnsureFreshToken(); ListenOnce(token); }
-                catch (OperationCanceledException) { return; }
-                catch (Exception ex) { Log("Relay gián đoạn: " + SafeMessage(ex)); Ui(() => _relay.Text = "Relay: đang thử lại"); }
-                if (token.WaitHandle.WaitOne(TimeSpan.FromSeconds(1))) return;
+                var retrySeconds = 1;
+                try
+                {
+                    EnsureFreshToken();
+                    ListenOnce(token);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+                catch (RelayHttpException ex)
+                {
+                    if (ex.StatusCode == 403)
+                    {
+                        retrySeconds = 5;
+                        Ui(() => _relay.Text = "Relay: RTDB 403 / Rules");
+                        Log("Relay RTDB_PERMISSION_DENIED 403; HTTPS thông nhưng auth/rules/path bị từ chối. detail=" + ex.Detail);
+                    }
+                    else
+                    {
+                        retrySeconds = 2;
+                        Ui(() => _relay.Text = "Relay: HTTP " + ex.StatusCode + " · thử lại");
+                        Log("Relay HTTP_FAIL " + ex.StatusCode + " detail=" + ex.Detail);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Ui(() => _relay.Text = "Relay: mạng/transport · thử lại");
+                    Log("Relay TRANSPORT_FAIL " + SafeMessage(ex));
+                }
+                if (token.WaitHandle.WaitOne(TimeSpan.FromSeconds(retrySeconds))) return;
             }
         }
 
         private void ListenOnce(CancellationToken token)
         {
             var session = SnapshotSession();
-            var req = (HttpWebRequest)WebRequest.Create(JobsUrl(session));
-            req.Method = "GET"; req.Accept = "text/event-stream"; req.UserAgent = "SUPRA-Inventory-Relay-Test/1.0";
-            req.Timeout = 10000; req.ReadWriteTimeout = 65000; req.KeepAlive = true;
-            using (token.Register(() => { try { req.Abort(); } catch { } }))
-            using (var response = (HttpWebResponse)req.GetResponse())
-            using (var stream = response.GetResponseStream())
-            using (var reader = new StreamReader(stream))
+            var url = JobsUrl(session);
+            var req = (HttpWebRequest)WebRequest.Create(url);
+            req.Method = "GET";
+            req.Accept = "text/event-stream";
+            req.UserAgent = "SUPRA-Inventory-Relay-Test/1.1";
+            req.Timeout = 10000;
+            req.ReadWriteTimeout = 65000;
+            req.KeepAlive = true;
+
+            Log("Relay SSE CONNECT host=" + AgentDiagnostics.SafeUrl(url) + " uid=" + Fingerprint(session.UserId) + " ssid=" + GetSsid());
+            HttpWebResponse response = null;
+            try
             {
-                Ui(() => _relay.Text = "Relay: ONLINE / đang nghe");
-                Log("Đã mở Firebase SSE trên " + GetSsid() + ".");
-                var data = new StringBuilder();
-                string line;
-                while (!token.IsCancellationRequested && (line = reader.ReadLine()) != null)
+                using (token.Register(() => { try { req.Abort(); } catch { } }))
                 {
-                    if (line.Length == 0) { if (data.Length > 0) { ProcessSse(data.ToString()); data.Clear(); } continue; }
-                    if (line.StartsWith("data:", StringComparison.Ordinal)) data.Append(line.Substring(5).Trim());
+                    try
+                    {
+                        response = (HttpWebResponse)req.GetResponse();
+                    }
+                    catch (WebException ex)
+                    {
+                        throw ToRelayHttpException(ex, "RTDB SSE");
+                    }
+
+                    using (response)
+                    using (var stream = response.GetResponseStream())
+                    using (var reader = new StreamReader(stream))
+                    {
+                        Ui(() => _relay.Text = "Relay: ONLINE / đang nghe");
+                        Log("Relay SSE PASS HTTP " + (int)response.StatusCode + " ssid=" + GetSsid() + " uid=" + Fingerprint(session.UserId));
+                        var data = new StringBuilder();
+                        string line;
+                        while (!token.IsCancellationRequested && (line = reader.ReadLine()) != null)
+                        {
+                            if (line.Length == 0)
+                            {
+                                if (data.Length > 0)
+                                {
+                                    ProcessSse(data.ToString());
+                                    data.Clear();
+                                }
+                                continue;
+                            }
+                            if (line.StartsWith("data:", StringComparison.Ordinal))
+                                data.Append(line.Substring(5).Trim());
+                        }
+                    }
                 }
+            }
+            finally
+            {
+                if (response != null) response.Dispose();
             }
         }
 
@@ -252,7 +486,7 @@ namespace SupraInventoryRelayAgent
             {
                 var patch = new Dictionary<string, object> { { "status", "ACK" }, { "agent_id", Environment.MachineName }, { "agent_network", GetSsid() }, { "agent_received_at_ms", NowMs() }, { "agent_ack_at_ms", NowMs() } };
                 RequestJson("PATCH", JobUrl(SnapshotSession(), jobId), _json.Serialize(patch), "application/json");
-                Log("ACK " + suffix + " / " + Short(jobId) + " / " + GetSsid());
+                Log("ACK request=" + Short(jobId) + " network=" + GetSsid() + " payload_digits=5");
             }
             catch (Exception ex) { lock (_acked) _acked.Remove(jobId); Log("ACK lỗi: " + SafeMessage(ex)); }
         }
@@ -264,15 +498,29 @@ namespace SupraInventoryRelayAgent
             var current = SnapshotSession();
             var form = "grant_type=refresh_token&refresh_token=" + Uri.EscapeDataString(current.RefreshToken);
             var url = "https://securetoken.googleapis.com/v1/token?key=" + Uri.EscapeDataString(AgentConfig.FirebaseApiKey);
+            Log("Firebase refresh START host=securetoken.googleapis.com ssid=" + GetSsid());
             var root = Map(_json.DeserializeObject(RequestJson("POST", url, form, "application/x-www-form-urlencoded")));
+            var idToken = Convert.ToString(root["id_token"]);
+            var refreshToken = Convert.ToString(root["refresh_token"]);
+            var firebaseUid = FirebaseUidFromIdToken(idToken);
+            var audience = FirebaseAudienceFromIdToken(idToken);
+            if (!string.Equals(audience, AgentConfig.FirebaseProjectId, StringComparison.Ordinal))
+                throw new InvalidOperationException("Firebase token sai project audience.");
+
             var next = new AgentSession
             {
-                IdToken = Convert.ToString(root["id_token"]), RefreshToken = Convert.ToString(root["refresh_token"]),
-                UserId = root.ContainsKey("user_id") ? Convert.ToString(root["user_id"]) : current.UserId,
+                IdToken = idToken,
+                RefreshToken = refreshToken,
+                UserId = firebaseUid,
+                AppUserId = current.AppUserId,
                 ExpiresUtc = DateTime.UtcNow.AddSeconds(ParseInt(root, "expires_in", 3600) - 60)
             };
-            if (string.IsNullOrWhiteSpace(next.IdToken) || string.IsNullOrWhiteSpace(next.RefreshToken)) throw new InvalidOperationException("Google không trả phiên Firebase hợp lệ.");
-            lock (_sessionLock) _session = next; SaveStoredSession(next);
+            if (string.IsNullOrWhiteSpace(next.IdToken) || string.IsNullOrWhiteSpace(next.RefreshToken) || string.IsNullOrWhiteSpace(next.UserId))
+                throw new InvalidOperationException("Google không trả phiên Firebase hợp lệ.");
+
+            lock (_sessionLock) _session = next;
+            SaveStoredSession(next);
+            Log("Firebase refresh PASS uid=" + Fingerprint(next.UserId) + " aud=" + audience);
         }
 
         private AgentSession SnapshotSession()
@@ -280,32 +528,125 @@ namespace SupraInventoryRelayAgent
             lock (_sessionLock)
             {
                 if (_session == null) throw new InvalidOperationException("Chưa ghép Agent.");
-                return new AgentSession { IdToken = _session.IdToken, RefreshToken = _session.RefreshToken, UserId = _session.UserId, ExpiresUtc = _session.ExpiresUtc };
+                return new AgentSession
+                {
+                    IdToken = _session.IdToken,
+                    RefreshToken = _session.RefreshToken,
+                    UserId = _session.UserId,
+                    AppUserId = _session.AppUserId,
+                    ExpiresUtc = _session.ExpiresUtc
+                };
             }
         }
 
-        private string CurrentSessionUser() { lock (_sessionLock) return _session == null ? "chưa ghép" : _session.UserId; }
-        private static string JobsUrl(AgentSession s) { return AgentConfig.DatabaseUrl.TrimEnd('/') + "/relay_poc/" + Uri.EscapeDataString(s.UserId) + "/jobs.json?auth=" + Uri.EscapeDataString(s.IdToken); }
-        private static string JobUrl(AgentSession s, string id) { return AgentConfig.DatabaseUrl.TrimEnd('/') + "/relay_poc/" + Uri.EscapeDataString(s.UserId) + "/jobs/" + Uri.EscapeDataString(id) + ".json?auth=" + Uri.EscapeDataString(s.IdToken); }
+        private string CurrentSessionUser()
+        {
+            lock (_sessionLock)
+            {
+                if (_session == null) return "chưa ghép";
+                var appUser = string.IsNullOrWhiteSpace(_session.AppUserId) ? "app?" : _session.AppUserId;
+                var uid = string.IsNullOrWhiteSpace(_session.UserId) ? "pending" : Fingerprint(_session.UserId);
+                return appUser + " / uid:" + uid;
+            }
+        }
+
+        private static string JobsUrl(AgentSession s)
+        {
+            return AgentConfig.DatabaseUrl.TrimEnd('/') + "/relay_poc/" + Uri.EscapeDataString(s.UserId) + "/jobs.json?auth=" + Uri.EscapeDataString(s.IdToken);
+        }
+
+        private static string JobUrl(AgentSession s, string id)
+        {
+            return AgentConfig.DatabaseUrl.TrimEnd('/') + "/relay_poc/" + Uri.EscapeDataString(s.UserId) + "/jobs/" + Uri.EscapeDataString(id) + ".json?auth=" + Uri.EscapeDataString(s.IdToken);
+        }
 
         private static string RequestJson(string method, string url, string body, string contentType)
         {
-            var req = (HttpWebRequest)WebRequest.Create(url); req.Method = method; req.Accept = "application/json"; req.UserAgent = "SUPRA-Inventory-Relay-Test/1.0"; req.Timeout = 10000; req.ReadWriteTimeout = 10000;
+            var started = Stopwatch.StartNew();
+            var req = (HttpWebRequest)WebRequest.Create(url);
+            req.Method = method;
+            req.Accept = "application/json";
+            req.UserAgent = "SUPRA-Inventory-Relay-Test/1.1";
+            req.Timeout = 10000;
+            req.ReadWriteTimeout = 10000;
             if (!string.IsNullOrWhiteSpace(contentType)) req.ContentType = contentType;
-            if (body != null) { if (string.IsNullOrWhiteSpace(req.ContentType)) req.ContentType = "application/json; charset=utf-8"; var bytes = Encoding.UTF8.GetBytes(body); req.ContentLength = bytes.Length; using (var output = req.GetRequestStream()) output.Write(bytes, 0, bytes.Length); }
-            try { using (var response = (HttpWebResponse)req.GetResponse()) using (var reader = new StreamReader(response.GetResponseStream())) return reader.ReadToEnd(); }
+
+            try
+            {
+                if (body != null)
+                {
+                    if (string.IsNullOrWhiteSpace(req.ContentType)) req.ContentType = "application/json; charset=utf-8";
+                    var bytes = Encoding.UTF8.GetBytes(body);
+                    req.ContentLength = bytes.Length;
+                    using (var output = req.GetRequestStream())
+                        output.Write(bytes, 0, bytes.Length);
+                }
+
+                using (var response = (HttpWebResponse)req.GetResponse())
+                using (var reader = new StreamReader(response.GetResponseStream()))
+                {
+                    var result = reader.ReadToEnd();
+                    started.Stop();
+                    AgentDiagnostics.Write("HTTP PASS method=" + method + " url=" + AgentDiagnostics.SafeUrl(url) +
+                        " status=" + (int)response.StatusCode + " ms=" + started.ElapsedMilliseconds +
+                        " response_bytes=" + Encoding.UTF8.GetByteCount(result));
+                    return result;
+                }
+            }
             catch (WebException ex)
             {
-                var status = ex.Response is HttpWebResponse ? ((int)((HttpWebResponse)ex.Response).StatusCode).ToString() : ex.Status.ToString();
-                throw new InvalidOperationException("HTTP " + status, ex);
+                started.Stop();
+                var converted = ToRelayHttpException(ex, method + " " + AgentDiagnostics.SafeUrl(url));
+                AgentDiagnostics.Write("HTTP FAIL method=" + method + " url=" + AgentDiagnostics.SafeUrl(url) +
+                    " status=" + converted.StatusCode + " ms=" + started.ElapsedMilliseconds +
+                    " detail=" + converted.Detail);
+                throw converted;
             }
+        }
+
+        private static RelayHttpException ToRelayHttpException(WebException ex, string operation)
+        {
+            var response = ex.Response as HttpWebResponse;
+            if (response == null)
+                return new RelayHttpException(0, ex.Status.ToString(), operation);
+
+            var detail = "";
+            try
+            {
+                using (response)
+                using (var stream = response.GetResponseStream())
+                using (var reader = stream == null ? null : new StreamReader(stream))
+                    detail = reader == null ? "" : reader.ReadToEnd();
+            }
+            catch { }
+
+            if (!string.IsNullOrWhiteSpace(detail))
+            {
+                try
+                {
+                    var parsed = new JavaScriptSerializer().DeserializeObject(detail) as Dictionary<string, object>;
+                    object error;
+                    if (parsed != null && parsed.TryGetValue("error", out error))
+                        detail = Convert.ToString(error);
+                }
+                catch { }
+            }
+
+            return new RelayHttpException((int)response.StatusCode, AgentDiagnostics.Sanitize(detail).Trim(), operation);
         }
 
         private void SaveStoredSession(AgentSession session)
         {
-            var dir = Path.GetDirectoryName(SessionFile); if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            var payload = _json.Serialize(new Dictionary<string, object> { { "refresh_token", session.RefreshToken }, { "user_id", session.UserId } });
+            var dir = Path.GetDirectoryName(SessionFile);
+            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+            var payload = _json.Serialize(new Dictionary<string, object>
+            {
+                { "refresh_token", session.RefreshToken },
+                { "firebase_uid", session.UserId },
+                { "app_user_id", session.AppUserId ?? "" }
+            });
             File.WriteAllBytes(SessionFile, ProtectedData.Protect(Encoding.UTF8.GetBytes(payload), null, DataProtectionScope.CurrentUser));
+            AgentDiagnostics.Write("SESSION saved_dpapi app_user=" + (session.AppUserId ?? "") + " uid=" + Fingerprint(session.UserId));
         }
 
         private AgentSession LoadStoredSession()
@@ -313,24 +654,151 @@ namespace SupraInventoryRelayAgent
             if (!File.Exists(SessionFile)) return null;
             var raw = ProtectedData.Unprotect(File.ReadAllBytes(SessionFile), null, DataProtectionScope.CurrentUser);
             var map = Map(_json.DeserializeObject(Encoding.UTF8.GetString(raw)));
-            return new AgentSession { RefreshToken = Convert.ToString(map["refresh_token"]), UserId = Convert.ToString(map["user_id"]), IdToken = "", ExpiresUtc = DateTime.MinValue };
+            object refreshValue;
+            if (!map.TryGetValue("refresh_token", out refreshValue) || string.IsNullOrWhiteSpace(Convert.ToString(refreshValue)))
+                throw new InvalidOperationException("Phiên Agent đã lưu thiếu refresh token.");
+
+            object firebaseValue;
+            object appValue;
+            object legacyValue;
+            var legacy = map.TryGetValue("user_id", out legacyValue) ? Convert.ToString(legacyValue) : "";
+            var firebaseUid = map.TryGetValue("firebase_uid", out firebaseValue) ? Convert.ToString(firebaseValue) : legacy;
+            var appUser = map.TryGetValue("app_user_id", out appValue) ? Convert.ToString(appValue) : legacy;
+
+            return new AgentSession
+            {
+                RefreshToken = Convert.ToString(refreshValue),
+                UserId = firebaseUid,
+                AppUserId = appUser,
+                IdToken = "",
+                ExpiresUtc = DateTime.MinValue
+            };
+        }
+
+        private Dictionary<string, object> DecodeTokenPayload(string idToken)
+        {
+            if (string.IsNullOrWhiteSpace(idToken)) throw new InvalidOperationException("Firebase ID token trống.");
+            var parts = idToken.Split('.');
+            if (parts.Length != 3) throw new InvalidOperationException("Firebase ID token sai định dạng.");
+            var payload = parts[1].Replace('-', '+').Replace('_', '/');
+            switch (payload.Length % 4)
+            {
+                case 2: payload += "=="; break;
+                case 3: payload += "="; break;
+            }
+            try
+            {
+                var json = Encoding.UTF8.GetString(Convert.FromBase64String(payload));
+                return Map(_json.DeserializeObject(json));
+            }
+            catch
+            {
+                throw new InvalidOperationException("Không đọc được Firebase ID token payload.");
+            }
+        }
+
+        private string FirebaseUidFromIdToken(string idToken)
+        {
+            var payload = DecodeTokenPayload(idToken);
+            object value;
+            var uid = payload.TryGetValue("sub", out value) ? Convert.ToString(value) : "";
+            if (string.IsNullOrWhiteSpace(uid) || uid.Length > 128)
+                throw new InvalidOperationException("Firebase ID token thiếu UID hợp lệ.");
+            return uid;
+        }
+
+        private string FirebaseAudienceFromIdToken(string idToken)
+        {
+            var payload = DecodeTokenPayload(idToken);
+            object value;
+            return payload.TryGetValue("aud", out value) ? Convert.ToString(value) : "";
+        }
+
+        private void LogNetworkSnapshot(string stage)
+        {
+            var ssid = GetSsid();
+            var internet = NetworkInterface.GetIsNetworkAvailable();
+            var proxy = "DIRECT";
+            try
+            {
+                var target = new Uri(AgentConfig.DatabaseUrl);
+                var systemProxy = WebRequest.DefaultWebProxy;
+                if (systemProxy != null)
+                {
+                    var proxyUri = systemProxy.GetProxy(target);
+                    if (proxyUri != null && proxyUri != target)
+                        proxy = proxyUri.Scheme + "://" + proxyUri.Host + ":" + proxyUri.Port;
+                }
+            }
+            catch (Exception ex)
+            {
+                proxy = "UNKNOWN:" + ex.GetType().Name;
+            }
+
+            Log("NET stage=" + stage + " ssid=" + ssid + " available=" + internet + " proxy=" + proxy);
+            try
+            {
+                foreach (var nic in NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    if (nic.OperationalStatus != OperationalStatus.Up) continue;
+                    var props = nic.GetIPProperties();
+                    var ips = new List<string>();
+                    foreach (var addr in props.UnicastAddresses)
+                    {
+                        if (addr.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                            ips.Add(addr.Address.ToString());
+                    }
+                    var gateways = new List<string>();
+                    foreach (var gw in props.GatewayAddresses)
+                    {
+                        if (gw.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                            gateways.Add(gw.Address.ToString());
+                    }
+                    var dns = new List<string>();
+                    foreach (var dnsAddr in props.DnsAddresses)
+                    {
+                        if (dnsAddr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                            dns.Add(dnsAddr.ToString());
+                    }
+                    AgentDiagnostics.Write("NETIF stage=" + stage + " name=" + nic.Name + " type=" + nic.NetworkInterfaceType +
+                        " ip=" + string.Join(",", ips) + " gateway=" + string.Join(",", gateways) + " dns=" + string.Join(",", dns));
+                }
+            }
+            catch (Exception ex)
+            {
+                AgentDiagnostics.Write("NETIF snapshot_failed " + ex.GetType().Name);
+            }
         }
 
         private static string GetSsid()
         {
             try
             {
-                var info = new ProcessStartInfo { FileName = "netsh", Arguments = "wlan show interfaces", UseShellExecute = false, RedirectStandardOutput = true, CreateNoWindow = true };
+                var info = new ProcessStartInfo
+                {
+                    FileName = "netsh",
+                    Arguments = "wlan show interfaces",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true
+                };
                 using (var process = Process.Start(info))
                 {
                     if (process == null) return "UNKNOWN";
-                    var text = process.StandardOutput.ReadToEnd(); process.WaitForExit(3000);
+                    var text = process.StandardOutput.ReadToEnd();
+                    process.WaitForExit(3000);
                     foreach (var raw in text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
                     {
                         var line = raw.Trim();
-                        if (line.StartsWith("SSID", StringComparison.OrdinalIgnoreCase) && !line.StartsWith("BSSID", StringComparison.OrdinalIgnoreCase))
+                        if (line.StartsWith("SSID", StringComparison.OrdinalIgnoreCase) &&
+                            !line.StartsWith("BSSID", StringComparison.OrdinalIgnoreCase))
                         {
-                            var index = line.IndexOf(':'); if (index >= 0) { var value = line.Substring(index + 1).Trim(); if (value.Length > 0) return value; }
+                            var index = line.IndexOf(':');
+                            if (index >= 0)
+                            {
+                                var value = line.Substring(index + 1).Trim();
+                                if (value.Length > 0) return value;
+                            }
                         }
                     }
                 }
@@ -339,14 +807,62 @@ namespace SupraInventoryRelayAgent
             return "UNKNOWN";
         }
 
+        private static string Fingerprint(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return "none";
+            using (var sha = SHA256.Create())
+            {
+                var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(value));
+                var builder = new StringBuilder();
+                for (var i = 0; i < Math.Min(6, hash.Length); i++)
+                    builder.Append(hash[i].ToString("x2"));
+                return builder.ToString();
+            }
+        }
+
         private static long NowMs() { return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); }
         private static string Short(string value) { return value == null ? "" : value.Substring(0, Math.Min(8, value.Length)); }
-        private static int ParseInt(Dictionary<string, object> map, string key, int fallback) { object value; int parsed; return map.TryGetValue(key, out value) && int.TryParse(Convert.ToString(value), out parsed) ? parsed : fallback; }
-        private static Dictionary<string, object> Map(object value) { var map = value as Dictionary<string, object>; if (map == null) throw new InvalidOperationException("JSON response không hợp lệ."); return map; }
-        private static string SafeMessage(Exception ex) { var message = ex.Message ?? ex.GetType().Name; return message.Length > 180 ? message.Substring(0, 180) : message; }
+        private static int ParseInt(Dictionary<string, object> map, string key, int fallback)
+        {
+            object value;
+            int parsed;
+            return map.TryGetValue(key, out value) && int.TryParse(Convert.ToString(value), out parsed) ? parsed : fallback;
+        }
+        private static Dictionary<string, object> Map(object value)
+        {
+            var map = value as Dictionary<string, object>;
+            if (map == null) throw new InvalidOperationException("JSON response không hợp lệ.");
+            return map;
+        }
+        private static string SafeMessage(Exception ex)
+        {
+            var message = AgentDiagnostics.Sanitize(ex.Message ?? ex.GetType().Name);
+            return message.Length > 240 ? message.Substring(0, 240) : message;
+        }
 
-        private void Log(string message) { Ui(() => { _log.Items.Insert(0, DateTime.Now.ToString("HH:mm:ss") + "  " + message); while (_log.Items.Count > 100) _log.Items.RemoveAt(_log.Items.Count - 1); }); }
-        private void Ui(Action action) { if (IsDisposed) return; if (InvokeRequired) BeginInvoke(action); else action(); }
-        private void UiSync(Action action) { if (IsDisposed) return; if (InvokeRequired) Invoke(action); else action(); }
+        private void Log(string message)
+        {
+            var safe = AgentDiagnostics.Sanitize(message);
+            AgentDiagnostics.Write(safe);
+            Ui(() =>
+            {
+                _log.Items.Insert(0, DateTime.Now.ToString("HH:mm:ss") + "  " + safe);
+                while (_log.Items.Count > 120) _log.Items.RemoveAt(_log.Items.Count - 1);
+            });
+        }
+
+        private void Ui(Action action)
+        {
+            if (IsDisposed) return;
+            if (InvokeRequired) BeginInvoke(action);
+            else action();
+        }
+
+        private void UiSync(Action action)
+        {
+            if (IsDisposed) return;
+            if (InvokeRequired) Invoke(action);
+            else action();
+        }
     }
 }

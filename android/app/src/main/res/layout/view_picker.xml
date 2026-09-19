@@ -3,141 +3,209 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="14dp">
+    android:padding="8dp">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Quét hoặc nhập SKU"
-        android:textColor="@color/text_primary"
-        android:textSize="18sp"
-        android:textStyle="bold" />
-
-    <AutoCompleteTextView
-        android:id="@+id/acSkuSearch"
-        android:layout_width="match_parent"
-        android:layout_height="58dp"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/bg_input"
-        android:hint="Nhập mã SKU…"
-        android:imeOptions="actionSearch"
-        android:inputType="textNoSuggestions"
-        android:singleLine="true"
-        android:textSize="20sp"
-        android:completionThreshold="1" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:background="@drawable/bg_card"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/tvSelectedSku"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Chưa chọn SKU"
-            android:textColor="@color/navy_900"
-            android:textSize="22sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tvSelectedProduct"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="Chọn đúng SKU cần báo"
-            android:textColor="@color/text_secondary"
-            android:textSize="15sp" />
-    </LinearLayout>
-
-    <Button
-        android:id="@+id/btnReportShortage"
-        android:layout_width="match_parent"
-        android:layout_height="66dp"
-        android:layout_marginTop="12dp"
-        android:background="@drawable/bg_button_danger"
-        android:enabled="false"
-        android:text="BÁO HẾT HÀNG"
-        android:textColor="@color/white"
-        android:textSize="20sp"
-        android:textStyle="bold" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:background="@drawable/bg_card"
-        android:orientation="vertical"
-        android:padding="12dp">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="XÁC NHẬN LẤY HÀNG"
-            android:textColor="@color/text_primary"
-            android:textSize="17sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Nhập 5 số cuối Picklist • hiện chỉ kiểm tra đường truyền"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp" />
-
-        <EditText
-            android:id="@+id/etRelayPicklistSuffix"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/bg_input"
-            android:digits="0123456789"
-            android:hint="5 số cuối Picklist"
-            android:imeOptions="actionDone"
-            android:inputType="number"
-            android:maxLength="5"
-            android:singleLine="true"
-            android:textSize="18sp" />
-
-        <Button
-            android:id="@+id/btnRelayPocSend"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/bg_button_primary"
-            android:text="GỬI TEST"
-            android:textColor="@color/white"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tvRelayPocStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="Chưa gửi test."
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp" />
-    </LinearLayout>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="SKU tôi đã báo"
-        android:textColor="@color/text_primary"
-        android:textSize="17sp"
-        android:textStyle="bold" />
-
-    <ListView
-        android:id="@+id/listMyReports"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="6dp"
-        android:layout_weight="1"
-        android:divider="#DDE3EA"
-        android:dividerHeight="1dp" />
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:id="@+id/panelShortage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Quét hoặc nhập SKU"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <AutoCompleteTextView
+                android:id="@+id/acSkuSearch"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/bg_input"
+                android:completionThreshold="1"
+                android:hint="Nhập mã SKU…"
+                android:imeOptions="actionSearch"
+                android:inputType="textNoSuggestions"
+                android:singleLine="true"
+                android:textSize="17sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="7dp">
+
+                <TextView
+                    android:id="@+id/tvSelectedSku"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Chưa chọn SKU"
+                    android:textColor="@color/navy_900"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvSelectedProduct"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:maxLines="2"
+                    android:text="Chọn đúng SKU cần báo"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnReportShortage"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="7dp"
+                android:background="@drawable/bg_button_danger"
+                android:enabled="false"
+                android:text="BÁO HẾT HÀNG"
+                android:textColor="@color/white"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="SKU tôi đã báo"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <ListView
+                android:id="@+id/listMyReports"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="4dp"
+                android:layout_weight="1"
+                android:divider="#DDE3EA"
+                android:dividerHeight="1dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/panelConfirmOrder"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Xác nhận đơn"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Nhập đúng 5 số cuối Picklist. Giai đoạn này chỉ kiểm tra truyền nhận với máy tính."
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <EditText
+                android:id="@+id/etRelayPicklistSuffix"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_input"
+                android:digits="0123456789"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:gravity="center_vertical"
+                android:hint="5 số cuối Picklist"
+                android:imeOptions="actionDone"
+                android:inputType="number"
+                android:maxLength="5"
+                android:singleLine="true"
+                android:textSize="19sp" />
+
+            <Button
+                android:id="@+id/btnRelayPocSend"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_button_primary"
+                android:enabled="false"
+                android:text="GỬI TEST"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvRelayPocStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Sẵn sàng nhập 5 số cuối."
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_card"
+                android:padding="8dp"
+                android:text="POC: chưa tìm/đổi/xác nhận bất kỳ đơn nào trên WMS."
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/pickerOperationTabs"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="4dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tabShortage"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="3dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_primary"
+            android:clickable="true"
+            android:contentDescription="Mở nghiệp vụ Báo hết hàng"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="BÁO HẾT HÀNG"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tabConfirmOrder"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="3dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_secondary"
+            android:clickable="true"
+            android:contentDescription="Mở nghiệp vụ Xác nhận đơn"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="XÁC NHẬN ĐƠN"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 </LinearLayout>

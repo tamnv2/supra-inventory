@@ -310,7 +310,7 @@ class MainActivity : Activity() {
         showBack(false)
         val view = replaceContent(R.layout.view_picker) as LinearLayout
         pickerController?.destroy()
-        pickerController = PickerController(this, api, skuCache, kit, ::setStatus, ::friendlyError)
+        pickerController = PickerController(this, api, skuCache, kit, ::setStatus, ::friendlyError, ::recordLog)
             .also { it.render(view) }
     }
 

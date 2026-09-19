@@ -208,3 +208,12 @@ The D073 test channel is independent from InventoryCore business realtime and ex
 - The Android client measures end-to-end round-trip locally and deletes the test job after ACK/timeout.
 - The Agent uses REST streaming/SSE (`Accept: text/event-stream`) so Office transport is tested without LAN connectivity to the PDA.
 - This channel must not be reused as an offline mutation queue for Báo hàng.
+
+
+## D074 — Relay identity and diagnostics repair
+
+- RTDB path stays `relay_poc/{firebase_uid}/jobs/{request_id}`; `{firebase_uid}` is derived from the verified Firebase ID-token subject (`sub`) by each client.
+- Android application `user_id` and Firebase UID are distinct concepts and must never be assumed equal for relay authorization.
+- Windows refresh-token exchange may update the ID token, but the RTDB path key is re-derived from the refreshed token subject.
+- A 403 response after successful HTTPS reachability is classified as `RTDB_PERMISSION_DENIED`; diagnostics must include method, host/path without query credentials, HTTP status, elapsed time, Firebase error text, token audience and a bounded hash/fingerprint of UID where useful. Raw tokens and passwords are forbidden from logs.
+- Windows Agent keeps a local run log under the current-user application-data directory and offers an explicit open-log action for field support.

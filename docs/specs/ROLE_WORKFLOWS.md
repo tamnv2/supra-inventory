@@ -204,3 +204,14 @@ This is a bounded Beta transport test, not the final WMS workflow.
 - No WMS page/API/session automation is allowed in D073 POC.
 - Multi-Agent primary selection, lease/failover and WMS reconciliation are future work after transport PASS.
 - Báo hàng remains online-only on the canonical Worker/InventoryCore path; D043 remains fully active.
+
+
+## D074 — Relay field repair and Picker split tabs
+
+- D073 remains a transport-only Beta POC; no WMS lookup, click, confirmation or mutation exists in this phase.
+- Picker has two bottom-pinned operational tabs: **Báo hết hàng** and **Xác nhận đơn**. Only one panel is visible at a time.
+- **Xác nhận đơn** accepts exactly five numeric Picklist-suffix digits; the send action is enabled only when five digits are present and Enter/Done may submit.
+- Picker density is reduced from the D073 first pass: smaller headings, shorter inputs/buttons and tighter vertical spacing while preserving touch usability.
+- Relay authorization/path identity is the Firebase ID-token subject (`sub`) on both Android and Windows; application `user_id` must not be used as the RTDB security path key.
+- Windows Agent differentiates network reachability from RTDB authorization: HTTP 403 is reported as RTDB permission/auth failure, not generic Office network failure.
+- Windows Agent writes a bounded local diagnostic log for each run with network/proxy/HTTP timing/state information and automatic redaction of passwords, bearer tokens, JWTs, refresh tokens, API keys and query auth values.

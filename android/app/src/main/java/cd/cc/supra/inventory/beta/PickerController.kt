@@ -18,6 +18,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Button
@@ -38,6 +39,7 @@ class PickerController(
     private val kit: InventoryUi,
     private val setStatus: (String) -> Unit,
     private val friendlyError: (Exception) -> String,
+    private val recordLog: (String) -> Unit,
 ) {
     private val zone = ZoneId.of("Asia/Ho_Chi_Minh")
     private val timeFmt = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(zone)
@@ -67,10 +69,14 @@ class PickerController(
     private var selected: SkuItem? = null
     private var pendingResults: List<PickerResult> = emptyList()
     private val withdrawButtons = linkedMapOf<Button, Long>()
-    private val relayPocClient = RelayPocClient(api)
+    private val relayPocClient = RelayPocClient(api, recordLog)
     private var relayPicklistInput: EditText? = null
     private var relayButton: Button? = null
     private var relayStatus: TextView? = null
+    private var shortagePanel: View? = null
+    private var confirmPanel: View? = null
+    private var shortageTab: TextView? = null
+    private var confirmTab: TextView? = null
 
     private val withdrawTicker = object : Runnable {
         override fun run() {
@@ -107,11 +113,58 @@ class PickerController(
         suggestions = null
         historyBox = null
         historyRenderer = null
-        relayPicklistInput = root.findViewById(R.id.etRelayPicklistSuffix)
+
+        shortagePanel = root.findViewById(R.id.panelShortage)
+        confirmPanel = root.findViewById(R.id.panelConfirmOrder)
+        shortageTab = root.findViewById<TextView>(R.id.tabShortage)?.apply {
+            setOnClickListener { showOperationTab(confirm = false) }
+        }
+        confirmTab = root.findViewById<TextView>(R.id.tabConfirmOrder)?.apply {
+            setOnClickListener { showOperationTab(confirm = true) }
+        }
         relayStatus = root.findViewById(R.id.tvRelayPocStatus)
         relayButton = root.findViewById<Button>(R.id.btnRelayPocSend)?.apply {
+            isEnabled = false
             setOnClickListener { submitRelayProbe() }
         }
+        relayPicklistInput = root.findViewById<EditText>(R.id.etRelayPicklistSuffix)?.apply {
+            isEnabled = true
+            isFocusable = true
+            isFocusableInTouchMode = true
+            addTextChangedListener(object : TextWatcher {
+                private var normalizing = false
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+                override fun afterTextChanged(s: Editable?) {
+                    if (normalizing) return
+                    val raw = s?.toString().orEmpty()
+                    val digits = raw.filter(Char::isDigit).take(5)
+                    if (raw != digits) {
+                        normalizing = true
+                        setText(digits)
+                        setSelection(digits.length)
+                        normalizing = false
+                    }
+                    relayButton?.isEnabled = digits.length == 5
+                    relayStatus?.text = if (digits.isEmpty()) {
+                        "Sẵn sàng nhập 5 số cuối."
+                    } else if (digits.length < 5) {
+                        "Đã nhập " + digits.length + "/5 số."
+                    } else {
+                        "Đủ 5 số. Sẵn sàng gửi test."
+                    }
+                }
+            })
+            setOnEditorActionListener { _, actionId, _ ->
+                if (actionId == EditorInfo.IME_ACTION_DONE && text?.length == 5) {
+                    submitRelayProbe()
+                    true
+                } else {
+                    false
+                }
+            }
+        }
+        showOperationTab(confirm = false)
 
         autoInput?.threshold = 1
         autoInput?.addTextChangedListener(object : TextWatcher {
@@ -149,30 +202,59 @@ class PickerController(
         relayPocClient.close()
     }
 
+    private fun showOperationTab(confirm: Boolean) {
+        shortagePanel?.visibility = if (confirm) View.GONE else View.VISIBLE
+        confirmPanel?.visibility = if (confirm) View.VISIBLE else View.GONE
+        shortageTab?.apply {
+            setBackgroundResource(if (confirm) R.drawable.bg_button_secondary else R.drawable.bg_button_primary)
+            setTextColor(if (confirm) kit.text else Color.WHITE)
+        }
+        confirmTab?.apply {
+            setBackgroundResource(if (confirm) R.drawable.bg_button_primary else R.drawable.bg_button_secondary)
+            setTextColor(if (confirm) Color.WHITE else kit.text)
+        }
+        if (confirm) {
+            recordLog("Picker mở tab Xác nhận đơn")
+            relayPicklistInput?.post {
+                relayPicklistInput?.requestFocus()
+                activity.getSystemService(InputMethodManager::class.java)
+                    ?.showSoftInput(relayPicklistInput, InputMethodManager.SHOW_IMPLICIT)
+            }
+        } else {
+            recordLog("Picker mở tab Báo hết hàng")
+        }
+    }
+
     private fun submitRelayProbe() {
         val suffix = relayPicklistInput?.text?.toString()?.trim().orEmpty()
         if (!suffix.matches(Regex("^\\d{5}$"))) {
             relayStatus?.text = "Nhập đúng 5 số cuối Picklist."
+            relayButton?.isEnabled = false
             return
         }
         if (!isOnline()) {
             relayStatus?.text = "PDA chưa có kết nối Internet."
+            recordLog("Relay PDA chưa có Internet validated")
             return
         }
         relayButton?.isEnabled = false
-        relayStatus?.text = "Đang gửi " + suffix + " tới máy xử lý..."
+        relayStatus?.text = "Đang gửi tới máy xử lý..."
+        recordLog("Relay bắt đầu gửi test 5 số; không ghi giá trị Picklist vào log")
         Thread {
             try {
                 val result = relayPocClient.sendProbe(suffix)
                 activity.runOnUiThread {
-                    relayButton?.isEnabled = true
+                    relayButton?.isEnabled = relayPicklistInput?.text?.length == 5
                     val network = result.agentNetwork.takeIf { it.isNotBlank() && it != "UNKNOWN" }?.let { " • " + it }.orEmpty()
                     relayStatus?.text = "Đã nhận bởi " + result.agentId + network + " • " + result.roundTripMs + " ms"
+                    recordLog("Relay PDA ACK rtt=" + result.roundTripMs + "ms agent=" + result.agentId + " network=" + result.agentNetwork)
                 }
             } catch (error: Exception) {
                 activity.runOnUiThread {
-                    relayButton?.isEnabled = true
-                    relayStatus?.text = error.message?.takeIf { it.isNotBlank() } ?: friendlyError(error)
+                    relayButton?.isEnabled = relayPicklistInput?.text?.length == 5
+                    val message = error.message?.takeIf { it.isNotBlank() } ?: friendlyError(error)
+                    relayStatus?.text = message
+                    recordLog("Relay PDA lỗi: " + message)
                 }
             }
         }.start()

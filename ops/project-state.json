@@ -19,7 +19,7 @@
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
     "web": "D071_IMMEDIATE_RESPONSE_DENSITY_D072_SYSTEM_STATUS_QUOTA_GUARD_BETA_RUNTIME_PASS__OWNER_REVIEW_PENDING",
-    "android": "D073_RELAY_POC_SIGNED_BETA_VC47_BUILD_PASS__D070_FIELD_ACCEPTANCE_PENDING",
+    "android": "D074_PICKER_SPLIT_TABS_RELAY_INPUT_AUTH_REPAIR_IN_PROGRESS__LATEST_SIGNED_BETA_VC47",
     "latest_beta_apk": "beta-vc47",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
     "network_scope": "PDA_INTERNET_SUPPORTED__D073_OFFICE_GOOGLE_RELAY_POC_FOR_PICKLIST_CONFIRM_ONLY__NO_OFFLINE_BUSINESS_MODE",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D073_SOURCE_BUILD_RELEASE_PASS__RTDB_PROVISIONING_FIELD_TEST_PENDING__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D074_FIELD_REPAIR_IN_PROGRESS__OFFICE_REACHES_FIREBASE_HTTP_403_AUTH_RULE_PATH__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -154,8 +154,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Owner completes OA002: create the scoped Beta Firebase Realtime Database in Singapore locked mode and publish firebase/database.rules.json. Then field-test signed Beta vc47 -> Firebase relay -> Windows Agent on Office -> ACK/RTT. No WMS mutation.",
-    "method": "Install beta-vc47 on the PDA. Run the D073 portable Windows Agent; pair it once while the laptop can reach the Beta Worker, switch laptop to Office, use Kiểm tra Office, then keep Nghe relay active. Send any five test digits from Xác nhận lấy hàng and record ACK machine/SSID/round-trip. Báo hàng remains unchanged on Cloudflare/InventoryCore.",
+    "primary": "Implement D074 Beta field repair: derive RTDB identity from Firebase token subject on Android/Windows, add sanitized persistent Agent diagnostics, split Picker into bottom-pinned Báo hết hàng/Xác nhận đơn tabs with denser UI and reliable five-digit input/send; build/release and re-test Office.",
+    "method": "Branch -> PR -> authority/continuity/UI/Android/Agent PASS -> merge -> signed Beta release -> Owner field-tests Office Agent RTDB check/listen and PDA five-digit send. No WMS mutation; Stable untouched.",
     "stable_guard": "Stable remains OWNER-GATED and untouched."
   },
   "continuity_policy": {
@@ -183,6 +183,7 @@
   },
   "workboard": {
     "in_progress": [
+      "D074 relay field repair: Office Firebase HTTPS reachable but RTDB authenticated read/SSE returns 403; Android five-digit interaction and split-tab density repair in progress",
       "D068 Web baseline Owner-accepted/frozen",
       "D069 items 1, 2, 4 and 5 Beta runtime PASS",
       "D070 alarm runtime-availability repair deployed Beta PASS; physical timing/FCM Owner acceptance pending",
@@ -192,7 +193,8 @@
       "D073 Beta Xác nhận lấy hàng transport POC source/build/release PASS; RTDB provisioning and Office field transport acceptance pending"
     ],
     "next": [
-      "Owner completes OA002: create scoped Beta RTDB in Singapore locked mode and publish repository rules",
+      "Complete D074 source/build/release PASS with no WMS mutation and Stable untouched",
+      "Field-test D074 signed Beta + rebuilt Windows Agent on Office: token refresh -> RTDB read/SSE -> PDA five-digit ACK/RTT",
       "Field-test signed beta-vc47 -> Firebase relay -> Office Agent -> ACK/RTT with zero WMS mutation",
       "Field-test D073 PDA -> relay -> Office Agent -> ACK latency with zero WMS mutation",
       "Owner reviews D071 four Web items and D072 system-status exclusion",

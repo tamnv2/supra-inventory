@@ -21,3 +21,19 @@ Purpose: prove the Beta transport path **PDA → Firebase Realtime Database → 
 7. Expected: Agent logs the request and returns ACK; APK shows laptop name, laptop SSID and end-to-end milliseconds.
 
 A successful D073 POC proves transport only. It does not approve WMS automation or the final <5 second business SLA.
+
+
+## D074 field diagnostics
+
+The Agent now separates network transport from RTDB authorization:
+
+- `Google refresh PASS` proves the Office network can reach Google Secure Token.
+- `OFFICE PASS / Google + RTDB` proves authenticated RTDB read access.
+- `RTDB 403 / Rules` means HTTPS reached Firebase but Firebase Rules/auth/path denied access; this is not reported as a generic network failure.
+- The RTDB path is derived from Firebase ID-token `sub`, never from the application username/user_id.
+
+A sanitized local run log is written under:
+
+`%LOCALAPPDATA%\SUPRA Inventory\RelayPoc\Logs\`
+
+Use **Mở log** to open the current file. The log records runtime version, SSID, active IPv4 interfaces, gateway/DNS, system proxy, safe endpoint path, HTTP status/timing, Firebase project audience, hashed UID fingerprint, reconnect state and ACK timing. It must never contain the typed password, raw Picklist suffix, bearer/ID/refresh token, API key, cookie, private key or URL auth/query credential.

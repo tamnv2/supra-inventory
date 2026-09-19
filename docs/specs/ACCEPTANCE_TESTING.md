@@ -395,3 +395,17 @@ D073 is PASS only when all of the following are demonstrated on Beta without tou
 8. Stable is untouched.
 
 A field timing target may be observed, but transport POC PASS does not yet establish the final <5s WMS-confirmation SLA.
+
+
+## D074 — Relay field repair acceptance
+
+D074 is field-ready only when all of the following are true:
+
+1. On `.Office@MSN`, the Agent can refresh the Firebase session and classify RTDB access separately from network reachability; a 403 is shown/logged as permission/auth/rules failure, not network failure.
+2. Both Android and Agent build the RTDB path from Firebase ID-token `sub`; no relay path uses application `session.userId`.
+3. Agent diagnostic logs are persisted locally and contain no password, bearer token, Firebase ID/refresh token, API key, cookie or private key value.
+4. Picker shows a bottom-pinned two-tab bar `Báo hết hàng` / `Xác nhận đơn`; switching tabs preserves the Báo hàng state.
+5. `Xác nhận đơn` accepts only numeric input, maximum five digits; the send button enables exactly at five digits, Done/Enter may submit, and the field receives focus when the tab opens.
+6. Successful test displays Agent identity/network plus end-to-end milliseconds; timeout/403/transport errors are explicit and never reported as business confirmation success.
+7. Existing Báo hết hàng behavior and Worker/InventoryCore transaction path remain unchanged.
+8. No WMS mutation exists and Stable remains untouched.
