@@ -131,7 +131,7 @@
                 android:gravity="center_vertical"
                 android:hint="5 số cuối Picklist"
                 android:imeOptions="actionDone"
-                android:inputType="numberDecimal"
+                android:inputType="number"
                 android:maxLength="5"
                 android:singleLine="true"
                 android:textSize="19sp" />
