@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   relay-agent:
@@ -29,6 +29,16 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "8.0.x"
+
+      - name: Validate Agent build channel
+        shell: pwsh
+        run: |
+          $version = (Get-Content relay-agent/VERSION -Raw).Trim()
+          if ($version -notmatch '^\d+$') { throw "relay-agent/VERSION must be an integer." }
+          $config = Get-Content relay-agent/AgentConfig.cs -Raw
+          if ($config -notmatch "AgentBuild\s*=\s*$version\s*;") {
+            throw "AgentConfig.AgentBuild does not match relay-agent/VERSION=$version"
+          }
 
       - name: Prepare Beta Agent config
         shell: pwsh
@@ -47,7 +57,8 @@ jobs:
           Copy-Item relay-agent/bin/Release/net48/SUPRA-Inventory-Relay-Test.exe relay-agent/dist/
           Copy-Item relay-agent/README.md relay-agent/dist/
           Copy-Item firebase/database.rules.json relay-agent/dist/
-          (Get-FileHash relay-agent/dist/SUPRA-Inventory-Relay-Test.exe -Algorithm SHA256).Hash.ToLower() | Set-Content relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256
+          (Get-FileHash relay-agent/dist/SUPRA-Inventory-Relay-Test.exe -Algorithm SHA256).Hash.ToLower() |
+            Set-Content relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256
 
       - name: Upload Agent artifact
         uses: actions/upload-artifact@v4
@@ -56,3 +67,24 @@ jobs:
           path: relay-agent/dist/*
           if-no-files-found: error
           retention-days: 14
+
+      - name: Publish dedicated Agent prerelease
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = (Get-Content relay-agent/VERSION -Raw).Trim()
+          $tag = "relay-agent-v$version"
+          gh release view $tag --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -eq 0) {
+            throw "Agent release $tag already exists. Increment relay-agent/VERSION before publishing another Agent binary."
+          }
+          gh release create $tag `
+            "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe#SUPRA-Inventory-Relay-Test.exe" `
+            "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256#SUPRA-Inventory-Relay-Test.exe.sha256" `
+            "relay-agent/dist/README.md#README.md" `
+            --repo "${{ github.repository }}" `
+            --title "SUPRA Inventory Relay Agent v$version" `
+            --notes "Beta relay Agent prerelease. Transport POC only; no WMS mutation. Auto-update channel for Windows Agent." `
+            --prerelease
