@@ -468,10 +468,25 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
 
 function reporterQueue(state: DurableObjectState, url: URL): Response {
   const parsed = Number(url.searchParams.get("limit") || 100);
+  const parsedOffset = Number(url.searchParams.get("offset") || 0);
   const limit = Math.max(1, Math.min(200, Number.isFinite(parsed) ? Math.trunc(parsed) : 100));
+  const offset = Math.max(0, Number.isFinite(parsedOffset) ? Math.trunc(parsedOffset) : 0);
   const config = readSlaConfig(state);
   const serverNowMs = Date.now();
   const serverNow = new Date(serverNowMs).toISOString();
+  const totalRow = first(
+    state.storage.sql.exec<SqlRow>(
+      `SELECT COUNT(*) AS total
+         FROM report_batches b
+        WHERE b.status = 'PENDING'
+          AND EXISTS (
+            SELECT 1
+              FROM report_tickets t
+             WHERE t.batch_id = b.batch_id AND t.status = 'OPEN'
+          )`,
+    ).toArray(),
+  );
+  const total = Number(totalRow?.total || 0);
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
             b.version, b.previous_batch_id, p.resolved_at AS previous_resolved_at,
@@ -483,8 +498,9 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
       WHERE b.status = 'PENDING'
       GROUP BY b.batch_id
       ORDER BY affected_picker_count DESC, b.first_report_at ASC
-      LIMIT ?`,
+      LIMIT ? OFFSET ?`,
     limit,
+    offset,
   ).toArray().map((row) => {
     const firstReportAt = String(row.first_report_at || "");
     const sla = slaState(firstReportAt, config, serverNowMs);
@@ -502,7 +518,7 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
       recurrence_minutes: Number.isFinite(recurrenceMinutes as number) ? recurrenceMinutes : null,
     };
   });
-  return json({ items: rows, count: rows.length, server_now: serverNow, sla_configured: Boolean(config), sla: config });
+  return json({ items: rows, count: rows.length, total, limit, offset, server_now: serverNow, sla_configured: Boolean(config), sla: config });
 }
 
 function reporterRecent(state: DurableObjectState, url: URL): Response {
