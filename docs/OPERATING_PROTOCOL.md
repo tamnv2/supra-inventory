@@ -37,4 +37,4 @@ Stable actions are never inferred from a Beta request. Stable provisioning/deplo
 
 ## Beta RTDB Rules automation
 
-D076 makes Beta Realtime Database Rules a CI-managed resource. Rules changes follow branch → PR validation → authority/continuity PASS → merge → main-only Rules deploy. The credential source is GitHub Environment `beta` secret `FIREBASE_RULES_SA_JSON_BETA`; its value is never durable project data. Stable RTDB deployment is not included and remains OWNER-GATED.
+D076 makes Beta Realtime Database Rules a CI-managed resource. Rules changes follow branch → PR read-only validation → authority/continuity PASS → merge → main-only REST PUT to the scoped Beta RTDB `/.settings/rules.json` endpoint → readback verification. The credential source is GitHub Environment `beta` secret `FIREBASE_RULES_SA_JSON_BETA`; its value and short-lived OAuth token are never durable project data. Stable RTDB deployment is not included and remains OWNER-GATED.

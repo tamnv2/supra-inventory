@@ -118,18 +118,18 @@
     },
     {
       "id": "OA004",
-      "status": "RULES_CREDENTIAL_OWNER_SETUP_REPORTED_DONE__D076_CI_VALIDATION_PENDING",
+      "status": "D076_RULES_CI_VALIDATED__MAIN_DEPLOY_PENDING",
       "title": "Publish D075 shared relay RTDB Rules and field-test ADMIN Agent",
       "resource_key": "firebase-rtdb-relay-beta",
       "provider": "Firebase + physical Beta field environment",
-      "reason_owner_only": "Connected tools do not expose Firebase Realtime Database Rules publication and cannot perform the physical Office/PDA test.",
+      "reason_owner_only": "After D076 Rules deploy PASS, only the physical Office/PDA field acceptance remains Owner/device/network dependent.",
       "owner_ui_path": [
-        "Firebase Console",
+        "Google Cloud Console",
         "Project supra-inventory-beta",
-        "Build -> Realtime Database",
-        "Rules",
-        "Replace with firebase/database.rules.json from merged D075",
-        "Publish"
+        "IAM & Admin -> IAM",
+        "Edit principal inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com",
+        "Add role Firebase Realtime Database Admin (roles/firebasedatabase.admin)",
+        "Save"
       ],
       "shortest_test_path": [
         "Run updated Relay Agent and sign in with a real ADMIN account",
@@ -139,7 +139,7 @@
         "Verify PDA receives ACK showing ADMIN/machine/Agent instance/RTT"
       ],
       "safety": "Beta only; do not use Test mode/open Rules; no WMS mutation; never share passwords/tokens.",
-      "remaining_owner_action": "No Rules UI action unless D076 CI proves the supplied credential/permissions insufficient. After automated Rules deploy PASS, only physical field test remains.",
+      "remaining_owner_action": "No IAM/Rules setup action remains. Wait for automated main Rules deploy PASS, then run the physical Picker PDA -> ADMIN Agent v2 field test.",
       "prerequisites": {
         "merged_main": "9b149e56b4781eb905daa6793db6a220a045cf5a",
         "android_release": "beta-vc49",

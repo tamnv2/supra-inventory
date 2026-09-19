@@ -75,20 +75,26 @@ jobs:
           echo "GOOGLE_APPLICATION_CREDENTIALS=$cred" >> "$GITHUB_ENV"
           echo "Ephemeral ADC credential ready"
 
-      - name: Verify Firebase Rules IAM read access
+      - name: Verify RTDB IAM and deploy Rules on main
         shell: bash
+        env:
+          DEPLOY_RULES: ${{ github.event_name != 'pull_request' }}
         run: |
           set -euo pipefail
           node <<'NODE'
           const fs = require('fs');
           const crypto = require('crypto');
 
+          const projectId = 'supra-inventory-beta';
+          const databaseUrl = 'https://supra-inventory-beta-default-rtdb.asia-southeast1.firebasedatabase.app';
+          const canonicalRules = JSON.parse(fs.readFileSync('firebase/database.rules.json', 'utf8'));
           const sa = JSON.parse(fs.readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS, 'utf8'));
+
           const enc = value => Buffer.from(JSON.stringify(value)).toString('base64url');
           const now = Math.floor(Date.now() / 1000);
           const unsigned = enc({ alg: 'RS256', typ: 'JWT' }) + '.' + enc({
             iss: sa.client_email,
-            scope: 'https://www.googleapis.com/auth/cloud-platform',
+            scope: 'https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/userinfo.email',
             aud: 'https://oauth2.googleapis.com/token',
             iat: now,
             exp: now + 900,
@@ -97,6 +103,14 @@ jobs:
           signer.update(unsigned);
           signer.end();
           const assertion = unsigned + '.' + signer.sign(sa.private_key).toString('base64url');
+
+          const normalize = value => {
+            if (Array.isArray(value)) return value.map(normalize);
+            if (value && typeof value === 'object') {
+              return Object.fromEntries(Object.keys(value).sort().map(key => [key, normalize(value[key])]));
+            }
+            return value;
+          };
 
           async function main() {
             const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
@@ -108,41 +122,62 @@ jobs:
               }),
             });
             if (!tokenRes.ok) throw new Error('OAuth token exchange failed: HTTP ' + tokenRes.status);
-            const token = await tokenRes.json();
-            if (!token.access_token) throw new Error('OAuth token exchange returned no access token');
+            const tokenBody = await tokenRes.json();
+            const accessToken = tokenBody.access_token;
+            if (!accessToken) throw new Error('OAuth token exchange returned no access token');
 
-            const rulesRes = await fetch('https://firebaserules.googleapis.com/v1/projects/supra-inventory-beta/rulesets?pageSize=1', {
-              headers: { authorization: 'Bearer ' + token.access_token },
+            const iamRes = await fetch('https://cloudresourcemanager.googleapis.com/v1/projects/' + projectId + ':testIamPermissions', {
+              method: 'POST',
+              headers: {
+                authorization: 'Bearer ' + accessToken,
+                'content-type': 'application/json',
+              },
+              body: JSON.stringify({ permissions: ['firebasedatabase.instances.update'] }),
             });
-            if (!rulesRes.ok) throw new Error('Firebase Rules IAM read probe failed: HTTP ' + rulesRes.status);
-            const body = await rulesRes.json();
-            if (body === null || typeof body !== 'object' || Array.isArray(body)) throw new Error('Unexpected Firebase Rules API response');
-            console.log('Firebase Rules credential + IAM read access PASS');
+            if (!iamRes.ok) throw new Error('IAM permission probe failed: HTTP ' + iamRes.status);
+            const iam = await iamRes.json();
+            const held = Array.isArray(iam.permissions) ? iam.permissions : [];
+            if (!held.includes('firebasedatabase.instances.update')) {
+              throw new Error('Missing required permission firebasedatabase.instances.update');
+            }
+            console.log('RTDB update IAM permission PASS');
+
+            const rulesUrl = databaseUrl + '/.settings/rules.json?access_token=' + encodeURIComponent(accessToken);
+            const readRes = await fetch(rulesUrl);
+            if (!readRes.ok) throw new Error('RTDB Rules read probe failed: HTTP ' + readRes.status);
+            const currentRules = await readRes.json();
+            if (!currentRules || typeof currentRules !== 'object' || Array.isArray(currentRules)) {
+              throw new Error('RTDB Rules read probe returned invalid JSON');
+            }
+            console.log('RTDB Rules read probe PASS');
+
+            if (process.env.DEPLOY_RULES !== 'true') {
+              console.log('PR read-only validation PASS; no Rules mutation performed');
+              return;
+            }
+
+            const putRes = await fetch(rulesUrl, {
+              method: 'PUT',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify(canonicalRules),
+            });
+            if (!putRes.ok) throw new Error('RTDB Rules PUT failed: HTTP ' + putRes.status);
+            console.log('RTDB Rules PUT PASS');
+
+            const verifyRes = await fetch(rulesUrl);
+            if (!verifyRes.ok) throw new Error('RTDB Rules verify GET failed: HTTP ' + verifyRes.status);
+            const deployedRules = await verifyRes.json();
+            const expected = JSON.stringify(normalize(canonicalRules));
+            const actual = JSON.stringify(normalize(deployedRules));
+            if (actual !== expected) throw new Error('RTDB Rules verify mismatch after PUT');
+            console.log('Beta RTDB Rules deploy + readback verify PASS');
           }
+
           main().catch(error => {
             console.error(error.message);
             process.exit(1);
           });
           NODE
-
-      - name: Setup Node
-        if: github.event_name != 'pull_request'
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
-      - name: Install Firebase CLI
-        if: github.event_name != 'pull_request'
-        run: npm install --global firebase-tools@latest --no-audit --no-fund
-
-      - name: Deploy Beta Realtime Database Rules
-        if: github.event_name != 'pull_request'
-        shell: bash
-        run: |
-          set -euo pipefail
-          firebase deploy --only database --project supra-inventory-beta --non-interactive
-          echo "Beta RTDB Rules deploy PASS"
-
       - name: Remove ephemeral ADC credential
         if: always()
         shell: bash

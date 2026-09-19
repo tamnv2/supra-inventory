@@ -426,7 +426,7 @@ D074 is field-ready only when all of the following are true:
 
 1. Pull-request workflow fails closed when `FIREBASE_RULES_SA_JSON_BETA` is missing, malformed, or belongs to a project other than `supra-inventory-beta`.
 2. Pull-request validation authenticates and proves read access without publishing/mutating Rules.
-3. Only a push to merged `main` may execute `firebase deploy --only database --project supra-inventory-beta`.
+3. Only a push to merged `main` may PUT the canonical Rules to the scoped Beta RTDB `/.settings/rules.json` endpoint using a short-lived OAuth access token, then GET/readback-verify the deployed JSON.
 4. Deployment uses `firebase/database.rules.json` through canonical `firebase.json`.
 5. Workflow never echoes service-account JSON/private key/access token and never targets Stable.
 6. A successful main workflow is required before D075 Rules are marked deployed.
