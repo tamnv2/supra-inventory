@@ -190,7 +190,7 @@
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
-      "relay_poc_status": "D082_RELEASE_PASS__OWNER_HOME_FIELD_TEST_PENDING__D078_OFFICE_PENDING",
+      "relay_poc_status": "D083_AGENT_V8_REPAIR_IN_PROGRESS__ANDROID_VC50_OWNER_OPEN_OK__D082_LOOKUP_PAUSED",
       "relay_agent_release": "relay-agent-v7",
       "firebase_rtdb_rules_deploy": "PASS_RUN_35451292051__REST_PUT_EXACT_READBACK"
     },
@@ -501,9 +501,9 @@
     "extension_feature": false
   },
   "relay_poc": {
-    "decision": "D082",
+    "decision": "D083",
     "environment": "beta",
-    "status": "D082_RELEASE_PASS__OWNER_HOME_FIELD_TEST_PENDING__D078_OFFICE_TRANSPORT_PENDING",
+    "status": "D083_AGENT_V8_STARTUP_REPAIR_IN_PROGRESS__D082_LOOKUP_FIELD_TEST_PAUSED__D078_OFFICE_PENDING",
     "purpose": "Authenticated Picker-to-ADMIN relay carrying a bounded five-digit read-only WMS Picklist existence lookup result; no confirmation/mutation",
     "transport": "FIREBASE_RTDB_REST_SSE",
     "database_resource_key": "firebase-rtdb-relay-beta",
@@ -544,19 +544,20 @@
     "rules_deploy_method": "OFFICIAL_RTDB_SETTINGS_RULES_REST_PUT_AND_READBACK",
     "rules_deploy_last_evidence": "PASS_RUN_35460327532__D082_OPTIONAL_LOOKUP_ACK_METADATA__EXACT_READBACK",
     "rules_deployed_source_commit": "452feb1e25dff936617e5d1d51313438d85155eb",
-    "agent_release_target": "relay-agent-v7",
+    "agent_release_target": "relay-agent-v8",
     "office_transport_discovery": "V4_RELEASE_PASS__FIREBASE_AUTH_RTDB_FIRESTORE_APPS_SCRIPT_SHEETS_DRIVE_READ_ONLY_PROBES__FIELD_LOG_PENDING",
     "transport_selection": "PENDING_OWNER_OFFICE_PROBE_EVIDENCE",
     "wms_session_capture": "RELEASED_V6__EDGE_PRIMARY_CHROME_FALLBACK__FULL_300S_LOGIN_WINDOW__RAM_ONLY_HEADERS__NO_WMS_PASSWORD_IN_EXE",
     "wms_probe": "WMS_UI_REACHABILITY__SIGNED_GET_WAREHOUSE_ZONES__SYSTEM_ENV_DIRECT_CORP_PROXY_ROUTES",
-    "taskbar_monitor": "RELEASED_V7__ALWAYS_VISIBLE_TOPMOST_OVERLAY__OPACITY_POSITION_PERSIST__LOCKED_CLICKTHROUGH__LOCAL_ONLY",
+    "taskbar_monitor": "D083_SOURCE__D082_OVERLAY_LAZY_AFTER_MAIN_SHOWN__FAILURE_ISOLATED__LOCKED_CLICKTHROUGH",
     "picklist_lookup": "RELEASED_D082__SIGNED_GET_AUTOPP_PICKLISTCONFIRMS__TRAILING_FIVE_DIGIT_MATCH__FAIL_CLOSED_UNKNOWN_SCHEMA",
-    "lookup_ack": "OPTIONAL_BOUNDED_STATUS_MATCH_COUNT_LATENCY_ROUTE_HTTP__NO_FULL_PICKLIST_OR_WMS_RESPONSE"
+    "lookup_ack": "OPTIONAL_BOUNDED_STATUS_MATCH_COUNT_LATENCY_ROUTE_HTTP__NO_FULL_PICKLIST_OR_WMS_RESPONSE",
+    "agent_startup": "V7_OWNER_FIELD_FAIL_SILENT_EXIT__V8_LAZY_OVERLAY_FAILSAFE_AND_EXECUTABLE_CI_SMOKE"
   },
   "wms_poc": {
     "decision": "D082",
     "environment": "beta_poc",
-    "status": "D082_RELEASE_PASS__OWNER_REAL_PICKLIST_LOOKUP_PENDING",
+    "status": "D082_RELEASE_PASS__FIELD_TEST_PAUSED_BY_D083_AGENT_STARTUP_REPAIR",
     "ui_resource_key": "supra-wms-ui-d080",
     "api_resource_key": "supra-api-d080",
     "proxy_resource_key": "wincommerce-proxy-fallback-d080",
@@ -597,6 +598,6 @@
     "confirm_ui_reference": "https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm",
     "confirmation": "DEFERRED_NOT_AUTHORIZED_NOT_IMPLEMENTED",
     "session_login_suppression": "VALID_RAM_SESSION_DISABLES_MANUAL_CAPTURE__REMOTE_PDA_NEVER_AUTO_OPENS_LOGIN",
-    "agent_release_target": "relay-agent-v7"
+    "agent_release_target": "relay-agent-v8"
   }
 }
