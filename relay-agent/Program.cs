@@ -276,7 +276,7 @@ namespace SupraInventoryRelayAgent
             FormClosing += (s, e) =>
             {
                 if (!_allowExit && e.CloseReason == CloseReason.UserClosing) { e.Cancel = true; WindowState = FormWindowState.Minimized; Hide(); return; }
-                StopListening(); _tray.Visible = false;
+                StopListening(); _trayMonitorTimer.Stop(); _tray.Visible = false;
             };
 
             var timer = new System.Windows.Forms.Timer { Interval = 4000 };
