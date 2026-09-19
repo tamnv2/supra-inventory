@@ -119,3 +119,13 @@ Trong lúc bài test PDA ↔ Agent trên mạng Office tạm hoãn, Agent v5 ki�
 - The WMS confirm page is recorded only as a reference. No confirm/click and no WMS POST/PUT/PATCH/DELETE exists in D082.
 - Existing Beta RTDB home relay stays unchanged; D078 Office transport remains pending.
 - Stable is untouched.
+
+## D083 — v8 startup fail-safe repair
+
+- Repairs the v7 field regression where the EXE could terminate before showing any UI.
+- Main Agent form now starts first; the persistent overlay is lazy-initialized only after the main form is shown.
+- Overlay initialization/PInvoke/window-style failure is isolated: Agent continues without the overlay and records a sanitized local diagnostic.
+- Removes overlay `RecreateHandle()` from the initial show/lock path.
+- Adds top-level startup crash logging plus a visible error dialog for normal launches.
+- CI now executes the built EXE with `--startup-smoke` and fails the Agent release if it cannot start and exit cleanly within 15 seconds.
+- D082 read-only Picklist behavior is unchanged. No WMS mutation. Stable untouched.
