@@ -627,3 +627,10 @@ Next action is physical Owner field test of beta-vc48 + rebuilt Agent on `.Offic
 
 
 Current Android marker: `D074_PICKER_SPLIT_TABS_RELAY_UID_AUTH_DIAGNOSTICS_SIGNED_BETA_VC48_BUILD_PASS__OWNER_FIELD_RETEST_PENDING`.
+
+
+## D075 shared relay / ADMIN Agent — 2026-09-19
+
+Field logs proved both endpoints can reach Firebase successfully, but D074 isolated jobs by Firebase UID while PDA used Picker 100 and the Agent used Picker 200. D075 replaces that routing with one shared Picker queue and makes the Windows Agent a real ADMIN-only workstation identity. ACK metadata identifies ADMIN user + machine + persistent Agent instance. D075 also adds SHA-256 verified automatic portable Agent updates via dedicated GitHub prereleases, which must not replace Android Beta `/releases/latest`.
+
+Current relay marker: `D075_SHARED_PICKER_QUEUE_ADMIN_ONLY_AGENT_AUTO_UPDATE_IN_PROGRESS__NO_WMS_MUTATION`.
