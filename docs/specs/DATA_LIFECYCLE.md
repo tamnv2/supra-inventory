@@ -189,3 +189,23 @@ The diagnostic snapshot may include bounded:
 - recent application errors and bounded recent operational UI events.
 
 Diagnostics must never contain authorization headers, ID/access/refresh tokens, passwords, cookies, API keys, credentials, private/signing/keystore material or secret runtime values. Input/change logging records control identity only, never typed values. Client and server both sanitize/redact, and each uploaded file remains size/depth/count bounded. Google Drive Logs remains a support store; it is not a transaction database.
+
+
+## D070 timing / automatic-Skip lifecycle
+
+D070 adds durable operational timing evidence without creating a second transaction store.
+
+Per batch/ticket where applicable, hot authoritative data may retain:
+- automatic deadline timestamp assigned when the report becomes eligible;
+- per-ticket `auto_skip_allowed_at`;
+- resolution and `resolution_source` such as `REPORTER`, `SYSTEM_TIMEOUT`, or correction source;
+- idempotent warning/escalation deadline-event markers;
+- audit entries for policy changes, warning/escalation transition and automatic-Skip result.
+
+Rules:
+- server time is authoritative;
+- existing legacy work is not backfilled with an automatic deadline merely because D070 is activated/re-enabled/mode-switched;
+- disabling or switching auto-Skip mode clears not-yet-fired automatic deadlines fail-safe;
+- a fired automatic result is durable business history and is never erased by disabling the feature later;
+- correction creates normal immutable lifecycle/result evidence rather than rewriting prior timeout history;
+- retention/archive must preserve enough result/source/timestamp evidence to distinguish Reporter decisions from system timeout outcomes.

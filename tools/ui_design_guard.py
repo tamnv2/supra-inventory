@@ -48,6 +48,7 @@ SERVICE_CORE = read("service/src/core.ts")
 SERVICE_READ_MODEL = read("service/src/read-model-core.ts")
 SERVICE_NOTIFICATIONS = read("service/src/notifications-core.ts")
 SERVICE_RUNTIME_LOGS = read("service/src/runtime-logs.ts")
+SERVICE_SLA_AUTO = read("service/src/sla-automation.ts")
 SERVICE_SYSTEM_STATUS = read("service/src/system-status.ts")
 SERVICE_SYSTEM_METRICS = read("service/src/system-metrics-core.ts")
 BETA_LOAD_TEST = read("tools/beta-load-test.mjs")
@@ -70,6 +71,7 @@ checks = {
     "authority_d067_web_ux_refinement": "D067" in DECISIONS and "Owner-accepted Web refinement baseline (D067)" in DESIGN_SPEC,
     "authority_d068_web_navigation_toast_performance": "D068" in DECISIONS and "Owner Web interaction refinement (D068)" in DESIGN_SPEC,
     "authority_d069_web_diagnostics_excel_unification": "D069" in DECISIONS and "Owner-accepted D068 baseline and D069 unified Web refinement" in DESIGN_SPEC,
+    "authority_d070_three_stage_auto_skip": "D070" in DECISIONS and "D070 three-stage timing UI" in DESIGN_SPEC,
     "authority_ui_acceptance_distinct_from_ci": "CI/build PASS" in DESIGN_SPEC and "Owner UI" in DESIGN_SPEC,
     "authority_no_offline_mode": "D043" in DECISIONS and "No offline business mode" in DESIGN_SPEC,
 
@@ -284,7 +286,11 @@ checks = {
     "service_delta_api": "/api/realtime/delta" in SERVICE_READ and "/operational/realtime/delta" in SERVICE_OPS,
     "service_ack_api": "/api/picker/results/receipt" in SERVICE_BUSINESS and "RESULT_ACKNOWLEDGED" in SERVICE_OPS,
     "service_fcm_correlation": all(token in SERVICE_BUSINESS for token in ["result_event_id", "event_seq", "batch_version"]),
-    "service_no_auto_skip": "AUTO_SKIP" not in SERVICE_OPS and "AUTO_SKIP" not in SERVICE_BUSINESS,
+    "service_d070_auto_skip_authority": all(token in (SERVICE_OPS + SERVICE_SLA_AUTO + SERVICE_CORE) for token in [
+        "auto_skip_minutes", "FIRST_REPORT", "PER_PICKER", "SYSTEM_TIMEOUT",
+        "scheduleNextOperationalAlarm", "async alarm(): Promise<void>", "TICKET_AUTO_SKIP_ALLOWED", "BATCH_AUTO_SKIP_ALLOWED",
+    ]),
+    "service_d070_no_picker_resolve_api": "/api/picker/batches/resolve" not in SERVICE_BUSINESS and "/api/picker/skip" not in SERVICE_BUSINESS,
     "service_root_bootstrap_preserved": 'user.role === "ROOT" && user.user_id === "root" && env.ROOT_BOOTSTRAP_PASSWORD' in SERVICE_INDEX,
     "service_d060_root_role_override": all(token in (SERVICE_INDEX + SERVICE_CORE + SERVICE_READ_MODEL + SERVICE_NOTIFICATIONS) for token in [
         "/api/auth/root-role",
@@ -318,6 +324,10 @@ checks = {
     "web_d069_excel_export": all(token in (WEB_APP + WEB_REPORT_EXCEL) for token in ["exportReportsExcel", "downloadReportWorkbook", "XLSX.writeFile", ".xlsx"]) and "Xuất CSV" not in WEB_APP and "text/csv" not in WEB_APP,
     "web_d069_rich_safe_diagnostics": all(token in (WEB_LOGGER + WEB_API + WEB_RT + SERVICE_RUNTIME_LOGS) for token in ["runtimeLogMetric", "PerformanceObserver", "supra:api-telemetry", "supra:realtime-telemetry", "192_000", "REDACTED"]) and "input.value" not in WEB_LOGGER,
     "web_d069_scoped_rendering": all(token in WEB_APP for token in ['renderMode: "section" | "full" | "none"', 'else if (renderMode === "section")', 'run(exportReportsExcel, "none")']) and "content-visibility: auto" in WEB_UNIFIED,
+    "web_d070_three_threshold_settings": all(token in WEB_APP for token in ['name="warning"', 'name="escalation"', 'name="autoSkip"', 'name="autoSkipEnabled"', 'value="FIRST_REPORT"', 'value="PER_PICKER"', "autoSkip <= escalation"]),
+    "web_d070_alert_delivery": all(token in WEB_APP for token in ["announceDeadlineEvents", "SLA_WARNING", "SLA_ESCALATED", "TICKET_AUTO_SKIP_ALLOWED", "BATCH_AUTO_SKIP_ALLOWED", "browserBackgroundNotice"]),
+    "web_d070_policy_layout": all(token in WEB_UNIFIED for token in [".sla-threshold-grid", ".sla-auto-policy", ".sla-mode-options"]),
+    "android_d070_timeout_projection": all(token in (ANDROID_API + ANDROID_PICKER + ANDROID_REPORTER) for token in ["autoSkipDeadlineAt", "autoSkipAllowedAt", "autoSkipAt", "Hệ thống tự động do quá hạn"]),
     "web_online_only_no_outbox": "offline outbox" not in WEB_UI.lower() and "chờ đồng bộ" not in WEB_UI.lower(),
     "android_online_only_no_outbox": "chờ đồng bộ" not in ANDROID_ALL.lower() and "outbox" not in ANDROID_ALL.lower(),
 }

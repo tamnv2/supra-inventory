@@ -40,6 +40,7 @@ def main() -> None:
     fcm_worker = read("service/src/fcm.ts")
     notifications_core = read("service/src/notifications-core.ts")
     operational = read("service/src/operational-v2-core.ts")
+    sla_auto = read("service/src/sla-automation.ts")
     web = read("web/src/operational-app.ts")
 
     # F09/F11: lifecycle-safe keyed rendering and single-tap withdrawal.
@@ -101,6 +102,15 @@ def main() -> None:
     require(launcher, 'openWeb("/#users"', "users deep link")
     require(launcher, 'openWeb("/#sku"', "SKU deep link")
     require(launcher, 'openWeb("/#sla"', "SLA deep link")
+
+    # D070: Android receives exact timeout state/results without gaining resolve authority.
+    require(inventory_api, "autoSkipDeadlineAt", "D070 Picker automatic deadline projection")
+    require(inventory_api, "autoSkipAllowedAt", "D070 Picker automatic result projection")
+    require(inventory_api, "autoSkipAt", "D070 Reporter next automatic deadline projection")
+    require(picker, "Hệ thống tự động do quá hạn", "D070 Picker timeout source copy")
+    require(reporter, "Tự động bỏ qua", "D070 Reporter timeout timing copy")
+    require(sla_auto, "PER_PICKER", "D070 per-Picker service mode")
+    require(sla_auto, "FIRST_REPORT", "D070 first-report service mode")
     require(launcher, "onOpenResults", "distinct results route")
     require(main_activity, 'initialFilter = "HAS_STOCK"', "results initial filter")
     require(web, "sectionFromHash()", "Web hash route parser")

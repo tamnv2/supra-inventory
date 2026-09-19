@@ -22,6 +22,9 @@ class StockMessagingService : FirebaseMessagingService() {
             "batch_resolved" -> "SUPRA Inventory · Kết quả báo hàng"
             "batch_corrected" -> "SUPRA Inventory · Cập nhật kết quả"
             "report_created" -> "SUPRA Inventory · SKU cần xử lý"
+            "sla_warning", "sla_warning_summary" -> "SUPRA Inventory · SKU sắp quá hạn"
+            "sla_escalated", "sla_escalated_summary" -> "SUPRA Inventory · SKU quá hạn"
+            "ticket_auto_skip_allowed", "batch_auto_skip_allowed", "auto_skip_summary" -> "SUPRA Inventory · Được phép bỏ qua"
             else -> "SUPRA Inventory"
         }
         val body = message.data["notification_body"]?.takeIf { it.isNotBlank() } ?: message.notification?.body ?: "Có cập nhật nghiệp vụ mới."

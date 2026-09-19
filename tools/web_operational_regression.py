@@ -37,6 +37,7 @@ def main() -> None:
     web_realtime = read("web/src/realtime-client.ts")
     report_excel = read("web/src/report-excel.ts")
     unified_css = read("web/src/legacy-transplant/web-unified-ui.css")
+    sla_auto = read("service/src/sla-automation.ts")
     users_core = read("service/src/user-management-core.ts")
     users_api = read("service/src/user-management-api.ts")
     service_index = read("service/src/index.ts")
@@ -157,6 +158,17 @@ def main() -> None:
     # SLA UI/server contract must agree.
     require(app, 'warning > 1440', "SLA warning upper bound")
     require(app, 'escalation > 2880', "SLA escalation upper bound")
+    require(app, 'autoSkip > 10080', "D070 automatic-Skip upper bound")
+    require(app, 'autoSkip <= escalation', "D070 strict three-threshold ordering")
+    require(app, 'name="autoSkipEnabled"', "D070 automatic-Skip enable control")
+    require(app, 'name="autoSkipMode" value="FIRST_REPORT"', "D070 first-report mode control")
+    require(app, 'name="autoSkipMode" value="PER_PICKER"', "D070 per-Picker mode control")
+    require(app, "announceDeadlineEvents", "D070 foreground alert handler")
+    require(app, "browserBackgroundNotice", "D070 optional browser background alerts")
+    require(api, 'auto_skip_mode: AutoSkipMode', "D070 Web config model")
+    require(sla_auto, 'auto_skip_mode: AutoSkipMode', "D070 service config model")
+    require(unified_css, ".sla-threshold-grid", "D070 three-threshold layout")
+    require(unified_css, ".sla-auto-policy", "D070 automatic-Skip policy layout")
 
     # D060: Root can temporarily lower its effective role, and the service—not the client—enforces it.
     require(api, "setRootEffectiveRole", "Root effective-role client API")

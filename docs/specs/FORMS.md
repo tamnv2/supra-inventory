@@ -212,3 +212,20 @@ Never include passwords, access/session/refresh tokens, Firebase/Google credenti
 ## Account/password
 
 Authenticated user may access account functions allowed by role. Password values are protected runtime data and must never be rendered from repo/config.
+
+
+## D070 — Thời gian xử lý / tự động cho phép bỏ qua
+
+Admin/Root Web form uses one coherent settings surface with:
+
+- `Cảnh báo (phút)` — required integer, 1..1440.
+- `Quá hạn (phút)` — required integer, strictly greater than Cảnh báo and <=2880.
+- `Tự động cho phép bỏ qua (phút)` — required integer, strictly greater than Quá hạn and <=10080.
+- `Bật tự động cho phép Picker bỏ qua khi quá thời gian` — boolean switch/checkbox.
+- Timing mode — exactly one:
+  - `Tính từ người báo đầu tiên của SKU` → `FIRST_REPORT`;
+  - `Tính riêng từ thời điểm từng Picker báo` → `PER_PICKER`.
+
+Validation is server-authoritative and mirrored on Web. The three numeric values are always required and ordered even while auto-Skip is disabled so re-enabling has an explicit policy. No processing-extension field exists.
+
+Changing the switch/mode must clearly state fail-safe behavior: disable/mode switch cancels pending automatic deadlines and later enable applies only to new eligible work rather than retroactively skipping old work.

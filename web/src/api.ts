@@ -72,6 +72,9 @@ export interface ReporterBatch {
   waiting_minutes: number;
   warning_at?: string | null;
   escalation_at?: string | null;
+  auto_skip_enabled?: boolean;
+  auto_skip_mode?: AutoSkipMode | null;
+  auto_skip_at?: string | null;
 }
 
 export interface ReporterRecentBatch {
@@ -84,6 +87,7 @@ export interface ReporterRecentBatch {
   resolved_at: string | null;
   resolved_by_user_id: string | null;
   resolution: "HAS_STOCK" | "SKIP_ALLOWED" | null;
+  resolution_source?: string | null;
   correction_deadline_at: string | null;
   affected_picker_count: number;
   version: number;
@@ -103,6 +107,10 @@ export interface BatchPickerTicket {
   withdraw_deadline_at: string;
   withdrawn_at: string | null;
   resolved_at: string | null;
+  auto_skip_deadline_at?: string | null;
+  auto_skip_allowed_at?: string | null;
+  resolution?: "HAS_STOCK" | "SKIP_ALLOWED" | null;
+  resolution_source?: string | null;
   result_event_id?: string | null;
   received_at?: string | null;
   displayed_at?: string | null;
@@ -158,9 +166,16 @@ export interface HrSourceSaveResponse {
   source: HrSourceConfig;
 }
 
+export type AutoSkipMode = "FIRST_REPORT" | "PER_PICKER";
+
 export interface SlaConfig {
   warning_minutes: number;
   escalation_minutes: number;
+  auto_skip_minutes: number;
+  auto_skip_enabled: boolean;
+  auto_skip_mode: AutoSkipMode;
+  policy_version?: number;
+  effective_at?: string;
   updated_at?: string;
   updated_by?: string | null;
 }
@@ -582,10 +597,16 @@ export async function getAdminSla(): Promise<SlaResponse> {
   return readJson(await authorizedFetch("/api/admin/sla"));
 }
 
-export async function saveAdminSla(warningMinutes: number, escalationMinutes: number): Promise<SlaResponse> {
+export async function saveAdminSla(input: {
+  warning_minutes: number;
+  escalation_minutes: number;
+  auto_skip_minutes: number;
+  auto_skip_enabled: boolean;
+  auto_skip_mode: AutoSkipMode;
+}): Promise<SlaResponse> {
   return readJson(await authorizedFetch("/api/admin/sla", {
     method: "PUT",
-    body: JSON.stringify({ warning_minutes: warningMinutes, escalation_minutes: escalationMinutes }),
+    body: JSON.stringify(input),
   }));
 }
 

@@ -23,10 +23,10 @@
     "durable_object_class": "InventoryCore",
     "durable_object_binding": "INVENTORY_CORE",
     "durable_object_storage": "sqlite",
-    "beta_sqlite_schema_version": 6,
-    "beta_operational_v2_extension_schema_runtime": 4,
-    "beta_operational_v2_extension_schema_source_target": 4,
-    "beta_sqlite_schema_source_target": 6
+    "beta_sqlite_schema_version": 7,
+    "beta_operational_v2_extension_schema_runtime": 5,
+    "beta_operational_v2_extension_schema_source_target": 5,
+    "beta_sqlite_schema_source_target": 7
   },
   "network_scope": {
     "picker_reporter": "PDA_ONLY_ON_PDA_NETWORK_WITH_INTERNET",
@@ -136,7 +136,7 @@
       "durable_object_status": "PROVISIONED_PASS",
       "durable_object_class": "InventoryCore",
       "durable_object_storage": "sqlite",
-      "sqlite_schema_version": 6,
+      "sqlite_schema_version": 7,
       "runtime_service_account": "inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com",
       "android_package": "cd.cc.supra.inventory.beta",
       "firebase_android_app_id": "1:572322098890:android:3e483937876cbcc0400e33",
@@ -165,10 +165,10 @@
       "cloudflare_oauth_refresh_token_secret": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
       "oauth_refresh_token_configured": true,
       "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA",
-      "web_source_status": "D069_WEB_DIAGNOSTICS_EXCEL_UNIFIED_UI_PERF_BETA_RUNTIME_PASS__OWNER_REVIEW_PENDING",
+      "web_source_status": "D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
       "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
       "web_admin_report_monitoring": "D069_XLSX_REPORT_EXPORT_BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
-      "android_source_status": "VC44_D060_EFFECTIVE_ROLE_REFRESH_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING",
+      "android_source_status": "D070_TIMEOUT_ALERT_PROJECTION_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
       "latest_signed_beta_release": "beta-vc44",
@@ -179,7 +179,7 @@
       "auth_api_route_smoke": "PASS",
       "root_bootstrap_path_smoke": "PASS",
       "hr_settings_ui_status": "CONFIGURABLE_URL_TAB_EMPLOYEE_AND_NAME_HEADERS_DEPLOYED_PASS",
-      "business_api_status": "OPERATIONAL_V2_4_F20_BOUNDED_INSIGHTS_RUNTIME_PASS",
+      "business_api_status": "OPERATIONAL_V2_5_D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
       "latest_signed_beta_release_source_commit": "765be7baa90e6645a592cc5137324c85fb793009",
       "managed_password_status": "DIRECT_CREATE_AND_CHANGE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
@@ -292,7 +292,13 @@
     "device_registry": "InventoryCore.fcm_devices",
     "routing": "ROLE_OR_USER_BATCH_TARGETS",
     "delivery_semantics": "BEST_EFFORT_AFTER_COMMITTED_TRANSACTION",
-    "source_status": "DATA_ONLY_SERVICE_CORRELATION_DELIVERY_ATTEMPTS_INVALID_TOKEN_CLEANUP_RUNTIME_RELEASE_PASS__PHYSICAL_ACCEPTANCE_PENDING"
+    "source_status": "D070_SLA_WARNING_ESCALATION_GROUPED_ROLE_ALERTS_EXACT_PICKER_TIMEOUT_RESULTS_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
+    "sla_deadlines": "DURABLE_OBJECT_ALARM__WARNING_ESCALATION_AUTO_SKIP",
+    "auto_skip_modes": [
+      "FIRST_REPORT",
+      "PER_PICKER"
+    ],
+    "sound": "NOT_REQUIRED"
   },
   "user_management": {
     "hierarchy": "ROOT_INHERITS_ADMIN_REPORTER_MANAGES_ADMIN_REPORTER_PICKER__ADMIN_MANAGES_REPORTER_PICKER__HR_PROVISIONS_PICKER",
@@ -338,10 +344,10 @@
   },
   "ui_design": {
     "authority": "OWNER_SELECTED_D057_LEGACY_TRANSPLANT_THROUGH_D068_ACCEPTED__D069_UNIFIED_WEB_REFINEMENT",
-    "web": "D069_WEB_DIAGNOSTICS_EXCEL_UNIFIED_UI_PERF_BETA_RUNTIME_PASS__OWNER_REVIEW_PENDING",
-    "android": "VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING",
-    "scope_guard": "D069_BETA_RUNTIME_PASS__D068_ACCEPTED_FROZEN__ITEM3_ALERT_POLICY_PROPOSAL_ONLY__ANDROID_UNCHANGED__STABLE_OWNER_GATED",
-    "source_candidate": "D069_WEB_DIAGNOSTICS_EXCEL_UNIFIED_UI_PERF_BETA_RUNTIME_PASS__OWNER_REVIEW_PENDING",
+    "web": "D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
+    "android": "D070_TIMEOUT_ALERT_PROJECTION_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
+    "scope_guard": "D070_BETA_ONLY__D007_ORDERING_UNCHANGED__NO_EXTENSION__STABLE_OWNER_GATED",
+    "source_candidate": "D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
     "navigation_proposal": "docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md",
     "navigation_constraint": {
       "admin_root_large_groups": 3,
@@ -364,7 +370,7 @@
       "personal_account_action": "PINNED_IDENTITY_CONTROL_NOT_SIDEBAR",
       "implementation": "D066_OWNER_ACCEPTED_NAV__D068_HISTORY_ACTIVE_STATE_PERFORMANCE_RUNTIME_PASS_OWNER_REVIEW_PENDING"
     },
-    "implementation": "D069_UNIFIED_PRESENTATION_SLA_REDESIGN_SCOPED_RENDER_RUNTIME_PASS_OWNER_REVIEW_PENDING"
+    "implementation": "D070_THREE_THRESHOLD_POLICY_UI_AND_DEADLINE_SURFACES_SOURCE_IMPLEMENTED"
   },
   "quota_resilience": {
     "reference_date": "2026-09-17",
@@ -468,5 +474,21 @@
       },
       "temporary_gate": "VERIFIED_CLOSED"
     }
+  },
+  "sla_automation": {
+    "status": "SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
+    "warning": "SERVER_DEADLINE_EVENT",
+    "escalation": "SERVER_DEADLINE_EVENT",
+    "auto_skip": "OPTIONAL_SERVER_SKIPPED_RESULT",
+    "modes": [
+      "FIRST_REPORT",
+      "PER_PICKER"
+    ],
+    "engine": "INVENTORY_CORE_DURABLE_OBJECT_ALARM",
+    "result_source": "SYSTEM_TIMEOUT",
+    "correction_window_minutes": 5,
+    "retroactive": false,
+    "queue_ordering": "D007_UNCHANGED",
+    "extension_feature": false
   }
 }

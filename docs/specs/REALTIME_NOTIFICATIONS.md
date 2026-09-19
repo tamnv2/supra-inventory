@@ -79,14 +79,26 @@ Rules:
 - FCM failure does not change business transaction success.
 - Invalid/unregistered tokens should be disabled/removed when the provider response makes that determinable.
 
-## SLA notifications
+## D070 timing notifications and automatic Skip
 
-SLA is warning/escalation only:
-- server derives SLA state from explicit saved thresholds and authoritative time;
-- entering warning/escalated state may produce foreground/UI notification and bounded background alert to the appropriate Reporter/Admin/Root audience;
-- SLA never calls `HAS_STOCK`, `SKIP_ALLOWED` or another resolution mutation.
+Timing is server-authoritative and has three ordered thresholds: `warning < escalation < auto_skip`.
 
-If thresholds are not configured, state is explicitly `UNCONFIGURED`; no hidden legacy default is inferred.
+- Warning: server emits one idempotent warning transition per eligible batch; Reporter/Admin/Root receive foreground indication and a bounded background alert. Picker does not require a warning toast.
+- Escalation: server emits one idempotent overdue transition per eligible batch; Reporter/Admin/Root and currently affected Picker(s) receive the higher alert.
+- Multiple same-level transitions processed together may be grouped for Reporter/Admin/Root background notification to avoid alert storms. Exact Picker critical result identity is never grouped.
+- No sound is required.
+- Warning/escalation remain attention signals and do not change D007 queue ordering.
+- If automatic Skip is disabled, the third threshold remains configured/displayable but performs no resolution.
+- If enabled, service authority may create `SKIP_ALLOWED` at the third threshold. There is no Picker resolve API.
+- `FIRST_REPORT`: the batch deadline is anchored to the first report; all active Picker tickets receive the service timeout result together.
+- `PER_PICKER`: each ticket deadline is anchored to that Picker's report; only that Picker receives the timeout result/ACK target. The batch remains pending for other active Pickers and finalizes when none remain.
+- Automatic result source is `SYSTEM_TIMEOUT`; normal Reporter result source remains distinguishable.
+- Automatic result retains the existing five-minute Skip→Có hàng correction path.
+- All transition/result events are audited, idempotent and delivered through the existing realtime sequence + FCM result lifecycle.
+- Durable Object Alarm drives deadlines; client-side timers are display-only and no polling loop is required.
+- Existing work is not retroactively given an automatic deadline on first D070 activation/re-enable/mode switch; disable cancels pending automatic deadlines.
+
+Legacy two-threshold configuration never silently enables auto-Skip.
 
 ## Recurrence events
 
@@ -154,9 +166,10 @@ Client contract:
 - Provider responses that identify an invalid/unregistered token disable that token from later targeting.
 - Foreground WebSocket/delta remains the live synchronization channel; FCM is not a second business-state transport.
 
-## SLA clock progression without polling
+## Timing clock progression without polling
 
-- Reporter queue responses include an authoritative `server_now` plus per-batch absolute `warning_at` / `escalation_at` when SLA is configured.
-- Web and Android calibrate a local presentation clock from `server_now` and advance waiting-minute/SLA labels locally.
-- Local SLA ticking is presentation-only: it must not call the API, mutate business state or change queue priority.
-- Any subsequent authoritative queue response recalibrates the client clock and replaces presentation state.
+- Reporter queue responses include authoritative `server_now`, `warning_at`, `escalation_at`, and where applicable the next automatic-Skip deadline.
+- Web and Android calibrate local presentation time from `server_now` and may advance waiting labels locally.
+- Local ticking is presentation-only: it never grants Skip, mutates state or changes queue priority.
+- Durable Object Alarm performs authoritative warning/escalation/automatic-Skip transitions even when no client is open.
+- Any subsequent authoritative response replaces local presentation state.

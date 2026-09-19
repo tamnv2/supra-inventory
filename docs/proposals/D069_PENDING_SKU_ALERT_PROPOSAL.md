@@ -1,6 +1,6 @@
 # D069 — Đề xuất cảnh báo SKU đang xử lý
 
-Status: **PROPOSAL ONLY — NOT IMPLEMENTED**
+Status: **APPROVED AND SUPERSEDED BY D070 IMPLEMENTATION**
 
 Owner requested analysis before any change. Existing D007 queue ordering and D050 warning/escalation semantics remain authoritative until explicit Owner approval.
 
@@ -62,3 +62,8 @@ Warning/overdue chỉ tăng độ nổi bật trực quan. Nếu Owner muốn qu
 4. Có cần âm thanh ở mức Quá hạn không? Đề xuất mặc định: **không** để tránh nhiễu trong vận hành.
 
 Không thay đổi nghiệp vụ cho tới khi Owner chốt các điểm trên.
+
+
+## D070 approval update — 2026-09-19
+
+Owner approved the alert direction and added the third automatic-Skip threshold. D070 canonical decision/specs now govern implementation: three entered minute thresholds with strict ordering, enable/disable auto-Skip, and selectable `FIRST_REPORT` / `PER_PICKER` timing. No processing-extension feature is included.
