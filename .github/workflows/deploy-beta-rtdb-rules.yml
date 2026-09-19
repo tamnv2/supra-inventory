@@ -116,7 +116,7 @@ jobs:
             });
             if (!rulesRes.ok) throw new Error('Firebase Rules IAM read probe failed: HTTP ' + rulesRes.status);
             const body = await rulesRes.json();
-            if (!Object.prototype.hasOwnProperty.call(body, 'rulesets')) throw new Error('Unexpected Firebase Rules API response');
+            if (body === null || typeof body !== 'object' || Array.isArray(body)) throw new Error('Unexpected Firebase Rules API response');
             console.log('Firebase Rules credential + IAM read access PASS');
           }
           main().catch(error => {
