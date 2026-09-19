@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D078_OFFICE_TRANSPORT_PROBE_MATRIX_IN_PROGRESS__RTDB_PROXY_BLOCK_CONFIRMED__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D078_AGENT_V4_RELEASE_PASS__OWNER_OFFICE_PROBE_PENDING__RTDB_PROXY_BLOCK_CONFIRMED__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -155,8 +155,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Build/release relay-agent-v4 with read-only Office transport probes for Firebase Auth, RTDB, Firestore, Apps Script, Sheets and Drive plus Test all; Owner runs probes on .Office@MSN and returns sanitized log; then select the reachable transport before provisioning/replacing relay.",
-    "method": "Do not bypass Wincommerce proxy. Keep D075/D076 relay implementation unchanged during diagnostics. Branch -> PR -> guards/Agent build PASS -> merge -> relay-agent-v4 prerelease -> Owner field probe -> evidence-based transport decision.",
+    "primary": "Owner runs relay-agent-v4 on .Office@MSN and presses TEST TẤT CẢ; return the sanitized Agent log. Use field evidence to select a reachable transport before any relay replacement/provisioning.",
+    "method": "D078 PR #76 merged at 8c9992dc1ae6ec19c7ec63dbd3b656dbf794246e. Main Authority/Continuity/UI/Agent gates PASS and relay-agent-v4 prerelease is published. No APK change. Do not provision Firestore/Apps Script/Sheets/Drive relay until Office probe evidence selects a candidate.",
     "stable_guard": "Stable remains OWNER-GATED and untouched."
   },
   "continuity_policy": {
@@ -184,7 +184,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D078 Office transport discovery implementation in progress; field logs already confirm RTDB endpoint is blocked by Wincommerce proxy while Firebase Secure Token remains reachable",
+      "D078 technical PASS: relay-agent-v4 probe matrix published; Owner Office probe/log pending",
       "D077 source/build/release PASS: relay-agent-v3 published; physical Office retest pending",
       "D076 Beta RTDB Rules deploy/readback PASS; D075 physical Picker -> ADMIN Agent acceptance pending",
       "D068 Web baseline Owner-accepted/frozen",
@@ -195,7 +195,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Release relay-agent-v4 probe matrix, then Owner runs Test tất cả on Office and returns sanitized log",
+      "Owner runs TEST TẤT CẢ in relay-agent-v4 on Office and sends sanitized log; then choose reachable relay transport",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
@@ -223,10 +223,10 @@
       "relay_agent_build_release": "PASS_RUN_35447318236",
       "signed_beta_release": "beta-vc49",
       "signed_beta_apk_size_bytes": 9317178,
-      "relay_agent_release": "relay-agent-v3",
-      "relay_agent_release_id": 393036973,
-      "relay_agent_exe_asset_id": 575004937,
-      "relay_agent_exe_size_bytes": 50176,
+      "relay_agent_release": "relay-agent-v4",
+      "relay_agent_release_id": 392137381,
+      "relay_agent_exe_asset_id": 575094426,
+      "relay_agent_exe_size_bytes": 61952,
       "relay_agent_checksum_asset_id": 574866732,
       "agent_release_is_prerelease": true,
       "android_latest_release_verified": "beta-vc49",
@@ -245,7 +245,19 @@
       "d077_main_agent_build_release": "PASS_RUN_35452095820",
       "d077_main_authority": "PASS_RUN_35452095791",
       "d077_main_project_state": "PASS_RUN_35452095808",
-      "d077_main_ui": "PASS_RUN_35452095855"
+      "d077_main_ui": "PASS_RUN_35452095855",
+      "d078_branch": "feat/d078-office-transport-probe-matrix",
+      "d078_merged_pr": 76,
+      "d078_merged_main": "8c9992dc1ae6ec19c7ec63dbd3b656dbf794246e",
+      "d078_pr_authority": "PASS_RUN_35453182881",
+      "d078_pr_project_state": "PASS_RUN_35453182890",
+      "d078_pr_rtdb_guard": "PASS_RUN_35453182880",
+      "d078_pr_ui": "PASS_RUN_35453182949",
+      "d078_pr_agent": "PASS_RUN_35453182930",
+      "d078_main_authority": "PASS_RUN_35455241759",
+      "d078_main_project_state": "PASS_RUN_35455241764",
+      "d078_main_ui": "PASS_RUN_35455241767",
+      "d078_main_agent": "PASS_RUN_35455241760"
     },
     "last_runtime_evidence": {
       "schema": 7,
