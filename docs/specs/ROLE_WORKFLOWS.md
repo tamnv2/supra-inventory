@@ -234,3 +234,20 @@ This is a bounded Beta transport test, not the final WMS workflow.
 - Buttons: Firebase Auth, RTDB, Firestore, Apps Script, Sheets, Drive, Test tất cả.
 - Test tất cả runs the same probes sequentially and writes one compact summary line for field handoff.
 - Diagnostic probes never confirm an order, never mutate WMS and never bypass corporate network policy.
+
+## D080 — Agent ↔ Supra WMS read-only POC
+
+D080 is a separate readiness step inside the Picker confirmation workstream while the physical PDA ↔ Agent Office test is paused.
+
+- Windows Agent remains a real base-role ADMIN workstation identity.
+- The normal session-refresh flow does **not** require F12 or manual Copy as cURL. Agent opens a dedicated Microsoft Edge WMS window with loopback-only DevTools, and observes only outgoing requests to the allowlisted Supra API host from that Agent-owned browser context.
+- When WMS itself requires login, the user completes that login interactively. Agent does not scrape/decrypt the normal Chrome/Edge profile and does not store the WMS password.
+- Required HY1 request-session values are captured into Agent RAM only. The dedicated browser profile may retain ordinary browser login state under Edge's own storage/security behavior, but Agent never serializes raw WMS request headers/session values into its config/log/GitHub.
+- Agent tests WMS UI reachability independently from project Internet/Google/GitHub status.
+- The only D080 API business probe is signed read-only `GET /sft3-hy1/api/v1/warehouse/zones`.
+- Network route discovery may use Windows/system proxy, environment proxy, direct route and the registered corporate proxy fallback. A corporate filter response is reported, never bypassed.
+- Transport errors/HTTP 407 may advance to another route. A real HTTP response such as 400/401/403/429/5xx proves the server/proxy path was reached and is classified rather than hidden by arbitrary route switching.
+- If the API returns an expired-session response, Agent may automatically reopen its dedicated WMS browser and recapture once.
+- D080 does not load/search Picklists, confirm/click orders, or call any WMS mutation endpoint. Real confirmation logic remains deferred.
+- D078 PDA ↔ Agent Office transport testing stays pending until Owner is physically back on the company network.
+- Stable remains untouched and OWNER-GATED.
