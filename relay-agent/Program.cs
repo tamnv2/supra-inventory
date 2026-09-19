@@ -1283,13 +1283,18 @@ namespace SupraInventoryRelayAgent
             {
                 LogNetworkSnapshot("wms-session-capture");
                 var captured = WmsBrowserCapture.CaptureSession(300, message => Log("WMS " + message));
+                var probe = WmsReadOnlyClient.ProbeApi(captured);
+                if (!string.Equals(probe.Result, "PASS", StringComparison.Ordinal))
+                    throw new InvalidOperationException("Phiên WMS vừa lấy chưa sử dụng được: " + probe.Result + ".");
                 lock (_wmsSessionLock) _wmsSession = captured;
-                Ui(() => _wmsStatus.Text = "WMS: phiên HY1 đã lấy tự động");
-                Log("WMS SESSION PASS scope=HY1 storage=RAM_ONLY values=redacted.");
+                Ui(() => _wmsStatus.Text = "WMS: phiên HY1 đã lấy · đang nạp Picklist");
+                Log("WMS SESSION PASS scope=HY1 storage=BROWSER_PROFILE_PLUS_RAM_CAPTURE values=redacted.");
+                PreloadPicklistCache(captured, "MANUAL_LOGIN");
             }
             catch (Exception ex)
             {
                 lock (_wmsSessionLock) _wmsSession = null;
+                _picklistCache.Clear();
                 Ui(() => _wmsStatus.Text = "WMS: chưa lấy được phiên");
                 Log("WMS SESSION FAIL " + SafeMessage(ex));
             }
@@ -1330,9 +1335,12 @@ namespace SupraInventoryRelayAgent
 
                 if (string.Equals(api.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
                 {
+                    lock (_wmsSessionLock) _wmsSession = null;
+                    _picklistCache.Clear();
                     Log("WMS phiên cũ hết hạn; tự mở trình duyệt để lấy phiên mới một lần.");
                     var refreshed = WmsBrowserCapture.CaptureSession(300, message => Log("WMS " + message));
                     lock (_wmsSessionLock) _wmsSession = refreshed;
+                    session = refreshed;
                     api = WmsReadOnlyClient.ProbeApi(refreshed);
                     Log("WMS PROBE RETRY " + api.Summary());
                 }
@@ -1341,6 +1349,8 @@ namespace SupraInventoryRelayAgent
                 {
                     Ui(() => _wmsStatus.Text = "WMS: PASS · API HY1 · " + api.Route + " · " + api.ElapsedMs + "ms");
                     Log("WMS READ_ONLY PASS ui=" + ui.Result + " api=PASS route=" + api.Route + " no_mutation=true.");
+                    if (session != null && session.IsValidHy1())
+                        PreloadPicklistCache(session, "MANUAL_TEST");
                 }
                 else
                 {
