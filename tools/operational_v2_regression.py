@@ -18,6 +18,8 @@ def require_source_markers() -> None:
     read_model = (ROOT / "service/src/read-model-core.ts").read_text(encoding="utf-8")
     notifications = (ROOT / "service/src/notifications-core.ts").read_text(encoding="utf-8")
     business = (ROOT / "service/src/business-core.ts").read_text(encoding="utf-8")
+    sla_auto = (ROOT / "service/src/sla-automation.ts").read_text(encoding="utf-8")
+    core = (ROOT / "service/src/core.ts").read_text(encoding="utf-8")
 
     markers = {
         "immutable result snapshot table": "CREATE TABLE IF NOT EXISTS result_event_snapshots",
@@ -26,6 +28,12 @@ def require_source_markers() -> None:
         "picker delta ticket ownership": "WHERE t.ticket_id = ? AND t.picker_user_id = ?",
         "picker delta result targeting": "WHERE a.result_event_id = ? AND a.target_user_id = ?",
         "event version stays historical": "batch_version: Number(row.batch_version || 0)",
+        "D070 strict threshold ordering": "autoSkip <= escalation",
+        "D070 first-report mode": 'auto_skip_mode === "FIRST_REPORT"',
+        "D070 per-Picker mode": 'auto_skip_mode !== "PER_PICKER"',
+        "D070 timeout source": "SYSTEM_TIMEOUT",
+        "D070 durable alarm": "async alarm(): Promise<void>",
+        "D070 no retroactive deadline": "only new reports get deadlines",
     }
     haystacks = {
         "immutable result snapshot table": operational,
@@ -34,6 +42,12 @@ def require_source_markers() -> None:
         "picker delta ticket ownership": operational,
         "picker delta result targeting": operational,
         "event version stays historical": operational,
+        "D070 strict threshold ordering": sla_auto,
+        "D070 first-report mode": sla_auto,
+        "D070 per-Picker mode": sla_auto,
+        "D070 timeout source": sla_auto,
+        "D070 durable alarm": core,
+        "D070 no retroactive deadline": operational,
     }
     for name, marker in markers.items():
         if marker not in haystacks[name]:
@@ -43,6 +57,17 @@ def require_source_markers() -> None:
         fail("broadcast is not using Picker-authorized projection")
     if "status = 'RESOLVED'" not in notifications or "result_event_id" not in notifications:
         fail("notification target projection does not enforce result targets")
+    for required in (
+        "TICKET_AUTO_SKIP_ALLOWED",
+        "BATCH_AUTO_SKIP_ALLOWED",
+        "SLA_WARNING",
+        "SLA_ESCALATED",
+        "trg_v2_ticket_auto_skip_ack_target",
+    ):
+        if required not in operational:
+            fail(f"D070 event/target invariant missing: {required}")
+    if "auto_skip_allowed_at IS NULL" not in operational or "auto_skip_allowed_at IS NULL" not in business:
+        fail("D070 active Picker projection/dedupe invariant missing")
 
 
 def fixture_connection() -> sqlite3.Connection:
