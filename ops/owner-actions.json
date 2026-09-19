@@ -151,18 +151,14 @@
     },
     {
       "id": "OA005",
-      "status": "OWNER_D081_V6_FIELD_RETEST_PENDING",
+      "status": "PASS_OWNER_CONFIRMED_D081",
       "title": "Field-test Agent to Supra WMS read-only automatic session capture",
       "resource_key": "supra-wms-ui-d080",
       "provider": "Wincommerce Supra + physical authorized WMS session",
       "reason_owner_only": "The connected tools cannot sign in to the Owner/company WMS account or observe the local corporate-authenticated browser session. D080 removes the F12/cURL copy step but interactive WMS login remains a human authorization step when the browser session has expired.",
       "owner_ui_path": [],
       "shortest_test_path": [
-        "Run relay-agent-v5 as normal Windows user and sign in to the Agent with a real ADMIN account.",
-        "Press TEST SUPRA.",
-        "If the dedicated Edge WMS window asks for login, sign in normally; do not open F12 and do not copy cURL/token.",
-        "Wait for WMS: PASS · API HY1; the Edge capture window closes after session capture.",
-        "If not PASS, press Mở log and provide only the sanitized log."
+        "Owner reported relay-agent-v6 behavior OK and authorized moving to the read-only Picklist lookup stage."
       ],
       "pass_criteria": [
         "Agent reaches wms-supra.winmart.vn",
@@ -172,7 +168,7 @@
         "No Picklist lookup, confirmation or WMS mutation occurs"
       ],
       "safety": "Use only an account/session the Owner is authorized to use. D080 does not bypass corporate filtering and does not automate WMS mutations. Never send password/cURL/session/token in chat or logs.",
-      "remaining_owner_action": "Run relay-agent-v6 TEST SUPRA once without rushing login. If WMS asks, log in normally within the five-minute window. Confirm first-attempt capture/API PASS and taskbar CPU/MHz/RAM status; if not PASS, send sanitized log only.",
+      "remaining_owner_action": null,
       "prerequisites": {
         "merged_pr": 81,
         "merged_main": "a0a68da1e72ba9a8f7bb728db0951b6fd2c23f47",
@@ -181,6 +177,38 @@
         "agent_exe_asset_id": 575198396,
         "agent_exe_sha256": "7eca617aeb38bda403ca975e07ebdd8a323fbde19b90ef22f0d549b7b0f4b61e",
         "main_agent_release_run": 35458750768
+      }
+    },
+    {
+      "id": "OA006",
+      "status": "D082_BUILD_RELEASE_PENDING",
+      "title": "Home field-test read-only Picklist existence lookup and Agent overlay",
+      "resource_key": "supra-api-d080",
+      "provider": "Wincommerce Supra + Beta RTDB + physical authorized WMS/PDA session",
+      "reason_owner_only": "Connected tools cannot use the Owner/company WMS login or physically operate the PDA/Windows desktop overlay. Source/CI can verify read-only guards, but the real WMS response schema and last-five match require an authorized field session.",
+      "owner_ui_path": [],
+      "shortest_test_path": [
+        "After Agent v7 and the next signed Beta APK are published, update both through their normal channels.",
+        "On the Agent, establish WMS session locally once using TEST SUPRA or Mở WMS + lấy phiên. When the session is valid, verify the login/capture button becomes disabled.",
+        "Use the overlay tray menu to unlock, move, choose opacity, then lock it. Verify clicks pass through the locked overlay to the underlying application.",
+        "On PDA Xác nhận đơn, enter five known trailing Picklist digits and press KIỂM TRA PICKLIST.",
+        "Expected result is CÓ PICKLIST or KHÔNG CÓ PICKLIST. If the real WMS response schema is not recognized, send only the sanitized Agent log containing field names/classification; never send cURL/session/token/header values."
+      ],
+      "pass_criteria": [
+        "PDA uses existing Internet/RTDB relay with no Office/LAN transport change",
+        "Valid WMS session suppresses repeated login/capture",
+        "Agent performs signed read-only GET pickListConfirms only",
+        "PDA receives a truthful FOUND/NOT_FOUND result or a distinct fail-closed session/schema/transport error",
+        "Overlay is always visible, configurable, draggable unlocked and click-through while locked",
+        "No WMS confirmation or mutation request occurs",
+        "No secret WMS/session/signature values appear in repo/logs/RTDB"
+      ],
+      "safety": "Use only an authorized company WMS session. Do not paste cURL, passwords, Authorization/Token/APISID/SID/SCID/USID, signatures/nonces or raw WMS response data into chat/logs. Confirmation remains deferred.",
+      "remaining_owner_action": "Wait until D082 releases are PASS, then run the bounded home field test above.",
+      "prerequisites": {
+        "agent_release_target": "relay-agent-v7",
+        "android_release_target": "NEXT_MONOTONIC_SIGNED_BETA",
+        "rtdb_rules": "D082_OPTIONAL_LOOKUP_ACK_METADATA_DEPLOY_READBACK_PENDING"
       }
     }
   ]
