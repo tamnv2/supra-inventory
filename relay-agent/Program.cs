@@ -1228,13 +1228,21 @@ namespace SupraInventoryRelayAgent
 
         private void HandleJob(string jobId, Dictionary<string, object> job)
         {
-            object statusObj, sourceObj;
+            object statusObj, sourceObj, suffixObj;
             if (!job.TryGetValue("status", out statusObj) ||
                 !string.Equals(Convert.ToString(statusObj), "PENDING", StringComparison.OrdinalIgnoreCase))
                 return;
             if (job.TryGetValue("source", out sourceObj) &&
                 !string.Equals(Convert.ToString(sourceObj), "ANDROID_POC", StringComparison.Ordinal))
                 return;
+            if (!job.TryGetValue("suffix", out suffixObj)) return;
+
+            var suffix = Convert.ToString(suffixObj) ?? "";
+            if (!Regex.IsMatch(suffix, @"^\d{5}$"))
+            {
+                Log("Relay request=" + Short(jobId) + " bị từ chối vì suffix không đúng 5 số.");
+                return;
+            }
 
             lock (_acked)
             {
@@ -1242,9 +1250,39 @@ namespace SupraInventoryRelayAgent
                 _acked.Add(jobId);
             }
 
+            Task.Run(() => HandlePicklistLookupJob(jobId, suffix));
+        }
+
+        private void HandlePicklistLookupJob(string jobId, string suffix)
+        {
             var session = SnapshotSession();
             try
             {
+                WmsPicklistLookupResult lookup;
+                var wmsSession = SnapshotWmsSession();
+                if (wmsSession == null || !wmsSession.IsValidHy1())
+                {
+                    lookup = new WmsPicklistLookupResult
+                    {
+                        Result = "WMS_SESSION_REQUIRED",
+                        Route = "NONE",
+                        StatusCode = 0,
+                        ElapsedMs = 0,
+                        MatchCount = 0
+                    };
+                }
+                else
+                {
+                    lookup = WmsPicklistLookupClient.Lookup(wmsSession, suffix);
+                }
+
+                if (string.Equals(lookup.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
+                {
+                    lock (_wmsSessionLock) _wmsSession = null;
+                    Ui(() => _wmsStatus.Text = "WMS: phiên hết hạn · cần đăng nhập lại");
+                    SetProbeButtonsEnabled(true);
+                }
+
                 var patch = new Dictionary<string, object>
                 {
                     { "status", "ACK" },
@@ -1253,17 +1291,42 @@ namespace SupraInventoryRelayAgent
                     { "agent_admin_user_id", session.AppUserId },
                     { "agent_network", GetSsid() },
                     { "agent_received_at_ms", NowMs() },
-                    { "agent_ack_at_ms", NowMs() }
+                    { "agent_ack_at_ms", NowMs() },
+                    { "lookup_status", lookup.Result ?? "LOOKUP_ERROR" },
+                    { "lookup_matches", lookup.MatchCount },
+                    { "lookup_ms", Math.Max(0L, lookup.ElapsedMs) },
+                    { "lookup_route", string.IsNullOrWhiteSpace(lookup.Route) ? "NONE" : lookup.Route },
+                    { "lookup_http", lookup.StatusCode }
                 };
+
                 RequestJson("PATCH", JobUrl(session, jobId), _json.Serialize(patch), "application/json");
+
                 Log(
-                    "ACK OWNED request=" + Short(jobId) +
+                    "PICKLIST LOOKUP ACK request=" + Short(jobId) +
+                    " result=" + (lookup.Result ?? "LOOKUP_ERROR") +
+                    " matches=" + lookup.MatchCount +
+                    " lookup_ms=" + lookup.ElapsedMs +
+                    " route=" + (lookup.Route ?? "NONE") +
+                    " http=" + lookup.StatusCode +
                     " admin=" + session.AppUserId +
                     " machine=" + Environment.MachineName +
                     " instance=" + Short(_agentInstanceId) +
                     " network=" + GetSsid() +
-                    " payload_digits=5"
+                    " payload_digits=5 values=redacted"
                 );
+
+                Ui(() =>
+                {
+                    if (string.Equals(lookup.Result, "FOUND", StringComparison.Ordinal))
+                        _relay.Text = "Relay: CÓ PICKLIST · đã trả PDA";
+                    else if (string.Equals(lookup.Result, "NOT_FOUND", StringComparison.Ordinal))
+                        _relay.Text = "Relay: KHÔNG CÓ PICKLIST · đã trả PDA";
+                    else if (string.Equals(lookup.Result, "WMS_SESSION_REQUIRED", StringComparison.Ordinal) ||
+                             string.Equals(lookup.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
+                        _relay.Text = "Relay: cần phiên WMS";
+                    else
+                        _relay.Text = "Relay: tra cứu WMS " + (lookup.Result ?? "ERROR");
+                });
             }
             catch (RelayHttpException ex)
             {
@@ -1273,12 +1336,33 @@ namespace SupraInventoryRelayAgent
                     return;
                 }
                 lock (_acked) _acked.Remove(jobId);
-                Log("ACK lỗi: " + SafeMessage(ex));
+                Log("PICKLIST LOOKUP ACK lỗi: " + SafeMessage(ex));
             }
             catch (Exception ex)
             {
                 lock (_acked) _acked.Remove(jobId);
-                Log("ACK lỗi: " + SafeMessage(ex));
+                Log("PICKLIST LOOKUP lỗi: " + SafeMessage(ex));
+                try
+                {
+                    var patch = new Dictionary<string, object>
+                    {
+                        { "status", "ACK" },
+                        { "agent_id", Environment.MachineName },
+                        { "agent_instance_id", _agentInstanceId },
+                        { "agent_admin_user_id", session.AppUserId },
+                        { "agent_network", GetSsid() },
+                        { "agent_received_at_ms", NowMs() },
+                        { "agent_ack_at_ms", NowMs() },
+                        { "lookup_status", "LOOKUP_ERROR" },
+                        { "lookup_matches", 0 },
+                        { "lookup_ms", 0 },
+                        { "lookup_route", "NONE" },
+                        { "lookup_http", 0 }
+                    };
+                    RequestJson("PATCH", JobUrl(session, jobId), _json.Serialize(patch), "application/json");
+                    lock (_acked) _acked.Add(jobId);
+                }
+                catch { }
             }
         }
 
