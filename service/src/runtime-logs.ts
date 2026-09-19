@@ -167,6 +167,35 @@ export async function uploadRuntimeLog(
   if (!env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID)) throw new Error("LOGS_FOLDER_NOT_CONFIGURED");
   const token = await refreshGoogleAccessToken(env);
   const { source, severity, filename, content } = logEnvelope(actor, body);
+
+  const duplicateParams = new URLSearchParams({
+    q: `'${env.LOGS_FOLDER_ID}' in parents and trashed = false and name = '${filename.replaceAll("'", "\\'")}'`,
+    orderBy: "createdTime desc",
+    pageSize: "1",
+    spaces: "drive",
+    fields: "files(id,name,createdTime,size)",
+  });
+  const duplicateResponse = await fetch(`https://www.googleapis.com/drive/v3/files?${duplicateParams.toString()}`, {
+    headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+  });
+  if (duplicateResponse.ok) {
+    const duplicatePayload = (await duplicateResponse.json()) as { files?: Array<Record<string, unknown>> };
+    const existing = duplicatePayload.files?.[0];
+    if (existing) {
+      return {
+        status: "already_uploaded",
+        source,
+        severity,
+        file: {
+          id: existing.id,
+          name: existing.name || filename,
+          created_at: existing.createdTime || new Date().toISOString(),
+          size: Number(existing.size || content.length),
+        },
+      };
+    }
+  }
+
   const boundary = `supra_inventory_${crypto.randomUUID().replaceAll("-", "")}`;
   const metadata = JSON.stringify({
     name: filename,
