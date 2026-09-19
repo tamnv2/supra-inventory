@@ -316,3 +316,16 @@ D068 Web interaction acceptance:
 - latest runtime log evidence is consistent with healthy connectivity/realtime; UI delay is not attributed to memory or network without evidence;
 - section/workspace navigation creates browser history; Back/Forward returns through previously selected allowed sections and does not immediately leave the application while internal history entries remain;
 - dashboard drill-down to detailed reporting participates in the same browser history model.
+
+
+D069 Web diagnostics / Excel / consistency / responsiveness acceptance:
+- complete D068 behavior remains unchanged and is treated as Owner-accepted baseline;
+- manual/scheduled/error Web logs contain broad bounded browser/network/performance/API/render/realtime/UI diagnostic context while secret-like fields and credential material are redacted and typed form values are not captured;
+- API telemetry contains method/path/status/timing without authorization values or query-value leakage;
+- detailed-report export downloads `.xlsx`, preserves the current filters, uses bounded paged retrieval and no longer presents CSV as the current export;
+- `Thời gian xử lý` uses the common Web layout and retains server validation: warning 1–1440 minutes; escalation > warning and <= 2880 minutes;
+- a final Web override layer normalizes page headings, panels, controls, tabs, tables and active states across reachable modules in both light and dark themes;
+- normal asynchronous business actions do not force a full shell rebuild; full-shell rebuild remains available for role/session/shell changes;
+- the complete Reporter queue remains authoritative while off-screen row painting may be contained for browser performance;
+- runtime logs expose enough API/render/long-task/realtime timing to distinguish network latency from client rendering delay;
+- D069 does not implement a new warning-notification policy before Owner approval; D007 ordering and D050 alert-only semantics remain unchanged.
