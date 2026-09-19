@@ -784,3 +784,5 @@ Current relay marker: `D083_AGENT_V8_RELEASE_PASS__OWNER_STARTUP_RETEST_PENDING_
 Owner refinement replaces the D082 lookup mechanics: no date filter, empty `Content`, 100 records/page, exact `PickListCode` (`PL` + digits) trailing-five comparison, scan pages until FOUND or truthful exhaustion, fail closed on schema/pagination anomalies. Overlay now has explicit opacity + lock settings; unlocked is draggable, locked is cross-application click-through. Agent target is v9 and Android requires the next signed Beta release because relay wait increases to 120 seconds.
 
 Current relay marker: `D084_SOURCE_IN_PROGRESS__AGENT_V9_AND_BETA_VC51_RELEASE_PENDING__ALL_DATE_PICKLISTCODE_SCAN__OVERLAY_SETTINGS__NO_WMS_MUTATION`.
+
+D084 Android marker: `D084_ALL_DATE_PICKLISTCODE_SCAN_SOURCE__BETA_VC51_RELEASE_PENDING`.
