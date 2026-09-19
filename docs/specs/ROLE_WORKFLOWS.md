@@ -215,3 +215,14 @@ This is a bounded Beta transport test, not the final WMS workflow.
 - Relay authorization/path identity is the Firebase ID-token subject (`sub`) on both Android and Windows; application `user_id` must not be used as the RTDB security path key.
 - Windows Agent differentiates network reachability from RTDB authorization: HTTP 403 is reported as RTDB permission/auth failure, not generic Office network failure.
 - Windows Agent writes a bounded local diagnostic log for each run with network/proxy/HTTP timing/state information and automatic redaction of passwords, bearer tokens, JWTs, refresh tokens, API keys and query auth values.
+
+
+## D075 — Shared Picker queue and ADMIN Agent identity
+
+- All Picker accounts use one Beta relay queue: `relay_poc/jobs/{request_id}`.
+- A Picker may create/read/delete only its own request. The request stores immutable `picker_uid` and `picker_user_id` for correlation.
+- Windows Relay Agent login accepts only a real application account whose `base_role=ADMIN` and effective `role=ADMIN`. ROOT, REPORTER and PICKER logins are rejected.
+- The Agent listens to the shared queue and returns POC ACK metadata: ADMIN user id, Windows machine name, persistent local Agent instance id, SSID and timestamps.
+- For the POC, ACK is first-writer-wins: once a job is ACK, later Agents may not overwrite ownership.
+- This identity becomes the audit basis for the future real confirmation workflow; D075 itself still performs no WMS action.
+- Agent auto-update uses dedicated GitHub prereleases `relay-agent-vN`; successful download must pass SHA-256 verification before the portable EXE self-replaces and relaunches.
