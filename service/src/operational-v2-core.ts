@@ -136,7 +136,9 @@ export function operationalV2Readiness(state: DurableObjectState): {
     slaAutomationReadiness(state) &&
     Boolean(readRealtimeStreamEpoch(state)) &&
     hasSqlObject(state, "trigger", "trg_v2_report_event_stream") &&
-    hasSqlObject(state, "trigger", "trg_v2_result_ack_targets");
+    hasSqlObject(state, "trigger", "trg_v2_result_ack_targets") &&
+    hasSqlObject(state, "trigger", "trg_v2_ticket_auto_skip_ack_target") &&
+    hasSqlObject(state, "trigger", "trg_v2_ticket_auto_skip_version");
   return {
     ready,
     schema_version: schemaVersion,
@@ -193,7 +195,8 @@ function currentBatchSnapshot(state: DurableObjectState, batchId: string): Recor
   const row = first(
     state.storage.sql.exec<SqlRow>(
       `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
-              b.resolved_at, b.resolution, b.correction_deadline_at, b.version, b.previous_batch_id,
+              b.resolved_at, b.resolution, b.resolution_source, b.correction_deadline_at,
+              b.auto_skip_deadline_at, b.version, b.previous_batch_id,
               p.resolved_at AS previous_resolved_at,
               (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id) AS total_ticket_count,
               (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL) AS open_ticket_count,
@@ -514,18 +517,25 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
           AND EXISTS (
             SELECT 1
               FROM report_tickets t
-             WHERE t.batch_id = b.batch_id AND t.status = 'OPEN'
+             WHERE t.batch_id = b.batch_id
+               AND t.status = 'OPEN'
+               AND t.auto_skip_allowed_at IS NULL
           )`,
     ).toArray(),
   );
   const total = Number(totalRow?.total || 0);
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
-            b.version, b.previous_batch_id, p.resolved_at AS previous_resolved_at,
+            b.version, b.previous_batch_id, b.auto_skip_deadline_at AS batch_auto_skip_at,
+            p.resolved_at AS previous_resolved_at,
             COUNT(t.ticket_id) AS affected_picker_count,
-            MIN(t.reported_at) AS earliest_ticket_at
+            MIN(t.reported_at) AS earliest_ticket_at,
+            MIN(t.auto_skip_deadline_at) AS next_picker_auto_skip_at
        FROM report_batches b
-       JOIN report_tickets t ON t.batch_id = b.batch_id AND t.status = 'OPEN'
+       JOIN report_tickets t
+         ON t.batch_id = b.batch_id
+        AND t.status = 'OPEN'
+        AND t.auto_skip_allowed_at IS NULL
        LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
       WHERE b.status = 'PENDING'
       GROUP BY b.batch_id
@@ -601,14 +611,26 @@ function reporterBatchTickets(state: DurableObjectState, url: URL): Response {
     `SELECT t.ticket_id, t.picker_user_id, t.picker_employee_code,
             COALESCE(u.display_name, '') AS picker_display_name,
             t.status, t.reported_at, t.withdraw_deadline_at, t.withdrawn_at, t.resolved_at,
-            a.result_event_id, a.received_at, a.displayed_at, a.acknowledged_at
+            t.auto_skip_deadline_at, t.auto_skip_allowed_at, t.resolution, t.resolution_source,
+            (
+              SELECT a.result_event_id
+                FROM result_acknowledgements a
+               WHERE a.batch_id = b.batch_id
+                 AND a.target_user_id = t.picker_user_id
+               ORDER BY a.created_at DESC
+               LIMIT 1
+            ) AS result_event_id,
+            (
+              SELECT a.acknowledged_at
+                FROM result_acknowledgements a
+               WHERE a.batch_id = b.batch_id
+                 AND a.target_user_id = t.picker_user_id
+               ORDER BY a.created_at DESC
+               LIMIT 1
+            ) AS acknowledged_at
        FROM report_tickets t
        JOIN report_batches b ON b.batch_id = t.batch_id
        LEFT JOIN users u ON u.employee_code = t.picker_employee_code
-       LEFT JOIN result_acknowledgements a
-         ON a.batch_id = b.batch_id
-        AND a.batch_version = b.version
-        AND a.target_user_id = t.picker_user_id
       WHERE t.batch_id = ?
       ORDER BY t.reported_at ASC`,
     batchId,
@@ -625,18 +647,48 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT t.ticket_id, t.batch_id, t.sku, b.product_name, t.status,
             t.reported_at, t.withdraw_deadline_at, t.withdrawn_at, t.resolved_at,
-            b.status AS batch_status, b.resolution, b.correction_deadline_at,
+            t.auto_skip_deadline_at, t.auto_skip_allowed_at,
+            b.status AS batch_status,
+            COALESCE(t.resolution, b.resolution) AS resolution,
+            COALESCE(t.resolution_source, b.resolution_source) AS resolution_source,
+            b.correction_deadline_at,
             b.version AS batch_version, b.previous_batch_id,
-            a.result_event_id, a.received_at, a.displayed_at, a.acknowledged_at
+            (
+              SELECT a.result_event_id
+                FROM result_acknowledgements a
+               WHERE a.batch_id = b.batch_id AND a.target_user_id = ?
+               ORDER BY a.created_at DESC
+               LIMIT 1
+            ) AS result_event_id,
+            (
+              SELECT a.received_at
+                FROM result_acknowledgements a
+               WHERE a.batch_id = b.batch_id AND a.target_user_id = ?
+               ORDER BY a.created_at DESC
+               LIMIT 1
+            ) AS received_at,
+            (
+              SELECT a.displayed_at
+                FROM result_acknowledgements a
+               WHERE a.batch_id = b.batch_id AND a.target_user_id = ?
+               ORDER BY a.created_at DESC
+               LIMIT 1
+            ) AS displayed_at,
+            (
+              SELECT a.acknowledged_at
+                FROM result_acknowledgements a
+               WHERE a.batch_id = b.batch_id AND a.target_user_id = ?
+               ORDER BY a.created_at DESC
+               LIMIT 1
+            ) AS acknowledged_at
        FROM report_tickets t
        JOIN report_batches b ON b.batch_id = t.batch_id
-       LEFT JOIN result_acknowledgements a
-         ON a.batch_id = b.batch_id
-        AND a.batch_version = b.version
-        AND a.target_user_id = ?
       WHERE t.picker_user_id = ? OR t.picker_employee_code = ?
       ORDER BY t.reported_at DESC
       LIMIT ?`,
+    userId,
+    userId,
+    userId,
     userId,
     userId,
     employeeCode,
@@ -871,6 +923,16 @@ export function pickerCanReceiveRealtimeEvent(
          OR EXISTS (
            SELECT 1 FROM result_acknowledgements a
             WHERE a.result_event_id = ? AND a.target_user_id = ?
+         )
+         OR EXISTS (
+           SELECT 1
+             FROM report_events e
+             JOIN report_tickets t ON t.batch_id = e.batch_id
+            WHERE e.event_id = ?
+              AND e.event_type = 'SLA_ESCALATED'
+              AND t.picker_user_id = ?
+              AND t.status = 'OPEN'
+              AND t.auto_skip_allowed_at IS NULL
          )
          OR EXISTS (
            SELECT 1 FROM report_events e
