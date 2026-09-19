@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D077_AGENT_V3_RELEASE_PASS__OFFICE_FIELD_RETEST_PENDING__D076_RULES_PASS__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D078_OFFICE_TRANSPORT_PROBE_MATRIX_IN_PROGRESS__RTDB_PROXY_BLOCK_CONFIRMED__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -155,8 +155,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Owner retests relay-agent-v3 on .Office@MSN: ADMIN session -> Kiểm tra Office -> Nghe relay -> any Picker PDA sends five digits. If Office still fails, v3 sanitized log must expose the real HTTP status/proxy response instead of ObjectDisposedException.",
-    "method": "Use relay-agent-v3 release from main a501282daeced491eda8883701a60a04b5f646eb. D077 PR #74 and main Authority/Continuity/UI/Agent gates PASS; no APK change. D076 Rules remain deployed PASS.",
+    "primary": "Build/release relay-agent-v4 with read-only Office transport probes for Firebase Auth, RTDB, Firestore, Apps Script, Sheets and Drive plus Test all; Owner runs probes on .Office@MSN and returns sanitized log; then select the reachable transport before provisioning/replacing relay.",
+    "method": "Do not bypass Wincommerce proxy. Keep D075/D076 relay implementation unchanged during diagnostics. Branch -> PR -> guards/Agent build PASS -> merge -> relay-agent-v4 prerelease -> Owner field probe -> evidence-based transport decision.",
     "stable_guard": "Stable remains OWNER-GATED and untouched."
   },
   "continuity_policy": {
@@ -184,6 +184,7 @@
   },
   "workboard": {
     "in_progress": [
+      "D078 Office transport discovery implementation in progress; field logs already confirm RTDB endpoint is blocked by Wincommerce proxy while Firebase Secure Token remains reachable",
       "D077 source/build/release PASS: relay-agent-v3 published; physical Office retest pending",
       "D076 Beta RTDB Rules deploy/readback PASS; D075 physical Picker -> ADMIN Agent acceptance pending",
       "D068 Web baseline Owner-accepted/frozen",
@@ -194,13 +195,13 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Owner field-tests relay-agent-v3 on Office; if failure remains, provide v3 sanitized log with real HTTP status",
+      "Release relay-agent-v4 probe matrix, then Owner runs Test tất cả on Office and returns sanitized log",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
     ],
     "blocked_or_owner_field_dependent": [
-      "D077 final Office transport acceptance remains physical-field dependent after v3 build/release",
+      "D078 final transport selection depends on real Office proxy probe results from the Owner laptop",
       "D071 final visual/interaction acceptance depends on Owner live Web review",
       "D072 final Owner acceptance depends on live Web confirmation",
       "D070 physical timing/FCM delivery acceptance remains field-dependent",
