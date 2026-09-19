@@ -569,3 +569,15 @@ Current Web marker: `D071_WEB_SOURCE_MERGED__BETA_HEALTH_BLOCKED_BY_D070_STORAGE
 Current Android marker: `D070_TIMEOUT_ALERT_PROJECTION_SIGNED_BETA_VC46_RUNTIME_GATE_PASS__OWNER_FIELD_ACCEPTANCE_PENDING`.
 
 Next action: repair guards → merge → Beta deploy → require health/storage/schema/auth/business/Web/OAuth PASS → record D071 runtime continuity → Owner reviews the four D071 Web items.
+
+
+## D070 runtime repair + D072 quota guard — 2026-09-19
+
+Current source marker: `D070_ALARM_REPAIR_D072_SYSTEM_STATUS_QUOTA_GUARD_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`.
+
+- D070 repair prevents an already-past warning deadline from continuously re-arming after escalation, bounds alarm catch-up, schedules the next authoritative alarm before downstream delivery, and prevents realtime/FCM failure from retrying committed alarm work.
+- D072 removes `Trạng thái hệ thống` from normal Web navigation/routing, removes its manual/60-second monitoring calls, disables `GET /api/admin/system-status` before metric collection, and keeps Beta load-test snapshots core-only without Google Drive/GitHub provider reads.
+- D071 Web source remains merged and will be runtime-reviewed only after Beta health recovers.
+- Stable remains untouched/OWNER-GATED.
+
+Next action: guards → PR → merge → Beta deploy → health/schema/auth/business/Web/OAuth PASS → record runtime continuity.
