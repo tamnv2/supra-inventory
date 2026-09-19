@@ -134,13 +134,16 @@
     "D066 Web three-group navigation PR #50 merged at 2e12e6d4e94b195e3b505b3f2abe9822ca91632c; PR Repo Authority, Project State and UI Design guards PASS; main UI Design Guard run 35407227884 PASS; Beta deploy run 35407227911 PASS including Web build, Worker typecheck/deploy, health/schema, auth/business guards, Web shell and Google OAuth start."
   ],
   "pending_build": [
+    "D069 Beta Web PR guards/deploy for rich diagnostics, Excel export, unified UI and responsiveness improvements",
+    "Owner approval/refinement of D069 pending-SKU alert proposal before any alert-policy implementation",
     "Owner functional acceptance of Root effective-role switching across Web and resumed Android",
     "Android broader visual review after Owner resumes it",
     "Only after Owner UI gate: remaining canonical business wiring",
     "Physical notification/device acceptance after functional rebuild"
   ],
   "field_pending": [
-    "Owner 10-item functional/visual acceptance remains pending for the D067 Web refinement after Beta runtime deployment.",
+    "Owner review of D069 items 1, 2, 4 and 5 after Beta deployment.",
+    "D069 item 3 pending-SKU alert behavior is proposal-only and requires explicit Owner approval before implementation.",
     "Physical Android crash/log upload timing remains field-dependent.",
     "Technical PASS is not Owner UI acceptance."
   ],
@@ -181,18 +184,20 @@
   },
   "workboard": {
     "in_progress": [
-      "D067 items 1–8 and 10 Owner-accepted and frozen",
-      "D068 Web item 9 + requirements 11–15 merged and Beta runtime PASS; Owner acceptance pending",
+      "D068 complete Web baseline Owner-accepted and frozen",
+      "D069 items 1, 2, 4 and 5 source-implemented on Beta branch; PR guards/deploy pending",
+      "D069 item 3 pending-SKU alert policy proposal prepared but not implemented",
       "Android broader Owner UI acceptance remains pending",
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Owner tests only D067 item 9 and D068 requirements 11–15 on Beta",
-      "Fix only items explicitly reported not OK",
-      "Freeze each D068 item once Owner marks it OK"
+      "Run D069 PR authority/state/UI guards and repair to PASS",
+      "Merge and deploy Beta, then verify live build",
+      "Owner reviews D069 items 1, 2, 4 and 5 and decides item 3 alert proposal"
     ],
     "blocked_or_owner_field_dependent": [
-      "D068 final acceptance depends on Owner Web test",
+      "D069 enhanced pending-SKU alert policy requires Owner approval",
+      "D069 final visual/functional acceptance depends on Owner Web test",
       "Android broader visual/device acceptance depends on Owner field review",
       "No Stable promotion is authorized"
     ],
