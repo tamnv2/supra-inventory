@@ -31,7 +31,9 @@ In scope:
 Explicitly out of scope unless Owner reopens it:
 - bin/location/pickface inventory management;
 - stock quantity management;
-- Office-network fallback/provider research.
+- Office-network fallback/provider research for the Báo hàng transaction path.
+
+D073 bounded exception: Beta may test an **online** Firebase Realtime Database relay for the new Picker `Xác nhận lấy hàng` capability. PDA remains on the Internet-capable PDA network; a Windows user-mode Agent may run on either PDA Internet or Office network and exchange test request/ACK through Google. This does not create offline Báo hàng, direct-to-Sheet fallback, or any WMS mutation during the POC.
 
 Explicitly out of scope by active Owner decision D043:
 - any offline business mode;

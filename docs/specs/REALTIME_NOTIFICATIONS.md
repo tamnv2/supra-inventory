@@ -193,3 +193,18 @@ D070 authoritative deadline transitions must not create a tight alarm loop or de
 - Normal admin system-status API access is disabled before any InventoryCore/provider metric collection.
 - Beta load-test snapshot remains temporary/gated and uses core-only metrics; it must not refresh Google Drive or GitHub provider usage.
 - Realtime business synchronization, header connectivity state and runtime logs remain unchanged.
+
+
+## D073 — Firebase relay POC channel
+
+The D073 test channel is independent from InventoryCore business realtime and exists only to prove PDA ↔ Office-laptop transport.
+
+- Beta RTDB instance: `supra-inventory-beta-default-rtdb`, location `asia-southeast1`.
+- Path: `relay_poc/{firebase_uid}/jobs/{request_id}`.
+- Both PDA and the POC Agent authenticate with Firebase ID tokens; Rules require `auth.uid == {firebase_uid}`.
+- Request fields are bounded to test metadata: `request_id`, five-digit `suffix`, `status=PENDING`, client send timestamp and source marker.
+- Agent may PATCH only test response metadata such as `status=ACK`, machine identifier, current SSID label and ACK timestamps.
+- Never store passwords, WMS cookies/tokens, Firebase refresh tokens, access tokens, private keys or company-system credentials in RTDB.
+- The Android client measures end-to-end round-trip locally and deletes the test job after ACK/timeout.
+- The Agent uses REST streaming/SSE (`Accept: text/event-stream`) so Office transport is tested without LAN connectivity to the PDA.
+- This channel must not be reused as an offline mutation queue for Báo hàng.

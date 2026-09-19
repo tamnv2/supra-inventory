@@ -189,7 +189,8 @@
       "managed_password_status": "DIRECT_CREATE_AND_CHANGE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
-      "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK"
+      "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
+      "relay_poc_status": "D073_SOURCE_BUILD_IN_PROGRESS__RTDB_PROVISIONING_PENDING"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -496,5 +497,22 @@
     "retroactive": false,
     "queue_ordering": "D007_UNCHANGED",
     "extension_feature": false
+  },
+  "relay_poc": {
+    "decision": "D073",
+    "environment": "beta",
+    "status": "SOURCE_BUILD_IN_PROGRESS__RTDB_PROVISIONING_PENDING",
+    "purpose": "Authenticated PDA-to-Windows-Agent transport proof only; no WMS mutation",
+    "transport": "FIREBASE_RTDB_REST_SSE",
+    "database_resource_key": "firebase-rtdb-relay-beta",
+    "database_name": "supra-inventory-beta-default-rtdb",
+    "database_location": "asia-southeast1",
+    "database_url": "https://supra-inventory-beta-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "path": "relay_poc/{firebase_uid}/jobs/{request_id}",
+    "auth": "FIREBASE_ID_TOKEN_UID_ISOLATED",
+    "android": "PICKER_FIVE_DIGIT_TEST_SENDER",
+    "windows_agent": "NET48_NORMAL_USER_DPAPI_REFRESH_TOKEN_SSE_ACK",
+    "wms_mutation": "FORBIDDEN_IN_POC",
+    "stable": "UNTOUCHED_OWNER_GATED"
   }
 }

@@ -67,6 +67,10 @@ class PickerController(
     private var selected: SkuItem? = null
     private var pendingResults: List<PickerResult> = emptyList()
     private val withdrawButtons = linkedMapOf<Button, Long>()
+    private val relayPocClient = RelayPocClient(api)
+    private var relayPicklistInput: EditText? = null
+    private var relayButton: Button? = null
+    private var relayStatus: TextView? = null
 
     private val withdrawTicker = object : Runnable {
         override fun run() {
@@ -103,6 +107,11 @@ class PickerController(
         suggestions = null
         historyBox = null
         historyRenderer = null
+        relayPicklistInput = root.findViewById(R.id.etRelayPicklistSuffix)
+        relayStatus = root.findViewById(R.id.tvRelayPocStatus)
+        relayButton = root.findViewById<Button>(R.id.btnRelayPocSend)?.apply {
+            setOnClickListener { submitRelayProbe() }
+        }
 
         autoInput?.threshold = 1
         autoInput?.addTextChangedListener(object : TextWatcher {
@@ -137,6 +146,36 @@ class PickerController(
         searchTask?.let { handler.removeCallbacks(it) }
         handler.removeCallbacks(withdrawTicker)
         historyRenderer = null
+        relayPocClient.close()
+    }
+
+    private fun submitRelayProbe() {
+        val suffix = relayPicklistInput?.text?.toString()?.trim().orEmpty()
+        if (!suffix.matches(Regex("^\\d{5}$"))) {
+            relayStatus?.text = "Nhập đúng 5 số cuối Picklist."
+            return
+        }
+        if (!isOnline()) {
+            relayStatus?.text = "PDA chưa có kết nối Internet."
+            return
+        }
+        relayButton?.isEnabled = false
+        relayStatus?.text = "Đang gửi " + suffix + " tới máy xử lý..."
+        Thread {
+            try {
+                val result = relayPocClient.sendProbe(suffix)
+                activity.runOnUiThread {
+                    relayButton?.isEnabled = true
+                    val network = result.agentNetwork.takeIf { it.isNotBlank() && it != "UNKNOWN" }?.let { " • " + it }.orEmpty()
+                    relayStatus?.text = "Đã nhận bởi " + result.agentId + network + " • " + result.roundTripMs + " ms"
+                }
+            } catch (error: Exception) {
+                activity.runOnUiThread {
+                    relayButton?.isEnabled = true
+                    relayStatus?.text = error.message?.takeIf { it.isNotBlank() } ?: friendlyError(error)
+                }
+            }
+        }.start()
     }
 
     private fun isOnline(): Boolean {

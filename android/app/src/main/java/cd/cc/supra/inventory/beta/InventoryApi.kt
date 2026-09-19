@@ -411,6 +411,11 @@ class InventoryApi(
         JSONObject().put("request_id", UUID.randomUUID().toString()).put("batch_id", batchId),
     )
 
+    fun refreshSessionForRelay(): AppSession {
+        refreshSession()
+        return session ?: throw ApiException(401, "SESSION_REFRESH_FAILED", "Không thể làm mới phiên đăng nhập.")
+    }
+
     private fun refreshSession() {
         val current = session ?: throw ApiException(401, "AUTH_REQUIRED", "Phiên đăng nhập đã hết hạn.")
         val payload = request(

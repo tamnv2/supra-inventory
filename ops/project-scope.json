@@ -292,6 +292,18 @@
         "Archive_Events"
       ],
       "exposure": "operational_metadata_existing_public"
+    },
+    {
+      "key": "firebase-rtdb-relay-beta",
+      "provider": "Firebase",
+      "kind": "realtime_database",
+      "environment": "beta",
+      "name": "supra-inventory-beta-default-rtdb",
+      "location": "asia-southeast1",
+      "url": "https://supra-inventory-beta-default-rtdb.asia-southeast1.firebasedatabase.app",
+      "exposure": "public_identifier",
+      "status": "OWNER_APPROVED_PROVISIONING_PENDING",
+      "guard": "D073_POC_ONLY_NO_WMS_MUTATION_NO_STABLE"
     }
   ],
   "secret_references": [
