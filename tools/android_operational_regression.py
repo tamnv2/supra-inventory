@@ -190,6 +190,7 @@ def main() -> None:
     # D082: persistent click-through overlay + read-only Picklist existence lookup.
     require(status_overlay, "class StatusOverlayForm", "D082 persistent overlay form")
     require(status_overlay, "WsExTransparent", "D082 locked click-through overlay")
+    require(status_overlay, "HtTransparent", "D082 locked hit-test click-through")
     require(status_overlay, "WsExNoActivate", "D082 locked no-activation overlay")
     require(status_overlay, "TopMost = true", "D082 always-on-top overlay")
     require(status_overlay, "SetOverlayOpacity", "D082 configurable overlay opacity")
