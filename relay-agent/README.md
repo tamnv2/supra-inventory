@@ -63,3 +63,20 @@ Logs must never contain the typed password, raw Picklist suffix, bearer/ID/refre
 Field log shows `.PDA@MSN` RTDB GET PASS and `.Office@MSN` Firebase refresh PASS, followed by `ObjectDisposedException` before the real RTDB/proxy HTTP status could be surfaced. Source review found `ToRelayHttpException()` disposed `HttpWebResponse` and then read `StatusCode`. D077 captures status/response diagnostics before disposal, preserves sanitized error reporting, bumps the portable Agent to `relay-agent-v3`, and leaves D075 shared ADMIN relay plus D076 deployed Rules unchanged. No APK/WMS change.
 
 Current relay marker: `D077_OFFICE_PROXY_HTTP_RESPONSE_DISPOSAL_REPAIR_IN_PROGRESS__D076_RULES_PASS__NO_WMS_MUTATION`.
+
+
+## D078 Office transport probes
+
+Office field evidence shows Firebase Secure Token is reachable while the Wincommerce proxy blocks the RTDB `*.firebasedatabase.app` endpoint. Agent v4 adds read-only diagnostics before any replacement relay is selected.
+
+Buttons:
+
+- **Auth** — refreshes the Firebase ADMIN session against `securetoken.googleapis.com`.
+- **RTDB** — tests the current shared RTDB queue endpoint.
+- **Firestore** — tests `firestore.googleapis.com` with the current Firebase ADMIN ID token.
+- **Apps Script** — tests both the Apps Script web-app host and Apps Script API host without creating or changing a script.
+- **Sheets** — tests the Sheets API host without mutating a spreadsheet.
+- **Drive** — tests the Drive API host without mutating Drive.
+- **TEST TẤT CẢ** — runs the full matrix and writes one `PROBE SUMMARY` line.
+
+Probe results distinguish Google/API reachability from `PROXY_BLOCK`. Corporate block HTML is summarized to category/rule markers rather than logged as a Firebase Rules error. No probe creates Google resources, confirms orders, accesses WMS, or bypasses company filtering.
