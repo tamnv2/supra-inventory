@@ -274,11 +274,11 @@ namespace SupraInventoryRelayAgent
                 var stored = LoadStoredSession();
                 if (stored == null)
                 {
-                    Log("Chưa có phiên Agent đã lưu trên Windows user này.");
+                    Log("Chưa có phiên ADMIN Agent đã lưu trên Windows user này.");
                     return;
                 }
                 lock (_sessionLock) _session = stored;
-                Log("Đã đọc phiên ghép từ Windows DPAPI; đang làm mới Firebase qua Google.");
+                Log("Đã đọc phiên Agent từ Windows DPAPI; đang xác minh lại quyền ADMIN qua Firebase.");
                 RefreshDirect();
                 Ui(() =>
                 {
@@ -286,11 +286,19 @@ namespace SupraInventoryRelayAgent
                     _listen.Enabled = true;
                     _testOffice.Enabled = true;
                 });
-                Log("Khôi phục phiên đã ghép thành công.");
+                Log("Khôi phục ADMIN Agent PASS.");
             }
             catch (Exception ex)
             {
-                Log("Chưa thể khôi phục phiên: " + SafeMessage(ex));
+                ClearStoredSession();
+                lock (_sessionLock) _session = null;
+                Ui(() =>
+                {
+                    _identity.Text = "Agent: cần đăng nhập ADMIN";
+                    _listen.Enabled = false;
+                    _testOffice.Enabled = false;
+                });
+                Log("Phiên Agent cũ bị loại; cần đăng nhập lại bằng ADMIN: " + SafeMessage(ex));
             }
         }
 
@@ -305,35 +313,51 @@ namespace SupraInventoryRelayAgent
             });
             if (username.Length == 0 || password.Length == 0)
             {
-                Log("Nhập tài khoản và mật khẩu khi laptop đang ở mạng truy cập được Cloudflare.");
+                Log("Nhập tài khoản ADMIN và mật khẩu khi laptop đang ở mạng truy cập được Cloudflare.");
                 Ui(() => _pair.Enabled = true);
                 return;
             }
 
             try
             {
-                LogNetworkSnapshot("pair-login");
+                LogNetworkSnapshot("admin-login");
                 var payload = new Dictionary<string, object> { { "username", username }, { "password", password } };
                 var root = Map(_json.DeserializeObject(RequestJson("POST", AgentConfig.ApiBaseUrl + "/api/auth/login", _json.Serialize(payload), "application/json")));
                 var user = Map(root["user"]);
+                var role = user.ContainsKey("role") ? Convert.ToString(user["role"]) : "";
+                var baseRole = user.ContainsKey("base_role") ? Convert.ToString(user["base_role"]) : "";
+                var appUserId = user.ContainsKey("user_id") ? Convert.ToString(user["user_id"]) : "";
+                if (!string.Equals(role, "ADMIN", StringComparison.Ordinal) ||
+                    !string.Equals(baseRole, "ADMIN", StringComparison.Ordinal))
+                    throw new InvalidOperationException("EXE chỉ cho phép tài khoản ADMIN thực. ROOT/REPORTER/PICKER không được dùng.");
+
                 var idToken = Convert.ToString(root["id_token"]);
                 var refreshToken = Convert.ToString(root["refresh_token"]);
                 var firebaseUid = FirebaseUidFromIdToken(idToken);
                 var audience = FirebaseAudienceFromIdToken(idToken);
+                var tokenRole = FirebaseClaimFromIdToken(idToken, "app_role");
+                var tokenBaseRole = FirebaseClaimFromIdToken(idToken, "app_base_role");
+                var tokenAppUser = FirebaseClaimFromIdToken(idToken, "app_user_id");
                 if (!string.Equals(audience, AgentConfig.FirebaseProjectId, StringComparison.Ordinal))
                     throw new InvalidOperationException("Firebase token sai project audience.");
+                if (!string.Equals(tokenRole, "ADMIN", StringComparison.Ordinal) ||
+                    !string.Equals(tokenBaseRole, "ADMIN", StringComparison.Ordinal) ||
+                    !string.Equals(tokenAppUser, appUserId, StringComparison.Ordinal))
+                    throw new InvalidOperationException("Firebase ADMIN claims chưa đồng bộ; cần build/deploy D075 trước khi ghép Agent.");
 
                 var next = new AgentSession
                 {
                     IdToken = idToken,
                     RefreshToken = refreshToken,
                     UserId = firebaseUid,
-                    AppUserId = Convert.ToString(user["user_id"]),
+                    AppUserId = appUserId,
+                    Role = tokenRole,
+                    BaseRole = tokenBaseRole,
                     ExpiresUtc = DateTime.UtcNow.AddSeconds(ParseInt(root, "expires_in", 3600) - 60)
                 };
                 if (string.IsNullOrWhiteSpace(next.IdToken) || string.IsNullOrWhiteSpace(next.RefreshToken) ||
                     string.IsNullOrWhiteSpace(next.UserId) || string.IsNullOrWhiteSpace(next.AppUserId))
-                    throw new InvalidOperationException("Phiên ghép không đầy đủ.");
+                    throw new InvalidOperationException("Phiên ADMIN Agent không đầy đủ.");
 
                 lock (_sessionLock) _session = next;
                 SaveStoredSession(next);
@@ -344,11 +368,17 @@ namespace SupraInventoryRelayAgent
                     _listen.Enabled = true;
                     _testOffice.Enabled = true;
                 });
-                Log("Ghép Agent PASS app_user=" + next.AppUserId + " firebase_uid=" + Fingerprint(next.UserId) + " aud=" + audience + ". Chuyển laptop sang Office rồi bấm Kiểm tra Office.");
+                Log(
+                    "ADMIN Agent login PASS admin=" + next.AppUserId +
+                    " machine=" + Environment.MachineName +
+                    " instance=" + Short(_agentInstanceId) +
+                    " firebase_uid=" + Fingerprint(next.UserId) +
+                    " aud=" + audience
+                );
             }
             catch (Exception ex)
             {
-                Log("Ghép Agent thất bại: " + SafeMessage(ex));
+                Log("Đăng nhập ADMIN Agent thất bại: " + SafeMessage(ex));
             }
             finally
             {
