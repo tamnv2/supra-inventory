@@ -94,7 +94,7 @@ jobs:
           const now = Math.floor(Date.now() / 1000);
           const unsigned = enc({ alg: 'RS256', typ: 'JWT' }) + '.' + enc({
             iss: sa.client_email,
-            scope: 'https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/userinfo.email',
+            scope: 'https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/userinfo.email',
             aud: 'https://oauth2.googleapis.com/token',
             iat: now,
             exp: now + 900,
