@@ -15,20 +15,20 @@
   "current_status": {
     "beta": "F01_F14_F19_F20_F21_F22_F23_AUTOMATED_RUNTIME_RELEASE_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
-    "sqlite_schema": 6,
-    "business_api": "OPERATIONAL_V2_4_RUNTIME_PASS__F20_BOUNDED_INSIGHTS_RUNTIME_PASS",
+    "sqlite_schema": 7,
+    "business_api": "OPERATIONAL_V2_5_D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
-    "web": "D069_WEB_DIAGNOSTICS_EXCEL_UNIFIED_UI_PERF_BETA_RUNTIME_PASS__OWNER_REVIEW_PENDING",
-    "android": "VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING",
+    "web": "D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
+    "android": "D070_TIMEOUT_ALERT_PROJECTION_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
     "latest_beta_apk": "beta-vc45",
-    "realtime": "GLOBAL_SCAN_CURSOR_STREAM_EPOCH_DIRTY_RECOVERY_BETA_RUNTIME_PASS_OP_V2_4",
+    "realtime": "D070_SLA_WARNING_ESCALATION_AUTO_SKIP_EVENTS_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
     "network_scope": "ONLINE_ONLY_PDA_RUNTIME_SUPPORTED_OFFICE_UNSUPPORTED_NO_OFFLINE_BUSINESS_MODE",
-    "fcm": "DATA_ONLY_SERVICE_CORRELATION_DELIVERY_ATTEMPTS_INVALID_TOKEN_CLEANUP_RUNTIME_RELEASE_PASS__PHYSICAL_ACCEPTANCE_PENDING",
+    "fcm": "D070_GROUPED_ROLE_ALERTS_EXACT_PICKER_TIMEOUT_RESULTS_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
     "user_management": "SERVER_PAGED_FILTERED_ONE_MANY_ALL__ROOT_EFFECTIVE_ROLE_TEST_RUNTIME_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D069_XLSX_REPORT_EXPORT_BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "INDEXED_REPORTING_DELTA_CATALOG_NONDESTRUCTIVE_BURST_PASS",
-    "ui_design_guard": "D069_UI_DESIGN_GUARD_MAIN_PASS",
+    "ui_design_guard": "D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED"
@@ -134,19 +134,16 @@
     "D066 Web three-group navigation PR #50 merged at 2e12e6d4e94b195e3b505b3f2abe9822ca91632c; PR Repo Authority, Project State and UI Design guards PASS; main UI Design Guard run 35407227884 PASS; Beta deploy run 35407227911 PASS including Web build, Worker typecheck/deploy, health/schema, auth/business guards, Web shell and Google OAuth start."
   ],
   "pending_build": [
-    "Owner approval/refinement of D069 pending-SKU alert proposal before any alert-policy implementation",
-    "Owner review of D069 items 1, 2, 4 and 5 on deployed Beta Web",
-    "Owner functional acceptance of Root effective-role switching across Web and resumed Android",
+    "D070 PR guards/merge/Beta deploy for Worker/Web schema migration and alarm automation",
+    "Signed Beta Android release/verification because D070 changes Android runtime UI/API projection",
+    "Owner field acceptance of D070 timing notifications and both auto-Skip modes",
     "Android broader visual review after Owner resumes it",
-    "Only after Owner UI gate: remaining canonical business wiring",
-    "Physical notification/device acceptance after functional rebuild"
+    "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "Owner review of D069 rich logs, Excel export, unified Web UI and responsiveness on deployed Beta.",
-    "D069 item 3 pending-SKU alert behavior is proposal-only and requires explicit Owner approval before implementation.",
-    "New D069 diagnostic logs accumulate only after users operate the deployed Web; subsequent latency analysis should use those post-deploy logs.",
-    "Physical Android crash/log upload timing remains field-dependent.",
-    "Technical PASS is not Owner UI acceptance."
+    "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
+    "Owner acceptance of FIRST_REPORT and PER_PICKER behavior remains field-dependent after runtime PASS.",
+    "Stable promotion remains OWNER-GATED."
   ],
   "open_decisions_do_not_invent": [
     "Exact SKU-reset confirmation semantics originally described as random '6 chữ'.",
@@ -156,8 +153,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Owner reviews D069 items 1, 2, 4 and 5 on deployed Beta Web and approves/refines the pending-SKU alert proposal for item 3. Do not implement item 3 until explicit Owner approval.",
-    "method": "Use https://inventory-beta.supra.cc.cd/. Verify rich diagnostic logs, .xlsx detailed-report export, unified Web layout including Thời gian xử lý, and improved response latency. After normal use, new runtime logs will contain API/render/realtime/long-task evidence for further optimization.",
+    "primary": "Run all D070 authority/state/UI/service/Web/Android guards, repair to PASS, merge through PR, deploy Beta schema 7 / Operational V2 schema 5, publish and verify the signed Beta Android release required by the Android source changes, then record runtime continuity.",
+    "method": "Verify strict three-threshold validation, FIRST_REPORT and PER_PICKER automatic-Skip semantics, non-retroactive activation, disable/mode-switch fail-safe cancellation, exact Picker result/ACK targeting, five-minute correction, grouped Reporter/Admin/Root alerts, Web/Android deadline surfaces and unchanged D007 ordering.",
     "stable_guard": "Stable remains OWNER-GATED and untouched."
   },
   "continuity_policy": {
@@ -185,21 +182,20 @@
   },
   "workboard": {
     "in_progress": [
-      "D068 complete Web baseline Owner-accepted and frozen",
-      "D069 items 1, 2, 4 and 5 merged and Beta runtime PASS; Owner review pending",
-      "D069 item 3 pending-SKU alert policy proposal prepared but not implemented",
-      "Android broader Owner UI acceptance remains pending",
+      "D068 Web baseline Owner-accepted/frozen",
+      "D069 items 1, 2, 4 and 5 Beta runtime PASS",
+      "D070 alert/auto-Skip policy Owner-approved and source implementation in progress",
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Owner reviews D069 items 1, 2, 4 and 5 on Beta",
-      "Owner approves/refines D069 pending-SKU alert proposal",
-      "Use new rich post-deploy Web logs to diagnose any remaining UI latency"
+      "Run D070 PR guards and repair failures",
+      "Merge/deploy Beta and verify schema/runtime",
+      "Publish/verify matching signed Beta Android release",
+      "Record runtime PASS and hand Owner the D070 field-test matrix"
     ],
     "blocked_or_owner_field_dependent": [
-      "D069 enhanced pending-SKU alert policy requires Owner approval",
-      "D069 final visual/functional acceptance depends on Owner Web test",
-      "Android broader visual/device acceptance depends on Owner field review",
+      "D070 final Owner acceptance requires live timing/device test after technical PASS",
+      "Physical Android/FCM acceptance depends on Owner field review",
       "No Stable promotion is authorized"
     ],
     "last_source_build_evidence": {
@@ -263,17 +259,17 @@
   "last_updated": "2026-09-19",
   "owner_ui_review": {
     "status": "IN_PROGRESS",
-    "phase": "D069_WEB_DIAGNOSTICS_EXCEL_UI_PERFORMANCE_RUNTIME_REVIEW",
+    "phase": "D070_THREE_STAGE_SLA_AUTO_SKIP_IMPLEMENTATION",
     "started_on": "2026-09-18",
     "review_target_web": "https://inventory-beta.supra.cc.cd/",
     "review_target_android_release": "beta-vc45",
     "review_target_android_source_commit": "3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982",
     "visual_authority_repository": "tam95supra-source/bao-hang-1291",
     "visual_authority_commit": "8713f487386fa39c9225b180b2b8448d4a7e2b2d",
-    "owner_acceptance": "D068_ALL_WEB_REVIEW_ITEMS_ACCEPTED_FROZEN__D069_1_2_4_5_PENDING_OWNER_REVIEW__D069_3_PROPOSAL_PENDING",
-    "current_instruction": "Review D069 items 1, 2, 4 and 5 on Beta. Decide the item 3 pending-SKU alert proposal before implementation. D068 remains frozen.",
-    "next_session_command": "Kiểm tra live D069 và review log, Excel, giao diện, độ trễ",
-    "review_feedback_protocol": "Owner reports D069 1/2/4/5 OK or not OK and approves/refines item 3. AI may implement item 3 only after explicit approval."
+    "owner_acceptance": "D068_ALL_WEB_ACCEPTED__D069_ITEMS_1_2_4_5_RUNTIME_PASS__D070_ALERT_AND_AUTO_SKIP_POLICY_APPROVED_IMPLEMENTING",
+    "current_instruction": "Implement the approved D070 three-threshold policy completely on Beta: warning < overdue < automatic Skip, enable/disable, FIRST_REPORT or PER_PICKER timing, no extension feature.",
+    "next_session_command": "Kiểm tra live D070 và test 3 mốc cảnh báo / quá hạn / tự động skip",
+    "review_feedback_protocol": "Technical/runtime PASS is separate from Owner field acceptance. Stable remains blocked until explicit Owner promotion."
   },
   "runtime_evidence": [
     "D064 Beta Load Test run 35376099693 PASS: 1000/1000 normal Picker reports, 100 existing Picker identities, 400 existing SKUs, duration 525.423s, avg 250.34ms, p50 235.95ms, p95 348.72ms, max 625.64ms, no errors; SQLite +2572288 bytes, +400 batches, +1000 tickets, +1000 report events, +1000 realtime events, +1000 audit rows; temporary load-test gate verified closed.",
@@ -289,6 +285,10 @@
     "Owner explicitly accepted the complete D068 Web review baseline on 2026-09-19; D068 is frozen.",
     "D069 source candidate expands redacted Web runtime diagnostics, changes detailed-report export to .xlsx, adds a final unified Web CSS layer including a redesigned Thời gian xử lý page, and reduces unnecessary full-shell rerenders while adding render/API/realtime timing telemetry.",
     "D069 item 3 enhanced pending-SKU alert logic remains proposal-only; no new alert delivery/escalation behavior is source-implemented before Owner approval.",
-    "D069 deployed Beta adds safe API/render/realtime/long-task/resource/DOM/interaction telemetry, expands bounded runtime logs to 192k, exports detailed reports as .xlsx, applies a final unified Web visual layer, and replaces normal full-shell rerenders with scoped workspace updates."
+    "D069 deployed Beta adds safe API/render/realtime/long-task/resource/DOM/interaction telemetry, expands bounded runtime logs to 192k, exports detailed reports as .xlsx, applies a final unified Web visual layer, and replaces normal full-shell rerenders with scoped workspace updates.",
+    "D070 supersedes D050: three entered thresholds are warning < escalation < auto-skip; auto-Skip may be enabled/disabled and uses FIRST_REPORT or PER_PICKER server-authoritative timing.",
+    "D070 automatic Skip is service authority with SYSTEM_TIMEOUT source; Picker receives no new resolve mutation permission; five-minute Skip-to-HAS_STOCK correction remains.",
+    "D070 uses InventoryCore Durable Object Alarm rather than client/API polling; initial activation/re-enable/mode switch is non-retroactive and disable cancels pending automatic deadlines.",
+    "D070 adds no processing-extension feature."
   ]
 }
