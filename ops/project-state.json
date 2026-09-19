@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D076_OWNER_BLOCKED_MISSING_FIREBASEDATABASE_INSTANCES_UPDATE__D075_SOURCE_BUILD_RELEASE_PASS__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D076_PR_VALIDATION_PASS__MAIN_RTDB_RULES_DEPLOY_PENDING__D075_RELEASE_PASS__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -155,8 +155,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Owner grants Firebase Realtime Database Admin (roles/firebasedatabase.admin) to inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com so CI obtains firebasedatabase.instances.update; then rerun PR #72 read-only validation, merge, main RTDB Rules PUT/readback verify, and proceed to D075 field test.",
-    "method": "Do not broaden further. Required missing permission is firebasedatabase.instances.update, proven absent by Cloud Resource Manager testIamPermissions in PR #72. After Owner grants the predefined role, rerun the existing failed workflow; no secret recreation is needed.",
+    "primary": "Merge PR #72 after all guards PASS; main workflow must PUT canonical D075 Rules to the scoped Beta RTDB and readback-verify exact JSON. Then record D076 Rules deploy PASS and proceed to physical beta-vc49 + relay-agent-v2 field test.",
+    "method": "PR #72 read-only CI already proves configured service-account OAuth, firebasedatabase.instances.update and RTDB Rules GET access. No further Owner IAM action is required. Merge only after current authority/continuity/UI gates PASS; require main Deploy Beta RTDB Rules terminal PASS.",
     "stable_guard": "Stable remains OWNER-GATED and untouched."
   },
   "continuity_policy": {
@@ -184,7 +184,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D076 blocked only by missing firebasedatabase.instances.update on the configured Beta service account; secret/OAuth/project validation already PASS",
+      "D076 PR validation PASS: secret/project/OAuth/instances.update/RTDB Rules read all verified; main-only PUT/readback deploy pending merge",
       "D075 source/build/deploy/release PASS; RTDB Rules publication + physical field acceptance pending",
       "D068 Web baseline Owner-accepted/frozen",
       "D069 items 1, 2, 4 and 5 Beta runtime PASS",
@@ -194,6 +194,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
+      "Merge PR #72 after guards PASS, then require main RTDB Rules PUT/readback verification PASS",
       "PR validate firebasedatabase.instances.update + RTDB Rules read; merge; require main REST Rules PUT/readback PASS",
       "Owner publishes D075 RTDB Rules then field-tests beta-vc49 + relay-agent-v2 with any Picker PDA and real ADMIN Agent",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
@@ -201,7 +202,6 @@
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
     ],
     "blocked_or_owner_field_dependent": [
-      "D076 Owner action required: grant roles/firebasedatabase.admin to inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com; PR #72 testIamPermissions proves firebasedatabase.instances.update currently missing",
       "D075 updated RTDB Rules publication and physical Office/PDA acceptance require Owner UI/device/network action",
       "D074 physical Office/PDA relay acceptance requires the Owner's real laptop/PDA/network; technical build/release is PASS",
       "D071 final visual/interaction acceptance depends on Owner live Web review",
