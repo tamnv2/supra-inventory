@@ -24,7 +24,7 @@ All business operations require online access to the authoritative Worker + Inve
 7. Every authoritative batch mutation increments its batch version. A new report attached to an existing pending batch changes the affected set/version.
 8. Picker sees own report state through authoritative API plus event-sequence WebSocket updates/delta recovery.
 9. An unresolved mistaken report may be withdrawn within **60 seconds server time**. The affected batch/version changes accordingly; a batch becomes `CLOSED` when its final open ticket is withdrawn.
-10. When Reporter resolves a batch as `HAS_STOCK` or `SKIP_ALLOWED`, each affected Picker receives a critical result. The app must present the result clearly and require explicit acknowledgement tied to target user + notification event + batch/version.
+10. When Reporter resolves a batch, or D070 service timeout grants `SKIP_ALLOWED`, each exact affected Picker receives a critical result. In `PER_PICKER`, only the timed-out Picker is targeted until other Pickers receive their own result/final batch result. The app presents the result clearly and requires explicit acknowledgement tied to target user + notification event + batch/version.
 11. Result delivery/ACK telemetry does not redefine business resolution: the batch remains resolved even if FCM or a device receipt fails.
 12. Today history remains visible immediately under the report form with clear business status and ACK state where relevant.
 
@@ -147,11 +147,18 @@ For acceptance testing, the actual ROOT identity may temporarily select an effec
 
 ## SLA workflow
 
-- Admin/Root may configure explicit warning/escalation thresholds in minutes.
-- If SLA is not configured, product must say so; do not infer hidden legacy values.
-- Server computes the state from authoritative time/first report.
-- Typical state vocabulary: `UNCONFIGURED`, `NORMAL`, `WARNING`, `ESCALATED`.
-- SLA never performs `SKIP_ALLOWED`, `HAS_STOCK` or another business resolution automatically.
+- Admin/Root configures three integer minute thresholds with strict validation: `warning < escalation < auto_skip`.
+- The automatic-Skip switch is independent from the numeric third threshold and may be enabled/disabled.
+- Automatic-Skip mode is either `FIRST_REPORT` (one batch deadline from the first report) or `PER_PICKER` (each Picker deadline from that Picker's own report).
+- If timing has never been configured, product says so; legacy two-threshold configuration never silently enables automatic Skip.
+- Server computes timing from authoritative timestamps; client clocks are presentation-only.
+- Typical pending state vocabulary remains `UNCONFIGURED`, `NORMAL`, `WARNING`, `ESCALATED`.
+- On a due enabled automatic deadline, service may create `SKIP_ALLOWED` with `resolution_source=SYSTEM_TIMEOUT`. Picker does not gain Reporter/Admin resolve permission.
+- In `PER_PICKER`, a timed-out Picker gets its own Skip result while the batch remains pending for other active Pickers; that Picker no longer contributes to affected-active count and cannot create a duplicate open report for the same SKU episode.
+- When the final active Picker is timed out, the batch finalizes as `SKIP_ALLOWED`; the normal five-minute correction-to-`HAS_STOCK` window remains.
+- First D070 activation, re-enable after disable, or mode switch is non-retroactive for pre-existing work; only newly assigned D070 deadlines are automatic.
+- Disabling automatic Skip cancels not-yet-fired automatic deadlines.
+- No processing-extension action exists in D070.
 
 ## Data lifecycle
 
