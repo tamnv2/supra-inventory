@@ -118,11 +118,11 @@
     },
     {
       "id": "OA004",
-      "status": "D078_AGENT_V4_RELEASE_PASS__OFFICE_PROBE_PENDING",
+      "status": "PAUSED_OWNER_AWAY_FROM_OFFICE__RESUME_TRIGGER_D079",
       "title": "Publish D075 shared relay RTDB Rules and field-test ADMIN Agent",
       "resource_key": "firebase-rtdb-relay-beta",
       "provider": "Firebase + physical Beta field environment",
-      "reason_owner_only": "Automated D076 Rules deployment is PASS. Only the physical Office/PDA field acceptance remains Owner/device/network dependent.",
+      "reason_owner_only": "The D078 probe matrix requires the Owner's physical company laptop on .Office@MSN. This is paused for location/time availability only; no additional Firebase/IAM setup is required.",
       "owner_ui_path": [],
       "shortest_test_path": [
         "Run relay-agent-v4 and ensure ADMIN session is restored/logged in.",
@@ -132,7 +132,7 @@
         "Press Mở log and provide the sanitized Agent log."
       ],
       "safety": "Beta only; do not use Test mode/open Rules; no WMS mutation; never share passwords/tokens.",
-      "remaining_owner_action": "Run TEST TẤT CẢ once on .Office@MSN using relay-agent-v4 and provide the sanitized log. Do not change Firebase/IAM/proxy settings.",
+      "remaining_owner_action": "When back at company, start a session with exact phrase `tiếp tục build xác nhận lấy lại hàng`; AI must resume D078 immediately, then run relay-agent-v4 TEST TẤT CẢ on .Office@MSN and analyze the sanitized log.",
       "prerequisites": {
         "merged_main": "452feb1e25dff936617e5d1d51313438d85155eb",
         "rules_deploy_run": 35451292051,
