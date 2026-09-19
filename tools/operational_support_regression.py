@@ -34,11 +34,17 @@ def main() -> None:
     android_reporter = read("android/app/src/main/java/cd/cc/supra/inventory/beta/ReporterController.kt")
     android_main = read("android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt")
     android_rt = read("android/app/src/main/java/cd/cc/supra/inventory/beta/AndroidRealtimeClient.kt")
+    sla_auto = read("service/src/sla-automation.ts")
+    core = read("service/src/core.ts")
 
     # F14: server-authoritative clock/deadlines; local ticking must not poll.
     require(ops, "server_now: serverNow", "queue server time")
     require(ops, "warning_at: deadlines.warning_at", "SLA warning deadline")
     require(ops, "escalation_at: deadlines.escalation_at", "SLA escalation deadline")
+    require(ops, "auto_skip_at:", "D070 next automatic deadline projection")
+    require(sla_auto, "scheduleNextOperationalAlarm", "D070 authoritative alarm scheduler")
+    require(core, "async alarm(): Promise<void>", "D070 Durable Object alarm handler")
+    require(sla_auto, "processOperationalDeadlines", "D070 authoritative deadline processor")
     require(web_api, "server_now?: string", "Web queue server clock type")
     require(web, "queueServerOffsetMs", "Web calibrated queue clock")
     require(web, "window.setInterval(updateQueueClockDom, 15_000)", "Web local SLA ticker")
