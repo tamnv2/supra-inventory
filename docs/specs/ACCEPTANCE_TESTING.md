@@ -440,3 +440,18 @@ D074 is field-ready only when all of the following are true:
 5. Firestore probe uses the current Firebase ADMIN ID token only as a read-only compatibility test; D078 does not create/provision a Firestore database.
 6. Apps Script/Sheets/Drive probes are reachability tests only and do not create or mutate Google resources.
 7. Agent build/release must PASS before Owner Office field testing. No APK or WMS mutation change is included.
+
+## D080 — Agent ↔ Supra WMS read-only acceptance
+
+D080 is technically PASS only when:
+
+1. Relay Agent builds/publishes as the existing normal-user portable EXE channel without adding a manual local dependency/install step.
+2. A real ADMIN Agent can press `TEST SUPRA` without F12/DevTools/cURL copying.
+3. Agent launches a dedicated Edge WMS context with DevTools bound to `127.0.0.1` only and never attaches to/decrypts the user's normal browser profile.
+4. After authorized WMS login when required, Agent captures the HY1 session fields automatically and keeps raw values only in RAM; sanitized logs contain no session/header values.
+5. WMS UI reachability is classified separately from the signed API result.
+6. The signed `GET /sft3-hy1/api/v1/warehouse/zones` uses a new signature/nonce per request and returns a classified result through Windows/system, environment, direct or registered corporate-proxy routing.
+7. Corporate block pages/HTTP 407/transport errors are distinguishable from WMS 401/403/business/server responses; no corporate filtering bypass exists.
+8. Source/guards contain no Picklist lookup, order confirmation/click automation, POST/PUT/PATCH/DELETE WMS request or other WMS mutation.
+9. D078 physical PDA ↔ Agent Office acceptance remains separately pending; D080 PASS must not be misreported as full confirmation-workflow PASS.
+10. Stable remains untouched.
