@@ -1,0 +1,17 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "relay_poc": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "jobs": {
+          "$job": {
+            ".validate": "newData.val() == null || (newData.hasChildren([\'request_id\',\'suffix\',\'status\',\'source\']) && newData.child(\'request_id\').isString() && newData.child(\'suffix\').isString() && newData.child(\'suffix\').val().matches(/^\\d{5}$/) && newData.child(\'status\').isString() && (newData.child(\'status\').val() == \'PENDING\' || newData.child(\'status\').val() == \'ACK\') && newData.child(\'source\').val() == \'ANDROID_POC\')"
+          }
+        }
+      }
+    }
+  }
+}
