@@ -19,6 +19,8 @@ data class RelayProbeResult(
     val requestId: String,
     val agentId: String,
     val agentNetwork: String,
+    val agentAdminUserId: String,
+    val agentInstanceId: String,
     val roundTripMs: Long,
 )
 
@@ -31,6 +33,13 @@ private data class RelayFirebaseIdentity(
     val uid: String,
     val audience: String,
     val fingerprint: String,
+)
+
+private data class RelayAck(
+    val agentId: String,
+    val agentNetwork: String,
+    val adminUserId: String,
+    val agentInstanceId: String,
 )
 
 class RelayPocClient(
@@ -66,16 +75,18 @@ class RelayPocClient(
 
         val identity = firebaseIdentity(session.idToken)
         val requestId = UUID.randomUUID().toString()
-        val url = jobUrl(databaseUrl, identity.uid, session.idToken, requestId)
+        val url = jobUrl(databaseUrl, session.idToken, requestId)
         val started = SystemClock.elapsedRealtime()
         val payload = JSONObject()
             .put("request_id", requestId)
             .put("suffix", suffix)
             .put("status", "PENDING")
             .put("source", "ANDROID_POC")
+            .put("picker_uid", identity.uid)
+            .put("picker_user_id", session.userId)
             .put("client_sent_at_ms", System.currentTimeMillis())
 
-        log("Relay gửi request=" + shortId(requestId) + " uid=" + identity.fingerprint + " aud=" + identity.audience.ifBlank { "unknown" })
+        log("Relay gửi shared request=" + shortId(requestId) + " picker_uid=" + identity.fingerprint + " aud=" + identity.audience.ifBlank { "unknown" })
         try {
             val putStarted = SystemClock.elapsedRealtime()
             val put = Request.Builder()
@@ -106,7 +117,7 @@ class RelayPocClient(
                     log("Relay SSE HTTP " + response.code + " · " + message)
                     throw RelayHttpException(response.code, message)
                 }
-                log("Relay SSE connected uid=" + identity.fingerprint)
+                log("Relay SSE connected shared_job=" + shortId(requestId))
                 val source = response.body?.source() ?: throw IOException("Relay không trả dữ liệu.")
                 val data = StringBuilder()
                 while (true) {
@@ -117,11 +128,20 @@ class RelayPocClient(
                             data.setLength(0)
                             if (ack != null) {
                                 val total = (SystemClock.elapsedRealtime() - started).coerceAtLeast(0L)
-                                log("Relay ACK request=" + shortId(requestId) + " agent=" + ack.first + " network=" + ack.second + " rtt=" + total + "ms")
+                                log(
+                                    "Relay ACK request=" + shortId(requestId) +
+                                        " admin=" + safeId(ack.adminUserId) +
+                                        " agent=" + safeId(ack.agentId) +
+                                        " instance=" + safeId(ack.agentInstanceId) +
+                                        " network=" + safeId(ack.agentNetwork) +
+                                        " rtt=" + total + "ms"
+                                )
                                 return RelayProbeResult(
                                     requestId = requestId,
-                                    agentId = ack.first,
-                                    agentNetwork = ack.second,
+                                    agentId = ack.agentId,
+                                    agentNetwork = ack.agentNetwork,
+                                    agentAdminUserId = ack.adminUserId,
+                                    agentInstanceId = ack.agentInstanceId,
                                     roundTripMs = total,
                                 )
                             }
@@ -140,14 +160,17 @@ class RelayPocClient(
         }
     }
 
-    private fun parseAck(raw: String): Pair<String, String>? {
+    private fun parseAck(raw: String): RelayAck? {
         return try {
             val envelope = JSONObject(raw)
             val data = envelope.optJSONObject("data") ?: return null
             if (data.optString("status") != "ACK") return null
-            val agentId = data.optString("agent_id").ifBlank { "Agent" }
-            val network = data.optString("agent_network").ifBlank { "UNKNOWN" }
-            agentId to network
+            RelayAck(
+                agentId = data.optString("agent_id").ifBlank { "Agent" },
+                agentNetwork = data.optString("agent_network").ifBlank { "UNKNOWN" },
+                adminUserId = data.optString("agent_admin_user_id").ifBlank { "ADMIN" },
+                agentInstanceId = data.optString("agent_instance_id").ifBlank { "UNKNOWN" },
+            )
         } catch (_: Exception) {
             null
         }
@@ -182,10 +205,9 @@ class RelayPocClient(
         return RelayFirebaseIdentity(uid, audience, fingerprint(uid))
     }
 
-    private fun jobUrl(databaseUrl: String, firebaseUid: String, idToken: String, requestId: String): HttpUrl =
+    private fun jobUrl(databaseUrl: String, idToken: String, requestId: String): HttpUrl =
         databaseUrl.toHttpUrl().newBuilder()
             .addPathSegment("relay_poc")
-            .addPathSegment(firebaseUid)
             .addPathSegment("jobs")
             .addPathSegment(requestId + ".json")
             .addQueryParameter("auth", idToken)
@@ -196,7 +218,7 @@ class RelayPocClient(
         val cleanDetail = safeText(detail).take(180)
         return when (status) {
             401 -> "Phiên Firebase cần làm mới."
-            403 -> "RTDB từ chối quyền (HTTP 403). Kiểm tra Rules và Firebase UID." + if (cleanDetail.isBlank()) "" else " " + cleanDetail
+            403 -> "RTDB từ chối quyền (HTTP 403). Kiểm tra Rules D075." + if (cleanDetail.isBlank()) "" else " " + cleanDetail
             404 -> "Không tìm thấy Firebase RTDB Beta."
             else -> cleanDetail.ifBlank { "Relay lỗi HTTP " + status + "." }
         }
@@ -209,6 +231,9 @@ class RelayPocClient(
             .take(12)
 
     private fun shortId(value: String): String = value.take(8)
+
+    private fun safeId(value: String): String =
+        value.filter { it.isLetterOrDigit() || it in "._:@-" }.take(96).ifBlank { "unknown" }
 
     private fun safeText(value: String?): String {
         if (value.isNullOrBlank()) return ""

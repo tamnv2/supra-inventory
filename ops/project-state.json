@@ -22,7 +22,7 @@
     "android": "D074_PICKER_SPLIT_TABS_RELAY_UID_AUTH_DIAGNOSTICS_SIGNED_BETA_VC48_BUILD_PASS__OWNER_FIELD_RETEST_PENDING",
     "latest_beta_apk": "beta-vc48",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
-    "network_scope": "PDA_INTERNET_SUPPORTED__D074_OFFICE_FIREBASE_RELAY_FIELD_REPAIR_BUILD_PASS__OWNER_RETEST_PENDING__NO_OFFLINE_BUSINESS_MODE",
+    "network_scope": "PDA_INTERNET_SUPPORTED__D075_SHARED_FIREBASE_RELAY_ADMIN_AGENT__NO_OFFLINE_BUSINESS_MODE",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "SERVER_PAGED_FILTERED_ONE_MANY_ALL__ROOT_EFFECTIVE_ROLE_TEST_RUNTIME_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D074_SOURCE_BUILD_RELEASE_PASS__OFFICE_RETEST_PENDING__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D075_SHARED_PICKER_QUEUE_ADMIN_ONLY_AGENT_AUTO_UPDATE_IN_PROGRESS__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -142,7 +142,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "D074 physical Office retest remains Owner/device/network dependent: beta-vc48 + rebuilt Agent must prove Firebase refresh -> RTDB read/SSE -> PDA five-digit ACK/RTT.",
+    "D075 field acceptance requires updated RTDB Rules plus physical Picker PDA + ADMIN Agent test; current D074 failure is explained by Picker 100 vs Agent Picker 200 isolated UID queues.",
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
     "Owner acceptance of FIRST_REPORT and PER_PICKER behavior remains field-dependent after runtime PASS.",
     "Stable promotion remains OWNER-GATED."
@@ -155,8 +155,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Owner field-test D074 beta-vc48 + rebuilt Windows Relay Agent on .Office@MSN: Kiểm tra Office must pass Google refresh + authenticated RTDB read, then Nghe relay and PDA Xác nhận đơn must send exactly five digits and receive ACK/RTT. If RTDB still returns 403, use the new sanitized Agent log to distinguish Rules/auth.uid/path without exposing secrets.",
-    "method": "Install signed beta-vc48 and download the D074 Agent artifact from run 35445108964; run Agent as normal Windows user, pair on an allowed network if needed, switch to Office, press Kiểm tra Office, then Nghe relay; on PDA open Xác nhận đơn, enter five digits and send. No WMS mutation; Stable untouched.",
+    "primary": "Implement D075: shared Picker relay queue, real ADMIN-only Windows Agent authentication/audit identity, first-writer ACK ownership, and SHA-256 verified automatic Agent update via dedicated GitHub prerelease; build/deploy then republish Beta RTDB Rules and field-test Picker 100 -> ADMIN Agent ACK.",
+    "method": "Branch -> PR -> authority/continuity/UI/Android/Agent PASS -> merge -> signed Beta + Agent prerelease. Owner then publishes updated firebase/database.rules.json because connected tools cannot mutate RTDB Rules, and field-tests with a Picker account on PDA plus a different real ADMIN account on the Agent.",
     "stable_guard": "Stable remains OWNER-GATED and untouched."
   },
   "continuity_policy": {
@@ -184,7 +184,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D074 source/build/release PASS; Owner physical Office relay retest pending",
+      "D075 shared relay + ADMIN-only Agent + auto-update implementation in progress",
       "D068 Web baseline Owner-accepted/frozen",
       "D069 items 1, 2, 4 and 5 Beta runtime PASS",
       "D070 alarm runtime-availability repair deployed Beta PASS; physical timing/FCM Owner acceptance pending",
@@ -193,7 +193,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Owner field-test D074 beta-vc48 + Agent run 35445108964 on Office: Google refresh -> RTDB read/SSE -> PDA five-digit ACK/RTT",
+      "After D075 release, Owner publishes updated RTDB Rules and field-tests Picker 100 -> different ADMIN Agent -> ACK/RTT",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"

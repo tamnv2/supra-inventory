@@ -302,3 +302,13 @@ Current Android marker: `D074_PICKER_SPLIT_TABS_RELAY_INPUT_AUTH_REPAIR_IN_PROGR
 
 
 Current Android marker: `D074_PICKER_SPLIT_TABS_RELAY_UID_AUTH_DIAGNOSTICS_SIGNED_BETA_VC48_BUILD_PASS__OWNER_FIELD_RETEST_PENDING`.
+
+
+## D075 shared relay / ADMIN Agent — 2026-09-19
+
+- Root cause of the D074 timeout is identified: both Firebase transports were HTTP 200, but Picker 100 and Agent Picker 200 used different UID-isolated RTDB branches.
+- D075 implementation target: shared `relay_poc/jobs` queue, real base-role ADMIN Agent authentication/audit identity, first-writer ACK ownership and dedicated prerelease self-update.
+- Updated RTDB Rules publication and physical field acceptance remain pending after build/release.
+- No WMS mutation. Stable remains OWNER-GATED.
+
+Current relay marker: `D075_SHARED_PICKER_QUEUE_ADMIN_ONLY_AGENT_AUTO_UPDATE_IN_PROGRESS__NO_WMS_MUTATION`.
