@@ -190,8 +190,8 @@
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
-      "relay_poc_status": "D078_OFFICE_TRANSPORT_PROBE_MATRIX_IN_PROGRESS",
-      "relay_agent_release": "relay-agent-v3",
+      "relay_poc_status": "D078_AGENT_V4_RELEASE_PASS__OWNER_OFFICE_PROBE_PENDING",
+      "relay_agent_release": "relay-agent-v4",
       "firebase_rtdb_rules_deploy": "PASS_RUN_35451292051__REST_PUT_EXACT_READBACK"
     },
     "stable": {
@@ -503,7 +503,7 @@
   "relay_poc": {
     "decision": "D075",
     "environment": "beta",
-    "status": "D078_OFFICE_TRANSPORT_PROBE_MATRIX_IN_PROGRESS__RTDB_PROXY_BLOCK_CONFIRMED",
+    "status": "D078_AGENT_V4_RELEASE_PASS__OWNER_OFFICE_PROBE_PENDING__RTDB_PROXY_BLOCK_CONFIRMED",
     "purpose": "Authenticated shared Picker-to-real-ADMIN Windows Agent transport proof only; no WMS mutation",
     "transport": "FIREBASE_RTDB_REST_SSE",
     "database_resource_key": "firebase-rtdb-relay-beta",
@@ -532,11 +532,11 @@
     },
     "identity_model": "PICKER_REQUEST_IDENTITY_PLUS_ADMIN_USER_MACHINE_AGENT_INSTANCE_AUDIT",
     "update_channel": "GITHUB_PRERELEASE_RELAY_AGENT_VN_SHA256_SELF_REPLACE",
-    "agent_release": "relay-agent-v3",
+    "agent_release": "relay-agent-v4",
     "agent_release_prerelease": true,
-    "agent_release_id": 393036973,
-    "agent_exe_asset_id": 575004937,
-    "agent_exe_size_bytes": 50176,
+    "agent_release_id": 392137381,
+    "agent_exe_asset_id": 575094426,
+    "agent_exe_size_bytes": 61952,
     "agent_checksum_asset_id": 574866732,
     "rules_deployment": "D076_GITHUB_ACTIONS_MAIN_ONLY_ACTIVE_PASS",
     "rules_deploy_secret_reference": "FIREBASE_RULES_SA_JSON_BETA",
@@ -545,7 +545,7 @@
     "rules_deploy_last_evidence": "PASS_RUN_35451292051__IAM_UPDATE__RULES_GET__RULES_PUT__EXACT_READBACK",
     "rules_deployed_source_commit": "452feb1e25dff936617e5d1d51313438d85155eb",
     "agent_release_target": "relay-agent-v4",
-    "office_transport_discovery": "FIREBASE_AUTH_RTDB_FIRESTORE_APPS_SCRIPT_SHEETS_DRIVE_READ_ONLY_PROBES",
+    "office_transport_discovery": "V4_RELEASE_PASS__FIREBASE_AUTH_RTDB_FIRESTORE_APPS_SCRIPT_SHEETS_DRIVE_READ_ONLY_PROBES__FIELD_LOG_PENDING",
     "transport_selection": "PENDING_OWNER_OFFICE_PROBE_EVIDENCE"
   }
 }
