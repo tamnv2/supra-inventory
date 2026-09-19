@@ -14,6 +14,7 @@ val betaKeystorePassword = System.getenv("BETA_KEYSTORE_PASSWORD")
 val betaKeyAlias = System.getenv("BETA_KEY_ALIAS")
 val betaKeyPassword = System.getenv("BETA_KEY_PASSWORD")
 val trustedSignerSha256 = System.getenv("BETA_SIGNER_SHA256") ?: ""
+val firebaseRtdbUrl = (providers.gradleProperty("FIREBASE_RTDB_URL").orNull ?: System.getenv("FIREBASE_RTDB_URL_BETA")).orEmpty().trim().ifBlank { "https://supra-inventory-beta-default-rtdb.asia-southeast1.firebasedatabase.app" }
 val betaSigningReady = listOf(betaKeystorePath, betaKeystorePassword, betaKeyAlias, betaKeyPassword).all { !it.isNullOrBlank() }
 
 android {
@@ -43,6 +44,7 @@ android {
         buildConfigField("String", "FIREBASE_PROJECT_ID", quoted("supra-inventory-beta"))
         buildConfigField("String", "FIREBASE_APP_ID", quoted("1:572322098890:android:3e483937876cbcc0400e33"))
         buildConfigField("String", "FIREBASE_MESSAGING_SENDER_ID", quoted("572322098890"))
+        buildConfigField("String", "FIREBASE_RTDB_URL", quoted(firebaseRtdbUrl))
         buildConfigField("String", "UPDATE_RELEASE_API", quoted("https://api.github.com/repos/tamnv2/supra-inventory/releases/latest"))
         buildConfigField("String", "TRUSTED_SIGNER_SHA256", quoted(trustedSignerSha256))
     }
