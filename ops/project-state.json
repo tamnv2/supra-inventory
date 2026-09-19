@@ -22,7 +22,7 @@
     "android": "D075_SHARED_RELAY_SIGNED_BETA_VC49__D076_RULES_DEPLOY_PASS__FIELD_TEST_PENDING",
     "latest_beta_apk": "beta-vc49",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
-    "network_scope": "PDA_INTERNET_SUPPORTED__D075_SHARED_FIREBASE_RELAY_ADMIN_AGENT__D076_RULES_DEPLOY_PASS__FIELD_TEST_PENDING__NO_OFFLINE_BUSINESS_MODE",
+    "network_scope": "PDA_INTERNET_SUPPORTED__D075_SHARED_RELAY_OFFICE_FIELD_PENDING__D080_AGENT_SUPRA_READONLY_POC__NO_OFFLINE_BUSINESS_MODE",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "SERVER_PAGED_FILTERED_ONE_MANY_ALL__ROOT_EFFECTIVE_ROLE_TEST_RUNTIME_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D078_AGENT_V4_RELEASE_PASS__PAUSED_OWNER_AWAY_FROM_OFFICE__RESUME_TRIGGER_D079__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D080_AGENT_WMS_READONLY_SESSION_CAPTURE_IN_PROGRESS__PDA_AGENT_OFFICE_TEST_PENDING__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -135,6 +135,7 @@
     "D066 Web three-group navigation PR #50 merged at 2e12e6d4e94b195e3b505b3f2abe9822ca91632c; PR Repo Authority, Project State and UI Design guards PASS; main UI Design Guard run 35407227884 PASS; Beta deploy run 35407227911 PASS including Web build, Worker typecheck/deploy, health/schema, auth/business guards, Web shell and Google OAuth start."
   ],
   "pending_build": [
+    "D080 relay-agent-v5 automatic WMS session capture + read-only connectivity probe PR/CI/release",
     "D070 PR guards/merge/Beta deploy for Worker/Web schema migration and alarm automation",
     "Signed Beta Android release/verification because D070 changes Android runtime UI/API projection",
     "Owner field acceptance of D070 timing notifications and both auto-Skip modes",
@@ -142,7 +143,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "D078 confirmation transport workstream is paused only because Owner is away from .Office@MSN; resume trigger is `tiếp tục build xác nhận lấy lại hàng` and next field action is relay-agent-v4 TEST TẤT CẢ + sanitized log.",
+    "D078 PDA ↔ Agent Office transport matrix remains paused because Owner is away from .Office@MSN. D080 proceeds independently with Agent ↔ Supra read-only connectivity/session capture; resume Office TEST TẤT CẢ when Owner is back on company network.",
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
     "Owner acceptance of FIRST_REPORT and PER_PICKER behavior remains field-dependent after runtime PASS.",
     "Stable promotion remains OWNER-GATED."
@@ -155,8 +156,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Resume core Báo hàng Web/APK workstream in the next session from current canonical main. First fresh-check live Beta Web and signed Android against current canonical Web/Android pending review, then execute the Owner's new Báo hàng instruction. Keep D078 paused.",
-    "method": "If Owner says exactly `tiếp tục build xác nhận lấy lại hàng`, immediately route back to paused D078 checkpoint and continue Office transport probe testing. Otherwise Báo hàng Web/APK is active. Always branch fresh from current main; no stale long-lived feature branch.",
+    "primary": "Build and release relay-agent-v5 for D080 Agent ↔ Supra WMS/API read-only testing. Owner may test D080 away from Office; keep PDA ↔ Agent Office transport matrix paused until back at company.",
+    "method": "Use an Agent-owned Edge window on 127.0.0.1 DevTools to capture the already-authorized HY1 session automatically, keep captured header values in RAM only, then test WMS UI plus signed read-only GET /sft3-hy1/api/v1/warehouse/zones through system/env/direct/corporate-proxy routes. No Picklist lookup, confirmation, click automation or WMS mutation. Branch -> PR -> authority/continuity/Agent guards -> merge -> relay-agent-v5 prerelease.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -184,7 +185,7 @@
   },
   "workboard": {
     "in_progress": [
-      "Active next-session workstream: Báo hàng Web/APK. D078 confirmation relay is checkpointed/paused, not abandoned.",
+      "D080 Agent ↔ Supra read-only POC in progress: automatic HY1 session capture from Agent-owned Edge + WMS UI/signed API connectivity test; no WMS mutation. D078 physical Office relay test remains paused.",
       "D077 source/build/release PASS: relay-agent-v3 published; physical Office retest pending",
       "D076 Beta RTDB Rules deploy/readback PASS; D075 physical Picker -> ADMIN Agent acceptance pending",
       "D068 Web baseline Owner-accepted/frozen",
@@ -195,13 +196,13 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Next session: continue Báo hàng Web/APK from current canonical main. D078 resumes only on exact Owner routing phrase `tiếp tục build xác nhận lấy lại hàng`.",
+      "Finish D080 relay-agent-v5 CI/release; Owner runs TEST SUPRA from a network where WMS is available and returns only sanitized Agent log/result. Keep D078 Office TEST TẤT CẢ for later company-network field test.",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
     ],
     "blocked_or_owner_field_dependent": [
-      "D078 requires physical company Office network for probe matrix; paused until Owner returns on-site.",
+      "D078 PDA ↔ Agent transport still requires physical .Office@MSN. D080 WMS login/connectivity requires Owner's authorized company WMS login but does not require the Office relay test.",
       "D071 final visual/interaction acceptance depends on Owner live Web review",
       "D072 final Owner acceptance depends on live Web confirmation",
       "D070 physical timing/FCM delivery acceptance remains field-dependent",
