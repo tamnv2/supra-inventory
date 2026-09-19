@@ -486,3 +486,15 @@ D082 technical/release PASS requires:
 12. Agent v7 and signed Android Beta release pass their normal CI/release gates; Stable remains untouched.
 
 Field acceptance then requires Owner to use an authorized WMS session and known last-five values to demonstrate at least one real lookup response. Confirmation remains explicitly untested/deferred.
+
+## D083 — Agent startup regression acceptance
+
+D083 is technically PASS only when:
+1. The built Agent EXE is executed on the Windows CI runner after compilation using `--startup-smoke`; the process must create the main form, initialize the overlay through the fail-safe path, and exit with code 0 within 15 seconds.
+2. Agent startup no longer constructs the D082 overlay before the main form is shown.
+3. Overlay initialization failure is caught and logged as a sanitized classification; the main Agent UI remains usable with overlay controls disabled rather than the process terminating.
+4. Initial overlay show/lock must not call `RecreateHandle()`.
+5. An unexpected top-level startup exception is written to the local sanitized Agent log and produces a visible startup-error dialog during normal launch; silent exit is forbidden.
+6. D082 Picklist read-only lookup, session suppression, RTDB transport and no-mutation guards remain unchanged.
+7. Agent build increments to v8 and releases only after the executable startup gate plus existing authority/state/UI/Agent build guards PASS.
+8. Stable remains untouched.
