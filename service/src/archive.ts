@@ -83,8 +83,8 @@ export async function runArchive(env: ArchiveEnv): Promise<Record<string, unknow
 
     const headers = [
       { range: `${quoteTab("Archive_Manifest")}!A1:G1`, majorDimension: "ROWS", values: [["manifest_id","archive_run_id","archived_at","batch_count","ticket_count","event_count","status"]] },
-      { range: `${quoteTab("Archive_Batches")}!A1:O1`, majorDimension: "ROWS", values: [["batch_id","sku","product_name","status","first_report_at","resolved_at","resolved_by_user_id","resolution","correction_deadline_at","version","previous_batch_id","last_report_at","created_at","updated_at","archive_run_id"]] },
-      { range: `${quoteTab("Archive_Tickets")}!A1:M1`, majorDimension: "ROWS", values: [["ticket_id","batch_id","picker_user_id","picker_employee_code","sku","status","reported_at","withdraw_deadline_at","withdrawn_at","resolved_at","created_at","updated_at","archive_run_id"]] },
+      { range: `${quoteTab("Archive_Batches")}!A1:Q1`, majorDimension: "ROWS", values: [["batch_id","sku","product_name","status","first_report_at","resolved_at","resolved_by_user_id","resolution","resolution_source","auto_skip_deadline_at","correction_deadline_at","version","previous_batch_id","last_report_at","created_at","updated_at","archive_run_id"]] },
+      { range: `${quoteTab("Archive_Tickets")}!A1:Q1`, majorDimension: "ROWS", values: [["ticket_id","batch_id","picker_user_id","picker_employee_code","sku","status","reported_at","withdraw_deadline_at","withdrawn_at","resolved_at","auto_skip_deadline_at","auto_skip_allowed_at","resolution","resolution_source","created_at","updated_at","archive_run_id"]] },
       { range: `${quoteTab("Archive_Events")}!A1:M1`, majorDimension: "ROWS", values: [["event_id","batch_id","ticket_id","event_type","actor_user_id","actor_employee_code","payload_json","created_at","batch_version","result_resolution","result_at","acknowledgements_json","archive_run_id"]] },
     ];
     const writes = [
