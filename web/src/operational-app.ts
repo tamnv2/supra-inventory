@@ -815,13 +815,38 @@ function pickerDetailMarkup(batchId: string, details: BatchPickerTicket[] | unde
     </div>`).join("") || `<div class="picker-detail-loading">Không có Picker đang bị ảnh hưởng.</div>`}</div></div>`;
 }
 
+function renderFastDetail(selected: ReporterBatch | null): string {
+  if (!selected) return `<div class="fast-empty"><strong>Không có SKU trong nhóm đang chọn</strong><span>Chọn nhóm khác để tiếp tục theo dõi.</span></div>`;
+  const timing = liveQueueTiming(selected);
+  return `<div class="fast-detail-head"><div><span>SKU đang xử lý</span><h3>${esc(selected.sku)}</h3></div><b class="fast-status ${timing.state === "ESCALATED" ? "danger" : timing.state === "WARNING" ? "open" : "work"}">${esc(slaLabel(timing.state))}</b></div>
+    <div class="fast-detail-name">${esc(selected.product_name)}</div>
+    <dl class="fast-facts">
+      <div><dt>Picker bị ảnh hưởng</dt><dd>${Number(selected.affected_picker_count)}</dd></div>
+      <div><dt>Thời gian chờ</dt><dd data-wait-batch="${esc(selected.batch_id)}">${timing.waiting} phút</dd></div>
+      <div><dt>Thời điểm báo đầu tiên</dt><dd>${esc(fmt(selected.first_report_at))}</dd></div>
+      <div><dt>Báo gần nhất</dt><dd>${esc(fmt(selected.last_report_at || selected.first_report_at))}</dd></div>
+    </dl>
+    ${selected.previous_batch_id ? `<div class="fast-warning">SKU này đã phát sinh lại sau lần xử lý trước.</div>` : ""}
+    <div class="fast-actions"><button class="primary" data-resolve="HAS_STOCK" data-batch="${esc(selected.batch_id)}">ĐÃ CÓ HÀNG</button><button class="danger" data-skip-batch="${esc(selected.batch_id)}">CHO PHÉP BỎ QUA</button><button class="secondary" data-detail="${esc(selected.batch_id)}">${expandedBatchDetails.has(selected.batch_id) ? "Ẩn danh sách Picker" : "Xem Picker ảnh hưởng"}</button></div>
+    ${pickerDetailMarkup(selected.batch_id, batchDetails.get(selected.batch_id))}`;
+}
+
+function refreshFastDetailOnly(): void {
+  if (activeSection !== "operations") return;
+  const detail = document.querySelector<HTMLElement>("#fastDetail");
+  if (!detail) return;
+  const selected = queueRows.find((row) => row.batch_id === selectedBatchId) || null;
+  detail.innerHTML = renderFastDetail(selected);
+  bindReporterActionButtons(detail);
+}
+
 function prefetchBatchDetails(batchId: string): void {
   if (!batchId || batchDetails.has(batchId) || batchDetailLoads.has(batchId)) return;
   batchDetailLoads.add(batchId);
   void getReporterBatchTickets(batchId)
     .then((result) => {
       batchDetails.set(batchId, result.items);
-      if (activeSection === "operations" && (selectedBatchId === batchId || expandedBatchDetails.has(batchId))) patchActiveSection(true);
+      if (activeSection === "operations" && selectedBatchId === batchId) refreshFastDetailOnly();
     })
     .catch((error) => runtimeLogEvent(`Không tải được danh sách Picker: ${error instanceof Error ? error.message : "unknown"}`, "ERROR"))
     .finally(() => batchDetailLoads.delete(batchId));
@@ -834,8 +859,6 @@ function renderOperations(): string {
     selected = visibleRows[0];
     selectedBatchId = selected.batch_id;
   }
-  const timing = selected ? liveQueueTiming(selected) : null;
-  const selectedDetails = selected ? batchDetails.get(selected.batch_id) : undefined;
   const warningCount = queueRows.filter((row) => liveQueueTiming(row).state === "WARNING").length;
   const overdueCount = queueRows.filter((row) => liveQueueTiming(row).state === "ESCALATED").length;
   const affected = queueRows.reduce((sum, row) => sum + Number(row.affected_picker_count || 0), 0);
@@ -859,20 +882,7 @@ function renderOperations(): string {
           </button>`;
         }).join("") : `<div class="fast-empty-row">${queueFilter === "ALL" ? "Hiện không có SKU chờ xử lý." : "Không có SKU trong nhóm này."}</div>`}
       </div>
-      <aside class="fast-detail" id="fastDetail">
-        ${selected && timing ? `<div class="fast-detail-head"><div><span>SKU đang xử lý</span><h3>${esc(selected.sku)}</h3></div><b class="fast-status ${timing.state === "ESCALATED" ? "danger" : timing.state === "WARNING" ? "open" : "work"}">${esc(slaLabel(timing.state))}</b></div>
-          <div class="fast-detail-name">${esc(selected.product_name)}</div>
-          <dl class="fast-facts">
-            <div><dt>Picker bị ảnh hưởng</dt><dd>${Number(selected.affected_picker_count)}</dd></div>
-            <div><dt>Thời gian chờ</dt><dd data-wait-batch="${esc(selected.batch_id)}">${timing.waiting} phút</dd></div>
-            <div><dt>Thời điểm báo đầu tiên</dt><dd>${esc(fmt(selected.first_report_at))}</dd></div>
-            <div><dt>Báo gần nhất</dt><dd>${esc(fmt(selected.last_report_at || selected.first_report_at))}</dd></div>
-          </dl>
-          ${selected.previous_batch_id ? `<div class="fast-warning">SKU này phát sinh lại sau một lần xử lý trước.</div>` : ""}
-          <div class="fast-actions"><button class="primary" data-resolve="HAS_STOCK" data-batch="${esc(selected.batch_id)}">ĐÃ CÓ HÀNG</button><button class="danger" data-skip-batch="${esc(selected.batch_id)}">CHO PHÉP BỎ QUA</button><button class="secondary" data-detail="${esc(selected.batch_id)}">${expandedBatchDetails.has(selected.batch_id) ? "Ẩn danh sách Picker" : "Xem Picker ảnh hưởng"}</button></div>
-          ${pickerDetailMarkup(selected.batch_id, selectedDetails)}
-        ` : `<div class="fast-empty"><strong>Không có SKU trong nhóm đang chọn</strong><span>Chọn nhóm khác để tiếp tục theo dõi.</span></div>`}
-      </aside>
+      <aside class="fast-detail" id="fastDetail">${renderFastDetail(selected)}</aside>
     </div>
   </section>`;
 }
