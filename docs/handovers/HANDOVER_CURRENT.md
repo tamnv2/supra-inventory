@@ -765,3 +765,10 @@ Current Android marker: `D082_PICKLIST_LOOKUP_SOURCE_IN_PROGRESS__D075_SHARED_RE
 ## D082 release PASS — Owner home field test pending
 
 D082 is released on main commit `b746ebdd6b29d24a417863e8c117833efb153326`. Agent `relay-agent-v7` and signed Android `beta-vc50` are published; Beta runtime deploy, RTDB Rules deploy/readback, Agent build/release, Android signed release, authority/state and UI guards are PASS. Current Android marker: `D082_READONLY_PICKLIST_LOOKUP_SIGNED_BETA_VC50__AGENT_V7_RELEASE_PASS__OWNER_HOME_FIELD_TEST_PENDING`. Latest Beta APK: `beta-vc50`. Confirmation/mutation remains deferred; D078 Office transport remains pending.
+
+## D083 Agent v8 startup repair — source candidate
+
+Owner field evidence: Android `beta-vc50` opens, while `relay-agent-v7` may terminate before any UI appears even after a fresh manual download. D083 treats this as an Agent startup regression introduced in the v7 overlay/startup path. v8 source makes the main Agent form start first, lazy-loads the overlay only after `Shown`, isolates overlay failure from the main process, removes startup handle recreation, surfaces unexpected startup errors visibly, and adds an actual Windows EXE `--startup-smoke` CI gate. D082 Picklist lookup logic remains unchanged and its field test is paused until v8 launches successfully.
+
+Current relay marker: `D083_AGENT_V8_STARTUP_REPAIR_IN_PROGRESS__D082_LOOKUP_FIELD_TEST_PAUSED__D078_OFFICE_PENDING__NO_WMS_MUTATION`.
+Current Android marker remains: `D082_READONLY_PICKLIST_LOOKUP_SIGNED_BETA_VC50__AGENT_V7_RELEASE_PASS__OWNER_HOME_FIELD_TEST_PENDING`.

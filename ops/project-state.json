@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D082_RELEASE_PASS__OWNER_HOME_PICKLIST_LOOKUP_FIELD_TEST_PENDING__D078_OFFICE_TRANSPORT_PENDING__NO_CONFIRMATION_MUTATION"
+    "picklist_confirmation_poc": "D083_AGENT_V8_STARTUP_REPAIR_IN_PROGRESS__ANDROID_VC50_OWNER_OPEN_OK__D082_PICKLIST_FIELD_TEST_PAUSED__D078_OFFICE_PENDING__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -135,6 +135,7 @@
     "D066 Web three-group navigation PR #50 merged at 2e12e6d4e94b195e3b505b3f2abe9822ca91632c; PR Repo Authority, Project State and UI Design guards PASS; main UI Design Guard run 35407227884 PASS; Beta deploy run 35407227911 PASS including Web build, Worker typecheck/deploy, health/schema, auth/business guards, Web shell and Google OAuth start."
   ],
   "pending_build": [
+    "D083 relay-agent-v8 startup regression repair + executable startup smoke gate",
     "D070 PR guards/merge/Beta deploy for Worker/Web schema migration and alarm automation",
     "Signed Beta Android release/verification because D070 changes Android runtime UI/API projection",
     "Owner field acceptance of D070 timing notifications and both auto-Skip modes",
@@ -142,7 +143,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "D082 Owner home field test pending on relay-agent-v7 + beta-vc50: overlay visibility/opacity/position/click-through, valid-session login suppression, and real five-digit WMS Picklist lookup. D078 Office transport remains separately pending until company.",
+    "D083 Owner launch retest pending after relay-agent-v8 release. D082 Picklist field test is paused until Agent startup is restored; Android beta-vc50 was reported opening OK. D078 Office transport remains separately pending.",
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
     "Owner acceptance of FIRST_REPORT and PER_PICKER behavior remains field-dependent after runtime PASS.",
     "Stable promotion remains OWNER-GATED."
@@ -155,8 +156,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Owner home-tests D082 using relay-agent-v7 + signed beta-vc50: establish one WMS session locally, verify overlay lock/click-through and login suppression, then PDA sends known five-digit Picklist suffix and receives truthful lookup result.",
-    "method": "Keep existing Internet/RTDB relay. If Agent WMS session is valid, Mở WMS + lấy phiên must be disabled. On PDA press KIỂM TRA PICKLIST. Expected FOUND/NOT_FOUND mapping or explicit fail-closed session/schema/transport status. If SCHEMA_UNSUPPORTED, provide sanitized Agent log field names only. Confirmation remains deferred; D078 Office transport remains pending.",
+    "primary": "Build/verify/release relay-agent-v8 with fail-safe lazy overlay startup and real executable startup smoke gate; then Owner launches v8 before resuming D082 Picklist lookup field test.",
+    "method": "Branch -> PR -> Agent executable --startup-smoke on Windows CI -> authority/state/UI/Agent PASS -> merge -> relay-agent-v8 prerelease. Owner only needs to launch v8 normally; expected main Agent window opens even if overlay initialization fails. D082 lookup logic/Android beta-vc50 remain unchanged.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -184,7 +185,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D082 source/PR/main deploy/releases PASS: relay-agent-v7, signed beta-vc50, RTDB Rules readback and Beta runtime all PASS. Owner home Picklist lookup field acceptance pending; confirmation remains deferred.",
+      "D083 source in progress: repair relay-agent-v7 silent startup regression by lazy/fail-safe overlay initialization, no initial RecreateHandle, top-level visible crash reporting and CI executable startup smoke. D082 business lookup logic unchanged.",
       "D077 source/build/release PASS: relay-agent-v3 published; physical Office retest pending",
       "D076 Beta RTDB Rules deploy/readback PASS; D075 physical Picker -> ADMIN Agent acceptance pending",
       "D068 Web baseline Owner-accepted/frozen",
@@ -195,13 +196,13 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Owner runs D082 home field test with a known five-digit Picklist suffix. If SCHEMA_UNSUPPORTED or other error, provide sanitized Agent log only; never provide cURL/session/token.",
+      "Complete D083 PR/CI/main relay-agent-v8 release; Owner launches v8. Only after Agent startup PASS resume D082 known-five-digit Picklist lookup field test.",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
     ],
     "blocked_or_owner_field_dependent": [
-      "D082 real WMS response schema and Picklist match require Owner's authorized WMS/PDA field test. D078 Office transport still requires physical .Office@MSN and is unchanged.",
+      "D083 root cause is field-only startup behavior introduced with v7 overlay path; v8 adds executable CI smoke and fail-safe fallback. Owner launch confirmation remains required. D078 Office transport remains physical-company dependent.",
       "D071 final visual/interaction acceptance depends on Owner live Web review",
       "D072 final Owner acceptance depends on live Web confirmation",
       "D070 physical timing/FCM delivery acceptance remains field-dependent",
@@ -322,7 +323,8 @@
       "d076_rtdb_rules": "PASS_RUN_35451292051__IAM_UPDATE_PASS__RULES_GET_PASS__RULES_PUT_PASS__EXACT_READBACK_PASS",
       "d080_wms_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_WMS_FIELD_TEST_PENDING",
       "d081_agent": "OWNER_REPORTED_OK__SUPERSEDED_AS_NEXT_ACTION_BY_D082",
-      "d082_picklist_lookup": "SOURCE_BUILD_DEPLOY_RELEASE_PASS__OWNER_HOME_FIELD_TEST_PENDING"
+      "d082_picklist_lookup": "RELEASE_PASS__FIELD_TEST_PAUSED_BY_D083_AGENT_V7_STARTUP_REGRESSION",
+      "d083_agent_startup": "OWNER_FIELD_FAIL_V7__SOURCE_REPAIR_IN_PROGRESS"
     }
   },
   "authority_setup": {

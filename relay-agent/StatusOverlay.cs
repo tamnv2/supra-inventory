@@ -19,7 +19,6 @@ namespace SupraInventoryRelayAgent
 
     internal sealed class StatusOverlayForm : Form
     {
-        private const int WsExTransparent = 0x20;
         private const int WsExLayered = 0x80000;
         private const int WsExToolWindow = 0x80;
         private const int WsExNoActivate = 0x08000000;
@@ -82,9 +81,7 @@ namespace SupraInventoryRelayAgent
             get
             {
                 var cp = base.CreateParams;
-                cp.ExStyle |= WsExLayered | WsExToolWindow;
-                if (_settings.Locked)
-                    cp.ExStyle |= WsExTransparent | WsExNoActivate;
+                cp.ExStyle |= WsExLayered | WsExToolWindow | WsExNoActivate;
                 return cp;
             }
         }
@@ -201,9 +198,6 @@ namespace SupraInventoryRelayAgent
 
         private void ApplyInteractionMode()
         {
-            if (IsHandleCreated)
-                RecreateHandle();
-
             TopMost = true;
             _text.TextAlign = ContentAlignment.MiddleLeft;
             Cursor = _settings.Locked ? Cursors.Default : Cursors.SizeAll;

@@ -53,8 +53,18 @@ jobs:
         shell: pwsh
         run: |
           dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release
+          $exe = (Resolve-Path "relay-agent/bin/Release/net48/SUPRA-Inventory-Relay-Test.exe").Path
+          $smoke = Start-Process -FilePath $exe -ArgumentList "--startup-smoke" -PassThru
+          if (-not $smoke.WaitForExit(15000)) {
+            try { $smoke.Kill() } catch {}
+            throw "Agent startup smoke timed out."
+          }
+          if ($smoke.ExitCode -ne 0) {
+            throw "Agent startup smoke failed with exit code $($smoke.ExitCode)."
+          }
+          Write-Host "Agent startup smoke PASS"
           New-Item -ItemType Directory -Force -Path relay-agent/dist | Out-Null
-          Copy-Item relay-agent/bin/Release/net48/SUPRA-Inventory-Relay-Test.exe relay-agent/dist/
+          Copy-Item $exe relay-agent/dist/SUPRA-Inventory-Relay-Test.exe
           Copy-Item relay-agent/README.md relay-agent/dist/
           Copy-Item firebase/database.rules.json relay-agent/dist/
           (Get-FileHash relay-agent/dist/SUPRA-Inventory-Relay-Test.exe -Algorithm SHA256).Hash.ToLower() |
