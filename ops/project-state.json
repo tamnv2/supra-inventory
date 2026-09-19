@@ -19,10 +19,10 @@
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
     "web": "D071_IMMEDIATE_RESPONSE_DENSITY_D072_SYSTEM_STATUS_QUOTA_GUARD_BETA_RUNTIME_PASS__OWNER_REVIEW_PENDING",
-    "android": "D084_ALL_DATE_PICKLISTCODE_SCAN_SIGNED_BETA_VC51__AGENT_V9_RELEASE_PASS__OWNER_FIELD_TEST_PENDING",
+    "android": "D085_AGENT_HA_CACHE_ANTISPAM_SOURCE__BETA_VC52_AGENT_V10_RELEASE_PENDING__TRANSPORT_SELECTION_PENDING",
     "latest_beta_apk": "beta-vc51",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
-    "network_scope": "PDA_INTERNET_SUPPORTED__D082_HOME_RTDB_RELAY_READONLY_PICKLIST_LOOKUP__D078_OFFICE_FIELD_PENDING__NO_OFFLINE_BUSINESS_MODE",
+    "network_scope": "PDA_INTERNET_SUPPORTED__CURRENT_RTDB_RELAY_TEMPORARILY_UNCHANGED__D078_FINAL_TRANSPORT_SELECTION_PENDING__NO_OFFLINE_BUSINESS_MODE",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "SERVER_PAGED_FILTERED_ONE_MANY_ALL__ROOT_EFFECTIVE_ROLE_TEST_RUNTIME_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D084_RELEASE_PASS__OWNER_FIELD_TEST_PENDING__ALL_DATE_PICKLISTCODE_SCAN__OVERLAY_SETTINGS__D078_OFFICE_PENDING__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D085_SOURCE_IN_PROGRESS__STICKY_AGENT_HA_10S_FAILOVER__CACHE_ANTISPAM__AGENT_V10_BETA_VC52_PENDING__D078_TRANSPORT_PENDING__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -142,7 +142,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "D084 Owner field test pending on relay-agent-v9 + beta-vc51: startup, explicit overlay opacity/lock/drag/click-through, and real all-date paged PickListCode trailing-five lookup. D078 Office transport remains separately pending.",
+    "D085 Owner field acceptance will be required after Agent v10 + next signed Beta APK release: sticky active Agent, ~10s failover, no-Agent specialist-desk warning, 5/30/60 anti-spam locks, WMS profile reuse, v8 overlay behavior and normal-user Windows autostart. D078 final transport selection remains separately pending.",
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
     "Owner acceptance of FIRST_REPORT and PER_PICKER behavior remains field-dependent after runtime PASS.",
     "Stable promotion remains OWNER-GATED."
@@ -155,8 +155,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Owner field-tests D084 with relay-agent-v9 + signed beta-vc51: Agent startup, overlay opacity/lock/drag/click-through, and exact five-digit lookup against real PickListCode values.",
-    "method": "WMS GET only. Agent sends empty FromDate/ToDate/Content, limit/page size 100, scans pages until exact PickListCode trailing-five match or truthful exhaustion. Android waits up to two minutes. If schema/pagination is unexpected, Agent fails closed and sanitized log evidence is used.",
+    "primary": "Complete D085 PR/CI and release Agent v10 + next signed Beta APK; then Owner field-tests sticky multi-Agent HA, no-Agent warning, cache/anti-spam, browser-profile WMS reuse, v8 overlay behavior and user-mode autostart.",
+    "method": "Keep current RTDB relay unchanged as temporary transport. Do not select final PDA-Agent transport until D078 physical Office probe evidence. WMS remains read-only GET; no confirmation mutation is authorized.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -184,6 +184,7 @@
   },
   "workboard": {
     "in_progress": [
+      "D085 source in progress: current RTDB transport intentionally unchanged; sticky single active WMS-ready Agent with 3s heartbeat/10s failover, pending-job takeover, preload/single-flight Picklist cache, persisted 3-in-60s anti-spam locks, browser-profile WMS restore, v8 overlay rollback with main-window settings, and HKCU normal-user autostart.",
       "D084 source/PR/main release PASS: relay-agent-v9 and signed beta-vc51 published; no-date Content-empty 100-row pagination, exact PickListCode trailing-five comparison, 120s Android wait, explicit overlay settings and locked cross-app click-through are technically PASS. Owner field acceptance pending.",
       "D077 source/build/release PASS: relay-agent-v3 published; physical Office retest pending",
       "D076 Beta RTDB Rules deploy/readback PASS; D075 physical Picker -> ADMIN Agent acceptance pending",
@@ -195,13 +196,13 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Owner runs D084 field test with a known real PickListCode suffix. Fix only field-reported defects; WMS confirmation remains deferred.",
+      "Finish D085 PR guards/build, merge only after authority + continuity + Agent/Android checks PASS, publish Agent v10 and next signed Beta APK, then run Owner field acceptance. D078 transport selection remains pending.",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
     ],
     "blocked_or_owner_field_dependent": [
-      "D084 physical overlay behavior and real WMS pagination/schema require Owner field evidence. D078 Office transport remains physical-company dependent.",
+      "D085 multi-Agent/WMS/profile/overlay behavior needs Owner physical Windows/PDA field acceptance after release. D078 final PDA-Agent transport still depends on company-network physical probe evidence.",
       "D071 final visual/interaction acceptance depends on Owner live Web review",
       "D072 final Owner acceptance depends on live Web confirmation",
       "D070 physical timing/FCM delivery acceptance remains field-dependent",
@@ -313,7 +314,12 @@
       "d084_main_ui": "PASS_RUN_35463822993",
       "d084_main_beta_deploy": "PASS_RUN_35463823063",
       "d084_main_agent_release": "PASS_RUN_35463823056",
-      "d084_main_android_release": "PASS_RUN_35463822972"
+      "d084_main_android_release": "PASS_RUN_35463822972",
+      "d085_branch": "feat/d085-agent-ha-rate-limit-autostart",
+      "d085_status": "SOURCE_IN_PROGRESS__PR_NOT_YET_OPEN",
+      "d085_agent_target": "relay-agent-v10",
+      "d085_android_target": "beta-vc52",
+      "d085_transport": "CURRENT_RTDB_UNCHANGED_TEMPORARY__FINAL_SELECTION_PENDING_D078"
     },
     "last_runtime_evidence": {
       "schema": 7,
@@ -345,7 +351,8 @@
       "d081_agent": "OWNER_REPORTED_OK__SUPERSEDED_AS_NEXT_ACTION_BY_D082",
       "d082_picklist_lookup": "RELEASE_PASS__FIELD_TEST_PAUSED_BY_D083_AGENT_V7_STARTUP_REGRESSION",
       "d083_agent_startup": "SOURCE_BUILD_RELEASE_PASS__EXECUTABLE_STARTUP_SMOKE_PASS__OWNER_STARTUP_RETEST_PENDING",
-      "d084_picklist_lookup": "SOURCE_BUILD_DEPLOY_RELEASE_PASS__OWNER_FIELD_TEST_PENDING"
+      "d084_picklist_lookup": "SOURCE_BUILD_DEPLOY_RELEASE_PASS__OWNER_FIELD_TEST_PENDING",
+      "d085": "SOURCE_IN_PROGRESS__NO_RUNTIME_CLAIM"
     }
   },
   "authority_setup": {
@@ -359,7 +366,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-09-19",
+  "last_updated": "2026-09-20",
   "owner_ui_review": {
     "status": "READY_FOR_OWNER_REVIEW",
     "phase": "D071_D072_BETA_RUNTIME_PASS_OWNER_REVIEW",
@@ -397,22 +404,19 @@
     "D070 automatic Skip is service authority with SYSTEM_TIMEOUT source; Picker receives no new resolve mutation permission; five-minute Skip-to-HAS_STOCK correction remains.",
     "D070 uses InventoryCore Durable Object Alarm rather than client/API polling; initial activation/re-enable/mode switch is non-retroactive and disable cancels pending automatic deadlines.",
     "D070 adds no processing-extension feature.",
-    "D072 removes the quota-heavy Trạng thái hệ thống business surface: no normal Web route, no 60-second/manual system-status calls, normal admin API disabled before metrics, and gated load-test snapshots use core-only metrics without Google Drive/GitHub provider reads."
+    "D072 removes the quota-heavy Trạng thái hệ thống business surface: no normal Web route, no 60-second/manual system-status calls, normal admin API disabled before metrics, and gated load-test snapshots use core-only metrics without Google Drive/GitHub provider reads.",
+    "D085 does not select a new PDA-Agent transport. Existing Beta RTDB remains temporary while D078 Office transport evidence is pending; HA/cache/rate-limit semantics are designed independently of the eventual carrier.",
+    "D085 keeps WMS read-only: browser-profile reuse may restore an authorized session into RAM, but raw WMS session/header values are not persisted by Agent and no confirmation mutation adapter is enabled."
   ],
   "active_workstream": {
-    "key": "BAO_HANG_WEB_ANDROID",
-    "status": "ACTIVE_FOR_NEXT_SESSION",
-    "resume_intent": [
-      "tiếp tục build apk, web nhánh báo hàng",
-      "tiếp tục build báo hàng",
-      "tiếp tục web apk báo hàng"
-    ],
+    "key": "XAC_NHAN_DON_D085",
+    "status": "ACTIVE_SOURCE_IMPLEMENTATION",
     "bootstrap": "FRESH_MAIN_CANONICAL_STATE",
-    "next_step": "Fresh-check current Beta Web + signed Android state against canonical pending Owner review/requirements, then continue only the new Báo hàng Web/APK instruction supplied in the next session. Do not resume D078 unless Owner explicitly routes to it."
+    "next_step": "Complete D085 source/PR/guards/release; then field-test HA/cache/rate-limit/session/overlay/autostart. Keep D078 final transport selection pending until physical Office evidence."
   },
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
-      "status": "PAUSED_OWNER_AWAY_FROM_OFFICE",
+      "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
       "canonical_decision": "D078",
       "exact_resume_phrase": "tiếp tục build xác nhận lấy lại hàng",
       "aliases": [
@@ -420,7 +424,7 @@
         "xác nhận lấy hàng",
         "xác nhận đơn"
       ],
-      "checkpoint": "D078_AGENT_V4_RELEASE_PASS__OWNER_OFFICE_PROBE_PENDING__RTDB_PROXY_BLOCK_CONFIRMED__NO_WMS_MUTATION",
+      "checkpoint": "D078_AGENT_V4_RELEASE_PASS__OFFICE_PROBE_PENDING__CURRENT_RTDB_TEMPORARY_ONLY__NO_WMS_MUTATION",
       "artifacts": {
         "android_release": "beta-vc49",
         "agent_release": "relay-agent-v4",
@@ -433,7 +437,7 @@
         "D076 RTDB Rules automated deploy/readback is PASS; Rules are not the remaining blocker.",
         "relay-agent-v4 provides read-only probes: Auth, RTDB, Firestore, Apps Script, Sheets, Drive, TEST TẤT CẢ."
       ],
-      "resume_next_action": "On real company .Office@MSN, run relay-agent-v4 -> ADMIN session -> TEST TẤT CẢ -> wait for PROBE SUMMARY -> send sanitized Agent log. Analyze the matrix and choose the reachable transport before provisioning/replacing relay. Do not bypass corporate filtering and do not implement WMS mutation yet.",
+      "resume_next_action": "When physically at company, run the D078 Office probe matrix and use sanitized evidence to select final PDA-Agent transport. Do not change the current RTDB carrier before that evidence.",
       "do_not_repeat": [
         "Do not ask Owner to recreate RTDB, republish Rules, recreate the service-account secret, or restate prior D073-D078 history.",
         "Do not treat this as Báo hàng offline/fallback work.",
