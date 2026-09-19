@@ -181,7 +181,7 @@
     },
     {
       "id": "OA006",
-      "status": "OWNER_D082_HOME_FIELD_TEST_PENDING",
+      "status": "D083_AGENT_V8_REPAIR_RELEASE_PENDING",
       "title": "Home field-test read-only Picklist existence lookup and Agent overlay",
       "resource_key": "supra-api-d080",
       "provider": "Wincommerce Supra + Beta RTDB + physical authorized WMS/PDA session",
@@ -204,22 +204,13 @@
         "No secret WMS/session/signature values appear in repo/logs/RTDB"
       ],
       "safety": "Use only an authorized company WMS session. Do not paste cURL, passwords, Authorization/Token/APISID/SID/SCID/USID, signatures/nonces or raw WMS response data into chat/logs. Confirmation remains deferred.",
-      "remaining_owner_action": "Run relay-agent-v7 + signed beta-vc50. Establish WMS session locally once, verify login button suppression and overlay click-through, then use PDA KIỂM TRA PICKLIST with known five trailing digits. If result is not truthful/PASS, send sanitized Agent log only.",
+      "remaining_owner_action": "After relay-agent-v8 is published, launch the EXE normally. Confirm the main Agent window opens. If it opens, resume the existing D082 overlay/login/Picklist field test. If it still fails, send only the new visible error text or sanitized local Agent log; no WMS credentials/session values.",
       "prerequisites": {
-        "merged_pr": 83,
-        "merged_main": "b746ebdd6b29d24a417863e8c117833efb153326",
-        "agent_release": "relay-agent-v7",
-        "agent_release_id": 392169408,
-        "agent_exe_asset_id": 575243965,
-        "agent_exe_sha256": "5df1b5bf1963c9b36aa2257bf774d1e5e9352918a5cd05fd35248d24ea5e4cb6",
         "android_release": "beta-vc50",
-        "android_release_id": 392169512,
-        "android_apk_asset_id": 575244605,
-        "android_apk_sha256": "55b4f7ea8eaf4557703640458e70369d00a5969239782bff2563a167683ee6c4",
-        "main_agent_release_run": 35460327545,
-        "main_android_release_run": 35460327500,
-        "main_beta_deploy_run": 35460327552,
-        "main_rtdb_rules_run": 35460327532
+        "android_owner_launch": "PASS_REPORTED",
+        "agent_release_target": "relay-agent-v8",
+        "d083_startup_smoke": "PENDING_CI",
+        "d082_lookup": "PAUSED_UNTIL_AGENT_STARTUP_PASS"
       }
     }
   ]
