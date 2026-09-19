@@ -7,13 +7,13 @@
 Canonical current markers:
 - SQLite schema: `6`
 - Latest Beta APK: `beta-vc45`
-- Web: `D068_CLEAN_LOG_COPY_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`
+- Web: `D068_CLEAN_LOG_COPY_BETA_RUNTIME_PASS__OWNER_ITEM9_11_15_ACCEPTANCE_PENDING`
 - Android: `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 
 The project is in **UI-first review**, not business-logic rebuild.
 
 - Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinements: **D058 shell + D059 header + D060 Root-role/theme + D061 dark/sidebar/realtime cleanup + D062 final Web QA/IA + D063 consolidated operations/logs/reporting/people review**.
-- D064 detailed `Trạng thái hệ thống` is deployed on Beta and technically PASS. Controlled Beta load test run `35376099693` also PASS: 1,000/1,000 real Picker reports, 100 existing Pickers, 400 existing SKUs in 525.423 seconds, no errors; temporary load-test gate verified closed. D066 three-group navigation is merged and deployed on Beta. PR #50 guards PASS; main UI Design Guard run `35407227884` PASS; Beta deploy run `35407227911` PASS. Owner accepted D066 as the current Web navigation baseline. D067 items 1–8 and 10 are Owner-accepted/frozen. D068 item 9 and requirements 11–15 remain the active Web review scope; the clean-log-copy follow-up is source-implemented and awaiting PR guards/deploy. Stable is unchanged.
+- D064 detailed `Trạng thái hệ thống` is deployed on Beta and technically PASS. Controlled Beta load test run `35376099693` also PASS: 1,000/1,000 real Picker reports, 100 existing Pickers, 400 existing SKUs in 525.423 seconds, no errors; temporary load-test gate verified closed. D066 three-group navigation is merged and deployed on Beta. PR #50 guards PASS; main UI Design Guard run `35407227884` PASS; Beta deploy run `35407227911` PASS. Owner accepted D066 as the current Web navigation baseline. D067 items 1–8 and 10 are Owner-accepted/frozen. D068 item 9 and requirements 11–15 remain the active Web review scope; the clean-log-copy follow-up is deployed and technically PASS on Beta. Stable is unchanged.
 - Owner has **not yet given UI/layout acceptance** for the current candidate.
 - Technical build/deploy/release PASS must never be interpreted as Owner UI PASS.
 - D064 system-status and controlled load-test implementation are complete. D066 now carries the approved three-group Web navigation implementation.
@@ -457,7 +457,7 @@ Implementation details:
 - Picker Web keeps its single `Báo thiếu hàng` workspace.
 - Android/PDA unchanged. Stable untouched and OWNER-GATED.
 
-Current source marker: `D068_CLEAN_LOG_COPY_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`.
+Current source marker: `D068_CLEAN_LOG_COPY_BETA_RUNTIME_PASS__OWNER_ITEM9_11_15_ACCEPTANCE_PENDING`.
 Next action: finish PR guards → merge → Beta deploy → record runtime PASS/continuity.
 
 ## D066 runtime evidence — clean handoff
@@ -493,21 +493,26 @@ No manual end-of-session handover is required; bootstrap from `ops/authority-man
 
 ## D067 active refinement — 2026-09-19
 
-Owner accepted D066 as the current Web baseline and requested 10 bounded refinements: text zoom; clickable complete pending/warning/overdue lists; latest-report detail; responsive one-row-per-Picker detail; scroll preservation; optional 5-second Skip guard; HAS_STOCK confirmation; Web-log de-duplication; clean end-user copy; and removal of the 200-row pending-queue truncation. Source marker: `D068_CLEAN_LOG_COPY_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`. Stable remains OWNER-GATED.
+Owner accepted D066 as the current Web baseline and requested 10 bounded refinements: text zoom; clickable complete pending/warning/overdue lists; latest-report detail; responsive one-row-per-Picker detail; scroll preservation; optional 5-second Skip guard; HAS_STOCK confirmation; Web-log de-duplication; clean end-user copy; and removal of the 200-row pending-queue truncation. Source marker: `D068_CLEAN_LOG_COPY_BETA_RUNTIME_PASS__OWNER_ITEM9_11_15_ACCEPTANCE_PENDING`. Stable remains OWNER-GATED.
 
 
 ## D067 runtime PASS — 2026-09-19
 
-PR #52 merged at `c2249ceea9fbb9570c3855fc2a0a421b251e3328`. Repo Authority Guard `35411796234`, Project State Guard `35411796230`, UI Design Guard `35411796208` and Beta deploy `35411796215` all PASS. UI Guard includes Worker typecheck, Web production build and Android debug build; deploy verifies health/schema, auth/business guards, Web shell and Google OAuth start. Current source marker: `D068_CLEAN_LOG_COPY_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`. Next step is Owner testing of the exact 10 requested D067 items; freeze each item once marked OK. Stable remains OWNER-GATED.
+PR #52 merged at `c2249ceea9fbb9570c3855fc2a0a421b251e3328`. Repo Authority Guard `35411796234`, Project State Guard `35411796230`, UI Design Guard `35411796208` and Beta deploy `35411796215` all PASS. UI Guard includes Worker typecheck, Web production build and Android debug build; deploy verifies health/schema, auth/business guards, Web shell and Google OAuth start. Current source marker: `D068_CLEAN_LOG_COPY_BETA_RUNTIME_PASS__OWNER_ITEM9_11_15_ACCEPTANCE_PENDING`. Next step is Owner testing of the exact 10 requested D067 items; freeze each item once marked OK. Stable remains OWNER-GATED.
 
 
 ## D068 active Web refinement — 2026-09-19
 
-Owner accepted and froze D067 items 1–8 and 10. D068 reopens only item 9 and adds requirements 11–15: full user-facing copy cleanup, bottom-left max-five 5-second translucent toasts, clear active backgrounds, interaction-delay repair, larger VẬN HÀNH / QUẢN LÝ / HỆ THỐNG headings, and same-page Back/Forward history. Latest Web log at 09:20 ICT showed realtime connected, service reachable, browser RTT about 50 ms, 10 Mbps reported downlink and JS heap under 3 MB; source inspection identified route rendering waiting for data load and selected-SKU full-list rerender as actionable UI delay causes. D068 is now merged and Beta runtime PASS. Source marker: `D068_CLEAN_LOG_COPY_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`. Android unchanged; Stable OWNER-GATED.
+Owner accepted and froze D067 items 1–8 and 10. D068 reopens only item 9 and adds requirements 11–15: full user-facing copy cleanup, bottom-left max-five 5-second translucent toasts, clear active backgrounds, interaction-delay repair, larger VẬN HÀNH / QUẢN LÝ / HỆ THỐNG headings, and same-page Back/Forward history. Latest Web log at 09:20 ICT showed realtime connected, service reachable, browser RTT about 50 ms, 10 Mbps reported downlink and JS heap under 3 MB; source inspection identified route rendering waiting for data load and selected-SKU full-list rerender as actionable UI delay causes. D068 is now merged and Beta runtime PASS. Source marker: `D068_CLEAN_LOG_COPY_BETA_RUNTIME_PASS__OWNER_ITEM9_11_15_ACCEPTANCE_PENDING`. Android unchanged; Stable OWNER-GATED.
 
 Next command: `Kiểm tra live D068 và test mục 9, 11-15`.
 
 
 ## D068 runtime PASS — 2026-09-19
 
-PR #54 merged at `ba8579a157763288ff0cc3cca885e65e593917be`. Repo Authority Guard `35416184056`, Project State Guard `35416184002`, UI Design Guard `35416184004` and Beta deploy `35416184023` all PASS. Deploy verified health/schema, auth/business guards, Web shell and Google OAuth start. Current marker: `D068_CLEAN_LOG_COPY_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`. D067 items 1–8 and 10 remain frozen; Owner now tests only item 9 and requirements 11–15. Stable remains OWNER-GATED.
+PR #54 merged at `ba8579a157763288ff0cc3cca885e65e593917be`. Repo Authority Guard `35416184056`, Project State Guard `35416184002`, UI Design Guard `35416184004` and Beta deploy `35416184023` all PASS. Deploy verified health/schema, auth/business guards, Web shell and Google OAuth start. Current marker: `D068_CLEAN_LOG_COPY_BETA_RUNTIME_PASS__OWNER_ITEM9_11_15_ACCEPTANCE_PENDING`. D067 items 1–8 and 10 remain frozen; Owner now tests only item 9 and requirements 11–15. Stable remains OWNER-GATED.
+
+
+## D068 clean-log-copy runtime PASS — 2026-09-19
+
+PR #56 merged at `656fb8d24b44e7adb087aabb6a8a02691b278d43`. Repo Authority Guard `35417472683`, Project State Guard `35417472778`, UI Design Guard `35417472752` and Beta deploy `35417472735` all PASS. Normal Nhật ký UI now shows a structured operational summary instead of raw runtime-log filenames/JSON. Owner review remains limited to D067 item 9 and D068 requirements 11–15; D067 items 1–8 and 10 remain frozen. Stable untouched.
