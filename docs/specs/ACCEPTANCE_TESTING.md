@@ -347,3 +347,15 @@ D070 three-stage timing / automatic-Skip acceptance:
 - D007 queue ordering is unchanged;
 - no processing-extension action is implemented;
 - Stable remains untouched/OWNER-GATED.
+
+
+D071 Web density / immediate-action acceptance:
+- all rendered Web checkboxes resolve to the same compact size and are not enlarged by generic input min-height rules;
+- logical text size `100%` applies the D071 ~5% larger baseline while the persisted A−/A+ control still reports logical percentages;
+- Overview and Detailed report date controls keep both date inputs plus all four existing quick presets in one compact desktop group and remain usable when wrapped on narrow screens;
+- clicking the final Reporter `Có hàng` or `Bỏ qua` confirmation closes the modal and shows an in-progress state before the network request completes;
+- service success is not claimed optimistically: success toast appears only after the authoritative mutation resolves, while failure restores an actionable state and shows an error toast;
+- Reporter resolve handlers do not synchronously await a complete queue/recent reload after the POST;
+- concurrent Reporter operations refreshes are coalesced; realtime authoritative reconciliation remains the source of background freshness;
+- support-log evidence used for this issue must distinguish API/reload latency from render/CPU jank; no conclusion of client jank is made when long-task/memory evidence is absent;
+- Android/PDA and Stable are unchanged.
