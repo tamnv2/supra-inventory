@@ -130,6 +130,8 @@ namespace SupraInventoryRelayAgent
         public string RefreshToken;
         public string UserId;
         public string AppUserId;
+        public string Role;
+        public string BaseRole;
         public DateTime ExpiresUtc;
     }
 
@@ -152,14 +154,20 @@ namespace SupraInventoryRelayAgent
         private AgentSession _session;
         private CancellationTokenSource _listenCts;
         private bool _allowExit;
+        private bool _updateCheckRunning;
+        private readonly string _agentInstanceId;
+        private readonly System.Windows.Forms.Timer _updateTimer = new System.Windows.Forms.Timer();
 
-        private static readonly string SessionFile = Path.Combine(
+        private static readonly string RelayDataDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "SUPRA Inventory", "RelayPoc", "session.bin");
+            "SUPRA Inventory", "RelayPoc");
+        private static readonly string SessionFile = Path.Combine(RelayDataDir, "session.bin");
+        private static readonly string AgentInstanceFile = Path.Combine(RelayDataDir, "agent-instance-id.txt");
 
         internal AgentForm()
         {
-            Text = "SUPRA Inventory - Relay Test";
+            _agentInstanceId = LoadOrCreateAgentInstanceId();
+            Text = "SUPRA Inventory - Relay Test v" + AgentConfig.AgentBuild;
             Width = 680;
             Height = 510;
             MinimumSize = new Size(680, 510);
@@ -173,11 +181,11 @@ namespace SupraInventoryRelayAgent
             _network.SetBounds(18, 78, 630, 24); _network.Text = "Mạng: " + GetSsid(); Controls.Add(_network);
             _identity.SetBounds(18, 104, 630, 24); _identity.Text = "Agent: chưa ghép"; Controls.Add(_identity);
 
-            Controls.Add(new Label { Left = 18, Top = 140, Width = 90, Text = "Tài khoản" });
+            Controls.Add(new Label { Left = 18, Top = 140, Width = 90, Text = "ADMIN" });
             _username.SetBounds(110, 136, 180, 26); Controls.Add(_username);
             Controls.Add(new Label { Left = 305, Top = 140, Width = 70, Text = "Mật khẩu" });
             _password.SetBounds(375, 136, 160, 26); _password.UseSystemPasswordChar = true; Controls.Add(_password);
-            _pair.SetBounds(545, 135, 105, 28); _pair.Text = "Ghép Agent"; _pair.Click += (s, e) => Task.Run(() => PairLogin()); Controls.Add(_pair);
+            _pair.SetBounds(545, 135, 105, 28); _pair.Text = "Đăng nhập"; _pair.Click += (s, e) => Task.Run(() => PairLogin()); Controls.Add(_pair);
 
             _testOffice.SetBounds(18, 176, 135, 32); _testOffice.Text = "Kiểm tra Office"; _testOffice.Enabled = false;
             _testOffice.Click += (s, e) => Task.Run(() => TestOffice()); Controls.Add(_testOffice);
@@ -203,11 +211,61 @@ namespace SupraInventoryRelayAgent
             };
 
             var timer = new System.Windows.Forms.Timer { Interval = 4000 };
-            timer.Tick += (s, e) => _network.Text = "Mạng: " + GetSsid(); timer.Start();
-            Shown += (s, e) => Task.Run(() => { LogNetworkSnapshot("startup"); RestoreSession(); });
+            timer.Tick += (s, e) => _network.Text = "Mạng: " + GetSsid();
+            timer.Start();
+
+            _updateTimer.Interval = 4 * 60 * 60 * 1000;
+            _updateTimer.Tick += (s, e) => Task.Run(() => TryAutoUpdate(false));
+            _updateTimer.Start();
+
+            Shown += (s, e) => Task.Run(() => StartupSequence());
         }
 
         private void RestoreFromTray() { Show(); WindowState = FormWindowState.Normal; Activate(); }
+
+        private void StartupSequence()
+        {
+            LogNetworkSnapshot("startup");
+            if (TryAutoUpdate(true)) return;
+            RestoreSession();
+        }
+
+        private bool TryAutoUpdate(bool startup)
+        {
+            lock (_sessionLock)
+            {
+                if (_updateCheckRunning) return false;
+                _updateCheckRunning = true;
+            }
+
+            try
+            {
+                if (startup) Log("UPDATE kiểm tra Agent prerelease v" + AgentConfig.AgentBuild + ".");
+                var result = AgentUpdater.CheckAndInstallIfNeeded();
+                if (result.InstallStarted)
+                {
+                    Log(result.Message);
+                    Ui(() =>
+                    {
+                        _relay.Text = "Update: đang cài v" + result.LatestBuild;
+                        _allowExit = true;
+                        Close();
+                    });
+                    return true;
+                }
+                if (!startup) Log("UPDATE " + result.Message);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Log("UPDATE chưa thể kiểm tra/cài tự động: " + SafeMessage(ex));
+                return false;
+            }
+            finally
+            {
+                lock (_sessionLock) _updateCheckRunning = false;
+            }
+        }
 
         private void RestoreSession()
         {
