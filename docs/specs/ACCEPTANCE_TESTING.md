@@ -368,3 +368,14 @@ D070 alarm availability repair acceptance:
 - authoritative deadline state is committed and the next alarm is scheduled before best-effort realtime/FCM delivery;
 - realtime/FCM delivery failure does not fail/retry the authoritative alarm;
 - D070 FIRST_REPORT/PER_PICKER result semantics, exact Picker targeting, five-minute correction, D007 ordering, Android projection and Stable OWNER-GATE remain unchanged.
+
+
+D072 system-status quota exclusion acceptance:
+- Admin/Root sidebar keeps three large groups and `HỆ THỐNG` contains only `Nhật ký`;
+- `system`, `devices` and `versions` are absent from routable Web sections and cannot be reached via hash/history;
+- Web source contains no `getSystemStatus(...)` call, manual system-status refresh binding or 60-second system-status polling loop;
+- `GET /api/admin/system-status` returns the quota-guard disabled response without invoking `collectSystemStatus`;
+- gated Beta load-test snapshots call system collection with provider reads disabled;
+- Google Drive/GitHub provider metrics are therefore never read by normal user navigation;
+- lightweight header connectivity/realtime and runtime-log diagnostics continue to work;
+- D071 Web interaction changes, D070 timing semantics, Android/PDA and Stable are unchanged.
