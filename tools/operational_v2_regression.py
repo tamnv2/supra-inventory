@@ -34,6 +34,10 @@ def require_source_markers() -> None:
         "D070 timeout source": "SYSTEM_TIMEOUT",
         "D070 durable alarm": "async alarm(): Promise<void>",
         "D070 no retroactive deadline": "only new reports get deadlines",
+        "D070 overdue warning tombstone": 'recordDeadlineOnce(state, batchId, "WARNING", null, now)',
+        "D070 bounded alarm catch-up": "const MAX_DUE_PER_ALARM = 50",
+        "D070 alarm minimum delay": "const MIN_ALARM_DELAY_MS = 1_000",
+        "D070 alarm delivery failure isolation": "Provider failure must not throw the alarm and cause platform retry storms.",
     }
     haystacks = {
         "immutable result snapshot table": operational,
@@ -48,6 +52,10 @@ def require_source_markers() -> None:
         "D070 timeout source": sla_auto,
         "D070 durable alarm": core,
         "D070 no retroactive deadline": operational,
+        "D070 overdue warning tombstone": sla_auto,
+        "D070 bounded alarm catch-up": sla_auto,
+        "D070 alarm minimum delay": sla_auto,
+        "D070 alarm delivery failure isolation": core,
     }
     for name, marker in markers.items():
         if marker not in haystacks[name]:
@@ -68,6 +76,11 @@ def require_source_markers() -> None:
             fail(f"D070 event/target invariant missing: {required}")
     if "auto_skip_allowed_at IS NULL" not in operational or "auto_skip_allowed_at IS NULL" not in business:
         fail("D070 active Picker projection/dedupe invariant missing")
+
+    schedule_pos = core.find("await scheduleNextOperationalAlarm(this.state);")
+    broadcast_pos = core.find("for (const effect of effects) {", core.find("async alarm(): Promise<void>"))
+    if schedule_pos < 0 or broadcast_pos < 0 or schedule_pos > broadcast_pos:
+        fail("D070 alarm must reschedule authoritative work before best-effort delivery")
 
 
 def fixture_connection() -> sqlite3.Connection:
