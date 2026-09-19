@@ -576,6 +576,146 @@ namespace SupraInventoryRelayAgent
                 return _wmsSession != null && _wmsSession.IsValidHy1();
         }
 
+        private void ActivateRelayRuntime()
+        {
+            try
+            {
+                if (_listenCts == null) StartListening();
+                StartLeaderCoordination();
+            }
+            catch (Exception ex)
+            {
+                Log("Relay runtime chưa thể tự khởi động: " + SafeMessage(ex));
+            }
+        }
+
+        private void StartLeaderCoordination()
+        {
+            if (_leaderCoordinator != null) return;
+            _leaderCoordinator = new AgentLeaderCoordinator(
+                SnapshotSession,
+                EnsureFreshToken,
+                HasUsableWmsSession,
+                _agentInstanceId,
+                Log,
+                (active, leaderId) =>
+                {
+                    Ui(() =>
+                    {
+                        if (active)
+                            _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / ACTIVE";
+                        else if (!string.IsNullOrWhiteSpace(leaderId))
+                            _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / STANDBY";
+                        else
+                            _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / chờ WMS";
+                    });
+                    if (active) Task.Run(() => ProcessPendingJobsSnapshot());
+                });
+            _leaderCoordinator.Start();
+        }
+
+        private void StopLeaderCoordination()
+        {
+            var coordinator = _leaderCoordinator;
+            _leaderCoordinator = null;
+            try { if (coordinator != null) coordinator.Stop(); } catch { }
+        }
+
+        private void ProcessPendingJobsSnapshot()
+        {
+            if (_leaderCoordinator == null || !_leaderCoordinator.IsLeader) return;
+            try
+            {
+                EnsureFreshToken();
+                var session = SnapshotSession();
+                var raw = RequestJson("GET", JobsUrl(session), null, null);
+                if (string.IsNullOrWhiteSpace(raw) || string.Equals(raw.Trim(), "null", StringComparison.OrdinalIgnoreCase))
+                    return;
+                var jobs = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                if (jobs == null) return;
+                foreach (var pair in jobs)
+                {
+                    if (_leaderCoordinator == null || !_leaderCoordinator.IsLeader) return;
+                    var job = pair.Value as Dictionary<string, object>;
+                    if (job != null) HandleJob(pair.Key, job);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log("AGENT HA pending-scan fail: " + SafeMessage(ex));
+            }
+        }
+
+        private void TryRestoreWmsSessionFromProfile()
+        {
+            if (HasUsableWmsSession()) return;
+            Ui(() => _wmsStatus.Text = "WMS: đang khôi phục phiên đã lưu trong profile...");
+            try
+            {
+                var captured = WmsBrowserCapture.CaptureSession(
+                    20,
+                    message => Log("WMS RESTORE " + message));
+                var probe = WmsReadOnlyClient.ProbeApi(captured);
+                if (!string.Equals(probe.Result, "PASS", StringComparison.Ordinal))
+                    throw new InvalidOperationException("Phiên WMS profile không còn hợp lệ: " + probe.Result + ".");
+
+                lock (_wmsSessionLock) _wmsSession = captured;
+                Ui(() => _wmsStatus.Text = "WMS: phiên cũ còn hiệu lực · đang nạp Picklist");
+                SetProbeButtonsEnabled(true);
+                Log("WMS SESSION RESTORE PASS source=dedicated_browser_profile values=redacted.");
+                PreloadPicklistCache(captured, "STARTUP_RESTORE");
+            }
+            catch (Exception ex)
+            {
+                lock (_wmsSessionLock) _wmsSession = null;
+                _picklistCache.Clear();
+                Ui(() =>
+                {
+                    _wmsStatus.Text = "WMS: cần đăng nhập lại";
+                    _tray.ShowBalloonTip(
+                        2500,
+                        "SUPRA Inventory",
+                        "Phiên WMS chưa sẵn sàng. Mở Agent và bấm Mở WMS + lấy phiên.",
+                        ToolTipIcon.Warning);
+                });
+                SetProbeButtonsEnabled(true);
+                Log("WMS SESSION RESTORE unavailable; manual_login_enabled=true detail=" + SafeMessage(ex));
+            }
+        }
+
+        private void PreloadPicklistCache(WmsSessionSnapshot session, string reason)
+        {
+            try
+            {
+                var preload = _picklistCache.Preload(session);
+                Log(
+                    "PICKLIST CACHE preload result=" + preload.Result +
+                    " mode=" + preload.CacheMode +
+                    " count=" + preload.CacheCount +
+                    " ms=" + preload.ElapsedMs +
+                    " reason=" + reason +
+                    " values=redacted");
+                if (string.Equals(preload.Result, "PASS", StringComparison.Ordinal))
+                {
+                    Ui(() => _wmsStatus.Text = "WMS: OK · Picklist cache " + preload.CacheCount);
+                    SetProbeButtonsEnabled(true);
+                    return;
+                }
+
+                if (string.Equals(preload.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
+                {
+                    lock (_wmsSessionLock) _wmsSession = null;
+                    _picklistCache.Clear();
+                    Ui(() => _wmsStatus.Text = "WMS: phiên hết hạn · cần đăng nhập lại");
+                    SetProbeButtonsEnabled(true);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log("PICKLIST CACHE preload fail reason=" + reason + " detail=" + SafeMessage(ex));
+            }
+        }
+
         private void StartupSequence()
         {
             UserStartupRegistration.EnsureRegistered();
