@@ -312,3 +312,18 @@ Current Android marker: `D074_PICKER_SPLIT_TABS_RELAY_UID_AUTH_DIAGNOSTICS_SIGNE
 - No WMS mutation. Stable remains OWNER-GATED.
 
 Current relay marker: `D075_SHARED_PICKER_QUEUE_ADMIN_ONLY_AGENT_AUTO_UPDATE_IN_PROGRESS__NO_WMS_MUTATION`.
+
+
+## D075 build/release PASS — 2026-09-19
+
+- Source: PR #69 / main `9b149e56b4781eb905daa6793db6a220a045cf5a`.
+- Main Authority / Continuity / UI Design: PASS.
+- Beta deploy `35447318213`: PASS.
+- Verify Beta Android `35447318221`: PASS; signed release `beta-vc49`.
+- Verify Beta Relay Agent `35447318236`: PASS; dedicated prerelease `relay-agent-v2`, EXE 49,664 bytes.
+- Android `/releases/latest` remains `beta-vc49`; Agent prerelease does not interfere with Android OTA.
+- D075 shared queue, real ADMIN Agent identity/audit and automatic Agent update are source/build/release PASS.
+- Beta RTDB still needs the merged D075 Rules published before physical field acceptance.
+- No WMS mutation. Stable untouched and OWNER-GATED.
+
+Current relay marker: `D075_SOURCE_BUILD_DEPLOY_RELEASE_PASS__RTDB_RULES_PUBLISH_AND_FIELD_TEST_PENDING__NO_WMS_MUTATION`.
