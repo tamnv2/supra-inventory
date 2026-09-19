@@ -314,6 +314,7 @@ export class InventoryCore {
     title = effect.title,
     body = effect.body,
     eventName = effect.event,
+    correlateResult = true,
   ): Promise<void> {
     if (!this.env.GOOGLE_RUNTIME_SA_JSON || !this.env.FIREBASE_PROJECT_ID) return;
     const tokens = await this.notificationTokens(roles, userIds);
@@ -332,7 +333,7 @@ export class InventoryCore {
         data: {
           event: eventName,
           batch_id: effect.batch_id,
-          result_event_id: effect.result_event ? effect.event_id : "",
+          result_event_id: effect.result_event && correlateResult ? effect.event_id : "",
           event_seq: eventRow?.seq == null ? "" : String(eventRow.seq),
           batch_version: eventRow?.batch_version == null ? "" : String(eventRow.batch_version),
           source: "SYSTEM_DEADLINE",
@@ -340,7 +341,7 @@ export class InventoryCore {
       },
     );
     await this.recordNotificationDelivery(
-      effect.result_event ? effect.event_id : null,
+      effect.result_event && correlateResult ? effect.event_id : null,
       eventName,
       delivery.attempts.map((attempt) => ({
         token: attempt.token,
@@ -431,6 +432,7 @@ export class InventoryCore {
           summary.title,
           summary.body,
           summary.event,
+          false,
         );
       }
     } finally {
