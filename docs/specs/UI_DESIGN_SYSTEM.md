@@ -333,3 +333,18 @@ Reference material never authorizes bin/location/pickface, stock quantity, maps,
 - Credentials, authorization headers, ID/refresh tokens, passwords, API keys, private/signing material and raw session stores are never included.
 - Diagnostic objects/strings/arrays are depth/count/length bounded and credential-like keys/values are redacted.
 - Generating a support log is read-only and never triggers business mutation.
+
+
+### Owner Web interaction refinement (D068)
+
+D067 items 1–8 and 10 are Owner-accepted and frozen. D068 reopens only D067 item 9 and adds requirements 11–15.
+
+- Normal product copy must be end-user language. Remove visible development/environment/implementation wording such as Beta labels, source/build identifiers, raw internal storage/event vocabulary, raw diagnostic panels, AI/Owner discussion and migration rationale. Service names that are useful in the dedicated system-status page may remain, but their descriptions/metrics must use plain operational wording.
+- Action feedback uses a bottom-left toast stack rather than banners at the top of the workspace. Toast background is translucent, each toast expires after 5 seconds, at most five are visible, and a sixth removes the oldest.
+- Selected navigation items, internal tabs, filter states and selected list rows use a distinct active background in both light and dark themes.
+- Large sidebar groups `VẬN HÀNH / QUẢN LÝ / HỆ THỐNG` use visibly larger typography than their child items.
+- Section navigation is optimistic: update the selected item and section content immediately, then load fresh data asynchronously. Do not make a network round-trip a prerequisite for showing the selected section.
+- Selecting a Reporter SKU updates only the selected row/detail surface and must not rebuild the entire pending queue. Affected Picker detail may continue loading asynchronously.
+- Each user-driven section/workspace transition pushes a same-document history entry. Initial login/bootstrap and forced role reroute replace the current entry. Browser Back/Forward restores the permitted section and then refreshes its data.
+- Runtime logs may record interaction/load timings for diagnosis; those timing labels are not normal visible product copy.
+- Android/PDA remains unchanged. Stable remains OWNER-GATED.
