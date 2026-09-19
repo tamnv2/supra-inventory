@@ -20,7 +20,7 @@ namespace SupraInventoryRelayAgent
                 if (string.IsNullOrWhiteSpace(exe))
                     throw new InvalidOperationException("Không xác định được đường dẫn Agent.");
 
-                var command = """ + exe.Replace(""", "") + "" --autostart";
+                var command = "\"" + exe.Replace("\"", "") + "\" --autostart";
                 using (var key = Registry.CurrentUser.CreateSubKey(RunKey, true))
                 {
                     if (key == null)
