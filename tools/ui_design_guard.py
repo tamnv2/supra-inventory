@@ -303,6 +303,7 @@ checks = {
     "web_d067_clean_visible_copy": all(token not in WEB_APP for token in ["Beta / Logs", "Chỉ chạy trên Beta", "Beta thực tế", "D064 được ghi nhận", "Log được che mật khẩu", "Tự gửi định kỳ", "ROOT ·", "REPORTER ·", "PICKER ·"]),
     "web_d068_toast_notifications": all(token in (WEB_APP + WEB_FAST) for token in ["web-toast-stack", "toastItems", "slice(-5)", "5_000", "setNotice"]) and "renderNotice()" not in WEB_APP,
     "web_d068_browser_history": all(token in WEB_APP for token in ["history.pushState", "history.replaceState", 'window.addEventListener("popstate"', "navigateToSection", "syncSectionHistory"]),
+    "web_d068_clean_log_summary": all(token in WEB_APP for token in ["renderRuntimeLogSummary", "Tóm tắt nhật ký"]) and "JSON.stringify(runtimeLogDetail.content" not in WEB_APP and "${esc(item.name)}" not in WEB_APP,
     "web_d068_immediate_navigation": all(token in WEB_APP for token in ["patchActiveSection(false)", "Mở ${next}: hiển thị", "refreshFastDetailOnly", "Chọn SKU hiển thị sau"]) and 'void run(async () => { await loadSection(next); });' not in WEB_APP,
     "web_d068_active_selection": all(token in WEB_FAST for token in ["D068 Web navigation, notifications and selection clarity", ".tabs .nav-button.active", ".workspace-tab.active", ".fast-issue-row.selected", ".nav-section-label"]),
     "web_d068_clean_visible_copy": all(token not in WEB_APP for token in [
