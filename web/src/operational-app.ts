@@ -1936,6 +1936,36 @@ function bindOverlay(): void {
   });
 }
 
+function bindReporterActionButtons(root: ParentNode = document): void {
+  root.querySelectorAll<HTMLButtonElement>("[data-resolve]").forEach((button) => button.addEventListener("click", () => {
+    const batchId = button.dataset.batch || "";
+    stockConfirm = queueRows.find((item) => item.batch_id === batchId) || null;
+    patchOverlays();
+  }));
+  root.querySelectorAll<HTMLButtonElement>("[data-skip-batch]").forEach((button) => button.addEventListener("click", () => {
+    skipConfirm = queueRows.find((item) => item.batch_id === button.dataset.skipBatch) || null;
+    skipConfirmOpenedAt = Date.now();
+    patchOverlays();
+    if (skipConfirm && skipDelayEnabled) {
+      const batchId = skipConfirm.batch_id;
+      for (const delay of [1_000, 2_000, 3_000, 4_000, SKIP_CONFIRM_DELAY_MS + 50]) {
+        window.setTimeout(() => {
+          if (skipConfirm?.batch_id === batchId) patchOverlays();
+        }, delay);
+      }
+    }
+  }));
+  root.querySelectorAll<HTMLButtonElement>("[data-detail]").forEach((button) => button.addEventListener("click", () => {
+    const id = button.dataset.detail || "";
+    if (!id) return;
+    if (expandedBatchDetails.has(id)) expandedBatchDetails.delete(id);
+    else expandedBatchDetails.add(id);
+    if (activeSection === "operations" && selectedBatchId === id) refreshFastDetailOnly();
+    else patchActiveSection(true);
+    if (expandedBatchDetails.has(id)) prefetchBatchDetails(id);
+  }));
+}
+
 function bindSection(): void {
   document.querySelectorAll<HTMLButtonElement>("[data-workspace-section]").forEach((button) => button.addEventListener("click", () => {
     const next = button.dataset.workspaceSection as Section;
@@ -1981,37 +2011,18 @@ function bindSection(): void {
     setNotice("success", "Đã gửi log Web.");
   }));
   document.querySelectorAll<HTMLButtonElement>("[data-select-batch]").forEach((button) => button.addEventListener("click", () => {
-    selectedBatchId = button.dataset.selectBatch || null;
-    patchActiveSection(true);
-    if (selectedBatchId) prefetchBatchDetails(selectedBatchId);
+    const started = performance.now();
+    const nextBatchId = button.dataset.selectBatch || null;
+    if (!nextBatchId || nextBatchId === selectedBatchId) return;
+    selectedBatchId = nextBatchId;
+    document.querySelectorAll<HTMLElement>("[data-select-batch].selected").forEach((row) => row.classList.remove("selected"));
+    button.classList.add("selected");
+    refreshFastDetailOnly();
+    prefetchBatchDetails(nextBatchId);
+    runtimeLogEvent(`Chọn SKU hiển thị sau ${Math.max(0, Math.round(performance.now() - started))}ms`);
   }));
 
-  document.querySelectorAll<HTMLButtonElement>("[data-resolve]").forEach((button) => button.addEventListener("click", () => {
-    const batchId = button.dataset.batch || "";
-    stockConfirm = queueRows.find((item) => item.batch_id === batchId) || null;
-    patchOverlays();
-  }));
-  document.querySelectorAll<HTMLButtonElement>("[data-skip-batch]").forEach((button) => button.addEventListener("click", () => {
-    skipConfirm = queueRows.find((item) => item.batch_id === button.dataset.skipBatch) || null;
-    skipConfirmOpenedAt = Date.now();
-    patchOverlays();
-    if (skipConfirm && skipDelayEnabled) {
-      const batchId = skipConfirm.batch_id;
-      for (const delay of [1_000, 2_000, 3_000, 4_000, SKIP_CONFIRM_DELAY_MS + 50]) {
-        window.setTimeout(() => {
-          if (skipConfirm?.batch_id === batchId) patchOverlays();
-        }, delay);
-      }
-    }
-  }));
-  document.querySelectorAll<HTMLButtonElement>("[data-detail]").forEach((button) => button.addEventListener("click", () => {
-    const id = button.dataset.detail || "";
-    if (!id) return;
-    if (expandedBatchDetails.has(id)) expandedBatchDetails.delete(id);
-    else expandedBatchDetails.add(id);
-    patchActiveSection(true);
-    if (expandedBatchDetails.has(id)) prefetchBatchDetails(id);
-  }));
+  bindReporterActionButtons();
   document.querySelectorAll<HTMLButtonElement>("[data-correct]").forEach((button) => button.addEventListener("click", () => void run(async () => {
     await correctReporterBatch(button.dataset.correct || "");
     await loadOperations();
