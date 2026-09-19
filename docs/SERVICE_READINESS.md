@@ -3,12 +3,12 @@
 > DERIVED VIEW. Canonical live status is `ops/project-state.json`; resource identity is `ops/resource-registry.json`.
 
 - Project: `supra-inventory`
-- Web: `D067_WEB_UX_REFINEMENT_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`
+- Web: `D067_WEB_UX_BETA_RUNTIME_PASS__OWNER_10_ITEM_ACCEPTANCE_PENDING`
 - Android: `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 - Latest signed review APK: `beta-vc45`
 - Web runtime source: `2e12e6d4e94b195e3b505b3f2abe9822ca91632c`
 - Android beta-vc45 source: `3481f94c2c4ef3dc37fd8f8dfcdbd48ee2b61982`
-- Owner UI review: **D066 ACCEPTED; D067 10-item refinement pending runtime/test**
+- Owner UI review: **D066 ACCEPTED; D067 runtime PASS; 10-item Owner test pending**
 
 ## D057 baseline + D058/D059/D060/D061/D062/D063/D064 refinements
 
@@ -59,7 +59,7 @@ Automated PASS is technical eligibility only. It is not Owner UI acceptance.
 
 ## D063 source candidate
 
-`D067_WEB_UX_REFINEMENT_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING` is the active Web source candidate; Android source marker is `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`. `Inventory/Beta/Logs` is created and registered. D062/beta-vc45 remain the deployed/signed runtime references until D063 CI, merge, Beta deploy and signed Android release complete. Stable remains untouched.
+`D067_WEB_UX_BETA_RUNTIME_PASS__OWNER_10_ITEM_ACCEPTANCE_PENDING` is the active Web source candidate; Android source marker is `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`. `Inventory/Beta/Logs` is created and registered. D062/beta-vc45 remain the deployed/signed runtime references until D063 CI, merge, Beta deploy and signed Android release complete. Stable remains untouched.
 
 ## D062 runtime PASS
 
@@ -102,7 +102,7 @@ Automated PASS is technical eligibility only. Owner UI/theme/role-test acceptanc
 
 ## Current work frontier
 
-D064 runtime/load work is complete and D066 navigation is Owner-accepted. D067 is the active bounded Web refinement; next action is PR/runtime PASS followed by Owner testing of the exact 10 requested items.
+D064 runtime/load work is complete and D066 navigation is Owner-accepted. D067 is merged and Beta runtime PASS; next action is Owner testing of the exact 10 requested items.
 
 For each Owner-rejected screen:
 - compare current render to the pinned old source + current Owner feedback;
@@ -156,7 +156,7 @@ Owner-approved Web navigation is now source-implemented:
 - Reporter/Picker projections remain role-specific
 - Android/PDA unchanged; Stable untouched
 
-Current Web marker: `D067_WEB_UX_REFINEMENT_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`.
+Current Web marker: `D067_WEB_UX_BETA_RUNTIME_PASS__OWNER_10_ITEM_ACCEPTANCE_PENDING`.
 
 D066 runtime evidence:
 - PR #50 merged at `2e12e6d4e94b195e3b505b3f2abe9822ca91632c`
@@ -169,4 +169,9 @@ D066 runtime evidence:
 
 ## D067 source candidate — 2026-09-19
 
-`D067_WEB_UX_REFINEMENT_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING` preserves the accepted D066 navigation while implementing the 10 requested Web UX corrections. PR guards and Beta runtime verification are still pending. Android and Stable are unchanged.
+`D067_WEB_UX_BETA_RUNTIME_PASS__OWNER_10_ITEM_ACCEPTANCE_PENDING` preserves the accepted D066 navigation while implementing the 10 requested Web UX corrections. PR guards and Beta runtime verification are still pending. Android and Stable are unchanged.
+
+
+## D067 runtime PASS — 2026-09-19
+
+PR #52 merged at `c2249ceea9fbb9570c3855fc2a0a421b251e3328`. Repo Authority Guard `35411796234`, Project State Guard `35411796230`, UI Design Guard `35411796208` and Beta deploy `35411796215` all PASS. Current Web marker: `D067_WEB_UX_BETA_RUNTIME_PASS__OWNER_10_ITEM_ACCEPTANCE_PENDING`. Stable is untouched and OWNER-GATED.
