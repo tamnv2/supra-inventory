@@ -181,7 +181,7 @@
     },
     {
       "id": "OA006",
-      "status": "D083_AGENT_V8_REPAIR_RELEASE_PENDING",
+      "status": "OWNER_D083_V8_STARTUP_RETEST_PENDING",
       "title": "Home field-test read-only Picklist existence lookup and Agent overlay",
       "resource_key": "supra-api-d080",
       "provider": "Wincommerce Supra + Beta RTDB + physical authorized WMS/PDA session",
@@ -204,13 +204,18 @@
         "No secret WMS/session/signature values appear in repo/logs/RTDB"
       ],
       "safety": "Use only an authorized company WMS session. Do not paste cURL, passwords, Authorization/Token/APISID/SID/SCID/USID, signatures/nonces or raw WMS response data into chat/logs. Confirmation remains deferred.",
-      "remaining_owner_action": "After relay-agent-v8 is published, launch the EXE normally. Confirm the main Agent window opens. If it opens, resume the existing D082 overlay/login/Picklist field test. If it still fails, send only the new visible error text or sanitized local Agent log; no WMS credentials/session values.",
+      "remaining_owner_action": "Launch relay-agent-v8 normally. Confirm the main Agent window opens. If it opens, continue the existing D082 overlay/login/Picklist field test with beta-vc50. If it still fails, provide only the visible startup error or sanitized local Agent log.",
       "prerequisites": {
         "android_release": "beta-vc50",
         "android_owner_launch": "PASS_REPORTED",
-        "agent_release_target": "relay-agent-v8",
-        "d083_startup_smoke": "PENDING_CI",
-        "d082_lookup": "PAUSED_UNTIL_AGENT_STARTUP_PASS"
+        "agent_release": "relay-agent-v8",
+        "agent_release_id": 392175426,
+        "agent_exe_asset_id": 575276634,
+        "agent_exe_sha256": "310d7593eefb90fccce186fba44174578e26fce0105414c61c93a4557dc31c98",
+        "main_agent_release_run": 35461540988,
+        "executable_startup_smoke": "PASS",
+        "main_ui_guard": 35461540970,
+        "d082_lookup": "PAUSED_UNTIL_OWNER_STARTUP_PASS"
       }
     }
   ]
