@@ -371,12 +371,16 @@ class PickerController(
         val labels = if (rows.isEmpty()) {
             listOf("Hôm nay chưa có báo hàng.")
         } else {
-            rows.map { row -> "${row.sku} - ${row.productName}\n${businessStatus(row)} · ${timestamp(row.reportedAt)}" }
+            rows.map { row ->
+                val source = if (row.resolutionSource == "SYSTEM_TIMEOUT") " · Hệ thống tự động do quá hạn" else ""
+                val deadline = if (row.autoSkipAllowedAt == null && !row.autoSkipDeadlineAt.isNullOrBlank()) " · Tự động: ${timestamp(row.autoSkipDeadlineAt)}" else ""
+                "${row.sku} - ${row.productName}\n${businessStatus(row)} · ${timestamp(row.reportedAt)}$source$deadline"
+            }
         }
         list.adapter = ArrayAdapter(activity, android.R.layout.simple_list_item_1, labels)
         list.setOnItemClickListener { _, _, position, _ ->
             val row = rows.getOrNull(position) ?: return@setOnItemClickListener
-            if (row.status == "OPEN" && millis(row.withdrawDeadlineAt) > System.currentTimeMillis()) confirmWithdraw(row)
+            if (row.status == "OPEN" && row.autoSkipAllowedAt == null && millis(row.withdrawDeadlineAt) > System.currentTimeMillis()) confirmWithdraw(row)
         }
         withdrawButtons.clear()
     }
@@ -389,6 +393,9 @@ class PickerController(
         row.withdrawDeadlineAt,
         row.withdrawnAt.orEmpty(),
         row.resolvedAt.orEmpty(),
+        row.autoSkipDeadlineAt.orEmpty(),
+        row.autoSkipAllowedAt.orEmpty(),
+        row.resolutionSource.orEmpty(),
         row.resultEventId.orEmpty(),
         row.acknowledgedAt.orEmpty(),
     ).joinToString("|")
@@ -411,12 +418,20 @@ class PickerController(
                 setTextColor(kit.text)
             })
             addView(TextView(activity).apply {
-                text = "$state · ${timestamp(row.reportedAt)}${if (row.resultEventId != null && row.acknowledgedAt == null) " · Chưa xác nhận kết quả" else ""}"
+                text = "$state · ${timestamp(row.reportedAt)}${if (row.resolutionSource == "SYSTEM_TIMEOUT") " · Hệ thống tự động do quá hạn" else ""}${if (row.resultEventId != null && row.acknowledgedAt == null) " · Chưa xác nhận kết quả" else ""}"
                 textSize = 12f
                 setTextColor(colors.third)
                 setPadding(0, kit.dp(5), 0, 0)
             })
-            if (state == "Đang xử lý" && row.status == "OPEN") {
+            if (state == "Đang xử lý" && row.status == "OPEN" && row.autoSkipAllowedAt == null) {
+                if (!row.autoSkipDeadlineAt.isNullOrBlank()) {
+                    addView(TextView(activity).apply {
+                        text = "Mốc tự động: ${timestamp(row.autoSkipDeadlineAt)}"
+                        textSize = 11.5f
+                        setTextColor(kit.muted)
+                        setPadding(0, kit.dp(4), 0, 0)
+                    })
+                }
                 val deadline = millis(row.withdrawDeadlineAt)
                 if (deadline > System.currentTimeMillis()) {
                     val withdraw = Button(activity).apply {
