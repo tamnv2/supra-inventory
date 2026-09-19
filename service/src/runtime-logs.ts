@@ -24,11 +24,11 @@ type RuntimeLogBody = {
   payload?: unknown;
 };
 
-const SENSITIVE_KEY = /authorization|bearer|token|password|secret|private|credential|api.?key|refresh|cookie|signing|keystore/i;
+const SENSITIVE_KEY = /authorization|bearer|token|password|secret|private|credential|api.?key|refresh|cookie|signing|keystore|session/i;
 const FILE_ID_RE = /^[A-Za-z0-9_-]{10,200}$/;
 
 function scrubText(value: string): string {
-  let next = value.slice(0, 1_500);
+  let next = value.slice(0, 2_000);
   next = next.replace(/-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?-----END [^-]*PRIVATE KEY-----/gi, "[REDACTED_PRIVATE_KEY]");
   next = next.replace(/Bearer\s+[A-Za-z0-9._~+\/-]{16,}/gi, "Bearer [REDACTED]");
   next = next.replace(/eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}/g, "[REDACTED_JWT]");
@@ -36,13 +36,13 @@ function scrubText(value: string): string {
 }
 
 function sanitize(value: unknown, depth = 0): unknown {
-  if (depth > 6) return "[TRUNCATED_DEPTH]";
+  if (depth > 8) return "[TRUNCATED_DEPTH]";
   if (value == null || typeof value === "boolean" || typeof value === "number") return value;
   if (typeof value === "string") return scrubText(value);
-  if (Array.isArray(value)) return value.slice(0, 80).map((item) => sanitize(item, depth + 1));
+  if (Array.isArray(value)) return value.slice(0, 240).map((item) => sanitize(item, depth + 1));
   if (typeof value === "object") {
     const output: Record<string, unknown> = {};
-    for (const [key, item] of Object.entries(value as Record<string, unknown>).slice(0, 80)) {
+    for (const [key, item] of Object.entries(value as Record<string, unknown>).slice(0, 140)) {
       output[key] = SENSITIVE_KEY.test(key) ? "[REDACTED]" : sanitize(item, depth + 1);
     }
     return output;
@@ -138,20 +138,22 @@ function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
     payload: sanitize(body.payload),
     redaction: {
       sensitive_keys: "REDACTED",
-      max_depth: 6,
-      max_array_items: 80,
-      max_string_chars: 1500,
+      max_depth: 8,
+      max_array_items: 240,
+      max_object_keys: 140,
+      max_string_chars: 2000,
+      max_file_chars: 192000,
     },
   };
 
   let content = JSON.stringify(envelope, null, 2);
-  if (content.length > 64_000) {
+  if (content.length > 192_000) {
     envelope.payload = {
       truncated: true,
-      excerpt: scrubText(JSON.stringify(sanitize(body.payload)).slice(0, 48_000)),
+      excerpt: scrubText(JSON.stringify(sanitize(body.payload)).slice(0, 160_000)),
     };
     content = JSON.stringify(envelope, null, 2);
-    if (content.length > 64_000) {
+    if (content.length > 192_000) {
       envelope.payload = { truncated: true, excerpt: "[TRUNCATED_LOG_PAYLOAD]" };
       content = JSON.stringify(envelope, null, 2);
     }
@@ -301,7 +303,7 @@ export async function readRuntimeLog(env: RuntimeLogsEnv, fileId: string): Promi
     { headers: { authorization: `Bearer ${token}`, accept: "application/json" } },
   );
   if (!contentResponse.ok) throw new Error(`LOGS_DRIVE_READ_FAILED:${contentResponse.status}`);
-  const text = (await contentResponse.text()).slice(0, 70_000);
+  const text = (await contentResponse.text()).slice(0, 210_000);
   let content: unknown;
   try { content = JSON.parse(text); } catch { content = { raw: scrubText(text) }; }
   return {
