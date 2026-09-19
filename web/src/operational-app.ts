@@ -393,8 +393,36 @@ function apiRange(from: string, to: string): { from: string; to: string } {
   return { from: a.toISOString(), to: new Date(b.getTime() + 86_400_000).toISOString() };
 }
 
-function setNotice(type: Notice extends infer _ ? "success" | "error" | "warning" : never, text: string): void {
-  notice = { type, text };
+function ensureToastRoot(): HTMLElement {
+  let root = document.querySelector<HTMLElement>("#web-toast-root");
+  if (!root) {
+    root = document.createElement("div");
+    root.id = "web-toast-root";
+    root.className = "web-toast-stack";
+    root.setAttribute("aria-live", "polite");
+    root.setAttribute("aria-atomic", "false");
+    document.body.appendChild(root);
+  }
+  return root;
+}
+
+function renderToastItems(): void {
+  const root = ensureToastRoot();
+  root.innerHTML = toastItems.map((item) => `<div class="web-toast ${item.type}" data-toast-id="${item.id}" role="status">${esc(item.text)}</div>`).join("");
+}
+
+function dismissToast(id: number): void {
+  toastItems = toastItems.filter((item) => item.id !== id);
+  if (notice?.id === id) notice = null;
+  renderToastItems();
+}
+
+function setNotice(type: NoticeType, text: string): void {
+  const item: ToastItem = { id: ++toastSerial, type, text, createdAt: Date.now() };
+  notice = item;
+  toastItems = [...toastItems, item].slice(-5);
+  renderToastItems();
+  window.setTimeout(() => dismissToast(item.id), 5_000);
 }
 
 function roleManage(): boolean {
@@ -435,9 +463,6 @@ function renderDatePresets(target: "dashboard" | "reports"): string {
   </div>`;
 }
 
-function renderNotice(): string {
-  return notice ? `<div class="notice ${notice.type}">${esc(notice.text)}</div>` : "";
-}
 
 type UiFieldSnapshot = {
   id: string;
@@ -554,7 +579,7 @@ function activeContent(): string {
 }
 
 function mainMarkup(): string {
-  return `${renderNotice()}${activeContent()}`;
+  return activeContent();
 }
 
 function patchOverlays(): void {
@@ -637,8 +662,7 @@ function renderLogin(): void {
   app.innerHTML = `<main class="login-shell"><section class="login-card">
     <div class="brand">1291</div><p class="eyebrow">BÁO HÀNG 1291</p><h1>Web nghiệp vụ</h1>
     <p class="muted">Đăng nhập bằng tài khoản Báo hàng 1291.</p>
-    ${!firebaseReady ? `<div class="message" data-type="error">Thiếu cấu hình Firebase Web: ${esc(firebaseMissing.join(", "))}</div>` : ""}
-    ${renderNotice()}
+    ${!firebaseReady ? `<div class="message" data-type="error">Hệ thống đăng nhập chưa sẵn sàng. Vui lòng thử lại sau.</div>` : ""}
     <form id="login-form">
       <label>Mã nhân viên<input name="username" required autocomplete="username" placeholder="Nhập mã nhân viên" /></label>
       <label>Mật khẩu<input name="password" type="password" required autocomplete="current-password" placeholder="Nhập mật khẩu" /></label>
@@ -694,7 +718,7 @@ function renderShell(content: string): void {
       </div>
     </header>
     <nav class="tabs" data-shell-generation="legacy-direct-transplant">${renderNav()}</nav>
-    <main id="content" class="content main" data-active-section="${esc(activeSection)}">${renderNotice()}${content}</main>
+    <main id="content" class="content main" data-active-section="${esc(activeSection)}">${content}</main>
     <footer id="appCopyright" class="app-footer">${PRODUCT_CREDIT}</footer>
     <div id="overlay-root">${renderStockModal()}${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}</div>
   </div>`;
