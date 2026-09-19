@@ -19,8 +19,8 @@
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
     "web": "D071_IMMEDIATE_RESPONSE_DENSITY_D072_SYSTEM_STATUS_QUOTA_GUARD_BETA_RUNTIME_PASS__OWNER_REVIEW_PENDING",
-    "android": "D084_ALL_DATE_PICKLISTCODE_SCAN_SOURCE__BETA_VC51_RELEASE_PENDING",
-    "latest_beta_apk": "beta-vc50",
+    "android": "D084_ALL_DATE_PICKLISTCODE_SCAN_SIGNED_BETA_VC51__AGENT_V9_RELEASE_PASS__OWNER_FIELD_TEST_PENDING",
+    "latest_beta_apk": "beta-vc51",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
     "network_scope": "PDA_INTERNET_SUPPORTED__D082_HOME_RTDB_RELAY_READONLY_PICKLIST_LOOKUP__D078_OFFICE_FIELD_PENDING__NO_OFFLINE_BUSINESS_MODE",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D084_SOURCE_IN_PROGRESS__AGENT_V9_AND_BETA_VC51_RELEASE_PENDING__ALL_DATE_PICKLISTCODE_SCAN__OVERLAY_SETTINGS__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D084_RELEASE_PASS__OWNER_FIELD_TEST_PENDING__ALL_DATE_PICKLISTCODE_SCAN__OVERLAY_SETTINGS__D078_OFFICE_PENDING__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -135,7 +135,6 @@
     "D066 Web three-group navigation PR #50 merged at 2e12e6d4e94b195e3b505b3f2abe9822ca91632c; PR Repo Authority, Project State and UI Design guards PASS; main UI Design Guard run 35407227884 PASS; Beta deploy run 35407227911 PASS including Web build, Worker typecheck/deploy, health/schema, auth/business guards, Web shell and Google OAuth start."
   ],
   "pending_build": [
-    "D084 Agent v9 + next signed Beta APK for all-date PickListCode pagination and overlay settings",
     "D070 PR guards/merge/Beta deploy for Worker/Web schema migration and alarm automation",
     "Signed Beta Android release/verification because D070 changes Android runtime UI/API projection",
     "Owner field acceptance of D070 timing notifications and both auto-Skip modes",
@@ -143,7 +142,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "D084 Owner field test pending after relay-agent-v9 + next signed Beta APK release: Agent startup, explicit overlay opacity/lock/drag/click-through, and exact five-digit match against all-date paged PickListCode data. D078 Office transport remains separately pending.",
+    "D084 Owner field test pending on relay-agent-v9 + beta-vc51: startup, explicit overlay opacity/lock/drag/click-through, and real all-date paged PickListCode trailing-five lookup. D078 Office transport remains separately pending.",
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
     "Owner acceptance of FIRST_REPORT and PER_PICKER behavior remains field-dependent after runtime PASS.",
     "Stable promotion remains OWNER-GATED."
@@ -156,8 +155,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Complete D084 PR/CI and release relay-agent-v9 plus the next signed Beta APK. Then Owner retests Agent startup/overlay settings and five-digit PickListCode lookup.",
-    "method": "WMS GET only; FromDate/ToDate/Content empty; 100 records per page; exact PickListCode PL+digits trailing-five comparison; paginate until FOUND or truthful exhaustion. Android waits up to two minutes. Overlay settings expose opacity and lock; unlocked drag, locked cross-app click-through.",
+    "primary": "Owner field-tests D084 with relay-agent-v9 + signed beta-vc51: Agent startup, overlay opacity/lock/drag/click-through, and exact five-digit lookup against real PickListCode values.",
+    "method": "WMS GET only. Agent sends empty FromDate/ToDate/Content, limit/page size 100, scans pages until exact PickListCode trailing-five match or truthful exhaustion. Android waits up to two minutes. If schema/pagination is unexpected, Agent fails closed and sanitized log evidence is used.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -185,7 +184,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D084 source in progress: explicit overlay settings + cross-application locked click-through; WMS Picklist lookup uses no date/Content filter, page size 100, exact PickListCode PL+digits trailing-five match, all-page scan; Android relay timeout extended to 120s.",
+      "D084 source/PR/main release PASS: relay-agent-v9 and signed beta-vc51 published; no-date Content-empty 100-row pagination, exact PickListCode trailing-five comparison, 120s Android wait, explicit overlay settings and locked cross-app click-through are technically PASS. Owner field acceptance pending.",
       "D077 source/build/release PASS: relay-agent-v3 published; physical Office retest pending",
       "D076 Beta RTDB Rules deploy/readback PASS; D075 physical Picker -> ADMIN Agent acceptance pending",
       "D068 Web baseline Owner-accepted/frozen",
@@ -196,13 +195,13 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Run D084 PR guards, merge, release relay-agent-v9 and next signed Beta APK, record release evidence, then Owner field-tests known PickListCode suffix.",
+      "Owner runs D084 field test with a known real PickListCode suffix. Fix only field-reported defects; WMS confirmation remains deferred.",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
     ],
     "blocked_or_owner_field_dependent": [
-      "D084 real WMS response/pagination behavior and physical overlay click-through need Owner field acceptance after technical release. D078 Office transport remains physical-company dependent.",
+      "D084 physical overlay behavior and real WMS pagination/schema require Owner field evidence. D078 Office transport remains physical-company dependent.",
       "D071 final visual/interaction acceptance depends on Owner live Web review",
       "D072 final Owner acceptance depends on live Web confirmation",
       "D070 physical timing/FCM delivery acceptance remains field-dependent",
@@ -222,13 +221,13 @@
       "beta_deploy": "PASS_RUN_35447318213",
       "verify_android": "PASS_RUN_35447318221",
       "relay_agent_build_release": "PASS_RUN_35447318236",
-      "signed_beta_release": "beta-vc50",
+      "signed_beta_release": "beta-vc51",
       "signed_beta_apk_size_bytes": 9317226,
-      "relay_agent_release": "relay-agent-v8",
-      "relay_agent_release_id": 392175426,
-      "relay_agent_exe_asset_id": 575276634,
-      "relay_agent_exe_size_bytes": 107008,
-      "relay_agent_checksum_asset_id": 575276635,
+      "relay_agent_release": "relay-agent-v9",
+      "relay_agent_release_id": 392186386,
+      "relay_agent_exe_asset_id": 575336561,
+      "relay_agent_exe_size_bytes": 113152,
+      "relay_agent_checksum_asset_id": 575336556,
       "agent_release_is_prerelease": true,
       "android_latest_release_verified": "beta-vc49",
       "scope": "D082_HOME_RTDB_RELAY__SIGNED_READONLY_PICKLIST_LIST_GET__CLICKTHROUGH_OVERLAY__NO_CONFIRMATION_OR_WMS_MUTATION",
@@ -267,7 +266,7 @@
       "d080_pr_ui": "PASS_RUN_35457634598",
       "d080_pr_agent": "PASS_RUN_35457634523",
       "d080_main_agent_release": "PASS_RUN_35457732455",
-      "relay_agent_exe_sha256": "310d7593eefb90fccce186fba44174578e26fce0105414c61c93a4557dc31c98",
+      "relay_agent_exe_sha256": "22fe36935ec8e33a92b0ea1febd1b183dd9a164afb21cfe48713f1cdbad3573d",
       "d081_branch": "feat/d081-agent-login-wait-tray-monitor",
       "d081_merged_pr": 81,
       "d081_merged_main": "a0a68da1e72ba9a8f7bb728db0951b6fd2c23f47",
@@ -291,9 +290,9 @@
       "d082_main_agent_release": "PASS_RUN_35460327545",
       "d082_main_android_release": "PASS_RUN_35460327500",
       "d082_main_ui": "PASS_RUN_35460327615",
-      "signed_beta_release_id": 392169512,
-      "signed_beta_apk_asset_id": 575244605,
-      "signed_beta_apk_sha256": "55b4f7ea8eaf4557703640458e70369d00a5969239782bff2563a167683ee6c4",
+      "signed_beta_release_id": 392186436,
+      "signed_beta_apk_asset_id": 575336837,
+      "signed_beta_apk_sha256": "b5040e3f6644655d901b55027360e52255daac89a419ddd33c37153197de461c",
       "d083_branch": "fix/d083-agent-v7-startup-regression",
       "d083_merged_pr": 85,
       "d083_merged_main": "82ec0ba43a3f464a7a8b312b324e152733af4296",
@@ -305,7 +304,16 @@
       "d083_main_authority": "PASS_RUN_35461540965",
       "d083_main_project_state": "PASS_RUN_35461540963",
       "d083_main_agent_release": "PASS_RUN_35461540988",
-      "d083_main_ui": "PASS_RUN_35461540970"
+      "d083_main_ui": "PASS_RUN_35461540970",
+      "d084_branch": "feat/d084-overlay-settings-picklist-list-scan",
+      "d084_merged_pr": 87,
+      "d084_merged_main": "4be5643827342e900f052364051b6050200d35a2",
+      "d084_main_authority": "PASS_RUN_35463822968",
+      "d084_main_project_state": "PASS_RUN_35463823060",
+      "d084_main_ui": "PASS_RUN_35463822993",
+      "d084_main_beta_deploy": "PASS_RUN_35463823063",
+      "d084_main_agent_release": "PASS_RUN_35463823056",
+      "d084_main_android_release": "PASS_RUN_35463822972"
     },
     "last_runtime_evidence": {
       "schema": 7,
@@ -317,27 +325,27 @@
       "business_auth_guards": "PASS",
       "web_shell": "PASS",
       "google_oauth_start": "PASS",
-      "runtime_source_commit": "b746ebdd6b29d24a417863e8c117833efb153326",
+      "runtime_source_commit": "4be5643827342e900f052364051b6050200d35a2",
       "d070_alarm_repair": "BETA_RUNTIME_PASS",
       "d071_web": "BETA_RUNTIME_PASS_OWNER_REVIEW_PENDING",
       "d072_quota_guard": "BETA_RUNTIME_PASS_OWNER_REVIEW_PENDING",
       "system_status_normal_runtime": "DISABLED",
       "system_status_provider_polling": "DISABLED",
-      "signed_beta_release": "beta-vc50",
-      "signed_beta_release_source_commit": "b746ebdd6b29d24a417863e8c117833efb153326",
+      "signed_beta_release": "beta-vc51",
+      "signed_beta_release_source_commit": "4be5643827342e900f052364051b6050200d35a2",
       "stable": "UNTOUCHED_OWNER_GATED",
-      "signed_beta_apk_sha256": "55b4f7ea8eaf4557703640458e70369d00a5969239782bff2563a167683ee6c4",
+      "signed_beta_apk_sha256": "b5040e3f6644655d901b55027360e52255daac89a419ddd33c37153197de461c",
       "d073_relay_poc": "SOURCE_BUILD_RELEASE_PASS__RTDB_PROVISIONING_FIELD_TEST_PENDING",
       "d074_relay_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_OFFICE_FIELD_RETEST_PENDING",
       "d075_relay_poc": "SOURCE_BUILD_RELEASE_PASS__D076_RULES_DEPLOY_PASS__OWNER_FIELD_TEST_PENDING",
-      "relay_agent_release": "relay-agent-v8",
+      "relay_agent_release": "relay-agent-v9",
       "relay_agent_release_prerelease": true,
       "d076_rtdb_rules": "PASS_RUN_35451292051__IAM_UPDATE_PASS__RULES_GET_PASS__RULES_PUT_PASS__EXACT_READBACK_PASS",
       "d080_wms_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_WMS_FIELD_TEST_PENDING",
       "d081_agent": "OWNER_REPORTED_OK__SUPERSEDED_AS_NEXT_ACTION_BY_D082",
       "d082_picklist_lookup": "RELEASE_PASS__FIELD_TEST_PAUSED_BY_D083_AGENT_V7_STARTUP_REGRESSION",
       "d083_agent_startup": "SOURCE_BUILD_RELEASE_PASS__EXECUTABLE_STARTUP_SMOKE_PASS__OWNER_STARTUP_RETEST_PENDING",
-      "d084_picklist_lookup": "SOURCE_IN_PROGRESS__NO_DATE_CONTENT_EMPTY__PAGE100__EXACT_PICKLISTCODE__OWNER_FIELD_PENDING"
+      "d084_picklist_lookup": "SOURCE_BUILD_DEPLOY_RELEASE_PASS__OWNER_FIELD_TEST_PENDING"
     }
   },
   "authority_setup": {
