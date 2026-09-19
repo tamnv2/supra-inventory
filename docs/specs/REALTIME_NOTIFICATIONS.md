@@ -217,3 +217,14 @@ The D073 test channel is independent from InventoryCore business realtime and ex
 - Windows refresh-token exchange may update the ID token, but the RTDB path key is re-derived from the refreshed token subject.
 - A 403 response after successful HTTPS reachability is classified as `RTDB_PERMISSION_DENIED`; diagnostics must include method, host/path without query credentials, HTTP status, elapsed time, Firebase error text, token audience and a bounded hash/fingerprint of UID where useful. Raw tokens and passwords are forbidden from logs.
 - Windows Agent keeps a local run log under the current-user application-data directory and offers an explicit open-log action for field support.
+
+
+## D075 — Shared ADMIN relay queue
+
+D075 replaces the D074 per-Firebase-UID relay tree with a shared Beta transport queue:
+
+`relay_poc/jobs/{request_id}`
+
+Each PENDING job contains request id, five-digit suffix, source, Picker Firebase UID, Picker application user id and client timestamp. The owning Picker can wait on the exact job path. ADMIN Agents may subscribe at the shared `jobs` collection. ACK adds the ADMIN application user id, machine, persistent Agent instance id, network and timestamps. Rules enforce first-PENDING→ACK ownership so parallel Agents cannot overwrite a prior ACK.
+
+The shared queue remains a transport POC only and is not an offline business queue.
