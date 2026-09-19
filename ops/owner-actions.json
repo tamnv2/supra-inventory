@@ -118,7 +118,7 @@
     },
     {
       "id": "OA004",
-      "status": "D077_AGENT_V3_BUILD_PENDING__FIELD_TEST_PENDING",
+      "status": "D077_AGENT_V3_RELEASE_PASS__FIELD_TEST_PENDING",
       "title": "Publish D075 shared relay RTDB Rules and field-test ADMIN Agent",
       "resource_key": "firebase-rtdb-relay-beta",
       "provider": "Firebase + physical Beta field environment",
@@ -132,12 +132,13 @@
         "Verify PDA receives ACK showing ADMIN/machine/Agent instance/RTT"
       ],
       "safety": "Beta only; do not use Test mode/open Rules; no WMS mutation; never share passwords/tokens.",
-      "remaining_owner_action": "Wait for relay-agent-v3 release, then retest Office check/listener and Picker ACK. If Office still fails, provide the v3 sanitized log showing the real HTTP status.",
+      "remaining_owner_action": "Run relay-agent-v3 on Office and retest Office check/listener plus Picker ACK. If it still fails, provide the v3 sanitized log; it now preserves the real HTTP status.",
       "prerequisites": {
         "merged_main": "452feb1e25dff936617e5d1d51313438d85155eb",
         "rules_deploy_run": 35451292051,
         "android_release": "beta-vc49",
-        "agent_release": "relay-agent-v3"
+        "agent_release": "relay-agent-v3",
+        "agent_source_commit": "a501282daeced491eda8883701a60a04b5f646eb"
       },
       "rules_deployment_evidence": {
         "run_id": 35451292051,
