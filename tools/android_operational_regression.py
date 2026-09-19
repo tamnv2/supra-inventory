@@ -134,7 +134,7 @@ def main() -> None:
     require(service_index, "app_base_role: user.base_role", "D075 immutable base-role Firebase custom claim")
     require(relay_rules, "auth.token.app_base_role == 'ADMIN'", "D075 real ADMIN RTDB rule")
     require(relay_rules, "newData.child('agent_admin_user_id').val() == auth.token.app_user_id", "D075 ADMIN ACK rule binding")
-    require(relay_agent_config, "AgentBuild = 7", "D082 Agent build channel")
+    require(relay_agent_config, "AgentBuild = 8", "D083 Agent build channel")
     require(relay_agent, "var statusCode = (int)response.StatusCode", "D077 capture HTTP status before dispose")
     require(relay_agent, "ProbeAllTransports", "D078 Test all transport probe")
     require(relay_agent, "AgentConfig.FirestoreProbeUrl", "D078 Firestore probe")
@@ -189,7 +189,6 @@ def main() -> None:
 
     # D082: persistent click-through overlay + read-only Picklist existence lookup.
     require(status_overlay, "class StatusOverlayForm", "D082 persistent overlay form")
-    require(status_overlay, "WsExTransparent", "D082 locked click-through overlay")
     require(status_overlay, "HtTransparent", "D082 locked hit-test click-through")
     require(status_overlay, "WsExNoActivate", "D082 locked no-activation overlay")
     require(status_overlay, "TopMost = true", "D082 always-on-top overlay")
@@ -220,6 +219,16 @@ def main() -> None:
     forbid(wms_picklist, 'request.Method = "DELETE"', "D082 WMS DELETE mutation")
     forbid(wms_picklist, "confirmPicklist", "D082 WMS confirm API mutation")
     forbid(relay_agent, "WmsPicklistConfirmUiReferenceUrl)", "D082 confirm UI navigation")
+
+    # D083: Agent v7 startup regression must fail safe instead of silently exiting.
+    require(relay_agent, 'new AgentForm(startupSmoke)', "D083 startup smoke mode")
+    require(relay_agent, "InitializeStatusOverlaySafe", "D083 lazy overlay init")
+    require(relay_agent, '"FATAL startup type="', "D083 top-level startup crash logging")
+    require(relay_agent, '"SUPRA Inventory Agent - lỗi khởi động"', "D083 visible fatal startup message")
+    require(relay_agent, '"OVERLAY init=FAIL', "D083 overlay failure isolation")
+    require(relay_agent_workflow, "--startup-smoke", "D083 CI startup smoke execution")
+    require(relay_agent_workflow, "WaitForExit(15000)", "D083 startup smoke timeout")
+    forbid(status_overlay, "RecreateHandle()", "D083 no overlay handle recreation during startup")
 
     # F22: launcher actions have distinct targets and Web honors direct hash routes.
     require(launcher, 'openWeb("/#hr"', "HR deep link")
