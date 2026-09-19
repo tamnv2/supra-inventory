@@ -647,3 +647,6 @@ D075 replaces UID-isolated relay routing with shared `relay_poc/jobs/{request_id
 Remaining Owner action: publish merged D075 `firebase/database.rules.json` to Beta RTDB and field-test any Picker PDA -> real ADMIN Agent v2 on Office. No WMS mutation. Stable remains OWNER-GATED.
 
 Current relay marker: `D075_SOURCE_BUILD_DEPLOY_RELEASE_PASS__RTDB_RULES_PUBLISH_AND_FIELD_TEST_PENDING__NO_WMS_MUTATION`.
+
+
+Current Android marker: `D075_SHARED_RELAY_SIGNED_BETA_VC49_BUILD_PASS__RULES_PUBLISH_FIELD_TEST_PENDING`.
