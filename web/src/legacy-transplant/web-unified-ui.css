@@ -368,3 +368,53 @@ body[data-theme="dark"] th { background: #0f172a !important; color: #aebdd0 !imp
   .sla-config-footer,
   .business-page-head { flex-direction: column; align-items: stretch !important; }
 }
+
+
+/* D069 owner diagnostic view: structured, readable, no raw JSON dump. */
+.log-detail-summary { display: grid; gap: 14px; min-height: 280px; }
+.diagnostic-facts { grid-template-columns: repeat(3,minmax(0,1fr)) !important; }
+.diagnostic-section {
+  border-top: 1px solid var(--ui-line);
+  padding-top: 12px;
+}
+.diagnostic-section h4 {
+  margin: 0 0 8px;
+  color: var(--ui-text);
+  font-size: 13px;
+  font-weight: 720;
+}
+.diagnostic-event-list {
+  display: grid;
+  gap: 5px;
+  max-height: 300px;
+  overflow: auto;
+}
+.diagnostic-event-row {
+  display: grid;
+  grid-template-columns: 145px 100px minmax(0,1fr) 85px;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid var(--ui-line);
+  border-radius: 7px;
+  background: var(--ui-surface-soft);
+  font-size: 10.5px;
+}
+.diagnostic-event-row > * { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.diagnostic-event-row span { color: var(--ui-muted); }
+.diagnostic-event-row b { color: var(--ui-primary); font-size: 10px; }
+.diagnostic-event-row strong { color: var(--ui-text); font-weight: 650; }
+.diagnostic-event-row em { color: var(--ui-muted); font-style: normal; text-align: right; }
+body[data-theme="dark"] .diagnostic-event-row {
+  background: var(--ui-surface-soft) !important;
+  border-color: var(--ui-line) !important;
+}
+@media (max-width: 1050px) {
+  .diagnostic-facts { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+}
+@media (max-width: 700px) {
+  .diagnostic-facts { grid-template-columns: 1fr !important; }
+  .diagnostic-event-row { grid-template-columns: 115px minmax(0,1fr) 70px; }
+  .diagnostic-event-row b { display: none; }
+}
