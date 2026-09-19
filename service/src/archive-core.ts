@@ -46,7 +46,9 @@ function candidates(state: DurableObjectState, url: URL): Response {
     const batchId = String(batch.batch_id);
     const tickets = state.storage.sql.exec<SqlRow>(
       `SELECT ticket_id, batch_id, picker_user_id, picker_employee_code, sku, status,
-              reported_at, withdraw_deadline_at, withdrawn_at, resolved_at, created_at, updated_at
+              reported_at, withdraw_deadline_at, withdrawn_at, resolved_at,
+               auto_skip_deadline_at, auto_skip_allowed_at, resolution, resolution_source,
+               created_at, updated_at
          FROM report_tickets WHERE batch_id = ? ORDER BY reported_at ASC, ticket_id ASC`, batchId,
     ).toArray();
     const acknowledgements = state.storage.sql.exec<SqlRow>(
