@@ -151,7 +151,7 @@
     },
     {
       "id": "OA005",
-      "status": "D080_AGENT_V5_BUILD_PENDING",
+      "status": "OWNER_WMS_FIELD_TEST_PENDING",
       "title": "Field-test Agent to Supra WMS read-only automatic session capture",
       "resource_key": "supra-wms-ui-d080",
       "provider": "Wincommerce Supra + physical authorized WMS session",
@@ -172,7 +172,16 @@
         "No Picklist lookup, confirmation or WMS mutation occurs"
       ],
       "safety": "Use only an account/session the Owner is authorized to use. D080 does not bypass corporate filtering and does not automate WMS mutations. Never send password/cURL/session/token in chat or logs.",
-      "remaining_owner_action": "After relay-agent-v5 is published, run TEST SUPRA once from a network where Supra WMS is reachable and send the sanitized result/log only."
+      "remaining_owner_action": "Run relay-agent-v5, sign in as real ADMIN if needed, press TEST SUPRA, complete normal WMS login only if Edge asks, then provide the sanitized result/log. Do not use F12/cURL and do not share session values.",
+      "prerequisites": {
+        "merged_pr": 79,
+        "merged_main": "15b9dada520ba9810e29c0d2ff60e0374252001d",
+        "agent_release": "relay-agent-v5",
+        "agent_release_id": 392156246,
+        "agent_exe_asset_id": 575169402,
+        "agent_exe_sha256": "27b1ca9091e19047def478881692fe7cd7d9b930586e028fe33a1605ddcf0376",
+        "main_agent_release_run": 35457732455
+      }
     }
   ]
 }
