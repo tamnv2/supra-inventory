@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D077_OFFICE_PROXY_HTTP_RESPONSE_DISPOSAL_REPAIR_IN_PROGRESS__D076_RULES_PASS__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D077_AGENT_V3_RELEASE_PASS__OFFICE_FIELD_RETEST_PENDING__D076_RULES_PASS__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -155,8 +155,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Build/release relay-agent-v3 with D077 Office proxy HTTP error-path repair, then Owner retests Office check/listener. If Office still rejects RTDB, v3 must expose the real HTTP status instead of ObjectDisposedException.",
-    "method": "Fix ToRelayHttpException by capturing StatusCode/diagnostics before disposing HttpWebResponse; keep D075 shared ADMIN relay and D076 deployed Rules unchanged. Branch -> PR -> guards/Agent build PASS -> merge -> relay-agent-v3 prerelease -> field retest.",
+    "primary": "Owner retests relay-agent-v3 on .Office@MSN: ADMIN session -> Kiểm tra Office -> Nghe relay -> any Picker PDA sends five digits. If Office still fails, v3 sanitized log must expose the real HTTP status/proxy response instead of ObjectDisposedException.",
+    "method": "Use relay-agent-v3 release from main a501282daeced491eda8883701a60a04b5f646eb. D077 PR #74 and main Authority/Continuity/UI/Agent gates PASS; no APK change. D076 Rules remain deployed PASS.",
     "stable_guard": "Stable remains OWNER-GATED and untouched."
   },
   "continuity_policy": {
@@ -184,7 +184,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D077 Office proxy repair in progress: field log proves Firebase refresh PASS on Office but EXE disposed HttpWebResponse before reading StatusCode, hiding the real RTDB/proxy HTTP error",
+      "D077 source/build/release PASS: relay-agent-v3 published; physical Office retest pending",
       "D076 Beta RTDB Rules deploy/readback PASS; D075 physical Picker -> ADMIN Agent acceptance pending",
       "D068 Web baseline Owner-accepted/frozen",
       "D069 items 1, 2, 4 and 5 Beta runtime PASS",
@@ -194,7 +194,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Release relay-agent-v3, then Owner retests Office check/listener; use v3 log to classify any remaining proxy/RTDB HTTP status",
+      "Owner field-tests relay-agent-v3 on Office; if failure remains, provide v3 sanitized log with real HTTP status",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
@@ -222,10 +222,10 @@
       "relay_agent_build_release": "PASS_RUN_35447318236",
       "signed_beta_release": "beta-vc49",
       "signed_beta_apk_size_bytes": 9317178,
-      "relay_agent_release": "relay-agent-v2",
-      "relay_agent_release_id": 392090567,
-      "relay_agent_exe_asset_id": 574866731,
-      "relay_agent_exe_size_bytes": 49664,
+      "relay_agent_release": "relay-agent-v3",
+      "relay_agent_release_id": 393036973,
+      "relay_agent_exe_asset_id": 575004937,
+      "relay_agent_exe_size_bytes": 50176,
       "relay_agent_checksum_asset_id": 574866732,
       "agent_release_is_prerelease": true,
       "android_latest_release_verified": "beta-vc49",
@@ -236,7 +236,15 @@
       "d076_merged_main": "452feb1e25dff936617e5d1d51313438d85155eb",
       "d076_pr_rules_validation": "PASS_RUN_35451206498",
       "d076_main_rules_deploy": "PASS_RUN_35451292051",
-      "d076_rules_method": "RTDB_SETTINGS_RULES_REST_PUT_AND_EXACT_READBACK"
+      "d076_rules_method": "RTDB_SETTINGS_RULES_REST_PUT_AND_EXACT_READBACK",
+      "d077_branch": "fix/d077-office-proxy-http-response",
+      "d077_merged_pr": 74,
+      "d077_merged_main": "a501282daeced491eda8883701a60a04b5f646eb",
+      "d077_pr_agent_build": "PASS_RUN_35451997329",
+      "d077_main_agent_build_release": "PASS_RUN_35452095820",
+      "d077_main_authority": "PASS_RUN_35452095791",
+      "d077_main_project_state": "PASS_RUN_35452095808",
+      "d077_main_ui": "PASS_RUN_35452095855"
     },
     "last_runtime_evidence": {
       "schema": 7,
