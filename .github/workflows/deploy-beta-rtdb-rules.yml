@@ -1,0 +1,149 @@
+name: Deploy Beta RTDB Rules
+
+on:
+  pull_request:
+    paths:
+      - "firebase/database.rules.json"
+      - "firebase.json"
+      - ".github/workflows/deploy-beta-rtdb-rules.yml"
+      - "docs/OWNER_DECISIONS.md"
+      - "docs/specs/ACCEPTANCE_TESTING.md"
+      - "docs/OPERATING_PROTOCOL.md"
+      - "ops/project-scope.json"
+      - "ops/project-state.json"
+      - "ops/owner-actions.json"
+      - "ops/resource-registry.json"
+  push:
+    branches: [main]
+    paths:
+      - "firebase/database.rules.json"
+      - "firebase.json"
+      - ".github/workflows/deploy-beta-rtdb-rules.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supra-inventory-beta-rtdb-rules
+  cancel-in-progress: false
+
+jobs:
+  beta-rtdb-rules:
+    runs-on: ubuntu-latest
+    environment: beta
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Rules source and target
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const rules = JSON.parse(fs.readFileSync('firebase/database.rules.json', 'utf8'));
+          const config = JSON.parse(fs.readFileSync('firebase.json', 'utf8'));
+          if (!rules.rules || !rules.rules.relay_poc || !rules.rules.relay_poc.jobs) throw new Error('D075 relay_poc/jobs Rules missing');
+          if (config.database?.rules !== 'firebase/database.rules.json') throw new Error('firebase.json does not point to canonical Rules file');
+          const text = JSON.stringify(rules);
+          for (const marker of ["app_base_role == 'ADMIN'", "agent_admin_user_id", "picker_uid", "picker_user_id"]) {
+            if (!text.includes(marker)) throw new Error('Required D075 Rules marker missing: ' + marker);
+          }
+          console.log('Rules source validation PASS');
+          NODE
+
+      - name: Validate Beta service-account secret shape
+        shell: bash
+        env:
+          FIREBASE_RULES_SA_JSON_BETA: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+        run: |
+          set -euo pipefail
+          [ -n "${FIREBASE_RULES_SA_JSON_BETA:-}" ] || { echo "FIREBASE_RULES_SA_JSON_BETA is missing from GitHub Environment beta"; exit 1; }
+          jq -e '.type == "service_account" and .project_id == "supra-inventory-beta" and (.client_email | endswith("@supra-inventory-beta.iam.gserviceaccount.com")) and (.private_key | startswith("-----BEGIN PRIVATE KEY-----"))' <<<"$FIREBASE_RULES_SA_JSON_BETA" >/dev/null
+          echo "Beta service-account secret shape PASS"
+
+      - name: Materialize ephemeral ADC credential
+        shell: bash
+        env:
+          FIREBASE_RULES_SA_JSON_BETA: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+        run: |
+          set -euo pipefail
+          umask 077
+          cred="$RUNNER_TEMP/firebase-rules-sa.json"
+          printf '%s' "$FIREBASE_RULES_SA_JSON_BETA" > "$cred"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$cred" >> "$GITHUB_ENV"
+          echo "Ephemeral ADC credential ready"
+
+      - name: Verify Firebase Rules IAM read access
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const crypto = require('crypto');
+
+          const sa = JSON.parse(fs.readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS, 'utf8'));
+          const enc = value => Buffer.from(JSON.stringify(value)).toString('base64url');
+          const now = Math.floor(Date.now() / 1000);
+          const unsigned = enc({ alg: 'RS256', typ: 'JWT' }) + '.' + enc({
+            iss: sa.client_email,
+            scope: 'https://www.googleapis.com/auth/cloud-platform',
+            aud: 'https://oauth2.googleapis.com/token',
+            iat: now,
+            exp: now + 900,
+          });
+          const signer = crypto.createSign('RSA-SHA256');
+          signer.update(unsigned);
+          signer.end();
+          const assertion = unsigned + '.' + signer.sign(sa.private_key).toString('base64url');
+
+          async function main() {
+            const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+              method: 'POST',
+              headers: { 'content-type': 'application/x-www-form-urlencoded' },
+              body: new URLSearchParams({
+                grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                assertion,
+              }),
+            });
+            if (!tokenRes.ok) throw new Error('OAuth token exchange failed: HTTP ' + tokenRes.status);
+            const token = await tokenRes.json();
+            if (!token.access_token) throw new Error('OAuth token exchange returned no access token');
+
+            const rulesRes = await fetch('https://firebaserules.googleapis.com/v1/projects/supra-inventory-beta/rulesets?pageSize=1', {
+              headers: { authorization: 'Bearer ' + token.access_token },
+            });
+            if (!rulesRes.ok) throw new Error('Firebase Rules IAM read probe failed: HTTP ' + rulesRes.status);
+            const body = await rulesRes.json();
+            if (body === null || typeof body !== 'object' || Array.isArray(body)) throw new Error('Unexpected Firebase Rules API response');
+            console.log('Firebase Rules credential + IAM read access PASS');
+          }
+          main().catch(error => {
+            console.error(error.message);
+            process.exit(1);
+          });
+          NODE
+
+      - name: Setup Node
+        if: github.event_name != 'pull_request'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Firebase CLI
+        if: github.event_name != 'pull_request'
+        run: npm install --global firebase-tools@latest --no-audit --no-fund
+
+      - name: Deploy Beta Realtime Database Rules
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          firebase deploy --only database --project supra-inventory-beta --non-interactive
+          echo "Beta RTDB Rules deploy PASS"
+
+      - name: Remove ephemeral ADC credential
+        if: always()
+        shell: bash
+        run: rm -f "${GOOGLE_APPLICATION_CREDENTIALS:-}" || true

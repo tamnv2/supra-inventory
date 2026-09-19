@@ -34,3 +34,7 @@ Before mutation, fresh-read the canonical GitHub authority according to `ops/aut
 ## Stable
 
 Stable actions are never inferred from a Beta request. Stable provisioning/deploy/release always requires explicit current Owner authorization.
+
+## Beta RTDB Rules automation
+
+D076 makes Beta Realtime Database Rules a CI-managed resource. Rules changes follow branch → PR validation → authority/continuity PASS → merge → main-only Rules deploy. The credential source is GitHub Environment `beta` secret `FIREBASE_RULES_SA_JSON_BETA`; its value is never durable project data. Stable RTDB deployment is not included and remains OWNER-GATED.
