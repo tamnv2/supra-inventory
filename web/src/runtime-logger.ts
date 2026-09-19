@@ -447,6 +447,17 @@ export function initWebRuntimeLogging(provider: SnapshotProvider): void {
     runtimeLogMetric("REALTIME", "status", detail);
   });
 
+  window.addEventListener("supra:realtime-telemetry", (event) => {
+    const detail = (event as CustomEvent<Record<string, unknown>>).detail || {};
+    runtimeLogMetric(
+      "REALTIME",
+      String(detail.name || "activity"),
+      detail,
+      Number(detail.duration_ms || 0),
+      detail.error ? "ERROR" : "INFO",
+    );
+  });
+
   document.addEventListener("click", (event) => {
     const target = describeElement(event.target);
     if (target) runtimeLogMetric("UI_INPUT", "click", target);
