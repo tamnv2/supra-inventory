@@ -30,6 +30,9 @@ def main() -> None:
     keyed = read("android/app/src/main/java/cd/cc/supra/inventory/beta/KeyedLinearRenderer.kt")
     cache = read("android/app/src/main/java/cd/cc/supra/inventory/beta/SkuCatalogCache.kt")
     main_activity = read("android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt")
+    relay = read("android/app/src/main/java/cd/cc/supra/inventory/beta/RelayPocClient.kt")
+    picker_layout = read("android/app/src/main/res/layout/view_picker.xml")
+    relay_agent = read("relay-agent/Program.cs")
     inventory_api = read("android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt")
     launcher = read("android/app/src/main/java/cd/cc/supra/inventory/beta/AdminLauncherController.kt")
     manifest = read("android/app/src/main/AndroidManifest.xml")
@@ -96,6 +99,23 @@ def main() -> None:
     require(main_activity, "private fun syncEffectiveRole()", "effective-role resume sync")
     require(main_activity, "api.refreshProfile()", "effective-role server refresh")
     require(main_activity, "if (roleChanged || identityChanged || activeSession == null)", "role-change rerender")
+
+    # D074: relay identity is Firebase token subject and Picker confirmation is a separate dense bottom tab.
+    require(relay, 'payload.optString("sub")', "D074 Firebase UID token subject")
+    require(relay, ".addPathSegment(firebaseUid)", "D074 RTDB Firebase UID path")
+    forbid(relay, ".addPathSegment(session.userId)", "D074 application user_id as RTDB path")
+    require(relay, "uid=" + '"' + " + identity.fingerprint", "D074 relay UID fingerprint diagnostics")
+    require(picker_layout, '@+id/panelShortage', "D074 shortage panel")
+    require(picker_layout, '@+id/panelConfirmOrder', "D074 confirmation panel")
+    require(picker_layout, '@+id/tabShortage', "D074 shortage bottom tab")
+    require(picker_layout, '@+id/tabConfirmOrder', "D074 confirmation bottom tab")
+    require(picker_layout, 'android:maxLength="5"', "D074 five digit input cap")
+    require(picker, "digits.length == 5", "D074 send enabled exactly at five digits")
+    require(picker, "showOperationTab(confirm = true)", "D074 confirmation tab switch")
+    require(relay_agent, "FirebaseUidFromIdToken", "D074 Agent Firebase UID derivation")
+    require(relay_agent, "RTDB_PERMISSION_DENIED", "D074 Agent 403 classification")
+    require(relay_agent, "AgentDiagnostics.Sanitize", "D074 Agent sanitized diagnostics")
+    forbid(relay_agent, 'Log("ACK " + suffix', "D074 raw Picklist suffix in Agent log")
 
     # F22: launcher actions have distinct targets and Web honors direct hash routes.
     require(launcher, 'openWeb("/#hr"', "HR deep link")
