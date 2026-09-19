@@ -214,55 +214,132 @@ namespace SupraInventoryRelayAgent
             try
             {
                 var stored = LoadStoredSession();
-                if (stored == null) return;
+                if (stored == null)
+                {
+                    Log("Chưa có phiên Agent đã lưu trên Windows user này.");
+                    return;
+                }
                 lock (_sessionLock) _session = stored;
+                Log("Đã đọc phiên ghép từ Windows DPAPI; đang làm mới Firebase qua Google.");
                 RefreshDirect();
-                Ui(() => { _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser(); _listen.Enabled = true; _testOffice.Enabled = true; });
-                Log("Khôi phục phiên đã ghép bằng Windows DPAPI.");
+                Ui(() =>
+                {
+                    _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser();
+                    _listen.Enabled = true;
+                    _testOffice.Enabled = true;
+                });
+                Log("Khôi phục phiên đã ghép thành công.");
             }
-            catch (Exception ex) { Log("Chưa thể khôi phục phiên: " + SafeMessage(ex)); }
+            catch (Exception ex)
+            {
+                Log("Chưa thể khôi phục phiên: " + SafeMessage(ex));
+            }
         }
 
         private void PairLogin()
         {
             string username = "", password = "";
-            UiSync(() => { username = _username.Text.Trim(); password = _password.Text; _pair.Enabled = false; });
-            if (username.Length == 0 || password.Length == 0) { Log("Nhập tài khoản và mật khẩu khi laptop đang ở mạng truy cập được Cloudflare."); Ui(() => _pair.Enabled = true); return; }
+            UiSync(() =>
+            {
+                username = _username.Text.Trim();
+                password = _password.Text;
+                _pair.Enabled = false;
+            });
+            if (username.Length == 0 || password.Length == 0)
+            {
+                Log("Nhập tài khoản và mật khẩu khi laptop đang ở mạng truy cập được Cloudflare.");
+                Ui(() => _pair.Enabled = true);
+                return;
+            }
+
             try
             {
+                LogNetworkSnapshot("pair-login");
                 var payload = new Dictionary<string, object> { { "username", username }, { "password", password } };
                 var root = Map(_json.DeserializeObject(RequestJson("POST", AgentConfig.ApiBaseUrl + "/api/auth/login", _json.Serialize(payload), "application/json")));
                 var user = Map(root["user"]);
+                var idToken = Convert.ToString(root["id_token"]);
+                var refreshToken = Convert.ToString(root["refresh_token"]);
+                var firebaseUid = FirebaseUidFromIdToken(idToken);
+                var audience = FirebaseAudienceFromIdToken(idToken);
+                if (!string.Equals(audience, AgentConfig.FirebaseProjectId, StringComparison.Ordinal))
+                    throw new InvalidOperationException("Firebase token sai project audience.");
+
                 var next = new AgentSession
                 {
-                    IdToken = Convert.ToString(root["id_token"]),
-                    RefreshToken = Convert.ToString(root["refresh_token"]),
-                    UserId = Convert.ToString(user["user_id"]),
+                    IdToken = idToken,
+                    RefreshToken = refreshToken,
+                    UserId = firebaseUid,
+                    AppUserId = Convert.ToString(user["user_id"]),
                     ExpiresUtc = DateTime.UtcNow.AddSeconds(ParseInt(root, "expires_in", 3600) - 60)
                 };
-                if (string.IsNullOrWhiteSpace(next.IdToken) || string.IsNullOrWhiteSpace(next.RefreshToken) || string.IsNullOrWhiteSpace(next.UserId)) throw new InvalidOperationException("Phiên ghép không đầy đủ.");
+                if (string.IsNullOrWhiteSpace(next.IdToken) || string.IsNullOrWhiteSpace(next.RefreshToken) ||
+                    string.IsNullOrWhiteSpace(next.UserId) || string.IsNullOrWhiteSpace(next.AppUserId))
+                    throw new InvalidOperationException("Phiên ghép không đầy đủ.");
+
                 lock (_sessionLock) _session = next;
                 SaveStoredSession(next);
-                Ui(() => { _password.Clear(); _identity.Text = "Agent: " + Environment.MachineName + " / " + next.UserId; _listen.Enabled = true; _testOffice.Enabled = true; });
-                Log("Ghép Agent thành công. Chuyển laptop sang Office rồi bấm Kiểm tra Office.");
+                Ui(() =>
+                {
+                    _password.Clear();
+                    _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser();
+                    _listen.Enabled = true;
+                    _testOffice.Enabled = true;
+                });
+                Log("Ghép Agent PASS app_user=" + next.AppUserId + " firebase_uid=" + Fingerprint(next.UserId) + " aud=" + audience + ". Chuyển laptop sang Office rồi bấm Kiểm tra Office.");
             }
-            catch (Exception ex) { Log("Ghép Agent thất bại: " + SafeMessage(ex)); }
-            finally { Ui(() => _pair.Enabled = true); }
+            catch (Exception ex)
+            {
+                Log("Ghép Agent thất bại: " + SafeMessage(ex));
+            }
+            finally
+            {
+                Ui(() => _pair.Enabled = true);
+            }
         }
 
         private void TestOffice()
         {
-            Ui(() => { _testOffice.Enabled = false; _relay.Text = "Relay: đang kiểm tra Google..."; });
+            Ui(() =>
+            {
+                _testOffice.Enabled = false;
+                _relay.Text = "Relay: đang kiểm tra Google...";
+            });
+            LogNetworkSnapshot("office-check");
+
             try
             {
                 RefreshDirect();
+                Ui(() => _relay.Text = "Relay: Google OK · đang kiểm tra RTDB...");
                 var session = SnapshotSession();
+                var started = Stopwatch.StartNew();
                 RequestJson("GET", JobsUrl(session) + "&shallow=true", null, null);
+                started.Stop();
                 Ui(() => _relay.Text = "Relay: OFFICE PASS / Google + RTDB");
-                Log("OFFICE PASS: Google token refresh + RTDB đọc được trên " + GetSsid() + ".");
+                Log("OFFICE PASS ssid=" + GetSsid() + " uid=" + Fingerprint(session.UserId) + " rtdb_ms=" + started.ElapsedMilliseconds + ".");
             }
-            catch (Exception ex) { Ui(() => _relay.Text = "Relay: OFFICE FAIL"); Log("OFFICE FAIL: " + SafeMessage(ex)); }
-            finally { Ui(() => _testOffice.Enabled = true); }
+            catch (RelayHttpException ex)
+            {
+                if (ex.StatusCode == 403)
+                {
+                    Ui(() => _relay.Text = "Relay: RTDB 403 / Rules");
+                    Log("OFFICE RTDB_PERMISSION_DENIED HTTP 403. HTTPS tới Firebase đã thông; kiểm tra Rules/auth.uid/path. detail=" + ex.Detail);
+                }
+                else
+                {
+                    Ui(() => _relay.Text = "Relay: HTTP " + ex.StatusCode);
+                    Log("OFFICE HTTP_FAIL " + ex.StatusCode + " detail=" + ex.Detail);
+                }
+            }
+            catch (Exception ex)
+            {
+                Ui(() => _relay.Text = "Relay: lỗi mạng/transport");
+                Log("OFFICE TRANSPORT_FAIL " + SafeMessage(ex));
+            }
+            finally
+            {
+                Ui(() => _testOffice.Enabled = true);
+            }
         }
 
         private void StartListening()
@@ -287,33 +364,95 @@ namespace SupraInventoryRelayAgent
         {
             while (!token.IsCancellationRequested)
             {
-                try { EnsureFreshToken(); ListenOnce(token); }
-                catch (OperationCanceledException) { return; }
-                catch (Exception ex) { Log("Relay gián đoạn: " + SafeMessage(ex)); Ui(() => _relay.Text = "Relay: đang thử lại"); }
-                if (token.WaitHandle.WaitOne(TimeSpan.FromSeconds(1))) return;
+                var retrySeconds = 1;
+                try
+                {
+                    EnsureFreshToken();
+                    ListenOnce(token);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+                catch (RelayHttpException ex)
+                {
+                    if (ex.StatusCode == 403)
+                    {
+                        retrySeconds = 5;
+                        Ui(() => _relay.Text = "Relay: RTDB 403 / Rules");
+                        Log("Relay RTDB_PERMISSION_DENIED 403; HTTPS thông nhưng auth/rules/path bị từ chối. detail=" + ex.Detail);
+                    }
+                    else
+                    {
+                        retrySeconds = 2;
+                        Ui(() => _relay.Text = "Relay: HTTP " + ex.StatusCode + " · thử lại");
+                        Log("Relay HTTP_FAIL " + ex.StatusCode + " detail=" + ex.Detail);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Ui(() => _relay.Text = "Relay: mạng/transport · thử lại");
+                    Log("Relay TRANSPORT_FAIL " + SafeMessage(ex));
+                }
+                if (token.WaitHandle.WaitOne(TimeSpan.FromSeconds(retrySeconds))) return;
             }
         }
 
         private void ListenOnce(CancellationToken token)
         {
             var session = SnapshotSession();
-            var req = (HttpWebRequest)WebRequest.Create(JobsUrl(session));
-            req.Method = "GET"; req.Accept = "text/event-stream"; req.UserAgent = "SUPRA-Inventory-Relay-Test/1.0";
-            req.Timeout = 10000; req.ReadWriteTimeout = 65000; req.KeepAlive = true;
-            using (token.Register(() => { try { req.Abort(); } catch { } }))
-            using (var response = (HttpWebResponse)req.GetResponse())
-            using (var stream = response.GetResponseStream())
-            using (var reader = new StreamReader(stream))
+            var url = JobsUrl(session);
+            var req = (HttpWebRequest)WebRequest.Create(url);
+            req.Method = "GET";
+            req.Accept = "text/event-stream";
+            req.UserAgent = "SUPRA-Inventory-Relay-Test/1.1";
+            req.Timeout = 10000;
+            req.ReadWriteTimeout = 65000;
+            req.KeepAlive = true;
+
+            Log("Relay SSE CONNECT host=" + AgentDiagnostics.SafeUrl(url) + " uid=" + Fingerprint(session.UserId) + " ssid=" + GetSsid());
+            HttpWebResponse response = null;
+            try
             {
-                Ui(() => _relay.Text = "Relay: ONLINE / đang nghe");
-                Log("Đã mở Firebase SSE trên " + GetSsid() + ".");
-                var data = new StringBuilder();
-                string line;
-                while (!token.IsCancellationRequested && (line = reader.ReadLine()) != null)
+                using (token.Register(() => { try { req.Abort(); } catch { } }))
                 {
-                    if (line.Length == 0) { if (data.Length > 0) { ProcessSse(data.ToString()); data.Clear(); } continue; }
-                    if (line.StartsWith("data:", StringComparison.Ordinal)) data.Append(line.Substring(5).Trim());
+                    try
+                    {
+                        response = (HttpWebResponse)req.GetResponse();
+                    }
+                    catch (WebException ex)
+                    {
+                        throw ToRelayHttpException(ex, "RTDB SSE");
+                    }
+
+                    using (response)
+                    using (var stream = response.GetResponseStream())
+                    using (var reader = new StreamReader(stream))
+                    {
+                        Ui(() => _relay.Text = "Relay: ONLINE / đang nghe");
+                        Log("Relay SSE PASS HTTP " + (int)response.StatusCode + " ssid=" + GetSsid() + " uid=" + Fingerprint(session.UserId));
+                        var data = new StringBuilder();
+                        string line;
+                        while (!token.IsCancellationRequested && (line = reader.ReadLine()) != null)
+                        {
+                            if (line.Length == 0)
+                            {
+                                if (data.Length > 0)
+                                {
+                                    ProcessSse(data.ToString());
+                                    data.Clear();
+                                }
+                                continue;
+                            }
+                            if (line.StartsWith("data:", StringComparison.Ordinal))
+                                data.Append(line.Substring(5).Trim());
+                        }
+                    }
                 }
+            }
+            finally
+            {
+                if (response != null) response.Dispose();
             }
         }
 
@@ -347,7 +486,7 @@ namespace SupraInventoryRelayAgent
             {
                 var patch = new Dictionary<string, object> { { "status", "ACK" }, { "agent_id", Environment.MachineName }, { "agent_network", GetSsid() }, { "agent_received_at_ms", NowMs() }, { "agent_ack_at_ms", NowMs() } };
                 RequestJson("PATCH", JobUrl(SnapshotSession(), jobId), _json.Serialize(patch), "application/json");
-                Log("ACK " + suffix + " / " + Short(jobId) + " / " + GetSsid());
+                Log("ACK request=" + Short(jobId) + " network=" + GetSsid() + " payload_digits=5");
             }
             catch (Exception ex) { lock (_acked) _acked.Remove(jobId); Log("ACK lỗi: " + SafeMessage(ex)); }
         }
@@ -359,15 +498,29 @@ namespace SupraInventoryRelayAgent
             var current = SnapshotSession();
             var form = "grant_type=refresh_token&refresh_token=" + Uri.EscapeDataString(current.RefreshToken);
             var url = "https://securetoken.googleapis.com/v1/token?key=" + Uri.EscapeDataString(AgentConfig.FirebaseApiKey);
+            Log("Firebase refresh START host=securetoken.googleapis.com ssid=" + GetSsid());
             var root = Map(_json.DeserializeObject(RequestJson("POST", url, form, "application/x-www-form-urlencoded")));
+            var idToken = Convert.ToString(root["id_token"]);
+            var refreshToken = Convert.ToString(root["refresh_token"]);
+            var firebaseUid = FirebaseUidFromIdToken(idToken);
+            var audience = FirebaseAudienceFromIdToken(idToken);
+            if (!string.Equals(audience, AgentConfig.FirebaseProjectId, StringComparison.Ordinal))
+                throw new InvalidOperationException("Firebase token sai project audience.");
+
             var next = new AgentSession
             {
-                IdToken = Convert.ToString(root["id_token"]), RefreshToken = Convert.ToString(root["refresh_token"]),
-                UserId = root.ContainsKey("user_id") ? Convert.ToString(root["user_id"]) : current.UserId,
+                IdToken = idToken,
+                RefreshToken = refreshToken,
+                UserId = firebaseUid,
+                AppUserId = current.AppUserId,
                 ExpiresUtc = DateTime.UtcNow.AddSeconds(ParseInt(root, "expires_in", 3600) - 60)
             };
-            if (string.IsNullOrWhiteSpace(next.IdToken) || string.IsNullOrWhiteSpace(next.RefreshToken)) throw new InvalidOperationException("Google không trả phiên Firebase hợp lệ.");
-            lock (_sessionLock) _session = next; SaveStoredSession(next);
+            if (string.IsNullOrWhiteSpace(next.IdToken) || string.IsNullOrWhiteSpace(next.RefreshToken) || string.IsNullOrWhiteSpace(next.UserId))
+                throw new InvalidOperationException("Google không trả phiên Firebase hợp lệ.");
+
+            lock (_sessionLock) _session = next;
+            SaveStoredSession(next);
+            Log("Firebase refresh PASS uid=" + Fingerprint(next.UserId) + " aud=" + audience);
         }
 
         private AgentSession SnapshotSession()
@@ -375,13 +528,37 @@ namespace SupraInventoryRelayAgent
             lock (_sessionLock)
             {
                 if (_session == null) throw new InvalidOperationException("Chưa ghép Agent.");
-                return new AgentSession { IdToken = _session.IdToken, RefreshToken = _session.RefreshToken, UserId = _session.UserId, ExpiresUtc = _session.ExpiresUtc };
+                return new AgentSession
+                {
+                    IdToken = _session.IdToken,
+                    RefreshToken = _session.RefreshToken,
+                    UserId = _session.UserId,
+                    AppUserId = _session.AppUserId,
+                    ExpiresUtc = _session.ExpiresUtc
+                };
             }
         }
 
-        private string CurrentSessionUser() { lock (_sessionLock) return _session == null ? "chưa ghép" : _session.UserId; }
-        private static string JobsUrl(AgentSession s) { return AgentConfig.DatabaseUrl.TrimEnd('/') + "/relay_poc/" + Uri.EscapeDataString(s.UserId) + "/jobs.json?auth=" + Uri.EscapeDataString(s.IdToken); }
-        private static string JobUrl(AgentSession s, string id) { return AgentConfig.DatabaseUrl.TrimEnd('/') + "/relay_poc/" + Uri.EscapeDataString(s.UserId) + "/jobs/" + Uri.EscapeDataString(id) + ".json?auth=" + Uri.EscapeDataString(s.IdToken); }
+        private string CurrentSessionUser()
+        {
+            lock (_sessionLock)
+            {
+                if (_session == null) return "chưa ghép";
+                var appUser = string.IsNullOrWhiteSpace(_session.AppUserId) ? "app?" : _session.AppUserId;
+                var uid = string.IsNullOrWhiteSpace(_session.UserId) ? "pending" : Fingerprint(_session.UserId);
+                return appUser + " / uid:" + uid;
+            }
+        }
+
+        private static string JobsUrl(AgentSession s)
+        {
+            return AgentConfig.DatabaseUrl.TrimEnd('/') + "/relay_poc/" + Uri.EscapeDataString(s.UserId) + "/jobs.json?auth=" + Uri.EscapeDataString(s.IdToken);
+        }
+
+        private static string JobUrl(AgentSession s, string id)
+        {
+            return AgentConfig.DatabaseUrl.TrimEnd('/') + "/relay_poc/" + Uri.EscapeDataString(s.UserId) + "/jobs/" + Uri.EscapeDataString(id) + ".json?auth=" + Uri.EscapeDataString(s.IdToken);
+        }
 
         private static string RequestJson(string method, string url, string body, string contentType)
         {
