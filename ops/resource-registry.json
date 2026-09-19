@@ -190,7 +190,7 @@
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
-      "relay_poc_status": "D073_SOURCE_BUILD_RELEASE_PASS__RTDB_PROVISIONING_FIELD_TEST_PENDING"
+      "relay_poc_status": "D074_FIELD_REPAIR_IN_PROGRESS__RTDB_PROVISIONED__OFFICE_HTTP_403"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -501,7 +501,7 @@
   "relay_poc": {
     "decision": "D073",
     "environment": "beta",
-    "status": "SOURCE_BUILD_RELEASE_PASS__RTDB_PROVISIONING_FIELD_TEST_PENDING",
+    "status": "D074_FIELD_REPAIR_IN_PROGRESS__RTDB_PROVISIONED_OWNER_CONFIRMED__OFFICE_HTTP_403",
     "purpose": "Authenticated PDA-to-Windows-Agent transport proof only; no WMS mutation",
     "transport": "FIREBASE_RTDB_REST_SSE",
     "database_resource_key": "firebase-rtdb-relay-beta",
@@ -516,6 +516,10 @@
     "stable": "UNTOUCHED_OWNER_GATED",
     "android_release": "beta-vc47",
     "android_apk_sha256": "8e2fc11e09940db061edf4c23b5973ec2be9300b2ddfc4835bcef1d3af74c439",
-    "windows_agent_sha256": "1b51c33d53a53a0fb8b7c6a9c4f4305f7c042bbd2c97e91b082144587c7bdd73"
+    "windows_agent_sha256": "1b51c33d53a53a0fb8b7c6a9c4f4305f7c042bbd2c97e91b082144587c7bdd73",
+    "field_evidence": "OFFICE_HTTPS_REACHABLE__AUTHENTICATED_RTDB_READ_SSE_HTTP_403",
+    "identity_fix": "DERIVE_PATH_FROM_FIREBASE_ID_TOKEN_SUB",
+    "agent_diagnostics": "PERSISTENT_LOCAL_SANITIZED_LOG_REQUIRED",
+    "android_ui": "BOTTOM_PINNED_TWO_TAB_DENSE_PICKER_REQUIRED"
   }
 }
