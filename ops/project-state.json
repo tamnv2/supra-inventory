@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D075_SOURCE_BUILD_RELEASE_PASS__RTDB_RULES_PUBLISH_AND_FIELD_TEST_PENDING__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D076_AUTO_RTDB_RULES_DEPLOY_IN_PROGRESS__D075_SOURCE_BUILD_RELEASE_PASS__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -155,8 +155,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Owner completes OA004: publish merged D075 firebase/database.rules.json to Beta RTDB, then field-test any Picker PDA -> shared relay -> real ADMIN Agent v2 on Office -> ACK showing ADMIN + machine + Agent instance + RTT. No WMS mutation.",
-    "method": "Use signed beta-vc49 and relay-agent-v2. First publish D075 RTDB Rules in Firebase Console. Run Agent v2, log in with a real ADMIN account, switch laptop to Office, verify Office check, start listener, then send five digits from any Picker PDA. Existing pre-v2 Agent must be manually replaced once; Agent v2+ self-updates from relay-agent-vN prereleases.",
+    "primary": "Implement D076 main-only automated Beta RTDB Rules deployment using GitHub Environment beta secret FIREBASE_RULES_SA_JSON_BETA; PR validates credential/read access, main deploys D075 shared relay Rules, then Owner can field-test beta-vc49 + relay-agent-v2.",
+    "method": "Branch -> PR -> credential/read-only validation + authority/continuity/UI PASS -> merge -> main-only firebase deploy --only database -> terminal PASS -> record Rules deployed and reduce OA004 to physical field test only.",
     "stable_guard": "Stable remains OWNER-GATED and untouched."
   },
   "continuity_policy": {
@@ -184,6 +184,7 @@
   },
   "workboard": {
     "in_progress": [
+      "D076 automatic Beta RTDB Rules deployment setup in progress; Owner reports FIREBASE_RULES_SA_JSON_BETA provisioned",
       "D075 source/build/deploy/release PASS; RTDB Rules publication + physical field acceptance pending",
       "D068 Web baseline Owner-accepted/frozen",
       "D069 items 1, 2, 4 and 5 Beta runtime PASS",
@@ -193,6 +194,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
+      "Merge D076 after credential/read-only validation PASS, then require main Rules deploy PASS",
       "Owner publishes D075 RTDB Rules then field-tests beta-vc49 + relay-agent-v2 with any Picker PDA and real ADMIN Agent",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
