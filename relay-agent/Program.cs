@@ -24,6 +24,8 @@ namespace SupraInventoryRelayAgent
             AgentDiagnostics.Initialize();
             var startupSmoke = args != null && Array.Exists(args, item =>
                 string.Equals(item, "--startup-smoke", StringComparison.OrdinalIgnoreCase));
+            var autoStarted = args != null && Array.Exists(args, item =>
+                string.Equals(item, "--autostart", StringComparison.OrdinalIgnoreCase));
 
             try
             {
@@ -51,7 +53,7 @@ namespace SupraInventoryRelayAgent
 
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new AgentForm(startupSmoke));
+                Application.Run(new AgentForm(startupSmoke, autoStarted));
             }
             catch (Exception ex)
             {
@@ -225,8 +227,12 @@ namespace SupraInventoryRelayAgent
         private StatusOverlayForm _statusOverlay;
         private readonly OverlaySettings _overlaySettings;
         private readonly bool _startupSmoke;
+        private readonly bool _autoStarted;
         private bool _overlayInitFailed;
         private readonly HashSet<string> _acked = new HashSet<string>(StringComparer.Ordinal);
+        private readonly PicklistCacheCoordinator _picklistCache = new PicklistCacheCoordinator();
+        private readonly PickerRateLimiter _pickerRateLimiter = new PickerRateLimiter();
+        private AgentLeaderCoordinator _leaderCoordinator;
         private readonly object _sessionLock = new object();
         private readonly object _wmsSessionLock = new object();
         private AgentSession _session;
@@ -244,9 +250,10 @@ namespace SupraInventoryRelayAgent
         private static readonly string AgentInstanceFile = Path.Combine(RelayDataDir, "agent-instance-id.txt");
         private static readonly string OverlaySettingsFile = Path.Combine(RelayDataDir, "overlay-settings.json");
 
-        internal AgentForm(bool startupSmoke = false)
+        internal AgentForm(bool startupSmoke = false, bool autoStarted = false)
         {
             _startupSmoke = startupSmoke;
+            _autoStarted = autoStarted;
             _agentInstanceId = LoadOrCreateAgentInstanceId();
             _overlaySettings = StatusOverlayForm.LoadSettings(OverlaySettingsFile);
             Text = "SUPRA Inventory - Relay Test v" + AgentConfig.AgentBuild;
@@ -363,7 +370,11 @@ namespace SupraInventoryRelayAgent
             FormClosing += (s, e) =>
             {
                 if (!_allowExit && e.CloseReason == CloseReason.UserClosing) { e.Cancel = true; WindowState = FormWindowState.Minimized; Hide(); return; }
-                StopListening(); _trayMonitorTimer.Stop(); try { if (_statusOverlay != null) _statusOverlay.Close(); } catch { } _tray.Visible = false;
+                StopListening();
+                StopLeaderCoordination();
+                _trayMonitorTimer.Stop();
+                try { if (_statusOverlay != null) _statusOverlay.Close(); } catch { }
+                _tray.Visible = false;
             };
 
             var timer = new System.Windows.Forms.Timer { Interval = 4000 };
@@ -391,6 +402,15 @@ namespace SupraInventoryRelayAgent
                 }
 
                 _trayMonitorTimer.Start();
+                if (_autoStarted)
+                {
+                    BeginInvoke(new Action(() =>
+                    {
+                        WindowState = FormWindowState.Minimized;
+                        Hide();
+                        _tray.ShowBalloonTip(1500, "SUPRA Inventory", "Agent đã tự khởi động cùng Windows.", ToolTipIcon.Info);
+                    }));
+                }
                 Task.Run(() => StartupSequence());
             };
         }
@@ -558,6 +578,7 @@ namespace SupraInventoryRelayAgent
 
         private void StartupSequence()
         {
+            UserStartupRegistration.EnsureRegistered();
             LogNetworkSnapshot("startup");
             if (TryAutoUpdate(true)) return;
             RestoreSession();
@@ -621,6 +642,8 @@ namespace SupraInventoryRelayAgent
                 });
                 SetProbeButtonsEnabled(true);
                 Log("Khôi phục ADMIN Agent PASS.");
+                ActivateRelayRuntime();
+                Task.Run(() => TryRestoreWmsSessionFromProfile());
             }
             catch (Exception ex)
             {
@@ -712,6 +735,8 @@ namespace SupraInventoryRelayAgent
                     " firebase_uid=" + Fingerprint(next.UserId) +
                     " aud=" + audience
                 );
+                ActivateRelayRuntime();
+                Task.Run(() => TryRestoreWmsSessionFromProfile());
             }
             catch (Exception ex)
             {
