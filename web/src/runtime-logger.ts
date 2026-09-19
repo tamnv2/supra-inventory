@@ -295,6 +295,10 @@ function runtimePayload(reason: string): Record<string, unknown> {
   };
 }
 
+export function getWebRuntimeDiagnosticSnapshot(reason = "local_support"): Record<string, unknown> {
+  return sanitize(runtimePayload(reason)) as Record<string, unknown>;
+}
+
 async function send(severity: Severity, reason: string, extra?: unknown): Promise<boolean> {
   if (!hasSession()) return false;
   try {
