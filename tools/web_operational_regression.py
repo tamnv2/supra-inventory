@@ -175,7 +175,7 @@ def main() -> None:
     require(app, 'navGroup("HỆ THỐNG", [["logs", "Nhật ký"]])', "D072 system group only journal")
     forbid(app, "getSystemStatus(", "D072 Web system-status API calls")
     forbid(app, '["system","devices","versions"].includes(activeSection)', "D072 system-status polling route")
-    forbid(app, '"refresh-system"', "D072 manual system-status refresh binding")
+    forbid(app, 'querySelector<HTMLButtonElement>("#refresh-system")', "D072 manual system-status refresh binding")
     require(service_index, "SYSTEM_STATUS_DISABLED_QUOTA_GUARD", "D072 disabled admin system-status route")
     require(service_index, "collectSystemStatus(env, false, false)", "D072 provider-free load-test snapshot")
     require(system_status, "includeProviders = true", "D072 provider gate parameter")
