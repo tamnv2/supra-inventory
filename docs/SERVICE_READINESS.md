@@ -443,3 +443,9 @@ Owner field evidence: Android `beta-vc50` opens, while `relay-agent-v7` may term
 
 Current relay marker: `D083_AGENT_V8_STARTUP_REPAIR_IN_PROGRESS__D082_LOOKUP_FIELD_TEST_PAUSED__D078_OFFICE_PENDING__NO_WMS_MUTATION`.
 Current Android marker remains: `D082_READONLY_PICKLIST_LOOKUP_SIGNED_BETA_VC50__AGENT_V7_RELEASE_PASS__OWNER_HOME_FIELD_TEST_PENDING`.
+
+## D083 Agent v8 release PASS
+
+PR #85 merged at `82ec0ba43a3f464a7a8b312b324e152733af4296`. Main Verify Beta Relay Agent run `35461540988` PASS, including the executable Windows `--startup-smoke` gate, and published `relay-agent-v8`. EXE size 107008 bytes, SHA-256 `310d7593eefb90fccce186fba44174578e26fce0105414c61c93a4557dc31c98`. Main authority/state/UI runs also PASS. Owner physical startup retest is now the only D083 field checkpoint before resuming D082 Picklist lookup.
+
+Current relay marker: `D083_AGENT_V8_RELEASE_PASS__OWNER_STARTUP_RETEST_PENDING__D082_LOOKUP_PAUSED__D078_OFFICE_PENDING__NO_WMS_MUTATION`.

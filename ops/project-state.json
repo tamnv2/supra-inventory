@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D083_AGENT_V8_STARTUP_REPAIR_IN_PROGRESS__ANDROID_VC50_OWNER_OPEN_OK__D082_PICKLIST_FIELD_TEST_PAUSED__D078_OFFICE_PENDING__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D083_AGENT_V8_RELEASE_PASS__OWNER_STARTUP_RETEST_PENDING__D082_PICKLIST_FIELD_TEST_PAUSED_UNTIL_STARTUP_PASS__D078_OFFICE_PENDING__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -135,7 +135,6 @@
     "D066 Web three-group navigation PR #50 merged at 2e12e6d4e94b195e3b505b3f2abe9822ca91632c; PR Repo Authority, Project State and UI Design guards PASS; main UI Design Guard run 35407227884 PASS; Beta deploy run 35407227911 PASS including Web build, Worker typecheck/deploy, health/schema, auth/business guards, Web shell and Google OAuth start."
   ],
   "pending_build": [
-    "D083 relay-agent-v8 startup regression repair + executable startup smoke gate",
     "D070 PR guards/merge/Beta deploy for Worker/Web schema migration and alarm automation",
     "Signed Beta Android release/verification because D070 changes Android runtime UI/API projection",
     "Owner field acceptance of D070 timing notifications and both auto-Skip modes",
@@ -143,7 +142,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "D083 Owner launch retest pending after relay-agent-v8 release. D082 Picklist field test is paused until Agent startup is restored; Android beta-vc50 was reported opening OK. D078 Office transport remains separately pending.",
+    "D083 Owner startup retest pending on relay-agent-v8. Once main Agent UI opens, resume D082 five-digit Picklist lookup field test. D078 Office transport remains separately pending.",
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
     "Owner acceptance of FIRST_REPORT and PER_PICKER behavior remains field-dependent after runtime PASS.",
     "Stable promotion remains OWNER-GATED."
@@ -156,8 +155,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Build/verify/release relay-agent-v8 with fail-safe lazy overlay startup and real executable startup smoke gate; then Owner launches v8 before resuming D082 Picklist lookup field test.",
-    "method": "Branch -> PR -> Agent executable --startup-smoke on Windows CI -> authority/state/UI/Agent PASS -> merge -> relay-agent-v8 prerelease. Owner only needs to launch v8 normally; expected main Agent window opens even if overlay initialization fails. D082 lookup logic/Android beta-vc50 remain unchanged.",
+    "primary": "Owner launches relay-agent-v8 normally. If main Agent window opens, resume the existing D082 overlay/login/Picklist home field test with beta-vc50.",
+    "method": "Use relay-agent-v8. Expected: main UI opens even if overlay initialization fails; overlay failure is isolated and logged. If launch still fails, provide only the visible startup error or sanitized local log. D082 lookup logic/Android beta-vc50 unchanged.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -185,7 +184,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D083 source in progress: repair relay-agent-v7 silent startup regression by lazy/fail-safe overlay initialization, no initial RecreateHandle, top-level visible crash reporting and CI executable startup smoke. D082 business lookup logic unchanged.",
+      "D083 source/PR/main Agent v8 release PASS: fail-safe lazy overlay startup, no initial RecreateHandle, top-level visible crash reporting, executable Windows startup-smoke CI PASS. Owner startup retest pending; D082 field test paused only until Agent opens.",
       "D077 source/build/release PASS: relay-agent-v3 published; physical Office retest pending",
       "D076 Beta RTDB Rules deploy/readback PASS; D075 physical Picker -> ADMIN Agent acceptance pending",
       "D068 Web baseline Owner-accepted/frozen",
@@ -196,7 +195,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Complete D083 PR/CI/main relay-agent-v8 release; Owner launches v8. Only after Agent startup PASS resume D082 known-five-digit Picklist lookup field test.",
+      "Owner launches relay-agent-v8. If startup PASS, continue D082 known-five-digit Picklist lookup test; if not, send visible startup error or sanitized local Agent log only.",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
@@ -224,11 +223,11 @@
       "relay_agent_build_release": "PASS_RUN_35447318236",
       "signed_beta_release": "beta-vc50",
       "signed_beta_apk_size_bytes": 9317226,
-      "relay_agent_release": "relay-agent-v7",
-      "relay_agent_release_id": 392169408,
-      "relay_agent_exe_asset_id": 575243965,
-      "relay_agent_exe_size_bytes": 104448,
-      "relay_agent_checksum_asset_id": 575243963,
+      "relay_agent_release": "relay-agent-v8",
+      "relay_agent_release_id": 392175426,
+      "relay_agent_exe_asset_id": 575276634,
+      "relay_agent_exe_size_bytes": 107008,
+      "relay_agent_checksum_asset_id": 575276635,
       "agent_release_is_prerelease": true,
       "android_latest_release_verified": "beta-vc49",
       "scope": "D082_HOME_RTDB_RELAY__SIGNED_READONLY_PICKLIST_LIST_GET__CLICKTHROUGH_OVERLAY__NO_CONFIRMATION_OR_WMS_MUTATION",
@@ -267,7 +266,7 @@
       "d080_pr_ui": "PASS_RUN_35457634598",
       "d080_pr_agent": "PASS_RUN_35457634523",
       "d080_main_agent_release": "PASS_RUN_35457732455",
-      "relay_agent_exe_sha256": "5df1b5bf1963c9b36aa2257bf774d1e5e9352918a5cd05fd35248d24ea5e4cb6",
+      "relay_agent_exe_sha256": "310d7593eefb90fccce186fba44174578e26fce0105414c61c93a4557dc31c98",
       "d081_branch": "feat/d081-agent-login-wait-tray-monitor",
       "d081_merged_pr": 81,
       "d081_merged_main": "a0a68da1e72ba9a8f7bb728db0951b6fd2c23f47",
@@ -293,7 +292,19 @@
       "d082_main_ui": "PASS_RUN_35460327615",
       "signed_beta_release_id": 392169512,
       "signed_beta_apk_asset_id": 575244605,
-      "signed_beta_apk_sha256": "55b4f7ea8eaf4557703640458e70369d00a5969239782bff2563a167683ee6c4"
+      "signed_beta_apk_sha256": "55b4f7ea8eaf4557703640458e70369d00a5969239782bff2563a167683ee6c4",
+      "d083_branch": "fix/d083-agent-v7-startup-regression",
+      "d083_merged_pr": 85,
+      "d083_merged_main": "82ec0ba43a3f464a7a8b312b324e152733af4296",
+      "d083_pr_authority": "PASS_RUN_35461454150",
+      "d083_pr_project_state": "PASS_RUN_35461454151",
+      "d083_pr_rtdb_rules": "PASS_RUN_35461454097",
+      "d083_pr_agent": "PASS_RUN_35461454063",
+      "d083_pr_ui": "PASS_RUN_35461454043",
+      "d083_main_authority": "PASS_RUN_35461540965",
+      "d083_main_project_state": "PASS_RUN_35461540963",
+      "d083_main_agent_release": "PASS_RUN_35461540988",
+      "d083_main_ui": "PASS_RUN_35461540970"
     },
     "last_runtime_evidence": {
       "schema": 7,
@@ -318,13 +329,13 @@
       "d073_relay_poc": "SOURCE_BUILD_RELEASE_PASS__RTDB_PROVISIONING_FIELD_TEST_PENDING",
       "d074_relay_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_OFFICE_FIELD_RETEST_PENDING",
       "d075_relay_poc": "SOURCE_BUILD_RELEASE_PASS__D076_RULES_DEPLOY_PASS__OWNER_FIELD_TEST_PENDING",
-      "relay_agent_release": "relay-agent-v7",
+      "relay_agent_release": "relay-agent-v8",
       "relay_agent_release_prerelease": true,
       "d076_rtdb_rules": "PASS_RUN_35451292051__IAM_UPDATE_PASS__RULES_GET_PASS__RULES_PUT_PASS__EXACT_READBACK_PASS",
       "d080_wms_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_WMS_FIELD_TEST_PENDING",
       "d081_agent": "OWNER_REPORTED_OK__SUPERSEDED_AS_NEXT_ACTION_BY_D082",
       "d082_picklist_lookup": "RELEASE_PASS__FIELD_TEST_PAUSED_BY_D083_AGENT_V7_STARTUP_REGRESSION",
-      "d083_agent_startup": "OWNER_FIELD_FAIL_V7__SOURCE_REPAIR_IN_PROGRESS"
+      "d083_agent_startup": "SOURCE_BUILD_RELEASE_PASS__EXECUTABLE_STARTUP_SMOKE_PASS__OWNER_STARTUP_RETEST_PENDING"
     }
   },
   "authority_setup": {
