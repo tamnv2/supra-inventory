@@ -861,7 +861,7 @@ async function putSla(state: DurableObjectState, request: Request): Promise<Resp
   const value: OperationalSlaConfig = {
     ...validated.value,
     policy_version: 2,
-    effective_at: at,
+    effective_at: Number(previous?.policy_version || 0) >= 2 && previous?.effective_at ? previous.effective_at : at,
   };
   state.storage.transactionSync(() => {
     state.storage.sql.exec(
