@@ -1,0 +1,104 @@
+name: Deploy Beta RTDB Rules
+
+on:
+  pull_request:
+    paths:
+      - "firebase/database.rules.json"
+      - "firebase.json"
+      - ".github/workflows/deploy-beta-rtdb-rules.yml"
+      - "docs/OWNER_DECISIONS.md"
+      - "docs/specs/ACCEPTANCE_TESTING.md"
+      - "docs/OPERATING_PROTOCOL.md"
+      - "ops/project-scope.json"
+      - "ops/project-state.json"
+      - "ops/owner-actions.json"
+      - "ops/resource-registry.json"
+  push:
+    branches: [main]
+    paths:
+      - "firebase/database.rules.json"
+      - "firebase.json"
+      - ".github/workflows/deploy-beta-rtdb-rules.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supra-inventory-beta-rtdb-rules
+  cancel-in-progress: false
+
+jobs:
+  beta-rtdb-rules:
+    runs-on: ubuntu-latest
+    environment: beta
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Rules source and target
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const rules = JSON.parse(fs.readFileSync('firebase/database.rules.json', 'utf8'));
+          const config = JSON.parse(fs.readFileSync('firebase.json', 'utf8'));
+          if (!rules.rules || !rules.rules.relay_poc || !rules.rules.relay_poc.jobs) throw new Error('D075 relay_poc/jobs Rules missing');
+          if (config.database?.rules !== 'firebase/database.rules.json') throw new Error('firebase.json does not point to canonical Rules file');
+          const text = JSON.stringify(rules);
+          for (const marker of ["app_base_role == 'ADMIN'", "agent_admin_user_id", "picker_uid", "picker_user_id"]) {
+            if (!text.includes(marker)) throw new Error('Required D075 Rules marker missing: ' + marker);
+          }
+          console.log('Rules source validation PASS');
+          NODE
+
+      - name: Validate Beta service-account secret shape
+        shell: bash
+        env:
+          FIREBASE_RULES_SA_JSON_BETA: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+        run: |
+          set -euo pipefail
+          [ -n "${FIREBASE_RULES_SA_JSON_BETA:-}" ] || { echo "FIREBASE_RULES_SA_JSON_BETA is missing from GitHub Environment beta"; exit 1; }
+          jq -e '.type == "service_account" and .project_id == "supra-inventory-beta" and (.client_email | endswith("@supra-inventory-beta.iam.gserviceaccount.com")) and (.private_key | startswith("-----BEGIN PRIVATE KEY-----"))' <<<"$FIREBASE_RULES_SA_JSON_BETA" >/dev/null
+          echo "Beta service-account secret shape PASS"
+
+      - name: Authenticate to Google Cloud
+        id: google-auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/cloud-platform
+
+      - name: Verify Firebase Rules IAM read access
+        shell: bash
+        env:
+          GOOGLE_ACCESS_TOKEN: ${{ steps.google-auth.outputs.access_token }}
+        run: |
+          set -euo pipefail
+          [ -n "${GOOGLE_ACCESS_TOKEN:-}" ] || { echo "Google access token was not issued"; exit 1; }
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          code="$(curl -sS --connect-timeout 10 --max-time 30 -o "$tmp" -w '%{http_code}' -H "Authorization: Bearer $GOOGLE_ACCESS_TOKEN" "https://firebaserules.googleapis.com/v1/projects/supra-inventory-beta/rulesets?pageSize=1")"
+          [ "$code" = "200" ] || { echo "Firebase Rules IAM read probe failed: HTTP $code"; exit 1; }
+          jq -e 'has("rulesets") or (.rulesets == null)' "$tmp" >/dev/null || { echo "Unexpected Firebase Rules API response"; exit 1; }
+          echo "Firebase Rules credential + IAM read access PASS"
+
+      - name: Setup Node
+        if: github.event_name != 'pull_request'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Firebase CLI
+        if: github.event_name != 'pull_request'
+        run: npm install --global firebase-tools@latest --no-audit --no-fund
+
+      - name: Deploy Beta Realtime Database Rules
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          firebase deploy --only database --project supra-inventory-beta --non-interactive
+          echo "Beta RTDB Rules deploy PASS"
