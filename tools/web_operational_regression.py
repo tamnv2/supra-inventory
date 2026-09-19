@@ -105,6 +105,23 @@ def main() -> None:
     forbid(app, "Beta / Logs", "internal environment log copy")
     forbid(app, "Tự gửi định kỳ", "internal log schedule copy")
 
+    # D068: instant route feedback, browser history, toast notices and targeted SKU detail refresh.
+    require(app, "function navigateToSection(", "instant section navigation")
+    require(app, 'window.history.pushState({ section }', "section history push")
+    require(app, 'window.addEventListener("popstate"', "browser back/forward handler")
+    require(app, 'navigateToSection("reports", "push")', "dashboard drilldown history")
+    forbid(app, 'void run(async () => { await loadSection(next); });', "blocking section navigation")
+    require(app, "function ensureToastRoot()", "toast root")
+    require(app, "toastItems = [...toastItems, item].slice(-5)", "maximum five toasts")
+    require(app, "window.setTimeout(() => dismissToast(item.id), 5_000)", "five-second toast expiry")
+    forbid(app, "function renderNotice()", "top notice banner")
+    require(app, "function refreshFastDetailOnly()", "targeted SKU detail refresh")
+    require(app, "button.classList.add(\"selected\")", "instant selected SKU state")
+    forbid(app, "Service: Cloudflare", "internal header service label")
+    forbid(app, "InventoryCore · Durable Object SQLite", "internal database label")
+    forbid(app, "Thông tin kỹ thuật chi tiết", "raw technical UI panel")
+    forbid(app, "Master SKU", "internal master-catalogue copy")
+
     # SLA UI/server contract must agree.
     require(app, 'warning > 1440', "SLA warning upper bound")
     require(app, 'escalation > 2880', "SLA escalation upper bound")

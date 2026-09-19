@@ -7,7 +7,7 @@ import "./legacy-transplant/ops-console.css";
 import "./legacy-transplant/workflow-v3-overrides.css";
 import "./legacy-transplant/workflow-v4-ux.css";
 import "./legacy-transplant/web-fast-ui.css";
-import { firebaseMissing, firebaseReady } from "./firebase";
+import { firebaseReady } from "./firebase";
 import {
   applyHrPickerSync,
   changeMyPassword,
@@ -93,8 +93,11 @@ type Section =
   | "versions"
   | "account";
 
-type Notice = { type: "success" | "error" | "warning"; text: string } | null;
+type NoticeType = "success" | "error" | "warning";
+type Notice = { id: number; type: NoticeType; text: string; createdAt: number } | null;
+type ToastItem = NonNullable<Notice>;
 type ThemeMode = "AUTO" | "LIGHT" | "DARK";
+type SectionHistoryMode = "push" | "replace" | "none";
 
 const THEME_KEY = "supra_inventory_web_theme_v1";
 const UI_ZOOM_KEY = "supra_inventory_web_zoom_v1";
@@ -226,14 +229,25 @@ function resolveInitialSection(value: AppProfile): Section {
   return requested && canAccessSection(requested, value) ? requested : defaultSectionForProfile(value);
 }
 
-function syncSectionHash(section: Section): void {
-  if (window.location.hash === `#${section}`) return;
-  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${section}`);
+function sectionUrl(section: Section): string {
+  return `${window.location.pathname}${window.location.search}#${section}`;
+}
+
+function syncSectionHistory(section: Section, mode: SectionHistoryMode = "replace"): void {
+  if (mode === "none") return;
+  const url = sectionUrl(section);
+  if (mode === "push") {
+    if (window.location.hash !== `#${section}`) window.history.pushState({ section }, "", url);
+    return;
+  }
+  window.history.replaceState({ section }, "", url);
 }
 
 let profile: AppProfile | null = getStoredProfile();
 let activeSection: Section = profile ? resolveInitialSection(profile) : "operations";
 let notice: Notice = null;
+let toastItems: ToastItem[] = [];
+let toastSerial = 0;
 let busy = false;
 let realtimeState = "connecting";
 let realtimeLastSeq = 0;
@@ -334,7 +348,7 @@ function formatHeaderUpdate(value: Date | null): string {
 function patchHeaderRuntime(): void {
   const service = document.querySelector<HTMLElement>("#service-state");
   if (service) {
-    service.textContent = `Service: Cloudflare ${serviceReachable ? "ON" : "OFF"}`;
+    service.textContent = `Dịch vụ: ${serviceReachable ? "Hoạt động" : "Mất kết nối"}`;
     service.dataset.state = serviceReachable ? "on" : "off";
   }
   const update = document.querySelector<HTMLElement>("#last-web-update");
@@ -379,8 +393,36 @@ function apiRange(from: string, to: string): { from: string; to: string } {
   return { from: a.toISOString(), to: new Date(b.getTime() + 86_400_000).toISOString() };
 }
 
-function setNotice(type: Notice extends infer _ ? "success" | "error" | "warning" : never, text: string): void {
-  notice = { type, text };
+function ensureToastRoot(): HTMLElement {
+  let root = document.querySelector<HTMLElement>("#web-toast-root");
+  if (!root) {
+    root = document.createElement("div");
+    root.id = "web-toast-root";
+    root.className = "web-toast-stack";
+    root.setAttribute("aria-live", "polite");
+    root.setAttribute("aria-atomic", "false");
+    document.body.appendChild(root);
+  }
+  return root;
+}
+
+function renderToastItems(): void {
+  const root = ensureToastRoot();
+  root.innerHTML = toastItems.map((item) => `<div class="web-toast ${item.type}" data-toast-id="${item.id}" role="status">${esc(item.text)}</div>`).join("");
+}
+
+function dismissToast(id: number): void {
+  toastItems = toastItems.filter((item) => item.id !== id);
+  if (notice?.id === id) notice = null;
+  renderToastItems();
+}
+
+function setNotice(type: NoticeType, text: string): void {
+  const item: ToastItem = { id: ++toastSerial, type, text, createdAt: Date.now() };
+  notice = item;
+  toastItems = [...toastItems, item].slice(-5);
+  renderToastItems();
+  window.setTimeout(() => dismissToast(item.id), 5_000);
 }
 
 function roleManage(): boolean {
@@ -421,9 +463,6 @@ function renderDatePresets(target: "dashboard" | "reports"): string {
   </div>`;
 }
 
-function renderNotice(): string {
-  return notice ? `<div class="notice ${notice.type}">${esc(notice.text)}</div>` : "";
-}
 
 type UiFieldSnapshot = {
   id: string;
@@ -540,7 +579,7 @@ function activeContent(): string {
 }
 
 function mainMarkup(): string {
-  return `${renderNotice()}${activeContent()}`;
+  return activeContent();
 }
 
 function patchOverlays(): void {
@@ -562,6 +601,58 @@ function patchActiveSection(preserveContext = true): void {
   bindSection();
   patchOverlays();
   restoreUiContext(snapshot);
+}
+
+function syncNavigationSelection(): void {
+  document.querySelectorAll<HTMLElement>("[data-section]").forEach((node) => {
+    const selected = node.dataset.section === activeSection;
+    node.classList.toggle("active", selected);
+    if (selected) node.setAttribute("aria-current", "page");
+    else node.removeAttribute("aria-current");
+  });
+}
+
+function navigateToSection(next: Section, historyMode: SectionHistoryMode = "push"): void {
+  if (!profile || !canAccessSection(next, profile)) return;
+  if (next === activeSection) {
+    syncSectionHistory(next, historyMode === "push" ? "none" : historyMode);
+    return;
+  }
+  const started = performance.now();
+  activeSection = next;
+  syncSectionHistory(next, historyMode);
+  pickerSearchGeneration += 1;
+  dashboardLoadGeneration += 1;
+  reportLoadGeneration += 1;
+  editUserId = null;
+  passwordUserId = null;
+  syncNavigationSelection();
+  patchActiveSection(false);
+  const displayedMs = Math.max(0, Math.round(performance.now() - started));
+  runtimeLogEvent(`Mở ${next}: hiển thị ${displayedMs}ms`);
+
+  const requestedSection = next;
+  const loadStarted = performance.now();
+  void loadSection(requestedSection)
+    .then(() => {
+      runtimeLogEvent(`Tải ${requestedSection}: ${Math.max(0, Math.round(performance.now() - loadStarted))}ms`);
+      if (activeSection === requestedSection) {
+        patchActiveSection(true);
+        syncNavigationSelection();
+      }
+    })
+    .catch((error) => {
+      const message = error instanceof Error ? error.message : "Không tải được dữ liệu.";
+      runtimeLogEvent(`Lỗi tải ${requestedSection}: ${message}`, "ERROR");
+      setNotice("error", message);
+    });
+}
+
+function handleSectionHistoryNavigation(): void {
+  if (!profile) return;
+  const requested = sectionFromHash();
+  if (!requested || !canAccessSection(requested, profile) || requested === activeSection) return;
+  navigateToSection(requested, "none");
 }
 
 function navIcon(key: string): string {
@@ -623,8 +714,7 @@ function renderLogin(): void {
   app.innerHTML = `<main class="login-shell"><section class="login-card">
     <div class="brand">1291</div><p class="eyebrow">BÁO HÀNG 1291</p><h1>Web nghiệp vụ</h1>
     <p class="muted">Đăng nhập bằng tài khoản Báo hàng 1291.</p>
-    ${!firebaseReady ? `<div class="message" data-type="error">Thiếu cấu hình Firebase Web: ${esc(firebaseMissing.join(", "))}</div>` : ""}
-    ${renderNotice()}
+    ${!firebaseReady ? `<div class="message" data-type="error">Hệ thống đăng nhập chưa sẵn sàng. Vui lòng thử lại sau.</div>` : ""}
     <form id="login-form">
       <label>Mã nhân viên<input name="username" required autocomplete="username" placeholder="Nhập mã nhân viên" /></label>
       <label>Mật khẩu<input name="password" type="password" required autocomplete="current-password" placeholder="Nhập mật khẩu" /></label>
@@ -642,7 +732,7 @@ function renderLogin(): void {
       runtimeLogEvent(`Đăng nhập: ${profile.role}`);
       sessionViewGeneration += 1;
       activeSection = resolveInitialSection(profile);
-      syncSectionHash(activeSection);
+      syncSectionHistory(activeSection, "replace");
       window.dispatchEvent(new CustomEvent("supra:session-changed"));
       await loadSection(activeSection);
       render();
@@ -661,7 +751,7 @@ function renderShell(content: string): void {
         <p class="company-name">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p>
         <h1>Website nghiệp vụ Inventory 1291</h1>
         <div class="header-runtime">
-          <span id="service-state" data-state="${serviceReachable ? "on" : "off"}">Service: Cloudflare ${serviceReachable ? "ON" : "OFF"}</span>
+          <span id="service-state" data-state="${serviceReachable ? "on" : "off"}">Dịch vụ: ${serviceReachable ? "Hoạt động" : "Mất kết nối"}</span>
           <span class="header-runtime-separator">|</span>
           <span id="last-web-update">Cập nhật: ${formatHeaderUpdate(lastWebUpdateAt)}</span>
         </div>
@@ -680,7 +770,7 @@ function renderShell(content: string): void {
       </div>
     </header>
     <nav class="tabs" data-shell-generation="legacy-direct-transplant">${renderNav()}</nav>
-    <main id="content" class="content main" data-active-section="${esc(activeSection)}">${renderNotice()}${content}</main>
+    <main id="content" class="content main" data-active-section="${esc(activeSection)}">${content}</main>
     <footer id="appCopyright" class="app-footer">${PRODUCT_CREDIT}</footer>
     <div id="overlay-root">${renderStockModal()}${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}</div>
   </div>`;
@@ -777,13 +867,38 @@ function pickerDetailMarkup(batchId: string, details: BatchPickerTicket[] | unde
     </div>`).join("") || `<div class="picker-detail-loading">Không có Picker đang bị ảnh hưởng.</div>`}</div></div>`;
 }
 
+function renderFastDetail(selected: ReporterBatch | null): string {
+  if (!selected) return `<div class="fast-empty"><strong>Không có SKU trong nhóm đang chọn</strong><span>Chọn nhóm khác để tiếp tục theo dõi.</span></div>`;
+  const timing = liveQueueTiming(selected);
+  return `<div class="fast-detail-head"><div><span>SKU đang xử lý</span><h3>${esc(selected.sku)}</h3></div><b class="fast-status ${timing.state === "ESCALATED" ? "danger" : timing.state === "WARNING" ? "open" : "work"}">${esc(slaLabel(timing.state))}</b></div>
+    <div class="fast-detail-name">${esc(selected.product_name)}</div>
+    <dl class="fast-facts">
+      <div><dt>Picker bị ảnh hưởng</dt><dd>${Number(selected.affected_picker_count)}</dd></div>
+      <div><dt>Thời gian chờ</dt><dd data-wait-batch="${esc(selected.batch_id)}">${timing.waiting} phút</dd></div>
+      <div><dt>Thời điểm báo đầu tiên</dt><dd>${esc(fmt(selected.first_report_at))}</dd></div>
+      <div><dt>Báo gần nhất</dt><dd>${esc(fmt(selected.last_report_at || selected.first_report_at))}</dd></div>
+    </dl>
+    ${selected.previous_batch_id ? `<div class="fast-warning">SKU này đã phát sinh lại sau lần xử lý trước.</div>` : ""}
+    <div class="fast-actions"><button class="primary" data-resolve="HAS_STOCK" data-batch="${esc(selected.batch_id)}">ĐÃ CÓ HÀNG</button><button class="danger" data-skip-batch="${esc(selected.batch_id)}">CHO PHÉP BỎ QUA</button><button class="secondary" data-detail="${esc(selected.batch_id)}">${expandedBatchDetails.has(selected.batch_id) ? "Ẩn danh sách Picker" : "Xem Picker ảnh hưởng"}</button></div>
+    ${pickerDetailMarkup(selected.batch_id, batchDetails.get(selected.batch_id))}`;
+}
+
+function refreshFastDetailOnly(): void {
+  if (activeSection !== "operations") return;
+  const detail = document.querySelector<HTMLElement>("#fastDetail");
+  if (!detail) return;
+  const selected = queueRows.find((row) => row.batch_id === selectedBatchId) || null;
+  detail.innerHTML = renderFastDetail(selected);
+  bindReporterActionButtons(detail);
+}
+
 function prefetchBatchDetails(batchId: string): void {
   if (!batchId || batchDetails.has(batchId) || batchDetailLoads.has(batchId)) return;
   batchDetailLoads.add(batchId);
   void getReporterBatchTickets(batchId)
     .then((result) => {
       batchDetails.set(batchId, result.items);
-      if (activeSection === "operations" && (selectedBatchId === batchId || expandedBatchDetails.has(batchId))) patchActiveSection(true);
+      if (activeSection === "operations" && selectedBatchId === batchId) refreshFastDetailOnly();
     })
     .catch((error) => runtimeLogEvent(`Không tải được danh sách Picker: ${error instanceof Error ? error.message : "unknown"}`, "ERROR"))
     .finally(() => batchDetailLoads.delete(batchId));
@@ -796,8 +911,6 @@ function renderOperations(): string {
     selected = visibleRows[0];
     selectedBatchId = selected.batch_id;
   }
-  const timing = selected ? liveQueueTiming(selected) : null;
-  const selectedDetails = selected ? batchDetails.get(selected.batch_id) : undefined;
   const warningCount = queueRows.filter((row) => liveQueueTiming(row).state === "WARNING").length;
   const overdueCount = queueRows.filter((row) => liveQueueTiming(row).state === "ESCALATED").length;
   const affected = queueRows.reduce((sum, row) => sum + Number(row.affected_picker_count || 0), 0);
@@ -821,20 +934,7 @@ function renderOperations(): string {
           </button>`;
         }).join("") : `<div class="fast-empty-row">${queueFilter === "ALL" ? "Hiện không có SKU chờ xử lý." : "Không có SKU trong nhóm này."}</div>`}
       </div>
-      <aside class="fast-detail" id="fastDetail">
-        ${selected && timing ? `<div class="fast-detail-head"><div><span>SKU đang xử lý</span><h3>${esc(selected.sku)}</h3></div><b class="fast-status ${timing.state === "ESCALATED" ? "danger" : timing.state === "WARNING" ? "open" : "work"}">${esc(slaLabel(timing.state))}</b></div>
-          <div class="fast-detail-name">${esc(selected.product_name)}</div>
-          <dl class="fast-facts">
-            <div><dt>Picker bị ảnh hưởng</dt><dd>${Number(selected.affected_picker_count)}</dd></div>
-            <div><dt>Thời gian chờ</dt><dd data-wait-batch="${esc(selected.batch_id)}">${timing.waiting} phút</dd></div>
-            <div><dt>Thời điểm báo đầu tiên</dt><dd>${esc(fmt(selected.first_report_at))}</dd></div>
-            <div><dt>Báo gần nhất</dt><dd>${esc(fmt(selected.last_report_at || selected.first_report_at))}</dd></div>
-          </dl>
-          ${selected.previous_batch_id ? `<div class="fast-warning">SKU này phát sinh lại sau một lần xử lý trước.</div>` : ""}
-          <div class="fast-actions"><button class="primary" data-resolve="HAS_STOCK" data-batch="${esc(selected.batch_id)}">ĐÃ CÓ HÀNG</button><button class="danger" data-skip-batch="${esc(selected.batch_id)}">CHO PHÉP BỎ QUA</button><button class="secondary" data-detail="${esc(selected.batch_id)}">${expandedBatchDetails.has(selected.batch_id) ? "Ẩn danh sách Picker" : "Xem Picker ảnh hưởng"}</button></div>
-          ${pickerDetailMarkup(selected.batch_id, selectedDetails)}
-        ` : `<div class="fast-empty"><strong>Không có SKU trong nhóm đang chọn</strong><span>Chọn nhóm khác để tiếp tục theo dõi.</span></div>`}
-      </aside>
+      <aside class="fast-detail" id="fastDetail">${renderFastDetail(selected)}</aside>
     </div>
   </section>`;
 }
@@ -930,12 +1030,12 @@ function renderSku(): string {
   return `<section class="ops-route">
     <div class="heading"><div><h2>Danh mục SKU</h2></div></div>
     <article class="ops-panel">
-      <div class="ops-panel-title"><div><h3>Cập nhật Master SKU</h3></div></div>
+      <div class="ops-panel-title"><div><h3>Cập nhật danh mục SKU</h3></div></div>
       <div class="ops-form-grid"><label class="span">File Excel .xlsx<input id="sku-file" type="file" accept=".xlsx" /></label></div>
       ${skuImportProgress ? `<div class="message">${esc(skuImportProgress)}</div>` : ""}
       ${wb ? `<section class="ops-status-strip"><span><b>${wb.total_data_rows.toLocaleString("vi-VN")}</b> dòng dữ liệu</span><span><b>${wb.items.length.toLocaleString("vi-VN")}</b> SKU sẵn sàng</span><span><b>${wb.conflicts.length}</b> xung đột</span></section>` : ""}
     </article>
-    ${wb?.conflicts.length ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Xử lý SKU trùng mã khác tên</h3><p>Chọn đúng tên sản phẩm trước khi cập nhật.</p></div></div><div class="ops-form-grid">${wb.conflicts.map((conflict) => `<label class="span">${esc(conflict.sku)}<select data-sku-conflict="${esc(conflict.sku)}"><option value="">Chọn tên sản phẩm</option>${conflict.candidates.map((candidate) => `<option value="${esc(candidate.product_name)}" ${skuConflictChoices.get(conflict.sku) === candidate.product_name ? "selected" : ""}>${esc(candidate.product_name)} · dòng ${candidate.rows.join(", ")}</option>`).join("")}</select></label>`).join("")}</div><div class="ops-form-actions"><button class="primary" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật Master SKU</button></div></article>` : wb ? `<article class="ops-panel"><div class="ops-form-actions"><button class="primary" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật Master SKU</button></div></article>` : ""}
+    ${wb?.conflicts.length ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Xử lý SKU trùng mã khác tên</h3><p>Chọn đúng tên sản phẩm trước khi cập nhật.</p></div></div><div class="ops-form-grid">${wb.conflicts.map((conflict) => `<label class="span">${esc(conflict.sku)}<select data-sku-conflict="${esc(conflict.sku)}"><option value="">Chọn tên sản phẩm</option>${conflict.candidates.map((candidate) => `<option value="${esc(candidate.product_name)}" ${skuConflictChoices.get(conflict.sku) === candidate.product_name ? "selected" : ""}>${esc(candidate.product_name)} · dòng ${candidate.rows.join(", ")}</option>`).join("")}</select></label>`).join("")}</div><div class="ops-form-actions"><button class="primary" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật danh mục SKU</button></div></article>` : wb ? `<article class="ops-panel"><div class="ops-form-actions"><button class="primary" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật danh mục SKU</button></div></article>` : ""}
   </section>`;
 }
 
@@ -1085,7 +1185,7 @@ function renderDashboard(): string {
           <div><span>Người lấy hàng</span><strong>${Number(roleOnline.PICKER || 0)}</strong></div>
           <div><span>Người xử lý báo hàng</span><strong>${Number(roleOnline.REPORTER || 0)}</strong></div>
           <div><span>Quản trị</span><strong>${Number(roleOnline.ADMIN || 0)}</strong></div>
-          <div><span>Quản trị cao nhất</span><strong>${Number(roleOnline.ROOT || 0)}</strong></div>
+          <div><span>Quản trị hệ thống</span><strong>${Number(roleOnline.ROOT || 0)}</strong></div>
         </div>
       </article>
       <article class="ops-panel">
@@ -1198,7 +1298,7 @@ function downloadSupportDiagnostics(): void {
   const stamp = new Date().toISOString().replaceAll(":", "").replaceAll("-", "").slice(0, 15);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `supra-inventory-beta-support-${stamp}.json`;
+  link.download = `supra-inventory-support-${stamp}.json`;
   document.body.appendChild(link);
   link.click();
   link.remove();
@@ -1266,7 +1366,6 @@ function renderSystem(): string {
   const workerFree = systemObj(workerLimits.free);
   const workerPaid = systemObj(workerLimits.paid);
   const doLimits = systemObj(limits.durable_objects_sqlite);
-  const authLimits = systemObj(limits.firebase_auth);
   const roleCounts = systemObj(accounts.by_role);
   const accountStatus = systemObj(accounts.by_status);
   const batchStatus = systemObj(business.batches_by_status);
@@ -1285,137 +1384,133 @@ function renderSystem(): string {
 
   return `<section class="ops-route system-workspace">
     <div class="business-page-head">
-      <div><h2>Trạng thái hệ thống</h2><p>Theo dõi dịch vụ, dung lượng, giới hạn tham chiếu và mức sử dụng hiện tại.</p></div>
+      <div><h2>Trạng thái hệ thống</h2><p>Theo dõi tình trạng, mức sử dụng và giới hạn của các dịch vụ.</p></div>
       <button class="secondary" id="refresh-system">Cập nhật số liệu</button>
     </div>
 
     <div class="system-refresh-note">
-      <span>Cập nhật lõi mỗi 60 giây khi đang mở trang.</span>
-      <span>Google Drive / GitHub được giữ tối đa 5 phút để giảm quota.</span>
-      <span>Lần tổng hợp: <b>${esc(snapshot?.generated_at ? fmt(snapshot.generated_at) : "Chưa tải")}</b></span>
+      <span>Số liệu chính tự cập nhật mỗi 60 giây khi đang mở trang.</span>
+      <span>Số liệu Google Drive và GitHub cập nhật tối đa mỗi 5 phút.</span>
+      <span>Cập nhật gần nhất: <b>${esc(snapshot?.generated_at ? fmt(snapshot.generated_at) : "Chưa tải")}</b></span>
     </div>
 
     <section class="business-summary-grid business-summary-grid-4">
-      <article class="business-summary-card ${overallOk ? "good" : "danger"}"><span>Hệ thống nghiệp vụ</span><strong>${overallOk ? "Hoạt động" : "Cần kiểm tra"}</strong><small>Worker + InventoryCore</small></article>
-      <article class="business-summary-card primary"><span>SQLite đang dùng</span><strong>${fmtBytes(dbSize)}</strong><small>${doLimit ? `${(usagePercent(dbSize, doLimit) || 0).toFixed(3)}% mốc 10 GB / object` : "Đang đo dung lượng"}</small></article>
-      <article class="business-summary-card good"><span>Người đang online</span><strong>${systemNum(realtime.online_users)}</strong><small>${systemNum(realtime.online_sessions)} phiên realtime</small></article>
-      <article class="business-summary-card"><span>Drive tài khoản</span><strong>${driveUsed == null ? "—" : fmtBytes(driveUsed)}</strong><small>${driveLimit ? `Giới hạn ${fmtBytes(driveLimit)}` : "Google không trả giới hạn cố định"}</small></article>
+      <article class="business-summary-card ${overallOk ? "good" : "danger"}"><span>Hệ thống nghiệp vụ</span><strong>${overallOk ? "Hoạt động" : "Cần kiểm tra"}</strong><small>Dịch vụ chính</small></article>
+      <article class="business-summary-card primary"><span>Dữ liệu đang dùng</span><strong>${fmtBytes(dbSize)}</strong><small>${doLimit ? `${(usagePercent(dbSize, doLimit) || 0).toFixed(3)}% giới hạn vùng dữ liệu` : "Đang đo dung lượng"}</small></article>
+      <article class="business-summary-card good"><span>Người đang online</span><strong>${systemNum(realtime.online_users)}</strong><small>${systemNum(realtime.online_sessions)} phiên đang kết nối</small></article>
+      <article class="business-summary-card"><span>Google Drive</span><strong>${driveUsed == null ? "—" : fmtBytes(driveUsed)}</strong><small>${driveLimit ? `Giới hạn ${fmtBytes(driveLimit)}` : "Chưa đọc được giới hạn"}</small></article>
     </section>
 
     <div class="system-service-grid">
       <article class="ops-panel system-service-card">
-        <div class="system-service-head"><div><span class="system-provider">Cloudflare</span><h3>Worker · Inventory API</h3></div><b class="system-health ${serviceReachable ? "ok" : "bad"}">${serviceReachable ? "Đang hoạt động" : "Mất kết nối"}</b></div>
-        <p class="system-service-desc">API Web/Android, xác thực phiên, định tuyến nghiệp vụ và static Web.</p>
+        <div class="system-service-head"><div><span class="system-provider">Cloudflare</span><h3>Website & dịch vụ xử lý</h3></div><b class="system-health ${serviceReachable ? "ok" : "bad"}">${serviceReachable ? "Đang hoạt động" : "Mất kết nối"}</b></div>
+        <p class="system-service-desc">Cung cấp website và xử lý các yêu cầu nghiệp vụ.</p>
         <div class="system-facts">
-          <div><span>Kênh hệ thống</span><b>Kiểm thử</b></div>
-          <div><span>Source đang chạy</span><b class="mono">${esc(String(snapshot?.source_commit || "chưa ghi build SHA").slice(0,12))}</b></div>
-          <div><span>Internet trình duyệt</span><b>${navigator.onLine ? "Bình thường" : "Mất kết nối"}</b></div>
-          <div><span>Realtime Web</span><b>${realtimeState === "connected" ? "Đã kết nối" : "Đang kết nối lại"}</b></div>
+          <div><span>Kết nối Internet</span><b>${navigator.onLine ? "Bình thường" : "Mất kết nối"}</b></div>
+          <div><span>Đồng bộ tức thời</span><b>${realtimeState === "connected" ? "Đã kết nối" : "Đang kết nối lại"}</b></div>
+          <div><span>Người đang online</span><b>${systemNum(realtime.online_users).toLocaleString("vi-VN")}</b></div>
+          <div><span>Phiên đang kết nối</span><b>${systemNum(realtime.online_sessions).toLocaleString("vi-VN")}</b></div>
         </div>
-        <div class="system-limit-box"><strong>Giới hạn tham chiếu Workers</strong><div>Free: ${systemNum(workerFree.requests_per_day).toLocaleString("vi-VN")} request/ngày · CPU ${systemNum(workerFree.cpu_ms_per_http_request)} ms/request · RAM ${fmtBytes(workerFree.memory_bytes_per_isolate)}</div><div>Paid: không giới hạn số request/ngày theo bảng giới hạn · CPU mặc định ${systemNum(workerPaid.cpu_ms_per_http_request_default)/1000}s, có thể nâng tối đa ${systemNum(workerPaid.cpu_ms_per_http_request_configurable_max)/1000}s · RAM ${fmtBytes(workerPaid.memory_bytes_per_isolate)}</div><small>Giới hạn hiển thị dùng để tham chiếu; gói dịch vụ hiện tại không được nhà cung cấp trả về qua kết nối này.</small></div>
+        <div class="system-limit-box"><strong>Giới hạn dịch vụ tham chiếu</strong><div>Gói miễn phí: ${systemNum(workerFree.requests_per_day).toLocaleString("vi-VN")} yêu cầu/ngày · bộ nhớ ${fmtBytes(workerFree.memory_bytes_per_isolate)}.</div><div>Gói trả phí: không giới hạn số yêu cầu/ngày theo mức tham chiếu · bộ nhớ ${fmtBytes(workerPaid.memory_bytes_per_isolate)}.</div><small>Gói đang sử dụng không được trả về trực tiếp nên các mức trên chỉ dùng để đối chiếu.</small></div>
       </article>
 
       <article class="ops-panel system-service-card">
-        <div class="system-service-head"><div><span class="system-provider">Cloudflare</span><h3>InventoryCore · Durable Object SQLite</h3></div><b class="system-health ok">Sẵn sàng</b></div>
-        <p class="system-service-desc">Nguồn dữ liệu giao dịch chính: SKU, báo hàng, batch, realtime, audit và cấu hình.</p>
-        ${usageBar(dbSize, doLimit, "Dung lượng database")}
+        <div class="system-service-head"><div><span class="system-provider">Cloudflare</span><h3>Cơ sở dữ liệu nghiệp vụ</h3></div><b class="system-health ok">Sẵn sàng</b></div>
+        <p class="system-service-desc">Lưu SKU, báo hàng, lịch sử xử lý và cấu hình hệ thống.</p>
+        ${usageBar(dbSize, doLimit, "Dung lượng dữ liệu")}
         <div class="system-facts">
           <div><span>SKU</span><b>${systemNum(business.sku_count).toLocaleString("vi-VN")}</b></div>
-          <div><span>Batch</span><b>${systemNum(tables.report_batches).toLocaleString("vi-VN")}</b></div>
-          <div><span>Lượt báo</span><b>${systemNum(tables.report_tickets).toLocaleString("vi-VN")}</b></div>
-          <div><span>Sự kiện realtime giữ lại</span><b>${systemNum(realtime.retained_events).toLocaleString("vi-VN")}</b></div>
+          <div><span>Đợt xử lý</span><b>${systemNum(tables.report_batches).toLocaleString("vi-VN")}</b></div>
+          <div><span>Lượt báo Picker</span><b>${systemNum(tables.report_tickets).toLocaleString("vi-VN")}</b></div>
+          <div><span>Bản ghi cập nhật</span><b>${systemNum(realtime.retained_events).toLocaleString("vi-VN")}</b></div>
         </div>
-        <div class="system-limit-box"><strong>Giới hạn tham chiếu SQLite DO</strong><div>10 GB/object · Free tổng account 5 GB · Free 5 triệu dòng đọc/ngày · 100.000 dòng ghi/ngày.</div><div>Soft throughput 1 object: khoảng 1.000 request/giây; CPU mặc định 30 giây/request.</div></div>
+        <div class="system-limit-box"><strong>Giới hạn lưu trữ tham chiếu</strong><div>10 GB cho mỗi vùng dữ liệu · tổng miễn phí 5 GB · tối đa 5 triệu lượt đọc và 100.000 lượt ghi/ngày ở mức miễn phí.</div><div>Khả năng xử lý tham chiếu khoảng 1.000 yêu cầu/giây cho một vùng dữ liệu.</div></div>
       </article>
 
       <article class="ops-panel system-service-card">
-        <div class="system-service-head"><div><span class="system-provider">Firebase</span><h3>Authentication</h3></div><b class="system-health ${systemNum(accounts.total) ? "ok" : "warn"}">${systemNum(accounts.total) ? "Hoạt động" : "Chưa có dữ liệu"}</b></div>
-        <p class="system-service-desc">Nhận custom token từ Worker và phát hành phiên đăng nhập cho Web/Android.</p>
+        <div class="system-service-head"><div><span class="system-provider">Firebase</span><h3>Đăng nhập & tài khoản</h3></div><b class="system-health ${systemNum(accounts.total) ? "ok" : "warn"}">${systemNum(accounts.total) ? "Hoạt động" : "Chưa có dữ liệu"}</b></div>
+        <p class="system-service-desc">Quản lý đăng nhập và phiên sử dụng của người dùng.</p>
         <div class="system-facts">
           <div><span>Tài khoản ứng dụng</span><b>${systemNum(accounts.total).toLocaleString("vi-VN")}</b></div>
-          <div><span>Đã liên kết Firebase</span><b>${systemNum(accounts.firebase_linked).toLocaleString("vi-VN")}</b></div>
+          <div><span>Đã liên kết đăng nhập</span><b>${systemNum(accounts.firebase_linked).toLocaleString("vi-VN")}</b></div>
           <div><span>Đang hoạt động</span><b>${systemNum(accountStatus.ACTIVE).toLocaleString("vi-VN")}</b></div>
           <div><span>Đã dừng</span><b>${systemNum(accountStatus.DISABLED).toLocaleString("vi-VN")}</b></div>
         </div>
         <div class="system-role-mini"><span>Picker <b>${systemNum(roleCounts.PICKER)}</b></span><span>Người xử lý <b>${systemNum(roleCounts.REPORTER)}</b></span><span>Quản trị <b>${systemNum(roleCounts.ADMIN)}</b></span><span>Quản trị hệ thống <b>${systemNum(roleCounts.ROOT)}</b></span></div>
-        <div class="system-limit-box"><strong>Giới hạn tham chiếu Auth</strong><div>Spark Tier 1: 3.000 người dùng hoạt động/ngày. Custom-token sign-in: 45.000/phút/project. Token exchange: 18.000/phút/project.</div><small>Giới hạn hiển thị dùng để tham chiếu; gói dịch vụ hiện tại không được nhà cung cấp trả về qua kết nối này.</small></div>
+        <div class="system-limit-box"><strong>Giới hạn đăng nhập tham chiếu</strong><div>Mức miễn phí tham chiếu: 3.000 người dùng hoạt động/ngày.</div><small>Gói đang sử dụng không được trả về trực tiếp nên mức trên chỉ dùng để đối chiếu.</small></div>
       </article>
 
       <article class="ops-panel system-service-card">
-        <div class="system-service-head"><div><span class="system-provider">Firebase</span><h3>Cloud Messaging</h3></div><b class="system-health ${systemNum(delivery.FAILED) ? "warn" : "ok"}">${systemNum(delivery.FAILED) ? "Có lỗi gửi" : "Bình thường"}</b></div>
-        <p class="system-service-desc">Thông báo nền đến Android khi có nghiệp vụ cần đồng bộ/hiển thị.</p>
+        <div class="system-service-head"><div><span class="system-provider">Firebase</span><h3>Thông báo ứng dụng</h3></div><b class="system-health ${systemNum(delivery.FAILED) ? "warn" : "ok"}">${systemNum(delivery.FAILED) ? "Có lỗi gửi" : "Bình thường"}</b></div>
+        <p class="system-service-desc">Gửi thông báo đến thiết bị khi có kết quả hoặc thay đổi cần chú ý.</p>
         <div class="system-facts">
-          <div><span>Thiết bị Android đang đăng ký</span><b>${systemNum(devices.ANDROID).toLocaleString("vi-VN")}</b></div>
-          <div><span>Thiết bị Web đang đăng ký</span><b>${systemNum(devices.WEB).toLocaleString("vi-VN")}</b></div>
+          <div><span>Thiết bị Android</span><b>${systemNum(devices.ANDROID).toLocaleString("vi-VN")}</b></div>
+          <div><span>Thiết bị Web</span><b>${systemNum(devices.WEB).toLocaleString("vi-VN")}</b></div>
           <div><span>Gửi thành công 24h</span><b>${systemNum(delivery.SENT).toLocaleString("vi-VN")}</b></div>
           <div><span>Gửi lỗi 24h</span><b>${systemNum(delivery.FAILED).toLocaleString("vi-VN")}</b></div>
         </div>
-        <div class="system-limit-box"><strong>Cách theo dõi</strong><div>Không polling FCM. Hệ thống chỉ ghi attempt khi thực sự phát sinh notification để tránh tốn tài nguyên.</div></div>
       </article>
 
       <article class="ops-panel system-service-card">
-        <div class="system-service-head"><div><span class="system-provider">Google</span><h3>Drive · Logs / Archive / Exports</h3></div><b class="system-health ${drive.status === "ok" ? "ok" : "warn"}">${drive.status === "ok" ? "Đã kết nối" : "Chưa đọc được"}</b></div>
-        <p class="system-service-desc">Lưu log hỗ trợ, dữ liệu archive và file xuất; không phải nguồn giao dịch chính.</p>
+        <div class="system-service-head"><div><span class="system-provider">Google Drive</span><h3>Lưu trữ file</h3></div><b class="system-health ${drive.status === "ok" ? "ok" : "warn"}">${drive.status === "ok" ? "Đã kết nối" : "Chưa đọc được"}</b></div>
+        <p class="system-service-desc">Lưu nhật ký, dữ liệu lịch sử và file xuất.</p>
         ${driveUsed == null ? `<div class="system-usage-line"><span>Dung lượng tài khoản</span><strong>Chưa đọc được</strong></div>` : usageBar(driveUsed, driveLimit, "Dung lượng tài khoản Google")}
         <div class="system-folder-grid">
-          <div><span>Logs</span><b>${systemNum(logsFolder.item_count)} file · ${fmtBytes(logsFolder.binary_size_bytes)}</b></div>
-          <div><span>Archive</span><b>${systemNum(archiveFolder.item_count)} file · ${fmtBytes(archiveFolder.binary_size_bytes)}</b></div>
-          <div><span>Exports</span><b>${systemNum(exportsFolder.item_count)} file · ${fmtBytes(exportsFolder.binary_size_bytes)}</b></div>
+          <div><span>Nhật ký</span><b>${systemNum(logsFolder.item_count)} file · ${fmtBytes(logsFolder.binary_size_bytes)}</b></div>
+          <div><span>Lưu trữ</span><b>${systemNum(archiveFolder.item_count)} file · ${fmtBytes(archiveFolder.binary_size_bytes)}</b></div>
+          <div><span>File xuất</span><b>${systemNum(exportsFolder.item_count)} file · ${fmtBytes(exportsFolder.binary_size_bytes)}</b></div>
         </div>
-        <div class="system-limit-box"><strong>Drive API</strong><div>400 triệu quota-unit/ngày trước ngưỡng tính phí công bố; files.get = 5 unit, files.list = 100 unit. Trang này cache dữ liệu Drive 5 phút.</div><small>Số liệu dung lượng tài khoản là toàn bộ Google Drive của tài khoản OAuth, không chỉ dự án Inventory.</small></div>
       </article>
 
       <article class="ops-panel system-service-card">
-        <div class="system-service-head"><div><span class="system-provider">Google</span><h3>Sheets · Nhân sự / Archive</h3></div><b class="system-health ${hr.configured ? "ok" : "warn"}">${hr.configured ? "Đã cấu hình" : "Chưa cấu hình"}</b></div>
-        <p class="system-service-desc">Sheet Nhân sự là nguồn cấu hình Picker; Archive Sheet lưu dữ liệu lịch sử theo batch.</p>
+        <div class="system-service-head"><div><span class="system-provider">Google Sheets</span><h3>Nguồn nhân sự & lưu trữ</h3></div><b class="system-health ${hr.configured ? "ok" : "warn"}">${hr.configured ? "Đã cấu hình" : "Chưa cấu hình"}</b></div>
+        <p class="system-service-desc">Đọc danh sách nhân sự và lưu dữ liệu lịch sử theo đợt.</p>
         <div class="system-facts">
           <div><span>Nhân sự nguồn</span><b>${systemNum(hr.data_row_count).toLocaleString("vi-VN")} dòng</b></div>
           <div><span>Tab nhân sự</span><b>${esc(String(hr.tab_name || "—"))}</b></div>
-          <div><span>Batch đã archive</span><b>${systemNum(archive.exported_batches).toLocaleString("vi-VN")}</b></div>
+          <div><span>Đợt đã lưu trữ</span><b>${systemNum(archive.exported_batches).toLocaleString("vi-VN")}</b></div>
           <div><span>Cập nhật nguồn</span><b>${hr.updated_at ? esc(fmt(String(hr.updated_at))) : "—"}</b></div>
         </div>
-        <div class="system-limit-box"><strong>Nguyên tắc</strong><div>Không ghi Sheet theo từng báo hàng. Giao dịch ở SQLite; Google chỉ dùng nguồn nhân sự và archive theo lô.</div></div>
       </article>
 
       <article class="ops-panel system-service-card">
-        <div class="system-service-head"><div><span class="system-provider">GitHub</span><h3>Mã nguồn · Phát hành ứng dụng</h3></div><b class="system-health ${github.status === "ok" ? "ok" : "warn"}">${github.status === "ok" ? "Đã kết nối" : "Chưa đọc được"}</b></div>
-        <p class="system-service-desc">Quản lý phiên bản mã nguồn và kênh phát hành cập nhật ứng dụng.</p>
+        <div class="system-service-head"><div><span class="system-provider">GitHub</span><h3>Phiên bản ứng dụng</h3></div><b class="system-health ${github.status === "ok" ? "ok" : "warn"}">${github.status === "ok" ? "Đã kết nối" : "Chưa đọc được"}</b></div>
+        <p class="system-service-desc">Theo dõi phiên bản ứng dụng đang phát hành.</p>
         <div class="system-facts">
-          <div><span>Phiên bản ứng dụng mới nhất</span><b>${esc(String(release.tag || "—").replace(/^beta[-_]?/i, ""))}</b></div>
-          <div><span>Nguồn release</span><b class="mono">${esc(String(release.source || "—").slice(0,12))}</b></div>
-          <div><span>Phát hành</span><b>${release.published_at ? esc(fmt(String(release.published_at))) : "—"}</b></div>
-          <div><span>Provider refresh</span><b>${providerRefresh ? esc(fmt(providerRefresh)) : "—"}</b></div>
+          <div><span>Phiên bản mới nhất</span><b>${esc(String(release.tag || "—").replace(/^beta[-_]?/i, ""))}</b></div>
+          <div><span>Ngày phát hành</span><b>${release.published_at ? esc(fmt(String(release.published_at))) : "—"}</b></div>
+          <div><span>Cập nhật số liệu</span><b>${providerRefresh ? esc(fmt(providerRefresh)) : "—"}</b></div>
         </div>
       </article>
 
       <article class="ops-panel system-service-card">
-        <div class="system-service-head"><div><span class="system-provider">Realtime</span><h3>WebSocket · Đồng bộ trực tiếp</h3></div><b class="system-health ${realtimeState === "connected" ? "ok" : "warn"}">${realtimeState === "connected" ? "Đã kết nối" : "Đang nối lại"}</b></div>
-        <p class="system-service-desc">Kênh cập nhật foreground; database vẫn là nguồn sự thật.</p>
+        <div class="system-service-head"><div><span class="system-provider">Kết nối trực tiếp</span><h3>Đồng bộ tức thời</h3></div><b class="system-health ${realtimeState === "connected" ? "ok" : "warn"}">${realtimeState === "connected" ? "Đã kết nối" : "Đang nối lại"}</b></div>
+        <p class="system-service-desc">Cập nhật thay đổi giữa các thiết bị đang sử dụng.</p>
         <div class="system-facts">
           <div><span>Người online</span><b>${systemNum(realtime.online_users)}</b></div>
           <div><span>Phiên online</span><b>${systemNum(realtime.online_sessions)}</b></div>
-          <div><span>Sequence mới nhất</span><b>${systemNum(realtime.max_seq).toLocaleString("vi-VN")}</b></div>
-          <div><span>Sự kiện giữ lại</span><b>${systemNum(realtime.retained_events).toLocaleString("vi-VN")}</b></div>
+          <div><span>Mốc đồng bộ</span><b>${systemNum(realtime.max_seq).toLocaleString("vi-VN")}</b></div>
+          <div><span>Bản ghi đồng bộ còn lưu</span><b>${systemNum(realtime.retained_events).toLocaleString("vi-VN")}</b></div>
         </div>
       </article>
     </div>
 
-    <div class="report-section-title"><h3>Dữ liệu nghiệp vụ đang chiếm hệ thống</h3><span>Số dòng hiện tại trong InventoryCore</span></div>
+    <div class="report-section-title"><h3>Dữ liệu nghiệp vụ đang lưu</h3><span>Số lượng bản ghi hiện tại</span></div>
     <article class="ops-panel">
       <div class="system-table-grid">
-        <div><span>SKU master</span><b>${systemNum(tables.sku_master).toLocaleString("vi-VN")}</b></div>
-        <div><span>Batch báo hàng</span><b>${systemNum(tables.report_batches).toLocaleString("vi-VN")}</b></div>
-        <div><span>Ticket Picker</span><b>${systemNum(tables.report_tickets).toLocaleString("vi-VN")}</b></div>
-        <div><span>Sự kiện nghiệp vụ</span><b>${systemNum(tables.report_events).toLocaleString("vi-VN")}</b></div>
-        <div><span>Sự kiện realtime</span><b>${systemNum(tables.realtime_events).toLocaleString("vi-VN")}</b></div>
+        <div><span>SKU</span><b>${systemNum(tables.sku_master).toLocaleString("vi-VN")}</b></div>
+        <div><span>Đợt xử lý</span><b>${systemNum(tables.report_batches).toLocaleString("vi-VN")}</b></div>
+        <div><span>Lượt báo Picker</span><b>${systemNum(tables.report_tickets).toLocaleString("vi-VN")}</b></div>
+        <div><span>Lịch sử xử lý</span><b>${systemNum(tables.report_events).toLocaleString("vi-VN")}</b></div>
+        <div><span>Bản ghi cập nhật</span><b>${systemNum(tables.realtime_events).toLocaleString("vi-VN")}</b></div>
         <div><span>Xác nhận kết quả</span><b>${systemNum(tables.result_acknowledgements).toLocaleString("vi-VN")}</b></div>
-        <div><span>Audit log</span><b>${systemNum(tables.audit_log).toLocaleString("vi-VN")}</b></div>
-        <div><span>Thiết bị FCM</span><b>${systemNum(tables.fcm_devices).toLocaleString("vi-VN")}</b></div>
+        <div><span>Nhật ký thao tác</span><b>${systemNum(tables.audit_log).toLocaleString("vi-VN")}</b></div>
+        <div><span>Thiết bị nhận thông báo</span><b>${systemNum(tables.fcm_devices).toLocaleString("vi-VN")}</b></div>
       </div>
       <div class="system-status-strip">
         <span>10 phút gần nhất <b>${systemNum(business.reports_last_10_minutes)} lượt báo</b></span>
         <span>24 giờ gần nhất <b>${systemNum(business.reports_last_24_hours)} lượt báo</b></span>
-        <span>Đang chờ xử lý <b>${systemNum(batchStatus.PENDING)} batch / ${systemNum(ticketStatus.OPEN)} Picker</b></span>
+        <span>Đang chờ xử lý <b>${systemNum(batchStatus.PENDING)} đợt / ${systemNum(ticketStatus.OPEN)} Picker</b></span>
       </div>
     </article>
 
@@ -1430,16 +1525,12 @@ function renderSystem(): string {
           <div><span>Phản hồi bình quân</span><b>${systemNum(loadTest.average_ms).toFixed(1)} ms</b></div>
           <div><span>95% yêu cầu dưới</span><b>${systemNum(loadTest.p95_ms).toFixed(1)} ms</b></div>
         </div>
-        <p class="system-test-note">Test ID <span class="mono">${esc(String(loadTest.test_id))}</span> · hoàn thành ${esc(String(loadTest.completed_at ? fmt(String(loadTest.completed_at)) : "—"))}. Đây là số liệu đo thực tế tại thời điểm kiểm tra.</p>
+        <p class="system-test-note">Hoàn thành ${esc(String(loadTest.completed_at ? fmt(String(loadTest.completed_at)) : "—"))}. Đây là số liệu đo thực tế tại thời điểm kiểm tra.</p>
       ` : `<div class="ops-empty">Chưa có kết quả kiểm tra tải.</div>`}
     </article>
-
-    <details class="system-tech-details">
-      <summary>Thông tin kỹ thuật chi tiết</summary>
-      <pre class="diagnostics">${esc(snapshot ? JSON.stringify(sanitizeDiagnosticValue(snapshot), null, 2) : (serviceHealth ? JSON.stringify(sanitizeDiagnosticValue(serviceHealth), null, 2) : "Chưa tải trạng thái dịch vụ."))}</pre>
-    </details>
   </section>`;
 }
+
 function renderLegacyDevices(): string {
   return renderSystem();
 }
@@ -1682,7 +1773,7 @@ async function exportReportsCsv(): Promise<void> {
   } while (offset < total);
   markWebUpdateReceived();
 
-  const header = ["SKU","Tên sản phẩm","Trạng thái","Báo đầu","Xử lý","Thời gian xử lý (phút)","Ticket"];
+  const header = ["SKU","Tên sản phẩm","Trạng thái","Báo đầu","Xử lý","Thời gian xử lý (phút)","Số lượt báo"];
   const body = rows.map((row) => [
     row.sku,
     row.product_name,
@@ -1739,17 +1830,8 @@ function bindShell(): void {
   if (!currentProfile) return;
   document.querySelectorAll<HTMLButtonElement>("[data-section]").forEach((button) => button.addEventListener("click", () => {
     const next = button.dataset.section as Section;
-    if (!next || next === activeSection) return;
-    if (!canAccessSection(next, currentProfile)) return;
-    activeSection = next;
-    syncSectionHash(next);
-    notice = null;
-    pickerSearchGeneration += 1;
-    dashboardLoadGeneration += 1;
-    reportLoadGeneration += 1;
-    editUserId = null;
-    passwordUserId = null;
-    void run(async () => { await loadSection(next); });
+    if (!next || next === activeSection || !canAccessSection(next, currentProfile)) return;
+    navigateToSection(next, "push");
   }));
   document.querySelector<HTMLSelectElement>("#theme-mode")?.addEventListener("change", (event) => {
     const next = String((event.currentTarget as HTMLSelectElement).value || "AUTO").toUpperCase();
@@ -1776,7 +1858,7 @@ function bindShell(): void {
       clearRoleScopedViewState();
       skipDelayEnabled = loadSkipDelayEnabled(profile.user_id);
       activeSection = defaultSectionForProfile(profile);
-      syncSectionHash(activeSection);
+      syncSectionHistory(activeSection, "replace");
       window.dispatchEvent(new CustomEvent("supra:session-changed"));
       await loadSection(activeSection);
     });
@@ -1888,15 +1970,41 @@ function bindOverlay(): void {
   });
 }
 
+function bindReporterActionButtons(root: ParentNode = document): void {
+  root.querySelectorAll<HTMLButtonElement>("[data-resolve]").forEach((button) => button.addEventListener("click", () => {
+    const batchId = button.dataset.batch || "";
+    stockConfirm = queueRows.find((item) => item.batch_id === batchId) || null;
+    patchOverlays();
+  }));
+  root.querySelectorAll<HTMLButtonElement>("[data-skip-batch]").forEach((button) => button.addEventListener("click", () => {
+    skipConfirm = queueRows.find((item) => item.batch_id === button.dataset.skipBatch) || null;
+    skipConfirmOpenedAt = Date.now();
+    patchOverlays();
+    if (skipConfirm && skipDelayEnabled) {
+      const batchId = skipConfirm.batch_id;
+      for (const delay of [1_000, 2_000, 3_000, 4_000, SKIP_CONFIRM_DELAY_MS + 50]) {
+        window.setTimeout(() => {
+          if (skipConfirm?.batch_id === batchId) patchOverlays();
+        }, delay);
+      }
+    }
+  }));
+  root.querySelectorAll<HTMLButtonElement>("[data-detail]").forEach((button) => button.addEventListener("click", () => {
+    const id = button.dataset.detail || "";
+    if (!id) return;
+    if (expandedBatchDetails.has(id)) expandedBatchDetails.delete(id);
+    else expandedBatchDetails.add(id);
+    if (activeSection === "operations" && selectedBatchId === id) refreshFastDetailOnly();
+    else patchActiveSection(true);
+    if (expandedBatchDetails.has(id)) prefetchBatchDetails(id);
+  }));
+}
+
 function bindSection(): void {
   document.querySelectorAll<HTMLButtonElement>("[data-workspace-section]").forEach((button) => button.addEventListener("click", () => {
     const next = button.dataset.workspaceSection as Section;
     if (!profile || !next || next === activeSection || !canAccessSection(next, profile)) return;
-    activeSection = next;
-    syncSectionHash(next);
-    notice = null;
-    runtimeLogEvent(`Mở nghiệp vụ ${next}`);
-    void run(async () => { await loadSection(next); });
+    navigateToSection(next, "push");
   }));
 
   document.querySelectorAll<HTMLButtonElement>("[data-queue-filter]").forEach((button) => button.addEventListener("click", () => {
@@ -1933,37 +2041,18 @@ function bindSection(): void {
     setNotice("success", "Đã gửi log Web.");
   }));
   document.querySelectorAll<HTMLButtonElement>("[data-select-batch]").forEach((button) => button.addEventListener("click", () => {
-    selectedBatchId = button.dataset.selectBatch || null;
-    patchActiveSection(true);
-    if (selectedBatchId) prefetchBatchDetails(selectedBatchId);
+    const started = performance.now();
+    const nextBatchId = button.dataset.selectBatch || null;
+    if (!nextBatchId || nextBatchId === selectedBatchId) return;
+    selectedBatchId = nextBatchId;
+    document.querySelectorAll<HTMLElement>("[data-select-batch].selected").forEach((row) => row.classList.remove("selected"));
+    button.classList.add("selected");
+    refreshFastDetailOnly();
+    prefetchBatchDetails(nextBatchId);
+    runtimeLogEvent(`Chọn SKU hiển thị sau ${Math.max(0, Math.round(performance.now() - started))}ms`);
   }));
 
-  document.querySelectorAll<HTMLButtonElement>("[data-resolve]").forEach((button) => button.addEventListener("click", () => {
-    const batchId = button.dataset.batch || "";
-    stockConfirm = queueRows.find((item) => item.batch_id === batchId) || null;
-    patchOverlays();
-  }));
-  document.querySelectorAll<HTMLButtonElement>("[data-skip-batch]").forEach((button) => button.addEventListener("click", () => {
-    skipConfirm = queueRows.find((item) => item.batch_id === button.dataset.skipBatch) || null;
-    skipConfirmOpenedAt = Date.now();
-    patchOverlays();
-    if (skipConfirm && skipDelayEnabled) {
-      const batchId = skipConfirm.batch_id;
-      for (const delay of [1_000, 2_000, 3_000, 4_000, SKIP_CONFIRM_DELAY_MS + 50]) {
-        window.setTimeout(() => {
-          if (skipConfirm?.batch_id === batchId) patchOverlays();
-        }, delay);
-      }
-    }
-  }));
-  document.querySelectorAll<HTMLButtonElement>("[data-detail]").forEach((button) => button.addEventListener("click", () => {
-    const id = button.dataset.detail || "";
-    if (!id) return;
-    if (expandedBatchDetails.has(id)) expandedBatchDetails.delete(id);
-    else expandedBatchDetails.add(id);
-    patchActiveSection(true);
-    if (expandedBatchDetails.has(id)) prefetchBatchDetails(id);
-  }));
+  bindReporterActionButtons();
   document.querySelectorAll<HTMLButtonElement>("[data-correct]").forEach((button) => button.addEventListener("click", () => void run(async () => {
     await correctReporterBatch(button.dataset.correct || "");
     await loadOperations();
@@ -2201,9 +2290,7 @@ function bindSection(): void {
     reportStatus = button.dataset.dashboardStatus || "";
     reportQuery = button.dataset.dashboardSku || "";
     reportOffset = 0;
-    activeSection = "reports";
-    notice = null;
-    void run(loadReports);
+    navigateToSection("reports", "push");
   }));
   document.querySelector<HTMLButtonElement>("#report-prev")?.addEventListener("click", () => {
     reportOffset = Math.max(0, reportOffset - REPORT_PAGE_SIZE);
@@ -2246,7 +2333,7 @@ async function importSkuWorkbook(): Promise<void> {
     const result = await importSkuChunk(chunk, { requestId: crypto.randomUUID(), sourceHash: wb.source_hash, dryRun: true });
     for (const conflict of result.conflicts || []) databaseConflicts.push(`${conflict.sku}: ${conflict.current_product_name} → ${conflict.incoming_product_name}`);
   }
-  if (databaseConflicts.length && !window.confirm(`Có ${databaseConflicts.length} SKU đổi tên so với Master hiện tại. Xác nhận cập nhật tên?\n\n${databaseConflicts.slice(0, 15).join("\n")}`)) {
+  if (databaseConflicts.length && !window.confirm(`Có ${databaseConflicts.length} SKU đổi tên so với danh mục hiện tại. Xác nhận cập nhật tên?\n\n${databaseConflicts.slice(0, 15).join("\n")}`)) {
     skuImportProgress = "Đã dừng trước khi cập nhật vì chưa xác nhận đổi tên SKU hiện hữu.";
     return;
   }
@@ -2301,10 +2388,12 @@ window.addEventListener("supra:realtime-status", (event) => {
   const node = document.querySelector<HTMLElement>("#connection-state");
   if (node) {
     node.className = `connection ${realtimeState}`;
-    const dirtySuffix = detail.dirty ? " · đang khôi phục" : "";
+    const recovering = detail.dirty ? " · đang khôi phục" : "";
     node.textContent = realtimeState === "connected"
-      ? `Realtime · #${realtimeLastSeq}${dirtySuffix}`
-      : `${realtimeState}${dirtySuffix}`;
+      ? `Đồng bộ: Đã kết nối${recovering}`
+      : realtimeState === "offline"
+        ? "Đồng bộ: Mất kết nối"
+        : `Đồng bộ: Đang kết nối${recovering}`;
   }
 });
 window.addEventListener("online", () => {
@@ -2319,19 +2408,8 @@ window.addEventListener("offline", () => {
   patchHeaderRuntime();
   if (profile) patchActiveSection(true);
 });
-window.addEventListener("hashchange", () => {
-  if (!profile) return;
-  const requested = sectionFromHash();
-  if (!requested || !canAccessSection(requested, profile) || requested === activeSection) return;
-  activeSection = requested;
-  notice = null;
-  pickerSearchGeneration += 1;
-  dashboardLoadGeneration += 1;
-  reportLoadGeneration += 1;
-  editUserId = null;
-  passwordUserId = null;
-  void run(async () => { await loadSection(requested); });
-});
+window.addEventListener("popstate", handleSectionHistoryNavigation);
+window.addEventListener("hashchange", handleSectionHistoryNavigation);
 
 async function bootstrap(): Promise<void> {
   if (!hasSession()) { renderLogin(); return; }
@@ -2339,7 +2417,7 @@ async function bootstrap(): Promise<void> {
     profile = await getMyProfile();
     sessionViewGeneration += 1;
     activeSection = resolveInitialSection(profile);
-    syncSectionHash(activeSection);
+    syncSectionHistory(activeSection, "replace");
     await loadSection(activeSection);
     render();
     window.dispatchEvent(new CustomEvent("supra:session-changed"));

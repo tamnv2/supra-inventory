@@ -2434,3 +2434,97 @@ body[data-theme="dark"] .confirm-wait {
   .zoom-buttons .ghost { min-width: 31px; padding-inline: 6px !important; }
   .zoom-buttons .zoom-value { min-width: 46px; }
 }
+
+
+/* D068 Web navigation, notifications and selection clarity */
+.web-toast-stack {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 4000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  width: min(430px, calc(100vw - 32px));
+  pointer-events: none;
+}
+.web-toast {
+  width: fit-content;
+  max-width: 100%;
+  padding: 10px 13px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, .60);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(15,23,42,.18);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 600;
+  animation: d068-toast-in .16s ease-out;
+}
+.web-toast.success { background: rgba(6, 95, 70, .60); }
+.web-toast.warning { background: rgba(146, 64, 14, .60); }
+.web-toast.error { background: rgba(153, 27, 27, .60); }
+@keyframes d068-toast-in {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.nav-section-label {
+  min-height: 30px !important;
+  font-size: 15px !important;
+  line-height: 1.15 !important;
+  font-weight: 850 !important;
+  letter-spacing: .055em !important;
+}
+.nav-section-label .nav-icon {
+  width: 17px !important;
+  height: 17px !important;
+  flex-basis: 17px !important;
+}
+
+.tabs .nav-button.active,
+.header-account-action.active,
+.workspace-tab.active,
+.fast-issue-row.selected,
+.log-row.selected,
+.fast-buckets button.active,
+.filter.active {
+  background: #e6f0f9 !important;
+  color: #0f4c81 !important;
+  box-shadow: inset 3px 0 0 #2f6fa3 !important;
+}
+.workspace-tab.active,
+.log-row.selected,
+.fast-buckets button.active,
+.filter.active {
+  box-shadow: inset 0 -2px 0 #2f6fa3 !important;
+}
+.summary-filter-card.active {
+  background: #eef5fb !important;
+  outline-width: 2px !important;
+}
+body[data-theme="dark"] :is(
+  .tabs .nav-button.active,
+  .header-account-action.active,
+  .workspace-tab.active,
+  .fast-issue-row.selected,
+  .log-row.selected,
+  .fast-buckets button.active,
+  .filter.active
+) {
+  background: #17314a !important;
+  color: #9bd1ff !important;
+}
+body[data-theme="dark"] .summary-filter-card.active {
+  background: #17314a !important;
+}
+
+@media (max-width: 979px) {
+  .nav-section-label {
+    font-size: 14px !important;
+  }
+}

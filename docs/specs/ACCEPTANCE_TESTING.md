@@ -303,3 +303,16 @@ Non-destructive CI tests may use declared synthetic tiers. Destructive/mutation 
 - Archived finalized batches preserve version/recurrence/result-event/ACK lifecycle evidence in the existing archive surfaces.
 - Retention cleanup of an archived finalized batch leaves no orphan result acknowledgements, result snapshots, batch realtime rows or correlated notification-attempt rows.
 - Web support log is bounded JSON and Android support log is bounded text/JSON share content; neither includes session tokens, password/secret/private-key material or raw credential stores.
+
+
+D068 Web interaction acceptance:
+- D067 items 1–8 and 10 remain unchanged from their accepted behavior;
+- no normal visible Web copy exposes Beta/Root jargon, source/build identifiers, raw internal database/realtime terminology, development decision IDs, AI/Owner discussion or raw technical-details dumps;
+- success/warning/error action feedback appears only as bottom-left toast notifications, never as a workspace-top banner; toast background is translucent, auto-hide is 5 seconds and stack size never exceeds five;
+- current sidebar item, workspace tab, filter/list selection has a visibly different background in light and dark modes;
+- `VẬN HÀNH / QUẢN LÝ / HỆ THỐNG` are visually larger than child items;
+- changing a Web section immediately changes active styling/content before its data request finishes;
+- selecting a pending SKU updates selected-row/detail DOM without rebuilding the full pending list;
+- latest runtime log evidence is consistent with healthy connectivity/realtime; UI delay is not attributed to memory or network without evidence;
+- section/workspace navigation creates browser history; Back/Forward returns through previously selected allowed sections and does not immediately leave the application while internal history entries remain;
+- dashboard drill-down to detailed reporting participates in the same browser history model.
