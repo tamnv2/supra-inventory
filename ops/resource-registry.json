@@ -176,21 +176,21 @@
       "android_source_status": "D070_TIMEOUT_ALERT_PROJECTION_SIGNED_BETA_VC46_RUNTIME_GATE_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
-      "latest_signed_beta_release": "beta-vc46",
-      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.46",
-      "latest_signed_beta_apk_sha256": "875b5bd32f22f77fbe7453020d38c60d587a97720bd14cecdae89d202e39287e",
-      "latest_signed_beta_apk_size_bytes": 9299586,
+      "latest_signed_beta_release": "beta-vc47",
+      "latest_signed_beta_release_name": "SUPRA Inventory Beta 0.2.0-beta.47",
+      "latest_signed_beta_apk_sha256": "8e2fc11e09940db061edf4c23b5973ec2be9300b2ddfc4835bcef1d3af74c439",
+      "latest_signed_beta_apk_size_bytes": 9300090,
       "auth_rbac_status": "SERVER_PAGED_FILTERED_ONE_MANY_ALL__ROOT_EFFECTIVE_ROLE_TEST_RUNTIME_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
       "auth_api_route_smoke": "PASS",
       "root_bootstrap_path_smoke": "PASS",
       "hr_settings_ui_status": "CONFIGURABLE_URL_TAB_EMPLOYEE_AND_NAME_HEADERS_DEPLOYED_PASS",
       "business_api_status": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
-      "latest_signed_beta_release_source_commit": "3f3506a0f185d5e1a0f22ba6a908b161bae6dd6e",
+      "latest_signed_beta_release_source_commit": "f7c596f60eac626989a58ea40492417006ee61b1",
       "managed_password_status": "DIRECT_CREATE_AND_CHANGE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
-      "relay_poc_status": "D073_SOURCE_BUILD_IN_PROGRESS__RTDB_PROVISIONING_PENDING"
+      "relay_poc_status": "D073_SOURCE_BUILD_RELEASE_PASS__RTDB_PROVISIONING_FIELD_TEST_PENDING"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -422,9 +422,9 @@
     "web_diagnostics": "API_RENDER_REALTIME_NAVIGATION_LONG_TASK_RESOURCE_DOM_INTERACTION_BOUNDED_TELEMETRY"
   },
   "android": {
-    "latest_beta_release": "beta-vc46",
-    "latest_beta_release_source": "3f3506a0f185d5e1a0f22ba6a908b161bae6dd6e",
-    "latest_beta_apk_sha256": "875b5bd32f22f77fbe7453020d38c60d587a97720bd14cecdae89d202e39287e"
+    "latest_beta_release": "beta-vc47",
+    "latest_beta_release_source": "f7c596f60eac626989a58ea40492417006ee61b1",
+    "latest_beta_apk_sha256": "8e2fc11e09940db061edf4c23b5973ec2be9300b2ddfc4835bcef1d3af74c439"
   },
   "system_status": {
     "environment": "beta",
@@ -501,7 +501,7 @@
   "relay_poc": {
     "decision": "D073",
     "environment": "beta",
-    "status": "SOURCE_BUILD_IN_PROGRESS__RTDB_PROVISIONING_PENDING",
+    "status": "SOURCE_BUILD_RELEASE_PASS__RTDB_PROVISIONING_FIELD_TEST_PENDING",
     "purpose": "Authenticated PDA-to-Windows-Agent transport proof only; no WMS mutation",
     "transport": "FIREBASE_RTDB_REST_SSE",
     "database_resource_key": "firebase-rtdb-relay-beta",
@@ -513,6 +513,9 @@
     "android": "PICKER_FIVE_DIGIT_TEST_SENDER",
     "windows_agent": "NET48_NORMAL_USER_DPAPI_REFRESH_TOKEN_SSE_ACK",
     "wms_mutation": "FORBIDDEN_IN_POC",
-    "stable": "UNTOUCHED_OWNER_GATED"
+    "stable": "UNTOUCHED_OWNER_GATED",
+    "android_release": "beta-vc47",
+    "android_apk_sha256": "8e2fc11e09940db061edf4c23b5973ec2be9300b2ddfc4835bcef1d3af74c439",
+    "windows_agent_sha256": "1b51c33d53a53a0fb8b7c6a9c4f4305f7c042bbd2c97e91b082144587c7bdd73"
   }
 }
