@@ -409,3 +409,15 @@ D074 is field-ready only when all of the following are true:
 6. Successful test displays Agent identity/network plus end-to-end milliseconds; timeout/403/transport errors are explicit and never reported as business confirmation success.
 7. Existing Báo hết hàng behavior and Worker/InventoryCore transaction path remain unchanged.
 8. No WMS mutation exists and Stable remains untouched.
+
+
+## D075 — ADMIN shared relay and Agent update acceptance
+
+1. Picker account A can submit a five-digit test while the Agent is logged in with a different ADMIN account; ACK returns without requiring matching Firebase UID.
+2. EXE rejects PICKER, REPORTER and ROOT accounts and accepts only real base-role ADMIN.
+3. ACK exposes ADMIN user id + machine + persistent Agent instance id + network + RTT to the PDA/log without exposing credentials.
+4. Two Agents receiving the same PENDING request cannot both own ACK; the first valid ADMIN ACK wins.
+5. RTDB Rules deny unauthenticated/shared Picker collection reads and deny non-ADMIN Agent ACK.
+6. Agent automatically checks dedicated `relay-agent-vN` GitHub prereleases; a newer executable is installed only after SHA-256 verification and the app relaunches automatically when the executable directory is writable.
+7. Agent update prereleases do not replace Android Beta `/releases/latest`.
+8. No WMS lookup/confirmation/mutation exists; Stable is untouched.
