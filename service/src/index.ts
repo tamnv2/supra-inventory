@@ -462,12 +462,7 @@ export default {
 
       if (request.method === "GET" && url.pathname === "/api/admin/system-status") {
         await requireUser(request, env, ["ADMIN", "ROOT"]);
-        const fresh = url.searchParams.get("fresh") === "1";
-        try {
-          return json(await collectSystemStatus(env, fresh));
-        } catch (error) {
-          return json({ error: "SYSTEM_STATUS_FAILED", message: error instanceof Error ? error.message : "system_status_failed" }, 502);
-        }
+        return json({ error: "SYSTEM_STATUS_DISABLED_QUOTA_GUARD" }, 410);
       }
 
       if (url.pathname.startsWith("/api/__beta_load_test__/")) {
@@ -512,7 +507,7 @@ export default {
         }
 
         if (request.method === "GET" && url.pathname === "/api/__beta_load_test__/snapshot") {
-          return json(await collectSystemStatus(env, true));
+          return json(await collectSystemStatus(env, false, false));
         }
 
         if (request.method === "POST" && url.pathname === "/api/__beta_load_test__/record") {
