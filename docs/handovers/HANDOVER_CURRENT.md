@@ -7,7 +7,7 @@
 Canonical current markers:
 - SQLite schema: `6`
 - Latest Beta APK: `beta-vc45`
-- Web: `D067_WEB_UX_BETA_RUNTIME_PASS__OWNER_10_ITEM_ACCEPTANCE_PENDING`
+- Web: `D068_WEB_INTERACTION_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`
 - Android: `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 
 The project is in **UI-first review**, not business-logic rebuild.
@@ -457,7 +457,7 @@ Implementation details:
 - Picker Web keeps its single `Báo thiếu hàng` workspace.
 - Android/PDA unchanged. Stable untouched and OWNER-GATED.
 
-Current source marker: `D067_WEB_UX_BETA_RUNTIME_PASS__OWNER_10_ITEM_ACCEPTANCE_PENDING`.
+Current source marker: `D068_WEB_INTERACTION_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`.
 Next action: finish PR guards → merge → Beta deploy → record runtime PASS/continuity.
 
 ## D066 runtime evidence — clean handoff
@@ -493,9 +493,16 @@ No manual end-of-session handover is required; bootstrap from `ops/authority-man
 
 ## D067 active refinement — 2026-09-19
 
-Owner accepted D066 as the current Web baseline and requested 10 bounded refinements: text zoom; clickable complete pending/warning/overdue lists; latest-report detail; responsive one-row-per-Picker detail; scroll preservation; optional 5-second Skip guard; HAS_STOCK confirmation; Web-log de-duplication; clean end-user copy; and removal of the 200-row pending-queue truncation. Source marker: `D067_WEB_UX_BETA_RUNTIME_PASS__OWNER_10_ITEM_ACCEPTANCE_PENDING`. Stable remains OWNER-GATED.
+Owner accepted D066 as the current Web baseline and requested 10 bounded refinements: text zoom; clickable complete pending/warning/overdue lists; latest-report detail; responsive one-row-per-Picker detail; scroll preservation; optional 5-second Skip guard; HAS_STOCK confirmation; Web-log de-duplication; clean end-user copy; and removal of the 200-row pending-queue truncation. Source marker: `D068_WEB_INTERACTION_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`. Stable remains OWNER-GATED.
 
 
 ## D067 runtime PASS — 2026-09-19
 
-PR #52 merged at `c2249ceea9fbb9570c3855fc2a0a421b251e3328`. Repo Authority Guard `35411796234`, Project State Guard `35411796230`, UI Design Guard `35411796208` and Beta deploy `35411796215` all PASS. UI Guard includes Worker typecheck, Web production build and Android debug build; deploy verifies health/schema, auth/business guards, Web shell and Google OAuth start. Current source marker: `D067_WEB_UX_BETA_RUNTIME_PASS__OWNER_10_ITEM_ACCEPTANCE_PENDING`. Next step is Owner testing of the exact 10 requested D067 items; freeze each item once marked OK. Stable remains OWNER-GATED.
+PR #52 merged at `c2249ceea9fbb9570c3855fc2a0a421b251e3328`. Repo Authority Guard `35411796234`, Project State Guard `35411796230`, UI Design Guard `35411796208` and Beta deploy `35411796215` all PASS. UI Guard includes Worker typecheck, Web production build and Android debug build; deploy verifies health/schema, auth/business guards, Web shell and Google OAuth start. Current source marker: `D068_WEB_INTERACTION_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`. Next step is Owner testing of the exact 10 requested D067 items; freeze each item once marked OK. Stable remains OWNER-GATED.
+
+
+## D068 active Web refinement — 2026-09-19
+
+Owner accepted and froze D067 items 1–8 and 10. D068 reopens only item 9 and adds requirements 11–15: full user-facing copy cleanup, bottom-left max-five 5-second translucent toasts, clear active backgrounds, interaction-delay repair, larger VẬN HÀNH / QUẢN LÝ / HỆ THỐNG headings, and same-page Back/Forward history. Latest Web log at 09:20 ICT showed realtime connected, service reachable, browser RTT about 50 ms, 10 Mbps reported downlink and JS heap under 3 MB; source inspection identified route rendering waiting for data load and selected-SKU full-list rerender as actionable UI delay causes. Source marker: `D068_WEB_INTERACTION_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`. Android unchanged; Stable OWNER-GATED.
+
+Next command: `Kiểm tra live D068 và test mục 9, 11-15`.
