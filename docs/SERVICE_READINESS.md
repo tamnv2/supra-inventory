@@ -407,8 +407,8 @@ Current relay marker: `D078_AGENT_V4_RELEASE_PASS__OWNER_OFFICE_PROBE_PENDING__R
 Current confirmation marker: `D078_AGENT_V4_RELEASE_PASS__PAUSED_OWNER_AWAY_FROM_OFFICE__RESUME_TRIGGER_D079__NO_WMS_MUTATION`.
 Current active workstream marker: `BAO_HANG_WEB_ANDROID_ACTIVE_FOR_NEXT_SESSION`.
 
-## D080 Agent ↔ Supra read-only POC — source candidate
+## D080 Agent ↔ Supra read-only POC — Agent v5 release PASS
 
-Owner temporarily keeps D078 PDA ↔ Agent Office field testing pending and moves the confirmation workstream to Agent ↔ Supra connectivity. D080 Agent v5 source adds dedicated-Edge automatic HY1 session capture without F12/cURL, RAM-only session values, WMS UI reachability and one signed read-only zones GET through bounded corporate-aware routes. Picklist lookup/confirmation/mutation remains forbidden. Technical build/PR/release evidence is pending.
+D080 source/PR/main build and dedicated prerelease are PASS. `relay-agent-v5` is published from merged main with EXE SHA-256 `27b1ca9091e19047def478881692fe7cd7d9b930586e028fe33a1605ddcf0376`. Owner field action is now `TEST SUPRA`: no F12/cURL, sign in to the dedicated Edge WMS window only if WMS asks, then provide sanitized result/log. The probe remains WMS UI + signed read-only zones GET only; no Picklist lookup/confirmation/mutation. D078 PDA ↔ Agent Office testing remains separately pending.
 
-Current relay marker: `D080_AGENT_WMS_READONLY_SOURCE_CANDIDATE__D078_OFFICE_FIELD_PENDING__NO_WMS_MUTATION`.
+Current relay marker: `D080_AGENT_V5_RELEASE_PASS__OWNER_WMS_FIELD_TEST_PENDING__D078_OFFICE_PENDING__NO_WMS_MUTATION`.
