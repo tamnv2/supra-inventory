@@ -1309,7 +1309,7 @@ function supportDiagnostics(): Record<string, unknown> {
 }
 
 function downloadSupportDiagnostics(): void {
-  const body = JSON.stringify(supportDiagnostics(), null, 2).slice(0, 16_000);
+  const body = JSON.stringify(supportDiagnostics(), null, 2).slice(0, 180_000);
   const blob = new Blob([body], { type: "application/json;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const stamp = new Date().toISOString().replaceAll(":", "").replaceAll("-", "").slice(0, 15);
