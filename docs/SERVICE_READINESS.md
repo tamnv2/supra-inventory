@@ -258,3 +258,14 @@ Next action: guards → PR → merge → Beta deploy → health/schema/auth/busi
 
 
 Current Web marker: `D071_WEB_SOURCE_MERGED__D072_SYSTEM_STATUS_EXCLUDED_SOURCE_IMPLEMENTED__BETA_RUNTIME_REPAIR_PENDING`.
+
+
+## D070 repair + D071/D072 Beta runtime PASS — 2026-09-19
+
+Runtime source: `ca5ab13a3f52722b595ce7a713afa95891a8b002` (PR #63).
+
+Main Repo Authority Guard `35439017807`, Project State Guard `35439017780`, UI Design Guard `35439017789` and Beta deploy `35439017752` all PASS. Beta health passed on the first probe: HTTP 200, storage ready, SQLite schema `7/7`, Operational V2 `5/5`; auth/Root bootstrap, business API/auth guards, Web shell and Google OAuth start also PASS.
+
+Current Web marker: `D071_IMMEDIATE_RESPONSE_DENSITY_D072_SYSTEM_STATUS_QUOTA_GUARD_BETA_RUNTIME_PASS__OWNER_REVIEW_PENDING`. D071 is live for Owner review: uniform checkboxes, logical 100% at the new ~5% larger baseline, compact date controls, and immediate Reporter Có hàng/Skip pending feedback without synchronous full-queue reload. D072 is live: normal `Trạng thái hệ thống` navigation/routing/manual/60-second polling is removed, the normal admin system-status endpoint is quota-guard disabled, and the gated Beta load-test snapshot is core-only without Google Drive/GitHub provider reads. `HỆ THỐNG` exposes only `Nhật ký`.
+
+Android remains signed `beta-vc46` and unchanged by PR #63. Stable remains untouched/OWNER-GATED.
