@@ -274,3 +274,20 @@ Office sequencing is unchanged: D078 remains paused until Owner is physically at
 - Only exact field `PickListCode` is authoritative. Expected code shape is `PL` followed by digits; compare only its final five digits with the PDA input.
 - A malformed/unknown schema or stalled pagination fails closed; it must never be converted into `KHÔNG CÓ PICKLIST`.
 - No confirmation/mutation is added.
+
+## D085 — Picker lookup, sticky Agent ownership and failover
+
+For `Xác nhận đơn`, transport selection remains pending D078; the currently deployed Beta relay is only the temporary carrier.
+
+1. A real ADMIN Windows Agent restores its SUPRA Inventory session and tries to restore/validate an authorized WMS session from the dedicated browser profile.
+2. WMS-ready Agents participate in one sticky active-Agent lease. One active Agent owns all lookup work; standby Agents remain idle for WMS work.
+3. The active Agent preloads the complete D084 all-date exact-`PickListCode` list into RAM.
+4. PDA submits exactly five digits only when a healthy processing Agent exists. If none exists, lookup stops and the Picker is instructed to go to the specialist desk.
+5. Cache hit returns FOUND without a WMS request.
+6. Cache miss with cache age <=10 seconds returns final NOT_FOUND from the fresh cache. Older cache triggers one shared refresh; concurrent misses join the same in-flight refresh.
+7. A final NOT_FOUND increments the Picker account strike state. Three within 60 seconds lock lookup for 5 minutes, then 30 minutes, then 60 minutes for third/subsequent lock episodes. FOUND clears the current strike count; non-business errors never count.
+8. If active Agent heartbeat disappears for 10 seconds, one standby becomes active, PDA displays `Đang chuyển người xử lý...`, and the new active Agent resumes pending/switching jobs.
+9. No WMS-ready Agent after failover means the Picker is instructed to go to the specialist desk.
+
+A future confirmation adapter may only be added after a separate explicit Owner authorization of the exact mutation endpoint/contract. Until then the flow ends at read-only existence result.
+
