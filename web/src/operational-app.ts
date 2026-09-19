@@ -603,6 +603,58 @@ function patchActiveSection(preserveContext = true): void {
   restoreUiContext(snapshot);
 }
 
+function syncNavigationSelection(): void {
+  document.querySelectorAll<HTMLElement>("[data-section]").forEach((node) => {
+    const selected = node.dataset.section === activeSection;
+    node.classList.toggle("active", selected);
+    if (selected) node.setAttribute("aria-current", "page");
+    else node.removeAttribute("aria-current");
+  });
+}
+
+function navigateToSection(next: Section, historyMode: SectionHistoryMode = "push"): void {
+  if (!profile || !canAccessSection(next, profile)) return;
+  if (next === activeSection) {
+    syncSectionHistory(next, historyMode === "push" ? "none" : historyMode);
+    return;
+  }
+  const started = performance.now();
+  activeSection = next;
+  syncSectionHistory(next, historyMode);
+  pickerSearchGeneration += 1;
+  dashboardLoadGeneration += 1;
+  reportLoadGeneration += 1;
+  editUserId = null;
+  passwordUserId = null;
+  syncNavigationSelection();
+  patchActiveSection(false);
+  const displayedMs = Math.max(0, Math.round(performance.now() - started));
+  runtimeLogEvent(`Mở ${next}: hiển thị ${displayedMs}ms`);
+
+  const requestedSection = next;
+  const loadStarted = performance.now();
+  void loadSection(requestedSection)
+    .then(() => {
+      runtimeLogEvent(`Tải ${requestedSection}: ${Math.max(0, Math.round(performance.now() - loadStarted))}ms`);
+      if (activeSection === requestedSection) {
+        patchActiveSection(true);
+        syncNavigationSelection();
+      }
+    })
+    .catch((error) => {
+      const message = error instanceof Error ? error.message : "Không tải được dữ liệu.";
+      runtimeLogEvent(`Lỗi tải ${requestedSection}: ${message}`, "ERROR");
+      setNotice("error", message);
+    });
+}
+
+function handleSectionHistoryNavigation(): void {
+  if (!profile) return;
+  const requested = sectionFromHash();
+  if (!requested || !canAccessSection(requested, profile) || requested === activeSection) return;
+  navigateToSection(requested, "none");
+}
+
 function navIcon(key: string): string {
   const paths: Record<string, string> = {
     dashboard: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
@@ -680,7 +732,7 @@ function renderLogin(): void {
       runtimeLogEvent(`Đăng nhập: ${profile.role}`);
       sessionViewGeneration += 1;
       activeSection = resolveInitialSection(profile);
-      syncSectionHash(activeSection);
+      syncSectionHistory(activeSection, "replace");
       window.dispatchEvent(new CustomEvent("supra:session-changed"));
       await loadSection(activeSection);
       render();
@@ -1787,17 +1839,8 @@ function bindShell(): void {
   if (!currentProfile) return;
   document.querySelectorAll<HTMLButtonElement>("[data-section]").forEach((button) => button.addEventListener("click", () => {
     const next = button.dataset.section as Section;
-    if (!next || next === activeSection) return;
-    if (!canAccessSection(next, currentProfile)) return;
-    activeSection = next;
-    syncSectionHash(next);
-    notice = null;
-    pickerSearchGeneration += 1;
-    dashboardLoadGeneration += 1;
-    reportLoadGeneration += 1;
-    editUserId = null;
-    passwordUserId = null;
-    void run(async () => { await loadSection(next); });
+    if (!next || next === activeSection || !canAccessSection(next, currentProfile)) return;
+    navigateToSection(next, "push");
   }));
   document.querySelector<HTMLSelectElement>("#theme-mode")?.addEventListener("change", (event) => {
     const next = String((event.currentTarget as HTMLSelectElement).value || "AUTO").toUpperCase();
@@ -1824,7 +1867,7 @@ function bindShell(): void {
       clearRoleScopedViewState();
       skipDelayEnabled = loadSkipDelayEnabled(profile.user_id);
       activeSection = defaultSectionForProfile(profile);
-      syncSectionHash(activeSection);
+      syncSectionHistory(activeSection, "replace");
       window.dispatchEvent(new CustomEvent("supra:session-changed"));
       await loadSection(activeSection);
     });
@@ -1970,11 +2013,7 @@ function bindSection(): void {
   document.querySelectorAll<HTMLButtonElement>("[data-workspace-section]").forEach((button) => button.addEventListener("click", () => {
     const next = button.dataset.workspaceSection as Section;
     if (!profile || !next || next === activeSection || !canAccessSection(next, profile)) return;
-    activeSection = next;
-    syncSectionHash(next);
-    notice = null;
-    runtimeLogEvent(`Mở nghiệp vụ ${next}`);
-    void run(async () => { await loadSection(next); });
+    navigateToSection(next, "push");
   }));
 
   document.querySelectorAll<HTMLButtonElement>("[data-queue-filter]").forEach((button) => button.addEventListener("click", () => {
@@ -2378,19 +2417,8 @@ window.addEventListener("offline", () => {
   patchHeaderRuntime();
   if (profile) patchActiveSection(true);
 });
-window.addEventListener("hashchange", () => {
-  if (!profile) return;
-  const requested = sectionFromHash();
-  if (!requested || !canAccessSection(requested, profile) || requested === activeSection) return;
-  activeSection = requested;
-  notice = null;
-  pickerSearchGeneration += 1;
-  dashboardLoadGeneration += 1;
-  reportLoadGeneration += 1;
-  editUserId = null;
-  passwordUserId = null;
-  void run(async () => { await loadSection(requested); });
-});
+window.addEventListener("popstate", handleSectionHistoryNavigation);
+window.addEventListener("hashchange", handleSectionHistoryNavigation);
 
 async function bootstrap(): Promise<void> {
   if (!hasSession()) { renderLogin(); return; }
@@ -2398,7 +2426,7 @@ async function bootstrap(): Promise<void> {
     profile = await getMyProfile();
     sessionViewGeneration += 1;
     activeSection = resolveInitialSection(profile);
-    syncSectionHash(activeSection);
+    syncSectionHistory(activeSection, "replace");
     await loadSection(activeSection);
     render();
     window.dispatchEvent(new CustomEvent("supra:session-changed"));
