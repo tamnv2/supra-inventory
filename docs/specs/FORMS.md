@@ -271,3 +271,13 @@ If WMS asks for login, the user signs in normally in the opened Edge window. The
 - If overlay initialization fails on a specific Windows machine, Agent remains open; overlay menu items become unavailable and local diagnostics record only sanitized exception type/message.
 - If the Agent itself cannot start, show a visible `SUPRA Inventory Agent - lỗi khởi động` dialog instead of exiting silently.
 - No password/token/session value may be included in startup error text or logs.
+
+## D084 — explicit overlay settings and lookup wait
+
+- Agent main UI and tray expose `Cài đặt bảng nổi`.
+- Settings include panel opacity and `Khóa vị trí và cho chuột xuyên qua bảng nổi`.
+- Unlocked: overlay receives mouse input and can be dragged to another position.
+- Locked: overlay cannot be selected or moved; mouse input passes through to the application beneath it.
+- Settings persist locally for the current Windows user.
+- PDA has no date selector for Picklist lookup. The existing five-digit input remains unchanged.
+- Because the Agent may scan multiple 100-row WMS pages without a date filter, the PDA relay wait is extended to two minutes before timeout.
