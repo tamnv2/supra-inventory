@@ -128,3 +128,12 @@ Operational/results surfaces should distinguish the source of a Skip result wher
 Approved aggregate analysis may include automatic-timeout counts/rates by period or SKU, but must not become individual employee scoring. D007 live queue ordering remains unaffected.
 
 For `PER_PICKER`, the live affected-Picker count excludes Pickers who already received their individual timeout Skip while the same batch remains pending for other Pickers. Final batch reporting still represents one shortage episode while ticket/result history preserves exact Picker-level outcomes.
+
+
+## D071 compact date-range controls
+
+- Overview and detailed reporting keep the same authoritative from/to dates and existing `Hôm nay / 7 ngày / 30 ngày / 60 ngày` presets.
+- On desktop, from/to inputs and presets are grouped inline in one compact date selector rather than occupying a separate large panel row.
+- Detailed reporting keeps status and SKU/product filters beside the compact date group where space permits.
+- Narrow screens may wrap controls, but the date selector remains one coherent group and must not create unnecessary vertical dead space.
+- Query bounds, server-side aggregation, pagination and Excel export behavior are unchanged.
