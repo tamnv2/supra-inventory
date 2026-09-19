@@ -2181,8 +2181,6 @@ function bindOverlay(): void {
   document.querySelector<HTMLButtonElement>("#confirm-stock")?.addEventListener("click", () => {
     if (!stockConfirm) return;
     const batch = stockConfirm;
-    stockConfirm = null;
-    patchOverlays();
     void commitReporterResolution(batch, "HAS_STOCK");
   });
   document.querySelector<HTMLButtonElement>("#cancel-skip")?.addEventListener("click", () => {
@@ -2193,8 +2191,6 @@ function bindOverlay(): void {
     if (!skipConfirm) return;
     if (skipDelayEnabled && Date.now() < skipConfirmOpenedAt + SKIP_CONFIRM_DELAY_MS) return;
     const batch = skipConfirm;
-    skipConfirm = null;
-    patchOverlays();
     void commitReporterResolution(batch, "SKIP_ALLOWED");
   });
 
