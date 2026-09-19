@@ -229,3 +229,12 @@ Admin/Root Web form uses one coherent settings surface with:
 Validation is server-authoritative and mirrored on Web. The three numeric values are always required and ordered even while auto-Skip is disabled so re-enabling has an explicit policy. No processing-extension field exists.
 
 Changing the switch/mode must clearly state fail-safe behavior: disable/mode switch cancels pending automatic deadlines and later enable applies only to new eligible work rather than retroactively skipping old work.
+
+## D080 — Windows Agent WMS controls
+
+After a real ADMIN Agent session is active, the Windows Agent exposes two D080 actions:
+
+- `Mở WMS + lấy phiên`: opens the dedicated WMS Edge window and waits for an authorized HY1 API request, then reports only capture PASS/failure and missing **header names** where useful. Header values are never shown.
+- `TEST SUPRA`: checks WMS UI reachability, captures/refreshes the in-memory HY1 session when needed, and sends the single signed read-only zones GET. UI reports classification, route and timing without session values.
+
+If WMS asks for login, the user signs in normally in the opened Edge window. There is no F12/cURL step. Errors distinguish transport/proxy/session/forbidden/server categories. No control for Picklist search/confirmation or WMS mutation is exposed in D080.
