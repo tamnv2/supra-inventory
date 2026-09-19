@@ -330,3 +330,10 @@ Current relay marker: `D075_SOURCE_BUILD_DEPLOY_RELEASE_PASS__RTDB_RULES_PUBLISH
 
 
 Current Android marker: `D075_SHARED_RELAY_SIGNED_BETA_VC49_BUILD_PASS__RULES_PUBLISH_FIELD_TEST_PENDING`.
+
+
+## D076 automated Beta RTDB Rules — 2026-09-19
+
+Owner reports the one-time GitHub Environment `beta` secret `FIREBASE_RULES_SA_JSON_BETA` is configured. D076 moves Beta RTDB Rules publication from manual Firebase Console work to CI: pull requests validate credential/read access only; merged main changes deploy `firebase/database.rules.json` to `supra-inventory-beta`. Stable is never targeted and remains OWNER-GATED.
+
+Current relay marker: `D076_AUTO_RTDB_RULES_DEPLOY_IN_PROGRESS__D075_SOURCE_BUILD_RELEASE_PASS__NO_WMS_MUTATION`.
