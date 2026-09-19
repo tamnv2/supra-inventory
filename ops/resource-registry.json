@@ -23,10 +23,10 @@
     "durable_object_class": "InventoryCore",
     "durable_object_binding": "INVENTORY_CORE",
     "durable_object_storage": "sqlite",
-    "beta_sqlite_schema_version": 6,
-    "beta_operational_v2_extension_schema_runtime": 4,
-    "beta_operational_v2_extension_schema_source_target": 4,
-    "beta_sqlite_schema_source_target": 6
+    "beta_sqlite_schema_version": 7,
+    "beta_operational_v2_extension_schema_runtime": 5,
+    "beta_operational_v2_extension_schema_source_target": 5,
+    "beta_sqlite_schema_source_target": 7
   },
   "network_scope": {
     "picker_reporter": "PDA_ONLY_ON_PDA_NETWORK_WITH_INTERNET",
