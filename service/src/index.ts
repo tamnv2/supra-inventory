@@ -321,6 +321,7 @@ async function login(request: Request, env: Env): Promise<Response> {
   const firebaseUid = await ensureFirebaseUid(env, user);
   const customToken = await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON, firebaseUid, {
     app_role: user.role,
+    app_base_role: user.base_role,
     app_user_id: user.user_id,
     employee_code: user.employee_code || "",
   });
@@ -486,6 +487,7 @@ export default {
           const firebaseUid = await ensureFirebaseUid(env, user);
           const customToken = await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON, firebaseUid, {
             app_role: "PICKER",
+            app_base_role: user.base_role,
             app_user_id: user.user_id,
             employee_code: user.employee_code,
           });
