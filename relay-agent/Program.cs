@@ -193,18 +193,18 @@ namespace SupraInventoryRelayAgent
         {
             _agentInstanceId = LoadOrCreateAgentInstanceId();
             Text = "SUPRA Inventory - Relay Test v" + AgentConfig.AgentBuild;
-            Width = 680;
-            Height = 510;
-            MinimumSize = new Size(680, 510);
+            Width = 780;
+            Height = 610;
+            MinimumSize = new Size(780, 610);
             StartPosition = FormStartPosition.CenterScreen;
             Font = new Font("Segoe UI", 9F);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
 
-            Controls.Add(new Label { Left = 18, Top = 16, Width = 630, Height = 30, Text = "SUPRA INVENTORY - RELAY TEST AGENT", Font = new Font("Segoe UI", 14F, FontStyle.Bold) });
-            _relay.SetBounds(18, 52, 630, 24); _relay.Text = "Relay: chưa kết nối"; Controls.Add(_relay);
-            _network.SetBounds(18, 78, 630, 24); _network.Text = "Mạng: " + GetSsid(); Controls.Add(_network);
-            _identity.SetBounds(18, 104, 630, 24); _identity.Text = "Agent: chưa ghép"; Controls.Add(_identity);
+            Controls.Add(new Label { Left = 18, Top = 16, Width = 726, Height = 30, Text = "SUPRA INVENTORY - RELAY TEST AGENT", Font = new Font("Segoe UI", 14F, FontStyle.Bold) });
+            _relay.SetBounds(18, 52, 726, 24); _relay.Text = "Relay: chưa kết nối"; Controls.Add(_relay);
+            _network.SetBounds(18, 78, 726, 24); _network.Text = "Mạng: " + GetSsid(); Controls.Add(_network);
+            _identity.SetBounds(18, 104, 726, 24); _identity.Text = "Agent: chưa ghép"; Controls.Add(_identity);
 
             Controls.Add(new Label { Left = 18, Top = 140, Width = 90, Text = "ADMIN" });
             _username.SetBounds(110, 136, 180, 26); Controls.Add(_username);
@@ -218,9 +218,33 @@ namespace SupraInventoryRelayAgent
             _listen.Click += (s, e) => { if (_listenCts == null) StartListening(); else StopListening(); }; Controls.Add(_listen);
             _openLog.SetBounds(302, 176, 105, 32); _openLog.Text = "Mở log";
             _openLog.Click += (s, e) => AgentDiagnostics.OpenLog(); Controls.Add(_openLog);
-            Controls.Add(new Label { Left = 420, Top = 178, Width = 230, Height = 44, Text = "POC chỉ nhận 5 số và trả ACK. Không truy cập hoặc thao tác WMS.", ForeColor = Color.DimGray });
+            Controls.Add(new Label { Left = 420, Top = 178, Width = 324, Height = 38, Text = "POC chỉ test truyền nhận. Không truy cập hoặc thao tác WMS.", ForeColor = Color.DimGray });
 
-            _log.SetBounds(18, 225, 632, 220); Controls.Add(_log);
+            Controls.Add(new Label { Left = 18, Top = 220, Width = 726, Height = 20, Text = "Probe transport Office — chỉ GET/read-only, không tạo dữ liệu:", ForeColor = Color.DimGray });
+
+            _probeAuth.SetBounds(18, 242, 92, 32); _probeAuth.Text = "Auth";
+            _probeAuth.Click += (s, e) => Task.Run(() => ProbeFirebaseAuth()); Controls.Add(_probeAuth);
+
+            _probeRtdb.SetBounds(116, 242, 92, 32); _probeRtdb.Text = "RTDB";
+            _probeRtdb.Click += (s, e) => Task.Run(() => ProbeRtdb()); Controls.Add(_probeRtdb);
+
+            _probeFirestore.SetBounds(214, 242, 100, 32); _probeFirestore.Text = "Firestore";
+            _probeFirestore.Click += (s, e) => Task.Run(() => ProbeFirestore()); Controls.Add(_probeFirestore);
+
+            _probeAppsScript.SetBounds(320, 242, 100, 32); _probeAppsScript.Text = "Apps Script";
+            _probeAppsScript.Click += (s, e) => Task.Run(() => ProbeAppsScript()); Controls.Add(_probeAppsScript);
+
+            _probeSheets.SetBounds(426, 242, 92, 32); _probeSheets.Text = "Sheets";
+            _probeSheets.Click += (s, e) => Task.Run(() => ProbeSheets()); Controls.Add(_probeSheets);
+
+            _probeDrive.SetBounds(524, 242, 92, 32); _probeDrive.Text = "Drive";
+            _probeDrive.Click += (s, e) => Task.Run(() => ProbeDrive()); Controls.Add(_probeDrive);
+
+            _probeAll.SetBounds(622, 242, 122, 32); _probeAll.Text = "TEST TẤT CẢ";
+            _probeAll.Click += (s, e) => Task.Run(() => ProbeAllTransports()); Controls.Add(_probeAll);
+            SetProbeButtonsEnabled(false);
+
+            _log.SetBounds(18, 292, 726, 255); Controls.Add(_log);
 
             var menu = new ContextMenuStrip();
             menu.Items.Add("Mở", null, (s, e) => RestoreFromTray());
