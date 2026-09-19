@@ -363,3 +363,17 @@ D069 changes Beta Web only:
 - Large Reporter queues may use browser rendering containment such as `content-visibility` so off-screen rows do not consume paint/layout work while the complete authoritative queue remains available.
 - Runtime diagnostics may record bounded API latency, render duration, realtime recovery timing, long tasks, DOM/resource counts and safe interaction descriptors. Never record passwords, credentials, tokens, cookies, secret values or typed form-field values.
 - Android/PDA is unchanged. Stable remains OWNER-GATED.
+
+
+### D070 three-stage timing UI
+
+The accepted unified Web presentation is extended, not replaced.
+
+- `Thời gian xử lý` shows three equal-priority threshold cards numbered 01/02/03: Cảnh báo, Quá hạn, Tự động cho phép bỏ qua.
+- Below the thresholds, show the auto-Skip enable switch and two mutually exclusive timing modes in one coherent policy area.
+- Visual copy must make the strict ordering `Cảnh báo < Quá hạn < Tự động cho phép bỏ qua` obvious without internal implementation jargon.
+- Reporter pending detail may show the next automatic deadline; in `PER_PICKER`, expanded Picker detail may show each Picker deadline/result state.
+- Picker history/result copy distinguishes a service timeout result in plain Vietnamese.
+- Warning uses the existing warning/yellow language; escalation/timeout uses the stronger danger/attention language. No additional sound requirement.
+- Background browser notification permission is user-controlled by the browser; denial must not block authoritative realtime/business state.
+- Android/PDA surfaces preserve the current accepted layout while adding concise deadline/source text only where operationally necessary.
