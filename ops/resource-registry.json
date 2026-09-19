@@ -190,7 +190,7 @@
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
-      "relay_poc_status": "D077_AGENT_V3_RELEASE_PASS__OFFICE_FIELD_RETEST_PENDING",
+      "relay_poc_status": "D078_OFFICE_TRANSPORT_PROBE_MATRIX_IN_PROGRESS",
       "relay_agent_release": "relay-agent-v3",
       "firebase_rtdb_rules_deploy": "PASS_RUN_35451292051__REST_PUT_EXACT_READBACK"
     },
@@ -503,7 +503,7 @@
   "relay_poc": {
     "decision": "D075",
     "environment": "beta",
-    "status": "D077_AGENT_V3_RELEASE_PASS__OFFICE_FIELD_RETEST_PENDING__D076_RULES_PASS",
+    "status": "D078_OFFICE_TRANSPORT_PROBE_MATRIX_IN_PROGRESS__RTDB_PROXY_BLOCK_CONFIRMED",
     "purpose": "Authenticated shared Picker-to-real-ADMIN Windows Agent transport proof only; no WMS mutation",
     "transport": "FIREBASE_RTDB_REST_SSE",
     "database_resource_key": "firebase-rtdb-relay-beta",
@@ -544,6 +544,8 @@
     "rules_deploy_method": "OFFICIAL_RTDB_SETTINGS_RULES_REST_PUT_AND_READBACK",
     "rules_deploy_last_evidence": "PASS_RUN_35451292051__IAM_UPDATE__RULES_GET__RULES_PUT__EXACT_READBACK",
     "rules_deployed_source_commit": "452feb1e25dff936617e5d1d51313438d85155eb",
-    "agent_release_target": "relay-agent-v3"
+    "agent_release_target": "relay-agent-v4",
+    "office_transport_discovery": "FIREBASE_AUTH_RTDB_FIRESTORE_APPS_SCRIPT_SHEETS_DRIVE_READ_ONLY_PROBES",
+    "transport_selection": "PENDING_OWNER_OFFICE_PROBE_EVIDENCE"
   }
 }
