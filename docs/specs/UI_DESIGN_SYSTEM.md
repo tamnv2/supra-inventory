@@ -389,3 +389,17 @@ D071 refines the accepted Web presentation without changing navigation or busine
 - Dashboard/reporting date selection is a compact inline control: from/to dates and quick presets share one dense group and must not consume a separate full-width second row on desktop.
 - Compact controls remain responsive and may wrap on narrow screens; dark-mode variables apply to the same surfaces.
 - Android/PDA is unchanged. Stable remains OWNER-GATED.
+
+
+### D072 quota guard — system-status excluded
+
+D072 supersedes the visible/runtime system-status requirements from D064–D066 where they conflict.
+
+- Admin/Root keeps exactly three large sidebar groups.
+- `VẬN HÀNH` stays `Xử lý báo hàng` + `Tổng quan & báo cáo`.
+- `QUẢN LÝ` stays `Danh mục SKU` + `Nhân sự & tài khoản` + `Thời gian xử lý`.
+- `HỆ THỐNG` now exposes **only `Nhật ký`**.
+- `Trạng thái hệ thống`, legacy `devices` and `versions` aliases are not routable and must not be reachable through hash/history navigation.
+- Header-level network/realtime/service connectivity feedback may remain because it is lightweight and directly operational; it must not reintroduce provider-usage polling.
+- Existing historical D064 presentation/source may remain in source history, but no normal product route may execute it.
+- Android/PDA is unchanged. Stable remains OWNER-GATED.
