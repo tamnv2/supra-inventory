@@ -238,3 +238,12 @@ After a real ADMIN Agent session is active, the Windows Agent exposes two D080 a
 - `TEST SUPRA`: checks WMS UI reachability, captures/refreshes the in-memory HY1 session when needed, and sends the single signed read-only zones GET. UI reports classification, route and timing without session values.
 
 If WMS asks for login, the user signs in normally in the opened Edge window. There is no F12/cURL step. Errors distinguish transport/proxy/session/forbidden/server categories. No control for Picklist search/confirmation or WMS mutation is exposed in D080.
+
+## D081 — WMS login and taskbar status
+
+- `Mở WMS + lấy phiên` / `TEST SUPRA` opens Microsoft Edge when available, otherwise Google Chrome.
+- The dedicated browser remains open for up to five minutes while the user completes normal WMS login. It must not fail merely because no API request arrived within a few seconds.
+- If neither Edge nor Chrome is installed, show a clear unsupported-browser error; do not silently fall back to unsafe credential capture.
+- WMS username/password fields are not added to the Agent.
+- The Windows system-tray icon updates approximately every two seconds with compact machine status: `CPU <usage>% <MHz>MHz | RAM <used>/<total>GB`.
+- The same tray/status surface is intentionally replaceable by later operational counters such as confirmed Picklists and online users without changing the tray interaction model.
