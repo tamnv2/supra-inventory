@@ -106,3 +106,13 @@ Picker clients must not infer, request or receive another Picker's event payload
 - A valid HY1 session already in Agent RAM disables the manual `Mở WMS + lấy phiên` action. This prevents repeated login/browser capture while a usable session exists.
 - A PDA relay request is not authorization to open a company login surface. Missing/expired WMS session returns a bounded session-required status; browser login must be initiated locally by the workstation operator.
 - D082 grants only read access to the registered Picklist-list GET. It grants no confirmation/mutation authority.
+
+## D085 — Agent HA and anti-spam authority
+
+- Multiple machines may authenticate as real base-role ADMIN Agents, but only the WMS-ready Agent holding the active lease may process Picklist jobs.
+- PICKER may read the bounded active-leader availability record so the PDA can decide whether a processing Agent exists; PICKER cannot write leadership.
+- Only real base-role ADMIN Agents may write leader lease/heartbeat, persistent Picker rate-limit state, SWITCHING state and ACK metadata.
+- Rate-limit identity is bound to the authenticated Picker job identity. Lock state is not trusted from the PDA and cannot be cleared by changing PDA.
+- Windows user-mode auto-start grants no application privilege. Agent application access still requires D075 real ADMIN authority.
+- WMS/browser credentials remain separate from application RBAC and are not persisted by the Agent as raw session/header material.
+
