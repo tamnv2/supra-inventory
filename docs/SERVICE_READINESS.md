@@ -464,3 +464,12 @@ PR #87 merged at `4be5643827342e900f052364051b6050200d35a2`. Main Agent release 
 
 Current Android marker: `D084_ALL_DATE_PICKLISTCODE_SCAN_SIGNED_BETA_VC51__AGENT_V9_RELEASE_PASS__OWNER_FIELD_TEST_PENDING`.
 Current relay marker: `D084_RELEASE_PASS__OWNER_FIELD_TEST_PENDING__ALL_DATE_PICKLISTCODE_SCAN__OVERLAY_SETTINGS__D078_OFFICE_PENDING__NO_WMS_MUTATION`.
+
+## D085 source candidate — 2026-09-20
+
+Current Android marker: `D085_AGENT_HA_CACHE_ANTISPAM_SOURCE__BETA_VC52_AGENT_V10_RELEASE_PENDING__TRANSPORT_SELECTION_PENDING`.
+
+D085 keeps `beta-vc51` as the latest published signed APK until the next main release. Source adds sticky single-active multi-Agent coordination (3s heartbeat / 10s failover), pending-job takeover, no-Agent specialist-desk guidance, preload/single-flight Picklist RAM cache, persisted 5m→30m→60m Picker anti-spam locks, dedicated-browser-profile WMS session reuse, v8 overlay behavior with main-window settings, and normal-user HKCU autostart.
+
+**No final PDA ↔ Agent transport is selected.** Current RTDB remains temporarily unchanged while D078 Office transport evidence is pending. WMS remains read-only GET-only; auto-confirm/confirmation mutation remains disabled. Stable is untouched and OWNER-GATED.
+
