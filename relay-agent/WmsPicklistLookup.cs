@@ -453,7 +453,7 @@ namespace SupraInventoryRelayAgent
                 return page * PageSize >= analysis.TotalCount.Value;
 
             if (analysis.RecordCollectionCount >= 0)
-                return analysis.RecordCollectionCount < PageSize;
+                return Math.Max(analysis.RecordCollectionCount, analysis.PickListCodeCount) < PageSize;
 
             return analysis.PickListCodeCount < PageSize;
         }
