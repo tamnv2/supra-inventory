@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D081_AGENT_V6_SOURCE_IN_PROGRESS__WMS_LOGIN_WAIT_FIX__CHROME_FALLBACK__TRAY_MONITOR__D078_OFFICE_PENDING__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D081_AGENT_V6_RELEASE_PASS__OWNER_FIRST_ATTEMPT_WMS_RETEST_PENDING__D078_OFFICE_TRANSPORT_PENDING__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -135,7 +135,6 @@
     "D066 Web three-group navigation PR #50 merged at 2e12e6d4e94b195e3b505b3f2abe9822ca91632c; PR Repo Authority, Project State and UI Design guards PASS; main UI Design Guard run 35407227884 PASS; Beta deploy run 35407227911 PASS including Web build, Worker typecheck/deploy, health/schema, auth/business guards, Web shell and Google OAuth start."
   ],
   "pending_build": [
-    "D081 relay-agent-v6 login reliability + Chromium fallback + tray monitor PR/CI/release",
     "D070 PR guards/merge/Beta deploy for Worker/Web schema migration and alarm automation",
     "Signed Beta Android release/verification because D070 changes Android runtime UI/API projection",
     "Owner field acceptance of D070 timing notifications and both auto-Skip modes",
@@ -143,7 +142,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "D081 field retest: relay-agent-v6 should allow up to five minutes for official WMS login and capture on first attempt without WebSocket Aborted; Edge preferred, Chrome fallback. D078 PDA ↔ Agent Office transport remains separately pending.",
+    "D081 relay-agent-v6 field retest pending: first-attempt WMS login/capture after WebSocket timeout repair, Edge→Chrome fallback if needed, and local tray CPU/MHz/RAM display. D078 PDA ↔ Agent Office transport remains separately pending.",
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
     "Owner acceptance of FIRST_REPORT and PER_PICKER behavior remains field-dependent after runtime PASS.",
     "Stable promotion remains OWNER-GATED."
@@ -156,8 +155,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Build/verify/release relay-agent-v6 with D081 WMS login-wait fix, Edge→Chrome fallback, ADMIN password UI minimization and local taskbar CPU/RAM monitor. Then Owner retests TEST SUPRA without rushing login.",
-    "method": "Branch -> PR -> authority/continuity/UI/Agent build guards -> merge -> dedicated relay-agent-v6 prerelease. Field retest: press TEST SUPRA, take normal time to login (up to 5 minutes), verify first-attempt session capture and API PASS. No F12/cURL, no WMS credential form, no WMS mutation.",
+    "primary": "Owner runs relay-agent-v6 TEST SUPRA and verifies the first WMS login/capture attempt no longer fails while taking normal time to log in. Also confirm taskbar CPU/MHz/RAM status is visible and reasonable.",
+    "method": "Use existing Agent auto-update or relay-agent-v6. Press TEST SUPRA; if official WMS page asks for login, take normal time (up to 5 minutes). No F12/cURL. Expected: first-attempt HY1 capture + signed zones API PASS. If failure, provide sanitized log only. D078 PDA ↔ Agent Office transport remains separate and pending.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -185,7 +184,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D081 source in progress: fix short DevTools cancellation that caused v5 first-login WebSocket Aborted; add Chrome fallback and local taskbar CPU/MHz/RAM monitor. D078 Office transport remains pending.",
+      "D081 source/PR/main build/release PASS: relay-agent-v6 fixes v5 first-login WebSocket Aborted, adds Chrome fallback, ADMIN password UI minimization and local tray CPU/MHz/RAM monitor. Owner field retest pending.",
       "D077 source/build/release PASS: relay-agent-v3 published; physical Office retest pending",
       "D076 Beta RTDB Rules deploy/readback PASS; D075 physical Picker -> ADMIN Agent acceptance pending",
       "D068 Web baseline Owner-accepted/frozen",
@@ -196,7 +195,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Complete D081 PR/CI/main prerelease, then Owner retests TEST SUPRA without rushing WMS login and reports sanitized result/log.",
+      "Owner retests relay-agent-v6 TEST SUPRA without rushing login and confirms taskbar monitor; provide sanitized log only if not PASS.",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
@@ -224,11 +223,11 @@
       "relay_agent_build_release": "PASS_RUN_35447318236",
       "signed_beta_release": "beta-vc49",
       "signed_beta_apk_size_bytes": 9317178,
-      "relay_agent_release": "relay-agent-v5",
-      "relay_agent_release_id": 392156246,
-      "relay_agent_exe_asset_id": 575169402,
-      "relay_agent_exe_size_bytes": 80384,
-      "relay_agent_checksum_asset_id": 575169404,
+      "relay_agent_release": "relay-agent-v6",
+      "relay_agent_release_id": 392161587,
+      "relay_agent_exe_asset_id": 575198396,
+      "relay_agent_exe_size_bytes": 84992,
+      "relay_agent_checksum_asset_id": 575198397,
       "agent_release_is_prerelease": true,
       "android_latest_release_verified": "beta-vc49",
       "scope": "D080_AGENT_OWNED_EDGE_AUTO_SESSION_CAPTURE__WMS_UI_PLUS_SIGNED_READONLY_ZONES_GET__NO_PICKLIST_LOOKUP_OR_WMS_MUTATION",
@@ -267,7 +266,15 @@
       "d080_pr_ui": "PASS_RUN_35457634598",
       "d080_pr_agent": "PASS_RUN_35457634523",
       "d080_main_agent_release": "PASS_RUN_35457732455",
-      "relay_agent_exe_sha256": "27b1ca9091e19047def478881692fe7cd7d9b930586e028fe33a1605ddcf0376"
+      "relay_agent_exe_sha256": "7eca617aeb38bda403ca975e07ebdd8a323fbde19b90ef22f0d549b7b0f4b61e",
+      "d081_branch": "feat/d081-agent-login-wait-tray-monitor",
+      "d081_merged_pr": 81,
+      "d081_merged_main": "a0a68da1e72ba9a8f7bb728db0951b6fd2c23f47",
+      "d081_pr_authority": "PASS_RUN_35458654119",
+      "d081_pr_project_state": "PASS_RUN_35458654126",
+      "d081_pr_ui": "PASS_RUN_35458654129",
+      "d081_pr_agent": "PASS_RUN_35458654113",
+      "d081_main_agent_release": "PASS_RUN_35458750768"
     },
     "last_runtime_evidence": {
       "schema": 7,
@@ -292,10 +299,11 @@
       "d073_relay_poc": "SOURCE_BUILD_RELEASE_PASS__RTDB_PROVISIONING_FIELD_TEST_PENDING",
       "d074_relay_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_OFFICE_FIELD_RETEST_PENDING",
       "d075_relay_poc": "SOURCE_BUILD_RELEASE_PASS__D076_RULES_DEPLOY_PASS__OWNER_FIELD_TEST_PENDING",
-      "relay_agent_release": "relay-agent-v5",
+      "relay_agent_release": "relay-agent-v6",
       "relay_agent_release_prerelease": true,
       "d076_rtdb_rules": "PASS_RUN_35451292051__IAM_UPDATE_PASS__RULES_GET_PASS__RULES_PUT_PASS__EXACT_READBACK_PASS",
-      "d080_wms_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_WMS_FIELD_TEST_PENDING"
+      "d080_wms_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_WMS_FIELD_TEST_PENDING",
+      "d081_agent": "SOURCE_BUILD_RELEASE_PASS__OWNER_FIRST_ATTEMPT_WMS_RETEST_PENDING"
     }
   },
   "authority_setup": {
