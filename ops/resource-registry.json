@@ -170,7 +170,7 @@
       "cloudflare_oauth_refresh_token_secret": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
       "oauth_refresh_token_configured": true,
       "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA",
-      "web_source_status": "D071_WEB_SOURCE_MERGED__BETA_HEALTH_BLOCKED_BY_D070_STORAGE_UNAVAILABLE",
+      "web_source_status": "D071_WEB_MERGED__D072_SYSTEM_STATUS_EXCLUDED_SOURCE_IMPLEMENTED__BETA_RUNTIME_REPAIR_PENDING",
       "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
       "web_admin_report_monitoring": "D069_XLSX_REPORT_EXPORT_BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
       "android_source_status": "D070_TIMEOUT_ALERT_PROJECTION_SIGNED_BETA_VC46_RUNTIME_GATE_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
@@ -184,7 +184,7 @@
       "auth_api_route_smoke": "PASS",
       "root_bootstrap_path_smoke": "PASS",
       "hr_settings_ui_status": "CONFIGURABLE_URL_TAB_EMPLOYEE_AND_NAME_HEADERS_DEPLOYED_PASS",
-      "business_api_status": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
+      "business_api_status": "D070_ALARM_REPAIR_D072_SYSTEM_STATUS_QUOTA_GUARD_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
       "latest_signed_beta_release_source_commit": "3f3506a0f185d5e1a0f22ba6a908b161bae6dd6e",
       "managed_password_status": "DIRECT_CREATE_AND_CHANGE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
@@ -349,10 +349,10 @@
   },
   "ui_design": {
     "authority": "OWNER_SELECTED_D057_LEGACY_TRANSPLANT_THROUGH_D068_ACCEPTED__D069_UNIFIED_WEB_REFINEMENT",
-    "web": "D071_WEB_SOURCE_MERGED__BETA_HEALTH_BLOCKED_BY_D070_STORAGE_UNAVAILABLE",
+    "web": "D071_WEB_MERGED__D072_SYSTEM_STATUS_EXCLUDED_SOURCE_IMPLEMENTED__BETA_RUNTIME_REPAIR_PENDING",
     "android": "D070_TIMEOUT_ALERT_PROJECTION_SIGNED_BETA_VC46_RUNTIME_GATE_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
-    "scope_guard": "D071_WEB_MERGED__D070_SERVICE_REPAIR_BETA_ONLY__STABLE_OWNER_GATED",
-    "source_candidate": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
+    "scope_guard": "D071_WEB_MERGED__D070_RUNTIME_REPAIR__D072_QUOTA_GUARD_BETA_ONLY__STABLE_OWNER_GATED",
+    "source_candidate": "D070_ALARM_REPAIR_D072_SYSTEM_STATUS_QUOTA_GUARD_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
     "navigation_proposal": "docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md",
     "navigation_constraint": {
       "admin_root_large_groups": 3,
@@ -368,12 +368,11 @@
           "Thời gian xử lý"
         ],
         "HỆ THỐNG": [
-          "Trạng thái hệ thống",
           "Nhật ký"
         ]
       },
       "personal_account_action": "PINNED_IDENTITY_CONTROL_NOT_SIDEBAR",
-      "implementation": "D066_OWNER_ACCEPTED_NAV__D068_HISTORY_ACTIVE_STATE_PERFORMANCE_RUNTIME_PASS_OWNER_REVIEW_PENDING"
+      "implementation": "D072_OWNER_OVERRIDE__THREE_GROUP_NAV_SYSTEM_ONLY_LOGS__SYSTEM_STATUS_EXCLUDED"
     },
     "implementation": "D071_CHECKBOX_TEXT_BASELINE_COMPACT_DATES_IMMEDIATE_REPORTER_FEEDBACK_SOURCE_IMPLEMENTED"
   },
@@ -384,7 +383,7 @@
     "catalog_max_design_rows": 50000,
     "reporting": "BOUNDED_60D_INDEXED_TIME_RANGE_BETA_PASS",
     "live_stress": "NON_DESTRUCTIVE_ONLY_WITHOUT_ISOLATED_BUSINESS_DATASET",
-    "source_status": "BETA_SCHEMA_V5_BUILD_DEPLOY_BURST_PASS",
+    "source_status": "D072_SYSTEM_STATUS_QUOTA_GUARD_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
     "non_destructive_burst": {
       "requests": 50,
       "concurrency": 10,
@@ -394,7 +393,9 @@
       "p95_ms": 189.6,
       "max_ms": 195.8,
       "note": "measurement only; Cloudflare-safe CI user-agent and bounded retry; no latency SLO claimed"
-    }
+    },
+    "system_status_monitoring": "DISABLED_D072_NORMAL_RUNTIME__NO_PROVIDER_POLLING",
+    "system_status_provider_reads": "NORMAL_RUNTIME_FORBIDDEN__BETA_LOAD_TEST_CORE_ONLY"
   },
   "runtime_logs": {
     "environment": "beta",
