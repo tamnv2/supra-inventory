@@ -65,17 +65,21 @@ Display/actions:
 - ACK progress for resolved critical results where operationally useful;
 - `Picker thu hồi` must show actual closed batches produced by Picker withdrawal, not synthetic data.
 
-### Skip confirmation
+### Reporter resolution confirmation
 
-First tap on `CHO SKIP HÀNG` opens a deliberate confirmation containing:
-- `CHO PHÉP SKIP?`;
-- SKU;
-- product name;
-- affected Picker count and clear impact wording;
-- `HUỶ`;
-- explicit `XÁC NHẬN CHO SKIP`.
+`CÓ HÀNG` / `ĐÃ CÓ HÀNG`:
+- first tap opens a confirmation containing SKU, product name, affected Picker count and the outcome to be sent;
+- only the explicit final confirmation commits `HAS_STOCK`;
+- `HUỶ` closes without mutation.
 
-No password/OTP is required for normal Reporter Skip.
+`CHO SKIP HÀNG` / `CHO PHÉP BỎ QUA`:
+- first tap opens a deliberate confirmation containing SKU, product name, affected Picker count and clear impact wording;
+- the final confirm control is disabled/visually pending for 5 seconds by default;
+- each signed-in user may turn the 5-second delay off/on from personal Account settings; the preference affects only the confirmation delay and never weakens server authorization/business rules;
+- `HUỶ` closes without mutation;
+- only the explicit final confirmation commits `SKIP_ALLOWED`.
+
+No password/OTP is required for normal Reporter resolution actions.
 
 ## Admin/Root PDA launcher
 
