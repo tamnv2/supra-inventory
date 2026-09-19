@@ -383,7 +383,7 @@ class ReporterController(
                 else -> "Chưa thiết lập thời gian"
             }
             addView(TextView(activity).apply {
-                text = "$affectedPickerCount Picker · chờ $liveWaiting phút · $sla$recurrence\nBáo đầu: ${timestamp(row.firstReportAt)}"
+                text = "$affectedPickerCount Picker · chờ $liveWaiting phút · $sla$recurrence\nBáo đầu: ${timestamp(row.firstReportAt)}${if (row.autoSkipEnabled) "\nTự động bỏ qua: " + (row.autoSkipAt?.let { timestamp(it) } ?: "chỉ áp dụng báo mới") else ""}"
                 textSize = 12.5f
                 maxLines = 3
                 setTextColor(when (liveState) { "ESCALATED" -> kit.red; "WARNING" -> kit.orange; else -> kit.muted })
@@ -426,6 +426,7 @@ class ReporterController(
         row.affectedPickerCount,
         row.ackTargetCount,
         row.acknowledgedCount,
+        row.resolutionSource.orEmpty(),
         row.previousBatchId.orEmpty(),
     ).joinToString("|")
 
