@@ -778,3 +778,9 @@ Current Android marker remains: `D082_READONLY_PICKLIST_LOOKUP_SIGNED_BETA_VC50_
 PR #85 merged at `82ec0ba43a3f464a7a8b312b324e152733af4296`. Main Verify Beta Relay Agent run `35461540988` PASS, including the executable Windows `--startup-smoke` gate, and published `relay-agent-v8`. EXE size 107008 bytes, SHA-256 `310d7593eefb90fccce186fba44174578e26fce0105414c61c93a4557dc31c98`. Main authority/state/UI runs also PASS. Owner physical startup retest is now the only D083 field checkpoint before resuming D082 Picklist lookup.
 
 Current relay marker: `D083_AGENT_V8_RELEASE_PASS__OWNER_STARTUP_RETEST_PENDING__D082_LOOKUP_PAUSED__D078_OFFICE_PENDING__NO_WMS_MUTATION`.
+
+## D084 source candidate
+
+Owner refinement replaces the D082 lookup mechanics: no date filter, empty `Content`, 100 records/page, exact `PickListCode` (`PL` + digits) trailing-five comparison, scan pages until FOUND or truthful exhaustion, fail closed on schema/pagination anomalies. Overlay now has explicit opacity + lock settings; unlocked is draggable, locked is cross-application click-through. Agent target is v9 and Android requires the next signed Beta release because relay wait increases to 120 seconds.
+
+Current relay marker: `D084_SOURCE_IN_PROGRESS__AGENT_V9_AND_BETA_VC51_RELEASE_PENDING__ALL_DATE_PICKLISTCODE_SCAN__OVERLAY_SETTINGS__NO_WMS_MUTATION`.
