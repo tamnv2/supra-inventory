@@ -7,7 +7,7 @@ import "./legacy-transplant/ops-console.css";
 import "./legacy-transplant/workflow-v3-overrides.css";
 import "./legacy-transplant/workflow-v4-ux.css";
 import "./legacy-transplant/web-fast-ui.css";
-import { firebaseMissing, firebaseReady } from "./firebase";
+import { firebaseReady } from "./firebase";
 import {
   applyHrPickerSync,
   changeMyPassword,
@@ -348,7 +348,7 @@ function formatHeaderUpdate(value: Date | null): string {
 function patchHeaderRuntime(): void {
   const service = document.querySelector<HTMLElement>("#service-state");
   if (service) {
-    service.textContent = `Service: Cloudflare ${serviceReachable ? "ON" : "OFF"}`;
+    service.textContent = `Dịch vụ: ${serviceReachable ? "Hoạt động" : "Mất kết nối"}`;
     service.dataset.state = serviceReachable ? "on" : "off";
   }
   const update = document.querySelector<HTMLElement>("#last-web-update");
@@ -751,7 +751,7 @@ function renderShell(content: string): void {
         <p class="company-name">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p>
         <h1>Website nghiệp vụ Inventory 1291</h1>
         <div class="header-runtime">
-          <span id="service-state" data-state="${serviceReachable ? "on" : "off"}">Service: Cloudflare ${serviceReachable ? "ON" : "OFF"}</span>
+          <span id="service-state" data-state="${serviceReachable ? "on" : "off"}">Dịch vụ: ${serviceReachable ? "Hoạt động" : "Mất kết nối"}</span>
           <span class="header-runtime-separator">|</span>
           <span id="last-web-update">Cập nhật: ${formatHeaderUpdate(lastWebUpdateAt)}</span>
         </div>
@@ -1298,7 +1298,7 @@ function downloadSupportDiagnostics(): void {
   const stamp = new Date().toISOString().replaceAll(":", "").replaceAll("-", "").slice(0, 15);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `supra-inventory-beta-support-${stamp}.json`;
+  link.download = `supra-inventory-support-${stamp}.json`;
   document.body.appendChild(link);
   link.click();
   link.remove();
@@ -2390,10 +2390,12 @@ window.addEventListener("supra:realtime-status", (event) => {
   const node = document.querySelector<HTMLElement>("#connection-state");
   if (node) {
     node.className = `connection ${realtimeState}`;
-    const dirtySuffix = detail.dirty ? " · đang khôi phục" : "";
+    const recovering = detail.dirty ? " · đang khôi phục" : "";
     node.textContent = realtimeState === "connected"
-      ? `Realtime · #${realtimeLastSeq}${dirtySuffix}`
-      : `${realtimeState}${dirtySuffix}`;
+      ? `Đồng bộ: Đã kết nối${recovering}`
+      : realtimeState === "offline"
+        ? "Đồng bộ: Mất kết nối"
+        : `Đồng bộ: Đang kết nối${recovering}`;
   }
 });
 window.addEventListener("online", () => {
