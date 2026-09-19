@@ -379,3 +379,19 @@ D072 system-status quota exclusion acceptance:
 - Google Drive/GitHub provider metrics are therefore never read by normal user navigation;
 - lightweight header connectivity/realtime and runtime-log diagnostics continue to work;
 - D071 Web interaction changes, D070 timing semantics, Android/PDA and Stable are unchanged.
+
+
+## D073 — Relay transport POC acceptance
+
+D073 is PASS only when all of the following are demonstrated on Beta without touching WMS:
+
+1. Signed Beta APK exposes **Xác nhận lấy hàng**, rejects anything except exactly five numeric Picklist-suffix digits, and labels the action as a transport test until the real WMS workflow is approved.
+2. The Windows Agent builds as a portable normal-user executable and can pair/login on a network that reaches the Beta Worker without requiring Administrator rights.
+3. After pairing, switching the laptop to Office still allows direct Google token refresh plus authenticated RTDB SSE receive/write.
+4. A PDA request reaches the Office Agent, the Agent returns ACK, and the APK shows the receiving machine/network label plus measured round-trip milliseconds.
+5. Timeout/error is explicit; no fake success is shown.
+6. RTDB Rules prevent unauthenticated access and isolate each POC path to the matching Firebase UID.
+7. No WMS request, browser automation, order lookup or order mutation exists in the D073 POC build.
+8. Stable is untouched.
+
+A field timing target may be observed, but transport POC PASS does not yet establish the final <5s WMS-confirmation SLA.
