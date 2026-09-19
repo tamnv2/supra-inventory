@@ -418,3 +418,68 @@ body[data-theme="dark"] .diagnostic-event-row {
   .diagnostic-event-row { grid-template-columns: 115px minmax(0,1fr) 70px; }
   .diagnostic-event-row b { display: none; }
 }
+
+
+/* D070 SLA policy */
+.sla-threshold-grid {
+  grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+}
+.sla-auto-policy {
+  display: grid;
+  grid-template-columns: minmax(0,1.05fr) minmax(0,1.4fr);
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ui-line);
+}
+.sla-auto-policy .account-setting-row,
+.sla-mode-options {
+  min-height: 78px;
+  padding: 12px 14px;
+  border: 1px solid var(--ui-line);
+  border-radius: var(--ui-radius);
+  background: var(--ui-surface-soft);
+}
+.sla-mode-options {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+.sla-mode-options > span {
+  color: var(--ui-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+.sla-mode-options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ui-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+.sla-mode-options input[type="radio"] {
+  min-height: 0 !important;
+  width: 16px;
+  height: 16px;
+}
+.sla-current-grid {
+  grid-template-columns: repeat(3,minmax(0,1fr));
+}
+.sla-current-card.auto {
+  border-left: 3px solid var(--ui-success);
+}
+.picker-timeout-state {
+  color: var(--ui-warning);
+  font-size: 10.5px;
+  font-weight: 650;
+}
+body[data-theme="dark"] .sla-auto-policy .account-setting-row,
+body[data-theme="dark"] .sla-mode-options {
+  background: var(--ui-surface-soft) !important;
+  border-color: var(--ui-line) !important;
+}
+@media (max-width: 1050px) {
+  .sla-threshold-grid { grid-template-columns: 1fr !important; }
+  .sla-auto-policy { grid-template-columns: 1fr; }
+}
