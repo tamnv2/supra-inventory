@@ -247,3 +247,20 @@ If WMS asks for login, the user signs in normally in the opened Edge window. The
 - WMS username/password fields are not added to the Agent.
 - The Windows system-tray icon updates approximately every two seconds with compact machine status: `CPU <usage>% <MHz>MHz | RAM <used>/<total>GB`.
 - The same tray/status surface is intentionally replaceable by later operational counters such as confirmed Picklists and online users without changing the tray interaction model.
+
+## D082 — Agent overlay and PDA Picklist lookup surface
+
+### Windows Agent persistent overlay
+- Show a small always-visible, always-on-top status panel instead of relying on hover text over the tray icon.
+- Default content during the POC is local machine CPU utilization, current/approximate CPU MHz and RAM used/total.
+- User can show/hide the overlay, choose opacity presets, unlock it to drag, then lock the chosen position.
+- Locked mode is click-through and no-activate: mouse clicks/movement target the underlying application, including full-screen operational software. The overlay itself cannot be interacted with until unlocked through the Agent tray menu.
+- Position, opacity, visibility and lock state persist locally under the current Windows user; no secret or business payload is stored in overlay settings.
+- The overlay content provider is replaceable later by operational counters such as confirmed Picklists and online users.
+
+### PDA `Xác nhận đơn` read-only stage
+- Input remains exactly five numeric trailing Picklist digits.
+- Primary action text is `KIỂM TRA PICKLIST`.
+- While waiting: `Đang kiểm tra Picklist trên WMS...`.
+- Result is explicit: `CÓ PICKLIST`, `KHÔNG CÓ PICKLIST`, or a distinct session/permission/network/schema error. Do not label a transport ACK as a Picklist match.
+- The surface explicitly states this stage does not confirm or change WMS.
