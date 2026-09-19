@@ -173,3 +173,19 @@ Archive candidates for finalized batches include the newer immutable/lifecycle m
 The existing archive workbook/tabs remain the transport surface; no new archive resource is required for these fields.
 
 Retention cleanup may delete hot finalized data only after that batch is marked archived. Cleanup must remove associated result acknowledgements, immutable result snapshots, realtime rows and correlated notification-attempt telemetry before deleting report events/tickets/batch, preventing orphan operational rows. Unresolved batches remain outside cleanup.
+
+
+## D069 Web runtime diagnostic logging
+
+Web runtime logs are support/diagnostic artifacts, not business authority.
+
+The diagnostic snapshot may include bounded:
+- page/section/theme/zoom and safe UI-state counts;
+- browser/device-class capability data, viewport/screen, network reachability/RTT and JavaScript memory where the browser exposes them;
+- navigation/paint/resource timing, long-task samples, DOM element counts and render durations;
+- API method/path, HTTP status, retry/refresh flags and latency; query **keys** may be recorded but query values are not required for diagnosis;
+- realtime connection/recovery/apply timings and sequence state;
+- safe interaction descriptors such as clicked control label/id/data action, without input values;
+- recent application errors and bounded recent operational UI events.
+
+Diagnostics must never contain authorization headers, ID/access/refresh tokens, passwords, cookies, API keys, credentials, private/signing/keystore material or secret runtime values. Input/change logging records control identity only, never typed values. Client and server both sanitize/redact, and each uploaded file remains size/depth/count bounded. Google Drive Logs remains a support store; it is not a transaction database.
