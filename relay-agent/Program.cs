@@ -493,7 +493,7 @@ namespace SupraInventoryRelayAgent
             var req = (HttpWebRequest)WebRequest.Create(url);
             req.Method = "GET";
             req.Accept = "text/event-stream";
-            req.UserAgent = "SUPRA-Inventory-Relay-Test/1.1";
+            req.UserAgent = "SUPRA-Inventory-Relay-Test/1.2";
             req.Timeout = 10000;
             req.ReadWriteTimeout = 65000;
             req.KeepAlive = true;
@@ -774,7 +774,15 @@ namespace SupraInventoryRelayAgent
             if (response == null)
                 return new RelayHttpException(0, ex.Status.ToString(), operation);
 
+            // Capture every property needed for diagnostics before disposing the proxy/HTTP response.
+            // Office proxy failures exercise this path; reading StatusCode after using(response) caused
+            // ObjectDisposedException and hid the real HTTP status returned by the proxy/RTDB endpoint.
+            var statusCode = (int)response.StatusCode;
+            var statusDescription = response.StatusDescription ?? "";
+            var responseHost = response.ResponseUri == null ? "" : response.ResponseUri.Host;
+            var contentType = response.ContentType ?? "";
             var detail = "";
+
             try
             {
                 using (response)
@@ -796,7 +804,17 @@ namespace SupraInventoryRelayAgent
                 catch { }
             }
 
-            return new RelayHttpException((int)response.StatusCode, AgentDiagnostics.Sanitize(detail).Trim(), operation);
+            var safeDetail = AgentDiagnostics.Sanitize(detail).Trim();
+            if (string.IsNullOrWhiteSpace(safeDetail))
+                safeDetail = AgentDiagnostics.Sanitize(statusDescription).Trim();
+
+            AgentDiagnostics.Write(
+                "HTTP ERROR RESPONSE status=" + statusCode +
+                " host=" + responseHost +
+                " content_type=" + contentType +
+                " web_exception=" + ex.Status);
+
+            return new RelayHttpException(statusCode, safeDetail, operation);
         }
 
         private void SaveStoredSession(AgentSession session)

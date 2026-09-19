@@ -56,3 +56,10 @@ Logs must never contain the typed password, raw Picklist suffix, bearer/ID/refre
 - If the current EXE directory is writable, the Agent closes, replaces the portable EXE and relaunches automatically.
 - If GitHub is unreachable (for example on a restricted network), relay operation continues on the current version and the next scheduled/startup check retries.
 - Agent prereleases are deliberately separate from Android Beta releases so Android `/releases/latest` continues to point to `beta-vcN`.
+
+
+## D077 Office proxy HTTP response repair — 2026-09-19
+
+Field log shows `.PDA@MSN` RTDB GET PASS and `.Office@MSN` Firebase refresh PASS, followed by `ObjectDisposedException` before the real RTDB/proxy HTTP status could be surfaced. Source review found `ToRelayHttpException()` disposed `HttpWebResponse` and then read `StatusCode`. D077 captures status/response diagnostics before disposal, preserves sanitized error reporting, bumps the portable Agent to `relay-agent-v3`, and leaves D075 shared ADMIN relay plus D076 deployed Rules unchanged. No APK/WMS change.
+
+Current relay marker: `D077_OFFICE_PROXY_HTTP_RESPONSE_DISPOSAL_REPAIR_IN_PROGRESS__D076_RULES_PASS__NO_WMS_MUTATION`.
