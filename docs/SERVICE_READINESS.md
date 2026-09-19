@@ -351,3 +351,13 @@ Current relay marker: `D076_RTDB_REST_DEPLOY_REPAIR_IN_PROGRESS__PR_CREDENTIAL_R
 PR #72 read-only CI has verified the configured Beta service-account credential, direct OAuth token exchange, `firebasedatabase.instances.update`, and authenticated RTDB Rules GET access. No Owner IAM/Rules setup action remains. After current guards PASS, merge PR #72; the main-only workflow must PUT the canonical D075 Rules to the scoped Beta RTDB and readback-verify exact JSON before D075 field acceptance.
 
 Current relay marker: `D076_PR_VALIDATION_PASS__MAIN_RTDB_RULES_DEPLOY_PENDING__D075_RELEASE_PASS__NO_WMS_MUTATION`.
+
+
+## D076 main Rules deploy PASS — 2026-09-19
+
+PR #72 merged at `452feb1e25dff936617e5d1d51313438d85155eb`. Main workflow `35451292051` completed PASS and proved the full Beta Rules path: `firebasedatabase.instances.update` permission PASS, authenticated RTDB Rules GET PASS, canonical Rules PUT PASS, and exact JSON readback verification PASS. Beta RTDB now has the D075 shared Picker queue / real ADMIN Agent rules deployed automatically through GitHub Actions.
+
+No Firebase/IAM/Rules setup action remains. The only remaining relay acceptance is the physical field test using signed `beta-vc49` and `relay-agent-v2`: real ADMIN Agent on the laptop, Office check/listener, then any Picker PDA sends five digits and receives ACK with ADMIN + machine + Agent instance + RTT.
+
+Current relay marker: `D076_RTDB_RULES_DEPLOY_PASS__D075_FIELD_TEST_PENDING__NO_WMS_MUTATION`.
+Current Android marker: `D075_SHARED_RELAY_SIGNED_BETA_VC49__D076_RULES_DEPLOY_PASS__FIELD_TEST_PENDING`.
