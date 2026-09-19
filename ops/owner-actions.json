@@ -118,11 +118,11 @@
     },
     {
       "id": "OA004",
-      "status": "BLOCKED_MISSING_FIREBASEDATABASE_INSTANCES_UPDATE",
+      "status": "D076_RULES_CI_VALIDATED__MAIN_DEPLOY_PENDING",
       "title": "Publish D075 shared relay RTDB Rules and field-test ADMIN Agent",
       "resource_key": "firebase-rtdb-relay-beta",
       "provider": "Firebase + physical Beta field environment",
-      "reason_owner_only": "PR #72 read-only CI proved the configured service account can authenticate but does not hold firebasedatabase.instances.update. No connected Google Cloud IAM write tool is available.",
+      "reason_owner_only": "After D076 Rules deploy PASS, only the physical Office/PDA field acceptance remains Owner/device/network dependent.",
       "owner_ui_path": [
         "Google Cloud Console",
         "Project supra-inventory-beta",
@@ -139,7 +139,7 @@
         "Verify PDA receives ACK showing ADMIN/machine/Agent instance/RTT"
       ],
       "safety": "Beta only; do not use Test mode/open Rules; no WMS mutation; never share passwords/tokens.",
-      "remaining_owner_action": "Grant roles/firebasedatabase.admin once. Do not recreate the JSON key/secret. Then report done so CI can be rerun.",
+      "remaining_owner_action": "No IAM/Rules setup action remains. Wait for automated main Rules deploy PASS, then run the physical Picker PDA -> ADMIN Agent v2 field test.",
       "prerequisites": {
         "merged_main": "9b149e56b4781eb905daa6793db6a220a045cf5a",
         "android_release": "beta-vc49",
