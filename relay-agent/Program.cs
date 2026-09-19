@@ -4,8 +4,11 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Net;
+using System.Net.NetworkInformation;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
@@ -18,18 +21,106 @@ namespace SupraInventoryRelayAgent
         [STAThread]
         private static void Main()
         {
+            AgentDiagnostics.Initialize();
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             try
             {
                 WebRequest.DefaultWebProxy = WebRequest.GetSystemWebProxy();
                 if (WebRequest.DefaultWebProxy != null)
                     WebRequest.DefaultWebProxy.Credentials = CredentialCache.DefaultNetworkCredentials;
+                AgentDiagnostics.Write("SYSTEM proxy=windows-default tls=TLS1.2");
             }
-            catch { }
+            catch (Exception ex)
+            {
+                AgentDiagnostics.Write("SYSTEM proxy-init-failed " + ex.GetType().Name);
+            }
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new AgentForm());
+        }
+    }
+
+    internal static class AgentDiagnostics
+    {
+        private static readonly object Gate = new object();
+        private static readonly Regex JwtPattern = new Regex(@"eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}", RegexOptions.Compiled);
+        private static readonly Regex SecretPattern = new Regex(@"(?i)(authorization|bearer|token|password|secret|private[_ -]?key|api[_ -]?key|cookie|refresh[_ -]?token|id[_ -]?token)\s*[:=]\s*[^\s,;]+", RegexOptions.Compiled);
+        private static readonly Regex QuerySecretPattern = new Regex(@"(?i)([?&](?:auth|key|access_token|token)=)[^&\s]+", RegexOptions.Compiled);
+        internal static string LogFile { get; private set; }
+
+        internal static void Initialize()
+        {
+            try
+            {
+                var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SUPRA Inventory", "RelayPoc", "Logs");
+                Directory.CreateDirectory(dir);
+                LogFile = Path.Combine(dir, "relay-agent-" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + "-" + Process.GetCurrentProcess().Id + ".log");
+                Write("START version=" + Assembly.GetExecutingAssembly().GetName().Version + " os=" + Environment.OSVersion.VersionString + " clr=" + Environment.Version + " process64=" + Environment.Is64BitProcess + " machine=" + Environment.MachineName);
+            }
+            catch
+            {
+                LogFile = "";
+            }
+        }
+
+        internal static string Sanitize(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return "";
+            var next = value.Length > 4000 ? value.Substring(0, 4000) : value;
+            next = QuerySecretPattern.Replace(next, "$1[REDACTED]");
+            next = SecretPattern.Replace(next, m => m.Groups[1].Value + "=[REDACTED]");
+            next = JwtPattern.Replace(next, "[REDACTED_JWT]");
+            return next;
+        }
+
+        internal static string SafeUrl(string url)
+        {
+            try
+            {
+                var uri = new Uri(url);
+                return uri.GetLeftPart(UriPartial.Path);
+            }
+            catch
+            {
+                return Sanitize(url);
+            }
+        }
+
+        internal static void Write(string message)
+        {
+            var line = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + "  " + Sanitize(message);
+            try
+            {
+                lock (Gate)
+                {
+                    if (!string.IsNullOrWhiteSpace(LogFile))
+                        File.AppendAllText(LogFile, line + Environment.NewLine, Encoding.UTF8);
+                }
+            }
+            catch { }
+        }
+
+        internal static void OpenLog()
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(LogFile) && File.Exists(LogFile))
+                    Process.Start("explorer.exe", "/select,\"" + LogFile + "\"");
+            }
+            catch { }
+        }
+    }
+
+    internal sealed class RelayHttpException : Exception
+    {
+        internal int StatusCode { get; private set; }
+        internal string Detail { get; private set; }
+        internal RelayHttpException(int statusCode, string detail, string operation)
+            : base(operation + " HTTP " + statusCode + (string.IsNullOrWhiteSpace(detail) ? "" : " - " + detail))
+        {
+            StatusCode = statusCode;
+            Detail = detail ?? "";
         }
     }
 
@@ -38,6 +129,7 @@ namespace SupraInventoryRelayAgent
         public string IdToken;
         public string RefreshToken;
         public string UserId;
+        public string AppUserId;
         public DateTime ExpiresUtc;
     }
 
@@ -49,6 +141,7 @@ namespace SupraInventoryRelayAgent
         private readonly Button _pair = new Button();
         private readonly Button _testOffice = new Button();
         private readonly Button _listen = new Button();
+        private readonly Button _openLog = new Button();
         private readonly Label _relay = new Label();
         private readonly Label _network = new Label();
         private readonly Label _identity = new Label();
@@ -86,11 +179,13 @@ namespace SupraInventoryRelayAgent
             _password.SetBounds(375, 136, 160, 26); _password.UseSystemPasswordChar = true; Controls.Add(_password);
             _pair.SetBounds(545, 135, 105, 28); _pair.Text = "Ghép Agent"; _pair.Click += (s, e) => Task.Run(() => PairLogin()); Controls.Add(_pair);
 
-            _testOffice.SetBounds(18, 176, 150, 32); _testOffice.Text = "Kiểm tra Office"; _testOffice.Enabled = false;
+            _testOffice.SetBounds(18, 176, 135, 32); _testOffice.Text = "Kiểm tra Office"; _testOffice.Enabled = false;
             _testOffice.Click += (s, e) => Task.Run(() => TestOffice()); Controls.Add(_testOffice);
-            _listen.SetBounds(178, 176, 150, 32); _listen.Text = "Nghe relay"; _listen.Enabled = false;
+            _listen.SetBounds(160, 176, 135, 32); _listen.Text = "Nghe relay"; _listen.Enabled = false;
             _listen.Click += (s, e) => { if (_listenCts == null) StartListening(); else StopListening(); }; Controls.Add(_listen);
-            Controls.Add(new Label { Left = 345, Top = 180, Width = 305, Height = 40, Text = "POC chỉ nhận 5 số và trả ACK. Không truy cập hoặc thao tác WMS.", ForeColor = Color.DimGray });
+            _openLog.SetBounds(302, 176, 105, 32); _openLog.Text = "Mở log";
+            _openLog.Click += (s, e) => AgentDiagnostics.OpenLog(); Controls.Add(_openLog);
+            Controls.Add(new Label { Left = 420, Top = 178, Width = 230, Height = 44, Text = "POC chỉ nhận 5 số và trả ACK. Không truy cập hoặc thao tác WMS.", ForeColor = Color.DimGray });
 
             _log.SetBounds(18, 225, 632, 220); Controls.Add(_log);
 
@@ -109,7 +204,7 @@ namespace SupraInventoryRelayAgent
 
             var timer = new System.Windows.Forms.Timer { Interval = 4000 };
             timer.Tick += (s, e) => _network.Text = "Mạng: " + GetSsid(); timer.Start();
-            Shown += (s, e) => Task.Run(() => RestoreSession());
+            Shown += (s, e) => Task.Run(() => { LogNetworkSnapshot("startup"); RestoreSession(); });
         }
 
         private void RestoreFromTray() { Show(); WindowState = FormWindowState.Normal; Activate(); }
