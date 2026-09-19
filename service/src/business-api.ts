@@ -350,6 +350,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   if (key === "GET /api/reporter/queue") {
     const params = new URLSearchParams();
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
+    if (url.searchParams.has("offset")) params.set("offset", url.searchParams.get("offset") || "");
     return coreGet(env, `/operational/reporter/queue?${params.toString()}`);
   }
 

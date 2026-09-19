@@ -11,6 +11,7 @@ const events: Array<{ at: string; level: string; message: string }> = [];
 let snapshotProvider: SnapshotProvider = () => ({});
 let initialized = false;
 let lastImmediateErrorAt = 0;
+let scheduledSendInFlight = false;
 
 function redactText(value: string): string {
   let next = value.slice(0, 1500);
@@ -161,11 +162,16 @@ async function immediateError(reason: string, detail: unknown): Promise<void> {
 }
 
 export async function maybeSendScheduledWebLog(): Promise<void> {
-  if (!hasSession()) return;
-  await flushPendingError();
-  const slot = currentSlotKey();
-  if (localStorage.getItem(SLOT_KEY) === slot) return;
-  if (await send("INFO", `scheduled_${slot}`)) localStorage.setItem(SLOT_KEY, slot);
+  if (!hasSession() || scheduledSendInFlight) return;
+  scheduledSendInFlight = true;
+  try {
+    await flushPendingError();
+    const slot = currentSlotKey();
+    if (localStorage.getItem(SLOT_KEY) === slot) return;
+    if (await send("INFO", `scheduled_${slot}`)) localStorage.setItem(SLOT_KEY, slot);
+  } finally {
+    scheduledSendInFlight = false;
+  }
 }
 
 export function initWebRuntimeLogging(provider: SnapshotProvider): void {

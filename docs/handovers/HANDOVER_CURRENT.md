@@ -7,13 +7,13 @@
 Canonical current markers:
 - SQLite schema: `6`
 - Latest Beta APK: `beta-vc45`
-- Web: `D066_THREE_GROUP_NAVIGATION_BETA_RUNTIME_PASS__OWNER_VISUAL_ACCEPTANCE_PENDING`
+- Web: `D067_WEB_UX_REFINEMENT_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`
 - Android: `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 
 The project is in **UI-first review**, not business-logic rebuild.
 
 - Active visual baseline: **D057 — direct legacy presentation transplant**. Active Web review refinements: **D058 shell + D059 header + D060 Root-role/theme + D061 dark/sidebar/realtime cleanup + D062 final Web QA/IA + D063 consolidated operations/logs/reporting/people review**.
-- D064 detailed `Trạng thái hệ thống` is deployed on Beta and technically PASS. Controlled Beta load test run `35376099693` also PASS: 1,000/1,000 real Picker reports, 100 existing Pickers, 400 existing SKUs in 525.423 seconds, no errors; temporary load-test gate verified closed. D066 three-group navigation is merged and deployed on Beta. PR #50 guards PASS; main UI Design Guard run `35407227884` PASS; Beta deploy run `35407227911` PASS. Owner visual acceptance is still pending. Stable is unchanged.
+- D064 detailed `Trạng thái hệ thống` is deployed on Beta and technically PASS. Controlled Beta load test run `35376099693` also PASS: 1,000/1,000 real Picker reports, 100 existing Pickers, 400 existing SKUs in 525.423 seconds, no errors; temporary load-test gate verified closed. D066 three-group navigation is merged and deployed on Beta. PR #50 guards PASS; main UI Design Guard run `35407227884` PASS; Beta deploy run `35407227911` PASS. Owner accepted D066 as the current Web navigation baseline. D067 is the active 10-item Web refinement and remains pending PR/runtime verification. Stable is unchanged.
 - Owner has **not yet given UI/layout acceptance** for the current candidate.
 - Technical build/deploy/release PASS must never be interpreted as Owner UI PASS.
 - D064 system-status and controlled load-test implementation are complete. D066 now carries the approved three-group Web navigation implementation.
@@ -31,7 +31,7 @@ Current review targets:
 
 Owner can start the next chat with only:
 
-> **Kiểm tra live D066 và tiếp tục từ NEXT_ACTION**
+> **Kiểm tra live D067 và test 10 mục**
 
 Then attach/send the current screenshot or concise review feedback, for example:
 - `Web Tổng quan: chưa OK, sidebar rộng quá`
@@ -457,7 +457,7 @@ Implementation details:
 - Picker Web keeps its single `Báo thiếu hàng` workspace.
 - Android/PDA unchanged. Stable untouched and OWNER-GATED.
 
-Current source marker: `D066_THREE_GROUP_NAVIGATION_BETA_RUNTIME_PASS__OWNER_VISUAL_ACCEPTANCE_PENDING`.
+Current source marker: `D067_WEB_UX_REFINEMENT_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`.
 Next action: finish PR guards → merge → Beta deploy → record runtime PASS/continuity.
 
 ## D066 runtime evidence — clean handoff
@@ -489,3 +489,8 @@ Internal consolidation:
 **Next chat command:** `Kiểm tra live D066 và tiếp tục từ NEXT_ACTION`.
 
 No manual end-of-session handover is required; bootstrap from `ops/authority-manifest.json`.
+
+
+## D067 active refinement — 2026-09-19
+
+Owner accepted D066 as the current Web baseline and requested 10 bounded refinements: text zoom; clickable complete pending/warning/overdue lists; latest-report detail; responsive one-row-per-Picker detail; scroll preservation; optional 5-second Skip guard; HAS_STOCK confirmation; Web-log de-duplication; clean end-user copy; and removal of the 200-row pending-queue truncation. Source marker: `D067_WEB_UX_REFINEMENT_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`. Stable remains OWNER-GATED.

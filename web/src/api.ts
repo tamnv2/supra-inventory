@@ -468,8 +468,9 @@ export async function getSkuCatalogPage(after = "", limit = 2000): Promise<SkuCa
   return readJson(await authorizedFetch(`/api/skus/catalog?${params.toString()}`));
 }
 
-export async function getReporterQueue(limit = 100): Promise<{ items: ReporterBatch[]; count: number; server_now?: string; sla_configured?: boolean; sla?: SlaConfig | null }> {
-  return readJson(await authorizedFetch(`/api/reporter/queue?limit=${encodeURIComponent(String(limit))}`));
+export async function getReporterQueue(limit = 100, offset = 0): Promise<{ items: ReporterBatch[]; count: number; total: number; limit: number; offset: number; server_now?: string; sla_configured?: boolean; sla?: SlaConfig | null }> {
+  const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+  return readJson(await authorizedFetch(`/api/reporter/queue?${params.toString()}`));
 }
 
 export async function getReporterRecent(limit = 100): Promise<{ items: ReporterRecentBatch[]; count: number }> {
