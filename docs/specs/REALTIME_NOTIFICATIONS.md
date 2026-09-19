@@ -173,3 +173,14 @@ Client contract:
 - Local ticking is presentation-only: it never grants Skip, mutates state or changes queue priority.
 - Durable Object Alarm performs authoritative warning/escalation/automatic-Skip transitions even when no client is open.
 - Any subsequent authoritative response replaces local presentation state.
+
+
+### D070 runtime alarm availability guard
+
+D070 authoritative deadline transitions must not create a tight alarm loop or depend on downstream notification delivery.
+
+- If a batch is first observed only after the escalation threshold, the warning stage is consumed without emitting a late warning; this prevents the already-past warning deadline from being re-scheduled indefinitely.
+- Catch-up processing per alarm is bounded and the minimum re-arm delay is one second. Minute-level business thresholds and result semantics are unchanged.
+- Authoritative database transitions and the next alarm schedule occur before best-effort realtime/FCM delivery.
+- Realtime/FCM provider failure must not throw an already-committed alarm and cause platform retry storms. Clients recover from authoritative state through normal cursor/reconcile reads.
+- Exact Picker result targeting, grouped Reporter/Admin/Root notices, correction rules and Stable OWNER-GATE remain unchanged.
