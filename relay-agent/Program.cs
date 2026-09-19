@@ -649,36 +649,56 @@ namespace SupraInventoryRelayAgent
             var refreshToken = Convert.ToString(root["refresh_token"]);
             var firebaseUid = FirebaseUidFromIdToken(idToken);
             var audience = FirebaseAudienceFromIdToken(idToken);
+            var role = FirebaseClaimFromIdToken(idToken, "app_role");
+            var baseRole = FirebaseClaimFromIdToken(idToken, "app_base_role");
+            var appUserId = FirebaseClaimFromIdToken(idToken, "app_user_id");
+
             if (!string.Equals(audience, AgentConfig.FirebaseProjectId, StringComparison.Ordinal))
                 throw new InvalidOperationException("Firebase token sai project audience.");
+            if (!string.Equals(role, "ADMIN", StringComparison.Ordinal) ||
+                !string.Equals(baseRole, "ADMIN", StringComparison.Ordinal) ||
+                string.IsNullOrWhiteSpace(appUserId))
+                throw new InvalidOperationException("Phiên Agent không phải ADMIN thực hoặc thiếu D075 claims.");
 
             var next = new AgentSession
             {
                 IdToken = idToken,
                 RefreshToken = refreshToken,
                 UserId = firebaseUid,
-                AppUserId = current.AppUserId,
+                AppUserId = appUserId,
+                Role = role,
+                BaseRole = baseRole,
                 ExpiresUtc = DateTime.UtcNow.AddSeconds(ParseInt(root, "expires_in", 3600) - 60)
             };
-            if (string.IsNullOrWhiteSpace(next.IdToken) || string.IsNullOrWhiteSpace(next.RefreshToken) || string.IsNullOrWhiteSpace(next.UserId))
+            if (string.IsNullOrWhiteSpace(next.IdToken) ||
+                string.IsNullOrWhiteSpace(next.RefreshToken) ||
+                string.IsNullOrWhiteSpace(next.UserId))
                 throw new InvalidOperationException("Google không trả phiên Firebase hợp lệ.");
 
             lock (_sessionLock) _session = next;
             SaveStoredSession(next);
-            Log("Firebase refresh PASS uid=" + Fingerprint(next.UserId) + " aud=" + audience);
+            Log(
+                "Firebase refresh PASS admin=" + next.AppUserId +
+                " role=" + next.Role +
+                " base_role=" + next.BaseRole +
+                " uid=" + Fingerprint(next.UserId) +
+                " aud=" + audience
+            );
         }
 
         private AgentSession SnapshotSession()
         {
             lock (_sessionLock)
             {
-                if (_session == null) throw new InvalidOperationException("Chưa ghép Agent.");
+                if (_session == null) throw new InvalidOperationException("Chưa đăng nhập ADMIN Agent.");
                 return new AgentSession
                 {
                     IdToken = _session.IdToken,
                     RefreshToken = _session.RefreshToken,
                     UserId = _session.UserId,
                     AppUserId = _session.AppUserId,
+                    Role = _session.Role,
+                    BaseRole = _session.BaseRole,
                     ExpiresUtc = _session.ExpiresUtc
                 };
             }
@@ -688,10 +708,9 @@ namespace SupraInventoryRelayAgent
         {
             lock (_sessionLock)
             {
-                if (_session == null) return "chưa ghép";
-                var appUser = string.IsNullOrWhiteSpace(_session.AppUserId) ? "app?" : _session.AppUserId;
-                var uid = string.IsNullOrWhiteSpace(_session.UserId) ? "pending" : Fingerprint(_session.UserId);
-                return appUser + " / uid:" + uid;
+                if (_session == null) return "chưa đăng nhập ADMIN";
+                var appUser = string.IsNullOrWhiteSpace(_session.AppUserId) ? "admin?" : _session.AppUserId;
+                return "ADMIN " + appUser + " / device:" + Short(_agentInstanceId);
             }
         }
 
@@ -788,10 +807,18 @@ namespace SupraInventoryRelayAgent
             {
                 { "refresh_token", session.RefreshToken },
                 { "firebase_uid", session.UserId },
-                { "app_user_id", session.AppUserId ?? "" }
+                { "app_user_id", session.AppUserId ?? "" },
+                { "role", session.Role ?? "" },
+                { "base_role", session.BaseRole ?? "" }
             });
             File.WriteAllBytes(SessionFile, ProtectedData.Protect(Encoding.UTF8.GetBytes(payload), null, DataProtectionScope.CurrentUser));
-            AgentDiagnostics.Write("SESSION saved_dpapi app_user=" + (session.AppUserId ?? "") + " uid=" + Fingerprint(session.UserId));
+            AgentDiagnostics.Write(
+                "SESSION saved_dpapi admin=" + (session.AppUserId ?? "") +
+                " role=" + (session.Role ?? "") +
+                " base_role=" + (session.BaseRole ?? "") +
+                " uid=" + Fingerprint(session.UserId) +
+                " instance=" + Short(_agentInstanceId)
+            );
         }
 
         private AgentSession LoadStoredSession()
@@ -803,21 +830,31 @@ namespace SupraInventoryRelayAgent
             if (!map.TryGetValue("refresh_token", out refreshValue) || string.IsNullOrWhiteSpace(Convert.ToString(refreshValue)))
                 throw new InvalidOperationException("Phiên Agent đã lưu thiếu refresh token.");
 
-            object firebaseValue;
-            object appValue;
-            object legacyValue;
-            var legacy = map.TryGetValue("user_id", out legacyValue) ? Convert.ToString(legacyValue) : "";
-            var firebaseUid = map.TryGetValue("firebase_uid", out firebaseValue) ? Convert.ToString(firebaseValue) : legacy;
-            var appUser = map.TryGetValue("app_user_id", out appValue) ? Convert.ToString(appValue) : legacy;
+            object firebaseValue, appValue, roleValue, baseRoleValue;
+            var firebaseUid = map.TryGetValue("firebase_uid", out firebaseValue) ? Convert.ToString(firebaseValue) : "";
+            var appUser = map.TryGetValue("app_user_id", out appValue) ? Convert.ToString(appValue) : "";
+            var role = map.TryGetValue("role", out roleValue) ? Convert.ToString(roleValue) : "";
+            var baseRole = map.TryGetValue("base_role", out baseRoleValue) ? Convert.ToString(baseRoleValue) : "";
 
             return new AgentSession
             {
                 RefreshToken = Convert.ToString(refreshValue),
                 UserId = firebaseUid,
                 AppUserId = appUser,
+                Role = role,
+                BaseRole = baseRole,
                 IdToken = "",
                 ExpiresUtc = DateTime.MinValue
             };
+        }
+
+        private void ClearStoredSession()
+        {
+            try
+            {
+                if (File.Exists(SessionFile)) File.Delete(SessionFile);
+            }
+            catch { }
         }
 
         private Dictionary<string, object> DecodeTokenPayload(string idToken)
@@ -857,6 +894,34 @@ namespace SupraInventoryRelayAgent
             var payload = DecodeTokenPayload(idToken);
             object value;
             return payload.TryGetValue("aud", out value) ? Convert.ToString(value) : "";
+        }
+
+        private string FirebaseClaimFromIdToken(string idToken, string claim)
+        {
+            var payload = DecodeTokenPayload(idToken);
+            object value;
+            return payload.TryGetValue(claim, out value) ? Convert.ToString(value) : "";
+        }
+
+        private string LoadOrCreateAgentInstanceId()
+        {
+            try
+            {
+                Directory.CreateDirectory(RelayDataDir);
+                if (File.Exists(AgentInstanceFile))
+                {
+                    var existing = File.ReadAllText(AgentInstanceFile).Trim();
+                    Guid parsed;
+                    if (Guid.TryParse(existing, out parsed)) return parsed.ToString("N");
+                }
+                var created = Guid.NewGuid().ToString("N");
+                File.WriteAllText(AgentInstanceFile, created, Encoding.ASCII);
+                return created;
+            }
+            catch
+            {
+                return "ephemeral-" + Guid.NewGuid().ToString("N");
+            }
         }
 
         private void LogNetworkSnapshot(string stage)
