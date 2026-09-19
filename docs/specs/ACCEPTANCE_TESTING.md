@@ -86,6 +86,19 @@ Admin/Root:
 - SLA configuration and recurrence/SLA reporting appear only within allowed roles;
 - no stock quantity/bin/location or employee scoring is introduced.
 
+D067 Web refinement:
+- header text-size controls persist the selected scale and provide decrease / reset / increase without changing server state;
+- pending queue loads every authoritative pending batch through bounded 200-row pages and summary/counts are not capped at 200;
+- clicking pending / warning / overdue summary cards shows the corresponding SKU list;
+- the detail facts show latest report time instead of `Lần xử lý`;
+- affected Picker expansion responds immediately (cached/prefetched when available, otherwise shows a loading state) and renders one Picker per row;
+- selecting an item or applying normal in-section updates preserves the scroll position of the central workspace and nested long lists;
+- `HAS_STOCK` cannot commit from the first click; an explicit confirmation is required;
+- Skip final confirmation is disabled for 5 seconds by default, then becomes active; the per-user Account setting can disable/re-enable this delay;
+- overlapping scheduled Web-log triggers cannot create duplicate same-filename uploads; exact duplicate filenames are suppressed from the journal list;
+- visible Web copy contains no AI/Owner discussion, internal decision IDs, or normal-product labels exposing Beta/Root jargon; the specific log-policy/infrastructure text rejected by Owner is absent.
+
+
 D058 desktop shell review:
 - `Kiểm thử giao diện + quyền server` is absent from the product shell until Owner explicitly reintroduces it;
 - at desktop width the topbar and Admin/Root left navigation remain pinned while normal vertical page movement occurs inside the central workspace;
