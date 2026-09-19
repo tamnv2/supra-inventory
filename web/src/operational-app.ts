@@ -1949,9 +1949,11 @@ function bindSection(): void {
     patchOverlays();
     if (skipConfirm && skipDelayEnabled) {
       const batchId = skipConfirm.batch_id;
-      window.setTimeout(() => {
-        if (skipConfirm?.batch_id === batchId) patchOverlays();
-      }, SKIP_CONFIRM_DELAY_MS + 50);
+      for (const delay of [1_000, 2_000, 3_000, 4_000, SKIP_CONFIRM_DELAY_MS + 50]) {
+        window.setTimeout(() => {
+          if (skipConfirm?.batch_id === batchId) patchOverlays();
+        }, delay);
+      }
     }
   }));
   document.querySelectorAll<HTMLButtonElement>("[data-detail]").forEach((button) => button.addEventListener("click", () => {
