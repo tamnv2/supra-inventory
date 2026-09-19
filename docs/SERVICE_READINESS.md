@@ -337,3 +337,10 @@ Current Android marker: `D075_SHARED_RELAY_SIGNED_BETA_VC49_BUILD_PASS__RULES_PU
 Owner reports the one-time GitHub Environment `beta` secret `FIREBASE_RULES_SA_JSON_BETA` is configured. D076 moves Beta RTDB Rules publication from manual Firebase Console work to CI: pull requests validate credential/read access only; merged main changes deploy `firebase/database.rules.json` to `supra-inventory-beta`. Stable is never targeted and remains OWNER-GATED.
 
 Current relay marker: `D076_AUTO_RTDB_RULES_DEPLOY_IN_PROGRESS__D075_SOURCE_BUILD_RELEASE_PASS__NO_WMS_MUTATION`.
+
+
+## D076 RTDB REST deploy repair — 2026-09-19
+
+D076 credential validation proved the Environment secret is present, belongs to `supra-inventory-beta`, can mint OAuth directly from its private key, and can read Firebase Rules API. The first main deploy using Firebase CLI failed opaquely during RTDB syntax-check. The repair replaces Firebase CLI with the official scoped RTDB `/.settings/rules.json` REST interface: PR checks `firebasedatabase.instances.update` plus Rules read access without mutation; main performs PUT then exact JSON readback verification.
+
+Current relay marker: `D076_RTDB_REST_DEPLOY_REPAIR_IN_PROGRESS__PR_CREDENTIAL_READ_PASS__MAIN_FIREBASE_CLI_DEPLOY_FAILED__NO_WMS_MUTATION`.
