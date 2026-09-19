@@ -227,14 +227,14 @@
     },
     {
       "id": "OA007",
-      "status": "D085_RELEASE_PENDING__OWNER_FIELD_TEST_AFTER_RELEASE",
+      "status": "OWNER_D085_FIELD_TEST_PENDING",
       "title": "Field-test D085 sticky multi-Agent HA, anti-spam, WMS session reuse, overlay rollback and autostart",
       "resource_key": "firebase-rtdb-relay-beta",
       "provider": "Physical Beta PDA + Windows Agents + authorized Supra WMS sessions",
       "reason_owner_only": "Connected tools cannot physically boot multiple company/user laptops, operate PDA devices, validate the Owner-proven desktop overlay behavior, or authenticate an authorized company WMS browser session.",
       "owner_ui_path": [],
       "shortest_test_path": [
-        "After release, run Agent v10 on at least two normal-user Windows sessions and establish valid authorized WMS sessions on both.",
+        "Run released Agent v10 on at least two normal-user Windows sessions and establish valid authorized WMS sessions on both.",
         "Verify exactly one Agent is ACTIVE and the other remains STANDBY; repeated PDA lookups stay on the same ACTIVE Agent.",
         "Close/kill the ACTIVE Agent during a controlled lookup; after about 10 seconds verify PDA shows Đang chuyển người xử lý... and standby takes over the pending request.",
         "Stop all WMS-ready Agents and verify PDA shows Không có Agent xử lý online and instructs the Picker to go to the specialist desk.",
@@ -254,11 +254,24 @@
         "No WMS confirmation/mutation occurs."
       ],
       "safety": "Beta only. Use authorized WMS sessions. Never paste passwords, cURL, tokens, Authorization/APISID/SID/SCID/USID, signatures/nonces or raw WMS response payloads. Stable and WMS mutation remain forbidden.",
-      "remaining_owner_action": "Wait for D085 Agent v10 + next signed Beta APK release, then perform the physical multi-Agent/lock/session/overlay/autostart acceptance. D078 Office transport selection remains a separate pending test.",
+      "remaining_owner_action": "Run relay-agent-v10 + signed beta-vc52 physical field acceptance for multi-Agent failover, no-Agent warning, anti-spam locks, WMS profile reuse, overlay behavior and user-mode autostart. D078 Office transport selection remains a separate pending test.",
       "prerequisites": {
         "source_branch": "feat/d085-agent-ha-rate-limit-autostart",
-        "agent_target": "relay-agent-v10",
-        "android_target": "beta-vc52",
+        "merged_pr": 89,
+        "merged_main": "bf309b9788f5adac179ef293f4770eafb6bdcedf",
+        "agent_release": "relay-agent-v10",
+        "agent_release_id": 392250097,
+        "agent_exe_asset_id": 575663581,
+        "agent_exe_sha256": "740af8d4bada6bc68999aa30e1c2b5fa3006937a7acca321a8be429faeee63b0",
+        "android_release": "beta-vc52",
+        "android_release_id": 392250139,
+        "android_apk_asset_id": 575663833,
+        "android_apk_sha256": "0f5e02f7ca9f1f66b589479f833db4b4b4aabb356029d580afcd094c52683c32",
+        "main_agent_release_run": 35475860715,
+        "main_android_release_run": 35475860695,
+        "main_beta_deploy_run": 35475860697,
+        "main_rtdb_rules_run": 35475860708,
+        "main_ui_guard": 35475860687,
         "transport": "CURRENT_RTDB_TEMPORARY__FINAL_SELECTION_PENDING_D078"
       }
     }
