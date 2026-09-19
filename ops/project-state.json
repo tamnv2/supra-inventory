@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "BETA_RUNTIME_PASS_D076_RTDB_RULES_DEPLOY__D075_APP_AGENT_RELEASE",
+    "beta": "BETA_RUNTIME_PASS_D085_AGENT_HA_CACHE_ANTISPAM_RELEASE__OWNER_FIELD_TEST_PENDING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 7,
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
