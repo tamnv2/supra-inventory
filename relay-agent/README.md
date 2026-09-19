@@ -141,3 +141,19 @@ Trong lúc bài test PDA ↔ Agent trên mạng Office tạm hoãn, Agent v5 ki�
 - Unsupported schema, malformed PickListCode values, or stalled pagination fail closed.
 - Android relay wait is extended to 120 seconds to allow the all-date paged scan.
 - WMS access remains signed read-only GET only. No confirmation or mutation.
+
+## D085 — Agent v10 source candidate
+
+D085 keeps the currently deployed Beta RTDB relay only as a temporary carrier; final PDA ↔ Agent transport selection remains pending D078 company-network evidence.
+
+Agent v10 source adds:
+- one sticky WMS-ready ACTIVE Agent with 3-second heartbeat and 10-second standby failover;
+- pending/switching job takeover after failover;
+- all-date D084 PickListCode preload into RAM, 10-second fresh-miss guard and single-flight refresh;
+- account-scoped anti-spam: 3 final NOT_FOUND in 60s → 5m, then 30m, then 60m locks; 24h without a new lock resets escalation;
+- WMS dedicated-browser-profile reuse on startup, with captured request/session values held only in RAM;
+- per-user Windows auto-start through HKCU Run; no elevation required;
+- Owner-proven v8 overlay interaction engine, while `Cài đặt bảng nổi` remains accessible on the main Agent window.
+
+Standby Agents do not process WMS jobs. Remote PDA requests never open WMS login. WMS access remains signed GET-only; confirmation/mutation is not implemented or authorized.
+

@@ -510,3 +510,24 @@ D084 technical PASS requires:
 6. Agent paginates until FOUND or truthful exhaustion. Missing `PickListCode`, malformed values, repeated/stalled pages, or unrecognized response structure fail closed as schema error rather than false NOT_FOUND.
 7. Android relay call timeout is 120 seconds for this all-date scan.
 8. Existing signed-GET-only/no-WMS-mutation guards remain PASS; Stable remains untouched.
+
+## D085 acceptance — Agent HA/cache/anti-spam/session/autostart
+
+Technical/source acceptance requires:
+- Agent v10 builds and executable startup smoke PASS.
+- v8 overlay interaction engine is restored while main-window overlay settings remain accessible.
+- current-user Windows autostart registration is present and requires no elevation.
+- exact D084 WMS GET-only/no-date/`Content=""`/100-row/`PickListCode` rules remain guarded.
+- one WMS-ready active Agent lease, 3-second heartbeat, 10-second failover and conditional lease writes are present.
+- standby Agent cannot process WMS jobs while another healthy active Agent exists.
+- pending job can be resumed after takeover and exposes `SWITCHING` to the PDA.
+- Picklist preload, 10-second fresh-miss guard and single-flight refresh are present.
+- 3 final NOT_FOUND/60s => 5m, 30m, 60m lock progression; errors do not add strikes; 24h without a new lock resets escalation.
+- no-Agent PDA warning and locked-Picker UI are present.
+- RTDB Rules preserve Picker-own-job boundaries and real-ADMIN-only leader/rate/ACK writes.
+- no WMS mutation method is introduced.
+
+Owner physical acceptance after release requires at least two Agents with valid authorized WMS sessions: verify sticky ownership, kill/exit active Agent, observe approximately 10-second takeover + PDA switching message, verify no-Agent specialist-desk warning when all Agents are unavailable, verify lock progression with controlled nonexistent values, verify Agent starts on Windows login as normal user, and verify browser-profile WMS session reuse when still valid.
+
+D078 Office transport selection remains a separate pending field decision and must not be inferred from D085 acceptance.
+

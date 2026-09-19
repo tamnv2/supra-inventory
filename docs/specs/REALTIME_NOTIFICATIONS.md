@@ -247,3 +247,13 @@ Agent ACK may add only bounded lookup metadata:
 - `lookup_http` — HTTP status code.
 
 No full Picklist identifier, WMS response body, WMS session value, signature/nonce, password or credential is stored in RTDB. The five-digit suffix remains the already approved bounded POC request value. First-writer ADMIN ACK ownership remains unchanged.
+
+## D085 relay availability/failover signal
+
+The confirmation-path relay uses a bounded Agent heartbeat/leader record for operational availability. It is not a second business store and does not alter Báo hàng realtime semantics.
+
+- Active Agent heartbeat interval: 3 seconds.
+- Failover threshold: 10 seconds.
+- PDA may read leader availability and job `SWITCHING` state to present no-Agent/failover guidance.
+- No Agent availability signal may authorize WMS mutation.
+

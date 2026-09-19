@@ -31,6 +31,17 @@ namespace SupraInventoryRelayAgent
         }
     }
 
+    internal sealed class WmsPicklistSnapshotResult
+    {
+        internal string Result;
+        internal string Route;
+        internal int StatusCode;
+        internal long ElapsedMs;
+        internal int CandidateFieldCount;
+        internal string SchemaFields;
+        internal HashSet<string> TrailingFiveSuffixes = new HashSet<string>(StringComparer.Ordinal);
+    }
+
     internal static class WmsPicklistLookupClient
     {
         private const int PageSize = 100;
@@ -59,6 +70,7 @@ namespace SupraInventoryRelayAgent
             internal int? TotalCount;
             internal int RecordCollectionCount = -1;
             internal readonly HashSet<string> SchemaFields = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            internal readonly HashSet<string> TrailingFiveSuffixes = new HashSet<string>(StringComparer.Ordinal);
         }
 
         private static readonly JavaScriptSerializer Json = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024 };
@@ -248,6 +260,131 @@ namespace SupraInventoryRelayAgent
             };
         }
 
+        internal static WmsPicklistSnapshotResult LoadSnapshot(WmsSessionSnapshot session)
+        {
+            if (session == null || !session.IsValidHy1())
+                return new WmsPicklistSnapshotResult
+                {
+                    Result = "WMS_SESSION_REQUIRED",
+                    Route = "NONE",
+                    StatusCode = 0,
+                    ElapsedMs = 0
+                };
+
+            long totalElapsedMs = 0;
+            var totalPickListCodes = 0;
+            var allFields = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var suffixes = new HashSet<string>(StringComparer.Ordinal);
+            string lastRoute = "NONE";
+            var lastHttp = 0;
+            string previousBodyFingerprint = null;
+
+            for (var page = 1; page <= AbsolutePageGuard; page++)
+            {
+                var url = BuildLookupUrl(page);
+                var payload = SendPage(url, session, page, ref totalElapsedMs);
+                if (payload == null)
+                    return SnapshotResult("TRANSPORT_FAIL", lastRoute, lastHttp, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+
+                lastRoute = payload.Route;
+                lastHttp = payload.StatusCode;
+                if (payload.Result != "PASS")
+                    return SnapshotResult(payload.Result, payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+
+                ResponseAnalysis analysis;
+                try
+                {
+                    analysis = AnalyzePage(payload.Body, null);
+                }
+                catch (Exception ex)
+                {
+                    AgentDiagnostics.Write(
+                        "WMS picklist-cache page=" + page +
+                        " parse_fail=" + ex.GetType().Name +
+                        " response_values=redacted");
+                    return SnapshotResult("SCHEMA_UNSUPPORTED", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+                }
+
+                foreach (var field in analysis.SchemaFields)
+                    if (allFields.Count < 80) allFields.Add(field);
+                foreach (var trailing in analysis.TrailingFiveSuffixes)
+                    suffixes.Add(trailing);
+                totalPickListCodes += analysis.PickListCodeCount;
+
+                AgentDiagnostics.Write(
+                    "WMS picklist-cache page=" + page +
+                    " result=PASS" +
+                    " total=" + (analysis.TotalCount.HasValue ? analysis.TotalCount.Value.ToString() : "unknown") +
+                    " records=" + analysis.RecordCollectionCount +
+                    " picklist_codes=" + analysis.PickListCodeCount +
+                    " valid_picklist_codes=" + analysis.ValidPickListCodeCount +
+                    " cached_suffixes=" + suffixes.Count +
+                    " values=redacted");
+
+                if (analysis.TotalCount.HasValue && analysis.TotalCount.Value == 0)
+                    return SnapshotResult("PASS", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+
+                if (analysis.PickListCodeCount == 0)
+                {
+                    if (analysis.RecordCollectionCount == 0)
+                        return SnapshotResult("PASS", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+
+                    AgentDiagnostics.Write(
+                        "WMS picklist-cache result=SCHEMA_UNSUPPORTED reason=missing_exact_PickListCode page=" +
+                        page + " values=redacted");
+                    return SnapshotResult("SCHEMA_UNSUPPORTED", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+                }
+
+                if (analysis.ValidPickListCodeCount == 0)
+                {
+                    AgentDiagnostics.Write(
+                        "WMS picklist-cache result=SCHEMA_UNSUPPORTED reason=PickListCode_format_unexpected page=" +
+                        page + " values=redacted");
+                    return SnapshotResult("SCHEMA_UNSUPPORTED", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+                }
+
+                if (IsLastPage(page, analysis))
+                    return SnapshotResult("PASS", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+
+                var fingerprint = BodyFingerprint(payload.Body);
+                if (page > 1 && !string.IsNullOrWhiteSpace(previousBodyFingerprint) &&
+                    string.Equals(previousBodyFingerprint, fingerprint, StringComparison.Ordinal))
+                {
+                    AgentDiagnostics.Write(
+                        "WMS picklist-cache result=SCHEMA_UNSUPPORTED reason=repeated_page page=" +
+                        page + " values=redacted");
+                    return SnapshotResult("SCHEMA_UNSUPPORTED", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+                }
+
+                previousBodyFingerprint = fingerprint;
+            }
+
+            AgentDiagnostics.Write(
+                "WMS picklist-cache result=SCHEMA_UNSUPPORTED reason=absolute_page_guard values=redacted");
+            return SnapshotResult("SCHEMA_UNSUPPORTED", lastRoute, lastHttp, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+        }
+
+        private static WmsPicklistSnapshotResult SnapshotResult(
+            string result,
+            string route,
+            int statusCode,
+            long elapsedMs,
+            int pickListCodeCount,
+            HashSet<string> fields,
+            HashSet<string> suffixes)
+        {
+            return new WmsPicklistSnapshotResult
+            {
+                Result = result,
+                Route = route,
+                StatusCode = statusCode,
+                ElapsedMs = elapsedMs,
+                CandidateFieldCount = pickListCodeCount,
+                SchemaFields = JoinSafeFields(fields),
+                TrailingFiveSuffixes = new HashSet<string>(suffixes ?? new HashSet<string>(), StringComparer.Ordinal)
+            };
+        }
+
         private static void ValidateSuffix(string suffix)
         {
             if (string.IsNullOrWhiteSpace(suffix) || suffix.Length != 5)
@@ -416,7 +553,10 @@ namespace SupraInventoryRelayAgent
                             if (IsValidPickListCode(value))
                             {
                                 result.ValidPickListCodeCount++;
-                                if (TrailingFiveDigits(value) == suffix)
+                                var trailing = TrailingFiveDigits(value);
+                                if (!string.IsNullOrWhiteSpace(trailing))
+                                    result.TrailingFiveSuffixes.Add(trailing);
+                                if (!string.IsNullOrWhiteSpace(suffix) && trailing == suffix)
                                     result.MatchCount++;
                             }
                         }

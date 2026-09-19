@@ -1,10 +1,16 @@
 name: Verify Beta Android
 
 on:
+  pull_request:
+    paths:
+      - "android/**"
+      - "firebase/database.rules.json"
+      - ".github/workflows/verify-apps.yml"
   push:
     branches: [main]
     paths:
       - "android/**"
+      - "firebase/database.rules.json"
       - ".github/workflows/verify-apps.yml"
   workflow_dispatch:
 
@@ -90,7 +96,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Require successful Beta runtime gate for this source
-        if: env.SIGNING_READY == 'true'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SIGNING_READY == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -112,7 +118,7 @@ jobs:
           exit 1
 
       - name: Publish signed Beta auto-update release
-        if: env.SIGNING_READY == 'true'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SIGNING_READY == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

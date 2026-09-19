@@ -40,6 +40,39 @@ jobs:
             throw "AgentConfig.AgentBuild does not match relay-agent/VERSION=$version"
           }
 
+      - name: D085 relay regression guard
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $config = Get-Content relay-agent/AgentConfig.cs -Raw
+          $program = Get-Content relay-agent/Program.cs -Raw
+          $leader = Get-Content relay-agent/AgentLeaderCoordinator.cs -Raw
+          $cache = Get-Content relay-agent/PicklistCacheCoordinator.cs -Raw
+          $rate = Get-Content relay-agent/PickerRateLimiter.cs -Raw
+          $startup = Get-Content relay-agent/UserStartupRegistration.cs -Raw
+          $overlay = Get-Content relay-agent/StatusOverlay.cs -Raw
+          $lookup = Get-Content relay-agent/WmsPicklistLookup.cs -Raw
+          $wms = Get-Content relay-agent/WmsIntegration.cs -Raw
+          $rules = Get-Content firebase/database.rules.json -Raw
+
+          if ($config -notmatch 'AgentBuild\s*=\s*10\s*;') { throw "D085 requires Agent v10." }
+          if ($leader -notmatch 'HeartbeatIntervalMs\s*=\s*3000' -or $leader -notmatch 'FailoverAfterMs\s*=\s*10000') { throw "D085 HA timing guard failed." }
+          if ($leader -notmatch 'HttpRequestHeader\.IfMatch') { throw "D085 leader election must use conditional ETag writes." }
+          if ($cache -notmatch 'FreshMissGuardSeconds\s*=\s*10' -or $cache -notmatch 'JOIN_INFLIGHT' -or $cache -notmatch 'LoadSnapshot') { throw "D085 Picklist cache/single-flight guard failed." }
+          if ($rate -notmatch 'StrikeWindowMs\s*=\s*60L\s*\*\s*1000L' -or $rate -notmatch 'ResetEscalationAfterMs\s*=\s*24L') { throw "D085 anti-spam timing guard failed." }
+          if ($rate -notmatch 'return 5;' -or $rate -notmatch 'return 30;' -or $rate -notmatch 'return 60;') { throw "D085 5/30/60 lock escalation guard failed." }
+          if ($startup -notmatch 'Registry\.CurrentUser' -or $startup -notmatch 'CurrentVersion\\Run' -or $startup -notmatch 'admin_required=false') { throw "D085 per-user autostart guard failed." }
+          if ($program -notmatch 'Cài đặt bảng nổi' -or $program -notmatch 'TryRestoreWmsSessionFromProfile' -or $program -notmatch '_leaderCoordinator\.IsLeader') { throw "D085 Agent UI/session/leader wiring guard failed." }
+          if ($overlay -notmatch 'WmNcHitTest' -or $overlay -match 'SetWindowLong') { throw "D085 must keep the proven v8 overlay interaction engine." }
+          if ($rules -notmatch 'coordination' -or $rules -notmatch 'rate_limits' -or $rules -notmatch 'PICKER_LOCKED' -or $rules -notmatch 'SWITCHING') { throw "D085 RTDB Rules guard failed." }
+
+          foreach ($source in @($lookup, $wms)) {
+            if ($source -match 'request\.Method\s*=\s*"(POST|PUT|PATCH|DELETE)"') {
+              throw "WMS mutation method found; D085 remains read-only."
+            }
+          }
+          Write-Host "D085 relay regression guard PASS"
+
       - name: Prepare Beta Agent config
         shell: pwsh
         run: |

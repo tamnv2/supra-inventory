@@ -181,7 +181,7 @@
     },
     {
       "id": "OA006",
-      "status": "OWNER_D084_FIELD_TEST_PENDING",
+      "status": "SUPERSEDED_BY_D085",
       "title": "Field-test all-date PickListCode lookup and explicit Agent overlay settings",
       "resource_key": "supra-api-d080",
       "provider": "Wincommerce Supra + Beta RTDB + physical authorized WMS/PDA session",
@@ -207,7 +207,7 @@
         "No secret WMS/session/signature values appear in repo/logs/RTDB"
       ],
       "safety": "Use only an authorized company WMS session. Do not paste cURL, passwords, Authorization/Token/APISID/SID/SCID/USID, signatures/nonces or raw WMS response data into chat/logs. Confirmation remains deferred.",
-      "remaining_owner_action": "Run relay-agent-v9 + signed beta-vc51. Verify Agent starts, configure overlay opacity, unlock/drag, then lock and confirm mouse passes through. Establish one valid WMS session locally and test a known real PickListCode suffix on PDA. Send only sanitized Agent log if result is wrong or schema/pagination fails.",
+      "remaining_owner_action": null,
       "prerequisites": {
         "merged_pr": 87,
         "merged_main": "4be5643827342e900f052364051b6050200d35a2",
@@ -223,6 +223,43 @@
         "main_android_release_run": 35463822972,
         "main_beta_deploy_run": 35463823063,
         "main_ui_guard": 35463822993
+      }
+    },
+    {
+      "id": "OA007",
+      "status": "D085_RELEASE_PENDING__OWNER_FIELD_TEST_AFTER_RELEASE",
+      "title": "Field-test D085 sticky multi-Agent HA, anti-spam, WMS session reuse, overlay rollback and autostart",
+      "resource_key": "firebase-rtdb-relay-beta",
+      "provider": "Physical Beta PDA + Windows Agents + authorized Supra WMS sessions",
+      "reason_owner_only": "Connected tools cannot physically boot multiple company/user laptops, operate PDA devices, validate the Owner-proven desktop overlay behavior, or authenticate an authorized company WMS browser session.",
+      "owner_ui_path": [],
+      "shortest_test_path": [
+        "After release, run Agent v10 on at least two normal-user Windows sessions and establish valid authorized WMS sessions on both.",
+        "Verify exactly one Agent is ACTIVE and the other remains STANDBY; repeated PDA lookups stay on the same ACTIVE Agent.",
+        "Close/kill the ACTIVE Agent during a controlled lookup; after about 10 seconds verify PDA shows Đang chuyển người xử lý... and standby takes over the pending request.",
+        "Stop all WMS-ready Agents and verify PDA shows Không có Agent xử lý online and instructs the Picker to go to the specialist desk.",
+        "Use controlled nonexistent five-digit values to verify three final NOT_FOUND results in 60 seconds trigger 5-minute lock; subsequent lock episodes escalate to 30 then 60 minutes. Do not use production-impacting mutation actions.",
+        "Restart Agent/Windows user session and verify Agent starts automatically without elevation; if the dedicated WMS browser profile session remains valid, Agent restores it and preloads Picklist without requiring a fresh login.",
+        "Verify overlay uses the prior working behavior and Cài đặt bảng nổi is available directly on the Agent main window."
+      ],
+      "pass_criteria": [
+        "Transport remains the current temporary RTDB carrier; no final D078 transport choice is made by this test.",
+        "One sticky WMS-ready active Agent handles all jobs; standby does not touch WMS jobs until failover.",
+        "Failover threshold is approximately 10 seconds and pending work is resumed.",
+        "No-Agent and switching states are visible on PDA.",
+        "Cache hit avoids WMS lookup; concurrent cache misses do not create parallel full scans.",
+        "Anti-spam lock is account-scoped and persists across PDA/app/Agent restart.",
+        "Agent auto-start requires no Windows administrator/elevation.",
+        "WMS raw session/header values are absent from repo/logs/RTDB.",
+        "No WMS confirmation/mutation occurs."
+      ],
+      "safety": "Beta only. Use authorized WMS sessions. Never paste passwords, cURL, tokens, Authorization/APISID/SID/SCID/USID, signatures/nonces or raw WMS response payloads. Stable and WMS mutation remain forbidden.",
+      "remaining_owner_action": "Wait for D085 Agent v10 + next signed Beta APK release, then perform the physical multi-Agent/lock/session/overlay/autostart acceptance. D078 Office transport selection remains a separate pending test.",
+      "prerequisites": {
+        "source_branch": "feat/d085-agent-ha-rate-limit-autostart",
+        "agent_target": "relay-agent-v10",
+        "android_target": "beta-vc52",
+        "transport": "CURRENT_RTDB_TEMPORARY__FINAL_SELECTION_PENDING_D078"
       }
     }
   ]

@@ -281,3 +281,20 @@ If WMS asks for login, the user signs in normally in the opened Edge window. The
 - Settings persist locally for the current Windows user.
 - PDA has no date selector for Picklist lookup. The existing five-digit input remains unchanged.
 - Because the Agent may scan multiple 100-row WMS pages without a date filter, the PDA relay wait is extended to two minutes before timeout.
+
+## D085 — Agent/PDA confirmation-path states
+
+### PDA
+- No usable Agent: show a blocking visible warning: **Không có Agent xử lý online. Vui lòng về bàn chuyên viên xử lý trực tiếp.**
+- Active-Agent failover: show **Đang chuyển người xử lý...** while the request is handed to the standby.
+- Anti-spam lock: disable Picklist input/send for the authoritative remaining lock period and show that the user is locked because of repeated wrong inputs, with instruction to go to the specialist desk.
+- Before lock, a final NOT_FOUND may show current `x/3` wrong count in the 60-second window.
+- These messages do not expose the raw Picklist value in diagnostics.
+
+### Windows Agent
+- Main window continues to expose **Cài đặt bảng nổi** directly; tray right-click is not required.
+- Overlay uses the Owner-proven v8 interaction behavior.
+- WMS login/capture control is disabled/dim while a validated WMS session is usable and enabled when session restore/validation fails.
+- Auto-start uses the current Windows user and normally starts minimized to tray; no Windows elevation prompt is required.
+- Agent UI identifies ACTIVE/STANDBY state for multi-Agent operation.
+

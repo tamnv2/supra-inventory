@@ -136,3 +136,24 @@ Purpose: preserve Owner-approved requirements across chats without relying on ma
 ## Owner acceptance rule
 
 Technical CI PASS does not equal Owner business acceptance. Owner may accept with numbered feedback such as `1 OK, 2 chưa OK...`; only explicit Owner acceptance should be recorded as accepted behavior for release/promotion decisions.
+
+## D085 — Sticky multi-Agent HA, Picklist cache/anti-spam, reusable WMS profile session and user-mode autostart
+
+Status: **ACTIVE — OWNER APPROVED 2026-09-20**.
+
+D085 supersedes only the D084 implementation details listed below. D084 all-date exact-`PickListCode` read-only lookup semantics remain authoritative.
+
+- **Transport is deliberately NOT selected by D085.** The current Beta RTDB relay stays unchanged as the temporary transport. D078 Office transport probing remains pending; no LAN/Firestore/Apps Script/other transport becomes primary until physical Office evidence is available and the Owner explicitly selects it.
+- The confirmation path supports multiple Windows Agents but has exactly **one sticky active Agent** at a time. The first WMS-ready Agent that acquires leadership keeps all work while healthy; standby Agents do not round-robin or touch WMS jobs.
+- Active Agent heartbeat is 3 seconds. A leader is considered failed after **10 seconds** without a valid WMS-ready heartbeat. One standby then acquires leadership and resumes pending work. The PDA displays **“Đang chuyển người xử lý...”** for failover state.
+- If no WMS-ready Agent exists, the PDA must stop the lookup and visibly instruct the Picker: **“Không có Agent xử lý online. Vui lòng về bàn chuyên viên xử lý trực tiếp.”**
+- An Agent may auto-start at Windows user logon through the current-user startup registry only. Windows administrator/elevation is not required. Application identity remains a real SUPRA Inventory base-role ADMIN as required by D075.
+- After a valid WMS session is established, Agent loads the all-date Picklist list into an in-memory exact trailing-five cache. Cache hit performs no WMS request. Cache miss refreshes only when the cache is older than 10 seconds; concurrent misses join one in-flight full refresh.
+- Only a **final truthful `NOT_FOUND` after the applicable refresh rule** counts as a wrong lookup. FOUND resets the current strike window. Session/network/proxy/schema/transport errors never count as wrong input.
+- Three final NOT_FOUND results for one Picker account within 60 seconds lock lookup: first lock 5 minutes, second lock 30 minutes, third and later locks 60 minutes. After 24 hours without a new lock, escalation resets to level 0. The lock is account-scoped/persisted so changing PDA or restarting the app does not bypass it.
+- Audit records identify Picker user, request, Agent/Admin instance, cache mode, result, strike/lock state and timing. Raw five-digit values and WMS credentials/session/signature values remain excluded from diagnostics.
+- WMS session longevity uses the dedicated Edge/Chrome browser profile already scoped by D080/D081. Agent startup may reopen that profile briefly, capture a still-valid authorized browser session into RAM and validate it with a read-only GET. Agent does **not** persist raw WMS headers/tokens itself. If invalid, local WMS login is enabled; remote PDA requests never auto-open the WMS login page.
+- Overlay interaction engine is rolled back to the Owner-field-proven Agent v8 behavior. Overlay settings remain accessible directly from the Agent main window; tray access is only an additional shortcut.
+- The future WMS confirmation/mutation adapter remains **disabled/not implemented/not authorized**. D085 is lookup + transport/HA/rate-limit foundation only. WMS POST/PUT/PATCH/DELETE remains forbidden.
+- Stable remains untouched and OWNER-GATED.
+

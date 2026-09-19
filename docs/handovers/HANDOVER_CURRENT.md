@@ -793,3 +793,29 @@ PR #87 merged at `4be5643827342e900f052364051b6050200d35a2`. Main Agent release 
 
 Current Android marker: `D084_ALL_DATE_PICKLISTCODE_SCAN_SIGNED_BETA_VC51__AGENT_V9_RELEASE_PASS__OWNER_FIELD_TEST_PENDING`.
 Current relay marker: `D084_RELEASE_PASS__OWNER_FIELD_TEST_PENDING__ALL_DATE_PICKLISTCODE_SCAN__OVERLAY_SETTINGS__D078_OFFICE_PENDING__NO_WMS_MUTATION`.
+
+## D085 current source work — 2026-09-20
+
+GENERATED/DERIVED CONTINUITY VIEW
+
+Current Android marker: `D085_AGENT_HA_CACHE_ANTISPAM_SOURCE__BETA_VC52_AGENT_V10_RELEASE_PENDING__TRANSPORT_SELECTION_PENDING`.
+
+Branch: `feat/d085-agent-ha-rate-limit-autostart`.
+Agent target: `relay-agent-v10`.
+Android target after merge: `beta-vc52`; latest published signed APK remains `beta-vc51` until release.
+
+Owner-approved D085:
+- do not select/change final PDA ↔ Agent transport yet; current RTDB stays temporary and D078 Office evidence remains pending;
+- exactly one sticky WMS-ready active Agent handles all lookups; 3s heartbeat, 10s failover, standby takeover of pending work;
+- PDA shows switching state and tells Picker to go to specialist desk when no usable Agent exists;
+- preload exact D084 PickListCode list into RAM, cache hit avoids WMS, miss refreshes with 10s guard and single-flight;
+- 3 final NOT_FOUND within 60s locks account 5m, then 30m, then 60m; 24h without a new lock resets escalation;
+- reuse dedicated browser profile for WMS login longevity, but keep raw captured WMS session/header values RAM-only;
+- restore Owner-proven v8 overlay interaction behavior and keep main-window overlay settings;
+- Agent auto-starts for the Windows user without elevation;
+- no WMS mutation/confirmation until separately authorized.
+
+Next automated action: finish source validation, open PR, require authority + continuity + Agent/Android/Rules checks PASS, merge, verify Agent v10 and next signed Beta APK releases, then record release evidence. Owner physical acceptance follows release. D078 transport selection remains separate.
+
+No manual end-of-session handover is required.
+

@@ -209,3 +209,13 @@ Rules:
 - a fired automatic result is durable business history and is never erased by disabling the feature later;
 - correction creates normal immutable lifecycle/result evidence rather than rewriting prior timeout history;
 - retention/archive must preserve enough result/source/timestamp evidence to distinguish Reporter decisions from system timeout outcomes.
+
+## D085 relay audit and temporary coordination data
+
+Relay coordination/rate-limit records are supporting operational metadata, not Báo hàng transaction authority.
+
+- Leader lease contains bounded Agent identity/heartbeat/WMS-ready metadata only; no WMS secret/session values.
+- Picker anti-spam state stores account identity, strike window, lock level/timestamps and update timestamps so restart/device change cannot bypass a lock.
+- Job ACK may carry bounded cache mode, strike count, lock level and lock-until timestamp.
+- Diagnostics/audit may identify Picker user and processing Agent/Admin for abuse investigation, but must not store raw WMS credential/session/signature material or the full/raw five-digit lookup value.
+
