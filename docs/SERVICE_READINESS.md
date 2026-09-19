@@ -361,3 +361,10 @@ No Firebase/IAM/Rules setup action remains. The only remaining relay acceptance 
 
 Current relay marker: `D076_RTDB_RULES_DEPLOY_PASS__D075_FIELD_TEST_PENDING__NO_WMS_MUTATION`.
 Current Android marker: `D075_SHARED_RELAY_SIGNED_BETA_VC49__D076_RULES_DEPLOY_PASS__FIELD_TEST_PENDING`.
+
+
+## D077 Office proxy HTTP response repair — 2026-09-19
+
+Field log shows `.PDA@MSN` RTDB GET PASS and `.Office@MSN` Firebase refresh PASS, followed by `ObjectDisposedException` before the real RTDB/proxy HTTP status could be surfaced. Source review found `ToRelayHttpException()` disposed `HttpWebResponse` and then read `StatusCode`. D077 captures status/response diagnostics before disposal, preserves sanitized error reporting, bumps the portable Agent to `relay-agent-v3`, and leaves D075 shared ADMIN relay plus D076 deployed Rules unchanged. No APK/WMS change.
+
+Current relay marker: `D077_OFFICE_PROXY_HTTP_RESPONSE_DISPOSAL_REPAIR_IN_PROGRESS__D076_RULES_PASS__NO_WMS_MUTATION`.
