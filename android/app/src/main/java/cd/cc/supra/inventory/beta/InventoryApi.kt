@@ -34,6 +34,9 @@ data class PickerReport(
     val withdrawDeadlineAt: String,
     val withdrawnAt: String?,
     val resolvedAt: String?,
+    val autoSkipDeadlineAt: String? = null,
+    val autoSkipAllowedAt: String? = null,
+    val resolutionSource: String? = null,
     val batchVersion: Int = 1,
     val previousBatchId: String? = null,
     val resultEventId: String? = null,
@@ -70,6 +73,9 @@ data class ReporterBatch(
     val waitingMinutes: Int = 0,
     val warningAt: String? = null,
     val escalationAt: String? = null,
+    val autoSkipAt: String? = null,
+    val autoSkipEnabled: Boolean = false,
+    val autoSkipMode: String? = null,
     val serverNow: String? = null,
 )
 
@@ -79,6 +85,7 @@ data class ReporterRecent(
     val productName: String,
     val status: String,
     val resolvedAt: String?,
+    val resolutionSource: String? = null,
     val correctionDeadlineAt: String?,
     val affectedPickerCount: Int,
     val version: Int = 1,
@@ -93,6 +100,10 @@ data class BatchTicket(
     val pickerDisplayName: String,
     val status: String,
     val reportedAt: String,
+    val autoSkipDeadlineAt: String? = null,
+    val autoSkipAllowedAt: String? = null,
+    val resolution: String? = null,
+    val resolutionSource: String? = null,
     val resultEventId: String? = null,
     val acknowledgedAt: String? = null,
 )
@@ -284,7 +295,11 @@ class InventoryApi(
                 status = row.optString("status"), batchStatus = row.optString("batch_status"),
                 resolution = nullable(row, "resolution"), reportedAt = row.optString("reported_at"),
                 withdrawDeadlineAt = row.optString("withdraw_deadline_at"), withdrawnAt = nullable(row, "withdrawn_at"),
-                resolvedAt = nullable(row, "resolved_at"), batchVersion = row.optInt("batch_version", 1),
+                resolvedAt = nullable(row, "resolved_at"),
+                autoSkipDeadlineAt = nullable(row, "auto_skip_deadline_at"),
+                autoSkipAllowedAt = nullable(row, "auto_skip_allowed_at"),
+                resolutionSource = nullable(row, "resolution_source"),
+                batchVersion = row.optInt("batch_version", 1),
                 previousBatchId = nullable(row, "previous_batch_id"), resultEventId = nullable(row, "result_event_id"),
                 receivedAt = nullable(row, "received_at"), displayedAt = nullable(row, "displayed_at"),
                 acknowledgedAt = nullable(row, "acknowledged_at"),
@@ -338,6 +353,9 @@ class InventoryApi(
                 recurrenceMinutes = row.optInt("recurrence_minutes", -1).takeIf { it >= 0 },
                 slaState = row.optString("sla_state", "UNCONFIGURED"), waitingMinutes = row.optInt("waiting_minutes", 0),
                 warningAt = nullable(row, "warning_at"), escalationAt = nullable(row, "escalation_at"),
+                autoSkipAt = nullable(row, "auto_skip_at"),
+                autoSkipEnabled = row.optBoolean("auto_skip_enabled", false),
+                autoSkipMode = nullable(row, "auto_skip_mode"),
                 serverNow = serverNow,
             )
         }
@@ -353,6 +371,7 @@ class InventoryApi(
             rows += ReporterRecent(
                 batchId = row.optString("batch_id"), sku = row.optString("sku"), productName = row.optString("product_name"),
                 status = row.optString("status"), resolvedAt = nullable(row, "resolved_at"),
+                resolutionSource = nullable(row, "resolution_source"),
                 correctionDeadlineAt = nullable(row, "correction_deadline_at"), affectedPickerCount = row.optInt("affected_picker_count", 0),
                 version = row.optInt("version", 1), previousBatchId = nullable(row, "previous_batch_id"),
                 ackTargetCount = row.optInt("ack_target_count", 0), acknowledgedCount = row.optInt("acknowledged_count", 0),
@@ -370,7 +389,12 @@ class InventoryApi(
             rows += BatchTicket(
                 ticketId = row.optString("ticket_id"), pickerEmployeeCode = row.optString("picker_employee_code"),
                 pickerDisplayName = row.optString("picker_display_name"), status = row.optString("status"),
-                reportedAt = row.optString("reported_at"), resultEventId = nullable(row, "result_event_id"),
+                reportedAt = row.optString("reported_at"),
+                autoSkipDeadlineAt = nullable(row, "auto_skip_deadline_at"),
+                autoSkipAllowedAt = nullable(row, "auto_skip_allowed_at"),
+                resolution = nullable(row, "resolution"),
+                resolutionSource = nullable(row, "resolution_source"),
+                resultEventId = nullable(row, "result_event_id"),
                 acknowledgedAt = nullable(row, "acknowledged_at"),
             )
         }
