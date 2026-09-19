@@ -93,8 +93,11 @@ type Section =
   | "versions"
   | "account";
 
-type Notice = { type: "success" | "error" | "warning"; text: string } | null;
+type NoticeType = "success" | "error" | "warning";
+type Notice = { id: number; type: NoticeType; text: string; createdAt: number } | null;
+type ToastItem = NonNullable<Notice>;
 type ThemeMode = "AUTO" | "LIGHT" | "DARK";
+type SectionHistoryMode = "push" | "replace" | "none";
 
 const THEME_KEY = "supra_inventory_web_theme_v1";
 const UI_ZOOM_KEY = "supra_inventory_web_zoom_v1";
@@ -226,14 +229,25 @@ function resolveInitialSection(value: AppProfile): Section {
   return requested && canAccessSection(requested, value) ? requested : defaultSectionForProfile(value);
 }
 
-function syncSectionHash(section: Section): void {
-  if (window.location.hash === `#${section}`) return;
-  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${section}`);
+function sectionUrl(section: Section): string {
+  return `${window.location.pathname}${window.location.search}#${section}`;
+}
+
+function syncSectionHistory(section: Section, mode: SectionHistoryMode = "replace"): void {
+  if (mode === "none") return;
+  const url = sectionUrl(section);
+  if (mode === "push") {
+    if (window.location.hash !== `#${section}`) window.history.pushState({ section }, "", url);
+    return;
+  }
+  window.history.replaceState({ section }, "", url);
 }
 
 let profile: AppProfile | null = getStoredProfile();
 let activeSection: Section = profile ? resolveInitialSection(profile) : "operations";
 let notice: Notice = null;
+let toastItems: ToastItem[] = [];
+let toastSerial = 0;
 let busy = false;
 let realtimeState = "connecting";
 let realtimeLastSeq = 0;
