@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D076_RTDB_RULES_DEPLOY_PASS__D075_FIELD_TEST_PENDING__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D077_OFFICE_PROXY_HTTP_RESPONSE_DISPOSAL_REPAIR_IN_PROGRESS__D076_RULES_PASS__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -155,8 +155,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Owner field-tests beta-vc49 + relay-agent-v2: real ADMIN Agent on laptop, Office check PASS, start listener, then any Picker PDA sends five digits and must receive ACK showing ADMIN + machine + Agent instance + RTT.",
-    "method": "No Firebase/IAM/Rules setup action remains. Use relay-agent-v2 and beta-vc49 only. D076 main run 35451292051 deployed canonical D075 Rules to Beta RTDB and readback-verified exact JSON.",
+    "primary": "Build/release relay-agent-v3 with D077 Office proxy HTTP error-path repair, then Owner retests Office check/listener. If Office still rejects RTDB, v3 must expose the real HTTP status instead of ObjectDisposedException.",
+    "method": "Fix ToRelayHttpException by capturing StatusCode/diagnostics before disposing HttpWebResponse; keep D075 shared ADMIN relay and D076 deployed Rules unchanged. Branch -> PR -> guards/Agent build PASS -> merge -> relay-agent-v3 prerelease -> field retest.",
     "stable_guard": "Stable remains OWNER-GATED and untouched."
   },
   "continuity_policy": {
@@ -184,6 +184,7 @@
   },
   "workboard": {
     "in_progress": [
+      "D077 Office proxy repair in progress: field log proves Firebase refresh PASS on Office but EXE disposed HttpWebResponse before reading StatusCode, hiding the real RTDB/proxy HTTP error",
       "D076 Beta RTDB Rules deploy/readback PASS; D075 physical Picker -> ADMIN Agent acceptance pending",
       "D068 Web baseline Owner-accepted/frozen",
       "D069 items 1, 2, 4 and 5 Beta runtime PASS",
@@ -193,13 +194,13 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Owner field-tests beta-vc49 + relay-agent-v2: any Picker PDA -> shared RTDB -> real ADMIN Agent -> ACK/RTT",
+      "Release relay-agent-v3, then Owner retests Office check/listener; use v3 log to classify any remaining proxy/RTDB HTTP status",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
     ],
     "blocked_or_owner_field_dependent": [
-      "D075 final transport acceptance requires the Owner's real PDA/laptop/.Office@MSN field test; Firebase Rules deployment is no longer blocked",
+      "D077 final Office transport acceptance remains physical-field dependent after v3 build/release",
       "D071 final visual/interaction acceptance depends on Owner live Web review",
       "D072 final Owner acceptance depends on live Web confirmation",
       "D070 physical timing/FCM delivery acceptance remains field-dependent",
