@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D078_AGENT_V4_RELEASE_PASS__OWNER_OFFICE_PROBE_PENDING__RTDB_PROXY_BLOCK_CONFIRMED__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D078_AGENT_V4_RELEASE_PASS__PAUSED_OWNER_AWAY_FROM_OFFICE__RESUME_TRIGGER_D079__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -142,7 +142,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "D075 physical acceptance pending real Picker PDA -> real ADMIN Agent v2 ACK/RTT test; D076 Rules deployment is already PASS.",
+    "D078 confirmation transport workstream is paused only because Owner is away from .Office@MSN; resume trigger is `tiếp tục build xác nhận lấy lại hàng` and next field action is relay-agent-v4 TEST TẤT CẢ + sanitized log.",
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
     "Owner acceptance of FIRST_REPORT and PER_PICKER behavior remains field-dependent after runtime PASS.",
     "Stable promotion remains OWNER-GATED."
@@ -155,9 +155,9 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Owner runs relay-agent-v4 on .Office@MSN and presses TEST TẤT CẢ; return the sanitized Agent log. Use field evidence to select a reachable transport before any relay replacement/provisioning.",
-    "method": "D078 PR #76 merged at 8c9992dc1ae6ec19c7ec63dbd3b656dbf794246e. Main Authority/Continuity/UI/Agent gates PASS and relay-agent-v4 prerelease is published. No APK change. Do not provision Firestore/Apps Script/Sheets/Drive relay until Office probe evidence selects a candidate.",
-    "stable_guard": "Stable remains OWNER-GATED and untouched."
+    "primary": "Resume core Báo hàng Web/APK workstream in the next session from current canonical main. First fresh-check live Beta Web and signed Android against current canonical Web/Android pending review, then execute the Owner's new Báo hàng instruction. Keep D078 paused.",
+    "method": "If Owner says exactly `tiếp tục build xác nhận lấy lại hàng`, immediately route back to paused D078 checkpoint and continue Office transport probe testing. Otherwise Báo hàng Web/APK is active. Always branch fresh from current main; no stale long-lived feature branch.",
+    "stable": "OWNER_GATED"
   },
   "continuity_policy": {
     "manual_handover_required": false,
@@ -184,7 +184,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D078 technical PASS: relay-agent-v4 probe matrix published; Owner Office probe/log pending",
+      "Active next-session workstream: Báo hàng Web/APK. D078 confirmation relay is checkpointed/paused, not abandoned.",
       "D077 source/build/release PASS: relay-agent-v3 published; physical Office retest pending",
       "D076 Beta RTDB Rules deploy/readback PASS; D075 physical Picker -> ADMIN Agent acceptance pending",
       "D068 Web baseline Owner-accepted/frozen",
@@ -195,13 +195,13 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Owner runs TEST TẤT CẢ in relay-agent-v4 on Office and sends sanitized log; then choose reachable relay transport",
+      "Next session: continue Báo hàng Web/APK from current canonical main. D078 resumes only on exact Owner routing phrase `tiếp tục build xác nhận lấy lại hàng`.",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
     ],
     "blocked_or_owner_field_dependent": [
-      "D078 final transport selection depends on real Office proxy probe results from the Owner laptop",
+      "D078 requires physical company Office network for probe matrix; paused until Owner returns on-site.",
       "D071 final visual/interaction acceptance depends on Owner live Web review",
       "D072 final Owner acceptance depends on live Web confirmation",
       "D070 physical timing/FCM delivery acceptance remains field-dependent",
@@ -337,5 +337,48 @@
     "D070 uses InventoryCore Durable Object Alarm rather than client/API polling; initial activation/re-enable/mode switch is non-retroactive and disable cancels pending automatic deadlines.",
     "D070 adds no processing-extension feature.",
     "D072 removes the quota-heavy Trạng thái hệ thống business surface: no normal Web route, no 60-second/manual system-status calls, normal admin API disabled before metrics, and gated load-test snapshots use core-only metrics without Google Drive/GitHub provider reads."
-  ]
+  ],
+  "active_workstream": {
+    "key": "BAO_HANG_WEB_ANDROID",
+    "status": "ACTIVE_FOR_NEXT_SESSION",
+    "resume_intent": [
+      "tiếp tục build apk, web nhánh báo hàng",
+      "tiếp tục build báo hàng",
+      "tiếp tục web apk báo hàng"
+    ],
+    "bootstrap": "FRESH_MAIN_CANONICAL_STATE",
+    "next_step": "Fresh-check current Beta Web + signed Android state against canonical pending Owner review/requirements, then continue only the new Báo hàng Web/APK instruction supplied in the next session. Do not resume D078 unless Owner explicitly routes to it."
+  },
+  "paused_workstreams": {
+    "XAC_NHAN_LAY_LAI_HANG": {
+      "status": "PAUSED_OWNER_AWAY_FROM_OFFICE",
+      "canonical_decision": "D078",
+      "exact_resume_phrase": "tiếp tục build xác nhận lấy lại hàng",
+      "aliases": [
+        "xác nhận lấy lại hàng",
+        "xác nhận lấy hàng",
+        "xác nhận đơn"
+      ],
+      "checkpoint": "D078_AGENT_V4_RELEASE_PASS__OWNER_OFFICE_PROBE_PENDING__RTDB_PROXY_BLOCK_CONFIRMED__NO_WMS_MUTATION",
+      "artifacts": {
+        "android_release": "beta-vc49",
+        "agent_release": "relay-agent-v4",
+        "agent_release_url": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v4"
+      },
+      "established_evidence": [
+        "PDA/Android can send relay requests on Internet-capable PDA network.",
+        "Office Firebase Secure Token is reachable.",
+        "Wincommerce Office proxy blocks the current RTDB *.firebasedatabase.app endpoint.",
+        "D076 RTDB Rules automated deploy/readback is PASS; Rules are not the remaining blocker.",
+        "relay-agent-v4 provides read-only probes: Auth, RTDB, Firestore, Apps Script, Sheets, Drive, TEST TẤT CẢ."
+      ],
+      "resume_next_action": "On real company .Office@MSN, run relay-agent-v4 -> ADMIN session -> TEST TẤT CẢ -> wait for PROBE SUMMARY -> send sanitized Agent log. Analyze the matrix and choose the reachable transport before provisioning/replacing relay. Do not bypass corporate filtering and do not implement WMS mutation yet.",
+      "do_not_repeat": [
+        "Do not ask Owner to recreate RTDB, republish Rules, recreate the service-account secret, or restate prior D073-D078 history.",
+        "Do not treat this as Báo hàng offline/fallback work.",
+        "Do not provision Firestore/Apps Script/Sheets/Drive relay before Office probe evidence selects a candidate."
+      ],
+      "stable": "OWNER_GATED"
+    }
+  }
 }

@@ -713,3 +713,25 @@ PR #76 merged at `8c9992dc1ae6ec19c7ec63dbd3b656dbf794246e`. Main Repo Authority
 Agent v4 provides read-only Office probes for Firebase Auth, RTDB, Firestore, Apps Script web/API, Sheets, Drive and TEST TẤT CẢ. RTDB proxy blocking remains established field evidence; no replacement transport has been selected or provisioned yet. Owner should run TEST TẤT CẢ once on `.Office@MSN` and provide the sanitized Agent log. No APK/WMS mutation change.
 
 Current relay marker: `D078_AGENT_V4_RELEASE_PASS__OWNER_OFFICE_PROBE_PENDING__RTDB_PROXY_BLOCK_CONFIRMED__NO_WMS_MUTATION`.
+
+
+## D079 workstream routing checkpoint — 2026-09-19
+
+Owner is no longer at the company, so the **Xác nhận lấy lại hàng / Xác nhận đơn** transport workstream is deliberately paused at a clean D078 checkpoint rather than treated as failed.
+
+Exact resume phrase: **`tiếp tục build xác nhận lấy lại hàng`**.
+
+When that phrase appears in any later project session, bootstrap GitHub and immediately resume D078 without asking the Owner to recap:
+- `relay-agent-v4` release PASS.
+- Android remains `beta-vc49`.
+- RTDB Rules deploy/readback is PASS.
+- Office proxy blocking of `*.firebasedatabase.app` is established.
+- Next action: on real `.Office@MSN`, run Agent v4 → ADMIN session → **TEST TẤT CẢ** → wait for `PROBE SUMMARY` → provide sanitized log → select reachable transport (Firestore preferred only if probe proves reachable; Apps Script/Sheets/Drive remain candidates, not provisioned authority).
+- No WMS mutation and no corporate-filter bypass.
+
+After recording this checkpoint, the active workstream returns to **Báo hàng Web/APK**. The next session should continue Báo hàng from fresh current `main`; it must not automatically continue D078 unless the Owner uses the explicit confirmation-workstream routing phrase.
+
+Workstream labels are logical continuity lanes, not persistent Git branches. Any resumed implementation starts a fresh branch from current `main`.
+
+Current confirmation marker: `D078_AGENT_V4_RELEASE_PASS__PAUSED_OWNER_AWAY_FROM_OFFICE__RESUME_TRIGGER_D079__NO_WMS_MUTATION`.
+Current active workstream marker: `BAO_HANG_WEB_ANDROID_ACTIVE_FOR_NEXT_SESSION`.

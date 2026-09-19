@@ -393,3 +393,16 @@ PR #76 merged at `8c9992dc1ae6ec19c7ec63dbd3b656dbf794246e`. Main Repo Authority
 Agent v4 provides read-only Office probes for Firebase Auth, RTDB, Firestore, Apps Script web/API, Sheets, Drive and TEST TẤT CẢ. RTDB proxy blocking remains established field evidence; no replacement transport has been selected or provisioned yet. Owner should run TEST TẤT CẢ once on `.Office@MSN` and provide the sanitized Agent log. No APK/WMS mutation change.
 
 Current relay marker: `D078_AGENT_V4_RELEASE_PASS__OWNER_OFFICE_PROBE_PENDING__RTDB_PROXY_BLOCK_CONFIRMED__NO_WMS_MUTATION`.
+
+
+## D079 workstream routing checkpoint — 2026-09-19
+
+- Confirmation/relay work is **paused, not failed**: D078 Agent v4 technical/release PASS; physical Office probe remains pending.
+- Exact resume phrase: `tiếp tục build xác nhận lấy lại hàng`.
+- Resume checkpoint: `relay-agent-v4` + `beta-vc49`; run **TEST TẤT CẢ** on `.Office@MSN`, return sanitized log, then choose a reachable transport. No new relay provider is authoritative yet.
+- Active next-session workstream is **Báo hàng Web/APK** from fresh canonical `main`.
+- Do not resume D078 during Báo hàng work unless Owner explicitly routes back to it.
+- Stable remains OWNER-GATED.
+
+Current confirmation marker: `D078_AGENT_V4_RELEASE_PASS__PAUSED_OWNER_AWAY_FROM_OFFICE__RESUME_TRIGGER_D079__NO_WMS_MUTATION`.
+Current active workstream marker: `BAO_HANG_WEB_ANDROID_ACTIVE_FOR_NEXT_SESSION`.
