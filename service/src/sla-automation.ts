@@ -388,7 +388,7 @@ function processWarningAndEscalation(
     const warningDue = firstMs + config.warning_minutes * 60_000 <= nowMs;
     const escalationDue = firstMs + config.escalation_minutes * 60_000 <= nowMs;
 
-    if (warningDue && !deadlineAlreadyRecorded(state, batchId, "WARNING")) {
+    if (warningDue && !escalationDue && !deadlineAlreadyRecorded(state, batchId, "WARNING")) {
       const eventId = insertReportEvent(
         state,
         "SLA_WARNING",
@@ -714,9 +714,9 @@ export function processOperationalDeadlines(
 ): OperationalDeadlineEffect[] {
   const effects: OperationalDeadlineEffect[] = [];
   const config = readOperationalSlaConfig(state);
-  if (config) processWarningAndEscalation(state, config, nowMs, effects);
   processBatchAutoSkip(state, config, nowMs, effects);
   processPerPickerAutoSkip(state, config, nowMs, effects);
+  if (config) processWarningAndEscalation(state, config, nowMs, effects);
   return effects;
 }
 
