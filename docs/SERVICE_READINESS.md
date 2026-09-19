@@ -3,7 +3,7 @@
 > DERIVED VIEW. Canonical live status is `ops/project-state.json`; resource identity is `ops/resource-registry.json`.
 
 - Project: `supra-inventory`
-- Web: `D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`
+- Web: `D070_THREE_STAGE_SLA_AUTO_SKIP_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING`
 - Android: `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`
 - Latest signed review APK: `beta-vc45`
 - Web runtime source: `2e12e6d4e94b195e3b505b3f2abe9822ca91632c`
@@ -59,7 +59,7 @@ Automated PASS is technical eligibility only. It is not Owner UI acceptance.
 
 ## D063 source candidate
 
-`D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING` is the active Web source candidate; Android source marker is `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`. `Inventory/Beta/Logs` is created and registered. D062/beta-vc45 remain the deployed/signed runtime references until D063 CI, merge, Beta deploy and signed Android release complete. Stable remains untouched.
+`D070_THREE_STAGE_SLA_AUTO_SKIP_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING` is the active Web source candidate; Android source marker is `VC45_D063_RUNTIME_LOGS_PLAIN_VIETNAMESE_SIGNED_RUNTIME_GATE_PASS__BROADER_OWNER_UI_ACCEPTANCE_PENDING`. `Inventory/Beta/Logs` is created and registered. D062/beta-vc45 remain the deployed/signed runtime references until D063 CI, merge, Beta deploy and signed Android release complete. Stable remains untouched.
 
 ## D062 runtime PASS
 
@@ -156,7 +156,7 @@ Owner-approved Web navigation is now source-implemented:
 - Reporter/Picker projections remain role-specific
 - Android/PDA unchanged; Stable untouched
 
-Current Web marker: `D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`.
+Current Web marker: `D070_THREE_STAGE_SLA_AUTO_SKIP_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING`.
 
 D066 runtime evidence:
 - PR #50 merged at `2e12e6d4e94b195e3b505b3f2abe9822ca91632c`
@@ -169,22 +169,22 @@ D066 runtime evidence:
 
 ## D067 source candidate — 2026-09-19
 
-`D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING` preserves the accepted D066 navigation while implementing the 10 requested Web UX corrections. PR guards and Beta runtime verification are still pending. Android and Stable are unchanged.
+`D070_THREE_STAGE_SLA_AUTO_SKIP_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING` preserves the accepted D066 navigation while implementing the 10 requested Web UX corrections. PR guards and Beta runtime verification are still pending. Android and Stable are unchanged.
 
 
 ## D067 runtime PASS — 2026-09-19
 
-PR #52 merged at `c2249ceea9fbb9570c3855fc2a0a421b251e3328`. Repo Authority Guard `35411796234`, Project State Guard `35411796230`, UI Design Guard `35411796208` and Beta deploy `35411796215` all PASS. Current Web marker: `D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`. Stable is untouched and OWNER-GATED.
+PR #52 merged at `c2249ceea9fbb9570c3855fc2a0a421b251e3328`. Repo Authority Guard `35411796234`, Project State Guard `35411796230`, UI Design Guard `35411796208` and Beta deploy `35411796215` all PASS. Current Web marker: `D070_THREE_STAGE_SLA_AUTO_SKIP_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING`. Stable is untouched and OWNER-GATED.
 
 
 ## D068 source candidate — 2026-09-19
 
-`D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING` preserves frozen D067 items 1–8 and 10 and changes only item 9 plus requirements 11–15. Log review shows healthy connection/realtime and low browser memory use; D068 makes route display immediate, targets SKU detail updates, adds browser section history and replaces action banners with bounded toast notifications. PR/runtime verification PASS; Owner test pending. Android and Stable unchanged.
+`D070_THREE_STAGE_SLA_AUTO_SKIP_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING` preserves frozen D067 items 1–8 and 10 and changes only item 9 plus requirements 11–15. Log review shows healthy connection/realtime and low browser memory use; D068 makes route display immediate, targets SKU detail updates, adds browser section history and replaces action banners with bounded toast notifications. PR/runtime verification PASS; Owner test pending. Android and Stable unchanged.
 
 
 ## D068 runtime PASS — 2026-09-19
 
-PR #54 merged at `ba8579a157763288ff0cc3cca885e65e593917be`. Repo Authority Guard `35416184056`, Project State Guard `35416184002`, UI Design Guard `35416184004` and Beta deploy `35416184023` all PASS. Current Web marker: `D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`. D067 items 1–8 and 10 remain frozen. Stable remains untouched and OWNER-GATED.
+PR #54 merged at `ba8579a157763288ff0cc3cca885e65e593917be`. Repo Authority Guard `35416184056`, Project State Guard `35416184002`, UI Design Guard `35416184004` and Beta deploy `35416184023` all PASS. Current Web marker: `D070_THREE_STAGE_SLA_AUTO_SKIP_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING`. D067 items 1–8 and 10 remain frozen. Stable remains untouched and OWNER-GATED.
 
 
 ## D068 clean-log-copy runtime PASS — 2026-09-19
@@ -194,7 +194,7 @@ PR #56 merged at `656fb8d24b44e7adb087aabb6a8a02691b278d43`; main Repo Authority
 
 ## D069 active Web candidate — 2026-09-19
 
-The complete D068 Web review is Owner-accepted. Current candidate `D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING` covers rich redacted Web diagnostics, Excel reporting export, unified Web presentation and UI-delay optimization. Enhanced pending-SKU alert policy is not implemented before Owner approval. Stable remains OWNER-GATED.
+The complete D068 Web review is Owner-accepted. Current candidate `D070_THREE_STAGE_SLA_AUTO_SKIP_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING` covers rich redacted Web diagnostics, Excel reporting export, unified Web presentation and UI-delay optimization. Enhanced pending-SKU alert policy is not implemented before Owner approval. Stable remains OWNER-GATED.
 
 
 ## D069 Beta runtime PASS — 2026-09-19
@@ -204,6 +204,13 @@ PR #58 merged at `fbd2e5c84ec2c401c784d5921b82aa6689bed2ee`. Main Repo Authority
 
 ## D070 approved three-stage timing candidate — 2026-09-19
 
-Owner approved the enhanced alert policy with three entered minute thresholds constrained as `warning < escalation < auto_skip`, an auto-Skip enable/disable switch and `FIRST_REPORT` / `PER_PICKER` timing modes. D050 no-auto-Skip is superseded. Current source candidate `D070_THREE_STAGE_SLA_AUTO_SKIP_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING` implements InventoryCore Durable Object alarms, idempotent warning/escalation events, optional `SKIP_ALLOWED / SYSTEM_TIMEOUT`, exact Picker ACK targeting, grouped role alerts, Web/Android timeout surfaces, non-retroactive activation and fail-safe disable/mode-change cancellation. No extension feature is included. Stable untouched/OWNER-GATED.
+Owner approved the enhanced alert policy with three entered minute thresholds constrained as `warning < escalation < auto_skip`, an auto-Skip enable/disable switch and `FIRST_REPORT` / `PER_PICKER` timing modes. D050 no-auto-Skip is superseded. Current source candidate `D070_THREE_STAGE_SLA_AUTO_SKIP_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING` implements InventoryCore Durable Object alarms, idempotent warning/escalation events, optional `SKIP_ALLOWED / SYSTEM_TIMEOUT`, exact Picker ACK targeting, grouped role alerts, Web/Android timeout surfaces, non-retroactive activation and fail-safe disable/mode-change cancellation. No extension feature is included. Stable untouched/OWNER-GATED.
 
 D070 Android source marker: `D070_TIMEOUT_ALERT_PROJECTION_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`. Android changes are limited to timeout/deadline/result-source projection and background-alert labels; signed Beta release verification remains pending. Stable untouched.
+
+
+## D070 Beta technical/runtime PASS — 2026-09-19
+
+PR #60 merged at `3f3506a0f185d5e1a0f22ba6a908b161bae6dd6e`. Main Repo Authority Guard `35426339784`, Project State Guard `35426339862`, UI Design Guard `35426339800` and Beta deploy `35426339796` all PASS. Live health reports SQLite schema `7/7` and Operational V2 schema `5/5`; auth/business API, Web shell and Google OAuth smoke are PASS. Signed Android `beta-vc46` was published by Verify Beta Android run `35426339846` after the matching Beta runtime gate passed; APK SHA256 is `875b5bd32f22f77fbe7453020d38c60d587a97720bd14cecdae89d202e39287e`.
+
+D070 deployed behavior: three entered thresholds with strict `warning < escalation < auto_skip`; automatic Skip ON/OFF; `FIRST_REPORT` and `PER_PICKER` timing; Durable Object alarm authority; `SKIP_ALLOWED / SYSTEM_TIMEOUT`; exact Picker result/ACK targeting; grouped Reporter/Admin/Root alerts; existing 5-minute Skip→Có hàng correction; no extension feature; D007 queue ordering unchanged; activation is non-retroactive. Technical/runtime PASS is complete. Owner live timing/device/background-FCM acceptance is still required. Stable remains untouched/OWNER-GATED.
