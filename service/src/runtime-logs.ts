@@ -235,15 +235,23 @@ export async function listRuntimeLogs(
   });
   const payload = (await response.json()) as { files?: Array<Record<string, unknown>> };
   if (!response.ok) throw new Error(`LOGS_DRIVE_LIST_FAILED:${response.status}`);
-  const items = (payload.files || []).map((file) => ({
-    id: file.id,
-    name: file.name,
-    created_at: file.createdTime,
-    modified_at: file.modifiedTime,
-    size: Number(file.size || 0),
-    severity: String(file.name || "").startsWith("error_") ? "ERROR" : "INFO",
-    source,
-  }));
+  const seenNames = new Set<string>();
+  const items = (payload.files || [])
+    .filter((file) => {
+      const name = String(file.name || "");
+      if (!name || seenNames.has(name)) return false;
+      seenNames.add(name);
+      return true;
+    })
+    .map((file) => ({
+      id: file.id,
+      name: file.name,
+      created_at: file.createdTime,
+      modified_at: file.modifiedTime,
+      size: Number(file.size || 0),
+      severity: String(file.name || "").startsWith("error_") ? "ERROR" : "INFO",
+      source,
+    }));
   return { source, items, count: items.length };
 }
 
