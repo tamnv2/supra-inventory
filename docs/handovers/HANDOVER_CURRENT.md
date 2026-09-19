@@ -747,3 +747,9 @@ Current relay marker: `D080_AGENT_V5_RELEASE_PASS__OWNER_WMS_FIELD_TEST_PENDING_
 Owner field log on relay-agent-v5 proved Agent ↔ Supra read-only API works, but the first WMS capture can fail with `ClientWebSocket` state `Aborted` before login completes. D081 removes the short per-receive cancellation, gives the official WMS browser up to five minutes, prefers Edge and falls back to Chrome. WMS credentials remain browser-only; the Agent does not add a WMS password field. SUPRA Inventory ADMIN login remains the existing HTTPS/Firebase + DPAPI flow and clears the password UI immediately. A local-only taskbar monitor shows CPU %, current/approximate MHz and RAM used/total about every two seconds; it consumes no service quota and is the future surface for PL/online counters.
 
 Current relay marker: `D081_AGENT_V6_SOURCE_IN_PROGRESS__WMS_LOGIN_WAIT_FIX__CHROME_FALLBACK__TRAY_MONITOR__NO_WMS_MUTATION`.
+
+## D081 Agent v6 release PASS
+
+PR #81 merged at `a0a68da1e72ba9a8f7bb728db0951b6fd2c23f47`; main Verify Beta Relay Agent run `35458750768` PASS and published `relay-agent-v6`. EXE size 84992 bytes, SHA-256 `7eca617aeb38bda403ca975e07ebdd8a323fbde19b90ef22f0d549b7b0f4b61e`. v6 removes the short per-receive WebSocket cancellation that caused the v5 first-login `Aborted` failure, allows the full five-minute official WMS login window, adds Edge→Chrome fallback, keeps WMS credentials browser-only, clears ADMIN password UI immediately, and exposes local taskbar CPU/MHz/RAM status. Owner field retest is required for first-attempt WMS capture and tray display. No WMS mutation; D078 Office transport remains separate/pending.
+
+Current relay marker: `D081_AGENT_V6_RELEASE_PASS__OWNER_FIRST_ATTEMPT_WMS_RETEST_PENDING__D078_OFFICE_PENDING__NO_WMS_MUTATION`.
