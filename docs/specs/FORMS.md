@@ -264,3 +264,10 @@ If WMS asks for login, the user signs in normally in the opened Edge window. The
 - While waiting: `Đang kiểm tra Picklist trên WMS...`.
 - Result is explicit: `CÓ PICKLIST`, `KHÔNG CÓ PICKLIST`, or a distinct session/permission/network/schema error. Do not label a transport ACK as a Picklist match.
 - The surface explicitly states this stage does not confirm or change WMS.
+
+## D083 — Agent startup failure behavior
+
+- Main Agent window must be the first required UI surface. The optional always-visible overlay is initialized only after the main form reaches `Shown`.
+- If overlay initialization fails on a specific Windows machine, Agent remains open; overlay menu items become unavailable and local diagnostics record only sanitized exception type/message.
+- If the Agent itself cannot start, show a visible `SUPRA Inventory Agent - lỗi khởi động` dialog instead of exiting silently.
+- No password/token/session value may be included in startup error text or logs.
