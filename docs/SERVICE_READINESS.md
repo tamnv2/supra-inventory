@@ -255,3 +255,6 @@ Current source marker: `D070_ALARM_REPAIR_D072_SYSTEM_STATUS_QUOTA_GUARD_SOURCE_
 - Stable remains untouched/OWNER-GATED.
 
 Next action: guards → PR → merge → Beta deploy → health/schema/auth/business/Web/OAuth PASS → record runtime continuity.
+
+
+Current Web marker: `D071_WEB_SOURCE_MERGED__D072_SYSTEM_STATUS_EXCLUDED_SOURCE_IMPLEMENTED__BETA_RUNTIME_REPAIR_PENDING`.
