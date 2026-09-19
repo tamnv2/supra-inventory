@@ -171,3 +171,12 @@ For acceptance testing, the actual ROOT identity may temporarily select an effec
 ## Open workflow decisions
 
 Read `docs/OWNER_DECISIONS.md` open-decision table. Do not invent behavior for SKU-reset confirmation semantics, multi-device/session policy, Stable Root MFA/recovery, final Reporter dashboard/export scope or Stable password hardening.
+
+
+## D071 immediate Web action feedback
+
+- Reporter `Có hàng` and `Bỏ qua` keep their explicit confirmation rules.
+- After the final confirmation, Web closes the modal and marks that batch as processing immediately; the authoritative service mutation continues asynchronously from the UI's perspective.
+- Success is shown only after the service confirms the mutation. Failure clears the pending state and shows an error toast; no offline/fake success is allowed.
+- Do not synchronously chain a complete Reporter queue reload after the mutation. Authoritative realtime refresh/reconcile updates the background state, with concurrent operations loads coalesced rather than multiplied.
+- This interaction rule changes perceived responsiveness only; server RBAC, idempotency, result targeting, ACK and correction semantics remain authoritative.

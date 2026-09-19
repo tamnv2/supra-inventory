@@ -103,6 +103,7 @@ type SectionHistoryMode = "push" | "replace" | "none";
 
 const THEME_KEY = "supra_inventory_web_theme_v1";
 const UI_ZOOM_KEY = "supra_inventory_web_zoom_v1";
+const WEB_TEXT_BASE_SCALE = 1.05;
 const SKIP_DELAY_KEY_PREFIX = "supra_inventory_skip_delay_v1";
 const SKIP_CONFIRM_DELAY_MS = 5_000;
 const DEADLINE_NOTICE_KEY_PREFIX = "supra_inventory_deadline_notices_v1";
@@ -116,7 +117,9 @@ function loadUiZoom(): number {
 let uiZoom = loadUiZoom();
 
 function applyUiZoom(): void {
-  document.body.style.setProperty("zoom", String(uiZoom / 100));
+  const effectiveScale = WEB_TEXT_BASE_SCALE * (uiZoom / 100);
+  document.body.style.setProperty("zoom", effectiveScale.toFixed(3));
+  document.body.dataset.logicalUiZoom = String(uiZoom);
   const label = document.querySelector<HTMLElement>("#ui-zoom-value");
   if (label) label.textContent = `${uiZoom}%`;
 }
@@ -198,6 +201,8 @@ function clearRoleScopedViewState(): void {
   batchDetails.clear();
   expandedBatchDetails.clear();
   batchDetailLoads.clear();
+  pendingReporterResolutions.clear();
+  operationsLoadQueued = false;
   stockConfirm = null;
   skipConfirm = null;
   pickerReports = [];
@@ -268,6 +273,9 @@ let skipConfirmOpenedAt = 0;
 let skipDelayEnabled = loadSkipDelayEnabled();
 let expandedBatchDetails = new Set<string>();
 let batchDetailLoads = new Set<string>();
+let pendingReporterResolutions = new Map<string, "HAS_STOCK" | "SKIP_ALLOWED">();
+let operationsLoadPromise: Promise<void> | null = null;
+let operationsLoadQueued = false;
 let slaResponse: SlaResponse | null = null;
 let operationalInsights: OperationalInsights | null = null;
 let realtimePresence: RealtimePresence | null = null;
@@ -533,11 +541,20 @@ function statusLabel(status: string): string {
 }
 
 function renderDatePresets(target: "dashboard" | "reports"): string {
-  return `<div class="toolbar date-presets">
+  return `<div class="toolbar date-presets compact-date-presets" aria-label="Chọn nhanh khoảng ngày">
     <button type="button" class="btn secondary small" data-date-target="${target}" data-date-days="0">Hôm nay</button>
     <button type="button" class="btn secondary small" data-date-target="${target}" data-date-days="6">7 ngày</button>
     <button type="button" class="btn secondary small" data-date-target="${target}" data-date-days="29">30 ngày</button>
     <button type="button" class="btn secondary small" data-date-target="${target}" data-date-days="59">60 ngày</button>
+  </div>`;
+}
+
+function renderCompactDateRange(target: "dashboard" | "reports", from: string, to: string): string {
+  return `<div class="compact-date-range" role="group" aria-label="Khoảng ngày dữ liệu">
+    <label><span>Từ</span><input name="from" type="date" value="${esc(from)}" /></label>
+    <span class="compact-date-separator">–</span>
+    <label><span>Đến</span><input name="to" type="date" value="${esc(to)}" /></label>
+    ${renderDatePresets(target)}
   </div>`;
 }
 
@@ -963,6 +980,7 @@ function pickerDetailMarkup(batchId: string, details: BatchPickerTicket[] | unde
 function renderFastDetail(selected: ReporterBatch | null): string {
   if (!selected) return `<div class="fast-empty"><strong>Không có SKU trong nhóm đang chọn</strong><span>Chọn nhóm khác để tiếp tục theo dõi.</span></div>`;
   const timing = liveQueueTiming(selected);
+  const pendingResolution = pendingReporterResolutions.get(selected.batch_id) || null;
   return `<div class="fast-detail-head"><div><span>SKU đang xử lý</span><h3>${esc(selected.sku)}</h3></div><b class="fast-status ${timing.state === "ESCALATED" ? "danger" : timing.state === "WARNING" ? "open" : "work"}">${esc(slaLabel(timing.state))}</b></div>
     <div class="fast-detail-name">${esc(selected.product_name)}</div>
     <dl class="fast-facts">
@@ -973,7 +991,8 @@ function renderFastDetail(selected: ReporterBatch | null): string {
       <div><dt>Tự động cho phép bỏ qua</dt><dd>${selected.auto_skip_enabled ? (selected.auto_skip_at ? esc(fmt(selected.auto_skip_at)) : "Chỉ áp dụng báo mới") : "Đang tắt"}</dd></div>
     </dl>
     ${selected.previous_batch_id ? `<div class="fast-warning">SKU này đã phát sinh lại sau lần xử lý trước.</div>` : ""}
-    <div class="fast-actions"><button class="primary" data-resolve="HAS_STOCK" data-batch="${esc(selected.batch_id)}">ĐÃ CÓ HÀNG</button><button class="danger" data-skip-batch="${esc(selected.batch_id)}">CHO PHÉP BỎ QUA</button><button class="secondary" data-detail="${esc(selected.batch_id)}">${expandedBatchDetails.has(selected.batch_id) ? "Ẩn danh sách Picker" : "Xem Picker ảnh hưởng"}</button></div>
+    ${pendingResolution ? `<div class="fast-action-pending" role="status">Đang gửi xác nhận ${pendingResolution === "HAS_STOCK" ? "Có hàng" : "Bỏ qua"}…</div>` : ""}
+    <div class="fast-actions"><button class="primary" data-resolve="HAS_STOCK" data-batch="${esc(selected.batch_id)}" ${pendingResolution ? "disabled" : ""}>ĐÃ CÓ HÀNG</button><button class="danger" data-skip-batch="${esc(selected.batch_id)}" ${pendingResolution ? "disabled" : ""}>CHO PHÉP BỎ QUA</button><button class="secondary" data-detail="${esc(selected.batch_id)}">${expandedBatchDetails.has(selected.batch_id) ? "Ẩn danh sách Picker" : "Xem Picker ảnh hưởng"}</button></div>
     ${pickerDetailMarkup(selected.batch_id, batchDetails.get(selected.batch_id))}`;
 }
 
@@ -1278,12 +1297,10 @@ function renderDashboard(): string {
     <div class="business-page-head"><div><h2>Tổng quan & báo cáo</h2><p>Toàn cảnh vận hành báo hàng theo thời gian được chọn.</p></div></div>
     ${renderReportTabs("dashboard")}
     <article class="ops-panel report-filter-panel">
-      <form id="dashboard-filter" class="report-filter-row">
-        <label>Từ ngày<input name="from" type="date" value="${esc(dashboardFrom)}" /></label>
-        <label>Đến ngày<input name="to" type="date" value="${esc(dashboardTo)}" /></label>
-        <div class="ops-form-actions"><button class="primary">Xem khoảng thời gian</button></div>
+      <form id="dashboard-filter" class="report-filter-row report-filter-compact">
+        ${renderCompactDateRange("dashboard", dashboardFrom, dashboardTo)}
+        <button class="primary report-filter-submit">Xem</button>
       </form>
-      ${renderDatePresets("dashboard")}
     </article>
 
     <div class="report-section-title"><h3>Tình trạng hiện tại</h3><span>Dữ liệu trực tiếp từ hệ thống</span></div>
@@ -1346,14 +1363,12 @@ function renderReports(): string {
     <div class="business-page-head"><div><h2>Tổng quan & báo cáo</h2><p>Tra cứu chi tiết các đợt báo hàng theo thời gian, trạng thái và SKU.</p></div><button class="secondary" id="export-reports">Xuất Excel</button></div>
     ${renderReportTabs("reports")}
     <article class="ops-panel report-filter-panel">
-      <form id="report-filter" class="report-filter-grid">
-        <label>Từ ngày<input name="from" type="date" value="${esc(reportFrom)}" /></label>
-        <label>Đến ngày<input name="to" type="date" value="${esc(reportTo)}" /></label>
+      <form id="report-filter" class="report-filter-grid report-filter-compact report-filter-detail">
+        ${renderCompactDateRange("reports", reportFrom, reportTo)}
         <label>Kết quả<select name="status"><option value="">Tất cả kết quả</option>${["PENDING","HAS_STOCK","SKIP_ALLOWED","CLOSED"].map((state) => `<option value="${state}" ${reportStatus === state ? "selected" : ""}>${esc(statusLabel(state))}</option>`).join("")}</select></label>
-        <label>SKU / tên sản phẩm<input name="query" value="${esc(reportQuery)}" placeholder="Nhập SKU hoặc tên sản phẩm" /></label>
-        <div class="ops-form-actions"><button class="primary">Xem báo cáo</button></div>
+        <label class="report-query-field">SKU / tên sản phẩm<input name="query" value="${esc(reportQuery)}" placeholder="Nhập SKU hoặc tên sản phẩm" /></label>
+        <button class="primary report-filter-submit">Xem báo cáo</button>
       </form>
-      ${renderDatePresets("reports")}
     </article>
     <section class="business-summary-grid business-summary-grid-4">
       <article class="business-summary-card primary"><span>Lượt báo hết hàng</span><strong>${Number(k?.reports_count || 0)}</strong><small>Trong khoảng thời gian đã chọn</small></article>
@@ -1837,7 +1852,7 @@ async function loadCompleteReporterQueue(): Promise<Awaited<ReturnType<typeof ge
   return { ...first, items: all, count: all.length, total: Math.max(total, all.length), limit: all.length, offset: 0 };
 }
 
-async function loadOperations(): Promise<void> {
+async function loadOperationsSnapshot(): Promise<void> {
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
   const [queue, recent] = await Promise.all([loadCompleteReporterQueue(), getReporterRecent(200)]);
@@ -1853,6 +1868,25 @@ async function loadOperations(): Promise<void> {
     prefetchBatchDetails(selected.batch_id);
   }
   markWebUpdateReceived();
+}
+
+async function loadOperations(): Promise<void> {
+  if (operationsLoadPromise) {
+    operationsLoadQueued = true;
+    return operationsLoadPromise;
+  }
+  const perform = async () => {
+    do {
+      operationsLoadQueued = false;
+      await loadOperationsSnapshot();
+    } while (operationsLoadQueued);
+  };
+  operationsLoadPromise = perform();
+  try {
+    await operationsLoadPromise;
+  } finally {
+    operationsLoadPromise = null;
+  }
 }
 
 async function loadPicker(): Promise<void> {
@@ -2098,6 +2132,47 @@ function bindShell(): void {
   bindOverlay();
 }
 
+async function commitReporterResolution(batch: ReporterBatch, resolution: "HAS_STOCK" | "SKIP_ALLOWED"): Promise<void> {
+  if (pendingReporterResolutions.has(batch.batch_id)) return;
+  const uiStarted = performance.now();
+  pendingReporterResolutions.set(batch.batch_id, resolution);
+  stockConfirm = null;
+  skipConfirm = null;
+  patchOverlays();
+  if (activeSection === "operations" && selectedBatchId === batch.batch_id) refreshFastDetailOnly();
+  runtimeLogMetric("ACTION", "reporter_resolution_immediate_feedback", {
+    batch_id: batch.batch_id,
+    resolution,
+  }, performance.now() - uiStarted);
+
+  try {
+    await resolveReporterBatch(batch.batch_id, resolution);
+    pendingReporterResolutions.delete(batch.batch_id);
+    queueRows = queueRows.filter((row) => row.batch_id !== batch.batch_id);
+    batchDetails.delete(batch.batch_id);
+    expandedBatchDetails.delete(batch.batch_id);
+    if (selectedBatchId === batch.batch_id) selectedBatchId = filteredQueueRows()[0]?.batch_id || queueRows[0]?.batch_id || null;
+    if (activeSection === "operations") {
+      patchActiveSection(true);
+      if (selectedBatchId) prefetchBatchDetails(selectedBatchId);
+    }
+    setNotice("success", resolution === "HAS_STOCK"
+      ? `${batch.sku} đã xác nhận Có hàng.`
+      : `${batch.sku} đã được cho phép bỏ qua.`);
+  } catch (error) {
+    pendingReporterResolutions.delete(batch.batch_id);
+    if (activeSection === "operations" && selectedBatchId === batch.batch_id) refreshFastDetailOnly();
+    const message = error instanceof Error ? error.message : "Thao tác thất bại.";
+    runtimeLogEvent(`Lỗi xử lý ${batch.sku}: ${message}`, "ERROR");
+    void sendWebRuntimeLog("web_operation_error", "ERROR", {
+      section: activeSection,
+      action: "reporter_resolution",
+      message,
+    });
+    setNotice("error", message);
+  }
+}
+
 function bindOverlay(): void {
   document.querySelector<HTMLButtonElement>("#cancel-stock")?.addEventListener("click", () => {
     stockConfirm = null;
@@ -2106,12 +2181,7 @@ function bindOverlay(): void {
   document.querySelector<HTMLButtonElement>("#confirm-stock")?.addEventListener("click", () => {
     if (!stockConfirm) return;
     const batch = stockConfirm;
-    stockConfirm = null;
-    void run(async () => {
-      await resolveReporterBatch(batch.batch_id, "HAS_STOCK");
-      await loadOperations();
-      setNotice("success", `${batch.sku} đã xác nhận Có hàng.`);
-    });
+    void commitReporterResolution(batch, "HAS_STOCK");
   });
   document.querySelector<HTMLButtonElement>("#cancel-skip")?.addEventListener("click", () => {
     skipConfirm = null;
@@ -2121,12 +2191,7 @@ function bindOverlay(): void {
     if (!skipConfirm) return;
     if (skipDelayEnabled && Date.now() < skipConfirmOpenedAt + SKIP_CONFIRM_DELAY_MS) return;
     const batch = skipConfirm;
-    skipConfirm = null;
-    void run(async () => {
-      await resolveReporterBatch(batch.batch_id, "SKIP_ALLOWED");
-      await loadOperations();
-      setNotice("success", `${batch.sku} đã được cho phép bỏ qua.`);
-    });
+    void commitReporterResolution(batch, "SKIP_ALLOWED");
   });
 
   const ack = document.querySelector<HTMLButtonElement>("#ack-result");

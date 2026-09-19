@@ -170,6 +170,23 @@ def main() -> None:
     require(unified_css, ".sla-threshold-grid", "D070 three-threshold layout")
     require(unified_css, ".sla-auto-policy", "D070 automatic-Skip policy layout")
 
+    # D071: consistent controls, logical 100% = old 105%, compact dates, and immediate Reporter action feedback.
+    require(app, "WEB_TEXT_BASE_SCALE = 1.05", "D071 logical 100 percent text baseline")
+    require(unified_css, 'input[type="checkbox"]', "D071 global checkbox normalization")
+    require(unified_css, "min-height: 16px !important", "D071 checkbox fixed geometry")
+    require(app, "function renderCompactDateRange(", "D071 compact shared date range")
+    require(unified_css, ".compact-date-range", "D071 compact date styling")
+    require(app, "pendingReporterResolutions", "D071 per-batch Reporter pending state")
+    require(app, 'runtimeLogMetric("ACTION", "reporter_resolution_immediate_feedback"', "D071 immediate feedback telemetry")
+    require(app, "async function commitReporterResolution(", "D071 detached Reporter resolution flow")
+    require(app, 'void commitReporterResolution(batch, "HAS_STOCK")', "D071 immediate HAS_STOCK flow")
+    require(app, 'void commitReporterResolution(batch, "SKIP_ALLOWED")', "D071 immediate Skip flow")
+    require(app, "pendingReporterResolutions.set(batch.batch_id, resolution);\n  stockConfirm = null;\n  skipConfirm = null;\n  patchOverlays();", "D071 synchronous modal close before request wait")
+    require(app, "async function loadOperationsSnapshot()", "D071 operations snapshot loader")
+    require(app, "operationsLoadPromise", "D071 coalesced operations load")
+    forbid(app, 'await resolveReporterBatch(batch.batch_id, "HAS_STOCK");\n      await loadOperations();', "D071 blocking HAS_STOCK refresh chain")
+    forbid(app, 'await resolveReporterBatch(batch.batch_id, "SKIP_ALLOWED");\n      await loadOperations();', "D071 blocking Skip refresh chain")
+
     # D060: Root can temporarily lower its effective role, and the service—not the client—enforces it.
     require(api, "setRootEffectiveRole", "Root effective-role client API")
     require(app, 'profile.base_role === "ROOT"', "Root selector visibility guard")

@@ -543,3 +543,17 @@ D070 deployed behavior: three entered thresholds with strict `warning < escalati
 
 
 Current Android marker: `D070_TIMEOUT_ALERT_PROJECTION_SIGNED_BETA_VC46_RUNTIME_GATE_PASS__OWNER_FIELD_ACCEPTANCE_PENDING`.
+
+
+## D071 Web immediate-response/density candidate — 2026-09-19
+
+Owner accepted the preceding Web review points and requested four Beta-Web refinements. Current source marker: `D071_WEB_IMMEDIATE_RESPONSE_DENSITY_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`.
+
+- normalize every Web checkbox to one compact fixed size;
+- raise the Web typography baseline by about 5%, with that new baseline displayed as logical `100%` in the existing text-size control;
+- compress Overview/Detailed-report date selection into one inline date/preset group instead of a large extra row;
+- Reporter final `Có hàng` / `Bỏ qua` confirmation closes immediately, shows a per-batch in-progress state, waits for authoritative service success before showing success toast, removes the old synchronous post-mutation `loadOperations()` chain, and coalesces concurrent complete-queue refreshes.
+
+Support logs show no browser long tasks or memory pressure. The observed 1–3 second delay is dominated by roughly 0.8–0.9 second resolve POSTs followed by complete queue/recent refresh/realtime reconcile work; section DOM render itself is only tens of milliseconds. Android/PDA is unchanged. Stable remains untouched/OWNER-GATED.
+
+Next command after runtime PASS: `Kiểm tra live D071 và review 4 mục Web mới`.

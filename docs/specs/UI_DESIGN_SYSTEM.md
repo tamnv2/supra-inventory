@@ -377,3 +377,15 @@ The accepted unified Web presentation is extended, not replaced.
 - Warning uses the existing warning/yellow language; escalation/timeout uses the stronger danger/attention language. No additional sound requirement.
 - Background browser notification permission is user-controlled by the browser; denial must not block authoritative realtime/business state.
 - Android/PDA surfaces preserve the current accepted layout while adding concise deadline/source text only where operationally necessary.
+
+
+### D071 Web density and logical text baseline
+
+D071 refines the accepted Web presentation without changing navigation or business semantics.
+
+- Every Web checkbox uses one compact fixed geometry; generic text-input sizing rules must never inflate a checkbox.
+- The existing text-size control remains expressed as logical percentages. D071 raises the physical baseline by about 5%, so the new logical `100%` renders at the old `105%` scale while `A− / A+` continue to move the logical percentage.
+- Reporter final confirmation closes immediately and the selected SKU shows a concise in-progress state while the authoritative online request runs. Do not show committed-success copy before the service confirms success.
+- Dashboard/reporting date selection is a compact inline control: from/to dates and quick presets share one dense group and must not consume a separate full-width second row on desktop.
+- Compact controls remain responsive and may wrap on narrow screens; dark-mode variables apply to the same surfaces.
+- Android/PDA is unchanged. Stable remains OWNER-GATED.
