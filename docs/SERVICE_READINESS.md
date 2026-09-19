@@ -280,3 +280,10 @@ PR Authority/Continuity/UI/Windows Agent gates PASS. Main Authority/Continuity/U
 D073 remains a transport-only Beta POC: Picker sends exactly five test digits through Firebase RTDB and the Windows Agent returns ACK/diagnostic timing. There is no WMS lookup or mutation. `OA002` remains OPEN: create the scoped Beta RTDB in Singapore locked mode, publish `firebase/database.rules.json`, then field-test PDA → relay → laptop on Office → ACK/RTT. Stable remains OWNER-GATED and untouched.
 
 Current Android marker: `D073_RELAY_POC_SIGNED_BETA_VC47_BUILD_PASS__D070_FIELD_ACCEPTANCE_PENDING`.
+
+
+## D074 relay field repair — 2026-09-19
+
+First Office field test reached Firebase but authenticated RTDB read/SSE returned HTTP 403. D074 classifies this as auth/Rules/path rather than generic network failure. Android and Windows now derive the relay path from Firebase ID-token `sub`; the Windows Agent gains persistent sanitized local diagnostics and explicit RTDB 403 classification. Picker is being split into bottom-pinned **Báo hết hàng / Xác nhận đơn** panels with denser controls and reliable exact-five-digit input/send. No WMS mutation exists in this phase; Stable remains OWNER-GATED.
+
+Current Android marker: `D074_PICKER_SPLIT_TABS_RELAY_INPUT_AUTH_REPAIR_IN_PROGRESS__LATEST_SIGNED_BETA_VC47`.
