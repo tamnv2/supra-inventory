@@ -90,3 +90,11 @@ Picker clients must not infer, request or receive another Picker's event payload
 - Interactive WMS login is performed by the authorized user only when the dedicated browser session requires it.
 - Captured `Authorization`, `Token`, `APISID`, `SID`, `SCID`, `USID` and related request-session values live only in process memory and are excluded from diagnostic output.
 - D080 grants no WMS mutation permission and does not change application RBAC.
+
+## D081 — Agent/WMS credential separation
+
+- SUPRA Inventory ADMIN login inside the Agent remains the application's own authentication path: masked password input → HTTPS project backend → verified Firebase ADMIN claims → refresh token protected with Windows DPAPI.
+- The ADMIN plaintext password is never persisted or logged; the UI password field is cleared immediately after the Agent copies it for the current HTTPS request. As with any desktop client, a fully compromised Windows user/process can still observe process memory; this is not represented as an absolute guarantee.
+- Company WMS credentials are **not** entered into or stored by the Agent. WMS login remains interactive on the official `wms-supra.winmart.vn` browser page.
+- The dedicated WMS browser uses its own profile directory; browser-managed login/cookies remain under Chromium/Windows user storage behavior. Agent only captures the allowlisted Supra API request headers required by D080 into process RAM and redacts them from diagnostics.
+- DevTools remains bound to loopback `127.0.0.1` on a random ephemeral port while capture is active.

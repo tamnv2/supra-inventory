@@ -741,3 +741,9 @@ Current active workstream marker: `BAO_HANG_WEB_ANDROID_ACTIVE_FOR_NEXT_SESSION`
 D080 Agent ↔ Supra source, PR guards, main build and `relay-agent-v5` prerelease are PASS. The current Owner-only action is to run `TEST SUPRA` on v5 from a network where Supra WMS is reachable. Agent opens its dedicated Edge context and captures HY1 session headers automatically; no F12/cURL is required and raw values remain out of logs/GitHub. Probe scope is still WMS UI plus signed read-only `GET /sft3-hy1/api/v1/warehouse/zones`; no Picklist lookup/confirmation/mutation is authorized. D078 PDA ↔ Agent `.Office@MSN` transport matrix remains checkpointed until Owner returns to company.
 
 Current relay marker: `D080_AGENT_V5_RELEASE_PASS__OWNER_WMS_FIELD_TEST_PENDING__D078_OFFICE_PENDING__NO_WMS_MUTATION`.
+
+## D081 Agent v6 reliability/security/taskbar — source candidate
+
+Owner field log on relay-agent-v5 proved Agent ↔ Supra read-only API works, but the first WMS capture can fail with `ClientWebSocket` state `Aborted` before login completes. D081 removes the short per-receive cancellation, gives the official WMS browser up to five minutes, prefers Edge and falls back to Chrome. WMS credentials remain browser-only; the Agent does not add a WMS password field. SUPRA Inventory ADMIN login remains the existing HTTPS/Firebase + DPAPI flow and clears the password UI immediately. A local-only taskbar monitor shows CPU %, current/approximate MHz and RAM used/total about every two seconds; it consumes no service quota and is the future surface for PL/online counters.
+
+Current relay marker: `D081_AGENT_V6_SOURCE_IN_PROGRESS__WMS_LOGIN_WAIT_FIX__CHROME_FALLBACK__TRAY_MONITOR__NO_WMS_MUTATION`.

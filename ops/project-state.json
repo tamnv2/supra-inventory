@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D080_AGENT_V5_RELEASE_PASS__OWNER_WMS_FIELD_TEST_PENDING__D078_OFFICE_TRANSPORT_PENDING__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D081_AGENT_V6_SOURCE_IN_PROGRESS__WMS_LOGIN_WAIT_FIX__CHROME_FALLBACK__TRAY_MONITOR__D078_OFFICE_PENDING__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -135,6 +135,7 @@
     "D066 Web three-group navigation PR #50 merged at 2e12e6d4e94b195e3b505b3f2abe9822ca91632c; PR Repo Authority, Project State and UI Design guards PASS; main UI Design Guard run 35407227884 PASS; Beta deploy run 35407227911 PASS including Web build, Worker typecheck/deploy, health/schema, auth/business guards, Web shell and Google OAuth start."
   ],
   "pending_build": [
+    "D081 relay-agent-v6 login reliability + Chromium fallback + tray monitor PR/CI/release",
     "D070 PR guards/merge/Beta deploy for Worker/Web schema migration and alarm automation",
     "Signed Beta Android release/verification because D070 changes Android runtime UI/API projection",
     "Owner field acceptance of D070 timing notifications and both auto-Skip modes",
@@ -142,7 +143,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "D078 PDA ↔ Agent Office transport matrix remains paused because Owner is away from .Office@MSN. D080 proceeds independently with Agent ↔ Supra read-only connectivity/session capture; resume Office TEST TẤT CẢ when Owner is back on company network.",
+    "D081 field retest: relay-agent-v6 should allow up to five minutes for official WMS login and capture on first attempt without WebSocket Aborted; Edge preferred, Chrome fallback. D078 PDA ↔ Agent Office transport remains separately pending.",
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
     "Owner acceptance of FIRST_REPORT and PER_PICKER behavior remains field-dependent after runtime PASS.",
     "Stable promotion remains OWNER-GATED."
@@ -155,8 +156,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Owner runs relay-agent-v5 TEST SUPRA from any authorized network where Supra WMS is reachable. Agent should auto-open its dedicated Edge context, capture HY1 session without F12/cURL, then return WMS UI + signed zones API result. Analyze only sanitized log/result.",
-    "method": "If TEST SUPRA PASS, record D080 field evidence and keep real Picklist lookup/confirmation deferred until explicitly authorized. If it fails, classify route/proxy/session/API from sanitized Agent log and repair on a fresh branch. D078 PDA ↔ Agent .Office@MSN transport matrix remains separately pending until Owner is back at company.",
+    "primary": "Build/verify/release relay-agent-v6 with D081 WMS login-wait fix, Edge→Chrome fallback, ADMIN password UI minimization and local taskbar CPU/RAM monitor. Then Owner retests TEST SUPRA without rushing login.",
+    "method": "Branch -> PR -> authority/continuity/UI/Agent build guards -> merge -> dedicated relay-agent-v6 prerelease. Field retest: press TEST SUPRA, take normal time to login (up to 5 minutes), verify first-attempt session capture and API PASS. No F12/cURL, no WMS credential form, no WMS mutation.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -184,7 +185,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D080 source/PR/main build/release PASS: relay-agent-v5 is ready for Owner Agent ↔ Supra read-only field test; D078 physical PDA ↔ Agent Office matrix remains pending.",
+      "D081 source in progress: fix short DevTools cancellation that caused v5 first-login WebSocket Aborted; add Chrome fallback and local taskbar CPU/MHz/RAM monitor. D078 Office transport remains pending.",
       "D077 source/build/release PASS: relay-agent-v3 published; physical Office retest pending",
       "D076 Beta RTDB Rules deploy/readback PASS; D075 physical Picker -> ADMIN Agent acceptance pending",
       "D068 Web baseline Owner-accepted/frozen",
@@ -195,7 +196,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Owner runs relay-agent-v5 TEST SUPRA without F12/cURL and provides sanitized result/log only; then record/repair D080. Resume D078 Office TEST TẤT CẢ later on .Office@MSN.",
+      "Complete D081 PR/CI/main prerelease, then Owner retests TEST SUPRA without rushing WMS login and reports sanitized result/log.",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"

@@ -59,6 +59,13 @@ namespace SupraInventoryRelayAgent
 
     internal static class WmsBrowserCapture
     {
+        private sealed class BrowserCandidate
+        {
+            internal string Name;
+            internal string Path;
+            internal string ProfileKey;
+        }
+
         private static readonly JavaScriptSerializer Json = new JavaScriptSerializer();
         private static readonly string[] RequiredHeaders =
         {
@@ -67,14 +74,14 @@ namespace SupraInventoryRelayAgent
 
         internal static WmsSessionSnapshot CaptureSession(int timeoutSeconds, Action<string> progress)
         {
-            var edge = FindEdge();
-            if (string.IsNullOrWhiteSpace(edge))
-                throw new InvalidOperationException("Không tìm thấy Microsoft Edge trên máy.");
+            var browser = FindSupportedBrowser();
+            if (browser == null)
+                throw new InvalidOperationException("Không tìm thấy Microsoft Edge hoặc Google Chrome. Cần ít nhất một trình duyệt Chromium được hỗ trợ để Agent tự lấy phiên WMS.");
 
             var port = FindFreeLoopbackPort();
             var profileDir = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "SUPRA Inventory", "WmsBrowser");
+                "SUPRA Inventory", "WmsBrowser", browser.ProfileKey);
             Directory.CreateDirectory(profileDir);
 
             var args =
@@ -86,16 +93,16 @@ namespace SupraInventoryRelayAgent
 
             var process = Process.Start(new ProcessStartInfo
             {
-                FileName = edge,
+                FileName = browser.Path,
                 Arguments = args,
                 UseShellExecute = true
             });
             if (process == null)
-                throw new InvalidOperationException("Không mở được Edge cho phiên WMS.");
+                throw new InvalidOperationException("Không mở được " + browser.Name + " cho phiên WMS.");
 
-            AgentDiagnostics.Write("WMS browser-start loopback=127.0.0.1 profile=dedicated edge=found");
+            AgentDiagnostics.Write("WMS browser-start loopback=127.0.0.1 profile=dedicated browser=" + browser.Name);
             if (progress != null)
-                progress("Đã mở cửa sổ WMS riêng. Đăng nhập nếu được yêu cầu; Agent đang tự lấy phiên.");
+                progress("Đã mở " + browser.Name + " WMS riêng. Có tối đa 5 phút để đăng nhập nếu được yêu cầu; Agent đang tự lấy phiên.");
 
             ClientWebSocket socket = null;
             try
@@ -114,7 +121,7 @@ namespace SupraInventoryRelayAgent
                 while (DateTime.UtcNow < deadline)
                 {
                     var remaining = deadline - DateTime.UtcNow;
-                    var message = Receive(socket, remaining > TimeSpan.FromSeconds(5) ? TimeSpan.FromSeconds(5) : remaining);
+                    var message = Receive(socket, remaining);
                     if (message == null) continue;
 
                     Dictionary<string, object> evt;
@@ -197,18 +204,25 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private static string FindEdge()
+        private static BrowserCandidate FindSupportedBrowser()
         {
-            var candidates = new List<string>();
             var pf86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
             var pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
             var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            candidates.Add(Path.Combine(pf86, "Microsoft", "Edge", "Application", "msedge.exe"));
-            candidates.Add(Path.Combine(pf, "Microsoft", "Edge", "Application", "msedge.exe"));
-            candidates.Add(Path.Combine(local, "Microsoft", "Edge", "Application", "msedge.exe"));
-            foreach (var item in candidates)
-                if (!string.IsNullOrWhiteSpace(item) && File.Exists(item)) return item;
-            return "";
+
+            var candidates = new[]
+            {
+                new BrowserCandidate { Name = "Microsoft Edge", ProfileKey = "edge", Path = Path.Combine(pf86, "Microsoft", "Edge", "Application", "msedge.exe") },
+                new BrowserCandidate { Name = "Microsoft Edge", ProfileKey = "edge", Path = Path.Combine(pf, "Microsoft", "Edge", "Application", "msedge.exe") },
+                new BrowserCandidate { Name = "Microsoft Edge", ProfileKey = "edge", Path = Path.Combine(local, "Microsoft", "Edge", "Application", "msedge.exe") },
+                new BrowserCandidate { Name = "Google Chrome", ProfileKey = "chrome", Path = Path.Combine(pf, "Google", "Chrome", "Application", "chrome.exe") },
+                new BrowserCandidate { Name = "Google Chrome", ProfileKey = "chrome", Path = Path.Combine(pf86, "Google", "Chrome", "Application", "chrome.exe") },
+                new BrowserCandidate { Name = "Google Chrome", ProfileKey = "chrome", Path = Path.Combine(local, "Google", "Chrome", "Application", "chrome.exe") }
+            };
+
+            foreach (var candidate in candidates)
+                if (!string.IsNullOrWhiteSpace(candidate.Path) && File.Exists(candidate.Path)) return candidate;
+            return null;
         }
 
         private static int FindFreeLoopbackPort()
@@ -262,7 +276,7 @@ namespace SupraInventoryRelayAgent
                 }
                 Thread.Sleep(250);
             }
-            throw new InvalidOperationException("Edge đã mở nhưng Agent không kết nối được DevTools loopback.", last);
+            throw new InvalidOperationException("Trình duyệt WMS đã mở nhưng Agent không kết nối được DevTools loopback.", last);
         }
 
         private static void Send(ClientWebSocket socket, string value)

@@ -501,9 +501,9 @@
     "extension_feature": false
   },
   "relay_poc": {
-    "decision": "D080",
+    "decision": "D081",
     "environment": "beta",
-    "status": "D080_AGENT_V5_RELEASE_PASS__OWNER_WMS_FIELD_TEST_PENDING__D078_OFFICE_TRANSPORT_PENDING",
+    "status": "D081_AGENT_V6_SOURCE_IN_PROGRESS__D078_OFFICE_TRANSPORT_PENDING",
     "purpose": "Authenticated Picker-to-ADMIN relay transport plus separate ADMIN Agent-to-Supra read-only connectivity/session proof; no WMS mutation",
     "transport": "FIREBASE_RTDB_REST_SSE",
     "database_resource_key": "firebase-rtdb-relay-beta",
@@ -544,16 +544,17 @@
     "rules_deploy_method": "OFFICIAL_RTDB_SETTINGS_RULES_REST_PUT_AND_READBACK",
     "rules_deploy_last_evidence": "PASS_RUN_35451292051__IAM_UPDATE__RULES_GET__RULES_PUT__EXACT_READBACK",
     "rules_deployed_source_commit": "452feb1e25dff936617e5d1d51313438d85155eb",
-    "agent_release_target": "relay-agent-v5",
+    "agent_release_target": "relay-agent-v6",
     "office_transport_discovery": "V4_RELEASE_PASS__FIREBASE_AUTH_RTDB_FIRESTORE_APPS_SCRIPT_SHEETS_DRIVE_READ_ONLY_PROBES__FIELD_LOG_PENDING",
     "transport_selection": "PENDING_OWNER_OFFICE_PROBE_EVIDENCE",
-    "wms_session_capture": "RELEASED_V5__AGENT_OWNED_EDGE_LOOPBACK_CDP__HY1_HEADERS_RAM_ONLY__NO_F12_CURL_REQUIRED",
-    "wms_probe": "WMS_UI_REACHABILITY__SIGNED_GET_WAREHOUSE_ZONES__SYSTEM_ENV_DIRECT_CORP_PROXY_ROUTES"
+    "wms_session_capture": "D081_SOURCE__EDGE_PRIMARY_CHROME_FALLBACK__FULL_300S_LOGIN_WINDOW__RAM_ONLY_HEADERS__NO_WMS_PASSWORD_IN_EXE",
+    "wms_probe": "WMS_UI_REACHABILITY__SIGNED_GET_WAREHOUSE_ZONES__SYSTEM_ENV_DIRECT_CORP_PROXY_ROUTES",
+    "taskbar_monitor": "LOCAL_ONLY_CPU_PERCENT_CURRENT_MHZ_RAM_USED_TOTAL__2S__NO_PROVIDER_QUOTA"
   },
   "wms_poc": {
-    "decision": "D080",
+    "decision": "D081",
     "environment": "beta_poc",
-    "status": "AGENT_V5_RELEASE_PASS__OWNER_FIELD_TEST_PENDING",
+    "status": "D081_SOURCE_IN_PROGRESS",
     "ui_resource_key": "supra-wms-ui-d080",
     "api_resource_key": "supra-api-d080",
     "proxy_resource_key": "wincommerce-proxy-fallback-d080",
@@ -568,7 +569,7 @@
       "SCID",
       "USID"
     ],
-    "session_capture": "DEDICATED_EDGE_PROFILE__CDP_LOOPBACK_127_0_0_1__VALUES_RAM_ONLY",
+    "session_capture": "DEDICATED_EDGE_OR_CHROME_PROFILE__CDP_LOOPBACK_127_0_0_1__FULL_300S_LOGIN_WINDOW__VALUES_RAM_ONLY",
     "route_order": [
       "WINDOWS_SYSTEM_PROXY",
       "ENV_PROXY",
@@ -583,6 +584,12 @@
     "release_id": 392156246,
     "exe_asset_id": 575169402,
     "exe_sha256": "27b1ca9091e19047def478881692fe7cd7d9b930586e028fe33a1605ddcf0376",
-    "release_run": 35457732455
+    "release_run": 35457732455,
+    "browser_order": [
+      "MICROSOFT_EDGE",
+      "GOOGLE_CHROME"
+    ],
+    "wms_credentials": "OFFICIAL_BROWSER_PAGE_ONLY__NO_AGENT_FORM_OR_STORAGE",
+    "taskbar_monitor": "LOCAL_CPU_PERCENT_CURRENT_MHZ_RAM_USED_TOTAL"
   }
 }

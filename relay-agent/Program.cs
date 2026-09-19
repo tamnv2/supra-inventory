@@ -177,6 +177,9 @@ namespace SupraInventoryRelayAgent
         private readonly Label _identity = new Label();
         private readonly ListBox _log = new ListBox();
         private readonly NotifyIcon _tray = new NotifyIcon();
+        private readonly ToolStripMenuItem _trayStatusItem = new ToolStripMenuItem();
+        private readonly SystemMonitor _systemMonitor = new SystemMonitor();
+        private readonly System.Windows.Forms.Timer _trayMonitorTimer = new System.Windows.Forms.Timer();
         private readonly HashSet<string> _acked = new HashSet<string>(StringComparer.Ordinal);
         private readonly object _sessionLock = new object();
         private readonly object _wmsSessionLock = new object();
@@ -248,7 +251,7 @@ namespace SupraInventoryRelayAgent
             _probeAll.SetBounds(622, 242, 122, 32); _probeAll.Text = "TEST TẤT CẢ";
             _probeAll.Click += (s, e) => Task.Run(() => ProbeAllTransports()); Controls.Add(_probeAll);
 
-            Controls.Add(new Label { Left = 18, Top = 286, Width = 726, Height = 20, Text = "Supra WMS — tự lấy phiên từ Edge riêng, chỉ kiểm tra kết nối đọc:", ForeColor = Color.DimGray });
+            Controls.Add(new Label { Left = 18, Top = 286, Width = 726, Height = 20, Text = "Supra WMS — tự lấy phiên từ Edge/Chrome riêng, chỉ kiểm tra kết nối đọc:", ForeColor = Color.DimGray });
             _wmsCapture.SetBounds(18, 308, 172, 32); _wmsCapture.Text = "Mở WMS + lấy phiên";
             _wmsCapture.Click += (s, e) => Task.Run(() => CaptureWmsSession()); Controls.Add(_wmsCapture);
             _wmsTest.SetBounds(198, 308, 142, 32); _wmsTest.Text = "TEST SUPRA";
@@ -259,21 +262,31 @@ namespace SupraInventoryRelayAgent
             _log.SetBounds(18, 356, 726, 255); Controls.Add(_log);
 
             var menu = new ContextMenuStrip();
-            menu.Items.Add("Mở", null, (s, e) => RestoreFromTray());
+            _trayStatusItem.Enabled = false;
+            _trayStatusItem.Text = "Máy: đang đọc...";
+            menu.Items.Add(_trayStatusItem);
+            menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add("Mở Agent", null, (s, e) => RestoreFromTray());
+            menu.Items.Add("Mở log", null, (s, e) => AgentDiagnostics.OpenLog());
             menu.Items.Add("Thoát", null, (s, e) => { _allowExit = true; Close(); });
-            _tray.Text = "SUPRA Inventory Relay Test"; _tray.Icon = SystemIcons.Application; _tray.ContextMenuStrip = menu; _tray.Visible = true;
+            _tray.Text = "SUPRA | đang đọc tài nguyên máy"; _tray.Icon = SystemIcons.Application; _tray.ContextMenuStrip = menu; _tray.Visible = true;
             _tray.DoubleClick += (s, e) => RestoreFromTray();
 
             Resize += (s, e) => { if (WindowState == FormWindowState.Minimized) { Hide(); _tray.ShowBalloonTip(1000, "SUPRA Inventory", "Relay Test Agent đang chạy nền.", ToolTipIcon.Info); } };
             FormClosing += (s, e) =>
             {
                 if (!_allowExit && e.CloseReason == CloseReason.UserClosing) { e.Cancel = true; WindowState = FormWindowState.Minimized; Hide(); return; }
-                StopListening(); _tray.Visible = false;
+                StopListening(); _trayMonitorTimer.Stop(); _tray.Visible = false;
             };
 
             var timer = new System.Windows.Forms.Timer { Interval = 4000 };
             timer.Tick += (s, e) => _network.Text = "Mạng: " + GetSsid();
             timer.Start();
+
+            _trayMonitorTimer.Interval = 2000;
+            _trayMonitorTimer.Tick += (s, e) => UpdateTrayMonitor();
+            _trayMonitorTimer.Start();
+            UpdateTrayMonitor();
 
             _updateTimer.Interval = 4 * 60 * 60 * 1000;
             _updateTimer.Tick += (s, e) => Task.Run(() => TryAutoUpdate(false));
@@ -283,6 +296,23 @@ namespace SupraInventoryRelayAgent
         }
 
         private void RestoreFromTray() { Show(); WindowState = FormWindowState.Normal; Activate(); }
+
+        private void UpdateTrayMonitor()
+        {
+            try
+            {
+                var metrics = _systemMonitor.Sample();
+                var compact = metrics.Compact();
+                if (compact.Length > 63) compact = compact.Substring(0, 63);
+                _tray.Text = compact;
+                _trayStatusItem.Text = metrics.MenuText();
+            }
+            catch
+            {
+                _tray.Text = "SUPRA Agent";
+                _trayStatusItem.Text = "Máy: chưa đọc được tài nguyên";
+            }
+        }
 
         private void SetProbeButtonsEnabled(bool enabled)
         {
@@ -388,6 +418,7 @@ namespace SupraInventoryRelayAgent
             {
                 username = _username.Text.Trim();
                 password = _password.Text;
+                _password.Clear();
                 _pair.Enabled = false;
             });
             if (username.Length == 0 || password.Length == 0)
@@ -852,7 +883,7 @@ namespace SupraInventoryRelayAgent
             try
             {
                 LogNetworkSnapshot("wms-session-capture");
-                var captured = WmsBrowserCapture.CaptureSession(180, message => Log("WMS " + message));
+                var captured = WmsBrowserCapture.CaptureSession(300, message => Log("WMS " + message));
                 lock (_wmsSessionLock) _wmsSession = captured;
                 Ui(() => _wmsStatus.Text = "WMS: phiên HY1 đã lấy tự động");
                 Log("WMS SESSION PASS scope=HY1 storage=RAM_ONLY values=redacted.");
@@ -891,7 +922,7 @@ namespace SupraInventoryRelayAgent
                 if (session == null || !session.IsValidHy1())
                 {
                     Log("WMS chưa có phiên HY1 trong RAM; tự mở Edge để lấy phiên.");
-                    session = WmsBrowserCapture.CaptureSession(180, message => Log("WMS " + message));
+                    session = WmsBrowserCapture.CaptureSession(300, message => Log("WMS " + message));
                     lock (_wmsSessionLock) _wmsSession = session;
                 }
 
@@ -901,7 +932,7 @@ namespace SupraInventoryRelayAgent
                 if (string.Equals(api.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
                 {
                     Log("WMS phiên cũ hết hạn; tự mở Edge để lấy phiên mới một lần.");
-                    var refreshed = WmsBrowserCapture.CaptureSession(180, message => Log("WMS " + message));
+                    var refreshed = WmsBrowserCapture.CaptureSession(300, message => Log("WMS " + message));
                     lock (_wmsSessionLock) _wmsSession = refreshed;
                     api = WmsReadOnlyClient.ProbeApi(refreshed);
                     Log("WMS PROBE RETRY " + api.Summary());

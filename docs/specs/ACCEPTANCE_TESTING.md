@@ -455,3 +455,16 @@ D080 is technically PASS only when:
 8. Source/guards contain no Picklist lookup, order confirmation/click automation, POST/PUT/PATCH/DELETE WMS request or other WMS mutation.
 9. D078 physical PDA ↔ Agent Office acceptance remains separately pending; D080 PASS must not be misreported as full confirmation-workflow PASS.
 10. Stable remains untouched.
+
+## D081 — Agent login reliability/security/taskbar acceptance
+
+D081 is technically PASS only when:
+1. With no WMS request for more than five seconds, the DevTools WebSocket remains usable; the first capture does not fail with `WebSocket ... Aborted` solely because the user has not logged in yet.
+2. User has up to five minutes to complete official WMS login and trigger an allowlisted Supra API request.
+3. Edge is preferred and Chrome is a working fallback using a separate Agent browser profile. No Edge+Chrome case fails clearly.
+4. WMS credential fields do not exist in Agent UI/source; WMS password is never persisted/logged by Agent.
+5. SUPRA Inventory ADMIN password input is masked, cleared immediately after capture, sent only through the existing HTTPS auth path, and is absent from logs/session files.
+6. Tray tooltip/menu refreshes CPU utilization, current/approximate MHz and RAM used/total without Administrator rights and degrades safely if a metric is unavailable.
+7. Taskbar monitoring does not poll Cloudflare/Firebase/WMS and therefore adds no service quota consumption.
+8. D080 signed zones probe remains GET-only; no Picklist lookup/confirmation/WMS mutation is added.
+9. Stable remains untouched.
