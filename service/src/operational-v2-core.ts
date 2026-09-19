@@ -858,7 +858,11 @@ async function putSla(state: DurableObjectState, request: Request): Promise<Resp
 
   const previous = readSlaConfig(state);
   const at = new Date().toISOString();
-  const value = validated.value;
+  const value: OperationalSlaConfig = {
+    ...validated.value,
+    policy_version: 2,
+    effective_at: at,
+  };
   state.storage.transactionSync(() => {
     state.storage.sql.exec(
       `INSERT INTO app_config (key, value_json, updated_at, updated_by)
