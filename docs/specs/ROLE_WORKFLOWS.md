@@ -46,10 +46,12 @@ All business operations require online access to the authoritative Worker + Inve
 3. SLA is warning/escalation only. It does not auto-Skip, auto-resolve or silently change the canonical queue ordering without another explicit Owner decision.
 4. Expand batch detail to see affected Picker tickets without shrinking/displacing the two primary actions.
 5. Resolve as `HAS_STOCK` (`CÓ HÀNG`) or `SKIP_ALLOWED` (`CHO SKIP HÀNG`).
-6. `CHO SKIP HÀNG` is deliberate two-step confirmation: the confirmation names SKU/product and affected Picker count before commit. No password/OTP is required for the normal Reporter action.
-7. `SKIP_ALLOWED` may be corrected to `HAS_STOCK` within **5 minutes server time**. Correction is a new immutable lifecycle event; the original Skip event remains auditable.
-8. Resolution/correction creates event/version metadata used by realtime and critical Picker notification/ACK tracking.
-9. Reporter can see result/ACK progress where operationally useful, e.g. acknowledged vs affected Picker count, without blocking the resolved state.
+6. Both resolution actions require a deliberate UI confirmation naming SKU/product and affected Picker count before the mutation is sent.
+7. `CHO SKIP HÀNG` keeps the explicit impact confirmation and, by default, holds the final confirm action disabled for 5 seconds. Each signed-in user may disable/re-enable this client-side delay from personal Account settings. The delay is an interaction guard only; it does not alter server authorization/state semantics. No password/OTP is required for the normal Reporter action.
+8. `SKIP_ALLOWED` may be corrected to `HAS_STOCK` within **5 minutes server time**. Correction is a new immutable lifecycle event; the original Skip event remains auditable.
+9. Resolution/correction creates event/version metadata used by realtime and critical Picker notification/ACK tracking.
+10. Reporter can see result/ACK progress where operationally useful, e.g. acknowledged vs affected Picker count, without blocking the resolved state.
+11. Web exposes the complete live pending queue through bounded pagination rather than silently truncating the queue at a fixed client limit; all/warning/overdue summary filters operate over that complete queue.
 
 Web and Android both prioritize this queue. Android/PDA uses larger touch actions; Reporter Web uses a denser table/list appropriate for full-shift operation.
 
