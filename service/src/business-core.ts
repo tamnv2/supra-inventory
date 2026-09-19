@@ -1,3 +1,5 @@
+import { planAutoSkipForNewReport, scheduleNextOperationalAlarm } from "./sla-automation";
+
 type SqlRow = Record<string, SqlStorageValue>;
 
 type Actor = {
@@ -40,6 +42,8 @@ interface BatchRow extends SqlRow {
   resolved_at: string | null;
   resolved_by_user_id: string | null;
   resolution: string | null;
+  resolution_source: string | null;
+  auto_skip_deadline_at: string | null;
   correction_deadline_at: string | null;
   created_at: string;
   updated_at: string;
@@ -368,7 +372,7 @@ async function createReport(state: DurableObjectState, request: Request): Promis
     return { status: 400, payload: { error: "INVALID_INPUT" } };
   }
 
-  return state.storage.transactionSync(() => {
+  const result = state.storage.transactionSync(() => {
     const scope = `report_create:${actor.user_id}`;
     const replay = readIdempotency(state, scope, requestId);
     if (replay) return { status: 200, payload: { ...replay, idempotent_replay: true } } satisfies BusinessResult;
@@ -411,16 +415,24 @@ async function createReport(state: DurableObjectState, request: Request): Promis
         .toArray(),
     );
 
+    const existingBatch = Boolean(batch);
+    const plan = planAutoSkipForNewReport(state, {
+      reported_at: at,
+      existing_batch: existingBatch,
+      existing_batch_deadline_at: batch?.auto_skip_deadline_at || null,
+    });
+
     if (!batch) {
       const batchId = crypto.randomUUID();
       state.storage.sql.exec(
         `INSERT INTO report_batches (
-           batch_id, sku, product_name, status, first_report_at, created_at, updated_at
-         ) VALUES (?, ?, ?, 'PENDING', ?, ?, ?)`,
+           batch_id, sku, product_name, status, first_report_at, auto_skip_deadline_at, created_at, updated_at
+         ) VALUES (?, ?, ?, 'PENDING', ?, ?, ?, ?)`,
         batchId,
         sku,
         skuRow.product_name,
         at,
+        plan.batch_deadline_at,
         at,
         at,
       );
@@ -433,6 +445,8 @@ async function createReport(state: DurableObjectState, request: Request): Promis
         resolved_at: null,
         resolved_by_user_id: null,
         resolution: null,
+        resolution_source: null,
+        auto_skip_deadline_at: plan.batch_deadline_at,
         correction_deadline_at: null,
         created_at: at,
         updated_at: at,
@@ -444,8 +458,8 @@ async function createReport(state: DurableObjectState, request: Request): Promis
     state.storage.sql.exec(
       `INSERT INTO report_tickets (
          ticket_id, batch_id, picker_user_id, picker_employee_code, sku, status,
-         reported_at, withdraw_deadline_at, created_at, updated_at
-       ) VALUES (?, ?, ?, ?, ?, 'OPEN', ?, ?, ?, ?)`,
+         reported_at, withdraw_deadline_at, auto_skip_deadline_at, created_at, updated_at
+       ) VALUES (?, ?, ?, ?, ?, 'OPEN', ?, ?, ?, ?, ?)`,
       ticketId,
       batch.batch_id,
       actor.user_id,
@@ -453,6 +467,7 @@ async function createReport(state: DurableObjectState, request: Request): Promis
       sku,
       at,
       withdrawDeadline,
+      plan.ticket_deadline_at,
       at,
       at,
     );
@@ -468,6 +483,7 @@ async function createReport(state: DurableObjectState, request: Request): Promis
         product_name: batch.product_name,
         reported_at: at,
         withdraw_deadline_at: withdrawDeadline,
+        auto_skip_deadline_at: plan.ticket_deadline_at,
         status: "OPEN",
       },
       event_id: eventId,
@@ -475,6 +491,8 @@ async function createReport(state: DurableObjectState, request: Request): Promis
     storeIdempotency(state, scope, requestId, payload, at);
     return { status: 201, payload } satisfies BusinessResult;
   });
+  if (result.status === 201) await scheduleNextOperationalAlarm(state);
+  return result;
 }
 
 function pickerReports(state: DurableObjectState, url: URL): BusinessResult {
@@ -509,7 +527,7 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
     return { status: 400, payload: { error: "INVALID_INPUT" } };
   }
 
-  return state.storage.transactionSync(() => {
+  const result = state.storage.transactionSync(() => {
     const scope = `report_withdraw:${actor.user_id}`;
     const replay = readIdempotency(state, scope, requestId);
     if (replay) return { status: 200, payload: { ...replay, idempotent_replay: true } } satisfies BusinessResult;
@@ -547,25 +565,60 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
     const eventId = event(state, actor, "REPORT_WITHDRAWN", ticket.batch_id, ticketId, { sku: ticket.sku }, at);
     audit(state, actor, "REPORT_WITHDRAW", "REPORT_TICKET", ticketId, { batch_id: ticket.batch_id, sku: ticket.sku }, at);
 
-    const remaining = firstRow(
+    const activeRemaining = firstRow(
       state.storage.sql
-        .exec<SqlRow>("SELECT COUNT(*) AS count FROM report_tickets WHERE batch_id = ? AND status = 'OPEN'", ticket.batch_id)
+        .exec<SqlRow>(
+          "SELECT COUNT(*) AS count FROM report_tickets WHERE batch_id = ? AND status = 'OPEN' AND auto_skip_allowed_at IS NULL",
+          ticket.batch_id,
+        )
         .toArray(),
     );
-    if (Number(remaining?.count || 0) === 0) {
-      state.storage.sql.exec(
-        `UPDATE report_batches
-            SET status = 'CLOSED', updated_at = ?
-          WHERE batch_id = ? AND status = 'PENDING'`,
-        at,
-        ticket.batch_id,
+    if (Number(activeRemaining?.count || 0) === 0) {
+      const timedOut = firstRow(
+        state.storage.sql
+          .exec<SqlRow>(
+            "SELECT COUNT(*) AS count FROM report_tickets WHERE batch_id = ? AND status = 'OPEN' AND auto_skip_allowed_at IS NOT NULL",
+            ticket.batch_id,
+          )
+          .toArray(),
       );
+      if (Number(timedOut?.count || 0) > 0) {
+        const correctionDeadline = addMs(at, CORRECTION_WINDOW_MS);
+        state.storage.sql.exec(
+          `UPDATE report_tickets
+              SET status = 'RESOLVED', resolved_at = COALESCE(resolved_at, ?), updated_at = ?
+            WHERE batch_id = ? AND status = 'OPEN' AND auto_skip_allowed_at IS NOT NULL`,
+          at,
+          at,
+          ticket.batch_id,
+        );
+        state.storage.sql.exec(
+          `UPDATE report_batches
+              SET status = 'SKIP_ALLOWED', resolution = 'SKIP_ALLOWED', resolution_source = 'SYSTEM_TIMEOUT',
+                  resolved_at = ?, resolved_by_user_id = NULL, correction_deadline_at = ?, updated_at = ?
+            WHERE batch_id = ? AND status = 'PENDING'`,
+          at,
+          correctionDeadline,
+          at,
+          ticket.batch_id,
+        );
+      } else {
+        state.storage.sql.exec(
+          `UPDATE report_batches
+              SET status = 'CLOSED', updated_at = ?
+            WHERE batch_id = ? AND status = 'PENDING'`,
+          at,
+          ticket.batch_id,
+        );
+      }
     }
 
     const payload = { status: "withdrawn", ticket_id: ticketId, batch_id: ticket.batch_id, withdrawn_at: at, event_id: eventId };
     storeIdempotency(state, scope, requestId, payload, at);
     return { status: 200, payload } satisfies BusinessResult;
   });
+  if (result.status === 200) await scheduleNextOperationalAlarm(state);
+  return result;
 }
 
 function reporterQueue(state: DurableObjectState, url: URL): BusinessResult {
@@ -602,7 +655,7 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
     return { status: 400, payload: { error: "INVALID_INPUT" } };
   }
 
-  return state.storage.transactionSync(() => {
+  const result = state.storage.transactionSync(() => {
     const scope = `batch_resolve:${actor.user_id}`;
     const replay = readIdempotency(state, scope, requestId);
     if (replay) return { status: 200, payload: { ...replay, idempotent_replay: true } } satisfies BusinessResult;
@@ -623,14 +676,15 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
     const at = nowIso();
     const correctionDeadline = resolution === "SKIP_ALLOWED" ? addMs(at, CORRECTION_WINDOW_MS) : null;
     const openCountRow = firstRow(
-      state.storage.sql.exec<SqlRow>("SELECT COUNT(*) AS count FROM report_tickets WHERE batch_id = ? AND status = 'OPEN'", batchId).toArray(),
+      state.storage.sql.exec<SqlRow>("SELECT COUNT(*) AS count FROM report_tickets WHERE batch_id = ? AND status = 'OPEN' AND auto_skip_allowed_at IS NULL", batchId).toArray(),
     );
     const affected = Number(openCountRow?.count || 0);
     if (affected < 1) return { status: 409, payload: { error: "BATCH_HAS_NO_OPEN_TICKETS" } } satisfies BusinessResult;
 
     state.storage.sql.exec(
       `UPDATE report_batches
-          SET status = ?, resolution = ?, resolved_at = ?, resolved_by_user_id = ?,
+          SET status = ?, resolution = ?, resolution_source = 'REPORTER',
+              resolved_at = ?, resolved_by_user_id = ?,
               correction_deadline_at = ?, updated_at = ?
         WHERE batch_id = ?`,
       resolution,
@@ -643,8 +697,18 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
     );
     state.storage.sql.exec(
       `UPDATE report_tickets
-          SET status = 'RESOLVED', resolved_at = ?, updated_at = ?
-        WHERE batch_id = ? AND status = 'OPEN'`,
+          SET status = 'RESOLVED', resolution = ?, resolution_source = 'REPORTER',
+              resolved_at = ?, updated_at = ?
+        WHERE batch_id = ? AND status = 'OPEN' AND auto_skip_allowed_at IS NULL`,
+      resolution,
+      at,
+      at,
+      batchId,
+    );
+    state.storage.sql.exec(
+      `UPDATE report_tickets
+          SET status = 'RESOLVED', resolved_at = COALESCE(resolved_at, ?), updated_at = ?
+        WHERE batch_id = ? AND status = 'OPEN' AND auto_skip_allowed_at IS NOT NULL`,
       at,
       at,
       batchId,
@@ -655,10 +719,10 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
       "BATCH_RESOLVED",
       batchId,
       null,
-      { resolution, affected_picker_count: affected, correction_deadline_at: correctionDeadline },
+      { resolution, source: "REPORTER", affected_picker_count: affected, correction_deadline_at: correctionDeadline },
       at,
     );
-    audit(state, actor, "BATCH_RESOLVE", "REPORT_BATCH", batchId, { resolution, affected_picker_count: affected }, at);
+    audit(state, actor, "BATCH_RESOLVE", "REPORT_BATCH", batchId, { resolution, source: "REPORTER", affected_picker_count: affected }, at);
 
     const payload = {
       status: "resolved",
@@ -672,6 +736,8 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
     storeIdempotency(state, scope, requestId, payload, at);
     return { status: 200, payload } satisfies BusinessResult;
   });
+  if (result.status === 200) await scheduleNextOperationalAlarm(state);
+  return result;
 }
 
 async function correctBatch(state: DurableObjectState, request: Request): Promise<BusinessResult> {
@@ -708,11 +774,18 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
 
     state.storage.sql.exec(
       `UPDATE report_batches
-          SET status = 'HAS_STOCK', resolution = 'HAS_STOCK', resolved_at = ?,
+          SET status = 'HAS_STOCK', resolution = 'HAS_STOCK', resolution_source = 'REPORTER_CORRECTION', resolved_at = ?,
               resolved_by_user_id = ?, correction_deadline_at = NULL, updated_at = ?
         WHERE batch_id = ?`,
       at,
       actor.user_id,
+      at,
+      batchId,
+    );
+    state.storage.sql.exec(
+      `UPDATE report_tickets
+          SET resolution = 'HAS_STOCK', resolution_source = 'REPORTER_CORRECTION', updated_at = ?
+        WHERE batch_id = ? AND status = 'RESOLVED'`,
       at,
       batchId,
     );
@@ -722,7 +795,7 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
       "BATCH_CORRECTED",
       batchId,
       null,
-      { from: "SKIP_ALLOWED", to: "HAS_STOCK", previous_correction_deadline_at: batch.correction_deadline_at },
+      { from: "SKIP_ALLOWED", to: "HAS_STOCK", source: "REPORTER_CORRECTION", previous_correction_deadline_at: batch.correction_deadline_at },
       at,
     );
     audit(state, actor, "BATCH_CORRECT", "REPORT_BATCH", batchId, { from: "SKIP_ALLOWED", to: "HAS_STOCK" }, at);
