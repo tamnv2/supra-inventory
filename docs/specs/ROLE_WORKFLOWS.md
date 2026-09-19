@@ -226,3 +226,11 @@ This is a bounded Beta transport test, not the final WMS workflow.
 - For the POC, ACK is first-writer-wins: once a job is ACK, later Agents may not overwrite ownership.
 - This identity becomes the audit basis for the future real confirmation workflow; D075 itself still performs no WMS action.
 - Agent auto-update uses dedicated GitHub prereleases `relay-agent-vN`; successful download must pass SHA-256 verification before the portable EXE self-replaces and relaunches.
+
+## D078 — ADMIN Agent transport diagnostics
+
+- Relay Agent keeps real ADMIN authentication.
+- Diagnostics are read-only and available after ADMIN session restoration/login.
+- Buttons: Firebase Auth, RTDB, Firestore, Apps Script, Sheets, Drive, Test tất cả.
+- Test tất cả runs the same probes sequentially and writes one compact summary line for field handoff.
+- Diagnostic probes never confirm an order, never mutate WMS and never bypass corporate network policy.
