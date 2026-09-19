@@ -63,7 +63,7 @@ import {
 import { parseSkuExcel, type ParsedSkuWorkbook } from "./sku-excel";
 import { downloadReportWorkbook } from "./report-excel";
 import { registerRealtimeApplier, type RealtimeEventFrame } from "./realtime-client";
-import { initWebRuntimeLogging, runtimeLogEvent, runtimeLogMetric, sendWebRuntimeLog } from "./runtime-logger";
+import { getWebRuntimeDiagnosticSnapshot, initWebRuntimeLogging, runtimeLogEvent, runtimeLogMetric, sendWebRuntimeLog } from "./runtime-logger";
 import {
   createPickerReport,
   getPickerReportsV2,
@@ -1297,22 +1297,13 @@ function sanitizeDiagnosticValue(value: unknown, depth = 0): unknown {
 
 function supportDiagnostics(): Record<string, unknown> {
   return {
-    format: "supra-inventory-support-v1",
+    format: "supra-inventory-support-v2",
     generated_at: new Date().toISOString(),
     app: {
       surface: "WEB",
       host: window.location.host,
     },
-    network: {
-      online: navigator.onLine,
-    },
-    realtime: {
-      state: realtimeState,
-      applied_seq: realtimeLastSeq,
-    },
-    ui: {
-      section: activeSection,
-    },
+    runtime: getWebRuntimeDiagnosticSnapshot("download_support_log"),
     service_health: serviceHealth ? sanitizeDiagnosticValue(serviceHealth) : null,
   };
 }
@@ -1592,11 +1583,22 @@ function renderRuntimeLogSummary(): string {
   const browser = systemObj(payload.browser);
   const connection = systemObj(browser.connection);
   const memory = systemObj(browser.memory);
+  const performanceInfo = systemObj(payload.performance);
+  const navigation = systemObj(performanceInfo.navigation);
+  const resources = systemObj(performanceInfo.resources);
   const state = systemObj(payload.state);
+  const queueState = systemObj(state.queue);
+  const recentResultState = systemObj(state.recent_results);
   const realtime = systemObj(state.realtime);
   const device = systemObj(content.device);
-  const recentEvents = Array.isArray(payload.recent_events) ? payload.recent_events : [];
-  const errorEvents = recentEvents.filter((item) => String(systemObj(item).level || "").toUpperCase() === "ERROR").length;
+  const dom = systemObj(payload.dom);
+  const recentEvents = Array.isArray(payload.recent_events) ? payload.recent_events.map(systemObj) : [];
+  const longTasks = Array.isArray(performanceInfo.long_tasks) ? performanceInfo.long_tasks.map(systemObj) : [];
+  const slowResources = Array.isArray(resources.slowest) ? resources.slowest.map(systemObj) : [];
+  const errorEvents = recentEvents.filter((item) => String(item.level || "").toUpperCase() === "ERROR");
+  const apiEvents = recentEvents.filter((item) => String(item.category || "").toUpperCase() === "API");
+  const renderEvents = recentEvents.filter((item) => String(item.category || "").toUpperCase() === "RENDER");
+  const realtimeEvents = recentEvents.filter((item) => String(item.category || "").toUpperCase() === "REALTIME");
   const sourceLabel = logSourceLabel(content.source || runtimeLogSource);
   const severity = String(content.severity || "").toUpperCase() === "ERROR" ? "Có lỗi" : "Bình thường";
   const syncState = String(realtime.state || "").toLowerCase() === "connected"
@@ -1607,8 +1609,27 @@ function renderRuntimeLogSummary(): string {
   const networkState = browser.online === false ? "Mất kết nối" : "Bình thường";
   const rtt = Number(connection.rtt_ms);
   const usedMemory = Number(memory.used_js_heap_bytes);
+  const queueTotal = Number(queueState.total ?? state.queue_count ?? 0);
+  const recentTotal = Number(recentResultState.total ?? state.recent_result_count ?? 0);
+  const averageDuration = (items: Record<string, any>[]): string => {
+    const values = items.map((item) => Number(item.duration_ms)).filter((value) => Number.isFinite(value) && value >= 0);
+    if (!values.length) return "—";
+    return `${Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)} ms`;
+  };
+  const recentEventRows = recentEvents.slice(-30).reverse().map((item) => {
+    const category = String(item.category || item.level || "APP");
+    const name = String(item.name || item.message || "Hoạt động");
+    const duration = Number(item.duration_ms);
+    return `<div class="diagnostic-event-row"><span>${esc(fmt(String(item.at || "")))}</span><b>${esc(category)}</b><strong>${esc(name)}</strong><em>${Number.isFinite(duration) && duration > 0 ? `${Math.round(duration)} ms` : ""}</em></div>`;
+  }).join("");
+  const slowResourceRows = slowResources.slice(0, 12).map((item) => `
+    <div class="diagnostic-event-row"><span>${esc(String(item.initiator || "resource"))}</span><b>${esc(String(item.path || "—"))}</b><strong>${Math.round(Number(item.duration_ms || 0))} ms</strong><em>${fmtBytes(item.transfer_size_bytes)}</em></div>
+  `).join("");
+  const longTaskRows = longTasks.slice(-12).reverse().map((item) => `
+    <div class="diagnostic-event-row"><span>${esc(fmt(String(item.at || "")))}</span><b>Tác vụ dài</b><strong>${Math.round(Number(item.duration_ms || 0))} ms</strong><em></em></div>
+  `).join("");
   return `<div class="log-detail-summary">
-    <div class="system-facts">
+    <div class="system-facts diagnostic-facts">
       <div><span>Nguồn</span><b>${esc(sourceLabel)}</b></div>
       <div><span>Thời điểm</span><b>${esc(fmt(String(content.generated_at || runtimeLogDetail.file.created_at || "")))}</b></div>
       <div><span>Tình trạng</span><b>${esc(severity)}</b></div>
@@ -1618,10 +1639,19 @@ function renderRuntimeLogSummary(): string {
       <div><span>Đồng bộ tức thời</span><b>${esc(syncState)}</b></div>
       <div><span>Độ trễ mạng</span><b>${Number.isFinite(rtt) && rtt >= 0 ? `${Math.round(rtt)} ms` : "—"}</b></div>
       <div><span>Bộ nhớ trình duyệt</span><b>${Number.isFinite(usedMemory) && usedMemory >= 0 ? fmtBytes(usedMemory) : "—"}</b></div>
-      <div><span>SKU đang chờ xử lý</span><b>${systemNum(state.queue_count).toLocaleString("vi-VN")}</b></div>
-      <div><span>Kết quả gần đây</span><b>${systemNum(state.recent_result_count).toLocaleString("vi-VN")}</b></div>
-      <div><span>Lỗi ghi nhận gần đây</span><b>${errorEvents.toLocaleString("vi-VN")}</b></div>
+      <div><span>SKU đang chờ xử lý</span><b>${queueTotal.toLocaleString("vi-VN")}</b></div>
+      <div><span>Kết quả gần đây</span><b>${recentTotal.toLocaleString("vi-VN")}</b></div>
+      <div><span>Lỗi ghi nhận gần đây</span><b>${errorEvents.length.toLocaleString("vi-VN")}</b></div>
+      <div><span>API trung bình</span><b>${averageDuration(apiEvents)}</b></div>
+      <div><span>Render trung bình</span><b>${averageDuration(renderEvents)}</b></div>
+      <div><span>Sự kiện realtime</span><b>${realtimeEvents.length.toLocaleString("vi-VN")}</b></div>
+      <div><span>Tác vụ dài</span><b>${longTasks.length.toLocaleString("vi-VN")}</b></div>
+      <div><span>DOM hiện tại</span><b>${systemNum(dom.nodes).toLocaleString("vi-VN")} phần tử</b></div>
+      <div><span>Tải trang</span><b>${navigation.duration_ms == null ? "—" : `${Math.round(Number(navigation.duration_ms))} ms`}</b></div>
     </div>
+    <section class="diagnostic-section"><h4>Hoạt động gần đây</h4><div class="diagnostic-event-list">${recentEventRows || '<div class="ops-empty">Chưa có sự kiện gần đây.</div>'}</div></section>
+    <section class="diagnostic-section"><h4>Tài nguyên tải chậm</h4><div class="diagnostic-event-list">${slowResourceRows || '<div class="ops-empty">Không có dữ liệu tài nguyên.</div>'}</div></section>
+    <section class="diagnostic-section"><h4>Tác vụ trình duyệt kéo dài</h4><div class="diagnostic-event-list">${longTaskRows || '<div class="ops-empty">Không ghi nhận tác vụ dài.</div>'}</div></section>
   </div>`;
 }
 
