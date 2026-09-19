@@ -473,3 +473,13 @@ D085 keeps `beta-vc51` as the latest published signed APK until the next main re
 
 **No final PDA ↔ Agent transport is selected.** Current RTDB remains temporarily unchanged while D078 Office transport evidence is pending. WMS remains read-only GET-only; auto-confirm/confirmation mutation remains disabled. Stable is untouched and OWNER-GATED.
 
+## D085 release PASS — 2026-09-20
+
+PR #89 merged at `bf309b9788f5adac179ef293f4770eafb6bdcedf`. Main Repo Authority Guard `35475860723`, Project State Guard `35475860686`, Beta RTDB Rules `35475860708`, Beta deploy `35475860697`, Relay Agent `35475860715`, Android `35475860695`, and UI Design Guard `35475860687` all PASS.
+
+Published `relay-agent-v10` (release `392250097`, EXE SHA-256 `740af8d4bada6bc68999aa30e1c2b5fa3006937a7acca321a8be429faeee63b0`) and signed `beta-vc52` (release `392250139`, APK SHA-256 `0f5e02f7ca9f1f66b589479f833db4b4b4aabb356029d580afcd094c52683c32`).
+
+Current Android marker: `D085_RELEASE_PASS__SIGNED_BETA_VC52__AGENT_V10__OWNER_FIELD_TEST_PENDING__TRANSPORT_SELECTION_PENDING`.
+Current relay marker: `D085_RELEASE_PASS__OWNER_FIELD_TEST_PENDING__STICKY_AGENT_HA_10S_FAILOVER__CACHE_ANTISPAM__D078_TRANSPORT_PENDING__NO_WMS_MUTATION`.
+
+D085 keeps the existing RTDB relay only as the temporary carrier; final PDA ↔ Agent transport remains pending D078 company-network evidence. WMS remains read-only; confirmation/mutation is not authorized. Stable remains untouched and OWNER-GATED. Next action is Owner physical field acceptance of Agent HA/failover, no-Agent warning, anti-spam locks, WMS profile reuse, restored v8 overlay behavior, and normal-user Windows autostart.
