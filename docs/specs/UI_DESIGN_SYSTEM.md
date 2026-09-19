@@ -403,3 +403,12 @@ D072 supersedes the visible/runtime system-status requirements from D064–D066 
 - Header-level network/realtime/service connectivity feedback may remain because it is lightweight and directly operational; it must not reintroduce provider-usage polling.
 - Existing historical D064 presentation/source may remain in source history, but no normal product route may execute it.
 - Android/PDA is unchanged. Stable remains OWNER-GATED.
+
+
+## D074 — Picker dense split-operation navigation
+
+- Picker uses a bottom-pinned two-way operation bar: **Báo hết hàng** and **Xác nhận đơn**.
+- The operation bar stays visible while the active panel changes; it is not a scrolling card inside Báo hàng content.
+- Default panel remains **Báo hết hàng**.
+- Picker content density is intentionally increased for PDA: compact margins, headings around 14–16sp, inputs/actions around 48–52dp instead of oversized first-pass controls, and selected-SKU typography reduced while retaining clear state contrast.
+- The active operation tab has a distinct filled background; inactive tab uses the secondary surface.
