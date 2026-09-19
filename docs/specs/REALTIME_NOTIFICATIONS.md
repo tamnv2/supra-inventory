@@ -234,3 +234,16 @@ The shared queue remains a transport POC only and is not an offline business que
 D078 does not change the active D075 relay transport. It adds field diagnostics to decide which Google-hosted transport, if any, can replace RTDB for the Office-side Agent. Candidate order is Firestore REST first, Apps Script web/API second, with Sheets/Drive only as lower-priority fallbacks because they require polling/Workspace OAuth and are not realtime relay primitives.
 
 Until Owner field evidence is collected, RTDB remains the implemented Beta POC transport and no new relay resource is authoritative.
+
+## D082 — Relay result metadata
+
+The existing D075 shared RTDB relay remains the home-test transport. D082 does not create a new provider or offline queue.
+
+Agent ACK may add only bounded lookup metadata:
+- `lookup_status` — allow-listed classification (`FOUND`, `NOT_FOUND`, session/transport/permission/schema/error classifications);
+- `lookup_matches` — bounded numeric count;
+- `lookup_ms` — bounded lookup latency;
+- `lookup_route` — safe route label;
+- `lookup_http` — HTTP status code.
+
+No full Picklist identifier, WMS response body, WMS session value, signature/nonce, password or credential is stored in RTDB. The five-digit suffix remains the already approved bounded POC request value. First-writer ADMIN ACK ownership remains unchanged.
