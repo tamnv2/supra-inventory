@@ -191,3 +191,16 @@ For Admin/Root Web, D072 overrides earlier navigation/workflow text that exposed
 - Direct legacy aliases `system`, `devices` and `versions` are not routable.
 - Lightweight header connectivity/realtime state remains informational and does not run provider-usage collection.
 - Support diagnostics remain available through bounded/redacted runtime logs.
+
+
+## D073 — Picker Xác nhận lấy hàng transport POC
+
+This is a bounded Beta transport test, not the final WMS workflow.
+
+- Picker keeps the existing Báo hàng workflow unchanged.
+- Picker gets a second compact function named **Xác nhận lấy hàng** with exactly five numeric Picklist-suffix digits.
+- During D073 POC, pressing the action creates only a relay probe and waits for an Agent ACK. It must never claim that a company order was confirmed.
+- The Windows Agent runs as a normal user, may be paired while the laptop has normal Internet, and must keep working through Google/Firebase when the laptop is switched to Office if that network permits the required Google endpoints.
+- No WMS page/API/session automation is allowed in D073 POC.
+- Multi-Agent primary selection, lease/failover and WMS reconciliation are future work after transport PASS.
+- Báo hàng remains online-only on the canonical Worker/InventoryCore path; D043 remains fully active.
