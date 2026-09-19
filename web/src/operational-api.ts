@@ -89,8 +89,11 @@ export interface PickerReportV2 {
   withdraw_deadline_at: string;
   withdrawn_at: string | null;
   resolved_at: string | null;
+  auto_skip_deadline_at?: string | null;
+  auto_skip_allowed_at?: string | null;
   batch_status: "PENDING" | "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED";
   resolution: "HAS_STOCK" | "SKIP_ALLOWED" | null;
+  resolution_source?: string | null;
   correction_deadline_at: string | null;
   batch_version: number;
   previous_batch_id?: string | null;
