@@ -246,8 +246,14 @@ class PickerController(
                 activity.runOnUiThread {
                     relayButton?.isEnabled = relayPicklistInput?.text?.length == 5
                     val network = result.agentNetwork.takeIf { it.isNotBlank() && it != "UNKNOWN" }?.let { " • " + it }.orEmpty()
-                    relayStatus?.text = "Đã nhận bởi " + result.agentId + network + " • " + result.roundTripMs + " ms"
-                    recordLog("Relay PDA ACK rtt=" + result.roundTripMs + "ms agent=" + result.agentId + " network=" + result.agentNetwork)
+                    relayStatus?.text = "Đã nhận: " + result.agentId + " • Admin " + result.agentAdminUserId + network + " • " + result.roundTripMs + " ms"
+                    recordLog(
+                        "Relay PDA ACK rtt=" + result.roundTripMs +
+                            "ms admin=" + result.agentAdminUserId +
+                            " agent=" + result.agentId +
+                            " instance=" + result.agentInstanceId.take(12) +
+                            " network=" + result.agentNetwork
+                    )
                 }
             } catch (error: Exception) {
                 activity.runOnUiThread {
