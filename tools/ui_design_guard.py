@@ -72,6 +72,7 @@ checks = {
     "authority_d068_web_navigation_toast_performance": "D068" in DECISIONS and "Owner Web interaction refinement (D068)" in DESIGN_SPEC,
     "authority_d069_web_diagnostics_excel_unification": "D069" in DECISIONS and "Owner-accepted D068 baseline and D069 unified Web refinement" in DESIGN_SPEC,
     "authority_d070_three_stage_auto_skip": "D070" in DECISIONS and "D070 three-stage timing UI" in DESIGN_SPEC,
+    "authority_d072_system_status_quota_exclusion": "D072" in DECISIONS and "D072 quota guard — system-status excluded" in DESIGN_SPEC,
     "authority_ui_acceptance_distinct_from_ci": "CI/build PASS" in DESIGN_SPEC and "Owner UI" in DESIGN_SPEC,
     "authority_no_offline_mode": "D043" in DECISIONS and "No offline business mode" in DESIGN_SPEC,
 
@@ -168,7 +169,7 @@ checks = {
     "web_d065_three_group_nav_ia": all(token in WEB_APP for token in [
         'navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"]])',
         'navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"], ["sla", "Thời gian xử lý"]])',
-        'navGroup("HỆ THỐNG", [["system", "Trạng thái hệ thống"], ["logs", "Nhật ký"]])',
+        'navGroup("HỆ THỐNG", [["logs", "Nhật ký"]])',
         'if (value.role === "PICKER") return "picker";\n  return "operations";',
     ]) and all(token not in WEB_APP for token in [
         'navGroup("DỮ LIỆU"',
@@ -200,7 +201,7 @@ checks = {
     "web_d066_nav_children_within_owner_limit": all(token in WEB_APP for token in [
         'navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"]])',
         'navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"], ["sla", "Thời gian xử lý"]])',
-        'navGroup("HỆ THỐNG", [["system", "Trạng thái hệ thống"], ["logs", "Nhật ký"]])',
+        'navGroup("HỆ THỐNG", [["logs", "Nhật ký"]])',
         'return navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"]]);',
     ]),
     "web_d063_merged_workspaces": all(token in WEB_APP for token in [
@@ -216,11 +217,8 @@ checks = {
     "android_d063_runtime_logs": all(token in ANDROID_MAIN for token in ["currentRuntimeLogSlot", "scheduled_", "pending_crash", "android_crash", "Gửi lên Drive"]) and "uploadRuntimeLog" in ANDROID_API,
     "web_d063_dark_completion": all(token in WEB_FAST for token in ["D063 Owner operations/reporting/logs/users completion", ".business-summary-card", ".logs-layout", ".users-top-grid", 'body[data-theme="dark"]']),
     "web_d064_system_status_layout": all(token in WEB_APP for token in [
-        "Cloudflare", "Cơ sở dữ liệu nghiệp vụ", "Đăng nhập & tài khoản", "Thông báo ứng dụng",
-        "Lưu trữ file", "Nguồn nhân sự & lưu trữ", "Phiên bản ứng dụng",
-        "Đồng bộ tức thời", "Dữ liệu nghiệp vụ đang lưu", "Bài kiểm tra tải gần nhất",
-        "95% yêu cầu dưới", "getSystemStatus(false)",
-    ]),
+        "function renderSystem()", "Cloudflare", "Cơ sở dữ liệu nghiệp vụ", "Bài kiểm tra tải gần nhất",
+    ]) and "D072" in DECISIONS,
     "web_d064_system_status_dark": all(token in WEB_FAST for token in [
         "D064 detailed system status", ".system-service-grid", ".system-limit-box", ".system-meter",
         ".system-load-grid", 'body[data-theme="dark"] .system-refresh-note',
@@ -233,6 +231,23 @@ checks = {
         "plan_detected: false", "Runtime không có quyền đọc entitlement", "Project billing plan không được suy đoán",
     ]),
     "service_d064_provider_cache": "PROVIDER_CACHE_MS = 5 * 60_000" in SERVICE_SYSTEM_STATUS and "core_seconds: 60" in SERVICE_SYSTEM_STATUS,
+    "web_d072_system_status_excluded": all(token in WEB_APP for token in [
+        'navGroup("HỆ THỐNG", [["logs", "Nhật ký"]])',
+        '"picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "account"',
+    ]) and all(token not in WEB_APP for token in [
+        "getSystemStatus(",
+        'navButton("system"',
+        '["system","devices","versions"].includes(activeSection)',
+        '"refresh-system"',
+    ]),
+    "service_d072_system_status_quota_guard": all(token in SERVICE_INDEX for token in [
+        'SYSTEM_STATUS_DISABLED_QUOTA_GUARD',
+        'collectSystemStatus(env, false, false)',
+    ]) and all(token in SERVICE_SYSTEM_STATUS for token in [
+        'includeProviders = true',
+        'providers_enabled: includeProviders',
+        'D072_QUOTA_GUARD',
+    ]),
     "service_d064_beta_load_gate": all(token in SERVICE_INDEX for token in [
         'env.APP_ENV !== "beta"', "LOAD_TEST_TOKEN", '"/api/__beta_load_test__/prepare"',
         '"/api/__beta_load_test__/session"', '"/api/__beta_load_test__/snapshot"', '"/api/__beta_load_test__/record"',
