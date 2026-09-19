@@ -1867,6 +1867,8 @@ body[data-theme="dark"] select option {
 .log-severity.error { background: #fef3f2; color: #b42318; }
 .log-severity.info { background: #eff8ff; color: #175cd3; }
 .log-detail { max-height: 520px; min-height: 280px; }
+.log-detail-summary { display: grid; gap: 10px; min-height: 280px; align-content: start; }
+.log-detail-summary .system-facts { grid-template-columns: repeat(2,minmax(0,1fr)); }
 
 .system-workspace .diagnostics { max-height: 440px; }
 
