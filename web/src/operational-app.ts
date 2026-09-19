@@ -2290,9 +2290,7 @@ function bindSection(): void {
     reportStatus = button.dataset.dashboardStatus || "";
     reportQuery = button.dataset.dashboardSku || "";
     reportOffset = 0;
-    activeSection = "reports";
-    notice = null;
-    void run(loadReports);
+    navigateToSection("reports", "push");
   }));
   document.querySelector<HTMLButtonElement>("#report-prev")?.addEventListener("click", () => {
     reportOffset = Math.max(0, reportOffset - REPORT_PAGE_SIZE);
