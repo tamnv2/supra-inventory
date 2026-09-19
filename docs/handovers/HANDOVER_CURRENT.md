@@ -829,3 +829,46 @@ Current Android marker: `D085_RELEASE_PASS__SIGNED_BETA_VC52__AGENT_V10__OWNER_F
 Current relay marker: `D085_RELEASE_PASS__OWNER_FIELD_TEST_PENDING__STICKY_AGENT_HA_10S_FAILOVER__CACHE_ANTISPAM__D078_TRANSPORT_PENDING__NO_WMS_MUTATION`.
 
 D085 keeps the existing RTDB relay only as the temporary carrier; final PDA ↔ Agent transport remains pending D078 company-network evidence. WMS remains read-only; confirmation/mutation is not authorized. Stable remains untouched and OWNER-GATED. Next action is Owner physical field acceptance of Agent HA/failover, no-Agent warning, anti-spam locks, WMS profile reuse, restored v8 overlay behavior, and normal-user Windows autostart.
+
+## D085 continuity checkpoint — 2026-09-20
+
+Owner requested that the complete current state be recorded in canonical GitHub so a new ChatGPT session can continue immediately without relying on chat memory.
+
+Canonical starting point for the next session:
+- main continuity commit before this checkpoint: `38e8ecac4ca8cc373df36549929c35e23f4ce286`;
+- D085 implementation PR #89 merged at `bf309b9788f5adac179ef293f4770eafb6bdcedf`;
+- D085 release/state PR #90 merged at `38e8ecac4ca8cc373df36549929c35e23f4ce286`;
+- current Windows artifact: `relay-agent-v10`, release `392250097`, EXE asset `575663581`, SHA-256 `740af8d4bada6bc68999aa30e1c2b5fa3006937a7acca321a8be429faeee63b0`;
+- current Android artifact: signed `beta-vc52`, release `392250139`, APK asset `575663833`, SHA-256 `0f5e02f7ca9f1f66b589479f833db4b4b4aabb356029d580afcd094c52683c32`;
+- D085 main checks passed: Authority `35475860723`, Project State `35475860686`, RTDB Rules `35475860708`, Beta Deploy `35475860697`, Relay Agent `35475860715`, Android `35475860695`, UI `35475860687`; post-state main checks also passed.
+
+Implemented/current D085 behavior:
+- no final PDA ↔ Agent carrier is selected; current Beta RTDB relay remains temporary and unchanged while D078 physical Office evidence is pending;
+- one sticky WMS-ready Agent is ACTIVE; heartbeat 3s; leader is failed after about 10s; standby may take over pending work;
+- PDA shows `Đang chuyển người xử lý...` during failover; if no usable Agent exists it instructs the Picker to go to the specialist desk;
+- Agent preloads exact D084 PickListCode data into RAM; cache hit avoids WMS; cache miss uses a 10s fresh-miss guard and single-flight refresh;
+- only final `NOT_FOUND` results count toward abuse control: 3 in 60s locks the Picker account for 5m, then 30m, then 60m; later violations stay at 60m; 24h without a new lock resets escalation;
+- rate-limit state is account-scoped/shared so changing PDA/app/Agent does not bypass the lock;
+- WMS dedicated browser profile is reused to preserve login longevity where the server session is still valid; captured raw WMS session/header values remain RAM-only;
+- overlay interaction engine is restored to the Owner-proven v8 behavior; settings are also reachable from the main Agent window;
+- Agent registers user-mode HKCU Windows autostart and requires no elevation;
+- sanitized PDA/Agent audit covers request, Agent identity, cache mode, failover, result, strike/lock metadata; secrets and raw WMS session material are excluded;
+- WMS confirmation/mutation adapter is still disabled/not authorized. Lookup is read-only GET only.
+
+Pending physical Owner acceptance:
+1. run `relay-agent-v10` on at least two normal-user Windows sessions with valid authorized WMS sessions;
+2. verify exactly one ACTIVE Agent and one or more STANDBY Agents; repeated requests stay on the sticky ACTIVE Agent;
+3. kill/close ACTIVE during a controlled lookup and verify ~10s failover plus PDA switching message and standby takeover;
+4. stop all WMS-ready Agents and verify PDA no-Agent specialist-desk warning;
+5. verify three controlled final NOT_FOUND results in 60s produce 5m lock, later episodes 30m then 60m, with no lock caused by network/session/schema errors;
+6. restart Agent/Windows user session and verify user-mode autostart and browser-profile session reuse when still valid;
+7. verify the v8 overlay behavior and main-window overlay settings on the real workstation.
+
+Next-session rule:
+- bootstrap `ops/authority-manifest.json` and its full `bootstrap_order` from fresh `main` before doing anything;
+- continue from this D085 field-acceptance checkpoint unless a newer explicit Owner command supersedes it;
+- do not select/change final PDA ↔ Agent transport until D078 company-network evidence is available and the Owner explicitly approves a carrier;
+- do not add WMS POST/PUT/PATCH/DELETE/confirmation without a new explicit Owner authorization;
+- Stable remains OWNER-GATED and untouched.
+
+No separate manual handover file is authoritative; repo-native state/spec/resource/owner-action continuity remains the source of truth.

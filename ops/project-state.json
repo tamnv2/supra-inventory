@@ -155,7 +155,7 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Owner field-tests D085 using relay-agent-v10 + signed beta-vc52: sticky active/standby Agent behavior, ~10s failover with switching notice, no-Agent specialist-desk warning, 5/30/60 anti-spam lock escalation, WMS browser-profile reuse, restored v8 overlay behavior, and normal-user Windows autostart.",
+    "primary": "New chat/session can continue immediately from D085 release PASS. Owner field-tests relay-agent-v10 + signed beta-vc52 for sticky active/standby behavior, ~10s failover with switching notice, no-Agent specialist-desk warning, 5/30/60 anti-spam locks, WMS browser-profile reuse, restored v8 overlay behavior, and user-mode Windows autostart; a newer explicit Owner command supersedes this test order.",
     "method": "Keep current RTDB relay unchanged as temporary transport. Do not select final PDA-Agent transport until D078 physical Office probe evidence. WMS remains read-only GET; no confirmation mutation is authorized.",
     "stable": "OWNER_GATED"
   },
@@ -418,13 +418,14 @@
     "D070 adds no processing-extension feature.",
     "D072 removes the quota-heavy Trạng thái hệ thống business surface: no normal Web route, no 60-second/manual system-status calls, normal admin API disabled before metrics, and gated load-test snapshots use core-only metrics without Google Drive/GitHub provider reads.",
     "D085 does not select a new PDA-Agent transport. Existing Beta RTDB remains temporary while D078 Office transport evidence is pending; HA/cache/rate-limit semantics are designed independently of the eventual carrier.",
-    "D085 keeps WMS read-only: browser-profile reuse may restore an authorized session into RAM, but raw WMS session/header values are not persisted by Agent and no confirmation mutation adapter is enabled."
+    "D085 keeps WMS read-only: browser-profile reuse may restore an authorized session into RAM, but raw WMS session/header values are not persisted by Agent and no confirmation mutation adapter is enabled.",
+    "D085 continuity checkpoint recorded after Owner request on 2026-09-20: current main is 38e8ecac4ca8cc373df36549929c35e23f4ce286 with D085 technical/release PASS; relay-agent-v10 and signed beta-vc52 are the current field-test artifacts. Next session must bootstrap fresh canonical main, continue from Owner physical D085 acceptance or any new explicit Owner command, keep current RTDB relay unchanged until D078 Office transport evidence is reviewed, keep WMS read-only with confirmation/mutation adapter disabled, and leave Stable untouched/OWNER-GATED."
   ],
   "active_workstream": {
     "key": "XAC_NHAN_DON_D085",
     "status": "RELEASE_PASS__OWNER_FIELD_TEST_PENDING",
-    "bootstrap": "FRESH_MAIN_CANONICAL_STATE",
-    "next_step": "Owner field-test relay-agent-v10 + signed beta-vc52 for HA/cache/rate-limit/session/overlay/autostart. Keep D078 final transport selection pending until physical Office evidence."
+    "bootstrap": "FRESH_MAIN_CANONICAL_STATE__D085_CONTINUITY_CHECKPOINT_2026_09_20",
+    "next_step": "New chat/session: bootstrap canonical main, then continue from D085 Owner physical field acceptance using relay-agent-v10 + beta-vc52 unless Owner gives a newer explicit command. Do not select final PDA-Agent transport before D078 Office evidence. WMS remains read-only; Stable remains OWNER-GATED."
   },
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
