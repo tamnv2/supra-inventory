@@ -22,6 +22,9 @@ data class RelayProbeResult(
     val agentAdminUserId: String,
     val agentInstanceId: String,
     val roundTripMs: Long,
+    val lookupStatus: String,
+    val lookupMatches: Int,
+    val lookupMs: Long,
 )
 
 private class RelayHttpException(
@@ -40,6 +43,9 @@ private data class RelayAck(
     val agentNetwork: String,
     val adminUserId: String,
     val agentInstanceId: String,
+    val lookupStatus: String,
+    val lookupMatches: Int,
+    val lookupMs: Long,
 )
 
 class RelayPocClient(
@@ -49,8 +55,8 @@ class RelayPocClient(
     private val jsonType = "application/json; charset=utf-8".toMediaType()
     private val http = OkHttpClient.Builder()
         .connectTimeout(5, TimeUnit.SECONDS)
-        .readTimeout(9, TimeUnit.SECONDS)
-        .callTimeout(12, TimeUnit.SECONDS)
+        .readTimeout(22, TimeUnit.SECONDS)
+        .callTimeout(25, TimeUnit.SECONDS)
         .build()
 
     fun close() {
@@ -143,6 +149,9 @@ class RelayPocClient(
                                     agentAdminUserId = ack.adminUserId,
                                     agentInstanceId = ack.agentInstanceId,
                                     roundTripMs = total,
+                                    lookupStatus = ack.lookupStatus,
+                                    lookupMatches = ack.lookupMatches,
+                                    lookupMs = ack.lookupMs,
                                 )
                             }
                         }
@@ -154,7 +163,7 @@ class RelayPocClient(
             throw SocketTimeoutException("Máy xử lý chưa trả ACK.")
         } catch (error: SocketTimeoutException) {
             log("Relay timeout request=" + shortId(requestId))
-            throw IOException("Quá 8 giây chưa nhận phản hồi từ máy xử lý.", error)
+            throw IOException("Quá 20 giây chưa nhận phản hồi tra cứu từ máy xử lý.", error)
         } finally {
             cleanup(url)
         }
@@ -170,6 +179,9 @@ class RelayPocClient(
                 agentNetwork = data.optString("agent_network").ifBlank { "UNKNOWN" },
                 adminUserId = data.optString("agent_admin_user_id").ifBlank { "ADMIN" },
                 agentInstanceId = data.optString("agent_instance_id").ifBlank { "UNKNOWN" },
+                lookupStatus = data.optString("lookup_status").ifBlank { "TRANSPORT_ONLY" },
+                lookupMatches = data.optInt("lookup_matches", 0).coerceAtLeast(0),
+                lookupMs = data.optLong("lookup_ms", 0L).coerceAtLeast(0L),
             )
         } catch (_: Exception) {
             null
