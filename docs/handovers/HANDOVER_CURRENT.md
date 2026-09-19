@@ -557,3 +557,30 @@ Owner accepted the preceding Web review points and requested four Beta-Web refin
 Support logs show no browser long tasks or memory pressure. The observed 1–3 second delay is dominated by roughly 0.8–0.9 second resolve POSTs followed by complete queue/recent refresh/realtime reconcile work; section DOM render itself is only tens of milliseconds. Android/PDA is unchanged. Stable remains untouched/OWNER-GATED.
 
 Next command after runtime PASS: `Kiểm tra live D071 và review 4 mục Web mới`.
+
+
+## D071 deploy blocker / D070 alarm runtime repair — 2026-09-19
+
+D071 Web source merged at `f5c6287bdc0a2fa28c4de68116e910c3300b2255`; PR and main authority/state/UI/regression guards PASS. Beta deploy run `35429735327` built and deployed successfully on two attempts, but both attempts failed the live health gate: `HTTP 503 degraded`, all required bindings present, `storage.ok=false`, schema `0/0`, Operational V2 `0/0`. D071 changed no service source, so D071 runtime PASS is **not** declared.
+
+Source investigation found a D070 alarm scheduling defect: if an alarm first sees a batch after escalation is already due, ESCALATED can be recorded while WARNING remains unrecorded. The scheduler then continues to see the old WARNING deadline in the past and can re-arm every 250 ms indefinitely. Current repair marker: `D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`. The repair consumes a missed warning without emitting a late warning, bounds catch-up to 50 rows/category, enforces at least one second between catch-up alarms, schedules authoritative next work before notification delivery, and prevents downstream realtime/FCM delivery failure from throwing/retrying already-committed alarm work. D070 business semantics remain unchanged. Android beta-vc46 unchanged. Stable untouched/OWNER-GATED.
+
+Current Web marker: `D071_WEB_SOURCE_MERGED__BETA_HEALTH_BLOCKED_BY_D070_STORAGE_UNAVAILABLE`.
+Current Android marker: `D070_TIMEOUT_ALERT_PROJECTION_SIGNED_BETA_VC46_RUNTIME_GATE_PASS__OWNER_FIELD_ACCEPTANCE_PENDING`.
+
+Next action: repair guards → merge → Beta deploy → require health/storage/schema/auth/business/Web/OAuth PASS → record D071 runtime continuity → Owner reviews the four D071 Web items.
+
+
+## D070 runtime repair + D072 quota guard — 2026-09-19
+
+Current source marker: `D070_ALARM_REPAIR_D072_SYSTEM_STATUS_QUOTA_GUARD_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING`.
+
+- D070 repair prevents an already-past warning deadline from continuously re-arming after escalation, bounds alarm catch-up, schedules the next authoritative alarm before downstream delivery, and prevents realtime/FCM failure from retrying committed alarm work.
+- D072 removes `Trạng thái hệ thống` from normal Web navigation/routing, removes its manual/60-second monitoring calls, disables `GET /api/admin/system-status` before metric collection, and keeps Beta load-test snapshots core-only without Google Drive/GitHub provider reads.
+- D071 Web source remains merged and will be runtime-reviewed only after Beta health recovers.
+- Stable remains untouched/OWNER-GATED.
+
+Next action: guards → PR → merge → Beta deploy → health/schema/auth/business/Web/OAuth PASS → record runtime continuity.
+
+
+Current Web marker: `D071_WEB_SOURCE_MERGED__D072_SYSTEM_STATUS_EXCLUDED_SOURCE_IMPLEMENTED__BETA_RUNTIME_REPAIR_PENDING`.

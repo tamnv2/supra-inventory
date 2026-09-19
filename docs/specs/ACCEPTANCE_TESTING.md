@@ -359,3 +359,23 @@ D071 Web density / immediate-action acceptance:
 - concurrent Reporter operations refreshes are coalesced; realtime authoritative reconciliation remains the source of background freshness;
 - support-log evidence used for this issue must distinguish API/reload latency from render/CPU jank; no conclusion of client jank is made when long-task/memory evidence is absent;
 - Android/PDA and Stable are unchanged.
+
+
+D070 alarm availability repair acceptance:
+- a batch that reaches escalation before its warning event was emitted receives the escalation event once and its warning deadline is consumed without a late warning;
+- the same batch does not cause a past-due warning alarm to re-arm repeatedly;
+- due-work catch-up is bounded to 50 rows per category per alarm and re-arms no faster than one second;
+- authoritative deadline state is committed and the next alarm is scheduled before best-effort realtime/FCM delivery;
+- realtime/FCM delivery failure does not fail/retry the authoritative alarm;
+- D070 FIRST_REPORT/PER_PICKER result semantics, exact Picker targeting, five-minute correction, D007 ordering, Android projection and Stable OWNER-GATE remain unchanged.
+
+
+D072 system-status quota exclusion acceptance:
+- Admin/Root sidebar keeps three large groups and `HỆ THỐNG` contains only `Nhật ký`;
+- `system`, `devices` and `versions` are absent from routable Web sections and cannot be reached via hash/history;
+- Web source contains no `getSystemStatus(...)` call, manual system-status refresh binding or 60-second system-status polling loop;
+- `GET /api/admin/system-status` returns the quota-guard disabled response without invoking `collectSystemStatus`;
+- gated Beta load-test snapshots call system collection with provider reads disabled;
+- Google Drive/GitHub provider metrics are therefore never read by normal user navigation;
+- lightweight header connectivity/realtime and runtime-log diagnostics continue to work;
+- D071 Web interaction changes, D070 timing semantics, Android/PDA and Stable are unchanged.

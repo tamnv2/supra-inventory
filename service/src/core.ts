@@ -399,32 +399,46 @@ export class InventoryCore {
   }
 
   async alarm(): Promise<void> {
+    // Authoritative state transitions and the next alarm schedule must not depend
+    // on downstream realtime/FCM availability. Delivery is best-effort after the
+    // committed transition, matching the notification contract.
     const effects = processOperationalDeadlines(this.state);
-    try {
-      for (const effect of effects) {
+    await scheduleNextOperationalAlarm(this.state);
+
+    for (const effect of effects) {
+      try {
         await this.broadcastDeadlineEffect(effect);
+      } catch {
+        // Authoritative database state remains the source of truth; connected
+        // clients recover through the normal cursor/reconcile path.
       }
+    }
 
-      // Critical Picker result and overdue notices preserve exact event identity.
-      for (const effect of effects) {
-        if (effect.picker_user_ids.length) {
-          await this.sendDeadlineFcm(effect, [], effect.picker_user_ids);
-        }
+    // Critical Picker result and overdue notices preserve exact event identity.
+    // Provider failure must not throw the alarm and cause platform retry storms.
+    for (const effect of effects) {
+      if (!effect.picker_user_ids.length) continue;
+      try {
+        await this.sendDeadlineFcm(effect, [], effect.picker_user_ids);
+      } catch {
+        // Best-effort background delivery; authoritative result remains queryable.
       }
+    }
 
-      // Reporter/Admin/Root background notifications are grouped per deadline level
-      // to avoid alert storms when many SKU cross a threshold together.
-      const grouped = new Map<string, OperationalDeadlineEffect[]>();
-      for (const effect of effects) {
-        const list = grouped.get(effect.event) || [];
-        list.push(effect);
-        grouped.set(effect.event, list);
-      }
-      for (const list of grouped.values()) {
-        const firstEffect = list[0];
-        if (!firstEffect?.reporter_roles.length) continue;
-        const uniqueBatchCount = new Set(list.map((item) => item.batch_id)).size;
-        const summary = this.reporterSummary(firstEffect, uniqueBatchCount);
+    // Reporter/Admin/Root background notifications are grouped per deadline level
+    // to avoid alert storms when many SKU cross a threshold together.
+    const grouped = new Map<string, OperationalDeadlineEffect[]>();
+    for (const effect of effects) {
+      const list = grouped.get(effect.event) || [];
+      list.push(effect);
+      grouped.set(effect.event, list);
+    }
+    for (const list of grouped.values()) {
+      const firstEffect = list[0];
+      if (!firstEffect?.reporter_roles.length) continue;
+      const uniqueBatchCount = new Set(list.map((item) => item.batch_id)).size;
+      const summary = this.reporterSummary(firstEffect, uniqueBatchCount);
+      try {
         await this.sendDeadlineFcm(
           firstEffect,
           firstEffect.reporter_roles,
@@ -434,9 +448,9 @@ export class InventoryCore {
           summary.event,
           false,
         );
+      } catch {
+        // Background provider failure must not retry an already-committed alarm.
       }
-    } finally {
-      await scheduleNextOperationalAlarm(this.state);
     }
   }
 

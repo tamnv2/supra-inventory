@@ -31,7 +31,8 @@ export interface OperationalDeadlineEffect {
 const SLA_CONFIG_KEY = "operational_sla_v1";
 const SYSTEM_USER_ID = "system:deadline";
 const CORRECTION_WINDOW_MS = 5 * 60_000;
-const MAX_DUE_PER_ALARM = 200;
+const MAX_DUE_PER_ALARM = 50;
+const MIN_ALARM_DELAY_MS = 1_000;
 
 function first<T extends SqlRow>(rows: T[]): T | null {
   return rows[0] ?? null;
@@ -329,7 +330,7 @@ function recordDeadlineOnce(
   state: DurableObjectState,
   batchId: string,
   level: "WARNING" | "ESCALATED",
-  eventId: string,
+  eventId: string | null,
   at: string,
 ): void {
   state.storage.sql.exec(
@@ -414,31 +415,41 @@ function processWarningAndEscalation(
       });
     }
 
-    if (escalationDue && !deadlineAlreadyRecorded(state, batchId, "ESCALATED")) {
-      const pickerUsers = activePickerUsersForBatch(state, batchId);
-      const eventId = insertReportEvent(
-        state,
-        "SLA_ESCALATED",
-        batchId,
-        null,
-        { level: "ESCALATED", threshold_minutes: config.escalation_minutes, source: "SYSTEM_DEADLINE" },
-        now,
-      );
-      recordDeadlineOnce(state, batchId, "ESCALATED", eventId, now);
-      auditSystem(state, "SLA_ESCALATED", "REPORT_BATCH", batchId, { threshold_minutes: config.escalation_minutes }, now);
-      effects.push({
-        event: "sla_escalated",
-        event_id: eventId,
-        batch_id: batchId,
-        sku: String(row.sku || ""),
-        product_name: String(row.product_name || ""),
-        scopes: ["reporter_queue", "picker_reports"],
-        reporter_roles: ["REPORTER", "ADMIN", "ROOT"],
-        picker_user_ids: pickerUsers,
-        result_event: false,
-        title: "SUPRA Inventory · SKU quá hạn",
-        body: `${String(row.sku || "SKU")} đã quá mốc xử lý ${config.escalation_minutes} phút.`,
-      });
+    if (escalationDue) {
+      // If the alarm wakes after the warning window has already passed, consume the
+      // warning marker without emitting a late warning. Without this tombstone the
+      // scheduler sees the same past-due warning forever and re-arms every few
+      // hundred milliseconds even after escalation was already recorded.
+      if (!deadlineAlreadyRecorded(state, batchId, "WARNING")) {
+        recordDeadlineOnce(state, batchId, "WARNING", null, now);
+      }
+
+      if (!deadlineAlreadyRecorded(state, batchId, "ESCALATED")) {
+        const pickerUsers = activePickerUsersForBatch(state, batchId);
+        const eventId = insertReportEvent(
+          state,
+          "SLA_ESCALATED",
+          batchId,
+          null,
+          { level: "ESCALATED", threshold_minutes: config.escalation_minutes, source: "SYSTEM_DEADLINE" },
+          now,
+        );
+        recordDeadlineOnce(state, batchId, "ESCALATED", eventId, now);
+        auditSystem(state, "SLA_ESCALATED", "REPORT_BATCH", batchId, { threshold_minutes: config.escalation_minutes }, now);
+        effects.push({
+          event: "sla_escalated",
+          event_id: eventId,
+          batch_id: batchId,
+          sku: String(row.sku || ""),
+          product_name: String(row.product_name || ""),
+          scopes: ["reporter_queue", "picker_reports"],
+          reporter_roles: ["REPORTER", "ADMIN", "ROOT"],
+          picker_user_ids: pickerUsers,
+          result_event: false,
+          title: "SUPRA Inventory · SKU quá hạn",
+          body: `${String(row.sku || "SKU")} đã quá mốc xử lý ${config.escalation_minutes} phút.`,
+        });
+      }
     }
   }
 }
@@ -778,6 +789,6 @@ export async function scheduleNextOperationalAlarm(state: DurableObjectState): P
     await state.storage.deleteAlarm();
     return;
   }
-  const next = Math.max(Date.now() + 250, Math.min(...candidates));
+  const next = Math.max(Date.now() + MIN_ALARM_DELAY_MS, Math.min(...candidates));
   await state.storage.setAlarm(next);
 }

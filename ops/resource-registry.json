@@ -87,7 +87,7 @@
     "authenticated_api_status": "CONFIGURABLE_HEADERS_IMPLEMENTED_BETA_DEPLOY_PASS"
   },
   "business_api": {
-    "status": "D070_THREE_STAGE_SLA_AUTO_SKIP_IMPLEMENTED_AND_DEPLOYED_BETA_RUNTIME_PASS",
+    "status": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
     "core_module": "service/src/business-core.ts",
     "public_router": "service/src/business-api.ts",
     "mutation_idempotency": "REQUIRED_REQUEST_ID",
@@ -124,21 +124,21 @@
     ],
     "presence_api": "ADMIN_ROOT_ONLY",
     "delivery_semantics": "TRANSACTION_COMMIT_FIRST_THEN_BEST_EFFORT_INVALIDATION_CLIENT_RESYNC",
-    "source_status": "D070_SLA_WARNING_ESCALATION_AUTO_SKIP_EVENTS_BETA_RUNTIME_PASS_OP_V2_5"
+    "source_status": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING"
   },
   "environments": {
     "beta": {
-      "status": "F01_F14_F19_F20_F21_F22_F23_AUTOMATED_RUNTIME_RELEASE_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
+      "status": "BETA_DEGRADED_DURABLE_OBJECT_STORAGE_UNAVAILABLE__D070_REPAIR_PLUS_D072_QUOTA_GUARD_IN_PROGRESS",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
       "hostname": "inventory-beta.supra.cc.cd",
       "custom_domain_status": "ACTIVE",
-      "health_status": "PASS",
-      "ci_deploy_status": "PASS_RUN_35426339796_MAIN_3F3506A0",
-      "web_smoke_status": "PASS_MAIN_3F3506A0",
+      "health_status": "FAIL_STORAGE_UNAVAILABLE_RUN_35429735327_ATTEMPTS_1_2",
+      "ci_deploy_status": "DEPLOY_STEP_PASS__HEALTH_GATE_FAIL_RUN_35429735327_ATTEMPTS_1_2",
+      "web_smoke_status": "NOT_RUN_HEALTH_GATE_BLOCKED",
       "app_verify_status": "ANDROID_PASS_SIGNED_RELEASE_VC46__MATCHING_RUNTIME_GATE_PASS",
-      "durable_object_status": "PROVISIONED_PASS",
+      "durable_object_status": "DEGRADED_STORAGE_UNAVAILABLE",
       "durable_object_class": "InventoryCore",
       "durable_object_storage": "sqlite",
       "sqlite_schema_version": 7,
@@ -170,7 +170,7 @@
       "cloudflare_oauth_refresh_token_secret": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
       "oauth_refresh_token_configured": true,
       "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA",
-      "web_source_status": "D071_WEB_IMMEDIATE_RESPONSE_DENSITY_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
+      "web_source_status": "D071_WEB_MERGED__D072_SYSTEM_STATUS_EXCLUDED_SOURCE_IMPLEMENTED__BETA_RUNTIME_REPAIR_PENDING",
       "web_admin_sku_excel_import": "IMPLEMENTED_BUILD_AND_DEPLOY_PASS",
       "web_admin_report_monitoring": "D069_XLSX_REPORT_EXPORT_BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
       "android_source_status": "D070_TIMEOUT_ALERT_PROJECTION_SIGNED_BETA_VC46_RUNTIME_GATE_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
@@ -184,7 +184,7 @@
       "auth_api_route_smoke": "PASS",
       "root_bootstrap_path_smoke": "PASS",
       "hr_settings_ui_status": "CONFIGURABLE_URL_TAB_EMPLOYEE_AND_NAME_HEADERS_DEPLOYED_PASS",
-      "business_api_status": "OPERATIONAL_V2_5_D070_THREE_STAGE_SLA_AUTO_SKIP_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
+      "business_api_status": "D070_ALARM_REPAIR_D072_SYSTEM_STATUS_QUOTA_GUARD_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
       "latest_signed_beta_release_source_commit": "3f3506a0f185d5e1a0f22ba6a908b161bae6dd6e",
       "managed_password_status": "DIRECT_CREATE_AND_CHANGE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
@@ -296,9 +296,9 @@
     "oauth_scope": "https://www.googleapis.com/auth/firebase.messaging",
     "device_registry": "InventoryCore.fcm_devices",
     "routing": "ROLE_OR_USER_BATCH_TARGETS",
-    "delivery_semantics": "BEST_EFFORT_AFTER_COMMITTED_TRANSACTION",
-    "source_status": "D070_SLA_WARNING_ESCALATION_GROUPED_ROLE_ALERTS_EXACT_PICKER_TIMEOUT_RESULTS_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
-    "sla_deadlines": "DURABLE_OBJECT_ALARM__WARNING_ESCALATION_AUTO_SKIP",
+    "delivery_semantics": "BEST_EFFORT_AFTER_COMMITTED_TRANSACTION__FAILURE_MUST_NOT_RETRY_AUTHORITATIVE_ALARM",
+    "source_status": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
+    "sla_deadlines": "DURABLE_OBJECT_ALARM__BOUNDED_CATCHUP__MISSED_WARNING_TOMBSTONE__MIN_1S_REARM",
     "auto_skip_modes": [
       "FIRST_REPORT",
       "PER_PICKER"
@@ -349,10 +349,10 @@
   },
   "ui_design": {
     "authority": "OWNER_SELECTED_D057_LEGACY_TRANSPLANT_THROUGH_D068_ACCEPTED__D069_UNIFIED_WEB_REFINEMENT",
-    "web": "D071_WEB_IMMEDIATE_RESPONSE_DENSITY_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
+    "web": "D071_WEB_MERGED__D072_SYSTEM_STATUS_EXCLUDED_SOURCE_IMPLEMENTED__BETA_RUNTIME_REPAIR_PENDING",
     "android": "D070_TIMEOUT_ALERT_PROJECTION_SIGNED_BETA_VC46_RUNTIME_GATE_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
-    "scope_guard": "D071_BETA_WEB_ONLY__D067_D068_FROZEN__D070_BUSINESS_SEMANTICS_UNCHANGED__STABLE_OWNER_GATED",
-    "source_candidate": "D071_WEB_IMMEDIATE_RESPONSE_DENSITY_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
+    "scope_guard": "D071_WEB_MERGED__D070_RUNTIME_REPAIR__D072_QUOTA_GUARD_BETA_ONLY__STABLE_OWNER_GATED",
+    "source_candidate": "D070_ALARM_REPAIR_D072_SYSTEM_STATUS_QUOTA_GUARD_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
     "navigation_proposal": "docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md",
     "navigation_constraint": {
       "admin_root_large_groups": 3,
@@ -368,12 +368,11 @@
           "Thời gian xử lý"
         ],
         "HỆ THỐNG": [
-          "Trạng thái hệ thống",
           "Nhật ký"
         ]
       },
       "personal_account_action": "PINNED_IDENTITY_CONTROL_NOT_SIDEBAR",
-      "implementation": "D066_OWNER_ACCEPTED_NAV__D068_HISTORY_ACTIVE_STATE_PERFORMANCE_RUNTIME_PASS_OWNER_REVIEW_PENDING"
+      "implementation": "D072_OWNER_OVERRIDE__THREE_GROUP_NAV_SYSTEM_ONLY_LOGS__SYSTEM_STATUS_EXCLUDED"
     },
     "implementation": "D071_CHECKBOX_TEXT_BASELINE_COMPACT_DATES_IMMEDIATE_REPORTER_FEEDBACK_SOURCE_IMPLEMENTED"
   },
@@ -384,7 +383,7 @@
     "catalog_max_design_rows": 50000,
     "reporting": "BOUNDED_60D_INDEXED_TIME_RANGE_BETA_PASS",
     "live_stress": "NON_DESTRUCTIVE_ONLY_WITHOUT_ISOLATED_BUSINESS_DATASET",
-    "source_status": "BETA_SCHEMA_V5_BUILD_DEPLOY_BURST_PASS",
+    "source_status": "D072_SYSTEM_STATUS_QUOTA_GUARD_SOURCE_IMPLEMENTED__PR_GUARDS_PENDING",
     "non_destructive_burst": {
       "requests": 50,
       "concurrency": 10,
@@ -394,7 +393,9 @@
       "p95_ms": 189.6,
       "max_ms": 195.8,
       "note": "measurement only; Cloudflare-safe CI user-agent and bounded retry; no latency SLO claimed"
-    }
+    },
+    "system_status_monitoring": "DISABLED_D072_NORMAL_RUNTIME__NO_PROVIDER_POLLING",
+    "system_status_provider_reads": "NORMAL_RUNTIME_FORBIDDEN__BETA_LOAD_TEST_CORE_ONLY"
   },
   "runtime_logs": {
     "environment": "beta",

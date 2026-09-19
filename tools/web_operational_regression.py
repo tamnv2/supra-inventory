@@ -41,6 +41,7 @@ def main() -> None:
     users_core = read("service/src/user-management-core.ts")
     users_api = read("service/src/user-management-api.ts")
     service_index = read("service/src/index.ts")
+    system_status = read("service/src/system-status.ts")
     core = read("service/src/core.ts")
     read_model = read("service/src/read-model-core.ts")
     notifications_core = read("service/src/notifications-core.ts")
@@ -169,6 +170,16 @@ def main() -> None:
     require(sla_auto, 'auto_skip_mode: AutoSkipMode', "D070 service config model")
     require(unified_css, ".sla-threshold-grid", "D070 three-threshold layout")
     require(unified_css, ".sla-auto-policy", "D070 automatic-Skip policy layout")
+
+    # D072: quota-heavy system-status surface is excluded from normal runtime.
+    require(app, 'navGroup("HỆ THỐNG", [["logs", "Nhật ký"]])', "D072 system group only journal")
+    forbid(app, "getSystemStatus(", "D072 Web system-status API calls")
+    forbid(app, '["system","devices","versions"].includes(activeSection)', "D072 system-status polling route")
+    forbid(app, 'querySelector<HTMLButtonElement>("#refresh-system")', "D072 manual system-status refresh binding")
+    require(service_index, "SYSTEM_STATUS_DISABLED_QUOTA_GUARD", "D072 disabled admin system-status route")
+    require(service_index, "collectSystemStatus(env, false, false)", "D072 provider-free load-test snapshot")
+    require(system_status, "includeProviders = true", "D072 provider gate parameter")
+    require(system_status, 'D072_QUOTA_GUARD', "D072 provider-disabled marker")
 
     # D071: consistent controls, logical 100% = old 105%, compact dates, and immediate Reporter action feedback.
     require(app, "WEB_TEXT_BASE_SCALE = 1.05", "D071 logical 100 percent text baseline")

@@ -21,7 +21,6 @@ import {
   getRealtimePresence,
   getRuntimeLogDetail,
   getRuntimeLogs,
-  getSystemStatus,
   getHrSource,
   getMyProfile,
   getReporterBatchTickets,
@@ -159,7 +158,7 @@ function applyTheme(): void {
 applyTheme();
 
 const ROUTABLE_SECTIONS: Section[] = [
-  "picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "system", "devices", "logs", "versions", "account",
+  "picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "account",
 ];
 
 function defaultSectionForProfile(value: AppProfile): Section {
@@ -168,7 +167,7 @@ function defaultSectionForProfile(value: AppProfile): Section {
 }
 
 function canAccessSection(section: Section, value: AppProfile): boolean {
-  if (value.role === "PICKER") return ["picker", "system", "account"].includes(section);
+  if (value.role === "PICKER") return ["picker", "account"].includes(section);
   if (value.role === "REPORTER") return ["operations", "results", "account"].includes(section);
   return section !== "picker";
 }
@@ -807,7 +806,7 @@ function renderNav(): string {
   return [
     navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"]]),
     navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"], ["sla", "Thời gian xử lý"]]),
-    navGroup("HỆ THỐNG", [["system", "Trạng thái hệ thống"], ["logs", "Nhật ký"]]),
+    navGroup("HỆ THỐNG", [["logs", "Nhật ký"]]),
   ].join("");
 }
 
@@ -2053,20 +2052,6 @@ async function loadSection(section: Section): Promise<void> {
   else if (section === "dashboard" && roleManage()) { await loadDashboard(); received = true; }
   else if (section === "reports" && roleManage()) { await loadReports(); received = true; }
   else if (section === "logs" && roleManage()) { await loadLogs(); received = true; }
-  else if (["system", "devices", "versions"].includes(section)) {
-    try {
-      const [health, detailed] = await Promise.all([getServiceHealth(), getSystemStatus(false)]);
-      serviceHealth = health;
-      systemStatus = detailed;
-      serviceReachable = true;
-      received = true;
-    } catch {
-      serviceHealth = null;
-      systemStatus = null;
-      serviceReachable = false;
-      patchHeaderRuntime();
-    }
-  }
   if (received) markWebUpdateReceived();
 }
 
@@ -2593,13 +2578,6 @@ function bindSection(): void {
   });
   document.querySelector<HTMLButtonElement>("#export-reports")?.addEventListener("click", () => void run(exportReportsExcel, "none"));
 
-  document.querySelector<HTMLButtonElement>("#refresh-system")?.addEventListener("click", () => void run(async () => {
-    const [health, detailed] = await Promise.all([getServiceHealth(), getSystemStatus(true)]);
-    serviceHealth = health;
-    systemStatus = detailed;
-    serviceReachable = true;
-    markWebUpdateReceived();
-  }));
   document.querySelector<HTMLButtonElement>("#download-support-log")?.addEventListener("click", downloadSupportDiagnostics);
   document.querySelector<HTMLFormElement>("#password-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -2786,16 +2764,5 @@ window.setInterval(() => {
     patchActiveSection(true);
   }).catch((error) => runtimeLogEvent(`Không cập nhật được số người online: ${error instanceof Error ? error.message : "unknown"}`, "ERROR"));
 }, 30_000);
-
-window.setInterval(() => {
-  if (!profile || !roleManage() || !["system","devices","versions"].includes(activeSection)) return;
-  void getSystemStatus(false).then((next) => {
-    systemStatus = next;
-    serviceReachable = true;
-    patchActiveSection(true);
-  }).catch((error) => {
-    runtimeLogEvent(`Không cập nhật được trạng thái hệ thống: ${error instanceof Error ? error.message : "unknown"}`, "ERROR");
-  });
-}, 60_000);
 
 void bootstrap();

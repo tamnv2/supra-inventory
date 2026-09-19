@@ -197,13 +197,21 @@ async function providerMetrics(env: SystemStatusEnv, force = false): Promise<Rec
   return value;
 }
 
-export async function collectSystemStatus(env: SystemStatusEnv, forceProviders = false): Promise<Record<string, unknown>> {
-  const [coreResult, providersResult] = await Promise.allSettled([
-    coreMetrics(env),
-    providerMetrics(env, forceProviders),
-  ]);
+export async function collectSystemStatus(
+  env: SystemStatusEnv,
+  forceProviders = false,
+  includeProviders = true,
+): Promise<Record<string, unknown>> {
+  const coreResult = await Promise.allSettled([coreMetrics(env)]).then((rows) => rows[0]);
+  const providersResult = includeProviders
+    ? await Promise.allSettled([providerMetrics(env, forceProviders)]).then((rows) => rows[0])
+    : null;
   const coreValue = coreResult.status === "fulfilled" ? coreResult.value : { error: String(coreResult.reason) };
-  const providers = providersResult.status === "fulfilled" ? providersResult.value : { error: String(providersResult.reason) };
+  const providers = !includeProviders
+    ? { disabled: true, reason: "D072_QUOTA_GUARD" }
+    : providersResult?.status === "fulfilled"
+      ? providersResult.value
+      : { error: String(providersResult?.reason || "provider_metrics_unavailable") };
 
   return {
     generated_at: new Date().toISOString(),
@@ -250,9 +258,12 @@ export async function collectSystemStatus(env: SystemStatusEnv, forceProviders =
       },
     },
     refresh_policy: {
-      core_seconds: 60,
-      provider_cache_seconds: PROVIDER_CACHE_MS / 1000,
-      reason: "Dữ liệu lõi cập nhật nhẹ; Google Drive/GitHub cache 5 phút để tránh tốn quota không cần thiết.",
+      core_seconds: includeProviders ? 60 : null,
+      provider_cache_seconds: includeProviders ? PROVIDER_CACHE_MS / 1000 : null,
+      providers_enabled: includeProviders,
+      reason: includeProviders
+        ? "Provider metrics are explicitly requested."
+        : "D072 quota guard disables normal provider monitoring.",
     },
   };
 }
