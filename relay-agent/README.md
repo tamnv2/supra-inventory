@@ -96,3 +96,14 @@ Trong lúc bài test PDA ↔ Agent trên mạng Office tạm hoãn, Agent v5 ki�
 - Phiên API đã capture chỉ sống trong RAM của Agent. Nếu API trả session-expired, Agent tự mở lại Edge và thử capture mới một lần.
 - D080 tuyệt đối chưa tra cứu Picklist, chưa xác nhận đơn và chưa gọi API mutation WMS.
 - Stable không thay đổi.
+
+## D081 — login wait, browser fallback, taskbar monitor
+
+- Fixes the v5 first-login failure where a short `ReceiveAsync` cancellation could abort the DevTools WebSocket before the operator finished WMS login.
+- Capture now waits against the whole login window (up to five minutes) instead of cancelling every five seconds.
+- Browser order: Microsoft Edge → Google Chrome. Each uses an Agent-owned dedicated profile; neither means a clear error.
+- WMS credentials stay on the official WMS browser page. Agent does not add or store WMS username/password.
+- SUPRA Inventory ADMIN login stays inside the Agent over the existing HTTPS/Firebase path; the password box is cleared immediately and the persistent session remains DPAPI-protected.
+- The system-tray icon now provides a local-only machine monitor for CPU %, CPU MHz and RAM used/total, refreshed about every two seconds. This consumes no project-provider quota.
+- The tray status provider is intended to later project operational counters such as confirmed Picklists and online users.
+- No WMS mutation and no Stable change.
