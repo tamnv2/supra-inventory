@@ -355,10 +355,20 @@ function processWarningAndEscalation(
 ): void {
   const now = new Date(nowMs).toISOString();
   const rows = state.storage.sql.exec<SqlRow>(
-    `SELECT batch_id, sku, product_name, first_report_at
-       FROM report_batches
-      WHERE status = 'PENDING'
-      ORDER BY first_report_at ASC
+    `SELECT b.batch_id, b.sku, b.product_name, b.first_report_at
+       FROM report_batches b
+      WHERE b.status = 'PENDING'
+        AND (
+          NOT EXISTS (
+            SELECT 1 FROM sla_deadline_events d
+             WHERE d.deadline_event_key = b.batch_id || ':WARNING'
+          )
+          OR NOT EXISTS (
+            SELECT 1 FROM sla_deadline_events d
+             WHERE d.deadline_event_key = b.batch_id || ':ESCALATED'
+          )
+        )
+      ORDER BY b.first_report_at ASC
       LIMIT ?`,
     MAX_DUE_PER_ALARM,
   ).toArray();
@@ -428,9 +438,11 @@ function processWarningAndEscalation(
 
 function processBatchAutoSkip(
   state: DurableObjectState,
+  config: OperationalSlaConfig | null,
   nowMs: number,
   effects: OperationalDeadlineEffect[],
 ): void {
+  if (!config?.auto_skip_enabled || config.auto_skip_mode !== "FIRST_REPORT") return;
   const now = new Date(nowMs).toISOString();
   const due = state.storage.sql.exec<SqlRow>(
     `SELECT batch_id, sku, product_name, auto_skip_deadline_at
@@ -542,9 +554,11 @@ function processBatchAutoSkip(
 
 function processPerPickerAutoSkip(
   state: DurableObjectState,
+  config: OperationalSlaConfig | null,
   nowMs: number,
   effects: OperationalDeadlineEffect[],
 ): void {
+  if (!config?.auto_skip_enabled || config.auto_skip_mode !== "PER_PICKER") return;
   const now = new Date(nowMs).toISOString();
   const due = state.storage.sql.exec<SqlRow>(
     `SELECT t.ticket_id, t.batch_id, t.picker_user_id, t.auto_skip_deadline_at,
@@ -694,8 +708,8 @@ export function processOperationalDeadlines(
   const effects: OperationalDeadlineEffect[] = [];
   const config = readOperationalSlaConfig(state);
   if (config) processWarningAndEscalation(state, config, nowMs, effects);
-  processBatchAutoSkip(state, nowMs, effects);
-  processPerPickerAutoSkip(state, nowMs, effects);
+  processBatchAutoSkip(state, config, nowMs, effects);
+  processPerPickerAutoSkip(state, config, nowMs, effects);
   return effects;
 }
 
@@ -728,22 +742,26 @@ export async function scheduleNextOperationalAlarm(state: DurableObjectState): P
     }
   }
 
-  const batchAuto = first(state.storage.sql.exec<SqlRow>(
-    `SELECT MIN(auto_skip_deadline_at) AS deadline
-       FROM report_batches
-      WHERE status = 'PENDING' AND auto_skip_deadline_at IS NOT NULL`,
-  ).toArray());
-  const ticketAuto = first(state.storage.sql.exec<SqlRow>(
-    `SELECT MIN(t.auto_skip_deadline_at) AS deadline
-       FROM report_tickets t
-       JOIN report_batches b ON b.batch_id = t.batch_id
-      WHERE b.status = 'PENDING'
-        AND t.status = 'OPEN'
-        AND t.auto_skip_allowed_at IS NULL
-        AND t.auto_skip_deadline_at IS NOT NULL`,
-  ).toArray());
-  for (const value of [batchAuto?.deadline, ticketAuto?.deadline]) {
-    const ms = value ? Date.parse(String(value)) : NaN;
+  if (config?.auto_skip_enabled && config.auto_skip_mode === "FIRST_REPORT") {
+    const batchAuto = first(state.storage.sql.exec<SqlRow>(
+      `SELECT MIN(auto_skip_deadline_at) AS deadline
+         FROM report_batches
+        WHERE status = 'PENDING' AND auto_skip_deadline_at IS NOT NULL`,
+    ).toArray());
+    const ms = batchAuto?.deadline ? Date.parse(String(batchAuto.deadline)) : NaN;
+    if (Number.isFinite(ms)) candidates.push(ms);
+  }
+  if (config?.auto_skip_enabled && config.auto_skip_mode === "PER_PICKER") {
+    const ticketAuto = first(state.storage.sql.exec<SqlRow>(
+      `SELECT MIN(t.auto_skip_deadline_at) AS deadline
+         FROM report_tickets t
+         JOIN report_batches b ON b.batch_id = t.batch_id
+        WHERE b.status = 'PENDING'
+          AND t.status = 'OPEN'
+          AND t.auto_skip_allowed_at IS NULL
+          AND t.auto_skip_deadline_at IS NOT NULL`,
+    ).toArray());
+    const ms = ticketAuto?.deadline ? Date.parse(String(ticketAuto.deadline)) : NaN;
     if (Number.isFinite(ms)) candidates.push(ms);
   }
 
