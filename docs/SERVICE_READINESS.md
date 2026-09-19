@@ -299,3 +299,6 @@ Current Android marker: `D074_PICKER_SPLIT_TABS_RELAY_INPUT_AUTH_REPAIR_IN_PROGR
 - D074 RTDB identity/path repair, sanitized Agent diagnostics, Picker split tabs and exact-five-digit send are build/release eligible.
 - Physical Office RTDB/SSE + PDA ACK/RTT acceptance remains pending.
 - No WMS mutation exists. Stable untouched and OWNER-GATED.
+
+
+Current Android marker: `D074_PICKER_SPLIT_TABS_RELAY_UID_AUTH_DIAGNOSTICS_SIGNED_BETA_VC48_BUILD_PASS__OWNER_FIELD_RETEST_PENDING`.
