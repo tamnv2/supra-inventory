@@ -1,0 +1,58 @@
+name: Verify Beta Relay Agent
+
+on:
+  pull_request:
+    paths:
+      - "relay-agent/**"
+      - "firebase/database.rules.json"
+      - ".github/workflows/verify-relay-agent.yml"
+  push:
+    branches: [main]
+    paths:
+      - "relay-agent/**"
+      - "firebase/database.rules.json"
+      - ".github/workflows/verify-relay-agent.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  relay-agent:
+    runs-on: windows-latest
+    environment: beta
+    env:
+      FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Prepare Beta Agent config
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace("${env:FIREBASE_API_KEY_BETA}")) { throw "FIREBASE_WEB_API_KEY_BETA is required." }
+          $path = "relay-agent/AgentConfig.cs"
+          $content = Get-Content $path -Raw
+          $content = $content.Replace("__FIREBASE_API_KEY_BETA__", "${env:FIREBASE_API_KEY_BETA}")
+          Set-Content -Path $path -Value $content -Encoding UTF8
+
+      - name: Build lightweight Windows Agent
+        shell: pwsh
+        run: |
+          dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release
+          New-Item -ItemType Directory -Force -Path relay-agent/dist | Out-Null
+          Copy-Item relay-agent/bin/Release/net48/SUPRA-Inventory-Relay-Test.exe relay-agent/dist/
+          Copy-Item relay-agent/README.md relay-agent/dist/
+          Copy-Item firebase/database.rules.json relay-agent/dist/
+          (Get-FileHash relay-agent/dist/SUPRA-Inventory-Relay-Test.exe -Algorithm SHA256).Hash.ToLower() | Set-Content relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256
+
+      - name: Upload Agent artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supra-inventory-relay-poc-agent
+          path: relay-agent/dist/*
+          if-no-files-found: error
+          retention-days: 14
