@@ -421,3 +421,12 @@ D074 is field-ready only when all of the following are true:
 6. Agent automatically checks dedicated `relay-agent-vN` GitHub prereleases; a newer executable is installed only after SHA-256 verification and the app relaunches automatically when the executable directory is writable.
 7. Agent update prereleases do not replace Android Beta `/releases/latest`.
 8. No WMS lookup/confirmation/mutation exists; Stable is untouched.
+
+## D076 — Automated Beta RTDB Rules deployment
+
+1. Pull-request workflow fails closed when `FIREBASE_RULES_SA_JSON_BETA` is missing, malformed, or belongs to a project other than `supra-inventory-beta`.
+2. Pull-request validation authenticates and proves read access without publishing/mutating Rules.
+3. Only a push to merged `main` may execute `firebase deploy --only database --project supra-inventory-beta`.
+4. Deployment uses `firebase/database.rules.json` through canonical `firebase.json`.
+5. Workflow never echoes service-account JSON/private key/access token and never targets Stable.
+6. A successful main workflow is required before D075 Rules are marked deployed.
