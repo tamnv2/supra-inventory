@@ -184,3 +184,12 @@ D070 authoritative deadline transitions must not create a tight alarm loop or de
 - Authoritative database transitions and the next alarm schedule occur before best-effort realtime/FCM delivery.
 - Realtime/FCM provider failure must not throw an already-committed alarm and cause platform retry storms. Clients recover from authoritative state through normal cursor/reconcile reads.
 - Exact Picker result targeting, grouped Reporter/Admin/Root notices, correction rules and Stable OWNER-GATE remain unchanged.
+
+
+### D072 no system-status monitoring loop
+
+- Normal Web runtime must not poll `/api/admin/system-status`.
+- No 60-second system-status timer exists after D072.
+- Normal admin system-status API access is disabled before any InventoryCore/provider metric collection.
+- Beta load-test snapshot remains temporary/gated and uses core-only metrics; it must not refresh Google Drive or GitHub provider usage.
+- Realtime business synchronization, header connectivity state and runtime logs remain unchanged.
