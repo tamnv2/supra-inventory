@@ -214,3 +214,6 @@ D070 Android source marker: `D070_TIMEOUT_ALERT_PROJECTION_SOURCE_IMPLEMENTED__P
 PR #60 merged at `3f3506a0f185d5e1a0f22ba6a908b161bae6dd6e`. Main Repo Authority Guard `35426339784`, Project State Guard `35426339862`, UI Design Guard `35426339800` and Beta deploy `35426339796` all PASS. Live health reports SQLite schema `7/7` and Operational V2 schema `5/5`; auth/business API, Web shell and Google OAuth smoke are PASS. Signed Android `beta-vc46` was published by Verify Beta Android run `35426339846` after the matching Beta runtime gate passed; APK SHA256 is `875b5bd32f22f77fbe7453020d38c60d587a97720bd14cecdae89d202e39287e`.
 
 D070 deployed behavior: three entered thresholds with strict `warning < escalation < auto_skip`; automatic Skip ON/OFF; `FIRST_REPORT` and `PER_PICKER` timing; Durable Object alarm authority; `SKIP_ALLOWED / SYSTEM_TIMEOUT`; exact Picker result/ACK targeting; grouped Reporter/Admin/Root alerts; existing 5-minute Skip→Có hàng correction; no extension feature; D007 queue ordering unchanged; activation is non-retroactive. Technical/runtime PASS is complete. Owner live timing/device/background-FCM acceptance is still required. Stable remains untouched/OWNER-GATED.
+
+
+Current Android marker: `D070_TIMEOUT_ALERT_PROJECTION_SIGNED_BETA_VC46_RUNTIME_GATE_PASS__OWNER_FIELD_ACCEPTANCE_PENDING`.
