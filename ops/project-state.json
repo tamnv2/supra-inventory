@@ -13,26 +13,26 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "BETA_RUNTIME_PASS_D070_ALARM_REPAIR_D071_D072",
+    "beta": "BETA_RUNTIME_PASS_D074_SOURCE_BUILD_RELEASE",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 7,
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
     "web": "D071_IMMEDIATE_RESPONSE_DENSITY_D072_SYSTEM_STATUS_QUOTA_GUARD_BETA_RUNTIME_PASS__OWNER_REVIEW_PENDING",
-    "android": "D074_PICKER_SPLIT_TABS_RELAY_INPUT_AUTH_REPAIR_IN_PROGRESS__LATEST_SIGNED_BETA_VC47",
-    "latest_beta_apk": "beta-vc47",
+    "android": "D074_PICKER_SPLIT_TABS_RELAY_UID_AUTH_DIAGNOSTICS_SIGNED_BETA_VC48_BUILD_PASS__OWNER_FIELD_RETEST_PENDING",
+    "latest_beta_apk": "beta-vc48",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
-    "network_scope": "PDA_INTERNET_SUPPORTED__D073_OFFICE_GOOGLE_RELAY_POC_FOR_PICKLIST_CONFIRM_ONLY__NO_OFFLINE_BUSINESS_MODE",
+    "network_scope": "PDA_INTERNET_SUPPORTED__D074_OFFICE_FIREBASE_RELAY_FIELD_REPAIR_BUILD_PASS__OWNER_RETEST_PENDING__NO_OFFLINE_BUSINESS_MODE",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "SERVER_PAGED_FILTERED_ONE_MANY_ALL__ROOT_EFFECTIVE_ROLE_TEST_RUNTIME_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D069_XLSX_REPORT_EXPORT_BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "D072_SYSTEM_STATUS_NORMAL_RUNTIME_DISABLED__BETA_RUNTIME_PASS",
-    "ui_design_guard": "D071_D072_UI_DESIGN_GUARD_MAIN_PASS",
+    "ui_design_guard": "D074_UI_ANDROID_RELAY_GUARDS_MAIN_PASS",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D074_FIELD_REPAIR_IN_PROGRESS__OFFICE_REACHES_FIREBASE_HTTP_403_AUTH_RULE_PATH__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D074_SOURCE_BUILD_RELEASE_PASS__OFFICE_RETEST_PENDING__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -142,6 +142,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
+    "D074 physical Office retest remains Owner/device/network dependent: beta-vc48 + rebuilt Agent must prove Firebase refresh -> RTDB read/SSE -> PDA five-digit ACK/RTT.",
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
     "Owner acceptance of FIRST_REPORT and PER_PICKER behavior remains field-dependent after runtime PASS.",
     "Stable promotion remains OWNER-GATED."
@@ -154,8 +155,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Implement D074 Beta field repair: derive RTDB identity from Firebase token subject on Android/Windows, add sanitized persistent Agent diagnostics, split Picker into bottom-pinned Báo hết hàng/Xác nhận đơn tabs with denser UI and reliable five-digit input/send; build/release and re-test Office.",
-    "method": "Branch -> PR -> authority/continuity/UI/Android/Agent PASS -> merge -> signed Beta release -> Owner field-tests Office Agent RTDB check/listen and PDA five-digit send. No WMS mutation; Stable untouched.",
+    "primary": "Owner field-test D074 beta-vc48 + rebuilt Windows Relay Agent on .Office@MSN: Kiểm tra Office must pass Google refresh + authenticated RTDB read, then Nghe relay and PDA Xác nhận đơn must send exactly five digits and receive ACK/RTT. If RTDB still returns 403, use the new sanitized Agent log to distinguish Rules/auth.uid/path without exposing secrets.",
+    "method": "Install signed beta-vc48 and download the D074 Agent artifact from run 35445108964; run Agent as normal Windows user, pair on an allowed network if needed, switch to Office, press Kiểm tra Office, then Nghe relay; on PDA open Xác nhận đơn, enter five digits and send. No WMS mutation; Stable untouched.",
     "stable_guard": "Stable remains OWNER-GATED and untouched."
   },
   "continuity_policy": {
@@ -183,74 +184,71 @@
   },
   "workboard": {
     "in_progress": [
-      "D074 relay field repair: Office Firebase HTTPS reachable but RTDB authenticated read/SSE returns 403; Android five-digit interaction and split-tab density repair in progress",
+      "D074 source/build/release PASS; Owner physical Office relay retest pending",
       "D068 Web baseline Owner-accepted/frozen",
       "D069 items 1, 2, 4 and 5 Beta runtime PASS",
       "D070 alarm runtime-availability repair deployed Beta PASS; physical timing/FCM Owner acceptance pending",
       "D071 four Web refinements deployed Beta runtime PASS; Owner visual/interaction review pending",
       "D072 system-status quota guard deployed Beta runtime PASS; Owner confirmation pending",
-      "Stable remains Owner-gated",
-      "D073 Beta Xác nhận lấy hàng transport POC source/build/release PASS; RTDB provisioning and Office field transport acceptance pending"
+      "Stable remains Owner-gated"
     ],
     "next": [
-      "Complete D074 source/build/release PASS with no WMS mutation and Stable untouched",
-      "Field-test D074 signed Beta + rebuilt Windows Agent on Office: token refresh -> RTDB read/SSE -> PDA five-digit ACK/RTT",
-      "Field-test signed beta-vc47 -> Firebase relay -> Office Agent -> ACK/RTT with zero WMS mutation",
-      "Field-test D073 PDA -> relay -> Office Agent -> ACK latency with zero WMS mutation",
+      "Owner field-test D074 beta-vc48 + Agent run 35445108964 on Office: Google refresh -> RTDB read/SSE -> PDA five-digit ACK/RTT",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
     ],
     "blocked_or_owner_field_dependent": [
-      "D073 RTDB instance creation/rules publication is an Owner UI action because no connected Firebase control-plane write tool is available",
+      "D074 physical Office/PDA relay acceptance requires the Owner's real laptop/PDA/network; technical build/release is PASS",
       "D071 final visual/interaction acceptance depends on Owner live Web review",
       "D072 final Owner acceptance depends on live Web confirmation",
       "D070 physical timing/FCM delivery acceptance remains field-dependent",
       "No Stable promotion is authorized"
     ],
     "last_source_build_evidence": {
-      "branch": "feat/d073-relay-poc",
-      "merged_pr": 65,
-      "merged_main": "f7c596f60eac626989a58ea40492417006ee61b1",
-      "pr_repo_authority_guard": "PASS_RUN_35442779441",
-      "pr_project_state_guard": "PASS_RUN_35442779364",
-      "pr_ui_design_guard": "PASS_RUN_35442779424",
-      "pr_relay_agent_build": "PASS_RUN_35442779357",
-      "main_repo_authority_guard": "PASS_RUN_35442853977",
-      "main_project_state_guard": "PASS_RUN_35442853986",
-      "main_ui_design_guard": "PASS_RUN_35442853976",
-      "beta_deploy": "PASS_RUN_35442854000",
-      "verify_android": "PASS_RUN_35442853998",
-      "relay_agent_build": "PASS_RUN_35442853985",
-      "signed_beta_release": "beta-vc47",
-      "signed_beta_apk_sha256": "8e2fc11e09940db061edf4c23b5973ec2be9300b2ddfc4835bcef1d3af74c439",
-      "signed_beta_apk_size_bytes": 9300090,
-      "relay_agent_sha256": "1b51c33d53a53a0fb8b7c6a9c4f4305f7c042bbd2c97e91b082144587c7bdd73",
-      "relay_agent_size_bytes": 25600,
-      "scope": "D073_BETA_PICKER_TO_WINDOWS_AGENT_RELAY_TRANSPORT_POC_NO_WMS_MUTATION",
+      "branch": "fix/d074-relay-field-repair",
+      "merged_pr": 67,
+      "merged_main": "7464c3c3a89db00e657021bcec960c1e5ea53fd8",
+      "pr_repo_authority_guard": "PASS_RUN_35445026163",
+      "pr_project_state_guard": "PASS_RUN_35445026484",
+      "pr_ui_design_guard": "PASS_RUN_35445026119",
+      "pr_relay_agent_build": "PASS_RUN_35445026278",
+      "main_repo_authority_guard": "PASS_RUN_35445108970",
+      "main_project_state_guard": "PASS_RUN_35445108844",
+      "main_ui_design_guard": "PASS_RUN_35445108860",
+      "beta_deploy": "PASS_RUN_35445109008",
+      "verify_android": "PASS_RUN_35445108881",
+      "relay_agent_build": "PASS_RUN_35445108964",
+      "signed_beta_release": "beta-vc48",
+      "signed_beta_apk_size_bytes": 9317178,
+      "relay_agent_artifact_id": 10584778212,
+      "relay_agent_artifact_zip_sha256": "72d51fc4c6ab6e77d1d5cb9c0ba124a52eddd0fad929c24ac727fadea0f51628",
+      "relay_agent_artifact_zip_size_bytes": 19315,
+      "scope": "D074_BETA_RELAY_AUTH_DIAGNOSTICS_PICKER_SPLIT_TABS_FIVE_DIGIT_REPAIR_NO_WMS_MUTATION",
       "stable": "UNTOUCHED_OWNER_GATED"
     },
     "last_runtime_evidence": {
       "schema": 7,
       "operational_v2_schema": "5/5",
-      "beta_deploy_run": 35442854000,
+      "beta_deploy_run": 35445109008,
       "beta_deploy_conclusion": "success",
       "health": "HTTP_200_OK",
       "storage": "READY",
       "business_auth_guards": "PASS",
       "web_shell": "PASS",
       "google_oauth_start": "PASS",
-      "runtime_source_commit": "f7c596f60eac626989a58ea40492417006ee61b1",
+      "runtime_source_commit": "7464c3c3a89db00e657021bcec960c1e5ea53fd8",
       "d070_alarm_repair": "BETA_RUNTIME_PASS",
       "d071_web": "BETA_RUNTIME_PASS_OWNER_REVIEW_PENDING",
       "d072_quota_guard": "BETA_RUNTIME_PASS_OWNER_REVIEW_PENDING",
       "system_status_normal_runtime": "DISABLED",
       "system_status_provider_polling": "DISABLED",
-      "signed_beta_release": "beta-vc47",
-      "signed_beta_release_source_commit": "f7c596f60eac626989a58ea40492417006ee61b1",
+      "signed_beta_release": "beta-vc48",
+      "signed_beta_release_source_commit": "7464c3c3a89db00e657021bcec960c1e5ea53fd8",
       "stable": "UNTOUCHED_OWNER_GATED",
       "signed_beta_apk_sha256": "8e2fc11e09940db061edf4c23b5973ec2be9300b2ddfc4835bcef1d3af74c439",
-      "d073_relay_poc": "SOURCE_BUILD_RELEASE_PASS__RTDB_PROVISIONING_FIELD_TEST_PENDING"
+      "d073_relay_poc": "SOURCE_BUILD_RELEASE_PASS__RTDB_PROVISIONING_FIELD_TEST_PENDING",
+      "d074_relay_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_OFFICE_FIELD_RETEST_PENDING"
     }
   },
   "authority_setup": {

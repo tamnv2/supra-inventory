@@ -84,6 +84,37 @@
         "owner_confirmation": "Firebase RTDB setup done",
         "field_evidence": "Office Agent reaches Firebase endpoint but authenticated RTDB check returns HTTP 403; D074 repairs identity/path diagnostics before deciding whether any Rules republish is required."
       }
+    },
+    {
+      "id": "OA003",
+      "status": "OPEN_OWNER_FIELD_TEST",
+      "title": "Field-test D074 Beta relay repair on Office laptop and Picker PDA",
+      "resource_key": "firebase-rtdb-relay-beta",
+      "provider": "Physical Beta field environment",
+      "reason_owner_only": "The connected tools cannot physically switch the Owner laptop/PDA onto .Office@MSN, launch the Windows Agent there, type on the PDA, or observe the corporate network/WMS workstation locally.",
+      "prerequisites": {
+        "android_release": "beta-vc48",
+        "android_source_commit": "7464c3c3a89db00e657021bcec960c1e5ea53fd8",
+        "agent_workflow_run": 35445108964,
+        "agent_artifact_id": 10584778212
+      },
+      "shortest_test_path": [
+        "Install/update Picker Beta to beta-vc48.",
+        "Download/extract Agent artifact from Verify Beta Relay Agent run 35445108964 and run SUPRA-Inventory-Relay-Test.exe as normal user.",
+        "If Agent is not paired, pair it while on a network that can reach inventory-beta.supra.cc.cd; do not share the password or session material.",
+        "Switch laptop to .Office@MSN and click Kiểm tra Office.",
+        "Expected: Google token refresh PASS and authenticated RTDB read PASS; if 403 remains, click Mở log and provide the sanitized log only.",
+        "Click Nghe relay.",
+        "On PDA open bottom tab Xác nhận đơn, enter exactly five digits, press Gửi test/Done and verify Agent ACK plus RTT."
+      ],
+      "pass_criteria": [
+        "Agent Office check reports Google + RTDB PASS",
+        "Agent listener stays ONLINE without 403 retry loop",
+        "PDA exact-five-digit send is enabled and receives ACK/RTT",
+        "No WMS lookup or mutation occurs"
+      ],
+      "safety": "Beta transport POC only. Do not enter or expose passwords/tokens in logs/chat. Stable and WMS mutation remain forbidden.",
+      "remaining_owner_action": "Run the physical D074 field test and report PASS or attach the sanitized Agent log if it fails."
     }
   ]
 }

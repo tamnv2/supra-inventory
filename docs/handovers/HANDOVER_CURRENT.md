@@ -613,3 +613,17 @@ Current Android marker: `D073_RELAY_POC_SIGNED_BETA_VC47_BUILD_PASS__D070_FIELD_
 First Office field test reached Firebase but authenticated RTDB read/SSE returned HTTP 403. D074 classifies this as auth/Rules/path rather than generic network failure. Android and Windows now derive the relay path from Firebase ID-token `sub`; the Windows Agent gains persistent sanitized local diagnostics and explicit RTDB 403 classification. Picker is being split into bottom-pinned **Báo hết hàng / Xác nhận đơn** panels with denser controls and reliable exact-five-digit input/send. No WMS mutation exists in this phase; Stable remains OWNER-GATED.
 
 Current Android marker: `D074_PICKER_SPLIT_TABS_RELAY_INPUT_AUTH_REPAIR_IN_PROGRESS__LATEST_SIGNED_BETA_VC47`.
+
+
+## D074 build/release PASS — 2026-09-19
+
+D074 repair is merged in PR #67 at `7464c3c3a89db00e657021bcec960c1e5ea53fd8`. PR Authority/Continuity/UI/Agent gates PASS. Main Repo Authority `35445108970`, Project State `35445108844`, UI Design `35445108860`, Beta deploy `35445109008`, Verify Beta Android `35445108881`, and Verify Beta Relay Agent `35445108964` all PASS.
+
+Signed Android release: `beta-vc48` (`SUPRA Inventory Beta 0.2.0-beta.48`), APK size `9317178` bytes. Windows Agent artifact: run `35445108964`, artifact `10584778212`, ZIP SHA-256 `72d51fc4c6ab6e77d1d5cb9c0ba124a52eddd0fad929c24ac727fadea0f51628`.
+
+Implemented: RTDB path from Firebase ID-token `sub` on Android and Agent; explicit RTDB 403/Rules classification; persistent sanitized local Agent diagnostics; Picker bottom-pinned **Báo hết hàng / Xác nhận đơn** tabs; denser Picker UI; exact-five-digit input with enabled send and IME Done support. D074 still performs no WMS lookup/mutation.
+
+Next action is physical Owner field test of beta-vc48 + rebuilt Agent on `.Office@MSN`. If Office check still returns 403, use **Mở log** and provide the sanitized log for analysis. Stable remains OWNER-GATED.
+
+
+Current Android marker: `D074_PICKER_SPLIT_TABS_RELAY_UID_AUTH_DIAGNOSTICS_SIGNED_BETA_VC48_BUILD_PASS__OWNER_FIELD_RETEST_PENDING`.

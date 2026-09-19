@@ -287,3 +287,18 @@ Current Android marker: `D073_RELAY_POC_SIGNED_BETA_VC47_BUILD_PASS__D070_FIELD_
 First Office field test reached Firebase but authenticated RTDB read/SSE returned HTTP 403. D074 classifies this as auth/Rules/path rather than generic network failure. Android and Windows now derive the relay path from Firebase ID-token `sub`; the Windows Agent gains persistent sanitized local diagnostics and explicit RTDB 403 classification. Picker is being split into bottom-pinned **Báo hết hàng / Xác nhận đơn** panels with denser controls and reliable exact-five-digit input/send. No WMS mutation exists in this phase; Stable remains OWNER-GATED.
 
 Current Android marker: `D074_PICKER_SPLIT_TABS_RELAY_INPUT_AUTH_REPAIR_IN_PROGRESS__LATEST_SIGNED_BETA_VC47`.
+
+
+## D074 build/release PASS — 2026-09-19
+
+- Source: PR #67 / main `7464c3c3a89db00e657021bcec960c1e5ea53fd8`.
+- Beta deploy run `35445109008`: PASS.
+- Main Repo Authority / Project State / UI Design: PASS.
+- Verify Beta Android run `35445108881`: PASS; signed release `beta-vc48`, APK size `9317178` bytes.
+- Verify Beta Relay Agent run `35445108964`: PASS; artifact `10584778212`, ZIP SHA-256 `72d51fc4c6ab6e77d1d5cb9c0ba124a52eddd0fad929c24ac727fadea0f51628`.
+- D074 RTDB identity/path repair, sanitized Agent diagnostics, Picker split tabs and exact-five-digit send are build/release eligible.
+- Physical Office RTDB/SSE + PDA ACK/RTT acceptance remains pending.
+- No WMS mutation exists. Stable untouched and OWNER-GATED.
+
+
+Current Android marker: `D074_PICKER_SPLIT_TABS_RELAY_UID_AUTH_DIAGNOSTICS_SIGNED_BETA_VC48_BUILD_PASS__OWNER_FIELD_RETEST_PENDING`.
