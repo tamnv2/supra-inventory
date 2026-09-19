@@ -392,9 +392,17 @@ namespace SupraInventoryRelayAgent
                 _probeSheets.Enabled = enabled;
                 _probeDrive.Enabled = enabled;
                 _probeAll.Enabled = enabled;
-                _wmsCapture.Enabled = enabled;
+                var hasWmsSession = HasUsableWmsSession();
+                _wmsCapture.Enabled = enabled && !hasWmsSession;
+                _wmsCapture.Text = hasWmsSession ? "Phiên WMS đang OK" : "Mở WMS + lấy phiên";
                 _wmsTest.Enabled = enabled;
             });
+        }
+
+        private bool HasUsableWmsSession()
+        {
+            lock (_wmsSessionLock)
+                return _wmsSession != null && _wmsSession.IsValidHy1();
         }
 
         private void StartupSequence()
@@ -945,8 +953,16 @@ namespace SupraInventoryRelayAgent
 
         private void CaptureWmsSession()
         {
+            if (HasUsableWmsSession())
+            {
+                Ui(() => _wmsStatus.Text = "WMS: phiên HY1 đang OK · không mở lại login");
+                Log("WMS SESSION REUSE valid_in_ram=true browser_login_skipped=true values=redacted.");
+                SetProbeButtonsEnabled(true);
+                return;
+            }
+
             SetProbeButtonsEnabled(false);
-            Ui(() => _wmsStatus.Text = "WMS: đang mở Edge / chờ phiên...");
+            Ui(() => _wmsStatus.Text = "WMS: đang mở trình duyệt / chờ phiên...");
             try
             {
                 LogNetworkSnapshot("wms-session-capture");
@@ -988,7 +1004,7 @@ namespace SupraInventoryRelayAgent
                 var session = SnapshotWmsSession();
                 if (session == null || !session.IsValidHy1())
                 {
-                    Log("WMS chưa có phiên HY1 trong RAM; tự mở Edge để lấy phiên.");
+                    Log("WMS chưa có phiên HY1 trong RAM; tự mở trình duyệt để lấy phiên.");
                     session = WmsBrowserCapture.CaptureSession(300, message => Log("WMS " + message));
                     lock (_wmsSessionLock) _wmsSession = session;
                 }
@@ -998,7 +1014,7 @@ namespace SupraInventoryRelayAgent
 
                 if (string.Equals(api.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
                 {
-                    Log("WMS phiên cũ hết hạn; tự mở Edge để lấy phiên mới một lần.");
+                    Log("WMS phiên cũ hết hạn; tự mở trình duyệt để lấy phiên mới một lần.");
                     var refreshed = WmsBrowserCapture.CaptureSession(300, message => Log("WMS " + message));
                     lock (_wmsSessionLock) _wmsSession = refreshed;
                     api = WmsReadOnlyClient.ProbeApi(refreshed);
