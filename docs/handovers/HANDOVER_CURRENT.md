@@ -704,3 +704,12 @@ Current relay marker: `D077_AGENT_V3_RELEASE_PASS__OFFICE_FIELD_RETEST_PENDING__
 Field evidence proves `.Office@MSN` allows Firebase Secure Token but Wincommerce proxy blocks the Beta RTDB `*.firebasedatabase.app` endpoint with an HTML URL-filter block page. D078 adds read-only Agent probes for Firebase Auth, RTDB, Firestore, Apps Script, Sheets, Drive and Test tất cả. No replacement transport is selected or provisioned until the Owner runs the matrix on the real Office laptop and returns the sanitized log.
 
 Current relay marker: `D078_OFFICE_TRANSPORT_PROBE_MATRIX_IN_PROGRESS__RTDB_PROXY_BLOCK_CONFIRMED__NO_WMS_MUTATION`.
+
+
+## D078 Agent v4 release PASS — 2026-09-19
+
+PR #76 merged at `8c9992dc1ae6ec19c7ec63dbd3b656dbf794246e`. Main Repo Authority `35455241759`, Project State `35455241764`, UI Design `35455241767`, and Verify Beta Relay Agent `35455241760` all PASS. Dedicated prerelease `relay-agent-v4` is published; release id `392137381`, EXE asset id `575094426`, size `61952` bytes.
+
+Agent v4 provides read-only Office probes for Firebase Auth, RTDB, Firestore, Apps Script web/API, Sheets, Drive and TEST TẤT CẢ. RTDB proxy blocking remains established field evidence; no replacement transport has been selected or provisioned yet. Owner should run TEST TẤT CẢ once on `.Office@MSN` and provide the sanitized Agent log. No APK/WMS mutation change.
+
+Current relay marker: `D078_AGENT_V4_RELEASE_PASS__OWNER_OFFICE_PROBE_PENDING__RTDB_PROXY_BLOCK_CONFIRMED__NO_WMS_MUTATION`.
