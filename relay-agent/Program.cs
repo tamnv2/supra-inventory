@@ -452,6 +452,379 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private void ProbeFirebaseAuth()
+        {
+            SetProbeButtonsEnabled(false);
+            try
+            {
+                LogNetworkSnapshot("probe-auth");
+                var started = Stopwatch.StartNew();
+                RefreshDirect();
+                started.Stop();
+                var result = new TransportProbeResult
+                {
+                    Name = "AUTH",
+                    Result = "PASS",
+                    StatusCode = 200,
+                    ElapsedMs = started.ElapsedMilliseconds,
+                    RequestedHost = "securetoken.googleapis.com",
+                    FinalHost = "securetoken.googleapis.com",
+                    ContentType = "application/json"
+                };
+                LogProbeResult(result);
+                Ui(() => _relay.Text = "Probe Auth: PASS");
+            }
+            catch (Exception ex)
+            {
+                Log("PROBE AUTH result=TRANSPORT_FAIL detail=" + SafeMessage(ex));
+                Ui(() => _relay.Text = "Probe Auth: FAIL");
+            }
+            finally
+            {
+                SetProbeButtonsEnabled(true);
+            }
+        }
+
+        private void ProbeRtdb()
+        {
+            RunSingleProbe("RTDB", () =>
+            {
+                EnsureFreshToken();
+                var session = SnapshotSession();
+                return ProbeHttp("RTDB", JobsUrl(session) + "&shallow=true", null);
+            });
+        }
+
+        private void ProbeFirestore()
+        {
+            RunSingleProbe("FIRESTORE", () =>
+            {
+                EnsureFreshToken();
+                var session = SnapshotSession();
+                return ProbeHttp("FIRESTORE", AgentConfig.FirestoreProbeUrl, session.IdToken);
+            });
+        }
+
+        private void ProbeAppsScript()
+        {
+            SetProbeButtonsEnabled(false);
+            try
+            {
+                LogNetworkSnapshot("probe-apps-script");
+                var web = ProbeHttp("APPS_WEB", AgentConfig.AppsScriptWebProbeUrl, null);
+                var api = ProbeHttp("APPS_API", AgentConfig.AppsScriptApiProbeUrl, null);
+                LogProbeResult(web);
+                LogProbeResult(api);
+                Ui(() => _relay.Text = "Probe Apps Script: " + web.Result + " / " + api.Result);
+            }
+            catch (Exception ex)
+            {
+                Log("PROBE APPS_SCRIPT result=TRANSPORT_FAIL detail=" + SafeMessage(ex));
+                Ui(() => _relay.Text = "Probe Apps Script: FAIL");
+            }
+            finally
+            {
+                SetProbeButtonsEnabled(true);
+            }
+        }
+
+        private void ProbeSheets()
+        {
+            RunSingleProbe("SHEETS", () => ProbeHttp("SHEETS", AgentConfig.SheetsProbeUrl, null));
+        }
+
+        private void ProbeDrive()
+        {
+            RunSingleProbe("DRIVE", () => ProbeHttp("DRIVE", AgentConfig.DriveProbeUrl, null));
+        }
+
+        private void ProbeAllTransports()
+        {
+            SetProbeButtonsEnabled(false);
+            var results = new List<TransportProbeResult>();
+            try
+            {
+                LogNetworkSnapshot("probe-all");
+                Log("PROBE ALL START ssid=" + GetSsid());
+
+                try
+                {
+                    var started = Stopwatch.StartNew();
+                    RefreshDirect();
+                    started.Stop();
+                    results.Add(new TransportProbeResult
+                    {
+                        Name = "AUTH",
+                        Result = "PASS",
+                        StatusCode = 200,
+                        ElapsedMs = started.ElapsedMilliseconds,
+                        RequestedHost = "securetoken.googleapis.com",
+                        FinalHost = "securetoken.googleapis.com",
+                        ContentType = "application/json"
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Log("PROBE AUTH result=TRANSPORT_FAIL detail=" + SafeMessage(ex));
+                    results.Add(new TransportProbeResult
+                    {
+                        Name = "AUTH",
+                        Result = "TRANSPORT_FAIL",
+                        StatusCode = 0,
+                        ElapsedMs = -1,
+                        RequestedHost = "securetoken.googleapis.com",
+                        FinalHost = "",
+                        ContentType = ""
+                    });
+                }
+
+                AgentSession session = null;
+                try { session = SnapshotSession(); } catch { }
+
+                if (session != null)
+                {
+                    results.Add(ProbeHttp("RTDB", JobsUrl(session) + "&shallow=true", null));
+                    results.Add(ProbeHttp("FIRESTORE", AgentConfig.FirestoreProbeUrl, session.IdToken));
+                }
+                else
+                {
+                    results.Add(new TransportProbeResult { Name = "RTDB", Result = "NO_SESSION", ElapsedMs = -1 });
+                    results.Add(new TransportProbeResult { Name = "FIRESTORE", Result = "NO_SESSION", ElapsedMs = -1 });
+                }
+
+                results.Add(ProbeHttp("APPS_WEB", AgentConfig.AppsScriptWebProbeUrl, null));
+                results.Add(ProbeHttp("APPS_API", AgentConfig.AppsScriptApiProbeUrl, null));
+                results.Add(ProbeHttp("SHEETS", AgentConfig.SheetsProbeUrl, null));
+                results.Add(ProbeHttp("DRIVE", AgentConfig.DriveProbeUrl, null));
+
+                foreach (var result in results) LogProbeResult(result);
+                Log("PROBE SUMMARY ssid=" + GetSsid() + " " + string.Join(" | ", results.ConvertAll(x => x.Summary()).ToArray()));
+                Ui(() => _relay.Text = "Probe xong · xem log");
+            }
+            catch (Exception ex)
+            {
+                Log("PROBE ALL unexpected_fail detail=" + SafeMessage(ex));
+                Ui(() => _relay.Text = "Probe: lỗi · xem log");
+            }
+            finally
+            {
+                SetProbeButtonsEnabled(true);
+            }
+        }
+
+        private void RunSingleProbe(string label, Func<TransportProbeResult> action)
+        {
+            SetProbeButtonsEnabled(false);
+            try
+            {
+                LogNetworkSnapshot("probe-" + label.ToLowerInvariant());
+                var result = action();
+                LogProbeResult(result);
+                Ui(() => _relay.Text = "Probe " + label + ": " + result.Result);
+            }
+            catch (Exception ex)
+            {
+                Log("PROBE " + label + " result=TRANSPORT_FAIL detail=" + SafeMessage(ex));
+                Ui(() => _relay.Text = "Probe " + label + ": FAIL");
+            }
+            finally
+            {
+                SetProbeButtonsEnabled(true);
+            }
+        }
+
+        private TransportProbeResult ProbeHttp(string name, string url, string bearerToken)
+        {
+            var started = Stopwatch.StartNew();
+            var requested = new Uri(url);
+            var req = (HttpWebRequest)WebRequest.Create(url);
+            req.Method = "GET";
+            req.Accept = "application/json,text/plain,text/html;q=0.8,*/*;q=0.5";
+            req.UserAgent = "SUPRA-Inventory-Relay-Test/1.3";
+            req.Timeout = 10000;
+            req.ReadWriteTimeout = 10000;
+            req.AllowAutoRedirect = true;
+            req.KeepAlive = false;
+            if (!string.IsNullOrWhiteSpace(bearerToken))
+                req.Headers[HttpRequestHeader.Authorization] = "Bearer " + bearerToken;
+
+            try
+            {
+                using (var response = (HttpWebResponse)req.GetResponse())
+                {
+                    var sample = ReadProbeSample(response.GetResponseStream());
+                    started.Stop();
+                    return BuildProbeResult(
+                        name,
+                        (int)response.StatusCode,
+                        started.ElapsedMilliseconds,
+                        requested.Host,
+                        response.ResponseUri == null ? "" : response.ResponseUri.Host,
+                        response.ContentType,
+                        sample,
+                        null
+                    );
+                }
+            }
+            catch (WebException ex)
+            {
+                started.Stop();
+                var response = ex.Response as HttpWebResponse;
+                if (response == null)
+                {
+                    return new TransportProbeResult
+                    {
+                        Name = name,
+                        Result = "TRANSPORT_FAIL",
+                        StatusCode = 0,
+                        ElapsedMs = started.ElapsedMilliseconds,
+                        RequestedHost = requested.Host,
+                        FinalHost = "",
+                        ContentType = ""
+                    };
+                }
+
+                var status = (int)response.StatusCode;
+                var finalHost = response.ResponseUri == null ? "" : response.ResponseUri.Host;
+                var contentType = response.ContentType ?? "";
+                var sample = "";
+                try
+                {
+                    using (response)
+                        sample = ReadProbeSample(response.GetResponseStream());
+                }
+                catch { }
+
+                return BuildProbeResult(
+                    name,
+                    status,
+                    started.ElapsedMilliseconds,
+                    requested.Host,
+                    finalHost,
+                    contentType,
+                    sample,
+                    ex.Status.ToString()
+                );
+            }
+        }
+
+        private TransportProbeResult BuildProbeResult(
+            string name,
+            int statusCode,
+            long elapsedMs,
+            string requestedHost,
+            string finalHost,
+            string contentType,
+            string bodySample,
+            string transportStatus)
+        {
+            var result = "HTTP_ERROR";
+            if (LooksLikeCorporateProxyBlock(bodySample))
+                result = "PROXY_BLOCK";
+            else if (statusCode >= 200 && statusCode < 400)
+                result = "PASS";
+            else if (statusCode == 401)
+                result = "AUTH_REQUIRED";
+            else if (IsGoogleHost(requestedHost) || IsGoogleHost(finalHost))
+                result = "GOOGLE_REACHABLE";
+            else if (!string.IsNullOrWhiteSpace(transportStatus))
+                result = "HTTP_ERROR";
+
+            var probe = new TransportProbeResult
+            {
+                Name = name,
+                Result = result,
+                StatusCode = statusCode,
+                ElapsedMs = elapsedMs,
+                RequestedHost = requestedHost ?? "",
+                FinalHost = finalHost ?? "",
+                ContentType = contentType ?? ""
+            };
+
+            if (result == "PROXY_BLOCK")
+            {
+                AgentDiagnostics.Write(
+                    "PROBE PROXY_BLOCK name=" + name +
+                    " category=" + ProxyCategory(bodySample) +
+                    " rule=" + ProxyRule(bodySample));
+            }
+            return probe;
+        }
+
+        private void LogProbeResult(TransportProbeResult result)
+        {
+            if (result == null) return;
+            Log(
+                "PROBE " + result.Name +
+                " result=" + result.Result +
+                " http=" + result.StatusCode +
+                " requested_host=" + (result.RequestedHost ?? "") +
+                " final_host=" + (result.FinalHost ?? "") +
+                " content_type=" + SafeProbeToken(result.ContentType) +
+                " ms=" + result.ElapsedMs
+            );
+        }
+
+        private static string ReadProbeSample(Stream stream)
+        {
+            if (stream == null) return "";
+            try
+            {
+                using (var reader = new StreamReader(stream))
+                {
+                    var buffer = new char[8192];
+                    var read = reader.ReadBlock(buffer, 0, buffer.Length);
+                    return read <= 0 ? "" : new string(buffer, 0, read);
+                }
+            }
+            catch
+            {
+                return "";
+            }
+        }
+
+        private static bool LooksLikeCorporateProxyBlock(string body)
+        {
+            if (string.IsNullOrWhiteSpace(body)) return false;
+            return body.IndexOf("Cảnh báo truy cập Website", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   body.IndexOf("URLBlocked.html", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   body.IndexOf("/mwg-internal/", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   body.IndexOf("Block All Other connect form Store", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static string ProxyCategory(string body)
+        {
+            if (string.IsNullOrWhiteSpace(body)) return "unknown";
+            if (body.IndexOf("Software/Hardware", StringComparison.OrdinalIgnoreCase) >= 0) return "Software/Hardware";
+            return "unknown";
+        }
+
+        private static string ProxyRule(string body)
+        {
+            if (string.IsNullOrWhiteSpace(body)) return "unknown";
+            if (body.IndexOf("Block All Other connect form Store", StringComparison.OrdinalIgnoreCase) >= 0)
+                return "Block_All_Other_connect_form_Store";
+            return "unknown";
+        }
+
+        private static bool IsGoogleHost(string host)
+        {
+            if (string.IsNullOrWhiteSpace(host)) return false;
+            var value = host.Trim().ToLowerInvariant();
+            return value == "google.com" ||
+                   value.EndsWith(".google.com", StringComparison.Ordinal) ||
+                   value == "googleapis.com" ||
+                   value.EndsWith(".googleapis.com", StringComparison.Ordinal) ||
+                   value == "googleusercontent.com" ||
+                   value.EndsWith(".googleusercontent.com", StringComparison.Ordinal);
+        }
+
+        private static string SafeProbeToken(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return "";
+            return Regex.Replace(value, "[^A-Za-z0-9._+;=/-]", "_").Substring(0, Math.Min(96, value.Length));
+        }
+
         private void TestOffice()
         {
             Ui(() =>
@@ -466,23 +839,23 @@ namespace SupraInventoryRelayAgent
                 RefreshDirect();
                 Ui(() => _relay.Text = "Relay: Google OK · đang kiểm tra RTDB...");
                 var session = SnapshotSession();
-                var started = Stopwatch.StartNew();
-                RequestJson("GET", JobsUrl(session) + "&shallow=true", null, null);
-                started.Stop();
-                Ui(() => _relay.Text = "Relay: OFFICE PASS / Google + RTDB");
-                Log("OFFICE PASS ssid=" + GetSsid() + " admin=" + session.AppUserId + " instance=" + Short(_agentInstanceId) + " uid=" + Fingerprint(session.UserId) + " rtdb_ms=" + started.ElapsedMilliseconds + ".");
-            }
-            catch (RelayHttpException ex)
-            {
-                if (ex.StatusCode == 403)
+                var result = ProbeHttp("RTDB", JobsUrl(session) + "&shallow=true", null);
+                LogProbeResult(result);
+
+                if (result.Result == "PASS")
                 {
-                    Ui(() => _relay.Text = "Relay: RTDB 403 / Rules");
-                    Log("OFFICE RTDB_PERMISSION_DENIED HTTP 403. HTTPS tới Firebase đã thông; kiểm tra D075 shared Rules/ADMIN claims. detail=" + ex.Detail);
+                    Ui(() => _relay.Text = "Relay: OFFICE PASS / Google + RTDB");
+                    Log("OFFICE PASS ssid=" + GetSsid() + " admin=" + session.AppUserId + " instance=" + Short(_agentInstanceId) + " rtdb_ms=" + result.ElapsedMs + ".");
+                }
+                else if (result.Result == "PROXY_BLOCK")
+                {
+                    Ui(() => _relay.Text = "Relay: OFFICE PROXY BLOCK / RTDB");
+                    Log("OFFICE PROXY_BLOCK RTDB http=" + result.StatusCode + " host=" + result.FinalHost + ".");
                 }
                 else
                 {
-                    Ui(() => _relay.Text = "Relay: HTTP " + ex.StatusCode);
-                    Log("OFFICE HTTP_FAIL " + ex.StatusCode + " detail=" + ex.Detail);
+                    Ui(() => _relay.Text = "Relay: RTDB " + result.Result + " / HTTP " + result.StatusCode);
+                    Log("OFFICE RTDB_FAIL result=" + result.Result + " http=" + result.StatusCode + ".");
                 }
             }
             catch (Exception ex)
