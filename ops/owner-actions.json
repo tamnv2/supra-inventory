@@ -323,7 +323,7 @@
     },
     {
       "id": "OA009",
-      "status": "WAITING_D087_RELEASE",
+      "status": "OWNER_D087_FIELD_TEST_PENDING",
       "title": "Field-review D087 Agent v12 logs, overlay, minimize and resource footprint",
       "resource_key": "firebase-rtdb-relay-beta",
       "provider": "Physical company Windows laptop + Beta PDA + authorized Supra WMS session",
@@ -347,10 +347,21 @@
         "No WMS mutation occurs and Stable is untouched."
       ],
       "safety": "Beta only. Never share passwords/tokens/session material. WMS confirmation remains unauthorized; D078 transport selection remains pending.",
-      "remaining_owner_action": "Wait for relay-agent-v12 release PASS, then run the field checklist above.",
+      "remaining_owner_action": "Run released relay-agent-v12 on the company laptop and execute the D087 field checklist. Use signed beta-vc52 on PDA where needed. D078 transport selection remains separate and pending.",
       "prerequisites": {
         "source_branch": "feat/d087-agent-logs-overlay-monitor",
+        "merged_pr": 94,
+        "merged_main": "8b0e3ec3fd1a6fffea09e3f4aafd43e544625f58",
+        "agent_release": "relay-agent-v12",
+        "agent_release_verification": "GITHUB_TAG_REF_EXISTS__VERSION_12",
         "android_release": "beta-vc52",
+        "android_next_release_check": "beta-vc53_ABSENT",
+        "pr_project_state_run": 35495453237,
+        "pr_repo_authority_run": 35495453239,
+        "pr_rtdb_rules_run": 35495453228,
+        "pr_agent_run": 35495453233,
+        "pr_ui_guard_run": 35495453255,
+        "pr_android_verify_run": 35495453242,
         "transport": "CURRENT_RTDB_TEMPORARY__FINAL_SELECTION_PENDING_D078"
       }
     }

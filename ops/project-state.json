@@ -13,13 +13,13 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "BETA_SOURCE_D087_AGENT_V12__PR_GATES_PENDING__OWNER_FIELD_TEST_PENDING",
+    "beta": "BETA_RUNTIME_PASS_D087_AGENT_V12_RELEASE__OWNER_FIELD_TEST_PENDING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 7,
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
     "web": "D071_IMMEDIATE_RESPONSE_DENSITY_D072_SYSTEM_STATUS_QUOTA_GUARD_BETA_RUNTIME_PASS__OWNER_REVIEW_PENDING",
-    "android": "D085_RELEASE_PASS__SIGNED_BETA_VC52__AGENT_V12_SOURCE_CANDIDATE__OWNER_FIELD_TEST_PENDING__TRANSPORT_SELECTION_PENDING",
+    "android": "D085_RELEASE_PASS__SIGNED_BETA_VC52__AGENT_V12__OWNER_FIELD_TEST_PENDING__TRANSPORT_SELECTION_PENDING",
     "latest_beta_apk": "beta-vc52",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
     "network_scope": "PDA_INTERNET_SUPPORTED__CURRENT_RTDB_RELAY_TEMPORARILY_UNCHANGED__D078_FINAL_TRANSPORT_SELECTION_PENDING__NO_OFFLINE_BUSINESS_MODE",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D087_SOURCE_CANDIDATE__AGENT_V12__SPLIT_LOGS__OVERLAY_REPAIR__MINIMIZE_TASKBAR__LOCAL_COUNTERS__LIGHT_PRESENCE__D078_TRANSPORT_PENDING__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D087_RELEASE_PASS__AGENT_V12__SPLIT_LOGS__OVERLAY_REPAIR__MINIMIZE_TASKBAR__LOCAL_COUNTERS__LIGHT_PRESENCE__D078_TRANSPORT_PENDING__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -135,7 +135,9 @@
     "D061 Web dark/sidebar/realtime cleanup PR #40 merged at 967365bffa8d518e8ad85d802b14753bc5f4fa1d with Repo Authority Guard, Project State Guard and UI Design Guard PASS; Beta deploy run 35334240991 PASS.",
     "D062 Web final QA PR #42 merged at c874eafccb732c108f466ed7095a14e1f3e39d0e after Repo Authority Guard, Project State Guard and UI Design Guard PASS; Beta deploy run 35347188833 PASS with health/schema, auth/business guards, Web shell and Google OAuth smoke.",
     "D066 Web three-group navigation PR #50 merged at 2e12e6d4e94b195e3b505b3f2abe9822ca91632c; PR Repo Authority, Project State and UI Design guards PASS; main UI Design Guard run 35407227884 PASS; Beta deploy run 35407227911 PASS including Web build, Worker typecheck/deploy, health/schema, auth/business guards, Web shell and Google OAuth start.",
-    "D086 PR #92 merged to main at 207a57be6c4d95ab48d174b8af154f122bec7c5e; main Verify Beta Relay Agent run 35490227885 PASS built/startup-smoked Agent v11 and published prerelease relay-agent-v11. Release asset SUPRA-Inventory-Relay-Test.exe is 148992 bytes with SHA-256 dce3a779c86096a6a82ed1991e385e7e6acea2d9ba75078e8bf2371eb1387659; main UI Design Guard run 35490227907 PASS."
+    "D086 PR #92 merged to main at 207a57be6c4d95ab48d174b8af154f122bec7c5e; main Verify Beta Relay Agent run 35490227885 PASS built/startup-smoked Agent v11 and published prerelease relay-agent-v11. Release asset SUPRA-Inventory-Relay-Test.exe is 148992 bytes with SHA-256 dce3a779c86096a6a82ed1991e385e7e6acea2d9ba75078e8bf2371eb1387659; main UI Design Guard run 35490227907 PASS.",
+    "D087 PR #94 merged to main at 8b0e3ec3fd1a6fffea09e3f4aafd43e544625f58; final PR gates PASS: Project State 35495453237, Repo Authority 35495453239, RTDB Rules 35495453228, Relay Agent 35495453233, UI Design 35495453255 and Android verify 35495453242.",
+    "D087 relay-agent-v12 GitHub tag is published and resolves to VERSION 12. Agent-only RTDB support changes did not advance Android: beta-vc52 remains present and beta-vc53 is absent."
   ],
   "pending_build": [
     "D070 PR guards/merge/Beta deploy for Worker/Web schema migration and alarm automation",
@@ -145,7 +147,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "D087 Owner physical acceptance pending after relay-agent-v12 release: repaired overlay/settings, two-row Laptop/Agent overlay, minimize-to-taskbar, split PDA-Agent/technical logs, local counters, weak-laptop idle footprint, plus unchanged D085 HA/cache/anti-spam and D086 DPAPI session behavior. D078 final transport selection remains separately pending.",
+    "D087 Owner physical acceptance pending for released relay-agent-v12: repaired overlay/settings, two-row Laptop/Agent overlay, minimize-to-taskbar, split PDA-Agent/technical logs, local counters, weak-laptop idle footprint, plus unchanged D085 HA/cache/anti-spam and D086 DPAPI session behavior. D078 final transport selection remains separately pending.",
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
     "Owner acceptance of FIRST_REPORT and PER_PICKER behavior remains field-dependent after runtime PASS.",
     "Stable promotion remains OWNER-GATED."
@@ -158,8 +160,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Complete D087 Agent v12 source/PR/release gates for split logs, overlay repair, taskbar minimize, laptop metrics, local relay counters and lightweight Agent presence; then Owner field-review the released v12 on the company laptop.",
-    "method": "Keep current RTDB relay as temporary transport. Presence only is globally synchronized at bounded cadence; per-machine APK/response counters remain RAM-only. WMS remains signed read-only GET; no confirmation mutation is authorized.",
+    "primary": "Owner field-reviews released relay-agent-v12 with signed beta-vc52: overlay/settings, true click-through, taskbar minimize, both sanitized log streams, two-row Laptop/Agent status, per-machine counters, total online Agent presence and weak-laptop resource footprint.",
+    "method": "Keep current RTDB relay unchanged as temporary transport. Only bounded Agent presence is globally synchronized; APK/response counters remain RAM-only per machine. WMS remains signed read-only GET; no confirmation mutation is authorized.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -430,9 +432,9 @@
   ],
   "active_workstream": {
     "key": "XAC_NHAN_DON_D087",
-    "status": "SOURCE_CANDIDATE__PR_GATES_PENDING",
-    "bootstrap": "MAIN_D086_RELEASE_PASS__D087_OWNER_REQUIREMENT_2026_09_20",
-    "next_step": "Complete D087 Agent v12 branch/PR gates, merge and publish prerelease. Then Owner field-review overlay/settings, two log streams, minimize-to-taskbar, two-row metrics and lightweight presence. Do not select final transport before D078 Office evidence. WMS remains read-only; Stable remains OWNER-GATED."
+    "status": "RELEASE_PASS__OWNER_FIELD_TEST_PENDING",
+    "bootstrap": "MAIN_D087_RELEASE_PASS__AGENT_V12__2026_09_20",
+    "next_step": "Owner field-review released relay-agent-v12 on the company Windows laptop with beta-vc52 PDA where needed. Validate repaired overlay/settings, click-through, minimize-to-taskbar, split logs, two-row laptop/Agent metrics, bounded Agent-online presence and idle resource footprint. D078 final transport remains pending; WMS remains read-only; Stable OWNER-GATED."
   },
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {

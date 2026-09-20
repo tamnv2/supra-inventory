@@ -163,3 +163,17 @@ Owner field review of v11 exposed an overlay initialization failure while ADMIN 
 - Global synchronization is intentionally limited to tiny Agent-presence metadata; per-machine APK/response counters are RAM-only.
 - Presence cadence is 30s write / 60s read / 90s freshness on the existing temporary Beta RTDB carrier.
 - D078 final transport choice remains pending physical Office evidence; WMS is read-only and Stable remains OWNER-GATED.
+
+
+## D087 release checkpoint
+
+D087 Windows Agent v12 is technically released on Beta source authority.
+
+- Runtime/code PR #94 merged to `main` at `8b0e3ec3fd1a6fffea09e3f4aafd43e544625f58`.
+- Final PR gates PASS: Project State `35495453237`, Repo Authority `35495453239`, Beta RTDB Rules `35495453228`, Verify Beta Relay Agent `35495453233`, UI Design `35495453255`, Android verify `35495453242`.
+- GitHub release tag `relay-agent-v12` exists and resolves to Agent VERSION `12`.
+- Exact v12 binary asset id/size/SHA is not recorded here because the connected GitHub capability did not expose release-asset metadata; do not infer or copy v11 values.
+- Signed Android remains `beta-vc52`; `beta-vc53` is absent. D087 therefore does not force an unnecessary PDA update.
+- D087 split sanitized PDA↔Agent audit from technical-AI diagnostics, repaired retryable overlay initialization, restored minimize-to-taskbar without X, added two-row Laptop/Agent overlay and bounded Agent-online presence. Per-machine APK/response counters remain RAM-only.
+- Next physical checkpoint is Owner review of released v12 on the company laptop/PDA.
+- D078 final PDA ↔ Agent transport remains pending physical Office evidence. Current RTDB carrier remains temporary. WMS remains GET-only; Stable remains OWNER-GATED.
