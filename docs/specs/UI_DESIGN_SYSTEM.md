@@ -435,3 +435,22 @@ The Windows Relay Agent is a professional utility surface, not a diagnostic cont
 - Locked overlay remains true click-through; unlocked overlay remains draggable.
 - An initialization error must not permanently gray out overlay settings; the settings action remains available for retry.
 - Laptop metrics are local/coarse. GPU sampling is less frequent than the normal local status tick and no provider-usage monitoring loop is introduced.
+
+## D088 — unified product naming, tools entry, tray lifecycle and configurable overlay
+
+Product-facing names are:
+- Web: **Website nghiệp vụ Inventory**.
+- Android Beta: **1291 Beta**.
+- Windows utility: **Agent Auto Confirm Pick Pack**.
+
+The selected D088 icon motif is shared across Web, Android launcher and Windows Agent: dark navy base, cyan/blue upper transfer arrow with scanner, green lower transfer arrow with warehouse/boxes. Platform-native rendering may simplify geometry but must keep the same recognizable motif.
+
+Admin/Root Web adds **HỆ THỐNG → Công cụ**. The first tool card is Agent Auto Confirm Pick Pack and provides its current Beta version, Windows/user-level requirements, direct official GitHub download and concise operating instructions. The tools page is an operational surface; it must not re-enable the quota-heavy system-status polling removed by D072.
+
+Agent main-window minimize is **tray-only**: minimize hides the window from the Windows taskbar while the process remains visible in System Tray; tray restore returns the normal window. The titlebar still has no close/X action and protected shutdown remains unchanged.
+
+Overlay behavior:
+- locked: true cross-process click-through/no-activate;
+- unlocked: draggable and resizable from edges/corners;
+- settings expose numeric width/height plus full Windows color selection for background and text, in addition to opacity/lock;
+- position, size, colors, opacity, visibility and lock are local non-secret persisted settings.
