@@ -586,3 +586,24 @@ Technical/source acceptance requires all of the following:
 12. Stable remains untouched and OWNER-GATED.
 
 Owner field acceptance then checks the visible names/icons, reopen-without-login behavior, cross-Web/Android session replacement, direct tool download, tray-only minimize/restore, and real overlay resize/color/click-through on the company Windows laptop.
+
+## D089 acceptance
+
+D089 is PASS only after automated source/build/runtime gates and Owner field re-test.
+
+Automated checks:
+- Web uses the committed approved icon asset and contains separate service/realtime header states.
+- Tools dark-theme completion is present.
+- Android manifest uses the approved icon asset and the signed release gate remains monotonic.
+- Agent v15 startup-smoke passes.
+- Agent source contains per-user single-instance mutex plus activation event; startup-smoke remains exempt.
+- Overlay master visibility plus granular Laptop/Agent options persist locally.
+- WMS POST/PUT/PATCH/DELETE remains forbidden.
+
+Owner field re-test:
+1. Compare Web, Android and EXE/tray icon to the selected icon #4.
+2. With API reachable but realtime interrupted, Web keeps `Dịch vụ: Hoạt động` and independently shows realtime loss.
+3. In dark mode, Tools contains no light/white fact tiles and all text/controls remain readable.
+4. Toggle Overlay off/on; select/deselect individual Laptop/Agent metrics; restart Agent and verify persistence.
+5. With Agent already running/tray-hidden, open EXE again; no second tray/overlay/runtime is created and the existing instance restores.
+6. Stable remains untouched; D078 remains pending; WMS stays read-only.
