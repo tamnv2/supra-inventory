@@ -327,3 +327,14 @@ Normal technical controls must not be scattered across the overview.
 - Missing/expired/invalid session or failed session preload: clear unusable session state and locally open the dedicated WMS browser for authorized reacquisition.
 - Remote PDA jobs never open the browser.
 
+
+
+## D087 — Windows Agent logs and overlay controls
+
+- Cài đặt > Logs separates **PDA ↔ Agent** and **Kỹ thuật AI**. Each surface can open its own sanitized local file.
+- PDA ↔ Agent log records bounded operational correlation such as Picker/user identity, device/Agent identity, request id, approved five-digit Picklist suffix, result/cache/timing and lock metadata.
+- Kỹ thuật AI records sanitized lifecycle/network/HTTP/error/runtime diagnostics. Neither log may contain credentials or WMS session/signature values.
+- Cài đặt > Bảng nổi remains selectable even after an overlay initialization fault and may retry initialization.
+- Main Agent shell has no close/X action but includes an explicit minimize-to-taskbar action. Protected tray shutdown remains the only normal exit.
+- Overlay row 1 is Laptop status: CPU, Memory, Disk, WiFi/Ethernet + Internet state, GPU where available.
+- Overlay row 2 is Agent status: total online Agents and current-machine runtime APK received/Agent response counts.
