@@ -142,7 +142,7 @@ def main() -> None:
     require(service_index, "app_base_role: user.base_role", "D075 immutable base-role Firebase custom claim")
     require(relay_rules, "auth.token.app_base_role == 'ADMIN'", "D075 real ADMIN RTDB rule")
     require(relay_rules, "newData.child('agent_admin_user_id').val() == auth.token.app_user_id", "D075 ADMIN ACK rule binding")
-    require(relay_agent_config, "AgentBuild = 13", "D088 Agent build channel")
+    require(relay_agent_config, "AgentBuild = 14", "D088 Agent build channel")
     require(relay_agent, "var statusCode = (int)response.StatusCode", "D077 capture HTTP status before dispose")
     require(relay_agent, "ProbeAllTransports", "D078 Test all transport probe")
     require(relay_agent, "AgentConfig.FirestoreProbeUrl", "D078 Firestore probe")
@@ -305,7 +305,7 @@ def main() -> None:
     require(status_overlay, "BackgroundArgb", "D088 overlay background persistence")
     require(status_overlay, "TextArgb", "D088 overlay text-color persistence")
     require(overlay_settings, "ColorDialog", "D088 full overlay color picker")
-    require(relay_agent_config, 'AgentExeAsset = "Agent Auto Confirm Pick Pack.exe"', "D088 canonical Agent asset name")
+    require(relay_agent_config, 'AgentExeAsset = "Agent.Auto.Confirm.Pick.Pack.exe"', "D088 canonical Agent asset name")
 
     # F22: launcher actions have distinct targets and Web honors direct hash routes.
     require(launcher, 'openWeb("/#hr"', "HR deep link")
