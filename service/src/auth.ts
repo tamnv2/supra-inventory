@@ -3,6 +3,8 @@ export type AppRole = "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
 export interface FirebaseIdentity {
   uid: string;
   email?: string;
+  sessionChannel: "WEB" | "ANDROID" | "AGENT" | "";
+  sessionGeneration: number;
 }
 
 interface ServiceAccountJson {
@@ -22,6 +24,8 @@ interface FirebaseJwtClaims {
   exp?: number;
   iat?: number;
   email?: string;
+  app_session_channel?: string;
+  app_session_generation?: string | number;
 }
 
 interface FirebaseJwk extends JsonWebKey {
@@ -210,7 +214,18 @@ async function verifyWithKey(
   }
   if (!claims.sub || claims.sub.length > 128) throw new Error("firebase_token_subject_invalid");
   if (!claims.exp || claims.exp <= now || !claims.iat || claims.iat > now + 300) throw new Error("firebase_token_expired_or_invalid");
-  return { uid: claims.sub, email: claims.email };
+  const rawChannel = String(claims.app_session_channel || "").toUpperCase();
+  const sessionChannel =
+    rawChannel === "WEB" || rawChannel === "ANDROID" || rawChannel === "AGENT"
+      ? rawChannel
+      : "";
+  const sessionGeneration = Number(claims.app_session_generation || 0);
+  return {
+    uid: claims.sub,
+    email: claims.email,
+    sessionChannel,
+    sessionGeneration: Number.isFinite(sessionGeneration) ? sessionGeneration : 0,
+  };
 }
 
 export function readBearerToken(request: Request): string | null {
