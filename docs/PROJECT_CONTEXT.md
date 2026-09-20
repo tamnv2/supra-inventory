@@ -126,3 +126,15 @@ D085 does **not** choose the final PDA ↔ Agent transport. The existing Beta RT
 
 WMS session reuse is based on the dedicated browser profile with raw captured request/session values held only in Agent RAM. D085 does not authorize confirmation or any WMS mutation. Stable remains OWNER-GATED.
 
+## D086 current Windows Agent direction
+
+D086 supersedes D085 only for local Windows Agent session/UI/lifecycle mechanics.
+
+- Captured HY1 WMS request-session material may be persisted **only** in a DPAPI `CurrentUser` encrypted local file on the authorized company/user laptop. Company WMS username/password remain browser-only.
+- Startup order is file-first read-only validation → all-date Picklist preload → continue without browser when valid; otherwise clear unusable local state and open the dedicated browser locally for reacquisition. Successful real preload/refresh renews the encrypted file.
+- Agent shell is `Tổng quan / Cài đặt`; Overview keeps Supra login/ready, connection status and concise model information, while ADMIN auth/tests/overlay/logs are settings.
+- Locked overlay must pass mouse input to the actual application below it.
+- Agent is intended to live for the Windows user session: no normal close-box, ADMIN-password protected graceful exit, HKCU autostart and a best-effort sleep-only watchdog. User-mode software cannot truthfully guarantee protection against the same user killing both Agent and watchdog.
+- Background UI monitoring is coarse to protect weak laptops. D085's 3-second HA heartbeat remains required for the approved 10-second failover.
+- D078 final PDA-Agent transport choice remains pending; current RTDB is unchanged. WMS remains GET-only and Stable remains OWNER-GATED.
+
