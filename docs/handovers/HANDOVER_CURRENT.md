@@ -106,4 +106,4 @@ Primary canonical files:
 - `ops/owner-actions.json`
 - `docs/OPERATING_PROTOCOL.md`
 
-No manual chat-memory reconstruction is authoritative. Stable remains OWNER-GATED.
+No manual end-of-session handover is required. No manual chat-memory reconstruction is authoritative. Stable remains OWNER-GATED.
