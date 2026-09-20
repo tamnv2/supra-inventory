@@ -1792,6 +1792,7 @@ function renderLegacyVersions(): string {
 
 const AGENT_RELEASE_TAG = "relay-agent-v13";
 const AGENT_RELEASE_URL = "https://github.com/tamnv2/supra-inventory/releases/tag/" + AGENT_RELEASE_TAG;
+const AGENT_DOWNLOAD_URL = "https://github.com/tamnv2/supra-inventory/releases/download/" + AGENT_RELEASE_TAG + "/Agent%20Auto%20Confirm%20Pick%20Pack.exe";
 
 function renderTools(): string {
   return `<section class="ops-route tools-workspace">
@@ -1811,7 +1812,7 @@ function renderTools(): string {
           <div><span>Cập nhật</span><strong>Tự động qua GitHub</strong></div>
         </div>
         <div class="tool-actions">
-          <a class="primary tool-download" href="${AGENT_RELEASE_URL}" target="_blank" rel="noopener noreferrer">Tải Agent</a>
+          <a class="primary tool-download" href="${AGENT_DOWNLOAD_URL}">Tải Agent</a>
           <button type="button" class="secondary" id="copy-agent-link">Sao chép link</button>
         </div>
       </article>
@@ -2344,7 +2345,7 @@ function bindSection(): void {
   }));
   document.querySelector<HTMLButtonElement>("#copy-agent-link")?.addEventListener("click", async () => {
     try {
-      await navigator.clipboard.writeText(AGENT_RELEASE_URL);
+      await navigator.clipboard.writeText(AGENT_DOWNLOAD_URL);
       setNotice("success", "Đã sao chép link tải Agent.");
     } catch {
       setNotice("warning", "Không sao chép tự động được. Hãy dùng nút Tải Agent.");
