@@ -116,3 +116,12 @@ Picker clients must not infer, request or receive another Picker's event payload
 - Windows user-mode auto-start grants no application privilege. Agent application access still requires D075 real ADMIN authority.
 - WMS/browser credentials remain separate from application RBAC and are not persisted by the Agent as raw session/header material.
 
+## D086 — encrypted WMS session and protected Agent exit
+
+- D086 overrides the earlier RAM-only persistence wording for the **captured WMS request-session snapshot only**. The Agent may store that snapshot locally as a Windows DPAPI `CurrentUser` encrypted file on the authorized workstation so startup can validate/reuse it without browser recapture.
+- Company WMS username/password are still never entered into or stored by the Agent. The encrypted file contains only the already-authorized request-session material required by the approved read-only HY1 calls.
+- The encrypted WMS session file is local-only and must never be copied to GitHub, RTDB, logs, support artifacts, overlay settings or Android.
+- SUPRA Inventory application authority is unchanged: the Agent still requires a real immutable `base_role=ADMIN` + effective `ADMIN`.
+- A graceful Agent shutdown requires the currently authenticated ADMIN's locally protected password verifier. The verifier is salted/derived and itself DPAPI-protected; plaintext password storage/logging is forbidden.
+- Runtime watchdog/autostart changes process persistence only and grant no extra application/WMS privilege.
+
