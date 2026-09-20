@@ -2,7 +2,7 @@ param([Parameter(Mandatory=$true)][string]$OutputPath)
 
 Add-Type -AssemblyName System.Drawing
 
-$sourcePath = Join-Path $PSScriptRoot "app-icon.jpg"
+$sourcePath = Join-Path $PSScriptRoot "app-icon.png"
 if (-not (Test-Path $sourcePath)) {
   throw "Missing approved D089 icon asset: $sourcePath"
 }
