@@ -1968,7 +1968,7 @@ namespace SupraInventoryRelayAgent
                 _acked.Add(jobId);
             }
 
-            Task.Run(() => HandlePicklistLookupJob(jobId, suffix, pickerUid, pickerUserId));
+            Task.Run(() => HandlePicklistLookupJob(jobId, suffix, pickerUid, pickerUserId, clientSentAtMs));
         }
 
         private bool MarkJobSwitching(string jobId)
@@ -2000,7 +2000,7 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private void HandlePicklistLookupJob(string jobId, string suffix, string pickerUid, string pickerUserId)
+        private void HandlePicklistLookupJob(string jobId, string suffix, string pickerUid, string pickerUserId, long clientSentAtMs)
         {
             var session = SnapshotSession();
             try
@@ -2011,6 +2011,18 @@ namespace SupraInventoryRelayAgent
                     return;
                 }
 
+                Interlocked.Increment(ref _localPdaRequests);
+                Audit(
+                    "PDA_REQUEST request=" + Short(jobId) +
+                    " picker=" + pickerUserId +
+                    " picker_uid=" + Fingerprint(pickerUid) +
+                    " picklist_last5=" + suffix +
+                    " client_sent_at_ms=" + clientSentAtMs +
+                    " admin=" + session.AppUserId +
+                    " machine=" + Environment.MachineName +
+                    " instance=" + Short(_agentInstanceId) +
+                    " network=" + GetSsid());
+
                 var rate = _pickerRateLimiter.Check(session, pickerUid, pickerUserId);
                 if (rate.IsLocked)
                 {
@@ -2018,6 +2030,9 @@ namespace SupraInventoryRelayAgent
                         session,
                         jobId,
                         pickerUserId,
+                        suffix,
+                        pickerUid,
+                        clientSentAtMs,
                         "PICKER_LOCKED",
                         "RATE_LIMIT",
                         "NONE",
@@ -2116,6 +2131,9 @@ namespace SupraInventoryRelayAgent
                         session,
                         jobId,
                         pickerUserId,
+                        suffix,
+                        pickerUid,
+                        clientSentAtMs,
                         "LOOKUP_ERROR",
                         "ERROR",
                         "NONE",
@@ -2133,6 +2151,9 @@ namespace SupraInventoryRelayAgent
             AgentSession session,
             string jobId,
             string pickerUserId,
+            string picklistLast5,
+            string pickerUid,
+            long clientSentAtMs,
             string result,
             string cacheMode,
             string route,
@@ -2163,6 +2184,26 @@ namespace SupraInventoryRelayAgent
             };
 
             RequestJson("PATCH", JobUrl(session, jobId), _json.Serialize(patch), "application/json");
+            Interlocked.Increment(ref _localAgentResponses);
+            Audit(
+                "AGENT_RESPONSE request=" + Short(jobId) +
+                " picker=" + pickerUserId +
+                " picker_uid=" + Fingerprint(pickerUid) +
+                " picklist_last5=" + picklistLast5 +
+                " client_sent_at_ms=" + clientSentAtMs +
+                " result=" + (result ?? "LOOKUP_ERROR") +
+                " cache=" + (cacheMode ?? "NONE") +
+                " matches=" + matches +
+                " lookup_ms=" + lookupMs +
+                " route=" + (route ?? "NONE") +
+                " http=" + http +
+                " strikes=" + rate.StrikeCount +
+                " lock_level=" + rate.LockLevel +
+                " locked_until_ms=" + rate.LockedUntilMs +
+                " admin=" + session.AppUserId +
+                " machine=" + Environment.MachineName +
+                " instance=" + Short(_agentInstanceId) +
+                " network=" + GetSsid());
 
             Log(
                 "PICKLIST LOOKUP ACK request=" + Short(jobId) +
@@ -2656,6 +2697,17 @@ namespace SupraInventoryRelayAgent
             {
                 _log.Items.Insert(0, DateTime.Now.ToString("HH:mm:ss") + "  " + safe);
                 while (_log.Items.Count > 120) _log.Items.RemoveAt(_log.Items.Count - 1);
+            });
+        }
+
+        private void Audit(string message)
+        {
+            var safe = AgentDiagnostics.Sanitize(message);
+            AgentDiagnostics.WriteAudit(safe);
+            Ui(() =>
+            {
+                _auditLog.Items.Insert(0, DateTime.Now.ToString("HH:mm:ss") + "  " + safe);
+                while (_auditLog.Items.Count > 120) _auditLog.Items.RemoveAt(_auditLog.Items.Count - 1);
             });
         }
 
