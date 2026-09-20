@@ -766,19 +766,35 @@ namespace SupraInventoryRelayAgent
                 if (compact.Length > 63) compact = compact.Substring(0, 63);
                 _tray.Text = compact;
                 _trayStatusItem.Text = metrics.MenuText();
-                if (_statusOverlay != null) _statusOverlay.UpdateText(metrics.Compact());
+
+                var online = _leaderCoordinator == null ? (HasUsableWmsSession() ? 1 : 0) : _leaderCoordinator.OnlineAgentCount;
+                var state = _leaderCoordinator == null
+                    ? "CHƯA PHỐI HỢP"
+                    : (_leaderCoordinator.IsLeader ? "ACTIVE" :
+                       (string.IsNullOrWhiteSpace(_leaderCoordinator.CurrentLeaderId) ? "STANDBY" : "STANDBY"));
+                var agentLine =
+                    "Agent | Online " + online +
+                    " | Máy này (phiên này): APK " + Interlocked.Read(ref _localPdaRequests) +
+                    " | phản hồi " + Interlocked.Read(ref _localAgentResponses) +
+                    " | " + state;
+
+                if (_statusOverlay != null)
+                    _statusOverlay.UpdateMetrics(metrics.LaptopLine(), agentLine);
             }
             catch
             {
                 _tray.Text = "SUPRA Agent";
                 _trayStatusItem.Text = "Máy: chưa đọc được tài nguyên";
-                if (_statusOverlay != null) _statusOverlay.UpdateText("SUPRA | chưa đọc được tài nguyên máy");
+                if (_statusOverlay != null)
+                    _statusOverlay.UpdateMetrics("Laptop | chưa đọc được tài nguyên máy", "Agent | chưa đọc được trạng thái");
             }
         }
 
-        private void InitializeStatusOverlaySafe()
+        private void InitializeStatusOverlaySafe(bool retry = false)
         {
-            if (_statusOverlay != null || _overlayInitFailed) return;
+            if (_statusOverlay != null) return;
+            if (_overlayInitFailed && !retry) return;
+            _overlayInitFailed = false;
             try
             {
                 var overlay = new StatusOverlayForm(_overlaySettings, OverlaySettingsFile);
@@ -792,14 +808,15 @@ namespace SupraInventoryRelayAgent
                 _overlayInitFailed = true;
                 AgentDiagnostics.Write(
                     "OVERLAY init=FAIL type=" + ex.GetType().Name +
-                    " message=" + AgentDiagnostics.Sanitize(ex.Message));
+                    " message=" + AgentDiagnostics.Sanitize(ex.Message) +
+                    " detail=" + AgentDiagnostics.Sanitize(ex.ToString()));
             }
             RefreshOverlayMenu();
         }
 
         private void ToggleOverlayVisibility()
         {
-            InitializeStatusOverlaySafe();
+            InitializeStatusOverlaySafe(true);
             if (_statusOverlay == null) return;
             try { _statusOverlay.SetOverlayVisible(!_statusOverlay.OverlayVisible); }
             catch (Exception ex)
@@ -810,7 +827,7 @@ namespace SupraInventoryRelayAgent
 
         private void ToggleOverlayLock()
         {
-            InitializeStatusOverlaySafe();
+            InitializeStatusOverlaySafe(true);
             if (_statusOverlay == null) return;
             try { _statusOverlay.SetLocked(!_statusOverlay.IsLocked); }
             catch (Exception ex)
@@ -821,7 +838,7 @@ namespace SupraInventoryRelayAgent
 
         private void SetOverlayOpacitySafe(double opacity)
         {
-            InitializeStatusOverlaySafe();
+            InitializeStatusOverlaySafe(true);
             if (_statusOverlay == null) return;
             try { _statusOverlay.SetOverlayOpacity(opacity); }
             catch (Exception ex)
@@ -832,11 +849,11 @@ namespace SupraInventoryRelayAgent
 
         private void OpenOverlaySettings()
         {
-            InitializeStatusOverlaySafe();
+            InitializeStatusOverlaySafe(true);
             if (_statusOverlay == null)
             {
                 MessageBox.Show(
-                    "Bảng nổi chưa khởi tạo được. Mở log Agent để xem chẩn đoán.",
+                    "Bảng nổi chưa khởi tạo được. Có thể thử lại ngay; mở log Kỹ thuật AI để xem chẩn đoán.",
                     "SUPRA Inventory",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
@@ -874,12 +891,13 @@ namespace SupraInventoryRelayAgent
 
             _trayOverlayVisibleItem.Checked = visible;
             _trayOverlayLockItem.Checked = locked;
-            _trayOverlayVisibleItem.Enabled = !_overlayInitFailed;
-            _trayOverlayLockItem.Enabled = !_overlayInitFailed;
-            _trayOverlayOpacityMenu.Enabled = !_overlayInitFailed;
-            _overlaySettingsButton.Enabled = !_overlayInitFailed;
+            _trayOverlayVisibleItem.Enabled = true;
+            _trayOverlayLockItem.Enabled = true;
+            _trayOverlayOpacityMenu.Enabled = true;
+            _overlaySettingsButton.Enabled = true;
+            _overlaySettingsButton.Text = _overlayInitFailed ? "Thử lại cài đặt bảng nổi" : "Cài đặt bảng nổi";
             if (_overlayInitFailed)
-                _trayOverlayVisibleItem.Text = "Bảng nổi lỗi - xem log";
+                _trayOverlayVisibleItem.Text = "Bảng nổi lỗi - bấm để thử lại";
             else
                 _trayOverlayVisibleItem.Text = "Hiển thị bảng nổi";
 
