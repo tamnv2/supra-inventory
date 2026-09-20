@@ -253,3 +253,16 @@ The Owner explicitly confirmed that the D089 result **đã đạt** after field 
 5. Windows Agent single-instance behavior is accepted: duplicate launch does not create a second runtime and restores/activates the existing instance.
 
 Accepted released artifacts remain `beta-vc54` and `relay-agent-v15`. This acceptance does not select D078 final PDA ↔ Agent transport, does not authorize WMS mutation, and does not authorize Stable. Current RTDB remains temporary, WMS remains signed GET-only, and Stable remains OWNER-GATED.
+
+## D090 — Office transport boundary from physical company-network evidence
+
+Status: **ACTIVE — OWNER CONFIRMED 2026-09-21**.
+
+D090 closes the remaining uncertainty about whether the confirmation workstream should spend more field time probing non-Google public project endpoints from the Office network.
+
+- Owner confirms the Office network should be treated as an allowlisted environment that reaches **internal Supra services plus only some Google services**. Do not spend further field cycles probing the Cloudflare Worker/custom project host for PDA ↔ Agent transport on Office; it is treated as blocked/unavailable for this workstream.
+- Physical Agent evidence on Office confirms Supra WMS UI/API read-only access works, Firebase Secure Token authentication remains reachable, while Firebase Realtime Database is repeatedly blocked by the corporate proxy with HTTP 403. RTDB therefore remains unsuitable as the Office carrier even though it may still work on the Internet-capable PDA network.
+- The same sanitized probe matrix shows reachability to the Google-hosted Firestore, Apps Script, Sheets and Drive API hosts. Host reachability is **not** equivalent to a production relay PASS.
+- D078 transport discovery is narrowed to **Google-hosted candidates only**. Firestore remains the preferred next candidate already identified by D078 because the host is reachable and the existing Firebase identity can be reused, but it is not selected as final transport until an authenticated Beta relay proof validates the required request/response, Agent coordination/failover and bounded quota behavior.
+- Do not provision/adopt a new relay resource merely because its host is reachable. Any new resource must first be added to project scope/resource registry in the same approved change set.
+- Current Beta RTDB remains temporary for non-Office/Internet testing only until a replacement carrier is proven. WMS remains signed GET-only with no confirmation/mutation. Stable remains OWNER-GATED.
