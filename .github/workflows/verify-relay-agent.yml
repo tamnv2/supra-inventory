@@ -84,7 +84,7 @@ jobs:
           if ($overlaySettings -notmatch 'ColorDialog' -or $overlaySettings -notmatch 'NumericUpDown' -or $overlaySettings -notmatch 'Bật hiển thị Overlay' -or $overlaySettings -notmatch 'Thông tin Laptop' -or $overlaySettings -notmatch 'Thông tin Agent') { throw "D089 professional overlay checklist UI guard failed." }
           if ($project -notmatch '<AssemblyName>Agent Auto Confirm Pick Pack</AssemblyName>' -or $project -notmatch '<ApplicationIcon>app.ico</ApplicationIcon>') { throw "D088 EXE name/icon guard failed." }
           if ($iconScript -notmatch 'app-icon\.jpg' -or $iconScript -notmatch 'HighQualityBicubic') { throw "D089 approved Agent icon source guard failed." }
-          if (-not (Test-Path "relay-agent/app-icon.jpg")) { throw "D089 approved Agent icon asset missing." }
+          if (-not (Test-Path "relay-agent/app-icon.png")) { throw "D089 approved Agent icon asset missing." }
           if ($leader -notmatch 'PresenceHeartbeatIntervalMs\s*=\s*30000' -or $leader -notmatch 'PresenceReadIntervalMs\s*=\s*60000' -or $leader -notmatch 'PresenceFreshMs\s*=\s*90000') { throw "D087 Agent presence cadence guard failed." }
           if ($rules -notmatch 'coordination' -or $rules -notmatch 'rate_limits' -or $rules -notmatch 'PICKER_LOCKED' -or $rules -notmatch 'SWITCHING') { throw "D085 RTDB Rules guard failed." }
 
