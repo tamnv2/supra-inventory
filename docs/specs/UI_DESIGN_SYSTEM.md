@@ -480,3 +480,8 @@ Unlocked overlay retains drag/resize and complete background/text color selectio
 - Main UI Design Guard run `35528647554` PASS on source `c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee`.
 - Signed Android `beta-vc54` and Windows `relay-agent-v15` are the released D089 visual targets for Owner field comparison.
 - Tools dark-theme completion and separate `Dịch vụ` / `Đồng bộ` header states are technically released; final physical/visual acceptance remains Owner field-dependent.
+
+
+### D089 Owner visual acceptance — PASS
+
+Owner accepted the D089 visual/runtime presentation on 2026-09-21. The approved icon #4, Web Service/Sync status presentation, Tools dark-theme completion, and Agent Overlay configuration are the current accepted Beta UI baseline. Future changes must preserve these behaviors unless superseded by a later explicit Owner requirement.
