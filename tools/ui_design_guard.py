@@ -107,7 +107,7 @@ checks = {
     "web_d058_credit": "Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291" in WEB_APP,
     "web_d059_corporate_header": all(token in WEB_APP for token in [
         "CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN",
-        "Website nghiệp vụ Inventory 1291",
+        "Website nghiệp vụ Inventory",
         "Dịch vụ:",
         "Cập nhật:",
     ]),
@@ -170,7 +170,7 @@ checks = {
     "web_d065_three_group_nav_ia": all(token in WEB_APP for token in [
         'navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"]])',
         'navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"], ["sla", "Thời gian xử lý"]])',
-        'navGroup("HỆ THỐNG", [["logs", "Nhật ký"]])',
+        'navGroup("HỆ THỐNG", [["logs", "Nhật ký"], ["tools", "Công cụ"]])',
         'if (value.role === "PICKER") return "picker";\n  return "operations";',
     ]) and all(token not in WEB_APP for token in [
         'navGroup("DỮ LIỆU"',
@@ -202,7 +202,7 @@ checks = {
     "web_d066_nav_children_within_owner_limit": all(token in WEB_APP for token in [
         'navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"]])',
         'navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"], ["sla", "Thời gian xử lý"]])',
-        'navGroup("HỆ THỐNG", [["logs", "Nhật ký"]])',
+        'navGroup("HỆ THỐNG", [["logs", "Nhật ký"], ["tools", "Công cụ"]])',
         'return navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"]]);',
     ]),
     "web_d063_merged_workspaces": all(token in WEB_APP for token in [
@@ -233,8 +233,8 @@ checks = {
     ]),
     "service_d064_provider_cache": "PROVIDER_CACHE_MS = 5 * 60_000" in SERVICE_SYSTEM_STATUS and "provider_cache_seconds: includeProviders ? PROVIDER_CACHE_MS / 1000 : null" in SERVICE_SYSTEM_STATUS,
     "web_d072_system_status_excluded": all(token in WEB_APP for token in [
-        'navGroup("HỆ THỐNG", [["logs", "Nhật ký"]])',
-        '"picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "account"',
+        'navGroup("HỆ THỐNG", [["logs", "Nhật ký"], ["tools", "Công cụ"]])',
+        '"picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "tools", "account"',
     ]) and all(token not in WEB_APP for token in [
         "getSystemStatus(",
         'navButton("system"',
