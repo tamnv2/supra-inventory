@@ -2739,7 +2739,7 @@ window.addEventListener("supra:realtime-status", (event) => {
     node.textContent = realtimeState === "connected"
       ? `Đồng bộ: Đã kết nối${recovering}`
       : realtimeState === "offline"
-        ? "Đồng bộ: Mất kết nối"
+        ? "Đồng bộ: Mất realtime"
         : `Đồng bộ: Đang kết nối${recovering}`;
   }
 });
