@@ -5,40 +5,31 @@
 ## Current markers
 
 - Project: `supra-inventory`
-- SQLite schema source target: `8`
-- Latest signed Beta APK currently live: `beta-vc52`
-- Web: `D088_SOURCE_CANDIDATE__WEBSITE_NGHIEP_VU_INVENTORY__TOOLS__PERSISTENT_SINGLE_SESSION`
-- Android/Agent: `D088_SOURCE_CANDIDATE__1291_BETA__SIGNED_RELEASE_PENDING__AGENT_V13_PENDING__TRANSPORT_SELECTION_PENDING`
-- Beta: `D088_SOURCE_CANDIDATE__CI_PENDING__LIVE_D087_AGENT_V12`
+- SQLite schema: `8`
+- Latest signed Beta APK: `beta-vc53`
+- Web: `D088_RUNTIME_PASS__WEBSITE_NGHIEP_VU_INVENTORY__TOOLS__PERSISTENT_SINGLE_SESSION`
+- Android/Agent: `D088_SIGNED_BETA_VC53__1291_BETA__AGENT_V14_RELEASE_REPAIR_PENDING__TRANSPORT_SELECTION_PENDING`
+- Beta: `D088_RUNTIME_PASS__SIGNED_BETA_VC53__AGENT_V14_RELEASE_REPAIR_PENDING`
 - Stable: `OWNER_GATED`
 
-## D088 readiness
+## D088 runtime/release checkpoint
 
-Status: **SOURCE CANDIDATE / PR-CI-RELEASE PENDING**.
+Runtime/UI/Android are PASS on main `8084928724110e7186867b8b16d79462134951aa`:
+- Beta deploy run `35505678533` — PASS; schema 8/runtime Web/service gates passed.
+- UI Design run `35505678481` — PASS.
+- Verify Beta Android run `35505678482` — PASS.
+- Signed Android release `beta-vc53`, name **1291 Beta 0.2.0-beta.53**.
+- APK asset id `576632055`, size `9333938`, SHA-256 `7cc0f5ec8ae0a9c7e61a985fcb8dcb32cb7e72934407efb4f19a0c7810875fa3`.
 
-Implemented on `feat/d088-unified-brand-single-session-tools-overlay`:
-- Web product name **Website nghiệp vụ Inventory**.
-- Android Beta product name **1291 Beta**.
-- Windows utility **Agent Auto Confirm Pick Pack**, target `relay-agent-v14`.
-- shared D088 icon motif on Web/Android/Agent;
-- one persistent server-authoritative interactive session across Web + Android, with fresh login replacing older Web/Android session;
-- separate `AGENT` authentication channel so D085 multi-Agent HA is preserved;
-- Admin/Root `HỆ THỐNG → Công cụ` with direct official Agent download and instructions;
-- tray-only Agent minimize/restore;
-- overlay unlocked drag/resize, numeric width/height, full background/text color selection; locked true click-through;
-- additive SQLite schema target 8 for `session_generation` / `session_started_at`.
-
-No D088 runtime/release PASS is claimed until PR guards, main Beta deploy, signed Android publication and `relay-agent-v14` publication all complete.
+Transitional `relay-agent-v13` built/startup-smoked and published, but GitHub normalized the spaced release filename to `Agent.Auto.Confirm.Pick.Pack.exe`. The v13 updater expected the spaced asset name. This was detected before Owner field acceptance/download. Final D088 Agent target is therefore `relay-agent-v14`, using the actual normalized GitHub asset name while the Windows assembly/product remains **Agent Auto Confirm Pick Pack**.
 
 ## Unchanged boundaries
 
 - Current PDA ↔ Agent RTDB carrier remains temporary; D078 final transport selection is pending physical Office evidence.
-- D085 sticky ACTIVE/STANDBY HA, 3-second heartbeat, ~10-second failover, cache and anti-spam remain.
-- D086 DPAPI WMS session and protected exit/watchdog remain.
-- D087 split logs and bounded Agent presence remain.
+- D085 HA/cache/anti-spam, D086 DPAPI/protected exit/watchdog, D087 split logs/presence remain.
 - WMS remains signed GET-only; no confirmation/mutation is authorized.
 - Stable remains OWNER-GATED.
 
 ## Next action
 
-Open D088 PR, obtain all required CI PASS, merge, verify Beta runtime + signed Android + Agent v14 releases, then record exact release evidence in a canonical checkpoint.
+Finish `fix/d088-agent-release-asset-normalization` through PR/CI/merge and publish `relay-agent-v14`; verify the Web Tools direct download and updater asset lookup, then record final D088 release PASS.
