@@ -622,3 +622,19 @@ The automated portion of D089 acceptance is complete:
 - WMS mutation guards remain PASS.
 
 D089 is therefore technical/runtime/release PASS. The six Owner field re-test checks listed above remain the only D089 acceptance items not automatable by connected tooling.
+
+
+### D089 Owner field acceptance — PASS
+
+Owner field acceptance completed on **2026-09-21**. The Owner explicitly confirmed the D089 result had achieved the requested requirements.
+
+Accepted field items:
+1. approved icon #4 identity;
+2. independent Service and realtime status;
+3. complete dark-theme Tools page;
+4. Overlay ON/OFF plus granular persisted Laptop/Agent checklist behavior;
+5. single-instance Agent duplicate-launch restore.
+
+D089 is therefore **fully PASS: source/build/runtime/release + Owner field acceptance**. `OA011` is closed.
+
+This does not close D078 transport selection, does not authorize WMS mutation, and does not change Stable OWNER-GATED status.
