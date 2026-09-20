@@ -182,12 +182,12 @@ WMS access is still signed read-only GET only. Transport selection is still pend
 - Total online Agent count uses only minimal Beta RTDB presence (30s write, 60s read, 90s freshness). Per-machine APK/request and response counters are memory-only and are never globally synchronized.
 - Transport remains the temporary RTDB carrier pending D078 physical Office evidence. WMS remains read-only; Stable is untouched.
 
-## D088 — Agent v13 unified identity, tray lifecycle and editable overlay
+## D088 — Agent v14 unified identity, tray lifecycle and editable overlay
 
 Canonical Windows product/executable:
 - **Agent Auto Confirm Pick Pack**
 - **Agent Auto Confirm Pick Pack.exe**
-- release channel: `relay-agent-v13`
+- release channel: `relay-agent-v14`
 
 D088 keeps all D085–D087 read-only/HA/security behavior and changes local presentation/runtime details:
 - Agent login explicitly declares the `AGENT` auth channel; it remains real base-role ADMIN only and is intentionally independent from the one-interactive Web/Android session generation.
@@ -195,6 +195,6 @@ D088 keeps all D085–D087 read-only/HA/security behavior and changes local pres
 - The common D088 icon motif is embedded into the executable and reused for tray identity.
 - Locked overlay remains true click-through. When unlocked it can be dragged and resized from edges/corners.
 - Overlay settings persist width, height, opacity, background color, text color, visibility, lock and position. Windows ColorDialog exposes the full color picker.
-- v13 release publishes the canonical new executable name. The old `SUPRA-Inventory-Relay-Test.exe` asset is retained for this release only as an update compatibility alias for installed v12 clients.
+- GitHub normalizes spaces in release asset filenames to dots. The Windows assembly/product remains `Agent Auto Confirm Pick Pack.exe`; the release/updater asset contract is `Agent.Auto.Confirm.Pick.Pack.exe`. Transitional v13 exposed the mismatch before field acceptance, so v14 is the final D088 release target. The old `SUPRA-Inventory-Relay-Test.exe` asset remains a compatibility alias for pre-D088 clients.
 
 Transport is still the current temporary Beta RTDB pending D078 evidence. WMS remains signed read-only GET-only; confirmation/mutation is not authorized. Stable remains untouched.

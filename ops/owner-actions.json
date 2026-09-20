@@ -367,7 +367,7 @@
     },
     {
       "id": "OA010",
-      "status": "D088_RELEASE_PENDING_THEN_OWNER_FIELD_REVIEW",
+      "status": "D088_AGENT_V14_RELEASE_PENDING_THEN_OWNER_FIELD_REVIEW",
       "title": "Field-review D088 unified naming/session/tools/tray/overlay release",
       "resource_key": "firebase-rtdb-relay-beta",
       "provider": "Beta Web + signed Android PDA + company Windows laptop + authorized Supra WMS session where Agent lookup is tested",
@@ -392,12 +392,15 @@
         "No WMS mutation occurs; D078 transport remains unselected; Stable remains untouched."
       ],
       "safety": "Beta only. Never share passwords, tokens, cookies, WMS session/header/signature values or encrypted session files. WMS confirmation/mutation remains unauthorized and D078 final transport remains pending.",
-      "remaining_owner_action": "Wait for D088 technical/release PASS, then execute the D088 field checklist.",
+      "remaining_owner_action": "Wait for final relay-agent-v14 technical/release PASS, then execute the D088 field checklist using signed beta-vc53.",
       "prerequisites": {
         "source_branch": "feat/d088-unified-brand-single-session-tools-overlay",
-        "agent_release_target": "relay-agent-v13",
-        "android_release_target": "NEXT_MONOTONIC_SIGNED_BETA",
-        "transport": "CURRENT_RTDB_TEMPORARY__FINAL_SELECTION_PENDING_D078"
+        "agent_release_target": "relay-agent-v14",
+        "android_release_target": "beta-vc53__RELEASED",
+        "transport": "CURRENT_RTDB_TEMPORARY__FINAL_SELECTION_PENDING_D078",
+        "runtime_main": "8084928724110e7186867b8b16d79462134951aa",
+        "beta_deploy_run": 35505678533,
+        "android_run": 35505678482
       }
     }
   ]

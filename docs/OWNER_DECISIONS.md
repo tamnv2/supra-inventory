@@ -208,6 +208,6 @@ D088 records the Owner's eight-item Beta change set and supersedes D087 only whe
 7. Agent manual minimize becomes **System-Tray-only**: no taskbar button while minimized; tray restore returns the main window. No normal X is added and protected ADMIN shutdown remains.
 8. The Owner-selected icon #4 motif is the common identity across Web favicon, Android launcher and Agent executable/tray: dark navy base, cyan/blue transfer arrow with scanner and green transfer arrow with warehouse/boxes.
 
-A one-release legacy Agent asset alias is permitted only to allow released v12 to self-update to v13. The canonical fresh download/name is the new executable name.
+A legacy Agent asset alias is permitted during the D088 transition so released pre-D088 clients can update. GitHub normalizes spaces in release asset filenames to dots; the Windows product/assembly remains **Agent Auto Confirm Pick Pack**, while the final D088 updater/download contract uses GitHub's normalized `Agent.Auto.Confirm.Pick.Pack.exe` asset. Transitional v13 exposed the normalization mismatch before Owner field use, so final D088 Agent target is v14.
 
 No D088 item selects the final PDA ↔ Agent transport, authorizes WMS mutation, or changes Stable.

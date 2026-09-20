@@ -4,44 +4,44 @@
 
 ## 1. Current canonical markers
 
-- SQLite schema source target: `8`
-- Latest signed Beta APK currently live: `beta-vc52`
-- Web: `D088_SOURCE_CANDIDATE__WEBSITE_NGHIEP_VU_INVENTORY__TOOLS__PERSISTENT_SINGLE_SESSION`
-- Android/Agent: `D088_SOURCE_CANDIDATE__1291_BETA__SIGNED_RELEASE_PENDING__AGENT_V13_PENDING__TRANSPORT_SELECTION_PENDING`
-- Beta checkpoint: `D088_SOURCE_CANDIDATE__CI_PENDING__LIVE_D087_AGENT_V12`
+- SQLite schema: `8`
+- Latest signed Beta APK: `beta-vc53`
+- Web: `D088_RUNTIME_PASS__WEBSITE_NGHIEP_VU_INVENTORY__TOOLS__PERSISTENT_SINGLE_SESSION`
+- Android/Agent: `D088_SIGNED_BETA_VC53__1291_BETA__AGENT_V14_RELEASE_REPAIR_PENDING__TRANSPORT_SELECTION_PENDING`
+- Beta checkpoint: `D088_RUNTIME_PASS__SIGNED_BETA_VC53__AGENT_V14_RELEASE_REPAIR_PENDING`
 - Active workstream: `XAC_NHAN_DON_D088`
 - Stable: `OWNER_GATED`
 
-## 2. D088 exact source checkpoint
+## 2. D088 checkpoint
 
-Owner approved the eight-item D088 Beta change set on 2026-09-20. Source is implemented on branch `feat/d088-unified-brand-single-session-tools-overlay`; PR/CI/merge/release are still pending.
+The eight D088 source requirements are implemented and main `8084928724110e7186867b8b16d79462134951aa` passed Beta deploy/UI/Android release:
+- Web **Website nghiệp vụ Inventory**.
+- Android **1291 Beta**, signed `beta-vc53`.
+- one persistent server-authoritative interactive Web/Android session; new Web/Android login replaces older interactive session;
+- separate real-ADMIN Agent auth channel preserving D085 multi-Agent HA;
+- Admin/Root **HỆ THỐNG → Công cụ**;
+- tray-only Agent minimize;
+- resize/color configurable unlocked overlay with locked click-through;
+- shared D088 icon motif.
 
-Implemented:
-1. Web renamed to **Website nghiệp vụ Inventory**.
-2. Android Beta renamed to **1291 Beta**.
-3. Windows utility/executable renamed to **Agent Auto Confirm Pick Pack**.
-4. Web + Android share one persistent server-authoritative interactive session generation. Reopen restores a valid session; fresh Web/Android login invalidates older interactive generations. Agent has a separate real-ADMIN auth channel so D085 multi-Agent HA is not broken.
-5. Admin/Root Web adds **HỆ THỐNG → Công cụ** with current Agent release information, official direct download and usage guidance.
-6. Unlocked overlay is draggable/resizable and supports numeric width/height plus full background/text color selection; locked overlay remains true click-through.
-7. Agent minimize is System-Tray-only and tray restore returns the window; no normal X; protected exit remains.
-8. Shared Owner-selected icon #4 motif is used across Web, Android and Agent.
+Evidence: Beta deploy `35505678533`, UI `35505678481`, Android `35505678482`; all PASS.
 
-## 3. Release targets and unchanged boundaries
+## 3. Agent release normalization repair
 
-- Agent target: `relay-agent-v13`; canonical asset `Agent Auto Confirm Pick Pack.exe`.
-- Android target: next monotonic signed Beta release after current `beta-vc52`.
-- One legacy Agent asset alias may exist on v13 solely for v12 auto-update compatibility.
-- D078 final transport remains pending; current RTDB is temporary.
-- D085 HA/cache/anti-spam, D086 DPAPI/protected exit/watchdog and D087 split logs/presence remain unchanged.
-- WMS remains GET-only. Confirmation/mutation is not implemented or authorized.
-- Stable remains OWNER-GATED.
+`relay-agent-v13` was published and startup-smoke PASS, but GitHub normalized the spaced asset filename to `Agent.Auto.Confirm.Pick.Pack.exe`. The v13 updater expected the spaced name. Detected before Owner field acceptance.
+
+Current branch `fix/d088-agent-release-asset-normalization` advances final D088 Agent target to `relay-agent-v14`:
+- Windows assembly/product title remains **Agent Auto Confirm Pick Pack**.
+- updater/release direct-link contract uses GitHub's actual `Agent.Auto.Confirm.Pick.Pack.exe`.
+- pre-D088 legacy alias remains only for updater compatibility.
 
 ## 4. Immediate next action
 
-Continue the finite D088 execution ladder:
-`PR → all guards/builds PASS → merge → Beta deploy PASS → signed Android release PASS → relay-agent-v13 release PASS → canonical release-checkpoint PR`.
+`v14 repair PR → all guards PASS → merge → relay-agent-v14 release PASS → verify release asset/direct Tools download → final canonical D088 checkpoint`.
 
-After technical release, Owner field review OA010 covers the visible names/icons, reopen-without-login, cross-Web/Android session replacement, Tools download, tray-only minimize/restore and overlay resize/colors/click-through.
+Then Owner field review OA010 uses `beta-vc53` + `relay-agent-v14`.
+
+D078 final transport remains pending; current RTDB stays temporary. WMS remains GET-only. Stable remains OWNER-GATED.
 
 ## 5. Resume command
 

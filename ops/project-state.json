@@ -13,14 +13,14 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D088_SOURCE_CANDIDATE__CI_PENDING__LIVE_D087_AGENT_V12",
+    "beta": "D088_RUNTIME_PASS__SIGNED_BETA_VC53__AGENT_V14_RELEASE_REPAIR_PENDING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 8,
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
-    "web": "D088_SOURCE_CANDIDATE__WEBSITE_NGHIEP_VU_INVENTORY__TOOLS__PERSISTENT_SINGLE_SESSION",
-    "android": "D088_SOURCE_CANDIDATE__1291_BETA__SIGNED_RELEASE_PENDING__AGENT_V13_PENDING__TRANSPORT_SELECTION_PENDING",
-    "latest_beta_apk": "beta-vc52",
+    "web": "D088_RUNTIME_PASS__WEBSITE_NGHIEP_VU_INVENTORY__TOOLS__PERSISTENT_SINGLE_SESSION",
+    "android": "D088_SIGNED_BETA_VC53__1291_BETA__AGENT_V14_RELEASE_REPAIR_PENDING__TRANSPORT_SELECTION_PENDING",
+    "latest_beta_apk": "beta-vc53",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
     "network_scope": "PDA_INTERNET_SUPPORTED__CURRENT_RTDB_RELAY_TEMPORARILY_UNCHANGED__D078_FINAL_TRANSPORT_SELECTION_PENDING__NO_OFFLINE_BUSINESS_MODE",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
@@ -28,11 +28,11 @@
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D069_XLSX_REPORT_EXPORT_BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "D072_SYSTEM_STATUS_NORMAL_RUNTIME_DISABLED__BETA_RUNTIME_PASS",
-    "ui_design_guard": "D088_SOURCE_CANDIDATE__CI_PENDING",
+    "ui_design_guard": "D088_MAIN_PASS_RUN_35505678481",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D088_SOURCE_CANDIDATE__AGENT_V13__TRAY_ONLY__RESIZE_COLOR_OVERLAY__SINGLE_INTERACTIVE_WEB_ANDROID_SESSION__D078_TRANSPORT_PENDING__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D088_V13_TRANSITIONAL_RELEASE__V14_NORMALIZED_ASSET_REPAIR_PENDING__TRAY_ONLY__RESIZE_COLOR_OVERLAY__SINGLE_INTERACTIVE_WEB_ANDROID_SESSION__D078_TRANSPORT_PENDING__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -152,7 +152,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "D088 Owner physical acceptance will be required after technical release: naming/icon, Web/Android reopen session, cross-Web/Android session replacement, Web Tools direct Agent download, tray-only minimize/restore, overlay resize/colors/click-through, plus unchanged D085 HA and D086/D087 behavior. D078 final transport selection remains separately pending.",
+    "D088 Owner physical acceptance pending after final Agent v14 release: names/icon, Web/Android persistent single session and replacement, Web Tools download, tray-only minimize/restore, overlay resize/colors/click-through, plus unchanged D085 HA and D086/D087 behavior. D078 final transport remains separate.",
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
     "Owner acceptance of FIRST_REPORT and PER_PICKER behavior remains field-dependent after runtime PASS.",
     "Stable promotion remains OWNER-GATED."
@@ -164,8 +164,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Finish D088 branch → PR → authority/state/UI/Web/Android/Agent PASS → merge → Beta deploy + signed Android + relay-agent-v13 release, then record exact release checkpoint.",
-    "method": "Keep current RTDB relay unchanged as temporary transport. Web/Android single interactive session is server generation-based; Agent uses independent real-ADMIN auth channel so D085 multi-Agent HA remains. WMS remains signed read-only GET; no mutation.",
+    "primary": "Finish D088 Agent v14 normalized-asset repair PR → PASS → merge → relay-agent-v14 release, verify direct Web tool download/updater contract, then record final D088 release checkpoint.",
+    "method": "Beta Web/schema 8 and signed Android beta-vc53 are already runtime/release PASS from main 8084928724110e7186867b8b16d79462134951aa. Keep RTDB temporary pending D078; WMS GET-only; Agent auth separate from Web/Android single interactive session.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -193,6 +193,7 @@
   },
   "workboard": {
     "in_progress": [
+      "D088 main 8084928724110e7186867b8b16d79462134951aa: Beta deploy PASS run 35505678533, UI PASS 35505678481, signed Android beta-vc53 published. Transitional relay-agent-v13 revealed GitHub space→dot asset normalization mismatch before Owner field use; fix/d088-agent-release-asset-normalization targets final relay-agent-v14.",
       "D088 Owner-approved eight-item Beta change set is source-implemented on feat/d088-unified-brand-single-session-tools-overlay; PR/CI/release pending. Web/Android single interactive session is separate from Agent auth, Agent target v13, Android signed target next monotonic Beta release.",
       "D086 release PASS: PR #92 merged at 207a57be6c4d95ab48d174b8af154f122bec7c5e; relay-agent-v11 published after main Verify Beta Relay Agent run 35490227885 PASS and main UI Design Guard run 35490227907 PASS. Owner physical field review pending; D078 transport selection remains pending.",
       "D085 source/build/deploy/release PASS: relay-agent-v10 + signed beta-vc52 published; sticky single active WMS-ready Agent, 3s heartbeat/10s failover, pending-job takeover, preload/single-flight Picklist cache, persisted 3-in-60s anti-spam locks, browser-profile WMS restore, v8 overlay engine with main-window settings, and HKCU normal-user autostart are technically PASS. Owner physical field acceptance pending; D078 transport selection remains pending.",
@@ -207,7 +208,8 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Complete D088 PR/CI/merge/release and create canonical release checkpoint with exact evidence.",
+      "Finish D088 v14 normalized Agent release repair and verify GitHub asset/direct Web download/update lookup.",
+      "Record final D088 release checkpoint and then Owner field-review OA010.",
       "Owner field-reviews D088 after release; keep D078 final transport selection pending until company-network physical evidence.",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
@@ -345,25 +347,25 @@
       "d085_android_apk_sha256": "0f5e02f7ca9f1f66b589479f833db4b4b4aabb356029d580afcd094c52683c32"
     },
     "last_runtime_evidence": {
-      "schema": 7,
+      "schema": 8,
       "operational_v2_schema": "5/5",
-      "beta_deploy_run": 35475860697,
+      "beta_deploy_run": 35505678533,
       "beta_deploy_conclusion": "success",
       "health": "HTTP_200_OK",
       "storage": "READY",
       "business_auth_guards": "PASS",
       "web_shell": "PASS",
       "google_oauth_start": "PASS",
-      "runtime_source_commit": "bf309b9788f5adac179ef293f4770eafb6bdcedf",
+      "runtime_source_commit": "8084928724110e7186867b8b16d79462134951aa",
       "d070_alarm_repair": "BETA_RUNTIME_PASS",
       "d071_web": "BETA_RUNTIME_PASS_OWNER_REVIEW_PENDING",
       "d072_quota_guard": "BETA_RUNTIME_PASS_OWNER_REVIEW_PENDING",
       "system_status_normal_runtime": "DISABLED",
       "system_status_provider_polling": "DISABLED",
-      "signed_beta_release": "beta-vc52",
-      "signed_beta_release_source_commit": "bf309b9788f5adac179ef293f4770eafb6bdcedf",
+      "signed_beta_release": "beta-vc53",
+      "signed_beta_release_source_commit": "8084928724110e7186867b8b16d79462134951aa",
       "stable": "UNTOUCHED_OWNER_GATED",
-      "signed_beta_apk_sha256": "0f5e02f7ca9f1f66b589479f833db4b4b4aabb356029d580afcd094c52683c32",
+      "signed_beta_apk_sha256": "7cc0f5ec8ae0a9c7e61a985fcb8dcb32cb7e72934407efb4f19a0c7810875fa3",
       "d073_relay_poc": "SOURCE_BUILD_RELEASE_PASS__RTDB_PROVISIONING_FIELD_TEST_PENDING",
       "d074_relay_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_OFFICE_FIELD_RETEST_PENDING",
       "d075_relay_poc": "SOURCE_BUILD_RELEASE_PASS__D076_RULES_DEPLOY_PASS__OWNER_FIELD_TEST_PENDING",
@@ -375,7 +377,8 @@
       "d082_picklist_lookup": "RELEASE_PASS__FIELD_TEST_PAUSED_BY_D083_AGENT_V7_STARTUP_REGRESSION",
       "d083_agent_startup": "SOURCE_BUILD_RELEASE_PASS__EXECUTABLE_STARTUP_SMOKE_PASS__OWNER_STARTUP_RETEST_PENDING",
       "d084_picklist_lookup": "SOURCE_BUILD_DEPLOY_RELEASE_PASS__OWNER_FIELD_TEST_PENDING",
-      "d085": "SOURCE_BUILD_DEPLOY_RELEASE_PASS__OWNER_FIELD_TEST_PENDING"
+      "d085": "SOURCE_BUILD_DEPLOY_RELEASE_PASS__OWNER_FIELD_TEST_PENDING",
+      "d088": "WEB_SERVICE_RUNTIME_PASS__SIGNED_BETA_VC53__AGENT_V13_TRANSITIONAL__V14_ASSET_REPAIR_PENDING"
     }
   },
   "authority_setup": {
@@ -435,13 +438,14 @@
     "D086 supersedes D085 RAM-only captured WMS-session persistence: the captured request-session may be stored only as a DPAPI CurrentUser encrypted local file. Company WMS username/password remain browser-only and are never stored by Agent.",
     "D086 persistence is best-effort user-mode: no close-box, protected graceful exit, HKCU autostart and a sleep-only watchdog. Same-user Task Manager can still kill both processes; absolute unkillability would require elevated/service controls and is not claimed.",
     "D086 release checkpoint 2026-09-20: PR #92 merged at 207a57be6c4d95ab48d174b8af154f122bec7c5e; main Agent run 35490227885 and UI run 35490227907 PASS; relay-agent-v11 prerelease id 392316320, EXE asset id 576140376, size 148992 bytes, SHA-256 dce3a779c86096a6a82ed1991e385e7e6acea2d9ba75078e8bf2371eb1387659. Signed Android remains beta-vc52. Next session must continue from Owner D086 physical review or a newer explicit Owner command, keep current RTDB temporary until D078 evidence, keep WMS read-only and Stable OWNER-GATED.",
-    "D088 source candidate closes O002 for current Beta: one persistent interactive session across Web/Android using server session_generation; Agent auth is a separate real-ADMIN channel to preserve multi-Agent HA. Product names/icon, Web Tools, tray-only minimize and resizable/color overlay are included. Runtime/release PASS is not yet claimed."
+    "D088 source candidate closes O002 for current Beta: one persistent interactive session across Web/Android using server session_generation; Agent auth is a separate real-ADMIN channel to preserve multi-Agent HA. Product names/icon, Web Tools, tray-only minimize and resizable/color overlay are included. Runtime/release PASS is not yet claimed.",
+    "D088 main release exposed GitHub release asset filename normalization: the spaced Agent asset is stored by GitHub as Agent.Auto.Confirm.Pick.Pack.exe. v13 is transitional and had zero downloads when detected. Final D088 Agent target is v14 with updater/direct Web link using the actual dotted asset; Windows assembly/product title remains Agent Auto Confirm Pick Pack."
   ],
   "active_workstream": {
     "key": "XAC_NHAN_DON_D088",
-    "status": "SOURCE_CANDIDATE__PR_CI_RELEASE_PENDING",
-    "bootstrap": "D088_OWNER_APPROVED_EIGHT_ITEM_CHANGESET__2026_09_20",
-    "next_step": "Finish D088 PR/CI/merge/Beta releases. Do not change D078 transport; keep WMS GET-only and Stable OWNER-GATED."
+    "status": "RUNTIME_ANDROID_PASS__AGENT_V14_RELEASE_REPAIR_PR_PENDING",
+    "bootstrap": "D088_MAIN_808492__BETA_VC53_PASS__V13_ASSET_NORMALIZATION_REPAIR_TO_V14",
+    "next_step": "Merge v14 normalized Agent asset repair only after guards PASS, verify relay-agent-v14 release/download/updater, then final canonical release checkpoint. D078 pending; WMS read-only; Stable OWNER-GATED."
   },
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {

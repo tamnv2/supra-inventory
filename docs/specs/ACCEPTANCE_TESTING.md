@@ -577,8 +577,8 @@ Technical/source acceptance requires all of the following:
 3. Web and Android persist the current session across normal close/reopen without storing a plaintext password.
 4. A fresh Web or Android login advances server session generation; older Web/Android sessions are rejected on authenticated API and refresh. Existing pre-D088 tokens fail closed and require one migration login.
 5. Agent sends an explicit `AGENT` auth channel, remains real-base-ADMIN only, and multiple Agent logins do not revoke one another or break D085 HA.
-6. Admin/Root Web exposes **HỆ THỐNG → Công cụ** with a professional Agent card, direct official `relay-agent-v13` download and concise usage instructions. D072 provider/status polling remains disabled.
-7. Agent v13 canonical executable is named **Agent Auto Confirm Pick Pack.exe**. A one-release legacy asset alias may exist solely so v12 can self-update to v13.
+6. Admin/Root Web exposes **HỆ THỐNG → Công cụ** with a professional Agent card, direct official `relay-agent-v14` download and concise usage instructions. D072 provider/status polling remains disabled.
+7. Agent v14 canonical executable is named **Agent Auto Confirm Pick Pack.exe**. A one-release legacy asset alias may exist solely so v12 can self-update to v13.
 8. Minimize removes the Agent main window from the taskbar and leaves it in System Tray; tray restore returns it. No normal close/X is introduced; protected exit remains.
 9. Locked overlay remains true click-through. Unlocked overlay can drag and resize from edges/corners. Settings expose width, height, opacity, background color and text color, and persist them locally.
 10. D085 3-second leadership heartbeat/10-second failover, D086 DPAPI WMS session, D087 split logs/presence, temporary D078 RTDB carrier and GET-only WMS boundary remain unchanged.
