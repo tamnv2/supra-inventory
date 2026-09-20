@@ -13,13 +13,13 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "BETA_RUNTIME_PASS_D085__D086_AGENT_V11_SOURCE_CANDIDATE__PR_CI_PENDING__OWNER_FIELD_TEST_PENDING",
+    "beta": "BETA_RUNTIME_PASS_D086_AGENT_V11_RELEASE__OWNER_FIELD_TEST_PENDING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 7,
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
     "web": "D071_IMMEDIATE_RESPONSE_DENSITY_D072_SYSTEM_STATUS_QUOTA_GUARD_BETA_RUNTIME_PASS__OWNER_REVIEW_PENDING",
-    "android": "D085_RELEASE_PASS__SIGNED_BETA_VC52__AGENT_V10__OWNER_FIELD_TEST_PENDING__TRANSPORT_SELECTION_PENDING",
+    "android": "D085_RELEASE_PASS__SIGNED_BETA_VC52__AGENT_V11__OWNER_FIELD_TEST_PENDING__TRANSPORT_SELECTION_PENDING",
     "latest_beta_apk": "beta-vc52",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
     "network_scope": "PDA_INTERNET_SUPPORTED__CURRENT_RTDB_RELAY_TEMPORARILY_UNCHANGED__D078_FINAL_TRANSPORT_SELECTION_PENDING__NO_OFFLINE_BUSINESS_MODE",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D086_AGENT_V11_SOURCE_CANDIDATE__DPAPI_WMS_SESSION__PROFESSIONAL_UI__CLICKTHROUGH__PROTECTED_EXIT_WATCHDOG__D078_TRANSPORT_PENDING__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D086_RELEASE_PASS__AGENT_V11__DPAPI_WMS_SESSION__PROFESSIONAL_UI__CLICKTHROUGH__PROTECTED_EXIT_WATCHDOG__D078_TRANSPORT_PENDING__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -133,10 +133,10 @@
     "D060 Verify Beta Android run 35326095361 PASS; UI Design Guard run 35326095346 PASS on main.",
     "D061 Web dark/sidebar/realtime cleanup PR #40 merged at 967365bffa8d518e8ad85d802b14753bc5f4fa1d with Repo Authority Guard, Project State Guard and UI Design Guard PASS; Beta deploy run 35334240991 PASS.",
     "D062 Web final QA PR #42 merged at c874eafccb732c108f466ed7095a14e1f3e39d0e after Repo Authority Guard, Project State Guard and UI Design Guard PASS; Beta deploy run 35347188833 PASS with health/schema, auth/business guards, Web shell and Google OAuth smoke.",
-    "D066 Web three-group navigation PR #50 merged at 2e12e6d4e94b195e3b505b3f2abe9822ca91632c; PR Repo Authority, Project State and UI Design guards PASS; main UI Design Guard run 35407227884 PASS; Beta deploy run 35407227911 PASS including Web build, Worker typecheck/deploy, health/schema, auth/business guards, Web shell and Google OAuth start."
+    "D066 Web three-group navigation PR #50 merged at 2e12e6d4e94b195e3b505b3f2abe9822ca91632c; PR Repo Authority, Project State and UI Design guards PASS; main UI Design Guard run 35407227884 PASS; Beta deploy run 35407227911 PASS including Web build, Worker typecheck/deploy, health/schema, auth/business guards, Web shell and Google OAuth start.",
+    "D086 PR #92 merged to main at 207a57be6c4d95ab48d174b8af154f122bec7c5e; main Verify Beta Relay Agent run 35490227885 PASS built/startup-smoked Agent v11 and published prerelease relay-agent-v11. Release asset SUPRA-Inventory-Relay-Test.exe is 148992 bytes with SHA-256 dce3a779c86096a6a82ed1991e385e7e6acea2d9ba75078e8bf2371eb1387659; main UI Design Guard run 35490227907 PASS."
   ],
   "pending_build": [
-    "D086 Agent v11 branch/PR CI, merge, dedicated prerelease publication and post-release state evidence.",
     "D070 PR guards/merge/Beta deploy for Worker/Web schema migration and alarm automation",
     "Signed Beta Android release/verification because D070 changes Android runtime UI/API projection",
     "Owner field acceptance of D070 timing notifications and both auto-Skip modes",
@@ -144,7 +144,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "D086 Owner field acceptance will be required after Agent v11 release: DPAPI WMS session file-first reuse/browser fallback, professional Tổng quan/Cài đặt UI, true cross-app overlay click-through, protected ADMIN exit, watchdog restart behavior, idle CPU/RAM, plus unchanged D085 ACTIVE/STANDBY failover/cache/anti-spam behavior. D078 final transport selection remains separately pending.",
+    "D086 Owner physical acceptance pending for relay-agent-v11: professional Tổng quan/Cài đặt UI, DPAPI WMS session file-first reuse and invalid-session browser fallback, true cross-app overlay click-through, protected ADMIN exit, watchdog restart behavior, idle CPU/RAM, plus unchanged D085 ACTIVE/STANDBY failover/cache/anti-spam behavior. D078 final transport selection remains separately pending.",
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
     "Owner acceptance of FIRST_REPORT and PER_PICKER behavior remains field-dependent after runtime PASS.",
     "Stable promotion remains OWNER-GATED."
@@ -157,8 +157,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Complete D086 Agent v11 branch → PR → authority/continuity/Agent CI → merge → prerelease. Then Owner reviews the released EXE UI/session reuse/click-through/protected-exit/watchdog/resource behavior on the company laptop. Android remains beta-vc52; D078 transport selection remains pending.",
-    "method": "Keep current RTDB relay unchanged as temporary transport. D086 changes only local Windows Agent session/UI/lifecycle behavior. WMS remains signed read-only GET; no confirmation mutation is authorized.",
+    "primary": "Owner field-reviews released relay-agent-v11 with signed beta-vc52 on the company laptop/PDA: UI layout, saved WMS session reuse, browser fallback when invalid, real overlay click-through, protected ADMIN exit, watchdog restart and idle resource footprint; D085 multi-Agent failover/cache/anti-spam can be verified in the same field cycle. D078 transport selection remains a separate pending decision.",
+    "method": "Use relay-agent-v11 from the GitHub prerelease. Keep current RTDB relay unchanged as temporary transport. WMS remains signed read-only GET; no confirmation mutation is authorized.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -186,7 +186,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D086 Agent v11 source candidate: WMS startup is DPAPI encrypted-file first with read-only validation/Picklist preload and local browser fallback, main UI is Tổng quan/Cài đặt, locked overlay uses cross-process WS_EX_TRANSPARENT click-through, graceful exit requires current ADMIN password verifier, sleep-only watchdog restarts unexpected exits, and old 4s netsh polling is removed. PR/CI/release pending.",
+      "D086 release PASS: PR #92 merged at 207a57be6c4d95ab48d174b8af154f122bec7c5e; relay-agent-v11 published after main Verify Beta Relay Agent run 35490227885 PASS and main UI Design Guard run 35490227907 PASS. Owner physical field review pending; D078 transport selection remains pending.",
       "D085 source/build/deploy/release PASS: relay-agent-v10 + signed beta-vc52 published; sticky single active WMS-ready Agent, 3s heartbeat/10s failover, pending-job takeover, preload/single-flight Picklist cache, persisted 3-in-60s anti-spam locks, browser-profile WMS restore, v8 overlay engine with main-window settings, and HKCU normal-user autostart are technically PASS. Owner physical field acceptance pending; D078 transport selection remains pending.",
       "D084 source/PR/main release PASS: relay-agent-v9 and signed beta-vc51 published; no-date Content-empty 100-row pagination, exact PickListCode trailing-five comparison, 120s Android wait, explicit overlay settings and locked cross-app click-through are technically PASS. Owner field acceptance pending.",
       "D077 source/build/release PASS: relay-agent-v3 published; physical Office retest pending",
@@ -199,7 +199,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Owner field-tests D085 release on physical PDA/Windows Agents. Keep D078 final PDA-Agent transport selection pending until company-network physical evidence.",
+      "Owner field-reviews D086 relay-agent-v11 on physical company laptop/PDA; include D085 sticky ACTIVE/STANDBY failover/cache/anti-spam checks where practical. Keep D078 final PDA-Agent transport selection pending until company-network physical evidence.",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
@@ -424,13 +424,14 @@
     "D085 keeps WMS read-only: browser-profile reuse may restore an authorized session into RAM, but raw WMS session/header values are not persisted by Agent and no confirmation mutation adapter is enabled.",
     "D085 continuity checkpoint recorded after Owner request on 2026-09-20: current main is 38e8ecac4ca8cc373df36549929c35e23f4ce286 with D085 technical/release PASS; relay-agent-v10 and signed beta-vc52 are the current field-test artifacts. Next session must bootstrap fresh canonical main, continue from Owner physical D085 acceptance or any new explicit Owner command, keep current RTDB relay unchanged until D078 Office transport evidence is reviewed, keep WMS read-only with confirmation/mutation adapter disabled, and leave Stable untouched/OWNER-GATED.",
     "D086 supersedes D085 RAM-only captured WMS-session persistence: the captured request-session may be stored only as a DPAPI CurrentUser encrypted local file. Company WMS username/password remain browser-only and are never stored by Agent.",
-    "D086 persistence is best-effort user-mode: no close-box, protected graceful exit, HKCU autostart and a sleep-only watchdog. Same-user Task Manager can still kill both processes; absolute unkillability would require elevated/service controls and is not claimed."
+    "D086 persistence is best-effort user-mode: no close-box, protected graceful exit, HKCU autostart and a sleep-only watchdog. Same-user Task Manager can still kill both processes; absolute unkillability would require elevated/service controls and is not claimed.",
+    "D086 release checkpoint 2026-09-20: PR #92 merged at 207a57be6c4d95ab48d174b8af154f122bec7c5e; main Agent run 35490227885 and UI run 35490227907 PASS; relay-agent-v11 prerelease id 392316320, EXE asset id 576140376, size 148992 bytes, SHA-256 dce3a779c86096a6a82ed1991e385e7e6acea2d9ba75078e8bf2371eb1387659. Signed Android remains beta-vc52. Next session must continue from Owner D086 physical review or a newer explicit Owner command, keep current RTDB temporary until D078 evidence, keep WMS read-only and Stable OWNER-GATED."
   ],
   "active_workstream": {
     "key": "XAC_NHAN_DON_D086",
-    "status": "SOURCE_CANDIDATE__PR_CI_RELEASE_PENDING",
-    "bootstrap": "FRESH_MAIN_CANONICAL_STATE__OWNER_D086_COMMAND_2026_09_20",
-    "next_step": "Finish D086 Agent v11 through PR/CI/merge/release, then Owner field-review the released EXE. Keep current RTDB carrier until D078 Office evidence; keep WMS read-only and Stable OWNER-GATED."
+    "status": "RELEASE_PASS__OWNER_FIELD_TEST_PENDING",
+    "bootstrap": "MAIN_D086_RELEASE_PASS__AGENT_V11__2026_09_20",
+    "next_step": "Owner field-review relay-agent-v11 on company Windows + authorized WMS/PDA. Validate UI, DPAPI session reuse/fallback, click-through, protected exit, watchdog/resource footprint and D085 HA behavior. Do not select final transport before D078 Office evidence. WMS remains read-only; Stable remains OWNER-GATED."
   },
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
