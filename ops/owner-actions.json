@@ -367,7 +367,7 @@
     },
     {
       "id": "OA010",
-      "status": "OWNER_D088_FIELD_TEST_PENDING",
+      "status": "SUPERSEDED_BY_D089",
       "title": "Field-review D088 unified naming/session/tools/tray/overlay release",
       "resource_key": "firebase-rtdb-relay-beta",
       "provider": "Beta Web + signed Android PDA + company Windows laptop + authorized Supra WMS session where Agent lookup is tested",
@@ -392,7 +392,7 @@
         "No WMS mutation occurs; D078 transport remains unselected; Stable remains untouched."
       ],
       "safety": "Beta only. Never share passwords, tokens, cookies, WMS session/header/signature values or encrypted session files. WMS confirmation/mutation remains unauthorized and D078 final transport remains pending.",
-      "remaining_owner_action": "Field-review released Beta Web, signed beta-vc53 and relay-agent-v14 using the D088 checklist. D078 transport selection remains separate and pending.",
+      "remaining_owner_action": null,
       "prerequisites": {
         "source_branch": "feat/d088-unified-brand-single-session-tools-overlay",
         "runtime_pr": 96,
@@ -411,6 +411,39 @@
         "beta_deploy_run": 35506093272,
         "agent_run": 35506093283,
         "ui_run": 35506093215,
+        "transport": "CURRENT_RTDB_TEMPORARY__FINAL_SELECTION_PENDING_D078"
+      }
+    },
+    {
+      "id": "OA011",
+      "status": "D089_RELEASE_CANDIDATE_CI_PENDING",
+      "title": "Field-retest D089 icon, Web service/realtime state, Tools dark UI, overlay checklist and single-instance Agent",
+      "resource_key": "firebase-rtdb-relay-beta",
+      "provider": "Beta Web + next signed Android PDA + company Windows laptop",
+      "reason_owner_only": "Connected tools can verify source/build/deploy/release, but the Owner must visually confirm the approved icon on real Web/PDA/Windows surfaces and physically test overlay interaction plus duplicate EXE launch behavior.",
+      "owner_ui_path": [],
+      "shortest_test_path": [
+        "After D089 release PASS, open Beta Web in dark mode and verify the exact approved icon #4 appears in favicon/Tools with no white Tools tiles.",
+        "Verify the header can show HTTP service operational independently from realtime transport status; realtime loss must not falsely label the API service down.",
+        "Install/open the next signed 1291 Beta APK and verify the same approved icon #4.",
+        "Run relay-agent-v15 and open Cài đặt → Bảng nổi. Toggle Overlay on/off; independently select Laptop CPU/RAM/Disk/network/Internet/GPU and Agent online/state/APK responses/Supra readiness; restart and verify preferences persist.",
+        "While Agent is already running or tray-hidden, launch the EXE again. No second runtime/tray/overlay may appear; the existing Agent must restore/activate.",
+        "Verify EXE/taskbar/tray use the same approved icon and D085 read-only lookup/HA remains unchanged where practical."
+      ],
+      "pass_criteria": [
+        "Approved image #4 is visually identical across Web, Android and Agent identity surfaces.",
+        "API/service availability is not derived from WebSocket realtime state; service and realtime are distinct visible states.",
+        "Tools page is fully coherent in dark theme with readable surfaces, borders, text and controls.",
+        "Overlay master visibility plus granular Laptop/Agent metric checklist persists locally and applies immediately.",
+        "Only one normal Agent runtime exists per Windows user session; duplicate launch restores the existing instance.",
+        "No WMS mutation occurs; D078 transport remains unselected; Stable remains untouched."
+      ],
+      "safety": "Beta only. Never share passwords, tokens, cookies, WMS session/header/signature values or encrypted session files. WMS confirmation/mutation remains unauthorized and D078 final transport remains pending.",
+      "remaining_owner_action": "Wait for D089 technical/runtime/release PASS, then run the concise physical field-retest above.",
+      "prerequisites": {
+        "source_branch": "fix/d089-field-review-icon-realtime-overlay-singleton-dark",
+        "current_android_release": "beta-vc53",
+        "candidate_agent_release": "relay-agent-v15",
         "transport": "CURRENT_RTDB_TEMPORARY__FINAL_SELECTION_PENDING_D078"
       }
     }
