@@ -214,7 +214,7 @@ No D088 item selects the final PDA ↔ Agent transport, authorizes WMS mutation,
 
 ## D089 — Field-review repair: exact shared icon, service/realtime status split, complete Tools dark UI, granular overlay and single-instance Agent
 
-Status: **ACTIVE — OWNER APPROVED 2026-09-20**.
+Status: **ACTIVE — TECHNICAL / RUNTIME / RELEASE PASS; OWNER FIELD RETEST PENDING**.
 
 D089 is a corrective field-review change set over D088. It does not reopen D078 transport selection, WMS mutation, D085 HA, D086 DPAPI/protected-exit behavior, D087 logging/presence, or Stable.
 
@@ -225,3 +225,16 @@ D089 is a corrective field-review change set over D088. It does not reopen D078 
 5. **HỆ THỐNG → Công cụ** must be fully coherent in dark theme: no light fact tiles, unreadable text or mismatched controls.
 
 D089 release candidate targets `relay-agent-v15` plus the next signed 1291 Beta APK. WMS stays signed GET-only, current RTDB remains temporary pending D078, and Stable remains OWNER-GATED.
+
+
+## D089 final release checkpoint
+
+D089 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta. Owner physical field re-test remains pending under `OA011`.
+
+- Runtime PR #99 merged to `main` at `c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee`.
+- Final PR gates PASS: Repo Authority `35528500471`, Project State `35528500466`, RTDB Rules `35528500468`, UI Design `35528500465`, Relay Agent `35528500524`, Android `35528500467`.
+- Final main gates PASS: Beta Worker `35528647549`, UI Design `35528647554`, Repo Authority `35528647571`, Project State `35528647574`, Relay Agent `35528647534`, Android `35528647526`.
+- Windows Agent release: `relay-agent-v15`, release id `392528472`; canonical asset `Agent.Auto.Confirm.Pick.Pack.exe`, asset id `577316714`, size `177152` bytes, SHA-256 `94f82fc377057c5bbb1d80bbf0830f523bdf16108b40898ce63bb041624b9e9a`.
+- Android release: `beta-vc54`, release id `392528497`; APK asset id `577316797`, size `9340834` bytes, SHA-256 `eeb95c489bf7dbfa455b323633bfe28685674f57f6ba76facd4c04e3b0958c2c`.
+- The approved icon #4 is now stored as verified PNG binary and is the shared visual source consumed by Web, Android and Agent.
+- D078 final PDA ↔ Agent transport remains pending physical Office-network evidence. Current RTDB remains temporary. WMS remains signed GET-only. Stable remains OWNER-GATED.
