@@ -19,6 +19,9 @@ namespace SupraInventoryRelayAgent
 {
     internal static class Program
     {
+        private const string MainInstanceMutexName = @"Local\AgentAutoConfirmPickPack.MainInstance";
+        private const string MainInstanceActivateEventName = @"Local\AgentAutoConfirmPickPack.Activate";
+
         [STAThread]
         private static void Main(string[] args)
         {
@@ -39,6 +42,30 @@ namespace SupraInventoryRelayAgent
                 string.Equals(item, "--startup-smoke", StringComparison.OrdinalIgnoreCase));
             var autoStarted = args != null && Array.Exists(args, item =>
                 string.Equals(item, "--autostart", StringComparison.OrdinalIgnoreCase));
+
+            Mutex instanceMutex = null;
+            EventWaitHandle activateEvent = null;
+            if (!startupSmoke)
+            {
+                bool createdNew;
+                instanceMutex = new Mutex(true, MainInstanceMutexName, out createdNew);
+                if (!createdNew)
+                {
+                    AgentDiagnostics.Write("SINGLE_INSTANCE duplicate-launch blocked; activating existing instance");
+                    try
+                    {
+                        using (var existing = EventWaitHandle.OpenExisting(MainInstanceActivateEventName))
+                            existing.Set();
+                    }
+                    catch (Exception ex)
+                    {
+                        AgentDiagnostics.Write("SINGLE_INSTANCE activate-existing failed type=" + ex.GetType().Name);
+                    }
+                    instanceMutex.Dispose();
+                    return;
+                }
+                activateEvent = new EventWaitHandle(false, EventResetMode.AutoReset, MainInstanceActivateEventName);
+            }
 
             try
             {
@@ -66,7 +93,7 @@ namespace SupraInventoryRelayAgent
 
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new AgentForm(startupSmoke, autoStarted));
+                Application.Run(new AgentForm(startupSmoke, autoStarted, activateEvent));
             }
             catch (Exception ex)
             {
@@ -88,6 +115,19 @@ namespace SupraInventoryRelayAgent
                         "Agent Auto Confirm Pick Pack - lỗi khởi động",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
+                }
+                catch { }
+            }
+            finally
+            {
+                try { if (activateEvent != null) activateEvent.Dispose(); } catch { }
+                try
+                {
+                    if (instanceMutex != null)
+                    {
+                        instanceMutex.ReleaseMutex();
+                        instanceMutex.Dispose();
+                    }
                 }
                 catch { }
             }
@@ -237,6 +277,7 @@ namespace SupraInventoryRelayAgent
     internal sealed class AgentForm : Form
     {
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
+        private readonly EventWaitHandle _instanceActivateEvent;
         private readonly TextBox _username = new TextBox();
         private readonly TextBox _password = new TextBox();
         private readonly Button _pair = new Button();
@@ -302,10 +343,11 @@ namespace SupraInventoryRelayAgent
         private static readonly string WmsSessionFile = Path.Combine(RelayDataDir, "wms-session.bin");
         private static readonly string ExitVerifierFile = Path.Combine(RelayDataDir, "exit-verifier.bin");
 
-        internal AgentForm(bool startupSmoke = false, bool autoStarted = false)
+        internal AgentForm(bool startupSmoke = false, bool autoStarted = false, EventWaitHandle instanceActivateEvent = null)
         {
             _startupSmoke = startupSmoke;
             _autoStarted = autoStarted;
+            _instanceActivateEvent = instanceActivateEvent;
             _agentInstanceId = LoadOrCreateAgentInstanceId();
             _overlaySettings = StatusOverlayForm.LoadSettings(OverlaySettingsFile);
             Text = "SUPRA Inventory - Relay Test v" + AgentConfig.AgentBuild;
@@ -445,6 +487,8 @@ namespace SupraInventoryRelayAgent
                         _tray.ShowBalloonTip(1500, "Agent Auto Confirm Pick Pack", "Agent đã tự khởi động cùng Windows.", ToolTipIcon.Info);
                     }));
                 }
+                if (_instanceActivateEvent != null)
+                    Task.Run(() => ListenForSecondLaunch());
                 Task.Run(() => StartupSequence());
             };
         }
@@ -758,6 +802,28 @@ namespace SupraInventoryRelayAgent
             catch { }
         }
 
+        private void ListenForSecondLaunch()
+        {
+            try
+            {
+                while (!IsDisposed && _instanceActivateEvent != null)
+                {
+                    _instanceActivateEvent.WaitOne();
+                    if (IsDisposed) return;
+                    BeginInvoke(new Action(() =>
+                    {
+                        RestoreFromTray();
+                        _tray.ShowBalloonTip(1200, "Agent Auto Confirm Pick Pack", "Agent đã chạy sẵn. Đã mở cửa sổ hiện tại.", ToolTipIcon.Info);
+                    }));
+                }
+            }
+            catch (ObjectDisposedException) { }
+            catch (Exception ex)
+            {
+                AgentDiagnostics.Write("SINGLE_INSTANCE listener failed type=" + ex.GetType().Name);
+            }
+        }
+
         private void MinimizeToTray()
         {
             WindowState = FormWindowState.Minimized;
@@ -773,6 +839,46 @@ namespace SupraInventoryRelayAgent
             Activate();
         }
 
+        private string BuildLaptopOverlayLine(SystemMetrics metrics, OverlaySettings options)
+        {
+            if (options == null || !options.ShowLaptopGroup) return "";
+            var parts = new List<string>();
+            if (options.ShowCpu)
+                parts.Add("CPU " + (metrics.CpuPercent < 0 ? "--" : Math.Round(metrics.CpuPercent).ToString("0") + "%"));
+            if (options.ShowMemory)
+            {
+                var ram = metrics.RamTotalBytes == 0 ? "--" :
+                    (metrics.RamUsedBytes / 1073741824.0).ToString("0.0") + "/" +
+                    (metrics.RamTotalBytes / 1073741824.0).ToString("0.0") + "GB";
+                parts.Add("RAM " + ram);
+            }
+            if (options.ShowDisk)
+                parts.Add("Disk " + (metrics.DiskPercent < 0 ? "--" : Math.Round(metrics.DiskPercent).ToString("0") + "%"));
+            if (options.ShowNetwork)
+            {
+                var down = metrics.NetworkDownMbps < 0 ? "--" : metrics.NetworkDownMbps.ToString("0.0");
+                var up = metrics.NetworkUpMbps < 0 ? "--" : metrics.NetworkUpMbps.ToString("0.0");
+                parts.Add(metrics.NetworkKind + " ↓" + down + " ↑" + up + "Mbps");
+            }
+            if (options.ShowInternet)
+                parts.Add("Internet " + (!metrics.InternetKnown ? "--" : (metrics.InternetConnected ? "ON" : "OFF")));
+            if (options.ShowGpu)
+                parts.Add("GPU " + (metrics.GpuPercent < 0 ? "--" : Math.Round(metrics.GpuPercent).ToString("0") + "%"));
+            return parts.Count == 0 ? "" : "Laptop | " + string.Join(" | ", parts.ToArray());
+        }
+
+        private string BuildAgentOverlayLine(int online, string state, OverlaySettings options)
+        {
+            if (options == null || !options.ShowAgentGroup) return "";
+            var parts = new List<string>();
+            if (options.ShowAgentOnline) parts.Add("Online " + online);
+            if (options.ShowAgentState) parts.Add(state);
+            if (options.ShowPdaRequests) parts.Add("APK " + Interlocked.Read(ref _localPdaRequests));
+            if (options.ShowAgentResponses) parts.Add("Phản hồi " + Interlocked.Read(ref _localAgentResponses));
+            if (options.ShowWmsSession) parts.Add("Supra " + (HasUsableWmsSession() ? "Sẵn sàng" : "Chưa sẵn sàng"));
+            return parts.Count == 0 ? "" : "Agent | " + string.Join(" | ", parts.ToArray());
+        }
+
         private void UpdateTrayMonitor()
         {
             try
@@ -786,16 +892,15 @@ namespace SupraInventoryRelayAgent
                 var online = _leaderCoordinator == null ? (HasUsableWmsSession() ? 1 : 0) : _leaderCoordinator.OnlineAgentCount;
                 var state = _leaderCoordinator == null
                     ? "CHƯA PHỐI HỢP"
-                    : (_leaderCoordinator.IsLeader ? "ACTIVE" :
-                       (string.IsNullOrWhiteSpace(_leaderCoordinator.CurrentLeaderId) ? "STANDBY" : "STANDBY"));
-                var agentLine =
-                    "Agent | Online " + online +
-                    " | Máy này (phiên này): APK " + Interlocked.Read(ref _localPdaRequests) +
-                    " | phản hồi " + Interlocked.Read(ref _localAgentResponses) +
-                    " | " + state;
+                    : (_leaderCoordinator.IsLeader ? "ACTIVE" : "STANDBY");
 
                 if (_statusOverlay != null)
-                    _statusOverlay.UpdateMetrics(metrics.LaptopLine(), agentLine);
+                {
+                    var options = _statusOverlay.DisplaySettings;
+                    _statusOverlay.UpdateMetrics(
+                        BuildLaptopOverlayLine(metrics, options),
+                        BuildAgentOverlayLine(online, state, options));
+                }
             }
             catch
             {
@@ -814,7 +919,11 @@ namespace SupraInventoryRelayAgent
             try
             {
                 var overlay = new StatusOverlayForm(_overlaySettings, OverlaySettingsFile);
-                overlay.SettingsChanged += RefreshOverlayMenu;
+                overlay.SettingsChanged += () =>
+                {
+                    RefreshOverlayMenu();
+                    UpdateTrayMonitor();
+                };
                 _statusOverlay = overlay;
                 if (overlay.OverlayVisible) overlay.Show();
                 AgentDiagnostics.Write("OVERLAY init=PASS mode=lazy-after-main-shown");
