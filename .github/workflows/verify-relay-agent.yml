@@ -40,7 +40,7 @@ jobs:
             throw "AgentConfig.AgentBuild does not match relay-agent/VERSION=$version"
           }
 
-      - name: D088 relay regression guard
+      - name: D089 relay regression guard
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
@@ -60,7 +60,7 @@ jobs:
           $overlaySettings = Get-Content relay-agent/OverlaySettingsForm.cs -Raw
           $project = Get-Content relay-agent/SupraInventoryRelayAgent.csproj -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*14\s*;') { throw "D088 requires Agent v14." }
+          if ($config -notmatch 'AgentBuild\s*=\s*15\s*;') { throw "D089 requires Agent v15." }
           if ($leader -notmatch 'HeartbeatIntervalMs\s*=\s*3000' -or $leader -notmatch 'FailoverAfterMs\s*=\s*10000') { throw "D085 HA timing guard failed." }
           if ($leader -notmatch 'HttpRequestHeader\.IfMatch') { throw "D085 leader election must use conditional ETag writes." }
           if ($cache -notmatch 'FreshMissGuardSeconds\s*=\s*10' -or $cache -notmatch 'JOIN_INFLIGHT' -or $cache -notmatch 'LoadSnapshot') { throw "D085 Picklist cache/single-flight guard failed." }
@@ -76,9 +76,11 @@ jobs:
           if ($overlay -notmatch '_settings != null' -or $overlay -notmatch 'UpdateMetrics') { throw "D087 overlay null-safe/two-layer guard failed." }
           if ($program -notmatch 'WriteAudit' -or $program -notmatch 'pda-agent-audit-' -or $program -notmatch 'technical-ai-' -or $program -notmatch 'picklist_last5') { throw "D087 split sanitized logging guard failed." }
           if ($program -notmatch 'FormBorderStyle\.None' -or $program -notmatch 'MinimizeToTray' -or $program -notmatch 'ShowInTaskbar\s*=\s*false') { throw "D088 tray-only minimize guard failed." }
+          if ($program -notmatch 'MainInstanceMutexName' -or $program -notmatch 'EventWaitHandle\.OpenExisting' -or $program -notmatch 'ListenForSecondLaunch') { throw "D089 single-instance activation guard failed." }
           if ($program -notmatch '"client_type", "AGENT"' -or $config -notmatch 'Agent\.Auto\.Confirm\.Pick\.Pack\.exe') { throw "D088 Agent identity/channel guard failed." }
           if ($overlay -notmatch 'SetOverlaySize' -or $overlay -notmatch 'BackgroundArgb' -or $overlay -notmatch 'TextArgb' -or $overlay -notmatch 'HtBottomRight') { throw "D088 overlay resize/color persistence guard failed." }
-          if ($overlaySettings -notmatch 'ColorDialog' -or $overlaySettings -notmatch 'NumericUpDown' -or $overlaySettings -notmatch 'Chọn màu nền' -or $overlaySettings -notmatch 'Chọn màu chữ') { throw "D088 overlay settings UI guard failed." }
+          if ($overlay -notmatch 'ShowCpu' -or $overlay -notmatch 'ShowMemory' -or $overlay -notmatch 'ShowAgentOnline' -or $overlay -notmatch 'ShowWmsSession') { throw "D089 granular overlay persistence guard failed." }
+          if ($overlaySettings -notmatch 'ColorDialog' -or $overlaySettings -notmatch 'NumericUpDown' -or $overlaySettings -notmatch 'Bật hiển thị Overlay' -or $overlaySettings -notmatch 'Thông tin Laptop' -or $overlaySettings -notmatch 'Thông tin Agent') { throw "D089 professional overlay checklist UI guard failed." }
           if ($project -notmatch '<AssemblyName>Agent Auto Confirm Pick Pack</AssemblyName>' -or $project -notmatch '<ApplicationIcon>app.ico</ApplicationIcon>') { throw "D088 EXE name/icon guard failed." }
           if ($leader -notmatch 'PresenceHeartbeatIntervalMs\s*=\s*30000' -or $leader -notmatch 'PresenceReadIntervalMs\s*=\s*60000' -or $leader -notmatch 'PresenceFreshMs\s*=\s*90000') { throw "D087 Agent presence cadence guard failed." }
           if ($rules -notmatch 'coordination' -or $rules -notmatch 'rate_limits' -or $rules -notmatch 'PICKER_LOCKED' -or $rules -notmatch 'SWITCHING') { throw "D085 RTDB Rules guard failed." }
@@ -88,7 +90,7 @@ jobs:
               throw "WMS mutation method found; D085 remains read-only."
             }
           }
-          Write-Host "D088 relay regression guard PASS"
+          Write-Host "D089 relay regression guard PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh
