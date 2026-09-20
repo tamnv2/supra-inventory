@@ -277,7 +277,7 @@
     },
     {
       "id": "OA008",
-      "status": "D086_RELEASE_PENDING__OWNER_FIELD_TEST_AFTER_RELEASE",
+      "status": "OWNER_D086_FIELD_TEST_PENDING",
       "title": "Field-review D086 Agent session/UI/click-through/persistent background behavior",
       "resource_key": "supra-wms-ui-d080",
       "provider": "Physical company Windows laptop + authorized Supra WMS session + Beta PDA where needed",
@@ -305,12 +305,19 @@
         "No WMS confirmation/mutation occurs and Stable is untouched."
       ],
       "safety": "Beta only. Use authorized company WMS access. Never share passwords, Authorization/Token/APISID/SID/SCID/USID, signatures/nonces, encrypted session files or raw WMS payloads.",
-      "remaining_owner_action": "Wait for relay-agent-v11 release PASS, then perform the physical D086 review. D078 Office transport selection remains separate and pending.",
+      "remaining_owner_action": "Run released relay-agent-v11 on the company laptop and review the D086 UI/session/click-through/protected-exit/watchdog/resource behavior. D078 Office transport selection remains separate and pending.",
       "prerequisites": {
         "source_branch": "feat/d086-agent-session-ui-lifecycle",
+        "merged_pr": 92,
+        "merged_main": "207a57be6c4d95ab48d174b8af154f122bec7c5e",
+        "agent_release": "relay-agent-v11",
+        "agent_release_id": 392316320,
+        "agent_exe_asset_id": 576140376,
+        "agent_exe_size_bytes": 148992,
+        "agent_exe_sha256": "dce3a779c86096a6a82ed1991e385e7e6acea2d9ba75078e8bf2371eb1387659",
+        "main_agent_release_run": 35490227885,
+        "main_ui_guard_run": 35490227907,
         "android_release": "beta-vc52",
-        "current_agent_release": "relay-agent-v10",
-        "target_agent_release": "relay-agent-v11",
         "transport": "CURRENT_RTDB_TEMPORARY__FINAL_SELECTION_PENDING_D078"
       }
     }
