@@ -38,7 +38,7 @@ ANDROID_STYLES = read("android/app/src/main/res/values/styles.xml")
 ANDROID_ICON = read("android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml")
 ANDROID_ICON_ROUND = read("android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml")
 ANDROID_APPROVED_ICON_EXISTS = (ROOT / "android/app/src/main/res/drawable-nodpi/app_icon_d089.jpg").is_file()
-WEB_APPROVED_ICON_EXISTS = (ROOT / "web/public/app-icon.jpg").is_file()
+WEB_APPROVED_ICON_EXISTS = (ROOT / "web/public/app-icon.png").is_file()
 ANDROID_ALL = "\n".join([ANDROID_MAIN, ANDROID_PICKER, ANDROID_REPORTER])
 
 SERVICE_OPS = read("service/src/operational-v2-core.ts")
@@ -279,7 +279,7 @@ checks = {
     "web_transplant_files_are_presentation_only": "fetch(" not in WEB_FAST and "fetch(" not in WEB_DASH and "fetch(" not in WEB_WAREHOUSE and "fetch(" not in WEB_OPS,
 
     "android_adaptive_launcher_icon": 'android:icon="@drawable/app_icon_d089"' in ANDROID_MANIFEST and 'android:roundIcon="@drawable/app_icon_d089"' in ANDROID_MANIFEST and ANDROID_APPROVED_ICON_EXISTS,
-    "d089_shared_approved_icon": WEB_APPROVED_ICON_EXISTS and '/app-icon.jpg' in WEB_APP and '/app-icon.jpg' in WEB_INDEX,
+    "d089_shared_approved_icon": WEB_APPROVED_ICON_EXISTS and '/app-icon.png' in WEB_APP and '/app-icon.png' in WEB_INDEX,
     "android_legacy_login_xml": all(token in ANDROID_LOGIN_XML for token in ['76dp', '23sp', '@+id/etEmployeeCode', '@+id/etPassword', '@+id/btnLogin']),
     "android_legacy_main_shell_xml": all(token in ANDROID_MAIN_XML for token in ['android:layout_height="76dp"', '@+id/contentContainer', '@+id/btnLog', '@+id/btnLogout', '@+id/tvAppVersion']),
     "android_d074_picker_dense_split_xml": all(token in ANDROID_PICKER_XML for token in ['@+id/acSkuSearch', '@+id/btnReportShortage', '@+id/listMyReports', '@+id/panelShortage', '@+id/panelConfirmOrder', '@+id/tabShortage', '@+id/tabConfirmOrder', '@+id/etRelayPicklistSuffix', 'android:maxLength="5"', 'android:layout_height="48dp"']),
