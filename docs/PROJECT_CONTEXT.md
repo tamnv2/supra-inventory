@@ -229,3 +229,15 @@ Windows Agent:
 - Web `HỆ THỐNG → Công cụ` and v14 updater both target this exact published asset contract.
 
 D088 closes O002 for current Beta: Web + Android use one persistent server-authoritative interactive session per account; Agent auth remains separate to preserve approved multi-Agent HA. D078 final transport remains pending physical Office evidence, current RTDB remains temporary, WMS remains GET-only, and Stable remains OWNER-GATED.
+
+## D089 field-review repair
+
+Owner field review of D088 found five corrective items on 2026-09-20:
+
+- the deployed icon was a generated approximation instead of the selected icon #4 image;
+- authenticated HTTP APIs were healthy while the header falsely displayed service loss because realtime was offline;
+- Agent overlay needed a master visibility control and granular per-metric Laptop/Agent choices;
+- normal Agent startup needed a per-user single-instance contract;
+- the Web Tools page still contained light surfaces in dark theme.
+
+D089 implements those corrections on Beta only. The approved image is committed once as the common brand source and consumed by Web/Android/Agent. Service health is no longer derived from WebSocket state. Agent v15 is the release target and the next signed Android Beta release is pending CI/main runtime gating. D078 transport selection remains pending physical Office evidence; WMS mutation remains forbidden; Stable remains OWNER-GATED.
