@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "BETA_RUNTIME_PASS_D085_AGENT_HA_CACHE_ANTISPAM_RELEASE__OWNER_FIELD_TEST_PENDING",
+      "status": "BETA_RUNTIME_PASS_D085__D086_AGENT_V11_SOURCE_CANDIDATE__PR_CI_PENDING__OWNER_FIELD_TEST_PENDING",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -190,7 +190,7 @@
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
-      "relay_poc_status": "D085_RELEASE_PASS__OWNER_FIELD_TEST_PENDING",
+      "relay_poc_status": "D086_SOURCE_CANDIDATE__AGENT_V11_RELEASE_PENDING__OWNER_FIELD_TEST_PENDING",
       "relay_agent_release": "relay-agent-v10",
       "firebase_rtdb_rules_deploy": "PASS_RUN_35475860708__REST_PUT_EXACT_READBACK"
     },
@@ -501,9 +501,9 @@
     "extension_feature": false
   },
   "relay_poc": {
-    "decision": "D085",
+    "decision": "D086",
     "environment": "beta",
-    "status": "D085_RELEASE_PASS__OWNER_FIELD_TEST_PENDING__D078_TRANSPORT_SELECTION_PENDING",
+    "status": "D086_AGENT_V11_SOURCE_CANDIDATE__RELEASE_PENDING__D078_TRANSPORT_SELECTION_PENDING",
     "purpose": "Authenticated Picker-to-ADMIN relay carrying a bounded five-digit read-only WMS Picklist existence lookup result; no confirmation/mutation",
     "transport": "FIREBASE_RTDB_REST_SSE__TEMPORARY_UNCHANGED_PENDING_D078_SELECTION",
     "database_resource_key": "firebase-rtdb-relay-beta",
@@ -513,7 +513,7 @@
     "path": "relay_poc/jobs/{request_id}",
     "auth": "PICKER_OWN_JOB__REAL_BASE_ADMIN_SHARED_COLLECTION_AND_ACK",
     "android": "PICKER_SHARED_QUEUE_EXACT_FIVE_DIGIT_LOOKUP_REQUEST",
-    "windows_agent": "NET48_REAL_ADMIN_ONLY_DPAPI_SHARED_SSE_SANITIZED_LOG_AUTO_UPDATE__D085_HKCU_AUTOSTART",
+    "windows_agent": "NET48_REAL_ADMIN_ONLY_DPAPI_APP_AND_WMS_SESSION__PROTECTED_EXIT__USERMODE_WATCHDOG__SANITIZED_LOG__D085_HA",
     "wms_mutation": "FORBIDDEN__READ_ONLY_GET_ONLY__FUTURE_CONFIRM_ADAPTER_DISABLED",
     "stable": "UNTOUCHED_OWNER_GATED",
     "android_release": "beta-vc52",
@@ -544,25 +544,27 @@
     "rules_deploy_method": "OFFICIAL_RTDB_SETTINGS_RULES_REST_PUT_AND_READBACK",
     "rules_deploy_last_evidence": "PASS_RUN_35475860708__D085_COORDINATION_RATE_LIMIT_SWITCHING_METADATA__EXACT_READBACK",
     "rules_deployed_source_commit": "bf309b9788f5adac179ef293f4770eafb6bdcedf",
-    "agent_release_target": "relay-agent-v10__RELEASED",
+    "agent_release_target": "relay-agent-v11__SOURCE_CANDIDATE_RELEASE_PENDING",
     "office_transport_discovery": "V4_RELEASE_PASS__FIREBASE_AUTH_RTDB_FIRESTORE_APPS_SCRIPT_SHEETS_DRIVE_READ_ONLY_PROBES__FIELD_LOG_PENDING",
     "transport_selection": "PENDING_OWNER_OFFICE_PROBE_EVIDENCE__D085_MUST_NOT_SELECT_TRANSPORT",
-    "wms_session_capture": "D085_DEDICATED_EDGE_CHROME_PROFILE_REUSE__CAPTURE_TO_RAM__READONLY_VALIDATE__RAW_SESSION_NOT_PERSISTED_BY_AGENT",
+    "wms_session_capture": "D086_DPAPI_CURRENT_USER_ENCRYPTED_LOCAL_SESSION_FILE_FIRST__READONLY_VALIDATE_AND_PRELOAD__LOCAL_BROWSER_FALLBACK_IF_UNUSABLE__REMOTE_PDA_NEVER_OPENS_LOGIN",
     "wms_probe": "WMS_UI_REACHABILITY__SIGNED_GET_WAREHOUSE_ZONES__SYSTEM_ENV_DIRECT_CORP_PROXY_ROUTES",
-    "taskbar_monitor": "D085_V8_OVERLAY_ENGINE_RESTORED__MAIN_WINDOW_SETTINGS_RETAINED__TRAY_SHORTCUT_OPTIONAL",
+    "taskbar_monitor": "D086_TRUE_WS_EX_TRANSPARENT_CLICKTHROUGH__SETTINGS_MANAGED__LOCAL_SAMPLE_5S",
     "picklist_lookup": "D085_PRELOAD_RAM_CACHE__10S_FRESH_MISS_GUARD__SINGLE_FLIGHT_REFRESH__D084_EXACT_PICKLISTCODE_NO_DATE_PAGE100",
     "lookup_ack": "OPTIONAL_BOUNDED_STATUS_MATCH_COUNT_LATENCY_ROUTE_HTTP__NO_FULL_PICKLIST_OR_WMS_RESPONSE",
-    "agent_startup": "V10_RELEASE_PASS__HKCU_AUTOSTART__STARTUP_SMOKE_PASS__OWNER_PHYSICAL_ACCEPTANCE_PENDING",
+    "agent_startup": "D086_SOURCE_CANDIDATE__HKCU_AUTOSTART__NO_CLOSEBOX__PROTECTED_EXIT__WATCHDOG_RESTART__SSID_UI_60S",
     "android_release_target": "beta-vc52__RELEASED",
     "lookup_wait": "ANDROID_120S_RELEASED_BETA_VC52",
     "agent_ha": "STICKY_SINGLE_WMS_READY_ACTIVE__HEARTBEAT_3S__FAILOVER_10S__PENDING_JOB_TAKEOVER",
     "picker_rate_limit": "FINAL_NOT_FOUND_ONLY__3_WITHIN_60S__LOCK_5M_30M_60M__24H_ESCALATION_RESET__ACCOUNT_SCOPED",
-    "no_agent_behavior": "PDA_BLOCK_LOOKUP__INSTRUCT_GO_TO_SPECIALIST_DESK"
+    "no_agent_behavior": "PDA_BLOCK_LOOKUP__INSTRUCT_GO_TO_SPECIALIST_DESK",
+    "agent_ui": "D086_OVERVIEW_PLUS_SETTINGS__OVERVIEW_SUPRA_LOGIN_CONNECTION_MODEL_ONLY",
+    "runtime_persistence": "BEST_EFFORT_USER_MODE__WATCHDOG_SLEEP_WAIT__AUTHORIZED_EXIT_UPDATE_SHUTDOWN_SUPPRESS_RESTART"
   },
   "wms_poc": {
-    "decision": "D085",
+    "decision": "D086",
     "environment": "beta_poc",
-    "status": "D085_RELEASE_PASS__READONLY_LOOKUP_FOUNDATION__OWNER_FIELD_TEST_PENDING__CONFIRMATION_NOT_AUTHORIZED",
+    "status": "D086_AGENT_V11_SOURCE_CANDIDATE__READONLY_LOOKUP__CONFIRMATION_NOT_AUTHORIZED",
     "ui_resource_key": "supra-wms-ui-d080",
     "api_resource_key": "supra-api-d080",
     "proxy_resource_key": "wincommerce-proxy-fallback-d080",
@@ -577,7 +579,7 @@
       "SCID",
       "USID"
     ],
-    "session_capture": "D085_DEDICATED_BROWSER_PROFILE_REUSE__VALUES_RAM_ONLY_AFTER_CAPTURE",
+    "session_capture": "D086_CAPTURED_REQUEST_SESSION_DPAPI_CURRENT_USER_FILE__WMS_CREDENTIALS_BROWSER_ONLY__READONLY_VALIDATE_PRELOAD",
     "route_order": [
       "WINDOWS_SYSTEM_PROXY",
       "ENV_PROXY",
@@ -598,11 +600,11 @@
       "GOOGLE_CHROME"
     ],
     "wms_credentials": "OFFICIAL_BROWSER_PAGE_ONLY__NO_AGENT_FORM_OR_STORAGE",
-    "taskbar_monitor": "D085_V8_OVERLAY_ENGINE__MAIN_WINDOW_SETTINGS",
+    "taskbar_monitor": "D086_TRUE_CROSS_PROCESS_CLICKTHROUGH__SETTINGS_MANAGED",
     "read_only_lookup": "GET /sft3-hy1/api/v1/autopp/pickListConfirms",
     "confirm_ui_reference": "https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm",
     "confirmation": "DEFERRED_NOT_AUTHORIZED_NOT_IMPLEMENTED__FUTURE_ADAPTER_DISABLED",
     "session_login_suppression": "VALIDATED_SESSION_DIMS_LOGIN__LOCAL_RECAPTURE_ONLY_WHEN_INVALID__REMOTE_PDA_NEVER_OPENS_LOGIN",
-    "agent_release_target": "relay-agent-v10__RELEASED"
+    "agent_release_target": "relay-agent-v11__SOURCE_CANDIDATE_RELEASE_PENDING"
   }
 }

@@ -21,6 +21,18 @@ namespace SupraInventoryRelayAgent
         [STAThread]
         private static void Main(string[] args)
         {
+            var watchdogIndex = args == null ? -1 : Array.FindIndex(args, item =>
+                string.Equals(item, "--watchdog", StringComparison.OrdinalIgnoreCase));
+            if (watchdogIndex >= 0 && args != null && watchdogIndex + 1 < args.Length)
+            {
+                int parentPid;
+                if (int.TryParse(args[watchdogIndex + 1], out parentPid))
+                    Environment.ExitCode = AgentRuntimeGuard.RunWatchdog(parentPid);
+                else
+                    Environment.ExitCode = 2;
+                return;
+            }
+
             AgentDiagnostics.Initialize();
             var startupSmoke = args != null && Array.Exists(args, item =>
                 string.Equals(item, "--startup-smoke", StringComparison.OrdinalIgnoreCase));
@@ -224,6 +236,11 @@ namespace SupraInventoryRelayAgent
         private readonly ToolStripMenuItem _trayOverlayOpacityMenu = new ToolStripMenuItem();
         private readonly SystemMonitor _systemMonitor = new SystemMonitor();
         private readonly System.Windows.Forms.Timer _trayMonitorTimer = new System.Windows.Forms.Timer();
+        private readonly System.Windows.Forms.Timer _networkUiTimer = new System.Windows.Forms.Timer();
+        private readonly System.Windows.Forms.Timer _guardTimer = new System.Windows.Forms.Timer();
+        private readonly TabControl _mainTabs = new TabControl();
+        private readonly TabPage _overviewPage = new TabPage("Tổng quan");
+        private readonly TabPage _settingsPage = new TabPage("Cài đặt");
         private StatusOverlayForm _statusOverlay;
         private readonly OverlaySettings _overlaySettings;
         private readonly bool _startupSmoke;
@@ -249,6 +266,8 @@ namespace SupraInventoryRelayAgent
         private static readonly string SessionFile = Path.Combine(RelayDataDir, "session.bin");
         private static readonly string AgentInstanceFile = Path.Combine(RelayDataDir, "agent-instance-id.txt");
         private static readonly string OverlaySettingsFile = Path.Combine(RelayDataDir, "overlay-settings.json");
+        private static readonly string WmsSessionFile = Path.Combine(RelayDataDir, "wms-session.bin");
+        private static readonly string ExitVerifierFile = Path.Combine(RelayDataDir, "exit-verifier.bin");
 
         internal AgentForm(bool startupSmoke = false, bool autoStarted = false)
         {
@@ -319,49 +338,19 @@ namespace SupraInventoryRelayAgent
 
             _log.SetBounds(18, 356, 726, 255); Controls.Add(_log);
 
+            BuildProfessionalLayout();
+
             var menu = new ContextMenuStrip();
             _trayStatusItem.Enabled = false;
             _trayStatusItem.Text = "Máy: đang đọc...";
             menu.Items.Add(_trayStatusItem);
             menu.Items.Add(new ToolStripSeparator());
 
-            _trayOverlayVisibleItem.Text = "Hiển thị bảng nổi";
-            _trayOverlayVisibleItem.CheckOnClick = false;
-            _trayOverlayVisibleItem.Click += (s, e) =>
-            {
-                ToggleOverlayVisibility();
-                RefreshOverlayMenu();
-            };
-            menu.Items.Add(_trayOverlayVisibleItem);
-
-            _trayOverlayLockItem.Text = "Khóa vị trí / xuyên chuột";
-            _trayOverlayLockItem.CheckOnClick = false;
-            _trayOverlayLockItem.Click += (s, e) =>
-            {
-                ToggleOverlayLock();
-                RefreshOverlayMenu();
-            };
-            menu.Items.Add(_trayOverlayLockItem);
-
-            _trayOverlayOpacityMenu.Text = "Độ trong bảng nổi";
-            foreach (var item in new[] { 0.40, 0.60, 0.80, 1.00 })
-            {
-                var opacity = item;
-                var opacityItem = new ToolStripMenuItem(((int)(opacity * 100)).ToString() + "%");
-                opacityItem.Tag = opacity;
-                opacityItem.Click += (s, e) =>
-                {
-                    SetOverlayOpacitySafe(opacity);
-                    RefreshOverlayMenu();
-                };
-                _trayOverlayOpacityMenu.DropDownItems.Add(opacityItem);
-            }
-            menu.Items.Add(_trayOverlayOpacityMenu);
-            menu.Items.Add("Cài đặt bảng nổi...", null, (s, e) => OpenOverlaySettings());
-            menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add("Mở Agent", null, (s, e) => RestoreFromTray());
+            menu.Items.Add("Cài đặt", null, (s, e) => OpenSettingsFromTray());
             menu.Items.Add("Mở log", null, (s, e) => AgentDiagnostics.OpenLog());
-            menu.Items.Add("Thoát", null, (s, e) => { _allowExit = true; Close(); });
+            menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add("Tắt Agent...", null, (s, e) => RequestProtectedExit());
             _tray.Text = "SUPRA | đang đọc tài nguyên máy"; _tray.Icon = SystemIcons.Application; _tray.ContextMenuStrip = menu; _tray.Visible = true;
             RefreshOverlayMenu();
             _tray.DoubleClick += (s, e) => RestoreFromTray();
@@ -370,6 +359,7 @@ namespace SupraInventoryRelayAgent
             FormClosing += (s, e) =>
             {
                 if (!_allowExit && e.CloseReason == CloseReason.UserClosing) { e.Cancel = true; WindowState = FormWindowState.Minimized; Hide(); return; }
+                if (e.CloseReason == CloseReason.WindowsShutDown) AgentRuntimeGuard.MarkPlannedExit();
                 StopListening();
                 StopLeaderCoordination();
                 _trayMonitorTimer.Stop();
@@ -377,11 +367,16 @@ namespace SupraInventoryRelayAgent
                 _tray.Visible = false;
             };
 
-            var timer = new System.Windows.Forms.Timer { Interval = 4000 };
-            timer.Tick += (s, e) => _network.Text = "Mạng: " + GetSsid();
-            timer.Start();
+            _networkUiTimer.Interval = 60000;
+            _networkUiTimer.Tick += (s, e) =>
+            {
+                if (Visible) _network.Text = "Mạng: " + GetSsid();
+            };
 
-            _trayMonitorTimer.Interval = 2000;
+            _guardTimer.Interval = 60000;
+            _guardTimer.Tick += (s, e) => AgentRuntimeGuard.EnsureWatchdog();
+
+            _trayMonitorTimer.Interval = 5000;
             _trayMonitorTimer.Tick += (s, e) => UpdateTrayMonitor();
 
             _updateTimer.Interval = 4 * 60 * 60 * 1000;
@@ -401,6 +396,9 @@ namespace SupraInventoryRelayAgent
                     return;
                 }
 
+                AgentRuntimeGuard.EnsureWatchdog();
+                _guardTimer.Start();
+                _networkUiTimer.Start();
                 _trayMonitorTimer.Start();
                 if (_autoStarted)
                 {
@@ -413,6 +411,231 @@ namespace SupraInventoryRelayAgent
                 }
                 Task.Run(() => StartupSequence());
             };
+        }
+
+        private void BuildProfessionalLayout()
+        {
+            SuspendLayout();
+            Controls.Clear();
+
+            Text = "SUPRA Inventory Agent v" + AgentConfig.AgentBuild;
+            Width = 860;
+            Height = 610;
+            MinimumSize = new Size(860, 610);
+            BackColor = Color.FromArgb(243, 246, 248);
+            ControlBox = false;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+
+            _mainTabs.Dock = DockStyle.Fill;
+            _mainTabs.Font = new Font("Segoe UI", 9F);
+            _overviewPage.BackColor = Color.FromArgb(243, 246, 248);
+            _settingsPage.BackColor = Color.FromArgb(243, 246, 248);
+            _mainTabs.TabPages.Add(_overviewPage);
+            _mainTabs.TabPages.Add(_settingsPage);
+            Controls.Add(_mainTabs);
+
+            var title = new Label
+            {
+                Left = 24,
+                Top = 22,
+                Width = 760,
+                Height = 34,
+                Text = "SUPRA INVENTORY AGENT",
+                Font = new Font("Segoe UI Semibold", 17F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(24, 43, 55)
+            };
+            var subtitle = new Label
+            {
+                Left = 26,
+                Top = 58,
+                Width = 760,
+                Height = 24,
+                Text = "Kết nối PDA với bàn chuyên viên · xử lý Picklist chỉ đọc",
+                ForeColor = Color.FromArgb(88, 104, 115)
+            };
+            _overviewPage.Controls.Add(title);
+            _overviewPage.Controls.Add(subtitle);
+
+            var loginCard = NewCard(24, 96, 786, 112);
+            loginCard.Controls.Add(new Label
+            {
+                Left = 18,
+                Top = 14,
+                Width = 730,
+                Height = 22,
+                Text = "Đăng nhập hệ thống Supra",
+                Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(24, 43, 55)
+            });
+            _wmsCapture.SetBounds(18, 46, 250, 42);
+            _wmsCapture.Text = "Đăng nhập hệ thống Supra";
+            _wmsStatus.SetBounds(286, 48, 472, 40);
+            _wmsStatus.Text = "Supra WMS: đang kiểm tra phiên";
+            loginCard.Controls.Add(_wmsCapture);
+            loginCard.Controls.Add(_wmsStatus);
+            _overviewPage.Controls.Add(loginCard);
+
+            var connectionCard = NewCard(24, 222, 786, 154);
+            connectionCard.Controls.Add(new Label
+            {
+                Left = 18,
+                Top = 14,
+                Width = 730,
+                Height = 22,
+                Text = "Tình trạng kết nối",
+                Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(24, 43, 55)
+            });
+            _identity.SetBounds(18, 46, 740, 24);
+            _relay.SetBounds(18, 76, 740, 24);
+            _network.SetBounds(18, 106, 740, 24);
+            connectionCard.Controls.Add(_identity);
+            connectionCard.Controls.Add(_relay);
+            connectionCard.Controls.Add(_network);
+            _overviewPage.Controls.Add(connectionCard);
+
+            var modelCard = NewCard(24, 390, 786, 112);
+            modelCard.Controls.Add(new Label
+            {
+                Left = 18,
+                Top = 14,
+                Width = 730,
+                Height = 22,
+                Text = "Mô hình hiện tại",
+                Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(24, 43, 55)
+            });
+            modelCard.Controls.Add(new Label
+            {
+                Left = 18,
+                Top = 46,
+                Width = 740,
+                Height = 22,
+                Text = "PDA → Relay Beta → Agent ACTIVE/STANDBY → Supra WMS đọc Picklist"
+            });
+            modelCard.Controls.Add(new Label
+            {
+                Left = 18,
+                Top = 72,
+                Width = 740,
+                Height = 22,
+                Text = "Một Agent xử lý chính · tự chuyển sau 10 giây · không có thao tác thay đổi WMS",
+                ForeColor = Color.FromArgb(88, 104, 115)
+            });
+            _overviewPage.Controls.Add(modelCard);
+
+            var settingsTabs = new TabControl { Dock = DockStyle.Fill, Padding = new Point(14, 6) };
+            var adminPage = new TabPage("Đăng nhập ADMIN") { BackColor = Color.White };
+            var networkPage = new TabPage("Kết nối") { BackColor = Color.White };
+            var overlayPage = new TabPage("Bảng nổi") { BackColor = Color.White };
+            var logsPage = new TabPage("Logs") { BackColor = Color.White };
+            settingsTabs.TabPages.Add(adminPage);
+            settingsTabs.TabPages.Add(networkPage);
+            settingsTabs.TabPages.Add(overlayPage);
+            settingsTabs.TabPages.Add(logsPage);
+            _settingsPage.Controls.Add(settingsTabs);
+
+            adminPage.Controls.Add(new Label { Left = 24, Top = 24, Width = 730, Height = 36, Text = "Tài khoản ADMIN của SUPRA Inventory dùng để xác thực Agent.", Font = new Font("Segoe UI Semibold", 11F) });
+            adminPage.Controls.Add(new Label { Left = 24, Top = 84, Width = 120, Height = 22, Text = "Tài khoản ADMIN" });
+            _username.SetBounds(24, 108, 310, 28);
+            adminPage.Controls.Add(_username);
+            adminPage.Controls.Add(new Label { Left = 360, Top = 84, Width = 120, Height = 22, Text = "Mật khẩu" });
+            _password.SetBounds(360, 108, 280, 28);
+            adminPage.Controls.Add(_password);
+            _pair.SetBounds(24, 154, 180, 36);
+            _pair.Text = "Đăng nhập ADMIN";
+            adminPage.Controls.Add(_pair);
+            adminPage.Controls.Add(new Label { Left = 24, Top = 208, Width = 730, Height = 54, Text = "Mật khẩu không được ghi vào log. Sau khi đăng nhập thành công, Agent chỉ lưu phiên ứng dụng bằng Windows DPAPI.", ForeColor = Color.DimGray });
+
+            networkPage.Controls.Add(new Label { Left = 24, Top = 20, Width = 730, Height = 28, Text = "Kiểm tra kết nối và chẩn đoán transport", Font = new Font("Segoe UI Semibold", 11F) });
+            _testOffice.SetBounds(24, 64, 150, 34); networkPage.Controls.Add(_testOffice);
+            _listen.SetBounds(184, 64, 150, 34); networkPage.Controls.Add(_listen);
+            _wmsTest.SetBounds(344, 64, 150, 34); _wmsTest.Text = "Kiểm tra Supra"; networkPage.Controls.Add(_wmsTest);
+            _probeAuth.SetBounds(24, 126, 100, 32); networkPage.Controls.Add(_probeAuth);
+            _probeRtdb.SetBounds(132, 126, 100, 32); networkPage.Controls.Add(_probeRtdb);
+            _probeFirestore.SetBounds(240, 126, 110, 32); networkPage.Controls.Add(_probeFirestore);
+            _probeAppsScript.SetBounds(358, 126, 110, 32); networkPage.Controls.Add(_probeAppsScript);
+            _probeSheets.SetBounds(476, 126, 100, 32); networkPage.Controls.Add(_probeSheets);
+            _probeDrive.SetBounds(584, 126, 100, 32); networkPage.Controls.Add(_probeDrive);
+            _probeAll.SetBounds(24, 174, 150, 34); networkPage.Controls.Add(_probeAll);
+            networkPage.Controls.Add(new Label { Left = 24, Top = 232, Width = 730, Height = 70, Text = "Các bài test ở đây chỉ phục vụ chẩn đoán. Transport PDA ↔ Agent vẫn giữ cấu hình Beta hiện tại cho đến khi có kết quả test mạng Office.", ForeColor = Color.DimGray });
+
+            overlayPage.Controls.Add(new Label { Left = 24, Top = 24, Width = 730, Height = 34, Text = "Bảng nổi trạng thái máy", Font = new Font("Segoe UI Semibold", 11F) });
+            overlayPage.Controls.Add(new Label { Left = 24, Top = 66, Width = 730, Height = 54, Text = "Khi khóa, bảng nổi chỉ hiển thị thông tin và chuột xuyên hoàn toàn xuống ứng dụng bên dưới. Khi mở khóa, có thể kéo đổi vị trí.", ForeColor = Color.DimGray });
+            _overlaySettingsButton.SetBounds(24, 136, 200, 36);
+            overlayPage.Controls.Add(_overlaySettingsButton);
+
+            logsPage.Controls.Add(new Label { Left = 24, Top = 18, Width = 620, Height = 30, Text = "Logs cục bộ đã làm sạch dữ liệu nhạy cảm", Font = new Font("Segoe UI Semibold", 11F) });
+            _openLog.SetBounds(650, 16, 120, 32);
+            logsPage.Controls.Add(_openLog);
+            _log.SetBounds(24, 62, 746, 390);
+            logsPage.Controls.Add(_log);
+
+            ResumeLayout(true);
+        }
+
+        private static Panel NewCard(int left, int top, int width, int height)
+        {
+            return new Panel
+            {
+                Left = left,
+                Top = top,
+                Width = width,
+                Height = height,
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+        }
+
+        private void OpenSettingsFromTray()
+        {
+            RestoreFromTray();
+            _mainTabs.SelectedTab = _settingsPage;
+        }
+
+        private void RequestProtectedExit()
+        {
+            AgentSession session = null;
+            try { session = SnapshotSession(); } catch { }
+
+            if (session == null || string.IsNullOrWhiteSpace(session.AppUserId))
+            {
+                MessageBox.Show(
+                    "Agent chưa có phiên ADMIN hợp lệ. Hãy đăng nhập ADMIN trong Cài đặt trước khi tắt Agent.",
+                    "Tắt Agent",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            using (var dialog = new ExitPasswordDialog(session.AppUserId))
+            {
+                if (dialog.ShowDialog(this) != DialogResult.OK) return;
+                var password = dialog.PasswordValue;
+                try
+                {
+                    if (!ExitAuthorization.Verify(ExitVerifierFile, session.AppUserId, password))
+                    {
+                        MessageBox.Show(
+                            "Mật khẩu ADMIN không đúng hoặc phiên cũ chưa có bộ xác minh tắt Agent. Hãy đăng nhập ADMIN lại trong Cài đặt rồi thử lại.",
+                            "Không thể tắt Agent",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                        return;
+                    }
+                }
+                finally
+                {
+                    password = null;
+                }
+            }
+
+            AgentDiagnostics.Write("AGENT EXIT authorized admin=" + session.AppUserId + " method=local_dpapi_verifier");
+            AgentRuntimeGuard.MarkPlannedExit();
+            _allowExit = true;
+            Close();
         }
 
         private void RestoreFromTray() { Show(); WindowState = FormWindowState.Normal; Activate(); }
@@ -565,7 +788,7 @@ namespace SupraInventoryRelayAgent
                 _probeAll.Enabled = enabled;
                 var hasWmsSession = HasUsableWmsSession();
                 _wmsCapture.Enabled = enabled && !hasWmsSession;
-                _wmsCapture.Text = hasWmsSession ? "Phiên WMS đang OK" : "Mở WMS + lấy phiên";
+                _wmsCapture.Text = hasWmsSession ? "Phiên Supra đang sẵn sàng" : "Đăng nhập hệ thống Supra";
                 _wmsTest.Enabled = enabled;
             });
         }
@@ -646,44 +869,43 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private void TryRestoreWmsSessionFromProfile()
+        private void TryRestoreWmsSessionFileFirst()
         {
             if (HasUsableWmsSession()) return;
-            Ui(() => _wmsStatus.Text = "WMS: đang khôi phục phiên đã lưu trong profile...");
+            Ui(() => _wmsStatus.Text = "Supra WMS: đang đọc phiên đã mã hóa...");
             try
             {
-                var captured = WmsBrowserCapture.CaptureSession(
-                    20,
-                    message => Log("WMS RESTORE " + message));
-                var probe = WmsReadOnlyClient.ProbeApi(captured);
-                if (!string.Equals(probe.Result, "PASS", StringComparison.Ordinal))
-                    throw new InvalidOperationException("Phiên WMS profile không còn hợp lệ: " + probe.Result + ".");
+                var stored = WmsSessionStore.Load(WmsSessionFile);
+                if (stored == null)
+                    throw new InvalidOperationException("Chưa có file phiên WMS trên Windows user này.");
 
-                lock (_wmsSessionLock) _wmsSession = captured;
-                Ui(() => _wmsStatus.Text = "WMS: phiên cũ còn hiệu lực · đang nạp Picklist");
+                var probe = WmsReadOnlyClient.ProbeApi(stored);
+                if (!string.Equals(probe.Result, "PASS", StringComparison.Ordinal))
+                    throw new InvalidOperationException("Phiên WMS đã lưu không còn hợp lệ: " + probe.Result + ".");
+
+                lock (_wmsSessionLock) _wmsSession = stored;
+                Ui(() => _wmsStatus.Text = "Supra WMS: phiên cũ hợp lệ · đang nạp Picklist");
                 SetProbeButtonsEnabled(true);
-                Log("WMS SESSION RESTORE PASS source=dedicated_browser_profile values=redacted.");
-                PreloadPicklistCache(captured, "STARTUP_RESTORE");
+                Log("WMS SESSION RESTORE PASS source=dpapi_file values=redacted.");
+                if (PreloadPicklistCache(stored, "STARTUP_FILE"))
+                    return;
+
+                throw new InvalidOperationException("Không nạp được danh sách Picklist từ phiên đã lưu.");
             }
             catch (Exception ex)
             {
+                WmsSessionStore.Clear(WmsSessionFile);
                 lock (_wmsSessionLock) _wmsSession = null;
                 _picklistCache.Clear();
-                Ui(() =>
-                {
-                    _wmsStatus.Text = "WMS: cần đăng nhập lại";
-                    _tray.ShowBalloonTip(
-                        2500,
-                        "SUPRA Inventory",
-                        "Phiên WMS chưa sẵn sàng. Mở Agent và bấm Mở WMS + lấy phiên.",
-                        ToolTipIcon.Warning);
-                });
+                Ui(() => _wmsStatus.Text = "Supra WMS: phiên cũ không dùng được · đang mở đăng nhập");
                 SetProbeButtonsEnabled(true);
-                Log("WMS SESSION RESTORE unavailable; manual_login_enabled=true detail=" + SafeMessage(ex));
+                Log("WMS SESSION RESTORE unavailable; opening_local_browser=true detail=" + SafeMessage(ex));
             }
+
+            CaptureWmsSession();
         }
 
-        private void PreloadPicklistCache(WmsSessionSnapshot session, string reason)
+        private bool PreloadPicklistCache(WmsSessionSnapshot session, string reason)
         {
             try
             {
@@ -697,16 +919,19 @@ namespace SupraInventoryRelayAgent
                     " values=redacted");
                 if (string.Equals(preload.Result, "PASS", StringComparison.Ordinal))
                 {
-                    Ui(() => _wmsStatus.Text = "WMS: OK · Picklist cache " + preload.CacheCount);
+                    WmsSessionStore.Save(WmsSessionFile, session);
+                    Ui(() => _wmsStatus.Text = "Supra WMS: OK · Picklist cache " + preload.CacheCount);
                     SetProbeButtonsEnabled(true);
-                    return;
+                    Log("WMS SESSION FILE renew=PASS protection=DPAPI_CURRENT_USER values=redacted.");
+                    return true;
                 }
 
                 if (string.Equals(preload.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
                 {
                     lock (_wmsSessionLock) _wmsSession = null;
                     _picklistCache.Clear();
-                    Ui(() => _wmsStatus.Text = "WMS: phiên hết hạn · cần đăng nhập lại");
+                    WmsSessionStore.Clear(WmsSessionFile);
+                    Ui(() => _wmsStatus.Text = "Supra WMS: phiên hết hạn · cần đăng nhập lại");
                     SetProbeButtonsEnabled(true);
                 }
             }
@@ -714,6 +939,7 @@ namespace SupraInventoryRelayAgent
             {
                 Log("PICKLIST CACHE preload fail reason=" + reason + " detail=" + SafeMessage(ex));
             }
+            return false;
         }
 
         private void StartupSequence()
@@ -742,6 +968,7 @@ namespace SupraInventoryRelayAgent
                     Ui(() =>
                     {
                         _relay.Text = "Update: đang cài v" + result.LatestBuild;
+                        AgentRuntimeGuard.MarkPlannedExit();
                         _allowExit = true;
                         Close();
                     });
@@ -783,7 +1010,7 @@ namespace SupraInventoryRelayAgent
                 SetProbeButtonsEnabled(true);
                 Log("Khôi phục ADMIN Agent PASS.");
                 ActivateRelayRuntime();
-                Task.Run(() => TryRestoreWmsSessionFromProfile());
+                Task.Run(() => TryRestoreWmsSessionFileFirst());
             }
             catch (Exception ex)
             {
@@ -860,6 +1087,7 @@ namespace SupraInventoryRelayAgent
 
                 lock (_sessionLock) _session = next;
                 SaveStoredSession(next);
+                ExitAuthorization.SaveVerifier(ExitVerifierFile, next.AppUserId, password);
                 Ui(() =>
                 {
                     _password.Clear();
@@ -876,7 +1104,7 @@ namespace SupraInventoryRelayAgent
                     " aud=" + audience
                 );
                 ActivateRelayRuntime();
-                Task.Run(() => TryRestoreWmsSessionFromProfile());
+                Task.Run(() => TryRestoreWmsSessionFileFirst());
             }
             catch (Exception ex)
             {
@@ -884,6 +1112,7 @@ namespace SupraInventoryRelayAgent
             }
             finally
             {
+                password = null;
                 Ui(() => _pair.Enabled = true);
             }
         }
@@ -1687,8 +1916,26 @@ namespace SupraInventoryRelayAgent
                 {
                     lock (_wmsSessionLock) _wmsSession = null;
                     _picklistCache.Clear();
+                    WmsSessionStore.Clear(WmsSessionFile);
                     Ui(() => _wmsStatus.Text = "WMS: phiên hết hạn · cần đăng nhập lại");
                     SetProbeButtonsEnabled(true);
+                }
+
+                if ((string.Equals(lookup.Result, "FOUND", StringComparison.Ordinal) ||
+                     string.Equals(lookup.Result, "NOT_FOUND", StringComparison.Ordinal)) &&
+                    !string.Equals(lookup.CacheMode, "CACHE_HIT", StringComparison.Ordinal) &&
+                    !string.Equals(lookup.CacheMode, "CACHE_FRESH_MISS", StringComparison.Ordinal) &&
+                    wmsSession != null)
+                {
+                    try
+                    {
+                        WmsSessionStore.Save(WmsSessionFile, wmsSession);
+                        Log("WMS SESSION FILE renew=PASS reason=lookup_refresh values=redacted.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Log("WMS SESSION FILE renew=FAIL type=" + ex.GetType().Name);
+                    }
                 }
 
                 if (string.Equals(lookup.Result, "FOUND", StringComparison.Ordinal))

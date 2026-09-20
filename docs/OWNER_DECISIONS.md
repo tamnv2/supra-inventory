@@ -157,3 +157,19 @@ D085 supersedes only the D084 implementation details listed below. D084 all-date
 - The future WMS confirmation/mutation adapter remains **disabled/not implemented/not authorized**. D085 is lookup + transport/HA/rate-limit foundation only. WMS POST/PUT/PATCH/DELETE remains forbidden.
 - Stable remains untouched and OWNER-GATED.
 
+## D086 — Agent session file, professional shell, true click-through and persistent background lifecycle
+
+Status: **ACTIVE — OWNER APPROVED 2026-09-20**.
+
+D086 refines D081–D085 only for the Windows Agent local session/lifecycle/UI mechanics. D085 sticky ACTIVE/STANDBY ownership, 10-second failover, all-date read-only PickListCode cache, anti-spam, temporary Beta RTDB carrier and the D078 transport-open boundary remain unchanged.
+
+- The Agent may persist the captured HY1 WMS request-session snapshot in a **local Windows-user DPAPI-encrypted file**. Raw values remain forbidden in GitHub, RTDB, diagnostics, overlay settings and plaintext files.
+- On Agent start after SUPRA Inventory ADMIN authority is restored, WMS startup is **file-first**: decrypt the saved session for the current Windows user, validate it with the approved read-only WMS request and preload the complete Picklist cache. If that succeeds, continue without opening a browser. If the stored session is missing/invalid/expired or cannot load the Picklist list, clear the unusable file and open the Agent-owned WMS browser locally to obtain a new authorized session. A successful preload/refresh renews the encrypted session file for the next start.
+- Remote PDA requests still never authorize opening a WMS login window. No WMS credential form is added and no password is persisted by the Agent.
+- Agent main UI is reorganized as a professional two-surface shell. **Tổng quan** contains only the primary `Đăng nhập hệ thống Supra` action, connection/Agent status and concise current-model information. ADMIN login, network/transport tests, overlay settings and logs live under **Cài đặt**.
+- A locked overlay must be genuinely click-through across application/process boundaries: pointer input reaches the real object/window beneath the overlay. Unlocking restores drag interaction. Position/opacity/visibility/lock remain local non-secret settings.
+- Normal users cannot close the main Agent through a title-bar X; deliberate graceful exit is exposed only through a protected action that requires the password verifier of the currently authenticated real ADMIN. The verifier is salted/derived and DPAPI-protected; the plaintext password is never persisted/logged.
+- Because a normal user-mode Windows process cannot be made absolutely unkillable against the same user/Task Manager, D086 uses best-effort persistence: current-user autostart plus a sleep-only watchdog that relaunches the main Agent after an unexpected process exit. Deliberate authorized exit, update replacement and Windows shutdown suppress watchdog restart. Killing both Agent and watchdog remains outside what user-mode software can prevent without elevation/service installation.
+- Background overhead must stay low: no fast `netsh` polling loop; SSID/UI refresh is coarse/on-demand, local CPU/RAM overlay sampling is reduced, and network/service work remains event/job/HA driven. The 3-second Agent leadership heartbeat remains because it is required for the approved 10-second failover.
+- WMS remains signed **GET-only**. Confirmation/mutation is still not implemented or authorized. Stable remains untouched and OWNER-GATED.
+

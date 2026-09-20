@@ -298,3 +298,32 @@ If WMS asks for login, the user signs in normally in the opened Edge window. The
 - Auto-start uses the current Windows user and normally starts minimized to tray; no Windows elevation prompt is required.
 - Agent UI identifies ACTIVE/STANDBY state for multi-Agent operation.
 
+## D086 — Windows Agent shell and shutdown form
+
+### Tổng quan
+The Agent main surface contains only:
+- primary `Đăng nhập hệ thống Supra` / ready state;
+- current Agent/relay/network/WMS connection status;
+- concise model information for ACTIVE/STANDBY processing and read-only WMS behavior.
+
+### Cài đặt
+The settings surface contains:
+- SUPRA Inventory real-ADMIN login;
+- network/transport diagnostics and read-only Supra test;
+- overlay settings;
+- sanitized local logs.
+
+Normal technical controls must not be scattered across the overview.
+
+### Exit behavior
+- The title-bar close control is removed; ordinary close attempts do not terminate the background Agent.
+- Tray/menu deliberate shutdown opens a password prompt for the currently authenticated ADMIN.
+- A successful local protected verifier check permits graceful exit. Failure leaves Agent running.
+- The UI must not claim the process is impossible to terminate from Windows Task Manager; user-mode watchdog recovery is best-effort.
+
+### WMS startup
+- Startup first reads the DPAPI-encrypted WMS session file and attempts read-only validation + full Picklist preload.
+- Valid session/preload: continue with no browser.
+- Missing/expired/invalid session or failed session preload: clear unusable session state and locally open the dedicated WMS browser for authorized reacquisition.
+- Remote PDA jobs never open the browser.
+
