@@ -89,7 +89,7 @@ namespace SupraInventoryRelayAgent
             _height.ValueChanged += (s, e) => { if (!_locked.Checked) _overlay.SetOverlaySize((int)_width.Value, (int)_height.Value); };
             appearance.Controls.Add(_height);
 
-            appearance.Controls.Add(new Label { Left = 16, Top = 68, Width = 105, Height = 22, Text = "Độ trong nền" });
+            appearance.Controls.Add(new Label { Left = 16, Top = 68, Width = 105, Height = 22, Text = "Độ trong của nền bảng nổi" });
             _opacity.SetBounds(118, 60, 360, 42);
             _opacity.Minimum = 35;
             _opacity.Maximum = 100;
