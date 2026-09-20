@@ -40,7 +40,7 @@ jobs:
             throw "AgentConfig.AgentBuild does not match relay-agent/VERSION=$version"
           }
 
-      - name: D086 relay regression guard
+      - name: D087 relay regression guard
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
@@ -58,7 +58,7 @@ jobs:
           $wms = Get-Content relay-agent/WmsIntegration.cs -Raw
           $rules = Get-Content firebase/database.rules.json -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*11\s*;') { throw "D086 requires Agent v11." }
+          if ($config -notmatch 'AgentBuild\s*=\s*12\s*;') { throw "D087 requires Agent v12." }
           if ($leader -notmatch 'HeartbeatIntervalMs\s*=\s*3000' -or $leader -notmatch 'FailoverAfterMs\s*=\s*10000') { throw "D085 HA timing guard failed." }
           if ($leader -notmatch 'HttpRequestHeader\.IfMatch') { throw "D085 leader election must use conditional ETag writes." }
           if ($cache -notmatch 'FreshMissGuardSeconds\s*=\s*10' -or $cache -notmatch 'JOIN_INFLIGHT' -or $cache -notmatch 'LoadSnapshot') { throw "D085 Picklist cache/single-flight guard failed." }
@@ -71,6 +71,10 @@ jobs:
           if ($exitAuth -notmatch 'Rfc2898DeriveBytes' -or $exitAuth -notmatch 'ProtectedData\.Protect') { throw "D086 protected exit verifier guard failed." }
           if ($runtimeGuard -notmatch '--watchdog' -or $runtimeGuard -notmatch 'WaitForExit' -or $runtimeGuard -notmatch '--watchdog-restart') { throw "D086 runtime watchdog guard failed." }
           if ($overlay -notmatch 'WsExTransparent' -or $overlay -notmatch 'SetExtendedStyle' -or $overlay -notmatch 'WmNcHitTest') { throw "D086 locked overlay must use true cross-process click-through." }
+          if ($overlay -notmatch '_settings != null' -or $overlay -notmatch 'UpdateMetrics') { throw "D087 overlay null-safe/two-layer guard failed." }
+          if ($program -notmatch 'WriteAudit' -or $program -notmatch 'pda-agent-audit-' -or $program -notmatch 'technical-ai-' -or $program -notmatch 'picklist_last5') { throw "D087 split sanitized logging guard failed." }
+          if ($program -notmatch 'FormBorderStyle\.None' -or $program -notmatch 'WindowState = FormWindowState\.Minimized') { throw "D087 minimize-only main shell guard failed." }
+          if ($leader -notmatch 'PresenceHeartbeatIntervalMs\s*=\s*30000' -or $leader -notmatch 'PresenceReadIntervalMs\s*=\s*60000' -or $leader -notmatch 'PresenceFreshMs\s*=\s*90000') { throw "D087 Agent presence cadence guard failed." }
           if ($rules -notmatch 'coordination' -or $rules -notmatch 'rate_limits' -or $rules -notmatch 'PICKER_LOCKED' -or $rules -notmatch 'SWITCHING') { throw "D085 RTDB Rules guard failed." }
 
           foreach ($source in @($lookup, $wms)) {
@@ -78,7 +82,7 @@ jobs:
               throw "WMS mutation method found; D085 remains read-only."
             }
           }
-          Write-Host "D086 relay regression guard PASS"
+          Write-Host "D087 relay regression guard PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh
