@@ -566,3 +566,5 @@ Technical/source acceptance requires:
 11. Stable remains untouched.
 
 Owner field acceptance checks the repaired overlay/settings on the company laptop, click-through, taskbar minimize, both log files and realistic idle CPU/RAM/GPU overhead.
+
+12. Agent-only RTDB Rules/support changes may verify Android compatibility but do not advance the signed Android release unless android/** source changed; D087 keeps beta-vc52.
