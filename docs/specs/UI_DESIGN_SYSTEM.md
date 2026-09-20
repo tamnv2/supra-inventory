@@ -425,3 +425,13 @@ The Windows Relay Agent is a professional utility surface, not a diagnostic cont
 - Overlay locked state must use a real Windows click-through extended style so the overlay is visually present but mouse input targets the application beneath it. Unlocked state remains draggable.
 - Background status presentation must not justify high-frequency polling. Local machine metrics and SSID refresh are deliberately coarse while ACTIVE/STANDBY failover heartbeat remains governed by D085.
 
+
+
+## D087 — Agent v12 overlay/minimize refinement
+
+- The Windows Agent uses a compact custom top chrome with product title and a single minimize action; no normal close/X action is rendered.
+- Manual minimize remains on the Windows taskbar. Auto-start may remain tray-hidden.
+- The overlay is a compact two-row panel: Laptop metrics first and Agent operational counters second.
+- Locked overlay remains true click-through; unlocked overlay remains draggable.
+- An initialization error must not permanently gray out overlay settings; the settings action remains available for retry.
+- Laptop metrics are local/coarse. GPU sampling is less frequent than the normal local status tick and no provider-usage monitoring loop is introduced.

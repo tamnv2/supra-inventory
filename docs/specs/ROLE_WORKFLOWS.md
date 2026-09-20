@@ -302,3 +302,13 @@ A future confirmation adapter may only be added after a separate explicit Owner 
 7. Normal operation stays background/tray-first. Deliberate shutdown requires current ADMIN password verification; unexpected main-process exit may be restarted by the user-mode watchdog.
 8. D085 sticky ACTIVE/STANDBY ownership and 10-second failover remain unchanged. D078 transport selection remains pending and no WMS mutation is authorized.
 
+
+
+## D087 Agent observability workflow
+
+1. Agent restores its approved ADMIN/WMS state as defined by D086.
+2. Main window may be minimized to the Windows taskbar without exiting; deliberate exit still uses protected ADMIN authorization.
+3. Local overlay presents Laptop health and Agent operational state without provider monitoring.
+4. Agent publishes only lightweight online-presence metadata globally. Per-machine PDA request/response counters remain local.
+5. Support review uses the separate PDA-Agent audit log for operational correlation and the technical-AI log for fault/performance diagnosis.
+6. D085 sticky ownership/failover and read-only Picklist lookup remain authoritative; no WMS mutation is added.

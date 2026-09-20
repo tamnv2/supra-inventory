@@ -24,6 +24,9 @@ namespace SupraInventoryRelayAgent
     {
         internal const int HeartbeatIntervalMs = 3000;
         internal const int FailoverAfterMs = 10000;
+        internal const int PresenceHeartbeatIntervalMs = 30000;
+        internal const int PresenceReadIntervalMs = 60000;
+        internal const int PresenceFreshMs = 90000;
 
         private readonly Func<AgentSession> _sessionProvider;
         private readonly Action _ensureFreshToken;
@@ -38,6 +41,9 @@ namespace SupraInventoryRelayAgent
         private volatile bool _isLeader;
         private string _currentLeaderId = "";
         private string _generation = "";
+        private long _lastPresenceWriteMs;
+        private long _lastPresenceReadMs;
+        private volatile int _onlineAgentCount = 1;
 
         internal AgentLeaderCoordinator(
             Func<AgentSession> sessionProvider,
@@ -56,6 +62,7 @@ namespace SupraInventoryRelayAgent
         }
 
         internal bool IsLeader { get { return _isLeader; } }
+        internal int OnlineAgentCount { get { return Math.Max(1, _onlineAgentCount); } }
 
         internal string CurrentLeaderId
         {
@@ -86,6 +93,7 @@ namespace SupraInventoryRelayAgent
 
             try
             {
+                ReleasePresence();
                 if (_isLeader)
                     ReleaseLeadership();
             }
@@ -109,6 +117,7 @@ namespace SupraInventoryRelayAgent
                 {
                     _ensureFreshToken();
                     var session = _sessionProvider();
+                    MaintainPresence(session);
                     var read = ReadLeader(session);
 
                     if (!_wmsReady())
@@ -154,6 +163,118 @@ namespace SupraInventoryRelayAgent
 
                 if (token.WaitHandle.WaitOne(HeartbeatIntervalMs)) return;
             }
+        }
+
+        private void MaintainPresence(AgentSession session)
+        {
+            var now = NowMs();
+            try
+            {
+                if (_lastPresenceWriteMs == 0 || now - _lastPresenceWriteMs >= PresenceHeartbeatIntervalMs)
+                {
+                    WritePresence(session, now);
+                    _lastPresenceWriteMs = now;
+                }
+
+                if (_lastPresenceReadMs == 0 || now - _lastPresenceReadMs >= PresenceReadIntervalMs)
+                {
+                    _onlineAgentCount = Math.Max(1, ReadOnlineAgentCount(session, now));
+                    _lastPresenceReadMs = now;
+                }
+            }
+            catch (Exception ex)
+            {
+                _log("AGENT PRESENCE error type=" + ex.GetType().Name +
+                     " message=" + AgentDiagnostics.Sanitize(ex.Message));
+            }
+        }
+
+        private void WritePresence(AgentSession session, long now)
+        {
+            var payload = _json.Serialize(new Dictionary<string, object>
+            {
+                { "agent_instance_id", _instanceId },
+                { "agent_admin_user_id", session == null ? "" : (session.AppUserId ?? "") },
+                { "machine", Environment.MachineName },
+                { "heartbeat_at_ms", now },
+                { "wms_ready", _wmsReady() }
+            });
+            var request = (HttpWebRequest)WebRequest.Create(PresenceSelfUrl(session));
+            request.Method = "PUT";
+            request.Accept = "application/json";
+            request.ContentType = "application/json; charset=utf-8";
+            request.UserAgent = "SUPRA-Inventory-Relay-Test/Presence";
+            request.Timeout = 7000;
+            request.ReadWriteTimeout = 7000;
+            var bytes = Encoding.UTF8.GetBytes(payload);
+            request.ContentLength = bytes.Length;
+            using (var output = request.GetRequestStream())
+                output.Write(bytes, 0, bytes.Length);
+            using (var response = (HttpWebResponse)request.GetResponse()) { }
+        }
+
+        private int ReadOnlineAgentCount(AgentSession session, long now)
+        {
+            var request = (HttpWebRequest)WebRequest.Create(PresenceCollectionUrl(session));
+            request.Method = "GET";
+            request.Accept = "application/json";
+            request.UserAgent = "SUPRA-Inventory-Relay-Test/Presence";
+            request.Timeout = 7000;
+            request.ReadWriteTimeout = 7000;
+            using (var response = (HttpWebResponse)request.GetResponse())
+            using (var reader = new StreamReader(response.GetResponseStream()))
+            {
+                var raw = reader.ReadToEnd();
+                if (string.IsNullOrWhiteSpace(raw) || string.Equals(raw.Trim(), "null", StringComparison.OrdinalIgnoreCase))
+                    return 1;
+                var root = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                if (root == null) return 1;
+                var count = 0;
+                foreach (var item in root)
+                {
+                    var map = item.Value as Dictionary<string, object>;
+                    if (map == null) continue;
+                    var heartbeat = LongValue(map, "heartbeat_at_ms");
+                    var age = now - heartbeat;
+                    if (heartbeat > 0 && age >= -60000 && age <= PresenceFreshMs)
+                        count++;
+                }
+                return Math.Max(1, count);
+            }
+        }
+
+        private void ReleasePresence()
+        {
+            try
+            {
+                _ensureFreshToken();
+                var session = _sessionProvider();
+                var request = (HttpWebRequest)WebRequest.Create(PresenceSelfUrl(session));
+                request.Method = "DELETE";
+                request.UserAgent = "SUPRA-Inventory-Relay-Test/Presence";
+                request.Timeout = 4000;
+                request.ReadWriteTimeout = 4000;
+                using (var response = (HttpWebResponse)request.GetResponse()) { }
+            }
+            catch { }
+        }
+
+        private string PresenceCollectionUrl(AgentSession session)
+        {
+            if (session == null || string.IsNullOrWhiteSpace(session.IdToken))
+                throw new InvalidOperationException("Thiếu Firebase ADMIN session cho Agent presence.");
+            return AgentConfig.DatabaseUrl.TrimEnd('/') +
+                   "/relay_poc/coordination/agents.json?auth=" +
+                   Uri.EscapeDataString(session.IdToken);
+        }
+
+        private string PresenceSelfUrl(AgentSession session)
+        {
+            if (session == null || string.IsNullOrWhiteSpace(session.IdToken))
+                throw new InvalidOperationException("Thiếu Firebase ADMIN session cho Agent presence.");
+            return AgentConfig.DatabaseUrl.TrimEnd('/') +
+                   "/relay_poc/coordination/agents/" + Uri.EscapeDataString(_instanceId) + ".json?auth=" +
+                   Uri.EscapeDataString(session.IdToken);
         }
 
         private bool IsHealthy(RelayLeaderSnapshot snapshot)

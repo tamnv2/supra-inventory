@@ -13,13 +13,13 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "BETA_RUNTIME_PASS_D086_AGENT_V11_RELEASE__OWNER_FIELD_TEST_PENDING",
+    "beta": "BETA_SOURCE_D087_AGENT_V12__PR_GATES_PENDING__OWNER_FIELD_TEST_PENDING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 7,
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
     "web": "D071_IMMEDIATE_RESPONSE_DENSITY_D072_SYSTEM_STATUS_QUOTA_GUARD_BETA_RUNTIME_PASS__OWNER_REVIEW_PENDING",
-    "android": "D085_RELEASE_PASS__SIGNED_BETA_VC52__AGENT_V11__OWNER_FIELD_TEST_PENDING__TRANSPORT_SELECTION_PENDING",
+    "android": "D085_RELEASE_PASS__SIGNED_BETA_VC52__AGENT_V12_SOURCE_CANDIDATE__OWNER_FIELD_TEST_PENDING__TRANSPORT_SELECTION_PENDING",
     "latest_beta_apk": "beta-vc52",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
     "network_scope": "PDA_INTERNET_SUPPORTED__CURRENT_RTDB_RELAY_TEMPORARILY_UNCHANGED__D078_FINAL_TRANSPORT_SELECTION_PENDING__NO_OFFLINE_BUSINESS_MODE",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D086_RELEASE_PASS__AGENT_V11__DPAPI_WMS_SESSION__PROFESSIONAL_UI__CLICKTHROUGH__PROTECTED_EXIT_WATCHDOG__D078_TRANSPORT_PENDING__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D087_SOURCE_CANDIDATE__AGENT_V12__SPLIT_LOGS__OVERLAY_REPAIR__MINIMIZE_TASKBAR__LOCAL_COUNTERS__LIGHT_PRESENCE__D078_TRANSPORT_PENDING__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -77,7 +77,8 @@
     "D066 Owner approved the exact three-group Beta Web navigation composition and authorized implementation; Admin/Root sidebar is VẬN HÀNH 2, QUẢN LÝ 3, HỆ THỐNG 2, with personal account access moved to the pinned identity area.",
     "D067 Web refinement preserves the accepted D066 navigation baseline while adding persisted text zoom, complete pending-queue pagination/filtering, stable scroll context, row-based Picker detail, explicit HAS_STOCK confirmation, optional five-second Skip confirmation delay, runtime-log de-duplication and clean end-user copy.",
     "D068 freezes D067 items 1–8 and 10; only item 9 plus new Web requirements 11–15 are open: clean copy, bottom-left 5-second bounded toasts, clear active backgrounds, immediate navigation/SKU response, larger group headings and browser Back/Forward section history.",
-    "D086 Windows Agent stores the captured WMS request-session only in a DPAPI CurrentUser encrypted local file; startup validates/preloads file-first, falls back to local browser reacquisition only when unusable, renews after successful real WMS reads, uses a Tổng quan/Cài đặt shell, true click-through overlay, protected ADMIN exit and best-effort user-mode watchdog with low-frequency background polling."
+    "D086 Windows Agent stores the captured WMS request-session only in a DPAPI CurrentUser encrypted local file; startup validates/preloads file-first, falls back to local browser reacquisition only when unusable, renews after successful real WMS reads, uses a Tổng quan/Cài đặt shell, true click-through overlay, protected ADMIN exit and best-effort user-mode watchdog with low-frequency background polling.",
+    "D087 Windows Agent splits sanitized PDA-Agent audit from technical-AI diagnostics, repairs retryable overlay initialization, restores minimize-to-taskbar without X, renders local Laptop + Agent overlay rows, keeps APK/response counters local RAM-only, and uses only 30s/60s/90s minimal RTDB presence for total Agent online."
   ],
   "completed_capabilities": [
     "Cloudflare Beta Worker/custom domain/InventoryCore SQLite provisioning",
@@ -144,7 +145,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "D086 Owner physical acceptance pending for relay-agent-v11: professional Tổng quan/Cài đặt UI, DPAPI WMS session file-first reuse and invalid-session browser fallback, true cross-app overlay click-through, protected ADMIN exit, watchdog restart behavior, idle CPU/RAM, plus unchanged D085 ACTIVE/STANDBY failover/cache/anti-spam behavior. D078 final transport selection remains separately pending.",
+    "D087 Owner physical acceptance pending after relay-agent-v12 release: repaired overlay/settings, two-row Laptop/Agent overlay, minimize-to-taskbar, split PDA-Agent/technical logs, local counters, weak-laptop idle footprint, plus unchanged D085 HA/cache/anti-spam and D086 DPAPI session behavior. D078 final transport selection remains separately pending.",
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
     "Owner acceptance of FIRST_REPORT and PER_PICKER behavior remains field-dependent after runtime PASS.",
     "Stable promotion remains OWNER-GATED."
@@ -157,8 +158,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Owner field-reviews released relay-agent-v11 with signed beta-vc52 on the company laptop/PDA: UI layout, saved WMS session reuse, browser fallback when invalid, real overlay click-through, protected ADMIN exit, watchdog restart and idle resource footprint; D085 multi-Agent failover/cache/anti-spam can be verified in the same field cycle. D078 transport selection remains a separate pending decision.",
-    "method": "Use relay-agent-v11 from the GitHub prerelease. Keep current RTDB relay unchanged as temporary transport. WMS remains signed read-only GET; no confirmation mutation is authorized.",
+    "primary": "Complete D087 Agent v12 source/PR/release gates for split logs, overlay repair, taskbar minimize, laptop metrics, local relay counters and lightweight Agent presence; then Owner field-review the released v12 on the company laptop.",
+    "method": "Keep current RTDB relay as temporary transport. Presence only is globally synchronized at bounded cadence; per-machine APK/response counters remain RAM-only. WMS remains signed read-only GET; no confirmation mutation is authorized.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -428,10 +429,10 @@
     "D086 release checkpoint 2026-09-20: PR #92 merged at 207a57be6c4d95ab48d174b8af154f122bec7c5e; main Agent run 35490227885 and UI run 35490227907 PASS; relay-agent-v11 prerelease id 392316320, EXE asset id 576140376, size 148992 bytes, SHA-256 dce3a779c86096a6a82ed1991e385e7e6acea2d9ba75078e8bf2371eb1387659. Signed Android remains beta-vc52. Next session must continue from Owner D086 physical review or a newer explicit Owner command, keep current RTDB temporary until D078 evidence, keep WMS read-only and Stable OWNER-GATED."
   ],
   "active_workstream": {
-    "key": "XAC_NHAN_DON_D086",
-    "status": "RELEASE_PASS__OWNER_FIELD_TEST_PENDING",
-    "bootstrap": "MAIN_D086_RELEASE_PASS__AGENT_V11__2026_09_20",
-    "next_step": "Owner field-review relay-agent-v11 on company Windows + authorized WMS/PDA. Validate UI, DPAPI session reuse/fallback, click-through, protected exit, watchdog/resource footprint and D085 HA behavior. Do not select final transport before D078 Office evidence. WMS remains read-only; Stable remains OWNER-GATED."
+    "key": "XAC_NHAN_DON_D087",
+    "status": "SOURCE_CANDIDATE__PR_GATES_PENDING",
+    "bootstrap": "MAIN_D086_RELEASE_PASS__D087_OWNER_REQUIREMENT_2026_09_20",
+    "next_step": "Complete D087 Agent v12 branch/PR gates, merge and publish prerelease. Then Owner field-review overlay/settings, two log streams, minimize-to-taskbar, two-row metrics and lightweight presence. Do not select final transport before D078 Office evidence. WMS remains read-only; Stable remains OWNER-GATED."
   },
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {

@@ -151,3 +151,15 @@ D086 Windows Agent v11 is technically released on Beta source authority.
 - Next physical checkpoint is Owner review of UI, DPAPI WMS session file-first reuse/browser fallback, true click-through overlay, protected ADMIN exit, watchdog behavior and weak-laptop idle CPU/RAM. D085 multi-Agent failover/cache/anti-spam may be verified in the same field cycle.
 - D078 final PDA ↔ Agent transport remains pending physical Office evidence. Current RTDB carrier remains temporary. WMS confirmation/mutation remains forbidden. Stable remains OWNER-GATED.
 
+
+
+## D087 Agent v12 source candidate
+
+Owner field review of v11 exposed an overlay initialization failure while ADMIN restore, DPAPI WMS session restore, Picklist preload and relay lookup remained operational. D087 repairs that local UI defect and adds the approved Agent observability refinements.
+
+- Two local sanitized log streams: PDA↔Agent audit and AI technical diagnostics.
+- Main window has no X but has minimize-to-taskbar; protected shutdown remains unchanged.
+- Two-row overlay: local laptop Task-Manager-style metrics and Agent status.
+- Global synchronization is intentionally limited to tiny Agent-presence metadata; per-machine APK/response counters are RAM-only.
+- Presence cadence is 30s write / 60s read / 90s freshness on the existing temporary Beta RTDB carrier.
+- D078 final transport choice remains pending physical Office evidence; WMS is read-only and Stable remains OWNER-GATED.

@@ -228,3 +228,12 @@ The D086 encrypted WMS session file is local workstation support state, not busi
 - It is excluded from GitHub, RTDB, Google Drive support logs, runtime-log upload, screenshots/diagnostics and long-term archive.
 - D085 relay audit may continue recording bounded Agent/result/timing metadata, but never the encrypted file contents or raw WMS session/header/signature values.
 
+
+
+## D087 local Agent observability lifecycle
+
+- Agent creates two bounded local support logs per runtime: PDA-Agent operational audit and technical-AI diagnostics.
+- Both are non-authoritative support artifacts and pass the same credential/session redaction layer.
+- Operational audit may retain the exact approved five-digit Picklist suffix with request/user/device/Agent/result/timing metadata for incident correlation. Full WMS identifiers/responses and any credential/session/signature values remain forbidden.
+- Local APK-received and Agent-response counters are process-memory only and reset when that Agent process restarts.
+- relay_poc/coordination/agents/{instance} is temporary presence metadata only. It stores bounded Agent identity/machine/heartbeat/WMS-ready fields; stale entries are ignored after 90 seconds and are not business history.

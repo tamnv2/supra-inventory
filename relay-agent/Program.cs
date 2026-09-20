@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Security.Cryptography;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -99,7 +100,9 @@ namespace SupraInventoryRelayAgent
         private static readonly Regex JwtPattern = new Regex(@"eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}", RegexOptions.Compiled);
         private static readonly Regex SecretPattern = new Regex(@"(?i)(authorization|bearer|token|password|secret|private[_ -]?key|api[_ -]?key|cookie|refresh[_ -]?token|id[_ -]?token|apisid|sid|scid|usid|x-signature(?:-nonce)?)\s*[:=]\s*[^\s,;]+", RegexOptions.Compiled);
         private static readonly Regex QuerySecretPattern = new Regex(@"(?i)([?&](?:auth|key|access_token|token)=)[^&\s]+", RegexOptions.Compiled);
-        internal static string LogFile { get; private set; }
+        internal static string DiagnosticLogFile { get; private set; }
+        internal static string RelayAuditLogFile { get; private set; }
+        internal static string LogFile { get { return DiagnosticLogFile; } }
 
         internal static void Initialize()
         {
@@ -107,12 +110,16 @@ namespace SupraInventoryRelayAgent
             {
                 var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SUPRA Inventory", "RelayPoc", "Logs");
                 Directory.CreateDirectory(dir);
-                LogFile = Path.Combine(dir, "relay-agent-" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + "-" + Process.GetCurrentProcess().Id + ".log");
+                var stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss") + "-" + Process.GetCurrentProcess().Id;
+                DiagnosticLogFile = Path.Combine(dir, "technical-ai-" + stamp + ".log");
+                RelayAuditLogFile = Path.Combine(dir, "pda-agent-audit-" + stamp + ".log");
                 Write("START version=" + Assembly.GetExecutingAssembly().GetName().Version + " os=" + Environment.OSVersion.VersionString + " clr=" + Environment.Version + " process64=" + Environment.Is64BitProcess + " machine=" + Environment.MachineName);
+                WriteAudit("AUDIT_START version=" + Assembly.GetExecutingAssembly().GetName().Version + " machine=" + Environment.MachineName);
             }
             catch
             {
-                LogFile = "";
+                DiagnosticLogFile = "";
+                RelayAuditLogFile = "";
             }
         }
 
@@ -141,24 +148,46 @@ namespace SupraInventoryRelayAgent
 
         internal static void Write(string message)
         {
+            AppendSanitized(DiagnosticLogFile, message);
+        }
+
+        internal static void WriteAudit(string message)
+        {
+            AppendSanitized(RelayAuditLogFile, message);
+        }
+
+        private static void AppendSanitized(string path, string message)
+        {
             var line = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + "  " + Sanitize(message);
             try
             {
                 lock (Gate)
                 {
-                    if (!string.IsNullOrWhiteSpace(LogFile))
-                        File.AppendAllText(LogFile, line + Environment.NewLine, Encoding.UTF8);
+                    if (!string.IsNullOrWhiteSpace(path))
+                        File.AppendAllText(path, line + Environment.NewLine, Encoding.UTF8);
                 }
             }
             catch { }
         }
 
-        internal static void OpenLog()
+        internal static void OpenLog() { OpenDiagnosticLog(); }
+
+        internal static void OpenDiagnosticLog()
+        {
+            OpenFile(DiagnosticLogFile);
+        }
+
+        internal static void OpenRelayAuditLog()
+        {
+            OpenFile(RelayAuditLogFile);
+        }
+
+        private static void OpenFile(string path)
         {
             try
             {
-                if (!string.IsNullOrWhiteSpace(LogFile) && File.Exists(LogFile))
-                    Process.Start("explorer.exe", "/select,\"" + LogFile + "\"");
+                if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+                    Process.Start("explorer.exe", "/select,\"" + path + "\"");
             }
             catch { }
         }
@@ -214,6 +243,7 @@ namespace SupraInventoryRelayAgent
         private readonly Button _testOffice = new Button();
         private readonly Button _listen = new Button();
         private readonly Button _openLog = new Button();
+        private readonly Button _openAuditLog = new Button();
         private readonly Button _overlaySettingsButton = new Button();
         private readonly Button _probeAuth = new Button();
         private readonly Button _probeRtdb = new Button();
@@ -229,6 +259,7 @@ namespace SupraInventoryRelayAgent
         private readonly Label _network = new Label();
         private readonly Label _identity = new Label();
         private readonly ListBox _log = new ListBox();
+        private readonly ListBox _auditLog = new ListBox();
         private readonly NotifyIcon _tray = new NotifyIcon();
         private readonly ToolStripMenuItem _trayStatusItem = new ToolStripMenuItem();
         private readonly ToolStripMenuItem _trayOverlayVisibleItem = new ToolStripMenuItem();
@@ -257,6 +288,8 @@ namespace SupraInventoryRelayAgent
         private CancellationTokenSource _listenCts;
         private bool _allowExit;
         private bool _updateCheckRunning;
+        private long _localPdaRequests;
+        private long _localAgentResponses;
         private readonly string _agentInstanceId;
         private readonly System.Windows.Forms.Timer _updateTimer = new System.Windows.Forms.Timer();
 
@@ -355,7 +388,7 @@ namespace SupraInventoryRelayAgent
             RefreshOverlayMenu();
             _tray.DoubleClick += (s, e) => RestoreFromTray();
 
-            Resize += (s, e) => { if (WindowState == FormWindowState.Minimized) { Hide(); _tray.ShowBalloonTip(1000, "SUPRA Inventory", "Relay Test Agent đang chạy nền.", ToolTipIcon.Info); } };
+            // Manual minimize remains visible on the Windows taskbar. Auto-start may still hide to tray.
             FormClosing += (s, e) =>
             {
                 if (!_allowExit && e.CloseReason == CloseReason.UserClosing) { e.Cancel = true; WindowState = FormWindowState.Minimized; Hide(); return; }
@@ -426,7 +459,53 @@ namespace SupraInventoryRelayAgent
             ControlBox = false;
             MaximizeBox = false;
             MinimizeBox = false;
-            FormBorderStyle = FormBorderStyle.FixedSingle;
+            ShowInTaskbar = true;
+            FormBorderStyle = FormBorderStyle.None;
+
+            var shell = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                RowCount = 2,
+                ColumnCount = 1,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty
+            };
+            shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 38F));
+            shell.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            shell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+
+            var chrome = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.FromArgb(31, 47, 58),
+                Margin = Padding.Empty
+            };
+            var chromeTitle = new Label
+            {
+                Left = 14,
+                Top = 8,
+                Width = 700,
+                Height = 24,
+                Text = "SUPRA Inventory Agent v" + AgentConfig.AgentBuild,
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI Semibold", 9.5F, FontStyle.Bold)
+            };
+            var minimize = new Button
+            {
+                Dock = DockStyle.Right,
+                Width = 48,
+                Text = "—",
+                FlatStyle = FlatStyle.Flat,
+                ForeColor = Color.White,
+                BackColor = Color.FromArgb(31, 47, 58),
+                TabStop = false
+            };
+            minimize.FlatAppearance.BorderSize = 0;
+            minimize.Click += (s, e) => WindowState = FormWindowState.Minimized;
+            chrome.MouseDown += BeginMainWindowDrag;
+            chromeTitle.MouseDown += BeginMainWindowDrag;
+            chrome.Controls.Add(chromeTitle);
+            chrome.Controls.Add(minimize);
 
             _mainTabs.Dock = DockStyle.Fill;
             _mainTabs.Font = new Font("Segoe UI", 9F);
@@ -434,7 +513,10 @@ namespace SupraInventoryRelayAgent
             _settingsPage.BackColor = Color.FromArgb(243, 246, 248);
             _mainTabs.TabPages.Add(_overviewPage);
             _mainTabs.TabPages.Add(_settingsPage);
-            Controls.Add(_mainTabs);
+
+            shell.Controls.Add(chrome, 0, 0);
+            shell.Controls.Add(_mainTabs, 0, 1);
+            Controls.Add(shell);
 
             var title = new Label
             {
@@ -567,11 +649,29 @@ namespace SupraInventoryRelayAgent
             _overlaySettingsButton.SetBounds(24, 136, 200, 36);
             overlayPage.Controls.Add(_overlaySettingsButton);
 
-            logsPage.Controls.Add(new Label { Left = 24, Top = 18, Width = 620, Height = 30, Text = "Logs cục bộ đã làm sạch dữ liệu nhạy cảm", Font = new Font("Segoe UI Semibold", 11F) });
-            _openLog.SetBounds(650, 16, 120, 32);
-            logsPage.Controls.Add(_openLog);
-            _log.SetBounds(24, 62, 746, 390);
-            logsPage.Controls.Add(_log);
+            logsPage.Controls.Add(new Label { Left = 24, Top = 16, Width = 730, Height = 28, Text = "Hai loại log cục bộ · tự động làm sạch mật khẩu, token và dữ liệu xác thực nhạy cảm", Font = new Font("Segoe UI Semibold", 10.5F) });
+            var logTabs = new TabControl { Left = 18, Top = 52, Width = 758, Height = 410 };
+            var auditPage = new TabPage("PDA ↔ Agent") { BackColor = Color.White };
+            var technicalPage = new TabPage("Kỹ thuật AI") { BackColor = Color.White };
+            logTabs.TabPages.Add(auditPage);
+            logTabs.TabPages.Add(technicalPage);
+
+            auditPage.Controls.Add(new Label { Left = 14, Top = 12, Width = 560, Height = 24, Text = "Theo dõi user, thiết bị, Picklist và luồng gửi/nhận PDA ↔ Agent." });
+            _openAuditLog.SetBounds(600, 8, 120, 30);
+            _openAuditLog.Text = "Mở log";
+            _openAuditLog.Click += (s, e) => AgentDiagnostics.OpenRelayAuditLog();
+            auditPage.Controls.Add(_openAuditLog);
+            _auditLog.SetBounds(14, 48, 706, 310);
+            auditPage.Controls.Add(_auditLog);
+
+            technicalPage.Controls.Add(new Label { Left = 14, Top = 12, Width = 560, Height = 24, Text = "Lỗi, lifecycle, mạng, HTTP và trạng thái nội bộ phục vụ AI phân tích/sửa lỗi." });
+            _openLog.SetBounds(600, 8, 120, 30);
+            _openLog.Text = "Mở log";
+            _openLog.Click += (s, e) => AgentDiagnostics.OpenDiagnosticLog();
+            technicalPage.Controls.Add(_openLog);
+            _log.SetBounds(14, 48, 706, 310);
+            technicalPage.Controls.Add(_log);
+            logsPage.Controls.Add(logTabs);
 
             ResumeLayout(true);
         }
@@ -638,6 +738,23 @@ namespace SupraInventoryRelayAgent
             Close();
         }
 
+        [DllImport("user32.dll")]
+        private static extern bool ReleaseCapture();
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
+
+        private void BeginMainWindowDrag(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left || WindowState != FormWindowState.Normal) return;
+            try
+            {
+                ReleaseCapture();
+                SendMessage(Handle, 0x00A1, 0x0002, 0);
+            }
+            catch { }
+        }
+
         private void RestoreFromTray() { Show(); WindowState = FormWindowState.Normal; Activate(); }
 
         private void UpdateTrayMonitor()
@@ -649,19 +766,35 @@ namespace SupraInventoryRelayAgent
                 if (compact.Length > 63) compact = compact.Substring(0, 63);
                 _tray.Text = compact;
                 _trayStatusItem.Text = metrics.MenuText();
-                if (_statusOverlay != null) _statusOverlay.UpdateText(metrics.Compact());
+
+                var online = _leaderCoordinator == null ? (HasUsableWmsSession() ? 1 : 0) : _leaderCoordinator.OnlineAgentCount;
+                var state = _leaderCoordinator == null
+                    ? "CHƯA PHỐI HỢP"
+                    : (_leaderCoordinator.IsLeader ? "ACTIVE" :
+                       (string.IsNullOrWhiteSpace(_leaderCoordinator.CurrentLeaderId) ? "STANDBY" : "STANDBY"));
+                var agentLine =
+                    "Agent | Online " + online +
+                    " | Máy này (phiên này): APK " + Interlocked.Read(ref _localPdaRequests) +
+                    " | phản hồi " + Interlocked.Read(ref _localAgentResponses) +
+                    " | " + state;
+
+                if (_statusOverlay != null)
+                    _statusOverlay.UpdateMetrics(metrics.LaptopLine(), agentLine);
             }
             catch
             {
                 _tray.Text = "SUPRA Agent";
                 _trayStatusItem.Text = "Máy: chưa đọc được tài nguyên";
-                if (_statusOverlay != null) _statusOverlay.UpdateText("SUPRA | chưa đọc được tài nguyên máy");
+                if (_statusOverlay != null)
+                    _statusOverlay.UpdateMetrics("Laptop | chưa đọc được tài nguyên máy", "Agent | chưa đọc được trạng thái");
             }
         }
 
-        private void InitializeStatusOverlaySafe()
+        private void InitializeStatusOverlaySafe(bool retry = false)
         {
-            if (_statusOverlay != null || _overlayInitFailed) return;
+            if (_statusOverlay != null) return;
+            if (_overlayInitFailed && !retry) return;
+            _overlayInitFailed = false;
             try
             {
                 var overlay = new StatusOverlayForm(_overlaySettings, OverlaySettingsFile);
@@ -675,14 +808,15 @@ namespace SupraInventoryRelayAgent
                 _overlayInitFailed = true;
                 AgentDiagnostics.Write(
                     "OVERLAY init=FAIL type=" + ex.GetType().Name +
-                    " message=" + AgentDiagnostics.Sanitize(ex.Message));
+                    " message=" + AgentDiagnostics.Sanitize(ex.Message) +
+                    " detail=" + AgentDiagnostics.Sanitize(ex.ToString()));
             }
             RefreshOverlayMenu();
         }
 
         private void ToggleOverlayVisibility()
         {
-            InitializeStatusOverlaySafe();
+            InitializeStatusOverlaySafe(true);
             if (_statusOverlay == null) return;
             try { _statusOverlay.SetOverlayVisible(!_statusOverlay.OverlayVisible); }
             catch (Exception ex)
@@ -693,7 +827,7 @@ namespace SupraInventoryRelayAgent
 
         private void ToggleOverlayLock()
         {
-            InitializeStatusOverlaySafe();
+            InitializeStatusOverlaySafe(true);
             if (_statusOverlay == null) return;
             try { _statusOverlay.SetLocked(!_statusOverlay.IsLocked); }
             catch (Exception ex)
@@ -704,7 +838,7 @@ namespace SupraInventoryRelayAgent
 
         private void SetOverlayOpacitySafe(double opacity)
         {
-            InitializeStatusOverlaySafe();
+            InitializeStatusOverlaySafe(true);
             if (_statusOverlay == null) return;
             try { _statusOverlay.SetOverlayOpacity(opacity); }
             catch (Exception ex)
@@ -715,11 +849,11 @@ namespace SupraInventoryRelayAgent
 
         private void OpenOverlaySettings()
         {
-            InitializeStatusOverlaySafe();
+            InitializeStatusOverlaySafe(true);
             if (_statusOverlay == null)
             {
                 MessageBox.Show(
-                    "Bảng nổi chưa khởi tạo được. Mở log Agent để xem chẩn đoán.",
+                    "Bảng nổi chưa khởi tạo được. Có thể thử lại ngay; mở log Kỹ thuật AI để xem chẩn đoán.",
                     "SUPRA Inventory",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
@@ -757,12 +891,13 @@ namespace SupraInventoryRelayAgent
 
             _trayOverlayVisibleItem.Checked = visible;
             _trayOverlayLockItem.Checked = locked;
-            _trayOverlayVisibleItem.Enabled = !_overlayInitFailed;
-            _trayOverlayLockItem.Enabled = !_overlayInitFailed;
-            _trayOverlayOpacityMenu.Enabled = !_overlayInitFailed;
-            _overlaySettingsButton.Enabled = !_overlayInitFailed;
+            _trayOverlayVisibleItem.Enabled = true;
+            _trayOverlayLockItem.Enabled = true;
+            _trayOverlayOpacityMenu.Enabled = true;
+            _overlaySettingsButton.Enabled = true;
+            _overlaySettingsButton.Text = _overlayInitFailed ? "Thử lại cài đặt bảng nổi" : "Cài đặt bảng nổi";
             if (_overlayInitFailed)
-                _trayOverlayVisibleItem.Text = "Bảng nổi lỗi - xem log";
+                _trayOverlayVisibleItem.Text = "Bảng nổi lỗi - bấm để thử lại";
             else
                 _trayOverlayVisibleItem.Text = "Hiển thị bảng nổi";
 
@@ -1833,7 +1968,7 @@ namespace SupraInventoryRelayAgent
                 _acked.Add(jobId);
             }
 
-            Task.Run(() => HandlePicklistLookupJob(jobId, suffix, pickerUid, pickerUserId));
+            Task.Run(() => HandlePicklistLookupJob(jobId, suffix, pickerUid, pickerUserId, clientSentAtMs));
         }
 
         private bool MarkJobSwitching(string jobId)
@@ -1865,7 +2000,7 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private void HandlePicklistLookupJob(string jobId, string suffix, string pickerUid, string pickerUserId)
+        private void HandlePicklistLookupJob(string jobId, string suffix, string pickerUid, string pickerUserId, long clientSentAtMs)
         {
             var session = SnapshotSession();
             try
@@ -1876,6 +2011,18 @@ namespace SupraInventoryRelayAgent
                     return;
                 }
 
+                Interlocked.Increment(ref _localPdaRequests);
+                Audit(
+                    "PDA_REQUEST request=" + Short(jobId) +
+                    " picker=" + pickerUserId +
+                    " picker_uid=" + Fingerprint(pickerUid) +
+                    " picklist_last5=" + suffix +
+                    " client_sent_at_ms=" + clientSentAtMs +
+                    " admin=" + session.AppUserId +
+                    " machine=" + Environment.MachineName +
+                    " instance=" + Short(_agentInstanceId) +
+                    " network=" + GetSsid());
+
                 var rate = _pickerRateLimiter.Check(session, pickerUid, pickerUserId);
                 if (rate.IsLocked)
                 {
@@ -1883,6 +2030,9 @@ namespace SupraInventoryRelayAgent
                         session,
                         jobId,
                         pickerUserId,
+                        suffix,
+                        pickerUid,
+                        clientSentAtMs,
                         "PICKER_LOCKED",
                         "RATE_LIMIT",
                         "NONE",
@@ -1953,6 +2103,9 @@ namespace SupraInventoryRelayAgent
                     session,
                     jobId,
                     pickerUserId,
+                    suffix,
+                    pickerUid,
+                    clientSentAtMs,
                     lookup.Result ?? "LOOKUP_ERROR",
                     lookup.CacheMode ?? "NONE",
                     lookup.Route ?? "NONE",
@@ -1981,6 +2134,9 @@ namespace SupraInventoryRelayAgent
                         session,
                         jobId,
                         pickerUserId,
+                        suffix,
+                        pickerUid,
+                        clientSentAtMs,
                         "LOOKUP_ERROR",
                         "ERROR",
                         "NONE",
@@ -1998,6 +2154,9 @@ namespace SupraInventoryRelayAgent
             AgentSession session,
             string jobId,
             string pickerUserId,
+            string picklistLast5,
+            string pickerUid,
+            long clientSentAtMs,
             string result,
             string cacheMode,
             string route,
@@ -2028,6 +2187,26 @@ namespace SupraInventoryRelayAgent
             };
 
             RequestJson("PATCH", JobUrl(session, jobId), _json.Serialize(patch), "application/json");
+            Interlocked.Increment(ref _localAgentResponses);
+            Audit(
+                "AGENT_RESPONSE request=" + Short(jobId) +
+                " picker=" + pickerUserId +
+                " picker_uid=" + Fingerprint(pickerUid) +
+                " picklist_last5=" + picklistLast5 +
+                " client_sent_at_ms=" + clientSentAtMs +
+                " result=" + (result ?? "LOOKUP_ERROR") +
+                " cache=" + (cacheMode ?? "NONE") +
+                " matches=" + matches +
+                " lookup_ms=" + lookupMs +
+                " route=" + (route ?? "NONE") +
+                " http=" + http +
+                " strikes=" + rate.StrikeCount +
+                " lock_level=" + rate.LockLevel +
+                " locked_until_ms=" + rate.LockedUntilMs +
+                " admin=" + session.AppUserId +
+                " machine=" + Environment.MachineName +
+                " instance=" + Short(_agentInstanceId) +
+                " network=" + GetSsid());
 
             Log(
                 "PICKLIST LOOKUP ACK request=" + Short(jobId) +
@@ -2521,6 +2700,17 @@ namespace SupraInventoryRelayAgent
             {
                 _log.Items.Insert(0, DateTime.Now.ToString("HH:mm:ss") + "  " + safe);
                 while (_log.Items.Count > 120) _log.Items.RemoveAt(_log.Items.Count - 1);
+            });
+        }
+
+        private void Audit(string message)
+        {
+            var safe = AgentDiagnostics.Sanitize(message);
+            AgentDiagnostics.WriteAudit(safe);
+            Ui(() =>
+            {
+                _auditLog.Items.Insert(0, DateTime.Now.ToString("HH:mm:ss") + "  " + safe);
+                while (_auditLog.Items.Count > 120) _auditLog.Items.RemoveAt(_auditLog.Items.Count - 1);
             });
         }
 

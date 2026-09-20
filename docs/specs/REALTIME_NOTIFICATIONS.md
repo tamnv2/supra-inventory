@@ -257,3 +257,14 @@ The confirmation-path relay uses a bounded Agent heartbeat/leader record for ope
 - PDA may read leader availability and job `SWITCHING` state to present no-Agent/failover guidance.
 - No Agent availability signal may authorize WMS mutation.
 
+
+
+## D087 minimal Agent presence
+
+The temporary Beta relay may maintain a small ADMIN-only presence set solely to render total online Agents.
+
+- Each running authenticated Agent writes its own bounded presence no more often than every 30 seconds.
+- Each Agent reads the bounded presence set no more often than every 60 seconds and counts entries fresh within 90 seconds.
+- Presence contains no PDA request/response counters, Picklist suffix, password/token/session value or WMS payload.
+- Per-machine APK received/Agent response overlay counters are RAM-only; there is no global counter synchronization.
+- This presence optimization does not select or approve the final D078 transport and does not change the D085 3-second leader heartbeat required for 10-second failover.

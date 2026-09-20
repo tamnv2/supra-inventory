@@ -548,3 +548,23 @@ Technical/source acceptance requires:
 
 Owner field review after release covers the actual UI layout, saved-session reuse on the company laptop, browser fallback when the saved session is invalid, click-through over a real desktop/application object, protected exit, kill/restart behavior and idle CPU/RAM footprint.
 
+
+
+## D087 acceptance — Agent v12 logs/overlay/minimize/presence
+
+Technical/source acceptance requires:
+1. Agent v12 builds and Windows startup-smoke PASS.
+2. Overlay construction is null-safe during base Form initialization; v11-style NullReferenceException does not disable the main Agent.
+3. Overlay settings stays reachable/retryable after a transient overlay failure.
+4. Main shell renders no close/X action and has an explicit minimize-to-taskbar control; manual minimize does not hide the process from taskbar.
+5. Local logs are physically split into PDA-Agent audit and technical-AI diagnostics and both use common secret redaction.
+6. PDA-Agent audit contains bounded request/user/device/five-digit Picklist/result correlation but no password/token/cookie/WMS session/header/signature/full WMS payload.
+7. Overlay Laptop row displays CPU/Memory/Disk/network+Internet/GPU with graceful -- degradation where unavailable.
+8. Overlay Agent row displays total online Agents plus current-process local APK received/response counts.
+9. Per-machine APK/response counters are not written to RTDB. Agent online presence alone uses 30s write / 60s read / 90s freshness.
+10. D085 3s leadership heartbeat/10s failover, D086 file-first DPAPI session, read-only WMS GET-only guard and temporary D078 transport status remain unchanged.
+11. Stable remains untouched.
+
+Owner field acceptance checks the repaired overlay/settings on the company laptop, click-through, taskbar minimize, both log files and realistic idle CPU/RAM/GPU overhead.
+
+12. Agent-only RTDB Rules/support changes may verify Android compatibility but do not advance the signed Android release unless android/** source changed; D087 keeps beta-vc52.

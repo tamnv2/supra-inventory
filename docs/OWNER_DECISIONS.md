@@ -173,3 +173,22 @@ D086 refines D081–D085 only for the Windows Agent local session/lifecycle/UI m
 - Background overhead must stay low: no fast `netsh` polling loop; SSID/UI refresh is coarse/on-demand, local CPU/RAM overlay sampling is reduced, and network/service work remains event/job/HA driven. The 3-second Agent leadership heartbeat remains because it is required for the approved 10-second failover.
 - WMS remains signed **GET-only**. Confirmation/mutation is still not implemented or authorized. Stable remains untouched and OWNER-GATED.
 
+
+
+## D087 — Agent split logs, overlay repair, minimize-only shell and low-quota status overlay
+
+Status: **ACTIVE — OWNER APPROVED 2026-09-20**.
+
+D087 refines the released D086 Windows Agent after Owner field evidence from v11. D085 HA/anti-spam/read-only Picklist logic, D086 DPAPI WMS file-first session, D078 transport-open boundary and Stable OWNER-GATE remain unchanged.
+
+- Agent local logs are split into two sanitized files: **PDA ↔ Agent audit** for user/device/request/Picklist/result/correlation tracking, and **Kỹ thuật AI** for app lifecycle, network/HTTP, errors and internal diagnostic behavior.
+- Both log streams use the same secret redaction boundary. Passwords, access/ID/refresh tokens, Authorization/Bearer values, cookies, API keys, WMS session/header/signature material, private/signing keys and other credentials are forbidden.
+- The PDA ↔ Agent audit may record the exact five-digit Picklist suffix because it is operational correlation data explicitly approved by Owner; it must not record a full WMS response or secret session material.
+- The v11 overlay initialization defect must be repaired and overlay settings must remain retryable/reachable after a transient initialization failure instead of becoming permanently disabled.
+- Main window keeps no close/X action but restores an explicit **minimize to Windows taskbar** control. Auto-start may remain tray-hidden; deliberate shutdown remains ADMIN-password protected.
+- Overlay has two visible information rows. **Laptop** shows local CPU, Memory, Disk, WiFi/Ethernet throughput + Windows Internet state and GPU where Windows exposes it. These are local OS metrics and must not create Cloudflare/Firebase/WMS polling.
+- **Agent** shows total online Agents plus per-machine current-runtime APK received and Agent responses. The two per-machine counters stay RAM-only and are never synchronized globally.
+- Total Agent online uses only bounded Beta RTDB presence: one minimal own-presence write every 30s, one bounded presence-list read every 60s and 90s freshness. Presence carries only safe Agent identity/machine/heartbeat/WMS-ready metadata. It does not select the final D078 transport.
+- WMS remains signed **GET-only** with no confirmation/mutation. Stable remains untouched and OWNER-GATED.
+
+- D087 RTDB presence-rule changes still run Android verification but must not publish/advance the signed Android channel unless files under android/** actually changed. Agent-only Rules/support changes therefore keep the current signed beta-vc52.
