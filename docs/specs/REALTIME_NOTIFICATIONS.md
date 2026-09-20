@@ -268,3 +268,13 @@ The temporary Beta relay may maintain a small ADMIN-only presence set solely to 
 - Presence contains no PDA request/response counters, Picklist suffix, password/token/session value or WMS payload.
 - Per-machine APK received/Agent response overlay counters are RAM-only; there is no global counter synchronization.
 - This presence optimization does not select or approve the final D078 transport and does not change the D085 3-second leader heartbeat required for 10-second failover.
+
+## D089 — Service reachability is not realtime reachability
+
+- **Dịch vụ** represents authenticated HTTP/API availability.
+- **Đồng bộ** represents realtime/WebSocket transport state.
+- Realtime `offline` or `reconnecting` must never set HTTP service state to unavailable.
+- A successful authenticated API response marks the service reachable.
+- Browser/network offline may mark service unavailable.
+- The Web may truthfully show `Dịch vụ: Hoạt động | Đồng bộ: Mất realtime` when APIs work but the realtime channel is down.
+- D089 does not add quota-heavy provider polling; realtime reconnect remains bounded/event-driven.
