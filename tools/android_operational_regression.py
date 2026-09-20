@@ -241,7 +241,7 @@ def main() -> None:
     require(relay_agent, "new AgentForm(startupSmoke, autoStarted)", "D085 startup/autostart mode preserving D083 smoke")
     require(relay_agent, "InitializeStatusOverlaySafe", "D083 lazy overlay init")
     require(relay_agent, '"FATAL startup type="', "D083 top-level startup crash logging")
-    require(relay_agent, '"SUPRA Inventory Agent - lỗi khởi động"', "D083 visible fatal startup message")
+    require(relay_agent, '"Agent Auto Confirm Pick Pack - lỗi khởi động"', "D083 visible fatal startup message")
     require(relay_agent, '"OVERLAY init=FAIL', "D083 overlay failure isolation")
     require(relay_agent_workflow, "--startup-smoke", "D083 CI startup smoke execution")
     require(relay_agent_workflow, "WaitForExit(15000)", "D083 startup smoke timeout")
