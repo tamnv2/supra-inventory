@@ -22,7 +22,7 @@
     "android": "D089_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC54__APPROVED_ICON__TRANSPORT_SELECTION_PENDING",
     "latest_beta_apk": "beta-vc54",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
-    "network_scope": "PDA_INTERNET_SUPPORTED__CURRENT_RTDB_RELAY_TEMPORARILY_UNCHANGED__D078_FINAL_TRANSPORT_SELECTION_PENDING__NO_OFFLINE_BUSINESS_MODE",
+    "network_scope": "D090_OFFICE_INTERNAL_SUPRA_PLUS_SELECTED_GOOGLE_ONLY__CLOUDFLARE_OFFICE_EXCLUDED__RTDB_PROXY_BLOCKED__GOOGLE_RELAY_CANDIDATE_PENDING__NO_OFFLINE_BUSINESS_MODE",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "SERVER_PAGED_FILTERED_ONE_MANY_ALL__ROOT_EFFECTIVE_ROLE_TEST_RUNTIME_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D089_OWNER_ACCEPTED_PASS__AGENT_V15__SINGLE_INSTANCE__GRANULAR_OVERLAY__APPROVED_ICON__D078_TRANSPORT_PENDING__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D090_OFFICE_EVIDENCE_RECORDED__AGENT_V15_BASELINE__GOOGLE_ONLY_REPLACEMENT_CANDIDATE__FIRESTORE_PREFERRED_NOT_SELECTED__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -82,7 +82,8 @@
     "D088 Web + Android share one persistent server-authoritative interactive session per account; a fresh Web/Android login replaces the prior interactive session, while real ADMIN Agent sessions remain a separate multi-Agent channel.",
     "D088 product naming is Website nghiệp vụ Inventory (Web), 1291 Beta (Android), and Agent Auto Confirm Pick Pack (Windows), with the Owner-selected icon #4 motif shared across channels.",
     "D088 Admin/Root Web exposes HỆ THỐNG → Công cụ for the official Agent download; Agent minimizes to System Tray only; unlocked overlay supports resize and full background/text colors while locked overlay remains click-through.",
-    "D089 field-review repair requires the exact Owner-selected icon #4 asset across Web/Android/Agent, separate HTTP service health from realtime transport state, complete dark-theme Tools surfaces, a persisted overlay master toggle plus granular Laptop/Agent metric checklist, and one Windows Agent instance per user session with duplicate-launch restore instead of a second runtime."
+    "D089 field-review repair requires the exact Owner-selected icon #4 asset across Web/Android/Agent, separate HTTP service health from realtime transport state, complete dark-theme Tools surfaces, a persisted overlay master toggle plus granular Laptop/Agent metric checklist, and one Windows Agent instance per user session with duplicate-launch restore instead of a second runtime.",
+    "D090 Owner field evidence closes further Cloudflare Office probing for PDA-Agent confirmation transport: Office is internal Supra plus selected Google only; RTDB is proxy-blocked; Google-hosted replacement research remains, with Firestore preferred but not selected until authenticated Beta relay proof."
   ],
   "completed_capabilities": [
     "Cloudflare Beta Worker/custom domain/InventoryCore SQLite provisioning",
@@ -161,8 +162,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Await and execute the Owner's next explicit requirement after fresh canonical GitHub bootstrap.",
-    "method": "Read ops/authority-manifest.json and its full bootstrap_order first. Preserve D089 accepted baseline unless the Owner explicitly changes it. D078 transport remains pending; WMS GET-only; Stable OWNER-GATED.",
+    "primary": "If the Owner continues the PDA-Agent confirmation workstream, proceed directly to a Google-hosted Beta relay candidate; do not spend another Office field cycle testing Cloudflare/Worker.",
+    "method": "D090: Office is internal Supra + selected Google only. RTDB is rejected on Office by proxy 403. Firestore is the preferred next candidate from D078 but remains unselected until authenticated relay/HA/quota proof. Preserve D089 accepted baseline, WMS GET-only and Stable OWNER-GATED.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -190,6 +191,7 @@
   },
   "workboard": {
     "in_progress": [
+      "D090 OWNER CONFIRMED: Office transport boundary is internal Supra + selected Google only. No further Cloudflare/Worker Office probe. RTDB is proxy-blocked; next replacement research is Google-hosted, with Firestore preferred but not yet selected.",
       "D089 OWNER ACCEPTED PASS: released Beta Web + signed beta-vc54 + relay-agent-v15 accepted by Owner on 2026-09-21. Accepted baseline: exact icon #4, Service/Realtime separation, dark Tools page, granular persistent Overlay controls, Agent single-instance restore. D078 transport remains pending; WMS GET-only; Stable OWNER-GATED.",
       "D088 technical/runtime/release PASS: main 48367c46b20405c48abb6ed8c0b59601defe1130; schema 8/Web runtime PASS, signed beta-vc53 PASS, relay-agent-v14 PASS with normalized release asset contract. Owner field acceptance pending; D078 transport remains pending.",
       "D088 main 8084928724110e7186867b8b16d79462134951aa: Beta deploy PASS run 35505678533, UI PASS 35505678481, signed Android beta-vc53 published. Transitional relay-agent-v13 revealed GitHub space→dot asset normalization mismatch before Owner field use; fix/d088-agent-release-asset-normalization targets final relay-agent-v14.",
@@ -207,8 +209,8 @@
       "Stable remains Owner-gated"
     ],
     "next": [
+      "For confirmation transport, skip further Cloudflare Office testing and validate the preferred Firestore Beta relay candidate only when this workstream continues.",
       "Bootstrap canonical GitHub and execute the Owner's next explicit requirement.",
-      "Use physical Office evidence to continue D078 transport selection separately; do not infer transport from D088.",
       "Owner field-reviews D088 after release; keep D078 final transport selection pending until company-network physical evidence.",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
       "Owner field-tests D070 physical timing/background notification behavior",
