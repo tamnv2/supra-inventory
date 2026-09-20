@@ -157,9 +157,9 @@ Agent v10 source adds:
 
 Standby Agents do not process WMS jobs. Remote PDA requests never open WMS login. WMS access remains signed GET-only; confirmation/mutation is not implemented or authorized.
 
-## D086 — Agent v11 session-first professional shell
+## D087 — Agent v12 session-first professional shell
 
-Agent v11 keeps D085 business/HA behavior and changes the Windows utility mechanics:
+Agent v12 keeps D085 business/HA behavior and changes the Windows utility mechanics:
 
 - startup reads a local DPAPI-`CurrentUser` encrypted WMS session file first, validates it read-only and preloads the all-date Picklist cache; valid state does not reopen the browser;
 - an invalid/missing saved session is cleared before the local Agent-owned WMS browser is opened to reacquire an authorized session;
@@ -172,3 +172,12 @@ Agent v11 keeps D085 business/HA behavior and changes the Windows utility mechan
 
 WMS access is still signed read-only GET only. Transport selection is still pending D078 Office evidence. Stable remains untouched.
 
+
+
+## D087 field changes
+
+- Local logs are split into `pda-agent-audit-*.log` (user/device/Picklist/relay audit) and `technical-ai-*.log` (errors/lifecycle/network/runtime). Both pass the same secret redaction layer; passwords, tokens, cookies, WMS session/signature material and other credentials are forbidden.
+- The main window has no close action but provides an explicit minimize-to-taskbar control. Protected tray shutdown remains unchanged.
+- Overlay is retryable after transient initialization failure and renders two rows: local laptop metrics plus Agent status.
+- Total online Agent count uses only minimal Beta RTDB presence (30s write, 60s read, 90s freshness). Per-machine APK/request and response counters are memory-only and are never globally synchronized.
+- Transport remains the temporary RTDB carrier pending D078 physical Office evidence. WMS remains read-only; Stable is untouched.
