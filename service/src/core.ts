@@ -13,7 +13,7 @@ import {
 } from "./sla-automation";
 import { sendFcmNotifications } from "./fcm";
 
-const SCHEMA_VERSION = 7;
+const SCHEMA_VERSION = 8;
 
 interface CoreEnv {
   APP_ENV: string;
@@ -36,6 +36,8 @@ interface InternalUser extends Record<string, SqlStorageValue> {
   password_salt: string | null;
   password_hash: string | null;
   password_changed_at: string | null;
+  session_generation: number;
+  session_started_at: string | null;
 }
 
 function response(payload: unknown, status = 200): Response {
@@ -248,6 +250,8 @@ export class InventoryCore {
     if (!this.hasColumn("users", "password_hash")) sql.exec("ALTER TABLE users ADD COLUMN password_hash TEXT");
     if (!this.hasColumn("users", "password_changed_at")) sql.exec("ALTER TABLE users ADD COLUMN password_changed_at TEXT");
     if (!this.hasColumn("users", "role_override")) sql.exec("ALTER TABLE users ADD COLUMN role_override TEXT");
+    if (!this.hasColumn("users", "session_generation")) sql.exec("ALTER TABLE users ADD COLUMN session_generation INTEGER NOT NULL DEFAULT 0");
+    if (!this.hasColumn("users", "session_started_at")) sql.exec("ALTER TABLE users ADD COLUMN session_started_at TEXT");
 
     initializeBusinessSchema(this.state);
     initializeOperationalV2Schema(this.state);
@@ -471,7 +475,8 @@ export class InventoryCore {
               role AS base_role,
               role_override,
               status,
-              password_salt, password_hash, password_changed_at
+              password_salt, password_hash, password_changed_at,
+              session_generation, session_started_at
          FROM users
         WHERE lower(employee_code) = lower(?) OR lower(user_id) = lower(?)
         LIMIT 1`,
@@ -490,7 +495,8 @@ export class InventoryCore {
               END AS role,
               role AS base_role,
               role_override,
-              status, password_salt, password_hash, password_changed_at, created_at, updated_at
+              status, password_salt, password_hash, password_changed_at,
+              session_generation, session_started_at, created_at, updated_at
          FROM users
         WHERE user_id = ?
         LIMIT 1`,
@@ -509,7 +515,8 @@ export class InventoryCore {
               role AS base_role,
               role_override,
               status,
-              password_salt, password_hash, password_changed_at
+              password_salt, password_hash, password_changed_at,
+              session_generation, session_started_at
          FROM users WHERE firebase_uid = ? LIMIT 1`,
       uid,
     ).toArray();
@@ -548,6 +555,30 @@ export class InventoryCore {
       return response({ user: uid ? this.getUserByFirebaseUid(uid) : null });
     }
 
+    if (request.method === "PUT" && url.pathname === "/auth/activate-session") {
+      const body = (await request.json()) as { user_id?: string };
+      const userId = String(body.user_id || "").trim();
+      if (!userId) return response({ error: "invalid_input" }, 400);
+      const exists = this.state.storage.sql.exec<{ user_id: string }>(
+        "SELECT user_id FROM users WHERE user_id = ? LIMIT 1",
+        userId,
+      ).toArray()[0];
+      if (!exists) return response({ error: "user_not_found" }, 404);
+      this.state.storage.sql.exec(
+        `UPDATE users
+            SET session_generation = COALESCE(session_generation, 0) + 1,
+                session_started_at = CURRENT_TIMESTAMP,
+                updated_at = CURRENT_TIMESTAMP
+          WHERE user_id = ?`,
+        userId,
+      );
+      const row = this.state.storage.sql.exec<{ session_generation: number }>(
+        "SELECT session_generation FROM users WHERE user_id = ? LIMIT 1",
+        userId,
+      ).toArray()[0];
+      return response({ session_generation: Number(row?.session_generation || 0) });
+    }
+
     if (request.method === "PUT" && url.pathname === "/auth/link-firebase-uid") {
       const body = (await request.json()) as { user_id?: string; firebase_uid?: string };
       if (!body.user_id || !body.firebase_uid) return response({ error: "invalid_input" }, 400);
@@ -584,7 +615,12 @@ export class InventoryCore {
       if (!body.user_id || !body.password_salt || !body.password_hash) return response({ error: "invalid_input" }, 400);
       this.state.storage.sql.exec(
         `UPDATE users
-            SET password_salt = ?, password_hash = ?, password_changed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+            SET password_salt = ?,
+                password_hash = ?,
+                password_changed_at = CURRENT_TIMESTAMP,
+                session_generation = COALESCE(session_generation, 0) + 1,
+                session_started_at = CURRENT_TIMESTAMP,
+                updated_at = CURRENT_TIMESTAMP
           WHERE user_id = ?`,
         body.password_salt,
         body.password_hash,
