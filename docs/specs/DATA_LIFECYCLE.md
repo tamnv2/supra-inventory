@@ -237,3 +237,12 @@ The D086 encrypted WMS session file is local workstation support state, not busi
 - Operational audit may retain the exact approved five-digit Picklist suffix with request/user/device/Agent/result/timing metadata for incident correlation. Full WMS identifiers/responses and any credential/session/signature values remain forbidden.
 - Local APK-received and Agent-response counters are process-memory only and reset when that Agent process restarts.
 - relay_poc/coordination/agents/{instance} is temporary presence metadata only. It stores bounded Agent identity/machine/heartbeat/WMS-ready fields; stale entries are ignored after 90 seconds and are not business history.
+
+## D088 — interactive session lifecycle
+
+- Server `users.session_generation` is the authority for the single Web/Android interactive session.
+- A fresh Web/Android login atomically advances that generation. Tokens carrying an older generation are no longer accepted for authenticated APIs or token refresh.
+- Web stores its refreshable session in local browser storage; Android stores its refreshable session in app-private preferences. Neither surface stores the plaintext password.
+- Logout/401 clears the local session. Password change advances generation.
+- The Agent auth channel remains separate from interactive generation so multiple approved real-ADMIN Agents may coexist for D085 HA.
+- Session lifecycle adds no periodic Cloudflare/Firebase polling requirement.
