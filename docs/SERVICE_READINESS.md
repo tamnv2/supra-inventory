@@ -19,7 +19,7 @@ Status: **SOURCE CANDIDATE / PR-CI-RELEASE PENDING**.
 Implemented on `feat/d088-unified-brand-single-session-tools-overlay`:
 - Web product name **Website nghiệp vụ Inventory**.
 - Android Beta product name **1291 Beta**.
-- Windows utility **Agent Auto Confirm Pick Pack**, target `relay-agent-v13`.
+- Windows utility **Agent Auto Confirm Pick Pack**, target `relay-agent-v14`.
 - shared D088 icon motif on Web/Android/Agent;
 - one persistent server-authoritative interactive session across Web + Android, with fresh login replacing older Web/Android session;
 - separate `AGENT` authentication channel so D085 multi-Agent HA is preserved;
@@ -28,7 +28,7 @@ Implemented on `feat/d088-unified-brand-single-session-tools-overlay`:
 - overlay unlocked drag/resize, numeric width/height, full background/text color selection; locked true click-through;
 - additive SQLite schema target 8 for `session_generation` / `session_started_at`.
 
-No D088 runtime/release PASS is claimed until PR guards, main Beta deploy, signed Android publication and `relay-agent-v13` publication all complete.
+No D088 runtime/release PASS is claimed until PR guards, main Beta deploy, signed Android publication and `relay-agent-v14` publication all complete.
 
 ## Unchanged boundaries
 
@@ -41,4 +41,4 @@ No D088 runtime/release PASS is claimed until PR guards, main Beta deploy, signe
 
 ## Next action
 
-Open D088 PR, obtain all required CI PASS, merge, verify Beta runtime + signed Android + Agent v13 releases, then record exact release evidence in a canonical checkpoint.
+Open D088 PR, obtain all required CI PASS, merge, verify Beta runtime + signed Android + Agent v14 releases, then record exact release evidence in a canonical checkpoint.
