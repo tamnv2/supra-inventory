@@ -214,7 +214,7 @@ No D088 item selects the final PDA ↔ Agent transport, authorizes WMS mutation,
 
 ## D089 — Field-review repair: exact shared icon, service/realtime status split, complete Tools dark UI, granular overlay and single-instance Agent
 
-Status: **ACTIVE — TECHNICAL / RUNTIME / RELEASE PASS; OWNER FIELD RETEST PENDING**.
+Status: **ACTIVE — OWNER ACCEPTED PASS 2026-09-21**.
 
 D089 is a corrective field-review change set over D088. It does not reopen D078 transport selection, WMS mutation, D085 HA, D086 DPAPI/protected-exit behavior, D087 logging/presence, or Stable.
 
@@ -238,3 +238,18 @@ D089 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta. Owner physical field re-
 - Android release: `beta-vc54`, release id `392528497`; APK asset id `577316797`, size `9340834` bytes, SHA-256 `eeb95c489bf7dbfa455b323633bfe28685674f57f6ba76facd4c04e3b0958c2c`.
 - The approved icon #4 is now stored as verified PNG binary and is the shared visual source consumed by Web, Android and Agent.
 - D078 final PDA ↔ Agent transport remains pending physical Office-network evidence. Current RTDB remains temporary. WMS remains signed GET-only. Stable remains OWNER-GATED.
+
+
+## D089 Owner acceptance checkpoint
+
+Status: **OWNER ACCEPTED PASS — 2026-09-21**.
+
+The Owner explicitly confirmed that the D089 result **đã đạt** after field review. This closes `OA011` and makes the released D089 Beta behavior the accepted baseline:
+
+1. The exact selected icon #4 is accepted as the shared identity across Web, Android and Windows Agent surfaces.
+2. Web `Dịch vụ` and realtime `Đồng bộ` are accepted as independent statuses.
+3. `HỆ THỐNG → Công cụ` dark-theme presentation is accepted.
+4. Agent Overlay master visibility plus granular Laptop/Agent display options and persistence are accepted.
+5. Windows Agent single-instance behavior is accepted: duplicate launch does not create a second runtime and restores/activates the existing instance.
+
+Accepted released artifacts remain `beta-vc54` and `relay-agent-v15`. This acceptance does not select D078 final PDA ↔ Agent transport, does not authorize WMS mutation, and does not authorize Stable. Current RTDB remains temporary, WMS remains signed GET-only, and Stable remains OWNER-GATED.
