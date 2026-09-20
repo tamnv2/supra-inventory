@@ -679,3 +679,63 @@ body[data-theme="dark"] .fast-action-pending {
   .tools-grid { grid-template-columns: 1fr; }
   .tool-card-primary { grid-row: auto; }
 }
+
+
+/* D089 — Tools dark-theme completion + approved icon */
+.tool-icon-image {
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  display: block;
+  object-fit: cover;
+  border-radius: 0;
+  border: 1px solid var(--ui-line);
+  background: #0d2650;
+}
+.tools-workspace,
+.tools-workspace :is(h2,h3,strong,li) { color: var(--ui-text); }
+.tools-workspace .heading .muted,
+.tool-card-head p,
+.tool-facts span { color: var(--ui-muted) !important; }
+.tool-facts > div {
+  background: var(--ui-surface-soft) !important;
+  border-color: var(--ui-line) !important;
+  color: var(--ui-text) !important;
+}
+.tool-guide,
+.tool-safety,
+.tool-card-primary {
+  background: var(--ui-surface) !important;
+  border-color: var(--ui-line) !important;
+}
+.tool-status-list > div {
+  color: var(--ui-text);
+}
+body[data-theme="dark"] .tools-workspace {
+  color: var(--ui-text) !important;
+}
+body[data-theme="dark"] .tools-workspace .ops-panel,
+body[data-theme="dark"] .tools-workspace .tool-card-primary,
+body[data-theme="dark"] .tools-workspace .tool-guide,
+body[data-theme="dark"] .tools-workspace .tool-safety {
+  background: #111827 !important;
+  border-color: #263244 !important;
+  color: #e7edf5 !important;
+}
+body[data-theme="dark"] .tools-workspace .tool-facts > div {
+  background: #0f172a !important;
+  border-color: #35445a !important;
+  color: #e7edf5 !important;
+}
+body[data-theme="dark"] .tools-workspace .tool-facts span,
+body[data-theme="dark"] .tools-workspace .tool-card-head p {
+  color: #94a3b8 !important;
+}
+body[data-theme="dark"] .tools-workspace .tool-download {
+  color: #fff !important;
+}
+body[data-theme="dark"] .tools-workspace .secondary {
+  background: #162033 !important;
+  color: #dbe5f0 !important;
+  border-color: #35445a !important;
+}

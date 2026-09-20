@@ -209,6 +209,14 @@ def main() -> None:
     require(service_index, "SESSION_REPLACED", "D088 replaced-session guard")
     require(service_index, "activateInteractiveSession", "D088 login invalidates previous Web/APK session")
 
+    # D089: field-review fixes for approved icon, independent service/realtime status and Tools dark theme.
+    require(app, 'id="realtime-state"', "D089 separate realtime header state")
+    require(app, "function realtimeStatusLabel()", "D089 realtime status label")
+    require(app, '/app-icon.png', "D089 approved Web icon")
+    forbid(app, 'serviceReachable = navigator.onLine && realtimeState === "connected"', "D089 realtime must not overwrite service health")
+    require(unified_css, "D089 — Tools dark-theme completion", "D089 Tools dark-theme completion")
+    require(unified_css, ".tool-icon-image", "D089 Tools approved icon styling")
+
     # D060: Root can temporarily lower its effective role, and the service—not the client—enforces it.
     require(api, "setRootEffectiveRole", "Root effective-role client API")
     require(app, 'profile.base_role === "ROOT"', "Root selector visibility guard")

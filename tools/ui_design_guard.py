@@ -37,6 +37,8 @@ ANDROID_COLORS = read("android/app/src/main/res/values/colors.xml")
 ANDROID_STYLES = read("android/app/src/main/res/values/styles.xml")
 ANDROID_ICON = read("android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml")
 ANDROID_ICON_ROUND = read("android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml")
+ANDROID_APPROVED_ICON_EXISTS = (ROOT / "android/app/src/main/res/drawable-nodpi/app_icon_d089.png").is_file()
+WEB_APPROVED_ICON_EXISTS = (ROOT / "web/public/app-icon.png").is_file()
 ANDROID_ALL = "\n".join([ANDROID_MAIN, ANDROID_PICKER, ANDROID_REPORTER])
 
 SERVICE_OPS = read("service/src/operational-v2-core.ts")
@@ -74,6 +76,7 @@ checks = {
     "authority_d070_three_stage_auto_skip": "D070" in DECISIONS and "D070 three-stage timing UI" in DESIGN_SPEC,
     "authority_d072_system_status_quota_exclusion": "D072" in DECISIONS and "D072 quota guard — system-status excluded" in DESIGN_SPEC,
     "authority_d074_picker_split_relay_repair": "D074" in DECISIONS and "D074 — Picker dense split-operation navigation" in DESIGN_SPEC,
+    "authority_d089_field_review_repair": "D089" in DECISIONS and "D089 field-review repair" in DESIGN_SPEC,
     "authority_ui_acceptance_distinct_from_ci": "CI/build PASS" in DESIGN_SPEC and "Owner UI" in DESIGN_SPEC,
     "authority_no_offline_mode": "D043" in DECISIONS and "No offline business mode" in DESIGN_SPEC,
 
@@ -125,6 +128,11 @@ checks = {
         'data-state="',
         'realtimeState === "connected"',
     ]),
+    "web_d089_service_realtime_separation": all(token in WEB_APP for token in [
+        'id="realtime-state"',
+        "realtimeStatusLabel",
+        "Đồng bộ:",
+    ]) and 'serviceReachable = navigator.onLine && realtimeState === "connected"' not in WEB_APP,
     "web_d059_left_nav_and_font": all(token in WEB_FAST for token in [
         "D059 Owner Web review",
         '"Segoe UI Variable Text"',
@@ -270,7 +278,8 @@ checks = {
     "web_flexible_hr_mapping": all(token in WEB_UI for token in ["employeeCodeHeader", "fullNameHeader", "Tên cột Mã nhân viên", "Tên cột Họ và tên"]),
     "web_transplant_files_are_presentation_only": "fetch(" not in WEB_FAST and "fetch(" not in WEB_DASH and "fetch(" not in WEB_WAREHOUSE and "fetch(" not in WEB_OPS,
 
-    "android_adaptive_launcher_icon": 'android:icon="@mipmap/ic_launcher"' in ANDROID_MANIFEST and 'android:roundIcon="@mipmap/ic_launcher_round"' in ANDROID_MANIFEST and "@color/inventory_icon_green" in ANDROID_ICON and "@color/inventory_icon_green" in ANDROID_ICON_ROUND,
+    "android_adaptive_launcher_icon": 'android:icon="@drawable/app_icon_d089"' in ANDROID_MANIFEST and 'android:roundIcon="@drawable/app_icon_d089"' in ANDROID_MANIFEST and ANDROID_APPROVED_ICON_EXISTS,
+    "d089_shared_approved_icon": WEB_APPROVED_ICON_EXISTS and '/app-icon.png' in WEB_APP and '/app-icon.png' in WEB_INDEX,
     "android_legacy_login_xml": all(token in ANDROID_LOGIN_XML for token in ['76dp', '23sp', '@+id/etEmployeeCode', '@+id/etPassword', '@+id/btnLogin']),
     "android_legacy_main_shell_xml": all(token in ANDROID_MAIN_XML for token in ['android:layout_height="76dp"', '@+id/contentContainer', '@+id/btnLog', '@+id/btnLogout', '@+id/tvAppVersion']),
     "android_d074_picker_dense_split_xml": all(token in ANDROID_PICKER_XML for token in ['@+id/acSkuSearch', '@+id/btnReportShortage', '@+id/listMyReports', '@+id/panelShortage', '@+id/panelConfirmOrder', '@+id/tabShortage', '@+id/tabConfirmOrder', '@+id/etRelayPicklistSuffix', 'android:maxLength="5"', 'android:layout_height="48dp"']),
@@ -355,6 +364,7 @@ checks = {
     "web_d071_text_baseline": all(token in WEB_APP for token in ["WEB_TEXT_BASE_SCALE = 1.05", "effectiveScale = WEB_TEXT_BASE_SCALE", "logicalUiZoom"]),
     "web_d071_compact_dates": all(token in (WEB_APP + WEB_UNIFIED) for token in ["renderCompactDateRange", "compact-date-range", "compact-date-presets", "report-filter-compact"]),
     "web_d071_immediate_reporter_actions": all(token in WEB_APP for token in ["pendingReporterResolutions", "commitReporterResolution", "reporter_resolution_immediate_feedback", "loadOperationsSnapshot", "operationsLoadPromise"]) and 'await resolveReporterBatch(batch.batch_id, "HAS_STOCK");\n      await loadOperations();' not in WEB_APP and 'await resolveReporterBatch(batch.batch_id, "SKIP_ALLOWED");\n      await loadOperations();' not in WEB_APP,
+    "web_d089_tools_dark_completion": all(token in WEB_UNIFIED for token in ["D089 — Tools dark-theme completion", ".tool-icon-image", ".tools-workspace .tool-facts > div"]) and 'body[data-theme="dark"] .tools-workspace .tool-facts > div' in WEB_UNIFIED,
     "android_d070_timeout_projection": all(token in (ANDROID_API + ANDROID_PICKER + ANDROID_REPORTER) for token in ["autoSkipDeadlineAt", "autoSkipAllowedAt", "autoSkipAt", "Hệ thống tự động do quá hạn"]),
     "web_online_only_no_outbox": "offline outbox" not in WEB_UI.lower() and "chờ đồng bộ" not in WEB_UI.lower(),
     "android_online_only_no_outbox": "chờ đồng bộ" not in ANDROID_ALL.lower() and "outbox" not in ANDROID_ALL.lower(),

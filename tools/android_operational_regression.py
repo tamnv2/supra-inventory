@@ -142,7 +142,7 @@ def main() -> None:
     require(service_index, "app_base_role: user.base_role", "D075 immutable base-role Firebase custom claim")
     require(relay_rules, "auth.token.app_base_role == 'ADMIN'", "D075 real ADMIN RTDB rule")
     require(relay_rules, "newData.child('agent_admin_user_id').val() == auth.token.app_user_id", "D075 ADMIN ACK rule binding")
-    require(relay_agent_config, "AgentBuild = 14", "D088 Agent build channel")
+    require(relay_agent_config, "AgentBuild = 15", "D089 Agent build channel")
     require(relay_agent, "var statusCode = (int)response.StatusCode", "D077 capture HTTP status before dispose")
     require(relay_agent, "ProbeAllTransports", "D078 Test all transport probe")
     require(relay_agent, "AgentConfig.FirestoreProbeUrl", "D078 Firestore probe")
@@ -238,7 +238,7 @@ def main() -> None:
     forbid(relay_agent, "WmsPicklistConfirmUiReferenceUrl)", "D082 confirm UI navigation")
 
     # D083: Agent v7 startup regression must fail safe instead of silently exiting.
-    require(relay_agent, "new AgentForm(startupSmoke, autoStarted)", "D085 startup/autostart mode preserving D083 smoke")
+    require(relay_agent, "new AgentForm(startupSmoke, autoStarted, activateEvent)", "D089 startup/single-instance wiring preserving D083 smoke")
     require(relay_agent, "InitializeStatusOverlaySafe", "D083 lazy overlay init")
     require(relay_agent, '"FATAL startup type="', "D083 top-level startup crash logging")
     require(relay_agent, '"Agent Auto Confirm Pick Pack - lỗi khởi động"', "D083 visible fatal startup message")
@@ -251,7 +251,7 @@ def main() -> None:
     require(relay_agent, '"Cài đặt bảng nổi"', "D084 overlay settings entry")
     require(overlay_settings, "class OverlaySettingsForm", "D084 overlay settings dialog")
     require(overlay_settings, "Độ trong của nền bảng nổi", "D084 overlay opacity setting")
-    require(overlay_settings, "Khóa vị trí/kích thước và cho chuột xuyên qua bảng nổi", "D084 overlay lock setting")
+    require(overlay_settings, "Khóa vị trí/kích thước + click-through", "D089 overlay lock setting")
     # D086 keeps the v8 no-recreate behavior but adds a real cross-process click-through style.
     require(status_overlay, "HtTransparent", "D086 locked hit-test fallback")
     require(status_overlay, "WsExTransparent", "D086 true overlay click-through style")
@@ -306,6 +306,15 @@ def main() -> None:
     require(status_overlay, "TextArgb", "D088 overlay text-color persistence")
     require(overlay_settings, "ColorDialog", "D088 full overlay color picker")
     require(relay_agent_config, 'AgentExeAsset = "Agent.Auto.Confirm.Pick.Pack.exe"', "D088 canonical Agent asset name")
+    require(manifest, 'android:icon="@drawable/app_icon_d089"', "D089 approved Android icon")
+    require(manifest, 'android:roundIcon="@drawable/app_icon_d089"', "D089 approved Android round icon")
+    require(relay_agent, "MainInstanceMutexName", "D089 Agent single-instance mutex")
+    require(relay_agent, "EventWaitHandle.OpenExisting", "D089 duplicate launch activates existing Agent")
+    require(overlay_settings, "Bật hiển thị Overlay", "D089 overlay master visibility")
+    require(overlay_settings, "Thông tin Laptop", "D089 Laptop checklist")
+    require(overlay_settings, "Thông tin Agent", "D089 Agent checklist")
+    require(status_overlay, "ShowCpu", "D089 Laptop metric persistence")
+    require(status_overlay, "ShowAgentOnline", "D089 Agent metric persistence")
 
     # F22: launcher actions have distinct targets and Web honors direct hash routes.
     require(launcher, 'openWeb("/#hr"', "HR deep link")

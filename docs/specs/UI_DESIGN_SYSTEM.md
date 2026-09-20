@@ -454,3 +454,21 @@ Overlay behavior:
 - unlocked: draggable and resizable from edges/corners;
 - settings expose numeric width/height plus full Windows color selection for background and text, in addition to opacity/lock;
 - position, size, colors, opacity, visibility and lock are local non-secret persisted settings.
+
+## D089 field-review repair
+
+### Shared identity asset
+- The exact Owner-selected icon #4 image is the canonical visual source.
+- Outer canvas is square, opaque, full-bleed dark navy with no artificial rounded outer container.
+- The internal motif is the selected PDA/scanner ↔ warehouse/boxes exchange graphic.
+- Web favicon and Tools icon, Android launcher icon and Windows EXE/taskbar/System Tray icon must derive from the same committed asset.
+- Placeholder arrows, generic application icons and hand-redrawn approximations are forbidden.
+
+### Web service status
+Header status separates **Dịch vụ** from **Đồng bộ**. HTTP/API reachability and realtime transport are independent visible states.
+
+### Tools dark theme
+`HỆ THỐNG → Công cụ` must use the same dark surfaces, borders, muted text, action buttons and contrast rules as the rest of the accepted dark Web shell. No light fact cards remain in dark mode.
+
+### Agent overlay
+Unlocked overlay retains drag/resize and complete background/text color selection. Settings include a master visibility switch and granular Laptop/Agent display controls; locked overlay stays true click-through.

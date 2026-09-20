@@ -198,3 +198,15 @@ D088 keeps all D085–D087 read-only/HA/security behavior and changes local pres
 - GitHub normalizes spaces in release asset filenames to dots. The Windows assembly/product remains `Agent Auto Confirm Pick Pack.exe`; the release/updater asset contract is `Agent.Auto.Confirm.Pick.Pack.exe`. Transitional v13 exposed the mismatch before field acceptance, so v14 is the final D088 release target. The old `SUPRA-Inventory-Relay-Test.exe` asset remains a compatibility alias for pre-D088 clients.
 
 Transport is still the current temporary Beta RTDB pending D078 evidence. WMS remains signed read-only GET-only; confirmation/mutation is not authorized. Stable remains untouched.
+
+## D089 — Agent v15 field-review repair
+
+Release target: `relay-agent-v15`.
+
+- Windows identity uses the exact committed Owner-selected icon #4 asset; EXE, taskbar and System Tray derive from the same source image.
+- Normal startup is single-instance per Windows user session. A duplicate EXE launch signals the existing process to restore/activate and exits without creating a second tray, overlay or worker.
+- `Cài đặt bảng nổi` adds a master Overlay on/off switch and persisted granular checklists for Laptop CPU/RAM/Disk/network/Internet/GPU and Agent online/state/local APK/local responses/Supra readiness.
+- Resize, opacity, full background/text colors and locked true click-through remain.
+- D085 sticky Agent HA/cache/anti-spam, D086 DPAPI WMS file-first session/protected exit/watchdog and D087 split logs/bounded presence remain unchanged.
+- D078 final transport remains pending. WMS remains signed GET-only. Stable remains OWNER-GATED.
+
