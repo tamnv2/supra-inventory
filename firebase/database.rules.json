@@ -8,6 +8,13 @@
           ".read": "auth != null && ((auth.token.app_role == 'PICKER') || (auth.token.app_role == 'ADMIN' && auth.token.app_base_role == 'ADMIN'))",
           ".write": "auth != null && auth.token.app_role == 'ADMIN' && auth.token.app_base_role == 'ADMIN'",
           ".validate": "newData.val() == null || (newData.hasChildren(['agent_instance_id','agent_admin_user_id','machine','generation','selected_at_ms','heartbeat_at_ms','wms_ready']) && newData.child('agent_instance_id').isString() && newData.child('agent_admin_user_id').val() == auth.token.app_user_id && newData.child('machine').isString() && newData.child('generation').isString() && newData.child('selected_at_ms').isNumber() && newData.child('selected_at_ms').val() >= 0 && newData.child('heartbeat_at_ms').isNumber() && newData.child('heartbeat_at_ms').val() >= 0 && newData.child('wms_ready').val() == true)"
+        },
+        "agents": {
+          "$agent": {
+            ".read": "auth != null && auth.token.app_role == 'ADMIN' && auth.token.app_base_role == 'ADMIN'",
+            ".write": "auth != null && auth.token.app_role == 'ADMIN' && auth.token.app_base_role == 'ADMIN'",
+            ".validate": "newData.val() == null || (newData.hasChildren(['agent_instance_id','agent_admin_user_id','machine','heartbeat_at_ms','wms_ready']) && newData.child('agent_instance_id').val() == $agent && newData.child('agent_admin_user_id').val() == auth.token.app_user_id && newData.child('machine').isString() && newData.child('heartbeat_at_ms').isNumber() && newData.child('heartbeat_at_ms').val() >= 0 && newData.child('wms_ready').isBoolean())"
+          }
         }
       },
       "rate_limits": {
