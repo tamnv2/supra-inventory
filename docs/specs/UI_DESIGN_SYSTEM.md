@@ -412,3 +412,16 @@ D072 supersedes the visible/runtime system-status requirements from D064–D066 
 - Default panel remains **Báo hết hàng**.
 - Picker content density is intentionally increased for PDA: compact margins, headings around 14–16sp, inputs/actions around 48–52dp instead of oversized first-pass controls, and selected-SKU typography reduced while retaining clear state contrast.
 - The active operation tab has a distinct filled background; inactive tab uses the secondary surface.
+
+## D086 — Windows Agent presentation baseline
+
+The Windows Relay Agent is a professional utility surface, not a diagnostic control dump.
+
+- Use a compact `Tổng quan / Cài đặt` hierarchy.
+- `Tổng quan`: one strong product identity, one primary Supra login/ready card, one connection-status card and one concise current-model card.
+- `Cài đặt`: separate tabs/sections for ADMIN authentication, connectivity tests, overlay and logs.
+- Do not expose transport/debug buttons as the visual focus of the main screen.
+- Remove the normal title-bar close affordance because Agent is intended to run for the full Windows session; explicit protected shutdown remains available through the Agent menu.
+- Overlay locked state must use a real Windows click-through extended style so the overlay is visually present but mouse input targets the application beneath it. Unlocked state remains draggable.
+- Background status presentation must not justify high-frequency polling. Local machine metrics and SSID refresh are deliberately coarse while ACTIVE/STANDBY failover heartbeat remains governed by D085.
+
