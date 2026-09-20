@@ -60,7 +60,7 @@ jobs:
           $overlaySettings = Get-Content relay-agent/OverlaySettingsForm.cs -Raw
           $project = Get-Content relay-agent/SupraInventoryRelayAgent.csproj -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*13\s*;') { throw "D088 requires Agent v13." }
+          if ($config -notmatch 'AgentBuild\s*=\s*14\s*;') { throw "D088 requires Agent v14." }
           if ($leader -notmatch 'HeartbeatIntervalMs\s*=\s*3000' -or $leader -notmatch 'FailoverAfterMs\s*=\s*10000') { throw "D085 HA timing guard failed." }
           if ($leader -notmatch 'HttpRequestHeader\.IfMatch') { throw "D085 leader election must use conditional ETag writes." }
           if ($cache -notmatch 'FreshMissGuardSeconds\s*=\s*10' -or $cache -notmatch 'JOIN_INFLIGHT' -or $cache -notmatch 'LoadSnapshot') { throw "D085 Picklist cache/single-flight guard failed." }
@@ -76,7 +76,7 @@ jobs:
           if ($overlay -notmatch '_settings != null' -or $overlay -notmatch 'UpdateMetrics') { throw "D087 overlay null-safe/two-layer guard failed." }
           if ($program -notmatch 'WriteAudit' -or $program -notmatch 'pda-agent-audit-' -or $program -notmatch 'technical-ai-' -or $program -notmatch 'picklist_last5') { throw "D087 split sanitized logging guard failed." }
           if ($program -notmatch 'FormBorderStyle\.None' -or $program -notmatch 'MinimizeToTray' -or $program -notmatch 'ShowInTaskbar\s*=\s*false') { throw "D088 tray-only minimize guard failed." }
-          if ($program -notmatch '"client_type", "AGENT"' -or $config -notmatch 'Agent Auto Confirm Pick Pack\.exe') { throw "D088 Agent identity/channel guard failed." }
+          if ($program -notmatch '"client_type", "AGENT"' -or $config -notmatch 'Agent\.Auto\.Confirm\.Pick\.Pack\.exe') { throw "D088 Agent identity/channel guard failed." }
           if ($overlay -notmatch 'SetOverlaySize' -or $overlay -notmatch 'BackgroundArgb' -or $overlay -notmatch 'TextArgb' -or $overlay -notmatch 'HtBottomRight') { throw "D088 overlay resize/color persistence guard failed." }
           if ($overlaySettings -notmatch 'ColorDialog' -or $overlaySettings -notmatch 'NumericUpDown' -or $overlaySettings -notmatch 'Chọn màu nền' -or $overlaySettings -notmatch 'Chọn màu chữ') { throw "D088 overlay settings UI guard failed." }
           if ($project -notmatch '<AssemblyName>Agent Auto Confirm Pick Pack</AssemblyName>' -or $project -notmatch '<ApplicationIcon>app.ico</ApplicationIcon>') { throw "D088 EXE name/icon guard failed." }
@@ -117,7 +117,7 @@ jobs:
           $primary = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe"
           $legacy = "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe"
           Copy-Item $exe $primary
-          # One-release compatibility alias lets v12 auto-update to v13 while the canonical downloadable name changes.
+          # Compatibility alias lets v12 update directly while v14 updater uses GitHub-normalized dotted asset names.
           Copy-Item $exe $legacy
           Copy-Item relay-agent/README.md relay-agent/dist/
           Copy-Item firebase/database.rules.json relay-agent/dist/
@@ -152,5 +152,5 @@ jobs:
             "relay-agent/dist/README.md#README.md" `
             --repo "${{ github.repository }}" `
             --title "Agent Auto Confirm Pick Pack v$version" `
-            --notes "Beta Agent for Pick Pack / Inventory relay. Canonical executable: Agent Auto Confirm Pick Pack.exe. Legacy asset alias retained only for v12→v13 auto-update compatibility. WMS remains read-only." `
+            --notes "Beta Agent for Pick Pack / Inventory relay. Canonical executable: Agent Auto Confirm Pick Pack.exe. Legacy alias retained for pre-D088 updater compatibility; GitHub normalizes the canonical release asset filename to dots. WMS remains read-only." `
             --prerelease
