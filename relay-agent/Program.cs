@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Security.Cryptography;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -99,7 +100,9 @@ namespace SupraInventoryRelayAgent
         private static readonly Regex JwtPattern = new Regex(@"eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}", RegexOptions.Compiled);
         private static readonly Regex SecretPattern = new Regex(@"(?i)(authorization|bearer|token|password|secret|private[_ -]?key|api[_ -]?key|cookie|refresh[_ -]?token|id[_ -]?token|apisid|sid|scid|usid|x-signature(?:-nonce)?)\s*[:=]\s*[^\s,;]+", RegexOptions.Compiled);
         private static readonly Regex QuerySecretPattern = new Regex(@"(?i)([?&](?:auth|key|access_token|token)=)[^&\s]+", RegexOptions.Compiled);
-        internal static string LogFile { get; private set; }
+        internal static string DiagnosticLogFile { get; private set; }
+        internal static string RelayAuditLogFile { get; private set; }
+        internal static string LogFile { get { return DiagnosticLogFile; } }
 
         internal static void Initialize()
         {
@@ -107,12 +110,16 @@ namespace SupraInventoryRelayAgent
             {
                 var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SUPRA Inventory", "RelayPoc", "Logs");
                 Directory.CreateDirectory(dir);
-                LogFile = Path.Combine(dir, "relay-agent-" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + "-" + Process.GetCurrentProcess().Id + ".log");
+                var stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss") + "-" + Process.GetCurrentProcess().Id;
+                DiagnosticLogFile = Path.Combine(dir, "technical-ai-" + stamp + ".log");
+                RelayAuditLogFile = Path.Combine(dir, "pda-agent-audit-" + stamp + ".log");
                 Write("START version=" + Assembly.GetExecutingAssembly().GetName().Version + " os=" + Environment.OSVersion.VersionString + " clr=" + Environment.Version + " process64=" + Environment.Is64BitProcess + " machine=" + Environment.MachineName);
+                WriteAudit("AUDIT_START version=" + Assembly.GetExecutingAssembly().GetName().Version + " machine=" + Environment.MachineName);
             }
             catch
             {
-                LogFile = "";
+                DiagnosticLogFile = "";
+                RelayAuditLogFile = "";
             }
         }
 
@@ -141,24 +148,46 @@ namespace SupraInventoryRelayAgent
 
         internal static void Write(string message)
         {
+            AppendSanitized(DiagnosticLogFile, message);
+        }
+
+        internal static void WriteAudit(string message)
+        {
+            AppendSanitized(RelayAuditLogFile, message);
+        }
+
+        private static void AppendSanitized(string path, string message)
+        {
             var line = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + "  " + Sanitize(message);
             try
             {
                 lock (Gate)
                 {
-                    if (!string.IsNullOrWhiteSpace(LogFile))
-                        File.AppendAllText(LogFile, line + Environment.NewLine, Encoding.UTF8);
+                    if (!string.IsNullOrWhiteSpace(path))
+                        File.AppendAllText(path, line + Environment.NewLine, Encoding.UTF8);
                 }
             }
             catch { }
         }
 
-        internal static void OpenLog()
+        internal static void OpenLog() { OpenDiagnosticLog(); }
+
+        internal static void OpenDiagnosticLog()
+        {
+            OpenFile(DiagnosticLogFile);
+        }
+
+        internal static void OpenRelayAuditLog()
+        {
+            OpenFile(RelayAuditLogFile);
+        }
+
+        private static void OpenFile(string path)
         {
             try
             {
-                if (!string.IsNullOrWhiteSpace(LogFile) && File.Exists(LogFile))
-                    Process.Start("explorer.exe", "/select,\"" + LogFile + "\"");
+                if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+                    Process.Start("explorer.exe", "/select,\"" + path + "\"");
             }
             catch { }
         }
@@ -214,6 +243,7 @@ namespace SupraInventoryRelayAgent
         private readonly Button _testOffice = new Button();
         private readonly Button _listen = new Button();
         private readonly Button _openLog = new Button();
+        private readonly Button _openAuditLog = new Button();
         private readonly Button _overlaySettingsButton = new Button();
         private readonly Button _probeAuth = new Button();
         private readonly Button _probeRtdb = new Button();
@@ -229,6 +259,7 @@ namespace SupraInventoryRelayAgent
         private readonly Label _network = new Label();
         private readonly Label _identity = new Label();
         private readonly ListBox _log = new ListBox();
+        private readonly ListBox _auditLog = new ListBox();
         private readonly NotifyIcon _tray = new NotifyIcon();
         private readonly ToolStripMenuItem _trayStatusItem = new ToolStripMenuItem();
         private readonly ToolStripMenuItem _trayOverlayVisibleItem = new ToolStripMenuItem();
@@ -257,6 +288,8 @@ namespace SupraInventoryRelayAgent
         private CancellationTokenSource _listenCts;
         private bool _allowExit;
         private bool _updateCheckRunning;
+        private long _localPdaRequests;
+        private long _localAgentResponses;
         private readonly string _agentInstanceId;
         private readonly System.Windows.Forms.Timer _updateTimer = new System.Windows.Forms.Timer();
 
