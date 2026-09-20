@@ -219,3 +219,12 @@ Relay coordination/rate-limit records are supporting operational metadata, not B
 - Job ACK may carry bounded cache mode, strike count, lock level and lock-until timestamp.
 - Diagnostics/audit may identify Picker user and processing Agent/Admin for abuse investigation, but must not store raw WMS credential/session/signature material or the full/raw five-digit lookup value.
 
+## D086 local Agent secret-state lifecycle
+
+The D086 encrypted WMS session file is local workstation support state, not business authority and not project archive data.
+
+- It is protected with Windows DPAPI `CurrentUser`; plaintext WMS request-session material is never intentionally written to disk.
+- It is renewed only after successful approved read-only WMS validation/preload/refresh and is cleared when classified unusable/expired.
+- It is excluded from GitHub, RTDB, Google Drive support logs, runtime-log upload, screenshots/diagnostics and long-term archive.
+- D085 relay audit may continue recording bounded Agent/result/timing metadata, but never the encrypted file contents or raw WMS session/header/signature values.
+
