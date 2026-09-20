@@ -256,3 +256,23 @@ D089 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta; Owner physical field re-
 - Web API service reachability is independent from realtime state; Tools dark theme, overlay visibility/checklists and Agent single-instance behavior are source/build/release PASS.
 - Next checkpoint is Owner field re-test `OA011`.
 - D078 final transport remains pending; current RTDB is temporary. WMS remains GET-only. Stable remains OWNER-GATED.
+
+
+## D089 Owner acceptance checkpoint
+
+On 2026-09-21 the Owner confirmed the released D089 field result **PASS / đã đạt**. D089 is therefore the current Owner-accepted Beta baseline.
+
+Accepted baseline:
+- Web + Android + Agent use the approved icon #4 identity.
+- Web Service/API health is independent from realtime synchronization state.
+- Tools dark-theme completion is accepted.
+- Agent Overlay visibility, granular metric selection, resize/colors/lock/click-through persistence are accepted.
+- Agent duplicate-launch single-instance restore behavior is accepted.
+
+Current accepted artifacts:
+- signed Android: `beta-vc54`;
+- Windows Agent: `relay-agent-v15`;
+- D089 runtime source: `c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee`;
+- D089 release-state checkpoint main: `a01ae7abcd52090b421f3016f1e4a80fcd58dad6`.
+
+No D089 field retest remains open. Future work starts from a fresh canonical GitHub bootstrap and the Owner's next explicit requirement. D078 final transport remains pending; WMS remains GET-only; Stable remains OWNER-GATED.
