@@ -13,14 +13,14 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D089_SOURCE_CANDIDATE__FIELD_REPAIR_CI_PENDING__SIGNED_BETA_VC53_CURRENT__AGENT_V15_TARGET",
+    "beta": "D089_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC54__AGENT_V15__OWNER_FIELD_RETEST_PENDING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 8,
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
-    "web": "D089_SOURCE_CANDIDATE__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON__CI_PENDING",
-    "android": "D089_SOURCE_CANDIDATE__1291_BETA_APPROVED_ICON__NEXT_SIGNED_RELEASE_PENDING__AGENT_V15_TARGET__TRANSPORT_SELECTION_PENDING",
-    "latest_beta_apk": "beta-vc53",
+    "web": "D089_RUNTIME_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON__OWNER_FIELD_RETEST_PENDING",
+    "android": "D089_RELEASE_PASS__SIGNED_BETA_VC54__APPROVED_ICON__OWNER_FIELD_RETEST_PENDING__TRANSPORT_SELECTION_PENDING",
+    "latest_beta_apk": "beta-vc54",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
     "network_scope": "PDA_INTERNET_SUPPORTED__CURRENT_RTDB_RELAY_TEMPORARILY_UNCHANGED__D078_FINAL_TRANSPORT_SELECTION_PENDING__NO_OFFLINE_BUSINESS_MODE",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
@@ -28,11 +28,11 @@
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D069_XLSX_REPORT_EXPORT_BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "D072_SYSTEM_STATUS_NORMAL_RUNTIME_DISABLED__BETA_RUNTIME_PASS",
-    "ui_design_guard": "D089_CANDIDATE__CI_PENDING",
+    "ui_design_guard": "D089_MAIN_PASS_RUN_35528647554",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D089_SOURCE_CANDIDATE__AGENT_V15__SINGLE_INSTANCE__GRANULAR_OVERLAY__APPROVED_ICON__D078_TRANSPORT_PENDING__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D089_RELEASE_PASS__AGENT_V15__SINGLE_INSTANCE__GRANULAR_OVERLAY__APPROVED_ICON__D078_TRANSPORT_PENDING__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -144,16 +144,13 @@
     "D087 relay-agent-v12 GitHub tag is published and resolves to VERSION 12. Agent-only RTDB support changes did not advance Android: beta-vc52 remains present and beta-vc53 is absent."
   ],
   "pending_build": [
-    "D088 PR authority/state/UI/Web/Android/Agent gates, merge and Beta runtime deploy",
-    "D088 signed Android release because android/** changed; current live release remains beta-vc52 until post-merge release PASS",
-    "D088 Agent v13 build/startup-smoke and relay-agent-v13 prerelease publication",
     "Signed Beta Android release/verification because D070 changes Android runtime UI/API projection",
     "Owner field acceptance of D070 timing notifications and both auto-Skip modes",
     "Android broader visual review after Owner resumes it",
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "D088 Owner physical acceptance pending: Web/Android/Agent names and icon, valid-session reopen, cross-Web/Android replacement, Tools direct Agent download, tray-only minimize/restore, overlay resize/colors/click-through, plus unchanged D085 HA and D086/D087 behavior. D078 final transport selection remains separately pending.",
+    "D089 technical/runtime/release PASS; Owner physical retest pending for exact icon, independent Service/Realtime states, Tools dark theme, overlay checklist persistence and single-instance Agent behavior. D078 final transport selection remains separately pending.",
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
     "Owner acceptance of FIRST_REPORT and PER_PICKER behavior remains field-dependent after runtime PASS.",
     "Stable promotion remains OWNER-GATED."
@@ -165,8 +162,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Complete D089 field-review repair: exact Owner-selected icon #4 across Web/Android/Agent, separate HTTP service health from realtime status, complete dark Tools styling, granular overlay visibility/checklists, and Windows Agent single-instance activation.",
-    "method": "Branch → PR → authority/continuity/UI/Web/Android/Agent PASS → merge → verify Beta runtime and artifacts. D078 transport remains pending; WMS GET-only; Stable OWNER-GATED.",
+    "primary": "Owner field-retest D089 released Beta Web + beta-vc54 + relay-agent-v15 for the five reported field defects.",
+    "method": "Use OA011 concise physical checklist. Record each field item OK/not OK. Keep D078 transport unselected, WMS GET-only and Stable OWNER-GATED.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -194,6 +191,7 @@
   },
   "workboard": {
     "in_progress": [
+      "D089 technical/runtime/release PASS: PR #99 merged at c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee; main Beta deploy/UI/Agent/Android/authority/state all PASS; signed beta-vc54 and relay-agent-v15 published. Owner field retest pending; D078 transport pending; WMS GET-only; Stable OWNER-GATED.",
       "D088 technical/runtime/release PASS: main 48367c46b20405c48abb6ed8c0b59601defe1130; schema 8/Web runtime PASS, signed beta-vc53 PASS, relay-agent-v14 PASS with normalized release asset contract. Owner field acceptance pending; D078 transport remains pending.",
       "D088 main 8084928724110e7186867b8b16d79462134951aa: Beta deploy PASS run 35505678533, UI PASS 35505678481, signed Android beta-vc53 published. Transitional relay-agent-v13 revealed GitHub space→dot asset normalization mismatch before Owner field use; fix/d088-agent-release-asset-normalization targets final relay-agent-v14.",
       "D088 Owner-approved eight-item Beta change set is source-implemented on feat/d088-unified-brand-single-session-tools-overlay; PR/CI/release pending. Web/Android single interactive session is separate from Agent auth, Agent target v13, Android signed target next monotonic Beta release.",
@@ -210,7 +208,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Owner field-reviews D088 released Beta Web + beta-vc53 + relay-agent-v14 per OA010.",
+      "Owner field-retests D089 released Beta Web + beta-vc54 + relay-agent-v15 per OA011.",
       "Use physical Office evidence to continue D078 transport selection separately; do not infer transport from D088.",
       "Owner field-reviews D088 after release; keep D078 final transport selection pending until company-network physical evidence.",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
@@ -218,7 +216,7 @@
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
     ],
     "blocked_or_owner_field_dependent": [
-      "D088 technical release is PASS; final visible/session/tray/overlay acceptance requires Owner physical Web/PDA/Windows review. D078 final PDA-Agent transport separately depends on company-network physical probe evidence.",
+      "D089 technical/runtime/release is PASS; final visible/physical acceptance requires Owner field retest per OA011. D078 final PDA-Agent transport separately depends on company-network physical probe evidence.",
       "D071 final visual/interaction acceptance depends on Owner live Web review",
       "D072 final Owner acceptance depends on live Web confirmation",
       "D070 physical timing/FCM delivery acceptance remains field-dependent",
@@ -238,12 +236,12 @@
       "beta_deploy": "PASS_RUN_35447318213",
       "verify_android": "PASS_RUN_35447318221",
       "relay_agent_build_release": "PASS_RUN_35447318236",
-      "signed_beta_release": "beta-vc53",
-      "signed_beta_apk_size_bytes": 9333610,
-      "relay_agent_release": "relay-agent-v14",
-      "relay_agent_release_id": 392399976,
-      "relay_agent_exe_asset_id": 576644961,
-      "relay_agent_exe_size_bytes": 168448,
+      "signed_beta_release": "beta-vc54",
+      "signed_beta_apk_size_bytes": 9340834,
+      "relay_agent_release": "relay-agent-v15",
+      "relay_agent_release_id": 392528472,
+      "relay_agent_exe_asset_id": 577316714,
+      "relay_agent_exe_size_bytes": 177152,
       "relay_agent_checksum_asset_id": 575663586,
       "agent_release_is_prerelease": true,
       "android_latest_release_verified": "beta-vc49",
@@ -283,7 +281,7 @@
       "d080_pr_ui": "PASS_RUN_35457634598",
       "d080_pr_agent": "PASS_RUN_35457634523",
       "d080_main_agent_release": "PASS_RUN_35457732455",
-      "relay_agent_exe_sha256": "1aa847dec7e38dc1e67c5d9291ea3cb153ad89cb1afa5eac2ff6ee16b7c2adc2",
+      "relay_agent_exe_sha256": "94f82fc377057c5bbb1d80bbf0830f523bdf16108b40898ce63bb041624b9e9a",
       "d081_branch": "feat/d081-agent-login-wait-tray-monitor",
       "d081_merged_pr": 81,
       "d081_merged_main": "a0a68da1e72ba9a8f7bb728db0951b6fd2c23f47",
@@ -309,7 +307,7 @@
       "d082_main_ui": "PASS_RUN_35460327615",
       "signed_beta_release_id": 392397786,
       "signed_beta_apk_asset_id": 576632055,
-      "signed_beta_apk_sha256": "7cc0f5ec8ae0a9c7e61a985fcb8dcb32cb7e72934407efb4f19a0c7810875fa3",
+      "signed_beta_apk_sha256": "eeb95c489bf7dbfa455b323633bfe28685674f57f6ba76facd4c04e3b0958c2c",
       "d083_branch": "fix/d083-agent-v7-startup-regression",
       "d083_merged_pr": 85,
       "d083_merged_main": "82ec0ba43a3f464a7a8b312b324e152733af4296",
@@ -355,32 +353,47 @@
       "d088_project_state_run": 35506093199,
       "d088_agent_release_run": 35506093283,
       "d088_android_release_run": 35505678482,
-      "relay_agent_release_asset_name": "Agent.Auto.Confirm.Pick.Pack.exe"
+      "relay_agent_release_asset_name": "Agent.Auto.Confirm.Pick.Pack.exe",
+      "d089_branch": "fix/d089-field-review-icon-realtime-overlay-singleton-dark",
+      "d089_merged_pr": 99,
+      "d089_merged_main": "c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee",
+      "d089_pr_authority": "PASS_RUN_35528500471",
+      "d089_pr_project_state": "PASS_RUN_35528500466",
+      "d089_pr_rtdb_rules": "PASS_RUN_35528500468",
+      "d089_pr_ui": "PASS_RUN_35528500465",
+      "d089_pr_agent": "PASS_RUN_35528500524",
+      "d089_pr_android": "PASS_RUN_35528500467",
+      "d089_main_authority": "PASS_RUN_35528647571",
+      "d089_main_project_state": "PASS_RUN_35528647574",
+      "d089_main_beta_deploy": "PASS_RUN_35528647549",
+      "d089_main_ui": "PASS_RUN_35528647554",
+      "d089_main_agent_release": "PASS_RUN_35528647534",
+      "d089_main_android_release": "PASS_RUN_35528647526"
     },
     "last_runtime_evidence": {
       "schema": 8,
       "operational_v2_schema": "5/5",
-      "beta_deploy_run": 35506093272,
+      "beta_deploy_run": 35528647549,
       "beta_deploy_conclusion": "success",
       "health": "HTTP_200_OK",
       "storage": "READY",
       "business_auth_guards": "PASS",
       "web_shell": "PASS",
       "google_oauth_start": "PASS",
-      "runtime_source_commit": "48367c46b20405c48abb6ed8c0b59601defe1130",
+      "runtime_source_commit": "c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee",
       "d070_alarm_repair": "BETA_RUNTIME_PASS",
       "d071_web": "BETA_RUNTIME_PASS_OWNER_REVIEW_PENDING",
       "d072_quota_guard": "BETA_RUNTIME_PASS_OWNER_REVIEW_PENDING",
       "system_status_normal_runtime": "DISABLED",
       "system_status_provider_polling": "DISABLED",
-      "signed_beta_release": "beta-vc53",
-      "signed_beta_release_source_commit": "8084928724110e7186867b8b16d79462134951aa",
+      "signed_beta_release": "beta-vc54",
+      "signed_beta_release_source_commit": "c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee",
       "stable": "UNTOUCHED_OWNER_GATED",
-      "signed_beta_apk_sha256": "7cc0f5ec8ae0a9c7e61a985fcb8dcb32cb7e72934407efb4f19a0c7810875fa3",
+      "signed_beta_apk_sha256": "eeb95c489bf7dbfa455b323633bfe28685674f57f6ba76facd4c04e3b0958c2c",
       "d073_relay_poc": "SOURCE_BUILD_RELEASE_PASS__RTDB_PROVISIONING_FIELD_TEST_PENDING",
       "d074_relay_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_OFFICE_FIELD_RETEST_PENDING",
       "d075_relay_poc": "SOURCE_BUILD_RELEASE_PASS__D076_RULES_DEPLOY_PASS__OWNER_FIELD_TEST_PENDING",
-      "relay_agent_release": "relay-agent-v14",
+      "relay_agent_release": "relay-agent-v15",
       "relay_agent_release_prerelease": true,
       "d076_rtdb_rules": "PASS_RUN_35451292051__IAM_UPDATE_PASS__RULES_GET_PASS__RULES_PUT_PASS__EXACT_READBACK_PASS",
       "d080_wms_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_WMS_FIELD_TEST_PENDING",
@@ -389,7 +402,8 @@
       "d083_agent_startup": "SOURCE_BUILD_RELEASE_PASS__EXECUTABLE_STARTUP_SMOKE_PASS__OWNER_STARTUP_RETEST_PENDING",
       "d084_picklist_lookup": "SOURCE_BUILD_DEPLOY_RELEASE_PASS__OWNER_FIELD_TEST_PENDING",
       "d085": "SOURCE_BUILD_DEPLOY_RELEASE_PASS__OWNER_FIELD_TEST_PENDING",
-      "d088": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_TEST_PENDING"
+      "d088": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_TEST_PENDING",
+      "d089": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_RETEST_PENDING"
     }
   },
   "authority_setup": {
@@ -403,20 +417,20 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-09-20",
+  "last_updated": "2026-09-21",
   "owner_ui_review": {
     "status": "READY_FOR_OWNER_REVIEW",
-    "phase": "D071_D072_BETA_RUNTIME_PASS_OWNER_REVIEW",
+    "phase": "D089_RELEASE_PASS_OWNER_FIELD_RETEST",
     "started_on": "2026-09-18",
     "review_target_web": "https://inventory-beta.supra.cc.cd/",
-    "review_target_android_release": "beta-vc46",
-    "review_target_android_source_commit": "3f3506a0f185d5e1a0f22ba6a908b161bae6dd6e",
+    "review_target_android_release": "beta-vc54",
+    "review_target_android_source_commit": "c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee",
     "visual_authority_repository": "tam95supra-source/bao-hang-1291",
     "visual_authority_commit": "8713f487386fa39c9225b180b2b8448d4a7e2b2d",
-    "owner_acceptance": "D068_ALL_WEB_ACCEPTED__D069_ITEMS_1_2_4_5_RUNTIME_PASS__D070_RUNTIME_REPAIRED_FIELD_ACCEPTANCE_PENDING__D071_D072_RUNTIME_PASS_OWNER_REVIEW_PENDING",
-    "current_instruction": "Review D071 four Web items on Beta and confirm D072: HỆ THỐNG contains only Nhật ký and Trạng thái hệ thống is absent. D070 physical timing/FCM acceptance remains a separate field test.",
-    "next_session_command": "Review D071 4 mục Web + xác nhận D072 bỏ Trạng thái hệ thống",
-    "review_feedback_protocol": "Report each D071 item OK/not OK plus D072 OK/not OK. Technical/runtime PASS is already recorded. Stable remains blocked until explicit Owner promotion."
+    "owner_acceptance": "D089_TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_RETEST_PENDING",
+    "current_instruction": "Retest D089 five field defects per OA011 on Beta Web, beta-vc54 and relay-agent-v15.",
+    "next_session_command": "Review D089 5 mục field-retest",
+    "review_feedback_protocol": "Report D089 items 1–5 OK/not OK. Technical/runtime/release PASS is already recorded; Stable remains blocked until explicit Owner promotion."
   },
   "runtime_evidence": [
     "D064 Beta Load Test run 35376099693 PASS: 1000/1000 normal Picker reports, 100 existing Picker identities, 400 existing SKUs, duration 525.423s, avg 250.34ms, p50 235.95ms, p95 348.72ms, max 625.64ms, no errors; SQLite +2572288 bytes, +400 batches, +1000 tickets, +1000 report events, +1000 realtime events, +1000 audit rows; temporary load-test gate verified closed.",
@@ -429,7 +443,8 @@
     "D071 source merged but Beta runtime health BLOCKED: PR #62 merged at f5c6287bdc0a2fa28c4de68116e910c3300b2255; PR Repo Authority/Project State/UI guards 35429648479/35429648485/35429648484 PASS; main Repo Authority/Project State/UI guards 35429735333/35429735343/35429735341 PASS. Deploy run 35429735327 successfully built and deployed Worker/Web assets on attempts 1 and 2, but /health returned HTTP 503 degraded for 12/12 probes each attempt with bindings present and storage unavailable (schema 0/0, Operational V2 0/0); downstream smoke skipped. D071 changed no service source. Source review found D070 scheduler could leave a missed WARNING unconsumed after ESCALATED, causing a past-due alarm to re-arm every 250ms; repair branch also isolates best-effort realtime/FCM delivery failures from authoritative alarm retries. Stable untouched.",
     "D070 alarm repair + D071 Web + D072 quota guard Beta runtime PASS: PR #63 merged at ca5ab13a3f52722b595ce7a713afa95891a8b002; PR Repo Authority Guard 35438921574 PASS, Project State Guard 35438921541 PASS, UI Design Guard 35438921547 PASS; main Repo Authority Guard 35439017807 PASS, Project State Guard 35439017780 PASS, UI Design Guard 35439017789 PASS; Beta deploy 35439017752 PASS on first health probe with HTTP 200, storage ready, SQLite schema 7/7, Operational V2 5/5, auth/root bootstrap, business API/auth guards, Web shell and Google OAuth start all PASS. D072 removes normal system-status routing/manual/60-second polling and disables provider reads in normal runtime; load-test snapshot is core-only. Android unchanged; Stable untouched.",
     "D073 Beta relay POC source/build/release PASS: PR #65 merged at f7c596f60eac626989a58ea40492417006ee61b1; PR Repo Authority/Project State/UI/Relay Agent runs 35442779441/35442779364/35442779424/35442779357 PASS; main Repo Authority/Project State/UI/Deploy/Verify Android/Relay Agent runs 35442853977/35442853986/35442853976/35442854000/35442853998/35442853985 PASS. Signed beta-vc47 APK SHA-256 8e2fc11e09940db061edf4c23b5973ec2be9300b2ddfc4835bcef1d3af74c439; portable Agent EXE SHA-256 1b51c33d53a53a0fb8b7c6a9c4f4305f7c042bbd2c97e91b082144587c7bdd73. RTDB provisioning and Office field ACK remain pending; no WMS mutation exists in this POC.",
-    "D085 Beta technical/release PASS: PR #89 merged at bf309b9788f5adac179ef293f4770eafb6bdcedf; main Repo Authority/Project State/RTDB Rules/Beta Deploy/Relay Agent/Android/UI runs 35475860723/35475860686/35475860708/35475860697/35475860715/35475860695/35475860687 all PASS. Published relay-agent-v10 EXE SHA-256 740af8d4bada6bc68999aa30e1c2b5fa3006937a7acca321a8be429faeee63b0 and signed beta-vc52 APK SHA-256 0f5e02f7ca9f1f66b589479f833db4b4b4aabb356029d580afcd094c52683c32. D078 transport selection remains pending; WMS mutation remains forbidden; Stable untouched."
+    "D085 Beta technical/release PASS: PR #89 merged at bf309b9788f5adac179ef293f4770eafb6bdcedf; main Repo Authority/Project State/RTDB Rules/Beta Deploy/Relay Agent/Android/UI runs 35475860723/35475860686/35475860708/35475860697/35475860715/35475860695/35475860687 all PASS. Published relay-agent-v10 EXE SHA-256 740af8d4bada6bc68999aa30e1c2b5fa3006937a7acca321a8be429faeee63b0 and signed beta-vc52 APK SHA-256 0f5e02f7ca9f1f66b589479f833db4b4b4aabb356029d580afcd094c52683c32. D078 transport selection remains pending; WMS mutation remains forbidden; Stable untouched.",
+    "D089 Beta technical/runtime/release PASS: PR #99 merged at c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee after final PR Repo Authority/Project State/RTDB Rules/UI/Relay Agent/Android runs 35528500471/35528500466/35528500468/35528500465/35528500524/35528500467 PASS. Main Repo Authority/Project State/Beta Deploy/UI/Relay Agent/Android runs 35528647571/35528647574/35528647549/35528647554/35528647534/35528647526 all PASS. Published relay-agent-v15 prerelease id 392528472, Agent.Auto.Confirm.Pick.Pack.exe asset id 577316714 size 177152 SHA-256 94f82fc377057c5bbb1d80bbf0830f523bdf16108b40898ce63bb041624b9e9a. Published signed beta-vc54 release id 392528497, APK asset id 577316797 size 9340834 SHA-256 eeb95c489bf7dbfa455b323633bfe28685674f57f6ba76facd4c04e3b0958c2c. Stable untouched; D078 transport pending; WMS mutation forbidden."
   ],
   "implementation_notes": [
     "D068 follow-up clean-copy patch replaces raw runtime-log filenames/JSON detail on the normal Web Nhật ký surface with a structured operational summary; downloadable support logging remains available. Frozen D067 items 1–8 and 10 are unchanged.",
@@ -452,13 +467,14 @@
     "D088 source candidate closes O002 for current Beta: one persistent interactive session across Web/Android using server session_generation; Agent auth is a separate real-ADMIN channel to preserve multi-Agent HA. Product names/icon, Web Tools, tray-only minimize and resizable/color overlay are included. Runtime/release PASS is not yet claimed.",
     "D088 main release exposed GitHub release asset filename normalization: the spaced Agent asset is stored by GitHub as Agent.Auto.Confirm.Pick.Pack.exe. v13 is transitional and had zero downloads when detected. Final D088 Agent target is v14 with updater/direct Web link using the actual dotted asset; Windows assembly/product title remains Agent Auto Confirm Pick Pack.",
     "D088 final release checkpoint: main 48367c46b20405c48abb6ed8c0b59601defe1130; Beta deploy 35506093272 PASS, UI 35506093215 PASS, Repo Authority 35506093253 PASS, Project State 35506093199 PASS, Agent 35506093283 PASS. relay-agent-v14 release id 392399976 asset Agent.Auto.Confirm.Pick.Pack.exe id 576644961 size 168448 SHA-256 1aa847dec7e38dc1e67c5d9291ea3cb153ad89cb1afa5eac2ff6ee16b7c2adc2. Signed beta-vc53 release id 392397786 APK id 576632055 SHA-256 7cc0f5ec8ae0a9c7e61a985fcb8dcb32cb7e72934407efb4f19a0c7810875fa3.",
-    "D089 source candidate responds to Owner field evidence on 2026-09-20: D088 icon asset was not the approved image #4, Web incorrectly mapped realtime offline to service down despite successful API responses, Tools dark tiles were incomplete, overlay selection was not granular enough, and duplicate Agent launches were not blocked. Candidate targets relay-agent-v15 and the next signed Beta Android release; D078/WMS/Stable boundaries remain unchanged."
+    "D089 source candidate responds to Owner field evidence on 2026-09-20: D088 icon asset was not the approved image #4, Web incorrectly mapped realtime offline to service down despite successful API responses, Tools dark tiles were incomplete, overlay selection was not granular enough, and duplicate Agent launches were not blocked. Candidate targets relay-agent-v15 and the next signed Beta Android release; D078/WMS/Stable boundaries remain unchanged.",
+    "D089 final release checkpoint: exact approved icon #4 now comes from verified PNG binary shared by Web/Android/Agent; Web Service health is independent from realtime transport state; Tools dark theme is complete; Overlay has master visibility plus persisted granular Laptop/Agent metric checklist; Windows Agent enforces one normal runtime per user session and duplicate launch restores the existing instance. Final artifacts are beta-vc54 and relay-agent-v15; Owner physical retest remains pending."
   ],
   "active_workstream": {
     "key": "XAC_NHAN_DON_D089",
-    "status": "SOURCE_CANDIDATE__CI_PENDING",
-    "bootstrap": "D089_FIELD_REVIEW_REPAIR__BRANCH_FIX_D089__2026_09_20",
-    "next_step": "Run D089 PR guards; merge only after authority/state/UI/Web/Android/Agent PASS, then verify Beta deploy, signed Android release and relay-agent-v15 release before final checkpoint."
+    "status": "RELEASE_PASS__OWNER_FIELD_RETEST_PENDING",
+    "bootstrap": "MAIN_D089_RELEASE_PASS__AGENT_V15__BETA_VC54__2026_09_21",
+    "next_step": "Owner field-retests D089 on Beta Web, signed beta-vc54 PDA and relay-agent-v15: approved icon, independent Service/Realtime status, dark Tools page, overlay master/granular checklist persistence, and duplicate-launch single-instance restore. D078 transport remains pending; WMS GET-only; Stable OWNER-GATED."
   },
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {

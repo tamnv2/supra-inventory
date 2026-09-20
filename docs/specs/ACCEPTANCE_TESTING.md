@@ -607,3 +607,18 @@ Owner field re-test:
 4. Toggle Overlay off/on; select/deselect individual Laptop/Agent metrics; restart Agent and verify persistence.
 5. With Agent already running/tray-hidden, open EXE again; no second tray/overlay/runtime is created and the existing instance restores.
 6. Stable remains untouched; D078 remains pending; WMS stays read-only.
+
+
+### D089 automated release evidence — PASS
+
+The automated portion of D089 acceptance is complete:
+
+- PR #99 final gates all PASS: Repo Authority `35528500471`, Project State `35528500466`, RTDB Rules `35528500468`, UI Design `35528500465`, Relay Agent `35528500524`, Android `35528500467`.
+- Main `c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee` gates all PASS: Beta Worker `35528647549`, UI Design `35528647554`, Repo Authority `35528647571`, Project State `35528647574`, Relay Agent `35528647534`, Android `35528647526`.
+- `relay-agent-v15` was published and its canonical EXE digest verified: `94f82fc377057c5bbb1d80bbf0830f523bdf16108b40898ce63bb041624b9e9a`.
+- Signed `beta-vc54` was published and its APK digest verified: `eeb95c489bf7dbfa455b323633bfe28685674f57f6ba76facd4c04e3b0958c2c`.
+- Verified PNG icon binary is shared by Web/Android/Agent.
+- Agent Windows build and startup-smoke PASS with the single-instance source guard and granular overlay settings.
+- WMS mutation guards remain PASS.
+
+D089 is therefore technical/runtime/release PASS. The six Owner field re-test checks listed above remain the only D089 acceptance items not automatable by connected tooling.

@@ -4,59 +4,74 @@
 
 ## 1. Current canonical markers
 
+- Project: `supra-inventory`
 - SQLite schema: `8`
-- Current signed Beta APK: `beta-vc53` (D088 release; D089 next signed release pending)
-- Current released Agent: `relay-agent-v14`
-- D089 Agent target: `relay-agent-v15`
-- Web/Android/Agent D089 field-review repair: **SOURCE CANDIDATE — CI PENDING**
+- Beta runtime/source: `c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee`
+- Current signed Beta APK: `beta-vc54`
+- Current released Agent: `relay-agent-v15`
+- D089 status: **TECHNICAL / RUNTIME / RELEASE PASS — OWNER FIELD RETEST PENDING**
 - Active workstream: `XAC_NHAN_DON_D089`
 - Stable: `OWNER_GATED`
 
-## 2. Why D089 exists
+## 2. D089 released repairs
 
-Owner field review of D088 on 2026-09-20 identified five valid defects:
+1. Exact Owner-selected icon #4 is the shared Web / Android / Agent visual source, committed as verified PNG binary.
+2. Web `Dịch vụ` reflects HTTP/API reachability independently from realtime `Đồng bộ` status.
+3. `HỆ THỐNG → Công cụ` is fully dark-theme coherent.
+4. Agent overlay has master ON/OFF plus persisted granular Laptop and Agent metric checklists, while retaining resize/colors/lock/click-through.
+5. Agent enforces one normal runtime per Windows user session; a duplicate EXE launch restores/activates the existing instance instead of creating another Agent/tray/overlay.
 
-1. Deployed icon was not the selected icon #4.
-2. Web showed `Dịch vụ: Mất kết nối` while authenticated HTTP APIs were returning successfully because realtime offline was incorrectly reused as service-down state.
-3. Overlay settings lacked a complete master toggle + per-metric Laptop/Agent checklist.
-4. Agent could be launched more than once.
-5. `HỆ THỐNG → Công cụ` was not fully coherent in dark theme.
+## 3. Release evidence
 
-## 3. D089 source candidate
+PR #99 merged to main `c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee`.
 
-Implemented on branch `fix/d089-field-review-icon-realtime-overlay-singleton-dark`:
+Final PR gates PASS:
+- Repo Authority `35528500471`
+- Project State `35528500466`
+- RTDB Rules `35528500468`
+- UI Design `35528500465`
+- Relay Agent `35528500524`
+- Android `35528500467`
 
-- exact selected icon #4 committed as one shared visual source for Web, Android and Agent;
-- Web separates `Dịch vụ` from `Đồng bộ`;
-- Tools dark surfaces/borders/text/buttons completed;
-- Agent overlay adds master ON/OFF and persisted Laptop + Agent granular checklist while retaining resize/colors/click-through;
-- per-user named mutex + activation event blocks duplicate Agent runtimes and restores the existing instance;
-- Agent build target bumped to v15;
-- Android manifest uses the approved D089 launcher asset and therefore requires the next signed Beta release.
+Final main gates PASS:
+- Beta Worker `35528647549`
+- UI Design `35528647554`
+- Repo Authority `35528647571`
+- Project State `35528647574`
+- Relay Agent `35528647534`
+- Android `35528647526`
 
-## 4. Unchanged boundaries
+Released artifacts:
+- `relay-agent-v15`: release id `392528472`; `Agent.Auto.Confirm.Pick.Pack.exe` asset id `577316714`, size `177152` bytes, SHA-256 `94f82fc377057c5bbb1d80bbf0830f523bdf16108b40898ce63bb041624b9e9a`.
+- `beta-vc54`: release id `392528497`; APK asset id `577316797`, size `9340834` bytes, SHA-256 `eeb95c489bf7dbfa455b323633bfe28685674f57f6ba76facd4c04e3b0958c2c`.
+
+## 4. Owner field re-test
+
+Use `OA011` and report D089 items 1–5 OK/not OK:
+- icon identity across Web/APK/EXE/tray;
+- Service vs realtime status;
+- Tools dark theme;
+- overlay ON/OFF + granular checklist persistence;
+- duplicate EXE single-instance restore.
+
+## 5. Unchanged boundaries
 
 - D078 final PDA ↔ Agent transport remains pending physical Office-network evidence; current RTDB is temporary.
-- D085 sticky ACTIVE/STANDBY HA/cache/anti-spam remains.
+- D085 HA/cache/anti-spam remains.
 - D086 DPAPI WMS session/protected exit/watchdog remains.
 - D087 split logs/bounded presence remains.
 - WMS remains signed GET-only; confirmation/mutation is not authorized.
 - Stable remains OWNER-GATED.
 
-## 5. Next action
-
-Open D089 PR, run authority/state/UI/Web/Android/Agent guards, repair until PASS, merge, verify Beta deployment plus signed Android/Agent v15 releases, then record exact final release evidence in a state-only checkpoint PR.
-
 ## 6. Resume command
 
-> **Tiếp tục supra-inventory. Đọc canonical state trên GitHub và tiếp tục D089 từ checkpoint hiện tại.**
-## Canonical exact markers
-
-- SQLite schema: `8`
-- Latest Beta APK: `beta-vc53`
-- Web: `D089_SOURCE_CANDIDATE__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON__CI_PENDING`
-- Android: `D089_SOURCE_CANDIDATE__1291_BETA_APPROVED_ICON__NEXT_SIGNED_RELEASE_PENDING__AGENT_V15_TARGET__TRANSPORT_SELECTION_PENDING`
-- Beta: `D089_SOURCE_CANDIDATE__FIELD_REPAIR_CI_PENDING__SIGNED_BETA_VC53_CURRENT__AGENT_V15_TARGET`
-
+> **Tiếp tục supra-inventory. Đọc canonical state trên GitHub và tiếp tục từ D089 RELEASE PASS / OA011 field-retest.**
 
 No manual end-of-session handover is required. GitHub canonical state remains the continuity authority.
+
+## Canonical exact markers
+
+- Latest Beta APK: `beta-vc54`
+- Web: `D089_RUNTIME_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON__OWNER_FIELD_RETEST_PENDING`
+- Android: `D089_RELEASE_PASS__SIGNED_BETA_VC54__APPROVED_ICON__OWNER_FIELD_RETEST_PENDING__TRANSPORT_SELECTION_PENDING`
+- Beta: `D089_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC54__AGENT_V15__OWNER_FIELD_RETEST_PENDING`

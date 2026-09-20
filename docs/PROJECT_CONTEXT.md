@@ -241,3 +241,18 @@ Owner field review of D088 found five corrective items on 2026-09-20:
 - the Web Tools page still contained light surfaces in dark theme.
 
 D089 implements those corrections on Beta only. The approved image is committed once as the common brand source and consumed by Web/Android/Agent. Service health is no longer derived from WebSocket state. Agent v15 is the release target and the next signed Android Beta release is pending CI/main runtime gating. D078 transport selection remains pending physical Office evidence; WMS mutation remains forbidden; Stable remains OWNER-GATED.
+
+
+## D089 final release checkpoint
+
+D089 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta; Owner physical field re-test remains pending.
+
+- Runtime implementation PR #99 merged to `main` at `c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee`.
+- Final PR gates all PASS: Repo Authority `35528500471`, Project State `35528500466`, RTDB Rules `35528500468`, UI Design `35528500465`, Relay Agent `35528500524`, Android `35528500467`.
+- Final main gates all PASS: Beta Worker `35528647549`, UI Design `35528647554`, Repo Authority `35528647571`, Project State `35528647574`, Relay Agent `35528647534`, Android `35528647526`.
+- Signed Android release is `beta-vc54` (release id `392528497`), APK asset id `577316797`, size `9340834` bytes, SHA-256 `eeb95c489bf7dbfa455b323633bfe28685674f57f6ba76facd4c04e3b0958c2c`.
+- Windows release is `relay-agent-v15` (prerelease id `392528472`), canonical asset `Agent.Auto.Confirm.Pick.Pack.exe`, asset id `577316714`, size `177152` bytes, SHA-256 `94f82fc377057c5bbb1d80bbf0830f523bdf16108b40898ce63bb041624b9e9a`.
+- Exact selected icon #4 now comes from a verified committed PNG binary shared by Web/Android/Agent; the previous generated approximation is no longer authoritative.
+- Web API service reachability is independent from realtime state; Tools dark theme, overlay visibility/checklists and Agent single-instance behavior are source/build/release PASS.
+- Next checkpoint is Owner field re-test `OA011`.
+- D078 final transport remains pending; current RTDB is temporary. WMS remains GET-only. Stable remains OWNER-GATED.

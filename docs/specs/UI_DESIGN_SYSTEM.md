@@ -472,3 +472,11 @@ Header status separates **Dịch vụ** from **Đồng bộ**. HTTP/API reachabi
 
 ### Agent overlay
 Unlocked overlay retains drag/resize and complete background/text color selection. Settings include a master visibility switch and granular Laptop/Agent display controls; locked overlay stays true click-through.
+
+
+### D089 released visual checkpoint
+
+- The exact approved icon #4 is committed as a verified PNG binary and shared by Web favicon/Tools, Android launcher and Windows Agent icon generation.
+- Main UI Design Guard run `35528647554` PASS on source `c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee`.
+- Signed Android `beta-vc54` and Windows `relay-agent-v15` are the released D089 visual targets for Owner field comparison.
+- Tools dark-theme completion and separate `Dịch vụ` / `Đồng bộ` header states are technically released; final physical/visual acceptance remains Owner field-dependent.
