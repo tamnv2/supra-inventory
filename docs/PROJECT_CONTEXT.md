@@ -184,7 +184,7 @@ Owner approved a coordinated Beta naming/session/tools/Agent presentation update
 
 - Web user-facing product name: **Website nghiệp vụ Inventory**.
 - Android Beta app: **1291 Beta**.
-- Windows Agent: **Agent Auto Confirm Pick Pack**, target `relay-agent-v13`.
+- Windows Agent: **Agent Auto Confirm Pick Pack**, target `relay-agent-v14`.
 - Web + Android now have a server-authoritative one-interactive-session generation with persistent local session restore. A fresh Web/Android login replaces prior Web/Android sessions for the account; Agent uses a separate real-ADMIN channel so D085 multi-Agent HA is preserved.
 - Admin/Root Web adds `HỆ THỐNG → Công cụ` with the v13 Agent direct download and usage guidance.
 - Agent minimize is System-Tray-only. Overlay unlocked mode gains resize plus full background/text color selection; locked mode remains true click-through.
@@ -193,3 +193,8 @@ Owner approved a coordinated Beta naming/session/tools/Agent presentation update
 - D078 final PDA ↔ Agent transport remains pending physical Office evidence; current RTDB is temporary. WMS remains GET-only; Stable remains OWNER-GATED.
 
 Implementation branch: `feat/d088-unified-brand-single-session-tools-overlay`. Technical release status remains CI/PR pending until the branch passes all guards, merges, Beta deploy succeeds and v13/next signed Android artifacts are published.
+
+
+### D088 release-asset repair note
+
+The first merged D088 run published transitional `relay-agent-v13`, but GitHub normalized spaces in release asset filenames to dots. That made the Web direct URL and the v13 exact-name updater contract inconsistent. No field-download acceptance was recorded for v13. D088 therefore advances the final Agent target to `relay-agent-v14`, whose updater expects GitHub's actual normalized asset name `Agent.Auto.Confirm.Pick.Pack.exe` while the Windows assembly/product title remains **Agent Auto Confirm Pick Pack**. Signed Android `beta-vc53` and Beta schema 8/runtime deploy from main `8084928724110e7186867b8b16d79462134951aa` are already PASS.
