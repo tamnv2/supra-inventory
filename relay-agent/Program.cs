@@ -388,7 +388,7 @@ namespace SupraInventoryRelayAgent
             RefreshOverlayMenu();
             _tray.DoubleClick += (s, e) => RestoreFromTray();
 
-            Resize += (s, e) => { if (WindowState == FormWindowState.Minimized) { Hide(); _tray.ShowBalloonTip(1000, "SUPRA Inventory", "Relay Test Agent đang chạy nền.", ToolTipIcon.Info); } };
+            // Manual minimize remains visible on the Windows taskbar. Auto-start may still hide to tray.
             FormClosing += (s, e) =>
             {
                 if (!_allowExit && e.CloseReason == CloseReason.UserClosing) { e.Cancel = true; WindowState = FormWindowState.Minimized; Hide(); return; }
@@ -459,7 +459,53 @@ namespace SupraInventoryRelayAgent
             ControlBox = false;
             MaximizeBox = false;
             MinimizeBox = false;
-            FormBorderStyle = FormBorderStyle.FixedSingle;
+            ShowInTaskbar = true;
+            FormBorderStyle = FormBorderStyle.None;
+
+            var shell = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                RowCount = 2,
+                ColumnCount = 1,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty
+            };
+            shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 38F));
+            shell.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            shell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+
+            var chrome = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.FromArgb(31, 47, 58),
+                Margin = Padding.Empty
+            };
+            var chromeTitle = new Label
+            {
+                Left = 14,
+                Top = 8,
+                Width = 700,
+                Height = 24,
+                Text = "SUPRA Inventory Agent v" + AgentConfig.AgentBuild,
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI Semibold", 9.5F, FontStyle.Bold)
+            };
+            var minimize = new Button
+            {
+                Dock = DockStyle.Right,
+                Width = 48,
+                Text = "—",
+                FlatStyle = FlatStyle.Flat,
+                ForeColor = Color.White,
+                BackColor = Color.FromArgb(31, 47, 58),
+                TabStop = false
+            };
+            minimize.FlatAppearance.BorderSize = 0;
+            minimize.Click += (s, e) => WindowState = FormWindowState.Minimized;
+            chrome.MouseDown += BeginMainWindowDrag;
+            chromeTitle.MouseDown += BeginMainWindowDrag;
+            chrome.Controls.Add(chromeTitle);
+            chrome.Controls.Add(minimize);
 
             _mainTabs.Dock = DockStyle.Fill;
             _mainTabs.Font = new Font("Segoe UI", 9F);
@@ -467,7 +513,10 @@ namespace SupraInventoryRelayAgent
             _settingsPage.BackColor = Color.FromArgb(243, 246, 248);
             _mainTabs.TabPages.Add(_overviewPage);
             _mainTabs.TabPages.Add(_settingsPage);
-            Controls.Add(_mainTabs);
+
+            shell.Controls.Add(chrome, 0, 0);
+            shell.Controls.Add(_mainTabs, 0, 1);
+            Controls.Add(shell);
 
             var title = new Label
             {
@@ -600,11 +649,29 @@ namespace SupraInventoryRelayAgent
             _overlaySettingsButton.SetBounds(24, 136, 200, 36);
             overlayPage.Controls.Add(_overlaySettingsButton);
 
-            logsPage.Controls.Add(new Label { Left = 24, Top = 18, Width = 620, Height = 30, Text = "Logs cục bộ đã làm sạch dữ liệu nhạy cảm", Font = new Font("Segoe UI Semibold", 11F) });
-            _openLog.SetBounds(650, 16, 120, 32);
-            logsPage.Controls.Add(_openLog);
-            _log.SetBounds(24, 62, 746, 390);
-            logsPage.Controls.Add(_log);
+            logsPage.Controls.Add(new Label { Left = 24, Top = 16, Width = 730, Height = 28, Text = "Hai loại log cục bộ · tự động làm sạch mật khẩu, token và dữ liệu xác thực nhạy cảm", Font = new Font("Segoe UI Semibold", 10.5F) });
+            var logTabs = new TabControl { Left = 18, Top = 52, Width = 758, Height = 410 };
+            var auditPage = new TabPage("PDA ↔ Agent") { BackColor = Color.White };
+            var technicalPage = new TabPage("Kỹ thuật AI") { BackColor = Color.White };
+            logTabs.TabPages.Add(auditPage);
+            logTabs.TabPages.Add(technicalPage);
+
+            auditPage.Controls.Add(new Label { Left = 14, Top = 12, Width = 560, Height = 24, Text = "Theo dõi user, thiết bị, Picklist và luồng gửi/nhận PDA ↔ Agent." });
+            _openAuditLog.SetBounds(600, 8, 120, 30);
+            _openAuditLog.Text = "Mở log";
+            _openAuditLog.Click += (s, e) => AgentDiagnostics.OpenRelayAuditLog();
+            auditPage.Controls.Add(_openAuditLog);
+            _auditLog.SetBounds(14, 48, 706, 310);
+            auditPage.Controls.Add(_auditLog);
+
+            technicalPage.Controls.Add(new Label { Left = 14, Top = 12, Width = 560, Height = 24, Text = "Lỗi, lifecycle, mạng, HTTP và trạng thái nội bộ phục vụ AI phân tích/sửa lỗi." });
+            _openLog.SetBounds(600, 8, 120, 30);
+            _openLog.Text = "Mở log";
+            _openLog.Click += (s, e) => AgentDiagnostics.OpenDiagnosticLog();
+            technicalPage.Controls.Add(_openLog);
+            _log.SetBounds(14, 48, 706, 310);
+            technicalPage.Controls.Add(_log);
+            logsPage.Controls.Add(logTabs);
 
             ResumeLayout(true);
         }
@@ -669,6 +736,23 @@ namespace SupraInventoryRelayAgent
             AgentRuntimeGuard.MarkPlannedExit();
             _allowExit = true;
             Close();
+        }
+
+        [DllImport("user32.dll")]
+        private static extern bool ReleaseCapture();
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
+
+        private void BeginMainWindowDrag(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left || WindowState != FormWindowState.Normal) return;
+            try
+            {
+                ReleaseCapture();
+                SendMessage(Handle, 0x00A1, 0x0002, 0);
+            }
+            catch { }
         }
 
         private void RestoreFromTray() { Show(); WindowState = FormWindowState.Normal; Activate(); }
