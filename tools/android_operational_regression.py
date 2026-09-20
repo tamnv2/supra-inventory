@@ -251,7 +251,7 @@ def main() -> None:
     require(relay_agent, '"Cài đặt bảng nổi"', "D084 overlay settings entry")
     require(overlay_settings, "class OverlaySettingsForm", "D084 overlay settings dialog")
     require(overlay_settings, "Độ trong của nền bảng nổi", "D084 overlay opacity setting")
-    require(overlay_settings, "Khóa vị trí và cho chuột xuyên qua bảng nổi", "D084 overlay lock setting")
+    require(overlay_settings, "Khóa vị trí/kích thước và cho chuột xuyên qua bảng nổi", "D084 overlay lock setting")
     # D086 keeps the v8 no-recreate behavior but adds a real cross-process click-through style.
     require(status_overlay, "HtTransparent", "D086 locked hit-test fallback")
     require(status_overlay, "WsExTransparent", "D086 true overlay click-through style")
