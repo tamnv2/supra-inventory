@@ -28,7 +28,7 @@ Implemented:
 
 ## 3. Release targets and unchanged boundaries
 
-- Agent target: `relay-agent-v13`; canonical asset `Agent Auto Confirm Pick Pack.exe`.
+- Agent target: `relay-agent-v14`; canonical asset `Agent Auto Confirm Pick Pack.exe`.
 - Android target: next monotonic signed Beta release after current `beta-vc52`.
 - One legacy Agent asset alias may exist on v13 solely for v12 auto-update compatibility.
 - D078 final transport remains pending; current RTDB is temporary.
@@ -39,7 +39,7 @@ Implemented:
 ## 4. Immediate next action
 
 Continue the finite D088 execution ladder:
-`PR → all guards/builds PASS → merge → Beta deploy PASS → signed Android release PASS → relay-agent-v13 release PASS → canonical release-checkpoint PR`.
+`PR → all guards/builds PASS → merge → Beta deploy PASS → signed Android release PASS → relay-agent-v14 release PASS → canonical release-checkpoint PR`.
 
 After technical release, Owner field review OA010 covers the visible names/icons, reopen-without-login, cross-Web/Android session replacement, Tools download, tray-only minimize/restore and overlay resize/colors/click-through.
 
