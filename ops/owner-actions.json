@@ -416,7 +416,7 @@
     },
     {
       "id": "OA011",
-      "status": "D089_RELEASE_CANDIDATE_CI_PENDING",
+      "status": "OWNER_D089_FIELD_RETEST_PENDING",
       "title": "Field-retest D089 icon, Web service/realtime state, Tools dark UI, overlay checklist and single-instance Agent",
       "resource_key": "firebase-rtdb-relay-beta",
       "provider": "Beta Web + next signed Android PDA + company Windows laptop",
@@ -439,11 +439,24 @@
         "No WMS mutation occurs; D078 transport remains unselected; Stable remains untouched."
       ],
       "safety": "Beta only. Never share passwords, tokens, cookies, WMS session/header/signature values or encrypted session files. WMS confirmation/mutation remains unauthorized and D078 final transport remains pending.",
-      "remaining_owner_action": "Wait for D089 technical/runtime/release PASS, then run the concise physical field-retest above.",
+      "remaining_owner_action": "Run the concise D089 physical field-retest on Beta Web, beta-vc54 and relay-agent-v15; report items 1–5 OK/not OK.",
       "prerequisites": {
         "source_branch": "fix/d089-field-review-icon-realtime-overlay-singleton-dark",
-        "current_android_release": "beta-vc53",
-        "candidate_agent_release": "relay-agent-v15",
+        "merged_pr": 99,
+        "merged_main": "c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee",
+        "agent_release": "relay-agent-v15",
+        "agent_release_id": 392528472,
+        "agent_asset_id": 577316714,
+        "agent_asset_name": "Agent.Auto.Confirm.Pick.Pack.exe",
+        "agent_sha256": "94f82fc377057c5bbb1d80bbf0830f523bdf16108b40898ce63bb041624b9e9a",
+        "android_release": "beta-vc54",
+        "android_release_id": 392528497,
+        "android_apk_asset_id": 577316797,
+        "android_apk_sha256": "eeb95c489bf7dbfa455b323633bfe28685674f57f6ba76facd4c04e3b0958c2c",
+        "beta_deploy_run": 35528647549,
+        "agent_run": 35528647534,
+        "ui_run": 35528647554,
+        "android_run": 35528647526,
         "transport": "CURRENT_RTDB_TEMPORARY__FINAL_SELECTION_PENDING_D078"
       }
     }
