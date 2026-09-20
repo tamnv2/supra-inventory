@@ -19,6 +19,19 @@ namespace SupraInventoryRelayAgent
         internal double Opacity = 0.78;
         internal bool Locked = true;
         internal bool Visible = true;
+        internal bool ShowLaptopGroup = true;
+        internal bool ShowCpu = true;
+        internal bool ShowMemory = true;
+        internal bool ShowDisk = true;
+        internal bool ShowNetwork = true;
+        internal bool ShowInternet = true;
+        internal bool ShowGpu = true;
+        internal bool ShowAgentGroup = true;
+        internal bool ShowAgentOnline = true;
+        internal bool ShowAgentState = true;
+        internal bool ShowPdaRequests = true;
+        internal bool ShowAgentResponses = true;
+        internal bool ShowWmsSession = true;
     }
 
     internal sealed class StatusOverlayForm : Form
@@ -158,6 +171,12 @@ namespace SupraInventoryRelayAgent
         internal int OverlayHeight { get { return Height; } }
         internal Color OverlayBackgroundColor { get { return SafeColor(_settings == null ? 0 : _settings.BackgroundArgb, Color.FromArgb(28, 35, 43)); } }
         internal Color OverlayTextColor { get { return SafeColor(_settings == null ? 0 : _settings.TextArgb, Color.White); } }
+        internal OverlaySettings DisplaySettings { get { return _settings ?? (_settings = new OverlaySettings()); } }
+
+        internal void SaveDisplaySettings()
+        {
+            Persist();
+        }
 
         internal void UpdateMetrics(string laptopLine, string agentLine)
         {
@@ -167,8 +186,11 @@ namespace SupraInventoryRelayAgent
                 BeginInvoke(new Action<string, string>(UpdateMetrics), laptopLine, agentLine);
                 return;
             }
-            _laptopText.Text = string.IsNullOrWhiteSpace(laptopLine) ? "Laptop | --" : laptopLine;
-            _agentText.Text = string.IsNullOrWhiteSpace(agentLine) ? "Agent | --" : agentLine;
+            _laptopText.Visible = !string.IsNullOrWhiteSpace(laptopLine);
+            _agentText.Visible = !string.IsNullOrWhiteSpace(agentLine);
+            _laptopText.Text = _laptopText.Visible ? laptopLine : "";
+            _agentText.Text = _agentText.Visible ? agentLine : "";
+            LayoutLabels();
         }
 
         internal void UpdateText(string value)
@@ -259,6 +281,19 @@ namespace SupraInventoryRelayAgent
                 if (map.TryGetValue("opacity", out value)) result.Opacity = ClampOpacity(Convert.ToDouble(value));
                 if (map.TryGetValue("locked", out value)) result.Locked = Convert.ToBoolean(value);
                 if (map.TryGetValue("visible", out value)) result.Visible = Convert.ToBoolean(value);
+                if (map.TryGetValue("show_laptop_group", out value)) result.ShowLaptopGroup = Convert.ToBoolean(value);
+                if (map.TryGetValue("show_cpu", out value)) result.ShowCpu = Convert.ToBoolean(value);
+                if (map.TryGetValue("show_memory", out value)) result.ShowMemory = Convert.ToBoolean(value);
+                if (map.TryGetValue("show_disk", out value)) result.ShowDisk = Convert.ToBoolean(value);
+                if (map.TryGetValue("show_network", out value)) result.ShowNetwork = Convert.ToBoolean(value);
+                if (map.TryGetValue("show_internet", out value)) result.ShowInternet = Convert.ToBoolean(value);
+                if (map.TryGetValue("show_gpu", out value)) result.ShowGpu = Convert.ToBoolean(value);
+                if (map.TryGetValue("show_agent_group", out value)) result.ShowAgentGroup = Convert.ToBoolean(value);
+                if (map.TryGetValue("show_agent_online", out value)) result.ShowAgentOnline = Convert.ToBoolean(value);
+                if (map.TryGetValue("show_agent_state", out value)) result.ShowAgentState = Convert.ToBoolean(value);
+                if (map.TryGetValue("show_pda_requests", out value)) result.ShowPdaRequests = Convert.ToBoolean(value);
+                if (map.TryGetValue("show_agent_responses", out value)) result.ShowAgentResponses = Convert.ToBoolean(value);
+                if (map.TryGetValue("show_wms_session", out value)) result.ShowWmsSession = Convert.ToBoolean(value);
                 return result;
             }
             catch
@@ -269,12 +304,24 @@ namespace SupraInventoryRelayAgent
 
         private void LayoutLabels()
         {
+            var width = Math.Max(100, ClientSize.Width - 20);
             var usable = Math.Max(44, ClientSize.Height - 12);
-            var firstHeight = Math.Max(22, usable / 2);
-            var secondTop = 6 + firstHeight;
-            var secondHeight = Math.Max(22, ClientSize.Height - secondTop - 6);
-            _laptopText.SetBounds(10, 6, Math.Max(100, ClientSize.Width - 20), firstHeight);
-            _agentText.SetBounds(10, secondTop, Math.Max(100, ClientSize.Width - 20), secondHeight);
+            if (_laptopText.Visible && _agentText.Visible)
+            {
+                var firstHeight = Math.Max(22, usable / 2);
+                var secondTop = 6 + firstHeight;
+                var secondHeight = Math.Max(22, ClientSize.Height - secondTop - 6);
+                _laptopText.SetBounds(10, 6, width, firstHeight);
+                _agentText.SetBounds(10, secondTop, width, secondHeight);
+                return;
+            }
+            if (_laptopText.Visible)
+            {
+                _laptopText.SetBounds(10, 6, width, usable);
+                return;
+            }
+            if (_agentText.Visible)
+                _agentText.SetBounds(10, 6, width, usable);
         }
 
         private void ApplySavedPosition()
@@ -376,7 +423,20 @@ namespace SupraInventoryRelayAgent
                     { "text_argb", _settings.TextArgb },
                     { "opacity", _settings.Opacity },
                     { "locked", _settings.Locked },
-                    { "visible", _settings.Visible }
+                    { "visible", _settings.Visible },
+                    { "show_laptop_group", _settings.ShowLaptopGroup },
+                    { "show_cpu", _settings.ShowCpu },
+                    { "show_memory", _settings.ShowMemory },
+                    { "show_disk", _settings.ShowDisk },
+                    { "show_network", _settings.ShowNetwork },
+                    { "show_internet", _settings.ShowInternet },
+                    { "show_gpu", _settings.ShowGpu },
+                    { "show_agent_group", _settings.ShowAgentGroup },
+                    { "show_agent_online", _settings.ShowAgentOnline },
+                    { "show_agent_state", _settings.ShowAgentState },
+                    { "show_pda_requests", _settings.ShowPdaRequests },
+                    { "show_agent_responses", _settings.ShowAgentResponses },
+                    { "show_wms_session", _settings.ShowWmsSession }
                 };
                 File.WriteAllText(_settingsPath, new JavaScriptSerializer().Serialize(payload));
             }
