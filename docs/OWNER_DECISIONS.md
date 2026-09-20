@@ -127,7 +127,7 @@ Purpose: preserve Owner-approved requirements across chats without relying on ma
 | ID | Status | Question |
 |---|---|---|
 | O001 | OPEN | SKU reset confirmation was described as random “6 chữ”; exact semantics (6 characters vs 6 words/other) are not yet Owner-confirmed. |
-| O002 | OPEN | Final policy for one account using one vs multiple simultaneous devices/sessions. |
+| O002 | CLOSED_BY_D088 | Web + Android share exactly one persistent interactive session per account; a new Web/Android login invalidates the prior interactive session. Real ADMIN Agent sessions are a separate multi-Agent channel so D085 HA remains valid. |
 | O003 | OPEN | Final Root MFA/recovery design for Stable. |
 | O004 | OPEN | Final reporting/export columns and exact Reporter dashboard visibility beyond the core queue. |
 | O005 | OPEN | Final Stable password KDF/rate-limit/account-lock policy. |
@@ -192,3 +192,22 @@ D087 refines the released D086 Windows Agent after Owner field evidence from v11
 - WMS remains signed **GET-only** with no confirmation/mutation. Stable remains untouched and OWNER-GATED.
 
 - D087 RTDB presence-rule changes still run Android verification but must not publish/advance the signed Android channel unless files under android/** actually changed. Agent-only Rules/support changes therefore keep the current signed beta-vc52.
+
+## D088 — Unified naming/icon, persistent single Web/Android session, Web tools, tray-only Agent and editable overlay
+
+Status: **ACTIVE — OWNER APPROVED 2026-09-20**.
+
+D088 records the Owner's eight-item Beta change set and supersedes D087 only where explicitly stated below. D085 HA/anti-spam, D086 DPAPI WMS session/protected exit, D087 split logs/presence, D078 transport-open boundary, GET-only WMS scope and Stable OWNER-GATE remain unchanged.
+
+1. Web product name becomes **Website nghiệp vụ Inventory**.
+2. Android Beta application name becomes **1291 Beta**.
+3. Windows utility name and canonical executable become **Agent Auto Confirm Pick Pack** / **Agent Auto Confirm Pick Pack.exe**.
+4. Web and Android use one persistent interactive session per account. Reopening the same valid app/browser session does not require login; a successful fresh Web/Android login becomes the only current interactive session and invalidates older Web/Android generations. Existing old tokens require one migration login after D088. Agent authentication is explicitly separate so multiple real ADMIN Agents can remain online for D085 HA.
+5. Admin/Root Web adds **HỆ THỐNG → Công cụ** with Agent release/version/platform information, official direct download and concise usage guidance.
+6. Agent overlay unlocked state adds edge/corner resizing, numeric width/height and full background/text color selection while preserving opacity. Locked state remains true click-through. All non-secret overlay preferences persist locally.
+7. Agent manual minimize becomes **System-Tray-only**: no taskbar button while minimized; tray restore returns the main window. No normal X is added and protected ADMIN shutdown remains.
+8. The Owner-selected icon #4 motif is the common identity across Web favicon, Android launcher and Agent executable/tray: dark navy base, cyan/blue transfer arrow with scanner and green transfer arrow with warehouse/boxes.
+
+A one-release legacy Agent asset alias is permitted only to allow released v12 to self-update to v13. The canonical fresh download/name is the new executable name.
+
+No D088 item selects the final PDA ↔ Agent transport, authorizes WMS mutation, or changes Stable.

@@ -114,10 +114,12 @@ class MainActivity : Activity() {
         api = InventoryApi(
             baseUrl = BuildConfig.API_BASE_URL.trimEnd('/'),
             userAgent = "SUPRA-Inventory-Beta/${BuildConfig.VERSION_NAME}",
+            onSessionChanged = ::persistInteractiveSession,
         )
+        restoreInteractiveSession()?.let(api::restoreSession)
         skuCache = SkuCatalogCache(this)
         installCrashRuntimeLogHandler()
-        renderLogin()
+        renderLogin(if (api.session == null) "Đang kiểm tra phiên bản..." else "Đang khôi phục phiên đăng nhập...")
     }
 
     override fun onDestroy() {
@@ -192,6 +194,43 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun interactiveSessionPrefs() = getSharedPreferences("interactive_session_v2", MODE_PRIVATE)
+
+    private fun persistInteractiveSession(value: AppSession?) {
+        val prefs = interactiveSessionPrefs()
+        if (value == null) {
+            prefs.edit().remove("session").apply()
+            return
+        }
+        val payload = JSONObject()
+            .put("id_token", value.idToken)
+            .put("refresh_token", value.refreshToken)
+            .put("user_id", value.userId)
+            .put("display_name", value.displayName)
+            .put("role", value.role)
+            .put("employee_code", value.employeeCode ?: JSONObject.NULL)
+        prefs.edit().putString("session", payload.toString()).apply()
+    }
+
+    private fun restoreInteractiveSession(): AppSession? {
+        val raw = interactiveSessionPrefs().getString("session", null) ?: return null
+        return try {
+            val payload = JSONObject(raw)
+            val next = AppSession(
+                idToken = payload.optString("id_token"),
+                refreshToken = payload.optString("refresh_token"),
+                userId = payload.optString("user_id"),
+                displayName = payload.optString("display_name"),
+                role = payload.optString("role"),
+                employeeCode = payload.optString("employee_code").takeIf { it.isNotBlank() && it != "null" },
+            )
+            if (next.idToken.isBlank() || next.refreshToken.isBlank() || next.userId.isBlank()) null else next
+        } catch (_: Exception) {
+            interactiveSessionPrefs().edit().remove("session").apply()
+            null
+        }
+    }
+
     private fun renderLogin(message: String = "Đang kiểm tra phiên bản...") {
         uiHandler.removeCallbacks(runtimeLogTick)
         stopOperationalClients()
@@ -259,7 +298,7 @@ class MainActivity : Activity() {
         setContentView(R.layout.activity_main)
         contentContainer = findViewById(R.id.contentContainer)
         status = TextView(this)
-        findViewById<TextView>(R.id.tvHeaderTitle).text = "BÁO HÀNG 1291"
+        findViewById<TextView>(R.id.tvHeaderTitle).text = "1291 Beta"
         findViewById<TextView>(R.id.tvHeaderUser).text =
             "${session.employeeCode ?: session.userId} · ${session.displayName}"
         findViewById<TextView>(R.id.tvAppVersion).apply {
@@ -404,7 +443,7 @@ class MainActivity : Activity() {
             .setPositiveButton("Chia sẻ") { _, _ ->
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
-                    putExtra(Intent.EXTRA_SUBJECT, "SUPRA Inventory Beta support log")
+                    putExtra(Intent.EXTRA_SUBJECT, "1291 Beta support log")
                     putExtra(Intent.EXTRA_TEXT, payload)
                 }
                 startActivity(Intent.createChooser(intent, "Chia sẻ log hỗ trợ"))
@@ -658,6 +697,8 @@ class MainActivity : Activity() {
                 "RESULT_ACK_NOT_FOUND" -> "Kết quả cần xác nhận không còn hợp lệ cho tài khoản này."
                 "USER_NOT_ACTIVE" -> "Tài khoản đã dừng hoạt động."
                 "FORBIDDEN" -> "Tài khoản không có quyền thực hiện thao tác này."
+                "SESSION_REPLACED" -> "Tài khoản đã đăng nhập ở nơi khác. Phiên trên thiết bị này đã kết thúc."
+                "SESSION_UPGRADE_REQUIRED" -> "Phiên cũ cần đăng nhập lại một lần để áp dụng cơ chế phiên mới."
                 "AUTH_REQUIRED", "INVALID_AUTH_TOKEN", "SESSION_REFRESH_FAILED" -> "Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại."
                 else -> error.message
             }
@@ -744,9 +785,16 @@ class MainActivity : Activity() {
                 val info = fetchLatestUpdate()
                 if (info.versionCode == BuildConfig.VERSION_CODE) {
                     updateGate = UpdateGate.CURRENT
+                    val restored = if (api.session != null) {
+                        try { api.refreshProfile() } catch (_: Exception) { null }
+                    } else null
                     runOnUiThread {
                         updateCheckRunning = false
-                        applyUpdateGateUi(if (api.session == null) "Sẵn sàng đăng nhập." else if (!silent) "Đang dùng bản mới nhất." else null)
+                        if (restored != null) {
+                            renderHome(restored)
+                        } else {
+                            applyUpdateGateUi(if (api.session == null) "Sẵn sàng đăng nhập." else if (!silent) "Đang dùng bản mới nhất." else null)
+                        }
                     }
                     return@Thread
                 }
@@ -821,7 +869,7 @@ class MainActivity : Activity() {
     private fun requestInstall(apk: File) {
         if (!packageManager.canRequestPackageInstalls()) {
             pendingInstallFile = apk
-            setStatus("Cần cấp quyền cài ứng dụng không rõ nguồn gốc một lần cho SUPRA Inventory Beta.")
+            setStatus("Cần cấp quyền cài ứng dụng không rõ nguồn gốc một lần cho 1291 Beta.")
             startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName")))
             return
         }

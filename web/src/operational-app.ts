@@ -91,6 +91,7 @@ type Section =
   | "system"
   | "devices"
   | "logs"
+  | "tools"
   | "versions"
   | "account";
 
@@ -158,7 +159,7 @@ function applyTheme(): void {
 applyTheme();
 
 const ROUTABLE_SECTIONS: Section[] = [
-  "picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "account",
+  "picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "tools", "account",
 ];
 
 function defaultSectionForProfile(value: AppProfile): Section {
@@ -668,6 +669,7 @@ function activeContent(): string {
   if (activeSection === "system") return renderSystem();
   if (activeSection === "devices") return renderLegacyDevices();
   if (activeSection === "logs") return renderLegacyLogs();
+  if (activeSection === "tools") return renderTools();
   if (activeSection === "versions") return renderLegacyVersions();
   return renderAccount();
 }
@@ -771,6 +773,7 @@ function navIcon(key: string): string {
     reports: '<path d="M5 20V10M12 20V4M19 20v-7"/><path d="M3 20h18"/>',
     system: '<rect x="4" y="4" width="16" height="6" rx="2"/><rect x="4" y="14" width="16" height="6" rx="2"/><path d="M8 7h.01M8 17h.01M12 7h5M12 17h5"/>',
     logs: '<path d="M6 3h9l3 3v15H6z"/><path d="M15 3v4h4M9 11h6M9 15h6"/>',
+    tools: '<path d="M14.7 6.3a4 4 0 0 0-5 5L4 17l3 3 5.7-5.7a4 4 0 0 0 5-5l-2.5 2.5-3-3 2.5-2.5Z"/>',
     versions: '<path d="m12 3 8 4-8 4-8-4 8-4Z"/><path d="m4 12 8 4 8-4M4 17l8 4 8-4"/>',
     account: '<circle cx="12" cy="8" r="3"/><path d="M5 20c.8-4.2 3.1-6.5 7-6.5s6.2 2.3 7 6.5"/>',
     "group-operations": '<path d="M4 12h3l2-5 4 10 2-5h5"/>',
@@ -806,7 +809,7 @@ function renderNav(): string {
   return [
     navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"]]),
     navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"], ["sla", "Thời gian xử lý"]]),
-    navGroup("HỆ THỐNG", [["logs", "Nhật ký"]]),
+    navGroup("HỆ THỐNG", [["logs", "Nhật ký"], ["tools", "Công cụ"]]),
   ].join("");
 }
 
@@ -851,7 +854,7 @@ function renderShell(content: string): void {
     <header class="topbar">
       <div class="header-product">
         <p class="company-name">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p>
-        <h1>Website nghiệp vụ Inventory 1291</h1>
+        <h1>Website nghiệp vụ Inventory</h1>
         <div class="header-runtime">
           <span id="service-state" data-state="${serviceReachable ? "on" : "off"}">Dịch vụ: ${serviceReachable ? "Hoạt động" : "Mất kết nối"}</span>
           <span class="header-runtime-separator">|</span>
@@ -1787,6 +1790,53 @@ function renderLegacyVersions(): string {
   return renderSystem();
 }
 
+const AGENT_RELEASE_TAG = "relay-agent-v13";
+const AGENT_RELEASE_URL = "https://github.com/tamnv2/supra-inventory/releases/tag/" + AGENT_RELEASE_TAG;
+const AGENT_DOWNLOAD_URL = "https://github.com/tamnv2/supra-inventory/releases/download/" + AGENT_RELEASE_TAG + "/Agent%20Auto%20Confirm%20Pick%20Pack.exe";
+
+function renderTools(): string {
+  return `<section class="ops-route tools-workspace">
+    <div class="heading">
+      <div><h2>Công cụ</h2><p class="muted">Phần mềm hỗ trợ vận hành giữa Pick Pack và Inventory.</p></div>
+    </div>
+    <div class="tools-grid">
+      <article class="ops-panel tool-card tool-card-primary">
+        <div class="tool-card-head">
+          <div class="tool-icon" aria-hidden="true">⇄</div>
+          <div><h3>Agent Auto Confirm Pick Pack</h3><p>Agent Windows phục vụ luồng xác nhận lấy lại đơn và trao đổi dữ liệu với PDA.</p></div>
+        </div>
+        <div class="tool-facts">
+          <div><span>Phiên bản</span><strong>v13</strong></div>
+          <div><span>Nền tảng</span><strong>Windows</strong></div>
+          <div><span>Quyền chạy</span><strong>User thường</strong></div>
+          <div><span>Cập nhật</span><strong>Tự động qua GitHub</strong></div>
+        </div>
+        <div class="tool-actions">
+          <a class="primary tool-download" href="${AGENT_DOWNLOAD_URL}">Tải Agent</a>
+          <button type="button" class="secondary" id="copy-agent-link">Sao chép link</button>
+        </div>
+      </article>
+      <article class="ops-panel tool-guide">
+        <div class="ops-panel-title"><div><h3>Sử dụng</h3></div></div>
+        <ol class="tool-steps">
+          <li>Tải <strong>Agent Auto Confirm Pick Pack.exe</strong> từ link chính thức.</li>
+          <li>Mở Agent bằng tài khoản Windows hiện tại; không cần quyền Administrator.</li>
+          <li>Đăng nhập Agent bằng tài khoản ADMIN thực và thiết lập phiên Supra trên máy xử lý.</li>
+          <li>Agent chạy nền ở System Tray và tự nhận yêu cầu từ PDA theo cơ chế đang được áp dụng.</li>
+        </ol>
+      </article>
+      <article class="ops-panel tool-safety">
+        <div class="ops-panel-title"><div><h3>Trạng thái nghiệp vụ</h3></div></div>
+        <div class="tool-status-list">
+          <div><span class="badge ok">Sẵn sàng</span><span>Tra cứu Picklist và phối hợp nhiều Agent.</span></div>
+          <div><span class="badge">Tự động</span><span>Khởi động cùng Windows và tự kiểm tra cập nhật.</span></div>
+          <div><span class="badge warning">Đang kiểm thử</span><span>Kênh PDA ↔ Agent cuối cùng vẫn chờ kết quả kiểm tra mạng nội bộ.</span></div>
+        </div>
+      </article>
+    </div>
+  </section>`;
+}
+
 function renderAccount(): string {
   return `<section class="ops-route account-workspace">
     <div class="heading"><div><h2>Tài khoản</h2></div></div>
@@ -2293,6 +2343,15 @@ function bindSection(): void {
       markWebUpdateReceived();
     });
   }));
+  document.querySelector<HTMLButtonElement>("#copy-agent-link")?.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(AGENT_DOWNLOAD_URL);
+      setNotice("success", "Đã sao chép link tải Agent.");
+    } catch {
+      setNotice("warning", "Không sao chép tự động được. Hãy dùng nút Tải Agent.");
+    }
+  });
+
   document.querySelector<HTMLButtonElement>("#send-web-log")?.addEventListener("click", () => void run(async () => {
     const sent = await sendWebRuntimeLog("manual_web_log", "INFO");
     if (!sent) throw new Error("Chưa gửi được log Web. Kiểm tra kết nối rồi thử lại.");

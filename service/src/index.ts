@@ -46,6 +46,8 @@ interface InternalUser {
   password_salt: string | null;
   password_hash: string | null;
   password_changed_at: string | null;
+  session_generation: number;
+  session_started_at: string | null;
 }
 
 interface FirebaseExchangeResponse {
@@ -196,6 +198,37 @@ async function ensureFirebaseUid(env: Env, user: InternalUser): Promise<string> 
   return uid;
 }
 
+function sessionAuthorityError(identity: Awaited<ReturnType<typeof verifyFirebaseIdToken>>, user: InternalUser): string | null {
+  if (identity.sessionChannel === "AGENT") {
+    return user.role === "ADMIN" && user.base_role === "ADMIN" ? null : "AGENT_ADMIN_REQUIRED";
+  }
+  if (identity.sessionChannel !== "WEB" && identity.sessionChannel !== "ANDROID") return "SESSION_UPGRADE_REQUIRED";
+  if (!identity.sessionGeneration || identity.sessionGeneration !== Number(user.session_generation || 0)) return "SESSION_REPLACED";
+  return null;
+}
+
+async function closeUserRealtime(env: Env, userId: string): Promise<void> {
+  try {
+    await coreStub(env).fetch("https://inventory-core.internal/realtime/close-user", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ user_id: userId, reason: "session-replaced" }),
+    });
+  } catch {
+    // HTTP auth generation remains authoritative even if an old socket closes on its next lifecycle edge.
+  }
+}
+
+async function activateInteractiveSession(env: Env, userId: string): Promise<number> {
+  const result = await coreJson<{ session_generation: number }>(env, "/auth/activate-session", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ user_id: userId }),
+  });
+  await closeUserRealtime(env, userId);
+  return Math.max(1, Number(result.session_generation || 0));
+}
+
 async function requireUser(request: Request, env: Env, roles?: AppRole[]): Promise<InternalUser> {
   const token = readBearerToken(request);
   if (!token) throw new Response(JSON.stringify({ error: "AUTH_REQUIRED" }), { status: 401, headers: { "content-type": "application/json" } });
@@ -207,6 +240,8 @@ async function requireUser(request: Request, env: Env, roles?: AppRole[]): Promi
   }
   const user = await getUserByFirebaseUid(env, identity.uid);
   if (!user || user.status !== "ACTIVE") throw new Response(JSON.stringify({ error: "USER_NOT_ACTIVE" }), { status: 403, headers: { "content-type": "application/json" } });
+  const sessionError = sessionAuthorityError(identity, user);
+  if (sessionError) throw new Response(JSON.stringify({ error: sessionError }), { status: 401, headers: { "content-type": "application/json" } });
   if (roles && !roles.includes(user.role)) throw new Response(JSON.stringify({ error: "FORBIDDEN" }), { status: 403, headers: { "content-type": "application/json" } });
   return user;
 }
@@ -231,8 +266,15 @@ async function loadTestAuthorized(request: Request, env: Env): Promise<boolean> 
   return constantTimeEqual(supplied, env.LOAD_TEST_TOKEN);
 }
 
-function publicUser(user: InternalUser): Omit<InternalUser, "password_salt" | "password_hash" | "role_override"> {
-  const { password_salt: _salt, password_hash: _hash, role_override: _override, ...safe } = user;
+function publicUser(user: InternalUser): Omit<InternalUser, "password_salt" | "password_hash" | "role_override" | "session_generation" | "session_started_at"> {
+  const {
+    password_salt: _salt,
+    password_hash: _hash,
+    role_override: _override,
+    session_generation: _sessionGeneration,
+    session_started_at: _sessionStartedAt,
+    ...safe
+  } = user;
   return safe;
 }
 
@@ -286,6 +328,17 @@ async function refreshSession(request: Request, env: Env): Promise<Response> {
   if (!response.ok || !payload.id_token || !payload.refresh_token) {
     return json({ error: "FIREBASE_REFRESH_FAILED", message: payload.error?.message || `HTTP ${response.status}` }, 401);
   }
+
+  try {
+    const identity = await verifyFirebaseIdToken(payload.id_token, env.FIREBASE_PROJECT_ID);
+    const user = await getUserByFirebaseUid(env, identity.uid);
+    if (!user || user.status !== "ACTIVE") return json({ error: "USER_NOT_ACTIVE" }, 401);
+    const sessionError = sessionAuthorityError(identity, user);
+    if (sessionError) return json({ error: sessionError }, 401);
+  } catch {
+    return json({ error: "INVALID_AUTH_TOKEN" }, 401);
+  }
+
   return json({
     id_token: payload.id_token,
     refresh_token: payload.refresh_token,
@@ -295,7 +348,7 @@ async function refreshSession(request: Request, env: Env): Promise<Response> {
 
 async function login(request: Request, env: Env): Promise<Response> {
   if (!env.GOOGLE_RUNTIME_SA_JSON || !env.FIREBASE_WEB_API_KEY) return json({ error: "AUTH_RUNTIME_NOT_CONFIGURED" }, 503);
-  const body = (await request.json()) as { username?: string; password?: string };
+  const body = (await request.json()) as { username?: string; password?: string; client_type?: string };
   const username = String(body.username || "").trim().toLowerCase();
   const password = String(body.password || "");
   if (!/^[a-z0-9._-]{1,64}$/.test(username) || !password) return json({ error: "INVALID_CREDENTIALS" }, 401);
@@ -318,12 +371,32 @@ async function login(request: Request, env: Env): Promise<Response> {
   }
 
   if (!(await verifyPassword(password, user.password_salt!, user.password_hash!))) return json({ error: "INVALID_CREDENTIALS" }, 401);
+
+  const requested = String(body.client_type || "").trim().toUpperCase();
+  const userAgent = String(request.headers.get("user-agent") || "");
+  const channel: "WEB" | "ANDROID" | "AGENT" =
+    requested === "AGENT" || (!requested && userAgent.includes("SUPRA-Inventory-Relay"))
+      ? "AGENT"
+      : requested === "ANDROID" || (!requested && userAgent.includes("SUPRA-Inventory-Beta"))
+        ? "ANDROID"
+        : "WEB";
+
+  if (channel === "AGENT" && (user.role !== "ADMIN" || user.base_role !== "ADMIN")) {
+    return json({ error: "AGENT_ADMIN_REQUIRED" }, 403);
+  }
+
+  const sessionGeneration = channel === "AGENT"
+    ? 0
+    : await activateInteractiveSession(env, user.user_id);
+
   const firebaseUid = await ensureFirebaseUid(env, user);
   const customToken = await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON, firebaseUid, {
     app_role: user.role,
     app_base_role: user.base_role,
     app_user_id: user.user_id,
     employee_code: user.employee_code || "",
+    app_session_channel: channel,
+    app_session_generation: String(sessionGeneration),
   });
   try {
     const session = await exchangeCustomToken(env, customToken);

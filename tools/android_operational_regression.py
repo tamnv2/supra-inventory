@@ -142,7 +142,7 @@ def main() -> None:
     require(service_index, "app_base_role: user.base_role", "D075 immutable base-role Firebase custom claim")
     require(relay_rules, "auth.token.app_base_role == 'ADMIN'", "D075 real ADMIN RTDB rule")
     require(relay_rules, "newData.child('agent_admin_user_id').val() == auth.token.app_user_id", "D075 ADMIN ACK rule binding")
-    require(relay_agent_config, "AgentBuild = 12", "D087 Agent build channel")
+    require(relay_agent_config, "AgentBuild = 13", "D088 Agent build channel")
     require(relay_agent, "var statusCode = (int)response.StatusCode", "D077 capture HTTP status before dispose")
     require(relay_agent, "ProbeAllTransports", "D078 Test all transport probe")
     require(relay_agent, "AgentConfig.FirestoreProbeUrl", "D078 Firestore probe")
@@ -241,7 +241,7 @@ def main() -> None:
     require(relay_agent, "new AgentForm(startupSmoke, autoStarted)", "D085 startup/autostart mode preserving D083 smoke")
     require(relay_agent, "InitializeStatusOverlaySafe", "D083 lazy overlay init")
     require(relay_agent, '"FATAL startup type="', "D083 top-level startup crash logging")
-    require(relay_agent, '"SUPRA Inventory Agent - lỗi khởi động"', "D083 visible fatal startup message")
+    require(relay_agent, '"Agent Auto Confirm Pick Pack - lỗi khởi động"', "D083 visible fatal startup message")
     require(relay_agent, '"OVERLAY init=FAIL', "D083 overlay failure isolation")
     require(relay_agent_workflow, "--startup-smoke", "D083 CI startup smoke execution")
     require(relay_agent_workflow, "WaitForExit(15000)", "D083 startup smoke timeout")
@@ -251,7 +251,7 @@ def main() -> None:
     require(relay_agent, '"Cài đặt bảng nổi"', "D084 overlay settings entry")
     require(overlay_settings, "class OverlaySettingsForm", "D084 overlay settings dialog")
     require(overlay_settings, "Độ trong của nền bảng nổi", "D084 overlay opacity setting")
-    require(overlay_settings, "Khóa vị trí và cho chuột xuyên qua bảng nổi", "D084 overlay lock setting")
+    require(overlay_settings, "Khóa vị trí/kích thước và cho chuột xuyên qua bảng nổi", "D084 overlay lock setting")
     # D086 keeps the v8 no-recreate behavior but adds a real cross-process click-through style.
     require(status_overlay, "HtTransparent", "D086 locked hit-test fallback")
     require(status_overlay, "WsExTransparent", "D086 true overlay click-through style")
@@ -291,6 +291,21 @@ def main() -> None:
     require(relay_rules, '"rate_limits"', "D085 rate-limit rules")
     require(relay_rules, "'SWITCHING'", "D085 switching job state")
     require(relay_rules, "'PICKER_LOCKED'", "D085 locked ACK state")
+
+    # D088: unified naming/icon, persistent Android session, tray-only Agent and editable overlay.
+    require(main_activity, '"1291 Beta"', "D088 Android product name")
+    require(inventory_api, '.put("client_type", "ANDROID")', "D088 Android session channel")
+    require(main_activity, "restoreInteractiveSession", "D088 Android persistent session restore")
+    require(main_activity, "persistInteractiveSession", "D088 Android persistent session save")
+    require(relay_agent, "Agent Auto Confirm Pick Pack", "D088 Agent product name")
+    require(relay_agent, '"client_type", "AGENT"', "D088 Agent independent auth channel")
+    require(relay_agent, "MinimizeToTray", "D088 Agent tray-only minimize")
+    require(relay_agent, "ShowInTaskbar = false", "D088 hidden taskbar while minimized")
+    require(status_overlay, "SetOverlaySize", "D088 overlay resize")
+    require(status_overlay, "BackgroundArgb", "D088 overlay background persistence")
+    require(status_overlay, "TextArgb", "D088 overlay text-color persistence")
+    require(overlay_settings, "ColorDialog", "D088 full overlay color picker")
+    require(relay_agent_config, 'AgentExeAsset = "Agent Auto Confirm Pick Pack.exe"', "D088 canonical Agent asset name")
 
     # F22: launcher actions have distinct targets and Web honors direct hash routes.
     require(launcher, 'openWeb("/#hr"', "HR deep link")

@@ -172,7 +172,7 @@ def main() -> None:
     require(unified_css, ".sla-auto-policy", "D070 automatic-Skip policy layout")
 
     # D072: quota-heavy system-status surface is excluded from normal runtime.
-    require(app, 'navGroup("HỆ THỐNG", [["logs", "Nhật ký"]])', "D072 system group only journal")
+    require(app, 'navGroup("HỆ THỐNG", [["logs", "Nhật ký"], ["tools", "Công cụ"]])', "D088 system group journal and tools without quota status polling")
     forbid(app, "getSystemStatus(", "D072 Web system-status API calls")
     forbid(app, '["system","devices","versions"].includes(activeSection)', "D072 system-status polling route")
     forbid(app, 'querySelector<HTMLButtonElement>("#refresh-system")', "D072 manual system-status refresh binding")
@@ -197,6 +197,17 @@ def main() -> None:
     require(app, "operationsLoadPromise", "D071 coalesced operations load")
     forbid(app, 'await resolveReporterBatch(batch.batch_id, "HAS_STOCK");\n      await loadOperations();', "D071 blocking HAS_STOCK refresh chain")
     forbid(app, 'await resolveReporterBatch(batch.batch_id, "SKIP_ALLOWED");\n      await loadOperations();', "D071 blocking Skip refresh chain")
+
+    # D088: naming, persistent single interactive session and Web tools.
+    require(app, "<h1>Website nghiệp vụ Inventory</h1>", "D088 Web product name")
+    require(app, '["tools", "Công cụ"]', "D088 tools navigation")
+    require(app, "Agent Auto Confirm Pick Pack", "D088 Agent product surface")
+    require(app, "AGENT_DOWNLOAD_URL", "D088 direct Agent download")
+    require(api, 'localStorage.getItem(SESSION_KEY)', "D088 Web persistent session")
+    require(api, 'client_type: "WEB"', "D088 Web session channel")
+    require(core, "session_generation", "D088 server session generation")
+    require(service_index, "SESSION_REPLACED", "D088 replaced-session guard")
+    require(service_index, "activateInteractiveSession", "D088 login invalidates previous Web/APK session")
 
     # D060: Root can temporarily lower its effective role, and the service—not the client—enforces it.
     require(api, "setRootEffectiveRole", "Root effective-role client API")

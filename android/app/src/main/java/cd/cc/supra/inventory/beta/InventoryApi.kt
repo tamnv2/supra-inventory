@@ -137,17 +137,30 @@ class ApiException(
 class InventoryApi(
     private val baseUrl: String,
     private val userAgent: String,
+    private val onSessionChanged: (AppSession?) -> Unit = {},
 ) {
     @Volatile var session: AppSession? = null
         private set
 
-    fun clearSession() { session = null }
+    private fun updateSession(next: AppSession?) {
+        session = next
+        onSessionChanged(next)
+    }
+
+    fun restoreSession(next: AppSession) {
+        updateSession(next)
+    }
+
+    fun clearSession() { updateSession(null) }
 
     fun login(username: String, password: String): AppSession {
         val payload = request(
             method = "POST",
             path = "/api/auth/login",
-            body = JSONObject().put("username", username).put("password", password),
+            body = JSONObject()
+                .put("username", username)
+                .put("password", password)
+                .put("client_type", "ANDROID"),
             authorized = false,
         )
         val user = payload.optJSONObject("user") ?: JSONObject()
@@ -160,7 +173,7 @@ class InventoryApi(
             employeeCode = nullable(user, "employee_code"),
         )
         if (next.idToken.isBlank() || next.refreshToken.isBlank()) throw IllegalStateException("Phiên đăng nhập trả về không đầy đủ.")
-        session = next
+        updateSession(next)
         return next
     }
 
@@ -174,7 +187,7 @@ class InventoryApi(
             role = user.optString("role", current.role),
             employeeCode = nullable(user, "employee_code") ?: current.employeeCode,
         )
-        session = next
+        updateSession(next)
         return next
     }
 
@@ -425,10 +438,10 @@ class InventoryApi(
         val idToken = payload.optString("id_token")
         val refreshToken = payload.optString("refresh_token")
         if (idToken.isBlank() || refreshToken.isBlank()) {
-            session = null
+            updateSession(null)
             throw ApiException(401, "SESSION_REFRESH_FAILED", "Không thể làm mới phiên đăng nhập.")
         }
-        session = current.copy(idToken = idToken, refreshToken = refreshToken)
+        updateSession(current.copy(idToken = idToken, refreshToken = refreshToken))
     }
 
     private fun request(
@@ -449,7 +462,7 @@ class InventoryApi(
         if (response.first !in 200..299) {
             val code = payload.optString("error", "HTTP_${response.first}")
             val message = payload.optString("message").ifBlank { code }
-            if (response.first == 401) session = null
+            if (response.first == 401) updateSession(null)
             throw ApiException(response.first, code, message)
         }
         return payload

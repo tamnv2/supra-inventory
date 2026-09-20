@@ -85,7 +85,7 @@ namespace SupraInventoryRelayAgent
                         "SUPRA Inventory Agent không thể khởi động.\r\n\r\n" +
                         "Lỗi: " + AgentDiagnostics.Sanitize(ex.GetType().Name + " - " + ex.Message) +
                         "\r\n\r\nĐã ghi log cục bộ để chẩn đoán.",
-                        "SUPRA Inventory Agent - lỗi khởi động",
+                        "Agent Auto Confirm Pick Pack - lỗi khởi động",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
                 }
@@ -108,7 +108,7 @@ namespace SupraInventoryRelayAgent
         {
             try
             {
-                var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SUPRA Inventory", "RelayPoc", "Logs");
+                var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Agent Auto Confirm Pick Pack", "RelayPoc", "Logs");
                 Directory.CreateDirectory(dir);
                 var stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss") + "-" + Process.GetCurrentProcess().Id;
                 DiagnosticLogFile = Path.Combine(dir, "technical-ai-" + stamp + ".log");
@@ -295,7 +295,7 @@ namespace SupraInventoryRelayAgent
 
         private static readonly string RelayDataDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "SUPRA Inventory", "RelayPoc");
+            "Agent Auto Confirm Pick Pack", "RelayPoc");
         private static readonly string SessionFile = Path.Combine(RelayDataDir, "session.bin");
         private static readonly string AgentInstanceFile = Path.Combine(RelayDataDir, "agent-instance-id.txt");
         private static readonly string OverlaySettingsFile = Path.Combine(RelayDataDir, "overlay-settings.json");
@@ -384,14 +384,18 @@ namespace SupraInventoryRelayAgent
             menu.Items.Add("Mở log", null, (s, e) => AgentDiagnostics.OpenLog());
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add("Tắt Agent...", null, (s, e) => RequestProtectedExit());
-            _tray.Text = "SUPRA | đang đọc tài nguyên máy"; _tray.Icon = SystemIcons.Application; _tray.ContextMenuStrip = menu; _tray.Visible = true;
+            _tray.Text = "Agent Auto Confirm Pick Pack";
+            try { _tray.Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath) ?? SystemIcons.Application; }
+            catch { _tray.Icon = SystemIcons.Application; }
+            try { Icon = _tray.Icon; } catch { }
+            _tray.ContextMenuStrip = menu; _tray.Visible = true;
             RefreshOverlayMenu();
             _tray.DoubleClick += (s, e) => RestoreFromTray();
 
-            // Manual minimize remains visible on the Windows taskbar. Auto-start may still hide to tray.
+            // D088: minimize/user-close hides the window from taskbar and leaves the Agent in System Tray.
             FormClosing += (s, e) =>
             {
-                if (!_allowExit && e.CloseReason == CloseReason.UserClosing) { e.Cancel = true; WindowState = FormWindowState.Minimized; Hide(); return; }
+                if (!_allowExit && e.CloseReason == CloseReason.UserClosing) { e.Cancel = true; MinimizeToTray(); return; }
                 if (e.CloseReason == CloseReason.WindowsShutDown) AgentRuntimeGuard.MarkPlannedExit();
                 StopListening();
                 StopLeaderCoordination();
@@ -437,9 +441,8 @@ namespace SupraInventoryRelayAgent
                 {
                     BeginInvoke(new Action(() =>
                     {
-                        WindowState = FormWindowState.Minimized;
-                        Hide();
-                        _tray.ShowBalloonTip(1500, "SUPRA Inventory", "Agent đã tự khởi động cùng Windows.", ToolTipIcon.Info);
+                        MinimizeToTray();
+                        _tray.ShowBalloonTip(1500, "Agent Auto Confirm Pick Pack", "Agent đã tự khởi động cùng Windows.", ToolTipIcon.Info);
                     }));
                 }
                 Task.Run(() => StartupSequence());
@@ -451,7 +454,7 @@ namespace SupraInventoryRelayAgent
             SuspendLayout();
             Controls.Clear();
 
-            Text = "SUPRA Inventory Agent v" + AgentConfig.AgentBuild;
+            Text = "Agent Auto Confirm Pick Pack v" + AgentConfig.AgentBuild;
             Width = 860;
             Height = 610;
             MinimumSize = new Size(860, 610);
@@ -486,7 +489,7 @@ namespace SupraInventoryRelayAgent
                 Top = 8,
                 Width = 700,
                 Height = 24,
-                Text = "SUPRA Inventory Agent v" + AgentConfig.AgentBuild,
+                Text = "Agent Auto Confirm Pick Pack v" + AgentConfig.AgentBuild,
                 ForeColor = Color.White,
                 Font = new Font("Segoe UI Semibold", 9.5F, FontStyle.Bold)
             };
@@ -501,7 +504,7 @@ namespace SupraInventoryRelayAgent
                 TabStop = false
             };
             minimize.FlatAppearance.BorderSize = 0;
-            minimize.Click += (s, e) => WindowState = FormWindowState.Minimized;
+            minimize.Click += (s, e) => MinimizeToTray();
             chrome.MouseDown += BeginMainWindowDrag;
             chromeTitle.MouseDown += BeginMainWindowDrag;
             chrome.Controls.Add(chromeTitle);
@@ -524,7 +527,7 @@ namespace SupraInventoryRelayAgent
                 Top = 22,
                 Width = 760,
                 Height = 34,
-                Text = "SUPRA INVENTORY AGENT",
+                Text = "AGENT AUTO CONFIRM PICK PACK",
                 Font = new Font("Segoe UI Semibold", 17F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(24, 43, 55)
             };
@@ -645,7 +648,7 @@ namespace SupraInventoryRelayAgent
             networkPage.Controls.Add(new Label { Left = 24, Top = 232, Width = 730, Height = 70, Text = "Các bài test ở đây chỉ phục vụ chẩn đoán. Transport PDA ↔ Agent vẫn giữ cấu hình Beta hiện tại cho đến khi có kết quả test mạng Office.", ForeColor = Color.DimGray });
 
             overlayPage.Controls.Add(new Label { Left = 24, Top = 24, Width = 730, Height = 34, Text = "Bảng nổi trạng thái máy", Font = new Font("Segoe UI Semibold", 11F) });
-            overlayPage.Controls.Add(new Label { Left = 24, Top = 66, Width = 730, Height = 54, Text = "Khi khóa, bảng nổi chỉ hiển thị thông tin và chuột xuyên hoàn toàn xuống ứng dụng bên dưới. Khi mở khóa, có thể kéo đổi vị trí.", ForeColor = Color.DimGray });
+            overlayPage.Controls.Add(new Label { Left = 24, Top = 66, Width = 730, Height = 64, Text = "Khi khóa, bảng nổi chỉ hiển thị thông tin và chuột xuyên hoàn toàn xuống ứng dụng bên dưới. Khi mở khóa, có thể kéo vị trí, đổi rộng/cao và chọn đầy đủ màu nền/màu chữ.", ForeColor = Color.DimGray });
             _overlaySettingsButton.SetBounds(24, 136, 200, 36);
             overlayPage.Controls.Add(_overlaySettingsButton);
 
@@ -755,7 +758,20 @@ namespace SupraInventoryRelayAgent
             catch { }
         }
 
-        private void RestoreFromTray() { Show(); WindowState = FormWindowState.Normal; Activate(); }
+        private void MinimizeToTray()
+        {
+            WindowState = FormWindowState.Minimized;
+            ShowInTaskbar = false;
+            Hide();
+        }
+
+        private void RestoreFromTray()
+        {
+            ShowInTaskbar = true;
+            Show();
+            WindowState = FormWindowState.Normal;
+            Activate();
+        }
 
         private void UpdateTrayMonitor()
         {
@@ -854,7 +870,7 @@ namespace SupraInventoryRelayAgent
             {
                 MessageBox.Show(
                     "Bảng nổi chưa khởi tạo được. Có thể thử lại ngay; mở log Kỹ thuật AI để xem chẩn đoán.",
-                    "SUPRA Inventory",
+                    "Agent Auto Confirm Pick Pack",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
                 return;
@@ -871,7 +887,7 @@ namespace SupraInventoryRelayAgent
                 AgentDiagnostics.Write("OVERLAY settings-fail type=" + ex.GetType().Name);
                 MessageBox.Show(
                     "Không mở được cài đặt bảng nổi. Đã ghi log cục bộ.",
-                    "SUPRA Inventory",
+                    "Agent Auto Confirm Pick Pack",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
             }
@@ -1182,7 +1198,12 @@ namespace SupraInventoryRelayAgent
             try
             {
                 LogNetworkSnapshot("admin-login");
-                var payload = new Dictionary<string, object> { { "username", username }, { "password", password } };
+                var payload = new Dictionary<string, object>
+                {
+                    { "username", username },
+                    { "password", password },
+                    { "client_type", "AGENT" }
+                };
                 var root = Map(_json.DeserializeObject(RequestJson("POST", AgentConfig.ApiBaseUrl + "/api/auth/login", _json.Serialize(payload), "application/json")));
                 var user = Map(root["user"]);
                 var role = user.ContainsKey("role") ? Convert.ToString(user["role"]) : "";

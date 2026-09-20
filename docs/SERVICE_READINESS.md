@@ -1,59 +1,44 @@
 # SERVICE_READINESS — Derived current view
 
-> DERIVED VIEW. Canonical live status is `ops/project-state.json`; resource identity/evidence is `ops/resource-registry.json`. Fresh-bootstrap `ops/authority-manifest.json` before mutation.
+> DERIVED VIEW. Canonical live/source status is `ops/project-state.json`; resource identity/evidence is `ops/resource-registry.json`. Fresh-bootstrap `ops/authority-manifest.json` before mutation.
 
 ## Current markers
 
 - Project: `supra-inventory`
-- SQLite schema: `7`
-- Latest signed Beta APK: `beta-vc52`
-- Web: `D071_IMMEDIATE_RESPONSE_DENSITY_D072_SYSTEM_STATUS_QUOTA_GUARD_BETA_RUNTIME_PASS__OWNER_REVIEW_PENDING`
-- Android/Agent: `D085_RELEASE_PASS__SIGNED_BETA_VC52__AGENT_V12__OWNER_FIELD_TEST_PENDING__TRANSPORT_SELECTION_PENDING`
-- Beta: `BETA_RUNTIME_PASS_D087_AGENT_V12_RELEASE__OWNER_FIELD_TEST_PENDING`
+- SQLite schema source target: `8`
+- Latest signed Beta APK currently live: `beta-vc52`
+- Web: `D088_SOURCE_CANDIDATE__WEBSITE_NGHIEP_VU_INVENTORY__TOOLS__PERSISTENT_SINGLE_SESSION`
+- Android/Agent: `D088_SOURCE_CANDIDATE__1291_BETA__SIGNED_RELEASE_PENDING__AGENT_V13_PENDING__TRANSPORT_SELECTION_PENDING`
+- Beta: `D088_SOURCE_CANDIDATE__CI_PENDING__LIVE_D087_AGENT_V12`
 - Stable: `OWNER_GATED`
 
-## D087 Agent v12 readiness
+## D088 readiness
 
-Status: **TECHNICAL RELEASE PASS / OWNER PHYSICAL REVIEW PENDING**.
+Status: **SOURCE CANDIDATE / PR-CI-RELEASE PENDING**.
 
-Release evidence:
-- PR #94 merged to `main`: `8b0e3ec3fd1a6fffea09e3f4aafd43e544625f58`
-- Project State Guard `35495453237` — PASS
-- Repo Authority Guard `35495453239` — PASS
-- Beta RTDB Rules `35495453228` — PASS
-- Verify Beta Relay Agent `35495453233` — PASS
-- UI Design Guard `35495453255` — PASS
-- Verify Beta Android `35495453242` — PASS
-- Release tag `relay-agent-v12` exists and resolves to VERSION `12`.
-- Android release remains `beta-vc52`; `beta-vc53` is absent.
-- Exact v12 binary asset metadata is not exposed by the connected GitHub release surface and is therefore not invented.
+Implemented on `feat/d088-unified-brand-single-session-tools-overlay`:
+- Web product name **Website nghiệp vụ Inventory**.
+- Android Beta product name **1291 Beta**.
+- Windows utility **Agent Auto Confirm Pick Pack**, target `relay-agent-v13`.
+- shared D088 icon motif on Web/Android/Agent;
+- one persistent server-authoritative interactive session across Web + Android, with fresh login replacing older Web/Android session;
+- separate `AGENT` authentication channel so D085 multi-Agent HA is preserved;
+- Admin/Root `HỆ THỐNG → Công cụ` with direct official Agent download and instructions;
+- tray-only Agent minimize/restore;
+- overlay unlocked drag/resize, numeric width/height, full background/text color selection; locked true click-through;
+- additive SQLite schema target 8 for `session_generation` / `session_started_at`.
 
-Implemented and guarded:
-- separate sanitized PDA-Agent audit and technical-AI logs;
-- null-safe/retryable overlay initialization;
-- no normal X plus explicit taskbar minimize;
-- Laptop overlay metrics from local Windows sources;
-- Agent overlay: total online Agents plus RAM-only local request/response counters;
-- minimal Agent presence only: 30s write / 60s read / 90s freshness;
-- no globally synchronized APK/response counters;
-- D085 HA/anti-spam and D086 DPAPI session behavior preserved;
-- WMS remains GET-only.
+No D088 runtime/release PASS is claimed until PR guards, main Beta deploy, signed Android publication and `relay-agent-v13` publication all complete.
 
-## D078 transport readiness
+## Unchanged boundaries
 
-Status: **PENDING PHYSICAL OFFICE EVIDENCE**.
-
-- Current Beta RTDB remains temporary.
-- D087 presence does not select or approve the final PDA ↔ Agent transport.
-- Do not provision/switch final transport before D078 evidence.
-
-## Security/read-only boundary
-
-- Neither local log may contain password, access/ID/refresh token, Authorization/Bearer, cookies, API keys, WMS session/header/signature values, private/signing keys or raw WMS response payloads.
-- Company WMS credentials remain browser-only.
-- WMS confirmation/mutation remains forbidden/not implemented.
+- Current PDA ↔ Agent RTDB carrier remains temporary; D078 final transport selection is pending physical Office evidence.
+- D085 sticky ACTIVE/STANDBY HA, 3-second heartbeat, ~10-second failover, cache and anti-spam remain.
+- D086 DPAPI WMS session and protected exit/watchdog remain.
+- D087 split logs and bounded Agent presence remain.
+- WMS remains signed GET-only; no confirmation/mutation is authorized.
 - Stable remains OWNER-GATED.
 
 ## Next action
 
-Owner field-reviews released `relay-agent-v12` with signed `beta-vc52` on the company laptop/PDA.
+Open D088 PR, obtain all required CI PASS, merge, verify Beta runtime + signed Android + Agent v13 releases, then record exact release evidence in a canonical checkpoint.

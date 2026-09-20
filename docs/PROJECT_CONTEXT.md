@@ -177,3 +177,19 @@ D087 Windows Agent v12 is technically released on Beta source authority.
 - D087 split sanitized PDA↔Agent audit from technical-AI diagnostics, repaired retryable overlay initialization, restored minimize-to-taskbar without X, added two-row Laptop/Agent overlay and bounded Agent-online presence. Per-machine APK/response counters remain RAM-only.
 - Next physical checkpoint is Owner review of released v12 on the company laptop/PDA.
 - D078 final PDA ↔ Agent transport remains pending physical Office evidence. Current RTDB carrier remains temporary. WMS remains GET-only; Stable remains OWNER-GATED.
+
+## D088 current implementation checkpoint
+
+Owner approved a coordinated Beta naming/session/tools/Agent presentation update on 2026-09-20.
+
+- Web user-facing product name: **Website nghiệp vụ Inventory**.
+- Android Beta app: **1291 Beta**.
+- Windows Agent: **Agent Auto Confirm Pick Pack**, target `relay-agent-v13`.
+- Web + Android now have a server-authoritative one-interactive-session generation with persistent local session restore. A fresh Web/Android login replaces prior Web/Android sessions for the account; Agent uses a separate real-ADMIN channel so D085 multi-Agent HA is preserved.
+- Admin/Root Web adds `HỆ THỐNG → Công cụ` with the v13 Agent direct download and usage guidance.
+- Agent minimize is System-Tray-only. Overlay unlocked mode gains resize plus full background/text color selection; locked mode remains true click-through.
+- Web/Android/Agent share the Owner-selected icon #4 motif.
+- SQLite source schema target advances from 7 to 8 only for the additive session-generation fields.
+- D078 final PDA ↔ Agent transport remains pending physical Office evidence; current RTDB is temporary. WMS remains GET-only; Stable remains OWNER-GATED.
+
+Implementation branch: `feat/d088-unified-brand-single-session-tools-overlay`. Technical release status remains CI/PR pending until the branch passes all guards, merges, Beta deploy succeeds and v13/next signed Android artifacts are published.

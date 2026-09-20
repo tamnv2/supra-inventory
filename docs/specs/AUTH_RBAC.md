@@ -125,3 +125,12 @@ Picker clients must not infer, request or receive another Picker's event payload
 - A graceful Agent shutdown requires the currently authenticated ADMIN's locally protected password verifier. The verifier is salted/derived and itself DPAPI-protected; plaintext password storage/logging is forbidden.
 - Runtime watchdog/autostart changes process persistence only and grant no extra application/WMS privilege.
 
+## D088 — persistent single interactive Web/Android session and independent Agent authority
+
+- One application account has exactly one **interactive** session generation across Web and Android/PDA. A successful new Web or Android login increments the server-authoritative `session_generation`; every older Web/Android token for that account becomes invalid with `SESSION_REPLACED`.
+- Web and Android persist the current refreshable application session locally so reopening the same browser/app does not require another login while that session remains current. Passwords are never persisted by this mechanism.
+- Session validity is enforced on normal authenticated API calls and refresh, not by a high-frequency background polling loop. Existing realtime connections are requested to close when a new interactive session is activated; API generation checking remains authoritative.
+- Existing pre-D088 tokens without the new session claims fail closed as `SESSION_UPGRADE_REQUIRED` and require one login after deployment.
+- Password change increments the interactive session generation and invalidates older Web/Android sessions.
+- The Windows Agent uses an explicit `AGENT` auth channel and is **not** subject to the one-interactive-session generation. This is required to preserve D085 multi-Agent HA. Agent login still requires immutable base role ADMIN and effective ADMIN.
+- D088 closes open decision O002 for the current Beta product: Web + Android share one interactive session per account; real ADMIN Agents remain a separate multi-Agent operational channel.
