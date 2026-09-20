@@ -204,7 +204,7 @@ def main() -> None:
     require(status_overlay, "SetLocked", "D082 overlay lock/unlock")
     require(relay_agent, "overlay-settings.json", "D082 overlay persisted settings")
     require(relay_agent, "HasUsableWmsSession", "D082 valid WMS session reuse guard")
-    require(relay_agent, '"Phiên WMS đang OK"', "D082 block repeated WMS login")
+    require(relay_agent, '"Phiên Supra đang sẵn sàng"', "D086 block repeated WMS login")
     require(relay_agent, "HandlePicklistLookupJob", "D082 relay Picklist lookup handler")
     require(relay_agent, '"lookup_status"', "D082 lookup result ACK metadata")
     require(wms_picklist, "class WmsPicklistLookupClient", "D082 read-only Picklist lookup client")
