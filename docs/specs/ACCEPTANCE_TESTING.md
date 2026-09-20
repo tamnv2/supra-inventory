@@ -638,3 +638,15 @@ Accepted field items:
 D089 is therefore **fully PASS: source/build/runtime/release + Owner field acceptance**. `OA011` is closed.
 
 This does not close D078 transport selection, does not authorize WMS mutation, and does not change Stable OWNER-GATED status.
+
+## D090 Office transport evidence and next candidate gate
+
+Accepted field evidence from the company Office network:
+- Supra WMS UI/API read-only checks succeed.
+- Firebase Secure Token authentication succeeds.
+- Firebase RTDB repeatedly returns corporate-proxy HTTP 403 and is rejected as the Office carrier.
+- Firestore, Apps Script, Sheets and Drive API hosts are reachable at the transport layer; these responses prove host reachability only.
+
+No further Cloudflare Worker/custom-host Office probe is required for this workstream because Owner explicitly confirms that route is blocked/unavailable.
+
+Before any Google-hosted replacement is called transport PASS, Beta must prove the actual authenticated relay semantics rather than only a host probe. For the preferred Firestore candidate this includes request/result correlation, one sticky ACTIVE Agent, standby takeover at the approved failover threshold, no-Agent behavior, idempotency, sanitized logging and a quota-safe design. No WMS mutation and no Stable action are part of this gate.

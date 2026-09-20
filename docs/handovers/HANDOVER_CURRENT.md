@@ -26,6 +26,10 @@ Owner confirmed on 2026-09-21 that the D089 result **đã đạt**. The followin
 
 `OA011` is closed PASS.
 
+## 2A. D090 Office transport boundary
+
+Owner confirmed on 2026-09-21 that Office should be treated as internal Supra plus selected Google services only. Sanitized field evidence: WMS UI/API read-only PASS, Firebase Auth PASS, RTDB corporate-proxy 403, and Google-hosted Firestore/Apps Script/Sheets/Drive endpoints reachable. Do not retest Cloudflare/Worker on Office. Firestore is the preferred next candidate from D078 but remains unselected until an authenticated Beta relay/HA/quota proof.
+
 ## 3. Released artifacts and evidence
 
 D089 runtime:
@@ -39,14 +43,14 @@ Released artifacts:
 
 ## 4. Open boundaries
 
-- D078 final PDA ↔ Agent transport remains pending physical Office-network evidence; current RTDB is temporary.
+- D090 Office evidence is complete: do not test Cloudflare/Worker further on Office; RTDB is proxy-blocked; replacement research is Google-hosted only, with Firestore preferred but not yet selected. Current RTDB is temporary outside Office.
 - WMS remains signed GET-only; confirmation/mutation is not authorized.
 - Stable remains OWNER-GATED.
 - Do not alter Stable unless the Owner explicitly authorizes it.
 
 ## 5. Next action
 
-There is no remaining D089 implementation or field-retest task.
+There is no remaining D089 implementation or field-retest task. D090 also closes the old Office probe checkpoint; no repeat Cloudflare Office test is required.
 
 On the next session:
 1. read `ops/authority-manifest.json`;

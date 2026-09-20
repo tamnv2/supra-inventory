@@ -31,9 +31,13 @@ Technical/runtime/release evidence was already PASS before Owner acceptance:
 
 `OA011` is closed PASS. There is no remaining D089 field acceptance blocker.
 
+## D090 Office transport evidence
+
+Owner-confirmed field boundary: Office reaches internal Supra plus selected Google services only. Sanitized Agent evidence confirms WMS UI/API and Firebase Auth reachability, repeated RTDB corporate-proxy 403, and transport-layer reachability of Firestore/Apps Script/Sheets/Drive hosts. No further Cloudflare/Worker Office probe is required. A Google-hosted replacement still needs an authenticated Beta relay/HA/quota proof before selection.
+
 ## Open boundaries
 
-- D078 transport selection remains pending; current RTDB remains temporary.
+- D090 closes the Office reachability uncertainty: Cloudflare/Worker is excluded from further Office testing, RTDB is proxy-blocked, and replacement research is Google-hosted only. Firestore is preferred but not selected; current RTDB remains temporary outside Office.
 - WMS remains GET-only; no confirmation/mutation.
 - Stable remains OWNER-GATED.
 

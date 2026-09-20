@@ -276,3 +276,16 @@ Current accepted artifacts:
 - D089 release-state checkpoint main: `a01ae7abcd52090b421f3016f1e4a80fcd58dad6`.
 
 No D089 field retest remains open. Future work starts from a fresh canonical GitHub bootstrap and the Owner's next explicit requirement. D078 final transport remains pending; WMS remains GET-only; Stable remains OWNER-GATED.
+
+## D090 Office transport boundary
+
+Owner physical Office testing on 2026-09-21 closes the Cloudflare-probe branch for the confirmation workstream. The Office network is treated as an allowlisted environment that reaches internal Supra services and selected Google services only.
+
+For PDA ↔ Agent confirmation transport:
+- do not continue testing the Cloudflare Worker/custom project host from Office;
+- Firebase RTDB is excluded as the Office carrier because the corporate proxy repeatedly returns 403;
+- Firebase Auth and several Google API hosts are reachable;
+- replacement research is narrowed to Google-hosted candidates, with Firestore the preferred candidate from D078 but still requiring an authenticated Beta relay proof before final selection;
+- current RTDB may remain temporary on Internet-capable networks only;
+- no new relay resource is adopted until canonical scope/resource files are updated;
+- WMS remains GET-only and Stable remains OWNER-GATED.
