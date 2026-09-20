@@ -531,3 +531,20 @@ Owner physical acceptance after release requires at least two Agents with valid 
 
 D078 Office transport selection remains a separate pending field decision and must not be inferred from D085 acceptance.
 
+## D086 acceptance — Agent v11 session/UI/lifecycle hardening
+
+Technical/source acceptance requires:
+1. Agent v11 builds and the existing Windows startup-smoke test PASS.
+2. WMS session persistence uses DPAPI `CurrentUser`; no raw Authorization/Token/APISID/SID/SCID/USID value is written to logs/repo/RTDB.
+3. Startup tries the encrypted WMS session file before any browser capture. A valid saved session must validate and preload Picklist without launching a browser; unusable state is cleared and only then may local browser reacquisition run.
+4. Successful Picklist preload/real refresh renews the encrypted session file. Session-expired classification clears it.
+5. Main UI has `Tổng quan` and `Cài đặt`; overview is limited to Supra login/ready, connection status and concise model info. ADMIN login, network probes, overlay settings and logs are under settings.
+6. Locked overlay applies `WS_EX_TRANSPARENT`/no-activate behavior dynamically without `RecreateHandle()`; clicking a desktop/app object underneath the overlay reaches that underlying object. Unlocking restores drag behavior.
+7. Main form has no normal title-bar close control. Deliberate exit requires the current ADMIN password verifier; plaintext password is never persisted/logged.
+8. Current-user autostart remains. A sleep-only watchdog relaunches the Agent after unexpected main-process exit and is suppressed for authorized exit/update/Windows shutdown. Acceptance must not claim same-user Task Manager can be cryptographically prevented from killing both processes.
+9. Continuous `netsh` polling at the old ~4-second cadence is absent; SSID UI refresh is coarse and local machine overlay sampling is no faster than needed for human visibility.
+10. D085 3-second heartbeat/10-second failover, all-date exact PickListCode GET-only lookup, anti-spam and RTDB temporary carrier remain unchanged; no WMS mutation exists.
+11. Stable remains untouched.
+
+Owner field review after release covers the actual UI layout, saved-session reuse on the company laptop, browser fallback when the saved session is invalid, click-through over a real desktop/application object, protected exit, kill/restart behavior and idle CPU/RAM footprint.
+
