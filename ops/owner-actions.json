@@ -227,7 +227,7 @@
     },
     {
       "id": "OA007",
-      "status": "OWNER_D085_FIELD_TEST_PENDING",
+      "status": "SUPERSEDED_BY_D086",
       "title": "Field-test D085 sticky multi-Agent HA, anti-spam, WMS session reuse, overlay rollback and autostart",
       "resource_key": "firebase-rtdb-relay-beta",
       "provider": "Physical Beta PDA + Windows Agents + authorized Supra WMS sessions",
@@ -254,7 +254,7 @@
         "No WMS confirmation/mutation occurs."
       ],
       "safety": "Beta only. Use authorized WMS sessions. Never paste passwords, cURL, tokens, Authorization/APISID/SID/SCID/USID, signatures/nonces or raw WMS response payloads. Stable and WMS mutation remain forbidden.",
-      "remaining_owner_action": "Run relay-agent-v10 + signed beta-vc52 physical field acceptance for multi-Agent failover, no-Agent warning, anti-spam locks, WMS profile reuse, overlay behavior and user-mode autostart. D078 Office transport selection remains a separate pending test.",
+      "remaining_owner_action": null,
       "prerequisites": {
         "source_branch": "feat/d085-agent-ha-rate-limit-autostart",
         "merged_pr": 89,
@@ -272,6 +272,45 @@
         "main_beta_deploy_run": 35475860697,
         "main_rtdb_rules_run": 35475860708,
         "main_ui_guard": 35475860687,
+        "transport": "CURRENT_RTDB_TEMPORARY__FINAL_SELECTION_PENDING_D078"
+      }
+    },
+    {
+      "id": "OA008",
+      "status": "D086_RELEASE_PENDING__OWNER_FIELD_TEST_AFTER_RELEASE",
+      "title": "Field-review D086 Agent session/UI/click-through/persistent background behavior",
+      "resource_key": "supra-wms-ui-d080",
+      "provider": "Physical company Windows laptop + authorized Supra WMS session + Beta PDA where needed",
+      "reason_owner_only": "Connected tools cannot operate the Owner's company Windows desktop, authenticate the company WMS browser, click through a real overlay onto another application, use Task Manager, or measure the physical laptop's idle footprint.",
+      "owner_ui_path": [],
+      "shortest_test_path": [
+        "Use the released relay-agent-v11 normal-user EXE after CI/release PASS.",
+        "Review Tổng quan: only Đăng nhập hệ thống Supra, connection/Agent status and current-model information should be primary; ADMIN login, tests, overlay and logs must be under Cài đặt.",
+        "After one authorized WMS capture, restart Agent and verify it decrypts the local session file, validates/preloads Picklist and does not reopen browser while the saved session remains usable.",
+        "Invalidate/expire the saved session and verify Agent clears unusable state then opens the local dedicated WMS browser to reacquire authorization.",
+        "Lock overlay over a real desktop icon/application control and click through it; the underlying object must receive the click. Unlock and verify drag works.",
+        "Verify there is no normal window X shutdown. Use Tắt Agent... and confirm wrong password is rejected and current ADMIN password allows graceful exit.",
+        "Restart Agent, kill only the main Agent process and verify the watchdog relaunches it; do not interpret this as protection against killing both processes.",
+        "Observe idle CPU/RAM on the weak laptop and provide sanitized log only if behavior is abnormal."
+      ],
+      "pass_criteria": [
+        "No raw WMS session/password/token values appear in repo/logs/RTDB; WMS session file is DPAPI CurrentUser encrypted.",
+        "Valid saved session restores Picklist readiness without browser; invalid saved session falls back to local browser.",
+        "Overview/Settings hierarchy matches D086.",
+        "Locked overlay truly passes pointer input to another application/desktop beneath it.",
+        "Graceful exit requires current ADMIN password verifier; plaintext password is not persisted.",
+        "Unexpected main-process exit is restarted by watchdog while deliberate exit/update/shutdown is not.",
+        "Idle monitoring avoids old 4-second netsh polling; no material continuous CPU load from UI monitoring.",
+        "D085 10-second failover/cache/rate-limit behavior remains unchanged.",
+        "No WMS confirmation/mutation occurs and Stable is untouched."
+      ],
+      "safety": "Beta only. Use authorized company WMS access. Never share passwords, Authorization/Token/APISID/SID/SCID/USID, signatures/nonces, encrypted session files or raw WMS payloads.",
+      "remaining_owner_action": "Wait for relay-agent-v11 release PASS, then perform the physical D086 review. D078 Office transport selection remains separate and pending.",
+      "prerequisites": {
+        "source_branch": "feat/d086-agent-session-ui-lifecycle",
+        "android_release": "beta-vc52",
+        "current_agent_release": "relay-agent-v10",
+        "target_agent_release": "relay-agent-v11",
         "transport": "CURRENT_RTDB_TEMPORARY__FINAL_SELECTION_PENDING_D078"
       }
     }
