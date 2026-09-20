@@ -118,7 +118,7 @@
     },
     {
       "id": "OA004",
-      "status": "PAUSED_OWNER_AWAY_FROM_OFFICE__RESUME_TRIGGER_D079",
+      "status": "COMPLETED_BY_D090_OFFICE_EVIDENCE",
       "title": "Publish D075 shared relay RTDB Rules and field-test ADMIN Agent",
       "resource_key": "firebase-rtdb-relay-beta",
       "provider": "Firebase + physical Beta field environment",
@@ -132,7 +132,7 @@
         "Press Mở log and provide the sanitized Agent log."
       ],
       "safety": "Beta only; do not use Test mode/open Rules; no WMS mutation; never share passwords/tokens.",
-      "remaining_owner_action": "When back at company, start a session with exact phrase `tiếp tục build xác nhận lấy lại hàng`; AI must resume D078 immediately, then run relay-agent-v4 TEST TẤT CẢ on .Office@MSN and analyze the sanitized log.",
+      "remaining_owner_action": null,
       "prerequisites": {
         "merged_main": "452feb1e25dff936617e5d1d51313438d85155eb",
         "rules_deploy_run": 35451292051,
@@ -147,6 +147,12 @@
         "rules_read": "PASS",
         "rules_put": "PASS",
         "exact_readback_verify": "PASS"
+      },
+      "completed_at": "2026-09-21",
+      "completion_evidence": {
+        "owner_confirmation": "Office chỉ truy cập nội bộ Supra và một số dịch vụ Google; không cần tiếp tục test Cloudflare cho PDA-Agent.",
+        "sanitized_field_summary": "Office: WMS UI/API read-only PASS; Firebase Secure Token PASS; RTDB corporate-proxy 403; Firestore/Apps Script/Sheets/Drive hosts reachable.",
+        "next_boundary": "Google-hosted candidate only; Firestore preferred by D078 but not final until authenticated Beta relay proof."
       }
     },
     {
