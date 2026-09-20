@@ -291,3 +291,14 @@ For `Xác nhận đơn`, transport selection remains pending D078; the currently
 
 A future confirmation adapter may only be added after a separate explicit Owner authorization of the exact mutation endpoint/contract. Until then the flow ends at read-only existence result.
 
+## D086 Windows Agent local workflow
+
+1. Restore/validate the real SUPRA Inventory ADMIN application session.
+2. Read the current Windows user's DPAPI-encrypted WMS session file.
+3. Validate it through the approved read-only WMS path and preload the complete all-date Picklist cache.
+4. If validation/preload succeeds, become WMS-ready without opening the browser and renew the encrypted file.
+5. If the saved session is absent/unusable, clear it and locally open the dedicated WMS browser so the authorized operator can re-establish WMS access; then preload/renew.
+6. Remote PDA lookup never opens the WMS browser.
+7. Normal operation stays background/tray-first. Deliberate shutdown requires current ADMIN password verification; unexpected main-process exit may be restarted by the user-mode watchdog.
+8. D085 sticky ACTIVE/STANDBY ownership and 10-second failover remain unchanged. D078 transport selection remains pending and no WMS mutation is authorized.
+
