@@ -1817,7 +1817,7 @@ function renderTools(): string {
     <div class="tools-grid">
       <article class="ops-panel tool-card tool-card-primary">
         <div class="tool-card-head">
-          <img class="tool-icon-image" src="/app-icon.jpg" alt="" aria-hidden="true" />
+          <img class="tool-icon-image" src="/app-icon.png" alt="" aria-hidden="true" />
           <div><h3>Agent Auto Confirm Pick Pack</h3><p>Agent Windows phục vụ luồng xác nhận lấy lại đơn và trao đổi dữ liệu với PDA.</p></div>
         </div>
         <div class="tool-facts">
