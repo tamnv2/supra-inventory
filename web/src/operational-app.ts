@@ -1805,7 +1805,7 @@ function renderLegacyVersions(): string {
   return renderSystem();
 }
 
-const AGENT_RELEASE_TAG = "relay-agent-v14";
+const AGENT_RELEASE_TAG = "relay-agent-v15";
 const AGENT_RELEASE_URL = "https://github.com/tamnv2/supra-inventory/releases/tag/" + AGENT_RELEASE_TAG;
 const AGENT_DOWNLOAD_URL = "https://github.com/tamnv2/supra-inventory/releases/download/" + AGENT_RELEASE_TAG + "/Agent.Auto.Confirm.Pick.Pack.exe";
 
@@ -1817,11 +1817,11 @@ function renderTools(): string {
     <div class="tools-grid">
       <article class="ops-panel tool-card tool-card-primary">
         <div class="tool-card-head">
-          <div class="tool-icon" aria-hidden="true">⇄</div>
+          <img class="tool-icon-image" src="/app-icon.png" alt="" aria-hidden="true" />
           <div><h3>Agent Auto Confirm Pick Pack</h3><p>Agent Windows phục vụ luồng xác nhận lấy lại đơn và trao đổi dữ liệu với PDA.</p></div>
         </div>
         <div class="tool-facts">
-          <div><span>Phiên bản</span><strong>v14</strong></div>
+          <div><span>Phiên bản</span><strong>v15</strong></div>
           <div><span>Nền tảng</span><strong>Windows</strong></div>
           <div><span>Quyền chạy</span><strong>User thường</strong></div>
           <div><span>Cập nhật</span><strong>Tự động qua GitHub</strong></div>
