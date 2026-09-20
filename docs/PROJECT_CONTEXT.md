@@ -138,3 +138,16 @@ D086 supersedes D085 only for local Windows Agent session/UI/lifecycle mechanics
 - Background UI monitoring is coarse to protect weak laptops. D085's 3-second HA heartbeat remains required for the approved 10-second failover.
 - D078 final PDA-Agent transport choice remains pending; current RTDB is unchanged. WMS remains GET-only and Stable remains OWNER-GATED.
 
+## D086 release checkpoint
+
+D086 Windows Agent v11 is technically released on Beta source authority.
+
+- PR #92 merged to `main` at `207a57be6c4d95ab48d174b8af154f122bec7c5e`.
+- Main `Verify Beta Relay Agent` run `35490227885` PASS, including v11 build, D086 regression guard and Windows startup-smoke.
+- Main `UI Design Guard` run `35490227907` PASS.
+- GitHub prerelease: `relay-agent-v11`, release id `392316320`.
+- EXE asset id `576140376`, size `148992` bytes, SHA-256 `dce3a779c86096a6a82ed1991e385e7e6acea2d9ba75078e8bf2371eb1387659`.
+- Signed Android remains `beta-vc52`; no Android rebuild was required by D086.
+- Next physical checkpoint is Owner review of UI, DPAPI WMS session file-first reuse/browser fallback, true click-through overlay, protected ADMIN exit, watchdog behavior and weak-laptop idle CPU/RAM. D085 multi-Agent failover/cache/anti-spam may be verified in the same field cycle.
+- D078 final PDA ↔ Agent transport remains pending physical Office evidence. Current RTDB carrier remains temporary. WMS confirmation/mutation remains forbidden. Stable remains OWNER-GATED.
+
