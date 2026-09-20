@@ -312,3 +312,17 @@ A future confirmation adapter may only be added after a separate explicit Owner 
 4. Agent publishes only lightweight online-presence metadata globally. Per-machine PDA request/response counters remain local.
 5. Support review uses the separate PDA-Agent audit log for operational correlation and the technical-AI log for fault/performance diagnosis.
 6. D085 sticky ownership/failover and read-only Picklist lookup remain authoritative; no WMS mutation is added.
+
+## D088 — Admin/Root tools and session workflow
+
+Admin/Root Web:
+1. Open **HỆ THỐNG → Công cụ**.
+2. Review the current **Agent Auto Confirm Pick Pack** release information.
+3. Download the official Agent executable directly from the project GitHub release.
+4. Use a real ADMIN application account inside Agent; ROOT/REPORTER/PICKER are not valid Agent identities.
+
+Web/Android account session:
+1. A valid saved session is restored on reopen.
+2. A new Web or Android login for the same account becomes the only current interactive session.
+3. Any older Web/Android session fails closed and returns to login when it next uses authenticated API/refresh.
+4. Agent logins are excluded from this single-interactive-session replacement because multi-Agent standby/ACTIVE operation is separately authorized by D085.
