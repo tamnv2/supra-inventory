@@ -46,3 +46,11 @@ D088 remains the currently released baseline until D089 merges/releases:
 ## Next action
 
 Run D089 branch → PR → guards → merge → runtime/artifact verification → final canonical release checkpoint.
+## Canonical exact markers
+
+- SQLite schema: `8`
+- Latest Beta APK: `beta-vc53`
+- Web: `D089_SOURCE_CANDIDATE__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON__CI_PENDING`
+- Android: `D089_SOURCE_CANDIDATE__1291_BETA_APPROVED_ICON__NEXT_SIGNED_RELEASE_PENDING__AGENT_V15_TARGET__TRANSPORT_SELECTION_PENDING`
+- Beta: `D089_SOURCE_CANDIDATE__FIELD_REPAIR_CI_PENDING__SIGNED_BETA_VC53_CURRENT__AGENT_V15_TARGET`
+
