@@ -190,3 +190,5 @@ D087 refines the released D086 Windows Agent after Owner field evidence from v11
 - **Agent** shows total online Agents plus per-machine current-runtime APK received and Agent responses. The two per-machine counters stay RAM-only and are never synchronized globally.
 - Total Agent online uses only bounded Beta RTDB presence: one minimal own-presence write every 30s, one bounded presence-list read every 60s and 90s freshness. Presence carries only safe Agent identity/machine/heartbeat/WMS-ready metadata. It does not select the final D078 transport.
 - WMS remains signed **GET-only** with no confirmation/mutation. Stable remains untouched and OWNER-GATED.
+
+- D087 RTDB presence-rule changes still run Android verification but must not publish/advance the signed Android channel unless files under android/** actually changed. Agent-only Rules/support changes therefore keep the current signed beta-vc52.
