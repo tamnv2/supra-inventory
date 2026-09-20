@@ -356,11 +356,23 @@ function formatHeaderUpdate(value: Date | null): string {
   return `${p.hour}:${p.minute} ${p.month}/${p.day}/${p.year}`;
 }
 
+function realtimeStatusLabel(): string {
+  if (realtimeState === "connected") return "Đã kết nối";
+  if (realtimeState === "offline") return "Mất realtime";
+  if (realtimeState === "reconnecting") return "Đang kết nối lại";
+  return "Đang kết nối";
+}
+
 function patchHeaderRuntime(): void {
   const service = document.querySelector<HTMLElement>("#service-state");
   if (service) {
     service.textContent = `Dịch vụ: ${serviceReachable ? "Hoạt động" : "Mất kết nối"}`;
     service.dataset.state = serviceReachable ? "on" : "off";
+  }
+  const realtime = document.querySelector<HTMLElement>("#realtime-state");
+  if (realtime) {
+    realtime.textContent = `Đồng bộ: ${realtimeStatusLabel()}`;
+    realtime.dataset.state = realtimeState === "connected" ? "on" : realtimeState === "offline" ? "off" : "pending";
   }
   const update = document.querySelector<HTMLElement>("#last-web-update");
   if (update) update.textContent = `Cập nhật: ${formatHeaderUpdate(lastWebUpdateAt)}`;
@@ -833,6 +845,7 @@ function renderLogin(): void {
     const data = new FormData(event.currentTarget as HTMLFormElement);
     void run(async () => {
       profile = await loginWithPassword(String(data.get("username") || "").trim(), String(data.get("password") || ""));
+      markWebUpdateReceived();
       skipDelayEnabled = loadSkipDelayEnabled(profile.user_id);
       runtimeLogEvent(`Đăng nhập: ${profile.role}`);
       sessionViewGeneration += 1;
@@ -857,6 +870,8 @@ function renderShell(content: string): void {
         <h1>Website nghiệp vụ Inventory</h1>
         <div class="header-runtime">
           <span id="service-state" data-state="${serviceReachable ? "on" : "off"}">Dịch vụ: ${serviceReachable ? "Hoạt động" : "Mất kết nối"}</span>
+          <span class="header-runtime-separator">|</span>
+          <span id="realtime-state" data-state="${realtimeState === "connected" ? "on" : realtimeState === "offline" ? "off" : "pending"}">Đồng bộ: ${realtimeStatusLabel()}</span>
           <span class="header-runtime-separator">|</span>
           <span id="last-web-update">Cập nhật: ${formatHeaderUpdate(lastWebUpdateAt)}</span>
         </div>
@@ -2714,7 +2729,8 @@ window.addEventListener("supra:realtime-status", (event) => {
   const detail = (event as CustomEvent<{ state?: string; lastSeq?: number; dirty?: boolean }>).detail || {};
   realtimeState = detail.state || realtimeState;
   realtimeLastSeq = Number(detail.lastSeq ?? realtimeLastSeq);
-  serviceReachable = navigator.onLine && realtimeState === "connected";
+  // D089: service reachability and realtime transport are independent.
+  // A websocket outage must not label the HTTP/API service as down.
   patchHeaderRuntime();
   const node = document.querySelector<HTMLElement>("#connection-state");
   if (node) {
@@ -2729,7 +2745,6 @@ window.addEventListener("supra:realtime-status", (event) => {
 });
 window.addEventListener("online", () => {
   realtimeState = "connecting";
-  serviceReachable = false;
   patchHeaderRuntime();
   if (profile) patchActiveSection(true);
 });
@@ -2746,6 +2761,7 @@ async function bootstrap(): Promise<void> {
   if (!hasSession()) { renderLogin(); return; }
   try {
     profile = await getMyProfile();
+    markWebUpdateReceived();
     sessionViewGeneration += 1;
     activeSection = resolveInitialSection(profile);
     syncSectionHistory(activeSection, "replace");
