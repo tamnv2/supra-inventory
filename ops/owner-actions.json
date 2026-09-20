@@ -367,7 +367,7 @@
     },
     {
       "id": "OA010",
-      "status": "D088_AGENT_V14_RELEASE_PENDING_THEN_OWNER_FIELD_REVIEW",
+      "status": "OWNER_D088_FIELD_TEST_PENDING",
       "title": "Field-review D088 unified naming/session/tools/tray/overlay release",
       "resource_key": "firebase-rtdb-relay-beta",
       "provider": "Beta Web + signed Android PDA + company Windows laptop + authorized Supra WMS session where Agent lookup is tested",
@@ -392,15 +392,26 @@
         "No WMS mutation occurs; D078 transport remains unselected; Stable remains untouched."
       ],
       "safety": "Beta only. Never share passwords, tokens, cookies, WMS session/header/signature values or encrypted session files. WMS confirmation/mutation remains unauthorized and D078 final transport remains pending.",
-      "remaining_owner_action": "Wait for final relay-agent-v14 technical/release PASS, then execute the D088 field checklist using signed beta-vc53.",
+      "remaining_owner_action": "Field-review released Beta Web, signed beta-vc53 and relay-agent-v14 using the D088 checklist. D078 transport selection remains separate and pending.",
       "prerequisites": {
         "source_branch": "feat/d088-unified-brand-single-session-tools-overlay",
-        "agent_release_target": "relay-agent-v14",
-        "android_release_target": "beta-vc53__RELEASED",
-        "transport": "CURRENT_RTDB_TEMPORARY__FINAL_SELECTION_PENDING_D078",
+        "runtime_pr": 96,
         "runtime_main": "8084928724110e7186867b8b16d79462134951aa",
-        "beta_deploy_run": 35505678533,
-        "android_run": 35505678482
+        "asset_repair_pr": 97,
+        "final_main": "48367c46b20405c48abb6ed8c0b59601defe1130",
+        "agent_release": "relay-agent-v14",
+        "agent_release_id": 392399976,
+        "agent_asset_id": 576644961,
+        "agent_asset_name": "Agent.Auto.Confirm.Pick.Pack.exe",
+        "agent_sha256": "1aa847dec7e38dc1e67c5d9291ea3cb153ad89cb1afa5eac2ff6ee16b7c2adc2",
+        "android_release": "beta-vc53",
+        "android_release_id": 392397786,
+        "android_apk_asset_id": 576632055,
+        "android_apk_sha256": "7cc0f5ec8ae0a9c7e61a985fcb8dcb32cb7e72934407efb4f19a0c7810875fa3",
+        "beta_deploy_run": 35506093272,
+        "agent_run": 35506093283,
+        "ui_run": 35506093215,
+        "transport": "CURRENT_RTDB_TEMPORARY__FINAL_SELECTION_PENDING_D078"
       }
     }
   ]

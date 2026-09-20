@@ -186,15 +186,46 @@ Owner approved a coordinated Beta naming/session/tools/Agent presentation update
 - Android Beta app: **1291 Beta**.
 - Windows Agent: **Agent Auto Confirm Pick Pack**, target `relay-agent-v14`.
 - Web + Android now have a server-authoritative one-interactive-session generation with persistent local session restore. A fresh Web/Android login replaces prior Web/Android sessions for the account; Agent uses a separate real-ADMIN channel so D085 multi-Agent HA is preserved.
-- Admin/Root Web adds `HỆ THỐNG → Công cụ` with the v13 Agent direct download and usage guidance.
+- Admin/Root Web adds `HỆ THỐNG → Công cụ` with the v14 Agent direct download and usage guidance.
 - Agent minimize is System-Tray-only. Overlay unlocked mode gains resize plus full background/text color selection; locked mode remains true click-through.
 - Web/Android/Agent share the Owner-selected icon #4 motif.
 - SQLite source schema target advances from 7 to 8 only for the additive session-generation fields.
 - D078 final PDA ↔ Agent transport remains pending physical Office evidence; current RTDB is temporary. WMS remains GET-only; Stable remains OWNER-GATED.
 
-Implementation branch: `feat/d088-unified-brand-single-session-tools-overlay`. Technical release status remains CI/PR pending until the branch passes all guards, merges, Beta deploy succeeds and v13/next signed Android artifacts are published.
+Implementation branch: `feat/d088-unified-brand-single-session-tools-overlay`. D088 technical/runtime/release gates are now PASS; exact final evidence is recorded below.
 
 
 ### D088 release-asset repair note
 
 The first merged D088 run published transitional `relay-agent-v13`, but GitHub normalized spaces in release asset filenames to dots. That made the Web direct URL and the v13 exact-name updater contract inconsistent. No field-download acceptance was recorded for v13. D088 therefore advances the final Agent target to `relay-agent-v14`, whose updater expects GitHub's actual normalized asset name `Agent.Auto.Confirm.Pick.Pack.exe` while the Windows assembly/product title remains **Agent Auto Confirm Pick Pack**. Signed Android `beta-vc53` and Beta schema 8/runtime deploy from main `8084928724110e7186867b8b16d79462134951aa` are already PASS.
+
+
+## D088 final release checkpoint
+
+D088 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta; Owner physical acceptance remains pending.
+
+Final source/runtime authority:
+- Runtime implementation PR #96 merged at `8084928724110e7186867b8b16d79462134951aa`.
+- GitHub release-asset normalization repair PR #97 merged at final main `48367c46b20405c48abb6ed8c0b59601defe1130`.
+- Final main Beta deploy run `35506093272` — PASS, including Web/service production deploy and SQLite schema 8.
+- Final main UI Design Guard `35506093215` — PASS.
+- Final main Repo Authority Guard `35506093253` — PASS.
+- Final main Project State Guard `35506093199` — PASS.
+- Final main Verify Beta Relay Agent `35506093283` — PASS, including Windows build and startup-smoke.
+
+Android Beta:
+- signed release `beta-vc53`;
+- release id `392397786`;
+- product name **1291 Beta 0.2.0-beta.53**;
+- APK asset id `576632055`, size `9333938` bytes;
+- SHA-256 `7cc0f5ec8ae0a9c7e61a985fcb8dcb32cb7e72934407efb4f19a0c7810875fa3`.
+
+Windows Agent:
+- final release `relay-agent-v14`, release id `392399976`;
+- Windows product/assembly name **Agent Auto Confirm Pick Pack**;
+- GitHub-normalized canonical release asset `Agent.Auto.Confirm.Pick.Pack.exe`;
+- asset id `576644961`, size `168448` bytes;
+- SHA-256 `1aa847dec7e38dc1e67c5d9291ea3cb153ad89cb1afa5eac2ff6ee16b7c2adc2`;
+- Web `HỆ THỐNG → Công cụ` and v14 updater both target this exact published asset contract.
+
+D088 closes O002 for current Beta: Web + Android use one persistent server-authoritative interactive session per account; Agent auth remains separate to preserve approved multi-Agent HA. D078 final transport remains pending physical Office evidence, current RTDB remains temporary, WMS remains GET-only, and Stable remains OWNER-GATED.
