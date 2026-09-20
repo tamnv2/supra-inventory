@@ -25,9 +25,10 @@ namespace SupraInventoryRelayAgent
         private const int WsExNoActivate = 0x08000000;
         private const int GwlExStyle = -20;
 
-        private readonly Label _text = new Label();
-        private readonly OverlaySettings _settings;
-        private readonly string _settingsPath;
+        private readonly Label _laptopText = new Label();
+        private readonly Label _agentText = new Label();
+        private OverlaySettings _settings;
+        private string _settingsPath;
         private bool _dragging;
         private Point _dragOrigin;
         private Point _windowOrigin;
@@ -37,45 +38,58 @@ namespace SupraInventoryRelayAgent
         internal StatusOverlayForm(OverlaySettings settings, string settingsPath)
         {
             _settings = settings ?? new OverlaySettings();
-            _settingsPath = settingsPath;
+            _settingsPath = settingsPath ?? "";
 
             Text = "SUPRA Status Overlay";
             FormBorderStyle = FormBorderStyle.None;
             ShowInTaskbar = false;
             TopMost = true;
             StartPosition = FormStartPosition.Manual;
-            Width = 365;
-            Height = 42;
+            Width = 720;
+            Height = 70;
             BackColor = Color.FromArgb(28, 35, 43);
             Opacity = ClampOpacity(_settings.Opacity);
             Padding = new Padding(10, 6, 10, 6);
 
-            _text.Dock = DockStyle.Fill;
-            _text.TextAlign = ContentAlignment.MiddleLeft;
-            _text.AutoEllipsis = true;
-            _text.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            _text.ForeColor = Color.White;
-            _text.Text = "SUPRA | đang đọc tài nguyên máy";
-            Controls.Add(_text);
+            _laptopText.SetBounds(10, 6, 700, 27);
+            _laptopText.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
+            _laptopText.TextAlign = ContentAlignment.MiddleLeft;
+            _laptopText.AutoEllipsis = true;
+            _laptopText.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            _laptopText.ForeColor = Color.White;
+            _laptopText.Text = "Laptop | đang đọc tài nguyên máy";
+            Controls.Add(_laptopText);
+
+            _agentText.SetBounds(10, 35, 700, 27);
+            _agentText.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
+            _agentText.TextAlign = ContentAlignment.MiddleLeft;
+            _agentText.AutoEllipsis = true;
+            _agentText.Font = new Font("Segoe UI", 9F);
+            _agentText.ForeColor = Color.Gainsboro;
+            _agentText.Text = "Agent | đang đọc trạng thái";
+            Controls.Add(_agentText);
 
             MouseDown += BeginDrag;
             MouseMove += ContinueDrag;
             MouseUp += EndDrag;
-            _text.MouseDown += BeginDrag;
-            _text.MouseMove += ContinueDrag;
-            _text.MouseUp += EndDrag;
+            _laptopText.MouseDown += BeginDrag;
+            _laptopText.MouseMove += ContinueDrag;
+            _laptopText.MouseUp += EndDrag;
+            _agentText.MouseDown += BeginDrag;
+            _agentText.MouseMove += ContinueDrag;
+            _agentText.MouseUp += EndDrag;
 
             ApplySavedPosition();
             Shown += (s, e) =>
             {
                 ApplyInteractionMode();
-                if (_settings.Locked) SendToPinnedState();
+                if (IsLocked) SendToPinnedState();
             };
         }
 
         protected override bool ShowWithoutActivation
         {
-            get { return _settings.Locked; }
+            get { return _settings != null && _settings.Locked; }
         }
 
         protected override CreateParams CreateParams
@@ -84,7 +98,7 @@ namespace SupraInventoryRelayAgent
             {
                 var cp = base.CreateParams;
                 cp.ExStyle |= WsExLayered | WsExToolWindow | WsExNoActivate;
-                if (_settings.Locked) cp.ExStyle |= WsExTransparent;
+                if (_settings != null && _settings.Locked) cp.ExStyle |= WsExTransparent;
                 return cp;
             }
         }
@@ -93,7 +107,7 @@ namespace SupraInventoryRelayAgent
         {
             const int WmNcHitTest = 0x0084;
             const int HtTransparent = -1;
-            if (_settings.Locked && m.Msg == WmNcHitTest)
+            if (_settings != null && _settings.Locked && m.Msg == WmNcHitTest)
             {
                 m.Result = new IntPtr(HtTransparent);
                 return;
@@ -103,32 +117,39 @@ namespace SupraInventoryRelayAgent
 
         internal bool IsLocked
         {
-            get { return _settings.Locked; }
+            get { return _settings != null && _settings.Locked; }
         }
 
         internal bool OverlayVisible
         {
-            get { return _settings.Visible; }
+            get { return _settings == null || _settings.Visible; }
         }
 
         internal double OverlayOpacity
         {
-            get { return _settings.Opacity; }
+            get { return _settings == null ? 0.78 : _settings.Opacity; }
         }
 
-        internal void UpdateText(string value)
+        internal void UpdateMetrics(string laptopLine, string agentLine)
         {
             if (IsDisposed) return;
             if (InvokeRequired)
             {
-                BeginInvoke(new Action<string>(UpdateText), value);
+                BeginInvoke(new Action<string, string>(UpdateMetrics), laptopLine, agentLine);
                 return;
             }
-            _text.Text = string.IsNullOrWhiteSpace(value) ? "SUPRA" : value;
+            _laptopText.Text = string.IsNullOrWhiteSpace(laptopLine) ? "Laptop | --" : laptopLine;
+            _agentText.Text = string.IsNullOrWhiteSpace(agentLine) ? "Agent | --" : agentLine;
+        }
+
+        internal void UpdateText(string value)
+        {
+            UpdateMetrics(value, _agentText == null ? "Agent | --" : _agentText.Text);
         }
 
         internal void SetLocked(bool locked)
         {
+            if (_settings == null) _settings = new OverlaySettings();
             if (_settings.Locked == locked) return;
             _settings.Locked = locked;
             _dragging = false;
@@ -138,6 +159,7 @@ namespace SupraInventoryRelayAgent
 
         internal void SetOverlayOpacity(double value)
         {
+            if (_settings == null) _settings = new OverlaySettings();
             _settings.Opacity = ClampOpacity(value);
             Opacity = _settings.Opacity;
             Persist();
@@ -145,6 +167,7 @@ namespace SupraInventoryRelayAgent
 
         internal void SetOverlayVisible(bool visible)
         {
+            if (_settings == null) _settings = new OverlaySettings();
             _settings.Visible = visible;
             if (visible)
             {
@@ -185,7 +208,7 @@ namespace SupraInventoryRelayAgent
 
         private void ApplySavedPosition()
         {
-            if (_settings.Left != int.MinValue && _settings.Top != int.MinValue)
+            if (_settings != null && _settings.Left != int.MinValue && _settings.Top != int.MinValue)
             {
                 Location = ClampToScreens(new Point(_settings.Left, _settings.Top), Size);
                 return;
@@ -202,9 +225,8 @@ namespace SupraInventoryRelayAgent
         private void ApplyInteractionMode()
         {
             TopMost = true;
-            _text.TextAlign = ContentAlignment.MiddleLeft;
-            Cursor = _settings.Locked ? Cursors.Default : Cursors.SizeAll;
-            BackColor = _settings.Locked ? Color.FromArgb(28, 35, 43) : Color.FromArgb(48, 63, 78);
+            Cursor = IsLocked ? Cursors.Default : Cursors.SizeAll;
+            BackColor = IsLocked ? Color.FromArgb(28, 35, 43) : Color.FromArgb(48, 63, 78);
             ApplyExtendedClickThrough();
             SendToPinnedState();
         }
@@ -215,7 +237,7 @@ namespace SupraInventoryRelayAgent
             try
             {
                 var style = NativeMethods.GetExtendedStyle(Handle);
-                var next = _settings.Locked
+                var next = IsLocked
                     ? style | WsExTransparent | WsExNoActivate
                     : style & ~WsExTransparent;
                 if (next != style)
@@ -228,7 +250,7 @@ namespace SupraInventoryRelayAgent
         {
             if (!Visible) return;
             TopMost = true;
-            if (_settings.Locked)
+            if (IsLocked)
             {
                 try
                 {
@@ -247,7 +269,7 @@ namespace SupraInventoryRelayAgent
 
         private void BeginDrag(object sender, MouseEventArgs e)
         {
-            if (_settings.Locked || e.Button != MouseButtons.Left) return;
+            if (IsLocked || e.Button != MouseButtons.Left) return;
             _dragging = true;
             _dragOrigin = Cursor.Position;
             _windowOrigin = Location;
@@ -255,7 +277,7 @@ namespace SupraInventoryRelayAgent
 
         private void ContinueDrag(object sender, MouseEventArgs e)
         {
-            if (!_dragging || _settings.Locked) return;
+            if (!_dragging || IsLocked) return;
             var now = Cursor.Position;
             var next = new Point(
                 _windowOrigin.X + (now.X - _dragOrigin.X),
@@ -267,6 +289,7 @@ namespace SupraInventoryRelayAgent
         {
             if (!_dragging) return;
             _dragging = false;
+            if (_settings == null) _settings = new OverlaySettings();
             _settings.Left = Left;
             _settings.Top = Top;
             Persist();
@@ -274,6 +297,7 @@ namespace SupraInventoryRelayAgent
 
         private void Persist()
         {
+            if (_settings == null) _settings = new OverlaySettings();
             _settings.Left = Left;
             _settings.Top = Top;
             try
