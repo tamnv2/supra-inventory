@@ -211,3 +211,17 @@ D088 records the Owner's eight-item Beta change set and supersedes D087 only whe
 A legacy Agent asset alias is permitted during the D088 transition so released pre-D088 clients can update. GitHub normalizes spaces in release asset filenames to dots; the Windows product/assembly remains **Agent Auto Confirm Pick Pack**, while the final D088 updater/download contract uses GitHub's normalized `Agent.Auto.Confirm.Pick.Pack.exe` asset. Transitional v13 exposed the normalization mismatch before Owner field use, so final D088 Agent target is v14.
 
 No D088 item selects the final PDA ↔ Agent transport, authorizes WMS mutation, or changes Stable.
+
+## D089 — Field-review repair: exact shared icon, service/realtime status split, complete Tools dark UI, granular overlay and single-instance Agent
+
+Status: **ACTIVE — OWNER APPROVED 2026-09-20**.
+
+D089 is a corrective field-review change set over D088. It does not reopen D078 transport selection, WMS mutation, D085 HA, D086 DPAPI/protected-exit behavior, D087 logging/presence, or Stable.
+
+1. The exact Owner-selected **icon #4 image asset** is authoritative. Web favicon/Tools, Android launcher and Windows EXE/taskbar/System Tray must be generated from that same committed full-bleed dark-navy asset. Hand-drawn placeholder SVG/vector/PowerShell recreations are not acceptable.
+2. Web HTTP/API service reachability and realtime/WebSocket state are distinct. A realtime outage may show **Đồng bộ: Mất realtime**, but successful authenticated API requests must keep **Dịch vụ: Hoạt động**. Realtime must never overwrite the HTTP service state.
+3. Agent overlay settings must expose a master **Bật hiển thị Overlay** toggle plus persisted granular checklists. Laptop options are CPU, RAM, Disk, Wi-Fi/Ethernet throughput, Internet state and GPU. Agent options are total Agent online, ACTIVE/STANDBY, local APK request count, local response count and Supra WMS readiness. Existing resize, opacity, colors, lock/click-through remain.
+4. Only one normal Agent runtime may exist per Windows user session. A second EXE launch must not create another Agent/tray/overlay/worker; it signals and restores/activates the already-running instance. CI startup-smoke remains exempt from the singleton mutex.
+5. **HỆ THỐNG → Công cụ** must be fully coherent in dark theme: no light fact tiles, unreadable text or mismatched controls.
+
+D089 release candidate targets `relay-agent-v15` plus the next signed 1291 Beta APK. WMS stays signed GET-only, current RTDB remains temporary pending D078, and Stable remains OWNER-GATED.
