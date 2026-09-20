@@ -278,3 +278,14 @@ The temporary Beta relay may maintain a small ADMIN-only presence set solely to 
 - Browser/network offline may mark service unavailable.
 - The Web may truthfully show `Dịch vụ: Hoạt động | Đồng bộ: Mất realtime` when APIs work but the realtime channel is down.
 - D089 does not add quota-heavy provider polling; realtime reconnect remains bounded/event-driven.
+
+## D090 confirmation relay transport constraint
+
+For the separate Picker `Xác nhận đơn` / Windows Agent workstream only:
+
+- Office transport discovery no longer tests or proposes the Cloudflare Worker/custom project host; Owner field evidence defines Office as internal-Supra plus selected-Google reachability.
+- Firebase RTDB is not a valid Office carrier because the corporate proxy repeatedly blocks it with HTTP 403.
+- Google-hosted candidates may be evaluated only after their host is reachable. Host reachability alone is not relay acceptance.
+- Firestore is the preferred next candidate inherited from D078. A Beta proof must validate authenticated request creation/claim/result delivery, sticky ACTIVE Agent semantics, approximately 10-second failover, no-Agent state, bounded retries/idempotency, and quota-safe heartbeat/listen behavior before it can replace RTDB.
+- Apps Script, Sheets and Drive remain fallback research candidates, not selected realtime authorities.
+- The normal Báo hàng realtime architecture is unchanged. This exception does not create offline business mode or authorize WMS mutation.
