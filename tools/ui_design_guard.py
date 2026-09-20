@@ -37,7 +37,7 @@ ANDROID_COLORS = read("android/app/src/main/res/values/colors.xml")
 ANDROID_STYLES = read("android/app/src/main/res/values/styles.xml")
 ANDROID_ICON = read("android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml")
 ANDROID_ICON_ROUND = read("android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml")
-ANDROID_APPROVED_ICON_EXISTS = (ROOT / "android/app/src/main/res/drawable-nodpi/app_icon_d089.jpg").is_file()
+ANDROID_APPROVED_ICON_EXISTS = (ROOT / "android/app/src/main/res/drawable-nodpi/app_icon_d089.png").is_file()
 WEB_APPROVED_ICON_EXISTS = (ROOT / "web/public/app-icon.png").is_file()
 ANDROID_ALL = "\n".join([ANDROID_MAIN, ANDROID_PICKER, ANDROID_REPORTER])
 
