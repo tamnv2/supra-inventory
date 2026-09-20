@@ -157,3 +157,18 @@ Agent v10 source adds:
 
 Standby Agents do not process WMS jobs. Remote PDA requests never open WMS login. WMS access remains signed GET-only; confirmation/mutation is not implemented or authorized.
 
+## D086 — Agent v11 session-first professional shell
+
+Agent v11 keeps D085 business/HA behavior and changes the Windows utility mechanics:
+
+- startup reads a local DPAPI-`CurrentUser` encrypted WMS session file first, validates it read-only and preloads the all-date Picklist cache; valid state does not reopen the browser;
+- an invalid/missing saved session is cleared before the local Agent-owned WMS browser is opened to reacquire an authorized session;
+- successful preload/real refresh renews the encrypted session file; raw WMS session values never enter logs/GitHub/RTDB;
+- main UI is split into `Tổng quan` and `Cài đặt`; ADMIN login, transport diagnostics, overlay settings and logs are under settings;
+- locked overlay uses Windows extended click-through behavior so the application below receives pointer input;
+- the title-bar close control is removed. Deliberate shutdown requires the current ADMIN's local protected password verifier;
+- a low-CPU watchdog restarts the main Agent after an unexpected exit. This is best-effort user-mode persistence, not a claim that Task Manager cannot kill both processes;
+- continuous 4-second SSID/`netsh` polling is removed; local status refresh is reduced while D085's required 3-second leader heartbeat/10-second failover remains.
+
+WMS access is still signed read-only GET only. Transport selection is still pending D078 Office evidence. Stable remains untouched.
+
