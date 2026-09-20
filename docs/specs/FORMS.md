@@ -338,3 +338,15 @@ Normal technical controls must not be scattered across the overview.
 - Main Agent shell has no close/X action but includes an explicit minimize-to-taskbar action. Protected tray shutdown remains the only normal exit.
 - Overlay row 1 is Laptop status: CPU, Memory, Disk, WiFi/Ethernet + Internet state, GPU where available.
 - Overlay row 2 is Agent status: total online Agents and current-machine runtime APK received/Agent response counts.
+
+## D089 — Agent overlay settings
+
+The Agent overlay settings surface contains:
+
+- Master controls: **Bật hiển thị Overlay** and **Khóa vị trí/kích thước + click-through**.
+- Appearance: width, height, background opacity, background color and text color.
+- **Thông tin Laptop** checklist: Laptop row, CPU, RAM used/total, Disk, Wi-Fi/Ethernet throughput, Internet ON/OFF and GPU when Windows exposes it.
+- **Thông tin Agent** checklist: Agent row, total Agent online, ACTIVE/STANDBY, APK requests accepted by this machine, responses produced by this machine and Supra WMS readiness.
+- **Chọn mặc định** restores all display options to enabled.
+
+All choices are local non-secret preferences, apply immediately and persist for the current Windows user. Turning a whole group off hides its row and disables the group's child selections until re-enabled.
