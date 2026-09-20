@@ -1,5 +1,6 @@
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
-const SESSION_KEY = "supra_inventory_beta_session_v1";
+const SESSION_KEY = "supra_inventory_interactive_session_v2";
+const LEGACY_SESSION_KEY = "supra_inventory_beta_session_v1";
 
 export interface AppProfile {
   user_id: string;
@@ -312,7 +313,7 @@ let refreshPromise: Promise<void> | null = null;
 
 function loadSession(): StoredSession | null {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
+    const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as StoredSession;
     if (!parsed.id_token || !parsed.refresh_token || !parsed.user) return null;
@@ -324,8 +325,9 @@ function loadSession(): StoredSession | null {
 
 function saveSession(next: StoredSession | null): void {
   session = next;
-  if (!next) sessionStorage.removeItem(SESSION_KEY);
-  else sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
+  sessionStorage.removeItem(LEGACY_SESSION_KEY);
+  if (!next) localStorage.removeItem(SESSION_KEY);
+  else localStorage.setItem(SESSION_KEY, JSON.stringify(next));
 }
 
 export async function readJson<T>(response: Response): Promise<T> {
@@ -372,7 +374,7 @@ export async function loginWithPassword(username: string, password: string): Pro
     const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: "POST",
       headers: { "content-type": "application/json", accept: "application/json" },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password, client_type: "WEB" }),
     });
     emitApiTelemetry({
       name: "auth_login",
