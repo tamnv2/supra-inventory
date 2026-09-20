@@ -1,32 +1,59 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 
 namespace SupraInventoryRelayAgent
 {
     internal sealed class SystemMetrics
     {
-        internal double CpuPercent;
+        internal double CpuPercent = -1;
         internal int CurrentMhz;
         internal ulong RamUsedBytes;
         internal ulong RamTotalBytes;
+        internal double DiskPercent = -1;
+        internal double GpuPercent = -1;
+        internal string NetworkKind = "--";
+        internal double NetworkDownMbps = -1;
+        internal double NetworkUpMbps = -1;
+        internal bool InternetKnown;
+        internal bool InternetConnected;
 
         internal string Compact()
         {
             var cpu = CpuPercent < 0 ? "--" : Math.Round(CpuPercent).ToString("0");
-            var mhz = CurrentMhz <= 0 ? "----" : CurrentMhz.ToString();
             var used = RamUsedBytes / 1073741824.0;
             var total = RamTotalBytes / 1073741824.0;
-            return "SUPRA | CPU " + cpu + "% " + mhz + "MHz | RAM " +
-                   used.ToString("0.0") + "/" + total.ToString("0.0") + "GB";
+            var disk = DiskPercent < 0 ? "--" : Math.Round(DiskPercent).ToString("0");
+            return "SUPRA | CPU " + cpu + "% | RAM " + used.ToString("0.0") + "/" + total.ToString("0.0") +
+                   "GB | Disk " + disk + "%";
         }
 
         internal string MenuText()
         {
             return "Máy: " + Compact().Replace("SUPRA | ", "");
         }
+
+        internal string LaptopLine()
+        {
+            var cpu = CpuPercent < 0 ? "--" : Math.Round(CpuPercent).ToString("0") + "%";
+            var ram = RamTotalBytes == 0 ? "--" :
+                (RamUsedBytes / 1073741824.0).ToString("0.0") + "/" +
+                (RamTotalBytes / 1073741824.0).ToString("0.0") + "GB";
+            var disk = DiskPercent < 0 ? "--" : Math.Round(DiskPercent).ToString("0") + "%";
+            var gpu = GpuPercent < 0 ? "--" : Math.Round(GpuPercent).ToString("0") + "%";
+            var down = NetworkDownMbps < 0 ? "--" : NetworkDownMbps.ToString("0.0");
+            var up = NetworkUpMbps < 0 ? "--" : NetworkUpMbps.ToString("0.0");
+            var internet = !InternetKnown ? "--" : (InternetConnected ? "ON" : "OFF");
+            return "Laptop | CPU " + cpu + " | Memory " + ram + " | Disk " + disk +
+                   " | " + NetworkKind + " ↓" + down + " ↑" + up + "Mbps · Internet " + internet +
+                   " | GPU " + gpu;
+        }
     }
 
-    internal sealed class SystemMonitor
+    internal sealed class SystemMonitor : IDisposable
     {
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         private struct MEMORYSTATUSEX
@@ -67,11 +94,23 @@ namespace SupraInventoryRelayAgent
             IntPtr outputBuffer,
             uint outputBufferSize);
 
+        [DllImport("wininet.dll", SetLastError = true)]
+        private static extern bool InternetGetConnectedState(out int description, int reservedValue);
+
         private readonly object _gate = new object();
         private ulong _previousIdle;
         private ulong _previousKernel;
         private ulong _previousUser;
         private bool _hasPrevious;
+        private string _networkId = "";
+        private long _networkRx;
+        private long _networkTx;
+        private DateTime _networkSampleUtc = DateTime.MinValue;
+        private PerformanceCounter _diskCounter;
+        private readonly List<PerformanceCounter> _gpuCounters = new List<PerformanceCounter>();
+        private DateTime _gpuLastSampleUtc = DateTime.MinValue;
+        private double _gpuLastValue = -1;
+        private bool _gpuInitialized;
 
         internal SystemMetrics Sample()
         {
@@ -80,7 +119,9 @@ namespace SupraInventoryRelayAgent
                 var result = new SystemMetrics
                 {
                     CpuPercent = SampleCpu(),
-                    CurrentMhz = SampleCurrentMhz()
+                    CurrentMhz = SampleCurrentMhz(),
+                    DiskPercent = SampleDisk(),
+                    GpuPercent = SampleGpu()
                 };
 
                 var memory = new MEMORYSTATUSEX();
@@ -92,6 +133,19 @@ namespace SupraInventoryRelayAgent
                         ? memory.ullTotalPhys - memory.ullAvailPhys
                         : 0;
                 }
+
+                SampleNetwork(result);
+                try
+                {
+                    int flags;
+                    result.InternetConnected = InternetGetConnectedState(out flags, 0);
+                    result.InternetKnown = true;
+                }
+                catch
+                {
+                    result.InternetKnown = false;
+                }
+
                 return result;
             }
         }
@@ -124,10 +178,7 @@ namespace SupraInventoryRelayAgent
             var total = kernelDelta + userDelta;
             if (total == 0) return 0;
             var busy = total > idleDelta ? total - idleDelta : 0;
-            var percent = busy * 100.0 / total;
-            if (percent < 0) return 0;
-            if (percent > 100) return 100;
-            return percent;
+            return Math.Max(0, Math.Min(100, busy * 100.0 / total));
         }
 
         private static int SampleCurrentMhz()
@@ -140,29 +191,129 @@ namespace SupraInventoryRelayAgent
             {
                 var status = CallNtPowerInformation(11, IntPtr.Zero, 0, buffer, (uint)bytes);
                 if (status != 0) return 0;
-
                 long sum = 0;
                 var valid = 0;
                 for (var i = 0; i < count; i++)
                 {
                     var ptr = IntPtr.Add(buffer, i * size);
                     var info = (PROCESSOR_POWER_INFORMATION)Marshal.PtrToStructure(ptr, typeof(PROCESSOR_POWER_INFORMATION));
-                    if (info.CurrentMhz > 0)
-                    {
-                        sum += info.CurrentMhz;
-                        valid++;
-                    }
+                    if (info.CurrentMhz > 0) { sum += info.CurrentMhz; valid++; }
                 }
                 return valid == 0 ? 0 : (int)(sum / valid);
             }
+            catch { return 0; }
+            finally { Marshal.FreeHGlobal(buffer); }
+        }
+
+        private double SampleDisk()
+        {
+            try
+            {
+                if (_diskCounter == null)
+                {
+                    _diskCounter = new PerformanceCounter("PhysicalDisk", "% Disk Time", "_Total", true);
+                    _diskCounter.NextValue();
+                    return -1;
+                }
+                return Math.Max(0, Math.Min(100, _diskCounter.NextValue()));
+            }
+            catch { return -1; }
+        }
+
+        private double SampleGpu()
+        {
+            var now = DateTime.UtcNow;
+            if ((now - _gpuLastSampleUtc).TotalSeconds < 15 && _gpuLastSampleUtc != DateTime.MinValue)
+                return _gpuLastValue;
+
+            _gpuLastSampleUtc = now;
+            try
+            {
+                if (!_gpuInitialized)
+                {
+                    _gpuInitialized = true;
+                    var category = new PerformanceCounterCategory("GPU Engine");
+                    foreach (var name in category.GetInstanceNames()
+                        .Where(x => x.IndexOf("engtype_3D", StringComparison.OrdinalIgnoreCase) >= 0)
+                        .Take(32))
+                    {
+                        try
+                        {
+                            var counter = new PerformanceCounter("GPU Engine", "Utilization Percentage", name, true);
+                            counter.NextValue();
+                            _gpuCounters.Add(counter);
+                        }
+                        catch { }
+                    }
+                    _gpuLastValue = _gpuCounters.Count == 0 ? -1 : 0;
+                    return _gpuLastValue;
+                }
+
+                if (_gpuCounters.Count == 0) return -1;
+                double total = 0;
+                foreach (var counter in _gpuCounters)
+                {
+                    try { total += Math.Max(0, counter.NextValue()); } catch { }
+                }
+                _gpuLastValue = Math.Max(0, Math.Min(100, total));
+                return _gpuLastValue;
+            }
             catch
             {
-                return 0;
+                _gpuLastValue = -1;
+                return -1;
             }
-            finally
+        }
+
+        private void SampleNetwork(SystemMetrics result)
+        {
+            try
             {
-                Marshal.FreeHGlobal(buffer);
+                var nic = NetworkInterface.GetAllNetworkInterfaces()
+                    .Where(x => x.OperationalStatus == OperationalStatus.Up &&
+                                (x.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 ||
+                                 x.NetworkInterfaceType == NetworkInterfaceType.Ethernet ||
+                                 x.NetworkInterfaceType == NetworkInterfaceType.GigabitEthernet))
+                    .OrderByDescending(x => x.NetworkInterfaceType == NetworkInterfaceType.Wireless80211)
+                    .FirstOrDefault();
+
+                if (nic == null)
+                {
+                    result.NetworkKind = "Network --";
+                    return;
+                }
+
+                result.NetworkKind = nic.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 ? "WiFi" : "Ethernet";
+                var stats = nic.GetIPv4Statistics();
+                var now = DateTime.UtcNow;
+                var id = nic.Id ?? nic.Name ?? "";
+                if (!string.Equals(_networkId, id, StringComparison.Ordinal) || _networkSampleUtc == DateTime.MinValue)
+                {
+                    _networkId = id;
+                    _networkRx = stats.BytesReceived;
+                    _networkTx = stats.BytesSent;
+                    _networkSampleUtc = now;
+                    return;
+                }
+
+                var seconds = Math.Max(0.001, (now - _networkSampleUtc).TotalSeconds);
+                result.NetworkDownMbps = Math.Max(0, (stats.BytesReceived - _networkRx) * 8.0 / seconds / 1000000.0);
+                result.NetworkUpMbps = Math.Max(0, (stats.BytesSent - _networkTx) * 8.0 / seconds / 1000000.0);
+                _networkRx = stats.BytesReceived;
+                _networkTx = stats.BytesSent;
+                _networkSampleUtc = now;
             }
+            catch { }
+        }
+
+        public void Dispose()
+        {
+            try { if (_diskCounter != null) _diskCounter.Dispose(); } catch { }
+            foreach (var counter in _gpuCounters)
+            {
+                try { counter.Dispose(); } catch { }
+            }
+            _gpuCounters.Clear();
         }
 
         private static ulong ToUInt64(FILETIME value)
