@@ -13,14 +13,14 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D093_FIRESTORE_REGRESSION_REPAIR_SOURCE_READY__CURRENT_RELEASE_V17_VC56__NEXT_RELEASE_PENDING__OA014_BEFORE_OA013",
+    "beta": "D093_TECHNICAL_RUNTIME_RELEASE_PASS__D091_FIRESTORE_OWNER_FIELD_PASS_RETAINED__SIGNED_BETA_VC57__AGENT_V18__OA014_FIELD_RETEST_PENDING__OA013_BLOCKED",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 8,
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
     "web": "D089_OWNER_ACCEPTED_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON",
-    "android": "D093_PENDING_CLAIM_GRACE_SOURCE_READY__CURRENT_RELEASE_BETA_VC56__NEXT_SIGNED_RELEASE_PENDING",
-    "latest_beta_apk": "beta-vc56",
+    "android": "D093_SIGNED_BETA_VC57_FIRESTORE_HARDENING_RELEASED__D089_OWNER_ACCEPTED_UI_BASELINE",
+    "latest_beta_apk": "beta-vc57",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
     "network_scope": "D093_FIRESTORE_CARRIER_PRESERVED__CURRENT_WINDOWS_PROXY_PER_REQUEST__D091_OWNER_OFFICE_E2E_PASS__RTDB_REJECTED_OFFICE__NO_TRANSPORT_REOPEN",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D093_FIRESTORE_REGRESSION_REPAIR_SOURCE_READY__OA013_BLOCKED_UNTIL_D093_PDA_AGENT_RETEST__D092_WMS_CONFIRM_CONTRACT_UNCHANGED"
+    "picklist_confirmation_poc": "D093_TECHNICAL_RUNTIME_RELEASE_PASS__FIRESTORE_CARRIER_PRESERVED__AGENT_V18__BETA_VC57__OA014_RETEST_PENDING__OA013_BLOCKED"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -166,8 +166,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Complete D093 branch/PR guards, merge only after continuity PASS, publish Agent v18 + next signed Beta APK, then run OA014 Firestore PDA-Agent regression retest before OA013 resumes.",
-    "method": "Automation handles source/build/release. Physical PASS then verifies the released Agent can remain running across the Office-network transition, reports Firestore health truthfully, and one PDA request completes PDA -> Firestore -> Office Agent -> Firestore -> PDA. Do not perform the real WMS confirmation until OA014 passes.",
+    "primary": "Owner runs OA014: re-test the released D093 Firestore PDA-Agent path using relay-agent-v18 + beta-vc57. OA013 real Picklist confirmation remains blocked until OA014 PASS.",
+    "method": "Keep Agent v18 running on the company laptop, use the Office network without restarting merely to refresh proxy state, verify truthful Firestore health, and complete one controlled PDA -> Firestore -> ACTIVE Agent -> Firestore -> PDA round trip. Do not proceed to the real WMS confirmation until OA014 passes.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -195,6 +195,7 @@
   },
   "workboard": {
     "in_progress": [
+      "D093 TECHNICAL/RUNTIME/RELEASE PASS: PR #111 merged to main 377159ed6722eede6b7716c9c83066b863a4e805. Main Authority/State/Beta/UI/Agent/Android runs PASS. Published relay-agent-v18 and signed beta-vc57. OA014 physical Firestore PDA-Agent regression re-test is the remaining D093 gate; OA013 remains blocked.",
       "D093 IN PROGRESS: repair D092 Firestore field regression without changing carrier. Source branch fix/d093-firestore-regression-hardening adds current Windows proxy resolution per Firestore request, safe-read transient retry, truthful Online 0/FIRESTORE OFFLINE health, bounded 10-second leader grace, and Android 30-second PENDING claim grace. D092 WMS confirmation contract unchanged; Stable untouched.",
       "D092 TECHNICAL/RUNTIME/RELEASE PASS: PR #109 merged to main 130a70ac912739e37caa98647cab60b53a6c0b06. Main Repo Authority 35552139222, Project State 35552139224, Firestore 35552139264, Beta Worker 35552139258, UI 35552139223, Relay Agent 35552139283 and Android 35552139252 all PASS. Published relay-agent-v17 and signed beta-vc56. Owner real Picklist confirmation field acceptance remains pending under OA013.",
       "D090 OWNER CONFIRMED: Office transport boundary is internal Supra + selected Google only. No further Cloudflare/Worker Office probe. RTDB is proxy-blocked; next replacement research is Google-hosted, with Firestore preferred but not yet selected.",
@@ -215,7 +216,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Finish D093 PR/guards/release, then Owner runs OA014 Firestore PDA-Agent regression retest; OA013 real Picklist confirmation remains blocked until OA014 PASS.",
+      "Owner runs OA014 with relay-agent-v18 + beta-vc57. Only after OA014 PASS may OA013 real Picklist confirmation resume.",
       "Bootstrap canonical GitHub and execute the Owner's next explicit requirement.",
       "Owner field-reviews D088 after release; keep D078 final transport selection pending until company-network physical evidence.",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
@@ -394,14 +395,14 @@
       "d072_quota_guard": "BETA_RUNTIME_PASS_OWNER_REVIEW_PENDING",
       "system_status_normal_runtime": "DISABLED",
       "system_status_provider_polling": "DISABLED",
-      "signed_beta_release": "beta-vc56",
-      "signed_beta_release_source_commit": "130a70ac912739e37caa98647cab60b53a6c0b06",
+      "signed_beta_release": "beta-vc57",
+      "signed_beta_release_source_commit": "377159ed6722eede6b7716c9c83066b863a4e805",
       "stable": "UNTOUCHED_OWNER_GATED",
-      "signed_beta_apk_sha256": "fe41c136d16470d7b0fac45a4b125b8e1b29610f7b468a4e41171f68c420da80",
+      "signed_beta_apk_sha256": "f655844b1222787938cacf169ca2f158630ab536b0a9c252f19f56d60cc3ce19",
       "d073_relay_poc": "SOURCE_BUILD_RELEASE_PASS__RTDB_PROVISIONING_FIELD_TEST_PENDING",
       "d074_relay_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_OFFICE_FIELD_RETEST_PENDING",
       "d075_relay_poc": "SOURCE_BUILD_RELEASE_PASS__D076_RULES_DEPLOY_PASS__OWNER_FIELD_TEST_PENDING",
-      "relay_agent_release": "relay-agent-v17",
+      "relay_agent_release": "relay-agent-v18",
       "relay_agent_release_prerelease": true,
       "d076_rtdb_rules": "PASS_RUN_35451292051__IAM_UPDATE_PASS__RULES_GET_PASS__RULES_PUT_PASS__EXACT_READBACK_PASS",
       "d080_wms_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_WMS_FIELD_TEST_PENDING",
@@ -427,7 +428,18 @@
         "relay_agent": 35552139283,
         "android": 35552139252
       },
-      "d092_owner_field_acceptance": "PENDING_OA013"
+      "d092_owner_field_acceptance": "PENDING_OA013",
+      "d093": "TECHNICAL_RUNTIME_RELEASE_PASS__OA014_PENDING__OA013_BLOCKED",
+      "d093_main": "377159ed6722eede6b7716c9c83066b863a4e805",
+      "d093_pr": 111,
+      "d093_main_runs": {
+        "repo_authority": 35554493313,
+        "project_state": 35554493314,
+        "beta_worker": 35554493316,
+        "ui": 35554493327,
+        "relay_agent": 35554493315,
+        "android": 35554493317
+      }
     }
   },
   "authority_setup": {
@@ -471,7 +483,8 @@
     "D089 Beta technical/runtime/release PASS: PR #99 merged at c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee after final PR Repo Authority/Project State/RTDB Rules/UI/Relay Agent/Android runs 35528500471/35528500466/35528500468/35528500465/35528500524/35528500467 PASS. Main Repo Authority/Project State/Beta Deploy/UI/Relay Agent/Android runs 35528647571/35528647574/35528647549/35528647554/35528647534/35528647526 all PASS. Published relay-agent-v15 prerelease id 392528472, Agent.Auto.Confirm.Pick.Pack.exe asset id 577316714 size 177152 SHA-256 94f82fc377057c5bbb1d80bbf0830f523bdf16108b40898ce63bb041624b9e9a. Published signed beta-vc54 release id 392528497, APK asset id 577316797 size 9340834 SHA-256 eeb95c489bf7dbfa455b323633bfe28685674f57f6ba76facd4c04e3b0958c2c. Stable untouched; D078 transport pending; WMS mutation forbidden.",
     "D089 Owner field acceptance PASS on 2026-09-21: Owner explicitly confirmed the released D089 result had achieved the requested requirements after testing Beta Web, signed beta-vc54 and relay-agent-v15. This closes OA011 and upgrades D089 from technical/runtime/release PASS to Owner-accepted PASS. The accepted baseline includes the exact shared icon #4, independent Service/Realtime status, dark Tools UI, granular persistent Overlay settings, and single-instance Agent duplicate-launch restore. D078 final transport remains pending, WMS remains GET-only, and Stable remains OWNER-GATED.",
     "D091 infrastructure evidence 2026-09-21: GitHub Actions run 35548094709 created/read back Beta Firestore `(default)` in asia-southeast1 successfully after Owner granted the scoped database role. Firebase CLI Rules deploy then failed only on its Service Usage preflight (`serviceusage.services.get`), so deployment is being changed to the Firebase Rules Management REST API using the already-scoped Firebase Rules Admin permission.",
-    "D091 Firestore infrastructure runtime PASS: PR #107 merged at cecf56079eba144188a0080bca8b1e78bcbfdd00; main Deploy Beta Firestore Relay run 35548847740 PASS. Existing (default) database readback confirmed asia-southeast1; Firebase Rules ruleset creation PASS; cloud.firestore release deploy + readback PASS. Field artifacts remain relay-agent-v16 and beta-vc55. Physical Office E2E is still pending."
+    "D091 Firestore infrastructure runtime PASS: PR #107 merged at cecf56079eba144188a0080bca8b1e78bcbfdd00; main Deploy Beta Firestore Relay run 35548847740 PASS. Existing (default) database readback confirmed asia-southeast1; Firebase Rules ruleset creation PASS; cloud.firestore release deploy + readback PASS. Field artifacts remain relay-agent-v16 and beta-vc55. Physical Office E2E is still pending.",
+    "D093 Beta technical/runtime/release PASS: PR #111 merged at 377159ed6722eede6b7716c9c83066b863a4e805. Main Repo Authority 35554493313, Project State 35554493314, Beta Worker 35554493316, UI 35554493327, Relay Agent 35554493315 and Android 35554493317 all PASS. Published relay-agent-v18 EXE SHA-256 96e2cde601f41908e1af10492a4bd8b9e8a47a905ce464d33d4917038838acb7 and signed beta-vc57 APK SHA-256 f655844b1222787938cacf169ca2f158630ab536b0a9c252f19f56d60cc3ce19. OA014 physical Firestore regression re-test pending; OA013 blocked; Stable untouched."
   ],
   "implementation_notes": [
     "D068 follow-up clean-copy patch replaces raw runtime-log filenames/JSON detail on the normal Web Nhật ký surface with a structured operational summary; downloadable support logging remains available. Frozen D067 items 1–8 and 10 are unchanged.",
@@ -501,9 +514,9 @@
   ],
   "active_workstream": {
     "key": "XAC_NHAN_DON_D093_FIRESTORE_REGRESSION",
-    "status": "SOURCE_REPAIR_READY__PR_CI_PENDING",
-    "bootstrap": "D091_OWNER_FIRESTORE_FIELD_PASS__D092_V17_VC56_REGRESSION_EVIDENCE__D093_OWNER_DIRECTED_2026_09_21",
-    "next_step": "Complete branch -> PR -> continuity PASS -> merge -> Agent v18 + next signed Beta APK release. Then OA014 physical Firestore relay retest; only after PASS resume OA013 real Picklist confirmation. Stable remains OWNER-GATED."
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA014_OWNER_FIELD_RETEST_PENDING",
+    "bootstrap": "D093_MAIN_377159ED__AGENT_V18__BETA_VC57__2026_09_21",
+    "next_step": "Run OA014 physical Firestore regression re-test. OA013 stays blocked until PASS. Stable remains OWNER-GATED."
   },
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
@@ -539,6 +552,7 @@
   },
   "evidence": [
     "D092 technical/runtime/release PASS: PR #109 merged at 130a70ac912739e37caa98647cab60b53a6c0b06; all main pipelines PASS. Published relay-agent-v17 release id 392647942, EXE asset id 577982501 size 216576 SHA-256 ccc0d499c044fb567b34cd37ff1a802293ee9cc47d082a34c4fac2778fe8cd24. Published signed beta-vc56 release id 392647903, APK asset id 577982221 size 9340858 SHA-256 fe41c136d16470d7b0fac45a4b125b8e1b29610f7b468a4e41171f68c420da80. Owner real WMS confirmation acceptance remains OA013; Stable untouched.",
-    "D093 Owner field regression evidence 2026-09-21: released relay-agent-v17 could report Firestore ConnectFailure/name-resolution failure and HA coordination errors in the physical environment while the UI online count remained misleading. D091 authenticated Firestore Office round-trip PASS remains the carrier-selection authority; D093 repairs the regression rather than changing carrier."
+    "D093 Owner field regression evidence 2026-09-21: released relay-agent-v17 could report Firestore ConnectFailure/name-resolution failure and HA coordination errors in the physical environment while the UI online count remained misleading. D091 authenticated Firestore Office round-trip PASS remains the carrier-selection authority; D093 repairs the regression rather than changing carrier.",
+    "D093 release evidence 2026-09-21: relay-agent-v18 release id 392660561 asset id 578049460 size 219136 SHA-256 96e2cde601f41908e1af10492a4bd8b9e8a47a905ce464d33d4917038838acb7; beta-vc57 release id 392660672 asset id 578050077 size 9340858 SHA-256 f655844b1222787938cacf169ca2f158630ab536b0a9c252f19f56d60cc3ce19."
   ]
 }
