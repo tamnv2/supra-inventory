@@ -58,6 +58,30 @@ namespace SupraInventoryRelayAgent
             }
 
             AgentDiagnostics.Initialize();
+
+            var d096SelfTest = args != null && Array.Exists(args, item =>
+                string.Equals(item, "--d096-self-test", StringComparison.OrdinalIgnoreCase));
+            if (d096SelfTest)
+            {
+                try
+                {
+                    var parserPass = WmsPicklistExactResolver.SelfTestJsonArrayParsing();
+                    var confirmPass = WmsPicklistConfirmClient.SelfTestResponseSemantics();
+                    AgentDiagnostics.Write(
+                        "D096 SELFTEST parser=" + (parserPass ? "PASS" : "FAIL") +
+                        " confirm_semantics=" + (confirmPass ? "PASS" : "FAIL"));
+                    Environment.ExitCode = parserPass && confirmPass ? 0 : 3;
+                }
+                catch (Exception ex)
+                {
+                    AgentDiagnostics.Write(
+                        "D096 SELFTEST exception type=" + ex.GetType().Name +
+                        " message=" + AgentDiagnostics.Sanitize(ex.Message));
+                    Environment.ExitCode = 4;
+                }
+                return;
+            }
+
             var startupSmoke = args != null && Array.Exists(args, item =>
                 string.Equals(item, "--startup-smoke", StringComparison.OrdinalIgnoreCase));
             var autoStarted = args != null && Array.Exists(args, item =>
