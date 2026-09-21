@@ -816,16 +816,16 @@
     },
     {
       "id": "OA019",
-      "status": "BLOCKED_BY_D099_TECHNICAL_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST_D100_RELEASE",
       "title": "Field-accept D098 unified Firebase identity, realtime and specialist Agent flow",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Beta Web + signed Android PDA + company Windows Agent + authorized Supra WMS session",
       "reason_owner_only": "Connected CI can verify source/build/deploy/Rules and synthetic session guards but cannot operate the Owner's physical Web/PDA/Office laptop combination or execute the controlled company-WMS specialist confirmation.",
       "owner_ui_path": [],
       "shortest_test_path": [
-        "Update the Windows Agent to relay-agent-v23 and the PDA to signed beta-vc61; use Beta Web. Do not use older v22/vc60 for final acceptance.",
-        "With one ADMIN, keep Web + App + Agent logged in simultaneously. Then force a second Web, second App and second Agent one at a time; each replacement must affect only its own channel.",
-        "Verify PICKER is App-only, REPORTER/ROOT work on App+Web, and only real ADMIN can use Agent.",
+        "Use released relay-agent-v25 and signed beta-vc62 with Beta Web. Do not use older Agent v23/v24 for final acceptance.",
+        "With one ADMIN username/MNV, keep Web + App + Agent logged in simultaneously. Then force a second Web, second App and second Agent one at a time; each replacement must affect only its own channel.",
+        "Verify PICKER is App-only, REPORTER/ROOT work on App+Web, and only real ADMIN can log in to Agent using username/MNV + password.",
         "On the Office network start/restart Agent without Cloudflare access. Verify direct/saved Firebase ADMIN authentication and Firestore relay become usable; no prior Web login should be required after D098 deployment migration.",
         "Verify Beta Web realtime is connected and a controlled Báo hàng change appears on another authorized client without F5; reconnect once and verify bounded recovery.",
         "D097 retained network scenario: keep PRIMARY running and switch normal Internet → Office without restarting Agent. A temporary route transition must not falsely erase PRIMARY solely because DNS/proxy is changing.",
@@ -846,25 +846,68 @@
         "Normal Báo hàng remains Worker/InventoryCore and Agent-independent; Stable remains untouched."
       ],
       "safety": "Beta only. Use an eligible controlled PickList for the specialist confirm. Do not share passwords, Firebase tokens, cookies, WMS headers/signatures, encrypted session files or sensitive payloads.",
-      "remaining_owner_action": "Wait for D099 technical/runtime/release PASS, then retest login and OA019 on the new Agent/APK.",
+      "remaining_owner_action": "Use relay-agent-v25 + beta-vc62 for the consolidated physical acceptance matrix.",
       "prerequisites": {
         "source_main": "bbc2127fa345879c4603a5baaa48cc566150af0f",
         "runtime_pr": 121,
         "firestore_hotfix_pr": 122,
         "final_main": "2a7adb7cdb46c87801e166b240ab492259e92012",
-        "agent_release": "relay-agent-v23",
-        "agent_release_sha256": "e8a7fc4b13e32bbfb50bb74e644d94ef30982bb44dcabce2f18a80406b0356f4",
-        "android_release": "beta-vc61",
-        "android_apk_sha256": "a25bf6d23123e7d96b489fd1265834ae4587850e584376f7442c0494e2b664b2",
-        "beta_worker_run": 35609150820,
+        "agent_release": "relay-agent-v25",
+        "agent_release_sha256": "98b639eeaaa28c138cd531a1d5b062704c9552f7337a214afe6ee643dfa9d132",
+        "android_release": "beta-vc62",
+        "android_apk_sha256": "2b7967d1fec7a94098588fb5b1d4f84258acd0000a355b1f06a12c0309d5c1db",
+        "beta_worker_run": 35628075330,
         "relay_agent_run": 35609150740,
         "android_run": 35609150827,
-        "ui_run": 35609150711,
+        "ui_run": 35628075239,
         "firestore_hotfix_run": 35609800016,
+        "stable": "OWNER_GATED",
+        "d100_impl_main": "8a769808b5c8c28fe76bbb2d31c5ec013265c148",
+        "d100_final_main": "dc5607a91c9b95e05344673daaa983c7d8bf5b86"
+      },
+      "blocked_by": null,
+      "block_reason": null
+    },
+    {
+      "id": "OA020",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "title": "Field-accept D100 ROOT System Reset and recovery mail",
+      "resource_key": "cloudflare-beta-worker",
+      "provider": "Beta Web + InventoryCore + Firebase Auth + Gmail send OAuth",
+      "reason_owner_only": "Connected CI can verify source/build/runtime guards but cannot use the Owner's ROOT password, receive the six-digit email OTP, or authorize/execute destructive reset scopes on production-like Beta data.",
+      "prerequisites": {
+        "impl_pr": 126,
+        "impl_main": "8a769808b5c8c28fe76bbb2d31c5ec013265c148",
+        "final_main": "dc5607a91c9b95e05344673daaa983c7d8bf5b86",
+        "beta_worker_run": 35628075330,
+        "schema": "10/10",
+        "agent_release": "relay-agent-v25",
+        "web": "D100_BETA_RUNTIME_PASS",
         "stable": "OWNER_GATED"
       },
-      "blocked_by": "D099",
-      "block_reason": "Owner found all-client INVALID_CREDENTIALS after D098. D099 confirmed Beta Firebase Email/Password provider disabled and changes Agent auth/UI artifacts. OA019 must use the D099 released Agent/APK after provider + synthetic sign-in gates PASS."
+      "shortest_test_path": [
+        "Log in as the real ROOT identity on Beta Web and confirm HỆ THỐNG → Đặt lại hệ thống is visible only while base/effective role is ROOT.",
+        "First perform the safe mail-only part: select any reset scope, enter the current ROOT password and request the six-digit OTP. Stop before executing the reset. Confirm the OTP arrives at the configured ROOT recovery email.",
+        "If the UI returns RESET_EMAIL_UNAVAILABLE / Gmail send permission missing, perform one bounded Google OAuth re-consent granting gmail.send in addition to the existing Drive scope, then retry the mail-only challenge.",
+        "When ready to validate deletion, choose only an explicitly approved non-critical/test scope. Review the preview/counts, enter ROOT password + emailed OTP, execute once, then verify only that selected runtime scope returns to zero.",
+        "Verify ROOT identity, ROOT password, ROOT recovery email, source/schema/UI/logic, external Google Sheet rows and Drive files remain unchanged.",
+        "For CONFIRMATION_RELAY scope, do not execute while any relay job is PENDING; the service must refuse it.",
+        "Optionally request a ROOT/ADMIN recovery email and confirm the project-issued link is single-use and expires after 15 minutes; only change a password when intentionally testing recovery."
+      ],
+      "pass_criteria": [
+        "System Reset navigation and APIs are accessible only to base ROOT with current effective ROOT role.",
+        "Reset challenge requires the current ROOT password and a six-digit email OTP; no reset occurs merely by requesting the code.",
+        "Only approved selected runtime data is zeroed. Reset never changes source, schema/table definitions, business logic, workflows or UI.",
+        "ROOT identity, password, recovery email and Firebase UID are preserved.",
+        "External Google Sheet and Google Drive contents are never deleted by System Reset.",
+        "Picker/Reporter/Admin account reset removes only the corresponding InventoryCore/Firebase identities; ROOT is excluded.",
+        "Confirmation-relay reset refuses to run while a PENDING relay job exists.",
+        "Gmail is used only for send; no Gmail read scope is introduced.",
+        "Recovery link is enumeration-safe, hashed server-side, single-use and expires after 15 minutes.",
+        "Stable remains untouched."
+      ],
+      "safety": "Beta only. Review selected scopes before execute. Do not share ROOT password, OTP, OAuth refresh token, Firebase tokens, cookies or any secret values. Requesting the OTP alone is non-destructive; final reset execution is destructive for the selected runtime data.",
+      "remaining_owner_action": "Run the mail-only OTP challenge first. Execute an actual reset only when the selected Beta data scope is safe to zero."
     }
   ]
 }

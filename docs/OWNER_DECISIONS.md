@@ -521,3 +521,22 @@ Status: **OWNER APPROVED — SOURCE/PR CANDIDATE 2026-09-21**.
 15. Reset is on-demand only and must not add polling/background quota consumption.
 16. ROOT/ADMIN password recovery uses the registered real email: user + email request is enumeration-safe, the project sends a single-use 15-minute link through Gmail `send` scope, and the new password updates the same Firebase UID plus InventoryCore credential/session authority. Firebase synthetic sign-in addresses are never recovery destinations.
 17. Stable remains **OWNER-GATED** and untouched.
+
+
+## D100 release checkpoint
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA019 + OA020 OWNER FIELD ACCEPTANCE READY**.
+
+- Implementation PR #126 merged to main `8a769808b5c8c28fe76bbb2d31c5ec013265c148`.
+- Released Windows Agent: `relay-agent-v25`, canonical EXE SHA-256 `98b639eeaaa28c138cd531a1d5b062704c9552f7337a214afe6ee643dfa9d132`.
+- Android remains the signed D099 `beta-vc62` because D100 did not change Android runtime/UI.
+- D100 deploy-proof hardening main `2cf23d9229eb4bd5d9c45f3776bb2404ef06a68f` exposed a CI-only parser defect: the runtime itself returned HTTP 200/status ok, source commit exact, SQLite schema 10/10, Agent-auth migration 0/0 and Operational V2 5/5, but source_schema was parsed as literal `\1`.
+- Parser hotfix PR #128 merged final main `dc5607a91c9b95e05344673daaa983c7d8bf5b86`.
+- Final main evidence PASS: Repo Authority `35628075270`, Project State `35628075428`, UI Design Guard `35628075239`, Beta Worker `35628075330`.
+- Corrected health proof PASS: attempt 2 had exact source commit `dc5607a91c9b95e05344673daaa983c7d8bf5b86`, schema `10/10`, `source_schema=10`, Agent migration `0 failed / 0 remaining`, Operational V2 `5/5`.
+- Web Tools follows canonical Agent version and therefore points to Agent v25 rather than a hard-coded older release.
+- Agent login is ADMIN username/MNV + password on the same Firebase UID as Web/App; registered real email is recovery/OTP metadata only.
+- ROOT-only System Reset is deployed: scoped runtime/service/Firebase data-to-zero only, no source/schema/UI/logic change, ROOT identity/password/recovery email preserved, external Google Sheets/Drive untouched.
+- Reset challenge requires current ROOT password + six-digit email OTP. Actual Gmail delivery and destructive reset execution are Owner-field-only under OA020. If the existing refresh token lacks `gmail.send`, exactly one bounded OAuth re-consent is required.
+- OA019 physical Agent/PDA/WMS acceptance must use `relay-agent-v25` + `beta-vc62`.
+- Stable remains **OWNER-GATED** and untouched.

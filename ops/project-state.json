@@ -13,26 +13,26 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D100_SOURCE_PR_126__AGENT_V25_USERNAME_SHARED_UID__ROOT_SYSTEM_RESET__SCHEMA10__CI_RUNNING",
+    "beta": "D100_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V25__BETA_VC62__OA019_OA020_FIELD_READY",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 10,
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
-    "web": "D100_SOURCE_CANDIDATE__ROOT_ONLY_SYSTEM_RESET__TOOLS_AGENT_VERSION_FROM_CANONICAL_VERSION__D099_LOGIN_FIX_PRESERVED",
-    "android": "D099_SIGNED_BETA_VC62_LOGIN_REPAIR__D100_NO_ANDROID_UI_CHANGE_REQUIRED",
+    "web": "D100_BETA_RUNTIME_PASS__ROOT_ONLY_SYSTEM_RESET__TOOLS_AGENT_V25_CANONICAL__D099_LOGIN_FIX_PRESERVED",
+    "android": "D099_SIGNED_BETA_VC62_LOGIN_REPAIR__D100_NO_ANDROID_RUNTIME_CHANGE",
     "latest_beta_apk": "beta-vc62",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
-    "network_scope": "D100_AGENT_V25_USERNAME_SHARED_FIREBASE_UID_DIRECT__NO_WORKER_RUNTIME_DEPENDENCY__SUPRA_AUTH_GATE_PRESERVED",
+    "network_scope": "D100_AGENT_V25_USERNAME_SHARED_FIREBASE_UID_RELEASED__NO_WORKER_RUNTIME_DEPENDENCY__SUPRA_AUTH_GATE_PRESERVED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
-    "user_management": "D100_SOURCE_CANDIDATE__ONE_FIREBASE_UID_WEB_APP_AGENT__REAL_RECOVERY_EMAIL_SEPARATE__ROOT_2FA_SYSTEM_RESET",
+    "user_management": "D100_BETA_RUNTIME_PASS__ONE_FIREBASE_UID_WEB_APP_AGENT__USERNAME_LOGIN__RECOVERY_EMAIL_SEPARATE__ROOT_2FA_SYSTEM_RESET",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D069_XLSX_REPORT_EXPORT_BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
-    "quota_resilience": "D100_RESET_ON_DEMAND_ONLY__D098_35PCT_NORMAL_RUNTIME_GUARD_PRESERVED__FIRESTORE_DELETE_COST_EXPLICIT",
-    "ui_design_guard": "D098_MAIN_UI_PASS_RUN_35609150711__HOTFIX_MAIN_UI_PASS_RUN_35609799338",
+    "quota_resilience": "D100_RESET_ON_DEMAND_ONLY__D098_35PCT_NORMAL_RUNTIME_GUARD_PRESERVED__RESET_PROVIDER_COST_EXPLICIT",
+    "ui_design_guard": "D100_MAIN_UI_PASS_RUN_35628075239",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D100_AGENT_V25_USERNAME_SHARED_UID_SOURCE_CANDIDATE__D097_D099_CONFIRM_PATH_AND_OVERLAY_PRESERVED"
+    "picklist_confirmation_poc": "D100_AGENT_V25_RELEASED__USERNAME_SHARED_UID__D097_D099_CONFIRM_PATH_AND_OVERLAY_PRESERVED"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -158,7 +158,8 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "OA019 D098 physical Beta acceptance with relay-agent-v23 + beta-vc61: independent WEB/ANDROID/AGENT slots and same-channel replacement; role/client matrix; direct Firebase Agent auth on Office; Web realtime; retained D097 network/failover/30s behavior; specialist 3–5 digit full-PickList confirmation.",
+    "OA019 D100/D098 consolidated physical Beta acceptance with relay-agent-v25 + beta-vc62: one WEB + one ANDROID + one AGENT slot, ADMIN username Agent login, direct Firebase on Office, realtime, retained D097 failover/30s fallback, specialist PickList flow.",
+    "OA020 D100 ROOT System Reset field acceptance: ROOT-only visibility, password + 6-digit email OTP, scoped runtime zeroing, ROOT/external Google data preservation; Gmail send scope may require one Owner re-consent if current refresh token lacks gmail.send.",
     "OA017 D096 physical real-Picklist exact-resolve -> confirmSkipItem -> Status=true -> Firestore ACK field test with Agent v21 + existing beta-vc59.",
     "OA016 D095 physical dual-network confirmation relay test: PDA stays on normal Internet; Agent must receive same Firestore path on normal Internet and Office, plus normal Báo hàng remains independent.",
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
@@ -171,7 +172,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Merge D100 Beta health schema-proof parser hotfix after Authority/State/UI/deploy gates PASS; rerun main Deploy Beta Worker and require source_commit exact + schema 10/10 + agent migration 0/0. Then record final D100 release checkpoint. Stable remains OWNER-GATED.",
+  "next_action": "Owner may run OA020 safely by requesting the ROOT reset OTP and stopping before execute to verify mail delivery; if Gmail send scope is missing, perform one bounded Google OAuth re-consent, then retry. OA019 physical PDA↔Agent/WMS acceptance must use relay-agent-v25 + beta-vc62. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -197,7 +198,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D100 IN PROGRESS / PR #126: Owner requires Agent login by ADMIN username (not email) while remaining Worker-independent on Office. Final design keeps one Firebase UID per logical user; Firebase login identifier is username-derived and real email is recovery/OTP metadata only. Web Tools follows relay-agent/VERSION; ROOT-only System Reset zeroes selected runtime/service/Firebase data without changing logic/schema/UI/source or external Google Sheet/Drive. Reset requires current ROOT password + 6-digit emailed OTP; recovery uses a single-use 15-minute Gmail link; Agent target v25; schema target 10; Stable untouched.",
+      "D100 TECHNICAL/RUNTIME/RELEASE PASS: PR #126 merged main 8a769808b5c8c28fe76bbb2d31c5ec013265c148; relay-agent-v25 released; D100 health-proof hardening main 2cf23d9229eb4bd5d9c45f3776bb2404ef06a68f; parser hotfix PR #128 merged main dc5607a91c9b95e05344673daaa983c7d8bf5b86. Final main Authority/State/UI/Beta Worker all PASS with source_commit exact, schema 10/10, Agent-auth migration 0/0, Operational V2 5/5. OA019/OA020 physical Owner acceptance remains.",
       "D099 PR #124 IN PROGRESS: Firebase Email/Password provider disabled root cause confirmed; source adds main-only provider enable + synthetic PBKDF2 sign-in probe, verified-legacy-password Firebase self-heal, Agent v24 auth-first Supra gate, Enter shortcuts, Android Enter login, and Overlay range expansion.",
       "D098 TECHNICAL/RUNTIME/RELEASE PASS: PR #121 merged main bbc2127fa345879c4603a5baaa48cc566150af0f; Worker/schema9/admin Firebase migration, Web realtime/auth, Agent v23 and signed beta-vc61 PASS. Firestore deploy ALREADY_EXISTS idempotency repaired by PR #122 main 2a7adb7cdb46c87801e166b240ab492259e92012. OA019 physical Owner acceptance remains.",
       "D096 IN PROGRESS: Owner confirms PDA ↔ Agent now works on released Agent v20/beta-vc59. Field log shows CLAIM PASS and pending-found, then WMS exact-resolve HTTP 200 followed by EXACT_CODE_NOT_RESOLVED and no picklist-confirm call. Root cause confirmed: exact resolver handled ArrayList only while JavaScriptSerializer returns object[]; D096 switches to IEnumerable-safe parsing, adds executable parser regression, and requires WMS Status=true before CONFIRMED. Target Agent v21 only; APK vc59 unchanged.",
@@ -224,7 +225,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Finish D100 PR gates; if main Gmail OTP probe shows current OAuth refresh token lacks gmail.send, Owner performs one bounded OAuth re-consent and secret replacement, then recheck automatically.",
+      "Owner field-tests OA020 reset-mail challenge and OA019 physical Agent/PDA path using relay-agent-v25 + beta-vc62. If reset challenge returns Gmail scope unavailable, perform one bounded OAuth re-consent only; no other manual action is currently required.",
       "Owner runs OA019 on released relay-agent-v23 + beta-vc61. After OA019 PASS, resume OA017 final PDA real-WMS confirmation and the next Firestore quota optimization workstream.",
       "Finish D096 Agent v21 release, then Owner runs OA017 real Picklist confirm with existing beta-vc59.",
       "Bootstrap canonical GitHub and execute the Owner's next explicit requirement.",
@@ -234,7 +235,7 @@
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
     ],
     "blocked_or_owner_field_dependent": [
-      "D100 Gmail OTP runtime may require one Owner OAuth re-consent for gmail.send because the existing refresh token was originally issued for drive.file only; do not ask Owner until source/CI is ready.",
+      "D100 code/deploy/release PASS. Actual Gmail OTP delivery and destructive System Reset execution remain Owner-field-only; current OAuth refresh token may require one gmail.send re-consent if runtime reports RESET_EMAIL_UNAVAILABLE.",
       "D098 technical/runtime/release is PASS; final business/physical acceptance depends on Owner OA019 on real Web/PDA/Office/WMS environment.",
       "Real WMS confirmation acceptance is blocked only by OA017 D096 exact-resolve/confirm field test after Agent v21 release.",
       "D092 final business acceptance requires one physical authorized company-WMS confirmation after technical release PASS.",
@@ -407,14 +408,14 @@
       "d072_quota_guard": "BETA_RUNTIME_PASS_OWNER_REVIEW_PENDING",
       "system_status_normal_runtime": "DISABLED",
       "system_status_provider_polling": "DISABLED",
-      "signed_beta_release": "beta-vc61",
+      "signed_beta_release": "beta-vc62",
       "signed_beta_release_source_commit": "bbc2127fa345879c4603a5baaa48cc566150af0f",
       "stable": "UNTOUCHED_OWNER_GATED",
-      "signed_beta_apk_sha256": "a25bf6d23123e7d96b489fd1265834ae4587850e584376f7442c0494e2b664b2",
+      "signed_beta_apk_sha256": "2b7967d1fec7a94098588fb5b1d4f84258acd0000a355b1f06a12c0309d5c1db",
       "d073_relay_poc": "SOURCE_BUILD_RELEASE_PASS__RTDB_PROVISIONING_FIELD_TEST_PENDING",
       "d074_relay_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_OFFICE_FIELD_RETEST_PENDING",
       "d075_relay_poc": "SOURCE_BUILD_RELEASE_PASS__D076_RULES_DEPLOY_PASS__OWNER_FIELD_TEST_PENDING",
-      "relay_agent_release": "relay-agent-v23",
+      "relay_agent_release": "relay-agent-v25",
       "relay_agent_release_prerelease": true,
       "d076_rtdb_rules": "PASS_RUN_35451292051__IAM_UPDATE_PASS__RULES_GET_PASS__RULES_PUT_PASS__EXACT_READBACK_PASS",
       "d080_wms_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_WMS_FIELD_TEST_PENDING",
@@ -478,7 +479,19 @@
         "sqlite_row_writes_percent": 0.6,
         "sqlite_storage_percent": 12.87,
         "ceiling_percent": 35
-      }
+      },
+      "d100": "TECHNICAL_RUNTIME_RELEASE_PASS__OA019_OA020_OWNER_FIELD_PENDING",
+      "d100_impl_pr": 126,
+      "d100_impl_main": "8a769808b5c8c28fe76bbb2d31c5ec013265c148",
+      "d100_health_proof_main": "2cf23d9229eb4bd5d9c45f3776bb2404ef06a68f",
+      "d100_parser_hotfix_pr": 128,
+      "d100_final_main": "dc5607a91c9b95e05344673daaa983c7d8bf5b86",
+      "d100_repo_authority_run": 35628075270,
+      "d100_project_state_run": 35628075428,
+      "d100_ui_run": 35628075239,
+      "d100_beta_worker_run": 35628075330,
+      "d100_beta_health": "HTTP_200_OK__SOURCE_COMMIT_EXACT__SCHEMA_10_10__AGENT_MIGRATION_0_0__OPERATIONAL_V2_5_5",
+      "relay_agent_release_sha256": "98b639eeaaa28c138cd531a1d5b062704c9552f7337a214afe6ee643dfa9d132"
     }
   },
   "authority_setup": {
@@ -562,7 +575,7 @@
     "D100 deploy-proof hotfix: Beta health must expose SOURCE_COMMIT; deploy gate requires health source_commit == GITHUB_SHA, runtime schema == source SCHEMA_VERSION, and agent_auth_migration agent_failed=0/agent_remaining=0. This prevents a stale previous Worker from satisfying a new deployment gate.",
     "D100 deploy proof parser hotfix: runtime main 2cf23d9229eb4bd5d9c45f3776bb2404ef06a68f is healthy (HTTP 200, source_commit exact, schema 10/10, agent migration 0/0, operational 5/5), but deploy workflow parsed source SCHEMA_VERSION as literal \\\\1 because sed replacement was over-escaped. fix/d100-beta-health-schema-proof changes only that CI parser to \\1."
   ],
-  "active_workstream": "D100_USERNAME_AGENT_LOGIN_ROOT_SYSTEM_RESET",
+  "active_workstream": "D100_RELEASED_OWNER_FIELD_ACCEPTANCE",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
