@@ -1,15 +1,29 @@
 import { hashPassword, readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
+import { importPasswordIdentity, updateFirebaseIdentity, type FirebaseManagedUserSpec } from "./firebase-auth-admin";
 import { readHrEmployees, type StoredHrSource } from "./hr-sync";
 import { validateHrSheetSource } from "./hr-source";
 
 interface Env {
   FIREBASE_PROJECT_ID: string;
+  FIREBASE_WEB_API_KEY?: string;
   INVENTORY_CORE: DurableObjectNamespace;
   GOOGLE_RUNTIME_SA_JSON?: string;
   PICKER_DEFAULT_PASSWORD?: string;
   ROOT_BOOTSTRAP_PASSWORD?: string;
 }
-interface User { user_id: string; employee_code: string | null; role: AppRole; status: "ACTIVE" | "DISABLED"; }
+interface User {
+  user_id: string;
+  firebase_uid?: string | null;
+  employee_code: string | null;
+  display_name?: string;
+  role: AppRole;
+  base_role?: AppRole;
+  status: "ACTIVE" | "DISABLED";
+  auth_email?: string | null;
+  password_salt?: string | null;
+  password_hash?: string | null;
+  firebase_password_ready?: boolean | number;
+}
 const ROLES: AppRole[] = ["ADMIN", "ROOT"];
 
 function json(payload: unknown, status = 200): Response { return new Response(JSON.stringify(payload), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } }); }
