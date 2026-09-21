@@ -135,3 +135,5 @@ Source target is Beta-only and limited to the Picker confirmation Firestore wrap
 - WMS confirmation implementation from D096 is unchanged.
 - Runtime/release readiness remains **PENDING PR + main CI + OA018 physical field acceptance**.
 - Stable is not eligible for this change without a later explicit Owner command.
+
+- Canonical Android status: `D097_FIRESTORE_SNAPSHOT_LISTENER_SOURCE_READY__TARGET_BETA_VC60__D095_UI_BASELINE_PRESERVED`.
