@@ -628,7 +628,8 @@
       "status": "D097_MAIN_RULES_INDEX_DEPLOY_PASS__SELECTED_CARRIER_PRESERVED__OA018_FIELD_PENDING",
       "rules_deploy_method": "FIREBASE_RULES_MANAGEMENT_REST_API",
       "rules_deploy_run": 35575186225,
-      "index": "relay_poc_jobs_status_ASC_created_at_ASC"
+      "index": "relay_poc_jobs_status_ASC_created_at_ASC",
+      "index_deploy_idempotency": "LIST_FIRST__CREATE_IF_MISSING__ALREADY_EXISTS_IS_PASS__OTHER_ERRORS_FAIL"
     },
     "android_release_metadata": {
       "tag": "beta-vc60",
