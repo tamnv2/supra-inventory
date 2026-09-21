@@ -360,3 +360,31 @@ All choices are local non-secret preferences, apply immediately and persist for 
 - On next Agent launch, a valid saved session is automatically restored and Firebase ADMIN claims are revalidated without manual password entry.
 - **Đăng xuất** clears the saved Agent application session and returns the login controls to editable state. A subsequent successful login becomes the new saved identity/session.
 - These controls do not alter company WMS credential handling; WMS remains a separate authorized browser/session authority.
+
+
+## D098 — Login, recovery and Agent specialist forms
+
+### Web/App login
+- Web/App login keeps the existing username/MNV + password surface.
+- If the same user already has the same client channel active on another device, show a clear warning before replacement. Continuing replaces only the same client channel.
+- PICKER must not be offered/allowed Web access.
+
+### ROOT/ADMIN password recovery
+- Login surface includes `Lấy lại mật khẩu`.
+- Recovery form requires account/user identifier + registered email.
+- Result copy is enumeration-safe: do not reveal whether a specific account/email exists.
+- When both values match an ACTIVE ROOT/ADMIN account, Firebase sends the password-reset email/link.
+- Account settings allow ROOT/ADMIN to register/update the recovery email.
+
+### Agent Overview
+- Main regions are `Hệ thống Supra`, `Xác minh Agent`, then `Xử lý PickList trực tiếp tại bàn chuyên viên`.
+- Agent verification accepts the registered ADMIN email + password and authenticates directly against Firebase.
+- When a saved Firebase session validates, login fields/buttons are dimmed/disabled and authenticated status is shown. When it is invalid/absent, login input is active.
+- A same-ADMIN Agent conflict warns before explicit replacement and replaces only the Agent channel.
+
+### Specialist direct PickList
+- Numeric input: 3–5 digits, maximum 5.
+- Search matches the digit sequence anywhere in each cached full `PickListCode`.
+- Show matching full codes; Confirm remains disabled until one full code is selected.
+- Confirm runs the approved guard + WMS confirmation semantics.
+- Success/error/uncertain result is rendered locally in Agent. No Android/Firestore job ACK is emitted for a manual-origin action.

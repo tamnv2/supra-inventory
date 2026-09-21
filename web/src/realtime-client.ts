@@ -1,13 +1,10 @@
+import { authorizedFetch, getAuthSessionSnapshot, readJson, type StoredSession } from "./api";
+
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || window.location.origin).replace(/\/$/, "");
-const SESSION_KEY = "supra_inventory_beta_session_v1";
 const APPLIED_SEQ_PREFIX = "supra_inventory_realtime_applied_seq_v3:";
 const STREAM_EPOCH_PREFIX = "supra_inventory_realtime_epoch_v3:";
 
-type StoredSession = {
-  id_token?: string;
-  expires_at?: number;
-  user?: { user_id?: string; role?: string };
-};
+
 
 export type RealtimeEventFrame = {
   type?: string;
@@ -81,15 +78,7 @@ export function registerRealtimeApplier(next: RealtimeApplier): void {
 }
 
 function readSession(): StoredSession | null {
-  try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as StoredSession;
-    if (!parsed.id_token || !parsed.user?.user_id) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
+  return getAuthSessionSnapshot();
 }
 
 function seqStorageKey(userId: string): string {
@@ -163,11 +152,12 @@ function scheduleReconnect(): void {
     emitStatus("offline");
     return;
   }
-  emitStatus("reconnecting", { retry_ms: reconnectDelay });
+  const jitter = Math.round(reconnectDelay * (0.85 + Math.random() * 0.3));
+  emitStatus("reconnecting", { retry_ms: jitter });
   reconnectTimer = window.setTimeout(() => {
     reconnectTimer = null;
     void ensureRealtime();
-  }, reconnectDelay);
+  }, jitter);
   reconnectDelay = Math.min(15_000, Math.round(reconnectDelay * 1.8));
 }
 
@@ -181,37 +171,17 @@ function markDirty(reason: string): void {
   }, 1500);
 }
 
-async function requestTicket(token: string): Promise<{
+async function requestTicket(): Promise<{
   ticket: string;
   latest_seq: number;
   retained_from_seq: number;
   stream_epoch: string;
 }> {
-  const response = await fetch(`${API_BASE_URL}/api/realtime/ticket`, {
+  const response = await authorizedFetch("/api/realtime/ticket", {
     method: "POST",
-    headers: {
-      authorization: `Bearer ${token}`,
-      accept: "application/json",
-      "content-type": "application/json",
-    },
     body: JSON.stringify({ client_type: "WEB" }),
   });
-  const text = await response.text();
-  let payload: {
-    ticket?: string;
-    latest_seq?: number;
-    retained_from_seq?: number;
-    stream_epoch?: string;
-    error?: string;
-  } = {};
-  try { payload = JSON.parse(text) as typeof payload; } catch { payload = {}; }
-  if (!response.ok || !payload.ticket) throw new Error(payload.error || `realtime_ticket_http_${response.status}`);
-  return {
-    ticket: payload.ticket,
-    latest_seq: Number(payload.latest_seq || 0),
-    retained_from_seq: Number(payload.retained_from_seq || 0),
-    stream_epoch: String(payload.stream_epoch || ""),
-  };
+  return readJson(response);
 }
 
 function websocketUrl(ticket: string): string {
@@ -221,14 +191,11 @@ function websocketUrl(ticket: string): string {
   return url.toString();
 }
 
-async function fetchDelta(token: string, afterSeq: number, epoch: string): Promise<DeltaResponse> {
+async function fetchDelta(afterSeq: number, epoch: string): Promise<DeltaResponse> {
   const params = new URLSearchParams({ after_seq: String(Math.max(0, afterSeq)), limit: "100" });
   if (epoch) params.set("stream_epoch", epoch);
-  const response = await fetch(`${API_BASE_URL}/api/realtime/delta?${params.toString()}`, {
-    headers: { authorization: `Bearer ${token}`, accept: "application/json" },
-  });
-  if (!response.ok) throw new Error(`realtime_delta_http_${response.status}`);
-  return (await response.json()) as DeltaResponse;
+  const response = await authorizedFetch(`/api/realtime/delta?${params.toString()}`);
+  return readJson<DeltaResponse>(response);
 }
 
 async function applyThrough(
@@ -294,7 +261,7 @@ async function recoverDelta(reason: string): Promise<void> {
     for (let page = 0; page < 8; page += 1) {
       pages += 1;
       const deltaStarted = performance.now();
-      const delta = await fetchDelta(session.id_token, cursor, epoch);
+      const delta = await fetchDelta(cursor, epoch);
       emitRealtimeTelemetry("delta_fetch", {
         reason,
         page: page + 1,
@@ -430,7 +397,7 @@ async function ensureRealtime(): Promise<void> {
   connectedUserId = session.user.user_id;
   emitStatus("connecting");
   try {
-    const ticket = await requestTicket(session.id_token);
+    const ticket = await requestTicket();
     if (streamEpoch && ticket.stream_epoch && streamEpoch !== ticket.stream_epoch) {
       // The connected frame will perform an authoritative epoch reconcile.
     }

@@ -31,6 +31,10 @@ import {
   importSkuChunk,
   listManagedUsers,
   loginWithPassword,
+  logoutInteractiveSession,
+  requestPasswordReset,
+  updateMyAuthEmail,
+  ApiError,
   previewHrPickerSync,
   resolveReporterBatch,
   correctReporterBatch,
@@ -838,13 +842,35 @@ function renderLogin(): void {
       <button class="primary wide" ${busy ? "disabled" : ""}>${busy ? "Đang đăng nhập..." : "ĐĂNG NHẬP"}</button>
     </form>
     <div class="login-actions"><button id="forgot-password" type="button" class="login-link">Lấy lại mật khẩu</button></div>
+    <form id="reset-password-form" class="login-reset-form" hidden>
+      <p class="muted">Chỉ áp dụng cho ROOT và ADMIN có email đã đăng ký.</p>
+      <label>Tài khoản<input name="username" required autocomplete="username" placeholder="Mã nhân viên / tài khoản" /></label>
+      <label>Email đăng ký<input name="email" type="email" required autocomplete="email" placeholder="name@company.com" /></label>
+      <button class="secondary wide">GỬI LINK ĐẶT LẠI MẬT KHẨU</button>
+      <div id="reset-password-result" class="tiny muted"></div>
+    </form>
     <p class="security">${PRODUCT_CREDIT}</p>
   </section></main>`;
+
   document.querySelector<HTMLFormElement>("#login-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget as HTMLFormElement);
+    const username = String(data.get("username") || "").trim();
+    const password = String(data.get("password") || "");
     void run(async () => {
-      profile = await loginWithPassword(String(data.get("username") || "").trim(), String(data.get("password") || ""));
+      try {
+        profile = await loginWithPassword(username, password, false);
+      } catch (error) {
+        if (
+          error instanceof ApiError &&
+          error.code === "SESSION_ACTIVE_OTHER_DEVICE" &&
+          window.confirm(`${error.message}\n\nTiếp tục đăng nhập và đăng xuất phiên Web cũ?`)
+        ) {
+          profile = await loginWithPassword(username, password, true);
+        } else {
+          throw error;
+        }
+      }
       markWebUpdateReceived();
       skipDelayEnabled = loadSkipDelayEnabled(profile.user_id);
       runtimeLogEvent(`Đăng nhập: ${profile.role}`);
@@ -855,6 +881,23 @@ function renderLogin(): void {
       await loadSection(activeSection);
       render();
     });
+  });
+
+  document.querySelector<HTMLButtonElement>("#forgot-password")?.addEventListener("click", () => {
+    const form = document.querySelector<HTMLFormElement>("#reset-password-form");
+    if (form) form.hidden = !form.hidden;
+  });
+  document.querySelector<HTMLFormElement>("#reset-password-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    const result = document.querySelector<HTMLElement>("#reset-password-result");
+    void run(async () => {
+      const message = await requestPasswordReset(
+        String(data.get("username") || "").trim(),
+        String(data.get("email") || "").trim(),
+      );
+      if (result) result.textContent = message;
+    }, "none");
   });
 }
 
@@ -939,6 +982,7 @@ function renderUserModals(): string {
       <div class="tiny muted">${esc(editUser.employee_code || editUser.user_id)} · ${esc(editUser.role)}</div>
       <form id="edit-user-form">
         <div class="field"><span>Họ tên</span><input name="displayName" value="${esc(editUser.display_name)}" required /></div>
+        <div class="field" style="margin-top:10px"><span>Email đăng ký${editUser.role === "ADMIN" ? " · bắt buộc" : ""}</span><input name="authEmail" type="email" value="${esc(editUser.auth_email || "")}" ${editUser.role === "ADMIN" ? "required" : ""} /></div>
         <div class="field" style="margin-top:10px"><span>Trạng thái</span><select name="status"><option value="ACTIVE" ${editUser.status === "ACTIVE" ? "selected" : ""}>ACTIVE</option><option value="DISABLED" ${editUser.status === "DISABLED" ? "selected" : ""}>DISABLED</option></select></div>
         <div class="modal-actions"><button type="button" class="btn secondary" id="cancel-user-modal">Huỷ</button><button class="btn">Lưu</button></div>
       </form>
@@ -1227,6 +1271,7 @@ function renderUsers(): string {
           <label>Mã nhân viên / tên đăng nhập<input name="username" autocomplete="off" required /></label>
           <label>Họ và tên<input name="displayName" autocomplete="off" required /></label>
           <label>Quyền sử dụng<select name="role"><option value="REPORTER">Người xử lý báo hàng</option>${canCreateAdmin ? `<option value="ADMIN">Quản trị</option>` : ""}</select></label>
+          <label>Email đăng ký<input name="authEmail" type="email" autocomplete="email" placeholder="Bắt buộc khi tạo Admin" /></label>
           <label>Mật khẩu khởi tạo<input name="password" type="password" autocomplete="new-password" required /></label>
           <div class="ops-form-actions"><button class="primary">Tạo tài khoản</button></div>
         </form>
@@ -1853,10 +1898,12 @@ function renderTools(): string {
 }
 
 function renderAccount(): string {
+  const recoveryEmailAllowed = profile?.base_role === "ROOT" || profile?.base_role === "ADMIN";
   return `<section class="ops-route account-workspace">
     <div class="heading"><div><h2>Tài khoản</h2></div></div>
     <div class="account-grid">
       <article class="ops-panel"><div class="ops-panel-title"><div><h3>Đổi mật khẩu</h3></div></div><form id="password-form" class="ops-form-grid"><label class="span">Mật khẩu hiện tại<input name="current" type="password" required /></label><label class="span">Mật khẩu mới<input name="next" type="password" required /></label><div class="ops-form-actions"><button class="primary">Đổi mật khẩu</button></div></form></article>
+      ${recoveryEmailAllowed ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Email khôi phục mật khẩu</h3><p>Dùng để nhận liên kết đặt lại mật khẩu từ màn hình đăng nhập.</p></div></div><form id="auth-email-form" class="ops-form-grid"><label class="span">Email đăng ký<input name="email" type="email" autocomplete="email" required value="${esc(profile?.auth_email || "")}" /></label><div class="ops-form-actions"><button class="primary">Lưu email</button></div></form></article>` : ""}
       ${roleOperate() ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Xác nhận thao tác</h3></div></div><label class="account-setting-row"><input id="skip-delay-setting" type="checkbox" ${skipDelayEnabled ? "checked" : ""}/><span><strong>Chờ 5 giây trước khi xác nhận bỏ qua</strong><small>Giúp hạn chế bấm nhầm thao tác bỏ qua SKU.</small></span></label></article>` : ""}
       ${"Notification" in window ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Thông báo nền</h3></div></div><div class="account-setting-row"><span><strong>Thông báo khi Web đang ẩn</strong><small>Trạng thái hiện tại: ${Notification.permission === "granted" ? "Đã cho phép" : Notification.permission === "denied" ? "Đã chặn trong trình duyệt" : "Chưa cấp quyền"}</small></span>${Notification.permission === "default" ? '<button class="secondary" id="request-browser-notifications">Cho phép</button>' : ""}</div></article>` : ""}
     </div>
@@ -2159,25 +2206,27 @@ function bindShell(): void {
     }, "full");
   });
   document.querySelector<HTMLButtonElement>("#logout")?.addEventListener("click", () => {
-    pickerSearchGeneration += 1;
-    dashboardLoadGeneration += 1;
-    reportLoadGeneration += 1;
-    sessionViewGeneration += 1;
-    runtimeLogEvent("Đăng xuất");
-    clearSession();
-    profile = null;
-    notice = null;
-    queueRows = [];
-    recentRows = [];
-    batchDetails.clear();
-    pickerReports = [];
-    pickerResults = [];
-    pickerSuggestions = [];
-    pickerSelected = null;
-    markedResultEvents.clear();
-    displayedResultEvents.clear();
-    window.dispatchEvent(new CustomEvent("supra:session-changed"));
-    renderLogin();
+    void logoutInteractiveSession().finally(() => {
+      pickerSearchGeneration += 1;
+      dashboardLoadGeneration += 1;
+      reportLoadGeneration += 1;
+      sessionViewGeneration += 1;
+      runtimeLogEvent("Đăng xuất");
+      clearSession();
+      profile = null;
+      notice = null;
+      queueRows = [];
+      recentRows = [];
+      batchDetails.clear();
+      pickerReports = [];
+      pickerResults = [];
+      pickerSuggestions = [];
+      pickerSelected = null;
+      markedResultEvents.clear();
+      displayedResultEvents.clear();
+      window.dispatchEvent(new CustomEvent("supra:session-changed"));
+      renderLogin();
+    });
   });
   bindOverlay();
 }
@@ -2273,8 +2322,9 @@ function bindOverlay(): void {
     const data = new FormData(event.currentTarget as HTMLFormElement);
     const displayName = String(data.get("displayName") || "").trim();
     const status = String(data.get("status") || "") as "ACTIVE" | "DISABLED";
+    const authEmail = String(data.get("authEmail") || "").trim();
     void run(async () => {
-      await updateManagedUser(userId, displayName, status);
+      await updateManagedUser(userId, displayName, status, authEmail);
       editUserId = null;
       await loadUsers();
       setNotice("success", "Đã cập nhật tài khoản.");
@@ -2500,6 +2550,7 @@ function bindSection(): void {
         String(data.get("displayName") || ""),
         String(data.get("role") || "REPORTER") as "ADMIN" | "REPORTER",
         String(data.get("password") || ""),
+        String(data.get("authEmail") || "").trim(),
       );
       await loadUsers();
       setNotice("success", "Đã tạo tài khoản.");
@@ -2658,7 +2709,16 @@ function bindSection(): void {
     const data = new FormData(event.currentTarget as HTMLFormElement);
     void run(async () => {
       await changeMyPassword(String(data.get("current") || ""), String(data.get("next") || ""));
-      setNotice("success", "Đã đổi mật khẩu.");
+      setNotice("success", "Đã đổi mật khẩu. Vui lòng đăng nhập lại trên các phiên đang dùng.");
+    });
+  });
+  document.querySelector<HTMLFormElement>("#auth-email-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    void run(async () => {
+      profile = await updateMyAuthEmail(String(data.get("email") || "").trim());
+      setNotice("success", "Đã cập nhật email khôi phục mật khẩu.");
+      render();
     });
   });
 }

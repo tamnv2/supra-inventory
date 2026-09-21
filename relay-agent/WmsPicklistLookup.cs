@@ -40,6 +40,7 @@ namespace SupraInventoryRelayAgent
         internal int CandidateFieldCount;
         internal string SchemaFields;
         internal HashSet<string> TrailingFiveSuffixes = new HashSet<string>(StringComparer.Ordinal);
+        internal HashSet<string> PickListCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     }
 
     internal static class WmsPicklistLookupClient
@@ -71,6 +72,7 @@ namespace SupraInventoryRelayAgent
             internal int RecordCollectionCount = -1;
             internal readonly HashSet<string> SchemaFields = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             internal readonly HashSet<string> TrailingFiveSuffixes = new HashSet<string>(StringComparer.Ordinal);
+            internal readonly HashSet<string> PickListCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         }
 
         private static readonly JavaScriptSerializer Json = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024 };
@@ -275,6 +277,7 @@ namespace SupraInventoryRelayAgent
             var totalPickListCodes = 0;
             var allFields = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var suffixes = new HashSet<string>(StringComparer.Ordinal);
+            var codes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             string lastRoute = "NONE";
             var lastHttp = 0;
             string previousBodyFingerprint = null;
@@ -284,12 +287,12 @@ namespace SupraInventoryRelayAgent
                 var url = BuildLookupUrl(page);
                 var payload = SendPage(url, session, page, ref totalElapsedMs);
                 if (payload == null)
-                    return SnapshotResult("TRANSPORT_FAIL", lastRoute, lastHttp, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+                    return SnapshotResult("TRANSPORT_FAIL", lastRoute, lastHttp, totalElapsedMs, totalPickListCodes, allFields, suffixes, codes);
 
                 lastRoute = payload.Route;
                 lastHttp = payload.StatusCode;
                 if (payload.Result != "PASS")
-                    return SnapshotResult(payload.Result, payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+                    return SnapshotResult(payload.Result, payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes, codes);
 
                 ResponseAnalysis analysis;
                 try
@@ -302,13 +305,15 @@ namespace SupraInventoryRelayAgent
                         "WMS picklist-cache page=" + page +
                         " parse_fail=" + ex.GetType().Name +
                         " response_values=redacted");
-                    return SnapshotResult("SCHEMA_UNSUPPORTED", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+                    return SnapshotResult("SCHEMA_UNSUPPORTED", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes, codes);
                 }
 
                 foreach (var field in analysis.SchemaFields)
                     if (allFields.Count < 80) allFields.Add(field);
                 foreach (var trailing in analysis.TrailingFiveSuffixes)
                     suffixes.Add(trailing);
+                foreach (var code in analysis.PickListCodes)
+                    codes.Add(code);
                 totalPickListCodes += analysis.PickListCodeCount;
 
                 AgentDiagnostics.Write(
@@ -322,17 +327,17 @@ namespace SupraInventoryRelayAgent
                     " values=redacted");
 
                 if (analysis.TotalCount.HasValue && analysis.TotalCount.Value == 0)
-                    return SnapshotResult("PASS", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+                    return SnapshotResult("PASS", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes, codes);
 
                 if (analysis.PickListCodeCount == 0)
                 {
                     if (analysis.RecordCollectionCount == 0)
-                        return SnapshotResult("PASS", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+                        return SnapshotResult("PASS", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes, codes);
 
                     AgentDiagnostics.Write(
                         "WMS picklist-cache result=SCHEMA_UNSUPPORTED reason=missing_exact_PickListCode page=" +
                         page + " values=redacted");
-                    return SnapshotResult("SCHEMA_UNSUPPORTED", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+                    return SnapshotResult("SCHEMA_UNSUPPORTED", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes, codes);
                 }
 
                 if (analysis.ValidPickListCodeCount == 0)
@@ -340,11 +345,11 @@ namespace SupraInventoryRelayAgent
                     AgentDiagnostics.Write(
                         "WMS picklist-cache result=SCHEMA_UNSUPPORTED reason=PickListCode_format_unexpected page=" +
                         page + " values=redacted");
-                    return SnapshotResult("SCHEMA_UNSUPPORTED", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+                    return SnapshotResult("SCHEMA_UNSUPPORTED", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes, codes);
                 }
 
                 if (IsLastPage(page, analysis))
-                    return SnapshotResult("PASS", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+                    return SnapshotResult("PASS", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes, codes);
 
                 var fingerprint = BodyFingerprint(payload.Body);
                 if (page > 1 && !string.IsNullOrWhiteSpace(previousBodyFingerprint) &&
@@ -353,7 +358,7 @@ namespace SupraInventoryRelayAgent
                     AgentDiagnostics.Write(
                         "WMS picklist-cache result=SCHEMA_UNSUPPORTED reason=repeated_page page=" +
                         page + " values=redacted");
-                    return SnapshotResult("SCHEMA_UNSUPPORTED", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+                    return SnapshotResult("SCHEMA_UNSUPPORTED", payload.Route, payload.StatusCode, totalElapsedMs, totalPickListCodes, allFields, suffixes, codes);
                 }
 
                 previousBodyFingerprint = fingerprint;
@@ -361,7 +366,7 @@ namespace SupraInventoryRelayAgent
 
             AgentDiagnostics.Write(
                 "WMS picklist-cache result=SCHEMA_UNSUPPORTED reason=absolute_page_guard values=redacted");
-            return SnapshotResult("SCHEMA_UNSUPPORTED", lastRoute, lastHttp, totalElapsedMs, totalPickListCodes, allFields, suffixes);
+            return SnapshotResult("SCHEMA_UNSUPPORTED", lastRoute, lastHttp, totalElapsedMs, totalPickListCodes, allFields, suffixes, codes);
         }
 
         private static WmsPicklistSnapshotResult SnapshotResult(
@@ -371,7 +376,8 @@ namespace SupraInventoryRelayAgent
             long elapsedMs,
             int pickListCodeCount,
             HashSet<string> fields,
-            HashSet<string> suffixes)
+            HashSet<string> suffixes,
+            HashSet<string> codes)
         {
             return new WmsPicklistSnapshotResult
             {
@@ -381,7 +387,8 @@ namespace SupraInventoryRelayAgent
                 ElapsedMs = elapsedMs,
                 CandidateFieldCount = pickListCodeCount,
                 SchemaFields = JoinSafeFields(fields),
-                TrailingFiveSuffixes = new HashSet<string>(suffixes ?? new HashSet<string>(), StringComparer.Ordinal)
+                TrailingFiveSuffixes = new HashSet<string>(suffixes ?? new HashSet<string>(), StringComparer.Ordinal),
+                PickListCodes = new HashSet<string>(codes ?? new HashSet<string>(), StringComparer.OrdinalIgnoreCase)
             };
         }
 
@@ -553,7 +560,9 @@ namespace SupraInventoryRelayAgent
                             if (IsValidPickListCode(value))
                             {
                                 result.ValidPickListCodeCount++;
-                                var trailing = TrailingFiveDigits(value);
+                                var normalizedCode = value.Trim().ToUpperInvariant();
+                                result.PickListCodes.Add(normalizedCode);
+                                var trailing = TrailingFiveDigits(normalizedCode);
                                 if (!string.IsNullOrWhiteSpace(trailing))
                                     result.TrailingFiveSuffixes.Add(trailing);
                                 if (!string.IsNullOrWhiteSpace(suffix) && trailing == suffix)

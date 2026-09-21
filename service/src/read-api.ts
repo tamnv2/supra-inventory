@@ -1,4 +1,4 @@
-import { readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
+import { interactiveSessionError, readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
 
 interface ReadApiEnv {
   FIREBASE_PROJECT_ID: string;
@@ -11,6 +11,8 @@ interface InternalUser {
   display_name?: string;
   role: AppRole;
   status: "ACTIVE" | "DISABLED";
+  web_session_generation?: number;
+  android_session_generation?: number;
 }
 
 const REPORTER_ROLES: AppRole[] = ["REPORTER", "ADMIN", "ROOT"];
@@ -29,17 +31,19 @@ function core(env: ReadApiEnv): DurableObjectStub {
 async function requireUser(request: Request, env: ReadApiEnv, roles?: AppRole[]): Promise<InternalUser> {
   const token = readBearerToken(request);
   if (!token) throw json({ error: "AUTH_REQUIRED" }, 401);
-  let uid = "";
+  let identity;
   try {
-    uid = (await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID)).uid;
+    identity = await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID);
   } catch {
     throw json({ error: "INVALID_AUTH_TOKEN" }, 401);
   }
-  const response = await core(env).fetch(`https://inventory-core.internal/auth/user-by-firebase-uid?uid=${encodeURIComponent(uid)}`);
+  const response = await core(env).fetch(`https://inventory-core.internal/auth/user-by-firebase-uid?uid=${encodeURIComponent(identity.uid)}`);
   if (!response.ok) throw json({ error: "AUTH_LOOKUP_FAILED" }, 502);
   const payload = (await response.json()) as { user?: InternalUser | null };
   const user = payload.user;
   if (!user || user.status !== "ACTIVE") throw json({ error: "USER_NOT_ACTIVE" }, 403);
+  const sessionError = interactiveSessionError(identity, user);
+  if (sessionError) throw json({ error: sessionError }, 401);
   if (roles && !roles.includes(user.role)) throw json({ error: "FORBIDDEN" }, 403);
   return user;
 }

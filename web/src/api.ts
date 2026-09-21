@@ -1,6 +1,7 @@
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 const SESSION_KEY = "supra_inventory_interactive_session_v2";
 const LEGACY_SESSION_KEY = "supra_inventory_beta_session_v1";
+const WEB_DEVICE_KEY = "supra_inventory_web_device_v1";
 
 export interface AppProfile {
   user_id: string;
@@ -11,6 +12,7 @@ export interface AppProfile {
   base_role: "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
   status: "ACTIVE" | "DISABLED";
   password_changed_at: string | null;
+  auth_email?: string | null;
 }
 
 export interface SkuItem {
@@ -127,6 +129,8 @@ export interface ManagedUser {
   status: "ACTIVE" | "DISABLED";
   password_initialized: boolean;
   password_changed_at: string | null;
+  auth_email?: string | null;
+  firebase_password_ready?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -294,22 +298,49 @@ export interface AdminReportBatch {
   total_ticket_count: number;
 }
 
-interface StoredSession {
+export interface StoredSession {
   id_token: string;
   refresh_token: string;
   expires_at: number;
   user: AppProfile;
+  session_generation?: number;
+  session_channel?: "WEB" | "ANDROID";
 }
 
 interface LoginResponse {
   id_token: string;
   refresh_token: string;
   expires_in: number;
+  session_generation?: number;
+  session_channel?: "WEB" | "ANDROID";
   user: AppProfile;
 }
 
 let session: StoredSession | null = loadSession();
 let refreshPromise: Promise<void> | null = null;
+
+function webDeviceId(): string {
+  try {
+    const existing = localStorage.getItem(WEB_DEVICE_KEY);
+    if (existing && /^[A-Za-z0-9._:-]{8,160}$/.test(existing)) return existing;
+    const created = `web:${crypto.randomUUID()}`;
+    localStorage.setItem(WEB_DEVICE_KEY, created);
+    return created;
+  } catch {
+    return "web:browser";
+  }
+}
+
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly code: string,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
 
 function loadSession(): StoredSession | null {
   try {
@@ -337,9 +368,11 @@ export async function readJson<T>(response: Response): Promise<T> {
     payload = JSON.parse(text) as T & { error?: string; message?: string };
   } catch {
     const type = response.headers.get("content-type") || "unknown";
-    throw new Error(`API trả dữ liệu không hợp lệ (HTTP ${response.status}, ${type}).`);
+    throw new ApiError(response.status, "INVALID_API_RESPONSE", `API trả dữ liệu không hợp lệ (HTTP ${response.status}, ${type}).`);
   }
-  if (!response.ok) throw new Error(payload.message || payload.error || `HTTP ${response.status}`);
+  if (!response.ok) {
+    throw new ApiError(response.status, String(payload.error || `HTTP_${response.status}`), payload.message || payload.error || `HTTP ${response.status}`);
+  }
   return payload;
 }
 
@@ -368,13 +401,19 @@ function emitApiTelemetry(detail: Record<string, unknown>): void {
   window.dispatchEvent(new CustomEvent("supra:api-telemetry", { detail }));
 }
 
-export async function loginWithPassword(username: string, password: string): Promise<AppProfile> {
+export async function loginWithPassword(username: string, password: string, force = false): Promise<AppProfile> {
   const started = performance.now();
   try {
     const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: "POST",
       headers: { "content-type": "application/json", accept: "application/json" },
-      body: JSON.stringify({ username, password, client_type: "WEB" }),
+      body: JSON.stringify({
+        username,
+        password,
+        client_type: "WEB",
+        device_id: webDeviceId(),
+        force,
+      }),
     });
     emitApiTelemetry({
       name: "auth_login",
@@ -389,6 +428,8 @@ export async function loginWithPassword(username: string, password: string): Pro
       refresh_token: result.refresh_token,
       expires_at: Date.now() + Math.max(60, Number(result.expires_in || 3600)) * 1000,
       user: result.user,
+      session_generation: result.session_generation,
+      session_channel: result.session_channel || "WEB",
     });
     return result.user;
   } catch (error) {
@@ -401,6 +442,46 @@ export async function loginWithPassword(username: string, password: string): Pro
     });
     throw error;
   }
+}
+
+export function getAuthSessionSnapshot(): StoredSession | null {
+  return session ? { ...session, user: { ...session.user } } : null;
+}
+
+export async function logoutInteractiveSession(): Promise<void> {
+  if (!session?.id_token) return;
+  try {
+    await fetch(`${API_BASE_URL}/api/auth/logout`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${session.id_token}`,
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+      body: JSON.stringify({ device_id: webDeviceId() }),
+    });
+  } catch {
+    // Best-effort server release; local logout still wins.
+  }
+}
+
+export async function requestPasswordReset(username: string, email: string): Promise<string> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/password-reset`, {
+    method: "POST",
+    headers: { "content-type": "application/json", accept: "application/json" },
+    body: JSON.stringify({ username: username.trim(), email: email.trim() }),
+  });
+  const result = await readJson<{ status: string; message?: string }>(response);
+  return result.message || "Nếu thông tin tài khoản và email khớp, hệ thống đã gửi liên kết đặt lại mật khẩu.";
+}
+
+export async function updateMyAuthEmail(email: string): Promise<AppProfile> {
+  const result = await readJson<{ user: AppProfile }>(await authorizedFetch("/api/auth/email", {
+    method: "PUT",
+    body: JSON.stringify({ email }),
+  }));
+  if (session) saveSession({ ...session, user: result.user });
+  return result.user;
 }
 
 async function refreshSession(): Promise<void> {
@@ -702,18 +783,24 @@ export async function createManagedUser(
   displayName: string,
   role: "ADMIN" | "REPORTER",
   password: string,
+  authEmail = "",
 ): Promise<ManagedUser> {
   const result = await readJson<{ user: ManagedUser }>(await authorizedFetch("/api/admin/users", {
     method: "POST",
-    body: JSON.stringify({ request_id: crypto.randomUUID(), username, display_name: displayName, role, password }),
+    body: JSON.stringify({ request_id: crypto.randomUUID(), username, display_name: displayName, role, password, auth_email: authEmail }),
   }));
   return result.user;
 }
 
-export async function updateManagedUser(userId: string, displayName: string, status: "ACTIVE" | "DISABLED"): Promise<ManagedUser> {
+export async function updateManagedUser(
+  userId: string,
+  displayName: string,
+  status: "ACTIVE" | "DISABLED",
+  authEmail?: string,
+): Promise<ManagedUser> {
   const result = await readJson<{ user: ManagedUser }>(await authorizedFetch("/api/admin/users", {
     method: "PATCH",
-    body: JSON.stringify({ request_id: crypto.randomUUID(), user_id: userId, display_name: displayName, status }),
+    body: JSON.stringify({ request_id: crypto.randomUUID(), user_id: userId, display_name: displayName, status, ...(authEmail == null ? {} : { auth_email: authEmail }) }),
   }));
   return result.user;
 }

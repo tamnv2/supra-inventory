@@ -1,5 +1,14 @@
 import { InventoryCore } from "./core";
-import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole } from "./auth";
+import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
+import {
+  effectiveAuthEmail,
+  importPasswordIdentity,
+  normalizeAuthEmail,
+  sendFirebasePasswordReset,
+  signInWithFirebasePassword,
+  updateFirebaseIdentity,
+  type FirebaseManagedUserSpec,
+} from "./firebase-auth-admin";
 import { handleBusinessApi } from "./business-api";
 import { handleReadApi } from "./read-api";
 import { handleNotificationApi } from "./notification-api";
@@ -46,8 +55,16 @@ interface InternalUser {
   password_salt: string | null;
   password_hash: string | null;
   password_changed_at: string | null;
+  auth_email: string | null;
+  firebase_password_ready: number;
   session_generation: number;
   session_started_at: string | null;
+  web_session_generation: number;
+  web_session_device_id: string | null;
+  web_session_started_at: string | null;
+  android_session_generation: number;
+  android_session_device_id: string | null;
+  android_session_started_at: string | null;
 }
 
 interface FirebaseExchangeResponse {
@@ -203,30 +220,114 @@ function sessionAuthorityError(identity: Awaited<ReturnType<typeof verifyFirebas
     return user.role === "ADMIN" && user.base_role === "ADMIN" ? null : "AGENT_ADMIN_REQUIRED";
   }
   if (identity.sessionChannel !== "WEB" && identity.sessionChannel !== "ANDROID") return "SESSION_UPGRADE_REQUIRED";
-  if (!identity.sessionGeneration || identity.sessionGeneration !== Number(user.session_generation || 0)) return "SESSION_REPLACED";
+  const expected = identity.sessionChannel === "WEB"
+    ? Number(user.web_session_generation || 0)
+    : Number(user.android_session_generation || 0);
+  if (!identity.sessionGeneration || identity.sessionGeneration !== expected) return "SESSION_REPLACED";
   return null;
 }
 
-async function closeUserRealtime(env: Env, userId: string): Promise<void> {
+function firebaseUserSpec(user: InternalUser, uid: string): FirebaseManagedUserSpec {
+  return {
+    uid,
+    userId: user.user_id,
+    employeeCode: user.employee_code,
+    displayName: user.display_name,
+    role: user.base_role,
+    status: user.status,
+    authEmail: user.auth_email,
+    passwordSalt: user.password_salt,
+    passwordHash: user.password_hash,
+  };
+}
+
+async function ensureFirebasePasswordReady(env: Env, original: InternalUser): Promise<InternalUser> {
+  if (!env.GOOGLE_RUNTIME_SA_JSON || !env.FIREBASE_WEB_API_KEY) throw new Error("AUTH_RUNTIME_NOT_CONFIGURED");
+  let user = original;
+  if (!user.password_hash || !user.password_salt) {
+    let bootstrapPassword: string | null = null;
+    if (user.base_role === "ROOT" && user.user_id === "root" && env.ROOT_BOOTSTRAP_PASSWORD) {
+      bootstrapPassword = env.ROOT_BOOTSTRAP_PASSWORD;
+    } else if (user.base_role === "PICKER") {
+      bootstrapPassword = env.PICKER_DEFAULT_PASSWORD || env.ROOT_BOOTSTRAP_PASSWORD || null;
+    }
+    if (!bootstrapPassword) throw new Error("PASSWORD_NOT_INITIALIZED");
+    await savePassword(env, user.user_id, bootstrapPassword);
+    user = (await getUserById(env, user.user_id))!;
+  }
+
+  const uid = await ensureFirebaseUid(env, user);
+  if (Number(user.firebase_password_ready || 0) !== 1) {
+    const imported = await importPasswordIdentity(
+      env.GOOGLE_RUNTIME_SA_JSON,
+      env.FIREBASE_PROJECT_ID,
+      firebaseUserSpec(user, uid),
+    );
+    await coreJson(env, "/auth/firebase-password-ready", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ user_id: user.user_id, firebase_uid: uid, auth_email: imported.email }),
+    });
+    user = (await getUserById(env, user.user_id))!;
+  }
+  return user;
+}
+
+async function migrateActiveAdminFirebaseCredentials(env: Env): Promise<{ migrated: number; failed: number; remaining: number }> {
+  if (!env.GOOGLE_RUNTIME_SA_JSON) return { migrated: 0, failed: 1, remaining: 0 };
+  const candidates = await coreJson<{ items: InternalUser[]; count: number }>(
+    env,
+    "/auth/firebase-migration-candidates?role=ADMIN&limit=50",
+  );
+  let migrated = 0;
+  let failed = 0;
+  for (const candidate of candidates.items || []) {
+    try {
+      await ensureFirebasePasswordReady(env, candidate);
+      migrated += 1;
+    } catch {
+      failed += 1;
+    }
+  }
+  const remaining = await coreJson<{ count: number }>(
+    env,
+    "/auth/firebase-migration-candidates?role=ADMIN&limit=1",
+  );
+  return { migrated, failed, remaining: Number(remaining.count || 0) };
+}
+
+async function closeUserRealtime(env: Env, userId: string, channel?: "WEB" | "ANDROID"): Promise<void> {
   try {
     await coreStub(env).fetch("https://inventory-core.internal/realtime/close-user", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ user_id: userId, reason: "session-replaced" }),
+      body: JSON.stringify({ user_id: userId, client_type: channel || "", reason: "session-replaced" }),
     });
   } catch {
     // HTTP auth generation remains authoritative even if an old socket closes on its next lifecycle edge.
   }
 }
 
-async function activateInteractiveSession(env: Env, userId: string): Promise<number> {
-  const result = await coreJson<{ session_generation: number }>(env, "/auth/activate-session", {
+async function activateInteractiveSession(
+  env: Env,
+  userId: string,
+  channel: "WEB" | "ANDROID",
+  deviceId: string,
+  force: boolean,
+): Promise<{ generation: number; replaced: boolean } | { conflict: true }> {
+  const response = await coreStub(env).fetch("https://inventory-core.internal/auth/activate-session", {
     method: "PUT",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ user_id: userId }),
+    body: JSON.stringify({ user_id: userId, channel, device_id: deviceId, force }),
   });
-  await closeUserRealtime(env, userId);
-  return Math.max(1, Number(result.session_generation || 0));
+  const payload = (await response.json()) as { error?: string; session_generation?: number; replaced_other_device?: boolean };
+  if (response.status === 409 && payload.error === "SESSION_ACTIVE_OTHER_DEVICE") return { conflict: true };
+  if (!response.ok) throw new Error(`core_http_${response.status}`);
+  await closeUserRealtime(env, userId, channel);
+  return {
+    generation: Math.max(1, Number(payload.session_generation || 0)),
+    replaced: Boolean(payload.replaced_other_device),
+  };
 }
 
 async function requireUser(request: Request, env: Env, roles?: AppRole[]): Promise<InternalUser> {
@@ -266,13 +367,20 @@ async function loadTestAuthorized(request: Request, env: Env): Promise<boolean> 
   return constantTimeEqual(supplied, env.LOAD_TEST_TOKEN);
 }
 
-function publicUser(user: InternalUser): Omit<InternalUser, "password_salt" | "password_hash" | "role_override" | "session_generation" | "session_started_at"> {
+function publicUser(user: InternalUser): Record<string, unknown> {
   const {
     password_salt: _salt,
     password_hash: _hash,
     role_override: _override,
-    session_generation: _sessionGeneration,
-    session_started_at: _sessionStartedAt,
+    session_generation: _legacyGeneration,
+    session_started_at: _legacyStarted,
+    web_session_generation: _webGeneration,
+    web_session_device_id: _webDevice,
+    web_session_started_at: _webStarted,
+    android_session_generation: _androidGeneration,
+    android_session_device_id: _androidDevice,
+    android_session_started_at: _androidStarted,
+    firebase_password_ready: _firebasePasswordReady,
     ...safe
   } = user;
   return safe;
@@ -363,72 +471,83 @@ async function refreshSession(request: Request, env: Env): Promise<Response> {
 }
 async function login(request: Request, env: Env): Promise<Response> {
   if (!env.GOOGLE_RUNTIME_SA_JSON || !env.FIREBASE_WEB_API_KEY) return json({ error: "AUTH_RUNTIME_NOT_CONFIGURED" }, 503);
-  const body = (await request.json()) as { username?: string; password?: string; client_type?: string };
+  const body = (await request.json()) as {
+    username?: string;
+    password?: string;
+    client_type?: string;
+    device_id?: string;
+    force?: boolean;
+  };
   const username = String(body.username || "").trim().toLowerCase();
   const password = String(body.password || "");
-  if (!/^[a-z0-9._-]{1,64}$/.test(username) || !password) return json({ error: "INVALID_CREDENTIALS" }, 401);
+  const deviceId = String(body.device_id || "").trim().slice(0, 160);
+  if (!/^[a-z0-9._-]{1,64}$/.test(username) || !password || !deviceId) {
+    return json({ error: "INVALID_CREDENTIALS" }, 401);
+  }
 
+  const requested = String(body.client_type || "").trim().toUpperCase();
+  const channel: "WEB" | "ANDROID" = requested === "ANDROID" ? "ANDROID" : "WEB";
   let user = await getUserByUsername(env, username);
   if (!user || user.status !== "ACTIVE") return json({ error: "INVALID_CREDENTIALS" }, 401);
 
-  if (!user.password_hash || !user.password_salt) {
-    let bootstrapPassword: string | null = null;
-    if (user.role === "ROOT" && user.user_id === "root" && env.ROOT_BOOTSTRAP_PASSWORD) {
-      bootstrapPassword = env.ROOT_BOOTSTRAP_PASSWORD;
-    } else if (user.role === "PICKER") {
-      bootstrapPassword = env.PICKER_DEFAULT_PASSWORD || env.ROOT_BOOTSTRAP_PASSWORD || null;
-    }
-    if (!bootstrapPassword) {
-      return json({ error: "PASSWORD_NOT_INITIALIZED", message: "Tài khoản chưa được khởi tạo mật khẩu." }, 503);
-    }
-    await savePassword(env, user.user_id, bootstrapPassword);
-    user = (await getUserByUsername(env, username))!;
+  if (channel === "WEB" && user.base_role === "PICKER") {
+    return json({ error: "CLIENT_ROLE_NOT_ALLOWED", message: "Picker chỉ đăng nhập trên App/PDA." }, 403);
   }
 
-  if (!(await verifyPassword(password, user.password_salt!, user.password_hash!))) return json({ error: "INVALID_CREDENTIALS" }, 401);
-
-  const requested = String(body.client_type || "").trim().toUpperCase();
-  const userAgent = String(request.headers.get("user-agent") || "");
-  const channel: "WEB" | "ANDROID" | "AGENT" =
-    requested === "AGENT" || (!requested && userAgent.includes("SUPRA-Inventory-Relay"))
-      ? "AGENT"
-      : requested === "ANDROID" || (!requested && userAgent.includes("SUPRA-Inventory-Beta"))
-        ? "ANDROID"
-        : "WEB";
-
-  if (channel === "AGENT" && (user.role !== "ADMIN" || user.base_role !== "ADMIN")) {
-    return json({ error: "AGENT_ADMIN_REQUIRED" }, 403);
+  try {
+    user = await ensureFirebasePasswordReady(env, user);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "AUTH_MIGRATION_FAILED";
+    const status = message === "PASSWORD_NOT_INITIALIZED" ? 503 : 502;
+    return json({ error: message, message: "Không chuẩn bị được tài khoản Firebase." }, status);
   }
 
-  const sessionGeneration = channel === "AGENT"
-    ? 0
-    : await activateInteractiveSession(env, user.user_id);
+  const uid = String(user.firebase_uid || "");
+  const email = effectiveAuthEmail(firebaseUserSpec(user, uid));
+  try {
+    const credential = await signInWithFirebasePassword(env.FIREBASE_WEB_API_KEY, email, password);
+    if (credential.localId !== uid) return json({ error: "INVALID_CREDENTIALS" }, 401);
+  } catch {
+    return json({ error: "INVALID_CREDENTIALS" }, 401);
+  }
 
-  const firebaseUid = await ensureFirebaseUid(env, user);
-  const customToken = await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON, firebaseUid, {
+  const activated = await activateInteractiveSession(env, user.user_id, channel, deviceId, Boolean(body.force));
+  if ("conflict" in activated) {
+    return json({
+      error: "SESSION_ACTIVE_OTHER_DEVICE",
+      channel,
+      message: channel === "ANDROID"
+        ? "Tài khoản đang đăng nhập trên App/PDA khác. Tiếp tục sẽ đăng xuất thiết bị App/PDA cũ."
+        : "Tài khoản đang đăng nhập trên Web khác. Tiếp tục sẽ đăng xuất phiên Web cũ.",
+    }, 409);
+  }
+
+  const customToken = await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON, uid, {
     app_role: user.role,
     app_base_role: user.base_role,
     app_user_id: user.user_id,
     employee_code: user.employee_code || "",
     app_session_channel: channel,
-    app_session_generation: String(sessionGeneration),
+    app_session_generation: String(activated.generation),
   });
   try {
     const session = await exchangeCustomToken(env, customToken);
     const relayCustomToken = channel === "ANDROID"
-      ? await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON, firebaseUid, {
+      ? await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON, uid, {
           app_role: user.role,
           app_base_role: user.base_role,
           app_user_id: user.user_id,
           employee_code: user.employee_code || "",
-          app_session_channel: channel,
-          app_session_generation: String(sessionGeneration),
+          app_session_channel: "ANDROID",
+          app_session_generation: String(activated.generation),
         })
       : undefined;
     return json({
       ...session,
+      session_generation: activated.generation,
+      session_channel: channel,
       ...(relayCustomToken ? { firebase_custom_token: relayCustomToken } : {}),
-      user: publicUser({ ...user, firebase_uid: firebaseUid }),
+      user: publicUser(user),
     });
   } catch (error) {
     return json({ error: "FIREBASE_LOGIN_EXCHANGE_FAILED", message: error instanceof Error ? error.message : "Firebase login exchange failed" }, 502);
@@ -454,7 +573,7 @@ async function setRootEffectiveRole(request: Request, env: Env): Promise<Respons
     await coreStub(env).fetch("https://inventory-core.internal/realtime/close-user", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ user_id: actor.user_id }),
+      body: JSON.stringify({ user_id: actor.user_id, reason: "role-changed" }),
     });
   } catch {
     // HTTP authorization already uses the new effective role; realtime reconnect will refresh role projection.
@@ -464,15 +583,115 @@ async function setRootEffectiveRole(request: Request, env: Env): Promise<Respons
 }
 
 async function changePassword(request: Request, env: Env): Promise<Response> {
-  const user = await requireUser(request, env);
+  if (!env.GOOGLE_RUNTIME_SA_JSON || !env.FIREBASE_WEB_API_KEY) return json({ error: "AUTH_RUNTIME_NOT_CONFIGURED" }, 503);
+  let user = await requireUser(request, env);
+  user = await ensureFirebasePasswordReady(env, user);
   const body = (await request.json()) as { current_password?: string; new_password?: string };
   const current = String(body.current_password || "");
-  const next = String(body.new_password || "");
-  if (!user.password_salt || !user.password_hash || !(await verifyPassword(current, user.password_salt, user.password_hash))) {
+  const nextPassword = String(body.new_password || "");
+  const uid = String(user.firebase_uid || "");
+  const email = effectiveAuthEmail(firebaseUserSpec(user, uid));
+  try {
+    const currentSession = await signInWithFirebasePassword(env.FIREBASE_WEB_API_KEY, email, current);
+    if (currentSession.localId !== uid) return json({ error: "CURRENT_PASSWORD_INVALID" }, 400);
+  } catch {
     return json({ error: "CURRENT_PASSWORD_INVALID" }, 400);
   }
-  await savePassword(env, user.user_id, next);
-  return json({ status: "password_changed" });
+  if (nextPassword.length < 8 || nextPassword.length > 128) return json({ error: "INVALID_PASSWORD" }, 400);
+  await updateFirebaseIdentity(
+    env.GOOGLE_RUNTIME_SA_JSON,
+    env.FIREBASE_PROJECT_ID,
+    firebaseUserSpec(user, uid),
+    { password: nextPassword },
+  );
+  await savePassword(env, user.user_id, nextPassword);
+  await coreJson(env, "/auth/firebase-password-ready", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ user_id: user.user_id, firebase_uid: uid, auth_email: email }),
+  });
+  return json({ status: "password_changed", reauth_required: true });
+}
+
+async function updateMyAuthEmail(request: Request, env: Env): Promise<Response> {
+  if (!env.GOOGLE_RUNTIME_SA_JSON) return json({ error: "AUTH_RUNTIME_NOT_CONFIGURED" }, 503);
+  let user = await requireUser(request, env);
+  if (!["ROOT", "ADMIN"].includes(user.base_role)) return json({ error: "FORBIDDEN" }, 403);
+  const body = (await request.json()) as { email?: string };
+  let email = "";
+  try { email = normalizeAuthEmail(body.email); } catch { return json({ error: "EMAIL_INVALID" }, 400); }
+  if (!email) return json({ error: "EMAIL_REQUIRED" }, 400);
+  user = await ensureFirebasePasswordReady(env, user);
+  const uid = String(user.firebase_uid || "");
+  await updateFirebaseIdentity(
+    env.GOOGLE_RUNTIME_SA_JSON,
+    env.FIREBASE_PROJECT_ID,
+    firebaseUserSpec(user, uid),
+    { email },
+  );
+  const saved = await coreJson<{ user: InternalUser | null }>(env, "/auth/set-email", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ user_id: user.user_id, auth_email: email }),
+  });
+  return json({ status: "email_saved", user: saved.user ? publicUser(saved.user) : publicUser({ ...user, auth_email: email }) });
+}
+
+async function requestPasswordReset(request: Request, env: Env): Promise<Response> {
+  if (!env.FIREBASE_WEB_API_KEY) return json({ status: "accepted" }, 202);
+  let body: { username?: string; email?: string } = {};
+  try { body = (await request.json()) as { username?: string; email?: string }; } catch { body = {}; }
+  const username = String(body.username || "").trim().toLowerCase();
+  let email = "";
+  try { email = normalizeAuthEmail(body.email); } catch { return json({ status: "accepted" }, 202); }
+  if (!/^[a-z0-9._-]{1,64}$/.test(username) || !email) return json({ status: "accepted" }, 202);
+  try {
+    let user = await getUserByUsername(env, username);
+    if (
+      user &&
+      user.status === "ACTIVE" &&
+      ["ROOT", "ADMIN"].includes(user.base_role) &&
+      user.auth_email &&
+      normalizeAuthEmail(user.auth_email) === email
+    ) {
+      user = await ensureFirebasePasswordReady(env, user);
+      await sendFirebasePasswordReset(env.FIREBASE_WEB_API_KEY, email);
+    }
+  } catch {
+    // Enumeration-safe response: callers always receive the same result.
+  }
+  return json({
+    status: "accepted",
+    message: "Nếu thông tin tài khoản và email khớp, hệ thống đã gửi liên kết đặt lại mật khẩu.",
+  }, 202);
+}
+
+async function logoutInteractiveSession(request: Request, env: Env): Promise<Response> {
+  const token = readBearerToken(request);
+  if (!token) return json({ status: "ended" });
+  let identity: Awaited<ReturnType<typeof verifyFirebaseIdToken>>;
+  try { identity = await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID); }
+  catch { return json({ status: "ended" }); }
+  if (identity.sessionChannel !== "WEB" && identity.sessionChannel !== "ANDROID") return json({ status: "ended" });
+  const user = await getUserByFirebaseUid(env, identity.uid);
+  if (!user) return json({ status: "ended" });
+  let body: { device_id?: string } = {};
+  try { body = (await request.json()) as { device_id?: string }; } catch { body = {}; }
+  const deviceId = String(body.device_id || "").trim().slice(0, 160);
+  if (deviceId && identity.sessionGeneration > 0) {
+    await coreStub(env).fetch("https://inventory-core.internal/auth/end-session", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        user_id: user.user_id,
+        channel: identity.sessionChannel,
+        generation: identity.sessionGeneration,
+        device_id: deviceId,
+      }),
+    });
+    await closeUserRealtime(env, user.user_id, identity.sessionChannel);
+  }
+  return json({ status: "ended" });
 }
 
 async function startGoogleOAuth(env: Env): Promise<Response> {
@@ -523,11 +742,20 @@ export default {
         const bindingPresence = Object.fromEntries(REQUIRED_RUNTIME_BINDINGS.map((name) => [name, Boolean(env[name])]));
         const missing = REQUIRED_RUNTIME_BINDINGS.filter((name) => !env[name]);
         const core = await checkCore(env);
-        const healthy = missing.length === 0 && core.ok;
+        let agentAuthMigration = { migrated: 0, failed: 0, remaining: 0 };
+        if (core.ok && env.GOOGLE_RUNTIME_SA_JSON) {
+          try {
+            agentAuthMigration = await migrateActiveAdminFirebaseCredentials(env);
+          } catch {
+            agentAuthMigration = { migrated: 0, failed: 1, remaining: 1 };
+          }
+        }
+        const healthy = missing.length === 0 && core.ok && agentAuthMigration.failed === 0 && agentAuthMigration.remaining === 0;
         return json({
           status: healthy ? "ok" : "degraded", service: env.PROJECT_KEY || "supra-inventory", environment: env.APP_ENV || "unknown",
           required_bindings: bindingPresence, oauth_refresh_token_configured: Boolean(env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN),
-          root_bootstrap_secret_configured: Boolean(env.ROOT_BOOTSTRAP_PASSWORD), logs_folder_configured: Boolean(env.LOGS_FOLDER_ID), storage: core, missing_bindings: missing, timestamp: new Date().toISOString(),
+          root_bootstrap_secret_configured: Boolean(env.ROOT_BOOTSTRAP_PASSWORD), logs_folder_configured: Boolean(env.LOGS_FOLDER_ID),
+          storage: core, agent_auth_migration: agentAuthMigration, missing_bindings: missing, timestamp: new Date().toISOString(),
         }, healthy ? 200 : 503);
       }
 
@@ -535,7 +763,7 @@ export default {
         const core = await checkCore(env);
         return json({
           environment: env.APP_ENV,
-          firebase_auth: "worker_exchanged_firebase_id_token",
+          firebase_auth: "firebase_password_authority_with_channel_scoped_app_sessions",
           durable_objects_sqlite: core.ok,
           business_api: {
             version: 1,
@@ -559,9 +787,12 @@ export default {
 
       if (request.method === "POST" && url.pathname === "/api/auth/login") return login(request, env);
       if (request.method === "POST" && url.pathname === "/api/auth/refresh") return refreshSession(request, env);
+      if (request.method === "POST" && url.pathname === "/api/auth/logout") return logoutInteractiveSession(request, env);
+      if (request.method === "POST" && url.pathname === "/api/auth/password-reset") return requestPasswordReset(request, env);
       if (request.method === "GET" && url.pathname === "/api/auth/me") return json({ user: publicUser(await requireUser(request, env)) });
       if (request.method === "PUT" && url.pathname === "/api/auth/root-role") return setRootEffectiveRole(request, env);
       if (request.method === "PUT" && url.pathname === "/api/auth/change-password") return changePassword(request, env);
+      if (request.method === "PUT" && url.pathname === "/api/auth/email") return updateMyAuthEmail(request, env);
 
       if (request.method === "GET" && url.pathname === "/api/admin/system-status") {
         await requireUser(request, env, ["ADMIN", "ROOT"]);

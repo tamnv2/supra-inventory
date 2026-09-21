@@ -228,6 +228,20 @@ async function verifyWithKey(
   };
 }
 
+export function interactiveSessionError(
+  identity: FirebaseIdentity,
+  user: { web_session_generation?: number | null; android_session_generation?: number | null },
+): string | null {
+  if (identity.sessionChannel !== "WEB" && identity.sessionChannel !== "ANDROID") {
+    return "SESSION_UPGRADE_REQUIRED";
+  }
+  const expected = identity.sessionChannel === "WEB"
+    ? Number(user.web_session_generation || 0)
+    : Number(user.android_session_generation || 0);
+  if (!identity.sessionGeneration || identity.sessionGeneration !== expected) return "SESSION_REPLACED";
+  return null;
+}
+
 export function readBearerToken(request: Request): string | null {
   const authorization = request.headers.get("authorization") || "";
   const match = authorization.match(/^Bearer\s+(.+)$/i);

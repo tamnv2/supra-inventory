@@ -244,22 +244,33 @@ async function connectRealtime(state: DurableObjectState, request: Request, url:
 }
 
 async function closeRealtimeUser(state: DurableObjectState, request: Request): Promise<Response> {
-  let body: { user_id?: string } = {};
-  try { body = (await request.json()) as { user_id?: string }; } catch { body = {}; }
+  let body: { user_id?: string; client_type?: string; reason?: string } = {};
+  try {
+    body = (await request.json()) as { user_id?: string; client_type?: string; reason?: string };
+  } catch {
+    body = {};
+  }
   const userId = String(body.user_id || "").trim();
+  const clientType = String(body.client_type || "").trim().toUpperCase();
+  // Keep the established role-change close reason while D098 also scopes same-channel replacement.
+  const allowedCloseReasons = new Set(["role-changed", "session-replaced", "session-changed"]);
+  const requestedReason = String(body.reason || "session-changed").trim().slice(0, 64) || "session-changed";
+  const reason = allowedCloseReasons.has(requestedReason) ? requestedReason : "session-changed";
   if (!/^[A-Za-z0-9._:-]{1,128}$/.test(userId)) return response({ error: "INVALID_USER_ID" }, 400);
+  if (clientType && !["WEB", "ANDROID"].includes(clientType)) return response({ error: "INVALID_CLIENT_TYPE" }, 400);
   let closed = 0;
   for (const socket of state.getWebSockets()) {
     const attachment = socket.deserializeAttachment() as RealtimeAttachment | null;
     if (attachment?.user_id !== userId) continue;
+    if (clientType && attachment.client_type !== clientType) continue;
     try {
-      socket.close(1000, "role-changed");
+      socket.close(1000, reason);
       closed += 1;
     } catch {
-      // Socket may already be closing; role enforcement still applies on subsequent HTTP/ticket requests.
+      // Socket may already be closing; HTTP/session generation remains authoritative.
     }
   }
-  return response({ status: "closed", user_id: userId, closed });
+  return response({ status: "closed", user_id: userId, client_type: clientType || "ALL", closed });
 }
 
 function realtimePresence(state: DurableObjectState): Response {

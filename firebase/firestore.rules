@@ -80,6 +80,24 @@ service cloud.firestore {
       allow get, list, create, update, delete: if isRealAdmin();
     }
 
+    match /relay_poc_agent_sessions/{uid} {
+      allow get: if isRealAdmin() && request.auth.uid == uid;
+      allow create, update: if isRealAdmin()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly([
+          'firebase_uid', 'agent_instance_id', 'agent_admin_user_id',
+          'machine', 'claimed_at_ms'
+        ])
+        && request.resource.data.firebase_uid == request.auth.uid
+        && request.resource.data.agent_admin_user_id == request.auth.token.app_user_id
+        && request.resource.data.agent_instance_id is string
+        && request.resource.data.agent_instance_id.size() >= 8
+        && request.resource.data.agent_instance_id.size() <= 160
+        && request.resource.data.claimed_at_ms is int;
+      allow delete: if isRealAdmin() && request.auth.uid == uid;
+      allow list: if false;
+    }
+
     match /relay_poc_confirm_guards/{guardId} {
       allow get, create, update, delete: if isRealAdmin();
       allow delete: if isPicker()

@@ -324,7 +324,7 @@ checks = {
         "await scheduleNextOperationalAlarm(this.state);",
     ]),
     "service_d070_no_picker_resolve_api": "/api/picker/batches/resolve" not in SERVICE_BUSINESS and "/api/picker/skip" not in SERVICE_BUSINESS,
-    "service_root_bootstrap_preserved": 'user.role === "ROOT" && user.user_id === "root" && env.ROOT_BOOTSTRAP_PASSWORD' in SERVICE_INDEX,
+    "service_root_bootstrap_preserved": 'user.base_role === "ROOT" && user.user_id === "root" && env.ROOT_BOOTSTRAP_PASSWORD' in SERVICE_INDEX,
     "service_d060_root_role_override": all(token in (SERVICE_INDEX + SERVICE_CORE + SERVICE_READ_MODEL + SERVICE_NOTIFICATIONS) for token in [
         "/api/auth/root-role",
         "base_role",

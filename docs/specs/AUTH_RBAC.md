@@ -143,3 +143,23 @@ Picker clients must not infer, request or receive another Picker's event payload
 - Logout removes the persisted Agent application session and stops relay leadership/listening for that identity.
 - A later successful ADMIN login replaces the persisted identity/session with the new account.
 - Agent session persistence remains independent from the single interactive Web/Android session generation and independent from the separate company WMS browser authority.
+
+
+## D098 — Firebase credential authority and independent client session slots
+
+D098 supersedes D088's single shared Web/Android session-generation model.
+
+- Firebase Authentication is credential authority; InventoryCore remains business/RBAC authority.
+- One logical user has one stable Firebase UID and may concurrently hold at most one session in each channel: `WEB`, `ANDROID`, `AGENT`.
+- Same-channel second login returns `SESSION_ACTIVE_OTHER_DEVICE`; only an explicit force/continue action replaces that same channel. Every authenticated business API validates the channel generation so an old token cannot continue after replacement.
+- Role/client matrix:
+  - PICKER: ANDROID only.
+  - REPORTER: ANDROID + WEB.
+  - ROOT: ANDROID + WEB.
+  - ADMIN: ANDROID + WEB + AGENT.
+- AGENT requires immutable/base role ADMIN and effective ADMIN. ROOT effective-role simulation is not Agent authority.
+- Web/App login may continue to accept MNV/username as product UX while Firebase verifies the resolved identity/password. Existing PBKDF2-SHA256 password material is migration input only; new credential verification authority is Firebase.
+- Firebase UID is stable. Password change, disable or session replacement invalidates the proper channel/credential state without UID rotation.
+- ROOT/ADMIN recovery email is stored as business identity metadata and synchronized to Firebase Auth. Password reset requests are enumeration-safe and send only when user + registered email match.
+- PICKER Web access is server-denied even if a client is modified. REPORTER/ROOT Agent access is denied by Firestore Rules/claims and Agent-side claim checks.
+- Agent refresh tokens may remain DPAPI CurrentUser protected locally; plaintext passwords/tokens must never be persisted or logged.

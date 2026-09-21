@@ -16,6 +16,8 @@ interface UserRow extends SqlRow {
   password_salt: string | null;
   password_hash: string | null;
   password_changed_at: string | null;
+  auth_email: string | null;
+  firebase_password_ready: number;
   created_at: string;
   updated_at: string;
 }
@@ -56,6 +58,8 @@ function safeUser(row: UserRow): Record<string, unknown> {
   return {
     user_id: row.user_id, firebase_uid: row.firebase_uid, employee_code: row.employee_code,
     display_name: row.display_name, role: row.role, status: row.status,
+    auth_email: row.auth_email || null,
+    firebase_password_ready: Number(row.firebase_password_ready || 0) === 1,
     password_initialized: Boolean(row.password_hash && row.password_salt), password_changed_at: row.password_changed_at,
     created_at: row.created_at, updated_at: row.updated_at,
   };
@@ -63,7 +67,7 @@ function safeUser(row: UserRow): Record<string, unknown> {
 
 function getUser(state: DurableObjectState, userId: string): UserRow | null {
   return first(state.storage.sql.exec<UserRow>(
-    `SELECT user_id, firebase_uid, employee_code, display_name, role, status, password_salt, password_hash, password_changed_at, created_at, updated_at
+    `SELECT user_id, firebase_uid, employee_code, display_name, role, status, password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at
        FROM users WHERE user_id = ? LIMIT 1`, userId,
   ).toArray());
 }
@@ -101,7 +105,7 @@ function listUsers(state: DurableObjectState, url: URL): Response {
 
   const rows = state.storage.sql.exec<UserRow>(
     `SELECT user_id, firebase_uid, employee_code, display_name, role, status,
-            password_salt, password_hash, password_changed_at, created_at, updated_at
+            password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at
        FROM users
        ${clause}
       ORDER BY CASE role WHEN 'ROOT' THEN 1 WHEN 'ADMIN' THEN 2 WHEN 'REPORTER' THEN 3 ELSE 4 END,
@@ -122,40 +126,44 @@ function listUsers(state: DurableObjectState, url: URL): Response {
 }
 
 async function createManagedUser(state: DurableObjectState, request: Request): Promise<Response> {
-  const body = (await request.json()) as { actor?: Actor; username?: unknown; display_name?: unknown; role?: AppRole; request_id?: unknown; password_salt?: unknown; password_hash?: unknown };
+  const body = (await request.json()) as { actor?: Actor; username?: unknown; display_name?: unknown; role?: AppRole; auth_email?: unknown; request_id?: unknown; password_salt?: unknown; password_hash?: unknown };
   const actor = body.actor;
   const targetRole = String(body.role || "").toUpperCase() as AppRole;
   const username = normalizeLogin(body.username);
   const displayName = normalizeName(body.display_name);
-  if (!actor?.user_id || !canCreateRole(actor.role, targetRole) || !validLogin(username) || !displayName || displayName.length > 200 || !validRequestId(body.request_id) || !validPasswordPart(body.password_salt) || !validPasswordPart(body.password_hash)) {
+  const authEmail = String(body.auth_email || "").trim().toLowerCase();
+  const emailValid = !authEmail || /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(authEmail);
+  if (!actor?.user_id || !canCreateRole(actor.role, targetRole) || !validLogin(username) || !displayName || displayName.length > 200 || !validRequestId(body.request_id) || !validPasswordPart(body.password_salt) || !validPasswordPart(body.password_hash) || !emailValid || (targetRole === "ADMIN" && !authEmail)) {
     return response({ error: "INVALID_USER_CREATE_SCOPE" }, 400);
   }
   const existing = first(state.storage.sql.exec<UserRow>(
-    `SELECT user_id, firebase_uid, employee_code, display_name, role, status, password_salt, password_hash, password_changed_at, created_at, updated_at
+    `SELECT user_id, firebase_uid, employee_code, display_name, role, status, password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at
        FROM users WHERE lower(employee_code) = lower(?) OR lower(user_id) = lower(?) LIMIT 1`, username, username,
   ).toArray());
   if (existing) return response({ error: "USER_IDENTIFIER_EXISTS", user: safeUser(existing) }, 409);
   const userId = `${targetRole.toLowerCase()}:${username}`;
   const at = new Date().toISOString();
   state.storage.sql.exec(
-    `INSERT INTO users (user_id, firebase_uid, employee_code, display_name, role, status, created_at, updated_at, password_salt, password_hash, password_changed_at)
-     VALUES (?, NULL, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?, ?)`,
-    userId, username, displayName, targetRole, at, at, body.password_salt, body.password_hash, at,
+    `INSERT INTO users (user_id, firebase_uid, employee_code, display_name, role, status, created_at, updated_at, password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready)
+     VALUES (?, NULL, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?, ?, ?, 0)`,
+    userId, username, displayName, targetRole, at, at, body.password_salt, body.password_hash, at, authEmail || null,
   );
   audit(state, actor, "USER_CREATE", "USER", userId, { role: targetRole, employee_code: username, password_mode: "explicit" });
   return response({ status: "created", user: safeUser(getUser(state, userId)!) }, 201);
 }
 
 async function updateManagedUser(state: DurableObjectState, request: Request): Promise<Response> {
-  const body = (await request.json()) as { actor?: Actor; user_id?: string; display_name?: unknown; status?: UserStatus; request_id?: unknown };
+  const body = (await request.json()) as { actor?: Actor; user_id?: string; display_name?: unknown; status?: UserStatus; auth_email?: unknown; request_id?: unknown };
   const actor = body.actor;
   const userId = String(body.user_id || "").trim();
   const target = getUser(state, userId);
   if (!actor?.user_id || !target || !canManageTarget(actor.role, target.role) || !validRequestId(body.request_id)) return response({ error: "USER_NOT_MANAGEABLE" }, 403);
   const displayName = normalizeName(body.display_name ?? target.display_name);
   const status = String(body.status || target.status).toUpperCase() as UserStatus;
-  if (!displayName || displayName.length > 200 || !["ACTIVE","DISABLED"].includes(status)) return response({ error: "INVALID_USER_UPDATE" }, 400);
-  state.storage.sql.exec(`UPDATE users SET display_name = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`, displayName, status, userId);
+  const authEmail = body.auth_email == null ? (target.auth_email || "") : String(body.auth_email || "").trim().toLowerCase();
+  const emailValid = !authEmail || /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(authEmail);
+  if (!displayName || displayName.length > 200 || !["ACTIVE","DISABLED"].includes(status) || !emailValid || (target.role === "ADMIN" && !authEmail)) return response({ error: "INVALID_USER_UPDATE" }, 400);
+  state.storage.sql.exec(`UPDATE users SET display_name = ?, status = ?, auth_email = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`, displayName, status, authEmail || null, userId);
   if (status === "DISABLED") {
     state.storage.sql.exec(`UPDATE fcm_devices SET enabled = 0, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`, userId);
     state.storage.sql.exec(`DELETE FROM presence_sessions WHERE user_id = ?`, userId);
@@ -172,15 +180,26 @@ async function setManagedPassword(state: DurableObjectState, request: Request): 
   if (!actor?.user_id || !target || !canManageTarget(actor.role, target.role) || !validRequestId(body.request_id) || !validPasswordPart(body.password_salt) || !validPasswordPart(body.password_hash)) {
     return response({ error: "USER_NOT_MANAGEABLE" }, 403);
   }
-  const nextUid = `r:${crypto.randomUUID()}`;
   const at = new Date().toISOString();
   state.storage.sql.exec(
-    `UPDATE users SET firebase_uid = ?, password_salt = ?, password_hash = ?, password_changed_at = ?, updated_at = ? WHERE user_id = ?`,
-    nextUid, body.password_salt, body.password_hash, at, at, userId,
+    `UPDATE users
+        SET password_salt = ?,
+            password_hash = ?,
+            password_changed_at = ?,
+            firebase_password_ready = 0,
+            web_session_generation = COALESCE(web_session_generation, 0) + 1,
+            web_session_device_id = NULL,
+            web_session_started_at = NULL,
+            android_session_generation = COALESCE(android_session_generation, 0) + 1,
+            android_session_device_id = NULL,
+            android_session_started_at = NULL,
+            updated_at = ?
+      WHERE user_id = ?`,
+    body.password_salt, body.password_hash, at, at, userId,
   );
   state.storage.sql.exec(`UPDATE fcm_devices SET enabled = 0, updated_at = ? WHERE user_id = ?`, at, userId);
   state.storage.sql.exec(`DELETE FROM presence_sessions WHERE user_id = ?`, userId);
-  audit(state, actor, "USER_PASSWORD_CHANGE_BY_MANAGER", "USER", userId, { role: target.role, sessions_invalidated_by_uid_rotation: true });
+  audit(state, actor, "USER_PASSWORD_CHANGE_BY_MANAGER", "USER", userId, { role: target.role, sessions_invalidated_by_channel_generation: true });
   return response({ status: "password_changed", user_id: userId });
 }
 
@@ -199,7 +218,7 @@ async function pickerBulkAction(state: DurableObjectState, request: Request): Pr
     return response({ error: "INVALID_PICKER_BULK_ACTION" }, 400);
   }
   let targets = state.storage.sql.exec<UserRow>(
-    `SELECT user_id, firebase_uid, employee_code, display_name, role, status, password_salt, password_hash, password_changed_at, created_at, updated_at FROM users WHERE role = 'PICKER' ORDER BY employee_code ASC`,
+    `SELECT user_id, firebase_uid, employee_code, display_name, role, status, password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at FROM users WHERE role = 'PICKER' ORDER BY employee_code ASC`,
   ).toArray();
   if (!body.all) {
     const ids = Array.isArray(body.user_ids) ? new Set(body.user_ids.map((value) => String(value || "").trim()).filter(Boolean)) : new Set<string>();
@@ -249,7 +268,7 @@ function normalizeHrEmployees(items: HrEmployee[]): { employees: Array<{ employe
 function hrPlan(state: DurableObjectState, employees: Array<{ employee_code: string; display_name: string }>): Record<string, unknown> {
   const incoming = new Map(employees.map((item) => [item.employee_code, item.display_name]));
   const existing = state.storage.sql.exec<UserRow>(
-    `SELECT user_id, firebase_uid, employee_code, display_name, role, status, password_salt, password_hash, password_changed_at, created_at, updated_at FROM users`,
+    `SELECT user_id, firebase_uid, employee_code, display_name, role, status, password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at FROM users`,
   ).toArray();
   const byCode = new Map(existing.filter((u) => u.employee_code).map((u) => [String(u.employee_code).toLowerCase(), u]));
   const collisions: Array<{ employee_code: string; role: AppRole; user_id: string }> = [];
@@ -286,7 +305,7 @@ async function hrApply(state: DurableObjectState, request: Request): Promise<Res
   const at = new Date().toISOString();
   state.storage.transactionSync(() => {
     const existing = state.storage.sql.exec<UserRow>(
-      `SELECT user_id, firebase_uid, employee_code, display_name, role, status, password_salt, password_hash, password_changed_at, created_at, updated_at FROM users`,
+      `SELECT user_id, firebase_uid, employee_code, display_name, role, status, password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at FROM users`,
     ).toArray();
     const pickerByCode = new Map(existing.filter((u) => u.role === "PICKER" && u.employee_code).map((u) => [String(u.employee_code).toLowerCase(), u]));
     for (const [code, name] of incoming) {

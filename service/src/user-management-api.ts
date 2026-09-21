@@ -1,29 +1,116 @@
-import { hashPassword, readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
+import { hashPassword, interactiveSessionError, readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
+import { importPasswordIdentity, updateFirebaseIdentity, type FirebaseManagedUserSpec } from "./firebase-auth-admin";
 import { readHrEmployees, type StoredHrSource } from "./hr-sync";
 import { validateHrSheetSource } from "./hr-source";
 
 interface Env {
   FIREBASE_PROJECT_ID: string;
+  FIREBASE_WEB_API_KEY?: string;
   INVENTORY_CORE: DurableObjectNamespace;
   GOOGLE_RUNTIME_SA_JSON?: string;
   PICKER_DEFAULT_PASSWORD?: string;
   ROOT_BOOTSTRAP_PASSWORD?: string;
 }
-interface User { user_id: string; employee_code: string | null; role: AppRole; status: "ACTIVE" | "DISABLED"; }
+interface User {
+  user_id: string;
+  firebase_uid?: string | null;
+  employee_code: string | null;
+  display_name?: string;
+  role: AppRole;
+  base_role?: AppRole;
+  status: "ACTIVE" | "DISABLED";
+  auth_email?: string | null;
+  password_salt?: string | null;
+  password_hash?: string | null;
+  firebase_password_ready?: boolean | number;
+  web_session_generation?: number;
+  android_session_generation?: number;
+}
 const ROLES: AppRole[] = ["ADMIN", "ROOT"];
 
 function json(payload: unknown, status = 200): Response { return new Response(JSON.stringify(payload), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } }); }
 function core(env: Env): DurableObjectStub { return env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName("inventory-core")); }
 async function requireAdmin(request: Request, env: Env): Promise<User> {
   const token = readBearerToken(request); if (!token) throw json({ error: "AUTH_REQUIRED" }, 401);
-  let uid = ""; try { uid = (await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID)).uid; } catch { throw json({ error: "INVALID_AUTH_TOKEN" }, 401); }
-  const lookup = await core(env).fetch(`https://inventory-core.internal/auth/user-by-firebase-uid?uid=${encodeURIComponent(uid)}`);
+  let identity; try { identity = await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID); } catch { throw json({ error: "INVALID_AUTH_TOKEN" }, 401); }
+  const lookup = await core(env).fetch(`https://inventory-core.internal/auth/user-by-firebase-uid?uid=${encodeURIComponent(identity.uid)}`);
   const user = lookup.ok ? ((await lookup.json()) as { user?: User | null }).user : null;
   if (!user || user.status !== "ACTIVE") throw json({ error: "USER_NOT_ACTIVE" }, 403);
+  const sessionError = interactiveSessionError(identity, user);
+  if (sessionError) throw json({ error: sessionError }, 401);
   if (!ROLES.includes(user.role)) throw json({ error: "FORBIDDEN" }, 403);
   return user;
 }
 function actor(user: User) { return { user_id: user.user_id, employee_code: user.employee_code, role: user.role }; }
+
+async function coreUserById(env: Env, userId: string): Promise<User | null> {
+  const response = await core(env).fetch(`https://inventory-core.internal/auth/user-by-id?user_id=${encodeURIComponent(userId)}`);
+  if (!response.ok) return null;
+  return ((await response.json()) as { user?: User | null }).user || null;
+}
+
+async function linkFirebaseUid(env: Env, userId: string, uid: string): Promise<void> {
+  const response = await core(env).fetch("https://inventory-core.internal/auth/link-firebase-uid", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ user_id: userId, firebase_uid: uid }),
+  });
+  if (!response.ok) throw new Error("FIREBASE_UID_LINK_FAILED");
+}
+
+async function markFirebaseReady(env: Env, userId: string, uid: string, email: string): Promise<void> {
+  const response = await core(env).fetch("https://inventory-core.internal/auth/firebase-password-ready", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ user_id: userId, firebase_uid: uid, auth_email: email }),
+  });
+  if (!response.ok) throw new Error("FIREBASE_READY_MARK_FAILED");
+}
+
+function firebaseSpec(user: User, uid: string, derived?: { salt: string; hash: string }): FirebaseManagedUserSpec {
+  return {
+    uid,
+    userId: user.user_id,
+    employeeCode: user.employee_code,
+    displayName: user.display_name || user.employee_code || user.user_id,
+    role: (user.base_role || user.role) as AppRole,
+    status: user.status,
+    authEmail: user.auth_email || null,
+    passwordSalt: derived?.salt || user.password_salt || null,
+    passwordHash: derived?.hash || user.password_hash || null,
+  };
+}
+
+async function provisionManagedCredential(
+  env: Env,
+  user: User,
+  derived: { salt: string; hash: string },
+  plainPassword: string,
+): Promise<User> {
+  if (!env.GOOGLE_RUNTIME_SA_JSON) throw new Error("GOOGLE_RUNTIME_NOT_CONFIGURED");
+  const uid = String(user.firebase_uid || user.user_id);
+  if (!user.firebase_uid) await linkFirebaseUid(env, user.user_id, uid);
+  let email = "";
+  if (Boolean(user.firebase_password_ready)) {
+    const result = await updateFirebaseIdentity(
+      env.GOOGLE_RUNTIME_SA_JSON,
+      env.FIREBASE_PROJECT_ID,
+      firebaseSpec(user, uid, derived),
+      { password: plainPassword },
+    );
+    email = result.email;
+  } else {
+    const result = await importPasswordIdentity(
+      env.GOOGLE_RUNTIME_SA_JSON,
+      env.FIREBASE_PROJECT_ID,
+      firebaseSpec(user, uid, derived),
+    );
+    email = result.email;
+  }
+  await markFirebaseReady(env, user.user_id, uid, email);
+  return (await coreUserById(env, user.user_id)) || { ...user, firebase_uid: uid, auth_email: email, firebase_password_ready: true };
+}
+
 async function bodyObject(request: Request): Promise<Record<string, unknown>> { try { const v = await request.json(); return v && typeof v === "object" && !Array.isArray(v) ? v as Record<string, unknown> : {}; } catch { return {}; } }
 async function hrEmployees(env: Env) {
   if (!env.GOOGLE_RUNTIME_SA_JSON) throw new Error("GOOGLE_RUNTIME_NOT_CONFIGURED");
@@ -66,25 +153,98 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
   }
   if (key === "POST /api/admin/users") {
     const body = await bodyObject(request);
+    const plainPassword = String(body.password || "");
     try {
-      const derived = await derivePassword(body.password);
+      const derived = await derivePassword(plainPassword);
       const { password: _password, ...safeBody } = body;
-      return core(env).fetch("https://inventory-core.internal/admin/users/create", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...safeBody, password_salt: derived.salt, password_hash: derived.hash, actor: actor(user) }) });
+      const createdResponse = await core(env).fetch("https://inventory-core.internal/admin/users/create", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...safeBody, password_salt: derived.salt, password_hash: derived.hash, actor: actor(user) }),
+      });
+      const createdPayload = (await createdResponse.json()) as { user?: User; error?: string };
+      if (!createdResponse.ok || !createdPayload.user) {
+        return json(createdPayload, createdResponse.status);
+      }
+      const provisioned = await provisionManagedCredential(env, createdPayload.user, derived, plainPassword);
+      return json({
+        status: "created",
+        user: {
+          ...createdPayload.user,
+          firebase_uid: provisioned.firebase_uid,
+          auth_email: provisioned.auth_email || createdPayload.user.auth_email || null,
+          firebase_password_ready: true,
+        },
+      }, 201);
     } catch (error) {
-      return json({ error: "INVALID_PASSWORD", message: error instanceof Error ? error.message : "Mật khẩu không hợp lệ." }, 400);
+      const message = error instanceof Error ? error.message : "Không tạo được tài khoản.";
+      const credentialFailure = message.startsWith("FIREBASE_") || message === "GOOGLE_RUNTIME_NOT_CONFIGURED";
+      return json({
+        error: credentialFailure ? "FIREBASE_ACCOUNT_PROVISION_FAILED" : "INVALID_PASSWORD",
+        message: credentialFailure ? "Không đồng bộ được tài khoản Firebase." : message,
+      }, credentialFailure ? 502 : 400);
     }
   }
   if (key === "PATCH /api/admin/users") {
     const body = await bodyObject(request);
-    return core(env).fetch("https://inventory-core.internal/admin/users/update", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...body, actor: actor(user) }) });
+    const targetId = String(body.user_id || "").trim();
+    const before = targetId ? await coreUserById(env, targetId) : null;
+    const updatedResponse = await core(env).fetch("https://inventory-core.internal/admin/users/update", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...body, actor: actor(user) }),
+    });
+    const updatedPayload = (await updatedResponse.json()) as { user?: User; error?: string };
+    if (!updatedResponse.ok || !updatedPayload.user) return json(updatedPayload, updatedResponse.status);
+    const updated = updatedPayload.user;
+    if (
+      env.GOOGLE_RUNTIME_SA_JSON &&
+      updated.firebase_uid &&
+      Boolean(updated.firebase_password_ready || before?.firebase_password_ready)
+    ) {
+      try {
+        const synced = await updateFirebaseIdentity(
+          env.GOOGLE_RUNTIME_SA_JSON,
+          env.FIREBASE_PROJECT_ID,
+          firebaseSpec({ ...before, ...updated }, String(updated.firebase_uid)),
+          { email: updated.auth_email || undefined },
+        );
+        await markFirebaseReady(env, updated.user_id, String(updated.firebase_uid), synced.email);
+        updated.auth_email = synced.email;
+        updated.firebase_password_ready = true;
+      } catch {
+        return json({
+          error: "FIREBASE_ACCOUNT_UPDATE_FAILED",
+          message: "Thông tin nghiệp vụ đã lưu nhưng chưa đồng bộ được Firebase. Không tiếp tục sử dụng tài khoản cho tới khi đồng bộ lại.",
+        }, 502);
+      }
+    }
+    return json({ status: "updated", user: updated });
   }
   if (key === "PUT /api/admin/users/password") {
     const body = await bodyObject(request);
+    const userId = String(body.user_id || "").trim();
+    const plainPassword = String(body.password || "");
     try {
-      const derived = await derivePassword(body.password);
-      return core(env).fetch("https://inventory-core.internal/admin/users/set-password", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ user_id: body.user_id, request_id: body.request_id, password_salt: derived.salt, password_hash: derived.hash, actor: actor(user) }) });
+      const before = userId ? await coreUserById(env, userId) : null;
+      if (!before) return json({ error: "USER_NOT_FOUND" }, 404);
+      const derived = await derivePassword(plainPassword);
+      const changedResponse = await core(env).fetch("https://inventory-core.internal/admin/users/set-password", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ user_id: userId, request_id: body.request_id, password_salt: derived.salt, password_hash: derived.hash, actor: actor(user) }),
+      });
+      if (!changedResponse.ok) return changedResponse;
+      const after = (await coreUserById(env, userId)) || before;
+      await provisionManagedCredential(env, after, derived, plainPassword);
+      return json({ status: "password_changed", user_id: userId });
     } catch (error) {
-      return json({ error: "INVALID_PASSWORD", message: error instanceof Error ? error.message : "Mật khẩu không hợp lệ." }, 400);
+      const message = error instanceof Error ? error.message : "Không đổi được mật khẩu.";
+      const credentialFailure = message.startsWith("FIREBASE_") || message === "GOOGLE_RUNTIME_NOT_CONFIGURED";
+      return json({
+        error: credentialFailure ? "FIREBASE_ACCOUNT_UPDATE_FAILED" : "INVALID_PASSWORD",
+        message: credentialFailure ? "Không đồng bộ được mật khẩu Firebase." : message,
+      }, credentialFailure ? 502 : 400);
     }
   }
   if (key === "POST /api/admin/pickers/bulk") {

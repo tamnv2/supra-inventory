@@ -449,3 +449,21 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA018 PHYSICAL FIELD TEST READY
 - OA018 is READY_FOR_OWNER_FIELD_TEST for normal→Office transition, request-driven STANDBY takeover and 30-second terminal specialist fallback.
 - OA017 final real-WMS confirmation acceptance remains blocked until OA018 PASS.
 - Stable remains OWNER-GATED and untouched.
+
+
+## D098 — Unified Firebase identity, channel-isolated sessions, realtime repair and specialist Agent flow
+
+Status: **OWNER APPROVED — SOURCE/PR CANDIDATE; TECHNICAL RELEASE NOT YET CLAIMED**.
+
+1. Firebase Authentication is the credential/identity authority for ROOT, ADMIN, REPORTER and PICKER. InventoryCore remains the authority for user metadata, immutable/base role, effective role, ACTIVE/DISABLED state, business history and authorization projection.
+2. A user may hold one active **WEB**, one active **ANDROID/App**, and one active **AGENT** session concurrently. A new login on the same channel must first warn; explicit continuation replaces only that channel. WEB replacement never revokes ANDROID/AGENT, ANDROID replacement never revokes WEB/AGENT, and AGENT replacement never revokes WEB/ANDROID.
+3. Client eligibility is fixed: PICKER = App only; REPORTER = App + Web; ROOT = App + Web; ADMIN = App + Web + Agent. Agent requires a real immutable/base ADMIN identity; ROOT role simulation never qualifies.
+4. Web/App keep MNV/username login UX. Existing PBKDF2-SHA256 password material may be imported to Firebase so migration does not require mass password resets. Firebase UID is stable and must not be rotated merely to invalidate sessions.
+5. Agent ADMIN login goes directly to Firebase Auth and refreshes through Google/Firebase; Cloudflare Worker is not in the Agent login/runtime dependency path. This separates PDA↔Agent from the Báo hàng Worker path.
+6. ROOT/ADMIN may register a recovery email and request Firebase password-reset email/link by matching user + registered email. REPORTER/PICKER do not require self-service email recovery; authorized management password-change paths remain.
+7. Web realtime remains a hibernatable InventoryCore Durable Object WebSocket. It must use the same active V2 Web session authority as HTTP API, bounded delta recovery and jittered backoff; the legacy V1 session lookup is removed.
+8. Inventory is allowed to consume at most **35% of each included Workers Paid $5 metric at design maximum**; 65% is reserved for other projects. The 35% rule is per metric, not an average. Normal usage should remain materially lower. Polling/reconnect/provider reads may not be added merely because the account is Paid.
+9. Agent Overview contains Hệ thống Supra, Xác minh Agent, and the direct specialist PickList workflow. Settings contains connection tests, embedded Overlay settings, Nhật ký vận hành and Chẩn đoán kỹ thuật; there is no separate ADMIN-login settings page or “Mô hình hiện tại” card.
+10. Specialist direct processing accepts 3–5 digits, searches those digits anywhere in cached full PickListCode values, requires explicit selection of the full PickListCode, then reuses the approved WMS confirmation guard and Status=true success semantics. It reports locally on Agent and does not create/ACK an Android request.
+11. D097 PDA confirmation HA semantics remain frozen: PRIMARY 5s, STANDBY 10s, FROZEN no business polling, direct PENDING→ACK and fail-closed uncertain mutation.
+12. Stable remains **OWNER-GATED** and untouched.

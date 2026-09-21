@@ -277,6 +277,23 @@ namespace SupraInventoryRelayAgent
             return luminance > 150 ? Color.Black : Color.White;
         }
 
+        internal void PrepareEmbedded()
+        {
+            TopLevel = false;
+            FormBorderStyle = FormBorderStyle.None;
+            ShowInTaskbar = false;
+            StartPosition = FormStartPosition.Manual;
+            MinimumSize = Size.Empty;
+            Dock = DockStyle.Fill;
+            AutoScroll = true;
+            foreach (Control control in Controls)
+            {
+                var button = control as Button;
+                if (button != null && string.Equals(button.Text, "Đóng", StringComparison.Ordinal))
+                    button.Visible = false;
+            }
+        }
+
         private static int ClampPercent(int value) { return Math.Max(35, Math.Min(100, value)); }
     }
 }

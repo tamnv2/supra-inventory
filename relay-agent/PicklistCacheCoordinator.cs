@@ -15,12 +15,24 @@ namespace SupraInventoryRelayAgent
         internal int CacheCount;
     }
 
+    internal sealed class ManualPicklistSearchResult
+    {
+        internal string Result = "LOOKUP_ERROR";
+        internal string CacheMode = "NONE";
+        internal string Route = "NONE";
+        internal int StatusCode;
+        internal long ElapsedMs;
+        internal int CacheCount;
+        internal readonly List<string> Matches = new List<string>();
+    }
+
     internal sealed class PicklistCacheCoordinator
     {
         internal const int FreshMissGuardSeconds = 10;
 
         private readonly object _gate = new object();
         private HashSet<string> _suffixes = new HashSet<string>(StringComparer.Ordinal);
+        private HashSet<string> _codes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private DateTime _refreshedUtc = DateTime.MinValue;
         private Task<WmsPicklistSnapshotResult> _refreshTask;
 
@@ -29,6 +41,7 @@ namespace SupraInventoryRelayAgent
             lock (_gate)
             {
                 _suffixes = new HashSet<string>(StringComparer.Ordinal);
+                _codes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 _refreshedUtc = DateTime.MinValue;
                 _refreshTask = null;
             }
@@ -74,6 +87,74 @@ namespace SupraInventoryRelayAgent
             }
 
             return RefreshAndResolve(session, suffix, "CACHE_REFRESH");
+        }
+
+        internal ManualPicklistSearchResult SearchContains(WmsSessionSnapshot session, string fragment, int maxResults)
+        {
+            if (session == null || !session.IsValidHy1())
+                return new ManualPicklistSearchResult { Result = "WMS_SESSION_REQUIRED", CacheMode = "NO_SESSION" };
+
+            var query = (fragment ?? "").Trim();
+            if (query.Length < 3 || query.Length > 5)
+                throw new ArgumentException("Manual Picklist search requires 3 to 5 digits.", "fragment");
+            foreach (var ch in query)
+                if (ch < '0' || ch > '9')
+                    throw new ArgumentException("Manual Picklist search requires digits only.", "fragment");
+            maxResults = Math.Max(1, Math.Min(100, maxResults));
+
+            lock (_gate)
+            {
+                if (_refreshedUtc != DateTime.MinValue && _codes.Count > 0)
+                    return SearchSnapshot(query, maxResults, "CACHE_SEARCH", "NONE", 0, 0L);
+            }
+
+            var preload = RefreshAndResolve(session, null, "MANUAL_PRELOAD");
+            if (!string.Equals(preload.Result, "PASS", StringComparison.Ordinal))
+            {
+                return new ManualPicklistSearchResult
+                {
+                    Result = preload.Result,
+                    CacheMode = preload.CacheMode,
+                    Route = preload.Route,
+                    StatusCode = preload.StatusCode,
+                    ElapsedMs = preload.ElapsedMs,
+                    CacheCount = preload.CacheCount
+                };
+            }
+
+            lock (_gate)
+                return SearchSnapshot(query, maxResults, "CACHE_SEARCH_AFTER_PRELOAD", preload.Route, preload.StatusCode, preload.ElapsedMs);
+        }
+
+        private ManualPicklistSearchResult SearchSnapshot(
+            string query,
+            int maxResults,
+            string cacheMode,
+            string route,
+            int statusCode,
+            long elapsedMs)
+        {
+            var matches = new List<string>();
+            foreach (var code in _codes)
+            {
+                if (code.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0) continue;
+                matches.Add(code);
+            }
+            matches.Sort(StringComparer.OrdinalIgnoreCase);
+            if (matches.Count > maxResults)
+                matches.RemoveRange(maxResults, matches.Count - maxResults);
+
+            var result = new ManualPicklistSearchResult
+            {
+                Result = matches.Count > 0 ? "FOUND" : "NOT_FOUND",
+                CacheMode = cacheMode,
+                Route = route ?? "NONE",
+                StatusCode = statusCode,
+                ElapsedMs = Math.Max(0L, elapsedMs),
+                CacheCount = _codes.Count
+            };
+            result.Matches.AddRange(matches);
+            return result;
         }
 
         private CachedPicklistResult RefreshAndResolve(WmsSessionSnapshot session, string suffix, string mode)
@@ -128,6 +209,7 @@ namespace SupraInventoryRelayAgent
             lock (_gate)
             {
                 _suffixes = new HashSet<string>(snapshot.TrailingFiveSuffixes ?? new HashSet<string>(), StringComparer.Ordinal);
+                _codes = new HashSet<string>(snapshot.PickListCodes ?? new HashSet<string>(), StringComparer.OrdinalIgnoreCase);
                 _refreshedUtc = DateTime.UtcNow;
                 next = new HashSet<string>(_suffixes, StringComparer.Ordinal);
             }
