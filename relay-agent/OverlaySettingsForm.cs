@@ -75,16 +75,16 @@ namespace SupraInventoryRelayAgent
 
             appearance.Controls.Add(new Label { Left = 16, Top = 28, Width = 90, Height = 22, Text = "Chiều rộng" });
             _width.SetBounds(105, 24, 95, 28);
-            _width.Minimum = 420;
-            _width.Maximum = 1600;
+            _width.Minimum = 120;
+            _width.Maximum = 7680;
             _width.Value = Math.Max(_width.Minimum, Math.Min(_width.Maximum, _overlay.OverlayWidth));
             _width.ValueChanged += (s, e) => { if (!_locked.Checked) _overlay.SetOverlaySize((int)_width.Value, (int)_height.Value); };
             appearance.Controls.Add(_width);
 
             appearance.Controls.Add(new Label { Left = 220, Top = 28, Width = 80, Height = 22, Text = "Chiều cao" });
             _height.SetBounds(300, 24, 95, 28);
-            _height.Minimum = 64;
-            _height.Maximum = 360;
+            _height.Minimum = 32;
+            _height.Maximum = 4320;
             _height.Value = Math.Max(_height.Minimum, Math.Min(_height.Maximum, _overlay.OverlayHeight));
             _height.ValueChanged += (s, e) => { if (!_locked.Checked) _overlay.SetOverlaySize((int)_width.Value, (int)_height.Value); };
             appearance.Controls.Add(_height);
