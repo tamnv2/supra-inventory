@@ -138,14 +138,6 @@ class RelayPocClient(
                         .build(),
                     "GET"
                 )
-                val docFields = try { JSONObject(raw).optJSONObject("fields") } catch (_: Exception) { null }
-                val currentStatus = fieldString(docFields ?: JSONObject(), "status")
-                if (currentStatus == "PENDING" && SystemClock.elapsedRealtime() - started > 15_000L) {
-                    throw IOException("Không có Agent xử lý online. Vui lòng về bàn chuyên viên xử lý trực tiếp.")
-                }
-                if (currentStatus == "PROCESSING") {
-                    onProgress("Agent đang xử lý Picklist...")
-                }
                 val root = try { JSONObject(raw) } catch (_: Exception) { JSONObject() }
                 val docFields = root.optJSONObject("fields") ?: JSONObject()
                 val currentStatus = fieldString(docFields, "status")
@@ -191,7 +183,7 @@ class RelayPocClient(
                 Thread.sleep(1_000L)
             }
 
-            throw SocketTimeoutException("Yêu cầu đã gửi nhưng quá 120 giây chưa hoàn tất.")
+            throw SocketTimeoutException("Yêu cầu đã xử lý quá 120 giây nhưng chưa có kết quả cuối. Không bấm lại; vui lòng về bàn chuyên viên kiểm tra trên SFT / SFT 3.")
         } catch (error: SocketTimeoutException) {
             log("D092 Firestore timeout request=" + shortId(requestId))
             throw IOException(error.message ?: "Chưa nhận được kết quả từ Agent Office.", error)
