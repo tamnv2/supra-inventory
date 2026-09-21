@@ -154,14 +154,32 @@ class InventoryApi(
 
     fun clearSession() { updateSession(null) }
 
-    fun login(username: String, password: String): AppSession {
+    fun logoutInteractive(deviceId: String) {
+        val current = session
+        if (current == null) return
+        try {
+            request(
+                "POST",
+                "/api/auth/logout",
+                JSONObject().put("device_id", deviceId),
+                authorized = true,
+                allowRefreshRetry = false,
+            )
+        } finally {
+            updateSession(null)
+        }
+    }
+
+    fun login(username: String, password: String, deviceId: String, force: Boolean = false): AppSession {
         val payload = request(
             method = "POST",
             path = "/api/auth/login",
             body = JSONObject()
                 .put("username", username)
                 .put("password", password)
-                .put("client_type", "ANDROID"),
+                .put("client_type", "ANDROID")
+                .put("device_id", deviceId)
+                .put("force", force),
             authorized = false,
         )
         val user = payload.optJSONObject("user") ?: JSONObject()
