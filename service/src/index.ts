@@ -1,5 +1,14 @@
 import { InventoryCore } from "./core";
-import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole } from "./auth";
+import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
+import {
+  effectiveAuthEmail,
+  importPasswordIdentity,
+  normalizeAuthEmail,
+  sendFirebasePasswordReset,
+  signInWithFirebasePassword,
+  updateFirebaseIdentity,
+  type FirebaseManagedUserSpec,
+} from "./firebase-auth-admin";
 import { handleBusinessApi } from "./business-api";
 import { handleReadApi } from "./read-api";
 import { handleNotificationApi } from "./notification-api";
@@ -46,8 +55,16 @@ interface InternalUser {
   password_salt: string | null;
   password_hash: string | null;
   password_changed_at: string | null;
+  auth_email: string | null;
+  firebase_password_ready: number;
   session_generation: number;
   session_started_at: string | null;
+  web_session_generation: number;
+  web_session_device_id: string | null;
+  web_session_started_at: string | null;
+  android_session_generation: number;
+  android_session_device_id: string | null;
+  android_session_started_at: string | null;
 }
 
 interface FirebaseExchangeResponse {
