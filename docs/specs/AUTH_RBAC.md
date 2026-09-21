@@ -173,3 +173,14 @@ D098 supersedes D088's single shared Web/Android session-generation model.
 - Web/App resolve username/MNV to the authoritative Firebase identity through Inventory Worker and may perform a one-time migration repair only when the same plaintext password verifies against the canonical InventoryCore PBKDF2 hash.
 - Agent does not call Worker for login. Agent therefore accepts the registered ADMIN email + password directly against Firebase. This preserves Office-network independence and avoids an unauthenticated username→email directory.
 - Passwords, password hashes, salts, ID tokens, refresh tokens and service-account material remain prohibited from logs/repo.
+
+
+## D100 — ADMIN username alias and destructive ROOT authority
+
+- Web/App continue username/MNV login through the Worker resolution layer.
+- Agent accepts ADMIN username/MNV + password. The Agent derives the same deterministic synthetic Firebase alias email as the service; users never type or need to know this alias.
+- Agent alias is a Firebase credential only, not another business user. Claims map to the same InventoryCore `app_user_id`. Firestore authorization remains real base/effective ADMIN only.
+- ADMIN password/status changes synchronize primary identity and Agent alias. Recovery email belongs to the primary identity only.
+- Only `base_role=ROOT` **and** current effective `role=ROOT` may use System Reset APIs.
+- ROOT System Reset requires current ROOT password + emailed 6-digit OTP before execution.
+- Reset must never delete/disable/rotate ROOT identity, ROOT password, ROOT recovery email or ROOT Firebase UID.
