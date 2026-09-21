@@ -504,7 +504,7 @@
   "relay_poc": {
     "decision": "D091",
     "environment": "beta",
-    "status": "D091_FIRESTORE_AUTHENTICATED_FIELD_CANDIDATE_SOURCE__RELEASE_AND_OFFICE_E2E_PENDING",
+    "status": "D091_FIRESTORE_DATABASE_PROVISIONED__RULES_MANAGEMENT_REST_DEPLOY_PENDING__OFFICE_E2E_PENDING",
     "purpose": "Authenticated Picker-to-ADMIN relay carrying a bounded five-digit read-only WMS Picklist existence lookup result; no confirmation/mutation",
     "transport": "FIRESTORE_REST_POLLING__D091_FIELD_TEST_ONLY__NOT_FINAL_HA",
     "database_resource_key": "firebase-rtdb-relay-beta",
@@ -534,10 +534,10 @@
     "update_channel": "GITHUB_PRERELEASE_RELAY_AGENT_VN_SHA256_SELF_REPLACE",
     "agent_release": "relay-agent-v15",
     "agent_release_prerelease": true,
-    "rules_deployment": "D091_FIRESTORE_RULES_MAIN_ONLY_GITHUB_ACTION_PENDING",
+    "rules_deployment": "D091_DEFAULT_DB_PROVISIONED__FIRESTORE_RULES_MANAGEMENT_REST_DEPLOY_PENDING",
     "rules_deploy_secret_reference": "FIREBASE_RULES_SA_JSON_BETA",
     "rules_target": "BETA_ONLY_SUPRA_INVENTORY_BETA",
-    "rules_deploy_method": "FIREBASE_CLI_FIRESTORE_RULES_AFTER_DEFAULT_DB_DESCRIBE_OR_CREATE",
+    "rules_deploy_method": "FIREBASE_RULES_MANAGEMENT_REST_API__NO_SERVICE_USAGE_PREFLIGHT",
     "rules_deploy_last_evidence": "D087_PR_GATE_PASS_RUN_35495453228__PRESENCE_COLLECTION_READ_WRITE_VALIDATION",
     "rules_deployed_source_commit": "8b0e3ec3fd1a6fffea09e3f4aafd43e544625f58",
     "agent_release_target": "relay-agent-v16__D091_CANDIDATE",
@@ -609,7 +609,8 @@
       "provisioning": "MAIN_ONLY_GITHUB_ACTION__DESCRIBE_OR_CREATE_DEFAULT_DB__DEPLOY_RULES",
       "polling": "AGENT_3000MS_WHILE_LISTENER_ACTIVE__ANDROID_1000MS_ONLY_WHILE_WAITING_ACK",
       "purpose": "END_TO_END_TRANSPORT_PROOF_ONLY",
-      "status": "FIELD_TEST_PENDING"
+      "status": "DATABASE_PROVISIONED_ASIA_SOUTHEAST1__RULES_REST_DEPLOY_PENDING__FIELD_TEST_PENDING",
+      "rules_deploy_method": "FIREBASE_RULES_MANAGEMENT_REST_API"
     }
   },
   "wms_poc": {
