@@ -381,3 +381,21 @@ The Owner physically tested released `relay-agent-v19` + `beta-vc58` and confirm
 8. Stable remains **OWNER-GATED** and untouched.
 
 D095 supersedes OA015. A new physical gate must use the D095 released Agent/APK and confirm the same short request ID is visible from PDA CREATE through Agent `pending-found → CLAIM → ACK` on a normal Agent network and on the Office network before OA013 real WMS confirmation resumes.
+
+## D096 — Repair exact PickListCode resolution before WMS confirm
+
+Status: **ACTIVE — OWNER FIELD ROOT CAUSE CONFIRMED 2026-09-21**.
+
+Released D095 artifacts restored the PDA → Firestore → Agent path: the Owner confirmed PDA ↔ Agent is now working and Agent v20 field logs show `pending-found`, conditional claim and ACK. The remaining failure is inside the Agent's WMS confirmation pipeline.
+
+1. Field logs show the Agent reaches the WMS exact-resolve GET and receives HTTP 200, but returns `EXACT_CODE_NOT_RESOLVED`; there is no `WMS picklist-confirm result=...` entry for those requests. Therefore the mutation POST is not reached.
+2. Source inspection confirms the exact resolver duplicated the earlier array-parsing defect: `WmsPicklistLookup` correctly handles `JavaScriptSerializer` JSON arrays as `object[]`, while `WmsPicklistExactResolver.CollectCodes` accepted only `ArrayList`. A valid response can therefore contain the target `PickListCode` while the resolver observes zero codes.
+3. D096 changes exact-code traversal to non-string `IEnumerable`, preserving dictionary traversal, exact `PickListCode` field matching, full-code validation, unique suffix match and fail-closed ambiguity handling.
+4. D096 adds redacted exact-resolve parse telemetry with page/code counts and an executable CI regression that deserializes a synthetic WMS JSON array and proves one full code is extracted. No real PickListCode or session material is committed.
+5. The Owner-provided successful browser request confirms the already-authorized confirm contract remains correct: one exact full PickListCode, `IsAllowSkipped=true`, `RemainSkip=1`, `WarehouseCode=HY1`, `EnableDCSite=false`, and a successful response contains business `Status=true`. Secret/session header values from the Owner file are never copied to the public repository.
+6. Confirm success is hardened: HTTP 2xx is no longer sufficient by itself. Agent reports `CONFIRMED` only when the WMS response explicitly yields `Status=true`; `Status=false` is rejected and a 2xx response without a trustworthy Status fails closed as confirmation-uncertain.
+7. D092 cross-Agent idempotency, conditional Firestore claim, anti-spam, exact full-code precondition and the single authorized `confirmSkipItem` mutation remain unchanged.
+8. Android/PDA code does not change in D096. Signed `beta-vc59` remains the test APK; D096 targets Windows Agent v21 only.
+9. Stable remains **OWNER-GATED** and untouched.
+
+OA017 supersedes the WMS-stage portion of OA013 until released Agent v21 proves exact resolution → one authorized confirm POST → business `Status=true` → Firestore ACK on a real eligible Picklist.
