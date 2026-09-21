@@ -1,0 +1,55 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isPicker() {
+      return request.auth != null
+        && request.auth.token.app_role == 'PICKER'
+        && request.auth.token.app_user_id != null;
+    }
+
+    function isRealAdmin() {
+      return request.auth != null
+        && request.auth.token.app_role == 'ADMIN'
+        && request.auth.token.app_base_role == 'ADMIN'
+        && request.auth.token.app_user_id != null;
+    }
+
+    match /relay_poc_jobs/{jobId} {
+      allow create: if isPicker()
+        && request.resource.data.keys().hasOnly([
+          'request_id', 'suffix', 'status', 'source',
+          'picker_uid', 'picker_user_id', 'client_sent_at_ms'
+        ])
+        && request.resource.data.request_id == jobId
+        && request.resource.data.suffix is string
+        && request.resource.data.suffix.matches('^[0-9]{5}$')
+        && request.resource.data.status == 'PENDING'
+        && request.resource.data.source == 'ANDROID_D091'
+        && request.resource.data.picker_uid == request.auth.uid
+        && request.resource.data.picker_user_id == request.auth.token.app_user_id
+        && request.resource.data.client_sent_at_ms is int
+        && request.resource.data.client_sent_at_ms >= 0;
+
+      allow get: if isRealAdmin()
+        || (isPicker() && resource.data.picker_uid == request.auth.uid);
+
+      allow list: if isRealAdmin();
+
+      allow update: if isRealAdmin()
+        && resource.data.status == 'PENDING'
+        && request.resource.data.status == 'ACK'
+        && request.resource.data.agent_admin_user_id == request.auth.token.app_user_id
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'agent_id', 'agent_instance_id', 'agent_admin_user_id',
+          'agent_network', 'agent_received_at_ms', 'agent_ack_at_ms',
+          'lookup_status', 'lookup_matches', 'lookup_ms', 'lookup_route',
+          'lookup_http', 'cache_mode', 'rate_strikes', 'lock_level',
+          'locked_until_ms'
+        ]);
+
+      allow delete: if isPicker()
+        && resource.data.picker_uid == request.auth.uid;
+    }
+  }
+}

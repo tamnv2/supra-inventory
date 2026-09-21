@@ -22,7 +22,7 @@
     "android": "D089_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC54__APPROVED_ICON__TRANSPORT_SELECTION_PENDING",
     "latest_beta_apk": "beta-vc54",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
-    "network_scope": "D090_OFFICE_INTERNAL_SUPRA_PLUS_SELECTED_GOOGLE_ONLY__CLOUDFLARE_OFFICE_EXCLUDED__RTDB_PROXY_BLOCKED__GOOGLE_RELAY_CANDIDATE_PENDING__NO_OFFLINE_BUSINESS_MODE",
+    "network_scope": "D091_OFFICE_GOOGLE_ONLY__FIRESTORE_AUTHENTICATED_E2E_FIELD_TEST_NEXT__RTDB_REJECTED_OFFICE__NO_CLOUDFLARE_RETEST",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "SERVER_PAGED_FILTERED_ONE_MANY_ALL__ROOT_EFFECTIVE_ROLE_TEST_RUNTIME_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D090_OFFICE_EVIDENCE_RECORDED__AGENT_V15_BASELINE__GOOGLE_ONLY_REPLACEMENT_CANDIDATE__FIRESTORE_PREFERRED_NOT_SELECTED__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D091_FIRESTORE_END_TO_END_FIELD_CANDIDATE_SOURCE__AGENT_V16_PLUS_NEXT_SIGNED_BETA_PENDING__TRANSPORT_ONLY_ACK__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -42,7 +42,8 @@
     "Do not add location/bin inventory management or stock quantity; scope is SKU plus product name.",
     "No offline business mode: no offline report creation, mutation outbox, fake offline success, direct-to-Sheet fallback, or alternate offline transaction path.",
     "Do not copy Beta runtime data into Stable.",
-    "For finite deploy/build/test jobs: trigger, poll, inspect failure, repair within scope, rerun, and continue until terminal PASS or an Owner-only blocker."
+    "For finite deploy/build/test jobs: trigger, poll, inspect failure, repair within scope, rerun, and continue until terminal PASS or an Owner-only blocker.",
+    "D091 Firestore is only a field transport candidate until a real PDA -> Firestore -> Office Agent -> Firestore -> PDA ACK succeeds. Do not claim final transport, do not copy D085 3-second HA heartbeat writes into Firestore, do not mutate WMS, and do not touch Stable."
   ],
   "owner_accepted_business_rules": [
     "Roles: PICKER, REPORTER, ADMIN, ROOT.",
@@ -162,8 +163,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "If the Owner continues the PDA-Agent confirmation workstream, proceed directly to a Google-hosted Beta relay candidate; do not spend another Office field cycle testing Cloudflare/Worker.",
-    "method": "D090: Office is internal Supra + selected Google only. RTDB is rejected on Office by proxy 403. Firestore is the preferred next candidate from D078 but remains unselected until authenticated relay/HA/quota proof. Preserve D089 accepted baseline, WMS GET-only and Stable OWNER-GATED.",
+    "primary": "Complete D091 branch/PR gates, merge, provision/read back Beta Firestore + Rules on main, publish Agent v16 and next signed Beta APK, then Owner performs one physical Office end-to-end PDA ↔ Agent Firestore test.",
+    "method": "D091 first proves transport with a single Agent and TRANSPORT_ONLY ACK. If field E2E PASS, continue to quota-safe HA/failover design before final transport selection. If authenticated Firestore E2E fails due Office transport, move to Apps Script as the next Google-hosted candidate. No Cloudflare/RTDB Office retest.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -191,6 +192,7 @@
   },
   "workboard": {
     "in_progress": [
+      "D091 ACTIVE: build/release authenticated Firestore end-to-end field candidate. Agent v16 polls only while listener is active; Android sends/polls one document and expects TRANSPORT_ONLY ACK. Final HA/quota selection waits for physical Office E2E.",
       "D090 OWNER CONFIRMED: Office transport boundary is internal Supra + selected Google only. No further Cloudflare/Worker Office probe. RTDB is proxy-blocked; next replacement research is Google-hosted, with Firestore preferred but not yet selected.",
       "D089 OWNER ACCEPTED PASS: released Beta Web + signed beta-vc54 + relay-agent-v15 accepted by Owner on 2026-09-21. Accepted baseline: exact icon #4, Service/Realtime separation, dark Tools page, granular persistent Overlay controls, Agent single-instance restore. D078 transport remains pending; WMS GET-only; Stable OWNER-GATED.",
       "D088 technical/runtime/release PASS: main 48367c46b20405c48abb6ed8c0b59601defe1130; schema 8/Web runtime PASS, signed beta-vc53 PASS, relay-agent-v14 PASS with normalized release asset contract. Owner field acceptance pending; D078 transport remains pending.",
@@ -209,7 +211,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "For confirmation transport, skip further Cloudflare Office testing and validate the preferred Firestore Beta relay candidate only when this workstream continues.",
+      "After D091 releases, field-test one PDA request against one Agent on Office. PASS -> design quota-safe multi-Agent HA; transport failure -> Apps Script candidate.",
       "Bootstrap canonical GitHub and execute the Owner's next explicit requirement.",
       "Owner field-reviews D088 after release; keep D078 final transport selection pending until company-network physical evidence.",
       "Owner reviews D071 four Web items and D072 system-status exclusion",

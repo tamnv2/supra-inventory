@@ -370,7 +370,7 @@ namespace SupraInventoryRelayAgent
             _password.SetBounds(375, 136, 160, 26); _password.UseSystemPasswordChar = true; Controls.Add(_password);
             _pair.SetBounds(545, 135, 105, 28); _pair.Text = "Đăng nhập"; _pair.Click += (s, e) => Task.Run(() => PairLogin()); Controls.Add(_pair);
 
-            _testOffice.SetBounds(18, 176, 135, 32); _testOffice.Text = "Kiểm tra Office"; _testOffice.Enabled = false;
+            _testOffice.SetBounds(18, 176, 135, 32); _testOffice.Text = "Test Firestore"; _testOffice.Enabled = false;
             _testOffice.Click += (s, e) => Task.Run(() => TestOffice()); Controls.Add(_testOffice);
             _listen.SetBounds(160, 176, 135, 32); _listen.Text = "Nghe relay"; _listen.Enabled = false;
             _listen.Click += (s, e) => { if (_listenCts == null) StartListening(); else StopListening(); }; Controls.Add(_listen);
@@ -642,7 +642,7 @@ namespace SupraInventoryRelayAgent
                 Top = 46,
                 Width = 740,
                 Height = 22,
-                Text = "PDA → Relay Beta → Agent ACTIVE/STANDBY → Supra WMS đọc Picklist"
+                Text = "PDA → Firestore D091 → Agent Office → ACK transport"
             });
             modelCard.Controls.Add(new Label
             {
@@ -650,7 +650,7 @@ namespace SupraInventoryRelayAgent
                 Top = 72,
                 Width = 740,
                 Height = 22,
-                Text = "Một Agent xử lý chính · tự chuyển sau 10 giây · không có thao tác thay đổi WMS",
+                Text = "Bản test chỉ chứng minh kết nối PDA ↔ Agent · chưa chốt HA/transport cuối · không thay đổi WMS",
                 ForeColor = Color.FromArgb(88, 104, 115)
             });
             _overviewPage.Controls.Add(modelCard);
@@ -689,7 +689,7 @@ namespace SupraInventoryRelayAgent
             _probeSheets.SetBounds(476, 126, 100, 32); networkPage.Controls.Add(_probeSheets);
             _probeDrive.SetBounds(584, 126, 100, 32); networkPage.Controls.Add(_probeDrive);
             _probeAll.SetBounds(24, 174, 150, 34); networkPage.Controls.Add(_probeAll);
-            networkPage.Controls.Add(new Label { Left = 24, Top = 232, Width = 730, Height = 70, Text = "Các bài test ở đây chỉ phục vụ chẩn đoán. Transport PDA ↔ Agent vẫn giữ cấu hình Beta hiện tại cho đến khi có kết quả test mạng Office.", ForeColor = Color.DimGray });
+            networkPage.Controls.Add(new Label { Left = 24, Top = 232, Width = 730, Height = 70, Text = "D091 dùng Firestore để test kết nối thật PDA ↔ Agent trên Office. RTDB chỉ còn chẩn đoán lịch sử; chưa chốt HA/transport cuối.", ForeColor = Color.DimGray });
 
             overlayPage.Controls.Add(new Label { Left = 24, Top = 24, Width = 730, Height = 34, Text = "Bảng nổi trạng thái máy", Font = new Font("Segoe UI Semibold", 11F) });
             overlayPage.Controls.Add(new Label { Left = 24, Top = 66, Width = 730, Height = 64, Text = "Khi khóa, bảng nổi chỉ hiển thị thông tin và chuột xuyên hoàn toàn xuống ứng dụng bên dưới. Khi mở khóa, có thể kéo vị trí, đổi rộng/cao và chọn đầy đủ màu nền/màu chữ.", ForeColor = Color.DimGray });
@@ -889,9 +889,11 @@ namespace SupraInventoryRelayAgent
                 _tray.Text = compact;
                 _trayStatusItem.Text = metrics.MenuText();
 
-                var online = _leaderCoordinator == null ? (HasUsableWmsSession() ? 1 : 0) : _leaderCoordinator.OnlineAgentCount;
+                var online = _leaderCoordinator == null
+                    ? (_listenCts != null ? 1 : (HasUsableWmsSession() ? 1 : 0))
+                    : _leaderCoordinator.OnlineAgentCount;
                 var state = _leaderCoordinator == null
-                    ? "CHƯA PHỐI HỢP"
+                    ? (_listenCts != null ? "FIRESTORE TEST" : "CHƯA PHỐI HỢP")
                     : (_leaderCoordinator.IsLeader ? "ACTIVE" : "STANDBY");
 
                 if (_statusOverlay != null)
@@ -1064,7 +1066,7 @@ namespace SupraInventoryRelayAgent
             try
             {
                 if (_listenCts == null) StartListening();
-                StartLeaderCoordination();
+                Ui(() => _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / FIRESTORE TEST");
             }
             catch (Exception ex)
             {
@@ -1431,7 +1433,7 @@ namespace SupraInventoryRelayAgent
             {
                 EnsureFreshToken();
                 var session = SnapshotSession();
-                return ProbeHttp("FIRESTORE", AgentConfig.FirestoreProbeUrl, session.IdToken);
+                return ProbeHttp("FIRESTORE", AgentConfig.FirestoreRelayCollectionUrl + "?pageSize=1", session.IdToken);
             });
         }
 
@@ -1875,25 +1877,25 @@ namespace SupraInventoryRelayAgent
             try
             {
                 RefreshDirect();
-                Ui(() => _relay.Text = "Relay: Google OK · đang kiểm tra RTDB...");
+                Ui(() => _relay.Text = "Relay: Google OK · đang kiểm tra Firestore...");
                 var session = SnapshotSession();
-                var result = ProbeHttp("RTDB", JobsUrl(session) + "&shallow=true", null);
+                var result = ProbeHttp("FIRESTORE_RELAY", AgentConfig.FirestoreRelayCollectionUrl + "?pageSize=1", session.IdToken);
                 LogProbeResult(result);
 
                 if (result.Result == "PASS")
                 {
-                    Ui(() => _relay.Text = "Relay: OFFICE PASS / Google + RTDB");
-                    Log("OFFICE PASS ssid=" + GetSsid() + " admin=" + session.AppUserId + " instance=" + Short(_agentInstanceId) + " rtdb_ms=" + result.ElapsedMs + ".");
+                    Ui(() => _relay.Text = "Relay: FIRESTORE PASS / Office");
+                    Log("OFFICE PASS ssid=" + GetSsid() + " admin=" + session.AppUserId + " instance=" + Short(_agentInstanceId) + " firestore_ms=" + result.ElapsedMs + ".");
                 }
                 else if (result.Result == "PROXY_BLOCK")
                 {
-                    Ui(() => _relay.Text = "Relay: OFFICE PROXY BLOCK / RTDB");
-                    Log("OFFICE PROXY_BLOCK RTDB http=" + result.StatusCode + " host=" + result.FinalHost + ".");
+                    Ui(() => _relay.Text = "Relay: OFFICE PROXY BLOCK / Firestore");
+                    Log("OFFICE PROXY_BLOCK FIRESTORE http=" + result.StatusCode + " host=" + result.FinalHost + ".");
                 }
                 else
                 {
-                    Ui(() => _relay.Text = "Relay: RTDB " + result.Result + " / HTTP " + result.StatusCode);
-                    Log("OFFICE RTDB_FAIL result=" + result.Result + " http=" + result.StatusCode + ".");
+                    Ui(() => _relay.Text = "Relay: Firestore " + result.Result + " / HTTP " + result.StatusCode);
+                    Log("OFFICE FIRESTORE_FAIL result=" + result.Result + " http=" + result.StatusCode + ".");
                 }
             }
             catch (Exception ex)
@@ -1912,9 +1914,22 @@ namespace SupraInventoryRelayAgent
             try { SnapshotSession(); } catch { Log("Chưa ghép Agent."); return; }
             if (_listenCts != null) return;
             _listenCts = new CancellationTokenSource();
-            Ui(() => { _listen.Text = "Dừng nghe"; _relay.Text = "Relay: đang kết nối..."; });
+            Ui(() => { _listen.Text = "Dừng nghe"; _relay.Text = "Relay: đang kết nối Firestore..."; });
             var token = _listenCts.Token;
-            Task.Run(() => ListenLoop(token), token);
+            Task.Run(() =>
+            {
+                var transport = new FirestoreRelayTestTransport(
+                    SnapshotSession,
+                    EnsureFreshToken,
+                    _agentInstanceId,
+                    GetSsid,
+                    Log,
+                    Audit,
+                    () => Interlocked.Increment(ref _localPdaRequests),
+                    () => Interlocked.Increment(ref _localAgentResponses),
+                    state => Ui(() => _relay.Text = state));
+                transport.Run(token);
+            }, token);
         }
 
         private void StopListening()

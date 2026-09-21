@@ -40,7 +40,7 @@ jobs:
             throw "AgentConfig.AgentBuild does not match relay-agent/VERSION=$version"
           }
 
-      - name: D089 relay regression guard
+      - name: D091 relay regression guard
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
@@ -60,8 +60,9 @@ jobs:
           $overlaySettings = Get-Content relay-agent/OverlaySettingsForm.cs -Raw
           $project = Get-Content relay-agent/SupraInventoryRelayAgent.csproj -Raw
           $iconScript = Get-Content relay-agent/GenerateIcon.ps1 -Raw
+          $firestoreTransport = Get-Content relay-agent/FirestoreRelayTestTransport.cs -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*15\s*;') { throw "D089 requires Agent v15." }
+          if ($config -notmatch 'AgentBuild\s*=\s*16\s*;') { throw "D091 requires Agent v16." }
           if ($leader -notmatch 'HeartbeatIntervalMs\s*=\s*3000' -or $leader -notmatch 'FailoverAfterMs\s*=\s*10000') { throw "D085 HA timing guard failed." }
           if ($leader -notmatch 'HttpRequestHeader\.IfMatch') { throw "D085 leader election must use conditional ETag writes." }
           if ($cache -notmatch 'FreshMissGuardSeconds\s*=\s*10' -or $cache -notmatch 'JOIN_INFLIGHT' -or $cache -notmatch 'LoadSnapshot') { throw "D085 Picklist cache/single-flight guard failed." }
@@ -87,13 +88,15 @@ jobs:
           if (-not (Test-Path "relay-agent/app-icon.png")) { throw "D089 approved Agent icon asset missing." }
           if ($leader -notmatch 'PresenceHeartbeatIntervalMs\s*=\s*30000' -or $leader -notmatch 'PresenceReadIntervalMs\s*=\s*60000' -or $leader -notmatch 'PresenceFreshMs\s*=\s*90000') { throw "D087 Agent presence cadence guard failed." }
           if ($rules -notmatch 'coordination' -or $rules -notmatch 'rate_limits' -or $rules -notmatch 'PICKER_LOCKED' -or $rules -notmatch 'SWITCHING') { throw "D085 RTDB Rules guard failed." }
+          if ($config -notmatch 'FIRESTORE_D091_TEST' -or $config -notmatch 'relay_poc_jobs' -or $firestoreTransport -notmatch 'TRANSPORT_ONLY' -or $firestoreTransport -notmatch 'PollIntervalMs\s*=\s*3000') { throw "D091 Firestore field transport guard failed." }
+          if ($program -notmatch 'FirestoreRelayTestTransport' -or $program -notmatch 'FIRESTORE TEST') { throw "D091 Agent Firestore wiring guard failed." }
 
           foreach ($source in @($lookup, $wms)) {
             if ($source -match 'request\.Method\s*=\s*"(POST|PUT|PATCH|DELETE)"') {
               throw "WMS mutation method found; D085 remains read-only."
             }
           }
-          Write-Host "D089 relay regression guard PASS"
+          Write-Host "D091 relay regression guard PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh

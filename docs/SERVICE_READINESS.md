@@ -35,9 +35,13 @@ Technical/runtime/release evidence was already PASS before Owner acceptance:
 
 Owner-confirmed field boundary: Office reaches internal Supra plus selected Google services only. Sanitized Agent evidence confirms WMS UI/API and Firebase Auth reachability, repeated RTDB corporate-proxy 403, and transport-layer reachability of Firestore/Apps Script/Sheets/Drive hosts. No further Cloudflare/Worker Office probe is required. A Google-hosted replacement still needs an authenticated Beta relay/HA/quota proof before selection.
 
+## D091 candidate readiness
+
+D091 source candidate introduces a locked Beta Firestore relay resource, Agent v16 Firestore polling listener and next signed Beta Android Firestore request/ACK path. This is not yet a released/field-passed transport. Runtime/release PASS and a physical Office round trip are still required. The ACK is transport-only and WMS mutation remains forbidden.
+
 ## Open boundaries
 
-- D090 closes the Office reachability uncertainty: Cloudflare/Worker is excluded from further Office testing, RTDB is proxy-blocked, and replacement research is Google-hosted only. Firestore is preferred but not selected; current RTDB remains temporary outside Office.
+- D091 Firestore is the active authenticated field candidate. It is not the final selected transport until real Office E2E plus later quota-safe D085 HA/failover validation pass.
 - WMS remains GET-only; no confirmation/mutation.
 - Stable remains OWNER-GATED.
 

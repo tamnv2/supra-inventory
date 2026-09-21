@@ -115,7 +115,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Nhập đúng 5 số cuối Picklist. PDA gửi sang máy xử lý để tra cứu danh sách WMS; chưa xác nhận đơn."
+                android:text="D091: nhập 5 số để test kết nối thật PDA ↔ Agent qua Firestore. Chưa tra cứu/xác nhận WMS trong bước này."
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
 
@@ -143,7 +143,7 @@
                 android:layout_marginTop="6dp"
                 android:background="@drawable/bg_button_primary"
                 android:enabled="false"
-                android:text="KIỂM TRA PICKLIST"
+                android:text="TEST PDA ↔ AGENT"
                 android:textColor="@color/white"
                 android:textSize="15sp"
                 android:textStyle="bold" />
@@ -153,7 +153,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:text="Sẵn sàng nhập 5 số cuối để kiểm tra Picklist."
+                android:text="Sẵn sàng test kết nối Firestore với Agent Office."
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
 
@@ -163,7 +163,7 @@
                 android:layout_marginTop="10dp"
                 android:background="@drawable/bg_card"
                 android:padding="8dp"
-                android:text="Chỉ tra cứu danh sách Picklist và trả Có/Không có Picklist. Chưa gửi lệnh xác nhận hoặc thay đổi WMS."
+                android:text="Bản D091 chỉ kiểm tra transport. PASS khi request từ PDA tới Agent Office và ACK quay lại PDA. Không thay đổi WMS."
                 android:textColor="@color/text_secondary"
                 android:textSize="11sp" />
         </LinearLayout>

@@ -56,17 +56,6 @@ private data class RelayAck(
     val lockedUntilMs: Long,
 )
 
-private data class RelayEvent(
-    val status: String,
-    val ack: RelayAck?,
-)
-
-private data class LeaderState(
-    val exists: Boolean,
-    val healthy: Boolean,
-    val heartbeatAgeMs: Long,
-)
-
 class RelayPocClient(
     private val api: InventoryApi,
     private val log: (String) -> Unit = {},
@@ -74,9 +63,9 @@ class RelayPocClient(
 ) {
     private val jsonType = "application/json; charset=utf-8".toMediaType()
     private val http = OkHttpClient.Builder()
-        .connectTimeout(5, TimeUnit.SECONDS)
-        .readTimeout(115, TimeUnit.SECONDS)
-        .callTimeout(120, TimeUnit.SECONDS)
+        .connectTimeout(8, TimeUnit.SECONDS)
+        .readTimeout(12, TimeUnit.SECONDS)
+        .callTimeout(15, TimeUnit.SECONDS)
         .build()
 
     fun close() {
@@ -90,201 +79,167 @@ class RelayPocClient(
             executeProbe(current, suffix)
         } catch (error: RelayHttpException) {
             if (error.status != 401) throw error
-            log("Relay HTTP 401; làm mới Firebase session rồi thử lại.")
+            log("D091 Firestore HTTP 401; làm mới Firebase session rồi thử lại.")
             executeProbe(api.refreshSessionForRelay(), suffix)
         }
     }
 
     private fun executeProbe(session: AppSession, suffix: String): RelayProbeResult {
-        val databaseUrl = BuildConfig.FIREBASE_RTDB_URL.trim().trimEnd('/')
-        if (databaseUrl.isBlank()) throw IllegalStateException("Relay Beta chưa được cấu hình.")
-
-        ensureProcessingAgent(session, databaseUrl)
+        val collectionUrl = BuildConfig.FIRESTORE_RELAY_COLLECTION_URL.trim()
+        if (collectionUrl.isBlank()) throw IllegalStateException("Firestore relay Beta chưa được cấu hình.")
 
         val identity = firebaseIdentity(session.idToken)
         val requestId = UUID.randomUUID().toString()
-        val url = jobUrl(databaseUrl, session.idToken, requestId)
+        val documentUrl = collectionUrl.trimEnd('/') + "/" + requestId
         val started = SystemClock.elapsedRealtime()
-        val payload = JSONObject()
-            .put("request_id", requestId)
-            .put("suffix", suffix)
-            .put("status", "PENDING")
-            .put("source", "ANDROID_POC")
-            .put("picker_uid", identity.uid)
-            .put("picker_user_id", session.userId)
-            .put("client_sent_at_ms", System.currentTimeMillis())
 
-        log("Relay gửi shared request=" + shortId(requestId) + " picker_uid=" + identity.fingerprint + " aud=" + identity.audience.ifBlank { "unknown" })
+        val fields = JSONObject()
+            .put("request_id", stringValue(requestId))
+            .put("suffix", stringValue(suffix))
+            .put("status", stringValue("PENDING"))
+            .put("source", stringValue("ANDROID_D091"))
+            .put("picker_uid", stringValue(identity.uid))
+            .put("picker_user_id", stringValue(session.userId))
+            .put("client_sent_at_ms", integerValue(System.currentTimeMillis()))
+        val payload = JSONObject().put("fields", fields)
+
+        log(
+            "D091 Firestore gửi request=" + shortId(requestId) +
+                " picker_uid=" + identity.fingerprint +
+                " aud=" + identity.audience.ifBlank { "unknown" }
+        )
+        onProgress("Đang gửi qua Firestore...")
+
         try {
-            val putStarted = SystemClock.elapsedRealtime()
-            val put = Request.Builder()
-                .url(url)
-                .put(payload.toString().toRequestBody(jsonType))
-                .header("Accept", "application/json")
+            val createUrl = collectionUrl.toHttpUrl().newBuilder()
+                .addQueryParameter("documentId", requestId)
                 .build()
-            http.newCall(put).execute().use { response ->
-                val elapsed = SystemClock.elapsedRealtime() - putStarted
-                if (!response.isSuccessful) {
-                    val body = response.body?.string()
-                    val message = firebaseError(response.code, body)
-                    log("Relay PUT HTTP " + response.code + " " + elapsed + "ms · " + message)
-                    throw RelayHttpException(response.code, message)
-                }
-                log("Relay PUT PASS " + response.code + " " + elapsed + "ms")
-            }
+            executeJson(
+                Request.Builder()
+                    .url(createUrl)
+                    .post(payload.toString().toRequestBody(jsonType))
+                    .header("Authorization", "Bearer " + session.idToken)
+                    .header("Accept", "application/json")
+                    .build(),
+                "CREATE"
+            )
+            log("D091 Firestore CREATE PASS request=" + shortId(requestId))
+            onProgress("Đã gửi Firestore · đang chờ Agent Office...")
 
-            val streamRequest = Request.Builder()
-                .url(url)
-                .get()
-                .header("Accept", "text/event-stream")
-                .build()
-            http.newCall(streamRequest).execute().use { response ->
-                if (!response.isSuccessful) {
-                    val body = response.body?.string()
-                    val message = firebaseError(response.code, body)
-                    log("Relay SSE HTTP " + response.code + " · " + message)
-                    throw RelayHttpException(response.code, message)
-                }
-                log("Relay SSE connected shared_job=" + shortId(requestId))
-                val source = response.body?.source() ?: throw IOException("Relay không trả dữ liệu.")
-                val data = StringBuilder()
-                while (true) {
-                    val line = source.readUtf8Line() ?: break
-                    if (line.isEmpty()) {
-                        if (data.isNotEmpty()) {
-                            val event = parseEvent(data.toString())
-                            data.setLength(0)
-                            if (event?.status == "SWITCHING") {
-                                onProgress("Đang chuyển người xử lý...")
-                                log("Relay request=" + shortId(requestId) + " status=SWITCHING")
-                            }
-                            val ack = event?.ack
-                            if (ack != null) {
-                                val total = (SystemClock.elapsedRealtime() - started).coerceAtLeast(0L)
-                                log(
-                                    "Relay ACK request=" + shortId(requestId) +
-                                        " admin=" + safeId(ack.adminUserId) +
-                                        " agent=" + safeId(ack.agentId) +
-                                        " instance=" + safeId(ack.agentInstanceId) +
-                                        " network=" + safeId(ack.agentNetwork) +
-                                        " cache=" + safeId(ack.cacheMode) +
-                                        " rtt=" + total + "ms"
-                                )
-                                return RelayProbeResult(
-                                    requestId = requestId,
-                                    agentId = ack.agentId,
-                                    agentNetwork = ack.agentNetwork,
-                                    agentAdminUserId = ack.adminUserId,
-                                    agentInstanceId = ack.agentInstanceId,
-                                    roundTripMs = total,
-                                    lookupStatus = ack.lookupStatus,
-                                    lookupMatches = ack.lookupMatches,
-                                    lookupMs = ack.lookupMs,
-                                    cacheMode = ack.cacheMode,
-                                    rateStrikes = ack.rateStrikes,
-                                    lockLevel = ack.lockLevel,
-                                    lockedUntilMs = ack.lockedUntilMs,
-                                )
-                            }
-                        }
-                    } else if (line.startsWith("data:")) {
-                        data.append(line.substringAfter("data:").trim())
-                    }
-                }
-            }
-            throw SocketTimeoutException("Máy xử lý chưa trả ACK.")
-        } catch (error: SocketTimeoutException) {
-            log("Relay timeout request=" + shortId(requestId))
-            throw IOException("Quá 2 phút chưa nhận phản hồi tra cứu từ máy xử lý.", error)
-        } finally {
-            cleanup(url)
-        }
-    }
-
-    private fun ensureProcessingAgent(session: AppSession, databaseUrl: String) {
-        var state = readLeaderState(session, databaseUrl)
-        if (state.healthy) return
-
-        if (!state.exists) {
-            log("Relay preflight no_active_agent")
-            throw IOException("Không có Agent xử lý online. Vui lòng về bàn chuyên viên xử lý trực tiếp.")
-        }
-
-        onProgress("Đang chuyển người xử lý...")
-        log("Relay preflight leader_stale age_ms=" + state.heartbeatAgeMs)
-        val deadline = SystemClock.elapsedRealtime() + 10_000L
-        while (SystemClock.elapsedRealtime() < deadline) {
-            Thread.sleep(1000)
-            state = readLeaderState(session, databaseUrl)
-            if (state.healthy) {
-                log("Relay preflight failover_ready")
-                return
-            }
-        }
-
-        throw IOException("Không có Agent xử lý online. Vui lòng về bàn chuyên viên xử lý trực tiếp.")
-    }
-
-    private fun readLeaderState(session: AppSession, databaseUrl: String): LeaderState {
-        val url = leaderUrl(databaseUrl, session.idToken)
-        val request = Request.Builder().url(url).get().header("Accept", "application/json").build()
-        http.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                val body = response.body?.string()
-                throw RelayHttpException(response.code, firebaseError(response.code, body))
-            }
-            val raw = response.body?.string().orEmpty().trim()
-            if (raw.isBlank() || raw == "null")
-                return LeaderState(exists = false, healthy = false, heartbeatAgeMs = Long.MAX_VALUE)
-
-            val node = try { JSONObject(raw) } catch (_: Exception) {
-                return LeaderState(exists = false, healthy = false, heartbeatAgeMs = Long.MAX_VALUE)
-            }
-            val heartbeat = node.optLong("heartbeat_at_ms", 0L)
-            val ready = node.optBoolean("wms_ready", false)
-            val instance = node.optString("agent_instance_id").trim()
-            val age = if (heartbeat > 0L) System.currentTimeMillis() - heartbeat else Long.MAX_VALUE
-            val healthy = instance.isNotBlank() && ready && age in -60_000L..10_000L
-            return LeaderState(exists = instance.isNotBlank(), healthy = healthy, heartbeatAgeMs = age)
-        }
-    }
-
-    private fun parseEvent(raw: String): RelayEvent? {
-        return try {
-            val envelope = JSONObject(raw)
-            val data = envelope.optJSONObject("data") ?: return null
-            val status = data.optString("status")
-            if (status != "ACK") return RelayEvent(status = status, ack = null)
-            RelayEvent(
-                status = status,
-                ack = RelayAck(
-                    agentId = data.optString("agent_id").ifBlank { "Agent" },
-                    agentNetwork = data.optString("agent_network").ifBlank { "UNKNOWN" },
-                    adminUserId = data.optString("agent_admin_user_id").ifBlank { "ADMIN" },
-                    agentInstanceId = data.optString("agent_instance_id").ifBlank { "UNKNOWN" },
-                    lookupStatus = data.optString("lookup_status").ifBlank { "TRANSPORT_ONLY" },
-                    lookupMatches = data.optInt("lookup_matches", 0).coerceAtLeast(0),
-                    lookupMs = data.optLong("lookup_ms", 0L).coerceAtLeast(0L),
-                    cacheMode = data.optString("cache_mode").ifBlank { "NONE" },
-                    rateStrikes = data.optInt("rate_strikes", 0).coerceAtLeast(0),
-                    lockLevel = data.optInt("lock_level", 0).coerceAtLeast(0),
-                    lockedUntilMs = data.optLong("locked_until_ms", 0L).coerceAtLeast(0L),
+            val deadline = SystemClock.elapsedRealtime() + 60_000L
+            while (SystemClock.elapsedRealtime() < deadline) {
+                val raw = executeJson(
+                    Request.Builder()
+                        .url(documentUrl)
+                        .get()
+                        .header("Authorization", "Bearer " + session.idToken)
+                        .header("Accept", "application/json")
+                        .build(),
+                    "GET"
                 )
+                val ack = parseAck(raw)
+                if (ack != null) {
+                    val total = (SystemClock.elapsedRealtime() - started).coerceAtLeast(0L)
+                    log(
+                        "D091 Firestore ACK request=" + shortId(requestId) +
+                            " admin=" + safeId(ack.adminUserId) +
+                            " agent=" + safeId(ack.agentId) +
+                            " instance=" + safeId(ack.agentInstanceId) +
+                            " network=" + safeId(ack.agentNetwork) +
+                            " rtt=" + total + "ms"
+                    )
+                    return RelayProbeResult(
+                        requestId = requestId,
+                        agentId = ack.agentId,
+                        agentNetwork = ack.agentNetwork,
+                        agentAdminUserId = ack.adminUserId,
+                        agentInstanceId = ack.agentInstanceId,
+                        roundTripMs = total,
+                        lookupStatus = ack.lookupStatus,
+                        lookupMatches = ack.lookupMatches,
+                        lookupMs = ack.lookupMs,
+                        cacheMode = ack.cacheMode,
+                        rateStrikes = ack.rateStrikes,
+                        lockLevel = ack.lockLevel,
+                        lockedUntilMs = ack.lockedUntilMs,
+                    )
+                }
+                Thread.sleep(1_000L)
+            }
+
+            throw SocketTimeoutException("Firestore đã nhận request nhưng quá 60 giây chưa có Agent Office trả ACK.")
+        } catch (error: SocketTimeoutException) {
+            log("D091 Firestore timeout request=" + shortId(requestId))
+            throw IOException(error.message ?: "Agent Office chưa phản hồi.", error)
+        } finally {
+            cleanup(documentUrl, session.idToken)
+        }
+    }
+
+    private fun executeJson(request: Request, operation: String): String {
+        http.newCall(request).execute().use { response ->
+            val body = response.body?.string().orEmpty()
+            if (!response.isSuccessful) {
+                val message = firestoreError(response.code, body)
+                log("D091 Firestore " + operation + " HTTP " + response.code + " · " + message)
+                throw RelayHttpException(response.code, message)
+            }
+            return body
+        }
+    }
+
+    private fun parseAck(raw: String): RelayAck? {
+        return try {
+            val fields = JSONObject(raw).optJSONObject("fields") ?: return null
+            val status = fieldString(fields, "status")
+            if (status != "ACK") return null
+            RelayAck(
+                agentId = fieldString(fields, "agent_id").ifBlank { "Agent" },
+                agentNetwork = fieldString(fields, "agent_network").ifBlank { "UNKNOWN" },
+                adminUserId = fieldString(fields, "agent_admin_user_id").ifBlank { "ADMIN" },
+                agentInstanceId = fieldString(fields, "agent_instance_id").ifBlank { "UNKNOWN" },
+                lookupStatus = fieldString(fields, "lookup_status").ifBlank { "TRANSPORT_ONLY" },
+                lookupMatches = fieldLong(fields, "lookup_matches").toInt().coerceAtLeast(0),
+                lookupMs = fieldLong(fields, "lookup_ms").coerceAtLeast(0L),
+                cacheMode = fieldString(fields, "cache_mode").ifBlank { "NONE" },
+                rateStrikes = fieldLong(fields, "rate_strikes").toInt().coerceAtLeast(0),
+                lockLevel = fieldLong(fields, "lock_level").toInt().coerceAtLeast(0),
+                lockedUntilMs = fieldLong(fields, "locked_until_ms").coerceAtLeast(0L),
             )
         } catch (_: Exception) {
             null
         }
     }
 
-    private fun cleanup(url: HttpUrl) {
+    private fun cleanup(documentUrl: String, idToken: String) {
         try {
-            http.newCall(Request.Builder().url(url).delete().build()).execute().use { response ->
-                if (!response.isSuccessful) log("Relay cleanup HTTP " + response.code)
+            http.newCall(
+                Request.Builder()
+                    .url(documentUrl)
+                    .delete()
+                    .header("Authorization", "Bearer " + idToken)
+                    .build()
+            ).execute().use { response ->
+                if (!response.isSuccessful && response.code != 404) {
+                    log("D091 Firestore cleanup HTTP " + response.code)
+                }
             }
         } catch (error: Exception) {
-            log("Relay cleanup lỗi: " + safeText(error.message))
+            log("D091 Firestore cleanup lỗi: " + safeText(error.message))
         }
     }
+
+    private fun stringValue(value: String): JSONObject =
+        JSONObject().put("stringValue", value)
+
+    private fun integerValue(value: Long): JSONObject =
+        JSONObject().put("integerValue", value.toString())
+
+    private fun fieldString(fields: JSONObject, key: String): String =
+        fields.optJSONObject(key)?.optString("stringValue").orEmpty()
+
+    private fun fieldLong(fields: JSONObject, key: String): Long =
+        fields.optJSONObject(key)?.optString("integerValue")?.toLongOrNull() ?: 0L
 
     private fun firebaseIdentity(idToken: String): RelayFirebaseIdentity {
         val parts = idToken.split('.')
@@ -305,30 +260,19 @@ class RelayPocClient(
         return RelayFirebaseIdentity(uid, audience, fingerprint(uid))
     }
 
-    private fun jobUrl(databaseUrl: String, idToken: String, requestId: String): HttpUrl =
-        databaseUrl.toHttpUrl().newBuilder()
-            .addPathSegment("relay_poc")
-            .addPathSegment("jobs")
-            .addPathSegment(requestId + ".json")
-            .addQueryParameter("auth", idToken)
-            .build()
-
-    private fun leaderUrl(databaseUrl: String, idToken: String): HttpUrl =
-        databaseUrl.toHttpUrl().newBuilder()
-            .addPathSegment("relay_poc")
-            .addPathSegment("coordination")
-            .addPathSegment("leader.json")
-            .addQueryParameter("auth", idToken)
-            .build()
-
-    private fun firebaseError(status: Int, body: String?): String {
-        val detail = try { JSONObject(body.orEmpty()).optString("error") } catch (_: Exception) { "" }
-        val cleanDetail = safeText(detail).take(180)
+    private fun firestoreError(status: Int, body: String?): String {
+        val detail = try {
+            JSONObject(body.orEmpty()).optJSONObject("error")?.optString("message").orEmpty()
+        } catch (_: Exception) {
+            ""
+        }
+        val clean = safeText(detail).take(180)
         return when (status) {
             401 -> "Phiên Firebase cần làm mới."
-            403 -> "RTDB từ chối quyền (HTTP 403). Kiểm tra Rules D085." + if (cleanDetail.isBlank()) "" else " " + cleanDetail
-            404 -> "Không tìm thấy Firebase RTDB Beta."
-            else -> cleanDetail.ifBlank { "Relay lỗi HTTP " + status + "." }
+            403 -> "Firestore từ chối quyền D091 (HTTP 403)."
+            404 -> "Firestore Beta chưa sẵn sàng hoặc collection chưa tồn tại."
+            409 -> "Request Firestore đã tồn tại; vui lòng thử lại."
+            else -> clean.ifBlank { "Firestore relay lỗi HTTP " + status + "." }
         }
     }
 

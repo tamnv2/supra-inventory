@@ -289,3 +289,14 @@ For the separate Picker `Xác nhận đơn` / Windows Agent workstream only:
 - Firestore is the preferred next candidate inherited from D078. A Beta proof must validate authenticated request creation/claim/result delivery, sticky ACTIVE Agent semantics, approximately 10-second failover, no-Agent state, bounded retries/idempotency, and quota-safe heartbeat/listen behavior before it can replace RTDB.
 - Apps Script, Sheets and Drive remain fallback research candidates, not selected realtime authorities.
 - The normal Báo hàng realtime architecture is unchanged. This exception does not create offline business mode or authorize WMS mutation.
+
+## D091 Firestore field transport implementation
+
+D091 turns the D090 preferred candidate into a bounded Beta field proof.
+
+- Android creates exactly one authenticated document in `relay_poc_jobs`, polls only that document while awaiting ACK, then deletes its own test document.
+- The Windows Agent polls the bounded relay collection every 3 seconds only while its relay listener is active and ACKs a valid `PENDING / ANDROID_D091` job.
+- Firestore REST uses `Authorization: Bearer <Firebase ID token>`; Firestore Security Rules enforce PICKER create/get/delete ownership and real-base ADMIN list/update authority.
+- The field ACK is `TRANSPORT_ONLY`. It proves connectivity/audit identity and must not be presented as a WMS Picklist result.
+- D091 intentionally does not implement Firestore HA. D085 sticky ACTIVE/10-second failover remains a required later gate if Firestore E2E passes. The final design must avoid a naive per-Agent 3-second Firestore write heartbeat.
+- No automatic RTDB or Cloudflare fallback is allowed during D091 field acceptance because it would create a false Firestore PASS.

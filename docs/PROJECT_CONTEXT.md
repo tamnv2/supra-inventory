@@ -289,3 +289,12 @@ For PDA ↔ Agent confirmation transport:
 - current RTDB may remain temporary on Internet-capable networks only;
 - no new relay resource is adopted until canonical scope/resource files are updated;
 - WMS remains GET-only and Stable remains OWNER-GATED.
+
+## D091 Firestore field candidate
+
+The confirmation workstream now implements the first real Google-hosted replacement candidate rather than performing another host probe.
+
+D091 test topology:
+`Picker Beta → Firestore REST / relay_poc_jobs → one Office Agent v16 → Firestore ACK → Picker Beta`.
+
+The ACK is transport-only. This phase does not call WMS lookup/mutation and does not claim the final D085 multi-Agent architecture. A physical Office round trip is required before Firestore can advance to HA/quota design. Failure of authenticated Firestore operations routes the workstream to Apps Script; Cloudflare/RTDB Office testing stays closed by D090.

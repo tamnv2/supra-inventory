@@ -485,6 +485,40 @@
         },
         "boundaries": "D078 final transport remains pending; WMS GET-only/no mutation; Stable OWNER-GATED."
       }
+    },
+    {
+      "id": "OA012",
+      "status": "PENDING_D091_RELEASE",
+      "title": "Field-test D091 Firestore PDA-to-Agent round trip on Office",
+      "resource_key": "firestore-relay-beta-d091",
+      "provider": "Physical Beta field environment",
+      "reason_owner_only": "Connected tools cannot physically place the company laptop on the Office network and operate the real Picker PDA.",
+      "prerequisites": {
+        "firestore": "D091 main-only provision/rules deploy PASS",
+        "agent": "relay-agent-v16 release PASS",
+        "android": "next signed beta release after beta-vc54"
+      },
+      "shortest_test_path": [
+        "Update Agent Auto Confirm Pick Pack to relay-agent-v16 and keep one Agent running on the Office laptop.",
+        "Update the Picker PDA to the D091 signed Beta APK.",
+        "Open Xác nhận đơn, enter any five test digits, press TEST PDA ↔ AGENT.",
+        "PASS only when PDA shows KẾT NỐI PDA ↔ AGENT OK and the Agent audit log records the same short request id via FIRESTORE.",
+        "If it fails, provide only the sanitized technical log; do not share passwords, tokens, cookies or WMS session material."
+      ],
+      "pass_criteria": [
+        "PDA Firestore CREATE succeeds with Firebase user identity",
+        "Office Agent reads the pending Firestore document through the corporate network",
+        "Agent writes one ACK using the ADMIN Firebase identity",
+        "Originating PDA reads the ACK and cleans up its own test document",
+        "No RTDB/Cloudflare fallback produces the PASS",
+        "No WMS mutation occurs"
+      ],
+      "routing_after_test": {
+        "pass": "Continue D091 with quota-safe multi-Agent HA/failover design before final transport selection.",
+        "transport_fail": "Do not retest Cloudflare/RTDB; move to Apps Script Google-hosted candidate."
+      },
+      "safety": "Beta only; transport-only ACK; single-Agent field proof; Stable and WMS mutation forbidden.",
+      "remaining_owner_action": "Wait until D091 releases are PASS, then run the single Office round-trip test above."
     }
   ]
 }

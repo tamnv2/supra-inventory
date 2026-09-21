@@ -30,6 +30,10 @@ Owner confirmed on 2026-09-21 that the D089 result **đã đạt**. The followin
 
 Owner confirmed on 2026-09-21 that Office should be treated as internal Supra plus selected Google services only. Sanitized field evidence: WMS UI/API read-only PASS, Firebase Auth PASS, RTDB corporate-proxy 403, and Google-hosted Firestore/Apps Script/Sheets/Drive endpoints reachable. Do not retest Cloudflare/Worker on Office. Firestore is the preferred next candidate from D078 but remains unselected until an authenticated Beta relay/HA/quota proof.
 
+## 2B. D091 Firestore field candidate
+
+Owner directed implementation rather than further generic probing. D091 builds Agent v16 plus the next signed Beta APK against a locked Beta Firestore `(default)` database in `asia-southeast1`. The first field gate is transport-only with one Agent and `TRANSPORT_ONLY` ACK. It does not query/mutate WMS and does not yet implement final multi-Agent HA. PASS requires a physical Office round trip; failure routes to Apps Script.
+
 ## 3. Released artifacts and evidence
 
 D089 runtime:
@@ -43,14 +47,14 @@ Released artifacts:
 
 ## 4. Open boundaries
 
-- D090 Office evidence is complete: do not test Cloudflare/Worker further on Office; RTDB is proxy-blocked; replacement research is Google-hosted only, with Firestore preferred but not yet selected. Current RTDB is temporary outside Office.
+- D091 is active: authenticated Firestore end-to-end candidate is being built for a real PDA → Firestore → Office Agent → Firestore → PDA field round trip. RTDB/Cloudflare Office retest stays closed.
 - WMS remains signed GET-only; confirmation/mutation is not authorized.
 - Stable remains OWNER-GATED.
 - Do not alter Stable unless the Owner explicitly authorizes it.
 
 ## 5. Next action
 
-There is no remaining D089 implementation or field-retest task. D090 also closes the old Office probe checkpoint; no repeat Cloudflare Office test is required.
+D089 remains the accepted baseline and D090 closes repeat Office provider probing. The active workstream is D091 Firestore end-to-end field candidate.
 
 On the next session:
 1. read `ops/authority-manifest.json`;
