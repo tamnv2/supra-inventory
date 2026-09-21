@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D100_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V25__BETA_VC62__OA019_OA020_FIELD_READY",
+    "beta": "D100_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V25__BETA_VC62__OA019_FIELD_READY__OA020_BLOCKED_GMAIL_RECONSENT",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 10,
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
@@ -575,7 +575,7 @@
     "D100 deploy-proof hotfix: Beta health must expose SOURCE_COMMIT; deploy gate requires health source_commit == GITHUB_SHA, runtime schema == source SCHEMA_VERSION, and agent_auth_migration agent_failed=0/agent_remaining=0. This prevents a stale previous Worker from satisfying a new deployment gate.",
     "D100 deploy proof parser hotfix: runtime main 2cf23d9229eb4bd5d9c45f3776bb2404ef06a68f is healthy (HTTP 200, source_commit exact, schema 10/10, agent migration 0/0, operational 5/5), but deploy workflow parsed source SCHEMA_VERSION as literal \\\\1 because sed replacement was over-escaped. fix/d100-beta-health-schema-proof changes only that CI parser to \\1."
   ],
-  "active_workstream": "D100_RELEASED_OWNER_FIELD_ACCEPTANCE",
+  "active_workstream": "D100_RELEASED_OWNER_FIELD_ACCEPTANCE__OA020_GMAIL_RECONSENT_REQUIRED",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
@@ -615,7 +615,8 @@
     "D094 Owner field evidence 2026-09-21: relay-agent-v18 auto-restored ADMIN via DPAPI/Firebase refresh and WMS successfully; Firestore manual probe PASS on Office, but confirmation helper had ConnectFailure on normal network and HA NameResolutionFailure on Office, with no PDA_REQUEST/CLAIM/ACK observed. Firestore carrier remains selected by D091 historical field PASS.",
     "D095 field evidence 2026-09-21: released beta-vc58 logged repeated authenticated Firestore CREATE PASS while relay-agent-v19 logged ACTIVE/QUERY pending=0 and later transient Firestore ConnectFailure; normal Báo hàng submissions on the same PDA succeeded independently. Source comparison with D091 field-PASS code confirmed the D094/D095 predecessor ArrayList parser regression. No secret values recorded.",
     "D095 release PASS 2026-09-21: PR #115 merged to 52aabdbd3a1eedfa96c6a525dd155b370e9d9138; main Repo Authority/Project State/Beta Worker/UI/Relay Agent/Android runs 35558582310/35558582318/35558582419/35558582329/35558582311/35558582307 all PASS; released relay-agent-v20 SHA256 4e1daa4dc154b7fa850199f1b700819085741cfc4d0311f31827df74cf9f1096 and signed beta-vc59 SHA256 5fb4422312cf4380a158cec9d12d1730dc184ea5a468def599edc15508ec8800. OA016 physical field validation remains pending.",
-    "D096 Owner field evidence 2026-09-21: released Agent v20 logs pending-found + CLAIM PASS for PDA requests, then exact-resolve PASS HTTP 200 but EXACT_CODE_NOT_RESOLVED; no picklist-confirm call occurred. Owner-provided successful browser example confirms authorized confirm endpoint/payload semantics and Status=true success response; sensitive session/header values were not persisted."
+    "D096 Owner field evidence 2026-09-21: released Agent v20 logs pending-found + CLAIM PASS for PDA requests, then exact-resolve PASS HTTP 200 but EXACT_CODE_NOT_RESOLVED; no picklist-confirm call occurred. Owner-provided successful browser example confirms authorized confirm endpoint/payload semantics and Status=true success response; sensitive session/header values were not persisted.",
+    "D100 OA020 Owner field evidence 2026-09-22: ROOT System Reset mail-only challenge reached the Gmail send step but returned RESET_EMAIL_UNAVAILABLE with the user-facing Gmail-send-permission message. Existing Beta OAuth refresh token is configured, while canonical D100 requires drive.file + gmail.send; one bounded Owner Google OAuth re-consent and Beta Worker refresh-token replacement is required before retry. No destructive reset was executed; Stable untouched."
   ],
   "last_runtime_evidence": {
     "signed_beta_release": "beta-vc59",

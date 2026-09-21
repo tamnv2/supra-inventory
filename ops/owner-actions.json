@@ -870,7 +870,7 @@
     },
     {
       "id": "OA020",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "BLOCKED_BY_GOOGLE_OAUTH_RECONSENT",
       "title": "Field-accept D100 ROOT System Reset and recovery mail",
       "resource_key": "cloudflare-beta-worker",
       "provider": "Beta Web + InventoryCore + Firebase Auth + Gmail send OAuth",
@@ -907,7 +907,10 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Review selected scopes before execute. Do not share ROOT password, OTP, OAuth refresh token, Firebase tokens, cookies or any secret values. Requesting the OTP alone is non-destructive; final reset execution is destructive for the selected runtime data.",
-      "remaining_owner_action": "Run the mail-only OTP challenge first. Execute an actual reset only when the selected Beta data scope is safe to zero."
+      "remaining_owner_action": "Open the Beta project Google OAuth consent flow once, approve the existing Drive scope plus gmail.send, replace the Beta Worker GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN with the newly issued refresh token without sharing it in chat/GitHub, then retry the non-destructive mail-only OTP challenge.",
+      "field_result": "RESET_EMAIL_UNAVAILABLE__GMAIL_SEND_PERMISSION_MISSING",
+      "field_result_date": "2026-09-22",
+      "field_result_note": "Owner field test reached the ROOT System Reset challenge and the UI reported that the six-digit email could not be sent because the project Google connection lacks Gmail send permission. No destructive reset was executed."
     }
   ]
 }
