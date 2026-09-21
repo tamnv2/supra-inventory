@@ -35,7 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate D091 Firestore source
+      - name: Validate D092 Firestore source
         shell: bash
         run: |
           set -euo pipefail
@@ -44,11 +44,22 @@ jobs:
           const config = JSON.parse(fs.readFileSync('firebase.json','utf8'));
           const rules = fs.readFileSync('firebase/firestore.rules','utf8');
           if (config.firestore?.rules !== 'firebase/firestore.rules') throw new Error('firebase.json Firestore rules path mismatch');
-          for (const marker of ['relay_poc_jobs', "ANDROID_D091", "app_base_role == 'ADMIN'", "status == 'ACK'", "affectedKeys().hasOnly"]) {
-            if (!rules.includes(marker)) throw new Error('Missing D091 Firestore Rules marker: ' + marker);
+          for (const marker of [
+            'relay_poc_jobs',
+            'ANDROID_CONFIRM_V1',
+            "app_base_role == 'ADMIN'",
+            "status == 'PROCESSING'",
+            "status == 'ACK'",
+            'affectedKeys().hasOnly',
+            'relay_poc_rate_limits',
+            'relay_poc_coordination',
+            'relay_poc_agents',
+            'relay_poc_confirm_guards'
+          ]) {
+            if (!rules.includes(marker)) throw new Error('Missing D092 Firestore Rules marker: ' + marker);
           }
           if (/allow\s+(read|write)\s*:\s*if\s+true/.test(rules)) throw new Error('Open Firestore Rules are forbidden');
-          console.log('D091 Firestore source validation PASS');
+          console.log('D092 Firestore source validation PASS');
           NODE
 
       - name: Validate Beta service-account secret shape
