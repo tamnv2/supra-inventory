@@ -8,9 +8,9 @@
 - SQLite schema: `8`
 - Latest signed Beta APK: `beta-vc59`
 - Current released Agent: `relay-agent-v20`
-- Beta: `D095_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC59__AGENT_V20__OA016_FIELD_PENDING__OA013_BLOCKED`
+- Beta: `D096_WMS_EXACT_RESOLVER_SOURCE_READY__CURRENT_AGENT_V20_PDA_AGENT_FIELD_PASS__TARGET_V21__BETA_VC59_UNCHANGED__OA017_AFTER_RELEASE`
 - Web: `D089_OWNER_ACCEPTED_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON`
-- Android: `D095_SIGNED_BETA_VC59_PENDING_PRESERVATION_RELEASED__D089_OWNER_ACCEPTED_UI_BASELINE`
+- Android: `D095_SIGNED_BETA_VC59_PDA_AGENT_FIELD_PASS__NO_D096_ANDROID_CHANGE`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -126,4 +126,15 @@ No manual end-of-session handover is required. GitHub canonical state remains th
 - D095 technical/runtime/release: PASS.
 - OA016 is READY_FOR_OWNER_FIELD_TEST: PDA stays normal Internet; test Agent on normal Internet and Office with matching request IDs; verify Báo hàng remains Worker/InventoryCore and Agent-independent.
 - OA013 remains blocked until OA016 PASS.
+- Stable remains OWNER-GATED and untouched.
+
+## D096 current repair checkpoint — 2026-09-21
+
+- Owner confirms PDA ↔ Agent now works with released `relay-agent-v20` + `beta-vc59`.
+- Field log proves Firestore `pending-found` and `CLAIM PASS`, then WMS exact-resolve GET HTTP 200, followed by `EXACT_CODE_NOT_RESOLVED`; no WMS confirm POST was reached.
+- Root cause: `WmsPicklistExactResolver.CollectCodes` was ArrayList-only while .NET `JavaScriptSerializer` returns JSON arrays as `object[]`. The normal lookup parser already handled this correctly.
+- D096 changes exact resolution to non-string `IEnumerable`, adds redacted parser counts and executable CI regression using synthetic JSON.
+- Existing authorized confirm endpoint/payload remains unchanged. D096 additionally requires HTTP 2xx **and** WMS business `Status=true` before reporting CONFIRMED.
+- D096 targets `relay-agent-v21` only. Android stays at signed `beta-vc59`.
+- Next field gate: OA017 real eligible Picklist exact-resolve → confirm → Status=true → Firestore ACK → SFT/SFT3 verification.
 - Stable remains OWNER-GATED and untouched.

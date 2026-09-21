@@ -136,7 +136,18 @@ namespace SupraInventoryRelayAgent
         private static string Classify(int status, string body)
         {
             if (LooksLikeProxyBlock(body)) return "PROXY_BLOCK";
-            if (status >= 200 && status < 300) return "CONFIRMED";
+
+            if (status >= 200 && status < 300)
+            {
+                bool? businessStatus = TryReadBusinessStatus(body);
+                if (businessStatus == true) return "CONFIRMED";
+                if (businessStatus == false) return "CONFIRM_REJECTED";
+
+                // A 2xx transport response without a trustworthy business Status=true
+                // cannot be reported as success because the WMS mutation outcome is uncertain.
+                return "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
+            }
+
             if (status == 401) return "SESSION_EXPIRED";
             if (status == 403) return "FORBIDDEN";
             if (status == 407) return "PROXY_AUTH_REQUIRED";
@@ -146,6 +157,26 @@ namespace SupraInventoryRelayAgent
             if (status >= 500) return "SERVER_ERROR";
             if (status == 400 || status == 422) return "CONFIRM_REJECTED";
             return "CONFIRM_HTTP_ERROR";
+        }
+
+        private static bool? TryReadBusinessStatus(string body)
+        {
+            if (string.IsNullOrWhiteSpace(body)) return null;
+            try
+            {
+                var root = Json.DeserializeObject(body) as Dictionary<string, object>;
+                if (root == null) return null;
+                object raw;
+                if (!root.TryGetValue("Status", out raw) || raw == null) return null;
+                if (raw is bool) return (bool)raw;
+
+                bool parsed;
+                return bool.TryParse(Convert.ToString(raw), out parsed) ? parsed : (bool?)null;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private static void ValidateCode(string value)
@@ -267,6 +298,22 @@ namespace SupraInventoryRelayAgent
                 }
                 return Encoding.UTF8.GetString(output.ToArray());
             }
+        }
+
+        internal static bool SelfTestResponseSemantics()
+        {
+            return string.Equals(
+                       Classify(200, "{\"Status\":true,\"Data\":{}}"),
+                       "CONFIRMED",
+                       StringComparison.Ordinal) &&
+                   string.Equals(
+                       Classify(200, "{\"Status\":false,\"Data\":{}}"),
+                       "CONFIRM_REJECTED",
+                       StringComparison.Ordinal) &&
+                   string.Equals(
+                       Classify(200, "{\"Data\":{}}"),
+                       "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
+                       StringComparison.Ordinal);
         }
 
         private static bool LooksLikeProxyBlock(string body)

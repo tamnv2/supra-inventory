@@ -535,7 +535,7 @@
     },
     {
       "id": "OA013",
-      "status": "BLOCKED_BY_OA016_D095_FIELD_GATE",
+      "status": "BLOCKED_BY_OA017_D096_EXACT_CONFIRM_FIELD_GATE",
       "title": "Field-test D092 real Picklist confirmation",
       "resource_key": "supra-api-d080",
       "provider": "Physical company Windows Agent + Beta PDA + authorized Supra WMS session",
@@ -575,10 +575,11 @@
         "technical_release": "PASS",
         "d093_transport_retest": "OA014_PASS_REQUIRED_BEFORE_RESUME",
         "d094_transport_retest": "OA015_PASS_REQUIRED_BEFORE_RESUME",
-        "d095_transport_retest": "OA016_PASS_REQUIRED_BEFORE_RESUME"
+        "d095_transport_retest": "OA016_PASS_REQUIRED_BEFORE_RESUME",
+        "d096_exact_confirm": "OA017_PASS_REQUIRED_BEFORE_FINAL_ACCEPTANCE"
       },
-      "blocked_by": "OA016",
-      "block_reason": "Released v19/vc58 failed the confirmation relay field gate. D095 repairs confirmed Firestore job-visibility and reconnect-loss causes; real WMS confirmation remains blocked until OA016 passes."
+      "blocked_by": "OA017",
+      "block_reason": "PDA-Agent transport is working, but Agent v20 fails before WMS POST because exact PickListCode resolution mis-parses JSON arrays. D096 repairs exact resolution and confirm response semantics."
     },
     {
       "id": "OA014",
@@ -670,7 +671,7 @@
     },
     {
       "id": "OA016",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "OWNER_CONFIRMED_PDA_AGENT_TRANSPORT_PASS_CURRENT_FIELD__D096_WMS_STAGE_NEXT",
       "title": "Field-test D095 Firestore job visibility on normal and Office Agent networks",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Physical Beta PDA on normal Internet + Windows Agent on normal Internet and company Office network",
@@ -707,7 +708,7 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Do not share passwords, tokens, cookies, WMS headers/signatures, encrypted session files or raw WMS response bodies. This gate verifies transport/job visibility only; do not execute the real WMS confirmation until OA016 passes.",
-      "remaining_owner_action": "Install relay-agent-v20 and beta-vc59. Keep PDA on normal Internet; verify one request-ID correlation with Agent on normal Internet, then one with Agent on Office. Verify normal Báo hàng remains independent. OA013 resumes only after PASS.",
+      "remaining_owner_action": null,
       "runtime_readiness": {
         "main": "52aabdbd3a1eedfa96c6a525dd155b370e9d9138",
         "repo_authority_run": 35558582310,
@@ -718,7 +719,44 @@
         "android_run": 35558582307,
         "agent_release_id": 392682761,
         "android_release_id": 392682842
-      }
+      },
+      "field_result": "PDA_FIRESTORE_AGENT_REQUEST_CLAIM_ACK_PATH_PASS_CURRENT_FIELD",
+      "field_result_date": "2026-09-21"
+    },
+    {
+      "id": "OA017",
+      "status": "WAITING_FOR_D096_RELEASE",
+      "title": "Field-test D096 exact PickListCode resolution and real WMS confirmation",
+      "resource_key": "supra-api-d080",
+      "provider": "Physical Beta PDA + Windows Agent + authorized company WMS session",
+      "reason_owner_only": "CI can execute parser/response regressions but cannot perform or verify an authorized real company WMS Picklist confirmation.",
+      "prerequisites": {
+        "source_branch": "fix/d096-wms-exact-confirm-v2",
+        "agent_release": "PENDING_RELAY_AGENT_V21",
+        "android_release": "beta-vc59__UNCHANGED",
+        "pda_agent_transport": "OWNER_CONFIRMED_WORKING_CURRENT_FIELD",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Update only the Windows Agent to released v21; keep signed beta-vc59 on PDA.",
+        "Use one real eligible Picklist known to have a unique full PickListCode matching the five digits entered on PDA.",
+        "Send once. Agent logs must show pending-found, CLAIM PASS, exact-resolve HTTP PASS, exact-resolve parse with non-zero PickListCode count, then WMS picklist-confirm.",
+        "PASS requires WMS response business Status=true, Agent result CONFIRMED, Firestore ACK, and the approved success message on PDA.",
+        "Verify the final state directly in SFT / SFT 3.",
+        "If Agent returns uncertain, do not press again; verify in SFT / SFT 3 and provide only sanitized logs."
+      ],
+      "pass_criteria": [
+        "PDA-Agent transport remains working.",
+        "Exact resolver finds exactly one full PickListCode from current WMS JSON when the entered suffix uniquely matches.",
+        "Exactly one authorized confirmSkipItem POST is attempted after idempotency guard acquisition.",
+        "CONFIRMED requires HTTP 2xx plus business Status=true.",
+        "Status=false is rejected; 2xx missing/unparseable Status remains fail-closed/uncertain.",
+        "SFT / SFT 3 reflects the expected confirmed state.",
+        "No real WMS session/header/signature values are committed or logged.",
+        "Stable remains untouched."
+      ],
+      "safety": "Use only an authorized company WMS session and an eligible Picklist. Do not share passwords, Authorization/Token/APISID/SID/SCID/USID, signatures/nonces, cookies, encrypted session files or raw sensitive WMS responses.",
+      "remaining_owner_action": "Wait for Agent v21 release, then run this one real eligible Picklist confirmation with existing beta-vc59."
     }
   ]
 }

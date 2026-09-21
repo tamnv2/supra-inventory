@@ -42,7 +42,7 @@ jobs:
             throw "AgentConfig.AgentBuild does not match relay-agent/VERSION=$version"
           }
 
-      - name: D095 Firestore job visibility and network recovery guard
+      - name: D096 WMS exact resolver and confirm semantic guard
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
@@ -71,7 +71,7 @@ jobs:
           $exact = Get-Content relay-agent/WmsPicklistExactResolver.cs -Raw
           $firestoreRules = Get-Content firebase/firestore.rules -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*20\s*;') { throw "D095 requires Agent v20." }
+          if ($config -notmatch 'AgentBuild\s*=\s*21\s*;') { throw "D096 requires Agent v21." }
           if ($firestoreLeader -notmatch 'HeartbeatIntervalMs\s*=\s*4000' -or $firestoreLeader -notmatch 'FailoverAfterMs\s*=\s*10000') { throw "D092 Firestore HA timing guard failed." }
           if ($firestoreLeader -notmatch 'currentDocument\.updateTime' -or $firestoreLeader -notmatch 'currentDocument\.exists=false') { throw "D092 Firestore leader election must use conditional writes." }
           if ($cache -notmatch 'FreshMissGuardSeconds\s*=\s*10' -or $cache -notmatch 'JOIN_INFLIGHT' -or $cache -notmatch 'LoadSnapshot') { throw "D085 Picklist cache/single-flight guard failed." }
@@ -120,7 +120,11 @@ jobs:
           if ($firestoreTransport -notmatch 'ANDROID_CONFIRM_V1' -or $firestoreTransport -notmatch 'PROCESSING' -or $firestoreTransport -notmatch 'PollIntervalMs\s*=\s*3000' -or $firestoreTransport -notmatch '_canProcess') { throw "D092 Firestore confirmation transport guard failed." }
           if ($program -notmatch 'FirestoreConfirmationTransport' -or $program -notmatch 'ProcessFirestoreConfirmation' -or $program -notmatch 'FirestoreAgentLeaderCoordinator' -or $program -notmatch 'WmsPicklistConfirmClient\.Confirm') { throw "D092 Agent Firestore confirmation wiring guard failed." }
           if ($exact -notmatch '\{ "Content", "" \}' -or $exact -notmatch 'PickListCode' -or $exact -notmatch 'AMBIGUOUS_PICKLIST') { throw "D092 exact PickListCode Content-empty resolver guard failed." }
+          if ($exact -notmatch 'as IEnumerable' -or $exact -notmatch 'WMS exact-resolve parse=PASS') { throw "D096 exact resolver must parse JavaScriptSerializer arrays through IEnumerable and emit redacted parse telemetry." }
+          if ($exact -match 'node\s+as\s+ArrayList') { throw "D096 forbids ArrayList-only exact PickListCode parsing." }
           if ($confirm -notmatch 'request\.Method\s*=\s*"POST"' -or $confirm -notmatch '"IsAllowSkipped", true' -or $confirm -notmatch '"RemainSkip", 1' -or $confirm -notmatch '"WarehouseCode", "HY1"') { throw "D092 bounded WMS confirmation adapter guard failed." }
+          if ($confirm -notmatch 'TryReadBusinessStatus' -or $confirm -notmatch 'CONFIRM_IN_PROGRESS_OR_UNCERTAIN') { throw "D096 confirm must require a trustworthy WMS business Status=true and fail closed on uncertain 2xx." }
+          if ($program -notmatch '--d096-self-test' -or $exact -notmatch 'SelfTestJsonArrayParsing' -or $confirm -notmatch 'SelfTestResponseSemantics') { throw "D096 in-process net48 self-test wiring missing." }
           if ($config -notmatch 'confirmSkipItem') { throw "D092 confirmSkipItem endpoint config missing." }
           if ($confirmGuard -notmatch 'relay_poc_confirm_guards' -or $confirmGuard -notmatch 'currentDocument\.exists=false' -or $confirmGuard -notmatch 'CONFIRMED') { throw "D092 cross-Agent confirmation idempotency guard failed." }
           if ($firestoreRate -notmatch 'relay_poc_rate_limits') { throw "D092 anti-spam must persist in Firestore." }
@@ -133,7 +137,7 @@ jobs:
               throw "Unexpected WMS mutation outside the D092 bounded confirmation adapter."
             }
           }
-          Write-Host "D095 Firestore visibility/network recovery + D092 confirmation guard PASS"
+          Write-Host "D096 WMS exact resolver/confirm semantic + D095/D092 guards PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh
@@ -168,6 +172,17 @@ jobs:
           Copy-Item firebase/database.rules.json relay-agent/dist/
           (Get-FileHash $primary -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256"
           (Get-FileHash $legacy -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256"
+
+      - name: D096 runtime parser and confirm semantic regression
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $exe = (Resolve-Path "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe").Path
+          $selfTest = Start-Process -FilePath $exe -ArgumentList "--d096-self-test" -PassThru -Wait
+          if ($selfTest.ExitCode -ne 0) {
+            throw "D096 in-process net48 self-test failed with exit code $($selfTest.ExitCode)."
+          }
+          Write-Host "D096 in-process net48 parser + confirm semantic regression PASS"
 
       - name: Upload Agent artifact
         uses: actions/upload-artifact@v4

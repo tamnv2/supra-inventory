@@ -64,6 +64,11 @@ namespace SupraInventoryRelayAgent
                 try { CollectCodes(Json.DeserializeObject(result.Body ?? ""), codes, 0); }
                 catch { return Build("SCHEMA_UNSUPPORTED", "", lastRoute, lastHttp, elapsed, matches.Count); }
 
+                AgentDiagnostics.Write(
+                    "WMS exact-resolve parse=PASS page=" + page +
+                    " picklist_codes=" + codes.Count +
+                    " values=redacted");
+
                 foreach (var code in codes)
                     if (ValidCode(code) && code.EndsWith(suffix, StringComparison.Ordinal))
                         matches.Add(code.Trim());
@@ -169,6 +174,7 @@ namespace SupraInventoryRelayAgent
         private static void CollectCodes(object node, List<string> codes, int depth)
         {
             if (node == null || depth > 32) return;
+
             var map = node as Dictionary<string, object>;
             if (map != null)
             {
@@ -183,8 +189,26 @@ namespace SupraInventoryRelayAgent
                 }
                 return;
             }
-            var list = node as ArrayList;
-            if (list != null) foreach (var item in list) CollectCodes(item, codes, depth + 1);
+
+            // JavaScriptSerializer returns JSON arrays as object[] on .NET Framework.
+            // Accept any non-string IEnumerable so this resolver matches the proven
+            // WmsPicklistLookup parser instead of silently treating arrays as empty.
+            if (node is string) return;
+            var enumerable = node as IEnumerable;
+            if (enumerable == null) return;
+            foreach (var item in enumerable)
+                CollectCodes(item, codes, depth + 1);
+        }
+
+        internal static bool SelfTestJsonArrayParsing()
+        {
+            var codes = new List<string>();
+            CollectCodes(
+                Json.DeserializeObject("{\"Status\":true,\"Data\":[{\"PickListCode\":\"PL2601012345\"}]}"),
+                codes,
+                0);
+            return codes.Count == 1 &&
+                   string.Equals(codes[0], "PL2601012345", StringComparison.Ordinal);
         }
 
         private static bool ValidCode(string value)
