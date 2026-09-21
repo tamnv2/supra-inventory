@@ -93,6 +93,130 @@ jobs:
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v3
 
+      - name: Ensure D099 Firebase email/password provider
+        shell: bash
+        env:
+          MUTATE: ${{ github.event_name != 'pull_request' }}
+        run: |
+          set -euo pipefail
+          project="supra-inventory-beta"
+          token="$(gcloud auth print-access-token)"
+          config_url="https://identitytoolkit.googleapis.com/admin/v2/projects/${project}/config"
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          code="$(curl -sS -o "$tmp" -w '%{http_code}' \
+            -H "Authorization: Bearer $token" \
+            -H "X-Goog-User-Project: $project" \
+            "$config_url")"
+          [ "$code" = "200" ] || { echo "Firebase Auth config read failed: HTTP $code"; head -c 500 "$tmp"; exit 1; }
+          enabled="$(jq -r '.signIn.email.enabled // false' "$tmp")"
+          password_required="$(jq -r '.signIn.email.passwordRequired // false' "$tmp")"
+          echo "Firebase email/password provider enabled=$enabled password_required=$password_required"
+          if [ "$enabled" = "true" ] && [ "$password_required" = "true" ]; then
+            echo "D099 Firebase email/password provider PASS"
+            exit 0
+          fi
+          if [ "$MUTATE" != "true" ]; then
+            echo "::warning::D099 detected Firebase email/password provider disabled/incomplete on Beta; main deploy will enable it."
+            exit 0
+          fi
+          patch_code="$(curl -sS -o "$tmp" -w '%{http_code}' -X PATCH \
+            -H "Authorization: Bearer $token" \
+            -H "X-Goog-User-Project: $project" \
+            -H "Content-Type: application/json" \
+            --data '{"signIn":{"email":{"enabled":true,"passwordRequired":true}}}' \
+            "$config_url?updateMask=signIn.email.enabled,signIn.email.passwordRequired")"
+          [ "$patch_code" = "200" ] || { echo "Firebase Auth config update failed: HTTP $patch_code"; head -c 500 "$tmp"; exit 1; }
+          jq -e '.signIn.email.enabled == true and .signIn.email.passwordRequired == true' "$tmp" >/dev/null
+          echo "D099 Firebase email/password provider ENABLED"
+
+      - name: D099 synthetic PBKDF2 Firebase sign-in probe
+        shell: bash
+        env:
+          FIREBASE_WEB_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+        run: |
+          set -euo pipefail
+          [ -n "${FIREBASE_WEB_API_KEY_BETA:-}" ] || { echo "FIREBASE_WEB_API_KEY_BETA missing"; exit 1; }
+          export D099_ACCESS_TOKEN="$(gcloud auth print-access-token)"
+          node <<'NODE'
+          const crypto = require('crypto');
+          const project = 'supra-inventory-beta';
+          const apiKey = process.env.FIREBASE_WEB_API_KEY_BETA;
+          const accessToken = process.env.D099_ACCESS_TOKEN;
+          const runId = String(process.env.GITHUB_RUN_ID || Date.now());
+          const uid = ('d099-ci-' + runId + '-' + String(process.env.GITHUB_RUN_ATTEMPT || '1')).slice(0, 120);
+          const email = uid + '@auth.supra.invalid';
+          const password = crypto.randomBytes(24).toString('base64url') + 'A1!';
+          const salt = crypto.randomBytes(16);
+          const hash = crypto.pbkdf2Sync(Buffer.from(password, 'utf8'), salt, 100000, 32, 'sha256');
+
+          async function json(res) {
+            const text = await res.text();
+            try { return text ? JSON.parse(text) : {}; } catch { return { raw: text.slice(0, 300) }; }
+          }
+          async function cleanup() {
+            try {
+              await fetch('https://identitytoolkit.googleapis.com/v1/projects/' + project + '/accounts:batchDelete', {
+                method: 'POST',
+                headers: { authorization: 'Bearer ' + accessToken, 'content-type': 'application/json' },
+                body: JSON.stringify({ localIds: [uid], force: true }),
+              });
+            } catch {}
+          }
+
+          (async () => {
+            const cfg = await fetch('https://identitytoolkit.googleapis.com/admin/v2/projects/' + project + '/config', {
+              headers: { authorization: 'Bearer ' + accessToken, 'X-Goog-User-Project': project },
+            });
+            const cfgBody = await json(cfg);
+            if (!cfg.ok) throw new Error('D099 config probe HTTP ' + cfg.status);
+            if (cfgBody?.signIn?.email?.enabled !== true || cfgBody?.signIn?.email?.passwordRequired !== true) {
+              console.log('D099 synthetic sign-in SKIP: provider not enabled yet on PR; main deploy step will enable it.');
+              return;
+            }
+
+            try {
+              const imported = await fetch('https://identitytoolkit.googleapis.com/v1/projects/' + project + '/accounts:batchCreate', {
+                method: 'POST',
+                headers: { authorization: 'Bearer ' + accessToken, 'content-type': 'application/json' },
+                body: JSON.stringify({
+                  hashAlgorithm: 'PBKDF2_SHA256',
+                  rounds: 100000,
+                  allowOverwrite: true,
+                  users: [{
+                    localId: uid,
+                    email,
+                    passwordHash: hash.toString('base64'),
+                    salt: salt.toString('base64'),
+                    disabled: false,
+                  }],
+                }),
+              });
+              const importedBody = await json(imported);
+              if (!imported.ok || (Array.isArray(importedBody.error) && importedBody.error.length)) {
+                throw new Error('D099 synthetic import failed HTTP ' + imported.status);
+              }
+
+              const signed = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + encodeURIComponent(apiKey), {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ email, password, returnSecureToken: true }),
+              });
+              const signedBody = await json(signed);
+              if (!signed.ok || signedBody.localId !== uid || !signedBody.idToken || !signedBody.refreshToken) {
+                throw new Error('D099 synthetic PBKDF2 sign-in failed HTTP ' + signed.status + ' code=' + String(signedBody?.error?.message || 'unknown'));
+              }
+              console.log('D099 synthetic PBKDF2 Firebase sign-in PASS');
+            } finally {
+              await cleanup();
+            }
+          })().catch(async (error) => {
+            await cleanup();
+            console.error(String(error && error.message || error));
+            process.exit(1);
+          });
+          NODE
+
       - name: Check/create Beta default Firestore database
         shell: bash
         env:
