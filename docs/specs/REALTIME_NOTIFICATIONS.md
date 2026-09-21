@@ -329,3 +329,16 @@ For Picker `Xác nhận đơn` only:
 - WMS mutation is still protected separately by the hashed full-PickListCode confirmation guard. The first guard creation is the durable mutation authorization; the retained originating ACK proves confirmed idempotency without a second guard-confirm write.
 - Network-address changes start a bounded Windows transition state and staged default/system proxy refresh. Transient DNS/proxy loss preserves the assigned Agent role rather than declaring an immediate failover.
 - Requests older than 30 seconds are skipped as new automatic work and require specialist handling.
+
+
+## D098 — Web realtime session repair and Cloudflare budget ceiling
+
+- Web HTTP API and WebSocket realtime use the same `supra_inventory_interactive_session_v2` authority. The legacy `supra_inventory_beta_session_v1` lookup is forbidden.
+- Realtime stays on the InventoryCore hibernatable Durable Object WebSocket; Báo hàng is not migrated to Firestore.
+- Normal realtime is push-first. Client polling is not a substitute for a healthy socket.
+- Reconnect uses bounded exponential backoff with jitter. Reconnect/ticket loops must not create a request storm.
+- After reconnect, client resumes by last applied sequence and bounded delta recovery; authoritative full reconcile is used only when sequence retention/epoch requires it.
+- Server-originated realtime events are role/user scoped and must never weaken RBAC merely to close a sequence gap.
+- Inventory's design maximum must project to no more than **35% of each included Workers Paid $5 metric** (Worker requests/CPU, Durable Object requests/duration/SQLite rows/storage as applicable). A metric above 35% fails D098 quota acceptance even when other metrics are lower.
+- Hibernation and event-driven delivery are required to preserve the budget. Normal runtime must not add system/provider polling solely for monitoring.
+- This Cloudflare budget is independent from the later Firestore PRIMARY/STANDBY quota optimization workstream.
