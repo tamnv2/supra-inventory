@@ -380,6 +380,7 @@ namespace SupraInventoryRelayAgent
         private readonly PickerRateLimiter _pickerRateLimiter = new PickerRateLimiter();
         private readonly FirestorePickerRateLimiter _firestoreRateLimiter = new FirestorePickerRateLimiter();
         private readonly FirestoreConfirmationGuard _confirmationGuard = new FirestoreConfirmationGuard();
+        private readonly FirestoreAgentSessionGate _agentSessionGate;
         private FirestoreAgentLeaderCoordinator _leaderCoordinator;
         private readonly object _sessionLock = new object();
         private readonly object _wmsSessionLock = new object();
@@ -408,6 +409,7 @@ namespace SupraInventoryRelayAgent
             _autoStarted = autoStarted;
             _instanceActivateEvent = instanceActivateEvent;
             _agentInstanceId = LoadOrCreateAgentInstanceId();
+            _agentSessionGate = new FirestoreAgentSessionGate(message => Log(message));
             _overlaySettings = StatusOverlayForm.LoadSettings(OverlaySettingsFile);
             Text = "SUPRA Inventory - Relay Test v" + AgentConfig.AgentBuild;
             Width = 780;
