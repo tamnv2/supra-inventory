@@ -448,72 +448,83 @@ async function refreshSession(request: Request, env: Env): Promise<Response> {
 }
 async function login(request: Request, env: Env): Promise<Response> {
   if (!env.GOOGLE_RUNTIME_SA_JSON || !env.FIREBASE_WEB_API_KEY) return json({ error: "AUTH_RUNTIME_NOT_CONFIGURED" }, 503);
-  const body = (await request.json()) as { username?: string; password?: string; client_type?: string };
+  const body = (await request.json()) as {
+    username?: string;
+    password?: string;
+    client_type?: string;
+    device_id?: string;
+    force?: boolean;
+  };
   const username = String(body.username || "").trim().toLowerCase();
   const password = String(body.password || "");
-  if (!/^[a-z0-9._-]{1,64}$/.test(username) || !password) return json({ error: "INVALID_CREDENTIALS" }, 401);
+  const deviceId = String(body.device_id || "").trim().slice(0, 160);
+  if (!/^[a-z0-9._-]{1,64}$/.test(username) || !password || !deviceId) {
+    return json({ error: "INVALID_CREDENTIALS" }, 401);
+  }
 
+  const requested = String(body.client_type || "").trim().toUpperCase();
+  const channel: "WEB" | "ANDROID" = requested === "ANDROID" ? "ANDROID" : "WEB";
   let user = await getUserByUsername(env, username);
   if (!user || user.status !== "ACTIVE") return json({ error: "INVALID_CREDENTIALS" }, 401);
 
-  if (!user.password_hash || !user.password_salt) {
-    let bootstrapPassword: string | null = null;
-    if (user.role === "ROOT" && user.user_id === "root" && env.ROOT_BOOTSTRAP_PASSWORD) {
-      bootstrapPassword = env.ROOT_BOOTSTRAP_PASSWORD;
-    } else if (user.role === "PICKER") {
-      bootstrapPassword = env.PICKER_DEFAULT_PASSWORD || env.ROOT_BOOTSTRAP_PASSWORD || null;
-    }
-    if (!bootstrapPassword) {
-      return json({ error: "PASSWORD_NOT_INITIALIZED", message: "Tài khoản chưa được khởi tạo mật khẩu." }, 503);
-    }
-    await savePassword(env, user.user_id, bootstrapPassword);
-    user = (await getUserByUsername(env, username))!;
+  if (channel === "WEB" && user.base_role === "PICKER") {
+    return json({ error: "CLIENT_ROLE_NOT_ALLOWED", message: "Picker chỉ đăng nhập trên App/PDA." }, 403);
   }
 
-  if (!(await verifyPassword(password, user.password_salt!, user.password_hash!))) return json({ error: "INVALID_CREDENTIALS" }, 401);
-
-  const requested = String(body.client_type || "").trim().toUpperCase();
-  const userAgent = String(request.headers.get("user-agent") || "");
-  const channel: "WEB" | "ANDROID" | "AGENT" =
-    requested === "AGENT" || (!requested && userAgent.includes("SUPRA-Inventory-Relay"))
-      ? "AGENT"
-      : requested === "ANDROID" || (!requested && userAgent.includes("SUPRA-Inventory-Beta"))
-        ? "ANDROID"
-        : "WEB";
-
-  if (channel === "AGENT" && (user.role !== "ADMIN" || user.base_role !== "ADMIN")) {
-    return json({ error: "AGENT_ADMIN_REQUIRED" }, 403);
+  try {
+    user = await ensureFirebasePasswordReady(env, user);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "AUTH_MIGRATION_FAILED";
+    const status = message === "PASSWORD_NOT_INITIALIZED" ? 503 : 502;
+    return json({ error: message, message: "Không chuẩn bị được tài khoản Firebase." }, status);
   }
 
-  const sessionGeneration = channel === "AGENT"
-    ? 0
-    : await activateInteractiveSession(env, user.user_id);
+  const uid = String(user.firebase_uid || "");
+  const email = effectiveAuthEmail(firebaseUserSpec(user, uid));
+  try {
+    const credential = await signInWithFirebasePassword(env.FIREBASE_WEB_API_KEY, email, password);
+    if (credential.localId !== uid) return json({ error: "INVALID_CREDENTIALS" }, 401);
+  } catch {
+    return json({ error: "INVALID_CREDENTIALS" }, 401);
+  }
 
-  const firebaseUid = await ensureFirebaseUid(env, user);
-  const customToken = await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON, firebaseUid, {
+  const activated = await activateInteractiveSession(env, user.user_id, channel, deviceId, Boolean(body.force));
+  if ("conflict" in activated) {
+    return json({
+      error: "SESSION_ACTIVE_OTHER_DEVICE",
+      channel,
+      message: channel === "ANDROID"
+        ? "Tài khoản đang đăng nhập trên App/PDA khác. Tiếp tục sẽ đăng xuất thiết bị App/PDA cũ."
+        : "Tài khoản đang đăng nhập trên Web khác. Tiếp tục sẽ đăng xuất phiên Web cũ.",
+    }, 409);
+  }
+
+  const customToken = await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON, uid, {
     app_role: user.role,
     app_base_role: user.base_role,
     app_user_id: user.user_id,
     employee_code: user.employee_code || "",
     app_session_channel: channel,
-    app_session_generation: String(sessionGeneration),
+    app_session_generation: String(activated.generation),
   });
   try {
     const session = await exchangeCustomToken(env, customToken);
     const relayCustomToken = channel === "ANDROID"
-      ? await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON, firebaseUid, {
+      ? await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON, uid, {
           app_role: user.role,
           app_base_role: user.base_role,
           app_user_id: user.user_id,
           employee_code: user.employee_code || "",
-          app_session_channel: channel,
-          app_session_generation: String(sessionGeneration),
+          app_session_channel: "ANDROID",
+          app_session_generation: String(activated.generation),
         })
       : undefined;
     return json({
       ...session,
+      session_generation: activated.generation,
+      session_channel: channel,
       ...(relayCustomToken ? { firebase_custom_token: relayCustomToken } : {}),
-      user: publicUser({ ...user, firebase_uid: firebaseUid }),
+      user: publicUser(user),
     });
   } catch (error) {
     return json({ error: "FIREBASE_LOGIN_EXCHANGE_FAILED", message: error instanceof Error ? error.message : "Firebase login exchange failed" }, 502);
