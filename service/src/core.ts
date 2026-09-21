@@ -7,7 +7,7 @@ import { handleArchiveCoreRequest } from "./archive-core";
 import { handleSystemMetricsCoreRequest } from "./system-metrics-core";
 import { handleSystemResetCoreRequest } from "./system-reset-core";
 import { handleAuthRecoveryCoreRequest } from "./auth-recovery-core";
-import { initializeOperationalV2Schema, operationalV2Readiness } from "./operational-v2-core";
+import { handleOperationalV2CoreRequest, initializeOperationalV2Schema, operationalV2Readiness } from "./operational-v2-core";
 import {
   processOperationalDeadlines,
   scheduleNextOperationalAlarm,
@@ -841,6 +841,9 @@ export class InventoryCore {
       );
       return response({ status: "saved" });
     }
+
+    const operationalV2 = await handleOperationalV2CoreRequest(this.state, request);
+    if (operationalV2) return operationalV2;
 
     const skuImport = await handleSkuImportCoreRequest(this.state, request);
     if (skuImport) return skuImport;
