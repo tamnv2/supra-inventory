@@ -14,117 +14,146 @@ namespace SupraInventoryRelayAgent
         internal bool AlreadyConfirmed;
         internal bool InProgressOrUncertain;
         internal string GuardId = "";
+        internal long RetireAtMs;
     }
 
     internal sealed class FirestoreConfirmationGuard
     {
+        private const long ConfirmRetentionMs = 30L * 24L * 60L * 60L * 1000L;
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
+        private readonly object _localGate = new object();
+        private readonly HashSet<string> _locallyConfirmed = new HashSet<string>(StringComparer.Ordinal);
+
+        private sealed class GuardRead
+        {
+            internal bool Exists;
+            internal string RequestId = "";
+            internal string PickerUid = "";
+            internal long RetireAtMs;
+        }
 
         internal FirestoreConfirmationGuardDecision TryBegin(
             AgentSession session,
             string pickListCode,
             string requestId,
-            string agentInstanceId)
+            string agentInstanceId,
+            string pickerUid)
         {
             EnsureSession(session);
             var guardId = Fingerprint(pickListCode);
-            for (var attempt = 0; attempt < 3; attempt++)
+            lock (_localGate)
             {
-                var existing = Read(session, guardId);
-                if (existing.Exists)
+                if (_locallyConfirmed.Contains(guardId))
                 {
-                    if (string.Equals(existing.Status, "CONFIRMED", StringComparison.Ordinal))
-                        return new FirestoreConfirmationGuardDecision
-                        {
-                            AlreadyConfirmed = true,
-                            GuardId = guardId
-                        };
-
                     return new FirestoreConfirmationGuardDecision
                     {
-                        InProgressOrUncertain = true,
-                        GuardId = guardId
+                        AlreadyConfirmed = true,
+                        GuardId = guardId,
+                        RetireAtMs = NowMs() + ConfirmRetentionMs
                     };
                 }
+            }
 
-                var fields = new Dictionary<string, object>
+            var now = NowMs();
+            var retireAtMs = now + ConfirmRetentionMs;
+            var fields = new Dictionary<string, object>
+            {
+                { "status", StringField("CLAIMED") },
+                { "request_id", StringField(requestId ?? "") },
+                { "agent_instance_id", StringField(agentInstanceId ?? "") },
+                { "picker_uid", StringField(pickerUid ?? "") },
+                { "started_at_ms", IntField(now) },
+                { "retire_at_ms", IntField(retireAtMs) }
+            };
+
+            var url = DocumentUrl(guardId) + BuildMask(fields.Keys) + "&currentDocument.exists=false";
+            try
+            {
+                Send("PATCH", url, session.IdToken,
+                    _json.Serialize(new Dictionary<string, object> { { "fields", fields } }),
+                    false,
+                    "CONFIRM_GUARD_CREATE");
+                return new FirestoreConfirmationGuardDecision
                 {
-                    { "status", StringField("PROCESSING") },
-                    { "request_id", StringField(requestId ?? "") },
-                    { "agent_instance_id", StringField(agentInstanceId ?? "") },
-                    { "started_at_ms", IntField(NowMs()) },
-                    { "updated_at_ms", IntField(NowMs()) }
+                    Acquired = true,
+                    GuardId = guardId,
+                    RetireAtMs = retireAtMs
                 };
+            }
+            catch (WebException ex)
+            {
+                var response = ex.Response as HttpWebResponse;
+                var status = response == null ? 0 : (int)response.StatusCode;
+                try { if (response != null) response.Dispose(); } catch { }
+                if (status != 409 && status != 412) throw;
+            }
 
-                var url = DocumentUrl(guardId) + BuildMask(fields.Keys) + "&currentDocument.exists=false";
-                try
+            var existing = Read(session, guardId);
+            if (!existing.Exists)
+            {
+                return new FirestoreConfirmationGuardDecision
                 {
-                    Send("PATCH", url, session.IdToken,
-                        _json.Serialize(new Dictionary<string, object> { { "fields", fields } }));
+                    InProgressOrUncertain = true,
+                    GuardId = guardId,
+                    RetireAtMs = retireAtMs
+                };
+            }
+
+            lock (_localGate)
+            {
+                if (_locallyConfirmed.Contains(guardId))
+                {
                     return new FirestoreConfirmationGuardDecision
                     {
-                        Acquired = true,
-                        GuardId = guardId
+                        AlreadyConfirmed = true,
+                        GuardId = guardId,
+                        RetireAtMs = existing.RetireAtMs
                     };
                 }
-                catch (WebException ex)
+            }
+
+            if (!string.IsNullOrWhiteSpace(existing.RequestId) &&
+                OriginalJobProvesConfirmed(session, existing.RequestId))
+            {
+                return new FirestoreConfirmationGuardDecision
                 {
-                    var response = ex.Response as HttpWebResponse;
-                    var status = response == null ? 0 : (int)response.StatusCode;
-                    try { if (response != null) response.Dispose(); } catch { }
-                    if (status == 409 || status == 412) continue;
-                    throw;
-                }
+                    AlreadyConfirmed = true,
+                    GuardId = guardId,
+                    RetireAtMs = existing.RetireAtMs
+                };
             }
 
             return new FirestoreConfirmationGuardDecision
             {
                 InProgressOrUncertain = true,
-                GuardId = guardId
+                GuardId = guardId,
+                RetireAtMs = existing.RetireAtMs
             };
         }
 
-        internal void MarkConfirmed(
-            AgentSession session,
-            string guardId,
-            string requestId,
-            string agentInstanceId)
+        internal void MarkLocalConfirmed(string guardId)
         {
-            EnsureSession(session);
-            var fields = new Dictionary<string, object>
-            {
-                { "status", StringField("CONFIRMED") },
-                { "request_id", StringField(requestId ?? "") },
-                { "agent_instance_id", StringField(agentInstanceId ?? "") },
-                { "confirmed_at_ms", IntField(NowMs()) },
-                { "updated_at_ms", IntField(NowMs()) }
-            };
-            Send("PATCH", DocumentUrl(guardId) + BuildMask(fields.Keys), session.IdToken,
-                _json.Serialize(new Dictionary<string, object> { { "fields", fields } }));
+            if (string.IsNullOrWhiteSpace(guardId)) return;
+            lock (_localGate) _locallyConfirmed.Add(guardId);
         }
 
         internal void ReleaseSafeFailure(AgentSession session, string guardId)
         {
             if (string.IsNullOrWhiteSpace(guardId)) return;
+            lock (_localGate) _locallyConfirmed.Remove(guardId);
             try
             {
                 EnsureSession(session);
-                Send("DELETE", DocumentUrl(guardId), session.IdToken, null);
+                Send("DELETE", DocumentUrl(guardId), session.IdToken, null, false, "CONFIRM_GUARD_RELEASE");
             }
             catch { }
-        }
-
-        private sealed class GuardRead
-        {
-            internal bool Exists;
-            internal string Status = "";
         }
 
         private GuardRead Read(AgentSession session, string guardId)
         {
             try
             {
-                var raw = Send("GET", DocumentUrl(guardId), session.IdToken, null);
+                var raw = Send("GET", DocumentUrl(guardId), session.IdToken, null, true, "CONFIRM_GUARD_READ");
                 var doc = _json.DeserializeObject(raw) as Dictionary<string, object>;
                 object fieldsObj;
                 var fields = doc != null && doc.TryGetValue("fields", out fieldsObj)
@@ -133,7 +162,9 @@ namespace SupraInventoryRelayAgent
                 return new GuardRead
                 {
                     Exists = doc != null,
-                    Status = FieldString(fields, "status")
+                    RequestId = FieldString(fields, "request_id"),
+                    PickerUid = FieldString(fields, "picker_uid"),
+                    RetireAtMs = FieldLong(fields, "retire_at_ms")
                 };
             }
             catch (WebException ex)
@@ -148,34 +179,55 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private bool OriginalJobProvesConfirmed(AgentSession session, string requestId)
+        {
+            try
+            {
+                var raw = Send(
+                    "GET",
+                    AgentConfig.FirestoreRelayCollectionUrl.TrimEnd('/') + "/" + Uri.EscapeDataString(requestId),
+                    session.IdToken,
+                    null,
+                    true,
+                    "CONFIRM_GUARD_JOB_PROOF");
+                var doc = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                object fieldsObj;
+                var fields = doc != null && doc.TryGetValue("fields", out fieldsObj)
+                    ? fieldsObj as Dictionary<string, object>
+                    : null;
+                return string.Equals(FieldString(fields, "status"), "ACK", StringComparison.Ordinal) &&
+                       string.Equals(FieldString(fields, "lookup_status"), "CONFIRMED", StringComparison.Ordinal);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private static string DocumentUrl(string guardId)
         {
             return AgentConfig.FirestoreDocumentsBaseUrl.TrimEnd('/') +
                    "/relay_poc_confirm_guards/" + Uri.EscapeDataString(guardId);
         }
 
-        private string Send(string method, string url, string token, string body)
+        private string Send(
+            string method,
+            string url,
+            string token,
+            string body,
+            bool retrySafeRead,
+            string component)
         {
-            var request = (HttpWebRequest)WebRequest.Create(url);
-            request.Method = method;
-            request.Accept = "application/json";
-            request.ContentType = "application/json; charset=utf-8";
-            request.UserAgent = "Agent-Auto-Confirm-Pick-Pack/ConfirmGuard";
-            request.Timeout = 8000;
-            request.ReadWriteTimeout = 8000;
-            request.KeepAlive = false;
-            request.Headers[HttpRequestHeader.Authorization] = "Bearer " + token;
-            if (body != null)
-            {
-                var bytes = Encoding.UTF8.GetBytes(body);
-                request.ContentLength = bytes.Length;
-                using (var output = request.GetRequestStream()) output.Write(bytes, 0, bytes.Length);
-            }
-
-            using (var response = (HttpWebResponse)request.GetResponse())
-            using (var stream = response.GetResponseStream())
-            using (var reader = stream == null ? null : new StreamReader(stream))
-                return reader == null ? "" : reader.ReadToEnd();
+            return FirestoreHttpTransport.SendJson(
+                method,
+                url,
+                token,
+                body,
+                "Agent-Auto-Confirm-Pick-Pack/D097",
+                8000,
+                retrySafeRead,
+                null,
+                component);
         }
 
         private static string Fingerprint(string pickListCode)
@@ -231,6 +283,21 @@ namespace SupraInventoryRelayAgent
             return value.TryGetValue("stringValue", out rawString)
                 ? Convert.ToString(rawString) ?? ""
                 : "";
+        }
+
+        private static long FieldLong(Dictionary<string, object> fields, string key)
+        {
+            object raw;
+            var value = fields != null && fields.TryGetValue(key, out raw)
+                ? raw as Dictionary<string, object>
+                : null;
+            if (value == null) return 0L;
+            object rawInt;
+            long parsed;
+            return value.TryGetValue("integerValue", out rawInt) &&
+                   long.TryParse(Convert.ToString(rawInt), out parsed)
+                ? parsed
+                : 0L;
         }
 
         private static long NowMs()
