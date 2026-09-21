@@ -6,11 +6,11 @@
 
 - Project: `supra-inventory`
 - SQLite schema: `8`
-- Latest signed Beta APK: `beta-vc57`
-- Current released Agent: `relay-agent-v18`
-- Beta: `D094_AGENT_AUTH_RELAY_RECEIVE_SOURCE_READY__CURRENT_RELEASE_V18_VC57__OA015_AFTER_RELEASE__OA013_BLOCKED`
+- Latest signed Beta APK: `beta-vc58`
+- Current released Agent: `relay-agent-v19`
+- Beta: `D094_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC58__AGENT_V19__OA015_FIELD_PENDING__OA013_BLOCKED`
 - Web: `D089_OWNER_ACCEPTED_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON`
-- Android: `D094_REQUEST_CORRELATION_SOURCE_READY__CURRENT_RELEASE_BETA_VC57__NEXT_SIGNED_RELEASE_PENDING`
+- Android: `D094_SIGNED_BETA_VC58_REQUEST_CORRELATION_RELEASED__D089_OWNER_ACCEPTED_UI_BASELINE`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -86,5 +86,15 @@ No manual end-of-session handover is required. GitHub canonical state remains th
 - Agent v19 source adds persistent-login UX completion: authenticated login controls dim/disable, explicit Logout clears the saved application session, next login replaces identity, and Overview shows Agent verification state.
 - Confirmation receive uses a direct `PENDING + ANDROID_CONFIRM_V1` Firestore query with bounded newest-first fallback instead of an arbitrary first collection page.
 - PDA source shows the short request ID after CREATE so Agent `pending-found → claim → ACK` can be correlated.
-- Current released artifacts remain `relay-agent-v18` + `beta-vc57` until D094 merges/releases.
-- Next field gate is OA015 after release. OA013 real WMS confirmation remains blocked. Stable remains OWNER-GATED.
+- Released artifacts are `relay-agent-v19` + `beta-vc58`; D094 technical/runtime/release is PASS.
+- OA015 is READY_FOR_OWNER_FIELD_TEST. OA013 real WMS confirmation remains blocked until OA015 PASS. Stable remains OWNER-GATED.
+
+## D094 release-state refresh — 2026-09-21
+
+- Main: `a9d69036648aa25266241f5500df1192c3f4b3c7`; PR #113 merged.
+- Main Authority / State / Beta Worker / UI / Agent / Android workflows all PASS.
+- Released Agent: `relay-agent-v19`, SHA-256 `d8db2c513fdf25b973bd055f3f02c91ae0f9cf67165fd18cf84beebe118914bb`.
+- Released signed APK: `beta-vc58`, SHA-256 `f21964725adf0dfc0ec43cebdeda028c381214ae285a0c9887ef2581fc668f78`.
+- D094 technical/runtime/release: PASS.
+- Next action: OA015 physical Agent-auth + Firestore request-ID correlation test. OA013 remains blocked until OA015 PASS.
+- Stable remains OWNER-GATED and untouched.
