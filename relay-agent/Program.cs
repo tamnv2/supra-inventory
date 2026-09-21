@@ -322,6 +322,7 @@ namespace SupraInventoryRelayAgent
         private readonly PicklistCacheCoordinator _picklistCache = new PicklistCacheCoordinator();
         private readonly PickerRateLimiter _pickerRateLimiter = new PickerRateLimiter();
         private readonly FirestorePickerRateLimiter _firestoreRateLimiter = new FirestorePickerRateLimiter();
+        private readonly FirestoreConfirmationGuard _confirmationGuard = new FirestoreConfirmationGuard();
         private FirestoreAgentLeaderCoordinator _leaderCoordinator;
         private readonly object _sessionLock = new object();
         private readonly object _wmsSessionLock = new object();
@@ -1986,20 +1987,85 @@ namespace SupraInventoryRelayAgent
                 };
             }
 
+            var guard = _confirmationGuard.TryBegin(
+                appSession,
+                exact.PickListCode,
+                work.RequestId,
+                _agentInstanceId);
+
+            if (guard.AlreadyConfirmed)
+            {
+                return new FirestoreConfirmationOutcome
+                {
+                    Result = "CONFIRMED",
+                    CacheMode = lookup.CacheMode + "+EXACT_RESOLVE+IDEMPOTENT",
+                    Route = "FIRESTORE_CONFIRM_GUARD",
+                    Http = 200,
+                    OperationMs = Math.Max(0L, lookup.ElapsedMs) + Math.Max(0L, exact.ElapsedMs),
+                    Matches = 1,
+                    Rate = rate
+                };
+            }
+
+            if (!guard.Acquired || guard.InProgressOrUncertain)
+            {
+                return new FirestoreConfirmationOutcome
+                {
+                    Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
+                    CacheMode = lookup.CacheMode + "+EXACT_RESOLVE+GUARD",
+                    Route = "FIRESTORE_CONFIRM_GUARD",
+                    Http = 409,
+                    OperationMs = Math.Max(0L, lookup.ElapsedMs) + Math.Max(0L, exact.ElapsedMs),
+                    Matches = 1,
+                    Rate = rate
+                };
+            }
+
             var confirmed = WmsPicklistConfirmClient.Confirm(wmsSession, exact.PickListCode);
             if (string.Equals(confirmed.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
                 ClearWmsSessionAfterExpiry();
 
+            if (string.Equals(confirmed.Result, "CONFIRMED", StringComparison.Ordinal))
+            {
+                try
+                {
+                    _confirmationGuard.MarkConfirmed(
+                        appSession,
+                        guard.GuardId,
+                        work.RequestId,
+                        _agentInstanceId);
+                }
+                catch (Exception ex)
+                {
+                    Log("CONFIRM GUARD mark-confirmed fail request=" + Short(work.RequestId) +
+                        " detail=" + SafeMessage(ex));
+                }
+            }
+            else if (IsSafeConfirmationFailure(confirmed.Result))
+            {
+                _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
+            }
+
             return new FirestoreConfirmationOutcome
             {
                 Result = confirmed.Result ?? "CONFIRM_ERROR",
-                CacheMode = lookup.CacheMode + "+EXACT_RESOLVE",
+                CacheMode = lookup.CacheMode + "+EXACT_RESOLVE+GUARD",
                 Route = confirmed.Route,
                 Http = confirmed.StatusCode,
                 OperationMs = Math.Max(0L, lookup.ElapsedMs) + Math.Max(0L, exact.ElapsedMs) + Math.Max(0L, confirmed.ElapsedMs),
                 Matches = 1,
                 Rate = rate
             };
+        }
+
+        private static bool IsSafeConfirmationFailure(string result)
+        {
+            return string.Equals(result, "FORBIDDEN", StringComparison.Ordinal) ||
+                   string.Equals(result, "PROXY_BLOCK", StringComparison.Ordinal) ||
+                   string.Equals(result, "PROXY_AUTH_REQUIRED", StringComparison.Ordinal) ||
+                   string.Equals(result, "CONFIRM_REJECTED", StringComparison.Ordinal) ||
+                   string.Equals(result, "RATE_LIMITED", StringComparison.Ordinal) ||
+                   string.Equals(result, "SESSION_EXPIRED", StringComparison.Ordinal);
         }
 
         private void ClearWmsSessionAfterExpiry()
