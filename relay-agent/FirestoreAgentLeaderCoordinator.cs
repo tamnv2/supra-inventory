@@ -28,8 +28,8 @@ namespace SupraInventoryRelayAgent
     internal sealed class FirestoreAgentLeaderCoordinator : IDisposable
     {
         internal const int FailoverAfterMs = 10000;
-        internal const int StandbyTakeoverAgeMs = 9000;
-        internal const int PrimaryRoleRefreshMs = 300000;
+        internal const int StandbyTakeoverAgeMs = 10000;
+        internal const int PrimaryRoleRefreshMs = 60000;
         internal const int StandbyRoleRefreshMs = 300000;
         internal const int FrozenRoleRefreshMs = 900000;
         internal const int PresenceHeartbeatIntervalMs = 3600000;
@@ -89,7 +89,7 @@ namespace SupraInventoryRelayAgent
         {
             get
             {
-                if (_role == FirestoreAgentRole.PRIMARY) return 6000;
+                if (_role == FirestoreAgentRole.PRIMARY) return 5000;
                 if (_role == FirestoreAgentRole.STANDBY) return 10000;
                 return 60000;
             }
@@ -172,6 +172,7 @@ namespace SupraInventoryRelayAgent
                         return false;
                     }
 
+                    var previousPrimary = read.Snapshot.PrimaryAgentInstanceId ?? "";
                     var next = new FirestoreRoleSnapshot
                     {
                         PrimaryAgentInstanceId = _instanceId,
@@ -184,6 +185,7 @@ namespace SupraInventoryRelayAgent
                         SetRole(FirestoreAgentRole.PRIMARY, _instanceId, "", "ACTIVE_FAILOVER_REQUEST_DRIVEN");
                         _log("FIRESTORE HA takeover=PASS trigger=pending_age threshold_ms=" + FailoverAfterMs +
                              " self=" + Short(_instanceId));
+                        TrySelectReplacementStandby(session, previousPrimary);
                         return true;
                     }
                 }
@@ -343,6 +345,81 @@ namespace SupraInventoryRelayAgent
             }
 
             throw new InvalidOperationException("Không ổn định được vai trò Agent sau nhiều lần cạnh tranh.");
+        }
+
+        private void TrySelectReplacementStandby(AgentSession session, string excludedAgentId)
+        {
+            try
+            {
+                var raw = SendJson("GET", PresenceCollectionUrl(), session.IdToken, null, "", 7000, true, "STANDBY_DISCOVERY");
+                var root = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                object docsObj;
+                var docs = root != null && root.TryGetValue("documents", out docsObj)
+                    ? docsObj as IEnumerable
+                    : null;
+                if (docs == null) return;
+
+                var now = NowMs();
+                var candidate = "";
+                foreach (var item in docs)
+                {
+                    var doc = item as Dictionary<string, object>;
+                    if (doc == null) continue;
+                    object fieldsObj;
+                    var fields = doc.TryGetValue("fields", out fieldsObj)
+                        ? fieldsObj as Dictionary<string, object>
+                        : null;
+                    if (fields == null) continue;
+
+                    var agentId = FieldString(fields, "agent_instance_id");
+                    var heartbeat = FieldLong(fields, "heartbeat_at_ms");
+                    var age = now - heartbeat;
+                    if (string.IsNullOrWhiteSpace(agentId) ||
+                        string.Equals(agentId, _instanceId, StringComparison.Ordinal) ||
+                        string.Equals(agentId, excludedAgentId ?? "", StringComparison.Ordinal) ||
+                        heartbeat <= 0 || age < -60000 || age > PresenceFreshMs ||
+                        !FieldBool(fields, "wms_ready"))
+                        continue;
+
+                    candidate = agentId;
+                    if (string.Equals(FieldString(fields, "role"), "FROZEN", StringComparison.OrdinalIgnoreCase))
+                        break;
+                }
+
+                if (string.IsNullOrWhiteSpace(candidate))
+                {
+                    _log("FIRESTORE HA replacement-standby=NONE available_candidate=false");
+                    return;
+                }
+
+                for (var attempt = 0; attempt < 3; attempt++)
+                {
+                    var roles = ReadRoles(session);
+                    if (roles.Snapshot == null ||
+                        !string.Equals(roles.Snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal) ||
+                        !string.IsNullOrWhiteSpace(roles.Snapshot.StandbyAgentInstanceId))
+                        return;
+
+                    var next = new FirestoreRoleSnapshot
+                    {
+                        PrimaryAgentInstanceId = _instanceId,
+                        StandbyAgentInstanceId = candidate,
+                        Generation = roles.Snapshot.Generation ?? Guid.NewGuid().ToString("N"),
+                        UpdatedAtMs = NowMs()
+                    };
+                    if (TryWriteRoles(session, next, roles))
+                    {
+                        SetRole(FirestoreAgentRole.PRIMARY, _instanceId, candidate, "REPLACEMENT_STANDBY_SELECTED");
+                        _log("FIRESTORE HA replacement-standby=SELECTED candidate=" + Short(candidate));
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _log("FIRESTORE HA replacement-standby=DEFER type=" + ex.GetType().Name +
+                     " message=" + AgentDiagnostics.Sanitize(ex.Message));
+            }
         }
 
         private void MaintainPresence(AgentSession session)
@@ -611,6 +688,15 @@ namespace SupraInventoryRelayAgent
             var value = fields != null && fields.TryGetValue(key, out raw) ? raw as Dictionary<string, object> : null;
             long result;
             return value != null && long.TryParse(Get(value, "integerValue"), out result) ? result : 0L;
+        }
+
+        private static bool FieldBool(Dictionary<string, object> fields, string key)
+        {
+            object raw;
+            var value = fields != null && fields.TryGetValue(key, out raw) ? raw as Dictionary<string, object> : null;
+            if (value == null) return false;
+            object rawBool;
+            return value.TryGetValue("booleanValue", out rawBool) && Convert.ToBoolean(rawBool);
         }
 
         private static string Get(Dictionary<string, object> map, string key)
