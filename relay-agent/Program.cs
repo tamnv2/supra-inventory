@@ -322,7 +322,7 @@ namespace SupraInventoryRelayAgent
         private readonly PicklistCacheCoordinator _picklistCache = new PicklistCacheCoordinator();
         private readonly PickerRateLimiter _pickerRateLimiter = new PickerRateLimiter();
         private readonly FirestorePickerRateLimiter _firestoreRateLimiter = new FirestorePickerRateLimiter();
-        private AgentLeaderCoordinator _leaderCoordinator;
+        private FirestoreAgentLeaderCoordinator _leaderCoordinator;
         private readonly object _sessionLock = new object();
         private readonly object _wmsSessionLock = new object();
         private AgentSession _session;
@@ -894,7 +894,7 @@ namespace SupraInventoryRelayAgent
                     ? (_listenCts != null ? 1 : (HasUsableWmsSession() ? 1 : 0))
                     : _leaderCoordinator.OnlineAgentCount;
                 var state = _leaderCoordinator == null
-                    ? (_listenCts != null ? "FIRESTORE TEST" : "CHƯA PHỐI HỢP")
+                    ? (_listenCts != null ? "FIRESTORE" : "CHƯA PHỐI HỢP")
                     : (_leaderCoordinator.IsLeader ? "ACTIVE" : "STANDBY");
 
                 if (_statusOverlay != null)
@@ -1078,7 +1078,7 @@ namespace SupraInventoryRelayAgent
         private void StartLeaderCoordination()
         {
             if (_leaderCoordinator != null) return;
-            _leaderCoordinator = new AgentLeaderCoordinator(
+            _leaderCoordinator = new FirestoreAgentLeaderCoordinator(
                 SnapshotSession,
                 EnsureFreshToken,
                 HasUsableWmsSession,
@@ -1095,7 +1095,6 @@ namespace SupraInventoryRelayAgent
                         else
                             _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / chờ WMS";
                     });
-                    if (active) Task.Run(() => ProcessPendingJobsSnapshot());
                 });
             _leaderCoordinator.Start();
         }
@@ -2016,6 +2015,7 @@ namespace SupraInventoryRelayAgent
         {
             try { SnapshotSession(); } catch { Log("Chưa ghép Agent."); return; }
             if (_listenCts != null) return;
+            StartLeaderCoordination();
             _listenCts = new CancellationTokenSource();
             Ui(() => { _listen.Text = "Dừng nghe"; _relay.Text = "Relay: đang kết nối Firestore..."; });
             var token = _listenCts.Token;
@@ -2031,7 +2031,8 @@ namespace SupraInventoryRelayAgent
                     () => Interlocked.Increment(ref _localPdaRequests),
                     () => Interlocked.Increment(ref _localAgentResponses),
                     state => Ui(() => _relay.Text = state),
-                    ProcessFirestoreConfirmation);
+                    ProcessFirestoreConfirmation,
+                    () => _leaderCoordinator != null && _leaderCoordinator.IsLeader);
                 transport.Run(token);
             }, token);
         }
@@ -2041,6 +2042,7 @@ namespace SupraInventoryRelayAgent
             var cts = _listenCts; _listenCts = null;
             try { if (cts != null) cts.Cancel(); } catch { }
             try { if (cts != null) cts.Dispose(); } catch { }
+            StopLeaderCoordination();
             Ui(() => { _listen.Text = "Nghe relay"; if (_allowExit) return; _relay.Text = "Relay: đã dừng"; });
         }
 
