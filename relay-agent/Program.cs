@@ -1361,69 +1361,105 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private AgentSession FirebasePasswordLoginDirect(string email, string password)
+        {
+            if (string.IsNullOrWhiteSpace(email) || email.IndexOf("@", StringComparison.Ordinal) <= 0)
+                throw new InvalidOperationException("Agent cần email ADMIN đã đăng ký trên Website.");
+            if (string.IsNullOrWhiteSpace(password))
+                throw new InvalidOperationException("Mật khẩu ADMIN trống.");
+
+            var url = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" +
+                      Uri.EscapeDataString(AgentConfig.FirebaseApiKey);
+            var payload = new Dictionary<string, object>
+            {
+                { "email", email.Trim().ToLowerInvariant() },
+                { "password", password },
+                { "returnSecureToken", true }
+            };
+            Log("Firebase ADMIN login START host=identitytoolkit.googleapis.com ssid=" + GetSsid());
+            var root = Map(_json.DeserializeObject(RequestJson(
+                "POST",
+                url,
+                _json.Serialize(payload),
+                "application/json")));
+
+            var idToken = root.ContainsKey("idToken") ? Convert.ToString(root["idToken"]) : "";
+            var refreshToken = root.ContainsKey("refreshToken") ? Convert.ToString(root["refreshToken"]) : "";
+            var firebaseUid = FirebaseUidFromIdToken(idToken);
+            var audience = FirebaseAudienceFromIdToken(idToken);
+            var role = FirebaseClaimFromIdToken(idToken, "app_role");
+            var baseRole = FirebaseClaimFromIdToken(idToken, "app_base_role");
+            var appUserId = FirebaseClaimFromIdToken(idToken, "app_user_id");
+
+            if (!string.Equals(audience, AgentConfig.FirebaseProjectId, StringComparison.Ordinal))
+                throw new InvalidOperationException("Firebase token sai project audience.");
+            if (!string.Equals(role, "ADMIN", StringComparison.Ordinal) ||
+                !string.Equals(baseRole, "ADMIN", StringComparison.Ordinal) ||
+                string.IsNullOrWhiteSpace(appUserId))
+                throw new InvalidOperationException("Chỉ tài khoản ADMIN thực đã đồng bộ Firebase mới được đăng nhập Agent.");
+
+            var next = new AgentSession
+            {
+                IdToken = idToken,
+                RefreshToken = refreshToken,
+                UserId = firebaseUid,
+                AppUserId = appUserId,
+                LoginName = email.Trim().ToLowerInvariant(),
+                Role = role,
+                BaseRole = baseRole,
+                ExpiresUtc = DateTime.UtcNow.AddSeconds(ParseInt(root, "expiresIn", 3600) - 60)
+            };
+            if (string.IsNullOrWhiteSpace(next.IdToken) ||
+                string.IsNullOrWhiteSpace(next.RefreshToken) ||
+                string.IsNullOrWhiteSpace(next.UserId))
+                throw new InvalidOperationException("Firebase không trả phiên ADMIN Agent đầy đủ.");
+            return next;
+        }
+
         private void PairLogin()
         {
-            string username = "", password = "";
+            string email = "", password = "";
             UiSync(() =>
             {
-                username = _username.Text.Trim();
+                email = _username.Text.Trim();
                 password = _password.Text;
                 _password.Clear();
                 _pair.Enabled = false;
             });
-            if (username.Length == 0 || password.Length == 0)
+            if (email.Length == 0 || password.Length == 0)
             {
-                Log("Nhập tài khoản ADMIN và mật khẩu khi laptop đang ở mạng truy cập được Cloudflare.");
+                Log("Nhập email ADMIN đã đăng ký và mật khẩu.");
                 Ui(() => _pair.Enabled = true);
                 return;
             }
 
             try
             {
-                LogNetworkSnapshot("admin-login");
-                var payload = new Dictionary<string, object>
+                LogNetworkSnapshot("admin-firebase-login");
+                var next = FirebasePasswordLoginDirect(email, password);
+                var claim = _agentSessionGate.Claim(next, _agentInstanceId, false);
+                if (claim.Conflict)
                 {
-                    { "username", username },
-                    { "password", password },
-                    { "client_type", "AGENT" }
-                };
-                var root = Map(_json.DeserializeObject(RequestJson("POST", AgentConfig.ApiBaseUrl + "/api/auth/login", _json.Serialize(payload), "application/json")));
-                var user = Map(root["user"]);
-                var role = user.ContainsKey("role") ? Convert.ToString(user["role"]) : "";
-                var baseRole = user.ContainsKey("base_role") ? Convert.ToString(user["base_role"]) : "";
-                var appUserId = user.ContainsKey("user_id") ? Convert.ToString(user["user_id"]) : "";
-                if (!string.Equals(role, "ADMIN", StringComparison.Ordinal) ||
-                    !string.Equals(baseRole, "ADMIN", StringComparison.Ordinal))
-                    throw new InvalidOperationException("EXE chỉ cho phép tài khoản ADMIN thực. ROOT/REPORTER/PICKER không được dùng.");
-
-                var idToken = Convert.ToString(root["id_token"]);
-                var refreshToken = Convert.ToString(root["refresh_token"]);
-                var firebaseUid = FirebaseUidFromIdToken(idToken);
-                var audience = FirebaseAudienceFromIdToken(idToken);
-                var tokenRole = FirebaseClaimFromIdToken(idToken, "app_role");
-                var tokenBaseRole = FirebaseClaimFromIdToken(idToken, "app_base_role");
-                var tokenAppUser = FirebaseClaimFromIdToken(idToken, "app_user_id");
-                if (!string.Equals(audience, AgentConfig.FirebaseProjectId, StringComparison.Ordinal))
-                    throw new InvalidOperationException("Firebase token sai project audience.");
-                if (!string.Equals(tokenRole, "ADMIN", StringComparison.Ordinal) ||
-                    !string.Equals(tokenBaseRole, "ADMIN", StringComparison.Ordinal) ||
-                    !string.Equals(tokenAppUser, appUserId, StringComparison.Ordinal))
-                    throw new InvalidOperationException("Firebase ADMIN claims chưa đồng bộ; cần build/deploy D075 trước khi ghép Agent.");
-
-                var next = new AgentSession
-                {
-                    IdToken = idToken,
-                    RefreshToken = refreshToken,
-                    UserId = firebaseUid,
-                    AppUserId = appUserId,
-                    LoginName = username,
-                    Role = tokenRole,
-                    BaseRole = tokenBaseRole,
-                    ExpiresUtc = DateTime.UtcNow.AddSeconds(ParseInt(root, "expires_in", 3600) - 60)
-                };
-                if (string.IsNullOrWhiteSpace(next.IdToken) || string.IsNullOrWhiteSpace(next.RefreshToken) ||
-                    string.IsNullOrWhiteSpace(next.UserId) || string.IsNullOrWhiteSpace(next.AppUserId))
-                    throw new InvalidOperationException("Phiên ADMIN Agent không đầy đủ.");
+                    var proceed = false;
+                    UiSync(() =>
+                    {
+                        proceed = MessageBox.Show(
+                            "Tài khoản ADMIN này đang đăng nhập trên Agent khác.\r\n\r\n" +
+                            "Nếu tiếp tục, Agent cũ sẽ mất quyền xác nhận đơn. Web và App vẫn giữ nguyên.\r\n\r\n" +
+                            "Tiếp tục đăng nhập Agent này?",
+                            "Xác nhận thay thế Agent",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Warning) == DialogResult.Yes;
+                    });
+                    if (!proceed)
+                    {
+                        Log("Firebase ADMIN login CANCEL same-channel-conflict=true");
+                        return;
+                    }
+                    claim = _agentSessionGate.Claim(next, _agentInstanceId, true);
+                }
+                if (!claim.Claimed)
+                    throw new InvalidOperationException("Không giành được phiên Agent.");
 
                 lock (_sessionLock) _session = next;
                 SaveStoredSession(next);
@@ -1438,18 +1474,17 @@ namespace SupraInventoryRelayAgent
                 SetAgentAuthUi(true);
                 SetProbeButtonsEnabled(true);
                 Log(
-                    "ADMIN Agent login PASS admin=" + next.AppUserId +
+                    "ADMIN Agent Firebase login PASS admin=" + next.AppUserId +
                     " machine=" + Environment.MachineName +
                     " instance=" + Short(_agentInstanceId) +
-                    " firebase_uid=" + Fingerprint(next.UserId) +
-                    " aud=" + audience
+                    " firebase_uid=" + Fingerprint(next.UserId)
                 );
                 ActivateRelayRuntime();
                 Task.Run(() => TryRestoreWmsSessionFileFirst());
             }
             catch (Exception ex)
             {
-                Log("Đăng nhập ADMIN Agent thất bại: " + SafeMessage(ex));
+                Log("Đăng nhập ADMIN Agent Firebase thất bại: " + SafeMessage(ex));
             }
             finally
             {
