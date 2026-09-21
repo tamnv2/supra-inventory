@@ -266,3 +266,19 @@ D090 closes the remaining uncertainty about whether the confirmation workstream 
 - D078 transport discovery is narrowed to **Google-hosted candidates only**. Firestore remains the preferred next candidate already identified by D078 because the host is reachable and the existing Firebase identity can be reused, but it is not selected as final transport until an authenticated Beta relay proof validates the required request/response, Agent coordination/failover and bounded quota behavior.
 - Do not provision/adopt a new relay resource merely because its host is reachable. Any new resource must first be added to project scope/resource registry in the same approved change set.
 - Current Beta RTDB remains temporary for non-Office/Internet testing only until a replacement carrier is proven. WMS remains signed GET-only with no confirmation/mutation. Stable remains OWNER-GATED.
+
+## D091 — Build and field-test Firestore PDA ↔ Agent before trying another provider
+
+Status: **ACTIVE — OWNER DIRECTED 2026-09-21**.
+
+The Owner requires implementation evidence rather than more generic Office reachability probes.
+
+- Build the preferred D090/D078 Google-hosted candidate as a real Beta end-to-end transport test: `Picker PDA → Cloud Firestore → Office Agent → Cloud Firestore ACK → originating Picker PDA`.
+- D091 is deliberately a **transport-only field gate**. The Agent ACK uses `TRANSPORT_ONLY`; it does not query, confirm, click or mutate WMS. This isolates whether PDA and Office Agent can actually exchange authenticated messages through Firestore.
+- The test requires both a new Windows Agent and a new signed Beta APK because the accepted D089 artifacts are hard-wired to RTDB for this workflow.
+- Beta Firestore `(default)` in `supra-inventory-beta`, location `asia-southeast1`, collection `relay_poc_jobs`, is authorized for this field candidate. It must be locked by Firestore Security Rules and use Firebase Authentication ID tokens; no anonymous/open Rules.
+- Provisioning and Rules deployment are main-only automation. If the existing Beta service account lacks the required Google Cloud permission, fail closed and surface the smallest Owner-only permission/setup action instead of weakening Rules.
+- First field proof uses one Agent and bounded polling only. Do **not** port the D085 3-second HA heartbeat writes into Firestore at this stage because transport viability must be proven first and final HA must be quota-safe.
+- Firestore becomes the final selected carrier only after the real Office round trip passes and the subsequent D085 multi-Agent/10-second failover design is proven within the quota envelope.
+- If authenticated Firestore round trip fails because Office cannot carry the required Firestore operations, move directly to Apps Script as the next Google-hosted candidate. Do not repeat Cloudflare or RTDB Office tests.
+- D089 accepted UI/runtime behavior remains protected. WMS remains signed GET-only; no confirmation/mutation is authorized. Stable remains OWNER-GATED.
