@@ -631,16 +631,20 @@
     },
     {
       "id": "OA015",
-      "status": "WAITING_FOR_D094_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-test D094 Agent login persistence and Firestore PDA-to-Agent receive correlation",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Physical Beta PDA + company Windows Agent on normal/Office network",
       "reason_owner_only": "Connected CI can verify source/build/release but cannot operate the physical PDA/Windows network transition or confirm the same live Firestore request ID is observed end-to-end.",
       "prerequisites": {
         "owner_transport_authority": "OA012_PASS_OWNER_CONFIRMED",
-        "source_branch": "fix/d094-agent-auth-relay-receive",
-        "agent_release": "PENDING_RELAY_AGENT_V19",
-        "android_release": "PENDING_NEXT_SIGNED_BETA_RELEASE",
+        "merged_pr": 113,
+        "merged_main": "a9d69036648aa25266241f5500df1192c3f4b3c7",
+        "agent_release": "relay-agent-v19",
+        "agent_release_sha256": "d8db2c513fdf25b973bd055f3f02c91ae0f9cf67165fd18cf84beebe118914bb",
+        "android_release": "beta-vc58",
+        "android_apk_sha256": "f21964725adf0dfc0ec43cebdeda028c381214ae285a0c9887ef2581fc668f78",
+        "main_ci": "AUTHORITY_STATE_BETA_UI_AGENT_ANDROID_PASS",
         "oa013": "BLOCKED_UNTIL_THIS_ACTION_PASSES"
       },
       "shortest_test_path": [
@@ -662,7 +666,18 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Do not share passwords, tokens, cookies, WMS headers/signatures, encrypted session files or raw WMS response bodies. Password persistence is forbidden; only DPAPI-protected refreshable application session material is allowed.",
-      "remaining_owner_action": "Wait for D094 Agent v19 + signed Beta release, then run this bounded auth/relay correlation test. OA013 resumes only after PASS."
+      "remaining_owner_action": "Run OA015 with relay-agent-v19 + beta-vc58: verify Agent ADMIN auto-restore/logout/replacement and correlate the same PDA short request ID through Agent pending-found, claim and ACK. OA013 resumes only after PASS.",
+      "runtime_readiness": {
+        "main": "a9d69036648aa25266241f5500df1192c3f4b3c7",
+        "repo_authority_run": 35556631757,
+        "project_state_run": 35556631917,
+        "beta_worker_run": 35556631837,
+        "ui_run": 35556631824,
+        "agent_run": 35556631806,
+        "android_run": 35556631798,
+        "agent_release_id": 392672321,
+        "android_release_id": 392672359
+      }
     }
   ]
 }
