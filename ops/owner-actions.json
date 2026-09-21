@@ -535,7 +535,7 @@
     },
     {
       "id": "OA013",
-      "status": "BLOCKED_BY_D093_FIRESTORE_REGRESSION_RETEST",
+      "status": "BLOCKED_BY_OA014_D093_FIELD_RETEST",
       "title": "Field-test D092 real Picklist confirmation",
       "resource_key": "supra-api-d080",
       "provider": "Physical company Windows Agent + Beta PDA + authorized Supra WMS session",
@@ -575,21 +575,25 @@
         "technical_release": "PASS",
         "d093_transport_retest": "OA014_PASS_REQUIRED_BEFORE_RESUME"
       },
-      "blocked_by": "OA014_D093_FIRESTORE_PDA_AGENT_REGRESSION_RETEST",
-      "block_reason": "Released D092 v17/vc56 field evidence showed Firestore coordination/relay instability and misleading Agent online state. Do not execute the real WMS confirmation until D093 released artifacts re-pass the PDA-Agent Firestore path."
+      "blocked_by": "OA014",
+      "block_reason": "D093 repair is now technically released as relay-agent-v18 + beta-vc57; OA013 remains blocked until the physical Firestore PDA-Agent regression path passes OA014."
     },
     {
       "id": "OA014",
-      "status": "WAITING_FOR_D093_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-retest D093 Firestore PDA-to-Agent regression repair",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Physical Beta PDA + company Windows Agent on Office network",
       "reason_owner_only": "Connected CI can build and verify the repair but cannot physically switch the company laptop network, observe the Windows system proxy transition, or operate the real PDA on the field network.",
       "prerequisites": {
         "owner_transport_authority": "OA012_PASS_OWNER_CONFIRMED",
-        "source_branch": "fix/d093-firestore-regression-hardening",
-        "agent_release": "PENDING_RELAY_AGENT_V18",
-        "android_release": "PENDING_NEXT_SIGNED_BETA_RELEASE",
+        "merged_pr": 111,
+        "merged_main": "377159ed6722eede6b7716c9c83066b863a4e805",
+        "agent_release": "relay-agent-v18",
+        "agent_release_sha256": "96e2cde601f41908e1af10492a4bd8b9e8a47a905ce464d33d4917038838acb7",
+        "android_release": "beta-vc57",
+        "android_apk_sha256": "f655844b1222787938cacf169ca2f158630ab536b0a9c252f19f56d60cc3ce19",
+        "main_ci": "AUTHORITY_STATE_BETA_UI_AGENT_ANDROID_PASS",
         "oa013": "BLOCKED_UNTIL_THIS_ACTION_PASSES"
       },
       "shortest_test_path": [
@@ -610,7 +614,18 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Use existing authorized sessions; do not share passwords, tokens, cookies, WMS headers/signatures or encrypted session files. Firestore must not use the WMS fallback proxy to bypass company filtering.",
-      "remaining_owner_action": "Wait for D093 Agent/APK release; then run this bounded physical Firestore regression retest. OA013 resumes only after PASS."
+      "remaining_owner_action": "Update to relay-agent-v18 and beta-vc57, then run the bounded physical Firestore PDA-Agent regression re-test on Office. OA013 resumes only after PASS.",
+      "runtime_readiness": {
+        "main": "377159ed6722eede6b7716c9c83066b863a4e805",
+        "repo_authority_run": 35554493313,
+        "project_state_run": 35554493314,
+        "beta_worker_run": 35554493316,
+        "ui_run": 35554493327,
+        "agent_run": 35554493315,
+        "android_run": 35554493317,
+        "agent_release_id": 392660561,
+        "android_release_id": 392660672
+      }
     }
   ]
 }
