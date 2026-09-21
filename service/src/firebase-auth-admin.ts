@@ -171,11 +171,11 @@ export async function updateFirebaseIdentity(
   rawServiceAccountJson: string,
   projectId: string,
   user: FirebaseManagedUserSpec,
-  options: { password?: string; email?: string | null } = {},
+  options: { password?: string } = {},
 ): Promise<{ uid: string; email: string }> {
   if (!user.uid) throw new Error("FIREBASE_UID_REQUIRED");
   const token = await adminToken(rawServiceAccountJson);
-  const email = normalizeAuthEmail(options.email ?? user.authEmail ?? "") || effectiveAuthEmail(user);
+  const email = effectiveAuthEmail(user);
   const body: Record<string, unknown> = {
     localId: user.uid,
     email,
@@ -238,26 +238,4 @@ export async function signInWithFirebasePassword(
     email: returnedEmail,
     expiresIn: Number.isFinite(expiresIn) ? Math.max(60, expiresIn) : 3600,
   };
-}
-
-export async function sendFirebasePasswordReset(apiKey: string, email: string): Promise<void> {
-  const response = await fetch(
-    `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${encodeURIComponent(apiKey)}`,
-    {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        accept: "application/json",
-        "x-firebase-locale": "vi",
-      },
-      body: JSON.stringify({
-        requestType: "PASSWORD_RESET",
-        email: normalizeAuthEmail(email),
-      }),
-    },
-  );
-  if (!response.ok) {
-    const payload = await readJson(response);
-    throw new Error(upstreamMessage(payload, `FIREBASE_RESET_HTTP_${response.status}`));
-  }
 }
