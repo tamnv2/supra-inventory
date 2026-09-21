@@ -53,27 +53,10 @@ export function syntheticAuthEmail(role: FirebaseManagedRole, employeeCode: stri
 }
 
 export function effectiveAuthEmail(user: FirebaseManagedUserSpec): string {
-  const explicit = normalizeAuthEmail(user.authEmail || "");
-  if (explicit) return explicit;
+  // D100: the Firebase password identifier is deterministic from the business
+  // username/employee code. The registered real email is recovery/OTP metadata
+  // only and is deliberately not the Firebase sign-in address.
   return syntheticAuthEmail(user.role, user.employeeCode, user.userId);
-}
-
-export function agentAuthEmail(user: FirebaseManagedUserSpec): string {
-  if (user.role !== "ADMIN") throw new Error("AGENT_ADMIN_REQUIRED");
-  const seed = String(user.employeeCode || user.userId || "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9._-]/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 40);
-  if (!seed) throw new Error("AGENT_USERNAME_REQUIRED");
-  return `admin-agent.${seed}@auth.supra.invalid`;
-}
-
-export function agentFirebaseUid(user: FirebaseManagedUserSpec): string {
-  const raw = `agent:${user.uid}`;
-  if (raw.length > 128) throw new Error("AGENT_UID_TOO_LONG");
-  return raw;
 }
 
 function claimsFor(user: FirebaseManagedUserSpec): string {
@@ -146,99 +129,6 @@ export async function importPasswordIdentity(
     throw new Error(upstreamMessage(payload, `FIREBASE_IMPORT_HTTP_${response.status}`));
   }
   return { uid: user.uid, email };
-}
-
-export async function importAgentPasswordIdentity(
-  rawServiceAccountJson: string,
-  projectId: string,
-  user: FirebaseManagedUserSpec,
-): Promise<{ uid: string; email: string }> {
-  if (user.role !== "ADMIN" || !user.passwordHash || !user.passwordSalt) {
-    throw new Error("AGENT_FIREBASE_IMPORT_MATERIAL_REQUIRED");
-  }
-  const token = await adminToken(rawServiceAccountJson);
-  const uid = agentFirebaseUid(user);
-  const email = agentAuthEmail(user);
-  const response = await fetch(
-    `https://identitytoolkit.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/accounts:batchCreate`,
-    {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${token}`,
-        "content-type": "application/json",
-        accept: "application/json",
-      },
-      body: JSON.stringify({
-        hashAlgorithm: "PBKDF2_SHA256",
-        rounds: PASSWORD_ROUNDS,
-        allowOverwrite: true,
-        users: [{
-          localId: uid,
-          email,
-          displayName: user.displayName,
-          passwordHash: user.passwordHash,
-          salt: user.passwordSalt,
-          disabled: user.status !== "ACTIVE",
-          customAttributes: JSON.stringify({
-            app_user_id: user.userId,
-            app_role: "ADMIN",
-            app_base_role: "ADMIN",
-            app_session_channel: "AGENT",
-          }),
-        }],
-      }),
-    },
-  );
-  const payload = await readJson(response);
-  const errors = Array.isArray(payload.error) ? payload.error : [];
-  if (!response.ok || errors.length) {
-    throw new Error(upstreamMessage(payload, `FIREBASE_AGENT_IMPORT_HTTP_${response.status}`));
-  }
-  return { uid, email };
-}
-
-export async function updateAgentFirebaseIdentity(
-  rawServiceAccountJson: string,
-  projectId: string,
-  user: FirebaseManagedUserSpec,
-  options: { password?: string } = {},
-): Promise<{ uid: string; email: string }> {
-  if (user.role !== "ADMIN") throw new Error("AGENT_ADMIN_REQUIRED");
-  const token = await adminToken(rawServiceAccountJson);
-  const uid = agentFirebaseUid(user);
-  const email = agentAuthEmail(user);
-  const body: Record<string, unknown> = {
-    localId: uid,
-    email,
-    displayName: user.displayName,
-    disableUser: user.status !== "ACTIVE",
-    customAttributes: JSON.stringify({
-      app_user_id: user.userId,
-      app_role: "ADMIN",
-      app_base_role: "ADMIN",
-      app_session_channel: "AGENT",
-    }),
-  };
-  if (options.password != null) {
-    const password = String(options.password);
-    if (password.length < 8 || password.length > 128) throw new Error("PASSWORD_INVALID");
-    body.password = password;
-  }
-  const response = await fetch(
-    `https://identitytoolkit.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/accounts:update`,
-    {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${token}`,
-        "content-type": "application/json",
-        accept: "application/json",
-      },
-      body: JSON.stringify(body),
-    },
-  );
-  const payload = await readJson(response);
-  if (!response.ok) throw new Error(upstreamMessage(payload, `FIREBASE_AGENT_UPDATE_HTTP_${response.status}`));
-  return { uid, email };
 }
 
 export async function deleteFirebaseUsers(
