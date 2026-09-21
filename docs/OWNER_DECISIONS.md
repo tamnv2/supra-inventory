@@ -360,3 +360,15 @@ Owner requires the Windows Agent to remember the verified ADMIN session across l
 8. D092 exact PickListCode, anti-spam, idempotency and the only-authorized `confirmSkipItem` WMS mutation contract are unchanged. Stable remains OWNER-GATED and untouched.
 
 D094 supersedes OA014 as the next relay field gate because the released D093 artifacts did not complete the PDA → Agent receive path in the Owner's field test.
+
+## D094 release checkpoint
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA015 FIELD CORRELATION PENDING; OA013 BLOCKED**.
+
+- PR #113 merged to main `a9d69036648aa25266241f5500df1192c3f4b3c7`.
+- Main Repo Authority `35556631757`, Project State `35556631917`, Beta Worker `35556631837`, UI `35556631824`, Relay Agent `35556631806` and Android `35556631798` all PASS.
+- Released Windows Agent: `relay-agent-v19`, release id `392672321`, canonical EXE asset id `578108895`, size `224256` bytes, SHA-256 `d8db2c513fdf25b973bd055f3f02c91ae0f9cf67165fd18cf84beebe118914bb`.
+- Released signed Android: `beta-vc58`, release id `392672359`, APK asset id `578109067`, size `9340858` bytes, SHA-256 `f21964725adf0dfc0ec43cebdeda028c381214ae285a0c9887ef2581fc668f78`.
+- OA015 is READY_FOR_OWNER_FIELD_TEST. It verifies ADMIN auto-restore/logout/replacement UI and correlates one PDA Firestore CREATE request ID through Agent `pending-found → conditional claim → ACK`.
+- OA013 real Picklist confirmation remains blocked until OA015 PASS.
+- Stable remains OWNER-GATED and untouched.
