@@ -45,6 +45,9 @@ def main() -> None:
     core = read("service/src/core.ts")
     read_model = read("service/src/read-model-core.ts")
     notifications_core = read("service/src/notifications-core.ts")
+    system_reset = read("service/src/system-reset.ts")
+    system_reset_core = read("service/src/system-reset-core.ts")
+    google_mail = read("service/src/google-mail.ts")
 
     # F08: realtime/search updates preserve active context instead of rebuilding the full shell.
     require(app, "function captureUiContext()", "UI context capture")
@@ -175,6 +178,14 @@ def main() -> None:
     require(app, 'navGroup("HỆ THỐNG", profile.role === "ROOT" && profile.base_role === "ROOT"', "D100 Root-only system group branching")
     require(app, '? [["logs", "Nhật ký"], ["tools", "Công cụ"], ["system-reset", "Đặt lại hệ thống"]]', "D100 Root-only system reset child")
     require(app, ': [["logs", "Nhật ký"], ["tools", "Công cụ"]])', "D088 non-Root system group journal and tools without quota status polling")
+
+    # D100 OA020: failed Gmail sends must not consume the reset-code throttle, and provider failures stay safely classified.
+    require(system_reset, "release_throttle: true", "D100 failed-mail throttle rollback")
+    require(system_reset_core, "await state.storage.delete(`system-reset-throttle:${challenge.root_user_id}`);", "D100 reset-code throttle release")
+    require(system_reset_core, "Vui lòng chờ ${retryAfterSeconds} giây", "D100 friendly reset-code retry message")
+    require(google_mail, "GOOGLE_MAIL_GMAIL_API_DISABLED", "D100 Gmail API disabled classification")
+    require(google_mail, "GOOGLE_MAIL_SCOPE_MISSING", "D100 Gmail scope classification")
+    require(system_reset, "mailFailureMessage(detail)", "D100 safe mail-failure user message")
     forbid(app, "getSystemStatus(", "D072 Web system-status API calls")
     forbid(app, '["system","devices","versions"].includes(activeSection)', "D072 system-status polling route")
     forbid(app, 'querySelector<HTMLButtonElement>("#refresh-system")', "D072 manual system-status refresh binding")
