@@ -38,6 +38,75 @@ async function requireAdmin(request: Request, env: Env): Promise<User> {
   return user;
 }
 function actor(user: User) { return { user_id: user.user_id, employee_code: user.employee_code, role: user.role }; }
+
+async function coreUserById(env: Env, userId: string): Promise<User | null> {
+  const response = await core(env).fetch(`https://inventory-core.internal/auth/user-by-id?user_id=${encodeURIComponent(userId)}`);
+  if (!response.ok) return null;
+  return ((await response.json()) as { user?: User | null }).user || null;
+}
+
+async function linkFirebaseUid(env: Env, userId: string, uid: string): Promise<void> {
+  const response = await core(env).fetch("https://inventory-core.internal/auth/link-firebase-uid", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ user_id: userId, firebase_uid: uid }),
+  });
+  if (!response.ok) throw new Error("FIREBASE_UID_LINK_FAILED");
+}
+
+async function markFirebaseReady(env: Env, userId: string, uid: string, email: string): Promise<void> {
+  const response = await core(env).fetch("https://inventory-core.internal/auth/firebase-password-ready", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ user_id: userId, firebase_uid: uid, auth_email: email }),
+  });
+  if (!response.ok) throw new Error("FIREBASE_READY_MARK_FAILED");
+}
+
+function firebaseSpec(user: User, uid: string, derived?: { salt: string; hash: string }): FirebaseManagedUserSpec {
+  return {
+    uid,
+    userId: user.user_id,
+    employeeCode: user.employee_code,
+    displayName: user.display_name || user.employee_code || user.user_id,
+    role: (user.base_role || user.role) as AppRole,
+    status: user.status,
+    authEmail: user.auth_email || null,
+    passwordSalt: derived?.salt || user.password_salt || null,
+    passwordHash: derived?.hash || user.password_hash || null,
+  };
+}
+
+async function provisionManagedCredential(
+  env: Env,
+  user: User,
+  derived: { salt: string; hash: string },
+  plainPassword: string,
+): Promise<User> {
+  if (!env.GOOGLE_RUNTIME_SA_JSON) throw new Error("GOOGLE_RUNTIME_NOT_CONFIGURED");
+  const uid = String(user.firebase_uid || user.user_id);
+  if (!user.firebase_uid) await linkFirebaseUid(env, user.user_id, uid);
+  let email = "";
+  if (Boolean(user.firebase_password_ready)) {
+    const result = await updateFirebaseIdentity(
+      env.GOOGLE_RUNTIME_SA_JSON,
+      env.FIREBASE_PROJECT_ID,
+      firebaseSpec(user, uid, derived),
+      { password: plainPassword },
+    );
+    email = result.email;
+  } else {
+    const result = await importPasswordIdentity(
+      env.GOOGLE_RUNTIME_SA_JSON,
+      env.FIREBASE_PROJECT_ID,
+      firebaseSpec(user, uid, derived),
+    );
+    email = result.email;
+  }
+  await markFirebaseReady(env, user.user_id, uid, email);
+  return (await coreUserById(env, user.user_id)) || { ...user, firebase_uid: uid, auth_email: email, firebase_password_ready: true };
+}
+
 async function bodyObject(request: Request): Promise<Record<string, unknown>> { try { const v = await request.json(); return v && typeof v === "object" && !Array.isArray(v) ? v as Record<string, unknown> : {}; } catch { return {}; } }
 async function hrEmployees(env: Env) {
   if (!env.GOOGLE_RUNTIME_SA_JSON) throw new Error("GOOGLE_RUNTIME_NOT_CONFIGURED");
