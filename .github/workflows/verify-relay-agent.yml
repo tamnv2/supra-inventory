@@ -42,7 +42,7 @@ jobs:
             throw "AgentConfig.AgentBuild does not match relay-agent/VERSION=$version"
           }
 
-      - name: D092 relay confirmation regression guard
+      - name: D093 Firestore regression and D092 confirmation guard
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
@@ -63,6 +63,7 @@ jobs:
           $project = Get-Content relay-agent/SupraInventoryRelayAgent.csproj -Raw
           $iconScript = Get-Content relay-agent/GenerateIcon.ps1 -Raw
           $firestoreTransport = Get-Content relay-agent/FirestoreConfirmationTransport.cs -Raw
+          $firestoreHttp = Get-Content relay-agent/FirestoreHttpTransport.cs -Raw
           $firestoreLeader = Get-Content relay-agent/FirestoreAgentLeaderCoordinator.cs -Raw
           $firestoreRate = Get-Content relay-agent/FirestorePickerRateLimiter.cs -Raw
           $confirmGuard = Get-Content relay-agent/FirestoreConfirmationGuard.cs -Raw
@@ -70,7 +71,7 @@ jobs:
           $exact = Get-Content relay-agent/WmsPicklistExactResolver.cs -Raw
           $firestoreRules = Get-Content firebase/firestore.rules -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*17\s*;') { throw "D092 requires Agent v17." }
+          if ($config -notmatch 'AgentBuild\s*=\s*18\s*;') { throw "D093 requires Agent v18." }
           if ($firestoreLeader -notmatch 'HeartbeatIntervalMs\s*=\s*4000' -or $firestoreLeader -notmatch 'FailoverAfterMs\s*=\s*10000') { throw "D092 Firestore HA timing guard failed." }
           if ($firestoreLeader -notmatch 'currentDocument\.updateTime' -or $firestoreLeader -notmatch 'currentDocument\.exists=false') { throw "D092 Firestore leader election must use conditional writes." }
           if ($cache -notmatch 'FreshMissGuardSeconds\s*=\s*10' -or $cache -notmatch 'JOIN_INFLIGHT' -or $cache -notmatch 'LoadSnapshot') { throw "D085 Picklist cache/single-flight guard failed." }
@@ -95,6 +96,14 @@ jobs:
           if ($iconScript -notmatch 'app-icon\.png' -or $iconScript -notmatch 'HighQualityBicubic') { throw "D089 approved Agent icon source guard failed." }
           if (-not (Test-Path "relay-agent/app-icon.png")) { throw "D089 approved Agent icon asset missing." }
           if ($firestoreLeader -notmatch 'PresenceHeartbeatIntervalMs\s*=\s*30000' -or $firestoreLeader -notmatch 'PresenceReadIntervalMs\s*=\s*60000' -or $firestoreLeader -notmatch 'PresenceFreshMs\s*=\s*90000') { throw "D092 Firestore Agent presence cadence guard failed." }
+          if ($firestoreHttp -notmatch 'WebRequest\.GetSystemWebProxy' -or $firestoreHttp -notmatch 'CredentialCache\.DefaultNetworkCredentials') { throw "D093 Firestore must refresh the current Windows system proxy per request." }
+          if ($firestoreHttp -match 'CorporateProxyFallback') { throw "D093 Firestore must not use the WMS corporate fallback proxy or bypass company filtering." }
+          foreach ($marker in @('NameResolutionFailure','ProxyNameResolutionFailure','ConnectFailure','Timeout')) {
+            if ($firestoreHttp -notmatch [regex]::Escape($marker)) { throw "D093 Firestore transient read retry marker missing: $marker" }
+          }
+          if ($firestoreLeader -notmatch 'IsTransportHealthy' -or $firestoreLeader -notmatch 'ReportRelayPoll' -or $firestoreLeader -notmatch 'grace=KEEP_ACTIVE') { throw "D093 Firestore truthful health / 10-second coordination grace guard failed." }
+          if ($firestoreLeader -match 'OnlineAgentCount\s*\{\s*get\s*\{\s*return\s+Math\.Max\(1') { throw "D093 forbids forced Online >= 1." }
+          if ($program -notmatch 'FIRESTORE OFFLINE') { throw "D093 Agent must surface Firestore offline state." }
           if ($rules -notmatch 'coordination' -or $rules -notmatch 'rate_limits' -or $rules -notmatch 'PICKER_LOCKED' -or $rules -notmatch 'SWITCHING') { throw "Legacy RTDB guard changed unexpectedly." }
           if ($config -notmatch 'FIRESTORE_CONFIRM_V1' -or $config -notmatch 'relay_poc_jobs' -or $config -notmatch 'confirmSkipItem') { throw "D092 Agent config confirmation markers missing." }
           if ($firestoreTransport -notmatch 'ANDROID_CONFIRM_V1' -or $firestoreTransport -notmatch 'PROCESSING' -or $firestoreTransport -notmatch 'PollIntervalMs\s*=\s*3000' -or $firestoreTransport -notmatch '_canProcess') { throw "D092 Firestore confirmation transport guard failed." }
@@ -113,7 +122,7 @@ jobs:
               throw "Unexpected WMS mutation outside the D092 bounded confirmation adapter."
             }
           }
-          Write-Host "D092 relay confirmation regression guard PASS"
+          Write-Host "D093 Firestore regression + D092 confirmation guard PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh
