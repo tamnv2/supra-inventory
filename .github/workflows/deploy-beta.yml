@@ -90,6 +90,8 @@ jobs:
         run: |
           set -euo pipefail
           url="https://${BETA_HOSTNAME}/health"
+          source_schema="$(sed -nE 's/^const SCHEMA_VERSION = ([0-9]+);/\\1/p' service/src/core.ts | head -n1)"
+          [ -n "$source_schema" ] || { echo "Could not resolve SCHEMA_VERSION from service/src/core.ts"; exit 1; }
           tmp="$(mktemp)"
           trap 'rm -f "$tmp"' EXIT
           for attempt in $(seq 1 12); do
@@ -105,8 +107,11 @@ jobs:
             operational_ready="$(jq -r '.storage.operational_v2.ready // false' "$tmp" 2>/dev/null || echo false)"
             operational_schema="$(jq -r '.storage.operational_v2.schema_version // 0' "$tmp" 2>/dev/null || echo 0)"
             operational_expected="$(jq -r '.storage.operational_v2.expected_schema_version // 0' "$tmp" 2>/dev/null || echo 0)"
-            echo "health attempt=$attempt http=${code:-000} status=${status:-n/a} env=${env_name:-n/a} missing=${missing_count:-999} refresh=${refresh_configured:-false} root_secret=${root_secret_configured:-false} storage=${storage_ok:-false} schema=${schema_version:-0}/${expected_schema:-0} operational=${operational_ready:-false}:${operational_schema:-0}/${operational_expected:-0}"
-            if [ "$code" = "200" ] && [ "$status" = "ok" ] && [ "$env_name" = "beta" ] && [ "$missing_count" = "0" ] && [ "$refresh_configured" = "true" ] && [ "$root_secret_configured" = "true" ] && [ "$storage_ok" = "true" ] && [ "$schema_version" = "$expected_schema" ] && [ "$schema_version" != "0" ] && [ "$operational_ready" = "true" ] && [ "$operational_schema" = "$operational_expected" ] && [ "$operational_schema" != "0" ]; then
+            source_commit="$(jq -r '.source_commit // ""' "$tmp" 2>/dev/null || echo "")"
+            agent_failed="$(jq -r '.agent_auth_migration.agent_failed // 999' "$tmp" 2>/dev/null || echo 999)"
+            agent_remaining="$(jq -r '.agent_auth_migration.agent_remaining // 999' "$tmp" 2>/dev/null || echo 999)"
+            echo "health attempt=$attempt http=${code:-000} status=${status:-n/a} env=${env_name:-n/a} source=${source_commit:-none} expected_source=$GITHUB_SHA missing=${missing_count:-999} refresh=${refresh_configured:-false} root_secret=${root_secret_configured:-false} storage=${storage_ok:-false} schema=${schema_version:-0}/${expected_schema:-0} source_schema=$source_schema agent=${agent_failed:-999}/${agent_remaining:-999} operational=${operational_ready:-false}:${operational_schema:-0}/${operational_expected:-0}"
+            if [ "$code" = "200" ] && [ "$status" = "ok" ] && [ "$env_name" = "beta" ] && [ "$source_commit" = "$GITHUB_SHA" ] && [ "$missing_count" = "0" ] && [ "$refresh_configured" = "true" ] && [ "$root_secret_configured" = "true" ] && [ "$storage_ok" = "true" ] && [ "$schema_version" = "$expected_schema" ] && [ "$schema_version" = "$source_schema" ] && [ "$schema_version" != "0" ] && [ "$agent_failed" = "0" ] && [ "$agent_remaining" = "0" ] && [ "$operational_ready" = "true" ] && [ "$operational_schema" = "$operational_expected" ] && [ "$operational_schema" != "0" ]; then
               echo "Beta health + Root secret + SQLite PASS: $url"
               exit 0
             fi
