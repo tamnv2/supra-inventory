@@ -27,6 +27,7 @@ namespace SupraInventoryRelayAgent
         private sealed class GuardRead
         {
             internal bool Exists;
+            internal string Status = "";
             internal string RequestId = "";
             internal string PickerUid = "";
             internal long RetireAtMs;
@@ -112,6 +113,16 @@ namespace SupraInventoryRelayAgent
                 }
             }
 
+            if (string.Equals(existing.Status, "CONFIRMED", StringComparison.Ordinal))
+            {
+                return new FirestoreConfirmationGuardDecision
+                {
+                    AlreadyConfirmed = true,
+                    GuardId = guardId,
+                    RetireAtMs = existing.RetireAtMs
+                };
+            }
+
             if (!string.IsNullOrWhiteSpace(existing.RequestId) &&
                 OriginalJobProvesConfirmed(session, existing.RequestId))
             {
@@ -135,6 +146,25 @@ namespace SupraInventoryRelayAgent
         {
             if (string.IsNullOrWhiteSpace(guardId)) return;
             lock (_localGate) _locallyConfirmed.Add(guardId);
+        }
+
+        internal void MarkDurableConfirmed(AgentSession session, string guardId)
+        {
+            if (string.IsNullOrWhiteSpace(guardId)) return;
+            EnsureSession(session);
+            var fields = new Dictionary<string, object>
+            {
+                { "status", StringField("CONFIRMED") },
+                { "confirmed_at_ms", IntField(NowMs()) }
+            };
+            Send(
+                "PATCH",
+                DocumentUrl(guardId) + BuildMask(fields.Keys),
+                session.IdToken,
+                _json.Serialize(new Dictionary<string, object> { { "fields", fields } }),
+                false,
+                "CONFIRM_GUARD_MARK_CONFIRMED");
+            MarkLocalConfirmed(guardId);
         }
 
         internal void ReleaseSafeFailure(AgentSession session, string guardId)
@@ -162,6 +192,7 @@ namespace SupraInventoryRelayAgent
                 return new GuardRead
                 {
                     Exists = doc != null,
+                    Status = FieldString(fields, "status"),
                     RequestId = FieldString(fields, "request_id"),
                     PickerUid = FieldString(fields, "picker_uid"),
                     RetireAtMs = FieldLong(fields, "retire_at_ms")
