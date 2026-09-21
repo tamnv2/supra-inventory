@@ -381,3 +381,16 @@ The Owner physically tested released `relay-agent-v19` + `beta-vc58` and confirm
 8. Stable remains **OWNER-GATED** and untouched.
 
 D095 supersedes OA015. A new physical gate must use the D095 released Agent/APK and confirm the same short request ID is visible from PDA CREATE through Agent `pending-found → CLAIM → ACK` on a normal Agent network and on the Office network before OA013 real WMS confirmation resumes.
+
+## D095 release checkpoint
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA016 PHYSICAL DUAL-NETWORK FIELD TEST PENDING; OA013 BLOCKED**.
+
+- PR #115 merged to main `52aabdbd3a1eedfa96c6a525dd155b370e9d9138`.
+- Main Repo Authority `35558582310`, Project State `35558582318`, Beta Worker `35558582419`, UI `35558582329`, Relay Agent `35558582311` and Android `35558582307` all PASS.
+- Released Windows Agent: `relay-agent-v20`, release id `392682761`, EXE asset id `578161342`, size `224768` bytes, SHA-256 `4e1daa4dc154b7fa850199f1b700819085741cfc4d0311f31827df74cf9f1096`.
+- Released signed Android: `beta-vc59`, release id `392682842`, APK asset id `578161552`, size `9340858` bytes, SHA-256 `5fb4422312cf4380a158cec9d12d1730dc184ea5a468def599edc15508ec8800`.
+- OA016 is READY_FOR_OWNER_FIELD_TEST. PDA remains on normal Internet; Agent must receive the same Firestore confirmation path on both normal Internet and company Office network.
+- Normal Báo hàng remains Worker/InventoryCore and independent of Agent.
+- OA013 real Picklist/WMS confirmation remains blocked until OA016 PASS.
+- Stable remains OWNER-GATED and untouched.
