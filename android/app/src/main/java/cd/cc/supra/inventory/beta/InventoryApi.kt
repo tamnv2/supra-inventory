@@ -15,6 +15,7 @@ data class AppSession(
     val displayName: String,
     val role: String,
     val employeeCode: String?,
+    val relayCustomToken: String? = null,
 )
 
 data class SkuItem(val sku: String, val productName: String)
@@ -171,6 +172,7 @@ class InventoryApi(
             displayName = user.optString("display_name", username),
             role = user.optString("role", "AUTH"),
             employeeCode = nullable(user, "employee_code"),
+            relayCustomToken = payload.optString("firebase_custom_token").takeIf { it.isNotBlank() },
         )
         if (next.idToken.isBlank() || next.refreshToken.isBlank()) throw IllegalStateException("Phiên đăng nhập trả về không đầy đủ.")
         updateSession(next)
@@ -441,7 +443,13 @@ class InventoryApi(
             updateSession(null)
             throw ApiException(401, "SESSION_REFRESH_FAILED", "Không thể làm mới phiên đăng nhập.")
         }
-        updateSession(current.copy(idToken = idToken, refreshToken = refreshToken))
+        updateSession(
+            current.copy(
+                idToken = idToken,
+                refreshToken = refreshToken,
+                relayCustomToken = payload.optString("firebase_custom_token").takeIf { it.isNotBlank() },
+            )
+        )
     }
 
     private fun request(
