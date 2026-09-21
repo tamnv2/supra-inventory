@@ -151,3 +151,5 @@ No manual end-of-session handover is required. GitHub canonical state remains th
 - Target releases after merge: `relay-agent-v22` and next signed Beta APK after `beta-vc59` (expected `beta-vc60`).
 - OA018 is the physical normal→Office / standby failover / 30-second terminal gate. OA017 final real-WMS acceptance remains blocked by OA018.
 - Stable remains OWNER-GATED and untouched.
+
+- Canonical Android status: `D097_FIRESTORE_SNAPSHOT_LISTENER_SOURCE_READY__TARGET_BETA_VC60__D095_UI_BASELINE_PRESERVED`.
