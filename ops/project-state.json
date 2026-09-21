@@ -13,16 +13,16 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D092_SOURCE_IMPLEMENTATION__D091_FIRESTORE_OWNER_FIELD_PASS__D089_OWNER_ACCEPTED_UI_BASELINE__SIGNED_BETA_VC55__AGENT_V16",
+    "beta": "D092_TECHNICAL_RUNTIME_RELEASE_PASS__D091_FIRESTORE_OWNER_FIELD_PASS__D089_OWNER_ACCEPTED_UI_BASELINE__SIGNED_BETA_VC56__AGENT_V17__OWNER_CONFIRMATION_FIELD_TEST_PENDING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 8,
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
     "web": "D089_OWNER_ACCEPTED_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON",
-    "android": "D091_SIGNED_BETA_VC55_FIRESTORE_FIELD_CANDIDATE_RELEASED__D089_OWNER_ACCEPTED_UI_BASELINE",
-    "latest_beta_apk": "beta-vc55",
+    "android": "D092_SIGNED_BETA_VC56_CONFIRMATION_RELEASED__D089_OWNER_ACCEPTED_UI_BASELINE",
+    "latest_beta_apk": "beta-vc56",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
-    "network_scope": "D092_FIRESTORE_SELECTED_FOR_CONFIRMATION__D091_OWNER_OFFICE_E2E_PASS__RTDB_REJECTED_OFFICE__CLOUDFLARE_RETEST_CLOSED",
+    "network_scope": "D092_FIRESTORE_SELECTED_AND_DEPLOYED_FOR_CONFIRMATION__D091_OWNER_OFFICE_E2E_PASS__RTDB_REJECTED_OFFICE__CLOUDFLARE_RETEST_CLOSED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "SERVER_PAGED_FILTERED_ONE_MANY_ALL__ROOT_EFFECTIVE_ROLE_TEST_RUNTIME_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D092_BOUNDED_CONFIRMATION_SOURCE_IN_PROGRESS__FIRESTORE_HA_RATE_IDEMPOTENCY__AGENT_V17_AND_NEXT_SIGNED_BETA_PENDING"
+    "picklist_confirmation_poc": "D092_TECHNICAL_RUNTIME_RELEASE_PASS__FIRESTORE_HA_RATE_IDEMPOTENCY__AGENT_V17__BETA_VC56__OWNER_REAL_PICKLIST_CONFIRMATION_PENDING"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -163,8 +163,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Complete D092 PR gates, merge, deploy locked Firestore Rules, publish relay-agent-v17 and the next signed Beta APK; then Owner performs one controlled real Picklist confirmation field test.",
-    "method": "Automated PASS requires Firestore PENDING→PROCESSING→ACK claim, sticky ACTIVE Agent with 10-second failover threshold, Firestore anti-spam, unique full PickListCode resolution, cross-Agent idempotency guard and bounded confirmSkipItem POST. Physical field PASS then verifies one authorized real Picklist reaches CONFIRMED and the expected SFT / SFT 3 state. Uncertain mutation outcome must not auto-retry.",
+    "primary": "Owner field-tests one controlled authorized real Picklist confirmation using relay-agent-v17 + beta-vc56, then verifies the resulting state in SFT / SFT 3.",
+    "method": "Use a real eligible Picklist and enter its exact last five digits once. PASS requires one ACTIVE Agent to resolve exactly one full PickListCode, issue the bounded confirmSkipItem mutation once, return the exact D092 success copy, and SFT / SFT 3 to show the expected confirmed state. If the result is uncertain, do not press again; verify directly in SFT / SFT 3 and provide only sanitized logs if diagnosis is needed.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -192,7 +192,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D092 OWNER DIRECTED: D091 physical Office Firestore round trip is PASS. Firestore is selected for the Beta confirmation carrier; source implementation now wires sticky Firestore Agent HA, Firestore anti-spam, unique full PickListCode resolution, cross-Agent idempotency guard and the bounded confirmSkipItem WMS POST. PR/CI/release pending.",
+      "D092 TECHNICAL/RUNTIME/RELEASE PASS: PR #109 merged to main 130a70ac912739e37caa98647cab60b53a6c0b06. Main Repo Authority 35552139222, Project State 35552139224, Firestore 35552139264, Beta Worker 35552139258, UI 35552139223, Relay Agent 35552139283 and Android 35552139252 all PASS. Published relay-agent-v17 and signed beta-vc56. Owner real Picklist confirmation field acceptance remains pending under OA013.",
       "D090 OWNER CONFIRMED: Office transport boundary is internal Supra + selected Google only. No further Cloudflare/Worker Office probe. RTDB is proxy-blocked; next replacement research is Google-hosted, with Firestore preferred but not yet selected.",
       "D089 OWNER ACCEPTED PASS: released Beta Web + signed beta-vc54 + relay-agent-v15 accepted by Owner on 2026-09-21. Accepted baseline: exact icon #4, Service/Realtime separation, dark Tools page, granular persistent Overlay controls, Agent single-instance restore. D078 transport remains pending; WMS GET-only; Stable OWNER-GATED.",
       "D088 technical/runtime/release PASS: main 48367c46b20405c48abb6ed8c0b59601defe1130; schema 8/Web runtime PASS, signed beta-vc53 PASS, relay-agent-v14 PASS with normalized release asset contract. Owner field acceptance pending; D078 transport remains pending.",
@@ -211,8 +211,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Finish D092 branch → PR → authority/continuity/Firestore/Agent/Android PASS → merge → main Rules/release PASS.",
-      "After D092 release, Owner field-tests one authorized real Picklist confirmation and verifies the result in SFT / SFT 3.",
+      "Owner runs OA013: one controlled authorized real Picklist confirmation with relay-agent-v17 + beta-vc56 and verifies SFT / SFT 3.",
       "Bootstrap canonical GitHub and execute the Owner's next explicit requirement.",
       "Owner field-reviews D088 after release; keep D078 final transport selection pending until company-network physical evidence.",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
@@ -390,14 +389,14 @@
       "d072_quota_guard": "BETA_RUNTIME_PASS_OWNER_REVIEW_PENDING",
       "system_status_normal_runtime": "DISABLED",
       "system_status_provider_polling": "DISABLED",
-      "signed_beta_release": "beta-vc54",
-      "signed_beta_release_source_commit": "c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee",
+      "signed_beta_release": "beta-vc56",
+      "signed_beta_release_source_commit": "130a70ac912739e37caa98647cab60b53a6c0b06",
       "stable": "UNTOUCHED_OWNER_GATED",
-      "signed_beta_apk_sha256": "eeb95c489bf7dbfa455b323633bfe28685674f57f6ba76facd4c04e3b0958c2c",
+      "signed_beta_apk_sha256": "fe41c136d16470d7b0fac45a4b125b8e1b29610f7b468a4e41171f68c420da80",
       "d073_relay_poc": "SOURCE_BUILD_RELEASE_PASS__RTDB_PROVISIONING_FIELD_TEST_PENDING",
       "d074_relay_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_OFFICE_FIELD_RETEST_PENDING",
       "d075_relay_poc": "SOURCE_BUILD_RELEASE_PASS__D076_RULES_DEPLOY_PASS__OWNER_FIELD_TEST_PENDING",
-      "relay_agent_release": "relay-agent-v15",
+      "relay_agent_release": "relay-agent-v17",
       "relay_agent_release_prerelease": true,
       "d076_rtdb_rules": "PASS_RUN_35451292051__IAM_UPDATE_PASS__RULES_GET_PASS__RULES_PUT_PASS__EXACT_READBACK_PASS",
       "d080_wms_poc": "SOURCE_BUILD_RELEASE_PASS__OWNER_WMS_FIELD_TEST_PENDING",
@@ -411,7 +410,19 @@
       "d089_owner_field_acceptance": "PASS",
       "d089_owner_field_acceptance_date": "2026-09-21",
       "d091_field_e2e": "PASS_OWNER_PHYSICAL_OFFICE_2026_09_21",
-      "d092": "SOURCE_IMPLEMENTATION_IN_PROGRESS__PR_CI_RELEASE_PENDING"
+      "d092": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_REAL_PICKLIST_CONFIRMATION_PENDING",
+      "d092_main": "130a70ac912739e37caa98647cab60b53a6c0b06",
+      "d092_pr": 109,
+      "d092_main_runs": {
+        "repo_authority": 35552139222,
+        "project_state": 35552139224,
+        "firestore": 35552139264,
+        "beta_worker": 35552139258,
+        "ui": 35552139223,
+        "relay_agent": 35552139283,
+        "android": 35552139252
+      },
+      "d092_owner_field_acceptance": "PENDING_OA013"
     }
   },
   "authority_setup": {
@@ -519,5 +530,8 @@
       ],
       "stable": "OWNER_GATED"
     }
-  }
+  },
+  "evidence": [
+    "D092 technical/runtime/release PASS: PR #109 merged at 130a70ac912739e37caa98647cab60b53a6c0b06; all main pipelines PASS. Published relay-agent-v17 release id 392647942, EXE asset id 577982501 size 216576 SHA-256 ccc0d499c044fb567b34cd37ff1a802293ee9cc47d082a34c4fac2778fe8cd24. Published signed beta-vc56 release id 392647903, APK asset id 577982221 size 9340858 SHA-256 fe41c136d16470d7b0fac45a4b125b8e1b29610f7b468a4e41171f68c420da80. Owner real WMS confirmation acceptance remains OA013; Stable untouched."
+  ]
 }
