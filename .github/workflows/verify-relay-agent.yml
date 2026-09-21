@@ -139,7 +139,7 @@ jobs:
           if ($confirmGuard -notmatch 'relay_poc_confirm_guards' -or $confirmGuard -notmatch 'currentDocument\.exists=false' -or $confirmGuard -notmatch 'OriginalJobProvesConfirmed' -or $confirmGuard -notmatch 'MarkLocalConfirmed') { throw "D097 single-write cross-Agent idempotency guard failed." }
           if ($confirmGuard -match 'MarkConfirmed\(') { throw "D097 forbids second Firestore guard-confirm write." }
           if ($program -notmatch 'SearchManualPicklists' -or $program -notmatch 'ConfirmManualPicklist' -or $cache -notmatch 'SearchContains' -or $lookup -notmatch 'PickListCodes') { throw "D098 specialist 3-5 digit manual PickList workflow guard failed." }
-          if ($program -notmatch 'MarkDurableConfirmed' -or $confirmGuard -notmatch 'status", StringField\("CONFIRMED"\)') { throw "D098 manual-origin durable confirmation guard missing." }
+          if ($program -notmatch 'MarkLocalConfirmed' -or $confirmGuard -match 'MarkDurableConfirmed' -or $confirmGuard -match 'status", StringField\("CONFIRMED"\)') { throw "D098 manual-origin must preserve one-write guard and fail closed after restart." }
           if ($program -match 'Mô hình hiện tại' -or $program -match 'new TabPage\("Đăng nhập ADMIN"\)') { throw "D098 Agent UI must remove model card and ADMIN settings tab." }
           if ($program -notmatch 'Nhật ký vận hành' -or $program -notmatch 'Chẩn đoán kỹ thuật' -or $overlaySettings -notmatch 'PrepareEmbedded') { throw "D098 direct settings/log-tab layout guard failed." }
           if ($firestoreRate -notmatch 'relay_poc_rate_limits' -or $firestoreRate -notmatch 'last_request_id' -or $firestoreRate -notmatch 'ClearFound') { throw "D097 anti-spam persisted wrong-input state guard failed." }
