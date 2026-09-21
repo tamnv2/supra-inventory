@@ -870,7 +870,7 @@
     },
     {
       "id": "OA020",
-      "status": "FIELD_FAIL_POST_RESET_RUNTIME__REPAIR_SOURCE_CANDIDATE",
+      "status": "READY_FOR_OWNER_POST_RESET_RETEST",
       "title": "Field-accept D100 ROOT System Reset and recovery mail",
       "resource_key": "cloudflare-beta-worker",
       "provider": "Beta Web + InventoryCore + Firebase Auth + Gmail send OAuth",
@@ -887,7 +887,11 @@
         "mail_repair_pr": 131,
         "mail_repair_main": "27a791a1ad9a05da9acee0f2b7351fb1fda7cc4b",
         "mail_repair_beta_worker_run": 35633339816,
-        "mail_repair_ui_run": 35633339783
+        "mail_repair_ui_run": 35633339783,
+        "post_reset_recovery_pr": 133,
+        "post_reset_recovery_main": "5409b8347f50a226bde0665637bef2e598bc3514",
+        "post_reset_beta_worker_run": 35636210016,
+        "post_reset_ui_run": 35636210086
       },
       "shortest_test_path": [
         "Log in as the real ROOT identity on Beta Web and confirm HỆ THỐNG → Đặt lại hệ thống is visible only while base/effective role is ROOT.",
@@ -911,10 +915,10 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Review selected scopes before execute. Do not share ROOT password, OTP, OAuth refresh token, Firebase tokens, cookies or any secret values. Requesting the OTP alone is non-destructive; final reset execution is destructive for the selected runtime data.",
-      "remaining_owner_action": "No action until the repair deploys. After deployment, verify normal navigation, create one intended test Admin/Reporter account, and retry the SKU import. Do not run another destructive reset just to recover the current service.",
-      "field_result": "RESET_DATA_DELETION_PASS__POST_RESET_OPERATIONAL_NOT_READY__ACCOUNT_CREATE_VALIDATION_FAIL__SKU_IMPORT_503",
+      "remaining_owner_action": "Refresh Beta Web, verify operations/dashboard/realtime work, create one intended test Admin or Reporter account, and retry the SKU import. Do not run another destructive reset solely for this verification. Report any remaining visible error message or confirm all three pass.",
+      "field_result": "RESET_DATA_DELETION_PASS__POST_RESET_RUNTIME_REPAIR_DEPLOYED__FIELD_RETEST_PENDING",
       "field_result_date": "2026-09-22",
-      "field_result_note": "Owner completed an actual Beta System Reset and confirmed intended data was deleted. Immediately afterward operational business routes/realtime/SKU import returned OPERATIONAL_V2_NOT_READY, while user listing remained available. Account recreation also failed with INVALID_USER_CREATE_SCOPE. Source diagnosis: RUNTIME_SETTINGS removed structural realtime stream metadata and the self-repair route was not wired; Admin email validation regex was double-escaped. Repair is in progress on fix/d100-post-reset-runtime-recovery."
+      "field_result_note": "Actual Beta reset deleted the intended data but exposed post-reset readiness and account-email validation defects. PR #133 repaired both and the Beta runtime now reports Operational V2 ready 5/5 on exact source 5409b834. Owner must re-test normal navigation, managed-account creation and SKU import."
     }
   ]
 }
