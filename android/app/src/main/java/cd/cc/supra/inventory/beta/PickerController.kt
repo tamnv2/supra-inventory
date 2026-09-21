@@ -69,7 +69,7 @@ class PickerController(
     private var selected: SkuItem? = null
     private var pendingResults: List<PickerResult> = emptyList()
     private val withdrawButtons = linkedMapOf<Button, Long>()
-    private val relayPocClient = RelayPocClient(api, recordLog) { message ->
+    private val relayPocClient = RelayPocClient(activity.applicationContext, api, recordLog) { message ->
         activity.runOnUiThread { relayStatus?.text = message }
     }
     private var relayLockedUntilMs: Long = 0L
