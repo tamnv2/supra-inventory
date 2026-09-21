@@ -1240,6 +1240,208 @@ namespace SupraInventoryRelayAgent
                 return _wmsSession != null && _wmsSession.IsValidHy1();
         }
 
+        private void SearchManualPicklists()
+        {
+            string query = "";
+            UiSync(() =>
+            {
+                query = (_manualPicklistQuery.Text ?? "").Trim();
+                _manualPicklistSearch.Enabled = false;
+                _manualPicklistConfirm.Enabled = false;
+                _manualPicklistResults.Items.Clear();
+                _manualPicklistStatus.Text = "Đang tìm PickList...";
+                _manualPicklistStatus.ForeColor = Color.FromArgb(88, 104, 115);
+            });
+
+            try
+            {
+                if (query.Length < 3 || query.Length > 5)
+                    throw new InvalidOperationException("Nhập từ 3 đến 5 chữ số.");
+                foreach (var ch in query)
+                    if (!char.IsDigit(ch))
+                        throw new InvalidOperationException("Chỉ được nhập chữ số.");
+
+                if (!HasAgentSession())
+                    throw new InvalidOperationException("Cần xác minh Agent bằng tài khoản ADMIN trước.");
+                var wmsSession = SnapshotWmsSession();
+                if (wmsSession == null || !wmsSession.IsValidHy1())
+                    throw new InvalidOperationException("Phiên Supra chưa sẵn sàng.");
+
+                var result = _picklistCache.SearchContains(wmsSession, query, 50);
+                if (string.Equals(result.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
+                    ClearWmsSessionAfterExpiry();
+
+                Ui(() =>
+                {
+                    _manualPicklistResults.Items.Clear();
+                    foreach (var code in result.Matches)
+                        _manualPicklistResults.Items.Add(code);
+
+                    if (string.Equals(result.Result, "FOUND", StringComparison.Ordinal))
+                    {
+                        _manualPicklistStatus.Text =
+                            "Tìm thấy " + result.Matches.Count +
+                            (result.Matches.Count >= 50 ? " PickList đầu tiên." : " PickList.") +
+                            " Hãy chọn đúng PickList để xác nhận.";
+                        _manualPicklistStatus.ForeColor = Color.FromArgb(35, 122, 76);
+                    }
+                    else if (string.Equals(result.Result, "NOT_FOUND", StringComparison.Ordinal))
+                    {
+                        _manualPicklistStatus.Text = "Không tìm thấy PickList phù hợp.";
+                        _manualPicklistStatus.ForeColor = Color.FromArgb(180, 76, 60);
+                    }
+                    else
+                    {
+                        _manualPicklistStatus.Text = "Không thể tìm PickList: " + (result.Result ?? "LOOKUP_ERROR") + ".";
+                        _manualPicklistStatus.ForeColor = Color.FromArgb(180, 76, 60);
+                    }
+                });
+
+                AgentDiagnostics.WriteAudit(
+                    "MANUAL_PICKLIST_SEARCH result=" + result.Result +
+                    " query_length=" + query.Length +
+                    " matches=" + result.Matches.Count +
+                    " cache_count=" + result.CacheCount +
+                    " values=redacted");
+            }
+            catch (Exception ex)
+            {
+                Ui(() =>
+                {
+                    _manualPicklistStatus.Text = SafeMessage(ex);
+                    _manualPicklistStatus.ForeColor = Color.FromArgb(180, 76, 60);
+                });
+                Log("Manual PickList search fail: " + SafeMessage(ex));
+            }
+            finally
+            {
+                Ui(() =>
+                {
+                    var length = (_manualPicklistQuery.Text ?? "").Trim().Length;
+                    _manualPicklistSearch.Enabled = length >= 3 && length <= 5;
+                });
+            }
+        }
+
+        private void ConfirmManualPicklist()
+        {
+            string pickListCode = "";
+            UiSync(() =>
+            {
+                pickListCode = Convert.ToString(_manualPicklistResults.SelectedItem) ?? "";
+                _manualPicklistConfirm.Enabled = false;
+                _manualPicklistSearch.Enabled = false;
+                _manualPicklistStatus.Text = "Đang xác nhận PickList...";
+                _manualPicklistStatus.ForeColor = Color.FromArgb(88, 104, 115);
+            });
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(pickListCode))
+                    throw new InvalidOperationException("Chưa chọn PickList.");
+                if (!HasAgentSession())
+                    throw new InvalidOperationException("Phiên xác minh Agent không còn hợp lệ.");
+
+                EnsureFreshToken();
+                var appSession = SnapshotSession();
+                if (!_agentSessionGate.IsCurrent(appSession, _agentInstanceId))
+                    throw new InvalidOperationException("Phiên Agent này đã bị thay thế bởi Agent khác.");
+
+                var wmsSession = SnapshotWmsSession();
+                if (wmsSession == null || !wmsSession.IsValidHy1())
+                    throw new InvalidOperationException("Phiên Supra chưa sẵn sàng.");
+
+                var requestId = "manual:" + Guid.NewGuid().ToString("N");
+                var guard = _confirmationGuard.TryBegin(
+                    appSession,
+                    pickListCode,
+                    requestId,
+                    _agentInstanceId,
+                    "manual:" + appSession.UserId);
+
+                if (guard.AlreadyConfirmed)
+                {
+                    Ui(() =>
+                    {
+                        _manualPicklistStatus.Text = "PickList này đã được xác nhận trước đó. Không gửi lại.";
+                        _manualPicklistStatus.ForeColor = Color.FromArgb(35, 122, 76);
+                    });
+                    AgentDiagnostics.WriteAudit("MANUAL_PICKLIST_CONFIRM result=ALREADY_CONFIRMED guard=" + Short(guard.GuardId));
+                    return;
+                }
+
+                if (!guard.Acquired || guard.InProgressOrUncertain)
+                {
+                    Ui(() =>
+                    {
+                        _manualPicklistStatus.Text = "Trạng thái xác nhận chưa rõ. Không gửi lại; hãy kiểm tra trên SFT / SFT 3.";
+                        _manualPicklistStatus.ForeColor = Color.FromArgb(180, 76, 60);
+                    });
+                    AgentDiagnostics.WriteAudit("MANUAL_PICKLIST_CONFIRM result=GUARD_UNCERTAIN guard=" + Short(guard.GuardId));
+                    return;
+                }
+
+                var confirmed = WmsPicklistConfirmClient.Confirm(wmsSession, pickListCode);
+                if (string.Equals(confirmed.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
+                    ClearWmsSessionAfterExpiry();
+
+                if (string.Equals(confirmed.Result, "CONFIRMED", StringComparison.Ordinal))
+                {
+                    _confirmationGuard.MarkDurableConfirmed(appSession, guard.GuardId);
+                    Ui(() =>
+                    {
+                        _manualPicklistStatus.Text = "Xác nhận thành công. Hãy tiếp tục xử lý trên SFT / SFT 3.";
+                        _manualPicklistStatus.ForeColor = Color.FromArgb(35, 122, 76);
+                    });
+                }
+                else if (IsSafeConfirmationFailure(confirmed.Result))
+                {
+                    _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
+                    Ui(() =>
+                    {
+                        _manualPicklistStatus.Text = "Xác nhận không thành công: " + confirmed.Result + ".";
+                        _manualPicklistStatus.ForeColor = Color.FromArgb(180, 76, 60);
+                    });
+                }
+                else
+                {
+                    Ui(() =>
+                    {
+                        _manualPicklistStatus.Text = "Kết quả xác nhận chưa rõ. Không bấm lại; hãy kiểm tra trên SFT / SFT 3.";
+                        _manualPicklistStatus.ForeColor = Color.FromArgb(180, 76, 60);
+                    });
+                }
+
+                AgentDiagnostics.WriteAudit(
+                    "MANUAL_PICKLIST_CONFIRM result=" + (confirmed.Result ?? "CONFIRM_ERROR") +
+                    " http=" + confirmed.StatusCode +
+                    " route=" + confirmed.Route +
+                    " guard=" + Short(guard.GuardId) +
+                    " picklist=redacted");
+            }
+            catch (Exception ex)
+            {
+                Ui(() =>
+                {
+                    _manualPicklistStatus.Text = SafeMessage(ex);
+                    _manualPicklistStatus.ForeColor = Color.FromArgb(180, 76, 60);
+                });
+                Log("Manual PickList confirm fail: " + SafeMessage(ex));
+            }
+            finally
+            {
+                Ui(() =>
+                {
+                    var length = (_manualPicklistQuery.Text ?? "").Trim().Length;
+                    _manualPicklistSearch.Enabled = length >= 3 && length <= 5;
+                    _manualPicklistConfirm.Enabled =
+                        _manualPicklistResults.SelectedItem != null &&
+                        HasAgentSession() &&
+                        HasUsableWmsSession();
+                });
+            }
+        }
+
         private void ActivateRelayRuntime()
         {
             try
