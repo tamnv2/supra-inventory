@@ -303,3 +303,14 @@ D092 authorizes one narrowly bounded WMS mutation for **Xác nhận lấy lại 
 10. D091 `TRANSPORT_ONLY` is historical field-proof behavior and is superseded for the active confirmation flow by D092. D089 accepted UI/runtime baseline remains protected. Stable remains **OWNER-GATED** and is untouched.
 
 D092 does not create offline business mode, does not change the normal Báo hàng Cloudflare/InventoryCore architecture, and does not authorize any broader company-WMS automation beyond this exact Picklist confirmation contract.
+
+## D092 release checkpoint
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OWNER REAL PICKLIST CONFIRMATION PENDING**.
+
+- PR #109 merged to main `130a70ac912739e37caa98647cab60b53a6c0b06`.
+- Main Repo Authority `35552139222`, Project State `35552139224`, Firestore `35552139264`, Beta Worker `35552139258`, UI `35552139223`, Relay Agent `35552139283` and Android `35552139252` all PASS.
+- Released Windows Agent: `relay-agent-v17`, release id `392647942`, canonical EXE asset id `577982501`, size `216576`, SHA-256 `ccc0d499c044fb567b34cd37ff1a802293ee9cc47d082a34c4fac2778fe8cd24`.
+- Released signed Android: `beta-vc56`, release id `392647903`, APK asset id `577982221`, size `9340858`, SHA-256 `fe41c136d16470d7b0fac45a4b125b8e1b29610f7b468a4e41171f68c420da80`.
+- OA013 is READY_FOR_OWNER_FIELD_TEST. Final D092 business acceptance requires one controlled real Picklist confirmation and verification in SFT / SFT 3.
+- Stable remains OWNER-GATED and untouched.

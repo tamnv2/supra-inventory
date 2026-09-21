@@ -68,3 +68,13 @@ On the next session:
 > **Tiếp tục supra-inventory. Đọc canonical state trên GitHub và xử lý yêu cầu mới.**
 
 No manual end-of-session handover is required. GitHub canonical state remains the continuity authority.
+
+## D092 release-state refresh — 2026-09-21
+
+- SQLite schema: `8`.
+- Web status: `D089_OWNER_ACCEPTED_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON`.
+- Android status: `D092_SIGNED_BETA_VC56_CONFIRMATION_RELEASED__D089_OWNER_ACCEPTED_UI_BASELINE`.
+- Latest signed Beta APK: `beta-vc56`.
+- Windows Agent: `relay-agent-v17`.
+- D092 technical/runtime/release: PASS; OA013 Owner real Picklist confirmation: PENDING.
+- Stable: OWNER-GATED / untouched.
