@@ -731,7 +731,7 @@ export default {
         const core = await checkCore(env);
         return json({
           environment: env.APP_ENV,
-          firebase_auth: "worker_exchanged_firebase_id_token",
+          firebase_auth: "firebase_password_authority_with_channel_scoped_app_sessions",
           durable_objects_sqlite: core.ok,
           business_api: {
             version: 1,
@@ -755,9 +755,12 @@ export default {
 
       if (request.method === "POST" && url.pathname === "/api/auth/login") return login(request, env);
       if (request.method === "POST" && url.pathname === "/api/auth/refresh") return refreshSession(request, env);
+      if (request.method === "POST" && url.pathname === "/api/auth/logout") return logoutInteractiveSession(request, env);
+      if (request.method === "POST" && url.pathname === "/api/auth/password-reset") return requestPasswordReset(request, env);
       if (request.method === "GET" && url.pathname === "/api/auth/me") return json({ user: publicUser(await requireUser(request, env)) });
       if (request.method === "PUT" && url.pathname === "/api/auth/root-role") return setRootEffectiveRole(request, env);
       if (request.method === "PUT" && url.pathname === "/api/auth/change-password") return changePassword(request, env);
+      if (request.method === "PUT" && url.pathname === "/api/auth/email") return updateMyAuthEmail(request, env);
 
       if (request.method === "GET" && url.pathname === "/api/admin/system-status") {
         await requireUser(request, env, ["ADMIN", "ROOT"]);
