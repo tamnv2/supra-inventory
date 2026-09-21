@@ -181,3 +181,11 @@ No manual end-of-session handover is required. GitHub canonical state remains th
 - PR #121 is the active implementation PR. Technical/runtime/release PASS is **not yet claimed** until all PR/main gates pass.
 - OA019 is blocked until technical release PASS, then covers physical channel replacement, Office direct Firebase Agent auth, Web realtime and specialist confirmation.
 - Stable remains OWNER-GATED and untouched.
+
+
+### D098 canonical derived markers
+
+- SQLite schema source/current candidate: `9`
+- Latest signed Beta APK remains `beta-vc60` until D098 main release publishes the next monotonic build.
+- Web: `D098_SOURCE_CANDIDATE__FIREBASE_CREDENTIAL_AUTHORITY__WEB_SESSION_ISOLATED__REALTIME_V2_AUTHORITY_REPAIRED__35PCT_CLOUDFLARE_BUDGET`
+- Android: `D098_SOURCE_CANDIDATE__ANDROID_SESSION_ISOLATED__PICKER_APP_ONLY__NEXT_MONOTONIC_BETA_RELEASE_PENDING`
