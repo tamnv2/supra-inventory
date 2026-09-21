@@ -21,6 +21,9 @@ import {
   getRealtimePresence,
   getRuntimeLogDetail,
   getRuntimeLogs,
+  getSystemResetPreview,
+  requestSystemResetChallenge,
+  executeSystemReset,
   getHrSource,
   getMyProfile,
   getReporterBatchTickets,
@@ -57,6 +60,8 @@ import {
   type RuntimeLogDetail,
   type RuntimeLogItem,
   type SystemStatusSnapshot,
+  type SystemResetPreview,
+  type SystemResetScope,
   type ReporterBatch,
   type ReporterRecentBatch,
   type SkuItem,
@@ -97,6 +102,7 @@ type Section =
   | "devices"
   | "logs"
   | "tools"
+  | "system-reset"
   | "versions"
   | "account";
 
@@ -164,7 +170,7 @@ function applyTheme(): void {
 applyTheme();
 
 const ROUTABLE_SECTIONS: Section[] = [
-  "picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "tools", "account",
+  "picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "tools", "system-reset", "account",
 ];
 
 function defaultSectionForProfile(value: AppProfile): Section {
@@ -175,6 +181,7 @@ function defaultSectionForProfile(value: AppProfile): Section {
 function canAccessSection(section: Section, value: AppProfile): boolean {
   if (value.role === "PICKER") return ["picker", "account"].includes(section);
   if (value.role === "REPORTER") return ["operations", "results", "account"].includes(section);
+  if (section === "system-reset") return value.role === "ROOT" && value.base_role === "ROOT";
   return section !== "picker";
 }
 
@@ -227,6 +234,8 @@ function clearRoleScopedViewState(): void {
   reportInsights = null;
   serviceHealth = null;
   systemStatus = null;
+  systemResetPreview = null;
+  systemResetChallenge = null;
   runtimeLogs = [];
   runtimeLogDetail = null;
   selectedBatchId = null;
@@ -306,6 +315,8 @@ let reportStatus = "";
 let reportQuery = "";
 let serviceHealth: Record<string, unknown> | null = null;
 let systemStatus: SystemStatusSnapshot | null = null;
+let systemResetPreview: SystemResetPreview | null = null;
+let systemResetChallenge: { id: string; expiresAt: string; emailHint: string } | null = null;
 let runtimeLogSource: "WEB" | "ANDROID" = "WEB";
 let runtimeLogs: RuntimeLogItem[] = [];
 let runtimeLogDetail: RuntimeLogDetail | null = null;
@@ -687,6 +698,7 @@ function activeContent(): string {
   if (activeSection === "devices") return renderLegacyDevices();
   if (activeSection === "logs") return renderLegacyLogs();
   if (activeSection === "tools") return renderTools();
+  if (activeSection === "system-reset") return renderSystemReset();
   if (activeSection === "versions") return renderLegacyVersions();
   return renderAccount();
 }
@@ -826,7 +838,9 @@ function renderNav(): string {
   return [
     navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"]]),
     navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"], ["sla", "Thời gian xử lý"]]),
-    navGroup("HỆ THỐNG", [["logs", "Nhật ký"], ["tools", "Công cụ"]]),
+    navGroup("HỆ THỐNG", profile.role === "ROOT" && profile.base_role === "ROOT"
+      ? [["logs", "Nhật ký"], ["tools", "Công cụ"], ["system-reset", "Đặt lại hệ thống"]]
+      : [["logs", "Nhật ký"], ["tools", "Công cụ"]]),
   ].join("");
 }
 
@@ -2161,6 +2175,10 @@ async function loadSection(section: Section): Promise<void> {
   else if (section === "dashboard" && roleManage()) { await loadDashboard(); received = true; }
   else if (section === "reports" && roleManage()) { await loadReports(); received = true; }
   else if (section === "logs" && roleManage()) { await loadLogs(); received = true; }
+  else if (section === "system-reset" && profile.role === "ROOT" && profile.base_role === "ROOT") {
+    systemResetPreview = await getSystemResetPreview(false);
+    received = true;
+  }
   if (received) markWebUpdateReceived();
 }
 
