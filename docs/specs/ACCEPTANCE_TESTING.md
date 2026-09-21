@@ -668,3 +668,29 @@ Runtime/release PASS requires the Beta Firestore database/rules deployment, Agen
 The PDA must render `KẾT NỐI PDA ↔ AGENT OK`, and sanitized Agent/PDA logs must correlate the request. A Firestore host 404/403/reachability probe is not PASS.
 
 This D091 field gate does not approve final HA or WMS mutation. After E2E PASS, validate quota-safe D085 multi-Agent/failover before selecting Firestore as final. If authenticated E2E transport fails, move to Apps Script.
+
+## D092 Firestore Picklist confirmation acceptance
+
+Automated source/build PASS requires:
+- Agent v17 and Android compile successfully; Windows startup-smoke remains PASS.
+- Firestore Rules accept Picker `ANDROID_CONFIRM_V1` create/get/delete ownership and real-base ADMIN conditional `PENDING → PROCESSING → ACK` updates.
+- Firestore sticky leader uses conditional writes, keeps the 10-second failure threshold, and only ACTIVE Agent polls confirmation jobs.
+- D085 anti-spam semantics are preserved in Firestore: final NOT_FOUND only, 3 within 60 seconds, 5/30/60-minute lock escalation, 24-hour escalation reset.
+- Existing D084 primary lookup remains all-date with empty `FromDate`, `ToDate`, `Content`, 100-row paging, exact `PickListCode` trailing-five comparison and fail-closed schema handling.
+- Full PickListCode resolver returns exactly one code before mutation; zero or multiple matches cannot call the WMS POST.
+- The only WMS mutation in source is the bounded `POST .../pickListConfirms/confirmSkipItem` adapter with one PickListCode, `IsAllowSkipped=true`, `RemainSkip=1`, `WarehouseCode=HY1`, `EnableDCSite=false`.
+- Cross-Agent confirmation guard prevents automatic duplicate POST after retry/failover and holds uncertain mutation outcomes fail-closed.
+- Android does not unconditionally delete PROCESSING work on timeout and renders the exact success sentence required by D092.
+- Secret-value heuristic guard remains PASS; no Owner-provided cURL/session/header/signature value is committed.
+
+Owner field functional PASS remains separate because connected CI cannot execute an authorized company-WMS mutation. On released Beta artifacts:
+1. Ensure one or more Agent instances are authenticated and at least one has a valid WMS session.
+2. Use a real PickList known to be eligible for the authorized confirmation action; enter its exact final five digits on PDA.
+3. Verify one Agent becomes/continues ACTIVE, the request reaches PROCESSING, and WMS confirmation is performed once.
+4. PDA must show exactly: `Đã xác nhận lấy lại đơn. Hãy quay lại app SFT / SFT 3 để tiếp tục`.
+5. Verify the expected state in SFT / SFT 3.
+6. Repeat/retry protection must not issue a second WMS mutation for an already confirmed full PickListCode.
+7. Controlled NOT_FOUND tests must preserve 3-in-60s and 5/30/60-minute anti-spam behavior; transport/session/schema errors must not increment strikes.
+8. Stable remains untouched.
+
+If a confirmation result is uncertain, the expected behavior is **not** an automatic retry. The PDA instructs the user not to press again and to have the specialist verify SFT / SFT 3.
