@@ -62,7 +62,8 @@ service cloud.firestore {
         );
 
       allow delete: if isPicker()
-        && resource.data.picker_uid == request.auth.uid;
+        && resource.data.picker_uid == request.auth.uid
+        && (resource.data.status == 'PENDING' || resource.data.status == 'ACK');
     }
 
     match /relay_poc_rate_limits/{pickerKey} {
