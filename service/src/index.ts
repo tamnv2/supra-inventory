@@ -273,6 +273,29 @@ async function ensureFirebasePasswordReady(env: Env, original: InternalUser): Pr
   return user;
 }
 
+async function migrateActiveAdminFirebaseCredentials(env: Env): Promise<{ migrated: number; failed: number; remaining: number }> {
+  if (!env.GOOGLE_RUNTIME_SA_JSON) return { migrated: 0, failed: 1, remaining: 0 };
+  const candidates = await coreJson<{ items: InternalUser[]; count: number }>(
+    env,
+    "/auth/firebase-migration-candidates?role=ADMIN&limit=50",
+  );
+  let migrated = 0;
+  let failed = 0;
+  for (const candidate of candidates.items || []) {
+    try {
+      await ensureFirebasePasswordReady(env, candidate);
+      migrated += 1;
+    } catch {
+      failed += 1;
+    }
+  }
+  const remaining = await coreJson<{ count: number }>(
+    env,
+    "/auth/firebase-migration-candidates?role=ADMIN&limit=1",
+  );
+  return { migrated, failed, remaining: Number(remaining.count || 0) };
+}
+
 async function closeUserRealtime(env: Env, userId: string, channel?: "WEB" | "ANDROID"): Promise<void> {
   try {
     await coreStub(env).fetch("https://inventory-core.internal/realtime/close-user", {
@@ -719,11 +742,20 @@ export default {
         const bindingPresence = Object.fromEntries(REQUIRED_RUNTIME_BINDINGS.map((name) => [name, Boolean(env[name])]));
         const missing = REQUIRED_RUNTIME_BINDINGS.filter((name) => !env[name]);
         const core = await checkCore(env);
-        const healthy = missing.length === 0 && core.ok;
+        let agentAuthMigration = { migrated: 0, failed: 0, remaining: 0 };
+        if (core.ok && env.GOOGLE_RUNTIME_SA_JSON) {
+          try {
+            agentAuthMigration = await migrateActiveAdminFirebaseCredentials(env);
+          } catch {
+            agentAuthMigration = { migrated: 0, failed: 1, remaining: 1 };
+          }
+        }
+        const healthy = missing.length === 0 && core.ok && agentAuthMigration.failed === 0 && agentAuthMigration.remaining === 0;
         return json({
           status: healthy ? "ok" : "degraded", service: env.PROJECT_KEY || "supra-inventory", environment: env.APP_ENV || "unknown",
           required_bindings: bindingPresence, oauth_refresh_token_configured: Boolean(env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN),
-          root_bootstrap_secret_configured: Boolean(env.ROOT_BOOTSTRAP_PASSWORD), logs_folder_configured: Boolean(env.LOGS_FOLDER_ID), storage: core, missing_bindings: missing, timestamp: new Date().toISOString(),
+          root_bootstrap_secret_configured: Boolean(env.ROOT_BOOTSTRAP_PASSWORD), logs_folder_configured: Boolean(env.LOGS_FOLDER_ID),
+          storage: core, agent_auth_migration: agentAuthMigration, missing_bindings: missing, timestamp: new Date().toISOString(),
         }, healthy ? 200 : 503);
       }
 
