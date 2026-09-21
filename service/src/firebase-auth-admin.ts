@@ -265,8 +265,14 @@ export async function deleteFirebaseUsers(
       },
     );
     const payload = await readJson(response);
-    if (!response.ok) throw new Error(upstreamMessage(payload, `FIREBASE_BATCH_DELETE_HTTP_${response.status}`));
+    const errors = Array.isArray(payload.errors) ? payload.errors : [];
+    if (!response.ok || errors.length) {
+      throw new Error(upstreamMessage(payload, `FIREBASE_BATCH_DELETE_HTTP_${response.status}`));
+    }
     deleted += chunk.length;
+    if (offset + chunk.length < ids.length) {
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+    }
   }
   return deleted;
 }
