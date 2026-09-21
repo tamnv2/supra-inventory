@@ -515,7 +515,11 @@ export class InventoryCore {
               role AS base_role,
               role_override,
               status, password_salt, password_hash, password_changed_at,
-              session_generation, session_started_at, created_at, updated_at
+              auth_email, firebase_password_ready,
+              session_generation, session_started_at,
+              web_session_generation, web_session_device_id, web_session_started_at,
+              android_session_generation, android_session_device_id, android_session_started_at,
+              created_at, updated_at
          FROM users
         WHERE user_id = ?
         LIMIT 1`,
