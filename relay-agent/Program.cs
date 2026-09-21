@@ -1333,6 +1333,10 @@ namespace SupraInventoryRelayAgent
                 lock (_sessionLock) _session = stored;
                 Log("Đã đọc phiên Agent từ Windows DPAPI; đang xác minh lại quyền ADMIN qua Firebase.");
                 RefreshDirect();
+                var restored = SnapshotSession();
+                var claim = _agentSessionGate.Claim(restored, _agentInstanceId, false);
+                if (claim.Conflict || !claim.Claimed)
+                    throw new InvalidOperationException("Tài khoản ADMIN đang được Agent khác sử dụng.");
                 Ui(() =>
                 {
                     _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser();
@@ -1544,7 +1548,10 @@ namespace SupraInventoryRelayAgent
             }
             catch { }
 
+            AgentSession releasing = null;
+            try { releasing = SnapshotSession(); } catch { }
             try { StopListening(); } catch { }
+            try { if (releasing != null) _agentSessionGate.Release(releasing, _agentInstanceId); } catch { }
             lock (_sessionLock) _session = null;
             ClearStoredSession();
             try { if (File.Exists(ExitVerifierFile)) File.Delete(ExitVerifierFile); } catch { }
