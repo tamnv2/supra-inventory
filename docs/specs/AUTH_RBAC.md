@@ -163,3 +163,13 @@ D098 supersedes D088's single shared Web/Android session-generation model.
 - ROOT/ADMIN recovery email is stored as business identity metadata and synchronized to Firebase Auth. Password reset requests are enumeration-safe and send only when user + registered email match.
 - PICKER Web access is server-denied even if a client is modified. REPORTER/ROOT Agent access is denied by Firestore Rules/claims and Agent-side claim checks.
 - Agent refresh tokens may remain DPAPI CurrentUser protected locally; plaintext passwords/tokens must never be persisted or logged.
+
+
+## D099 — Firebase Email/Password provider is a runtime prerequisite
+
+- D098 Firebase credential authority is valid only when the Beta/Stable environment's Email/Password provider is explicitly enabled and password-required.
+- Deployment acceptance must read provider config from Identity Toolkit. Beta main may repair the in-scope Beta config automatically; Stable remains OWNER-GATED.
+- A synthetic ephemeral user must prove the exact PBKDF2-SHA256/100000 import contract can sign in before runtime auth is called PASS. The synthetic account is deleted in the same test.
+- Web/App resolve username/MNV to the authoritative Firebase identity through Inventory Worker and may perform a one-time migration repair only when the same plaintext password verifies against the canonical InventoryCore PBKDF2 hash.
+- Agent does not call Worker for login. Agent therefore accepts the registered ADMIN email + password directly against Firebase. This preserves Office-network independence and avoids an unauthenticated username→email directory.
+- Passwords, password hashes, salts, ID tokens, refresh tokens and service-account material remain prohibited from logs/repo.

@@ -253,6 +253,15 @@ class MainActivity : Activity() {
         applyUpdateGateUi(message)
         checkForUpdate(silent = true)
 
+        val submitLoginFromKeyboard = TextView.OnEditorActionListener { _, _, event ->
+            val isEnter = event?.keyCode == android.view.KeyEvent.KEYCODE_ENTER
+            if (!isEnter && event != null) return@OnEditorActionListener false
+            if (login.isEnabled) login.performClick()
+            true
+        }
+        username.setOnEditorActionListener(submitLoginFromKeyboard)
+        password.setOnEditorActionListener(submitLoginFromKeyboard)
+
         login.setOnClickListener {
             if (updateGate != UpdateGate.CURRENT) {
                 setStatus(updateGateMessage())

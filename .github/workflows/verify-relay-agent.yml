@@ -74,7 +74,7 @@ jobs:
           $firestoreRules = Get-Content firebase/firestore.rules -Raw
           $firestoreIndexes = Get-Content firebase/firestore.indexes.json -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*23\s*;') { throw "D098 requires Agent v23." }
+          if ($config -notmatch 'AgentBuild\s*=\s*24\s*;') { throw "D099 requires Agent v24." }
           if ($firestoreLeader -notmatch 'FailoverAfterMs\s*=\s*10000' -or $firestoreLeader -notmatch 'StandbyTakeoverAgeMs\s*=\s*10000') { throw "D097 request-driven 10-second failover guard failed." }
           if ($firestoreLeader -match 'HeartbeatIntervalMs\s*=\s*4000') { throw "D097 forbids 4-second Firestore lease heartbeat." }
           foreach ($marker in @('PRIMARY','STANDBY','FROZEN','PromoteStandbyForTakeover','replacement-standby','PresenceHeartbeatIntervalMs = 3600000','FrozenRoleRefreshMs = 900000')) {
@@ -142,6 +142,10 @@ jobs:
           if ($program -notmatch 'MarkLocalConfirmed' -or $confirmGuard -match 'MarkDurableConfirmed' -or $confirmGuard -match 'status", StringField\("CONFIRMED"\)') { throw "D098 manual-origin must preserve one-write guard and fail closed after restart." }
           if ($program -match 'Mô hình hiện tại' -or $program -match 'new TabPage\("Đăng nhập ADMIN"\)') { throw "D098 Agent UI must remove model card and ADMIN settings tab." }
           if ($program -notmatch 'Nhật ký vận hành' -or $program -notmatch 'Chẩn đoán kỹ thuật' -or $overlaySettings -notmatch 'PrepareEmbedded') { throw "D098 direct settings/log-tab layout guard failed." }
+          if ($program -notmatch 'Email ADMIN đăng ký' -or $program -notmatch 'Supra WMS: chờ xác minh Agent' -or $program -notmatch '_supraCard.Enabled = authenticated') { throw "D099 Agent-auth-first Supra gating guard failed." }
+          if ($program -notmatch 'KeyCode != Keys.Enter' -or $program -notmatch 'SearchManualPicklists') { throw "D099 Agent Enter shortcut guard failed." }
+          if ($overlay -match 'MinimumSize = new Size\(420, 64\)' -or $overlaySettings -match '_width.Minimum = 420' -or $overlaySettings -match '_height.Minimum = 64') { throw "D099 legacy Overlay 420x64 floor must be removed." }
+          if ($overlay -notmatch 'MinimumSize = new Size\(120, 32\)' -or $overlaySettings -notmatch '_width.Minimum = 120' -or $overlaySettings -notmatch '_height.Minimum = 32') { throw "D099 expanded Overlay size guard missing." }
           if ($firestoreRate -notmatch 'relay_poc_rate_limits' -or $firestoreRate -notmatch 'last_request_id' -or $firestoreRate -notmatch 'ClearFound') { throw "D097 anti-spam persisted wrong-input state guard failed." }
           foreach ($marker in @('ANDROID_CONFIRM_V1','created_at','retire_at_ms','relay_poc_rate_limits','relay_poc_coordination','relay_poc_agents','relay_poc_confirm_guards')) {
             if ($firestoreRules -notmatch [regex]::Escape($marker)) { throw "D097 Firestore Rules marker missing: $marker" }

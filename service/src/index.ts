@@ -1,5 +1,5 @@
 import { InventoryCore } from "./core";
-import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
+import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole } from "./auth";
 import {
   effectiveAuthEmail,
   importPasswordIdentity,
@@ -505,7 +505,29 @@ async function login(request: Request, env: Env): Promise<Response> {
   const uid = String(user.firebase_uid || "");
   const email = effectiveAuthEmail(firebaseUserSpec(user, uid));
   try {
-    const credential = await signInWithFirebasePassword(env.FIREBASE_WEB_API_KEY, email, password);
+    let credential;
+    try {
+      credential = await signInWithFirebasePassword(env.FIREBASE_WEB_API_KEY, email, password);
+    } catch {
+      // D099 migration repair: D098 imported legacy PBKDF2 material into Firebase.
+      // If Firebase cannot verify that imported credential but InventoryCore can
+      // still prove the supplied password against the canonical legacy hash,
+      // set the same password natively in Firebase once and retry. Plaintext
+      // exists only in this login request and is never persisted/logged.
+      const legacyValid = Boolean(
+        user.password_hash &&
+        user.password_salt &&
+        await verifyPassword(password, user.password_salt, user.password_hash)
+      );
+      if (!legacyValid) return json({ error: "INVALID_CREDENTIALS" }, 401);
+      await updateFirebaseIdentity(
+        env.GOOGLE_RUNTIME_SA_JSON,
+        env.FIREBASE_PROJECT_ID,
+        firebaseUserSpec(user, uid),
+        { password },
+      );
+      credential = await signInWithFirebasePassword(env.FIREBASE_WEB_API_KEY, email, password);
+    }
     if (credential.localId !== uid) return json({ error: "INVALID_CREDENTIALS" }, 401);
   } catch {
     return json({ error: "INVALID_CREDENTIALS" }, 401);

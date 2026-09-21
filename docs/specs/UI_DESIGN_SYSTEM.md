@@ -502,3 +502,10 @@ Agent keeps the D089 approved visual baseline and shared branding but restructur
 - Bảng nổi controls are embedded directly in the tab; users must not need a second “open settings” action merely to reach them.
 - Operational and technical logs are peer tabs, not nested under an intermediate Logs tab.
 - Existing Overlay persistence, true locked click-through, color/size/checklist controls and single-instance/tray behavior remain frozen.
+
+
+## D099 — Agent auth hierarchy and Overlay sizing
+
+Agent Overview visually establishes authority in this order: **Xác minh Agent first**, then **Hệ thống Supra**, then specialist PickList handling. Supra appears disabled while Agent auth is unavailable; this is a functional disabled state, not merely explanatory copy.
+
+Overlay sizing must not retain the old 420×64 floor. Settings and runtime clamp must agree on 120×32 practical minimum and 7680×4320 configurable maximum. Existing colors, opacity, persistence, lock/click-through and per-field visibility remain unchanged.

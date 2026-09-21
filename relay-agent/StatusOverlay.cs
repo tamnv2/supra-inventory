@@ -73,8 +73,8 @@ namespace SupraInventoryRelayAgent
             ShowInTaskbar = false;
             TopMost = true;
             StartPosition = FormStartPosition.Manual;
-            MinimumSize = new Size(420, 64);
-            MaximumSize = new Size(1600, 360);
+            MinimumSize = new Size(120, 32);
+            MaximumSize = Size.Empty;
             Width = ClampWidth(_settings.Width);
             Height = ClampHeight(_settings.Height);
             BackColor = SafeColor(_settings.BackgroundArgb, Color.FromArgb(28, 35, 43));
@@ -445,8 +445,8 @@ namespace SupraInventoryRelayAgent
             if (handler != null) handler();
         }
 
-        private static int ClampWidth(int value) { return Math.Max(420, Math.Min(1600, value <= 0 ? 720 : value)); }
-        private static int ClampHeight(int value) { return Math.Max(64, Math.Min(360, value <= 0 ? 70 : value)); }
+        private static int ClampWidth(int value) { return Math.Max(120, Math.Min(7680, value <= 0 ? 720 : value)); }
+        private static int ClampHeight(int value) { return Math.Max(32, Math.Min(4320, value <= 0 ? 70 : value)); }
         private static double ClampOpacity(double value)
         {
             if (double.IsNaN(value) || double.IsInfinity(value)) return 0.78;
