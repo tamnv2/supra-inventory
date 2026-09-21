@@ -6,11 +6,11 @@
 
 - Project: `supra-inventory`
 - SQLite schema: `8`
-- Latest signed Beta APK: `beta-vc54`
-- Current released Agent: `relay-agent-v15`
-- Beta: `D089_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC54__AGENT_V15__READY_FOR_NEW_REQUIREMENTS`
+- Latest signed Beta APK: `beta-vc55`
+- Current released Agent: `relay-agent-v16`
+- Beta: `D091_FIRESTORE_INFRA_RUNTIME_PASS__D089_OWNER_ACCEPTED_UI_BASELINE__SIGNED_BETA_VC55__AGENT_V16__PHYSICAL_OFFICE_E2E_PENDING`
 - Web: `D089_OWNER_ACCEPTED_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON`
-- Android: `D089_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC54__APPROVED_ICON__TRANSPORT_SELECTION_PENDING`
+- Android: `D091_SIGNED_BETA_VC55_FIRESTORE_FIELD_CANDIDATE_RELEASED__D089_OWNER_ACCEPTED_UI_BASELINE`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -32,7 +32,7 @@ Owner confirmed on 2026-09-21 that Office should be treated as internal Supra pl
 
 ## 2B. D091 Firestore field candidate
 
-Owner directed implementation rather than further generic probing. D091 builds Agent v16 plus the next signed Beta APK against a locked Beta Firestore `(default)` database in `asia-southeast1`. The first field gate is transport-only with one Agent and `TRANSPORT_ONLY` ACK. It does not query/mutate WMS and does not yet implement final multi-Agent HA. PASS requires a physical Office round trip; failure routes to Apps Script.
+D091 infrastructure is runtime PASS: Beta Firestore `(default)` exists in `asia-southeast1`, locked Security Rules are deployed through the Firebase Rules Management API, and the `cloud.firestore` release was read back successfully on main run `35548847740`. Field artifacts `relay-agent-v16` and signed `beta-vc55` are released. The remaining gate is one physical Office transport-only round trip with one Agent and `TRANSPORT_ONLY` ACK. It does not query/mutate WMS and does not yet implement final multi-Agent HA. Transport failure routes directly to Apps Script.
 
 ## 3. Released artifacts and evidence
 
@@ -42,19 +42,20 @@ D089 runtime:
 - Main Beta Worker/UI/Agent/Android/Authority/State gates all PASS.
 
 Released artifacts:
-- `relay-agent-v15`: canonical EXE `Agent.Auto.Confirm.Pick.Pack.exe`, SHA-256 `94f82fc377057c5bbb1d80bbf0830f523bdf16108b40898ce63bb041624b9e9a`.
-- `beta-vc54`: APK SHA-256 `eeb95c489bf7dbfa455b323633bfe28685674f57f6ba76facd4c04e3b0958c2c`.
+- `relay-agent-v16`: canonical EXE `Agent.Auto.Confirm.Pick.Pack.exe`, SHA-256 `796ca102c4b240ae58094302ed690cc93d65f72f20e42cd526d734a8ca2f34b5`.
+- `beta-vc55`: APK SHA-256 `e562f68c16fc2411ecd74d3a72e1650e01f5108a5fba65954d4532ae6bbd9818`.
+- D091 Firestore infrastructure: main `cecf56079eba144188a0080bca8b1e78bcbfdd00`, run `35548847740` PASS with database readback plus Rules release readback.
 
 ## 4. Open boundaries
 
-- D091 is active: authenticated Firestore end-to-end candidate is being built for a real PDA → Firestore → Office Agent → Firestore → PDA field round trip. RTDB/Cloudflare Office retest stays closed.
+- D091 infrastructure and releases are PASS; one physical PDA → Firestore → Office Agent → Firestore → PDA field round trip remains. RTDB/Cloudflare Office retest stays closed.
 - WMS remains signed GET-only; confirmation/mutation is not authorized.
 - Stable remains OWNER-GATED.
 - Do not alter Stable unless the Owner explicitly authorizes it.
 
 ## 5. Next action
 
-D089 remains the accepted baseline and D090 closes repeat Office provider probing. The active workstream is D091 Firestore end-to-end field candidate.
+D089 remains the accepted UI/runtime baseline. D091 Firestore infrastructure and field artifacts are ready; the next action is the Owner's one physical Office PDA ↔ Agent transport-only round trip using `relay-agent-v16` + `beta-vc55`.
 
 On the next session:
 1. read `ops/authority-manifest.json`;
