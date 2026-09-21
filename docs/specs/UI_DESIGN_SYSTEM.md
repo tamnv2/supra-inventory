@@ -509,3 +509,14 @@ Agent keeps the D089 approved visual baseline and shared branding but restructur
 Agent Overview visually establishes authority in this order: **Xác minh Agent first**, then **Hệ thống Supra**, then specialist PickList handling. Supra appears disabled while Agent auth is unavailable; this is a functional disabled state, not merely explanatory copy.
 
 Overlay sizing must not retain the old 420×64 floor. Settings and runtime clamp must agree on 120×32 practical minimum and 7680×4320 configurable maximum. Existing colors, opacity, persistence, lock/click-through and per-field visibility remain unchanged.
+
+
+## D100 — System Reset presentation
+
+- ROOT-only System Reset is a first-class `HỆ THỐNG` child beside Nhật ký and Công cụ.
+- Use the existing light/dark design tokens, cards, notices and danger-button hierarchy.
+- Every destructive group must show a plain-language scope description and current count where available.
+- High-risk groups (Admin, active reports/history, confirmation relay) receive warning/danger visual treatment without introducing a separate visual style.
+- The two-factor panel is visually separated from scope selection.
+- Never hide the preserved-resource statement: ROOT and external Google Sheet/Drive are not reset.
+- Web Tools Agent version/download metadata is generated from `relay-agent/VERSION`; user-visible historical hard-coded Agent versions are forbidden.
