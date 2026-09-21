@@ -842,13 +842,35 @@ function renderLogin(): void {
       <button class="primary wide" ${busy ? "disabled" : ""}>${busy ? "Đang đăng nhập..." : "ĐĂNG NHẬP"}</button>
     </form>
     <div class="login-actions"><button id="forgot-password" type="button" class="login-link">Lấy lại mật khẩu</button></div>
+    <form id="reset-password-form" class="login-reset-form" hidden>
+      <p class="muted">Chỉ áp dụng cho ROOT và ADMIN có email đã đăng ký.</p>
+      <label>Tài khoản<input name="username" required autocomplete="username" placeholder="Mã nhân viên / tài khoản" /></label>
+      <label>Email đăng ký<input name="email" type="email" required autocomplete="email" placeholder="name@company.com" /></label>
+      <button class="secondary wide">GỬI LINK ĐẶT LẠI MẬT KHẨU</button>
+      <div id="reset-password-result" class="tiny muted"></div>
+    </form>
     <p class="security">${PRODUCT_CREDIT}</p>
   </section></main>`;
+
   document.querySelector<HTMLFormElement>("#login-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget as HTMLFormElement);
+    const username = String(data.get("username") || "").trim();
+    const password = String(data.get("password") || "");
     void run(async () => {
-      profile = await loginWithPassword(String(data.get("username") || "").trim(), String(data.get("password") || ""));
+      try {
+        profile = await loginWithPassword(username, password, false);
+      } catch (error) {
+        if (
+          error instanceof ApiError &&
+          error.code === "SESSION_ACTIVE_OTHER_DEVICE" &&
+          window.confirm(`${error.message}\n\nTiếp tục đăng nhập và đăng xuất phiên Web cũ?`)
+        ) {
+          profile = await loginWithPassword(username, password, true);
+        } else {
+          throw error;
+        }
+      }
       markWebUpdateReceived();
       skipDelayEnabled = loadSkipDelayEnabled(profile.user_id);
       runtimeLogEvent(`Đăng nhập: ${profile.role}`);
@@ -859,6 +881,23 @@ function renderLogin(): void {
       await loadSection(activeSection);
       render();
     });
+  });
+
+  document.querySelector<HTMLButtonElement>("#forgot-password")?.addEventListener("click", () => {
+    const form = document.querySelector<HTMLFormElement>("#reset-password-form");
+    if (form) form.hidden = !form.hidden;
+  });
+  document.querySelector<HTMLFormElement>("#reset-password-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    const result = document.querySelector<HTMLElement>("#reset-password-result");
+    void run(async () => {
+      const message = await requestPasswordReset(
+        String(data.get("username") || "").trim(),
+        String(data.get("email") || "").trim(),
+      );
+      if (result) result.textContent = message;
+    }, "none");
   });
 }
 
