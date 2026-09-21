@@ -1,4 +1,4 @@
-import { readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
+import { interactiveSessionError, readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
 import { sendFcmNotifications } from "./fcm";
 
 interface BusinessEnv {
@@ -17,6 +17,8 @@ interface InternalUser {
   password_salt: string | null;
   password_hash: string | null;
   password_changed_at: string | null;
+  web_session_generation?: number;
+  android_session_generation?: number;
 }
 
 const CORE_OBJECT_NAME = "inventory-core";
@@ -60,6 +62,8 @@ async function requireUser(request: Request, env: BusinessEnv, roles?: AppRole[]
 
   const user = await coreUserByFirebaseUid(env, identity.uid);
   if (!user || user.status !== "ACTIVE") throw json({ error: "USER_NOT_ACTIVE" }, 403);
+  const sessionError = interactiveSessionError(identity, user);
+  if (sessionError) throw json({ error: sessionError }, 401);
   if (roles && !roles.includes(user.role)) throw json({ error: "FORBIDDEN" }, 403);
   return user;
 }
