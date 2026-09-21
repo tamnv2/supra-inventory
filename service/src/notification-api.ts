@@ -1,4 +1,4 @@
-import { readBearerToken, verifyFirebaseIdToken } from "./auth";
+import { interactiveSessionError, readBearerToken, verifyFirebaseIdToken } from "./auth";
 
 interface NotificationEnv {
   FIREBASE_PROJECT_ID: string;
@@ -8,6 +8,8 @@ interface NotificationEnv {
 type InternalUser = {
   user_id: string;
   status: "ACTIVE" | "DISABLED";
+  web_session_generation?: number;
+  android_session_generation?: number;
 };
 
 function json(payload: unknown, status = 200): Response {
@@ -21,16 +23,18 @@ function core(env: NotificationEnv): DurableObjectStub {
 async function requireUser(request: Request, env: NotificationEnv): Promise<InternalUser> {
   const token = readBearerToken(request);
   if (!token) throw json({ error: "AUTH_REQUIRED" }, 401);
-  let uid = "";
+  let identity;
   try {
-    uid = (await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID)).uid;
+    identity = await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID);
   } catch {
     throw json({ error: "INVALID_AUTH_TOKEN" }, 401);
   }
-  const lookup = await core(env).fetch(`https://inventory-core.internal/auth/user-by-firebase-uid?uid=${encodeURIComponent(uid)}`);
+  const lookup = await core(env).fetch(`https://inventory-core.internal/auth/user-by-firebase-uid?uid=${encodeURIComponent(identity.uid)}`);
   if (!lookup.ok) throw json({ error: "AUTH_LOOKUP_FAILED" }, 502);
   const user = ((await lookup.json()) as { user?: InternalUser | null }).user;
   if (!user || user.status !== "ACTIVE") throw json({ error: "USER_NOT_ACTIVE" }, 403);
+  const sessionError = interactiveSessionError(identity, user);
+  if (sessionError) throw json({ error: sessionError }, 401);
   return user;
 }
 
