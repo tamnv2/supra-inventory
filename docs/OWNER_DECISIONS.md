@@ -483,3 +483,18 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA019 PHYSICAL FIELD ACCEPTANCE
 - D098 Cloudflare budget CI PASS under the conservative approved model. Highest modeled included-metric use is Durable Object requests at **31.20%**, below the Owner ceiling of **35%**.
 - OA019 consolidates D098 identity/realtime/specialist acceptance with the still-unproven physical D097 normal→Office, STANDBY takeover and 30-second fallback scenarios. OA018 is superseded by OA019; OA017 remains blocked until OA019 PASS.
 - Stable remains **OWNER-GATED** and untouched.
+
+
+## D099 — Repair Firebase password sign-in authority and make Agent auth-first
+
+Status: **OWNER DIRECTED 2026-09-21 — ROOT CAUSE CONFIRMED / PR #124 ACTIVE**.
+
+1. Physical Owner evidence showed every Web/App/Agent login returning `INVALID_CREDENTIALS` immediately after D098.
+2. D099 CI readback confirmed Beta Identity Platform had `signIn.email.enabled=false` and `signIn.email.passwordRequired=false`. D098 had already moved credential verification to Firebase `signInWithPassword`, so this provider configuration mismatch is the shared outage root cause.
+3. Beta main deploy must ensure Email/Password sign-in is enabled and password-required, read it back, then run an ephemeral synthetic PBKDF2-SHA256 100,000-round import → `signInWithPassword` → cleanup probe. A green health/migration marker alone is no longer sufficient authentication acceptance.
+4. Web/App continue using username/MNV + password through Inventory Worker identity resolution. If a migrated Firebase hash cannot verify but the supplied password still matches the canonical InventoryCore PBKDF2 hash, the Worker may set that same password natively in Firebase once and retry. Plaintext exists only for that request and must never be persisted/logged.
+5. Agent remains Cloudflare-independent. Because Firebase password sign-in is email-address based and the Agent intentionally has no Worker username→email lookup on Office, Agent login uses the **registered ADMIN email + password**. Username-only Agent login is not authoritative.
+6. Agent Overview order becomes **Xác minh Agent → Hệ thống Supra → Xử lý PickList trực tiếp**. Supra controls/session restore/capture remain disabled until a valid ADMIN Agent session is restored or logged in.
+7. Pressing Enter in Agent ADMIN email/password invokes Login. Pressing Enter in the Agent 3–5 digit PickList input invokes Search when valid. Android login also accepts keyboard Enter/Done as Login; Web form-submit behavior remains.
+8. Overlay no longer has the legacy 420×64 minimum. D099 allows a practical minimum 120×32 and large configurable bounds up to 7680×4320; runtime and settings UI use the same range.
+9. D097 HA, D096 WMS confirmation semantics, normal Báo hàng flow and Stable are otherwise unchanged. Stable remains OWNER-GATED.
