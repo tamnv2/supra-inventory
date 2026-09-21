@@ -816,7 +816,7 @@
     },
     {
       "id": "OA019",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "BLOCKED_BY_D099_TECHNICAL_RELEASE",
       "title": "Field-accept D098 unified Firebase identity, realtime and specialist Agent flow",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Beta Web + signed Android PDA + company Windows Agent + authorized Supra WMS session",
@@ -846,7 +846,7 @@
         "Normal Báo hàng remains Worker/InventoryCore and Agent-independent; Stable remains untouched."
       ],
       "safety": "Beta only. Use an eligible controlled PickList for the specialist confirm. Do not share passwords, Firebase tokens, cookies, WMS headers/signatures, encrypted session files or sensitive payloads.",
-      "remaining_owner_action": "Update to relay-agent-v23 and beta-vc61, then run the consolidated D098 + retained D097 physical acceptance matrix.",
+      "remaining_owner_action": "Wait for D099 technical/runtime/release PASS, then retest login and OA019 on the new Agent/APK.",
       "prerequisites": {
         "source_main": "bbc2127fa345879c4603a5baaa48cc566150af0f",
         "runtime_pr": 121,
@@ -862,7 +862,9 @@
         "ui_run": 35609150711,
         "firestore_hotfix_run": 35609800016,
         "stable": "OWNER_GATED"
-      }
+      },
+      "blocked_by": "D099",
+      "block_reason": "Owner found all-client INVALID_CREDENTIALS after D098. D099 confirmed Beta Firebase Email/Password provider disabled and changes Agent auth/UI artifacts. OA019 must use the D099 released Agent/APK after provider + synthetic sign-in gates PASS."
     }
   ]
 }
