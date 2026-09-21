@@ -149,12 +149,36 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
   }
   if (key === "POST /api/admin/users") {
     const body = await bodyObject(request);
+    const plainPassword = String(body.password || "");
     try {
-      const derived = await derivePassword(body.password);
+      const derived = await derivePassword(plainPassword);
       const { password: _password, ...safeBody } = body;
-      return core(env).fetch("https://inventory-core.internal/admin/users/create", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...safeBody, password_salt: derived.salt, password_hash: derived.hash, actor: actor(user) }) });
+      const createdResponse = await core(env).fetch("https://inventory-core.internal/admin/users/create", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...safeBody, password_salt: derived.salt, password_hash: derived.hash, actor: actor(user) }),
+      });
+      const createdPayload = (await createdResponse.json()) as { user?: User; error?: string };
+      if (!createdResponse.ok || !createdPayload.user) {
+        return json(createdPayload, createdResponse.status);
+      }
+      const provisioned = await provisionManagedCredential(env, createdPayload.user, derived, plainPassword);
+      return json({
+        status: "created",
+        user: {
+          ...createdPayload.user,
+          firebase_uid: provisioned.firebase_uid,
+          auth_email: provisioned.auth_email || createdPayload.user.auth_email || null,
+          firebase_password_ready: true,
+        },
+      }, 201);
     } catch (error) {
-      return json({ error: "INVALID_PASSWORD", message: error instanceof Error ? error.message : "Mật khẩu không hợp lệ." }, 400);
+      const message = error instanceof Error ? error.message : "Không tạo được tài khoản.";
+      const credentialFailure = message.startsWith("FIREBASE_") || message === "GOOGLE_RUNTIME_NOT_CONFIGURED";
+      return json({
+        error: credentialFailure ? "FIREBASE_ACCOUNT_PROVISION_FAILED" : "INVALID_PASSWORD",
+        message: credentialFailure ? "Không đồng bộ được tài khoản Firebase." : message,
+      }, credentialFailure ? 502 : 400);
     }
   }
   if (key === "PATCH /api/admin/users") {
@@ -163,11 +187,28 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
   }
   if (key === "PUT /api/admin/users/password") {
     const body = await bodyObject(request);
+    const userId = String(body.user_id || "").trim();
+    const plainPassword = String(body.password || "");
     try {
-      const derived = await derivePassword(body.password);
-      return core(env).fetch("https://inventory-core.internal/admin/users/set-password", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ user_id: body.user_id, request_id: body.request_id, password_salt: derived.salt, password_hash: derived.hash, actor: actor(user) }) });
+      const before = userId ? await coreUserById(env, userId) : null;
+      if (!before) return json({ error: "USER_NOT_FOUND" }, 404);
+      const derived = await derivePassword(plainPassword);
+      const changedResponse = await core(env).fetch("https://inventory-core.internal/admin/users/set-password", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ user_id: userId, request_id: body.request_id, password_salt: derived.salt, password_hash: derived.hash, actor: actor(user) }),
+      });
+      if (!changedResponse.ok) return changedResponse;
+      const after = (await coreUserById(env, userId)) || before;
+      await provisionManagedCredential(env, after, derived, plainPassword);
+      return json({ status: "password_changed", user_id: userId });
     } catch (error) {
-      return json({ error: "INVALID_PASSWORD", message: error instanceof Error ? error.message : "Mật khẩu không hợp lệ." }, 400);
+      const message = error instanceof Error ? error.message : "Không đổi được mật khẩu.";
+      const credentialFailure = message.startsWith("FIREBASE_") || message === "GOOGLE_RUNTIME_NOT_CONFIGURED";
+      return json({
+        error: credentialFailure ? "FIREBASE_ACCOUNT_UPDATE_FAILED" : "INVALID_PASSWORD",
+        message: credentialFailure ? "Không đồng bộ được mật khẩu Firebase." : message,
+      }, credentialFailure ? 502 : 400);
     }
   }
   if (key === "POST /api/admin/pickers/bulk") {
