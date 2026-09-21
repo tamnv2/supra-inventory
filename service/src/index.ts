@@ -329,7 +329,7 @@ async function refreshSession(request: Request, env: Env): Promise<Response> {
     return json({ error: "FIREBASE_REFRESH_FAILED", message: payload.error?.message || `HTTP ${response.status}` }, 401);
   }
 
-  let identity: FirebaseIdentity;
+  let identity: Awaited<ReturnType<typeof verifyFirebaseIdToken>>;
   let user: InternalUser;
   try {
     identity = await verifyFirebaseIdToken(payload.id_token, env.FIREBASE_PROJECT_ID);
