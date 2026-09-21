@@ -732,8 +732,8 @@
       "reason_owner_only": "CI can execute parser/response regressions but cannot perform or verify an authorized real company WMS Picklist confirmation.",
       "prerequisites": {
         "source_branch": "fix/d096-wms-exact-confirm-v2",
-        "agent_release": "relay-agent-v22__AFTER_D097_MAIN",
-        "android_release": "beta-vc60__AFTER_D097_MAIN",
+        "agent_release": "relay-agent-v22__RELEASED",
+        "android_release": "beta-vc60__RELEASED",
         "pda_agent_transport": "OWNER_CONFIRMED_WORKING_CURRENT_FIELD",
         "stable": "OWNER_GATED",
         "d097_transport_ha": "OA018_PASS_REQUIRED_BEFORE_FINAL_ACCEPTANCE"
@@ -763,16 +763,19 @@
     },
     {
       "id": "OA018",
-      "status": "WAITING_FOR_D097_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-test D097 quota-safe HA and network transition",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Physical Beta PDA + Windows PRIMARY/STANDBY Agents on normal and Office networks",
       "reason_owner_only": "Connected CI can verify source/build/Rules/indexes and synthetic guards but cannot physically switch the company laptop network or prove real multi-machine failover behavior.",
       "prerequisites": {
-        "source_branch": "fix/d097-firestore-ha-quota-network",
-        "agent_release": "relay-agent-v22__PENDING_MAIN",
-        "android_release": "beta-vc60__PENDING_MAIN",
-        "firestore_rules_index": "PENDING_MAIN_DEPLOY",
+        "source_main": "ad9bdbe32bc9d9c342b3a98d9fbb00846d8692af",
+        "merged_pr": 119,
+        "agent_release": "relay-agent-v22",
+        "agent_release_sha256": "e986f660935bc3d24f2c493a63902fb23ca6125bb327ad87ddc9ed95dfcd5a64",
+        "android_release": "beta-vc60",
+        "android_apk_sha256": "0c295a55fcd5e0ab6f2a9a1b9cd1d53d1fefba90c39187e9c74c7320a96853cc",
+        "main_ci": "AUTHORITY_STATE_BETA_WORKER_FIRESTORE_RTDB_AGENT_UI_ANDROID_PASS",
         "stable": "OWNER_GATED"
       },
       "shortest_test_path": [
@@ -795,7 +798,20 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Use controlled eligible Picklists for any real WMS confirmation. Do not run a 30-real-mutation burst against company WMS merely to load-test transport; concurrency/quota stress must use bounded synthetic/non-WMS evidence unless Owner explicitly authorizes otherwise.",
-      "remaining_owner_action": "After D097 main release, run the short physical normal→Office, standby failover and 30-second terminal scenarios."
+      "remaining_owner_action": "Update to relay-agent-v22 and beta-vc60, then run the normal→Office transition, STANDBY takeover >=10s and 30-second specialist-fallback scenarios.",
+      "runtime_readiness": {
+        "main": "ad9bdbe32bc9d9c342b3a98d9fbb00846d8692af",
+        "repo_authority_run": 35575186486,
+        "project_state_run": 35575186191,
+        "beta_worker_run": 35575186212,
+        "firestore_run": 35575186225,
+        "rtdb_run": 35575186237,
+        "relay_agent_run": 35575186389,
+        "ui_run": 35575186226,
+        "android_run": 35575186223,
+        "agent_release_id": 392777064,
+        "android_release_id": 392777480
+      }
     }
   ]
 }

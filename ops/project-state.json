@@ -13,26 +13,26 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D097_QUOTA_SAFE_REQUEST_DRIVEN_HA_SOURCE_READY__TARGET_AGENT_V22__TARGET_BETA_VC60__D096_WMS_BEHAVIOR_FROZEN__FIELD_ACCEPTANCE_PENDING",
+    "beta": "D097_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V22__BETA_VC60__OA018_FIELD_ACCEPTANCE_READY",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 8,
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
     "web": "D089_OWNER_ACCEPTED_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON",
-    "android": "D097_FIRESTORE_SNAPSHOT_LISTENER_SOURCE_READY__TARGET_BETA_VC60__D095_UI_BASELINE_PRESERVED",
-    "latest_beta_apk": "beta-vc59",
+    "android": "D097_SIGNED_BETA_VC60_FIRESTORE_LISTENER_RELEASED__D095_UI_BASELINE_PRESERVED",
+    "latest_beta_apk": "beta-vc60",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
     "network_scope": "D097_NORMAL_OFFICE_TRANSITION_RECOVERY__PRIMARY_STANDBY_FROZEN__10S_FAILOVER__30S_TERMINAL__BAO_HANG_UNCHANGED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "SERVER_PAGED_FILTERED_ONE_MANY_ALL__ROOT_EFFECTIVE_ROLE_TEST_RUNTIME_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D069_XLSX_REPORT_EXPORT_BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
-    "quota_resilience": "D097_FIRESTORE_6000_REQ_DAY_FREE_ENVELOPE_SOURCE_GUARDED__FIELD_USAGE_ACCEPTANCE_PENDING",
+    "quota_resilience": "D097_FIRESTORE_6000_REQ_DAY_FREE_ENVELOPE_SOURCE_RUNTIME_RELEASE_PASS__FIELD_USAGE_ACCEPTANCE_PENDING",
     "ui_design_guard": "D089_OWNER_ACCEPTED_PASS__MAIN_UI_RUN_35528647554",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D097_REQUEST_DRIVEN_HA_QUOTA_NETWORK_REPAIR__D096_WMS_CONFIRM_FROZEN__TARGET_AGENT_V22_VC60"
+    "picklist_confirmation_poc": "D097_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V22__BETA_VC60__OA018_FIELD_GATE__D096_WMS_BEHAVIOR_FROZEN"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -170,7 +170,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Merge D097 only after authority/state/Firestore/Agent/Android/service guards PASS; then publish Agent v22 + next signed Beta APK and run physical normal→Office transition, 10s standby failover, 30s terminal fallback and 30-concurrent burst acceptance. Stable remains OWNER-GATED.",
+  "next_action": "OA018 physical Beta field test using relay-agent-v22 + beta-vc60: normal network <=10s target, normal→Office transition without restart, PRIMARY loss with STANDBY takeover >=10s, and 30s specialist fallback. After OA018 PASS, resume OA017 final real-WMS confirmation acceptance. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",

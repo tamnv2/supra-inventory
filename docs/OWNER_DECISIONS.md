@@ -435,3 +435,17 @@ Owner approved the D097 design after physical logs proved that normal Internet a
 13. D097 source guards target a free-quota envelope at the stated maximum: business writes are bounded toward 3/request worst-case plus low-frequency control overhead; reads use PRIMARY 5s + STANDBY 10s + one-document PDA listeners; FROZEN business polling is forbidden.
 14. Requests older than the terminal window are not started as new WMS work. A job already inside the guarded mutation path remains fail-closed if its final state is uncertain.
 15. Stable remains **OWNER-GATED** and untouched.
+
+
+## D097 release checkpoint
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA018 PHYSICAL FIELD TEST READY**.
+
+- PR #119 merged to main `ad9bdbe32bc9d9c342b3a98d9fbb00846d8692af`.
+- Main Repo Authority `35575186486`, Project State `35575186191`, Beta Worker `35575186212`, Firestore `35575186225`, RTDB guard `35575186237`, Relay Agent `35575186389`, UI `35575186226`, Android `35575186223` all PASS.
+- Released Windows Agent: `relay-agent-v22`, release id `392777064`, canonical EXE asset id `578551644`, size `235008`, SHA-256 `e986f660935bc3d24f2c493a63902fb23ca6125bb327ad87ddc9ed95dfcd5a64`.
+- Released signed Android: `beta-vc60`, release id `392777480`, APK asset id `578552971`, size `18998096`, SHA-256 `0c295a55fcd5e0ab6f2a9a1b9cd1d53d1fefba90c39187e9c74c7320a96853cc`.
+- Firestore Rules plus the D097 pending-queue composite index deploy gate is PASS on main.
+- OA018 is READY_FOR_OWNER_FIELD_TEST for normal→Office transition, request-driven STANDBY takeover and 30-second terminal specialist fallback.
+- OA017 final real-WMS confirmation acceptance remains blocked until OA018 PASS.
+- Stable remains OWNER-GATED and untouched.
