@@ -76,7 +76,7 @@ jobs:
         run: |
           set -euo pipefail
           project="supra-inventory-beta"
-          if gcloud firestore databases describe --project="$project" --database="(default)" >/tmp/firestore-db.json 2>/tmp/firestore-db.err; then
+          if gcloud firestore databases describe --project="$project" --database="(default)" --format=json >/tmp/firestore-db.json 2>/tmp/firestore-db.err; then
             echo "Firestore (default) exists"
             location="$(jq -r '.locationId // empty' /tmp/firestore-db.json)"
             [ "$location" = "asia-southeast1" ] || { echo "Unexpected Firestore location: $location"; exit 1; }
