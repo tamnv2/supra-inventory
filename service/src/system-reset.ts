@@ -1,7 +1,7 @@
 import { verifyFirebaseIdToken, readBearerToken } from "./auth";
 import {
-  agentFirebaseUid,
   deleteFirebaseUsers,
+  effectiveAuthEmail,
   signInWithFirebasePassword,
   type FirebaseManagedUserSpec,
 } from "./firebase-auth-admin";
@@ -154,9 +154,18 @@ async function sendResetCodeEmail(env: Env, email: string, code: string): Promis
 }
 
 async function primaryPasswordValid(env: Env, root: RootUser, password: string): Promise<boolean> {
-  if (!env.FIREBASE_WEB_API_KEY || !root.auth_email || !root.firebase_uid || !password) return false;
+  if (!env.FIREBASE_WEB_API_KEY || !root.firebase_uid || !password) return false;
   try {
-    const session = await signInWithFirebasePassword(env.FIREBASE_WEB_API_KEY, root.auth_email, password);
+    const authSpec: FirebaseManagedUserSpec = {
+      uid: root.firebase_uid,
+      userId: root.user_id,
+      employeeCode: root.employee_code,
+      displayName: root.display_name,
+      role: "ROOT",
+      status: "ACTIVE",
+      authEmail: root.auth_email,
+    };
+    const session = await signInWithFirebasePassword(env.FIREBASE_WEB_API_KEY, effectiveAuthEmail(authSpec), password);
     return session.localId === root.firebase_uid;
   } catch {
     return false;
@@ -238,24 +247,11 @@ async function deleteFirestoreDocuments(env: Env, refs: string[]): Promise<numbe
 }
 
 function firebaseLocalIds(identities: ResetIdentity[]): string[] {
-  const ids: string[] = [];
-  for (const identity of identities) {
-    const uid = String(identity.firebase_uid || "").trim();
-    if (!uid) continue;
-    ids.push(uid);
-    if (String(identity.role || "") === "ADMIN") {
-      const spec: FirebaseManagedUserSpec = {
-        uid,
-        userId: String(identity.user_id || ""),
-        employeeCode: identity.employee_code ? String(identity.employee_code) : null,
-        displayName: String(identity.employee_code || identity.user_id || ""),
-        role: "ADMIN",
-        status: "ACTIVE",
-      };
-      ids.push(agentFirebaseUid(spec));
-    }
-  }
-  return [...new Set(ids)];
+  return [...new Set(
+    identities
+      .map((identity) => String(identity.firebase_uid || "").trim())
+      .filter(Boolean),
+  )];
 }
 
 export async function handleSystemResetApi(request: Request, env: Env): Promise<Response | null> {
