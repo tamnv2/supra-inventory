@@ -343,3 +343,20 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA014 FIRESTORE FIELD RETEST PE
 - OA014 is READY_FOR_OWNER_FIELD_TEST. It re-verifies the physical PDA → Firestore → Office Agent → Firestore → PDA path and truthful Firestore health after the D093 repair.
 - OA013 real Picklist confirmation remains blocked until OA014 PASS.
 - Stable remains OWNER-GATED and untouched.
+
+## D094 — Persist Agent ADMIN session UX and repair Firestore job receive path
+
+Status: **ACTIVE — OWNER DIRECTED 2026-09-21**.
+
+Owner requires the Windows Agent to remember the verified ADMIN session across launches, expose explicit logout/replacement behavior, and repair the remaining PDA → Agent receive failure without changing the selected Firestore carrier.
+
+1. The Agent continues to persist only the refreshable ADMIN application session/identity under Windows DPAPI CurrentUser. The plaintext ADMIN password is never persisted or logged.
+2. Successful Agent ADMIN verification disables/dims the username/password/login controls, enables **Đăng xuất**, and shows the Agent verification-login state on **Tổng quan**.
+3. Startup restores the DPAPI session automatically, refreshes Firebase ADMIN claims, and starts the relay without manual re-entry while the saved session remains valid.
+4. **Đăng xuất** stops relay participation, clears the saved Agent application session and local exit verifier, then re-enables login. The next successful ADMIN login replaces the saved identity/session.
+5. D093 field evidence showed the manual Firestore probe using the process/default Windows proxy path could PASS while the D093 per-request helper reported DIRECT and DNS/connect failures. D094 therefore restores the D091/manual-probe-proven **Windows default proxy path first**. A fresh system-proxy snapshot is only a bounded secondary attempt for safe Firestore reads. The WMS corporate fallback proxy remains forbidden for Firestore; no corporate filtering is bypassed.
+6. ACTIVE Agent job receive no longer depends on an arbitrary first page of collection documents. It queries Firestore for current `PENDING + ANDROID_CONFIRM_V1` jobs directly, with a newest-first bounded list fallback and sanitized poll telemetry.
+7. PDA surfaces a short Firestore request ID after CREATE so field logs can correlate PDA CREATE → Agent pending-found → conditional claim → ACK precisely.
+8. D092 exact PickListCode, anti-spam, idempotency and the only-authorized `confirmSkipItem` WMS mutation contract are unchanged. Stable remains OWNER-GATED and untouched.
+
+D094 supersedes OA014 as the next relay field gate because the released D093 artifacts did not complete the PDA → Agent receive path in the Owner's field test.
