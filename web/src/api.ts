@@ -274,6 +274,42 @@ export interface RuntimeLogDetail {
   content: unknown;
 }
 
+export type SystemResetScope =
+  | "PICKER_ACCOUNTS"
+  | "REPORTER_ACCOUNTS"
+  | "ADMIN_ACCOUNTS"
+  | "SKU_MASTER"
+  | "OPEN_REPORTS"
+  | "BUSINESS_HISTORY"
+  | "SERVICE_LOGS"
+  | "SESSIONS_DEVICES"
+  | "RUNTIME_SETTINGS"
+  | "CONFIRMATION_RELAY";
+
+export interface SystemResetPreview {
+  counts: Record<string, number>;
+  confirmation_relay: { counts: Record<string, number>; pending_jobs: number; status: string };
+  root_preserved: boolean;
+}
+
+export interface SystemResetChallenge {
+  status: string;
+  challenge_id: string;
+  expires_at: string;
+  email_hint: string;
+}
+
+export interface SystemResetResult {
+  status: string;
+  scopes: SystemResetScope[];
+  firebase_accounts_deleted: number;
+  firestore_documents_deleted: number;
+  root_preserved: boolean;
+  external_google_sheet_drive_untouched: boolean;
+  before?: Record<string, number>;
+  after?: Record<string, number>;
+}
+
 export interface SystemStatusSnapshot {
   generated_at: string;
   environment: string;
@@ -754,6 +790,33 @@ export async function getRuntimeLogs(source: "WEB" | "ANDROID", limit = 50): Pro
 export async function getRuntimeLogDetail(fileId: string): Promise<RuntimeLogDetail> {
   const params = new URLSearchParams({ file_id: fileId });
   return readJson(await authorizedFetch(`/api/admin/logs/file?${params.toString()}`));
+}
+
+export async function getSystemResetPreview(includeRelay = false): Promise<SystemResetPreview> {
+  const suffix = includeRelay ? "?relay=1" : "";
+  return readJson(await authorizedFetch(`/api/root/system-reset/preview${suffix}`));
+}
+
+export async function requestSystemResetChallenge(
+  scopes: SystemResetScope[],
+  password: string,
+): Promise<SystemResetChallenge> {
+  return readJson(await authorizedFetch("/api/root/system-reset/challenge", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ scopes, password }),
+  }));
+}
+
+export async function executeSystemReset(
+  challengeId: string,
+  code: string,
+): Promise<SystemResetResult> {
+  return readJson(await authorizedFetch("/api/root/system-reset/execute", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ challenge_id: challengeId, code }),
+  }));
 }
 
 export async function getSystemStatus(fresh = false): Promise<SystemStatusSnapshot> {
