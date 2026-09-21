@@ -1,15 +1,10 @@
 import { InventoryCore } from "./core";
 import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole } from "./auth";
 import {
-  agentAuthEmail,
-  agentFirebaseUid,
   effectiveAuthEmail,
-  importAgentPasswordIdentity,
   importPasswordIdentity,
   normalizeAuthEmail,
-  sendFirebasePasswordReset,
   signInWithFirebasePassword,
-  updateAgentFirebaseIdentity,
   updateFirebaseIdentity,
   type FirebaseManagedUserSpec,
 } from "./firebase-auth-admin";
@@ -284,7 +279,11 @@ async function ensureAgentFirebaseReady(env: Env, user: InternalUser): Promise<v
   if (user.base_role !== "ADMIN" || user.role !== "ADMIN") throw new Error("AGENT_ADMIN_REQUIRED");
   if (!user.password_hash || !user.password_salt || !user.firebase_uid) throw new Error("AGENT_PASSWORD_NOT_READY");
   if (Number(user.firebase_agent_ready || 0) === 1) return;
-  await importAgentPasswordIdentity(
+
+  // D100: Agent uses the same Firebase UID as Web/App. This update only
+  // normalizes the Firebase password identifier to the deterministic
+  // username-derived address; recovery email remains InventoryCore metadata.
+  await updateFirebaseIdentity(
     env.GOOGLE_RUNTIME_SA_JSON,
     env.FIREBASE_PROJECT_ID,
     firebaseUserSpec(user, String(user.firebase_uid)),
@@ -680,14 +679,6 @@ async function changePassword(request: Request, env: Env): Promise<Response> {
     firebaseUserSpec(user, uid),
     { password: nextPassword },
   );
-  if (user.base_role === "ADMIN") {
-    await updateAgentFirebaseIdentity(
-      env.GOOGLE_RUNTIME_SA_JSON,
-      env.FIREBASE_PROJECT_ID,
-      firebaseUserSpec(user, uid),
-      { password: nextPassword },
-    );
-  }
   await savePassword(env, user.user_id, nextPassword);
   await coreJson(env, "/auth/firebase-password-ready", {
     method: "PUT",
@@ -712,14 +703,8 @@ async function updateMyAuthEmail(request: Request, env: Env): Promise<Response> 
   let email = "";
   try { email = normalizeAuthEmail(body.email); } catch { return json({ error: "EMAIL_INVALID" }, 400); }
   if (!email) return json({ error: "EMAIL_REQUIRED" }, 400);
-  user = await ensureFirebasePasswordReady(env, user);
-  const uid = String(user.firebase_uid || "");
-  await updateFirebaseIdentity(
-    env.GOOGLE_RUNTIME_SA_JSON,
-    env.FIREBASE_PROJECT_ID,
-    firebaseUserSpec(user, uid),
-    { email },
-  );
+  // Recovery email is business metadata only. Firebase password sign-in keeps
+  // the deterministic username-derived identifier so Agent can stay Worker-independent.
   const saved = await coreJson<{ user: InternalUser | null }>(env, "/auth/set-email", {
     method: "PUT",
     headers: { "content-type": "application/json" },
