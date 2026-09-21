@@ -650,3 +650,21 @@ Accepted field evidence from the company Office network:
 No further Cloudflare Worker/custom-host Office probe is required for this workstream because Owner explicitly confirms that route is blocked/unavailable.
 
 Before any Google-hosted replacement is called transport PASS, Beta must prove the actual authenticated relay semantics rather than only a host probe. For the preferred Firestore candidate this includes request/result correlation, one sticky ACTIVE Agent, standby takeover at the approved failover threshold, no-Agent behavior, idempotency, sanitized logging and a quota-safe design. No WMS mutation and no Stable action are part of this gate.
+
+## D091 Firestore round-trip gate
+
+Source/build PASS requires:
+- locked Firestore Rules for `relay_poc_jobs`;
+- main-only Beta Firestore provisioning/readback workflow;
+- Agent v16 source using Firestore REST for the D091 listener;
+- signed next Beta APK source using Firestore REST for the D091 Picker test;
+- no RTDB fallback in the D091 Android client;
+- WMS mutation guard remains clean.
+
+Runtime/release PASS requires the Beta Firestore database/rules deployment, Agent prerelease and signed Beta APK pipelines to complete successfully.
+
+**Field PASS is separate and mandatory.** On the company Office network, one Picker request must complete:
+`PDA CREATE → Firestore → Agent READ → Agent ACK → Firestore → PDA GET → cleanup`.
+The PDA must render `KẾT NỐI PDA ↔ AGENT OK`, and sanitized Agent/PDA logs must correlate the request. A Firestore host 404/403/reachability probe is not PASS.
+
+This D091 field gate does not approve final HA or WMS mutation. After E2E PASS, validate quota-safe D085 multi-Agent/failover before selecting Firestore as final. If authenticated E2E transport fails, move to Apps Script.
