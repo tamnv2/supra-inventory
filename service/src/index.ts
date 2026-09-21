@@ -550,7 +550,7 @@ async function setRootEffectiveRole(request: Request, env: Env): Promise<Respons
     await coreStub(env).fetch("https://inventory-core.internal/realtime/close-user", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ user_id: actor.user_id }),
+      body: JSON.stringify({ user_id: actor.user_id, reason: "role-changed" }),
     });
   } catch {
     // HTTP authorization already uses the new effective role; realtime reconnect will refresh role projection.
