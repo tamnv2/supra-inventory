@@ -17,6 +17,7 @@ import { validateHrSheetSource } from "./hr-source";
 import { listRuntimeLogs, readRuntimeLog, uploadRuntimeLog } from "./runtime-logs";
 import { collectSystemStatus } from "./system-status";
 import { handleSystemResetApi } from "./system-reset";
+import { sendProjectEmail } from "./google-mail";
 
 export { InventoryCore };
 
@@ -119,6 +120,11 @@ function randomState(): string {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function hashRecoveryToken(value: string): Promise<string> {
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)));
+  return Array.from(digest, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 function readCookie(request: Request, name: string): string | null {
@@ -683,7 +689,7 @@ async function changePassword(request: Request, env: Env): Promise<Response> {
   await coreJson(env, "/auth/firebase-password-ready", {
     method: "PUT",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ user_id: user.user_id, firebase_uid: uid, auth_email: email }),
+    body: JSON.stringify({ user_id: user.user_id, firebase_uid: uid }),
   });
   if (user.base_role === "ADMIN") {
     await coreJson(env, "/auth/firebase-agent-ready", {
@@ -714,32 +720,129 @@ async function updateMyAuthEmail(request: Request, env: Env): Promise<Response> 
 }
 
 async function requestPasswordReset(request: Request, env: Env): Promise<Response> {
-  if (!env.FIREBASE_WEB_API_KEY) return json({ status: "accepted" }, 202);
   let body: { username?: string; email?: string } = {};
   try { body = (await request.json()) as { username?: string; email?: string }; } catch { body = {}; }
   const username = String(body.username || "").trim().toLowerCase();
-  let email = "";
-  try { email = normalizeAuthEmail(body.email); } catch { return json({ status: "accepted" }, 202); }
-  if (!/^[a-z0-9._-]{1,64}$/.test(username) || !email) return json({ status: "accepted" }, 202);
-  try {
-    let user = await getUserByUsername(env, username);
-    if (
-      user &&
-      user.status === "ACTIVE" &&
-      ["ROOT", "ADMIN"].includes(user.base_role) &&
-      user.auth_email &&
-      normalizeAuthEmail(user.auth_email) === email
-    ) {
-      user = await ensureFirebasePasswordReady(env, user);
-      await sendFirebasePasswordReset(env.FIREBASE_WEB_API_KEY, email);
-    }
-  } catch {
-    // Enumeration-safe response: callers always receive the same result.
-  }
-  return json({
+  let recoveryEmail = "";
+  try { recoveryEmail = normalizeAuthEmail(body.email); } catch { recoveryEmail = ""; }
+
+  const accepted = () => json({
     status: "accepted",
     message: "Nếu thông tin tài khoản và email khớp, hệ thống đã gửi liên kết đặt lại mật khẩu.",
   }, 202);
+
+  if (!/^[a-z0-9._-]{1,64}$/.test(username) || !recoveryEmail) return accepted();
+
+  let tokenHash = "";
+  try {
+    let user = await getUserByUsername(env, username);
+    if (
+      !user ||
+      user.status !== "ACTIVE" ||
+      !["ROOT", "ADMIN"].includes(user.base_role) ||
+      !user.auth_email ||
+      normalizeAuthEmail(user.auth_email) !== recoveryEmail
+    ) return accepted();
+
+    user = await ensureFirebasePasswordReady(env, user);
+    const token = randomState() + randomState();
+    tokenHash = await hashRecoveryToken(token);
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 15 * 60 * 1000).toISOString();
+    const stored = await coreStub(env).fetch("https://inventory-core.internal/auth/password-recovery/store", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        token_hash: tokenHash,
+        user_id: user.user_id,
+        created_at: now.toISOString(),
+        expires_at: expiresAt,
+      }),
+    });
+    if (!stored.ok) return accepted();
+
+    const origin = new URL(request.url).origin;
+    const link = origin + "/?password-reset=" + encodeURIComponent(token);
+    await sendProjectEmail(
+      env,
+      recoveryEmail,
+      "Đặt lại mật khẩu SUPRA Inventory",
+      [
+        "Bạn vừa yêu cầu đặt lại mật khẩu SUPRA Inventory.",
+        "",
+        "Mở liên kết sau để đặt mật khẩu mới:",
+        link,
+        "",
+        "Liên kết có hiệu lực trong 15 phút và chỉ dùng một lần.",
+        "Nếu bạn không yêu cầu thao tác này, hãy bỏ qua email.",
+      ].join("\r\n"),
+    );
+  } catch {
+    if (tokenHash) {
+      await coreStub(env).fetch("https://inventory-core.internal/auth/password-recovery/delete", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token_hash: tokenHash }),
+      }).catch(() => undefined);
+    }
+  }
+  return accepted();
+}
+
+async function confirmPasswordReset(request: Request, env: Env): Promise<Response> {
+  if (!env.GOOGLE_RUNTIME_SA_JSON || !env.FIREBASE_WEB_API_KEY) {
+    return json({ error: "AUTH_RUNTIME_NOT_CONFIGURED" }, 503);
+  }
+  let body: { token?: string; new_password?: string } = {};
+  try { body = (await request.json()) as { token?: string; new_password?: string }; } catch { body = {}; }
+  const token = String(body.token || "").trim();
+  const nextPassword = String(body.new_password || "");
+  if (!/^[a-f0-9]{128}$/i.test(token) || nextPassword.length < 8 || nextPassword.length > 128) {
+    return json({ error: "RECOVERY_TOKEN_OR_PASSWORD_INVALID", message: "Liên kết hoặc mật khẩu mới không hợp lệ." }, 400);
+  }
+
+  const tokenHash = await hashRecoveryToken(token);
+  const verifyResponse = await coreStub(env).fetch("https://inventory-core.internal/auth/password-recovery/verify", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ token_hash: tokenHash }),
+  });
+  const verified = (await verifyResponse.json()) as { status?: string; user_id?: string; error?: string };
+  if (!verifyResponse.ok || verified.status !== "valid" || !verified.user_id) {
+    return json({ error: verified.error || "RECOVERY_TOKEN_INVALID", message: "Liên kết đặt lại mật khẩu không còn hợp lệ." }, 400);
+  }
+
+  let user = await getUserById(env, verified.user_id);
+  if (!user || user.status !== "ACTIVE" || !["ROOT", "ADMIN"].includes(user.base_role)) {
+    return json({ error: "RECOVERY_USER_INVALID" }, 400);
+  }
+  user = await ensureFirebasePasswordReady(env, user);
+  const uid = String(user.firebase_uid || "");
+  await updateFirebaseIdentity(
+    env.GOOGLE_RUNTIME_SA_JSON,
+    env.FIREBASE_PROJECT_ID,
+    firebaseUserSpec(user, uid),
+    { password: nextPassword },
+  );
+  await savePassword(env, user.user_id, nextPassword);
+  await coreJson(env, "/auth/firebase-password-ready", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ user_id: user.user_id, firebase_uid: uid }),
+  });
+  if (user.base_role === "ADMIN") {
+    await coreJson(env, "/auth/firebase-agent-ready", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ user_id: user.user_id }),
+    });
+  }
+  await coreStub(env).fetch("https://inventory-core.internal/auth/password-recovery/consume", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ token_hash: tokenHash }),
+  });
+  return json({ status: "password_reset", message: "Đã đặt lại mật khẩu. Hãy đăng nhập lại." });
 }
 
 async function logoutInteractiveSession(request: Request, env: Env): Promise<Response> {
@@ -867,6 +970,7 @@ export default {
       if (request.method === "POST" && url.pathname === "/api/auth/refresh") return refreshSession(request, env);
       if (request.method === "POST" && url.pathname === "/api/auth/logout") return logoutInteractiveSession(request, env);
       if (request.method === "POST" && url.pathname === "/api/auth/password-reset") return requestPasswordReset(request, env);
+      if (request.method === "POST" && url.pathname === "/api/auth/password-reset/confirm") return confirmPasswordReset(request, env);
       if (request.method === "GET" && url.pathname === "/api/auth/me") return json({ user: publicUser(await requireUser(request, env)) });
       if (request.method === "PUT" && url.pathname === "/api/auth/root-role") return setRootEffectiveRole(request, env);
       if (request.method === "PUT" && url.pathname === "/api/auth/change-password") return changePassword(request, env);
