@@ -824,3 +824,18 @@ Technical PASS requires all existing authority/continuity/build/deploy guards pl
 11. **Stable**: no Stable deploy/release/resource mutation.
 
 Owner physical acceptance follows technical Beta release and covers cross-device replacement, Office direct Firebase Agent auth, realtime behavior and one controlled specialist direct-confirm scenario.
+
+
+## D099 acceptance matrix
+
+Technical/runtime PASS requires:
+
+1. Identity Toolkit Beta config readback shows Email/Password enabled and password-required.
+2. Ephemeral synthetic PBKDF2-SHA256 (100,000 rounds) user import signs in successfully with `signInWithPassword`, then is deleted.
+3. Web and Android real legacy accounts can authenticate with their existing password; wrong password remains rejected.
+4. Migration self-heal runs only after canonical InventoryCore hash verification; it never accepts an unverified password or logs plaintext/hash/salt.
+5. Agent direct login uses registered ADMIN email, verifies ADMIN/base ADMIN claims, and does not call Inventory Worker.
+6. Before Agent auth, Supra region and WMS restore/capture are unavailable. After auth PASS, existing WMS restore/preload/capture resumes.
+7. Enter on Agent email/password invokes Login; Enter on eligible PickList input invokes Search; Android Enter/Done invokes Login; Web Enter continues form submit.
+8. Overlay can be configured smaller than 420×64, including 120×32, and persists/reloads without being clamped back to legacy dimensions.
+9. D097 PRIMARY/STANDBY/FROZEN, D096 confirmation success semantics, Báo hàng Worker path and Stable guard regressions all remain PASS.
