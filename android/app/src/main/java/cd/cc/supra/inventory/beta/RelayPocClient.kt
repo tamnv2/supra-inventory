@@ -62,7 +62,7 @@ class RelayPocClient(
     private val onProgress: (String) -> Unit = {},
 ) {
     private companion object {
-        const val PENDING_CLAIM_WAIT_MS = 30_000L
+        const val PENDING_NOTICE_MS = 30_000L
         const val TOTAL_WAIT_MS = 120_000L
     }
 
@@ -133,26 +133,42 @@ class RelayPocClient(
             onProgress("Đã gửi Firestore #" + shortId(requestId) + " · đang chờ Agent...")
 
             val deadline = SystemClock.elapsedRealtime() + TOTAL_WAIT_MS
+            var lastStatus = "PENDING"
+            var lastUpdateTime = ""
             while (SystemClock.elapsedRealtime() < deadline) {
-                val raw = executeJson(
-                    Request.Builder()
-                        .url(documentUrl)
-                        .get()
-                        .header("Authorization", "Bearer " + session.idToken)
-                        .header("Accept", "application/json")
-                        .build(),
-                    "GET"
-                )
+                val raw = try {
+                    executeJson(
+                        Request.Builder()
+                            .url(documentUrl)
+                            .get()
+                            .header("Authorization", "Bearer " + session.idToken)
+                            .header("Accept", "application/json")
+                            .build(),
+                        "GET"
+                    )
+                } catch (error: RelayHttpException) {
+                    throw error
+                } catch (error: IOException) {
+                    log(
+                        "D095 Firestore GET tạm lỗi request=" + shortId(requestId) +
+                            " · tiếp tục chờ trong giới hạn 120s"
+                    )
+                    onProgress("Mạng PDA tạm gián đoạn · đang tiếp tục chờ Agent #" + shortId(requestId))
+                    Thread.sleep(1_000L)
+                    continue
+                }
+
                 val root = try { JSONObject(raw) } catch (_: Exception) { JSONObject() }
                 val docFields = root.optJSONObject("fields") ?: JSONObject()
                 val currentStatus = fieldString(docFields, "status")
+                if (currentStatus.isNotBlank()) lastStatus = currentStatus
+                val currentUpdateTime = root.optString("updateTime").trim()
+                if (currentUpdateTime.isNotBlank()) lastUpdateTime = currentUpdateTime
+
                 if (currentStatus == "PENDING" &&
-                    SystemClock.elapsedRealtime() - started >= PENDING_CLAIM_WAIT_MS
+                    SystemClock.elapsedRealtime() - started >= PENDING_NOTICE_MS
                 ) {
-                    val updateTime = root.optString("updateTime").trim()
-                    if (cancelPending(documentUrl, updateTime, session.idToken)) {
-                        throw IOException("Không có Agent xử lý online cho request #" + shortId(requestId) + ". Vui lòng về bàn chuyên viên xử lý trực tiếp.")
-                    }
+                    onProgress("Agent chưa nhận · vẫn tiếp tục kết nối #" + shortId(requestId))
                 } else if (currentStatus == "PENDING" &&
                     SystemClock.elapsedRealtime() - started >= 12_000L
                 ) {
@@ -192,9 +208,22 @@ class RelayPocClient(
                 Thread.sleep(1_000L)
             }
 
-            throw SocketTimeoutException("Yêu cầu đã xử lý quá 120 giây nhưng chưa có kết quả cuối. Không bấm lại; vui lòng về bàn chuyên viên kiểm tra trên SFT / SFT 3.")
+            if (lastStatus == "PENDING" &&
+                cancelPending(documentUrl, lastUpdateTime, session.idToken)
+            ) {
+                throw IOException(
+                    "Không có Agent nhận request #" + shortId(requestId) +
+                        " sau 120 giây. Vui lòng về bàn chuyên viên xử lý trực tiếp."
+                )
+            }
+
+            throw SocketTimeoutException(
+                "Request #" + shortId(requestId) +
+                    " đã được Agent nhận hoặc trạng thái chưa chắc chắn nhưng chưa có kết quả cuối sau 120 giây. " +
+                    "Không bấm lại; vui lòng về bàn chuyên viên kiểm tra trên SFT / SFT 3."
+            )
         } catch (error: SocketTimeoutException) {
-            log("D094 Firestore timeout request=" + shortId(requestId))
+            log("D095 Firestore timeout request=" + shortId(requestId))
             throw IOException(error.message ?: "Chưa nhận được kết quả từ Agent Office.", error)
         } finally {
             if (cleanupAfterAck) cleanup(documentUrl, session.idToken)
