@@ -793,6 +793,7 @@ export class InventoryCore {
                 android_session_device_id = NULL,
                 android_session_started_at = NULL,
                 firebase_password_ready = 0,
+                firebase_agent_ready = CASE WHEN role = 'ADMIN' THEN 0 ELSE firebase_agent_ready END,
                 updated_at = CURRENT_TIMESTAMP
           WHERE user_id = ?`,
         body.password_salt,
