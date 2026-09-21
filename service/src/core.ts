@@ -715,20 +715,17 @@ export class InventoryCore {
     }
 
     if (request.method === "PUT" && url.pathname === "/auth/firebase-password-ready") {
-      const body = (await request.json()) as { user_id?: string; firebase_uid?: string; auth_email?: string };
+      const body = (await request.json()) as { user_id?: string; firebase_uid?: string };
       const userId = String(body.user_id || "").trim();
       const uid = String(body.firebase_uid || "").trim();
-      const email = String(body.auth_email || "").trim().toLowerCase();
-      if (!userId || !uid || !email) return response({ error: "invalid_input" }, 400);
+      if (!userId || !uid) return response({ error: "invalid_input" }, 400);
       this.state.storage.sql.exec(
         `UPDATE users
             SET firebase_uid = ?,
-                auth_email = ?,
                 firebase_password_ready = 1,
                 updated_at = CURRENT_TIMESTAMP
           WHERE user_id = ?`,
         uid,
-        email,
         userId,
       );
       return response({ status: "firebase_password_ready" });
