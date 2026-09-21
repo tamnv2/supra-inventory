@@ -663,7 +663,7 @@ namespace SupraInventoryRelayAgent
             _agentAuthStatus.ForeColor = Color.FromArgb(180, 76, 60);
             agentCard.Controls.Add(_agentAuthStatus);
 
-            agentCard.Controls.Add(new Label { Left = 18, Top = 72, Width = 170, Height = 20, Text = "Tài khoản / email ADMIN" });
+            agentCard.Controls.Add(new Label { Left = 18, Top = 72, Width = 170, Height = 20, Text = "Email ADMIN đăng ký" });
             _username.SetBounds(18, 94, 290, 28);
             agentCard.Controls.Add(_username);
             agentCard.Controls.Add(new Label { Left = 326, Top = 72, Width = 120, Height = 20, Text = "Mật khẩu" });
@@ -1700,14 +1700,11 @@ namespace SupraInventoryRelayAgent
         private static string ResolveAdminFirebaseEmail(string identifier)
         {
             var value = (identifier ?? "").Trim().ToLowerInvariant();
-            if (value.Length == 0) throw new InvalidOperationException("Nhập tài khoản hoặc email ADMIN.");
-            if (value.IndexOf("@", StringComparison.Ordinal) > 0) return value;
-            if (!Regex.IsMatch(value, "^[a-z0-9._-]{1,64}$"))
-                throw new InvalidOperationException("Tài khoản ADMIN không hợp lệ.");
-            var seed = Regex.Replace(value, "[^a-z0-9._-]", "-").Trim('-');
-            if (seed.Length > 44) seed = seed.Substring(0, 44);
-            if (seed.Length == 0) seed = "user";
-            return "admin." + seed + "@auth.supra.invalid";
+            if (value.Length == 0)
+                throw new InvalidOperationException("Nhập email ADMIN đã đăng ký.");
+            if (!Regex.IsMatch(value, "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"))
+                throw new InvalidOperationException("Agent đăng nhập trực tiếp Firebase: vui lòng dùng email ADMIN đã đăng ký, không dùng username.");
+            return value;
         }
 
         private AgentSession FirebasePasswordLoginDirect(string identifier, string password)
