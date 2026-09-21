@@ -4,6 +4,8 @@ export interface GoogleMailEnv {
   GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN?: string;
 }
 
+const GMAIL_SEND_SCOPE = "https://www.googleapis.com/auth/gmail.send";
+
 async function refreshGoogleAccessToken(env: GoogleMailEnv): Promise<string> {
   if (!env.GOOGLE_DRIVE_OAUTH_CLIENT_ID || !env.GOOGLE_DRIVE_OAUTH_CLIENT_SECRET || !env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN) {
     throw new Error("GOOGLE_MAIL_OAUTH_NOT_CONFIGURED");
@@ -18,11 +20,51 @@ async function refreshGoogleAccessToken(env: GoogleMailEnv): Promise<string> {
       grant_type: "refresh_token",
     }),
   });
-  const payload = (await response.json()) as { access_token?: string; error?: string; error_description?: string };
+  const payload = (await response.json()) as {
+    access_token?: string;
+    scope?: string;
+    error?: string;
+    error_description?: string;
+  };
   if (!response.ok || !payload.access_token) {
     throw new Error(`GOOGLE_MAIL_OAUTH_FAILED:${payload.error_description || payload.error || response.status}`);
   }
+  if (payload.scope && !payload.scope.split(/\s+/).includes(GMAIL_SEND_SCOPE)) {
+    throw new Error("GOOGLE_MAIL_SCOPE_MISSING");
+  }
   return payload.access_token;
+}
+
+function gmailFailureCode(status: number, payload: unknown): string {
+  const body = payload && typeof payload === "object" ? payload as {
+    error?: {
+      message?: string;
+      status?: string;
+      errors?: Array<{ reason?: string }>;
+    };
+  } : {};
+  const reason = String(body.error?.errors?.[0]?.reason || "").trim();
+  const message = String(body.error?.message || "").toLowerCase();
+  if (status === 401 || reason === "authError") return "GOOGLE_MAIL_AUTH_FAILED";
+  if (
+    reason === "accessNotConfigured" ||
+    message.includes("gmail api has not been used") ||
+    message.includes("gmail api") && message.includes("disabled")
+  ) return "GOOGLE_MAIL_GMAIL_API_DISABLED";
+  if (
+    reason === "insufficientPermissions" ||
+    message.includes("insufficient authentication scopes") ||
+    message.includes("insufficient permission")
+  ) return "GOOGLE_MAIL_SCOPE_MISSING";
+  if (reason === "domainPolicy") return "GOOGLE_MAIL_DOMAIN_POLICY";
+  if (
+    status === 429 ||
+    reason === "rateLimitExceeded" ||
+    reason === "userRateLimitExceeded" ||
+    reason === "dailyLimitExceeded"
+  ) return "GOOGLE_MAIL_PROVIDER_RATE_LIMIT";
+  const safeReason = reason.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 48);
+  return `GOOGLE_MAIL_SEND_FAILED_HTTP_${status}${safeReason ? `_${safeReason}` : ""}`;
 }
 
 function base64UrlUtf8(value: string): string {
@@ -62,6 +104,8 @@ export async function sendProjectEmail(
     body: JSON.stringify({ raw: base64UrlUtf8(raw) }),
   });
   if (!response.ok) {
-    throw new Error(`GOOGLE_MAIL_SEND_FAILED_HTTP_${response.status}`);
+    let payload: unknown = null;
+    try { payload = await response.json(); } catch { payload = null; }
+    throw new Error(gmailFailureCode(response.status, payload));
   }
 }
