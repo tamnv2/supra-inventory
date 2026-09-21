@@ -734,3 +734,25 @@ Physical field PASS is separate:
 4. On a normal network and on Office where practical, send one controlled PDA request and note the displayed short request ID.
 5. Agent technical/audit logs must show the same ID reaching `pending-found`, conditional claim and response/ACK. If CREATE succeeds on PDA but the Agent never logs that ID, the receive path is not PASS.
 6. OA013 real WMS confirmation remains blocked until this D094 relay field gate passes.
+
+## D095 Firestore job visibility and dual-network acceptance
+
+Automated/source PASS requires:
+- Windows Agent is v20 or later and startup-smoke passes.
+- Firestore `runQuery` root and list fallback document arrays are consumed through `IEnumerable` semantics; source must not cast `DeserializeObject(raw)` or Firestore `documents` arrays to `ArrayList`.
+- Structured query remains bounded and returns current `PENDING` work; client-side validation still requires `source=ANDROID_CONFIRM_V1`, exact request ID, five numeric suffix, Picker UID and Picker application user ID.
+- Firestore polling telemetry reports response-row count and validated pending count, so an empty result can be distinguished from parser loss.
+- Safe Firestore reads use three bounded attempts across default/fresh Windows proxy routes; WMS corporate fallback proxy remains forbidden for Firestore.
+- Agent refreshes the process default Windows proxy when Windows network addressing changes.
+- Android retains a created PENDING confirmation job for the full 120-second wait. Thirty seconds is notification-only; it is not a deletion boundary.
+- Terminal conditional cleanup may delete only PENDING. PROCESSING remains no-delete/no-auto-retry.
+- Báo hàng source remains `InventoryApi.createPickerReport(...)`; confirmation remains `RelayPocClient.sendProbe(...)` and the confirmation client contains no Báo hàng report mutation route.
+- D092 claim/idempotency/anti-spam/exact PickListCode/only-authorized WMS mutation guards remain PASS.
+- Stable remains untouched.
+
+Physical field PASS is separate and requires released D095 artifacts:
+1. With PDA on its normal Internet network and Agent on a normal Internet network, send one controlled Xác nhận đơn request. The short PDA request ID must appear in Agent `pending-found`, `CLAIM PASS`, and final ACK/response.
+2. Put the Agent on the company Office network without changing the PDA's normal network. Repeat with a new request ID; the same correlation must complete through Firestore.
+3. If the Agent network is switched while a PENDING job exists, the job must remain available through the bounded reconnect window rather than disappearing at 30 seconds.
+4. Separately submit one normal Báo hàng item from the PDA and confirm it still succeeds through the existing Worker/InventoryCore path independently of Agent state.
+5. Only after both Agent-network cases and path separation PASS may OA013 real WMS confirmation resume.
