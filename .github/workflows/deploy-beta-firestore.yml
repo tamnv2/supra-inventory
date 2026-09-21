@@ -134,8 +134,26 @@ jobs:
             )' <<<"$existing" >/dev/null; then
             echo "D097 pending queue composite index already exists"
           else
-            gcloud firestore indexes composite create               --project="$project"               --database="$database"               --collection-group="relay_poc_jobs"               --query-scope="collection"               --field-config="field-path=status,order=ascending"               --field-config="field-path=created_at,order=ascending"               --async               --quiet
-            echo "D097 pending queue composite index creation requested"
+            set +e
+            create_output="$(gcloud firestore indexes composite create \
+              --project="$project" \
+              --database="$database" \
+              --collection-group="relay_poc_jobs" \
+              --query-scope="collection" \
+              --field-config="field-path=status,order=ascending" \
+              --field-config="field-path=created_at,order=ascending" \
+              --async \
+              --quiet 2>&1)"
+            create_status=$?
+            set -e
+            if [ "$create_status" -eq 0 ]; then
+              echo "D097 pending queue composite index creation requested"
+            elif grep -q "ALREADY_EXISTS" <<<"$create_output"; then
+              echo "D097 pending queue composite index already exists (create idempotency PASS)"
+            else
+              printf '%s\n' "$create_output" >&2
+              exit "$create_status"
+            fi
           fi
 
       - name: Deploy Firestore Rules via Rules Management API on main
