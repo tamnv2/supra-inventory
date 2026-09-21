@@ -13,7 +13,7 @@ import {
 } from "./sla-automation";
 import { sendFcmNotifications } from "./fcm";
 
-const SCHEMA_VERSION = 8;
+const SCHEMA_VERSION = 9;
 
 interface CoreEnv {
   APP_ENV: string;
@@ -36,8 +36,16 @@ interface InternalUser extends Record<string, SqlStorageValue> {
   password_salt: string | null;
   password_hash: string | null;
   password_changed_at: string | null;
+  auth_email: string | null;
+  firebase_password_ready: number;
   session_generation: number;
   session_started_at: string | null;
+  web_session_generation: number;
+  web_session_device_id: string | null;
+  web_session_started_at: string | null;
+  android_session_generation: number;
+  android_session_device_id: string | null;
+  android_session_started_at: string | null;
 }
 
 function response(payload: unknown, status = 200): Response {
@@ -252,6 +260,14 @@ export class InventoryCore {
     if (!this.hasColumn("users", "role_override")) sql.exec("ALTER TABLE users ADD COLUMN role_override TEXT");
     if (!this.hasColumn("users", "session_generation")) sql.exec("ALTER TABLE users ADD COLUMN session_generation INTEGER NOT NULL DEFAULT 0");
     if (!this.hasColumn("users", "session_started_at")) sql.exec("ALTER TABLE users ADD COLUMN session_started_at TEXT");
+    if (!this.hasColumn("users", "auth_email")) sql.exec("ALTER TABLE users ADD COLUMN auth_email TEXT");
+    if (!this.hasColumn("users", "firebase_password_ready")) sql.exec("ALTER TABLE users ADD COLUMN firebase_password_ready INTEGER NOT NULL DEFAULT 0");
+    if (!this.hasColumn("users", "web_session_generation")) sql.exec("ALTER TABLE users ADD COLUMN web_session_generation INTEGER NOT NULL DEFAULT 0");
+    if (!this.hasColumn("users", "web_session_device_id")) sql.exec("ALTER TABLE users ADD COLUMN web_session_device_id TEXT");
+    if (!this.hasColumn("users", "web_session_started_at")) sql.exec("ALTER TABLE users ADD COLUMN web_session_started_at TEXT");
+    if (!this.hasColumn("users", "android_session_generation")) sql.exec("ALTER TABLE users ADD COLUMN android_session_generation INTEGER NOT NULL DEFAULT 0");
+    if (!this.hasColumn("users", "android_session_device_id")) sql.exec("ALTER TABLE users ADD COLUMN android_session_device_id TEXT");
+    if (!this.hasColumn("users", "android_session_started_at")) sql.exec("ALTER TABLE users ADD COLUMN android_session_started_at TEXT");
 
     initializeBusinessSchema(this.state);
     initializeOperationalV2Schema(this.state);
@@ -476,7 +492,10 @@ export class InventoryCore {
               role_override,
               status,
               password_salt, password_hash, password_changed_at,
-              session_generation, session_started_at
+              auth_email, firebase_password_ready,
+              session_generation, session_started_at,
+              web_session_generation, web_session_device_id, web_session_started_at,
+              android_session_generation, android_session_device_id, android_session_started_at
          FROM users
         WHERE lower(employee_code) = lower(?) OR lower(user_id) = lower(?)
         LIMIT 1`,
@@ -516,7 +535,10 @@ export class InventoryCore {
               role_override,
               status,
               password_salt, password_hash, password_changed_at,
-              session_generation, session_started_at
+              auth_email, firebase_password_ready,
+              session_generation, session_started_at,
+              web_session_generation, web_session_device_id, web_session_started_at,
+              android_session_generation, android_session_device_id, android_session_started_at
          FROM users WHERE firebase_uid = ? LIMIT 1`,
       uid,
     ).toArray();
@@ -556,27 +578,125 @@ export class InventoryCore {
     }
 
     if (request.method === "PUT" && url.pathname === "/auth/activate-session") {
-      const body = (await request.json()) as { user_id?: string };
+      const body = (await request.json()) as {
+        user_id?: string;
+        channel?: string;
+        device_id?: string;
+        force?: boolean;
+      };
       const userId = String(body.user_id || "").trim();
-      if (!userId) return response({ error: "invalid_input" }, 400);
-      const exists = this.state.storage.sql.exec<{ user_id: string }>(
-        "SELECT user_id FROM users WHERE user_id = ? LIMIT 1",
+      const channel = String(body.channel || "").trim().toUpperCase();
+      const deviceId = String(body.device_id || "").trim().slice(0, 160);
+      if (!userId || !["WEB", "ANDROID"].includes(channel) || !deviceId) {
+        return response({ error: "invalid_input" }, 400);
+      }
+      const columnPrefix = channel === "WEB" ? "web" : "android";
+      const current = this.state.storage.sql.exec<{
+        generation: number;
+        device_id: string | null;
+        started_at: string | null;
+      }>(
+        `SELECT ${columnPrefix}_session_generation AS generation,
+                ${columnPrefix}_session_device_id AS device_id,
+                ${columnPrefix}_session_started_at AS started_at
+           FROM users WHERE user_id = ? LIMIT 1`,
         userId,
       ).toArray()[0];
-      if (!exists) return response({ error: "user_not_found" }, 404);
+      if (!current) return response({ error: "user_not_found" }, 404);
+      if (
+        current.device_id &&
+        current.device_id !== deviceId &&
+        !body.force
+      ) {
+        return response({
+          error: "SESSION_ACTIVE_OTHER_DEVICE",
+          channel,
+          started_at: current.started_at,
+        }, 409);
+      }
       this.state.storage.sql.exec(
         `UPDATE users
-            SET session_generation = COALESCE(session_generation, 0) + 1,
-                session_started_at = CURRENT_TIMESTAMP,
+            SET ${columnPrefix}_session_generation = COALESCE(${columnPrefix}_session_generation, 0) + 1,
+                ${columnPrefix}_session_device_id = ?,
+                ${columnPrefix}_session_started_at = CURRENT_TIMESTAMP,
                 updated_at = CURRENT_TIMESTAMP
           WHERE user_id = ?`,
+        deviceId,
         userId,
       );
-      const row = this.state.storage.sql.exec<{ session_generation: number }>(
-        "SELECT session_generation FROM users WHERE user_id = ? LIMIT 1",
+      const row = this.state.storage.sql.exec<{ generation: number }>(
+        `SELECT ${columnPrefix}_session_generation AS generation
+           FROM users WHERE user_id = ? LIMIT 1`,
         userId,
       ).toArray()[0];
-      return response({ session_generation: Number(row?.session_generation || 0) });
+      return response({
+        session_generation: Number(row?.generation || 0),
+        channel,
+        replaced_other_device: Boolean(current.device_id && current.device_id !== deviceId),
+      });
+    }
+
+    if (request.method === "PUT" && url.pathname === "/auth/end-session") {
+      const body = (await request.json()) as {
+        user_id?: string;
+        channel?: string;
+        generation?: number;
+        device_id?: string;
+      };
+      const userId = String(body.user_id || "").trim();
+      const channel = String(body.channel || "").trim().toUpperCase();
+      const deviceId = String(body.device_id || "").trim().slice(0, 160);
+      const generation = Number(body.generation || 0);
+      if (!userId || !["WEB", "ANDROID"].includes(channel) || !deviceId || !Number.isFinite(generation) || generation <= 0) {
+        return response({ error: "invalid_input" }, 400);
+      }
+      const prefix = channel === "WEB" ? "web" : "android";
+      this.state.storage.sql.exec(
+        `UPDATE users
+            SET ${prefix}_session_device_id = NULL,
+                ${prefix}_session_started_at = NULL,
+                updated_at = CURRENT_TIMESTAMP
+          WHERE user_id = ?
+            AND ${prefix}_session_generation = ?
+            AND ${prefix}_session_device_id = ?`,
+        userId,
+        Math.trunc(generation),
+        deviceId,
+      );
+      return response({ status: "ended", channel });
+    }
+
+    if (request.method === "PUT" && url.pathname === "/auth/firebase-password-ready") {
+      const body = (await request.json()) as { user_id?: string; firebase_uid?: string; auth_email?: string };
+      const userId = String(body.user_id || "").trim();
+      const uid = String(body.firebase_uid || "").trim();
+      const email = String(body.auth_email || "").trim().toLowerCase();
+      if (!userId || !uid || !email) return response({ error: "invalid_input" }, 400);
+      this.state.storage.sql.exec(
+        `UPDATE users
+            SET firebase_uid = ?,
+                auth_email = ?,
+                firebase_password_ready = 1,
+                updated_at = CURRENT_TIMESTAMP
+          WHERE user_id = ?`,
+        uid,
+        email,
+        userId,
+      );
+      return response({ status: "firebase_password_ready" });
+    }
+
+    if (request.method === "PUT" && url.pathname === "/auth/set-email") {
+      const body = (await request.json()) as { user_id?: string; auth_email?: string };
+      const userId = String(body.user_id || "").trim();
+      const email = String(body.auth_email || "").trim().toLowerCase();
+      if (!userId || !email) return response({ error: "invalid_input" }, 400);
+      this.state.storage.sql.exec(
+        "UPDATE users SET auth_email = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?",
+        email,
+        userId,
+      );
+      return response({ status: "email_saved", user: this.getUserById(userId) });
     }
 
     if (request.method === "PUT" && url.pathname === "/auth/link-firebase-uid") {
@@ -620,6 +740,13 @@ export class InventoryCore {
                 password_changed_at = CURRENT_TIMESTAMP,
                 session_generation = COALESCE(session_generation, 0) + 1,
                 session_started_at = CURRENT_TIMESTAMP,
+                web_session_generation = COALESCE(web_session_generation, 0) + 1,
+                web_session_device_id = NULL,
+                web_session_started_at = NULL,
+                android_session_generation = COALESCE(android_session_generation, 0) + 1,
+                android_session_device_id = NULL,
+                android_session_started_at = NULL,
+                firebase_password_ready = 0,
                 updated_at = CURRENT_TIMESTAMP
           WHERE user_id = ?`,
         body.password_salt,
