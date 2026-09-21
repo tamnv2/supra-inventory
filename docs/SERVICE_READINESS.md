@@ -8,9 +8,9 @@
 - SQLite schema: `8`
 - Latest signed Beta APK: `beta-vc57`
 - Current released Agent: `relay-agent-v18`
-- Beta: `D091_FIRESTORE_INFRA_RUNTIME_PASS__D089_OWNER_ACCEPTED_UI_BASELINE__SIGNED_BETA_VC55__AGENT_V16__PHYSICAL_OFFICE_E2E_PENDING`
+- Beta: `D094_AGENT_AUTH_RELAY_RECEIVE_SOURCE_READY__CURRENT_RELEASE_V18_VC57__OA015_AFTER_RELEASE__OA013_BLOCKED`
 - Web: `D089_OWNER_ACCEPTED_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON`
-- Android: `D091_SIGNED_BETA_VC55_FIRESTORE_FIELD_CANDIDATE_RELEASED__D089_OWNER_ACCEPTED_UI_BASELINE`
+- Android: `D094_REQUEST_CORRELATION_SOURCE_READY__CURRENT_RELEASE_BETA_VC57__NEXT_SIGNED_RELEASE_PENDING`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -78,3 +78,13 @@ No manual end-of-session handover is required. GitHub canonical state remains th
 - Signed `beta-vc57` is published and verified; APK SHA-256: `f655844b1222787938cacf169ca2f158630ab536b0a9c252f19f56d60cc3ce19`.
 - OA014 is READY_FOR_OWNER_FIELD_TEST. OA013 is blocked until OA014 PASS.
 - Stable remains OWNER-GATED.
+
+## D094 current repair checkpoint — 2026-09-21
+
+- Owner field log from released v18 confirms saved ADMIN DPAPI session/Firebase refresh and WMS restore work, while no PDA request reached Agent claim/ACK.
+- Manual Firestore probe could return HTTP 200 while the D093 helper intermittently used DIRECT and failed DNS/connect; D094 restores the D091-proven default Windows proxy path first, with fresh-system proxy only as a bounded safe-read retry.
+- Agent v19 source adds persistent-login UX completion: authenticated login controls dim/disable, explicit Logout clears the saved application session, next login replaces identity, and Overview shows Agent verification state.
+- Confirmation receive uses a direct `PENDING + ANDROID_CONFIRM_V1` Firestore query with bounded newest-first fallback instead of an arbitrary first collection page.
+- PDA source shows the short request ID after CREATE so Agent `pending-found → claim → ACK` can be correlated.
+- Current released artifacts remain `relay-agent-v18` + `beta-vc57` until D094 merges/releases.
+- Next field gate is OA015 after release. OA013 real WMS confirmation remains blocked. Stable remains OWNER-GATED.
