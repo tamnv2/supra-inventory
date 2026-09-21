@@ -581,6 +581,31 @@ export class InventoryCore {
       return response({ user: uid ? this.getUserByFirebaseUid(uid) : null });
     }
 
+    if (request.method === "GET" && url.pathname === "/auth/firebase-migration-candidates") {
+      const role = String(url.searchParams.get("role") || "").trim().toUpperCase();
+      const limit = Math.max(1, Math.min(100, Number(url.searchParams.get("limit") || 20)));
+      if (!["ADMIN", "ROOT", "REPORTER", "PICKER"].includes(role)) {
+        return response({ error: "invalid_role" }, 400);
+      }
+      const rows = this.state.storage.sql.exec<InternalUser>(
+        `SELECT user_id, firebase_uid, employee_code, display_name,
+                role AS role, role AS base_role, role_override, status,
+                password_salt, password_hash, password_changed_at,
+                auth_email, firebase_password_ready,
+                session_generation, session_started_at,
+                web_session_generation, web_session_device_id, web_session_started_at,
+                android_session_generation, android_session_device_id, android_session_started_at
+           FROM users
+          WHERE role = ? AND status = 'ACTIVE'
+            AND COALESCE(firebase_password_ready, 0) = 0
+          ORDER BY user_id ASC
+          LIMIT ?`,
+        role,
+        limit,
+      ).toArray();
+      return response({ items: rows, count: rows.length });
+    }
+
     if (request.method === "PUT" && url.pathname === "/auth/activate-session") {
       const body = (await request.json()) as {
         user_id?: string;
