@@ -1,5 +1,5 @@
 import { hashPassword, interactiveSessionError, readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
-import { importAgentPasswordIdentity, importPasswordIdentity, updateAgentFirebaseIdentity, updateFirebaseIdentity, type FirebaseManagedUserSpec } from "./firebase-auth-admin";
+import { importPasswordIdentity, updateFirebaseIdentity, type FirebaseManagedUserSpec } from "./firebase-auth-admin";
 import { readHrEmployees, type StoredHrSource } from "./hr-sync";
 import { validateHrSheetSource } from "./hr-source";
 
@@ -59,11 +59,11 @@ async function linkFirebaseUid(env: Env, userId: string, uid: string): Promise<v
   if (!response.ok) throw new Error("FIREBASE_UID_LINK_FAILED");
 }
 
-async function markFirebaseReady(env: Env, userId: string, uid: string, email: string): Promise<void> {
+async function markFirebaseReady(env: Env, userId: string, uid: string): Promise<void> {
   const response = await core(env).fetch("https://inventory-core.internal/auth/firebase-password-ready", {
     method: "PUT",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ user_id: userId, firebase_uid: uid, auth_email: email }),
+    body: JSON.stringify({ user_id: userId, firebase_uid: uid }),
   });
   if (!response.ok) throw new Error("FIREBASE_READY_MARK_FAILED");
 }
@@ -117,24 +117,12 @@ async function provisionManagedCredential(
     );
     email = result.email;
   }
-  await markFirebaseReady(env, user.user_id, uid, email);
+  await markFirebaseReady(env, user.user_id, uid);
   const primaryReady = (await coreUserById(env, user.user_id)) || { ...user, firebase_uid: uid, auth_email: email, firebase_password_ready: true };
   if ((primaryReady.base_role || primaryReady.role) === "ADMIN") {
-    if (Boolean(primaryReady.firebase_agent_ready)) {
-      await updateAgentFirebaseIdentity(
-        env.GOOGLE_RUNTIME_SA_JSON,
-        env.FIREBASE_PROJECT_ID,
-        firebaseSpec(primaryReady, uid, derived),
-        { password: plainPassword },
-      );
-    } else {
-      await importAgentPasswordIdentity(
-        env.GOOGLE_RUNTIME_SA_JSON,
-        env.FIREBASE_PROJECT_ID,
-        firebaseSpec(primaryReady, uid, derived),
-      );
-      await markAgentFirebaseReady(env, user.user_id);
-    }
+    // Same Firebase UID serves Web/App/Agent. Mark the direct Agent username
+    // path ready after the primary credential is synchronized.
+    await markAgentFirebaseReady(env, user.user_id);
   }
   return (await coreUserById(env, user.user_id)) || primaryReady;
 }
@@ -237,15 +225,10 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
           firebaseSpec({ ...before, ...updated }, String(updated.firebase_uid)),
           { email: updated.auth_email || undefined },
         );
-        await markFirebaseReady(env, updated.user_id, String(updated.firebase_uid), synced.email);
+        await markFirebaseReady(env, updated.user_id, String(updated.firebase_uid));
         updated.auth_email = synced.email;
         updated.firebase_password_ready = true;
         if ((updated.base_role || updated.role) === "ADMIN") {
-          await updateAgentFirebaseIdentity(
-            env.GOOGLE_RUNTIME_SA_JSON,
-            env.FIREBASE_PROJECT_ID,
-            firebaseSpec({ ...before, ...updated }, String(updated.firebase_uid)),
-          );
           await markAgentFirebaseReady(env, updated.user_id);
           updated.firebase_agent_ready = true;
         }
