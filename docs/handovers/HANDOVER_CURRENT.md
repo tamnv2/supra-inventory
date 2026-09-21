@@ -153,3 +153,16 @@ No manual end-of-session handover is required. GitHub canonical state remains th
 - Stable remains OWNER-GATED and untouched.
 
 - Canonical Android status: `D097_FIRESTORE_SNAPSHOT_LISTENER_SOURCE_READY__TARGET_BETA_VC60__D095_UI_BASELINE_PRESERVED`.
+
+
+## D097 release-state refresh — 2026-09-21
+
+- Main: `ad9bdbe32bc9d9c342b3a98d9fbb00846d8692af`; PR #119 merged.
+- Main Authority / State / Beta Worker / Firestore / RTDB / Agent / UI / Android workflows all PASS.
+- Beta status: `D097_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V22__BETA_VC60__OA018_FIELD_ACCEPTANCE_READY`.
+- Android status: `D097_SIGNED_BETA_VC60_FIRESTORE_LISTENER_RELEASED__D095_UI_BASELINE_PRESERVED`.
+- Latest signed Beta APK: `beta-vc60`, SHA-256 `0c295a55fcd5e0ab6f2a9a1b9cd1d53d1fefba90c39187e9c74c7320a96853cc`.
+- Released Agent: `relay-agent-v22`, SHA-256 `e986f660935bc3d24f2c493a63902fb23ca6125bb327ad87ddc9ed95dfcd5a64`.
+- D097 technical/runtime/release: PASS. OA018 is READY_FOR_OWNER_FIELD_TEST.
+- Next action: physical normal network → Office transition, STANDBY takeover at >=10s, and 30-second terminal specialist fallback; then OA017 final real-WMS acceptance.
+- Stable remains OWNER-GATED and untouched.
