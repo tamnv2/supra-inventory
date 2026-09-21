@@ -88,7 +88,7 @@ jobs:
           if (-not (Test-Path "relay-agent/app-icon.png")) { throw "D089 approved Agent icon asset missing." }
           if ($leader -notmatch 'PresenceHeartbeatIntervalMs\s*=\s*30000' -or $leader -notmatch 'PresenceReadIntervalMs\s*=\s*60000' -or $leader -notmatch 'PresenceFreshMs\s*=\s*90000') { throw "D087 Agent presence cadence guard failed." }
           if ($rules -notmatch 'coordination' -or $rules -notmatch 'rate_limits' -or $rules -notmatch 'PICKER_LOCKED' -or $rules -notmatch 'SWITCHING') { throw "D085 RTDB Rules guard failed." }
-          if ($config -notmatch 'FIRESTORE_D091_TEST' -or $firestoreTransport -notmatch 'relay_poc_jobs' -or $firestoreTransport -notmatch 'TRANSPORT_ONLY' -or $firestoreTransport -notmatch 'PollIntervalMs\s*=\s*3000') { throw "D091 Firestore field transport guard failed." }
+          if ($config -notmatch 'FIRESTORE_D091_TEST' -or $config -notmatch 'relay_poc_jobs' -or $firestoreTransport -notmatch 'TRANSPORT_ONLY' -or $firestoreTransport -notmatch 'PollIntervalMs\s*=\s*3000') { throw "D091 Firestore field transport guard failed." }
           if ($program -notmatch 'FirestoreRelayTestTransport' -or $program -notmatch 'FIRESTORE TEST') { throw "D091 Agent Firestore wiring guard failed." }
 
           foreach ($source in @($lookup, $wms)) {
