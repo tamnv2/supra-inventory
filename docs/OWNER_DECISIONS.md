@@ -331,3 +331,15 @@ The Owner confirmed the D091 Firestore PDA ↔ Agent path had already passed a r
 8. D092 bounded WMS mutation, exact PickListCode resolution, anti-spam, idempotency and secret boundaries are unchanged. Stable remains **OWNER-GATED** and untouched.
 
 The D092 real-Picklist field gate is blocked until the D093 Agent/APK repair is released and the PDA → Firestore → Office Agent → Firestore → PDA path is re-verified. D091 historical field PASS remains valid evidence for carrier selection.
+
+## D093 release checkpoint
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA014 FIRESTORE FIELD RETEST PENDING; OA013 BLOCKED**.
+
+- PR #111 merged to main `377159ed6722eede6b7716c9c83066b863a4e805`.
+- Main Repo Authority `35554493313`, Project State `35554493314`, Beta Worker `35554493316`, UI `35554493327`, Relay Agent `35554493315` and Android `35554493317` all PASS.
+- Released Windows Agent: `relay-agent-v18`, release id `392660561`, canonical EXE asset id `578049460`, size `219136`, SHA-256 `96e2cde601f41908e1af10492a4bd8b9e8a47a905ce464d33d4917038838acb7`.
+- Released signed Android: `beta-vc57`, release id `392660672`, APK asset id `578050077`, size `9340858`, SHA-256 `f655844b1222787938cacf169ca2f158630ab536b0a9c252f19f56d60cc3ce19`.
+- OA014 is READY_FOR_OWNER_FIELD_TEST. It re-verifies the physical PDA → Firestore → Office Agent → Firestore → PDA path and truthful Firestore health after the D093 repair.
+- OA013 real Picklist confirmation remains blocked until OA014 PASS.
+- Stable remains OWNER-GATED and untouched.
