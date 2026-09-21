@@ -1387,7 +1387,7 @@ namespace SupraInventoryRelayAgent
 
                 if (string.Equals(confirmed.Result, "CONFIRMED", StringComparison.Ordinal))
                 {
-                    _confirmationGuard.MarkDurableConfirmed(appSession, guard.GuardId);
+                    _confirmationGuard.MarkLocalConfirmed(guard.GuardId);
                     Ui(() =>
                     {
                         _manualPicklistStatus.Text = "Xác nhận thành công. Hãy tiếp tục xử lý trên SFT / SFT 3.";
@@ -1703,10 +1703,10 @@ namespace SupraInventoryRelayAgent
             });
             Log("Firebase ADMIN login START host=identitytoolkit.googleapis.com ssid=" + GetSsid());
             var root = Map(_json.DeserializeObject(RequestJson("POST", url, payload, "application/json")));
-            var idToken = Text(root, "idToken");
-            var refreshToken = Text(root, "refreshToken");
-            var expires = ParseInt(Text(root, "expiresIn"), 3600);
-            var firebaseUid = Text(root, "localId");
+            var idToken = MapString(root, "idToken");
+            var refreshToken = MapString(root, "refreshToken");
+            var expires = ParseInt(root, "expiresIn", 3600);
+            var firebaseUid = MapString(root, "localId");
             if (string.IsNullOrWhiteSpace(firebaseUid)) firebaseUid = FirebaseUidFromIdToken(idToken);
             var audience = FirebaseAudienceFromIdToken(idToken);
             var tokenRole = FirebaseClaimFromIdToken(idToken, "app_role");
@@ -3527,6 +3527,12 @@ namespace SupraInventoryRelayAgent
 
         private static long NowMs() { return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); }
         private static string Short(string value) { return value == null ? "" : value.Substring(0, Math.Min(8, value.Length)); }
+        private static string MapString(Dictionary<string, object> map, string key)
+        {
+            object value;
+            return map != null && map.TryGetValue(key, out value) ? Convert.ToString(value) ?? "" : "";
+        }
+
         private static int ParseInt(Dictionary<string, object> map, string key, int fallback)
         {
             object value;
