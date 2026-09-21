@@ -321,3 +321,14 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA019 + OA020 OWNER FIELD ACCEP
 - Gmail failures are now mapped to bounded non-secret causes: OAuth/auth failure, missing `gmail.send`, Gmail API disabled, Workspace domain policy, provider quota/rate, or generic HTTP class. Raw Google tokens/responses are not logged.
 - Next field action occurs only after the repaired Beta runtime deploys: request one mail-only OTP. Do not repeat Google OAuth consent unless the repaired runtime specifically reports missing scope. Stable remains OWNER-GATED.
 
+## D100 OA020 mail repair runtime checkpoint — 2026-09-22
+
+Status: **RUNTIME PASS — ONE NON-DESTRUCTIVE OWNER MAIL RETRY READY**.
+
+- PR #131 merged to main `27a791a1ad9a05da9acee0f2b7351fb1fda7cc4b`.
+- Main Project State `35633339838`, Repo Authority `35633339786`, UI `35633339783` and Deploy Beta Worker `35633339816` all PASS.
+- Failed Gmail provider delivery no longer consumes the local 60-second reset-code throttle.
+- The next failure, if any, reports a bounded sanitized cause instead of always claiming missing `gmail.send`.
+- Next Owner action: request one ROOT reset OTP only. Do not execute reset yet. Do not repeat OAuth consent unless the repaired message specifically identifies missing scope.
+- Stable remains OWNER-GATED and untouched.
+
