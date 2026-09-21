@@ -314,3 +314,20 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OWNER REAL PICKLIST CONFIRMATIO
 - Released signed Android: `beta-vc56`, release id `392647903`, APK asset id `577982221`, size `9340858`, SHA-256 `fe41c136d16470d7b0fac45a4b125b8e1b29610f7b468a4e41171f68c420da80`.
 - OA013 is READY_FOR_OWNER_FIELD_TEST. Final D092 business acceptance requires one controlled real Picklist confirmation and verification in SFT / SFT 3.
 - Stable remains OWNER-GATED and untouched.
+
+## D093 — Preserve D091 Firestore carrier and repair D092 field regression
+
+Status: **ACTIVE — OWNER DIRECTED 2026-09-21**.
+
+The Owner confirmed the D091 Firestore PDA ↔ Agent path had already passed a real Office-network field test and directed that the D092 regression be repaired without changing transport architecture.
+
+1. Cloud Firestore remains the selected Beta carrier for this confirmation workstream. Do not switch the PDA ↔ Agent path to Cloudflare, RTDB, Apps Script or another carrier as part of this repair.
+2. A long-running Windows Agent must resolve and apply the **current Windows system proxy for each Firestore request**, so a laptop that changes from another network to the company Office network does not keep a stale startup proxy. Firestore must not use the WMS corporate fallback proxy and must not bypass company filtering.
+3. Safe Firestore reads may make one bounded retry on transient DNS/connect/timeout failures. Firestore writes/claims are not blindly retried because an uncertain write outcome must remain fail-closed.
+4. The currently ACTIVE Agent is not demoted by one transient coordination failure. It may retain ownership only within the existing D085/D092 **10-second failover threshold**; after that threshold, normal failover/election rules apply.
+5. Agent health is truthful. When Firestore coordination or the ACTIVE Agent relay poll is unhealthy, the UI/overlay must show `FIRESTORE OFFLINE` and online Agent count must be `0`; code must not force a minimum `Online 1`.
+6. The ACTIVE Agent may poll/claim confirmation jobs only after a successful Firestore relay poll. Standby Agents remain prohibited from WMS processing.
+7. Android keeps the total two-minute confirmation wait, but a still-`PENDING` request gets **30 seconds** before conditional cancellation so the 10-second HA failover plus reconnect/poll margin can complete. A `PROCESSING` request is never deleted or automatically resent on local timeout.
+8. D092 bounded WMS mutation, exact PickListCode resolution, anti-spam, idempotency and secret boundaries are unchanged. Stable remains **OWNER-GATED** and untouched.
+
+The D092 real-Picklist field gate is blocked until the D093 Agent/APK repair is released and the PDA → Firestore → Office Agent → Firestore → PDA path is re-verified. D091 historical field PASS remains valid evidence for carrier selection.
