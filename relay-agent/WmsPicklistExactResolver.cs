@@ -39,12 +39,12 @@ namespace SupraInventoryRelayAgent
             string lastRoute = "NONE";
             var lastHttp = 0;
 
-            for (var page = 1; page <= 20; page++)
+            for (var page = 1; page <= 10000; page++)
             {
                 var filter = new Dictionary<string, object>
                 {
                     { "WarehouseCode", "HY1" }, { "WarehouseSiteId", "" }, { "ClientCode", "WIN" },
-                    { "FromDate", "" }, { "ToDate", "" }, { "Content", suffix },
+                    { "FromDate", "" }, { "ToDate", "" }, { "Content", "" },
                     { "Employee", "" }, { "IsAllowSkipped", "" }
                 };
                 var sort = new Dictionary<string, object> { { "CreatedDate", "desc" } };
