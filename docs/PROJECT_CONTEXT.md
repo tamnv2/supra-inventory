@@ -306,3 +306,13 @@ Owner field testing confirms the D091 authenticated Firestore PDA ↔ Office Age
 D092 extends the registered WMS scope by exactly one mutation: after the approved D084/D085 lookup finds a match and a second fail-closed resolver identifies exactly one full `PickListCode`, the ACTIVE Agent may POST `/sft3-hy1/api/v1/autopp/pickListConfirms/confirmSkipItem` using the fixed HY1 confirmation payload. Firestore provides conditional job claim, sticky Agent coordination, persisted anti-spam state and cross-Agent idempotency/uncertainty guards.
 
 This exception does not authorize broader Supra automation, does not change the normal Báo hàng Cloudflare/InventoryCore architecture, does not create offline mode, and does not touch Stable. Raw WMS credentials/session headers/signatures remain secret runtime material and never belong in the public repo.
+
+## D092 technical/runtime/release checkpoint
+
+D092 is technically released on Beta. PR #109 merged to `main` at `130a70ac912739e37caa98647cab60b53a6c0b06`.
+
+Main PASS evidence: Repo Authority `35552139222`, Project State `35552139224`, Firestore Rules `35552139264`, Beta Worker `35552139258`, UI Design `35552139223`, Relay Agent `35552139283`, Android `35552139252`.
+
+Released artifacts: signed Android `beta-vc56` (release id `392647903`, APK asset id `577982221`, size `9340858`, SHA-256 `fe41c136d16470d7b0fac45a4b125b8e1b29610f7b468a4e41171f68c420da80`) and Windows `relay-agent-v17` (release id `392647942`, EXE asset id `577982501`, size `216576`, SHA-256 `ccc0d499c044fb567b34cd37ff1a802293ee9cc47d082a34c4fac2778fe8cd24`).
+
+Technical/runtime/release PASS does not replace physical business acceptance. OA013 is now the next action: one controlled authorized real Picklist confirmation, followed by direct SFT / SFT 3 verification. Stable remains OWNER-GATED.
