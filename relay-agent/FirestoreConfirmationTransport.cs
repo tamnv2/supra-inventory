@@ -36,10 +36,10 @@ namespace SupraInventoryRelayAgent
 
     internal sealed class FirestoreConfirmationTransport
     {
-        internal const int PrimaryPollIntervalMs = 6000;
+        internal const int PrimaryPollIntervalMs = 5000;
         internal const int StandbyPollIntervalMs = 10000;
         internal const int MaxDocumentsPerPoll = 100;
-        internal const int MaxConcurrentJobs = 8;
+        internal const int MaxConcurrentJobs = 12;
 
         private readonly Func<AgentSession> _sessionProvider;
         private readonly Action _ensureFreshToken;
@@ -100,7 +100,12 @@ namespace SupraInventoryRelayAgent
                     else
                     {
                         _ensureFreshToken();
-                        var processed = ProcessOnce(_sessionProvider());
+                        var session = _sessionProvider();
+                        _coordinator.EnsureRoleCurrentBeforeBusiness(session);
+                        var startedMs = NowMs();
+                        var processed = ProcessOnce(session);
+                        if (NowMs() - startedMs >= FirestoreAgentLeaderCoordinator.FailoverAfterMs)
+                            _coordinator.RequestRoleRefreshBeforeBusiness();
                         _relayHealth(true);
                         waitMs = _coordinator.BusinessPollIntervalMs;
                         if (_coordinator.IsLeader)
@@ -138,6 +143,13 @@ namespace SupraInventoryRelayAgent
             foreach (var doc in docs)
             {
                 if (doc == null || doc.Work == null) continue;
+                var ageMs = NowMs() - doc.Work.CreatedAtMs;
+                if (doc.Work.CreatedAtMs <= 0 || ageMs > 30000L)
+                {
+                    _log("FIRESTORE CONFIRM stale-skip request=" + Short(doc.Work.RequestId) +
+                         " age_ms=" + Math.Max(0L, ageMs));
+                    continue;
+                }
                 if (!_coordinator.CanProcessJob(doc.Work.CreatedAtMs)) continue;
 
                 if (_coordinator.IsStandby)
@@ -247,7 +259,7 @@ namespace SupraInventoryRelayAgent
                                     new Dictionary<string, object>
                                     {
                                         { "field", new Dictionary<string, object> { { "fieldPath", "created_at" } } },
-                                        { "direction", "DESCENDING" }
+                                        { "direction", "ASCENDING" }
                                     }
                                 }
                             },
@@ -293,7 +305,7 @@ namespace SupraInventoryRelayAgent
                     "GET",
                     AgentConfig.FirestoreRelayCollectionUrl +
                         "?pageSize=" + MaxDocumentsPerPoll +
-                        "&orderBy=" + Uri.EscapeDataString("created_at desc"),
+                        "&orderBy=" + Uri.EscapeDataString("created_at"),
                     session.IdToken,
                     null,
                     true,
