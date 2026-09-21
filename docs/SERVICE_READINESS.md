@@ -60,3 +60,13 @@ No manual end-of-session handover is required. GitHub canonical state remains th
 - Windows Agent: `relay-agent-v17`.
 - D092 technical/runtime/release: PASS; OA013 Owner real Picklist confirmation: PENDING.
 - Stable: OWNER-GATED / untouched.
+
+## D093 Firestore regression repair checkpoint
+
+- SQLite schema: `8`.
+- Latest signed Beta APK remains `beta-vc56` until the D093 main release publishes the next monotonic build.
+- Web status remains `D089_OWNER_ACCEPTED_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON`.
+- Android source status: `D093_PENDING_CLAIM_GRACE_SOURCE_READY__CURRENT_RELEASE_BETA_VC56__NEXT_SIGNED_RELEASE_PENDING`.
+- Firestore remains the selected PDA-Agent carrier from D091 field PASS; D093 repairs D092 relay/HA health without changing architecture.
+- OA013 real Picklist confirmation is blocked until OA014 D093 PDA-Agent Firestore regression re-test PASS.
+- Stable remains OWNER-GATED.
