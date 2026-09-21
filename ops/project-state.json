@@ -19,8 +19,8 @@
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
     "web": "D100_SOURCE_CANDIDATE__ROOT_ONLY_SYSTEM_RESET__TOOLS_AGENT_VERSION_FROM_CANONICAL_VERSION__D099_LOGIN_FIX_PRESERVED",
-    "android": "D099_SIGNED_BETA_VC62_LOGIN_REPAIR__NO_D100_ANDROID_UI_CHANGE_REQUIRED",
-    "latest_beta_apk": "beta-vc61",
+    "android": "D099_SIGNED_BETA_VC62_LOGIN_REPAIR__D100_NO_ANDROID_UI_CHANGE_REQUIRED",
+    "latest_beta_apk": "beta-vc62",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
     "network_scope": "D100_AGENT_V25_USERNAME_SHARED_FIREBASE_UID_DIRECT__NO_WORKER_RUNTIME_DEPENDENCY__SUPRA_AUTH_GATE_PRESERVED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
@@ -557,7 +557,8 @@
     "D098 main Firestore deploy hotfix: existing D097 composite index may be returned by create as ALREADY_EXISTS even when pre-list detection misses it; deploy workflow now treats ALREADY_EXISTS as idempotent PASS and still fails all other create errors.",
     "D099 root cause evidence: PR #124 Firestore/GCP readback showed Beta Identity Platform signIn.email.enabled=false and passwordRequired=false. D098 therefore routed valid migrated users into signInWithPassword while the provider was disabled, producing all-client INVALID_CREDENTIALS. D099 main deploy must enable email/password and run an ephemeral synthetic PBKDF2 import/sign-in/cleanup probe. Worker login also self-heals a Firebase imported-password mismatch only after the supplied password verifies against canonical InventoryCore PBKDF2; plaintext is never persisted/logged.",
     "D100 reset semantics: reset means data-to-zero only for selected runtime groups; no DROP TABLE/schema/source/UI/logic changes. ROOT identity/password/recovery email are excluded, external Google Sheet/Drive contents are never deleted, Stable untouched. Reset scopes are PICKER/REPORTER/ADMIN accounts, SKU, open reports, business history, service logs, non-ROOT sessions/devices, runtime settings, and optional confirmation Firestore relay; active PENDING relay jobs block relay deletion.",
-    "D100 identity correction: do not create a second Firebase Agent UID. Web/App/Agent share the same Firebase UID and password; Firebase sign-in email is deterministic from role + username/MNV, while auth_email is registered recovery/OTP metadata only. firebase_agent_ready is readiness metadata, not a separate account."
+    "D100 identity correction: do not create a second Firebase Agent UID. Web/App/Agent share the same Firebase UID and password; Firebase sign-in email is deterministic from role + username/MNV, while auth_email is registered recovery/OTP metadata only. firebase_agent_ready is readiness metadata, not a separate account.",
+    "D100 continuity alignment: current released artifacts before D100 are relay-agent-v24 and signed beta-vc62 from main 216a5b88b2ca932e6ed863579677ed21df01e49b. D100 targets Agent v25; it does not roll Android backward."
   ],
   "active_workstream": "D100_USERNAME_AGENT_LOGIN_ROOT_SYSTEM_RESET",
   "paused_workstreams": {
