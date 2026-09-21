@@ -6,11 +6,11 @@
 
 - Project: `supra-inventory`
 - SQLite schema: `8`
-- Latest signed Beta APK: `beta-vc55`
-- Current released Agent: `relay-agent-v17`
-- Beta: `D093_FIRESTORE_REGRESSION_REPAIR_SOURCE_READY__CURRENT_RELEASE_V17_VC56__NEXT_RELEASE_PENDING__OA014_BEFORE_OA013`
+- Latest signed Beta APK: `beta-vc57`
+- Current released Agent: `relay-agent-v18`
+- Beta: `D093_TECHNICAL_RUNTIME_RELEASE_PASS__D091_FIRESTORE_OWNER_FIELD_PASS_RETAINED__SIGNED_BETA_VC57__AGENT_V18__OA014_FIELD_RETEST_PENDING__OA013_BLOCKED`
 - Web: `D089_OWNER_ACCEPTED_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON`
-- Android: `D093_PENDING_CLAIM_GRACE_SOURCE_READY__CURRENT_RELEASE_BETA_VC56__NEXT_SIGNED_RELEASE_PENDING`
+- Android: `D093_SIGNED_BETA_VC57_FIRESTORE_HARDENING_RELEASED__D089_OWNER_ACCEPTED_UI_BASELINE`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -84,5 +84,14 @@ No manual end-of-session handover is required. GitHub canonical state remains th
 - D091 authenticated PDA → Firestore → Office Agent → Firestore → PDA field PASS remains the carrier-selection authority.
 - D092 released `relay-agent-v17` / `beta-vc56` exposed a field regression: Firestore coordination/relay could fail after network transition while Agent online state could remain misleading.
 - D093 preserves Firestore and repairs the regression: current Windows proxy per Firestore request, safe-read transient retry, truthful `Online 0 / FIRESTORE OFFLINE`, bounded 10-second leadership grace, and Android 30-second PENDING claim grace with 120-second total wait.
-- Source repair is on PR #111; OA013 real Picklist confirmation is blocked until OA014 released-artifact Firestore regression re-test PASS.
+- PR #111 is merged and released as `relay-agent-v18` + `beta-vc57`; OA014 is READY_FOR_OWNER_FIELD_TEST. OA013 real Picklist confirmation remains blocked until OA014 PASS.
+- Stable remains OWNER-GATED and untouched.
+
+## D093 release-state refresh — 2026-09-21
+
+- Main: `377159ed6722eede6b7716c9c83066b863a4e805`; PR #111 merged.
+- Main Authority / State / Beta Worker / UI / Agent / Android workflows all PASS.
+- Released Agent: `relay-agent-v18`, SHA-256 `96e2cde601f41908e1af10492a4bd8b9e8a47a905ce464d33d4917038838acb7`.
+- Released signed APK: `beta-vc57`, SHA-256 `f655844b1222787938cacf169ca2f158630ab536b0a9c252f19f56d60cc3ce19`.
+- Next action: OA014 physical Firestore PDA-Agent regression re-test. OA013 remains blocked until OA014 PASS.
 - Stable remains OWNER-GATED and untouched.
