@@ -2451,6 +2451,82 @@ function bindSection(): void {
     navigateToSection(next, "push");
   }));
 
+  document.querySelectorAll<HTMLInputElement>("[data-reset-scope]").forEach((input) => input.addEventListener("change", () => {
+    const scope = input.dataset.resetScope as SystemResetScope;
+    if (!scope) return;
+    if (input.checked) systemResetSelected.add(scope);
+    else systemResetSelected.delete(scope);
+    const requestButton = document.querySelector<HTMLButtonElement>("#reset-request-code");
+    if (requestButton) requestButton.disabled = systemResetSelected.size === 0;
+    const all = document.querySelector<HTMLInputElement>("#reset-select-all");
+    if (all) all.checked = document.querySelectorAll<HTMLInputElement>("[data-reset-scope]").length === systemResetSelected.size;
+  }));
+  document.querySelector<HTMLInputElement>("#reset-select-all")?.addEventListener("change", (event) => {
+    const checked = (event.currentTarget as HTMLInputElement).checked;
+    document.querySelectorAll<HTMLInputElement>("[data-reset-scope]").forEach((input) => {
+      const scope = input.dataset.resetScope as SystemResetScope;
+      input.checked = checked;
+      if (checked) systemResetSelected.add(scope);
+      else systemResetSelected.delete(scope);
+    });
+    const requestButton = document.querySelector<HTMLButtonElement>("#reset-request-code");
+    if (requestButton) requestButton.disabled = systemResetSelected.size === 0;
+  });
+  document.querySelector<HTMLButtonElement>("#reset-refresh-preview")?.addEventListener("click", () => void run(async () => {
+    systemResetPreview = await getSystemResetPreview(false);
+    patchActiveSection(false);
+    setNotice("success", "Đã cập nhật số lượng dữ liệu trong service.");
+  }));
+  document.querySelector<HTMLButtonElement>("#reset-read-relay")?.addEventListener("click", () => void run(async () => {
+    systemResetPreview = await getSystemResetPreview(true);
+    patchActiveSection(false);
+    setNotice("success", "Đã đọc số lượng dữ liệu relay Firestore.");
+  }));
+  document.querySelector<HTMLButtonElement>("#reset-request-code")?.addEventListener("click", () => {
+    if (!profile || profile.role !== "ROOT" || profile.base_role !== "ROOT" || !systemResetSelected.size) return;
+    const password = document.querySelector<HTMLInputElement>("#reset-root-password")?.value || "";
+    if (!password) {
+      setNotice("warning", "Nhập mật khẩu ROOT hiện tại trước khi gửi mã xác nhận.");
+      return;
+    }
+    const selected = [...systemResetSelected];
+    if (!window.confirm(`Chuẩn bị đặt lại ${selected.length} nhóm dữ liệu đã chọn. ROOT và dữ liệu Google Sheet/Drive không bị xóa. Tiếp tục gửi mã xác nhận?`)) return;
+    void run(async () => {
+      const challenge = await requestSystemResetChallenge(selected, password);
+      systemResetChallenge = { id: challenge.challenge_id, expiresAt: challenge.expires_at, emailHint: challenge.email_hint };
+      patchActiveSection(false);
+      setNotice("success", "Đã xác minh mật khẩu ROOT và gửi mã 6 chữ số.");
+    });
+  });
+  document.querySelector<HTMLButtonElement>("#reset-cancel-challenge")?.addEventListener("click", () => {
+    systemResetChallenge = null;
+    patchActiveSection(false);
+  });
+  const executeReset = () => {
+    if (!systemResetChallenge) return;
+    const code = (document.querySelector<HTMLInputElement>("#reset-otp")?.value || "").trim();
+    if (!/^\d{6}$/.test(code)) {
+      setNotice("warning", "Nhập đúng mã xác nhận gồm 6 chữ số.");
+      return;
+    }
+    if (!window.confirm("Đây là thao tác phá huỷ dữ liệu runtime đã chọn và không thể hoàn tác từ service. Xác nhận thực hiện?")) return;
+    void run(async () => {
+      const result = await executeSystemReset(systemResetChallenge!.id, code);
+      const groups = result.scopes.length;
+      systemResetChallenge = null;
+      systemResetSelected.clear();
+      systemResetPreview = await getSystemResetPreview(false);
+      patchActiveSection(false);
+      setNotice("success", `Đặt lại hoàn tất ${groups} nhóm dữ liệu. ROOT và Google Sheet/Drive được giữ nguyên.`);
+    });
+  };
+  document.querySelector<HTMLButtonElement>("#reset-execute")?.addEventListener("click", executeReset);
+  document.querySelector<HTMLInputElement>("#reset-otp")?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    executeReset();
+  });
+
   document.querySelectorAll<HTMLButtonElement>("[data-queue-filter]").forEach((button) => button.addEventListener("click", () => {
     const next = String(button.dataset.queueFilter || "ALL") as typeof queueFilter;
     if (!["ALL", "WARNING", "ESCALATED"].includes(next)) return;
