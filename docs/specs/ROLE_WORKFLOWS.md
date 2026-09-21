@@ -362,3 +362,22 @@ The Picker application contains two independent online operational paths:
 - Confirmation transport must not call `/api/picker/reports`; normal Báo hàng continues independently if confirmation transport is unavailable.
 
 This separation is a product invariant. A failure of Xác nhận đơn/Firestore must not break or reroute Báo hàng.
+
+
+## D097 — Xác nhận đơn request-driven HA
+
+D097 supersedes the D085/D092 heartbeat wording for the Firestore confirmation carrier only.
+
+- Agent roles are PRIMARY, STANDBY and FROZEN.
+- PRIMARY polls pending confirmation work every 5 seconds.
+- STANDBY polls every 10 seconds and may promote only for a request aged at least 10 seconds.
+- FROZEN Agents do not poll the business queue.
+- Normal PDA → Agent → PDA target is within 10 seconds.
+- PDA shows failover guidance from 10 seconds and gives terminal specialist-desk guidance at 30 seconds.
+- Firestore transport/network failure alone does not demote an Agent role; network recovery revalidates role before new work.
+- Jobs older than 30 seconds are not started as new automatic WMS work.
+- Firestore job state is PENDING → ACK. There is no PROCESSING write.
+- Conditional ACK plus the full-PickListCode confirmation guard prevents duplicate mutation across Agent races.
+- The authorized WMS endpoint, exact resolver, Status=true success rule, anti-spam business thresholds and fail-closed uncertain behavior remain unchanged.
+- Báo hàng remains completely independent on Worker/InventoryCore.
+- Stable remains untouched.
