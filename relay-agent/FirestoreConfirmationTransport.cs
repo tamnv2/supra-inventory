@@ -43,6 +43,7 @@ namespace SupraInventoryRelayAgent
         private readonly Action _onResponse;
         private readonly Action<string> _state;
         private readonly Func<FirestoreConfirmationWorkItem, FirestoreConfirmationOutcome> _handler;
+        private readonly Func<bool> _canProcess;
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024 };
 
         internal FirestoreConfirmationTransport(
@@ -55,7 +56,8 @@ namespace SupraInventoryRelayAgent
             Action onRequest,
             Action onResponse,
             Action<string> state,
-            Func<FirestoreConfirmationWorkItem, FirestoreConfirmationOutcome> handler)
+            Func<FirestoreConfirmationWorkItem, FirestoreConfirmationOutcome> handler,
+            Func<bool> canProcess)
         {
             _sessionProvider = sessionProvider;
             _ensureFreshToken = ensureFreshToken;
@@ -67,6 +69,7 @@ namespace SupraInventoryRelayAgent
             _onResponse = onResponse;
             _state = state;
             _handler = handler;
+            _canProcess = canProcess ?? delegate { return true; };
         }
 
         internal void Run(CancellationToken token)
@@ -75,9 +78,16 @@ namespace SupraInventoryRelayAgent
             {
                 try
                 {
-                    _ensureFreshToken();
-                    var processed = ProcessOnce(_sessionProvider());
-                    _state(processed > 0 ? "Relay: đã xử lý yêu cầu" : "Relay: Firestore online · chờ PDA");
+                    if (!_canProcess())
+                    {
+                        _state("Relay: STANDBY · chờ Agent chính");
+                    }
+                    else
+                    {
+                        _ensureFreshToken();
+                        var processed = ProcessOnce(_sessionProvider());
+                        _state(processed > 0 ? "Relay: đã xử lý yêu cầu" : "Relay: ACTIVE · Firestore online · chờ PDA");
+                    }
                 }
                 catch (Exception ex)
                 {
