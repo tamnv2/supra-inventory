@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D100_SOURCE_PR_CANDIDATE__AGENT_V25_USERNAME_ALIAS__ROOT_SYSTEM_RESET__SCHEMA10__CI_PENDING",
+    "beta": "D100_SOURCE_PR_126__AGENT_V25_USERNAME_SHARED_UID__ROOT_SYSTEM_RESET__SCHEMA10__CI_RUNNING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 10,
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
@@ -22,9 +22,9 @@
     "android": "D099_SIGNED_BETA_VC62_LOGIN_REPAIR__NO_D100_ANDROID_UI_CHANGE_REQUIRED",
     "latest_beta_apk": "beta-vc61",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
-    "network_scope": "D100_AGENT_V25_USERNAME_FIREBASE_ALIAS_DIRECT__NO_WORKER_RUNTIME_DEPENDENCY__SUPRA_AUTH_GATE_PRESERVED",
+    "network_scope": "D100_AGENT_V25_USERNAME_SHARED_FIREBASE_UID_DIRECT__NO_WORKER_RUNTIME_DEPENDENCY__SUPRA_AUTH_GATE_PRESERVED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
-    "user_management": "D100_SOURCE_CANDIDATE__PRIMARY_FIREBASE_PLUS_ADMIN_AGENT_ALIAS__ROOT_2FA_SYSTEM_RESET",
+    "user_management": "D100_SOURCE_CANDIDATE__ONE_FIREBASE_UID_WEB_APP_AGENT__REAL_RECOVERY_EMAIL_SEPARATE__ROOT_2FA_SYSTEM_RESET",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D069_XLSX_REPORT_EXPORT_BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "D100_RESET_ON_DEMAND_ONLY__D098_35PCT_NORMAL_RUNTIME_GUARD_PRESERVED__FIRESTORE_DELETE_COST_EXPLICIT",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D100_AGENT_V25_USERNAME_ALIAS_SOURCE_CANDIDATE__D097_D099_CONFIRM_PATH_AND_OVERLAY_PRESERVED"
+    "picklist_confirmation_poc": "D100_AGENT_V25_USERNAME_SHARED_UID_SOURCE_CANDIDATE__D097_D099_CONFIRM_PATH_AND_OVERLAY_PRESERVED"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -171,7 +171,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Complete D100 source/typecheck/CI: ADMIN Agent username Firebase alias + schema10 migration, Web Tools canonical Agent version, ROOT-only scoped system reset with password + six-digit Gmail OTP, then merge/release Agent v25 only after all gates PASS. Beta Gmail send OAuth consent/refresh-token upgrade is Owner-only if the existing refresh token lacks gmail.send. Stable remains OWNER-GATED.",
+  "next_action": "Complete D100 PR #126 gates: one Firebase UID per logical user with username-derived sign-in identifier, Agent v25 username login, Web Tools canonical Agent version, ROOT-only scoped System Reset with password + six-digit Gmail OTP, and project-issued single-use ROOT/ADMIN recovery links. Merge/release only after all gates PASS. Beta Gmail send OAuth re-consent is Owner-only only if runtime proves current refresh token lacks gmail.send. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -197,7 +197,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D100 IN PROGRESS: Owner requires Agent login by ADMIN username (not email) while remaining Worker-independent on Office, Web Tools to follow relay-agent/VERSION automatically, and ROOT-only System Reset that zeroes selected runtime/service/Firebase data without changing logic/schema/UI/source or external Google Sheet/Drive. Reset requires current ROOT password plus 6-digit emailed OTP; Agent target v25; schema target 10; Stable untouched.",
+      "D100 IN PROGRESS / PR #126: Owner requires Agent login by ADMIN username (not email) while remaining Worker-independent on Office. Final design keeps one Firebase UID per logical user; Firebase login identifier is username-derived and real email is recovery/OTP metadata only. Web Tools follows relay-agent/VERSION; ROOT-only System Reset zeroes selected runtime/service/Firebase data without changing logic/schema/UI/source or external Google Sheet/Drive. Reset requires current ROOT password + 6-digit emailed OTP; recovery uses a single-use 15-minute Gmail link; Agent target v25; schema target 10; Stable untouched.",
       "D099 PR #124 IN PROGRESS: Firebase Email/Password provider disabled root cause confirmed; source adds main-only provider enable + synthetic PBKDF2 sign-in probe, verified-legacy-password Firebase self-heal, Agent v24 auth-first Supra gate, Enter shortcuts, Android Enter login, and Overlay range expansion.",
       "D098 TECHNICAL/RUNTIME/RELEASE PASS: PR #121 merged main bbc2127fa345879c4603a5baaa48cc566150af0f; Worker/schema9/admin Firebase migration, Web realtime/auth, Agent v23 and signed beta-vc61 PASS. Firestore deploy ALREADY_EXISTS idempotency repaired by PR #122 main 2a7adb7cdb46c87801e166b240ab492259e92012. OA019 physical Owner acceptance remains.",
       "D096 IN PROGRESS: Owner confirms PDA ↔ Agent now works on released Agent v20/beta-vc59. Field log shows CLAIM PASS and pending-found, then WMS exact-resolve HTTP 200 followed by EXACT_CODE_NOT_RESOLVED and no picklist-confirm call. Root cause confirmed: exact resolver handled ArrayList only while JavaScriptSerializer returns object[]; D096 switches to IEnumerable-safe parsing, adds executable parser regression, and requires WMS Status=true before CONFIRMED. Target Agent v21 only; APK vc59 unchanged.",
@@ -556,7 +556,8 @@
     "D098 Owner-approved architecture: Firebase Authentication is credential/identity authority for all application users while InventoryCore remains role/status/business-history authority. One user may hold one WEB + one ANDROID + one AGENT slot concurrently; replacement is same-channel only. Role/client matrix is PICKER App only, REPORTER/ROOT App+Web, ADMIN App+Web+Agent. Agent login is direct Firebase and independent of Worker. Root/Admin recovery email uses Firebase reset links. Web realtime keeps hibernatable Cloudflare Durable Object WebSocket and must remain <=35% of each Workers Paid included metric at design max. Agent manual specialist path searches 3–5 digits anywhere in cached full PickListCode, requires explicit full-code selection, reuses guarded WMS Status=true confirmation, and never ACKs an APK job.",
     "D098 main Firestore deploy hotfix: existing D097 composite index may be returned by create as ALREADY_EXISTS even when pre-list detection misses it; deploy workflow now treats ALREADY_EXISTS as idempotent PASS and still fails all other create errors.",
     "D099 root cause evidence: PR #124 Firestore/GCP readback showed Beta Identity Platform signIn.email.enabled=false and passwordRequired=false. D098 therefore routed valid migrated users into signInWithPassword while the provider was disabled, producing all-client INVALID_CREDENTIALS. D099 main deploy must enable email/password and run an ephemeral synthetic PBKDF2 import/sign-in/cleanup probe. Worker login also self-heals a Firebase imported-password mismatch only after the supplied password verifies against canonical InventoryCore PBKDF2; plaintext is never persisted/logged.",
-    "D100 reset semantics: reset means data-to-zero only for selected runtime groups; no DROP TABLE/schema/source/UI/logic changes. ROOT identity/password/recovery email are excluded, external Google Sheet/Drive contents are never deleted, Stable untouched. Reset scopes are PICKER/REPORTER/ADMIN accounts, SKU, open reports, business history, service logs, non-ROOT sessions/devices, runtime settings, and optional confirmation Firestore relay; active PENDING relay jobs block relay deletion."
+    "D100 reset semantics: reset means data-to-zero only for selected runtime groups; no DROP TABLE/schema/source/UI/logic changes. ROOT identity/password/recovery email are excluded, external Google Sheet/Drive contents are never deleted, Stable untouched. Reset scopes are PICKER/REPORTER/ADMIN accounts, SKU, open reports, business history, service logs, non-ROOT sessions/devices, runtime settings, and optional confirmation Firestore relay; active PENDING relay jobs block relay deletion.",
+    "D100 identity correction: do not create a second Firebase Agent UID. Web/App/Agent share the same Firebase UID and password; Firebase sign-in email is deterministic from role + username/MNV, while auth_email is registered recovery/OTP metadata only. firebase_agent_ready is readiness metadata, not a separate account."
   ],
   "active_workstream": "D100_USERNAME_AGENT_LOGIN_ROOT_SYSTEM_RESET",
   "paused_workstreams": {
