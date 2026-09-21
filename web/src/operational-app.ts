@@ -2318,8 +2318,9 @@ function bindOverlay(): void {
     const data = new FormData(event.currentTarget as HTMLFormElement);
     const displayName = String(data.get("displayName") || "").trim();
     const status = String(data.get("status") || "") as "ACTIVE" | "DISABLED";
+    const authEmail = String(data.get("authEmail") || "").trim();
     void run(async () => {
-      await updateManagedUser(userId, displayName, status);
+      await updateManagedUser(userId, displayName, status, authEmail);
       editUserId = null;
       await loadUsers();
       setNotice("success", "Đã cập nhật tài khoản.");
@@ -2545,6 +2546,7 @@ function bindSection(): void {
         String(data.get("displayName") || ""),
         String(data.get("role") || "REPORTER") as "ADMIN" | "REPORTER",
         String(data.get("password") || ""),
+        String(data.get("authEmail") || "").trim(),
       );
       await loadUsers();
       setNotice("success", "Đã tạo tài khoản.");
