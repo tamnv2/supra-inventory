@@ -97,7 +97,7 @@ class RelayPocClient(
             .put("request_id", stringValue(requestId))
             .put("suffix", stringValue(suffix))
             .put("status", stringValue("PENDING"))
-            .put("source", stringValue("ANDROID_D091"))
+            .put("source", stringValue("ANDROID_CONFIRM_V1"))
             .put("picker_uid", stringValue(identity.uid))
             .put("picker_user_id", stringValue(session.userId))
             .put("client_sent_at_ms", integerValue(System.currentTimeMillis()))
