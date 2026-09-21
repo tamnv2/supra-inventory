@@ -298,3 +298,11 @@ D091 test topology:
 `Picker Beta → Firestore REST / relay_poc_jobs → one Office Agent v16 → Firestore ACK → Picker Beta`.
 
 The ACK is transport-only. This phase does not call WMS lookup/mutation and does not claim the final D085 multi-Agent architecture. A physical Office round trip is required before Firestore can advance to HA/quota design. Failure of authenticated Firestore operations routes the workstream to Apps Script; Cloudflare/RTDB Office testing stays closed by D090.
+
+## D092 bounded automatic Picklist confirmation exception
+
+Owner field testing confirms the D091 authenticated Firestore PDA ↔ Office Agent round trip works on the company internal Wi-Fi. For the separate `Xác nhận lấy lại đơn` workstream, Firestore is therefore the selected Beta carrier.
+
+D092 extends the registered WMS scope by exactly one mutation: after the approved D084/D085 lookup finds a match and a second fail-closed resolver identifies exactly one full `PickListCode`, the ACTIVE Agent may POST `/sft3-hy1/api/v1/autopp/pickListConfirms/confirmSkipItem` using the fixed HY1 confirmation payload. Firestore provides conditional job claim, sticky Agent coordination, persisted anti-spam state and cross-Agent idempotency/uncertainty guards.
+
+This exception does not authorize broader Supra automation, does not change the normal Báo hàng Cloudflare/InventoryCore architecture, does not create offline mode, and does not touch Stable. Raw WMS credentials/session headers/signatures remain secret runtime material and never belong in the public repo.
