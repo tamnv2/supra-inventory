@@ -194,7 +194,12 @@ export async function handleSystemResetCoreRequest(state: DurableObjectState, re
     const throttleKey = `system-reset-throttle:${String(body.root_user_id)}`;
     const lastSentAt = Number((await state.storage.get<number>(throttleKey)) || 0);
     if (lastSentAt && Date.now() - lastSentAt < 60_000) {
-      return response({ error: "RESET_CODE_RATE_LIMIT", retry_after_seconds: Math.ceil((60_000 - (Date.now() - lastSentAt)) / 1000) }, 429);
+      const retryAfterSeconds = Math.ceil((60_000 - (Date.now() - lastSentAt)) / 1000);
+      return response({
+        error: "RESET_CODE_RATE_LIMIT",
+        message: `Vui lòng chờ ${retryAfterSeconds} giây trước khi yêu cầu mã mới.`,
+        retry_after_seconds: retryAfterSeconds,
+      }, 429);
     }
     const challenge: ResetChallenge = {
       challenge_id: String(body.challenge_id),
@@ -213,10 +218,22 @@ export async function handleSystemResetCoreRequest(state: DurableObjectState, re
   }
 
   if (request.method === "POST" && url.pathname === "/root/system-reset/challenge-delete") {
-    const body = (await request.json()) as { challenge_id?: string };
+    const body = (await request.json()) as {
+      challenge_id?: string;
+      root_user_id?: string;
+      release_throttle?: boolean;
+    };
     const id = String(body.challenge_id || "");
+    const challenge = id ? await state.storage.get<ResetChallenge>(challengeKey(id)) : null;
     if (id) await state.storage.delete(challengeKey(id));
-    return response({ status: "deleted" });
+    if (
+      body.release_throttle === true &&
+      challenge &&
+      challenge.root_user_id === String(body.root_user_id || "")
+    ) {
+      await state.storage.delete(`system-reset-throttle:${challenge.root_user_id}`);
+    }
+    return response({ status: "deleted", throttle_released: body.release_throttle === true && Boolean(challenge) });
   }
 
   if (request.method === "POST" && url.pathname === "/root/system-reset/challenge-verify") {
