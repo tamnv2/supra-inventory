@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 
 namespace SupraInventoryRelayAgent
@@ -16,6 +17,7 @@ namespace SupraInventoryRelayAgent
         internal string PickerUid;
         internal string PickerUserId;
         internal long ClientSentAtMs;
+        internal long CreatedAtMs;
     }
 
     internal sealed class FirestoreConfirmationOutcome
@@ -27,11 +29,17 @@ namespace SupraInventoryRelayAgent
         internal long OperationMs;
         internal int Matches;
         internal PickerRateDecision Rate = new PickerRateDecision();
+        internal bool ShouldAck = true;
+        internal string GuardId = "";
+        internal long RetireAtMs;
     }
 
     internal sealed class FirestoreConfirmationTransport
     {
-        internal const int PollIntervalMs = 3000;
+        internal const int PrimaryPollIntervalMs = 6000;
+        internal const int StandbyPollIntervalMs = 10000;
+        internal const int MaxDocumentsPerPoll = 100;
+        internal const int MaxConcurrentJobs = 8;
 
         private readonly Func<AgentSession> _sessionProvider;
         private readonly Action _ensureFreshToken;
@@ -43,7 +51,7 @@ namespace SupraInventoryRelayAgent
         private readonly Action _onResponse;
         private readonly Action<string> _state;
         private readonly Func<FirestoreConfirmationWorkItem, FirestoreConfirmationOutcome> _handler;
-        private readonly Func<bool> _canProcess;
+        private readonly FirestoreAgentLeaderCoordinator _coordinator;
         private readonly Action<bool> _relayHealth;
         private long _lastPollTelemetryMs;
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024 };
@@ -59,20 +67,20 @@ namespace SupraInventoryRelayAgent
             Action onResponse,
             Action<string> state,
             Func<FirestoreConfirmationWorkItem, FirestoreConfirmationOutcome> handler,
-            Func<bool> canProcess,
+            FirestoreAgentLeaderCoordinator coordinator,
             Action<bool> relayHealth)
         {
             _sessionProvider = sessionProvider;
             _ensureFreshToken = ensureFreshToken;
             _instanceId = instanceId ?? "";
-            _networkProvider = networkProvider;
-            _log = log;
-            _audit = audit;
-            _onRequest = onRequest;
-            _onResponse = onResponse;
-            _state = state;
+            _networkProvider = networkProvider ?? (() => "UNKNOWN");
+            _log = log ?? delegate { };
+            _audit = audit ?? delegate { };
+            _onRequest = onRequest ?? delegate { };
+            _onResponse = onResponse ?? delegate { };
+            _state = state ?? delegate { };
             _handler = handler;
-            _canProcess = canProcess ?? delegate { return true; };
+            _coordinator = coordinator;
             _relayHealth = relayHealth ?? delegate { };
         }
 
@@ -80,95 +88,137 @@ namespace SupraInventoryRelayAgent
         {
             while (!token.IsCancellationRequested)
             {
+                var waitMs = 10000;
                 try
                 {
-                    if (!_canProcess())
+                    if (_coordinator == null || !_coordinator.CanPollBusiness)
                     {
-                        _state("Relay: STANDBY · chờ Agent chính");
+                        var role = _coordinator == null ? "FROZEN" : _coordinator.RoleName;
+                        _state("Relay: " + role + " · không đọc hàng chờ");
+                        waitMs = _coordinator == null ? 60000 : _coordinator.BusinessPollIntervalMs;
                     }
                     else
                     {
                         _ensureFreshToken();
                         var processed = ProcessOnce(_sessionProvider());
                         _relayHealth(true);
-                        _state(processed > 0 ? "Relay: đã xử lý yêu cầu" : "Relay: ACTIVE · Firestore online · chờ PDA");
+                        waitMs = _coordinator.BusinessPollIntervalMs;
+                        if (_coordinator.IsLeader)
+                            _state(processed > 0
+                                ? "Relay: PRIMARY · đã xử lý yêu cầu"
+                                : "Relay: PRIMARY · Firestore online · chờ PDA");
+                        else
+                            _state("Relay: STANDBY · chờ failover 10s");
                     }
                 }
                 catch (Exception ex)
                 {
                     _relayHealth(false);
-                    _state("Relay: FIRESTORE OFFLINE · đang kết nối lại");
-                    _log("FIRESTORE confirm loop fail " + Describe(ex));
+                    waitMs = _coordinator == null ? 10000 : _coordinator.BusinessPollIntervalMs;
+                    _state("Relay: FIRESTORE tạm gián đoạn · giữ vai trò / đang kết nối lại");
+                    _log("FIRESTORE confirm loop fail role_preserved=true " + Describe(ex));
                 }
-                if (token.WaitHandle.WaitOne(PollIntervalMs)) break;
+
+                if (token.WaitHandle.WaitOne(Math.Max(1000, waitMs))) break;
             }
+        }
+
+        private sealed class PendingDocument
+        {
+            internal string Name = "";
+            internal string UpdateTime = "";
+            internal FirestoreConfirmationWorkItem Work = new FirestoreConfirmationWorkItem();
         }
 
         private int ProcessOnce(AgentSession session)
         {
             var docs = ReadPendingDocuments(session);
-            var processed = 0;
-            foreach (var item in docs)
+            var eligible = new List<PendingDocument>();
+
+            foreach (var doc in docs)
             {
-                var doc = item as Dictionary<string, object>;
-                if (doc == null) continue;
-                var name = Get(doc, "name");
-                var updateTime = Get(doc, "updateTime");
-                var jobId = Last(name);
-                object fieldsObj;
-                var fields = doc.TryGetValue("fields", out fieldsObj) ? fieldsObj as Dictionary<string, object> : null;
-                if (fields == null || string.IsNullOrWhiteSpace(jobId)) continue;
-                if (FieldString(fields, "status") != "PENDING") continue;
-                if (FieldString(fields, "source") != "ANDROID_CONFIRM_V1") continue;
+                if (doc == null || doc.Work == null) continue;
+                if (!_coordinator.CanProcessJob(doc.Work.CreatedAtMs)) continue;
 
-                var requestId = FieldString(fields, "request_id");
-                var suffix = FieldString(fields, "suffix");
-                var pickerUid = FieldString(fields, "picker_uid");
-                var pickerUserId = FieldString(fields, "picker_user_id");
-                if (requestId != jobId || !ValidSuffix(suffix) ||
-                    string.IsNullOrWhiteSpace(pickerUid) || string.IsNullOrWhiteSpace(pickerUserId))
-                    continue;
-
-                if (!TryClaim(session, name, updateTime, jobId)) continue;
-
-                _log("FIRESTORE CONFIRM pending-found request=" + Short(jobId) +
-                     " picker=" + Safe(pickerUserId));
-                _onRequest();
-                _audit("PDA_REQUEST request=" + Short(jobId) +
-                    " picker=" + Safe(pickerUserId) +
-                    " picklist_last5=redacted transport=FIRESTORE" +
-                    " admin=" + Safe(session.AppUserId) +
-                    " machine=" + Safe(Environment.MachineName) +
-                    " instance=" + Short(_instanceId));
-
-                FirestoreConfirmationOutcome outcome;
-                try
+                if (_coordinator.IsStandby)
                 {
-                    outcome = _handler(new FirestoreConfirmationWorkItem
+                    if (!_coordinator.PromoteStandbyForTakeover() && !_coordinator.IsLeader)
                     {
-                        RequestId = jobId,
-                        Suffix = suffix,
-                        PickerUid = pickerUid,
-                        PickerUserId = pickerUserId,
-                        ClientSentAtMs = FieldLong(fields, "client_sent_at_ms")
-                    }) ?? new FirestoreConfirmationOutcome();
+                        _log("FIRESTORE standby takeover deferred request=" + Short(doc.Work.RequestId));
+                        continue;
+                    }
                 }
-                catch (Exception ex)
-                {
-                    _log("FIRESTORE business fail request=" + Short(jobId) + " " + Describe(ex));
-                    outcome = new FirestoreConfirmationOutcome { Result = "CONFIRM_ERROR" };
-                }
+                eligible.Add(doc);
+            }
 
-                if (TryAck(session, name, jobId, outcome))
+            if (eligible.Count == 0) return 0;
+
+            var processed = 0;
+            using (var gate = new SemaphoreSlim(MaxConcurrentJobs, MaxConcurrentJobs))
+            {
+                var tasks = new List<Task>();
+                foreach (var item in eligible)
                 {
-                    processed++;
-                    _onResponse();
+                    gate.Wait();
+                    var captured = item;
+                    tasks.Add(Task.Run(() =>
+                    {
+                        try
+                        {
+                            if (ProcessDocument(session, captured))
+                                Interlocked.Increment(ref processed);
+                        }
+                        finally
+                        {
+                            gate.Release();
+                        }
+                    }));
                 }
+                Task.WaitAll(tasks.ToArray());
             }
             return processed;
         }
 
-        private ArrayList ReadPendingDocuments(AgentSession session)
+        private bool ProcessDocument(AgentSession session, PendingDocument doc)
+        {
+            var work = doc.Work;
+            _log("FIRESTORE CONFIRM pending-found request=" + Short(work.RequestId) +
+                 " picker=" + Safe(work.PickerUserId) +
+                 " role=" + (_coordinator == null ? "UNKNOWN" : _coordinator.RoleName));
+            _onRequest();
+            _audit("PDA_REQUEST request=" + Short(work.RequestId) +
+                " picker=" + Safe(work.PickerUserId) +
+                " picklist_last5=redacted transport=FIRESTORE" +
+                " admin=" + Safe(session.AppUserId) +
+                " machine=" + Safe(Environment.MachineName) +
+                " instance=" + Short(_instanceId));
+
+            FirestoreConfirmationOutcome outcome;
+            try
+            {
+                outcome = _handler(work) ?? new FirestoreConfirmationOutcome();
+            }
+            catch (Exception ex)
+            {
+                _log("FIRESTORE business fail request=" + Short(work.RequestId) + " " + Describe(ex));
+                outcome = new FirestoreConfirmationOutcome { Result = "CONFIRM_ERROR" };
+            }
+
+            if (!outcome.ShouldAck)
+            {
+                _log("FIRESTORE ACK deferred request=" + Short(work.RequestId) +
+                     " result=" + Safe(outcome.Result));
+                return false;
+            }
+
+            if (!TryAck(session, doc.Name, doc.UpdateTime, work.RequestId, outcome))
+                return false;
+
+            _onResponse();
+            return true;
+        }
+
+        private List<PendingDocument> ReadPendingDocuments(AgentSession session)
         {
             try
             {
@@ -191,7 +241,17 @@ namespace SupraInventoryRelayAgent
                                     }
                                 }
                             },
-                            { "limit", 100 }
+                            {
+                                "orderBy", new object[]
+                                {
+                                    new Dictionary<string, object>
+                                    {
+                                        { "field", new Dictionary<string, object> { { "fieldPath", "created_at" } } },
+                                        { "direction", "DESCENDING" }
+                                    }
+                                }
+                            },
+                            { "limit", MaxDocumentsPerPoll }
                         }
                     }
                 };
@@ -200,13 +260,13 @@ namespace SupraInventoryRelayAgent
                     "POST",
                     AgentConfig.FirestoreDocumentsBaseUrl + ":runQuery",
                     session.IdToken,
-                    _json.Serialize(query));
+                    Serialize(query));
 
                 var rows = _json.DeserializeObject(raw) as IEnumerable;
                 if (rows == null)
                     throw new InvalidOperationException("Firestore runQuery trả về JSON root không phải array.");
 
-                var docs = new ArrayList();
+                var docs = new List<PendingDocument>();
                 var rowCount = 0;
                 foreach (var rowObj in rows)
                 {
@@ -217,16 +277,8 @@ namespace SupraInventoryRelayAgent
                     var document = row.TryGetValue("document", out documentObj)
                         ? documentObj as Dictionary<string, object>
                         : null;
-                    if (document == null) continue;
-
-                    object fieldsObj;
-                    var fields = document.TryGetValue("fields", out fieldsObj)
-                        ? fieldsObj as Dictionary<string, object>
-                        : null;
-                    if (fields == null) continue;
-                    if (FieldString(fields, "status") != "PENDING") continue;
-                    if (FieldString(fields, "source") != "ANDROID_CONFIRM_V1") continue;
-                    docs.Add(document);
+                    var parsed = ParsePendingDocument(document);
+                    if (parsed != null) docs.Add(parsed);
                 }
 
                 LogPollTelemetry("QUERY", docs.Count, rowCount);
@@ -240,37 +292,71 @@ namespace SupraInventoryRelayAgent
                 var raw = Send(
                     "GET",
                     AgentConfig.FirestoreRelayCollectionUrl +
-                        "?pageSize=100&orderBy=" + Uri.EscapeDataString("client_sent_at_ms desc"),
+                        "?pageSize=" + MaxDocumentsPerPoll +
+                        "&orderBy=" + Uri.EscapeDataString("created_at desc"),
                     session.IdToken,
-                    null);
+                    null,
+                    true,
+                    "CONFIRM_LIST");
                 var root = _json.DeserializeObject(raw) as Dictionary<string, object>;
                 object docsObj;
                 var sourceDocs = root != null && root.TryGetValue("documents", out docsObj)
                     ? docsObj as IEnumerable
                     : null;
-                var docs = new ArrayList();
+                var docs = new List<PendingDocument>();
                 var rowCount = 0;
                 if (sourceDocs != null)
                 {
                     foreach (var item in sourceDocs)
                     {
                         rowCount++;
-                        var doc = item as Dictionary<string, object>;
-                        if (doc == null) continue;
-                        object fieldsObj;
-                        var fields = doc.TryGetValue("fields", out fieldsObj)
-                            ? fieldsObj as Dictionary<string, object>
-                            : null;
-                        if (fields == null) continue;
-                        if (FieldString(fields, "status") == "PENDING" &&
-                            FieldString(fields, "source") == "ANDROID_CONFIRM_V1")
-                            docs.Add(doc);
+                        var parsed = ParsePendingDocument(item as Dictionary<string, object>);
+                        if (parsed != null) docs.Add(parsed);
                     }
                 }
 
                 LogPollTelemetry("LIST_FALLBACK", docs.Count, rowCount);
                 return docs;
             }
+        }
+
+        private PendingDocument ParsePendingDocument(Dictionary<string, object> doc)
+        {
+            if (doc == null) return null;
+            var name = Get(doc, "name");
+            var jobId = Last(name);
+            object fieldsObj;
+            var fields = doc.TryGetValue("fields", out fieldsObj)
+                ? fieldsObj as Dictionary<string, object>
+                : null;
+            if (fields == null || string.IsNullOrWhiteSpace(jobId)) return null;
+            if (FieldString(fields, "status") != "PENDING") return null;
+            if (FieldString(fields, "source") != "ANDROID_CONFIRM_V1") return null;
+
+            var requestId = FieldString(fields, "request_id");
+            var suffix = FieldString(fields, "suffix");
+            var pickerUid = FieldString(fields, "picker_uid");
+            var pickerUserId = FieldString(fields, "picker_user_id");
+            var createdAtMs = FieldTimestampMs(fields, "created_at");
+            if (requestId != jobId || !ValidSuffix(suffix) ||
+                string.IsNullOrWhiteSpace(pickerUid) || string.IsNullOrWhiteSpace(pickerUserId) ||
+                createdAtMs <= 0)
+                return null;
+
+            return new PendingDocument
+            {
+                Name = name,
+                UpdateTime = Get(doc, "updateTime"),
+                Work = new FirestoreConfirmationWorkItem
+                {
+                    RequestId = jobId,
+                    Suffix = suffix,
+                    PickerUid = pickerUid,
+                    PickerUserId = pickerUserId,
+                    ClientSentAtMs = FieldLong(fields, "client_sent_at_ms"),
+                    CreatedAtMs = createdAtMs
+                }
+            };
         }
 
         private void LogPollTelemetry(string mode, int pendingCount, int rowCount)
@@ -280,59 +366,32 @@ namespace SupraInventoryRelayAgent
             _lastPollTelemetryMs = now;
             _log("FIRESTORE CONFIRM poll=PASS mode=" + Safe(mode) +
                  " rows=" + Math.Max(0, rowCount) +
-                 " pending=" + Math.Max(0, pendingCount));
+                 " pending=" + Math.Max(0, pendingCount) +
+                 " role=" + (_coordinator == null ? "UNKNOWN" : _coordinator.RoleName));
         }
 
         private string SendSafeRead(string method, string url, string token, string body)
         {
-            return FirestoreHttpTransport.SendJson(
-                method,
-                url,
-                token,
-                body,
-                "Agent-Auto-Confirm-Pick-Pack/D094",
-                12000,
-                true,
-                _log,
-                "CONFIRM_QUERY");
+            return Send(method, url, token, body, true, "CONFIRM_QUERY");
         }
 
-        private bool TryClaim(AgentSession session, string name, string updateTime, string jobId)
+        private bool TryAck(
+            AgentSession session,
+            string name,
+            string updateTime,
+            string jobId,
+            FirestoreConfirmationOutcome outcome)
         {
+            var rate = outcome.Rate ?? new PickerRateDecision();
+            var retireAtMs = outcome.RetireAtMs > 0 ? outcome.RetireAtMs : NowMs();
             var fields = new Dictionary<string, object>
             {
-                { "status", StringField("PROCESSING") },
+                { "status", StringField("ACK") },
                 { "agent_id", StringField(Environment.MachineName) },
                 { "agent_instance_id", StringField(_instanceId) },
                 { "agent_admin_user_id", StringField(session.AppUserId ?? "") },
                 { "agent_network", StringField(_networkProvider()) },
-                { "agent_received_at_ms", IntField(NowMs()) }
-            };
-            var url = "https://firestore.googleapis.com/v1/" + name + Mask(fields.Keys);
-            if (!string.IsNullOrWhiteSpace(updateTime))
-                url += "&currentDocument.updateTime=" + Uri.EscapeDataString(updateTime);
-            try
-            {
-                Send("PATCH", url, session.IdToken, _json.Serialize(new Dictionary<string, object> { { "fields", fields } }));
-                _log("FIRESTORE CLAIM PASS request=" + Short(jobId) + " instance=" + Short(_instanceId));
-                return true;
-            }
-            catch (WebException ex)
-            {
-                var response = ex.Response as HttpWebResponse;
-                var status = response == null ? 0 : (int)response.StatusCode;
-                try { if (response != null) response.Dispose(); } catch { }
-                if (status == 403 || status == 409 || status == 412) return false;
-                throw;
-            }
-        }
-
-        private bool TryAck(AgentSession session, string name, string jobId, FirestoreConfirmationOutcome outcome)
-        {
-            var rate = outcome.Rate ?? new PickerRateDecision();
-            var fields = new Dictionary<string, object>
-            {
-                { "status", StringField("ACK") },
+                { "agent_received_at_ms", IntField(NowMs()) },
                 { "agent_ack_at_ms", IntField(NowMs()) },
                 { "lookup_status", StringField(outcome.Result ?? "CONFIRM_ERROR") },
                 { "lookup_matches", IntField(Math.Max(0, outcome.Matches)) },
@@ -342,12 +401,20 @@ namespace SupraInventoryRelayAgent
                 { "cache_mode", StringField(outcome.CacheMode ?? "NONE") },
                 { "rate_strikes", IntField(Math.Max(0, rate.StrikeCount)) },
                 { "lock_level", IntField(Math.Max(0, rate.LockLevel)) },
-                { "locked_until_ms", IntField(Math.Max(0L, rate.LockedUntilMs)) }
+                { "locked_until_ms", IntField(Math.Max(0L, rate.LockedUntilMs)) },
+                { "guard_id", StringField(outcome.GuardId ?? "") },
+                { "retire_at_ms", IntField(retireAtMs) }
             };
+
+            var url = "https://firestore.googleapis.com/v1/" + name + Mask(fields.Keys);
+            if (!string.IsNullOrWhiteSpace(updateTime))
+                url += "&currentDocument.updateTime=" + Uri.EscapeDataString(updateTime);
             try
             {
-                Send("PATCH", "https://firestore.googleapis.com/v1/" + name + Mask(fields.Keys),
-                    session.IdToken, _json.Serialize(new Dictionary<string, object> { { "fields", fields } }));
+                Send("PATCH", url, session.IdToken,
+                    Serialize(new Dictionary<string, object> { { "fields", fields } }),
+                    false,
+                    "CONFIRM_ACK");
                 _audit("AGENT_RESPONSE request=" + Short(jobId) +
                     " result=" + Safe(outcome.Result) +
                     " cache=" + Safe(outcome.CacheMode) +
@@ -368,18 +435,29 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private string Send(string method, string url, string token, string body)
+        private string Send(
+            string method,
+            string url,
+            string token,
+            string body,
+            bool retrySafeRead,
+            string component)
         {
             return FirestoreHttpTransport.SendJson(
                 method,
                 url,
                 token,
                 body,
-                "Agent-Auto-Confirm-Pick-Pack/D093",
+                "Agent-Auto-Confirm-Pick-Pack/D097",
                 12000,
-                string.Equals(method, "GET", StringComparison.OrdinalIgnoreCase),
+                retrySafeRead,
                 _log,
-                "CONFIRM");
+                component);
+        }
+
+        private string Serialize(object value)
+        {
+            lock (_json) return _json.Serialize(value);
         }
 
         private string Describe(Exception ex)
@@ -393,34 +471,56 @@ namespace SupraInventoryRelayAgent
         {
             return new Dictionary<string, object> { { "stringValue", value ?? "" } };
         }
+
         private static Dictionary<string, object> IntField(long value)
         {
             return new Dictionary<string, object> { { "integerValue", value.ToString() } };
         }
+
         private static string FieldString(Dictionary<string, object> fields, string key)
         {
             object raw;
-            var value = fields.TryGetValue(key, out raw) ? raw as Dictionary<string, object> : null;
+            var value = fields != null && fields.TryGetValue(key, out raw)
+                ? raw as Dictionary<string, object>
+                : null;
             return value == null ? "" : Get(value, "stringValue");
         }
+
         private static long FieldLong(Dictionary<string, object> fields, string key)
         {
             object raw;
-            var value = fields.TryGetValue(key, out raw) ? raw as Dictionary<string, object> : null;
+            var value = fields != null && fields.TryGetValue(key, out raw)
+                ? raw as Dictionary<string, object>
+                : null;
             long result;
             return value != null && long.TryParse(Get(value, "integerValue"), out result) ? result : 0L;
         }
+
+        private static long FieldTimestampMs(Dictionary<string, object> fields, string key)
+        {
+            object raw;
+            var value = fields != null && fields.TryGetValue(key, out raw)
+                ? raw as Dictionary<string, object>
+                : null;
+            if (value == null) return 0L;
+            var text = Get(value, "timestampValue");
+            DateTimeOffset parsed;
+            return DateTimeOffset.TryParse(text, out parsed) ? parsed.ToUnixTimeMilliseconds() : 0L;
+        }
+
         private static string Get(Dictionary<string, object> map, string key)
         {
             object value;
             return map != null && map.TryGetValue(key, out value) ? Convert.ToString(value) ?? "" : "";
         }
+
         private static string Last(string value)
         {
             if (string.IsNullOrWhiteSpace(value)) return "";
             var parts = value.Split('/');
             return parts[parts.Length - 1];
         }
+
         private static string Mask(IEnumerable<string> fields)
         {
             var sb = new StringBuilder("?");
@@ -433,16 +533,19 @@ namespace SupraInventoryRelayAgent
             }
             return sb.ToString();
         }
+
         private static bool ValidSuffix(string value)
         {
             if (string.IsNullOrWhiteSpace(value) || value.Length != 5) return false;
             foreach (var ch in value) if (ch < '0' || ch > '9') return false;
             return true;
         }
+
         private static string Short(string value)
         {
             return string.IsNullOrWhiteSpace(value) ? "" : value.Substring(0, Math.Min(8, value.Length));
         }
+
         private static string Safe(string value)
         {
             if (string.IsNullOrWhiteSpace(value)) return "unknown";
@@ -454,6 +557,10 @@ namespace SupraInventoryRelayAgent
             }
             return sb.Length == 0 ? "unknown" : sb.ToString();
         }
-        private static long NowMs() { return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); }
+
+        private static long NowMs()
+        {
+            return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        }
     }
 }
