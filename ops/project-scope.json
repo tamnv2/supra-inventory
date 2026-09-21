@@ -199,7 +199,12 @@
       "environment": "beta",
       "name": "inventory-beta-drive",
       "redirect_uri": "https://inventory-beta.supra.cc.cd/api/oauth/google/callback",
-      "exposure": "public_identifier"
+      "exposure": "public_identifier",
+      "scopes": [
+        "https://www.googleapis.com/auth/drive.file",
+        "https://www.googleapis.com/auth/gmail.send"
+      ],
+      "note": "D100 reuses the existing Beta Google OAuth client; gmail.send is added only for ROOT system-reset six-digit OTP. No Gmail read scope. Existing Drive scope remains."
     },
     {
       "key": "oauth-stable",
