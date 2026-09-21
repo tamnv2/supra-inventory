@@ -210,3 +210,14 @@ Release target: `relay-agent-v15`.
 - D085 sticky Agent HA/cache/anti-spam, D086 DPAPI WMS file-first session/protected exit/watchdog and D087 split logs/bounded presence remain unchanged.
 - D078 final transport remains pending. WMS remains signed GET-only. Stable remains OWNER-GATED.
 
+## D091 — Firestore end-to-end Office field candidate
+
+Agent v16 changes the confirmation relay **field-test carrier only** from RTDB to Cloud Firestore REST.
+
+- The D091 listener polls `relay_poc_jobs` every 3 seconds while active.
+- It authenticates with the restored real ADMIN Firebase ID token and Firestore Security Rules.
+- A valid `ANDROID_D091 / PENDING` document receives an `ACK / TRANSPORT_ONLY` response containing bounded Agent identity/network metadata.
+- This proves only PDA ↔ Firestore ↔ Office Agent ↔ Firestore ↔ PDA. It does not query or mutate WMS.
+- No RTDB fallback is used for the D091 field PASS.
+- D085 multi-Agent election/failover is intentionally deferred until this transport actually passes on Office; final Firestore HA must be redesigned to fit quota rather than writing a 3-second heartbeat per Agent.
+- If the authenticated round trip is blocked on Office, the next candidate is Apps Script under D091/D090.
