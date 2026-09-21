@@ -560,15 +560,115 @@ async function setRootEffectiveRole(request: Request, env: Env): Promise<Respons
 }
 
 async function changePassword(request: Request, env: Env): Promise<Response> {
-  const user = await requireUser(request, env);
+  if (!env.GOOGLE_RUNTIME_SA_JSON || !env.FIREBASE_WEB_API_KEY) return json({ error: "AUTH_RUNTIME_NOT_CONFIGURED" }, 503);
+  let user = await requireUser(request, env);
+  user = await ensureFirebasePasswordReady(env, user);
   const body = (await request.json()) as { current_password?: string; new_password?: string };
   const current = String(body.current_password || "");
-  const next = String(body.new_password || "");
-  if (!user.password_salt || !user.password_hash || !(await verifyPassword(current, user.password_salt, user.password_hash))) {
+  const nextPassword = String(body.new_password || "");
+  const uid = String(user.firebase_uid || "");
+  const email = effectiveAuthEmail(firebaseUserSpec(user, uid));
+  try {
+    const currentSession = await signInWithFirebasePassword(env.FIREBASE_WEB_API_KEY, email, current);
+    if (currentSession.localId !== uid) return json({ error: "CURRENT_PASSWORD_INVALID" }, 400);
+  } catch {
     return json({ error: "CURRENT_PASSWORD_INVALID" }, 400);
   }
-  await savePassword(env, user.user_id, next);
-  return json({ status: "password_changed" });
+  if (nextPassword.length < 8 || nextPassword.length > 128) return json({ error: "INVALID_PASSWORD" }, 400);
+  await updateFirebaseIdentity(
+    env.GOOGLE_RUNTIME_SA_JSON,
+    env.FIREBASE_PROJECT_ID,
+    firebaseUserSpec(user, uid),
+    { password: nextPassword },
+  );
+  await savePassword(env, user.user_id, nextPassword);
+  await coreJson(env, "/auth/firebase-password-ready", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ user_id: user.user_id, firebase_uid: uid, auth_email: email }),
+  });
+  return json({ status: "password_changed", reauth_required: true });
+}
+
+async function updateMyAuthEmail(request: Request, env: Env): Promise<Response> {
+  if (!env.GOOGLE_RUNTIME_SA_JSON) return json({ error: "AUTH_RUNTIME_NOT_CONFIGURED" }, 503);
+  let user = await requireUser(request, env);
+  if (!["ROOT", "ADMIN"].includes(user.base_role)) return json({ error: "FORBIDDEN" }, 403);
+  const body = (await request.json()) as { email?: string };
+  let email = "";
+  try { email = normalizeAuthEmail(body.email); } catch { return json({ error: "EMAIL_INVALID" }, 400); }
+  if (!email) return json({ error: "EMAIL_REQUIRED" }, 400);
+  user = await ensureFirebasePasswordReady(env, user);
+  const uid = String(user.firebase_uid || "");
+  await updateFirebaseIdentity(
+    env.GOOGLE_RUNTIME_SA_JSON,
+    env.FIREBASE_PROJECT_ID,
+    firebaseUserSpec(user, uid),
+    { email },
+  );
+  const saved = await coreJson<{ user: InternalUser | null }>(env, "/auth/set-email", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ user_id: user.user_id, auth_email: email }),
+  });
+  return json({ status: "email_saved", user: saved.user ? publicUser(saved.user) : publicUser({ ...user, auth_email: email }) });
+}
+
+async function requestPasswordReset(request: Request, env: Env): Promise<Response> {
+  if (!env.FIREBASE_WEB_API_KEY) return json({ status: "accepted" }, 202);
+  let body: { username?: string; email?: string } = {};
+  try { body = (await request.json()) as { username?: string; email?: string }; } catch { body = {}; }
+  const username = String(body.username || "").trim().toLowerCase();
+  let email = "";
+  try { email = normalizeAuthEmail(body.email); } catch { return json({ status: "accepted" }, 202); }
+  if (!/^[a-z0-9._-]{1,64}$/.test(username) || !email) return json({ status: "accepted" }, 202);
+  try {
+    let user = await getUserByUsername(env, username);
+    if (
+      user &&
+      user.status === "ACTIVE" &&
+      ["ROOT", "ADMIN"].includes(user.base_role) &&
+      user.auth_email &&
+      normalizeAuthEmail(user.auth_email) === email
+    ) {
+      user = await ensureFirebasePasswordReady(env, user);
+      await sendFirebasePasswordReset(env.FIREBASE_WEB_API_KEY, email);
+    }
+  } catch {
+    // Enumeration-safe response: callers always receive the same result.
+  }
+  return json({
+    status: "accepted",
+    message: "Nếu thông tin tài khoản và email khớp, hệ thống đã gửi liên kết đặt lại mật khẩu.",
+  }, 202);
+}
+
+async function logoutInteractiveSession(request: Request, env: Env): Promise<Response> {
+  const token = readBearerToken(request);
+  if (!token) return json({ status: "ended" });
+  let identity: Awaited<ReturnType<typeof verifyFirebaseIdToken>>;
+  try { identity = await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID); }
+  catch { return json({ status: "ended" }); }
+  if (identity.sessionChannel !== "WEB" && identity.sessionChannel !== "ANDROID") return json({ status: "ended" });
+  const user = await getUserByFirebaseUid(env, identity.uid);
+  if (!user) return json({ status: "ended" });
+  let body: { device_id?: string } = {};
+  try { body = (await request.json()) as { device_id?: string }; } catch { body = {}; }
+  const deviceId = String(body.device_id || "").trim().slice(0, 160);
+  if (deviceId && identity.sessionGeneration > 0) {
+    await coreStub(env).fetch("https://inventory-core.internal/auth/end-session", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        user_id: user.user_id,
+        channel: identity.sessionChannel,
+        generation: identity.sessionGeneration,
+        device_id: deviceId,
+      }),
+    });
+    await closeUserRealtime(env, user.user_id, identity.sessionChannel);
+  }
+  return json({ status: "ended" });
 }
 
 async function startGoogleOAuth(env: Env): Promise<Response> {
