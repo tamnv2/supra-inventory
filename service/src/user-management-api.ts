@@ -1,4 +1,4 @@
-import { hashPassword, readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
+import { hashPassword, interactiveSessionError, readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
 import { importPasswordIdentity, updateFirebaseIdentity, type FirebaseManagedUserSpec } from "./firebase-auth-admin";
 import { readHrEmployees, type StoredHrSource } from "./hr-sync";
 import { validateHrSheetSource } from "./hr-source";
@@ -23,6 +23,8 @@ interface User {
   password_salt?: string | null;
   password_hash?: string | null;
   firebase_password_ready?: boolean | number;
+  web_session_generation?: number;
+  android_session_generation?: number;
 }
 const ROLES: AppRole[] = ["ADMIN", "ROOT"];
 
@@ -30,10 +32,12 @@ function json(payload: unknown, status = 200): Response { return new Response(JS
 function core(env: Env): DurableObjectStub { return env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName("inventory-core")); }
 async function requireAdmin(request: Request, env: Env): Promise<User> {
   const token = readBearerToken(request); if (!token) throw json({ error: "AUTH_REQUIRED" }, 401);
-  let uid = ""; try { uid = (await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID)).uid; } catch { throw json({ error: "INVALID_AUTH_TOKEN" }, 401); }
-  const lookup = await core(env).fetch(`https://inventory-core.internal/auth/user-by-firebase-uid?uid=${encodeURIComponent(uid)}`);
+  let identity; try { identity = await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID); } catch { throw json({ error: "INVALID_AUTH_TOKEN" }, 401); }
+  const lookup = await core(env).fetch(`https://inventory-core.internal/auth/user-by-firebase-uid?uid=${encodeURIComponent(identity.uid)}`);
   const user = lookup.ok ? ((await lookup.json()) as { user?: User | null }).user : null;
   if (!user || user.status !== "ACTIVE") throw json({ error: "USER_NOT_ACTIVE" }, 403);
+  const sessionError = interactiveSessionError(identity, user);
+  if (sessionError) throw json({ error: sessionError }, 401);
   if (!ROLES.includes(user.role)) throw json({ error: "FORBIDDEN" }, 403);
   return user;
 }
