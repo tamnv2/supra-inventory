@@ -178,7 +178,9 @@ checks = {
     "web_d065_three_group_nav_ia": all(token in WEB_APP for token in [
         'navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"]])',
         'navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"], ["sla", "Thời gian xử lý"]])',
-        'navGroup("HỆ THỐNG", [["logs", "Nhật ký"], ["tools", "Công cụ"]])',
+        'navGroup("HỆ THỐNG", profile.role === "ROOT" && profile.base_role === "ROOT"',
+        '? [["logs", "Nhật ký"], ["tools", "Công cụ"], ["system-reset", "Đặt lại hệ thống"]]',
+        ': [["logs", "Nhật ký"], ["tools", "Công cụ"]])',
         'if (value.role === "PICKER") return "picker";\n  return "operations";',
     ]) and all(token not in WEB_APP for token in [
         'navGroup("DỮ LIỆU"',
@@ -210,9 +212,10 @@ checks = {
     "web_d066_nav_children_within_owner_limit": all(token in WEB_APP for token in [
         'navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"]])',
         'navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"], ["sla", "Thời gian xử lý"]])',
-        'navGroup("HỆ THỐNG", [["logs", "Nhật ký"], ["tools", "Công cụ"]])',
+        '? [["logs", "Nhật ký"], ["tools", "Công cụ"], ["system-reset", "Đặt lại hệ thống"]]',
+        ': [["logs", "Nhật ký"], ["tools", "Công cụ"]])',
         'return navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"]]);',
-    ]),
+    ]) and WEB_APP.count('["system-reset", "Đặt lại hệ thống"]') == 1,
     "web_d063_merged_workspaces": all(token in WEB_APP for token in [
         "renderOperationalTabs",
         "renderReportTabs",
@@ -241,8 +244,9 @@ checks = {
     ]),
     "service_d064_provider_cache": "PROVIDER_CACHE_MS = 5 * 60_000" in SERVICE_SYSTEM_STATUS and "provider_cache_seconds: includeProviders ? PROVIDER_CACHE_MS / 1000 : null" in SERVICE_SYSTEM_STATUS,
     "web_d072_system_status_excluded": all(token in WEB_APP for token in [
-        'navGroup("HỆ THỐNG", [["logs", "Nhật ký"], ["tools", "Công cụ"]])',
-        '"picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "tools", "account"',
+        'navGroup("HỆ THỐNG", profile.role === "ROOT" && profile.base_role === "ROOT"',
+        ': [["logs", "Nhật ký"], ["tools", "Công cụ"]])',
+        '"picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "tools", "system-reset", "account"',
     ]) and all(token not in WEB_APP for token in [
         "getSystemStatus(",
         'navButton("system"',

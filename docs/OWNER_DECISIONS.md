@@ -498,3 +498,26 @@ Status: **OWNER DIRECTED 2026-09-21 — ROOT CAUSE CONFIRMED / PR #124 ACTIVE**.
 7. Pressing Enter in Agent ADMIN email/password invokes Login. Pressing Enter in the Agent 3–5 digit PickList input invokes Search when valid. Android login also accepts keyboard Enter/Done as Login; Web form-submit behavior remains.
 8. Overlay no longer has the legacy 420×64 minimum. D099 allows a practical minimum 120×32 and large configurable bounds up to 7680×4320; runtime and settings UI use the same range.
 9. D097 HA, D096 WMS confirmation semantics, normal Báo hàng flow and Stable are otherwise unchanged. Stable remains OWNER-GATED.
+
+
+## D100 — Username Agent auth + ROOT system reset
+
+Status: **OWNER APPROVED — SOURCE/PR CANDIDATE 2026-09-21**.
+
+1. Agent login UX is **ADMIN username/MNV + password**, never registered email. Email remains recovery/OTP metadata only.
+2. Agent must remain independent from Inventory Cloudflare Worker on the Office network. D100 keeps **one Firebase UID per logical user** and uses the same deterministic username-derived Firebase password identifier for Web/App and direct Agent sign-in. Agent accepts only real ADMIN claims; ROOT/REPORTER/PICKER never gain Agent authority.
+3. Web, App and Agent share the same Firebase UID and password authority. The Firebase sign-in email is an internal deterministic value derived from role + username/MNV; the registered real email is separate recovery/OTP metadata and is never required as the Agent login name.
+4. Beta health must fail until all ACTIVE ADMIN users have the shared Firebase credential and direct Agent-username path ready. Schema target advances to 10 only for additive Agent-readiness state; this flag does not represent a second Firebase account.
+5. Web `HỆ THỐNG → Công cụ` must derive Agent version/tag/download URL from canonical `relay-agent/VERSION`; hard-coded historical Agent tags are forbidden.
+6. Only a real effective ROOT sees/uses `HỆ THỐNG → Đặt lại hệ thống`.
+7. System reset means **selected runtime data goes to zero**. It never changes source code, schema/table definitions, business rules, workflows, UI design system, GitHub, Stable, company WMS, or external Google Sheet/Drive contents.
+8. ROOT identity is outside reset scope: ROOT app/Firebase identity, password and recovery email remain unchanged. D100 also preserves ROOT active session/device records during reset.
+9. Reset groups: Picker accounts, Reporter accounts, Admin accounts, SKU Master, open Báo hàng, business history, service logs, non-ROOT sessions/devices, runtime settings metadata, and optional confirmation-relay Firestore data. `Xóa toàn bộ` is only a UI shortcut selecting all approved groups.
+10. Picker/Reporter/Admin account reset deletes corresponding InventoryCore users and their single Firebase Auth identities. Google Sheet HR source rows are never deleted.
+11. History/log reset affects InventoryCore data only. Existing Drive/Sheet archive/log/export files are never deleted by System Reset.
+12. Confirmation-relay reset deletes only the registered Beta Firestore relay collections and is blocked while any relay job remains `PENDING`.
+13. Destructive execution requires both: (a) current ROOT password re-authentication and (b) a one-time 6-digit code sent to ROOT's registered email. Code lifetime is 10 minutes, maximum 5 attempts, and challenge sending is rate-limited.
+14. OTP mail uses the existing Beta Google OAuth client with additive `gmail.send` only; no Gmail read scope is authorized. Existing Drive scope remains. If the current refresh token lacks the new scope, one Owner OAuth re-consent is required.
+15. Reset is on-demand only and must not add polling/background quota consumption.
+16. ROOT/ADMIN password recovery uses the registered real email: user + email request is enumeration-safe, the project sends a single-use 15-minute link through Gmail `send` scope, and the new password updates the same Firebase UID plus InventoryCore credential/session authority. Firebase synthetic sign-in addresses are never recovery destinations.
+17. Stable remains **OWNER-GATED** and untouched.

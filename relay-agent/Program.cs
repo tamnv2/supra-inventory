@@ -663,7 +663,7 @@ namespace SupraInventoryRelayAgent
             _agentAuthStatus.ForeColor = Color.FromArgb(180, 76, 60);
             agentCard.Controls.Add(_agentAuthStatus);
 
-            agentCard.Controls.Add(new Label { Left = 18, Top = 72, Width = 170, Height = 20, Text = "Email ADMIN đăng ký" });
+            agentCard.Controls.Add(new Label { Left = 18, Top = 72, Width = 170, Height = 20, Text = "Tài khoản ADMIN" });
             _username.SetBounds(18, 94, 290, 28);
             agentCard.Controls.Add(_username);
             agentCard.Controls.Add(new Label { Left = 326, Top = 72, Width = 120, Height = 20, Text = "Mật khẩu" });
@@ -1700,11 +1700,13 @@ namespace SupraInventoryRelayAgent
         private static string ResolveAdminFirebaseEmail(string identifier)
         {
             var value = (identifier ?? "").Trim().ToLowerInvariant();
-            if (value.Length == 0)
-                throw new InvalidOperationException("Nhập email ADMIN đã đăng ký.");
-            if (!Regex.IsMatch(value, "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"))
-                throw new InvalidOperationException("Agent đăng nhập trực tiếp Firebase: vui lòng dùng email ADMIN đã đăng ký, không dùng username.");
-            return value;
+            if (value.Length == 0) throw new InvalidOperationException("Nhập tài khoản ADMIN.");
+            if (!Regex.IsMatch(value, "^[a-z0-9._-]{1,64}$"))
+                throw new InvalidOperationException("Tài khoản ADMIN không hợp lệ.");
+            var seed = Regex.Replace(value, "[^a-z0-9._-]", "-").Trim('-');
+            if (seed.Length > 44) seed = seed.Substring(0, 44);
+            if (seed.Length == 0) throw new InvalidOperationException("Tài khoản ADMIN không hợp lệ.");
+            return "admin." + seed + "@auth.supra.invalid";
         }
 
         private AgentSession FirebasePasswordLoginDirect(string identifier, string password)
@@ -1764,7 +1766,7 @@ namespace SupraInventoryRelayAgent
             });
             if (email.Length == 0 || password.Length == 0)
             {
-                Log("Nhập tài khoản/email ADMIN và mật khẩu.");
+                Log("Nhập tài khoản ADMIN và mật khẩu.");
                 Ui(() => _pair.Enabled = true);
                 return;
             }

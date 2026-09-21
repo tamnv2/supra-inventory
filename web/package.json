@@ -4,8 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "generate:agent-version": "node scripts/generate-agent-version.mjs",
+    "predev": "npm run generate:agent-version",
     "dev": "vite",
+    "prebuild": "npm run generate:agent-version",
     "build": "tsc --noEmit && vite build",
+    "pretypecheck": "npm run generate:agent-version",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

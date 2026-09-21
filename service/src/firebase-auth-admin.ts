@@ -53,8 +53,9 @@ export function syntheticAuthEmail(role: FirebaseManagedRole, employeeCode: stri
 }
 
 export function effectiveAuthEmail(user: FirebaseManagedUserSpec): string {
-  const explicit = normalizeAuthEmail(user.authEmail || "");
-  if (explicit) return explicit;
+  // D100: the Firebase password identifier is deterministic from the business
+  // username/employee code. The registered real email is recovery/OTP metadata
+  // only and is deliberately not the Firebase sign-in address.
   return syntheticAuthEmail(user.role, user.employeeCode, user.userId);
 }
 
@@ -130,15 +131,51 @@ export async function importPasswordIdentity(
   return { uid: user.uid, email };
 }
 
+export async function deleteFirebaseUsers(
+  rawServiceAccountJson: string,
+  projectId: string,
+  localIds: string[],
+): Promise<number> {
+  const ids = [...new Set(localIds.map((value) => String(value || "").trim()).filter(Boolean))];
+  if (!ids.length) return 0;
+  const token = await adminToken(rawServiceAccountJson);
+  let deleted = 0;
+  for (let offset = 0; offset < ids.length; offset += 1000) {
+    const chunk = ids.slice(offset, offset + 1000);
+    const response = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/accounts:batchDelete`,
+      {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+          "content-type": "application/json",
+          accept: "application/json",
+        },
+        body: JSON.stringify({ localIds: chunk, force: true }),
+      },
+    );
+    const payload = await readJson(response);
+    const errors = Array.isArray(payload.errors) ? payload.errors : [];
+    if (!response.ok || errors.length) {
+      throw new Error(upstreamMessage(payload, `FIREBASE_BATCH_DELETE_HTTP_${response.status}`));
+    }
+    deleted += chunk.length;
+    if (offset + chunk.length < ids.length) {
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+    }
+  }
+  return deleted;
+}
+
 export async function updateFirebaseIdentity(
   rawServiceAccountJson: string,
   projectId: string,
   user: FirebaseManagedUserSpec,
-  options: { password?: string; email?: string | null } = {},
+  options: { password?: string } = {},
 ): Promise<{ uid: string; email: string }> {
   if (!user.uid) throw new Error("FIREBASE_UID_REQUIRED");
   const token = await adminToken(rawServiceAccountJson);
-  const email = normalizeAuthEmail(options.email ?? user.authEmail ?? "") || effectiveAuthEmail(user);
+  const email = effectiveAuthEmail(user);
   const body: Record<string, unknown> = {
     localId: user.uid,
     email,
@@ -201,26 +238,4 @@ export async function signInWithFirebasePassword(
     email: returnedEmail,
     expiresIn: Number.isFinite(expiresIn) ? Math.max(60, expiresIn) : 3600,
   };
-}
-
-export async function sendFirebasePasswordReset(apiKey: string, email: string): Promise<void> {
-  const response = await fetch(
-    `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${encodeURIComponent(apiKey)}`,
-    {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        accept: "application/json",
-        "x-firebase-locale": "vi",
-      },
-      body: JSON.stringify({
-        requestType: "PASSWORD_RESET",
-        email: normalizeAuthEmail(email),
-      }),
-    },
-  );
-  if (!response.ok) {
-    const payload = await readJson(response);
-    throw new Error(upstreamMessage(payload, `FIREBASE_RESET_HTTP_${response.status}`));
-  }
 }

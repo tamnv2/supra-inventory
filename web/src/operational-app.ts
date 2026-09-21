@@ -21,6 +21,9 @@ import {
   getRealtimePresence,
   getRuntimeLogDetail,
   getRuntimeLogs,
+  getSystemResetPreview,
+  requestSystemResetChallenge,
+  executeSystemReset,
   getHrSource,
   getMyProfile,
   getReporterBatchTickets,
@@ -33,6 +36,7 @@ import {
   loginWithPassword,
   logoutInteractiveSession,
   requestPasswordReset,
+  confirmPasswordReset,
   updateMyAuthEmail,
   ApiError,
   previewHrPickerSync,
@@ -57,12 +61,15 @@ import {
   type RuntimeLogDetail,
   type RuntimeLogItem,
   type SystemStatusSnapshot,
+  type SystemResetPreview,
+  type SystemResetScope,
   type ReporterBatch,
   type ReporterRecentBatch,
   type SkuItem,
   type SlaResponse,
   type SlaState,
 } from "./api";
+import { AGENT_BUILD, AGENT_DOWNLOAD_URL, AGENT_RELEASE_URL } from "./generated-agent-version";
 import { parseSkuExcel, type ParsedSkuWorkbook } from "./sku-excel";
 import { downloadReportWorkbook } from "./report-excel";
 import { registerRealtimeApplier, type RealtimeEventFrame } from "./realtime-client";
@@ -96,6 +103,7 @@ type Section =
   | "devices"
   | "logs"
   | "tools"
+  | "system-reset"
   | "versions"
   | "account";
 
@@ -163,7 +171,7 @@ function applyTheme(): void {
 applyTheme();
 
 const ROUTABLE_SECTIONS: Section[] = [
-  "picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "tools", "account",
+  "picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "tools", "system-reset", "account",
 ];
 
 function defaultSectionForProfile(value: AppProfile): Section {
@@ -174,6 +182,7 @@ function defaultSectionForProfile(value: AppProfile): Section {
 function canAccessSection(section: Section, value: AppProfile): boolean {
   if (value.role === "PICKER") return ["picker", "account"].includes(section);
   if (value.role === "REPORTER") return ["operations", "results", "account"].includes(section);
+  if (section === "system-reset") return value.role === "ROOT" && value.base_role === "ROOT";
   return section !== "picker";
 }
 
@@ -226,6 +235,9 @@ function clearRoleScopedViewState(): void {
   reportInsights = null;
   serviceHealth = null;
   systemStatus = null;
+  systemResetPreview = null;
+  systemResetChallenge = null;
+  systemResetSelected.clear();
   runtimeLogs = [];
   runtimeLogDetail = null;
   selectedBatchId = null;
@@ -305,6 +317,9 @@ let reportStatus = "";
 let reportQuery = "";
 let serviceHealth: Record<string, unknown> | null = null;
 let systemStatus: SystemStatusSnapshot | null = null;
+let systemResetPreview: SystemResetPreview | null = null;
+let systemResetChallenge: { id: string; expiresAt: string; emailHint: string } | null = null;
+let systemResetSelected = new Set<SystemResetScope>();
 let runtimeLogSource: "WEB" | "ANDROID" = "WEB";
 let runtimeLogs: RuntimeLogItem[] = [];
 let runtimeLogDetail: RuntimeLogDetail | null = null;
@@ -686,6 +701,7 @@ function activeContent(): string {
   if (activeSection === "devices") return renderLegacyDevices();
   if (activeSection === "logs") return renderLegacyLogs();
   if (activeSection === "tools") return renderTools();
+  if (activeSection === "system-reset") return renderSystemReset();
   if (activeSection === "versions") return renderLegacyVersions();
   return renderAccount();
 }
@@ -825,13 +841,47 @@ function renderNav(): string {
   return [
     navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"]]),
     navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"], ["sla", "Thời gian xử lý"]]),
-    navGroup("HỆ THỐNG", [["logs", "Nhật ký"], ["tools", "Công cụ"]]),
+    navGroup("HỆ THỐNG", profile.role === "ROOT" && profile.base_role === "ROOT"
+      ? [["logs", "Nhật ký"], ["tools", "Công cụ"], ["system-reset", "Đặt lại hệ thống"]]
+      : [["logs", "Nhật ký"], ["tools", "Công cụ"]]),
   ].join("");
 }
 
 function renderLogin(): void {
   document.body.dataset.role = "";
   document.body.dataset.testRole = "";
+  const recoveryToken = new URL(window.location.href).searchParams.get("password-reset") || "";
+  if (/^[a-f0-9]{128}$/i.test(recoveryToken)) {
+    app.innerHTML = `<main class="login-shell"><section class="login-card">
+      <div class="brand">1291</div><p class="eyebrow">BÁO HÀNG 1291</p><h1>Đặt lại mật khẩu</h1>
+      <p class="muted">Nhập mật khẩu mới cho tài khoản đã yêu cầu khôi phục.</p>
+      <form id="confirm-password-reset-form">
+        <label>Mật khẩu mới<input name="next" type="password" required minlength="8" maxlength="128" autocomplete="new-password" /></label>
+        <label>Nhập lại mật khẩu<input name="confirm" type="password" required minlength="8" maxlength="128" autocomplete="new-password" /></label>
+        <button class="primary wide">ĐẶT LẠI MẬT KHẨU</button>
+        <div id="confirm-password-reset-result" class="tiny muted"></div>
+      </form>
+      <p class="security">${PRODUCT_CREDIT}</p>
+    </section></main>`;
+    document.querySelector<HTMLFormElement>("#confirm-password-reset-form")?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const data = new FormData(event.currentTarget as HTMLFormElement);
+      const next = String(data.get("next") || "");
+      const confirm = String(data.get("confirm") || "");
+      const result = document.querySelector<HTMLElement>("#confirm-password-reset-result");
+      if (next !== confirm) {
+        if (result) result.textContent = "Hai lần nhập mật khẩu chưa khớp.";
+        return;
+      }
+      void run(async () => {
+        const message = await confirmPasswordReset(recoveryToken, next);
+        window.history.replaceState({}, "", window.location.pathname + window.location.hash);
+        renderLogin();
+        setNotice("success", message);
+      }, "none");
+    });
+    return;
+  }
   app.innerHTML = `<main class="login-shell"><section class="login-card">
     <div class="brand">1291</div><p class="eyebrow">BÁO HÀNG 1291</p><h1>Web nghiệp vụ</h1>
     <p class="muted">Đăng nhập bằng tài khoản Báo hàng 1291.</p>
@@ -1850,9 +1900,56 @@ function renderLegacyVersions(): string {
   return renderSystem();
 }
 
-const AGENT_RELEASE_TAG = "relay-agent-v15";
-const AGENT_RELEASE_URL = "https://github.com/tamnv2/supra-inventory/releases/tag/" + AGENT_RELEASE_TAG;
-const AGENT_DOWNLOAD_URL = "https://github.com/tamnv2/supra-inventory/releases/download/" + AGENT_RELEASE_TAG + "/Agent.Auto.Confirm.Pick.Pack.exe";
+function renderSystemReset(): string {
+  if (!profile || profile.role !== "ROOT" || profile.base_role !== "ROOT") {
+    return `<section class="ops-route"><div class="notice danger">Chỉ ROOT thực được truy cập Đặt lại hệ thống.</div></section>`;
+  }
+  const counts = systemResetPreview?.counts || {};
+  const relay = systemResetPreview?.confirmation_relay;
+  const relayCount = relay?.status === "ok"
+    ? Object.values(relay.counts || {}).reduce((sum, value) => sum + Number(value || 0), 0)
+    : null;
+  const items: Array<{ scope: SystemResetScope; title: string; detail: string; count: string; tone?: string }> = [
+    { scope: "PICKER_ACCOUNTS", title: "Tài khoản Picker", detail: "Xóa Picker trong InventoryCore và Firebase Authentication. Không xóa hoặc sửa Google Sheet nhân sự.", count: Number(counts.picker_accounts || 0).toLocaleString("vi-VN") },
+    { scope: "REPORTER_ACCOUNTS", title: "Tài khoản Reporter", detail: "Xóa tài khoản Reporter, phiên và thiết bị liên quan. Lịch sử báo hàng chỉ xóa khi chọn riêng mục Lịch sử.", count: Number(counts.reporter_accounts || 0).toLocaleString("vi-VN") },
+    { scope: "ADMIN_ACCOUNTS", title: "Tài khoản Admin", detail: "Xóa Admin trong service, Firebase chính và Firebase alias Agent. Tài khoản ROOT luôn được giữ nguyên.", count: Number(counts.admin_accounts || 0).toLocaleString("vi-VN"), tone: "warning" },
+    { scope: "SKU_MASTER", title: "Danh mục SKU", detail: "Đưa SKU Master trong service về 0. Không thay logic import và không tác động Google Sheet/Drive.", count: Number(counts.sku_master || 0).toLocaleString("vi-VN") },
+    { scope: "OPEN_REPORTS", title: "Báo hàng đang xử lý", detail: "Xóa các đợt/ticket đang PENDING và dữ liệu đồng bộ liên quan; không tự xóa lịch sử đã kết thúc.", count: `${Number(counts.open_report_batches || 0).toLocaleString("vi-VN")} đợt`, tone: "warning" },
+    { scope: "BUSINESS_HISTORY", title: "Lịch sử nghiệp vụ", detail: "Xóa các đợt đã kết thúc, ticket/event/ACK/realtime/archive marker trong service. File archive đã có trên Drive/Sheet không bị xóa.", count: `${Number(counts.history_batches || 0).toLocaleString("vi-VN")} đợt`, tone: "warning" },
+    { scope: "SERVICE_LOGS", title: "Log kỹ thuật trong service", detail: "Xóa audit log và delivery-attempt telemetry trong InventoryCore. Không xóa file log đã lưu trên Google Drive.", count: `${Number(counts.audit_log || 0).toLocaleString("vi-VN")} audit` },
+    { scope: "SESSIONS_DEVICES", title: "Phiên & thiết bị", detail: "Xóa FCM/presence và phiên Web/App của tài khoản không phải ROOT. ROOT hiện tại được bảo toàn.", count: `${Number(counts.fcm_devices || 0).toLocaleString("vi-VN")} thiết bị` },
+    { scope: "RUNTIME_SETTINGS", title: "Cấu hình runtime", detail: "Đưa cấu hình SLA/app runtime và metadata kết nối nguồn nhân sự về mặc định. Không sửa/xóa nội dung Google Sheet nguồn.", count: `${Number(counts.app_config || 0) + Number(counts.hr_source_config || 0)} cấu hình`, tone: "warning" },
+    { scope: "CONFIRMATION_RELAY", title: "Dữ liệu Xác nhận đơn Firestore", detail: "Xóa job/rate-limit/coordination/presence/confirmation-guard của luồng PDA ↔ Agent. Hệ thống chặn nếu còn job PENDING để tránh mất yêu cầu WMS đang chờ.", count: relayCount == null ? "Chưa đọc Firestore" : `${relayCount.toLocaleString("vi-VN")} tài liệu`, tone: "danger" },
+  ];
+  const allSelected = items.every((item) => systemResetSelected.has(item.scope));
+  return `<section class="ops-route reset-workspace">
+    <div class="business-page-head"><div><h2>Đặt lại hệ thống</h2><p>Chỉ đưa dữ liệu runtime đã chọn về 0. Không thay source code, logic nghiệp vụ, giao diện, schema, Google Sheet/Drive hoặc Stable.</p></div></div>
+    <div class="notice warning"><strong>ROOT được bảo toàn tuyệt đối:</strong> tài khoản ROOT, mật khẩu, Firebase identity và email khôi phục không nằm trong phạm vi reset.</div>
+    <div class="reset-toolbar">
+      <label class="reset-all"><input id="reset-select-all" type="checkbox" ${allSelected ? "checked" : ""}/> <strong>Chọn toàn bộ dữ liệu runtime</strong></label>
+      <button class="secondary" id="reset-refresh-preview">Cập nhật số lượng</button>
+      <button class="secondary" id="reset-read-relay">Đọc số lượng Firestore</button>
+    </div>
+    <div class="reset-card-grid">
+      ${items.map((item) => `<label class="ops-panel reset-card ${item.tone || ""}">
+        <input type="checkbox" data-reset-scope="${item.scope}" ${systemResetSelected.has(item.scope) ? "checked" : ""}/>
+        <span class="reset-card-copy"><strong>${esc(item.title)}</strong><small>${esc(item.detail)}</small></span>
+        <b>${esc(item.count)}</b>
+      </label>`).join("")}
+    </div>
+    <article class="ops-panel reset-security-panel">
+      <div class="ops-panel-title"><div><h3>Xác nhận bảo mật 2 lớp</h3><p>Bước 1 xác minh mật khẩu ROOT. Bước 2 nhập mã 6 chữ số gửi tới email ROOT đã đăng ký. Mã có hiệu lực 10 phút và tối đa 5 lần thử.</p></div></div>
+      <div class="ops-form-grid">
+        <label class="span">Mật khẩu ROOT hiện tại<input id="reset-root-password" type="password" autocomplete="current-password" ${systemResetChallenge ? "disabled" : ""}/></label>
+        ${systemResetChallenge ? `<div class="notice success span">Đã gửi mã tới ${esc(systemResetChallenge.emailHint)}. Hết hạn: ${esc(fmt(systemResetChallenge.expiresAt))}.</div>
+          <label class="span">Mã xác nhận 6 chữ số<input id="reset-otp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000" /></label>
+          <div class="ops-form-actions"><button class="danger" id="reset-execute">XÁC NHẬN ĐẶT LẠI</button><button class="secondary" id="reset-cancel-challenge">Huỷ mã hiện tại</button></div>`
+          : `<div class="ops-form-actions"><button class="danger" id="reset-request-code" ${systemResetSelected.size ? "" : "disabled"}>XÁC MINH MẬT KHẨU & GỬI MÃ</button></div>`}
+      </div>
+    </article>
+    <div class="system-limit-box"><strong>Không bị tác động</strong><div>Tài khoản ROOT, mật khẩu và email ROOT; Google Sheet nhân sự; dữ liệu Google Drive; mã nguồn GitHub; cấu trúc dữ liệu; logic, giao diện và kịch bản; Stable; tài khoản WMS.</div></div>
+  </section>`;
+}
 
 function renderTools(): string {
   return `<section class="ops-route tools-workspace">
@@ -1866,7 +1963,7 @@ function renderTools(): string {
           <div><h3>Agent Auto Confirm Pick Pack</h3><p>Agent Windows phục vụ luồng xác nhận lấy lại đơn và trao đổi dữ liệu với PDA.</p></div>
         </div>
         <div class="tool-facts">
-          <div><span>Phiên bản</span><strong>v15</strong></div>
+          <div><span>Phiên bản</span><strong>v${AGENT_BUILD}</strong></div>
           <div><span>Nền tảng</span><strong>Windows</strong></div>
           <div><span>Quyền chạy</span><strong>User thường</strong></div>
           <div><span>Cập nhật</span><strong>Tự động qua GitHub</strong></div>
@@ -2164,6 +2261,10 @@ async function loadSection(section: Section): Promise<void> {
   else if (section === "dashboard" && roleManage()) { await loadDashboard(); received = true; }
   else if (section === "reports" && roleManage()) { await loadReports(); received = true; }
   else if (section === "logs" && roleManage()) { await loadLogs(); received = true; }
+  else if (section === "system-reset" && profile.role === "ROOT" && profile.base_role === "ROOT") {
+    systemResetPreview = await getSystemResetPreview(false);
+    received = true;
+  }
   if (received) markWebUpdateReceived();
 }
 
@@ -2382,6 +2483,82 @@ function bindSection(): void {
     if (!profile || !next || next === activeSection || !canAccessSection(next, profile)) return;
     navigateToSection(next, "push");
   }));
+
+  document.querySelectorAll<HTMLInputElement>("[data-reset-scope]").forEach((input) => input.addEventListener("change", () => {
+    const scope = input.dataset.resetScope as SystemResetScope;
+    if (!scope) return;
+    if (input.checked) systemResetSelected.add(scope);
+    else systemResetSelected.delete(scope);
+    const requestButton = document.querySelector<HTMLButtonElement>("#reset-request-code");
+    if (requestButton) requestButton.disabled = systemResetSelected.size === 0;
+    const all = document.querySelector<HTMLInputElement>("#reset-select-all");
+    if (all) all.checked = document.querySelectorAll<HTMLInputElement>("[data-reset-scope]").length === systemResetSelected.size;
+  }));
+  document.querySelector<HTMLInputElement>("#reset-select-all")?.addEventListener("change", (event) => {
+    const checked = (event.currentTarget as HTMLInputElement).checked;
+    document.querySelectorAll<HTMLInputElement>("[data-reset-scope]").forEach((input) => {
+      const scope = input.dataset.resetScope as SystemResetScope;
+      input.checked = checked;
+      if (checked) systemResetSelected.add(scope);
+      else systemResetSelected.delete(scope);
+    });
+    const requestButton = document.querySelector<HTMLButtonElement>("#reset-request-code");
+    if (requestButton) requestButton.disabled = systemResetSelected.size === 0;
+  });
+  document.querySelector<HTMLButtonElement>("#reset-refresh-preview")?.addEventListener("click", () => void run(async () => {
+    systemResetPreview = await getSystemResetPreview(false);
+    patchActiveSection(false);
+    setNotice("success", "Đã cập nhật số lượng dữ liệu trong service.");
+  }));
+  document.querySelector<HTMLButtonElement>("#reset-read-relay")?.addEventListener("click", () => void run(async () => {
+    systemResetPreview = await getSystemResetPreview(true);
+    patchActiveSection(false);
+    setNotice("success", "Đã đọc số lượng dữ liệu relay Firestore.");
+  }));
+  document.querySelector<HTMLButtonElement>("#reset-request-code")?.addEventListener("click", () => {
+    if (!profile || profile.role !== "ROOT" || profile.base_role !== "ROOT" || !systemResetSelected.size) return;
+    const password = document.querySelector<HTMLInputElement>("#reset-root-password")?.value || "";
+    if (!password) {
+      setNotice("warning", "Nhập mật khẩu ROOT hiện tại trước khi gửi mã xác nhận.");
+      return;
+    }
+    const selected = [...systemResetSelected];
+    if (!window.confirm(`Chuẩn bị đặt lại ${selected.length} nhóm dữ liệu đã chọn. ROOT và dữ liệu Google Sheet/Drive không bị xóa. Tiếp tục gửi mã xác nhận?`)) return;
+    void run(async () => {
+      const challenge = await requestSystemResetChallenge(selected, password);
+      systemResetChallenge = { id: challenge.challenge_id, expiresAt: challenge.expires_at, emailHint: challenge.email_hint };
+      patchActiveSection(false);
+      setNotice("success", "Đã xác minh mật khẩu ROOT và gửi mã 6 chữ số.");
+    });
+  });
+  document.querySelector<HTMLButtonElement>("#reset-cancel-challenge")?.addEventListener("click", () => {
+    systemResetChallenge = null;
+    patchActiveSection(false);
+  });
+  const executeReset = () => {
+    if (!systemResetChallenge) return;
+    const code = (document.querySelector<HTMLInputElement>("#reset-otp")?.value || "").trim();
+    if (!/^\d{6}$/.test(code)) {
+      setNotice("warning", "Nhập đúng mã xác nhận gồm 6 chữ số.");
+      return;
+    }
+    if (!window.confirm("Đây là thao tác phá huỷ dữ liệu runtime đã chọn và không thể hoàn tác từ service. Xác nhận thực hiện?")) return;
+    void run(async () => {
+      const result = await executeSystemReset(systemResetChallenge!.id, code);
+      const groups = result.scopes.length;
+      systemResetChallenge = null;
+      systemResetSelected.clear();
+      systemResetPreview = await getSystemResetPreview(false);
+      patchActiveSection(false);
+      setNotice("success", `Đặt lại hoàn tất ${groups} nhóm dữ liệu. ROOT và Google Sheet/Drive được giữ nguyên.`);
+    });
+  };
+  document.querySelector<HTMLButtonElement>("#reset-execute")?.addEventListener("click", executeReset);
+  document.querySelector<HTMLInputElement>("#reset-otp")?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    executeReset();
+  });
 
   document.querySelectorAll<HTMLButtonElement>("[data-queue-filter]").forEach((button) => button.addEventListener("click", () => {
     const next = String(button.dataset.queueFilter || "ALL") as typeof queueFilter;

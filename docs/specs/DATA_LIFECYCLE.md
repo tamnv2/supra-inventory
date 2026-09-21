@@ -259,3 +259,18 @@ D097 temporary Firestore records remain support/relay state, not Báo hàng tran
 - Presence/coordination records are low-frequency temporary metadata. FROZEN Agents must not create business polling load.
 - Free-quota design target is based on 6,000 requests/day and 30 simultaneous requests; operational code must not reintroduce 4-second leader writes, per-job PROCESSING writes or 1-second PDA GET polling.
 - Cleanup never contains credentials/session/signature material and remains separate from long-term business archive.
+
+
+## D100 — Explicit system-reset deletion boundary
+
+System Reset is a deliberate ROOT-only data-zeroing operation, not normal retention.
+
+- No table/schema is dropped. Deletes run in bounded/transactional InventoryCore operations where applicable.
+- Account reset affects only selected non-ROOT role rows plus linked service session/device records and corresponding Firebase Auth identities.
+- Open-report and history reset delete dependent rows in foreign-key-safe order.
+- SKU reset empties `sku_master` and resets catalog metadata to zero.
+- Service-log reset never deletes Drive files.
+- Runtime-settings reset clears service configuration rows but never edits/deletes the referenced external Sheet.
+- Firestore confirmation reset is optional and separate; active PENDING jobs block deletion.
+- ROOT remains usable throughout the reset.
+- External Google Sheet/Drive archives remain durable external records and are not used as an automatic restore source.

@@ -172,7 +172,9 @@ def main() -> None:
     require(unified_css, ".sla-auto-policy", "D070 automatic-Skip policy layout")
 
     # D072: quota-heavy system-status surface is excluded from normal runtime.
-    require(app, 'navGroup("HỆ THỐNG", [["logs", "Nhật ký"], ["tools", "Công cụ"]])', "D088 system group journal and tools without quota status polling")
+    require(app, 'navGroup("HỆ THỐNG", profile.role === "ROOT" && profile.base_role === "ROOT"', "D100 Root-only system group branching")
+    require(app, '? [["logs", "Nhật ký"], ["tools", "Công cụ"], ["system-reset", "Đặt lại hệ thống"]]', "D100 Root-only system reset child")
+    require(app, ': [["logs", "Nhật ký"], ["tools", "Công cụ"]])', "D088 non-Root system group journal and tools without quota status polling")
     forbid(app, "getSystemStatus(", "D072 Web system-status API calls")
     forbid(app, '["system","devices","versions"].includes(activeSection)', "D072 system-status polling route")
     forbid(app, 'querySelector<HTMLButtonElement>("#refresh-system")', "D072 manual system-status refresh binding")

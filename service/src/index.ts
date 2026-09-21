@@ -4,7 +4,6 @@ import {
   effectiveAuthEmail,
   importPasswordIdentity,
   normalizeAuthEmail,
-  sendFirebasePasswordReset,
   signInWithFirebasePassword,
   updateFirebaseIdentity,
   type FirebaseManagedUserSpec,
@@ -17,6 +16,8 @@ import { archiveStatus, runArchive } from "./archive";
 import { validateHrSheetSource } from "./hr-source";
 import { listRuntimeLogs, readRuntimeLog, uploadRuntimeLog } from "./runtime-logs";
 import { collectSystemStatus } from "./system-status";
+import { handleSystemResetApi } from "./system-reset";
+import { sendProjectEmail } from "./google-mail";
 
 export { InventoryCore };
 
@@ -57,6 +58,7 @@ interface InternalUser {
   password_changed_at: string | null;
   auth_email: string | null;
   firebase_password_ready: number;
+  firebase_agent_ready: number;
   session_generation: number;
   session_started_at: string | null;
   web_session_generation: number;
@@ -83,7 +85,7 @@ interface FirebaseRefreshResponse {
   error?: { message?: string };
 }
 
-const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/gmail.send";
 const OAUTH_STATE_COOKIE = "inventory_oauth_state";
 const CORE_OBJECT_NAME = "inventory-core";
 const REQUIRED_RUNTIME_BINDINGS = [
@@ -118,6 +120,11 @@ function randomState(): string {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function hashRecoveryToken(value: string): Promise<string> {
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)));
+  return Array.from(digest, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 function readCookie(request: Request, name: string): string | null {
@@ -273,8 +280,29 @@ async function ensureFirebasePasswordReady(env: Env, original: InternalUser): Pr
   return user;
 }
 
-async function migrateActiveAdminFirebaseCredentials(env: Env): Promise<{ migrated: number; failed: number; remaining: number }> {
-  if (!env.GOOGLE_RUNTIME_SA_JSON) return { migrated: 0, failed: 1, remaining: 0 };
+async function ensureAgentFirebaseReady(env: Env, user: InternalUser): Promise<void> {
+  if (!env.GOOGLE_RUNTIME_SA_JSON) throw new Error("AUTH_RUNTIME_NOT_CONFIGURED");
+  if (user.base_role !== "ADMIN" || user.role !== "ADMIN") throw new Error("AGENT_ADMIN_REQUIRED");
+  if (!user.password_hash || !user.password_salt || !user.firebase_uid) throw new Error("AGENT_PASSWORD_NOT_READY");
+  if (Number(user.firebase_agent_ready || 0) === 1) return;
+
+  // D100: Agent uses the same Firebase UID as Web/App. This update only
+  // normalizes the Firebase password identifier to the deterministic
+  // username-derived address; recovery email remains InventoryCore metadata.
+  await updateFirebaseIdentity(
+    env.GOOGLE_RUNTIME_SA_JSON,
+    env.FIREBASE_PROJECT_ID,
+    firebaseUserSpec(user, String(user.firebase_uid)),
+  );
+  await coreJson(env, "/auth/firebase-agent-ready", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ user_id: user.user_id }),
+  });
+}
+
+async function migrateActiveAdminFirebaseCredentials(env: Env): Promise<{ migrated: number; failed: number; remaining: number; agent_migrated: number; agent_failed: number; agent_remaining: number }> {
+  if (!env.GOOGLE_RUNTIME_SA_JSON) return { migrated: 0, failed: 1, remaining: 0, agent_migrated: 0, agent_failed: 1, agent_remaining: 0 };
   const candidates = await coreJson<{ items: InternalUser[]; count: number }>(
     env,
     "/auth/firebase-migration-candidates?role=ADMIN&limit=50",
@@ -293,7 +321,37 @@ async function migrateActiveAdminFirebaseCredentials(env: Env): Promise<{ migrat
     env,
     "/auth/firebase-migration-candidates?role=ADMIN&limit=1",
   );
-  return { migrated, failed, remaining: Number(remaining.count || 0) };
+
+  const agentCandidates = await coreJson<{ items: InternalUser[]; count: number }>(
+    env,
+    "/auth/firebase-migration-candidates?role=ADMIN&channel=AGENT&limit=50",
+  );
+  let agentMigrated = 0;
+  let agentFailed = 0;
+  for (const original of agentCandidates.items || []) {
+    try {
+      const prepared = Number(original.firebase_password_ready || 0) === 1
+        ? original
+        : await ensureFirebasePasswordReady(env, original);
+      const refreshed = (await getUserById(env, prepared.user_id)) || prepared;
+      await ensureAgentFirebaseReady(env, refreshed);
+      agentMigrated += 1;
+    } catch {
+      agentFailed += 1;
+    }
+  }
+  const agentRemaining = await coreJson<{ count: number }>(
+    env,
+    "/auth/firebase-migration-candidates?role=ADMIN&channel=AGENT&limit=1",
+  );
+  return {
+    migrated,
+    failed,
+    remaining: Number(remaining.count || 0),
+    agent_migrated: agentMigrated,
+    agent_failed: agentFailed,
+    agent_remaining: Number(agentRemaining.count || 0),
+  };
 }
 
 async function closeUserRealtime(env: Env, userId: string, channel?: "WEB" | "ANDROID"): Promise<void> {
@@ -381,6 +439,7 @@ function publicUser(user: InternalUser): Record<string, unknown> {
     android_session_device_id: _androidDevice,
     android_session_started_at: _androidStarted,
     firebase_password_ready: _firebasePasswordReady,
+    firebase_agent_ready: _firebaseAgentReady,
     ...safe
   } = user;
   return safe;
@@ -630,8 +689,15 @@ async function changePassword(request: Request, env: Env): Promise<Response> {
   await coreJson(env, "/auth/firebase-password-ready", {
     method: "PUT",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ user_id: user.user_id, firebase_uid: uid, auth_email: email }),
+    body: JSON.stringify({ user_id: user.user_id, firebase_uid: uid }),
   });
+  if (user.base_role === "ADMIN") {
+    await coreJson(env, "/auth/firebase-agent-ready", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ user_id: user.user_id }),
+    });
+  }
   return json({ status: "password_changed", reauth_required: true });
 }
 
@@ -643,14 +709,8 @@ async function updateMyAuthEmail(request: Request, env: Env): Promise<Response> 
   let email = "";
   try { email = normalizeAuthEmail(body.email); } catch { return json({ error: "EMAIL_INVALID" }, 400); }
   if (!email) return json({ error: "EMAIL_REQUIRED" }, 400);
-  user = await ensureFirebasePasswordReady(env, user);
-  const uid = String(user.firebase_uid || "");
-  await updateFirebaseIdentity(
-    env.GOOGLE_RUNTIME_SA_JSON,
-    env.FIREBASE_PROJECT_ID,
-    firebaseUserSpec(user, uid),
-    { email },
-  );
+  // Recovery email is business metadata only. Firebase password sign-in keeps
+  // the deterministic username-derived identifier so Agent can stay Worker-independent.
   const saved = await coreJson<{ user: InternalUser | null }>(env, "/auth/set-email", {
     method: "PUT",
     headers: { "content-type": "application/json" },
@@ -660,32 +720,129 @@ async function updateMyAuthEmail(request: Request, env: Env): Promise<Response> 
 }
 
 async function requestPasswordReset(request: Request, env: Env): Promise<Response> {
-  if (!env.FIREBASE_WEB_API_KEY) return json({ status: "accepted" }, 202);
   let body: { username?: string; email?: string } = {};
   try { body = (await request.json()) as { username?: string; email?: string }; } catch { body = {}; }
   const username = String(body.username || "").trim().toLowerCase();
-  let email = "";
-  try { email = normalizeAuthEmail(body.email); } catch { return json({ status: "accepted" }, 202); }
-  if (!/^[a-z0-9._-]{1,64}$/.test(username) || !email) return json({ status: "accepted" }, 202);
-  try {
-    let user = await getUserByUsername(env, username);
-    if (
-      user &&
-      user.status === "ACTIVE" &&
-      ["ROOT", "ADMIN"].includes(user.base_role) &&
-      user.auth_email &&
-      normalizeAuthEmail(user.auth_email) === email
-    ) {
-      user = await ensureFirebasePasswordReady(env, user);
-      await sendFirebasePasswordReset(env.FIREBASE_WEB_API_KEY, email);
-    }
-  } catch {
-    // Enumeration-safe response: callers always receive the same result.
-  }
-  return json({
+  let recoveryEmail = "";
+  try { recoveryEmail = normalizeAuthEmail(body.email); } catch { recoveryEmail = ""; }
+
+  const accepted = () => json({
     status: "accepted",
     message: "Nếu thông tin tài khoản và email khớp, hệ thống đã gửi liên kết đặt lại mật khẩu.",
   }, 202);
+
+  if (!/^[a-z0-9._-]{1,64}$/.test(username) || !recoveryEmail) return accepted();
+
+  let tokenHash = "";
+  try {
+    let user = await getUserByUsername(env, username);
+    if (
+      !user ||
+      user.status !== "ACTIVE" ||
+      !["ROOT", "ADMIN"].includes(user.base_role) ||
+      !user.auth_email ||
+      normalizeAuthEmail(user.auth_email) !== recoveryEmail
+    ) return accepted();
+
+    user = await ensureFirebasePasswordReady(env, user);
+    const token = randomState() + randomState();
+    tokenHash = await hashRecoveryToken(token);
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 15 * 60 * 1000).toISOString();
+    const stored = await coreStub(env).fetch("https://inventory-core.internal/auth/password-recovery/store", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        token_hash: tokenHash,
+        user_id: user.user_id,
+        created_at: now.toISOString(),
+        expires_at: expiresAt,
+      }),
+    });
+    if (!stored.ok) return accepted();
+
+    const origin = new URL(request.url).origin;
+    const link = origin + "/?password-reset=" + encodeURIComponent(token);
+    await sendProjectEmail(
+      env,
+      recoveryEmail,
+      "Đặt lại mật khẩu SUPRA Inventory",
+      [
+        "Bạn vừa yêu cầu đặt lại mật khẩu SUPRA Inventory.",
+        "",
+        "Mở liên kết sau để đặt mật khẩu mới:",
+        link,
+        "",
+        "Liên kết có hiệu lực trong 15 phút và chỉ dùng một lần.",
+        "Nếu bạn không yêu cầu thao tác này, hãy bỏ qua email.",
+      ].join("\r\n"),
+    );
+  } catch {
+    if (tokenHash) {
+      await coreStub(env).fetch("https://inventory-core.internal/auth/password-recovery/delete", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token_hash: tokenHash }),
+      }).catch(() => undefined);
+    }
+  }
+  return accepted();
+}
+
+async function confirmPasswordReset(request: Request, env: Env): Promise<Response> {
+  if (!env.GOOGLE_RUNTIME_SA_JSON || !env.FIREBASE_WEB_API_KEY) {
+    return json({ error: "AUTH_RUNTIME_NOT_CONFIGURED" }, 503);
+  }
+  let body: { token?: string; new_password?: string } = {};
+  try { body = (await request.json()) as { token?: string; new_password?: string }; } catch { body = {}; }
+  const token = String(body.token || "").trim();
+  const nextPassword = String(body.new_password || "");
+  if (!/^[a-f0-9]{128}$/i.test(token) || nextPassword.length < 8 || nextPassword.length > 128) {
+    return json({ error: "RECOVERY_TOKEN_OR_PASSWORD_INVALID", message: "Liên kết hoặc mật khẩu mới không hợp lệ." }, 400);
+  }
+
+  const tokenHash = await hashRecoveryToken(token);
+  const verifyResponse = await coreStub(env).fetch("https://inventory-core.internal/auth/password-recovery/verify", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ token_hash: tokenHash }),
+  });
+  const verified = (await verifyResponse.json()) as { status?: string; user_id?: string; error?: string };
+  if (!verifyResponse.ok || verified.status !== "valid" || !verified.user_id) {
+    return json({ error: verified.error || "RECOVERY_TOKEN_INVALID", message: "Liên kết đặt lại mật khẩu không còn hợp lệ." }, 400);
+  }
+
+  let user = await getUserById(env, verified.user_id);
+  if (!user || user.status !== "ACTIVE" || !["ROOT", "ADMIN"].includes(user.base_role)) {
+    return json({ error: "RECOVERY_USER_INVALID" }, 400);
+  }
+  user = await ensureFirebasePasswordReady(env, user);
+  const uid = String(user.firebase_uid || "");
+  await updateFirebaseIdentity(
+    env.GOOGLE_RUNTIME_SA_JSON,
+    env.FIREBASE_PROJECT_ID,
+    firebaseUserSpec(user, uid),
+    { password: nextPassword },
+  );
+  await savePassword(env, user.user_id, nextPassword);
+  await coreJson(env, "/auth/firebase-password-ready", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ user_id: user.user_id, firebase_uid: uid }),
+  });
+  if (user.base_role === "ADMIN") {
+    await coreJson(env, "/auth/firebase-agent-ready", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ user_id: user.user_id }),
+    });
+  }
+  await coreStub(env).fetch("https://inventory-core.internal/auth/password-recovery/consume", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ token_hash: tokenHash }),
+  });
+  return json({ status: "password_reset", message: "Đã đặt lại mật khẩu. Hãy đăng nhập lại." });
 }
 
 async function logoutInteractiveSession(request: Request, env: Env): Promise<Response> {
@@ -764,15 +921,17 @@ export default {
         const bindingPresence = Object.fromEntries(REQUIRED_RUNTIME_BINDINGS.map((name) => [name, Boolean(env[name])]));
         const missing = REQUIRED_RUNTIME_BINDINGS.filter((name) => !env[name]);
         const core = await checkCore(env);
-        let agentAuthMigration = { migrated: 0, failed: 0, remaining: 0 };
+        let agentAuthMigration = { migrated: 0, failed: 0, remaining: 0, agent_migrated: 0, agent_failed: 0, agent_remaining: 0 };
         if (core.ok && env.GOOGLE_RUNTIME_SA_JSON) {
           try {
             agentAuthMigration = await migrateActiveAdminFirebaseCredentials(env);
           } catch {
-            agentAuthMigration = { migrated: 0, failed: 1, remaining: 1 };
+            agentAuthMigration = { migrated: 0, failed: 1, remaining: 1, agent_migrated: 0, agent_failed: 1, agent_remaining: 1 };
           }
         }
-        const healthy = missing.length === 0 && core.ok && agentAuthMigration.failed === 0 && agentAuthMigration.remaining === 0;
+        const healthy = missing.length === 0 && core.ok &&
+          agentAuthMigration.failed === 0 && agentAuthMigration.remaining === 0 &&
+          agentAuthMigration.agent_failed === 0 && agentAuthMigration.agent_remaining === 0;
         return json({
           status: healthy ? "ok" : "degraded", service: env.PROJECT_KEY || "supra-inventory", environment: env.APP_ENV || "unknown",
           required_bindings: bindingPresence, oauth_refresh_token_configured: Boolean(env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN),
@@ -811,6 +970,7 @@ export default {
       if (request.method === "POST" && url.pathname === "/api/auth/refresh") return refreshSession(request, env);
       if (request.method === "POST" && url.pathname === "/api/auth/logout") return logoutInteractiveSession(request, env);
       if (request.method === "POST" && url.pathname === "/api/auth/password-reset") return requestPasswordReset(request, env);
+      if (request.method === "POST" && url.pathname === "/api/auth/password-reset/confirm") return confirmPasswordReset(request, env);
       if (request.method === "GET" && url.pathname === "/api/auth/me") return json({ user: publicUser(await requireUser(request, env)) });
       if (request.method === "PUT" && url.pathname === "/api/auth/root-role") return setRootEffectiveRole(request, env);
       if (request.method === "PUT" && url.pathname === "/api/auth/change-password") return changePassword(request, env);
@@ -936,6 +1096,9 @@ export default {
           return json({ error: "HR_SOURCE_INVALID", message: error instanceof Error ? error.message : "HR source validation failed" }, 400);
         }
       }
+
+      const systemResetResponse = await handleSystemResetApi(request, env);
+      if (systemResetResponse) return systemResetResponse;
 
       const userManagementResponse = await handleUserManagementApi(request, env);
       if (userManagementResponse) return userManagementResponse;

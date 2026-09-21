@@ -169,3 +169,35 @@ pre { overflow:auto; padding:12px; background:#f6faf7; border-radius:10px; borde
   .table-actions { min-width:0; }
 }
 @media (max-width:480px) { .summary-grid,.sync-grid { grid-template-columns:1fr; } .sidebar-foot { grid-template-columns:1fr; } .sidebar-foot .full { width:100%; } }
+
+
+/* D100 Root-only system reset workspace */
+.reset-workspace { display:grid; gap:16px; }
+.reset-toolbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:var(--panel); }
+.reset-all { display:flex; grid-template-columns:auto 1fr; align-items:center; gap:9px; margin-right:auto; }
+.reset-all input, .reset-card > input { width:18px; min-height:18px; height:18px; accent-color:var(--green-700); }
+.reset-card-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.reset-card { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:start; gap:12px; margin:0; cursor:pointer; min-height:118px; }
+.reset-card.warning { border-color:#e6c688; }
+.reset-card.danger { border-color:#e7a49d; }
+.reset-card-copy { display:grid; gap:7px; }
+.reset-card-copy strong { color:var(--ink); font-size:.98rem; }
+.reset-card-copy small { color:var(--muted); line-height:1.45; font-weight:500; }
+.reset-card > b { color:var(--muted); white-space:nowrap; font-size:.82rem; }
+.reset-security-panel { border:1px solid #e7a49d; }
+button.danger { background:#b42318; color:#fff; }
+button.danger:hover { background:#8f1c13; }
+.notice.success { background:#edf9f2; border-color:#b9dfc8; color:#17663d; }
+.notice.danger { background:#fff1f0; border-color:#f3b7b1; color:#8f1c13; }
+@media (max-width: 900px) { .reset-card-grid { grid-template-columns:1fr; } }
+[data-theme="dark"] .reset-toolbar,
+[data-theme="dark"] .reset-card,
+[data-theme="dark"] .reset-security-panel { background:#111827; border-color:#334155; }
+[data-theme="dark"] .reset-card.warning { border-color:#7c5c25; }
+[data-theme="dark"] .reset-card.danger,
+[data-theme="dark"] .reset-security-panel { border-color:#7f3f3a; }
+[data-theme="dark"] .reset-card-copy strong { color:#f8fafc; }
+[data-theme="dark"] .reset-card-copy small,
+[data-theme="dark"] .reset-card > b { color:#aab5c3; }
+[data-theme="dark"] .notice.success { background:#10291d; border-color:#285a40; color:#a7e4bf; }
+[data-theme="dark"] .notice.danger { background:#311715; border-color:#713a35; color:#fecaca; }

@@ -5,6 +5,8 @@ import { handleNotificationCoreRequest } from "./notifications-core";
 import { handleUserManagementCoreRequest } from "./user-management-core";
 import { handleArchiveCoreRequest } from "./archive-core";
 import { handleSystemMetricsCoreRequest } from "./system-metrics-core";
+import { handleSystemResetCoreRequest } from "./system-reset-core";
+import { handleAuthRecoveryCoreRequest } from "./auth-recovery-core";
 import { initializeOperationalV2Schema, operationalV2Readiness } from "./operational-v2-core";
 import {
   processOperationalDeadlines,
@@ -13,7 +15,7 @@ import {
 } from "./sla-automation";
 import { sendFcmNotifications } from "./fcm";
 
-const SCHEMA_VERSION = 9;
+const SCHEMA_VERSION = 10;
 
 interface CoreEnv {
   APP_ENV: string;
@@ -38,6 +40,7 @@ interface InternalUser extends Record<string, SqlStorageValue> {
   password_changed_at: string | null;
   auth_email: string | null;
   firebase_password_ready: number;
+  firebase_agent_ready: number;
   session_generation: number;
   session_started_at: string | null;
   web_session_generation: number;
@@ -262,6 +265,7 @@ export class InventoryCore {
     if (!this.hasColumn("users", "session_started_at")) sql.exec("ALTER TABLE users ADD COLUMN session_started_at TEXT");
     if (!this.hasColumn("users", "auth_email")) sql.exec("ALTER TABLE users ADD COLUMN auth_email TEXT");
     if (!this.hasColumn("users", "firebase_password_ready")) sql.exec("ALTER TABLE users ADD COLUMN firebase_password_ready INTEGER NOT NULL DEFAULT 0");
+    if (!this.hasColumn("users", "firebase_agent_ready")) sql.exec("ALTER TABLE users ADD COLUMN firebase_agent_ready INTEGER NOT NULL DEFAULT 0");
     if (!this.hasColumn("users", "web_session_generation")) sql.exec("ALTER TABLE users ADD COLUMN web_session_generation INTEGER NOT NULL DEFAULT 0");
     if (!this.hasColumn("users", "web_session_device_id")) sql.exec("ALTER TABLE users ADD COLUMN web_session_device_id TEXT");
     if (!this.hasColumn("users", "web_session_started_at")) sql.exec("ALTER TABLE users ADD COLUMN web_session_started_at TEXT");
@@ -492,7 +496,7 @@ export class InventoryCore {
               role_override,
               status,
               password_salt, password_hash, password_changed_at,
-              auth_email, firebase_password_ready,
+              auth_email, firebase_password_ready, firebase_agent_ready,
               session_generation, session_started_at,
               web_session_generation, web_session_device_id, web_session_started_at,
               android_session_generation, android_session_device_id, android_session_started_at
@@ -515,7 +519,7 @@ export class InventoryCore {
               role AS base_role,
               role_override,
               status, password_salt, password_hash, password_changed_at,
-              auth_email, firebase_password_ready,
+              auth_email, firebase_password_ready, firebase_agent_ready,
               session_generation, session_started_at,
               web_session_generation, web_session_device_id, web_session_started_at,
               android_session_generation, android_session_device_id, android_session_started_at,
@@ -539,7 +543,7 @@ export class InventoryCore {
               role_override,
               status,
               password_salt, password_hash, password_changed_at,
-              auth_email, firebase_password_ready,
+              auth_email, firebase_password_ready, firebase_agent_ready,
               session_generation, session_started_at,
               web_session_generation, web_session_device_id, web_session_started_at,
               android_session_generation, android_session_device_id, android_session_started_at
@@ -583,27 +587,43 @@ export class InventoryCore {
 
     if (request.method === "GET" && url.pathname === "/auth/firebase-migration-candidates") {
       const role = String(url.searchParams.get("role") || "").trim().toUpperCase();
+      const channel = String(url.searchParams.get("channel") || "").trim().toUpperCase();
       const limit = Math.max(1, Math.min(100, Number(url.searchParams.get("limit") || 20)));
       if (!["ADMIN", "ROOT", "REPORTER", "PICKER"].includes(role)) {
         return response({ error: "invalid_role" }, 400);
       }
+      if (channel && channel !== "AGENT") return response({ error: "invalid_channel" }, 400);
+      const readinessColumn = channel === "AGENT" ? "firebase_agent_ready" : "firebase_password_ready";
+      if (channel === "AGENT" && role !== "ADMIN") return response({ error: "agent_admin_only" }, 400);
       const rows = this.state.storage.sql.exec<InternalUser>(
         `SELECT user_id, firebase_uid, employee_code, display_name,
                 role AS role, role AS base_role, role_override, status,
                 password_salt, password_hash, password_changed_at,
-                auth_email, firebase_password_ready,
+                auth_email, firebase_password_ready, firebase_agent_ready,
                 session_generation, session_started_at,
                 web_session_generation, web_session_device_id, web_session_started_at,
                 android_session_generation, android_session_device_id, android_session_started_at
            FROM users
           WHERE role = ? AND status = 'ACTIVE'
-            AND COALESCE(firebase_password_ready, 0) = 0
+            AND COALESCE(${readinessColumn}, 0) = 0
           ORDER BY user_id ASC
           LIMIT ?`,
         role,
         limit,
       ).toArray();
       return response({ items: rows, count: rows.length });
+    }
+
+    if (request.method === "PUT" && url.pathname === "/auth/firebase-agent-ready") {
+      const body = (await request.json()) as { user_id?: string };
+      const userId = String(body.user_id || "").trim();
+      if (!userId) return response({ error: "invalid_input" }, 400);
+      this.state.storage.sql.exec(
+        `UPDATE users SET firebase_agent_ready = 1, updated_at = CURRENT_TIMESTAMP
+          WHERE user_id = ? AND role = 'ADMIN'`,
+        userId,
+      );
+      return response({ status: "firebase_agent_ready" });
     }
 
     if (request.method === "PUT" && url.pathname === "/auth/activate-session") {
@@ -696,20 +716,17 @@ export class InventoryCore {
     }
 
     if (request.method === "PUT" && url.pathname === "/auth/firebase-password-ready") {
-      const body = (await request.json()) as { user_id?: string; firebase_uid?: string; auth_email?: string };
+      const body = (await request.json()) as { user_id?: string; firebase_uid?: string };
       const userId = String(body.user_id || "").trim();
       const uid = String(body.firebase_uid || "").trim();
-      const email = String(body.auth_email || "").trim().toLowerCase();
-      if (!userId || !uid || !email) return response({ error: "invalid_input" }, 400);
+      if (!userId || !uid) return response({ error: "invalid_input" }, 400);
       this.state.storage.sql.exec(
         `UPDATE users
             SET firebase_uid = ?,
-                auth_email = ?,
                 firebase_password_ready = 1,
                 updated_at = CURRENT_TIMESTAMP
           WHERE user_id = ?`,
         uid,
-        email,
         userId,
       );
       return response({ status: "firebase_password_ready" });
@@ -776,6 +793,7 @@ export class InventoryCore {
                 android_session_device_id = NULL,
                 android_session_started_at = NULL,
                 firebase_password_ready = 0,
+                firebase_agent_ready = CASE WHEN role = 'ADMIN' THEN 0 ELSE firebase_agent_ready END,
                 updated_at = CURRENT_TIMESTAMP
           WHERE user_id = ?`,
         body.password_salt,
@@ -835,6 +853,12 @@ export class InventoryCore {
 
     const notifications = await handleNotificationCoreRequest(this.state, request);
     if (notifications) return notifications;
+
+    const systemReset = await handleSystemResetCoreRequest(this.state, request);
+    if (systemReset) return systemReset;
+
+    const authRecovery = await handleAuthRecoveryCoreRequest(this.state, request);
+    if (authRecovery) return authRecovery;
 
     const systemMetrics = await handleSystemMetricsCoreRequest(this.state, request);
     if (systemMetrics) return systemMetrics;
