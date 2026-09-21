@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D099_FIX_PR_124__FIREBASE_EMAIL_PASSWORD_PROVIDER_DISABLED_CONFIRMED__MAIN_ENABLE_PENDING",
+      "status": "D099_FIX_PR_124__FIREBASE_EMAIL_PASSWORD_PROVIDER_ROOT_CAUSE_CONFIRMED_DISABLED__AGENT_V24__ANDROID_NEXT_MONOTONIC_PENDING",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
