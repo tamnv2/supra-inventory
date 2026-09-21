@@ -870,7 +870,7 @@
     },
     {
       "id": "OA020",
-      "status": "MAIL_REPAIR_SOURCE_CANDIDATE__FIELD_RETRY_AFTER_DEPLOY",
+      "status": "READY_FOR_OWNER_MAIL_ONLY_RETRY_AFTER_RUNTIME_REPAIR",
       "title": "Field-accept D100 ROOT System Reset and recovery mail",
       "resource_key": "cloudflare-beta-worker",
       "provider": "Beta Web + InventoryCore + Firebase Auth + Gmail send OAuth",
@@ -883,7 +883,11 @@
         "schema": "10/10",
         "agent_release": "relay-agent-v25",
         "web": "D100_BETA_RUNTIME_PASS",
-        "stable": "OWNER_GATED"
+        "stable": "OWNER_GATED",
+        "mail_repair_pr": 131,
+        "mail_repair_main": "27a791a1ad9a05da9acee0f2b7351fb1fda7cc4b",
+        "mail_repair_beta_worker_run": 35633339816,
+        "mail_repair_ui_run": 35633339783
       },
       "shortest_test_path": [
         "Log in as the real ROOT identity on Beta Web and confirm HỆ THỐNG → Đặt lại hệ thống is visible only while base/effective role is ROOT.",
@@ -907,10 +911,10 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Review selected scopes before execute. Do not share ROOT password, OTP, OAuth refresh token, Firebase tokens, cookies or any secret values. Requesting the OTP alone is non-destructive; final reset execution is destructive for the selected runtime data.",
-      "remaining_owner_action": "Wait for the OA020 mail repair to deploy, then retry the mail-only challenge once. Do not perform a destructive reset until the six-digit email arrives. No further Google re-consent should be repeated unless the repaired runtime specifically reports GOOGLE_MAIL_SCOPE_MISSING.",
-      "field_result": "RESET_EMAIL_UNAVAILABLE__THEN_FALSE_RESET_CODE_RATE_LIMIT",
+      "remaining_owner_action": "Retry the non-destructive ROOT System Reset mail-only challenge exactly once. If email arrives, stop before destructive reset and report PASS. If it fails, provide the new visible message only; the repaired runtime now distinguishes missing scope, Gmail API disabled, Workspace domain policy, Google provider rate/quota, auth failure, or generic HTTP failure. Do not repeat OAuth consent unless the message specifically says the gmail.send scope is missing.",
+      "field_result": "MAIL_REPAIR_RUNTIME_PASS__ONE_FIELD_RETRY_REQUIRED",
       "field_result_date": "2026-09-22",
-      "field_result_note": "Owner re-consented Google OAuth and retried. Beta Web logs still show reset challenge HTTP 503, followed by RESET_CODE_RATE_LIMIT. Source audit found the local 60-second throttle was committed before Gmail provider success and not rolled back on send failure. Repair is in progress to rollback failed-send throttle and expose the sanitized Google cause on the next retry."
+      "field_result_note": "False local reset-code throttling after provider failure is repaired and deployed. One non-destructive field retry is required to identify/close the remaining Google provider issue."
     }
   ]
 }
