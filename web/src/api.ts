@@ -1,6 +1,7 @@
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 const SESSION_KEY = "supra_inventory_interactive_session_v2";
 const LEGACY_SESSION_KEY = "supra_inventory_beta_session_v1";
+const WEB_DEVICE_KEY = "supra_inventory_web_device_v1";
 
 export interface AppProfile {
   user_id: string;
@@ -11,6 +12,7 @@ export interface AppProfile {
   base_role: "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
   status: "ACTIVE" | "DISABLED";
   password_changed_at: string | null;
+  auth_email?: string | null;
 }
 
 export interface SkuItem {
@@ -294,22 +296,49 @@ export interface AdminReportBatch {
   total_ticket_count: number;
 }
 
-interface StoredSession {
+export interface StoredSession {
   id_token: string;
   refresh_token: string;
   expires_at: number;
   user: AppProfile;
+  session_generation?: number;
+  session_channel?: "WEB" | "ANDROID";
 }
 
 interface LoginResponse {
   id_token: string;
   refresh_token: string;
   expires_in: number;
+  session_generation?: number;
+  session_channel?: "WEB" | "ANDROID";
   user: AppProfile;
 }
 
 let session: StoredSession | null = loadSession();
 let refreshPromise: Promise<void> | null = null;
+
+function webDeviceId(): string {
+  try {
+    const existing = localStorage.getItem(WEB_DEVICE_KEY);
+    if (existing && /^[A-Za-z0-9._:-]{8,160}$/.test(existing)) return existing;
+    const created = `web:${crypto.randomUUID()}`;
+    localStorage.setItem(WEB_DEVICE_KEY, created);
+    return created;
+  } catch {
+    return "web:browser";
+  }
+}
+
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly code: string,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
 
 function loadSession(): StoredSession | null {
   try {
