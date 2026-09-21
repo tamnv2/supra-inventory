@@ -331,7 +331,7 @@ checks = {
         "role_override",
         "/auth/root-role-override",
         "/realtime/close-user",
-        'JSON.stringify({ user_id: actor.user_id })',
+        "role-changed",
     ]),
     "service_picker_no_auto_disable": 'absence_policy: "NO_AUTOMATIC_DISABLE"' in SERVICE_USERS,
     "android_release_monotonic": all(token in VERIFY_APPS for token in ["gh release list", "latest + 1", "Refusing to overwrite existing release", "group: beta-android-release", "cancel-in-progress: false"]),
