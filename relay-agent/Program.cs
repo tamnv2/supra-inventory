@@ -65,7 +65,7 @@ namespace SupraInventoryRelayAgent
             {
                 try
                 {
-                    var parserPass = WmsPicklistExactResolver.SelfTestJsonArrayParsing();
+                    var parserPass = WmsExactPicklistResolver.SelfTestJsonArrayParsing();
                     var confirmPass = WmsPicklistConfirmClient.SelfTestResponseSemantics();
                     AgentDiagnostics.Write(
                         "D096 SELFTEST parser=" + (parserPass ? "PASS" : "FAIL") +
