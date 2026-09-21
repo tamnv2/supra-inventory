@@ -161,7 +161,7 @@ def main() -> None:
     require(service_index, "app_base_role: user.base_role", "D075 immutable base-role Firebase custom claim")
     require(relay_rules, "auth.token.app_base_role == 'ADMIN'", "D075 real ADMIN RTDB rule")
     require(relay_rules, "newData.child('agent_admin_user_id').val() == auth.token.app_user_id", "D075 ADMIN ACK rule binding")
-    require(relay_agent_config, "AgentBuild = 18", "D093 Agent build channel")
+    require(relay_agent_config, "AgentBuild = 19", "D094 Agent build channel")
     require(relay_agent, "var statusCode = (int)response.StatusCode", "D077 capture HTTP status before dispose")
     require(relay_agent, "ProbeAllTransports", "D078 Test all transport probe")
     require(relay_agent, "AgentConfig.FirestoreProbeUrl", "D078 Firestore probe")
@@ -304,7 +304,7 @@ def main() -> None:
     require(user_startup, "Registry.CurrentUser", "D085 normal-user autostart")
     require(user_startup, "CurrentVersion\\Run", "D085 HKCU Run registration")
     # D092 carries the approved D085 HA/rate semantics onto the Firestore Office carrier.
-    require(relay, '"Đã gửi Firestore · đang chờ Agent Office..."', "D092 PDA waiting-for-Agent progress")
+    require(relay, '"Đã gửi Firestore #" + shortId(requestId)', "D094 PDA request-id waiting progress")
     require(picker, '"PICKER_LOCKED"', "D092 locked Picker state")
     require(picker, "result.rateStrikes", "D092 strike visibility")
     require(firestore_leader, "HeartbeatIntervalMs = 4000", "D092 quota-bounded Firestore lease cadence")

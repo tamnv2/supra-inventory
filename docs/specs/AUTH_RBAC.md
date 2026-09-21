@@ -134,3 +134,12 @@ Picker clients must not infer, request or receive another Picker's event payload
 - Password change increments the interactive session generation and invalidates older Web/Android sessions.
 - The Windows Agent uses an explicit `AGENT` auth channel and is **not** subject to the one-interactive-session generation. This is required to preserve D085 multi-Agent HA. Agent login still requires immutable base role ADMIN and effective ADMIN.
 - D088 closes open decision O002 for the current Beta product: Web + Android share one interactive session per account; real ADMIN Agents remain a separate multi-Agent operational channel.
+
+## D094 — Agent saved-session replacement semantics
+
+- Real-base ADMIN remains the only valid Windows Agent application identity.
+- Agent persistence stores a Firebase refreshable session under DPAPI CurrentUser; it does not store the plaintext ADMIN password.
+- Startup refresh/revalidation must still prove effective role `ADMIN`, immutable base role `ADMIN`, correct Firebase project audience and application user claim before the stored session is accepted.
+- Logout removes the persisted Agent application session and stops relay leadership/listening for that identity.
+- A later successful ADMIN login replaces the persisted identity/session with the new account.
+- Agent session persistence remains independent from the single interactive Web/Android session generation and independent from the separate company WMS browser authority.

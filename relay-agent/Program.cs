@@ -251,6 +251,7 @@ namespace SupraInventoryRelayAgent
         public string RefreshToken;
         public string UserId;
         public string AppUserId;
+        public string LoginName;
         public string Role;
         public string BaseRole;
         public DateTime ExpiresUtc;
@@ -281,6 +282,7 @@ namespace SupraInventoryRelayAgent
         private readonly TextBox _username = new TextBox();
         private readonly TextBox _password = new TextBox();
         private readonly Button _pair = new Button();
+        private readonly Button _logout = new Button();
         private readonly Button _testOffice = new Button();
         private readonly Button _listen = new Button();
         private readonly Button _openLog = new Button();
@@ -299,6 +301,7 @@ namespace SupraInventoryRelayAgent
         private readonly Label _relay = new Label();
         private readonly Label _network = new Label();
         private readonly Label _identity = new Label();
+        private readonly Label _agentAuthStatus = new Label();
         private readonly ListBox _log = new ListBox();
         private readonly ListBox _auditLog = new ListBox();
         private readonly NotifyIcon _tray = new NotifyIcon();
@@ -371,6 +374,7 @@ namespace SupraInventoryRelayAgent
             Controls.Add(new Label { Left = 305, Top = 140, Width = 70, Text = "Mật khẩu" });
             _password.SetBounds(375, 136, 160, 26); _password.UseSystemPasswordChar = true; Controls.Add(_password);
             _pair.SetBounds(545, 135, 105, 28); _pair.Text = "Đăng nhập"; _pair.Click += (s, e) => Task.Run(() => PairLogin()); Controls.Add(_pair);
+            _logout.Text = "Đăng xuất"; _logout.Enabled = false; _logout.Click += (s, e) => Task.Run(() => LogoutAgent());
 
             _testOffice.SetBounds(18, 176, 135, 32); _testOffice.Text = "Test Firestore"; _testOffice.Enabled = false;
             _testOffice.Click += (s, e) => Task.Run(() => TestOffice()); Controls.Add(_testOffice);
@@ -619,9 +623,13 @@ namespace SupraInventoryRelayAgent
                 Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(24, 43, 55)
             });
-            _identity.SetBounds(18, 46, 740, 24);
-            _relay.SetBounds(18, 76, 740, 24);
-            _network.SetBounds(18, 106, 740, 24);
+            _agentAuthStatus.SetBounds(18, 44, 740, 22);
+            _agentAuthStatus.Text = "Xác minh Agent: CHƯA ĐĂNG NHẬP";
+            _agentAuthStatus.ForeColor = Color.FromArgb(180, 76, 60);
+            _identity.SetBounds(18, 68, 740, 22);
+            _relay.SetBounds(18, 92, 740, 22);
+            _network.SetBounds(18, 116, 740, 22);
+            connectionCard.Controls.Add(_agentAuthStatus);
             connectionCard.Controls.Add(_identity);
             connectionCard.Controls.Add(_relay);
             connectionCard.Controls.Add(_network);
@@ -678,7 +686,11 @@ namespace SupraInventoryRelayAgent
             _pair.SetBounds(24, 154, 180, 36);
             _pair.Text = "Đăng nhập ADMIN";
             adminPage.Controls.Add(_pair);
-            adminPage.Controls.Add(new Label { Left = 24, Top = 208, Width = 730, Height = 54, Text = "Mật khẩu không được ghi vào log. Sau khi đăng nhập thành công, Agent chỉ lưu phiên ứng dụng bằng Windows DPAPI.", ForeColor = Color.DimGray });
+            _logout.SetBounds(216, 154, 140, 36);
+            _logout.Text = "Đăng xuất";
+            _logout.Enabled = false;
+            adminPage.Controls.Add(_logout);
+            adminPage.Controls.Add(new Label { Left = 24, Top = 208, Width = 730, Height = 72, Text = "Đăng nhập thành công sẽ lưu phiên ADMIN bằng Windows DPAPI để tự khôi phục ở lần mở sau. Không lưu mật khẩu. Đăng xuất sẽ xóa phiên đã lưu; lần đăng nhập kế tiếp sẽ thay bằng tài khoản mới.", ForeColor = Color.DimGray });
 
             networkPage.Controls.Add(new Label { Left = 24, Top = 20, Width = 730, Height = 28, Text = "Kiểm tra kết nối và chẩn đoán transport", Font = new Font("Segoe UI Semibold", 11F) });
             _testOffice.SetBounds(24, 64, 150, 34); networkPage.Controls.Add(_testOffice);
@@ -1260,6 +1272,7 @@ namespace SupraInventoryRelayAgent
                 var stored = LoadStoredSession();
                 if (stored == null)
                 {
+                    SetAgentAuthUi(false);
                     Log("Chưa có phiên ADMIN Agent đã lưu trên Windows user này.");
                     return;
                 }
@@ -1272,6 +1285,7 @@ namespace SupraInventoryRelayAgent
                     _listen.Enabled = true;
                     _testOffice.Enabled = true;
                 });
+                SetAgentAuthUi(true);
                 SetProbeButtonsEnabled(true);
                 Log("Khôi phục ADMIN Agent PASS.");
                 ActivateRelayRuntime();
@@ -1287,6 +1301,7 @@ namespace SupraInventoryRelayAgent
                     _listen.Enabled = false;
                     _testOffice.Enabled = false;
                 });
+                SetAgentAuthUi(false);
                 SetProbeButtonsEnabled(false);
                 Log("Phiên Agent cũ bị loại; cần đăng nhập lại bằng ADMIN: " + SafeMessage(ex));
             }
@@ -1347,6 +1362,7 @@ namespace SupraInventoryRelayAgent
                     RefreshToken = refreshToken,
                     UserId = firebaseUid,
                     AppUserId = appUserId,
+                    LoginName = username,
                     Role = tokenRole,
                     BaseRole = tokenBaseRole,
                     ExpiresUtc = DateTime.UtcNow.AddSeconds(ParseInt(root, "expires_in", 3600) - 60)
@@ -1365,6 +1381,7 @@ namespace SupraInventoryRelayAgent
                     _listen.Enabled = true;
                     _testOffice.Enabled = true;
                 });
+                SetAgentAuthUi(true);
                 SetProbeButtonsEnabled(true);
                 Log(
                     "ADMIN Agent login PASS admin=" + next.AppUserId +
@@ -1383,8 +1400,76 @@ namespace SupraInventoryRelayAgent
             finally
             {
                 password = null;
-                Ui(() => _pair.Enabled = true);
+                SetAgentAuthUi(HasAgentSession());
             }
+        }
+
+        private bool HasAgentSession()
+        {
+            lock (_sessionLock) return _session != null && !string.IsNullOrWhiteSpace(_session.RefreshToken);
+        }
+
+        private void SetAgentAuthUi(bool authenticated)
+        {
+            string loginName = "";
+            string appUser = "";
+            lock (_sessionLock)
+            {
+                if (_session != null)
+                {
+                    loginName = _session.LoginName ?? "";
+                    appUser = _session.AppUserId ?? "";
+                }
+            }
+
+            Ui(() =>
+            {
+                _username.Enabled = !authenticated;
+                _password.Enabled = !authenticated;
+                _pair.Enabled = !authenticated;
+                _logout.Enabled = authenticated;
+                _pair.Text = authenticated ? "Đã xác minh ADMIN" : "Đăng nhập ADMIN";
+                if (authenticated && !string.IsNullOrWhiteSpace(loginName))
+                    _username.Text = loginName;
+                if (!authenticated)
+                {
+                    _username.Clear();
+                    _password.Clear();
+                }
+                _agentAuthStatus.Text = authenticated
+                    ? "Xác minh Agent: ĐÃ ĐĂNG NHẬP" + (string.IsNullOrWhiteSpace(appUser) ? "" : " · " + appUser)
+                    : "Xác minh Agent: CHƯA ĐĂNG NHẬP";
+                _agentAuthStatus.ForeColor = authenticated
+                    ? Color.FromArgb(35, 122, 76)
+                    : Color.FromArgb(180, 76, 60);
+            });
+        }
+
+        private void LogoutAgent()
+        {
+            string previousUser = "";
+            try
+            {
+                var current = SnapshotSession();
+                previousUser = current.AppUserId ?? "";
+            }
+            catch { }
+
+            try { StopListening(); } catch { }
+            lock (_sessionLock) _session = null;
+            ClearStoredSession();
+            try { if (File.Exists(ExitVerifierFile)) File.Delete(ExitVerifierFile); } catch { }
+
+            Ui(() =>
+            {
+                _identity.Text = "Agent: cần đăng nhập ADMIN";
+                _relay.Text = "Relay: chưa xác minh Agent";
+                _listen.Enabled = false;
+                _testOffice.Enabled = false;
+            });
+            SetAgentAuthUi(false);
+            SetProbeButtonsEnabled(false);
+            Log("ADMIN Agent logout PASS previous_admin=" + previousUser + " stored_session=cleared");
         }
 
         private void ProbeFirebaseAuth()
@@ -2620,6 +2705,7 @@ namespace SupraInventoryRelayAgent
                 RefreshToken = refreshToken,
                 UserId = firebaseUid,
                 AppUserId = appUserId,
+                LoginName = current.LoginName,
                 Role = role,
                 BaseRole = baseRole,
                 ExpiresUtc = DateTime.UtcNow.AddSeconds(ParseInt(root, "expires_in", 3600) - 60)
@@ -2651,6 +2737,7 @@ namespace SupraInventoryRelayAgent
                     RefreshToken = _session.RefreshToken,
                     UserId = _session.UserId,
                     AppUserId = _session.AppUserId,
+                    LoginName = _session.LoginName,
                     Role = _session.Role,
                     BaseRole = _session.BaseRole,
                     ExpiresUtc = _session.ExpiresUtc
@@ -2780,6 +2867,7 @@ namespace SupraInventoryRelayAgent
                 { "refresh_token", session.RefreshToken },
                 { "firebase_uid", session.UserId },
                 { "app_user_id", session.AppUserId ?? "" },
+                { "login_name", session.LoginName ?? "" },
                 { "role", session.Role ?? "" },
                 { "base_role", session.BaseRole ?? "" }
             });
@@ -2802,9 +2890,10 @@ namespace SupraInventoryRelayAgent
             if (!map.TryGetValue("refresh_token", out refreshValue) || string.IsNullOrWhiteSpace(Convert.ToString(refreshValue)))
                 throw new InvalidOperationException("Phiên Agent đã lưu thiếu refresh token.");
 
-            object firebaseValue, appValue, roleValue, baseRoleValue;
+            object firebaseValue, appValue, loginValue, roleValue, baseRoleValue;
             var firebaseUid = map.TryGetValue("firebase_uid", out firebaseValue) ? Convert.ToString(firebaseValue) : "";
             var appUser = map.TryGetValue("app_user_id", out appValue) ? Convert.ToString(appValue) : "";
+            var loginName = map.TryGetValue("login_name", out loginValue) ? Convert.ToString(loginValue) : "";
             var role = map.TryGetValue("role", out roleValue) ? Convert.ToString(roleValue) : "";
             var baseRole = map.TryGetValue("base_role", out baseRoleValue) ? Convert.ToString(baseRoleValue) : "";
 
@@ -2813,6 +2902,7 @@ namespace SupraInventoryRelayAgent
                 RefreshToken = Convert.ToString(refreshValue),
                 UserId = firebaseUid,
                 AppUserId = appUser,
+                LoginName = loginName,
                 Role = role,
                 BaseRole = baseRole,
                 IdToken = "",

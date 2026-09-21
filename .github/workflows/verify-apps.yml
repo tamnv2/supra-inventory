@@ -88,7 +88,7 @@ jobs:
             echo "SIGNING_READY=false" >> "$GITHUB_ENV"
             echo "Beta signing secrets are not configured; building debug artifact only. Auto-update release publishing will stay disabled."
           fi
-      - name: D092 Firestore confirmation source guard
+      - name: D094 Firestore correlation and D092 confirmation source guard
         shell: bash
         run: |
           set -euo pipefail
@@ -102,11 +102,13 @@ jobs:
           grep -q 'PROCESSING' "$client"
           grep -q 'PENDING_CLAIM_WAIT_MS = 30_000L' "$client"
           grep -q 'TOTAL_WAIT_MS = 120_000L' "$client"
+          grep -q 'Đã gửi Firestore #' "$client"
+          grep -q 'request #' "$client"
           if grep -q 'FIREBASE_RTDB_URL' "$client"; then
             echo "D092 confirmation client must not use RTDB" >&2
             exit 1
           fi
-          echo "D093 Android Firestore handoff + D092 confirmation guard PASS"
+          echo "D094 Android Firestore correlation + D092 confirmation guard PASS"
 
       - name: Assemble Android 11+ Beta APK
         env:

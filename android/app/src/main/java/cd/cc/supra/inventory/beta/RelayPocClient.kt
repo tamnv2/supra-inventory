@@ -129,8 +129,8 @@ class RelayPocClient(
                     .build(),
                 "CREATE"
             )
-            log("D092 Firestore CREATE PASS request=" + shortId(requestId))
-            onProgress("Đã gửi Firestore · đang chờ Agent Office...")
+            log("D094 Firestore CREATE PASS request=" + shortId(requestId))
+            onProgress("Đã gửi Firestore #" + shortId(requestId) + " · đang chờ Agent...")
 
             val deadline = SystemClock.elapsedRealtime() + TOTAL_WAIT_MS
             while (SystemClock.elapsedRealtime() < deadline) {
@@ -151,14 +151,14 @@ class RelayPocClient(
                 ) {
                     val updateTime = root.optString("updateTime").trim()
                     if (cancelPending(documentUrl, updateTime, session.idToken)) {
-                        throw IOException("Không có Agent xử lý online. Vui lòng về bàn chuyên viên xử lý trực tiếp.")
+                        throw IOException("Không có Agent xử lý online cho request #" + shortId(requestId) + ". Vui lòng về bàn chuyên viên xử lý trực tiếp.")
                     }
                 } else if (currentStatus == "PENDING" &&
                     SystemClock.elapsedRealtime() - started >= 12_000L
                 ) {
-                    onProgress("Đang chờ Agent chính / chuyển Agent dự phòng...")
+                    onProgress("Đang chờ Agent chính / chuyển Agent dự phòng... #" + shortId(requestId))
                 } else if (currentStatus == "PROCESSING") {
-                    onProgress("Agent đang kiểm tra và xác nhận Picklist...")
+                    onProgress("Agent đang kiểm tra và xác nhận Picklist... #" + shortId(requestId))
                 }
 
                 val ack = parseAck(raw)
@@ -194,7 +194,7 @@ class RelayPocClient(
 
             throw SocketTimeoutException("Yêu cầu đã xử lý quá 120 giây nhưng chưa có kết quả cuối. Không bấm lại; vui lòng về bàn chuyên viên kiểm tra trên SFT / SFT 3.")
         } catch (error: SocketTimeoutException) {
-            log("D092 Firestore timeout request=" + shortId(requestId))
+            log("D094 Firestore timeout request=" + shortId(requestId))
             throw IOException(error.message ?: "Chưa nhận được kết quả từ Agent Office.", error)
         } finally {
             if (cleanupAfterAck) cleanup(documentUrl, session.idToken)

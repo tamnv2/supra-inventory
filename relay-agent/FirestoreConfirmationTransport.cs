@@ -45,6 +45,7 @@ namespace SupraInventoryRelayAgent
         private readonly Func<FirestoreConfirmationWorkItem, FirestoreConfirmationOutcome> _handler;
         private readonly Func<bool> _canProcess;
         private readonly Action<bool> _relayHealth;
+        private long _lastPollTelemetryMs;
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024 };
 
         internal FirestoreConfirmationTransport(
@@ -105,12 +106,7 @@ namespace SupraInventoryRelayAgent
 
         private int ProcessOnce(AgentSession session)
         {
-            var raw = Send("GET", AgentConfig.FirestoreRelayCollectionUrl + "?pageSize=100", session.IdToken, null);
-            var root = _json.DeserializeObject(raw) as Dictionary<string, object>;
-            object docsObj;
-            var docs = root != null && root.TryGetValue("documents", out docsObj) ? docsObj as ArrayList : null;
-            if (docs == null) return 0;
-
+            var docs = ReadPendingDocuments(session);
             var processed = 0;
             foreach (var item in docs)
             {
@@ -135,6 +131,8 @@ namespace SupraInventoryRelayAgent
 
                 if (!TryClaim(session, name, updateTime, jobId)) continue;
 
+                _log("FIRESTORE CONFIRM pending-found request=" + Short(jobId) +
+                     " picker=" + Safe(pickerUserId));
                 _onRequest();
                 _audit("PDA_REQUEST request=" + Short(jobId) +
                     " picker=" + Safe(pickerUserId) +
@@ -168,6 +166,146 @@ namespace SupraInventoryRelayAgent
                 }
             }
             return processed;
+        }
+
+        private ArrayList ReadPendingDocuments(AgentSession session)
+        {
+            try
+            {
+                var query = new Dictionary<string, object>
+                {
+                    {
+                        "structuredQuery", new Dictionary<string, object>
+                        {
+                            { "from", new object[] { new Dictionary<string, object> { { "collectionId", "relay_poc_jobs" } } } },
+                            {
+                                "where", new Dictionary<string, object>
+                                {
+                                    {
+                                        "compositeFilter", new Dictionary<string, object>
+                                        {
+                                            { "op", "AND" },
+                                            {
+                                                "filters", new object[]
+                                                {
+                                                    new Dictionary<string, object>
+                                                    {
+                                                        {
+                                                            "fieldFilter", new Dictionary<string, object>
+                                                            {
+                                                                { "field", new Dictionary<string, object> { { "fieldPath", "status" } } },
+                                                                { "op", "EQUAL" },
+                                                                { "value", StringField("PENDING") }
+                                                            }
+                                                        }
+                                                    },
+                                                    new Dictionary<string, object>
+                                                    {
+                                                        {
+                                                            "fieldFilter", new Dictionary<string, object>
+                                                            {
+                                                                { "field", new Dictionary<string, object> { { "fieldPath", "source" } } },
+                                                                { "op", "EQUAL" },
+                                                                { "value", StringField("ANDROID_CONFIRM_V1") }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            { "limit", 100 }
+                        }
+                    }
+                };
+
+                var raw = SendSafeRead(
+                    "POST",
+                    AgentConfig.FirestoreDocumentsBaseUrl + ":runQuery",
+                    session.IdToken,
+                    _json.Serialize(query));
+
+                var rows = _json.DeserializeObject(raw) as ArrayList;
+                var docs = new ArrayList();
+                if (rows != null)
+                {
+                    foreach (var rowObj in rows)
+                    {
+                        var row = rowObj as Dictionary<string, object>;
+                        if (row == null) continue;
+                        object documentObj;
+                        var document = row.TryGetValue("document", out documentObj)
+                            ? documentObj as Dictionary<string, object>
+                            : null;
+                        if (document != null) docs.Add(document);
+                    }
+                }
+
+                LogPollTelemetry("QUERY", docs.Count);
+                return docs;
+            }
+            catch (Exception ex)
+            {
+                _log("FIRESTORE CONFIRM pending-query fallback type=" + ex.GetType().Name +
+                     " detail=" + AgentDiagnostics.Sanitize(ex.Message));
+
+                var raw = Send(
+                    "GET",
+                    AgentConfig.FirestoreRelayCollectionUrl +
+                        "?pageSize=100&orderBy=" + Uri.EscapeDataString("client_sent_at_ms desc"),
+                    session.IdToken,
+                    null);
+                var root = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                object docsObj;
+                var sourceDocs = root != null && root.TryGetValue("documents", out docsObj)
+                    ? docsObj as ArrayList
+                    : null;
+                var docs = new ArrayList();
+                if (sourceDocs != null)
+                {
+                    foreach (var item in sourceDocs)
+                    {
+                        var doc = item as Dictionary<string, object>;
+                        if (doc == null) continue;
+                        object fieldsObj;
+                        var fields = doc.TryGetValue("fields", out fieldsObj)
+                            ? fieldsObj as Dictionary<string, object>
+                            : null;
+                        if (fields == null) continue;
+                        if (FieldString(fields, "status") == "PENDING" &&
+                            FieldString(fields, "source") == "ANDROID_CONFIRM_V1")
+                            docs.Add(doc);
+                    }
+                }
+
+                LogPollTelemetry("LIST_FALLBACK", docs.Count);
+                return docs;
+            }
+        }
+
+        private void LogPollTelemetry(string mode, int pendingCount)
+        {
+            var now = NowMs();
+            if (pendingCount <= 0 && now - _lastPollTelemetryMs < 30000) return;
+            _lastPollTelemetryMs = now;
+            _log("FIRESTORE CONFIRM poll=PASS mode=" + Safe(mode) +
+                 " pending=" + Math.Max(0, pendingCount));
+        }
+
+        private string SendSafeRead(string method, string url, string token, string body)
+        {
+            return FirestoreHttpTransport.SendJson(
+                method,
+                url,
+                token,
+                body,
+                "Agent-Auto-Confirm-Pick-Pack/D094",
+                12000,
+                true,
+                _log,
+                "CONFIRM_QUERY");
         }
 
         private bool TryClaim(AgentSession session, string name, string updateTime, string jobId)

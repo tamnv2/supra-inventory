@@ -8,9 +8,10 @@ namespace SupraInventoryRelayAgent
 {
     /// <summary>
     /// Shared Firestore REST transport for the Beta PDA ↔ Agent carrier.
-    /// Always honors the current Windows system proxy so a running Agent can
-    /// survive Wi-Fi/network changes. It never uses the WMS corporate fallback
-    /// proxy and never bypasses company filtering.
+    /// Uses the proven Windows default proxy path first (the same route as D091/manual
+    /// Firestore probes), then a fresh system-proxy snapshot only for a bounded retry
+    /// of safe reads. It never uses the WMS corporate fallback proxy and never bypasses
+    /// company filtering.
     /// </summary>
     internal static class FirestoreHttpTransport
     {
@@ -40,7 +41,9 @@ namespace SupraInventoryRelayAgent
                 request.KeepAlive = false;
                 request.Headers[HttpRequestHeader.Authorization] = "Bearer " + token;
 
-                var route = ApplyCurrentWindowsProxy(request, url);
+                var route = attempt == 1
+                    ? ApplyDefaultWindowsProxy(request, url)
+                    : ApplyFreshSystemProxy(request, url);
                 try
                 {
                     if (body != null)
@@ -108,7 +111,28 @@ namespace SupraInventoryRelayAgent
             return "http=" + status + " host=" + Safe(host) + " web_exception=" + ex.Status;
         }
 
-        private static string ApplyCurrentWindowsProxy(HttpWebRequest request, string url)
+        private static string ApplyDefaultWindowsProxy(HttpWebRequest request, string url)
+        {
+            try
+            {
+                var proxy = WebRequest.DefaultWebProxy;
+                if (proxy == null)
+                {
+                    request.Proxy = null;
+                    return "DEFAULT:DIRECT";
+                }
+
+                proxy.Credentials = CredentialCache.DefaultNetworkCredentials;
+                request.Proxy = proxy;
+                return "DEFAULT:" + DescribeProxy(proxy, url);
+            }
+            catch
+            {
+                return "DEFAULT:AUTO";
+            }
+        }
+
+        private static string ApplyFreshSystemProxy(HttpWebRequest request, string url)
         {
             try
             {
@@ -116,12 +140,24 @@ namespace SupraInventoryRelayAgent
                 if (proxy == null)
                 {
                     request.Proxy = null;
-                    return "DIRECT";
+                    return "SYSTEM:DIRECT";
                 }
 
                 proxy.Credentials = CredentialCache.DefaultNetworkCredentials;
                 request.Proxy = proxy;
+                return "SYSTEM:" + DescribeProxy(proxy, url);
+            }
+            catch
+            {
+                request.Proxy = WebRequest.DefaultWebProxy;
+                return "SYSTEM:FALLBACK_DEFAULT";
+            }
+        }
 
+        private static string DescribeProxy(IWebProxy proxy, string url)
+        {
+            try
+            {
                 var target = new Uri(url);
                 var proxyUri = proxy.GetProxy(target);
                 if (proxyUri == null || proxyUri == target) return "DIRECT";
@@ -129,8 +165,7 @@ namespace SupraInventoryRelayAgent
             }
             catch
             {
-                request.Proxy = WebRequest.DefaultWebProxy;
-                return "WINDOWS_DEFAULT";
+                return "AUTO";
             }
         }
 

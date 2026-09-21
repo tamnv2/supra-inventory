@@ -713,3 +713,24 @@ Physical regression PASS is separate from CI:
 3. Verify the overlay is truthful during any Firestore outage: `Online 0` / `FIRESTORE OFFLINE`, then returns to ACTIVE only after Firestore relay polling succeeds.
 4. Send one controlled PDA request and confirm PDA → Firestore → Office Agent → Firestore → PDA succeeds.
 5. Only after this transport regression PASS may OA013 resume the real authorized D092 Picklist confirmation field test.
+
+## D094 Agent auth and Firestore receive acceptance
+
+Automated/source PASS requires:
+- Agent build/version is v19 or later and Windows startup-smoke passes.
+- ADMIN session save/restore remains DPAPI CurrentUser; no plaintext password is written to the saved payload or logs.
+- Successful ADMIN verification disables login inputs/action, enables Logout and renders a dedicated verification-login state on Overview.
+- Logout stops relay participation, clears the saved application session, and permits a different real ADMIN to log in and become the newly saved identity.
+- Firestore transport uses the process/default Windows proxy path first, with a fresh system-proxy snapshot only as a bounded retry for safe read operations; it never references the WMS corporate fallback proxy.
+- ACTIVE Agent directly queries for `status=PENDING` + `source=ANDROID_CONFIRM_V1` with bounded results. A bounded newest-first list fallback exists for query incompatibility and sanitized poll telemetry reports mode/pending count.
+- PDA exposes a short request ID after Firestore CREATE, and Agent logs the same short ID when a pending job is observed before conditional claim.
+- D092 conditional `PENDING → PROCESSING → ACK`, exact PickListCode, idempotency, anti-spam and only-authorized `confirmSkipItem` mutation guards remain PASS.
+- Stable remains untouched.
+
+Physical field PASS is separate:
+1. Install the released D094 Agent and signed Beta APK.
+2. Restart Agent and verify it restores the previously verified ADMIN automatically without password entry; login controls are dimmed and Overview says Agent verification is logged in.
+3. Logout, verify relay stops and login controls re-enable; log in with the intended ADMIN and restart once to verify that new identity is now restored.
+4. On a normal network and on Office where practical, send one controlled PDA request and note the displayed short request ID.
+5. Agent technical/audit logs must show the same ID reaching `pending-found`, conditional claim and response/ACK. If CREATE succeeds on PDA but the Agent never logs that ID, the receive path is not PASS.
+6. OA013 real WMS confirmation remains blocked until this D094 relay field gate passes.
