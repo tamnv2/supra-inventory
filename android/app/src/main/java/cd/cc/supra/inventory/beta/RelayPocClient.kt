@@ -240,7 +240,7 @@ class RelayPocClient(
                     " rtt=" + total + "ms"
             )
 
-            if (ack.lookupStatus == "CONFIRMED" && ack.guardId.isNotBlank()) {
+            if (ack.guardId.isNotBlank()) {
                 val retire = ack.retireAtMs.takeIf { it > System.currentTimeMillis() }
                     ?: (System.currentTimeMillis() + CONFIRMED_RETENTION_MS)
                 scheduleCleanup(requestId, ack.guardId, retire)
