@@ -423,7 +423,7 @@ Navigation: `HỆ THỐNG → Đặt lại hệ thống`, visible to ROOT only.
 The page shows selectable cards with live service counts:
 - **Tài khoản Picker** — service + Firebase Auth identities; external HR Sheet unchanged.
 - **Tài khoản Reporter** — service + Firebase identities; business history is separate.
-- **Tài khoản Admin** — service + primary Firebase + Agent alias; ROOT excluded.
+- **Tài khoản Admin** — service + the same shared Firebase identity used by Web/App/Agent; ROOT excluded.
 - **Danh mục SKU** — service SKU Master only.
 - **Báo hàng đang xử lý** — pending batches/tickets and dependent realtime/result records.
 - **Lịch sử nghiệp vụ** — finalized batches/tickets/events/result/ACK/archive markers in service only.
