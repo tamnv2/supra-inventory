@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "firebase/firestore.rules"
+      - "firebase/firestore.indexes.json"
       - "firebase.json"
       - ".github/workflows/deploy-beta-firestore.yml"
       - "docs/OWNER_DECISIONS.md"
@@ -17,6 +18,7 @@ on:
     branches: [main]
     paths:
       - "firebase/firestore.rules"
+      - "firebase/firestore.indexes.json"
       - "firebase.json"
       - ".github/workflows/deploy-beta-firestore.yml"
   workflow_dispatch:
@@ -35,7 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate D092 Firestore source
+      - name: Validate D097 Firestore source
         shell: bash
         run: |
           set -euo pipefail
@@ -43,23 +45,34 @@ jobs:
           const fs = require('fs');
           const config = JSON.parse(fs.readFileSync('firebase.json','utf8'));
           const rules = fs.readFileSync('firebase/firestore.rules','utf8');
+          const indexes = JSON.parse(fs.readFileSync('firebase/firestore.indexes.json','utf8'));
           if (config.firestore?.rules !== 'firebase/firestore.rules') throw new Error('firebase.json Firestore rules path mismatch');
+          if (config.firestore?.indexes !== 'firebase/firestore.indexes.json') throw new Error('firebase.json Firestore indexes path mismatch');
           for (const marker of [
             'relay_poc_jobs',
             'ANDROID_CONFIRM_V1',
             "app_base_role == 'ADMIN'",
-            "status == 'PROCESSING'",
-            "status == 'ACK'",
+            "resource.data.status == 'PENDING'",
+            "request.resource.data.status == 'ACK'",
+            'created_at',
+            'retire_at_ms',
             'affectedKeys().hasOnly',
             'relay_poc_rate_limits',
             'relay_poc_coordination',
             'relay_poc_agents',
             'relay_poc_confirm_guards'
           ]) {
-            if (!rules.includes(marker)) throw new Error('Missing D092 Firestore Rules marker: ' + marker);
+            if (!rules.includes(marker)) throw new Error('Missing D097 Firestore Rules marker: ' + marker);
           }
+          const queueIndex = indexes.indexes?.find(index =>
+            index.collectionGroup === 'relay_poc_jobs' &&
+            index.queryScope === 'COLLECTION' &&
+            index.fields?.some(field => field.fieldPath === 'status' && field.order === 'ASCENDING') &&
+            index.fields?.some(field => field.fieldPath === 'created_at' && field.order === 'ASCENDING')
+          );
+          if (!queueIndex) throw new Error('Missing D097 pending queue composite index');
           if (/allow\s+(read|write)\s*:\s*if\s+true/.test(rules)) throw new Error('Open Firestore Rules are forbidden');
-          console.log('D092 Firestore source validation PASS');
+          console.log('D097 Firestore source validation PASS');
           NODE
 
       - name: Validate Beta service-account secret shape
@@ -104,6 +117,26 @@ jobs:
           gcloud firestore databases describe --project="$project" --database="(default)" --format=json >/tmp/firestore-db.json
           [ "$(jq -r '.locationId' /tmp/firestore-db.json)" = "asia-southeast1" ]
           echo "Firestore database create/readback PASS"
+
+      - name: Ensure D097 pending queue composite index on main
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          project="supra-inventory-beta"
+          database="(default)"
+          existing="$(gcloud firestore indexes composite list --project="$project" --database="$database" --format=json)"
+          if jq -e '
+            any(.[];
+              .collectionGroup == "relay_poc_jobs"
+              and any(.fields[]?; .fieldPath == "status" and .order == "ASCENDING")
+              and any(.fields[]?; .fieldPath == "created_at" and .order == "ASCENDING")
+            )' <<<"$existing" >/dev/null; then
+            echo "D097 pending queue composite index already exists"
+          else
+            gcloud firestore indexes composite create               --project="$project"               --database="$database"               --collection-group="relay_poc_jobs"               --query-scope="collection"               --field-config="field-path=status,order=ascending"               --field-config="field-path=created_at,order=ascending"               --async               --quiet
+            echo "D097 pending queue composite index creation requested"
+          fi
 
       - name: Deploy Firestore Rules via Rules Management API on main
         if: github.event_name != 'pull_request'
