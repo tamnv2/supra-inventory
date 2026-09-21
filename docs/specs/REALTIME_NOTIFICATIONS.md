@@ -300,3 +300,17 @@ D091 turns the D090 preferred candidate into a bounded Beta field proof.
 - The field ACK is `TRANSPORT_ONLY`. It proves connectivity/audit identity and must not be presented as a WMS Picklist result.
 - D091 intentionally does not implement Firestore HA. D085 sticky ACTIVE/10-second failover remains a required later gate if Firestore E2E passes. The final design must avoid a naive per-Agent 3-second Firestore write heartbeat.
 - No automatic RTDB or Cloudflare fallback is allowed during D091 field acceptance because it would create a false Firestore PASS.
+
+## D092 Firestore confirmation lifecycle
+
+The selected Office carrier for `Xác nhận lấy lại đơn` is Cloud Firestore. It remains separate from the normal Báo hàng realtime/InventoryCore channel.
+
+- Request source is `ANDROID_CONFIRM_V1` and contains only request id, five-digit suffix, Picker identity and client timestamp.
+- Job state is `PENDING → PROCESSING → ACK`. A real ADMIN Agent may claim `PENDING → PROCESSING` only through a conditional Firestore write; only the owning ADMIN may complete `PROCESSING → ACK`.
+- Only the Firestore sticky ACTIVE Agent polls the job collection. Standby Agents maintain bounded coordination/presence but do not poll/process business jobs.
+- The PDA polls only its own request document while awaiting completion. It may conditionally delete a job only while it is still demonstrably `PENDING`; it must not delete a `PROCESSING` job.
+- ACK contains bounded result/timing/cache/rate metadata only. It never contains the full PickListCode, raw WMS response, WMS session/header values, signature/nonce, password or other credentials.
+- Firestore collections `relay_poc_rate_limits`, `relay_poc_coordination`, `relay_poc_agents` and `relay_poc_confirm_guards` are real-base-ADMIN-only support state. They are not an offline business store.
+- Confirmation guard document ids are non-reversible hashes of the full PickListCode. `CONFIRMED` makes retries idempotent; an uncertain/in-progress guard fails closed instead of replaying WMS mutation.
+
+D092 does not change Web/PDA shortage-notification semantics described elsewhere in this spec.
