@@ -167,7 +167,7 @@ class RelayPocClient(
                 Thread.sleep(1_000L)
             }
 
-            throw SocketTimeoutException("Firestore đã nhận request nhưng quá 60 giây chưa có Agent Office trả ACK.")
+            throw SocketTimeoutException("Yêu cầu đã gửi nhưng quá 120 giây chưa hoàn tất.")
         } catch (error: SocketTimeoutException) {
             log("D091 Firestore timeout request=" + shortId(requestId))
             throw IOException(error.message ?: "Agent Office chưa phản hồi.", error)
