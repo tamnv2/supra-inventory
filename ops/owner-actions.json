@@ -535,7 +535,7 @@
     },
     {
       "id": "OA013",
-      "status": "BLOCKED_UNTIL_D092_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-test D092 real Picklist confirmation",
       "resource_key": "supra-api-d080",
       "provider": "Physical company Windows Agent + Beta PDA + authorized Supra WMS session",
@@ -561,13 +561,18 @@
         "Stable remains untouched."
       ],
       "safety": "Use only an authorized company WMS session and a real Picklist appropriate for this business action. Do not paste/share passwords, Authorization/Token/APISID/SID/SCID/USID, signatures/nonces, cookies, encrypted session files or raw WMS response bodies.",
-      "remaining_owner_action": "Wait until D092 technical/release PASS; then run the single controlled real confirmation test described above.",
+      "remaining_owner_action": "Run one controlled authorized real Picklist confirmation using relay-agent-v17 + beta-vc56, then verify the resulting state in SFT / SFT 3.",
       "prerequisites": {
         "source_branch": "feat/d092-firestore-picklist-confirm",
+        "merged_pr": 109,
+        "merged_main": "130a70ac912739e37caa98647cab60b53a6c0b06",
         "owner_transport_evidence": "OA012_PASS_OWNER_CONFIRMED",
-        "agent_target": "relay-agent-v17",
-        "android_target": "NEXT_MONOTONIC_SIGNED_BETA_AFTER_VC55",
-        "firestore_rules": "D092_MAIN_DEPLOY_PENDING"
+        "agent_release": "relay-agent-v17",
+        "agent_release_sha256": "ccc0d499c044fb567b34cd37ff1a802293ee9cc47d082a34c4fac2778fe8cd24",
+        "android_release": "beta-vc56",
+        "android_apk_sha256": "fe41c136d16470d7b0fac45a4b125b8e1b29610f7b468a4e41171f68c420da80",
+        "firestore_rules": "PASS_MAIN_RUN_35552139264",
+        "technical_release": "PASS"
       }
     }
   ]
