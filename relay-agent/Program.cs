@@ -1135,6 +1135,54 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private void EnsureEmbeddedOverlaySettings()
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(EnsureEmbeddedOverlaySettings));
+                return;
+            }
+            if (_embeddedOverlaySettings != null && !_embeddedOverlaySettings.IsDisposed) return;
+
+            InitializeStatusOverlaySafe(true);
+            _overlaySettingsHost.Controls.Clear();
+            if (_statusOverlay == null)
+            {
+                _overlaySettingsHost.Controls.Add(new Label
+                {
+                    Left = 24,
+                    Top = 24,
+                    Width = 760,
+                    Height = 54,
+                    Text = "Không khởi tạo được bảng nổi. Mở tab Chẩn đoán kỹ thuật để xem log rồi quay lại tab này để thử lại.",
+                    ForeColor = Color.FromArgb(180, 76, 60)
+                });
+                return;
+            }
+
+            try
+            {
+                _embeddedOverlaySettings = new OverlaySettingsForm(_statusOverlay);
+                _embeddedOverlaySettings.PrepareEmbedded();
+                _overlaySettingsHost.Controls.Add(_embeddedOverlaySettings);
+                _embeddedOverlaySettings.Show();
+            }
+            catch (Exception ex)
+            {
+                AgentDiagnostics.Write("OVERLAY embedded-settings-fail type=" + ex.GetType().Name);
+                _embeddedOverlaySettings = null;
+                _overlaySettingsHost.Controls.Add(new Label
+                {
+                    Left = 24,
+                    Top = 24,
+                    Width = 760,
+                    Height = 54,
+                    Text = "Không hiển thị được cài đặt bảng nổi. Đã ghi log kỹ thuật.",
+                    ForeColor = Color.FromArgb(180, 76, 60)
+                });
+            }
+        }
+
         private void RefreshOverlayMenu()
         {
             if (InvokeRequired)
