@@ -137,6 +137,14 @@ class RelayPocClient(
                         .build(),
                     "GET"
                 )
+                val docFields = try { JSONObject(raw).optJSONObject("fields") } catch (_: Exception) { null }
+                val currentStatus = fieldString(docFields ?: JSONObject(), "status")
+                if (currentStatus == "PENDING" && SystemClock.elapsedRealtime() - started > 15_000L) {
+                    throw IOException("Không có Agent xử lý online. Vui lòng về bàn chuyên viên xử lý trực tiếp.")
+                }
+                if (currentStatus == "PROCESSING") {
+                    onProgress("Agent đang xử lý Picklist...")
+                }
                 val ack = parseAck(raw)
                 if (ack != null) {
                     val total = (SystemClock.elapsedRealtime() - started).coerceAtLeast(0L)
