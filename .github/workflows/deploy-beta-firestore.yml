@@ -1,0 +1,104 @@
+name: Deploy Beta Firestore Relay
+
+on:
+  pull_request:
+    paths:
+      - "firebase/firestore.rules"
+      - "firebase.json"
+      - ".github/workflows/deploy-beta-firestore.yml"
+      - "docs/OWNER_DECISIONS.md"
+      - "docs/specs/REALTIME_NOTIFICATIONS.md"
+      - "docs/specs/ACCEPTANCE_TESTING.md"
+      - "ops/project-scope.json"
+      - "ops/project-state.json"
+      - "ops/owner-actions.json"
+      - "ops/resource-registry.json"
+  push:
+    branches: [main]
+    paths:
+      - "firebase/firestore.rules"
+      - "firebase.json"
+      - ".github/workflows/deploy-beta-firestore.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supra-inventory-beta-firestore-relay
+  cancel-in-progress: false
+
+jobs:
+  beta-firestore-relay:
+    runs-on: ubuntu-latest
+    environment: beta
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate D091 Firestore source
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const config = JSON.parse(fs.readFileSync('firebase.json','utf8'));
+          const rules = fs.readFileSync('firebase/firestore.rules','utf8');
+          if (config.firestore?.rules !== 'firebase/firestore.rules') throw new Error('firebase.json Firestore rules path mismatch');
+          for (const marker of ['relay_poc_jobs', "ANDROID_D091", "app_base_role == 'ADMIN'", "status == 'ACK'", "affectedKeys().hasOnly"]) {
+            if (!rules.includes(marker)) throw new Error('Missing D091 Firestore Rules marker: ' + marker);
+          }
+          if (/allow\s+(read|write)\s*:\s*if\s+true/.test(rules)) throw new Error('Open Firestore Rules are forbidden');
+          console.log('D091 Firestore source validation PASS');
+          NODE
+
+      - name: Validate Beta service-account secret shape
+        shell: bash
+        env:
+          FIREBASE_RULES_SA_JSON_BETA: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+        run: |
+          set -euo pipefail
+          [ -n "${FIREBASE_RULES_SA_JSON_BETA:-}" ] || { echo "FIREBASE_RULES_SA_JSON_BETA missing"; exit 1; }
+          jq -e '.type == "service_account" and .project_id == "supra-inventory-beta" and (.private_key | startswith("-----BEGIN PRIVATE KEY-----"))' <<<"$FIREBASE_RULES_SA_JSON_BETA" >/dev/null
+          echo "Beta service-account secret shape PASS"
+
+      - name: Authenticate Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Check/create Beta default Firestore database
+        shell: bash
+        env:
+          MUTATE: ${{ github.event_name != 'pull_request' }}
+        run: |
+          set -euo pipefail
+          project="supra-inventory-beta"
+          if gcloud firestore databases describe --project="$project" --database="(default)" >/tmp/firestore-db.json 2>/tmp/firestore-db.err; then
+            echo "Firestore (default) exists"
+            location="$(jq -r '.locationId // empty' /tmp/firestore-db.json)"
+            [ "$location" = "asia-southeast1" ] || { echo "Unexpected Firestore location: $location"; exit 1; }
+            exit 0
+          fi
+
+          if [ "$MUTATE" != "true" ]; then
+            echo "PR validation: Firestore (default) not confirmed yet; no cloud mutation before merge."
+            exit 0
+          fi
+
+          echo "Creating Beta Firestore (default) in asia-southeast1..."
+          gcloud firestore databases create             --project="$project"             --database="(default)"             --location="asia-southeast1"             --type="firestore-native"             --quiet
+          gcloud firestore databases describe --project="$project" --database="(default)" --format=json >/tmp/firestore-db.json
+          [ "$(jq -r '.locationId' /tmp/firestore-db.json)" = "asia-southeast1" ]
+          echo "Firestore database create/readback PASS"
+
+      - name: Deploy Firestore Rules on main
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global firebase-tools@latest
+          firebase deploy --only firestore:rules --project supra-inventory-beta --non-interactive
+          echo "Firestore Rules deploy PASS"
