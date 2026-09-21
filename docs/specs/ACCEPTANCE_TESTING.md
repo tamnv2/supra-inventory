@@ -844,9 +844,9 @@ Technical/runtime PASS requires:
 ## D100 acceptance
 
 Technical PASS requires:
-1. Agent v25 accepts an ADMIN username/MNV, derives the deterministic Agent Firebase alias, obtains ADMIN claims and never requires a registered email on the Agent UI.
+1. Agent v25 accepts an ADMIN username/MNV, derives the same deterministic Firebase sign-in identifier used by the shared logical identity, obtains ADMIN claims on the **same Firebase UID** used by Web/App, and never requires a registered email on the Agent UI.
 2. Agent login/refresh remains Worker-independent; auth-first Supra gating, Enter Login, Enter PickList search, D097 HA and D099 expanded Overlay remain unchanged.
-3. Every ACTIVE ADMIN has primary Firebase readiness + Agent-alias readiness before Beta health returns OK.
+3. Every ACTIVE ADMIN has primary Firebase readiness + direct Agent-username readiness before Beta health returns OK; `firebase_agent_ready` does not correspond to another Firebase account.
 4. ADMIN create/password/status changes keep the single shared Firebase identity usable from Web/App/Agent; no secondary Agent UID/account is created.
 5. Web Tools generated version/tag/download URL exactly match `relay-agent/VERSION`; no old hard-coded tag survives.
 6. System Reset navigation/API is denied to ADMIN/REPORTER/PICKER and to ROOT while simulating a lower effective role.
@@ -855,4 +855,5 @@ Technical PASS requires:
 9. Account reset removes corresponding InventoryCore users and their single Firebase identities; ROOT identity is never included.
 10. Firestore reset refuses to run while any confirmation job is PENDING.
 11. Reset changes data only; schema/versioned source/logic/UI definitions remain intact after execution.
-12. Stable is untouched.
+12. ROOT/ADMIN recovery request is enumeration-safe; Gmail link token is stored only as a hash, expires after 15 minutes, is single-use, and the resulting password works on Web/App/eligible Agent for the same UID.
+13. Stable is untouched.
