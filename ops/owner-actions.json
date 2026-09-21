@@ -535,7 +535,7 @@
     },
     {
       "id": "OA013",
-      "status": "BLOCKED_BY_OA014_D093_FIELD_RETEST",
+      "status": "BLOCKED_BY_OA015_D094_FIELD_GATE",
       "title": "Field-test D092 real Picklist confirmation",
       "resource_key": "supra-api-d080",
       "provider": "Physical company Windows Agent + Beta PDA + authorized Supra WMS session",
@@ -573,14 +573,15 @@
         "android_apk_sha256": "fe41c136d16470d7b0fac45a4b125b8e1b29610f7b468a4e41171f68c420da80",
         "firestore_rules": "PASS_MAIN_RUN_35552139264",
         "technical_release": "PASS",
-        "d093_transport_retest": "OA014_PASS_REQUIRED_BEFORE_RESUME"
+        "d093_transport_retest": "OA014_PASS_REQUIRED_BEFORE_RESUME",
+        "d094_transport_retest": "OA015_PASS_REQUIRED_BEFORE_RESUME"
       },
-      "blocked_by": "OA014",
-      "block_reason": "D093 repair is now technically released as relay-agent-v18 + beta-vc57; OA013 remains blocked until the physical Firestore PDA-Agent regression path passes OA014."
+      "blocked_by": "OA015",
+      "block_reason": "D094 source repair is required because released v18/vc57 did not complete the PDA-to-Agent receive path. Real WMS confirmation remains blocked until OA015 passes."
     },
     {
       "id": "OA014",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "SUPERSEDED_BY_D094_OA015",
       "title": "Field-retest D093 Firestore PDA-to-Agent regression repair",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Physical Beta PDA + company Windows Agent on Office network",
@@ -614,7 +615,7 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Use existing authorized sessions; do not share passwords, tokens, cookies, WMS headers/signatures or encrypted session files. Firestore must not use the WMS fallback proxy to bypass company filtering.",
-      "remaining_owner_action": "Update to relay-agent-v18 and beta-vc57, then run the bounded physical Firestore PDA-Agent regression re-test on Office. OA013 resumes only after PASS.",
+      "remaining_owner_action": null,
       "runtime_readiness": {
         "main": "377159ed6722eede6b7716c9c83066b863a4e805",
         "repo_authority_run": 35554493313,
@@ -625,7 +626,43 @@
         "android_run": 35554493317,
         "agent_release_id": 392660561,
         "android_release_id": 392660672
-      }
+      },
+      "superseded_reason": "Owner field test on released v18/vc57 still showed PDA requests not reaching Agent; D094 replaces OA014 with stronger proxy-route parity, pending-job query and request-id correlation."
+    },
+    {
+      "id": "OA015",
+      "status": "WAITING_FOR_D094_RELEASE",
+      "title": "Field-test D094 Agent login persistence and Firestore PDA-to-Agent receive correlation",
+      "resource_key": "firestore-relay-beta-d091",
+      "provider": "Physical Beta PDA + company Windows Agent on normal/Office network",
+      "reason_owner_only": "Connected CI can verify source/build/release but cannot operate the physical PDA/Windows network transition or confirm the same live Firestore request ID is observed end-to-end.",
+      "prerequisites": {
+        "owner_transport_authority": "OA012_PASS_OWNER_CONFIRMED",
+        "source_branch": "fix/d094-agent-auth-relay-receive",
+        "agent_release": "PENDING_RELAY_AGENT_V19",
+        "android_release": "PENDING_NEXT_SIGNED_BETA_RELEASE",
+        "oa013": "BLOCKED_UNTIL_THIS_ACTION_PASSES"
+      },
+      "shortest_test_path": [
+        "Update to the D094 released Agent v19 and signed Beta APK from the same accepted source.",
+        "Start Agent: verify the previously verified ADMIN restores automatically without password entry; ADMIN login controls are dimmed/disabled and Tổng quan shows Agent verification logged in.",
+        "Press Đăng xuất once: verify relay stops, login controls re-enable, then log in with the intended real ADMIN. Restart Agent and verify that new saved identity restores automatically.",
+        "On PDA open Xác nhận đơn and send one controlled five-digit request. Note the short request ID shown after Firestore CREATE.",
+        "In Agent technical/audit logs verify the same short ID appears as pending-found, conditional claim and response/ACK. Repeat on Office if the first test was on normal network, or vice versa.",
+        "If PDA shows CREATE/request ID but Agent never logs that same ID, provide only sanitized technical/audit logs; do not proceed to real WMS confirmation."
+      ],
+      "pass_criteria": [
+        "Agent saved ADMIN session restores through DPAPI/Firebase claims without plaintext password persistence.",
+        "Authenticated login controls are disabled/dimmed, Logout is enabled, and Overview shows the verification-login state.",
+        "Logout clears saved Agent application session and a subsequent real ADMIN login replaces the saved identity.",
+        "Firestore remains the D091/D092 selected carrier; no Cloudflare/RTDB/Apps Script fallback produces PASS.",
+        "Agent uses the D091-proven Windows default proxy path first and does not use the WMS corporate fallback proxy for Firestore.",
+        "PDA CREATE short request ID is observed by Agent pending query, conditional claim and ACK using the same ID.",
+        "Only one ACTIVE Agent handles the job; D092 idempotency/anti-spam/WMS mutation boundaries remain unchanged.",
+        "Stable remains untouched."
+      ],
+      "safety": "Beta only. Do not share passwords, tokens, cookies, WMS headers/signatures, encrypted session files or raw WMS response bodies. Password persistence is forbidden; only DPAPI-protected refreshable application session material is allowed.",
+      "remaining_owner_action": "Wait for D094 Agent v19 + signed Beta release, then run this bounded auth/relay correlation test. OA013 resumes only after PASS."
     }
   ]
 }
