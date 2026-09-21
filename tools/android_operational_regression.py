@@ -317,7 +317,7 @@ def main() -> None:
     require(exact_resolver, '{ "Content", "" }', "D092 exact resolver keeps D084 empty Content")
     require(exact_resolver, "AMBIGUOUS_PICKLIST", "D092 ambiguous full code fail closed")
     require(wms_confirm, 'request.Method = "POST"', "D092 bounded WMS confirmation POST")
-    require(wms_confirm, "confirmSkipItem", "D092 exact confirmation endpoint")
+    require(relay_agent_config, "confirmSkipItem", "D092 exact confirmation endpoint")
     require(confirmation_guard, "relay_poc_confirm_guards", "D092 cross-Agent idempotency guard")
     require(picker, '"CONFIRM_IN_PROGRESS_OR_UNCERTAIN"', "D092 uncertain mutation fail-closed UX")
     require(firestore_rules, "relay_poc_rate_limits", "D092 Firestore rate-limit rules")
