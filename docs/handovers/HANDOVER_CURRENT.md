@@ -359,3 +359,14 @@ Status: **OWNER FIELD FAIL — SOURCE REPAIR CANDIDATE**.
 - Repair candidate `fix/d100-post-reset-runtime-recovery`: route Operational V2 core requests, add GET `/operational/init` self-repair, rebootstrap Operational V2 immediately after Runtime Settings reset, exclude structural epoch from resettable config count, fix email validation, return actionable account-create validation, and make SKU import progress terminate visibly on failure.
 - Stable remains OWNER-GATED and untouched. No further destructive reset is required to recover the current Beta runtime.
 
+## D100 post-reset recovery runtime checkpoint — 2026-09-22
+
+Status: **TECHNICAL / RUNTIME PASS — OWNER FIELD RETEST READY**.
+
+- PR #133 merged to main `5409b8347f50a226bde0665637bef2e598bc3514`.
+- Main Repo Authority `35636210008`, Project State `35636210129`, UI `35636210086` and Deploy Beta Worker `35636210016` all PASS.
+- Beta deploy health on exact source `5409b834...` returned SQLite schema `10/10`, Operational V2 `true:5/5`, Agent auth migration `0/0`, plus business capability/auth-guard PASS.
+- Live fixes include Operational V2 self-repair routing, immediate structural rebootstrap after Runtime Settings reset, corrected managed-account email validation and terminal SKU-import failure progress.
+- Owner field re-test remains: normal operations/dashboard/realtime, create one intended Admin/Reporter, retry SKU import. No further destructive reset is required solely for recovery.
+- Stable remains OWNER-GATED and untouched.
+
