@@ -7,10 +7,10 @@
 - Project: `supra-inventory`
 - SQLite schema: `8`
 - Latest signed Beta APK: `beta-vc59`
-- Current released Agent: `relay-agent-v20`
-- Beta: `D096_WMS_EXACT_RESOLVER_SOURCE_READY__CURRENT_AGENT_V20_PDA_AGENT_FIELD_PASS__TARGET_V21__BETA_VC59_UNCHANGED__OA017_AFTER_RELEASE`
+- Current released Agent: `relay-agent-v21`
+- Beta: `D096_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V21__BETA_VC59_UNCHANGED__PDA_AGENT_FIELD_PASS__OA017_REAL_CONFIRM_PENDING`
 - Web: `D089_OWNER_ACCEPTED_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON`
-- Android: `D095_SIGNED_BETA_VC59_PDA_AGENT_FIELD_PASS__NO_D096_ANDROID_CHANGE`
+- Android: `D095_SIGNED_BETA_VC59_PDA_AGENT_FIELD_PASS__D096_NO_ANDROID_CHANGE`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -137,4 +137,14 @@ No manual end-of-session handover is required. GitHub canonical state remains th
 - Existing authorized confirm endpoint/payload remains unchanged. D096 additionally requires HTTP 2xx **and** WMS business `Status=true` before reporting CONFIRMED.
 - D096 targets `relay-agent-v21` only. Android stays at signed `beta-vc59`.
 - Next field gate: OA017 real eligible Picklist exact-resolve → confirm → Status=true → Firestore ACK → SFT/SFT3 verification.
+- Stable remains OWNER-GATED and untouched.
+
+## D096 release-state refresh — 2026-09-21
+
+- Main: `7cf962bd6ced0fc2a89382ee4c875d5128285d53`; PR #118 merged.
+- Main Repo Authority / Project State / UI / Agent workflows all PASS.
+- Released Agent: `relay-agent-v21`, SHA-256 `172dbf64dc0c8dabebb1d0feb8206515892b81bc464ea0c6a201877127bac0b6`.
+- Android remains signed `beta-vc59`; D096 made no Android change.
+- D096 in-process net48 self-test proves exact PickListCode extraction from JSON arrays and confirm response classification (`Status=true` required for CONFIRMED).
+- Owner has already confirmed PDA ↔ Agent transport works; OA017 is READY_FOR_OWNER_FIELD_TEST for the remaining real WMS confirmation stage.
 - Stable remains OWNER-GATED and untouched.
