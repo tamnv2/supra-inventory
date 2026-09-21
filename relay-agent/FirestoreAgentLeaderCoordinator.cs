@@ -54,6 +54,7 @@ namespace SupraInventoryRelayAgent
         private volatile int _onlineAgentCount;
         private volatile bool _coordinationHealthy;
         private volatile bool _relayPollHealthy;
+        private volatile bool _refreshBeforeBusiness;
 
         internal FirestoreAgentLeaderCoordinator(
             Func<AgentSession> sessionProvider,
@@ -108,7 +109,22 @@ namespace SupraInventoryRelayAgent
         {
             _relayPollHealthy = healthy;
             if (!healthy)
+            {
+                _refreshBeforeBusiness = true;
                 _log("FIRESTORE role=" + RoleName + " transport=OFFLINE role_preserved=true");
+            }
+        }
+
+        internal void RequestRoleRefreshBeforeBusiness()
+        {
+            _refreshBeforeBusiness = true;
+        }
+
+        internal void EnsureRoleCurrentBeforeBusiness(AgentSession session)
+        {
+            if (!_refreshBeforeBusiness) return;
+            RefreshRole(session);
+            _refreshBeforeBusiness = false;
         }
 
         internal void Start()
