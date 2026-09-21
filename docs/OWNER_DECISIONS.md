@@ -360,3 +360,24 @@ Owner requires the Windows Agent to remember the verified ADMIN session across l
 8. D092 exact PickListCode, anti-spam, idempotency and the only-authorized `confirmSkipItem` WMS mutation contract are unchanged. Stable remains OWNER-GATED and untouched.
 
 D094 supersedes OA014 as the next relay field gate because the released D093 artifacts did not complete the PDA → Agent receive path in the Owner's field test.
+
+## D095 — Fix Firestore job visibility and preserve confirmation requests across Agent network transitions
+
+Status: **ACTIVE — OWNER DIRECTED / FIELD ROOT CAUSE CONFIRMED 2026-09-21**.
+
+The Owner physically tested released `relay-agent-v19` + `beta-vc58` and confirmed that confirmation requests still did not reach the Agent on either a normal Internet network or the company Office network. Sanitized PDA and Agent logs establish two independent causes:
+
+1. PDA Firestore `CREATE` succeeds and the same Picker device continues normal Báo hàng successfully through the Worker/InventoryCore path. Therefore the normal Báo hàng path is not the confirmation failure.
+2. While the Agent is ACTIVE and Firestore polling itself returns HTTP success, D094 can report `pending=0` for a newly created job because `JavaScriptSerializer.DeserializeObject()` returns JSON arrays as `IEnumerable/object[]`, while D094 incorrectly cast both `runQuery` and list fallback arrays to `ArrayList`. D091's field-PASS implementation used `IEnumerable`; D095 restores that correct parsing contract.
+3. A second failure mode occurs during Agent network transition/outage: Android deleted a still-`PENDING` job after 30 seconds, while the Agent recovered Firestore later. D095 makes 30 seconds informational only and retains the request for the full bounded 120-second window. At the terminal boundary, Picker deletion remains conditional and may only delete a still-`PENDING` document; `PROCESSING` work is never deleted or automatically retried.
+4. Agent safe Firestore reads use three bounded attempts across the Windows default proxy and a fresh current system proxy. The Agent refreshes the process default Windows proxy automatically on network-address changes. This is to support the same Agent binary on normal Internet and on the company Office network without introducing a separate carrier.
+5. The architecture remains explicitly split:
+   - **Báo hàng**: PDA Internet → Cloudflare Worker → InventoryCore/SQLite, unchanged.
+   - **Xác nhận đơn**: PDA Internet → authenticated Firestore → ACTIVE Agent → Firestore ACK → originating PDA.
+   - The Agent may be on normal Internet or Office; both consume the same Firestore carrier using the appropriate Windows network/proxy path.
+   - The confirmation path must never fall back into the Báo hàng Worker mutation API, and the Báo hàng path must not depend on the Agent.
+6. Firestore remains the selected carrier from D091 field PASS. D095 does not reopen RTDB, Cloudflare-as-confirmation-carrier, Apps Script, or direct PDA↔LAN transport selection.
+7. D092 exact PickListCode resolution, anti-spam, conditional claim, cross-Agent idempotency and the only-authorized `confirmSkipItem` WMS mutation boundary remain unchanged.
+8. Stable remains **OWNER-GATED** and untouched.
+
+D095 supersedes OA015. A new physical gate must use the D095 released Agent/APK and confirm the same short request ID is visible from PDA CREATE through Agent `pending-found → CLAIM → ACK` on a normal Agent network and on the Office network before OA013 real WMS confirmation resumes.

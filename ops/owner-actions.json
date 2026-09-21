@@ -535,7 +535,7 @@
     },
     {
       "id": "OA013",
-      "status": "BLOCKED_BY_OA015_D094_FIELD_GATE",
+      "status": "BLOCKED_BY_OA016_D095_FIELD_GATE",
       "title": "Field-test D092 real Picklist confirmation",
       "resource_key": "supra-api-d080",
       "provider": "Physical company Windows Agent + Beta PDA + authorized Supra WMS session",
@@ -574,10 +574,11 @@
         "firestore_rules": "PASS_MAIN_RUN_35552139264",
         "technical_release": "PASS",
         "d093_transport_retest": "OA014_PASS_REQUIRED_BEFORE_RESUME",
-        "d094_transport_retest": "OA015_PASS_REQUIRED_BEFORE_RESUME"
+        "d094_transport_retest": "OA015_PASS_REQUIRED_BEFORE_RESUME",
+        "d095_transport_retest": "OA016_PASS_REQUIRED_BEFORE_RESUME"
       },
-      "blocked_by": "OA015",
-      "block_reason": "D094 source repair is required because released v18/vc57 did not complete the PDA-to-Agent receive path. Real WMS confirmation remains blocked until OA015 passes."
+      "blocked_by": "OA016",
+      "block_reason": "Released v19/vc58 failed the confirmation relay field gate. D095 repairs confirmed Firestore job-visibility and reconnect-loss causes; real WMS confirmation remains blocked until OA016 passes."
     },
     {
       "id": "OA014",
@@ -631,7 +632,7 @@
     },
     {
       "id": "OA015",
-      "status": "WAITING_FOR_D094_RELEASE",
+      "status": "FIELD_FAIL_SUPERSEDED_BY_D095_OA016",
       "title": "Field-test D094 Agent login persistence and Firestore PDA-to-Agent receive correlation",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Physical Beta PDA + company Windows Agent on normal/Office network",
@@ -662,7 +663,47 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Do not share passwords, tokens, cookies, WMS headers/signatures, encrypted session files or raw WMS response bodies. Password persistence is forbidden; only DPAPI-protected refreshable application session material is allowed.",
-      "remaining_owner_action": "Wait for D094 Agent v19 + signed Beta release, then run this bounded auth/relay correlation test. OA013 resumes only after PASS."
+      "remaining_owner_action": null,
+      "field_result": "FAIL",
+      "field_result_date": "2026-09-21",
+      "superseded_reason": "Released relay-agent-v19 + beta-vc58 physical test showed PDA Firestore CREATE PASS but Agent did not observe the same request. D095 confirmed JSON-array parser loss plus 30-second premature PENDING cleanup and supersedes this gate."
+    },
+    {
+      "id": "OA016",
+      "status": "WAITING_FOR_D095_RELEASE",
+      "title": "Field-test D095 Firestore job visibility on normal and Office Agent networks",
+      "resource_key": "firestore-relay-beta-d091",
+      "provider": "Physical Beta PDA on normal Internet + Windows Agent on normal Internet and company Office network",
+      "reason_owner_only": "Connected CI can verify parser/build/guards but cannot reproduce both physical Windows network paths and confirm the same live PDA request ID is observed end-to-end.",
+      "prerequisites": {
+        "owner_transport_authority": "OA012_PASS_OWNER_CONFIRMED",
+        "source_branch": "fix/d095-firestore-job-visibility",
+        "agent_release": "PENDING_RELAY_AGENT_V20",
+        "android_release": "PENDING_NEXT_SIGNED_BETA_RELEASE",
+        "oa013": "BLOCKED_UNTIL_THIS_ACTION_PASSES"
+      },
+      "shortest_test_path": [
+        "Update to the D095 released Agent v20 and signed Beta APK from the same accepted source.",
+        "Keep the PDA on its normal Internet/PDA network for all tests.",
+        "With Agent on a normal Internet network, send one controlled Xác nhận đơn request and note the short request ID. Agent logs must show the same ID at pending-found, CLAIM PASS and ACK/response.",
+        "Move/switch the Agent laptop to the company Office network without changing the PDA network. Wait until Agent Firestore health is ACTIVE/online, then send a new controlled request. The same request-ID correlation must complete.",
+        "Optionally switch Agent network while a PENDING job exists; the PDA must keep the request alive beyond 30 seconds and allow Agent recovery within the 120-second bounded window.",
+        "Submit one normal Báo hàng item from the PDA and verify it succeeds through Worker/InventoryCore regardless of Agent state.",
+        "If any confirmation request still fails, provide only sanitized PDA + Agent logs containing the short request ID; do not proceed to OA013 real WMS confirmation."
+      ],
+      "pass_criteria": [
+        "PDA remains on normal Internet and successfully creates authenticated Firestore confirmation jobs.",
+        "Agent on normal Internet sees the same request ID and completes pending-found -> conditional claim -> ACK.",
+        "Agent on company Office network sees the same request ID and completes pending-found -> conditional claim -> ACK using the same Firestore carrier.",
+        "Agent network transition refreshes Windows proxy routing and does not require a different confirmation provider or PDA network.",
+        "A still-PENDING request is not terminally deleted at 30 seconds; terminal cleanup occurs only at the end of the 120-second bounded window and never deletes PROCESSING.",
+        "Normal Báo hàng remains independent on Cloudflare Worker + InventoryCore and succeeds without Agent participation.",
+        "No Cloudflare/RTDB/Apps Script fallback is used as the confirmation carrier.",
+        "D092 exact PickListCode, anti-spam, idempotency and WMS mutation boundaries remain unchanged.",
+        "Stable remains untouched."
+      ],
+      "safety": "Beta only. Do not share passwords, tokens, cookies, WMS headers/signatures, encrypted session files or raw WMS response bodies. This gate verifies transport/job visibility only; do not execute the real WMS confirmation until OA016 passes.",
+      "remaining_owner_action": "Wait for D095 Agent v20 + signed Beta release, then run the two Agent-network request-ID correlation tests while keeping PDA on normal Internet. OA013 resumes only after PASS."
     }
   ]
 }

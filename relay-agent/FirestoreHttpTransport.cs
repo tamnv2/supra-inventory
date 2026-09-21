@@ -26,7 +26,7 @@ namespace SupraInventoryRelayAgent
             Action<string> log,
             string component)
         {
-            var attempts = retrySafeRead ? 2 : 1;
+            var attempts = retrySafeRead ? 3 : 1;
             WebException last = null;
 
             for (var attempt = 1; attempt <= attempts; attempt++)
@@ -41,9 +41,9 @@ namespace SupraInventoryRelayAgent
                 request.KeepAlive = false;
                 request.Headers[HttpRequestHeader.Authorization] = "Bearer " + token;
 
-                var route = attempt == 1
-                    ? ApplyDefaultWindowsProxy(request, url)
-                    : ApplyFreshSystemProxy(request, url);
+                var route = attempt == 2
+                    ? ApplyFreshSystemProxy(request, url)
+                    : ApplyDefaultWindowsProxy(request, url);
                 try
                 {
                     if (body != null)
@@ -70,7 +70,7 @@ namespace SupraInventoryRelayAgent
                                 " reason=" + ex.Status +
                                 " route=" + route +
                                 " attempt=" + attempt + "/" + attempts);
-                        Thread.Sleep(350);
+                        Thread.Sleep(attempt == 1 ? 350 : 900);
                         continue;
                     }
                     throw;

@@ -182,36 +182,11 @@ namespace SupraInventoryRelayAgent
                                 "where", new Dictionary<string, object>
                                 {
                                     {
-                                        "compositeFilter", new Dictionary<string, object>
+                                        "fieldFilter", new Dictionary<string, object>
                                         {
-                                            { "op", "AND" },
-                                            {
-                                                "filters", new object[]
-                                                {
-                                                    new Dictionary<string, object>
-                                                    {
-                                                        {
-                                                            "fieldFilter", new Dictionary<string, object>
-                                                            {
-                                                                { "field", new Dictionary<string, object> { { "fieldPath", "status" } } },
-                                                                { "op", "EQUAL" },
-                                                                { "value", StringField("PENDING") }
-                                                            }
-                                                        }
-                                                    },
-                                                    new Dictionary<string, object>
-                                                    {
-                                                        {
-                                                            "fieldFilter", new Dictionary<string, object>
-                                                            {
-                                                                { "field", new Dictionary<string, object> { { "fieldPath", "source" } } },
-                                                                { "op", "EQUAL" },
-                                                                { "value", StringField("ANDROID_CONFIRM_V1") }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
+                                            { "field", new Dictionary<string, object> { { "fieldPath", "status" } } },
+                                            { "op", "EQUAL" },
+                                            { "value", StringField("PENDING") }
                                         }
                                     }
                                 }
@@ -227,23 +202,34 @@ namespace SupraInventoryRelayAgent
                     session.IdToken,
                     _json.Serialize(query));
 
-                var rows = _json.DeserializeObject(raw) as ArrayList;
+                var rows = _json.DeserializeObject(raw) as IEnumerable;
+                if (rows == null)
+                    throw new InvalidOperationException("Firestore runQuery trả về JSON root không phải array.");
+
                 var docs = new ArrayList();
-                if (rows != null)
+                var rowCount = 0;
+                foreach (var rowObj in rows)
                 {
-                    foreach (var rowObj in rows)
-                    {
-                        var row = rowObj as Dictionary<string, object>;
-                        if (row == null) continue;
-                        object documentObj;
-                        var document = row.TryGetValue("document", out documentObj)
-                            ? documentObj as Dictionary<string, object>
-                            : null;
-                        if (document != null) docs.Add(document);
-                    }
+                    rowCount++;
+                    var row = rowObj as Dictionary<string, object>;
+                    if (row == null) continue;
+                    object documentObj;
+                    var document = row.TryGetValue("document", out documentObj)
+                        ? documentObj as Dictionary<string, object>
+                        : null;
+                    if (document == null) continue;
+
+                    object fieldsObj;
+                    var fields = document.TryGetValue("fields", out fieldsObj)
+                        ? fieldsObj as Dictionary<string, object>
+                        : null;
+                    if (fields == null) continue;
+                    if (FieldString(fields, "status") != "PENDING") continue;
+                    if (FieldString(fields, "source") != "ANDROID_CONFIRM_V1") continue;
+                    docs.Add(document);
                 }
 
-                LogPollTelemetry("QUERY", docs.Count);
+                LogPollTelemetry("QUERY", docs.Count, rowCount);
                 return docs;
             }
             catch (Exception ex)
@@ -260,13 +246,15 @@ namespace SupraInventoryRelayAgent
                 var root = _json.DeserializeObject(raw) as Dictionary<string, object>;
                 object docsObj;
                 var sourceDocs = root != null && root.TryGetValue("documents", out docsObj)
-                    ? docsObj as ArrayList
+                    ? docsObj as IEnumerable
                     : null;
                 var docs = new ArrayList();
+                var rowCount = 0;
                 if (sourceDocs != null)
                 {
                     foreach (var item in sourceDocs)
                     {
+                        rowCount++;
                         var doc = item as Dictionary<string, object>;
                         if (doc == null) continue;
                         object fieldsObj;
@@ -280,17 +268,18 @@ namespace SupraInventoryRelayAgent
                     }
                 }
 
-                LogPollTelemetry("LIST_FALLBACK", docs.Count);
+                LogPollTelemetry("LIST_FALLBACK", docs.Count, rowCount);
                 return docs;
             }
         }
 
-        private void LogPollTelemetry(string mode, int pendingCount)
+        private void LogPollTelemetry(string mode, int pendingCount, int rowCount)
         {
             var now = NowMs();
             if (pendingCount <= 0 && now - _lastPollTelemetryMs < 30000) return;
             _lastPollTelemetryMs = now;
             _log("FIRESTORE CONFIRM poll=PASS mode=" + Safe(mode) +
+                 " rows=" + Math.Max(0, rowCount) +
                  " pending=" + Math.Max(0, pendingCount));
         }
 

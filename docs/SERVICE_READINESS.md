@@ -6,11 +6,11 @@
 
 - Project: `supra-inventory`
 - SQLite schema: `8`
-- Latest signed Beta APK: `beta-vc57`
-- Current released Agent: `relay-agent-v18`
-- Beta: `D094_AGENT_AUTH_RELAY_RECEIVE_SOURCE_READY__CURRENT_RELEASE_V18_VC57__OA015_AFTER_RELEASE__OA013_BLOCKED`
+- Latest signed Beta APK: `beta-vc58`
+- Current released Agent: `relay-agent-v19`
+- Beta: `D095_FIRESTORE_JOB_VISIBILITY_SOURCE_READY__CURRENT_RELEASE_V19_VC58_FIELD_FAIL__TARGET_V20_NEXT_SIGNED_BETA__OA016_AFTER_RELEASE__OA013_BLOCKED`
 - Web: `D089_OWNER_ACCEPTED_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON`
-- Android: `D094_REQUEST_CORRELATION_SOURCE_READY__CURRENT_RELEASE_BETA_VC57__NEXT_SIGNED_RELEASE_PENDING`
+- Android: `D095_PENDING_PRESERVATION_SOURCE_READY__CURRENT_RELEASE_BETA_VC58_FIELD_FAIL__NEXT_SIGNED_RELEASE_PENDING`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -88,3 +88,14 @@ No manual end-of-session handover is required. GitHub canonical state remains th
 - PDA source shows the short request ID after CREATE so Agent `pending-found → claim → ACK` can be correlated.
 - Current released artifacts remain `relay-agent-v18` + `beta-vc57` until D094 merges/releases.
 - Next field gate is OA015 after release. OA013 real WMS confirmation remains blocked. Stable remains OWNER-GATED.
+
+## D095 current repair checkpoint — 2026-09-21
+
+- Owner physical test of `relay-agent-v19` + `beta-vc58` failed for Xác nhận đơn even though PDA Firestore CREATE succeeded repeatedly.
+- Root cause is confirmed: D094 parsed Firestore JSON arrays with `as ArrayList`; `JavaScriptSerializer` returns an enumerable/object array, so valid query/list results could be interpreted as zero documents. D091 field-PASS code used `IEnumerable`.
+- A second field failure deleted a still-PENDING Android job at 30 seconds while Agent Firestore connectivity recovered later. D095 keeps PENDING alive through the 120-second bounded window; 30 seconds is notice-only.
+- Agent v20 source refreshes the Windows default proxy on network-address change and gives safe Firestore reads three bounded default/fresh/default route attempts. Firestore never uses the WMS corporate fallback proxy.
+- Product paths are explicitly separate: Báo hàng = PDA normal Internet → Worker/InventoryCore; Xác nhận đơn = PDA normal Internet → Firestore → ACTIVE Agent (normal Internet or Office) → Firestore ACK → PDA.
+- Current released artifacts remain `relay-agent-v19` + `beta-vc58` and are **field FAIL for confirmation relay**. D095 targets `relay-agent-v20` + next signed Beta.
+- OA015 is superseded by OA016. OA013 real WMS confirmation remains blocked until OA016 PASS.
+- Stable remains OWNER-GATED and untouched.

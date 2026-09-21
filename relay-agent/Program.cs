@@ -22,6 +22,26 @@ namespace SupraInventoryRelayAgent
         private const string MainInstanceMutexName = @"Local\AgentAutoConfirmPickPack.MainInstance";
         private const string MainInstanceActivateEventName = @"Local\AgentAutoConfirmPickPack.Activate";
 
+        private static void RefreshDefaultWindowsProxy(string reason)
+        {
+            try
+            {
+                var proxy = WebRequest.GetSystemWebProxy();
+                if (proxy != null)
+                    proxy.Credentials = CredentialCache.DefaultNetworkCredentials;
+                WebRequest.DefaultWebProxy = proxy;
+                AgentDiagnostics.Write(
+                    "SYSTEM proxy-refresh=PASS reason=" + AgentDiagnostics.Sanitize(reason) +
+                    " tls=TLS1.2");
+            }
+            catch (Exception ex)
+            {
+                AgentDiagnostics.Write(
+                    "SYSTEM proxy-refresh=FAIL reason=" + AgentDiagnostics.Sanitize(reason) +
+                    " type=" + ex.GetType().Name);
+            }
+        }
+
         [STAThread]
         private static void Main(string[] args)
         {
@@ -70,16 +90,18 @@ namespace SupraInventoryRelayAgent
             try
             {
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                try
+                ServicePointManager.DnsRefreshTimeout = 15000;
+                RefreshDefaultWindowsProxy("startup");
+                if (!startupSmoke)
                 {
-                    WebRequest.DefaultWebProxy = WebRequest.GetSystemWebProxy();
-                    if (WebRequest.DefaultWebProxy != null)
-                        WebRequest.DefaultWebProxy.Credentials = CredentialCache.DefaultNetworkCredentials;
-                    AgentDiagnostics.Write("SYSTEM proxy=windows-default tls=TLS1.2");
-                }
-                catch (Exception ex)
-                {
-                    AgentDiagnostics.Write("SYSTEM proxy-init-failed " + ex.GetType().Name);
+                    NetworkChange.NetworkAddressChanged += (s, e) =>
+                    {
+                        ThreadPool.QueueUserWorkItem(_ =>
+                        {
+                            Thread.Sleep(750);
+                            RefreshDefaultWindowsProxy("network-change");
+                        });
+                    };
                 }
 
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
