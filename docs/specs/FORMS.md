@@ -442,3 +442,12 @@ Security flow:
 5. final destructive confirmation executes the exact scope bound into that challenge.
 
 The page prominently states preserved resources: ROOT identity/password/email/session, Google Sheet/Drive contents, GitHub/source/schema/logic/UI, Stable and WMS.
+
+
+### D100 recovery + Agent login override
+
+D100 supersedes the D098 recovery/Agent-login wording above:
+- Agent login surface is **ADMIN username/MNV + password**. The client internally derives the username-based Firebase sign-in identifier; registered email is never required on Agent.
+- ROOT/ADMIN recovery email is a real delivery address stored in InventoryCore only. It is not the Firebase sign-in identifier.
+- A matched recovery request sends a project-issued single-use link through Gmail send scope. The token is stored only as a SHA-256 hash, expires after 15 minutes, and is consumed after a successful password change.
+- The recovery link opens a dedicated Web form for new password + confirmation. Success updates the same Firebase UID and InventoryCore password/session authority.
