@@ -151,3 +151,18 @@ Source target is Beta-only and limited to the Picker confirmation Firestore wrap
 - APK vc60 SHA-256: `0c295a55fcd5e0ab6f2a9a1b9cd1d53d1fefba90c39187e9c74c7320a96853cc`.
 - OA018 is READY_FOR_OWNER_FIELD_TEST; runtime/release is no longer pending.
 - Stable remains OWNER-GATED and untouched.
+
+
+## D098 current source/PR checkpoint — 2026-09-21
+
+- Owner approved D098: Firebase credential authority for all users while InventoryCore remains business/RBAC authority.
+- Session slots are independent: one WEB + one ANDROID + one AGENT per user, same-channel warn/force-replace only.
+- Client matrix: PICKER App only; REPORTER/ROOT App+Web; ADMIN App+Web+Agent.
+- ROOT/ADMIN recovery email + Firebase reset-link flow is source-implemented.
+- Web realtime now shares session V2 with HTTP API; legacy V1 lookup is removed; reconnect uses bounded jittered backoff.
+- Inventory Cloudflare design ceiling is 35% of each Workers Paid included metric at max-load; normal runtime must remain lower.
+- Agent v23 source logs in ADMIN directly to Firebase, independent of Worker, keeps D097 Firestore HA, and adds direct specialist 3–5 digit full-PickList substring search with explicit selection and guarded local confirmation.
+- Agent Overview is Hệ thống Supra + Xác minh Agent + direct specialist flow. Settings is Kết nối + embedded Bảng nổi + Nhật ký vận hành + Chẩn đoán kỹ thuật.
+- PR #121 is the active implementation PR. Technical/runtime/release PASS is **not yet claimed** until all PR/main gates pass.
+- OA019 is blocked until technical release PASS, then covers physical channel replacement, Office direct Firebase Agent auth, Web realtime and specialist confirmation.
+- Stable remains OWNER-GATED and untouched.
