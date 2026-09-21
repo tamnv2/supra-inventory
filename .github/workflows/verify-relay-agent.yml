@@ -190,8 +190,10 @@ jobs:
           $json = New-Object System.Web.Script.Serialization.JavaScriptSerializer
           $root = $json.DeserializeObject('{"Status":true,"Data":[{"PickListCode":"PL2601012345"}]}')
           $codes = New-Object 'System.Collections.Generic.List[string]'
-          [void]$collect.Invoke($null, @($root, $codes, 0))
-          if ($codes.Count -ne 1 -or $codes[0] -ne "PL2601012345") {
+          $rootArg = if ($null -ne $root.PSObject) { $root.PSObject.BaseObject } else { $root }
+          $codesArg = if ($null -ne $codes.PSObject) { $codes.PSObject.BaseObject } else { $codes }
+          [void]$collect.Invoke($null, [object[]]@($rootArg, $codesArg, [int]0))
+          if ($codesArg.Count -ne 1 -or $codesArg[0] -ne "PL2601012345") {
             throw "D096 exact resolver failed to extract PickListCode from JavaScriptSerializer object[] JSON array."
           }
 
