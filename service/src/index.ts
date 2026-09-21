@@ -329,23 +329,38 @@ async function refreshSession(request: Request, env: Env): Promise<Response> {
     return json({ error: "FIREBASE_REFRESH_FAILED", message: payload.error?.message || `HTTP ${response.status}` }, 401);
   }
 
+  let identity: FirebaseIdentity;
+  let user: InternalUser;
   try {
-    const identity = await verifyFirebaseIdToken(payload.id_token, env.FIREBASE_PROJECT_ID);
-    const user = await getUserByFirebaseUid(env, identity.uid);
-    if (!user || user.status !== "ACTIVE") return json({ error: "USER_NOT_ACTIVE" }, 401);
-    const sessionError = sessionAuthorityError(identity, user);
+    identity = await verifyFirebaseIdToken(payload.id_token, env.FIREBASE_PROJECT_ID);
+    const resolved = await getUserByFirebaseUid(env, identity.uid);
+    if (!resolved || resolved.status !== "ACTIVE") return json({ error: "USER_NOT_ACTIVE" }, 401);
+    const sessionError = sessionAuthorityError(identity, resolved);
     if (sessionError) return json({ error: sessionError }, 401);
+    user = resolved;
   } catch {
     return json({ error: "INVALID_AUTH_TOKEN" }, 401);
+  }
+
+  let relayCustomToken: string | undefined;
+  if (identity.sessionChannel === "ANDROID" && env.GOOGLE_RUNTIME_SA_JSON) {
+    relayCustomToken = await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON, identity.uid, {
+      app_role: user.role,
+      app_base_role: user.base_role,
+      app_user_id: user.user_id,
+      employee_code: user.employee_code || "",
+      app_session_channel: "ANDROID",
+      app_session_generation: String(identity.sessionGeneration),
+    });
   }
 
   return json({
     id_token: payload.id_token,
     refresh_token: payload.refresh_token,
     expires_in: Math.max(60, Number(payload.expires_in || 3600)),
+    ...(relayCustomToken ? { firebase_custom_token: relayCustomToken } : {}),
   });
 }
-
 async function login(request: Request, env: Env): Promise<Response> {
   if (!env.GOOGLE_RUNTIME_SA_JSON || !env.FIREBASE_WEB_API_KEY) return json({ error: "AUTH_RUNTIME_NOT_CONFIGURED" }, 503);
   const body = (await request.json()) as { username?: string; password?: string; client_type?: string };
@@ -400,7 +415,21 @@ async function login(request: Request, env: Env): Promise<Response> {
   });
   try {
     const session = await exchangeCustomToken(env, customToken);
-    return json({ ...session, user: publicUser({ ...user, firebase_uid: firebaseUid }) });
+    const relayCustomToken = channel === "ANDROID"
+      ? await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON, firebaseUid, {
+          app_role: user.role,
+          app_base_role: user.base_role,
+          app_user_id: user.user_id,
+          employee_code: user.employee_code || "",
+          app_session_channel: channel,
+          app_session_generation: String(sessionGeneration),
+        })
+      : undefined;
+    return json({
+      ...session,
+      ...(relayCustomToken ? { firebase_custom_token: relayCustomToken } : {}),
+      user: publicUser({ ...user, firebase_uid: firebaseUid }),
+    });
   } catch (error) {
     return json({ error: "FIREBASE_LOGIN_EXCHANGE_FAILED", message: error instanceof Error ? error.message : "Firebase login exchange failed" }, 502);
   }
