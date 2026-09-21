@@ -239,7 +239,7 @@ def main() -> None:
     require(relay, "lookupStatus", "D082 Android relay lookup status")
     require(picker, '"CÓ PICKLIST"', "D082 PDA found result")
     require(picker, '"KHÔNG CÓ PICKLIST"', "D082 PDA not-found result")
-    require(picker_layout, 'android:text="KIỂM TRA PICKLIST"', "D082 read-only lookup action")
+    require(picker_layout, 'android:text="TEST PDA ↔ AGENT"', "D091 Firestore transport field action")
     require(relay_rules, '"lookup_status"', "D082 RTDB lookup metadata validation")
     forbid(wms_picklist, 'request.Method = "POST"', "D082 WMS POST mutation")
     forbid(wms_picklist, 'request.Method = "PUT"', "D082 WMS PUT mutation")
@@ -278,8 +278,8 @@ def main() -> None:
     require(status_overlay, "UpdateMetrics", "D087 two-layer overlay")
     require(system_monitor, "LaptopLine", "D087 laptop metrics overlay")
     require(agent_leader, "PresenceHeartbeatIntervalMs = 30000", "D087 lightweight Agent presence")
-    require(relay, ".callTimeout(120, TimeUnit.SECONDS)", "D084 all-page relay wait window")
-    require(relay, "Quá 2 phút chưa nhận phản hồi tra cứu", "D084 all-page relay timeout copy")
+    require(relay, ".callTimeout(15, TimeUnit.SECONDS)", "D091 bounded Firestore HTTP call timeout")
+    require(relay, "quá 60 giây chưa có Agent Office trả ACK", "D091 bounded Firestore field wait copy")
 
     # D085: sticky single-active Agent, cache/single-flight, persisted anti-spam and no-elevation startup.
     require(agent_leader, "HeartbeatIntervalMs = 3000", "D085 Agent heartbeat")
@@ -294,8 +294,10 @@ def main() -> None:
     require(picker_rate, "return 60;", "D085 third/subsequent lock")
     require(user_startup, "Registry.CurrentUser", "D085 normal-user autostart")
     require(user_startup, "CurrentVersion\\Run", "D085 HKCU Run registration")
-    require(relay, '"Đang chuyển người xử lý..."', "D085 PDA failover progress")
-    require(relay, '"Không có Agent xử lý online. Vui lòng về bàn chuyên viên xử lý trực tiếp."', "D085 no-Agent guidance")
+    # D091 first proves the Firestore carrier with one Agent. D085 Android failover/no-Agent UX
+    # is intentionally deferred until Firestore E2E passes and quota-safe HA is implemented.
+    require(relay, '"Đã gửi Firestore · đang chờ Agent Office..."', "D091 PDA waiting-for-Agent progress")
+    require(relay, '"TRANSPORT_ONLY"', "D091 transport-only ACK default")
     require(picker, '"PICKER_LOCKED"', "D085 locked Picker state")
     require(picker, "result.rateStrikes", "D085 strike visibility")
     require(relay_rules, '"coordination"', "D085 leader rules")
