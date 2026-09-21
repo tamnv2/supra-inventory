@@ -1704,9 +1704,9 @@ namespace SupraInventoryRelayAgent
             if (!Regex.IsMatch(value, "^[a-z0-9._-]{1,64}$"))
                 throw new InvalidOperationException("Tài khoản ADMIN không hợp lệ.");
             var seed = Regex.Replace(value, "[^a-z0-9._-]", "-").Trim('-');
-            if (seed.Length > 40) seed = seed.Substring(0, 40);
+            if (seed.Length > 44) seed = seed.Substring(0, 44);
             if (seed.Length == 0) throw new InvalidOperationException("Tài khoản ADMIN không hợp lệ.");
-            return "admin-agent." + seed + "@auth.supra.invalid";
+            return "admin." + seed + "@auth.supra.invalid";
         }
 
         private AgentSession FirebasePasswordLoginDirect(string identifier, string password)
