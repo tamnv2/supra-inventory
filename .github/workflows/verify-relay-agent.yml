@@ -125,7 +125,6 @@ jobs:
           if ($firestoreHttp -notmatch 'retrySafeRead\s*\?\s*3\s*:\s*1') { throw "D095 safe Firestore reads require three bounded route attempts." }
           if ($rules -notmatch 'coordination' -or $rules -notmatch 'rate_limits' -or $rules -notmatch 'PICKER_LOCKED' -or $rules -notmatch 'SWITCHING') { throw "Legacy RTDB guard changed unexpectedly." }
           if ($config -notmatch 'FIRESTORE_CONFIRM_V1' -or $config -notmatch 'relay_poc_jobs' -or $config -notmatch 'confirmSkipItem') { throw "D092 Agent config confirmation markers missing." }
-          foreach ($marker in @('ANDROID_CONFIRM_V1','PrimaryPollIntervalMs = 5000','StandbyPollIntervalMs = 10000','MaxConcurrentJobs = 12','ageMs > 30000L','request.resource.data.status == ''ACK''')) { }
           if ($firestoreTransport -notmatch 'PrimaryPollIntervalMs\s*=\s*5000' -or $firestoreTransport -notmatch 'StandbyPollIntervalMs\s*=\s*10000' -or $firestoreTransport -notmatch 'MaxConcurrentJobs\s*=\s*12' -or $firestoreTransport -notmatch 'ageMs\s*>\s*30000L') { throw "D097 Firestore polling/concurrency/expiry guard failed." }
           if ($firestoreTransport -match 'PROCESSING' -or $firestoreTransport -match 'TryClaim') { throw "D097 forbids per-job PROCESSING/claim write." }
           if ($firestoreTransport -notmatch 'currentDocument\.updateTime' -or $firestoreTransport -notmatch 'status", StringField\("ACK"\)') { throw "D097 direct conditional PENDING-to-ACK guard failed." }
