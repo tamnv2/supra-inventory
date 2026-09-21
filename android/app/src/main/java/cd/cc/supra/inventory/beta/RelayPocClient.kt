@@ -61,6 +61,11 @@ class RelayPocClient(
     private val log: (String) -> Unit = {},
     private val onProgress: (String) -> Unit = {},
 ) {
+    private companion object {
+        const val PENDING_CLAIM_WAIT_MS = 30_000L
+        const val TOTAL_WAIT_MS = 120_000L
+    }
+
     private val jsonType = "application/json; charset=utf-8".toMediaType()
     private val http = OkHttpClient.Builder()
         .connectTimeout(8, TimeUnit.SECONDS)
@@ -127,7 +132,7 @@ class RelayPocClient(
             log("D092 Firestore CREATE PASS request=" + shortId(requestId))
             onProgress("Đã gửi Firestore · đang chờ Agent Office...")
 
-            val deadline = SystemClock.elapsedRealtime() + 120_000L
+            val deadline = SystemClock.elapsedRealtime() + TOTAL_WAIT_MS
             while (SystemClock.elapsedRealtime() < deadline) {
                 val raw = executeJson(
                     Request.Builder()
@@ -142,12 +147,16 @@ class RelayPocClient(
                 val docFields = root.optJSONObject("fields") ?: JSONObject()
                 val currentStatus = fieldString(docFields, "status")
                 if (currentStatus == "PENDING" &&
-                    SystemClock.elapsedRealtime() - started >= 15_000L
+                    SystemClock.elapsedRealtime() - started >= PENDING_CLAIM_WAIT_MS
                 ) {
                     val updateTime = root.optString("updateTime").trim()
                     if (cancelPending(documentUrl, updateTime, session.idToken)) {
                         throw IOException("Không có Agent xử lý online. Vui lòng về bàn chuyên viên xử lý trực tiếp.")
                     }
+                } else if (currentStatus == "PENDING" &&
+                    SystemClock.elapsedRealtime() - started >= 12_000L
+                ) {
+                    onProgress("Đang chờ Agent chính / chuyển Agent dự phòng...")
                 } else if (currentStatus == "PROCESSING") {
                     onProgress("Agent đang kiểm tra và xác nhận Picklist...")
                 }
