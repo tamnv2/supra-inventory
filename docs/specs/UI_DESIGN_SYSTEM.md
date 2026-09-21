@@ -485,3 +485,20 @@ Unlocked overlay retains drag/resize and complete background/text color selectio
 ### D089 Owner visual acceptance — PASS
 
 Owner accepted the D089 visual/runtime presentation on 2026-09-21. The approved icon #4, Web Service/Sync status presentation, Tools dark-theme completion, and Agent Overlay configuration are the current accepted Beta UI baseline. Future changes must preserve these behaviors unless superseded by a later explicit Owner requirement.
+
+
+## D098 — Agent information architecture
+
+Agent keeps the D089 approved visual baseline and shared branding but restructures content:
+
+- `Tổng quan`: Hệ thống Supra; Xác minh Agent; Xử lý PickList trực tiếp tại bàn chuyên viên.
+- Remove the old `Mô hình hiện tại` explanatory card.
+- Agent login is part of the Xác minh Agent Overview region, not a Settings page.
+- `Cài đặt` direct tabs:
+  - Kết nối
+  - Bảng nổi
+  - Nhật ký vận hành
+  - Chẩn đoán kỹ thuật
+- Bảng nổi controls are embedded directly in the tab; users must not need a second “open settings” action merely to reach them.
+- Operational and technical logs are peer tabs, not nested under an intermediate Logs tab.
+- Existing Overlay persistence, true locked click-through, color/size/checklist controls and single-instance/tray behavior remain frozen.
