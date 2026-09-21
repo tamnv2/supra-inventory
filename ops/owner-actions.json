@@ -579,7 +579,7 @@
         "d096_exact_confirm": "OA017_PASS_REQUIRED_BEFORE_FINAL_ACCEPTANCE"
       },
       "blocked_by": "OA017",
-      "block_reason": "PDA-Agent transport is working, but Agent v20 fails before WMS POST because exact PickListCode resolution mis-parses JSON arrays. D096 repairs exact resolution and confirm response semantics."
+      "block_reason": "D096 Agent v21 is technically released with exact-resolver and confirm-semantic self-tests PASS; final real WMS confirmation acceptance remains OA017 Owner field-only."
     },
     {
       "id": "OA014",
@@ -725,16 +725,19 @@
     },
     {
       "id": "OA017",
-      "status": "WAITING_FOR_D096_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-test D096 exact PickListCode resolution and real WMS confirmation",
       "resource_key": "supra-api-d080",
       "provider": "Physical Beta PDA + Windows Agent + authorized company WMS session",
       "reason_owner_only": "CI can execute parser/response regressions but cannot perform or verify an authorized real company WMS Picklist confirmation.",
       "prerequisites": {
-        "source_branch": "fix/d096-wms-exact-confirm-v2",
-        "agent_release": "PENDING_RELAY_AGENT_V21",
+        "merged_pr": 118,
+        "merged_main": "7cf962bd6ced0fc2a89382ee4c875d5128285d53",
+        "agent_release": "relay-agent-v21",
+        "agent_release_sha256": "172dbf64dc0c8dabebb1d0feb8206515892b81bc464ea0c6a201877127bac0b6",
         "android_release": "beta-vc59__UNCHANGED",
         "pda_agent_transport": "OWNER_CONFIRMED_WORKING_CURRENT_FIELD",
+        "main_ci": "AUTHORITY_STATE_UI_AGENT_SELFTEST_PASS",
         "stable": "OWNER_GATED"
       },
       "shortest_test_path": [
@@ -756,7 +759,16 @@
         "Stable remains untouched."
       ],
       "safety": "Use only an authorized company WMS session and an eligible Picklist. Do not share passwords, Authorization/Token/APISID/SID/SCID/USID, signatures/nonces, cookies, encrypted session files or raw sensitive WMS responses.",
-      "remaining_owner_action": "Wait for Agent v21 release, then run this one real eligible Picklist confirmation with existing beta-vc59."
+      "remaining_owner_action": "Install relay-agent-v21 and keep beta-vc59. Run one real eligible Picklist confirmation once; PASS requires unique exact full-code resolution, one confirmSkipItem POST, WMS Status=true, Firestore ACK and expected SFT/SFT3 state.",
+      "runtime_readiness": {
+        "main": "7cf962bd6ced0fc2a89382ee4c875d5128285d53",
+        "repo_authority_run": 35561403245,
+        "project_state_run": 35561403231,
+        "ui_run": 35561403385,
+        "agent_run": 35561403344,
+        "agent_release_id": 392697237,
+        "agent_exe_asset_id": 578233834
+      }
     }
   ]
 }
