@@ -132,7 +132,7 @@ async function createManagedUser(state: DurableObjectState, request: Request): P
   const username = normalizeLogin(body.username);
   const displayName = normalizeName(body.display_name);
   const authEmail = String(body.auth_email || "").trim().toLowerCase();
-  const emailValid = !authEmail || /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(authEmail);
+  const emailValid = !authEmail || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail);
   if (!actor?.user_id) {
     return response({ error: "USER_CREATE_ACTOR_REQUIRED", message: "Phiên người tạo tài khoản không hợp lệ." }, 400);
   }
@@ -188,7 +188,7 @@ async function updateManagedUser(state: DurableObjectState, request: Request): P
   const displayName = normalizeName(body.display_name ?? target.display_name);
   const status = String(body.status || target.status).toUpperCase() as UserStatus;
   const authEmail = body.auth_email == null ? (target.auth_email || "") : String(body.auth_email || "").trim().toLowerCase();
-  const emailValid = !authEmail || /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(authEmail);
+  const emailValid = !authEmail || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail);
   if (!displayName || displayName.length > 200 || !["ACTIVE","DISABLED"].includes(status) || !emailValid || (target.role === "ADMIN" && !authEmail)) return response({ error: "INVALID_USER_UPDATE" }, 400);
   state.storage.sql.exec(`UPDATE users SET display_name = ?, status = ?, auth_email = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`, displayName, status, authEmail || null, userId);
   if (status === "DISABLED") {
