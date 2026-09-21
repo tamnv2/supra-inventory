@@ -2206,25 +2206,27 @@ function bindShell(): void {
     }, "full");
   });
   document.querySelector<HTMLButtonElement>("#logout")?.addEventListener("click", () => {
-    pickerSearchGeneration += 1;
-    dashboardLoadGeneration += 1;
-    reportLoadGeneration += 1;
-    sessionViewGeneration += 1;
-    runtimeLogEvent("Đăng xuất");
-    clearSession();
-    profile = null;
-    notice = null;
-    queueRows = [];
-    recentRows = [];
-    batchDetails.clear();
-    pickerReports = [];
-    pickerResults = [];
-    pickerSuggestions = [];
-    pickerSelected = null;
-    markedResultEvents.clear();
-    displayedResultEvents.clear();
-    window.dispatchEvent(new CustomEvent("supra:session-changed"));
-    renderLogin();
+    void logoutInteractiveSession().finally(() => {
+      pickerSearchGeneration += 1;
+      dashboardLoadGeneration += 1;
+      reportLoadGeneration += 1;
+      sessionViewGeneration += 1;
+      runtimeLogEvent("Đăng xuất");
+      clearSession();
+      profile = null;
+      notice = null;
+      queueRows = [];
+      recentRows = [];
+      batchDetails.clear();
+      pickerReports = [];
+      pickerResults = [];
+      pickerSuggestions = [];
+      pickerSelected = null;
+      markedResultEvents.clear();
+      displayedResultEvents.clear();
+      window.dispatchEvent(new CustomEvent("supra:session-changed"));
+      renderLogin();
+    });
   });
   bindOverlay();
 }
@@ -2707,7 +2709,16 @@ function bindSection(): void {
     const data = new FormData(event.currentTarget as HTMLFormElement);
     void run(async () => {
       await changeMyPassword(String(data.get("current") || ""), String(data.get("next") || ""));
-      setNotice("success", "Đã đổi mật khẩu.");
+      setNotice("success", "Đã đổi mật khẩu. Vui lòng đăng nhập lại trên các phiên đang dùng.");
+    });
+  });
+  document.querySelector<HTMLFormElement>("#auth-email-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    void run(async () => {
+      profile = await updateMyAuthEmail(String(data.get("email") || "").trim());
+      setNotice("success", "Đã cập nhật email khôi phục mật khẩu.");
+      render();
     });
   });
 }
