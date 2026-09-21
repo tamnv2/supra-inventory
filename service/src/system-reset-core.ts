@@ -131,8 +131,8 @@ function executeReset(state: DurableObjectState, scopes: SystemResetScope[]): Re
     }
 
     if (selected.has("SESSIONS_DEVICES")) {
-      state.storage.sql.exec("DELETE FROM fcm_devices");
-      state.storage.sql.exec("DELETE FROM presence_sessions");
+      state.storage.sql.exec("DELETE FROM fcm_devices WHERE user_id NOT IN (SELECT user_id FROM users WHERE role='ROOT')");
+      state.storage.sql.exec("DELETE FROM presence_sessions WHERE user_id NOT IN (SELECT user_id FROM users WHERE role='ROOT')");
       state.storage.sql.exec(
         `UPDATE users
             SET web_session_generation = COALESCE(web_session_generation,0) + 1,
