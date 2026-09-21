@@ -173,7 +173,9 @@ jobs:
           (Get-FileHash $legacy -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256"
 
       - name: D096 runtime parser and confirm semantic regression
-        shell: pwsh
+        # Use Windows PowerShell/.NET Framework here because the Agent targets net48
+        # and System.Web.Extensions is a .NET Framework assembly.
+        shell: powershell
         run: |
           $ErrorActionPreference = "Stop"
           Add-Type -AssemblyName System.Web.Extensions
