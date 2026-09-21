@@ -300,6 +300,22 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        internal static bool SelfTestResponseSemantics()
+        {
+            return string.Equals(
+                       Classify(200, "{\"Status\":true,\"Data\":{}}"),
+                       "CONFIRMED",
+                       StringComparison.Ordinal) &&
+                   string.Equals(
+                       Classify(200, "{\"Status\":false,\"Data\":{}}"),
+                       "CONFIRM_REJECTED",
+                       StringComparison.Ordinal) &&
+                   string.Equals(
+                       Classify(200, "{\"Data\":{}}"),
+                       "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
+                       StringComparison.Ordinal);
+        }
+
         private static bool LooksLikeProxyBlock(string body)
         {
             if (string.IsNullOrWhiteSpace(body)) return false;
