@@ -183,7 +183,39 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
   }
   if (key === "PATCH /api/admin/users") {
     const body = await bodyObject(request);
-    return core(env).fetch("https://inventory-core.internal/admin/users/update", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...body, actor: actor(user) }) });
+    const targetId = String(body.user_id || "").trim();
+    const before = targetId ? await coreUserById(env, targetId) : null;
+    const updatedResponse = await core(env).fetch("https://inventory-core.internal/admin/users/update", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...body, actor: actor(user) }),
+    });
+    const updatedPayload = (await updatedResponse.json()) as { user?: User; error?: string };
+    if (!updatedResponse.ok || !updatedPayload.user) return json(updatedPayload, updatedResponse.status);
+    const updated = updatedPayload.user;
+    if (
+      env.GOOGLE_RUNTIME_SA_JSON &&
+      updated.firebase_uid &&
+      Boolean(updated.firebase_password_ready || before?.firebase_password_ready)
+    ) {
+      try {
+        const synced = await updateFirebaseIdentity(
+          env.GOOGLE_RUNTIME_SA_JSON,
+          env.FIREBASE_PROJECT_ID,
+          firebaseSpec({ ...before, ...updated }, String(updated.firebase_uid)),
+          { email: updated.auth_email || undefined },
+        );
+        await markFirebaseReady(env, updated.user_id, String(updated.firebase_uid), synced.email);
+        updated.auth_email = synced.email;
+        updated.firebase_password_ready = true;
+      } catch {
+        return json({
+          error: "FIREBASE_ACCOUNT_UPDATE_FAILED",
+          message: "Thông tin nghiệp vụ đã lưu nhưng chưa đồng bộ được Firebase. Không tiếp tục sử dụng tài khoản cho tới khi đồng bộ lại.",
+        }, 502);
+      }
+    }
+    return json({ status: "updated", user: updated });
   }
   if (key === "PUT /api/admin/users/password") {
     const body = await bodyObject(request);
