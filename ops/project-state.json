@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D100_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V25__BETA_VC62__OA019_FIELD_READY__OA020_MAIL_FIX_SOURCE_CANDIDATE",
+    "beta": "D100_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V25__BETA_VC62__OA019_FIELD_READY__OA020_MAIL_REPAIR_RUNTIME_PASS_FIELD_RETRY_READY",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 10,
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
@@ -576,7 +576,7 @@
     "D100 deploy proof parser hotfix: runtime main 2cf23d9229eb4bd5d9c45f3776bb2404ef06a68f is healthy (HTTP 200, source_commit exact, schema 10/10, agent migration 0/0, operational 5/5), but deploy workflow parsed source SCHEMA_VERSION as literal \\\\1 because sed replacement was over-escaped. fix/d100-beta-health-schema-proof changes only that CI parser to \\1.",
     "D100 OA020 mail repair: preserve successful-send 60-second throttling, but rollback the throttle when Gmail delivery fails; improve Google mail failure classification without logging provider tokens or raw sensitive responses."
   ],
-  "active_workstream": "D100_OA020_MAIL_THROTTLE_DIAGNOSTIC_REPAIR",
+  "active_workstream": "D100_RELEASED_OWNER_FIELD_ACCEPTANCE__OA020_MAIL_RETRY_READY",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
@@ -618,7 +618,8 @@
     "D095 release PASS 2026-09-21: PR #115 merged to 52aabdbd3a1eedfa96c6a525dd155b370e9d9138; main Repo Authority/Project State/Beta Worker/UI/Relay Agent/Android runs 35558582310/35558582318/35558582419/35558582329/35558582311/35558582307 all PASS; released relay-agent-v20 SHA256 4e1daa4dc154b7fa850199f1b700819085741cfc4d0311f31827df74cf9f1096 and signed beta-vc59 SHA256 5fb4422312cf4380a158cec9d12d1730dc184ea5a468def599edc15508ec8800. OA016 physical field validation remains pending.",
     "D096 Owner field evidence 2026-09-21: released Agent v20 logs pending-found + CLAIM PASS for PDA requests, then exact-resolve PASS HTTP 200 but EXACT_CODE_NOT_RESOLVED; no picklist-confirm call occurred. Owner-provided successful browser example confirms authorized confirm endpoint/payload semantics and Status=true success response; sensitive session/header values were not persisted.",
     "D100 OA020 Owner field evidence 2026-09-22: ROOT System Reset mail-only challenge reached the Gmail send step but returned RESET_EMAIL_UNAVAILABLE with the user-facing Gmail-send-permission message. Existing Beta OAuth refresh token is configured, while canonical D100 requires drive.file + gmail.send; one bounded Owner Google OAuth re-consent and Beta Worker refresh-token replacement is required before retry. No destructive reset was executed; Stable untouched.",
-    "D100 OA020 field evidence 2026-09-22 follow-up: recent Beta Web support logs show /api/root/system-reset/challenge returning HTTP 503 on Gmail send, then RESET_CODE_RATE_LIMIT on a retry. Source audit confirmed a defect: challenge-store wrote the 60-second throttle before provider send and challenge-delete removed only the challenge, so failed Gmail delivery still consumed the throttle. Repair branch fix/d100-oa020-mail-throttle-diagnostics releases throttle only on provider failure and safely classifies Gmail OAuth/scope/API-disabled/domain-policy/provider-rate causes. No destructive reset executed; Stable untouched."
+    "D100 OA020 field evidence 2026-09-22 follow-up: recent Beta Web support logs show /api/root/system-reset/challenge returning HTTP 503 on Gmail send, then RESET_CODE_RATE_LIMIT on a retry. Source audit confirmed a defect: challenge-store wrote the 60-second throttle before provider send and challenge-delete removed only the challenge, so failed Gmail delivery still consumed the throttle. Repair branch fix/d100-oa020-mail-throttle-diagnostics releases throttle only on provider failure and safely classifies Gmail OAuth/scope/API-disabled/domain-policy/provider-rate causes. No destructive reset executed; Stable untouched.",
+    "D100 OA020 mail repair runtime PASS 2026-09-22: PR #131 merged to main 27a791a1ad9a05da9acee0f2b7351fb1fda7cc4b. Main Project State 35633339838 PASS, Repo Authority 35633339786 PASS, UI 35633339783 PASS and Deploy Beta Worker 35633339816 PASS. Failed Gmail delivery now releases the local 60-second reset-code throttle and returns bounded sanitized provider cause codes. OA020 mail-only field retry is ready; Stable untouched."
   ],
   "last_runtime_evidence": {
     "signed_beta_release": "beta-vc59",
