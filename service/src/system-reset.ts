@@ -6,6 +6,7 @@ import {
   type FirebaseManagedUserSpec,
 } from "./firebase-auth-admin";
 import { getServiceAccountAccessToken } from "./hr-source";
+import { sendProjectEmail } from "./google-mail";
 
 interface Env {
   FIREBASE_PROJECT_ID: string;
@@ -97,60 +98,18 @@ function randomChallengeId(): string {
   return [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-async function googleOAuthAccessToken(env: Env): Promise<string> {
-  if (!env.GOOGLE_DRIVE_OAUTH_CLIENT_ID || !env.GOOGLE_DRIVE_OAUTH_CLIENT_SECRET || !env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN) {
-    throw new Error("GOOGLE_OAUTH_NOT_CONFIGURED");
-  }
-  const response = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded", accept: "application/json" },
-    body: new URLSearchParams({
-      client_id: env.GOOGLE_DRIVE_OAUTH_CLIENT_ID,
-      client_secret: env.GOOGLE_DRIVE_OAUTH_CLIENT_SECRET,
-      refresh_token: env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN,
-      grant_type: "refresh_token",
-    }),
-  });
-  const payload = (await response.json()) as { access_token?: string; error?: string; error_description?: string };
-  if (!response.ok || !payload.access_token) {
-    throw new Error(`GOOGLE_OAUTH_FAILED:${payload.error_description || payload.error || response.status}`);
-  }
-  return payload.access_token;
-}
-
-function base64UrlUtf8(value: string): string {
-  const bytes = new TextEncoder().encode(value);
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
-}
-
 async function sendResetCodeEmail(env: Env, email: string, code: string): Promise<void> {
-  const token = await googleOAuthAccessToken(env);
-  const subject = "Mã xác nhận đặt lại hệ thống SUPRA Inventory";
-  const body = [
-    `Mã xác nhận đặt lại hệ thống: ${code}`,
-    "",
-    "Mã có hiệu lực trong 10 phút và chỉ dùng cho yêu cầu đặt lại hiện tại.",
-    "Nếu bạn không thực hiện thao tác này, hãy bỏ qua email.",
-  ].join("\r\n");
-  const raw = [
-    `To: ${email}`,
-    `Subject: =?UTF-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`,
-    "MIME-Version: 1.0",
-    "Content-Type: text/plain; charset=UTF-8",
-    "",
-    body,
-  ].join("\r\n");
-  const response = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
-    method: "POST",
-    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-    body: JSON.stringify({ raw: base64UrlUtf8(raw) }),
-  });
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`RESET_EMAIL_SEND_FAILED_HTTP_${response.status}:${text.slice(0, 160)}`);
-  }
+  await sendProjectEmail(
+    env,
+    email,
+    "Mã xác nhận đặt lại hệ thống SUPRA Inventory",
+    [
+      `Mã xác nhận đặt lại hệ thống: ${code}`,
+      "",
+      "Mã có hiệu lực trong 10 phút và chỉ dùng cho yêu cầu đặt lại hiện tại.",
+      "Nếu bạn không thực hiện thao tác này, hãy bỏ qua email.",
+    ].join("\r\n"),
+  );
 }
 
 async function primaryPasswordValid(env: Env, root: RootUser, password: string): Promise<boolean> {
