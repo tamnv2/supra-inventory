@@ -341,3 +341,24 @@ Web/Android account session:
 10. Session/network/schema/permission/uncertain-confirmation errors never count as wrong Picklist input and are returned as bounded business-safe messages.
 
 While a request is `PROCESSING`, Android must not delete it merely because the local wait expires. A timeout after processing begins is fail-closed: instruct the user not to press again and to verify on SFT / SFT 3 through the specialist desk.
+
+## D095 — Split Picker network paths
+
+The Picker application contains two independent online operational paths:
+
+### Báo hàng
+- PDA uses its normal Internet connection.
+- Submission remains `InventoryApi.createPickerReport(...)` to the authoritative Cloudflare Worker + InventoryCore SQLite service.
+- Báo hàng does not wait for, discover, or depend on any Windows Agent.
+- Existing realtime/result/acknowledgement behavior remains unchanged.
+
+### Xác nhận đơn
+- PDA also uses its normal Internet connection, but the request carrier is authenticated Cloud Firestore rather than the Báo hàng Worker mutation path.
+- Picker creates one `ANDROID_CONFIRM_V1` job and polls only its own document.
+- The single ACTIVE Agent polls/claims Firestore work. The Agent may be connected through normal Internet or through the company Office network.
+- Windows default/system proxy handling belongs only to the Agent's outbound Firestore transport; the PDA never needs Office-network access.
+- A still-`PENDING` request is retained for the full 120-second bounded wait. At 30 seconds the UI may report that Agent has not yet received it, but must continue waiting instead of deleting it.
+- At terminal timeout, conditional cleanup may delete only a still-`PENDING` document. `PROCESSING` is never deleted or automatically resent.
+- Confirmation transport must not call `/api/picker/reports`; normal Báo hàng continues independently if confirmation transport is unavailable.
+
+This separation is a product invariant. A failure of Xác nhận đơn/Firestore must not break or reroute Báo hàng.
