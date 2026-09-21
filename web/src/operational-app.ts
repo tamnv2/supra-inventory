@@ -236,6 +236,7 @@ function clearRoleScopedViewState(): void {
   systemStatus = null;
   systemResetPreview = null;
   systemResetChallenge = null;
+  systemResetSelected.clear();
   runtimeLogs = [];
   runtimeLogDetail = null;
   selectedBatchId = null;
@@ -317,6 +318,7 @@ let serviceHealth: Record<string, unknown> | null = null;
 let systemStatus: SystemStatusSnapshot | null = null;
 let systemResetPreview: SystemResetPreview | null = null;
 let systemResetChallenge: { id: string; expiresAt: string; emailHint: string } | null = null;
+let systemResetSelected = new Set<SystemResetScope>();
 let runtimeLogSource: "WEB" | "ANDROID" = "WEB";
 let runtimeLogs: RuntimeLogItem[] = [];
 let runtimeLogDetail: RuntimeLogDetail | null = null;
@@ -1863,6 +1865,57 @@ function renderLegacyLogs(): string {
 
 function renderLegacyVersions(): string {
   return renderSystem();
+}
+
+function renderSystemReset(): string {
+  if (!profile || profile.role !== "ROOT" || profile.base_role !== "ROOT") {
+    return `<section class="ops-route"><div class="notice danger">Chỉ ROOT thực được truy cập Đặt lại hệ thống.</div></section>`;
+  }
+  const counts = systemResetPreview?.counts || {};
+  const relay = systemResetPreview?.confirmation_relay;
+  const relayCount = relay?.status === "ok"
+    ? Object.values(relay.counts || {}).reduce((sum, value) => sum + Number(value || 0), 0)
+    : null;
+  const items: Array<{ scope: SystemResetScope; title: string; detail: string; count: string; tone?: string }> = [
+    { scope: "PICKER_ACCOUNTS", title: "Tài khoản Picker", detail: "Xóa Picker trong InventoryCore và Firebase Authentication. Không xóa hoặc sửa Google Sheet nhân sự.", count: Number(counts.picker_accounts || 0).toLocaleString("vi-VN") },
+    { scope: "REPORTER_ACCOUNTS", title: "Tài khoản Reporter", detail: "Xóa tài khoản Reporter, phiên và thiết bị liên quan. Lịch sử báo hàng chỉ xóa khi chọn riêng mục Lịch sử.", count: Number(counts.reporter_accounts || 0).toLocaleString("vi-VN") },
+    { scope: "ADMIN_ACCOUNTS", title: "Tài khoản Admin", detail: "Xóa Admin trong service, Firebase chính và Firebase alias Agent. Tài khoản ROOT luôn được giữ nguyên.", count: Number(counts.admin_accounts || 0).toLocaleString("vi-VN"), tone: "warning" },
+    { scope: "SKU_MASTER", title: "Danh mục SKU", detail: "Đưa SKU Master trong service về 0. Không thay logic import và không tác động Google Sheet/Drive.", count: Number(counts.sku_master || 0).toLocaleString("vi-VN") },
+    { scope: "OPEN_REPORTS", title: "Báo hàng đang xử lý", detail: "Xóa các đợt/ticket đang PENDING và dữ liệu đồng bộ liên quan; không tự xóa lịch sử đã kết thúc.", count: `${Number(counts.open_report_batches || 0).toLocaleString("vi-VN")} đợt`, tone: "warning" },
+    { scope: "BUSINESS_HISTORY", title: "Lịch sử nghiệp vụ", detail: "Xóa các đợt đã kết thúc, ticket/event/ACK/realtime/archive marker trong service. File archive đã có trên Drive/Sheet không bị xóa.", count: `${Number(counts.history_batches || 0).toLocaleString("vi-VN")} đợt`, tone: "warning" },
+    { scope: "SERVICE_LOGS", title: "Log kỹ thuật trong service", detail: "Xóa audit log và delivery-attempt telemetry trong InventoryCore. Không xóa file log đã lưu trên Google Drive.", count: `${Number(counts.audit_log || 0).toLocaleString("vi-VN")} audit` },
+    { scope: "SESSIONS_DEVICES", title: "Phiên & thiết bị", detail: "Xóa FCM/presence và phiên Web/App của tài khoản không phải ROOT. ROOT hiện tại được bảo toàn.", count: `${Number(counts.fcm_devices || 0).toLocaleString("vi-VN")} thiết bị` },
+    { scope: "RUNTIME_SETTINGS", title: "Cấu hình runtime", detail: "Đưa cấu hình SLA/app runtime và metadata kết nối nguồn nhân sự về mặc định. Không sửa/xóa nội dung Google Sheet nguồn.", count: `${Number(counts.app_config || 0) + Number(counts.hr_source_config || 0)} cấu hình`, tone: "warning" },
+    { scope: "CONFIRMATION_RELAY", title: "Dữ liệu Xác nhận đơn Firestore", detail: "Xóa job/rate-limit/coordination/presence/confirmation-guard của luồng PDA ↔ Agent. Hệ thống chặn nếu còn job PENDING để tránh mất yêu cầu WMS đang chờ.", count: relayCount == null ? "Chưa đọc Firestore" : `${relayCount.toLocaleString("vi-VN")} tài liệu`, tone: "danger" },
+  ];
+  const allSelected = items.every((item) => systemResetSelected.has(item.scope));
+  return `<section class="ops-route reset-workspace">
+    <div class="business-page-head"><div><h2>Đặt lại hệ thống</h2><p>Chỉ đưa dữ liệu runtime đã chọn về 0. Không thay source code, logic nghiệp vụ, giao diện, schema, Google Sheet/Drive hoặc Stable.</p></div></div>
+    <div class="notice warning"><strong>ROOT được bảo toàn tuyệt đối:</strong> tài khoản ROOT, mật khẩu, Firebase identity và email khôi phục không nằm trong phạm vi reset.</div>
+    <div class="reset-toolbar">
+      <label class="reset-all"><input id="reset-select-all" type="checkbox" ${allSelected ? "checked" : ""}/> <strong>Chọn toàn bộ dữ liệu runtime</strong></label>
+      <button class="secondary" id="reset-refresh-preview">Cập nhật số lượng</button>
+      <button class="secondary" id="reset-read-relay">Đọc số lượng Firestore</button>
+    </div>
+    <div class="reset-card-grid">
+      ${items.map((item) => `<label class="ops-panel reset-card ${item.tone || ""}">
+        <input type="checkbox" data-reset-scope="${item.scope}" ${systemResetSelected.has(item.scope) ? "checked" : ""}/>
+        <span class="reset-card-copy"><strong>${esc(item.title)}</strong><small>${esc(item.detail)}</small></span>
+        <b>${esc(item.count)}</b>
+      </label>`).join("")}
+    </div>
+    <article class="ops-panel reset-security-panel">
+      <div class="ops-panel-title"><div><h3>Xác nhận bảo mật 2 lớp</h3><p>Bước 1 xác minh mật khẩu ROOT. Bước 2 nhập mã 6 chữ số gửi tới email ROOT đã đăng ký. Mã có hiệu lực 10 phút và tối đa 5 lần thử.</p></div></div>
+      <div class="ops-form-grid">
+        <label class="span">Mật khẩu ROOT hiện tại<input id="reset-root-password" type="password" autocomplete="current-password" ${systemResetChallenge ? "disabled" : ""}/></label>
+        ${systemResetChallenge ? `<div class="notice success span">Đã gửi mã tới ${esc(systemResetChallenge.emailHint)}. Hết hạn: ${esc(fmt(systemResetChallenge.expiresAt))}.</div>
+          <label class="span">Mã xác nhận 6 chữ số<input id="reset-otp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000" /></label>
+          <div class="ops-form-actions"><button class="danger" id="reset-execute">XÁC NHẬN ĐẶT LẠI</button><button class="secondary" id="reset-cancel-challenge">Huỷ mã hiện tại</button></div>`
+          : `<div class="ops-form-actions"><button class="danger" id="reset-request-code" ${systemResetSelected.size ? "" : "disabled"}>XÁC MINH MẬT KHẨU & GỬI MÃ</button></div>`}
+      </div>
+    </article>
+    <div class="system-limit-box"><strong>Không bị tác động</strong><div>ROOT · mật khẩu/email ROOT · Google Sheet nhân sự · Google Drive archive/log/export · GitHub/source · cấu trúc bảng/schema · logic/UI/kịch bản · Stable · tài khoản WMS.</div></div>
+  </section>`;
 }
 
 function renderTools(): string {
