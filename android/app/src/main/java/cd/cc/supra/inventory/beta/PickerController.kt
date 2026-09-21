@@ -251,8 +251,8 @@ class PickerController(
             return
         }
         relayButton?.isEnabled = false
-        relayStatus?.text = "Đang kiểm tra kết nối PDA ↔ Agent qua Firestore..."
-        recordLog("D091 bắt đầu test kết nối PDA ↔ Agent qua Firestore; không ghi giá trị Picklist vào log")
+        relayStatus?.text = "Đang xác nhận lấy lại đơn..."
+        recordLog("Bắt đầu xác nhận lấy lại đơn; không ghi giá trị Picklist vào log")
         Thread {
             try {
                 val result = relayPocClient.sendProbe(suffix)
@@ -260,6 +260,7 @@ class PickerController(
                     relayButton?.isEnabled = relayPicklistInput?.text?.length == 5
                     val network = result.agentNetwork.takeIf { it.isNotBlank() && it != "UNKNOWN" }?.let { " • " + it }.orEmpty()
                     val headline = when (result.lookupStatus) {
+                        "CONFIRMED" -> "Đã xác nhận lấy lại đơn. Hãy quay lại app SFT / SFT 3 để tiếp tục"
                         "FOUND" -> "CÓ PICKLIST"
                         "NOT_FOUND" -> "KHÔNG CÓ PICKLIST"
                         "PICKER_LOCKED" -> "TRA CỨU ĐÃ BỊ KHÓA"
@@ -267,7 +268,6 @@ class PickerController(
                         "SCHEMA_UNSUPPORTED" -> "CHƯA ĐỌC ĐƯỢC CẤU TRÚC PICKLIST"
                         "FORBIDDEN" -> "WMS TỪ CHỐI QUYỀN TRA CỨU"
                         "PROXY_BLOCK" -> "MẠNG CHẶN KẾT NỐI WMS"
-                        "TRANSPORT_ONLY" -> "KẾT NỐI PDA ↔ AGENT OK"
                         else -> "TRA CỨU PICKLIST LỖI"
                     }
                     val timing = if (result.lookupMs > 0) " • WMS " + result.lookupMs + " ms" else ""
