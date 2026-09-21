@@ -725,15 +725,15 @@
     },
     {
       "id": "OA017",
-      "status": "BLOCKED_BY_OA019_D098_FIELD_GATE",
+      "status": "BLOCKED_BY_OA019_D099_FIELD_GATE",
       "title": "Field-test D096 exact PickListCode resolution and real WMS confirmation",
       "resource_key": "supra-api-d080",
       "provider": "Physical Beta PDA + Windows Agent + authorized company WMS session",
       "reason_owner_only": "CI can execute parser/response regressions but cannot perform or verify an authorized real company WMS Picklist confirmation.",
       "prerequisites": {
         "source_branch": "fix/d096-wms-exact-confirm-v2",
-        "agent_release": "relay-agent-v23__RELEASED_D098",
-        "android_release": "beta-vc61__RELEASED_D098",
+        "agent_release": "relay-agent-v24__RELEASED_D099",
+        "android_release": "beta-vc62__RELEASED_D099",
         "pda_agent_transport": "OWNER_CONFIRMED_WORKING_CURRENT_FIELD",
         "stable": "OWNER_GATED",
         "d097_transport_ha": "OA019_PASS_REQUIRED_BEFORE_FINAL_ACCEPTANCE"
@@ -759,7 +759,7 @@
       "safety": "Use only an authorized company WMS session and an eligible Picklist. Do not share passwords, Authorization/Token/APISID/SID/SCID/USID, signatures/nonces, cookies, encrypted session files or raw sensitive WMS responses.",
       "remaining_owner_action": null,
       "blocked_by": "OA019",
-      "block_reason": "D098 changes the released identity/session/UI wrapper and supersedes OA018 artifacts while preserving D096/D097 confirmation behavior. Final PDA real-WMS acceptance must use Agent v23 + beta-vc61 after OA019 proves D098 plus retained D097 field behavior."
+      "block_reason": "D099 supersedes the released identity/UI wrapper while preserving D096/D097 WMS behavior. Final real-WMS acceptance must use v24/vc62 after OA019/D099 login and retained transport field behavior PASS."
     },
     {
       "id": "OA018",
@@ -816,55 +816,51 @@
     },
     {
       "id": "OA019",
-      "status": "BLOCKED_BY_D099_TECHNICAL_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D098 unified Firebase identity, realtime and specialist Agent flow",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Beta Web + signed Android PDA + company Windows Agent + authorized Supra WMS session",
       "reason_owner_only": "Connected CI can verify source/build/deploy/Rules and synthetic session guards but cannot operate the Owner's physical Web/PDA/Office laptop combination or execute the controlled company-WMS specialist confirmation.",
       "owner_ui_path": [],
       "shortest_test_path": [
-        "Update the Windows Agent to relay-agent-v23 and the PDA to signed beta-vc61; use Beta Web. Do not use older v22/vc60 for final acceptance.",
-        "With one ADMIN, keep Web + App + Agent logged in simultaneously. Then force a second Web, second App and second Agent one at a time; each replacement must affect only its own channel.",
-        "Verify PICKER is App-only, REPORTER/ROOT work on App+Web, and only real ADMIN can use Agent.",
-        "On the Office network start/restart Agent without Cloudflare access. Verify direct/saved Firebase ADMIN authentication and Firestore relay become usable; no prior Web login should be required after D098 deployment migration.",
-        "Verify Beta Web realtime is connected and a controlled Báo hàng change appears on another authorized client without F5; reconnect once and verify bounded recovery.",
-        "D097 retained network scenario: keep PRIMARY running and switch normal Internet → Office without restarting Agent. A temporary route transition must not falsely erase PRIMARY solely because DNS/proxy is changing.",
-        "D097 retained failover scenario: with two WMS-ready Agents, make PRIMARY unable to process a new request. At request age >=10 seconds STANDBY takes over; only one WMS mutation may occur. Old PRIMARY recovery must not replay it.",
-        "D097 retained terminal scenario: make usable Agents unavailable for one request. At 30 seconds PDA must stop new automatic handling and direct the Picker to the specialist desk.",
-        "Agent specialist scenario: enter 3–5 digits, select the intended full PickListCode from the matches, confirm exactly once, and verify the result in SFT/SFT3. If the result is uncertain, do not press again."
+        "Update Windows Agent to relay-agent-v24 and PDA to signed beta-vc62; use current Beta Web.",
+        "First verify one existing real account can login on Web and App with its existing password. Wrong password must still be rejected.",
+        "For Agent, use the registered ADMIN EMAIL + existing password (not username). Verify direct Firebase Agent authentication succeeds on normal network and on Office network.",
+        "Before Agent auth, verify Hệ thống Supra is disabled and no WMS restore/login starts. After Agent auth PASS, verify Supra becomes available and the existing saved-session validation/preload logic begins.",
+        "Press Enter while focused in Agent ADMIN email/password and verify it behaves exactly like Đăng nhập. Press Enter with valid 3–5 PickList digits and verify it behaves exactly like Tìm kiếm.",
+        "Unlock Overlay, set width/height below the former 420×64 floor (for example 300×50 or down to 120×32), verify immediate resize, persist/restart, then re-lock/click-through.",
+        "Then continue the consolidated OA019 session-isolation/realtime/D097 field scenarios: Web+App+Agent coexist, same-channel replacement only, Office transition, >=10s STANDBY takeover, 30s specialist fallback and one controlled specialist PickList confirmation."
       ],
       "pass_criteria": [
-        "Firebase is credential authority; InventoryCore remains role/status/business authority; active ADMIN migration completed at deployment.",
-        "One WEB + one ANDROID + one AGENT slot per eligible user works concurrently and same-channel replacement never revokes the other two.",
-        "Role/client matrix is enforced server-side: PICKER App-only, REPORTER/ROOT App+Web, ADMIN App+Web+Agent.",
-        "ROOT/ADMIN registered recovery email + Firebase reset-link flow works without exposing account existence.",
-        "Web realtime uses the repaired shared V2 session, updates without F5 and reconnects with bounded backoff/delta recovery.",
-        "Agent ADMIN login/refresh works through Firebase/Google without Inventory Worker dependency on Office.",
-        "D097 PRIMARY/STANDBY/FROZEN semantics, 10-second takeover, 30-second specialist fallback and no duplicate WMS mutation remain intact.",
-        "Specialist search accepts only 3–5 digits, searches anywhere in cached full PickListCode, requires explicit full-code selection and never ACKs an APK job.",
-        "Specialist confirmation uses the one-write cross-Agent guard and only reports confirmed when WMS returns HTTP 2xx + Status=true; uncertain results fail closed.",
-        "Normal Báo hàng remains Worker/InventoryCore and Agent-independent; Stable remains untouched."
+        "Existing valid account passwords no longer fail globally with INVALID_CREDENTIALS; wrong passwords remain rejected.",
+        "Web/App use username/MNV login; Agent uses registered ADMIN email and direct Firebase without Worker dependency.",
+        "Firebase Email/Password provider remains enabled/password-required and technical synthetic PBKDF2 sign-in evidence remains PASS.",
+        "Agent Overview order is Xác minh Agent → Hệ thống Supra → specialist PickList; Supra is unavailable until Agent auth and begins its normal session logic only afterward.",
+        "Enter shortcuts perform exactly the corresponding Login/Search actions.",
+        "Overlay accepts/persists sizes below 420×64 within the D099 practical range 120×32..7680×4320 while preserving lock/click-through.",
+        "Independent WEB/ANDROID/AGENT session slots and role/client matrix remain correct.",
+        "D098 Web realtime and D097 PRIMARY/STANDBY/FROZEN, 10-second takeover, 30-second fallback, no-duplicate confirmation semantics remain intact.",
+        "Stable remains untouched."
       ],
       "safety": "Beta only. Use an eligible controlled PickList for the specialist confirm. Do not share passwords, Firebase tokens, cookies, WMS headers/signatures, encrypted session files or sensitive payloads.",
-      "remaining_owner_action": "Wait for D099 technical/runtime/release PASS, then retest login and OA019 on the new Agent/APK.",
+      "remaining_owner_action": "Install/use relay-agent-v24 + beta-vc62 + current Beta Web, then run the D099 login/UI retest first. If that passes, continue the remaining consolidated OA019 physical scenarios.",
       "prerequisites": {
-        "source_main": "bbc2127fa345879c4603a5baaa48cc566150af0f",
-        "runtime_pr": 121,
-        "firestore_hotfix_pr": 122,
-        "final_main": "2a7adb7cdb46c87801e166b240ab492259e92012",
-        "agent_release": "relay-agent-v23",
-        "agent_release_sha256": "e8a7fc4b13e32bbfb50bb74e644d94ef30982bb44dcabce2f18a80406b0356f4",
-        "android_release": "beta-vc61",
-        "android_apk_sha256": "a25bf6d23123e7d96b489fd1265834ae4587850e584376f7442c0494e2b664b2",
-        "beta_worker_run": 35609150820,
-        "relay_agent_run": 35609150740,
-        "android_run": 35609150827,
-        "ui_run": 35609150711,
-        "firestore_hotfix_run": 35609800016,
+        "source_main": "216a5b88b2ca932e6ed863579677ed21df01e49b",
+        "runtime_pr": 124,
+        "agent_release": "relay-agent-v24",
+        "agent_release_sha256": "ce7f0942049cc2cc414a597b53474809b595d5cafdfedbc9f240a9e0f309fdc2",
+        "android_release": "beta-vc62",
+        "android_apk_sha256": "2b7967d1fec7a94098588fb5b1d4f84258acd0000a355b1f06a12c0309d5c1db",
+        "firebase_auth_provider": "EMAIL_ENABLED_TRUE__PASSWORD_REQUIRED_TRUE__SYNTHETIC_PBKDF2_SIGNIN_PASS",
+        "beta_worker_run": 35614460320,
+        "firestore_auth_provider_run": 35614460427,
+        "relay_agent_run": 35614460384,
+        "android_run": 35614460336,
+        "ui_run": 35614460322,
         "stable": "OWNER_GATED"
       },
-      "blocked_by": "D099",
-      "block_reason": "Owner found all-client INVALID_CREDENTIALS after D098. D099 confirmed Beta Firebase Email/Password provider disabled and changes Agent auth/UI artifacts. OA019 must use the D099 released Agent/APK after provider + synthetic sign-in gates PASS."
+      "blocked_by": null,
+      "block_reason": null
     }
   ]
 }
