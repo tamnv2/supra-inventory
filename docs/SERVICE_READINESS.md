@@ -6,11 +6,11 @@
 
 - Project: `supra-inventory`
 - SQLite schema: `8`
-- Latest signed Beta APK: `beta-vc54`
-- Current released Agent: `relay-agent-v15`
-- Beta: `D089_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC54__AGENT_V15__READY_FOR_NEW_REQUIREMENTS`
+- Latest signed Beta APK: `beta-vc55`
+- Current released Agent: `relay-agent-v16`
+- Beta: `D091_FIRESTORE_INFRA_RUNTIME_PASS__D089_OWNER_ACCEPTED_UI_BASELINE__SIGNED_BETA_VC55__AGENT_V16__PHYSICAL_OFFICE_E2E_PENDING`
 - Web: `D089_OWNER_ACCEPTED_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON`
-- Android: `D089_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC54__APPROVED_ICON__TRANSPORT_SELECTION_PENDING`
+- Android: `D091_SIGNED_BETA_VC55_FIRESTORE_FIELD_CANDIDATE_RELEASED__D089_OWNER_ACCEPTED_UI_BASELINE`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -37,7 +37,7 @@ Owner-confirmed field boundary: Office reaches internal Supra plus selected Goog
 
 ## D091 candidate readiness
 
-D091 source candidate introduces a locked Beta Firestore relay resource, Agent v16 Firestore polling listener and next signed Beta Android Firestore request/ACK path. This is not yet a released/field-passed transport. Runtime/release PASS and a physical Office round trip are still required. The ACK is transport-only and WMS mutation remains forbidden.
+D091 infrastructure/runtime/release is PASS: Beta Firestore `(default)` is provisioned in `asia-southeast1`; locked Rules were deployed via Firebase Rules Management API and the `cloud.firestore` release readback passed on main run `35548847740`. `relay-agent-v16` and signed `beta-vc55` are released. Only the physical Office round trip remains before evaluating quota-safe HA/failover. The ACK is transport-only and WMS mutation remains forbidden.
 
 ## Open boundaries
 
@@ -47,6 +47,6 @@ D091 source candidate introduces a locked Beta Firestore relay resource, Agent v
 
 ## Next action
 
-Fresh-bootstrap GitHub and process the Owner's next explicit requirement. Preserve the D089 accepted baseline unless explicitly superseded.
+Run the single physical Office D091 transport test with `relay-agent-v16` + `beta-vc55`. PASS requires the PDA `KẾT NỐI PDA ↔ AGENT OK` result and the matching short request ID in the Agent FIRESTORE audit. Preserve the D089 accepted baseline.
 
 No manual end-of-session handover is required. GitHub canonical state remains the continuity authority.
