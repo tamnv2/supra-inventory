@@ -231,3 +231,18 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA019 PHYSICAL FIELD ACCEPTANCE
 - User management: `D099_ROOT_CAUSE_CONFIRMED__FIREBASE_EMAIL_PASSWORD_PROVIDER_DISABLED_ON_BETA__MAIN_DEPLOY_ENABLE_PLUS_SYNTHETIC_SIGNIN_REQUIRED`
 - Agent/network: `D099_AGENT_V24_DIRECT_FIREBASE_EMAIL_LOGIN__SUPRA_GATED_UNTIL_AGENT_AUTH__D097_FIRESTORE_HA_PRESERVED`
 - PickList confirmation: `D099_AGENT_V24_SOURCE_CANDIDATE__AUTH_FIRST_SUPRA_GATE__ENTER_SEARCH__EXPANDED_OVERLAY__D097_D098_CONFIRM_PATH_PRESERVED`
+
+
+## D100 active implementation checkpoint — 2026-09-21
+
+- Current released baseline before D100: `relay-agent-v24` and signed Android `beta-vc62` from main `216a5b88b2ca932e6ed863579677ed21df01e49b`.
+- Active PR: **#126** `D100: username Agent login and Root system reset`, branch `feat/d100-username-auth-root-system-reset`.
+- D100 target Agent: `relay-agent-v25`.
+- Agent user-facing login is ADMIN username/MNV + password; deterministic Firebase sign-in alias is internal only. Registered real email remains recovery/OTP metadata.
+- Agent remains Worker-independent and keeps auth-first gating: Xác minh Agent → Hệ thống Supra → specialist PickList.
+- Web Tools Agent metadata is generated from `relay-agent/VERSION`; no historical Agent tag is authoritative in source.
+- ROOT-only `HỆ THỐNG → Đặt lại hệ thống` zeroes only selected in-scope runtime data. ROOT identity/password/recovery email/session and external Google Sheet/Drive contents are preserved.
+- Reset execution requires current ROOT password + emailed six-digit OTP. Confirmation-relay Firestore reset is blocked while any job is PENDING.
+- D100 schema source target is **10** for additive Firebase Agent-readiness metadata.
+- Stable remains **OWNER-GATED** and untouched.
+- Technical/runtime/release PASS is not claimed until PR #126 and main gates PASS.
