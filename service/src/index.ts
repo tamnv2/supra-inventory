@@ -679,12 +679,27 @@ async function changePassword(request: Request, env: Env): Promise<Response> {
     firebaseUserSpec(user, uid),
     { password: nextPassword },
   );
+  if (user.base_role === "ADMIN") {
+    await updateAgentFirebaseIdentity(
+      env.GOOGLE_RUNTIME_SA_JSON,
+      env.FIREBASE_PROJECT_ID,
+      firebaseUserSpec(user, uid),
+      { password: nextPassword },
+    );
+  }
   await savePassword(env, user.user_id, nextPassword);
   await coreJson(env, "/auth/firebase-password-ready", {
     method: "PUT",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ user_id: user.user_id, firebase_uid: uid, auth_email: email }),
   });
+  if (user.base_role === "ADMIN") {
+    await coreJson(env, "/auth/firebase-agent-ready", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ user_id: user.user_id }),
+    });
+  }
   return json({ status: "password_changed", reauth_required: true });
 }
 
