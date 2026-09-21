@@ -258,29 +258,27 @@ class PickerController(
                 val result = relayPocClient.sendProbe(suffix)
                 activity.runOnUiThread {
                     relayButton?.isEnabled = relayPicklistInput?.text?.length == 5
-                    val network = result.agentNetwork.takeIf { it.isNotBlank() && it != "UNKNOWN" }?.let { " • " + it }.orEmpty()
                     val headline = when (result.lookupStatus) {
                         "CONFIRMED" -> "Đã xác nhận lấy lại đơn. Hãy quay lại app SFT / SFT 3 để tiếp tục"
-                        "FOUND" -> "CÓ PICKLIST"
-                        "NOT_FOUND" -> "KHÔNG CÓ PICKLIST"
+                        "NOT_FOUND" -> "Không tìm thấy Picklist khớp 5 số cuối. Vui lòng kiểm tra lại."
+                        "AMBIGUOUS_PICKLIST", "EXACT_CODE_NOT_RESOLVED" -> "Không xác định được duy nhất Picklist. Vui lòng về bàn chuyên viên xử lý trực tiếp."
                         "PICKER_LOCKED" -> "TRA CỨU ĐÃ BỊ KHÓA"
-                        "WMS_SESSION_REQUIRED", "SESSION_EXPIRED" -> "MÁY XỬ LÝ CẦN ĐĂNG NHẬP WMS"
-                        "SCHEMA_UNSUPPORTED" -> "CHƯA ĐỌC ĐƯỢC CẤU TRÚC PICKLIST"
-                        "FORBIDDEN" -> "WMS TỪ CHỐI QUYỀN TRA CỨU"
-                        "PROXY_BLOCK" -> "MẠNG CHẶN KẾT NỐI WMS"
-                        else -> "TRA CỨU PICKLIST LỖI"
+                        "WMS_SESSION_REQUIRED", "SESSION_EXPIRED" -> "Máy xử lý cần đăng nhập lại SFT / SFT 3. Vui lòng về bàn chuyên viên xử lý trực tiếp."
+                        "SCHEMA_UNSUPPORTED" -> "Không đọc được danh sách Picklist an toàn. Vui lòng về bàn chuyên viên xử lý trực tiếp."
+                        "FORBIDDEN" -> "Hệ thống Supra từ chối quyền xác nhận. Vui lòng về bàn chuyên viên xử lý trực tiếp."
+                        "PROXY_BLOCK" -> "Mạng Office đang chặn kết nối xử lý. Vui lòng về bàn chuyên viên xử lý trực tiếp."
+                        "CONFIRM_REJECTED", "CONFIRM_CONFLICT" -> "Picklist không thể xác nhận tự động. Vui lòng kiểm tra trên SFT / SFT 3."
+                        "RATE_LIMITED" -> "Hệ thống đang giới hạn yêu cầu. Vui lòng thử lại sau."
+                        else -> "Xác nhận lấy lại đơn chưa thành công. Vui lòng về bàn chuyên viên xử lý trực tiếp."
                     }
-                    val timing = if (result.lookupMs > 0) " • WMS " + result.lookupMs + " ms" else ""
-                    relayStatus?.text = headline + "\n" +
-                        result.agentId + " • Admin " + result.agentAdminUserId + network +
-                        " • RTT " + result.roundTripMs + " ms" + timing
+                    relayStatus?.text = headline
                     if (result.lookupStatus == "PICKER_LOCKED") {
                         applyRelayLock(result.lockedUntilMs, result.lockLevel)
                     } else if (result.lookupStatus == "NOT_FOUND" && result.rateStrikes > 0) {
                         relayStatus?.append("\nSai " + result.rateStrikes + "/3 lần trong cửa sổ 60 giây.")
                     }
                     recordLog(
-                        "Relay PDA lookup=" + result.lookupStatus +
+                        "Relay PDA confirm=" + result.lookupStatus +
                             " matches=" + result.lookupMatches +
                             " lookup_ms=" + result.lookupMs +
                             " rtt=" + result.roundTripMs +
