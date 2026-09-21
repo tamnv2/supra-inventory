@@ -366,9 +366,11 @@ export async function readJson<T>(response: Response): Promise<T> {
     payload = JSON.parse(text) as T & { error?: string; message?: string };
   } catch {
     const type = response.headers.get("content-type") || "unknown";
-    throw new Error(`API trả dữ liệu không hợp lệ (HTTP ${response.status}, ${type}).`);
+    throw new ApiError(response.status, "INVALID_API_RESPONSE", `API trả dữ liệu không hợp lệ (HTTP ${response.status}, ${type}).`);
   }
-  if (!response.ok) throw new Error(payload.message || payload.error || `HTTP ${response.status}`);
+  if (!response.ok) {
+    throw new ApiError(response.status, String(payload.error || `HTTP_${response.status}`), payload.message || payload.error || `HTTP ${response.status}`);
+  }
   return payload;
 }
 
@@ -397,13 +399,19 @@ function emitApiTelemetry(detail: Record<string, unknown>): void {
   window.dispatchEvent(new CustomEvent("supra:api-telemetry", { detail }));
 }
 
-export async function loginWithPassword(username: string, password: string): Promise<AppProfile> {
+export async function loginWithPassword(username: string, password: string, force = false): Promise<AppProfile> {
   const started = performance.now();
   try {
     const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: "POST",
       headers: { "content-type": "application/json", accept: "application/json" },
-      body: JSON.stringify({ username, password, client_type: "WEB" }),
+      body: JSON.stringify({
+        username,
+        password,
+        client_type: "WEB",
+        device_id: webDeviceId(),
+        force,
+      }),
     });
     emitApiTelemetry({
       name: "auth_login",
@@ -418,6 +426,8 @@ export async function loginWithPassword(username: string, password: string): Pro
       refresh_token: result.refresh_token,
       expires_at: Date.now() + Math.max(60, Number(result.expires_in || 3600)) * 1000,
       user: result.user,
+      session_generation: result.session_generation,
+      session_channel: result.session_channel || "WEB",
     });
     return result.user;
   } catch (error) {
@@ -430,6 +440,46 @@ export async function loginWithPassword(username: string, password: string): Pro
     });
     throw error;
   }
+}
+
+export function getAuthSessionSnapshot(): StoredSession | null {
+  return session ? { ...session, user: { ...session.user } } : null;
+}
+
+export async function logoutInteractiveSession(): Promise<void> {
+  if (!session?.id_token) return;
+  try {
+    await fetch(`${API_BASE_URL}/api/auth/logout`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${session.id_token}`,
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+      body: JSON.stringify({ device_id: webDeviceId() }),
+    });
+  } catch {
+    // Best-effort server release; local logout still wins.
+  }
+}
+
+export async function requestPasswordReset(username: string, email: string): Promise<string> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/password-reset`, {
+    method: "POST",
+    headers: { "content-type": "application/json", accept: "application/json" },
+    body: JSON.stringify({ username: username.trim(), email: email.trim() }),
+  });
+  const result = await readJson<{ status: string; message?: string }>(response);
+  return result.message || "Nếu thông tin tài khoản và email khớp, hệ thống đã gửi liên kết đặt lại mật khẩu.";
+}
+
+export async function updateMyAuthEmail(email: string): Promise<AppProfile> {
+  const result = await readJson<{ user: AppProfile }>(await authorizedFetch("/api/auth/email", {
+    method: "PUT",
+    body: JSON.stringify({ email }),
+  }));
+  if (session) saveSession({ ...session, user: result.user });
+  return result.user;
 }
 
 async function refreshSession(): Promise<void> {
