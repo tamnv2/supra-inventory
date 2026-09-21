@@ -7,7 +7,9 @@ namespace SupraInventoryRelayAgent
         internal const string FirebaseProjectId = "supra-inventory-beta";
         internal const string FirebaseApiKey = "__FIREBASE_API_KEY_BETA__";
         internal const string DatabaseUrl = "https://supra-inventory-beta-default-rtdb.asia-southeast1.firebasedatabase.app";
-        internal const string FirestoreProbeUrl = "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents";\n        internal const string FirestoreRelayCollectionUrl = "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents/relay_poc_jobs";\n        internal const string RelayTransport = "FIRESTORE_D091_TEST";
+        internal const string FirestoreProbeUrl = "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents";
+        internal const string FirestoreRelayCollectionUrl = "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents/relay_poc_jobs";
+        internal const string RelayTransport = "FIRESTORE_D091_TEST";
         internal const string AppsScriptWebProbeUrl = "https://script.google.com/macros/s/office-probe/exec";
         internal const string AppsScriptApiProbeUrl = "https://script.googleapis.com/v1/projects";
         internal const string SheetsProbeUrl = "https://sheets.googleapis.com/v4/spreadsheets/office-probe";
