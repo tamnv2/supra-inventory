@@ -288,7 +288,7 @@ def main() -> None:
     require(system_monitor, "LaptopLine", "D087 laptop metrics overlay")
     require(agent_leader, "PresenceHeartbeatIntervalMs = 30000", "D087 lightweight Agent presence")
     require(relay, ".callTimeout(15, TimeUnit.SECONDS)", "D091 bounded Firestore HTTP call timeout")
-    require(relay, "quá 120 giây", "D092 bounded Firestore confirmation wait copy")
+    require(relay, "sau 120 giây", "D095 bounded Firestore confirmation terminal wait copy")
 
     # D085: sticky single-active Agent, cache/single-flight, persisted anti-spam and no-elevation startup.
     require(agent_leader, "HeartbeatIntervalMs = 3000", "D085 Agent heartbeat")
