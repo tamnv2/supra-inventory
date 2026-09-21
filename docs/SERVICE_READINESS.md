@@ -208,3 +208,16 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA019 PHYSICAL FIELD ACCEPTANCE
 - Android: `D098_SIGNED_BETA_VC61__ANDROID_SESSION_ISOLATED__PICKER_APP_ONLY__D097_CONFIRM_LISTENER_PRESERVED`
 - Beta: `D098_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V23__BETA_VC61__OA019_FIELD_ACCEPTANCE_READY`
 - Next action: OA019 on released v23/vc61; do not claim physical PASS until Owner executes it.
+
+
+## D099 active checkpoint — 2026-09-21
+
+- Owner reported every account login on Agent/App/Web returns `INVALID_CREDENTIALS`.
+- PR #124 live configuration readback confirmed Beta Identity Platform `signIn.email.enabled=false` and `passwordRequired=false`.
+- This is the shared D098 login outage root cause: migrated users existed, but Firebase password sign-in provider was disabled.
+- D099 source candidate automatically enables/readbacks Email/Password on Beta main, then runs an ephemeral PBKDF2-SHA256/100000 import → password sign-in → cleanup proof.
+- Worker login adds a fail-safe one-time Firebase native-password repair only after the same supplied password verifies against canonical InventoryCore PBKDF2.
+- Agent target v24: registered ADMIN email direct Firebase login; Xác minh Agent first; Supra disabled until Agent auth; Enter login/search; Overlay practical range 120×32 through 7680×4320.
+- Android next monotonic Beta build adds Enter/Done login submission; Web form Enter behavior remains.
+- D096/D097/D098 business confirmation/realtime semantics outside this fix remain frozen. Stable remains OWNER-GATED.
+- OA019 is temporarily blocked until D099 technical/runtime/release PASS.
