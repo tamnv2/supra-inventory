@@ -71,3 +71,15 @@ While Owner is away from company:
 - confirmation page/API is reference-only and no WMS mutation is permitted.
 
 When Owner returns to company, D078 Office transport discovery resumes separately; do not infer it from a successful D082 home test.
+
+## D091 transport-candidate progression
+
+For the Picker PDA ↔ Windows Agent confirmation workstream, transport candidates are tested sequentially with real authenticated round trips rather than host-only probes.
+
+1. Build/provision the selected candidate on a branch and keep Stable untouched.
+2. Pass source/build/security/release gates.
+3. Run one physical Office end-to-end field test with no hidden fallback to another carrier.
+4. Only after transport PASS, implement and validate the D085 HA/failover/quota model for that carrier.
+5. If the authenticated carrier itself fails on Office, record the sanitized evidence and move to the next approved Google-hosted candidate without re-testing providers already closed by D090.
+
+D091 candidate order starts with Firestore, then Apps Script if Firestore transport fails. WMS mutation is outside this procedure.
