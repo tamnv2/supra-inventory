@@ -356,6 +356,7 @@ namespace SupraInventoryRelayAgent
         private readonly Label _network = new Label();
         private readonly Label _identity = new Label();
         private readonly Label _agentAuthStatus = new Label();
+        private Panel _supraCard;
         private readonly TextBox _manualPicklistQuery = new TextBox();
         private readonly Button _manualPicklistSearch = new Button();
         private readonly ListBox _manualPicklistResults = new ListBox();
