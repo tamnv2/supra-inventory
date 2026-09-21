@@ -246,3 +246,16 @@ The D086 encrypted WMS session file is local workstation support state, not busi
 - Logout/401 clears the local session. Password change advances generation.
 - The Agent auth channel remains separate from interactive generation so multiple approved real-ADMIN Agents may coexist for D085 HA.
 - Session lifecycle adds no periodic Cloudflare/Firebase polling requirement.
+
+
+## D097 confirmation relay lifecycle and quota envelope
+
+D097 temporary Firestore records remain support/relay state, not Báo hàng transaction authority.
+
+- A confirmation job is created as `PENDING` and reaches terminal `ACK` directly; no durable `PROCESSING` row is written.
+- Non-confirmed terminal jobs may be cleaned after ACK. Confirmed/uncertain jobs retain bounded guard/job evidence long enough to preserve cross-Agent idempotency and fail-closed semantics.
+- Timed-out PENDING jobs are not eligible for new Agent WMS work after 30 seconds even if cleanup is delayed.
+- The full PickListCode is never stored raw in Firestore guard ids; the existing non-reversible hash remains authoritative.
+- Presence/coordination records are low-frequency temporary metadata. FROZEN Agents must not create business polling load.
+- Free-quota design target is based on 6,000 requests/day and 30 simultaneous requests; operational code must not reintroduce 4-second leader writes, per-job PROCESSING writes or 1-second PDA GET polling.
+- Cleanup never contains credentials/session/signature material and remains separate from long-term business archive.

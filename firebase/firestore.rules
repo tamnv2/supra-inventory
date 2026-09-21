@@ -19,7 +19,7 @@ service cloud.firestore {
       allow create: if isPicker()
         && request.resource.data.keys().hasOnly([
           'request_id', 'suffix', 'status', 'source',
-          'picker_uid', 'picker_user_id', 'client_sent_at_ms'
+          'picker_uid', 'picker_user_id', 'client_sent_at_ms', 'created_at'
         ])
         && request.resource.data.request_id == jobId
         && request.resource.data.suffix is string
@@ -29,7 +29,8 @@ service cloud.firestore {
         && request.resource.data.picker_uid == request.auth.uid
         && request.resource.data.picker_user_id == request.auth.token.app_user_id
         && request.resource.data.client_sent_at_ms is int
-        && request.resource.data.client_sent_at_ms >= 0;
+        && request.resource.data.client_sent_at_ms >= 0
+        && request.resource.data.created_at == request.time;
 
       allow get: if isRealAdmin()
         || (isPicker() && resource.data.picker_uid == request.auth.uid);
@@ -37,38 +38,37 @@ service cloud.firestore {
       allow list: if isRealAdmin();
 
       allow update: if isRealAdmin()
-        && (
-          (
-            resource.data.status == 'PENDING'
-            && request.resource.data.status == 'PROCESSING'
-            && request.resource.data.agent_admin_user_id == request.auth.token.app_user_id
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-              'status', 'agent_id', 'agent_instance_id', 'agent_admin_user_id',
-              'agent_network', 'agent_received_at_ms'
-            ])
-          )
-          ||
-          (
-            resource.data.status == 'PROCESSING'
-            && request.resource.data.status == 'ACK'
-            && resource.data.agent_admin_user_id == request.auth.token.app_user_id
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-              'status', 'agent_ack_at_ms',
-              'lookup_status', 'lookup_matches', 'lookup_ms', 'lookup_route',
-              'lookup_http', 'cache_mode', 'rate_strikes', 'lock_level',
-              'locked_until_ms'
-            ])
-          )
-        );
+        && resource.data.status == 'PENDING'
+        && request.resource.data.status == 'ACK'
+        && request.resource.data.agent_admin_user_id == request.auth.token.app_user_id
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'agent_id', 'agent_instance_id', 'agent_admin_user_id',
+          'agent_network', 'agent_received_at_ms', 'agent_ack_at_ms',
+          'lookup_status', 'lookup_matches', 'lookup_ms', 'lookup_route',
+          'lookup_http', 'cache_mode', 'rate_strikes', 'lock_level',
+          'locked_until_ms', 'guard_id', 'retire_at_ms'
+        ]);
 
       allow delete: if isPicker()
         && resource.data.picker_uid == request.auth.uid
-        && (resource.data.status == 'PENDING' || resource.data.status == 'ACK');
+        && (
+          (
+            resource.data.status == 'PENDING'
+            && resource.data.created_at is timestamp
+            && request.time >= resource.data.created_at + duration.value(1, 'h')
+          )
+          ||
+          (
+            resource.data.status == 'ACK'
+            && resource.data.retire_at_ms is int
+            && resource.data.retire_at_ms <= request.time.toMillis()
+          )
+        );
     }
 
     match /relay_poc_rate_limits/{pickerKey} {
-      allow get, create, update: if isRealAdmin();
-      allow list, delete: if false;
+      allow get, create, update, delete: if isRealAdmin();
+      allow list: if false;
     }
 
     match /relay_poc_coordination/{docId} {
@@ -82,6 +82,10 @@ service cloud.firestore {
 
     match /relay_poc_confirm_guards/{guardId} {
       allow get, create, update, delete: if isRealAdmin();
+      allow delete: if isPicker()
+        && resource.data.picker_uid == request.auth.uid
+        && resource.data.retire_at_ms is int
+        && resource.data.retire_at_ms <= request.time.toMillis();
       allow list: if false;
     }
   }

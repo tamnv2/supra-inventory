@@ -314,3 +314,18 @@ The selected Office carrier for `Xác nhận lấy lại đơn` is Cloud Firesto
 - Confirmation guard document ids are non-reversible hashes of the full PickListCode. `CONFIRMED` makes retries idempotent; an uncertain/in-progress guard fails closed instead of replaying WMS mutation.
 
 D092 does not change Web/PDA shortage-notification semantics described elsewhere in this spec.
+
+
+## D097 — quota-safe Firestore confirmation delivery
+
+For Picker `Xác nhận đơn` only:
+
+- Android creates one authenticated `ANDROID_CONFIRM_V1` Firestore job and listens only to that exact document.
+- Firestore offline persistence is disabled for this business transport; no offline confirmation mutation queue is allowed.
+- Listener lifetime is bounded to the request window. The first unresolved 10 seconds are PRIMARY time; after that the UI may show standby failover. Terminal automatic wait is 30 seconds.
+- PRIMARY business polling is 5 seconds; STANDBY is 10 seconds; FROZEN Agents do not poll business jobs.
+- Firestore job lifecycle is direct `PENDING → ACK`; D097 removes the quota-heavy `PROCESSING` claim write.
+- ACK is conditional against the document version read by the Agent. A competing Agent that loses the conditional ACK must not create a second authoritative result.
+- WMS mutation is still protected separately by the hashed full-PickListCode confirmation guard. The first guard creation is the durable mutation authorization; the retained originating ACK proves confirmed idempotency without a second guard-confirm write.
+- Network-address changes start a bounded Windows transition state and staged default/system proxy refresh. Transient DNS/proxy loss preserves the assigned Agent role rather than declaring an immediate failover.
+- Requests older than 30 seconds are skipped as new automatic work and require specialist handling.

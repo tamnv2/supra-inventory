@@ -121,3 +121,19 @@ No manual end-of-session handover is required. GitHub canonical state remains th
 - D096 targets `relay-agent-v21` only. Android stays at signed `beta-vc59`.
 - Next field gate: OA017 real eligible Picklist exact-resolve → confirm → Status=true → Firestore ACK → SFT/SFT3 verification.
 - Stable remains OWNER-GATED and untouched.
+
+
+## D097 readiness — quota-safe confirmation HA
+
+Source target is Beta-only and limited to the Picker confirmation Firestore wrapper.
+
+- Firestore carrier remains selected; normal Internet and Office field logs both show authenticated reachability.
+- D097 addresses the Windows transition interval where IP/DNS/proxy can temporarily remain DIRECT before Office proxy readiness.
+- PRIMARY 5s / STANDBY 10s / FROZEN no business polling replaces the old quota-heavy 4s lease model.
+- Direct conditional PENDING→ACK replaces the per-job PROCESSING write.
+- Android one-document snapshot listener uses no offline business persistence.
+- WMS confirmation implementation from D096 is unchanged.
+- Runtime/release readiness remains **PENDING PR + main CI + OA018 physical field acceptance**.
+- Stable is not eligible for this change without a later explicit Owner command.
+
+- Canonical Android status: `D097_FIRESTORE_SNAPSHOT_LISTENER_SOURCE_READY__TARGET_BETA_VC60__D095_UI_BASELINE_PRESERVED`.

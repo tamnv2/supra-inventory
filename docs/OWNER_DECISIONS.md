@@ -412,3 +412,26 @@ Released D095 artifacts restored the PDA → Firestore → Agent path: the Owner
 9. Stable remains **OWNER-GATED** and untouched.
 
 OA017 supersedes the WMS-stage portion of OA013 until released Agent v21 proves exact resolution → one authorized confirm POST → business `Status=true` → Firestore ACK on a real eligible Picklist.
+
+
+## D097 — Quota-safe request-driven Agent HA and network-transition recovery
+
+Status: **ACTIVE — OWNER APPROVED 2026-09-21**.
+
+Owner approved the D097 design after physical logs proved that normal Internet and the company Office network can both reach Firestore, while Windows network transitions may temporarily expose stale DIRECT/DNS/proxy state before the Office proxy is ready.
+
+1. Scope is strictly the Picker `Xác nhận đơn` Firestore transport/HA/quota path. Existing WMS session restore, exact PickListCode resolver, `confirmSkipItem` contract, D096 business-Status semantics, Báo hàng Worker/InventoryCore path, UI baseline and Stable are frozen unless a later explicit Owner decision changes them.
+2. Design maximum is **120 Picker/day × 50 confirmation attempts = 6,000 requests/day**, including wrong entries, with up to **30 simultaneous requests**.
+3. Agent roles are **PRIMARY / STANDBY / FROZEN**. Exactly one PRIMARY polls normal work. One STANDBY polls only for failover eligibility. Additional Agents remain FROZEN and do not poll the business queue.
+4. Normal target is PDA → Agent → PDA within **10 seconds**. A request still unresolved at 10 seconds may trigger STANDBY takeover. The terminal automatic-processing window is **30 seconds**; after that PDA instructs the Picker to return to the specialist desk.
+5. PRIMARY polls the bounded pending queue every **5 seconds**. STANDBY polls every **10 seconds** and may promote only when request age is at least **10 seconds**. FROZEN Agents do not poll the business queue.
+6. The old Firestore 4-second leader heartbeat/write model is removed. Role assignment is conditional and request-driven. Presence is low-frequency support metadata only; it must not be used to create quota-heavy liveness traffic.
+7. A temporary Firestore/DNS/proxy failure does **not** by itself demote the current role. Windows network-change events start a bounded transition state and staged system-proxy refresh. The next healthy business cycle revalidates role authority before new work.
+8. After STANDBY takeover, the new PRIMARY may select a fresh WMS-ready Agent as replacement STANDBY from low-frequency presence metadata. The prior PRIMARY is excluded from immediate reselection for that takeover.
+9. Job lifecycle is quota-safe **PENDING → ACK**. The old per-job `PROCESSING` claim write is removed. Concurrent/racing Agents are bounded by conditional ACK plus the cross-Agent full-PickListCode guard before any WMS mutation.
+10. The confirmation guard is one durable Firestore create for first mutation authorization; successful idempotency is proven by the retained originating ACK instead of a second guard-confirm write. Uncertain mutation remains fail-closed and must never auto-retry.
+11. Anti-spam business rules remain **3 final NOT_FOUND within 60s → lock 5/30/60 minutes**. Persisted state is idempotent by request id; FOUND clears wrong-input state without adding a new Firestore write.
+12. Android uses one authenticated Firestore snapshot listener only for its own request document, with Firestore offline persistence disabled for this business path. It shows failover guidance at 10 seconds and terminal specialist guidance at 30 seconds.
+13. D097 source guards target a free-quota envelope at the stated maximum: business writes are bounded toward 3/request worst-case plus low-frequency control overhead; reads use PRIMARY 5s + STANDBY 10s + one-document PDA listeners; FROZEN business polling is forbidden.
+14. Requests older than the terminal window are not started as new WMS work. A job already inside the guarded mutation path remains fail-closed if its final state is uncertain.
+15. Stable remains **OWNER-GATED** and untouched.

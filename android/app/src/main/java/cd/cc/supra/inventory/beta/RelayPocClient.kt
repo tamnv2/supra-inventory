@@ -1,19 +1,23 @@
 package cd.cc.supra.inventory.beta
 
+import android.content.Context
 import android.os.SystemClock
 import android.util.Base64
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
+import com.google.android.gms.tasks.Tasks
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreSettings
+import com.google.firebase.firestore.ListenerRegistration
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
-import java.net.SocketTimeoutException
 import java.security.MessageDigest
 import java.util.UUID
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 
 data class RelayProbeResult(
     val requestId: String,
@@ -30,11 +34,6 @@ data class RelayProbeResult(
     val lockLevel: Int,
     val lockedUntilMs: Long,
 )
-
-private class RelayHttpException(
-    val status: Int,
-    override val message: String,
-) : IOException(message)
 
 private data class RelayFirebaseIdentity(
     val uid: String,
@@ -54,266 +53,323 @@ private data class RelayAck(
     val rateStrikes: Int,
     val lockLevel: Int,
     val lockedUntilMs: Long,
+    val guardId: String,
+    val retireAtMs: Long,
+)
+
+private data class RelayCleanupEntry(
+    val jobId: String,
+    val guardId: String,
+    val notBeforeMs: Long,
 )
 
 class RelayPocClient(
+    context: Context,
     private val api: InventoryApi,
     private val log: (String) -> Unit = {},
     private val onProgress: (String) -> Unit = {},
 ) {
     private companion object {
-        const val PENDING_NOTICE_MS = 30_000L
-        const val TOTAL_WAIT_MS = 120_000L
+        const val FAILOVER_NOTICE_MS = 10_000L
+        const val TOTAL_WAIT_MS = 30_000L
+        const val TIMED_OUT_PENDING_RETENTION_MS = 60L * 60L * 1000L
+        const val CONFIRMED_RETENTION_MS = 30L * 24L * 60L * 60L * 1000L
+        const val CLEANUP_PREF = "relay_d097_cleanup"
+        const val CLEANUP_KEY = "entries"
+        const val JOB_COLLECTION = "relay_poc_jobs"
+        const val GUARD_COLLECTION = "relay_poc_confirm_guards"
     }
 
-    private val jsonType = "application/json; charset=utf-8".toMediaType()
-    private val http = OkHttpClient.Builder()
-        .connectTimeout(8, TimeUnit.SECONDS)
-        .readTimeout(12, TimeUnit.SECONDS)
-        .callTimeout(15, TimeUnit.SECONDS)
-        .build()
+    private val appContext = context.applicationContext
+    private val prefs = appContext.getSharedPreferences(CLEANUP_PREF, Context.MODE_PRIVATE)
+    private val auth by lazy { FirebaseAuth.getInstance() }
+    private val firestore by lazy {
+        val db = FirebaseFirestore.getInstance()
+        try {
+            db.firestoreSettings = FirebaseFirestoreSettings.Builder()
+                .setPersistenceEnabled(false)
+                .build()
+        } catch (error: Exception) {
+            log("D097 Firestore persistence config: " + safeText(error.message))
+        }
+        db
+    }
+    private val listenerGate = Any()
+    private var activeListener: ListenerRegistration? = null
 
     fun close() {
-        http.dispatcher.cancelAll()
+        synchronized(listenerGate) {
+            activeListener?.remove()
+            activeListener = null
+        }
     }
 
     fun sendProbe(suffix: String): RelayProbeResult {
         require(suffix.matches(Regex("^\\d{5}$"))) { "Picklist phải đúng 5 số." }
-        val current = api.session ?: throw ApiException(401, "AUTH_REQUIRED", "Chưa đăng nhập.")
-        return try {
-            executeProbe(current, suffix)
-        } catch (error: RelayHttpException) {
-            if (error.status != 401) throw error
-            log("D092 Firestore HTTP 401; làm mới Firebase session rồi thử lại.")
-            executeProbe(api.refreshSessionForRelay(), suffix)
+        var session = api.session ?: throw ApiException(401, "AUTH_REQUIRED", "Chưa đăng nhập.")
+        session = ensureFirestoreAuth(session)
+        runDueCleanup()
+
+        return executeProbe(session, suffix)
+    }
+
+    private fun ensureFirestoreAuth(initial: AppSession): AppSession {
+        val identity = firebaseIdentity(initial.idToken)
+        val existing = auth.currentUser
+        if (existing != null && existing.uid == identity.uid) return initial
+
+        var session = initial
+        var token = session.relayCustomToken
+        if (token.isNullOrBlank()) {
+            session = api.refreshSessionForRelay()
+            token = session.relayCustomToken
+        }
+        if (token.isNullOrBlank()) {
+            throw IOException("Không lấy được phiên Firestore realtime cho Xác nhận đơn.")
+        }
+
+        try {
+            val result = Tasks.await(auth.signInWithCustomToken(token), 15, TimeUnit.SECONDS)
+            if (result.user?.uid != firebaseIdentity(session.idToken).uid) {
+                auth.signOut()
+                throw IOException("Firebase relay identity không khớp Picker hiện tại.")
+            }
+            log("D097 Firestore listener auth PASS uid=" + firebaseIdentity(session.idToken).fingerprint)
+            return session
+        } catch (first: Exception) {
+            log("D097 Firestore listener auth retry sau refresh: " + safeText(first.message))
+            session = api.refreshSessionForRelay()
+            val retryToken = session.relayCustomToken
+                ?: throw IOException("Không làm mới được phiên Firestore realtime.", first)
+            val result = Tasks.await(auth.signInWithCustomToken(retryToken), 15, TimeUnit.SECONDS)
+            if (result.user?.uid != firebaseIdentity(session.idToken).uid) {
+                auth.signOut()
+                throw IOException("Firebase relay identity không khớp sau refresh.")
+            }
+            return session
         }
     }
 
     private fun executeProbe(session: AppSession, suffix: String): RelayProbeResult {
-        val collectionUrl = BuildConfig.FIRESTORE_RELAY_COLLECTION_URL.trim()
-        if (collectionUrl.isBlank()) throw IllegalStateException("Firestore relay Beta chưa được cấu hình.")
-
         val identity = firebaseIdentity(session.idToken)
         val requestId = UUID.randomUUID().toString()
-        val documentUrl = collectionUrl.trimEnd('/') + "/" + requestId
+        val doc = firestore.collection(JOB_COLLECTION).document(requestId)
         val started = SystemClock.elapsedRealtime()
 
-        val fields = JSONObject()
-            .put("request_id", stringValue(requestId))
-            .put("suffix", stringValue(suffix))
-            .put("status", stringValue("PENDING"))
-            .put("source", stringValue("ANDROID_CONFIRM_V1"))
-            .put("picker_uid", stringValue(identity.uid))
-            .put("picker_user_id", stringValue(session.userId))
-            .put("client_sent_at_ms", integerValue(System.currentTimeMillis()))
-        val payload = JSONObject().put("fields", fields)
+        val fields = hashMapOf<String, Any>(
+            "request_id" to requestId,
+            "suffix" to suffix,
+            "status" to "PENDING",
+            "source" to "ANDROID_CONFIRM_V1",
+            "picker_uid" to identity.uid,
+            "picker_user_id" to session.userId,
+            "client_sent_at_ms" to System.currentTimeMillis(),
+            "created_at" to FieldValue.serverTimestamp(),
+        )
 
         log(
-            "D092 Firestore gửi request=" + shortId(requestId) +
+            "D097 Firestore create request=" + shortId(requestId) +
                 " picker_uid=" + identity.fingerprint +
                 " aud=" + identity.audience.ifBlank { "unknown" }
         )
         onProgress("Đang gửi qua Firestore...")
 
-        var cleanupAfterAck = false
         try {
-            val createUrl = collectionUrl.toHttpUrl().newBuilder()
-                .addQueryParameter("documentId", requestId)
-                .build()
-            executeJson(
-                Request.Builder()
-                    .url(createUrl)
-                    .post(payload.toString().toRequestBody(jsonType))
-                    .header("Authorization", "Bearer " + session.idToken)
-                    .header("Accept", "application/json")
-                    .build(),
-                "CREATE"
-            )
-            log("D094 Firestore CREATE PASS request=" + shortId(requestId))
-            onProgress("Đã gửi Firestore #" + shortId(requestId) + " · đang chờ Agent...")
+            Tasks.await(doc.set(fields), 15, TimeUnit.SECONDS)
+        } catch (error: Exception) {
+            throw IOException("Không gửi được yêu cầu Xác nhận đơn qua Firestore.", error)
+        }
 
+        log("D097 Firestore CREATE PASS request=" + shortId(requestId))
+        onProgress("Đã gửi #" + shortId(requestId) + " · đang chờ Agent chính...")
+
+        val ackRef = AtomicReference<RelayAck?>(null)
+        val errorRef = AtomicReference<Exception?>(null)
+        val done = CountDownLatch(1)
+
+        val registration = doc.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                errorRef.compareAndSet(null, error)
+                return@addSnapshotListener
+            }
+            if (snapshot == null || !snapshot.exists()) return@addSnapshotListener
+            val ack = parseAck(snapshot) ?: return@addSnapshotListener
+            ackRef.set(ack)
+            done.countDown()
+        }
+        synchronized(listenerGate) {
+            activeListener?.remove()
+            activeListener = registration
+        }
+
+        var failoverNoticeShown = false
+        try {
             val deadline = SystemClock.elapsedRealtime() + TOTAL_WAIT_MS
-            var lastStatus = "PENDING"
-            var lastUpdateTime = ""
             while (SystemClock.elapsedRealtime() < deadline) {
-                val raw = try {
-                    executeJson(
-                        Request.Builder()
-                            .url(documentUrl)
-                            .get()
-                            .header("Authorization", "Bearer " + session.idToken)
-                            .header("Accept", "application/json")
-                            .build(),
-                        "GET"
-                    )
-                } catch (error: RelayHttpException) {
-                    throw error
-                } catch (error: IOException) {
-                    log(
-                        "D095 Firestore GET tạm lỗi request=" + shortId(requestId) +
-                            " · tiếp tục chờ trong giới hạn 120s"
-                    )
-                    onProgress("Mạng PDA tạm gián đoạn · đang tiếp tục chờ Agent #" + shortId(requestId))
-                    Thread.sleep(1_000L)
-                    continue
-                }
+                val remaining = (deadline - SystemClock.elapsedRealtime()).coerceAtLeast(1L)
+                if (done.await(minOf(1_000L, remaining), TimeUnit.MILLISECONDS)) break
 
-                val root = try { JSONObject(raw) } catch (_: Exception) { JSONObject() }
-                val docFields = root.optJSONObject("fields") ?: JSONObject()
-                val currentStatus = fieldString(docFields, "status")
-                if (currentStatus.isNotBlank()) lastStatus = currentStatus
-                val currentUpdateTime = root.optString("updateTime").trim()
-                if (currentUpdateTime.isNotBlank()) lastUpdateTime = currentUpdateTime
-
-                if (currentStatus == "PENDING" &&
-                    SystemClock.elapsedRealtime() - started >= PENDING_NOTICE_MS
-                ) {
-                    onProgress("Agent chưa nhận · vẫn tiếp tục kết nối #" + shortId(requestId))
-                } else if (currentStatus == "PENDING" &&
-                    SystemClock.elapsedRealtime() - started >= 12_000L
-                ) {
-                    onProgress("Đang chờ Agent chính / chuyển Agent dự phòng... #" + shortId(requestId))
-                } else if (currentStatus == "PROCESSING") {
-                    onProgress("Agent đang kiểm tra và xác nhận Picklist... #" + shortId(requestId))
+                val elapsed = SystemClock.elapsedRealtime() - started
+                if (!failoverNoticeShown && elapsed >= FAILOVER_NOTICE_MS) {
+                    failoverNoticeShown = true
+                    onProgress("Agent chính chưa xử lý · đang chuyển Agent dự phòng... #" + shortId(requestId))
                 }
-
-                val ack = parseAck(raw)
-                if (ack != null) {
-                    val total = (SystemClock.elapsedRealtime() - started).coerceAtLeast(0L)
-                    log(
-                        "D092 Firestore ACK request=" + shortId(requestId) +
-                            " admin=" + safeId(ack.adminUserId) +
-                            " agent=" + safeId(ack.agentId) +
-                            " instance=" + safeId(ack.agentInstanceId) +
-                            " network=" + safeId(ack.agentNetwork) +
-                            " rtt=" + total + "ms"
-                    )
-                    cleanupAfterAck = true
-                    return RelayProbeResult(
-                        requestId = requestId,
-                        agentId = ack.agentId,
-                        agentNetwork = ack.agentNetwork,
-                        agentAdminUserId = ack.adminUserId,
-                        agentInstanceId = ack.agentInstanceId,
-                        roundTripMs = total,
-                        lookupStatus = ack.lookupStatus,
-                        lookupMatches = ack.lookupMatches,
-                        lookupMs = ack.lookupMs,
-                        cacheMode = ack.cacheMode,
-                        rateStrikes = ack.rateStrikes,
-                        lockLevel = ack.lockLevel,
-                        lockedUntilMs = ack.lockedUntilMs,
-                    )
-                }
-                Thread.sleep(1_000L)
             }
 
-            if (lastStatus == "PENDING" &&
-                cancelPending(documentUrl, lastUpdateTime, session.idToken)
-            ) {
+            val ack = ackRef.get()
+            if (ack == null) {
+                scheduleCleanup(requestId, "", System.currentTimeMillis() + TIMED_OUT_PENDING_RETENTION_MS)
+                val listenerError = errorRef.get()
+                if (listenerError != null) {
+                    log("D097 Firestore listener chưa hồi phục trong 30s request=" + shortId(requestId) +
+                        " detail=" + safeText(listenerError.message))
+                }
                 throw IOException(
-                    "Không có Agent nhận request #" + shortId(requestId) +
-                        " sau 120 giây. Vui lòng về bàn chuyên viên xử lý trực tiếp."
+                    "Không xử lý được request #" + shortId(requestId) +
+                        " trong 30 giây. Vui lòng về bàn Chuyên viên xử lý trực tiếp."
                 )
             }
 
-            throw SocketTimeoutException(
-                "Request #" + shortId(requestId) +
-                    " đã được Agent nhận hoặc trạng thái chưa chắc chắn nhưng chưa có kết quả cuối sau 120 giây. " +
-                    "Không bấm lại; vui lòng về bàn chuyên viên kiểm tra trên SFT / SFT 3."
+            val total = (SystemClock.elapsedRealtime() - started).coerceAtLeast(0L)
+            log(
+                "D097 Firestore ACK request=" + shortId(requestId) +
+                    " admin=" + safeId(ack.adminUserId) +
+                    " agent=" + safeId(ack.agentId) +
+                    " instance=" + safeId(ack.agentInstanceId) +
+                    " network=" + safeId(ack.agentNetwork) +
+                    " rtt=" + total + "ms"
             )
-        } catch (error: SocketTimeoutException) {
-            log("D095 Firestore timeout request=" + shortId(requestId))
-            throw IOException(error.message ?: "Chưa nhận được kết quả từ Agent Office.", error)
+
+            if (ack.guardId.isNotBlank()) {
+                val retire = ack.retireAtMs.takeIf { it > System.currentTimeMillis() }
+                    ?: (System.currentTimeMillis() + CONFIRMED_RETENTION_MS)
+                scheduleCleanup(requestId, ack.guardId, retire)
+            } else {
+                scheduleCleanup(requestId, "", System.currentTimeMillis())
+                runDueCleanup()
+            }
+
+            return RelayProbeResult(
+                requestId = requestId,
+                agentId = ack.agentId,
+                agentNetwork = ack.agentNetwork,
+                agentAdminUserId = ack.adminUserId,
+                agentInstanceId = ack.agentInstanceId,
+                roundTripMs = total,
+                lookupStatus = ack.lookupStatus,
+                lookupMatches = ack.lookupMatches,
+                lookupMs = ack.lookupMs,
+                cacheMode = ack.cacheMode,
+                rateStrikes = ack.rateStrikes,
+                lockLevel = ack.lockLevel,
+                lockedUntilMs = ack.lockedUntilMs,
+            )
         } finally {
-            if (cleanupAfterAck) cleanup(documentUrl, session.idToken)
-        }
-    }
-
-    private fun executeJson(request: Request, operation: String): String {
-        http.newCall(request).execute().use { response ->
-            val body = response.body?.string().orEmpty()
-            if (!response.isSuccessful) {
-                val message = firestoreError(response.code, body)
-                log("D092 Firestore " + operation + " HTTP " + response.code + " · " + message)
-                throw RelayHttpException(response.code, message)
+            registration.remove()
+            synchronized(listenerGate) {
+                if (activeListener === registration) activeListener = null
             }
-            return body
         }
     }
 
-    private fun parseAck(raw: String): RelayAck? {
-        return try {
-            val fields = JSONObject(raw).optJSONObject("fields") ?: return null
-            val status = fieldString(fields, "status")
-            if (status != "ACK") return null
-            RelayAck(
-                agentId = fieldString(fields, "agent_id").ifBlank { "Agent" },
-                agentNetwork = fieldString(fields, "agent_network").ifBlank { "UNKNOWN" },
-                adminUserId = fieldString(fields, "agent_admin_user_id").ifBlank { "ADMIN" },
-                agentInstanceId = fieldString(fields, "agent_instance_id").ifBlank { "UNKNOWN" },
-                lookupStatus = fieldString(fields, "lookup_status").ifBlank { "TRANSPORT_ONLY" },
-                lookupMatches = fieldLong(fields, "lookup_matches").toInt().coerceAtLeast(0),
-                lookupMs = fieldLong(fields, "lookup_ms").coerceAtLeast(0L),
-                cacheMode = fieldString(fields, "cache_mode").ifBlank { "NONE" },
-                rateStrikes = fieldLong(fields, "rate_strikes").toInt().coerceAtLeast(0),
-                lockLevel = fieldLong(fields, "lock_level").toInt().coerceAtLeast(0),
-                lockedUntilMs = fieldLong(fields, "locked_until_ms").coerceAtLeast(0L),
-            )
-        } catch (_: Exception) {
-            null
-        }
+    private fun parseAck(snapshot: DocumentSnapshot): RelayAck? {
+        if (snapshot.getString("status") != "ACK") return null
+        return RelayAck(
+            agentId = snapshot.getString("agent_id").orEmpty().ifBlank { "Agent" },
+            agentNetwork = snapshot.getString("agent_network").orEmpty().ifBlank { "UNKNOWN" },
+            adminUserId = snapshot.getString("agent_admin_user_id").orEmpty().ifBlank { "ADMIN" },
+            agentInstanceId = snapshot.getString("agent_instance_id").orEmpty().ifBlank { "UNKNOWN" },
+            lookupStatus = snapshot.getString("lookup_status").orEmpty().ifBlank { "TRANSPORT_ONLY" },
+            lookupMatches = (snapshot.getLong("lookup_matches") ?: 0L).toInt().coerceAtLeast(0),
+            lookupMs = (snapshot.getLong("lookup_ms") ?: 0L).coerceAtLeast(0L),
+            cacheMode = snapshot.getString("cache_mode").orEmpty().ifBlank { "NONE" },
+            rateStrikes = (snapshot.getLong("rate_strikes") ?: 0L).toInt().coerceAtLeast(0),
+            lockLevel = (snapshot.getLong("lock_level") ?: 0L).toInt().coerceAtLeast(0),
+            lockedUntilMs = (snapshot.getLong("locked_until_ms") ?: 0L).coerceAtLeast(0L),
+            guardId = snapshot.getString("guard_id").orEmpty(),
+            retireAtMs = (snapshot.getLong("retire_at_ms") ?: 0L).coerceAtLeast(0L),
+        )
     }
 
-    private fun cancelPending(documentUrl: String, updateTime: String, idToken: String): Boolean {
-        if (updateTime.isBlank()) return false
-        return try {
-            val url = documentUrl.toHttpUrl().newBuilder()
-                .addQueryParameter("currentDocument.updateTime", updateTime)
-                .build()
-            http.newCall(
-                Request.Builder()
-                    .url(url)
-                    .delete()
-                    .header("Authorization", "Bearer " + idToken)
-                    .build()
-            ).execute().use { response ->
-                response.isSuccessful || response.code == 404
+    private fun runDueCleanup() {
+        if (auth.currentUser == null) return
+        val now = System.currentTimeMillis()
+        val entries = readCleanupEntries()
+        if (entries.isEmpty()) return
+
+        val remaining = ArrayList<RelayCleanupEntry>()
+        for (entry in entries) {
+            if (entry.notBeforeMs > now) {
+                remaining += entry
+                continue
             }
-        } catch (_: Exception) {
-            false
+            try {
+                Tasks.await(
+                    firestore.collection(JOB_COLLECTION).document(entry.jobId).delete(),
+                    10,
+                    TimeUnit.SECONDS,
+                )
+                if (entry.guardId.isNotBlank()) {
+                    Tasks.await(
+                        firestore.collection(GUARD_COLLECTION).document(entry.guardId).delete(),
+                        10,
+                        TimeUnit.SECONDS,
+                    )
+                }
+                log("D097 cleanup PASS job=" + shortId(entry.jobId) +
+                    (if (entry.guardId.isBlank()) "" else " guard=" + shortId(entry.guardId)))
+            } catch (error: Exception) {
+                remaining += entry
+                log("D097 cleanup deferred job=" + shortId(entry.jobId) +
+                    " detail=" + safeText(error.message))
+            }
         }
+        writeCleanupEntries(remaining)
     }
 
-    private fun cleanup(documentUrl: String, idToken: String) {
-        try {
-            http.newCall(
-                Request.Builder()
-                    .url(documentUrl)
-                    .delete()
-                    .header("Authorization", "Bearer " + idToken)
-                    .build()
-            ).execute().use { response ->
-                if (!response.isSuccessful && response.code != 404) {
-                    log("D092 Firestore cleanup HTTP " + response.code)
+    private fun scheduleCleanup(jobId: String, guardId: String, notBeforeMs: Long) {
+        val entries = readCleanupEntries()
+            .filterNot { it.jobId == jobId }
+            .toMutableList()
+        entries += RelayCleanupEntry(jobId, guardId, notBeforeMs.coerceAtLeast(0L))
+        writeCleanupEntries(entries.takeLast(2_000))
+    }
+
+    private fun readCleanupEntries(): List<RelayCleanupEntry> {
+        val raw = prefs.getString(CLEANUP_KEY, null) ?: return emptyList()
+        return try {
+            val array = JSONArray(raw)
+            buildList {
+                for (index in 0 until array.length()) {
+                    val row = array.optJSONObject(index) ?: continue
+                    val jobId = row.optString("job_id").trim()
+                    if (jobId.isBlank()) continue
+                    add(
+                        RelayCleanupEntry(
+                            jobId = jobId,
+                            guardId = row.optString("guard_id").trim(),
+                            notBeforeMs = row.optLong("not_before_ms", 0L),
+                        )
+                    )
                 }
             }
-        } catch (error: Exception) {
-            log("D092 Firestore cleanup lỗi: " + safeText(error.message))
+        } catch (_: Exception) {
+            emptyList()
         }
     }
 
-    private fun stringValue(value: String): JSONObject =
-        JSONObject().put("stringValue", value)
-
-    private fun integerValue(value: Long): JSONObject =
-        JSONObject().put("integerValue", value.toString())
-
-    private fun fieldString(fields: JSONObject, key: String): String =
-        fields.optJSONObject(key)?.optString("stringValue").orEmpty()
-
-    private fun fieldLong(fields: JSONObject, key: String): Long =
-        fields.optJSONObject(key)?.optString("integerValue")?.toLongOrNull() ?: 0L
+    private fun writeCleanupEntries(entries: List<RelayCleanupEntry>) {
+        val array = JSONArray()
+        for (entry in entries) {
+            array.put(
+                JSONObject()
+                    .put("job_id", entry.jobId)
+                    .put("guard_id", entry.guardId)
+                    .put("not_before_ms", entry.notBeforeMs)
+            )
+        }
+        prefs.edit().putString(CLEANUP_KEY, array.toString()).apply()
+    }
 
     private fun firebaseIdentity(idToken: String): RelayFirebaseIdentity {
         val parts = idToken.split('.')
@@ -332,22 +388,6 @@ class RelayPocClient(
         if (uid.isBlank() || uid.length > 128) throw IllegalStateException("Firebase UID trong phiên không hợp lệ.")
         val audience = payload.optString("aud").trim()
         return RelayFirebaseIdentity(uid, audience, fingerprint(uid))
-    }
-
-    private fun firestoreError(status: Int, body: String?): String {
-        val detail = try {
-            JSONObject(body.orEmpty()).optJSONObject("error")?.optString("message").orEmpty()
-        } catch (_: Exception) {
-            ""
-        }
-        val clean = safeText(detail).take(180)
-        return when (status) {
-            401 -> "Phiên Firebase cần làm mới."
-            403 -> "Firestore từ chối quyền D091 (HTTP 403)."
-            404 -> "Firestore Beta chưa sẵn sàng hoặc collection chưa tồn tại."
-            409 -> "Request Firestore đã tồn tại; vui lòng thử lại."
-            else -> clean.ifBlank { "Firestore relay lỗi HTTP " + status + "." }
-        }
     }
 
     private fun fingerprint(value: String): String =

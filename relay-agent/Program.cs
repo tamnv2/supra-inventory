@@ -21,6 +21,7 @@ namespace SupraInventoryRelayAgent
     {
         private const string MainInstanceMutexName = @"Local\AgentAutoConfirmPickPack.MainInstance";
         private const string MainInstanceActivateEventName = @"Local\AgentAutoConfirmPickPack.Activate";
+        private static int _networkChangeGeneration;
 
         private static void RefreshDefaultWindowsProxy(string reason)
         {
@@ -120,11 +121,18 @@ namespace SupraInventoryRelayAgent
                 {
                     NetworkChange.NetworkAddressChanged += (s, e) =>
                     {
-                        ThreadPool.QueueUserWorkItem(_ =>
+                        FirestoreHttpTransport.NotifyNetworkChange();
+                        var generation = Interlocked.Increment(ref _networkChangeGeneration);
+                        foreach (var delayMs in new[] { 750, 3000, 8000, 15000 })
                         {
-                            Thread.Sleep(750);
-                            RefreshDefaultWindowsProxy("network-change");
-                        });
+                            var capturedDelay = delayMs;
+                            ThreadPool.QueueUserWorkItem(_ =>
+                            {
+                                Thread.Sleep(capturedDelay);
+                                if (generation != Volatile.Read(ref _networkChangeGeneration)) return;
+                                RefreshDefaultWindowsProxy("network-change-" + capturedDelay + "ms");
+                            });
+                        }
                     };
                 }
 
@@ -1145,16 +1153,14 @@ namespace SupraInventoryRelayAgent
                 HasUsableWmsSession,
                 _agentInstanceId,
                 Log,
-                (active, leaderId) =>
+                (role, primaryId) =>
                 {
                     Ui(() =>
                     {
-                        if (active)
-                            _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / ACTIVE";
-                        else if (!string.IsNullOrWhiteSpace(leaderId))
-                            _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / STANDBY";
-                        else
-                            _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / chờ WMS";
+                        var roleText = role == FirestoreAgentRole.PRIMARY
+                            ? "PRIMARY"
+                            : (role == FirestoreAgentRole.STANDBY ? "STANDBY" : "FROZEN");
+                        _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / " + roleText;
                     });
                 });
             _leaderCoordinator.Start();
@@ -2076,7 +2082,7 @@ namespace SupraInventoryRelayAgent
 
             if (string.Equals(lookup.Result, "NOT_FOUND", StringComparison.Ordinal))
             {
-                rate = _firestoreRateLimiter.RecordNotFound(appSession, work.PickerUid, work.PickerUserId);
+                rate = _firestoreRateLimiter.RecordNotFound(appSession, work.PickerUid, work.PickerUserId, work.RequestId);
                 return new FirestoreConfirmationOutcome
                 {
                     Result = rate.IsLocked ? "PICKER_LOCKED" : "NOT_FOUND",
@@ -2103,7 +2109,23 @@ namespace SupraInventoryRelayAgent
                 };
             }
 
-            rate = _firestoreRateLimiter.RecordFound(appSession, work.PickerUid, work.PickerUserId);
+            _firestoreRateLimiter.ClearFound(appSession, work.PickerUid);
+            rate = new PickerRateDecision();
+
+            if (work.CreatedAtMs > 0 && DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - work.CreatedAtMs >= 25000)
+            {
+                return new FirestoreConfirmationOutcome
+                {
+                    Result = "REQUEST_EXPIRED",
+                    CacheMode = lookup.CacheMode + "+EXPIRED",
+                    Route = lookup.Route,
+                    Http = lookup.StatusCode,
+                    OperationMs = Math.Max(0L, lookup.ElapsedMs),
+                    Matches = Math.Max(0, lookup.MatchCount),
+                    Rate = rate
+                };
+            }
+
             var exact = WmsExactPicklistResolver.Resolve(wmsSession, work.Suffix);
             if (!string.Equals(exact.Result, "FOUND", StringComparison.Ordinal) ||
                 exact.MatchCount != 1 || string.IsNullOrWhiteSpace(exact.PickListCode))
@@ -2120,11 +2142,26 @@ namespace SupraInventoryRelayAgent
                 };
             }
 
+            if (work.CreatedAtMs > 0 && DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - work.CreatedAtMs >= 25000)
+            {
+                return new FirestoreConfirmationOutcome
+                {
+                    Result = "REQUEST_EXPIRED",
+                    CacheMode = lookup.CacheMode + "+EXACT_RESOLVE+EXPIRED",
+                    Route = exact.Route,
+                    Http = exact.StatusCode,
+                    OperationMs = Math.Max(0L, lookup.ElapsedMs) + Math.Max(0L, exact.ElapsedMs),
+                    Matches = 1,
+                    Rate = rate
+                };
+            }
+
             var guard = _confirmationGuard.TryBegin(
                 appSession,
                 exact.PickListCode,
                 work.RequestId,
-                _agentInstanceId);
+                _agentInstanceId,
+                work.PickerUid);
 
             if (guard.AlreadyConfirmed)
             {
@@ -2136,7 +2173,9 @@ namespace SupraInventoryRelayAgent
                     Http = 200,
                     OperationMs = Math.Max(0L, lookup.ElapsedMs) + Math.Max(0L, exact.ElapsedMs),
                     Matches = 1,
-                    Rate = rate
+                    Rate = rate,
+                    GuardId = guard.GuardId,
+                    RetireAtMs = guard.RetireAtMs
                 };
             }
 
@@ -2150,7 +2189,9 @@ namespace SupraInventoryRelayAgent
                     Http = 409,
                     OperationMs = Math.Max(0L, lookup.ElapsedMs) + Math.Max(0L, exact.ElapsedMs),
                     Matches = 1,
-                    Rate = rate
+                    Rate = rate,
+                    GuardId = guard.GuardId,
+                    RetireAtMs = guard.RetireAtMs
                 };
             }
 
@@ -2160,19 +2201,7 @@ namespace SupraInventoryRelayAgent
 
             if (string.Equals(confirmed.Result, "CONFIRMED", StringComparison.Ordinal))
             {
-                try
-                {
-                    _confirmationGuard.MarkConfirmed(
-                        appSession,
-                        guard.GuardId,
-                        work.RequestId,
-                        _agentInstanceId);
-                }
-                catch (Exception ex)
-                {
-                    Log("CONFIRM GUARD mark-confirmed fail request=" + Short(work.RequestId) +
-                        " detail=" + SafeMessage(ex));
-                }
+                _confirmationGuard.MarkLocalConfirmed(guard.GuardId);
             }
             else if (IsSafeConfirmationFailure(confirmed.Result))
             {
@@ -2187,7 +2216,9 @@ namespace SupraInventoryRelayAgent
                 Http = confirmed.StatusCode,
                 OperationMs = Math.Max(0L, lookup.ElapsedMs) + Math.Max(0L, exact.ElapsedMs) + Math.Max(0L, confirmed.ElapsedMs),
                 Matches = 1,
-                Rate = rate
+                Rate = rate,
+                GuardId = guard.GuardId,
+                RetireAtMs = guard.RetireAtMs
             };
         }
 
@@ -2231,7 +2262,7 @@ namespace SupraInventoryRelayAgent
                     () => Interlocked.Increment(ref _localAgentResponses),
                     state => Ui(() => _relay.Text = state),
                     ProcessFirestoreConfirmation,
-                    () => _leaderCoordinator != null && _leaderCoordinator.IsLeader,
+                    _leaderCoordinator,
                     healthy =>
                     {
                         var coordinator = _leaderCoordinator;

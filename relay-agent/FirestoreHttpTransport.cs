@@ -15,6 +15,21 @@ namespace SupraInventoryRelayAgent
     /// </summary>
     internal static class FirestoreHttpTransport
     {
+        private static long _lastNetworkChangeMs;
+
+        internal static void NotifyNetworkChange()
+        {
+            Interlocked.Exchange(ref _lastNetworkChangeMs, NowMs());
+        }
+
+        internal static bool IsNetworkTransitioning
+        {
+            get
+            {
+                var last = Interlocked.Read(ref _lastNetworkChangeMs);
+                return last > 0 && NowMs() - last < 20000L;
+            }
+        }
         internal static string SendJson(
             string method,
             string url,
@@ -69,6 +84,7 @@ namespace SupraInventoryRelayAgent
                                 " method=" + Safe(method) +
                                 " reason=" + ex.Status +
                                 " route=" + route +
+                                " transition=" + (IsNetworkTransitioning ? "true" : "false") +
                                 " attempt=" + attempt + "/" + attempts);
                         Thread.Sleep(attempt == 1 ? 350 : 900);
                         continue;
@@ -167,6 +183,11 @@ namespace SupraInventoryRelayAgent
             {
                 return "AUTO";
             }
+        }
+
+        private static long NowMs()
+        {
+            return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         }
 
         private static string Safe(string value)

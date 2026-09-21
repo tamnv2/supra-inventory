@@ -13,6 +13,9 @@ namespace SupraInventoryRelayAgent
         private const long StrikeWindowMs = 60L * 1000L;
         private const long ResetEscalationAfterMs = 24L * 60L * 60L * 1000L;
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
+        private readonly object _cacheGate = new object();
+        private readonly Dictionary<string, ReadResult> _cache =
+            new Dictionary<string, ReadResult>(StringComparer.Ordinal);
 
         private sealed class State
         {
@@ -24,6 +27,7 @@ namespace SupraInventoryRelayAgent
             internal long LastLockAtMs;
             internal long LastNotFoundAtMs;
             internal long UpdatedAtMs;
+            internal string LastRequestId = "";
         }
 
         private sealed class ReadResult
@@ -33,110 +37,168 @@ namespace SupraInventoryRelayAgent
             internal bool Exists;
         }
 
+        internal void ClearCache()
+        {
+            lock (_cacheGate) _cache.Clear();
+        }
+
         internal PickerRateDecision Check(AgentSession session, string pickerUid, string pickerUserId)
         {
-            var read = Read(session, pickerUid);
-            var state = read.Value;
+            var read = ReadCached(session, pickerUid);
+            var state = Clone(read.Value);
             if (state == null) return Decision(new State(), false);
-            if (NormalizeExpiredEscalation(state, NowMs()))
-                WriteConditional(session, pickerUid, state, read);
+            NormalizeExpiredEscalation(state, NowMs());
             return Decision(state, false);
         }
 
-        internal PickerRateDecision RecordFound(AgentSession session, string pickerUid, string pickerUserId)
+        internal PickerRateDecision RecordNotFound(
+            AgentSession session,
+            string pickerUid,
+            string pickerUserId,
+            string requestId)
         {
-            return Mutate(session, pickerUid, pickerUserId, (state, now) =>
+            for (var attempt = 0; attempt < 5; attempt++)
             {
+                var read = ReadCached(session, pickerUid, attempt > 0);
+                var state = Clone(read.Value) ?? new State();
+                state.PickerUserId = pickerUserId ?? "";
+                var now = NowMs();
                 NormalizeExpiredEscalation(state, now);
-                state.StrikeCount = 0;
-                state.StrikeWindowStartedMs = 0;
-                state.UpdatedAtMs = now;
-                return false;
-            });
-        }
 
-        internal PickerRateDecision RecordNotFound(AgentSession session, string pickerUid, string pickerUserId)
-        {
-            return Mutate(session, pickerUid, pickerUserId, (state, now) =>
-            {
-                NormalizeExpiredEscalation(state, now);
-                if (state.LockedUntilMs > now) return false;
+                if (string.Equals(state.LastRequestId, requestId ?? "", StringComparison.Ordinal))
+                    return Decision(state, false);
+
+                if (state.LockedUntilMs > now)
+                    return Decision(state, false);
 
                 if (state.StrikeWindowStartedMs <= 0 || now - state.StrikeWindowStartedMs > StrikeWindowMs)
                 {
                     state.StrikeWindowStartedMs = now;
                     state.StrikeCount = 1;
                 }
-                else state.StrikeCount++;
+                else
+                {
+                    state.StrikeCount++;
+                }
 
+                state.LastRequestId = requestId ?? "";
                 state.LastNotFoundAtMs = now;
                 state.UpdatedAtMs = now;
-                if (state.StrikeCount < 3) return false;
 
-                state.LockLevel = Math.Min(3, Math.Max(0, state.LockLevel) + 1);
-                var minutes = LockMinutesForLevel(state.LockLevel);
-                state.LockedUntilMs = now + minutes * 60L * 1000L;
-                state.LastLockAtMs = now;
-                state.StrikeCount = 0;
-                state.StrikeWindowStartedMs = 0;
-                return true;
-            });
+                var newlyLocked = false;
+                if (state.StrikeCount >= 3)
+                {
+                    state.LockLevel = Math.Min(3, Math.Max(0, state.LockLevel) + 1);
+                    var minutes = LockMinutesForLevel(state.LockLevel);
+                    state.LockedUntilMs = now + minutes * 60L * 1000L;
+                    state.LastLockAtMs = now;
+                    state.StrikeCount = 0;
+                    state.StrikeWindowStartedMs = 0;
+                    newlyLocked = true;
+                }
+
+                if (WriteConditional(session, pickerUid, state, read))
+                {
+                    SetCache(pickerUid, new ReadResult
+                    {
+                        Exists = true,
+                        Value = Clone(state),
+                        UpdateTime = ""
+                    });
+                    // The next same-picker request may reuse the in-memory value.
+                    // A conditional conflict invalidates this cache and refreshes from Firestore.
+                    return Decision(state, newlyLocked);
+                }
+                Invalidate(pickerUid);
+            }
+
+            throw new InvalidOperationException("Không cập nhật được bộ đếm chống spam sau nhiều lần cạnh tranh.");
         }
 
-        private PickerRateDecision Mutate(
-            AgentSession session,
-            string pickerUid,
-            string pickerUserId,
-            Func<State, long, bool> mutate)
+        internal void ClearFound(AgentSession session, string pickerUid)
         {
-            for (var attempt = 0; attempt < 5; attempt++)
+            var read = ReadCached(session, pickerUid);
+            var state = read.Value;
+            var shouldDelete = read.Exists && state != null &&
+                (state.StrikeCount > 0 ||
+                 state.LockLevel > 0 ||
+                 state.LockedUntilMs > 0 ||
+                 state.LastLockAtMs > 0 ||
+                 !string.IsNullOrWhiteSpace(state.LastRequestId));
+            Invalidate(pickerUid);
+            if (!shouldDelete) return;
+
+            try
             {
-                var read = Read(session, pickerUid);
-                var state = read.Value ?? new State();
-                state.PickerUserId = pickerUserId ?? "";
-                var newlyLocked = mutate(state, NowMs());
-                if (WriteConditional(session, pickerUid, state, read))
-                    return Decision(state, newlyLocked);
+                Send("DELETE", DocumentUrl(pickerUid), session.IdToken, null, false, "RATE_CLEAR_FOUND");
             }
-            throw new InvalidOperationException("Không cập nhật được bộ đếm chống spam sau nhiều lần cạnh tranh.");
+            catch (WebException ex)
+            {
+                var response = ex.Response as HttpWebResponse;
+                var status = response == null ? 0 : (int)response.StatusCode;
+                try { if (response != null) response.Dispose(); } catch { }
+                if (status == 404) return;
+                throw;
+            }
+        }
+
+        private ReadResult ReadCached(AgentSession session, string pickerUid, bool forceFresh = false)
+        {
+            if (!forceFresh)
+            {
+                lock (_cacheGate)
+                {
+                    ReadResult cached;
+                    if (_cache.TryGetValue(pickerUid, out cached))
+                        return Clone(cached);
+                }
+            }
+
+            var read = Read(session, pickerUid);
+            SetCache(pickerUid, read);
+            return Clone(read);
+        }
+
+        private void SetCache(string pickerUid, ReadResult value)
+        {
+            lock (_cacheGate) _cache[pickerUid] = Clone(value);
+        }
+
+        private void Invalidate(string pickerUid)
+        {
+            lock (_cacheGate) _cache.Remove(pickerUid);
         }
 
         private ReadResult Read(AgentSession session, string pickerUid)
         {
             EnsureSession(session);
-            var request = (HttpWebRequest)WebRequest.Create(DocumentUrl(pickerUid));
-            request.Method = "GET";
-            request.Accept = "application/json";
-            request.UserAgent = "Agent-Auto-Confirm-Pick-Pack/Rate";
-            request.Timeout = 8000;
-            request.ReadWriteTimeout = 8000;
-            request.Headers[HttpRequestHeader.Authorization] = "Bearer " + session.IdToken;
             try
             {
-                using (var response = (HttpWebResponse)request.GetResponse())
-                using (var reader = new StreamReader(response.GetResponseStream()))
+                var raw = Send("GET", DocumentUrl(pickerUid), session.IdToken, null, true, "RATE_READ");
+                var doc = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                if (doc == null) return new ReadResult();
+
+                object fieldsObj;
+                var fields = doc.TryGetValue("fields", out fieldsObj)
+                    ? fieldsObj as Dictionary<string, object>
+                    : null;
+                return new ReadResult
                 {
-                    var doc = _json.DeserializeObject(reader.ReadToEnd()) as Dictionary<string, object>;
-                    if (doc == null) return new ReadResult();
-                    object fieldsObj;
-                    var fields = doc.TryGetValue("fields", out fieldsObj) ? fieldsObj as Dictionary<string, object> : null;
-                    return new ReadResult
+                    Exists = true,
+                    UpdateTime = StringValue(doc, "updateTime"),
+                    Value = fields == null ? new State() : new State
                     {
-                        Exists = true,
-                        UpdateTime = StringValue(doc, "updateTime"),
-                        Value = fields == null ? new State() : new State
-                        {
-                            PickerUserId = FieldString(fields, "picker_user_id"),
-                            StrikeCount = (int)FieldLong(fields, "strike_count"),
-                            StrikeWindowStartedMs = FieldLong(fields, "strike_window_started_ms"),
-                            LockLevel = (int)FieldLong(fields, "lock_level"),
-                            LockedUntilMs = FieldLong(fields, "locked_until_ms"),
-                            LastLockAtMs = FieldLong(fields, "last_lock_at_ms"),
-                            LastNotFoundAtMs = FieldLong(fields, "last_not_found_at_ms"),
-                            UpdatedAtMs = FieldLong(fields, "updated_at_ms")
-                        }
-                    };
-                }
+                        PickerUserId = FieldString(fields, "picker_user_id"),
+                        StrikeCount = (int)FieldLong(fields, "strike_count"),
+                        StrikeWindowStartedMs = FieldLong(fields, "strike_window_started_ms"),
+                        LockLevel = (int)FieldLong(fields, "lock_level"),
+                        LockedUntilMs = FieldLong(fields, "locked_until_ms"),
+                        LastLockAtMs = FieldLong(fields, "last_lock_at_ms"),
+                        LastNotFoundAtMs = FieldLong(fields, "last_not_found_at_ms"),
+                        UpdatedAtMs = FieldLong(fields, "updated_at_ms"),
+                        LastRequestId = FieldString(fields, "last_request_id")
+                    }
+                };
             }
             catch (WebException ex)
             {
@@ -162,42 +224,53 @@ namespace SupraInventoryRelayAgent
                 { "locked_until_ms", IntegerField(Math.Max(0L, state.LockedUntilMs)) },
                 { "last_lock_at_ms", IntegerField(Math.Max(0L, state.LastLockAtMs)) },
                 { "last_not_found_at_ms", IntegerField(Math.Max(0L, state.LastNotFoundAtMs)) },
-                { "updated_at_ms", IntegerField(Math.Max(0L, state.UpdatedAtMs)) }
+                { "updated_at_ms", IntegerField(Math.Max(0L, state.UpdatedAtMs)) },
+                { "last_request_id", StringField(state.LastRequestId ?? "") }
             };
             var url = DocumentUrl(pickerUid) + UpdateMask(fields.Keys);
             url += previous != null && previous.Exists && !string.IsNullOrWhiteSpace(previous.UpdateTime)
                 ? "&currentDocument.updateTime=" + Uri.EscapeDataString(previous.UpdateTime)
                 : "&currentDocument.exists=false";
 
-            var request = (HttpWebRequest)WebRequest.Create(url);
-            request.Method = "PATCH";
-            request.Accept = "application/json";
-            request.ContentType = "application/json; charset=utf-8";
-            request.UserAgent = "Agent-Auto-Confirm-Pick-Pack/Rate";
-            request.Timeout = 8000;
-            request.ReadWriteTimeout = 8000;
-            request.Headers[HttpRequestHeader.Authorization] = "Bearer " + session.IdToken;
-
-            var payload = _json.Serialize(new Dictionary<string, object> { { "fields", fields } });
-            var bytes = Encoding.UTF8.GetBytes(payload);
-            request.ContentLength = bytes.Length;
-            using (var output = request.GetRequestStream()) output.Write(bytes, 0, bytes.Length);
-
             try
             {
-                using (var response = (HttpWebResponse)request.GetResponse())
-                    return (int)response.StatusCode >= 200 && (int)response.StatusCode < 300;
+                Send(
+                    "PATCH",
+                    url,
+                    session.IdToken,
+                    _json.Serialize(new Dictionary<string, object> { { "fields", fields } }),
+                    false,
+                    "RATE_WRITE");
+                return true;
             }
             catch (WebException ex)
             {
                 var response = ex.Response as HttpWebResponse;
-                if (response != null && ((int)response.StatusCode == 409 || (int)response.StatusCode == 412))
-                {
-                    try { response.Dispose(); } catch { }
-                    return false;
-                }
+                var status = response == null ? 0 : (int)response.StatusCode;
+                try { if (response != null) response.Dispose(); } catch { }
+                if (status == 409 || status == 412) return false;
                 throw;
             }
+        }
+
+        private string Send(
+            string method,
+            string url,
+            string token,
+            string body,
+            bool retrySafeRead,
+            string component)
+        {
+            return FirestoreHttpTransport.SendJson(
+                method,
+                url,
+                token,
+                body,
+                "Agent-Auto-Confirm-Pick-Pack/D097",
+                8000,
+                retrySafeRead,
+                null,
+                component);
         }
 
         private static string DocumentUrl(string pickerUid)
@@ -228,6 +301,7 @@ namespace SupraInventoryRelayAgent
             state.LastLockAtMs = 0;
             state.StrikeCount = 0;
             state.StrikeWindowStartedMs = 0;
+            state.LastRequestId = "";
             state.UpdatedAtMs = now;
             return true;
         }
@@ -253,6 +327,34 @@ namespace SupraInventoryRelayAgent
             if (level <= 1) return 5;
             if (level == 2) return 30;
             return 60;
+        }
+
+        private static ReadResult Clone(ReadResult read)
+        {
+            if (read == null) return new ReadResult();
+            return new ReadResult
+            {
+                Exists = read.Exists,
+                UpdateTime = read.UpdateTime ?? "",
+                Value = Clone(read.Value)
+            };
+        }
+
+        private static State Clone(State state)
+        {
+            if (state == null) return null;
+            return new State
+            {
+                PickerUserId = state.PickerUserId ?? "",
+                StrikeCount = state.StrikeCount,
+                StrikeWindowStartedMs = state.StrikeWindowStartedMs,
+                LockLevel = state.LockLevel,
+                LockedUntilMs = state.LockedUntilMs,
+                LastLockAtMs = state.LastLockAtMs,
+                LastNotFoundAtMs = state.LastNotFoundAtMs,
+                UpdatedAtMs = state.UpdatedAtMs,
+                LastRequestId = state.LastRequestId ?? ""
+            };
         }
 
         private static string UpdateMask(IEnumerable<string> fields)
