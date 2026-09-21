@@ -321,6 +321,7 @@ namespace SupraInventoryRelayAgent
         private readonly HashSet<string> _acked = new HashSet<string>(StringComparer.Ordinal);
         private readonly PicklistCacheCoordinator _picklistCache = new PicklistCacheCoordinator();
         private readonly PickerRateLimiter _pickerRateLimiter = new PickerRateLimiter();
+        private readonly FirestorePickerRateLimiter _firestoreRateLimiter = new FirestorePickerRateLimiter();
         private AgentLeaderCoordinator _leaderCoordinator;
         private readonly object _sessionLock = new object();
         private readonly object _wmsSessionLock = new object();
@@ -642,7 +643,7 @@ namespace SupraInventoryRelayAgent
                 Top = 46,
                 Width = 740,
                 Height = 22,
-                Text = "PDA → Firestore D091 → Agent Office → ACK transport"
+                Text = "PDA → Firestore → Agent Office → tra Picklist → xác nhận lấy lại đơn"
             });
             modelCard.Controls.Add(new Label
             {
@@ -650,7 +651,7 @@ namespace SupraInventoryRelayAgent
                 Top = 72,
                 Width = 740,
                 Height = 22,
-                Text = "Bản test chỉ chứng minh kết nối PDA ↔ Agent · chưa chốt HA/transport cuối · không thay đổi WMS",
+                Text = "Chỉ xác nhận khi tìm được duy nhất Picklist khớp đúng 5 số cuối; trường hợp không rõ ràng sẽ dừng an toàn.",
                 ForeColor = Color.FromArgb(88, 104, 115)
             });
             _overviewPage.Controls.Add(modelCard);
@@ -689,7 +690,7 @@ namespace SupraInventoryRelayAgent
             _probeSheets.SetBounds(476, 126, 100, 32); networkPage.Controls.Add(_probeSheets);
             _probeDrive.SetBounds(584, 126, 100, 32); networkPage.Controls.Add(_probeDrive);
             _probeAll.SetBounds(24, 174, 150, 34); networkPage.Controls.Add(_probeAll);
-            networkPage.Controls.Add(new Label { Left = 24, Top = 232, Width = 730, Height = 70, Text = "D091 dùng Firestore để test kết nối thật PDA ↔ Agent trên Office. RTDB chỉ còn chẩn đoán lịch sử; chưa chốt HA/transport cuối.", ForeColor = Color.DimGray });
+            networkPage.Controls.Add(new Label { Left = 24, Top = 232, Width = 730, Height = 70, Text = "Firestore là kênh PDA ↔ Agent đã kiểm chứng trên mạng Office. RTDB chỉ còn chẩn đoán lịch sử.", ForeColor = Color.DimGray });
 
             overlayPage.Controls.Add(new Label { Left = 24, Top = 24, Width = 730, Height = 34, Text = "Bảng nổi trạng thái máy", Font = new Font("Segoe UI Semibold", 11F) });
             overlayPage.Controls.Add(new Label { Left = 24, Top = 66, Width = 730, Height = 64, Text = "Khi khóa, bảng nổi chỉ hiển thị thông tin và chuột xuyên hoàn toàn xuống ứng dụng bên dưới. Khi mở khóa, có thể kéo vị trí, đổi rộng/cao và chọn đầy đủ màu nền/màu chữ.", ForeColor = Color.DimGray });
@@ -1066,7 +1067,7 @@ namespace SupraInventoryRelayAgent
             try
             {
                 if (_listenCts == null) StartListening();
-                Ui(() => _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / FIRESTORE TEST");
+                Ui(() => _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / FIRESTORE");
             }
             catch (Exception ex)
             {
@@ -1909,6 +1910,108 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private FirestoreConfirmationOutcome ProcessFirestoreConfirmation(FirestoreConfirmationWorkItem work)
+        {
+            var appSession = SnapshotSession();
+            var rate = _firestoreRateLimiter.Check(appSession, work.PickerUid, work.PickerUserId);
+            if (rate.IsLocked)
+            {
+                return new FirestoreConfirmationOutcome
+                {
+                    Result = "PICKER_LOCKED",
+                    CacheMode = "RATE_LIMIT",
+                    Route = "NONE",
+                    Rate = rate
+                };
+            }
+
+            var wmsSession = SnapshotWmsSession();
+            if (wmsSession == null || !wmsSession.IsValidHy1())
+            {
+                return new FirestoreConfirmationOutcome
+                {
+                    Result = "WMS_SESSION_REQUIRED",
+                    CacheMode = "NO_SESSION",
+                    Route = "NONE",
+                    Rate = rate
+                };
+            }
+
+            var lookup = _picklistCache.Lookup(wmsSession, work.Suffix);
+            if (string.Equals(lookup.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
+                ClearWmsSessionAfterExpiry();
+
+            if (string.Equals(lookup.Result, "NOT_FOUND", StringComparison.Ordinal))
+            {
+                rate = _firestoreRateLimiter.RecordNotFound(appSession, work.PickerUid, work.PickerUserId);
+                return new FirestoreConfirmationOutcome
+                {
+                    Result = rate.IsLocked ? "PICKER_LOCKED" : "NOT_FOUND",
+                    CacheMode = lookup.CacheMode,
+                    Route = lookup.Route,
+                    Http = lookup.StatusCode,
+                    OperationMs = Math.Max(0L, lookup.ElapsedMs),
+                    Matches = 0,
+                    Rate = rate
+                };
+            }
+
+            if (!string.Equals(lookup.Result, "FOUND", StringComparison.Ordinal))
+            {
+                return new FirestoreConfirmationOutcome
+                {
+                    Result = lookup.Result ?? "LOOKUP_ERROR",
+                    CacheMode = lookup.CacheMode,
+                    Route = lookup.Route,
+                    Http = lookup.StatusCode,
+                    OperationMs = Math.Max(0L, lookup.ElapsedMs),
+                    Matches = Math.Max(0, lookup.MatchCount),
+                    Rate = rate
+                };
+            }
+
+            rate = _firestoreRateLimiter.RecordFound(appSession, work.PickerUid, work.PickerUserId);
+            var exact = WmsExactPicklistResolver.Resolve(wmsSession, work.Suffix);
+            if (!string.Equals(exact.Result, "FOUND", StringComparison.Ordinal) ||
+                exact.MatchCount != 1 || string.IsNullOrWhiteSpace(exact.PickListCode))
+            {
+                return new FirestoreConfirmationOutcome
+                {
+                    Result = exact.Result ?? "EXACT_CODE_NOT_RESOLVED",
+                    CacheMode = lookup.CacheMode + "+EXACT_RESOLVE",
+                    Route = exact.Route,
+                    Http = exact.StatusCode,
+                    OperationMs = Math.Max(0L, lookup.ElapsedMs) + Math.Max(0L, exact.ElapsedMs),
+                    Matches = Math.Max(0, exact.MatchCount),
+                    Rate = rate
+                };
+            }
+
+            var confirmed = WmsPicklistConfirmClient.Confirm(wmsSession, exact.PickListCode);
+            if (string.Equals(confirmed.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
+                ClearWmsSessionAfterExpiry();
+
+            return new FirestoreConfirmationOutcome
+            {
+                Result = confirmed.Result ?? "CONFIRM_ERROR",
+                CacheMode = lookup.CacheMode + "+EXACT_RESOLVE",
+                Route = confirmed.Route,
+                Http = confirmed.StatusCode,
+                OperationMs = Math.Max(0L, lookup.ElapsedMs) + Math.Max(0L, exact.ElapsedMs) + Math.Max(0L, confirmed.ElapsedMs),
+                Matches = 1,
+                Rate = rate
+            };
+        }
+
+        private void ClearWmsSessionAfterExpiry()
+        {
+            lock (_wmsSessionLock) _wmsSession = null;
+            _picklistCache.Clear();
+            WmsSessionStore.Clear(WmsSessionFile);
+            Ui(() => _wmsStatus.Text = "WMS: phiên hết hạn · cần đăng nhập lại");
+            SetProbeButtonsEnabled(true);
+        }
+
         private void StartListening()
         {
             try { SnapshotSession(); } catch { Log("Chưa ghép Agent."); return; }
@@ -1918,7 +2021,7 @@ namespace SupraInventoryRelayAgent
             var token = _listenCts.Token;
             Task.Run(() =>
             {
-                var transport = new FirestoreRelayTestTransport(
+                var transport = new FirestoreConfirmationTransport(
                     SnapshotSession,
                     EnsureFreshToken,
                     _agentInstanceId,
@@ -1927,7 +2030,8 @@ namespace SupraInventoryRelayAgent
                     Audit,
                     () => Interlocked.Increment(ref _localPdaRequests),
                     () => Interlocked.Increment(ref _localAgentResponses),
-                    state => Ui(() => _relay.Text = state));
+                    state => Ui(() => _relay.Text = state),
+                    ProcessFirestoreConfirmation);
                 transport.Run(token);
             }, token);
         }
