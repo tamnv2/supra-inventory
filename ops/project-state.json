@@ -13,26 +13,26 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D096_WMS_EXACT_RESOLVER_SOURCE_READY__CURRENT_AGENT_V20_PDA_AGENT_FIELD_PASS__TARGET_AGENT_V21__BETA_VC59_UNCHANGED__OA017_AFTER_RELEASE",
+    "beta": "D097_QUOTA_SAFE_REQUEST_DRIVEN_HA_SOURCE_READY__TARGET_AGENT_V22__TARGET_BETA_VC60__D096_WMS_BEHAVIOR_FROZEN__FIELD_ACCEPTANCE_PENDING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 8,
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
     "web": "D089_OWNER_ACCEPTED_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON",
-    "android": "D095_SIGNED_BETA_VC59_PDA_AGENT_FIELD_PASS__NO_D096_ANDROID_CHANGE",
+    "android": "D097_FIRESTORE_SNAPSHOT_LISTENER_SOURCE_READY__TARGET_BETA_VC60__D095_UI_BASELINE_PRESERVED",
     "latest_beta_apk": "beta-vc59",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
-    "network_scope": "D095_PDA_FIRESTORE_AGENT_PATH_FIELD_PASS_CURRENT_TEST__D096_WMS_EXACT_RESOLVE_CONFIRM_REPAIR__BAO_HANG_PATH_UNCHANGED",
+    "network_scope": "D097_NORMAL_OFFICE_TRANSITION_RECOVERY__PRIMARY_STANDBY_FROZEN__10S_FAILOVER__30S_TERMINAL__BAO_HANG_UNCHANGED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "SERVER_PAGED_FILTERED_ONE_MANY_ALL__ROOT_EFFECTIVE_ROLE_TEST_RUNTIME_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D069_XLSX_REPORT_EXPORT_BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
-    "quota_resilience": "D072_SYSTEM_STATUS_NORMAL_RUNTIME_DISABLED__BETA_RUNTIME_PASS",
+    "quota_resilience": "D097_FIRESTORE_6000_REQ_DAY_FREE_ENVELOPE_SOURCE_GUARDED__FIELD_USAGE_ACCEPTANCE_PENDING",
     "ui_design_guard": "D089_OWNER_ACCEPTED_PASS__MAIN_UI_RUN_35528647554",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D096_ROOT_CAUSE_CONFIRMED__EXACT_RESOLVER_ARRAY_PARSE_BUG__TARGET_AGENT_V21__OA017_REAL_CONFIRM_FIELD_GATE"
+    "picklist_confirmation_poc": "D097_REQUEST_DRIVEN_HA_QUOTA_NETWORK_REPAIR__D096_WMS_CONFIRM_FROZEN__TARGET_AGENT_V22_VC60"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -88,7 +88,8 @@
     "D093 preserves Firestore as the selected PDA-Agent carrier after D091 Owner field PASS; Agent must refresh the current Windows system proxy per Firestore request, retain ACTIVE ownership only within the existing 10-second HA grace on transient coordination failures, report Online 0/FIRESTORE OFFLINE truthfully when unhealthy, and Android allows 30 seconds for a PENDING claim while retaining the 120-second total wait and no PROCESSING retry.",
     "D094 Agent auth/relay repair: saved ADMIN refreshable session remains DPAPI CurrentUser with no plaintext password; authenticated login controls dim/disable, Logout clears saved session, Overview shows verification state; Firestore uses D091-proven default Windows proxy first, safe fresh-system retry, direct PENDING+ANDROID_CONFIRM_V1 query and PDA/Agent short request-id correlation.",
     "D095 path invariant: Báo hàng stays on PDA Internet -> Cloudflare Worker -> InventoryCore and never depends on Agent; Xác nhận đơn stays on PDA Internet -> authenticated Firestore -> ACTIVE Agent -> Firestore ACK. Agent must consume the same Firestore carrier on normal Internet or Office. Firestore JSON arrays parse via IEnumerable; 30s PENDING is notice-only and the job remains through the 120s bounded window.",
-    "D096 WMS confirm invariant: after Firestore claim, Agent must resolve exactly one full PickListCode from the current WMS JSON response using object-array/IEnumerable-safe parsing before the authorized confirmSkipItem POST; HTTP 2xx is CONFIRMED only when response Status=true, otherwise fail closed."
+    "D096 WMS confirm invariant: after Firestore claim, Agent must resolve exactly one full PickListCode from the current WMS JSON response using object-array/IEnumerable-safe parsing before the authorized confirmSkipItem POST; HTTP 2xx is CONFIRMED only when response Status=true, otherwise fail closed.",
+    "D097 request-driven confirmation HA: max design 6,000 requests/day and 30 concurrent; PRIMARY polls 5s, STANDBY polls 10s and may take over at request age >=10s, FROZEN does not poll business work; terminal automatic window 30s then specialist-desk guidance; no 4-second Firestore leader heartbeat and no per-job PROCESSING write; D096 WMS behavior remains frozen."
   ],
   "completed_capabilities": [
     "Cloudflare Beta Worker/custom domain/InventoryCore SQLite provisioning",
@@ -169,11 +170,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": {
-    "primary": "Complete D096 branch/PR guards and release Agent v21; then Owner runs OA017 using existing beta-vc59. Verify exact full PickListCode resolution and one authorized WMS confirm reaching business Status=true.",
-    "method": "Use one real eligible Picklist. Correlate PDA request -> Agent claim -> exact-resolve parse non-zero -> unique full code -> WMS picklist-confirm result=CONFIRMED -> Firestore ACK -> SFT/SFT3 confirmed state. Do not retry an uncertain result.",
-    "stable": "OWNER_GATED"
-  },
+  "next_action": "Merge D097 only after authority/state/Firestore/Agent/Android/service guards PASS; then publish Agent v22 + next signed Beta APK and run physical normal→Office transition, 10s standby failover, 30s terminal fallback and 30-concurrent burst acceptance. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -522,12 +519,7 @@
     "D095 root cause from Owner v19/vc58 field logs: Android vc58 created authenticated Firestore jobs successfully while normal Báo hàng continued to succeed, but Agent v19 reported QUERY pending=0 because Firestore JSON arrays were cast to ArrayList although JavaScriptSerializer returns an enumerable/object array. Another request was conditionally deleted by Android at 30s while Agent Firestore connectivity recovered later. D095 restores IEnumerable parsing, keeps PENDING through 120s, retries safe reads across default/fresh Windows proxy routes, and refreshes default proxy on network address change.",
     "D096 field diagnosis: Agent v20 receives/claims Firestore jobs successfully. WMS exact-resolve GET returns HTTP 200 but resolver emits EXACT_CODE_NOT_RESOLVED and no WMS picklist-confirm log follows. Source comparison shows WmsPicklistLookup supports object[] while WmsPicklistExactResolver.CollectCodes accepted only ArrayList. D096 fixes traversal via non-string IEnumerable and hardens 2xx confirm classification to require business Status=true."
   ],
-  "active_workstream": {
-    "key": "XAC_NHAN_DON_D096_WMS_EXACT_CONFIRM",
-    "status": "ROOT_CAUSE_CONFIRMED__SOURCE_REPAIR_READY__PR_CI_RELEASE_PENDING",
-    "bootstrap": "D095_MAIN_52AABDBD__AGENT_V20_BETA_VC59__OWNER_PDA_AGENT_PASS__WMS_EXACT_RESOLVE_FAIL__2026_09_21",
-    "next_step": "Finish branch -> PR -> authority/continuity/build/runtime-parser PASS -> merge -> Agent v21 release. Then OA017 real eligible Picklist confirmation. Android vc59 unchanged. Stable OWNER-GATED."
-  },
+  "active_workstream": "D097_FIRESTORE_CONFIRMATION_HA_QUOTA_NETWORK_TRANSITION",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
