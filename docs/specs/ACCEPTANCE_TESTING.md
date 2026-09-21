@@ -756,3 +756,26 @@ Physical field PASS is separate and requires released D095 artifacts:
 3. If the Agent network is switched while a PENDING job exists, the job must remain available through the bounded reconnect window rather than disappearing at 30 seconds.
 4. Separately submit one normal Báo hàng item from the PDA and confirm it still succeeds through the existing Worker/InventoryCore path independently of Agent state.
 5. Only after both Agent-network cases and path separation PASS may OA013 real WMS confirmation resume.
+
+## D096 exact PickListCode and confirm acceptance
+
+Automated/source PASS requires:
+- Agent build/version is v21 or later and Windows startup-smoke passes.
+- `WmsPicklistExactResolver` traverses JSON arrays through non-string `IEnumerable`; it must not rely on `node as ArrayList` as its array path.
+- An executable CI regression deserializes a synthetic WMS response containing a full PickListCode inside a JSON array and proves the resolver extracts it.
+- The exact resolver still scans only exact `PickListCode` fields, accepts only `PL` + digits, matches the submitted trailing five digits, and fails closed on zero or multiple full-code matches.
+- Existing confirmation endpoint and payload contract remain unchanged: one full code, allow skipped true, remain skip 1, warehouse HY1, DC-site false.
+- WMS HTTP 2xx classifies `CONFIRMED` only when response business `Status=true`; `Status=false` is `CONFIRM_REJECTED`; missing/unparseable Status on 2xx is `CONFIRM_IN_PROGRESS_OR_UNCERTAIN`.
+- CI executes all three confirm-response classifications with synthetic bodies.
+- No Owner-supplied Authorization/Token/APISID/SID/SCID/USID/signature/nonce or other secret/session value appears in source, tests, logs or docs.
+- D095 Firestore transport/job-visibility guards and D092 idempotency/anti-spam/single-mutation guards remain PASS.
+- Android remains beta-vc59; Stable remains untouched.
+
+Physical field PASS:
+1. Use released Agent v21 with the already-released signed beta-vc59 PDA app.
+2. Choose one real eligible Picklist whose last five digits are known to match exactly one full PickListCode in the current WMS list.
+3. Send once from PDA. Agent log must show: Firestore pending-found → CLAIM PASS → exact-resolve HTTP PASS → exact-resolve parse reports non-zero codes → authorized picklist-confirm attempt.
+4. WMS confirm must return transport success plus business `Status=true`; Agent then reports `CONFIRMED` and Firestore ACK; PDA shows the approved success sentence.
+5. Verify in SFT / SFT 3 that the Picklist reached the expected confirmed state.
+6. Repeat of an already-confirmed request must not issue a second WMS POST because the confirmation guard remains authoritative.
+7. Any uncertain result must remain fail-closed: do not press again; verify in SFT / SFT 3.
