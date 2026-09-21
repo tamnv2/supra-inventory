@@ -220,30 +220,91 @@ function sessionAuthorityError(identity: Awaited<ReturnType<typeof verifyFirebas
     return user.role === "ADMIN" && user.base_role === "ADMIN" ? null : "AGENT_ADMIN_REQUIRED";
   }
   if (identity.sessionChannel !== "WEB" && identity.sessionChannel !== "ANDROID") return "SESSION_UPGRADE_REQUIRED";
-  if (!identity.sessionGeneration || identity.sessionGeneration !== Number(user.session_generation || 0)) return "SESSION_REPLACED";
+  const expected = identity.sessionChannel === "WEB"
+    ? Number(user.web_session_generation || 0)
+    : Number(user.android_session_generation || 0);
+  if (!identity.sessionGeneration || identity.sessionGeneration !== expected) return "SESSION_REPLACED";
   return null;
 }
 
-async function closeUserRealtime(env: Env, userId: string): Promise<void> {
+function firebaseUserSpec(user: InternalUser, uid: string): FirebaseManagedUserSpec {
+  return {
+    uid,
+    userId: user.user_id,
+    employeeCode: user.employee_code,
+    displayName: user.display_name,
+    role: user.base_role,
+    status: user.status,
+    authEmail: user.auth_email,
+    passwordSalt: user.password_salt,
+    passwordHash: user.password_hash,
+  };
+}
+
+async function ensureFirebasePasswordReady(env: Env, original: InternalUser): Promise<InternalUser> {
+  if (!env.GOOGLE_RUNTIME_SA_JSON || !env.FIREBASE_WEB_API_KEY) throw new Error("AUTH_RUNTIME_NOT_CONFIGURED");
+  let user = original;
+  if (!user.password_hash || !user.password_salt) {
+    let bootstrapPassword: string | null = null;
+    if (user.base_role === "ROOT" && user.user_id === "root" && env.ROOT_BOOTSTRAP_PASSWORD) {
+      bootstrapPassword = env.ROOT_BOOTSTRAP_PASSWORD;
+    } else if (user.base_role === "PICKER") {
+      bootstrapPassword = env.PICKER_DEFAULT_PASSWORD || env.ROOT_BOOTSTRAP_PASSWORD || null;
+    }
+    if (!bootstrapPassword) throw new Error("PASSWORD_NOT_INITIALIZED");
+    await savePassword(env, user.user_id, bootstrapPassword);
+    user = (await getUserById(env, user.user_id))!;
+  }
+
+  const uid = await ensureFirebaseUid(env, user);
+  if (Number(user.firebase_password_ready || 0) !== 1) {
+    const imported = await importPasswordIdentity(
+      env.GOOGLE_RUNTIME_SA_JSON,
+      env.FIREBASE_PROJECT_ID,
+      firebaseUserSpec(user, uid),
+    );
+    await coreJson(env, "/auth/firebase-password-ready", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ user_id: user.user_id, firebase_uid: uid, auth_email: imported.email }),
+    });
+    user = (await getUserById(env, user.user_id))!;
+  }
+  return user;
+}
+
+async function closeUserRealtime(env: Env, userId: string, channel?: "WEB" | "ANDROID"): Promise<void> {
   try {
     await coreStub(env).fetch("https://inventory-core.internal/realtime/close-user", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ user_id: userId, reason: "session-replaced" }),
+      body: JSON.stringify({ user_id: userId, client_type: channel || "", reason: "session-replaced" }),
     });
   } catch {
     // HTTP auth generation remains authoritative even if an old socket closes on its next lifecycle edge.
   }
 }
 
-async function activateInteractiveSession(env: Env, userId: string): Promise<number> {
-  const result = await coreJson<{ session_generation: number }>(env, "/auth/activate-session", {
+async function activateInteractiveSession(
+  env: Env,
+  userId: string,
+  channel: "WEB" | "ANDROID",
+  deviceId: string,
+  force: boolean,
+): Promise<{ generation: number; replaced: boolean } | { conflict: true }> {
+  const response = await coreStub(env).fetch("https://inventory-core.internal/auth/activate-session", {
     method: "PUT",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ user_id: userId }),
+    body: JSON.stringify({ user_id: userId, channel, device_id: deviceId, force }),
   });
-  await closeUserRealtime(env, userId);
-  return Math.max(1, Number(result.session_generation || 0));
+  const payload = (await response.json()) as { error?: string; session_generation?: number; replaced_other_device?: boolean };
+  if (response.status === 409 && payload.error === "SESSION_ACTIVE_OTHER_DEVICE") return { conflict: true };
+  if (!response.ok) throw new Error(`core_http_${response.status}`);
+  await closeUserRealtime(env, userId, channel);
+  return {
+    generation: Math.max(1, Number(payload.session_generation || 0)),
+    replaced: Boolean(payload.replaced_other_device),
+  };
 }
 
 async function requireUser(request: Request, env: Env, roles?: AppRole[]): Promise<InternalUser> {
