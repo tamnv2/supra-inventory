@@ -681,7 +681,7 @@ namespace SupraInventoryRelayAgent
             _agentAuthStatus.ForeColor = Color.FromArgb(180, 76, 60);
             agentCard.Controls.Add(_agentAuthStatus);
 
-            agentCard.Controls.Add(new Label { Left = 18, Top = 72, Width = 170, Height = 20, Text = "Email ADMIN đăng ký" });
+            agentCard.Controls.Add(new Label { Left = 18, Top = 72, Width = 170, Height = 20, Text = "Tài khoản / email ADMIN" });
             _username.SetBounds(18, 94, 290, 28);
             agentCard.Controls.Add(_username);
             agentCard.Controls.Add(new Label { Left = 326, Top = 72, Width = 120, Height = 20, Text = "Mật khẩu" });
@@ -1674,59 +1674,62 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private AgentSession FirebasePasswordLoginDirect(string email, string password)
+        private static string ResolveAdminFirebaseEmail(string identifier)
         {
-            if (string.IsNullOrWhiteSpace(email) || email.IndexOf("@", StringComparison.Ordinal) <= 0)
-                throw new InvalidOperationException("Agent cần email ADMIN đã đăng ký trên Website.");
+            var value = (identifier ?? "").Trim().ToLowerInvariant();
+            if (value.Length == 0) throw new InvalidOperationException("Nhập tài khoản hoặc email ADMIN.");
+            if (value.IndexOf("@", StringComparison.Ordinal) > 0) return value;
+            if (!Regex.IsMatch(value, "^[a-z0-9._-]{1,64}$"))
+                throw new InvalidOperationException("Tài khoản ADMIN không hợp lệ.");
+            var seed = Regex.Replace(value, "[^a-z0-9._-]", "-").Trim('-');
+            if (seed.Length > 44) seed = seed.Substring(0, 44);
+            if (seed.Length == 0) seed = "user";
+            return "admin." + seed + "@auth.supra.invalid";
+        }
+
+        private AgentSession FirebasePasswordLoginDirect(string identifier, string password)
+        {
+            var email = ResolveAdminFirebaseEmail(identifier);
             if (string.IsNullOrWhiteSpace(password))
-                throw new InvalidOperationException("Mật khẩu ADMIN trống.");
+                throw new InvalidOperationException("Nhập mật khẩu ADMIN.");
 
             var url = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" +
                       Uri.EscapeDataString(AgentConfig.FirebaseApiKey);
-            var payload = new Dictionary<string, object>
+            var payload = _json.Serialize(new Dictionary<string, object>
             {
-                { "email", email.Trim().ToLowerInvariant() },
+                { "email", email },
                 { "password", password },
                 { "returnSecureToken", true }
-            };
+            });
             Log("Firebase ADMIN login START host=identitytoolkit.googleapis.com ssid=" + GetSsid());
-            var root = Map(_json.DeserializeObject(RequestJson(
-                "POST",
-                url,
-                _json.Serialize(payload),
-                "application/json")));
-
-            var idToken = root.ContainsKey("idToken") ? Convert.ToString(root["idToken"]) : "";
-            var refreshToken = root.ContainsKey("refreshToken") ? Convert.ToString(root["refreshToken"]) : "";
-            var firebaseUid = FirebaseUidFromIdToken(idToken);
+            var root = Map(_json.DeserializeObject(RequestJson("POST", url, payload, "application/json")));
+            var idToken = Text(root, "idToken");
+            var refreshToken = Text(root, "refreshToken");
+            var expires = ParseInt(Text(root, "expiresIn"), 3600);
+            var firebaseUid = Text(root, "localId");
+            if (string.IsNullOrWhiteSpace(firebaseUid)) firebaseUid = FirebaseUidFromIdToken(idToken);
             var audience = FirebaseAudienceFromIdToken(idToken);
-            var role = FirebaseClaimFromIdToken(idToken, "app_role");
-            var baseRole = FirebaseClaimFromIdToken(idToken, "app_base_role");
-            var appUserId = FirebaseClaimFromIdToken(idToken, "app_user_id");
-
+            var tokenRole = FirebaseClaimFromIdToken(idToken, "app_role");
+            var tokenBaseRole = FirebaseClaimFromIdToken(idToken, "app_base_role");
+            var tokenAppUser = FirebaseClaimFromIdToken(idToken, "app_user_id");
             if (!string.Equals(audience, AgentConfig.FirebaseProjectId, StringComparison.Ordinal))
                 throw new InvalidOperationException("Firebase token sai project audience.");
-            if (!string.Equals(role, "ADMIN", StringComparison.Ordinal) ||
-                !string.Equals(baseRole, "ADMIN", StringComparison.Ordinal) ||
-                string.IsNullOrWhiteSpace(appUserId))
-                throw new InvalidOperationException("Chỉ tài khoản ADMIN thực đã đồng bộ Firebase mới được đăng nhập Agent.");
+            if (!string.Equals(tokenRole, "ADMIN", StringComparison.Ordinal) ||
+                !string.Equals(tokenBaseRole, "ADMIN", StringComparison.Ordinal) ||
+                string.IsNullOrWhiteSpace(tokenAppUser))
+                throw new InvalidOperationException("Chỉ tài khoản ADMIN thực đã đồng bộ Firebase mới được xác minh Agent.");
 
-            var next = new AgentSession
+            return new AgentSession
             {
                 IdToken = idToken,
                 RefreshToken = refreshToken,
                 UserId = firebaseUid,
-                AppUserId = appUserId,
-                LoginName = email.Trim().ToLowerInvariant(),
-                Role = role,
-                BaseRole = baseRole,
-                ExpiresUtc = DateTime.UtcNow.AddSeconds(ParseInt(root, "expiresIn", 3600) - 60)
+                AppUserId = tokenAppUser,
+                LoginName = identifier.Trim(),
+                Role = tokenRole,
+                BaseRole = tokenBaseRole,
+                ExpiresUtc = DateTime.UtcNow.AddSeconds(Math.Max(60, expires))
             };
-            if (string.IsNullOrWhiteSpace(next.IdToken) ||
-                string.IsNullOrWhiteSpace(next.RefreshToken) ||
-                string.IsNullOrWhiteSpace(next.UserId))
-                throw new InvalidOperationException("Firebase không trả phiên ADMIN Agent đầy đủ.");
-            return next;
         }
 
         private void PairLogin()
@@ -1741,7 +1744,7 @@ namespace SupraInventoryRelayAgent
             });
             if (email.Length == 0 || password.Length == 0)
             {
-                Log("Nhập email ADMIN đã đăng ký và mật khẩu.");
+                Log("Nhập tài khoản/email ADMIN và mật khẩu.");
                 Ui(() => _pair.Enabled = true);
                 return;
             }
