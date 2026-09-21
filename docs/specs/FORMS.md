@@ -414,3 +414,31 @@ After Agent auth PASS, the existing authorized Supra session logic starts normal
 - Legacy minimum 420×64 is removed.
 - Practical configurable range is 120..7680 width and 32..4320 height.
 - Locked Overlay remains non-editable/click-through; unlock before resize.
+
+
+## D100 — ROOT System Reset form
+
+Navigation: `HỆ THỐNG → Đặt lại hệ thống`, visible to ROOT only.
+
+The page shows selectable cards with live service counts:
+- **Tài khoản Picker** — service + Firebase Auth identities; external HR Sheet unchanged.
+- **Tài khoản Reporter** — service + Firebase identities; business history is separate.
+- **Tài khoản Admin** — service + primary Firebase + Agent alias; ROOT excluded.
+- **Danh mục SKU** — service SKU Master only.
+- **Báo hàng đang xử lý** — pending batches/tickets and dependent realtime/result records.
+- **Lịch sử nghiệp vụ** — finalized batches/tickets/events/result/ACK/archive markers in service only.
+- **Log kỹ thuật trong service** — audit/delivery telemetry only; Drive log files unchanged.
+- **Phiên & thiết bị** — non-ROOT FCM/presence/Web/App session state.
+- **Cấu hình runtime** — SLA/app config + saved HR-source connection metadata; external Sheet contents unchanged.
+- **Dữ liệu Xác nhận đơn Firestore** — Beta relay jobs/rate-limit/coordination/Agent presence/confirm guards; blocked if any job is still PENDING.
+
+`Chọn toàn bộ dữ liệu runtime` selects those cards; it does not widen the reset boundary.
+
+Security flow:
+1. preview selected groups and counts;
+2. enter current ROOT password;
+3. explicit confirmation sends 6-digit email code;
+4. code expires after 10 minutes, maximum 5 attempts;
+5. final destructive confirmation executes the exact scope bound into that challenge.
+
+The page prominently states preserved resources: ROOT identity/password/email/session, Google Sheet/Drive contents, GitHub/source/schema/logic/UI, Stable and WMS.
