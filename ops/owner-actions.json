@@ -670,16 +670,20 @@
     },
     {
       "id": "OA016",
-      "status": "WAITING_FOR_D095_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-test D095 Firestore job visibility on normal and Office Agent networks",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Physical Beta PDA on normal Internet + Windows Agent on normal Internet and company Office network",
       "reason_owner_only": "Connected CI can verify parser/build/guards but cannot reproduce both physical Windows network paths and confirm the same live PDA request ID is observed end-to-end.",
       "prerequisites": {
         "owner_transport_authority": "OA012_PASS_OWNER_CONFIRMED",
-        "source_branch": "fix/d095-firestore-job-visibility",
-        "agent_release": "PENDING_RELAY_AGENT_V20",
-        "android_release": "PENDING_NEXT_SIGNED_BETA_RELEASE",
+        "merged_pr": 115,
+        "merged_main": "52aabdbd3a1eedfa96c6a525dd155b370e9d9138",
+        "agent_release": "relay-agent-v20",
+        "agent_release_sha256": "4e1daa4dc154b7fa850199f1b700819085741cfc4d0311f31827df74cf9f1096",
+        "android_release": "beta-vc59",
+        "android_apk_sha256": "5fb4422312cf4380a158cec9d12d1730dc184ea5a468def599edc15508ec8800",
+        "main_ci": "AUTHORITY_STATE_BETA_UI_AGENT_ANDROID_PASS",
         "oa013": "BLOCKED_UNTIL_THIS_ACTION_PASSES"
       },
       "shortest_test_path": [
@@ -703,7 +707,18 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Do not share passwords, tokens, cookies, WMS headers/signatures, encrypted session files or raw WMS response bodies. This gate verifies transport/job visibility only; do not execute the real WMS confirmation until OA016 passes.",
-      "remaining_owner_action": "Wait for D095 Agent v20 + signed Beta release, then run the two Agent-network request-ID correlation tests while keeping PDA on normal Internet. OA013 resumes only after PASS."
+      "remaining_owner_action": "Install relay-agent-v20 and beta-vc59. Keep PDA on normal Internet; verify one request-ID correlation with Agent on normal Internet, then one with Agent on Office. Verify normal Báo hàng remains independent. OA013 resumes only after PASS.",
+      "runtime_readiness": {
+        "main": "52aabdbd3a1eedfa96c6a525dd155b370e9d9138",
+        "repo_authority_run": 35558582310,
+        "project_state_run": 35558582318,
+        "beta_worker_run": 35558582419,
+        "ui_run": 35558582329,
+        "agent_run": 35558582311,
+        "android_run": 35558582307,
+        "agent_release_id": 392682761,
+        "android_release_id": 392682842
+      }
     }
   ]
 }

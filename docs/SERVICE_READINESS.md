@@ -6,11 +6,11 @@
 
 - Project: `supra-inventory`
 - SQLite schema: `8`
-- Latest signed Beta APK: `beta-vc58`
-- Current released Agent: `relay-agent-v19`
-- Beta: `D095_FIRESTORE_JOB_VISIBILITY_SOURCE_READY__CURRENT_RELEASE_V19_VC58_FIELD_FAIL__TARGET_V20_NEXT_SIGNED_BETA__OA016_AFTER_RELEASE__OA013_BLOCKED`
+- Latest signed Beta APK: `beta-vc59`
+- Current released Agent: `relay-agent-v20`
+- Beta: `D095_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC59__AGENT_V20__OA016_FIELD_PENDING__OA013_BLOCKED`
 - Web: `D089_OWNER_ACCEPTED_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON`
-- Android: `D095_PENDING_PRESERVATION_SOURCE_READY__CURRENT_RELEASE_BETA_VC58_FIELD_FAIL__NEXT_SIGNED_RELEASE_PENDING`
+- Android: `D095_SIGNED_BETA_VC59_PENDING_PRESERVATION_RELEASED__D089_OWNER_ACCEPTED_UI_BASELINE`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -96,6 +96,17 @@ No manual end-of-session handover is required. GitHub canonical state remains th
 - A second field failure deleted a still-PENDING Android job at 30 seconds while Agent Firestore connectivity recovered later. D095 keeps PENDING alive through the 120-second bounded window; 30 seconds is notice-only.
 - Agent v20 source refreshes the Windows default proxy on network-address change and gives safe Firestore reads three bounded default/fresh/default route attempts. Firestore never uses the WMS corporate fallback proxy.
 - Product paths are explicitly separate: Báo hàng = PDA normal Internet → Worker/InventoryCore; Xác nhận đơn = PDA normal Internet → Firestore → ACTIVE Agent (normal Internet or Office) → Firestore ACK → PDA.
-- Current released artifacts remain `relay-agent-v19` + `beta-vc58` and are **field FAIL for confirmation relay**. D095 targets `relay-agent-v20` + next signed Beta.
-- OA015 is superseded by OA016. OA013 real WMS confirmation remains blocked until OA016 PASS.
+- D095 repair is released as `relay-agent-v20` + `beta-vc59`; technical/runtime/release is PASS. The prior v19/vc58 pair remains historical field-FAIL evidence.
+- OA016 is READY_FOR_OWNER_FIELD_TEST. OA013 real WMS confirmation remains blocked until OA016 PASS.
+- Stable remains OWNER-GATED and untouched.
+
+## D095 release-state refresh — 2026-09-21
+
+- Main: `52aabdbd3a1eedfa96c6a525dd155b370e9d9138`; PR #115 merged.
+- Main Authority / State / Beta Worker / UI / Agent / Android workflows all PASS.
+- Released Agent: `relay-agent-v20`, SHA-256 `4e1daa4dc154b7fa850199f1b700819085741cfc4d0311f31827df74cf9f1096`.
+- Released signed APK: `beta-vc59`, SHA-256 `5fb4422312cf4380a158cec9d12d1730dc184ea5a468def599edc15508ec8800`.
+- D095 technical/runtime/release: PASS.
+- OA016 is READY_FOR_OWNER_FIELD_TEST: PDA stays normal Internet; test Agent on normal Internet and Office with matching request IDs; verify Báo hàng remains Worker/InventoryCore and Agent-independent.
+- OA013 remains blocked until OA016 PASS.
 - Stable remains OWNER-GATED and untouched.
