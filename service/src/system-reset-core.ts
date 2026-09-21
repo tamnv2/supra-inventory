@@ -167,8 +167,85 @@ function executeReset(state: DurableObjectState, scopes: SystemResetScope[]): Re
   return { before, after: resetPreview(state), scopes };
 }
 
+interface ResetChallenge {
+  challenge_id: string;
+  root_user_id: string;
+  email: string;
+  scopes: SystemResetScope[];
+  code_hash: string;
+  created_at: string;
+  expires_at: string;
+  attempts: number;
+  verified_at?: string | null;
+}
+
+function challengeKey(id: string): string { return `system-reset-challenge:${id}`; }
+
 export async function handleSystemResetCoreRequest(state: DurableObjectState, request: Request): Promise<Response | null> {
   const url = new URL(request.url);
+
+  if (request.method === "POST" && url.pathname === "/root/system-reset/challenge-store") {
+    const body = (await request.json()) as ResetChallenge;
+    const scopes = validScopes(body.scopes);
+    const expiresAt = Date.parse(String(body.expires_at || ""));
+    if (!body.challenge_id || !body.root_user_id || !body.email || !body.code_hash || !scopes.length || !Number.isFinite(expiresAt)) {
+      return response({ error: "INVALID_RESET_CHALLENGE" }, 400);
+    }
+    const challenge: ResetChallenge = {
+      challenge_id: String(body.challenge_id),
+      root_user_id: String(body.root_user_id),
+      email: String(body.email),
+      scopes,
+      code_hash: String(body.code_hash),
+      created_at: String(body.created_at || new Date().toISOString()),
+      expires_at: new Date(expiresAt).toISOString(),
+      attempts: 0,
+      verified_at: null,
+    };
+    await state.storage.put(challengeKey(challenge.challenge_id), challenge);
+    return response({ status: "stored" });
+  }
+
+  if (request.method === "POST" && url.pathname === "/root/system-reset/challenge-delete") {
+    const body = (await request.json()) as { challenge_id?: string };
+    const id = String(body.challenge_id || "");
+    if (id) await state.storage.delete(challengeKey(id));
+    return response({ status: "deleted" });
+  }
+
+  if (request.method === "POST" && url.pathname === "/root/system-reset/challenge-verify") {
+    const body = (await request.json()) as { challenge_id?: string; root_user_id?: string; code_hash?: string };
+    const id = String(body.challenge_id || "");
+    const challenge = id ? await state.storage.get<ResetChallenge>(challengeKey(id)) : null;
+    if (!challenge || challenge.root_user_id !== String(body.root_user_id || "")) return response({ error: "RESET_CHALLENGE_INVALID" }, 400);
+    if (Date.parse(challenge.expires_at) < Date.now()) {
+      await state.storage.delete(challengeKey(id));
+      return response({ error: "RESET_CODE_EXPIRED" }, 400);
+    }
+    if (challenge.attempts >= 5) {
+      await state.storage.delete(challengeKey(id));
+      return response({ error: "RESET_CODE_LOCKED" }, 429);
+    }
+    if (challenge.code_hash !== String(body.code_hash || "")) {
+      challenge.attempts += 1;
+      await state.storage.put(challengeKey(id), challenge);
+      return response({ error: "RESET_CODE_INVALID", remaining_attempts: Math.max(0, 5 - challenge.attempts) }, 400);
+    }
+    challenge.verified_at = new Date().toISOString();
+    await state.storage.put(challengeKey(id), challenge);
+    return response({ status: "verified", scopes: challenge.scopes, email: challenge.email });
+  }
+
+  if (request.method === "POST" && url.pathname === "/root/system-reset/challenge-consume") {
+    const body = (await request.json()) as { challenge_id?: string; root_user_id?: string };
+    const id = String(body.challenge_id || "");
+    const challenge = id ? await state.storage.get<ResetChallenge>(challengeKey(id)) : null;
+    if (!challenge || challenge.root_user_id !== String(body.root_user_id || "") || !challenge.verified_at) {
+      return response({ error: "RESET_CHALLENGE_NOT_VERIFIED" }, 400);
+    }
+    await state.storage.delete(challengeKey(id));
+    return response({ status: "consumed" });
+  }
 
   if (request.method === "GET" && url.pathname === "/root/system-reset/preview") {
     return response({ counts: resetPreview(state) });
