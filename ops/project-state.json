@@ -13,16 +13,16 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D089_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC54__AGENT_V15__READY_FOR_NEW_REQUIREMENTS",
+    "beta": "D091_FIRESTORE_INFRA_RUNTIME_PASS__D089_OWNER_ACCEPTED_UI_BASELINE__SIGNED_BETA_VC55__AGENT_V16__PHYSICAL_OFFICE_E2E_PENDING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 8,
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
     "web": "D089_OWNER_ACCEPTED_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON",
-    "android": "D089_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC54__APPROVED_ICON__TRANSPORT_SELECTION_PENDING",
-    "latest_beta_apk": "beta-vc54",
+    "android": "D091_SIGNED_BETA_VC55_FIRESTORE_FIELD_CANDIDATE_RELEASED__D089_OWNER_ACCEPTED_UI_BASELINE",
+    "latest_beta_apk": "beta-vc55",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
-    "network_scope": "D091_OFFICE_GOOGLE_ONLY__FIRESTORE_AUTHENTICATED_E2E_FIELD_TEST_NEXT__RTDB_REJECTED_OFFICE__NO_CLOUDFLARE_RETEST",
+    "network_scope": "D091_FIRESTORE_DATABASE_AND_LOCKED_RULES_RUNTIME_PASS__PHYSICAL_OFFICE_E2E_NEXT__RTDB_REJECTED_OFFICE__NO_CLOUDFLARE_RETEST",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "SERVER_PAGED_FILTERED_ONE_MANY_ALL__ROOT_EFFECTIVE_ROLE_TEST_RUNTIME_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D091_FIRESTORE_DEFAULT_DB_PROVISIONED_ASIA_SOUTHEAST1__RULES_MANAGEMENT_REST_PIPELINE_PENDING__AGENT_V16_PLUS_BETA_VC55_FIELD_ARTIFACTS_RELEASED__TRANSPORT_ONLY_ACK__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D091_FIRESTORE_INFRA_RUNTIME_PASS__AGENT_V16_PLUS_BETA_VC55_READY_FOR_PHYSICAL_OFFICE_TRANSPORT_ONLY_TEST__NO_WMS_MUTATION"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -163,8 +163,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Complete D091 Firestore Rules deployment through the Firebase Rules Management REST API, read back the active release, then Owner performs one physical Office end-to-end PDA ↔ Agent Firestore test using relay-agent-v16 + beta-vc55.",
-    "method": "D091 first proves transport with a single Agent and TRANSPORT_ONLY ACK. If field E2E PASS, continue to quota-safe HA/failover design before final transport selection. If authenticated Firestore E2E fails due Office transport, move to Apps Script as the next Google-hosted candidate. No Cloudflare/RTDB Office retest.",
+    "primary": "Owner performs one physical Office end-to-end D091 test using relay-agent-v16 + beta-vc55: Picker PDA → Firestore → Office Agent → Firestore ACK → originating PDA.",
+    "method": "Use one Agent only for this first field proof. PASS requires TRANSPORT_ONLY ACK on PDA and matching short request id in Agent FIRESTORE audit. If PASS, continue quota-safe D085 multi-Agent/10-second failover design before final transport selection. If authenticated Firestore transport fails on Office, move directly to Apps Script; do not retest Cloudflare/RTDB.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -192,7 +192,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D091 ACTIVE: Beta Firestore `(default)` is provisioned in asia-southeast1. Replace Firebase CLI Rules deployment with Firebase Rules Management REST API using the existing Firebase Rules Admin grant; after Rules readback PASS, run one physical Office PDA ↔ Agent TRANSPORT_ONLY round trip. Final HA/quota selection waits for physical E2E.",
+      "D091 INFRA RUNTIME PASS: Beta Firestore `(default)` exists in asia-southeast1; locked D091 Rules are deployed via Firebase Rules Management REST API with release readback PASS. relay-agent-v16 + beta-vc55 are released. Physical Office PDA ↔ Agent TRANSPORT_ONLY E2E is the next gate.",
       "D090 OWNER CONFIRMED: Office transport boundary is internal Supra + selected Google only. No further Cloudflare/Worker Office probe. RTDB is proxy-blocked; next replacement research is Google-hosted, with Firestore preferred but not yet selected.",
       "D089 OWNER ACCEPTED PASS: released Beta Web + signed beta-vc54 + relay-agent-v15 accepted by Owner on 2026-09-21. Accepted baseline: exact icon #4, Service/Realtime separation, dark Tools page, granular persistent Overlay controls, Agent single-instance restore. D078 transport remains pending; WMS GET-only; Stable OWNER-GATED.",
       "D088 technical/runtime/release PASS: main 48367c46b20405c48abb6ed8c0b59601defe1130; schema 8/Web runtime PASS, signed beta-vc53 PASS, relay-agent-v14 PASS with normalized release asset contract. Owner field acceptance pending; D078 transport remains pending.",
@@ -450,7 +450,8 @@
     "D085 Beta technical/release PASS: PR #89 merged at bf309b9788f5adac179ef293f4770eafb6bdcedf; main Repo Authority/Project State/RTDB Rules/Beta Deploy/Relay Agent/Android/UI runs 35475860723/35475860686/35475860708/35475860697/35475860715/35475860695/35475860687 all PASS. Published relay-agent-v10 EXE SHA-256 740af8d4bada6bc68999aa30e1c2b5fa3006937a7acca321a8be429faeee63b0 and signed beta-vc52 APK SHA-256 0f5e02f7ca9f1f66b589479f833db4b4b4aabb356029d580afcd094c52683c32. D078 transport selection remains pending; WMS mutation remains forbidden; Stable untouched.",
     "D089 Beta technical/runtime/release PASS: PR #99 merged at c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee after final PR Repo Authority/Project State/RTDB Rules/UI/Relay Agent/Android runs 35528500471/35528500466/35528500468/35528500465/35528500524/35528500467 PASS. Main Repo Authority/Project State/Beta Deploy/UI/Relay Agent/Android runs 35528647571/35528647574/35528647549/35528647554/35528647534/35528647526 all PASS. Published relay-agent-v15 prerelease id 392528472, Agent.Auto.Confirm.Pick.Pack.exe asset id 577316714 size 177152 SHA-256 94f82fc377057c5bbb1d80bbf0830f523bdf16108b40898ce63bb041624b9e9a. Published signed beta-vc54 release id 392528497, APK asset id 577316797 size 9340834 SHA-256 eeb95c489bf7dbfa455b323633bfe28685674f57f6ba76facd4c04e3b0958c2c. Stable untouched; D078 transport pending; WMS mutation forbidden.",
     "D089 Owner field acceptance PASS on 2026-09-21: Owner explicitly confirmed the released D089 result had achieved the requested requirements after testing Beta Web, signed beta-vc54 and relay-agent-v15. This closes OA011 and upgrades D089 from technical/runtime/release PASS to Owner-accepted PASS. The accepted baseline includes the exact shared icon #4, independent Service/Realtime status, dark Tools UI, granular persistent Overlay settings, and single-instance Agent duplicate-launch restore. D078 final transport remains pending, WMS remains GET-only, and Stable remains OWNER-GATED.",
-    "D091 infrastructure evidence 2026-09-21: GitHub Actions run 35548094709 created/read back Beta Firestore `(default)` in asia-southeast1 successfully after Owner granted the scoped database role. Firebase CLI Rules deploy then failed only on its Service Usage preflight (`serviceusage.services.get`), so deployment is being changed to the Firebase Rules Management REST API using the already-scoped Firebase Rules Admin permission."
+    "D091 infrastructure evidence 2026-09-21: GitHub Actions run 35548094709 created/read back Beta Firestore `(default)` in asia-southeast1 successfully after Owner granted the scoped database role. Firebase CLI Rules deploy then failed only on its Service Usage preflight (`serviceusage.services.get`), so deployment is being changed to the Firebase Rules Management REST API using the already-scoped Firebase Rules Admin permission.",
+    "D091 Firestore infrastructure runtime PASS: PR #107 merged at cecf56079eba144188a0080bca8b1e78bcbfdd00; main Deploy Beta Firestore Relay run 35548847740 PASS. Existing (default) database readback confirmed asia-southeast1; Firebase Rules ruleset creation PASS; cloud.firestore release deploy + readback PASS. Field artifacts remain relay-agent-v16 and beta-vc55. Physical Office E2E is still pending."
   ],
   "implementation_notes": [
     "D068 follow-up clean-copy patch replaces raw runtime-log filenames/JSON detail on the normal Web Nhật ký surface with a structured operational summary; downloadable support logging remains available. Frozen D067 items 1–8 and 10 are unchanged.",
