@@ -91,3 +91,16 @@ After Owner-confirmed D091 physical Office Firestore E2E PASS, the confirmation 
 Execution order is fail-closed: authenticated request → sticky ACTIVE Agent → conditional job claim → D085 anti-spam → D084 lookup/cache → unique full PickListCode resolution → cross-Agent confirmation guard → bounded WMS POST → ACK. No step may reconstruct/guess a full PickListCode from five digits or replay an uncertain mutation outcome.
 
 Only final truthful NOT_FOUND affects the Picker strike counter. Any session/network/schema/permission/transport/confirmation uncertainty returns an error without counting as wrong input. Stable remains OWNER-GATED.
+
+
+## D098 shared Cloudflare account budget
+
+The Workers Paid account is shared with other Owner projects. SUPRA Inventory must not assume the whole $5 included allowance is available.
+
+- Inventory design ceiling is **35% of each relevant included usage metric** at the approved max-load envelope.
+- 65% is reserved for other projects.
+- The ceiling is evaluated per metric; averaging metrics is forbidden.
+- Hibernatable realtime, event-driven invalidation, bounded reconnect and delta recovery are preferred over polling.
+- A new feature that materially increases Worker/DO/SQLite usage must include a bounded projection/test before technical PASS.
+- Paid-plan availability does not authorize unbounded monitoring/provider polling.
+- Firestore quota is tracked separately and remains a later optimization workstream after D098 identity/realtime acceptance.
