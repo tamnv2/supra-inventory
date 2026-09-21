@@ -779,3 +779,29 @@ Physical field PASS:
 5. Verify in SFT / SFT 3 that the Picklist reached the expected confirmed state.
 6. Repeat of an already-confirmed request must not issue a second WMS POST because the confirmation guard remains authoritative.
 7. Any uncertain result must remain fail-closed: do not press again; verify in SFT / SFT 3.
+
+
+## D097 quota-safe HA and network-transition acceptance
+
+Automated/source PASS requires:
+
+1. Agent build is v22 or later; Android source uses Firebase Auth + Firestore SDK snapshot listener for exactly one request document with persistence disabled.
+2. PRIMARY poll interval is 5 seconds, STANDBY 10 seconds, failover/request-age threshold 10 seconds, terminal job age 30 seconds and bounded concurrency is 12.
+3. Firestore 4-second leader heartbeat is absent; presence writes are hourly and FROZEN business polling is absent.
+4. Firestore Rules authorize direct real-ADMIN `PENDING → ACK`; `PROCESSING` is absent.
+5. Queue query is bounded and ordered oldest-first by `status + created_at`; the required composite index is source-controlled and main deploy creates it when missing.
+6. Network-address changes call the Firestore transition marker and staged Windows proxy refresh through the 15-second transition period; Firestore transport never uses the WMS corporate fallback proxy.
+7. A transport failure preserves role and forces role revalidation before recovered Agent takes new work.
+8. Standby takeover is conditional, excludes the failed prior PRIMARY from immediate replacement selection, and can select a WMS-ready replacement STANDBY from bounded presence metadata.
+9. The confirmation guard uses one create write, has no second `MarkConfirmed` Firestore write, and can prove confirmed idempotency from the originating ACK.
+10. Final NOT_FOUND anti-spam remains 3/60s with 5/30/60-minute locks and is idempotent by request id. FOUND clears persisted wrong-input state.
+11. D096 exact resolver, WMS payload/endpoint, business `Status=true` success requirement and secret guards remain unchanged.
+12. Báo hàng Worker/InventoryCore path remains unchanged. Stable remains untouched.
+
+Physical acceptance after release:
+
+- Normal network: a valid request should normally complete within 10 seconds.
+- Switch Agent laptop between normal Internet and Office without restarting Agent: temporary DNS/proxy transition must not falsely erase role; Firestore must recover on the Windows route.
+- With PRIMARY unavailable, a request still pending at 10 seconds must be eligible for STANDBY takeover; after promotion, replacement STANDBY selection is best-effort from live WMS-ready Agents.
+- If neither processing path completes by 30 seconds, PDA must direct the Picker to the specialist desk.
+- Burst test up to 30 simultaneous requests must not produce duplicate WMS mutation; tail latency and WMS throttling are measured before Stable consideration.
