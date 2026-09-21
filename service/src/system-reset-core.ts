@@ -191,6 +191,11 @@ export async function handleSystemResetCoreRequest(state: DurableObjectState, re
     if (!body.challenge_id || !body.root_user_id || !body.email || !body.code_hash || !scopes.length || !Number.isFinite(expiresAt)) {
       return response({ error: "INVALID_RESET_CHALLENGE" }, 400);
     }
+    const throttleKey = `system-reset-throttle:${String(body.root_user_id)}`;
+    const lastSentAt = Number((await state.storage.get<number>(throttleKey)) || 0);
+    if (lastSentAt && Date.now() - lastSentAt < 60_000) {
+      return response({ error: "RESET_CODE_RATE_LIMIT", retry_after_seconds: Math.ceil((60_000 - (Date.now() - lastSentAt)) / 1000) }, 429);
+    }
     const challenge: ResetChallenge = {
       challenge_id: String(body.challenge_id),
       root_user_id: String(body.root_user_id),
@@ -203,6 +208,7 @@ export async function handleSystemResetCoreRequest(state: DurableObjectState, re
       verified_at: null,
     };
     await state.storage.put(challengeKey(challenge.challenge_id), challenge);
+    await state.storage.put(throttleKey, Date.now());
     return response({ status: "stored" });
   }
 
