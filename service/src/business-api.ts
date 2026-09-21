@@ -110,9 +110,9 @@ async function ensureOperationalV2(env: BusinessEnv): Promise<Response | null> {
   try {
     const response = await coreGet(env, "/operational/init");
     if (response.ok) return null;
-    return json({ error: "OPERATIONAL_V2_NOT_READY" }, 503);
+    return json({ error: "OPERATIONAL_V2_NOT_READY", message: "Hệ thống nghiệp vụ chưa khởi tạo xong. Dịch vụ đang tự phục hồi, vui lòng thử lại." }, 503);
   } catch {
-    return json({ error: "OPERATIONAL_V2_NOT_READY" }, 503);
+    return json({ error: "OPERATIONAL_V2_NOT_READY", message: "Hệ thống nghiệp vụ chưa khởi tạo xong. Dịch vụ đang tự phục hồi, vui lòng thử lại." }, 503);
   }
 }
 

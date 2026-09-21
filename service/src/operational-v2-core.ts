@@ -1243,6 +1243,15 @@ function adminInsights(state: DurableObjectState, url: URL): Response {
 export async function handleOperationalV2CoreRequest(state: DurableObjectState, request: Request): Promise<Response | null> {
   const url = new URL(request.url);
 
+  if (request.method === "GET" && url.pathname === "/operational/init") {
+    initializeOperationalV2Schema(state);
+    const readiness = operationalV2Readiness(state);
+    return json({
+      status: readiness.ready ? "ready" : "not_ready",
+      ...readiness,
+    }, readiness.ready ? 200 : 503);
+  }
+
   if (request.method === "GET" && url.pathname === "/operational/reporter/queue") return reporterQueue(state, url);
   if (request.method === "GET" && url.pathname === "/operational/reporter/recent") return reporterRecent(state, url);
   if (request.method === "GET" && url.pathname === "/operational/reporter/batch-tickets") return reporterBatchTickets(state, url);

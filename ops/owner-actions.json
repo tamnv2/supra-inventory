@@ -870,7 +870,7 @@
     },
     {
       "id": "OA020",
-      "status": "READY_FOR_OWNER_MAIL_ONLY_RETRY_AFTER_RUNTIME_REPAIR",
+      "status": "FIELD_FAIL_POST_RESET_RUNTIME__REPAIR_SOURCE_CANDIDATE",
       "title": "Field-accept D100 ROOT System Reset and recovery mail",
       "resource_key": "cloudflare-beta-worker",
       "provider": "Beta Web + InventoryCore + Firebase Auth + Gmail send OAuth",
@@ -911,10 +911,10 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Review selected scopes before execute. Do not share ROOT password, OTP, OAuth refresh token, Firebase tokens, cookies or any secret values. Requesting the OTP alone is non-destructive; final reset execution is destructive for the selected runtime data.",
-      "remaining_owner_action": "Retry the non-destructive ROOT System Reset mail-only challenge exactly once. If email arrives, stop before destructive reset and report PASS. If it fails, provide the new visible message only; the repaired runtime now distinguishes missing scope, Gmail API disabled, Workspace domain policy, Google provider rate/quota, auth failure, or generic HTTP failure. Do not repeat OAuth consent unless the message specifically says the gmail.send scope is missing.",
-      "field_result": "MAIL_REPAIR_RUNTIME_PASS__ONE_FIELD_RETRY_REQUIRED",
+      "remaining_owner_action": "No action until the repair deploys. After deployment, verify normal navigation, create one intended test Admin/Reporter account, and retry the SKU import. Do not run another destructive reset just to recover the current service.",
+      "field_result": "RESET_DATA_DELETION_PASS__POST_RESET_OPERATIONAL_NOT_READY__ACCOUNT_CREATE_VALIDATION_FAIL__SKU_IMPORT_503",
       "field_result_date": "2026-09-22",
-      "field_result_note": "False local reset-code throttling after provider failure is repaired and deployed. One non-destructive field retry is required to identify/close the remaining Google provider issue."
+      "field_result_note": "Owner completed an actual Beta System Reset and confirmed intended data was deleted. Immediately afterward operational business routes/realtime/SKU import returned OPERATIONAL_V2_NOT_READY, while user listing remained available. Account recreation also failed with INVALID_USER_CREATE_SCOPE. Source diagnosis: RUNTIME_SETTINGS removed structural realtime stream metadata and the self-repair route was not wired; Admin email validation regex was double-escaped. Repair is in progress on fix/d100-post-reset-runtime-recovery."
     }
   ]
 }

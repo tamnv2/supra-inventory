@@ -274,3 +274,11 @@ System Reset is a deliberate ROOT-only data-zeroing operation, not normal retent
 - Firestore confirmation reset is optional and separate; active PENDING jobs block deletion.
 - ROOT remains usable throughout the reset.
 - External Google Sheet/Drive archives remain durable external records and are not used as an automatic restore source.
+
+## D100 post-reset runtime invariant
+
+- `RUNTIME_SETTINGS` resets user/business runtime configuration but must not leave the service structurally unready.
+- The reset may clear `app_config`, but the Operational V2 structural baseline is immediately recreated in the same Durable Object execution. A fresh realtime stream epoch is generated so clients resynchronize against the reset state.
+- Structural metadata (for example `realtime_stream_epoch_v1`) is excluded from the user-facing resettable configuration count.
+- After a successful reset, business APIs, realtime ticket issuance, account recreation and SKU import must work without a redeploy or manual restart.
+

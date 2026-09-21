@@ -2692,7 +2692,16 @@ function bindSection(): void {
     if (select.value) skuConflictChoices.set(select.dataset.skuConflict || "", select.value);
     else skuConflictChoices.delete(select.dataset.skuConflict || "");
   }));
-  document.querySelector<HTMLButtonElement>("#apply-sku-import")?.addEventListener("click", () => void run(importSkuWorkbook));
+  document.querySelector<HTMLButtonElement>("#apply-sku-import")?.addEventListener("click", () => void run(async () => {
+    try {
+      await importSkuWorkbook();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Không cập nhật được danh mục SKU.";
+      skuImportProgress = `Đã dừng: ${message}`;
+      patchActiveSection(true);
+      throw error;
+    }
+  }));
 
   document.querySelector<HTMLFormElement>("#hr-source-form")?.addEventListener("submit", (event) => {
     event.preventDefault();

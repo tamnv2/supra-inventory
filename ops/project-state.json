@@ -13,18 +13,18 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D100_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V25__BETA_VC62__OA019_FIELD_READY__OA020_MAIL_REPAIR_RUNTIME_PASS_FIELD_RETRY_READY",
+    "beta": "D100_POST_RESET_RUNTIME_RECOVERY_SOURCE_CANDIDATE__OA020_FIELD_FAIL",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 10,
-    "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
-    "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
+    "business_api": "D100_POST_RESET_SELF_REPAIR_SOURCE_CANDIDATE",
+    "sku_import": "D100_POST_RESET_IMPORT_RECOVERY_SOURCE_CANDIDATE",
     "web": "D100_BETA_RUNTIME_PASS__ROOT_ONLY_SYSTEM_RESET__TOOLS_AGENT_V25_CANONICAL__D099_LOGIN_FIX_PRESERVED",
     "android": "D099_SIGNED_BETA_VC62_LOGIN_REPAIR__D100_NO_ANDROID_RUNTIME_CHANGE",
     "latest_beta_apk": "beta-vc62",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
     "network_scope": "D100_AGENT_V25_USERNAME_SHARED_FIREBASE_UID_RELEASED__NO_WORKER_RUNTIME_DEPENDENCY__SUPRA_AUTH_GATE_PRESERVED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
-    "user_management": "D100_BETA_RUNTIME_PASS__ONE_FIREBASE_UID_WEB_APP_AGENT__USERNAME_LOGIN__RECOVERY_EMAIL_SEPARATE__ROOT_2FA_SYSTEM_RESET",
+    "user_management": "D100_POST_RESET_ACCOUNT_RECREATE_EMAIL_VALIDATION_FIX_SOURCE_CANDIDATE",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D069_XLSX_REPORT_EXPORT_BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "D100_RESET_ON_DEMAND_ONLY__D098_35PCT_NORMAL_RUNTIME_GUARD_PRESERVED__RESET_PROVIDER_COST_EXPLICIT",
@@ -172,7 +172,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Owner may run OA020 safely by requesting the ROOT reset OTP and stopping before execute to verify mail delivery; if Gmail send scope is missing, perform one bounded Google OAuth re-consent, then retry. OA019 physical PDA↔Agent/WMS acceptance must use relay-agent-v25 + beta-vc62. Stable remains OWNER-GATED.",
+  "next_action": "Complete PR/CI/deploy for D100 post-reset runtime recovery, then verify Beta health/business routes recover without manual restart; Owner re-tests account creation and SKU import after deployment. Do not execute another destructive reset solely for this fix unless a bounded reset regression is explicitly needed.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -576,7 +576,7 @@
     "D100 deploy proof parser hotfix: runtime main 2cf23d9229eb4bd5d9c45f3776bb2404ef06a68f is healthy (HTTP 200, source_commit exact, schema 10/10, agent migration 0/0, operational 5/5), but deploy workflow parsed source SCHEMA_VERSION as literal \\\\1 because sed replacement was over-escaped. fix/d100-beta-health-schema-proof changes only that CI parser to \\1.",
     "D100 OA020 mail repair: preserve successful-send 60-second throttling, but rollback the throttle when Gmail delivery fails; improve Google mail failure classification without logging provider tokens or raw sensitive responses."
   ],
-  "active_workstream": "D100_RELEASED_OWNER_FIELD_ACCEPTANCE__OA020_MAIL_RETRY_READY",
+  "active_workstream": "D100_OA020_POST_RESET_RUNTIME_RECOVERY",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
@@ -619,7 +619,8 @@
     "D096 Owner field evidence 2026-09-21: released Agent v20 logs pending-found + CLAIM PASS for PDA requests, then exact-resolve PASS HTTP 200 but EXACT_CODE_NOT_RESOLVED; no picklist-confirm call occurred. Owner-provided successful browser example confirms authorized confirm endpoint/payload semantics and Status=true success response; sensitive session/header values were not persisted.",
     "D100 OA020 Owner field evidence 2026-09-22: ROOT System Reset mail-only challenge reached the Gmail send step but returned RESET_EMAIL_UNAVAILABLE with the user-facing Gmail-send-permission message. Existing Beta OAuth refresh token is configured, while canonical D100 requires drive.file + gmail.send; one bounded Owner Google OAuth re-consent and Beta Worker refresh-token replacement is required before retry. No destructive reset was executed; Stable untouched.",
     "D100 OA020 field evidence 2026-09-22 follow-up: recent Beta Web support logs show /api/root/system-reset/challenge returning HTTP 503 on Gmail send, then RESET_CODE_RATE_LIMIT on a retry. Source audit confirmed a defect: challenge-store wrote the 60-second throttle before provider send and challenge-delete removed only the challenge, so failed Gmail delivery still consumed the throttle. Repair branch fix/d100-oa020-mail-throttle-diagnostics releases throttle only on provider failure and safely classifies Gmail OAuth/scope/API-disabled/domain-policy/provider-rate causes. No destructive reset executed; Stable untouched.",
-    "D100 OA020 mail repair runtime PASS 2026-09-22: PR #131 merged to main 27a791a1ad9a05da9acee0f2b7351fb1fda7cc4b. Main Project State 35633339838 PASS, Repo Authority 35633339786 PASS, UI 35633339783 PASS and Deploy Beta Worker 35633339816 PASS. Failed Gmail delivery now releases the local 60-second reset-code throttle and returns bounded sanitized provider cause codes. OA020 mail-only field retry is ready; Stable untouched."
+    "D100 OA020 mail repair runtime PASS 2026-09-22: PR #131 merged to main 27a791a1ad9a05da9acee0f2b7351fb1fda7cc4b. Main Project State 35633339838 PASS, Repo Authority 35633339786 PASS, UI 35633339783 PASS and Deploy Beta Worker 35633339816 PASS. Failed Gmail delivery now releases the local 60-second reset-code throttle and returns bounded sanitized provider cause codes. OA020 mail-only field retry is ready; Stable untouched.",
+    "D100 OA020 Owner destructive-reset field evidence 2026-09-22: selected Beta reset completed and intended data was removed, ROOT remained active, but post-reset Web immediately returned OPERATIONAL_V2_NOT_READY (503) for Reporter queue, Dashboard, realtime ticket and SKU import. GET /api/admin/users still returned 200, proving ROOT/session/user-management read path remained alive. Account recreation returned INVALID_USER_CREATE_SCOPE; source audit found the managed-account email regex was double-escaped and rejected valid Admin email syntax. Root cause for Operational V2: RUNTIME_SETTINGS deleted all app_config including structural realtime_stream_epoch_v1, while service had no routed /operational/init self-repair handler. Repair branch fix/d100-post-reset-runtime-recovery adds routed self-repair, immediate post-reset rebootstrap, correct email validation, actionable create-user errors and terminal SKU import failure progress. Stable untouched."
   ],
   "last_runtime_evidence": {
     "signed_beta_release": "beta-vc59",

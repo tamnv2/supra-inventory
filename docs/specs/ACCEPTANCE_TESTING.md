@@ -857,5 +857,9 @@ Technical PASS requires:
 9. Account reset removes corresponding InventoryCore users and their single Firebase identities; ROOT identity is never included.
 10. Firestore reset refuses to run while any confirmation job is PENDING.
 11. Reset changes data only; schema/versioned source/logic/UI definitions remain intact after execution.
+    - After resetting Runtime Settings, Operational V2 must remain or immediately return to READY in the same runtime: realtime ticket, Reporter queue, Dashboard, SKU import and other business APIs must not require a Worker redeploy/restart.
+    - Structural runtime metadata such as the realtime stream epoch is not counted as user-resettable configuration; it may be regenerated automatically during reset to force a clean client resync.
+    - A full reset followed by recreating an Admin with a valid email must succeed through validation and Firebase provisioning; valid email syntax must never be rejected by an escaped-regex defect.
+
 12. ROOT/ADMIN recovery request is enumeration-safe; Gmail link token is stored only as a hash, expires after 15 minutes, is single-use, and the resulting password works on Web/App/eligible Agent for the same UID.
 13. Stable is untouched.

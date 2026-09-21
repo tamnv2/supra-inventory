@@ -132,9 +132,36 @@ async function createManagedUser(state: DurableObjectState, request: Request): P
   const username = normalizeLogin(body.username);
   const displayName = normalizeName(body.display_name);
   const authEmail = String(body.auth_email || "").trim().toLowerCase();
-  const emailValid = !authEmail || /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(authEmail);
-  if (!actor?.user_id || !canCreateRole(actor.role, targetRole) || !validLogin(username) || !displayName || displayName.length > 200 || !validRequestId(body.request_id) || !validPasswordPart(body.password_salt) || !validPasswordPart(body.password_hash) || !emailValid || (targetRole === "ADMIN" && !authEmail)) {
-    return response({ error: "INVALID_USER_CREATE_SCOPE" }, 400);
+  const emailValid = !authEmail || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail);
+  if (!actor?.user_id) {
+    return response({ error: "USER_CREATE_ACTOR_REQUIRED", message: "Phiên người tạo tài khoản không hợp lệ." }, 400);
+  }
+  if (!["ADMIN", "REPORTER"].includes(targetRole)) {
+    return response({ error: "USER_CREATE_ROLE_INVALID", message: "Chỉ được tạo tài khoản Quản trị hoặc Người xử lý báo hàng." }, 400);
+  }
+  if (!canCreateRole(actor.role, targetRole)) {
+    return response({ error: "USER_CREATE_ROLE_FORBIDDEN", message: "Quyền hiện tại không được tạo loại tài khoản đã chọn." }, 403);
+  }
+  if (!validLogin(username)) {
+    return response({
+      error: "USER_CREATE_USERNAME_INVALID",
+      message: "Mã nhân viên / tên đăng nhập chỉ dùng chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang; tối đa 64 ký tự.",
+    }, 400);
+  }
+  if (!displayName || displayName.length > 200) {
+    return response({ error: "USER_CREATE_DISPLAY_NAME_INVALID", message: "Họ và tên không hợp lệ." }, 400);
+  }
+  if (!validRequestId(body.request_id)) {
+    return response({ error: "USER_CREATE_REQUEST_INVALID", message: "Yêu cầu tạo tài khoản không hợp lệ. Vui lòng thử lại." }, 400);
+  }
+  if (!validPasswordPart(body.password_salt) || !validPasswordPart(body.password_hash)) {
+    return response({ error: "USER_CREATE_PASSWORD_INVALID", message: "Không xử lý được mật khẩu khởi tạo. Vui lòng nhập lại mật khẩu." }, 400);
+  }
+  if (!emailValid) {
+    return response({ error: "USER_CREATE_EMAIL_INVALID", message: "Email đăng ký không hợp lệ." }, 400);
+  }
+  if (targetRole === "ADMIN" && !authEmail) {
+    return response({ error: "USER_CREATE_ADMIN_EMAIL_REQUIRED", message: "Tài khoản Quản trị bắt buộc có email đăng ký." }, 400);
   }
   const existing = first(state.storage.sql.exec<UserRow>(
     `SELECT user_id, firebase_uid, employee_code, display_name, role, status, password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at
@@ -161,7 +188,7 @@ async function updateManagedUser(state: DurableObjectState, request: Request): P
   const displayName = normalizeName(body.display_name ?? target.display_name);
   const status = String(body.status || target.status).toUpperCase() as UserStatus;
   const authEmail = body.auth_email == null ? (target.auth_email || "") : String(body.auth_email || "").trim().toLowerCase();
-  const emailValid = !authEmail || /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(authEmail);
+  const emailValid = !authEmail || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail);
   if (!displayName || displayName.length > 200 || !["ACTIVE","DISABLED"].includes(status) || !emailValid || (target.role === "ADMIN" && !authEmail)) return response({ error: "INVALID_USER_UPDATE" }, 400);
   state.storage.sql.exec(`UPDATE users SET display_name = ?, status = ?, auth_email = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`, displayName, status, authEmail || null, userId);
   if (status === "DISABLED") {

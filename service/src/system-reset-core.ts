@@ -1,3 +1,5 @@
+import { initializeOperationalV2Schema } from "./operational-v2-core";
+
 type SqlRow = Record<string, SqlStorageValue>;
 
 export type SystemResetScope =
@@ -66,7 +68,7 @@ function resetPreview(state: DurableObjectState): Record<string, number> {
     notification_delivery_attempts: count(state, "SELECT COUNT(*) AS n FROM notification_delivery_attempts"),
     fcm_devices: count(state, "SELECT COUNT(*) AS n FROM fcm_devices"),
     presence_sessions: count(state, "SELECT COUNT(*) AS n FROM presence_sessions"),
-    app_config: count(state, "SELECT COUNT(*) AS n FROM app_config"),
+    app_config: count(state, "SELECT COUNT(*) AS n FROM app_config WHERE key <> 'realtime_stream_epoch_v1'"),
     hr_source_config: count(state, "SELECT COUNT(*) AS n FROM hr_source_config"),
   };
 }
@@ -164,6 +166,14 @@ function executeReset(state: DurableObjectState, scopes: SystemResetScope[]): Re
       state.storage.sql.exec("DELETE FROM hr_source_config");
     }
   });
+
+  // Runtime settings are business configuration, but Operational V2 also stores
+  // a structural realtime stream epoch in app_config. Recreate structural runtime
+  // metadata immediately so a successful reset never leaves the service degraded.
+  if (selected.has("RUNTIME_SETTINGS")) {
+    initializeOperationalV2Schema(state);
+  }
+
   return { before, after: resetPreview(state), scopes };
 }
 
