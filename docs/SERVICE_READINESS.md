@@ -137,3 +137,17 @@ Source target is Beta-only and limited to the Picker confirmation Firestore wrap
 - Stable is not eligible for this change without a later explicit Owner command.
 
 - Canonical Android status: `D097_FIRESTORE_SNAPSHOT_LISTENER_SOURCE_READY__TARGET_BETA_VC60__D095_UI_BASELINE_PRESERVED`.
+
+
+## D097 release readiness
+
+- Beta: `D097_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V22__BETA_VC60__OA018_FIELD_ACCEPTANCE_READY`.
+- Android: `D097_SIGNED_BETA_VC60_FIRESTORE_LISTENER_RELEASED__D095_UI_BASELINE_PRESERVED`.
+- Latest signed Beta APK: `beta-vc60`.
+- Current released Agent: `relay-agent-v22`.
+- Main source `ad9bdbe32bc9d9c342b3a98d9fbb00846d8692af` is technical/runtime/release PASS.
+- Repo Authority `35575186486`, Project State `35575186191`, Beta Worker `35575186212`, Firestore `35575186225`, RTDB `35575186237`, Relay Agent `35575186389`, UI `35575186226`, Android `35575186223`: PASS.
+- Agent v22 SHA-256: `e986f660935bc3d24f2c493a63902fb23ca6125bb327ad87ddc9ed95dfcd5a64`.
+- APK vc60 SHA-256: `0c295a55fcd5e0ab6f2a9a1b9cd1d53d1fefba90c39187e9c74c7320a96853cc`.
+- OA018 is READY_FOR_OWNER_FIELD_TEST; runtime/release is no longer pending.
+- Stable remains OWNER-GATED and untouched.
