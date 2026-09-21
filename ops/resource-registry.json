@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D096_WMS_EXACT_RESOLVER_SOURCE_READY__CURRENT_AGENT_V20_TRANSPORT_PASS__TARGET_V21__BETA_VC59_UNCHANGED__OA017_AFTER_RELEASE",
+      "status": "D096_WMS_EXACT_RESOLVER_SOURCE_READY__CURRENT_AGENT_V20_PDA_AGENT_FIELD_PASS__TARGET_AGENT_V21__BETA_VC59_UNCHANGED__OA017_AFTER_RELEASE",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
