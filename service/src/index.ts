@@ -344,13 +344,20 @@ async function loadTestAuthorized(request: Request, env: Env): Promise<boolean> 
   return constantTimeEqual(supplied, env.LOAD_TEST_TOKEN);
 }
 
-function publicUser(user: InternalUser): Omit<InternalUser, "password_salt" | "password_hash" | "role_override" | "session_generation" | "session_started_at"> {
+function publicUser(user: InternalUser): Record<string, unknown> {
   const {
     password_salt: _salt,
     password_hash: _hash,
     role_override: _override,
-    session_generation: _sessionGeneration,
-    session_started_at: _sessionStartedAt,
+    session_generation: _legacyGeneration,
+    session_started_at: _legacyStarted,
+    web_session_generation: _webGeneration,
+    web_session_device_id: _webDevice,
+    web_session_started_at: _webStarted,
+    android_session_generation: _androidGeneration,
+    android_session_device_id: _androidDevice,
+    android_session_started_at: _androidStarted,
+    firebase_password_ready: _firebasePasswordReady,
     ...safe
   } = user;
   return safe;
