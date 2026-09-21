@@ -725,17 +725,18 @@
     },
     {
       "id": "OA017",
-      "status": "WAITING_FOR_D096_RELEASE",
+      "status": "BLOCKED_BY_OA018_D097_TRANSPORT_HA_GATE",
       "title": "Field-test D096 exact PickListCode resolution and real WMS confirmation",
       "resource_key": "supra-api-d080",
       "provider": "Physical Beta PDA + Windows Agent + authorized company WMS session",
       "reason_owner_only": "CI can execute parser/response regressions but cannot perform or verify an authorized real company WMS Picklist confirmation.",
       "prerequisites": {
         "source_branch": "fix/d096-wms-exact-confirm-v2",
-        "agent_release": "PENDING_RELAY_AGENT_V21",
-        "android_release": "beta-vc59__UNCHANGED",
+        "agent_release": "relay-agent-v22__AFTER_D097_MAIN",
+        "android_release": "beta-vc60__AFTER_D097_MAIN",
         "pda_agent_transport": "OWNER_CONFIRMED_WORKING_CURRENT_FIELD",
-        "stable": "OWNER_GATED"
+        "stable": "OWNER_GATED",
+        "d097_transport_ha": "OA018_PASS_REQUIRED_BEFORE_FINAL_ACCEPTANCE"
       },
       "shortest_test_path": [
         "Update only the Windows Agent to released v21; keep signed beta-vc59 on PDA.",
@@ -756,7 +757,45 @@
         "Stable remains untouched."
       ],
       "safety": "Use only an authorized company WMS session and an eligible Picklist. Do not share passwords, Authorization/Token/APISID/SID/SCID/USID, signatures/nonces, cookies, encrypted session files or raw sensitive WMS responses.",
-      "remaining_owner_action": "Wait for Agent v21 release, then run this one real eligible Picklist confirmation with existing beta-vc59."
+      "remaining_owner_action": null,
+      "blocked_by": "OA018",
+      "block_reason": "D096 WMS exact-confirm behavior remains authoritative, but D097 changes only the Firestore confirmation transport/HA/quota wrapper. Final real-WMS acceptance must use the D097 released Agent/APK after OA018 proves network transition and standby takeover without duplicate mutation."
+    },
+    {
+      "id": "OA018",
+      "status": "WAITING_FOR_D097_RELEASE",
+      "title": "Field-test D097 quota-safe HA and network transition",
+      "resource_key": "firestore-relay-beta-d091",
+      "provider": "Physical Beta PDA + Windows PRIMARY/STANDBY Agents on normal and Office networks",
+      "reason_owner_only": "Connected CI can verify source/build/Rules/indexes and synthetic guards but cannot physically switch the company laptop network or prove real multi-machine failover behavior.",
+      "prerequisites": {
+        "source_branch": "fix/d097-firestore-ha-quota-network",
+        "agent_release": "relay-agent-v22__PENDING_MAIN",
+        "android_release": "beta-vc60__PENDING_MAIN",
+        "firestore_rules_index": "PENDING_MAIN_DEPLOY",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Update PRIMARY/STANDBY Windows Agents to relay-agent-v22 and the Picker PDA to the signed Beta APK released from the same D097 main.",
+        "Normal network: send one controlled confirmation request. Expect a normal successful round trip within the 10-second target when WMS data is valid.",
+        "Keep Agent running and switch the PRIMARY laptop between normal Internet and Office. Do not restart Agent. Verify temporary DNS/proxy transition is shown as reconnecting and the role is not falsely lost merely because the Windows route is changing.",
+        "With two WMS-ready Agents, make PRIMARY unable to reach/process Firestore and send a new request. At request age >=10 seconds STANDBY must take over; only one WMS mutation may occur.",
+        "Restore the old PRIMARY. It must not steal the already-processed request. The new PRIMARY may later select another WMS-ready Agent as STANDBY.",
+        "Make both usable Agents unavailable for one request. At 30 seconds the PDA must stop automatic handling and direct the Picker to the specialist desk.",
+        "Provide only sanitized Agent/PDA logs if any step fails; never share passwords, tokens, cookies, WMS headers/signatures or encrypted session files."
+      ],
+      "pass_criteria": [
+        "Normal Internet and Office use the same Firestore carrier; no RTDB/Cloudflare/Apps Script fallback produces PASS.",
+        "PRIMARY polls at the D097 bounded cadence, STANDBY takes over only after the 10-second request-age gate, and FROZEN Agents do not poll business work.",
+        "Network transition does not falsely declare the PRIMARY dead solely because Windows temporarily exposes DIRECT/DNS/proxy transition state.",
+        "A request that reaches the 30-second terminal boundary is not started as new automatic WMS work and the PDA shows specialist-desk guidance.",
+        "Conditional ACK plus full-PickListCode guard prevent duplicate WMS mutation during PRIMARY/STANDBY races and old-PRIMARY recovery.",
+        "D096 exact resolver, confirmSkipItem payload/endpoint and Status=true success semantics remain unchanged.",
+        "Báo hàng remains independent on Worker/InventoryCore.",
+        "Stable remains untouched."
+      ],
+      "safety": "Beta only. Use controlled eligible Picklists for any real WMS confirmation. Do not run a 30-real-mutation burst against company WMS merely to load-test transport; concurrency/quota stress must use bounded synthetic/non-WMS evidence unless Owner explicitly authorizes otherwise.",
+      "remaining_owner_action": "After D097 main release, run the short physical normal→Office, standby failover and 30-second terminal scenarios."
     }
   ]
 }
