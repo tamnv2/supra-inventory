@@ -6,6 +6,7 @@ import { handleUserManagementCoreRequest } from "./user-management-core";
 import { handleArchiveCoreRequest } from "./archive-core";
 import { handleSystemMetricsCoreRequest } from "./system-metrics-core";
 import { handleSystemResetCoreRequest } from "./system-reset-core";
+import { handleAuthRecoveryCoreRequest } from "./auth-recovery-core";
 import { initializeOperationalV2Schema, operationalV2Readiness } from "./operational-v2-core";
 import {
   processOperationalDeadlines,
@@ -854,6 +855,9 @@ export class InventoryCore {
 
     const systemReset = await handleSystemResetCoreRequest(this.state, request);
     if (systemReset) return systemReset;
+
+    const authRecovery = await handleAuthRecoveryCoreRequest(this.state, request);
+    if (authRecovery) return authRecovery;
 
     const systemMetrics = await handleSystemMetricsCoreRequest(this.state, request);
     if (systemMetrics) return systemMetrics;
