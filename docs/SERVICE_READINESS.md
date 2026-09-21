@@ -355,3 +355,14 @@ Status: **TECHNICAL / RUNTIME PASS — OWNER FIELD RETEST READY**.
 - Owner field re-test remains: normal operations/dashboard/realtime, create one intended Admin/Reporter, retry SKU import. No further destructive reset is required solely for recovery.
 - Stable remains OWNER-GATED and untouched.
 
+## D100 OA020 Owner field acceptance — 2026-09-22
+
+Status: **OWNER FIELD PASS**.
+
+- Owner confirmed the post-reset re-test is fully OK after PR #133 runtime recovery.
+- Operational V2 navigation/realtime no longer returns `OPERATIONAL_V2_NOT_READY` after reset.
+- Managed Admin/Reporter account creation succeeds with valid input.
+- SKU Excel upload/import completes normally instead of stalling behind readiness failure.
+- The exact regression protections remain in source: immediate post-reset Operational V2 structural rebootstrap, routed `/operational/init` self-repair, corrected managed-account email validation, and terminal SKU-import error progress.
+- OA020 is closed PASS on Beta. Stable remains OWNER-GATED and untouched.
+
