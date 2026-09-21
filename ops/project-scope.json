@@ -316,7 +316,7 @@
       "collection": "relay_poc_jobs",
       "api_url": "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents/relay_poc_jobs",
       "exposure": "public_identifier",
-      "status": "PROVISIONED_D091_DEFAULT_DB_ASIA_SOUTHEAST1__LOCKED_RULES_DEPLOY_PENDING__FIELD_TEST_PENDING",
+      "status": "PROVISIONED_D091_DEFAULT_DB_ASIA_SOUTHEAST1__LOCKED_RULES_DEPLOYED_READBACK_PASS__FIELD_TEST_PENDING",
       "guard": "D091_TRANSPORT_FIELD_TEST_ONLY__FIREBASE_ID_TOKEN_AND_SECURITY_RULES__NO_WMS_MUTATION__NO_STABLE"
     },
     {
@@ -416,8 +416,8 @@
       "name": "FIREBASE_RULES_SA_JSON_BETA",
       "storage": "GitHub Environment beta secret",
       "value_in_repo": false,
-      "purpose": "D076 main-only Beta Firebase Realtime Database Rules deployment",
-      "status": "CONFIGURED_VALIDATED__D076_ACTIVE"
+      "purpose": "D076 Beta RTDB Rules deployment and D091 Beta Firestore Rules Management API deployment",
+      "status": "CONFIGURED_VALIDATED__D076_ACTIVE__D091_FIRESTORE_RULES_PASS"
     }
   ],
   "explicit_out_of_scope": [

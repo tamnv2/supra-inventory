@@ -488,15 +488,15 @@
     },
     {
       "id": "OA012",
-      "status": "PENDING_D091_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-test D091 Firestore PDA-to-Agent round trip on Office",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Physical Beta field environment",
       "reason_owner_only": "Connected tools cannot physically place the company laptop on the Office network and operate the real Picker PDA.",
       "prerequisites": {
-        "firestore": "D091 main-only provision/rules deploy PASS",
-        "agent": "relay-agent-v16 release PASS",
-        "android": "next signed beta release after beta-vc54"
+        "firestore": "PASS__MAIN_RUN_35548847740__DEFAULT_DB_ASIA_SOUTHEAST1__RULES_RELEASE_READBACK",
+        "agent": "relay-agent-v16__RELEASE_PASS",
+        "android": "beta-vc55__SIGNED_RELEASE_PASS"
       },
       "shortest_test_path": [
         "Update Agent Auto Confirm Pick Pack to relay-agent-v16 and keep one Agent running on the Office laptop.",
@@ -518,7 +518,13 @@
         "transport_fail": "Do not retest Cloudflare/RTDB; move to Apps Script Google-hosted candidate."
       },
       "safety": "Beta only; transport-only ACK; single-Agent field proof; Stable and WMS mutation forbidden.",
-      "remaining_owner_action": "Wait until D091 releases are PASS, then run the single Office round-trip test above."
+      "remaining_owner_action": "Run the single physical Office round-trip test now using relay-agent-v16 + beta-vc55 and report PASS/failure or provide the sanitized technical log if it fails.",
+      "runtime_readiness": {
+        "firestore_main": "cecf56079eba144188a0080bca8b1e78bcbfdd00",
+        "firestore_run": 35548847740,
+        "agent_release": "relay-agent-v16",
+        "android_release": "beta-vc55"
+      }
     }
   ]
 }
