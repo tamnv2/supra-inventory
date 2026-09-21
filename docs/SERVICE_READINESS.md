@@ -332,3 +332,15 @@ Status: **RUNTIME PASS — ONE NON-DESTRUCTIVE OWNER MAIL RETRY READY**.
 - Next Owner action: request one ROOT reset OTP only. Do not execute reset yet. Do not repeat OAuth consent unless the repaired message specifically identifies missing scope.
 - Stable remains OWNER-GATED and untouched.
 
+## D100 OA020 post-reset runtime recovery — 2026-09-22
+
+Status: **OWNER FIELD FAIL — SOURCE REPAIR CANDIDATE**.
+
+- Owner completed an actual Beta reset and confirmed the selected data was deleted correctly and ROOT remained active.
+- Immediately after reset, recent Beta Web logs show HTTP 503 / `OPERATIONAL_V2_NOT_READY` on Reporter queue, Dashboard, realtime ticket and SKU import. User-list GET remained HTTP 200.
+- Root cause 1: `RUNTIME_SETTINGS` deleted all `app_config`, including structural `realtime_stream_epoch_v1`; the running Durable Object then failed Operational V2 readiness.
+- Root cause 2: business API already called internal `/operational/init`, but the Durable Object did not route `handleOperationalV2CoreRequest`, so self-repair could not run.
+- Root cause 3: managed-account email validation used a double-escaped regex, causing valid Admin email syntax to fall into `INVALID_USER_CREATE_SCOPE`.
+- Repair candidate `fix/d100-post-reset-runtime-recovery`: route Operational V2 core requests, add GET `/operational/init` self-repair, rebootstrap Operational V2 immediately after Runtime Settings reset, exclude structural epoch from resettable config count, fix email validation, return actionable account-create validation, and make SKU import progress terminate visibly on failure.
+- Stable remains OWNER-GATED and untouched. No further destructive reset is required to recover the current Beta runtime.
+
