@@ -870,7 +870,7 @@
     },
     {
       "id": "OA020",
-      "status": "READY_FOR_OWNER_POST_RESET_RETEST",
+      "status": "ACTIVE_PASS",
       "title": "Field-accept D100 ROOT System Reset and recovery mail",
       "resource_key": "cloudflare-beta-worker",
       "provider": "Beta Web + InventoryCore + Firebase Auth + Gmail send OAuth",
@@ -915,10 +915,10 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Review selected scopes before execute. Do not share ROOT password, OTP, OAuth refresh token, Firebase tokens, cookies or any secret values. Requesting the OTP alone is non-destructive; final reset execution is destructive for the selected runtime data.",
-      "remaining_owner_action": "Refresh Beta Web, verify operations/dashboard/realtime work, create one intended test Admin or Reporter account, and retry the SKU import. Do not run another destructive reset solely for this verification. Report any remaining visible error message or confirm all three pass.",
-      "field_result": "RESET_DATA_DELETION_PASS__POST_RESET_RUNTIME_REPAIR_DEPLOYED__FIELD_RETEST_PENDING",
+      "remaining_owner_action": null,
+      "field_result": "OWNER_FIELD_PASS__RESET_AND_POST_RESET_RECOVERY_PASS",
       "field_result_date": "2026-09-22",
-      "field_result_note": "Actual Beta reset deleted the intended data but exposed post-reset readiness and account-email validation defects. PR #133 repaired both and the Beta runtime now reports Operational V2 ready 5/5 on exact source 5409b834. Owner must re-test normal navigation, managed-account creation and SKU import."
+      "field_result_note": "Owner confirmed post-reset re-test PASS after PR #133: normal operational surfaces/realtime recovered, managed account creation works, and SKU import completes. Reset deletion behavior had already been confirmed correct. OA020 is closed PASS on Beta."
     }
   ]
 }
