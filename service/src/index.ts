@@ -21,6 +21,7 @@ import { archiveStatus, runArchive } from "./archive";
 import { validateHrSheetSource } from "./hr-source";
 import { listRuntimeLogs, readRuntimeLog, uploadRuntimeLog } from "./runtime-logs";
 import { collectSystemStatus } from "./system-status";
+import { handleSystemResetApi } from "./system-reset";
 
 export { InventoryCore };
 
@@ -88,7 +89,7 @@ interface FirebaseRefreshResponse {
   error?: { message?: string };
 }
 
-const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/gmail.send";
 const OAUTH_STATE_COOKIE = "inventory_oauth_state";
 const CORE_OBJECT_NAME = "inventory-core";
 const REQUIRED_RUNTIME_BINDINGS = [
@@ -1006,6 +1007,9 @@ export default {
           return json({ error: "HR_SOURCE_INVALID", message: error instanceof Error ? error.message : "HR source validation failed" }, 400);
         }
       }
+
+      const systemResetResponse = await handleSystemResetApi(request, env);
+      if (systemResetResponse) return systemResetResponse;
 
       const userManagementResponse = await handleUserManagementApi(request, env);
       if (userManagementResponse) return userManagementResponse;
