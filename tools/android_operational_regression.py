@@ -304,7 +304,7 @@ def main() -> None:
     require(user_startup, "Registry.CurrentUser", "D085 normal-user autostart")
     require(user_startup, "CurrentVersion\\Run", "D085 HKCU Run registration")
     # D092 carries the approved D085 HA/rate semantics onto the Firestore Office carrier.
-    require(relay, '"Đã gửi Firestore · đang chờ Agent Office..."', "D092 PDA waiting-for-Agent progress")
+    require(relay, '"Đã gửi Firestore #" + shortId(requestId)', "D094 PDA request-id waiting progress")
     require(picker, '"PICKER_LOCKED"', "D092 locked Picker state")
     require(picker, "result.rateStrikes", "D092 strike visibility")
     require(firestore_leader, "HeartbeatIntervalMs = 4000", "D092 quota-bounded Firestore lease cadence")
