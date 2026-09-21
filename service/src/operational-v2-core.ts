@@ -1246,7 +1246,7 @@ export async function handleOperationalV2CoreRequest(state: DurableObjectState, 
   if (request.method === "GET" && url.pathname === "/operational/init") {
     initializeOperationalV2Schema(state);
     const readiness = operationalV2Readiness(state);
-    return response({
+    return json({
       status: readiness.ready ? "ready" : "not_ready",
       ...readiness,
     }, readiness.ready ? 200 : 503);
