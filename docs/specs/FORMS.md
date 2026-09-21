@@ -350,3 +350,13 @@ The Agent overlay settings surface contains:
 - **Chọn mặc định** restores all display options to enabled.
 
 All choices are local non-secret preferences, apply immediately and persist for the current Windows user. Turning a whole group off hides its row and disables the group's child selections until re-enabled.
+
+## D094 — Agent ADMIN session UX
+
+- A successful real-ADMIN Agent login stores the refreshable application session and non-secret account identity only in a Windows DPAPI CurrentUser-protected local file.
+- The ADMIN plaintext password is never stored. It is cleared from the UI immediately after the login attempt.
+- While a valid Agent ADMIN session is active, username/password/login controls are disabled/dimmed and the settings surface exposes **Đăng xuất**.
+- **Tổng quan** includes a dedicated visible Agent verification state: logged in vs not logged in.
+- On next Agent launch, a valid saved session is automatically restored and Firebase ADMIN claims are revalidated without manual password entry.
+- **Đăng xuất** clears the saved Agent application session and returns the login controls to editable state. A subsequent successful login becomes the new saved identity/session.
+- These controls do not alter company WMS credential handling; WMS remains a separate authorized browser/session authority.
