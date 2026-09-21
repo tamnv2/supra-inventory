@@ -59,7 +59,8 @@ jobs:
           $rules = Get-Content firebase/database.rules.json -Raw
           $overlaySettings = Get-Content relay-agent/OverlaySettingsForm.cs -Raw
           $project = Get-Content relay-agent/SupraInventoryRelayAgent.csproj -Raw
-          $iconScript = Get-Content relay-agent/GenerateIcon.ps1 -Raw\n          $firestoreTransport = Get-Content relay-agent/FirestoreRelayTestTransport.cs -Raw
+          $iconScript = Get-Content relay-agent/GenerateIcon.ps1 -Raw
+          $firestoreTransport = Get-Content relay-agent/FirestoreRelayTestTransport.cs -Raw
 
           if ($config -notmatch 'AgentBuild\s*=\s*16\s*;') { throw "D091 requires Agent v16." }
           if ($leader -notmatch 'HeartbeatIntervalMs\s*=\s*3000' -or $leader -notmatch 'FailoverAfterMs\s*=\s*10000') { throw "D085 HA timing guard failed." }
@@ -86,7 +87,9 @@ jobs:
           if ($iconScript -notmatch 'app-icon\.png' -or $iconScript -notmatch 'HighQualityBicubic') { throw "D089 approved Agent icon source guard failed." }
           if (-not (Test-Path "relay-agent/app-icon.png")) { throw "D089 approved Agent icon asset missing." }
           if ($leader -notmatch 'PresenceHeartbeatIntervalMs\s*=\s*30000' -or $leader -notmatch 'PresenceReadIntervalMs\s*=\s*60000' -or $leader -notmatch 'PresenceFreshMs\s*=\s*90000') { throw "D087 Agent presence cadence guard failed." }
-          if ($rules -notmatch 'coordination' -or $rules -notmatch 'rate_limits' -or $rules -notmatch 'PICKER_LOCKED' -or $rules -notmatch 'SWITCHING') { throw "D085 RTDB Rules guard failed." }\n          if ($config -notmatch 'FIRESTORE_D091_TEST' -or $firestoreTransport -notmatch 'relay_poc_jobs' -or $firestoreTransport -notmatch 'TRANSPORT_ONLY' -or $firestoreTransport -notmatch 'PollIntervalMs\s*=\s*3000') { throw "D091 Firestore field transport guard failed." }\n          if ($program -notmatch 'FirestoreRelayTestTransport' -or $program -notmatch 'FIRESTORE TEST') { throw "D091 Agent Firestore wiring guard failed." }
+          if ($rules -notmatch 'coordination' -or $rules -notmatch 'rate_limits' -or $rules -notmatch 'PICKER_LOCKED' -or $rules -notmatch 'SWITCHING') { throw "D085 RTDB Rules guard failed." }
+          if ($config -notmatch 'FIRESTORE_D091_TEST' -or $firestoreTransport -notmatch 'relay_poc_jobs' -or $firestoreTransport -notmatch 'TRANSPORT_ONLY' -or $firestoreTransport -notmatch 'PollIntervalMs\s*=\s*3000') { throw "D091 Firestore field transport guard failed." }
+          if ($program -notmatch 'FirestoreRelayTestTransport' -or $program -notmatch 'FIRESTORE TEST') { throw "D091 Agent Firestore wiring guard failed." }
 
           foreach ($source in @($lookup, $wms)) {
             if ($source -match 'request\.Method\s*=\s*"(POST|PUT|PATCH|DELETE)"') {
