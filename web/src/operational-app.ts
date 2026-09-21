@@ -36,6 +36,7 @@ import {
   loginWithPassword,
   logoutInteractiveSession,
   requestPasswordReset,
+  confirmPasswordReset,
   updateMyAuthEmail,
   ApiError,
   previewHrPickerSync,
@@ -849,6 +850,38 @@ function renderNav(): string {
 function renderLogin(): void {
   document.body.dataset.role = "";
   document.body.dataset.testRole = "";
+  const recoveryToken = new URL(window.location.href).searchParams.get("password-reset") || "";
+  if (/^[a-f0-9]{128}$/i.test(recoveryToken)) {
+    app.innerHTML = `<main class="login-shell"><section class="login-card">
+      <div class="brand">1291</div><p class="eyebrow">BÁO HÀNG 1291</p><h1>Đặt lại mật khẩu</h1>
+      <p class="muted">Nhập mật khẩu mới cho tài khoản đã yêu cầu khôi phục.</p>
+      <form id="confirm-password-reset-form">
+        <label>Mật khẩu mới<input name="next" type="password" required minlength="8" maxlength="128" autocomplete="new-password" /></label>
+        <label>Nhập lại mật khẩu<input name="confirm" type="password" required minlength="8" maxlength="128" autocomplete="new-password" /></label>
+        <button class="primary wide">ĐẶT LẠI MẬT KHẨU</button>
+        <div id="confirm-password-reset-result" class="tiny muted"></div>
+      </form>
+      <p class="security">${PRODUCT_CREDIT}</p>
+    </section></main>`;
+    document.querySelector<HTMLFormElement>("#confirm-password-reset-form")?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const data = new FormData(event.currentTarget as HTMLFormElement);
+      const next = String(data.get("next") || "");
+      const confirm = String(data.get("confirm") || "");
+      const result = document.querySelector<HTMLElement>("#confirm-password-reset-result");
+      if (next !== confirm) {
+        if (result) result.textContent = "Hai lần nhập mật khẩu chưa khớp.";
+        return;
+      }
+      void run(async () => {
+        const message = await confirmPasswordReset(recoveryToken, next);
+        window.history.replaceState({}, "", window.location.pathname + window.location.hash);
+        renderLogin();
+        setNotice("success", message);
+      }, "none");
+    });
+    return;
+  }
   app.innerHTML = `<main class="login-shell"><section class="login-card">
     <div class="brand">1291</div><p class="eyebrow">BÁO HÀNG 1291</p><h1>Web nghiệp vụ</h1>
     <p class="muted">Đăng nhập bằng tài khoản Báo hàng 1291.</p>
