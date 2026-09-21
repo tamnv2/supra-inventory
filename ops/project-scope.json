@@ -316,8 +316,8 @@
       "collection": "relay_poc_jobs",
       "api_url": "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents/relay_poc_jobs",
       "exposure": "public_identifier",
-      "status": "PROVISIONED_D091_DEFAULT_DB_ASIA_SOUTHEAST1__LOCKED_RULES_DEPLOYED_READBACK_PASS__FIELD_TEST_PENDING",
-      "guard": "D091_TRANSPORT_FIELD_TEST_ONLY__FIREBASE_ID_TOKEN_AND_SECURITY_RULES__NO_WMS_MUTATION__NO_STABLE"
+      "status": "D091_OWNER_FIELD_E2E_PASS__D092_CONFIRMATION_RUNTIME_SOURCE_IN_PROGRESS",
+      "guard": "D092_BETA_CONFIRMATION_RELAY__FIREBASE_ID_TOKEN_LOCKED_RULES__PENDING_PROCESSING_ACK__ADMIN_HA_RATE_LIMIT_IDEMPOTENCY__NO_STABLE"
     },
     {
       "key": "supra-wms-ui-d080",
@@ -327,7 +327,7 @@
       "name": "wms-supra.winmart.vn",
       "url": "https://wms-supra.winmart.vn/",
       "exposure": "public_corporate_hostname",
-      "guard": "D082_LOGIN_SESSION_CAPTURE_REACHABILITY_AND_CONFIRM_PAGE_REFERENCE_ONLY__NO_CLICK_SUBMIT_CONFIRM_OR_WMS_MUTATION__NO_STABLE",
+      "guard": "D092_SESSION_CAPTURE_AND_UI_REFERENCE_ONLY__NO_AUTOMATED_UI_CLICK_SUBMIT__NO_STABLE",
       "allowed_reference_page": "GET/UI reference https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm"
     },
     {
@@ -339,8 +339,10 @@
       "url": "https://api-supra.winmart.vn",
       "exposure": "public_corporate_hostname",
       "allowed_probe": "GET /sft3-hy1/api/v1/warehouse/zones",
-      "guard": "D082_SIGNED_READ_ONLY_ZONES_AND_PICKLIST_LIST_GET_ONLY__NO_CONFIRMATION_POST_PUT_PATCH_DELETE__NO_STABLE",
-      "allowed_lookup": "GET /sft3-hy1/api/v1/autopp/pickListConfirms"
+      "guard": "D092_SIGNED_GET_ZONES_AND_PICKLIST_LIST__PLUS_BOUNDED_CONFIRM_SKIP_ITEM_POST_AFTER_UNIQUE_EXACT_PICKLISTCODE__NO_OTHER_WMS_MUTATION__NO_STABLE",
+      "allowed_lookup": "GET /sft3-hy1/api/v1/autopp/pickListConfirms",
+      "allowed_confirmation": "POST /sft3-hy1/api/v1/autopp/pickListConfirms/confirmSkipItem",
+      "confirmation_contract": "ONE_EXACT_PICKLISTCODE__IsAllowSkipped_TRUE__RemainSkip_1__WarehouseCode_HY1__EnableDCSite_FALSE"
     },
     {
       "key": "wincommerce-proxy-fallback-d080",
@@ -416,8 +418,8 @@
       "name": "FIREBASE_RULES_SA_JSON_BETA",
       "storage": "GitHub Environment beta secret",
       "value_in_repo": false,
-      "purpose": "D076 Beta RTDB Rules deployment and D091 Beta Firestore Rules Management API deployment",
-      "status": "CONFIGURED_VALIDATED__D076_ACTIVE__D091_FIRESTORE_RULES_PASS"
+      "purpose": "D076 Beta RTDB Rules deployment and D091/D092 Beta Firestore Rules Management API deployment",
+      "status": "CONFIGURED_VALIDATED__D076_ACTIVE__D091_FIRESTORE_RULES_PASS__D092_RULES_SOURCE_PENDING_MAIN_DEPLOY"
     }
   ],
   "explicit_out_of_scope": [
