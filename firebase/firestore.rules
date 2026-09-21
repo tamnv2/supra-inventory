@@ -69,5 +69,19 @@ service cloud.firestore {
       allow get, create, update: if isRealAdmin();
       allow list, delete: if false;
     }
+
+    match /relay_poc_coordination/{docId} {
+      allow get, create, update, delete: if isRealAdmin();
+      allow list: if false;
+    }
+
+    match /relay_poc_agents/{agentId} {
+      allow get, list, create, update, delete: if isRealAdmin();
+    }
+
+    match /relay_poc_confirm_guards/{guardId} {
+      allow get, create, update, delete: if isRealAdmin();
+      allow list: if false;
+    }
   }
 }
