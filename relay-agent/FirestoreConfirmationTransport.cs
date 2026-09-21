@@ -44,6 +44,7 @@ namespace SupraInventoryRelayAgent
         private readonly Action<string> _state;
         private readonly Func<FirestoreConfirmationWorkItem, FirestoreConfirmationOutcome> _handler;
         private readonly Func<bool> _canProcess;
+        private readonly Action<bool> _relayHealth;
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024 };
 
         internal FirestoreConfirmationTransport(
@@ -57,7 +58,8 @@ namespace SupraInventoryRelayAgent
             Action onResponse,
             Action<string> state,
             Func<FirestoreConfirmationWorkItem, FirestoreConfirmationOutcome> handler,
-            Func<bool> canProcess)
+            Func<bool> canProcess,
+            Action<bool> relayHealth)
         {
             _sessionProvider = sessionProvider;
             _ensureFreshToken = ensureFreshToken;
@@ -70,6 +72,7 @@ namespace SupraInventoryRelayAgent
             _state = state;
             _handler = handler;
             _canProcess = canProcess ?? delegate { return true; };
+            _relayHealth = relayHealth ?? delegate { };
         }
 
         internal void Run(CancellationToken token)
@@ -86,12 +89,14 @@ namespace SupraInventoryRelayAgent
                     {
                         _ensureFreshToken();
                         var processed = ProcessOnce(_sessionProvider());
+                        _relayHealth(true);
                         _state(processed > 0 ? "Relay: đã xử lý yêu cầu" : "Relay: ACTIVE · Firestore online · chờ PDA");
                     }
                 }
                 catch (Exception ex)
                 {
-                    _state("Relay: Firestore lỗi · đang thử lại");
+                    _relayHealth(false);
+                    _state("Relay: FIRESTORE OFFLINE · đang kết nối lại");
                     _log("FIRESTORE confirm loop fail " + Describe(ex));
                 }
                 if (token.WaitHandle.WaitOne(PollIntervalMs)) break;
@@ -238,36 +243,23 @@ namespace SupraInventoryRelayAgent
 
         private string Send(string method, string url, string token, string body)
         {
-            var request = (HttpWebRequest)WebRequest.Create(url);
-            request.Method = method;
-            request.Accept = "application/json";
-            request.ContentType = "application/json; charset=utf-8";
-            request.UserAgent = "Agent-Auto-Confirm-Pick-Pack/D092";
-            request.Timeout = 12000;
-            request.ReadWriteTimeout = 12000;
-            request.KeepAlive = false;
-            request.Headers[HttpRequestHeader.Authorization] = "Bearer " + token;
-            if (body != null)
-            {
-                var bytes = Encoding.UTF8.GetBytes(body);
-                request.ContentLength = bytes.Length;
-                using (var output = request.GetRequestStream()) output.Write(bytes, 0, bytes.Length);
-            }
-            using (var response = (HttpWebResponse)request.GetResponse())
-            using (var stream = response.GetResponseStream())
-            using (var reader = stream == null ? null : new StreamReader(stream))
-                return reader == null ? "" : reader.ReadToEnd();
+            return FirestoreHttpTransport.SendJson(
+                method,
+                url,
+                token,
+                body,
+                "Agent-Auto-Confirm-Pick-Pack/D093",
+                12000,
+                string.Equals(method, "GET", StringComparison.OrdinalIgnoreCase),
+                _log,
+                "CONFIRM");
         }
 
         private string Describe(Exception ex)
         {
             var web = ex as WebException;
             if (web == null) return "type=" + ex.GetType().Name + " detail=" + AgentDiagnostics.Sanitize(ex.Message);
-            var response = web.Response as HttpWebResponse;
-            if (response == null) return "status=0 web_exception=" + web.Status;
-            var status = (int)response.StatusCode;
-            try { response.Dispose(); } catch { }
-            return "http=" + status;
+            return FirestoreHttpTransport.Describe(web);
         }
 
         private static Dictionary<string, object> StringField(string value)
