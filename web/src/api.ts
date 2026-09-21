@@ -129,6 +129,8 @@ export interface ManagedUser {
   status: "ACTIVE" | "DISABLED";
   password_initialized: boolean;
   password_changed_at: string | null;
+  auth_email?: string | null;
+  firebase_password_ready?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -781,18 +783,24 @@ export async function createManagedUser(
   displayName: string,
   role: "ADMIN" | "REPORTER",
   password: string,
+  authEmail = "",
 ): Promise<ManagedUser> {
   const result = await readJson<{ user: ManagedUser }>(await authorizedFetch("/api/admin/users", {
     method: "POST",
-    body: JSON.stringify({ request_id: crypto.randomUUID(), username, display_name: displayName, role, password }),
+    body: JSON.stringify({ request_id: crypto.randomUUID(), username, display_name: displayName, role, password, auth_email: authEmail }),
   }));
   return result.user;
 }
 
-export async function updateManagedUser(userId: string, displayName: string, status: "ACTIVE" | "DISABLED"): Promise<ManagedUser> {
+export async function updateManagedUser(
+  userId: string,
+  displayName: string,
+  status: "ACTIVE" | "DISABLED",
+  authEmail?: string,
+): Promise<ManagedUser> {
   const result = await readJson<{ user: ManagedUser }>(await authorizedFetch("/api/admin/users", {
     method: "PATCH",
-    body: JSON.stringify({ request_id: crypto.randomUUID(), user_id: userId, display_name: displayName, status }),
+    body: JSON.stringify({ request_id: crypto.randomUUID(), user_id: userId, display_name: displayName, status, ...(authEmail == null ? {} : { auth_email: authEmail }) }),
   }));
   return result.user;
 }
