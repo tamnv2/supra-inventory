@@ -320,3 +320,11 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA019 + OA020 OWNER FIELD ACCEP
 - Agent: `relay-agent-v25`
 - SQLite schema: `10`
 - Next: OA019 physical Agent/PDA acceptance and OA020 ROOT reset-mail field acceptance. Stable remains OWNER-GATED.
+
+## D100 OA020 Gmail field evidence — 2026-09-22
+
+- Owner reached the ROOT System Reset mail-only challenge on Beta; the UI returned `RESET_EMAIL_UNAVAILABLE` with the Gmail-send-permission message before any destructive reset.
+- The existing Beta OAuth refresh token is configured, but the active credential must be re-consented once for the canonical combined scopes `drive.file + gmail.send`.
+- Required Owner-only step: run the existing Beta Google OAuth consent flow, approve the scopes, replace only the Beta Worker secret `GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN` with the newly issued refresh token, and never paste that token into chat/GitHub/logs.
+- After replacement, retry only the non-destructive six-digit OTP challenge first. OA020 remains blocked until email delivery succeeds; Stable remains OWNER-GATED and untouched.
+
