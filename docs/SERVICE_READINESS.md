@@ -174,3 +174,11 @@ Source target is Beta-only and limited to the Picker confirmation Firestore wrap
 - Latest signed Beta APK remains `beta-vc60` until D098 main release publishes the next monotonic build.
 - Web: `D098_SOURCE_CANDIDATE__FIREBASE_CREDENTIAL_AUTHORITY__WEB_SESSION_ISOLATED__REALTIME_V2_AUTHORITY_REPAIRED__35PCT_CLOUDFLARE_BUDGET`
 - Android: `D098_SOURCE_CANDIDATE__ANDROID_SESSION_ISOLATED__PICKER_APP_ONLY__NEXT_MONOTONIC_BETA_RELEASE_PENDING`
+
+
+## D098 Firestore main deploy hotfix — 2026-09-21
+
+- D098 implementation PR #121 merged to main `bbc2127fa345879c4603a5baaa48cc566150af0f`.
+- Main Firestore deploy source validation and authentication passed, but index ensure returned Google `ALREADY_EXISTS` after the pre-list failed to recognize the already-present D097 composite index.
+- Hotfix `fix/d098-firestore-index-idempotent` changes only deployment idempotency: `ALREADY_EXISTS` is treated as PASS; all other index-create errors remain fatal.
+- No Firestore Rules, WMS behavior, Agent business logic, Android logic or Stable resources are changed by this hotfix.
