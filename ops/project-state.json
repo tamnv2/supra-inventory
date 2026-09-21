@@ -13,26 +13,26 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D097_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V22__BETA_VC60__OA018_FIELD_ACCEPTANCE_READY",
+    "beta": "D098_SOURCE_PR_CANDIDATE__UNIFIED_FIREBASE_AUTH__CHANNEL_SCOPED_SESSIONS__REALTIME_REPAIR__AGENT_V23_SPECIALIST_FLOW__CI_PENDING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
-    "sqlite_schema": 8,
+    "sqlite_schema": 9,
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
     "sku_import": "CHUNKED_10K_50K_IMPORT_DEPLOYED_PASS__ANDROID_SQLITE_ATOMIC_CACHE_SIGNED_BUILD_PASS",
-    "web": "D089_OWNER_ACCEPTED_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON",
-    "android": "D097_SIGNED_BETA_VC60_FIRESTORE_LISTENER_RELEASED__D095_UI_BASELINE_PRESERVED",
+    "web": "D098_SOURCE_CANDIDATE__FIREBASE_CREDENTIAL_AUTHORITY__WEB_SESSION_ISOLATED__REALTIME_V2_AUTHORITY_REPAIRED__35PCT_CLOUDFLARE_BUDGET",
+    "android": "D098_SOURCE_CANDIDATE__ANDROID_SESSION_ISOLATED__PICKER_APP_ONLY__NEXT_MONOTONIC_BETA_RELEASE_PENDING",
     "latest_beta_apk": "beta-vc60",
-    "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
-    "network_scope": "D097_NORMAL_OFFICE_TRANSITION_RECOVERY__PRIMARY_STANDBY_FROZEN__10S_FAILOVER__30S_TERMINAL__BAO_HANG_UNCHANGED",
+    "realtime": "D098_SOURCE_CANDIDATE__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__MAX_35PCT_WORKERS_PAID_INCLUDED_USAGE",
+    "network_scope": "D098_AGENT_AUTH_DIRECT_FIREBASE__NO_CLOUDFLARE_LOGIN_DEPENDENCY__D097_FIRESTORE_HA_UNCHANGED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
-    "user_management": "SERVER_PAGED_FILTERED_ONE_MANY_ALL__ROOT_EFFECTIVE_ROLE_TEST_RUNTIME_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
+    "user_management": "D098_SOURCE_CANDIDATE__FIREBASE_CREDENTIAL_AUTHORITY__INVENTORYCORE_BUSINESS_AUTHORITY__ROLE_CLIENT_MATRIX__ROOT_ADMIN_RESET_EMAIL",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D069_XLSX_REPORT_EXPORT_BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
-    "quota_resilience": "D097_FIRESTORE_6000_REQ_DAY_FREE_ENVELOPE_SOURCE_RUNTIME_RELEASE_PASS__FIELD_USAGE_ACCEPTANCE_PENDING",
+    "quota_resilience": "D098_CLOUDFLARE_INVENTORY_MAX_35PCT_INCLUDED_USAGE_DESIGN_GUARD__FIRESTORE_HA_QUOTA_OPTIMIZATION_NEXT_WORKSTREAM",
     "ui_design_guard": "D089_OWNER_ACCEPTED_PASS__MAIN_UI_RUN_35528647554",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D097_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V22__BETA_VC60__OA018_FIELD_GATE__D096_WMS_BEHAVIOR_FROZEN"
+    "picklist_confirmation_poc": "D098_AGENT_V23_SPECIALIST_DIRECT_3_TO_5_DIGIT_SEARCH__FULL_PICKLIST_SELECTION__GUARDED_CONFIRM__NO_APK_ACK__D097_PDA_PATH_FROZEN"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -158,6 +158,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
+    "D098 Owner physical acceptance after technical release: one simultaneous Web + one App + one Agent per eligible user; same-type replacement kicks only same type; Picker App-only; direct Firebase Agent login works on normal/Office; Web realtime reconnects without legacy-session loss; specialist 3–5 digit search selects full PickList and manual confirmation stays local to Agent.",
     "OA017 D096 physical real-Picklist exact-resolve -> confirmSkipItem -> Status=true -> Firestore ACK field test with Agent v21 + existing beta-vc59.",
     "OA016 D095 physical dual-network confirmation relay test: PDA stays on normal Internet; Agent must receive same Firestore path on normal Internet and Office, plus normal Báo hàng remains independent.",
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
@@ -170,7 +171,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "OA018 physical Beta field test using relay-agent-v22 + beta-vc60: normal network <=10s target, normal→Office transition without restart, PRIMARY loss with STANDBY takeover >=10s, and 30s specialist fallback. After OA018 PASS, resume OA017 final real-WMS confirmation acceptance. Stable remains OWNER-GATED.",
+  "next_action": "Complete D098 PR #121 authority/continuity/UI/Agent/Android/Beta gates; release Beta-only Agent v23 and next monotonic Android build if all technical gates PASS; then Owner field-validates channel-isolated sessions, direct Firebase Agent login on Office, Web realtime, and specialist manual PickList flow. Stable remains OWNER-GATED. After D098 acceptance, optimize D097 Firestore PRIMARY/STANDBY reads/writes.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -196,6 +197,7 @@
   },
   "workboard": {
     "in_progress": [
+      "D098 IN PROGRESS / PR #121: Owner-approved unified Firebase credential authority while InventoryCore remains business/RBAC authority; WEB/ANDROID/AGENT session slots are independent; Picker App-only, Reporter/Root App+Web, Admin App+Web+Agent; Root/Admin recovery-email reset; Web realtime uses shared V2 session with jittered reconnect; Agent v23 logs in directly to Firebase, removes ADMIN settings login, embeds Overlay settings, splits logs, and adds specialist 3–5 digit full-PickList substring search + guarded local confirmation. Inventory Cloudflare usage design ceiling is 35% of each Workers Paid included metric. Stable untouched.",
       "D096 IN PROGRESS: Owner confirms PDA ↔ Agent now works on released Agent v20/beta-vc59. Field log shows CLAIM PASS and pending-found, then WMS exact-resolve HTTP 200 followed by EXACT_CODE_NOT_RESOLVED and no picklist-confirm call. Root cause confirmed: exact resolver handled ArrayList only while JavaScriptSerializer returns object[]; D096 switches to IEnumerable-safe parsing, adds executable parser regression, and requires WMS Status=true before CONFIRMED. Target Agent v21 only; APK vc59 unchanged.",
       "D095 TECHNICAL/RUNTIME/RELEASE PASS: PR #115 merged to main 52aabdbd3a1eedfa96c6a525dd155b370e9d9138; main Authority/State/Beta/UI/Agent/Android all PASS. Published relay-agent-v20 + signed beta-vc59. OA016 physical dual-network Firestore correlation is the remaining D095 gate; OA013 remains blocked.",
       "D094 TECHNICAL/RELEASE PASS BUT FIELD FAIL: PR #113 merged at a9d69036648aa25266241f5500df1192c3f4b3c7; main Authority/State/Beta/UI/Agent/Android all PASS and released relay-agent-v19 + beta-vc58, but Owner physical test showed confirmation receive still failed. PR #114 release checkpoint was closed unmerged and D095 supersedes OA015.",
@@ -220,6 +222,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
+      "Finish D098 PR #121 gates and Beta technical release; do not claim PASS until CI/deploy evidence exists.",
       "Finish D096 Agent v21 release, then Owner runs OA017 real Picklist confirm with existing beta-vc59.",
       "Bootstrap canonical GitHub and execute the Owner's next explicit requirement.",
       "Owner field-reviews D088 after release; keep D078 final transport selection pending until company-network physical evidence.",
@@ -228,6 +231,7 @@
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
     ],
     "blocked_or_owner_field_dependent": [
+      "D098 final acceptance requires Owner physical validation after technical Beta release; Stable remains unauthorized.",
       "Real WMS confirmation acceptance is blocked only by OA017 D096 exact-resolve/confirm field test after Agent v21 release.",
       "D092 final business acceptance requires one physical authorized company-WMS confirmation after technical release PASS.",
       "D071 final visual/interaction acceptance depends on Owner live Web review",
@@ -517,9 +521,10 @@
     "D093 source repair responds to Owner field evidence from relay-agent-v17: Firestore confirmation/presence could fail with connect/name-resolution errors after the laptop changed networks while HA oscillated, while overlay could still show Online 1 because the coordinator forced a minimum count. Repair preserves D091 Firestore carrier; it does not reopen transport selection.",
     "D094 diagnosis from released v18 field log: stored ADMIN DPAPI session auto-restored successfully; WMS restore/cache succeeded; manual Firestore probe returned HTTP 200, but confirmation/HA helper intermittently used DIRECT and hit ConnectFailure/NameResolutionFailure; no PDA_REQUEST/CLAIM/ACK appeared. D094 repairs proxy-route parity and pending-job discovery/correlation without changing carrier.",
     "D095 root cause from Owner v19/vc58 field logs: Android vc58 created authenticated Firestore jobs successfully while normal Báo hàng continued to succeed, but Agent v19 reported QUERY pending=0 because Firestore JSON arrays were cast to ArrayList although JavaScriptSerializer returns an enumerable/object array. Another request was conditionally deleted by Android at 30s while Agent Firestore connectivity recovered later. D095 restores IEnumerable parsing, keeps PENDING through 120s, retries safe reads across default/fresh Windows proxy routes, and refreshes default proxy on network address change.",
-    "D096 field diagnosis: Agent v20 receives/claims Firestore jobs successfully. WMS exact-resolve GET returns HTTP 200 but resolver emits EXACT_CODE_NOT_RESOLVED and no WMS picklist-confirm log follows. Source comparison shows WmsPicklistLookup supports object[] while WmsPicklistExactResolver.CollectCodes accepted only ArrayList. D096 fixes traversal via non-string IEnumerable and hardens 2xx confirm classification to require business Status=true."
+    "D096 field diagnosis: Agent v20 receives/claims Firestore jobs successfully. WMS exact-resolve GET returns HTTP 200 but resolver emits EXACT_CODE_NOT_RESOLVED and no WMS picklist-confirm log follows. Source comparison shows WmsPicklistLookup supports object[] while WmsPicklistExactResolver.CollectCodes accepted only ArrayList. D096 fixes traversal via non-string IEnumerable and hardens 2xx confirm classification to require business Status=true.",
+    "D098 Owner-approved architecture: Firebase Authentication is credential/identity authority for all application users while InventoryCore remains role/status/business-history authority. One user may hold one WEB + one ANDROID + one AGENT slot concurrently; replacement is same-channel only. Role/client matrix is PICKER App only, REPORTER/ROOT App+Web, ADMIN App+Web+Agent. Agent login is direct Firebase and independent of Worker. Root/Admin recovery email uses Firebase reset links. Web realtime keeps hibernatable Cloudflare Durable Object WebSocket and must remain <=35% of each Workers Paid included metric at design max. Agent manual specialist path searches 3–5 digits anywhere in cached full PickListCode, requires explicit full-code selection, reuses guarded WMS Status=true confirmation, and never ACKs an APK job."
   ],
-  "active_workstream": "D097_FIRESTORE_CONFIRMATION_HA_QUOTA_NETWORK_TRANSITION",
+  "active_workstream": "D098_UNIFIED_FIREBASE_IDENTITY_REALTIME_AGENT_SPECIALIST",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
