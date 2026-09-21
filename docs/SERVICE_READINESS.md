@@ -257,3 +257,12 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA019 PHYSICAL FIELD ACCEPTANCE
 - Network/auth: `D100_AGENT_V25_USERNAME_SHARED_FIREBASE_UID_DIRECT__NO_WORKER_RUNTIME_DEPENDENCY__SUPRA_AUTH_GATE_PRESERVED`
 - User management: `D100_SOURCE_CANDIDATE__ONE_FIREBASE_UID_WEB_APP_AGENT__REAL_RECOVERY_EMAIL_SEPARATE__ROOT_2FA_SYSTEM_RESET`
 - Agent confirmation candidate: `D100_AGENT_V25_USERNAME_SHARED_UID_SOURCE_CANDIDATE__D097_D099_CONFIRM_PATH_AND_OVERLAY_PRESERVED`
+
+
+## D100 deploy-proof hotfix — 2026-09-21
+
+- D100 implementation PR #126 merged to main `8a769808b5c8c28fe76bbb2d31c5ec013265c148`.
+- Agent `relay-agent-v25` released successfully from that main.
+- The first D100 Worker deployment workflow returned a health response from the previous runtime during immediate rollout (`schema=9/9`), so that workflow success is not sufficient evidence for D100 schema 10.
+- Hotfix `fix/d100-health-source-schema-proof` makes health expose `SOURCE_COMMIT` and makes deploy acceptance require: deployed source == `GITHUB_SHA`, runtime schema == source `SCHEMA_VERSION`, and Agent-auth migration failed/remaining are both zero.
+- D100 runtime PASS must not be recorded until this exact proof passes on main.

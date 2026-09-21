@@ -934,6 +934,7 @@ export default {
           agentAuthMigration.agent_failed === 0 && agentAuthMigration.agent_remaining === 0;
         return json({
           status: healthy ? "ok" : "degraded", service: env.PROJECT_KEY || "supra-inventory", environment: env.APP_ENV || "unknown",
+          source_commit: env.SOURCE_COMMIT || "",
           required_bindings: bindingPresence, oauth_refresh_token_configured: Boolean(env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN),
           root_bootstrap_secret_configured: Boolean(env.ROOT_BOOTSTRAP_PASSWORD), logs_folder_configured: Boolean(env.LOGS_FOLDER_ID),
           storage: core, agent_auth_migration: agentAuthMigration, missing_bindings: missing, timestamp: new Date().toISOString(),
