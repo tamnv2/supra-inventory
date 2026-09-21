@@ -7,10 +7,10 @@
 - Project: `supra-inventory`
 - SQLite schema: `8`
 - Latest signed Beta APK: `beta-vc55`
-- Current released Agent: `relay-agent-v16`
-- Beta: `D091_FIRESTORE_INFRA_RUNTIME_PASS__D089_OWNER_ACCEPTED_UI_BASELINE__SIGNED_BETA_VC55__AGENT_V16__PHYSICAL_OFFICE_E2E_PENDING`
+- Current released Agent: `relay-agent-v17`
+- Beta: `D093_FIRESTORE_REGRESSION_REPAIR_SOURCE_READY__CURRENT_RELEASE_V17_VC56__NEXT_RELEASE_PENDING__OA014_BEFORE_OA013`
 - Web: `D089_OWNER_ACCEPTED_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON`
-- Android: `D091_SIGNED_BETA_VC55_FIRESTORE_FIELD_CANDIDATE_RELEASED__D089_OWNER_ACCEPTED_UI_BASELINE`
+- Android: `D093_PENDING_CLAIM_GRACE_SOURCE_READY__CURRENT_RELEASE_BETA_VC56__NEXT_SIGNED_RELEASE_PENDING`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -78,3 +78,11 @@ No manual end-of-session handover is required. GitHub canonical state remains th
 - Windows Agent: `relay-agent-v17`.
 - D092 technical/runtime/release: PASS; OA013 Owner real Picklist confirmation: PENDING.
 - Stable: OWNER-GATED / untouched.
+
+## D093 current repair checkpoint — 2026-09-21
+
+- D091 authenticated PDA → Firestore → Office Agent → Firestore → PDA field PASS remains the carrier-selection authority.
+- D092 released `relay-agent-v17` / `beta-vc56` exposed a field regression: Firestore coordination/relay could fail after network transition while Agent online state could remain misleading.
+- D093 preserves Firestore and repairs the regression: current Windows proxy per Firestore request, safe-read transient retry, truthful `Online 0 / FIRESTORE OFFLINE`, bounded 10-second leadership grace, and Android 30-second PENDING claim grace with 120-second total wait.
+- Source repair is on PR #111; OA013 real Picklist confirmation is blocked until OA014 released-artifact Firestore regression re-test PASS.
+- Stable remains OWNER-GATED and untouched.

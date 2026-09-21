@@ -694,3 +694,22 @@ Owner field functional PASS remains separate because connected CI cannot execute
 8. Stable remains untouched.
 
 If a confirmation result is uncertain, the expected behavior is **not** an automatic retry. The PDA instructs the user not to press again and to have the specialist verify SFT / SFT 3.
+
+## D093 Firestore regression acceptance
+
+Automated/source PASS requires:
+- Windows Agent build/version is v18 or later for this repair and startup-smoke passes.
+- Firestore REST requests resolve the current Windows system proxy per request with Windows credentials; the Firestore transport source must not reference the WMS corporate fallback proxy.
+- Only safe Firestore GET/read operations have one bounded retry for transient DNS/connect/timeout classes; conditional claims, ACK writes, leader writes and WMS mutation are not blindly replayed by the transport helper.
+- D085/D092 failover threshold remains 10 seconds. A transient coordination error inside that bounded window does not immediately revoke current ownership; an outage beyond the threshold may demote/elect normally.
+- Online Agent count is never synthetically forced to one. Failed/stale Firestore coordination or ACTIVE relay polling renders `Online 0` / `FIRESTORE OFFLINE`.
+- ACTIVE status becomes healthy only after a real confirmation-collection poll succeeds. Standby still cannot process WMS work.
+- Android still-`PENDING` cancellation grace is 30 seconds, total wait remains 120 seconds, and `PROCESSING` work is not deleted/retried.
+- D092 exact PickListCode, confirmation guard, anti-spam and only-authorized `confirmSkipItem` mutation guards remain PASS. Stable remains untouched.
+
+Physical regression PASS is separate from CI:
+1. Run the D093 released Agent and signed Beta APK.
+2. Keep the Agent running while the laptop is on/switches to the company Office network; a process restart must not be required merely to pick up the current Windows proxy.
+3. Verify the overlay is truthful during any Firestore outage: `Online 0` / `FIRESTORE OFFLINE`, then returns to ACTIVE only after Firestore relay polling succeeds.
+4. Send one controlled PDA request and confirm PDA → Firestore → Office Agent → Firestore → PDA succeeds.
+5. Only after this transport regression PASS may OA013 resume the real authorized D092 Picklist confirmation field test.

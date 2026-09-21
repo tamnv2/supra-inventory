@@ -100,11 +100,13 @@ jobs:
           grep -q 'Đã xác nhận lấy lại đơn. Hãy quay lại app SFT / SFT 3 để tiếp tục' "$picker"
           grep -q 'currentDocument.updateTime' "$client"
           grep -q 'PROCESSING' "$client"
+          grep -q 'PENDING_CLAIM_WAIT_MS = 30_000L' "$client"
+          grep -q 'TOTAL_WAIT_MS = 120_000L' "$client"
           if grep -q 'FIREBASE_RTDB_URL' "$client"; then
             echo "D092 confirmation client must not use RTDB" >&2
             exit 1
           fi
-          echo "D092 Android Firestore confirmation guard PASS"
+          echo "D093 Android Firestore handoff + D092 confirmation guard PASS"
 
       - name: Assemble Android 11+ Beta APK
         env:

@@ -535,7 +535,7 @@
     },
     {
       "id": "OA013",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "BLOCKED_BY_D093_FIRESTORE_REGRESSION_RETEST",
       "title": "Field-test D092 real Picklist confirmation",
       "resource_key": "supra-api-d080",
       "provider": "Physical company Windows Agent + Beta PDA + authorized Supra WMS session",
@@ -561,7 +561,7 @@
         "Stable remains untouched."
       ],
       "safety": "Use only an authorized company WMS session and a real Picklist appropriate for this business action. Do not paste/share passwords, Authorization/Token/APISID/SID/SCID/USID, signatures/nonces, cookies, encrypted session files or raw WMS response bodies.",
-      "remaining_owner_action": "Run one controlled authorized real Picklist confirmation using relay-agent-v17 + beta-vc56, then verify the resulting state in SFT / SFT 3.",
+      "remaining_owner_action": null,
       "prerequisites": {
         "source_branch": "feat/d092-firestore-picklist-confirm",
         "merged_pr": 109,
@@ -572,8 +572,45 @@
         "android_release": "beta-vc56",
         "android_apk_sha256": "fe41c136d16470d7b0fac45a4b125b8e1b29610f7b468a4e41171f68c420da80",
         "firestore_rules": "PASS_MAIN_RUN_35552139264",
-        "technical_release": "PASS"
-      }
+        "technical_release": "PASS",
+        "d093_transport_retest": "OA014_PASS_REQUIRED_BEFORE_RESUME"
+      },
+      "blocked_by": "OA014_D093_FIRESTORE_PDA_AGENT_REGRESSION_RETEST",
+      "block_reason": "Released D092 v17/vc56 field evidence showed Firestore coordination/relay instability and misleading Agent online state. Do not execute the real WMS confirmation until D093 released artifacts re-pass the PDA-Agent Firestore path."
+    },
+    {
+      "id": "OA014",
+      "status": "WAITING_FOR_D093_RELEASE",
+      "title": "Field-retest D093 Firestore PDA-to-Agent regression repair",
+      "resource_key": "firestore-relay-beta-d091",
+      "provider": "Physical Beta PDA + company Windows Agent on Office network",
+      "reason_owner_only": "Connected CI can build and verify the repair but cannot physically switch the company laptop network, observe the Windows system proxy transition, or operate the real PDA on the field network.",
+      "prerequisites": {
+        "owner_transport_authority": "OA012_PASS_OWNER_CONFIRMED",
+        "source_branch": "fix/d093-firestore-regression-hardening",
+        "agent_release": "PENDING_RELAY_AGENT_V18",
+        "android_release": "PENDING_NEXT_SIGNED_BETA_RELEASE",
+        "oa013": "BLOCKED_UNTIL_THIS_ACTION_PASSES"
+      },
+      "shortest_test_path": [
+        "Update to the D093 released Agent v18 and signed Beta APK published from the same accepted change.",
+        "Keep Agent running; place/switch the laptop onto the company Office network without restarting Agent merely to refresh proxy state.",
+        "Verify Agent/overlay does not fake Online 1: when Firestore is unavailable it shows Online 0 / FIRESTORE OFFLINE, and it returns to ACTIVE only after Firestore relay polling succeeds.",
+        "On PDA open Xác nhận đơn, enter one controlled five-digit value and send once.",
+        "PASS when the request reaches the ACTIVE Office Agent through Firestore and the PDA receives the Firestore result/ACK path. Provide only sanitized technical logs on failure."
+      ],
+      "pass_criteria": [
+        "Firestore carrier remains the D091/D092 selected path; no Cloudflare/RTDB/Apps Script fallback produces the PASS.",
+        "Agent follows the current Windows system proxy after the network transition without requiring process restart.",
+        "Transient coordination failure does not immediately revoke ACTIVE ownership inside the existing 10-second threshold; sustained failure may fail over normally.",
+        "Agent online/health UI is truthful: unhealthy Firestore path shows Online 0 / FIRESTORE OFFLINE.",
+        "PDA PENDING claim grace allows the HA/reconnect window and does not cancel before 30 seconds; PROCESSING is never auto-deleted/retried.",
+        "One PDA request is claimed by only one ACTIVE Agent and completes the Firestore round trip.",
+        "No unintended WMS mutation is used as part of this transport regression test.",
+        "Stable remains untouched."
+      ],
+      "safety": "Beta only. Use existing authorized sessions; do not share passwords, tokens, cookies, WMS headers/signatures or encrypted session files. Firestore must not use the WMS fallback proxy to bypass company filtering.",
+      "remaining_owner_action": "Wait for D093 Agent/APK release; then run this bounded physical Firestore regression retest. OA013 resumes only after PASS."
     }
   ]
 }

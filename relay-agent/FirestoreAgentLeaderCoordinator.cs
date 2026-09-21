@@ -45,7 +45,10 @@ namespace SupraInventoryRelayAgent
         private string _currentLeaderId = "";
         private long _lastPresenceWriteMs;
         private long _lastPresenceReadMs;
-        private volatile int _onlineAgentCount = 1;
+        private long _lastCoordinationSuccessMs;
+        private volatile int _onlineAgentCount;
+        private volatile bool _coordinationHealthy;
+        private volatile bool _relayPollHealthy;
 
         internal FirestoreAgentLeaderCoordinator(
             Func<AgentSession> sessionProvider,
@@ -64,7 +67,14 @@ namespace SupraInventoryRelayAgent
         }
 
         internal bool IsLeader { get { return _isLeader; } }
-        internal int OnlineAgentCount { get { return Math.Max(1, _onlineAgentCount); } }
+        internal bool IsTransportHealthy { get { return _coordinationHealthy && (!_isLeader || _relayPollHealthy); } }
+        internal int OnlineAgentCount { get { return IsTransportHealthy ? Math.Max(0, _onlineAgentCount) : 0; } }
+
+        internal void ReportRelayPoll(bool healthy)
+        {
+            _relayPollHealthy = healthy;
+            if (!healthy) _onlineAgentCount = 0;
+        }
 
         internal string CurrentLeaderId
         {
@@ -145,12 +155,32 @@ namespace SupraInventoryRelayAgent
                         else
                             SetLeaderState(false, "", "ELECTION_RACE");
                     }
+
+                    MarkCoordinationSuccess();
                 }
                 catch (Exception ex)
                 {
-                    SetLeaderState(false, CurrentLeaderId, "COORDINATION_ERROR");
-                    _log("FIRESTORE HA coordination_error type=" + ex.GetType().Name +
-                         " message=" + AgentDiagnostics.Sanitize(ex.Message));
+                    var now = NowMs();
+                    var age = _lastCoordinationSuccessMs <= 0 ? long.MaxValue : Math.Max(0L, now - _lastCoordinationSuccessMs);
+                    _coordinationHealthy = false;
+                    _onlineAgentCount = 0;
+
+                    if (_isLeader && age <= FailoverAfterMs)
+                    {
+                        _log("FIRESTORE HA coordination_error grace=KEEP_ACTIVE" +
+                             " age_ms=" + age +
+                             " remaining_ms=" + Math.Max(0L, FailoverAfterMs - age) +
+                             " type=" + ex.GetType().Name +
+                             " message=" + AgentDiagnostics.Sanitize(ex.Message));
+                    }
+                    else
+                    {
+                        SetLeaderState(false, CurrentLeaderId, "COORDINATION_ERROR");
+                        _log("FIRESTORE HA coordination_error grace=EXPIRED" +
+                             " age_ms=" + (age == long.MaxValue ? -1L : age) +
+                             " type=" + ex.GetType().Name +
+                             " message=" + AgentDiagnostics.Sanitize(ex.Message));
+                    }
                 }
 
                 if (token.WaitHandle.WaitOne(HeartbeatIntervalMs)) return;
@@ -170,12 +200,13 @@ namespace SupraInventoryRelayAgent
 
                 if (_lastPresenceReadMs == 0 || now - _lastPresenceReadMs >= PresenceReadIntervalMs)
                 {
-                    _onlineAgentCount = Math.Max(1, ReadOnlineAgentCount(session, now));
+                    _onlineAgentCount = ReadOnlineAgentCount(session, now);
                     _lastPresenceReadMs = now;
                 }
             }
             catch (Exception ex)
             {
+                _onlineAgentCount = 0;
                 _log("FIRESTORE PRESENCE error type=" + ex.GetType().Name +
                      " message=" + AgentDiagnostics.Sanitize(ex.Message));
             }
@@ -202,7 +233,7 @@ namespace SupraInventoryRelayAgent
             var root = _json.DeserializeObject(raw) as Dictionary<string, object>;
             object docsObj;
             var docs = root != null && root.TryGetValue("documents", out docsObj) ? docsObj as ArrayList : null;
-            if (docs == null) return 1;
+            if (docs == null) return 0;
 
             var count = 0;
             foreach (var item in docs)
@@ -216,7 +247,7 @@ namespace SupraInventoryRelayAgent
                 var age = now - heartbeat;
                 if (heartbeat > 0 && age >= -60000 && age <= PresenceFreshMs) count++;
             }
-            return Math.Max(1, count);
+            return Math.Max(0, count);
         }
 
         private void ReleasePresence(AgentSession session)
@@ -356,6 +387,13 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private void MarkCoordinationSuccess()
+        {
+            _lastCoordinationSuccessMs = NowMs();
+            _coordinationHealthy = true;
+            if (_onlineAgentCount < 1) _onlineAgentCount = 1;
+        }
+
         private void SetLeaderState(bool isLeader, string leaderId, string reason)
         {
             bool changed;
@@ -365,6 +403,7 @@ namespace SupraInventoryRelayAgent
                           !string.Equals(_currentLeaderId ?? "", leaderId ?? "", StringComparison.Ordinal);
                 _isLeader = isLeader;
                 _currentLeaderId = leaderId ?? "";
+                if (changed && isLeader) _relayPollHealthy = false;
             }
             if (!changed) return;
 
@@ -398,25 +437,16 @@ namespace SupraInventoryRelayAgent
 
         private string SendJson(string method, string baseUrl, string token, string body, string suffix, int timeout)
         {
-            var request = (HttpWebRequest)WebRequest.Create(baseUrl + (suffix ?? ""));
-            request.Method = method;
-            request.Accept = "application/json";
-            request.ContentType = "application/json; charset=utf-8";
-            request.UserAgent = "Agent-Auto-Confirm-Pick-Pack/FirestoreHA";
-            request.Timeout = timeout;
-            request.ReadWriteTimeout = timeout;
-            request.KeepAlive = false;
-            request.Headers[HttpRequestHeader.Authorization] = "Bearer " + token;
-            if (body != null)
-            {
-                var bytes = Encoding.UTF8.GetBytes(body);
-                request.ContentLength = bytes.Length;
-                using (var output = request.GetRequestStream()) output.Write(bytes, 0, bytes.Length);
-            }
-            using (var response = (HttpWebResponse)request.GetResponse())
-            using (var stream = response.GetResponseStream())
-            using (var reader = stream == null ? null : new StreamReader(stream))
-                return reader == null ? "" : reader.ReadToEnd();
+            return FirestoreHttpTransport.SendJson(
+                method,
+                baseUrl + (suffix ?? ""),
+                token,
+                body,
+                "Agent-Auto-Confirm-Pick-Pack/FirestoreHA",
+                timeout,
+                string.Equals(method, "GET", StringComparison.OrdinalIgnoreCase),
+                _log,
+                "HA");
         }
 
         private static string BuildMask(IEnumerable<string> fields)
