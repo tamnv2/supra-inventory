@@ -268,6 +268,7 @@ class PickerController(
                         "FORBIDDEN" -> "Hệ thống Supra từ chối quyền xác nhận. Vui lòng về bàn chuyên viên xử lý trực tiếp."
                         "PROXY_BLOCK" -> "Mạng Office đang chặn kết nối xử lý. Vui lòng về bàn chuyên viên xử lý trực tiếp."
                         "CONFIRM_REJECTED", "CONFIRM_CONFLICT" -> "Picklist không thể xác nhận tự động. Vui lòng kiểm tra trên SFT / SFT 3."
+                        "CONFIRM_IN_PROGRESS_OR_UNCERTAIN" -> "Trạng thái xác nhận chưa chắc chắn. Không bấm lại; vui lòng về bàn chuyên viên kiểm tra trên SFT / SFT 3."
                         "RATE_LIMITED" -> "Hệ thống đang giới hạn yêu cầu. Vui lòng thử lại sau."
                         else -> "Xác nhận lấy lại đơn chưa thành công. Vui lòng về bàn chuyên viên xử lý trực tiếp."
                     }
