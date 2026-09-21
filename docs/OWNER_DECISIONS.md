@@ -412,3 +412,16 @@ Released D095 artifacts restored the PDA → Firestore → Agent path: the Owner
 9. Stable remains **OWNER-GATED** and untouched.
 
 OA017 supersedes the WMS-stage portion of OA013 until released Agent v21 proves exact resolution → one authorized confirm POST → business `Status=true` → Firestore ACK on a real eligible Picklist.
+
+## D096 release checkpoint
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA017 REAL WMS CONFIRM FIELD TEST PENDING**.
+
+- PR #118 merged to main `7cf962bd6ced0fc2a89382ee4c875d5128285d53`.
+- Main Repo Authority `35561403245`, Project State `35561403231`, UI `35561403385` and Relay Agent `35561403344` all PASS.
+- Released Windows Agent: `relay-agent-v21`, release id `392697237`, canonical EXE asset id `578233834`, size `226304` bytes, SHA-256 `172dbf64dc0c8dabebb1d0feb8206515892b81bc464ea0c6a201877127bac0b6`.
+- D096 in-process .NET Framework self-test passes exact JSON-array PickListCode parsing and confirm-response semantics.
+- Android is unchanged and remains signed `beta-vc59`.
+- Owner already confirmed PDA ↔ Agent transport works on the D095 field path; the remaining field-only gate is OA017 real eligible Picklist confirmation.
+- OA017 PASS requires unique exact full PickListCode resolution, exactly one authorized `confirmSkipItem` POST, WMS business `Status=true`, Firestore ACK and expected SFT/SFT3 state.
+- Stable remains OWNER-GATED and untouched.
