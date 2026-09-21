@@ -388,3 +388,29 @@ All choices are local non-secret preferences, apply immediately and persist for 
 - Show matching full codes; Confirm remains disabled until one full code is selected.
 - Confirm runs the approved guard + WMS confirmation semantics.
 - Success/error/uncertain result is rendered locally in Agent. No Android/Firestore job ACK is emitted for a manual-origin action.
+
+
+## D099 — Agent auth-first form and keyboard behavior
+
+### Agent Overview order
+1. `Xác minh Agent`
+2. `Hệ thống Supra`
+3. `Xử lý PickList trực tiếp tại bàn chuyên viên`
+
+The Agent login field is **Email ADMIN đăng ký**. Until Agent Firebase authentication is valid:
+- the Supra region is disabled/dimmed;
+- no WMS session restore/preload/browser capture starts;
+- Supra status states that it is waiting for Agent verification.
+
+After Agent auth PASS, the existing authorized Supra session logic starts normally.
+
+### Keyboard actions
+- Enter in Agent ADMIN email or password = `Đăng nhập`.
+- Enter in Agent 3–5 digit PickList input = `Tìm kiếm` when the search is eligible.
+- Android login keyboard Enter/Done = Login.
+- Web login remains normal HTML form submit on Enter.
+
+### Overlay size
+- Legacy minimum 420×64 is removed.
+- Practical configurable range is 120..7680 width and 32..4320 height.
+- Locked Overlay remains non-editable/click-through; unlock before resize.
