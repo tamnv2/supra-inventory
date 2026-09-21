@@ -6,11 +6,11 @@
 
 - Project: `supra-inventory`
 - SQLite schema: `8`
-- Latest signed Beta APK: `beta-vc58`
-- Current released Agent: `relay-agent-v19`
-- Beta: `D095_FIRESTORE_JOB_VISIBILITY_SOURCE_READY__CURRENT_RELEASE_V19_VC58_FIELD_FAIL__TARGET_V20_NEXT_SIGNED_BETA__OA016_AFTER_RELEASE__OA013_BLOCKED`
+- Latest signed Beta APK: `beta-vc59`
+- Current released Agent: `relay-agent-v20`
+- Beta: `D096_WMS_EXACT_RESOLVER_SOURCE_READY__CURRENT_AGENT_V20_PDA_AGENT_FIELD_PASS__TARGET_V21__BETA_VC59_UNCHANGED__OA017_AFTER_RELEASE`
 - Web: `D089_OWNER_ACCEPTED_PASS__SERVICE_REALTIME_SEPARATED__TOOLS_DARK_APPROVED_ICON`
-- Android: `D095_PENDING_PRESERVATION_SOURCE_READY__CURRENT_RELEASE_BETA_VC58_FIELD_FAIL__NEXT_SIGNED_RELEASE_PENDING`
+- Android: `D095_SIGNED_BETA_VC59_PDA_AGENT_FIELD_PASS__NO_D096_ANDROID_CHANGE`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -98,4 +98,15 @@ No manual end-of-session handover is required. GitHub canonical state remains th
 - Product paths are explicitly separate: Báo hàng = PDA normal Internet → Worker/InventoryCore; Xác nhận đơn = PDA normal Internet → Firestore → ACTIVE Agent (normal Internet or Office) → Firestore ACK → PDA.
 - Current released artifacts remain `relay-agent-v19` + `beta-vc58` and are **field FAIL for confirmation relay**. D095 targets `relay-agent-v20` + next signed Beta.
 - OA015 is superseded by OA016. OA013 real WMS confirmation remains blocked until OA016 PASS.
+- Stable remains OWNER-GATED and untouched.
+
+## D096 current repair checkpoint — 2026-09-21
+
+- Owner confirms PDA ↔ Agent now works with released `relay-agent-v20` + `beta-vc59`.
+- Field log proves Firestore `pending-found` and `CLAIM PASS`, then WMS exact-resolve GET HTTP 200, followed by `EXACT_CODE_NOT_RESOLVED`; no WMS confirm POST was reached.
+- Root cause: `WmsPicklistExactResolver.CollectCodes` was ArrayList-only while .NET `JavaScriptSerializer` returns JSON arrays as `object[]`. The normal lookup parser already handled this correctly.
+- D096 changes exact resolution to non-string `IEnumerable`, adds redacted parser counts and executable CI regression using synthetic JSON.
+- Existing authorized confirm endpoint/payload remains unchanged. D096 additionally requires HTTP 2xx **and** WMS business `Status=true` before reporting CONFIRMED.
+- D096 targets `relay-agent-v21` only. Android stays at signed `beta-vc59`.
+- Next field gate: OA017 real eligible Picklist exact-resolve → confirm → Status=true → Firestore ACK → SFT/SFT3 verification.
 - Stable remains OWNER-GATED and untouched.
