@@ -69,19 +69,6 @@ jobs:
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v3
 
-      - name: Verify Cloud Firestore API is enabled
-        if: github.event_name != 'pull_request'
-        shell: bash
-        run: |
-          set -euo pipefail
-          project="supra-inventory-beta"
-          state="$(gcloud services list --enabled --project="$project" --filter='config.name:firestore.googleapis.com' --format='value(config.name)')"
-          [ "$state" = "firestore.googleapis.com" ] || {
-            echo "Cloud Firestore API is not enabled in $project. Owner must enable firestore.googleapis.com in Google Cloud Console.";
-            exit 1;
-          }
-          echo "Cloud Firestore API enabled PASS"
-
       - name: Check/create Beta default Firestore database
         shell: bash
         env:
