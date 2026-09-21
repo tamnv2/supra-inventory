@@ -647,26 +647,7 @@ namespace SupraInventoryRelayAgent
             };
             _overviewPage.Controls.Add(title);
 
-            var supraCard = NewCard(24, 58, 846, 112);
-            supraCard.Controls.Add(new Label
-            {
-                Left = 18,
-                Top = 12,
-                Width = 790,
-                Height = 24,
-                Text = "Hệ thống Supra",
-                Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
-                ForeColor = Color.FromArgb(24, 43, 55)
-            });
-            _wmsCapture.SetBounds(18, 50, 220, 38);
-            _wmsCapture.Text = "Đăng nhập hệ thống Supra";
-            _wmsStatus.SetBounds(258, 50, 560, 38);
-            _wmsStatus.Text = "Supra WMS: đang kiểm tra phiên";
-            supraCard.Controls.Add(_wmsCapture);
-            supraCard.Controls.Add(_wmsStatus);
-            _overviewPage.Controls.Add(supraCard);
-
-            var agentCard = NewCard(24, 182, 846, 182);
+            var agentCard = NewCard(24, 58, 846, 182);
             agentCard.Controls.Add(new Label
             {
                 Left = 18,
@@ -688,6 +669,15 @@ namespace SupraInventoryRelayAgent
             agentCard.Controls.Add(new Label { Left = 326, Top = 72, Width = 120, Height = 20, Text = "Mật khẩu" });
             _password.SetBounds(326, 94, 220, 28);
             _password.UseSystemPasswordChar = true;
+            KeyEventHandler submitAgentLogin = (s, e) =>
+            {
+                if (e.KeyCode != Keys.Enter || !_pair.Enabled) return;
+                e.SuppressKeyPress = true;
+                e.Handled = true;
+                Task.Run(() => PairLogin());
+            };
+            _username.KeyDown += submitAgentLogin;
+            _password.KeyDown += submitAgentLogin;
             agentCard.Controls.Add(_password);
             _pair.SetBounds(566, 92, 120, 32);
             _pair.Text = "Đăng nhập";
@@ -704,6 +694,26 @@ namespace SupraInventoryRelayAgent
             agentCard.Controls.Add(_relay);
             agentCard.Controls.Add(_network);
             _overviewPage.Controls.Add(agentCard);
+
+            _supraCard = NewCard(24, 252, 846, 112);
+            _supraCard.Controls.Add(new Label
+            {
+                Left = 18,
+                Top = 12,
+                Width = 790,
+                Height = 24,
+                Text = "Hệ thống Supra",
+                Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(24, 43, 55)
+            });
+            _wmsCapture.SetBounds(18, 50, 220, 38);
+            _wmsCapture.Text = "Đăng nhập hệ thống Supra";
+            _wmsStatus.SetBounds(258, 50, 560, 38);
+            _wmsStatus.Text = "Supra WMS: chờ xác minh Agent";
+            _supraCard.Controls.Add(_wmsCapture);
+            _supraCard.Controls.Add(_wmsStatus);
+            _supraCard.Enabled = false;
+            _overviewPage.Controls.Add(_supraCard);
 
             var directCard = NewCard(24, 376, 846, 284);
             directCard.Controls.Add(new Label
@@ -730,6 +740,13 @@ namespace SupraInventoryRelayAgent
             _manualPicklistQuery.KeyPress += (s, e) =>
             {
                 if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)) e.Handled = true;
+            };
+            _manualPicklistQuery.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode != Keys.Enter || !_manualPicklistSearch.Enabled) return;
+                e.SuppressKeyPress = true;
+                e.Handled = true;
+                Task.Run(() => SearchManualPicklists());
             };
             _manualPicklistQuery.TextChanged += (s, e) =>
             {
@@ -1512,6 +1529,11 @@ namespace SupraInventoryRelayAgent
 
         private void TryRestoreWmsSessionFileFirst()
         {
+            if (!HasAgentSession())
+            {
+                Ui(() => _wmsStatus.Text = "Supra WMS: chờ xác minh Agent");
+                return;
+            }
             if (HasUsableWmsSession()) return;
             Ui(() => _wmsStatus.Text = "Supra WMS: đang đọc phiên đã mã hóa...");
             try
@@ -1848,6 +1870,16 @@ namespace SupraInventoryRelayAgent
                 _agentAuthStatus.ForeColor = authenticated
                     ? Color.FromArgb(35, 122, 76)
                     : Color.FromArgb(180, 76, 60);
+                if (_supraCard != null)
+                {
+                    _supraCard.Enabled = authenticated;
+                    if (!authenticated)
+                    {
+                        _wmsStatus.Text = "Supra WMS: chờ xác minh Agent";
+                        _wmsCapture.Enabled = false;
+                        _wmsTest.Enabled = false;
+                    }
+                }
             });
         }
 
@@ -1866,6 +1898,8 @@ namespace SupraInventoryRelayAgent
             try { StopListening(); } catch { }
             try { if (releasing != null) _agentSessionGate.Release(releasing, _agentInstanceId); } catch { }
             lock (_sessionLock) _session = null;
+            lock (_wmsSessionLock) _wmsSession = null;
+            _picklistCache.Clear();
             ClearStoredSession();
             try { if (File.Exists(ExitVerifierFile)) File.Delete(ExitVerifierFile); } catch { }
 
