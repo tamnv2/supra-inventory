@@ -138,3 +138,16 @@ No manual end-of-session handover is required. GitHub canonical state remains th
 - D096 targets `relay-agent-v21` only. Android stays at signed `beta-vc59`.
 - Next field gate: OA017 real eligible Picklist exact-resolve → confirm → Status=true → Firestore ACK → SFT/SFT3 verification.
 - Stable remains OWNER-GATED and untouched.
+
+
+## D097 current repair checkpoint — 2026-09-21
+
+- Owner approved a narrow confirmation-transport/HA/quota repair only. D096 WMS session, exact PickListCode resolver, `confirmSkipItem` contract/business `Status=true`, Báo hàng path, accepted UI baseline and Stable are frozen.
+- Physical logs prove Firestore is reachable on both normal Internet and Office; the failure window occurs while Windows transitions from ordinary DIRECT/DNS settings to the Office IP/DNS/system proxy.
+- D097 replaces quota-heavy 4-second leader writes and per-job `PROCESSING` with request-driven **PRIMARY / STANDBY / FROZEN** roles and direct conditional `PENDING → ACK`.
+- PRIMARY polls every 5 seconds; STANDBY every 10 seconds and may take over at request age >=10 seconds; FROZEN Agents do not poll business jobs. New PRIMARY may later select a replacement standby.
+- Android uses one authenticated Firestore snapshot listener for its own job with offline persistence disabled. Normal target is <=10 seconds; terminal automatic handling is 30 seconds, then specialist-desk guidance.
+- D097 design envelope: 120 Pickers/day × 50 attempts = 6,000 requests/day, max 30 simultaneous. Source guards forbid reintroducing the 4-second lease write, `PROCESSING` write or 1-second PDA GET polling.
+- Target releases after merge: `relay-agent-v22` and next signed Beta APK after `beta-vc59` (expected `beta-vc60`).
+- OA018 is the physical normal→Office / standby failover / 30-second terminal gate. OA017 final real-WMS acceptance remains blocked by OA018.
+- Stable remains OWNER-GATED and untouched.
