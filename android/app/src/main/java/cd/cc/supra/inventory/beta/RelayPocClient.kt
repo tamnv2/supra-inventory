@@ -79,7 +79,7 @@ class RelayPocClient(
             executeProbe(current, suffix)
         } catch (error: RelayHttpException) {
             if (error.status != 401) throw error
-            log("D091 Firestore HTTP 401; làm mới Firebase session rồi thử lại.")
+            log("D092 Firestore HTTP 401; làm mới Firebase session rồi thử lại.")
             executeProbe(api.refreshSessionForRelay(), suffix)
         }
     }
@@ -97,19 +97,20 @@ class RelayPocClient(
             .put("request_id", stringValue(requestId))
             .put("suffix", stringValue(suffix))
             .put("status", stringValue("PENDING"))
-            .put("source", stringValue("ANDROID_D091"))
+            .put("source", stringValue("ANDROID_CONFIRM_V1"))
             .put("picker_uid", stringValue(identity.uid))
             .put("picker_user_id", stringValue(session.userId))
             .put("client_sent_at_ms", integerValue(System.currentTimeMillis()))
         val payload = JSONObject().put("fields", fields)
 
         log(
-            "D091 Firestore gửi request=" + shortId(requestId) +
+            "D092 Firestore gửi request=" + shortId(requestId) +
                 " picker_uid=" + identity.fingerprint +
                 " aud=" + identity.audience.ifBlank { "unknown" }
         )
         onProgress("Đang gửi qua Firestore...")
 
+        var cleanupAfterAck = false
         try {
             val createUrl = collectionUrl.toHttpUrl().newBuilder()
                 .addQueryParameter("documentId", requestId)
@@ -123,10 +124,10 @@ class RelayPocClient(
                     .build(),
                 "CREATE"
             )
-            log("D091 Firestore CREATE PASS request=" + shortId(requestId))
+            log("D092 Firestore CREATE PASS request=" + shortId(requestId))
             onProgress("Đã gửi Firestore · đang chờ Agent Office...")
 
-            val deadline = SystemClock.elapsedRealtime() + 60_000L
+            val deadline = SystemClock.elapsedRealtime() + 120_000L
             while (SystemClock.elapsedRealtime() < deadline) {
                 val raw = executeJson(
                     Request.Builder()
@@ -137,17 +138,32 @@ class RelayPocClient(
                         .build(),
                     "GET"
                 )
+                val root = try { JSONObject(raw) } catch (_: Exception) { JSONObject() }
+                val docFields = root.optJSONObject("fields") ?: JSONObject()
+                val currentStatus = fieldString(docFields, "status")
+                if (currentStatus == "PENDING" &&
+                    SystemClock.elapsedRealtime() - started >= 15_000L
+                ) {
+                    val updateTime = root.optString("updateTime").trim()
+                    if (cancelPending(documentUrl, updateTime, session.idToken)) {
+                        throw IOException("Không có Agent xử lý online. Vui lòng về bàn chuyên viên xử lý trực tiếp.")
+                    }
+                } else if (currentStatus == "PROCESSING") {
+                    onProgress("Agent đang kiểm tra và xác nhận Picklist...")
+                }
+
                 val ack = parseAck(raw)
                 if (ack != null) {
                     val total = (SystemClock.elapsedRealtime() - started).coerceAtLeast(0L)
                     log(
-                        "D091 Firestore ACK request=" + shortId(requestId) +
+                        "D092 Firestore ACK request=" + shortId(requestId) +
                             " admin=" + safeId(ack.adminUserId) +
                             " agent=" + safeId(ack.agentId) +
                             " instance=" + safeId(ack.agentInstanceId) +
                             " network=" + safeId(ack.agentNetwork) +
                             " rtt=" + total + "ms"
                     )
+                    cleanupAfterAck = true
                     return RelayProbeResult(
                         requestId = requestId,
                         agentId = ack.agentId,
@@ -167,12 +183,12 @@ class RelayPocClient(
                 Thread.sleep(1_000L)
             }
 
-            throw SocketTimeoutException("Firestore đã nhận request nhưng quá 60 giây chưa có Agent Office trả ACK.")
+            throw SocketTimeoutException("Yêu cầu đã xử lý quá 120 giây nhưng chưa có kết quả cuối. Không bấm lại; vui lòng về bàn chuyên viên kiểm tra trên SFT / SFT 3.")
         } catch (error: SocketTimeoutException) {
-            log("D091 Firestore timeout request=" + shortId(requestId))
-            throw IOException(error.message ?: "Agent Office chưa phản hồi.", error)
+            log("D092 Firestore timeout request=" + shortId(requestId))
+            throw IOException(error.message ?: "Chưa nhận được kết quả từ Agent Office.", error)
         } finally {
-            cleanup(documentUrl, session.idToken)
+            if (cleanupAfterAck) cleanup(documentUrl, session.idToken)
         }
     }
 
@@ -181,7 +197,7 @@ class RelayPocClient(
             val body = response.body?.string().orEmpty()
             if (!response.isSuccessful) {
                 val message = firestoreError(response.code, body)
-                log("D091 Firestore " + operation + " HTTP " + response.code + " · " + message)
+                log("D092 Firestore " + operation + " HTTP " + response.code + " · " + message)
                 throw RelayHttpException(response.code, message)
             }
             return body
@@ -211,6 +227,26 @@ class RelayPocClient(
         }
     }
 
+    private fun cancelPending(documentUrl: String, updateTime: String, idToken: String): Boolean {
+        if (updateTime.isBlank()) return false
+        return try {
+            val url = documentUrl.toHttpUrl().newBuilder()
+                .addQueryParameter("currentDocument.updateTime", updateTime)
+                .build()
+            http.newCall(
+                Request.Builder()
+                    .url(url)
+                    .delete()
+                    .header("Authorization", "Bearer " + idToken)
+                    .build()
+            ).execute().use { response ->
+                response.isSuccessful || response.code == 404
+            }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     private fun cleanup(documentUrl: String, idToken: String) {
         try {
             http.newCall(
@@ -221,11 +257,11 @@ class RelayPocClient(
                     .build()
             ).execute().use { response ->
                 if (!response.isSuccessful && response.code != 404) {
-                    log("D091 Firestore cleanup HTTP " + response.code)
+                    log("D092 Firestore cleanup HTTP " + response.code)
                 }
             }
         } catch (error: Exception) {
-            log("D091 Firestore cleanup lỗi: " + safeText(error.message))
+            log("D092 Firestore cleanup lỗi: " + safeText(error.message))
         }
     }
 

@@ -488,7 +488,7 @@
     },
     {
       "id": "OA012",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "PASS_OWNER_CONFIRMED",
       "title": "Field-test D091 Firestore PDA-to-Agent round trip on Office",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Physical Beta field environment",
@@ -517,13 +517,57 @@
         "pass": "Continue D091 with quota-safe multi-Agent HA/failover design before final transport selection.",
         "transport_fail": "Do not retest Cloudflare/RTDB; move to Apps Script Google-hosted candidate."
       },
-      "safety": "Beta only; transport-only ACK; single-Agent field proof; Stable and WMS mutation forbidden.",
-      "remaining_owner_action": "Run the single physical Office round-trip test now using relay-agent-v16 + beta-vc55 and report PASS/failure or provide the sanitized technical log if it fails.",
+      "safety": "Completed transport-only field proof. Never publish credentials/session/header/signature values from the field test.",
+      "remaining_owner_action": null,
       "runtime_readiness": {
         "firestore_main": "cecf56079eba144188a0080bca8b1e78bcbfdd00",
         "firestore_run": 35548847740,
         "agent_release": "relay-agent-v16",
         "android_release": "beta-vc55"
+      },
+      "completed_at": "2026-09-21",
+      "completion_evidence": {
+        "owner_confirmation": "PDA_AGENT_FIRESTORE_INTERNAL_WIFI_PASS",
+        "field_result": "Authenticated Picker PDA → Firestore → Office Agent → Firestore ACK → originating PDA succeeded on company internal Wi-Fi.",
+        "consequence": "D092 selects Firestore for the Beta confirmation carrier and authorizes the bounded confirmSkipItem implementation.",
+        "boundaries": "Beta confirmation workstream only; no Stable action; no broader WMS mutation."
+      }
+    },
+    {
+      "id": "OA013",
+      "status": "BLOCKED_UNTIL_D092_RELEASE",
+      "title": "Field-test D092 real Picklist confirmation",
+      "resource_key": "supra-api-d080",
+      "provider": "Physical company Windows Agent + Beta PDA + authorized Supra WMS session",
+      "reason_owner_only": "Connected CI can verify source/build/Rules/release but cannot execute or validate an authorized real company-WMS Picklist confirmation on the Owner's physical environment.",
+      "owner_ui_path": [],
+      "shortest_test_path": [
+        "After D092 main pipelines publish relay-agent-v17 and the next signed 1291 Beta APK, update both artifacts.",
+        "Ensure the Agent has a valid authorized HY1 WMS session and shows ACTIVE/ready.",
+        "Choose one real Picklist eligible for the approved confirmation action and enter exactly its last five digits in Xác nhận đơn.",
+        "Press XÁC NHẬN LẤY LẠI ĐƠN once.",
+        "Expected PDA text: Đã xác nhận lấy lại đơn. Hãy quay lại app SFT / SFT 3 để tiếp tục.",
+        "Open SFT / SFT 3 and verify the Picklist reached the expected confirmed state.",
+        "If the PDA reports an uncertain result, do not press again; verify directly in SFT / SFT 3 and provide only sanitized Agent technical logs if diagnosis is needed."
+      ],
+      "pass_criteria": [
+        "Exactly one full PickListCode matches the submitted five digits before mutation.",
+        "Exactly one Agent handles the request; standby Agents do not issue duplicate WMS calls.",
+        "The bounded confirmSkipItem call succeeds once and the PDA shows the exact D092 success sentence.",
+        "SFT / SFT 3 reflects the expected confirmed state.",
+        "A repeated already-confirmed request is idempotent and does not create a second WMS POST.",
+        "Final NOT_FOUND anti-spam remains 3 within 60 seconds with 5/30/60-minute escalation; non-input errors do not increment strikes.",
+        "No secret WMS/Firebase/session/signature value appears in repo or logs.",
+        "Stable remains untouched."
+      ],
+      "safety": "Use only an authorized company WMS session and a real Picklist appropriate for this business action. Do not paste/share passwords, Authorization/Token/APISID/SID/SCID/USID, signatures/nonces, cookies, encrypted session files or raw WMS response bodies.",
+      "remaining_owner_action": "Wait until D092 technical/release PASS; then run the single controlled real confirmation test described above.",
+      "prerequisites": {
+        "source_branch": "feat/d092-firestore-picklist-confirm",
+        "owner_transport_evidence": "OA012_PASS_OWNER_CONFIRMED",
+        "agent_target": "relay-agent-v17",
+        "android_target": "NEXT_MONOTONIC_SIGNED_BETA_AFTER_VC55",
+        "firestore_rules": "D092_MAIN_DEPLOY_PENDING"
       }
     }
   ]

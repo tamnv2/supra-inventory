@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D091_FIRESTORE_INFRA_RUNTIME_PASS__D089_OWNER_ACCEPTED_UI_BASELINE__SIGNED_BETA_VC55__AGENT_V16__PHYSICAL_OFFICE_E2E_PENDING",
+    "beta": "D092_SOURCE_IMPLEMENTATION__D091_FIRESTORE_OWNER_FIELD_PASS__D089_OWNER_ACCEPTED_UI_BASELINE__SIGNED_BETA_VC55__AGENT_V16",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 8,
     "business_api": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
@@ -22,7 +22,7 @@
     "android": "D091_SIGNED_BETA_VC55_FIRESTORE_FIELD_CANDIDATE_RELEASED__D089_OWNER_ACCEPTED_UI_BASELINE",
     "latest_beta_apk": "beta-vc55",
     "realtime": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
-    "network_scope": "D091_FIRESTORE_DATABASE_AND_LOCKED_RULES_RUNTIME_PASS__PHYSICAL_OFFICE_E2E_NEXT__RTDB_REJECTED_OFFICE__NO_CLOUDFLARE_RETEST",
+    "network_scope": "D092_FIRESTORE_SELECTED_FOR_CONFIRMATION__D091_OWNER_OFFICE_E2E_PASS__RTDB_REJECTED_OFFICE__CLOUDFLARE_RETEST_CLOSED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "SERVER_PAGED_FILTERED_ONE_MANY_ALL__ROOT_EFFECTIVE_ROLE_TEST_RUNTIME_PASS__OWNER_FUNCTIONAL_ACCEPTANCE_PENDING",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D091_FIRESTORE_INFRA_RUNTIME_PASS__AGENT_V16_PLUS_BETA_VC55_READY_FOR_PHYSICAL_OFFICE_TRANSPORT_ONLY_TEST__NO_WMS_MUTATION"
+    "picklist_confirmation_poc": "D092_BOUNDED_CONFIRMATION_SOURCE_IN_PROGRESS__FIRESTORE_HA_RATE_IDEMPOTENCY__AGENT_V17_AND_NEXT_SIGNED_BETA_PENDING"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -163,8 +163,8 @@
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
   "next_action": {
-    "primary": "Owner performs one physical Office end-to-end D091 test using relay-agent-v16 + beta-vc55: Picker PDA → Firestore → Office Agent → Firestore ACK → originating PDA.",
-    "method": "Use one Agent only for this first field proof. PASS requires TRANSPORT_ONLY ACK on PDA and matching short request id in Agent FIRESTORE audit. If PASS, continue quota-safe D085 multi-Agent/10-second failover design before final transport selection. If authenticated Firestore transport fails on Office, move directly to Apps Script; do not retest Cloudflare/RTDB.",
+    "primary": "Complete D092 PR gates, merge, deploy locked Firestore Rules, publish relay-agent-v17 and the next signed Beta APK; then Owner performs one controlled real Picklist confirmation field test.",
+    "method": "Automated PASS requires Firestore PENDING→PROCESSING→ACK claim, sticky ACTIVE Agent with 10-second failover threshold, Firestore anti-spam, unique full PickListCode resolution, cross-Agent idempotency guard and bounded confirmSkipItem POST. Physical field PASS then verifies one authorized real Picklist reaches CONFIRMED and the expected SFT / SFT 3 state. Uncertain mutation outcome must not auto-retry.",
     "stable": "OWNER_GATED"
   },
   "continuity_policy": {
@@ -192,7 +192,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D091 INFRA RUNTIME PASS: Beta Firestore `(default)` exists in asia-southeast1; locked D091 Rules are deployed via Firebase Rules Management REST API with release readback PASS. relay-agent-v16 + beta-vc55 are released. Physical Office PDA ↔ Agent TRANSPORT_ONLY E2E is the next gate.",
+      "D092 OWNER DIRECTED: D091 physical Office Firestore round trip is PASS. Firestore is selected for the Beta confirmation carrier; source implementation now wires sticky Firestore Agent HA, Firestore anti-spam, unique full PickListCode resolution, cross-Agent idempotency guard and the bounded confirmSkipItem WMS POST. PR/CI/release pending.",
       "D090 OWNER CONFIRMED: Office transport boundary is internal Supra + selected Google only. No further Cloudflare/Worker Office probe. RTDB is proxy-blocked; next replacement research is Google-hosted, with Firestore preferred but not yet selected.",
       "D089 OWNER ACCEPTED PASS: released Beta Web + signed beta-vc54 + relay-agent-v15 accepted by Owner on 2026-09-21. Accepted baseline: exact icon #4, Service/Realtime separation, dark Tools page, granular persistent Overlay controls, Agent single-instance restore. D078 transport remains pending; WMS GET-only; Stable OWNER-GATED.",
       "D088 technical/runtime/release PASS: main 48367c46b20405c48abb6ed8c0b59601defe1130; schema 8/Web runtime PASS, signed beta-vc53 PASS, relay-agent-v14 PASS with normalized release asset contract. Owner field acceptance pending; D078 transport remains pending.",
@@ -211,7 +211,8 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "After D091 releases, field-test one PDA request against one Agent on Office. PASS -> design quota-safe multi-Agent HA; transport failure -> Apps Script candidate.",
+      "Finish D092 branch → PR → authority/continuity/Firestore/Agent/Android PASS → merge → main Rules/release PASS.",
+      "After D092 release, Owner field-tests one authorized real Picklist confirmation and verifies the result in SFT / SFT 3.",
       "Bootstrap canonical GitHub and execute the Owner's next explicit requirement.",
       "Owner field-reviews D088 after release; keep D078 final transport selection pending until company-network physical evidence.",
       "Owner reviews D071 four Web items and D072 system-status exclusion",
@@ -219,6 +220,7 @@
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
     ],
     "blocked_or_owner_field_dependent": [
+      "D092 final business acceptance requires one physical authorized company-WMS confirmation after technical release PASS.",
       "D071 final visual/interaction acceptance depends on Owner live Web review",
       "D072 final Owner acceptance depends on live Web confirmation",
       "D070 physical timing/FCM delivery acceptance remains field-dependent",
@@ -407,7 +409,9 @@
       "d088": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_TEST_PENDING",
       "d089": "OWNER_ACCEPTED_PASS__2026_09_21",
       "d089_owner_field_acceptance": "PASS",
-      "d089_owner_field_acceptance_date": "2026-09-21"
+      "d089_owner_field_acceptance_date": "2026-09-21",
+      "d091_field_e2e": "PASS_OWNER_PHYSICAL_OFFICE_2026_09_21",
+      "d092": "SOURCE_IMPLEMENTATION_IN_PROGRESS__PR_CI_RELEASE_PENDING"
     }
   },
   "authority_setup": {

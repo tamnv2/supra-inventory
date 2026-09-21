@@ -83,3 +83,11 @@ For the Picker PDA ↔ Windows Agent confirmation workstream, transport candidat
 5. If the authenticated carrier itself fails on Office, record the sanitized evidence and move to the next approved Google-hosted candidate without re-testing providers already closed by D090.
 
 D091 candidate order starts with Firestore, then Apps Script if Firestore transport fails. WMS mutation is outside this procedure.
+
+## D092 confirmation execution boundary
+
+After Owner-confirmed D091 physical Office Firestore E2E PASS, the confirmation workstream uses Firestore as the selected Beta PDA ↔ Agent carrier. D092 may execute only the bounded WMS `confirmSkipItem` mutation recorded in D092 and project scope.
+
+Execution order is fail-closed: authenticated request → sticky ACTIVE Agent → conditional job claim → D085 anti-spam → D084 lookup/cache → unique full PickListCode resolution → cross-Agent confirmation guard → bounded WMS POST → ACK. No step may reconstruct/guess a full PickListCode from five digits or replay an uncertain mutation outcome.
+
+Only final truthful NOT_FOUND affects the Picker strike counter. Any session/network/schema/permission/transport/confirmation uncertainty returns an error without counting as wrong input. Stable remains OWNER-GATED.

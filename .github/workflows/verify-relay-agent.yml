@@ -5,12 +5,14 @@ on:
     paths:
       - "relay-agent/**"
       - "firebase/database.rules.json"
+      - "firebase/firestore.rules"
       - ".github/workflows/verify-relay-agent.yml"
   push:
     branches: [main]
     paths:
       - "relay-agent/**"
       - "firebase/database.rules.json"
+      - "firebase/firestore.rules"
       - ".github/workflows/verify-relay-agent.yml"
   workflow_dispatch:
 
@@ -40,7 +42,7 @@ jobs:
             throw "AgentConfig.AgentBuild does not match relay-agent/VERSION=$version"
           }
 
-      - name: D091 relay regression guard
+      - name: D092 relay confirmation regression guard
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
@@ -60,14 +62,20 @@ jobs:
           $overlaySettings = Get-Content relay-agent/OverlaySettingsForm.cs -Raw
           $project = Get-Content relay-agent/SupraInventoryRelayAgent.csproj -Raw
           $iconScript = Get-Content relay-agent/GenerateIcon.ps1 -Raw
-          $firestoreTransport = Get-Content relay-agent/FirestoreRelayTestTransport.cs -Raw
+          $firestoreTransport = Get-Content relay-agent/FirestoreConfirmationTransport.cs -Raw
+          $firestoreLeader = Get-Content relay-agent/FirestoreAgentLeaderCoordinator.cs -Raw
+          $firestoreRate = Get-Content relay-agent/FirestorePickerRateLimiter.cs -Raw
+          $confirmGuard = Get-Content relay-agent/FirestoreConfirmationGuard.cs -Raw
+          $confirm = Get-Content relay-agent/WmsPicklistConfirm.cs -Raw
+          $exact = Get-Content relay-agent/WmsPicklistExactResolver.cs -Raw
+          $firestoreRules = Get-Content firebase/firestore.rules -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*16\s*;') { throw "D091 requires Agent v16." }
-          if ($leader -notmatch 'HeartbeatIntervalMs\s*=\s*3000' -or $leader -notmatch 'FailoverAfterMs\s*=\s*10000') { throw "D085 HA timing guard failed." }
-          if ($leader -notmatch 'HttpRequestHeader\.IfMatch') { throw "D085 leader election must use conditional ETag writes." }
+          if ($config -notmatch 'AgentBuild\s*=\s*17\s*;') { throw "D092 requires Agent v17." }
+          if ($firestoreLeader -notmatch 'HeartbeatIntervalMs\s*=\s*4000' -or $firestoreLeader -notmatch 'FailoverAfterMs\s*=\s*10000') { throw "D092 Firestore HA timing guard failed." }
+          if ($firestoreLeader -notmatch 'currentDocument\.updateTime' -or $firestoreLeader -notmatch 'currentDocument\.exists=false') { throw "D092 Firestore leader election must use conditional writes." }
           if ($cache -notmatch 'FreshMissGuardSeconds\s*=\s*10' -or $cache -notmatch 'JOIN_INFLIGHT' -or $cache -notmatch 'LoadSnapshot') { throw "D085 Picklist cache/single-flight guard failed." }
-          if ($rate -notmatch 'StrikeWindowMs\s*=\s*60L\s*\*\s*1000L' -or $rate -notmatch 'ResetEscalationAfterMs\s*=\s*24L') { throw "D085 anti-spam timing guard failed." }
-          if ($rate -notmatch 'return 5;' -or $rate -notmatch 'return 30;' -or $rate -notmatch 'return 60;') { throw "D085 5/30/60 lock escalation guard failed." }
+          if ($firestoreRate -notmatch 'StrikeWindowMs\s*=\s*60L\s*\*\s*1000L' -or $firestoreRate -notmatch 'ResetEscalationAfterMs\s*=\s*24L') { throw "D092 Firestore anti-spam timing guard failed." }
+          if ($firestoreRate -notmatch 'return 5;' -or $firestoreRate -notmatch 'return 30;' -or $firestoreRate -notmatch 'return 60;') { throw "D092 5/30/60 lock escalation guard failed." }
           if ($startup -notmatch 'Registry\.CurrentUser' -or $startup -notmatch 'CurrentVersion\\Run' -or $startup -notmatch 'admin_required=false') { throw "D085 per-user autostart guard failed." }
           if ($program -notmatch 'Đăng nhập hệ thống Supra' -or $program -notmatch 'TryRestoreWmsSessionFileFirst' -or $program -notmatch '_leaderCoordinator\.IsLeader') { throw "D086 Agent UI/session/leader wiring guard failed." }
           if ($program -notmatch 'ControlBox\s*=\s*false' -or $program -notmatch 'RequestProtectedExit' -or $program -notmatch 'Interval\s*=\s*60000') { throw "D086 persistent/protected/low-frequency shell guard failed." }
@@ -86,17 +94,26 @@ jobs:
           if ($project -notmatch '<AssemblyName>Agent Auto Confirm Pick Pack</AssemblyName>' -or $project -notmatch '<ApplicationIcon>app.ico</ApplicationIcon>') { throw "D088 EXE name/icon guard failed." }
           if ($iconScript -notmatch 'app-icon\.png' -or $iconScript -notmatch 'HighQualityBicubic') { throw "D089 approved Agent icon source guard failed." }
           if (-not (Test-Path "relay-agent/app-icon.png")) { throw "D089 approved Agent icon asset missing." }
-          if ($leader -notmatch 'PresenceHeartbeatIntervalMs\s*=\s*30000' -or $leader -notmatch 'PresenceReadIntervalMs\s*=\s*60000' -or $leader -notmatch 'PresenceFreshMs\s*=\s*90000') { throw "D087 Agent presence cadence guard failed." }
-          if ($rules -notmatch 'coordination' -or $rules -notmatch 'rate_limits' -or $rules -notmatch 'PICKER_LOCKED' -or $rules -notmatch 'SWITCHING') { throw "D085 RTDB Rules guard failed." }
-          if ($config -notmatch 'FIRESTORE_D091_TEST' -or $config -notmatch 'relay_poc_jobs' -or $firestoreTransport -notmatch 'TRANSPORT_ONLY' -or $firestoreTransport -notmatch 'PollIntervalMs\s*=\s*3000') { throw "D091 Firestore field transport guard failed." }
-          if ($program -notmatch 'FirestoreRelayTestTransport' -or $program -notmatch 'FIRESTORE TEST') { throw "D091 Agent Firestore wiring guard failed." }
+          if ($firestoreLeader -notmatch 'PresenceHeartbeatIntervalMs\s*=\s*30000' -or $firestoreLeader -notmatch 'PresenceReadIntervalMs\s*=\s*60000' -or $firestoreLeader -notmatch 'PresenceFreshMs\s*=\s*90000') { throw "D092 Firestore Agent presence cadence guard failed." }
+          if ($rules -notmatch 'coordination' -or $rules -notmatch 'rate_limits' -or $rules -notmatch 'PICKER_LOCKED' -or $rules -notmatch 'SWITCHING') { throw "Legacy RTDB guard changed unexpectedly." }
+          if ($config -notmatch 'FIRESTORE_CONFIRM_V1' -or $config -notmatch 'relay_poc_jobs' -or $config -notmatch 'confirmSkipItem') { throw "D092 Agent config confirmation markers missing." }
+          if ($firestoreTransport -notmatch 'ANDROID_CONFIRM_V1' -or $firestoreTransport -notmatch 'PROCESSING' -or $firestoreTransport -notmatch 'PollIntervalMs\s*=\s*3000' -or $firestoreTransport -notmatch '_canProcess') { throw "D092 Firestore confirmation transport guard failed." }
+          if ($program -notmatch 'FirestoreConfirmationTransport' -or $program -notmatch 'ProcessFirestoreConfirmation' -or $program -notmatch 'FirestoreAgentLeaderCoordinator' -or $program -notmatch 'WmsPicklistConfirmClient\.Confirm') { throw "D092 Agent Firestore confirmation wiring guard failed." }
+          if ($exact -notmatch '\{ "Content", "" \}' -or $exact -notmatch 'PickListCode' -or $exact -notmatch 'AMBIGUOUS_PICKLIST') { throw "D092 exact PickListCode Content-empty resolver guard failed." }
+          if ($confirm -notmatch 'request\.Method\s*=\s*"POST"' -or $confirm -notmatch '"IsAllowSkipped", true' -or $confirm -notmatch '"RemainSkip", 1' -or $confirm -notmatch '"WarehouseCode", "HY1"') { throw "D092 bounded WMS confirmation adapter guard failed." }
+          if ($config -notmatch 'confirmSkipItem') { throw "D092 confirmSkipItem endpoint config missing." }
+          if ($confirmGuard -notmatch 'relay_poc_confirm_guards' -or $confirmGuard -notmatch 'currentDocument\.exists=false' -or $confirmGuard -notmatch 'CONFIRMED') { throw "D092 cross-Agent confirmation idempotency guard failed." }
+          if ($firestoreRate -notmatch 'relay_poc_rate_limits') { throw "D092 anti-spam must persist in Firestore." }
+          foreach ($marker in @('ANDROID_CONFIRM_V1','PROCESSING','relay_poc_rate_limits','relay_poc_coordination','relay_poc_agents','relay_poc_confirm_guards')) {
+            if ($firestoreRules -notmatch [regex]::Escape($marker)) { throw "D092 Firestore Rules marker missing: $marker" }
+          }
 
-          foreach ($source in @($lookup, $wms)) {
+          foreach ($source in @($lookup, $wms, $exact)) {
             if ($source -match 'request\.Method\s*=\s*"(POST|PUT|PATCH|DELETE)"') {
-              throw "WMS mutation method found; D085 remains read-only."
+              throw "Unexpected WMS mutation outside the D092 bounded confirmation adapter."
             }
           }
-          Write-Host "D091 relay regression guard PASS"
+          Write-Host "D092 relay confirmation regression guard PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh
@@ -160,5 +177,5 @@ jobs:
             "relay-agent/dist/README.md#README.md" `
             --repo "${{ github.repository }}" `
             --title "Agent Auto Confirm Pick Pack v$version" `
-            --notes "Beta Agent for Pick Pack / Inventory relay. Canonical executable: Agent Auto Confirm Pick Pack.exe. Legacy alias retained for pre-D088 updater compatibility; GitHub normalizes the canonical release asset filename to dots. WMS remains read-only." `
+            --notes "Beta Agent for Pick Pack / Inventory confirmation relay. Canonical executable: Agent Auto Confirm Pick Pack.exe. Firestore carries Picker requests with sticky Agent leadership, anti-spam and idempotency guards. WMS mutation is bounded to confirmSkipItem after an exact unique PickListCode match." `
             --prerelease

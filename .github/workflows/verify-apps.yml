@@ -88,22 +88,23 @@ jobs:
             echo "SIGNING_READY=false" >> "$GITHUB_ENV"
             echo "Beta signing secrets are not configured; building debug artifact only. Auto-update release publishing will stay disabled."
           fi
-      - name: D091 Firestore relay source guard
+      - name: D092 Firestore confirmation source guard
         shell: bash
         run: |
           set -euo pipefail
           client="android/app/src/main/java/cd/cc/supra/inventory/beta/RelayPocClient.kt"
           picker="android/app/src/main/java/cd/cc/supra/inventory/beta/PickerController.kt"
           grep -q 'FIRESTORE_RELAY_COLLECTION_URL' android/app/build.gradle.kts
-          grep -q 'ANDROID_D091' "$client"
+          grep -q 'ANDROID_CONFIRM_V1' "$client"
           grep -q 'Authorization.*Bearer' "$client"
-          grep -q 'TRANSPORT_ONLY' "$client"
-          grep -q 'KẾT NỐI PDA ↔ AGENT OK' "$picker"
+          grep -q 'Đã xác nhận lấy lại đơn. Hãy quay lại app SFT / SFT 3 để tiếp tục' "$picker"
+          grep -q 'currentDocument.updateTime' "$client"
+          grep -q 'PROCESSING' "$client"
           if grep -q 'FIREBASE_RTDB_URL' "$client"; then
-            echo "D091 RelayPocClient must not use RTDB for the field transport test" >&2
+            echo "D092 confirmation client must not use RTDB" >&2
             exit 1
           fi
-          echo "D091 Android Firestore relay guard PASS"
+          echo "D092 Android Firestore confirmation guard PASS"
 
       - name: Assemble Android 11+ Beta APK
         env:

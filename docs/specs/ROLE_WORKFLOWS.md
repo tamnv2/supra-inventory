@@ -326,3 +326,18 @@ Web/Android account session:
 2. A new Web or Android login for the same account becomes the only current interactive session.
 3. Any older Web/Android session fails closed and returns to login when it next uses authenticated API/refresh.
 4. Agent logins are excluded from this single-interactive-session replacement because multi-Agent standby/ACTIVE operation is separately authorized by D085.
+
+## D092 — Picker `Xác nhận lấy lại đơn` workflow
+
+1. Picker opens `Xác nhận đơn` and enters exactly five numeric trailing digits of the Picklist.
+2. Android creates one authenticated Firestore request. If no Agent claims a still-`PENDING` job within the bounded wait, the request is cancelled conditionally and Picker is instructed to go to the specialist desk.
+3. Only the sticky WMS-ready ACTIVE Agent processes jobs. Standby Agents do not touch WMS work; a leader failure may elect another Agent after the D085 10-second threshold.
+4. Agent checks the persisted account anti-spam state. A locked Picker receives `PICKER_LOCKED` without WMS work.
+5. Agent reuses the D084/D085 exact trailing-five lookup/cache. Only a final truthful NOT_FOUND increments strikes. FOUND resets the current strike window.
+6. After FOUND, Agent resolves the **full exact `PickListCode`** using the same D084 all-date, `Content=""`, 100-row paging rules. Zero/multiple/malformed candidates fail closed.
+7. Before WMS mutation, Agent claims a cross-Agent Firestore confirmation guard for the full code fingerprint. An existing confirmed guard returns idempotent success without sending another WMS POST. An uncertain/in-progress guard stops automatic retry.
+8. Only then Agent calls the authorized `confirmSkipItem` POST contract. No other WMS mutation is allowed.
+9. WMS success returns: `Đã xác nhận lấy lại đơn. Hãy quay lại app SFT / SFT 3 để tiếp tục`.
+10. Session/network/schema/permission/uncertain-confirmation errors never count as wrong Picklist input and are returned as bounded business-safe messages.
+
+While a request is `PROCESSING`, Android must not delete it merely because the local wait expires. A timeout after processing begins is fail-closed: instruct the user not to press again and to verify on SFT / SFT 3 through the specialist desk.

@@ -282,3 +282,24 @@ The Owner requires implementation evidence rather than more generic Office reach
 - Firestore becomes the final selected carrier only after the real Office round trip passes and the subsequent D085 multi-Agent/10-second failover design is proven within the quota envelope.
 - If authenticated Firestore round trip fails because Office cannot carry the required Firestore operations, move directly to Apps Script as the next Google-hosted candidate. Do not repeat Cloudflare or RTDB Office tests.
 - D089 accepted UI/runtime behavior remains protected. WMS remains signed GET-only; no confirmation/mutation is authorized. Stable remains OWNER-GATED.
+
+## D092 — Firestore selected for Office confirmation path; bounded automatic Picklist confirmation
+
+Status: **ACTIVE — OWNER DIRECTED / D091 FIELD PASS 2026-09-21**.
+
+The Owner physically tested the D091 PDA ↔ Agent Firestore round trip on the company internal Wi-Fi and confirmed it succeeds. This closes the D091 transport uncertainty for the confirmation workstream and selects **Cloud Firestore** as the Beta PDA ↔ Agent carrier for this capability. RTDB remains rejected on Office; Cloudflare is not reintroduced.
+
+D092 authorizes one narrowly bounded WMS mutation for **Xác nhận lấy lại đơn** only:
+
+1. Picker/PDA submits exactly the trailing **5 numeric digits** of the target Picklist through authenticated Firestore.
+2. Only the sticky WMS-ready **ACTIVE Agent** may poll work. Firestore leader coordination preserves the D085 approximately 10-second failover target; conditional document writes and per-job claim prevent two Agents from processing the same request.
+3. Before mutation, Agent must reuse the approved D084/D085 lookup path: all-date signed GET, `FromDate=""`, `ToDate=""`, `Content=""`, 100-row paging, exact `PickListCode` (`PL` + digits), and exact trailing-five comparison. Cache/single-flight semantics remain authoritative.
+4. A final truthful `NOT_FOUND` remains the only wrong-input strike. D085 account-scoped anti-spam remains: 3 final NOT_FOUND results inside 60 seconds → 5-minute lock, then 30 minutes, then 60 minutes; escalation resets after 24 hours without a new lock. Lookup/session/network/schema/transport/confirmation errors do not count as wrong input.
+5. A WMS confirmation may run **only when exactly one full `PickListCode` is resolved**. Zero, multiple or malformed candidates fail closed and require direct specialist handling.
+6. The only authorized WMS mutation endpoint is `POST /sft3-hy1/api/v1/autopp/pickListConfirms/confirmSkipItem`, with one exact full PickListCode and fixed business fields `IsAllowSkipped=true`, `RemainSkip=1`, `WarehouseCode=HY1`, `EnableDCSite=false`. No other WMS POST/PUT/PATCH/DELETE is authorized by D092.
+7. WMS session/header material and signatures remain runtime secrets. Agent generates a fresh signature/nonce for the actual request. Owner-supplied bash/cURL/session/header/signature values are transient evidence and must never be committed or logged.
+8. Firestore uses `PENDING → PROCESSING → ACK`. A conditional Firestore claim occurs before WMS work. Cross-Agent confirmation guard state is keyed by a non-reversible PickListCode fingerprint so the same exact PickList is not automatically POSTed twice across Agent failover/retry. Uncertain mutation outcomes fail closed; PDA must not encourage an immediate retry.
+9. Success shown to Picker is exactly: **“Đã xác nhận lấy lại đơn. Hãy quay lại app SFT / SFT 3 để tiếp tục”**. Errors return a bounded business-safe message and direct the Picker to specialist handling where appropriate.
+10. D091 `TRANSPORT_ONLY` is historical field-proof behavior and is superseded for the active confirmation flow by D092. D089 accepted UI/runtime baseline remains protected. Stable remains **OWNER-GATED** and is untouched.
+
+D092 does not create offline business mode, does not change the normal Báo hàng Cloudflare/InventoryCore architecture, and does not authorize any broader company-WMS automation beyond this exact Picklist confirmation contract.

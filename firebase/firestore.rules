@@ -25,7 +25,7 @@ service cloud.firestore {
         && request.resource.data.suffix is string
         && request.resource.data.suffix.matches('^[0-9]{5}$')
         && request.resource.data.status == 'PENDING'
-        && request.resource.data.source == 'ANDROID_D091'
+        && request.resource.data.source == 'ANDROID_CONFIRM_V1'
         && request.resource.data.picker_uid == request.auth.uid
         && request.resource.data.picker_user_id == request.auth.token.app_user_id
         && request.resource.data.client_sent_at_ms is int
@@ -37,19 +37,52 @@ service cloud.firestore {
       allow list: if isRealAdmin();
 
       allow update: if isRealAdmin()
-        && resource.data.status == 'PENDING'
-        && request.resource.data.status == 'ACK'
-        && request.resource.data.agent_admin_user_id == request.auth.token.app_user_id
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'status', 'agent_id', 'agent_instance_id', 'agent_admin_user_id',
-          'agent_network', 'agent_received_at_ms', 'agent_ack_at_ms',
-          'lookup_status', 'lookup_matches', 'lookup_ms', 'lookup_route',
-          'lookup_http', 'cache_mode', 'rate_strikes', 'lock_level',
-          'locked_until_ms'
-        ]);
+        && (
+          (
+            resource.data.status == 'PENDING'
+            && request.resource.data.status == 'PROCESSING'
+            && request.resource.data.agent_admin_user_id == request.auth.token.app_user_id
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'status', 'agent_id', 'agent_instance_id', 'agent_admin_user_id',
+              'agent_network', 'agent_received_at_ms'
+            ])
+          )
+          ||
+          (
+            resource.data.status == 'PROCESSING'
+            && request.resource.data.status == 'ACK'
+            && resource.data.agent_admin_user_id == request.auth.token.app_user_id
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'status', 'agent_ack_at_ms',
+              'lookup_status', 'lookup_matches', 'lookup_ms', 'lookup_route',
+              'lookup_http', 'cache_mode', 'rate_strikes', 'lock_level',
+              'locked_until_ms'
+            ])
+          )
+        );
 
       allow delete: if isPicker()
-        && resource.data.picker_uid == request.auth.uid;
+        && resource.data.picker_uid == request.auth.uid
+        && (resource.data.status == 'PENDING' || resource.data.status == 'ACK');
+    }
+
+    match /relay_poc_rate_limits/{pickerKey} {
+      allow get, create, update: if isRealAdmin();
+      allow list, delete: if false;
+    }
+
+    match /relay_poc_coordination/{docId} {
+      allow get, create, update, delete: if isRealAdmin();
+      allow list: if false;
+    }
+
+    match /relay_poc_agents/{agentId} {
+      allow get, list, create, update, delete: if isRealAdmin();
+    }
+
+    match /relay_poc_confirm_guards/{guardId} {
+      allow get, create, update, delete: if isRealAdmin();
+      allow list: if false;
     }
   }
 }
