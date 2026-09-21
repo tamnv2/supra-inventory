@@ -896,7 +896,9 @@ namespace SupraInventoryRelayAgent
                     : _leaderCoordinator.OnlineAgentCount;
                 var state = _leaderCoordinator == null
                     ? (_listenCts != null ? "FIRESTORE" : "CHƯA PHỐI HỢP")
-                    : (_leaderCoordinator.IsLeader ? "ACTIVE" : "STANDBY");
+                    : (!_leaderCoordinator.IsTransportHealthy
+                        ? "FIRESTORE OFFLINE"
+                        : (_leaderCoordinator.IsLeader ? "ACTIVE" : "STANDBY"));
 
                 if (_statusOverlay != null)
                 {
@@ -2098,7 +2100,18 @@ namespace SupraInventoryRelayAgent
                     () => Interlocked.Increment(ref _localAgentResponses),
                     state => Ui(() => _relay.Text = state),
                     ProcessFirestoreConfirmation,
-                    () => _leaderCoordinator != null && _leaderCoordinator.IsLeader);
+                    () => _leaderCoordinator != null && _leaderCoordinator.IsLeader,
+                    healthy =>
+                    {
+                        var coordinator = _leaderCoordinator;
+                        if (coordinator != null) coordinator.ReportRelayPoll(healthy);
+                        if (coordinator != null && coordinator.IsLeader)
+                        {
+                            Ui(() => _identity.Text =
+                                "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() +
+                                (healthy ? " / ACTIVE" : " / ACTIVE · FIRESTORE OFFLINE"));
+                        }
+                    });
                 transport.Run(token);
             }, token);
         }
