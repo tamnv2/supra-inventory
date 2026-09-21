@@ -511,6 +511,16 @@ export async function requestPasswordReset(username: string, email: string): Pro
   return result.message || "Nếu thông tin tài khoản và email khớp, hệ thống đã gửi liên kết đặt lại mật khẩu.";
 }
 
+export async function confirmPasswordReset(token: string, newPassword: string): Promise<string> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/password-reset/confirm`, {
+    method: "POST",
+    headers: { "content-type": "application/json", accept: "application/json" },
+    body: JSON.stringify({ token: token.trim(), new_password: newPassword }),
+  });
+  const result = await readJson<{ status: string; message?: string }>(response);
+  return result.message || "Đã đặt lại mật khẩu. Hãy đăng nhập lại.";
+}
+
 export async function updateMyAuthEmail(email: string): Promise<AppProfile> {
   const result = await readJson<{ user: AppProfile }>(await authorizedFetch("/api/auth/email", {
     method: "PUT",
