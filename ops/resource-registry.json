@@ -194,7 +194,7 @@
       "relay_agent_release": "relay-agent-v24__CURRENT__V25_SOURCE_CANDIDATE",
       "firebase_rtdb_rules_deploy": "D087_PR_GATE_PASS_RUN_35495453228__MAIN_SOURCE_MERGED",
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
-      "deploy_health_proof_status": "D100_HOTFIX_PR_PENDING"
+      "deploy_health_proof_status": "D100_RUNTIME_HEALTHY__CI_SCHEMA_PARSER_OVERESCAPED__FIX_PR_PENDING"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",

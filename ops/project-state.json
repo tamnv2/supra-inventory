@@ -171,7 +171,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Complete D100 PR #126 gates: one Firebase UID per logical user with username-derived sign-in identifier, Agent v25 username login, Web Tools canonical Agent version, ROOT-only scoped System Reset with password + six-digit Gmail OTP, and project-issued single-use ROOT/ADMIN recovery links. Merge/release only after all gates PASS. Beta Gmail send OAuth re-consent is Owner-only only if runtime proves current refresh token lacks gmail.send. Stable remains OWNER-GATED.",
+  "next_action": "Merge D100 Beta health schema-proof parser hotfix after Authority/State/UI/deploy gates PASS; rerun main Deploy Beta Worker and require source_commit exact + schema 10/10 + agent migration 0/0. Then record final D100 release checkpoint. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -559,7 +559,8 @@
     "D100 reset semantics: reset means data-to-zero only for selected runtime groups; no DROP TABLE/schema/source/UI/logic changes. ROOT identity/password/recovery email are excluded, external Google Sheet/Drive contents are never deleted, Stable untouched. Reset scopes are PICKER/REPORTER/ADMIN accounts, SKU, open reports, business history, service logs, non-ROOT sessions/devices, runtime settings, and optional confirmation Firestore relay; active PENDING relay jobs block relay deletion.",
     "D100 identity correction: do not create a second Firebase Agent UID. Web/App/Agent share the same Firebase UID and password; Firebase sign-in email is deterministic from role + username/MNV, while auth_email is registered recovery/OTP metadata only. firebase_agent_ready is readiness metadata, not a separate account.",
     "D100 continuity alignment: current released artifacts before D100 are relay-agent-v24 and signed beta-vc62 from main 216a5b88b2ca932e6ed863579677ed21df01e49b. D100 targets Agent v25; it does not roll Android backward.",
-    "D100 deploy-proof hotfix: Beta health must expose SOURCE_COMMIT; deploy gate requires health source_commit == GITHUB_SHA, runtime schema == source SCHEMA_VERSION, and agent_auth_migration agent_failed=0/agent_remaining=0. This prevents a stale previous Worker from satisfying a new deployment gate."
+    "D100 deploy-proof hotfix: Beta health must expose SOURCE_COMMIT; deploy gate requires health source_commit == GITHUB_SHA, runtime schema == source SCHEMA_VERSION, and agent_auth_migration agent_failed=0/agent_remaining=0. This prevents a stale previous Worker from satisfying a new deployment gate.",
+    "D100 deploy proof parser hotfix: runtime main 2cf23d9229eb4bd5d9c45f3776bb2404ef06a68f is healthy (HTTP 200, source_commit exact, schema 10/10, agent migration 0/0, operational 5/5), but deploy workflow parsed source SCHEMA_VERSION as literal \\\\1 because sed replacement was over-escaped. fix/d100-beta-health-schema-proof changes only that CI parser to \\1."
   ],
   "active_workstream": "D100_USERNAME_AGENT_LOGIN_ROOT_SYSTEM_RESET",
   "paused_workstreams": {

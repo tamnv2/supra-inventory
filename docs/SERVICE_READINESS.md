@@ -266,3 +266,12 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA019 PHYSICAL FIELD ACCEPTANCE
 - The first D100 Worker deployment workflow returned a health response from the previous runtime during immediate rollout (`schema=9/9`), so that workflow success is not sufficient evidence for D100 schema 10.
 - Hotfix `fix/d100-health-source-schema-proof` makes health expose `SOURCE_COMMIT` and makes deploy acceptance require: deployed source == `GITHUB_SHA`, runtime schema == source `SCHEMA_VERSION`, and Agent-auth migration failed/remaining are both zero.
 - D100 runtime PASS must not be recorded until this exact proof passes on main.
+
+
+## D100 Beta health schema-proof parser hotfix — 2026-09-21
+
+- Main `2cf23d9229eb4bd5d9c45f3776bb2404ef06a68f` deployed a healthy D100 Beta runtime: HTTP 200/status ok, exact source commit, SQLite schema `10/10`, Agent-auth migration `0 failed / 0 remaining`, Operational V2 `5/5`.
+- Deploy workflow still failed because the shell source-schema parser emitted literal `\1` instead of `10`; the runtime itself was not failing.
+- `fix/d100-beta-health-schema-proof` changes only the deploy proof parser from an over-escaped sed replacement to the correct capture replacement.
+- D100 final runtime PASS remains withheld until the corrected proof passes on main.
+- Stable remains OWNER-GATED and untouched.
