@@ -104,3 +104,15 @@ The Workers Paid account is shared with other Owner projects. SUPRA Inventory mu
 - A new feature that materially increases Worker/DO/SQLite usage must include a bounded projection/test before technical PASS.
 - Paid-plan availability does not authorize unbounded monitoring/provider polling.
 - Firestore quota is tracked separately and remains a later optimization workstream after D098 identity/realtime acceptance.
+
+
+## D099 Firebase Auth configuration gate
+
+A release that depends on Firebase password sign-in must not infer provider readiness from user migration or general health. CI/deploy must:
+- read `signIn.email.enabled` and `signIn.email.passwordRequired`;
+- repair only the in-scope Beta project automatically when authorized;
+- read back the configured state;
+- execute an ephemeral password-import/sign-in/cleanup probe;
+- fail release on any non-idempotent configuration/probe error.
+
+Stable Firebase Auth configuration remains OWNER-GATED.
