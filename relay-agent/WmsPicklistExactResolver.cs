@@ -200,6 +200,17 @@ namespace SupraInventoryRelayAgent
                 CollectCodes(item, codes, depth + 1);
         }
 
+        internal static bool SelfTestJsonArrayParsing()
+        {
+            var codes = new List<string>();
+            CollectCodes(
+                Json.DeserializeObject("{\"Status\":true,\"Data\":[{\"PickListCode\":\"PL2601012345\"}]}"),
+                codes,
+                0);
+            return codes.Count == 1 &&
+                   string.Equals(codes[0], "PL2601012345", StringComparison.Ordinal);
+        }
+
         private static bool ValidCode(string value)
         {
             if (string.IsNullOrWhiteSpace(value)) return false;
