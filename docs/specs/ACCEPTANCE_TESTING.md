@@ -851,6 +851,8 @@ Technical PASS requires:
 5. Web Tools generated version/tag/download URL exactly match `relay-agent/VERSION`; no old hard-coded tag survives.
 6. System Reset navigation/API is denied to ADMIN/REPORTER/PICKER and to ROOT while simulating a lower effective role.
 7. Challenge requires correct ROOT password, registered ROOT email, 6-digit code, 10-minute expiry, <=5 attempts and send throttling.
+   - The 60-second send throttle is committed only for a successfully sent challenge. If the Gmail provider fails before delivery acceptance, the reserved challenge/throttle is rolled back so a provider failure does not create a false user rate-limit.
+   - Gmail provider failures must be classified into bounded non-secret causes (OAuth/scope, Gmail API disabled, domain policy, provider quota/rate, or generic HTTP class) rather than always reporting a missing scope.
 8. Reset of any scope preserves ROOT identity/password/recovery email and external Google Sheet/Drive contents.
 9. Account reset removes corresponding InventoryCore users and their single Firebase identities; ROOT identity is never included.
 10. Firestore reset refuses to run while any confirmation job is PENDING.

@@ -112,6 +112,33 @@ async function sendResetCodeEmail(env: Env, email: string, code: string): Promis
   );
 }
 
+function mailFailureDetail(error: unknown): string {
+  const raw = error instanceof Error ? error.message : "email_failed";
+  return raw.split(":", 1)[0].trim() || "email_failed";
+}
+
+function mailFailureMessage(detail: string): string {
+  if (detail === "GOOGLE_MAIL_SCOPE_MISSING") {
+    return "Kết nối Google hiện tại chưa có quyền gửi Gmail. Cần cấp lại quyền gmail.send và cập nhật refresh token Beta.";
+  }
+  if (detail === "GOOGLE_MAIL_GMAIL_API_DISABLED") {
+    return "Dự án Google Cloud chưa bật Gmail API. Cần bật Gmail API cho supra-inventory-beta rồi thử lại.";
+  }
+  if (detail === "GOOGLE_MAIL_DOMAIN_POLICY") {
+    return "Chính sách Google Workspace đang chặn ứng dụng gửi Gmail. Cần quản trị miền cho phép Gmail API.";
+  }
+  if (detail === "GOOGLE_MAIL_PROVIDER_RATE_LIMIT") {
+    return "Google đang giới hạn tần suất gửi Gmail. Vui lòng chờ rồi thử lại; hệ thống không tính lần gửi thất bại vào giới hạn mã xác nhận.";
+  }
+  if (detail === "GOOGLE_MAIL_AUTH_FAILED" || detail === "GOOGLE_MAIL_OAUTH_FAILED") {
+    return "Kết nối Google của dự án không còn hợp lệ. Cần cấp lại quyền Google OAuth và cập nhật refresh token Beta.";
+  }
+  if (detail === "GOOGLE_MAIL_OAUTH_NOT_CONFIGURED") {
+    return "Kết nối Google OAuth cho Beta chưa được cấu hình đầy đủ.";
+  }
+  return "Google chưa gửi được email xác nhận. Hệ thống đã ghi nhận mã lỗi an toàn để chẩn đoán; lần gửi thất bại không bị tính vào giới hạn gửi mã.";
+}
+
 async function primaryPasswordValid(env: Env, root: RootUser, password: string): Promise<boolean> {
   if (!env.FIREBASE_WEB_API_KEY || !root.firebase_uid || !password) return false;
   try {
@@ -267,16 +294,21 @@ export async function handleSystemResetApi(request: Request, env: Env): Promise<
     try {
       await sendResetCodeEmail(env, root.auth_email, code);
     } catch (error) {
+      const detail = mailFailureDetail(error);
       await core(env).fetch("https://inventory-core.internal/root/system-reset/challenge-delete", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ challenge_id: challengeId }),
+        body: JSON.stringify({
+          challenge_id: challengeId,
+          root_user_id: root.user_id,
+          release_throttle: true,
+        }),
       });
       return json({
         error: "RESET_EMAIL_UNAVAILABLE",
-        message: "Chưa gửi được mã xác nhận tới email ROOT. Cần cấp quyền Gmail send cho kết nối Google của dự án.",
-        detail: error instanceof Error ? error.message.replace(/:[\s\S]*/, "") : "email_failed",
-      }, 503);
+        message: mailFailureMessage(detail),
+        detail,
+      }, detail === "GOOGLE_MAIL_PROVIDER_RATE_LIMIT" ? 429 : 503);
     }
     return json({
       status: "code_sent",

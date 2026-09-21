@@ -870,7 +870,7 @@
     },
     {
       "id": "OA020",
-      "status": "BLOCKED_BY_GOOGLE_OAUTH_RECONSENT",
+      "status": "MAIL_REPAIR_SOURCE_CANDIDATE__FIELD_RETRY_AFTER_DEPLOY",
       "title": "Field-accept D100 ROOT System Reset and recovery mail",
       "resource_key": "cloudflare-beta-worker",
       "provider": "Beta Web + InventoryCore + Firebase Auth + Gmail send OAuth",
@@ -907,10 +907,10 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Review selected scopes before execute. Do not share ROOT password, OTP, OAuth refresh token, Firebase tokens, cookies or any secret values. Requesting the OTP alone is non-destructive; final reset execution is destructive for the selected runtime data.",
-      "remaining_owner_action": "Open the Beta project Google OAuth consent flow once, approve the existing Drive scope plus gmail.send, replace the Beta Worker GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN with the newly issued refresh token without sharing it in chat/GitHub, then retry the non-destructive mail-only OTP challenge.",
-      "field_result": "RESET_EMAIL_UNAVAILABLE__GMAIL_SEND_PERMISSION_MISSING",
+      "remaining_owner_action": "Wait for the OA020 mail repair to deploy, then retry the mail-only challenge once. Do not perform a destructive reset until the six-digit email arrives. No further Google re-consent should be repeated unless the repaired runtime specifically reports GOOGLE_MAIL_SCOPE_MISSING.",
+      "field_result": "RESET_EMAIL_UNAVAILABLE__THEN_FALSE_RESET_CODE_RATE_LIMIT",
       "field_result_date": "2026-09-22",
-      "field_result_note": "Owner field test reached the ROOT System Reset challenge and the UI reported that the six-digit email could not be sent because the project Google connection lacks Gmail send permission. No destructive reset was executed."
+      "field_result_note": "Owner re-consented Google OAuth and retried. Beta Web logs still show reset challenge HTTP 503, followed by RESET_CODE_RATE_LIMIT. Source audit found the local 60-second throttle was committed before Gmail provider success and not rolled back on send failure. Repair is in progress to rollback failed-send throttle and expose the sanitized Google cause on the next retry."
     }
   ]
 }

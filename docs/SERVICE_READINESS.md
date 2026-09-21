@@ -313,3 +313,11 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA019 + OA020 OWNER FIELD ACCEP
 - Required Owner-only step: run the existing Beta Google OAuth consent flow, approve the scopes, replace only the Beta Worker secret `GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN` with the newly issued refresh token, and never paste that token into chat/GitHub/logs.
 - After replacement, retry only the non-destructive six-digit OTP challenge first. OA020 remains blocked until email delivery succeeds; Stable remains OWNER-GATED and untouched.
 
+## D100 OA020 mail/throttle repair — 2026-09-22
+
+- Owner retried the ROOT System Reset mail-only challenge after Google OAuth re-consent. Recent Beta Web logs still show HTTP 503 from `/api/root/system-reset/challenge`, followed by `RESET_CODE_RATE_LIMIT`.
+- Source audit confirmed the local 60-second reset-code throttle was written before Gmail provider acceptance. When Gmail failed, the challenge was deleted but the throttle remained, creating a false rate-limit.
+- Repair candidate `fix/d100-oa020-mail-throttle-diagnostics` keeps throttling after a successful send but releases it when provider delivery fails.
+- Gmail failures are now mapped to bounded non-secret causes: OAuth/auth failure, missing `gmail.send`, Gmail API disabled, Workspace domain policy, provider quota/rate, or generic HTTP class. Raw Google tokens/responses are not logged.
+- Next field action occurs only after the repaired Beta runtime deploys: request one mail-only OTP. Do not repeat Google OAuth consent unless the repaired runtime specifically reports missing scope. Stable remains OWNER-GATED.
+
