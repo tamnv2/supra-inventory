@@ -498,3 +498,23 @@ Status: **OWNER DIRECTED 2026-09-21 — ROOT CAUSE CONFIRMED / PR #124 ACTIVE**.
 7. Pressing Enter in Agent ADMIN email/password invokes Login. Pressing Enter in the Agent 3–5 digit PickList input invokes Search when valid. Android login also accepts keyboard Enter/Done as Login; Web form-submit behavior remains.
 8. Overlay no longer has the legacy 420×64 minimum. D099 allows a practical minimum 120×32 and large configurable bounds up to 7680×4320; runtime and settings UI use the same range.
 9. D097 HA, D096 WMS confirmation semantics, normal Báo hàng flow and Stable are otherwise unchanged. Stable remains OWNER-GATED.
+
+
+## D099 release checkpoint — 2026-09-21
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OWNER EXISTING-ACCOUNT RETEST / OA019 READY**.
+
+- Owner reported all real Web/App/Agent accounts returning `INVALID_CREDENTIALS` after D098.
+- PR #124 diagnostic proved the shared Beta root cause: Identity Platform Email/Password provider was `enabled=false`, `passwordRequired=false`, while D098 already depended on `signInWithPassword`.
+- D099 PR #124 merged to main `216a5b88b2ca932e6ed863579677ed21df01e49b`.
+- Main Firestore/Auth run `35614460427` changed Beta Email/Password provider from disabled to enabled/password-required, then executed an ephemeral PBKDF2-SHA256/100000 import → `signInWithPassword` → cleanup probe: **PASS**. Firestore database/index/Rules gates also PASS.
+- Main Beta Worker run `35614460320` PASS: HTTP 200/status ok, SQLite **9/9**, Operational V2 **5/5**, auth routing/guards/Web shell PASS.
+- Main Repo Authority `35614460498`, Project State `35614460660`, UI `35614460322`, Relay Agent `35614460384`, Android `35614460336` all PASS.
+- Worker login now has a bounded migration self-heal: Firebase native password is updated only when the supplied password first verifies against the canonical InventoryCore PBKDF2. Wrong passwords remain rejected; plaintext is never persisted/logged.
+- Released Agent: `relay-agent-v24`, release id `393045957`, EXE asset id `579237307`, size `249856`, SHA-256 `ce7f0942049cc2cc414a597b53474809b595d5cafdfedbc9f240a9e0f309fdc2`.
+- Released Android: `beta-vc62`, release id `393046167`, APK asset id `579237812`, size `18998096`, SHA-256 `2b7967d1fec7a94098588fb5b1d4f84258acd0000a355b1f06a12c0309d5c1db`.
+- Agent v24 Overview is auth-first: Xác minh Agent → Hệ thống Supra → specialist PickList. Supra is disabled until Agent auth. Direct Agent login uses **registered ADMIN email + password**, not username, to stay Worker-independent on Office.
+- Enter on Agent login = Login; Enter on valid 3–5 digit specialist input = Search. Android Enter/Done = Login. Web form Enter remains.
+- Overlay old 420×64 floor is removed. Runtime/settings practical range is **120×32..7680×4320**, with existing persistence/lock/click-through preserved.
+- Technical evidence cannot prove the Owner's unknown real password, so existing-account login remains a physical field acceptance step. OA019 is READY on current Web + v24 + vc62.
+- Stable remains **OWNER-GATED** and untouched.
