@@ -1,11 +1,15 @@
 import { InventoryCore } from "./core";
 import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole } from "./auth";
 import {
+  agentAuthEmail,
+  agentFirebaseUid,
   effectiveAuthEmail,
+  importAgentPasswordIdentity,
   importPasswordIdentity,
   normalizeAuthEmail,
   sendFirebasePasswordReset,
   signInWithFirebasePassword,
+  updateAgentFirebaseIdentity,
   updateFirebaseIdentity,
   type FirebaseManagedUserSpec,
 } from "./firebase-auth-admin";
@@ -57,6 +61,7 @@ interface InternalUser {
   password_changed_at: string | null;
   auth_email: string | null;
   firebase_password_ready: number;
+  firebase_agent_ready: number;
   session_generation: number;
   session_started_at: string | null;
   web_session_generation: number;
@@ -273,8 +278,25 @@ async function ensureFirebasePasswordReady(env: Env, original: InternalUser): Pr
   return user;
 }
 
-async function migrateActiveAdminFirebaseCredentials(env: Env): Promise<{ migrated: number; failed: number; remaining: number }> {
-  if (!env.GOOGLE_RUNTIME_SA_JSON) return { migrated: 0, failed: 1, remaining: 0 };
+async function ensureAgentFirebaseReady(env: Env, user: InternalUser): Promise<void> {
+  if (!env.GOOGLE_RUNTIME_SA_JSON) throw new Error("AUTH_RUNTIME_NOT_CONFIGURED");
+  if (user.base_role !== "ADMIN" || user.role !== "ADMIN") throw new Error("AGENT_ADMIN_REQUIRED");
+  if (!user.password_hash || !user.password_salt || !user.firebase_uid) throw new Error("AGENT_PASSWORD_NOT_READY");
+  if (Number(user.firebase_agent_ready || 0) === 1) return;
+  await importAgentPasswordIdentity(
+    env.GOOGLE_RUNTIME_SA_JSON,
+    env.FIREBASE_PROJECT_ID,
+    firebaseUserSpec(user, String(user.firebase_uid)),
+  );
+  await coreJson(env, "/auth/firebase-agent-ready", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ user_id: user.user_id }),
+  });
+}
+
+async function migrateActiveAdminFirebaseCredentials(env: Env): Promise<{ migrated: number; failed: number; remaining: number; agent_migrated: number; agent_failed: number; agent_remaining: number }> {
+  if (!env.GOOGLE_RUNTIME_SA_JSON) return { migrated: 0, failed: 1, remaining: 0, agent_migrated: 0, agent_failed: 1, agent_remaining: 0 };
   const candidates = await coreJson<{ items: InternalUser[]; count: number }>(
     env,
     "/auth/firebase-migration-candidates?role=ADMIN&limit=50",
@@ -293,7 +315,37 @@ async function migrateActiveAdminFirebaseCredentials(env: Env): Promise<{ migrat
     env,
     "/auth/firebase-migration-candidates?role=ADMIN&limit=1",
   );
-  return { migrated, failed, remaining: Number(remaining.count || 0) };
+
+  const agentCandidates = await coreJson<{ items: InternalUser[]; count: number }>(
+    env,
+    "/auth/firebase-migration-candidates?role=ADMIN&channel=AGENT&limit=50",
+  );
+  let agentMigrated = 0;
+  let agentFailed = 0;
+  for (const original of agentCandidates.items || []) {
+    try {
+      const prepared = Number(original.firebase_password_ready || 0) === 1
+        ? original
+        : await ensureFirebasePasswordReady(env, original);
+      const refreshed = (await getUserById(env, prepared.user_id)) || prepared;
+      await ensureAgentFirebaseReady(env, refreshed);
+      agentMigrated += 1;
+    } catch {
+      agentFailed += 1;
+    }
+  }
+  const agentRemaining = await coreJson<{ count: number }>(
+    env,
+    "/auth/firebase-migration-candidates?role=ADMIN&channel=AGENT&limit=1",
+  );
+  return {
+    migrated,
+    failed,
+    remaining: Number(remaining.count || 0),
+    agent_migrated: agentMigrated,
+    agent_failed: agentFailed,
+    agent_remaining: Number(agentRemaining.count || 0),
+  };
 }
 
 async function closeUserRealtime(env: Env, userId: string, channel?: "WEB" | "ANDROID"): Promise<void> {
@@ -381,6 +433,7 @@ function publicUser(user: InternalUser): Record<string, unknown> {
     android_session_device_id: _androidDevice,
     android_session_started_at: _androidStarted,
     firebase_password_ready: _firebasePasswordReady,
+    firebase_agent_ready: _firebaseAgentReady,
     ...safe
   } = user;
   return safe;
@@ -764,15 +817,17 @@ export default {
         const bindingPresence = Object.fromEntries(REQUIRED_RUNTIME_BINDINGS.map((name) => [name, Boolean(env[name])]));
         const missing = REQUIRED_RUNTIME_BINDINGS.filter((name) => !env[name]);
         const core = await checkCore(env);
-        let agentAuthMigration = { migrated: 0, failed: 0, remaining: 0 };
+        let agentAuthMigration = { migrated: 0, failed: 0, remaining: 0, agent_migrated: 0, agent_failed: 0, agent_remaining: 0 };
         if (core.ok && env.GOOGLE_RUNTIME_SA_JSON) {
           try {
             agentAuthMigration = await migrateActiveAdminFirebaseCredentials(env);
           } catch {
-            agentAuthMigration = { migrated: 0, failed: 1, remaining: 1 };
+            agentAuthMigration = { migrated: 0, failed: 1, remaining: 1, agent_migrated: 0, agent_failed: 1, agent_remaining: 1 };
           }
         }
-        const healthy = missing.length === 0 && core.ok && agentAuthMigration.failed === 0 && agentAuthMigration.remaining === 0;
+        const healthy = missing.length === 0 && core.ok &&
+          agentAuthMigration.failed === 0 && agentAuthMigration.remaining === 0 &&
+          agentAuthMigration.agent_failed === 0 && agentAuthMigration.agent_remaining === 0;
         return json({
           status: healthy ? "ok" : "degraded", service: env.PROJECT_KEY || "supra-inventory", environment: env.APP_ENV || "unknown",
           required_bindings: bindingPresence, oauth_refresh_token_configured: Boolean(env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN),
