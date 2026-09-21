@@ -264,25 +264,41 @@ class MainActivity : Activity() {
                 setStatus("Tên đăng nhập hoặc mật khẩu không hợp lệ.")
                 return@setOnClickListener
             }
-            login.isEnabled = false
-            progress.visibility = View.VISIBLE
-            status.visibility = View.GONE
-            Thread {
-                try {
-                    val session = api.login(user, pass)
-                    runOnUiThread {
-                        progress.visibility = View.GONE
-                        password.setText("")
-                        renderHome(session)
+            fun attemptLogin(force: Boolean) {
+                login.isEnabled = false
+                progress.visibility = View.VISIBLE
+                status.visibility = View.GONE
+                Thread {
+                    try {
+                        val session = api.login(user, pass, "android:$notificationDeviceId", force)
+                        runOnUiThread {
+                            progress.visibility = View.GONE
+                            password.setText("")
+                            renderHome(session)
+                        }
+                    } catch (e: Exception) {
+                        if (e is ApiException && e.code == "SESSION_ACTIVE_OTHER_DEVICE" && !force) {
+                            runOnUiThread {
+                                progress.visibility = View.GONE
+                                login.isEnabled = updateGate == UpdateGate.CURRENT
+                                AlertDialog.Builder(this@MainActivity)
+                                    .setTitle("Tài khoản đang dùng trên App/PDA khác")
+                                    .setMessage(e.message + "\n\nTiếp tục sẽ đăng xuất phiên App/PDA cũ. Web và Agent không bị ảnh hưởng.")
+                                    .setNegativeButton("Huỷ", null)
+                                    .setPositiveButton("Tiếp tục") { _, _ -> attemptLogin(true) }
+                                    .show()
+                            }
+                        } else {
+                            runOnUiThread {
+                                progress.visibility = View.GONE
+                                login.isEnabled = updateGate == UpdateGate.CURRENT
+                                setStatus(friendlyError(e))
+                            }
+                        }
                     }
-                } catch (e: Exception) {
-                    runOnUiThread {
-                        progress.visibility = View.GONE
-                        login.isEnabled = updateGate == UpdateGate.CURRENT
-                        setStatus(friendlyError(e))
-                    }
-                }
-            }.start()
+                }.start()
+            }
+            attemptLogin(false)
         }
     }
 
@@ -655,7 +671,7 @@ class MainActivity : Activity() {
         stopOperationalClients()
         Thread {
             try { api.unregisterNotificationDevice(notificationDeviceId) } catch (_: Exception) { }
-            api.clearSession()
+            try { api.logoutInteractive("android:$notificationDeviceId") } catch (_: Exception) { api.clearSession() }
             runOnUiThread { renderLogin("Đã đăng xuất.") }
         }.start()
     }
@@ -697,6 +713,7 @@ class MainActivity : Activity() {
                 "RESULT_ACK_NOT_FOUND" -> "Kết quả cần xác nhận không còn hợp lệ cho tài khoản này."
                 "USER_NOT_ACTIVE" -> "Tài khoản đã dừng hoạt động."
                 "FORBIDDEN" -> "Tài khoản không có quyền thực hiện thao tác này."
+                "CLIENT_ROLE_NOT_ALLOWED" -> "Vai trò này không được phép đăng nhập trên thiết bị này."
                 "SESSION_REPLACED" -> "Tài khoản đã đăng nhập ở nơi khác. Phiên trên thiết bị này đã kết thúc."
                 "SESSION_UPGRADE_REQUIRED" -> "Phiên cũ cần đăng nhập lại một lần để áp dụng cơ chế phiên mới."
                 "AUTH_REQUIRED", "INVALID_AUTH_TOKEN", "SESSION_REFRESH_FAILED" -> "Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại."
