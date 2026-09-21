@@ -76,7 +76,7 @@ jobs:
         run: |
           set -euo pipefail
           project="supra-inventory-beta"
-          if gcloud firestore databases describe --project="$project" --database="(default)" >/tmp/firestore-db.json 2>/tmp/firestore-db.err; then
+          if gcloud firestore databases describe --project="$project" --database="(default)" --format=json >/tmp/firestore-db.json 2>/tmp/firestore-db.err; then
             echo "Firestore (default) exists"
             location="$(jq -r '.locationId // empty' /tmp/firestore-db.json)"
             [ "$location" = "asia-southeast1" ] || { echo "Unexpected Firestore location: $location"; exit 1; }
@@ -94,11 +94,94 @@ jobs:
           [ "$(jq -r '.locationId' /tmp/firestore-db.json)" = "asia-southeast1" ]
           echo "Firestore database create/readback PASS"
 
-      - name: Deploy Firestore Rules on main
+      - name: Deploy Firestore Rules via Rules Management API on main
         if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
-          npm install --global firebase-tools@latest
-          firebase deploy --only firestore:rules --project supra-inventory-beta --non-interactive
-          echo "Firestore Rules deploy PASS"
+          export FIREBASE_RULES_ACCESS_TOKEN="$(gcloud auth print-access-token)"
+          node <<'NODE'
+          const fs = require('fs');
+          const projectId = 'supra-inventory-beta';
+          const token = process.env.FIREBASE_RULES_ACCESS_TOKEN;
+          const rulesSource = fs.readFileSync('firebase/firestore.rules', 'utf8');
+          if (!token) throw new Error('Missing Google OAuth access token');
+
+          const apiBase = 'https://firebaserules.googleapis.com/v1';
+          const headers = {
+            authorization: 'Bearer ' + token,
+            'content-type': 'application/json',
+          };
+
+          async function jsonOrText(res) {
+            const text = await res.text();
+            try { return text ? JSON.parse(text) : {}; }
+            catch { return { raw: text.slice(0, 500) }; }
+          }
+
+          async function main() {
+            const rulesetRes = await fetch(apiBase + '/projects/' + projectId + '/rulesets', {
+              method: 'POST',
+              headers,
+              body: JSON.stringify({
+                source: {
+                  files: [{ name: 'firestore.rules', content: rulesSource }],
+                },
+              }),
+            });
+            const ruleset = await jsonOrText(rulesetRes);
+            if (!rulesetRes.ok) {
+              throw new Error('Firebase Rules ruleset create failed: HTTP ' + rulesetRes.status + ' ' + JSON.stringify(ruleset));
+            }
+            if (!ruleset.name || !ruleset.name.startsWith('projects/' + projectId + '/rulesets/')) {
+              throw new Error('Firebase Rules ruleset create returned invalid name');
+            }
+            console.log('Firestore Rules ruleset create PASS');
+
+            const releaseName = 'projects/' + projectId + '/releases/cloud.firestore';
+            const releaseUrl = apiBase + '/' + releaseName;
+            const currentRes = await fetch(releaseUrl, { headers: { authorization: 'Bearer ' + token } });
+
+            let deployRes;
+            if (currentRes.status === 404) {
+              deployRes = await fetch(apiBase + '/projects/' + projectId + '/releases', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ name: releaseName, rulesetName: ruleset.name }),
+              });
+            } else if (currentRes.ok) {
+              deployRes = await fetch(releaseUrl, {
+                method: 'PATCH',
+                headers,
+                body: JSON.stringify({
+                  release: { name: releaseName, rulesetName: ruleset.name },
+                  updateMask: 'rulesetName',
+                }),
+              });
+            } else {
+              const current = await jsonOrText(currentRes);
+              throw new Error('Firebase Rules release read failed: HTTP ' + currentRes.status + ' ' + JSON.stringify(current));
+            }
+
+            const deployed = await jsonOrText(deployRes);
+            if (!deployRes.ok) {
+              throw new Error('Firebase Rules release deploy failed: HTTP ' + deployRes.status + ' ' + JSON.stringify(deployed));
+            }
+
+            const verifyRes = await fetch(releaseUrl, { headers: { authorization: 'Bearer ' + token } });
+            const verify = await jsonOrText(verifyRes);
+            if (!verifyRes.ok) {
+              throw new Error('Firebase Rules release verify failed: HTTP ' + verifyRes.status + ' ' + JSON.stringify(verify));
+            }
+            if (verify.rulesetName !== ruleset.name) {
+              throw new Error('Firebase Rules release verify mismatch');
+            }
+            console.log('Firestore Rules deploy + release readback PASS');
+          }
+
+          main().catch(error => {
+            console.error(error.message);
+            process.exit(1);
+          });
+          NODE
+          unset FIREBASE_RULES_ACCESS_TOKEN

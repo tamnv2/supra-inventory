@@ -316,7 +316,7 @@
       "collection": "relay_poc_jobs",
       "api_url": "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents/relay_poc_jobs",
       "exposure": "public_identifier",
-      "status": "AUTHORIZED_D091_MAIN_ONLY_PROVISION_OR_READBACK__FIELD_TEST_PENDING",
+      "status": "PROVISIONED_D091_DEFAULT_DB_ASIA_SOUTHEAST1__LOCKED_RULES_DEPLOY_PENDING__FIELD_TEST_PENDING",
       "guard": "D091_TRANSPORT_FIELD_TEST_ONLY__FIREBASE_ID_TOKEN_AND_SECURITY_RULES__NO_WMS_MUTATION__NO_STABLE"
     },
     {
