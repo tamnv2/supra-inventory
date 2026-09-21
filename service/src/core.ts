@@ -5,6 +5,7 @@ import { handleNotificationCoreRequest } from "./notifications-core";
 import { handleUserManagementCoreRequest } from "./user-management-core";
 import { handleArchiveCoreRequest } from "./archive-core";
 import { handleSystemMetricsCoreRequest } from "./system-metrics-core";
+import { handleSystemResetCoreRequest } from "./system-reset-core";
 import { initializeOperationalV2Schema, operationalV2Readiness } from "./operational-v2-core";
 import {
   processOperationalDeadlines,
@@ -853,6 +854,9 @@ export class InventoryCore {
 
     const notifications = await handleNotificationCoreRequest(this.state, request);
     if (notifications) return notifications;
+
+    const systemReset = await handleSystemResetCoreRequest(this.state, request);
+    if (systemReset) return systemReset;
 
     const systemMetrics = await handleSystemMetricsCoreRequest(this.state, request);
     if (systemMetrics) return systemMetrics;
