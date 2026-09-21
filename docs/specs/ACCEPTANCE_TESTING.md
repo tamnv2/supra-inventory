@@ -805,3 +805,22 @@ Physical acceptance after release:
 - With PRIMARY unavailable, a request still pending at 10 seconds must be eligible for STANDBY takeover; after promotion, replacement STANDBY selection is best-effort from live WMS-ready Agents.
 - If neither processing path completes by 30 seconds, PDA must direct the Picker to the specialist desk.
 - Burst test up to 30 simultaneous requests must not produce duplicate WMS mutation; tail latency and WMS throttling are measured before Stable consideration.
+
+
+## D098 acceptance matrix
+
+Technical PASS requires all existing authority/continuity/build/deploy guards plus:
+
+1. **Credential migration/auth**: an existing account can authenticate after Firebase migration without a forced mass password reset; Firebase UID remains stable.
+2. **Role/client matrix**: PICKER App-only; REPORTER/ROOT App+Web; ADMIN App+Web+Agent. Disallowed clients fail server-side.
+3. **Session isolation**: same user can hold Web + App + Agent simultaneously. A forced second Web replaces only Web; second App only App; second Agent only Agent. Old same-channel tokens fail on authenticated business API, not only realtime.
+4. **Recovery**: ROOT/ADMIN registered-email reset flow is enumeration-safe and produces a Firebase password-reset link when matched.
+5. **Realtime**: Web uses shared V2 session, establishes WebSocket, applies events immediately, survives bounded reconnect/delta recovery, and does not reconnect-storm.
+6. **Cloudflare budget**: design-max stress/projection keeps every relevant Workers Paid included metric <=35%; one metric over 35% fails even if total/average is below 35%.
+7. **Agent direct auth**: Agent ADMIN login and refresh use Firebase/Google directly and do not require the Inventory Cloudflare Worker; normal and Office network paths remain supported.
+8. **Specialist search**: 2 digits cannot search; 3–5 digits search anywhere in full cached PickListCode; result list shows full codes; Confirm requires explicit selection.
+9. **Specialist confirm**: uses exact selected full code, cross-Agent guard and WMS HTTP 2xx + `Status=true`; safe failure may release guard; uncertain result fails closed; no APK ACK is produced.
+10. **Regression**: D097 PRIMARY 5s / STANDBY 10s / FROZEN no business polling, PENDING→ACK, D096 WMS response semantics, D089 UI/tray/overlay baseline, and Báo hàng business rules remain intact.
+11. **Stable**: no Stable deploy/release/resource mutation.
+
+Owner physical acceptance follows technical Beta release and covers cross-device replacement, Office direct Firebase Agent auth, realtime behavior and one controlled specialist direct-confirm scenario.
