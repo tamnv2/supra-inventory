@@ -126,7 +126,7 @@ class RelayPocClient(
             log("D091 Firestore CREATE PASS request=" + shortId(requestId))
             onProgress("Đã gửi Firestore · đang chờ Agent Office...")
 
-            val deadline = SystemClock.elapsedRealtime() + 60_000L
+            val deadline = SystemClock.elapsedRealtime() + 120_000L
             while (SystemClock.elapsedRealtime() < deadline) {
                 val raw = executeJson(
                     Request.Builder()
