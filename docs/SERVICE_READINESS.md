@@ -379,3 +379,19 @@ Status: **SOURCE / PR GATE IN PROGRESS — NOT RELEASED**.
 - D101 keeps D096 confirmation semantics and D097 request-driven PRIMARY/STANDBY/FROZEN HA, adds cache-miss refresh-before-NOT_FOUND, bounded background update checks, inline PickList confirm, low-frequency fleet visibility and bounded Agent log delivery.
 - Stable remains OWNER-GATED and untouched.
 
+## D101 Agent v26 release checkpoint — 2026-09-22
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA021 FIELD READY**.
+
+- Beta: `D101_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V26__OA021_FIELD_READY`.
+- Web: `D101_BETA_RUNTIME_PASS__WEB_ONLINE_WEB_ANDROID_ONLY__TOOLS_AGENT_V26`.
+- Android: `D099_SIGNED_BETA_VC62_LOGIN_REPAIR__D100_NO_ANDROID_RUNTIME_CHANGE`.
+- Latest signed Beta APK: `beta-vc62`.
+- SQLite schema: `10`.
+- Network scope: `D101_AGENT_V26_FIRESTORE_HA_LOG_SPOOL_RUNTIME_RELEASE_PASS__STABLE_UNTOUCHED`.
+- PickList confirmation: `D101_AGENT_V26_RELEASED__CACHE_MISS_WMS_REFRESH__D097_D096_GUARDS_PRESERVED`.
+- PR #136 merged at `25cb7554ff7ea058aa45d72e1ba4824c744c354e`.
+- Main PASS runs: Authority `35677556695`, State `35677556755`, Worker `35677556693`, Firestore `35677556771`, UI `35677556710`, Android `35677556734`, Agent `35677556698`.
+- Released Agent: `relay-agent-v26`; release id `393404831`; canonical EXE asset id `580316553`, size `263680`, SHA-256 `5db50633e74247b45305a536a6caf140069626db66a7020acf32cf2d216ff79b`.
+- Remaining gate: OA021 physical field acceptance. Stable remains OWNER-GATED and untouched.
+

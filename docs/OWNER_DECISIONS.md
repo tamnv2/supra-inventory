@@ -559,3 +559,8 @@ Status: **OWNER APPROVED — SOURCE CANDIDATE 2026-09-22**.
 13. Đăng xuất Agent bắt buộc có hộp xác nhận trước khi xóa phiên Agent/Supra local.
 14. Bỏ top-level tab **Cài đặt**. Các mục Kết nối, Bảng nổi, Nhật ký vận hành và Chẩn đoán kỹ thuật được đưa thành tab trực tiếp ngang hàng với Hệ thống Agent, Hệ thống Supra và Xử lý PickList.
 15. D101 target Windows release là **relay-agent-v26**. Android nghiệp vụ xác nhận và Báo hàng không đổi; Stable vẫn **OWNER-GATED** và không bị chạm.
+
+### D101 release checkpoint — 2026-09-22
+
+D101 is technically released on Beta. PR #136 merged at `25cb7554ff7ea058aa45d72e1ba4824c744c354e`; all main authority/state/Worker/Firestore/UI/Android/Agent gates passed. Windows release `relay-agent-v26` is published with canonical EXE SHA-256 `5db50633e74247b45305a536a6caf140069626db66a7020acf32cf2d216ff79b`. Android remains `beta-vc62`. OA021 physical Owner acceptance remains open; Stable is untouched.
+
