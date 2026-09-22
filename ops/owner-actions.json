@@ -970,7 +970,7 @@
     },
     {
       "id": "OA022",
-      "status": "BLOCKED_ON_D102_TECHNICAL_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST_D102_RELEASE",
       "title": "Field-accept D102 Agent v27 Overview, HA convergence and night schedule",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Beta Windows Agent + Firestore relay + authorized Supra WMS",
@@ -979,7 +979,24 @@
         "target_agent_release": "relay-agent-v27",
         "android_release": "beta-vc62 unchanged",
         "stable": "OWNER_GATED",
-        "technical_release": "PENDING_D102_PR"
+        "technical_release": "PASS",
+        "merged_pr": 138,
+        "source_main": "637d7509bcc66f4b57aba4bf4a415cb05c30903d",
+        "pr_repo_authority_run": 35682895002,
+        "pr_project_state_run": 35682894986,
+        "pr_ui_run": 35682895038,
+        "pr_relay_agent_run": 35682895029,
+        "pr_firestore_run": 35682895023,
+        "pr_rtdb_run": 35682895001,
+        "main_repo_authority_run": 35683012628,
+        "main_project_state_run": 35683012626,
+        "main_ui_run": 35683012670,
+        "main_relay_agent_run": 35683012671,
+        "agent_release_id": 393435282,
+        "agent_asset_id": 580448326,
+        "agent_asset_size": 271872,
+        "agent_sha256": "322159ed214be13d5340fd2a8a826b02232627aa016711c2a46492da1cc819e4",
+        "main_artifact_id": 10675911449
       },
       "shortest_test_path": [
         "Install relay-agent-v27 on at least two company laptops and keep both WMS-ready.",
@@ -1000,7 +1017,7 @@
         "D096/D097 confirmation/idempotency/fail-closed guards remain intact and Stable is untouched."
       ],
       "safety": "Beta only. Use controlled eligible PickLists. Do not share passwords, Firebase tokens, WMS cookies/headers/signatures or local DPAPI files.",
-      "remaining_owner_action": "Wait for D102 technical release, then run the OA022 physical field matrix."
+      "remaining_owner_action": "Run the OA022 physical field matrix on released relay-agent-v27. No code/build/release blocker remains."
     }
   ]
 }
