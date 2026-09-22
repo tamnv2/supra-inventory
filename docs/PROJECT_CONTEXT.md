@@ -374,3 +374,14 @@ Owner field review of v27 found the business logic acceptable but the Overview t
 - D102 HA/night scheduling and D096/D097 WMS confirmation semantics are unchanged.
 - Target is relay-agent-v28; Android remains beta-vc62; Stable remains OWNER-GATED.
 
+## D103 release checkpoint
+
+D103 Agent v28 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta.
+
+- PR #140 merged to `main` at `15aba0412e625af0f6b9ef7489b995a3e524a131`.
+- PR gates PASS: Repo Authority `35684714977`, Project State `35684714967`, UI Design `35684714971`, Relay Agent `35684714955`, Firestore Relay `35684714928`, RTDB Rules `35684714958`.
+- Main gates PASS: Repo Authority `35684829649`, Project State `35684829653`, UI Design `35684829650`, Relay Agent `35684829660`.
+- Released Windows Agent: `relay-agent-v28`, release id `393444068`; canonical EXE asset id `580490417`, size `271360` bytes, SHA-256 `4faf8507637d61d74ac8aa34ba998a1fc04bfacd0fdc572af1cabda5f8bb8cb1`.
+- The v28 tag points exactly to merge commit `15aba0412e625af0f6b9ef7489b995a3e524a131`. Android remains signed `beta-vc62`.
+- OA023 is the remaining physical Owner field gate for real maximized rendering, fleet viewport/scrolling, PickList row-action visibility and final spacing review.
+- Stable remains OWNER-GATED and untouched.
