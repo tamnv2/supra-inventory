@@ -478,3 +478,9 @@ Status: **SOURCE CANDIDATE / PR GATES PENDING**.
 - D097/D102/D103/D096 regressions and Stable OWNER-GATED state remain required.
 - Next: PR gates/build/deploy PASS, merge, release verification, then OA025 physical field acceptance.
 
+### D105 canonical marker sync
+
+- SQLite schema: `10`.
+- Latest released Beta APK baseline: `beta-vc62`.
+- Web status: `D101_BETA_RUNTIME_PASS__WEB_ONLINE_WEB_ANDROID_ONLY__TOOLS_AGENT_V26`.
+- Android source status: `D105_SOURCE_CANDIDATE__BETA_VC63__FOUR_DIGIT_CONFIRM_UI__PR_GATES_PENDING`.
