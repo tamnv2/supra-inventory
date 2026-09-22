@@ -961,7 +961,7 @@ namespace SupraInventoryRelayAgent
             _manualPicklistQuery.TextChanged += (s, e) =>
             {
                 var length = _manualPicklistQuery.Text.Trim().Length;
-                _manualPicklistSearch.Enabled = length >= 3 && length <= 5;
+                _manualPicklistSearch.Enabled = length >= 3 && length <= 5 && IsBusinessAllowed();
                 _manualPicklistGrid.Rows.Clear();
                 _manualPicklistStatus.Text = length < 3 ? "Nhập ít nhất 3 chữ số để tìm." : "Sẵn sàng tìm PickList.";
             };
@@ -1092,6 +1092,80 @@ namespace SupraInventoryRelayAgent
             ResumeLayout(true);
         }
 
+        private void UpdateAgentFleetGrid(List<AgentPresenceView> agents)
+        {
+            _agentFleetGrid.Rows.Clear();
+            if (agents == null || agents.Count == 0) return;
+
+            var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            foreach (var agent in agents)
+            {
+                var ageMs = Math.Max(0L, nowMs - agent.HeartbeatAtMs);
+                var age = ageMs < 60000
+                    ? "vừa xong"
+                    : (ageMs < 3600000
+                        ? Math.Max(1L, ageMs / 60000) + " phút"
+                        : Math.Max(1L, ageMs / 3600000) + " giờ");
+                _agentFleetGrid.Rows.Add(
+                    string.IsNullOrWhiteSpace(agent.AdminUserId) ? "--" : agent.AdminUserId,
+                    string.IsNullOrWhiteSpace(agent.Machine) ? "--" : agent.Machine,
+                    agent.Role,
+                    agent.WmsReady ? "Sẵn sàng" : "Chưa sẵn sàng",
+                    string.IsNullOrWhiteSpace(agent.Version) ? "--" : agent.Version,
+                    age);
+            }
+        }
+
+        private bool IsBusinessAllowed()
+        {
+            return _businessSchedule == null || _businessSchedule.BusinessAllowed(_businessSchedule.NowOperational());
+        }
+
+        private void SetAfterHoursDecision(AfterHoursDecision decision)
+        {
+            if (_businessSchedule == null) return;
+            var now = _businessSchedule.NowOperational();
+            _businessSchedule.SetDecision(now, decision);
+            _lastAfterHoursPromptAt = DateTime.MinValue;
+            Log("AFTER_HOURS decision=" + decision + " night=" + now.ToString("yyyy-MM-dd"));
+            CheckAfterHoursSchedule(true);
+            if (decision == AfterHoursDecision.CONTINUE && _leaderCoordinator != null)
+                _leaderCoordinator.RequestRoleRefreshBeforeBusiness();
+        }
+
+        private void CheckAfterHoursSchedule(bool forcePrompt = false)
+        {
+            if (_businessSchedule == null) return;
+            var now = _businessSchedule.NowOperational();
+            var needsConfirmation = _businessSchedule.NeedsConfirmation(now);
+            _afterHoursPanel.Visible = needsConfirmation;
+            _afterHoursStatus.Text = _businessSchedule.StatusText(now);
+
+            if (!needsConfirmation)
+            {
+                _lastAfterHoursPromptAt = DateTime.MinValue;
+                return;
+            }
+
+            if (!forcePrompt &&
+                _lastAfterHoursPromptAt != DateTime.MinValue &&
+                (now - _lastAfterHoursPromptAt).TotalMinutes < 5)
+                return;
+
+            _lastAfterHoursPromptAt = now;
+            try
+            {
+                _tray.ShowBalloonTip(
+                    5000,
+                    "Xác nhận vận hành sau 22:00",
+                    now.TimeOfDay >= new TimeSpan(22, 0, 0) || now.TimeOfDay < new TimeSpan(5, 0, 0)
+                        ? "Chưa xác nhận tăng ca. Nghiệp vụ Agent đang tạm dừng. Mở Agent để xác nhận."
+                        : "Có tiếp tục vận hành Agent sau 22:00 không? Mở Agent để xác nhận.",
+                    ToolTipIcon.Warning);
+            }
+            catch { }
+        }
+
         private static Panel NewCard(int left, int top, int width, int height)
         {
             return new Panel
@@ -1119,7 +1193,7 @@ namespace SupraInventoryRelayAgent
             if (session == null || string.IsNullOrWhiteSpace(session.AppUserId))
             {
                 MessageBox.Show(
-                    "Agent chưa có phiên ADMIN hợp lệ. Hãy đăng nhập ADMIN tại tab Hệ thống Agent trước khi tắt Agent.",
+                    "Agent chưa có phiên ADMIN hợp lệ. Hãy đăng nhập ADMIN tại Tổng quan trước khi tắt Agent.",
                     "Tắt Agent",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
@@ -1135,7 +1209,7 @@ namespace SupraInventoryRelayAgent
                     if (!ExitAuthorization.Verify(ExitVerifierFile, session.AppUserId, password))
                     {
                         MessageBox.Show(
-                            "Mật khẩu ADMIN không đúng hoặc phiên cũ chưa có bộ xác minh tắt Agent. Hãy đăng nhập ADMIN lại tại tab Hệ thống Agent rồi thử lại.",
+                            "Mật khẩu ADMIN không đúng hoặc phiên cũ chưa có bộ xác minh tắt Agent. Hãy đăng nhập ADMIN lại tại Tổng quan rồi thử lại.",
                             "Không thể tắt Agent",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Error);
@@ -1280,7 +1354,9 @@ namespace SupraInventoryRelayAgent
                 _agentSystemInfo.Text =
                     "Phiên bản v" + AgentConfig.AgentBuild +
                     " · Firestore: " + (_leaderCoordinator == null ? "chưa phối hợp" : (_leaderCoordinator.IsTransportHealthy ? "kết nối" : "gián đoạn")) +
-                    " · Failover: request-driven ≥10 giây · Tự cập nhật: GitHub nền 30 phút.";
+                    " · Failover job: 10 giây" +
+                    " · Lịch: " + (IsBusinessAllowed() ? "hoạt động" : "tạm dừng 22:00–05:00") + ".";
+                UpdateAgentFleetGrid(_leaderCoordinator == null ? null : _leaderCoordinator.OnlineAgents);
                 _supraInfo.Text =
                     "Kho: HY1 · API: api-supra.winmart.vn · Phiên: " + (HasUsableWmsSession() ? "sẵn sàng" : "chưa sẵn sàng") +
                     " · Cache PickList: " + _picklistCache.CacheCount +
@@ -1370,7 +1446,7 @@ namespace SupraInventoryRelayAgent
             if (_statusOverlay == null)
             {
                 MessageBox.Show(
-                    "Bảng nổi chưa khởi tạo được. Có thể thử lại ngay; mở log Kỹ thuật AI để xem chẩn đoán.",
+                    "Bảng nổi chưa khởi tạo được. Có thể thử lại ngay; mở Chẩn đoán kỹ thuật để xem chi tiết.",
                     "Agent Auto Confirm Pick Pack",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
@@ -1514,6 +1590,8 @@ namespace SupraInventoryRelayAgent
 
             try
             {
+                if (!IsBusinessAllowed())
+                    throw new InvalidOperationException("Agent đang tạm dừng nghiệp vụ 22:00–05:00. Hãy xác nhận tăng ca tại Tổng quan để tiếp tục.");
                 if (query.Length < 3 || query.Length > 5)
                     throw new InvalidOperationException("Nhập từ 3 đến 5 chữ số.");
                 foreach (var ch in query)
@@ -1577,8 +1655,8 @@ namespace SupraInventoryRelayAgent
                 Ui(() =>
                 {
                     var length = (_manualPicklistQuery.Text ?? "").Trim().Length;
-                    _manualPicklistSearch.Enabled = length >= 3 && length <= 5;
-                    _manualPicklistGrid.Enabled = HasAgentSession() && HasUsableWmsSession();
+                    _manualPicklistSearch.Enabled = length >= 3 && length <= 5 && IsBusinessAllowed();
+                    _manualPicklistGrid.Enabled = HasAgentSession() && HasUsableWmsSession() && IsBusinessAllowed();
                 });
             }
         }
@@ -1595,6 +1673,8 @@ namespace SupraInventoryRelayAgent
 
             try
             {
+                if (!IsBusinessAllowed())
+                    throw new InvalidOperationException("Agent đang tạm dừng nghiệp vụ 22:00–05:00. Hãy xác nhận tăng ca tại Tổng quan để tiếp tục.");
                 if (string.IsNullOrWhiteSpace(pickListCode))
                     throw new InvalidOperationException("Chưa chọn PickList.");
                 if (!HasAgentSession())
@@ -1861,7 +1941,11 @@ namespace SupraInventoryRelayAgent
             try
             {
                 if (startup) Log("UPDATE kiểm tra Agent prerelease v" + AgentConfig.AgentBuild + ".");
-                Ui(() => _updateStatus.Text = "Cập nhật: đang kiểm tra GitHub...");
+                Ui(() =>
+                {
+                    _manualUpdate.Enabled = false;
+                    _updateStatus.Text = "Cập nhật: đang kiểm tra GitHub...";
+                });
                 var result = AgentUpdater.CheckAndInstallIfNeeded();
                 if (result.InstallStarted)
                 {
@@ -1888,6 +1972,7 @@ namespace SupraInventoryRelayAgent
             finally
             {
                 lock (_sessionLock) _updateCheckRunning = false;
+                Ui(() => _manualUpdate.Enabled = true);
             }
         }
 
@@ -2903,6 +2988,7 @@ namespace SupraInventoryRelayAgent
                     state => Ui(() => _relay.Text = state),
                     ProcessFirestoreConfirmation,
                     _leaderCoordinator,
+                    IsBusinessAllowed,
                     healthy =>
                     {
                         var coordinator = _leaderCoordinator;
