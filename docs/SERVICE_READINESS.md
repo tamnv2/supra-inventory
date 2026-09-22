@@ -499,3 +499,10 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
 - Four-digit Picker input, in-flight dim state, prominent terminal result, current 4-digit exact resolution and Agent 3–4 digit specialist search are in released source.
 - D104 batching/guards/ACK/HA/quota invariants remain preserved.
 - Remaining gate: OA025 physical field acceptance only. Stable remains OWNER-GATED.
+## D107 Web source checkpoint — 2026-09-22
+
+- Web: `D107_PROFESSIONAL_WEB_REFINEMENT__SOURCE_IMPLEMENTED__PR_GATES_PENDING`.
+- Admin dashboard/reporting: `D107_RICHER_EXISTING_DATA_OVERVIEW_AND_DETAIL__SOURCE_IMPLEMENTED__PR_GATES_PENDING__FINAL_STABLE_COLUMNS_OWNER_OPEN`.
+- UI guard: `D107_PR_GATES_PENDING`.
+- Scope is Beta Web source/presentation and existing-data reporting only; no new backend/provider polling or datastore.
+- Android and Agent remain unchanged. Stable remains OWNER-GATED and untouched.
