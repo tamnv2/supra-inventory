@@ -297,3 +297,11 @@ System Reset is a deliberate ROOT-only data-zeroing operation, not normal retent
 - Agent version is allowed in presence metadata for operational fleet display. Hardware metrics such as CPU/RAM/Disk are local-only and are not persisted to Firestore.
 - At 05:00 the prior night's local decision no longer controls business processing; the next 21:30 window requires a new decision.
 
+## D104 — Batch confirmation state
+
+- No new durable batch entity is introduced. Firestore job, guard, rate-limit and ACK documents remain individually keyed exactly as before.
+- Manual multi-search state is UI-local only. Normalized search fragments and displayed full PickListCodes are not persisted as new project data.
+- WMS batch mutation payload contains only the exact full PickListCodes already authorized for confirmation plus the existing fixed HY1 flags. Session/auth/signature headers remain runtime-only secret material.
+- Successful batch confirmation marks each acquired guard locally confirmed. Safe failures may release the affected per-code guard. Uncertain outcomes remain guarded/fail-closed and are not automatically replayed.
+- Existing retention/cleanup for Firestore job and guard documents is unchanged.
+
