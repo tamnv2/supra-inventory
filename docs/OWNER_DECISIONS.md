@@ -581,3 +581,17 @@ Owner approved on 2026-09-22.
 ### D102 release checkpoint — 2026-09-22
 
 D102 is technically released on Beta. PR #138 merged at `637d7509bcc66f4b57aba4bf4a415cb05c30903d`. All PR authority/state/UI/Agent/Rules gates and all main authority/state/UI/Agent gates passed. Windows release `relay-agent-v27` is published with canonical EXE SHA-256 `322159ed214be13d5340fd2a8a826b02232627aa016711c2a46492da1cc819e4`; the release tag resolves exactly to that main commit. OA022 physical Owner acceptance remains open. Android stays `beta-vc62`; Stable is untouched.
+
+## D103 — Agent v28 dense Overview correction
+
+Owner approved on 2026-09-22 after field review of relay-agent-v27.
+
+1. Agent main window opens maximized by default and restores from System Tray maximized.
+2. Tổng quan must fit the normal laptop viewport without page scrolling. Hệ thống Agent and Hệ thống Supra use bounded fixed-height sections; Xử lý PickList occupies the remaining lower area and remains visible without scrolling the Overview page.
+3. Agent fleet table shows at most five visible data rows at once. Additional online Agents remain in the same table and are reached by the table's own vertical scrollbar; the fleet table must not grow the Overview page.
+4. Manual PickList results keep one row per full PickListCode and each row owns its own visible Xác nhận button. There is no shared confirm button.
+5. Remove verbose/internal guidance from the Overview. In particular, persistent explanatory lines for Agent version/Firestore/failover/background-update internals and local WMS protection/cache implementation are not displayed. Keep only compact operational state needed by the user.
+6. Hệ thống Supra is compact: current Supra/WMS state, HY1/session/cache summary and the necessary action buttons only.
+7. D102 HA, 21:30/22:00/05:00 schedule, updater security, D096/D097 confirmation guards and Android/Web business behavior are unchanged.
+8. Target Windows release is relay-agent-v28. Stable remains OWNER-GATED and untouched.
+
