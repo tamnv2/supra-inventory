@@ -863,3 +863,17 @@ Technical PASS requires:
 
 12. ROOT/ADMIN recovery request is enumeration-safe; Gmail link token is stored only as a hash, expires after 15 minutes, is single-use, and the resulting password works on Web/App/eligible Agent for the same UID.
 13. Stable is untouched.
+
+## D101 acceptance — Agent v26 operations
+
+1. PDA lookup cache miss refreshes WMS once before final NOT_FOUND; manual 3–5 digit search behaves the same. Concurrent misses share the single-flight refresh.
+2. A PickList created after the previous preload is found after miss-triggered refresh without restarting Agent.
+3. Agent checks GitHub at startup and again in the background while running at a bounded 30-minute cadence; trusted release and SHA-256 guards remain required.
+4. Manual PickList results show one row per full code with an inline Xác nhận button; no shared external confirm button remains.
+5. Hệ thống Agent shows current machine role and bounded fleet counts for online/PRIMARY/STANDBY/FROZEN; Hệ thống Supra shows WMS/cache basics.
+6. Wi-Fi displays the Windows SSID when connected, while diagnostics sanitizer still redacts SID/token/credential values and does not redact `ssid=` by substring collision.
+7. Agent local logs rotate by size and remain bounded. Scheduled bundles reach Beta Drive at the four daily slots; crash upload uses `crash_` and retries from a pending marker if necessary.
+8. Web online count remains WEB + ANDROID/PDA only and never includes Agent.
+9. Clicking Agent logout requires explicit confirmation.
+10. No top-level Cài đặt tab remains; operational child pages are promoted to direct tabs.
+11. D097 5s PRIMARY / 10s STANDBY / FROZEN-no-business-poll semantics, D096 confirmation semantics, normal Báo hàng flow, and Stable OWNER-GATED status remain unchanged.
