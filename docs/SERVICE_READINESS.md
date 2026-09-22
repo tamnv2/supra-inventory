@@ -454,3 +454,14 @@ Status: **SOURCE CANDIDATE / PR GATES PENDING**.
 - D096 Status=true success semantics, D097 HA/idempotency, D102 night schedule and D103 dense Overview remain required regressions.
 - Next gate: PR authority/state/UI/Agent build/self-tests PASS, merge, v29 prerelease verification, then OA024 physical field acceptance.
 
+## D104 Agent v29 release readiness — 2026-09-22
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA024 FIELD READY**.
+
+- Beta: `D104_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V29__OA024_FIELD_READY`.
+- Android remains `beta-vc62`.
+- D104 main PASS: Authority `35687822814`, State `35687822742`, UI `35687822767`, Relay Agent `35687822763`.
+- Agent release `relay-agent-v29` id `393459636`; EXE asset id `580560440`, size `284160`, SHA-256 `10304ac734218146550c6bdf3c3b8a81d979fabe5b3ee7dddc94f1b217955b2d`.
+- WorkingArea maximum, comma multi-search, conditional confirm-all, batch lookup/exact resolution and <=10-code WMS confirmation guards are active.
+- Existing D097 HA cadence, D102 night schedule, D103 dense Overview, D096 Status=true confirmation semantics, per-code guard and per-job conditional ACK remain guarded.
+- Remaining gate: OA024 physical company-WMS/Windows/PDA field acceptance only. Stable remains OWNER-GATED.
