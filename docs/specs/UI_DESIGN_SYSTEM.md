@@ -538,3 +538,14 @@ Overlay sizing must not retain the old 420×64 floor. Settings and runtime clamp
 - The 21:30 decision banner appears only when a decision is required. It offers **Tiếp tục sau 22:00** and **Ngừng từ 22:00**. Tray warnings repeat every 5 minutes until a decision.
 - Remove user-facing copy such as “cho AI”, Owner/AI handoff wording, D-number explanations and long internal-model guidance. Technical details remain in sanitized logs where appropriate.
 
+## D103 — Agent v28 dense Overview
+
+- Agent launches and restores from tray in maximized state.
+- Tổng quan uses a non-scrolling three-row layout: Hệ thống Agent fixed/bounded, Hệ thống Supra compact fixed/bounded, Xử lý PickList consumes the remaining height.
+- The Overview must keep PickList search/results visible in the initial maximized viewport on a normal company laptop; the user should not need to scroll the page to reach PickList.
+- Agent fleet DataGridView is height-bounded to five visible Agent rows plus header. More Agents use the grid's own vertical scrollbar.
+- Hệ thống Agent keeps login/logout/manual update, compact identity/relay/Wi-Fi state, fleet summary and fleet table. Do not show persistent prose explaining Agent version, Firestore internals, failover timing or background-update cadence.
+- Hệ thống Supra keeps only compact operational status plus required buttons. Do not show explanatory prose about DPAPI/local WMS protection or cache-refresh implementation.
+- PickList results use a full-width table whose rightmost fixed-width action column contains Xác nhận on every result row.
+- Status copy is concise: result counts/errors/actions only. Internal AI/Owner/D-number/handoff wording remains forbidden.
+
