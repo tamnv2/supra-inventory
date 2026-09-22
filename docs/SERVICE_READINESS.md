@@ -484,3 +484,18 @@ Status: **SOURCE CANDIDATE / PR GATES PENDING**.
 - Latest released Beta APK baseline: `beta-vc62`.
 - Web status: `D101_BETA_RUNTIME_PASS__WEB_ONLINE_WEB_ANDROID_ONLY__TOOLS_AGENT_V26`.
 - Android source status: `D105_SOURCE_CANDIDATE__BETA_VC63__FOUR_DIGIT_CONFIRM_UI__PR_GATES_PENDING`.
+
+## D105 Android vc63 + Agent v30 release readiness — 2026-09-22
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
+
+- SQLite schema: `10`.
+- Latest Beta APK: `beta-vc63`.
+- Web status: `D101_BETA_RUNTIME_PASS__WEB_ONLINE_WEB_ANDROID_ONLY__TOOLS_AGENT_V26`.
+- Android status: `D105_SIGNED_BETA_VC63__FOUR_DIGIT_CONFIRM_UI__OA025_FIELD_READY`.
+- Beta: `D105_TECHNICAL_RUNTIME_RELEASE_PASS__ANDROID_VC63_AGENT_V30__OA025_FIELD_READY`.
+- Main PASS: Authority `35694361080`, State `35694361070`, UI `35694361168`, Android `35694361091`, Agent `35694361074`, Firestore `35694361133`, Worker `35694361089`.
+- Released Android `beta-vc63` and Agent `relay-agent-v30` both point to `e73206dea01e4c599d19abe040ffc8662b8836bf`.
+- Four-digit Picker input, in-flight dim state, prominent terminal result, current 4-digit exact resolution and Agent 3–4 digit specialist search are in released source.
+- D104 batching/guards/ACK/HA/quota invariants remain preserved.
+- Remaining gate: OA025 physical field acceptance only. Stable remains OWNER-GATED.
