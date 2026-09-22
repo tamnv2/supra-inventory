@@ -349,3 +349,12 @@ For Picker `Xác nhận đơn` only:
 - Lack of PDA work does not trigger a high-frequency liveness heartbeat merely to rotate PRIMARY. The UI must explain this so a STANDBY/FROZEN observation is not mistaken for a missing business path.
 - Agent fleet counts are derived from the existing bounded Firestore presence data and refreshed at low frequency. D101 must not introduce fast global Agent polling.
 - Web realtime presence continues to count only interactive `WEB` and `ANDROID` clients. Agent sessions are a separate Firebase/Firestore channel and must not contribute to Web `Người đang online` totals.
+## D102 — Agent fleet refresh and after-hours notices
+
+- The Agent fleet UI uses bounded Firestore presence metadata plus the authoritative coordination role snapshot. It must not create per-second/global presence polling.
+- PRIMARY and STANDBY role metadata refresh every 60 seconds; FROZEN every 5 minutes. Startup performs four additional 5-second convergence cycles.
+- Presence writes are every 15 minutes, fleet reads every 30 minutes, freshness is 40 minutes, with a bounded immediate refresh request when Tổng quan is opened.
+- The 21:30 after-hours warning is a local Windows/Agent notification and repeats every 5 minutes until a decision. It does not require a Firestore write per warning.
+- While the 22:00–05:00 business gate is paused, the Firestore confirmation transport performs no pending-job query. The local gate may recheck frequently because those checks are local and quota-free.
+- D097 Android one-document listener, 5s/10s PRIMARY/STANDBY job polling and 10-second request failover are otherwise unchanged.
+
