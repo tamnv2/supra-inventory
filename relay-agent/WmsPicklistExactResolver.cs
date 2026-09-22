@@ -29,14 +29,43 @@ namespace SupraInventoryRelayAgent
 
         internal static WmsExactPicklistResult Resolve(WmsSessionSnapshot session, string suffix)
         {
-            if (session == null || !session.IsValidHy1())
-                return new WmsExactPicklistResult { Result = "WMS_SESSION_REQUIRED" };
-            if (string.IsNullOrWhiteSpace(suffix) || suffix.Length != 5)
-                throw new ArgumentException("Picklist suffix must contain exactly five digits.", "suffix");
+            var results = ResolveMany(session, new[] { suffix });
+            WmsExactPicklistResult result;
+            return results.TryGetValue((suffix ?? "").Trim(), out result)
+                ? result
+                : Build("EXACT_CODE_NOT_RESOLVED", "", "NONE", 0, 0L, 0);
+        }
 
-            var matches = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            long elapsed = 0;
-            string lastRoute = "NONE";
+        internal static Dictionary<string, WmsExactPicklistResult> ResolveMany(
+            WmsSessionSnapshot session,
+            IEnumerable<string> suffixes)
+        {
+            if (session == null || !session.IsValidHy1())
+                throw new InvalidOperationException("WMS session is required.");
+
+            var targets = new List<string>();
+            var targetSet = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var raw in suffixes ?? new string[0])
+            {
+                var suffix = (raw ?? "").Trim();
+                if (suffix.Length != 5)
+                    throw new ArgumentException("Picklist suffix must contain exactly five digits.", "suffixes");
+                foreach (var ch in suffix)
+                    if (ch < '0' || ch > '9')
+                        throw new ArgumentException("Picklist suffix must contain exactly five digits.", "suffixes");
+                if (targetSet.Add(suffix)) targets.Add(suffix);
+            }
+            if (targets.Count == 0)
+                throw new ArgumentException("At least one Picklist suffix is required.", "suffixes");
+            if (targets.Count > 12)
+                throw new ArgumentException("At most 12 Picklist suffixes can be resolved per batch.", "suffixes");
+
+            var matches = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+            foreach (var suffix in targets)
+                matches[suffix] = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            long elapsed = 0L;
+            var lastRoute = "NONE";
             var lastHttp = 0;
 
             for (var page = 1; page <= 10000; page++)
@@ -53,38 +82,68 @@ namespace SupraInventoryRelayAgent
                     "&page=" + page + "&limit=100&PageIndex=" + page +
                     "&RecordsPerPage=100&regionCode=null&sort=" + Uri.EscapeDataString(Json.Serialize(sort));
 
-                var result = Send(url, session);
-                elapsed += result.ElapsedMs;
-                lastRoute = result.Route;
-                lastHttp = result.StatusCode;
-                if (result.Result != "PASS")
-                    return Build(result.Result, "", lastRoute, lastHttp, elapsed, matches.Count);
+                var http = Send(url, session);
+                elapsed += http.ElapsedMs;
+                lastRoute = http.Route;
+                lastHttp = http.StatusCode;
+
+                if (!string.Equals(http.Result, "PASS", StringComparison.Ordinal))
+                {
+                    var failed = new Dictionary<string, WmsExactPicklistResult>(StringComparer.Ordinal);
+                    foreach (var suffix in targets)
+                        failed[suffix] = Build(http.Result, "", lastRoute, lastHttp, elapsed, matches[suffix].Count);
+                    return failed;
+                }
 
                 var codes = new List<string>();
-                try { CollectCodes(Json.DeserializeObject(result.Body ?? ""), codes, 0); }
-                catch { return Build("SCHEMA_UNSUPPORTED", "", lastRoute, lastHttp, elapsed, matches.Count); }
+                try { CollectCodes(Json.DeserializeObject(http.Body ?? ""), codes, 0); }
+                catch
+                {
+                    var failed = new Dictionary<string, WmsExactPicklistResult>(StringComparer.Ordinal);
+                    foreach (var suffix in targets)
+                        failed[suffix] = Build("SCHEMA_UNSUPPORTED", "", lastRoute, lastHttp, elapsed, matches[suffix].Count);
+                    return failed;
+                }
 
                 AgentDiagnostics.Write(
-                    "WMS exact-resolve parse=PASS page=" + page +
+                    "WMS exact-resolve-batch parse=PASS page=" + page +
+                    " targets=" + targets.Count +
                     " picklist_codes=" + codes.Count +
                     " values=redacted");
 
                 foreach (var code in codes)
-                    if (ValidCode(code) && code.EndsWith(suffix, StringComparison.Ordinal))
-                        matches.Add(code.Trim());
+                {
+                    if (!ValidCode(code)) continue;
+                    var trimmed = code.Trim();
+                    if (trimmed.Length < 5) continue;
+                    var suffix = trimmed.Substring(trimmed.Length - 5, 5);
+                    HashSet<string> bucket;
+                    if (matches.TryGetValue(suffix, out bucket))
+                        bucket.Add(trimmed);
+                }
 
-                if (matches.Count > 1)
-                    return Build("AMBIGUOUS_PICKLIST", "", lastRoute, lastHttp, elapsed, matches.Count);
                 if (codes.Count < 100) break;
             }
 
-            if (matches.Count != 1)
-                return Build(matches.Count == 0 ? "EXACT_CODE_NOT_RESOLVED" : "AMBIGUOUS_PICKLIST",
-                    "", lastRoute, lastHttp, elapsed, matches.Count);
-
-            string exact = "";
-            foreach (var code in matches) { exact = code; break; }
-            return Build("FOUND", exact, lastRoute, lastHttp, elapsed, 1);
+            var results = new Dictionary<string, WmsExactPicklistResult>(StringComparer.Ordinal);
+            foreach (var suffix in targets)
+            {
+                var bucket = matches[suffix];
+                if (bucket.Count == 0)
+                {
+                    results[suffix] = Build("EXACT_CODE_NOT_RESOLVED", "", lastRoute, lastHttp, elapsed, 0);
+                    continue;
+                }
+                if (bucket.Count > 1)
+                {
+                    results[suffix] = Build("AMBIGUOUS_PICKLIST", "", lastRoute, lastHttp, elapsed, bucket.Count);
+                    continue;
+                }
+                var exact = "";
+                foreach (var code in bucket) { exact = code; break; }
+                results[suffix] = Build("FOUND", exact, lastRoute, lastHttp, elapsed, 1);
+            }
+            return results;
         }
 
         private sealed class HttpResult
