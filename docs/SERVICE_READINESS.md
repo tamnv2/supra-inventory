@@ -428,3 +428,15 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA022 FIELD READY**.
 - D102 HA/night schedule, D096/D097 guards and Stable OWNER-GATED status are unchanged.
 - Next gate: PR authority/state/UI/Relay Agent PASS, merge, main prerelease verification, then OA023 physical UI review.
 
+## D103 Agent v28 release readiness — 2026-09-22
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA023 FIELD READY**.
+
+- Beta: `D103_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V28__OA023_FIELD_READY`.
+- Web: `D101_BETA_RUNTIME_PASS__WEB_ONLINE_WEB_ANDROID_ONLY__TOOLS_AGENT_V26`.
+- Android: `D099_SIGNED_BETA_VC62_LOGIN_REPAIR__D100_NO_ANDROID_RUNTIME_CHANGE`.
+- Latest signed Beta APK: `beta-vc62`; SQLite schema: `10`.
+- D103 main PASS: Authority `35684829649`, State `35684829653`, UI `35684829650`, Relay Agent `35684829660`.
+- Agent release `relay-agent-v28` id `393444068`; EXE asset id `580490417`, size `271360`, SHA-256 `4faf8507637d61d74ac8aa34ba998a1fc04bfacd0fdc572af1cabda5f8bb8cb1`.
+- Maximized/non-scrolling Overview, five-row fleet viewport and row-specific PickList action guards are active; D102 HA/night schedule and D096/D097 business guards remain unchanged.
+- Remaining gate: OA023 physical UI review only. Stable remains OWNER-GATED.
