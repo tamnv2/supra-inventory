@@ -471,6 +471,7 @@ namespace SupraInventoryRelayAgent
         private Panel _supraCard;
         private readonly TextBox _manualPicklistQuery = new TextBox();
         private readonly Button _manualPicklistSearch = new Button();
+        private readonly Button _manualPicklistConfirmAll = new Button();
         private readonly DataGridView _manualPicklistGrid = new DataGridView();
         private readonly Label _manualPicklistStatus = new Label();
         private readonly Label _agentFleetStatus = new Label();
@@ -698,6 +699,7 @@ namespace SupraInventoryRelayAgent
 
             Shown += (s, e) =>
             {
+                ApplyWorkingAreaMaximum();
                 InitializeStatusOverlaySafe();
                 UpdateTrayMonitor();
 
@@ -745,7 +747,7 @@ namespace SupraInventoryRelayAgent
             MinimizeBox = false;
             ShowInTaskbar = true;
             FormBorderStyle = FormBorderStyle.None;
-            WindowState = FormWindowState.Maximized;
+            ApplyWorkingAreaMaximum();
 
             var shell = new TableLayoutPanel
             {
@@ -994,11 +996,13 @@ namespace SupraInventoryRelayAgent
                 ForeColor = Color.FromArgb(24, 43, 55)
             });
 
-            _manualPicklistQuery.SetBounds(16, 42, 220, 30);
-            _manualPicklistQuery.MaxLength = 5;
+            _manualPicklistQuery.SetBounds(16, 42, 360, 30);
+            _manualPicklistQuery.MaxLength = 79;
             _manualPicklistQuery.KeyPress += (s, e) =>
             {
-                if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)) e.Handled = true;
+                if (char.IsControl(e.KeyChar) || char.IsDigit(e.KeyChar) || e.KeyChar == ',' || char.IsWhiteSpace(e.KeyChar))
+                    return;
+                e.Handled = true;
             };
             _manualPicklistQuery.KeyDown += (s, e) =>
             {
@@ -1009,18 +1013,29 @@ namespace SupraInventoryRelayAgent
             };
             _manualPicklistQuery.TextChanged += (s, e) =>
             {
-                var length = _manualPicklistQuery.Text.Trim().Length;
-                _manualPicklistSearch.Enabled = length >= 3 && length <= 5 && IsBusinessAllowed();
+                List<string> queries;
+                var valid = TryParseManualPicklistQueries(_manualPicklistQuery.Text, out queries);
+                _manualPicklistSearch.Enabled = valid && IsBusinessAllowed();
                 _manualPicklistGrid.Rows.Clear();
-                _manualPicklistStatus.Text = length < 3 ? "" : "Sẵn sàng.";
+                _manualPicklistConfirmAll.Visible = false;
+                _manualPicklistStatus.Text = string.IsNullOrWhiteSpace(_manualPicklistQuery.Text)
+                    ? ""
+                    : (valid ? "Sẵn sàng." : "Nhập 3–5 số; nhiều giá trị ngăn cách bằng dấu phẩy.");
             };
             directCard.Controls.Add(_manualPicklistQuery);
 
-            _manualPicklistSearch.SetBounds(246, 40, 110, 34);
+            _manualPicklistSearch.SetBounds(386, 40, 110, 34);
             _manualPicklistSearch.Text = "Tìm kiếm";
             _manualPicklistSearch.Enabled = false;
             _manualPicklistSearch.Click += (s, e) => Task.Run(() => SearchManualPicklists());
             directCard.Controls.Add(_manualPicklistSearch);
+
+            _manualPicklistConfirmAll.SetBounds(506, 40, 160, 34);
+            _manualPicklistConfirmAll.Text = "Xác nhận tất cả";
+            _manualPicklistConfirmAll.Visible = false;
+            _manualPicklistConfirmAll.Enabled = false;
+            _manualPicklistConfirmAll.Click += (s, e) => Task.Run(() => ConfirmAllManualPicklists());
+            directCard.Controls.Add(_manualPicklistConfirmAll);
 
             _manualPicklistGrid.SetBounds(16, 84, 1006, 130);
             _manualPicklistGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
@@ -1333,6 +1348,17 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private void ApplyWorkingAreaMaximum()
+        {
+            try
+            {
+                var screen = Screen.FromControl(this);
+                MaximizedBounds = screen.WorkingArea;
+            }
+            catch { }
+            WindowState = FormWindowState.Maximized;
+        }
+
         private void MinimizeToTray()
         {
             WindowState = FormWindowState.Minimized;
@@ -1344,7 +1370,7 @@ namespace SupraInventoryRelayAgent
         {
             ShowInTaskbar = true;
             Show();
-            WindowState = FormWindowState.Maximized;
+            ApplyWorkingAreaMaximum();
             Activate();
         }
 
