@@ -901,3 +901,17 @@ Technical PASS requires:
 7. Compact Agent/Supra operational state, real Wi-Fi, manual update button and after-hours decision banner continue to work.
 8. D102 HA/night schedule, D096/D097 confirmation/idempotency/fail-closed guards, Android/Web behavior and Stable OWNER-GATED state remain unchanged.
 
+## D104 acceptance — Agent v29 multi-search and batched confirmation
+
+1. Fresh launch and tray restore are maximized inside the Windows working area; the Windows taskbar remains visible.
+2. Input `0404, 39050, 403` is accepted as three normalized search terms. Invalid terms outside 3–5 digits are rejected; duplicate terms do not cause duplicate work.
+3. Multi-search evaluates all terms from one cache snapshot. If any term misses, source/telemetry proves at most one shared single-flight WMS snapshot refresh for that user action, not one refresh per term.
+4. Search results are deduplicated full PickListCodes, bounded to 50 visible rows. Every row retains its Xác nhận button.
+5. With one result, Xác nhận tất cả is hidden. With >=2 results it is visible and targets exactly all displayed full PickListCodes.
+6. The WMS adapter accepts 1–10 exact full PickListCodes in `PickListCodes` while preserving `IsAllowSkipped=true`, `RemainSkip=1`, `WarehouseCode=HY1`, `EnableDCSite=false` and D096 HTTP 2xx + business `Status=true` success semantics.
+7. Manual confirm-all acquires one existing Firestore confirmation guard per exact PickListCode before mutation. Already-confirmed/uncertain candidates are not re-mutated.
+8. A Firestore poll with multiple eligible PDA jobs processes at most 12 jobs as one logical batch; it does not add a faster poll or an extra coalescing query. Shared lookup/exact resolution and WMS chunks <=10 are used.
+9. Every PDA job still receives an independent conditional ACK; there is no batch-global ACK and no PROCESSING write.
+10. Existing D097 5s/10s/failover/FROZEN rules, D102 night schedule, D103 Overview, anti-spam, secret redaction and Stable OWNER-GATED state remain unchanged.
+11. Source/repo contains none of the raw Authorization/APISID/SID/Token/signature/session values supplied in the Owner curl reference.
+
