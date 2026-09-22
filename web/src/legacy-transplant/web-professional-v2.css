@@ -911,3 +911,72 @@ body[data-theme="dark"] button.ghost {
 
   .business-summary-card { min-height: 92px; }
 }
+
+/* D108 — resolution provenance and password-recovery visibility. */
+.login-reset-form[hidden] {
+  display: none !important;
+}
+
+.v5-track i.amber {
+  background: #d68a16 !important;
+}
+
+.resolution-source {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 7px;
+  border: 1px solid var(--pro-border);
+  border-radius: 999px;
+  background: var(--pro-surface-soft);
+  color: var(--pro-muted);
+  font-size: 9.5px;
+  font-weight: 720;
+  line-height: 1.25;
+  white-space: normal;
+}
+
+.resolution-source.automatic {
+  border-color: #edcf91;
+  background: var(--pro-warning-soft);
+  color: #87520a;
+}
+
+.resolution-source.human {
+  border-color: #bdd5eb;
+  background: var(--pro-primary-soft);
+  color: var(--pro-primary-strong);
+}
+
+.resolution-actor {
+  display: inline-block;
+  max-width: 190px;
+  color: var(--pro-text);
+  font-size: 10.5px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.result-audit-table table {
+  min-width: 1120px;
+}
+
+.pro-watch-grid > div.automatic {
+  border-left-color: var(--pro-warning);
+}
+
+body[data-theme="dark"] .resolution-source.automatic {
+  border-color: #66502b;
+  background: #302612;
+  color: #f6c15c;
+}
+
+body[data-theme="dark"] .resolution-source.human {
+  border-color: #36597a;
+  background: #132b43;
+  color: #9ed4ff;
+}
+
+body[data-theme="dark"] .resolution-actor {
+  color: var(--pro-text);
+}
