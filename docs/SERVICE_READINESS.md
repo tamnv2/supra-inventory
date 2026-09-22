@@ -440,3 +440,17 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA023 FIELD READY**.
 - Agent release `relay-agent-v28` id `393444068`; EXE asset id `580490417`, size `271360`, SHA-256 `4faf8507637d61d74ac8aa34ba998a1fc04bfacd0fdc572af1cabda5f8bb8cb1`.
 - Maximized/non-scrolling Overview, five-row fleet viewport and row-specific PickList action guards are active; D102 HA/night schedule and D096/D097 business guards remain unchanged.
 - Remaining gate: OA023 physical UI review only. Stable remains OWNER-GATED.
+
+## D104 Agent v29 source readiness — 2026-09-22
+
+Status: **SOURCE CANDIDATE / PR GATES PENDING**.
+
+- D103/OA023 physical UI acceptance is Owner PASS.
+- Beta target: `relay-agent-v29`; Android `beta-vc62` unchanged; Stable OWNER-GATED.
+- WorkingArea maximum preserves Windows taskbar.
+- Multi-search: <=10 unique 3–5 digit comma terms, one cache snapshot, at most one shared refresh.
+- Manual bulk confirm: visible only for >=2 displayed results; row buttons preserved.
+- PDA batching: no faster Firestore polling and no extra coalescing read; <=12 jobs/logical batch; <=10 exact codes/WMS POST; per-code guard + per-job ACK.
+- D096 Status=true success semantics, D097 HA/idempotency, D102 night schedule and D103 dense Overview remain required regressions.
+- Next gate: PR authority/state/UI/Agent build/self-tests PASS, merge, v29 prerelease verification, then OA024 physical field acceptance.
+
