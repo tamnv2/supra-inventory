@@ -488,3 +488,17 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA024 FIELD READY**.
 - Main PASS runs: Authority `35687822814`, State `35687822742`, UI `35687822767`, Agent `35687822763`.
 - Released Agent: `relay-agent-v29`; release id `393459636`; canonical EXE asset id `580560440`, size `284160`, SHA-256 `10304ac734218146550c6bdf3c3b8a81d979fabe5b3ee7dddc94f1b217955b2d`.
 - OA024 is ready for physical field acceptance. Stable remains OWNER-GATED and untouched.
+
+## D105 current workstream — Android beta-vc63 + Agent v30
+
+Status: **SOURCE CANDIDATE / PR GATES PENDING**.
+
+- D104/OA024: **PASS_OWNER_CONFIRMED_D104**.
+- Beta: `D105_SOURCE_CANDIDATE__ANDROID_VC63_AGENT_V30__FOUR_DIGIT_CONFIRM__PR_GATES_PENDING`.
+- Current released baseline remains Android `beta-vc62` + Agent `relay-agent-v29` until D105 main release passes.
+- Android vc63 source: exact 4-digit confirmation input; submit is dimmed/disabled while request is in flight; terminal result is 17sp bold with success/error emphasis.
+- Firestore/Agent rollout ingress accepts 4-digit current jobs plus legacy 5-digit vc62 jobs. New Android emits 4 digits only.
+- Agent v30 exact resolution compares supplied suffix length; 4-digit ambiguity remains fail-closed. Manual specialist terms are 3–4 digits only.
+- D104 batching/confirm-all/per-code guard/per-job ACK, D097 HA, D102 schedule and Stable guard remain unchanged.
+- Next gate: PR authority/state/UI/Firestore/Agent/Android PASS → merge → publish beta-vc63 + relay-agent-v30 → OA025 physical acceptance.
+
