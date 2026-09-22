@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D101_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V26__OA021_FIELD_READY",
+    "beta": "D102_SOURCE_CANDIDATE__AGENT_V27__PR_GATES_PENDING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 10,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -22,17 +22,17 @@
     "android": "D099_SIGNED_BETA_VC62_LOGIN_REPAIR__D100_NO_ANDROID_RUNTIME_CHANGE",
     "latest_beta_apk": "beta-vc62",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
-    "network_scope": "D101_AGENT_V26_FIRESTORE_HA_LOG_SPOOL_RUNTIME_RELEASE_PASS__STABLE_UNTOUCHED",
+    "network_scope": "D102_AGENT_V27_OVERVIEW_HA_QUIET_HOURS_SOURCE_CANDIDATE__STABLE_UNTOUCHED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "D100_ACCOUNT_EMAIL_VALIDATION_OWNER_FIELD_PASS",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D069_XLSX_REPORT_EXPORT_BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
-    "quota_resilience": "D101_LOW_FREQUENCY_AGENT_FLEET_COUNTS__30MIN_GITHUB_UPDATE__5MIN_LOG_DRAIN__D098_35PCT_GUARD_PASS",
-    "ui_design_guard": "D101_MAIN_UI_PASS_RUN_35677556710",
+    "quota_resilience": "D102_ROLE_REFRESH_60S_ACTIVE_5M_FROZEN__PRESENCE_15M_WRITE_30M_READ__QUIET_HOURS_22_05__D097_GUARDS_PRESERVED",
+    "ui_design_guard": "D102_SOURCE_CANDIDATE__CI_PENDING",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D101_AGENT_V26_RELEASED__CACHE_MISS_WMS_REFRESH__D097_D096_GUARDS_PRESERVED"
+    "picklist_confirmation_poc": "D102_AGENT_V27_SOURCE_CANDIDATE__D101_CACHE_REFRESH__D097_D096_GUARDS_PRESERVED"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -158,6 +158,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
+    "OA022 D102 physical Agent v27 acceptance: one Tổng quan layout, manual update, >=2 Agent role convergence, fleet table, 21:30 five-minute warning, 22:00 default business pause, explicit continue/stop and 05:00 automatic resume.",
     "OA019 D100/D098 consolidated physical Beta acceptance with relay-agent-v25 + beta-vc62: one WEB + one ANDROID + one AGENT slot, ADMIN username Agent login, direct Firebase on Office, realtime, retained D097 failover/30s fallback, specialist PickList flow.",
     "OA020 D100 ROOT System Reset field acceptance: ROOT-only visibility, password + 6-digit email OTP, scoped runtime zeroing, ROOT/external Google data preservation; Gmail send scope may require one Owner re-consent if current refresh token lacks gmail.send.",
     "OA017 D096 physical real-Picklist exact-resolve -> confirmSkipItem -> Status=true -> Firestore ACK field test with Agent v21 + existing beta-vc59.",
@@ -172,7 +173,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Owner field-test OA021 using released relay-agent-v26: verify real Wi-Fi SSID, PRIMARY/STANDBY/FROZEN display, cache-miss WMS refresh, inline PickList confirm, running auto-update behavior, bounded rolling logs and scheduled/crash Drive delivery. Stable remains OWNER-GATED.",
+  "next_action": "Complete D102 branch/PR guards for relay-agent-v27; after merge verify main Agent release v27, then run OA022 physical field acceptance for Overview, manual update, multi-Agent convergence and 21:30/22:00/05:00 schedule. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -505,7 +506,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-09-21",
+  "last_updated": "2026-09-22",
   "owner_ui_review": {
     "status": "OWNER_ACCEPTED_PASS",
     "phase": "D089_OWNER_ACCEPTED_PASS",
@@ -575,9 +576,10 @@
     "D100 deploy-proof hotfix: Beta health must expose SOURCE_COMMIT; deploy gate requires health source_commit == GITHUB_SHA, runtime schema == source SCHEMA_VERSION, and agent_auth_migration agent_failed=0/agent_remaining=0. This prevents a stale previous Worker from satisfying a new deployment gate.",
     "D100 deploy proof parser hotfix: runtime main 2cf23d9229eb4bd5d9c45f3776bb2404ef06a68f is healthy (HTTP 200, source_commit exact, schema 10/10, agent migration 0/0, operational 5/5), but deploy workflow parsed source SCHEMA_VERSION as literal \\\\1 because sed replacement was over-escaped. fix/d100-beta-health-schema-proof changes only that CI parser to \\1.",
     "D100 OA020 mail repair: preserve successful-send 60-second throttling, but rollback the throttle when Gmail delivery fails; improve Google mail failure classification without logging provider tokens or raw sensitive responses.",
-    "D101 Owner request 2026-09-22: cache MISS must refresh WMS before final NOT_FOUND for PDA/manual search; Agent background GitHub auto-update while running; row-level PickList confirm; richer Agent/Supra status with actual SSID and low-frequency HA role counts; size-rotated logs plus 06/12/18/00 Beta Drive delivery and crash spool; Web online excludes Agent; logout confirmation; flat top-level Agent tabs. Target relay-agent-v26."
+    "D101 Owner request 2026-09-22: cache MISS must refresh WMS before final NOT_FOUND for PDA/manual search; Agent background GitHub auto-update while running; row-level PickList confirm; richer Agent/Supra status with actual SSID and low-frequency HA role counts; size-rotated logs plus 06/12/18/00 Beta Drive delivery and crash spool; Web online excludes Agent; logout confirmation; flat top-level Agent tabs. Target relay-agent-v26.",
+    "D102 Owner-approved 2026-09-22: restore one Agent Tổng quan containing Agent/Supra/PickList; add manual trusted update; accelerate role convergence with four 5s startup cycles then 60s PRIMARY/STANDBY and 5m FROZEN role refresh; fleet presence 15m write/30m read/40m freshness; 21:30 HCM warning repeats every 5m until continue/stop confirmation; no continue at 22:00 pauses business polling/manual PickList until confirmation or 05:00 while EXE/log/update/watchdog stay alive. Target relay-agent-v27; Stable untouched."
   ],
-  "active_workstream": "D101_AGENT_V26_RELEASED__OA021_FIELD_ACCEPTANCE",
+  "active_workstream": "D102_AGENT_V27_IMPLEMENTATION_AND_RELEASE",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
