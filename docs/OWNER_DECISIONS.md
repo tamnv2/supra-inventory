@@ -540,3 +540,22 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA019 + OA020 OWNER FIELD ACCEP
 - Reset challenge requires current ROOT password + six-digit email OTP. Actual Gmail delivery and destructive reset execution are Owner-field-only under OA020. If the existing refresh token lacks `gmail.send`, exactly one bounded OAuth re-consent is required.
 - OA019 physical Agent/PDA/WMS acceptance must use `relay-agent-v25` + `beta-vc62`.
 - Stable remains **OWNER-GATED** and untouched.
+## D101 — Agent vận hành, PickList cache, log và layout v26
+
+Status: **OWNER APPROVED — SOURCE CANDIDATE 2026-09-22**.
+
+1. Cả hai đường tìm PickList — PDA gửi 5 số và chuyên viên tìm 3–5 số trực tiếp trên Agent — đều dùng nguyên tắc **cache hit trả ngay; cache miss bắt buộc refresh snapshot WMS một lần rồi mới được kết luận NOT_FOUND**. Kết quả NOT_FOUND trước refresh chỉ là tạm thời và không được tính là sai đầu vào.
+2. Refresh PickList tiếp tục dùng single-flight để các cache miss đồng thời dùng chung một lần GET WMS, không nhân số lần tải theo số PDA/Agent.
+3. Agent đang chạy phải tự kiểm tra GitHub Release nền và tự cập nhật nếu có bản mới; không cần chờ khởi động lại để mới kiểm tra. GitHub không có kênh push trực tiếp vào EXE portable, nên D101 dùng kiểm tra nền mỗi **30 phút** cộng với kiểm tra lúc khởi động; checksum và trusted-release-origin guard hiện hữu vẫn bắt buộc.
+4. Màn PickList trực tiếp hiển thị mỗi full PickListCode theo một hàng và có nút **Xác nhận** ngay trên chính hàng đó. Bỏ nút xác nhận chung bên ngoài danh sách.
+5. Agent đổi tên vùng **Xác minh Agent** thành **Hệ thống Agent** và hiển thị rõ phiên bản, tài khoản, máy, vai trò máy hiện tại, trạng thái Firestore, số Agent online theo PRIMARY/STANDBY/FROZEN, cơ chế failover và trạng thái update.
+6. `Hệ thống Supra` hiển thị tối thiểu kho HY1, API host, trạng thái phiên WMS, số PickList đang cache và thời điểm cache gần nhất. Auth-first gating vẫn giữ nguyên.
+7. Tên mạng hiển thị trên Agent phải là SSID Wi-Fi Windows thực tế khi có. Sanitizer không được nhầm chuỗi `ssid=` với credential `sid=`; secret/token vẫn phải được redaction như cũ.
+8. HA giữ nguyên D097 request-driven để bảo vệ Firestore quota: PRIMARY xử lý ngay, STANDBY chỉ takeover khi có job chờ đủ 10 giây, FROZEN không poll nghiệp vụ. Không có PDA gửi việc thì hệ thống không tạo heartbeat 10 giây chỉ để chứng minh PRIMARY sống. UI phải hiển thị rõ số PRIMARY/STANDBY/FROZEN để tránh hiểu nhầm.
+9. Số Agent hiển thị dùng presence đã có với đọc bounded thấp tần suất; không được thêm polling quota-heavy. Web `Người đang online` chỉ tính **WEB + ANDROID/PDA**, tuyệt đối không cộng Agent.
+10. Log Agent chuyển sang file local rolling theo dung lượng: technical và PDA-Agent audit mỗi stream tối đa khoảng **2 MiB/file**, giữ tối đa **4 file đã rotate + 1 file hiện hành**, không tạo file mới chỉ vì process restart.
+11. Agent tự gửi bundle log đã sanitize vào `Inventory/Beta/Logs` theo mốc **06:00, 12:00, 18:00, 00:00** giờ Việt Nam. Agent không giữ Google OAuth secret; nó ghi spool bounded vào Beta Firestore bằng ADMIN Firebase token, Beta Worker dùng OAuth Drive hiện có để chuyển spool sang Drive rồi xóa spool thành công.
+12. Crash/FATAL phải tạo upload ngay theo best effort; nếu chưa gửi được thì giữ marker pending và gửi lại ở lần Agent có phiên hợp lệ tiếp theo. Tên file crash có tiền tố `crash_`.
+13. Đăng xuất Agent bắt buộc có hộp xác nhận trước khi xóa phiên Agent/Supra local.
+14. Bỏ top-level tab **Cài đặt**. Các mục Kết nối, Bảng nổi, Nhật ký vận hành và Chẩn đoán kỹ thuật được đưa thành tab trực tiếp ngang hàng với Hệ thống Agent, Hệ thống Supra và Xử lý PickList.
+15. D101 target Windows release là **relay-agent-v26**. Android nghiệp vụ xác nhận và Báo hàng không đổi; Stable vẫn **OWNER-GATED** và không bị chạm.
