@@ -566,7 +566,7 @@ namespace SupraInventoryRelayAgent
 
         private static bool ValidSuffix(string value)
         {
-            if (string.IsNullOrWhiteSpace(value) || value.Length != 5) return false;
+            if (string.IsNullOrWhiteSpace(value) || (value.Length != 4 && value.Length != 5)) return false;
             foreach (var ch in value) if (ch < '0' || ch > '9') return false;
             return true;
         }
