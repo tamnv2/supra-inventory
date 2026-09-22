@@ -520,3 +520,12 @@ Overlay sizing must not retain the old 420×64 floor. Settings and runtime clamp
 - The two-factor panel is visually separated from scope selection.
 - Never hide the preserved-resource statement: ROOT and external Google Sheet/Drive are not reset.
 - Web Tools Agent version/download metadata is generated from `relay-agent/VERSION`; user-visible historical hard-coded Agent versions are forbidden.
+
+## D101 — Agent v26 layout and status presentation
+
+- Remove the top-level `Cài đặt` tab. Agent top-level tabs are: **Hệ thống Agent**, **Hệ thống Supra**, **Xử lý PickList**, **Kết nối**, **Bảng nổi**, **Nhật ký vận hành**, **Chẩn đoán kỹ thuật**.
+- Rename the former `Xác minh Agent` region to **Hệ thống Agent**. It shows authentication, machine, Wi-Fi SSID, current PRIMARY/STANDBY/FROZEN role, fleet role counts, Firestore state, version and auto-update state.
+- `Hệ thống Supra` shows HY1, Supra API host, WMS session readiness, current PickList cache count and last cache time. Supra controls remain disabled until Agent ADMIN auth is valid.
+- Direct PickList search renders a row per full PickListCode with its own **Xác nhận** button. There is no detached shared confirmation button.
+- Logout requires a Yes/No confirmation dialog before local Agent/Supra sessions are cleared.
+- The Agent preserves the approved D089 icon, tray-only minimize, protected shutdown and Overlay behavior.
