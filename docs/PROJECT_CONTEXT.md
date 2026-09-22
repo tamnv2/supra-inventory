@@ -410,3 +410,15 @@ D104 Agent v29 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta.
 - The v29 tag points exactly to merge commit `e1fa990aefa47ad81b063fc0ca27516c1cace5f8`. Android remains signed `beta-vc62`.
 - OA024 is the remaining physical Owner field gate for taskbar-visible maximum, comma multi-search, real multi-code WMS confirmation and simultaneous PDA batch behavior.
 - Stable remains OWNER-GATED and untouched.
+
+## D105 Android 4-digit confirmation + Agent v30 — 2026-09-22
+
+Owner accepted D104/OA024 and shortened the operational PickList suffix input.
+
+- New Picker Android confirmation input is exactly four digits. Firestore/Agent accept 4 or legacy 5 during rollout, but `beta-vc63` UI is four-digit only.
+- During an in-flight confirmation the action button is disabled + dimmed and cannot be re-enabled by typing until the terminal result returns.
+- Terminal confirmation result text is larger and bold; success/error colors make the result visually dominant over helper/progress copy.
+- Agent v30 resolves current PDA suffixes using their actual length; four-digit jobs therefore compare the last four digits. Multiple matching full codes remain ambiguous/fail-closed.
+- Agent specialist manual search becomes 3–4 digits per comma-separated term. D104 bulk confirmation behavior remains unchanged.
+- D104 batch/HA/quota behavior remains unchanged. Target Android is beta-vc63; target Agent is relay-agent-v30. Stable remains OWNER-GATED.
+

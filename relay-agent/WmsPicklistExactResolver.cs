@@ -48,11 +48,11 @@ namespace SupraInventoryRelayAgent
             foreach (var raw in suffixes ?? new string[0])
             {
                 var suffix = (raw ?? "").Trim();
-                if (suffix.Length != 5)
-                    throw new ArgumentException("Picklist suffix must contain exactly five digits.", "suffixes");
+                if (suffix.Length != 4 && suffix.Length != 5)
+                    throw new ArgumentException("Picklist suffix must contain four digits; five-digit legacy jobs remain compatible during rollout.", "suffixes");
                 foreach (var ch in suffix)
                     if (ch < '0' || ch > '9')
-                        throw new ArgumentException("Picklist suffix must contain exactly five digits.", "suffixes");
+                        throw new ArgumentException("Picklist suffix must contain digits only.", "suffixes");
                 if (targetSet.Add(suffix)) targets.Add(suffix);
             }
             if (targets.Count == 0)
@@ -115,11 +115,14 @@ namespace SupraInventoryRelayAgent
                 {
                     if (!ValidCode(code)) continue;
                     var trimmed = code.Trim();
-                    if (trimmed.Length < 5) continue;
-                    var suffix = trimmed.Substring(trimmed.Length - 5, 5);
-                    HashSet<string> bucket;
-                    if (matches.TryGetValue(suffix, out bucket))
-                        bucket.Add(trimmed);
+                    foreach (var target in targets)
+                    {
+                        if (trimmed.Length < target.Length) continue;
+                        if (!trimmed.EndsWith(target, StringComparison.Ordinal)) continue;
+                        HashSet<string> bucket;
+                        if (matches.TryGetValue(target, out bucket))
+                            bucket.Add(trimmed);
+                    }
                 }
 
                 if (codes.Count < 100) break;

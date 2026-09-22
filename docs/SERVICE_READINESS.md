@@ -465,3 +465,22 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA024 FIELD READY**.
 - WorkingArea maximum, comma multi-search, conditional confirm-all, batch lookup/exact resolution and <=10-code WMS confirmation guards are active.
 - Existing D097 HA cadence, D102 night schedule, D103 dense Overview, D096 Status=true confirmation semantics, per-code guard and per-job conditional ACK remain guarded.
 - Remaining gate: OA024 physical company-WMS/Windows/PDA field acceptance only. Stable remains OWNER-GATED.
+
+## D105 Android vc63 + Agent v30 source readiness — 2026-09-22
+
+Status: **SOURCE CANDIDATE / PR GATES PENDING**.
+
+- D104/OA024 field acceptance is Owner PASS.
+- Android target `beta-vc63`: exact four-digit input, in-flight button dim, prominent terminal result.
+- Agent target `relay-agent-v30`: current four-digit suffix resolution with legacy five-digit rollout compatibility; manual search 3–4 digits.
+- Beta Firestore Rules source accepts `{4,5}` digits during rollout; no extra reads/writes are introduced.
+- D104 batch WMS <=10, max12 logical PDA jobs, per-code guard, per-job ACK and quota behavior are preserved.
+- D097/D102/D103/D096 regressions and Stable OWNER-GATED state remain required.
+- Next: PR gates/build/deploy PASS, merge, release verification, then OA025 physical field acceptance.
+
+### D105 canonical marker sync
+
+- SQLite schema: `10`.
+- Latest released Beta APK baseline: `beta-vc62`.
+- Web status: `D101_BETA_RUNTIME_PASS__WEB_ONLINE_WEB_ANDROID_ONLY__TOOLS_AGENT_V26`.
+- Android source status: `D105_SOURCE_CANDIDATE__BETA_VC63__FOUR_DIGIT_CONFIRM_UI__PR_GATES_PENDING`.

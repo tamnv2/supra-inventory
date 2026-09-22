@@ -305,3 +305,10 @@ System Reset is a deliberate ROOT-only data-zeroing operation, not normal retent
 - Successful batch confirmation marks each acquired guard locally confirmed. Safe failures may release the affected per-code guard. Uncertain outcomes remain guarded/fail-closed and are not automatically replayed.
 - Existing retention/cleanup for Firestore job and guard documents is unchanged.
 
+## D105 — Four-digit request data
+
+- Current Android relay jobs store a four-digit `suffix`; legacy five-digit jobs may coexist transiently during rollout.
+- The suffix remains bounded operational correlation data. Full PickListCode, WMS response body and WMS credential/session/signature values remain forbidden from Firestore/logs.
+- Confirmation guard identity continues to derive from the resolved full PickListCode, not from the short suffix, so reducing input length does not weaken cross-Agent mutation idempotency.
+- Retention/cleanup semantics are unchanged.
+

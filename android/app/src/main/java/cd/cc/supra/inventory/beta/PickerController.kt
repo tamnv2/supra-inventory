@@ -70,9 +70,10 @@ class PickerController(
     private var pendingResults: List<PickerResult> = emptyList()
     private val withdrawButtons = linkedMapOf<Button, Long>()
     private val relayPocClient = RelayPocClient(activity.applicationContext, api, recordLog) { message ->
-        activity.runOnUiThread { relayStatus?.text = message }
+        activity.runOnUiThread { showRelayProgress(message) }
     }
     private var relayLockedUntilMs: Long = 0L
+    @Volatile private var relayRequestInFlight = false
     private var relayPicklistInput: EditText? = null
     private var relayButton: Button? = null
     private var relayStatus: TextView? = null
@@ -128,6 +129,7 @@ class PickerController(
         relayStatus = root.findViewById(R.id.tvRelayPocStatus)
         relayButton = root.findViewById<Button>(R.id.btnRelayPocSend)?.apply {
             isEnabled = false
+            alpha = 0.42f
             setOnClickListener { submitRelayProbe() }
         }
         relayPicklistInput = root.findViewById<EditText>(R.id.etRelayPicklistSuffix)?.apply {
@@ -141,7 +143,7 @@ class PickerController(
                 override fun afterTextChanged(s: Editable?) {
                     if (normalizing) return
                     val raw = s?.toString().orEmpty()
-                    val digits = raw.filter(Char::isDigit).take(5)
+                    val digits = raw.filter(Char::isDigit).take(4)
                     if (raw != digits) {
                         normalizing = true
                         setText(digits)
@@ -149,20 +151,22 @@ class PickerController(
                         normalizing = false
                     }
                     val locked = System.currentTimeMillis() < relayLockedUntilMs
-                    relayButton?.isEnabled = digits.length == 5 && !locked
-                    relayStatus?.text = if (locked) {
-                        "Tra cứu Picklist đang bị khóa. Vui lòng về bàn chuyên viên xử lý."
-                    } else if (digits.isEmpty()) {
-                        "Sẵn sàng nhập 5 số cuối để kiểm tra Picklist."
-                    } else if (digits.length < 5) {
-                        "Đã nhập " + digits.length + "/5 số."
-                    } else {
-                        "Đủ 5 số. Sẵn sàng kiểm tra Picklist."
-                    }
+                    setRelayButtonReady(digits.length == 4 && !locked && !relayRequestInFlight)
+                    showRelayHint(
+                        if (locked) {
+                            "Tra cứu Picklist đang bị khóa. Vui lòng về bàn chuyên viên xử lý."
+                        } else if (digits.isEmpty()) {
+                            "Sẵn sàng nhập 4 số cuối để kiểm tra Picklist."
+                        } else if (digits.length < 4) {
+                            "Đã nhập " + digits.length + "/4 số."
+                        } else {
+                            "Đủ 4 số. Sẵn sàng kiểm tra Picklist."
+                        }
+                    )
                 }
             })
             setOnEditorActionListener { _, actionId, _ ->
-                if (actionId == EditorInfo.IME_ACTION_DONE && text?.length == 5) {
+                if (actionId == EditorInfo.IME_ACTION_DONE && text?.length == 4 && !relayRequestInFlight) {
                     submitRelayProbe()
                     true
                 } else {
@@ -232,6 +236,7 @@ class PickerController(
     }
 
     private fun submitRelayProbe() {
+        if (relayRequestInFlight) return
         if (System.currentTimeMillis() < relayLockedUntilMs) {
             showRelayWarning(
                 "Tra cứu Picklist đã bị khóa",
@@ -240,27 +245,32 @@ class PickerController(
             return
         }
         val suffix = relayPicklistInput?.text?.toString()?.trim().orEmpty()
-        if (!suffix.matches(Regex("^\\d{5}$"))) {
-            relayStatus?.text = "Nhập đúng 5 số cuối Picklist."
-            relayButton?.isEnabled = false
+        if (!suffix.matches(Regex("^\\d{4}$"))) {
+            showRelayHint("Nhập đúng 4 số cuối Picklist.")
+            setRelayButtonReady(false)
             return
         }
         if (!isOnline()) {
-            relayStatus?.text = "PDA chưa có kết nối Internet."
+            showRelayResult("PDA chưa có kết nối Internet.", false)
             recordLog("Relay PDA chưa có Internet validated")
             return
         }
-        relayButton?.isEnabled = false
-        relayStatus?.text = "Đang xác nhận lấy lại đơn..."
+        relayRequestInFlight = true
+        setRelayButtonReady(false)
+        showRelayProgress("Đang xác nhận lấy lại đơn...")
         recordLog("Bắt đầu xác nhận lấy lại đơn; không ghi giá trị Picklist vào log")
         Thread {
             try {
                 val result = relayPocClient.sendProbe(suffix)
                 activity.runOnUiThread {
-                    relayButton?.isEnabled = relayPicklistInput?.text?.length == 5
+                    relayRequestInFlight = false
+                    setRelayButtonReady(
+                        relayPicklistInput?.text?.length == 4 &&
+                            System.currentTimeMillis() >= relayLockedUntilMs
+                    )
                     val headline = when (result.lookupStatus) {
                         "CONFIRMED" -> "Đã xác nhận lấy lại đơn. Hãy quay lại app SFT / SFT 3 để tiếp tục"
-                        "NOT_FOUND" -> "Không tìm thấy Picklist khớp 5 số cuối. Vui lòng kiểm tra lại."
+                        "NOT_FOUND" -> "Không tìm thấy Picklist khớp 4 số cuối. Vui lòng kiểm tra lại."
                         "AMBIGUOUS_PICKLIST", "EXACT_CODE_NOT_RESOLVED" -> "Không xác định được duy nhất Picklist. Vui lòng về bàn chuyên viên xử lý trực tiếp."
                         "PICKER_LOCKED" -> "TRA CỨU ĐÃ BỊ KHÓA"
                         "WMS_SESSION_REQUIRED", "SESSION_EXPIRED" -> "Máy xử lý cần đăng nhập lại SFT / SFT 3. Vui lòng về bàn chuyên viên xử lý trực tiếp."
@@ -273,7 +283,7 @@ class PickerController(
                         "RATE_LIMITED" -> "Hệ thống đang giới hạn yêu cầu. Vui lòng thử lại sau."
                         else -> "Xác nhận lấy lại đơn chưa thành công. Vui lòng về bàn chuyên viên xử lý trực tiếp."
                     }
-                    relayStatus?.text = headline
+                    showRelayResult(headline, result.lookupStatus == "CONFIRMED")
                     if (result.lookupStatus == "PICKER_LOCKED") {
                         applyRelayLock(result.lockedUntilMs, result.lockLevel)
                     } else if (result.lookupStatus == "NOT_FOUND" && result.rateStrikes > 0) {
@@ -295,9 +305,13 @@ class PickerController(
                 }
             } catch (error: Exception) {
                 activity.runOnUiThread {
-                    relayButton?.isEnabled = relayPicklistInput?.text?.length == 5
+                    relayRequestInFlight = false
+                    setRelayButtonReady(
+                        relayPicklistInput?.text?.length == 4 &&
+                            System.currentTimeMillis() >= relayLockedUntilMs
+                    )
                     val message = error.message?.takeIf { it.isNotBlank() } ?: friendlyError(error)
-                    relayStatus?.text = message
+                    showRelayResult(message, false)
                     if (message.contains("Không có Agent xử lý online", ignoreCase = true)) {
                         showRelayWarning(
                             "Không có Agent xử lý online",
@@ -313,9 +327,9 @@ class PickerController(
     private fun applyRelayLock(lockedUntilMs: Long, lockLevel: Int) {
         relayLockedUntilMs = maxOf(lockedUntilMs, System.currentTimeMillis() + 1000L)
         relayPicklistInput?.isEnabled = false
-        relayButton?.isEnabled = false
+        setRelayButtonReady(false)
         val remainingMinutes = maxOf(1L, (relayLockedUntilMs - System.currentTimeMillis() + 59_999L) / 60_000L)
-        relayStatus?.text = "Đã bị khóa " + remainingMinutes + " phút do nhập sai nhiều lần.\nVui lòng về bàn chuyên viên xử lý trực tiếp."
+        showRelayResult("Đã bị khóa " + remainingMinutes + " phút do nhập sai nhiều lần.\nVui lòng về bàn chuyên viên xử lý trực tiếp.", false)
         showRelayWarning(
             "Tra cứu Picklist bị khóa",
             "Bạn đã nhập sai nhiều lần. Tạm khóa khoảng " + remainingMinutes + " phút (cấp " + lockLevel + "). Vui lòng về bàn chuyên viên xử lý."
@@ -325,10 +339,44 @@ class PickerController(
             if (System.currentTimeMillis() >= relayLockedUntilMs) {
                 relayLockedUntilMs = 0L
                 relayPicklistInput?.isEnabled = true
-                relayButton?.isEnabled = relayPicklistInput?.text?.length == 5
-                relayStatus?.text = "Đã hết thời gian khóa. Có thể kiểm tra Picklist."
+                setRelayButtonReady(relayPicklistInput?.text?.length == 4 && !relayRequestInFlight)
+                showRelayHint("Đã hết thời gian khóa. Có thể kiểm tra Picklist.")
             }
         }, delay)
+    }
+
+    private fun setRelayButtonReady(ready: Boolean) {
+        relayButton?.apply {
+            isEnabled = ready
+            alpha = if (ready) 1.0f else 0.42f
+        }
+    }
+
+    private fun showRelayHint(message: String) {
+        relayStatus?.apply {
+            text = message
+            textSize = 12.5f
+            setTypeface(typeface, Typeface.NORMAL)
+            setTextColor(kit.muted)
+        }
+    }
+
+    private fun showRelayProgress(message: String) {
+        relayStatus?.apply {
+            text = message
+            textSize = 13f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(kit.muted)
+        }
+    }
+
+    private fun showRelayResult(message: String, success: Boolean) {
+        relayStatus?.apply {
+            text = message
+            textSize = 17f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(if (success) kit.greenDark else kit.redStrong)
+        }
     }
 
     private fun showRelayWarning(title: String, message: String) {

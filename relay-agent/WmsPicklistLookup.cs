@@ -394,11 +394,11 @@ namespace SupraInventoryRelayAgent
 
         private static void ValidateSuffix(string suffix)
         {
-            if (string.IsNullOrWhiteSpace(suffix) || suffix.Length != 5)
-                throw new ArgumentException("Picklist suffix must contain exactly five digits.", "suffix");
+            if (string.IsNullOrWhiteSpace(suffix) || (suffix.Length != 4 && suffix.Length != 5))
+                throw new ArgumentException("Picklist suffix must contain four digits; five-digit legacy jobs remain compatible during rollout.", "suffix");
             foreach (var ch in suffix)
                 if (ch < '0' || ch > '9')
-                    throw new ArgumentException("Picklist suffix must contain exactly five digits.", "suffix");
+                    throw new ArgumentException("Picklist suffix must contain digits only.", "suffix");
         }
 
         private static string BuildLookupUrl(int page)
@@ -565,7 +565,8 @@ namespace SupraInventoryRelayAgent
                                 var trailing = TrailingFiveDigits(normalizedCode);
                                 if (!string.IsNullOrWhiteSpace(trailing))
                                     result.TrailingFiveSuffixes.Add(trailing);
-                                if (!string.IsNullOrWhiteSpace(suffix) && trailing == suffix)
+                                if (!string.IsNullOrWhiteSpace(suffix) &&
+                                    normalizedCode.EndsWith(suffix, StringComparison.Ordinal))
                                     result.MatchCount++;
                             }
                         }

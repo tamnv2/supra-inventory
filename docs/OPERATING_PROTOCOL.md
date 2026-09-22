@@ -116,3 +116,11 @@ A release that depends on Firebase password sign-in must not infer provider read
 - fail release on any non-idempotent configuration/probe error.
 
 Stable Firebase Auth configuration remains OWNER-GATED.
+
+## D105 current PickList suffix contract
+
+- Current Beta Android confirmation requests use exactly four trailing digits. During beta-vc62 → beta-vc63 rollout only, Firestore/Agent may accept legacy five-digit jobs from already-installed clients.
+- Exact full PickList resolution must compare the suffix length actually supplied and still require exactly one full PickListCode before the existing guarded WMS mutation.
+- Agent manual specialist search uses 3–4 digit terms only.
+- This does not change D104 batching, D097 HA/polling, D096 fail-closed mutation semantics or Stable OWNER-GATED state.
+

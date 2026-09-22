@@ -1021,7 +1021,7 @@ namespace SupraInventoryRelayAgent
                 _manualPicklistConfirmAll.Visible = false;
                 _manualPicklistStatus.Text = string.IsNullOrWhiteSpace(_manualPicklistQuery.Text)
                     ? ""
-                    : (valid ? "Sẵn sàng." : "Nhập 3–5 số; nhiều giá trị ngăn cách bằng dấu phẩy.");
+                    : (valid ? "Sẵn sàng." : "Nhập 3–4 số; nhiều giá trị ngăn cách bằng dấu phẩy.");
             };
             directCard.Controls.Add(_manualPicklistQuery);
 
@@ -1672,7 +1672,7 @@ namespace SupraInventoryRelayAgent
             {
                 var value = (part ?? "").Trim();
                 if (value.Length == 0) continue;
-                if (value.Length < 3 || value.Length > 5) return false;
+                if (value.Length < 3 || value.Length > 4) return false;
                 foreach (var ch in value)
                     if (ch < '0' || ch > '9') return false;
                 if (seen.Add(value)) queries.Add(value);
@@ -1734,7 +1734,7 @@ namespace SupraInventoryRelayAgent
                 if (!IsBusinessAllowed())
                     throw new InvalidOperationException("Agent đang tạm dừng nghiệp vụ 22:00–05:00. Hãy xác nhận tăng ca tại Tổng quan để tiếp tục.");
                 if (queries == null || queries.Count == 0)
-                    throw new InvalidOperationException("Nhập 3–5 số; tối đa 10 giá trị, ngăn cách bằng dấu phẩy.");
+                    throw new InvalidOperationException("Nhập 3–4 số; tối đa 10 giá trị, ngăn cách bằng dấu phẩy.");
 
                 if (!HasAgentSession())
                     throw new InvalidOperationException("Cần xác minh Agent bằng tài khoản ADMIN trước.");

@@ -196,7 +196,7 @@ namespace SupraInventoryRelayAgent
                 _onRequest();
                 _audit("PDA_REQUEST request=" + Short(work.RequestId) +
                     " picker=" + Safe(work.PickerUserId) +
-                    " picklist_last5=redacted transport=FIRESTORE" +
+                    " picklist_suffix=redacted transport=FIRESTORE" +
                     " admin=" + Safe(session.AppUserId) +
                     " machine=" + Safe(Environment.MachineName) +
                     " instance=" + Short(_instanceId));
@@ -566,7 +566,7 @@ namespace SupraInventoryRelayAgent
 
         private static bool ValidSuffix(string value)
         {
-            if (string.IsNullOrWhiteSpace(value) || value.Length != 5) return false;
+            if (string.IsNullOrWhiteSpace(value) || (value.Length != 4 && value.Length != 5)) return false;
             foreach (var ch in value) if (ch < '0' || ch > '9') return false;
             return true;
         }

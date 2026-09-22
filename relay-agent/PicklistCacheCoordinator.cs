@@ -67,8 +67,8 @@ namespace SupraInventoryRelayAgent
             if (session == null || !session.IsValidHy1())
                 return new CachedPicklistResult { Result = "WMS_SESSION_REQUIRED", CacheMode = "NO_SESSION" };
 
-            if (string.IsNullOrWhiteSpace(suffix) || suffix.Length != 5)
-                throw new ArgumentException("Picklist suffix must contain exactly five digits.", "suffix");
+            if (!ValidLookupSuffix(suffix))
+                throw new ArgumentException("Picklist suffix must contain four digits (five-digit legacy jobs remain compatible during rollout).", "suffix");
 
             lock (_gate)
             {
@@ -79,7 +79,7 @@ namespace SupraInventoryRelayAgent
                         Result = "FOUND",
                         CacheMode = "CACHE_HIT",
                         MatchCount = 1,
-                        CacheCount = _suffixes.Count
+                        CacheCount = _codes.Count
                     };
                 }
 
@@ -103,11 +103,8 @@ namespace SupraInventoryRelayAgent
             foreach (var raw in suffixes ?? new string[0])
             {
                 var suffix = (raw ?? "").Trim();
-                if (suffix.Length != 5)
-                    throw new ArgumentException("Picklist suffix must contain exactly five digits.", "suffixes");
-                foreach (var ch in suffix)
-                    if (ch < '0' || ch > '9')
-                        throw new ArgumentException("Picklist suffix must contain exactly five digits.", "suffixes");
+                if (!ValidLookupSuffix(suffix))
+                    throw new ArgumentException("Picklist suffix must contain four digits (five-digit legacy jobs remain compatible during rollout).", "suffixes");
                 if (seen.Add(suffix)) unique.Add(suffix);
             }
             if (unique.Count == 0)
@@ -128,7 +125,7 @@ namespace SupraInventoryRelayAgent
                             Result = "FOUND",
                             CacheMode = "CACHE_HIT_BATCH",
                             MatchCount = 1,
-                            CacheCount = _suffixes.Count
+                            CacheCount = _codes.Count
                         };
                     }
                     else
@@ -172,7 +169,7 @@ namespace SupraInventoryRelayAgent
                         StatusCode = refresh.StatusCode,
                         ElapsedMs = refresh.ElapsedMs,
                         MatchCount = found ? 1 : 0,
-                        CacheCount = _suffixes.Count
+                        CacheCount = _codes.Count
                     };
                 }
             }
@@ -234,8 +231,8 @@ namespace SupraInventoryRelayAgent
                 return new ManualPicklistSearchResult { Result = "WMS_SESSION_REQUIRED", CacheMode = "NO_SESSION" };
 
             var query = (fragment ?? "").Trim();
-            if (query.Length < 3 || query.Length > 5)
-                throw new ArgumentException("Manual Picklist search requires 3 to 5 digits.", "fragment");
+            if (query.Length < 3 || query.Length > 4)
+                throw new ArgumentException("Manual Picklist search requires 3 to 4 digits.", "fragment");
             foreach (var ch in query)
                 if (ch < '0' || ch > '9')
                     throw new ArgumentException("Manual Picklist search requires digits only.", "fragment");
@@ -277,8 +274,8 @@ namespace SupraInventoryRelayAgent
             foreach (var raw in fragments ?? new string[0])
             {
                 var query = (raw ?? "").Trim();
-                if (query.Length < 3 || query.Length > 5)
-                    throw new ArgumentException("Manual Picklist search requires each value to contain 3 to 5 digits.", "fragments");
+                if (query.Length < 3 || query.Length > 4)
+                    throw new ArgumentException("Manual Picklist search requires each value to contain 3 to 4 digits.", "fragments");
                 foreach (var ch in query)
                     if (ch < '0' || ch > '9')
                         throw new ArgumentException("Manual Picklist search requires digits only.", "fragments");
@@ -366,6 +363,28 @@ namespace SupraInventoryRelayAgent
             return result;
         }
 
+        private static bool ValidLookupSuffix(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value) || (value.Length != 4 && value.Length != 5))
+                return false;
+            foreach (var ch in value)
+                if (ch < '0' || ch > '9')
+                    return false;
+            return true;
+        }
+
+        private static HashSet<string> BuildLookupSuffixes(IEnumerable<string> codes)
+        {
+            var suffixes = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var raw in codes ?? new string[0])
+            {
+                var code = (raw ?? "").Trim();
+                if (code.Length >= 4) suffixes.Add(code.Substring(code.Length - 4, 4));
+                if (code.Length >= 5) suffixes.Add(code.Substring(code.Length - 5, 5));
+            }
+            return suffixes;
+        }
+
         private CachedPicklistResult RefreshAndResolve(WmsSessionSnapshot session, string suffix, string mode)
         {
             Task<WmsPicklistSnapshotResult> task;
@@ -415,12 +434,14 @@ namespace SupraInventoryRelayAgent
             }
 
             HashSet<string> next;
+            var codeCount = 0;
             lock (_gate)
             {
-                _suffixes = new HashSet<string>(snapshot.TrailingFiveSuffixes ?? new HashSet<string>(), StringComparer.Ordinal);
                 _codes = new HashSet<string>(snapshot.PickListCodes ?? new HashSet<string>(), StringComparer.OrdinalIgnoreCase);
+                _suffixes = BuildLookupSuffixes(_codes);
                 _refreshedUtc = DateTime.UtcNow;
                 next = new HashSet<string>(_suffixes, StringComparer.Ordinal);
+                codeCount = _codes.Count;
             }
 
             var found = !string.IsNullOrWhiteSpace(suffix) && next.Contains(suffix);
@@ -432,7 +453,7 @@ namespace SupraInventoryRelayAgent
                 StatusCode = snapshot.StatusCode,
                 ElapsedMs = Math.Max(0L, snapshot.ElapsedMs),
                 MatchCount = found ? 1 : 0,
-                CacheCount = next.Count
+                CacheCount = codeCount
             };
         }
     }

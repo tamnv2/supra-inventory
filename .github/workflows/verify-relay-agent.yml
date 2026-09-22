@@ -74,7 +74,7 @@ jobs:
           $firestoreRules = Get-Content firebase/firestore.rules -Raw
           $firestoreIndexes = Get-Content firebase/firestore.indexes.json -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*29\s*;') { throw "D104 requires Agent v29." }
+          if ($config -notmatch 'AgentBuild\s*=\s*30\s*;') { throw "D105 requires Agent v30." }
           if ($firestoreLeader -notmatch 'FailoverAfterMs\s*=\s*10000' -or $firestoreLeader -notmatch 'StandbyTakeoverAgeMs\s*=\s*10000') { throw "D097 request-driven 10-second failover guard failed." }
           if ($firestoreLeader -match 'HeartbeatIntervalMs\s*=\s*4000') { throw "D097 forbids 4-second Firestore lease heartbeat." }
           foreach ($marker in @('PRIMARY','STANDBY','FROZEN','PromoteStandbyForTakeover','replacement-standby','PresenceHeartbeatIntervalMs = 900000','StandbyRoleRefreshMs = 60000','FrozenRoleRefreshMs = 300000','StartupConvergenceIntervalMs = 5000')) {
@@ -138,7 +138,7 @@ jobs:
           if ($config -notmatch 'confirmSkipItem') { throw "D092 confirmSkipItem endpoint config missing." }
           if ($confirmGuard -notmatch 'relay_poc_confirm_guards' -or $confirmGuard -notmatch 'currentDocument\.exists=false' -or $confirmGuard -notmatch 'OriginalJobProvesConfirmed' -or $confirmGuard -notmatch 'MarkLocalConfirmed') { throw "D097 single-write cross-Agent idempotency guard failed." }
           if ($confirmGuard -match 'MarkConfirmed\(') { throw "D097 forbids second Firestore guard-confirm write." }
-          if ($program -notmatch 'SearchManualPicklists' -or $program -notmatch 'ConfirmManualPicklist' -or $cache -notmatch 'SearchContains' -or $lookup -notmatch 'PickListCodes') { throw "D098 specialist 3-5 digit manual PickList workflow guard failed." }
+          if ($program -notmatch 'SearchManualPicklists' -or $program -notmatch 'ConfirmManualPicklist' -or $cache -notmatch 'SearchContains' -or $lookup -notmatch 'PickListCodes') { throw "D105 specialist 3-4 digit manual PickList workflow guard failed." }
           if ($program -notmatch 'DataGridViewButtonColumn' -or $program -notmatch 'Name = "ConfirmAction"' -or $program -notmatch 'Text = "Xác nhận"' -or $program -notmatch 'ConfirmManualPicklist\(code\)') { throw "D103 row-level PickList confirm UI guard failed." }
           if ($program -match 'new TabPage\("Cài đặt"\)' -or $program -notmatch 'new TabPage\("Tổng quan"\)' -or $program -match 'new TabPage\("Hệ thống Supra"\)' -or $program -match 'new TabPage\("Xử lý PickList"\)') { throw "D102 Agent must keep one Overview with Supra/PickList sections." }
           if ($program -notmatch '30 \* 60 \* 1000' -or $program -notmatch 'TryAutoUpdate\(false\)') { throw "D101 running Agent background GitHub update guard failed." }
@@ -157,6 +157,11 @@ jobs:
           if ($program -notmatch 'PDA_CONFIRM_BATCH' -or $program -notmatch 'wms_requests=' -or $program -notmatch 'for \(var offset = 0; offset < confirmCodes\.Count; offset \+= 10\)') { throw "D104 PDA WMS chunking/audit markers missing." }
           if ($program -notmatch '_manualPicklistOperationRunning' -or $program -notmatch 'Interlocked\.CompareExchange\(ref _manualPicklistOperationRunning, 1, 0\)' -or $program -notmatch 'Interlocked\.Exchange\(ref _manualPicklistOperationRunning, 0\)') { throw "D104 manual PickList actions must be single-flight to prevent click spam." }
           if ($program -notmatch 'batchSize > 1' -or $program -notmatch 'CONFIRM_REJECTED' -or $program -notmatch 'fail closed instead of retrying') { throw "D104 multi-code rejection must stay fail-closed." }
+          if ($program -notmatch 'value\.Length < 3 \|\| value\.Length > 4' -or $program -match 'Nhập 3–5 số') { throw "D105 Agent manual search must accept only 3-4 digit fragments." }
+          if ($cache -notmatch 'value\.Length != 4 && value\.Length != 5' -or $cache -notmatch 'BuildLookupSuffixes') { throw "D105 cache must index four-digit PDA suffixes while retaining five-digit rollout compatibility." }
+          if ($exact -notmatch 'suffix\.Length != 4 && suffix\.Length != 5' -or $exact -notmatch 'EndsWith\(target, StringComparison\.Ordinal\)') { throw "D105 exact resolver must resolve four-digit suffixes fail-closed." }
+          if ($firestoreTransport -notmatch 'value\.Length != 4 && value\.Length != 5' -or $firestoreTransport -notmatch 'picklist_suffix=redacted') { throw "D105 Firestore Agent transport must accept 4-digit current jobs and redact suffixes." }
+          if ($firestoreRules -notmatch "\^\[0-9\]\{4,5\}\$") { throw "D105 Firestore Rules must admit current 4-digit jobs plus bounded vc62 rollout compatibility." }
           if ($program -notmatch 'RowStyles.Add\(new RowStyle\(SizeType.Absolute, 330F\)\)' -or $program -notmatch 'RowStyles.Add\(new RowStyle\(SizeType.Absolute, 105F\)\)' -or $program -notmatch 'RowStyles.Add\(new RowStyle\(SizeType.Percent, 100F\)\)') { throw "D103 dense Overview row layout guard failed." }
           if ($program -notmatch '_agentFleetGrid\.SetBounds\(16, 168, 990, 146\)' -or $program -notmatch '_agentFleetGrid\.ScrollBars = ScrollBars\.Vertical' -or $program -notmatch '_agentFleetGrid\.RowTemplate\.Height = 24') { throw "D103 five-row Agent fleet viewport guard failed." }
           if ($program -match 'Phiên WMS được bảo vệ cục bộ' -or $program -match 'Cập nhật phần mềm: tự kiểm tra' -or $program -match 'Failover job: 10 giây') { throw "D103 Overview must remove verbose internal guidance." }

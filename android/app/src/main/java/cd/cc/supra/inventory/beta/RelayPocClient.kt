@@ -105,7 +105,7 @@ class RelayPocClient(
     }
 
     fun sendProbe(suffix: String): RelayProbeResult {
-        require(suffix.matches(Regex("^\\d{5}$"))) { "Picklist phải đúng 5 số." }
+        require(suffix.matches(Regex("^\\d{4}$"))) { "Picklist phải đúng 4 số." }
         var session = api.session ?: throw ApiException(401, "AUTH_REQUIRED", "Chưa đăng nhập.")
         session = ensureFirestoreAuth(session)
         runDueCleanup()

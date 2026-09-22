@@ -558,3 +558,10 @@ Overlay sizing must not retain the old 420×64 floor. Settings and runtime clamp
 - Hide **Xác nhận tất cả** unless at least two result rows are visible. More results continue to scroll inside the existing result grid.
 - Keep status copy concise: search result count, missing-term count and batch confirmation counts only.
 
+## D105 — Picker confirmation emphasis
+
+- The confirmation action visibly dims whenever it is unavailable, especially while a request is waiting for Agent/WMS result.
+- Terminal result copy is substantially more prominent than helper text: bold, larger size and semantic success/error color.
+- Helper input/progress text must not visually compete with the returned business result.
+- Picker instructions and hint use 4 digits. Agent manual specialist copy uses 3–4 digits.
+
