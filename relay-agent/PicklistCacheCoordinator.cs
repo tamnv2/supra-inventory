@@ -79,7 +79,7 @@ namespace SupraInventoryRelayAgent
                         Result = "FOUND",
                         CacheMode = "CACHE_HIT",
                         MatchCount = 1,
-                        CacheCount = _suffixes.Count
+                        CacheCount = _codes.Count
                     };
                 }
 
@@ -125,7 +125,7 @@ namespace SupraInventoryRelayAgent
                             Result = "FOUND",
                             CacheMode = "CACHE_HIT_BATCH",
                             MatchCount = 1,
-                            CacheCount = _suffixes.Count
+                            CacheCount = _codes.Count
                         };
                     }
                     else
@@ -169,7 +169,7 @@ namespace SupraInventoryRelayAgent
                         StatusCode = refresh.StatusCode,
                         ElapsedMs = refresh.ElapsedMs,
                         MatchCount = found ? 1 : 0,
-                        CacheCount = _suffixes.Count
+                        CacheCount = _codes.Count
                     };
                 }
             }
@@ -434,12 +434,14 @@ namespace SupraInventoryRelayAgent
             }
 
             HashSet<string> next;
+            var codeCount = 0;
             lock (_gate)
             {
                 _codes = new HashSet<string>(snapshot.PickListCodes ?? new HashSet<string>(), StringComparer.OrdinalIgnoreCase);
                 _suffixes = BuildLookupSuffixes(_codes);
                 _refreshedUtc = DateTime.UtcNow;
                 next = new HashSet<string>(_suffixes, StringComparer.Ordinal);
+                codeCount = _codes.Count;
             }
 
             var found = !string.IsNullOrWhiteSpace(suffix) && next.Contains(suffix);
@@ -451,7 +453,7 @@ namespace SupraInventoryRelayAgent
                 StatusCode = snapshot.StatusCode,
                 ElapsedMs = Math.Max(0L, snapshot.ElapsedMs),
                 MatchCount = found ? 1 : 0,
-                CacheCount = next.Count
+                CacheCount = codeCount
             };
         }
     }
