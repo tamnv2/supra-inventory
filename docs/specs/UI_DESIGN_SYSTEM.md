@@ -549,3 +549,12 @@ Overlay sizing must not retain the old 420×64 floor. Settings and runtime clamp
 - PickList results use a full-width table whose rightmost fixed-width action column contains Xác nhận on every result row.
 - Status copy is concise: result counts/errors/actions only. Internal AI/Owner/D-number/handoff wording remains forbidden.
 
+## D104 — Taskbar-safe maximum and PickList bulk action
+
+- Use the active `Screen.WorkingArea` as the Agent maximized bounds so Windows taskbar space is respected on launch and tray restore.
+- Keep D103 dense non-scrolling Overview unchanged.
+- Expand the PickList search input enough for comma-separated values without expanding the card height.
+- Place **Tìm kiếm** and the conditional **Xác nhận tất cả** on the same action row. Do not remove the row-level Xác nhận buttons.
+- Hide **Xác nhận tất cả** unless at least two result rows are visible. More results continue to scroll inside the existing result grid.
+- Keep status copy concise: search result count, missing-term count and batch confirmation counts only.
+
