@@ -573,7 +573,9 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
   const limit = Math.max(1, Math.min(200, Number.isFinite(parsed) ? Math.trunc(parsed) : 100));
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
-            b.resolved_at, b.resolved_by_user_id, b.resolution, b.correction_deadline_at,
+            b.resolved_at, b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
+            COALESCE(resolver.display_name, '') AS resolved_by_display_name,
+            COALESCE(resolver.employee_code, '') AS resolved_by_employee_code,
             b.version, b.previous_batch_id, p.resolved_at AS previous_resolved_at,
             CASE
               WHEN b.status = 'CLOSED' THEN
@@ -596,6 +598,7 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
                 AND a.acknowledged_at IS NOT NULL) AS acknowledged_count
        FROM report_batches b
        LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
+       LEFT JOIN users resolver ON resolver.user_id = b.resolved_by_user_id
       WHERE b.status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')
       ORDER BY COALESCE(b.resolved_at, b.updated_at) DESC
       LIMIT ?`,
