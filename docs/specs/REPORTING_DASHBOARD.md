@@ -137,3 +137,36 @@ For `PER_PICKER`, the live affected-Picker count excludes Pickers who already re
 - Detailed reporting keeps status and SKU/product filters beside the compact date group where space permits.
 - Narrow screens may wrap controls, but the date selector remains one coherent group and must not create unnecessary vertical dead space.
 - Query bounds, server-side aggregation, pagination and Excel export behavior are unchanged.
+## D107 professional overview and detailed-report density
+
+D107 expands presentation depth for Admin/Root without expanding data authority or runtime polling.
+
+### Overview
+
+The `Tổng quan` view presents, from existing bounded APIs:
+- current pending SKU count and current affected Picker count;
+- current warning and overdue counts;
+- authenticated Web/PDA online users;
+- selected-period report volume, unique SKU count, affected-Picker volume, resolved-batch count and average resolution time;
+- outcome distribution for Có hàng / Cho phép bỏ qua / Picker thu hồi;
+- recurrence summary/top recurring SKUs;
+- report-versus-resolved time trend using the dashboard timeline bucket returned by the service;
+- top reported SKUs including report count and affected Picker count, with drill-down into detailed reporting.
+
+### Detailed report
+
+The `Báo cáo chi tiết` view keeps the same date/status/SKU-product filter, bounded pagination and Excel export, and adds:
+- selected-period report, unique-SKU, affected-Picker and resolved-batch summary;
+- current warning/overdue attention counts from the existing operational insight aggregate;
+- outcome mix;
+- recurrence headline count;
+- average resolution time;
+- explicit current page record range;
+- `Đang mở` and `Tổng lượt báo` columns sourced from existing report rows.
+
+### Guards
+
+- No new dashboard/report polling loop is introduced. Data refresh follows the existing explicit-load/realtime model.
+- No employee ranking/scoring, stock quantity, bin/location or unapproved inventory metric is added.
+- The 60-day bound, indexed/server-side aggregation, bounded pagination and chunked Excel export remain authoritative.
+- These additions do not settle the Owner-open final Stable export-column decision.

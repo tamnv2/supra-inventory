@@ -19,6 +19,7 @@ WEB_DASH = read("web/src/legacy-transplant/workflow-dashboard-v5.css")
 WEB_WAREHOUSE = read("web/src/legacy-transplant/warehouse-ui-v2.css")
 WEB_OPS = read("web/src/legacy-transplant/ops-console.css")
 WEB_UNIFIED = read("web/src/legacy-transplant/web-unified-ui.css")
+WEB_PRO = read("web/src/legacy-transplant/web-professional-v2.css")
 WEB_REPORT_EXCEL = read("web/src/report-excel.ts")
 
 ANDROID_MAIN = read("android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt")
@@ -369,6 +370,9 @@ checks = {
     "web_d071_compact_dates": all(token in (WEB_APP + WEB_UNIFIED) for token in ["renderCompactDateRange", "compact-date-range", "compact-date-presets", "report-filter-compact"]),
     "web_d071_immediate_reporter_actions": all(token in WEB_APP for token in ["pendingReporterResolutions", "commitReporterResolution", "reporter_resolution_immediate_feedback", "loadOperationsSnapshot", "operationsLoadPromise"]) and 'await resolveReporterBatch(batch.batch_id, "HAS_STOCK");\n      await loadOperations();' not in WEB_APP and 'await resolveReporterBatch(batch.batch_id, "SKIP_ALLOWED");\n      await loadOperations();' not in WEB_APP,
     "web_d089_tools_dark_completion": all(token in WEB_UNIFIED for token in ["D089 — Tools dark-theme completion", ".tool-icon-image", ".tools-workspace .tool-facts > div"]) and 'body[data-theme="dark"] .tools-workspace .tool-facts > div' in WEB_UNIFIED,
+    "web_d107_professional_identity": all(token in WEB_APP for token in ['class="login-brand-lockup"', '/app-icon.png', "CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN", "<h1>Website nghiệp vụ Inventory</h1>"]) and all(token not in WEB_APP for token in ['<div class="brand">1291</div>', "<h1>Web nghiệp vụ</h1>", "Đăng nhập bằng tài khoản Báo hàng 1291."]),
+    "web_d107_professional_layer": './legacy-transplant/web-professional-v2.css' in WEB_APP and all(token in WEB_PRO for token in ["D107 — professional Web refinement", ".login-brand-lockup", ".business-summary-grid-6", ".pro-trend-chart", ".pro-report-analysis", 'body[data-theme="dark"]']),
+    "web_d107_richer_reporting": all(token in WEB_APP for token in ["affectedInPeriod", "trendRows", "pro-trend-chart", "data-dashboard-sku", "reportWarningCount", "reportOverdueCount", "open_ticket_count", "pro-report-analysis"]),
     "android_d070_timeout_projection": all(token in (ANDROID_API + ANDROID_PICKER + ANDROID_REPORTER) for token in ["autoSkipDeadlineAt", "autoSkipAllowedAt", "autoSkipAt", "Hệ thống tự động do quá hạn"]),
     "web_online_only_no_outbox": "offline outbox" not in WEB_UI.lower() and "chờ đồng bộ" not in WEB_UI.lower(),
     "android_online_only_no_outbox": "chờ đồng bộ" not in ANDROID_ALL.lower() and "outbox" not in ANDROID_ALL.lower(),
