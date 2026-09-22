@@ -328,3 +328,15 @@ Owner reopened Agent operational UX/cache/log handling after confirming D100 res
 - Wi-Fi shows the real Windows SSID; sanitizer token boundaries prevent `ssid=` from being mistaken for secret `sid=`.
 - Local Agent logs are size-rotated; scheduled/crash sanitized bundles use an ADMIN-only temporary Firestore spool and Beta Worker drain into Inventory/Beta/Logs.
 - Web online totals remain WEB + ANDROID/PDA only; Agent is excluded.
+
+## D101 release checkpoint
+
+D101 Agent v26 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta.
+
+- PR #136 merged to `main` at `25cb7554ff7ea058aa45d72e1ba4824c744c354e`.
+- Main gates PASS: Repo Authority `35677556695`, Project State `35677556755`, Beta Worker `35677556693`, Firestore Relay `35677556771`, UI Design `35677556710`, Android `35677556734`, Relay Agent `35677556698`.
+- Released Windows Agent: `relay-agent-v26`, release id `393404831`; canonical EXE asset id `580316553`, size `263680` bytes, SHA-256 `5db50633e74247b45305a536a6caf140069626db66a7020acf32cf2d216ff79b`.
+- Android remains signed `beta-vc62`; D101 does not require a new PDA release.
+- OA021 is the remaining physical Owner acceptance gate for truthful Wi-Fi/HA display, cache-miss WMS refresh, inline PickList confirmation, running auto-update behavior and scheduled/crash Agent log delivery.
+- Stable remains OWNER-GATED and untouched.
+
