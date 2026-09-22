@@ -531,7 +531,7 @@ namespace SupraInventoryRelayAgent
 
             Controls.Add(new Label { Left = 18, Top = 16, Width = 726, Height = 30, Text = "SUPRA INVENTORY - RELAY TEST AGENT", Font = new Font("Segoe UI", 14F, FontStyle.Bold) });
             _relay.SetBounds(18, 52, 726, 24); _relay.Text = "Relay: chưa kết nối"; Controls.Add(_relay);
-            _network.SetBounds(18, 78, 726, 24); _network.Text = "Mạng: " + GetSsid(); Controls.Add(_network);
+            _network.SetBounds(18, 78, 726, 24); _network.Text = "Wi-Fi: " + GetSsid(); Controls.Add(_network);
             _identity.SetBounds(18, 104, 726, 24); _identity.Text = "Agent: chưa ghép"; Controls.Add(_identity);
 
             Controls.Add(new Label { Left = 18, Top = 140, Width = 90, Text = "ADMIN" });
@@ -539,7 +539,15 @@ namespace SupraInventoryRelayAgent
             Controls.Add(new Label { Left = 305, Top = 140, Width = 70, Text = "Mật khẩu" });
             _password.SetBounds(375, 136, 160, 26); _password.UseSystemPasswordChar = true; Controls.Add(_password);
             _pair.SetBounds(545, 135, 105, 28); _pair.Text = "Đăng nhập"; _pair.Click += (s, e) => Task.Run(() => PairLogin()); Controls.Add(_pair);
-            _logout.Text = "Đăng xuất"; _logout.Enabled = false; _logout.Click += (s, e) => Task.Run(() => LogoutAgent());
+            _logout.Text = "Đăng xuất"; _logout.Enabled = false; _logout.Click += (s, e) =>
+            {
+                if (MessageBox.Show(
+                    "Đăng xuất Agent sẽ dừng xử lý trên máy này và xóa phiên Agent/Supra đang lưu cục bộ.\r\n\r\nTiếp tục đăng xuất?",
+                    "Xác nhận đăng xuất Agent",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning) != DialogResult.Yes) return;
+                Task.Run(() => LogoutAgent());
+            };
 
             _testOffice.SetBounds(18, 176, 135, 32); _testOffice.Text = "Test Firestore"; _testOffice.Enabled = false;
             _testOffice.Click += (s, e) => Task.Run(() => TestOffice()); Controls.Add(_testOffice);
@@ -593,7 +601,7 @@ namespace SupraInventoryRelayAgent
             menu.Items.Add(new ToolStripSeparator());
 
             menu.Items.Add("Mở Agent", null, (s, e) => RestoreFromTray());
-            menu.Items.Add("Cài đặt", null, (s, e) => OpenSettingsFromTray());
+            menu.Items.Add("Bảng nổi", null, (s, e) => OpenSettingsFromTray());
             menu.Items.Add("Mở log", null, (s, e) => AgentDiagnostics.OpenLog());
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add("Tắt Agent...", null, (s, e) => RequestProtectedExit());
@@ -621,7 +629,7 @@ namespace SupraInventoryRelayAgent
             _networkUiTimer.Interval = 60000;
             _networkUiTimer.Tick += (s, e) =>
             {
-                if (Visible) _network.Text = "Mạng: " + GetSsid();
+                if (Visible) _network.Text = "Wi-Fi: " + GetSsid();
             };
 
             _guardTimer.Interval = 60000;
@@ -1205,7 +1213,27 @@ namespace SupraInventoryRelayAgent
                     ? (_listenCts != null ? "FIRESTORE" : "CHƯA PHỐI HỢP")
                     : (!_leaderCoordinator.IsTransportHealthy
                         ? "FIRESTORE OFFLINE"
-                        : (_leaderCoordinator.IsLeader ? "ACTIVE" : "STANDBY"));
+                        : (_leaderCoordinator.IsLeader ? "PRIMARY"
+                            : (_leaderCoordinator.IsStandby ? "STANDBY" : "FROZEN")));
+
+                var primaryCount = _leaderCoordinator == null ? 0 : _leaderCoordinator.OnlinePrimaryCount;
+                var standbyCount = _leaderCoordinator == null ? 0 : _leaderCoordinator.OnlineStandbyCount;
+                var frozenCount = _leaderCoordinator == null ? 0 : _leaderCoordinator.OnlineFrozenCount;
+                _agentFleetStatus.Text =
+                    "Cụm Agent: " + online +
+                    " online · PRIMARY " + primaryCount +
+                    " · STANDBY " + standbyCount +
+                    " · FROZEN " + frozenCount +
+                    " · Máy này: " + state;
+                _network.Text = "Wi-Fi: " + GetSsid();
+                _agentSystemInfo.Text =
+                    "Phiên bản v" + AgentConfig.AgentBuild +
+                    " · Firestore: " + (_leaderCoordinator == null ? "chưa phối hợp" : (_leaderCoordinator.IsTransportHealthy ? "kết nối" : "gián đoạn")) +
+                    " · Failover: request-driven ≥10 giây · Tự cập nhật: GitHub nền 30 phút.";
+                _supraInfo.Text =
+                    "Kho: HY1 · API: api-supra.winmart.vn · Phiên: " + (HasUsableWmsSession() ? "sẵn sàng" : "chưa sẵn sàng") +
+                    " · Cache PickList: " + _picklistCache.CacheCount +
+                    (_picklistCache.RefreshedUtc == DateTime.MinValue ? "" : " · Nạp lúc " + _picklistCache.RefreshedUtc.ToLocalTime().ToString("HH:mm:ss"));
 
                 if (_statusOverlay != null)
                 {
@@ -1781,6 +1809,7 @@ namespace SupraInventoryRelayAgent
             try
             {
                 if (startup) Log("UPDATE kiểm tra Agent prerelease v" + AgentConfig.AgentBuild + ".");
+                Ui(() => _updateStatus.Text = "Cập nhật: đang kiểm tra GitHub...");
                 var result = AgentUpdater.CheckAndInstallIfNeeded();
                 if (result.InstallStarted)
                 {
@@ -1795,11 +1824,13 @@ namespace SupraInventoryRelayAgent
                     return true;
                 }
                 if (!startup) Log("UPDATE " + result.Message);
+                Ui(() => _updateStatus.Text = "Cập nhật: " + result.Message + " · kiểm tra nền mỗi 30 phút.");
                 return false;
             }
             catch (Exception ex)
             {
                 Log("UPDATE chưa thể kiểm tra/cài tự động: " + SafeMessage(ex));
+                Ui(() => _updateStatus.Text = "Cập nhật: chưa kiểm tra được GitHub · sẽ tự thử lại.");
                 return false;
             }
             finally
@@ -1980,7 +2011,12 @@ namespace SupraInventoryRelayAgent
                     " firebase_uid=" + Fingerprint(next.UserId)
                 );
                 ActivateRelayRuntime();
-                Task.Run(() => TryRestoreWmsSessionFileFirst());
+                Task.Run(() =>
+                {
+                    _agentLogBridge.TryFlushPendingCrash();
+                    _agentLogBridge.TryQueueScheduledSnapshot();
+                    TryRestoreWmsSessionFileFirst();
+                });
             }
             catch (Exception ex)
             {
@@ -2026,8 +2062,8 @@ namespace SupraInventoryRelayAgent
                     _password.Clear();
                 }
                 _agentAuthStatus.Text = authenticated
-                    ? "Xác minh Agent: ĐÃ ĐĂNG NHẬP" + (string.IsNullOrWhiteSpace(appUser) ? "" : " · " + appUser)
-                    : "Xác minh Agent: CHƯA ĐĂNG NHẬP";
+                    ? "Hệ thống Agent: ĐÃ ĐĂNG NHẬP" + (string.IsNullOrWhiteSpace(appUser) ? "" : " · " + appUser)
+                    : "Hệ thống Agent: CHƯA ĐĂNG NHẬP";
                 _agentAuthStatus.ForeColor = authenticated
                     ? Color.FromArgb(35, 122, 76)
                     : Color.FromArgb(180, 76, 60);
