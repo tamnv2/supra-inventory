@@ -2990,175 +2990,365 @@ namespace SupraInventoryRelayAgent
 
         private FirestoreConfirmationOutcome ProcessFirestoreConfirmation(FirestoreConfirmationWorkItem work)
         {
+            var results = ProcessFirestoreConfirmations(new List<FirestoreConfirmationWorkItem> { work });
+            FirestoreConfirmationOutcome outcome;
+            return work != null &&
+                   results.TryGetValue(work.RequestId ?? "", out outcome) &&
+                   outcome != null
+                ? outcome
+                : new FirestoreConfirmationOutcome { Result = "CONFIRM_ERROR" };
+        }
+
+        private Dictionary<string, FirestoreConfirmationOutcome> ProcessFirestoreConfirmations(
+            List<FirestoreConfirmationWorkItem> works)
+        {
+            var outcomes = new Dictionary<string, FirestoreConfirmationOutcome>(StringComparer.Ordinal);
+            if (works == null || works.Count == 0) return outcomes;
+            if (works.Count > FirestoreConfirmationTransport.MaxConcurrentJobs)
+                throw new InvalidOperationException("Confirmation batch exceeds bounded job limit.");
+
             var appSession = SnapshotSession();
-            var rate = _firestoreRateLimiter.Check(appSession, work.PickerUid, work.PickerUserId);
-            if (rate.IsLocked)
+            var wmsSession = SnapshotWmsSession();
+
+            foreach (var work in works)
             {
-                return new FirestoreConfirmationOutcome
+                if (work == null || string.IsNullOrWhiteSpace(work.RequestId)) continue;
+                var rate = _firestoreRateLimiter.Check(appSession, work.PickerUid, work.PickerUserId);
+                if (rate.IsLocked)
                 {
-                    Result = "PICKER_LOCKED",
-                    CacheMode = "RATE_LIMIT",
-                    Route = "NONE",
-                    Rate = rate
-                };
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "PICKER_LOCKED",
+                        CacheMode = "RATE_LIMIT",
+                        Route = "NONE",
+                        Rate = rate
+                    };
+                }
             }
 
-            var wmsSession = SnapshotWmsSession();
             if (wmsSession == null || !wmsSession.IsValidHy1())
             {
-                return new FirestoreConfirmationOutcome
+                foreach (var work in works)
                 {
-                    Result = "WMS_SESSION_REQUIRED",
-                    CacheMode = "NO_SESSION",
-                    Route = "NONE",
-                    Rate = rate
-                };
+                    if (work == null || string.IsNullOrWhiteSpace(work.RequestId) || outcomes.ContainsKey(work.RequestId)) continue;
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "WMS_SESSION_REQUIRED",
+                        CacheMode = "NO_SESSION",
+                        Route = "NONE"
+                    };
+                }
+                return outcomes;
             }
 
-            var lookup = _picklistCache.Lookup(wmsSession, work.Suffix);
-            if (string.Equals(lookup.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
-                ClearWmsSessionAfterExpiry();
-
-            if (string.Equals(lookup.Result, "NOT_FOUND", StringComparison.Ordinal))
+            var lookupWorks = new List<FirestoreConfirmationWorkItem>();
+            var lookupSuffixes = new List<string>();
+            foreach (var work in works)
             {
-                rate = _firestoreRateLimiter.RecordNotFound(appSession, work.PickerUid, work.PickerUserId, work.RequestId);
-                return new FirestoreConfirmationOutcome
-                {
-                    Result = rate.IsLocked ? "PICKER_LOCKED" : "NOT_FOUND",
-                    CacheMode = lookup.CacheMode,
-                    Route = lookup.Route,
-                    Http = lookup.StatusCode,
-                    OperationMs = Math.Max(0L, lookup.ElapsedMs),
-                    Matches = 0,
-                    Rate = rate
-                };
+                if (work == null || string.IsNullOrWhiteSpace(work.RequestId) || outcomes.ContainsKey(work.RequestId)) continue;
+                lookupWorks.Add(work);
+                lookupSuffixes.Add(work.Suffix);
             }
 
-            if (!string.Equals(lookup.Result, "FOUND", StringComparison.Ordinal))
+            Dictionary<string, CachedPicklistResult> lookupBySuffix;
+            try
             {
-                return new FirestoreConfirmationOutcome
-                {
-                    Result = lookup.Result ?? "LOOKUP_ERROR",
-                    CacheMode = lookup.CacheMode,
-                    Route = lookup.Route,
-                    Http = lookup.StatusCode,
-                    OperationMs = Math.Max(0L, lookup.ElapsedMs),
-                    Matches = Math.Max(0, lookup.MatchCount),
-                    Rate = rate
-                };
+                lookupBySuffix = lookupWorks.Count == 0
+                    ? new Dictionary<string, CachedPicklistResult>(StringComparer.Ordinal)
+                    : _picklistCache.LookupMany(wmsSession, lookupSuffixes);
+            }
+            catch (Exception ex)
+            {
+                foreach (var work in lookupWorks)
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "LOOKUP_ERROR",
+                        CacheMode = "BATCH_LOOKUP_ERROR",
+                        Route = "NONE"
+                    };
+                Log("FIRESTORE batch lookup fail type=" + ex.GetType().Name);
+                return outcomes;
             }
 
-            _firestoreRateLimiter.ClearFound(appSession, work.PickerUid);
-            rate = new PickerRateDecision();
-
-            if (work.CreatedAtMs > 0 && DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - work.CreatedAtMs >= 25000)
+            var exactWorks = new List<FirestoreConfirmationWorkItem>();
+            var exactSuffixes = new List<string>();
+            foreach (var work in lookupWorks)
             {
-                return new FirestoreConfirmationOutcome
+                CachedPicklistResult lookup;
+                if (!lookupBySuffix.TryGetValue(work.Suffix ?? "", out lookup) || lookup == null)
                 {
-                    Result = "REQUEST_EXPIRED",
-                    CacheMode = lookup.CacheMode + "+EXPIRED",
-                    Route = lookup.Route,
-                    Http = lookup.StatusCode,
-                    OperationMs = Math.Max(0L, lookup.ElapsedMs),
-                    Matches = Math.Max(0, lookup.MatchCount),
-                    Rate = rate
-                };
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "LOOKUP_ERROR",
+                        CacheMode = "BATCH_LOOKUP_MISSING",
+                        Route = "NONE"
+                    };
+                    continue;
+                }
+
+                if (string.Equals(lookup.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
+                    ClearWmsSessionAfterExpiry();
+
+                if (string.Equals(lookup.Result, "NOT_FOUND", StringComparison.Ordinal))
+                {
+                    var rate = _firestoreRateLimiter.RecordNotFound(
+                        appSession, work.PickerUid, work.PickerUserId, work.RequestId);
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = rate.IsLocked ? "PICKER_LOCKED" : "NOT_FOUND",
+                        CacheMode = lookup.CacheMode,
+                        Route = lookup.Route,
+                        Http = lookup.StatusCode,
+                        OperationMs = Math.Max(0L, lookup.ElapsedMs),
+                        Matches = 0,
+                        Rate = rate
+                    };
+                    continue;
+                }
+
+                if (!string.Equals(lookup.Result, "FOUND", StringComparison.Ordinal))
+                {
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = lookup.Result ?? "LOOKUP_ERROR",
+                        CacheMode = lookup.CacheMode,
+                        Route = lookup.Route,
+                        Http = lookup.StatusCode,
+                        OperationMs = Math.Max(0L, lookup.ElapsedMs),
+                        Matches = Math.Max(0, lookup.MatchCount)
+                    };
+                    continue;
+                }
+
+                _firestoreRateLimiter.ClearFound(appSession, work.PickerUid);
+
+                if (work.CreatedAtMs > 0 &&
+                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - work.CreatedAtMs >= 25000)
+                {
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "REQUEST_EXPIRED",
+                        CacheMode = lookup.CacheMode + "+EXPIRED",
+                        Route = lookup.Route,
+                        Http = lookup.StatusCode,
+                        OperationMs = Math.Max(0L, lookup.ElapsedMs),
+                        Matches = Math.Max(0, lookup.MatchCount),
+                        Rate = new PickerRateDecision()
+                    };
+                    continue;
+                }
+
+                exactWorks.Add(work);
+                exactSuffixes.Add(work.Suffix);
             }
 
-            var exact = WmsExactPicklistResolver.Resolve(wmsSession, work.Suffix);
-            if (!string.Equals(exact.Result, "FOUND", StringComparison.Ordinal) ||
-                exact.MatchCount != 1 || string.IsNullOrWhiteSpace(exact.PickListCode))
+            Dictionary<string, WmsExactPicklistResult> exactBySuffix;
+            try
             {
-                return new FirestoreConfirmationOutcome
+                exactBySuffix = exactWorks.Count == 0
+                    ? new Dictionary<string, WmsExactPicklistResult>(StringComparer.Ordinal)
+                    : WmsExactPicklistResolver.ResolveMany(wmsSession, exactSuffixes);
+            }
+            catch (Exception ex)
+            {
+                foreach (var work in exactWorks)
                 {
-                    Result = exact.Result ?? "EXACT_CODE_NOT_RESOLVED",
-                    CacheMode = lookup.CacheMode + "+EXACT_RESOLVE",
-                    Route = exact.Route,
-                    Http = exact.StatusCode,
-                    OperationMs = Math.Max(0L, lookup.ElapsedMs) + Math.Max(0L, exact.ElapsedMs),
-                    Matches = Math.Max(0, exact.MatchCount),
-                    Rate = rate
-                };
+                    CachedPicklistResult lookup;
+                    lookupBySuffix.TryGetValue(work.Suffix ?? "", out lookup);
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "EXACT_CODE_NOT_RESOLVED",
+                        CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_BATCH_ERROR",
+                        Route = "NONE",
+                        OperationMs = lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)
+                    };
+                }
+                Log("FIRESTORE exact batch fail type=" + ex.GetType().Name);
+                return outcomes;
             }
 
-            if (work.CreatedAtMs > 0 && DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - work.CreatedAtMs >= 25000)
+            var guardsByRequest = new Dictionary<string, FirestoreConfirmationGuardDecision>(StringComparer.Ordinal);
+            var codeByRequest = new Dictionary<string, string>(StringComparer.Ordinal);
+            var confirmCodes = new List<string>();
+
+            foreach (var work in exactWorks)
             {
-                return new FirestoreConfirmationOutcome
+                CachedPicklistResult lookup;
+                lookupBySuffix.TryGetValue(work.Suffix ?? "", out lookup);
+                WmsExactPicklistResult exact;
+                if (!exactBySuffix.TryGetValue(work.Suffix ?? "", out exact) || exact == null ||
+                    !string.Equals(exact.Result, "FOUND", StringComparison.Ordinal) ||
+                    exact.MatchCount != 1 || string.IsNullOrWhiteSpace(exact.PickListCode))
                 {
-                    Result = "REQUEST_EXPIRED",
-                    CacheMode = lookup.CacheMode + "+EXACT_RESOLVE+EXPIRED",
-                    Route = exact.Route,
-                    Http = exact.StatusCode,
-                    OperationMs = Math.Max(0L, lookup.ElapsedMs) + Math.Max(0L, exact.ElapsedMs),
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = exact == null ? "EXACT_CODE_NOT_RESOLVED" : (exact.Result ?? "EXACT_CODE_NOT_RESOLVED"),
+                        CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH",
+                        Route = exact == null ? "NONE" : exact.Route,
+                        Http = exact == null ? 0 : exact.StatusCode,
+                        OperationMs = (lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)) +
+                                      (exact == null ? 0L : Math.Max(0L, exact.ElapsedMs)),
+                        Matches = exact == null ? 0 : Math.Max(0, exact.MatchCount),
+                        Rate = new PickerRateDecision()
+                    };
+                    continue;
+                }
+
+                if (work.CreatedAtMs > 0 &&
+                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - work.CreatedAtMs >= 25000)
+                {
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "REQUEST_EXPIRED",
+                        CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+EXPIRED",
+                        Route = exact.Route,
+                        Http = exact.StatusCode,
+                        OperationMs = (lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)) + Math.Max(0L, exact.ElapsedMs),
+                        Matches = 1,
+                        Rate = new PickerRateDecision()
+                    };
+                    continue;
+                }
+
+                var guard = _confirmationGuard.TryBegin(
+                    appSession,
+                    exact.PickListCode,
+                    work.RequestId,
+                    _agentInstanceId,
+                    work.PickerUid);
+
+                if (guard.AlreadyConfirmed)
+                {
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "CONFIRMED",
+                        CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+IDEMPOTENT",
+                        Route = "FIRESTORE_CONFIRM_GUARD",
+                        Http = 200,
+                        OperationMs = (lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)) + Math.Max(0L, exact.ElapsedMs),
+                        Matches = 1,
+                        Rate = new PickerRateDecision(),
+                        GuardId = guard.GuardId,
+                        RetireAtMs = guard.RetireAtMs
+                    };
+                    continue;
+                }
+
+                if (!guard.Acquired || guard.InProgressOrUncertain)
+                {
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
+                        CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+GUARD",
+                        Route = "FIRESTORE_CONFIRM_GUARD",
+                        Http = 409,
+                        OperationMs = (lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)) + Math.Max(0L, exact.ElapsedMs),
+                        Matches = 1,
+                        Rate = new PickerRateDecision(),
+                        GuardId = guard.GuardId,
+                        RetireAtMs = guard.RetireAtMs
+                    };
+                    continue;
+                }
+
+                guardsByRequest[work.RequestId] = guard;
+                codeByRequest[work.RequestId] = exact.PickListCode;
+                if (!confirmCodes.Contains(exact.PickListCode, StringComparer.OrdinalIgnoreCase))
+                    confirmCodes.Add(exact.PickListCode);
+            }
+
+            var confirmResults = new Dictionary<string, WmsPicklistConfirmResult>(StringComparer.OrdinalIgnoreCase);
+            var sessionExpired = false;
+            for (var offset = 0; offset < confirmCodes.Count; offset += 10)
+            {
+                var count = Math.Min(10, confirmCodes.Count - offset);
+                var chunk = confirmCodes.GetRange(offset, count);
+                var chunkResults = WmsPicklistConfirmClient.ConfirmMany(wmsSession, chunk);
+                foreach (var pair in chunkResults) confirmResults[pair.Key] = pair.Value;
+                foreach (var result in chunkResults.Values)
+                    if (result != null && string.Equals(result.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
+                        sessionExpired = true;
+                if (sessionExpired) break;
+            }
+
+            if (sessionExpired) ClearWmsSessionAfterExpiry();
+
+            foreach (var work in exactWorks)
+            {
+                FirestoreConfirmationGuardDecision guard;
+                string code;
+                if (!guardsByRequest.TryGetValue(work.RequestId ?? "", out guard) ||
+                    !codeByRequest.TryGetValue(work.RequestId ?? "", out code))
+                    continue;
+
+                CachedPicklistResult lookup;
+                lookupBySuffix.TryGetValue(work.Suffix ?? "", out lookup);
+                WmsExactPicklistResult exact;
+                exactBySuffix.TryGetValue(work.Suffix ?? "", out exact);
+
+                WmsPicklistConfirmResult confirmed;
+                if (!confirmResults.TryGetValue(code, out confirmed) || confirmed == null)
+                {
+                    if (sessionExpired)
+                    {
+                        _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
+                        outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                        {
+                            Result = "SESSION_EXPIRED",
+                            CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+GUARD+BATCH_CONFIRM",
+                            Route = "NONE",
+                            Matches = 1,
+                            Rate = new PickerRateDecision(),
+                            GuardId = guard.GuardId,
+                            RetireAtMs = guard.RetireAtMs
+                        };
+                    }
+                    else
+                    {
+                        outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                        {
+                            Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
+                            CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+GUARD+BATCH_CONFIRM",
+                            Route = "NONE",
+                            Matches = 1,
+                            Rate = new PickerRateDecision(),
+                            GuardId = guard.GuardId,
+                            RetireAtMs = guard.RetireAtMs
+                        };
+                    }
+                    continue;
+                }
+
+                if (string.Equals(confirmed.Result, "CONFIRMED", StringComparison.Ordinal))
+                    _confirmationGuard.MarkLocalConfirmed(guard.GuardId);
+                else if (IsSafeConfirmationFailure(confirmed.Result))
+                    _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
+
+                outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                {
+                    Result = confirmed.Result ?? "CONFIRM_ERROR",
+                    CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+GUARD+BATCH_CONFIRM",
+                    Route = confirmed.Route,
+                    Http = confirmed.StatusCode,
+                    OperationMs =
+                        (lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)) +
+                        (exact == null ? 0L : Math.Max(0L, exact.ElapsedMs)) +
+                        Math.Max(0L, confirmed.ElapsedMs),
                     Matches = 1,
-                    Rate = rate
-                };
-            }
-
-            var guard = _confirmationGuard.TryBegin(
-                appSession,
-                exact.PickListCode,
-                work.RequestId,
-                _agentInstanceId,
-                work.PickerUid);
-
-            if (guard.AlreadyConfirmed)
-            {
-                return new FirestoreConfirmationOutcome
-                {
-                    Result = "CONFIRMED",
-                    CacheMode = lookup.CacheMode + "+EXACT_RESOLVE+IDEMPOTENT",
-                    Route = "FIRESTORE_CONFIRM_GUARD",
-                    Http = 200,
-                    OperationMs = Math.Max(0L, lookup.ElapsedMs) + Math.Max(0L, exact.ElapsedMs),
-                    Matches = 1,
-                    Rate = rate,
+                    Rate = new PickerRateDecision(),
                     GuardId = guard.GuardId,
                     RetireAtMs = guard.RetireAtMs
                 };
             }
 
-            if (!guard.Acquired || guard.InProgressOrUncertain)
-            {
-                return new FirestoreConfirmationOutcome
-                {
-                    Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
-                    CacheMode = lookup.CacheMode + "+EXACT_RESOLVE+GUARD",
-                    Route = "FIRESTORE_CONFIRM_GUARD",
-                    Http = 409,
-                    OperationMs = Math.Max(0L, lookup.ElapsedMs) + Math.Max(0L, exact.ElapsedMs),
-                    Matches = 1,
-                    Rate = rate,
-                    GuardId = guard.GuardId,
-                    RetireAtMs = guard.RetireAtMs
-                };
-            }
+            AgentDiagnostics.WriteAudit(
+                "PDA_CONFIRM_BATCH jobs=" + works.Count +
+                " exact_candidates=" + exactWorks.Count +
+                " wms_codes=" + confirmCodes.Count +
+                " wms_requests=" + ((confirmCodes.Count + 9) / 10) +
+                " values=redacted");
 
-            var confirmed = WmsPicklistConfirmClient.Confirm(wmsSession, exact.PickListCode);
-            if (string.Equals(confirmed.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
-                ClearWmsSessionAfterExpiry();
-
-            if (string.Equals(confirmed.Result, "CONFIRMED", StringComparison.Ordinal))
-            {
-                _confirmationGuard.MarkLocalConfirmed(guard.GuardId);
-            }
-            else if (IsSafeConfirmationFailure(confirmed.Result))
-            {
-                _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
-            }
-
-            return new FirestoreConfirmationOutcome
-            {
-                Result = confirmed.Result ?? "CONFIRM_ERROR",
-                CacheMode = lookup.CacheMode + "+EXACT_RESOLVE+GUARD",
-                Route = confirmed.Route,
-                Http = confirmed.StatusCode,
-                OperationMs = Math.Max(0L, lookup.ElapsedMs) + Math.Max(0L, exact.ElapsedMs) + Math.Max(0L, confirmed.ElapsedMs),
-                Matches = 1,
-                Rate = rate,
-                GuardId = guard.GuardId,
-                RetireAtMs = guard.RetireAtMs
-            };
+            return outcomes;
         }
 
         private static bool IsSafeConfirmationFailure(string result)
@@ -3200,7 +3390,7 @@ namespace SupraInventoryRelayAgent
                     () => Interlocked.Increment(ref _localPdaRequests),
                     () => Interlocked.Increment(ref _localAgentResponses),
                     state => Ui(() => _relay.Text = state),
-                    ProcessFirestoreConfirmation,
+                    ProcessFirestoreConfirmations,
                     _leaderCoordinator,
                     IsBusinessAllowed,
                     healthy =>
