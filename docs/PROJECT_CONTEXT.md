@@ -385,3 +385,17 @@ D103 Agent v28 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta.
 - The v28 tag points exactly to merge commit `15aba0412e625af0f6b9ef7489b995a3e524a131`. Android remains signed `beta-vc62`.
 - OA023 is the remaining physical Owner field gate for real maximized rendering, fleet viewport/scrolling, PickList row-action visibility and final spacing review.
 - Stable remains OWNER-GATED and untouched.
+
+## D104 Agent v29 batched confirmation — 2026-09-22
+
+Owner accepted the D103/v28 physical UI and requested a bounded throughput refinement for the Windows Agent.
+
+- Maximized Agent uses the Windows working area so the taskbar remains visible.
+- Manual specialist search accepts up to 10 comma-separated 3–5 digit fragments, deduplicates them and searches all terms against one cache snapshot. A miss triggers at most one shared single-flight WMS refresh for the entire multi-search.
+- Row-specific confirmation remains. When >=2 PickLists are displayed, **Xác nhận tất cả** appears and targets exactly the displayed full codes.
+- The existing authorized `confirmSkipItem` POST may carry 1–10 exact full PickListCodes per request. Fixed HY1 payload flags and D096 response semantics remain unchanged.
+- Concurrent PDA jobs already present in one Firestore poll are handled as a bounded logical batch (max 12), share lookup/exact resolution, retain one guard and one conditional ACK per job, and use WMS confirm chunks of at most 10 exact codes.
+- No faster Firestore polling, no extra coalescing query and no PROCESSING write are added. The optimization primarily reduces duplicate WMS lookup/confirm work while preserving Firestore quota behavior.
+- User-supplied WMS session/header/signature values are not repo data and are not logged.
+- Target is relay-agent-v29. Android remains beta-vc62; Stable remains OWNER-GATED.
+
