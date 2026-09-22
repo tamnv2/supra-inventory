@@ -523,3 +523,13 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
 - Android release: `beta-vc63`; release id `393494217`; APK asset id `580723780`; SHA-256 `add6716668f13e5f96a8b6b9cdfddba27db4270e990a4f3f7d92c373fadd5295`.
 - Agent release: `relay-agent-v30`; release id `393494208`; EXE asset id `580723753`; SHA-256 `18cf58622cde42d7ae7c58a57615139913caa9c3dbd2718bd2b1348182f765ad`.
 - OA025 is ready for physical field acceptance. Stable remains OWNER-GATED and untouched.
+## D107 current Web checkpoint — 2026-09-22
+
+- Owner explicitly reopened the Web presentation after the D089 accepted baseline.
+- Web status: `D107_PROFESSIONAL_WEB_REFINEMENT__SOURCE_IMPLEMENTED__PR_GATES_PENDING`.
+- Admin dashboard/reporting: `D107_RICHER_EXISTING_DATA_OVERVIEW_AND_DETAIL__SOURCE_IMPLEMENTED__PR_GATES_PENDING__FINAL_STABLE_COLUMNS_OWNER_OPEN`.
+- Login uses the exact shared D089 `/app-icon.png` plus `CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN` / `Website nghiệp vụ Inventory`; the numeric 1291 login tile and old login copy are removed.
+- D107 adds a final professional Web light/dark presentation layer and richer existing-data overview/detail reporting. It does not change business logic, RBAC, realtime semantics, quota policy, Android or Agent.
+- No new polling/provider monitoring, employee scoring, stock quantity/bin/location analytics or Stable action is authorized.
+- Current next action: PR #149 must reach authority/state/UI/Web build PASS, then merge/deploy Beta and obtain explicit Owner visual acceptance.
+- Stable remains OWNER-GATED and untouched.
