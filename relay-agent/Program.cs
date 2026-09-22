@@ -523,6 +523,7 @@ namespace SupraInventoryRelayAgent
         private CancellationTokenSource _listenCts;
         private bool _allowExit;
         private bool _updateCheckRunning;
+        private int _manualPicklistOperationRunning;
         private long _localPdaRequests;
         private long _localAgentResponses;
         private readonly string _agentInstanceId;
@@ -1709,6 +1710,12 @@ namespace SupraInventoryRelayAgent
 
         private void SearchManualPicklists()
         {
+            if (Interlocked.CompareExchange(ref _manualPicklistOperationRunning, 1, 0) != 0)
+            {
+                Ui(() => _manualPicklistStatus.Text = "Đang xử lý PickList...");
+                return;
+            }
+
             List<string> queries = null;
             UiSync(() =>
             {
@@ -1789,6 +1796,7 @@ namespace SupraInventoryRelayAgent
             }
             finally
             {
+                Interlocked.Exchange(ref _manualPicklistOperationRunning, 0);
                 Ui(() =>
                 {
                     List<string> parsed;
@@ -1816,6 +1824,12 @@ namespace SupraInventoryRelayAgent
 
         private void ConfirmManualPicklists(IEnumerable<string> pickListCodes)
         {
+            if (Interlocked.CompareExchange(ref _manualPicklistOperationRunning, 1, 0) != 0)
+            {
+                Ui(() => _manualPicklistStatus.Text = "Đang xử lý PickList...");
+                return;
+            }
+
             var codes = new List<string>();
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var raw in pickListCodes ?? new string[0])
@@ -1911,7 +1925,7 @@ namespace SupraInventoryRelayAgent
                             _confirmationGuard.MarkLocalConfirmed(guard.GuardId);
                             confirmedCount++;
                         }
-                        else if (IsSafeConfirmationFailure(result.Result))
+                        else if (IsSafeConfirmationFailure(result, chunk.Count))
                         {
                             _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
                             failedCount++;
@@ -1973,6 +1987,7 @@ namespace SupraInventoryRelayAgent
             }
             finally
             {
+                Interlocked.Exchange(ref _manualPicklistOperationRunning, 0);
                 Ui(() =>
                 {
                     List<string> parsed;
@@ -3259,13 +3274,18 @@ namespace SupraInventoryRelayAgent
             }
 
             var confirmResults = new Dictionary<string, WmsPicklistConfirmResult>(StringComparer.OrdinalIgnoreCase);
+            var confirmBatchSizes = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             var sessionExpired = false;
             for (var offset = 0; offset < confirmCodes.Count; offset += 10)
             {
                 var count = Math.Min(10, confirmCodes.Count - offset);
                 var chunk = confirmCodes.GetRange(offset, count);
                 var chunkResults = WmsPicklistConfirmClient.ConfirmMany(wmsSession, chunk);
-                foreach (var pair in chunkResults) confirmResults[pair.Key] = pair.Value;
+                foreach (var pair in chunkResults)
+                {
+                    confirmResults[pair.Key] = pair.Value;
+                    confirmBatchSizes[pair.Key] = chunk.Count;
+                }
                 foreach (var result in chunkResults.Values)
                     if (result != null && string.Equals(result.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
                         sessionExpired = true;
@@ -3322,8 +3342,13 @@ namespace SupraInventoryRelayAgent
 
                 if (string.Equals(confirmed.Result, "CONFIRMED", StringComparison.Ordinal))
                     _confirmationGuard.MarkLocalConfirmed(guard.GuardId);
-                else if (IsSafeConfirmationFailure(confirmed.Result))
-                    _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
+                else
+                {
+                    int batchSize;
+                    if (!confirmBatchSizes.TryGetValue(code, out batchSize)) batchSize = 1;
+                    if (IsSafeConfirmationFailure(confirmed, batchSize))
+                        _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
+                }
 
                 outcomes[work.RequestId] = new FirestoreConfirmationOutcome
                 {
@@ -3350,6 +3375,20 @@ namespace SupraInventoryRelayAgent
                 " values=redacted");
 
             return outcomes;
+        }
+
+        private static bool IsSafeConfirmationFailure(WmsPicklistConfirmResult result, int batchSize)
+        {
+            if (result == null) return false;
+            if (batchSize > 1 &&
+                string.Equals(result.Result, "CONFIRM_REJECTED", StringComparison.Ordinal))
+            {
+                // The supplied multi-code request shape proves batching is accepted, but
+                // not that Status=false can identify which individual code mutated.
+                // Preserve all acquired guards and fail closed instead of retrying.
+                return false;
+            }
+            return IsSafeConfirmationFailure(result.Result);
         }
 
         private static bool IsSafeConfirmationFailure(string result)
