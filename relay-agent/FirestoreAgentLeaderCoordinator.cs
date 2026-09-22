@@ -267,9 +267,11 @@ namespace SupraInventoryRelayAgent
                 {
                     _ensureFreshToken();
                     var session = _sessionProvider();
+                    var startupConvergence = _startupConvergenceRemaining > 0;
                     RefreshRole(session);
                     MaintainPresence(session);
-                    if (_fleetRefreshRequested ||
+                    if (startupConvergence ||
+                        _fleetRefreshRequested ||
                         _lastPresenceReadMs == 0 ||
                         NowMs() - _lastPresenceReadMs >= PresenceReadIntervalMs)
                     {
@@ -279,7 +281,7 @@ namespace SupraInventoryRelayAgent
                     }
 
                     _coordinationHealthy = true;
-                    if (_startupConvergenceRemaining > 0)
+                    if (startupConvergence)
                     {
                         _startupConvergenceRemaining--;
                         waitMs = StartupConvergenceIntervalMs;
