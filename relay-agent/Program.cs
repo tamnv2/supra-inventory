@@ -1771,8 +1771,8 @@ namespace SupraInventoryRelayAgent
                 Ui(() =>
                 {
                     var length = (_manualPicklistQuery.Text ?? "").Trim().Length;
-                    _manualPicklistSearch.Enabled = length >= 3 && length <= 5;
-                    _manualPicklistGrid.Enabled = HasAgentSession() && HasUsableWmsSession();
+                    _manualPicklistSearch.Enabled = length >= 3 && length <= 5 && IsBusinessAllowed();
+                    _manualPicklistGrid.Enabled = HasAgentSession() && HasUsableWmsSession() && IsBusinessAllowed();
                 });
             }
         }
