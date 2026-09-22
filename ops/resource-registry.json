@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D105_TECHNICAL_RUNTIME_RELEASE_PASS__ANDROID_VC63_AGENT_V30__OA025_FIELD_READY",
+      "status": "D106_MANAGED_ACCOUNT_AGENT_AUTH_REPAIR_SOURCE_CANDIDATE__D105_RELEASE_BASELINE_PRESERVED",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -146,7 +146,7 @@
       "android_package": "cd.cc.supra.inventory.beta",
       "firebase_android_app_id": "1:572322098890:android:3e483937876cbcc0400e33",
       "firebase_web_app_id": "1:572322098890:web:96459cf386b3fb6f400e33",
-      "firebase_auth_flow": "D100_ONE_FIREBASE_UID__USERNAME_DERIVED_PASSWORD_IDENTIFIER__WEB_ANDROID_WORKER_RESOLUTION__AGENT_DIRECT_USERNAME__RECOVERY_EMAIL_METADATA_SEPARATE",
+      "firebase_auth_flow": "D106_D100_ONE_FIREBASE_UID__USERNAME_DERIVED_IDENTIFIER__NATIVE_PASSWORD_PLUS_DIRECT_SIGNIN_VERIFY_ON_MANAGED_CREATE_RESET__AGENT_DIRECT_USERNAME__RECOVERY_EMAIL_METADATA_SEPARATE",
       "firebase_identity_toolkit_browser_dependency": "D098_FIREBASE_PASSWORD_AUTHORITY",
       "firebase_web_api_key_variable": "FIREBASE_WEB_API_KEY_BETA",
       "firebase_web_api_key_worker_binding": "FIREBASE_WEB_API_KEY",

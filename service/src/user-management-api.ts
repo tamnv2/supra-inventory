@@ -1,5 +1,5 @@
 import { hashPassword, interactiveSessionError, readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
-import { importPasswordIdentity, updateFirebaseIdentity, type FirebaseManagedUserSpec } from "./firebase-auth-admin";
+import { deleteFirebaseUsers, importPasswordIdentity, signInWithFirebasePassword, updateFirebaseIdentity, type FirebaseManagedUserSpec } from "./firebase-auth-admin";
 import { readHrEmployees, type StoredHrSource } from "./hr-sync";
 import { validateHrSheetSource } from "./hr-source";
 
@@ -100,20 +100,30 @@ async function provisionManagedCredential(
   if (!env.GOOGLE_RUNTIME_SA_JSON) throw new Error("GOOGLE_RUNTIME_NOT_CONFIGURED");
   const uid = String(user.firebase_uid || user.user_id);
   if (!user.firebase_uid) await linkFirebaseUid(env, user.user_id, uid);
-  if (Boolean(user.firebase_password_ready)) {
-    await updateFirebaseIdentity(
-      env.GOOGLE_RUNTIME_SA_JSON,
-      env.FIREBASE_PROJECT_ID,
-      firebaseSpec(user, uid, derived),
-      { password: plainPassword },
-    );
-  } else {
+  if (!Boolean(user.firebase_password_ready)) {
     await importPasswordIdentity(
       env.GOOGLE_RUNTIME_SA_JSON,
       env.FIREBASE_PROJECT_ID,
       firebaseSpec(user, uid, derived),
     );
   }
+  // D106: imported PBKDF2 material is migration/bootstrap material only.
+  // While the plaintext password is still present in this authorized request,
+  // write it natively to the same Firebase UID so direct Agent sign-in does not
+  // depend on password-import compatibility. Plaintext is never persisted/logged.
+  const nativeIdentity = await updateFirebaseIdentity(
+    env.GOOGLE_RUNTIME_SA_JSON,
+    env.FIREBASE_PROJECT_ID,
+    firebaseSpec(user, uid, derived),
+    { password: plainPassword },
+  );
+  if (!env.FIREBASE_WEB_API_KEY) throw new Error("FIREBASE_WEB_API_KEY_NOT_CONFIGURED");
+  const verified = await signInWithFirebasePassword(
+    env.FIREBASE_WEB_API_KEY,
+    nativeIdentity.email,
+    plainPassword,
+  );
+  if (verified.localId !== uid) throw new Error("FIREBASE_DIRECT_PASSWORD_VERIFY_FAILED");
   await markFirebaseReady(env, user.user_id, uid);
   const primaryReady = (await coreUserById(env, user.user_id)) || { ...user, firebase_uid: uid, firebase_password_ready: true };
   if ((primaryReady.base_role || primaryReady.role) === "ADMIN") {
@@ -122,6 +132,29 @@ async function provisionManagedCredential(
     await markAgentFirebaseReady(env, user.user_id);
   }
   return (await coreUserById(env, user.user_id)) || primaryReady;
+}
+
+async function rollbackCreatedCredential(env: Env, created: User, requestId: string, actorUser: User): Promise<boolean> {
+  const uid = String(created.firebase_uid || created.user_id);
+  if (env.GOOGLE_RUNTIME_SA_JSON) {
+    try {
+      await deleteFirebaseUsers(env.GOOGLE_RUNTIME_SA_JSON, env.FIREBASE_PROJECT_ID, [uid]);
+    } catch {
+      // Fail closed: do not remove InventoryCore authority while an external
+      // ADMIN/REPORTER Firebase identity might still exist.
+      return false;
+    }
+  }
+  try {
+    const response = await core(env).fetch("https://inventory-core.internal/admin/users/rollback-create", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ user_id: created.user_id, request_id: requestId, actor: actor(actorUser) }),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
 }
 
 async function bodyObject(request: Request): Promise<Record<string, unknown>> { try { const v = await request.json(); return v && typeof v === "object" && !Array.isArray(v) ? v as Record<string, unknown> : {}; } catch { return {}; } }
@@ -167,6 +200,8 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
   if (key === "POST /api/admin/users") {
     const body = await bodyObject(request);
     const plainPassword = String(body.password || "");
+    const requestId = String(body.request_id || "").trim();
+    let createdUser: User | null = null;
     try {
       const derived = await derivePassword(plainPassword);
       const { password: _password, ...safeBody } = body;
@@ -179,22 +214,32 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
       if (!createdResponse.ok || !createdPayload.user) {
         return json(createdPayload, createdResponse.status);
       }
-      const provisioned = await provisionManagedCredential(env, createdPayload.user, derived, plainPassword);
+      createdUser = createdPayload.user;
+      const provisioned = await provisionManagedCredential(env, createdUser, derived, plainPassword);
       return json({
         status: "created",
         user: {
-          ...createdPayload.user,
+          ...createdUser,
           firebase_uid: provisioned.firebase_uid,
-          auth_email: provisioned.auth_email || createdPayload.user.auth_email || null,
+          auth_email: provisioned.auth_email || createdUser.auth_email || null,
           firebase_password_ready: true,
+          firebase_agent_ready: (provisioned.base_role || provisioned.role) === "ADMIN",
         },
       }, 201);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Không tạo được tài khoản.";
-      const credentialFailure = message.startsWith("FIREBASE_") || message === "GOOGLE_RUNTIME_NOT_CONFIGURED";
+      const credentialFailure = Boolean(createdUser) || message.startsWith("FIREBASE_") || message === "GOOGLE_RUNTIME_NOT_CONFIGURED";
+      const rolledBack = createdUser
+        ? await rollbackCreatedCredential(env, createdUser, requestId, user)
+        : false;
       return json({
         error: credentialFailure ? "FIREBASE_ACCOUNT_PROVISION_FAILED" : "INVALID_PASSWORD",
-        message: credentialFailure ? "Không đồng bộ được tài khoản Firebase." : message,
+        message: credentialFailure
+          ? (rolledBack
+              ? "Không đồng bộ được tài khoản Firebase. Hệ thống đã hoàn tác tài khoản, vui lòng thử tạo lại."
+              : "Không đồng bộ được tài khoản Firebase. Tài khoản chưa được xác nhận sẵn sàng; vui lòng kiểm tra trước khi sử dụng.")
+          : message,
+        rolled_back: rolledBack,
       }, credentialFailure ? 502 : 400);
     }
   }

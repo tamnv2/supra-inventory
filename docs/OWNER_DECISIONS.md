@@ -634,3 +634,12 @@ Owner approved on 2026-09-22 after explicitly accepting D104/OA024 as PASS.
 ### D105 release checkpoint — 2026-09-22
 
 D105 is technically released on Beta. PR #144 merged at `e73206dea01e4c599d19abe040ffc8662b8836bf`. Main authority/state/UI/Android/Agent/Firestore/Worker gates passed. Android release `beta-vc63` has APK SHA-256 `add6716668f13e5f96a8b6b9cdfddba27db4270e990a4f3f7d92c373fadd5295`; Agent release `relay-agent-v30` has canonical EXE SHA-256 `18cf58622cde42d7ae7c58a57615139913caa9c3dbd2718bd2b1348182f765ad`. Both release tags resolve exactly to the D105 main commit. OA025 physical Owner acceptance remains open. Stable is untouched.
+
+## D106 — managed-account creation and Agent password readiness
+
+- A Web-managed ADMIN/REPORTER account is not considered successfully created until its same Firebase UID has a native Firebase password written and a direct Firebase Email/Password sign-in verifies that exact UID.
+- InventoryCore PBKDF2 password material remains canonical migration/bootstrap material, but create/reset must not rely on imported-hash compatibility for direct Agent login when the plaintext password is already present in the authorized request.
+- If InventoryCore creation succeeds but Firebase provisioning fails, the service must compensate: delete the partially provisioned Firebase UID where safe and roll back the just-created business account. A failed create must not silently leave an ACTIVE account that appears only after reload.
+- ADMIN password reset/update must make the same shared Firebase UID immediately usable by Web/App/Agent before firebase_password_ready / firebase_agent_ready are marked ready.
+- Password plaintext remains request-only and must never be persisted, returned, committed or logged.
+- Existing accounts whose last password operation happened before D106 may require one new password set after the D106 Beta deploy because plaintext cannot be reconstructed from stored hashes. Stable remains OWNER-GATED and untouched.

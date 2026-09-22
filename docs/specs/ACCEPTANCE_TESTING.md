@@ -926,3 +926,15 @@ Technical PASS requires:
 7. D104 comma multi-search, row-level Xác nhận, Xác nhận tất cả, batch WMS <=10, max12 logical PDA jobs, per-code guard and per-job ACK remain PASS.
 8. D097 HA cadence, D102 night schedule, D103 layout, D096 business Status=true semantics, Android Báo hàng path and Stable OWNER-GATED state remain unchanged.
 
+## D106 acceptance — managed account create/reset and Agent direct auth
+
+Technical/runtime PASS requires:
+
+1. Creating ADMIN/REPORTER returns success only after native Firebase password write plus direct signInWithPassword proves the expected Firebase UID.
+2. ADMIN password reset/update performs the same native write and direct verification before Firebase/Agent readiness is marked.
+3. A forced Firebase provisioning failure after InventoryCore create is compensated; after reload there is no ACTIVE ghost account when external cleanup succeeds.
+4. Create rollback is internal, role-bounded, request-id validated, limited to ADMIN/REPORTER and refused once firebase_password_ready=1.
+5. Existing Web/App D099 legacy-hash self-heal remains intact; D100 one-UID deterministic username/MNV Agent identity remains intact.
+6. Password plaintext, password hash/salt, Firebase ID/refresh tokens and service-account material remain absent from repo/logs/public responses.
+7. Beta deployment and health remain PASS; Stable remains untouched.
+8. Field proof uses one freshly created ADMIN or one ADMIN password set after D106 deploy, then the unchanged Agent v30 direct Firebase login. The Agent must authenticate without Worker dependency.

@@ -190,6 +190,16 @@ def main() -> None:
     require(google_mail, "GOOGLE_MAIL_SCOPE_MISSING", "D100 Gmail scope classification")
     require(system_reset, "mailFailureMessage(detail)", "D100 safe mail-failure user message")
 
+    # D106: managed-account creation/password must be directly usable by Agent Firebase auth.
+    require(users_api, "deleteFirebaseUsers", "D106 failed-create Firebase compensation")
+    require(users_api, "rollbackCreatedCredential", "D106 failed-create business rollback")
+    require(users_api, "await updateFirebaseIdentity(", "D106 native Firebase password write")
+    require(users_api, "{ password: plainPassword }", "D106 plaintext request-only native credential set")
+    require(users_api, "signInWithFirebasePassword", "D106 direct Firebase password verification")
+    require(users_api, "FIREBASE_DIRECT_PASSWORD_VERIFY_FAILED", "D106 direct Firebase UID verification guard")
+    require(users_core, '"/admin/users/rollback-create"', "D106 internal create rollback route")
+    require(users_core, "USER_CREATE_ROLLBACK_UNSAFE", "D106 rollback readiness safety guard")
+
     # D100 post-reset recovery: reset must leave the business runtime ready without a redeploy.
     require(operational_v2_core, 'url.pathname === "/operational/init"', "D100 Operational V2 self-repair route")
     require(core, "handleOperationalV2CoreRequest", "D100 Operational V2 core dispatcher")
