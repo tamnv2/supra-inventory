@@ -1073,7 +1073,7 @@
     },
     {
       "id": "OA024",
-      "status": "BLOCKED_ON_D104_TECHNICAL_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST_D104_RELEASE",
       "title": "Field-accept D104 Agent v29 multi-search and batched confirmation",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Beta Windows Agent + existing Firestore relay + authorized Supra WMS endpoint",
@@ -1082,7 +1082,24 @@
         "target_agent_release": "relay-agent-v29",
         "android_release": "beta-vc62 unchanged",
         "stable": "OWNER_GATED",
-        "technical_release": "PENDING_D104_PR"
+        "technical_release": "PASS",
+        "merged_pr": 142,
+        "source_main": "e1fa990aefa47ad81b063fc0ca27516c1cace5f8",
+        "pr_repo_authority_run": 35687702483,
+        "pr_project_state_run": 35687702449,
+        "pr_ui_run": 35687702531,
+        "pr_relay_agent_run": 35687702508,
+        "pr_firestore_run": 35687702445,
+        "pr_rtdb_run": 35687702502,
+        "main_repo_authority_run": 35687822814,
+        "main_project_state_run": 35687822742,
+        "main_ui_run": 35687822767,
+        "main_relay_agent_run": 35687822763,
+        "agent_release_id": 393459636,
+        "agent_asset_id": 580560440,
+        "agent_asset_size": 284160,
+        "agent_sha256": "10304ac734218146550c6bdf3c3b8a81d979fabe5b3ee7dddc94f1b217955b2d",
+        "main_artifact_id": 10676659937
       },
       "shortest_test_path": [
         "Install relay-agent-v29 and verify launch plus tray restore are maximized while the Windows taskbar remains visible.",
@@ -1101,7 +1118,7 @@
         "D096/D097/D102/D103 regressions remain PASS and Stable is untouched."
       ],
       "safety": "Beta only. Use controlled eligible PickLists. Do not paste or commit Authorization, APISID, SID, Token, X-Signature, nonce, cookies, WMS credentials or DPAPI session material.",
-      "remaining_owner_action": "Wait for D104 technical release, then run the OA024 physical field matrix."
+      "remaining_owner_action": "Run the OA024 physical field matrix on released relay-agent-v29. No code/build/release blocker remains."
     }
   ]
 }

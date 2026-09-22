@@ -399,3 +399,14 @@ Owner accepted the D103/v28 physical UI and requested a bounded throughput refin
 - User-supplied WMS session/header/signature values are not repo data and are not logged.
 - Target is relay-agent-v29. Android remains beta-vc62; Stable remains OWNER-GATED.
 
+## D104 release checkpoint
+
+D104 Agent v29 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta.
+
+- PR #142 merged to `main` at `e1fa990aefa47ad81b063fc0ca27516c1cace5f8`.
+- PR gates PASS: Repo Authority `35687702483`, Project State `35687702449`, UI Design `35687702531`, Relay Agent `35687702508`, Firestore Relay `35687702445`, RTDB Rules `35687702502`.
+- Main gates PASS: Repo Authority `35687822814`, Project State `35687822742`, UI Design `35687822767`, Relay Agent `35687822763`.
+- Released Windows Agent: `relay-agent-v29`, release id `393459636`; canonical EXE asset id `580560440`, size `284160` bytes, SHA-256 `10304ac734218146550c6bdf3c3b8a81d979fabe5b3ee7dddc94f1b217955b2d`.
+- The v29 tag points exactly to merge commit `e1fa990aefa47ad81b063fc0ca27516c1cace5f8`. Android remains signed `beta-vc62`.
+- OA024 is the remaining physical Owner field gate for taskbar-visible maximum, comma multi-search, real multi-code WMS confirmation and simultaneous PDA batch behavior.
+- Stable remains OWNER-GATED and untouched.

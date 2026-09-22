@@ -614,3 +614,6 @@ Owner approved on 2026-09-22 after accepting the D103/v28 field layout.
 9. The Owner-supplied curl is reference evidence for the multi-code payload shape only. Raw Authorization/APISID/SID/Token/signature/session values are runtime secrets and must never be committed or logged.
 10. Target Windows release is `relay-agent-v29`. Android/Web business flows are unchanged.
 
+### D104 release checkpoint — 2026-09-22
+
+D104 is technically released on Beta. PR #142 merged at `e1fa990aefa47ad81b063fc0ca27516c1cace5f8`. All PR authority/state/UI/Agent/Rules gates and all main authority/state/UI/Agent gates passed. Windows release `relay-agent-v29` is published with canonical EXE SHA-256 `10304ac734218146550c6bdf3c3b8a81d979fabe5b3ee7dddc94f1b217955b2d`; the release tag resolves exactly to that main commit. OA024 physical Owner acceptance remains open. Android stays `beta-vc62`; Stable is untouched.
