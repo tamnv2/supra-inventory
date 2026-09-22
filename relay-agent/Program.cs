@@ -3253,7 +3253,8 @@ namespace SupraInventoryRelayAgent
 
                 guardsByRequest[work.RequestId] = guard;
                 codeByRequest[work.RequestId] = exact.PickListCode;
-                if (!confirmCodes.Contains(exact.PickListCode, StringComparer.OrdinalIgnoreCase))
+                if (!confirmCodes.Exists(item =>
+                        string.Equals(item, exact.PickListCode, StringComparison.OrdinalIgnoreCase)))
                     confirmCodes.Add(exact.PickListCode);
             }
 
