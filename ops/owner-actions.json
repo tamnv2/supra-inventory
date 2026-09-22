@@ -970,7 +970,7 @@
     },
     {
       "id": "OA022",
-      "status": "READY_FOR_OWNER_FIELD_TEST_D102_RELEASE",
+      "status": "SUPERSEDED_BY_OA023_D103",
       "title": "Field-accept D102 Agent v27 Overview, HA convergence and night schedule",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Beta Windows Agent + Firestore relay + authorized Supra WMS",
@@ -1017,7 +1017,41 @@
         "D096/D097 confirmation/idempotency/fail-closed guards remain intact and Stable is untouched."
       ],
       "safety": "Beta only. Use controlled eligible PickLists. Do not share passwords, Firebase tokens, WMS cookies/headers/signatures or local DPAPI files.",
-      "remaining_owner_action": "Run the OA022 physical field matrix on released relay-agent-v27. No code/build/release blocker remains."
+      "remaining_owner_action": null,
+      "superseded_reason": "Owner field review of v27 reopened the Overview presentation. Final Agent field acceptance moves to relay-agent-v28 under OA023."
+    },
+    {
+      "id": "OA023",
+      "status": "BLOCKED_ON_D103_TECHNICAL_RELEASE",
+      "title": "Field-accept D103 Agent v28 dense Overview",
+      "resource_key": "firestore-relay-beta-d091",
+      "provider": "Beta Windows Agent + existing Firestore relay + authorized Supra WMS",
+      "reason_owner_only": "CI can verify source/build/layout markers but cannot prove physical maximized rendering, five-row fleet viewport, row-button visibility and overall spacing on the Owner's company laptop.",
+      "prerequisites": {
+        "target_agent_release": "relay-agent-v28",
+        "android_release": "beta-vc62 unchanged",
+        "stable": "OWNER_GATED",
+        "technical_release": "PENDING_D103_PR"
+      },
+      "shortest_test_path": [
+        "Install relay-agent-v28 and open Agent normally; minimize to tray and restore once.",
+        "Verify both initial launch and restore are maximized.",
+        "On Tổng quan, verify Hệ thống Agent, compact Hệ thống Supra and Xử lý PickList are visible without scrolling the page.",
+        "With up to five Agent rows, verify all fit in the fleet table; with more than five, verify only the table scrolls and the Overview height does not grow.",
+        "Search a 3–5 digit suffix returning multiple PickLists and verify every result row has its own visible Xác nhận button.",
+        "Verify verbose persistent text about v28/Firestore/failover/background-update cadence/local WMS protection is absent from the visible Overview.",
+        "Recheck D102 multi-Agent role display and after-hours controls remain available."
+      ],
+      "pass_criteria": [
+        "Agent is maximized on launch and tray restore.",
+        "Overview does not require page scrolling to reach PickList.",
+        "Fleet table is bounded to five visible rows with internal vertical overflow.",
+        "Every PickList result row has its own visible Xác nhận action and exact-row confirmation wiring.",
+        "Verbose internal implementation guidance is removed while compact operational state remains.",
+        "D096/D097/D102 behavior is unchanged and Stable is untouched."
+      ],
+      "safety": "Beta only. Use controlled eligible PickLists for any real confirmation. Do not expose passwords, Firebase tokens, WMS cookies/headers/signatures or local DPAPI files.",
+      "remaining_owner_action": "Wait for D103 technical release, then run the OA023 physical UI field matrix."
     }
   ]
 }

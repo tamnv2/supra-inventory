@@ -462,3 +462,15 @@ D102 supersedes the older split Agent shell wording where it conflicts.
 - From 21:30 Asia/Ho_Chi_Minh, the decision banner offers **Tiếp tục sau 22:00** and **Ngừng từ 22:00**. Local tray warning repeats every five minutes until either choice is confirmed.
 - If no CONTINUE decision exists at 22:00, business actions are paused. The page remains available and the EXE stays alive. Normal business processing returns at 05:00.
 - User-facing form copy must not expose AI/Owner/D-number handoff language.
+
+## D103 — Agent maximized Overview and PickList result form
+
+D103 supersedes D102 layout dimensions where they conflict.
+
+- Agent window default/restore state is maximized.
+- Tổng quan has no page-level scrollbar. It contains bounded Agent and Supra regions followed by a PickList region that fills the remaining viewport.
+- Agent fleet region displays up to five rows at once; overflow scrolls inside the fleet grid.
+- Manual PickList search accepts the existing 3–5 digits. Each matching full PickListCode is a separate row with its own Xác nhận button in the same row.
+- No global/shared PickList confirmation button is allowed.
+- Persistent verbose implementation guidance is removed from Overview. Compact state labels and action feedback remain.
+

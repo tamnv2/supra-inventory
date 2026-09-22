@@ -416,3 +416,15 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA022 FIELD READY**.
 - D097 5s PRIMARY / 10s STANDBY / 10s pending-job takeover and D096 fail-closed confirmation semantics remain guarded.
 - D102 schedule self-test PASSes 21:30 prompt boundaries, CONTINUE/STOP persistence, 22:00 business pause and 05:00 resume logic.
 - Remaining gate: OA022 physical Windows/multi-Agent acceptance only. Stable remains OWNER-GATED.
+
+## D103 Agent v28 source readiness
+
+- Status: SOURCE_CANDIDATE / PR_GATES_PENDING.
+- Beta: `D103_SOURCE_CANDIDATE__AGENT_V28_DENSE_OVERVIEW__PR_GATES_PENDING`.
+- Web: `D101_BETA_RUNTIME_PASS__WEB_ONLINE_WEB_ANDROID_ONLY__TOOLS_AGENT_V26`.
+- Android: `D099_SIGNED_BETA_VC62_LOGIN_REPAIR__D100_NO_ANDROID_RUNTIME_CHANGE`.
+- Latest signed Beta APK: `beta-vc62`; SQLite schema: `10`.
+- relay-agent-v28 source enforces maximized launch/restore, non-scrolling dense Overview, max-five-row Agent fleet viewport, compact Supra and visible row-level PickList confirm actions.
+- D102 HA/night schedule, D096/D097 guards and Stable OWNER-GATED status are unchanged.
+- Next gate: PR authority/state/UI/Relay Agent PASS, merge, main prerelease verification, then OA023 physical UI review.
+
