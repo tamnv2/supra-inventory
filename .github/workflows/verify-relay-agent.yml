@@ -207,6 +207,17 @@ jobs:
           (Get-FileHash $primary -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256"
           (Get-FileHash $legacy -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256"
 
+      - name: D102 night schedule regression
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $exe = (Resolve-Path "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe").Path
+          $selfTest = Start-Process -FilePath $exe -ArgumentList "--d102-self-test" -PassThru -Wait
+          if ($selfTest.ExitCode -ne 0) {
+            throw "D102 in-process night schedule regression failed with exit code $($selfTest.ExitCode)."
+          }
+          Write-Host "D102 night schedule regression PASS"
+
       - name: D096 runtime parser and confirm semantic regression
         shell: pwsh
         run: |
