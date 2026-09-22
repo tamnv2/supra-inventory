@@ -1073,7 +1073,7 @@
     },
     {
       "id": "OA024",
-      "status": "READY_FOR_OWNER_FIELD_TEST_D104_RELEASE",
+      "status": "PASS_OWNER_CONFIRMED_D104",
       "title": "Field-accept D104 Agent v29 multi-search and batched confirmation",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Beta Windows Agent + existing Firestore relay + authorized Supra WMS endpoint",
@@ -1118,7 +1118,41 @@
         "D096/D097/D102/D103 regressions remain PASS and Stable is untouched."
       ],
       "safety": "Beta only. Use controlled eligible PickLists. Do not paste or commit Authorization, APISID, SID, Token, X-Signature, nonce, cookies, WMS credentials or DPAPI session material.",
-      "remaining_owner_action": "Run the OA024 physical field matrix on released relay-agent-v29. No code/build/release blocker remains."
+      "remaining_owner_action": null,
+      "owner_evidence": "Owner explicitly replied 'ok pass' on 2026-09-22 after D104 relay-agent-v29 field testing."
+    },
+    {
+      "id": "OA025",
+      "status": "BLOCKED_ON_D105_TECHNICAL_RELEASE",
+      "title": "Field-accept D105 Android four-digit confirmation UX",
+      "resource_key": "firestore-relay-beta-d091",
+      "provider": "Beta Android + Beta Windows Agent + existing Firestore relay + authorized Supra WMS endpoint",
+      "reason_owner_only": "CI can verify four-digit source/rules/build markers but cannot prove physical PDA button dimming/result legibility or execute a real company-WMS four-digit unique/ambiguous field case.",
+      "prerequisites": {
+        "target_android_release": "beta-vc63",
+        "target_agent_release": "relay-agent-v30",
+        "stable": "OWNER_GATED",
+        "technical_release": "PENDING_D105_PR"
+      },
+      "shortest_test_path": [
+        "Install beta-vc63 and relay-agent-v30.",
+        "Open Xác nhận đơn: verify input stops at 4 digits and submit is eligible only at exactly 4 digits.",
+        "Submit one controlled four-digit suffix: while waiting, verify the confirm button is disabled and visibly dimmed even if the input is edited.",
+        "Verify the terminal result is large and bold; success and non-success states are visually prominent.",
+        "Use a known unique four-digit suffix and verify the expected WMS/SFT confirmation result.",
+        "Use or simulate a four-digit suffix matching multiple full PickListCodes and verify Agent returns ambiguity/fail-closed without WMS mutation.",
+        "On Agent manual specialist search, verify 3- and 4-digit comma terms work and 5-digit terms are rejected."
+      ],
+      "pass_criteria": [
+        "beta-vc63 emits exactly four-digit Firestore suffixes.",
+        "In-flight submit cannot be double-triggered and is visibly dimmed until terminal result.",
+        "Terminal result is bold and materially larger than helper/progress copy.",
+        "Agent v30 resolves by supplied suffix length; unique 4-digit code may proceed, ambiguity cannot mutate WMS.",
+        "Manual Agent search accepts only 3–4 digits per term.",
+        "D104 batch/guard/ACK/HA/quota behavior remains PASS and Stable is untouched."
+      ],
+      "safety": "Beta only. Use controlled eligible PickLists. Never share or commit WMS Authorization/APISID/SID/Token/signature/session material.",
+      "remaining_owner_action": "Wait for D105 technical release, then run the OA025 physical matrix."
     }
   ]
 }
