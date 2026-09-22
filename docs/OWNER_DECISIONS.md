@@ -598,3 +598,19 @@ Owner approved on 2026-09-22 after field review of relay-agent-v27.
 ### D103 release checkpoint — 2026-09-22
 
 D103 is technically released on Beta. PR #140 merged at `15aba0412e625af0f6b9ef7489b995a3e524a131`. All PR and main authority/state/UI/Agent gates passed. Windows release `relay-agent-v28` is published with canonical EXE SHA-256 `4faf8507637d61d74ac8aa34ba998a1fc04bfacd0fdc572af1cabda5f8bb8cb1`; the release tag resolves exactly to that main commit. OA023 physical Owner acceptance remains open. Android stays `beta-vc62`; Stable is untouched.
+
+## D104 — Agent v29 taskbar-safe maximum, multi-search and batched PickList confirmation
+
+Owner approved on 2026-09-22 after accepting the D103/v28 field layout.
+
+1. D103/OA023 is Owner-accepted. Agent remains maximized by default and when restored from tray, but its maximum bounds must use the active Windows working area so the Windows taskbar remains visible.
+2. Manual specialist search accepts one to ten comma-separated search fragments. Each normalized fragment is 3–5 digits; whitespace is ignored and duplicate fragments are removed. Example shape: `0404, 39050, 403`.
+3. Multi-search is quota/WMS-safe: all fragments are evaluated against one cached PickList snapshot. If any fragment has no cached match, all fragments share at most one existing single-flight WMS snapshot refresh before the final union is returned. The visible result union remains deduplicated and bounded to 50 rows.
+4. Existing row-specific Xác nhận remains. When the visible result count is at least two, a conditional **Xác nhận tất cả** action appears; it confirms exactly the full PickListCodes currently displayed.
+5. The authorized WMS mutation contract is extended only for the existing `confirmSkipItem` endpoint: one POST may carry a bounded array of 1–10 already-resolved exact full PickListCodes with the existing fixed flags `IsAllowSkipped=true`, `RemainSkip=1`, `WarehouseCode=HY1`, `EnableDCSite=false`. No other WMS mutation is authorized.
+6. Every exact full PickListCode still acquires its own cross-Agent Firestore confirmation guard before being included in a WMS batch. Already-confirmed, in-progress or uncertain codes are excluded from mutation. A batch with uncertain outcome remains fail-closed and must not be blindly replayed.
+7. Concurrent PDA jobs are coalesced from the jobs already returned by the existing Firestore poll; do not add faster polling or an extra micro-batch query. Process at most the existing 12 eligible jobs per logical batch, share cache lookup and one exact-resolve WMS scan, then issue WMS confirmation chunks of at most 10 codes. Per-job conditional ACK remains required because each PDA owns its own document.
+8. D097 PRIMARY 5s / STANDBY 10s / 10s failover, FROZEN no-business-poll, D102 night schedule, D096 `Status=true` success requirement, anti-spam, idempotency and Stable OWNER-GATED state remain unchanged.
+9. The Owner-supplied curl is reference evidence for the multi-code payload shape only. Raw Authorization/APISID/SID/Token/signature/session values are runtime secrets and must never be committed or logged.
+10. Target Windows release is `relay-agent-v29`. Android/Web business flows are unchanged.
+
