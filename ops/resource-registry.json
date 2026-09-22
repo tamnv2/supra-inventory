@@ -700,9 +700,9 @@
     }
   },
   "wms_poc": {
-    "decision": "D101",
+    "decision": "D102",
     "environment": "beta_poc",
-    "status": "D101_AGENT_V26_RELEASED__CACHE_MISS_REFRESH_BEFORE_NOT_FOUND__D096_CONFIRM_GUARD_PRESERVED",
+    "status": "D102_AGENT_V27_SOURCE_CANDIDATE__D101_CACHE_REFRESH__D096_D097_GUARDS_PRESERVED",
     "ui_resource_key": "supra-wms-ui-d080",
     "api_resource_key": "supra-api-d080",
     "proxy_resource_key": "wincommerce-proxy-fallback-d080",
@@ -734,12 +734,12 @@
       "GOOGLE_CHROME"
     ],
     "wms_credentials": "OFFICIAL_BROWSER_PAGE_ONLY__NO_AGENT_FORM_OR_STORAGE",
-    "taskbar_monitor": "D101_AGENT_SYSTEM_FLEET_ROLE_COUNTS__D089_OVERLAY_PRESERVED",
+    "taskbar_monitor": "D102_SINGLE_OVERVIEW__FLEET_ROLE_TABLE__D089_OVERLAY_PRESERVED",
     "read_only_lookup": "GET /sft3-hy1/api/v1/autopp/pickListConfirms",
     "confirm_ui_reference": "https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm",
     "confirmation": "D096_EXACT_CODE_IENUMERABLE_FIX__D092_BOUNDED_ADAPTER__BUSINESS_STATUS_TRUE_REQUIRED",
     "session_login_suppression": "VALIDATED_SESSION_DIMS_LOGIN__LOCAL_RECAPTURE_ONLY_WHEN_INVALID__REMOTE_PDA_NEVER_OPENS_LOGIN",
-    "agent_release_target": "relay-agent-v26__RELEASED",
+    "agent_release_target": "relay-agent-v27__SOURCE_CANDIDATE",
     "release_source_commit": "25cb7554ff7ea058aa45d72e1ba4824c744c354e",
     "agent_release_verification": "GITHUB_TAG_REF_RELAY_AGENT_V26__MAIN_25CB7554__ASSET_DIGEST_VERIFIED",
     "release_metadata": {
@@ -759,20 +759,20 @@
     "agent_log_delivery": "D101_LOCAL_ROLLING_2MIB_X4_PLUS_CURRENT__FIRESTORE_SPOOL__BETA_DRIVE_06_12_18_00__CRASH_PREFIX"
   },
   "agent_operations": {
-    "decision": "D101",
-    "target_release": "relay-agent-v26",
+    "decision": "D102",
+    "target_release": "relay-agent-v27",
     "cache_miss": "CACHE_MISS_REFRESH_WMS_ONCE_BEFORE_FINAL_NOT_FOUND__SINGLE_FLIGHT",
-    "auto_update": "STARTUP_PLUS_30_MIN_GITHUB_BACKGROUND_CHECK__SHA256_TRUSTED_RELEASE",
-    "layout": "TOP_LEVEL_AGENT_SUPRA_PICKLIST_CONNECTION_OVERLAY_AUDIT_TECHNICAL__NO_SETTINGS_TAB",
+    "auto_update": "STARTUP_PLUS_30MIN_BACKGROUND_PLUS_MANUAL_TRUSTED_GITHUB_SHA256",
+    "layout": "TOP_LEVEL_OVERVIEW_CONNECTION_OVERLAY_AUDIT_TECHNICAL__OVERVIEW_CONTAINS_AGENT_SUPRA_PICKLIST",
     "wifi": "WINDOWS_WLAN_REAL_SSID__SANITIZER_WORD_BOUNDARY_PRESERVES_SSID",
-    "ha_display": "LOW_FREQUENCY_PRESENCE_COUNTS__ONLINE_PRIMARY_STANDBY_FROZEN__REQUEST_DRIVEN_10S_FAILOVER",
+    "ha_display": "STARTUP_4X5S_CONVERGENCE__ROLE_REFRESH_PRIMARY_STANDBY_60S_FROZEN_5M__PRESENCE_15M_WRITE_30M_READ_40M_FRESH__D097_JOB_FAILOVER_10S",
     "local_logs": "TWO_STREAM_ROLLING_2MIB__MAX4_ROTATED_PLUS_CURRENT",
     "drive_logs": "FIRESTORE_ADMIN_SPOOL_TO_BETA_DRIVE__06_12_18_00__CRASH_BEST_EFFORT",
     "web_online": "WEB_PLUS_ANDROID_ONLY__AGENT_EXCLUDED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "release_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA021_FIELD_READY",
-    "release_main": "25cb7554ff7ea058aa45d72e1ba4824c744c354e",
-    "release_id": 393404831,
-    "release_sha256": "5db50633e74247b45305a536a6caf140069626db66a7020acf32cf2d216ff79b"
+    "release_status": "SOURCE_CANDIDATE__PR_GATES_PENDING",
+    "quiet_hours": "HCM_2130_PROMPT_EVERY_5M_UNTIL_DECISION__2200_DEFAULT_BUSINESS_PAUSE__0500_AUTO_RESUME__PROCESS_STAYS_ALIVE",
+    "fleet_table": "ACCOUNT_MACHINE_EFFECTIVE_ROLE_SUPRA_VERSION_LAST_SEEN__REMOTE_HARDWARE_METRICS_FORBIDDEN",
+    "previous_release": "relay-agent-v26"
   }
 }
