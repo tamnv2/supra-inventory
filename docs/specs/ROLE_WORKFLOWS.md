@@ -407,3 +407,12 @@ D097 supersedes the D085/D092 heartbeat wording for the Firestore confirmation c
 - For PDA work, use only jobs already returned by the existing poll. The PRIMARY/STANDBY cadence is unchanged. Group up to 12 eligible jobs for shared cache lookup, one multi-suffix exact-resolve scan and WMS confirmation chunks of at most 10 exact codes.
 - Each PDA job still receives its own conditional ACK. An uncertain WMS batch result leaves affected guards fail-closed and is not replayed automatically.
 
+## D105 — Four-digit Picker confirmation workflow
+
+- Picker opens `Xác nhận đơn`, enters exactly four numeric trailing PickList digits and submits once.
+- After submit, the action remains disabled/dim until a terminal result or exception is returned. Text edits during the in-flight request do not create another request.
+- New four-digit jobs reuse the existing Firestore request/listener path, anti-spam and per-job ACK.
+- Agent treats the suffix length as authoritative for exact trailing comparison. A 4-digit job matches only full PickListCodes ending in those 4 digits. Multiple candidates return ambiguity and cannot call WMS confirmation.
+- For rollout safety only, Agent/Firestore may continue accepting old 5-digit jobs from beta-vc62 while beta-vc63 is being installed.
+- Specialist Agent manual search terms are 3–4 digits. D104 comma multi-search, row-specific Xác nhận and conditional Xác nhận tất cả are preserved.
+
