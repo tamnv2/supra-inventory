@@ -1172,6 +1172,41 @@
       ],
       "safety": "Beta only. Use controlled eligible PickLists. Never share or commit WMS Authorization/APISID/SID/Token/signature/session material.",
       "remaining_owner_action": "Run the OA025 physical field matrix on released beta-vc63 + relay-agent-v30. No code/build/deploy/release blocker remains."
+    },
+    {
+      "id": "OA026",
+      "status": "READY_FOR_OWNER_FIELD_TEST_D106_RUNTIME_PASS",
+      "title": "Field-accept D106 managed-account create/reset and Agent direct login",
+      "resource_key": "worker-beta",
+      "provider": "Beta Web + InventoryCore + Firebase Auth + unchanged relay-agent-v30",
+      "reason_owner_only": "CI has proved the exact D106 Worker is live and healthy, but connected tools cannot type the Owner's private ADMIN password into the physical Windows Agent or safely create/reset a real field credential on the Owner's behalf.",
+      "prerequisites": {
+        "technical_runtime": "PASS",
+        "merged_pr": 146,
+        "source_main": "dbcc8af2503b916282788303f9d67d72293a3de0",
+        "live_proof_pr": 147,
+        "live_proof_run": 35722532394,
+        "live_proof_job": 106728495944,
+        "live_health": "HTTP_200__STATUS_OK__ENV_BETA__SOURCE_EXACT__STORAGE_TRUE__SCHEMA_10_10__MISSING_0__AGENT_MIGRATION_0_0",
+        "agent_release": "relay-agent-v30 unchanged",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "On Beta Web, for the ADMIN account that failed Agent login before D106, set its password once more now that D106 is live. The same password may be reused if desired; do not send it in chat/logs.",
+        "Immediately log in on the unchanged relay-agent-v30 with that ADMIN username/MNV and the just-set password. Expected: Firebase ADMIN login succeeds; HTTP 400 signInWithPassword must be gone.",
+        "Create one fresh controlled ADMIN account on Beta Web. Expected: create returns success directly; it must not show an error and then appear only after reload.",
+        "Reload the user list once and verify the fresh account appears exactly once, then log in to Agent v30 with that fresh account.",
+        "After test, disable/delete the temporary account if it is not operationally needed."
+      ],
+      "pass_criteria": [
+        "Post-D106 password set returns success only after native Firebase password write and direct signInWithPassword proves the expected UID.",
+        "Previously failing ADMIN can log in to Agent v30 after one post-D106 password set.",
+        "Fresh ADMIN creation gives one truthful terminal result; no ghost account appears after an error/reload.",
+        "Fresh ADMIN can immediately log in to Agent v30 with the same username/MNV and password.",
+        "No password/token/hash/salt is exposed in logs or chat; Stable remains untouched."
+      ],
+      "safety": "Beta only. Never share the ADMIN password, Firebase token, WMS credential/session material or service-account material. Agent v30 binary does not need replacement for D106.",
+      "remaining_owner_action": "Run the two short credential checks above. If either fails, provide only the new sanitized Web/Agent log; do not send the password."
     }
   ]
 }
