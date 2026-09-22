@@ -221,7 +221,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
       }, 201);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Không tạo được tài khoản.";
-      const credentialFailure = message.startsWith("FIREBASE_") || message === "GOOGLE_RUNTIME_NOT_CONFIGURED";
+      const credentialFailure = Boolean(createdUser) || message.startsWith("FIREBASE_") || message === "GOOGLE_RUNTIME_NOT_CONFIGURED";
       const rolledBack = createdUser
         ? await rollbackCreatedCredential(env, createdUser, requestId, user)
         : false;
