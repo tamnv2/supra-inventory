@@ -919,6 +919,41 @@
       "field_result": "OWNER_FIELD_PASS__RESET_AND_POST_RESET_RECOVERY_PASS",
       "field_result_date": "2026-09-22",
       "field_result_note": "Owner confirmed post-reset re-test PASS after PR #133: normal operational surfaces/realtime recovered, managed account creation works, and SKU import completes. Reset deletion behavior had already been confirmed correct. OA020 is closed PASS on Beta."
+    },
+    {
+      "id": "OA021",
+      "status": "BLOCKED_ON_D101_TECHNICAL_RELEASE",
+      "title": "Field-accept D101 Agent v26 operational rework",
+      "resource_key": "firestore-relay-beta-d091",
+      "provider": "Beta Windows Agent + Firestore relay + authorized Supra WMS + Beta Drive logs + Beta Web",
+      "reason_owner_only": "CI can verify source/build/rules/deploy guards but cannot prove the Owner's physical Windows Wi-Fi name, multi-Agent role display, real running auto-update, real WMS refresh after a stale cache miss, or scheduled/crash Drive delivery from the company laptop.",
+      "prerequisites": {
+        "target_agent_release": "relay-agent-v26",
+        "android_release": "beta-vc62 unchanged",
+        "stable": "OWNER_GATED",
+        "technical_release": "PENDING"
+      },
+      "shortest_test_path": [
+        "Install/update to relay-agent-v26 after release and keep Agent running.",
+        "Verify Hệ thống Agent shows actual Wi-Fi SSID, this machine role, and online/PRIMARY/STANDBY/FROZEN counts; Web Người đang online must still count only Web + PDA.",
+        "Search a PickList that was absent from the previous cache but exists on WMS. Cache miss must refresh and then find it without restarting Agent. Repeat from PDA five-digit path where practical.",
+        "Verify each manual PickList result row has its own Xác nhận button and one controlled confirmation still obeys D096/D097 idempotency/fail-closed rules.",
+        "Verify no Cài đặt top-level tab remains and the promoted direct tabs are usable.",
+        "Leave Agent running through a newer GitHub prerelease or controlled version test; it must discover the update in the background without a manual restart.",
+        "Verify local logs rotate by size without creating a new pair each process start. Confirm scheduled Agent bundle reaches Inventory/Beta/Logs at the next slot; for a controlled synthetic crash test only, verify a crash_ log is delivered/retried without exposing secrets."
+      ],
+      "pass_criteria": [
+        "Final NOT_FOUND is possible only after the miss-triggered WMS refresh attempt.",
+        "Background Agent update works while process is already running and retains SHA-256/trusted-origin checks.",
+        "Agent/Supra information and Wi-Fi SSID are truthful and readable.",
+        "PRIMARY/STANDBY/FROZEN counts are visible without introducing fast Firestore presence polling.",
+        "Web online totals exclude Agent.",
+        "Rolling logs stay bounded and scheduled/crash Agent logs reach Beta Drive through the temporary Firestore spool.",
+        "Logout requires confirmation; flat tabs and row-level confirm match D101.",
+        "Stable remains untouched."
+      ],
+      "safety": "Beta only. Do not share Firebase tokens, WMS cookies/headers/signatures, passwords or local DPAPI files. Use only a controlled eligible PickList for any real WMS confirm. Crash test should be synthetic and bounded; do not intentionally corrupt company Windows.",
+      "remaining_owner_action": "Wait for D101 technical/runtime/release PASS and relay-agent-v26. Then execute the shortest physical field matrix."
     }
   ]
 }
