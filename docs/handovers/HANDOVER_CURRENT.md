@@ -463,3 +463,17 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA023 FIELD READY**.
 - Main PASS runs: Authority `35684829649`, State `35684829653`, UI `35684829650`, Agent `35684829660`.
 - Released Agent: `relay-agent-v28`; release id `393444068`; canonical EXE asset id `580490417`, size `271360`, SHA-256 `4faf8507637d61d74ac8aa34ba998a1fc04bfacd0fdc572af1cabda5f8bb8cb1`.
 - OA023 is ready for physical UI acceptance. Stable remains OWNER-GATED and untouched.
+
+## D104 current workstream — Agent v29 multi-search and batch confirmation
+
+Status: **SOURCE CANDIDATE / PR GATES PENDING**.
+
+- D103/OA023: **PASS_OWNER_CONFIRMED_D103**.
+- Beta: `D104_SOURCE_CANDIDATE__AGENT_V29_BATCH_CONFIRM__PR_GATES_PENDING`.
+- Android: `beta-vc62` unchanged. Stable remains OWNER-GATED.
+- Agent v29: Windows WorkingArea maximum keeps taskbar visible; manual input supports 1–10 comma-separated 3–5 digit terms; one shared cache snapshot / at most one single-flight refresh per action.
+- Row-specific Xác nhận remains; Xác nhận tất cả appears only when >=2 results are displayed.
+- Existing Firestore poll cadence remains PRIMARY 5s / STANDBY 10s / FROZEN none. Up to 12 eligible jobs from one poll form one logical batch; shared lookup/exact scan; WMS confirm chunks <=10 exact codes; per-code guard and per-job conditional ACK remain.
+- WMS scope: only existing confirmSkipItem endpoint; 1–10 exact full PickListCodes with fixed HY1 flags; uncertain results fail closed; no raw WMS session/header/signature values in repo/logs.
+- Target release: `relay-agent-v29`; OA024 opens only after technical release PASS.
+
