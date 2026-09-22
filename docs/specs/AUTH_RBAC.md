@@ -185,3 +185,17 @@ D098 supersedes D088's single shared Web/Android session-generation model.
 - ROOT System Reset requires current ROOT password + emailed 6-digit OTP before execution.
 - ROOT/ADMIN self-service password recovery uses a hashed, single-use project token sent to the registered real email; the token expires after 15 minutes and the resulting password update applies to the same Firebase UID.
 - Reset must never delete/disable/rotate ROOT identity, ROOT password, ROOT recovery email or ROOT Firebase UID.
+
+## D106 managed credential commit contract
+
+For Web-managed ADMIN/REPORTER creation and password updates:
+
+1. InventoryCore derives/stores the existing PBKDF2 material.
+2. The service provisions or updates the same deterministic Firebase UID/alias.
+3. While the submitted plaintext exists only in request memory, the service writes that password natively with Identity Toolkit.
+4. The service performs a direct signInWithPassword against the deterministic Firebase alias and verifies localId equals the expected UID.
+5. Only after step 4 may Firebase password readiness be marked; ADMIN Agent readiness is marked only after the same proof.
+6. A create that fails after the InventoryCore row was inserted must compensate by removing the external UID first and then using the guarded internal create-rollback route. Rollback is refused after Firebase readiness is committed.
+7. Secrets/passwords/tokens/hashes/salts are never emitted in logs or public responses.
+
+This closes the partial-create state where the Web reported failure but an account remained in InventoryCore, and closes the readiness gap where Web password reset returned success while direct Agent Firebase password login still failed.
