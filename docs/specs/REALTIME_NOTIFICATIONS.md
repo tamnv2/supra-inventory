@@ -366,3 +366,10 @@ For Picker `Xác nhận đơn` only:
 - WMS confirmation uses chunks of at most 10 exact full PickListCodes. Firestore confirmation guards and conditional ACKs remain per PickList/job, so transport observability and Android correlation do not become batch-global.
 - Manual comma-search uses the same single-flight cache refresh coordinator; one user action cannot trigger one WMS refresh per search term.
 
+## D105 — Four-digit Firestore confirmation compatibility
+
+- New Android requests keep source `ANDROID_CONFIRM_V1` and the existing snapshot listener semantics; only suffix length changes from 5 to 4.
+- Firestore Rules admit 4-digit current requests and bounded 5-digit legacy requests during beta-vc62 → beta-vc63 rollout. This is compatibility only; beta-vc63 UI itself emits exactly 4 digits.
+- D097 PRIMARY/STANDBY polling and the 30-second Android listener window are unchanged.
+- No extra Firestore reads/writes are introduced by D105.
+
