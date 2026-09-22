@@ -508,3 +508,18 @@ Status: **SOURCE CANDIDATE / PR GATES PENDING**.
 - Latest released Beta APK baseline: `beta-vc62`.
 - Web status: `D101_BETA_RUNTIME_PASS__WEB_ONLINE_WEB_ANDROID_ONLY__TOOLS_AGENT_V26`.
 - Android source status: `D105_SOURCE_CANDIDATE__BETA_VC63__FOUR_DIGIT_CONFIRM_UI__PR_GATES_PENDING`.
+
+## D105 Android vc63 + Agent v30 release checkpoint — 2026-09-22
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
+
+- SQLite schema: `10`.
+- Latest Beta APK: `beta-vc63`.
+- Web status: `D101_BETA_RUNTIME_PASS__WEB_ONLINE_WEB_ANDROID_ONLY__TOOLS_AGENT_V26`.
+- Android status: `D105_SIGNED_BETA_VC63__FOUR_DIGIT_CONFIRM_UI__OA025_FIELD_READY`.
+- Beta: `D105_TECHNICAL_RUNTIME_RELEASE_PASS__ANDROID_VC63_AGENT_V30__OA025_FIELD_READY`.
+- PickList confirmation: `D105_ANDROID_VC63_AGENT_V30_RELEASED__FOUR_DIGIT_CURRENT__MANUAL_3_4__EXACT_SUFFIX_LENGTH_FAIL_CLOSED`.
+- Main PASS runs: Authority `35694361080`, State `35694361070`, UI `35694361168`, Android `35694361091`, Agent `35694361074`, Firestore `35694361133`, Worker `35694361089`.
+- Android release: `beta-vc63`; release id `393494217`; APK asset id `580723780`; SHA-256 `add6716668f13e5f96a8b6b9cdfddba27db4270e990a4f3f7d92c373fadd5295`.
+- Agent release: `relay-agent-v30`; release id `393494208`; EXE asset id `580723753`; SHA-256 `18cf58622cde42d7ae7c58a57615139913caa9c3dbd2718bd2b1348182f765ad`.
+- OA025 is ready for physical field acceptance. Stable remains OWNER-GATED and untouched.
