@@ -1,5 +1,5 @@
 import { hashPassword, interactiveSessionError, readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
-import { deleteFirebaseUsers, importPasswordIdentity, updateFirebaseIdentity, type FirebaseManagedUserSpec } from "./firebase-auth-admin";
+import { deleteFirebaseUsers, importPasswordIdentity, signInWithFirebasePassword, updateFirebaseIdentity, type FirebaseManagedUserSpec } from "./firebase-auth-admin";
 import { readHrEmployees, type StoredHrSource } from "./hr-sync";
 import { validateHrSheetSource } from "./hr-source";
 
@@ -111,12 +111,19 @@ async function provisionManagedCredential(
   // While the plaintext password is still present in this authorized request,
   // write it natively to the same Firebase UID so direct Agent sign-in does not
   // depend on password-import compatibility. Plaintext is never persisted/logged.
-  await updateFirebaseIdentity(
+  const nativeIdentity = await updateFirebaseIdentity(
     env.GOOGLE_RUNTIME_SA_JSON,
     env.FIREBASE_PROJECT_ID,
     firebaseSpec(user, uid, derived),
     { password: plainPassword },
   );
+  if (!env.FIREBASE_WEB_API_KEY) throw new Error("FIREBASE_WEB_API_KEY_NOT_CONFIGURED");
+  const verified = await signInWithFirebasePassword(
+    env.FIREBASE_WEB_API_KEY,
+    nativeIdentity.email,
+    plainPassword,
+  );
+  if (verified.localId !== uid) throw new Error("FIREBASE_DIRECT_PASSWORD_VERIFY_FAILED");
   await markFirebaseReady(env, user.user_id, uid);
   const primaryReady = (await coreUserById(env, user.user_id)) || { ...user, firebase_uid: uid, firebase_password_ready: true };
   if ((primaryReady.base_role || primaryReady.role) === "ADMIN") {
