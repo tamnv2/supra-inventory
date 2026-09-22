@@ -938,3 +938,17 @@ Technical/runtime PASS requires:
 6. Password plaintext, password hash/salt, Firebase ID/refresh tokens and service-account material remain absent from repo/logs/public responses.
 7. Beta deployment and health remain PASS; Stable remains untouched.
 8. Field proof uses one freshly created ADMIN or one ADMIN password set after D106 deploy, then the unchanged Agent v30 direct Firebase login. The Agent must authenticate without Worker dependency.
+## D107 acceptance — professional Web identity and reporting
+
+Technical/runtime PASS requires:
+
+1. Normal login and password-recovery login branding use the committed shared `/app-icon.png`; the legacy numeric `1291` login tile and old `Web nghiệp vụ / Đăng nhập bằng tài khoản Báo hàng 1291` copy are absent.
+2. Login visibly shows `CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN` and `Website nghiệp vụ Inventory` with no credential prefill.
+3. The D066 three-group navigation, role routing, D068 toast/history behavior, D071 controls and existing Web business mutations remain unchanged.
+4. Light and dark themes cover login, authenticated shell, summary cards, reporting panels, filters, tables and dialogs without light-only islands.
+5. Overview renders current pending SKU/Picker, warning/overdue, online users and selected-period report/SKU/affected-Picker/resolved/average-time data from existing authoritative responses.
+6. The time chart uses the service-returned timeline buckets and distinguishes reports from resolved work; top SKU rows show report/Picker counts and drill down through the existing detailed-report route.
+7. Detailed reporting shows the richer KPI/attention/outcome surfaces, current record range and `Đang mở` + `Tổng lượt báo` columns while preserving filters, 100-row bounded paging and XLSX export.
+8. Source/network review proves D107 adds no new backend/provider polling, stock/bin/quantity metrics, employee scoring or quota-heavy system-status route.
+9. Web production build, UI Design Guard, authority/continuity guards and Beta deployment smoke pass. Stable remains untouched.
+10. Automated PASS is technical only. Final D107 visual acceptance still requires explicit Owner review on live Beta.
