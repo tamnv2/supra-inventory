@@ -316,3 +316,15 @@ Main PASS evidence: Repo Authority `35552139222`, Project State `35552139224`, F
 Released artifacts: signed Android `beta-vc56` (release id `392647903`, APK asset id `577982221`, size `9340858`, SHA-256 `fe41c136d16470d7b0fac45a4b125b8e1b29610f7b468a4e41171f68c420da80`) and Windows `relay-agent-v17` (release id `392647942`, EXE asset id `577982501`, size `216576`, SHA-256 `ccc0d499c044fb567b34cd37ff1a802293ee9cc47d082a34c4fac2778fe8cd24`).
 
 Technical/runtime/release PASS does not replace physical business acceptance. OA013 is now the next action: one controlled authorized real Picklist confirmation, followed by direct SFT / SFT 3 verification. Stable remains OWNER-GATED.
+
+## D101 Agent v26 operations rework — 2026-09-22
+
+Owner reopened Agent operational UX/cache/log handling after confirming D100 reset recovery. D101 targets `relay-agent-v26` and keeps Stable owner-gated.
+
+- PickList cache MISS is provisional on both PDA and manual specialist paths; Agent refreshes the WMS snapshot once through the existing single-flight coordinator before final NOT_FOUND.
+- Agent checks GitHub at startup and every 30 minutes while running, keeping checksum/trusted-origin update guards.
+- Agent UI becomes direct top-level tabs: Hệ thống Agent, Hệ thống Supra, Xử lý PickList, Kết nối, Bảng nổi, Nhật ký vận hành, Chẩn đoán kỹ thuật. Manual PickList rows own their Xác nhận button.
+- Hệ thống Agent surfaces machine role and low-frequency online/PRIMARY/STANDBY/FROZEN counts. D097 request-driven failover remains unchanged to protect Firestore quota.
+- Wi-Fi shows the real Windows SSID; sanitizer token boundaries prevent `ssid=` from being mistaken for secret `sid=`.
+- Local Agent logs are size-rotated; scheduled/crash sanitized bundles use an ADMIN-only temporary Firestore spool and Beta Worker drain into Inventory/Beta/Logs.
+- Web online totals remain WEB + ANDROID/PDA only; Agent is excluded.
