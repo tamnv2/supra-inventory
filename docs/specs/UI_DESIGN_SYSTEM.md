@@ -564,4 +564,16 @@ Overlay sizing must not retain the old 420×64 floor. Settings and runtime clamp
 - Terminal result copy is substantially more prominent than helper text: bold, larger size and semantic success/error color.
 - Helper input/progress text must not visually compete with the returned business result.
 - Picker instructions and hint use 4 digits. Agent manual specialist copy uses 3–4 digits.
+## D107 — Professional Web presentation refinement
 
+D107 is the Owner-authorized Web visual refinement over the accepted D089 baseline.
+
+- Login uses the exact shared D089 icon asset and a two-line identity lockup: `CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN` then `Website nghiệp vụ Inventory`. Do not render the old numeric `1291` brand tile or `Web nghiệp vụ / Đăng nhập bằng tài khoản Báo hàng 1291` copy.
+- Preserve the D066 three-group navigation, D068 optimistic navigation/history/toasts, D069 scoped rendering, D071 density controls and all current role/RBAC behavior.
+- The final Web visual layer applies coherent hierarchy across login, topbar/sidebar, workspaces, filters, cards, tables, dialogs and support surfaces. Use restrained corporate blue/neutral surfaces, semantic green/amber/red only for business state, small-radius geometry, subtle borders/shadows and local/system fonts.
+- Desktop information density is deliberate: important values are visually strong, explanatory text is secondary, tables use sticky headings where useful, and dashboard/report panels use available width without turning into an ornamental BI wall.
+- Dark mode is a first-class presentation, not an inversion afterthought. No bright light-only panels, controls or report fragments may remain.
+- Admin/Root reporting receives a richer but still operational composition: current-status KPI strip, period metrics, role-online distribution, outcome mix, recurrence, time trend and top-SKU drill-down. Detailed reporting exposes richer summary/attention panels before the bounded result table.
+- New visual reporting must reuse existing authoritative API data. No presentation element may imply an unavailable stock quantity/location, employee score, provider billing status or other unapproved metric.
+- Responsive layouts may reduce columns and allow horizontal report-table scrolling, but must retain readable business hierarchy and touch-safe actions.
+- Android and Windows Agent presentation are unchanged by D107. Stable remains OWNER-GATED.
