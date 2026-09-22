@@ -477,3 +477,14 @@ Status: **SOURCE CANDIDATE / PR GATES PENDING**.
 - WMS scope: only existing confirmSkipItem endpoint; 1–10 exact full PickListCodes with fixed HY1 flags; uncertain results fail closed; no raw WMS session/header/signature values in repo/logs.
 - Target release: `relay-agent-v29`; OA024 opens only after technical release PASS.
 
+## D104 Agent v29 release checkpoint — 2026-09-22
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA024 FIELD READY**.
+
+- Beta: `D104_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V29__OA024_FIELD_READY`.
+- Android: `beta-vc62` unchanged.
+- Network scope: `D104_AGENT_V29_BATCH_CONFIRM_RUNTIME_RELEASE_PASS__D097_HA_D102_SCHEDULE_D103_UI_PRESERVED__STABLE_UNTOUCHED`.
+- PickList confirmation: `D104_AGENT_V29_RELEASED__MULTI_SEARCH__BATCH_WMS_CONFIRM__PER_CODE_GUARD__PER_JOB_ACK`.
+- Main PASS runs: Authority `35687822814`, State `35687822742`, UI `35687822767`, Agent `35687822763`.
+- Released Agent: `relay-agent-v29`; release id `393459636`; canonical EXE asset id `580560440`, size `284160`, SHA-256 `10304ac734218146550c6bdf3c3b8a81d979fabe5b3ee7dddc94f1b217955b2d`.
+- OA024 is ready for physical field acceptance. Stable remains OWNER-GATED and untouched.
