@@ -595,3 +595,6 @@ Owner approved on 2026-09-22 after field review of relay-agent-v27.
 7. D102 HA, 21:30/22:00/05:00 schedule, updater security, D096/D097 confirmation guards and Android/Web business behavior are unchanged.
 8. Target Windows release is relay-agent-v28. Stable remains OWNER-GATED and untouched.
 
+### D103 release checkpoint — 2026-09-22
+
+D103 is technically released on Beta. PR #140 merged at `15aba0412e625af0f6b9ef7489b995a3e524a131`. All PR and main authority/state/UI/Agent gates passed. Windows release `relay-agent-v28` is published with canonical EXE SHA-256 `4faf8507637d61d74ac8aa34ba998a1fc04bfacd0fdc572af1cabda5f8bb8cb1`; the release tag resolves exactly to that main commit. OA023 physical Owner acceptance remains open. Android stays `beta-vc62`; Stable is untouched.
