@@ -1048,7 +1048,7 @@ namespace SupraInventoryRelayAgent
         private void OpenSettingsFromTray()
         {
             RestoreFromTray();
-            _mainTabs.SelectedTab = _settingsPage;
+            _mainTabs.SelectedTab = _connectionPage;
         }
 
         private void RequestProtectedExit()
@@ -1427,8 +1427,8 @@ namespace SupraInventoryRelayAgent
             {
                 query = (_manualPicklistQuery.Text ?? "").Trim();
                 _manualPicklistSearch.Enabled = false;
-                _manualPicklistConfirm.Enabled = false;
-                _manualPicklistResults.Items.Clear();
+                _manualPicklistGrid.Enabled = false;
+                _manualPicklistGrid.Rows.Clear();
                 _manualPicklistStatus.Text = "Đang tìm PickList...";
                 _manualPicklistStatus.ForeColor = Color.FromArgb(88, 104, 115);
             });
@@ -1453,9 +1453,9 @@ namespace SupraInventoryRelayAgent
 
                 Ui(() =>
                 {
-                    _manualPicklistResults.Items.Clear();
+                    _manualPicklistGrid.Rows.Clear();
                     foreach (var code in result.Matches)
-                        _manualPicklistResults.Items.Add(code);
+                        _manualPicklistGrid.Rows.Add(code);
 
                     if (string.Equals(result.Result, "FOUND", StringComparison.Ordinal))
                     {
@@ -1503,15 +1503,13 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private void ConfirmManualPicklist()
+        private void ConfirmManualPicklist(string pickListCode)
         {
-            string pickListCode = "";
             UiSync(() =>
             {
-                pickListCode = Convert.ToString(_manualPicklistResults.SelectedItem) ?? "";
-                _manualPicklistConfirm.Enabled = false;
+                _manualPicklistGrid.Enabled = false;
                 _manualPicklistSearch.Enabled = false;
-                _manualPicklistStatus.Text = "Đang xác nhận PickList...";
+                _manualPicklistStatus.Text = "Đang xác nhận " + pickListCode + "...";
                 _manualPicklistStatus.ForeColor = Color.FromArgb(88, 104, 115);
             });
 
@@ -1614,10 +1612,7 @@ namespace SupraInventoryRelayAgent
                 {
                     var length = (_manualPicklistQuery.Text ?? "").Trim().Length;
                     _manualPicklistSearch.Enabled = length >= 3 && length <= 5;
-                    _manualPicklistConfirm.Enabled =
-                        _manualPicklistResults.SelectedItem != null &&
-                        HasAgentSession() &&
-                        HasUsableWmsSession();
+                    _manualPicklistGrid.Enabled = HasAgentSession() && HasUsableWmsSession();
                 });
             }
         }
