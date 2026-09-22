@@ -28,13 +28,21 @@ namespace SupraInventoryRelayAgent
 
     internal sealed class PicklistCacheCoordinator
     {
-        internal const int FreshMissGuardSeconds = 10;
-
         private readonly object _gate = new object();
         private HashSet<string> _suffixes = new HashSet<string>(StringComparer.Ordinal);
         private HashSet<string> _codes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private DateTime _refreshedUtc = DateTime.MinValue;
         private Task<WmsPicklistSnapshotResult> _refreshTask;
+
+        internal int CacheCount
+        {
+            get { lock (_gate) return _codes.Count; }
+        }
+
+        internal DateTime RefreshedUtc
+        {
+            get { lock (_gate) return _refreshedUtc; }
+        }
 
         internal void Clear()
         {
@@ -73,20 +81,12 @@ namespace SupraInventoryRelayAgent
                     };
                 }
 
-                if (_refreshedUtc != DateTime.MinValue &&
-                    DateTime.UtcNow - _refreshedUtc <= TimeSpan.FromSeconds(FreshMissGuardSeconds))
-                {
-                    return new CachedPicklistResult
-                    {
-                        Result = "NOT_FOUND",
-                        CacheMode = "CACHE_FRESH_MISS",
-                        MatchCount = 0,
-                        CacheCount = _suffixes.Count
-                    };
-                }
             }
 
-            return RefreshAndResolve(session, suffix, "CACHE_REFRESH");
+            // D101: a cache miss is never final. PickList can be created after the last
+            // preload, so refresh the WMS snapshot once and only then return NOT_FOUND.
+            // RefreshAndResolve is single-flight, so concurrent PDA misses share one WMS read.
+            return RefreshAndResolve(session, suffix, "CACHE_MISS_REFRESH");
         }
 
         internal ManualPicklistSearchResult SearchContains(WmsSessionSnapshot session, string fragment, int maxResults)
@@ -102,13 +102,18 @@ namespace SupraInventoryRelayAgent
                     throw new ArgumentException("Manual Picklist search requires digits only.", "fragment");
             maxResults = Math.Max(1, Math.Min(100, maxResults));
 
+            ManualPicklistSearchResult cached = null;
             lock (_gate)
             {
                 if (_refreshedUtc != DateTime.MinValue && _codes.Count > 0)
-                    return SearchSnapshot(query, maxResults, "CACHE_SEARCH", "NONE", 0, 0L);
+                    cached = SearchSnapshot(query, maxResults, "CACHE_SEARCH", "NONE", 0, 0L);
             }
+            if (cached != null && string.Equals(cached.Result, "FOUND", StringComparison.Ordinal))
+                return cached;
 
-            var preload = RefreshAndResolve(session, null, "MANUAL_PRELOAD");
+            // D101: manual specialist search also treats cache NOT_FOUND as provisional.
+            // Refresh WMS once, then search the new snapshot before reporting NOT_FOUND.
+            var preload = RefreshAndResolve(session, null, cached == null ? "MANUAL_PRELOAD" : "MANUAL_MISS_REFRESH");
             if (!string.Equals(preload.Result, "PASS", StringComparison.Ordinal))
             {
                 return new ManualPicklistSearchResult
@@ -123,7 +128,7 @@ namespace SupraInventoryRelayAgent
             }
 
             lock (_gate)
-                return SearchSnapshot(query, maxResults, "CACHE_SEARCH_AFTER_PRELOAD", preload.Route, preload.StatusCode, preload.ElapsedMs);
+                return SearchSnapshot(query, maxResults, "CACHE_SEARCH_AFTER_REFRESH", preload.Route, preload.StatusCode, preload.ElapsedMs);
         }
 
         private ManualPicklistSearchResult SearchSnapshot(
