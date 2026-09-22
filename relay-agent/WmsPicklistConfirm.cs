@@ -33,21 +33,63 @@ namespace SupraInventoryRelayAgent
 
         internal static WmsPicklistConfirmResult Confirm(WmsSessionSnapshot session, string pickListCode)
         {
+            var results = ConfirmMany(session, new[] { pickListCode });
+            WmsPicklistConfirmResult result;
+            return results.TryGetValue((pickListCode ?? "").Trim(), out result)
+                ? result
+                : new WmsPicklistConfirmResult { Result = "CONFIRM_ERROR" };
+        }
+
+        internal static Dictionary<string, WmsPicklistConfirmResult> ConfirmMany(
+            WmsSessionSnapshot session,
+            IEnumerable<string> pickListCodes)
+        {
             if (session == null || !session.IsValidHy1())
-                return new WmsPicklistConfirmResult { Result = "WMS_SESSION_REQUIRED" };
-            ValidateCode(pickListCode);
+                throw new InvalidOperationException("WMS session is required.");
+
+            var codes = new List<string>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var raw in pickListCodes ?? new string[0])
+            {
+                var code = (raw ?? "").Trim();
+                ValidateCode(code);
+                if (seen.Add(code)) codes.Add(code);
+            }
+            if (codes.Count == 0)
+                throw new ArgumentException("At least one PickListCode is required.", "pickListCodes");
+            if (codes.Count > 10)
+                throw new ArgumentException("At most 10 PickListCodes can be confirmed per WMS batch.", "pickListCodes");
 
             lock (ConfirmGate)
             {
-                DateTime successAt;
-                if (RecentSuccess.TryGetValue(pickListCode, out successAt) &&
-                    DateTime.UtcNow - successAt <= RecentSuccessWindow)
-                    return new WmsPicklistConfirmResult { Result = "CONFIRMED", Route = "RECENT_SUCCESS_GUARD", StatusCode = 200 };
-
                 PurgeOldSuccesses();
+                var output = new Dictionary<string, WmsPicklistConfirmResult>(StringComparer.OrdinalIgnoreCase);
+                var pending = new List<string>();
+
+                foreach (var code in codes)
+                {
+                    DateTime successAt;
+                    if (RecentSuccess.TryGetValue(code, out successAt) &&
+                        DateTime.UtcNow - successAt <= RecentSuccessWindow)
+                    {
+                        output[code] = new WmsPicklistConfirmResult
+                        {
+                            Result = "CONFIRMED",
+                            Route = "RECENT_SUCCESS_GUARD",
+                            StatusCode = 200
+                        };
+                    }
+                    else
+                    {
+                        pending.Add(code);
+                    }
+                }
+
+                if (pending.Count == 0) return output;
+
                 var payload = Json.Serialize(new Dictionary<string, object>
                 {
-                    { "PickListCodes", new[] { pickListCode } },
+                    { "PickListCodes", pending.ToArray() },
                     { "IsAllowSkipped", true },
                     { "RemainSkip", 1 },
                     { "WarehouseCode", "HY1" },
@@ -59,16 +101,41 @@ namespace SupraInventoryRelayAgent
                 {
                     last = SendOne(session, route, payload);
                     AgentDiagnostics.Write(
-                        "WMS picklist-confirm result=" + last.Result +
+                        "WMS picklist-confirm-batch result=" + last.Result +
                         " route=" + last.Route +
                         " http=" + last.StatusCode +
                         " ms=" + last.ElapsedMs +
-                        " picklist=redacted session_values=redacted");
+                        " count=" + pending.Count +
+                        " picklists=redacted session_values=redacted");
                     if (last.Result == "TRANSPORT_FAIL" || last.Result == "PROXY_AUTH_REQUIRED") continue;
-                    if (last.Result == "CONFIRMED") RecentSuccess[pickListCode] = DateTime.UtcNow;
-                    return last;
+
+                    foreach (var code in pending)
+                    {
+                        output[code] = new WmsPicklistConfirmResult
+                        {
+                            Result = last.Result,
+                            Route = last.Route,
+                            StatusCode = last.StatusCode,
+                            ElapsedMs = last.ElapsedMs
+                        };
+                        if (string.Equals(last.Result, "CONFIRMED", StringComparison.Ordinal))
+                            RecentSuccess[code] = DateTime.UtcNow;
+                    }
+                    return output;
                 }
-                return last ?? new WmsPicklistConfirmResult { Result = "TRANSPORT_FAIL" };
+
+                var fallback = last ?? new WmsPicklistConfirmResult { Result = "TRANSPORT_FAIL" };
+                foreach (var code in pending)
+                {
+                    output[code] = new WmsPicklistConfirmResult
+                    {
+                        Result = fallback.Result,
+                        Route = fallback.Route,
+                        StatusCode = fallback.StatusCode,
+                        ElapsedMs = fallback.ElapsedMs
+                    };
+                }
+                return output;
             }
         }
 
@@ -302,7 +369,16 @@ namespace SupraInventoryRelayAgent
 
         internal static bool SelfTestResponseSemantics()
         {
-            return string.Equals(
+            var payload = Json.Serialize(new Dictionary<string, object>
+            {
+                { "PickListCodes", new[] { "PL2601010001", "PL2601010002" } },
+                { "IsAllowSkipped", true },
+                { "RemainSkip", 1 },
+                { "WarehouseCode", "HY1" },
+                { "EnableDCSite", false }
+            });
+            return payload.IndexOf("\"PickListCodes\":[\"PL2601010001\",\"PL2601010002\"]", StringComparison.Ordinal) >= 0 &&
+                   string.Equals(
                        Classify(200, "{\"Status\":true,\"Data\":{}}"),
                        "CONFIRMED",
                        StringComparison.Ordinal) &&
