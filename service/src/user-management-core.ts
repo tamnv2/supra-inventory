@@ -358,10 +358,38 @@ async function hrApply(state: DurableObjectState, request: Request): Promise<Res
   return response({ status: "applied", source_count: normalized.employees.length, applied_at: at, post_apply: finalPlan });
 }
 
+async function rollbackManagedUserCreate(state: DurableObjectState, request: Request): Promise<Response> {
+  const body = (await request.json()) as { actor?: Actor; user_id?: string; request_id?: unknown };
+  const actor = body.actor;
+  const userId = String(body.user_id || "").trim();
+  const target = getUser(state, userId);
+  if (!actor?.user_id || !target || !validRequestId(body.request_id) || !canManageTarget(actor.role, target.role)) {
+    return response({ error: "USER_CREATE_ROLLBACK_FORBIDDEN" }, 403);
+  }
+  if (!["ADMIN", "REPORTER"].includes(target.role) || Number(target.firebase_password_ready || 0) === 1) {
+    return response({ error: "USER_CREATE_ROLLBACK_UNSAFE" }, 409);
+  }
+
+  state.storage.transactionSync(() => {
+    state.storage.sql.exec("DELETE FROM fcm_devices WHERE user_id = ?", userId);
+    state.storage.sql.exec("DELETE FROM presence_sessions WHERE user_id = ?", userId);
+    state.storage.sql.exec(
+      "DELETE FROM users WHERE user_id = ? AND COALESCE(firebase_password_ready, 0) = 0",
+      userId,
+    );
+  });
+  audit(state, actor, "USER_CREATE_ROLLBACK", "USER", userId, {
+    reason: "firebase_provision_failed",
+    request_id: String(body.request_id || ""),
+  });
+  return response({ status: "rolled_back", user_id: userId });
+}
+
 export async function handleUserManagementCoreRequest(state: DurableObjectState, request: Request): Promise<Response | null> {
   const url = new URL(request.url);
   if (request.method === "GET" && url.pathname === "/admin/users") return listUsers(state, url);
   if (request.method === "POST" && url.pathname === "/admin/users/create") return createManagedUser(state, request);
+  if (request.method === "POST" && url.pathname === "/admin/users/rollback-create") return rollbackManagedUserCreate(state, request);
   if (request.method === "POST" && url.pathname === "/admin/users/update") return updateManagedUser(state, request);
   if (request.method === "POST" && url.pathname === "/admin/users/set-password") return setManagedPassword(state, request);
   if (request.method === "POST" && url.pathname === "/admin/pickers/bulk") return pickerBulkAction(state, request);
