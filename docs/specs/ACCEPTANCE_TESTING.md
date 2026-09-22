@@ -890,3 +890,14 @@ Technical PASS requires:
 9. EXE, tray, updater, logging and watchdog continue while business processing is paused. At 05:00 business processing resumes automatically without restarting Agent.
 10. Android/Web business flows and Stable remain unchanged.
 
+## D103 acceptance — Agent v28 dense Overview
+
+1. Fresh launch and restore from tray both open the Agent maximized.
+2. Tổng quan has no page-level scrolling at the normal maximized laptop viewport. Hệ thống Agent, Hệ thống Supra and Xử lý PickList are all reachable in the initial viewport, with PickList occupying the remaining lower area.
+3. Agent fleet grid shows at most five visible Agent data rows plus its header. A sixth Agent does not increase page height and is accessible using the grid's vertical scrollbar.
+4. Searching a suffix that returns multiple PickLists renders one result row per full PickListCode and a visible Xác nhận button on every row. Clicking a row button passes that exact row's code to ConfirmManualPicklist.
+5. There is no shared/global PickList confirm button.
+6. Visible Overview does not show persistent prose such as Agent version + Firestore/failover explanation, background-update cadence explanation, or local WMS-protection/cache implementation explanation.
+7. Compact Agent/Supra operational state, real Wi-Fi, manual update button and after-hours decision banner continue to work.
+8. D102 HA/night schedule, D096/D097 confirmation/idempotency/fail-closed guards, Android/Web behavior and Stable OWNER-GATED state remain unchanged.
+
