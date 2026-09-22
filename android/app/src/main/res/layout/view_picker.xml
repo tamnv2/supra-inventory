@@ -115,9 +115,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Nhập đúng 5 số cuối Picklist cần lấy lại. Hệ thống sẽ kiểm tra và xác nhận tự động khi tìm thấy duy nhất một Picklist phù hợp."
+                android:text="Nhập đúng 4 số cuối Picklist cần lấy lại. Hệ thống sẽ kiểm tra và xác nhận tự động khi tìm thấy duy nhất một Picklist phù hợp."
                 android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
+                android:textSize="13sp" />
 
             <EditText
                 android:id="@+id/etRelayPicklistSuffix"
@@ -129,10 +129,10 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:gravity="center_vertical"
-                android:hint="5 số cuối Picklist"
+                android:hint="4 số cuối Picklist"
                 android:imeOptions="actionDone"
                 android:inputType="number"
-                android:maxLength="5"
+                android:maxLength="4"
                 android:singleLine="true"
                 android:textSize="19sp" />
 
@@ -163,7 +163,7 @@
                 android:layout_marginTop="10dp"
                 android:background="@drawable/bg_card"
                 android:padding="8dp"
-                android:text="Chỉ xác nhận khi hệ thống tìm thấy duy nhất Picklist khớp đúng 5 số cuối. Trường hợp không rõ ràng sẽ dừng và yêu cầu xử lý trực tiếp."
+                android:text="Chỉ xác nhận khi hệ thống tìm thấy duy nhất Picklist khớp đúng 4 số cuối. Trường hợp không rõ ràng sẽ dừng và yêu cầu xử lý trực tiếp."
                 android:textColor="@color/text_secondary"
                 android:textSize="11sp" />
         </LinearLayout>
