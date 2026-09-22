@@ -23,7 +23,127 @@ service cloud.firestore {
         ])
         && request.resource.data.request_id == jobId
         && request.resource.data.suffix is string
-        && request.resource.data.suffix.matches('^[0-9]{5}$')
+        && request.resource.data.suffix.matches('^[0-9]{4,5}
+        && request.resource.data.status == 'PENDING'
+        && request.resource.data.source == 'ANDROID_CONFIRM_V1'
+        && request.resource.data.picker_uid == request.auth.uid
+        && request.resource.data.picker_user_id == request.auth.token.app_user_id
+        && request.resource.data.client_sent_at_ms is int
+        && request.resource.data.client_sent_at_ms >= 0
+        && request.resource.data.created_at == request.time;
+
+      allow get: if isRealAdmin()
+        || (isPicker() && resource.data.picker_uid == request.auth.uid);
+
+      allow list: if isRealAdmin();
+
+      allow update: if isRealAdmin()
+        && resource.data.status == 'PENDING'
+        && request.resource.data.status == 'ACK'
+        && request.resource.data.agent_admin_user_id == request.auth.token.app_user_id
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'agent_id', 'agent_instance_id', 'agent_admin_user_id',
+          'agent_network', 'agent_received_at_ms', 'agent_ack_at_ms',
+          'lookup_status', 'lookup_matches', 'lookup_ms', 'lookup_route',
+          'lookup_http', 'cache_mode', 'rate_strikes', 'lock_level',
+          'locked_until_ms', 'guard_id', 'retire_at_ms'
+        ]);
+
+      allow delete: if isPicker()
+        && resource.data.picker_uid == request.auth.uid
+        && (
+          (
+            resource.data.status == 'PENDING'
+            && resource.data.created_at is timestamp
+            && request.time >= resource.data.created_at + duration.value(1, 'h')
+          )
+          ||
+          (
+            resource.data.status == 'ACK'
+            && resource.data.retire_at_ms is int
+            && resource.data.retire_at_ms <= request.time.toMillis()
+          )
+        );
+    }
+
+    match /relay_poc_rate_limits/{pickerKey} {
+      allow get, create, update, delete: if isRealAdmin();
+      allow list: if false;
+    }
+
+    match /relay_poc_coordination/{docId} {
+      allow get, create, update, delete: if isRealAdmin();
+      allow list: if false;
+    }
+
+    match /relay_poc_agents/{agentId} {
+      allow get, list, create, update, delete: if isRealAdmin();
+    }
+
+    match /relay_poc_agent_sessions/{uid} {
+      allow get: if isRealAdmin() && request.auth.uid == uid;
+      allow create, update: if isRealAdmin()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly([
+          'firebase_uid', 'agent_instance_id', 'agent_admin_user_id',
+          'machine', 'claimed_at_ms'
+        ])
+        && request.resource.data.firebase_uid == request.auth.uid
+        && request.resource.data.agent_admin_user_id == request.auth.token.app_user_id
+        && request.resource.data.agent_instance_id is string
+        && request.resource.data.agent_instance_id.size() >= 8
+        && request.resource.data.agent_instance_id.size() <= 160
+        && request.resource.data.claimed_at_ms is int;
+      allow delete: if isRealAdmin() && request.auth.uid == uid;
+      allow list: if false;
+    }
+
+    match /relay_poc_confirm_guards/{guardId} {
+      allow get, create, update, delete: if isRealAdmin();
+      allow delete: if isPicker()
+        && resource.data.picker_uid == request.auth.uid
+        && resource.data.retire_at_ms is int
+        && resource.data.retire_at_ms <= request.time.toMillis();
+      allow list: if false;
+    }
+
+    match /relay_agent_log_uploads/{partId} {
+      allow create: if isRealAdmin()
+        && request.resource.data.keys().hasOnly([
+          'upload_id', 'part_index', 'part_count', 'status', 'source',
+          'admin_user_id', 'agent_instance_id', 'machine',
+          'generated_at_ms', 'crash', 'filename', 'content'
+        ])
+        && request.resource.data.status == 'PENDING'
+        && request.resource.data.source == 'AGENT'
+        && request.resource.data.admin_user_id == request.auth.token.app_user_id
+        && request.resource.data.upload_id is string
+        && request.resource.data.upload_id.size() >= 16
+        && request.resource.data.upload_id.size() <= 64
+        && request.resource.data.part_index is int
+        && request.resource.data.part_index >= 0
+        && request.resource.data.part_count is int
+        && request.resource.data.part_count >= 1
+        && request.resource.data.part_count <= 64
+        && request.resource.data.part_index < request.resource.data.part_count
+        && request.resource.data.agent_instance_id is string
+        && request.resource.data.agent_instance_id.size() >= 8
+        && request.resource.data.agent_instance_id.size() <= 160
+        && request.resource.data.machine is string
+        && request.resource.data.machine.size() <= 160
+        && request.resource.data.generated_at_ms is int
+        && request.resource.data.crash is bool
+        && request.resource.data.filename is string
+        && request.resource.data.filename.size() <= 160
+        && request.resource.data.filename.matches('^(crash_)?agent_[A-Za-z0-9._-]+_[0-9]{8}_[0-9]{6}\\.log$')
+        && request.resource.data.content is string
+        && request.resource.data.content.size() <= 350000;
+
+      allow get, list, update, delete: if false;
+    }
+  }
+}
+)
         && request.resource.data.status == 'PENDING'
         && request.resource.data.source == 'ANDROID_CONFIRM_V1'
         && request.resource.data.picker_uid == request.auth.uid
