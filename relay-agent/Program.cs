@@ -83,6 +83,26 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
+            var d102SelfTest = args != null && Array.Exists(args, item =>
+                string.Equals(item, "--d102-self-test", StringComparison.OrdinalIgnoreCase));
+            if (d102SelfTest)
+            {
+                try
+                {
+                    var schedulePass = AgentBusinessSchedule.SelfTestTransitions();
+                    AgentDiagnostics.Write("D102 SELFTEST schedule=" + (schedulePass ? "PASS" : "FAIL"));
+                    Environment.ExitCode = schedulePass ? 0 : 5;
+                }
+                catch (Exception ex)
+                {
+                    AgentDiagnostics.Write(
+                        "D102 SELFTEST exception type=" + ex.GetType().Name +
+                        " message=" + AgentDiagnostics.Sanitize(ex.Message));
+                    Environment.ExitCode = 6;
+                }
+                return;
+            }
+
             var startupSmoke = args != null && Array.Exists(args, item =>
                 string.Equals(item, "--startup-smoke", StringComparison.OrdinalIgnoreCase));
             var autoStarted = args != null && Array.Exists(args, item =>
@@ -931,7 +951,7 @@ namespace SupraInventoryRelayAgent
 
             // Xử lý PickList
             var directCard = NewCard(22, 834, 1040, 570);
-            directCard.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            directCard.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             directCard.Controls.Add(new Label
             {
                 Left = 18, Top = 14, Width = 980, Height = 28,
