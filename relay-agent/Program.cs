@@ -229,6 +229,16 @@ namespace SupraInventoryRelayAgent
             return next;
         }
 
+        internal static string SanitizeBundle(string value, int maxChars = 4_000_000)
+        {
+            if (string.IsNullOrEmpty(value)) return "";
+            var next = value.Length > maxChars ? value.Substring(value.Length - maxChars) : value;
+            next = QuerySecretPattern.Replace(next, "$1[REDACTED]");
+            next = SecretPattern.Replace(next, m => m.Groups[1].Value + "=[REDACTED]");
+            next = JwtPattern.Replace(next, "[REDACTED_JWT]");
+            return next;
+        }
+
         internal static string SafeUrl(string url)
         {
             try
@@ -309,9 +319,10 @@ namespace SupraInventoryRelayAgent
             AppendSnapshotStream(builder, "TECHNICAL", DiagnosticLogFile, sinceLocal);
             AppendSnapshotStream(builder, "PDA_AGENT_AUDIT", RelayAuditLogFile, sinceLocal);
             var content = builder.ToString();
-            if (crash && content.Length > 800000)
-                content = content.Substring(Math.Max(0, content.Length - 800000));
-            return content;
+            var cap = crash ? 800000 : 4000000;
+            if (content.Length > cap)
+                content = content.Substring(Math.Max(0, content.Length - cap));
+            return SanitizeBundle(content, cap);
         }
 
         private static void AppendSnapshotStream(StringBuilder builder, string title, string currentPath, DateTime sinceLocal)
