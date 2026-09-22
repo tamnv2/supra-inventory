@@ -321,8 +321,8 @@
       "collection": "relay_poc_jobs",
       "api_url": "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents/relay_poc_jobs",
       "exposure": "public_identifier",
-      "status": "D103_RUNTIME_RELEASE_PASS__D091_OWNER_FIELD_E2E_PASS__D097_HA_PRESERVED__AGENT_V28__OA023_FIELD_READY",
-      "guard": "D103_BETA_ONLY__FIREBASE_ID_TOKEN_RULES__PDA_CONFIRMATION_RELAY_PLUS_ADMIN_ONLY_AGENT_META_LOG_SPOOL__NO_WMS_SECRET__NO_STABLE",
+      "status": "D104_SOURCE_CANDIDATE__D103_OWNER_FIELD_PASS__AGENT_V29_BATCH_CONFIRM__PR_GATES_PENDING",
+      "guard": "D104_BETA_ONLY__EXISTING_FIRESTORE_POLL_AND_PER_JOB_ACK__BATCH_WMS_OPTIMIZATION__NO_EXTRA_FAST_POLL__NO_WMS_SECRET__NO_STABLE",
       "collections": [
         "relay_poc_jobs",
         "relay_poc_rate_limits",
@@ -353,10 +353,10 @@
       "url": "https://api-supra.winmart.vn",
       "exposure": "public_corporate_hostname",
       "allowed_probe": "GET /sft3-hy1/api/v1/warehouse/zones",
-      "guard": "D092_SIGNED_GET_ZONES_AND_PICKLIST_LIST__PLUS_BOUNDED_CONFIRM_SKIP_ITEM_POST_AFTER_UNIQUE_EXACT_PICKLISTCODE__NO_OTHER_WMS_MUTATION__NO_STABLE",
+      "guard": "D104_SIGNED_GET_ZONES_AND_PICKLIST_LIST__PLUS_BOUNDED_CONFIRM_SKIP_ITEM_POST_AFTER_PER_CODE_EXACT_RESOLVE_AND_GUARD__MAX10_CODES_PER_POST__NO_OTHER_WMS_MUTATION__NO_STABLE",
       "allowed_lookup": "GET /sft3-hy1/api/v1/autopp/pickListConfirms",
       "allowed_confirmation": "POST /sft3-hy1/api/v1/autopp/pickListConfirms/confirmSkipItem",
-      "confirmation_contract": "ONE_EXACT_PICKLISTCODE__IsAllowSkipped_TRUE__RemainSkip_1__WarehouseCode_HY1__EnableDCSite_FALSE"
+      "confirmation_contract": "ONE_TO_TEN_EXACT_PICKLISTCODES__PER_CODE_FIRESTORE_GUARD__IsAllowSkipped_TRUE__RemainSkip_1__WarehouseCode_HY1__EnableDCSite_FALSE__UNCERTAIN_FAIL_CLOSED"
     },
     {
       "key": "wincommerce-proxy-fallback-d080",

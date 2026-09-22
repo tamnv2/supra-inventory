@@ -474,3 +474,13 @@ D103 supersedes D102 layout dimensions where they conflict.
 - No global/shared PickList confirmation button is allowed.
 - Persistent verbose implementation guidance is removed from Overview. Compact state labels and action feedback remain.
 
+## D104 — Agent multi-search and conditional confirm-all form
+
+- Agent maximized bounds use the current Windows working area; the taskbar remains visible.
+- Manual PickList input accepts up to 10 comma-separated terms. Every term must normalize to 3–5 digits. Spaces around commas are allowed and duplicate terms are ignored.
+- Example input shape: `0404, 39050, 403`.
+- Search returns the deduplicated union of matching full PickListCodes and remains bounded to 50 displayed rows.
+- Each row retains its own Xác nhận button.
+- **Xác nhận tất cả** is hidden for 0–1 result row and visible for >=2 rows. Its label may include the displayed count and it targets all currently displayed rows.
+- During a manual confirm-all operation, search/grid/bulk controls are disabled until the bounded operation completes; concise aggregate success/error/uncertain counts are then shown.
+

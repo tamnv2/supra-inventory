@@ -471,6 +471,7 @@ namespace SupraInventoryRelayAgent
         private Panel _supraCard;
         private readonly TextBox _manualPicklistQuery = new TextBox();
         private readonly Button _manualPicklistSearch = new Button();
+        private readonly Button _manualPicklistConfirmAll = new Button();
         private readonly DataGridView _manualPicklistGrid = new DataGridView();
         private readonly Label _manualPicklistStatus = new Label();
         private readonly Label _agentFleetStatus = new Label();
@@ -522,6 +523,7 @@ namespace SupraInventoryRelayAgent
         private CancellationTokenSource _listenCts;
         private bool _allowExit;
         private bool _updateCheckRunning;
+        private int _manualPicklistOperationRunning;
         private long _localPdaRequests;
         private long _localAgentResponses;
         private readonly string _agentInstanceId;
@@ -698,6 +700,7 @@ namespace SupraInventoryRelayAgent
 
             Shown += (s, e) =>
             {
+                ApplyWorkingAreaMaximum();
                 InitializeStatusOverlaySafe();
                 UpdateTrayMonitor();
 
@@ -745,7 +748,7 @@ namespace SupraInventoryRelayAgent
             MinimizeBox = false;
             ShowInTaskbar = true;
             FormBorderStyle = FormBorderStyle.None;
-            WindowState = FormWindowState.Maximized;
+            ApplyWorkingAreaMaximum();
 
             var shell = new TableLayoutPanel
             {
@@ -994,11 +997,13 @@ namespace SupraInventoryRelayAgent
                 ForeColor = Color.FromArgb(24, 43, 55)
             });
 
-            _manualPicklistQuery.SetBounds(16, 42, 220, 30);
-            _manualPicklistQuery.MaxLength = 5;
+            _manualPicklistQuery.SetBounds(16, 42, 360, 30);
+            _manualPicklistQuery.MaxLength = 79;
             _manualPicklistQuery.KeyPress += (s, e) =>
             {
-                if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)) e.Handled = true;
+                if (char.IsControl(e.KeyChar) || char.IsDigit(e.KeyChar) || e.KeyChar == ',' || char.IsWhiteSpace(e.KeyChar))
+                    return;
+                e.Handled = true;
             };
             _manualPicklistQuery.KeyDown += (s, e) =>
             {
@@ -1009,18 +1014,29 @@ namespace SupraInventoryRelayAgent
             };
             _manualPicklistQuery.TextChanged += (s, e) =>
             {
-                var length = _manualPicklistQuery.Text.Trim().Length;
-                _manualPicklistSearch.Enabled = length >= 3 && length <= 5 && IsBusinessAllowed();
+                List<string> queries;
+                var valid = TryParseManualPicklistQueries(_manualPicklistQuery.Text, out queries);
+                _manualPicklistSearch.Enabled = valid && IsBusinessAllowed();
                 _manualPicklistGrid.Rows.Clear();
-                _manualPicklistStatus.Text = length < 3 ? "" : "Sẵn sàng.";
+                _manualPicklistConfirmAll.Visible = false;
+                _manualPicklistStatus.Text = string.IsNullOrWhiteSpace(_manualPicklistQuery.Text)
+                    ? ""
+                    : (valid ? "Sẵn sàng." : "Nhập 3–5 số; nhiều giá trị ngăn cách bằng dấu phẩy.");
             };
             directCard.Controls.Add(_manualPicklistQuery);
 
-            _manualPicklistSearch.SetBounds(246, 40, 110, 34);
+            _manualPicklistSearch.SetBounds(386, 40, 110, 34);
             _manualPicklistSearch.Text = "Tìm kiếm";
             _manualPicklistSearch.Enabled = false;
             _manualPicklistSearch.Click += (s, e) => Task.Run(() => SearchManualPicklists());
             directCard.Controls.Add(_manualPicklistSearch);
+
+            _manualPicklistConfirmAll.SetBounds(506, 40, 160, 34);
+            _manualPicklistConfirmAll.Text = "Xác nhận tất cả";
+            _manualPicklistConfirmAll.Visible = false;
+            _manualPicklistConfirmAll.Enabled = false;
+            _manualPicklistConfirmAll.Click += (s, e) => Task.Run(() => ConfirmAllManualPicklists());
+            directCard.Controls.Add(_manualPicklistConfirmAll);
 
             _manualPicklistGrid.SetBounds(16, 84, 1006, 130);
             _manualPicklistGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
@@ -1333,6 +1349,17 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private void ApplyWorkingAreaMaximum()
+        {
+            try
+            {
+                var screen = Screen.FromControl(this);
+                MaximizedBounds = screen.WorkingArea;
+            }
+            catch { }
+            WindowState = FormWindowState.Maximized;
+        }
+
         private void MinimizeToTray()
         {
             WindowState = FormWindowState.Minimized;
@@ -1344,7 +1371,7 @@ namespace SupraInventoryRelayAgent
         {
             ShowInTaskbar = true;
             Show();
-            WindowState = FormWindowState.Maximized;
+            ApplyWorkingAreaMaximum();
             Activate();
         }
 
@@ -1637,13 +1664,65 @@ namespace SupraInventoryRelayAgent
                 return _wmsSession != null && _wmsSession.IsValidHy1();
         }
 
-        private void SearchManualPicklists()
+        private static bool TryParseManualPicklistQueries(string raw, out List<string> queries)
         {
-            string query = "";
+            queries = new List<string>();
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var part in (raw ?? "").Split(','))
+            {
+                var value = (part ?? "").Trim();
+                if (value.Length == 0) continue;
+                if (value.Length < 3 || value.Length > 5) return false;
+                foreach (var ch in value)
+                    if (ch < '0' || ch > '9') return false;
+                if (seen.Add(value)) queries.Add(value);
+            }
+            return queries.Count > 0 && queries.Count <= 10;
+        }
+
+        private List<string> GetManualDisplayedPicklists()
+        {
+            var codes = new List<string>();
             UiSync(() =>
             {
-                query = (_manualPicklistQuery.Text ?? "").Trim();
+                var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (DataGridViewRow row in _manualPicklistGrid.Rows)
+                {
+                    if (row == null || row.IsNewRow) continue;
+                    var code = Convert.ToString(row.Cells["PickListCode"].Value) ?? "";
+                    code = code.Trim();
+                    if (code.Length > 0 && seen.Add(code)) codes.Add(code);
+                }
+            });
+            return codes;
+        }
+
+        private void UpdateManualConfirmAllVisibility()
+        {
+            var count = 0;
+            foreach (DataGridViewRow row in _manualPicklistGrid.Rows)
+                if (row != null && !row.IsNewRow) count++;
+            _manualPicklistConfirmAll.Visible = count >= 2;
+            _manualPicklistConfirmAll.Text = count >= 2 ? "Xác nhận tất cả (" + count + ")" : "Xác nhận tất cả";
+            _manualPicklistConfirmAll.Enabled =
+                count >= 2 && HasAgentSession() && HasUsableWmsSession() && IsBusinessAllowed();
+        }
+
+        private void SearchManualPicklists()
+        {
+            if (Interlocked.CompareExchange(ref _manualPicklistOperationRunning, 1, 0) != 0)
+            {
+                Ui(() => _manualPicklistStatus.Text = "Đang xử lý PickList...");
+                return;
+            }
+
+            List<string> queries = null;
+            UiSync(() =>
+            {
+                if (!TryParseManualPicklistQueries(_manualPicklistQuery.Text, out queries))
+                    queries = null;
                 _manualPicklistSearch.Enabled = false;
+                _manualPicklistConfirmAll.Visible = false;
                 _manualPicklistGrid.Enabled = false;
                 _manualPicklistGrid.Rows.Clear();
                 _manualPicklistStatus.Text = "Đang tìm PickList...";
@@ -1654,11 +1733,8 @@ namespace SupraInventoryRelayAgent
             {
                 if (!IsBusinessAllowed())
                     throw new InvalidOperationException("Agent đang tạm dừng nghiệp vụ 22:00–05:00. Hãy xác nhận tăng ca tại Tổng quan để tiếp tục.");
-                if (query.Length < 3 || query.Length > 5)
-                    throw new InvalidOperationException("Nhập từ 3 đến 5 chữ số.");
-                foreach (var ch in query)
-                    if (!char.IsDigit(ch))
-                        throw new InvalidOperationException("Chỉ được nhập chữ số.");
+                if (queries == null || queries.Count == 0)
+                    throw new InvalidOperationException("Nhập 3–5 số; tối đa 10 giá trị, ngăn cách bằng dấu phẩy.");
 
                 if (!HasAgentSession())
                     throw new InvalidOperationException("Cần xác minh Agent bằng tài khoản ADMIN trước.");
@@ -1666,7 +1742,9 @@ namespace SupraInventoryRelayAgent
                 if (wmsSession == null || !wmsSession.IsValidHy1())
                     throw new InvalidOperationException("Phiên Supra chưa sẵn sàng.");
 
-                var result = _picklistCache.SearchContains(wmsSession, query, 50);
+                // D104: search all terms against one cache snapshot. If any term misses,
+                // refresh WMS at most once and search all terms again.
+                var result = _picklistCache.SearchContainsMany(wmsSession, queries, 50);
                 if (string.Equals(result.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
                     ClearWmsSessionAfterExpiry();
 
@@ -1679,8 +1757,10 @@ namespace SupraInventoryRelayAgent
                     if (string.Equals(result.Result, "FOUND", StringComparison.Ordinal))
                     {
                         _manualPicklistStatus.Text =
-                            "Tìm thấy " + result.Matches.Count +
-                            (result.Matches.Count >= 50 ? " PickList đầu tiên." : " PickList.");
+                            "Tìm thấy " + result.Matches.Count + " PickList" +
+                            (result.MissingFragments.Count > 0
+                                ? " · " + result.MissingFragments.Count + " từ khóa không có kết quả."
+                                : ".");
                         _manualPicklistStatus.ForeColor = Color.FromArgb(35, 122, 76);
                     }
                     else if (string.Equals(result.Result, "NOT_FOUND", StringComparison.Ordinal))
@@ -1693,11 +1773,13 @@ namespace SupraInventoryRelayAgent
                         _manualPicklistStatus.Text = "Không thể tìm PickList: " + (result.Result ?? "LOOKUP_ERROR") + ".";
                         _manualPicklistStatus.ForeColor = Color.FromArgb(180, 76, 60);
                     }
+                    UpdateManualConfirmAllVisibility();
                 });
 
                 AgentDiagnostics.WriteAudit(
                     "MANUAL_PICKLIST_SEARCH result=" + result.Result +
-                    " query_length=" + query.Length +
+                    " query_count=" + queries.Count +
+                    " missing_queries=" + result.MissingFragments.Count +
                     " matches=" + result.Matches.Count +
                     " cache_count=" + result.CacheCount +
                     " values=redacted");
@@ -1708,27 +1790,63 @@ namespace SupraInventoryRelayAgent
                 {
                     _manualPicklistStatus.Text = SafeMessage(ex);
                     _manualPicklistStatus.ForeColor = Color.FromArgb(180, 76, 60);
+                    _manualPicklistConfirmAll.Visible = false;
                 });
                 Log("Manual PickList search fail: " + SafeMessage(ex));
             }
             finally
             {
+                Interlocked.Exchange(ref _manualPicklistOperationRunning, 0);
                 Ui(() =>
                 {
-                    var length = (_manualPicklistQuery.Text ?? "").Trim().Length;
-                    _manualPicklistSearch.Enabled = length >= 3 && length <= 5 && IsBusinessAllowed();
-                    _manualPicklistGrid.Enabled = HasAgentSession() && HasUsableWmsSession() && IsBusinessAllowed();
+                    List<string> parsed;
+                    _manualPicklistSearch.Enabled =
+                        TryParseManualPicklistQueries(_manualPicklistQuery.Text, out parsed) &&
+                        IsBusinessAllowed();
+                    _manualPicklistGrid.Enabled =
+                        HasAgentSession() && HasUsableWmsSession() && IsBusinessAllowed();
+                    UpdateManualConfirmAllVisibility();
                 });
             }
         }
 
         private void ConfirmManualPicklist(string pickListCode)
         {
+            ConfirmManualPicklists(new[] { pickListCode });
+        }
+
+        private void ConfirmAllManualPicklists()
+        {
+            var codes = GetManualDisplayedPicklists();
+            if (codes.Count < 2) return;
+            ConfirmManualPicklists(codes);
+        }
+
+        private void ConfirmManualPicklists(IEnumerable<string> pickListCodes)
+        {
+            if (Interlocked.CompareExchange(ref _manualPicklistOperationRunning, 1, 0) != 0)
+            {
+                Ui(() => _manualPicklistStatus.Text = "Đang xử lý PickList...");
+                return;
+            }
+
+            var codes = new List<string>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var raw in pickListCodes ?? new string[0])
+            {
+                var code = (raw ?? "").Trim();
+                if (code.Length == 0 || !seen.Add(code)) continue;
+                codes.Add(code);
+            }
+
             UiSync(() =>
             {
                 _manualPicklistGrid.Enabled = false;
                 _manualPicklistSearch.Enabled = false;
-                _manualPicklistStatus.Text = "Đang xác nhận " + pickListCode + "...";
+                _manualPicklistConfirmAll.Enabled = false;
+                _manualPicklistStatus.Text = codes.Count <= 1
+                    ? "Đang xác nhận PickList..."
+                    : "Đang xác nhận " + codes.Count + " PickList...";
                 _manualPicklistStatus.ForeColor = Color.FromArgb(88, 104, 115);
             });
 
@@ -1736,8 +1854,10 @@ namespace SupraInventoryRelayAgent
             {
                 if (!IsBusinessAllowed())
                     throw new InvalidOperationException("Agent đang tạm dừng nghiệp vụ 22:00–05:00. Hãy xác nhận tăng ca tại Tổng quan để tiếp tục.");
-                if (string.IsNullOrWhiteSpace(pickListCode))
+                if (codes.Count == 0)
                     throw new InvalidOperationException("Chưa chọn PickList.");
+                if (codes.Count > 50)
+                    throw new InvalidOperationException("Tối đa 50 PickList hiển thị cho một lần xác nhận tất cả.");
                 if (!HasAgentSession())
                     throw new InvalidOperationException("Phiên xác minh Agent không còn hợp lệ.");
 
@@ -1750,73 +1870,111 @@ namespace SupraInventoryRelayAgent
                 if (wmsSession == null || !wmsSession.IsValidHy1())
                     throw new InvalidOperationException("Phiên Supra chưa sẵn sàng.");
 
-                var requestId = "manual:" + Guid.NewGuid().ToString("N");
-                var guard = _confirmationGuard.TryBegin(
-                    appSession,
-                    pickListCode,
-                    requestId,
-                    _agentInstanceId,
-                    "manual:" + appSession.UserId);
+                var acquired = new Dictionary<string, FirestoreConfirmationGuardDecision>(StringComparer.OrdinalIgnoreCase);
+                var alreadyConfirmed = 0;
+                var uncertain = 0;
 
-                if (guard.AlreadyConfirmed)
+                foreach (var code in codes)
                 {
-                    Ui(() =>
+                    var requestId = "manual:" + Guid.NewGuid().ToString("N");
+                    var guard = _confirmationGuard.TryBegin(
+                        appSession,
+                        code,
+                        requestId,
+                        _agentInstanceId,
+                        "manual:" + appSession.UserId);
+
+                    if (guard.AlreadyConfirmed)
                     {
-                        _manualPicklistStatus.Text = "PickList này đã được xác nhận trước đó. Không gửi lại.";
-                        _manualPicklistStatus.ForeColor = Color.FromArgb(35, 122, 76);
-                    });
-                    AgentDiagnostics.WriteAudit("MANUAL_PICKLIST_CONFIRM result=ALREADY_CONFIRMED guard=" + Short(guard.GuardId));
-                    return;
+                        alreadyConfirmed++;
+                        continue;
+                    }
+                    if (!guard.Acquired || guard.InProgressOrUncertain)
+                    {
+                        uncertain++;
+                        continue;
+                    }
+                    acquired[code] = guard;
                 }
 
-                if (!guard.Acquired || guard.InProgressOrUncertain)
+                var confirmedCount = 0;
+                var failedCount = 0;
+                var processed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var acquiredCodes = new List<string>(acquired.Keys);
+                var stopAfterSessionExpiry = false;
+
+                for (var offset = 0; offset < acquiredCodes.Count; offset += 10)
                 {
-                    Ui(() =>
+                    var count = Math.Min(10, acquiredCodes.Count - offset);
+                    var chunk = acquiredCodes.GetRange(offset, count);
+                    var results = WmsPicklistConfirmClient.ConfirmMany(wmsSession, chunk);
+
+                    foreach (var code in chunk)
                     {
-                        _manualPicklistStatus.Text = "Trạng thái xác nhận chưa rõ. Không gửi lại; hãy kiểm tra trên SFT / SFT 3.";
-                        _manualPicklistStatus.ForeColor = Color.FromArgb(180, 76, 60);
-                    });
-                    AgentDiagnostics.WriteAudit("MANUAL_PICKLIST_CONFIRM result=GUARD_UNCERTAIN guard=" + Short(guard.GuardId));
-                    return;
+                        processed.Add(code);
+                        WmsPicklistConfirmResult result;
+                        if (!results.TryGetValue(code, out result) || result == null)
+                        {
+                            uncertain++;
+                            continue;
+                        }
+
+                        var guard = acquired[code];
+                        if (string.Equals(result.Result, "CONFIRMED", StringComparison.Ordinal))
+                        {
+                            _confirmationGuard.MarkLocalConfirmed(guard.GuardId);
+                            confirmedCount++;
+                        }
+                        else if (IsSafeConfirmationFailure(result, chunk.Count))
+                        {
+                            _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
+                            failedCount++;
+                        }
+                        else
+                        {
+                            uncertain++;
+                        }
+
+                        if (string.Equals(result.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
+                            stopAfterSessionExpiry = true;
+                    }
+
+                    if (stopAfterSessionExpiry) break;
                 }
 
-                var confirmed = WmsPicklistConfirmClient.Confirm(wmsSession, pickListCode);
-                if (string.Equals(confirmed.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
+                if (stopAfterSessionExpiry)
+                {
                     ClearWmsSessionAfterExpiry();
+                    foreach (var pair in acquired)
+                    {
+                        if (processed.Contains(pair.Key)) continue;
+                        _confirmationGuard.ReleaseSafeFailure(appSession, pair.Value.GuardId);
+                        failedCount++;
+                    }
+                }
 
-                if (string.Equals(confirmed.Result, "CONFIRMED", StringComparison.Ordinal))
+                Ui(() =>
                 {
-                    _confirmationGuard.MarkLocalConfirmed(guard.GuardId);
-                    Ui(() =>
-                    {
-                        _manualPicklistStatus.Text = "Xác nhận thành công. Hãy tiếp tục xử lý trên SFT / SFT 3.";
-                        _manualPicklistStatus.ForeColor = Color.FromArgb(35, 122, 76);
-                    });
-                }
-                else if (IsSafeConfirmationFailure(confirmed.Result))
-                {
-                    _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
-                    Ui(() =>
-                    {
-                        _manualPicklistStatus.Text = "Xác nhận không thành công: " + confirmed.Result + ".";
-                        _manualPicklistStatus.ForeColor = Color.FromArgb(180, 76, 60);
-                    });
-                }
-                else
-                {
-                    Ui(() =>
-                    {
-                        _manualPicklistStatus.Text = "Kết quả xác nhận chưa rõ. Không bấm lại; hãy kiểm tra trên SFT / SFT 3.";
-                        _manualPicklistStatus.ForeColor = Color.FromArgb(180, 76, 60);
-                    });
-                }
+                    var totalOk = confirmedCount + alreadyConfirmed;
+                    _manualPicklistStatus.Text =
+                        "Xác nhận: " + totalOk + "/" + codes.Count +
+                        (alreadyConfirmed > 0 ? " · đã có " + alreadyConfirmed : "") +
+                        (uncertain > 0 ? " · chưa rõ " + uncertain : "") +
+                        (failedCount > 0 ? " · lỗi " + failedCount : "");
+                    _manualPicklistStatus.ForeColor =
+                        uncertain == 0 && failedCount == 0
+                            ? Color.FromArgb(35, 122, 76)
+                            : Color.FromArgb(180, 76, 60);
+                });
 
                 AgentDiagnostics.WriteAudit(
-                    "MANUAL_PICKLIST_CONFIRM result=" + (confirmed.Result ?? "CONFIRM_ERROR") +
-                    " http=" + confirmed.StatusCode +
-                    " route=" + confirmed.Route +
-                    " guard=" + Short(guard.GuardId) +
-                    " picklist=redacted");
+                    "MANUAL_PICKLIST_CONFIRM_BATCH requested=" + codes.Count +
+                    " sent=" + acquired.Count +
+                    " confirmed=" + confirmedCount +
+                    " already=" + alreadyConfirmed +
+                    " uncertain=" + uncertain +
+                    " failed=" + failedCount +
+                    " picklists=redacted");
             }
             catch (Exception ex)
             {
@@ -1825,15 +1983,20 @@ namespace SupraInventoryRelayAgent
                     _manualPicklistStatus.Text = SafeMessage(ex);
                     _manualPicklistStatus.ForeColor = Color.FromArgb(180, 76, 60);
                 });
-                Log("Manual PickList confirm fail: " + SafeMessage(ex));
+                Log("Manual PickList confirm batch fail: " + SafeMessage(ex));
             }
             finally
             {
+                Interlocked.Exchange(ref _manualPicklistOperationRunning, 0);
                 Ui(() =>
                 {
-                    var length = (_manualPicklistQuery.Text ?? "").Trim().Length;
-                    _manualPicklistSearch.Enabled = length >= 3 && length <= 5 && IsBusinessAllowed();
-                    _manualPicklistGrid.Enabled = HasAgentSession() && HasUsableWmsSession() && IsBusinessAllowed();
+                    List<string> parsed;
+                    _manualPicklistSearch.Enabled =
+                        TryParseManualPicklistQueries(_manualPicklistQuery.Text, out parsed) &&
+                        IsBusinessAllowed();
+                    _manualPicklistGrid.Enabled =
+                        HasAgentSession() && HasUsableWmsSession() && IsBusinessAllowed();
+                    UpdateManualConfirmAllVisibility();
                 });
             }
         }
@@ -2842,175 +3005,390 @@ namespace SupraInventoryRelayAgent
 
         private FirestoreConfirmationOutcome ProcessFirestoreConfirmation(FirestoreConfirmationWorkItem work)
         {
+            var results = ProcessFirestoreConfirmations(new List<FirestoreConfirmationWorkItem> { work });
+            FirestoreConfirmationOutcome outcome;
+            return work != null &&
+                   results.TryGetValue(work.RequestId ?? "", out outcome) &&
+                   outcome != null
+                ? outcome
+                : new FirestoreConfirmationOutcome { Result = "CONFIRM_ERROR" };
+        }
+
+        private Dictionary<string, FirestoreConfirmationOutcome> ProcessFirestoreConfirmations(
+            List<FirestoreConfirmationWorkItem> works)
+        {
+            var outcomes = new Dictionary<string, FirestoreConfirmationOutcome>(StringComparer.Ordinal);
+            if (works == null || works.Count == 0) return outcomes;
+            if (works.Count > FirestoreConfirmationTransport.MaxConcurrentJobs)
+                throw new InvalidOperationException("Confirmation batch exceeds bounded job limit.");
+
             var appSession = SnapshotSession();
-            var rate = _firestoreRateLimiter.Check(appSession, work.PickerUid, work.PickerUserId);
-            if (rate.IsLocked)
+            var wmsSession = SnapshotWmsSession();
+
+            foreach (var work in works)
             {
-                return new FirestoreConfirmationOutcome
+                if (work == null || string.IsNullOrWhiteSpace(work.RequestId)) continue;
+                var rate = _firestoreRateLimiter.Check(appSession, work.PickerUid, work.PickerUserId);
+                if (rate.IsLocked)
                 {
-                    Result = "PICKER_LOCKED",
-                    CacheMode = "RATE_LIMIT",
-                    Route = "NONE",
-                    Rate = rate
-                };
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "PICKER_LOCKED",
+                        CacheMode = "RATE_LIMIT",
+                        Route = "NONE",
+                        Rate = rate
+                    };
+                }
             }
 
-            var wmsSession = SnapshotWmsSession();
             if (wmsSession == null || !wmsSession.IsValidHy1())
             {
-                return new FirestoreConfirmationOutcome
+                foreach (var work in works)
                 {
-                    Result = "WMS_SESSION_REQUIRED",
-                    CacheMode = "NO_SESSION",
-                    Route = "NONE",
-                    Rate = rate
-                };
+                    if (work == null || string.IsNullOrWhiteSpace(work.RequestId) || outcomes.ContainsKey(work.RequestId)) continue;
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "WMS_SESSION_REQUIRED",
+                        CacheMode = "NO_SESSION",
+                        Route = "NONE"
+                    };
+                }
+                return outcomes;
             }
 
-            var lookup = _picklistCache.Lookup(wmsSession, work.Suffix);
-            if (string.Equals(lookup.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
-                ClearWmsSessionAfterExpiry();
-
-            if (string.Equals(lookup.Result, "NOT_FOUND", StringComparison.Ordinal))
+            var lookupWorks = new List<FirestoreConfirmationWorkItem>();
+            var lookupSuffixes = new List<string>();
+            foreach (var work in works)
             {
-                rate = _firestoreRateLimiter.RecordNotFound(appSession, work.PickerUid, work.PickerUserId, work.RequestId);
-                return new FirestoreConfirmationOutcome
-                {
-                    Result = rate.IsLocked ? "PICKER_LOCKED" : "NOT_FOUND",
-                    CacheMode = lookup.CacheMode,
-                    Route = lookup.Route,
-                    Http = lookup.StatusCode,
-                    OperationMs = Math.Max(0L, lookup.ElapsedMs),
-                    Matches = 0,
-                    Rate = rate
-                };
+                if (work == null || string.IsNullOrWhiteSpace(work.RequestId) || outcomes.ContainsKey(work.RequestId)) continue;
+                lookupWorks.Add(work);
+                lookupSuffixes.Add(work.Suffix);
             }
 
-            if (!string.Equals(lookup.Result, "FOUND", StringComparison.Ordinal))
+            Dictionary<string, CachedPicklistResult> lookupBySuffix;
+            try
             {
-                return new FirestoreConfirmationOutcome
-                {
-                    Result = lookup.Result ?? "LOOKUP_ERROR",
-                    CacheMode = lookup.CacheMode,
-                    Route = lookup.Route,
-                    Http = lookup.StatusCode,
-                    OperationMs = Math.Max(0L, lookup.ElapsedMs),
-                    Matches = Math.Max(0, lookup.MatchCount),
-                    Rate = rate
-                };
+                lookupBySuffix = lookupWorks.Count == 0
+                    ? new Dictionary<string, CachedPicklistResult>(StringComparer.Ordinal)
+                    : _picklistCache.LookupMany(wmsSession, lookupSuffixes);
+            }
+            catch (Exception ex)
+            {
+                foreach (var work in lookupWorks)
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "LOOKUP_ERROR",
+                        CacheMode = "BATCH_LOOKUP_ERROR",
+                        Route = "NONE"
+                    };
+                Log("FIRESTORE batch lookup fail type=" + ex.GetType().Name);
+                return outcomes;
             }
 
-            _firestoreRateLimiter.ClearFound(appSession, work.PickerUid);
-            rate = new PickerRateDecision();
-
-            if (work.CreatedAtMs > 0 && DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - work.CreatedAtMs >= 25000)
+            var exactWorks = new List<FirestoreConfirmationWorkItem>();
+            var exactSuffixes = new List<string>();
+            foreach (var work in lookupWorks)
             {
-                return new FirestoreConfirmationOutcome
+                CachedPicklistResult lookup;
+                if (!lookupBySuffix.TryGetValue(work.Suffix ?? "", out lookup) || lookup == null)
                 {
-                    Result = "REQUEST_EXPIRED",
-                    CacheMode = lookup.CacheMode + "+EXPIRED",
-                    Route = lookup.Route,
-                    Http = lookup.StatusCode,
-                    OperationMs = Math.Max(0L, lookup.ElapsedMs),
-                    Matches = Math.Max(0, lookup.MatchCount),
-                    Rate = rate
-                };
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "LOOKUP_ERROR",
+                        CacheMode = "BATCH_LOOKUP_MISSING",
+                        Route = "NONE"
+                    };
+                    continue;
+                }
+
+                if (string.Equals(lookup.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
+                    ClearWmsSessionAfterExpiry();
+
+                if (string.Equals(lookup.Result, "NOT_FOUND", StringComparison.Ordinal))
+                {
+                    var rate = _firestoreRateLimiter.RecordNotFound(
+                        appSession, work.PickerUid, work.PickerUserId, work.RequestId);
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = rate.IsLocked ? "PICKER_LOCKED" : "NOT_FOUND",
+                        CacheMode = lookup.CacheMode,
+                        Route = lookup.Route,
+                        Http = lookup.StatusCode,
+                        OperationMs = Math.Max(0L, lookup.ElapsedMs),
+                        Matches = 0,
+                        Rate = rate
+                    };
+                    continue;
+                }
+
+                if (!string.Equals(lookup.Result, "FOUND", StringComparison.Ordinal))
+                {
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = lookup.Result ?? "LOOKUP_ERROR",
+                        CacheMode = lookup.CacheMode,
+                        Route = lookup.Route,
+                        Http = lookup.StatusCode,
+                        OperationMs = Math.Max(0L, lookup.ElapsedMs),
+                        Matches = Math.Max(0, lookup.MatchCount)
+                    };
+                    continue;
+                }
+
+                _firestoreRateLimiter.ClearFound(appSession, work.PickerUid);
+
+                if (work.CreatedAtMs > 0 &&
+                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - work.CreatedAtMs >= 25000)
+                {
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "REQUEST_EXPIRED",
+                        CacheMode = lookup.CacheMode + "+EXPIRED",
+                        Route = lookup.Route,
+                        Http = lookup.StatusCode,
+                        OperationMs = Math.Max(0L, lookup.ElapsedMs),
+                        Matches = Math.Max(0, lookup.MatchCount),
+                        Rate = new PickerRateDecision()
+                    };
+                    continue;
+                }
+
+                exactWorks.Add(work);
+                exactSuffixes.Add(work.Suffix);
             }
 
-            var exact = WmsExactPicklistResolver.Resolve(wmsSession, work.Suffix);
-            if (!string.Equals(exact.Result, "FOUND", StringComparison.Ordinal) ||
-                exact.MatchCount != 1 || string.IsNullOrWhiteSpace(exact.PickListCode))
+            Dictionary<string, WmsExactPicklistResult> exactBySuffix;
+            try
             {
-                return new FirestoreConfirmationOutcome
+                exactBySuffix = exactWorks.Count == 0
+                    ? new Dictionary<string, WmsExactPicklistResult>(StringComparer.Ordinal)
+                    : WmsExactPicklistResolver.ResolveMany(wmsSession, exactSuffixes);
+            }
+            catch (Exception ex)
+            {
+                foreach (var work in exactWorks)
                 {
-                    Result = exact.Result ?? "EXACT_CODE_NOT_RESOLVED",
-                    CacheMode = lookup.CacheMode + "+EXACT_RESOLVE",
-                    Route = exact.Route,
-                    Http = exact.StatusCode,
-                    OperationMs = Math.Max(0L, lookup.ElapsedMs) + Math.Max(0L, exact.ElapsedMs),
-                    Matches = Math.Max(0, exact.MatchCount),
-                    Rate = rate
-                };
+                    CachedPicklistResult lookup;
+                    lookupBySuffix.TryGetValue(work.Suffix ?? "", out lookup);
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "EXACT_CODE_NOT_RESOLVED",
+                        CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_BATCH_ERROR",
+                        Route = "NONE",
+                        OperationMs = lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)
+                    };
+                }
+                Log("FIRESTORE exact batch fail type=" + ex.GetType().Name);
+                return outcomes;
             }
 
-            if (work.CreatedAtMs > 0 && DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - work.CreatedAtMs >= 25000)
+            var guardsByRequest = new Dictionary<string, FirestoreConfirmationGuardDecision>(StringComparer.Ordinal);
+            var codeByRequest = new Dictionary<string, string>(StringComparer.Ordinal);
+            var confirmCodes = new List<string>();
+
+            foreach (var work in exactWorks)
             {
-                return new FirestoreConfirmationOutcome
+                CachedPicklistResult lookup;
+                lookupBySuffix.TryGetValue(work.Suffix ?? "", out lookup);
+                WmsExactPicklistResult exact;
+                if (!exactBySuffix.TryGetValue(work.Suffix ?? "", out exact) || exact == null ||
+                    !string.Equals(exact.Result, "FOUND", StringComparison.Ordinal) ||
+                    exact.MatchCount != 1 || string.IsNullOrWhiteSpace(exact.PickListCode))
                 {
-                    Result = "REQUEST_EXPIRED",
-                    CacheMode = lookup.CacheMode + "+EXACT_RESOLVE+EXPIRED",
-                    Route = exact.Route,
-                    Http = exact.StatusCode,
-                    OperationMs = Math.Max(0L, lookup.ElapsedMs) + Math.Max(0L, exact.ElapsedMs),
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = exact == null ? "EXACT_CODE_NOT_RESOLVED" : (exact.Result ?? "EXACT_CODE_NOT_RESOLVED"),
+                        CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH",
+                        Route = exact == null ? "NONE" : exact.Route,
+                        Http = exact == null ? 0 : exact.StatusCode,
+                        OperationMs = (lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)) +
+                                      (exact == null ? 0L : Math.Max(0L, exact.ElapsedMs)),
+                        Matches = exact == null ? 0 : Math.Max(0, exact.MatchCount),
+                        Rate = new PickerRateDecision()
+                    };
+                    continue;
+                }
+
+                if (work.CreatedAtMs > 0 &&
+                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - work.CreatedAtMs >= 25000)
+                {
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "REQUEST_EXPIRED",
+                        CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+EXPIRED",
+                        Route = exact.Route,
+                        Http = exact.StatusCode,
+                        OperationMs = (lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)) + Math.Max(0L, exact.ElapsedMs),
+                        Matches = 1,
+                        Rate = new PickerRateDecision()
+                    };
+                    continue;
+                }
+
+                var guard = _confirmationGuard.TryBegin(
+                    appSession,
+                    exact.PickListCode,
+                    work.RequestId,
+                    _agentInstanceId,
+                    work.PickerUid);
+
+                if (guard.AlreadyConfirmed)
+                {
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "CONFIRMED",
+                        CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+IDEMPOTENT",
+                        Route = "FIRESTORE_CONFIRM_GUARD",
+                        Http = 200,
+                        OperationMs = (lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)) + Math.Max(0L, exact.ElapsedMs),
+                        Matches = 1,
+                        Rate = new PickerRateDecision(),
+                        GuardId = guard.GuardId,
+                        RetireAtMs = guard.RetireAtMs
+                    };
+                    continue;
+                }
+
+                if (!guard.Acquired || guard.InProgressOrUncertain)
+                {
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
+                        CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+GUARD",
+                        Route = "FIRESTORE_CONFIRM_GUARD",
+                        Http = 409,
+                        OperationMs = (lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)) + Math.Max(0L, exact.ElapsedMs),
+                        Matches = 1,
+                        Rate = new PickerRateDecision(),
+                        GuardId = guard.GuardId,
+                        RetireAtMs = guard.RetireAtMs
+                    };
+                    continue;
+                }
+
+                guardsByRequest[work.RequestId] = guard;
+                codeByRequest[work.RequestId] = exact.PickListCode;
+                if (!confirmCodes.Exists(item =>
+                        string.Equals(item, exact.PickListCode, StringComparison.OrdinalIgnoreCase)))
+                    confirmCodes.Add(exact.PickListCode);
+            }
+
+            var confirmResults = new Dictionary<string, WmsPicklistConfirmResult>(StringComparer.OrdinalIgnoreCase);
+            var confirmBatchSizes = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            var sessionExpired = false;
+            for (var offset = 0; offset < confirmCodes.Count; offset += 10)
+            {
+                var count = Math.Min(10, confirmCodes.Count - offset);
+                var chunk = confirmCodes.GetRange(offset, count);
+                var chunkResults = WmsPicklistConfirmClient.ConfirmMany(wmsSession, chunk);
+                foreach (var pair in chunkResults)
+                {
+                    confirmResults[pair.Key] = pair.Value;
+                    confirmBatchSizes[pair.Key] = chunk.Count;
+                }
+                foreach (var result in chunkResults.Values)
+                    if (result != null && string.Equals(result.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
+                        sessionExpired = true;
+                if (sessionExpired) break;
+            }
+
+            if (sessionExpired) ClearWmsSessionAfterExpiry();
+
+            foreach (var work in exactWorks)
+            {
+                FirestoreConfirmationGuardDecision guard;
+                string code;
+                if (!guardsByRequest.TryGetValue(work.RequestId ?? "", out guard) ||
+                    !codeByRequest.TryGetValue(work.RequestId ?? "", out code))
+                    continue;
+
+                CachedPicklistResult lookup;
+                lookupBySuffix.TryGetValue(work.Suffix ?? "", out lookup);
+                WmsExactPicklistResult exact;
+                exactBySuffix.TryGetValue(work.Suffix ?? "", out exact);
+
+                WmsPicklistConfirmResult confirmed;
+                if (!confirmResults.TryGetValue(code, out confirmed) || confirmed == null)
+                {
+                    if (sessionExpired)
+                    {
+                        _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
+                        outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                        {
+                            Result = "SESSION_EXPIRED",
+                            CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+GUARD+BATCH_CONFIRM",
+                            Route = "NONE",
+                            Matches = 1,
+                            Rate = new PickerRateDecision(),
+                            GuardId = guard.GuardId,
+                            RetireAtMs = guard.RetireAtMs
+                        };
+                    }
+                    else
+                    {
+                        outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                        {
+                            Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
+                            CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+GUARD+BATCH_CONFIRM",
+                            Route = "NONE",
+                            Matches = 1,
+                            Rate = new PickerRateDecision(),
+                            GuardId = guard.GuardId,
+                            RetireAtMs = guard.RetireAtMs
+                        };
+                    }
+                    continue;
+                }
+
+                if (string.Equals(confirmed.Result, "CONFIRMED", StringComparison.Ordinal))
+                    _confirmationGuard.MarkLocalConfirmed(guard.GuardId);
+                else
+                {
+                    int batchSize;
+                    if (!confirmBatchSizes.TryGetValue(code, out batchSize)) batchSize = 1;
+                    if (IsSafeConfirmationFailure(confirmed, batchSize))
+                        _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
+                }
+
+                outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                {
+                    Result = confirmed.Result ?? "CONFIRM_ERROR",
+                    CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+GUARD+BATCH_CONFIRM",
+                    Route = confirmed.Route,
+                    Http = confirmed.StatusCode,
+                    OperationMs =
+                        (lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)) +
+                        (exact == null ? 0L : Math.Max(0L, exact.ElapsedMs)) +
+                        Math.Max(0L, confirmed.ElapsedMs),
                     Matches = 1,
-                    Rate = rate
-                };
-            }
-
-            var guard = _confirmationGuard.TryBegin(
-                appSession,
-                exact.PickListCode,
-                work.RequestId,
-                _agentInstanceId,
-                work.PickerUid);
-
-            if (guard.AlreadyConfirmed)
-            {
-                return new FirestoreConfirmationOutcome
-                {
-                    Result = "CONFIRMED",
-                    CacheMode = lookup.CacheMode + "+EXACT_RESOLVE+IDEMPOTENT",
-                    Route = "FIRESTORE_CONFIRM_GUARD",
-                    Http = 200,
-                    OperationMs = Math.Max(0L, lookup.ElapsedMs) + Math.Max(0L, exact.ElapsedMs),
-                    Matches = 1,
-                    Rate = rate,
+                    Rate = new PickerRateDecision(),
                     GuardId = guard.GuardId,
                     RetireAtMs = guard.RetireAtMs
                 };
             }
 
-            if (!guard.Acquired || guard.InProgressOrUncertain)
-            {
-                return new FirestoreConfirmationOutcome
-                {
-                    Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
-                    CacheMode = lookup.CacheMode + "+EXACT_RESOLVE+GUARD",
-                    Route = "FIRESTORE_CONFIRM_GUARD",
-                    Http = 409,
-                    OperationMs = Math.Max(0L, lookup.ElapsedMs) + Math.Max(0L, exact.ElapsedMs),
-                    Matches = 1,
-                    Rate = rate,
-                    GuardId = guard.GuardId,
-                    RetireAtMs = guard.RetireAtMs
-                };
-            }
+            AgentDiagnostics.WriteAudit(
+                "PDA_CONFIRM_BATCH jobs=" + works.Count +
+                " exact_candidates=" + exactWorks.Count +
+                " wms_codes=" + confirmCodes.Count +
+                " wms_requests=" + ((confirmCodes.Count + 9) / 10) +
+                " values=redacted");
 
-            var confirmed = WmsPicklistConfirmClient.Confirm(wmsSession, exact.PickListCode);
-            if (string.Equals(confirmed.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
-                ClearWmsSessionAfterExpiry();
+            return outcomes;
+        }
 
-            if (string.Equals(confirmed.Result, "CONFIRMED", StringComparison.Ordinal))
+        private static bool IsSafeConfirmationFailure(WmsPicklistConfirmResult result, int batchSize)
+        {
+            if (result == null) return false;
+            if (batchSize > 1 &&
+                string.Equals(result.Result, "CONFIRM_REJECTED", StringComparison.Ordinal))
             {
-                _confirmationGuard.MarkLocalConfirmed(guard.GuardId);
+                // The supplied multi-code request shape proves batching is accepted, but
+                // not that Status=false can identify which individual code mutated.
+                // Preserve all acquired guards and fail closed instead of retrying.
+                return false;
             }
-            else if (IsSafeConfirmationFailure(confirmed.Result))
-            {
-                _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
-            }
-
-            return new FirestoreConfirmationOutcome
-            {
-                Result = confirmed.Result ?? "CONFIRM_ERROR",
-                CacheMode = lookup.CacheMode + "+EXACT_RESOLVE+GUARD",
-                Route = confirmed.Route,
-                Http = confirmed.StatusCode,
-                OperationMs = Math.Max(0L, lookup.ElapsedMs) + Math.Max(0L, exact.ElapsedMs) + Math.Max(0L, confirmed.ElapsedMs),
-                Matches = 1,
-                Rate = rate,
-                GuardId = guard.GuardId,
-                RetireAtMs = guard.RetireAtMs
-            };
+            return IsSafeConfirmationFailure(result.Result);
         }
 
         private static bool IsSafeConfirmationFailure(string result)
@@ -3052,7 +3430,7 @@ namespace SupraInventoryRelayAgent
                     () => Interlocked.Increment(ref _localPdaRequests),
                     () => Interlocked.Increment(ref _localAgentResponses),
                     state => Ui(() => _relay.Text = state),
-                    ProcessFirestoreConfirmation,
+                    ProcessFirestoreConfirmations,
                     _leaderCoordinator,
                     IsBusinessAllowed,
                     healthy =>

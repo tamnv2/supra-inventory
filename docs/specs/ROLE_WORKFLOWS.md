@@ -397,3 +397,13 @@ D097 supersedes the D085/D092 heartbeat wording for the Firestore confirmation c
 - D097 confirmation flow is preserved. PRIMARY handles immediately, STANDBY remains the 10-second request failover path, and FROZEN never polls business jobs.
 - Multi-Agent role metadata performs a bounded startup convergence burst and then low-frequency role refresh. This improves role-display convergence without turning presence into a fast liveness heartbeat.
 
+## D104 — Multi-PickList specialist and PDA batch workflow
+
+- Manual specialist input may contain 1–10 comma-separated 3–5 digit fragments. Normalize whitespace and duplicates before lookup.
+- Search all normalized fragments against one PickList cache snapshot. If one or more fragments miss, perform at most one shared single-flight WMS snapshot refresh, then repeat the whole multi-search once.
+- Render the deduplicated union of full PickListCodes, bounded to 50 rows. Every row keeps its own Xác nhận action.
+- Show **Xác nhận tất cả** only when >=2 result rows are visible. The action targets exactly those visible full codes; a single-row result does not show the bulk action.
+- Before any manual batch mutation, acquire the existing per-code Firestore confirmation guard for every candidate. Exclude already-confirmed or uncertain candidates. Send acquired codes to WMS in chunks of at most 10.
+- For PDA work, use only jobs already returned by the existing poll. The PRIMARY/STANDBY cadence is unchanged. Group up to 12 eligible jobs for shared cache lookup, one multi-suffix exact-resolve scan and WMS confirmation chunks of at most 10 exact codes.
+- Each PDA job still receives its own conditional ACK. An uncertain WMS batch result leaves affected guards fail-closed and is not replayed automatically.
+

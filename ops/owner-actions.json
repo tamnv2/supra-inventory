@@ -1022,7 +1022,7 @@
     },
     {
       "id": "OA023",
-      "status": "READY_FOR_OWNER_FIELD_TEST_D103_RELEASE",
+      "status": "PASS_OWNER_CONFIRMED_D103",
       "title": "Field-accept D103 Agent v28 dense Overview",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Beta Windows Agent + existing Firestore relay + authorized Supra WMS",
@@ -1068,7 +1068,40 @@
         "D096/D097/D102 behavior is unchanged and Stable is untouched."
       ],
       "safety": "Beta only. Use controlled eligible PickLists for any real confirmation. Do not expose passwords, Firebase tokens, WMS cookies/headers/signatures or local DPAPI files.",
-      "remaining_owner_action": "Run the OA023 physical UI field matrix on released relay-agent-v28. No code/build/release blocker remains."
+      "remaining_owner_action": null,
+      "owner_evidence": "Owner explicitly reported D103/v28 field result 'Đã ok' on 2026-09-22 before requesting D104 changes."
+    },
+    {
+      "id": "OA024",
+      "status": "BLOCKED_ON_D104_TECHNICAL_RELEASE",
+      "title": "Field-accept D104 Agent v29 multi-search and batched confirmation",
+      "resource_key": "firestore-relay-beta-d091",
+      "provider": "Beta Windows Agent + existing Firestore relay + authorized Supra WMS endpoint",
+      "reason_owner_only": "CI can prove source/build/guards and batch payload shape but cannot execute the Owner's real company-WMS multi-code mutation or prove Windows taskbar geometry/PDA burst behavior on field machines.",
+      "prerequisites": {
+        "target_agent_release": "relay-agent-v29",
+        "android_release": "beta-vc62 unchanged",
+        "stable": "OWNER_GATED",
+        "technical_release": "PENDING_D104_PR"
+      },
+      "shortest_test_path": [
+        "Install relay-agent-v29 and verify launch plus tray restore are maximized while the Windows taskbar remains visible.",
+        "Search `0404, 39050, 403` or controlled equivalents and verify all valid terms are searched together without duplicate result rows.",
+        "Verify one result hides Xác nhận tất cả; >=2 results show it while every row still has its own Xác nhận.",
+        "Use controlled eligible PickLists and confirm >=2 displayed rows in one Xác nhận tất cả action; verify expected WMS/SFT state and no duplicate mutation.",
+        "Generate multiple PDA confirmation jobs within one normal poll window and verify Agent coalesces them without faster Firestore polling; each PDA receives its own ACK.",
+        "Verify same-PickList duplicates/uncertain outcomes remain guarded and are not blindly resent."
+      ],
+      "pass_criteria": [
+        "Windows taskbar stays visible in Agent maximum mode.",
+        "Comma multi-search supports 1–10 unique 3–5 digit terms and uses at most one shared WMS refresh per search action.",
+        "Bulk button appears only for >=2 displayed results and confirms exactly the displayed full codes.",
+        "WMS mutation batches contain at most 10 exact full PickListCodes and retain the fixed HY1 payload flags.",
+        "Simultaneous PDA work reuses the existing 5s/10s polling cadence, batches at most 12 logical jobs, preserves per-code guard and per-job ACK, and produces no duplicate WMS mutation.",
+        "D096/D097/D102/D103 regressions remain PASS and Stable is untouched."
+      ],
+      "safety": "Beta only. Use controlled eligible PickLists. Do not paste or commit Authorization, APISID, SID, Token, X-Signature, nonce, cookies, WMS credentials or DPAPI session material.",
+      "remaining_owner_action": "Wait for D104 technical release, then run the OA024 physical field matrix."
     }
   ]
 }

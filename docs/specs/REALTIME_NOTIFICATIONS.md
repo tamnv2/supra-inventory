@@ -358,3 +358,11 @@ For Picker `Xác nhận đơn` only:
 - While the 22:00–05:00 business gate is paused, the Firestore confirmation transport performs no pending-job query. The local gate may recheck frequently because those checks are local and quota-free.
 - D097 Android one-document listener, 5s/10s PRIMARY/STANDBY job polling and 10-second request failover are otherwise unchanged.
 
+## D104 — Batch transport/quota behavior
+
+- D104 does not increase Firestore polling frequency. PRIMARY remains 5 seconds, STANDBY 10 seconds and FROZEN does not poll business jobs.
+- A single poll may return multiple eligible PENDING jobs. Up to 12 are processed as one logical batch so cache lookup, exact resolution and WMS mutation can be shared.
+- No extra Firestore query is added merely to wait for more jobs. Jobs arriving after a poll are handled by the next normal poll.
+- WMS confirmation uses chunks of at most 10 exact full PickListCodes. Firestore confirmation guards and conditional ACKs remain per PickList/job, so transport observability and Android correlation do not become batch-global.
+- Manual comma-search uses the same single-flight cache refresh coordinator; one user action cannot trigger one WMS refresh per search term.
+
