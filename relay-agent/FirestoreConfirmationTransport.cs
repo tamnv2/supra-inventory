@@ -196,7 +196,7 @@ namespace SupraInventoryRelayAgent
                 _onRequest();
                 _audit("PDA_REQUEST request=" + Short(work.RequestId) +
                     " picker=" + Safe(work.PickerUserId) +
-                    " picklist_last5=redacted transport=FIRESTORE" +
+                    " picklist_suffix=redacted transport=FIRESTORE" +
                     " admin=" + Safe(session.AppUserId) +
                     " machine=" + Safe(Environment.MachineName) +
                     " instance=" + Short(_instanceId));
