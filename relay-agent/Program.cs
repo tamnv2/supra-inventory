@@ -143,6 +143,7 @@ namespace SupraInventoryRelayAgent
                     AgentDiagnostics.Write(
                         "FATAL appdomain type=" + (ex == null ? "UNKNOWN" : ex.GetType().Name) +
                         " message=" + AgentDiagnostics.Sanitize(ex == null ? "" : ex.Message));
+                    AgentDiagnostics.TryQueueCrashUpload(ex == null ? "UNKNOWN" : ex.GetType().Name);
                 };
 
                 Application.EnableVisualStyles();
@@ -154,6 +155,7 @@ namespace SupraInventoryRelayAgent
                 AgentDiagnostics.Write(
                     "FATAL startup type=" + ex.GetType().Name +
                     " message=" + AgentDiagnostics.Sanitize(ex.Message));
+                AgentDiagnostics.TryQueueCrashUpload("STARTUP_" + ex.GetType().Name);
                 if (startupSmoke)
                 {
                     Environment.ExitCode = 2;
@@ -197,6 +199,7 @@ namespace SupraInventoryRelayAgent
         internal static string DiagnosticLogFile { get; private set; }
         internal static string RelayAuditLogFile { get; private set; }
         internal static string LogFile { get { return DiagnosticLogFile; } }
+        internal static Action<string> CrashUploadCallback { get; set; }
 
         internal static void Initialize()
         {
@@ -247,6 +250,16 @@ namespace SupraInventoryRelayAgent
         internal static void WriteAudit(string message)
         {
             AppendSanitized(RelayAuditLogFile, message);
+        }
+
+        internal static void TryQueueCrashUpload(string crashType)
+        {
+            try
+            {
+                var callback = CrashUploadCallback;
+                if (callback != null) callback(crashType ?? "UNKNOWN");
+            }
+            catch { }
         }
 
         private static void AppendSanitized(string path, string message)
@@ -469,6 +482,8 @@ namespace SupraInventoryRelayAgent
         private long _localAgentResponses;
         private readonly string _agentInstanceId;
         private readonly System.Windows.Forms.Timer _updateTimer = new System.Windows.Forms.Timer();
+        private readonly System.Windows.Forms.Timer _logUploadTimer = new System.Windows.Forms.Timer();
+        private readonly AgentLogUploadBridge _agentLogBridge;
 
         private static readonly string RelayDataDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -478,6 +493,7 @@ namespace SupraInventoryRelayAgent
         private static readonly string OverlaySettingsFile = Path.Combine(RelayDataDir, "overlay-settings.json");
         private static readonly string WmsSessionFile = Path.Combine(RelayDataDir, "wms-session.bin");
         private static readonly string ExitVerifierFile = Path.Combine(RelayDataDir, "exit-verifier.bin");
+        private static readonly string AgentLogUploadCheckpointFile = Path.Combine(RelayDataDir, "agent-log-upload-checkpoint.txt");
 
         internal AgentForm(bool startupSmoke = false, bool autoStarted = false, EventWaitHandle instanceActivateEvent = null)
         {
@@ -486,6 +502,15 @@ namespace SupraInventoryRelayAgent
             _instanceActivateEvent = instanceActivateEvent;
             _agentInstanceId = LoadOrCreateAgentInstanceId();
             _agentSessionGate = new FirestoreAgentSessionGate(message => Log(message));
+            _agentLogBridge = new AgentLogUploadBridge(
+                () =>
+                {
+                    lock (_sessionLock) return _session;
+                },
+                _agentInstanceId,
+                AgentLogUploadCheckpointFile,
+                message => Log(message));
+            AgentDiagnostics.CrashUploadCallback = crashType => _agentLogBridge.TryQueueCrashSnapshot(crashType);
             _overlaySettings = StatusOverlayForm.LoadSettings(OverlaySettingsFile);
             Text = "SUPRA Inventory - Relay Test v" + AgentConfig.AgentBuild;
             Width = 780;
@@ -580,6 +605,7 @@ namespace SupraInventoryRelayAgent
                 StopListening();
                 StopLeaderCoordination();
                 _trayMonitorTimer.Stop();
+                _logUploadTimer.Stop();
                 try { if (_statusOverlay != null) _statusOverlay.Close(); } catch { }
                 _tray.Visible = false;
             };
@@ -596,9 +622,18 @@ namespace SupraInventoryRelayAgent
             _trayMonitorTimer.Interval = 5000;
             _trayMonitorTimer.Tick += (s, e) => UpdateTrayMonitor();
 
-            _updateTimer.Interval = 4 * 60 * 60 * 1000;
+            // GitHub cannot push directly into a portable EXE. D101 therefore uses
+            // a bounded direct GitHub background check while the Agent is running.
+            _updateTimer.Interval = 30 * 60 * 1000;
             _updateTimer.Tick += (s, e) => Task.Run(() => TryAutoUpdate(false));
             _updateTimer.Start();
+
+            _logUploadTimer.Interval = 60 * 1000;
+            _logUploadTimer.Tick += (s, e) => Task.Run(() =>
+            {
+                _agentLogBridge.TryFlushPendingCrash();
+                _agentLogBridge.TryQueueScheduledSnapshot();
+            });
 
             Shown += (s, e) =>
             {
@@ -617,6 +652,7 @@ namespace SupraInventoryRelayAgent
                 _guardTimer.Start();
                 _networkUiTimer.Start();
                 _trayMonitorTimer.Start();
+                _logUploadTimer.Start();
                 if (_autoStarted)
                 {
                     BeginInvoke(new Action(() =>
@@ -1747,7 +1783,12 @@ namespace SupraInventoryRelayAgent
                 SetProbeButtonsEnabled(true);
                 Log("Khôi phục ADMIN Agent PASS.");
                 ActivateRelayRuntime();
-                Task.Run(() => TryRestoreWmsSessionFileFirst());
+                Task.Run(() =>
+                {
+                    _agentLogBridge.TryFlushPendingCrash();
+                    _agentLogBridge.TryQueueScheduledSnapshot();
+                    TryRestoreWmsSessionFileFirst();
+                });
             }
             catch (Exception ex)
             {
