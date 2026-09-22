@@ -502,3 +502,9 @@ Status: **SOURCE CANDIDATE / PR GATES PENDING**.
 - D104 batching/confirm-all/per-code guard/per-job ACK, D097 HA, D102 schedule and Stable guard remain unchanged.
 - Next gate: PR authority/state/UI/Firestore/Agent/Android PASS → merge → publish beta-vc63 + relay-agent-v30 → OA025 physical acceptance.
 
+### D105 canonical marker sync
+
+- SQLite schema: `10`.
+- Latest released Beta APK baseline: `beta-vc62`.
+- Web status: `D101_BETA_RUNTIME_PASS__WEB_ONLINE_WEB_ANDROID_ONLY__TOOLS_AGENT_V26`.
+- Android source status: `D105_SOURCE_CANDIDATE__BETA_VC63__FOUR_DIGIT_CONFIRM_UI__PR_GATES_PENDING`.
