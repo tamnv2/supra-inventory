@@ -915,3 +915,14 @@ Technical PASS requires:
 10. Existing D097 5s/10s/failover/FROZEN rules, D102 night schedule, D103 Overview, anti-spam, secret redaction and Stable OWNER-GATED state remain unchanged.
 11. Source/repo contains none of the raw Authorization/APISID/SID/Token/signature/session values supplied in the Owner curl reference.
 
+## D105 acceptance — Android beta-vc63 + Agent v30
+
+1. Picker confirmation input accepts at most 4 digits and submit becomes eligible only at exactly 4 digits. The new APK contains no five-digit readiness requirement.
+2. After submit and before terminal result, the button is disabled and visibly dimmed. Editing input while the request is in flight does not re-enable the button or create another request.
+3. On terminal result, message text is bold and visibly larger than progress/helper text. CONFIRMED is success-emphasized; failure/lock/error results are error-emphasized.
+4. Firestore job from beta-vc63 contains exactly a 4-digit suffix. Rules accept it; legacy 5-digit beta-vc62 jobs remain temporarily accepted during rollout.
+5. Agent v30 cache/exact resolver finds full codes using the supplied suffix length. A unique 4-digit suffix may confirm; zero/multiple matches fail closed and do not mutate WMS.
+6. Agent specialist manual search accepts 3 or 4 digits per comma-separated term and rejects 5-digit terms.
+7. D104 comma multi-search, row-level Xác nhận, Xác nhận tất cả, batch WMS <=10, max12 logical PDA jobs, per-code guard and per-job ACK remain PASS.
+8. D097 HA cadence, D102 night schedule, D103 layout, D096 business Status=true semantics, Android Báo hàng path and Stable OWNER-GATED state remain unchanged.
+
