@@ -37,6 +37,7 @@ def main() -> None:
     web_realtime = read("web/src/realtime-client.ts")
     report_excel = read("web/src/report-excel.ts")
     unified_css = read("web/src/legacy-transplant/web-unified-ui.css")
+    professional_css = read("web/src/legacy-transplant/web-professional-v2.css")
     sla_auto = read("service/src/sla-automation.ts")
     users_core = read("service/src/user-management-core.ts")
     users_api = read("service/src/user-management-api.ts")
@@ -253,6 +254,21 @@ def main() -> None:
     forbid(app, 'serviceReachable = navigator.onLine && realtimeState === "connected"', "D089 realtime must not overwrite service health")
     require(unified_css, "D089 — Tools dark-theme completion", "D089 Tools dark-theme completion")
     require(unified_css, ".tool-icon-image", "D089 Tools approved icon styling")
+
+    # D107: professional Web identity and richer reporting without new data authority.
+    require(app, 'class="login-brand-lockup"', "D107 login brand lockup")
+    require(app, "CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN", "D107 corporate login identity")
+    forbid(app, '<div class="brand">1291</div>', "D107 legacy numeric login brand")
+    forbid(app, "<h1>Web nghiệp vụ</h1>", "D107 legacy login title")
+    forbid(app, "Đăng nhập bằng tài khoản Báo hàng 1291.", "D107 legacy login subtitle")
+    require(app, './legacy-transplant/web-professional-v2.css', "D107 final professional CSS import")
+    require(professional_css, ".pro-trend-chart", "D107 trend presentation")
+    require(professional_css, ".pro-report-analysis", "D107 detailed report presentation")
+    require(professional_css, 'body[data-theme="dark"]', "D107 dark presentation")
+    require(app, "affectedInPeriod", "D107 affected-Picker overview metric")
+    require(app, "reportWarningCount", "D107 report attention metric")
+    require(app, "row.open_ticket_count", "D107 report open-ticket detail")
+    require(app, 'data-dashboard-sku="${esc(row.sku)}"', "D107 top-SKU drilldown")
 
     # D060: Root can temporarily lower its effective role, and the service—not the client—enforces it.
     require(api, "setRootEffectiveRole", "Root effective-role client API")
