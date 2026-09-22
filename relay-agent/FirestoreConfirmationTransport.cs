@@ -97,7 +97,7 @@ namespace SupraInventoryRelayAgent
                     if (!_businessEnabled())
                     {
                         _state("Relay: tạm dừng nghiệp vụ 22:00–05:00");
-                        waitMs = 60000;
+                        waitMs = 5000;
                     }
                     else if (_coordinator == null || !_coordinator.CanPollBusiness)
                     {
