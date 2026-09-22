@@ -106,7 +106,7 @@ namespace SupraInventoryRelayAgent
 
         private void Queue(AgentSession session, DateTime generatedLocal, bool crash, string content)
         {
-            var safe = AgentDiagnostics.Sanitize(content);
+            var safe = AgentDiagnostics.SanitizeBundle(content);
             if (string.IsNullOrWhiteSpace(safe)) return;
 
             var uploadId = Guid.NewGuid().ToString("N");
