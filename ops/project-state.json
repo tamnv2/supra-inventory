@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D104_SOURCE_CANDIDATE__AGENT_V29_BATCH_CONFIRM__PR_GATES_PENDING",
+    "beta": "D104_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V29__OA024_FIELD_READY",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 10,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -22,17 +22,17 @@
     "android": "D099_SIGNED_BETA_VC62_LOGIN_REPAIR__D100_NO_ANDROID_RUNTIME_CHANGE",
     "latest_beta_apk": "beta-vc62",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
-    "network_scope": "D104_AGENT_V29_BATCH_CONFIRM_SOURCE_CANDIDATE__D097_HA_D102_SCHEDULE_D103_UI_PRESERVED__STABLE_UNTOUCHED",
+    "network_scope": "D104_AGENT_V29_BATCH_CONFIRM_RUNTIME_RELEASE_PASS__D097_HA_D102_SCHEDULE_D103_UI_PRESERVED__STABLE_UNTOUCHED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "D100_ACCOUNT_EMAIL_VALIDATION_OWNER_FIELD_PASS",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D069_XLSX_REPORT_EXPORT_BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
-    "quota_resilience": "D104_NO_FASTER_FIRESTORE_POLL__NO_EXTRA_COALESCING_QUERY__MAX12_LOGICAL_JOBS__WMS_MAX10_CODES__PR_GATES_PENDING",
-    "ui_design_guard": "D104_SOURCE_CANDIDATE__WORKING_AREA_MAXIMIZED_TASKBAR_VISIBLE__MULTI_SEARCH_CONFIRM_ALL__CI_PENDING",
+    "quota_resilience": "D104_NO_FASTER_FIRESTORE_POLL__NO_EXTRA_COALESCING_QUERY__MAX12_LOGICAL_JOBS__WMS_MAX10_CODES__MAIN_PASS",
+    "ui_design_guard": "D104_MAIN_UI_PASS_RUN_35687822767",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D104_AGENT_V29_SOURCE_CANDIDATE__MULTI_SEARCH__BATCH_WMS_CONFIRM__PER_CODE_GUARD__PER_JOB_ACK"
+    "picklist_confirmation_poc": "D104_AGENT_V29_RELEASED__MULTI_SEARCH__BATCH_WMS_CONFIRM__PER_CODE_GUARD__PER_JOB_ACK"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -174,7 +174,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Complete D104 Agent v29 authority/CI/build gates, merge and verify relay-agent-v29 prerelease. Then Owner runs OA024 physical multi-search/batch-confirm acceptance on controlled PickLists. Stable remains OWNER-GATED.",
+  "next_action": "Owner field-test OA024 using released relay-agent-v29: verify taskbar-visible maximum, comma multi-search, conditional Xác nhận tất cả, real multi-code WMS confirmation, and simultaneous PDA batch handling without duplicate mutation. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -582,7 +582,7 @@
     "D103 Owner-approved 2026-09-22 after v27 field review: Agent opens/restores maximized; Tổng quan no page scroll; Agent fleet viewport max five visible rows with internal vertical scroll; Supra compact; PickList fills remaining lower viewport and each result row keeps its own visible Xác nhận action; remove verbose Agent/Firestore/update/WMS implementation prose from visible Overview. D102 HA/night schedule and D096/D097 behavior unchanged. Target relay-agent-v28; Stable untouched.",
     "D104 Owner-approved 2026-09-22 after Owner accepted D103/v28. Agent v29 keeps taskbar visible using Windows WorkingArea; manual specialist search accepts up to 10 comma-separated 3–5 digit fragments with one cache snapshot and at most one shared refresh; >=2 displayed results expose Xác nhận tất cả while per-row confirm remains; existing confirmSkipItem scope extends to 1–10 exact full PickListCodes per POST after per-code guards; existing Firestore poll batches up to 12 jobs with shared lookup/exact scan and WMS chunks <=10, while per-job conditional ACK and D097 cadence remain unchanged. No Owner-supplied WMS secret values may enter repo/logs. Stable untouched."
   ],
-  "active_workstream": "D104_AGENT_V29_BATCH_CONFIRM_IMPLEMENTATION",
+  "active_workstream": "D104_AGENT_V29_RELEASED__OA024_FIELD_ACCEPTANCE",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
@@ -632,7 +632,8 @@
     "D101 source diagnosis from Owner Agent log 2026-09-22: current machine cfa74d97 became STANDBY while coordination referenced primary febf8d16; this is consistent with D097 request-driven HA, where STANDBY takeover is triggered by a pending job age >=10s rather than high-frequency idle liveness. Existing log sanitizer also redacted `ssid=` because the secret regex matched `sid=` as a substring; D101 changes the regex to token boundaries so real SSID remains visible while actual SID/token secrets stay redacted.",
     "D101 technical/runtime/release PASS 2026-09-22: PR #136 merged to main 25cb7554ff7ea058aa45d72e1ba4824c744c354e after correcting malformed Firestore log-spool Rules and superseded D085 cache-miss regression guards. Main PASS: Repo Authority 35677556695, Project State 35677556755, Deploy Beta Worker 35677556693, Deploy Beta Firestore Relay 35677556771, UI Design Guard 35677556710, Verify Beta Android 35677556734, Verify Beta Relay Agent 35677556698. Release relay-agent-v26 id 393404831 is tagged exactly at that main commit; canonical EXE asset id 580316553, size 263680 bytes, SHA-256 5db50633e74247b45305a536a6caf140069626db66a7020acf32cf2d216ff79b. Android remains beta-vc62 unchanged. OA021 Owner field acceptance is the only D101 gate still open; Stable untouched.",
     "D102 technical/runtime/release PASS 2026-09-22: PR #138 merged to main 637d7509bcc66f4b57aba4bf4a415cb05c30903d. PR gates PASS: Repo Authority 35682895002, Project State 35682894986, UI Design 35682895038, Relay Agent 35682895029, Firestore Relay 35682895023, RTDB Rules 35682895001. Main PASS: Repo Authority 35683012628, Project State 35683012626, UI Design 35683012670, Relay Agent 35683012671. Release relay-agent-v27 id 393435282 is tagged exactly at main 637d7509bcc66f4b57aba4bf4a415cb05c30903d; canonical EXE asset id 580448326, size 271872 bytes, SHA-256 322159ed214be13d5340fd2a8a826b02232627aa016711c2a46492da1cc819e4. Main Agent artifact id 10675911449 digest sha256:a7a6d211a9ca9d271308597bd2a8710bd2c6a1481bb40d9b34470446ff36fa03. Android remains beta-vc62 unchanged; Stable untouched. OA022 is now field-ready.",
-    "D103 technical/runtime/release PASS 2026-09-22: PR #140 merged to main 15aba0412e625af0f6b9ef7489b995a3e524a131. PR gates PASS: Repo Authority 35684714977, Project State 35684714967, UI Design 35684714971, Relay Agent 35684714955, Firestore Relay 35684714928, RTDB Rules 35684714958. Main PASS: Repo Authority 35684829649, Project State 35684829653, UI Design 35684829650, Relay Agent 35684829660. Release relay-agent-v28 id 393444068 is tagged exactly at main 15aba0412e625af0f6b9ef7489b995a3e524a131; canonical EXE asset id 580490417, size 271360 bytes, SHA-256 4faf8507637d61d74ac8aa34ba998a1fc04bfacd0fdc572af1cabda5f8bb8cb1. Main Agent artifact id 10675764500 digest sha256:80b2458016f290c625f56e19ee5054570e14734fef42c650165b65ef1ee72026. Android remains beta-vc62 unchanged; Stable untouched. OA023 is now field-ready."
+    "D103 technical/runtime/release PASS 2026-09-22: PR #140 merged to main 15aba0412e625af0f6b9ef7489b995a3e524a131. PR gates PASS: Repo Authority 35684714977, Project State 35684714967, UI Design 35684714971, Relay Agent 35684714955, Firestore Relay 35684714928, RTDB Rules 35684714958. Main PASS: Repo Authority 35684829649, Project State 35684829653, UI Design 35684829650, Relay Agent 35684829660. Release relay-agent-v28 id 393444068 is tagged exactly at main 15aba0412e625af0f6b9ef7489b995a3e524a131; canonical EXE asset id 580490417, size 271360 bytes, SHA-256 4faf8507637d61d74ac8aa34ba998a1fc04bfacd0fdc572af1cabda5f8bb8cb1. Main Agent artifact id 10675764500 digest sha256:80b2458016f290c625f56e19ee5054570e14734fef42c650165b65ef1ee72026. Android remains beta-vc62 unchanged; Stable untouched. OA023 is now field-ready.",
+    "D104 technical/runtime/release PASS 2026-09-22: PR #142 merged to main e1fa990aefa47ad81b063fc0ca27516c1cace5f8. PR gates PASS: Repo Authority 35687702483, Project State 35687702449, UI Design 35687702531, Relay Agent 35687702508, Firestore Relay 35687702445, RTDB Rules 35687702502. Main PASS: Repo Authority 35687822814, Project State 35687822742, UI Design 35687822767, Relay Agent 35687822763. Release relay-agent-v29 id 393459636 is tagged exactly at main e1fa990aefa47ad81b063fc0ca27516c1cace5f8; canonical EXE asset id 580560440, size 284160 bytes, SHA-256 10304ac734218146550c6bdf3c3b8a81d979fabe5b3ee7dddc94f1b217955b2d. Main Agent artifact id 10676659937 digest sha256:60b42ef7a530c119d7b79e383a5370cc4d1aad2b9891157e681c6484c1b8459a. Android remains beta-vc62 unchanged; Stable untouched. OA024 is now field-ready."
   ],
   "last_runtime_evidence": {
     "signed_beta_release": "beta-vc59",
