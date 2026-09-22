@@ -25,16 +25,29 @@ namespace SupraInventoryRelayAgent
         internal long UpdatedAtMs;
     }
 
+    internal sealed class AgentPresenceView
+    {
+        internal string AgentInstanceId = "";
+        internal string AdminUserId = "";
+        internal string Machine = "";
+        internal string Role = "FROZEN";
+        internal string Version = "";
+        internal bool WmsReady;
+        internal long HeartbeatAtMs;
+    }
+
     internal sealed class FirestoreAgentLeaderCoordinator : IDisposable
     {
         internal const int FailoverAfterMs = 10000;
         internal const int StandbyTakeoverAgeMs = 10000;
         internal const int PrimaryRoleRefreshMs = 60000;
-        internal const int StandbyRoleRefreshMs = 300000;
-        internal const int FrozenRoleRefreshMs = 900000;
-        internal const int PresenceHeartbeatIntervalMs = 3600000;
-        internal const int PresenceReadIntervalMs = 3600000;
-        internal const int PresenceFreshMs = 7200000;
+        internal const int StandbyRoleRefreshMs = 60000;
+        internal const int FrozenRoleRefreshMs = 300000;
+        internal const int StartupConvergenceIntervalMs = 5000;
+        internal const int StartupConvergenceCycles = 4;
+        internal const int PresenceHeartbeatIntervalMs = 900000;
+        internal const int PresenceReadIntervalMs = 1800000;
+        internal const int PresenceFreshMs = 2400000;
 
         private readonly Func<AgentSession> _sessionProvider;
         private readonly Action _ensureFreshToken;
@@ -44,6 +57,7 @@ namespace SupraInventoryRelayAgent
         private readonly Action<FirestoreAgentRole, string> _stateChanged;
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
         private readonly object _stateGate = new object();
+        private readonly AutoResetEvent _wake = new AutoResetEvent(false);
 
         private CancellationTokenSource _cts;
         private volatile FirestoreAgentRole _role = FirestoreAgentRole.FROZEN;
@@ -55,6 +69,9 @@ namespace SupraInventoryRelayAgent
         private volatile int _onlinePrimaryCount;
         private volatile int _onlineStandbyCount;
         private volatile int _onlineFrozenCount;
+        private List<AgentPresenceView> _onlineAgents = new List<AgentPresenceView>();
+        private volatile bool _fleetRefreshRequested = true;
+        private int _startupConvergenceRemaining;
         private volatile bool _coordinationHealthy;
         private volatile bool _relayPollHealthy;
         private volatile bool _refreshBeforeBusiness;
@@ -86,6 +103,17 @@ namespace SupraInventoryRelayAgent
         internal int OnlinePrimaryCount { get { return Math.Max(0, _onlinePrimaryCount); } }
         internal int OnlineStandbyCount { get { return Math.Max(0, _onlineStandbyCount); } }
         internal int OnlineFrozenCount { get { return Math.Max(0, _onlineFrozenCount); } }
+
+        internal List<AgentPresenceView> OnlineAgents
+        {
+            get
+            {
+                lock (_stateGate)
+                {
+                    return new List<AgentPresenceView>(_onlineAgents);
+                }
+            }
+        }
 
         internal string CurrentLeaderId
         {
@@ -124,6 +152,13 @@ namespace SupraInventoryRelayAgent
         internal void RequestRoleRefreshBeforeBusiness()
         {
             _refreshBeforeBusiness = true;
+            try { _wake.Set(); } catch { }
+        }
+
+        internal void RequestFleetRefresh()
+        {
+            _fleetRefreshRequested = true;
+            try { _wake.Set(); } catch { }
         }
 
         internal void EnsureRoleCurrentBeforeBusiness(AgentSession session)
@@ -139,6 +174,8 @@ namespace SupraInventoryRelayAgent
             {
                 if (_cts != null) return;
                 _cts = new CancellationTokenSource();
+                _startupConvergenceRemaining = StartupConvergenceCycles;
+                _fleetRefreshRequested = true;
                 Task.Run(() => Loop(_cts.Token), _cts.Token);
             }
         }
@@ -163,6 +200,7 @@ namespace SupraInventoryRelayAgent
 
             try { if (cts != null) cts.Cancel(); } catch { }
             try { if (cts != null) cts.Dispose(); } catch { }
+            try { _wake.Set(); } catch { }
             SetRole(FirestoreAgentRole.FROZEN, "", "", "STOPPED");
         }
 
@@ -229,18 +267,31 @@ namespace SupraInventoryRelayAgent
                 {
                     _ensureFreshToken();
                     var session = _sessionProvider();
+                    var startupConvergence = _startupConvergenceRemaining > 0;
                     RefreshRole(session);
                     MaintainPresence(session);
-                    if (_lastPresenceReadMs == 0 || NowMs() - _lastPresenceReadMs >= PresenceReadIntervalMs)
+                    if (startupConvergence ||
+                        _fleetRefreshRequested ||
+                        _lastPresenceReadMs == 0 ||
+                        NowMs() - _lastPresenceReadMs >= PresenceReadIntervalMs)
                     {
                         ReadOnlineAgentCounts(session, NowMs());
                         _lastPresenceReadMs = NowMs();
+                        _fleetRefreshRequested = false;
                     }
 
                     _coordinationHealthy = true;
-                    waitMs = _role == FirestoreAgentRole.FROZEN
-                        ? FrozenRoleRefreshMs
-                        : (_role == FirestoreAgentRole.STANDBY ? StandbyRoleRefreshMs : PrimaryRoleRefreshMs);
+                    if (startupConvergence)
+                    {
+                        _startupConvergenceRemaining--;
+                        waitMs = StartupConvergenceIntervalMs;
+                    }
+                    else
+                    {
+                        waitMs = _role == FirestoreAgentRole.FROZEN
+                            ? FrozenRoleRefreshMs
+                            : (_role == FirestoreAgentRole.STANDBY ? StandbyRoleRefreshMs : PrimaryRoleRefreshMs);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -250,7 +301,8 @@ namespace SupraInventoryRelayAgent
                     waitMs = 30000;
                 }
 
-                if (token.WaitHandle.WaitOne(waitMs)) return;
+                var signaled = WaitHandle.WaitAny(new WaitHandle[] { token.WaitHandle, _wake }, Math.Max(1000, waitMs));
+                if (signaled == 0) return;
             }
         }
 
@@ -454,7 +506,8 @@ namespace SupraInventoryRelayAgent
                 { "machine", StringField(Environment.MachineName) },
                 { "heartbeat_at_ms", IntField(now) },
                 { "wms_ready", BoolField(_wmsReady()) },
-                { "role", StringField(RoleName) }
+                { "role", StringField(RoleName) },
+                { "agent_build", IntField(AgentConfig.AgentBuild) }
             };
             SendJson("PATCH", PresenceSelfUrl(), session.IdToken,
                 _json.Serialize(new Dictionary<string, object> { { "fields", fields } }),
@@ -474,10 +527,12 @@ namespace SupraInventoryRelayAgent
                 _onlinePrimaryCount = 0;
                 _onlineStandbyCount = 0;
                 _onlineFrozenCount = 0;
+                lock (_stateGate) _onlineAgents = new List<AgentPresenceView>();
                 return;
             }
 
             var freshIds = new HashSet<string>(StringComparer.Ordinal);
+            var views = new List<AgentPresenceView>();
             foreach (var item in docs)
             {
                 var doc = item as Dictionary<string, object>;
@@ -488,8 +543,20 @@ namespace SupraInventoryRelayAgent
                 var heartbeat = FieldLong(fields, "heartbeat_at_ms");
                 var age = now - heartbeat;
                 var agentId = FieldString(fields, "agent_instance_id");
-                if (heartbeat > 0 && age >= -60000 && age <= PresenceFreshMs && !string.IsNullOrWhiteSpace(agentId))
-                    freshIds.Add(agentId);
+                if (heartbeat <= 0 || age < -60000 || age > PresenceFreshMs || string.IsNullOrWhiteSpace(agentId))
+                    continue;
+
+                freshIds.Add(agentId);
+                var build = FieldLong(fields, "agent_build");
+                views.Add(new AgentPresenceView
+                {
+                    AgentInstanceId = agentId,
+                    AdminUserId = FieldString(fields, "agent_admin_user_id"),
+                    Machine = FieldString(fields, "machine"),
+                    WmsReady = FieldBool(fields, "wms_ready"),
+                    Version = build > 0 ? "v" + build : "--",
+                    HeartbeatAtMs = heartbeat
+                });
             }
 
             string primary;
@@ -500,12 +567,28 @@ namespace SupraInventoryRelayAgent
                 standby = _standbyId ?? "";
             }
 
+            foreach (var view in views)
+            {
+                view.Role = string.Equals(view.AgentInstanceId, primary, StringComparison.Ordinal)
+                    ? "PRIMARY"
+                    : (string.Equals(view.AgentInstanceId, standby, StringComparison.Ordinal) ? "STANDBY" : "FROZEN");
+            }
+            views.Sort((a, b) =>
+            {
+                var rankA = a.Role == "PRIMARY" ? 0 : (a.Role == "STANDBY" ? 1 : 2);
+                var rankB = b.Role == "PRIMARY" ? 0 : (b.Role == "STANDBY" ? 1 : 2);
+                var rank = rankA.CompareTo(rankB);
+                if (rank != 0) return rank;
+                return string.Compare(a.Machine ?? "", b.Machine ?? "", StringComparison.OrdinalIgnoreCase);
+            });
+
             var primaryCount = !string.IsNullOrWhiteSpace(primary) && freshIds.Contains(primary) ? 1 : 0;
             var standbyCount = !string.IsNullOrWhiteSpace(standby) && freshIds.Contains(standby) ? 1 : 0;
             _onlineAgentCount = freshIds.Count;
             _onlinePrimaryCount = primaryCount;
             _onlineStandbyCount = standbyCount;
             _onlineFrozenCount = Math.Max(0, freshIds.Count - primaryCount - standbyCount);
+            lock (_stateGate) _onlineAgents = views;
         }
 
         private sealed class RoleRead
@@ -653,9 +736,11 @@ namespace SupraInventoryRelayAgent
                 {
                     _relayPollHealthy = false;
                     _lastPresenceWriteMs = 0;
+                    _fleetRefreshRequested = true;
                 }
             }
             if (!changed) return;
+            try { _wake.Set(); } catch { }
 
             _log("FIRESTORE HA role=" + role +
                  " reason=" + reason +

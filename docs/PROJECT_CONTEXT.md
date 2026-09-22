@@ -339,4 +339,14 @@ D101 Agent v26 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta.
 - Android remains signed `beta-vc62`; D101 does not require a new PDA release.
 - OA021 is the remaining physical Owner acceptance gate for truthful Wi-Fi/HA display, cache-miss WMS refresh, inline PickList confirmation, running auto-update behavior and scheduled/crash Agent log delivery.
 - Stable remains OWNER-GATED and untouched.
+## D102 Agent v27 operational refinement — 2026-09-22
+
+D102 corrects D101's Agent presentation and multi-Agent convergence without reopening Stable or changing Android/Web business flows.
+
+- Top-level Agent UI returns to one **Tổng quan** containing Agent, Supra and PickList sections; Kết nối/Bảng nổi/Nhật ký/Chẩn đoán remain direct tabs.
+- Agent gains a manual trusted GitHub update check in addition to startup + 30-minute background checks.
+- D097 business polling/failover stays 5s PRIMARY / 10s STANDBY / 10s pending-job takeover / FROZEN no business poll. Role metadata converges faster through 60s PRIMARY/STANDBY reads, 5m FROZEN reads and a bounded 5s startup burst; presence remains low-frequency metadata.
+- The Agent fleet table shows bounded per-Agent identity/machine/role/Supra/version/last-seen data; local hardware metrics are not synchronized globally.
+- Daily 21:30 HCM warning repeats every 5 minutes until an explicit continue/stop decision. Without continue, business processing pauses at 22:00; 05:00 resumes automatically. EXE/log/update/watchdog remain running while business processing is paused.
+- Target is relay-agent-v27; Stable remains OWNER-GATED.
 

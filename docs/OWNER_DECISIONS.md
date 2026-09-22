@@ -563,4 +563,18 @@ Status: **OWNER APPROVED — SOURCE CANDIDATE 2026-09-22**.
 ### D101 release checkpoint — 2026-09-22
 
 D101 is technically released on Beta. PR #136 merged at `25cb7554ff7ea058aa45d72e1ba4824c744c354e`; all main authority/state/Worker/Firestore/UI/Android/Agent gates passed. Windows release `relay-agent-v26` is published with canonical EXE SHA-256 `5db50633e74247b45305a536a6caf140069626db66a7020acf32cf2d216ff79b`. Android remains `beta-vc62`. OA021 physical Owner acceptance remains open; Stable is untouched.
+## D102 — Agent v27 Tổng quan, hội tụ vai trò và khung vận hành đêm
+
+Owner approved on 2026-09-22.
+
+1. Agent adds a visible **Kiểm tra cập nhật** action using the same trusted GitHub prerelease + SHA-256 verification path as background auto-update. Startup + 30-minute background checks remain.
+2. D101 over-split the Agent shell. D102 restores one top-level **Tổng quan** page containing **Hệ thống Agent**, **Hệ thống Supra** and **Xử lý PickList** as sections. Other direct tabs remain **Kết nối / Bảng nổi / Nhật ký vận hành / Chẩn đoán kỹ thuật**. There is no top-level Cài đặt tab.
+3. User-facing Agent copy must not expose AI/Owner/D-number/internal implementation wording. Instructions are concise; operational state is primary.
+4. Multi-Agent authority remains one role document: at most one PRIMARY and one STANDBY; other eligible Agents are FROZEN. D097 business semantics are unchanged: PRIMARY polls 5s, STANDBY 10s, pending-job takeover at 10s, FROZEN does not poll business work, and D096/D097 idempotency/fail-closed confirmation guards remain mandatory.
+5. Role convergence is accelerated without restoring quota-heavy heartbeat: PRIMARY/STANDBY role refresh = 60s, FROZEN role refresh = 5m, plus four startup convergence reads at 5s spacing. Presence write = 15m, fleet read = 30m, presence freshness = 40m; opening Tổng quan may request an immediate bounded fleet refresh. Presence is observability metadata, not a business liveness heartbeat.
+6. Hệ thống Agent may show a bounded fleet table with account, machine, effective role, Supra readiness, Agent version and last-seen age. Effective PRIMARY/STANDBY labels are derived from the authoritative role snapshot; machine CPU/RAM remain local-only.
+7. Daily after-hours policy uses Asia/Ho_Chi_Minh time. From **21:30**, if that night's decision is missing, Agent warns immediately and repeats every **5 minutes** until the user confirms. Choices are **continue after 22:00** or **stop business processing from 22:00**.
+8. If no continue confirmation exists at 22:00, Agent pauses business polling and manual PickList business actions until confirmation or 05:00. A later continue confirmation resumes processing. A stop confirmation suppresses further prompts for that night. At 05:00 normal business processing resumes automatically.
+9. “Stop” in the 22:00–05:00 policy means **pause Agent business processing**, not terminate the EXE. Logging, updater, tray UI, watchdog and local scheduling remain alive so 05:00 recovery is deterministic.
+10. Target release is **relay-agent-v27**. Android/Web business flows are unchanged by D102. Stable remains OWNER-GATED and untouched.
 

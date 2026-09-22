@@ -83,6 +83,26 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
+            var d102SelfTest = args != null && Array.Exists(args, item =>
+                string.Equals(item, "--d102-self-test", StringComparison.OrdinalIgnoreCase));
+            if (d102SelfTest)
+            {
+                try
+                {
+                    var schedulePass = AgentBusinessSchedule.SelfTestTransitions();
+                    AgentDiagnostics.Write("D102 SELFTEST schedule=" + (schedulePass ? "PASS" : "FAIL"));
+                    Environment.ExitCode = schedulePass ? 0 : 5;
+                }
+                catch (Exception ex)
+                {
+                    AgentDiagnostics.Write(
+                        "D102 SELFTEST exception type=" + ex.GetType().Name +
+                        " message=" + AgentDiagnostics.Sanitize(ex.Message));
+                    Environment.ExitCode = 6;
+                }
+                return;
+            }
+
             var startupSmoke = args != null && Array.Exists(args, item =>
                 string.Equals(item, "--startup-smoke", StringComparison.OrdinalIgnoreCase));
             var autoStarted = args != null && Array.Exists(args, item =>
@@ -454,8 +474,14 @@ namespace SupraInventoryRelayAgent
         private readonly DataGridView _manualPicklistGrid = new DataGridView();
         private readonly Label _manualPicklistStatus = new Label();
         private readonly Label _agentFleetStatus = new Label();
+        private readonly DataGridView _agentFleetGrid = new DataGridView();
         private readonly Label _agentSystemInfo = new Label();
         private readonly Label _updateStatus = new Label();
+        private readonly Button _manualUpdate = new Button();
+        private readonly Panel _afterHoursPanel = new Panel();
+        private readonly Label _afterHoursStatus = new Label();
+        private readonly Button _afterHoursContinue = new Button();
+        private readonly Button _afterHoursStop = new Button();
         private readonly Label _supraInfo = new Label();
         private readonly Panel _overlaySettingsHost = new Panel();
         private OverlaySettingsForm _embeddedOverlaySettings;
@@ -470,10 +496,9 @@ namespace SupraInventoryRelayAgent
         private readonly System.Windows.Forms.Timer _trayMonitorTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer _networkUiTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer _guardTimer = new System.Windows.Forms.Timer();
+        private readonly System.Windows.Forms.Timer _afterHoursTimer = new System.Windows.Forms.Timer();
         private readonly TabControl _mainTabs = new TabControl();
-        private readonly TabPage _overviewPage = new TabPage("Hệ thống Agent");
-        private readonly TabPage _supraPage = new TabPage("Hệ thống Supra");
-        private readonly TabPage _picklistPage = new TabPage("Xử lý PickList");
+        private readonly TabPage _overviewPage = new TabPage("Tổng quan");
         private readonly TabPage _connectionPage = new TabPage("Kết nối");
         private readonly TabPage _overlayPage = new TabPage("Bảng nổi");
         private readonly TabPage _auditPage = new TabPage("Nhật ký vận hành");
@@ -503,6 +528,8 @@ namespace SupraInventoryRelayAgent
         private readonly System.Windows.Forms.Timer _updateTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer _logUploadTimer = new System.Windows.Forms.Timer();
         private readonly AgentLogUploadBridge _agentLogBridge;
+        private readonly AgentBusinessSchedule _businessSchedule;
+        private DateTime _lastAfterHoursPromptAt = DateTime.MinValue;
 
         private static readonly string RelayDataDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -513,6 +540,7 @@ namespace SupraInventoryRelayAgent
         private static readonly string WmsSessionFile = Path.Combine(RelayDataDir, "wms-session.bin");
         private static readonly string ExitVerifierFile = Path.Combine(RelayDataDir, "exit-verifier.bin");
         private static readonly string AgentLogUploadCheckpointFile = Path.Combine(RelayDataDir, "agent-log-upload-checkpoint.txt");
+        private static readonly string AfterHoursStateFile = Path.Combine(RelayDataDir, "after-hours-state.txt");
 
         internal AgentForm(bool startupSmoke = false, bool autoStarted = false, EventWaitHandle instanceActivateEvent = null)
         {
@@ -520,6 +548,7 @@ namespace SupraInventoryRelayAgent
             _autoStarted = autoStarted;
             _instanceActivateEvent = instanceActivateEvent;
             _agentInstanceId = LoadOrCreateAgentInstanceId();
+            _businessSchedule = new AgentBusinessSchedule(AfterHoursStateFile);
             _agentSessionGate = new FirestoreAgentSessionGate(message => Log(message));
             _agentLogBridge = new AgentLogUploadBridge(
                 () =>
@@ -633,6 +662,7 @@ namespace SupraInventoryRelayAgent
                 StopLeaderCoordination();
                 _trayMonitorTimer.Stop();
                 _logUploadTimer.Stop();
+                _afterHoursTimer.Stop();
                 try { if (_statusOverlay != null) _statusOverlay.Close(); } catch { }
                 _tray.Visible = false;
             };
@@ -648,6 +678,9 @@ namespace SupraInventoryRelayAgent
 
             _trayMonitorTimer.Interval = 5000;
             _trayMonitorTimer.Tick += (s, e) => UpdateTrayMonitor();
+
+            _afterHoursTimer.Interval = 60 * 1000;
+            _afterHoursTimer.Tick += (s, e) => CheckAfterHoursSchedule();
 
             // GitHub cannot push directly into a portable EXE. D101 therefore uses
             // a bounded direct GitHub background check while the Agent is running.
@@ -681,6 +714,8 @@ namespace SupraInventoryRelayAgent
                 _networkUiTimer.Start();
                 _trayMonitorTimer.Start();
                 _logUploadTimer.Start();
+                _afterHoursTimer.Start();
+                CheckAfterHoursSchedule(true);
                 if (_autoStarted)
                 {
                     BeginInvoke(new Action(() =>
@@ -758,22 +793,26 @@ namespace SupraInventoryRelayAgent
 
             _mainTabs.Dock = DockStyle.Fill;
             _mainTabs.Font = new Font("Segoe UI", 9F);
-            foreach (var page in new[] { _overviewPage, _supraPage, _picklistPage, _connectionPage, _overlayPage, _auditPage, _technicalPage })
+            foreach (var page in new[] { _overviewPage, _connectionPage, _overlayPage, _auditPage, _technicalPage })
                 page.BackColor = Color.FromArgb(243, 246, 248);
+            _overviewPage.AutoScroll = true;
             _mainTabs.TabPages.Add(_overviewPage);
-            _mainTabs.TabPages.Add(_supraPage);
-            _mainTabs.TabPages.Add(_picklistPage);
             _mainTabs.TabPages.Add(_connectionPage);
             _mainTabs.TabPages.Add(_overlayPage);
             _mainTabs.TabPages.Add(_auditPage);
             _mainTabs.TabPages.Add(_technicalPage);
+            _mainTabs.SelectedIndexChanged += (s, e) =>
+            {
+                if (_mainTabs.SelectedTab == _overviewPage && _leaderCoordinator != null)
+                    _leaderCoordinator.RequestFleetRefresh();
+            };
 
             shell.Controls.Add(chrome, 0, 0);
             shell.Controls.Add(_mainTabs, 0, 1);
             Controls.Add(shell);
 
-            // Hệ thống Agent
-            var agentCard = NewCard(22, 24, 1040, 310);
+            // Tổng quan - Hệ thống Agent
+            var agentCard = NewCard(22, 24, 1040, 500);
             agentCard.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             agentCard.Controls.Add(new Label
             {
@@ -813,6 +852,10 @@ namespace SupraInventoryRelayAgent
             _logout.Text = "Đăng xuất";
             _logout.Enabled = false;
             agentCard.Controls.Add(_logout);
+            _manualUpdate.SetBounds(828, 104, 172, 32);
+            _manualUpdate.Text = "Kiểm tra cập nhật";
+            _manualUpdate.Click += (s, e) => Task.Run(() => TryAutoUpdate(false));
+            agentCard.Controls.Add(_manualUpdate);
 
             _identity.SetBounds(18, 154, 320, 24);
             _relay.SetBounds(350, 154, 320, 24);
@@ -821,44 +864,61 @@ namespace SupraInventoryRelayAgent
             agentCard.Controls.Add(_relay);
             agentCard.Controls.Add(_network);
 
-            _agentFleetStatus.SetBounds(18, 190, 1000, 24);
-            _agentFleetStatus.Text = "Cụm Agent: chưa có dữ liệu vai trò.";
+            _agentFleetStatus.SetBounds(18, 188, 1000, 24);
+            _agentFleetStatus.Text = "Cụm Agent: đang đồng bộ...";
             _agentFleetStatus.ForeColor = Color.FromArgb(50, 70, 82);
             agentCard.Controls.Add(_agentFleetStatus);
 
-            _agentSystemInfo.SetBounds(18, 222, 1000, 48);
-            _agentSystemInfo.Text = "Phiên bản v" + AgentConfig.AgentBuild + " · Firestore: chờ xác minh · Tự cập nhật: GitHub nền mỗi 30 phút.";
+            _agentFleetGrid.SetBounds(18, 218, 1000, 126);
+            _agentFleetGrid.AllowUserToAddRows = false;
+            _agentFleetGrid.AllowUserToDeleteRows = false;
+            _agentFleetGrid.AllowUserToResizeRows = false;
+            _agentFleetGrid.MultiSelect = false;
+            _agentFleetGrid.ReadOnly = true;
+            _agentFleetGrid.RowHeadersVisible = false;
+            _agentFleetGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            _agentFleetGrid.AutoGenerateColumns = false;
+            _agentFleetGrid.BackgroundColor = Color.White;
+            _agentFleetGrid.BorderStyle = BorderStyle.FixedSingle;
+            _agentFleetGrid.Columns.Clear();
+            _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Admin", HeaderText = "Tài khoản", Width = 155 });
+            _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Machine", HeaderText = "Máy", Width = 190 });
+            _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Role", HeaderText = "Vai trò", Width = 120 });
+            _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Supra", HeaderText = "Supra", Width = 110 });
+            _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Version", HeaderText = "Phiên bản", Width = 95 });
+            _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "LastSeen", HeaderText = "Cập nhật", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+            agentCard.Controls.Add(_agentFleetGrid);
+
+            _agentSystemInfo.SetBounds(18, 354, 1000, 24);
+            _agentSystemInfo.Text = "Phiên bản v" + AgentConfig.AgentBuild + " · Firestore: chờ xác minh · Failover job: 10 giây.";
             _agentSystemInfo.ForeColor = Color.FromArgb(88, 104, 115);
             agentCard.Controls.Add(_agentSystemInfo);
 
-            _updateStatus.SetBounds(18, 274, 1000, 22);
-            _updateStatus.Text = "Cập nhật: kiểm tra lúc khởi động và mỗi 30 phút khi Agent đang chạy.";
+            _updateStatus.SetBounds(18, 382, 1000, 22);
+            _updateStatus.Text = "Cập nhật phần mềm: tự kiểm tra khi mở Agent và mỗi 30 phút.";
             _updateStatus.ForeColor = Color.FromArgb(88, 104, 115);
             agentCard.Controls.Add(_updateStatus);
+
+            _afterHoursPanel.SetBounds(18, 414, 1000, 68);
+            _afterHoursPanel.BackColor = Color.FromArgb(255, 247, 226);
+            _afterHoursPanel.BorderStyle = BorderStyle.FixedSingle;
+            _afterHoursStatus.SetBounds(12, 9, 535, 46);
+            _afterHoursStatus.ForeColor = Color.FromArgb(111, 78, 15);
+            _afterHoursPanel.Controls.Add(_afterHoursStatus);
+            _afterHoursContinue.SetBounds(560, 17, 205, 34);
+            _afterHoursContinue.Text = "Tiếp tục sau 22:00";
+            _afterHoursContinue.Click += (s, e) => SetAfterHoursDecision(AfterHoursDecision.CONTINUE);
+            _afterHoursPanel.Controls.Add(_afterHoursContinue);
+            _afterHoursStop.SetBounds(775, 17, 205, 34);
+            _afterHoursStop.Text = "Ngừng từ 22:00";
+            _afterHoursStop.Click += (s, e) => SetAfterHoursDecision(AfterHoursDecision.STOP);
+            _afterHoursPanel.Controls.Add(_afterHoursStop);
+            _afterHoursPanel.Visible = false;
+            agentCard.Controls.Add(_afterHoursPanel);
             _overviewPage.Controls.Add(agentCard);
 
-            var agentHelp = NewCard(22, 350, 1040, 180);
-            agentHelp.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            agentHelp.Controls.Add(new Label
-            {
-                Left = 18, Top = 14, Width = 980, Height = 24,
-                Text = "Vai trò xử lý",
-                Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
-                ForeColor = Color.FromArgb(24, 43, 55)
-            });
-            agentHelp.Controls.Add(new Label
-            {
-                Left = 18, Top = 48, Width = 980, Height = 108,
-                Text =
-                    "PRIMARY: xử lý yêu cầu ngay.  STANDBY: dự phòng và có thể tiếp quản khi yêu cầu chờ ≥10 giây.\r\n" +
-                    "FROZEN: Agent online nhưng không poll nghiệp vụ để tiết kiệm Firestore.\r\n" +
-                    "Không có PDA gửi yêu cầu không làm PRIMARY tự hạ vai trò. Nếu PRIMARY cũ đã mất, STANDBY chỉ tiếp quản theo cơ chế request-driven khi có yêu cầu đủ 10 giây.",
-                ForeColor = Color.FromArgb(88, 104, 115)
-            });
-            _overviewPage.Controls.Add(agentHelp);
-
             // Hệ thống Supra
-            _supraCard = NewCard(22, 24, 1040, 300);
+            _supraCard = NewCard(22, 544, 1040, 270);
             _supraCard.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _supraCard.Controls.Add(new Label
             {
@@ -882,16 +942,16 @@ namespace SupraInventoryRelayAgent
             _supraCard.Controls.Add(_wmsTest);
             _supraCard.Controls.Add(new Label
             {
-                Left = 18, Top = 242, Width = 980, Height = 42,
-                Text = "Phiên WMS được lưu cục bộ bằng Windows DPAPI CurrentUser. PickList cache được nạp all-date; cache miss sẽ refresh WMS trước khi kết luận không tìm thấy.",
+                Left = 18, Top = 242, Width = 980, Height = 22,
+                Text = "Phiên WMS được bảo vệ cục bộ; cache miss tự làm mới WMS trước khi kết luận.",
                 ForeColor = Color.FromArgb(88, 104, 115)
             });
             _supraCard.Enabled = false;
-            _supraPage.Controls.Add(_supraCard);
+            _overviewPage.Controls.Add(_supraCard);
 
             // Xử lý PickList
-            var directCard = NewCard(22, 24, 1040, 570);
-            directCard.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            var directCard = NewCard(22, 834, 1040, 570);
+            directCard.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             directCard.Controls.Add(new Label
             {
                 Left = 18, Top = 14, Width = 980, Height = 28,
@@ -902,7 +962,7 @@ namespace SupraInventoryRelayAgent
             directCard.Controls.Add(new Label
             {
                 Left = 18, Top = 48, Width = 980, Height = 22,
-                Text = "Nhập 3–5 chữ số. Tìm cache trước; nếu cache không có, Agent tự refresh WMS rồi tìm lại.",
+                Text = "Nhập 3–5 chữ số để tìm PickList.",
                 ForeColor = Color.FromArgb(88, 104, 115)
             });
             _manualPicklistQuery.SetBounds(18, 82, 200, 30);
@@ -921,7 +981,7 @@ namespace SupraInventoryRelayAgent
             _manualPicklistQuery.TextChanged += (s, e) =>
             {
                 var length = _manualPicklistQuery.Text.Trim().Length;
-                _manualPicklistSearch.Enabled = length >= 3 && length <= 5;
+                _manualPicklistSearch.Enabled = length >= 3 && length <= 5 && IsBusinessAllowed();
                 _manualPicklistGrid.Rows.Clear();
                 _manualPicklistStatus.Text = length < 3 ? "Nhập ít nhất 3 chữ số để tìm." : "Sẵn sàng tìm PickList.";
             };
@@ -975,7 +1035,7 @@ namespace SupraInventoryRelayAgent
             _manualPicklistStatus.Text = "Nhập 3–5 chữ số để xử lý trực tiếp khi PDA không sử dụng được.";
             _manualPicklistStatus.ForeColor = Color.FromArgb(88, 104, 115);
             directCard.Controls.Add(_manualPicklistStatus);
-            _picklistPage.Controls.Add(directCard);
+            _overviewPage.Controls.Add(directCard);
 
             // Kết nối
             var networkCard = NewCard(22, 24, 1040, 300);
@@ -999,7 +1059,7 @@ namespace SupraInventoryRelayAgent
             networkCard.Controls.Add(new Label
             {
                 Left = 18, Top = 184, Width = 980, Height = 80,
-                Text = "Firebase Auth + Firestore là kênh Agent. Các phép kiểm tra chỉ đọc/kết nối. Tên Wi-Fi ở tab Hệ thống Agent lấy trực tiếp từ Windows WLAN; nếu không có SSID sẽ hiển thị tên card mạng đang hoạt động.",
+                Text = "Kiểm tra trạng thái kết nối của Agent. Wi-Fi lấy trực tiếp từ Windows WLAN.",
                 ForeColor = Color.DimGray
             });
             _connectionPage.Controls.Add(networkCard);
@@ -1039,7 +1099,7 @@ namespace SupraInventoryRelayAgent
             _technicalPage.Controls.Add(new Label
             {
                 Left = 18, Top = 14, Width = 760, Height = 28,
-                Text = "Chẩn đoán kỹ thuật cho AI",
+                Text = "Chẩn đoán kỹ thuật",
                 Font = new Font("Segoe UI Semibold", 10.5F)
             });
             _openLog.SetBounds(900, 10, 120, 30);
@@ -1050,6 +1110,80 @@ namespace SupraInventoryRelayAgent
             _technicalPage.Controls.Add(_log);
 
             ResumeLayout(true);
+        }
+
+        private void UpdateAgentFleetGrid(List<AgentPresenceView> agents)
+        {
+            _agentFleetGrid.Rows.Clear();
+            if (agents == null || agents.Count == 0) return;
+
+            var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            foreach (var agent in agents)
+            {
+                var ageMs = Math.Max(0L, nowMs - agent.HeartbeatAtMs);
+                var age = ageMs < 60000
+                    ? "vừa xong"
+                    : (ageMs < 3600000
+                        ? Math.Max(1L, ageMs / 60000) + " phút"
+                        : Math.Max(1L, ageMs / 3600000) + " giờ");
+                _agentFleetGrid.Rows.Add(
+                    string.IsNullOrWhiteSpace(agent.AdminUserId) ? "--" : agent.AdminUserId,
+                    string.IsNullOrWhiteSpace(agent.Machine) ? "--" : agent.Machine,
+                    agent.Role,
+                    agent.WmsReady ? "Sẵn sàng" : "Chưa sẵn sàng",
+                    string.IsNullOrWhiteSpace(agent.Version) ? "--" : agent.Version,
+                    age);
+            }
+        }
+
+        private bool IsBusinessAllowed()
+        {
+            return _businessSchedule == null || _businessSchedule.BusinessAllowed(_businessSchedule.NowOperational());
+        }
+
+        private void SetAfterHoursDecision(AfterHoursDecision decision)
+        {
+            if (_businessSchedule == null) return;
+            var now = _businessSchedule.NowOperational();
+            _businessSchedule.SetDecision(now, decision);
+            _lastAfterHoursPromptAt = DateTime.MinValue;
+            Log("AFTER_HOURS decision=" + decision + " night=" + now.ToString("yyyy-MM-dd"));
+            CheckAfterHoursSchedule(true);
+            if (decision == AfterHoursDecision.CONTINUE && _leaderCoordinator != null)
+                _leaderCoordinator.RequestRoleRefreshBeforeBusiness();
+        }
+
+        private void CheckAfterHoursSchedule(bool forcePrompt = false)
+        {
+            if (_businessSchedule == null) return;
+            var now = _businessSchedule.NowOperational();
+            var needsConfirmation = _businessSchedule.NeedsConfirmation(now);
+            _afterHoursPanel.Visible = needsConfirmation;
+            _afterHoursStatus.Text = _businessSchedule.StatusText(now);
+
+            if (!needsConfirmation)
+            {
+                _lastAfterHoursPromptAt = DateTime.MinValue;
+                return;
+            }
+
+            if (!forcePrompt &&
+                _lastAfterHoursPromptAt != DateTime.MinValue &&
+                (now - _lastAfterHoursPromptAt).TotalMinutes < 5)
+                return;
+
+            _lastAfterHoursPromptAt = now;
+            try
+            {
+                _tray.ShowBalloonTip(
+                    5000,
+                    "Xác nhận vận hành sau 22:00",
+                    now.TimeOfDay >= new TimeSpan(22, 0, 0) || now.TimeOfDay < new TimeSpan(5, 0, 0)
+                        ? "Chưa xác nhận tăng ca. Nghiệp vụ Agent đang tạm dừng. Mở Agent để xác nhận."
+                        : "Có tiếp tục vận hành Agent sau 22:00 không? Mở Agent để xác nhận.",
+                    ToolTipIcon.Warning);
+            }
+            catch { }
         }
 
         private static Panel NewCard(int left, int top, int width, int height)
@@ -1079,7 +1213,7 @@ namespace SupraInventoryRelayAgent
             if (session == null || string.IsNullOrWhiteSpace(session.AppUserId))
             {
                 MessageBox.Show(
-                    "Agent chưa có phiên ADMIN hợp lệ. Hãy đăng nhập ADMIN tại tab Hệ thống Agent trước khi tắt Agent.",
+                    "Agent chưa có phiên ADMIN hợp lệ. Hãy đăng nhập ADMIN tại Tổng quan trước khi tắt Agent.",
                     "Tắt Agent",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
@@ -1095,7 +1229,7 @@ namespace SupraInventoryRelayAgent
                     if (!ExitAuthorization.Verify(ExitVerifierFile, session.AppUserId, password))
                     {
                         MessageBox.Show(
-                            "Mật khẩu ADMIN không đúng hoặc phiên cũ chưa có bộ xác minh tắt Agent. Hãy đăng nhập ADMIN lại tại tab Hệ thống Agent rồi thử lại.",
+                            "Mật khẩu ADMIN không đúng hoặc phiên cũ chưa có bộ xác minh tắt Agent. Hãy đăng nhập ADMIN lại tại Tổng quan rồi thử lại.",
                             "Không thể tắt Agent",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Error);
@@ -1240,7 +1374,9 @@ namespace SupraInventoryRelayAgent
                 _agentSystemInfo.Text =
                     "Phiên bản v" + AgentConfig.AgentBuild +
                     " · Firestore: " + (_leaderCoordinator == null ? "chưa phối hợp" : (_leaderCoordinator.IsTransportHealthy ? "kết nối" : "gián đoạn")) +
-                    " · Failover: request-driven ≥10 giây · Tự cập nhật: GitHub nền 30 phút.";
+                    " · Failover job: 10 giây" +
+                    " · Lịch: " + (IsBusinessAllowed() ? "hoạt động" : "tạm dừng 22:00–05:00") + ".";
+                UpdateAgentFleetGrid(_leaderCoordinator == null ? null : _leaderCoordinator.OnlineAgents);
                 _supraInfo.Text =
                     "Kho: HY1 · API: api-supra.winmart.vn · Phiên: " + (HasUsableWmsSession() ? "sẵn sàng" : "chưa sẵn sàng") +
                     " · Cache PickList: " + _picklistCache.CacheCount +
@@ -1330,7 +1466,7 @@ namespace SupraInventoryRelayAgent
             if (_statusOverlay == null)
             {
                 MessageBox.Show(
-                    "Bảng nổi chưa khởi tạo được. Có thể thử lại ngay; mở log Kỹ thuật AI để xem chẩn đoán.",
+                    "Bảng nổi chưa khởi tạo được. Có thể thử lại ngay; mở Chẩn đoán kỹ thuật để xem chi tiết.",
                     "Agent Auto Confirm Pick Pack",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
@@ -1474,6 +1610,8 @@ namespace SupraInventoryRelayAgent
 
             try
             {
+                if (!IsBusinessAllowed())
+                    throw new InvalidOperationException("Agent đang tạm dừng nghiệp vụ 22:00–05:00. Hãy xác nhận tăng ca tại Tổng quan để tiếp tục.");
                 if (query.Length < 3 || query.Length > 5)
                     throw new InvalidOperationException("Nhập từ 3 đến 5 chữ số.");
                 foreach (var ch in query)
@@ -1537,8 +1675,8 @@ namespace SupraInventoryRelayAgent
                 Ui(() =>
                 {
                     var length = (_manualPicklistQuery.Text ?? "").Trim().Length;
-                    _manualPicklistSearch.Enabled = length >= 3 && length <= 5;
-                    _manualPicklistGrid.Enabled = HasAgentSession() && HasUsableWmsSession();
+                    _manualPicklistSearch.Enabled = length >= 3 && length <= 5 && IsBusinessAllowed();
+                    _manualPicklistGrid.Enabled = HasAgentSession() && HasUsableWmsSession() && IsBusinessAllowed();
                 });
             }
         }
@@ -1555,6 +1693,8 @@ namespace SupraInventoryRelayAgent
 
             try
             {
+                if (!IsBusinessAllowed())
+                    throw new InvalidOperationException("Agent đang tạm dừng nghiệp vụ 22:00–05:00. Hãy xác nhận tăng ca tại Tổng quan để tiếp tục.");
                 if (string.IsNullOrWhiteSpace(pickListCode))
                     throw new InvalidOperationException("Chưa chọn PickList.");
                 if (!HasAgentSession())
@@ -1651,8 +1791,8 @@ namespace SupraInventoryRelayAgent
                 Ui(() =>
                 {
                     var length = (_manualPicklistQuery.Text ?? "").Trim().Length;
-                    _manualPicklistSearch.Enabled = length >= 3 && length <= 5;
-                    _manualPicklistGrid.Enabled = HasAgentSession() && HasUsableWmsSession();
+                    _manualPicklistSearch.Enabled = length >= 3 && length <= 5 && IsBusinessAllowed();
+                    _manualPicklistGrid.Enabled = HasAgentSession() && HasUsableWmsSession() && IsBusinessAllowed();
                 });
             }
         }
@@ -1821,7 +1961,11 @@ namespace SupraInventoryRelayAgent
             try
             {
                 if (startup) Log("UPDATE kiểm tra Agent prerelease v" + AgentConfig.AgentBuild + ".");
-                Ui(() => _updateStatus.Text = "Cập nhật: đang kiểm tra GitHub...");
+                Ui(() =>
+                {
+                    _manualUpdate.Enabled = false;
+                    _updateStatus.Text = "Cập nhật: đang kiểm tra GitHub...";
+                });
                 var result = AgentUpdater.CheckAndInstallIfNeeded();
                 if (result.InstallStarted)
                 {
@@ -1848,6 +1992,7 @@ namespace SupraInventoryRelayAgent
             finally
             {
                 lock (_sessionLock) _updateCheckRunning = false;
+                Ui(() => _manualUpdate.Enabled = true);
             }
         }
 
@@ -2863,6 +3008,7 @@ namespace SupraInventoryRelayAgent
                     state => Ui(() => _relay.Text = state),
                     ProcessFirestoreConfirmation,
                     _leaderCoordinator,
+                    IsBusinessAllowed,
                     healthy =>
                     {
                         var coordinator = _leaderCoordinator;

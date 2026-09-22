@@ -290,3 +290,10 @@ System Reset is a deliberate ROOT-only data-zeroing operation, not normal retent
 - Agent never stores Google OAuth credentials. It writes bounded temporary chunks to Beta Firestore collection `relay_agent_log_uploads` using the authenticated real-ADMIN Firebase session. The Beta Worker drains complete bundles into `Inventory/Beta/Logs` using the existing Drive OAuth secret, then deletes the Firestore chunks after successful Drive upload.
 - Crash/FATAL uses the same channel immediately on a best-effort basis. If no valid Agent auth is available, a local pending crash marker is retained and retried later. Crash filenames start with `crash_`.
 - Agent log spool is temporary support state, not business authority, and is included in Confirmation Relay reset scope. Stable is untouched.
+## D102 — Agent schedule state and fleet metadata
+
+- The after-hours decision is local non-sensitive state keyed by the HCM business night. It stores only the night key and CONTINUE/STOP; no password, token, WMS session or business payload is stored.
+- Presence remains temporary support metadata. D102 cadence is 15-minute Agent presence writes, 30-minute fleet reads and 40-minute presence freshness, plus event/startup refreshes.
+- Agent version is allowed in presence metadata for operational fleet display. Hardware metrics such as CPU/RAM/Disk are local-only and are not persisted to Firestore.
+- At 05:00 the prior night's local decision no longer controls business processing; the next 21:30 window requires a new decision.
+

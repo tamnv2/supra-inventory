@@ -74,10 +74,10 @@ jobs:
           $firestoreRules = Get-Content firebase/firestore.rules -Raw
           $firestoreIndexes = Get-Content firebase/firestore.indexes.json -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*26\s*;') { throw "D101 requires Agent v26." }
+          if ($config -notmatch 'AgentBuild\s*=\s*27\s*;') { throw "D102 requires Agent v27." }
           if ($firestoreLeader -notmatch 'FailoverAfterMs\s*=\s*10000' -or $firestoreLeader -notmatch 'StandbyTakeoverAgeMs\s*=\s*10000') { throw "D097 request-driven 10-second failover guard failed." }
           if ($firestoreLeader -match 'HeartbeatIntervalMs\s*=\s*4000') { throw "D097 forbids 4-second Firestore lease heartbeat." }
-          foreach ($marker in @('PRIMARY','STANDBY','FROZEN','PromoteStandbyForTakeover','replacement-standby','PresenceHeartbeatIntervalMs = 3600000','FrozenRoleRefreshMs = 900000')) {
+          foreach ($marker in @('PRIMARY','STANDBY','FROZEN','PromoteStandbyForTakeover','replacement-standby','PresenceHeartbeatIntervalMs = 900000','StandbyRoleRefreshMs = 60000','FrozenRoleRefreshMs = 300000','StartupConvergenceIntervalMs = 5000')) {
             if ($firestoreLeader -notmatch [regex]::Escape($marker)) { throw "D097 Agent role marker missing: $marker" }
           }
           if ($firestoreLeader -notmatch 'currentDocument\.updateTime' -or $firestoreLeader -notmatch 'currentDocument\.exists=false') { throw "D097 role election must use conditional writes." }
@@ -102,7 +102,7 @@ jobs:
           if ($project -notmatch '<AssemblyName>Agent Auto Confirm Pick Pack</AssemblyName>' -or $project -notmatch '<ApplicationIcon>app.ico</ApplicationIcon>') { throw "D088 EXE name/icon guard failed." }
           if ($iconScript -notmatch 'app-icon\.png' -or $iconScript -notmatch 'HighQualityBicubic') { throw "D089 approved Agent icon source guard failed." }
           if (-not (Test-Path "relay-agent/app-icon.png")) { throw "D089 approved Agent icon asset missing." }
-          if ($firestoreLeader -notmatch 'PresenceHeartbeatIntervalMs\s*=\s*3600000' -or $firestoreLeader -notmatch 'PresenceReadIntervalMs\s*=\s*3600000' -or $firestoreLeader -notmatch 'PresenceFreshMs\s*=\s*7200000') { throw "D097 low-write Agent presence cadence guard failed." }
+          if ($firestoreLeader -notmatch 'PresenceHeartbeatIntervalMs\s*=\s*900000' -or $firestoreLeader -notmatch 'PresenceReadIntervalMs\s*=\s*1800000' -or $firestoreLeader -notmatch 'PresenceFreshMs\s*=\s*2400000') { throw "D102 bounded Agent presence cadence guard failed." }
           if ($firestoreHttp -notmatch 'WebRequest\.DefaultWebProxy' -or $firestoreHttp -notmatch 'WebRequest\.GetSystemWebProxy' -or $firestoreHttp -notmatch 'CredentialCache\.DefaultNetworkCredentials') { throw "D094 Firestore must keep the D091-proven default Windows proxy first and bounded fresh-system retry." }
           if ($firestoreHttp -notmatch 'ApplyDefaultWindowsProxy' -or $firestoreHttp -notmatch 'ApplyFreshSystemProxy') { throw "D094 Firestore proxy route ordering markers missing." }
           if ($firestoreHttp -match 'CorporateProxyFallback') { throw "D094 Firestore must not use the WMS corporate fallback proxy or bypass company filtering." }
@@ -140,8 +140,12 @@ jobs:
           if ($confirmGuard -match 'MarkConfirmed\(') { throw "D097 forbids second Firestore guard-confirm write." }
           if ($program -notmatch 'SearchManualPicklists' -or $program -notmatch 'ConfirmManualPicklist' -or $cache -notmatch 'SearchContains' -or $lookup -notmatch 'PickListCodes') { throw "D098 specialist 3-5 digit manual PickList workflow guard failed." }
           if ($program -notmatch 'DataGridViewButtonColumn' -or $program -notmatch 'Mỗi PickList có nút Xác nhận cùng dòng' -or $program -notmatch 'ConfirmManualPicklist\(code\)') { throw "D101 row-level PickList confirm UI guard failed." }
-          if ($program -match 'new TabPage\("Cài đặt"\)' -or $program -notmatch 'new TabPage\("Hệ thống Agent"\)' -or $program -notmatch 'new TabPage\("Hệ thống Supra"\)' -or $program -notmatch 'new TabPage\("Xử lý PickList"\)') { throw "D101 flat Agent tab architecture guard failed." }
+          if ($program -match 'new TabPage\("Cài đặt"\)' -or $program -notmatch 'new TabPage\("Tổng quan"\)' -or $program -match 'new TabPage\("Hệ thống Supra"\)' -or $program -match 'new TabPage\("Xử lý PickList"\)') { throw "D102 Agent must keep one Overview with Supra/PickList sections." }
           if ($program -notmatch '30 \* 60 \* 1000' -or $program -notmatch 'TryAutoUpdate\(false\)') { throw "D101 running Agent background GitHub update guard failed." }
+          if ($program -notmatch '"Kiểm tra cập nhật"' -or $program -notmatch 'CheckAfterHoursSchedule' -or $program -notmatch 'TotalMinutes < 5' -or $program -notmatch 'AfterHoursDecision\.CONTINUE' -or $program -notmatch 'AfterHoursDecision\.STOP') { throw "D102 manual update / 21:30 five-minute prompt guard failed." }
+          if ($firestoreTransport -notmatch '_businessEnabled\(\)' -or $firestoreTransport -notmatch 'tạm dừng nghiệp vụ 22:00–05:00') { throw "D102 quiet-hour relay gate guard failed." }
+          if ($firestoreLeader -notmatch 'StandbyRoleRefreshMs\s*=\s*60000' -or $firestoreLeader -notmatch 'FrozenRoleRefreshMs\s*=\s*300000' -or $firestoreLeader -notmatch 'StartupConvergenceIntervalMs\s*=\s*5000') { throw "D102 Agent role convergence cadence guard failed." }
+          if ($program -match 'Chẩn đoán kỹ thuật cho AI' -or $program -match 'Kỹ thuật AI') { throw "D102 user-facing Agent UI must not expose AI-only copy." }
           if ($program -notmatch 'SecretPattern.*\\b' -or $program -notmatch 'Wi-Fi: ' -or $program -notmatch 'GetSsid\(\)') { throw "D101 real Wi-Fi SSID display/redaction guard failed." }
           if ($firestoreLeader -notmatch 'OnlinePrimaryCount' -or $firestoreLeader -notmatch 'OnlineStandbyCount' -or $firestoreLeader -notmatch 'OnlineFrozenCount' -or $program -notmatch 'PRIMARY ' -or $program -notmatch 'FROZEN ') { throw "D101 quota-safe Agent fleet count guard failed." }
           $logBridge = Get-Content relay-agent/AgentLogUploadBridge.cs -Raw
@@ -202,6 +206,17 @@ jobs:
           Copy-Item firebase/database.rules.json relay-agent/dist/
           (Get-FileHash $primary -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256"
           (Get-FileHash $legacy -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256"
+
+      - name: D102 night schedule regression
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $exe = (Resolve-Path "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe").Path
+          $selfTest = Start-Process -FilePath $exe -ArgumentList "--d102-self-test" -PassThru -Wait
+          if ($selfTest.ExitCode -ne 0) {
+            throw "D102 in-process night schedule regression failed with exit code $($selfTest.ExitCode)."
+          }
+          Write-Host "D102 night schedule regression PASS"
 
       - name: D096 runtime parser and confirm semantic regression
         shell: pwsh

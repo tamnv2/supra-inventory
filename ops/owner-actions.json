@@ -922,7 +922,7 @@
     },
     {
       "id": "OA021",
-      "status": "READY_FOR_OWNER_FIELD_TEST_D101_RELEASE",
+      "status": "SUPERSEDED_BY_OA022_D102",
       "title": "Field-accept D101 Agent v26 operational rework",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Beta Windows Agent + Firestore relay + authorized Supra WMS + Beta Drive logs + Beta Web",
@@ -965,7 +965,42 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Do not share Firebase tokens, WMS cookies/headers/signatures, passwords or local DPAPI files. Use only a controlled eligible PickList for any real WMS confirm. Crash test should be synthetic and bounded; do not intentionally corrupt company Windows.",
-      "remaining_owner_action": "Run the OA021 physical field matrix on released relay-agent-v26. No code/build/deploy blocker remains."
+      "remaining_owner_action": null,
+      "superseded_reason": "Owner approved D102 before completing D101 field acceptance. Final Agent acceptance must use relay-agent-v27 after D102 technical release."
+    },
+    {
+      "id": "OA022",
+      "status": "BLOCKED_ON_D102_TECHNICAL_RELEASE",
+      "title": "Field-accept D102 Agent v27 Overview, HA convergence and night schedule",
+      "resource_key": "firestore-relay-beta-d091",
+      "provider": "Beta Windows Agent + Firestore relay + authorized Supra WMS",
+      "reason_owner_only": "CI can verify source/build/guards but cannot prove the Owner's physical Windows tray notifications, multi-Agent role convergence, real 21:30/22:00/05:00 behavior, or real running manual/background update on company laptops.",
+      "prerequisites": {
+        "target_agent_release": "relay-agent-v27",
+        "android_release": "beta-vc62 unchanged",
+        "stable": "OWNER_GATED",
+        "technical_release": "PENDING_D102_PR"
+      },
+      "shortest_test_path": [
+        "Install relay-agent-v27 on at least two company laptops and keep both WMS-ready.",
+        "Verify one Tổng quan contains Hệ thống Agent, Hệ thống Supra and Xử lý PickList; Kết nối/Bảng nổi/Nhật ký/Chẩn đoán remain direct tabs.",
+        "Click Kiểm tra cập nhật and verify trusted update check works while the 30-minute background updater remains enabled.",
+        "Start >=2 Agents together and verify the bounded startup convergence settles exactly one PRIMARY, at most one STANDBY and remaining Agents FROZEN; fleet rows agree on account/machine/role/Supra/version/last-seen.",
+        "Verify D097 real request behavior remains PRIMARY immediate, STANDBY takeover at pending age >=10s, FROZEN no business polling and no duplicate WMS mutation.",
+        "At/after 21:30 HCM with no decision, verify warning appears and repeats every 5 minutes until CONTINUE or STOP is chosen.",
+        "Without CONTINUE at 22:00, verify business polling/manual PickList are paused while EXE/tray/log/update/watchdog stay alive. CONTINUE must resume; STOP must suppress further prompts for that night.",
+        "Verify normal business processing returns automatically at 05:00 without restarting Agent."
+      ],
+      "pass_criteria": [
+        "Single Overview layout matches D102 and contains no user-facing AI/Owner/D-number guidance.",
+        "Manual updater and background updater both keep trusted GitHub origin and SHA-256 verification.",
+        "Multi-Agent role display converges materially faster than v26 without fast Firestore heartbeat; authoritative state remains max one PRIMARY + one STANDBY.",
+        "Fleet presence stays bounded at 15m writes / 30m reads / 40m freshness; remote CPU/RAM/Disk are not synchronized.",
+        "21:30 warning repeats every 5 minutes until an explicit decision; no-continue defaults to business pause at 22:00; 05:00 resumes automatically.",
+        "D096/D097 confirmation/idempotency/fail-closed guards remain intact and Stable is untouched."
+      ],
+      "safety": "Beta only. Use controlled eligible PickLists. Do not share passwords, Firebase tokens, WMS cookies/headers/signatures or local DPAPI files.",
+      "remaining_owner_action": "Wait for D102 technical release, then run the OA022 physical field matrix."
     }
   ]
 }

@@ -409,4 +409,14 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA021 FIELD READY**.
 - Main PASS runs: Authority `35677556695`, State `35677556755`, Worker `35677556693`, Firestore `35677556771`, UI `35677556710`, Android `35677556734`, Agent `35677556698`.
 - Released Agent: `relay-agent-v26`; EXE SHA-256 `5db50633e74247b45305a536a6caf140069626db66a7020acf32cf2d216ff79b`.
 - Next action: OA021 physical field acceptance only. Stable remains OWNER-GATED.
+## D102 current workstream — Agent v27
+
+- Owner approved D102 on 2026-09-22.
+- Source branch: feat/d102-agent-overview-ha-quiet-hours.
+- Target: relay-agent-v27; Android remains beta-vc62; Stable remains OWNER-GATED.
+- Agent UI: one Tổng quan contains Hệ thống Agent + Hệ thống Supra + Xử lý PickList. Direct tabs: Kết nối, Bảng nổi, Nhật ký vận hành, Chẩn đoán kỹ thuật.
+- Update: startup + 30-minute background + manual trusted GitHub/SHA-256 check.
+- HA metadata: four startup reads at 5s; PRIMARY/STANDBY role refresh 60s; FROZEN 5m; presence 15m write / 30m read / 40m fresh. D097 business poll/failover remains 5s/10s/10s and FROZEN no business poll.
+- Night gate: 21:30 HCM warning every 5m until CONTINUE/STOP; no CONTINUE at 22:00 pauses business; 05:00 auto-resumes; EXE/log/update/watchdog stay alive.
+- OA021 is superseded by OA022. OA022 is blocked until D102 technical release.
 

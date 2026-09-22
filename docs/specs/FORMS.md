@@ -451,3 +451,14 @@ D100 supersedes the D098 recovery/Agent-login wording above:
 - ROOT/ADMIN recovery email is a real delivery address stored in InventoryCore only. It is not the Firebase sign-in identifier.
 - A matched recovery request sends a project-issued single-use link through Gmail send scope. The token is stored only as a SHA-256 hash, expires after 15 minutes, and is consumed after a successful password change.
 - The recovery link opens a dedicated Web form for new password + confirmation. Success updates the same Firebase UID and InventoryCore password/session authority.
+ 
+## D102 — Agent Tổng quan and night decision form
+
+D102 supersedes the older split Agent shell wording where it conflicts.
+
+- The Agent has one top-level **Tổng quan** page containing **Hệ thống Agent**, **Hệ thống Supra** and **Xử lý PickList** in that order.
+- Hệ thống Agent keeps ADMIN username/password authentication and adds **Kiểm tra cập nhật**, a compact fleet table and the conditional after-hours decision banner.
+- Fleet table shows only account, machine, effective PRIMARY/STANDBY/FROZEN role, Supra readiness, Agent version and last-seen age.
+- From 21:30 Asia/Ho_Chi_Minh, the decision banner offers **Tiếp tục sau 22:00** and **Ngừng từ 22:00**. Local tray warning repeats every five minutes until either choice is confirmed.
+- If no CONTINUE decision exists at 22:00, business actions are paused. The page remains available and the EXE stays alive. Normal business processing returns at 05:00.
+- User-facing form copy must not expose AI/Owner/D-number handoff language.

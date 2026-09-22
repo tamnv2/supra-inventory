@@ -394,4 +394,12 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA021 FIELD READY**.
 - Main PASS runs: Authority `35677556695`, State `35677556755`, Worker `35677556693`, Firestore `35677556771`, UI `35677556710`, Android `35677556734`, Agent `35677556698`.
 - Released Agent: `relay-agent-v26`; release id `393404831`; canonical EXE asset id `580316553`, size `263680`, SHA-256 `5db50633e74247b45305a536a6caf140069626db66a7020acf32cf2d216ff79b`.
 - Remaining gate: OA021 physical field acceptance. Stable remains OWNER-GATED and untouched.
+## D102 Agent v27 source readiness
+
+- Status: SOURCE_CANDIDATE / PR_GATES_PENDING.
+- Beta-only Agent source target relay-agent-v27; Stable untouched.
+- D097/D096 confirmation guards preserved.
+- New local 21:30/22:00/05:00 schedule does not add provider polling; five-minute reminders are local.
+- Firestore observability cadence: 15m presence write, 30m fleet read, 40m freshness; role refresh 60s PRIMARY/STANDBY, 5m FROZEN, plus bounded startup convergence.
+- Next gate: Agent build/startup-smoke + authority/state/UI guards on PR, then main prerelease verification and OA022 field test.
 

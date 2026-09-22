@@ -52,6 +52,7 @@ namespace SupraInventoryRelayAgent
         private readonly Action<string> _state;
         private readonly Func<FirestoreConfirmationWorkItem, FirestoreConfirmationOutcome> _handler;
         private readonly FirestoreAgentLeaderCoordinator _coordinator;
+        private readonly Func<bool> _businessEnabled;
         private readonly Action<bool> _relayHealth;
         private long _lastPollTelemetryMs;
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024 };
@@ -68,6 +69,7 @@ namespace SupraInventoryRelayAgent
             Action<string> state,
             Func<FirestoreConfirmationWorkItem, FirestoreConfirmationOutcome> handler,
             FirestoreAgentLeaderCoordinator coordinator,
+            Func<bool> businessEnabled,
             Action<bool> relayHealth)
         {
             _sessionProvider = sessionProvider;
@@ -81,6 +83,7 @@ namespace SupraInventoryRelayAgent
             _state = state ?? delegate { };
             _handler = handler;
             _coordinator = coordinator;
+            _businessEnabled = businessEnabled ?? (() => true);
             _relayHealth = relayHealth ?? delegate { };
         }
 
@@ -91,7 +94,12 @@ namespace SupraInventoryRelayAgent
                 var waitMs = 10000;
                 try
                 {
-                    if (_coordinator == null || !_coordinator.CanPollBusiness)
+                    if (!_businessEnabled())
+                    {
+                        _state("Relay: tạm dừng nghiệp vụ 22:00–05:00");
+                        waitMs = 5000;
+                    }
+                    else if (_coordinator == null || !_coordinator.CanPollBusiness)
                     {
                         var role = _coordinator == null ? "FROZEN" : _coordinator.RoleName;
                         _state("Relay: " + role + " · không đọc hàng chờ");
