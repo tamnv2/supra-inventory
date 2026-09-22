@@ -171,6 +171,7 @@ const FIRESTORE_COLLECTIONS = [
   "relay_poc_coordination",
   "relay_poc_agents",
   "relay_poc_confirm_guards",
+  "relay_agent_log_uploads",
 ];
 
 async function firestoreDocuments(env: Env): Promise<{ refs: string[]; counts: Record<string, number>; pendingJobs: number }> {
