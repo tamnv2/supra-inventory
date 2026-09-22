@@ -74,7 +74,7 @@ jobs:
           $firestoreRules = Get-Content firebase/firestore.rules -Raw
           $firestoreIndexes = Get-Content firebase/firestore.indexes.json -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*28\s*;') { throw "D103 requires Agent v28." }
+          if ($config -notmatch 'AgentBuild\s*=\s*29\s*;') { throw "D104 requires Agent v29." }
           if ($firestoreLeader -notmatch 'FailoverAfterMs\s*=\s*10000' -or $firestoreLeader -notmatch 'StandbyTakeoverAgeMs\s*=\s*10000') { throw "D097 request-driven 10-second failover guard failed." }
           if ($firestoreLeader -match 'HeartbeatIntervalMs\s*=\s*4000') { throw "D097 forbids 4-second Firestore lease heartbeat." }
           foreach ($marker in @('PRIMARY','STANDBY','FROZEN','PromoteStandbyForTakeover','replacement-standby','PresenceHeartbeatIntervalMs = 900000','StandbyRoleRefreshMs = 60000','FrozenRoleRefreshMs = 300000','StartupConvergenceIntervalMs = 5000')) {
@@ -147,6 +147,14 @@ jobs:
           if ($firestoreLeader -notmatch 'StandbyRoleRefreshMs\s*=\s*60000' -or $firestoreLeader -notmatch 'FrozenRoleRefreshMs\s*=\s*300000' -or $firestoreLeader -notmatch 'StartupConvergenceIntervalMs\s*=\s*5000') { throw "D102 Agent role convergence cadence guard failed." }
           if ($program -match 'Chẩn đoán kỹ thuật cho AI' -or $program -match 'Kỹ thuật AI') { throw "D102 user-facing Agent UI must not expose AI-only copy." }
           if ($program -notmatch 'WindowState = FormWindowState.Maximized' -or $program -notmatch '_overviewPage.AutoScroll = false') { throw "D103 Agent must open maximized with a non-scrolling Overview." }
+          if ($program -notmatch 'MaximizedBounds = screen\.WorkingArea' -or $program -notmatch 'ShowInTaskbar = true' -or $program -notmatch 'ApplyWorkingAreaMaximum\(\)') { throw "D104 maximized Agent must respect Windows WorkingArea/taskbar." }
+          if ($program -notmatch '_manualPicklistQuery\.MaxLength = 79' -or $program -notmatch 'Split\('',''\)' -or $program -notmatch 'TryParseManualPicklistQueries' -or $program -notmatch 'ConfirmAllManualPicklists' -or $program -notmatch 'Xác nhận tất cả') { throw "D104 comma multi-search / conditional confirm-all UI guard failed." }
+          if ($program -notmatch '_manualPicklistConfirmAll\.Visible = count >= 2' -or $program -notmatch 'ConfirmManualPicklists\(codes\)') { throw "D104 confirm-all must appear only for >=2 rows and target displayed codes." }
+          if ($cache -notmatch 'SearchContainsMany' -or $cache -notmatch 'LookupMany' -or $cache -notmatch 'BATCH_CACHE_MISS_REFRESH' -or $cache -notmatch 'MANUAL_MULTI_MISS_REFRESH') { throw "D104 multi-search/PDA batch lookup must share bounded cache refresh." }
+          if ($exact -notmatch 'ResolveMany' -or $exact -notmatch 'At most 12 Picklist suffixes') { throw "D104 exact resolver batch guard failed." }
+          if ($confirm -notmatch 'ConfirmMany' -or $confirm -notmatch 'At most 10 PickListCodes' -or $confirm -notmatch '"PickListCodes", pending\.ToArray\(\)') { throw "D104 WMS confirm must batch at most 10 exact codes." }
+          if ($firestoreTransport -notmatch 'ProcessBatch' -or $firestoreTransport -notmatch '_batchHandler' -or $program -notmatch 'ProcessFirestoreConfirmations' -or $program -notmatch 'WmsPicklistConfirmClient\.ConfirmMany') { throw "D104 PDA jobs must use the bounded batch business path." }
+          if ($program -notmatch 'PDA_CONFIRM_BATCH' -or $program -notmatch 'wms_requests=' -or $program -notmatch 'for \(var offset = 0; offset < confirmCodes\.Count; offset \+= 10\)') { throw "D104 PDA WMS chunking/audit markers missing." }
           if ($program -notmatch 'RowStyles.Add\(new RowStyle\(SizeType.Absolute, 330F\)\)' -or $program -notmatch 'RowStyles.Add\(new RowStyle\(SizeType.Absolute, 105F\)\)' -or $program -notmatch 'RowStyles.Add\(new RowStyle\(SizeType.Percent, 100F\)\)') { throw "D103 dense Overview row layout guard failed." }
           if ($program -notmatch '_agentFleetGrid\.SetBounds\(16, 168, 990, 146\)' -or $program -notmatch '_agentFleetGrid\.ScrollBars = ScrollBars\.Vertical' -or $program -notmatch '_agentFleetGrid\.RowTemplate\.Height = 24') { throw "D103 five-row Agent fleet viewport guard failed." }
           if ($program -match 'Phiên WMS được bảo vệ cục bộ' -or $program -match 'Cập nhật phần mềm: tự kiểm tra' -or $program -match 'Failover job: 10 giây') { throw "D103 Overview must remove verbose internal guidance." }
