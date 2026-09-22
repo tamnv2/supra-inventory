@@ -388,3 +388,12 @@ D097 supersedes the D085/D092 heartbeat wording for the Firestore confirmation c
 - A cache MISS is provisional. Before the system may return final `NOT_FOUND`, exactly one WMS snapshot refresh must be attempted through the existing single-flight coordinator, then the query is evaluated against the refreshed snapshot.
 - Only final post-refresh `NOT_FOUND` may feed wrong-input/strike handling. WMS/session/network/permission/refresh uncertainty is not a wrong PickList input.
 - Manual specialist search still requires explicit full PickListCode selection and uses the existing one-write confirmation guard; it never ACKs an Android job.
+## D102 — Agent daily operating window and role convergence
+
+- Agent top-level workflow starts at **Tổng quan**, where Hệ thống Agent, Hệ thống Supra and specialist PickList handling remain on one page.
+- At 21:30 Asia/Ho_Chi_Minh, an undecided Agent starts a five-minute repeating warning cycle asking whether operations continue after 22:00.
+- CONTINUE keeps Agent business processing enabled through the night; STOP schedules business pause from 22:00 and stops further warnings for that night.
+- If no answer exists by 22:00, business processing pauses by default but the Agent process remains alive. A later CONTINUE resumes business processing; 05:00 always returns to normal daytime behavior.
+- D097 confirmation flow is preserved. PRIMARY handles immediately, STANDBY remains the 10-second request failover path, and FROZEN never polls business jobs.
+- Multi-Agent role metadata performs a bounded startup convergence burst and then low-frequency role refresh. This improves role-display convergence without turning presence into a fast liveness heartbeat.
+
