@@ -647,6 +647,7 @@ namespace SupraInventoryRelayAgent
             _logUploadTimer.Interval = 60 * 1000;
             _logUploadTimer.Tick += (s, e) => Task.Run(() =>
             {
+                try { EnsureFreshToken(); } catch { }
                 _agentLogBridge.TryFlushPendingCrash();
                 _agentLogBridge.TryQueueScheduledSnapshot();
             });
@@ -1225,7 +1226,6 @@ namespace SupraInventoryRelayAgent
                     " · STANDBY " + standbyCount +
                     " · FROZEN " + frozenCount +
                     " · Máy này: " + state;
-                _network.Text = "Wi-Fi: " + GetSsid();
                 _agentSystemInfo.Text =
                     "Phiên bản v" + AgentConfig.AgentBuild +
                     " · Firestore: " + (_leaderCoordinator == null ? "chưa phối hợp" : (_leaderCoordinator.IsTransportHealthy ? "kết nối" : "gián đoạn")) +
