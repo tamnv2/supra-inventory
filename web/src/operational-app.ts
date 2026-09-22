@@ -8,6 +8,7 @@ import "./legacy-transplant/workflow-v3-overrides.css";
 import "./legacy-transplant/workflow-v4-ux.css";
 import "./legacy-transplant/web-fast-ui.css";
 import "./legacy-transplant/web-unified-ui.css";
+import "./legacy-transplant/web-professional-v2.css";
 import { firebaseReady } from "./firebase";
 import {
   applyHrPickerSync,
@@ -853,7 +854,7 @@ function renderLogin(): void {
   const recoveryToken = new URL(window.location.href).searchParams.get("password-reset") || "";
   if (/^[a-f0-9]{128}$/i.test(recoveryToken)) {
     app.innerHTML = `<main class="login-shell"><section class="login-card">
-      <div class="brand">1291</div><p class="eyebrow">BÁO HÀNG 1291</p><h1>Đặt lại mật khẩu</h1>
+      <div class="login-brand-lockup"><img class="login-app-icon" src="/app-icon.png" alt="" /><div class="login-brand-copy"><p class="login-company">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p><h1>Website nghiệp vụ Inventory</h1></div></div><h2 class="login-view-title">Đặt lại mật khẩu</h2>
       <p class="muted">Nhập mật khẩu mới cho tài khoản đã yêu cầu khôi phục.</p>
       <form id="confirm-password-reset-form">
         <label>Mật khẩu mới<input name="next" type="password" required minlength="8" maxlength="128" autocomplete="new-password" /></label>
@@ -883,8 +884,7 @@ function renderLogin(): void {
     return;
   }
   app.innerHTML = `<main class="login-shell"><section class="login-card">
-    <div class="brand">1291</div><p class="eyebrow">BÁO HÀNG 1291</p><h1>Web nghiệp vụ</h1>
-    <p class="muted">Đăng nhập bằng tài khoản Báo hàng 1291.</p>
+    <div class="login-brand-lockup"><img class="login-app-icon" src="/app-icon.png" alt="" /><div class="login-brand-copy"><p class="login-company">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p><h1>Website nghiệp vụ Inventory</h1></div></div>
     ${!firebaseReady ? `<div class="message" data-type="error">Hệ thống đăng nhập chưa sẵn sàng. Vui lòng thử lại sau.</div>` : ""}
     <form id="login-form">
       <label>Mã nhân viên<input name="username" required autocomplete="username" placeholder="Nhập mã nhân viên" /></label>
@@ -1403,8 +1403,10 @@ function renderDashboard(): string {
   const overdueCount = Number(operationalInsights?.sla?.escalated_count || 0);
   const roleOnline = realtimePresence?.online_users_by_role || { PICKER: 0, REPORTER: 0, ADMIN: 0, ROOT: 0 };
   const onlineTotal = Number(realtimePresence?.online_users || 0);
-  const hourly = Array.from({ length: 24 }, (_, index) => Number(timeline[index]?.reports || 0));
-  const maxHour = Math.max(1, ...hourly);
+  const trendRows = timeline.slice(-24);
+  const trendMax = Math.max(1, ...trendRows.flatMap((row) => [Number(row.reports || 0), Number(row.resolved || 0)]));
+  const affectedInPeriod = Number(k?.affected_picker_count || 0);
+  const recurrenceSkuCount = recurrence.length;
   return `<section class="v5-root report-workspace">
     <div class="business-page-head"><div><h2>Tổng quan & báo cáo</h2><p>Toàn cảnh vận hành báo hàng theo thời gian được chọn.</p></div></div>
     ${renderReportTabs("dashboard")}
@@ -1416,11 +1418,12 @@ function renderDashboard(): string {
     </article>
 
     <div class="report-section-title"><h3>Tình trạng hiện tại</h3><span>Dữ liệu trực tiếp từ hệ thống</span></div>
-    <section class="business-summary-grid business-summary-grid-4">
-      <article class="business-summary-card primary"><span>SKU đang chờ xử lý</span><strong>${pending}</strong><small>${Number(k?.pending_picker_count || 0)} Picker đang bị ảnh hưởng</small></article>
+    <section class="business-summary-grid business-summary-grid-5 pro-kpi-grid">
+      <button type="button" class="business-summary-card summary-filter-card primary" data-dashboard-status="PENDING"><span>SKU đang chờ xử lý</span><strong>${pending}</strong><small>Mở báo cáo chi tiết đang chờ</small></button>
+      <article class="business-summary-card primary-soft"><span>Picker đang bị ảnh hưởng</span><strong>${Number(k?.pending_picker_count || 0)}</strong><small>Tại các SKU chưa xử lý</small></article>
       <article class="business-summary-card warning"><span>Sắp quá thời gian</span><strong>${warningCount}</strong><small>Cần ưu tiên kiểm tra</small></article>
       <article class="business-summary-card danger"><span>Đã quá thời gian</span><strong>${overdueCount}</strong><small>Cần xử lý ngay</small></article>
-      <article class="business-summary-card good"><span>Người đang online</span><strong>${onlineTotal}</strong><small>Chỉ Web + PDA; không tính Agent</small></article>
+      <article class="business-summary-card good"><span>Người đang online</span><strong>${onlineTotal}</strong><small>Web + PDA đang hoạt động</small></article>
     </section>
 
     <div class="report-layout-two">
@@ -1435,11 +1438,13 @@ function renderDashboard(): string {
       </article>
       <article class="ops-panel">
         <div class="ops-panel-title"><div><h3>Khối lượng trong kỳ</h3><p>Các chỉ số chính theo khoảng thời gian đã chọn.</p></div></div>
-        <div class="presence-grid">
-          <div><span>Lượt báo hết hàng</span><strong>${Number(k?.reports_count || 0)}</strong></div>
-          <div><span>SKU phát sinh</span><strong>${Number(k?.unique_sku_count || 0)}</strong></div>
-          <div><span>Đợt đã xử lý</span><strong>${Number(k?.resolved_batch_count || 0)}</strong></div>
+        <div class="presence-grid pro-period-grid">
+          <div><span>Lượt báo hết hàng</span><strong>${Number(k?.reports_count || 0).toLocaleString("vi-VN")}</strong></div>
+          <div><span>SKU phát sinh</span><strong>${Number(k?.unique_sku_count || 0).toLocaleString("vi-VN")}</strong></div>
+          <div><span>Picker bị ảnh hưởng</span><strong>${affectedInPeriod.toLocaleString("vi-VN")}</strong></div>
+          <div><span>Đợt đã xử lý</span><strong>${Number(k?.resolved_batch_count || 0).toLocaleString("vi-VN")}</strong></div>
           <div><span>Thời gian xử lý bình quân</span><strong>${k?.avg_resolution_minutes == null ? "—" : `${k.avg_resolution_minutes} phút`}</strong></div>
+          <div><span>SKU nổi bật phát sinh lại</span><strong>${recurrenceSkuCount.toLocaleString("vi-VN")}</strong></div>
         </div>
       </article>
     </div>
@@ -1460,8 +1465,8 @@ function renderDashboard(): string {
     </div>
 
     <div class="report-layout-two">
-      <article class="ops-panel"><div class="ops-panel-title"><div><h3>Phát sinh theo giờ</h3><p>Số lượt báo phân bổ trong ngày.</p></div></div><div class="v5-hourly">${hourly.map((value, hour) => `<div class="v5-hour"><i style="height:${Math.max(value ? 6 : 2, value / maxHour * 100)}%"></i><span>${hour % 3 === 0 ? String(hour).padStart(2,"0") : ""}</span></div>`).join("")}</div></article>
-      <article class="ops-panel"><div class="ops-panel-title"><div><h3>SKU phát sinh nhiều</h3><p>SKU có nhiều lượt báo nhất trong kỳ.</p></div></div>${dashboardData?.top_skus?.length ? `<div class="v5-rank-list">${dashboardData.top_skus.slice(0,8).map((row,index) => `<div class="v5-rank-row"><b>${index+1}</b><div><strong>${esc(row.sku)}</strong><span>${esc(row.product_name)}</span></div><em>${row.report_count} báo</em></div>`).join("")}</div>` : `<div class="v5-empty">Chưa có dữ liệu.</div>`}</article>
+      <article class="ops-panel pro-trend-panel"><div class="ops-panel-title"><div><h3>Nhịp vận hành theo thời gian</h3><p>So sánh lượt báo phát sinh và đợt được xử lý trong kỳ.</p></div><div class="pro-chart-legend"><span><i class="reports"></i>Lượt báo</span><span><i class="resolved"></i>Đã xử lý</span></div></div>${trendRows.length ? `<div class="pro-trend-chart">${trendRows.map((row,index) => { const reports = Number(row.reports || 0); const resolved = Number(row.resolved || 0); const label = dashboardData?.period.bucket === "hour" ? String(row.bucket).slice(11,16) : String(row.bucket).slice(5,10); const step = Math.max(1, Math.ceil(trendRows.length / 8)); return `<div class="pro-trend-column" title="${esc(label)} · ${reports} lượt báo · ${resolved} đã xử lý"><div class="pro-trend-bars"><i class="reports" style="height:${Math.max(reports ? 5 : 1, reports / trendMax * 100)}%"></i><i class="resolved" style="height:${Math.max(resolved ? 5 : 1, resolved / trendMax * 100)}%"></i></div><span>${index % step === 0 || index === trendRows.length - 1 ? esc(label) : ""}</span></div>`; }).join("")}</div>` : `<div class="v5-empty">Chưa có dữ liệu theo thời gian trong kỳ.</div>`}</article>
+      <article class="ops-panel"><div class="ops-panel-title"><div><h3>SKU phát sinh nhiều</h3><p>SKU có nhiều lượt báo nhất trong kỳ.</p></div></div>${dashboardData?.top_skus?.length ? `<div class="v5-rank-list pro-rank-list">${dashboardData.top_skus.slice(0,8).map((row,index) => `<button type="button" class="v5-rank-row pro-rank-action" data-dashboard-sku="${esc(row.sku)}"><b>${index+1}</b><div><strong>${esc(row.sku)}</strong><span>${esc(row.product_name)}</span></div><em>${Number(row.report_count).toLocaleString("vi-VN")} báo · ${Number(row.picker_count).toLocaleString("vi-VN")} Picker</em></button>`).join("")}</div>` : `<div class="v5-empty">Chưa có dữ liệu.</div>`}</article>
     </div>
   </section>`;
 }
@@ -1471,6 +1476,12 @@ function renderReports(): string {
   const outcomes = reportSummary?.outcomes || [];
   const count = (status: string) => Number(outcomes.find((row) => row.status === status)?.count || 0);
   const recurrenceCount = reportInsights?.recurrence?.top_skus?.length || 0;
+  const reportWarningCount = Number(reportInsights?.sla?.warning_count || 0);
+  const reportOverdueCount = Number(reportInsights?.sla?.escalated_count || 0);
+  const reportClosedTotal = count("HAS_STOCK") + count("SKIP_ALLOWED") + count("CLOSED");
+  const reportOutcomePct = (value: number) => reportClosedTotal > 0 ? Math.round(value * 100 / reportClosedTotal) : 0;
+  const pageFrom = reportTotal ? reportOffset + 1 : 0;
+  const pageTo = Math.min(reportTotal, reportOffset + reportRows.length);
   return `<section class="ops-route report-workspace">
     <div class="business-page-head"><div><h2>Tổng quan & báo cáo</h2><p>Tra cứu chi tiết các đợt báo hàng theo thời gian, trạng thái và SKU.</p></div><button class="secondary" id="export-reports">Xuất Excel</button></div>
     ${renderReportTabs("reports")}
@@ -1482,15 +1493,21 @@ function renderReports(): string {
         <button class="primary report-filter-submit">Xem báo cáo</button>
       </form>
     </article>
-    <section class="business-summary-grid business-summary-grid-4">
-      <article class="business-summary-card primary"><span>Lượt báo hết hàng</span><strong>${Number(k?.reports_count || 0)}</strong><small>Trong khoảng thời gian đã chọn</small></article>
-      <article class="business-summary-card good"><span>Đã có hàng</span><strong>${count("HAS_STOCK")}</strong><small>Đợt kết thúc với kết quả có hàng</small></article>
-      <article class="business-summary-card danger"><span>Được phép bỏ qua</span><strong>${count("SKIP_ALLOWED")}</strong><small>Đợt được phép bỏ qua SKU</small></article>
-      <article class="business-summary-card warning"><span>SKU phát sinh lại</span><strong>${recurrenceCount}</strong><small>Số SKU nổi bật có phát sinh lại</small></article>
+    <section class="business-summary-grid business-summary-grid-6 pro-report-kpis">
+      <article class="business-summary-card primary"><span>Lượt báo hết hàng</span><strong>${Number(k?.reports_count || 0).toLocaleString("vi-VN")}</strong><small>Trong khoảng thời gian đã chọn</small></article>
+      <article class="business-summary-card primary-soft"><span>SKU phát sinh</span><strong>${Number(k?.unique_sku_count || 0).toLocaleString("vi-VN")}</strong><small>Số SKU khác nhau trong kỳ</small></article>
+      <article class="business-summary-card primary-soft"><span>Picker bị ảnh hưởng</span><strong>${Number(k?.affected_picker_count || 0).toLocaleString("vi-VN")}</strong><small>Tổng Picker ghi nhận trong kỳ</small></article>
+      <article class="business-summary-card good"><span>Đợt đã xử lý</span><strong>${Number(k?.resolved_batch_count || 0).toLocaleString("vi-VN")}</strong><small>${k?.avg_resolution_minutes == null ? "Chưa có thời gian bình quân" : `Bình quân ${k.avg_resolution_minutes} phút`}</small></article>
+      <article class="business-summary-card warning"><span>Sắp quá thời gian</span><strong>${reportWarningCount.toLocaleString("vi-VN")}</strong><small>Đang cần theo dõi</small></article>
+      <article class="business-summary-card danger"><span>Đã quá thời gian</span><strong>${reportOverdueCount.toLocaleString("vi-VN")}</strong><small>Đang cần ưu tiên xử lý</small></article>
     </section>
+    <div class="report-layout-two pro-report-analysis">
+      <article class="ops-panel"><div class="ops-panel-title"><div><h3>Cơ cấu kết quả</h3><p>Tỷ trọng các đợt đã khép lại trong bộ lọc hiện tại.</p></div></div><div class="v5-outcome-bars"><div class="v5-outcome-line"><div><span>Đã có hàng</span><b>${count("HAS_STOCK")}</b></div><div class="v5-track"><i class="green" style="width:${reportOutcomePct(count("HAS_STOCK"))}%"></i></div><small>${reportOutcomePct(count("HAS_STOCK"))}%</small></div><div class="v5-outcome-line"><div><span>Được phép bỏ qua</span><b>${count("SKIP_ALLOWED")}</b></div><div class="v5-track"><i class="red" style="width:${reportOutcomePct(count("SKIP_ALLOWED"))}%"></i></div><small>${reportOutcomePct(count("SKIP_ALLOWED"))}%</small></div><div class="v5-outcome-line"><div><span>Picker đã thu hồi</span><b>${count("CLOSED")}</b></div><div class="v5-track"><i class="gray" style="width:${reportOutcomePct(count("CLOSED"))}%"></i></div><small>${reportOutcomePct(count("CLOSED"))}%</small></div></div></article>
+      <article class="ops-panel"><div class="ops-panel-title"><div><h3>Điểm cần theo dõi</h3><p>Tóm tắt nhanh để điều phối công việc hiện tại.</p></div></div><div class="pro-watch-grid"><div class="warning"><span>Sắp quá thời gian</span><strong>${reportWarningCount}</strong></div><div class="danger"><span>Đã quá thời gian</span><strong>${reportOverdueCount}</strong></div><div><span>SKU nổi bật phát sinh lại</span><strong>${recurrenceCount}</strong></div><div><span>Thời gian xử lý bình quân</span><strong>${k?.avg_resolution_minutes == null ? "—" : `${k.avg_resolution_minutes} phút`}</strong></div></div></article>
+    </div>
     <article class="ops-panel">
-      <div class="ops-panel-title"><div><h3>Chi tiết đợt báo hàng</h3><p>${reportTotal.toLocaleString("vi-VN")} bản ghi phù hợp với bộ lọc.</p></div><div class="user-row-actions"><button class="secondary" id="report-prev" ${reportOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="report-next" ${reportOffset + REPORT_PAGE_SIZE >= reportTotal ? "disabled" : ""}>Trang sau</button></div></div>
-      <div class="table-wrap"><table><thead><tr><th>SKU</th><th>Tên sản phẩm</th><th>Kết quả</th><th>Báo lần đầu</th><th>Xử lý xong</th><th>Thời gian xử lý</th><th>Số lượt báo</th></tr></thead><tbody>${reportRows.map((row) => `<tr><td><strong>${esc(row.sku)}</strong></td><td>${esc(row.product_name)}</td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : row.status === "CLOSED" ? "closed" : "warning"}">${esc(statusLabel(row.status))}</span></td><td>${esc(fmt(row.first_report_at))}</td><td>${esc(fmt(row.resolved_at))}</td><td>${row.duration_minutes == null ? "—" : `${row.duration_minutes} phút`}</td><td>${row.total_ticket_count}</td></tr>`).join("") || `<tr><td colspan="7" class="ops-empty">Chưa có dữ liệu phù hợp.</td></tr>`}</tbody></table></div>
+      <div class="ops-panel-title pro-report-table-head"><div><h3>Chi tiết đợt báo hàng</h3><p>Đang hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${reportTotal.toLocaleString("vi-VN")} bản ghi phù hợp.</p></div><div class="user-row-actions"><button class="secondary" id="report-prev" ${reportOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="report-next" ${reportOffset + REPORT_PAGE_SIZE >= reportTotal ? "disabled" : ""}>Trang sau</button></div></div>
+      <div class="table-wrap pro-report-table"><table><thead><tr><th>SKU</th><th>Tên sản phẩm</th><th>Kết quả</th><th>Báo lần đầu</th><th>Xử lý xong</th><th>Thời gian xử lý</th><th>Đang mở</th><th>Tổng lượt báo</th></tr></thead><tbody>${reportRows.map((row) => `<tr><td><strong>${esc(row.sku)}</strong></td><td>${esc(row.product_name)}</td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : row.status === "CLOSED" ? "closed" : "warning"}">${esc(statusLabel(row.status))}</span></td><td>${esc(fmt(row.first_report_at))}</td><td>${esc(fmt(row.resolved_at))}</td><td>${row.duration_minutes == null ? "—" : `${row.duration_minutes} phút`}</td><td>${Number(row.open_ticket_count || 0).toLocaleString("vi-VN")}</td><td>${Number(row.total_ticket_count || 0).toLocaleString("vi-VN")}</td></tr>`).join("") || `<tr><td colspan="8" class="ops-empty">Chưa có dữ liệu phù hợp.</td></tr>`}</tbody></table></div>
     </article>
   </section>`;
 }
