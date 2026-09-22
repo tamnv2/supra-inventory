@@ -128,13 +128,13 @@
   },
   "environments": {
     "beta": {
-      "status": "D106_MANAGED_ACCOUNT_AGENT_AUTH_REPAIR_SOURCE_CANDIDATE__D105_RELEASE_BASELINE_PRESERVED",
+      "status": "D106_TECHNICAL_RUNTIME_PASS__MANAGED_ACCOUNT_AGENT_AUTH__OA026_FIELD_READY",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
       "hostname": "inventory-beta.supra.cc.cd",
       "custom_domain_status": "ACTIVE",
-      "health_status": "PASS_RUN_35609150820__HTTP_200_SCHEMA_9_9__ADMIN_MIGRATION_COMPLETE",
+      "health_status": "D106_LIVE_PROOF_RUN_35722532394__HTTP_200_SOURCE_DBCC8AF_EXACT__STORAGE_TRUE__SCHEMA_10_10__MISSING_0__AGENT_0_0",
       "ci_deploy_status": "D101_PASS_RUN_35677556693_MAIN_25CB7554",
       "web_smoke_status": "D098_PASS_RUN_35609150820",
       "app_verify_status": "D098_ANDROID_BETA_VC61_PASS_RUN_35609150827",
