@@ -654,3 +654,9 @@ Owner approved on 2026-09-22 as a new Web requirement after the D089 baseline.
 5. `Báo cáo chi tiết` adds a richer summary, current warning/overdue view, result mix, clearer pagination position and open-ticket/total-ticket columns while retaining current bounded filters, pagination and Excel export.
 6. D107 adds no new provider monitoring, polling loop, backend datastore or analytics authority. It must not reintroduce D072 system-status polling, employee scoring, inventory quantity/bin/location metrics or unbounded reads.
 7. D089 remains the accepted shared-icon and cross-product identity baseline. D107 supersedes only conflicting **Web** visual presentation details. Android/Agent are unchanged. Stable remains OWNER-GATED and untouched.
+
+### D107 release checkpoint — 2026-09-22
+
+D107 source and PR gates are PASS. PR #149 head `acdec3bb8e0b8a0793da6127a35952e014f58655` passed Repo Authority run `35729564644`, Project State run `35729564770`, UI Design/Web production build run `35729564681`, Beta RTDB Rules run `35729564684` and Beta Firestore Relay run `35729564631`. It was squash-merged to main `4e733535ef0abe893681afdf288097767141b115`.
+
+The repository's existing `Deploy Beta Worker` workflow automatically applies to `main` pushes that change `web/**`, so the D107 merge enters the normal Beta deployment path without Owner action. Current connected GitHub tooling does not enumerate main push-triggered workflow runs, so this checkpoint does **not** fabricate an exact Beta runtime PASS. Final D107 visual acceptance remains OA027 on live Beta. Stable is untouched and OWNER-GATED.
