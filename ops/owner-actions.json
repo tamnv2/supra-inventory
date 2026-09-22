@@ -1022,7 +1022,7 @@
     },
     {
       "id": "OA023",
-      "status": "BLOCKED_ON_D103_TECHNICAL_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST_D103_RELEASE",
       "title": "Field-accept D103 Agent v28 dense Overview",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Beta Windows Agent + existing Firestore relay + authorized Supra WMS",
@@ -1031,7 +1031,24 @@
         "target_agent_release": "relay-agent-v28",
         "android_release": "beta-vc62 unchanged",
         "stable": "OWNER_GATED",
-        "technical_release": "PENDING_D103_PR"
+        "technical_release": "PASS",
+        "merged_pr": 140,
+        "source_main": "15aba0412e625af0f6b9ef7489b995a3e524a131",
+        "pr_repo_authority_run": 35684714977,
+        "pr_project_state_run": 35684714967,
+        "pr_ui_run": 35684714971,
+        "pr_relay_agent_run": 35684714955,
+        "pr_firestore_run": 35684714928,
+        "pr_rtdb_run": 35684714958,
+        "main_repo_authority_run": 35684829649,
+        "main_project_state_run": 35684829653,
+        "main_ui_run": 35684829650,
+        "main_relay_agent_run": 35684829660,
+        "agent_release_id": 393444068,
+        "agent_asset_id": 580490417,
+        "agent_asset_size": 271360,
+        "agent_sha256": "4faf8507637d61d74ac8aa34ba998a1fc04bfacd0fdc572af1cabda5f8bb8cb1",
+        "main_artifact_id": 10675764500
       },
       "shortest_test_path": [
         "Install relay-agent-v28 and open Agent normally; minimize to tray and restore once.",
@@ -1051,7 +1068,7 @@
         "D096/D097/D102 behavior is unchanged and Stable is untouched."
       ],
       "safety": "Beta only. Use controlled eligible PickLists for any real confirmation. Do not expose passwords, Firebase tokens, WMS cookies/headers/signatures or local DPAPI files.",
-      "remaining_owner_action": "Wait for D103 technical release, then run the OA023 physical UI field matrix."
+      "remaining_owner_action": "Run the OA023 physical UI field matrix on released relay-agent-v28. No code/build/release blocker remains."
     }
   ]
 }
