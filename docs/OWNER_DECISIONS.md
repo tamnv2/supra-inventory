@@ -643,3 +643,14 @@ D105 is technically released on Beta. PR #144 merged at `e73206dea01e4c599d19abe
 - ADMIN password reset/update must make the same shared Firebase UID immediately usable by Web/App/Agent before firebase_password_ready / firebase_agent_ready are marked ready.
 - Password plaintext remains request-only and must never be persisted, returned, committed or logged.
 - Existing accounts whose last password operation happened before D106 may require one new password set after the D106 Beta deploy because plaintext cannot be reconstructed from stored hashes. Stable remains OWNER-GATED and untouched.
+## D107 — Professional Web identity, visual system and richer operational reporting
+
+Owner approved on 2026-09-22 as a new Web requirement after the D089 baseline.
+
+1. The Web login identity is exactly **CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN** + **Website nghiệp vụ Inventory**. The legacy `1291` square/text brand on the Web login surface is removed and replaced by the exact D089 shared `app-icon.png` asset already used by Web/Android/Agent.
+2. The existing business logic, scenario flow, RBAC, three-group navigation, realtime semantics, quota guards and online-only rules are preserved. D107 is a Web presentation/reporting refinement, not a business-logic rewrite.
+3. Web uses one final professional presentation layer across login and authenticated modules: restrained corporate blue/neutral hierarchy, consistent cards/panels/forms/tables, stronger selected/focus states, coherent light/dark theme, dense desktop use of space and responsive fallback.
+4. Admin/Root `Tổng quan & báo cáo` becomes more information-dense using **already-authoritative data only**: current pending SKU/affected Picker/warning/overdue/online status; period report/SKU/affected-Picker/resolved/average-time metrics; result mix; recurrence; timeline comparing reports and resolved work; and top-SKU drill-down.
+5. `Báo cáo chi tiết` adds a richer summary, current warning/overdue view, result mix, clearer pagination position and open-ticket/total-ticket columns while retaining current bounded filters, pagination and Excel export.
+6. D107 adds no new provider monitoring, polling loop, backend datastore or analytics authority. It must not reintroduce D072 system-status polling, employee scoring, inventory quantity/bin/location metrics or unbounded reads.
+7. D089 remains the accepted shared-icon and cross-product identity baseline. D107 supersedes only conflicting **Web** visual presentation details. Android/Agent are unchanged. Stable remains OWNER-GATED and untouched.
