@@ -1123,7 +1123,7 @@
     },
     {
       "id": "OA025",
-      "status": "BLOCKED_ON_D105_TECHNICAL_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST_D105_RELEASE",
       "title": "Field-accept D105 Android four-digit confirmation UX",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Beta Android + Beta Windows Agent + existing Firestore relay + authorized Supra WMS endpoint",
@@ -1132,7 +1132,26 @@
         "target_android_release": "beta-vc63",
         "target_agent_release": "relay-agent-v30",
         "stable": "OWNER_GATED",
-        "technical_release": "PENDING_D105_PR"
+        "technical_release": "PASS",
+        "merged_pr": 144,
+        "source_main": "e73206dea01e4c599d19abe040ffc8662b8836bf",
+        "main_repo_authority_run": 35694361080,
+        "main_project_state_run": 35694361070,
+        "main_ui_run": 35694361168,
+        "main_android_run": 35694361091,
+        "main_relay_agent_run": 35694361074,
+        "main_firestore_run": 35694361133,
+        "main_worker_run": 35694361089,
+        "android_release_id": 393494217,
+        "android_asset_id": 580723780,
+        "android_asset_size": 18998096,
+        "android_sha256": "add6716668f13e5f96a8b6b9cdfddba27db4270e990a4f3f7d92c373fadd5295",
+        "android_artifact_id": 10679995891,
+        "agent_release_id": 393494208,
+        "agent_asset_id": 580723753,
+        "agent_asset_size": 284672,
+        "agent_sha256": "18cf58622cde42d7ae7c58a57615139913caa9c3dbd2718bd2b1348182f765ad",
+        "agent_artifact_id": 10680035881
       },
       "shortest_test_path": [
         "Install beta-vc63 and relay-agent-v30.",
@@ -1152,7 +1171,7 @@
         "D104 batch/guard/ACK/HA/quota behavior remains PASS and Stable is untouched."
       ],
       "safety": "Beta only. Use controlled eligible PickLists. Never share or commit WMS Authorization/APISID/SID/Token/signature/session material.",
-      "remaining_owner_action": "Wait for D105 technical release, then run the OA025 physical matrix."
+      "remaining_owner_action": "Run the OA025 physical field matrix on released beta-vc63 + relay-agent-v30. No code/build/deploy/release blocker remains."
     }
   ]
 }
