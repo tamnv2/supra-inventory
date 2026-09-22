@@ -97,6 +97,44 @@ namespace SupraInventoryRelayAgent
             return "Khung vận hành bình thường.";
         }
 
+        internal static bool SelfTestTransitions()
+        {
+            var path = Path.Combine(Path.GetTempPath(), "supra-agent-d102-" + Guid.NewGuid().ToString("N") + ".txt");
+            try
+            {
+                var schedule = new AgentBusinessSchedule(path);
+                var day = new DateTime(2026, 9, 22, 0, 0, 0, DateTimeKind.Unspecified);
+
+                if (schedule.NeedsConfirmation(day.AddHours(21).AddMinutes(29))) return false;
+                if (!schedule.NeedsConfirmation(day.AddHours(21).AddMinutes(30))) return false;
+                if (!schedule.BusinessAllowed(day.AddHours(21).AddMinutes(59))) return false;
+                if (schedule.BusinessAllowed(day.AddHours(22))) return false;
+
+                schedule.SetDecision(day.AddHours(21).AddMinutes(30), AfterHoursDecision.CONTINUE);
+                if (schedule.NeedsConfirmation(day.AddHours(21).AddMinutes(35))) return false;
+                if (!schedule.BusinessAllowed(day.AddHours(22))) return false;
+                if (!schedule.BusinessAllowed(day.AddDays(1).AddHours(4).AddMinutes(59))) return false;
+                if (!schedule.BusinessAllowed(day.AddDays(1).AddHours(5))) return false;
+
+                try { File.Delete(path); } catch { }
+                schedule = new AgentBusinessSchedule(path);
+                schedule.SetDecision(day.AddHours(21).AddMinutes(30), AfterHoursDecision.STOP);
+                if (!schedule.BusinessAllowed(day.AddHours(21).AddMinutes(59))) return false;
+                if (schedule.BusinessAllowed(day.AddHours(22))) return false;
+                if (schedule.BusinessAllowed(day.AddDays(1).AddHours(4).AddMinutes(59))) return false;
+                if (!schedule.BusinessAllowed(day.AddDays(1).AddHours(5))) return false;
+                if (schedule.NeedsConfirmation(day.AddHours(22).AddMinutes(5))) return false;
+                if (!schedule.NeedsConfirmation(day.AddDays(1).AddHours(21).AddMinutes(30))) return false;
+
+                return true;
+            }
+            finally
+            {
+                try { File.Delete(path); } catch { }
+                try { File.Delete(path + ".tmp"); } catch { }
+            }
+        }
+
         private static bool IsNightWindow(TimeSpan time)
         {
             return time >= PauseStart || time < ResumeAt;
