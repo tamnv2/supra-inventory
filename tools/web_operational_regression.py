@@ -195,6 +195,8 @@ def main() -> None:
     require(users_api, "rollbackCreatedCredential", "D106 failed-create business rollback")
     require(users_api, "await updateFirebaseIdentity(", "D106 native Firebase password write")
     require(users_api, "{ password: plainPassword }", "D106 plaintext request-only native credential set")
+    require(users_api, "signInWithFirebasePassword", "D106 direct Firebase password verification")
+    require(users_api, "FIREBASE_DIRECT_PASSWORD_VERIFY_FAILED", "D106 direct Firebase UID verification guard")
     require(users_core, '"/admin/users/rollback-create"', "D106 internal create rollback route")
     require(users_core, "USER_CREATE_ROLLBACK_UNSAFE", "D106 rollback readiness safety guard")
 
