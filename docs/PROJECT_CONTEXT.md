@@ -350,3 +350,14 @@ D102 corrects D101's Agent presentation and multi-Agent convergence without reop
 - Daily 21:30 HCM warning repeats every 5 minutes until an explicit continue/stop decision. Without continue, business processing pauses at 22:00; 05:00 resumes automatically. EXE/log/update/watchdog remain running while business processing is paused.
 - Target is relay-agent-v27; Stable remains OWNER-GATED.
 
+## D102 release checkpoint
+
+D102 Agent v27 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta.
+
+- PR #138 merged to `main` at `637d7509bcc66f4b57aba4bf4a415cb05c30903d`.
+- PR gates PASS: Repo Authority `35682895002`, Project State `35682894986`, UI Design `35682895038`, Relay Agent `35682895029`, Firestore Relay `35682895023`, RTDB Rules `35682895001`.
+- Main gates PASS: Repo Authority `35683012628`, Project State `35683012626`, UI Design `35683012670`, Relay Agent `35683012671`.
+- Released Windows Agent: `relay-agent-v27`, release id `393435282`; canonical EXE asset id `580448326`, size `271872` bytes, SHA-256 `322159ed214be13d5340fd2a8a826b02232627aa016711c2a46492da1cc819e4`.
+- The v27 tag points exactly to merge commit `637d7509bcc66f4b57aba4bf4a415cb05c30903d`. Android remains signed `beta-vc62`.
+- OA022 is the remaining physical Owner field gate for real multi-Agent convergence/fleet agreement, manual/background updater behavior, and real 21:30/22:00/05:00 Windows operation.
+- Stable remains OWNER-GATED and untouched.
