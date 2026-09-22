@@ -525,6 +525,7 @@ namespace SupraInventoryRelayAgent
                 _onlinePrimaryCount = 0;
                 _onlineStandbyCount = 0;
                 _onlineFrozenCount = 0;
+                lock (_stateGate) _onlineAgents = new List<AgentPresenceView>();
                 return;
             }
 
@@ -737,6 +738,7 @@ namespace SupraInventoryRelayAgent
                 }
             }
             if (!changed) return;
+            try { _wake.Set(); } catch { }
 
             _log("FIRESTORE HA role=" + role +
                  " reason=" + reason +
