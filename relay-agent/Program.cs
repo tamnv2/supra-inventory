@@ -192,7 +192,7 @@ namespace SupraInventoryRelayAgent
     {
         private static readonly object Gate = new object();
         private static readonly Regex JwtPattern = new Regex(@"eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}", RegexOptions.Compiled);
-        private static readonly Regex SecretPattern = new Regex(@"(?i)(authorization|bearer|token|password|secret|private[_ -]?key|api[_ -]?key|cookie|refresh[_ -]?token|id[_ -]?token|apisid|sid|scid|usid|x-signature(?:-nonce)?)\s*[:=]\s*[^\s,;]+", RegexOptions.Compiled);
+        private static readonly Regex SecretPattern = new Regex(@"(?i)\b(authorization|bearer|token|password|secret|private[_ -]?key|api[_ -]?key|cookie|refresh[_ -]?token|id[_ -]?token|apisid|sid|scid|usid|x-signature(?:-nonce)?)\b\s*[:=]\s*[^\s,;]+", RegexOptions.Compiled);
         private static readonly Regex QuerySecretPattern = new Regex(@"(?i)([?&](?:auth|key|access_token|token)=)[^&\s]+", RegexOptions.Compiled);
         internal static string DiagnosticLogFile { get; private set; }
         internal static string RelayAuditLogFile { get; private set; }
@@ -204,9 +204,8 @@ namespace SupraInventoryRelayAgent
             {
                 var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Agent Auto Confirm Pick Pack", "RelayPoc", "Logs");
                 Directory.CreateDirectory(dir);
-                var stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss") + "-" + Process.GetCurrentProcess().Id;
-                DiagnosticLogFile = Path.Combine(dir, "technical-ai-" + stamp + ".log");
-                RelayAuditLogFile = Path.Combine(dir, "pda-agent-audit-" + stamp + ".log");
+                DiagnosticLogFile = Path.Combine(dir, "technical-ai.log");
+                RelayAuditLogFile = Path.Combine(dir, "pda-agent-audit.log");
                 Write("START version=" + Assembly.GetExecutingAssembly().GetName().Version + " os=" + Environment.OSVersion.VersionString + " clr=" + Environment.Version + " process64=" + Environment.Is64BitProcess + " machine=" + Environment.MachineName);
                 WriteAudit("AUDIT_START version=" + Assembly.GetExecutingAssembly().GetName().Version + " machine=" + Environment.MachineName);
             }
@@ -258,10 +257,79 @@ namespace SupraInventoryRelayAgent
                 lock (Gate)
                 {
                     if (!string.IsNullOrWhiteSpace(path))
+                    {
+                        RotateIfNeeded(path, Encoding.UTF8.GetByteCount(line + Environment.NewLine));
                         File.AppendAllText(path, line + Environment.NewLine, Encoding.UTF8);
+                    }
                 }
             }
             catch { }
+        }
+
+        private const long MaxLogBytes = 2L * 1024L * 1024L;
+        private const int MaxRolledFilesPerStream = 4;
+
+        private static void RotateIfNeeded(string path, int incomingBytes)
+        {
+            try
+            {
+                if (!File.Exists(path)) return;
+                var length = new FileInfo(path).Length;
+                if (length + Math.Max(0, incomingBytes) <= MaxLogBytes) return;
+
+                var oldest = path + "." + MaxRolledFilesPerStream;
+                if (File.Exists(oldest)) File.Delete(oldest);
+                for (var index = MaxRolledFilesPerStream - 1; index >= 1; index--)
+                {
+                    var from = path + "." + index;
+                    var to = path + "." + (index + 1);
+                    if (File.Exists(from)) File.Move(from, to);
+                }
+                File.Move(path, path + ".1");
+            }
+            catch { }
+        }
+
+        internal static string BuildUploadSnapshot(DateTime sinceLocal, bool crash)
+        {
+            var builder = new StringBuilder();
+            AppendSnapshotStream(builder, "TECHNICAL", DiagnosticLogFile, sinceLocal);
+            AppendSnapshotStream(builder, "PDA_AGENT_AUDIT", RelayAuditLogFile, sinceLocal);
+            var content = builder.ToString();
+            if (crash && content.Length > 800000)
+                content = content.Substring(Math.Max(0, content.Length - 800000));
+            return content;
+        }
+
+        private static void AppendSnapshotStream(StringBuilder builder, string title, string currentPath, DateTime sinceLocal)
+        {
+            if (string.IsNullOrWhiteSpace(currentPath)) return;
+            var paths = new List<string>();
+            for (var i = MaxRolledFilesPerStream; i >= 1; i--)
+            {
+                var rolled = currentPath + "." + i;
+                if (File.Exists(rolled)) paths.Add(rolled);
+            }
+            if (File.Exists(currentPath)) paths.Add(currentPath);
+            if (paths.Count == 0) return;
+
+            builder.AppendLine("===== " + title + " =====");
+            foreach (var path in paths)
+            {
+                try
+                {
+                    foreach (var line in File.ReadAllLines(path, Encoding.UTF8))
+                    {
+                        if (line.Length < 23) continue;
+                        DateTime at;
+                        if (!DateTime.TryParseExact(line.Substring(0, 23), "yyyy-MM-dd HH:mm:ss.fff",
+                            System.Globalization.CultureInfo.InvariantCulture,
+                            System.Globalization.DateTimeStyles.None, out at)) continue;
+                        if (at >= sinceLocal) builder.AppendLine(Sanitize(line));
+                    }
+                }
+                catch { }
+            }
         }
 
         internal static void OpenLog() { OpenDiagnosticLog(); }
