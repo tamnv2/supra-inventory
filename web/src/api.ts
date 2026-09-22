@@ -89,6 +89,8 @@ export interface ReporterRecentBatch {
   last_report_at?: string | null;
   resolved_at: string | null;
   resolved_by_user_id: string | null;
+  resolved_by_display_name?: string | null;
+  resolved_by_employee_code?: string | null;
   resolution: "HAS_STOCK" | "SKIP_ALLOWED" | null;
   resolution_source?: string | null;
   correction_deadline_at: string | null;
@@ -215,6 +217,7 @@ export interface AdminDashboard {
   };
   timeline: Array<{ bucket: string; reports: number; resolved: number }>;
   outcomes: Array<{ status: "PENDING" | "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED"; count: number }>;
+  resolution_sources: Array<{ status: "HAS_STOCK" | "SKIP_ALLOWED"; resolution_source: string; count: number }>;
   top_skus: Array<{ sku: string; product_name: string; report_count: number; picker_count: number }>;
 }
 
@@ -226,7 +229,10 @@ export interface AdminReportingRow {
   first_report_at: string;
   resolved_at: string | null;
   resolved_by_user_id: string | null;
+  resolved_by_display_name?: string | null;
+  resolved_by_employee_code?: string | null;
   resolution: "HAS_STOCK" | "SKIP_ALLOWED" | null;
+  resolution_source?: string | null;
   correction_deadline_at: string | null;
   open_ticket_count: number;
   total_ticket_count: number;
@@ -328,7 +334,10 @@ export interface AdminReportBatch {
   first_report_at: string;
   resolved_at: string | null;
   resolved_by_user_id: string | null;
+  resolved_by_display_name?: string | null;
+  resolved_by_employee_code?: string | null;
   resolution: "HAS_STOCK" | "SKIP_ALLOWED" | null;
+  resolution_source?: string | null;
   correction_deadline_at: string | null;
   open_ticket_count: number;
   total_ticket_count: number;
