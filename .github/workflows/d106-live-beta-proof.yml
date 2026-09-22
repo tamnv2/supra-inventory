@@ -1,0 +1,45 @@
+name: D106 Live Beta Proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/d106-live-beta-proof.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  live-beta:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify D106 exact live Beta source and health
+        shell: bash
+        env:
+          EXPECTED_SOURCE: dbcc8af2503b916282788303f9d67d72293a3de0
+        run: |
+          set -euo pipefail
+          url="https://inventory-beta.supra.cc.cd/health"
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          for attempt in $(seq 1 24); do
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "$url" || true)"
+            status="$(jq -r '.status // empty' "$tmp" 2>/dev/null || true)"
+            env_name="$(jq -r '.environment // empty' "$tmp" 2>/dev/null || true)"
+            source_commit="$(jq -r '.source_commit // empty' "$tmp" 2>/dev/null || true)"
+            storage_ok="$(jq -r '.storage.ok // false' "$tmp" 2>/dev/null || true)"
+            schema="$(jq -r '.storage.schema_version // 0' "$tmp" 2>/dev/null || true)"
+            expected_schema="$(jq -r '.storage.expected_schema_version // 0' "$tmp" 2>/dev/null || true)"
+            missing="$(jq -r '.missing_bindings | length' "$tmp" 2>/dev/null || echo 999)"
+            agent_failed="$(jq -r '.agent_auth_migration.agent_failed // 999' "$tmp" 2>/dev/null || echo 999)"
+            agent_remaining="$(jq -r '.agent_auth_migration.agent_remaining // 999' "$tmp" 2>/dev/null || echo 999)"
+            echo "attempt=$attempt http=$code status=$status env=$env_name source=$source_commit expected=$EXPECTED_SOURCE storage=$storage_ok schema=$schema/$expected_schema missing=$missing agent=$agent_failed/$agent_remaining"
+            if [ "$code" = "200" ] && [ "$status" = "ok" ] && [ "$env_name" = "beta" ] && [ "$source_commit" = "$EXPECTED_SOURCE" ] && [ "$storage_ok" = "true" ] && [ "$schema" = "$expected_schema" ] && [ "$schema" != "0" ] && [ "$missing" = "0" ] && [ "$agent_failed" = "0" ] && [ "$agent_remaining" = "0" ]; then
+              echo "D106 exact live Beta health PASS"
+              exit 0
+            fi
+            [ "$attempt" -ge 24 ] || sleep 5
+          done
+          echo "D106 live Beta proof FAILED"
+          cat "$tmp"
+          exit 1
