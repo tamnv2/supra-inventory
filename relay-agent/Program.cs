@@ -681,9 +681,9 @@ namespace SupraInventoryRelayAgent
             Controls.Clear();
 
             Text = "Agent Auto Confirm Pick Pack v" + AgentConfig.AgentBuild;
-            Width = 920;
-            Height = 760;
-            MinimumSize = new Size(920, 760);
+            Width = 1120;
+            Height = 790;
+            MinimumSize = new Size(1000, 720);
             BackColor = Color.FromArgb(243, 246, 248);
             ControlBox = false;
             MaximizeBox = false;
@@ -713,7 +713,7 @@ namespace SupraInventoryRelayAgent
             {
                 Left = 14,
                 Top = 8,
-                Width = 760,
+                Width = 920,
                 Height = 24,
                 Text = "Agent Auto Confirm Pick Pack v" + AgentConfig.AgentBuild,
                 ForeColor = Color.White,
@@ -738,48 +738,43 @@ namespace SupraInventoryRelayAgent
 
             _mainTabs.Dock = DockStyle.Fill;
             _mainTabs.Font = new Font("Segoe UI", 9F);
-            _overviewPage.BackColor = Color.FromArgb(243, 246, 248);
-            _settingsPage.BackColor = Color.FromArgb(243, 246, 248);
+            foreach (var page in new[] { _overviewPage, _supraPage, _picklistPage, _connectionPage, _overlayPage, _auditPage, _technicalPage })
+                page.BackColor = Color.FromArgb(243, 246, 248);
             _mainTabs.TabPages.Add(_overviewPage);
-            _mainTabs.TabPages.Add(_settingsPage);
+            _mainTabs.TabPages.Add(_supraPage);
+            _mainTabs.TabPages.Add(_picklistPage);
+            _mainTabs.TabPages.Add(_connectionPage);
+            _mainTabs.TabPages.Add(_overlayPage);
+            _mainTabs.TabPages.Add(_auditPage);
+            _mainTabs.TabPages.Add(_technicalPage);
 
             shell.Controls.Add(chrome, 0, 0);
             shell.Controls.Add(_mainTabs, 0, 1);
             Controls.Add(shell);
 
-            var title = new Label
-            {
-                Left = 24,
-                Top = 16,
-                Width = 840,
-                Height = 34,
-                Text = "AGENT AUTO CONFIRM PICK PACK",
-                Font = new Font("Segoe UI Semibold", 17F, FontStyle.Bold),
-                ForeColor = Color.FromArgb(24, 43, 55)
-            };
-            _overviewPage.Controls.Add(title);
-
-            var agentCard = NewCard(24, 58, 846, 182);
+            // Hệ thống Agent
+            var agentCard = NewCard(22, 24, 1040, 310);
+            agentCard.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             agentCard.Controls.Add(new Label
             {
                 Left = 18,
-                Top = 12,
-                Width = 790,
-                Height = 24,
-                Text = "Xác minh Agent",
-                Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
+                Top = 14,
+                Width = 980,
+                Height = 28,
+                Text = "Hệ thống Agent",
+                Font = new Font("Segoe UI Semibold", 13F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(24, 43, 55)
             });
-            _agentAuthStatus.SetBounds(18, 40, 790, 22);
-            _agentAuthStatus.Text = "Xác minh Agent: CHƯA ĐĂNG NHẬP";
+            _agentAuthStatus.SetBounds(18, 48, 980, 24);
+            _agentAuthStatus.Text = "Hệ thống Agent: CHƯA ĐĂNG NHẬP";
             _agentAuthStatus.ForeColor = Color.FromArgb(180, 76, 60);
             agentCard.Controls.Add(_agentAuthStatus);
 
-            agentCard.Controls.Add(new Label { Left = 18, Top = 72, Width = 170, Height = 20, Text = "Tài khoản ADMIN" });
-            _username.SetBounds(18, 94, 290, 28);
+            agentCard.Controls.Add(new Label { Left = 18, Top = 84, Width = 170, Height = 20, Text = "Tài khoản ADMIN" });
+            _username.SetBounds(18, 106, 290, 28);
             agentCard.Controls.Add(_username);
-            agentCard.Controls.Add(new Label { Left = 326, Top = 72, Width = 120, Height = 20, Text = "Mật khẩu" });
-            _password.SetBounds(326, 94, 220, 28);
+            agentCard.Controls.Add(new Label { Left = 326, Top = 84, Width = 120, Height = 20, Text = "Mật khẩu" });
+            _password.SetBounds(326, 106, 220, 28);
             _password.UseSystemPasswordChar = true;
             KeyEventHandler submitAgentLogin = (s, e) =>
             {
@@ -791,63 +786,106 @@ namespace SupraInventoryRelayAgent
             _username.KeyDown += submitAgentLogin;
             _password.KeyDown += submitAgentLogin;
             agentCard.Controls.Add(_password);
-            _pair.SetBounds(566, 92, 120, 32);
+            _pair.SetBounds(566, 104, 120, 32);
             _pair.Text = "Đăng nhập";
             agentCard.Controls.Add(_pair);
-            _logout.SetBounds(696, 92, 120, 32);
+            _logout.SetBounds(696, 104, 120, 32);
             _logout.Text = "Đăng xuất";
             _logout.Enabled = false;
             agentCard.Controls.Add(_logout);
 
-            _identity.SetBounds(18, 132, 260, 22);
-            _relay.SetBounds(286, 132, 270, 22);
-            _network.SetBounds(566, 132, 250, 22);
+            _identity.SetBounds(18, 154, 320, 24);
+            _relay.SetBounds(350, 154, 320, 24);
+            _network.SetBounds(680, 154, 340, 24);
             agentCard.Controls.Add(_identity);
             agentCard.Controls.Add(_relay);
             agentCard.Controls.Add(_network);
+
+            _agentFleetStatus.SetBounds(18, 190, 1000, 24);
+            _agentFleetStatus.Text = "Cụm Agent: chưa có dữ liệu vai trò.";
+            _agentFleetStatus.ForeColor = Color.FromArgb(50, 70, 82);
+            agentCard.Controls.Add(_agentFleetStatus);
+
+            _agentSystemInfo.SetBounds(18, 222, 1000, 48);
+            _agentSystemInfo.Text = "Phiên bản v" + AgentConfig.AgentBuild + " · Firestore: chờ xác minh · Tự cập nhật: GitHub nền mỗi 30 phút.";
+            _agentSystemInfo.ForeColor = Color.FromArgb(88, 104, 115);
+            agentCard.Controls.Add(_agentSystemInfo);
+
+            _updateStatus.SetBounds(18, 274, 1000, 22);
+            _updateStatus.Text = "Cập nhật: kiểm tra lúc khởi động và mỗi 30 phút khi Agent đang chạy.";
+            _updateStatus.ForeColor = Color.FromArgb(88, 104, 115);
+            agentCard.Controls.Add(_updateStatus);
             _overviewPage.Controls.Add(agentCard);
 
-            _supraCard = NewCard(24, 252, 846, 112);
-            _supraCard.Controls.Add(new Label
+            var agentHelp = NewCard(22, 350, 1040, 180);
+            agentHelp.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            agentHelp.Controls.Add(new Label
             {
-                Left = 18,
-                Top = 12,
-                Width = 790,
-                Height = 24,
-                Text = "Hệ thống Supra",
+                Left = 18, Top = 14, Width = 980, Height = 24,
+                Text = "Vai trò xử lý",
                 Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(24, 43, 55)
             });
-            _wmsCapture.SetBounds(18, 50, 220, 38);
-            _wmsCapture.Text = "Đăng nhập hệ thống Supra";
-            _wmsStatus.SetBounds(258, 50, 560, 38);
-            _wmsStatus.Text = "Supra WMS: chờ xác minh Agent";
-            _supraCard.Controls.Add(_wmsCapture);
-            _supraCard.Controls.Add(_wmsStatus);
-            _supraCard.Enabled = false;
-            _overviewPage.Controls.Add(_supraCard);
-
-            var directCard = NewCard(24, 376, 846, 284);
-            directCard.Controls.Add(new Label
+            agentHelp.Controls.Add(new Label
             {
-                Left = 18,
-                Top = 12,
-                Width = 790,
-                Height = 24,
-                Text = "Xử lý PickList trực tiếp tại bàn chuyên viên",
-                Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
-                ForeColor = Color.FromArgb(24, 43, 55)
-            });
-            directCard.Controls.Add(new Label
-            {
-                Left = 18,
-                Top = 40,
-                Width = 790,
-                Height = 22,
-                Text = "Nhập 3–5 chữ số. Hệ thống tìm chuỗi ở bất kỳ vị trí nào trong full PickListCode đã nạp.",
+                Left = 18, Top = 48, Width = 980, Height = 108,
+                Text =
+                    "PRIMARY: xử lý yêu cầu ngay.  STANDBY: dự phòng và có thể tiếp quản khi yêu cầu chờ ≥10 giây.\r\n" +
+                    "FROZEN: Agent online nhưng không poll nghiệp vụ để tiết kiệm Firestore.\r\n" +
+                    "Không có PDA gửi yêu cầu không làm PRIMARY tự hạ vai trò. Nếu PRIMARY cũ đã mất, STANDBY chỉ tiếp quản theo cơ chế request-driven khi có yêu cầu đủ 10 giây.",
                 ForeColor = Color.FromArgb(88, 104, 115)
             });
-            _manualPicklistQuery.SetBounds(18, 70, 190, 30);
+            _overviewPage.Controls.Add(agentHelp);
+
+            // Hệ thống Supra
+            _supraCard = NewCard(22, 24, 1040, 300);
+            _supraCard.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            _supraCard.Controls.Add(new Label
+            {
+                Left = 18, Top = 14, Width = 980, Height = 28,
+                Text = "Hệ thống Supra",
+                Font = new Font("Segoe UI Semibold", 13F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(24, 43, 55)
+            });
+            _wmsStatus.SetBounds(18, 52, 980, 28);
+            _wmsStatus.Text = "Supra WMS: chờ xác minh Agent";
+            _supraCard.Controls.Add(_wmsStatus);
+            _supraInfo.SetBounds(18, 88, 980, 82);
+            _supraInfo.Text = "Kho: HY1 · API: api-supra.winmart.vn · Phiên: chưa sẵn sàng · Cache PickList: 0.";
+            _supraInfo.ForeColor = Color.FromArgb(88, 104, 115);
+            _supraCard.Controls.Add(_supraInfo);
+            _wmsCapture.SetBounds(18, 190, 220, 38);
+            _wmsCapture.Text = "Đăng nhập hệ thống Supra";
+            _supraCard.Controls.Add(_wmsCapture);
+            _wmsTest.SetBounds(250, 190, 160, 38);
+            _wmsTest.Text = "Kiểm tra Supra";
+            _supraCard.Controls.Add(_wmsTest);
+            _supraCard.Controls.Add(new Label
+            {
+                Left = 18, Top = 242, Width = 980, Height = 42,
+                Text = "Phiên WMS được lưu cục bộ bằng Windows DPAPI CurrentUser. PickList cache được nạp all-date; cache miss sẽ refresh WMS trước khi kết luận không tìm thấy.",
+                ForeColor = Color.FromArgb(88, 104, 115)
+            });
+            _supraCard.Enabled = false;
+            _supraPage.Controls.Add(_supraCard);
+
+            // Xử lý PickList
+            var directCard = NewCard(22, 24, 1040, 570);
+            directCard.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            directCard.Controls.Add(new Label
+            {
+                Left = 18, Top = 14, Width = 980, Height = 28,
+                Text = "Xử lý PickList trực tiếp tại bàn chuyên viên",
+                Font = new Font("Segoe UI Semibold", 13F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(24, 43, 55)
+            });
+            directCard.Controls.Add(new Label
+            {
+                Left = 18, Top = 48, Width = 980, Height = 22,
+                Text = "Nhập 3–5 chữ số. Tìm cache trước; nếu cache không có, Agent tự refresh WMS rồi tìm lại.",
+                ForeColor = Color.FromArgb(88, 104, 115)
+            });
+            _manualPicklistQuery.SetBounds(18, 82, 200, 30);
             _manualPicklistQuery.MaxLength = 5;
             _manualPicklistQuery.KeyPress += (s, e) =>
             {
@@ -864,74 +902,89 @@ namespace SupraInventoryRelayAgent
             {
                 var length = _manualPicklistQuery.Text.Trim().Length;
                 _manualPicklistSearch.Enabled = length >= 3 && length <= 5;
-                _manualPicklistConfirm.Enabled = false;
-                _manualPicklistResults.Items.Clear();
-                _manualPicklistStatus.Text = length < 3
-                    ? "Nhập ít nhất 3 chữ số để tìm."
-                    : "Sẵn sàng tìm PickList.";
+                _manualPicklistGrid.Rows.Clear();
+                _manualPicklistStatus.Text = length < 3 ? "Nhập ít nhất 3 chữ số để tìm." : "Sẵn sàng tìm PickList.";
             };
             directCard.Controls.Add(_manualPicklistQuery);
 
-            _manualPicklistSearch.SetBounds(220, 68, 110, 34);
+            _manualPicklistSearch.SetBounds(230, 80, 120, 34);
             _manualPicklistSearch.Text = "Tìm kiếm";
             _manualPicklistSearch.Enabled = false;
             _manualPicklistSearch.Click += (s, e) => Task.Run(() => SearchManualPicklists());
             directCard.Controls.Add(_manualPicklistSearch);
 
-            _manualPicklistConfirm.SetBounds(684, 68, 132, 34);
-            _manualPicklistConfirm.Text = "Xác nhận đơn";
-            _manualPicklistConfirm.Enabled = false;
-            _manualPicklistConfirm.Click += (s, e) => Task.Run(() => ConfirmManualPicklist());
-            directCard.Controls.Add(_manualPicklistConfirm);
-
-            _manualPicklistResults.SetBounds(18, 112, 798, 108);
-            _manualPicklistResults.SelectedIndexChanged += (s, e) =>
+            _manualPicklistGrid.SetBounds(18, 132, 1000, 350);
+            _manualPicklistGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            _manualPicklistGrid.AllowUserToAddRows = false;
+            _manualPicklistGrid.AllowUserToDeleteRows = false;
+            _manualPicklistGrid.AllowUserToResizeRows = false;
+            _manualPicklistGrid.MultiSelect = false;
+            _manualPicklistGrid.RowHeadersVisible = false;
+            _manualPicklistGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            _manualPicklistGrid.AutoGenerateColumns = false;
+            _manualPicklistGrid.BackgroundColor = Color.White;
+            _manualPicklistGrid.BorderStyle = BorderStyle.FixedSingle;
+            _manualPicklistGrid.Columns.Clear();
+            _manualPicklistGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
-                _manualPicklistConfirm.Enabled =
-                    _manualPicklistResults.SelectedItem != null &&
-                    HasAgentSession() &&
-                    HasUsableWmsSession();
+                Name = "PickListCode",
+                HeaderText = "PickList",
+                ReadOnly = true,
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+            });
+            _manualPicklistGrid.Columns.Add(new DataGridViewButtonColumn
+            {
+                Name = "ConfirmAction",
+                HeaderText = "Thao tác",
+                Text = "Xác nhận",
+                UseColumnTextForButtonValue = true,
+                Width = 150
+            });
+            _manualPicklistGrid.CellContentClick += (s, e) =>
+            {
+                if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+                if (_manualPicklistGrid.Columns[e.ColumnIndex].Name != "ConfirmAction") return;
+                var code = Convert.ToString(_manualPicklistGrid.Rows[e.RowIndex].Cells["PickListCode"].Value) ?? "";
+                if (string.IsNullOrWhiteSpace(code)) return;
+                Task.Run(() => ConfirmManualPicklist(code));
             };
-            directCard.Controls.Add(_manualPicklistResults);
+            directCard.Controls.Add(_manualPicklistGrid);
 
-            _manualPicklistStatus.SetBounds(18, 230, 798, 34);
+            _manualPicklistStatus.SetBounds(18, 500, 1000, 42);
+            _manualPicklistStatus.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
             _manualPicklistStatus.Text = "Nhập 3–5 chữ số để xử lý trực tiếp khi PDA không sử dụng được.";
             _manualPicklistStatus.ForeColor = Color.FromArgb(88, 104, 115);
             directCard.Controls.Add(_manualPicklistStatus);
-            _overviewPage.Controls.Add(directCard);
+            _picklistPage.Controls.Add(directCard);
 
-            var settingsTabs = new TabControl { Dock = DockStyle.Fill, Padding = new Point(14, 6) };
-            var networkPage = new TabPage("Kết nối") { BackColor = Color.White };
-            var overlayPage = new TabPage("Bảng nổi") { BackColor = Color.White };
-            var auditPage = new TabPage("Nhật ký vận hành") { BackColor = Color.White };
-            var technicalPage = new TabPage("Chẩn đoán kỹ thuật") { BackColor = Color.White };
-            settingsTabs.TabPages.Add(networkPage);
-            settingsTabs.TabPages.Add(overlayPage);
-            settingsTabs.TabPages.Add(auditPage);
-            settingsTabs.TabPages.Add(technicalPage);
-            _settingsPage.Controls.Add(settingsTabs);
-
-            networkPage.Controls.Add(new Label { Left = 24, Top = 20, Width = 800, Height = 28, Text = "Kiểm tra kết nối", Font = new Font("Segoe UI Semibold", 11F) });
-            _testOffice.SetBounds(24, 64, 150, 34); networkPage.Controls.Add(_testOffice);
-            _listen.SetBounds(184, 64, 150, 34); networkPage.Controls.Add(_listen);
-            _wmsTest.SetBounds(344, 64, 150, 34); _wmsTest.Text = "Kiểm tra Supra"; networkPage.Controls.Add(_wmsTest);
-            _probeAuth.SetBounds(24, 126, 100, 32); networkPage.Controls.Add(_probeAuth);
-            _probeRtdb.SetBounds(132, 126, 100, 32); networkPage.Controls.Add(_probeRtdb);
-            _probeFirestore.SetBounds(240, 126, 110, 32); networkPage.Controls.Add(_probeFirestore);
-            _probeAppsScript.SetBounds(358, 126, 110, 32); networkPage.Controls.Add(_probeAppsScript);
-            _probeSheets.SetBounds(476, 126, 100, 32); networkPage.Controls.Add(_probeSheets);
-            _probeDrive.SetBounds(584, 126, 100, 32); networkPage.Controls.Add(_probeDrive);
-            _probeAll.SetBounds(692, 126, 130, 32); networkPage.Controls.Add(_probeAll);
-            networkPage.Controls.Add(new Label
+            // Kết nối
+            var networkCard = NewCard(22, 24, 1040, 300);
+            networkCard.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            networkCard.Controls.Add(new Label
             {
-                Left = 24,
-                Top = 186,
-                Width = 798,
-                Height = 70,
-                Text = "Firebase Auth + Firestore là kênh xác minh/relay Agent. Các nút tại đây chỉ kiểm tra kết nối; không thay đổi nghiệp vụ xác nhận.",
+                Left = 18, Top = 14, Width = 980, Height = 28,
+                Text = "Kiểm tra kết nối",
+                Font = new Font("Segoe UI Semibold", 13F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(24, 43, 55)
+            });
+            _testOffice.SetBounds(18, 60, 150, 34); networkCard.Controls.Add(_testOffice);
+            _listen.SetBounds(178, 60, 150, 34); networkCard.Controls.Add(_listen);
+            _probeAuth.SetBounds(18, 122, 100, 32); networkCard.Controls.Add(_probeAuth);
+            _probeRtdb.SetBounds(126, 122, 100, 32); networkCard.Controls.Add(_probeRtdb);
+            _probeFirestore.SetBounds(234, 122, 110, 32); networkCard.Controls.Add(_probeFirestore);
+            _probeAppsScript.SetBounds(352, 122, 110, 32); networkCard.Controls.Add(_probeAppsScript);
+            _probeSheets.SetBounds(470, 122, 100, 32); networkCard.Controls.Add(_probeSheets);
+            _probeDrive.SetBounds(578, 122, 100, 32); networkCard.Controls.Add(_probeDrive);
+            _probeAll.SetBounds(686, 122, 140, 32); networkCard.Controls.Add(_probeAll);
+            networkCard.Controls.Add(new Label
+            {
+                Left = 18, Top = 184, Width = 980, Height = 80,
+                Text = "Firebase Auth + Firestore là kênh Agent. Các phép kiểm tra chỉ đọc/kết nối. Tên Wi-Fi ở tab Hệ thống Agent lấy trực tiếp từ Windows WLAN; nếu không có SSID sẽ hiển thị tên card mạng đang hoạt động.",
                 ForeColor = Color.DimGray
             });
+            _connectionPage.Controls.Add(networkCard);
 
+            // Bảng nổi
             _overlaySettingsHost.Dock = DockStyle.Fill;
             _overlaySettingsHost.BackColor = Color.White;
             _overlaySettingsHost.AutoScroll = true;
@@ -940,44 +993,41 @@ namespace SupraInventoryRelayAgent
                 Name = "overlay-loading",
                 Left = 24,
                 Top = 24,
-                Width = 760,
+                Width = 960,
                 Height = 28,
                 Text = "Đang khởi tạo cài đặt bảng nổi...",
                 ForeColor = Color.DimGray
             });
-            overlayPage.Controls.Add(_overlaySettingsHost);
-            overlayPage.Enter += (s, e) => EnsureEmbeddedOverlaySettings();
+            _overlayPage.Controls.Add(_overlaySettingsHost);
+            _overlayPage.Enter += (s, e) => EnsureEmbeddedOverlaySettings();
 
-            auditPage.Controls.Add(new Label
+            // Nhật ký
+            _auditPage.Controls.Add(new Label
             {
-                Left = 18,
-                Top = 14,
-                Width = 620,
-                Height = 28,
+                Left = 18, Top = 14, Width = 760, Height = 28,
                 Text = "Nhật ký vận hành PDA ↔ Agent",
                 Font = new Font("Segoe UI Semibold", 10.5F)
             });
-            _openAuditLog.SetBounds(700, 10, 120, 30);
+            _openAuditLog.SetBounds(900, 10, 120, 30);
             _openAuditLog.Text = "Mở file";
             _openAuditLog.Click += (s, e) => AgentDiagnostics.OpenRelayAuditLog();
-            auditPage.Controls.Add(_openAuditLog);
-            _auditLog.SetBounds(18, 52, 802, 540);
-            auditPage.Controls.Add(_auditLog);
+            _auditPage.Controls.Add(_openAuditLog);
+            _auditLog.SetBounds(18, 52, 1002, 590);
+            _auditLog.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            _auditPage.Controls.Add(_auditLog);
 
-            technicalPage.Controls.Add(new Label
+            _technicalPage.Controls.Add(new Label
             {
-                Left = 18,
-                Top = 14,
-                Width = 620,
-                Height = 28,
+                Left = 18, Top = 14, Width = 760, Height = 28,
                 Text = "Chẩn đoán kỹ thuật cho AI",
                 Font = new Font("Segoe UI Semibold", 10.5F)
             });
-            _openLog.SetBounds(700, 10, 120, 30);
+            _openLog.SetBounds(900, 10, 120, 30);
             _openLog.Text = "Mở file";
-            technicalPage.Controls.Add(_openLog);
-            _log.SetBounds(18, 52, 802, 540);
-            technicalPage.Controls.Add(_log);
+            _technicalPage.Controls.Add(_openLog);
+            _log.SetBounds(18, 52, 1002, 590);
+            _log.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            _technicalPage.Controls.Add(_log);
 
             ResumeLayout(true);
         }
