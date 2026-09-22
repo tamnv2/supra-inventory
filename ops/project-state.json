@@ -13,26 +13,26 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D100_POST_RESET_RUNTIME_RECOVERY_OWNER_FIELD_PASS",
+    "beta": "D101_AGENT_V26_SOURCE_CANDIDATE__D100_POST_RESET_OWNER_PASS",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 10,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D100_BETA_RUNTIME_PASS__ROOT_ONLY_SYSTEM_RESET__TOOLS_AGENT_V25_CANONICAL__D099_LOGIN_FIX_PRESERVED",
+    "web": "D101_WEB_ONLINE_WEB_ANDROID_ONLY_SOURCE_CANDIDATE__D100_RUNTIME_BASELINE",
     "android": "D099_SIGNED_BETA_VC62_LOGIN_REPAIR__D100_NO_ANDROID_RUNTIME_CHANGE",
     "latest_beta_apk": "beta-vc62",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
-    "network_scope": "D100_AGENT_V25_USERNAME_SHARED_FIREBASE_UID_RELEASED__NO_WORKER_RUNTIME_DEPENDENCY__SUPRA_AUTH_GATE_PRESERVED",
+    "network_scope": "D101_AGENT_V26_FIRESTORE_HA_AND_LOG_SPOOL_SOURCE_CANDIDATE__STABLE_UNTOUCHED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "D100_ACCOUNT_EMAIL_VALIDATION_OWNER_FIELD_PASS",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D069_XLSX_REPORT_EXPORT_BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
-    "quota_resilience": "D100_RESET_ON_DEMAND_ONLY__D098_35PCT_NORMAL_RUNTIME_GUARD_PRESERVED__RESET_PROVIDER_COST_EXPLICIT",
+    "quota_resilience": "D101_LOW_FREQUENCY_AGENT_FLEET_COUNTS__30MIN_GITHUB_UPDATE__5MIN_LOG_DRAIN__D098_35PCT_GUARD_REVIEW_PENDING",
     "ui_design_guard": "D100_POST_RESET_RECOVERY_MAIN_UI_PASS_RUN_35636210086",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D100_AGENT_V25_RELEASED__USERNAME_SHARED_UID__D097_D099_CONFIRM_PATH_AND_OVERLAY_PRESERVED"
+    "picklist_confirmation_poc": "D101_AGENT_V26_SOURCE_CANDIDATE__CACHE_MISS_WMS_REFRESH__D097_D096_GUARDS_PRESERVED"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -172,7 +172,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "OA020 is field-accepted. Continue only remaining open Owner/field gates, especially OA019 Agent/PDA/WMS acceptance. Stable remains OWNER-GATED.",
+  "next_action": "Complete D101 Agent v26 branch, PR and all authority/UI/Agent/Firestore/Worker guards; merge only on PASS, deploy Beta/Rules, publish relay-agent-v26, then Owner field-tests OA021. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -574,9 +574,10 @@
     "D100 continuity alignment: current released artifacts before D100 are relay-agent-v24 and signed beta-vc62 from main 216a5b88b2ca932e6ed863579677ed21df01e49b. D100 targets Agent v25; it does not roll Android backward.",
     "D100 deploy-proof hotfix: Beta health must expose SOURCE_COMMIT; deploy gate requires health source_commit == GITHUB_SHA, runtime schema == source SCHEMA_VERSION, and agent_auth_migration agent_failed=0/agent_remaining=0. This prevents a stale previous Worker from satisfying a new deployment gate.",
     "D100 deploy proof parser hotfix: runtime main 2cf23d9229eb4bd5d9c45f3776bb2404ef06a68f is healthy (HTTP 200, source_commit exact, schema 10/10, agent migration 0/0, operational 5/5), but deploy workflow parsed source SCHEMA_VERSION as literal \\\\1 because sed replacement was over-escaped. fix/d100-beta-health-schema-proof changes only that CI parser to \\1.",
-    "D100 OA020 mail repair: preserve successful-send 60-second throttling, but rollback the throttle when Gmail delivery fails; improve Google mail failure classification without logging provider tokens or raw sensitive responses."
+    "D100 OA020 mail repair: preserve successful-send 60-second throttling, but rollback the throttle when Gmail delivery fails; improve Google mail failure classification without logging provider tokens or raw sensitive responses.",
+    "D101 Owner request 2026-09-22: cache MISS must refresh WMS before final NOT_FOUND for PDA/manual search; Agent background GitHub auto-update while running; row-level PickList confirm; richer Agent/Supra status with actual SSID and low-frequency HA role counts; size-rotated logs plus 06/12/18/00 Beta Drive delivery and crash spool; Web online excludes Agent; logout confirmation; flat top-level Agent tabs. Target relay-agent-v26."
   ],
-  "active_workstream": "D100_OA020_OWNER_FIELD_PASS__OA019_REMAINS",
+  "active_workstream": "D101_AGENT_V26_OPERATIONS_REWORK_SOURCE_CANDIDATE",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
@@ -622,7 +623,8 @@
     "D100 OA020 mail repair runtime PASS 2026-09-22: PR #131 merged to main 27a791a1ad9a05da9acee0f2b7351fb1fda7cc4b. Main Project State 35633339838 PASS, Repo Authority 35633339786 PASS, UI 35633339783 PASS and Deploy Beta Worker 35633339816 PASS. Failed Gmail delivery now releases the local 60-second reset-code throttle and returns bounded sanitized provider cause codes. OA020 mail-only field retry is ready; Stable untouched.",
     "D100 OA020 Owner destructive-reset field evidence 2026-09-22: selected Beta reset completed and intended data was removed, ROOT remained active, but post-reset Web immediately returned OPERATIONAL_V2_NOT_READY (503) for Reporter queue, Dashboard, realtime ticket and SKU import. GET /api/admin/users still returned 200, proving ROOT/session/user-management read path remained alive. Account recreation returned INVALID_USER_CREATE_SCOPE; source audit found the managed-account email regex was double-escaped and rejected valid Admin email syntax. Root cause for Operational V2: RUNTIME_SETTINGS deleted all app_config including structural realtime_stream_epoch_v1, while service had no routed /operational/init self-repair handler. Repair branch fix/d100-post-reset-runtime-recovery adds routed self-repair, immediate post-reset rebootstrap, correct email validation, actionable create-user errors and terminal SKU import failure progress. Stable untouched.",
     "D100 post-reset runtime recovery PASS 2026-09-22: PR #133 merged to main 5409b8347f50a226bde0665637bef2e598bc3514. Main Repo Authority 35636210008 PASS, Project State 35636210129 PASS, UI 35636210086 PASS and Deploy Beta Worker 35636210016 PASS. Beta deploy health attempt 2 returned exact source 5409b834..., schema 10/10, operational true 5/5, Agent auth migration 0/0, business capability/auth guards PASS. Post-reset self-repair and account-email validation fixes are live; Owner field re-test of account creation and SKU import remains.",
-    "D100 OA020 Owner field acceptance 2026-09-22: after PR #133 post-reset recovery deployed, Owner confirmed all previously failing post-reset surfaces are OK: Operational V2 navigation/realtime no longer reports NOT_READY, managed account creation succeeds, and SKU upload succeeds. Exact failure modes are now protected by immediate post-reset Operational V2 structural rebootstrap, routed /operational/init self-repair, corrected managed-account email validation and terminal SKU-import error progress. OA020 post-reset acceptance PASS."
+    "D100 OA020 Owner field acceptance 2026-09-22: after PR #133 post-reset recovery deployed, Owner confirmed all previously failing post-reset surfaces are OK: Operational V2 navigation/realtime no longer reports NOT_READY, managed account creation succeeds, and SKU upload succeeds. Exact failure modes are now protected by immediate post-reset Operational V2 structural rebootstrap, routed /operational/init self-repair, corrected managed-account email validation and terminal SKU-import error progress. OA020 post-reset acceptance PASS.",
+    "D101 source diagnosis from Owner Agent log 2026-09-22: current machine cfa74d97 became STANDBY while coordination referenced primary febf8d16; this is consistent with D097 request-driven HA, where STANDBY takeover is triggered by a pending job age >=10s rather than high-frequency idle liveness. Existing log sanitizer also redacted `ssid=` because the secret regex matched `sid=` as a substring; D101 changes the regex to token boundaries so real SSID remains visible while actual SID/token secrets stay redacted."
   ],
   "last_runtime_evidence": {
     "signed_beta_release": "beta-vc59",
