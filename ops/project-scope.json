@@ -281,7 +281,7 @@
       "id": "17Ealimu__NFxeEzG3mUfivpEEacX_vgo",
       "name": "Inventory/Beta/Logs",
       "exposure": "operational_metadata_existing_public",
-      "note": "Runtime support/error logs for Web and Android; client payloads are sanitized before upload."
+      "note": "Runtime support/error logs for Web, Android and sanitized Agent bundles; Agent reaches this folder only through the Beta Firestore spool + Worker Drive drain, never with Drive secrets on the laptop."
     },
     {
       "key": "archive-sheet-beta",
@@ -321,8 +321,17 @@
       "collection": "relay_poc_jobs",
       "api_url": "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents/relay_poc_jobs",
       "exposure": "public_identifier",
-      "status": "D091_OWNER_FIELD_E2E_PASS__D092_CONFIRMATION_RUNTIME_SOURCE_IN_PROGRESS",
-      "guard": "D092_BETA_CONFIRMATION_RELAY__FIREBASE_ID_TOKEN_LOCKED_RULES__PENDING_PROCESSING_ACK__ADMIN_HA_RATE_LIMIT_IDEMPOTENCY__NO_STABLE"
+      "status": "D101_SOURCE_CANDIDATE__D091_OWNER_FIELD_E2E_PASS__D097_HA_PRESERVED",
+      "guard": "D101_BETA_ONLY__FIREBASE_ID_TOKEN_RULES__PDA_CONFIRMATION_RELAY_PLUS_ADMIN_ONLY_TEMP_AGENT_LOG_SPOOL__NO_WMS_SECRET__NO_STABLE",
+      "collections": [
+        "relay_poc_jobs",
+        "relay_poc_rate_limits",
+        "relay_poc_coordination",
+        "relay_poc_agents",
+        "relay_poc_agent_sessions",
+        "relay_poc_confirm_guards",
+        "relay_agent_log_uploads"
+      ]
     },
     {
       "key": "supra-wms-ui-d080",
