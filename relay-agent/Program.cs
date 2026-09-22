@@ -1068,7 +1068,7 @@ namespace SupraInventoryRelayAgent
             if (session == null || string.IsNullOrWhiteSpace(session.AppUserId))
             {
                 MessageBox.Show(
-                    "Agent chưa có phiên ADMIN hợp lệ. Hãy đăng nhập ADMIN trong Cài đặt trước khi tắt Agent.",
+                    "Agent chưa có phiên ADMIN hợp lệ. Hãy đăng nhập ADMIN tại tab Hệ thống Agent trước khi tắt Agent.",
                     "Tắt Agent",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
@@ -1084,7 +1084,7 @@ namespace SupraInventoryRelayAgent
                     if (!ExitAuthorization.Verify(ExitVerifierFile, session.AppUserId, password))
                     {
                         MessageBox.Show(
-                            "Mật khẩu ADMIN không đúng hoặc phiên cũ chưa có bộ xác minh tắt Agent. Hãy đăng nhập ADMIN lại trong Cài đặt rồi thử lại.",
+                            "Mật khẩu ADMIN không đúng hoặc phiên cũ chưa có bộ xác minh tắt Agent. Hãy đăng nhập ADMIN lại tại tab Hệ thống Agent rồi thử lại.",
                             "Không thể tắt Agent",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Error);
@@ -1527,6 +1527,7 @@ namespace SupraInventoryRelayAgent
                 {
                     var length = (_manualPicklistQuery.Text ?? "").Trim().Length;
                     _manualPicklistSearch.Enabled = length >= 3 && length <= 5;
+                    _manualPicklistGrid.Enabled = HasAgentSession() && HasUsableWmsSession();
                 });
             }
         }
