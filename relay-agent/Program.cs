@@ -1462,7 +1462,7 @@ namespace SupraInventoryRelayAgent
                         _manualPicklistStatus.Text =
                             "Tìm thấy " + result.Matches.Count +
                             (result.Matches.Count >= 50 ? " PickList đầu tiên." : " PickList.") +
-                            " Hãy chọn đúng PickList để xác nhận.";
+                            " Mỗi PickList có nút Xác nhận cùng dòng.";
                         _manualPicklistStatus.ForeColor = Color.FromArgb(35, 122, 76);
                     }
                     else if (string.Equals(result.Result, "NOT_FOUND", StringComparison.Ordinal))
