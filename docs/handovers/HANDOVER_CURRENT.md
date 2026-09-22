@@ -435,3 +435,17 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA022 FIELD READY**.
 - Main PASS runs: Authority `35683012628`, State `35683012626`, UI `35683012670`, Agent `35683012671`.
 - Released Agent: `relay-agent-v27`; release id `393435282`; canonical EXE asset id `580448326`, size `271872`, SHA-256 `322159ed214be13d5340fd2a8a826b02232627aa016711c2a46492da1cc819e4`.
 - OA022 is ready for physical field acceptance. Stable remains OWNER-GATED and untouched.
+
+## D103 current workstream — Agent v28 dense Overview
+
+Status: **SOURCE CANDIDATE / PR GATES PENDING**.
+
+- Beta: `D103_SOURCE_CANDIDATE__AGENT_V28_DENSE_OVERVIEW__PR_GATES_PENDING`.
+- Web: `D101_BETA_RUNTIME_PASS__WEB_ONLINE_WEB_ANDROID_ONLY__TOOLS_AGENT_V26`.
+- Android: `D099_SIGNED_BETA_VC62_LOGIN_REPAIR__D100_NO_ANDROID_RUNTIME_CHANGE`.
+- Latest signed Beta APK: `beta-vc62`; SQLite schema: `10`.
+- Target Agent: `relay-agent-v28`; currently released baseline remains v27 until D103 main/release PASS.
+- UI correction: maximized launch/restore, non-scrolling Tổng quan, fleet max five visible rows with internal scroll, compact Supra, PickList always in lower viewport, one Xác nhận per result row, verbose implementation prose removed.
+- D102 HA/night schedule and D096/D097 confirmation rules are unchanged.
+- OA022 is superseded by OA023. Stable remains OWNER-GATED and untouched.
+
