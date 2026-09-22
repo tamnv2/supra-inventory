@@ -403,3 +403,16 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA021 FIELD READY**.
 - Firestore observability cadence: 15m presence write, 30m fleet read, 40m freshness; role refresh 60s PRIMARY/STANDBY, 5m FROZEN, plus bounded startup convergence.
 - Next gate: Agent build/startup-smoke + authority/state/UI guards on PR, then main prerelease verification and OA022 field test.
 
+## D102 Agent v27 release readiness — 2026-09-22
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA022 FIELD READY**.
+
+- Beta: `D102_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V27__OA022_FIELD_READY`.
+- Web: `D101_BETA_RUNTIME_PASS__WEB_ONLINE_WEB_ANDROID_ONLY__TOOLS_AGENT_V26`.
+- Android: `D099_SIGNED_BETA_VC62_LOGIN_REPAIR__D100_NO_ANDROID_RUNTIME_CHANGE`.
+- Latest signed Beta APK: `beta-vc62`; SQLite schema: `10`.
+- D102 main PASS: Authority `35683012628`, State `35683012626`, UI `35683012670`, Relay Agent `35683012671`.
+- Agent release `relay-agent-v27` id `393435282`; EXE asset id `580448326`, size `271872`, SHA-256 `322159ed214be13d5340fd2a8a826b02232627aa016711c2a46492da1cc819e4`.
+- D097 5s PRIMARY / 10s STANDBY / 10s pending-job takeover and D096 fail-closed confirmation semantics remain guarded.
+- D102 schedule self-test PASSes 21:30 prompt boundaries, CONTINUE/STOP persistence, 22:00 business pause and 05:00 resume logic.
+- Remaining gate: OA022 physical Windows/multi-Agent acceptance only. Stable remains OWNER-GATED.
