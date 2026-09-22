@@ -420,3 +420,18 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA021 FIELD READY**.
 - Night gate: 21:30 HCM warning every 5m until CONTINUE/STOP; no CONTINUE at 22:00 pauses business; 05:00 auto-resumes; EXE/log/update/watchdog stay alive.
 - OA021 is superseded by OA022. OA022 is blocked until D102 technical release.
 
+## D102 Agent v27 release checkpoint — 2026-09-22
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA022 FIELD READY**.
+
+- Beta: `D102_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V27__OA022_FIELD_READY`.
+- Web: `D101_BETA_RUNTIME_PASS__WEB_ONLINE_WEB_ANDROID_ONLY__TOOLS_AGENT_V26`.
+- Android: `D099_SIGNED_BETA_VC62_LOGIN_REPAIR__D100_NO_ANDROID_RUNTIME_CHANGE`.
+- Latest signed Beta APK: `beta-vc62`.
+- SQLite schema: `10`.
+- Network scope: `D102_AGENT_V27_OVERVIEW_HA_QUIET_HOURS_RUNTIME_RELEASE_PASS__STABLE_UNTOUCHED`.
+- PickList confirmation: `D102_AGENT_V27_RELEASED__D101_CACHE_REFRESH__D097_D096_GUARDS_PRESERVED`.
+- PR #138 merged at `637d7509bcc66f4b57aba4bf4a415cb05c30903d`.
+- Main PASS runs: Authority `35683012628`, State `35683012626`, UI `35683012670`, Agent `35683012671`.
+- Released Agent: `relay-agent-v27`; release id `393435282`; canonical EXE asset id `580448326`, size `271872`, SHA-256 `322159ed214be13d5340fd2a8a826b02232627aa016711c2a46492da1cc819e4`.
+- OA022 is ready for physical field acceptance. Stable remains OWNER-GATED and untouched.
