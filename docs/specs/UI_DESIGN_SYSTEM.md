@@ -529,3 +529,12 @@ Overlay sizing must not retain the old 420×64 floor. Settings and runtime clamp
 - Direct PickList search renders a row per full PickListCode with its own **Xác nhận** button. There is no detached shared confirmation button.
 - Logout requires a Yes/No confirmation dialog before local Agent/Supra sessions are cleared.
 - The Agent preserves the approved D089 icon, tray-only minimize, protected shutdown and Overlay behavior.
+## D102 — Agent v27 Overview correction
+
+- Top-level tabs are **Tổng quan / Kết nối / Bảng nổi / Nhật ký vận hành / Chẩn đoán kỹ thuật**.
+- **Tổng quan** contains three stacked operational sections: **Hệ thống Agent**, **Hệ thống Supra**, **Xử lý PickList**. Do not split these three sections into separate top-level tabs.
+- Hệ thống Agent includes login/state, real SSID, current role, fleet summary, compact per-Agent table, software update state and a **Kiểm tra cập nhật** button.
+- Fleet table columns are limited to operational basics: account, machine, PRIMARY/STANDBY/FROZEN role, Supra readiness, Agent version and last-seen age. Do not synchronize remote hardware telemetry.
+- The 21:30 decision banner appears only when a decision is required. It offers **Tiếp tục sau 22:00** and **Ngừng từ 22:00**. Tray warnings repeat every 5 minutes until a decision.
+- Remove user-facing copy such as “cho AI”, Owner/AI handoff wording, D-number explanations and long internal-model guidance. Technical details remain in sanitized logs where appropriate.
+
