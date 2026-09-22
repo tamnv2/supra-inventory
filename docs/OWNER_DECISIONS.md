@@ -617,3 +617,17 @@ Owner approved on 2026-09-22 after accepting the D103/v28 field layout.
 ### D104 release checkpoint — 2026-09-22
 
 D104 is technically released on Beta. PR #142 merged at `e1fa990aefa47ad81b063fc0ca27516c1cace5f8`. All PR authority/state/UI/Agent/Rules gates and all main authority/state/UI/Agent gates passed. Windows release `relay-agent-v29` is published with canonical EXE SHA-256 `10304ac734218146550c6bdf3c3b8a81d979fabe5b3ee7dddc94f1b217955b2d`; the release tag resolves exactly to that main commit. OA024 physical Owner acceptance remains open. Android stays `beta-vc62`; Stable is untouched.
+
+## D105 — Android four-digit PickList UX and Agent v30 suffix update
+
+Owner approved on 2026-09-22 after explicitly accepting D104/OA024 as PASS.
+
+1. Picker Android `Xác nhận đơn` now requires exactly **4 numeric trailing PickList digits** instead of 5. The current APK must not require a fifth digit before enabling submit.
+2. While a confirmation request is in flight and no terminal result has returned, `XÁC NHẬN LẤY LẠI ĐƠN` is disabled and visually dimmed. Editing the input during an in-flight request must not re-enable the button or create a second request.
+3. Terminal confirmation results are visually prominent: larger bold text. Confirmed success uses the approved success color; failure/exception/lock results use an error color. Helper/progress text remains smaller so the terminal result is unmistakable.
+4. New Android jobs send exactly 4 digits. Firestore Rules and Agent ingress may accept 4 or 5 digits temporarily so already-installed `beta-vc62` devices do not break during rollout, but the new APK UI itself is four-digit only.
+5. PDA lookup and exact resolution compare the trailing number of digits actually supplied. For new four-digit jobs, Agent compares exactly the trailing 4 digits of full `PickListCode`. If zero or multiple full codes match, existing fail-closed behavior remains; no WMS mutation is allowed.
+6. Specialist Agent manual search becomes **3–4 digits** per comma-separated term. Five-digit manual search is no longer accepted. D104 multi-search, row-level confirmation and conditional `Xác nhận tất cả` remain unchanged.
+7. D104 batching, D097 HA/polling, D102 night schedule, D096 `Status=true` success rule, per-code guard, per-job ACK, anti-spam and Stable OWNER-GATED state remain unchanged.
+8. Target releases: Android `beta-vc63` and Windows Agent `relay-agent-v30`. Web business flow is unchanged.
+
