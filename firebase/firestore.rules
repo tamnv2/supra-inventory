@@ -135,14 +135,7 @@ service cloud.firestore {
         && request.resource.data.crash is bool
         && request.resource.data.filename is string
         && request.resource.data.filename.size() <= 160
-        && request.resource.data.filename.matches('^(crash_)?agent_[A-Za-z0-9._-]+_[0-9]{8}_[0-9]{6}\\.log
-        && request.resource.data.content.size() <= 350000;
-
-      allow get, list, update, delete: if false;
-    }
-  }
-}
-)
+        && request.resource.data.filename.matches('^(crash_)?agent_[A-Za-z0-9._-]+_[0-9]{8}_[0-9]{6}\\.log$')
         && request.resource.data.content is string
         && request.resource.data.content.size() <= 350000;
 
