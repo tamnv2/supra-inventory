@@ -631,3 +631,6 @@ Owner approved on 2026-09-22 after explicitly accepting D104/OA024 as PASS.
 7. D104 batching, D097 HA/polling, D102 night schedule, D096 `Status=true` success rule, per-code guard, per-job ACK, anti-spam and Stable OWNER-GATED state remain unchanged.
 8. Target releases: Android `beta-vc63` and Windows Agent `relay-agent-v30`. Web business flow is unchanged.
 
+### D105 release checkpoint — 2026-09-22
+
+D105 is technically released on Beta. PR #144 merged at `e73206dea01e4c599d19abe040ffc8662b8836bf`. Main authority/state/UI/Android/Agent/Firestore/Worker gates passed. Android release `beta-vc63` has APK SHA-256 `add6716668f13e5f96a8b6b9cdfddba27db4270e990a4f3f7d92c373fadd5295`; Agent release `relay-agent-v30` has canonical EXE SHA-256 `18cf58622cde42d7ae7c58a57615139913caa9c3dbd2718bd2b1348182f765ad`. Both release tags resolve exactly to the D105 main commit. OA025 physical Owner acceptance remains open. Stable is untouched.

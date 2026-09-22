@@ -321,7 +321,7 @@
       "collection": "relay_poc_jobs",
       "api_url": "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents/relay_poc_jobs",
       "exposure": "public_identifier",
-      "status": "D105_SOURCE_CANDIDATE__D104_OWNER_FIELD_PASS__ANDROID_4DIGIT_AGENT_V30__PR_GATES_PENDING",
+      "status": "D105_RUNTIME_RELEASE_PASS__D104_OWNER_FIELD_PASS__ANDROID_VC63_AGENT_V30__OA025_FIELD_READY",
       "guard": "D105_BETA_ONLY__CURRENT_ANDROID_SUFFIX_4_DIGITS__LEGACY_VC62_5_DIGIT_INGRESS_COMPAT__EXISTING_BATCH_GUARD_ACK_HA__NO_WMS_SECRET__NO_STABLE",
       "collections": [
         "relay_poc_jobs",
@@ -353,7 +353,7 @@
       "url": "https://api-supra.winmart.vn",
       "exposure": "public_corporate_hostname",
       "allowed_probe": "GET /sft3-hy1/api/v1/warehouse/zones",
-      "guard": "D105_SIGNED_GET_ZONES_AND_PICKLIST_LIST__FOUR_DIGIT_CURRENT_SUFFIX_EXACT_RESOLVE__BOUNDED_CONFIRM_SKIP_ITEM_POST_AFTER_PER_CODE_GUARD__MAX10_CODES__NO_OTHER_WMS_MUTATION__NO_STABLE",
+      "guard": "D105_RUNTIME_PASS__SIGNED_GET_ZONES_AND_PICKLIST_LIST__FOUR_DIGIT_CURRENT_SUFFIX_EXACT_RESOLVE__BOUNDED_CONFIRM_SKIP_ITEM_POST_AFTER_PER_CODE_GUARD__MAX10_CODES__NO_OTHER_WMS_MUTATION__NO_STABLE",
       "allowed_lookup": "GET /sft3-hy1/api/v1/autopp/pickListConfirms",
       "allowed_confirmation": "POST /sft3-hy1/api/v1/autopp/pickListConfirms/confirmSkipItem",
       "confirmation_contract": "ONE_TO_TEN_EXACT_PICKLISTCODES__PER_CODE_FIRESTORE_GUARD__IsAllowSkipped_TRUE__RemainSkip_1__WarehouseCode_HY1__EnableDCSite_FALSE__UNCERTAIN_FAIL_CLOSED"

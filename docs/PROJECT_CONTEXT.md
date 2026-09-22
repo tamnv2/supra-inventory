@@ -422,3 +422,14 @@ Owner accepted D104/OA024 and shortened the operational PickList suffix input.
 - Agent specialist manual search becomes 3–4 digits per comma-separated term. D104 bulk confirmation behavior remains unchanged.
 - D104 batch/HA/quota behavior remains unchanged. Target Android is beta-vc63; target Agent is relay-agent-v30. Stable remains OWNER-GATED.
 
+## D105 release checkpoint
+
+D105 Android vc63 + Agent v30 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta.
+
+- PR #144 merged to `main` at `e73206dea01e4c599d19abe040ffc8662b8836bf`.
+- Main gates PASS: Repo Authority `35694361080`, Project State `35694361070`, UI Design `35694361168`, Beta Android `35694361091`, Beta Relay Agent `35694361074`, Beta Firestore Relay `35694361133`, Beta Worker `35694361089`.
+- Released Android: `beta-vc63`, release id `393494217`; APK asset id `580723780`, size `18998096`, SHA-256 `add6716668f13e5f96a8b6b9cdfddba27db4270e990a4f3f7d92c373fadd5295`.
+- Released Agent: `relay-agent-v30`, release id `393494208`; canonical EXE asset id `580723753`, size `284672`, SHA-256 `18cf58622cde42d7ae7c58a57615139913caa9c3dbd2718bd2b1348182f765ad`.
+- Both tags point exactly to `e73206dea01e4c599d19abe040ffc8662b8836bf`.
+- Beta Firestore Rules deployment for bounded current 4-digit + legacy 5-digit rollout compatibility passed.
+- OA025 is the remaining physical Owner acceptance gate. Stable remains OWNER-GATED and untouched.
