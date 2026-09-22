@@ -877,3 +877,16 @@ Technical PASS requires:
 9. Clicking Agent logout requires explicit confirmation.
 10. No top-level Cài đặt tab remains; operational child pages are promoted to direct tabs.
 11. D097 5s PRIMARY / 10s STANDBY / FROZEN-no-business-poll semantics, D096 confirmation semantics, normal Báo hàng flow, and Stable OWNER-GATED status remain unchanged.
+## D102 acceptance — Agent v27 Overview, HA convergence and night gate
+
+1. Top-level tabs are exactly the D102 operational set; Hệ thống Agent, Hệ thống Supra and Xử lý PickList are sections inside one Tổng quan page, not separate tabs.
+2. Manual **Kiểm tra cập nhật** uses the existing trusted prerelease + checksum path, while startup and 30-minute background checks remain.
+3. User-facing Agent UI contains no “cho AI”, Owner handoff or D-number implementation guidance.
+4. With >=2 WMS-ready Agents starting together, the four 5-second startup convergence cycles settle one PRIMARY, at most one STANDBY and remaining Agents FROZEN; normal role refresh is 60s for PRIMARY/STANDBY and 5m for FROZEN.
+5. D097 business behavior remains PRIMARY 5s / STANDBY 10s / pending-job takeover >=10s / FROZEN no business poll. No duplicate WMS mutation may occur.
+6. Fleet table shows account, machine, authoritative effective role, Supra readiness, Agent version and last-seen age. Presence cadence remains 15m write / 30m read / 40m freshness; remote CPU/RAM/Disk are absent.
+7. At 21:30 HCM with no decision, warning appears and repeats every 5 minutes. Choosing CONTINUE or STOP suppresses further warnings for that night.
+8. If undecided at 22:00, pending-job polling and manual PickList business actions are paused. CONTINUE after 22:00 resumes within the bounded local gate interval. STOP stays paused through 05:00.
+9. EXE, tray, updater, logging and watchdog continue while business processing is paused. At 05:00 business processing resumes automatically without restarting Agent.
+10. Android/Web business flows and Stable remain unchanged.
+
