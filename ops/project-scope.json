@@ -321,7 +321,7 @@
       "collection": "relay_poc_jobs",
       "api_url": "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents/relay_poc_jobs",
       "exposure": "public_identifier",
-      "status": "D104_SOURCE_CANDIDATE__D103_OWNER_FIELD_PASS__AGENT_V29_BATCH_CONFIRM__PR_GATES_PENDING",
+      "status": "D104_RUNTIME_RELEASE_PASS__D103_OWNER_FIELD_PASS__AGENT_V29__OA024_FIELD_READY",
       "guard": "D104_BETA_ONLY__EXISTING_FIRESTORE_POLL_AND_PER_JOB_ACK__BATCH_WMS_OPTIMIZATION__NO_EXTRA_FAST_POLL__NO_WMS_SECRET__NO_STABLE",
       "collections": [
         "relay_poc_jobs",
