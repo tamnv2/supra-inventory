@@ -5,7 +5,6 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 
 namespace SupraInventoryRelayAgent
@@ -50,7 +49,7 @@ namespace SupraInventoryRelayAgent
         private readonly Action _onRequest;
         private readonly Action _onResponse;
         private readonly Action<string> _state;
-        private readonly Func<FirestoreConfirmationWorkItem, FirestoreConfirmationOutcome> _handler;
+        private readonly Func<List<FirestoreConfirmationWorkItem>, Dictionary<string, FirestoreConfirmationOutcome>> _batchHandler;
         private readonly FirestoreAgentLeaderCoordinator _coordinator;
         private readonly Func<bool> _businessEnabled;
         private readonly Action<bool> _relayHealth;
@@ -67,7 +66,7 @@ namespace SupraInventoryRelayAgent
             Action onRequest,
             Action onResponse,
             Action<string> state,
-            Func<FirestoreConfirmationWorkItem, FirestoreConfirmationOutcome> handler,
+            Func<List<FirestoreConfirmationWorkItem>, Dictionary<string, FirestoreConfirmationOutcome>> batchHandler,
             FirestoreAgentLeaderCoordinator coordinator,
             Func<bool> businessEnabled,
             Action<bool> relayHealth)
@@ -81,7 +80,7 @@ namespace SupraInventoryRelayAgent
             _onRequest = onRequest ?? delegate { };
             _onResponse = onResponse ?? delegate { };
             _state = state ?? delegate { };
-            _handler = handler;
+            _batchHandler = batchHandler;
             _coordinator = coordinator;
             _businessEnabled = businessEnabled ?? (() => true);
             _relayHealth = relayHealth ?? delegate { };
@@ -174,68 +173,79 @@ namespace SupraInventoryRelayAgent
             if (eligible.Count == 0) return 0;
 
             var processed = 0;
-            using (var gate = new SemaphoreSlim(MaxConcurrentJobs, MaxConcurrentJobs))
+            for (var offset = 0; offset < eligible.Count; offset += MaxConcurrentJobs)
             {
-                var tasks = new List<Task>();
-                foreach (var item in eligible)
-                {
-                    gate.Wait();
-                    var captured = item;
-                    tasks.Add(Task.Run(() =>
-                    {
-                        try
-                        {
-                            if (ProcessDocument(session, captured))
-                                Interlocked.Increment(ref processed);
-                        }
-                        finally
-                        {
-                            gate.Release();
-                        }
-                    }));
-                }
-                Task.WaitAll(tasks.ToArray());
+                var count = Math.Min(MaxConcurrentJobs, eligible.Count - offset);
+                var batch = eligible.GetRange(offset, count);
+                processed += ProcessBatch(session, batch);
             }
             return processed;
         }
 
-        private bool ProcessDocument(AgentSession session, PendingDocument doc)
+        private int ProcessBatch(AgentSession session, List<PendingDocument> docs)
         {
-            var work = doc.Work;
-            _log("FIRESTORE CONFIRM pending-found request=" + Short(work.RequestId) +
-                 " picker=" + Safe(work.PickerUserId) +
-                 " role=" + (_coordinator == null ? "UNKNOWN" : _coordinator.RoleName));
-            _onRequest();
-            _audit("PDA_REQUEST request=" + Short(work.RequestId) +
-                " picker=" + Safe(work.PickerUserId) +
-                " picklist_last5=redacted transport=FIRESTORE" +
-                " admin=" + Safe(session.AppUserId) +
-                " machine=" + Safe(Environment.MachineName) +
-                " instance=" + Short(_instanceId));
+            if (docs == null || docs.Count == 0) return 0;
 
-            FirestoreConfirmationOutcome outcome;
+            var works = new List<FirestoreConfirmationWorkItem>();
+            foreach (var doc in docs)
+            {
+                var work = doc.Work;
+                _log("FIRESTORE CONFIRM pending-found request=" + Short(work.RequestId) +
+                     " picker=" + Safe(work.PickerUserId) +
+                     " role=" + (_coordinator == null ? "UNKNOWN" : _coordinator.RoleName));
+                _onRequest();
+                _audit("PDA_REQUEST request=" + Short(work.RequestId) +
+                    " picker=" + Safe(work.PickerUserId) +
+                    " picklist_last5=redacted transport=FIRESTORE" +
+                    " admin=" + Safe(session.AppUserId) +
+                    " machine=" + Safe(Environment.MachineName) +
+                    " instance=" + Short(_instanceId));
+                works.Add(work);
+            }
+
+            Dictionary<string, FirestoreConfirmationOutcome> outcomes;
             try
             {
-                outcome = _handler(work) ?? new FirestoreConfirmationOutcome();
+                outcomes = _batchHandler == null
+                    ? new Dictionary<string, FirestoreConfirmationOutcome>(StringComparer.Ordinal)
+                    : _batchHandler(works);
             }
             catch (Exception ex)
             {
-                _log("FIRESTORE business fail request=" + Short(work.RequestId) + " " + Describe(ex));
-                outcome = new FirestoreConfirmationOutcome { Result = "CONFIRM_ERROR" };
+                _log("FIRESTORE batch business fail count=" + works.Count + " " + Describe(ex));
+                outcomes = new Dictionary<string, FirestoreConfirmationOutcome>(StringComparer.Ordinal);
             }
 
-            if (!outcome.ShouldAck)
+            var processed = 0;
+            foreach (var doc in docs)
             {
-                _log("FIRESTORE ACK deferred request=" + Short(work.RequestId) +
-                     " result=" + Safe(outcome.Result));
-                return false;
+                var work = doc.Work;
+                FirestoreConfirmationOutcome outcome;
+                if (outcomes == null ||
+                    !outcomes.TryGetValue(work.RequestId ?? "", out outcome) ||
+                    outcome == null)
+                {
+                    outcome = new FirestoreConfirmationOutcome { Result = "CONFIRM_ERROR" };
+                }
+
+                if (!outcome.ShouldAck)
+                {
+                    _log("FIRESTORE ACK deferred request=" + Short(work.RequestId) +
+                         " result=" + Safe(outcome.Result));
+                    continue;
+                }
+
+                if (!TryAck(session, doc.Name, doc.UpdateTime, work.RequestId, outcome))
+                    continue;
+
+                _onResponse();
+                processed++;
             }
 
-            if (!TryAck(session, doc.Name, doc.UpdateTime, work.RequestId, outcome))
-                return false;
-
-            _onResponse();
-            return true;
+            _log("FIRESTORE CONFIRM batch count=" + docs.Count +
+                 " acked=" + processed +
+                 " role=" + (_coordinator == null ? "UNKNOWN" : _coordinator.RoleName));
+            return processed;
         }
 
         private List<PendingDocument> ReadPendingDocuments(AgentSession session)
