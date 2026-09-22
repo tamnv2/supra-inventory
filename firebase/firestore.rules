@@ -106,5 +106,39 @@ service cloud.firestore {
         && resource.data.retire_at_ms <= request.time.toMillis();
       allow list: if false;
     }
+
+    match /relay_agent_log_uploads/{partId} {
+      allow create: if isRealAdmin()
+        && request.resource.data.keys().hasOnly([
+          'upload_id', 'part_index', 'part_count', 'status', 'source',
+          'admin_user_id', 'agent_instance_id', 'machine',
+          'generated_at_ms', 'crash', 'filename', 'content'
+        ])
+        && request.resource.data.status == 'PENDING'
+        && request.resource.data.source == 'AGENT'
+        && request.resource.data.admin_user_id == request.auth.token.app_user_id
+        && request.resource.data.upload_id is string
+        && request.resource.data.upload_id.size() >= 16
+        && request.resource.data.upload_id.size() <= 64
+        && request.resource.data.part_index is int
+        && request.resource.data.part_index >= 0
+        && request.resource.data.part_count is int
+        && request.resource.data.part_count >= 1
+        && request.resource.data.part_count <= 64
+        && request.resource.data.part_index < request.resource.data.part_count
+        && request.resource.data.agent_instance_id is string
+        && request.resource.data.agent_instance_id.size() >= 8
+        && request.resource.data.agent_instance_id.size() <= 160
+        && request.resource.data.machine is string
+        && request.resource.data.machine.size() <= 160
+        && request.resource.data.generated_at_ms is int
+        && request.resource.data.crash is bool
+        && request.resource.data.filename is string
+        && request.resource.data.filename.size() <= 160
+        && request.resource.data.content is string
+        && request.resource.data.content.size() <= 350000;
+
+      allow get, list, update, delete: if false;
+    }
   }
 }
