@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D102_SOURCE_CANDIDATE__AGENT_V27__PR_GATES_PENDING",
+    "beta": "D102_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V27__OA022_FIELD_READY",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 10,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -22,17 +22,17 @@
     "android": "D099_SIGNED_BETA_VC62_LOGIN_REPAIR__D100_NO_ANDROID_RUNTIME_CHANGE",
     "latest_beta_apk": "beta-vc62",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
-    "network_scope": "D102_AGENT_V27_OVERVIEW_HA_QUIET_HOURS_SOURCE_CANDIDATE__STABLE_UNTOUCHED",
+    "network_scope": "D102_AGENT_V27_OVERVIEW_HA_QUIET_HOURS_RUNTIME_RELEASE_PASS__STABLE_UNTOUCHED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "D100_ACCOUNT_EMAIL_VALIDATION_OWNER_FIELD_PASS",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D069_XLSX_REPORT_EXPORT_BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
-    "quota_resilience": "D102_ROLE_REFRESH_60S_ACTIVE_5M_FROZEN__PRESENCE_15M_WRITE_30M_READ__QUIET_HOURS_22_05__D097_GUARDS_PRESERVED",
-    "ui_design_guard": "D102_SOURCE_CANDIDATE__CI_PENDING",
+    "quota_resilience": "D102_ROLE_REFRESH_60S_ACTIVE_5M_FROZEN__PRESENCE_15M_WRITE_30M_READ__QUIET_HOURS_22_05__MAIN_PASS",
+    "ui_design_guard": "D102_MAIN_UI_PASS_RUN_35683012670",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D102_AGENT_V27_SOURCE_CANDIDATE__D101_CACHE_REFRESH__D097_D096_GUARDS_PRESERVED"
+    "picklist_confirmation_poc": "D102_AGENT_V27_RELEASED__D101_CACHE_REFRESH__D097_D096_GUARDS_PRESERVED"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -173,7 +173,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Complete D102 branch/PR guards for relay-agent-v27; after merge verify main Agent release v27, then run OA022 physical field acceptance for Overview, manual update, multi-Agent convergence and 21:30/22:00/05:00 schedule. Stable remains OWNER-GATED.",
+  "next_action": "Owner field-test OA022 using released relay-agent-v27: verify one Tổng quan layout, manual/background update, >=2 Agent role convergence/fleet agreement, retained D097 10-second failover, and 21:30 five-minute warning / 22:00 pause / 05:00 resume. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -579,7 +579,7 @@
     "D101 Owner request 2026-09-22: cache MISS must refresh WMS before final NOT_FOUND for PDA/manual search; Agent background GitHub auto-update while running; row-level PickList confirm; richer Agent/Supra status with actual SSID and low-frequency HA role counts; size-rotated logs plus 06/12/18/00 Beta Drive delivery and crash spool; Web online excludes Agent; logout confirmation; flat top-level Agent tabs. Target relay-agent-v26.",
     "D102 Owner-approved 2026-09-22: restore one Agent Tổng quan containing Agent/Supra/PickList; add manual trusted update; accelerate role convergence with four 5s startup cycles then 60s PRIMARY/STANDBY and 5m FROZEN role refresh; fleet presence 15m write/30m read/40m freshness; 21:30 HCM warning repeats every 5m until continue/stop confirmation; no continue at 22:00 pauses business polling/manual PickList until confirmation or 05:00 while EXE/log/update/watchdog stay alive. Target relay-agent-v27; Stable untouched."
   ],
-  "active_workstream": "D102_AGENT_V27_IMPLEMENTATION_AND_RELEASE",
+  "active_workstream": "D102_AGENT_V27_RELEASED__OA022_FIELD_ACCEPTANCE",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
@@ -627,7 +627,8 @@
     "D100 post-reset runtime recovery PASS 2026-09-22: PR #133 merged to main 5409b8347f50a226bde0665637bef2e598bc3514. Main Repo Authority 35636210008 PASS, Project State 35636210129 PASS, UI 35636210086 PASS and Deploy Beta Worker 35636210016 PASS. Beta deploy health attempt 2 returned exact source 5409b834..., schema 10/10, operational true 5/5, Agent auth migration 0/0, business capability/auth guards PASS. Post-reset self-repair and account-email validation fixes are live; Owner field re-test of account creation and SKU import remains.",
     "D100 OA020 Owner field acceptance 2026-09-22: after PR #133 post-reset recovery deployed, Owner confirmed all previously failing post-reset surfaces are OK: Operational V2 navigation/realtime no longer reports NOT_READY, managed account creation succeeds, and SKU upload succeeds. Exact failure modes are now protected by immediate post-reset Operational V2 structural rebootstrap, routed /operational/init self-repair, corrected managed-account email validation and terminal SKU-import error progress. OA020 post-reset acceptance PASS.",
     "D101 source diagnosis from Owner Agent log 2026-09-22: current machine cfa74d97 became STANDBY while coordination referenced primary febf8d16; this is consistent with D097 request-driven HA, where STANDBY takeover is triggered by a pending job age >=10s rather than high-frequency idle liveness. Existing log sanitizer also redacted `ssid=` because the secret regex matched `sid=` as a substring; D101 changes the regex to token boundaries so real SSID remains visible while actual SID/token secrets stay redacted.",
-    "D101 technical/runtime/release PASS 2026-09-22: PR #136 merged to main 25cb7554ff7ea058aa45d72e1ba4824c744c354e after correcting malformed Firestore log-spool Rules and superseded D085 cache-miss regression guards. Main PASS: Repo Authority 35677556695, Project State 35677556755, Deploy Beta Worker 35677556693, Deploy Beta Firestore Relay 35677556771, UI Design Guard 35677556710, Verify Beta Android 35677556734, Verify Beta Relay Agent 35677556698. Release relay-agent-v26 id 393404831 is tagged exactly at that main commit; canonical EXE asset id 580316553, size 263680 bytes, SHA-256 5db50633e74247b45305a536a6caf140069626db66a7020acf32cf2d216ff79b. Android remains beta-vc62 unchanged. OA021 Owner field acceptance is the only D101 gate still open; Stable untouched."
+    "D101 technical/runtime/release PASS 2026-09-22: PR #136 merged to main 25cb7554ff7ea058aa45d72e1ba4824c744c354e after correcting malformed Firestore log-spool Rules and superseded D085 cache-miss regression guards. Main PASS: Repo Authority 35677556695, Project State 35677556755, Deploy Beta Worker 35677556693, Deploy Beta Firestore Relay 35677556771, UI Design Guard 35677556710, Verify Beta Android 35677556734, Verify Beta Relay Agent 35677556698. Release relay-agent-v26 id 393404831 is tagged exactly at that main commit; canonical EXE asset id 580316553, size 263680 bytes, SHA-256 5db50633e74247b45305a536a6caf140069626db66a7020acf32cf2d216ff79b. Android remains beta-vc62 unchanged. OA021 Owner field acceptance is the only D101 gate still open; Stable untouched.",
+    "D102 technical/runtime/release PASS 2026-09-22: PR #138 merged to main 637d7509bcc66f4b57aba4bf4a415cb05c30903d. PR gates PASS: Repo Authority 35682895002, Project State 35682894986, UI Design 35682895038, Relay Agent 35682895029, Firestore Relay 35682895023, RTDB Rules 35682895001. Main PASS: Repo Authority 35683012628, Project State 35683012626, UI Design 35683012670, Relay Agent 35683012671. Release relay-agent-v27 id 393435282 is tagged exactly at main 637d7509bcc66f4b57aba4bf4a415cb05c30903d; canonical EXE asset id 580448326, size 271872 bytes, SHA-256 322159ed214be13d5340fd2a8a826b02232627aa016711c2a46492da1cc819e4. Main Agent artifact id 10675911449 digest sha256:a7a6d211a9ca9d271308597bd2a8710bd2c6a1481bb40d9b34470446ff36fa03. Android remains beta-vc62 unchanged; Stable untouched. OA022 is now field-ready."
   ],
   "last_runtime_evidence": {
     "signed_beta_release": "beta-vc59",

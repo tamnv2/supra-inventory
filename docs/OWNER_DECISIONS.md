@@ -578,3 +578,6 @@ Owner approved on 2026-09-22.
 9. “Stop” in the 22:00–05:00 policy means **pause Agent business processing**, not terminate the EXE. Logging, updater, tray UI, watchdog and local scheduling remain alive so 05:00 recovery is deterministic.
 10. Target release is **relay-agent-v27**. Android/Web business flows are unchanged by D102. Stable remains OWNER-GATED and untouched.
 
+### D102 release checkpoint — 2026-09-22
+
+D102 is technically released on Beta. PR #138 merged at `637d7509bcc66f4b57aba4bf4a415cb05c30903d`. All PR authority/state/UI/Agent/Rules gates and all main authority/state/UI/Agent gates passed. Windows release `relay-agent-v27` is published with canonical EXE SHA-256 `322159ed214be13d5340fd2a8a826b02232627aa016711c2a46492da1cc819e4`; the release tag resolves exactly to that main commit. OA022 physical Owner acceptance remains open. Android stays `beta-vc62`; Stable is untouched.
