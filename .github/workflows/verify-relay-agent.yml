@@ -74,7 +74,7 @@ jobs:
           $firestoreRules = Get-Content firebase/firestore.rules -Raw
           $firestoreIndexes = Get-Content firebase/firestore.indexes.json -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*26\s*;') { throw "D101 requires Agent v26." }
+          if ($config -notmatch 'AgentBuild\s*=\s*27\s*;') { throw "D102 requires Agent v27." }
           if ($firestoreLeader -notmatch 'FailoverAfterMs\s*=\s*10000' -or $firestoreLeader -notmatch 'StandbyTakeoverAgeMs\s*=\s*10000') { throw "D097 request-driven 10-second failover guard failed." }
           if ($firestoreLeader -match 'HeartbeatIntervalMs\s*=\s*4000') { throw "D097 forbids 4-second Firestore lease heartbeat." }
           foreach ($marker in @('PRIMARY','STANDBY','FROZEN','PromoteStandbyForTakeover','replacement-standby','PresenceHeartbeatIntervalMs = 900000','StandbyRoleRefreshMs = 60000','FrozenRoleRefreshMs = 300000','StartupConvergenceIntervalMs = 5000')) {
