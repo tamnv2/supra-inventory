@@ -922,7 +922,7 @@
     },
     {
       "id": "OA021",
-      "status": "BLOCKED_ON_D101_TECHNICAL_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST_D101_RELEASE",
       "title": "Field-accept D101 Agent v26 operational rework",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Beta Windows Agent + Firestore relay + authorized Supra WMS + Beta Drive logs + Beta Web",
@@ -931,7 +931,19 @@
         "target_agent_release": "relay-agent-v26",
         "android_release": "beta-vc62 unchanged",
         "stable": "OWNER_GATED",
-        "technical_release": "PENDING"
+        "technical_release": "PASS",
+        "merged_pr": 136,
+        "source_main": "25cb7554ff7ea058aa45d72e1ba4824c744c354e",
+        "repo_authority_run": 35677556695,
+        "project_state_run": 35677556755,
+        "beta_worker_run": 35677556693,
+        "firestore_run": 35677556771,
+        "ui_run": 35677556710,
+        "android_run": 35677556734,
+        "relay_agent_run": 35677556698,
+        "agent_release_id": 393404831,
+        "agent_asset_id": 580316553,
+        "agent_sha256": "5db50633e74247b45305a536a6caf140069626db66a7020acf32cf2d216ff79b"
       },
       "shortest_test_path": [
         "Install/update to relay-agent-v26 after release and keep Agent running.",
@@ -953,7 +965,7 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Do not share Firebase tokens, WMS cookies/headers/signatures, passwords or local DPAPI files. Use only a controlled eligible PickList for any real WMS confirm. Crash test should be synthetic and bounded; do not intentionally corrupt company Windows.",
-      "remaining_owner_action": "Wait for D101 technical/runtime/release PASS and relay-agent-v26. Then execute the shortest physical field matrix."
+      "remaining_owner_action": "Run the OA021 physical field matrix on released relay-agent-v26. No code/build/deploy blocker remains."
     }
   ]
 }
