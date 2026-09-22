@@ -449,3 +449,17 @@ Status: **SOURCE CANDIDATE / PR GATES PENDING**.
 - D102 HA/night schedule and D096/D097 confirmation rules are unchanged.
 - OA022 is superseded by OA023. Stable remains OWNER-GATED and untouched.
 
+## D103 Agent v28 release checkpoint — 2026-09-22
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA023 FIELD READY**.
+
+- Beta: `D103_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V28__OA023_FIELD_READY`.
+- Web: `D101_BETA_RUNTIME_PASS__WEB_ONLINE_WEB_ANDROID_ONLY__TOOLS_AGENT_V26`.
+- Android: `D099_SIGNED_BETA_VC62_LOGIN_REPAIR__D100_NO_ANDROID_RUNTIME_CHANGE`.
+- Latest signed Beta APK: `beta-vc62`; SQLite schema: `10`.
+- Network scope: `D103_AGENT_V28_DENSE_OVERVIEW_RUNTIME_RELEASE_PASS__D102_HA_SCHEDULE_PRESERVED__STABLE_UNTOUCHED`.
+- PickList confirmation: `D103_AGENT_V28_RELEASED__INLINE_ROW_CONFIRM_VISIBLE__D096_D097_GUARDS_PRESERVED`.
+- PR #140 merged at `15aba0412e625af0f6b9ef7489b995a3e524a131`.
+- Main PASS runs: Authority `35684829649`, State `35684829653`, UI `35684829650`, Agent `35684829660`.
+- Released Agent: `relay-agent-v28`; release id `393444068`; canonical EXE asset id `580490417`, size `271360`, SHA-256 `4faf8507637d61d74ac8aa34ba998a1fc04bfacd0fdc572af1cabda5f8bb8cb1`.
+- OA023 is ready for physical UI acceptance. Stable remains OWNER-GATED and untouched.
