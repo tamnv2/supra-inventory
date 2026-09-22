@@ -533,3 +533,13 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
 - No new polling/provider monitoring, employee scoring, stock quantity/bin/location analytics or Stable action is authorized.
 - Current next action: PR #149 must reach authority/state/UI/Web build PASS, then merge/deploy Beta and obtain explicit Owner visual acceptance.
 - Stable remains OWNER-GATED and untouched.
+
+## D107 merged-source checkpoint — 2026-09-22
+
+- Web: `D107_PR_GATES_PASS__MERGED_MAIN_4E733535__BETA_AUTODEPLOY_TRIGGERED__OWNER_VISUAL_REVIEW_PENDING`.
+- Admin dashboard/reporting: `D107_RICHER_EXISTING_DATA_MERGED_MAIN__OWNER_VISUAL_REVIEW_PENDING__FINAL_STABLE_COLUMNS_OWNER_OPEN`.
+- UI guard: `D107_PR_UI_PASS_RUN_35729564681__MAIN_MERGED`.
+- PR #149 passed Repo Authority `35729564644`, Project State `35729564770`, UI Design/Web production build `35729564681`, RTDB `35729564684` and Firestore `35729564631`.
+- Squash merge main: `4e733535ef0abe893681afdf288097767141b115`.
+- Main changed `web/**`, so the existing `Deploy Beta Worker` push workflow applies automatically. The current GitHub connector can enumerate PR-triggered runs but not main push-triggered runs; therefore exact D107 runtime/deploy PASS is deliberately not inferred.
+- OA027 is the remaining D107 Owner visual gate on live Beta. Stable remains OWNER-GATED and untouched.

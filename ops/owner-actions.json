@@ -1207,6 +1207,45 @@
       ],
       "safety": "Beta only. Never share the ADMIN password, Firebase token, WMS credential/session material or service-account material. Agent v30 binary does not need replacement for D106.",
       "remaining_owner_action": "Run the two short credential checks above. If either fails, provide only the new sanitized Web/Agent log; do not send the password."
+    },
+    {
+      "id": "OA027",
+      "status": "READY_FOR_OWNER_VISUAL_REVIEW_D107_MERGED",
+      "title": "Field-accept D107 professional Web identity and reporting",
+      "resource_key": "worker-beta",
+      "provider": "Beta Web on existing Cloudflare Worker/InventoryCore",
+      "reason_owner_only": "Automated guards can prove source/build/regression invariants, but final professional visual quality, density and readability on the Owner's real browser/display require human review.",
+      "prerequisites": {
+        "technical_source_pr": "PASS",
+        "merged_pr": 149,
+        "source_head": "acdec3bb8e0b8a0793da6127a35952e014f58655",
+        "source_main": "4e733535ef0abe893681afdf288097767141b115",
+        "pr_repo_authority_run": 35729564644,
+        "pr_project_state_run": 35729564770,
+        "pr_ui_run": 35729564681,
+        "pr_rtdb_run": 35729564684,
+        "pr_firestore_run": 35729564631,
+        "web_production_build": "PASS_INSIDE_UI_RUN",
+        "beta_deploy_trigger": "MAIN_WEB_PATH_AUTOMATIC",
+        "exact_push_run_visibility": "CURRENT_CONNECTOR_DOES_NOT_ENUMERATE_PUSH_TRIGGERED_RUNS",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Mở hoặc tải lại https://inventory-beta.supra.cc.cd/ sau khi main deploy hoàn tất.",
+        "Ở màn hình đăng nhập, xác nhận dùng đúng icon chung đã chốt; hiển thị `CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN` và `Website nghiệp vụ Inventory`; không còn ô `1291`, `Web nghiệp vụ` hoặc dòng đăng nhập Báo hàng 1291.",
+        "Đăng nhập ADMIN/ROOT và kiểm tra nhanh giao diện sáng + tối: topbar/sidebar, Vận hành báo hàng, Nhân sự & tài khoản, Công cụ/Nhật ký không có mảng sáng/tối lệch hệ.",
+        "Mở `Tổng quan & báo cáo → Tổng quan`: kiểm tra 5 chỉ số hiện tại, khối lượng trong kỳ, cơ cấu kết quả, online theo quyền, SKU phát sinh lại, biểu đồ lượt báo/đã xử lý và top SKU.",
+        "Bấm một top SKU để mở Báo cáo chi tiết; kiểm tra bộ lọc, 6 KPI, cơ cấu kết quả, điểm cần theo dõi, cột `Đang mở`/`Tổng lượt báo`, phân trang và Xuất Excel."
+      ],
+      "pass_criteria": [
+        "Brand login đúng icon và hai dòng danh tính D107, rõ ràng trên desktop và không tràn ở màn hình hẹp.",
+        "Giao diện tổng thể chuyên nghiệp, đồng nhất light/dark, mật độ thông tin cao hơn nhưng không rối và không làm thay đổi luồng nghiệp vụ.",
+        "Tổng quan hiển thị các chỉ số/biểu đồ từ dữ liệu hiện có; top SKU drill-down đúng sang báo cáo chi tiết.",
+        "Báo cáo chi tiết hiển thị đủ KPI/attention/outcome/record range/open-ticket detail và giữ nguyên filter/pagination/XLSX.",
+        "Không phát sinh lỗi chức năng/realtime/RBAC; Stable không bị thay đổi."
+      ],
+      "safety": "Beta Web only. Không nhập/chia sẻ mật khẩu hoặc token trong chat/log. D107 không thay đổi Stable, Android, Agent hay WMS mutation.",
+      "remaining_owner_action": "Thực hiện review trực quan OA027 trên live Beta sau khi bản main đã được deploy. Chỉ cần phản hồi mục nào chưa đạt; không cần cài/chạy lệnh local."
     }
   ]
 }

@@ -18,7 +18,7 @@
     "sqlite_schema": 10,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D107_PROFESSIONAL_WEB_REFINEMENT__SOURCE_IMPLEMENTED__PR_GATES_PENDING",
+    "web": "D107_PR_GATES_PASS__MERGED_MAIN_4E733535__BETA_AUTODEPLOY_TRIGGERED__OWNER_VISUAL_REVIEW_PENDING",
     "android": "D105_SIGNED_BETA_VC63__FOUR_DIGIT_CONFIRM_UI__OA025_FIELD_READY",
     "latest_beta_apk": "beta-vc63",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
@@ -26,9 +26,9 @@
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "D106_NATIVE_FIREBASE_PASSWORD_DIRECT_VERIFY_AND_FAILED_CREATE_COMPENSATION_RUNTIME_PASS__OA026_FIELD_READY",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
-    "admin_dashboard": "D107_RICHER_EXISTING_DATA_OVERVIEW_AND_DETAIL__SOURCE_IMPLEMENTED__PR_GATES_PENDING__FINAL_STABLE_COLUMNS_OWNER_OPEN",
+    "admin_dashboard": "D107_RICHER_EXISTING_DATA_MERGED_MAIN__OWNER_VISUAL_REVIEW_PENDING__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "D104_NO_FASTER_FIRESTORE_POLL__NO_EXTRA_COALESCING_QUERY__MAX12_LOGICAL_JOBS__WMS_MAX10_CODES__MAIN_PASS",
-    "ui_design_guard": "D107_PR_GATES_PENDING",
+    "ui_design_guard": "D107_PR_UI_PASS_RUN_35729564681__MAIN_MERGED",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
@@ -175,7 +175,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Run D107 PR authority/state/UI/Web build gates, repair to terminal PASS, merge to main, verify Beta deployment/runtime, then request Owner visual acceptance on live Beta. Stable remains OWNER-GATED.",
+  "next_action": "D107 source/PR gates are PASS and main is merged. The main push matches the automatic Beta deploy workflow web/** trigger; verify the live Beta surface when deployment has propagated, then Owner performs OA027 visual/reporting acceptance. Do not claim D107 runtime PASS until live evidence is observed. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -201,7 +201,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D107 IN PROGRESS: Owner requested professional Web redesign while preserving current logic/scenarios/layout structure. Source branch replaces legacy numeric login branding with canonical shared icon + corporate/product identity, adds one final professional light/dark presentation layer, and enriches Admin/Root overview + detailed reporting using only existing bounded authoritative data. No new polling/backend/provider metrics; Stable untouched.",
+      "D107 MERGED / OWNER VISUAL REVIEW PENDING: PR #149 head acdec3bb8e0b8a0793da6127a35952e014f58655 passed Repo Authority 35729564644, Project State 35729564770, UI Design 35729564681, RTDB 35729564684 and Firestore 35729564631. Squash-merged main 4e733535ef0abe893681afdf288097767141b115. Because web/** changed, the existing main-only Deploy Beta Worker workflow is automatically applicable; current connector cannot enumerate push-triggered runs, so D107 runtime PASS is not fabricated. Stable untouched.",
       "D106 TECHNICAL/RUNTIME PASS: PR #146 merged main dbcc8af2503b916282788303f9d67d72293a3de0. Exact live Beta proof run 35722532394 PASS on first attempt: HTTP 200, status ok, env beta, source_commit exact dbcc8af, storage true, schema 10/10, missing bindings 0, Agent auth migration 0/0. OA026 physical credential acceptance remains; Agent v30 unchanged; Stable untouched.",
       "D100 TECHNICAL/RUNTIME/RELEASE PASS: PR #126 merged main 8a769808b5c8c28fe76bbb2d31c5ec013265c148; relay-agent-v25 released; D100 health-proof hardening main 2cf23d9229eb4bd5d9c45f3776bb2404ef06a68f; parser hotfix PR #128 merged main dc5607a91c9b95e05344673daaa983c7d8bf5b86. Final main Authority/State/UI/Beta Worker all PASS with source_commit exact, schema 10/10, Agent-auth migration 0/0, Operational V2 5/5. OA019/OA020 physical Owner acceptance remains.",
       "D099 PR #124 IN PROGRESS: Firebase Email/Password provider disabled root cause confirmed; source adds main-only provider enable + synthetic PBKDF2 sign-in probe, verified-legacy-password Firebase self-heal, Agent v24 auth-first Supra gate, Enter shortcuts, Android Enter login, and Overlay range expansion.",
@@ -230,7 +230,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Complete D107 PR authority/state/UI/Web production gates, merge after PASS, verify Beta deployment, then Owner reviews the live Web visual/reporting result.",
+      "OA027: after the automatic main Web deploy has propagated, Owner reviews live Beta login + authenticated shell + Tổng quan/Báo cáo chi tiết. If accepted, record D107 OWNER PASS; if not, fix only reported Beta defects.",
       "Owner field-tests OA020 reset-mail challenge and OA019 physical Agent/PDA path using relay-agent-v25 + beta-vc62. If reset challenge returns Gmail scope unavailable, perform one bounded OAuth re-consent only; no other manual action is currently required.",
       "Owner runs OA019 on released relay-agent-v23 + beta-vc61. After OA019 PASS, resume OA017 final PDA real-WMS confirmation and the next Firestore quota optimization workstream.",
       "Finish D096 Agent v21 release, then Owner runs OA017 real Picklist confirm with existing beta-vc59.",
@@ -241,7 +241,7 @@
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
     ],
     "blocked_or_owner_field_dependent": [
-      "D107 final visual acceptance depends on Owner live Beta review after technical/runtime PASS.",
+      "D107 source/PR gates and merge are PASS. Final visual acceptance is Owner-field-dependent on live Beta. Push-triggered Beta deployment exists by workflow contract, but the current GitHub connector exposes PR-triggered runs only, so exact main deploy-run/runtime evidence remains unobserved from this session.",
       "D100 code/deploy/release PASS. Actual Gmail OTP delivery and destructive System Reset execution remain Owner-field-only; current OAuth refresh token may require one gmail.send re-consent if runtime reports RESET_EMAIL_UNAVAILABLE.",
       "D098 technical/runtime/release is PASS; final business/physical acceptance depends on Owner OA019 on real Web/PDA/Office/WMS environment.",
       "Real WMS confirmation acceptance is blocked only by OA017 D096 exact-resolve/confirm field test after Agent v21 release.",
@@ -518,18 +518,18 @@
   },
   "last_updated": "2026-09-22",
   "owner_ui_review": {
-    "status": "D107_REOPENED__TECHNICAL_RELEASE_PENDING",
-    "phase": "D107_PROFESSIONAL_WEB_REFINEMENT",
+    "status": "D107_OWNER_VISUAL_REVIEW_PENDING_AFTER_MAIN_MERGE",
+    "phase": "D107_LIVE_BETA_VISUAL_ACCEPTANCE",
     "started_on": "2026-09-18",
     "review_target_web": "https://inventory-beta.supra.cc.cd/",
     "review_target_android_release": "beta-vc54",
     "review_target_android_source_commit": "c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee",
     "visual_authority_repository": "tam95supra-source/bao-hang-1291",
     "visual_authority_commit": "8713f487386fa39c9225b180b2b8448d4a7e2b2d",
-    "owner_acceptance": "D089_OWNER_ACCEPTED_PASS__2026_09_21",
-    "current_instruction": "D107 explicitly reopens Web presentation and reporting depth. Preserve D089 shared icon/cross-product identity; technical PASS does not equal Owner visual acceptance.",
+    "owner_acceptance": "PENDING_D107_OA027",
+    "current_instruction": "D107 PR source/build/authority gates passed and PR #149 merged to main 4e733535ef0abe893681afdf288097767141b115. Main web/** push satisfies automatic Beta deploy trigger. Final D107 visual acceptance remains Owner-only on live Beta; do not infer it from CI.",
     "next_session_command": "Tiếp tục supra-inventory. Đọc canonical state trên GitHub và xử lý yêu cầu mới.",
-    "review_feedback_protocol": "D089 field-review closed PASS. Future changes must be treated as new Owner requirements and recorded in canonical GitHub.",
+    "review_feedback_protocol": "Review live Beta login, authenticated shell, Tổng quan and Báo cáo chi tiết. Report only concrete visual/interaction defects; business logic remains frozen unless explicitly changed.",
     "previous_owner_acceptance": "D089_OWNER_ACCEPTED_PASS__2026_09_21"
   },
   "runtime_evidence": [
@@ -593,9 +593,10 @@
     "D104 Owner-approved 2026-09-22 after Owner accepted D103/v28. Agent v29 keeps taskbar visible using Windows WorkingArea; manual specialist search accepts up to 10 comma-separated 3–5 digit fragments with one cache snapshot and at most one shared refresh; >=2 displayed results expose Xác nhận tất cả while per-row confirm remains; existing confirmSkipItem scope extends to 1–10 exact full PickListCodes per POST after per-code guards; existing Firestore poll batches up to 12 jobs with shared lookup/exact scan and WMS chunks <=10, while per-job conditional ACK and D097 cadence remain unchanged. No Owner-supplied WMS secret values may enter repo/logs. Stable untouched.",
     "D105 Owner-approved 2026-09-22 after explicit D104/OA024 PASS: Android confirmation changes from exact 5 digits to exact 4 digits; submit stays disabled/dim while request is in flight; terminal result is larger/bold with semantic emphasis; Agent v30 manual search accepts 3–4 digits only; current Firestore jobs are 4 digits while 5-digit beta-vc62 jobs remain ingress-compatible during rollout; exact resolution compares the supplied suffix length and remains ambiguity fail-closed. Target beta-vc63 + relay-agent-v30; D104 batching/HA/quota and Stable guard unchanged.",
     "D106 Owner-reported 2026-09-22: Web managed-account create can report failure while the InventoryCore row later appears, and newly created/reset ADMIN credentials can return Web password-update 200 while Agent direct Firebase sign-in returns HTTP 400. Repair makes native Firebase password write + direct UID sign-in verification part of the create/reset commit, and compensates failed create so an ACTIVE ghost account is not left behind. Existing pre-D106 broken credentials require one post-deploy password set because plaintext is not recoverable. Stable untouched.",
-    "D107 Owner-approved 2026-09-22: Web login identity becomes corporate line + Website nghiệp vụ Inventory with exact shared D089 app-icon; remove legacy numeric 1291 login tile/copy. Preserve current business logic/RBAC/realtime/navigation/quota behavior. Add final professional Web visual layer and richer Admin/Root overview/detailed-report presentation from existing bounded APIs only; no new polling/provider monitoring/employee scoring/stock-location metrics. Stable untouched."
+    "D107 Owner-approved 2026-09-22: Web login identity becomes corporate line + Website nghiệp vụ Inventory with exact shared D089 app-icon; remove legacy numeric 1291 login tile/copy. Preserve current business logic/RBAC/realtime/navigation/quota behavior. Add final professional Web visual layer and richer Admin/Root overview/detailed-report presentation from existing bounded APIs only; no new polling/provider monitoring/employee scoring/stock-location metrics. Stable untouched.",
+    "D107 release checkpoint 2026-09-22: professional Web identity/reporting source is merged at main 4e733535ef0abe893681afdf288097767141b115 after full PR authority/state/UI/Web-build/regression PASS. Automated Beta deployment is configured for main web/** pushes. Exact live runtime verification and Owner visual acceptance remain separate gates."
   ],
-  "active_workstream": "D107_PROFESSIONAL_WEB_IDENTITY_AND_REPORTING",
+  "active_workstream": "D107_LIVE_BETA_VISUAL_ACCEPTANCE",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
@@ -649,7 +650,8 @@
     "D104 technical/runtime/release PASS 2026-09-22: PR #142 merged to main e1fa990aefa47ad81b063fc0ca27516c1cace5f8. PR gates PASS: Repo Authority 35687702483, Project State 35687702449, UI Design 35687702531, Relay Agent 35687702508, Firestore Relay 35687702445, RTDB Rules 35687702502. Main PASS: Repo Authority 35687822814, Project State 35687822742, UI Design 35687822767, Relay Agent 35687822763. Release relay-agent-v29 id 393459636 is tagged exactly at main e1fa990aefa47ad81b063fc0ca27516c1cace5f8; canonical EXE asset id 580560440, size 284160 bytes, SHA-256 10304ac734218146550c6bdf3c3b8a81d979fabe5b3ee7dddc94f1b217955b2d. Main Agent artifact id 10676659937 digest sha256:60b42ef7a530c119d7b79e383a5370cc4d1aad2b9891157e681c6484c1b8459a. Android remains beta-vc62 unchanged; Stable untouched. OA024 is now field-ready.",
     "D105 technical/runtime/release PASS 2026-09-22: PR #144 merged to main e73206dea01e4c599d19abe040ffc8662b8836bf. Main PASS: Repo Authority 35694361080, Project State 35694361070, UI Design 35694361168, Beta Android 35694361091, Beta Relay Agent 35694361074, Beta Firestore Relay 35694361133, Beta Worker 35694361089. Android release beta-vc63 id 393494217 points exactly to main e73206dea01e4c599d19abe040ffc8662b8836bf; APK asset id 580723780 size 18998096 bytes SHA-256 add6716668f13e5f96a8b6b9cdfddba27db4270e990a4f3f7d92c373fadd5295. Agent release relay-agent-v30 id 393494208 tag points exactly to the same main commit; canonical EXE asset id 580723753 size 284672 bytes SHA-256 18cf58622cde42d7ae7c58a57615139913caa9c3dbd2718bd2b1348182f765ad. Firestore 4/5-digit rollout rule deploy PASS. Stable untouched.",
     "D106 diagnosis 2026-09-22: Owner Agent v30 log reaches identitytoolkit.googleapis.com and receives HTTP 400 on signInWithPassword; Owner Web support log shows PUT /api/admin/users/password HTTP 200. Source review confirmed managed create persisted InventoryCore before external Firebase provisioning and password update could mark readiness after PBKDF2 import without direct Agent-password proof. D106 source candidate closes both gaps; runtime deploy/field proof pending.",
-    "D106 exact live Beta proof 2026-09-22: test-only PR #147 was closed unmerged after Actions run 35722532394/job 106728495944 PASS. /health attempt 1 returned HTTP 200, status=ok, environment=beta, source_commit=dbcc8af2503b916282788303f9d67d72293a3de0 exact, storage=true, schema=10/10, missing_bindings=0, agent_auth_migration=0/0."
+    "D106 exact live Beta proof 2026-09-22: test-only PR #147 was closed unmerged after Actions run 35722532394/job 106728495944 PASS. /health attempt 1 returned HTTP 200, status=ok, environment=beta, source_commit=dbcc8af2503b916282788303f9d67d72293a3de0 exact, storage=true, schema=10/10, missing_bindings=0, agent_auth_migration=0/0.",
+    "D107 source/PR PASS + main merge 2026-09-22: PR #149 head acdec3bb8e0b8a0793da6127a35952e014f58655. Final PR runs: Repo Authority 35729564644 PASS, Project State 35729564770 PASS, UI Design Guard 35729564681 PASS including Web production build and all regression gates, Beta RTDB Rules 35729564684 PASS, Beta Firestore Relay 35729564631 PASS. PR squash-merged to main 4e733535ef0abe893681afdf288097767141b115. Existing Deploy Beta Worker workflow triggers on main web/** changes, therefore this merge enters automatic Beta deployment; exact push-run observation is unavailable through the current connector and is not represented as runtime PASS. Stable untouched."
   ],
   "last_runtime_evidence": {
     "signed_beta_release": "beta-vc59",

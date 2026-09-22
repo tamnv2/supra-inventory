@@ -506,3 +506,12 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
 - UI guard: `D107_PR_GATES_PENDING`.
 - Scope is Beta Web source/presentation and existing-data reporting only; no new backend/provider polling or datastore.
 - Android and Agent remain unchanged. Stable remains OWNER-GATED and untouched.
+
+## D107 merged-source readiness — 2026-09-22
+
+- Web: `D107_PR_GATES_PASS__MERGED_MAIN_4E733535__BETA_AUTODEPLOY_TRIGGERED__OWNER_VISUAL_REVIEW_PENDING`.
+- Admin dashboard/reporting: `D107_RICHER_EXISTING_DATA_MERGED_MAIN__OWNER_VISUAL_REVIEW_PENDING__FINAL_STABLE_COLUMNS_OWNER_OPEN`.
+- UI Design Guard: `D107_PR_UI_PASS_RUN_35729564681__MAIN_MERGED`.
+- PR #149 authority/state/UI/Web-build/regression gates passed and main is `4e733535ef0abe893681afdf288097767141b115`.
+- `Deploy Beta Worker` is configured for `main` changes under `web/**`; the D107 merge satisfies that trigger. Exact main push-run runtime evidence is not exposed by the connected GitHub action surface, so readiness remains Owner-review-pending rather than being mislabeled runtime PASS.
+- Stable remains OWNER-GATED and untouched.
