@@ -52,6 +52,9 @@ namespace SupraInventoryRelayAgent
         private long _lastPresenceWriteMs;
         private long _lastPresenceReadMs;
         private volatile int _onlineAgentCount;
+        private volatile int _onlinePrimaryCount;
+        private volatile int _onlineStandbyCount;
+        private volatile int _onlineFrozenCount;
         private volatile bool _coordinationHealthy;
         private volatile bool _relayPollHealthy;
         private volatile bool _refreshBeforeBusiness;
@@ -80,6 +83,9 @@ namespace SupraInventoryRelayAgent
         internal bool CanPollBusiness { get { return _wmsReady() && (_role == FirestoreAgentRole.PRIMARY || _role == FirestoreAgentRole.STANDBY); } }
         internal bool IsTransportHealthy { get { return _coordinationHealthy && (!_relayPollHealthy ? _role == FirestoreAgentRole.FROZEN : true); } }
         internal int OnlineAgentCount { get { return Math.Max(0, _onlineAgentCount); } }
+        internal int OnlinePrimaryCount { get { return Math.Max(0, _onlinePrimaryCount); } }
+        internal int OnlineStandbyCount { get { return Math.Max(0, _onlineStandbyCount); } }
+        internal int OnlineFrozenCount { get { return Math.Max(0, _onlineFrozenCount); } }
 
         internal string CurrentLeaderId
         {
@@ -223,12 +229,11 @@ namespace SupraInventoryRelayAgent
                 {
                     _ensureFreshToken();
                     var session = _sessionProvider();
-                    MaintainPresence(session);
                     RefreshRole(session);
-                    if ((_role == FirestoreAgentRole.PRIMARY || _role == FirestoreAgentRole.STANDBY) &&
-                        (_lastPresenceReadMs == 0 || NowMs() - _lastPresenceReadMs >= PresenceReadIntervalMs))
+                    MaintainPresence(session);
+                    if (_lastPresenceReadMs == 0 || NowMs() - _lastPresenceReadMs >= PresenceReadIntervalMs)
                     {
-                        _onlineAgentCount = ReadOnlineAgentCount(session, NowMs());
+                        ReadOnlineAgentCounts(session, NowMs());
                         _lastPresenceReadMs = NowMs();
                     }
 
@@ -457,15 +462,22 @@ namespace SupraInventoryRelayAgent
             _lastPresenceWriteMs = now;
         }
 
-        private int ReadOnlineAgentCount(AgentSession session, long now)
+        private void ReadOnlineAgentCounts(AgentSession session, long now)
         {
             var raw = SendJson("GET", PresenceCollectionUrl(), session.IdToken, null, "", 7000, true, "PRESENCE_READ");
             var root = _json.DeserializeObject(raw) as Dictionary<string, object>;
             object docsObj;
             var docs = root != null && root.TryGetValue("documents", out docsObj) ? docsObj as IEnumerable : null;
-            if (docs == null) return 0;
+            if (docs == null)
+            {
+                _onlineAgentCount = 0;
+                _onlinePrimaryCount = 0;
+                _onlineStandbyCount = 0;
+                _onlineFrozenCount = 0;
+                return;
+            }
 
-            var count = 0;
+            var freshIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (var item in docs)
             {
                 var doc = item as Dictionary<string, object>;
@@ -475,9 +487,25 @@ namespace SupraInventoryRelayAgent
                 if (fields == null) continue;
                 var heartbeat = FieldLong(fields, "heartbeat_at_ms");
                 var age = now - heartbeat;
-                if (heartbeat > 0 && age >= -60000 && age <= PresenceFreshMs) count++;
+                var agentId = FieldString(fields, "agent_instance_id");
+                if (heartbeat > 0 && age >= -60000 && age <= PresenceFreshMs && !string.IsNullOrWhiteSpace(agentId))
+                    freshIds.Add(agentId);
             }
-            return Math.Max(0, count);
+
+            string primary;
+            string standby;
+            lock (_stateGate)
+            {
+                primary = _primaryId ?? "";
+                standby = _standbyId ?? "";
+            }
+
+            var primaryCount = !string.IsNullOrWhiteSpace(primary) && freshIds.Contains(primary) ? 1 : 0;
+            var standbyCount = !string.IsNullOrWhiteSpace(standby) && freshIds.Contains(standby) ? 1 : 0;
+            _onlineAgentCount = freshIds.Count;
+            _onlinePrimaryCount = primaryCount;
+            _onlineStandbyCount = standbyCount;
+            _onlineFrozenCount = Math.Max(0, freshIds.Count - primaryCount - standbyCount);
         }
 
         private sealed class RoleRead
@@ -621,7 +649,11 @@ namespace SupraInventoryRelayAgent
                 _role = role;
                 _primaryId = primaryId ?? "";
                 _standbyId = standbyId ?? "";
-                if (changed) _relayPollHealthy = false;
+                if (changed)
+                {
+                    _relayPollHealthy = false;
+                    _lastPresenceWriteMs = 0;
+                }
             }
             if (!changed) return;
 
