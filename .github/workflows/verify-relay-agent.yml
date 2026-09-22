@@ -74,14 +74,14 @@ jobs:
           $firestoreRules = Get-Content firebase/firestore.rules -Raw
           $firestoreIndexes = Get-Content firebase/firestore.indexes.json -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*25\s*;') { throw "D100 requires Agent v25." }
+          if ($config -notmatch 'AgentBuild\s*=\s*26\s*;') { throw "D101 requires Agent v26." }
           if ($firestoreLeader -notmatch 'FailoverAfterMs\s*=\s*10000' -or $firestoreLeader -notmatch 'StandbyTakeoverAgeMs\s*=\s*10000') { throw "D097 request-driven 10-second failover guard failed." }
           if ($firestoreLeader -match 'HeartbeatIntervalMs\s*=\s*4000') { throw "D097 forbids 4-second Firestore lease heartbeat." }
           foreach ($marker in @('PRIMARY','STANDBY','FROZEN','PromoteStandbyForTakeover','replacement-standby','PresenceHeartbeatIntervalMs = 3600000','FrozenRoleRefreshMs = 900000')) {
             if ($firestoreLeader -notmatch [regex]::Escape($marker)) { throw "D097 Agent role marker missing: $marker" }
           }
           if ($firestoreLeader -notmatch 'currentDocument\.updateTime' -or $firestoreLeader -notmatch 'currentDocument\.exists=false') { throw "D097 role election must use conditional writes." }
-          if ($cache -notmatch 'FreshMissGuardSeconds\s*=\s*10' -or $cache -notmatch 'JOIN_INFLIGHT' -or $cache -notmatch 'LoadSnapshot') { throw "D085 Picklist cache/single-flight guard failed." }
+          if ($cache -notmatch 'CACHE_MISS_REFRESH' -or $cache -notmatch 'MANUAL_MISS_REFRESH' -or $cache -notmatch 'JOIN_INFLIGHT' -or $cache -notmatch 'LoadSnapshot') { throw "D101 Picklist cache miss must refresh WMS before final NOT_FOUND." }
           if ($firestoreRate -notmatch 'StrikeWindowMs\s*=\s*60L\s*\*\s*1000L' -or $firestoreRate -notmatch 'ResetEscalationAfterMs\s*=\s*24L') { throw "D092 Firestore anti-spam timing guard failed." }
           if ($firestoreRate -notmatch 'return 5;' -or $firestoreRate -notmatch 'return 30;' -or $firestoreRate -notmatch 'return 60;') { throw "D092 5/30/60 lock escalation guard failed." }
           if ($startup -notmatch 'Registry\.CurrentUser' -or $startup -notmatch 'CurrentVersion\\Run' -or $startup -notmatch 'admin_required=false') { throw "D085 per-user autostart guard failed." }
@@ -92,7 +92,7 @@ jobs:
           if ($runtimeGuard -notmatch '--watchdog' -or $runtimeGuard -notmatch 'WaitForExit' -or $runtimeGuard -notmatch '--watchdog-restart') { throw "D086 runtime watchdog guard failed." }
           if ($overlay -notmatch 'WsExTransparent' -or $overlay -notmatch 'SetExtendedStyle' -or $overlay -notmatch 'WmNcHitTest') { throw "D086 locked overlay must use true cross-process click-through." }
           if ($overlay -notmatch '_settings != null' -or $overlay -notmatch 'UpdateMetrics') { throw "D087 overlay null-safe/two-layer guard failed." }
-          if ($program -notmatch 'WriteAudit' -or $program -notmatch 'pda-agent-audit-' -or $program -notmatch 'technical-ai-' -or $program -notmatch 'picklist_last5') { throw "D087 split sanitized logging guard failed." }
+          if ($program -notmatch 'WriteAudit' -or $program -notmatch 'pda-agent-audit\.log' -or $program -notmatch 'technical-ai\.log' -or $program -notmatch 'MaxLogBytes' -or $program -notmatch 'picklist_last5') { throw "D101 bounded split sanitized logging guard failed." }
           if ($program -notmatch 'FormBorderStyle\.None' -or $program -notmatch 'MinimizeToTray' -or $program -notmatch 'ShowInTaskbar\s*=\s*false') { throw "D088 tray-only minimize guard failed." }
           if ($program -notmatch 'MainInstanceMutexName' -or $program -notmatch 'EventWaitHandle\.OpenExisting' -or $program -notmatch 'ListenForSecondLaunch') { throw "D089 single-instance activation guard failed." }
           if ($program -notmatch 'identitytoolkit\.googleapis\.com/v1/accounts:signInWithPassword' -or $program -notmatch 'Chỉ tài khoản ADMIN thực đã đồng bộ Firebase' -or $program -notmatch 'FirestoreAgentSessionGate' -or $config -notmatch 'Agent\.Auto\.Confirm\.Pick\.Pack\.exe') { throw "D098 direct Firebase ADMIN Agent identity/channel guard failed." }
@@ -112,7 +112,7 @@ jobs:
           if ($firestoreLeader -notmatch 'IsTransportHealthy' -or $firestoreLeader -notmatch 'ReportRelayPoll' -or $firestoreLeader -notmatch 'role_preserved=true' -or $firestoreLeader -notmatch 'EnsureRoleCurrentBeforeBusiness') { throw "D097 Firestore transport outage must preserve role and revalidate before new work." }
           if ($firestoreLeader -match 'OnlineAgentCount\s*\{\s*get\s*\{\s*return\s+Math\.Max\(1') { throw "D093 forbids forced Online >= 1." }
           if ($program -notmatch 'FIRESTORE OFFLINE') { throw "D093 Agent must surface Firestore offline state." }
-          if ($program -notmatch 'Đăng xuất' -or $program -notmatch 'SetAgentAuthUi' -or $program -notmatch 'Xác minh Agent:' -or $program -notmatch 'stored_session=cleared') { throw "D094 Agent login dim/logout/overview status guard failed." }
+          if ($program -notmatch 'Đăng xuất' -or $program -notmatch 'Xác nhận đăng xuất Agent' -or $program -notmatch 'SetAgentAuthUi' -or $program -notmatch 'Hệ thống Agent:' -or $program -notmatch 'stored_session=cleared') { throw "D101 Agent login/logout/system-status guard failed." }
           if ($program -notmatch '"login_name"' -or $program -notmatch 'DataProtectionScope\.CurrentUser') { throw "D094 saved Agent identity/session DPAPI guard failed." }
           if ($firestoreTransport -notmatch 'documentsBaseUrl \+ ":runQuery"' -and $firestoreTransport -notmatch 'FirestoreDocumentsBaseUrl \+ ":runQuery"') { throw "D095 pending structured query endpoint guard failed." }
           foreach ($marker in @('structuredQuery','PENDING','ANDROID_CONFIRM_V1','LIST_FALLBACK','FIRESTORE CONFIRM poll=PASS','pending-found','as IEnumerable')) {
@@ -139,6 +139,14 @@ jobs:
           if ($confirmGuard -notmatch 'relay_poc_confirm_guards' -or $confirmGuard -notmatch 'currentDocument\.exists=false' -or $confirmGuard -notmatch 'OriginalJobProvesConfirmed' -or $confirmGuard -notmatch 'MarkLocalConfirmed') { throw "D097 single-write cross-Agent idempotency guard failed." }
           if ($confirmGuard -match 'MarkConfirmed\(') { throw "D097 forbids second Firestore guard-confirm write." }
           if ($program -notmatch 'SearchManualPicklists' -or $program -notmatch 'ConfirmManualPicklist' -or $cache -notmatch 'SearchContains' -or $lookup -notmatch 'PickListCodes') { throw "D098 specialist 3-5 digit manual PickList workflow guard failed." }
+          if ($program -notmatch 'DataGridViewButtonColumn' -or $program -notmatch 'Mỗi PickList có nút Xác nhận cùng dòng' -or $program -notmatch 'ConfirmManualPicklist\(code\)') { throw "D101 row-level PickList confirm UI guard failed." }
+          if ($program -match 'new TabPage\("Cài đặt"\)' -or $program -notmatch 'new TabPage\("Hệ thống Agent"\)' -or $program -notmatch 'new TabPage\("Hệ thống Supra"\)' -or $program -notmatch 'new TabPage\("Xử lý PickList"\)') { throw "D101 flat Agent tab architecture guard failed." }
+          if ($program -notmatch '30 \* 60 \* 1000' -or $program -notmatch 'TryAutoUpdate\(false\)') { throw "D101 running Agent background GitHub update guard failed." }
+          if ($program -notmatch 'SecretPattern.*\\b' -or $program -notmatch 'Wi-Fi: ' -or $program -notmatch 'GetSsid\(\)') { throw "D101 real Wi-Fi SSID display/redaction guard failed." }
+          if ($firestoreLeader -notmatch 'OnlinePrimaryCount' -or $firestoreLeader -notmatch 'OnlineStandbyCount' -or $firestoreLeader -notmatch 'OnlineFrozenCount' -or $program -notmatch 'PRIMARY ' -or $program -notmatch 'FROZEN ') { throw "D101 quota-safe Agent fleet count guard failed." }
+          $logBridge = Get-Content relay-agent/AgentLogUploadBridge.cs -Raw
+          if ($logBridge -notmatch 'relay_agent_log_uploads' -or $logBridge -notmatch 'ResolveLatestSlot' -or $logBridge -notmatch 'crash_' -or $logBridge -notmatch 'MaxChunkChars') { throw "D101 Agent scheduled/crash log spool guard failed." }
+          if ($firestoreRules -notmatch 'relay_agent_log_uploads' -or $firestoreRules -notmatch "request.resource.data.source == 'AGENT'") { throw "D101 Agent log spool Firestore Rules guard failed." }
           if ($program -notmatch 'MarkLocalConfirmed' -or $confirmGuard -match 'MarkDurableConfirmed' -or $confirmGuard -match 'status", StringField\("CONFIRMED"\)') { throw "D098 manual-origin must preserve one-write guard and fail closed after restart." }
           if ($program -match 'Mô hình hiện tại' -or $program -match 'new TabPage\("Đăng nhập ADMIN"\)') { throw "D098 Agent UI must remove model card and ADMIN settings tab." }
           if ($program -notmatch 'Nhật ký vận hành' -or $program -notmatch 'Chẩn đoán kỹ thuật' -or $overlaySettings -notmatch 'PrepareEmbedded') { throw "D098 direct settings/log-tab layout guard failed." }
