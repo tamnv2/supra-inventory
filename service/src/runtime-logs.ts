@@ -244,6 +244,78 @@ export async function uploadRuntimeLog(
   };
 }
 
+export async function uploadAgentRuntimeLogText(
+  env: RuntimeLogsEnv,
+  filenameValue: string,
+  contentValue: string,
+): Promise<Record<string, unknown>> {
+  if (!env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID)) throw new Error("LOGS_FOLDER_NOT_CONFIGURED");
+  const filename = String(filenameValue || "")
+    .replace(/[^A-Za-z0-9._-]+/g, "-")
+    .slice(0, 140);
+  if (!filename || (!filename.startsWith("agent_") && !filename.startsWith("crash_agent_"))) {
+    throw new Error("INVALID_AGENT_LOG_FILENAME");
+  }
+
+  let content = String(contentValue || "");
+  if (content.length > 8_000_000) content = content.slice(content.length - 8_000_000);
+  content = content
+    .replace(/-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?-----END [^-]*PRIVATE KEY-----/gi, "[REDACTED_PRIVATE_KEY]")
+    .replace(/Bearer\s+[A-Za-z0-9._~+\/-]{16,}/gi, "Bearer [REDACTED]")
+    .replace(/eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}/g, "[REDACTED_JWT]");
+
+  const token = await refreshGoogleAccessToken(env);
+  const duplicateParams = new URLSearchParams({
+    q: `'${env.LOGS_FOLDER_ID}' in parents and trashed = false and name = '${filename.replaceAll("'", "\\'")}'`,
+    orderBy: "createdTime desc",
+    pageSize: "1",
+    spaces: "drive",
+    fields: "files(id,name,createdTime,size)",
+  });
+  const duplicateResponse = await fetch(`https://www.googleapis.com/drive/v3/files?${duplicateParams.toString()}`, {
+    headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+  });
+  if (duplicateResponse.ok) {
+    const duplicatePayload = (await duplicateResponse.json()) as { files?: Array<Record<string, unknown>> };
+    const existing = duplicatePayload.files?.[0];
+    if (existing) return { status: "already_uploaded", file: existing };
+  }
+
+  const boundary = `supra_agent_log_${crypto.randomUUID().replaceAll("-", "")}`;
+  const metadata = JSON.stringify({
+    name: filename,
+    parents: [env.LOGS_FOLDER_ID],
+    mimeType: "text/plain",
+    appProperties: { project: "supra-inventory", source: "AGENT", severity: filename.startsWith("crash_") ? "ERROR" : "INFO" },
+  });
+  const multipart = [
+    `--${boundary}`,
+    "Content-Type: application/json; charset=UTF-8",
+    "",
+    metadata,
+    `--${boundary}`,
+    "Content-Type: text/plain; charset=UTF-8",
+    "",
+    content,
+    `--${boundary}--`,
+    "",
+  ].join("\r\n");
+  const response = await fetch(
+    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,createdTime,modifiedTime,size",
+    {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`,
+        "content-type": `multipart/related; boundary=${boundary}`,
+      },
+      body: multipart,
+    },
+  );
+  const payload = (await response.json()) as Record<string, unknown>;
+  if (!response.ok) throw new Error(`AGENT_LOGS_DRIVE_UPLOAD_FAILED:${response.status}`);
+  return { status: "uploaded", file: payload };
+}
+
 export async function listRuntimeLogs(
   env: RuntimeLogsEnv,
   sourceValue: string,

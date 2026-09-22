@@ -1420,12 +1420,12 @@ function renderDashboard(): string {
       <article class="business-summary-card primary"><span>SKU đang chờ xử lý</span><strong>${pending}</strong><small>${Number(k?.pending_picker_count || 0)} Picker đang bị ảnh hưởng</small></article>
       <article class="business-summary-card warning"><span>Sắp quá thời gian</span><strong>${warningCount}</strong><small>Cần ưu tiên kiểm tra</small></article>
       <article class="business-summary-card danger"><span>Đã quá thời gian</span><strong>${overdueCount}</strong><small>Cần xử lý ngay</small></article>
-      <article class="business-summary-card good"><span>Người đang online</span><strong>${onlineTotal}</strong><small>Đang đăng nhập và kết nối bình thường</small></article>
+      <article class="business-summary-card good"><span>Người đang online</span><strong>${onlineTotal}</strong><small>Chỉ Web + PDA; không tính Agent</small></article>
     </section>
 
     <div class="report-layout-two">
       <article class="ops-panel presence-panel">
-        <div class="ops-panel-title"><div><h3>Người đang online theo quyền</h3><p>Một tài khoản được tính một lần dù mở nhiều phiên cùng quyền.</p></div></div>
+        <div class="ops-panel-title"><div><h3>Người đang online theo quyền</h3><p>Chỉ Web + PDA; Agent không được tính. Một tài khoản được tính một lần dù mở nhiều phiên cùng quyền.</p></div></div>
         <div class="presence-grid">
           <div><span>Người lấy hàng</span><strong>${Number(roleOnline.PICKER || 0)}</strong></div>
           <div><span>Người xử lý báo hàng</span><strong>${Number(roleOnline.REPORTER || 0)}</strong></div>
@@ -1631,7 +1631,7 @@ function renderSystem(): string {
     <section class="business-summary-grid business-summary-grid-4">
       <article class="business-summary-card ${overallOk ? "good" : "danger"}"><span>Hệ thống nghiệp vụ</span><strong>${overallOk ? "Hoạt động" : "Cần kiểm tra"}</strong><small>Dịch vụ chính</small></article>
       <article class="business-summary-card primary"><span>Dữ liệu đang dùng</span><strong>${fmtBytes(dbSize)}</strong><small>${doLimit ? `${(usagePercent(dbSize, doLimit) || 0).toFixed(3)}% giới hạn vùng dữ liệu` : "Đang đo dung lượng"}</small></article>
-      <article class="business-summary-card good"><span>Người đang online</span><strong>${systemNum(realtime.online_users)}</strong><small>${systemNum(realtime.online_sessions)} phiên đang kết nối</small></article>
+      <article class="business-summary-card good"><span>Người đang online</span><strong>${systemNum(realtime.online_users)}</strong><small>${systemNum(realtime.online_sessions)} phiên Web/PDA · không tính Agent</small></article>
       <article class="business-summary-card"><span>Google Drive</span><strong>${driveUsed == null ? "—" : fmtBytes(driveUsed)}</strong><small>${driveLimit ? `Giới hạn ${fmtBytes(driveLimit)}` : "Chưa đọc được giới hạn"}</small></article>
     </section>
 

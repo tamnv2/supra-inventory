@@ -381,3 +381,16 @@ Status: **OWNER FIELD PASS**.
 - The exact regression protections remain in source: immediate post-reset Operational V2 structural rebootstrap, routed `/operational/init` self-repair, corrected managed-account email validation, and terminal SKU-import error progress.
 - OA020 is closed PASS on Beta. Stable remains OWNER-GATED and untouched.
 
+## D101 Agent v26 source candidate — 2026-09-22
+
+Status: **SOURCE / PR GATE IN PROGRESS — NOT RELEASED**.
+
+- Beta: `D101_AGENT_V26_SOURCE_CANDIDATE__D100_POST_RESET_OWNER_PASS`.
+- Web: `D101_WEB_ONLINE_WEB_ANDROID_ONLY_SOURCE_CANDIDATE__D100_RUNTIME_BASELINE`.
+- Android: `D099_SIGNED_BETA_VC62_LOGIN_REPAIR__D100_NO_ANDROID_RUNTIME_CHANGE`.
+- Latest signed Beta APK: `beta-vc62`.
+- SQLite schema: `10`.
+- Agent target: `relay-agent-v26`; current released baseline remains v25 until D101 main/release gates PASS.
+- D101 keeps D096 confirmation semantics and D097 request-driven PRIMARY/STANDBY/FROZEN HA, adds cache-miss refresh-before-NOT_FOUND, bounded background update checks, inline PickList confirm, low-frequency fleet visibility and bounded Agent log delivery.
+- Stable remains OWNER-GATED and untouched.
+

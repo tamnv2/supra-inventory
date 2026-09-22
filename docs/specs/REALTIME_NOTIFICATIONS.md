@@ -342,3 +342,10 @@ For Picker `Xác nhận đơn` only:
 - Inventory's design maximum must project to no more than **35% of each included Workers Paid $5 metric** (Worker requests/CPU, Durable Object requests/duration/SQLite rows/storage as applicable). A metric above 35% fails D098 quota acceptance even when other metrics are lower.
 - Hibernation and event-driven delivery are required to preserve the budget. Normal runtime must not add system/provider polling solely for monitoring.
 - This Cloudflare budget is independent from the later Firestore PRIMARY/STANDBY quota optimization workstream.
+
+## D101 — Agent HA visibility and quota-safe counts
+
+- D097 HA remains request-driven: PRIMARY handles immediately, STANDBY becomes eligible to take over only when a pending confirmation request is at least 10 seconds old, and FROZEN does not poll business jobs.
+- Lack of PDA work does not trigger a high-frequency liveness heartbeat merely to rotate PRIMARY. The UI must explain this so a STANDBY/FROZEN observation is not mistaken for a missing business path.
+- Agent fleet counts are derived from the existing bounded Firestore presence data and refreshed at low frequency. D101 must not introduce fast global Agent polling.
+- Web realtime presence continues to count only interactive `WEB` and `ANDROID` clients. Agent sessions are a separate Firebase/Firestore channel and must not contribute to Web `Người đang online` totals.

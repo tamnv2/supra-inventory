@@ -60,7 +60,8 @@ jobs:
             'relay_poc_rate_limits',
             'relay_poc_coordination',
             'relay_poc_agents',
-            'relay_poc_confirm_guards'
+            'relay_poc_confirm_guards',
+            'relay_agent_log_uploads'
           ]) {
             if (!rules.includes(marker)) throw new Error('Missing D097 Firestore Rules marker: ' + marker);
           }

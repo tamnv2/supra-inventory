@@ -15,6 +15,7 @@ import { handleUserManagementApi } from "./user-management-api";
 import { archiveStatus, runArchive } from "./archive";
 import { validateHrSheetSource } from "./hr-source";
 import { listRuntimeLogs, readRuntimeLog, uploadRuntimeLog } from "./runtime-logs";
+import { drainAgentLogUploads } from "./agent-log-drain";
 import { collectSystemStatus } from "./system-status";
 import { handleSystemResetApi } from "./system-reset";
 import { sendProjectEmail } from "./google-mail";
@@ -961,7 +962,7 @@ export default {
           },
           realtime_foreground: "websocket_sequence_delta_on_inventory_core",
           background_notifications: "firebase_cloud_messaging",
-          runtime_logs: { drive: Boolean(env.LOGS_FOLDER_ID), sources: ["WEB", "ANDROID"], schedule: ["06:00", "12:00", "18:00", "24:00"], error_upload: "immediate_best_effort" },
+          runtime_logs: { drive: Boolean(env.LOGS_FOLDER_ID), sources: ["WEB", "ANDROID", "AGENT"], schedule: ["06:00", "12:00", "18:00", "24:00"], error_upload: "immediate_best_effort", agent_bridge: "firestore_spool_to_drive_5m" },
           hr_source_setup: { mode: "web_admin_input", required_input: ["google_sheet_url", "tab_name"], validation: ["valid_google_sheet_link", "exact_tab_name", "configured_employee_code_column", "configured_full_name_column"], public_setup_endpoint: false },
           root_password_initialized: Boolean(core.root_password_initialized), stable_release: "owner_gated",
         });
@@ -1124,7 +1125,14 @@ export default {
       return json({ error: "internal_error" }, 500);
     }
   },
-  async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-    ctx.waitUntil(runArchive(env).then(() => undefined).catch((error) => console.error("archive_scheduled_failed", error instanceof Error ? error.message : "unknown")));
+  async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    if (controller.cron === "15 20 * * *") {
+      ctx.waitUntil(runArchive(env).then(() => undefined).catch((error) =>
+        console.error("archive_scheduled_failed", error instanceof Error ? error.message : "unknown")));
+    }
+    if (controller.cron === "*/5 * * * *") {
+      ctx.waitUntil(drainAgentLogUploads(env).then(() => undefined).catch((error) =>
+        console.error("agent_log_drain_failed", error instanceof Error ? error.message : "unknown")));
+    }
   },
 } satisfies ExportedHandler<Env>;

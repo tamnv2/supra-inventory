@@ -381,3 +381,10 @@ D097 supersedes the D085/D092 heartbeat wording for the Firestore confirmation c
 - The authorized WMS endpoint, exact resolver, Status=true success rule, anti-spam business thresholds and fail-closed uncertain behavior remain unchanged.
 - Báo hàng remains completely independent on Worker/InventoryCore.
 - Stable remains untouched.
+
+## D101 — Specialist PickList search cache semantics
+
+- For PDA five-digit confirmation lookup and Agent specialist 3–5 digit search, a cache HIT may return immediately.
+- A cache MISS is provisional. Before the system may return final `NOT_FOUND`, exactly one WMS snapshot refresh must be attempted through the existing single-flight coordinator, then the query is evaluated against the refreshed snapshot.
+- Only final post-refresh `NOT_FOUND` may feed wrong-input/strike handling. WMS/session/network/permission/refresh uncertainty is not a wrong PickList input.
+- Manual specialist search still requires explicit full PickListCode selection and uses the existing one-write confirmation guard; it never ACKs an Android job.

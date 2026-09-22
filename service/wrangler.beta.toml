@@ -46,4 +46,4 @@ enabled = true
 enabled = true
 
 [triggers]
-crons = ["15 20 * * *"]
+crons = ["*/5 * * * *", "15 20 * * *"]

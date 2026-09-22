@@ -282,3 +282,11 @@ System Reset is a deliberate ROOT-only data-zeroing operation, not normal retent
 - Structural metadata (for example `realtime_stream_epoch_v1`) is excluded from the user-facing resettable configuration count.
 - After a successful reset, business APIs, realtime ticket issuance, account recreation and SKU import must work without a redeploy or manual restart.
 
+## D101 — Agent rolling logs and Beta Drive delivery
+
+- Local Agent diagnostics use two rolling streams: technical and PDA-Agent audit. Each current file rotates at approximately 2 MiB and retains at most four rotated predecessors plus the current file.
+- Restarting the Agent does not create a new log file solely because a new process started.
+- Scheduled sanitized Agent bundles target 06:00, 12:00, 18:00 and 00:00 Asia/Ho_Chi_Minh time.
+- Agent never stores Google OAuth credentials. It writes bounded temporary chunks to Beta Firestore collection `relay_agent_log_uploads` using the authenticated real-ADMIN Firebase session. The Beta Worker drains complete bundles into `Inventory/Beta/Logs` using the existing Drive OAuth secret, then deletes the Firestore chunks after successful Drive upload.
+- Crash/FATAL uses the same channel immediately on a best-effort basis. If no valid Agent auth is available, a local pending crash marker is retained and retried later. Crash filenames start with `crash_`.
+- Agent log spool is temporary support state, not business authority, and is included in Confirmation Relay reset scope. Stable is untouched.

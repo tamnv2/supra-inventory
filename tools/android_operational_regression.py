@@ -164,7 +164,7 @@ def main() -> None:
     require(service_index, "app_base_role: user.base_role", "D075 immutable base-role Firebase custom claim")
     require(relay_rules, "auth.token.app_base_role == 'ADMIN'", "D075 real ADMIN RTDB rule")
     require(relay_rules, "newData.child('agent_admin_user_id').val() == auth.token.app_user_id", "D075 ADMIN ACK rule binding")
-    require(relay_agent_config, "AgentBuild = 25", "D100 Agent build channel")
+    require(relay_agent_config, "AgentBuild = 26", "D101 Agent build channel")
     require(relay_agent, "var statusCode = (int)response.StatusCode", "D077 capture HTTP status before dispose")
     require(relay_agent, "ProbeAllTransports", "D078 Test all transport probe")
     require(relay_agent, "AgentConfig.FirestoreProbeUrl", "D078 Firestore probe")
@@ -296,7 +296,11 @@ def main() -> None:
     require(agent_leader, "HeartbeatIntervalMs = 3000", "D085 Agent heartbeat")
     require(agent_leader, "FailoverAfterMs = 10000", "D085 Agent failover threshold")
     require(agent_leader, "HttpRequestHeader.IfMatch", "D085 conditional leader election")
-    require(picklist_cache, "FreshMissGuardSeconds = 10", "D085 fresh cache miss guard")
+    # D101 supersedes D085 fresh-miss suppression: every cache miss refreshes WMS once
+    # before a final NOT_FOUND, while preserving single-flight refresh joining.
+    require(picklist_cache, '"CACHE_MISS_REFRESH"', "D101 PDA cache miss refresh")
+    require(picklist_cache, '"MANUAL_MISS_REFRESH"', "D101 specialist cache miss refresh")
+    require(picklist_cache, "RefreshAndResolve(session, suffix", "D101 refresh-before-NOT_FOUND path")
     require(picklist_cache, '"JOIN_INFLIGHT"', "D085 single-flight cache refresh")
     require(picker_rate, "StrikeWindowMs = 60L * 1000L", "D085 strike window")
     require(picker_rate, "ResetEscalationAfterMs = 24L * 60L * 60L * 1000L", "D085 escalation reset")
