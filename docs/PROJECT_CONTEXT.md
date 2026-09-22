@@ -361,3 +361,16 @@ D102 Agent v27 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta.
 - The v27 tag points exactly to merge commit `637d7509bcc66f4b57aba4bf4a415cb05c30903d`. Android remains signed `beta-vc62`.
 - OA022 is the remaining physical Owner field gate for real multi-Agent convergence/fleet agreement, manual/background updater behavior, and real 21:30/22:00/05:00 Windows operation.
 - Stable remains OWNER-GATED and untouched.
+
+## D103 Agent v28 dense Overview correction — 2026-09-22
+
+Owner field review of v27 found the business logic acceptable but the Overview too tall and text-heavy. D103 is a Beta-only Agent presentation correction.
+
+- Agent opens/restores maximized.
+- Tổng quan no longer scrolls as a whole. Agent and Supra are bounded sections; PickList is fixed into the remaining lower viewport.
+- Agent fleet viewport is exactly sized for up to five visible rows and uses an internal vertical scrollbar for additional Agents.
+- Every manual PickList result retains an inline row-specific Xác nhận button.
+- Verbose Agent/Firestore/update/WMS implementation guidance is removed from the visible Overview; compact operational state remains.
+- D102 HA/night scheduling and D096/D097 WMS confirmation semantics are unchanged.
+- Target is relay-agent-v28; Android remains beta-vc62; Stable remains OWNER-GATED.
+
