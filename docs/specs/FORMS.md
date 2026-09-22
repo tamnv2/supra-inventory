@@ -484,3 +484,12 @@ D103 supersedes D102 layout dimensions where they conflict.
 - **Xác nhận tất cả** is hidden for 0–1 result row and visible for >=2 rows. Its label may include the displayed count and it targets all currently displayed rows.
 - During a manual confirm-all operation, search/grid/bulk controls are disabled until the bounded operation completes; concise aggregate success/error/uncertain counts are then shown.
 
+## D105 — Picker confirmation visual state and input length
+
+- `etRelayPicklistSuffix` is numeric and maxLength=4. Hint/instructions refer to `4 số cuối Picklist`.
+- Submit is enabled only when exactly four digits are present, the Picker is not locked and no request is currently in flight.
+- While awaiting a result, the submit button is disabled and visually dimmed (reduced alpha).
+- Progress/helper copy remains compact. A terminal result is rendered at a materially larger text size and bold weight so it is clearly distinguishable from progress text.
+- Confirmed success uses success emphasis; non-success terminal states use error emphasis. Lock messaging remains prominent and still opens the existing warning dialog where applicable.
+- Agent specialist manual input accepts 3–4 digits per comma-separated term, maximum 10 unique terms.
+
