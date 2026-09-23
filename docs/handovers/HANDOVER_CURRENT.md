@@ -580,3 +580,15 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
 - Android compacts the header, places A−/A+ together, uses stationary bottom operation tabs and time-only shortage-history labels.
 - Next action: complete authority/state/UI/Web/Service/Android PR gates → merge only after PASS → verify exact Beta schema 11 runtime + next signed Beta APK → OA029 Owner field review.
 - Stable remains OWNER-GATED and untouched.
+
+## D109 runtime/release checkpoint — 2026-09-23
+
+- Beta: `D109_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_367D518D__SCHEMA11__SIGNED_BETA_VC65__OA029_FIELD_READY`.
+- Web: `D109_BETA_RUNTIME_PASS__PER_USER_DASHBOARD_GLOBAL_SLA_AUDIT_PDA_TOOLS__OA029_FIELD_READY`.
+- Android: `D109_SIGNED_BETA_VC65__COMPACT_HEADER_BOTTOM_TABS_TIME_ONLY__OA029_FIELD_READY`.
+- SQLite runtime/source: `11/11`; latest signed Beta APK: `beta-vc65`.
+- PR #154 merged at `367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94` after all PR authority/state/UI/Android/Firestore/RTDB gates passed.
+- Main Deploy Beta Worker run `35809583618` passed. Live health attempt 1: HTTP 200, exact source `367d518d...`, storage true, schema 11/11, missing bindings 0, Agent migration 0/0, Operational V2 5/5.
+- Main UI run `35809583663`, Repo Authority `35809583637`, Project State `35809583624` and Android run `35809583599` passed.
+- Signed `beta-vc65` release id `394246239`; APK asset id `582752309`, size `19015996`, sha256 `3e2b5284ac2ed5d3040c36338a5bdb21026958eda7e4d4a12b40ea9bf6c0ea48`.
+- OA029 is ready for Owner field review. Stable remains OWNER-GATED and untouched.
