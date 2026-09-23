@@ -65,6 +65,7 @@ function response(payload: unknown, status = 200): Response {
 export class InventoryCore {
   private readonly state: DurableObjectState;
   private readonly env: CoreEnv;
+  private nextAuditRetentionSweepAt = 0;
 
   constructor(state: DurableObjectState, env: CoreEnv) {
     this.state = state;
@@ -427,6 +428,7 @@ export class InventoryCore {
   }
 
   async alarm(): Promise<void> {
+    this.pruneAuditRetentionIfDue();
     // Authoritative state transitions and the next alarm schedule must not depend
     // on downstream realtime/FCM availability. Delivery is best-effort after the
     // committed transition, matching the notification contract.
@@ -480,6 +482,14 @@ export class InventoryCore {
         // Background provider failure must not retry an already-committed alarm.
       }
     }
+  }
+
+  private pruneAuditRetentionIfDue(): void {
+    const now = Date.now();
+    if (now < this.nextAuditRetentionSweepAt) return;
+    this.nextAuditRetentionSweepAt = now + 6 * 60 * 60_000;
+    const cutoff = new Date(now - 90 * 86_400_000).toISOString();
+    this.state.storage.sql.exec("DELETE FROM audit_log WHERE created_at < ?", cutoff);
   }
 
   private getSchemaVersion(): number {
@@ -558,6 +568,7 @@ export class InventoryCore {
   }
 
   async fetch(request: Request): Promise<Response> {
+    this.pruneAuditRetentionIfDue();
     const url = new URL(request.url);
 
     if (request.method === "GET" && url.pathname === "/health") {
