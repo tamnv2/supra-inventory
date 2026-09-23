@@ -317,6 +317,8 @@ export interface PdaAppRelease {
   stable_download_path: string;
 }
 
+export interface AgentAppRelease extends PdaAppRelease {}
+
 export interface RuntimeLogItem {
   id: string;
   name: string;
@@ -888,6 +890,10 @@ export async function getAdminAuditHistory(options: {
 
 export async function getPdaAppRelease(): Promise<{ status: string; release: PdaAppRelease }> {
   return readJson(await authorizedFetch("/api/admin/pda-app"));
+}
+
+export async function getAgentAppRelease(): Promise<{ status: string; release: AgentAppRelease }> {
+  return readJson(await authorizedFetch("/api/admin/agent-app"));
 }
 
 export async function getRuntimeLogs(source: "WEB" | "ANDROID", limit = 50): Promise<RuntimeLogList> {
