@@ -13,13 +13,13 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D110_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_E7931CF8__SCHEMA11__SIGNED_BETA_VC66__OA030_FIELD_READY",
+    "beta": "D111_SOURCE_IMPLEMENTED__D110_OWNER_ACCEPTED__SCHEMA11__PR_GATES_RELEASE_PENDING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 11,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
     "web": "D109_OWNER_ACCEPTED_PASS__PER_USER_DASHBOARD_GLOBAL_SLA_AUDIT_PDA_TOOLS",
-    "android": "D110_SIGNED_BETA_VC66__REPORTER_PINNED_4TABS_BADGES_DIRECT_ACTION_LOCAL_MINUTE_SLA__OA030_FIELD_READY",
+    "android": "D111_REPORTER_SCALE_BADGE_CONFIRM_DAILY_SCOPE__SOURCE_IMPLEMENTED__TARGET_NEXT_AFTER_VC66",
     "latest_beta_apk": "beta-vc66",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
     "network_scope": "D105_ANDROID_4DIGIT_AGENT_V30_RUNTIME_RELEASE_PASS__LEGACY_VC62_5DIGIT_ROLLOUT_COMPAT__D104_BATCH_PRESERVED__STABLE_UNTOUCHED",
@@ -28,7 +28,7 @@
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D109_OWNER_ACCEPTED_PASS__RESOLVER_ACTIVITY_PER_USER_RANGE",
     "quota_resilience": "D104_NO_FASTER_FIRESTORE_POLL__NO_EXTRA_COALESCING_QUERY__MAX12_LOGICAL_JOBS__WMS_MAX10_CODES__MAIN_PASS",
-    "ui_design_guard": "D110_MAIN_UI_PASS_RUN_35816313994",
+    "ui_design_guard": "D111_SOURCE_GUARD_UPDATED__PR_PASS_PENDING",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D109_OWNER_ACCEPTED_PASS__DASHBOARD_PREF_RESOLVER_ACTIVITY_AUDIT",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
@@ -90,7 +90,9 @@
     "D095 path invariant: Báo hàng stays on PDA Internet -> Cloudflare Worker -> InventoryCore and never depends on Agent; Xác nhận đơn stays on PDA Internet -> authenticated Firestore -> ACTIVE Agent -> Firestore ACK. Agent must consume the same Firestore carrier on normal Internet or Office. Firestore JSON arrays parse via IEnumerable; 30s PENDING is notice-only and the job remains through the 120s bounded window.",
     "D096 WMS confirm invariant: after Firestore claim, Agent must resolve exactly one full PickListCode from the current WMS JSON response using object-array/IEnumerable-safe parsing before the authorized confirmSkipItem POST; HTTP 2xx is CONFIRMED only when response Status=true, otherwise fail closed.",
     "D097 request-driven confirmation HA: max design 6,000 requests/day and 30 concurrent; PRIMARY polls 5s, STANDBY polls 10s and may take over at request age >=10s, FROZEN does not poll business work; terminal automatic window 30s then specialist-desk guidance; no 4-second Firestore leader heartbeat and no per-job PROCESSING write; D096 WMS behavior remains frozen.",
-    "D109 Web keeps dashboard date range as a per-user server preference while SLA remains one global server-authoritative setting; management audit is bounded to Reporter/Admin/Root; Tools exposes a version-independent latest-PDA QR/link; Android uses a compact header, adjacent A−/A+, stationary bottom tabs and time-only shortage-history labels."
+    "D109 Web keeps dashboard date range as a per-user server preference while SLA remains one global server-authoritative setting; management audit is bounded to Reporter/Admin/Root; Tools exposes a version-independent latest-PDA QR/link; Android uses a compact header, adjacent A−/A+, stationary bottom tabs and time-only shortage-history labels.",
+    "D110 Owner field PASS: signed beta-vc66 is accepted for the four pinned Reporter tabs/badges, semantic SLA backgrounds, local zero-poll minute clock, shared branding/footer and Android PICKER/REPORTER-only role gate.",
+    "D111 Owner requirement supersedes only conflicting D110 Reporter presentation/action details: Reporter gains per-user A−/A+ scale; only pending badge is red/white while history badges are light grey/dark; row state/Picker acknowledgement summary copy is removed; HAS_STOCK/SKIP_ALLOWED require explicit confirmation; Android lists today plus unresolved older work for Picker/Reporter without extra polling."
   ],
   "completed_capabilities": [
     "Cloudflare Beta Worker/custom domain/InventoryCore SQLite provisioning",
@@ -178,7 +180,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Owner field-tests OA030 on signed beta-vc66. If PASS, record D110 Owner acceptance; if not, fix only concrete Beta defects. Preserve D109 baseline outside D110 supersession and keep Stable OWNER-GATED.",
+  "next_action": "Complete D111 branch PR authority/state/UI/Service/Android gates; merge only after PASS; verify exact Beta Worker runtime and next monotonic signed Android release; then OA031 Owner field review. D110/OA030 is Owner PASS. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -622,7 +624,7 @@
     "D109 release checkpoint 2026-09-23: PR #154 merged main 367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94; main Deploy Beta Worker run 35809583618 passed with HTTP 200 exact source, schema 11/11, storage true, missing bindings 0, Agent migration 0/0 and Operational V2 5/5; UI run 35809583663 and Android run 35809583599 PASS; signed beta-vc65 release id 394246239 asset 582752309 size 19015996 sha256 3e2b5284ac2ed5d3040c36338a5bdb21026958eda7e4d4a12b40ea9bf6c0ea48. OA029 field review remains; Stable untouched.",
     "D109 Owner field acceptance 2026-09-23: Owner explicitly replied 'ok pass' after the final main checkpoint and UI guard completed. OA029 is closed PASS. D109 live Beta Web + signed beta-vc65 are the accepted baseline; Stable remains OWNER-GATED."
   ],
-  "active_workstream": "D110_OWNER_FIELD_REVIEW_OA030",
+  "active_workstream": "D111_TECHNICAL_RELEASE_AND_OA031",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
