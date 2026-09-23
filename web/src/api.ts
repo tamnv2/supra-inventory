@@ -878,6 +878,7 @@ export async function getAdminAuditHistory(options: {
   query?: string;
   limit?: number;
   offset?: number;
+  days?: number;
 } = {}): Promise<AdminAuditPage> {
   const params = new URLSearchParams({
     limit: String(options.limit || 100),
@@ -885,6 +886,7 @@ export async function getAdminAuditHistory(options: {
   });
   if (options.role) params.set("role", options.role);
   if (options.query) params.set("query", options.query);
+  params.set("days", String([30, 60, 90].includes(Number(options.days)) ? Number(options.days) : 30));
   return readJson(await authorizedFetch(`/api/admin/audit-history?${params.toString()}`));
 }
 
@@ -896,8 +898,12 @@ export async function getAgentAppRelease(): Promise<{ status: string; release: A
   return readJson(await authorizedFetch("/api/admin/agent-app"));
 }
 
-export async function getRuntimeLogs(source: "WEB" | "ANDROID", limit = 50): Promise<RuntimeLogList> {
-  const params = new URLSearchParams({ source, limit: String(Math.max(1, Math.min(100, limit))) });
+export async function getRuntimeLogs(source: "WEB" | "ANDROID", limit = 100, days = 30): Promise<RuntimeLogList> {
+  const params = new URLSearchParams({
+    source,
+    limit: String(Math.max(1, Math.min(500, limit))),
+    days: String([30, 60, 90].includes(Number(days)) ? Number(days) : 30),
+  });
   return readJson(await authorizedFetch(`/api/admin/logs?${params.toString()}`));
 }
 
