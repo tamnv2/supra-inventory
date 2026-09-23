@@ -26,12 +26,15 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.FrameLayout
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.FileProvider
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.messaging.FirebaseMessaging
@@ -95,6 +98,7 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         kit = InventoryUi(this)
+        cleanupUpdateArtifacts()
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             renderFatal("Thiết bị cần Android 11 trở lên.")
             return
@@ -237,9 +241,18 @@ class MainActivity : Activity() {
         activeSession = null
         contentContainer = null
         setContentView(R.layout.activity_login)
+        applySystemBarInsets()
 
         val username = findViewById<EditText>(R.id.etEmployeeCode)
         val password = findViewById<EditText>(R.id.etPassword)
+        val passwordVisibility = findViewById<ImageButton>(R.id.btnPasswordVisibility)
+        var passwordVisible = false
+        passwordVisibility.setOnClickListener {
+            passwordVisible = !passwordVisible
+            password.transformationMethod = if (passwordVisible) null else PasswordTransformationMethod.getInstance()
+            password.setSelection(password.text?.length ?: 0)
+            passwordVisibility.contentDescription = if (passwordVisible) "Ẩn mật khẩu" else "Hiện mật khẩu"
+        }
         val login = findViewById<Button>(R.id.btnLogin)
         val progress = findViewById<ProgressBar>(R.id.progressLogin)
         loginProgress = progress
@@ -321,6 +334,7 @@ class MainActivity : Activity() {
         activeSession = session
 
         setContentView(R.layout.activity_main)
+        applySystemBarInsets()
         contentContainer = findViewById(R.id.contentContainer)
         status = TextView(this)
         findViewById<TextView>(R.id.tvHeaderTitle).text = "1291 Beta"
@@ -862,6 +876,7 @@ class MainActivity : Activity() {
                 verifyInstalledSignerTrusted()
                 val info = fetchLatestUpdate()
                 if (info.versionCode == BuildConfig.VERSION_CODE) {
+                    cleanupUpdateArtifacts()
                     updateGate = UpdateGate.CURRENT
                     val restored = if (api.session != null) {
                         try { api.refreshProfile() } catch (_: Exception) { null }
@@ -898,29 +913,25 @@ class MainActivity : Activity() {
     }
 
     private fun fetchLatestUpdate(): UpdateInfo {
-        val connection = openTrustedConnection(BuildConfig.UPDATE_RELEASE_API, UpdateResource.RELEASE_API, null)
+        val connection = openTrustedConnection(BuildConfig.UPDATE_RELEASE_API, UpdateResource.MANIFEST)
         val code = connection.responseCode
         val text = (if (code in 200..299) connection.inputStream else connection.errorStream)
             ?.bufferedReader()?.use { it.readText() }.orEmpty()
-        if (code !in 200..299) throw IllegalStateException("Update API HTTP $code")
-        val release = org.json.JSONObject(text)
-        val tag = release.optString("tag_name")
-        val versionCode = Regex("^beta-vc(\\d+)$").find(tag)?.groupValues?.getOrNull(1)?.toIntOrNull()
-            ?: throw IllegalStateException("Release Beta không hợp lệ.")
-        val assets = release.optJSONArray("assets") ?: throw IllegalStateException("Release Beta thiếu APK.")
-        var apkUrl = ""
-        var checksumUrl = ""
-        for (index in 0 until assets.length()) {
-            val asset = assets.optJSONObject(index) ?: continue
-            when (asset.optString("name")) {
-                "supra-inventory-beta.apk" -> apkUrl = asset.optString("browser_download_url")
-                "supra-inventory-beta.apk.sha256" -> checksumUrl = asset.optString("browser_download_url")
-            }
+        if (code !in 200..299) throw IllegalStateException("Kênh cập nhật HTTP $code")
+        val manifest = JSONObject(text)
+        val tag = manifest.optString("tag")
+        val versionCode = manifest.optInt("version_code", -1)
+        if (!tag.matches(Regex("^beta-vc\\d+$")) || versionCode <= 0 || tag != "beta-vc$versionCode") {
+            throw IllegalStateException("Kênh cập nhật Beta không hợp lệ.")
         }
-        if (apkUrl.isBlank() || checksumUrl.isBlank()) throw IllegalStateException("Release Beta thiếu file cập nhật hợp lệ.")
-        return UpdateInfo(versionCode, tag, apkUrl, checksumUrl)
+        val apkPath = manifest.optString("apk_path")
+        val checksumPath = manifest.optString("checksum_path")
+        if (!apkPath.startsWith("/") || !checksumPath.startsWith("/")) {
+            throw IllegalStateException("Kênh cập nhật thiếu đường dẫn tin cậy.")
+        }
+        val base = BuildConfig.API_BASE_URL.trimEnd('/')
+        return UpdateInfo(versionCode, tag, base + apkPath, base + checksumPath)
     }
-
     private fun downloadAndVerify(info: UpdateInfo): File {
         val expected = downloadText(info.checksumUrl, info.tag).trim().split(Regex("\\s+"))[0].lowercase()
         if (!expected.matches(Regex("[0-9a-f]{64}"))) throw IllegalStateException("Checksum không hợp lệ.")
@@ -964,18 +975,18 @@ class MainActivity : Activity() {
         startActivity(intent)
     }
 
-    private enum class UpdateResource { RELEASE_API, ASSET }
+    private enum class UpdateResource { MANIFEST, ASSET }
 
-    private fun openTrustedConnection(url: String, resource: UpdateResource, tag: String?): HttpURLConnection {
+    private fun openTrustedConnection(url: String, resource: UpdateResource): HttpURLConnection {
         var current = URL(url)
         repeat(6) { redirectIndex ->
-            validateUpdateUrl(current, resource, tag, redirectIndex > 0)
+            validateUpdateUrl(current, resource, redirectIndex > 0)
             val connection = (current.openConnection() as HttpURLConnection).apply {
                 connectTimeout = 10_000
                 readTimeout = 60_000
                 instanceFollowRedirects = false
                 setRequestProperty("User-Agent", "SUPRA-Inventory-Beta/${BuildConfig.VERSION_NAME}")
-                setRequestProperty("Accept", if (resource == UpdateResource.RELEASE_API) "application/vnd.github+json" else "*/*")
+                setRequestProperty("Accept", if (resource == UpdateResource.MANIFEST) "application/json" else "*/*")
             }
             val code = connection.responseCode
             if (code in setOf(301, 302, 303, 307, 308)) {
@@ -990,48 +1001,75 @@ class MainActivity : Activity() {
         throw IllegalStateException("Update redirect vượt giới hạn.")
     }
 
-    private fun validateUpdateUrl(url: URL, resource: UpdateResource, tag: String?, redirected: Boolean) {
+    private fun validateUpdateUrl(url: URL, resource: UpdateResource, redirected: Boolean) {
         if (url.protocol != "https") throw IllegalStateException("Update chỉ cho phép HTTPS.")
-        when (resource) {
-            UpdateResource.RELEASE_API -> {
-                if (
-                    redirected ||
-                    url.host != "api.github.com" ||
-                    url.path != "/repos/tamnv2/supra-inventory/releases/latest"
-                ) throw IllegalStateException("Update API không thuộc nguồn tin cậy.")
+        val serviceHost = URL(BuildConfig.API_BASE_URL).host
+        if (resource == UpdateResource.MANIFEST) {
+            if (redirected || url.host != serviceHost || url.path != "/downloads/pda/manifest") {
+                throw IllegalStateException("Manifest cập nhật không thuộc dịch vụ tin cậy.")
             }
-            UpdateResource.ASSET -> {
-                if (!redirected) {
-                    val safeTag = tag?.takeIf { it.matches(Regex("^beta-vc\\d+$")) }
-                        ?: throw IllegalStateException("Beta tag không hợp lệ.")
-                    val prefix = "/tamnv2/supra-inventory/releases/download/$safeTag/"
-                    if (url.host != "github.com" || !url.path.startsWith(prefix)) {
-                        throw IllegalStateException("Release asset không thuộc repo Beta tin cậy.")
-                    }
-                } else {
-                    val trustedCdn = url.host == "release-assets.githubusercontent.com" ||
-                        url.host == "objects.githubusercontent.com" ||
-                        url.host.endsWith(".githubusercontent.com")
-                    if (!trustedCdn) throw IllegalStateException("Redirect cập nhật không thuộc CDN GitHub tin cậy.")
-                }
-            }
+            return
         }
+
+        if (!redirected) {
+            val trustedPath = url.path == "/downloads/pda/latest" || url.path == "/downloads/pda/latest.sha256"
+            if (url.host != serviceHost || !trustedPath) {
+                throw IllegalStateException("Tệp cập nhật không thuộc dịch vụ tin cậy.")
+            }
+            return
+        }
+
+        if (url.host == "github.com") {
+            val prefix = "/tamnv2/supra-inventory/releases/download/inventory-channel/"
+            if (!url.path.startsWith(prefix)) throw IllegalStateException("Release asset không thuộc kênh Beta tin cậy.")
+            return
+        }
+        val trustedCdn = url.host == "release-assets.githubusercontent.com" ||
+            url.host == "objects.githubusercontent.com" ||
+            url.host.endsWith(".githubusercontent.com")
+        if (!trustedCdn) throw IllegalStateException("Redirect cập nhật không thuộc CDN GitHub tin cậy.")
     }
 
     private fun downloadText(url: String, tag: String): String {
-        val connection = openTrustedConnection(url, UpdateResource.ASSET, tag)
+        if (!tag.matches(Regex("^beta-vc\\d+$"))) throw IllegalStateException("Beta tag không hợp lệ.")
+        val connection = openTrustedConnection(url, UpdateResource.ASSET)
         if (connection.responseCode !in 200..299) throw IllegalStateException("Checksum HTTP ${connection.responseCode}")
         return connection.inputStream.bufferedReader().use { it.readText() }
     }
 
     private fun downloadFile(url: String, file: File, tag: String) {
-        val connection = openTrustedConnection(url, UpdateResource.ASSET, tag)
+        if (!tag.matches(Regex("^beta-vc\\d+$"))) throw IllegalStateException("Beta tag không hợp lệ.")
+        val connection = openTrustedConnection(url, UpdateResource.ASSET)
         if (connection.responseCode !in 200..299) throw IllegalStateException("APK HTTP ${connection.responseCode}")
         connection.inputStream.use { input ->
             file.outputStream().use { output -> input.copyTo(output, 64 * 1024) }
         }
     }
 
+    private fun cleanupUpdateArtifacts() {
+        try {
+            val dir = File(getExternalFilesDir(null), "updates")
+            if (!dir.exists()) return
+            dir.listFiles()?.forEach { file ->
+                if (file.isFile && (file.name.endsWith(".apk") || file.name.endsWith(".download"))) file.delete()
+            }
+            if (dir.listFiles().isNullOrEmpty()) dir.delete()
+        } catch (_: Exception) {
+            // Best-effort only; update verification remains fail-closed.
+        }
+    }
+
+    private fun applySystemBarInsets() {
+        val content = findViewById<View>(android.R.id.content) ?: return
+        ViewCompat.setOnApplyWindowInsetsListener(content) { view, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.navigationBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            insets
+        }
+        ViewCompat.requestApplyInsets(content)
+    }
     private fun verifyInstalledSignerTrusted() {
         val expected = BuildConfig.TRUSTED_SIGNER_SHA256.trim().lowercase()
         if (expected.isBlank()) {
