@@ -318,3 +318,13 @@ System Reset is a deliberate ROOT-only data-zeroing operation, not normal retent
 - Audit reads are bounded and paged. D109 does not add a second analytics database, browser-side audit authority or a background export/polling loop.
 - Secret-like metadata keys are redacted before audit-history responses are returned.
 - Existing ROOT System Reset `SERVICE_LOGS` semantics remain the explicit destructive path for service audit/log data; D109 does not silently purge or rewrite business history.
+
+## D111 — Android operational display window
+
+The Android App uses an operational display projection, not a retention change.
+
+- Business-day boundary: Asia/Ho_Chi_Minh (+07:00), current local midnight.
+- Picker projection: reports created on/after current business-day midnight **OR** older tickets still OPEN, not auto-skip-completed, with a PENDING batch.
+- Reporter pending projection: all unresolved PENDING batches, including earlier business days.
+- Reporter recent projection: HAS_STOCK / SKIP_ALLOWED / CLOSED batches whose first report is on/after current business-day midnight.
+- The projection is applied in InventoryCore SQL before the bounded result limit. Historical source data, archive/retention, Web reporting and export remain unchanged.
