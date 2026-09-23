@@ -170,3 +170,14 @@ The `Báo cáo chi tiết` view keeps the same date/status/SKU-product filter, b
 - No employee ranking/scoring, stock quantity, bin/location or unapproved inventory metric is added.
 - The 60-day bound, indexed/server-side aggregation, bounded pagination and chunked Excel export remain authoritative.
 - These additions do not settle the Owner-open final Stable export-column decision.
+
+## D108 resolution provenance
+
+Admin/Root operational results and reporting expose the provenance already recorded by the business model.
+
+- `resolution_source=REPORTER`: result was explicitly chosen by an authorized human. Show the resolving user's display name plus employee/account code when available.
+- `resolution_source=REPORTER_CORRECTION`: a human corrected the earlier result; label it as a human correction and show the resolver.
+- `resolution_source=SYSTEM_TIMEOUT`: the configured D070 deadline expired without the required Invent/Reporter response. Show **Hệ thống tự động · quá hạn phản hồi** and actor **Hệ thống**.
+- `CLOSED`: Picker withdrew the report; show the Picker-withdrawal source instead of inventing a Reporter actor.
+
+Dashboard/result-mix may split Skip into **Bỏ qua bởi nhân sự** and **Tự động bỏ qua quá hạn**. Detailed reporting includes **Nguồn xử lý** and **Người xử lý** columns. These are server-side bounded aggregates/joins on existing fields; D108 does not add polling or a new analytics store.
