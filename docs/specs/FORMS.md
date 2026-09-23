@@ -511,3 +511,17 @@ D103 supersedes D102 layout dimensions where they conflict.
 - Compact rows must not show affected-Picker or acknowledgement-count summaries.
 - Empty Reporter tabs render no duplicate explanatory/count card.
 - Both Reporter resolution actions require an explicit confirmation dialog before mutation.
+
+## D113 — Thời gian xử lý form
+
+The global Admin/Root SLA form contains these server-authoritative controls:
+
+- `warning_minutes` + `warning_enabled`
+- `escalation_minutes` + `escalation_enabled`
+- `auto_skip_minutes` + `auto_skip_enabled`
+- exactly one `auto_skip_mode`: `FIRST_REPORT` or `PER_PICKER`
+- `skip_to_stock_enabled` + `skip_to_stock_minutes`
+
+Validation keeps integer bounds and `warning_minutes < escalation_minutes < auto_skip_minutes` even when one threshold is disabled, so a later re-enable is deterministic. `skip_to_stock_minutes` is 1–10080 and is counted from `report_batches.first_report_at`. If Skip correction is disabled, no correction deadline is issued and `SKIP_ALLOWED → HAS_STOCK` is not permitted.
+
+Login **Lưu thông tin đăng nhập** is a browser credential-manager/autofill preference, not an application password-storage field. Only the remembered username may be persisted by the Web UI.
