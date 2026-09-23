@@ -206,3 +206,14 @@ This closes the partial-create state where the Web reported failure but an accou
 - The stored management-audit projection includes actions performed by REPORTER, ADMIN and ROOT. Picker actions are deliberately excluded from this view.
 - Recording an actor role/display name does not grant new permissions; authorization continues to use the existing effective/base-role rules.
 - Audit output never returns credentials, passwords, tokens, cookies, signing material or other secret fields.
+
+## D110 Android role restriction
+
+D110 narrows the D098 Android client matrix without changing Web or Agent authority:
+
+- PICKER: ANDROID only.
+- REPORTER: ANDROID + WEB.
+- ADMIN: WEB + AGENT; **ANDROID denied**.
+- ROOT: WEB; **ANDROID denied**.
+- Android denial is enforced server-side from immutable/base role, so ROOT role simulation cannot bypass it and a modified/stale App cannot obtain or refresh an Android ADMIN/ROOT business session.
+- Existing same-channel session replacement rules, Firebase UID/credential authority, Web roles and real-base ADMIN Agent requirements remain unchanged.

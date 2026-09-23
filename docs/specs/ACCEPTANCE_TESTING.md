@@ -986,3 +986,18 @@ Technical/runtime acceptance requires:
 11. SQLite migration to schema 11 is additive and preserves existing business rows while adding audit actor role/display-name projection.
 12. Existing D105/D108 confirmation, SKU, withdrawal, result-ACK, per-user scale, quota, Agent/WMS and Stable OWNER-GATED guards remain PASS.
 13. Repo Authority, Project State, UI/Web/Service/Android guards, Beta schema-11 deployment and the next monotonic signed Android release must pass before D109 technical/runtime/release PASS is claimed.
+
+## D110 acceptance — Android Reporter pinned workflow
+
+Technical/runtime/release PASS requires:
+
+1. Android Reporter shows four pinned tabs directly below the user/header: Đang xử lý, Đã có hàng, Cho phép skip, Picker đã thu hồi.
+2. All four tabs show correct authoritative counts; pending uses queue total and history states use service totals rather than only the rendered 200-row slice.
+3. Pending rows show direct Đã có hàng / Cho phép skip buttons below SKU. Pressing either causes no pre-resolution confirmation dialog; repeated taps on the same in-flight batch cannot create a second mutation.
+4. Warning pending rows use light yellow; overdue rows use light red; normal rows remain neutral.
+5. Waiting minutes advance at calibrated minute boundaries without any network call from the timer. Realtime reconciliation still updates authoritative data and no manual Reporter refresh button exists.
+6. App header/login/shared Android identity uses the canonical app icon and login shows the exact requested developer line.
+7. Fresh Android login for base ADMIN or ROOT returns CLIENT_ROLE_NOT_ALLOWED; PICKER and REPORTER continue to authenticate. Existing Web ADMIN/ROOT and real ADMIN Agent paths remain allowed.
+8. Existing Reporter queue ordering, batch detail, Skip correction, realtime, notifications, Picker D105/D108/D109 behavior, Agent/WMS and Stable OWNER-GATED guards remain PASS.
+9. Repo Authority, Project State, UI/Service/Android build guards, Beta Worker deployment and the next monotonic signed Android release all pass before technical release PASS is claimed.
+10. Final physical visual/interaction acceptance remains Owner field review on Beta.

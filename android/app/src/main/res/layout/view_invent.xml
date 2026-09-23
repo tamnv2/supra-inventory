@@ -3,47 +3,189 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="14dp">
+    android:paddingStart="8dp"
+    android:paddingTop="4dp"
+    android:paddingEnd="8dp"
+    android:paddingBottom="0dp">
 
     <LinearLayout
+        android:id="@+id/reporterTabs"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
+        android:layout_height="52dp"
         android:orientation="horizontal">
 
-        <TextView
+        <FrameLayout
+            android:id="@+id/tabReporterPendingBox"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="BÁO HÀNG ĐANG CHỜ XỬ LÝ"
-            android:textColor="@color/navy_900"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:background="@drawable/bg_picker_tab_selected"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:id="@+id/tabReporterPending"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:maxLines="2"
+                android:paddingStart="3dp"
+                android:paddingEnd="13dp"
+                android:text="Đang xử lý"
+                android:textColor="@color/navy_900"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/badgeReporterPending"
+                android:layout_width="wrap_content"
+                android:layout_height="18dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="2dp"
+                android:background="@drawable/bg_reporter_tab_badge"
+                android:gravity="center"
+                android:minWidth="18dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:text="0"
+                android:textColor="@color/white"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+        </FrameLayout>
 
-        <Button
-            android:id="@+id/btnRefreshIssues"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_button_primary"
-            android:text="LÀM MỚI"
-            android:textColor="@color/white" />
+        <FrameLayout
+            android:id="@+id/tabReporterHasStockBox"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_picker_tab_idle"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:id="@+id/tabReporterHasStock"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:maxLines="2"
+                android:paddingStart="3dp"
+                android:paddingEnd="13dp"
+                android:text="Đã có hàng"
+                android:textColor="@color/text_secondary"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/badgeReporterHasStock"
+                android:layout_width="wrap_content"
+                android:layout_height="18dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="2dp"
+                android:background="@drawable/bg_reporter_tab_badge"
+                android:gravity="center"
+                android:minWidth="18dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:text="0"
+                android:textColor="@color/white"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/tabReporterSkipBox"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_picker_tab_idle"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:id="@+id/tabReporterSkip"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:maxLines="2"
+                android:paddingStart="3dp"
+                android:paddingEnd="13dp"
+                android:text="Cho phép skip"
+                android:textColor="@color/text_secondary"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/badgeReporterSkip"
+                android:layout_width="wrap_content"
+                android:layout_height="18dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="2dp"
+                android:background="@drawable/bg_reporter_tab_badge"
+                android:gravity="center"
+                android:minWidth="18dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:text="0"
+                android:textColor="@color/white"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/tabReporterWithdrawnBox"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_picker_tab_idle"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:id="@+id/tabReporterWithdrawn"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:maxLines="2"
+                android:paddingStart="3dp"
+                android:paddingEnd="13dp"
+                android:text="Picker đã thu hồi"
+                android:textColor="@color/text_secondary"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/badgeReporterWithdrawn"
+                android:layout_width="wrap_content"
+                android:layout_height="18dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="2dp"
+                android:background="@drawable/bg_reporter_tab_badge"
+                android:gravity="center"
+                android:minWidth="18dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:text="0"
+                android:textColor="@color/white"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+        </FrameLayout>
     </LinearLayout>
 
     <TextView
         android:id="@+id/tvIssueSummary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:paddingStart="3dp"
+        android:paddingTop="5dp"
+        android:paddingEnd="3dp"
+        android:paddingBottom="3dp"
         android:text="Đang tải danh sách…"
-        android:textColor="@color/text_secondary" />
+        android:textColor="@color/text_secondary"
+        android:textSize="11sp" />
 
     <ListView
         android:id="@+id/listIssues"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
         android:layout_weight="1"
-        android:divider="#DDE3EA"
-        android:dividerHeight="1dp" />
+        android:clipToPadding="false"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="5dp"
+        android:paddingBottom="5dp" />
 </LinearLayout>
-

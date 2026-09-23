@@ -606,3 +606,18 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
 - Current project workstream: `READY_FOR_NEXT_OWNER_REQUIREMENT`.
 - Next session: bootstrap from `ops/authority-manifest.json`, preserve D109 as accepted Beta baseline, then apply only the new Owner requirement.
 - Stable remains OWNER-GATED and untouched.
+
+## D110 source checkpoint — 2026-09-23
+
+- Owner opened D110 after D109 Owner PASS.
+- Beta: `D110_SOURCE_IMPLEMENTED__PR_GATES_AND_SIGNED_BETA_RELEASE_PENDING`.
+- Android: `D110_REPORTER_PINNED_4TABS_BADGES_DIRECT_ACTION_LOCAL_MINUTE_SLA__RELEASE_PENDING`.
+- Accepted released baseline remains signed `beta-vc65` until the D110 main release publishes the next monotonic Beta APK.
+- Reporter source pins **Đang xử lý / Đã có hàng / Cho phép skip / Picker đã thu hồi** below the compact identity header and gives every tab an authoritative count badge.
+- Pending Reporter rows expose direct **Đã có hàng / Cho phép skip** actions below SKU with per-batch double-tap locking; old pre-resolution Android confirmation dialogs are removed.
+- Reporter SLA waiting minutes advance locally from service `server_now` on calibrated minute boundaries. No timer polling/provider read is added; manual Reporter refresh is removed.
+- Normal/warning/overdue pending backgrounds are neutral/light-yellow/light-red.
+- Android visible identity uses the canonical app icon and requested tamnv2 developer line.
+- Android session authority now permits only PICKER/REPORTER; base ADMIN/ROOT are server-denied on ANDROID while Web and real ADMIN Agent remain unchanged.
+- OA030 is pending technical/runtime/release PASS, then Owner physical review. Target signed release: `beta-vc66`.
+- Stable remains OWNER-GATED and untouched.

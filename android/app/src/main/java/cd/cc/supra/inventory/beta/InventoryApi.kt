@@ -80,6 +80,22 @@ data class ReporterBatch(
     val serverNow: String? = null,
 )
 
+data class ReporterQueueSnapshot(
+    val items: List<ReporterBatch>,
+    val total: Int,
+)
+
+data class ReporterRecentCounts(
+    val hasStock: Int = 0,
+    val skipAllowed: Int = 0,
+    val withdrawn: Int = 0,
+)
+
+data class ReporterRecentSnapshot(
+    val items: List<ReporterRecent>,
+    val counts: ReporterRecentCounts,
+)
+
 data class ReporterRecent(
     val batchId: String,
     val sku: String,
@@ -371,7 +387,9 @@ class InventoryApi(
         JSONObject().put("request_id", UUID.randomUUID().toString()).put("ticket_id", ticketId),
     )
 
-    fun getReporterQueue(limit: Int = 100): List<ReporterBatch> {
+    fun getReporterQueue(limit: Int = 100): List<ReporterBatch> = getReporterQueueSnapshot(limit).items
+
+    fun getReporterQueueSnapshot(limit: Int = 200): ReporterQueueSnapshot {
         val payload = request("GET", "/api/reporter/queue?limit=$limit")
         val serverNow = nullable(payload, "server_now")
         val array = payload.optJSONArray("items") ?: JSONArray()
@@ -392,10 +410,12 @@ class InventoryApi(
                 serverNow = serverNow,
             )
         }
-        return rows
+        return ReporterQueueSnapshot(rows, payload.optInt("total", rows.size))
     }
 
-    fun getReporterRecent(limit: Int = 100): List<ReporterRecent> {
+    fun getReporterRecent(limit: Int = 100): List<ReporterRecent> = getReporterRecentSnapshot(limit).items
+
+    fun getReporterRecentSnapshot(limit: Int = 200): ReporterRecentSnapshot {
         val payload = request("GET", "/api/reporter/recent?limit=$limit")
         val array = payload.optJSONArray("items") ?: JSONArray()
         val rows = ArrayList<ReporterRecent>(array.length())
@@ -410,7 +430,15 @@ class InventoryApi(
                 ackTargetCount = row.optInt("ack_target_count", 0), acknowledgedCount = row.optInt("acknowledged_count", 0),
             )
         }
-        return rows
+        val totals = payload.optJSONObject("totals") ?: JSONObject()
+        return ReporterRecentSnapshot(
+            items = rows,
+            counts = ReporterRecentCounts(
+                hasStock = totals.optInt("has_stock", rows.count { it.status == "HAS_STOCK" }),
+                skipAllowed = totals.optInt("skip_allowed", rows.count { it.status == "SKIP_ALLOWED" }),
+                withdrawn = totals.optInt("withdrawn", rows.count { it.status == "CLOSED" }),
+            ),
+        )
     }
 
     fun getBatchTickets(batchId: String): List<BatchTicket> {

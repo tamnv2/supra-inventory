@@ -3,16 +3,14 @@ package cd.cc.supra.inventory.beta
 import android.app.Activity
 import android.app.AlertDialog
 import android.graphics.Color
-import android.graphics.Typeface
 import android.os.Handler
 import android.os.Looper
-import android.text.TextUtils
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.ScrollView
@@ -30,6 +28,7 @@ class ReporterController(
     initialFilter: String = "PENDING",
 ) {
     private enum class Filter { PENDING, HAS_STOCK, SKIP_ALLOWED, WITHDRAWN }
+
     private val zone = ZoneId.of("Asia/Ho_Chi_Minh")
     private val timeFmt = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(zone)
     private val dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy").withZone(zone)
@@ -38,47 +37,83 @@ class ReporterController(
     private var refreshing = false
     private var refreshDirty = false
     private val refreshWaiters = mutableListOf<(Boolean) -> Unit>()
+    private val processingBatchIds = mutableSetOf<String>()
+
     private var filter = when (initialFilter.uppercase()) {
         "HAS_STOCK" -> Filter.HAS_STOCK
         "SKIP_ALLOWED" -> Filter.SKIP_ALLOWED
         "WITHDRAWN", "CLOSED" -> Filter.WITHDRAWN
         else -> Filter.PENDING
     }
-    private val buttons = linkedMapOf<Filter, Button>()
-    private var listBox: LinearLayout? = null
-    private var listRenderer: KeyedLinearRenderer? = null
-    private var legacyList: ListView? = null
-    private var legacySummary: TextView? = null
-    private var queue: List<ReporterBatch> = emptyList()
-    private var recent: List<ReporterRecent> = emptyList()
 
-    private val slaTicker = object : Runnable {
+    private var list: ListView? = null
+    private var summary: TextView? = null
+    private val tabBoxes = linkedMapOf<Filter, FrameLayout>()
+    private val tabLabels = linkedMapOf<Filter, TextView>()
+    private val badges = linkedMapOf<Filter, TextView>()
+    private var queue: List<ReporterBatch> = emptyList()
+    private var queueTotal = 0
+    private var recent: List<ReporterRecent> = emptyList()
+    private var recentCounts = ReporterRecentCounts()
+
+    private val minuteTicker = object : Runnable {
         override fun run() {
-            if (filter == Filter.PENDING && queue.isNotEmpty()) renderSelected()
-            handler.postDelayed(this, 15_000L)
+            if (filter == Filter.PENDING && queue.isNotEmpty()) {
+                (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
+                updateSummary()
+            }
+            scheduleMinuteTicker()
         }
     }
 
     fun render(root: LinearLayout) {
-        legacySummary = root.findViewById(R.id.tvIssueSummary)
-        legacyList = root.findViewById(R.id.listIssues)
-        root.findViewById<Button>(R.id.btnRefreshIssues)?.setOnClickListener { refresh() }
-        listBox = null
-        listRenderer = null
-        buttons.clear()
-        handler.removeCallbacks(slaTicker)
-        handler.postDelayed(slaTicker, 15_000L)
+        summary = root.findViewById(R.id.tvIssueSummary)
+        list = root.findViewById(R.id.listIssues)
+        bindTab(root, Filter.PENDING, R.id.tabReporterPendingBox, R.id.tabReporterPending, R.id.badgeReporterPending)
+        bindTab(root, Filter.HAS_STOCK, R.id.tabReporterHasStockBox, R.id.tabReporterHasStock, R.id.badgeReporterHasStock)
+        bindTab(root, Filter.SKIP_ALLOWED, R.id.tabReporterSkipBox, R.id.tabReporterSkip, R.id.badgeReporterSkip)
+        bindTab(root, Filter.WITHDRAWN, R.id.tabReporterWithdrawnBox, R.id.tabReporterWithdrawn, R.id.badgeReporterWithdrawn)
+        updateTabs()
+        scheduleMinuteTicker()
         refresh()
     }
 
     fun destroy() {
-        handler.removeCallbacks(slaTicker)
-        listRenderer = null
+        handler.removeCallbacks(minuteTicker)
+        refreshWaiters.clear()
+        list = null
+        summary = null
     }
 
     fun onRealtime(scopes: Set<String>, completion: (Boolean) -> Unit) {
         if (scopes.contains("reporter_queue") || scopes.contains("reporter_recent")) refresh(completion)
         else completion(true)
+    }
+
+    private fun bindTab(root: View, value: Filter, boxId: Int, labelId: Int, badgeId: Int) {
+        val box = root.findViewById<FrameLayout>(boxId)
+        val label = root.findViewById<TextView>(labelId)
+        val badge = root.findViewById<TextView>(badgeId)
+        tabBoxes[value] = box
+        tabLabels[value] = label
+        badges[value] = badge
+        box.setOnClickListener { selectFilter(value) }
+        label.setOnClickListener { selectFilter(value) }
+        badge.setOnClickListener { selectFilter(value) }
+    }
+
+    private fun selectFilter(value: Filter) {
+        if (filter == value) return
+        filter = value
+        updateTabs()
+        renderSelected()
+    }
+
+    private fun scheduleMinuteTicker() {
+        handler.removeCallbacks(minuteTicker)
+        val calibratedNow = System.currentTimeMillis() + queueServerOffsetMs
+        val delay = (60_000L - (calibratedNow % 60_000L) + 80L).coerceIn(1_000L, 60_080L)
+        handler.postDelayed(minuteTicker, delay)
     }
 
     fun refresh(onComplete: ((Boolean) -> Unit)? = null) {
@@ -90,15 +125,18 @@ class ReporterController(
         refreshing = true
         Thread {
             try {
-                val nextQueue = api.getReporterQueue(100)
-                val nextRecent = api.getReporterRecent(100)
+                val nextQueue = api.getReporterQueueSnapshot(200)
+                val nextRecent = api.getReporterRecentSnapshot(200)
                 activity.runOnUiThread {
-                    val serverNow = nextQueue.firstOrNull()?.serverNow?.let(::millis) ?: 0L
+                    val serverNow = nextQueue.items.firstOrNull()?.serverNow?.let(::millis) ?: 0L
                     queueServerOffsetMs = if (serverNow > 0L) serverNow - System.currentTimeMillis() else 0L
-                    queue = nextQueue
-                    recent = nextRecent
+                    queue = nextQueue.items
+                    queueTotal = nextQueue.total
+                    recent = nextRecent.items
+                    recentCounts = nextRecent.counts
+                    updateBadges()
                     renderSelected()
-                    setStatus("Đã cập nhật ${nextQueue.size} SKU đang xử lý.")
+                    scheduleMinuteTicker()
                     refreshing = false
                     if (refreshDirty) {
                         refreshDirty = false
@@ -127,192 +165,237 @@ class ReporterController(
         }
     }
 
-    private fun addTab(row: LinearLayout, value: Filter, label: String) {
-        val button = Button(activity).apply {
-            text = label
-            textSize = 11f
-            maxLines = 2
-            minHeight = kit.dp(58)
-            layoutParams = LinearLayout.LayoutParams(0, kit.dp(60), 1f).apply {
-                marginStart = kit.dp(2)
-                marginEnd = kit.dp(2)
-            }
-            setOnClickListener { filter = value; updateTabs(); renderSelected() }
+    private fun updateTabs() {
+        for ((value, box) in tabBoxes) {
+            val selected = value == filter
+            box.setBackgroundResource(if (selected) R.drawable.bg_picker_tab_selected else R.drawable.bg_picker_tab_idle)
+            tabLabels[value]?.setTextColor(if (selected) kit.navy else kit.muted)
         }
-        buttons[value] = button
-        row.addView(button)
     }
 
-    private fun updateTabs() {
-        for ((value, button) in buttons) {
-            if (value == filter) {
-                button.setTextColor(Color.WHITE)
-                button.setTypeface(button.typeface, Typeface.BOLD)
-                button.background = kit.rounded(kit.navyMid, kit.navyMid, 9)
-            } else {
-                button.setTextColor(kit.navy)
-                button.setTypeface(button.typeface, Typeface.NORMAL)
-                button.background = kit.rounded(Color.WHITE, kit.line, 9)
-            }
-        }
+    private fun updateBadges() {
+        setBadge(Filter.PENDING, queueTotal)
+        setBadge(Filter.HAS_STOCK, recentCounts.hasStock)
+        setBadge(Filter.SKIP_ALLOWED, recentCounts.skipAllowed)
+        setBadge(Filter.WITHDRAWN, recentCounts.withdrawn)
+    }
+
+    private fun setBadge(value: Filter, count: Int) {
+        badges[value]?.text = if (count > 99) "99+" else count.coerceAtLeast(0).toString()
+    }
+
+    private fun recentRows(): List<ReporterRecent> = when (filter) {
+        Filter.HAS_STOCK -> recent.filter { it.status == "HAS_STOCK" }
+        Filter.SKIP_ALLOWED -> recent.filter { it.status == "SKIP_ALLOWED" }
+        Filter.WITHDRAWN -> recent.filter { it.status == "CLOSED" }
+        else -> emptyList()
     }
 
     private fun renderSelected() {
-        val legacy = legacyList
-        if (legacy != null) {
-            renderLegacyList(legacy)
-            return
-        }
-        val renderer = listRenderer ?: return
-        when (filter) {
-            Filter.PENDING -> {
-                if (queue.isEmpty()) {
-                    renderer.render(listOf("empty:pending"), { it }, { it }) { empty("Không có SKU đang chờ xử lý.") }
-                } else {
-                    renderer.render(
-                        queue,
-                        keyOf = { "pending:${it.batchId}" },
-                        signatureOf = { pendingSignature(it) },
-                        createView = { pendingCard(it) },
-                    )
-                }
-            }
-            else -> {
-                val state = when (filter) {
-                    Filter.HAS_STOCK -> "HAS_STOCK"
-                    Filter.SKIP_ALLOWED -> "SKIP_ALLOWED"
-                    Filter.WITHDRAWN -> "CLOSED"
-                    else -> "PENDING"
-                }
-                val rows = recent.filter { it.status == state }
-                if (rows.isEmpty()) {
-                    val message = when (state) {
-                        "HAS_STOCK" -> "Chưa có kết quả Đã có hàng."
-                        "SKIP_ALLOWED" -> "Chưa có kết quả Được phép bỏ qua."
-                        else -> "Chưa có báo Picker thu hồi."
-                    }
-                    renderer.render(listOf("empty:$state"), { it }, { it }) { empty(message) }
-                } else {
-                    renderer.render(
-                        rows,
-                        keyOf = { "recent:${it.batchId}:${it.version}" },
-                        signatureOf = { recentSignature(it) },
-                        createView = { recentCard(it, state) },
-                    )
-                }
-            }
-        }
-    }
-
-    private fun renderLegacyList(list: ListView) {
+        val target = list ?: return
+        target.setOnItemClickListener(null)
         if (filter == Filter.PENDING) {
-            legacySummary?.text = if (queue.isEmpty()) "Không có SKU đang chờ xử lý." else "${queue.size} SKU đang chờ xử lý"
-            if (queue.isEmpty()) {
-                list.adapter = legacyTextAdapter(listOf("Không có SKU đang chờ xử lý."))
-                list.onItemClickListener = null
-            } else {
-                list.adapter = pendingLegacyAdapter(queue)
-                list.setOnItemClickListener { _, _, position, _ ->
-                    val row = queue.getOrNull(position) ?: return@setOnItemClickListener
-                    AlertDialog.Builder(activity)
-                        .setTitle("${row.sku} - ${row.productName}")
-                        .setItems(arrayOf("CÓ HÀNG", "CHO PHÉP BỎ QUA", "Xem Picker")) { _, which ->
-                            when (which) {
-                                0 -> confirmHasStock(row)
-                                1 -> confirmSkipImpact(row)
-                                2 -> showTickets(row)
-                            }
-                        }
-                        .setNegativeButton("Đóng", null)
-                        .show()
+            target.adapter = if (queue.isEmpty()) textAdapter("Không có SKU đang chờ xử lý.") else pendingAdapter(queue)
+            if (queue.isNotEmpty()) {
+                target.setOnItemClickListener { _, _, position, _ -> queue.getOrNull(position)?.let(::showTickets) }
+            }
+        } else {
+            val rows = recentRows()
+            target.adapter = if (rows.isEmpty()) textAdapter(emptyMessage()) else recentAdapter(rows)
+            if (filter == Filter.SKIP_ALLOWED && rows.isNotEmpty()) {
+                target.setOnItemClickListener { _, _, position, _ ->
+                    rows.getOrNull(position)?.let { row ->
+                        if (millis(row.correctionDeadlineAt) > System.currentTimeMillis()) confirmCorrection(row)
+                    }
                 }
             }
-            return
         }
+        updateTabs()
+        updateSummary()
+    }
 
-        val state = when (filter) {
-            Filter.HAS_STOCK -> "HAS_STOCK"
-            Filter.SKIP_ALLOWED -> "SKIP_ALLOWED"
-            Filter.WITHDRAWN -> "CLOSED"
-            else -> "PENDING"
-        }
-        val rows = recent.filter { it.status == state }
-        legacySummary?.text = when (filter) {
-            Filter.HAS_STOCK -> "Đã có hàng · ${rows.size}"
-            Filter.SKIP_ALLOWED -> "Được phép bỏ qua · ${rows.size}"
-            Filter.WITHDRAWN -> "Picker thu hồi · ${rows.size}"
-            else -> "Đang xử lý"
-        }
-        if (rows.isEmpty()) {
-            list.adapter = legacyTextAdapter(listOf("Chưa có dữ liệu."))
-            list.onItemClickListener = null
-        } else {
-            list.adapter = recentLegacyAdapter(rows)
-            list.setOnItemClickListener { _, _, position, _ ->
-                val row = rows.getOrNull(position) ?: return@setOnItemClickListener
-                if (row.status == "SKIP_ALLOWED" && millis(row.correctionDeadlineAt) > System.currentTimeMillis()) confirmCorrection(row)
-            }
+    private fun updateSummary() {
+        summary?.text = when (filter) {
+            Filter.PENDING -> if (queueTotal == 0) "Không có SKU đang xử lý." else "$queueTotal SKU đang xử lý · thời gian tự cập nhật theo phút"
+            Filter.HAS_STOCK -> "${recentCounts.hasStock} đơn đã có hàng"
+            Filter.SKIP_ALLOWED -> "${recentCounts.skipAllowed} đơn được cho phép skip"
+            Filter.WITHDRAWN -> "${recentCounts.withdrawn} đơn Picker đã thu hồi"
         }
     }
 
-    private fun pendingLegacyAdapter(rows: List<ReporterBatch>): BaseAdapter = object : BaseAdapter() {
+    private fun emptyMessage(): String = when (filter) {
+        Filter.HAS_STOCK -> "Chưa có kết quả Đã có hàng."
+        Filter.SKIP_ALLOWED -> "Chưa có kết quả Cho phép skip."
+        Filter.WITHDRAWN -> "Chưa có báo Picker thu hồi."
+        else -> "Không có dữ liệu."
+    }
+
+    private fun pendingAdapter(rows: List<ReporterBatch>): BaseAdapter = object : BaseAdapter() {
         override fun getCount(): Int = rows.size
         override fun getItem(position: Int): ReporterBatch = rows[position]
         override fun getItemId(position: Int): Long = rows[position].batchId.hashCode().toLong()
+
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            val view = convertView ?: LayoutInflater.from(activity).inflate(R.layout.row_issue, parent, false)
+            val view = convertView ?: LayoutInflater.from(activity).inflate(R.layout.row_reporter_issue, parent, false)
             val row = getItem(position)
             val timing = liveTiming(row)
-            view.findViewById<TextView>(R.id.tvIssueSku).text = row.sku
-            view.findViewById<TextView>(R.id.tvIssueProduct).text = row.productName
-            view.findViewById<TextView>(R.id.tvIssueElapsed).text = "${timing.first}p"
-            view.findViewById<TextView>(R.id.tvIssueMeta).text =
-                "${row.affectedPickerCount} Picker · ${slaLabel(timing.second)}${if (row.previousBatchId != null) " · Tái phát" else ""}"
+            bindCommon(view, row.sku, row.productName, "${timing.first} phút")
+            val root = view.findViewById<LinearLayout>(R.id.reporterRowRoot)
+            val fill = when (timing.second) {
+                "ESCALATED" -> kit.redSoft
+                "WARNING" -> kit.orangeSoft
+                else -> Color.WHITE
+            }
+            val stroke = when (timing.second) {
+                "ESCALATED" -> kit.skipStroke
+                "WARNING" -> Color.parseColor("#EBC56E")
+                else -> kit.line
+            }
+            root.background = kit.rounded(fill, stroke, 7)
+
+            val recurrence = if (row.previousBatchId != null) {
+                " · Tái phát" + (row.recurrenceMinutes?.let { " sau ${formatMinutes(it)}" } ?: "")
+            } else ""
+            view.findViewById<TextView>(R.id.tvReporterMeta).apply {
+                text = "${row.affectedPickerCount} Picker · ${slaLabel(timing.second)}$recurrence\nBáo đầu: ${timestamp(row.firstReportAt)}"
+                setTextColor(when (timing.second) { "ESCALATED" -> kit.red; "WARNING" -> kit.orange; else -> kit.muted })
+            }
+
+            val hasStock = view.findViewById<Button>(R.id.btnReporterHasStock)
+            val skip = view.findViewById<Button>(R.id.btnReporterSkip)
+            val busy = processingBatchIds.contains(row.batchId)
+            hasStock.isEnabled = !busy
+            skip.isEnabled = !busy
+            hasStock.alpha = if (busy) 0.45f else 1f
+            skip.alpha = if (busy) 0.45f else 1f
+            hasStock.text = if (busy) "Đang xử lý…" else "Đã có hàng"
+            skip.text = if (busy) "Đang xử lý…" else "Cho phép skip"
+            hasStock.setOnClickListener { resolveDirect(row, "HAS_STOCK", "Đã có hàng") }
+            skip.setOnClickListener { resolveDirect(row, "SKIP_ALLOWED", "Cho phép skip") }
+            root.contentDescription = "SKU ${row.sku}, ${timing.first} phút, ${slaLabel(timing.second)}"
             return view
         }
     }
 
-    private fun recentLegacyAdapter(rows: List<ReporterRecent>): BaseAdapter = object : BaseAdapter() {
+    private fun recentAdapter(rows: List<ReporterRecent>): BaseAdapter = object : BaseAdapter() {
         override fun getCount(): Int = rows.size
         override fun getItem(position: Int): ReporterRecent = rows[position]
         override fun getItemId(position: Int): Long = rows[position].batchId.hashCode().toLong()
+
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            val view = convertView ?: LayoutInflater.from(activity).inflate(R.layout.row_issue, parent, false)
+            val view = convertView ?: LayoutInflater.from(activity).inflate(R.layout.row_reporter_issue, parent, false)
             val row = getItem(position)
-            val label = when (row.status) {
-                "HAS_STOCK" -> "Đã có hàng"
-                "SKIP_ALLOWED" -> "Được phép bỏ qua"
-                "CLOSED" -> "Picker thu hồi"
-                else -> row.status
+            bindCommon(view, row.sku, row.productName, "")
+            view.findViewById<LinearLayout>(R.id.reporterActions).visibility = View.GONE
+            val root = view.findViewById<LinearLayout>(R.id.reporterRowRoot)
+            val colors = when (row.status) {
+                "HAS_STOCK" -> Triple(kit.stockFill, kit.stockStroke, kit.greenDark)
+                "SKIP_ALLOWED" -> Triple(kit.skipFill, kit.skipStroke, kit.red)
+                else -> Triple(kit.graySoft, kit.line, kit.muted)
             }
-            view.findViewById<TextView>(R.id.tvIssueSku).text = row.sku
-            view.findViewById<TextView>(R.id.tvIssueProduct).text = row.productName
-            view.findViewById<TextView>(R.id.tvIssueElapsed).text = ""
-            view.findViewById<TextView>(R.id.tvIssueMeta).text =
-                "$label · ${timestamp(row.resolvedAt)} · ${row.affectedPickerCount} Picker"
+            root.background = kit.rounded(colors.first, colors.second, 7)
+            val result = when (row.status) {
+                "HAS_STOCK" -> "Đã có hàng"
+                "SKIP_ALLOWED" -> "Cho phép skip"
+                else -> "Picker đã thu hồi"
+            }
+            val ack = if (row.status == "CLOSED") "" else " · ${row.acknowledgedCount}/${row.ackTargetCount} Picker đã xác nhận"
+            view.findViewById<TextView>(R.id.tvReporterMeta).apply {
+                text = "$result · ${row.affectedPickerCount} Picker$ack\n${timestamp(row.resolvedAt)}"
+                setTextColor(colors.third)
+            }
             return view
         }
     }
 
-    private fun legacyTextAdapter(labels: List<String>): BaseAdapter = object : BaseAdapter() {
-        override fun getCount(): Int = labels.size
-        override fun getItem(position: Int): String = labels[position]
-        override fun getItemId(position: Int): Long = position.toLong()
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            val view = convertView ?: LayoutInflater.from(activity).inflate(R.layout.row_issue, parent, false)
-            view.findViewById<TextView>(R.id.tvIssueSku).text = labels[position]
-            view.findViewById<TextView>(R.id.tvIssueProduct).text = ""
-            view.findViewById<TextView>(R.id.tvIssueElapsed).text = ""
-            view.findViewById<TextView>(R.id.tvIssueMeta).text = ""
-            return view
-        }
+    private fun bindCommon(view: View, sku: String, product: String, elapsed: String) {
+        view.findViewById<TextView>(R.id.tvReporterSku).text = sku
+        view.findViewById<TextView>(R.id.tvReporterElapsed).text = elapsed
+        view.findViewById<TextView>(R.id.tvReporterProduct).text = product
+        view.findViewById<LinearLayout>(R.id.reporterActions).visibility = View.VISIBLE
     }
 
-    private fun slaLabel(state: String): String = when (state) {
-        "ESCALATED" -> "Quá thời gian"
-        "WARNING" -> "Sắp quá thời gian"
-        "NORMAL" -> "Trong thời gian"
-        else -> "Chưa thiết lập thời gian"
+    private fun textAdapter(message: String): BaseAdapter = object : BaseAdapter() {
+        override fun getCount(): Int = 1
+        override fun getItem(position: Int): String = message
+        override fun getItemId(position: Int): Long = 0L
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View =
+            TextView(activity).apply {
+                text = message
+                textSize = 13f
+                setTextColor(kit.muted)
+                setPadding(kit.dp(12), kit.dp(18), kit.dp(12), kit.dp(18))
+                background = kit.rounded(Color.WHITE, kit.line, 7)
+            }
+    }
+
+    private fun resolveDirect(row: ReporterBatch, resolution: String, label: String) {
+        if (!processingBatchIds.add(row.batchId)) return
+        (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
+        setStatus("Đang cập nhật ${row.sku}…")
+        Thread {
+            try {
+                api.resolveBatch(row.batchId, resolution)
+                activity.runOnUiThread {
+                    processingBatchIds.remove(row.batchId)
+                    setStatus("Đã xử lý ${row.sku}: $label.")
+                    refresh()
+                }
+            } catch (e: Exception) {
+                activity.runOnUiThread {
+                    processingBatchIds.remove(row.batchId)
+                    setStatus(friendlyError(e))
+                    refresh()
+                }
+            }
+        }.start()
+    }
+
+    private fun confirmCorrection(row: ReporterRecent) {
+        AlertDialog.Builder(activity)
+            .setTitle("Sửa thành Đã có hàng?")
+            .setMessage("${row.sku} - ${row.productName}\nLịch sử Cho phép skip ban đầu vẫn được giữ.")
+            .setNegativeButton("Huỷ", null)
+            .setPositiveButton("Xác nhận") { _, _ ->
+                Thread {
+                    try {
+                        api.correctBatch(row.batchId)
+                        activity.runOnUiThread { setStatus("Đã sửa ${row.sku} thành Đã có hàng."); refresh() }
+                    } catch (e: Exception) {
+                        activity.runOnUiThread { setStatus(friendlyError(e)); refresh() }
+                    }
+                }.start()
+            }.show()
+    }
+
+    private fun showTickets(row: ReporterBatch) {
+        Thread {
+            try {
+                val tickets = api.getBatchTickets(row.batchId)
+                activity.runOnUiThread {
+                    val text = if (tickets.isEmpty()) "Không có Picker trong batch." else tickets.joinToString("\n\n") {
+                        val ack = if (it.resultEventId != null) {
+                            if (it.acknowledgedAt != null) " · Đã xác nhận kết quả" else " · Chưa xác nhận kết quả"
+                        } else ""
+                        "${it.pickerEmployeeCode} - ${it.pickerDisplayName.ifBlank { "Chưa có tên" }}\nBáo ${timestamp(it.reportedAt)} · ${ticketStatus(it.status)}$ack"
+                    }
+                    val scroll = ScrollView(activity).apply {
+                        addView(TextView(activity).apply {
+                            this.text = text
+                            textSize = 13f
+                            setPadding(kit.dp(16), kit.dp(8), kit.dp(16), kit.dp(8))
+                        })
+                    }
+                    AlertDialog.Builder(activity)
+                        .setTitle("${row.sku} · ${tickets.size} Picker")
+                        .setView(scroll)
+                        .setPositiveButton("Đóng", null)
+                        .show()
+                }
+            } catch (e: Exception) {
+                activity.runOnUiThread { setStatus(friendlyError(e)) }
+            }
+        }.start()
     }
 
     private fun liveTiming(row: ReporterBatch): Pair<Int, String> {
@@ -330,232 +413,35 @@ class ReporterController(
         return waiting to state
     }
 
-    private fun pendingSignature(row: ReporterBatch): String {
-        val timing = liveTiming(row)
-        return listOf(
-            row.batchId,
-            row.version,
-            row.affectedPickerCount,
-            row.firstReportAt,
-            row.previousBatchId.orEmpty(),
-            row.recurrenceMinutes ?: -1,
-            timing.second,
-            timing.first,
-        ).joinToString("|")
-    }
-
-    private fun pendingCard(row: ReporterBatch): ViewGroup {
-        val timing = liveTiming(row)
-        val liveState = timing.second
-        val liveWaiting = timing.first
-        val stroke = when (liveState) {
-            "ESCALATED" -> kit.redStrong
-            "WARNING" -> Color.parseColor("#EBC56E")
-            else -> kit.line
-        }
-        return kit.card(Color.WHITE, stroke, 7).apply {
-            addView(TextView(activity).apply {
-                text = "SKU - ${row.sku}"
-                textSize = 18f
-                maxLines = 1
-                ellipsize = TextUtils.TruncateAt.END
-                setTypeface(typeface, Typeface.BOLD)
-                setTextColor(kit.navy)
-            })
-            addView(TextView(activity).apply {
-                text = row.productName
-                textSize = 12.5f
-                maxLines = 2
-                ellipsize = TextUtils.TruncateAt.END
-                setTypeface(typeface, Typeface.BOLD)
-                setTextColor(kit.text)
-                setPadding(0, kit.dp(2), 0, 0)
-            })
-            val affectedPickerCount = row.affectedPickerCount
-            val recurrence = if (row.previousBatchId != null) {
-                val duration = row.recurrenceMinutes?.let { " · tái phát sau ${formatMinutes(it)}" }.orEmpty()
-                " · Tái phát$duration"
-            } else ""
-            val sla = when (liveState) {
-                "ESCALATED" -> "Quá thời gian"
-                "WARNING" -> "Sắp quá thời gian"
-                "NORMAL" -> "Trong thời gian"
-                else -> "Chưa thiết lập thời gian"
-            }
-            addView(TextView(activity).apply {
-                text = "$affectedPickerCount Picker · chờ $liveWaiting phút · $sla$recurrence\nBáo đầu: ${timestamp(row.firstReportAt)}${if (row.autoSkipEnabled) "\nTự động bỏ qua: " + (row.autoSkipAt?.let { timestamp(it) } ?: "chỉ áp dụng báo mới") else ""}"
-                textSize = 12.5f
-                maxLines = 3
-                setTextColor(when (liveState) { "ESCALATED" -> kit.red; "WARNING" -> kit.orange; else -> kit.muted })
-                setPadding(0, kit.dp(5), 0, kit.dp(2))
-                contentDescription = "Xem $affectedPickerCount Picker báo SKU ${row.sku}"
-                setOnClickListener { showTickets(row) }
-            })
-
-            val actions = LinearLayout(activity).apply {
-                orientation = LinearLayout.HORIZONTAL
-                setPadding(0, kit.dp(8), 0, 0)
-            }
-            actions.addView(Button(activity).apply {
-                text = "CÓ HÀNG"
-                textSize = 14f
-                setTypeface(typeface, Typeface.BOLD)
-                layoutParams = LinearLayout.LayoutParams(0, kit.dp(56), 1f).apply { marginEnd = kit.dp(4) }
-                kit.styleSuccess(this)
-                setOnClickListener { confirmHasStock(row) }
-            })
-            actions.addView(Button(activity).apply {
-                text = "CHO PHÉP BỎ QUA"
-                contentDescription = "Cho phép bỏ qua"
-                textSize = 13.5f
-                setTypeface(typeface, Typeface.BOLD)
-                layoutParams = LinearLayout.LayoutParams(0, kit.dp(56), 1f).apply { marginStart = kit.dp(4) }
-                kit.styleDanger(this)
-                setOnClickListener { confirmSkipImpact(row) }
-            })
-            addView(actions)
-        }
-    }
-
-    private fun recentSignature(row: ReporterRecent): String = listOf(
-        row.batchId,
-        row.version,
-        row.status,
-        row.resolvedAt.orEmpty(),
-        row.correctionDeadlineAt.orEmpty(),
-        row.affectedPickerCount,
-        row.ackTargetCount,
-        row.acknowledgedCount,
-        row.resolutionSource.orEmpty(),
-        row.previousBatchId.orEmpty(),
-    ).joinToString("|")
-
-    private fun recentCard(row: ReporterRecent, state: String): ViewGroup {
-        val colors = when (state) {
-            "HAS_STOCK" -> Triple(kit.stockFill, kit.stockStroke, kit.greenDark)
-            "SKIP_ALLOWED" -> Triple(kit.skipFill, kit.skipStroke, kit.red)
-            else -> Triple(kit.graySoft, kit.line, kit.muted)
-        }
-        return kit.card(colors.first, colors.second, 7).apply {
-            addView(TextView(activity).apply {
-                text = "${row.sku} - ${row.productName}"
-                textSize = 18.5f
-                maxLines = 2
-                ellipsize = TextUtils.TruncateAt.END
-                setTypeface(typeface, Typeface.BOLD)
-                setTextColor(kit.text)
-            })
-            val resultText = when (state) {
-                "HAS_STOCK" -> "Đã có hàng"
-                "SKIP_ALLOWED" -> "Được phép bỏ qua"
-                else -> "Picker thu hồi"
-            }
-            val ackText = if (state == "CLOSED") "" else " · ${row.acknowledgedCount}/${row.ackTargetCount} Picker đã xác nhận"
-            val recurrence = if (row.previousBatchId != null) " · Tái phát" else ""
-            addView(TextView(activity).apply {
-                text = "$resultText · ${row.affectedPickerCount} Picker$ackText$recurrence\n${timestamp(row.resolvedAt)}"
-                textSize = 12.5f
-                setTextColor(colors.third)
-                setPadding(0, kit.dp(5), 0, 0)
-            })
-            if (state == "SKIP_ALLOWED" && millis(row.correctionDeadlineAt) > System.currentTimeMillis()) {
-                addView(Button(activity).apply {
-                    text = "Sửa thành Đã có hàng"
-                    textSize = 11.5f
-                    kit.styleSecondary(this)
-                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, kit.dp(42)).apply {
-                        topMargin = kit.dp(7)
-                    }
-                    setOnClickListener { confirmCorrection(row) }
-                })
-            }
-        }
-    }
-
-    private fun confirmHasStock(row: ReporterBatch) {
-        AlertDialog.Builder(activity)
-            .setTitle("Xác nhận CÓ HÀNG?")
-            .setMessage("${row.sku} - ${row.productName}\n${row.affectedPickerCount} Picker đang chờ.")
-            .setNegativeButton("Huỷ", null)
-            .setPositiveButton("XÁC NHẬN CÓ HÀNG") { _, _ -> resolve(row, "HAS_STOCK", "Có hàng") }
-            .show()
-    }
-
-    private fun confirmSkipImpact(row: ReporterBatch) {
-        val affectedPickerCount = row.affectedPickerCount
-        AlertDialog.Builder(activity)
-            .setTitle("CHO PHÉP BỎ QUA?")
-            .setMessage("${row.sku} - ${row.productName}\n\nThao tác này sẽ cho phép $affectedPickerCount Picker đang bị ảnh hưởng bỏ qua SKU này.")
-            .setNegativeButton("HUỶ", null)
-            .setPositiveButton("XÁC NHẬN BỎ QUA") { _, _ -> resolve(row, "SKIP_ALLOWED", "Cho phép bỏ qua") }
-            .show()
-    }
-
-    private fun resolve(row: ReporterBatch, resolution: String, label: String) {
-        setStatus("Đang cập nhật ${row.sku}...")
-        Thread {
-            try {
-                api.resolveBatch(row.batchId, resolution)
-                activity.runOnUiThread { setStatus("Đã xử lý ${row.sku}: $label."); refresh() }
-            } catch (e: Exception) {
-                activity.runOnUiThread { setStatus(friendlyError(e)); refresh() }
-            }
-        }.start()
-    }
-
-    private fun confirmCorrection(row: ReporterRecent) {
-        AlertDialog.Builder(activity)
-            .setTitle("Sửa thành Đã có hàng?")
-            .setMessage("${row.sku} - ${row.productName}\nLịch sử cho phép bỏ qua ban đầu vẫn được giữ.")
-            .setNegativeButton("Huỷ", null)
-            .setPositiveButton("Xác nhận") { _, _ ->
-                Thread {
-                    try { api.correctBatch(row.batchId); activity.runOnUiThread { setStatus("Đã sửa ${row.sku} thành Đã có hàng."); refresh() } }
-                    catch (e: Exception) { activity.runOnUiThread { setStatus(friendlyError(e)); refresh() } }
-                }.start()
-            }.show()
-    }
-
-    private fun showTickets(row: ReporterBatch) {
-        Thread {
-            try {
-                val tickets = api.getBatchTickets(row.batchId)
-                activity.runOnUiThread {
-                    val text = if (tickets.isEmpty()) "Không có Picker trong batch." else tickets.joinToString("\n\n") {
-                        val ack = if (it.resultEventId != null) if (it.acknowledgedAt != null) " · Đã xác nhận kết quả" else " · Chưa xác nhận kết quả" else ""
-                        "${it.pickerEmployeeCode} - ${it.pickerDisplayName.ifBlank { "Chưa có tên" }}\nBáo ${timestamp(it.reportedAt)} · ${ticketStatus(it.status)}$ack"
-                    }
-                    val scroll = ScrollView(activity).apply {
-                        addView(TextView(activity).apply { this.text = text; textSize = 13f; setPadding(kit.dp(16), kit.dp(8), kit.dp(16), kit.dp(8)) })
-                    }
-                    AlertDialog.Builder(activity).setTitle("${row.sku} · ${tickets.size} Picker").setView(scroll).setPositiveButton("Đóng", null).show()
-                }
-            } catch (e: Exception) { activity.runOnUiThread { setStatus(friendlyError(e)) } }
-        }.start()
+    private fun slaLabel(state: String): String = when (state) {
+        "ESCALATED" -> "Quá thời gian"
+        "WARNING" -> "Sắp quá thời gian"
+        "NORMAL" -> "Trong thời gian"
+        else -> "Chưa thiết lập thời gian"
     }
 
     private fun formatMinutes(value: Int): String = if (value < 60) "${value}m" else "${value / 60}h ${value % 60}m"
 
     private fun timestamp(value: String?): String {
         if (value.isNullOrBlank()) return "—"
-        return try { val instant = Instant.parse(value); "${timeFmt.format(instant)} ${dateFmt.format(instant)}" } catch (_: Exception) { value }
+        return try {
+            val instant = Instant.parse(value)
+            "${timeFmt.format(instant)} ${dateFmt.format(instant)}"
+        } catch (_: Exception) {
+            value
+        }
     }
 
-    private fun millis(value: String?): Long = try { if (value.isNullOrBlank()) 0L else Instant.parse(value).toEpochMilli() } catch (_: Exception) { 0L }
+    private fun millis(value: String?): Long = try {
+        if (value.isNullOrBlank()) 0L else Instant.parse(value).toEpochMilli()
+    } catch (_: Exception) {
+        0L
+    }
 
     private fun ticketStatus(value: String): String = when (value) {
         "OPEN" -> "Đang xử lý"
         "WITHDRAWN" -> "Picker thu hồi"
         "RESOLVED" -> "Đã xử lý"
         else -> value
-    }
-
-    private fun empty(value: String): TextView = TextView(activity).apply {
-        text = value
-        textSize = 12.5f
-        setTextColor(kit.muted)
-        setPadding(kit.dp(12), kit.dp(16), kit.dp(12), kit.dp(16))
-        background = kit.rounded(Color.WHITE, kit.line, 10)
-        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = kit.dp(6) }
     }
 }

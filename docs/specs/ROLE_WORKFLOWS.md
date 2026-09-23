@@ -426,3 +426,15 @@ For Picker shortage reporting:
 4. The shortage action is labeled **Xác nhận** and is ready only with a committed valid SKU plus existing online/mutation readiness.
 5. The report-history list is titled **Danh sách SKU đã báo hết hàng** and uses semantic status backgrounds. Do not expose the configured automatic timeout clock/deadline to Picker.
 6. A− / A+ modifies presentation only. The locally persisted per-user scale must never change SKU values, business timers, API behavior, realtime subscriptions or server quota.
+
+## D110 Android Reporter operational flow
+
+D110 supersedes the older Android-only confirmation wording where it conflicts; Web behavior is unchanged.
+
+- Android Reporter opens directly into a pinned four-tab operational view: **Đang xử lý**, **Đã có hàng**, **Cho phép skip**, **Picker đã thu hồi**.
+- **Đang xử lý** keeps the existing authoritative queue priority/order. Each row shows SKU, elapsed minutes, product, affected Picker count, SLA state and report time.
+- **Đã có hàng** and **Cho phép skip** are direct row actions immediately below the SKU. No intermediate Android confirmation dialog is shown for these two primary resolutions. A batch currently being submitted is locally locked against duplicate taps.
+- Tapping a pending row outside the two primary buttons may still open Picker/batch detail. The existing Skip→Có hàng correction flow and correction window remain unchanged.
+- Warning and overdue presentation is local only: warning = light yellow, overdue = light red. Business authority remains service-side.
+- The Reporter minute clock is derived from `server_now`, `first_report_at`, `warning_at` and `escalation_at`; it advances locally and does not poll the service.
+- Android accepts only PICKER and REPORTER identities. ADMIN/ROOT remain Web-only for application UI until a later Owner decision; ADMIN Agent remains a separate authorized client channel.
