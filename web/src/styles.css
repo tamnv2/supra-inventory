@@ -201,3 +201,38 @@ button.danger:hover { background:#8f1c13; }
 [data-theme="dark"] .reset-card > b { color:#aab5c3; }
 [data-theme="dark"] .notice.success { background:#10291d; border-color:#285a40; color:#a7e4bf; }
 [data-theme="dark"] .notice.danger { background:#311715; border-color:#713a35; color:#fecaca; }
+
+
+/* D112 — operational presets and compact tool channels */
+.compact-date-presets .btn.active,
+.compact-date-presets .btn[aria-pressed="true"] {
+  background: var(--brand, #087443);
+  border-color: var(--brand, #087443);
+  color: #fff;
+  box-shadow: 0 0 0 1px rgba(8, 116, 67, .08);
+}
+.tools-grid-d112 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+.tools-grid-d112 .tool-card {
+  min-height: 100%;
+}
+.tool-channel-ok {
+  color: #087443;
+}
+.tool-guide-d112 {
+  margin-top: 16px;
+}
+.tool-guide-d112 p {
+  margin: 4px 0 0;
+  line-height: 1.55;
+}
+@media (max-width: 900px) {
+  .tools-grid-d112 { grid-template-columns: 1fr; }
+}
+[data-theme="dark"] .tool-channel-ok {
+  color: #64d49a;
+}
