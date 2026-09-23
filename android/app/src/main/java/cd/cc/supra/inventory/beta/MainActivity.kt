@@ -793,6 +793,7 @@ class MainActivity : Activity() {
                 "WITHDRAW_WINDOW_EXPIRED" -> "Đã hết 60 giây cho phép thu hồi."
                 "TICKET_NOT_OPEN" -> "Báo này đã được xử lý hoặc thu hồi."
                 "BATCH_NOT_PENDING" -> "Đợt này đã được người khác xử lý."
+                "CORRECTION_DISABLED" -> "Chức năng đổi Skip thành Đã có hàng đang tắt."
                 "CORRECTION_WINDOW_EXPIRED" -> "Đã hết thời gian cho phép đổi Skip thành Đã có hàng."
                 "BATCH_NOT_CORRECTABLE" -> "Đợt này không còn ở trạng thái cho phép sửa."
                 "RESULT_ACK_NOT_FOUND" -> "Kết quả cần xác nhận không còn hợp lệ cho tài khoản này."
