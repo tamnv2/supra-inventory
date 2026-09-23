@@ -4,10 +4,14 @@ export type AutoSkipMode = "FIRST_REPORT" | "PER_PICKER";
 
 export interface OperationalSlaConfig {
   warning_minutes: number;
+  warning_enabled: boolean;
   escalation_minutes: number;
+  escalation_enabled: boolean;
   auto_skip_minutes: number;
   auto_skip_enabled: boolean;
   auto_skip_mode: AutoSkipMode;
+  skip_to_stock_enabled: boolean;
+  skip_to_stock_minutes: number;
   policy_version?: number;
   effective_at?: string;
   updated_at?: string;
@@ -30,7 +34,6 @@ export interface OperationalDeadlineEffect {
 
 const SLA_CONFIG_KEY = "operational_sla_v1";
 const SYSTEM_USER_ID = "system:deadline";
-const CORRECTION_WINDOW_MS = 5 * 60_000;
 const MAX_DUE_PER_ALARM = 50;
 const MIN_ALARM_DELAY_MS = 1_000;
 
@@ -77,10 +80,16 @@ function parseConfig(value: unknown, updatedAt?: unknown, updatedBy?: unknown): 
 
     return {
       warning_minutes: warning,
+      warning_enabled: parsed.warning_enabled !== false,
       escalation_minutes: escalation,
+      escalation_enabled: parsed.escalation_enabled !== false,
       auto_skip_minutes: autoSkip,
       auto_skip_enabled: parsed.auto_skip_enabled === true,
       auto_skip_mode: mode,
+      skip_to_stock_enabled: parsed.skip_to_stock_enabled !== false,
+      skip_to_stock_minutes: Number.isInteger(Number(parsed.skip_to_stock_minutes)) && Number(parsed.skip_to_stock_minutes) >= 1 && Number(parsed.skip_to_stock_minutes) <= 10_080
+        ? Number(parsed.skip_to_stock_minutes)
+        : 5,
       policy_version: Number(parsed.policy_version || 0) || undefined,
       effective_at: String(parsed.effective_at || "") || undefined,
       updated_at: String(updatedAt || parsed.updated_at || "") || undefined,
@@ -100,18 +109,35 @@ export function readOperationalSlaConfig(state: DurableObjectState): Operational
   return row ? parseConfig(row.value_json, row.updated_at, row.updated_by) : null;
 }
 
+export function correctionDeadlineFromFirstReport(
+  state: DurableObjectState,
+  firstReportAt: string,
+): string | null {
+  const config = readOperationalSlaConfig(state);
+  if (!config?.skip_to_stock_enabled) return null;
+  return deadlineIso(firstReportAt, config.skip_to_stock_minutes);
+}
+
 export function validateOperationalSlaConfig(input: {
   warning_minutes?: unknown;
+  warning_enabled?: unknown;
   escalation_minutes?: unknown;
+  escalation_enabled?: unknown;
   auto_skip_minutes?: unknown;
   auto_skip_enabled?: unknown;
   auto_skip_mode?: unknown;
+  skip_to_stock_enabled?: unknown;
+  skip_to_stock_minutes?: unknown;
 }): { ok: true; value: Omit<OperationalSlaConfig, "updated_at" | "updated_by"> } | { ok: false } {
   const warning = Number(input.warning_minutes);
+  const warningEnabled = input.warning_enabled !== false;
   const escalation = Number(input.escalation_minutes);
+  const escalationEnabled = input.escalation_enabled !== false;
   const autoSkip = Number(input.auto_skip_minutes);
   const enabled = input.auto_skip_enabled === true;
   const mode = String(input.auto_skip_mode || "").toUpperCase();
+  const skipToStockEnabled = input.skip_to_stock_enabled !== false;
+  const skipToStockMinutes = Number(input.skip_to_stock_minutes ?? 5);
 
   if (
     !Number.isInteger(warning) ||
@@ -123,7 +149,10 @@ export function validateOperationalSlaConfig(input: {
     escalation > 2_880 ||
     autoSkip <= escalation ||
     autoSkip > 10_080 ||
-    !["FIRST_REPORT", "PER_PICKER"].includes(mode)
+    !["FIRST_REPORT", "PER_PICKER"].includes(mode) ||
+    !Number.isInteger(skipToStockMinutes) ||
+    skipToStockMinutes < 1 ||
+    skipToStockMinutes > 10_080
   ) {
     return { ok: false };
   }
@@ -132,10 +161,14 @@ export function validateOperationalSlaConfig(input: {
     ok: true,
     value: {
       warning_minutes: warning,
+      warning_enabled: warningEnabled,
       escalation_minutes: escalation,
+      escalation_enabled: escalationEnabled,
       auto_skip_minutes: autoSkip,
       auto_skip_enabled: enabled,
       auto_skip_mode: mode as AutoSkipMode,
+      skip_to_stock_enabled: skipToStockEnabled,
+      skip_to_stock_minutes: skipToStockMinutes,
     },
   };
 }
@@ -358,7 +391,7 @@ function processWarningAndEscalation(
   nowMs: number,
   effects: OperationalDeadlineEffect[],
 ): void {
-  if (Number(config.policy_version || 0) < 2 || !config.effective_at) return;
+  if (Number(config.policy_version || 0) < 2 || !config.effective_at || (!config.warning_enabled && !config.escalation_enabled)) return;
   const now = new Date(nowMs).toISOString();
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT b.batch_id, b.sku, b.product_name, b.first_report_at
@@ -386,8 +419,8 @@ function processWarningAndEscalation(
     const firstMs = Date.parse(String(row.first_report_at || ""));
     if (!batchId || !Number.isFinite(firstMs)) continue;
 
-    const warningDue = firstMs + config.warning_minutes * 60_000 <= nowMs;
-    const escalationDue = firstMs + config.escalation_minutes * 60_000 <= nowMs;
+    const warningDue = config.warning_enabled && firstMs + config.warning_minutes * 60_000 <= nowMs;
+    const escalationDue = config.escalation_enabled && firstMs + config.escalation_minutes * 60_000 <= nowMs;
 
     if (warningDue && !escalationDue && !deadlineAlreadyRecorded(state, batchId, "WARNING")) {
       const eventId = insertReportEvent(
@@ -496,7 +529,11 @@ function processBatchAutoSkip(
       ).toArray();
       if (!targetRows.length) return;
 
-      const correctionDeadline = new Date(nowMs + CORRECTION_WINDOW_MS).toISOString();
+      const firstReportAt = String((first(state.storage.sql.exec<SqlRow>(
+        "SELECT first_report_at FROM report_batches WHERE batch_id = ? LIMIT 1",
+        batchId,
+      ).toArray()) || {}).first_report_at || "");
+      const correctionDeadline = config.skip_to_stock_enabled ? deadlineIso(firstReportAt, config.skip_to_stock_minutes) : null;
       state.storage.sql.exec(
         `UPDATE report_tickets
             SET status = 'RESOLVED',
@@ -644,7 +681,11 @@ function processPerPickerAutoSkip(
       let correctionDeadline: string | null = null;
 
       if (finalForBatch) {
-        correctionDeadline = new Date(nowMs + CORRECTION_WINDOW_MS).toISOString();
+        const firstReportAt = String((first(state.storage.sql.exec<SqlRow>(
+          "SELECT first_report_at FROM report_batches WHERE batch_id = ? LIMIT 1",
+          batchId,
+        ).toArray()) || {}).first_report_at || "");
+        correctionDeadline = config.skip_to_stock_enabled ? deadlineIso(firstReportAt, config.skip_to_stock_minutes) : null;
         state.storage.sql.exec(
           `UPDATE report_tickets
               SET status = 'RESOLVED',
@@ -752,8 +793,8 @@ export async function scheduleNextOperationalAlarm(state: DurableObjectState): P
   const candidates: number[] = [];
 
   if (config && Number(config.policy_version || 0) >= 2 && config.effective_at) {
-    const warningBase = earliestPendingFirstReport(state, "WARNING", config.effective_at);
-    const escalationBase = earliestPendingFirstReport(state, "ESCALATED", config.effective_at);
+    const warningBase = config.warning_enabled ? earliestPendingFirstReport(state, "WARNING", config.effective_at) : null;
+    const escalationBase = config.escalation_enabled ? earliestPendingFirstReport(state, "ESCALATED", config.effective_at) : null;
     const warningAt = warningBase ? deadlineIso(warningBase, config.warning_minutes) : null;
     const escalationAt = escalationBase ? deadlineIso(escalationBase, config.escalation_minutes) : null;
     for (const value of [warningAt, escalationAt]) {
