@@ -103,54 +103,32 @@ namespace SupraInventoryRelayAgent
 
         private static AgentReleaseInfo FindLatestRelease()
         {
-            var raw = RequestText(AgentConfig.GitHubReleasesApi, true, null);
-            var releases = Json.DeserializeObject(raw) as object[];
-            if (releases == null) return null;
+            var raw = RequestText(AgentConfig.AgentUpdateManifestUrl, true, null);
+            var manifest = Json.DeserializeObject(raw) as Dictionary<string, object>;
+            if (manifest == null) throw new InvalidOperationException("Kênh cập nhật Agent trả dữ liệu không hợp lệ.");
 
-            AgentReleaseInfo best = null;
-            foreach (var item in releases)
+            object tagValue;
+            object buildValue;
+            var tag = manifest.TryGetValue("tag", out tagValue) ? Convert.ToString(tagValue) : "";
+            var match = TagPattern.Match(tag ?? "");
+            int build;
+            if (!match.Success || !int.TryParse(match.Groups[1].Value, out build))
+                throw new InvalidOperationException("Kênh cập nhật Agent có tag không hợp lệ.");
+            if (manifest.TryGetValue("build", out buildValue))
             {
-                var release = item as Dictionary<string, object>;
-                if (release == null) continue;
-
-                object draftValue;
-                if (release.TryGetValue("draft", out draftValue) && Convert.ToBoolean(draftValue)) continue;
-
-                object prereleaseValue;
-                if (!release.TryGetValue("prerelease", out prereleaseValue) || !Convert.ToBoolean(prereleaseValue)) continue;
-
-                object tagValue;
-                var tag = release.TryGetValue("tag_name", out tagValue) ? Convert.ToString(tagValue) : "";
-                var match = TagPattern.Match(tag ?? "");
-                int build;
-                if (!match.Success || !int.TryParse(match.Groups[1].Value, out build)) continue;
-                if (best != null && build <= best.Build) continue;
-
-                object assetsValue;
-                var assets = release.TryGetValue("assets", out assetsValue) ? assetsValue as object[] : null;
-                if (assets == null) continue;
-
-                string exeUrl = null;
-                string checksumUrl = null;
-                foreach (var assetItem in assets)
-                {
-                    var asset = assetItem as Dictionary<string, object>;
-                    if (asset == null) continue;
-                    object nameValue;
-                    object urlValue;
-                    var name = asset.TryGetValue("name", out nameValue) ? Convert.ToString(nameValue) : "";
-                    var url = asset.TryGetValue("browser_download_url", out urlValue) ? Convert.ToString(urlValue) : "";
-                    if (name == AgentConfig.AgentExeAsset) exeUrl = url;
-                    if (name == AgentConfig.AgentChecksumAsset) checksumUrl = url;
-                }
-
-                if (string.IsNullOrWhiteSpace(exeUrl) || string.IsNullOrWhiteSpace(checksumUrl)) continue;
-                best = new AgentReleaseInfo { Build = build, Tag = tag, ExeUrl = exeUrl, ChecksumUrl = checksumUrl };
+                int declared;
+                if (!int.TryParse(Convert.ToString(buildValue), out declared) || declared != build)
+                    throw new InvalidOperationException("Kênh cập nhật Agent có build không khớp tag.");
             }
 
-            return best;
+            return new AgentReleaseInfo
+            {
+                Build = build,
+                Tag = tag,
+                ExeUrl = AgentConfig.AgentUpdateExeUrl,
+                ChecksumUrl = AgentConfig.AgentUpdateChecksumUrl
+            };
         }
-
         private static string DownloadText(string url, string tag)
         {
             return RequestText(url, false, tag);
@@ -188,7 +166,7 @@ namespace SupraInventoryRelayAgent
                 request.Timeout = 10000;
                 request.ReadWriteTimeout = 60000;
                 request.UserAgent = "SUPRA-Inventory-Relay-Agent/v" + AgentConfig.AgentBuild;
-                request.Accept = api ? "application/vnd.github+json" : "*/*";
+                request.Accept = api ? "application/json" : "*/*";
 
                 HttpWebResponse response;
                 try
@@ -202,9 +180,9 @@ namespace SupraInventoryRelayAgent
                     {
                         var status = (int)failed.StatusCode;
                         failed.Dispose();
-                        throw new InvalidOperationException("GitHub update HTTP " + status + ".");
+                        throw new InvalidOperationException("Kênh cập nhật HTTP " + status + ".");
                     }
-                    throw new InvalidOperationException("Không kết nối được GitHub update: " + ex.Status + ".", ex);
+                    throw new InvalidOperationException("Không kết nối được kênh cập nhật: " + ex.Status + ".", ex);
                 }
 
                 var statusCode = (int)response.StatusCode;
@@ -213,7 +191,7 @@ namespace SupraInventoryRelayAgent
                     var location = response.Headers["Location"];
                     response.Dispose();
                     if (string.IsNullOrWhiteSpace(location))
-                        throw new InvalidOperationException("GitHub update redirect thiếu Location.");
+                        throw new InvalidOperationException("Kênh cập nhật redirect thiếu Location.");
                     current = new Uri(current, location);
                     continue;
                 }
@@ -221,11 +199,11 @@ namespace SupraInventoryRelayAgent
                 if (statusCode < 200 || statusCode > 299)
                 {
                     response.Dispose();
-                    throw new InvalidOperationException("GitHub update HTTP " + statusCode + ".");
+                    throw new InvalidOperationException("Kênh cập nhật HTTP " + statusCode + ".");
                 }
                 return response;
             }
-            throw new InvalidOperationException("GitHub update redirect vượt giới hạn.");
+            throw new InvalidOperationException("Kênh cập nhật redirect vượt giới hạn.");
         }
 
         private static void ValidateUrl(Uri uri, bool api, string tag, bool redirected)
@@ -236,9 +214,9 @@ namespace SupraInventoryRelayAgent
             if (api)
             {
                 if (redirected ||
-                    !string.Equals(uri.Host, "api.github.com", StringComparison.OrdinalIgnoreCase) ||
-                    !string.Equals(uri.AbsolutePath, "/repos/tamnv2/supra-inventory/releases", StringComparison.Ordinal))
-                    throw new InvalidOperationException("Update API không thuộc repo tin cậy.");
+                    !string.Equals(uri.Host, "inventory-beta.supra.cc.cd", StringComparison.OrdinalIgnoreCase) ||
+                    !string.Equals(uri.AbsolutePath, "/downloads/agent/manifest", StringComparison.Ordinal))
+                    throw new InvalidOperationException("Manifest cập nhật Agent không thuộc dịch vụ tin cậy.");
                 return;
             }
 
@@ -246,10 +224,18 @@ namespace SupraInventoryRelayAgent
             {
                 if (string.IsNullOrWhiteSpace(tag) || !TagPattern.IsMatch(tag))
                     throw new InvalidOperationException("Agent release tag không hợp lệ.");
-                var prefix = "/tamnv2/supra-inventory/releases/download/" + tag + "/";
-                if (!string.Equals(uri.Host, "github.com", StringComparison.OrdinalIgnoreCase) ||
-                    !uri.AbsolutePath.StartsWith(prefix, StringComparison.Ordinal))
-                    throw new InvalidOperationException("Agent asset không thuộc repo tin cậy.");
+                var safePath = string.Equals(uri.AbsolutePath, "/downloads/agent/latest", StringComparison.Ordinal) ||
+                    string.Equals(uri.AbsolutePath, "/downloads/agent/latest.sha256", StringComparison.Ordinal);
+                if (!string.Equals(uri.Host, "inventory-beta.supra.cc.cd", StringComparison.OrdinalIgnoreCase) || !safePath)
+                    throw new InvalidOperationException("Agent asset không thuộc dịch vụ tin cậy.");
+                return;
+            }
+
+            if (string.Equals(uri.Host, "github.com", StringComparison.OrdinalIgnoreCase))
+            {
+                const string prefix = "/tamnv2/supra-inventory/releases/download/inventory-channel/";
+                if (!uri.AbsolutePath.StartsWith(prefix, StringComparison.Ordinal))
+                    throw new InvalidOperationException("Agent asset không thuộc kênh phát hành tin cậy.");
                 return;
             }
 
@@ -259,7 +245,6 @@ namespace SupraInventoryRelayAgent
                 !host.EndsWith(".githubusercontent.com", StringComparison.Ordinal))
                 throw new InvalidOperationException("Agent update redirect không thuộc CDN GitHub tin cậy.");
         }
-
         private static string ParseChecksum(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
