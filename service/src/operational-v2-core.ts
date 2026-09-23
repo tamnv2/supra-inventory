@@ -741,7 +741,10 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
        FROM report_tickets t
        JOIN report_batches b ON b.batch_id = t.batch_id
       WHERE (t.picker_user_id = ? OR t.picker_employee_code = ?)${scopeFilter}
-      ORDER BY t.reported_at DESC
+      ORDER BY CASE
+        WHEN t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL AND b.status = 'PENDING' THEN 0
+        ELSE 1
+      END ASC, t.reported_at DESC
       LIMIT ?`,
     ...args,
   ).toArray();
