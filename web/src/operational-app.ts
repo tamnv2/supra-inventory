@@ -3206,6 +3206,7 @@ async function reconcileActive(): Promise<boolean> {
   try {
     if ((activeSection === "operations" || activeSection === "results") && roleOperate()) await loadOperations();
     else if (activeSection === "picker" && profile?.role === "PICKER") await loadPicker();
+    else if (activeSection === "sla" && roleManage()) await loadSla();
     else return true;
     patchActiveSection(true);
     return true;
@@ -3229,8 +3230,9 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
     roleOperate() &&
     (activeSection === "operations" || activeSection === "results") &&
     (scopes.has("reporter_queue") || scopes.has("reporter_recent"));
+  const slaRelevant = roleManage() && activeSection === "sla" && scopes.has("sla_settings");
 
-  if (!pickerRelevant && !reporterRelevant) return true;
+  if (!pickerRelevant && !reporterRelevant && !slaRelevant) return true;
   return reconcileActive();
 });
 
