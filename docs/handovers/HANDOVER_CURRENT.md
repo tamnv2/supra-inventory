@@ -718,3 +718,14 @@ D112 is technically released on Beta and **OA032 is field-ready**.
 - Latest Beta APK: `beta-vc68`
 - SQLite schema: `11`
 
+## D112 Owner-accepted checkpoint — 2026-09-23
+
+- Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
+- OA032: `PASS_OWNER_CONFIRMED_D112`.
+- Beta: `D112_OWNER_FIELD_ACCEPTED_PASS__LIVE_SOURCE_92AFF2FD__SCHEMA11__SIGNED_BETA_VC68__AGENT_V31`.
+- Runtime implementation source: `92aff2fd7b617af9f8f7706e84a5232b81aab42a`; release checkpoint main: `ec53ed6725a9de1874cef062eb805f05c20cbbab`.
+- Accepted artifacts: signed `beta-vc68` and `relay-agent-v31`; fixed `inventory-channel` remains the version-independent distribution authority.
+- Accepted behavior: D112 Web Tools/presets/logs/performance/realtime notice; Android update/insets/login/footer/confirmation cleanup; Agent v31 window/watchdog/manual suffix/overlay behavior.
+- Current workstream after this acceptance: `READY_FOR_NEXT_OWNER_REQUIREMENT`.
+- Next session: bootstrap from `ops/authority-manifest.json`, preserve D112 as accepted Beta baseline, then apply only the new Owner requirement.
+- Stable remains OWNER-GATED and untouched.
