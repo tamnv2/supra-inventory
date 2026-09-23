@@ -643,3 +643,13 @@ D111 supersedes only the conflicting D110 Reporter interaction/presentation deta
 - Agent is a normal resizable Windows application with standard Minimize/Restore/Maximize controls. Protected exit is a post-auth business guard, not a replacement for normal window chrome.
 - Agent overlay is split conceptually into **Vận hành** and **Tải Agent & cụm**. It prioritizes role/Firestore/WMS/version/business state, Agent process CPU/RAM/uptime, pending/result counters and bounded fleet role counts/update time.
 
+## D113 — Cross-surface reference refinement
+
+- Web login uses the shared project SUPRA icon and a centered identity lockup above a focused sign-in card. Primary identity is **CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN** with **Website nghiệp vụ Inventory** as secondary copy. All visible sign-in copy is Vietnamese.
+- Login controls include a clear password visibility action and **Lưu thông tin đăng nhập**. Password persistence belongs to the browser credential manager only; the Web application never stores plaintext passwords.
+- The **Xử lý báo hàng** navigation item may carry a red/white, compact, capped-count badge aligned to the right of the label. It communicates the current pending queue count and must not duplicate internal implementation state.
+- SLA cards place the enable control in each threshold card and keep policy controls in a separate compact section. Skip-correction control states explicitly that its window is counted from the first shortage report.
+- Web Tools uses balanced App PDA and Agent Windows cards, consistent fact cells, primary/secondary actions, QR block and restrained borders/shadows in both light and dark modes.
+- Android Picker does not render an empty selected-SKU placeholder card. A−, A+, **100%**, Log and Thoát stay compact and touch-safe; action text auto-sizes rather than clipping.
+- Android Reporter action buttons appear after product/time metadata. Result metadata keeps the responder identity on the response-time line where available.
+- Agent adds a visible **Chuyển xuống nền** control without replacing native Windows window controls.
