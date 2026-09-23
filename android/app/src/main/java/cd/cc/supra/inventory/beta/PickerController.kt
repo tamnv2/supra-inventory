@@ -512,7 +512,7 @@ class PickerController(
 
     private fun renderSuggestions(rows: List<SkuItem>) {
         val field = autoInput ?: return
-        if (selected != null || field.text?.toString()?.trim()?.length ?: 0 < 3) {
+        if (selected != null || (field.text?.toString()?.trim()?.length ?: 0) < 3) {
             suggestionRows = emptyList()
             field.dismissDropDown()
             return
