@@ -236,3 +236,11 @@ button.danger:hover { background:#8f1c13; }
 [data-theme="dark"] .tool-channel-ok {
   color: #64d49a;
 }
+
+
+.log-retention-window .btn.active,
+.log-retention-window .btn[aria-pressed="true"] {
+  background: var(--brand, #087443);
+  border-color: var(--brand, #087443);
+  color: #fff;
+}
