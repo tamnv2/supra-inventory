@@ -44,6 +44,7 @@ ANDROID_ALL = "\n".join([ANDROID_MAIN, ANDROID_PICKER, ANDROID_REPORTER])
 
 SERVICE_OPS = read("service/src/operational-v2-core.ts")
 SERVICE_BUSINESS = read("service/src/business-api.ts")
+SERVICE_BUSINESS_CORE = read("service/src/business-core.ts")
 SERVICE_READ = read("service/src/read-api.ts")
 SERVICE_USERS = read("service/src/user-management-core.ts")
 SERVICE_INDEX = read("service/src/index.ts")
@@ -373,6 +374,12 @@ checks = {
     "web_d107_professional_identity": all(token in WEB_APP for token in ['class="login-brand-lockup"', '/app-icon.png', "CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN", "<h1>Website nghiệp vụ Inventory</h1>"]) and all(token not in WEB_APP for token in ['<div class="brand">1291</div>', "<h1>Web nghiệp vụ</h1>", "Đăng nhập bằng tài khoản Báo hàng 1291."]),
     "web_d107_professional_layer": './legacy-transplant/web-professional-v2.css' in WEB_APP and all(token in WEB_PRO for token in ["D107 — professional Web refinement", ".login-brand-lockup", ".business-summary-grid-6", ".pro-trend-chart", ".pro-report-analysis", 'body[data-theme="dark"]']),
     "web_d107_richer_reporting": all(token in WEB_APP for token in ["affectedInPeriod", "trendRows", "pro-trend-chart", "data-dashboard-sku", "reportWarningCount", "reportOverdueCount", "open_ticket_count", "pro-report-analysis"]),
+    "authority_d108_picker_resolution_refinement": "D108" in DECISIONS and "D108" in DESIGN_SPEC,
+    "web_d108_password_recovery_hidden_until_action": '.login-reset-form[hidden]' in WEB_PRO and 'display: none !important' in WEB_PRO,
+    "web_d108_resolution_provenance": all(token in WEB_APP for token in ["resolutionSourceLabel", "resolutionActorLabel", "Tự động bỏ qua quá hạn", "Nguồn xử lý", "Người xử lý"]) and all(token in SERVICE_OPS for token in ["resolution_source", "resolved_by_display_name", "resolved_by_employee_code"]) and all(token in SERVICE_BUSINESS_CORE for token in ["resolution_sources", "resolved_by_display_name", "resolved_by_employee_code"]),
+    "android_d108_numeric_compact_picker": all(token in ANDROID_PICKER_XML for token in ['android:digits="0123456789"', 'android:completionThreshold="3"', 'android:hint="Nhập tối thiểu 3 chữ số SKU"', 'android:text="Xác nhận"', 'android:text="Danh sách SKU đã báo hết hàng"', '@+id/pickerSelectedCard']) and "Quét hoặc nhập SKU" not in ANDROID_PICKER_XML and "SKU tôi đã báo" not in ANDROID_PICKER_XML,
+    "android_d108_selection_and_status_cards": all(token in ANDROID_PICKER for token in ["selected?.sku == value", "dismissDropDown()", "kit.rounded(kit.blueSoft, kit.blue, 9)", "object : BaseAdapter()", "kit.stockFill", "kit.pendingFill", "kit.skipFill", "kit.graySoft", "alpha = if (ready) 1.0f else 0.42f"]) and "Mốc tự động:" not in ANDROID_PICKER and '"Tự động:"' not in ANDROID_PICKER,
+    "android_d108_user_display_scale": all(token in (ANDROID_MAIN + ANDROID_MAIN_XML + ANDROID_PICKER) for token in ["picker_display_scale_v1", "btnTextMinus", "btnTextPlus", "displayScale", "applyDisplayScale"]) and all(token in ANDROID_MAIN for token in ["user:${session.userId}", "coerceIn(0.8f, 1.4f)"]),
     "android_d070_timeout_projection": all(token in (ANDROID_API + ANDROID_PICKER + ANDROID_REPORTER) for token in ["autoSkipDeadlineAt", "autoSkipAllowedAt", "autoSkipAt", "Hệ thống tự động do quá hạn"]),
     "web_online_only_no_outbox": "offline outbox" not in WEB_UI.lower() and "chờ đồng bộ" not in WEB_UI.lower(),
     "android_online_only_no_outbox": "chờ đồng bộ" not in ANDROID_ALL.lower() and "outbox" not in ANDROID_ALL.lower(),
