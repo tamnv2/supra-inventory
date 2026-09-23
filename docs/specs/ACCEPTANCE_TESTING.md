@@ -1032,3 +1032,16 @@ D112 automated/source gates must verify at minimum:
 
 After technical/runtime/release PASS, Owner field review must verify final Web Tools/layout/speed/notice behavior, physical Android insets/update/input UX and Windows Agent resize/overlay/watchdog/manual-search interaction.
 
+## D113 — OA033 field acceptance
+
+Automated gates must verify source/build/security contracts before OA033 becomes field-ready. Field acceptance then covers:
+
+1. Web login visual hierarchy, Vietnamese labels, password show/hide, remembered-login behavior without application plaintext-password storage.
+2. **Xử lý báo hàng** pending-count badge and existing realtime/hidden-tab new-shortage notice.
+3. SLA values remain visible after reload; warning/overdue/auto-Skip switches operate independently; exactly one auto-Skip mode is selected; Skip→Đã có hàng switch/window is enforced from first report time.
+4. Web Công cụ has a clean responsive App PDA / Agent Windows layout and stable latest links remain functional.
+5. Android Picker hides empty selection copy, keeps Xác nhận readable at scale, and **100%** resets display size.
+6. Android login shows **Tài khoản / Mã nhân viên**, aligned password text, friendly invalid-credential copy and exact developer footer.
+7. Android Reporter actions sit below timing; completed human resolutions show the responder after **Invent phản hồi lúc**.
+8. Agent v32 exposes **Chuyển xuống nền** while native Minimize/Restore/Maximize/X and D112 watchdog semantics still work.
+9. D097/D104/D105 quota/Firestore/WMS/no-offline guards remain PASS; Stable is untouched.

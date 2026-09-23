@@ -111,7 +111,7 @@ checks = {
         ".app-footer",
         "max-width: none !important",
     ]),
-    "web_d058_credit": "Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291" in WEB_APP,
+    "web_d058_credit": "Phát triển hệ thống · tamnv2 | Pick Pack 1291" in WEB_APP,
     "web_d059_corporate_header": all(token in WEB_APP for token in [
         "CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN",
         "Website nghiệp vụ Inventory",
@@ -288,7 +288,7 @@ checks = {
 
     "android_adaptive_launcher_icon": 'android:icon="@drawable/app_icon_d089"' in ANDROID_MANIFEST and 'android:roundIcon="@drawable/app_icon_d089"' in ANDROID_MANIFEST and ANDROID_APPROVED_ICON_EXISTS,
     "d089_shared_approved_icon": WEB_APPROVED_ICON_EXISTS and '/app-icon.png' in WEB_APP and '/app-icon.png' in WEB_INDEX,
-    "android_legacy_login_xml": all(token in ANDROID_LOGIN_XML for token in ['76dp', '23sp', '@+id/etEmployeeCode', '@+id/etPassword', '@+id/btnLogin']),
+    "android_legacy_login_xml": all(token in ANDROID_LOGIN_XML for token in ['76dp', '18sp', 'Tài khoản / Mã nhân viên', '@+id/etEmployeeCode', '@+id/etPassword', '@+id/btnLogin']),
     "android_legacy_main_shell_xml": all(token in ANDROID_MAIN_XML for token in ['android:layout_height="wrap_content"', 'android:minHeight="56dp"', '@+id/contentContainer', '@+id/btnTextMinus', '@+id/btnTextPlus', '@+id/btnLog', '@+id/btnLogout', '@+id/tvAppVersion']),
     "android_d074_picker_dense_split_xml": all(token in ANDROID_PICKER_XML for token in ['@+id/acSkuSearch', '@+id/btnReportShortage', '@+id/listMyReports', '@+id/panelShortage', '@+id/panelConfirmOrder', '@+id/tabShortage', '@+id/tabConfirmOrder', '@+id/etRelayPicklistSuffix', 'android:maxLength="4"', 'android:layout_height="48dp"']),
     "android_d110_reporter_pinned_tabs_xml": all(token in ANDROID_INVENT_XML for token in ['@+id/tabReporterPending', '@+id/tabReporterHasStock', '@+id/tabReporterSkip', '@+id/tabReporterWithdrawn', '@+id/badgeReporterPending', '@+id/listIssues']) and '@+id/btnRefreshIssues' not in ANDROID_INVENT_XML,
@@ -314,7 +314,7 @@ checks = {
     "android_picker_ack": "XÁC NHẬN ĐÃ NHẬN" in ANDROID_PICKER and "acknowledgeResult" in ANDROID_API,
     "android_d111_reporter_confirmed_actions": all(token in ANDROID_REPORTER for token in ["confirmResolution(row, \"HAS_STOCK\"", "confirmResolution(row, \"SKIP_ALLOWED\"", "processingBatchIds", "confirmingBatchIds", '.setPositiveButton("Xác nhận")', "scheduleMinuteTicker"]),
     "android_d110_role_gate": 'channel === "ANDROID" && (user.base_role === "ADMIN" || user.base_role === "ROOT")' in SERVICE_INDEX and "CLIENT_ROLE_NOT_ALLOWED" in SERVICE_INDEX,
-    "android_d110_branding": "@drawable/app_icon_d089" in ANDROID_LOGIN_XML and "@drawable/app_icon_d089" in ANDROID_MAIN_XML and "Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291" in ANDROID_LOGIN_XML,
+    "android_d110_branding": "@drawable/app_icon_d089" in ANDROID_LOGIN_XML and "@drawable/app_icon_d089" in ANDROID_MAIN_XML and "Phát triển hệ thống · tamnv2 | Pick Pack 1291" in ANDROID_LOGIN_XML,
     "android_realtime_delta": "/api/realtime/delta" in ANDROID_API and "appliedSeq" in ANDROID_RT and "streamEpoch" in ANDROID_RT and "recoverDelta" in ANDROID_RT,
     "android_update_gate_preserved": all(token in ANDROID_MAIN for token in ["UpdateGate.CHECKING", "UpdateGate.REQUIRED", "UpdateGate.FAILED", "BuildConfig.UPDATE_RELEASE_API", "loginButton?.isEnabled = updateGate == UpdateGate.CURRENT"]),
 

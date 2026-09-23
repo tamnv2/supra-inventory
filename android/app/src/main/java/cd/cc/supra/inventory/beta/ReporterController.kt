@@ -315,11 +315,18 @@ class ReporterController(
             root.background = kit.rounded(colors.first, colors.second, 7)
             val reportTime = timeOnly(row.firstReportAt)
             val responseTime = row.resolvedAt?.let(::timeOnly)
+            val responder = when {
+                row.status == "CLOSED" -> ""
+                row.resolutionSource == "SYSTEM_TIMEOUT" -> "Hệ thống"
+                !row.resolvedByDisplayName.isNullOrBlank() -> row.resolvedByDisplayName
+                !row.resolvedByEmployeeCode.isNullOrBlank() -> row.resolvedByEmployeeCode
+                else -> ""
+            }
             view.findViewById<TextView>(R.id.tvReporterMeta).apply {
                 text = if (responseTime.isNullOrBlank()) {
                     "Báo lúc: $reportTime"
                 } else {
-                    "Báo lúc: $reportTime\nInvent phản hồi lúc: $responseTime"
+                    "Báo lúc: $reportTime\nInvent phản hồi lúc: $responseTime" + if (responder.isBlank()) "" else " bởi $responder"
                 }
                 setTextColor(colors.third)
             }

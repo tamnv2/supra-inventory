@@ -195,7 +195,10 @@
       "firebase_rtdb_rules_deploy": "D087_PR_GATE_PASS_RUN_35495453228__MAIN_SOURCE_MERGED",
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D112_PASS_RUN_35854451020__SOURCE_COMMIT_EXACT__SCHEMA11_11__AGENT_MIGRATION_0_0__OPERATIONAL5_5",
-      "relay_agent_release_target": "relay-agent-v31__RELEASED"
+      "relay_agent_release_target": "relay-agent-v31__RELEASED",
+      "next_signed_beta_release_target": "NEXT_MONOTONIC_AFTER_BETA_VC68",
+      "next_relay_agent_release_target": "relay-agent-v32",
+      "d113_source_status": "SOURCE_IMPLEMENTED__PR_GATES_PENDING__D112_LIVE_BASELINE_PRESERVED"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -366,7 +369,7 @@
     "web": "D112_OWNER_ACCEPTED_PASS__TOOLS_PRESETS_REPORT_NOTICE_OPERATIONAL_LAYOUT",
     "android": "D112_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC68__INSETS_LOGIN_FOOTER_CONFIRM_CLEANUP",
     "scope_guard": "D112_OWNER_ACCEPTED__MAIN_UI_PASS_35854450769__STABLE_OWNER_GATED",
-    "source_candidate": "D112_ACCEPTED_BETA_BASELINE",
+    "source_candidate": "D113_REFERENCE_LOGIN_SLA_ANDROID_AGENT_REFINEMENT__PR_GATES_PENDING",
     "navigation_proposal": "docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md",
     "navigation_constraint": {
       "admin_root_large_groups": 3,
@@ -389,7 +392,7 @@
       "personal_account_action": "PINNED_IDENTITY_CONTROL_NOT_SIDEBAR",
       "implementation": "D088_SYSTEM_LOGS_PLUS_TOOLS__D072_QUOTA_STATUS_REMAINS_EXCLUDED"
     },
-    "implementation": "D112_WEB_TOOLS_PRESETS_REPORT_NOTICE__ANDROID_DEVICE_UX__AGENT_V31_OPERATIONAL_UI_OWNER_ACCEPTED"
+    "implementation": "D113_SOURCE__REFERENCE_LOGIN_QUEUE_BADGE_SLA_SWITCHES__ANDROID_COMPACT_100_RESET_RESPONDER__AGENT_V32_BACKGROUND"
   },
   "quota_resilience": {
     "reference_date": "2026-09-17",
@@ -804,7 +807,9 @@
     "watchdog": "D112_USERMODE_ARM_AFTER_ADMIN__PROTECTED_EXIT__PLANNED_EXIT_UPDATE_SHUTDOWN_SUPPRESS__PRELOGIN_NORMAL_CLOSE",
     "inventory_channel_release_id": 394587029,
     "inventory_channel_manifest_asset_id": 583630767,
-    "inventory_channel_exe_asset_id": 583630766
+    "inventory_channel_exe_asset_id": 583630766,
+    "next_target_release": "relay-agent-v32",
+    "next_source_status": "D113_EXPLICIT_BACKGROUND_ACTION__SOURCE_IMPLEMENTED_PR_GATES_PENDING"
   },
   "distribution_channel": {
     "environment": "beta",

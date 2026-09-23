@@ -75,7 +75,7 @@ jobs:
           $firestoreRules = Get-Content firebase/firestore.rules -Raw
           $firestoreIndexes = Get-Content firebase/firestore.indexes.json -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*31\s*;') { throw "D112 requires Agent v31." }
+          if ($config -notmatch 'AgentBuild\s*=\s*32\s*;') { throw "D113 requires Agent v32." }
           if ($firestoreLeader -notmatch 'FailoverAfterMs\s*=\s*10000' -or $firestoreLeader -notmatch 'StandbyTakeoverAgeMs\s*=\s*10000') { throw "D097 request-driven 10-second failover guard failed." }
           if ($firestoreLeader -match 'HeartbeatIntervalMs\s*=\s*4000') { throw "D097 forbids 4-second Firestore lease heartbeat." }
           foreach ($marker in @('PRIMARY','STANDBY','FROZEN','PromoteStandbyForTakeover','replacement-standby','PresenceHeartbeatIntervalMs = 900000','StandbyRoleRefreshMs = 60000','FrozenRoleRefreshMs = 300000','StartupConvergenceIntervalMs = 5000')) {
@@ -94,7 +94,7 @@ jobs:
           if ($overlay -notmatch 'WsExTransparent' -or $overlay -notmatch 'SetExtendedStyle' -or $overlay -notmatch 'WmNcHitTest') { throw "D086 locked overlay must use true cross-process click-through." }
           if ($overlay -notmatch '_settings != null' -or $overlay -notmatch 'UpdateMetrics') { throw "D087 overlay null-safe/two-layer guard failed." }
           if ($program -notmatch 'WriteAudit' -or $program -notmatch 'pda-agent-audit\.log' -or $program -notmatch 'technical-ai\.log' -or $program -notmatch 'MaxLogBytes' -or $program -notmatch 'picklist_last5') { throw "D101 bounded split sanitized logging guard failed." }
-          if ($program -notmatch 'FormBorderStyle\.Sizable' -or $program -notmatch 'MaximizeBox\s*=\s*true' -or $program -notmatch 'MinimizeBox\s*=\s*true' -or $program -notmatch 'ShowInTaskbar\s*=\s*true') { throw "D112 normal Windows minimize/restore/maximize guard failed." }
+          if ($program -notmatch 'FormBorderStyle\.Sizable' -or $program -notmatch 'MaximizeBox\s*=\s*true' -or $program -notmatch 'MinimizeBox\s*=\s*true' -or $program -notmatch 'ShowInTaskbar\s*=\s*true' -or $program -notmatch 'Chuyển xuống nền') { throw "D113 normal Windows controls/background action guard failed." }
           if ($program -notmatch 'MainInstanceMutexName' -or $program -notmatch 'EventWaitHandle\.OpenExisting' -or $program -notmatch 'ListenForSecondLaunch') { throw "D089 single-instance activation guard failed." }
           if ($program -notmatch 'identitytoolkit\.googleapis\.com/v1/accounts:signInWithPassword' -or $program -notmatch 'Chỉ tài khoản ADMIN thực đã đồng bộ Firebase' -or $program -notmatch 'FirestoreAgentSessionGate' -or $config -notmatch 'Agent\.Auto\.Confirm\.Pick\.Pack\.exe') { throw "D098 direct Firebase ADMIN Agent identity/channel guard failed." }
           if ($overlay -notmatch 'SetOverlaySize' -or $overlay -notmatch 'BackgroundArgb' -or $overlay -notmatch 'TextArgb' -or $overlay -notmatch 'HtBottomRight') { throw "D088 overlay resize/color persistence guard failed." }

@@ -1511,6 +1511,41 @@
       "field_result_date": "2026-09-23",
       "owner_evidence": "Owner explicitly confirmed 'd112 ok, Web + beta-vc68 + Agent v31 pass' on 2026-09-23 after field review.",
       "closed": true
+    },
+    {
+      "id": "OA033",
+      "status": "PENDING_D113_TECHNICAL_RUNTIME_RELEASE",
+      "title": "Field-accept D113 Web login/SLA, Android compact UX and Agent v32 background action",
+      "resource_key": "worker-beta",
+      "provider": "Beta Worker + Web + next signed Beta Android + relay-agent-v32",
+      "reason_owner_only": "Automated gates can verify source/build/security/state contracts; final browser password-manager behavior, PDA density/text fit, notification presentation and Windows background interaction require Owner field review.",
+      "prerequisites": {
+        "d112_owner_acceptance": "PASS",
+        "d113_source": "IMPLEMENTED_ON_BRANCH",
+        "branch": "feat/d113-web-android-agent-refinements",
+        "technical_runtime_release": "PENDING",
+        "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC68",
+        "target_agent_release": "relay-agent-v32",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Web login: verify company/product layout, Tài khoản, password Hiện/Ẩn and Lưu thông tin đăng nhập; logout/login again and confirm browser-managed remembered credential works where browser policy permits.",
+        "Web Xử lý báo hàng: create a controlled new shortage and verify red count badge plus foreground toast/hidden-tab browser notice without manual refresh.",
+        "Web Thời gian xử lý: reload repeatedly, verify saved numbers always load; toggle Cảnh báo/Quá hạn/Tự động bỏ qua independently; verify exactly one auto mode; configure Skip→Đã có hàng window and validate cutoff is counted from first shortage report.",
+        "Web Công cụ: verify clean App PDA / Agent Windows layout and stable latest download/copy/QR actions.",
+        "Android: verify no empty SKU placeholder, Xác nhận stays readable under A+/A−, 100% reset, login label/password alignment/friendly invalid credentials and exact footer.",
+        "Reporter Android: verify action buttons below timing and completed human result shows Invent phản hồi lúc HH:mm bởi <người xử lý>.",
+        "Agent v32: verify normal window controls and explicit Chuyển xuống nền hides to tray/background without stopping Agent."
+      ],
+      "pass_criteria": [
+        "All D113 Web/App/Agent UX behaves as specified while D112 functionality remains intact.",
+        "SLA enable switches and Skip-correction deadline are server authoritative; no blank-setting false state.",
+        "No plaintext password is stored by application code.",
+        "No new polling cadence or Firestore quota regression is introduced.",
+        "Stable remains untouched."
+      ],
+      "safety": "Beta only. No secrets/passwords/tokens/WMS session material in source or logs. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait until D113 technical/runtime/release PASS, then perform the shortest OA033 field test and reply PASS or itemized defects."
     }
   ]
 }

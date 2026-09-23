@@ -813,3 +813,20 @@ Owner explicitly confirmed live Beta Web, signed Android `beta-vc68`, and Agent 
 The accepted D112 Beta baseline includes the version-independent App/Agent distribution channel, simplified Web Tools, exact date-preset state, 30/60/90-day management log views, non-blocking dashboard/report loading, realtime shortage notice, Android insets/update/password/footer/confirmation cleanup, and Agent v31 normal window/protected watchdog/manual exact-suffix workflow/operational overlay. D097/D104/D105 quota, Firestore/WMS, no-offline and Stable guards remain unchanged.
 
 Future work starts from this accepted D112 Beta baseline unless the Owner explicitly supersedes it. Stable remains OWNER-GATED and untouched.
+
+## D113 — Reference-login, SLA controls, Android compact UX and Agent background action — 2026-09-24
+
+Owner approved the uploaded cross-surface refinement after D112 Owner field PASS.
+
+1. Web login keeps SUPRA Inventory visual identity but adopts the approved reference composition: shared SUPRA icon, centered company identity **CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN**, subtitle **Website nghiệp vụ Inventory**, Vietnamese labels, account/password card hierarchy and password show/hide control.
+2. **Lưu thông tin đăng nhập** may use browser-managed credential storage/autofill only. The application may remember the username locally but must never persist a plaintext password, token or credential secret in localStorage, IndexedDB, source or logs.
+3. Web **Xử lý báo hàng** shows the authoritative current pending count as a compact red/white notification badge. Existing D112 `REPORT_CREATED` realtime toast and hidden-tab Browser Notification behavior remains; D113 adds no polling.
+4. **Thời gian xử lý** loads authoritative SLA configuration independently from noncritical insight/statistic calls so saved values cannot appear blank merely because secondary metrics are slow/unavailable.
+5. Warning, overdue/escalation and automatic Skip each have an independent enable checkbox. The three numeric thresholds remain strictly ordered for safe re-enable. **Cách tính mốc tự động** must always resolve to exactly one of `FIRST_REPORT` or `PER_PICKER`.
+6. A new global **Skip → Đã có hàng** switch and configurable minute window controls whether Invent may correct a `SKIP_ALLOWED` result to `HAS_STOCK`. The deadline is server-authoritative and is calculated from the batch's **first shortage report time**, not from the moment Skip is pressed. Legacy configuration defaults to enabled/5 minutes to preserve previous behavior until Admin/Root changes it.
+7. Web **Công cụ** remains the D112 two-card App PDA / Agent Windows model but receives a cleaner professional card/fact/action/QR layout without internal AI/Owner wording.
+8. Android Picker hides the redundant empty selected-SKU card, keeps **Xác nhận** readable under display scaling and adds a one-tap **100%** reset beside A−/A+.
+9. Android login uses the same company/product hierarchy as Web, labels the identifier **Tài khoản / Mã nhân viên**, keeps password text vertically aligned and returns friendly Vietnamese credential errors instead of raw `INVALID_...` codes. Developer footer is exactly **Phát triển hệ thống · tamnv2 | Pick Pack 1291**.
+10. Android Reporter places **Đã có hàng / Cho phép skip** below product/time information. Resolved history shows **Invent phản hồi lúc HH:mm bởi <người xử lý>** when a human resolver is known; automatic timeout may show **Hệ thống**.
+11. Windows Agent keeps D112 native Minimize/Restore/Maximize/X behavior and adds an explicit **Chuyển xuống nền** action that uses the existing tray/background path.
+12. D113 is Beta-only. Target artifacts are the next monotonic signed Android after `beta-vc68` and `relay-agent-v32`. D097/D104/D105 quota, Firestore/WMS batching/idempotency, no-offline and all Stable OWNER-GATED invariants remain unchanged.

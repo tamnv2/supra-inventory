@@ -1,4 +1,5 @@
 import {
+  correctionDeadlineFromFirstReport,
   initializeSlaAutomationSchema,
   readOperationalSlaConfig,
   scheduleNextOperationalAlarm,
@@ -168,8 +169,8 @@ function slaState(firstReportAt: string, config: SlaConfig | null, nowMs = Date.
   const firstMs = Date.parse(firstReportAt);
   const waitingMinutes = Number.isFinite(firstMs) ? Math.max(0, Math.floor((nowMs - firstMs) / 60_000)) : 0;
   if (!config) return { state: "UNCONFIGURED", waiting_minutes: waitingMinutes };
-  if (waitingMinutes >= config.escalation_minutes) return { state: "ESCALATED", waiting_minutes: waitingMinutes };
-  if (waitingMinutes >= config.warning_minutes) return { state: "WARNING", waiting_minutes: waitingMinutes };
+  if (config.escalation_enabled && waitingMinutes >= config.escalation_minutes) return { state: "ESCALATED", waiting_minutes: waitingMinutes };
+  if (config.warning_enabled && waitingMinutes >= config.warning_minutes) return { state: "WARNING", waiting_minutes: waitingMinutes };
   return { state: "NORMAL", waiting_minutes: waitingMinutes };
 }
 
@@ -177,8 +178,8 @@ function slaDeadlines(firstReportAt: string, config: SlaConfig | null): { warnin
   const firstMs = Date.parse(firstReportAt);
   if (!config || !Number.isFinite(firstMs)) return { warning_at: null, escalation_at: null };
   return {
-    warning_at: new Date(firstMs + config.warning_minutes * 60_000).toISOString(),
-    escalation_at: new Date(firstMs + config.escalation_minutes * 60_000).toISOString(),
+    warning_at: config.warning_enabled ? new Date(firstMs + config.warning_minutes * 60_000).toISOString() : null,
+    escalation_at: config.escalation_enabled ? new Date(firstMs + config.escalation_minutes * 60_000).toISOString() : null,
   };
 }
 
@@ -628,6 +629,12 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
       LIMIT ?`,
     ...rowArgs,
   ).toArray();
+  const projectedRows = rows.map((row) => ({
+    ...row,
+    correction_deadline_at: String(row.status || "") === "SKIP_ALLOWED"
+      ? correctionDeadlineFromFirstReport(state, String(row.first_report_at || ""))
+      : null,
+  }));
   const totalsArgs: SqlStorageValue[] = appTodayOpen ? [todayStart] : [];
   const totalsRow = first(
     state.storage.sql.exec<SqlRow>(
@@ -641,8 +648,8 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
     ).toArray(),
   ) || {};
   return json({
-    items: rows,
-    count: rows.length,
+    items: projectedRows,
+    count: projectedRows.length,
     totals: {
       has_stock: Number(totalsRow.has_stock || 0),
       skip_allowed: Number(totalsRow.skip_allowed || 0),
@@ -897,10 +904,14 @@ function getSla(state: DurableObjectState): Response {
 async function putSla(state: DurableObjectState, request: Request): Promise<Response> {
   const body = (await request.json()) as {
     warning_minutes?: unknown;
+    warning_enabled?: unknown;
     escalation_minutes?: unknown;
+    escalation_enabled?: unknown;
     auto_skip_minutes?: unknown;
     auto_skip_enabled?: unknown;
     auto_skip_mode?: unknown;
+    skip_to_stock_enabled?: unknown;
+    skip_to_stock_minutes?: unknown;
     actor?: Actor;
   };
   const actor = body.actor;
@@ -910,10 +921,14 @@ async function putSla(state: DurableObjectState, request: Request): Promise<Resp
       error: "INVALID_SLA_CONFIG",
       rules: {
         warning_minutes: "1..1440",
+        warning_enabled: "boolean; default true",
         escalation_minutes: "> warning and <= 2880",
+        escalation_enabled: "boolean; default true",
         auto_skip_minutes: "> escalation and <= 10080",
         auto_skip_enabled: "boolean",
         auto_skip_mode: "FIRST_REPORT|PER_PICKER",
+        skip_to_stock_enabled: "boolean; default true",
+        skip_to_stock_minutes: "1..10080; counted from first report",
       },
     }, 400);
   }
@@ -922,7 +937,7 @@ async function putSla(state: DurableObjectState, request: Request): Promise<Resp
   const at = new Date().toISOString();
   const value: OperationalSlaConfig = {
     ...validated.value,
-    policy_version: 2,
+    policy_version: 3,
     effective_at: Number(previous?.policy_version || 0) >= 2 && previous?.effective_at ? previous.effective_at : at,
   };
   state.storage.transactionSync(() => {

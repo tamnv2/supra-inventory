@@ -479,6 +479,7 @@ namespace SupraInventoryRelayAgent
         private readonly Label _agentSystemInfo = new Label();
         private readonly Label _updateStatus = new Label();
         private readonly Button _manualUpdate = new Button();
+        private readonly Button _background = new Button();
         private readonly Panel _afterHoursPanel = new Panel();
         private readonly Label _afterHoursStatus = new Label();
         private readonly Button _afterHoursContinue = new Button();
@@ -896,6 +897,12 @@ namespace SupraInventoryRelayAgent
             _manualUpdate.Text = "Kiểm tra cập nhật";
             _manualUpdate.Click += (s, e) => Task.Run(() => TryAutoUpdate(false));
             agentCard.Controls.Add(_manualUpdate);
+
+            _background.SetBounds(886, 80, 120, 31);
+            _background.Text = "Chuyển xuống nền";
+            _background.Click += (s, e) => MinimizeToTray();
+            _background.TabStop = false;
+            agentCard.Controls.Add(_background);
 
             _identity.SetBounds(16, 118, 310, 20);
             _relay.SetBounds(336, 118, 310, 20);

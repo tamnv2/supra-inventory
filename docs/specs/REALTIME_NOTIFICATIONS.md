@@ -399,3 +399,6 @@ D111 changes only the row set returned by existing Android reconciliation reques
 - Same-SKU events are locally coalesced within a short bounded window to avoid notification spam. This is presentation-only and never changes report/batch grouping.
 - D112 adds no polling. Authoritative reconciliation remains the existing sequenced realtime/delta path.
 
+## D113 — Pending-count notification badge
+
+D113 keeps D112 `REPORT_CREATED` realtime delivery unchanged and adds a local Web navigation badge for **Xử lý báo hàng** using the already loaded authoritative Reporter queue. New reports continue to produce the existing foreground toast and, when an authorized tab is hidden and browser permission is granted, a Browser Notification. The badge is updated during existing queue reconciliation; D113 introduces no polling loop, faster provider cadence or additional Firestore reads/writes.

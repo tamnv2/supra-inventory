@@ -95,7 +95,7 @@ import {
 } from "./operational-api";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
-const PRODUCT_CREDIT = "Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291";
+const PRODUCT_CREDIT = "Phát triển hệ thống · tamnv2 | Pick Pack 1291";
 const SKU_CHUNK_SIZE = 1000;
 
 type Section =
@@ -129,6 +129,7 @@ const SKIP_DELAY_KEY_PREFIX = "supra_inventory_skip_delay_v1";
 const SKIP_CONFIRM_DELAY_MS = 5_000;
 const DEADLINE_NOTICE_KEY_PREFIX = "supra_inventory_deadline_notices_v1";
 const DASHBOARD_RANGE_KEY_PREFIX = "supra_inventory_dashboard_range_v1";
+const REMEMBER_LOGIN_KEY = "supra_inventory_login_username_v1";
 
 function loadUiZoom(): number {
   const stored = Number(localStorage.getItem(UI_ZOOM_KEY) || 100);
@@ -868,6 +869,7 @@ function syncNavigationSelection(): void {
     if (selected) node.setAttribute("aria-current", "page");
     else node.removeAttribute("aria-current");
   });
+  syncOperationsNavBadge();
 }
 
 function navigateToSection(next: Section, historyMode: SectionHistoryMode = "push"): void {
@@ -940,7 +942,15 @@ function navIcon(key: string): string {
 }
 
 function navButton(section: Section, label: string): string {
-  return `<button class="nav-button ${activeSection === section ? "active" : ""}" data-section="${section}"${activeSection === section ? ' aria-current="page"' : ""}>${navIcon(section)}<span>${esc(label)}</span></button>`;
+  const noticeCount = section === "operations" && roleOperate() ? queueRows.length : null;
+  const notice = noticeCount == null ? "" : `<b class="nav-notice-badge" data-operations-nav-count>${noticeCount > 99 ? "99+" : noticeCount}</b>`;
+  return `<button class="nav-button ${activeSection === section ? "active" : ""}" data-section="${section}"${activeSection === section ? ' aria-current="page"' : ""}>${navIcon(section)}<span>${esc(label)}</span>${notice}</button>`;
+}
+
+function syncOperationsNavBadge(): void {
+  const node = document.querySelector<HTMLElement>("[data-operations-nav-count]");
+  if (!node) return;
+  node.textContent = queueRows.length > 99 ? "99+" : String(queueRows.length);
 }
 
 function navGroup(title: string, rows: Array<[Section, string]>): string {
@@ -1004,30 +1014,35 @@ function renderLogin(): void {
     });
     return;
   }
-  app.innerHTML = `<main class="login-shell"><section class="login-card">
-    <div class="login-brand-lockup"><img class="login-app-icon" src="/app-icon.png" alt="" /><div class="login-brand-copy"><p class="login-company">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p><h1>Website nghiệp vụ Inventory</h1></div></div>
-    ${!firebaseReady ? `<div class="message" data-type="error">Hệ thống đăng nhập chưa sẵn sàng. Vui lòng thử lại sau.</div>` : ""}
-    <form id="login-form">
-      <label>Mã nhân viên<input name="username" required autocomplete="username" placeholder="Nhập mã nhân viên" /></label>
-      <label>Mật khẩu<input name="password" type="password" required autocomplete="current-password" placeholder="Nhập mật khẩu" /></label>
-      <button class="primary wide" ${busy ? "disabled" : ""}>${busy ? "Đang đăng nhập..." : "ĐĂNG NHẬP"}</button>
-    </form>
-    <div class="login-actions"><button id="forgot-password" type="button" class="login-link">Lấy lại mật khẩu</button></div>
-    <form id="reset-password-form" class="login-reset-form" hidden>
-      <p class="muted">Chỉ áp dụng cho ROOT và ADMIN có email đã đăng ký.</p>
-      <label>Tài khoản<input name="username" required autocomplete="username" placeholder="Mã nhân viên / tài khoản" /></label>
-      <label>Email đăng ký<input name="email" type="email" required autocomplete="email" placeholder="name@company.com" /></label>
-      <button class="secondary wide">GỬI LINK ĐẶT LẠI MẬT KHẨU</button>
-      <div id="reset-password-result" class="tiny muted"></div>
-    </form>
-    <p class="security">${PRODUCT_CREDIT}</p>
-  </section></main>`;
+  const rememberedUsername = localStorage.getItem(REMEMBER_LOGIN_KEY) || "";
+  app.innerHTML = `<main class="login-shell"><div class="login-stage">
+    <div class="login-brand-lockup login-brand-reference"><img class="login-app-icon" src="/app-icon.png" alt="" /><div class="login-brand-copy"><p class="login-company">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p><h1>Website nghiệp vụ Inventory</h1></div></div>
+    <section class="login-card">
+      <div class="login-card-heading"><span></span><div><h2>Đăng nhập tài khoản</h2><p>Nhập thông tin để truy cập hệ thống</p></div></div>
+      ${!firebaseReady ? `<div class="message" data-type="error">Hệ thống đăng nhập chưa sẵn sàng. Vui lòng thử lại sau.</div>` : ""}
+      <form id="login-form">
+        <label>Tài khoản<input name="username" required autocomplete="username" placeholder="Nhập tài khoản" value="${esc(rememberedUsername)}" /></label>
+        <label>Mật khẩu<div class="password-input-wrap"><input id="login-password" name="password" type="password" required autocomplete="current-password" placeholder="Nhập mật khẩu" /><button id="toggle-login-password" class="password-eye" type="button" aria-label="Hiện mật khẩu" aria-pressed="false">Hiện</button></div></label>
+        <div class="login-options"><label class="remember-login"><input name="rememberLogin" type="checkbox" ${rememberedUsername ? "checked" : ""}/><span>Lưu thông tin đăng nhập</span></label><button id="forgot-password" type="button" class="login-link">Lấy lại mật khẩu</button></div>
+        <button class="primary wide" ${busy ? "disabled" : ""}>${busy ? "Đang đăng nhập..." : "ĐĂNG NHẬP"}</button>
+      </form>
+      <form id="reset-password-form" class="login-reset-form" hidden>
+        <p class="muted">Chỉ áp dụng cho ROOT và ADMIN có email đã đăng ký.</p>
+        <label>Tài khoản<input name="username" required autocomplete="username" placeholder="Mã nhân viên / tài khoản" /></label>
+        <label>Email đăng ký<input name="email" type="email" required autocomplete="email" placeholder="name@company.com" /></label>
+        <button class="secondary wide">GỬI LINK ĐẶT LẠI MẬT KHẨU</button>
+        <div id="reset-password-result" class="tiny muted"></div>
+      </form>
+      <p class="security">${PRODUCT_CREDIT}</p>
+    </section>
+  </div></main>`;
 
   document.querySelector<HTMLFormElement>("#login-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget as HTMLFormElement);
     const username = String(data.get("username") || "").trim();
     const password = String(data.get("password") || "");
+    const rememberLogin = data.get("rememberLogin") === "on";
     void run(async () => {
       try {
         profile = await loginWithPassword(username, password, false);
@@ -1042,6 +1057,19 @@ function renderLogin(): void {
           throw error;
         }
       }
+      if (rememberLogin) {
+        localStorage.setItem(REMEMBER_LOGIN_KEY, username);
+        try {
+          const PasswordCredentialCtor = (window as unknown as { PasswordCredential?: new (data: { id: string; password: string; name?: string }) => Credential }).PasswordCredential;
+          if (PasswordCredentialCtor && navigator.credentials?.store) {
+            await navigator.credentials.store(new PasswordCredentialCtor({ id: username, password, name: username }));
+          }
+        } catch {
+          // Browser-managed credential storage is best-effort. The app never writes the password to localStorage.
+        }
+      } else {
+        localStorage.removeItem(REMEMBER_LOGIN_KEY);
+      }
       markWebUpdateReceived();
       skipDelayEnabled = loadSkipDelayEnabled(profile.user_id);
       restoreDashboardRangeForUser(profile.user_id);
@@ -1054,6 +1082,19 @@ function renderLogin(): void {
       await loadSection(activeSection);
       render();
     });
+  });
+
+  document.querySelector<HTMLButtonElement>("#toggle-login-password")?.addEventListener("click", (event) => {
+    const button = event.currentTarget as HTMLButtonElement;
+    const input = document.querySelector<HTMLInputElement>("#login-password");
+    if (!input) return;
+    const visible = input.type === "text";
+    input.type = visible ? "password" : "text";
+    button.textContent = visible ? "Hiện" : "Ẩn";
+    button.setAttribute("aria-label", visible ? "Hiện mật khẩu" : "Ẩn mật khẩu");
+    button.setAttribute("aria-pressed", String(!visible));
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
   });
 
   document.querySelector<HTMLButtonElement>("#forgot-password")?.addEventListener("click", () => {
@@ -1476,33 +1517,42 @@ function renderUsers(): string {
 function renderSla(): string {
   const sla = slaResponse?.sla;
   const insight = operationalInsights?.sla;
+  const warningEnabled = sla?.warning_enabled !== false;
+  const escalationEnabled = sla?.escalation_enabled !== false;
   const autoEnabled = sla?.auto_skip_enabled === true;
+  const correctionEnabled = sla?.skip_to_stock_enabled !== false;
   const mode = sla?.auto_skip_mode || "FIRST_REPORT";
   return `<section class="ops-route sla-workspace">
-    <div class="business-page-head"><div><h2>Thời gian xử lý</h2><p>Thiết lập ba mốc thời gian theo giờ hệ thống. Luôn phải theo thứ tự Cảnh báo &lt; Quá hạn &lt; Tự động cho phép bỏ qua.</p></div><span class="global-setting-badge">Cấu hình chung toàn hệ thống</span></div>
-    <div class="global-setting-note"><strong>Mọi tài khoản dùng cùng một cấu hình.</strong><span>Thay đổi tại đây áp dụng cho toàn hệ thống, không lưu riêng theo người dùng.</span>${sla?.updated_by ? `<small>Cập nhật gần nhất: ${esc(sla.updated_by)}${sla.updated_at ? ` · ${esc(fmt(sla.updated_at))}` : ""}</small>` : ""}</div>
+    <div class="business-page-head"><div><h2>Thời gian xử lý</h2><p>Mỗi mốc có thể bật hoặc tắt độc lập. Các giá trị phút vẫn được giữ theo thứ tự Cảnh báo &lt; Quá hạn &lt; Tự động cho phép bỏ qua để có thể bật lại an toàn.</p></div><span class="global-setting-badge">Cấu hình chung toàn hệ thống</span></div>
+    <div class="global-setting-note"><strong>Mọi tài khoản dùng cùng một cấu hình.</strong><span>Thông số được tải trực tiếp từ máy chủ; lỗi phần thống kê không làm ẩn giá trị cấu hình.</span>${sla?.updated_by ? `<small>Cập nhật gần nhất: ${esc(sla.updated_by)}${sla.updated_at ? ` · ${esc(fmt(sla.updated_at))}` : ""}</small>` : ""}</div>
     <form id="sla-form" class="ops-panel sla-config-panel">
       <div class="sla-config-body">
         <div class="ops-settings-grid sla-threshold-grid">
-          <article class="ops-setting-card"><span class="ops-step">01</span><h3>Cảnh báo</h3><p>Đánh dấu vàng và thông báo cho bộ phận xử lý khi SKU đạt mốc này.</p><label>Phút<input name="warning" type="number" min="1" max="1440" value="${esc(sla?.warning_minutes || "")}" required /></label></article>
-          <article class="ops-setting-card"><span class="ops-step">02</span><h3>Quá hạn</h3><p>Đánh dấu đỏ và cảnh báo mức cao cho người liên quan.</p><label>Phút<input name="escalation" type="number" min="2" max="2880" value="${esc(sla?.escalation_minutes || "")}" required /></label></article>
-          <article class="ops-setting-card"><span class="ops-step">03</span><h3>Tự động cho phép bỏ qua</h3><p>Nếu Invent vẫn chưa phản hồi khi tới mốc này, hệ thống có thể tự cấp kết quả bỏ qua.</p><label>Phút<input name="autoSkip" type="number" min="3" max="10080" value="${esc(sla?.auto_skip_minutes || "")}" required /></label></article>
+          <article class="ops-setting-card"><div class="sla-card-head"><span class="ops-step">01</span><label class="sla-switch"><input name="warningEnabled" type="checkbox" ${warningEnabled ? "checked" : ""}/><span>Bật</span></label></div><h3>Cảnh báo</h3><p>Đánh dấu vàng và thông báo cho bộ phận xử lý khi SKU đạt mốc này.</p><label>Phút<input name="warning" type="number" min="1" max="1440" value="${esc(sla?.warning_minutes || "")}" required /></label></article>
+          <article class="ops-setting-card"><div class="sla-card-head"><span class="ops-step">02</span><label class="sla-switch"><input name="escalationEnabled" type="checkbox" ${escalationEnabled ? "checked" : ""}/><span>Bật</span></label></div><h3>Quá hạn</h3><p>Đánh dấu đỏ và gửi cảnh báo mức cao khi tới mốc đã đặt.</p><label>Phút<input name="escalation" type="number" min="2" max="2880" value="${esc(sla?.escalation_minutes || "")}" required /></label></article>
+          <article class="ops-setting-card"><div class="sla-card-head"><span class="ops-step">03</span><label class="sla-switch"><input name="autoSkipEnabled" type="checkbox" ${autoEnabled ? "checked" : ""}/><span>Bật</span></label></div><h3>Tự động cho phép bỏ qua</h3><p>Nếu Invent chưa phản hồi khi tới mốc này, hệ thống tự cấp kết quả bỏ qua.</p><label>Phút<input name="autoSkip" type="number" min="3" max="10080" value="${esc(sla?.auto_skip_minutes || "")}" required /></label></article>
         </div>
-        <div class="sla-auto-policy">
-          <label class="account-setting-row"><input name="autoSkipEnabled" type="checkbox" ${autoEnabled ? "checked" : ""}/><span><strong>Bật tự động cho phép Picker bỏ qua khi quá thời gian</strong><small>Tắt chức năng sẽ hủy các mốc tự động chưa chạy. Bật lại chỉ áp dụng cho báo mới, không hồi tố báo cũ.</small></span></label>
-          <div class="sla-mode-options">
-            <span>Cách tính mốc tự động</span>
-            <label><input type="radio" name="autoSkipMode" value="FIRST_REPORT" ${mode === "FIRST_REPORT" ? "checked" : ""}/> Tính từ người báo đầu tiên của SKU</label>
-            <label><input type="radio" name="autoSkipMode" value="PER_PICKER" ${mode === "PER_PICKER" ? "checked" : ""}/> Tính riêng từ thời điểm từng Picker báo</label>
+        <div class="sla-policy-grid">
+          <div class="sla-auto-policy">
+            <div class="sla-mode-options">
+              <span>Cách tính mốc tự động <b>Bắt buộc chọn 1</b></span>
+              <label><input type="radio" name="autoSkipMode" value="FIRST_REPORT" ${mode === "FIRST_REPORT" ? "checked" : ""} required/> Tính từ người báo đầu tiên của SKU</label>
+              <label><input type="radio" name="autoSkipMode" value="PER_PICKER" ${mode === "PER_PICKER" ? "checked" : ""} required/> Tính riêng từ thời điểm từng Picker báo</label>
+            </div>
+          </div>
+          <div class="sla-auto-policy">
+            <label class="account-setting-row"><input name="skipToStockEnabled" type="checkbox" ${correctionEnabled ? "checked" : ""}/><span><strong>Cho phép Invent đổi Skip thành Đã có hàng</strong><small>Tính từ thời điểm SKU được báo hết hàng lần đầu trong đợt, không tính từ lúc bấm Skip.</small></span></label>
+            <label class="sla-inline-minutes">Cho phép trong <input name="skipToStockMinutes" type="number" min="1" max="10080" value="${esc(sla?.skip_to_stock_minutes || 5)}" required /> phút kể từ lúc báo hết hàng</label>
           </div>
         </div>
       </div>
-      <div class="sla-config-footer"><span class="muted tiny">Ví dụ 10 → 15 → 20 phút. Thay đổi số phút không làm tự động hồi tố các deadline đã được cấp trước đó.</span><button class="primary">Lưu thiết lập</button></div>
+      <div class="sla-config-footer"><span class="muted tiny">Ví dụ 10 → 15 → 20 phút. Tắt một chức năng chỉ ngừng tác động của chức năng đó; không xoá các giá trị phút đã nhập.</span><button class="primary">Lưu thiết lập</button></div>
     </form>
     <section class="sla-current-grid" aria-label="Tình trạng hiện tại">
-      <article class="sla-current-card warning"><span>Đang ở mức cảnh báo</span><strong>${Number(insight?.warning_count || 0)}</strong></article>
-      <article class="sla-current-card danger"><span>Đang quá hạn</span><strong>${Number(insight?.escalated_count || 0)}</strong></article>
+      <article class="sla-current-card warning"><span>Cảnh báo</span><strong>${warningEnabled ? Number(insight?.warning_count || 0) : "Tắt"}</strong></article>
+      <article class="sla-current-card danger"><span>Quá hạn</span><strong>${escalationEnabled ? Number(insight?.escalated_count || 0) : "Tắt"}</strong></article>
       <article class="sla-current-card ${autoEnabled ? "auto" : ""}"><span>Tự động cho phép bỏ qua</span><strong>${autoEnabled ? "Bật" : "Tắt"}</strong></article>
+      <article class="sla-current-card ${correctionEnabled ? "auto" : ""}"><span>Skip → Đã có hàng</span><strong>${correctionEnabled ? `${Number(sla?.skip_to_stock_minutes || 5)} phút` : "Tắt"}</strong></article>
     </section>
   </section>`;
 }
@@ -2297,6 +2347,7 @@ async function loadOperationsSnapshot(): Promise<void> {
   queueServerOffsetMs = Number.isFinite(serverNow) ? serverNow - Date.now() : 0;
   queueRows = queue.items;
   recentRows = recent.items;
+  syncOperationsNavBadge();
   if (selectedBatchId && !queueRows.some((row) => row.batch_id === selectedBatchId)) selectedBatchId = null;
   const selected = queueRows.find((row) => row.batch_id === selectedBatchId) || filteredQueueRows()[0] || queueRows[0];
   if (selected) {
@@ -2344,11 +2395,18 @@ async function loadSla(): Promise<void> {
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
   const range = apiRange(dateDaysAgo(6), dateDaysAgo(0));
-  const [nextSla, nextInsights] = await Promise.all([getAdminSla(), getAdminOperationalInsights(range.from, range.to)]);
+  const nextSla = await getAdminSla();
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   slaResponse = nextSla;
-  operationalInsights = nextInsights;
   markWebUpdateReceived();
+  if (activeSection === "sla") patchActiveSection(true);
+  try {
+    const nextInsights = await getAdminOperationalInsights(range.from, range.to);
+    if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+    operationalInsights = nextInsights;
+  } catch (error) {
+    runtimeLogEvent(`Không tải được thống kê SLA phụ: ${error instanceof Error ? error.message : "unknown"}`, "ERROR");
+  }
 }
 
 async function loadDashboard(): Promise<void> {
@@ -3139,27 +3197,42 @@ function bindSection(): void {
     const data = new FormData(event.currentTarget as HTMLFormElement);
     void run(async () => {
       const warning = Number(data.get("warning"));
+      const warningEnabled = data.get("warningEnabled") === "on";
       const escalation = Number(data.get("escalation"));
+      const escalationEnabled = data.get("escalationEnabled") === "on";
       const autoSkip = Number(data.get("autoSkip"));
       const autoSkipEnabled = data.get("autoSkipEnabled") === "on";
-      const autoSkipMode = String(data.get("autoSkipMode") || "FIRST_REPORT") as "FIRST_REPORT" | "PER_PICKER";
+      const autoSkipModeRaw = String(data.get("autoSkipMode") || "");
+      const skipToStockEnabled = data.get("skipToStockEnabled") === "on";
+      const skipToStockMinutes = Number(data.get("skipToStockMinutes"));
+      if (!["FIRST_REPORT", "PER_PICKER"].includes(autoSkipModeRaw)) {
+        throw new Error("Cách tính mốc tự động bắt buộc phải chọn đúng 1 phương án.");
+      }
+      const autoSkipMode = autoSkipModeRaw as "FIRST_REPORT" | "PER_PICKER";
       if (
         !Number.isInteger(warning) ||
         !Number.isInteger(escalation) ||
         !Number.isInteger(autoSkip) ||
+        !Number.isInteger(skipToStockMinutes) ||
         warning < 1 ||
         warning > 1440 ||
         escalation <= warning ||
         escalation > 2880 ||
         autoSkip <= escalation ||
-        autoSkip > 10080
-      ) throw new Error("Ba mốc phải là số phút nguyên và luôn theo thứ tự Cảnh báo < Quá hạn < Tự động cho phép bỏ qua.");
+        autoSkip > 10080 ||
+        skipToStockMinutes < 1 ||
+        skipToStockMinutes > 10080
+      ) throw new Error("Các mốc phải là số phút nguyên hợp lệ; Cảnh báo < Quá hạn < Tự động cho phép bỏ qua.");
       await saveAdminSla({
         warning_minutes: warning,
+        warning_enabled: warningEnabled,
         escalation_minutes: escalation,
+        escalation_enabled: escalationEnabled,
         auto_skip_minutes: autoSkip,
         auto_skip_enabled: autoSkipEnabled,
         auto_skip_mode: autoSkipMode,
+        skip_to_stock_enabled: skipToStockEnabled,
+        skip_to_stock_minutes: skipToStockMinutes,
       });
       await loadSla();
       setNotice("success", "Đã lưu thời gian nghiệp vụ.");

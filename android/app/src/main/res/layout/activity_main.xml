@@ -72,7 +72,7 @@
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="142dp"
+            android:layout_width="178dp"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="vertical">
@@ -105,6 +105,19 @@
                     android:text="A+"
                     android:textColor="@color/white"
                     android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/btnTextReset"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:contentDescription="Đặt cỡ hiển thị về 100 phần trăm"
+                    android:gravity="center"
+                    android:text="100%"
+                    android:textColor="@color/white"
+                    android:textSize="9sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
 

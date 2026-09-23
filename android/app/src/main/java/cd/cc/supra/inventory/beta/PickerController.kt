@@ -534,12 +534,9 @@ class PickerController(
 
     private fun clearSelection() {
         selected = null
-        selectedSkuLabel?.text = "Chưa chọn SKU"
-        selectedNameLabel?.text = "Chọn đúng SKU cần báo"
-        selectedBox?.apply {
-            visibility = View.VISIBLE
-            background = kit.rounded(Color.WHITE, kit.line, 9)
-        }
+        selectedSkuLabel?.text = ""
+        selectedNameLabel?.text = ""
+        selectedBox?.visibility = View.GONE
         updateReportEnabled()
     }
 
