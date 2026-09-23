@@ -1351,6 +1351,37 @@
       "field_result_date": "2026-09-23",
       "owner_evidence": "Owner explicitly replied 'ok pass' on 2026-09-23 after final D109 main checkpoint/UI guard PASS and before requesting the project state be recorded for the next task.",
       "closed": true
+    },
+    {
+      "id": "OA030",
+      "status": "PENDING_TECHNICAL_RELEASE",
+      "title": "Field-accept D110 Android Reporter pinned workflow",
+      "resource_key": "worker-beta",
+      "provider": "Beta Worker + next signed Beta Android",
+      "reason_owner_only": "Automated gates can verify source, role denial, build and release contracts; final PDA density, tab pinning, semantic backgrounds and direct-touch interaction require Owner device review.",
+      "prerequisites": {
+        "d109_owner_acceptance": "PASS",
+        "technical_runtime_release": "PENDING",
+        "target_android_release": "beta-vc66",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Login bằng Reporter trên APK mới; xác nhận header gọn và 4 tab ghim ngay dưới thông tin user, mỗi tab có badge số.",
+        "Ở Đang xử lý, xác nhận SKU bình thường nền trung tính, sắp quá hạn vàng nhạt, quá hạn đỏ nhạt; số phút tự tăng mà không có nút Làm mới.",
+        "Bấm trực tiếp Đã có hàng hoặc Cho phép skip ngay dưới SKU; không xuất hiện popup xác nhận trước khi xử lý và cùng SKU không thể double-tap khi đang gửi.",
+        "Chuyển 4 tab và đối chiếu trạng thái/count với Web/service.",
+        "Thử đăng nhập ADMIN và ROOT trên App/PDA: phải bị từ chối; Picker và Reporter vẫn đăng nhập bình thường.",
+        "Kiểm tra icon ở login/header đồng nhất và dòng Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291."
+      ],
+      "pass_criteria": [
+        "Reporter 4 tab pinned + badge count đúng trạng thái.",
+        "Hai action chính trực tiếp, chống double-tap theo batch, không có pre-confirm dialog.",
+        "SLA nền vàng/đỏ đúng và phút chạy cục bộ, không thêm polling.",
+        "ADMIN/ROOT Android bị server chặn; Web/Agent không hồi quy.",
+        "Icon/footer đồng nhất; Stable không thay đổi."
+      ],
+      "safety": "Beta only. No secrets. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Run the shortest physical Reporter/App role-gate review after D110 technical/runtime/release PASS."
     }
   ]
 }
