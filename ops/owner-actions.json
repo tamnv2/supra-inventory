@@ -1514,18 +1514,35 @@
     },
     {
       "id": "OA033",
-      "status": "PENDING_D113_TECHNICAL_RUNTIME_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D113 Web login/SLA, Android compact UX and Agent v32 background action",
       "resource_key": "worker-beta",
       "provider": "Beta Worker + Web + next signed Beta Android + relay-agent-v32",
       "reason_owner_only": "Automated gates can verify source/build/security/state contracts; final browser password-manager behavior, PDA density/text fit, notification presentation and Windows background interaction require Owner field review.",
       "prerequisites": {
         "d112_owner_acceptance": "PASS",
-        "d113_source": "IMPLEMENTED_ON_BRANCH",
-        "branch": "feat/d113-web-android-agent-refinements",
-        "technical_runtime_release": "PENDING",
-        "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC68",
+        "d113_source": "MERGED_MAIN",
+        "merged_pr": 165,
+        "source_main": "7dcc76aba6b0b2774208b151ca587aa2a2b09931",
+        "technical_runtime_release": "PASS",
+        "main_repo_authority_run": 35933061054,
+        "main_project_state_run": 35933061086,
+        "main_ui_run": 35933061098,
+        "main_beta_worker_run": 35933061039,
+        "main_android_run": 35933061049,
+        "main_agent_run": 35933061088,
+        "live_health": "HTTP_200_ATTEMPT_2__STATUS_OK__ENV_BETA__SOURCE_EXACT_7DCC76AB__STORAGE_TRUE__SCHEMA_11_11__MISSING_0__AGENT_MIGRATION_0_0__OPERATIONAL_5_5",
+        "target_android_release": "beta-vc69",
+        "android_release_id": 395136931,
+        "android_asset_id": 584751944,
+        "android_asset_size": 19019800,
+        "android_sha256": "f6b1f6e8866358b270bb5781958e6a0a05d54fbc65f446c6dc3ae5e0b9ef07c0",
         "target_agent_release": "relay-agent-v32",
+        "agent_release_id": 395136705,
+        "agent_asset_id": 584751479,
+        "agent_asset_size": 287744,
+        "agent_sha256": "e6b838377931fd804bf4dc7de7b02577010244041867975e301fd42b9d35e80c",
+        "inventory_channel_release_id": 394587029,
         "stable": "OWNER_GATED"
       },
       "shortest_test_path": [
@@ -1545,7 +1562,8 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. No secrets/passwords/tokens/WMS session material in source or logs. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait until D113 technical/runtime/release PASS, then perform the shortest OA033 field test and reply PASS or itemized defects."
+      "remaining_owner_action": "Field-test live Beta Web + signed beta-vc69 + relay-agent-v32 using the shortest_test_path, then reply PASS or itemized defects.",
+      "closed": false
     }
   ]
 }
