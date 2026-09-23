@@ -278,3 +278,34 @@ jobs:
             --title "Agent Auto Confirm Pick Pack v$version" `
             --notes "Beta Agent for Pick Pack / Inventory confirmation relay. Canonical executable: Agent Auto Confirm Pick Pack.exe. D097 uses request-driven PRIMARY/STANDBY/FROZEN HA, bounded network-transition recovery and quota-safe Firestore operations. WMS mutation remains bounded to confirmSkipItem after an exact unique PickListCode match." `
             --prerelease
+
+          $channel = "inventory-channel"
+          gh release view $channel --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $channel --repo "${{ github.repository }}" --target "$env:GITHUB_SHA" --title "SUPRA Inventory runtime channel" --notes "Machine-readable Beta distribution channel. Do not install directly from this release page." --prerelease
+            if ($LASTEXITCODE -ne 0) {
+              gh release view $channel --repo "${{ github.repository }}" *> $null
+              if ($LASTEXITCODE -ne 0) { throw "Unable to create or read runtime channel release." }
+            }
+          }
+          $aliasExe = "relay-agent/dist/Agent.Auto.Confirm.Pick.Pack.exe"
+          $aliasSha = "relay-agent/dist/Agent.Auto.Confirm.Pick.Pack.exe.sha256"
+          Copy-Item "relay-agent/dist/Agent Auto Confirm Pick Pack.exe" $aliasExe -Force
+          Copy-Item "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256" $aliasSha -Force
+          $sha256 = (Get-Content $aliasSha -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+          $size = (Get-Item $aliasExe).Length
+          $manifest = [ordered]@{
+            schema_version = 1
+            channel = "beta"
+            tag = $tag
+            name = "Agent Auto Confirm Pick Pack v$version"
+            published_at = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+            source = $env:GITHUB_SHA
+            asset_name = "Agent.Auto.Confirm.Pick.Pack.exe"
+            size_bytes = $size
+            sha256 = $sha256
+          } | ConvertTo-Json -Compress
+          $manifest | Set-Content "relay-agent/dist/agent-latest.json" -Encoding utf8
+          gh release upload $channel $aliasExe $aliasSha "relay-agent/dist/agent-latest.json" --repo "${{ github.repository }}" --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Unable to update stable Agent runtime channel." }
+          Write-Host "Updated stable Agent runtime channel $channel -> $tag"
