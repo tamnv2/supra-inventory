@@ -699,3 +699,14 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - D097/D104/D105 quota, Firestore/WMS and no-offline invariants remain authoritative.
 - Ready for the next explicit Owner requirement after mandatory authority bootstrap.
 - Stable remains OWNER-GATED and untouched.
+
+## D113 source readiness — 2026-09-24
+
+Status: **SOURCE IMPLEMENTED / PR GATES PENDING**.
+
+- Current accepted live baseline remains D112 with SQLite `11/11`, signed `beta-vc68` and `relay-agent-v31`.
+- D113 requires no SQLite schema change and no new provider resource.
+- SLA app-config JSON is extended compatibly with enable flags and the first-report-based Skip-correction window; legacy rows default warning/escalation/correction enabled with correction window 5 minutes.
+- Web/Android/Agent presentation refinements are source-implemented on `feat/d113-web-android-agent-refinements`.
+- Target releases: next monotonic signed Beta Android after `beta-vc68`, and `relay-agent-v32`.
+- OA033 remains pending technical/runtime/release PASS. Stable remains OWNER-GATED and untouched.
