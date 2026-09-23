@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D111_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_8E08BEAD__SCHEMA11__SIGNED_BETA_VC67__OA031_FIELD_READY",
+      "status": "D111_OWNER_FIELD_ACCEPTED_PASS__LIVE_SOURCE_8E08BEAD__SCHEMA11__SIGNED_BETA_VC67",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -137,7 +137,7 @@
       "health_status": "D111_MAIN_DEPLOY_RUN_35819012562__HTTP_200_SOURCE_8E08BEAD_EXACT__STORAGE_TRUE__SCHEMA_11_11__MISSING_0__AGENT_MIGRATION_0_0__OPERATIONAL_5_5",
       "ci_deploy_status": "D111_PASS_RUN_35819012562_MAIN_8E08BEAD",
       "web_smoke_status": "D098_PASS_RUN_35609150820",
-      "app_verify_status": "D111_MAIN_ANDROID_PASS_35819012653__SIGNED_BETA_VC67__OA031_FIELD_READY",
+      "app_verify_status": "D111_MAIN_ANDROID_PASS_35819012653__SIGNED_BETA_VC67__OWNER_ACCEPTED",
       "durable_object_status": "READY",
       "durable_object_class": "InventoryCore",
       "durable_object_storage": "sqlite",
@@ -173,7 +173,7 @@
       "web_source_status": "D109_OWNER_ACCEPTED_PASS__PER_USER_DASHBOARD_GLOBAL_SLA_AUDIT_PDA_TOOLS",
       "web_admin_sku_excel_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
       "web_admin_report_monitoring": "D109_OWNER_ACCEPTED_PASS__PER_USER_DASHBOARD_RANGE__RECENT_RESOLVER__AUDIT_HISTORY",
-      "android_source_status": "D111_SIGNED_BETA_VC67__REPORTER_SCALE_BADGE_CONFIRM_DAILY_SCOPE__OA031_FIELD_READY",
+      "android_source_status": "D111_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC67__REPORTER_SCALE_BADGE_CONFIRM_DAILY_SCOPE",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
       "latest_signed_beta_release": "beta-vc67",
@@ -364,9 +364,9 @@
   "ui_design": {
     "authority": "OWNER_SELECTED_D057_LEGACY_TRANSPLANT_THROUGH_D068_ACCEPTED__D069_UNIFIED_WEB_REFINEMENT",
     "web": "D109_OWNER_ACCEPTED_PASS__D107_BASELINE_PLUS_AUDIT_PDA_TOOLS",
-    "android": "D111_SIGNED_BETA_VC67__REPORTER_SCALE_BADGE_CONFIRM_DAILY_SCOPE__OA031_FIELD_READY",
-    "scope_guard": "D111_MAIN_UI_PASS_35819012526__STABLE_OWNER_GATED",
-    "source_candidate": "D111_RUNTIME_RELEASE_PASS__OA031_FIELD_READY",
+    "android": "D111_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC67__REPORTER_SCALE_BADGE_CONFIRM_DAILY_SCOPE",
+    "scope_guard": "D111_OWNER_ACCEPTED__MAIN_UI_PASS_35819012526__STABLE_OWNER_GATED",
+    "source_candidate": "D111_ACCEPTED_BETA_BASELINE",
     "navigation_proposal": "docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md",
     "navigation_constraint": {
       "admin_root_large_groups": 3,

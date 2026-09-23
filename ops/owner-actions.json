@@ -1401,7 +1401,7 @@
     },
     {
       "id": "OA031",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "PASS_OWNER_CONFIRMED_D111",
       "title": "Field-accept D111 Android compact daily Reporter/Picker workflow",
       "resource_key": "worker-beta",
       "provider": "Beta Worker + next signed Beta Android",
@@ -1442,7 +1442,11 @@
         "No new polling/provider cadence is introduced; Stable remains untouched."
       ],
       "safety": "Beta only. No secrets. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Field-test signed beta-vc67 using the shortest path above; report PASS or only concrete failed items."
+      "remaining_owner_action": null,
+      "field_result": "OWNER_FIELD_PASS_D111",
+      "field_result_date": "2026-09-23",
+      "owner_evidence": "Owner explicitly replied 'ok pass, ghi nhận để anh chuyển phiên khác' on 2026-09-23 after field-testing signed beta-vc67.",
+      "closed": true
     }
   ]
 }
