@@ -658,7 +658,17 @@ namespace SupraInventoryRelayAgent
             // D088: minimize/user-close hides the window from taskbar and leaves the Agent in System Tray.
             FormClosing += (s, e) =>
             {
-                if (!_allowExit && e.CloseReason == CloseReason.UserClosing) { e.Cancel = true; MinimizeToTray(); return; }
+                if (!_allowExit && e.CloseReason == CloseReason.UserClosing)
+                {
+                    if (HasAgentSession())
+                    {
+                        e.Cancel = true;
+                        BeginInvoke(new Action(RequestProtectedExit));
+                        return;
+                    }
+                    AgentRuntimeGuard.MarkPlannedExit();
+                    _allowExit = true;
+                }
                 if (e.CloseReason == CloseReason.WindowsShutDown) AgentRuntimeGuard.MarkPlannedExit();
                 StopListening();
                 StopLeaderCoordination();
@@ -676,7 +686,7 @@ namespace SupraInventoryRelayAgent
             };
 
             _guardTimer.Interval = 60000;
-            _guardTimer.Tick += (s, e) => AgentRuntimeGuard.EnsureWatchdog();
+            _guardTimer.Tick += (s, e) => { if (HasAgentSession()) AgentRuntimeGuard.EnsureWatchdog(); };
 
             _trayMonitorTimer.Interval = 5000;
             _trayMonitorTimer.Tick += (s, e) => UpdateTrayMonitor();
@@ -712,7 +722,6 @@ namespace SupraInventoryRelayAgent
                     return;
                 }
 
-                AgentRuntimeGuard.EnsureWatchdog();
                 _guardTimer.Start();
                 _networkUiTimer.Start();
                 _trayMonitorTimer.Start();
@@ -743,11 +752,11 @@ namespace SupraInventoryRelayAgent
             Height = 790;
             MinimumSize = new Size(1000, 720);
             BackColor = Color.FromArgb(243, 246, 248);
-            ControlBox = false;
-            MaximizeBox = false;
-            MinimizeBox = false;
+            ControlBox = true;
+            MaximizeBox = true;
+            MinimizeBox = true;
             ShowInTaskbar = true;
-            FormBorderStyle = FormBorderStyle.None;
+            FormBorderStyle = FormBorderStyle.Sizable;
             ApplyWorkingAreaMaximum();
 
             var shell = new TableLayoutPanel
@@ -758,12 +767,13 @@ namespace SupraInventoryRelayAgent
                 Margin = Padding.Empty,
                 Padding = Padding.Empty
             };
-            shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 38F));
+            shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 0F));
             shell.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             shell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
 
             var chrome = new Panel
             {
+                Visible = false,
                 Dock = DockStyle.Fill,
                 BackColor = Color.FromArgb(31, 47, 58),
                 Margin = Padding.Empty
@@ -1274,11 +1284,9 @@ namespace SupraInventoryRelayAgent
 
             if (session == null || string.IsNullOrWhiteSpace(session.AppUserId))
             {
-                MessageBox.Show(
-                    "Agent chưa có phiên ADMIN hợp lệ. Hãy đăng nhập ADMIN tại Tổng quan trước khi tắt Agent.",
-                    "Tắt Agent",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
+                AgentRuntimeGuard.MarkPlannedExit();
+                _allowExit = true;
+                Close();
                 return;
             }
 
@@ -1371,7 +1379,7 @@ namespace SupraInventoryRelayAgent
         {
             ShowInTaskbar = true;
             Show();
-            ApplyWorkingAreaMaximum();
+            if (WindowState == FormWindowState.Minimized) WindowState = FormWindowState.Normal;
             Activate();
         }
 
@@ -2013,6 +2021,7 @@ namespace SupraInventoryRelayAgent
         {
             try
             {
+                AgentRuntimeGuard.EnsureWatchdog();
                 if (_listenCts == null) StartListening();
                 Ui(() => _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / FIRESTORE");
             }
@@ -2472,6 +2481,7 @@ namespace SupraInventoryRelayAgent
             lock (_wmsSessionLock) _wmsSession = null;
             _picklistCache.Clear();
             ClearStoredSession();
+            AgentRuntimeGuard.MarkPlannedExit();
             try { if (File.Exists(ExitVerifierFile)) File.Delete(ExitVerifierFile); } catch { }
 
             Ui(() =>
