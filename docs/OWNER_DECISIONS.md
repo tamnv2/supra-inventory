@@ -830,3 +830,16 @@ Owner approved the uploaded cross-surface refinement after D112 Owner field PASS
 10. Android Reporter places **Đã có hàng / Cho phép skip** below product/time information. Resolved history shows **Invent phản hồi lúc HH:mm bởi <người xử lý>** when a human resolver is known; automatic timeout may show **Hệ thống**.
 11. Windows Agent keeps D112 native Minimize/Restore/Maximize/X behavior and adds an explicit **Chuyển xuống nền** action that uses the existing tray/background path.
 12. D113 is Beta-only. Target artifacts are the next monotonic signed Android after `beta-vc68` and `relay-agent-v32`. D097/D104/D105 quota, Firestore/WMS batching/idempotency, no-offline and all Stable OWNER-GATED invariants remain unchanged.
+
+## D113 technical/runtime/release checkpoint — 2026-09-24
+
+D113 is technically released on Beta and **OA033 is field-ready**.
+
+- PR #165 final head `424a52a7eae34587e37ddcaa68433fa26bac4ec2` passed Repo Authority `35930682960`, Project State `35930683024`, UI Design `35930682963`, Relay Agent `35930682991`, Android `35930683046`, Firestore `35930682947` and RTDB `35930683014`, then squash-merged to main `7dcc76aba6b0b2774208b151ca587aa2a2b09931`.
+- Main PASS: Repo Authority `35933061054`, Project State `35933061086`, UI Design `35933061098`, Deploy Beta Worker `35933061039`, Verify Beta Android `35933061049`, Verify Beta Relay Agent `35933061088`.
+- Live Beta health converged on attempt 2 to HTTP 200 with exact source `7dcc76ab...`, storage ready, SQLite `11/11`, Operational V2 `5/5`, missing bindings `0`, Agent auth migration `0/0`; auth routing, business capability, Web shell and Google OAuth-start smoke checks passed.
+- Signed Android `beta-vc69`: release id `395136931`, APK asset id `584751944`, size `19019800` bytes, SHA-256 `f6b1f6e8866358b270bb5781958e6a0a05d54fbc65f446c6dc3ae5e0b9ef07c0`, exact source `7dcc76ab...`.
+- Agent `relay-agent-v32`: release id `395136705`, canonical EXE asset id `584751479`, size `287744` bytes, SHA-256 `e6b838377931fd804bf4dc7de7b02577010244041867975e301fd42b9d35e80c`; tag resolves exactly to main `7dcc76ab...`.
+- Fixed `inventory-channel` release id `394587029` was refreshed with Agent manifest/exe assets `584751529/584751528` and PDA manifest/apk assets `584751996/584751999`.
+- D113 adds no schema migration or faster polling/provider cadence and preserves D097/D104/D105 Firestore/WMS/no-offline guards. Stable remains OWNER-GATED and untouched.
+- OA033 is `READY_FOR_OWNER_FIELD_TEST`; D113 is not Owner-PASS until explicit field confirmation.
