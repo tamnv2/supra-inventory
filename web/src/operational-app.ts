@@ -1991,23 +1991,72 @@ function renderRuntimeLogSummary(): string {
   </div>`;
 }
 
+function auditActionLabel(action: string): string {
+  const labels: Record<string, string> = {
+    SKU_IMPORT: "Cập nhật danh mục SKU",
+    BATCH_RESOLVE: "Xử lý báo hàng",
+    BATCH_CORRECT: "Sửa kết quả báo hàng",
+    SLA_CONFIG_UPDATE: "Cập nhật thời gian xử lý",
+    USER_CREATE: "Tạo tài khoản",
+    USER_UPDATE: "Cập nhật tài khoản",
+    USER_PASSWORD_CHANGE_BY_MANAGER: "Đổi mật khẩu tài khoản",
+    PICKER_DELETE: "Xóa Picker",
+    PICKER_ENABLE: "Mở lại Picker",
+    PICKER_DISABLE: "Dừng Picker",
+    PICKER_BULK_ACTION: "Thao tác Picker hàng loạt",
+    HR_PICKER_SYNC: "Đồng bộ Picker",
+    USER_CREATE_ROLLBACK: "Hoàn tác tạo tài khoản",
+  };
+  return labels[action] || action.replaceAll("_", " ");
+}
+
+function auditTargetLabel(row: AdminAuditItem): string {
+  const metadata = row.metadata || {};
+  if (row.action === "BATCH_RESOLVE") {
+    const result = String(metadata.resolution || "");
+    return result === "HAS_STOCK" ? "Xác nhận Có hàng" : result === "SKIP_ALLOWED" ? "Cho phép bỏ qua" : "Xử lý báo hàng";
+  }
+  if (row.action === "BATCH_CORRECT") return "Sửa Skip thành Có hàng";
+  const target = [row.target_type, row.target_id].filter(Boolean).join(" · ");
+  return target || "—";
+}
+
 function renderLogs(): string {
+  const auditPageFrom = auditTotal ? auditOffset + 1 : 0;
+  const auditPageTo = Math.min(auditTotal, auditOffset + auditRows.length);
+  const auditActive = logView === "AUDIT";
   return `<section class="ops-route logs-workspace">
-    <div class="business-page-head"><div><h2>Nhật ký</h2></div><div class="user-row-actions"><button class="secondary" id="send-web-log">Gửi log Web ngay</button><button class="secondary" id="download-support-log">Tải log Web xuống</button></div></div>
+    <div class="business-page-head"><div><h2>Nhật ký</h2><p>Log kỹ thuật và lịch sử thao tác nghiệp vụ được tách riêng để dễ tra cứu.</p></div>${!auditActive ? `<div class="user-row-actions"><button class="secondary" id="send-web-log">Gửi log Web ngay</button><button class="secondary" id="download-support-log">Tải log Web xuống</button></div>` : ""}</div>
     <div class="workspace-tabs" role="tablist" aria-label="Nguồn nhật ký">
-      <button type="button" class="workspace-tab ${runtimeLogSource === "WEB" ? "active" : ""}" data-log-source="WEB">Log Web</button>
-      <button type="button" class="workspace-tab ${runtimeLogSource === "ANDROID" ? "active" : ""}" data-log-source="ANDROID">Log Android</button>
+      <button type="button" class="workspace-tab ${logView === "WEB" ? "active" : ""}" data-log-view="WEB">Log Web</button>
+      <button type="button" class="workspace-tab ${logView === "ANDROID" ? "active" : ""}" data-log-view="ANDROID">Log Android</button>
+      <button type="button" class="workspace-tab ${logView === "AUDIT" ? "active" : ""}" data-log-view="AUDIT">Lịch sử thao tác</button>
     </div>
-    <div class="logs-layout">
-      <article class="ops-panel log-list-panel">
-        <div class="ops-panel-title"><div><h3>Log ${runtimeLogSource === "WEB" ? "Web" : "Android"} gần đây</h3><p>${runtimeLogs.length} bản gần nhất.</p></div></div>
-        <div class="log-list">${runtimeLogs.length ? runtimeLogs.map((item) => `<button type="button" class="log-row ${runtimeLogDetail?.file.id === item.id ? "selected" : ""}" data-log-file="${esc(item.id)}"><span class="log-severity ${item.severity === "ERROR" ? "error" : "info"}">${item.severity === "ERROR" ? "Lỗi" : "Định kỳ"}</span><div><strong>Nhật ký ${esc(logSourceLabel(item.source))}</strong><small>${esc(fmt(item.created_at))} · ${Math.max(1, Math.round(Number(item.size || 0) / 1024))} KB</small></div></button>`).join("") : `<div class="ops-empty">Chưa có log ${runtimeLogSource === "WEB" ? "Web" : "Android"}.</div>`}</div>
+    ${auditActive ? `
+      <article class="ops-panel audit-history-panel">
+        <div class="ops-panel-title"><div><h3>Lịch sử thao tác Admin / Reporter / Root</h3><p>Không ghi thao tác Picker vào danh sách này. Dữ liệu được lưu tại hệ thống nghiệp vụ và phân trang giới hạn.</p></div><span>${auditPageFrom}–${auditPageTo} / ${auditTotal.toLocaleString("vi-VN")}</span></div>
+        <form id="audit-filter" class="report-filter-row audit-filter-row">
+          <label>Quyền<select name="role"><option value="">Tất cả</option>${["REPORTER","ADMIN","ROOT"].map((role) => `<option value="${role}" ${auditRole === role ? "selected" : ""}>${esc(businessRoleLabel(role))}</option>`).join("")}</select></label>
+          <label class="audit-query-field">Tìm kiếm<input name="query" value="${esc(auditQuery)}" placeholder="Người dùng / thao tác / đối tượng" /></label>
+          <button class="secondary">Áp dụng</button>
+        </form>
+        <div class="table-wrap audit-table"><table><thead><tr><th>Thời gian</th><th>Người thao tác</th><th>Quyền</th><th>Thao tác</th><th>Đối tượng / kết quả</th></tr></thead><tbody>
+          ${auditRows.length ? auditRows.map((row) => `<tr><td>${esc(fmt(row.created_at))}</td><td><strong>${esc(row.actor_display_name || row.actor_employee_code || row.actor_user_id)}</strong><small>${esc(row.actor_employee_code || row.actor_user_id)}</small></td><td><span class="badge">${esc(businessRoleLabel(row.actor_role))}</span></td><td>${esc(auditActionLabel(row.action))}</td><td>${esc(auditTargetLabel(row))}</td></tr>`).join("") : `<tr><td colspan="5" class="ops-empty">Chưa có thao tác phù hợp.</td></tr>`}
+        </tbody></table></div>
+        <div class="user-pagination"><span>Hiển thị ${auditPageFrom}–${auditPageTo}</span><div><button class="secondary" id="audit-prev" ${auditOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="audit-next" ${auditOffset + AUDIT_PAGE_SIZE >= auditTotal ? "disabled" : ""}>Trang sau</button></div></div>
       </article>
-      <article class="ops-panel log-detail-panel">
-        <div class="ops-panel-title"><div><h3>Tóm tắt nhật ký</h3></div></div>
-        ${renderRuntimeLogSummary()}
-      </article>
-    </div>
+    ` : `
+      <div class="logs-layout">
+        <article class="ops-panel log-list-panel">
+          <div class="ops-panel-title"><div><h3>Log ${runtimeLogSource === "WEB" ? "Web" : "Android"} gần đây</h3><p>${runtimeLogs.length} bản gần nhất.</p></div></div>
+          <div class="log-list">${runtimeLogs.length ? runtimeLogs.map((item) => `<button type="button" class="log-row ${runtimeLogDetail?.file.id === item.id ? "selected" : ""}" data-log-file="${esc(item.id)}"><span class="log-severity ${item.severity === "ERROR" ? "error" : "info"}">${item.severity === "ERROR" ? "Lỗi" : "Định kỳ"}</span><div><strong>Nhật ký ${esc(logSourceLabel(item.source))}</strong><small>${esc(fmt(item.created_at))} · ${Math.max(1, Math.round(Number(item.size || 0) / 1024))} KB</small></div></button>`).join("") : `<div class="ops-empty">Chưa có log ${runtimeLogSource === "WEB" ? "Web" : "Android"}.</div>`}</div>
+        </article>
+        <article class="ops-panel log-detail-panel">
+          <div class="ops-panel-title"><div><h3>Tóm tắt nhật ký</h3></div></div>
+          ${renderRuntimeLogSummary()}
+        </article>
+      </div>
+    `}
   </section>`;
 }
 
@@ -2071,12 +2120,38 @@ function renderSystemReset(): string {
 }
 
 function renderTools(): string {
+  const pdaStableUrl = pdaAppRelease ? `${window.location.origin}${pdaAppRelease.stable_download_path}` : `${window.location.origin}/downloads/pda/latest`;
   return `<section class="ops-route tools-workspace">
     <div class="heading">
-      <div><h2>Công cụ</h2><p class="muted">Phần mềm hỗ trợ vận hành giữa Pick Pack và Inventory.</p></div>
+      <div><h2>Công cụ</h2><p class="muted">Kênh tải chính thức cho App PDA và Agent vận hành.</p></div>
     </div>
-    <div class="tools-grid">
-      <article class="ops-panel tool-card tool-card-primary">
+    <div class="tools-grid tools-grid-d109">
+      <article class="ops-panel tool-card tool-card-primary pda-tool-card">
+        <div class="tool-card-head">
+          <img class="tool-icon-image" src="/app-icon.png" alt="" aria-hidden="true" />
+          <div><h3>App PDA — SUPRA Inventory</h3><p>Ứng dụng Android cho Picker/Reporter. Mã QR luôn trỏ tới bản Beta mới nhất đã phát hành, không cố định số version.</p></div>
+        </div>
+        <div class="pda-tool-body">
+          <div class="pda-qr-shell">${pdaQrDataUrl ? `<img src="${pdaQrDataUrl}" alt="QR tải App PDA mới nhất" />` : `<div class="pda-qr-loading">Đang tạo QR…</div>`}<small>Quét bằng PDA để tải bản mới nhất</small></div>
+          <div class="pda-release-info">
+            <div class="tool-facts">
+              <div><span>Bản mới nhất</span><strong>${esc(pdaAppRelease?.tag || "Đang tải…")}</strong></div>
+              <div><span>Nền tảng</span><strong>Android 11+</strong></div>
+              <div><span>Tệp</span><strong>${esc(pdaAppRelease?.asset_name || "supra-inventory-beta.apk")}</strong></div>
+              <div><span>Dung lượng</span><strong>${pdaAppRelease ? fmtBytes(pdaAppRelease.size_bytes) : "—"}</strong></div>
+              <div><span>Phát hành</span><strong>${pdaAppRelease?.published_at ? esc(fmt(pdaAppRelease.published_at)) : "—"}</strong></div>
+              <div><span>Cập nhật</span><strong>Luôn lấy bản mới nhất</strong></div>
+            </div>
+            <div class="tool-actions">
+              <a class="primary tool-download" href="${esc(pdaStableUrl)}">Tải App PDA</a>
+              <button type="button" class="secondary" id="copy-pda-link">Sao chép link</button>
+            </div>
+            <div class="pda-stable-link"><span>Link cố định</span><code>${esc(pdaStableUrl)}</code></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="ops-panel tool-card">
         <div class="tool-card-head">
           <img class="tool-icon-image" src="/app-icon.png" alt="" aria-hidden="true" />
           <div><h3>Agent Auto Confirm Pick Pack</h3><p>Agent Windows phục vụ luồng xác nhận lấy lại đơn và trao đổi dữ liệu với PDA.</p></div>
@@ -2092,21 +2167,22 @@ function renderTools(): string {
           <button type="button" class="secondary" id="copy-agent-link">Sao chép link</button>
         </div>
       </article>
+
       <article class="ops-panel tool-guide">
-        <div class="ops-panel-title"><div><h3>Sử dụng</h3></div></div>
+        <div class="ops-panel-title"><div><h3>Hướng dẫn nhanh</h3><p>Dùng đúng kênh tải chính thức để tránh cài nhầm bản cũ.</p></div></div>
         <ol class="tool-steps">
-          <li>Tải <strong>Agent Auto Confirm Pick Pack.exe</strong> từ link chính thức.</li>
-          <li>Mở Agent bằng tài khoản Windows hiện tại; không cần quyền Administrator.</li>
-          <li>Đăng nhập Agent bằng tài khoản ADMIN thực và thiết lập phiên Supra trên máy xử lý.</li>
-          <li>Agent chạy nền ở System Tray và tự nhận yêu cầu từ PDA theo cơ chế đang được áp dụng.</li>
+          <li>App PDA: quét QR hoặc bấm <strong>Tải App PDA</strong>; link cố định tự chuyển tới APK mới nhất.</li>
+          <li>Agent: tải file EXE chính thức và chạy bằng tài khoản Windows hiện tại, không cần quyền Administrator.</li>
+          <li>Agent chỉ đăng nhập bằng tài khoản ADMIN thực và dùng phiên Supra đã được thiết lập trên máy xử lý.</li>
         </ol>
       </article>
+
       <article class="ops-panel tool-safety">
-        <div class="ops-panel-title"><div><h3>Trạng thái nghiệp vụ</h3></div></div>
+        <div class="ops-panel-title"><div><h3>Trạng thái kênh công cụ</h3></div></div>
         <div class="tool-status-list">
-          <div><span class="badge ok">Sẵn sàng</span><span>Tra cứu Picklist và phối hợp nhiều Agent.</span></div>
-          <div><span class="badge">Tự động</span><span>Khởi động cùng Windows và tự kiểm tra cập nhật.</span></div>
-          <div><span class="badge warning">Đang kiểm thử</span><span>Kênh PDA ↔ Agent cuối cùng vẫn chờ kết quả kiểm tra mạng nội bộ.</span></div>
+          <div><span class="badge ok">App PDA</span><span>QR/link tự trỏ bản Beta phát hành mới nhất.</span></div>
+          <div><span class="badge ok">Agent</span><span>Tự kiểm tra cập nhật qua GitHub.</span></div>
+          <div><span class="badge">An toàn</span><span>Không nhúng mật khẩu, token hoặc dữ liệu nội bộ vào QR/link.</span></div>
         </div>
       </article>
     </div>
