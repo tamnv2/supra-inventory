@@ -435,7 +435,8 @@ def main() -> None:
     require(inventory_api, "autoSkipDeadlineAt", "D070 Picker automatic deadline projection")
     require(inventory_api, "autoSkipAllowedAt", "D070 Picker automatic result projection")
     require(inventory_api, "autoSkipAt", "D070 Reporter next automatic deadline projection")
-    require(picker, "Hệ thống tự động do quá hạn", "D070 Picker timeout source copy")
+    if "Hệ thống tự động do quá hạn" not in picker and "Hệ thống tự động lúc:" not in picker:
+        fail("missing D070/D109 Picker timeout source copy")
     require(reporter, "Tự động bỏ qua", "D070 Reporter timeout timing copy")
     require(sla_auto, "PER_PICKER", "D070 per-Picker service mode")
     require(sla_auto, "FIRST_REPORT", "D070 first-report service mode")
