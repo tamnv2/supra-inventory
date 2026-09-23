@@ -1298,17 +1298,34 @@
     },
     {
       "id": "OA029",
-      "status": "PENDING_D109_TECHNICAL_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST_D109_RELEASE",
       "title": "Field-accept D109 Web audit/preferences/PDA tools and Android compact UI",
       "resource_key": "worker-beta",
       "provider": "Beta Web + next signed Beta Android on existing Inventory/Firebase runtime",
       "reason_owner_only": "Automated gates can verify source, schema migration, release routing and builds, but final Web/physical PDA layout, IME behavior and cross-account preference experience require Owner browser/device review.",
       "prerequisites": {
         "d108_owner_acceptance": "PASS",
-        "d109_source_branch": "d109-web-audit-pda-picker-tabs",
-        "technical_runtime_release": "PENDING",
-        "current_android_release": "beta-vc64",
-        "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC64",
+        "technical_runtime_release": "PASS",
+        "merged_pr": 154,
+        "source_main": "367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94",
+        "pr_repo_authority_run": 35809361069,
+        "pr_project_state_run": 35809361054,
+        "pr_ui_run": 35809360983,
+        "pr_android_run": 35809360987,
+        "pr_firestore_run": 35809361013,
+        "pr_rtdb_run": 35809360986,
+        "main_repo_authority_run": 35809583637,
+        "main_project_state_run": 35809583624,
+        "main_ui_run": 35809583663,
+        "beta_worker_run": 35809583618,
+        "beta_worker_job": 107017904322,
+        "live_health": "HTTP_200__STATUS_OK__ENV_BETA__SOURCE_EXACT_367D518D__STORAGE_TRUE__SCHEMA_11_11__MISSING_0__AGENT_MIGRATION_0_0__OPERATIONAL_5_5",
+        "android_run": 35809583599,
+        "target_android_release": "beta-vc65",
+        "android_release_id": 394246239,
+        "android_asset_id": 582752309,
+        "android_asset_size": 19015996,
+        "android_sha256": "3e2b5284ac2ed5d3040c36338a5bdb21026958eda7e4d4a12b40ea9bf6c0ea48",
         "stable": "OWNER_GATED"
       },
       "shortest_test_path": [
@@ -1329,7 +1346,7 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Do not share passwords, Firebase tokens, WMS credentials/session material or any secret values. No Stable action is authorized.",
-      "remaining_owner_action": null
+      "remaining_owner_action": "Run the OA029 field matrix on live Beta Web and signed beta-vc65. Report only any item that is not PASS; no local CLI or provider setup is required."
     }
   ]
 }
