@@ -34,6 +34,7 @@ ANDROID_PICKER_XML = read("android/app/src/main/res/layout/view_picker.xml")
 ANDROID_INVENT_XML = read("android/app/src/main/res/layout/view_invent.xml")
 ANDROID_ADMIN_XML = read("android/app/src/main/res/layout/view_admin.xml")
 ANDROID_ROW_XML = read("android/app/src/main/res/layout/row_issue.xml")
+ANDROID_REPORTER_ROW_XML = read("android/app/src/main/res/layout/row_reporter_issue.xml")
 ANDROID_COLORS = read("android/app/src/main/res/values/colors.xml")
 ANDROID_STYLES = read("android/app/src/main/res/values/styles.xml")
 ANDROID_ICON = read("android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml")
@@ -289,7 +290,7 @@ checks = {
     "android_legacy_login_xml": all(token in ANDROID_LOGIN_XML for token in ['76dp', '23sp', '@+id/etEmployeeCode', '@+id/etPassword', '@+id/btnLogin']),
     "android_legacy_main_shell_xml": all(token in ANDROID_MAIN_XML for token in ['android:layout_height="wrap_content"', 'android:minHeight="56dp"', '@+id/contentContainer', '@+id/btnTextMinus', '@+id/btnTextPlus', '@+id/btnLog', '@+id/btnLogout', '@+id/tvAppVersion']),
     "android_d074_picker_dense_split_xml": all(token in ANDROID_PICKER_XML for token in ['@+id/acSkuSearch', '@+id/btnReportShortage', '@+id/listMyReports', '@+id/panelShortage', '@+id/panelConfirmOrder', '@+id/tabShortage', '@+id/tabConfirmOrder', '@+id/etRelayPicklistSuffix', 'android:maxLength="4"', 'android:layout_height="48dp"']),
-    "android_legacy_reporter_xml": all(token in ANDROID_INVENT_XML for token in ['BÁO HÀNG ĐANG CHỜ XỬ LÝ', '@+id/btnRefreshIssues', '@+id/listIssues']),
+    "android_d110_reporter_pinned_tabs_xml": all(token in ANDROID_INVENT_XML for token in ['@+id/tabReporterPending', '@+id/tabReporterHasStock', '@+id/tabReporterSkip', '@+id/tabReporterWithdrawn', '@+id/badgeReporterPending', '@+id/listIssues']) and '@+id/btnRefreshIssues' not in ANDROID_INVENT_XML,
     "android_legacy_admin_xml": all(token in ANDROID_ADMIN_XML for token in ['QUẢN TRỊ BÁO HÀNG', '@+id/btnOpenInventQueue', '@+id/btnImportSku']),
     "android_legacy_row_xml": all(token in ANDROID_ROW_XML for token in ['@+id/tvIssueSku', '@+id/tvIssueProduct', '@+id/tvIssueMeta']),
     "android_legacy_palette": all(token in ANDROID_COLORS for token in ["navy_900", "navy_700", "surface_card", "text_primary", "border_strong"]),
@@ -305,12 +306,14 @@ checks = {
     "android_no_programmatic_operational_header": "kit.addOperationalHeader" not in ANDROID_MAIN,
     "android_picker_binds_legacy_ids": all(token in ANDROID_PICKER for token in ["R.id.acSkuSearch", "R.id.tvSelectedSku", "R.id.btnReportShortage", "R.id.listMyReports"]),
     "android_d074_picker_split_behavior": all(token in ANDROID_PICKER for token in ["showOperationTab(confirm = false)", "showOperationTab(confirm = true)", "digits.length == 4", "InputMethodManager.SHOW_IMPLICIT", "R.id.tabShortage", "R.id.tabConfirmOrder"]),
-    "android_reporter_binds_legacy_ids": all(token in ANDROID_REPORTER for token in ["R.id.tvIssueSummary", "R.id.listIssues", "R.id.btnRefreshIssues"]),
-    "android_reporter_uses_legacy_row": "R.layout.row_issue" in ANDROID_REPORTER and "R.id.tvIssueSku" in ANDROID_REPORTER and "R.id.tvIssueMeta" in ANDROID_REPORTER,
+    "android_d110_reporter_binds_pinned_tabs": all(token in ANDROID_REPORTER for token in ["R.id.tvIssueSummary", "R.id.listIssues", "R.id.tabReporterPending", "R.id.tabReporterHasStock", "R.id.tabReporterSkip", "R.id.tabReporterWithdrawn", "R.id.badgeReporterPending"]),
+    "android_d110_reporter_direct_row": all(token in ANDROID_REPORTER_ROW_XML for token in ["@+id/tvReporterSku", "@+id/reporterActions", "@+id/btnReporterHasStock", "@+id/btnReporterSkip", "@+id/tvReporterProduct"]) and "R.layout.row_reporter_issue" in ANDROID_REPORTER,
     "android_picker_uses_legacy_result_overlay": "R.layout.overlay_alert" in ANDROID_PICKER and "R.id.btnOverlayAck" in ANDROID_PICKER and "R.drawable.bg_overlay_skip" in ANDROID_PICKER and "R.drawable.bg_overlay_available" in ANDROID_PICKER,
     "client_ui_has_no_internal_implementation_prose": all(token not in (WEB_UI + ANDROID_ALL) for token in ["Owner duyệt UI", "sẽ được nối sau", "đang transplant", "logic lưu sẽ"]),
     "android_picker_ack": "XÁC NHẬN ĐÃ NHẬN" in ANDROID_PICKER and "acknowledgeResult" in ANDROID_API,
-    "android_reporter_skip_confirm": "XÁC NHẬN BỎ QUA" in ANDROID_REPORTER and "affectedPickerCount" in ANDROID_REPORTER,
+    "android_d110_reporter_direct_actions_no_preconfirm": all(token in ANDROID_REPORTER for token in ["resolveDirect(row, \"HAS_STOCK\"", "resolveDirect(row, \"SKIP_ALLOWED\"", "processingBatchIds", "scheduleMinuteTicker"]) and "XÁC NHẬN BỎ QUA" not in ANDROID_REPORTER,
+    "android_d110_role_gate": 'channel === "ANDROID" && (user.base_role === "ADMIN" || user.base_role === "ROOT")' in SERVICE_INDEX and "CLIENT_ROLE_NOT_ALLOWED" in SERVICE_INDEX,
+    "android_d110_branding": "@drawable/app_icon_d089" in ANDROID_LOGIN_XML and "@drawable/app_icon_d089" in ANDROID_MAIN_XML and "Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291" in ANDROID_LOGIN_XML,
     "android_realtime_delta": "/api/realtime/delta" in ANDROID_API and "appliedSeq" in ANDROID_RT and "streamEpoch" in ANDROID_RT and "recoverDelta" in ANDROID_RT,
     "android_update_gate_preserved": all(token in ANDROID_MAIN for token in ["UpdateGate.CHECKING", "UpdateGate.REQUIRED", "UpdateGate.FAILED", "BuildConfig.UPDATE_RELEASE_API", "loginButton?.isEnabled = updateGate == UpdateGate.CURRENT"]),
 
@@ -376,6 +379,7 @@ checks = {
     "web_d107_richer_reporting": all(token in WEB_APP for token in ["affectedInPeriod", "trendRows", "pro-trend-chart", "data-dashboard-sku", "reportWarningCount", "reportOverdueCount", "open_ticket_count", "pro-report-analysis"]),
     "authority_d108_picker_resolution_refinement": "D108" in DECISIONS and "D108" in DESIGN_SPEC,
     "authority_d109_audit_pda_compact_tabs": "D109" in DECISIONS and "D109 Web audit/PDA tools and Android compact tabs" in DESIGN_SPEC,
+    "authority_d110_reporter_pinned_workflow": "D110" in DECISIONS and "D110 Android Reporter visual baseline" in DESIGN_SPEC,
     "web_d108_password_recovery_hidden_until_action": '.login-reset-form[hidden]' in WEB_PRO and 'display: none !important' in WEB_PRO,
     "web_d108_resolution_provenance": all(token in WEB_APP for token in ["resolutionSourceLabel", "resolutionActorLabel", "Tự động bỏ qua quá hạn", "Nguồn xử lý", "Người xử lý"]) and all(token in SERVICE_OPS for token in ["resolution_source", "resolved_by_display_name", "resolved_by_employee_code"]) and all(token in SERVICE_BUSINESS_CORE for token in ["resolution_sources", "resolved_by_display_name", "resolved_by_employee_code"]),
     "android_d108_numeric_compact_picker": all(token in ANDROID_PICKER_XML for token in ['android:digits="0123456789"', 'android:completionThreshold="3"', 'android:hint="Nhập tối thiểu 3 chữ số SKU"', 'android:text="Xác nhận"', 'android:text="Danh sách SKU đã báo hết hàng"', '@+id/pickerSelectedCard']) and "Quét hoặc nhập SKU" not in ANDROID_PICKER_XML and "SKU tôi đã báo" not in ANDROID_PICKER_XML,
