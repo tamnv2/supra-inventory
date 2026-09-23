@@ -19,6 +19,7 @@ import { drainAgentLogUploads } from "./agent-log-drain";
 import { collectSystemStatus } from "./system-status";
 import { handleSystemResetApi } from "./system-reset";
 import { sendProjectEmail } from "./google-mail";
+import { latestPdaAppRelease, redirectLatestPdaApk } from "./app-tools";
 
 export { InventoryCore };
 
@@ -942,6 +943,10 @@ export default {
         }, healthy ? 200 : 503);
       }
 
+      if (request.method === "GET" && url.pathname === "/downloads/pda/latest") {
+        return redirectLatestPdaApk();
+      }
+
       if (request.method === "GET" && url.pathname === "/api/system/capabilities") {
         const core = await checkCore(env);
         return json({
@@ -981,6 +986,15 @@ export default {
       if (request.method === "GET" && url.pathname === "/api/admin/system-status") {
         await requireUser(request, env, ["ADMIN", "ROOT"]);
         return json({ error: "SYSTEM_STATUS_DISABLED_QUOTA_GUARD" }, 410);
+      }
+
+      if (request.method === "GET" && url.pathname === "/api/admin/pda-app") {
+        await requireUser(request, env, ["ADMIN", "ROOT"]);
+        try {
+          return json({ status: "ok", release: await latestPdaAppRelease() });
+        } catch (error) {
+          return json({ error: "PDA_RELEASE_UNAVAILABLE", message: error instanceof Error ? error.message : "release_unavailable" }, 502);
+        }
       }
 
       if (url.pathname.startsWith("/api/__beta_load_test__/")) {

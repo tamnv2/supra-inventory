@@ -10,6 +10,7 @@ import "./legacy-transplant/web-fast-ui.css";
 import "./legacy-transplant/web-unified-ui.css";
 import "./legacy-transplant/web-professional-v2.css";
 import { firebaseReady } from "./firebase";
+import QRCode from "qrcode";
 import {
   applyHrPickerSync,
   changeMyPassword,
@@ -18,7 +19,10 @@ import {
   getAdminDashboard,
   getAdminOperationalInsights,
   getAdminReporting,
+  getAdminAuditHistory,
   getAdminSla,
+  getDashboardPreference,
+  getPdaAppRelease,
   getRealtimePresence,
   getRuntimeLogDetail,
   getRuntimeLogs,
@@ -44,6 +48,7 @@ import {
   resolveReporterBatch,
   correctReporterBatch,
   saveAdminSla,
+  saveDashboardPreference,
   saveHrSource,
   searchSkus,
   setManagedUserPassword,
@@ -51,6 +56,7 @@ import {
   updateManagedUser,
   updatePickerAccounts,
   type AppProfile,
+  type AdminAuditItem,
   type AdminDashboard,
   type AdminReportingRow,
   type BatchPickerTicket,
@@ -58,6 +64,7 @@ import {
   type HrSyncPreview,
   type ManagedUser,
   type OperationalInsights,
+  type PdaAppRelease,
   type RealtimePresence,
   type RuntimeLogDetail,
   type RuntimeLogItem,
@@ -120,6 +127,7 @@ const WEB_TEXT_BASE_SCALE = 1.05;
 const SKIP_DELAY_KEY_PREFIX = "supra_inventory_skip_delay_v1";
 const SKIP_CONFIRM_DELAY_MS = 5_000;
 const DEADLINE_NOTICE_KEY_PREFIX = "supra_inventory_deadline_notices_v1";
+const DASHBOARD_RANGE_KEY_PREFIX = "supra_inventory_dashboard_range_v1";
 
 function loadUiZoom(): number {
   const stored = Number(localStorage.getItem(UI_ZOOM_KEY) || 100);
@@ -241,6 +249,13 @@ function clearRoleScopedViewState(): void {
   systemResetSelected.clear();
   runtimeLogs = [];
   runtimeLogDetail = null;
+  auditRows = [];
+  auditTotal = 0;
+  auditOffset = 0;
+  auditRole = "";
+  auditQuery = "";
+  pdaAppRelease = null;
+  pdaQrDataUrl = "";
   selectedBatchId = null;
 }
 
@@ -310,7 +325,7 @@ let reportInsights: OperationalInsights | null = null;
 let reportTotal = 0;
 let reportOffset = 0;
 const REPORT_PAGE_SIZE = 100;
-let dashboardFrom = dateDaysAgo(6);
+let dashboardFrom = dateDaysAgo(0);
 let dashboardTo = dateDaysAgo(0);
 let reportFrom = dateDaysAgo(6);
 let reportTo = dateDaysAgo(0);
@@ -321,9 +336,18 @@ let systemStatus: SystemStatusSnapshot | null = null;
 let systemResetPreview: SystemResetPreview | null = null;
 let systemResetChallenge: { id: string; expiresAt: string; emailHint: string } | null = null;
 let systemResetSelected = new Set<SystemResetScope>();
+let logView: "WEB" | "ANDROID" | "AUDIT" = "WEB";
 let runtimeLogSource: "WEB" | "ANDROID" = "WEB";
 let runtimeLogs: RuntimeLogItem[] = [];
 let runtimeLogDetail: RuntimeLogDetail | null = null;
+let auditRows: AdminAuditItem[] = [];
+let auditTotal = 0;
+let auditOffset = 0;
+let auditRole = "";
+let auditQuery = "";
+const AUDIT_PAGE_SIZE = 100;
+let pdaAppRelease: PdaAppRelease | null = null;
+let pdaQrDataUrl = "";
 let pickerQuery = "";
 let pickerSuggestions: SkuItem[] = [];
 let pickerSelected: SkuItem | null = null;
@@ -345,6 +369,8 @@ let selectedBatchId: string | null = null;
 let dashboardLoadGeneration = 0;
 let reportLoadGeneration = 0;
 let sessionViewGeneration = 0;
+let dashboardPreferenceLoadedUserId = "";
+if (profile?.user_id) restoreDashboardRangeForUser(profile.user_id);
 
 function esc(value: unknown): string {
   return String(value ?? "")
@@ -414,6 +440,41 @@ function dateDaysAgo(days: number): string {
   }).formatToParts(d);
   const p = Object.fromEntries(parts.map((part) => [part.type, part.value]));
   return `${p.year}-${p.month}-${p.day}`;
+}
+
+function dashboardRangeStorageKey(userId = profile?.user_id || "anonymous"): string {
+  return `${DASHBOARD_RANGE_KEY_PREFIX}:${userId}`;
+}
+
+function restoreDashboardRangeForUser(userId: string): void {
+  const today = dateDaysAgo(0);
+  dashboardFrom = today;
+  dashboardTo = today;
+  if (!userId) return;
+  try {
+    const raw = localStorage.getItem(dashboardRangeStorageKey(userId));
+    if (!raw) return;
+    const parsed = JSON.parse(raw) as { from?: unknown; to?: unknown };
+    const from = String(parsed.from || "");
+    const to = String(parsed.to || "");
+    const range = apiRange(from, to);
+    if (Date.parse(range.to) - Date.parse(range.from) > 60 * 86_400_000) return;
+    dashboardFrom = from;
+    dashboardTo = to;
+  } catch {
+    dashboardFrom = today;
+    dashboardTo = today;
+  }
+}
+
+async function persistDashboardRangeForUser(): Promise<void> {
+  const userId = profile?.user_id || "";
+  if (!userId) return;
+  const range = apiRange(dashboardFrom, dashboardTo);
+  if (Date.parse(range.to) - Date.parse(range.from) > 60 * 86_400_000) return;
+  localStorage.setItem(dashboardRangeStorageKey(userId), JSON.stringify({ from: dashboardFrom, to: dashboardTo }));
+  await saveDashboardPreference(dashboardFrom, dashboardTo);
+  dashboardPreferenceLoadedUserId = userId;
 }
 
 function todayKey(value: string): string {
@@ -945,6 +1006,8 @@ function renderLogin(): void {
       }
       markWebUpdateReceived();
       skipDelayEnabled = loadSkipDelayEnabled(profile.user_id);
+      restoreDashboardRangeForUser(profile.user_id);
+      dashboardPreferenceLoadedUserId = "";
       runtimeLogEvent(`Đăng nhập: ${profile.role}`);
       sessionViewGeneration += 1;
       activeSection = resolveInitialSection(profile);
@@ -1378,7 +1441,8 @@ function renderSla(): string {
   const autoEnabled = sla?.auto_skip_enabled === true;
   const mode = sla?.auto_skip_mode || "FIRST_REPORT";
   return `<section class="ops-route sla-workspace">
-    <div class="business-page-head"><div><h2>Thời gian xử lý</h2><p>Thiết lập ba mốc thời gian theo giờ hệ thống. Luôn phải theo thứ tự Cảnh báo &lt; Quá hạn &lt; Tự động cho phép bỏ qua.</p></div></div>
+    <div class="business-page-head"><div><h2>Thời gian xử lý</h2><p>Thiết lập ba mốc thời gian theo giờ hệ thống. Luôn phải theo thứ tự Cảnh báo &lt; Quá hạn &lt; Tự động cho phép bỏ qua.</p></div><span class="global-setting-badge">Cấu hình chung toàn hệ thống</span></div>
+    <div class="global-setting-note"><strong>Mọi tài khoản dùng cùng một cấu hình.</strong><span>Thay đổi tại đây áp dụng cho toàn hệ thống, không lưu riêng theo người dùng.</span>${sla?.updated_by ? `<small>Cập nhật gần nhất: ${esc(sla.updated_by)}${sla.updated_at ? ` · ${esc(fmt(sla.updated_at))}` : ""}</small>` : ""}</div>
     <form id="sla-form" class="ops-panel sla-config-panel">
       <div class="sla-config-body">
         <div class="ops-settings-grid sla-threshold-grid">
@@ -1415,6 +1479,7 @@ function renderReportTabs(current: "dashboard" | "reports"): string {
 function renderDashboard(): string {
   const k = dashboardData?.kpis;
   const recurrence = operationalInsights?.recurrence?.top_skus || [];
+  const recentResolutions = dashboardData?.recent_resolutions || [];
   const timeline = dashboardData?.timeline || [];
   const outcomes = dashboardData?.outcomes || [];
   const resolutionSources = dashboardData?.resolution_sources || [];
@@ -1493,6 +1558,15 @@ function renderDashboard(): string {
         ${recurrence.length ? `<div class="v5-rank-list">${recurrence.slice(0,8).map((row,index) => `<div class="v5-rank-row"><b>${index+1}</b><div><strong>${esc(row.sku)}</strong><span>${esc(row.product_name)}</span></div><em>${Number(row.recurrence_count)} lần</em></div>`).join("")}</div>` : `<div class="v5-empty">Không có SKU phát sinh lại trong kỳ.</div>`}
       </article>
     </div>
+
+    <article class="ops-panel pro-resolution-activity">
+      <div class="ops-panel-title"><div><h3>Kết quả xử lý gần đây</h3><p>Hiển thị rõ người đã xác nhận Có hàng / Cho phép bỏ qua; trường hợp quá hạn tự động hiển thị Hệ thống.</p></div></div>
+      ${recentResolutions.length ? `<div class="resolution-activity-list">${recentResolutions.map((row) => {
+        const actor = resolutionActorLabel(row);
+        const automatic = row.resolution_source === "SYSTEM_TIMEOUT";
+        return `<div class="resolution-activity-row"><div class="resolution-activity-sku"><strong>${esc(row.sku)}</strong><span>${esc(row.product_name)}</span></div><span class="badge ${row.status === "HAS_STOCK" ? "ok" : "skip"}">${esc(statusLabel(row.status))}</span><div class="resolution-activity-actor"><span>Người xử lý</span><strong>${esc(actor)}</strong></div><div class="resolution-activity-time"><span>${automatic ? "Nguồn" : "Xử lý lúc"}</span><strong>${automatic ? "Hệ thống · quá hạn" : esc(fmt(row.resolved_at))}</strong></div></div>`;
+      }).join("")}</div>` : `<div class="v5-empty">Chưa có kết quả xử lý trong khoảng thời gian này.</div>`}
+    </article>
 
     <div class="report-layout-two">
       <article class="ops-panel pro-trend-panel"><div class="ops-panel-title"><div><h3>Nhịp vận hành theo thời gian</h3><p>So sánh lượt báo phát sinh và đợt được xử lý trong kỳ.</p></div><div class="pro-chart-legend"><span><i class="reports"></i>Lượt báo</span><span><i class="resolved"></i>Đã xử lý</span></div></div>${trendRows.length ? `<div class="pro-trend-chart">${trendRows.map((row,index) => { const reports = Number(row.reports || 0); const resolved = Number(row.resolved || 0); const label = dashboardData?.period.bucket === "hour" ? String(row.bucket).slice(11,16) : String(row.bucket).slice(5,10); const step = Math.max(1, Math.ceil(trendRows.length / 8)); return `<div class="pro-trend-column" title="${esc(label)} · ${reports} lượt báo · ${resolved} đã xử lý"><div class="pro-trend-bars"><i class="reports" style="height:${Math.max(reports ? 5 : 1, reports / trendMax * 100)}%"></i><i class="resolved" style="height:${Math.max(resolved ? 5 : 1, resolved / trendMax * 100)}%"></i></div><span>${index % step === 0 || index === trendRows.length - 1 ? esc(label) : ""}</span></div>`; }).join("")}</div>` : `<div class="v5-empty">Chưa có dữ liệu theo thời gian trong kỳ.</div>`}</article>
@@ -1923,23 +1997,73 @@ function renderRuntimeLogSummary(): string {
   </div>`;
 }
 
+function auditActionLabel(action: string): string {
+  const labels: Record<string, string> = {
+    SKU_IMPORT: "Cập nhật danh mục SKU",
+    BATCH_RESOLVE: "Xử lý báo hàng",
+    BATCH_CORRECT: "Sửa kết quả báo hàng",
+    SLA_CONFIG_UPDATE: "Cập nhật thời gian xử lý",
+    USER_CREATE: "Tạo tài khoản",
+    USER_UPDATE: "Cập nhật tài khoản",
+    USER_PASSWORD_CHANGE_BY_MANAGER: "Đổi mật khẩu tài khoản",
+    PICKER_DELETE: "Xóa Picker",
+    PICKER_ENABLE: "Mở lại Picker",
+    PICKER_DISABLE: "Dừng Picker",
+    PICKER_BULK_ACTION: "Thao tác Picker hàng loạt",
+    HR_PICKER_SYNC: "Đồng bộ Picker",
+    USER_CREATE_ROLLBACK: "Hoàn tác tạo tài khoản",
+  };
+  return labels[action] || action.replaceAll("_", " ");
+}
+
+function auditTargetLabel(row: AdminAuditItem): string {
+  const metadata = row.metadata || {};
+  if (row.action === "BATCH_RESOLVE") {
+    const result = String(metadata.resolution || "");
+    const label = result === "HAS_STOCK" ? "Xác nhận Có hàng" : result === "SKIP_ALLOWED" ? "Cho phép bỏ qua" : "Xử lý báo hàng";
+    return metadata.sku ? `${label} · SKU ${String(metadata.sku)}` : label;
+  }
+  if (row.action === "BATCH_CORRECT") return metadata.sku ? `Sửa Skip thành Có hàng · SKU ${String(metadata.sku)}` : "Sửa Skip thành Có hàng";
+  const target = [row.target_type, row.target_id].filter(Boolean).join(" · ");
+  return target || "—";
+}
+
 function renderLogs(): string {
+  const auditPageFrom = auditTotal ? auditOffset + 1 : 0;
+  const auditPageTo = Math.min(auditTotal, auditOffset + auditRows.length);
+  const auditActive = logView === "AUDIT";
   return `<section class="ops-route logs-workspace">
-    <div class="business-page-head"><div><h2>Nhật ký</h2></div><div class="user-row-actions"><button class="secondary" id="send-web-log">Gửi log Web ngay</button><button class="secondary" id="download-support-log">Tải log Web xuống</button></div></div>
+    <div class="business-page-head"><div><h2>Nhật ký</h2><p>Log kỹ thuật và lịch sử thao tác nghiệp vụ được tách riêng để dễ tra cứu.</p></div>${!auditActive ? `<div class="user-row-actions"><button class="secondary" id="send-web-log">Gửi log Web ngay</button><button class="secondary" id="download-support-log">Tải log Web xuống</button></div>` : ""}</div>
     <div class="workspace-tabs" role="tablist" aria-label="Nguồn nhật ký">
-      <button type="button" class="workspace-tab ${runtimeLogSource === "WEB" ? "active" : ""}" data-log-source="WEB">Log Web</button>
-      <button type="button" class="workspace-tab ${runtimeLogSource === "ANDROID" ? "active" : ""}" data-log-source="ANDROID">Log Android</button>
+      <button type="button" class="workspace-tab ${logView === "WEB" ? "active" : ""}" data-log-view="WEB">Log Web</button>
+      <button type="button" class="workspace-tab ${logView === "ANDROID" ? "active" : ""}" data-log-view="ANDROID">Log Android</button>
+      <button type="button" class="workspace-tab ${logView === "AUDIT" ? "active" : ""}" data-log-view="AUDIT">Lịch sử thao tác</button>
     </div>
-    <div class="logs-layout">
-      <article class="ops-panel log-list-panel">
-        <div class="ops-panel-title"><div><h3>Log ${runtimeLogSource === "WEB" ? "Web" : "Android"} gần đây</h3><p>${runtimeLogs.length} bản gần nhất.</p></div></div>
-        <div class="log-list">${runtimeLogs.length ? runtimeLogs.map((item) => `<button type="button" class="log-row ${runtimeLogDetail?.file.id === item.id ? "selected" : ""}" data-log-file="${esc(item.id)}"><span class="log-severity ${item.severity === "ERROR" ? "error" : "info"}">${item.severity === "ERROR" ? "Lỗi" : "Định kỳ"}</span><div><strong>Nhật ký ${esc(logSourceLabel(item.source))}</strong><small>${esc(fmt(item.created_at))} · ${Math.max(1, Math.round(Number(item.size || 0) / 1024))} KB</small></div></button>`).join("") : `<div class="ops-empty">Chưa có log ${runtimeLogSource === "WEB" ? "Web" : "Android"}.</div>`}</div>
+    ${auditActive ? `
+      <article class="ops-panel audit-history-panel">
+        <div class="ops-panel-title"><div><h3>Lịch sử thao tác Admin / Reporter / Root</h3><p>Không ghi thao tác Picker vào danh sách này. Dữ liệu được lưu tại hệ thống nghiệp vụ và phân trang giới hạn.</p></div><span>${auditPageFrom}–${auditPageTo} / ${auditTotal.toLocaleString("vi-VN")}</span></div>
+        <form id="audit-filter" class="report-filter-row audit-filter-row">
+          <label>Quyền<select name="role"><option value="">Tất cả</option>${["REPORTER","ADMIN","ROOT"].map((role) => `<option value="${role}" ${auditRole === role ? "selected" : ""}>${esc(businessRoleLabel(role))}</option>`).join("")}</select></label>
+          <label class="audit-query-field">Tìm kiếm<input name="query" value="${esc(auditQuery)}" placeholder="Người dùng / thao tác / đối tượng" /></label>
+          <button class="secondary">Áp dụng</button>
+        </form>
+        <div class="table-wrap audit-table"><table><thead><tr><th>Thời gian</th><th>Người thao tác</th><th>Quyền</th><th>Thao tác</th><th>Đối tượng / kết quả</th></tr></thead><tbody>
+          ${auditRows.length ? auditRows.map((row) => `<tr><td>${esc(fmt(row.created_at))}</td><td><strong>${esc(row.actor_display_name || row.actor_employee_code || row.actor_user_id)}</strong><small>${esc(row.actor_employee_code || row.actor_user_id)}</small></td><td><span class="badge">${esc(businessRoleLabel(row.actor_role))}</span></td><td>${esc(auditActionLabel(row.action))}</td><td>${esc(auditTargetLabel(row))}</td></tr>`).join("") : `<tr><td colspan="5" class="ops-empty">Chưa có thao tác phù hợp.</td></tr>`}
+        </tbody></table></div>
+        <div class="user-pagination"><span>Hiển thị ${auditPageFrom}–${auditPageTo}</span><div><button class="secondary" id="audit-prev" ${auditOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="audit-next" ${auditOffset + AUDIT_PAGE_SIZE >= auditTotal ? "disabled" : ""}>Trang sau</button></div></div>
       </article>
-      <article class="ops-panel log-detail-panel">
-        <div class="ops-panel-title"><div><h3>Tóm tắt nhật ký</h3></div></div>
-        ${renderRuntimeLogSummary()}
-      </article>
-    </div>
+    ` : `
+      <div class="logs-layout">
+        <article class="ops-panel log-list-panel">
+          <div class="ops-panel-title"><div><h3>Log ${runtimeLogSource === "WEB" ? "Web" : "Android"} gần đây</h3><p>${runtimeLogs.length} bản gần nhất.</p></div></div>
+          <div class="log-list">${runtimeLogs.length ? runtimeLogs.map((item) => `<button type="button" class="log-row ${runtimeLogDetail?.file.id === item.id ? "selected" : ""}" data-log-file="${esc(item.id)}"><span class="log-severity ${item.severity === "ERROR" ? "error" : "info"}">${item.severity === "ERROR" ? "Lỗi" : "Định kỳ"}</span><div><strong>Nhật ký ${esc(logSourceLabel(item.source))}</strong><small>${esc(fmt(item.created_at))} · ${Math.max(1, Math.round(Number(item.size || 0) / 1024))} KB</small></div></button>`).join("") : `<div class="ops-empty">Chưa có log ${runtimeLogSource === "WEB" ? "Web" : "Android"}.</div>`}</div>
+        </article>
+        <article class="ops-panel log-detail-panel">
+          <div class="ops-panel-title"><div><h3>Tóm tắt nhật ký</h3></div></div>
+          ${renderRuntimeLogSummary()}
+        </article>
+      </div>
+    `}
   </section>`;
 }
 
@@ -2003,12 +2127,38 @@ function renderSystemReset(): string {
 }
 
 function renderTools(): string {
+  const pdaStableUrl = pdaAppRelease ? `${window.location.origin}${pdaAppRelease.stable_download_path}` : `${window.location.origin}/downloads/pda/latest`;
   return `<section class="ops-route tools-workspace">
     <div class="heading">
-      <div><h2>Công cụ</h2><p class="muted">Phần mềm hỗ trợ vận hành giữa Pick Pack và Inventory.</p></div>
+      <div><h2>Công cụ</h2><p class="muted">Kênh tải chính thức cho App PDA và Agent vận hành.</p></div>
     </div>
-    <div class="tools-grid">
-      <article class="ops-panel tool-card tool-card-primary">
+    <div class="tools-grid tools-grid-d109">
+      <article class="ops-panel tool-card tool-card-primary pda-tool-card">
+        <div class="tool-card-head">
+          <img class="tool-icon-image" src="/app-icon.png" alt="" aria-hidden="true" />
+          <div><h3>App PDA — SUPRA Inventory</h3><p>Ứng dụng Android cho Picker/Reporter. Mã QR luôn trỏ tới bản Beta mới nhất đã phát hành, không cố định số version.</p></div>
+        </div>
+        <div class="pda-tool-body">
+          <div class="pda-qr-shell">${pdaQrDataUrl ? `<img src="${pdaQrDataUrl}" alt="QR tải App PDA mới nhất" />` : `<div class="pda-qr-loading">Đang tạo QR…</div>`}<small>Quét bằng PDA để tải bản mới nhất</small></div>
+          <div class="pda-release-info">
+            <div class="tool-facts">
+              <div><span>Bản mới nhất</span><strong>${esc(pdaAppRelease?.tag || "Đang tải…")}</strong></div>
+              <div><span>Nền tảng</span><strong>Android 11+</strong></div>
+              <div><span>Tệp</span><strong>${esc(pdaAppRelease?.asset_name || "supra-inventory-beta.apk")}</strong></div>
+              <div><span>Dung lượng</span><strong>${pdaAppRelease ? fmtBytes(pdaAppRelease.size_bytes) : "—"}</strong></div>
+              <div><span>Phát hành</span><strong>${pdaAppRelease?.published_at ? esc(fmt(pdaAppRelease.published_at)) : "—"}</strong></div>
+              <div><span>Cập nhật</span><strong>Luôn lấy bản mới nhất</strong></div>
+            </div>
+            <div class="tool-actions">
+              <a class="primary tool-download" href="${esc(pdaStableUrl)}">Tải App PDA</a>
+              <button type="button" class="secondary" id="copy-pda-link">Sao chép link</button>
+            </div>
+            <div class="pda-stable-link"><span>Link cố định</span><code>${esc(pdaStableUrl)}</code></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="ops-panel tool-card">
         <div class="tool-card-head">
           <img class="tool-icon-image" src="/app-icon.png" alt="" aria-hidden="true" />
           <div><h3>Agent Auto Confirm Pick Pack</h3><p>Agent Windows phục vụ luồng xác nhận lấy lại đơn và trao đổi dữ liệu với PDA.</p></div>
@@ -2024,21 +2174,22 @@ function renderTools(): string {
           <button type="button" class="secondary" id="copy-agent-link">Sao chép link</button>
         </div>
       </article>
+
       <article class="ops-panel tool-guide">
-        <div class="ops-panel-title"><div><h3>Sử dụng</h3></div></div>
+        <div class="ops-panel-title"><div><h3>Hướng dẫn nhanh</h3><p>Dùng đúng kênh tải chính thức để tránh cài nhầm bản cũ.</p></div></div>
         <ol class="tool-steps">
-          <li>Tải <strong>Agent Auto Confirm Pick Pack.exe</strong> từ link chính thức.</li>
-          <li>Mở Agent bằng tài khoản Windows hiện tại; không cần quyền Administrator.</li>
-          <li>Đăng nhập Agent bằng tài khoản ADMIN thực và thiết lập phiên Supra trên máy xử lý.</li>
-          <li>Agent chạy nền ở System Tray và tự nhận yêu cầu từ PDA theo cơ chế đang được áp dụng.</li>
+          <li>App PDA: quét QR hoặc bấm <strong>Tải App PDA</strong>; link cố định tự chuyển tới APK mới nhất.</li>
+          <li>Agent: tải file EXE chính thức và chạy bằng tài khoản Windows hiện tại, không cần quyền Administrator.</li>
+          <li>Agent chỉ đăng nhập bằng tài khoản ADMIN thực và dùng phiên Supra đã được thiết lập trên máy xử lý.</li>
         </ol>
       </article>
+
       <article class="ops-panel tool-safety">
-        <div class="ops-panel-title"><div><h3>Trạng thái nghiệp vụ</h3></div></div>
+        <div class="ops-panel-title"><div><h3>Trạng thái kênh công cụ</h3></div></div>
         <div class="tool-status-list">
-          <div><span class="badge ok">Sẵn sàng</span><span>Tra cứu Picklist và phối hợp nhiều Agent.</span></div>
-          <div><span class="badge">Tự động</span><span>Khởi động cùng Windows và tự kiểm tra cập nhật.</span></div>
-          <div><span class="badge warning">Đang kiểm thử</span><span>Kênh PDA ↔ Agent cuối cùng vẫn chờ kết quả kiểm tra mạng nội bộ.</span></div>
+          <div><span class="badge ok">App PDA</span><span>QR/link tự trỏ bản Beta phát hành mới nhất.</span></div>
+          <div><span class="badge ok">Agent</span><span>Tự kiểm tra cập nhật qua GitHub.</span></div>
+          <div><span class="badge">An toàn</span><span>Không nhúng mật khẩu, token hoặc dữ liệu nội bộ vào QR/link.</span></div>
         </div>
       </article>
     </div>
@@ -2178,6 +2329,20 @@ async function loadDashboard(): Promise<void> {
   const generation = ++dashboardLoadGeneration;
   const sessionGeneration = sessionViewGeneration;
   const userId = profile?.user_id || "";
+  if (userId && dashboardPreferenceLoadedUserId !== userId) {
+    const saved = await getDashboardPreference();
+    if (generation !== dashboardLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+    if (saved.configured && saved.preference?.from && saved.preference?.to) {
+      dashboardFrom = saved.preference.from;
+      dashboardTo = saved.preference.to;
+      localStorage.setItem(dashboardRangeStorageKey(userId), JSON.stringify({ from: dashboardFrom, to: dashboardTo }));
+    } else {
+      dashboardFrom = dateDaysAgo(0);
+      dashboardTo = dateDaysAgo(0);
+      localStorage.removeItem(dashboardRangeStorageKey(userId));
+    }
+    dashboardPreferenceLoadedUserId = userId;
+  }
   const range = apiRange(dashboardFrom, dashboardTo);
   const [nextDashboard, nextInsights, nextPresence] = await Promise.all([
     getAdminDashboard(range.from, range.to),
@@ -2251,10 +2416,45 @@ async function loadLogs(): Promise<void> {
   if (!roleManage()) return;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
+  if (logView === "AUDIT") {
+    const result = await getAdminAuditHistory({
+      role: auditRole,
+      query: auditQuery,
+      limit: AUDIT_PAGE_SIZE,
+      offset: auditOffset,
+    });
+    if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+    auditRows = result.items;
+    auditTotal = result.total;
+    if (auditTotal > 0 && auditOffset >= auditTotal) {
+      auditOffset = Math.max(0, Math.floor((auditTotal - 1) / AUDIT_PAGE_SIZE) * AUDIT_PAGE_SIZE);
+      return loadLogs();
+    }
+    markWebUpdateReceived();
+    return;
+  }
+  runtimeLogSource = logView;
   const result = await getRuntimeLogs(runtimeLogSource, 60);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   runtimeLogs = result.items;
   if (runtimeLogDetail && !runtimeLogs.some((item) => item.id === runtimeLogDetail?.file.id)) runtimeLogDetail = null;
+  markWebUpdateReceived();
+}
+
+async function loadTools(): Promise<void> {
+  if (!roleManage()) return;
+  const generation = sessionViewGeneration;
+  const userId = profile?.user_id || "";
+  const result = await getPdaAppRelease();
+  const stableUrl = `${window.location.origin}${result.release.stable_download_path}`;
+  const qr = await QRCode.toDataURL(stableUrl, {
+    errorCorrectionLevel: "M",
+    margin: 1,
+    width: 220,
+  });
+  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+  pdaAppRelease = result.release;
+  pdaQrDataUrl = qr;
   markWebUpdateReceived();
 }
 
@@ -2312,6 +2512,7 @@ async function loadSection(section: Section): Promise<void> {
   else if (section === "dashboard" && roleManage()) { await loadDashboard(); received = true; }
   else if (section === "reports" && roleManage()) { await loadReports(); received = true; }
   else if (section === "logs" && roleManage()) { await loadLogs(); received = true; }
+  else if (section === "tools" && roleManage()) { await loadTools(); received = true; }
   else if (section === "system-reset" && profile.role === "ROOT" && profile.base_role === "ROOT") {
     systemResetPreview = await getSystemResetPreview(false);
     received = true;
@@ -2621,11 +2822,14 @@ function bindSection(): void {
     if (selectedBatchId) prefetchBatchDetails(selectedBatchId);
   }));
 
-  document.querySelectorAll<HTMLButtonElement>("[data-log-source]").forEach((button) => button.addEventListener("click", () => {
-    const next = String(button.dataset.logSource || "WEB").toUpperCase() === "ANDROID" ? "ANDROID" : "WEB";
-    if (next === runtimeLogSource) return;
-    runtimeLogSource = next;
+  document.querySelectorAll<HTMLButtonElement>("[data-log-view]").forEach((button) => button.addEventListener("click", () => {
+    const raw = String(button.dataset.logView || "WEB").toUpperCase();
+    const next: "WEB" | "ANDROID" | "AUDIT" = raw === "ANDROID" ? "ANDROID" : raw === "AUDIT" ? "AUDIT" : "WEB";
+    if (next === logView) return;
+    logView = next;
+    if (next !== "AUDIT") runtimeLogSource = next;
     runtimeLogDetail = null;
+    auditOffset = 0;
     void run(loadLogs);
   }));
   document.querySelectorAll<HTMLButtonElement>("[data-log-file]").forEach((button) => button.addEventListener("click", () => {
@@ -2636,6 +2840,32 @@ function bindSection(): void {
       markWebUpdateReceived();
     });
   }));
+  document.querySelector<HTMLFormElement>("#audit-filter")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    auditRole = String(data.get("role") || "");
+    auditQuery = String(data.get("query") || "").trim();
+    auditOffset = 0;
+    void run(loadLogs);
+  });
+  document.querySelector<HTMLButtonElement>("#audit-prev")?.addEventListener("click", () => {
+    auditOffset = Math.max(0, auditOffset - AUDIT_PAGE_SIZE);
+    void run(loadLogs);
+  });
+  document.querySelector<HTMLButtonElement>("#audit-next")?.addEventListener("click", () => {
+    auditOffset += AUDIT_PAGE_SIZE;
+    void run(loadLogs);
+  });
+  document.querySelector<HTMLButtonElement>("#copy-pda-link")?.addEventListener("click", async () => {
+    const stableUrl = `${window.location.origin}${pdaAppRelease?.stable_download_path || "/downloads/pda/latest"}`;
+    try {
+      await navigator.clipboard.writeText(stableUrl);
+      setNotice("success", "Đã sao chép link tải App PDA mới nhất.");
+    } catch {
+      setNotice("warning", "Không sao chép tự động được. Hãy dùng nút Tải App PDA.");
+    }
+  });
+
   document.querySelector<HTMLButtonElement>("#copy-agent-link")?.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(AGENT_DOWNLOAD_URL);
@@ -2648,6 +2878,7 @@ function bindSection(): void {
   document.querySelector<HTMLButtonElement>("#send-web-log")?.addEventListener("click", () => void run(async () => {
     const sent = await sendWebRuntimeLog("manual_web_log", "INFO");
     if (!sent) throw new Error("Chưa gửi được log Web. Kiểm tra kết nối rồi thử lại.");
+    logView = "WEB";
     runtimeLogSource = "WEB";
     runtimeLogDetail = null;
     await loadLogs();
@@ -2896,7 +3127,10 @@ function bindSection(): void {
     const data = new FormData(event.currentTarget as HTMLFormElement);
     dashboardFrom = String(data.get("from"));
     dashboardTo = String(data.get("to"));
-    void run(loadDashboard);
+    void run(async () => {
+      await persistDashboardRangeForUser();
+      await loadDashboard();
+    });
   });
   document.querySelector<HTMLFormElement>("#report-filter")?.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -2914,7 +3148,10 @@ function bindSection(): void {
     if (target === "dashboard") {
       dashboardFrom = dateDaysAgo(days);
       dashboardTo = dateDaysAgo(0);
-      void run(loadDashboard);
+      void run(async () => {
+        await persistDashboardRangeForUser();
+        await loadDashboard();
+      });
     } else if (target === "reports") {
       reportFrom = dateDaysAgo(days);
       reportTo = dateDaysAgo(0);
@@ -2994,6 +3231,7 @@ async function reconcileActive(): Promise<boolean> {
   try {
     if ((activeSection === "operations" || activeSection === "results") && roleOperate()) await loadOperations();
     else if (activeSection === "picker" && profile?.role === "PICKER") await loadPicker();
+    else if (activeSection === "sla" && roleManage()) await loadSla();
     else return true;
     patchActiveSection(true);
     return true;
@@ -3017,8 +3255,9 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
     roleOperate() &&
     (activeSection === "operations" || activeSection === "results") &&
     (scopes.has("reporter_queue") || scopes.has("reporter_recent"));
+  const slaRelevant = roleManage() && activeSection === "sla" && scopes.has("sla_settings");
 
-  if (!pickerRelevant && !reporterRelevant) return true;
+  if (!pickerRelevant && !reporterRelevant && !slaRelevant) return true;
   return reconcileActive();
 });
 
@@ -3059,6 +3298,8 @@ async function bootstrap(): Promise<void> {
   try {
     profile = await getMyProfile();
     markWebUpdateReceived();
+    restoreDashboardRangeForUser(profile.user_id);
+    dashboardPreferenceLoadedUserId = "";
     sessionViewGeneration += 1;
     activeSection = resolveInitialSection(profile);
     syncSectionHistory(activeSection, "replace");

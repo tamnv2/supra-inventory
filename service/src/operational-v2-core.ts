@@ -12,6 +12,8 @@ type SqlRow = Record<string, SqlStorageValue>;
 type Actor = {
   user_id: string;
   employee_code: string | null;
+  role?: "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
+  display_name?: string;
 };
 
 type SlaConfig = OperationalSlaConfig;
@@ -815,11 +817,14 @@ async function updateResultStage(state: DurableObjectState, request: Request): P
       );
       state.storage.sql.exec(
         `INSERT INTO audit_log (
-           audit_id, actor_user_id, actor_employee_code, action, target_type, target_id, metadata_json, created_at
-         ) VALUES (?, ?, ?, 'RESULT_ACKNOWLEDGE', 'RESULT_EVENT', ?, ?, ?)`,
+           audit_id, actor_user_id, actor_employee_code, actor_role, actor_display_name,
+           action, target_type, target_id, metadata_json, created_at
+         ) VALUES (?, ?, ?, ?, ?, 'RESULT_ACKNOWLEDGE', 'RESULT_EVENT', ?, ?, ?)`,
         crypto.randomUUID(),
         actor.user_id,
         actor.employee_code,
+        actor.role || null,
+        actor.display_name || null,
         resultEventId,
         JSON.stringify({ batch_id: row.batch_id, batch_version: Number(row.batch_version || 1) }),
         at,
@@ -908,11 +913,14 @@ async function putSla(state: DurableObjectState, request: Request): Promise<Resp
 
     state.storage.sql.exec(
       `INSERT INTO audit_log (
-         audit_id, actor_user_id, actor_employee_code, action, target_type, target_id, metadata_json, created_at
-       ) VALUES (?, ?, ?, 'SLA_CONFIG_UPDATE', 'APP_CONFIG', ?, ?, ?)`,
+         audit_id, actor_user_id, actor_employee_code, actor_role, actor_display_name,
+         action, target_type, target_id, metadata_json, created_at
+       ) VALUES (?, ?, ?, ?, ?, 'SLA_CONFIG_UPDATE', 'APP_CONFIG', ?, ?, ?)`,
       crypto.randomUUID(),
       actor.user_id,
       actor.employee_code,
+      actor.role || null,
+      actor.display_name || null,
       SLA_CONFIG_KEY,
       JSON.stringify({ ...value, previous_auto_skip_enabled: previous?.auto_skip_enabled ?? false, previous_auto_skip_mode: previous?.auto_skip_mode ?? null }),
       at,

@@ -23,10 +23,10 @@
     "durable_object_class": "InventoryCore",
     "durable_object_binding": "INVENTORY_CORE",
     "durable_object_storage": "sqlite",
-    "beta_sqlite_schema_version": 10,
+    "beta_sqlite_schema_version": 11,
     "beta_operational_v2_extension_schema_runtime": 5,
     "beta_operational_v2_extension_schema_source_target": 5,
-    "beta_sqlite_schema_source_target": 10
+    "beta_sqlite_schema_source_target": 11
   },
   "network_scope": {
     "picker_reporter": "PDA_ONLY_ON_PDA_NETWORK_WITH_INTERNET",
@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D108_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_441F3C68__SIGNED_BETA_VC64__OA028_FIELD_READY",
+      "status": "D109_SOURCE_CANDIDATE__WEB_AUDIT_PREFS_PDA_TOOLS__ANDROID_COMPACT_TABS__SCHEMA11__PR_GATES_PENDING",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -137,11 +137,11 @@
       "health_status": "D108_LIVE_PROOF_RUN_35801069626__HTTP_200_SOURCE_441F3C68_EXACT__STORAGE_TRUE__SCHEMA_10_10__MISSING_0__AGENT_0_0",
       "ci_deploy_status": "D101_PASS_RUN_35677556693_MAIN_25CB7554",
       "web_smoke_status": "D098_PASS_RUN_35609150820",
-      "app_verify_status": "D108_PR_ANDROID_PASS_35800721751__MAIN_RUNTIME_GATE_INFERRED_BY_BETA_VC64_RELEASE_TAG",
+      "app_verify_status": "D108_BETA_VC64_RELEASE_VERIFIED__D109_NEXT_MONOTONIC_PENDING",
       "durable_object_status": "READY",
       "durable_object_class": "InventoryCore",
       "durable_object_storage": "sqlite",
-      "sqlite_schema_version": 10,
+      "sqlite_schema_version": 11,
       "runtime_service_account": "inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com",
       "android_package": "cd.cc.supra.inventory.beta",
       "firebase_android_app_id": "1:572322098890:android:3e483937876cbcc0400e33",
@@ -170,16 +170,16 @@
       "cloudflare_oauth_refresh_token_secret": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
       "oauth_refresh_token_configured": true,
       "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA",
-      "web_source_status": "D108_BETA_RUNTIME_PASS__RECOVERY_COLLAPSED__RESOLUTION_SOURCE_ACTOR__OA028_FIELD_READY",
+      "web_source_status": "D109_DASHBOARD_PREF_GLOBAL_SLA_AUDIT_PDA_TOOLS__SOURCE_IMPLEMENTED__PR_GATES_PENDING",
       "web_admin_sku_excel_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-      "web_admin_report_monitoring": "D108_HUMAN_VS_TIMEOUT_SKIP_PROVENANCE__BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
-      "android_source_status": "D108_SIGNED_BETA_VC64__PICKER_DENSE_NUMERIC_UI__PER_USER_SCALE__OA028_FIELD_READY",
+      "web_admin_report_monitoring": "D109_PER_USER_DASHBOARD_RANGE__RECENT_RESOLVER__AUDIT_HISTORY_SOURCE_CANDIDATE",
+      "android_source_status": "D109_COMPACT_HEADER_BOTTOM_TABS_TIME_ONLY__SOURCE_IMPLEMENTED__TARGET_NEXT_MONOTONIC_AFTER_VC64",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
       "latest_signed_beta_release": "beta-vc64",
       "latest_signed_beta_release_name": "1291 Beta 0.2.0-beta.64",
-      "latest_signed_beta_apk_sha256": null,
-      "latest_signed_beta_apk_size_bytes": null,
+      "latest_signed_beta_apk_sha256": "6405f45a19689c31afa7a48f9b6a19c1a68d0bf040a8dc59bbd0b0a056c9a444",
+      "latest_signed_beta_apk_size_bytes": 19014828,
       "auth_rbac_status": "D098_BETA_RUNTIME_PASS__ONE_WEB_ONE_ANDROID_ONE_AGENT__ROLE_CLIENT_MATRIX",
       "auth_api_route_smoke": "PASS",
       "root_bootstrap_path_smoke": "PASS",
@@ -463,9 +463,9 @@
     "web_diagnostics": "API_RENDER_REALTIME_NAVIGATION_LONG_TASK_RESOURCE_DOM_INTERACTION_BOUNDED_TELEMETRY"
   },
   "android": {
-    "latest_beta_release": "beta-vc62",
-    "latest_beta_release_source": "216a5b88b2ca932e6ed863579677ed21df01e49b",
-    "latest_beta_apk_sha256": "2b7967d1fec7a94098588fb5b1d4f84258acd0000a355b1f06a12c0309d5c1db"
+    "latest_beta_release": "beta-vc64",
+    "latest_beta_release_source": "441f3c687ad2ef94ecc6017b8fa9846e9b34a7a2",
+    "latest_beta_apk_sha256": "6405f45a19689c31afa7a48f9b6a19c1a68d0bf040a8dc59bbd0b0a056c9a444"
   },
   "system_status": {
     "environment": "beta",

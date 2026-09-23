@@ -3,7 +3,7 @@ type AppRole = "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
 type UserStatus = "ACTIVE" | "DISABLED";
 type PickerBulkAction = "ENABLE" | "DISABLE" | "DELETE";
 
-type Actor = { user_id: string; employee_code: string | null; role: AppRole };
+type Actor = { user_id: string; employee_code: string | null; role: AppRole; display_name?: string };
 type HrEmployee = { employee_code?: unknown; display_name?: unknown };
 
 interface UserRow extends SqlRow {
@@ -35,9 +35,12 @@ function validPasswordPart(value: unknown): value is string { const v = String(v
 function audit(state: DurableObjectState, actor: Actor, action: string, targetType: string, targetId: string, metadata: Record<string, unknown>): void {
   const at = new Date().toISOString();
   state.storage.sql.exec(
-    `INSERT INTO audit_log (audit_id, actor_user_id, actor_employee_code, action, target_type, target_id, metadata_json, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    crypto.randomUUID(), actor.user_id, actor.employee_code, action, targetType, targetId, JSON.stringify(metadata), at,
+    `INSERT INTO audit_log (
+       audit_id, actor_user_id, actor_employee_code, actor_role, actor_display_name,
+       action, target_type, target_id, metadata_json, created_at
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    crypto.randomUUID(), actor.user_id, actor.employee_code, actor.role, actor.display_name || null,
+    action, targetType, targetId, JSON.stringify(metadata), at,
   );
 }
 

@@ -968,3 +968,21 @@ Technical/runtime acceptance requires:
 9. A− / A+ is visible beside Log for Picker. Changing scale persists by authenticated user id; logout/login on the same device restores it, while another user keeps their own value. Scale remains bounded 80–140%.
 10. Existing D105 Xác nhận đơn four-digit behavior, withdrawal, realtime result acknowledgement, Android update gate and Stable invariants remain PASS.
 11. PR authority/state/UI/Web/Android/build guards, Beta deployment and next signed monotonic Android release must pass before technical release PASS is claimed. Final visual/device acceptance remains Owner field review.
+
+## D109 acceptance — Web audit/preferences/PDA tools + Android compact UI
+
+Technical/runtime acceptance requires:
+
+1. A user with no saved dashboard preference opens `Tổng quan` on **Hôm nay**. After explicitly selecting another valid range, logout/login or another device/session for that same account restores it; a different account keeps its own independent range.
+2. `Thời gian xử lý` visibly identifies itself as a global system setting. Saving from one authorized user is reflected to another active authorized Web client through realtime reconciliation; there is no per-user SLA storage or polling loop.
+3. `Nhật ký → Lịch sử thao tác` shows bounded/paged actions only for REPORTER, ADMIN and ROOT. Picker actions are excluded from this management view and secret-like metadata is redacted.
+4. Human `Đã có hàng` / `Cho phép bỏ qua` recent resolutions show the resolving user; `SYSTEM_TIMEOUT` shows **Hệ thống**.
+5. `Công cụ → App PDA` shows release metadata plus a QR and fixed project download URL. The URL contains no hard-coded Beta version and redirects to the highest published numeric `beta-vcN` APK asset.
+6. App-PDA release discovery is explicit-page/API driven with bounded cache; no background GitHub/provider polling is introduced.
+7. Android Picker header is shorter than the prior fixed 76dp baseline and long identity text remains readable through bounded auto-size/wrap.
+8. Header controls appear in order A−, A+, Log, Thoát; A− and A+ are adjacent.
+9. `Báo hết hàng` / `Xác nhận đơn` render as a bottom tab bar. Opening the keyboard does not push that tab bar upward or shrink the app content layout.
+10. Picker shortage history contains no `dd/MM/yyyy`; it shows `Báo hết lúc: HH:mm` and, for a human resolution, `Invent phản hồi lúc: HH:mm`.
+11. SQLite migration to schema 11 is additive and preserves existing business rows while adding audit actor role/display-name projection.
+12. Existing D105/D108 confirmation, SKU, withdrawal, result-ACK, per-user scale, quota, Agent/WMS and Stable OWNER-GATED guards remain PASS.
+13. Repo Authority, Project State, UI/Web/Service/Android guards, Beta schema-11 deployment and the next monotonic signed Android release must pass before D109 technical/runtime/release PASS is claimed.

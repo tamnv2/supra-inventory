@@ -199,3 +199,10 @@ For Web-managed ADMIN/REPORTER creation and password updates:
 7. Secrets/passwords/tokens/hashes/salts are never emitted in logs or public responses.
 
 This closes the partial-create state where the Web reported failure but an account remained in InventoryCore, and closes the readiness gap where Web password reset returned success while direct Agent Firebase password login still failed.
+
+## D109 management audit visibility
+
+- `Nhật ký → Lịch sử thao tác` remains an Admin/Root management surface under the existing Web navigation/RBAC.
+- The stored management-audit projection includes actions performed by REPORTER, ADMIN and ROOT. Picker actions are deliberately excluded from this view.
+- Recording an actor role/display name does not grant new permissions; authorization continues to use the existing effective/base-role rules.
+- Audit output never returns credentials, passwords, tokens, cookies, signing material or other secret fields.

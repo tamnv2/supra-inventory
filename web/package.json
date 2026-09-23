@@ -15,10 +15,12 @@
   "dependencies": {
     "firebase": "12.19.0",
     "read-excel-file": "9.3.10",
-    "xlsx": "0.18.5"
+    "xlsx": "0.18.5",
+    "qrcode": "1.5.4"
   },
   "devDependencies": {
     "typescript": "^5.9.2",
-    "vite": "^7.1.7"
+    "vite": "^7.1.7",
+    "@types/qrcode": "^1.5.5"
   }
 }

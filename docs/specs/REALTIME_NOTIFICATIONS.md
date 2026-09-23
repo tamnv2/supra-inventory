@@ -373,3 +373,9 @@ For Picker `Xác nhận đơn` only:
 - D097 PRIMARY/STANDBY polling and the 30-second Android listener window are unchanged.
 - No extra Firestore reads/writes are introduced by D105.
 
+## D109 global SLA configuration propagation
+
+- SLA warning/escalation/automatic-Skip settings remain one server-authoritative `app_config` value shared by the whole system. They are never stored as per-user browser preferences.
+- A successful Admin/Root SLA update emits a bounded realtime scope for `sla_settings` (and affected reporter queue state). An active SLA page reconciles from the authoritative server value.
+- This propagation is event-driven; D109 does not add background SLA polling.
+- Existing deadline semantics, D070 modes and D098 realtime budget guards remain unchanged.

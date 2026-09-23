@@ -218,6 +218,17 @@ export interface AdminDashboard {
   timeline: Array<{ bucket: string; reports: number; resolved: number }>;
   outcomes: Array<{ status: "PENDING" | "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED"; count: number }>;
   resolution_sources: Array<{ status: "HAS_STOCK" | "SKIP_ALLOWED"; resolution_source: string; count: number }>;
+  recent_resolutions: Array<{
+    batch_id: string;
+    sku: string;
+    product_name: string;
+    status: "HAS_STOCK" | "SKIP_ALLOWED";
+    resolution_source: string;
+    resolved_at: string;
+    resolved_by_user_id: string | null;
+    resolved_by_display_name?: string | null;
+    resolved_by_employee_code?: string | null;
+  }>;
   top_skus: Array<{ sku: string; product_name: string; report_count: number; picker_count: number }>;
 }
 
@@ -257,6 +268,53 @@ export interface RealtimePresence {
   online_users_by_role: Record<"PICKER" | "REPORTER" | "ADMIN" | "ROOT", number>;
   online_users_by_client: Record<"WEB" | "ANDROID", number>;
   server_time: string;
+}
+
+export interface DashboardPreference {
+  from: string;
+  to: string;
+  updated_at?: string;
+  updated_by?: string | null;
+}
+
+export interface DashboardPreferenceResponse {
+  configured: boolean;
+  preference: DashboardPreference | null;
+}
+
+export interface AdminAuditItem {
+  audit_id: string;
+  actor_user_id: string;
+  actor_employee_code: string | null;
+  actor_role: "REPORTER" | "ADMIN" | "ROOT";
+  actor_display_name: string;
+  action: string;
+  target_type: string | null;
+  target_id: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface AdminAuditPage {
+  items: AdminAuditItem[];
+  count: number;
+  total: number;
+  limit: number;
+  offset: number;
+  role: string;
+  query: string;
+}
+
+export interface PdaAppRelease {
+  tag: string;
+  name: string;
+  published_at: string | null;
+  source: string | null;
+  release_url: string | null;
+  asset_name: string;
+  size_bytes: number;
+  digest: string | null;
+  stable_download_path: string;
 }
 
 export interface RuntimeLogItem {
@@ -799,6 +857,37 @@ export async function uploadRuntimeLog(payload: {
     method: "POST",
     body: JSON.stringify(payload),
   }));
+}
+
+export async function getDashboardPreference(): Promise<DashboardPreferenceResponse> {
+  return readJson(await authorizedFetch("/api/admin/dashboard-preference"));
+}
+
+export async function saveDashboardPreference(from: string, to: string): Promise<DashboardPreferenceResponse> {
+  return readJson(await authorizedFetch("/api/admin/dashboard-preference", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ from, to }),
+  }));
+}
+
+export async function getAdminAuditHistory(options: {
+  role?: string;
+  query?: string;
+  limit?: number;
+  offset?: number;
+} = {}): Promise<AdminAuditPage> {
+  const params = new URLSearchParams({
+    limit: String(options.limit || 100),
+    offset: String(options.offset || 0),
+  });
+  if (options.role) params.set("role", options.role);
+  if (options.query) params.set("query", options.query);
+  return readJson(await authorizedFetch(`/api/admin/audit-history?${params.toString()}`));
+}
+
+export async function getPdaAppRelease(): Promise<{ status: string; release: PdaAppRelease }> {
+  return readJson(await authorizedFetch("/api/admin/pda-app"));
 }
 
 export async function getRuntimeLogs(source: "WEB" | "ANDROID", limit = 50): Promise<RuntimeLogList> {

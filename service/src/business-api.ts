@@ -102,8 +102,8 @@ function coreGet(env: BusinessEnv, path: string): Promise<Response> {
   return coreStub(env).fetch(`https://inventory-core.internal${path}`);
 }
 
-function actor(user: InternalUser): { user_id: string; employee_code: string | null } {
-  return { user_id: user.user_id, employee_code: user.employee_code };
+function actor(user: InternalUser): { user_id: string; employee_code: string | null; role: AppRole; display_name: string } {
+  return { user_id: user.user_id, employee_code: user.employee_code, role: user.role, display_name: user.display_name };
 }
 
 async function ensureOperationalV2(env: BusinessEnv): Promise<Response | null> {
@@ -267,6 +267,9 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     "GET /api/admin/reports",
     "GET /api/admin/dashboard",
     "GET /api/admin/reporting",
+    "GET /api/admin/audit-history",
+    "GET /api/admin/dashboard-preference",
+    "PUT /api/admin/dashboard-preference",
     "GET /api/admin/operational-insights",
     "GET /api/admin/sla",
     "PUT /api/admin/sla",
@@ -405,7 +408,12 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
 
   if (key === "PUT /api/admin/sla") {
     const body = await parseObjectBody(request);
-    return corePut(env, "/operational/sla", { ...body, actor: actor(user) });
+    const response = await corePut(env, "/operational/sla", { ...body, actor: actor(user) });
+    return realtimeAfter(response, env, {
+      event: "sla_settings_updated",
+      scopes: ["sla_settings", "reporter_queue"],
+      tags: REPORTER_TAGS,
+    });
   }
 
   if (key === "GET /api/admin/operational-insights") {
@@ -422,6 +430,23 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
       if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
     }
     return coreGet(env, `${key.endsWith("dashboard") ? "/business/admin/dashboard" : "/business/admin/reporting"}?${params.toString()}`);
+  }
+
+  if (key === "GET /api/admin/dashboard-preference") {
+    return coreGet(env, `/business/admin/dashboard-preference?user_id=${encodeURIComponent(user.user_id)}`);
+  }
+
+  if (key === "PUT /api/admin/dashboard-preference") {
+    const body = await parseObjectBody(request);
+    return corePut(env, "/business/admin/dashboard-preference", { ...body, actor: actor(user) });
+  }
+
+  if (key === "GET /api/admin/audit-history") {
+    const params = new URLSearchParams();
+    for (const name of ["role", "query", "limit", "offset"]) {
+      if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+    }
+    return coreGet(env, `/business/admin/audit-history?${params.toString()}`);
   }
 
   if (key === "GET /api/admin/reports") {

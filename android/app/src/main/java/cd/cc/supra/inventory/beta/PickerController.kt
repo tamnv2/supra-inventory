@@ -45,8 +45,7 @@ class PickerController(
     private val displayScale: Float = 1f,
 ) {
     private val zone = ZoneId.of("Asia/Ho_Chi_Minh")
-    private val timeFmt = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(zone)
-    private val dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy").withZone(zone)
+    private val timeFmt = DateTimeFormatter.ofPattern("HH:mm").withZone(zone)
     private val handler = Handler(Looper.getMainLooper())
     private var searchTask: Runnable? = null
     private var searchGeneration = 0
@@ -276,12 +275,14 @@ class PickerController(
         shortagePanel?.visibility = if (confirm) View.GONE else View.VISIBLE
         confirmPanel?.visibility = if (confirm) View.VISIBLE else View.GONE
         shortageTab?.apply {
-            setBackgroundResource(if (confirm) R.drawable.bg_button_secondary else R.drawable.bg_button_primary)
-            setTextColor(if (confirm) kit.text else Color.WHITE)
+            setBackgroundResource(if (confirm) R.drawable.bg_picker_tab_idle else R.drawable.bg_picker_tab_selected)
+            setTextColor(if (confirm) kit.muted else kit.navy)
+            isSelected = !confirm
         }
         confirmTab?.apply {
-            setBackgroundResource(if (confirm) R.drawable.bg_button_primary else R.drawable.bg_button_secondary)
-            setTextColor(if (confirm) Color.WHITE else kit.text)
+            setBackgroundResource(if (confirm) R.drawable.bg_picker_tab_selected else R.drawable.bg_picker_tab_idle)
+            setTextColor(if (confirm) kit.navy else kit.muted)
+            isSelected = confirm
         }
         if (confirm) {
             recordLog("Picker mở tab Xác nhận đơn")
@@ -740,22 +741,38 @@ class PickerController(
             "Picker thu hồi" -> Triple(kit.graySoft, kit.line, kit.muted)
             else -> Triple(kit.pendingFill, kit.pendingStroke, kit.orange)
         }
+        val resultTimeLine = when {
+            state == "Picker thu hồi" && !row.withdrawnAt.isNullOrBlank() -> "Picker thu hồi lúc: ${timeOnly(row.withdrawnAt)}"
+            (state == "Đã có hàng" || state == "Được phép bỏ qua") && !row.resolvedAt.isNullOrBlank() && row.resolutionSource == "SYSTEM_TIMEOUT" ->
+                "Hệ thống tự động lúc: ${timeOnly(row.resolvedAt)}"
+            (state == "Đã có hàng" || state == "Được phép bỏ qua") && !row.resolvedAt.isNullOrBlank() ->
+                "Invent phản hồi lúc: ${timeOnly(row.resolvedAt)}"
+            else -> null
+        }
         return kit.card(colors.first, colors.second, 9).apply {
-            setPadding(kit.dp(10), kit.dp(8), kit.dp(10), kit.dp(8))
+            setPadding(kit.dp(10), kit.dp(7), kit.dp(10), kit.dp(7))
             addView(TextView(activity).apply {
                 text = "${row.sku} - ${row.productName}"
-                textSize = scaledSp(15f)
+                textSize = scaledSp(14.5f)
                 maxLines = 2
                 ellipsize = TextUtils.TruncateAt.END
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(kit.text)
             })
             addView(TextView(activity).apply {
-                text = "$state · ${timestamp(row.reportedAt)}${if (row.resolutionSource == "SYSTEM_TIMEOUT") " · Hệ thống tự động do quá hạn" else ""}${if (row.resultEventId != null && row.acknowledgedAt == null) " · Chưa xác nhận kết quả" else ""}"
+                text = "$state · Báo hết lúc: ${timeOnly(row.reportedAt)}"
                 textSize = scaledSp(10.5f)
                 setTextColor(colors.third)
                 setPadding(0, kit.dp(3), 0, 0)
             })
+            if (resultTimeLine != null) {
+                addView(TextView(activity).apply {
+                    text = resultTimeLine + if (row.resultEventId != null && row.acknowledgedAt == null) " · Chưa xác nhận kết quả" else ""
+                    textSize = scaledSp(10f)
+                    setTextColor(colors.third)
+                    setPadding(0, kit.dp(2), 0, 0)
+                })
+            }
             if (state == "Đang xử lý" && row.status == "OPEN" && row.autoSkipAllowedAt == null) {
                 val deadline = millis(row.withdrawDeadlineAt)
                 if (deadline > System.currentTimeMillis()) {
@@ -795,9 +812,8 @@ class PickerController(
         else -> "Đang xử lý"
     }
 
-    private fun timestamp(value: String): String = try {
-        val instant = Instant.parse(value)
-        "${timeFmt.format(instant)} - ${dateFmt.format(instant)}"
+    private fun timeOnly(value: String): String = try {
+        timeFmt.format(Instant.parse(value))
     } catch (_: Exception) { value }
 
     private fun reportDate(value: String): LocalDate? = try { Instant.parse(value).atZone(zone).toLocalDate() } catch (_: Exception) { null }

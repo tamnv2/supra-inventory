@@ -1250,7 +1250,7 @@
     },
     {
       "id": "OA028",
-      "status": "READY_FOR_OWNER_FIELD_TEST_D108_RELEASE",
+      "status": "PASS_OWNER_CONFIRMED_D108",
       "title": "Field-accept D108 Web result provenance and Picker dense UI",
       "resource_key": "worker-beta",
       "provider": "Beta Web + next signed Beta Android on existing Inventory/Firebase runtime",
@@ -1291,7 +1291,45 @@
         "D105 confirmation-order, realtime/withdrawal/update gates remain PASS; Stable untouched."
       ],
       "safety": "Beta only. Do not share passwords/tokens. No Stable action is authorized.",
-      "remaining_owner_action": "Run OA028 on live Beta Web and signed beta-vc64. Report only any item that is not PASS; no local CLI or provider setup is required."
+      "remaining_owner_action": null,
+      "field_result": "OWNER_FIELD_PASS_D108",
+      "field_result_date": "2026-09-23",
+      "owner_evidence": "Owner explicitly stated 'ok pass hết' on 2026-09-23 before opening the D109 Web/App requirements."
+    },
+    {
+      "id": "OA029",
+      "status": "PENDING_D109_TECHNICAL_RELEASE",
+      "title": "Field-accept D109 Web audit/preferences/PDA tools and Android compact UI",
+      "resource_key": "worker-beta",
+      "provider": "Beta Web + next signed Beta Android on existing Inventory/Firebase runtime",
+      "reason_owner_only": "Automated gates can verify source, schema migration, release routing and builds, but final Web/physical PDA layout, IME behavior and cross-account preference experience require Owner browser/device review.",
+      "prerequisites": {
+        "d108_owner_acceptance": "PASS",
+        "d109_source_branch": "d109-web-audit-pda-picker-tabs",
+        "technical_runtime_release": "PENDING",
+        "current_android_release": "beta-vc64",
+        "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC64",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "After D109 technical/runtime/release PASS, open Beta Web with one Admin/Root account that has no saved range and verify Tổng quan starts at Hôm nay; choose another range, relogin and verify it restores only for that account.",
+        "Open Thời gian xử lý in two authorized Web sessions. Save once and verify both show the same authoritative setting without manual F5.",
+        "Open Nhật ký → Lịch sử thao tác and verify Reporter/Admin/Root business actions are readable while Picker activity is not listed.",
+        "Open Công cụ → App PDA; scan the QR or use the fixed download link and verify it resolves to the newest signed Beta APK rather than a hard-coded older version.",
+        "On the new signed Android release, verify the shorter header, adjacent A−/A+ controls, bottom Báo hết hàng/Xác nhận đơn tabs and stationary tab bar while the keyboard is open.",
+        "Verify shortage history shows only Báo hết lúc HH:mm and Invent phản hồi lúc HH:mm for human results, with no date."
+      ],
+      "pass_criteria": [
+        "Dashboard default/range persistence is per authenticated account, not global.",
+        "SLA is one shared server-authoritative setting and updates reconcile across active Web users.",
+        "Management audit history is bounded, sanitized and excludes Picker.",
+        "Recent human results show the actual resolver; system timeout shows Hệ thống.",
+        "App PDA QR/link is version-independent and resolves to the latest published Beta APK.",
+        "Android header/tabs/IME behavior and time-only history match D109 without regressing D105/D108.",
+        "Stable remains untouched."
+      ],
+      "safety": "Beta only. Do not share passwords, Firebase tokens, WMS credentials/session material or any secret values. No Stable action is authorized.",
+      "remaining_owner_action": null
     }
   ]
 }

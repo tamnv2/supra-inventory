@@ -15,7 +15,7 @@ import {
 } from "./sla-automation";
 import { sendFcmNotifications } from "./fcm";
 
-const SCHEMA_VERSION = 10;
+const SCHEMA_VERSION = 11;
 
 interface CoreEnv {
   APP_ENV: string;
@@ -240,6 +240,8 @@ export class InventoryCore {
         audit_id TEXT PRIMARY KEY,
         actor_user_id TEXT,
         actor_employee_code TEXT,
+        actor_role TEXT,
+        actor_display_name TEXT,
         action TEXT NOT NULL,
         target_type TEXT,
         target_id TEXT,
@@ -272,6 +274,8 @@ export class InventoryCore {
     if (!this.hasColumn("users", "android_session_generation")) sql.exec("ALTER TABLE users ADD COLUMN android_session_generation INTEGER NOT NULL DEFAULT 0");
     if (!this.hasColumn("users", "android_session_device_id")) sql.exec("ALTER TABLE users ADD COLUMN android_session_device_id TEXT");
     if (!this.hasColumn("users", "android_session_started_at")) sql.exec("ALTER TABLE users ADD COLUMN android_session_started_at TEXT");
+    if (!this.hasColumn("audit_log", "actor_role")) sql.exec("ALTER TABLE audit_log ADD COLUMN actor_role TEXT");
+    if (!this.hasColumn("audit_log", "actor_display_name")) sql.exec("ALTER TABLE audit_log ADD COLUMN actor_display_name TEXT");
 
     initializeBusinessSchema(this.state);
     initializeOperationalV2Schema(this.state);
