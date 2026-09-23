@@ -60,7 +60,7 @@
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="98dp"
+            android:layout_width="154dp"
             android:layout_height="match_parent"
             android:gravity="center"
             android:orientation="vertical">
@@ -71,6 +71,19 @@
                 android:orientation="horizontal">
 
                 <TextView
+                    android:id="@+id/btnTextMinus"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:contentDescription="Thu nhỏ chữ và ô nhập"
+                    android:gravity="center"
+                    android:text="A−"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <TextView
                     android:id="@+id/btnLog"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
@@ -79,8 +92,21 @@
                     android:gravity="center"
                     android:text="Log"
                     android:textColor="@color/white"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
                     android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/btnTextPlus"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:contentDescription="Phóng to chữ và ô nhập"
+                    android:gravity="center"
+                    android:text="A+"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
 
                 <TextView
                     android:id="@+id/btnLogout"
@@ -91,7 +117,7 @@
                     android:gravity="center"
                     android:text="Thoát"
                     android:textColor="@color/white"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
