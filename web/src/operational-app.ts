@@ -338,6 +338,7 @@ let systemResetPreview: SystemResetPreview | null = null;
 let systemResetChallenge: { id: string; expiresAt: string; emailHint: string } | null = null;
 let systemResetSelected = new Set<SystemResetScope>();
 let logView: "WEB" | "ANDROID" | "AUDIT" = "WEB";
+let logDays = 30;
 let runtimeLogSource: "WEB" | "ANDROID" = "WEB";
 let runtimeLogs: RuntimeLogItem[] = [];
 let runtimeLogDetail: RuntimeLogDetail | null = null;
@@ -2076,6 +2077,10 @@ function renderLogs(): string {
       <button type="button" class="workspace-tab ${logView === "ANDROID" ? "active" : ""}" data-log-view="ANDROID">Log Android</button>
       <button type="button" class="workspace-tab ${logView === "AUDIT" ? "active" : ""}" data-log-view="AUDIT">Lịch sử thao tác</button>
     </div>
+    <div class="toolbar log-retention-window" aria-label="Khoảng nhật ký">
+      ${[30,60,90].map((days) => `<button type="button" class="btn secondary small${logDays === days ? " active" : ""}" aria-pressed="${logDays === days}" data-log-days="${days}">${days} ngày</button>`).join("")}
+      <span class="muted">Dữ liệu quá 90 ngày được tự động dọn khỏi vùng lưu nhật ký vận hành.</span>
+    </div>
     ${auditActive ? `
       <article class="ops-panel audit-history-panel">
         <div class="ops-panel-title"><div><h3>Lịch sử thao tác Admin / Reporter / Root</h3><p>Không ghi thao tác Picker vào danh sách này. Dữ liệu được lưu tại hệ thống nghiệp vụ và phân trang giới hạn.</p></div><span>${auditPageFrom}–${auditPageTo} / ${auditTotal.toLocaleString("vi-VN")}</span></div>
@@ -2447,6 +2452,7 @@ async function loadLogs(): Promise<void> {
     const result = await getAdminAuditHistory({
       role: auditRole,
       query: auditQuery,
+      days: logDays,
       limit: AUDIT_PAGE_SIZE,
       offset: auditOffset,
     });
@@ -2461,7 +2467,7 @@ async function loadLogs(): Promise<void> {
     return;
   }
   runtimeLogSource = logView;
-  const result = await getRuntimeLogs(runtimeLogSource, 60);
+  const result = await getRuntimeLogs(runtimeLogSource, 500, logDays);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   runtimeLogs = result.items;
   if (runtimeLogDetail && !runtimeLogs.some((item) => item.id === runtimeLogDetail?.file.id)) runtimeLogDetail = null;
@@ -2868,6 +2874,15 @@ function bindSection(): void {
       markWebUpdateReceived();
     });
   }));
+  document.querySelectorAll<HTMLButtonElement>("[data-log-days]").forEach((button) => button.addEventListener("click", () => {
+    const days = Number(button.dataset.logDays || 30);
+    if (![30, 60, 90].includes(days) || days === logDays) return;
+    logDays = days;
+    auditOffset = 0;
+    runtimeLogDetail = null;
+    void run(loadLogs);
+  }));
+
   document.querySelector<HTMLFormElement>("#audit-filter")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget as HTMLFormElement);
