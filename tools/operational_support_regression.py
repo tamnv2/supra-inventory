@@ -50,8 +50,9 @@ def main() -> None:
     require(web, "window.setInterval(updateQueueClockDom, 15_000)", "Web local SLA ticker")
     require(android_api, "val serverNow: String? = null", "Android queue server clock")
     require(android_reporter, "queueServerOffsetMs", "Android calibrated queue clock")
-    require(android_reporter, "handler.postDelayed(slaTicker, 15_000L)", "Android local SLA ticker")
-    ticker = android_reporter.split("private val slaTicker", 1)[1].split("fun render(", 1)[0]
+    require(android_reporter, "private val minuteTicker", "D110 Android local SLA minute ticker")
+    require(android_reporter, "handler.postDelayed(minuteTicker, delay)", "D110 calibrated minute scheduling")
+    ticker = android_reporter.split("private val minuteTicker", 1)[1].split("fun render(", 1)[0]
     forbid(ticker, "api.", "API polling inside Android SLA ticker")
 
     # F20: max range + SQL aggregate, no full pending materialization in JS.
