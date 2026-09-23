@@ -1131,12 +1131,15 @@ function adminAuditHistory(state: DurableObjectState, url: URL): BusinessResult 
   const roleValue = String(url.searchParams.get("role") || "").trim().toUpperCase();
   const role = ["REPORTER", "ADMIN", "ROOT"].includes(roleValue) ? roleValue : "";
   const query = String(url.searchParams.get("query") || "").trim().toLowerCase().slice(0, 160);
+  const daysValue = Number(url.searchParams.get("days") || 30);
+  const days = [30, 60, 90].includes(daysValue) ? daysValue : 30;
+  const cutoff = new Date(Date.now() - days * 86_400_000).toISOString();
   const limit = normalizeReportingLimit(url.searchParams.get("limit"));
   const offset = normalizeOffset(url.searchParams.get("offset"));
   const roleExpr = "COALESCE(NULLIF(a.actor_role,''), u.role, '')";
   const nameExpr = "COALESCE(NULLIF(a.actor_display_name,''), u.display_name, NULLIF(a.actor_employee_code,''), a.actor_user_id, '')";
-  const where = [roleExpr + " IN ('REPORTER','ADMIN','ROOT')"];
-  const args: SqlStorageValue[] = [];
+  const where = [roleExpr + " IN ('REPORTER','ADMIN','ROOT')", "a.created_at >= ?"];
+  const args: SqlStorageValue[] = [cutoff];
   if (role) {
     where.push(roleExpr + " = ?");
     args.push(role);
@@ -1188,6 +1191,7 @@ function adminAuditHistory(state: DurableObjectState, url: URL): BusinessResult 
       offset,
       role,
       query,
+      days,
     },
   };
 }
