@@ -1435,7 +1435,8 @@ function renderSla(): string {
   const autoEnabled = sla?.auto_skip_enabled === true;
   const mode = sla?.auto_skip_mode || "FIRST_REPORT";
   return `<section class="ops-route sla-workspace">
-    <div class="business-page-head"><div><h2>Thời gian xử lý</h2><p>Thiết lập ba mốc thời gian theo giờ hệ thống. Luôn phải theo thứ tự Cảnh báo &lt; Quá hạn &lt; Tự động cho phép bỏ qua.</p></div></div>
+    <div class="business-page-head"><div><h2>Thời gian xử lý</h2><p>Thiết lập ba mốc thời gian theo giờ hệ thống. Luôn phải theo thứ tự Cảnh báo &lt; Quá hạn &lt; Tự động cho phép bỏ qua.</p></div><span class="global-setting-badge">Cấu hình chung toàn hệ thống</span></div>
+    <div class="global-setting-note"><strong>Mọi tài khoản dùng cùng một cấu hình.</strong><span>Thay đổi tại đây áp dụng cho toàn hệ thống, không lưu riêng theo người dùng.</span>${sla?.updated_by ? `<small>Cập nhật gần nhất: ${esc(sla.updated_by)}${sla.updated_at ? ` · ${esc(fmt(sla.updated_at))}` : ""}</small>` : ""}</div>
     <form id="sla-form" class="ops-panel sla-config-panel">
       <div class="sla-config-body">
         <div class="ops-settings-grid sla-threshold-grid">
@@ -1472,6 +1473,7 @@ function renderReportTabs(current: "dashboard" | "reports"): string {
 function renderDashboard(): string {
   const k = dashboardData?.kpis;
   const recurrence = operationalInsights?.recurrence?.top_skus || [];
+  const recentResolutions = dashboardData?.recent_resolutions || [];
   const timeline = dashboardData?.timeline || [];
   const outcomes = dashboardData?.outcomes || [];
   const resolutionSources = dashboardData?.resolution_sources || [];
@@ -1550,6 +1552,15 @@ function renderDashboard(): string {
         ${recurrence.length ? `<div class="v5-rank-list">${recurrence.slice(0,8).map((row,index) => `<div class="v5-rank-row"><b>${index+1}</b><div><strong>${esc(row.sku)}</strong><span>${esc(row.product_name)}</span></div><em>${Number(row.recurrence_count)} lần</em></div>`).join("")}</div>` : `<div class="v5-empty">Không có SKU phát sinh lại trong kỳ.</div>`}
       </article>
     </div>
+
+    <article class="ops-panel pro-resolution-activity">
+      <div class="ops-panel-title"><div><h3>Kết quả xử lý gần đây</h3><p>Hiển thị rõ người đã xác nhận Có hàng / Cho phép bỏ qua; trường hợp quá hạn tự động hiển thị Hệ thống.</p></div></div>
+      ${recentResolutions.length ? `<div class="resolution-activity-list">${recentResolutions.map((row) => {
+        const actor = resolutionActorLabel(row);
+        const automatic = row.resolution_source === "SYSTEM_TIMEOUT";
+        return `<div class="resolution-activity-row"><div class="resolution-activity-sku"><strong>${esc(row.sku)}</strong><span>${esc(row.product_name)}</span></div><span class="badge ${row.status === "HAS_STOCK" ? "ok" : "skip"}">${esc(statusLabel(row.status))}</span><div class="resolution-activity-actor"><span>Người xử lý</span><strong>${esc(actor)}</strong></div><div class="resolution-activity-time"><span>${automatic ? "Nguồn" : "Xử lý lúc"}</span><strong>${automatic ? "Hệ thống · quá hạn" : esc(fmt(row.resolved_at))}</strong></div></div>`;
+      }).join("")}</div>` : `<div class="v5-empty">Chưa có kết quả xử lý trong khoảng thời gian này.</div>`}
+    </article>
 
     <div class="report-layout-two">
       <article class="ops-panel pro-trend-panel"><div class="ops-panel-title"><div><h3>Nhịp vận hành theo thời gian</h3><p>So sánh lượt báo phát sinh và đợt được xử lý trong kỳ.</p></div><div class="pro-chart-legend"><span><i class="reports"></i>Lượt báo</span><span><i class="resolved"></i>Đã xử lý</span></div></div>${trendRows.length ? `<div class="pro-trend-chart">${trendRows.map((row,index) => { const reports = Number(row.reports || 0); const resolved = Number(row.resolved || 0); const label = dashboardData?.period.bucket === "hour" ? String(row.bucket).slice(11,16) : String(row.bucket).slice(5,10); const step = Math.max(1, Math.ceil(trendRows.length / 8)); return `<div class="pro-trend-column" title="${esc(label)} · ${reports} lượt báo · ${resolved} đã xử lý"><div class="pro-trend-bars"><i class="reports" style="height:${Math.max(reports ? 5 : 1, reports / trendMax * 100)}%"></i><i class="resolved" style="height:${Math.max(resolved ? 5 : 1, resolved / trendMax * 100)}%"></i></div><span>${index % step === 0 || index === trendRows.length - 1 ? esc(label) : ""}</span></div>`; }).join("")}</div>` : `<div class="v5-empty">Chưa có dữ liệu theo thời gian trong kỳ.</div>`}</article>
