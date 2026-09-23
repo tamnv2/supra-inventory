@@ -720,3 +720,19 @@ Owner explicitly confirmed all D109 live Beta Web and signed Android `beta-vc65`
 - Final runtime-record checkpoint PR #155 merged at `5d3990b5a659225ecd92d4d0281ace23330fc06b`; post-merge Repo Authority and Project State guards passed, and UI Design Guard run `35811103699` passed.
 - No D109 Owner field gate remains. Future work starts from this accepted Beta baseline unless the Owner explicitly supersedes it.
 - Stable remains OWNER-GATED and untouched.
+
+## D110 — Android Reporter pinned workflow, live SLA clock and App role gate
+
+Owner approved on 2026-09-23.
+
+1. Android Reporter reuses the accepted compact App/PDA shell and keeps its operational tabs pinned directly below the user/header area.
+2. Reporter has exactly four visible tabs: **Đang xử lý**, **Đã có hàng**, **Cho phép skip**, **Picker đã thu hồi**. Every tab shows an order-count badge at its upper-right corner; values above 99 may render as `99+`.
+3. Tab meaning follows the existing Web/service states: pending queue, `HAS_STOCK`, `SKIP_ALLOWED`, and `CLOSED`/Picker withdrawal. Counts are authoritative service totals, not merely the number of currently rendered rows.
+4. In **Đang xử lý**, **Đã có hàng** and **Cho phép skip** are visible directly below the SKU. Pressing either button executes that resolution directly; Android must not open the old pre-resolution confirmation dialog. The selected batch is locally disabled while its mutation is in flight to prevent duplicate taps without blocking unrelated rows.
+5. Reporter pending cards use a restrained semantic SLA background: normal white, warning light yellow, overdue light red. Server timestamps remain authoritative.
+6. Elapsed waiting minutes advance locally on the PDA from the service-provided `server_now`/deadline timestamps, aligned to minute boundaries. This presentation timer performs no API call, Worker read, Firestore read/write or other provider request. Realtime business events remain responsible for authoritative data reconciliation. The manual Reporter refresh button is removed.
+7. Android visible brand/icon surfaces use the same committed app icon asset already used by the launcher/Web identity rather than the legacy alternate alert icon.
+8. Android login developer line is exactly **Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291**.
+9. Android interactive login is limited to **PICKER** and **REPORTER**. Base-role **ADMIN** and **ROOT** are server-denied for the Android channel until their App/PDA experiences are explicitly designed. Existing Web authorization is unchanged; real ADMIN Agent authorization is unchanged.
+10. Existing Reporter queue ordering, realtime notifications, correction window, audit/provenance, Picker flows, Agent/WMS behavior and Stable OWNER-GATED rules remain unchanged.
+11. Target is the next monotonic signed Beta Android release after `beta-vc65`; Stable remains untouched.
