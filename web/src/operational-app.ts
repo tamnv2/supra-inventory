@@ -21,6 +21,7 @@ import {
   getAdminReporting,
   getAdminAuditHistory,
   getAdminSla,
+  getDashboardPreference,
   getPdaAppRelease,
   getRealtimePresence,
   getRuntimeLogDetail,
@@ -47,6 +48,7 @@ import {
   resolveReporterBatch,
   correctReporterBatch,
   saveAdminSla,
+  saveDashboardPreference,
   saveHrSource,
   searchSkus,
   setManagedUserPassword,
@@ -367,6 +369,7 @@ let selectedBatchId: string | null = null;
 let dashboardLoadGeneration = 0;
 let reportLoadGeneration = 0;
 let sessionViewGeneration = 0;
+let dashboardPreferenceLoadedUserId = "";
 if (profile?.user_id) restoreDashboardRangeForUser(profile.user_id);
 
 function esc(value: unknown): string {
@@ -464,12 +467,14 @@ function restoreDashboardRangeForUser(userId: string): void {
   }
 }
 
-function persistDashboardRangeForUser(): void {
+async function persistDashboardRangeForUser(): Promise<void> {
   const userId = profile?.user_id || "";
   if (!userId) return;
   const range = apiRange(dashboardFrom, dashboardTo);
   if (Date.parse(range.to) - Date.parse(range.from) > 60 * 86_400_000) return;
   localStorage.setItem(dashboardRangeStorageKey(userId), JSON.stringify({ from: dashboardFrom, to: dashboardTo }));
+  await saveDashboardPreference(dashboardFrom, dashboardTo);
+  dashboardPreferenceLoadedUserId = userId;
 }
 
 function todayKey(value: string): string {
@@ -1002,6 +1007,7 @@ function renderLogin(): void {
       markWebUpdateReceived();
       skipDelayEnabled = loadSkipDelayEnabled(profile.user_id);
       restoreDashboardRangeForUser(profile.user_id);
+      dashboardPreferenceLoadedUserId = "";
       runtimeLogEvent(`Đăng nhập: ${profile.role}`);
       sessionViewGeneration += 1;
       activeSection = resolveInitialSection(profile);
@@ -2322,6 +2328,20 @@ async function loadDashboard(): Promise<void> {
   const generation = ++dashboardLoadGeneration;
   const sessionGeneration = sessionViewGeneration;
   const userId = profile?.user_id || "";
+  if (userId && dashboardPreferenceLoadedUserId !== userId) {
+    const saved = await getDashboardPreference();
+    if (generation !== dashboardLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+    if (saved.configured && saved.preference?.from && saved.preference?.to) {
+      dashboardFrom = saved.preference.from;
+      dashboardTo = saved.preference.to;
+      localStorage.setItem(dashboardRangeStorageKey(userId), JSON.stringify({ from: dashboardFrom, to: dashboardTo }));
+    } else {
+      dashboardFrom = dateDaysAgo(0);
+      dashboardTo = dateDaysAgo(0);
+      localStorage.removeItem(dashboardRangeStorageKey(userId));
+    }
+    dashboardPreferenceLoadedUserId = userId;
+  }
   const range = apiRange(dashboardFrom, dashboardTo);
   const [nextDashboard, nextInsights, nextPresence] = await Promise.all([
     getAdminDashboard(range.from, range.to),
@@ -3106,8 +3126,10 @@ function bindSection(): void {
     const data = new FormData(event.currentTarget as HTMLFormElement);
     dashboardFrom = String(data.get("from"));
     dashboardTo = String(data.get("to"));
-    persistDashboardRangeForUser();
-    void run(loadDashboard);
+    void run(async () => {
+      await persistDashboardRangeForUser();
+      await loadDashboard();
+    });
   });
   document.querySelector<HTMLFormElement>("#report-filter")?.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -3125,8 +3147,10 @@ function bindSection(): void {
     if (target === "dashboard") {
       dashboardFrom = dateDaysAgo(days);
       dashboardTo = dateDaysAgo(0);
-      persistDashboardRangeForUser();
-      void run(loadDashboard);
+      void run(async () => {
+        await persistDashboardRangeForUser();
+        await loadDashboard();
+      });
     } else if (target === "reports") {
       reportFrom = dateDaysAgo(days);
       reportTo = dateDaysAgo(0);
@@ -3274,6 +3298,7 @@ async function bootstrap(): Promise<void> {
     profile = await getMyProfile();
     markWebUpdateReceived();
     restoreDashboardRangeForUser(profile.user_id);
+    dashboardPreferenceLoadedUserId = "";
     sessionViewGeneration += 1;
     activeSection = resolveInitialSection(profile);
     syncSectionHistory(activeSection, "replace");
