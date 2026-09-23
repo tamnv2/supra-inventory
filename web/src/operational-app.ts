@@ -438,6 +438,39 @@ function dateDaysAgo(days: number): string {
   return `${p.year}-${p.month}-${p.day}`;
 }
 
+function dashboardRangeStorageKey(userId = profile?.user_id || "anonymous"): string {
+  return `${DASHBOARD_RANGE_KEY_PREFIX}:${userId}`;
+}
+
+function restoreDashboardRangeForUser(userId: string): void {
+  const today = dateDaysAgo(0);
+  dashboardFrom = today;
+  dashboardTo = today;
+  if (!userId) return;
+  try {
+    const raw = localStorage.getItem(dashboardRangeStorageKey(userId));
+    if (!raw) return;
+    const parsed = JSON.parse(raw) as { from?: unknown; to?: unknown };
+    const from = String(parsed.from || "");
+    const to = String(parsed.to || "");
+    const range = apiRange(from, to);
+    if (Date.parse(range.to) - Date.parse(range.from) > 60 * 86_400_000) return;
+    dashboardFrom = from;
+    dashboardTo = to;
+  } catch {
+    dashboardFrom = today;
+    dashboardTo = today;
+  }
+}
+
+function persistDashboardRangeForUser(): void {
+  const userId = profile?.user_id || "";
+  if (!userId) return;
+  const range = apiRange(dashboardFrom, dashboardTo);
+  if (Date.parse(range.to) - Date.parse(range.from) > 60 * 86_400_000) return;
+  localStorage.setItem(dashboardRangeStorageKey(userId), JSON.stringify({ from: dashboardFrom, to: dashboardTo }));
+}
+
 function todayKey(value: string): string {
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "";
