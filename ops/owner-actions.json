@@ -1354,15 +1354,27 @@
     },
     {
       "id": "OA030",
-      "status": "PENDING_TECHNICAL_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D110 Android Reporter pinned workflow",
       "resource_key": "worker-beta",
       "provider": "Beta Worker + next signed Beta Android",
       "reason_owner_only": "Automated gates can verify source, role denial, build and release contracts; final PDA density, tab pinning, semantic backgrounds and direct-touch interaction require Owner device review.",
       "prerequisites": {
         "d109_owner_acceptance": "PASS",
-        "technical_runtime_release": "PENDING",
+        "technical_runtime_release": "PASS",
+        "merged_pr": 157,
+        "source_main": "e7931cf892978332960e63d9a17dffe454ac1c43",
+        "main_repo_authority_run": 35816314068,
+        "main_project_state_run": 35816313998,
+        "main_ui_run": 35816313994,
+        "main_beta_worker_run": 35816313928,
+        "main_android_run": 35816313946,
+        "live_health": "HTTP_200__STATUS_OK__ENV_BETA__SOURCE_EXACT_E7931CF8__STORAGE_TRUE__SCHEMA_11_11__MISSING_0__AGENT_MIGRATION_0_0__OPERATIONAL_5_5",
         "target_android_release": "beta-vc66",
+        "android_release_id": 394288616,
+        "android_asset_id": 582908040,
+        "android_asset_size": 19018752,
+        "android_sha256": "715612464d7fd4ead1036959ce70b4fb8cf281e38566aa214a428fbebbf32328",
         "stable": "OWNER_GATED"
       },
       "shortest_test_path": [
@@ -1381,7 +1393,7 @@
         "Icon/footer đồng nhất; Stable không thay đổi."
       ],
       "safety": "Beta only. No secrets. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Run the shortest physical Reporter/App role-gate review after D110 technical/runtime/release PASS."
+      "remaining_owner_action": "Field-test signed beta-vc66 using the shortest path above; report PASS or only concrete failed items."
     }
   ]
 }
