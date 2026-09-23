@@ -106,7 +106,10 @@ class PickerController(
             root.findViewById<View>(R.id.etRelayPicklistSuffix),
             root.findViewById<View>(R.id.btnRelayPocSend),
         ).forEach { control ->
-            control?.layoutParams = control?.layoutParams?.also { it.height = controlHeight }
+            control?.layoutParams?.let { params ->
+                params.height = controlHeight
+                control.layoutParams = params
+            }
         }
     }
 
