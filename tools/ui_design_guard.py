@@ -288,7 +288,7 @@ checks = {
 
     "android_adaptive_launcher_icon": 'android:icon="@drawable/app_icon_d089"' in ANDROID_MANIFEST and 'android:roundIcon="@drawable/app_icon_d089"' in ANDROID_MANIFEST and ANDROID_APPROVED_ICON_EXISTS,
     "d089_shared_approved_icon": WEB_APPROVED_ICON_EXISTS and '/app-icon.png' in WEB_APP and '/app-icon.png' in WEB_INDEX,
-    "android_legacy_login_xml": all(token in ANDROID_LOGIN_XML for token in ['76dp', '23sp', '@+id/etEmployeeCode', '@+id/etPassword', '@+id/btnLogin']),
+    "android_legacy_login_xml": all(token in ANDROID_LOGIN_XML for token in ['76dp', '18sp', 'Tài khoản / Mã nhân viên', '@+id/etEmployeeCode', '@+id/etPassword', '@+id/btnLogin']),
     "android_legacy_main_shell_xml": all(token in ANDROID_MAIN_XML for token in ['android:layout_height="wrap_content"', 'android:minHeight="56dp"', '@+id/contentContainer', '@+id/btnTextMinus', '@+id/btnTextPlus', '@+id/btnLog', '@+id/btnLogout', '@+id/tvAppVersion']),
     "android_d074_picker_dense_split_xml": all(token in ANDROID_PICKER_XML for token in ['@+id/acSkuSearch', '@+id/btnReportShortage', '@+id/listMyReports', '@+id/panelShortage', '@+id/panelConfirmOrder', '@+id/tabShortage', '@+id/tabConfirmOrder', '@+id/etRelayPicklistSuffix', 'android:maxLength="4"', 'android:layout_height="48dp"']),
     "android_d110_reporter_pinned_tabs_xml": all(token in ANDROID_INVENT_XML for token in ['@+id/tabReporterPending', '@+id/tabReporterHasStock', '@+id/tabReporterSkip', '@+id/tabReporterWithdrawn', '@+id/badgeReporterPending', '@+id/listIssues']) and '@+id/btnRefreshIssues' not in ANDROID_INVENT_XML,
