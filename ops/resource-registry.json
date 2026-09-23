@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D109_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_367D518D__SCHEMA11__SIGNED_BETA_VC65__OA029_FIELD_READY",
+      "status": "D109_OWNER_FIELD_ACCEPTED_PASS__LIVE_SOURCE_367D518D__SCHEMA11__SIGNED_BETA_VC65",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -137,7 +137,7 @@
       "health_status": "D109_MAIN_DEPLOY_RUN_35809583618__HTTP_200_SOURCE_367D518D_EXACT__STORAGE_TRUE__SCHEMA_11_11__MISSING_0__AGENT_MIGRATION_0_0__OPERATIONAL_5_5",
       "ci_deploy_status": "D109_PASS_RUN_35809583618_MAIN_367D518D",
       "web_smoke_status": "D098_PASS_RUN_35609150820",
-      "app_verify_status": "D109_MAIN_ANDROID_PASS_35809583599__SIGNED_BETA_VC65",
+      "app_verify_status": "D109_OWNER_ACCEPTED_PASS__MAIN_ANDROID_PASS_35809583599__SIGNED_BETA_VC65",
       "durable_object_status": "READY",
       "durable_object_class": "InventoryCore",
       "durable_object_storage": "sqlite",
@@ -170,10 +170,10 @@
       "cloudflare_oauth_refresh_token_secret": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
       "oauth_refresh_token_configured": true,
       "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA",
-      "web_source_status": "D109_BETA_RUNTIME_PASS__PER_USER_DASHBOARD_GLOBAL_SLA_AUDIT_PDA_TOOLS__OA029_FIELD_READY",
+      "web_source_status": "D109_OWNER_ACCEPTED_PASS__PER_USER_DASHBOARD_GLOBAL_SLA_AUDIT_PDA_TOOLS",
       "web_admin_sku_excel_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-      "web_admin_report_monitoring": "D109_PER_USER_DASHBOARD_RANGE__RECENT_RESOLVER__AUDIT_HISTORY_BETA_RUNTIME_PASS",
-      "android_source_status": "D109_SIGNED_BETA_VC65__COMPACT_HEADER_BOTTOM_TABS_TIME_ONLY__OA029_FIELD_READY",
+      "web_admin_report_monitoring": "D109_OWNER_ACCEPTED_PASS__PER_USER_DASHBOARD_RANGE__RECENT_RESOLVER__AUDIT_HISTORY",
+      "android_source_status": "D109_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC65__COMPACT_HEADER_BOTTOM_TABS_TIME_ONLY",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
       "latest_signed_beta_release": "beta-vc65",
@@ -363,10 +363,10 @@
   },
   "ui_design": {
     "authority": "OWNER_SELECTED_D057_LEGACY_TRANSPLANT_THROUGH_D068_ACCEPTED__D069_UNIFIED_WEB_REFINEMENT",
-    "web": "D108_BETA_RUNTIME_PASS__D107_OWNER_ACCEPTED_BASELINE__RECOVERY_COLLAPSE__RESULT_PROVENANCE",
-    "android": "D108_SIGNED_BETA_VC64__PICKER_DENSE_NUMERIC_UI__STATUS_CARDS__PER_USER_LOCAL_SCALE",
-    "scope_guard": "D108_TECHNICAL_RUNTIME_RELEASE_PASS__OA028_FIELD_READY__STABLE_OWNER_GATED",
-    "source_candidate": "D108_RELEASED_BETA__OA028_FIELD_READY",
+    "web": "D109_OWNER_ACCEPTED_PASS__D107_BASELINE_PLUS_AUDIT_PDA_TOOLS",
+    "android": "D109_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC65__COMPACT_HEADER_BOTTOM_TABS_TIME_ONLY",
+    "scope_guard": "D109_OWNER_ACCEPTED_PASS__STABLE_OWNER_GATED",
+    "source_candidate": "D109_ACCEPTED_BETA_BASELINE",
     "navigation_proposal": "docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md",
     "navigation_constraint": {
       "admin_root_large_groups": 3,
@@ -389,7 +389,7 @@
       "personal_account_action": "PINNED_IDENTITY_CONTROL_NOT_SIDEBAR",
       "implementation": "D088_SYSTEM_LOGS_PLUS_TOOLS__D072_QUOTA_STATUS_REMAINS_EXCLUDED"
     },
-    "implementation": "D108_RESET_FORM_HIDDEN__RESOLUTION_SOURCE_ACTOR__PICKER_COMPACT_SEARCH_SELECTION_STATUS_SCALE"
+    "implementation": "D109_PER_USER_DASHBOARD_GLOBAL_SLA_AUDIT_PDA_QR__ANDROID_COMPACT_HEADER_BOTTOM_TABS_TIME_ONLY"
   },
   "quota_resilience": {
     "reference_date": "2026-09-17",
