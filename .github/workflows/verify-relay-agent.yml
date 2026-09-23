@@ -58,6 +58,7 @@ jobs:
           $sessionStore = Get-Content relay-agent/WmsSessionStore.cs -Raw
           $exitAuth = Get-Content relay-agent/ExitAuthorization.cs -Raw
           $runtimeGuard = Get-Content relay-agent/AgentRuntimeGuard.cs -Raw
+          $updater = Get-Content relay-agent/AgentUpdater.cs -Raw
           $lookup = Get-Content relay-agent/WmsPicklistLookup.cs -Raw
           $wms = Get-Content relay-agent/WmsIntegration.cs -Raw
           $rules = Get-Content firebase/database.rules.json -Raw
