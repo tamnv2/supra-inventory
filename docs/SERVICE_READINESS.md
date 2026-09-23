@@ -600,3 +600,22 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA030 FIELD READY**.
 - Signed `beta-vc66` release id `394288616`; APK asset id `582908040`; size `19018752`; SHA-256 `715612464d7fd4ead1036959ce70b4fb8cf281e38566aa214a428fbebbf32328`.
 - Android Reporter uses local calibrated minute ticking with zero timer-generated service/provider requests.
 - OA030 is field-ready. Stable remains OWNER-GATED and untouched.
+
+## D110 Owner field PASS — 2026-09-23
+
+- OA030 is closed as `PASS_OWNER_CONFIRMED_D110`.
+- Signed `beta-vc66` is the Owner-accepted D110 Android baseline.
+- D111 may supersede only its explicit Reporter UI/action/display-scope details. Stable remains OWNER-GATED.
+
+## D111 source readiness — 2026-09-23
+
+Status: **SOURCE IMPLEMENTED — PR/RUNTIME/RELEASE PASS PENDING**.
+
+- Beta source status: `D111_SOURCE_IMPLEMENTED__D110_OWNER_ACCEPTED__SCHEMA11__PR_GATES_RELEASE_PENDING`.
+- Android source status: `D111_REPORTER_SCALE_BADGE_CONFIRM_DAILY_SCOPE__SOURCE_IMPLEMENTED__TARGET_NEXT_AFTER_VC66`.
+- InventoryCore schema remains `11/11`, Operational V2 schema remains `5/5`; D111 requires no schema change.
+- Existing Android API reconciliation requests add only `scope=APP_TODAY_OPEN`; the Worker/core applies Asia/Ho_Chi_Minh today-plus-unresolved SQL projection before bounded LIMIT.
+- Reporter local minute ticker remains zero-network. No new provider polling/listener/cadence is introduced.
+- Current signed release remains `beta-vc66` pending D111 main merge and the next monotonic signed Beta release.
+- OA031 is not field-ready until PR/main guards, exact Beta runtime and signed APK publication pass.
+- Stable remains OWNER-GATED and untouched.
