@@ -723,6 +723,8 @@ D112 is technically released on Beta and **OA032 is field-ready**.
 - Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - OA032: `PASS_OWNER_CONFIRMED_D112`.
 - Beta: `D112_OWNER_FIELD_ACCEPTED_PASS__LIVE_SOURCE_92AFF2FD__SCHEMA11__SIGNED_BETA_VC68__AGENT_V31`.
+- Web: `D112_OWNER_ACCEPTED_PASS__TOOLS_RELEASE_CHANNEL_PRESETS_NONBLOCKING_REPORT_NOTICE_90D_RETENTION`.
+- Android: `D112_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC68__UPDATE_CHANNEL_INSETS_LOGIN_INPUT_CLEANUP`.
 - Runtime implementation source: `92aff2fd7b617af9f8f7706e84a5232b81aab42a`; release checkpoint main: `ec53ed6725a9de1874cef062eb805f05c20cbbab`.
 - Accepted artifacts: signed `beta-vc68` and `relay-agent-v31`; fixed `inventory-channel` remains the version-independent distribution authority.
 - Accepted behavior: D112 Web Tools/presets/logs/performance/realtime notice; Android update/insets/login/footer/confirmation cleanup; Agent v31 window/watchdog/manual suffix/overlay behavior.
