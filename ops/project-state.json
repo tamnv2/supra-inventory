@@ -13,13 +13,13 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D109_OWNER_FIELD_ACCEPTED_PASS__LIVE_SOURCE_367D518D__SCHEMA11__SIGNED_BETA_VC65",
+    "beta": "D110_SOURCE_IMPLEMENTED__PR_GATES_AND_SIGNED_BETA_RELEASE_PENDING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 11,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
     "web": "D109_OWNER_ACCEPTED_PASS__PER_USER_DASHBOARD_GLOBAL_SLA_AUDIT_PDA_TOOLS",
-    "android": "D109_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC65__COMPACT_HEADER_BOTTOM_TABS_TIME_ONLY",
+    "android": "D110_REPORTER_PINNED_4TABS_BADGES_DIRECT_ACTION_LOCAL_MINUTE_SLA__RELEASE_PENDING",
     "latest_beta_apk": "beta-vc65",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
     "network_scope": "D105_ANDROID_4DIGIT_AGENT_V30_RUNTIME_RELEASE_PASS__LEGACY_VC62_5DIGIT_ROLLOUT_COMPAT__D104_BATCH_PRESERVED__STABLE_UNTOUCHED",
@@ -159,6 +159,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
+    "OA030 D110 physical acceptance after technical release: Reporter pinned tabs/badges, direct actions, local minute SLA colors/clock, icon/footer, and ADMIN/ROOT Android denial.",
     "OA026 D106 physical credential acceptance: one post-D106 ADMIN password set -> unchanged Agent v30 direct login, plus one fresh ADMIN Web create -> immediate Agent login; verify no ghost-account-on-error.",
     "OA025 D105 physical acceptance: Android 4-digit input, dimmed in-flight confirm button, prominent terminal result, Agent manual 3–4 digit search, and unique 4-digit full-PickList resolution.",
     "OA022 D102 physical Agent v27 acceptance: one Tổng quan layout, manual update, >=2 Agent role convergence, fleet table, 21:30 five-minute warning, 22:00 default business pause, explicit continue/stop and 05:00 automatic resume.",
@@ -176,7 +177,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Await the Owner's next requirement. On the next task/session, bootstrap authority from ops/authority-manifest.json before analysis or mutation. Preserve D109 as the accepted Beta baseline and keep Stable OWNER-GATED unless explicitly authorized.",
+  "next_action": "Run D110 PR authority/state/UI/service/Android guards. If PASS, merge to main, verify Beta Worker deployment and next signed beta-vc66, then move OA030 to READY_FOR_OWNER_FIELD_TEST. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -202,6 +203,7 @@
   },
   "workboard": {
     "in_progress": [
+      "D110 IN PROGRESS: Owner-approved Android Reporter pinned 4-tab UI, authoritative count badges, direct Has Stock/Skip actions, local minute SLA clock, canonical icon/footer, and server-side ADMIN/ROOT Android denial. Branch feat/d110-android-reporter-operations; PR/CI/release pending. Stable untouched.",
       "D109 OWNER PASS: Owner confirmed all D109 Web + beta-vc65 field items PASS on 2026-09-23. Technical/runtime/release evidence remains main 367d518d, schema 11/11, signed beta-vc65; final checkpoint PR #155 merged and main UI guard 35811103699 passed. Stable untouched.",
       "D108 OWNER PASS: OA028 closed on 2026-09-23 after Owner confirmed all D108 items PASS.",
       "D108 TECHNICAL/RUNTIME/RELEASE PASS: PR #151 merged main 441f3c687ad2ef94ecc6017b8fa9846e9b34a7a2 after Repo Authority 35800721747, Project State 35800721763, UI Design 35800721806, Android 35800721751, Firestore 35800721771 and RTDB 35800721768 PASS. Test-only PR #152 live proof run 35801069626 PASS on attempt 1 with HTTP 200, env beta, exact source 441f3c68, storage true, schema 10/10, missing 0, Agent migration 0/0. GitHub tag beta-vc64 resolves and contains D108 Picker source. OA028 field review remains; Stable untouched.",
@@ -234,6 +236,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
+      "D110: pass PR guards, merge, verify Beta Worker + signed beta-vc66, then Owner field-tests OA030.",
       "READY: wait for the Owner's next requirement; bootstrap canonical GitHub authority before any new work. Preserve D109 accepted Beta baseline and Stable OWNER-GATED.",
       "OA027: after the automatic main Web deploy has propagated, Owner reviews live Beta login + authenticated shell + Tổng quan/Báo cáo chi tiết. If accepted, record D107 OWNER PASS; if not, fix only reported Beta defects.",
       "Owner field-tests OA020 reset-mail challenge and OA019 physical Agent/PDA path using relay-agent-v25 + beta-vc62. If reset challenge returns Gmail scope unavailable, perform one bounded OAuth re-consent only; no other manual action is currently required.",
@@ -524,19 +527,15 @@
   },
   "last_updated": "2026-09-23",
   "owner_ui_review": {
-    "status": "D109_OWNER_ACCEPTED_PASS",
-    "phase": "D109_COMPLETE_READY_NEXT_REQUIREMENT",
-    "started_on": "2026-09-18",
+    "status": "D110_OWNER_FIELD_PENDING_AFTER_TECHNICAL_RELEASE",
+    "phase": "D110_IMPLEMENTATION_AND_RELEASE",
+    "started_on": "2026-09-23",
     "review_target_web": "https://inventory-beta.supra.cc.cd/",
-    "review_target_android_release": "beta-vc65",
-    "review_target_android_source_commit": "367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94",
-    "visual_authority_repository": "tam95supra-source/bao-hang-1291",
-    "visual_authority_commit": "8713f487386fa39c9225b180b2b8448d4a7e2b2d",
-    "owner_acceptance": "D109_OWNER_ACCEPTED_PASS__2026_09_23",
-    "current_instruction": "D109 is Owner-accepted on live Beta Web and signed beta-vc65. Preserve this as the accepted baseline and await the next Owner requirement. Stable remains OWNER-GATED.",
-    "next_session_command": "Tiếp tục supra-inventory. Đọc canonical state trên GitHub và xử lý yêu cầu mới.",
-    "review_feedback_protocol": "No D109 review remains. Reopen only if the Owner reports a concrete regression or new requirement.",
-    "previous_owner_acceptance": "D108_OWNER_ACCEPTED_PASS__2026_09_23"
+    "review_target_android_release": "beta-vc66",
+    "previous_owner_acceptance": "D109_OWNER_ACCEPTED_PASS__2026_09_23",
+    "current_instruction": "Implement and technically release D110 on Beta, then Owner physically reviews Reporter/App role behavior. Preserve D109 accepted baseline outside explicit D110 supersession. Stable remains OWNER-GATED.",
+    "next_session_command": "Tiếp tục supra-inventory. Đọc canonical state trên GitHub và tiếp tục D110/OA030.",
+    "review_feedback_protocol": "Owner reports PASS or concrete itemized defects; only reported Beta defects are changed."
   },
   "runtime_evidence": [
     "D064 Beta Load Test run 35376099693 PASS: 1000/1000 normal Picker reports, 100 existing Picker identities, 400 existing SKUs, duration 525.423s, avg 250.34ms, p50 235.95ms, p95 348.72ms, max 625.64ms, no errors; SQLite +2572288 bytes, +400 batches, +1000 tickets, +1000 report events, +1000 realtime events, +1000 audit rows; temporary load-test gate verified closed.",
@@ -609,7 +608,7 @@
     "D109 release checkpoint 2026-09-23: PR #154 merged main 367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94; main Deploy Beta Worker run 35809583618 passed with HTTP 200 exact source, schema 11/11, storage true, missing bindings 0, Agent migration 0/0 and Operational V2 5/5; UI run 35809583663 and Android run 35809583599 PASS; signed beta-vc65 release id 394246239 asset 582752309 size 19015996 sha256 3e2b5284ac2ed5d3040c36338a5bdb21026958eda7e4d4a12b40ea9bf6c0ea48. OA029 field review remains; Stable untouched.",
     "D109 Owner field acceptance 2026-09-23: Owner explicitly replied 'ok pass' after the final main checkpoint and UI guard completed. OA029 is closed PASS. D109 live Beta Web + signed beta-vc65 are the accepted baseline; Stable remains OWNER-GATED."
   ],
-  "active_workstream": "READY_FOR_NEXT_OWNER_REQUIREMENT",
+  "active_workstream": "D110_ANDROID_REPORTER_WORKFLOW",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
