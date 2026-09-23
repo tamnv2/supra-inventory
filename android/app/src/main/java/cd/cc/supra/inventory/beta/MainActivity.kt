@@ -333,14 +333,16 @@ class MainActivity : Activity() {
         findViewById<TextView>(R.id.btnLog).setOnClickListener { showSupportDiagnostics() }
         findViewById<TextView>(R.id.btnLogout).setOnClickListener { confirmLogout() }
         configurePickerDisplayControls(session)
-        findViewById<TextView>(R.id.btnBack).setOnClickListener {
-            if (session.role == "ADMIN" || session.role == "ROOT") renderAdminLauncher(session)
-        }
+        findViewById<TextView>(R.id.btnBack).setOnClickListener { }
 
         when (session.role) {
             "PICKER" -> renderPickerHome(session)
             "REPORTER" -> renderReporterHome(session, showLauncherBack = false, initialFilter = "PENDING")
-            "ADMIN", "ROOT" -> renderAdminLauncher(session)
+            "ADMIN", "ROOT" -> {
+                api.clearSession()
+                renderLogin("Admin/Root hiện chỉ sử dụng Web. App/PDA chỉ hỗ trợ Picker và Reporter.")
+                return
+            }
             else -> {
                 contentContainer?.removeAllViews()
                 contentContainer?.addView(TextView(this).apply {
@@ -761,7 +763,7 @@ class MainActivity : Activity() {
                 "RESULT_ACK_NOT_FOUND" -> "Kết quả cần xác nhận không còn hợp lệ cho tài khoản này."
                 "USER_NOT_ACTIVE" -> "Tài khoản đã dừng hoạt động."
                 "FORBIDDEN" -> "Tài khoản không có quyền thực hiện thao tác này."
-                "CLIENT_ROLE_NOT_ALLOWED" -> "Vai trò này không được phép đăng nhập trên thiết bị này."
+                "CLIENT_ROLE_NOT_ALLOWED" -> "Admin/Root hiện chỉ sử dụng Web. App/PDA chỉ hỗ trợ Picker và Reporter."
                 "SESSION_REPLACED" -> "Tài khoản đã đăng nhập ở nơi khác. Phiên trên thiết bị này đã kết thúc."
                 "SESSION_UPGRADE_REQUIRED" -> "Phiên cũ cần đăng nhập lại một lần để áp dụng cơ chế phiên mới."
                 "AUTH_REQUIRED", "INVALID_AUTH_TOKEN", "SESSION_REFRESH_FAILED" -> "Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại."
