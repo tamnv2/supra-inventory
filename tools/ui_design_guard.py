@@ -111,7 +111,7 @@ checks = {
         ".app-footer",
         "max-width: none !important",
     ]),
-    "web_d058_credit": "Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291" in WEB_APP,
+    "web_d058_credit": "Phát triển hệ thống · tamnv2 | Pick Pack 1291" in WEB_APP,
     "web_d059_corporate_header": all(token in WEB_APP for token in [
         "CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN",
         "Website nghiệp vụ Inventory",
@@ -314,7 +314,7 @@ checks = {
     "android_picker_ack": "XÁC NHẬN ĐÃ NHẬN" in ANDROID_PICKER and "acknowledgeResult" in ANDROID_API,
     "android_d111_reporter_confirmed_actions": all(token in ANDROID_REPORTER for token in ["confirmResolution(row, \"HAS_STOCK\"", "confirmResolution(row, \"SKIP_ALLOWED\"", "processingBatchIds", "confirmingBatchIds", '.setPositiveButton("Xác nhận")', "scheduleMinuteTicker"]),
     "android_d110_role_gate": 'channel === "ANDROID" && (user.base_role === "ADMIN" || user.base_role === "ROOT")' in SERVICE_INDEX and "CLIENT_ROLE_NOT_ALLOWED" in SERVICE_INDEX,
-    "android_d110_branding": "@drawable/app_icon_d089" in ANDROID_LOGIN_XML and "@drawable/app_icon_d089" in ANDROID_MAIN_XML and "Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291" in ANDROID_LOGIN_XML,
+    "android_d110_branding": "@drawable/app_icon_d089" in ANDROID_LOGIN_XML and "@drawable/app_icon_d089" in ANDROID_MAIN_XML and "Phát triển hệ thống · tamnv2 | Pick Pack 1291" in ANDROID_LOGIN_XML,
     "android_realtime_delta": "/api/realtime/delta" in ANDROID_API and "appliedSeq" in ANDROID_RT and "streamEpoch" in ANDROID_RT and "recoverDelta" in ANDROID_RT,
     "android_update_gate_preserved": all(token in ANDROID_MAIN for token in ["UpdateGate.CHECKING", "UpdateGate.REQUIRED", "UpdateGate.FAILED", "BuildConfig.UPDATE_RELEASE_API", "loginButton?.isEnabled = updateGate == UpdateGate.CURRENT"]),
 
