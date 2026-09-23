@@ -525,3 +525,13 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
 - Backend D108 uses existing `resolution_source` / `resolved_by_user_id` plus bounded user joins and dashboard source aggregation; schema version remains unchanged.
 - Web/App source and regression guards are implemented on the D108 branch. Runtime/release PASS is not claimed before PR/main CI and Beta release evidence.
 - Stable remains OWNER-GATED and untouched.
+
+## D108 technical/runtime/release PASS — 2026-09-23
+
+- Beta: `D108_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_441F3C68__SIGNED_BETA_VC64__OA028_FIELD_READY`.
+- Web: `D108_BETA_RUNTIME_PASS__RECOVERY_COLLAPSED__RESOLUTION_SOURCE_ACTOR__OA028_FIELD_READY`.
+- Android: `D108_SIGNED_BETA_VC64__PICKER_DENSE_NUMERIC_UI__PER_USER_SCALE__OA028_FIELD_READY`.
+- SQLite schema: `10`; latest signed Beta APK: `beta-vc64`.
+- PR #151 PASS/merged; live proof run `35801069626` confirms exact D108 source on Beta with HTTP 200 and storage/schema/binding health PASS.
+- Android release tag `beta-vc64` resolves to D108 source. Release-asset checksum metadata is deliberately left unknown where the current connector cannot read it.
+- OA028 is field-ready. Stable remains OWNER-GATED and untouched.
