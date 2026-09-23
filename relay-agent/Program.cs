@@ -526,6 +526,8 @@ namespace SupraInventoryRelayAgent
         private int _manualPicklistOperationRunning;
         private long _localPdaRequests;
         private long _localAgentResponses;
+        private long _localConfirmSuccess;
+        private long _localConfirmFailed;
         private readonly string _agentInstanceId;
         private readonly System.Windows.Forms.Timer _updateTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer _logUploadTimer = new System.Windows.Forms.Timer();
@@ -658,7 +660,17 @@ namespace SupraInventoryRelayAgent
             // D088: minimize/user-close hides the window from taskbar and leaves the Agent in System Tray.
             FormClosing += (s, e) =>
             {
-                if (!_allowExit && e.CloseReason == CloseReason.UserClosing) { e.Cancel = true; MinimizeToTray(); return; }
+                if (!_allowExit && e.CloseReason == CloseReason.UserClosing)
+                {
+                    if (HasAgentSession())
+                    {
+                        e.Cancel = true;
+                        BeginInvoke(new Action(RequestProtectedExit));
+                        return;
+                    }
+                    AgentRuntimeGuard.MarkPlannedExit();
+                    _allowExit = true;
+                }
                 if (e.CloseReason == CloseReason.WindowsShutDown) AgentRuntimeGuard.MarkPlannedExit();
                 StopListening();
                 StopLeaderCoordination();
@@ -676,7 +688,7 @@ namespace SupraInventoryRelayAgent
             };
 
             _guardTimer.Interval = 60000;
-            _guardTimer.Tick += (s, e) => AgentRuntimeGuard.EnsureWatchdog();
+            _guardTimer.Tick += (s, e) => { if (HasAgentSession()) AgentRuntimeGuard.EnsureWatchdog(); };
 
             _trayMonitorTimer.Interval = 5000;
             _trayMonitorTimer.Tick += (s, e) => UpdateTrayMonitor();
@@ -712,7 +724,6 @@ namespace SupraInventoryRelayAgent
                     return;
                 }
 
-                AgentRuntimeGuard.EnsureWatchdog();
                 _guardTimer.Start();
                 _networkUiTimer.Start();
                 _trayMonitorTimer.Start();
@@ -743,11 +754,11 @@ namespace SupraInventoryRelayAgent
             Height = 790;
             MinimumSize = new Size(1000, 720);
             BackColor = Color.FromArgb(243, 246, 248);
-            ControlBox = false;
-            MaximizeBox = false;
-            MinimizeBox = false;
+            ControlBox = true;
+            MaximizeBox = true;
+            MinimizeBox = true;
             ShowInTaskbar = true;
-            FormBorderStyle = FormBorderStyle.None;
+            FormBorderStyle = FormBorderStyle.Sizable;
             ApplyWorkingAreaMaximum();
 
             var shell = new TableLayoutPanel
@@ -758,12 +769,13 @@ namespace SupraInventoryRelayAgent
                 Margin = Padding.Empty,
                 Padding = Padding.Empty
             };
-            shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 38F));
+            shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 0F));
             shell.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             shell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
 
             var chrome = new Panel
             {
+                Visible = false,
                 Dock = DockStyle.Fill,
                 BackColor = Color.FromArgb(31, 47, 58),
                 Margin = Padding.Empty
@@ -998,7 +1010,7 @@ namespace SupraInventoryRelayAgent
             });
 
             _manualPicklistQuery.SetBounds(16, 42, 360, 30);
-            _manualPicklistQuery.MaxLength = 79;
+            _manualPicklistQuery.MaxLength = 220;
             _manualPicklistQuery.KeyPress += (s, e) =>
             {
                 if (char.IsControl(e.KeyChar) || char.IsDigit(e.KeyChar) || e.KeyChar == ',' || char.IsWhiteSpace(e.KeyChar))
@@ -1021,7 +1033,7 @@ namespace SupraInventoryRelayAgent
                 _manualPicklistConfirmAll.Visible = false;
                 _manualPicklistStatus.Text = string.IsNullOrWhiteSpace(_manualPicklistQuery.Text)
                     ? ""
-                    : (valid ? "Sẵn sàng." : "Nhập 3–4 số; nhiều giá trị ngăn cách bằng dấu phẩy.");
+                    : (valid ? "Sẵn sàng." : "Nhập tối thiểu 3 số; có thể nhập dài hơn. Nhiều giá trị ngăn cách bằng dấu phẩy.");
             };
             directCard.Controls.Add(_manualPicklistQuery);
 
@@ -1051,13 +1063,6 @@ namespace SupraInventoryRelayAgent
             _manualPicklistGrid.BorderStyle = BorderStyle.FixedSingle;
             _manualPicklistGrid.ScrollBars = ScrollBars.Vertical;
             _manualPicklistGrid.Columns.Clear();
-            _manualPicklistGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "PickListCode",
-                HeaderText = "PickList",
-                ReadOnly = true,
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
-            });
             _manualPicklistGrid.Columns.Add(new DataGridViewButtonColumn
             {
                 Name = "ConfirmAction",
@@ -1066,6 +1071,13 @@ namespace SupraInventoryRelayAgent
                 UseColumnTextForButtonValue = true,
                 Width = 130,
                 MinimumWidth = 130
+            });
+            _manualPicklistGrid.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "PickListCode",
+                HeaderText = "PickList",
+                ReadOnly = true,
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
             });
             _manualPicklistGrid.CellContentClick += (s, e) =>
             {
@@ -1274,11 +1286,9 @@ namespace SupraInventoryRelayAgent
 
             if (session == null || string.IsNullOrWhiteSpace(session.AppUserId))
             {
-                MessageBox.Show(
-                    "Agent chưa có phiên ADMIN hợp lệ. Hãy đăng nhập ADMIN tại Tổng quan trước khi tắt Agent.",
-                    "Tắt Agent",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
+                AgentRuntimeGuard.MarkPlannedExit();
+                _allowExit = true;
+                Close();
                 return;
             }
 
@@ -1371,47 +1381,53 @@ namespace SupraInventoryRelayAgent
         {
             ShowInTaskbar = true;
             Show();
-            ApplyWorkingAreaMaximum();
+            if (WindowState == FormWindowState.Minimized) WindowState = FormWindowState.Normal;
             Activate();
         }
 
-        private string BuildLaptopOverlayLine(SystemMetrics metrics, OverlaySettings options)
+        private string BuildLaptopOverlayLine(SystemMetrics metrics, string state, OverlaySettings options)
         {
             if (options == null || !options.ShowLaptopGroup) return "";
             var parts = new List<string>();
-            if (options.ShowCpu)
-                parts.Add("CPU " + (metrics.CpuPercent < 0 ? "--" : Math.Round(metrics.CpuPercent).ToString("0") + "%"));
+            if (options.ShowCpu) parts.Add("Vai trò " + state);
             if (options.ShowMemory)
-            {
-                var ram = metrics.RamTotalBytes == 0 ? "--" :
-                    (metrics.RamUsedBytes / 1073741824.0).ToString("0.0") + "/" +
-                    (metrics.RamTotalBytes / 1073741824.0).ToString("0.0") + "GB";
-                parts.Add("RAM " + ram);
-            }
+                parts.Add("Firestore " + (_leaderCoordinator != null && _leaderCoordinator.IsTransportHealthy ? "ON" : "OFF"));
             if (options.ShowDisk)
-                parts.Add("Disk " + (metrics.DiskPercent < 0 ? "--" : Math.Round(metrics.DiskPercent).ToString("0") + "%"));
-            if (options.ShowNetwork)
-            {
-                var down = metrics.NetworkDownMbps < 0 ? "--" : metrics.NetworkDownMbps.ToString("0.0");
-                var up = metrics.NetworkUpMbps < 0 ? "--" : metrics.NetworkUpMbps.ToString("0.0");
-                parts.Add(metrics.NetworkKind + " ↓" + down + " ↑" + up + "Mbps");
-            }
-            if (options.ShowInternet)
-                parts.Add("Internet " + (!metrics.InternetKnown ? "--" : (metrics.InternetConnected ? "ON" : "OFF")));
-            if (options.ShowGpu)
-                parts.Add("GPU " + (metrics.GpuPercent < 0 ? "--" : Math.Round(metrics.GpuPercent).ToString("0") + "%"));
-            return parts.Count == 0 ? "" : "Laptop | " + string.Join(" | ", parts.ToArray());
+                parts.Add("WMS " + (HasUsableWmsSession() ? "Sẵn sàng" : "Chưa sẵn sàng"));
+            if (options.ShowNetwork) parts.Add("v" + AgentConfig.AgentBuild);
+            if (options.ShowInternet) parts.Add("Nghiệp vụ " + (IsBusinessAllowed() ? "ON" : "TẠM DỪNG"));
+            if (options.ShowGpu) parts.Add("Cache " + _picklistCache.CacheCount);
+            return parts.Count == 0 ? "" : "Vận hành | " + string.Join(" | ", parts.ToArray());
         }
 
-        private string BuildAgentOverlayLine(int online, string state, OverlaySettings options)
+        private string BuildAgentOverlayLine(
+            SystemMetrics metrics,
+            int online,
+            int primaryCount,
+            int standbyCount,
+            int frozenCount,
+            OverlaySettings options)
         {
             if (options == null || !options.ShowAgentGroup) return "";
             var parts = new List<string>();
-            if (options.ShowAgentOnline) parts.Add("Online " + online);
-            if (options.ShowAgentState) parts.Add(state);
-            if (options.ShowPdaRequests) parts.Add("APK " + Interlocked.Read(ref _localPdaRequests));
-            if (options.ShowAgentResponses) parts.Add("Phản hồi " + Interlocked.Read(ref _localAgentResponses));
-            if (options.ShowWmsSession) parts.Add("Supra " + (HasUsableWmsSession() ? "Sẵn sàng" : "Chưa sẵn sàng"));
+            if (options.ShowAgentOnline)
+                parts.Add("CPU " + (metrics.ProcessCpuPercent < 0 ? "--" : metrics.ProcessCpuPercent.ToString("0") + "%"));
+            if (options.ShowAgentState)
+            {
+                var ramMb = metrics.ProcessWorkingSetBytes <= 0 ? "--" : (metrics.ProcessWorkingSetBytes / 1048576.0).ToString("0") + "MB";
+                var uptime = metrics.ProcessUptime.TotalHours >= 1
+                    ? ((int)metrics.ProcessUptime.TotalHours).ToString("0") + "h" + metrics.ProcessUptime.Minutes.ToString("00")
+                    : Math.Max(0, metrics.ProcessUptime.Minutes).ToString("0") + "m";
+                parts.Add("RAM " + ramMb + " · chạy " + uptime);
+            }
+            var requests = Interlocked.Read(ref _localPdaRequests);
+            var responses = Interlocked.Read(ref _localAgentResponses);
+            if (options.ShowPdaRequests)
+                parts.Add("Yêu cầu " + requests + " · chờ " + Math.Max(0L, requests - responses));
+            if (options.ShowAgentResponses)
+                parts.Add("OK " + Interlocked.Read(ref _localConfirmSuccess) + " · lỗi " + Interlocked.Read(ref _localConfirmFailed));
+            if (options.ShowWmsSession)
+                parts.Add("Cụm " + online + " (P" + primaryCount + "/S" + standbyCount + "/F" + frozenCount + ") · " + DateTime.Now.ToString("HH:mm:ss"));
             return parts.Count == 0 ? "" : "Agent | " + string.Join(" | ", parts.ToArray());
         }
 
@@ -1455,8 +1471,8 @@ namespace SupraInventoryRelayAgent
                 {
                     var options = _statusOverlay.DisplaySettings;
                     _statusOverlay.UpdateMetrics(
-                        BuildLaptopOverlayLine(metrics, options),
-                        BuildAgentOverlayLine(online, state, options));
+                        BuildLaptopOverlayLine(metrics, state, options),
+                        BuildAgentOverlayLine(metrics, online, primaryCount, standbyCount, frozenCount, options));
                 }
             }
             catch
@@ -1464,7 +1480,7 @@ namespace SupraInventoryRelayAgent
                 _tray.Text = "SUPRA Agent";
                 _trayStatusItem.Text = "Máy: chưa đọc được tài nguyên";
                 if (_statusOverlay != null)
-                    _statusOverlay.UpdateMetrics("Laptop | chưa đọc được tài nguyên máy", "Agent | chưa đọc được trạng thái");
+                    _statusOverlay.UpdateMetrics("Vận hành | chưa đọc được trạng thái", "Agent | chưa đọc được tải tiến trình");
             }
         }
 
@@ -1672,7 +1688,7 @@ namespace SupraInventoryRelayAgent
             {
                 var value = (part ?? "").Trim();
                 if (value.Length == 0) continue;
-                if (value.Length < 3 || value.Length > 4) return false;
+                if (value.Length < 3 || value.Length > 20) return false;
                 foreach (var ch in value)
                     if (ch < '0' || ch > '9') return false;
                 if (seen.Add(value)) queries.Add(value);
@@ -1734,7 +1750,7 @@ namespace SupraInventoryRelayAgent
                 if (!IsBusinessAllowed())
                     throw new InvalidOperationException("Agent đang tạm dừng nghiệp vụ 22:00–05:00. Hãy xác nhận tăng ca tại Tổng quan để tiếp tục.");
                 if (queries == null || queries.Count == 0)
-                    throw new InvalidOperationException("Nhập 3–4 số; tối đa 10 giá trị, ngăn cách bằng dấu phẩy.");
+                    throw new InvalidOperationException("Nhập tối thiểu 3 số cho mỗi PickList; tối đa 10 giá trị, ngăn cách bằng dấu phẩy.");
 
                 if (!HasAgentSession())
                     throw new InvalidOperationException("Cần xác minh Agent bằng tài khoản ADMIN trước.");
@@ -1754,10 +1770,17 @@ namespace SupraInventoryRelayAgent
                     foreach (var code in result.Matches)
                         _manualPicklistGrid.Rows.Add(code);
 
-                    if (string.Equals(result.Result, "FOUND", StringComparison.Ordinal))
+                    if (string.Equals(result.Result, "AMBIGUOUS", StringComparison.Ordinal))
                     {
                         _manualPicklistStatus.Text =
-                            "Tìm thấy " + result.Matches.Count + " PickList" +
+                            result.AmbiguousFragments.Count + " từ khóa khớp nhiều PickList. Nhập thêm số để xác định duy nhất." +
+                            (result.Matches.Count > 0 ? " · " + result.Matches.Count + " từ khóa khác đã xác định được." : "");
+                        _manualPicklistStatus.ForeColor = Color.FromArgb(180, 116, 30);
+                    }
+                    else if (string.Equals(result.Result, "FOUND", StringComparison.Ordinal))
+                    {
+                        _manualPicklistStatus.Text =
+                            "Tìm thấy " + result.Matches.Count + " PickList duy nhất" +
                             (result.MissingFragments.Count > 0
                                 ? " · " + result.MissingFragments.Count + " từ khóa không có kết quả."
                                 : ".");
@@ -1780,6 +1803,7 @@ namespace SupraInventoryRelayAgent
                     "MANUAL_PICKLIST_SEARCH result=" + result.Result +
                     " query_count=" + queries.Count +
                     " missing_queries=" + result.MissingFragments.Count +
+                    " ambiguous_queries=" + result.AmbiguousFragments.Count +
                     " matches=" + result.Matches.Count +
                     " cache_count=" + result.CacheCount +
                     " values=redacted");
@@ -2005,6 +2029,7 @@ namespace SupraInventoryRelayAgent
         {
             try
             {
+                AgentRuntimeGuard.EnsureWatchdog();
                 if (_listenCts == null) StartListening();
                 Ui(() => _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / FIRESTORE");
             }
@@ -2464,6 +2489,7 @@ namespace SupraInventoryRelayAgent
             lock (_wmsSessionLock) _wmsSession = null;
             _picklistCache.Clear();
             ClearStoredSession();
+            AgentRuntimeGuard.MarkPlannedExit();
             try { if (File.Exists(ExitVerifierFile)) File.Delete(ExitVerifierFile); } catch { }
 
             Ui(() =>
@@ -3365,6 +3391,14 @@ namespace SupraInventoryRelayAgent
                     GuardId = guard.GuardId,
                     RetireAtMs = guard.RetireAtMs
                 };
+            }
+
+            foreach (var outcome in outcomes.Values)
+            {
+                if (outcome != null && string.Equals(outcome.Result, "CONFIRMED", StringComparison.Ordinal))
+                    Interlocked.Increment(ref _localConfirmSuccess);
+                else
+                    Interlocked.Increment(ref _localConfirmFailed);
             }
 
             AgentDiagnostics.WriteAudit(

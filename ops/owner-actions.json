@@ -1447,6 +1447,39 @@
       "field_result_date": "2026-09-23",
       "owner_evidence": "Owner explicitly replied 'ok pass, ghi nhận để anh chuyển phiên khác' on 2026-09-23 after field-testing signed beta-vc67.",
       "closed": true
+    },
+    {
+      "id": "OA032",
+      "status": "PENDING_D112_TECHNICAL_RUNTIME_RELEASE",
+      "title": "Field-accept D112 release channel, Web operations, Android UX and Agent v31 resilience",
+      "resource_key": "worker-beta",
+      "provider": "Beta Worker + Web + next signed Beta Android + relay-agent-v31",
+      "reason_owner_only": "Automated gates can verify source/build/release/retention/trust contracts, but final browser/PDA/Windows layout, perceived responsiveness, system-installer transition and watchdog/overlay interaction require Owner field review.",
+      "prerequisites": {
+        "d111_owner_acceptance": "PASS",
+        "d112_source": "IMPLEMENTED_ON_BRANCH",
+        "technical_runtime_release": "PENDING",
+        "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC67",
+        "target_agent_release": "relay-agent-v31",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Web: open Công cụ and verify two clean App PDA / Agent Windows cards; QR/download/copy links work and resolve newest D112 artifacts without 403/misleading not-found copy.",
+        "Web: verify Hôm nay/7/30/60 exact active state, 30/60/90 Nhật ký windows, faster Tổng quan/Báo cáo primary render and a new shortage realtime toast/browser notice.",
+        "Android: install next signed Beta, verify header/status-bar/cutout spacing, password eye, one-line footer and one-line confirm button under A−/A+.",
+        "Android confirmation: successful four-digit confirmation clears/refocuses input; failed/unconfirmed result retains input. Verify updater/checksum/signer flow and that obsolete downloaded update APK is not retained after current-version restart.",
+        "Agent v31: verify normal Minimize/Restore/Maximize/resize; before ADMIN login X closes normally; after ADMIN login X requires protected exit and unplanned parent-process exit is restarted by watchdog.",
+        "Agent manual: try 3-digit ambiguous term (must not confirm), then add digits until one unique suffix remains; confirm button is left of PickList. Verify overlay shows operational/process/fleet information rather than broad laptop telemetry."
+      ],
+      "pass_criteria": [
+        "Stable project download URLs stay version-independent and current; no normal runtime GitHub Releases REST discovery is required.",
+        "Web Tools/presets/log retention/primary load/realtime notice match D112 without added polling.",
+        "Android insets, update trust, password/footer/confirm UX and temporary APK cleanup match D112 without offline business behavior.",
+        "Agent v31 normal window, protected post-auth persistence, unique exact-suffix lookup and operational/process overlay work as specified.",
+        "D104/D105/D097 quota, Firestore/WMS/batching guards remain PASS and Stable is untouched."
+      ],
+      "safety": "Beta only. Never share or log credentials/tokens/WMS session material. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait until technical/runtime/release PASS; then perform the shortest field test above."
     }
   ]
 }

@@ -3,6 +3,7 @@ package cd.cc.supra.inventory.beta
 import android.app.Activity
 import android.graphics.Color
 import android.graphics.Typeface
+import android.util.TypedValue
 import android.graphics.drawable.GradientDrawable
 import android.text.TextUtils
 import android.view.Gravity
@@ -221,7 +222,9 @@ class InventoryUi(private val activity: Activity) {
     fun addFooter(root: LinearLayout) {
         root.addView(TextView(activity).apply {
             text = "Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291"
-            textSize = 9.5f
+            textSize = 9f
+            maxLines = 1
+            setAutoSizeTextTypeUniformWithConfiguration(7, 10, 1, TypedValue.COMPLEX_UNIT_SP)
             gravity = Gravity.CENTER
             setTextColor(muted)
             setPadding(dp(6), dp(16), dp(6), dp(2))

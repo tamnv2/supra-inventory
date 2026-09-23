@@ -188,3 +188,22 @@ jobs:
           fi
           gh release create "$tag" android/dist/supra-inventory-beta.apk android/dist/supra-inventory-beta.apk.sha256 --target "$GITHUB_SHA" --title "$title" --notes "$notes"
           echo "Published Beta release $tag"
+
+          channel="inventory-channel"
+          if ! gh release view "$channel" >/dev/null 2>&1; then
+            gh release create "$channel" --target "$GITHUB_SHA" --title "SUPRA Inventory runtime channel" --notes "Machine-readable Beta distribution channel. Do not install directly from this release page." --prerelease || gh release view "$channel" >/dev/null
+          fi
+          apk_sha="$(awk '{print $1}' android/dist/supra-inventory-beta.apk.sha256)"
+          apk_size="$(stat -c%s android/dist/supra-inventory-beta.apk)"
+          published_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          jq -n \
+            --arg tag "$tag" \
+            --arg name "$title" \
+            --arg published_at "$published_at" \
+            --arg source "$GITHUB_SHA" \
+            --arg sha256 "$apk_sha" \
+            --argjson size_bytes "$apk_size" \
+            '{schema_version:1, channel:"beta", tag:$tag, name:$name, published_at:$published_at, source:$source, asset_name:"supra-inventory-beta.apk", size_bytes:$size_bytes, sha256:$sha256}' \
+            > android/dist/pda-latest.json
+          gh release upload "$channel" android/dist/supra-inventory-beta.apk android/dist/supra-inventory-beta.apk.sha256 android/dist/pda-latest.json --clobber
+          echo "Updated stable PDA runtime channel $channel -> $tag"

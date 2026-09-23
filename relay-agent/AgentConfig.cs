@@ -2,7 +2,7 @@ namespace SupraInventoryRelayAgent
 {
     internal static class AgentConfig
     {
-        internal const int AgentBuild = 30;
+        internal const int AgentBuild = 31;
         internal const string ApiBaseUrl = "https://inventory-beta.supra.cc.cd";
         internal const string FirebaseProjectId = "supra-inventory-beta";
         internal const string FirebaseApiKey = "__FIREBASE_API_KEY_BETA__";
@@ -27,6 +27,9 @@ namespace SupraInventoryRelayAgent
         internal const string WmsPicklistConfirmUiReferenceUrl = "https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm";
         internal const string CorporateProxyFallback = "http://proxyclientdr.winmart.vn:9090";
         internal const string GitHubReleasesApi = "https://api.github.com/repos/tamnv2/supra-inventory/releases?per_page=30";
+        internal const string AgentUpdateManifestUrl = ApiBaseUrl + "/downloads/agent/manifest";
+        internal const string AgentUpdateExeUrl = ApiBaseUrl + "/downloads/agent/latest";
+        internal const string AgentUpdateChecksumUrl = ApiBaseUrl + "/downloads/agent/latest.sha256";
         internal const string AgentReleaseTagPrefix = "relay-agent-v";
         internal const string AgentExeAsset = "Agent.Auto.Confirm.Pick.Pack.exe";
         internal const string AgentChecksumAsset = "Agent.Auto.Confirm.Pick.Pack.exe.sha256";

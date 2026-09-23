@@ -678,3 +678,21 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
 - Current workstream after this acceptance: `READY_FOR_NEXT_OWNER_REQUIREMENT`.
 - Next session: bootstrap from `ops/authority-manifest.json`, preserve D111 as accepted Beta baseline, then apply only the new Owner requirement.
 - Stable remains OWNER-GATED and untouched.
+
+## D112 source checkpoint — 2026-09-23
+
+- Owner approved the complete D112 cross-surface Beta scope after D111 field PASS.
+- Branch: `feat/d112-web-android-agent-ops-hardening`.
+- Beta source status: `D112_SOURCE_CANDIDATE__D111_OWNER_ACCEPTED_BASELINE__SCHEMA11__PR_GATES_PENDING`.
+- Web source: two-card App/Agent Tools; version-independent service distribution paths; exact date-preset state; primary Dashboard/Report load no longer blocks on presence/noncritical summaries; `REPORT_CREATED` Web notice; 30/60/90-day log/audit views.
+- Retention source: hot management audit and Beta support logs have a 90-day operational boundary; cleanup is bounded and does not redefine business archive authority.
+- Android source: service-manifest updater + fixed distribution aliases, existing SHA/signer fail-close, system/cutout insets, password visibility, one-line footer/action, confirmed-input clear/refocus and temporary update-APK cleanup. Current D105 four-digit confirmation remains unchanged.
+- Agent target: `relay-agent-v31`; normal resizable Windows chrome; watchdog armed only after valid ADMIN runtime; manual 3–20 digit exact-suffix unique-only lookup with ambiguity fail-close; confirm action left of PickList; operational/process/fleet overlay.
+- No new polling/provider cadence. D097/D104/D105 quota, Firestore and WMS guards remain required. Stable remains OWNER-GATED and untouched.
+- OA032 is registered but is not field-ready until PR/main/runtime/release gates PASS.
+- NEXT_ACTION: open D112 PR → repair all authority/continuity/UI/Worker/Android/Agent gates → merge only on PASS → verify exact Beta runtime, signed next Android release, relay-agent-v31 and fixed channel assets → make OA032 field-ready.
+
+
+- Canonical marker: `D112_TOOLS_RELEASE_CHANNEL_PRESETS_NONBLOCKING_REPORT_NOTICE_RETENTION__SOURCE_IMPLEMENTED__PR_GATES_PENDING`.
+
+- Canonical marker: `D112_UPDATE_CHANNEL_INSETS_LOGIN_INPUT_CLEANUP__SOURCE_IMPLEMENTED__TARGET_NEXT_AFTER_VC67`.

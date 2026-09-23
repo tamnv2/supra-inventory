@@ -632,3 +632,14 @@ D111 supersedes only the conflicting D110 Reporter interaction/presentation deta
 4. Recent/result cards do not repeat the state already named by their tab and do not show affected-Picker/acknowledgement totals. Show report time and Invent response time where applicable.
 5. **Đã có hàng** and **Cho phép skip** remain directly accessible below the pending SKU but now open a concise confirmation dialog before mutation.
 6. SLA background semantics, calibrated minute ticker, canonical icon/footer, compact header, and D109 Picker bottom-tab behavior remain unchanged.
+
+## D112 — Tools, Android safe areas and Agent window/overlay
+
+- Web Tools uses two balanced operator cards only: App PDA and Agent Windows, plus one concise install guide. Version/platform/size/release/channel and primary download/copy actions are the visible information hierarchy.
+- Date/log-range active controls use the accepted semantic brand emphasis and remain readable in light/dark themes.
+- Android root surfaces respect runtime status/navigation/display-cutout insets rather than fixed device-specific top padding.
+- Android password fields expose an explicit show/hide control while defaulting hidden. The developer line remains one line with bounded auto-size.
+- Android confirmation action text remains one line/readable independently of the user A−/A+ content scale.
+- Agent is a normal resizable Windows application with standard Minimize/Restore/Maximize controls. Protected exit is a post-auth business guard, not a replacement for normal window chrome.
+- Agent overlay is split conceptually into **Vận hành** and **Tải Agent & cụm**. It prioritizes role/Firestore/WMS/version/business state, Agent process CPU/RAM/uptime, pending/result counters and bounded fleet role counts/update time.
+

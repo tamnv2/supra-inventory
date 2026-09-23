@@ -19,7 +19,7 @@ import { drainAgentLogUploads } from "./agent-log-drain";
 import { collectSystemStatus } from "./system-status";
 import { handleSystemResetApi } from "./system-reset";
 import { sendProjectEmail } from "./google-mail";
-import { latestPdaAppRelease, redirectLatestPdaApk } from "./app-tools";
+import { latestAgentAppRelease, latestPdaAppRelease, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestPdaApk, redirectLatestPdaChecksum } from "./app-tools";
 
 export { InventoryCore };
 
@@ -950,6 +950,53 @@ export default {
       if (request.method === "GET" && url.pathname === "/downloads/pda/latest") {
         return redirectLatestPdaApk();
       }
+      if (request.method === "GET" && url.pathname === "/downloads/pda/latest.sha256") {
+        return redirectLatestPdaChecksum();
+      }
+      if (request.method === "GET" && url.pathname === "/downloads/pda/manifest") {
+        try {
+          const release = await latestPdaAppRelease();
+          return json({
+            channel: "beta",
+            tag: release.tag,
+            version_code: Number(release.tag.replace("beta-vc", "")),
+            name: release.name,
+            published_at: release.published_at,
+            source: release.source,
+            size_bytes: release.size_bytes,
+            digest: release.digest,
+            apk_path: release.stable_download_path,
+            checksum_path: "/downloads/pda/latest.sha256",
+          });
+        } catch (error) {
+          return json({ error: "PDA_RELEASE_CHANNEL_UNAVAILABLE", message: error instanceof Error ? error.message : "release_channel_unavailable" }, 503);
+        }
+      }
+      if (request.method === "GET" && url.pathname === "/downloads/agent/latest") {
+        return redirectLatestAgentExe();
+      }
+      if (request.method === "GET" && url.pathname === "/downloads/agent/latest.sha256") {
+        return redirectLatestAgentChecksum();
+      }
+      if (request.method === "GET" && url.pathname === "/downloads/agent/manifest") {
+        try {
+          const release = await latestAgentAppRelease();
+          return json({
+            channel: "beta",
+            tag: release.tag,
+            build: Number(release.tag.replace("relay-agent-v", "")),
+            name: release.name,
+            published_at: release.published_at,
+            source: release.source,
+            size_bytes: release.size_bytes,
+            digest: release.digest,
+            exe_path: release.stable_download_path,
+            checksum_path: "/downloads/agent/latest.sha256",
+          });
+        } catch (error) {
+          return json({ error: "AGENT_RELEASE_CHANNEL_UNAVAILABLE", message: error instanceof Error ? error.message : "release_channel_unavailable" }, 503);
+        }
+      }
 
       if (request.method === "GET" && url.pathname === "/api/system/capabilities") {
         const core = await checkCore(env);
@@ -997,7 +1044,15 @@ export default {
         try {
           return json({ status: "ok", release: await latestPdaAppRelease() });
         } catch (error) {
-          return json({ error: "PDA_RELEASE_UNAVAILABLE", message: error instanceof Error ? error.message : "release_unavailable" }, 502);
+          return json({ error: "PDA_RELEASE_CHANNEL_UNAVAILABLE", message: error instanceof Error ? error.message : "release_channel_unavailable" }, 502);
+        }
+      }
+      if (request.method === "GET" && url.pathname === "/api/admin/agent-app") {
+        await requireUser(request, env, ["ADMIN", "ROOT"]);
+        try {
+          return json({ status: "ok", release: await latestAgentAppRelease() });
+        } catch (error) {
+          return json({ error: "AGENT_RELEASE_CHANNEL_UNAVAILABLE", message: error instanceof Error ? error.message : "release_channel_unavailable" }, 502);
         }
       }
 
@@ -1073,7 +1128,12 @@ export default {
       if (request.method === "GET" && url.pathname === "/api/admin/logs") {
         await requireUser(request, env, ["ADMIN", "ROOT"]);
         try {
-          return json(await listRuntimeLogs(env, url.searchParams.get("source") || "WEB", Number(url.searchParams.get("limit") || 50)));
+          return json(await listRuntimeLogs(
+            env,
+            url.searchParams.get("source") || "WEB",
+            Number(url.searchParams.get("limit") || 100),
+            Number(url.searchParams.get("days") || 30),
+          ));
         } catch (error) {
           return json({ error: "LOG_LIST_FAILED", message: error instanceof Error ? error.message : "log_list_failed" }, 502);
         }

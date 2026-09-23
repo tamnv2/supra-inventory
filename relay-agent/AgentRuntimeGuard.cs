@@ -12,6 +12,7 @@ namespace SupraInventoryRelayAgent
 
         internal static void EnsureWatchdog()
         {
+            ClearPlannedExit();
             lock (Gate)
             {
                 try
@@ -70,6 +71,16 @@ namespace SupraInventoryRelayAgent
             {
                 return 1;
             }
+        }
+
+        internal static void ClearPlannedExit()
+        {
+            try
+            {
+                var path = PlannedExitPath(Process.GetCurrentProcess().Id);
+                if (File.Exists(path)) File.Delete(path);
+            }
+            catch { }
         }
 
         internal static void MarkPlannedExit()

@@ -771,3 +771,24 @@ Owner explicitly confirmed signed Android `beta-vc67` as **PASS** after field re
 The accepted D111 Beta baseline includes Reporter per-user A−/A+ scaling, red/white badge only for **Đang xử lý**, neutral history badges, removal of redundant outcome/Picker-ack/summary copy, explicit confirmation before **Đã có hàng** or **Cho phép skip**, and Android operational display scope of today plus older unresolved work for Picker/Reporter. Existing realtime/minute-ticker behavior remains no-extra-polling. Stable remains OWNER-GATED and untouched.
 
 Future work starts from this accepted D111 Beta baseline unless the Owner explicitly supersedes it.
+
+## D112 — Release-channel hardening, Web operations, Android device UX and Agent resilience
+
+Owner approved the complete D112 scope on 2026-09-23 after review of the live/runtime evidence and proposed remediation.
+
+1. Web `HỆ THỐNG → Công cụ` is simplified to two operator-facing cards: **App PDA** and **Agent Windows**. Each shows current version, platform, size, release time and channel state. App exposes QR + stable copy/download link; Agent exposes stable copy/download link. Internal implementation prose is removed from the operator UI.
+2. App/Agent distribution uses one version-independent project channel. Normal Web/App/Agent runtime must not enumerate GitHub Releases REST to discover the newest build. CI publishes fixed channel aliases/manifests/checksums, and service-owned stable URLs redirect to those verified public release assets.
+3. Web date presets **Hôm nay / 7 ngày / 30 ngày / 60 ngày** visually reflect only an exact matching range; a custom range leaves all presets inactive.
+4. Dashboard/reporting keep operational action first, then period efficiency, outcome quality and recurring/top-SKU signals using only data already supported by authoritative APIs. Unsupported percentile/age metrics are not fabricated.
+5. Management audit and Beta support logs use a 90-day operational retention boundary. Web defaults to 30 days and allows 60/90-day retrieval. Cleanup older than 90 days is bounded and best-effort for Drive support logs; hot `audit_log` is pruned to 90 days in InventoryCore. Archive/business authority remains separate.
+6. Dashboard/reporting responsiveness is improved by not blocking primary content on presence/noncritical summaries. No faster polling or extra provider cadence is introduced.
+7. New `REPORT_CREATED` realtime events produce an immediate Web toast for operator roles; hidden authorized Web pages may use Browser Notification permission. Same-SKU notices are locally coalesced to avoid alert spam; no polling is added.
+8. Android update discovery moves to the service-owned stable manifest, while APK/checksum assets still require HTTPS, trusted redirect targets, SHA-256 and installed-package signer verification. Android sideload installation still requires the OS installer confirmation unless devices are later managed by Device Owner/MDM.
+9. Android applies system-bar/navigation/cutout insets, adds a password visibility toggle, keeps the developer footer on one line, keeps the confirmation action readable under text scaling, clears the four-digit confirmation input only after confirmed success, and deletes obsolete downloaded update APK artifacts.
+10. Android remains minimal-local-data and online-authoritative: catalog/session/display state may be cached, but no full user/history mirror, offline mutation outbox or alternate transaction path is introduced.
+11. Agent manual specialist search accepts 3–20 numeric suffix digits per term, max 10 comma-separated terms. Matching uses exact entered suffix length. Zero match is NOT_FOUND; multiple full-code matches are AMBIGUOUS and fail closed; only a unique match is actionable. Existing Android/Firestore 4-digit current + bounded 5-digit rollout compatibility remains unchanged.
+12. Agent manual row action is shown left of PickList. Overlay is refocused on operational state, Agent process CPU/RAM/uptime, local request/result counters and bounded fleet state instead of broad laptop telemetry.
+13. Agent restores normal Windows minimize/restore/maximize/resizable behavior. Before ADMIN login, normal close is allowed. After a valid ADMIN runtime is active, user close invokes protected exit and a separate user-mode watchdog restarts the Agent after an unplanned parent-process exit. Authorized logout/exit/update/Windows shutdown suppress restart. User-mode cannot guarantee recovery if both Agent and watchdog are deliberately terminated.
+14. D112 targets Beta only: next monotonic signed Android release after `beta-vc67` and Agent `relay-agent-v31`. Stable remains OWNER-GATED and untouched.
+15. D098/D104/D105 quota, Firestore HA, WMS confirm and no-offline invariants remain authoritative. D112 must not increase Firestore/Worker polling cadence.
+

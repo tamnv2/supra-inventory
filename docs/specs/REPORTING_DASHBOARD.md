@@ -189,3 +189,12 @@ Dashboard/result-mix may split Skip into **Bỏ qua bởi nhân sự** and **T�
 - Saving a dashboard range does not create business-audit noise; it is a presentation preference rather than an operational mutation.
 - Overview may show a bounded recent-resolution list for `HAS_STOCK` / `SKIP_ALLOWED`, including the resolving display name/account code for human actions. `SYSTEM_TIMEOUT` is always shown as **Hệ thống**.
 - Existing 60-day bounds, server-side aggregation, explicit-load/realtime behavior and no employee scoring remain unchanged.
+
+## D112 — Operational hierarchy and non-blocking secondary data
+
+- Dashboard/reporting presentation is ordered by operational need: work requiring attention, period workload/efficiency, outcome/source quality, then recurring/top-SKU/detail signals.
+- Only metrics backed by existing authoritative fields/APIs may be displayed. Percentiles, age buckets or other analytics must not be invented when the service does not expose them.
+- Dashboard primary data must not wait on presence when presence can be reconciled independently. Reporting rows may render before secondary summary/insight requests complete.
+- Date quick presets are exact-state controls: Hôm nay = today/today, 7 = today-6 through today, 30 = today-29 through today, 60 = today-59 through today. A custom range leaves all quick presets inactive.
+- These responsiveness changes must not add polling frequency or provider reads.
+

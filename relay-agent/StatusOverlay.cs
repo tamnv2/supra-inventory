@@ -84,13 +84,13 @@ namespace SupraInventoryRelayAgent
             _laptopText.TextAlign = ContentAlignment.MiddleLeft;
             _laptopText.AutoEllipsis = true;
             _laptopText.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            _laptopText.Text = "Laptop | đang đọc tài nguyên máy";
+            _laptopText.Text = "Vận hành | đang đọc trạng thái";
             Controls.Add(_laptopText);
 
             _agentText.TextAlign = ContentAlignment.MiddleLeft;
             _agentText.AutoEllipsis = true;
             _agentText.Font = new Font("Segoe UI", 9F);
-            _agentText.Text = "Agent | đang đọc trạng thái";
+            _agentText.Text = "Agent | đang đọc tải tiến trình";
             Controls.Add(_agentText);
 
             foreach (Control control in new Control[] { this, _laptopText, _agentText })
