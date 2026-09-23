@@ -679,3 +679,11 @@ Owner approved on 2026-09-23.
 8. Picker header adds **A− / A+** controls beside Log. The setting changes Picker text/input scale within a bounded range and is persisted locally **per authenticated user on that device**, so logout/login to the same device restores that user's selected scale without adding server quota.
 9. Existing Báo hàng business semantics, withdrawal window, realtime/result acknowledgement, D105 confirmation-order flow, D097 Firestore HA, Android update gate and all Stable guards are unchanged.
 10. Target is the next monotonic signed Beta Android release after `beta-vc63` (expected `beta-vc64`) plus the normal Beta Web/Worker deployment. Stable remains OWNER-GATED and untouched.
+
+### D108 release checkpoint — 2026-09-23
+
+D108 is technically released on Beta. PR #151 merged to main `441f3c687ad2ef94ecc6017b8fa9846e9b34a7a2`. PR gates passed: Repo Authority `35800721747`, Project State `35800721763`, UI Design `35800721806`, Verify Beta Android `35800721751`, Firestore `35800721771`, RTDB `35800721768`.
+
+Test-only PR #152 was closed unmerged after live proof run `35801069626` / job `106991287965` passed on attempt 1: HTTP 200, environment Beta, exact live source `441f3c687ad2ef94ecc6017b8fa9846e9b34a7a2`, storage ready, schema 10/10, missing bindings 0, Agent auth migration 0/0. The signed `beta-vc64` tag resolves and contains the D108 Picker source. The existing release workflow publishes an APK checksum asset, but its release-asset metadata is not exposed through the current connected GitHub surface, so no checksum is fabricated here.
+
+OA028 is READY_FOR_OWNER_FIELD_TEST. Stable remains untouched and OWNER-GATED.

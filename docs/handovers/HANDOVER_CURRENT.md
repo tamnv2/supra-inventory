@@ -556,3 +556,15 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
 - No new provider polling or datastore is introduced. D105 Xác nhận đơn/Firestore relay is unchanged.
 - Current next action: complete D108 PR authority/state/UI/Web/Android/build gates, merge after PASS, verify Beta Web + next signed Android release, then OA028 Owner review.
 - Stable remains OWNER-GATED and untouched.
+
+## D108 release-state refresh — 2026-09-23
+
+- Beta: `D108_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_441F3C68__SIGNED_BETA_VC64__OA028_FIELD_READY`.
+- Web: `D108_BETA_RUNTIME_PASS__RECOVERY_COLLAPSED__RESOLUTION_SOURCE_ACTOR__OA028_FIELD_READY`.
+- Android: `D108_SIGNED_BETA_VC64__PICKER_DENSE_NUMERIC_UI__PER_USER_SCALE__OA028_FIELD_READY`.
+- SQLite schema: `10`; latest signed Beta APK: `beta-vc64`.
+- PR #151 merged main `441f3c687ad2ef94ecc6017b8fa9846e9b34a7a2` after all PR gates passed.
+- Exact live Beta proof: test-only PR #152 run `35801069626` PASS on first attempt with source commit exact, storage true, schema 10/10, missing bindings 0, Agent migration 0/0. PR #152 was closed unmerged.
+- `beta-vc64` tag readback succeeds and contains D108 Picker source.
+- Remaining D108 gate: OA028 Owner field/visual review of live Web + beta-vc64. No technical build/deploy blocker remains.
+- Stable remains OWNER-GATED and untouched.

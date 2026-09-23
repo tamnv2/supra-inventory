@@ -1250,16 +1250,28 @@
     },
     {
       "id": "OA028",
-      "status": "PENDING_D108_TECHNICAL_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST_D108_RELEASE",
       "title": "Field-accept D108 Web result provenance and Picker dense UI",
       "resource_key": "worker-beta",
       "provider": "Beta Web + next signed Beta Android on existing Inventory/Firebase runtime",
       "reason_owner_only": "CI can verify source/build/data-provenance contracts, but physical PDA density, suggestion behavior, per-user scale persistence and final visual quality require Owner device/browser review.",
       "prerequisites": {
         "d107_owner_acceptance": "PASS",
-        "d108_source": "IMPLEMENTED_BRANCH_PR_PENDING",
-        "current_android_release": "beta-vc63",
-        "target_android_release": "NEXT_MONOTONIC_AFTER_VC63_EXPECTED_BETA_VC64",
+        "technical_runtime_release": "PASS",
+        "merged_pr": 151,
+        "source_main": "441f3c687ad2ef94ecc6017b8fa9846e9b34a7a2",
+        "pr_repo_authority_run": 35800721747,
+        "pr_project_state_run": 35800721763,
+        "pr_ui_run": 35800721806,
+        "pr_android_run": 35800721751,
+        "pr_firestore_run": 35800721771,
+        "pr_rtdb_run": 35800721768,
+        "live_proof_pr": 152,
+        "live_proof_run": 35801069626,
+        "live_proof_job": 106991287965,
+        "live_health": "HTTP_200__STATUS_OK__ENV_BETA__SOURCE_EXACT__STORAGE_TRUE__SCHEMA_10_10__MISSING_0__AGENT_0_0",
+        "target_android_release": "beta-vc64",
+        "release_tag_readback": "PASS_D108_SOURCE_PRESENT",
         "stable": "OWNER_GATED"
       },
       "shortest_test_path": [
@@ -1279,7 +1291,7 @@
         "D105 confirmation-order, realtime/withdrawal/update gates remain PASS; Stable untouched."
       ],
       "safety": "Beta only. Do not share passwords/tokens. No Stable action is authorized.",
-      "remaining_owner_action": "Wait for D108 technical release. Then run the short live Web/PDA review; no local CLI is required."
+      "remaining_owner_action": "Run OA028 on live Beta Web and signed beta-vc64. Report only any item that is not PASS; no local CLI or provider setup is required."
     }
   ]
 }
