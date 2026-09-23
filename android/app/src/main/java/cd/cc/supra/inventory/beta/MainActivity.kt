@@ -332,6 +332,7 @@ class MainActivity : Activity() {
         }
         findViewById<TextView>(R.id.btnLog).setOnClickListener { showSupportDiagnostics() }
         findViewById<TextView>(R.id.btnLogout).setOnClickListener { confirmLogout() }
+        configurePickerDisplayControls(session)
         findViewById<TextView>(R.id.btnBack).setOnClickListener {
             if (session.role == "ADMIN" || session.role == "ROOT") renderAdminLauncher(session)
         }
@@ -370,12 +371,50 @@ class MainActivity : Activity() {
         return view
     }
 
+    private fun pickerDisplayScale(session: AppSession): Float =
+        getSharedPreferences("picker_display_scale_v1", MODE_PRIVATE)
+            .getFloat("user:${session.userId}", 1.0f)
+            .coerceIn(0.8f, 1.4f)
+
+    private fun configurePickerDisplayControls(session: AppSession) {
+        val minus = findViewById<TextView>(R.id.btnTextMinus)
+        val plus = findViewById<TextView>(R.id.btnTextPlus)
+        val isPicker = session.role == "PICKER"
+        minus.visibility = if (isPicker) View.VISIBLE else View.GONE
+        plus.visibility = if (isPicker) View.VISIBLE else View.GONE
+        if (!isPicker) return
+
+        fun applyDelta(delta: Float) {
+            val prefs = getSharedPreferences("picker_display_scale_v1", MODE_PRIVATE)
+            val current = pickerDisplayScale(session)
+            val next = (current + delta).coerceIn(0.8f, 1.4f)
+            if (next == current) return
+            prefs.edit().putFloat("user:${session.userId}", next).apply()
+            renderPickerHome(session)
+            val percent = (next * 100).toInt()
+            Toast.makeText(this, "Cỡ hiển thị Picker: $percent%", Toast.LENGTH_SHORT).show()
+        }
+
+        minus.setOnClickListener { applyDelta(-0.1f) }
+        plus.setOnClickListener { applyDelta(0.1f) }
+        minus.contentDescription = "Thu nhỏ chữ và ô nhập của Picker"
+        plus.contentDescription = "Phóng to chữ và ô nhập của Picker"
+    }
+
     private fun renderPickerHome(session: AppSession) {
         showBack(false)
         val view = replaceContent(R.layout.view_picker) as LinearLayout
         pickerController?.destroy()
-        pickerController = PickerController(this, api, skuCache, kit, ::setStatus, ::friendlyError, ::recordLog)
-            .also { it.render(view) }
+        pickerController = PickerController(
+            this,
+            api,
+            skuCache,
+            kit,
+            ::setStatus,
+            ::friendlyError,
+            ::recordLog,
+            pickerDisplayScale(session),
+        ).also { it.render(view) }
     }
 
     private fun renderReporterHome(session: AppSession, showLauncherBack: Boolean, initialFilter: String = "PENDING") {

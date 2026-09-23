@@ -577,3 +577,23 @@ D107 is the Owner-authorized Web visual refinement over the accepted D089 baseli
 - New visual reporting must reuse existing authoritative API data. No presentation element may imply an unavailable stock quantity/location, employee score, provider billing status or other unapproved metric.
 - Responsive layouts may reduce columns and allow horizontal report-table scrolling, but must retain readable business hierarchy and touch-safe actions.
 - Android and Windows Agent presentation are unchanged by D107. Stable remains OWNER-GATED.
+
+## D108 — Dense Picker shortage UI and Web recovery/result clarity
+
+### Web
+
+- Password recovery detail is a true disclosure surface: `.login-reset-form[hidden]` must remain `display:none` until **Lấy lại mật khẩu** is pressed.
+- Result tables use two distinct audit concepts: **Nguồn xử lý** and **Người xử lý**. `SYSTEM_TIMEOUT` uses a clear automatic-timeout treatment; `REPORTER` / `REPORTER_CORRECTION` use a human-resolution treatment.
+- Automatic timeout must not be visually merged into a generic Skip total where a source breakdown is available.
+
+### Picker Android
+
+- Shortage search/action is one compact row: numeric SKU input (minimum three digits for suggestions) + **Xác nhận** action.
+- Do not show the redundant **Quét hoặc nhập SKU** heading.
+- A selected SKU gets a distinct selected surface; suggestion dropdown closes after selection and stays closed until the SKU input is edited away from that selected value.
+- Disabled/unready **Xác nhận** is visibly dimmed; valid selected SKU + existing online/mutation readiness uses full emphasis.
+- Picker history heading is **Danh sách SKU đã báo hết hàng**.
+- History status surfaces: light green = Đã có hàng; light yellow = Đang xử lý; light red = Được phép bỏ qua; light grey = Picker thu hồi.
+- Automatic-Skip deadline time is not shown to Picker. Completed automatic results may say **Hệ thống tự động do quá hạn** without showing the configured clock/deadline.
+- A− / A+ controls sit beside Log for Picker only. The scale preference is bounded 80–140%, stored locally per user id, and restored on later login on the same device. It scales Picker text and primary input/action control height without changing business data.
+- Keep both bottom Picker business tabs and D105 four-digit confirmation UX unchanged.

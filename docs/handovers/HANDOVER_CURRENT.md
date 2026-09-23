@@ -543,3 +543,16 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
 - Squash merge main: `4e733535ef0abe893681afdf288097767141b115`.
 - Main changed `web/**`, so the existing `Deploy Beta Worker` push workflow applies automatically. The current GitHub connector can enumerate PR-triggered runs but not main push-triggered runs; therefore exact D107 runtime/deploy PASS is deliberately not inferred.
 - OA027 is the remaining D107 Owner visual gate on live Beta. Stable remains OWNER-GATED and untouched.
+
+## D108 current source checkpoint — 2026-09-23
+
+- Owner explicitly accepted D107/OA027 before opening D108.
+- SQLite schema: `10`.
+- Latest signed Beta APK remains `beta-vc63` until D108 main release publishes the next monotonic build.
+- Web: `D108_PASSWORD_RECOVERY_COLLAPSE__RESOLUTION_SOURCE_ACTOR__SOURCE_IMPLEMENTED__PR_GATES_PENDING`.
+- Android: `D108_PICKER_NUMERIC_COMPACT_UI__PER_USER_SCALE__SOURCE_IMPLEMENTED__TARGET_NEXT_MONOTONIC_AFTER_VC63`.
+- D108 Web source fixes password-recovery disclosure and exposes human/system resolution provenance using existing bounded fields/joins.
+- D108 Picker source uses numeric-only >=3 digit SKU search, input + Xác nhận compact row, selected-state emphasis, stable suggestion dismissal, semantic history cards, no automatic deadline clock, and per-user local 80–140% display scale beside Log.
+- No new provider polling or datastore is introduced. D105 Xác nhận đơn/Firestore relay is unchanged.
+- Current next action: complete D108 PR authority/state/UI/Web/Android/build gates, merge after PASS, verify Beta Web + next signed Android release, then OA028 Owner review.
+- Stable remains OWNER-GATED and untouched.

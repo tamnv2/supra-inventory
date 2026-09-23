@@ -113,7 +113,7 @@ jobs:
           grep -Fq 'Regex("^\\d{4}$")' "$client"
           grep -q 'relayRequestInFlight' "$picker"
           grep -q 'alpha = if (ready) 1.0f else 0.42f' "$picker"
-          grep -q 'textSize = 17f' "$picker"
+          grep -q 'textSize = scaledSp(17f)' "$picker"
           grep -q 'Typeface.BOLD' "$picker"
           grep -q 'digits.length == 4' "$picker"
           grep -q 'android:maxLength="4"' android/app/src/main/res/layout/view_picker.xml

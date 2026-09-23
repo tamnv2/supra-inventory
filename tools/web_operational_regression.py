@@ -31,6 +31,7 @@ def main() -> None:
     api = read("web/src/api.ts")
     operational_api = read("web/src/operational-api.ts")
     business_api = read("service/src/business-api.ts")
+    business_core = read("service/src/business-core.ts")
     operational_core = read("service/src/operational-v2-core.ts")
     runtime_logs = read("service/src/runtime-logs.ts")
     web_logger = read("web/src/runtime-logger.ts")
@@ -269,6 +270,20 @@ def main() -> None:
     require(app, "reportWarningCount", "D107 report attention metric")
     require(app, "row.open_ticket_count", "D107 report open-ticket detail")
     require(app, 'data-dashboard-sku="${esc(row.sku)}"', "D107 top-SKU drilldown")
+
+    # D108: password recovery stays collapsed until explicit action and result provenance is visible.
+    require(professional_css, ".login-reset-form[hidden]", "D108 reset form hidden selector")
+    require(professional_css, "display: none !important", "D108 reset form forced hidden state")
+    require(app, "resolutionSourceLabel", "D108 resolution source formatter")
+    require(app, "resolutionActorLabel", "D108 resolution actor formatter")
+    require(app, "Tự động bỏ qua quá hạn", "D108 automatic timeout reporting")
+    require(app, "Bỏ qua bởi nhân sự", "D108 human skip reporting")
+    require(app, "<th>Nguồn xử lý</th><th>Người xử lý</th>", "D108 audit columns")
+    require(business_core, "resolution_sources", "D108 dashboard resolution-source aggregate")
+    require(business_core, "resolved_by_display_name", "D108 report resolver display name")
+    require(business_core, "resolved_by_employee_code", "D108 report resolver employee code")
+    require(operational_core, "b.resolution_source", "D108 recent result source")
+    require(operational_core, "resolved_by_display_name", "D108 recent resolver display name")
 
     # D060: Root can temporarily lower its effective role, and the service—not the client—enforces it.
     require(api, "setRootEffectiveRole", "Root effective-role client API")

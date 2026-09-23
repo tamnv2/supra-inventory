@@ -896,6 +896,20 @@ function adminDashboard(state: DurableObjectState, url: URL): BusinessResult {
     range.from, range.to,
   ).toArray().map((row) => ({ status: String(row.status), count: Number(row.count || 0) }));
 
+  const resolutionSources = state.storage.sql.exec<SqlRow>(
+    `SELECT status, COALESCE(resolution_source, '') AS resolution_source, COUNT(*) AS count
+       FROM report_batches
+      WHERE first_report_at >= ? AND first_report_at < ?
+        AND status IN ('HAS_STOCK','SKIP_ALLOWED')
+      GROUP BY status, COALESCE(resolution_source, '')
+      ORDER BY status ASC, resolution_source ASC`,
+    range.from, range.to,
+  ).toArray().map((row) => ({
+    status: String(row.status || ""),
+    resolution_source: String(row.resolution_source || ""),
+    count: Number(row.count || 0),
+  }));
+
   const topSkus = state.storage.sql.exec<SqlRow>(
     `SELECT b.sku, b.product_name,
             COUNT(t.ticket_id) AS report_count,
@@ -927,6 +941,7 @@ function adminDashboard(state: DurableObjectState, url: URL): BusinessResult {
       },
       timeline: [...timelineMap.values()].sort((a, b) => a.bucket.localeCompare(b.bucket)),
       outcomes,
+      resolution_sources: resolutionSources,
       top_skus: topSkus,
     },
   };
@@ -954,13 +969,26 @@ function adminReporting(state: DurableObjectState, url: URL): BusinessResult {
 
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.resolved_at,
-            b.resolved_by_user_id, b.resolution, b.correction_deadline_at,
+            b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
+            COALESCE(resolver.display_name, '') AS resolved_by_display_name,
+            COALESCE(
+              NULLIF(resolver.employee_code, ''),
+              (SELECT e.actor_employee_code
+                 FROM report_events e
+                WHERE e.batch_id = b.batch_id
+                  AND e.event_type IN ('BATCH_RESOLVED','BATCH_CORRECTED')
+                  AND e.actor_employee_code IS NOT NULL
+                ORDER BY e.created_at DESC
+                LIMIT 1),
+              ''
+            ) AS resolved_by_employee_code,
             SUM(CASE WHEN t.status = 'OPEN' THEN 1 ELSE 0 END) AS open_ticket_count,
             COUNT(t.ticket_id) AS total_ticket_count,
             CASE WHEN b.resolved_at IS NULL THEN NULL
                  ELSE ROUND((julianday(b.resolved_at) - julianday(b.first_report_at)) * 1440.0, 1) END AS duration_minutes
        FROM report_batches b
        LEFT JOIN report_tickets t ON t.batch_id = b.batch_id
+       LEFT JOIN users resolver ON resolver.user_id = b.resolved_by_user_id
       WHERE ${clause}
       GROUP BY b.batch_id
       ORDER BY b.first_report_at DESC, b.batch_id DESC
@@ -979,11 +1007,24 @@ function adminReports(state: DurableObjectState, url: URL): BusinessResult {
     ? state.storage.sql
         .exec<SqlRow>(
           `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.resolved_at,
-                  b.resolved_by_user_id, b.resolution, b.correction_deadline_at,
+                  b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
+                  COALESCE(resolver.display_name, '') AS resolved_by_display_name,
+                  COALESCE(
+                    NULLIF(resolver.employee_code, ''),
+                    (SELECT e.actor_employee_code
+                       FROM report_events e
+                      WHERE e.batch_id = b.batch_id
+                        AND e.event_type IN ('BATCH_RESOLVED','BATCH_CORRECTED')
+                        AND e.actor_employee_code IS NOT NULL
+                      ORDER BY e.created_at DESC
+                      LIMIT 1),
+                    ''
+                  ) AS resolved_by_employee_code,
                   SUM(CASE WHEN t.status = 'OPEN' THEN 1 ELSE 0 END) AS open_ticket_count,
                   COUNT(t.ticket_id) AS total_ticket_count
              FROM report_batches b
              LEFT JOIN report_tickets t ON t.batch_id = b.batch_id
+             LEFT JOIN users resolver ON resolver.user_id = b.resolved_by_user_id
             WHERE b.status = ?
             GROUP BY b.batch_id
             ORDER BY b.first_report_at DESC
@@ -995,11 +1036,24 @@ function adminReports(state: DurableObjectState, url: URL): BusinessResult {
     : state.storage.sql
         .exec<SqlRow>(
           `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.resolved_at,
-                  b.resolved_by_user_id, b.resolution, b.correction_deadline_at,
+                  b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
+                  COALESCE(resolver.display_name, '') AS resolved_by_display_name,
+                  COALESCE(
+                    NULLIF(resolver.employee_code, ''),
+                    (SELECT e.actor_employee_code
+                       FROM report_events e
+                      WHERE e.batch_id = b.batch_id
+                        AND e.event_type IN ('BATCH_RESOLVED','BATCH_CORRECTED')
+                        AND e.actor_employee_code IS NOT NULL
+                      ORDER BY e.created_at DESC
+                      LIMIT 1),
+                    ''
+                  ) AS resolved_by_employee_code,
                   SUM(CASE WHEN t.status = 'OPEN' THEN 1 ELSE 0 END) AS open_ticket_count,
                   COUNT(t.ticket_id) AS total_ticket_count
              FROM report_batches b
              LEFT JOIN report_tickets t ON t.batch_id = b.batch_id
+             LEFT JOIN users resolver ON resolver.user_id = b.resolved_by_user_id
             GROUP BY b.batch_id
             ORDER BY b.first_report_at DESC
             LIMIT ?`,

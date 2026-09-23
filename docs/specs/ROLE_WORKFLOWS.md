@@ -416,3 +416,13 @@ D097 supersedes the D085/D092 heartbeat wording for the Firestore confirmation c
 - For rollout safety only, Agent/Firestore may continue accepting old 5-digit jobs from beta-vc62 while beta-vc63 is being installed.
 - Specialist Agent manual search terms are 3–4 digits. D104 comma multi-search, row-specific Xác nhận and conditional Xác nhận tất cả are preserved.
 
+## D108 Picker shortage interaction
+
+For Picker shortage reporting:
+
+1. The SKU field accepts digits only. Suggestions begin at three digits.
+2. Selecting an exact/suggested SKU commits that SKU, clears the suggestion list and visually marks the selected-SKU block.
+3. Suggestions remain suppressed while the input still equals the committed SKU. Editing the input clears the committed selection and starts a new bounded search when at least three digits remain.
+4. The shortage action is labeled **Xác nhận** and is ready only with a committed valid SKU plus existing online/mutation readiness.
+5. The report-history list is titled **Danh sách SKU đã báo hết hàng** and uses semantic status backgrounds. Do not expose the configured automatic timeout clock/deadline to Picker.
+6. A− / A+ modifies presentation only. The locally persisted per-user scale must never change SKU values, business timers, API behavior, realtime subscriptions or server quota.

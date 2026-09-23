@@ -1210,7 +1210,7 @@
     },
     {
       "id": "OA027",
-      "status": "READY_FOR_OWNER_VISUAL_REVIEW_D107_MERGED",
+      "status": "PASS_OWNER_CONFIRMED_D107",
       "title": "Field-accept D107 professional Web identity and reporting",
       "resource_key": "worker-beta",
       "provider": "Beta Web on existing Cloudflare Worker/InventoryCore",
@@ -1245,7 +1245,41 @@
         "Không phát sinh lỗi chức năng/realtime/RBAC; Stable không bị thay đổi."
       ],
       "safety": "Beta Web only. Không nhập/chia sẻ mật khẩu hoặc token trong chat/log. D107 không thay đổi Stable, Android, Agent hay WMS mutation.",
-      "remaining_owner_action": "Thực hiện review trực quan OA027 trên live Beta sau khi bản main đã được deploy. Chỉ cần phản hồi mục nào chưa đạt; không cần cài/chạy lệnh local."
+      "remaining_owner_action": null,
+      "owner_evidence": "Owner explicitly stated 'Các mục trên đã pass' on 2026-09-23 before opening D108 requirements."
+    },
+    {
+      "id": "OA028",
+      "status": "PENDING_D108_TECHNICAL_RELEASE",
+      "title": "Field-accept D108 Web result provenance and Picker dense UI",
+      "resource_key": "worker-beta",
+      "provider": "Beta Web + next signed Beta Android on existing Inventory/Firebase runtime",
+      "reason_owner_only": "CI can verify source/build/data-provenance contracts, but physical PDA density, suggestion behavior, per-user scale persistence and final visual quality require Owner device/browser review.",
+      "prerequisites": {
+        "d107_owner_acceptance": "PASS",
+        "d108_source": "IMPLEMENTED_BRANCH_PR_PENDING",
+        "current_android_release": "beta-vc63",
+        "target_android_release": "NEXT_MONOTONIC_AFTER_VC63_EXPECTED_BETA_VC64",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Web: fresh/reload login; verify reset form is hidden. Press Lấy lại mật khẩu and verify it then appears.",
+        "Web: inspect Kết quả gần đây / Tổng quan / Báo cáo chi tiết and verify human Skip versus automatic timeout Skip are visibly distinct; human Có hàng/Skip shows the resolving account, automatic timeout shows Hệ thống.",
+        "Android Picker: verify no Quét hoặc nhập SKU label; type digits only, suggestions start at >=3 digits, input + Xác nhận share one row.",
+        "Pick one suggestion and verify dropdown disappears and stays gone until editing the selected SKU. Verify selected SKU block is visually distinct and Xác nhận is dim without selection / full emphasis when ready.",
+        "Verify history heading and green/yellow/red/grey status backgrounds. Confirm no automatic deadline clock/time is shown to Picker.",
+        "Use A−/A+ beside Log, logout/login same user and verify scale is restored; verify another user keeps an independent scale."
+      ],
+      "pass_criteria": [
+        "Reset recovery form is not visible before explicit recovery action.",
+        "Human versus SYSTEM_TIMEOUT provenance is truthful and resolving identity is visible where a human acted.",
+        "Picker shortage entry is numeric-only, compact and suggestion state is stable after selection.",
+        "No automatic deadline time is shown to Picker; status colors/title match D108.",
+        "Per-user local scale survives same-device relogin without affecting business logic.",
+        "D105 confirmation-order, realtime/withdrawal/update gates remain PASS; Stable untouched."
+      ],
+      "safety": "Beta only. Do not share passwords/tokens. No Stable action is authorized.",
+      "remaining_owner_action": "Wait for D108 technical release. Then run the short live Web/PDA review; no local CLI is required."
     }
   ]
 }
