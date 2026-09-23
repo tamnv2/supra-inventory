@@ -18,6 +18,7 @@ import android.widget.TextView
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlin.math.roundToInt
 
 class ReporterController(
     private val activity: Activity,
@@ -26,6 +27,7 @@ class ReporterController(
     private val setStatus: (String) -> Unit,
     private val friendlyError: (Exception) -> String,
     initialFilter: String = "PENDING",
+    private val displayScale: Float = 1f,
 ) {
     private enum class Filter { PENDING, HAS_STOCK, SKIP_ALLOWED, WITHDRAWN }
 
@@ -38,6 +40,7 @@ class ReporterController(
     private var refreshDirty = false
     private val refreshWaiters = mutableListOf<(Boolean) -> Unit>()
     private val processingBatchIds = mutableSetOf<String>()
+    private val confirmingBatchIds = mutableSetOf<String>()
 
     private var filter = when (initialFilter.uppercase()) {
         "HAS_STOCK" -> Filter.HAS_STOCK
@@ -47,7 +50,6 @@ class ReporterController(
     }
 
     private var list: ListView? = null
-    private var summary: TextView? = null
     private val tabBoxes = linkedMapOf<Filter, FrameLayout>()
     private val tabLabels = linkedMapOf<Filter, TextView>()
     private val badges = linkedMapOf<Filter, TextView>()
@@ -60,14 +62,13 @@ class ReporterController(
         override fun run() {
             if (filter == Filter.PENDING && queue.isNotEmpty()) {
                 (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
-                updateSummary()
             }
             scheduleMinuteTicker()
         }
     }
 
     fun render(root: LinearLayout) {
-        summary = root.findViewById(R.id.tvIssueSummary)
+        applyDisplayScale(root)
         list = root.findViewById(R.id.listIssues)
         bindTab(root, Filter.PENDING, R.id.tabReporterPendingBox, R.id.tabReporterPending, R.id.badgeReporterPending)
         bindTab(root, Filter.HAS_STOCK, R.id.tabReporterHasStockBox, R.id.tabReporterHasStock, R.id.badgeReporterHasStock)
@@ -82,12 +83,41 @@ class ReporterController(
         handler.removeCallbacks(minuteTicker)
         refreshWaiters.clear()
         list = null
-        summary = null
     }
 
     fun onRealtime(scopes: Set<String>, completion: (Boolean) -> Unit) {
         if (scopes.contains("reporter_queue") || scopes.contains("reporter_recent")) refresh(completion)
         else completion(true)
+    }
+
+    private fun scaledSp(base: Float): Float = (base * displayScale).coerceIn(9f, 27f)
+
+    private fun applyDisplayScale(root: View) {
+        val density = activity.resources.displayMetrics.scaledDensity
+        fun visit(view: View) {
+            if (view is TextView) {
+                val baseSp = view.textSize / density
+                view.textSize = (baseSp * displayScale).coerceIn(9f, 27f)
+            }
+            if (view is ViewGroup) {
+                for (index in 0 until view.childCount) visit(view.getChildAt(index))
+            }
+        }
+        visit(root)
+        root.findViewById<View>(R.id.reporterTabs)?.layoutParams?.let { params ->
+            params.height = kit.dp((52f * displayScale).roundToInt().coerceIn(46, 68))
+            root.findViewById<View>(R.id.reporterTabs)?.layoutParams = params
+        }
+        root.findViewById<View>(R.id.reporterActions)?.layoutParams?.let { params ->
+            params.height = kit.dp((44f * displayScale).roundToInt().coerceIn(40, 58))
+            root.findViewById<View>(R.id.reporterActions)?.layoutParams = params
+        }
+        listOf(R.id.btnReporterHasStock, R.id.btnReporterSkip).forEach { id ->
+            root.findViewById<View>(id)?.layoutParams?.let { params ->
+                params.height = kit.dp((44f * displayScale).roundToInt().coerceIn(40, 58))
+                root.findViewById<View>(id)?.layoutParams = params
+            }
+        }
     }
 
     private fun bindTab(root: View, value: Filter, boxId: Int, labelId: Int, badgeId: Int) {
@@ -195,13 +225,13 @@ class ReporterController(
         val target = list ?: return
         target.setOnItemClickListener(null)
         if (filter == Filter.PENDING) {
-            target.adapter = if (queue.isEmpty()) textAdapter("Không có SKU đang chờ xử lý.") else pendingAdapter(queue)
+            target.adapter = pendingAdapter(queue)
             if (queue.isNotEmpty()) {
                 target.setOnItemClickListener { _, _, position, _ -> queue.getOrNull(position)?.let(::showTickets) }
             }
         } else {
             val rows = recentRows()
-            target.adapter = if (rows.isEmpty()) textAdapter(emptyMessage()) else recentAdapter(rows)
+            target.adapter = recentAdapter(rows)
             if (filter == Filter.SKIP_ALLOWED && rows.isNotEmpty()) {
                 target.setOnItemClickListener { _, _, position, _ ->
                     rows.getOrNull(position)?.let { row ->
@@ -211,23 +241,6 @@ class ReporterController(
             }
         }
         updateTabs()
-        updateSummary()
-    }
-
-    private fun updateSummary() {
-        summary?.text = when (filter) {
-            Filter.PENDING -> if (queueTotal == 0) "Không có SKU đang xử lý." else "$queueTotal SKU đang xử lý · thời gian tự cập nhật theo phút"
-            Filter.HAS_STOCK -> "${recentCounts.hasStock} đơn đã có hàng"
-            Filter.SKIP_ALLOWED -> "${recentCounts.skipAllowed} đơn được cho phép skip"
-            Filter.WITHDRAWN -> "${recentCounts.withdrawn} đơn Picker đã thu hồi"
-        }
-    }
-
-    private fun emptyMessage(): String = when (filter) {
-        Filter.HAS_STOCK -> "Chưa có kết quả Đã có hàng."
-        Filter.SKIP_ALLOWED -> "Chưa có kết quả Cho phép skip."
-        Filter.WITHDRAWN -> "Chưa có báo Picker thu hồi."
-        else -> "Không có dữ liệu."
     }
 
     private fun pendingAdapter(rows: List<ReporterBatch>): BaseAdapter = object : BaseAdapter() {
@@ -236,7 +249,9 @@ class ReporterController(
         override fun getItemId(position: Int): Long = rows[position].batchId.hashCode().toLong()
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val created = convertView == null
             val view = convertView ?: LayoutInflater.from(activity).inflate(R.layout.row_reporter_issue, parent, false)
+            if (created) applyDisplayScale(view)
             val row = getItem(position)
             val timing = liveTiming(row)
             bindCommon(view, row.sku, row.productName, "${timing.first} phút")
@@ -257,21 +272,21 @@ class ReporterController(
                 " · Tái phát" + (row.recurrenceMinutes?.let { " sau ${formatMinutes(it)}" } ?: "")
             } else ""
             view.findViewById<TextView>(R.id.tvReporterMeta).apply {
-                text = "${row.affectedPickerCount} Picker · ${slaLabel(timing.second)}$recurrence\nBáo đầu: ${timestamp(row.firstReportAt)}"
+                text = "Báo lúc: ${timestamp(row.firstReportAt)} · ${slaLabel(timing.second)}$recurrence"
                 setTextColor(when (timing.second) { "ESCALATED" -> kit.red; "WARNING" -> kit.orange; else -> kit.muted })
             }
 
             val hasStock = view.findViewById<Button>(R.id.btnReporterHasStock)
             val skip = view.findViewById<Button>(R.id.btnReporterSkip)
-            val busy = processingBatchIds.contains(row.batchId)
+            val busy = processingBatchIds.contains(row.batchId) || confirmingBatchIds.contains(row.batchId)
             hasStock.isEnabled = !busy
             skip.isEnabled = !busy
             hasStock.alpha = if (busy) 0.45f else 1f
             skip.alpha = if (busy) 0.45f else 1f
             hasStock.text = if (busy) "Đang xử lý…" else "Đã có hàng"
             skip.text = if (busy) "Đang xử lý…" else "Cho phép skip"
-            hasStock.setOnClickListener { resolveDirect(row, "HAS_STOCK", "Đã có hàng") }
-            skip.setOnClickListener { resolveDirect(row, "SKIP_ALLOWED", "Cho phép skip") }
+            hasStock.setOnClickListener { confirmResolution(row, "HAS_STOCK", "Đã có hàng") }
+            skip.setOnClickListener { confirmResolution(row, "SKIP_ALLOWED", "Cho phép skip") }
             root.contentDescription = "SKU ${row.sku}, ${timing.first} phút, ${slaLabel(timing.second)}"
             return view
         }
@@ -283,7 +298,9 @@ class ReporterController(
         override fun getItemId(position: Int): Long = rows[position].batchId.hashCode().toLong()
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val created = convertView == null
             val view = convertView ?: LayoutInflater.from(activity).inflate(R.layout.row_reporter_issue, parent, false)
+            if (created) applyDisplayScale(view)
             val row = getItem(position)
             bindCommon(view, row.sku, row.productName, "")
             view.findViewById<LinearLayout>(R.id.reporterActions).visibility = View.GONE
@@ -294,14 +311,14 @@ class ReporterController(
                 else -> Triple(kit.graySoft, kit.line, kit.muted)
             }
             root.background = kit.rounded(colors.first, colors.second, 7)
-            val result = when (row.status) {
-                "HAS_STOCK" -> "Đã có hàng"
-                "SKIP_ALLOWED" -> "Cho phép skip"
-                else -> "Picker đã thu hồi"
-            }
-            val ack = if (row.status == "CLOSED") "" else " · ${row.acknowledgedCount}/${row.ackTargetCount} Picker đã xác nhận"
+            val reportTime = timeOnly(row.firstReportAt)
+            val responseTime = row.resolvedAt?.let(::timeOnly)
             view.findViewById<TextView>(R.id.tvReporterMeta).apply {
-                text = "$result · ${row.affectedPickerCount} Picker$ack\n${timestamp(row.resolvedAt)}"
+                text = if (responseTime.isNullOrBlank()) {
+                    "Báo lúc: $reportTime"
+                } else {
+                    "Báo lúc: $reportTime\nInvent phản hồi lúc: $responseTime"
+                }
                 setTextColor(colors.third)
             }
             return view
@@ -315,18 +332,20 @@ class ReporterController(
         view.findViewById<LinearLayout>(R.id.reporterActions).visibility = View.VISIBLE
     }
 
-    private fun textAdapter(message: String): BaseAdapter = object : BaseAdapter() {
-        override fun getCount(): Int = 1
-        override fun getItem(position: Int): String = message
-        override fun getItemId(position: Int): Long = 0L
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View =
-            TextView(activity).apply {
-                text = message
-                textSize = 13f
-                setTextColor(kit.muted)
-                setPadding(kit.dp(12), kit.dp(18), kit.dp(12), kit.dp(18))
-                background = kit.rounded(Color.WHITE, kit.line, 7)
-            }
+    private fun confirmResolution(row: ReporterBatch, resolution: String, label: String) {
+        if (processingBatchIds.contains(row.batchId) || !confirmingBatchIds.add(row.batchId)) return
+        (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
+        val dialog = AlertDialog.Builder(activity)
+            .setTitle("Xác nhận $label?")
+            .setMessage("${row.sku} - ${row.productName}\nXác nhận xử lý SKU này?")
+            .setNegativeButton("Huỷ", null)
+            .setPositiveButton("Xác nhận") { _, _ -> resolveDirect(row, resolution, label) }
+            .create()
+        dialog.setOnDismissListener {
+            confirmingBatchIds.remove(row.batchId)
+            (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
+        }
+        dialog.show()
     }
 
     private fun resolveDirect(row: ReporterBatch, resolution: String, label: String) {
@@ -421,6 +440,11 @@ class ReporterController(
     }
 
     private fun formatMinutes(value: Int): String = if (value < 60) "${value}m" else "${value / 60}h ${value % 60}m"
+
+    private fun timeOnly(value: String?): String {
+        if (value.isNullOrBlank()) return "—"
+        return try { timeFmt.format(Instant.parse(value)) } catch (_: Exception) { value }
+    }
 
     private fun timestamp(value: String?): String {
         if (value.isNullOrBlank()) return "—"
