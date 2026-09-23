@@ -328,3 +328,13 @@ The Android App uses an operational display projection, not a retention change.
 - Reporter pending projection: all unresolved PENDING batches, including earlier business days.
 - Reporter recent projection: HAS_STOCK / SKIP_ALLOWED / CLOSED batches whose first report is on/after current business-day midnight.
 - The projection is applied in InventoryCore SQL before the bounded result limit. Historical source data, archive/retention, Web reporting and export remain unchanged.
+
+## D112 — 90-day operational audit and support-log retention
+
+- `audit_log` is hot management audit, not long-term archive. InventoryCore retains at most the most recent 90 days and performs a bounded opportunistic prune without creating a new polling/provider loop.
+- Web management audit views default to 30 days and may explicitly request 60 or 90 days. Picker remains excluded from the management audit view.
+- Beta Web/Android/Agent support logs in the configured `Inventory/Beta/Logs` Drive folder have a 90-day operational retention boundary. Retrieval defaults to 30 days and may request 60 or 90 days.
+- Support-log cleanup is bounded, credential-safe and best-effort. A cleanup failure must not fail a business mutation or log upload.
+- Business transaction history/archive semantics remain separate from support-log retention. D112 does not convert Drive logs into business authority.
+- Android downloaded update artifacts are temporary support/distribution files and are removed best-effort after restart/current-version verification; they are not business data.
+
