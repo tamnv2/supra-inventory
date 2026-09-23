@@ -450,3 +450,11 @@ D111 applies only to Android App/PDA presentation and scoped read projections.
 - Android Reporter pending = all unresolved batches regardless of report date. Reporter HAS_STOCK / SKIP_ALLOWED / CLOSED history tabs = batches first reported during the current Asia/Ho_Chi_Minh business day.
 - Realtime remains authoritative. The local Reporter minute clock remains presentation-only and performs no API/provider call.
 - Web workflows and Stable remain unchanged; Stable is OWNER-GATED.
+
+## D112 — Agent specialist manual lookup and authenticated persistence
+
+- Manual specialist lookup accepts 1–10 comma-separated numeric terms; each term is 3–20 digits.
+- A term matches only full PickListCodes whose trailing digits exactly equal the entered term. One match is actionable; zero is NOT_FOUND; more than one is AMBIGUOUS and cannot be confirmed until the user enters more digits.
+- The manual rule is independent of the Android confirmation carrier. Android remains current four-digit input and Firestore keeps the accepted four/five-digit rollout guard.
+- Before ADMIN login, the Windows Agent may close normally. Once a valid ADMIN runtime is active, protected exit and the user-mode watchdog are armed. Explicit logout/authorized exit/update/shutdown suppress restart.
+
