@@ -1,4 +1,5 @@
 import {
+  correctionDeadlineFromFirstReport,
   initializeSlaAutomationSchema,
   readOperationalSlaConfig,
   scheduleNextOperationalAlarm,
@@ -628,6 +629,12 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
       LIMIT ?`,
     ...rowArgs,
   ).toArray();
+  const projectedRows = rows.map((row) => ({
+    ...row,
+    correction_deadline_at: String(row.status || "") === "SKIP_ALLOWED"
+      ? correctionDeadlineFromFirstReport(state, String(row.first_report_at || ""))
+      : null,
+  }));
   const totalsArgs: SqlStorageValue[] = appTodayOpen ? [todayStart] : [];
   const totalsRow = first(
     state.storage.sql.exec<SqlRow>(
@@ -641,8 +648,8 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
     ).toArray(),
   ) || {};
   return json({
-    items: rows,
-    count: rows.length,
+    items: projectedRows,
+    count: projectedRows.length,
     totals: {
       has_stock: Number(totalsRow.has_stock || 0),
       skip_allowed: Number(totalsRow.skip_allowed || 0),
