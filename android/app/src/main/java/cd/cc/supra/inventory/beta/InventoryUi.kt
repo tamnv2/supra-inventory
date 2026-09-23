@@ -123,7 +123,7 @@ class InventoryUi(private val activity: Activity) {
             gravity = Gravity.CENTER_HORIZONTAL
             setPadding(0, dp(12), 0, dp(8))
             addView(ImageView(activity).apply {
-                setImageResource(R.drawable.ic_inventory_alert)
+                setImageResource(R.drawable.app_icon_d089)
                 scaleType = ImageView.ScaleType.CENTER_INSIDE
                 contentDescription = "BÁO HÀNG 1291"
                 layoutParams = LinearLayout.LayoutParams(dp(76), dp(76))
@@ -160,7 +160,7 @@ class InventoryUi(private val activity: Activity) {
         }
 
         header.addView(ImageView(activity).apply {
-            setImageResource(R.drawable.ic_inventory_alert)
+            setImageResource(R.drawable.app_icon_d089)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
             contentDescription = "BÁO HÀNG 1291"
             layoutParams = LinearLayout.LayoutParams(dp(34), dp(34)).apply { marginEnd = dp(9) }
@@ -220,7 +220,7 @@ class InventoryUi(private val activity: Activity) {
 
     fun addFooter(root: LinearLayout) {
         root.addView(TextView(activity).apply {
-            text = "Phát triển bởi: tamnv2 - Chuyên viên Pick Pack 1291"
+            text = "Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291"
             textSize = 9.5f
             gravity = Gravity.CENTER
             setTextColor(muted)
