@@ -686,12 +686,12 @@
     "D109 Owner field acceptance 2026-09-23: Owner explicitly replied 'ok pass' after the final main checkpoint and UI guard completed. OA029 is closed PASS. D109 live Beta Web + signed beta-vc65 are the accepted baseline; Stable remains OWNER-GATED."
   ],
   "last_runtime_evidence": {
-    "signed_beta_release": "beta-vc66",
-    "signed_beta_release_source_commit": "e7931cf892978332960e63d9a17dffe454ac1c43",
-    "signed_beta_release_id": 394288616,
-    "signed_beta_apk_asset_id": 582908040,
-    "signed_beta_apk_size_bytes": 19018752,
-    "signed_beta_apk_sha256": "715612464d7fd4ead1036959ce70b4fb8cf281e38566aa214a428fbebbf32328",
+    "signed_beta_release": "beta-vc67",
+    "signed_beta_release_source_commit": "8e08bead67b34f8302185d0d4ff259ddd5fae857",
+    "signed_beta_release_id": 394302425,
+    "signed_beta_apk_asset_id": 582970502,
+    "signed_beta_apk_size_bytes": 19019076,
+    "signed_beta_apk_sha256": "0ea00d861d38e6f4cdd22c76120707b9f730b2c990da0ee834e3072d81318edc",
     "relay_agent_release": "relay-agent-v30",
     "d109": "TECHNICAL_RUNTIME_RELEASE_PASS__OA029_FIELD_READY",
     "d109_main": "367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94",
@@ -711,7 +711,7 @@
       "ui": 35809583663,
       "android": 35809583599
     },
-    "live_health": "HTTP_200__SOURCE_EXACT_E7931CF8__SCHEMA_11_11__STORAGE_TRUE__MISSING_0__AGENT_0_0__OPERATIONAL_5_5",
+    "live_health": "HTTP_200__SOURCE_EXACT_8E08BEAD__SCHEMA_11_11__STORAGE_TRUE__MISSING_0__AGENT_0_0__OPERATIONAL_5_5",
     "d110": "TECHNICAL_RUNTIME_RELEASE_PASS__OA030_FIELD_READY",
     "d110_main": "e7931cf892978332960e63d9a17dffe454ac1c43",
     "d110_pr": 157,
@@ -721,6 +721,16 @@
       "beta_worker": 35816313928,
       "ui": 35816313994,
       "android": 35816313946
+    },
+    "d111": "TECHNICAL_RUNTIME_RELEASE_PASS__OA031_FIELD_READY",
+    "d111_main": "8e08bead67b34f8302185d0d4ff259ddd5fae857",
+    "d111_pr": 159,
+    "d111_main_runs": {
+      "repo_authority": 35819012567,
+      "project_state": 35819012547,
+      "beta_worker": 35819012562,
+      "ui": 35819012526,
+      "android": 35819012653
     }
   }
 }
