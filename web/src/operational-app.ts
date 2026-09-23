@@ -2355,7 +2355,6 @@ async function loadOperationsSnapshot(): Promise<void> {
     prefetchBatchDetails(selected.batch_id);
   }
   markWebUpdateReceived();
-  syncOperationsNavBadge();
 }
 
 async function loadOperations(): Promise<void> {
