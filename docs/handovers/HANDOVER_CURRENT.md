@@ -731,3 +731,15 @@ D112 is technically released on Beta and **OA032 is field-ready**.
 - Current workstream after this acceptance: `READY_FOR_NEXT_OWNER_REQUIREMENT`.
 - Next session: bootstrap from `ops/authority-manifest.json`, preserve D112 as accepted Beta baseline, then apply only the new Owner requirement.
 - Stable remains OWNER-GATED and untouched.
+
+## D113 source checkpoint — 2026-09-24
+
+- Owner requirement source: uploaded Web/App/Agent refinement document after D112 Owner PASS.
+- Branch: `feat/d113-web-android-agent-refinements`.
+- Accepted runtime baseline remains D112: Web + signed `beta-vc68` + `relay-agent-v31`.
+- D113 Web source: reference-style Vietnamese login, browser-managed remember-login, pending badge, independent SLA switches, mandatory auto-Skip mode, first-report-based Skip→Đã có hàng window, nonblocking SLA config load and refined Tools presentation.
+- D113 Android source: compact empty Picker state, action text-fit, 100% reset, standardized footer/login copy, friendly login errors, Reporter actions below timing and resolver identity.
+- D113 Agent source target: `relay-agent-v32` with explicit **Chuyển xuống nền** action; D112 native-window/watchdog/HA behavior is preserved.
+- No schema migration, no new polling cadence, no new external resource and no Stable change.
+- OA033 is registered but not field-ready until branch PR/main gates, exact Beta runtime and signed release publication PASS.
+- NEXT_ACTION: PR → repair authority/state/UI/Worker/Android/Agent gates → merge only on PASS → verify exact Beta runtime + next signed Android + Agent v32 → record release checkpoint and make OA033 field-ready.
