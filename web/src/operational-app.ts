@@ -2395,10 +2395,45 @@ async function loadLogs(): Promise<void> {
   if (!roleManage()) return;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
+  if (logView === "AUDIT") {
+    const result = await getAdminAuditHistory({
+      role: auditRole,
+      query: auditQuery,
+      limit: AUDIT_PAGE_SIZE,
+      offset: auditOffset,
+    });
+    if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+    auditRows = result.items;
+    auditTotal = result.total;
+    if (auditTotal > 0 && auditOffset >= auditTotal) {
+      auditOffset = Math.max(0, Math.floor((auditTotal - 1) / AUDIT_PAGE_SIZE) * AUDIT_PAGE_SIZE);
+      return loadLogs();
+    }
+    markWebUpdateReceived();
+    return;
+  }
+  runtimeLogSource = logView;
   const result = await getRuntimeLogs(runtimeLogSource, 60);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   runtimeLogs = result.items;
   if (runtimeLogDetail && !runtimeLogs.some((item) => item.id === runtimeLogDetail?.file.id)) runtimeLogDetail = null;
+  markWebUpdateReceived();
+}
+
+async function loadTools(): Promise<void> {
+  if (!roleManage()) return;
+  const generation = sessionViewGeneration;
+  const userId = profile?.user_id || "";
+  const result = await getPdaAppRelease();
+  const stableUrl = `${window.location.origin}${result.release.stable_download_path}`;
+  const qr = await QRCode.toDataURL(stableUrl, {
+    errorCorrectionLevel: "M",
+    margin: 1,
+    width: 220,
+  });
+  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+  pdaAppRelease = result.release;
+  pdaQrDataUrl = qr;
   markWebUpdateReceived();
 }
 
@@ -2456,6 +2491,7 @@ async function loadSection(section: Section): Promise<void> {
   else if (section === "dashboard" && roleManage()) { await loadDashboard(); received = true; }
   else if (section === "reports" && roleManage()) { await loadReports(); received = true; }
   else if (section === "logs" && roleManage()) { await loadLogs(); received = true; }
+  else if (section === "tools" && roleManage()) { await loadTools(); received = true; }
   else if (section === "system-reset" && profile.role === "ROOT" && profile.base_role === "ROOT") {
     systemResetPreview = await getSystemResetPreview(false);
     received = true;
@@ -2765,11 +2801,14 @@ function bindSection(): void {
     if (selectedBatchId) prefetchBatchDetails(selectedBatchId);
   }));
 
-  document.querySelectorAll<HTMLButtonElement>("[data-log-source]").forEach((button) => button.addEventListener("click", () => {
-    const next = String(button.dataset.logSource || "WEB").toUpperCase() === "ANDROID" ? "ANDROID" : "WEB";
-    if (next === runtimeLogSource) return;
-    runtimeLogSource = next;
+  document.querySelectorAll<HTMLButtonElement>("[data-log-view]").forEach((button) => button.addEventListener("click", () => {
+    const raw = String(button.dataset.logView || "WEB").toUpperCase();
+    const next: "WEB" | "ANDROID" | "AUDIT" = raw === "ANDROID" ? "ANDROID" : raw === "AUDIT" ? "AUDIT" : "WEB";
+    if (next === logView) return;
+    logView = next;
+    if (next !== "AUDIT") runtimeLogSource = next;
     runtimeLogDetail = null;
+    auditOffset = 0;
     void run(loadLogs);
   }));
   document.querySelectorAll<HTMLButtonElement>("[data-log-file]").forEach((button) => button.addEventListener("click", () => {
@@ -2780,6 +2819,32 @@ function bindSection(): void {
       markWebUpdateReceived();
     });
   }));
+  document.querySelector<HTMLFormElement>("#audit-filter")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    auditRole = String(data.get("role") || "");
+    auditQuery = String(data.get("query") || "").trim();
+    auditOffset = 0;
+    void run(loadLogs);
+  });
+  document.querySelector<HTMLButtonElement>("#audit-prev")?.addEventListener("click", () => {
+    auditOffset = Math.max(0, auditOffset - AUDIT_PAGE_SIZE);
+    void run(loadLogs);
+  });
+  document.querySelector<HTMLButtonElement>("#audit-next")?.addEventListener("click", () => {
+    auditOffset += AUDIT_PAGE_SIZE;
+    void run(loadLogs);
+  });
+  document.querySelector<HTMLButtonElement>("#copy-pda-link")?.addEventListener("click", async () => {
+    const stableUrl = `${window.location.origin}${pdaAppRelease?.stable_download_path || "/downloads/pda/latest"}`;
+    try {
+      await navigator.clipboard.writeText(stableUrl);
+      setNotice("success", "Đã sao chép link tải App PDA mới nhất.");
+    } catch {
+      setNotice("warning", "Không sao chép tự động được. Hãy dùng nút Tải App PDA.");
+    }
+  });
+
   document.querySelector<HTMLButtonElement>("#copy-agent-link")?.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(AGENT_DOWNLOAD_URL);
@@ -2792,6 +2857,7 @@ function bindSection(): void {
   document.querySelector<HTMLButtonElement>("#send-web-log")?.addEventListener("click", () => void run(async () => {
     const sent = await sendWebRuntimeLog("manual_web_log", "INFO");
     if (!sent) throw new Error("Chưa gửi được log Web. Kiểm tra kết nối rồi thử lại.");
+    logView = "WEB";
     runtimeLogSource = "WEB";
     runtimeLogDetail = null;
     await loadLogs();
@@ -3040,6 +3106,7 @@ function bindSection(): void {
     const data = new FormData(event.currentTarget as HTMLFormElement);
     dashboardFrom = String(data.get("from"));
     dashboardTo = String(data.get("to"));
+    persistDashboardRangeForUser();
     void run(loadDashboard);
   });
   document.querySelector<HTMLFormElement>("#report-filter")?.addEventListener("submit", (event) => {
@@ -3058,6 +3125,7 @@ function bindSection(): void {
     if (target === "dashboard") {
       dashboardFrom = dateDaysAgo(days);
       dashboardTo = dateDaysAgo(0);
+      persistDashboardRangeForUser();
       void run(loadDashboard);
     } else if (target === "reports") {
       reportFrom = dateDaysAgo(days);
