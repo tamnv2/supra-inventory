@@ -379,3 +379,11 @@ For Picker `Xác nhận đơn` only:
 - A successful Admin/Root SLA update emits a bounded realtime scope for `sla_settings` (and affected reporter queue state). An active SLA page reconciles from the authoritative server value.
 - This propagation is event-driven; D109 does not add background SLA polling.
 - Existing deadline semantics, D070 modes and D098 realtime budget guards remain unchanged.
+
+## D110 Android Reporter local clock and reconciliation
+
+- Android Reporter calibrates presentation time from the queue response `server_now`.
+- Waiting-minute/SLA labels are recomputed locally at the next calibrated minute boundary and then once per minute while the Reporter screen exists.
+- The local ticker makes **zero** network/provider calls and performs no business mutation. It is presentation-only and stops with the Reporter controller.
+- Reporter queue/recent data continue to reconcile only on initial load, authoritative realtime scopes and bounded post-mutation reconciliation; no new polling loop is introduced.
+- The manual Reporter refresh control is removed.
