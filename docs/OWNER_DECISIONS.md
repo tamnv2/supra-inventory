@@ -763,3 +763,11 @@ Live Beta health converged on attempt 2 to HTTP 200 with exact source `8e08bead.
 Signed Android release `beta-vc67` targets exact source `8e08bead...`. Release id `394302425`; APK asset id `582970502`; size `19019076` bytes; SHA-256 `0ea00d861d38e6f4cdd22c76120707b9f730b2c990da0ee834e3072d81318edc`.
 
 OA031 is now ready for Owner field review. Stable remains OWNER-GATED and untouched.
+
+## D111 Owner acceptance — 2026-09-23
+
+Owner explicitly confirmed signed Android `beta-vc67` as **PASS** after field review. OA031 is closed as `PASS_OWNER_CONFIRMED_D111`.
+
+The accepted D111 Beta baseline includes Reporter per-user A−/A+ scaling, red/white badge only for **Đang xử lý**, neutral history badges, removal of redundant outcome/Picker-ack/summary copy, explicit confirmation before **Đã có hàng** or **Cho phép skip**, and Android operational display scope of today plus older unresolved work for Picker/Reporter. Existing realtime/minute-ticker behavior remains no-extra-polling. Stable remains OWNER-GATED and untouched.
+
+Future work starts from this accepted D111 Beta baseline unless the Owner explicitly supersedes it.
