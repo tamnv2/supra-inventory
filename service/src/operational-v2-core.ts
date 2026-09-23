@@ -616,7 +616,25 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
       LIMIT ?`,
     limit,
   ).toArray();
-  return json({ items: rows, count: rows.length });
+  const totalsRow = first(
+    state.storage.sql.exec<SqlRow>(
+      `SELECT
+         COALESCE(SUM(CASE WHEN status = 'HAS_STOCK' THEN 1 ELSE 0 END), 0) AS has_stock,
+         COALESCE(SUM(CASE WHEN status = 'SKIP_ALLOWED' THEN 1 ELSE 0 END), 0) AS skip_allowed,
+         COALESCE(SUM(CASE WHEN status = 'CLOSED' THEN 1 ELSE 0 END), 0) AS withdrawn
+       FROM report_batches
+      WHERE status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')`,
+    ).toArray(),
+  ) || {};
+  return json({
+    items: rows,
+    count: rows.length,
+    totals: {
+      has_stock: Number(totalsRow.has_stock || 0),
+      skip_allowed: Number(totalsRow.skip_allowed || 0),
+      withdrawn: Number(totalsRow.withdrawn || 0),
+    },
+  });
 }
 
 function reporterBatchTickets(state: DurableObjectState, url: URL): Response {
