@@ -1,4 +1,4 @@
-import { planAutoSkipForNewReport, scheduleNextOperationalAlarm } from "./sla-automation";
+import { correctionDeadlineFromFirstReport, planAutoSkipForNewReport, scheduleNextOperationalAlarm } from "./sla-automation";
 
 type SqlRow = Record<string, SqlStorageValue>;
 
@@ -58,7 +58,6 @@ interface IdempotencyRow extends SqlRow {
 const MAX_IMPORT_ITEMS = 5000;
 const MAX_LIST_LIMIT = 200;
 const WITHDRAW_WINDOW_MS = 60_000;
-const CORRECTION_WINDOW_MS = 5 * 60_000;
 const REQUEST_ID_RE = /^[A-Za-z0-9._:-]{8,128}$/;
 
 function response(payload: unknown, status = 200): Response {
@@ -588,7 +587,10 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
           .toArray(),
       );
       if (Number(timedOut?.count || 0) > 0) {
-        const correctionDeadline = addMs(at, CORRECTION_WINDOW_MS);
+        const batchForCorrection = firstRow(
+          state.storage.sql.exec<SqlRow>("SELECT first_report_at FROM report_batches WHERE batch_id = ? LIMIT 1", ticket.batch_id).toArray(),
+        );
+        const correctionDeadline = correctionDeadlineFromFirstReport(state, String(batchForCorrection?.first_report_at || at));
         state.storage.sql.exec(
           `UPDATE report_tickets
               SET status = 'RESOLVED', resolved_at = COALESCE(resolved_at, ?), updated_at = ?
@@ -679,7 +681,7 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
     if (batch.status !== "PENDING") return { status: 409, payload: { error: "BATCH_NOT_PENDING", status: batch.status } } satisfies BusinessResult;
 
     const at = nowIso();
-    const correctionDeadline = resolution === "SKIP_ALLOWED" ? addMs(at, CORRECTION_WINDOW_MS) : null;
+    const correctionDeadline = resolution === "SKIP_ALLOWED" ? correctionDeadlineFromFirstReport(state, batch.first_report_at) : null;
     const openCountRow = firstRow(
       state.storage.sql.exec<SqlRow>("SELECT COUNT(*) AS count FROM report_tickets WHERE batch_id = ? AND status = 'OPEN' AND auto_skip_allowed_at IS NULL", batchId).toArray(),
     );
