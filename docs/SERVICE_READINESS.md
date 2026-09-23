@@ -658,3 +658,7 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - OA032 is registered but is not field-ready until PR/main/runtime/release gates PASS.
 - NEXT_ACTION: open D112 PR → repair all authority/continuity/UI/Worker/Android/Agent gates → merge only on PASS → verify exact Beta runtime, signed next Android release, relay-agent-v31 and fixed channel assets → make OA032 field-ready.
 
+
+- Canonical marker: `D112_TOOLS_RELEASE_CHANNEL_PRESETS_NONBLOCKING_REPORT_NOTICE_RETENTION__SOURCE_IMPLEMENTED__PR_GATES_PENDING`.
+
+- Canonical marker: `D112_UPDATE_CHANNEL_INSETS_LOGIN_INPUT_CLEANUP__SOURCE_IMPLEMENTED__TARGET_NEXT_AFTER_VC67`.
