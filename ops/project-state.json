@@ -13,22 +13,22 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D108_SOURCE_IMPLEMENTED__WEB_PROVENANCE_PICKER_DENSE_UI__PR_GATES_PENDING",
+    "beta": "D108_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_441F3C68__SIGNED_BETA_VC64__OA028_FIELD_READY",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 10,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D108_PASSWORD_RECOVERY_COLLAPSE__RESOLUTION_SOURCE_ACTOR__SOURCE_IMPLEMENTED__PR_GATES_PENDING",
-    "android": "D108_PICKER_NUMERIC_COMPACT_UI__PER_USER_SCALE__SOURCE_IMPLEMENTED__TARGET_NEXT_MONOTONIC_AFTER_VC63",
-    "latest_beta_apk": "beta-vc63",
+    "web": "D108_BETA_RUNTIME_PASS__RECOVERY_COLLAPSED__RESOLUTION_SOURCE_ACTOR__OA028_FIELD_READY",
+    "android": "D108_SIGNED_BETA_VC64__PICKER_DENSE_NUMERIC_UI__PER_USER_SCALE__OA028_FIELD_READY",
+    "latest_beta_apk": "beta-vc64",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
     "network_scope": "D105_ANDROID_4DIGIT_AGENT_V30_RUNTIME_RELEASE_PASS__LEGACY_VC62_5DIGIT_ROLLOUT_COMPAT__D104_BATCH_PRESERVED__STABLE_UNTOUCHED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "D106_NATIVE_FIREBASE_PASSWORD_DIRECT_VERIFY_AND_FAILED_CREATE_COMPENSATION_RUNTIME_PASS__OA026_FIELD_READY",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
-    "admin_dashboard": "D108_HUMAN_VS_TIMEOUT_SKIP_PROVENANCE__SOURCE_IMPLEMENTED__PR_GATES_PENDING__FINAL_STABLE_COLUMNS_OWNER_OPEN",
+    "admin_dashboard": "D108_HUMAN_VS_TIMEOUT_SKIP_PROVENANCE__BETA_RUNTIME_PASS__FINAL_STABLE_COLUMNS_OWNER_OPEN",
     "quota_resilience": "D104_NO_FASTER_FIRESTORE_POLL__NO_EXTRA_COALESCING_QUERY__MAX12_LOGICAL_JOBS__WMS_MAX10_CODES__MAIN_PASS",
-    "ui_design_guard": "D108_PR_GATES_PENDING",
+    "ui_design_guard": "D108_PR_UI_PASS_RUN_35800721806__LIVE_EXACT_SOURCE_PASS_35801069626",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D025_F20_60D_SQL_AGGREGATE_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
@@ -175,7 +175,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Complete D108 PR authority/state/UI/Web/Android/build gates, repair to terminal PASS, merge to main, verify Beta Web deployment and next signed monotonic Android release, then Owner performs OA028 field/visual acceptance. Stable remains OWNER-GATED.",
+  "next_action": "Owner runs OA028 on live Beta Web + signed beta-vc64: verify password recovery disclosure, human/system resolution provenance, numeric compact Picker flow, semantic status cards and per-user scale persistence. Fix only reported Beta defects. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -201,7 +201,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D108 IN PROGRESS: source implemented on fresh main branch. Web fixes reset-form hidden state and exposes resolution source/actor; backend reuses existing resolution_source/resolved_by_user_id with bounded joins/aggregate. Picker Android redesigns shortage entry/history and persists display scale locally per user. Target next monotonic signed Beta after vc63; Stable untouched.",
+      "D108 TECHNICAL/RUNTIME/RELEASE PASS: PR #151 merged main 441f3c687ad2ef94ecc6017b8fa9846e9b34a7a2 after Repo Authority 35800721747, Project State 35800721763, UI Design 35800721806, Android 35800721751, Firestore 35800721771 and RTDB 35800721768 PASS. Test-only PR #152 live proof run 35801069626 PASS on attempt 1 with HTTP 200, env beta, exact source 441f3c68, storage true, schema 10/10, missing 0, Agent migration 0/0. GitHub tag beta-vc64 resolves and contains D108 Picker source. OA028 field review remains; Stable untouched.",
       "D107 MERGED / OWNER VISUAL REVIEW PENDING: PR #149 head acdec3bb8e0b8a0793da6127a35952e014f58655 passed Repo Authority 35729564644, Project State 35729564770, UI Design 35729564681, RTDB 35729564684 and Firestore 35729564631. Squash-merged main 4e733535ef0abe893681afdf288097767141b115. Because web/** changed, the existing main-only Deploy Beta Worker workflow is automatically applicable; current connector cannot enumerate push-triggered runs, so D107 runtime PASS is not fabricated. Stable untouched.",
       "D106 TECHNICAL/RUNTIME PASS: PR #146 merged main dbcc8af2503b916282788303f9d67d72293a3de0. Exact live Beta proof run 35722532394 PASS on first attempt: HTTP 200, status ok, env beta, source_commit exact dbcc8af, storage true, schema 10/10, missing bindings 0, Agent auth migration 0/0. OA026 physical credential acceptance remains; Agent v30 unchanged; Stable untouched.",
       "D100 TECHNICAL/RUNTIME/RELEASE PASS: PR #126 merged main 8a769808b5c8c28fe76bbb2d31c5ec013265c148; relay-agent-v25 released; D100 health-proof hardening main 2cf23d9229eb4bd5d9c45f3776bb2404ef06a68f; parser hotfix PR #128 merged main dc5607a91c9b95e05344673daaa983c7d8bf5b86. Final main Authority/State/UI/Beta Worker all PASS with source_commit exact, schema 10/10, Agent-auth migration 0/0, Operational V2 5/5. OA019/OA020 physical Owner acceptance remains.",
@@ -231,7 +231,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Finish D108 branch guards/build, merge after PASS, verify Beta Web + next signed Android artifact, then OA028 Owner review.",
+      "Owner runs OA028 on live Beta Web + beta-vc64; after PASS, record D108 Owner acceptance. Otherwise repair only concrete Beta defects.",
       "OA027: after the automatic main Web deploy has propagated, Owner reviews live Beta login + authenticated shell + Tổng quan/Báo cáo chi tiết. If accepted, record D107 OWNER PASS; if not, fix only reported Beta defects.",
       "Owner field-tests OA020 reset-mail challenge and OA019 physical Agent/PDA path using relay-agent-v25 + beta-vc62. If reset challenge returns Gmail scope unavailable, perform one bounded OAuth re-consent only; no other manual action is currently required.",
       "Owner runs OA019 on released relay-agent-v23 + beta-vc61. After OA019 PASS, resume OA017 final PDA real-WMS confirmation and the next Firestore quota optimization workstream.",
@@ -243,7 +243,7 @@
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
     ],
     "blocked_or_owner_field_dependent": [
-      "D108 final visual/device acceptance requires Owner review after technical release; no manual action is required before CI/release.",
+      "D108 technical/runtime/release is PASS. Only OA028 physical/visual Owner acceptance remains. Stable promotion is not authorized.",
       "D107 source/PR gates and merge are PASS. Final visual acceptance is Owner-field-dependent on live Beta. Push-triggered Beta deployment exists by workflow contract, but the current GitHub connector exposes PR-triggered runs only, so exact main deploy-run/runtime evidence remains unobserved from this session.",
       "D100 code/deploy/release PASS. Actual Gmail OTP delivery and destructive System Reset execution remain Owner-field-only; current OAuth refresh token may require one gmail.send re-consent if runtime reports RESET_EMAIL_UNAVAILABLE.",
       "D098 technical/runtime/release is PASS; final business/physical acceptance depends on Owner OA019 on real Web/PDA/Office/WMS environment.",
@@ -521,16 +521,16 @@
   },
   "last_updated": "2026-09-23",
   "owner_ui_review": {
-    "status": "D108_NEW_REQUIREMENT_SOURCE_IMPLEMENTED__PR_PENDING",
-    "phase": "D108_WEB_PROVENANCE_AND_PICKER_DENSE_UI",
+    "status": "D108_TECHNICAL_RUNTIME_RELEASE_PASS__OA028_READY",
+    "phase": "D108_OA028_FIELD_ACCEPTANCE",
     "started_on": "2026-09-18",
     "review_target_web": "https://inventory-beta.supra.cc.cd/",
-    "review_target_android_release": "beta-vc54",
+    "review_target_android_release": "beta-vc64",
     "review_target_android_source_commit": "c1f368b29c2e0874ec6f5dfc0ac693d0291c7cee",
     "visual_authority_repository": "tam95supra-source/bao-hang-1291",
     "visual_authority_commit": "8713f487386fa39c9225b180b2b8448d4a7e2b2d",
     "owner_acceptance": "D107_OWNER_ACCEPTED_PASS__2026_09_23",
-    "current_instruction": "Owner confirmed D107 PASS, then opened D108. D108 changes only the specified Web password-recovery/provenance surfaces and Picker Android density/selection/scale UX; preserve D107 baseline elsewhere.",
+    "current_instruction": "D108 source/build/runtime/release is PASS. Owner now reviews live Beta Web and beta-vc64 physical Picker UI. D107 remains accepted baseline; Stable untouched.",
     "next_session_command": "Tiếp tục supra-inventory. Đọc canonical state trên GitHub và xử lý yêu cầu mới.",
     "review_feedback_protocol": "After D108 technical release, review live Beta Web and next signed Beta Android. Stable remains gated.",
     "previous_owner_acceptance": "D107_OWNER_ACCEPTED_PASS__2026_09_23"
@@ -598,9 +598,10 @@
     "D106 Owner-reported 2026-09-22: Web managed-account create can report failure while the InventoryCore row later appears, and newly created/reset ADMIN credentials can return Web password-update 200 while Agent direct Firebase sign-in returns HTTP 400. Repair makes native Firebase password write + direct UID sign-in verification part of the create/reset commit, and compensates failed create so an ACTIVE ghost account is not left behind. Existing pre-D106 broken credentials require one post-deploy password set because plaintext is not recoverable. Stable untouched.",
     "D107 Owner-approved 2026-09-22: Web login identity becomes corporate line + Website nghiệp vụ Inventory with exact shared D089 app-icon; remove legacy numeric 1291 login tile/copy. Preserve current business logic/RBAC/realtime/navigation/quota behavior. Add final professional Web visual layer and richer Admin/Root overview/detailed-report presentation from existing bounded APIs only; no new polling/provider monitoring/employee scoring/stock-location metrics. Stable untouched.",
     "D107 release checkpoint 2026-09-22: professional Web identity/reporting source is merged at main 4e733535ef0abe893681afdf288097767141b115 after full PR authority/state/UI/Web-build/regression PASS. Automated Beta deployment is configured for main web/** pushes. Exact live runtime verification and Owner visual acceptance remain separate gates.",
-    "D108 Owner-approved 2026-09-23 after D107 PASS: Web recovery form hidden until explicit action; operational/reporting surfaces show human vs SYSTEM_TIMEOUT Skip and resolving account identity. Picker Android uses numeric-only >=3 digit SKU search, input + Xác nhận one row, selected-state emphasis, suggestion suppression after selection, semantic status cards, no automatic deadline time copy, renamed history, and per-user local 80–140% text/input scaling via A−/A+ beside Log. No new polling/backend store; Stable untouched."
+    "D108 Owner-approved 2026-09-23 after D107 PASS: Web recovery form hidden until explicit action; operational/reporting surfaces show human vs SYSTEM_TIMEOUT Skip and resolving account identity. Picker Android uses numeric-only >=3 digit SKU search, input + Xác nhận one row, selected-state emphasis, suggestion suppression after selection, semantic status cards, no automatic deadline time copy, renamed history, and per-user local 80–140% text/input scaling via A−/A+ beside Log. No new polling/backend store; Stable untouched.",
+    "D108 release checkpoint 2026-09-23: exact live Beta source and beta-vc64 tag verified. Release checksum asset is published by the existing workflow but its asset metadata is not exposed by the current connected GitHub surface, so no APK checksum is fabricated in canonical state."
   ],
-  "active_workstream": "D108_WEB_PROVENANCE_AND_PICKER_DENSE_UI",
+  "active_workstream": "D108_OA028_FIELD_ACCEPTANCE",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
@@ -656,7 +657,8 @@
     "D106 diagnosis 2026-09-22: Owner Agent v30 log reaches identitytoolkit.googleapis.com and receives HTTP 400 on signInWithPassword; Owner Web support log shows PUT /api/admin/users/password HTTP 200. Source review confirmed managed create persisted InventoryCore before external Firebase provisioning and password update could mark readiness after PBKDF2 import without direct Agent-password proof. D106 source candidate closes both gaps; runtime deploy/field proof pending.",
     "D106 exact live Beta proof 2026-09-22: test-only PR #147 was closed unmerged after Actions run 35722532394/job 106728495944 PASS. /health attempt 1 returned HTTP 200, status=ok, environment=beta, source_commit=dbcc8af2503b916282788303f9d67d72293a3de0 exact, storage=true, schema=10/10, missing_bindings=0, agent_auth_migration=0/0.",
     "D107 source/PR PASS + main merge 2026-09-22: PR #149 head acdec3bb8e0b8a0793da6127a35952e014f58655. Final PR runs: Repo Authority 35729564644 PASS, Project State 35729564770 PASS, UI Design Guard 35729564681 PASS including Web production build and all regression gates, Beta RTDB Rules 35729564684 PASS, Beta Firestore Relay 35729564631 PASS. PR squash-merged to main 4e733535ef0abe893681afdf288097767141b115. Existing Deploy Beta Worker workflow triggers on main web/** changes, therefore this merge enters automatic Beta deployment; exact push-run observation is unavailable through the current connector and is not represented as runtime PASS. Stable untouched.",
-    "D107 Owner acceptance 2026-09-23: Owner stated prior D107 items passed before issuing D108. OA027 should be closed PASS in the D108 authority change set."
+    "D107 Owner acceptance 2026-09-23: Owner stated prior D107 items passed before issuing D108. OA027 should be closed PASS in the D108 authority change set.",
+    "D108 technical/runtime/release PASS 2026-09-23: PR #151 merged to main 441f3c687ad2ef94ecc6017b8fa9846e9b34a7a2. PR runs PASS: Repo Authority 35800721747, Project State 35800721763, UI Design 35800721806, Verify Beta Android 35800721751, Firestore 35800721771, RTDB 35800721768. Test-only PR #152 live Beta proof run 35801069626/job 106991287965 PASS attempt 1: HTTP 200, status ok, env beta, source exact 441f3c68, storage true, schema 10/10, missing 0, agent 0/0. beta-vc64 tag resolves to source containing D108 Picker markers. Stable untouched."
   ],
   "last_runtime_evidence": {
     "signed_beta_release": "beta-vc59",
