@@ -19,7 +19,7 @@ import { drainAgentLogUploads } from "./agent-log-drain";
 import { collectSystemStatus } from "./system-status";
 import { handleSystemResetApi } from "./system-reset";
 import { sendProjectEmail } from "./google-mail";
-import { latestPdaAppRelease, redirectLatestPdaApk } from "./app-tools";
+import { latestAgentAppRelease, latestPdaAppRelease, redirectLatestAgentExe, redirectLatestPdaApk } from "./app-tools";
 
 export { InventoryCore };
 
@@ -950,6 +950,9 @@ export default {
       if (request.method === "GET" && url.pathname === "/downloads/pda/latest") {
         return redirectLatestPdaApk();
       }
+      if (request.method === "GET" && url.pathname === "/downloads/agent/latest") {
+        return redirectLatestAgentExe();
+      }
 
       if (request.method === "GET" && url.pathname === "/api/system/capabilities") {
         const core = await checkCore(env);
@@ -997,7 +1000,15 @@ export default {
         try {
           return json({ status: "ok", release: await latestPdaAppRelease() });
         } catch (error) {
-          return json({ error: "PDA_RELEASE_UNAVAILABLE", message: error instanceof Error ? error.message : "release_unavailable" }, 502);
+          return json({ error: "PDA_RELEASE_CHANNEL_UNAVAILABLE", message: error instanceof Error ? error.message : "release_channel_unavailable" }, 502);
+        }
+      }
+      if (request.method === "GET" && url.pathname === "/api/admin/agent-app") {
+        await requireUser(request, env, ["ADMIN", "ROOT"]);
+        try {
+          return json({ status: "ok", release: await latestAgentAppRelease() });
+        } catch (error) {
+          return json({ error: "AGENT_RELEASE_CHANNEL_UNAVAILABLE", message: error instanceof Error ? error.message : "release_channel_unavailable" }, 502);
         }
       }
 
