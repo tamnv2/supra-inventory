@@ -971,7 +971,17 @@ function adminReporting(state: DurableObjectState, url: URL): BusinessResult {
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.resolved_at,
             b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
             COALESCE(resolver.display_name, '') AS resolved_by_display_name,
-            COALESCE(resolver.employee_code, '') AS resolved_by_employee_code,
+            COALESCE(
+              NULLIF(resolver.employee_code, ''),
+              (SELECT e.actor_employee_code
+                 FROM report_events e
+                WHERE e.batch_id = b.batch_id
+                  AND e.event_type IN ('BATCH_RESOLVED','BATCH_CORRECTED')
+                  AND e.actor_employee_code IS NOT NULL
+                ORDER BY e.created_at DESC
+                LIMIT 1),
+              ''
+            ) AS resolved_by_employee_code,
             SUM(CASE WHEN t.status = 'OPEN' THEN 1 ELSE 0 END) AS open_ticket_count,
             COUNT(t.ticket_id) AS total_ticket_count,
             CASE WHEN b.resolved_at IS NULL THEN NULL
@@ -999,7 +1009,17 @@ function adminReports(state: DurableObjectState, url: URL): BusinessResult {
           `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.resolved_at,
                   b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
                   COALESCE(resolver.display_name, '') AS resolved_by_display_name,
-                  COALESCE(resolver.employee_code, '') AS resolved_by_employee_code,
+                  COALESCE(
+                    NULLIF(resolver.employee_code, ''),
+                    (SELECT e.actor_employee_code
+                       FROM report_events e
+                      WHERE e.batch_id = b.batch_id
+                        AND e.event_type IN ('BATCH_RESOLVED','BATCH_CORRECTED')
+                        AND e.actor_employee_code IS NOT NULL
+                      ORDER BY e.created_at DESC
+                      LIMIT 1),
+                    ''
+                  ) AS resolved_by_employee_code,
                   SUM(CASE WHEN t.status = 'OPEN' THEN 1 ELSE 0 END) AS open_ticket_count,
                   COUNT(t.ticket_id) AS total_ticket_count
              FROM report_batches b
@@ -1018,7 +1038,17 @@ function adminReports(state: DurableObjectState, url: URL): BusinessResult {
           `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.resolved_at,
                   b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
                   COALESCE(resolver.display_name, '') AS resolved_by_display_name,
-                  COALESCE(resolver.employee_code, '') AS resolved_by_employee_code,
+                  COALESCE(
+                    NULLIF(resolver.employee_code, ''),
+                    (SELECT e.actor_employee_code
+                       FROM report_events e
+                      WHERE e.batch_id = b.batch_id
+                        AND e.event_type IN ('BATCH_RESOLVED','BATCH_CORRECTED')
+                        AND e.actor_employee_code IS NOT NULL
+                      ORDER BY e.created_at DESC
+                      LIMIT 1),
+                    ''
+                  ) AS resolved_by_employee_code,
                   SUM(CASE WHEN t.status = 'OPEN' THEN 1 ELSE 0 END) AS open_ticket_count,
                   COUNT(t.ticket_id) AS total_ticket_count
              FROM report_batches b
