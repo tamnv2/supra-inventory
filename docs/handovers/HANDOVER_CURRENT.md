@@ -743,3 +743,22 @@ D112 is technically released on Beta and **OA032 is field-ready**.
 - No schema migration, no new polling cadence, no new external resource and no Stable change.
 - OA033 is registered but not field-ready until branch PR/main gates, exact Beta runtime and signed release publication PASS.
 - NEXT_ACTION: PR → repair authority/state/UI/Worker/Android/Agent gates → merge only on PASS → verify exact Beta runtime + next signed Android + Agent v32 → record release checkpoint and make OA033 field-ready.
+
+## D113 technical/runtime/release checkpoint — 2026-09-24
+
+- Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA033 FIELD READY**.
+- PR #165 squash-merged main `7dcc76aba6b0b2774208b151ca587aa2a2b09931`.
+- Main PASS runs: Repo Authority `35933061054`, Project State `35933061086`, UI `35933061098`, Beta Worker `35933061039`, Android `35933061049`, Relay Agent `35933061088`.
+- Live Beta exact-source proof: HTTP 200 on attempt 2; source `7dcc76ab...`; SQLite `11/11`; Operational V2 `5/5`; missing bindings `0`; Agent migration `0/0`; auth/business/Web/OAuth smoke PASS.
+- Signed Android `beta-vc69`: release `395136931`, asset `584751944`, size `19019800`, SHA-256 `f6b1f6e8866358b270bb5781958e6a0a05d54fbc65f446c6dc3ae5e0b9ef07c0`.
+- Agent `relay-agent-v32`: release `395136705`, asset `584751479`, size `287744`, SHA-256 `e6b838377931fd804bf4dc7de7b02577010244041867975e301fd42b9d35e80c`.
+- `inventory-channel` refreshed: Agent manifest/exe `584751529/584751528`; PDA manifest/apk `584751996/584751999`.
+- OA033 is ready for Owner field review; do not record D113 Owner PASS until explicit confirmation.
+- Stable remains OWNER-GATED and untouched.
+
+### D113 canonical current-status markers
+
+- Web: `D113_BETA_RUNTIME_PASS__REFERENCE_LOGIN_QUEUE_BADGE_SLA_SWITCHES_FIRST_REPORT_CORRECTION_TOOLS__OA033_FIELD_READY`
+- Android: `D113_SIGNED_BETA_VC69__COMPACT_PICKER_100_RESET_LOGIN_RESPONDER__OA033_FIELD_READY`
+- Latest Beta APK: `beta-vc69`
+- SQLite schema: `11`

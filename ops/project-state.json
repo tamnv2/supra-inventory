@@ -13,22 +13,22 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D112_OWNER_FIELD_ACCEPTED_PASS__LIVE_SOURCE_92AFF2FD__SCHEMA11__SIGNED_BETA_VC68__AGENT_V31",
+    "beta": "D113_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_7DCC76AB__SCHEMA11__SIGNED_BETA_VC69__AGENT_V32__OA033_FIELD_READY",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 11,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D112_OWNER_ACCEPTED_PASS__TOOLS_RELEASE_CHANNEL_PRESETS_NONBLOCKING_REPORT_NOTICE_90D_RETENTION",
-    "android": "D112_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC68__UPDATE_CHANNEL_INSETS_LOGIN_INPUT_CLEANUP",
-    "latest_beta_apk": "beta-vc68",
+    "web": "D113_BETA_RUNTIME_PASS__REFERENCE_LOGIN_QUEUE_BADGE_SLA_SWITCHES_FIRST_REPORT_CORRECTION_TOOLS__OA033_FIELD_READY",
+    "android": "D113_SIGNED_BETA_VC69__COMPACT_PICKER_100_RESET_LOGIN_RESPONDER__OA033_FIELD_READY",
+    "latest_beta_apk": "beta-vc69",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
-    "network_scope": "D112_OWNER_ACCEPTED_PASS__AGENT_V31__D105_PDA_4DIGIT_PRESERVED__MANUAL_3_20_EXACT_SUFFIX_AMBIGUITY_FAIL_CLOSED__D104_BATCH_PRESERVED__STABLE_UNTOUCHED",
+    "network_scope": "D113_TECHNICAL_PASS__AGENT_V32_BACKGROUND_ACTION__D105_PDA_4DIGIT__D104_BATCH__D097_HA__STABLE_UNTOUCHED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "D106_NATIVE_FIREBASE_PASSWORD_DIRECT_VERIFY_AND_FAILED_CREATE_COMPENSATION_RUNTIME_PASS__OA026_FIELD_READY",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D112_OWNER_ACCEPTED_PASS__EXISTING_METRICS_OPERATIONAL_HIERARCHY__NONBLOCKING_SECONDARY_LOAD",
     "quota_resilience": "D104_NO_FASTER_FIRESTORE_POLL__NO_EXTRA_COALESCING_QUERY__MAX12_LOGICAL_JOBS__WMS_MAX10_CODES__MAIN_PASS",
-    "ui_design_guard": "D112_OWNER_ACCEPTED__MAIN_UI_PASS_RUN_35854450769",
+    "ui_design_guard": "D113_MAIN_UI_PASS_RUN_35933061098__OA033_FIELD_READY",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D112_OWNER_ACCEPTED_PASS__FAST_PRIMARY_ROWS__30_60_90_AUDIT_VIEW__EXISTING_AUTHORITATIVE_METRICS_ONLY",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
@@ -185,7 +185,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D113: open PR from feat/d113-web-android-agent-refinements → repair all required authority/state/UI/Worker/Android/Agent gates → merge only after PASS → verify exact Beta runtime, signed next Android and relay-agent-v32 → advance OA033 to field-ready. Stable remains OWNER-GATED.",
+  "next_action": "OA033: Owner field-tests live D113 Beta Web, signed beta-vc69 and relay-agent-v32. Record PASS only after explicit Owner confirmation; otherwise fix only reported D113 defects on a fresh branch. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -211,6 +211,7 @@
   },
   "workboard": {
     "in_progress": [
+      "D113 TECHNICAL/RUNTIME/RELEASE PASS: main 7dcc76ab, exact live Beta, signed beta-vc69 and relay-agent-v32 are released; OA033 is ready for Owner field review. Stable untouched.",
       "D113 SOURCE IMPLEMENTED: branch feat/d113-web-android-agent-refinements applies the Owner-uploaded Web/App/Agent refinements; targets next signed Android after beta-vc68 and relay-agent-v32. PR/CI/runtime/release PASS pending; D112 remains live accepted baseline; Stable untouched.",
       "D112 OWNER PASS: Owner field-confirmed live Beta Web + signed beta-vc68 + relay-agent-v31 on 2026-09-23. OA032 closed. D112 is the accepted Beta baseline; Stable remains untouched.",
       "D110 TECHNICAL/RUNTIME/RELEASE PASS: PR #157 merged main e7931cf8; main Authority/State/UI/Worker/Android PASS; live Beta exact source schema 11/11 and signed beta-vc66 published. OA030 Owner field review remains; Stable untouched.",
@@ -246,6 +247,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
+      "OA033: field-review D113 live Web + beta-vc69 + relay-agent-v32; record Owner PASS only on explicit confirmation.",
       "D113: open PR from feat/d113-web-android-agent-refinements → repair all required authority/state/UI/Worker/Android/Agent gates → merge only after PASS → verify exact Beta runtime, signed next Android and relay-agent-v32 → advance OA033 to field-ready.",
       "D110 OA030: Owner field-tests signed beta-vc66 Reporter pinned tabs/badges/direct actions/local SLA clock/icon/footer and ADMIN/ROOT Android denial.",
       "READY: wait for the Owner's next requirement; bootstrap canonical GitHub authority before any new work. Preserve D109 accepted Beta baseline and Stable OWNER-GATED.",
@@ -549,15 +551,16 @@
   },
   "last_updated": "2026-09-24",
   "owner_ui_review": {
-    "status": "D113_SOURCE_IMPLEMENTED__OA033_NOT_FIELD_READY",
-    "phase": "D113_PR_RUNTIME_RELEASE",
+    "status": "D113_TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
+    "phase": "D113_OWNER_FIELD_REVIEW",
     "started_on": "2026-09-24",
     "previous_owner_acceptance": "D112_OWNER_FIELD_ACCEPTED_PASS",
     "review_target_web": "https://inventory-beta.supra.cc.cd/",
-    "review_target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC68",
+    "review_target_android_release": "beta-vc69",
+    "review_target_android_source_commit": "7dcc76aba6b0b2774208b151ca587aa2a2b09931",
     "review_target_agent_release": "relay-agent-v32",
-    "current_instruction": "Complete D113 PR/runtime/release gates before Owner field review. D112 remains accepted live baseline.",
-    "next_session_command": "Tiếp tục supra-inventory. Bootstrap authority và tiếp tục D113/OA033 từ canonical state.",
+    "current_instruction": "Field-test D113 Beta Web, beta-vc69 and relay-agent-v32. Reply PASS or itemized defects; Stable remains OWNER-GATED.",
+    "next_session_command": "Tiếp tục supra-inventory. Bootstrap authority và tiếp tục OA033 D113 field review.",
     "review_feedback_protocol": "Do not record D113 Owner PASS before explicit field confirmation."
   },
   "runtime_evidence": [
@@ -632,9 +635,10 @@
     "D109 release checkpoint 2026-09-23: PR #154 merged main 367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94; main Deploy Beta Worker run 35809583618 passed with HTTP 200 exact source, schema 11/11, storage true, missing bindings 0, Agent migration 0/0 and Operational V2 5/5; UI run 35809583663 and Android run 35809583599 PASS; signed beta-vc65 release id 394246239 asset 582752309 size 19015996 sha256 3e2b5284ac2ed5d3040c36338a5bdb21026958eda7e4d4a12b40ea9bf6c0ea48. OA029 field review remains; Stable untouched.",
     "D109 Owner field acceptance 2026-09-23: Owner explicitly replied 'ok pass' after the final main checkpoint and UI guard completed. OA029 is closed PASS. D109 live Beta Web + signed beta-vc65 are the accepted baseline; Stable remains OWNER-GATED.",
     "D112 Owner field acceptance 2026-09-23: Owner explicitly confirmed live Beta Web, signed beta-vc68 and relay-agent-v31 PASS. OA032 closed; D112 becomes the accepted Beta baseline; Stable remains OWNER-GATED.",
-    "D113 source checkpoint 2026-09-24: uploaded Owner requirements implemented on feat/d113-web-android-agent-refinements. D112 remains current accepted runtime until D113 gates/releases pass; no schema/new resource/Stable change."
+    "D113 source checkpoint 2026-09-24: uploaded Owner requirements implemented on feat/d113-web-android-agent-refinements. D112 remains current accepted runtime until D113 gates/releases pass; no schema/new resource/Stable change.",
+    "D113 technical/runtime/release PASS 2026-09-24: PR #165 merged main 7dcc76ab; main Authority/State/UI/Worker/Android/Agent PASS; live Beta exact source schema 11/11 Operational V2 5/5; signed beta-vc69 and relay-agent-v32 published; OA033 field-ready; Stable untouched."
   ],
-  "active_workstream": "D113_SOURCE_IMPLEMENTATION",
+  "active_workstream": "D113_OWNER_FIELD_REVIEW",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
