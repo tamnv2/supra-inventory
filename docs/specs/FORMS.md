@@ -493,3 +493,12 @@ D103 supersedes D102 layout dimensions where they conflict.
 - Confirmed success uses success emphasis; non-success terminal states use error emphasis. Lock messaging remains prominent and still opens the existing warning dialog where applicable.
 - Agent specialist manual input accepts 3–4 digits per comma-separated term, maximum 10 unique terms.
 
+## D110 Android Reporter form
+
+- Directly below the pinned App identity/header, render four equal operational tabs: **Đang xử lý**, **Đã có hàng**, **Cho phép skip**, **Picker đã thu hồi**.
+- Each tab has a compact upper-right count badge. Badge text is bounded (`99+` allowed) while the underlying count remains authoritative.
+- Reporter list content scrolls independently; header and four-tab strip do not scroll away.
+- A pending row order is: SKU + elapsed minutes, direct **Đã có hàng / Cho phép skip** action row, product name, then compact Picker/SLA/report metadata.
+- Primary resolution buttons do not open a second confirmation form. While one batch is being submitted, only that batch's actions are disabled/dimmed.
+- No Reporter **Làm mới** button is shown. Realtime changes refresh authoritative data; the elapsed-minute label advances locally.
+- Skip-result correction remains a distinct later action and may keep its dedicated confirmation because it changes an already-resolved result.
