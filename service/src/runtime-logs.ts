@@ -358,14 +358,17 @@ export async function listRuntimeLogs(
   env: RuntimeLogsEnv,
   sourceValue: string,
   limitValue: number,
+  daysValue = 30,
 ): Promise<Record<string, unknown>> {
   if (!env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID)) throw new Error("LOGS_FOLDER_NOT_CONFIGURED");
   const source = normalizeSource(sourceValue);
-  const limit = Math.max(1, Math.min(100, Number(limitValue || 50)));
+  const limit = Math.max(1, Math.min(500, Number(limitValue || 100)));
+  const days = [30, 60, 90].includes(Number(daysValue)) ? Number(daysValue) : 30;
   const token = await refreshGoogleAccessToken(env);
   const needle = source.toLowerCase() + "_";
+  const from = new Date(Date.now() - days * 86_400_000).toISOString();
   const params = new URLSearchParams({
-    q: `'${env.LOGS_FOLDER_ID}' in parents and trashed = false and name contains '${needle}'`,
+    q: `'${env.LOGS_FOLDER_ID}' in parents and trashed = false and name contains '${needle}' and createdTime >= '${from}'`,
     orderBy: "createdTime desc",
     pageSize: String(limit),
     spaces: "drive",
@@ -393,7 +396,7 @@ export async function listRuntimeLogs(
       severity: String(file.name || "").startsWith("error_") ? "ERROR" : "INFO",
       source,
     }));
-  return { source, items, count: items.length };
+  return { source, days, items, count: items.length };
 }
 
 export async function readRuntimeLog(env: RuntimeLogsEnv, fileId: string): Promise<Record<string, unknown>> {
