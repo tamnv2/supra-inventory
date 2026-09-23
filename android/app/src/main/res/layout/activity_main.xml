@@ -8,66 +8,78 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="76dp"
+        android:layout_height="wrap_content"
+        android:minHeight="56dp"
         android:background="@color/navy_900"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="8dp"
-        android:paddingEnd="10dp">
+        android:paddingStart="6dp"
+        android:paddingTop="3dp"
+        android:paddingEnd="7dp"
+        android:paddingBottom="3dp">
 
         <TextView
             android:id="@+id/btnBack"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="38dp"
+            android:layout_height="46dp"
             android:contentDescription="Quay lại"
             android:gravity="center"
             android:text="‹"
             android:textColor="@color/white"
-            android:textSize="32sp"
+            android:textSize="28sp"
             android:textStyle="bold"
             android:visibility="gone" />
 
         <ImageView
-            android:layout_width="34dp"
-            android:layout_height="34dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:contentDescription="@string/app_name"
             android:src="@mipmap/ic_launcher" />
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="9dp"
+            android:layout_marginStart="7dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
             <TextView
                 android:id="@+id/tvHeaderTitle"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:autoSizeMaxTextSize="13sp"
+                android:autoSizeMinTextSize="10sp"
+                android:autoSizeStepGranularity="1sp"
+                android:autoSizeTextType="uniform"
+                android:maxLines="1"
                 android:text="BÁO HÀNG 1291"
                 android:textColor="@color/white"
-                android:textSize="15sp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tvHeaderUser"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:autoSizeMaxTextSize="10sp"
+                android:autoSizeMinTextSize="8sp"
+                android:autoSizeStepGranularity="1sp"
+                android:autoSizeTextType="uniform"
                 android:ellipsize="end"
-                android:maxLines="1"
+                android:maxLines="2"
                 android:textColor="#C9DFEE"
-                android:textSize="11sp" />
+                android:textSize="10sp" />
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="154dp"
-            android:layout_height="match_parent"
+            android:layout_width="142dp"
+            android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="vertical">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="42dp"
+                android:layout_height="34dp"
                 android:orientation="horizontal">
 
                 <TextView
@@ -84,18 +96,6 @@
                     android:visibility="gone" />
 
                 <TextView
-                    android:id="@+id/btnLog"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:contentDescription="Gửi log"
-                    android:gravity="center"
-                    android:text="Log"
-                    android:textColor="@color/white"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
-
-                <TextView
                     android:id="@+id/btnTextPlus"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
@@ -109,6 +109,18 @@
                     android:visibility="gone" />
 
                 <TextView
+                    android:id="@+id/btnLog"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:contentDescription="Gửi log"
+                    android:gravity="center"
+                    android:text="Log"
+                    android:textColor="@color/white"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+
+                <TextView
                     android:id="@+id/btnLogout"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
@@ -117,19 +129,19 @@
                     android:gravity="center"
                     android:text="Thoát"
                     android:textColor="@color/white"
-                    android:textSize="11sp"
+                    android:textSize="10sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
             <TextView
                 android:id="@+id/tvAppVersion"
                 android:layout_width="match_parent"
-                android:layout_height="24dp"
+                android:layout_height="16dp"
                 android:contentDescription="Phiên bản ứng dụng; chạm để kiểm tra cập nhật"
                 android:gravity="center"
                 android:text="v0.0.0"
                 android:textColor="#C9DFEE"
-                android:textSize="10sp" />
+                android:textSize="8sp" />
         </LinearLayout>
     </LinearLayout>
 
