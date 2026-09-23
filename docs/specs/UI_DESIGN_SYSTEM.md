@@ -612,3 +612,12 @@ D107 is the Owner-authorized Web visual refinement over the accepted D089 baseli
 - The soft keyboard must not resize/push the bottom tab bar into the content area; the activity uses a stationary layout policy for IME display.
 - Shortage history uses time-only operational labels: `Báo hết lúc: HH:mm`, `Invent phản hồi lúc: HH:mm`; no date is shown in those lines.
 - D108 numeric input, semantic status cards and per-user 80–140% Picker scale remain authoritative.
+
+## D110 Android Reporter visual baseline
+
+- Reporter uses the D109 compact Android shell. The four-tab strip is pinned immediately under the identity/header and uses the same restrained selected-tab language as Picker.
+- Every Reporter tab carries a small red/white count badge at the top-right. Badge size must not expand the tab height.
+- Pending cards: normal white; warning light yellow; overdue light red. Use readable dark semantic text/borders rather than saturated card fills.
+- Primary actions sit immediately under the SKU: **Đã có hàng** uses success treatment; **Cho phép skip** uses danger/exception treatment. Both remain touch-safe and visually disable only while that batch is submitting.
+- Login, launcher/header and shared operational brand surfaces use the canonical committed App icon; do not mix the legacy alert glyph into product identity.
+- Login footer copy is **Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291**.
