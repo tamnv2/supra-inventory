@@ -487,6 +487,23 @@ def main() -> None:
     require(picker, "R.drawable.bg_picker_tab_selected", "D109 tab selected runtime styling")
     require(picker, "R.drawable.bg_picker_tab_idle", "D109 tab idle runtime styling")
 
+    # D111: Reporter scale/confirmation cleanup and Android today-plus-unresolved projection.
+    require(main_activity, 'getSharedPreferences("reporter_display_scale_v1"', "D111 per-user Reporter scale persistence")
+    require(main_activity, "reporterDisplayScale(session)", "D111 Reporter scale restore")
+    require(reporter, "applyDisplayScale(root)", "D111 Reporter display scale application")
+    require(reporter, "private fun confirmResolution", "D111 Reporter pre-resolution confirmation")
+    require(reporter, '.setPositiveButton("Xác nhận")', "D111 Reporter explicit confirmation action")
+    require(reporter, "confirmingBatchIds", "D111 Reporter confirmation double-tap lock")
+    require(reporter, '"Báo lúc: $reportTime', "D111 Reporter report time")
+    require(reporter, 'Invent phản hồi lúc: $responseTime', "D111 Reporter response time")
+    forbid(reporter, "Picker đã xác nhận", "D111 remove redundant Picker acknowledgement count")
+    forbid(reporter, "Không có SKU đang xử lý.", "D111 remove redundant Reporter summary")
+    require(inventory_api, "scope=APP_TODAY_OPEN", "D111 Android scoped history request")
+    require(operational, 'APP_TODAY_OPEN_SCOPE = "APP_TODAY_OPEN"', "D111 service scoped history projection")
+    require(operational, "t.reported_at >= ? OR (t.status = 'OPEN'", "D111 Picker today plus older unresolved SQL")
+    require(operational, "b.first_report_at >= ?", "D111 Reporter resolved-today SQL")
+    require(picker, "reportDate(it.reportedAt) == today || isUnresolved(it)", "D111 Picker defensive day/open filter")
+
     require(launcher, "onOpenResults", "distinct results route")
     require(main_activity, 'initialFilter = "HAS_STOCK"', "results initial filter")
     require(web, "sectionFromHash()", "Web hash route parser")

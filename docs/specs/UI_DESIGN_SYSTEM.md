@@ -621,3 +621,14 @@ D107 is the Owner-authorized Web visual refinement over the accepted D089 baseli
 - Primary actions sit immediately under the SKU: **Đã có hàng** uses success treatment; **Cho phép skip** uses danger/exception treatment. Both remain touch-safe and visually disable only while that batch is submitting.
 - Login, launcher/header and shared operational brand surfaces use the canonical committed App icon; do not mix the legacy alert glyph into product identity.
 - Login footer copy is **Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291**.
+
+## D111 Android daily compact workflow
+
+D111 supersedes only the conflicting D110 Reporter interaction/presentation details.
+
+1. Reporter A−/A+ is visible beside the shared header controls, persists locally per authenticated Reporter, is bounded to 80–140%, and preserves the active Reporter tab when applied.
+2. Four Reporter tabs remain pinned. Pending badge = red background + white text. The other three badges = light neutral grey background + dark text.
+3. Badges are the sole tab-count presentation. Remove the summary line below tabs and do not render empty-state count/explanation cards.
+4. Recent/result cards do not repeat the state already named by their tab and do not show affected-Picker/acknowledgement totals. Show report time and Invent response time where applicable.
+5. **Đã có hàng** and **Cho phép skip** remain directly accessible below the pending SKU but now open a concise confirmation dialog before mutation.
+6. SLA background semantics, calibrated minute ticker, canonical icon/footer, compact header, and D109 Picker bottom-tab behavior remain unchanged.

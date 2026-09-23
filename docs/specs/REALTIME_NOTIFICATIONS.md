@@ -387,3 +387,7 @@ For Picker `Xác nhận đơn` only:
 - The local ticker makes **zero** network/provider calls and performs no business mutation. It is presentation-only and stops with the Reporter controller.
 - Reporter queue/recent data continue to reconcile only on initial load, authoritative realtime scopes and bounded post-mutation reconciliation; no new polling loop is introduced.
 - The manual Reporter refresh control is removed.
+
+## D111 — Android scoped reads do not add polling
+
+D111 changes only the row set returned by existing Android reconciliation requests. The App adds `scope=APP_TODAY_OPEN` to the existing Picker-report and Reporter-recent reads; it does not introduce a new endpoint, timer, provider listener, or polling cadence. Reporter pending realtime scopes continue to refresh the unresolved queue, and Reporter recent / Picker report scopes reconcile the bounded today-plus-unresolved projection. The local SLA minute ticker still performs zero network/provider calls.

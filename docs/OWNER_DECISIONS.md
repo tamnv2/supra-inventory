@@ -736,3 +736,20 @@ Owner approved on 2026-09-23.
 9. Android interactive login is limited to **PICKER** and **REPORTER**. Base-role **ADMIN** and **ROOT** are server-denied for the Android channel until their App/PDA experiences are explicitly designed. Existing Web authorization is unchanged; real ADMIN Agent authorization is unchanged.
 10. Existing Reporter queue ordering, realtime notifications, correction window, audit/provenance, Picker flows, Agent/WMS behavior and Stable OWNER-GATED rules remain unchanged.
 11. Target is the next monotonic signed Beta Android release after `beta-vc65`; Stable remains untouched.
+
+## D110 Owner acceptance — 2026-09-23
+
+Owner explicitly confirmed signed Android `beta-vc66` as **PASS** after physical field review. OA030 is closed as `PASS_OWNER_CONFIRMED_D110`. The accepted D110 baseline includes the four pinned Reporter tabs with authoritative badges, semantic warning/overdue backgrounds, zero-poll local minute clock, canonical Android branding/footer, and the Android channel role gate that permits PICKER/REPORTER while denying base ADMIN/ROOT. D111 below supersedes only its explicitly conflicting interaction/presentation details.
+
+## D111 — Android Reporter compact refinement and today-plus-unresolved scope
+
+Owner approved on 2026-09-23 immediately after D110 field PASS.
+
+1. Reporter uses the same per-user local **A− / A+** display-scale model as Picker, bounded to 80–140%. Changing size must preserve the currently selected Reporter tab.
+2. Only **Đang xử lý** uses a red badge with white text. **Đã có hàng**, **Cho phép skip**, and **Picker đã thu hồi** use a light-grey badge with dark text. Badges remain the authoritative visible tab counts.
+3. Rows inside the three history/result tabs do not repeat the tab outcome name. Redundant Picker affected/acknowledgement counts are removed from the compact row. The essential time copy is **Báo lúc** and, when Invent actually resolves the batch, **Invent phản hồi lúc**.
+4. D111 supersedes D110's no-preconfirm action rule: pressing **Đã có hàng** or **Cho phép skip** must show an explicit confirmation before the mutation. Per-batch in-flight/double-tap protection remains mandatory.
+5. The Reporter summary/empty copy under tabs is removed; no duplicate text such as “Không có SKU đang xử lý” or “x đơn …” is shown when the badge already communicates the count.
+6. Android operational history is scoped to **today plus older unresolved work**. Picker sees its reports created today plus any older still-open unresolved ticket. Reporter pending continues to include all unresolved batches, including earlier days; Reporter completed/withdrawn tabs show batches first reported today.
+7. The scope is applied server-side for Android with the existing bounded APIs so older unresolved work cannot be lost behind a recent-row limit. Web historical/reporting behavior is unchanged.
+8. D111 adds no polling loop, provider cadence, datastore, schema migration, or Stable change. The existing realtime reconciliation and zero-network minute ticker remain unchanged. Target is the next monotonic signed Beta Android release after `beta-vc66`; Stable remains OWNER-GATED.

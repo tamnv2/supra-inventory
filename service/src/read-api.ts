@@ -144,6 +144,7 @@ export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<
     if (initFailure) return initFailure;
     const params = new URLSearchParams();
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
+    if (url.searchParams.has("scope")) params.set("scope", url.searchParams.get("scope") || "");
     return core(env).fetch(`https://inventory-core.internal/operational/reporter/recent?${params.toString()}`);
   }
 

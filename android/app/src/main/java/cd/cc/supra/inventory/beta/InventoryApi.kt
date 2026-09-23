@@ -101,6 +101,7 @@ data class ReporterRecent(
     val sku: String,
     val productName: String,
     val status: String,
+    val firstReportAt: String,
     val resolvedAt: String?,
     val resolutionSource: String? = null,
     val correctionDeadlineAt: String?,
@@ -332,8 +333,8 @@ class InventoryApi(
         JSONObject().put("request_id", UUID.randomUUID().toString()).put("sku", sku),
     )
 
-    fun getPickerReports(limit: Int = 100): List<PickerReport> {
-        val payload = request("GET", "/api/picker/reports?limit=$limit")
+    fun getPickerReports(limit: Int = 200): List<PickerReport> {
+        val payload = request("GET", "/api/picker/reports?limit=$limit&scope=APP_TODAY_OPEN")
         val array = payload.optJSONArray("items") ?: JSONArray()
         val rows = ArrayList<PickerReport>(array.length())
         for (index in 0 until array.length()) {
@@ -416,14 +417,14 @@ class InventoryApi(
     fun getReporterRecent(limit: Int = 100): List<ReporterRecent> = getReporterRecentSnapshot(limit).items
 
     fun getReporterRecentSnapshot(limit: Int = 200): ReporterRecentSnapshot {
-        val payload = request("GET", "/api/reporter/recent?limit=$limit")
+        val payload = request("GET", "/api/reporter/recent?limit=$limit&scope=APP_TODAY_OPEN")
         val array = payload.optJSONArray("items") ?: JSONArray()
         val rows = ArrayList<ReporterRecent>(array.length())
         for (index in 0 until array.length()) {
             val row = array.optJSONObject(index) ?: continue
             rows += ReporterRecent(
                 batchId = row.optString("batch_id"), sku = row.optString("sku"), productName = row.optString("product_name"),
-                status = row.optString("status"), resolvedAt = nullable(row, "resolved_at"),
+                status = row.optString("status"), firstReportAt = row.optString("first_report_at"), resolvedAt = nullable(row, "resolved_at"),
                 resolutionSource = nullable(row, "resolution_source"),
                 correctionDeadlineAt = nullable(row, "correction_deadline_at"), affectedPickerCount = row.optInt("affected_picker_count", 0),
                 version = row.optInt("version", 1), previousBatchId = nullable(row, "previous_batch_id"),

@@ -332,7 +332,7 @@ class MainActivity : Activity() {
         }
         findViewById<TextView>(R.id.btnLog).setOnClickListener { showSupportDiagnostics() }
         findViewById<TextView>(R.id.btnLogout).setOnClickListener { confirmLogout() }
-        configurePickerDisplayControls(session)
+        configureOperationalDisplayControls(session)
         findViewById<TextView>(R.id.btnBack).setOnClickListener { }
 
         when (session.role) {
@@ -378,29 +378,40 @@ class MainActivity : Activity() {
             .getFloat("user:${session.userId}", 1.0f)
             .coerceIn(0.8f, 1.4f)
 
-    private fun configurePickerDisplayControls(session: AppSession) {
+    private fun reporterDisplayScale(session: AppSession): Float =
+        getSharedPreferences("reporter_display_scale_v1", MODE_PRIVATE)
+            .getFloat("user:${session.userId}", 1.0f)
+            .coerceIn(0.8f, 1.4f)
+
+    private fun configureOperationalDisplayControls(session: AppSession) {
         val minus = findViewById<TextView>(R.id.btnTextMinus)
         val plus = findViewById<TextView>(R.id.btnTextPlus)
-        val isPicker = session.role == "PICKER"
-        minus.visibility = if (isPicker) View.VISIBLE else View.GONE
-        plus.visibility = if (isPicker) View.VISIBLE else View.GONE
-        if (!isPicker) return
+        val scalable = session.role == "PICKER" || session.role == "REPORTER"
+        minus.visibility = if (scalable) View.VISIBLE else View.GONE
+        plus.visibility = if (scalable) View.VISIBLE else View.GONE
+        if (!scalable) return
 
         fun applyDelta(delta: Float) {
-            val prefs = getSharedPreferences("picker_display_scale_v1", MODE_PRIVATE)
-            val current = pickerDisplayScale(session)
+            val picker = session.role == "PICKER"
+            val prefs = getSharedPreferences(if (picker) "picker_display_scale_v1" else "reporter_display_scale_v1", MODE_PRIVATE)
+            val current = if (picker) pickerDisplayScale(session) else reporterDisplayScale(session)
             val next = (current + delta).coerceIn(0.8f, 1.4f)
             if (next == current) return
             prefs.edit().putFloat("user:${session.userId}", next).apply()
-            renderPickerHome(session)
+            if (picker) {
+                renderPickerHome(session)
+            } else {
+                val currentFilter = reporterController?.currentFilterName() ?: "PENDING"
+                renderReporterHome(session, showLauncherBack = false, initialFilter = currentFilter)
+            }
             val percent = (next * 100).toInt()
-            Toast.makeText(this, "Cỡ hiển thị Picker: $percent%", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Cỡ hiển thị ${kit.roleLabel(session.role)}: $percent%", Toast.LENGTH_SHORT).show()
         }
 
         minus.setOnClickListener { applyDelta(-0.1f) }
         plus.setOnClickListener { applyDelta(0.1f) }
-        minus.contentDescription = "Thu nhỏ chữ và ô nhập của Picker"
-        plus.contentDescription = "Phóng to chữ và ô nhập của Picker"
+        minus.contentDescription = "Thu nhỏ cỡ hiển thị"
+        plus.contentDescription = "Phóng to cỡ hiển thị"
     }
 
     private fun renderPickerHome(session: AppSession) {
@@ -425,7 +436,7 @@ class MainActivity : Activity() {
         pickerController = null
         reporterController?.destroy()
         val view = replaceContent(R.layout.view_invent) as LinearLayout
-        reporterController = ReporterController(this, api, kit, ::setStatus, ::friendlyError, initialFilter)
+        reporterController = ReporterController(this, api, kit, ::setStatus, ::friendlyError, initialFilter, reporterDisplayScale(session))
             .also { it.render(view) }
     }
 

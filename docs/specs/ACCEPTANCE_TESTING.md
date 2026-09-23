@@ -1001,3 +1001,18 @@ Technical/runtime/release PASS requires:
 8. Existing Reporter queue ordering, batch detail, Skip correction, realtime, notifications, Picker D105/D108/D109 behavior, Agent/WMS and Stable OWNER-GATED guards remain PASS.
 9. Repo Authority, Project State, UI/Service/Android build guards, Beta Worker deployment and the next monotonic signed Android release all pass before technical release PASS is claimed.
 10. Final physical visual/interaction acceptance remains Owner field review on Beta.
+
+## D111 — Android compact daily workflow acceptance
+
+1. D110/OA030 is recorded as Owner PASS before D111 validation begins.
+2. Reporter A−/A+ changes the Reporter list/tab typography and relevant controls within 80–140%, persists per user on the same PDA, and keeps the selected tab after resizing.
+3. Pending badge is red/white. HAS_STOCK, SKIP_ALLOWED and withdrawn badges are light-grey/dark. All counts still match authoritative scoped totals.
+4. Reporter recent rows contain no repeated outcome name, affected-Picker count, or Picker acknowledgement count. They show **Báo lúc** and **Invent phản hồi lúc** when a resolution timestamp exists.
+5. Tapping pending **Đã có hàng** or **Cho phép skip** opens a confirmation. Cancelling performs no mutation. Confirming performs one mutation, and repeated taps cannot create a second in-flight mutation.
+6. No Reporter summary/empty text duplicates the badge count.
+7. Picker App shows all of today's rows plus an older unresolved row; an older completed row is absent.
+8. Reporter pending shows an older unresolved batch; Reporter result/withdrawn tabs show only rows first reported today.
+9. Scoped Android reads are applied server-side before LIMIT; Web history/reporting remains unchanged.
+10. Local minute ticking still performs no API call. Existing realtime, role gate, update gate, D105 confirmation-order flow and Agent/WMS behavior remain PASS.
+11. Repo Authority, Project State, UI/Service/Android guards, exact Beta runtime and the next monotonic signed Android release must PASS before OA031 is field-ready.
+12. Stable remains OWNER-GATED and untouched.

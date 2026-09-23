@@ -1354,7 +1354,7 @@
     },
     {
       "id": "OA030",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "PASS_OWNER_CONFIRMED_D110",
       "title": "Field-accept D110 Android Reporter pinned workflow",
       "resource_key": "worker-beta",
       "provider": "Beta Worker + next signed Beta Android",
@@ -1393,7 +1393,45 @@
         "Icon/footer đồng nhất; Stable không thay đổi."
       ],
       "safety": "Beta only. No secrets. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Field-test signed beta-vc66 using the shortest path above; report PASS or only concrete failed items."
+      "remaining_owner_action": null,
+      "field_result": "OWNER_FIELD_PASS_D110",
+      "field_result_date": "2026-09-23",
+      "owner_evidence": "Owner explicitly replied 'Ok pass' on 2026-09-23 after field-testing signed beta-vc66, then opened D111 refinements.",
+      "closed": true
+    },
+    {
+      "id": "OA031",
+      "status": "PENDING_D111_TECHNICAL_RELEASE",
+      "title": "Field-accept D111 Android compact daily Reporter/Picker workflow",
+      "resource_key": "worker-beta",
+      "provider": "Beta Worker + next signed Beta Android",
+      "reason_owner_only": "Automated gates can verify scoped queries, build, confirmation wiring and visual tokens; final PDA density, badge readability, interaction and day-boundary behavior require Owner device review.",
+      "prerequisites": {
+        "d110_owner_acceptance": "PASS",
+        "source_branch": "feat/d111-android-daily-compact-confirm",
+        "current_released_baseline": "beta-vc66",
+        "target_android_release": "next monotonic signed Beta release after beta-vc66",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Reporter: use A−/A+ and verify scale changes persist for that Reporter account on the same PDA; changing size keeps the current tab.",
+        "Verify only Đang xử lý badge is red with white text; the other three badges are light grey with dark text.",
+        "Verify recent-state rows do not repeat the tab state or Picker acknowledgement counts; they show Báo lúc and Invent phản hồi lúc where applicable.",
+        "On a pending SKU, tap Đã có hàng and Cho phép skip separately in controlled tests; each must ask for confirmation before any mutation and the same batch cannot double-trigger.",
+        "Verify no summary/empty text appears below tabs; badge count is the only tab count display.",
+        "Picker and Reporter: verify today's rows are shown and an older unresolved row remains visible, while older completed rows are absent.",
+        "Confirm realtime/SLA minute behavior remains correct with no manual Reporter refresh and no added polling."
+      ],
+      "pass_criteria": [
+        "Reporter A−/A+ is per-user, bounded and preserves current tab.",
+        "Badge colors follow D111 priority styling exactly.",
+        "Redundant outcome/ack/summary copy is absent.",
+        "HAS_STOCK and SKIP_ALLOWED mutate only after explicit confirmation and retain per-batch double-tap protection.",
+        "Android history scope is today plus older unresolved for both Picker and Reporter; Web historical behavior is unchanged.",
+        "No new polling/provider cadence is introduced; Stable remains untouched."
+      ],
+      "safety": "Beta only. No secrets. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for D111 technical/runtime/release PASS, then field-test the signed Beta APK using the shortest path."
     }
   ]
 }

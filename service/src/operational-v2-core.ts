@@ -25,6 +25,14 @@ const OPERATIONAL_SCHEMA_KEY = "operational_v2_schema_version";
 const REALTIME_STREAM_EPOCH_KEY = "realtime_stream_epoch_v1";
 export const OPERATIONAL_V2_SCHEMA_VERSION = 5;
 const MAX_DELTA_LIMIT = 200;
+const APP_TODAY_OPEN_SCOPE = "APP_TODAY_OPEN";
+const BUSINESS_TIMEZONE_OFFSET_MS = 7 * 60 * 60 * 1000;
+
+function appTodayStartIso(nowMs = Date.now()): string {
+  const local = new Date(nowMs + BUSINESS_TIMEZONE_OFFSET_MS);
+  const localMidnightAsUtc = Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate());
+  return new Date(localMidnightAsUtc - BUSINESS_TIMEZONE_OFFSET_MS).toISOString();
+}
 
 function json(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload, null, 2), {
@@ -573,6 +581,10 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
 function reporterRecent(state: DurableObjectState, url: URL): Response {
   const parsed = Number(url.searchParams.get("limit") || 100);
   const limit = Math.max(1, Math.min(200, Number.isFinite(parsed) ? Math.trunc(parsed) : 100));
+  const appTodayOpen = String(url.searchParams.get("scope") || "").toUpperCase() === APP_TODAY_OPEN_SCOPE;
+  const todayStart = appTodayOpen ? appTodayStartIso() : "";
+  const dayFilter = appTodayOpen ? " AND b.first_report_at >= ?" : "";
+  const rowArgs: SqlStorageValue[] = appTodayOpen ? [todayStart, limit] : [limit];
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
             b.resolved_at, b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
@@ -611,19 +623,21 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
        FROM report_batches b
        LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
        LEFT JOIN users resolver ON resolver.user_id = b.resolved_by_user_id
-      WHERE b.status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')
+      WHERE b.status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')${dayFilter}
       ORDER BY COALESCE(b.resolved_at, b.updated_at) DESC
       LIMIT ?`,
-    limit,
+    ...rowArgs,
   ).toArray();
+  const totalsArgs: SqlStorageValue[] = appTodayOpen ? [todayStart] : [];
   const totalsRow = first(
     state.storage.sql.exec<SqlRow>(
       `SELECT
          COALESCE(SUM(CASE WHEN status = 'HAS_STOCK' THEN 1 ELSE 0 END), 0) AS has_stock,
          COALESCE(SUM(CASE WHEN status = 'SKIP_ALLOWED' THEN 1 ELSE 0 END), 0) AS skip_allowed,
          COALESCE(SUM(CASE WHEN status = 'CLOSED' THEN 1 ELSE 0 END), 0) AS withdrawn
-       FROM report_batches
-      WHERE status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')`,
+       FROM report_batches b
+      WHERE status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')${dayFilter}`,
+      ...totalsArgs,
     ).toArray(),
   ) || {};
   return json({
@@ -634,6 +648,8 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
       skip_allowed: Number(totalsRow.skip_allowed || 0),
       withdrawn: Number(totalsRow.withdrawn || 0),
     },
+    scope: appTodayOpen ? APP_TODAY_OPEN_SCOPE : "ALL",
+    today_start: appTodayOpen ? todayStart : null,
   });
 }
 
@@ -676,7 +692,15 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
   const employeeCode = String(url.searchParams.get("employee_code") || "").trim();
   const parsed = Number(url.searchParams.get("limit") || 100);
   const limit = Math.max(1, Math.min(200, Number.isFinite(parsed) ? Math.trunc(parsed) : 100));
+  const appTodayOpen = String(url.searchParams.get("scope") || "").toUpperCase() === APP_TODAY_OPEN_SCOPE;
+  const todayStart = appTodayOpen ? appTodayStartIso() : "";
+  const scopeFilter = appTodayOpen
+    ? " AND (t.reported_at >= ? OR (t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL AND b.status = 'PENDING'))"
+    : "";
   if (!userId || !employeeCode) return json({ error: "INVALID_INPUT" }, 400);
+  const args: SqlStorageValue[] = [userId, userId, userId, userId, userId, employeeCode];
+  if (appTodayOpen) args.push(todayStart);
+  args.push(limit);
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT t.ticket_id, t.batch_id, t.sku, b.product_name, t.status,
             t.reported_at, t.withdraw_deadline_at, t.withdrawn_at, t.resolved_at,
@@ -716,18 +740,20 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
             ) AS acknowledged_at
        FROM report_tickets t
        JOIN report_batches b ON b.batch_id = t.batch_id
-      WHERE t.picker_user_id = ? OR t.picker_employee_code = ?
-      ORDER BY t.reported_at DESC
+      WHERE (t.picker_user_id = ? OR t.picker_employee_code = ?)${scopeFilter}
+      ORDER BY CASE
+        WHEN t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL AND b.status = 'PENDING' THEN 0
+        ELSE 1
+      END ASC, t.reported_at DESC
       LIMIT ?`,
-    userId,
-    userId,
-    userId,
-    userId,
-    userId,
-    employeeCode,
-    limit,
+    ...args,
   ).toArray();
-  return json({ items: rows, count: rows.length });
+  return json({
+    items: rows,
+    count: rows.length,
+    scope: appTodayOpen ? APP_TODAY_OPEN_SCOPE : "ALL",
+    today_start: appTodayOpen ? todayStart : null,
+  });
 }
 
 function pendingResults(state: DurableObjectState, url: URL): Response {

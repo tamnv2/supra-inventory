@@ -438,3 +438,15 @@ D110 supersedes the older Android-only confirmation wording where it conflicts; 
 - Warning and overdue presentation is local only: warning = light yellow, overdue = light red. Business authority remains service-side.
 - The Reporter minute clock is derived from `server_now`, `first_report_at`, `warning_at` and `escalation_at`; it advances locally and does not poll the service.
 - Android accepts only PICKER and REPORTER identities. ADMIN/ROOT remain Web-only for application UI until a later Owner decision; ADMIN Agent remains a separate authorized client channel.
+
+## D111 — Android daily compact Reporter/Picker workflow
+
+D111 applies only to Android App/PDA presentation and scoped read projections.
+
+- Reporter exposes per-user A−/A+ scaling and keeps the selected operational tab while rerendering.
+- A pending Reporter resolution is a two-step human action: tap **Đã có hàng** or **Cho phép skip**, then explicitly confirm. No service mutation may occur before that confirmation. The existing per-batch mutation lock remains.
+- Reporter result rows rely on the selected tab for outcome context and therefore do not repeat the outcome or Picker acknowledgement counts.
+- Android Picker history = reports from the current Asia/Ho_Chi_Minh business day plus any older ticket that is still open and unresolved.
+- Android Reporter pending = all unresolved batches regardless of report date. Reporter HAS_STOCK / SKIP_ALLOWED / CLOSED history tabs = batches first reported during the current Asia/Ho_Chi_Minh business day.
+- Realtime remains authoritative. The local Reporter minute clock remains presentation-only and performs no API/provider call.
+- Web workflows and Stable remain unchanged; Stable is OWNER-GATED.
