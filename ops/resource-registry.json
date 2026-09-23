@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D106_TECHNICAL_RUNTIME_PASS__MANAGED_ACCOUNT_AGENT_AUTH__OA026_FIELD_READY",
+      "status": "D108_SOURCE_IMPLEMENTED__WEB_PROVENANCE_PICKER_DENSE_UI__PR_GATES_PENDING",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
