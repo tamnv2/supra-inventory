@@ -13,13 +13,13 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D111_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_8E08BEAD__SCHEMA11__SIGNED_BETA_VC67__OA031_FIELD_READY",
+    "beta": "D111_OWNER_FIELD_ACCEPTED_PASS__LIVE_SOURCE_8E08BEAD__SCHEMA11__SIGNED_BETA_VC67",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 11,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
     "web": "D109_OWNER_ACCEPTED_PASS__PER_USER_DASHBOARD_GLOBAL_SLA_AUDIT_PDA_TOOLS",
-    "android": "D111_SIGNED_BETA_VC67__REPORTER_SCALE_BADGE_CONFIRM_DAILY_SCOPE__OA031_FIELD_READY",
+    "android": "D111_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC67__REPORTER_SCALE_BADGE_CONFIRM_DAILY_SCOPE",
     "latest_beta_apk": "beta-vc67",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
     "network_scope": "D105_ANDROID_4DIGIT_AGENT_V30_RUNTIME_RELEASE_PASS__LEGACY_VC62_5DIGIT_ROLLOUT_COMPAT__D104_BATCH_PRESERVED__STABLE_UNTOUCHED",
@@ -28,7 +28,7 @@
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D109_OWNER_ACCEPTED_PASS__RESOLVER_ACTIVITY_PER_USER_RANGE",
     "quota_resilience": "D104_NO_FASTER_FIRESTORE_POLL__NO_EXTRA_COALESCING_QUERY__MAX12_LOGICAL_JOBS__WMS_MAX10_CODES__MAIN_PASS",
-    "ui_design_guard": "D111_MAIN_UI_PASS_RUN_35819012526",
+    "ui_design_guard": "D111_OWNER_ACCEPTED__MAIN_UI_PASS_RUN_35819012526",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D109_OWNER_ACCEPTED_PASS__DASHBOARD_PREF_RESOLVER_ACTIVITY_AUDIT",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
@@ -92,7 +92,8 @@
     "D097 request-driven confirmation HA: max design 6,000 requests/day and 30 concurrent; PRIMARY polls 5s, STANDBY polls 10s and may take over at request age >=10s, FROZEN does not poll business work; terminal automatic window 30s then specialist-desk guidance; no 4-second Firestore leader heartbeat and no per-job PROCESSING write; D096 WMS behavior remains frozen.",
     "D109 Web keeps dashboard date range as a per-user server preference while SLA remains one global server-authoritative setting; management audit is bounded to Reporter/Admin/Root; Tools exposes a version-independent latest-PDA QR/link; Android uses a compact header, adjacent A−/A+, stationary bottom tabs and time-only shortage-history labels.",
     "D110 Owner field PASS: signed beta-vc66 is accepted for the four pinned Reporter tabs/badges, semantic SLA backgrounds, local zero-poll minute clock, shared branding/footer and Android PICKER/REPORTER-only role gate.",
-    "D111 Owner requirement supersedes only conflicting D110 Reporter presentation/action details: Reporter gains per-user A−/A+ scale; only pending badge is red/white while history badges are light grey/dark; row state/Picker acknowledgement summary copy is removed; HAS_STOCK/SKIP_ALLOWED require explicit confirmation; Android lists today plus unresolved older work for Picker/Reporter without extra polling."
+    "D111 Owner requirement supersedes only conflicting D110 Reporter presentation/action details: Reporter gains per-user A−/A+ scale; only pending badge is red/white while history badges are light grey/dark; row state/Picker acknowledgement summary copy is removed; HAS_STOCK/SKIP_ALLOWED require explicit confirmation; Android lists today plus unresolved older work for Picker/Reporter without extra polling.",
+    "D111 Owner field PASS: signed beta-vc67 is accepted for Reporter per-user A−/A+ scale, pending-only red/white badge priority, neutral history badges, explicit HAS_STOCK/SKIP confirmation, removal of redundant Reporter copy, and Android today-plus-older-unresolved display scope for Picker/Reporter without added polling."
   ],
   "completed_capabilities": [
     "Cloudflare Beta Worker/custom domain/InventoryCore SQLite provisioning",
@@ -180,7 +181,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Owner field-tests OA031 on signed beta-vc67. If PASS, record D111 Owner acceptance; if not, fix only concrete Beta defects. D110 remains Owner-accepted baseline outside D111 supersession; Stable remains OWNER-GATED.",
+  "next_action": "Next session must bootstrap from ops/authority-manifest.json, preserve D111 as the accepted Beta baseline, and apply only the next explicit Owner requirement. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -624,7 +625,7 @@
     "D109 release checkpoint 2026-09-23: PR #154 merged main 367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94; main Deploy Beta Worker run 35809583618 passed with HTTP 200 exact source, schema 11/11, storage true, missing bindings 0, Agent migration 0/0 and Operational V2 5/5; UI run 35809583663 and Android run 35809583599 PASS; signed beta-vc65 release id 394246239 asset 582752309 size 19015996 sha256 3e2b5284ac2ed5d3040c36338a5bdb21026958eda7e4d4a12b40ea9bf6c0ea48. OA029 field review remains; Stable untouched.",
     "D109 Owner field acceptance 2026-09-23: Owner explicitly replied 'ok pass' after the final main checkpoint and UI guard completed. OA029 is closed PASS. D109 live Beta Web + signed beta-vc65 are the accepted baseline; Stable remains OWNER-GATED."
   ],
-  "active_workstream": "D111_OWNER_FIELD_REVIEW_OA031",
+  "active_workstream": "READY_FOR_NEXT_OWNER_REQUIREMENT",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
@@ -722,7 +723,7 @@
       "ui": 35816313994,
       "android": 35816313946
     },
-    "d111": "TECHNICAL_RUNTIME_RELEASE_PASS__OA031_FIELD_READY",
+    "d111": "TECHNICAL_RUNTIME_RELEASE_OWNER_FIELD_PASS",
     "d111_main": "8e08bead67b34f8302185d0d4ff259ddd5fae857",
     "d111_pr": 159,
     "d111_main_runs": {
@@ -731,6 +732,8 @@
       "beta_worker": 35819012562,
       "ui": 35819012526,
       "android": 35819012653
-    }
+    },
+    "d111_owner_acceptance": "PASS_OWNER_CONFIRMED_D111",
+    "d111_owner_acceptance_date": "2026-09-23"
   }
 }
