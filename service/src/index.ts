@@ -228,6 +228,7 @@ function sessionAuthorityError(identity: Awaited<ReturnType<typeof verifyFirebas
   if (identity.sessionChannel === "AGENT") {
     return user.role === "ADMIN" && user.base_role === "ADMIN" ? null : "AGENT_ADMIN_REQUIRED";
   }
+  if (identity.sessionChannel === "ANDROID" && (user.base_role === "ADMIN" || user.base_role === "ROOT")) return "CLIENT_ROLE_NOT_ALLOWED";
   if (identity.sessionChannel !== "WEB" && identity.sessionChannel !== "ANDROID") return "SESSION_UPGRADE_REQUIRED";
   const expected = identity.sessionChannel === "WEB"
     ? Number(user.web_session_generation || 0)
@@ -553,6 +554,9 @@ async function login(request: Request, env: Env): Promise<Response> {
 
   if (channel === "WEB" && user.base_role === "PICKER") {
     return json({ error: "CLIENT_ROLE_NOT_ALLOWED", message: "Picker chỉ đăng nhập trên App/PDA." }, 403);
+  }
+  if (channel === "ANDROID" && (user.base_role === "ADMIN" || user.base_role === "ROOT")) {
+    return json({ error: "CLIENT_ROLE_NOT_ALLOWED", message: "Admin/Root hiện chỉ đăng nhập trên Web. App/PDA chỉ hỗ trợ Picker và Reporter." }, 403);
   }
 
   try {
