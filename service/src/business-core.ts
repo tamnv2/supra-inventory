@@ -727,7 +727,7 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
       { resolution, source: "REPORTER", affected_picker_count: affected, correction_deadline_at: correctionDeadline },
       at,
     );
-    audit(state, actor, "BATCH_RESOLVE", "REPORT_BATCH", batchId, { resolution, source: "REPORTER", affected_picker_count: affected }, at);
+    audit(state, actor, "BATCH_RESOLVE", "REPORT_BATCH", batchId, { sku: batch.sku, product_name: batch.product_name, resolution, source: "REPORTER", affected_picker_count: affected }, at);
 
     const payload = {
       status: "resolved",
@@ -803,7 +803,7 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
       { from: "SKIP_ALLOWED", to: "HAS_STOCK", source: "REPORTER_CORRECTION", previous_correction_deadline_at: batch.correction_deadline_at },
       at,
     );
-    audit(state, actor, "BATCH_CORRECT", "REPORT_BATCH", batchId, { from: "SKIP_ALLOWED", to: "HAS_STOCK" }, at);
+    audit(state, actor, "BATCH_CORRECT", "REPORT_BATCH", batchId, { sku: batch.sku, product_name: batch.product_name, from: "SKIP_ALLOWED", to: "HAS_STOCK" }, at);
 
     const payload = { status: "corrected", batch_id: batchId, resolution: "HAS_STOCK", corrected_at: at, event_id: eventId };
     storeIdempotency(state, scope, requestId, payload, at);
