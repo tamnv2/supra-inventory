@@ -775,8 +775,12 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
     }
 
     const at = nowIso();
-    if (!batch.correction_deadline_at || Date.parse(at) > Date.parse(batch.correction_deadline_at)) {
-      return { status: 409, payload: { error: "CORRECTION_WINDOW_EXPIRED", correction_deadline_at: batch.correction_deadline_at } } satisfies BusinessResult;
+    const effectiveCorrectionDeadline = correctionDeadlineFromFirstReport(state, batch.first_report_at);
+    if (!effectiveCorrectionDeadline) {
+      return { status: 409, payload: { error: "CORRECTION_DISABLED" } } satisfies BusinessResult;
+    }
+    if (Date.parse(at) > Date.parse(effectiveCorrectionDeadline)) {
+      return { status: 409, payload: { error: "CORRECTION_WINDOW_EXPIRED", correction_deadline_at: effectiveCorrectionDeadline } } satisfies BusinessResult;
     }
 
     state.storage.sql.exec(
@@ -802,7 +806,7 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
       "BATCH_CORRECTED",
       batchId,
       null,
-      { from: "SKIP_ALLOWED", to: "HAS_STOCK", source: "REPORTER_CORRECTION", previous_correction_deadline_at: batch.correction_deadline_at },
+      { from: "SKIP_ALLOWED", to: "HAS_STOCK", source: "REPORTER_CORRECTION", previous_correction_deadline_at: batch.correction_deadline_at, effective_correction_deadline_at: effectiveCorrectionDeadline },
       at,
     );
     audit(state, actor, "BATCH_CORRECT", "REPORT_BATCH", batchId, { sku: batch.sku, product_name: batch.product_name, from: "SKIP_ALLOWED", to: "HAS_STOCK" }, at);
