@@ -898,8 +898,8 @@ namespace SupraInventoryRelayAgent
             _manualUpdate.Click += (s, e) => Task.Run(() => TryAutoUpdate(false));
             agentCard.Controls.Add(_manualUpdate);
 
-            _background.SetBounds(896, 80, 110, 31);
-            _background.Text = "Chạy nền";
+            _background.SetBounds(886, 80, 120, 31);
+            _background.Text = "Chuyển xuống nền";
             _background.Click += (s, e) => MinimizeToTray();
             _background.TabStop = false;
             agentCard.Controls.Add(_background);
