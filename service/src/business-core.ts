@@ -833,6 +833,68 @@ function normalizeOffset(value: string | null): number {
   return Math.max(0, Math.min(100_000, Number.isFinite(parsed) ? Math.trunc(parsed) : 0));
 }
 
+function dashboardPreferenceKey(userId: string): string {
+  return "dashboard_range_v1:" + userId;
+}
+
+function readDashboardPreference(state: DurableObjectState, userId: string): BusinessResult {
+  const cleanUserId = String(userId || "").trim();
+  if (!cleanUserId) return { status: 400, payload: { error: "INVALID_USER" } };
+  const row = firstRow(state.storage.sql.exec<SqlRow>(
+    "SELECT value_json, updated_at, updated_by FROM app_config WHERE key = ? LIMIT 1",
+    dashboardPreferenceKey(cleanUserId),
+  ).toArray());
+  if (!row?.value_json) return { status: 200, payload: { configured: false, preference: null } };
+  try {
+    const value = JSON.parse(String(row.value_json)) as { from?: unknown; to?: unknown };
+    return {
+      status: 200,
+      payload: {
+        configured: true,
+        preference: {
+          from: String(value.from || ""),
+          to: String(value.to || ""),
+          updated_at: String(row.updated_at || ""),
+          updated_by: row.updated_by == null ? null : String(row.updated_by),
+        },
+      },
+    };
+  } catch {
+    return { status: 200, payload: { configured: false, preference: null } };
+  }
+}
+
+async function putDashboardPreference(state: DurableObjectState, request: Request): Promise<BusinessResult> {
+  const body = (await request.json()) as { from?: unknown; to?: unknown; actor?: Actor };
+  const actor = body.actor;
+  if (!actor?.user_id) return { status: 400, payload: { error: "INVALID_ACTOR" } };
+  const from = String(body.from || "").trim();
+  const to = String(body.to || "").trim();
+  const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+  const fromMs = Date.parse(from + "T00:00:00Z");
+  const toMs = Date.parse(to + "T00:00:00Z");
+  if (
+    !datePattern.test(from) ||
+    !datePattern.test(to) ||
+    !Number.isFinite(fromMs) ||
+    !Number.isFinite(toMs) ||
+    fromMs > toMs ||
+    toMs - fromMs > 59 * 86_400_000
+  ) {
+    return { status: 400, payload: { error: "INVALID_DASHBOARD_RANGE", max_range_days: 60 } };
+  }
+  const at = nowIso();
+  state.storage.sql.exec(
+    "INSERT INTO app_config (key, value_json, updated_at, updated_by) VALUES (?, ?, ?, ?) " +
+    "ON CONFLICT(key) DO UPDATE SET value_json = excluded.value_json, updated_at = excluded.updated_at, updated_by = excluded.updated_by",
+    dashboardPreferenceKey(actor.user_id),
+    JSON.stringify({ from, to }),
+    at,
+    actor.user_id,
+  );
+  audit(state, actor, "DASHBOARD_RANGE_UPDATE", "USER_PREFERENCE", actor.user_id, { from, to }, at);
+  return { status: 200, payload: { status: "saved", configured: true, preference: { from, to, updated_at: at, updated_by: actor.user_id } } };
+}
 function adminDashboard(state: DurableObjectState, url: URL): BusinessResult {
   const range = reportingRange(url);
   if (range.error) return { status: 400, payload: { error: range.error, max_range_days: 60 } };
@@ -1207,6 +1269,8 @@ export async function handleBusinessRequest(state: DurableObjectState, request: 
   else if (request.method === "GET" && url.pathname === "/business/reporter/queue") result = reporterQueue(state, url);
   else if (request.method === "POST" && url.pathname === "/business/reporter/resolve") result = await resolveBatch(state, request);
   else if (request.method === "POST" && url.pathname === "/business/reporter/correct") result = await correctBatch(state, request);
+  else if (request.method === "GET" && url.pathname === "/business/admin/dashboard-preference") result = readDashboardPreference(state, String(url.searchParams.get("user_id") || ""));
+  else if (request.method === "PUT" && url.pathname === "/business/admin/dashboard-preference") result = await putDashboardPreference(state, request);
   else if (request.method === "GET" && url.pathname === "/business/admin/dashboard") result = adminDashboard(state, url);
   else if (request.method === "GET" && url.pathname === "/business/admin/reporting") result = adminReporting(state, url);
   else if (request.method === "GET" && url.pathname === "/business/admin/audit-history") result = adminAuditHistory(state, url);
