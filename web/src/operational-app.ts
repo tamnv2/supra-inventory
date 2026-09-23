@@ -367,6 +367,7 @@ let selectedBatchId: string | null = null;
 let dashboardLoadGeneration = 0;
 let reportLoadGeneration = 0;
 let sessionViewGeneration = 0;
+if (profile?.user_id) restoreDashboardRangeForUser(profile.user_id);
 
 function esc(value: unknown): string {
   return String(value ?? "")
@@ -1000,6 +1001,7 @@ function renderLogin(): void {
       }
       markWebUpdateReceived();
       skipDelayEnabled = loadSkipDelayEnabled(profile.user_id);
+      restoreDashboardRangeForUser(profile.user_id);
       runtimeLogEvent(`Đăng nhập: ${profile.role}`);
       sessionViewGeneration += 1;
       activeSection = resolveInitialSection(profile);
@@ -3114,6 +3116,7 @@ async function bootstrap(): Promise<void> {
   try {
     profile = await getMyProfile();
     markWebUpdateReceived();
+    restoreDashboardRangeForUser(profile.user_id);
     sessionViewGeneration += 1;
     activeSection = resolveInitialSection(profile);
     syncSectionHistory(activeSection, "replace");
