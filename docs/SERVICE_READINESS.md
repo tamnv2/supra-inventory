@@ -515,3 +515,13 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
 - PR #149 authority/state/UI/Web-build/regression gates passed and main is `4e733535ef0abe893681afdf288097767141b115`.
 - `Deploy Beta Worker` is configured for `main` changes under `web/**`; the D107 merge satisfies that trigger. Exact main push-run runtime evidence is not exposed by the connected GitHub action surface, so readiness remains Owner-review-pending rather than being mislabeled runtime PASS.
 - Stable remains OWNER-GATED and untouched.
+
+## D108 source readiness — 2026-09-23
+
+- SQLite schema: `10`.
+- Latest signed Beta APK: `beta-vc63` (D108 next monotonic release pending).
+- Web: `D108_PASSWORD_RECOVERY_COLLAPSE__RESOLUTION_SOURCE_ACTOR__SOURCE_IMPLEMENTED__PR_GATES_PENDING`.
+- Android: `D108_PICKER_NUMERIC_COMPACT_UI__PER_USER_SCALE__SOURCE_IMPLEMENTED__TARGET_NEXT_MONOTONIC_AFTER_VC63`.
+- Backend D108 uses existing `resolution_source` / `resolved_by_user_id` plus bounded user joins and dashboard source aggregation; schema version remains unchanged.
+- Web/App source and regression guards are implemented on the D108 branch. Runtime/release PASS is not claimed before PR/main CI and Beta release evidence.
+- Stable remains OWNER-GATED and untouched.
