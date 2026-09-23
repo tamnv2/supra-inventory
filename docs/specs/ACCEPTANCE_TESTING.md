@@ -1016,3 +1016,19 @@ Technical/runtime/release PASS requires:
 10. Local minute ticking still performs no API call. Existing realtime, role gate, update gate, D105 confirmation-order flow and Agent/WMS behavior remain PASS.
 11. Repo Authority, Project State, UI/Service/Android guards, exact Beta runtime and the next monotonic signed Android release must PASS before OA031 is field-ready.
 12. Stable remains OWNER-GATED and untouched.
+
+## D112 acceptance matrix
+
+D112 automated/source gates must verify at minimum:
+
+- Web App/Agent Tools use stable version-independent service URLs; operator runtime no longer enumerates GitHub Releases REST.
+- Date presets and 30/60/90 log windows expose correct active state.
+- Dashboard/report primary content is not blocked by presence/noncritical summaries and no new polling loop is introduced.
+- `REPORT_CREATED` produces bounded/coalesced Web notice logic.
+- Drive support logs and hot management audit use the 90-day retention boundary.
+- Android update manifest/service trust, SHA/signer checks, safe-area insets, password eye, footer/action auto-size and successful-confirm input clear compile in the signed Beta build.
+- Agent v31 builds with normal Windows chrome, post-auth watchdog/protected exit, 3–20 exact-suffix manual lookup, ambiguity fail-close, left-side row confirm and operational/process overlay.
+- D104/D105/D097 quota, batching, Firestore and WMS confirmation regressions remain PASS; Stable remains untouched.
+
+After technical/runtime/release PASS, Owner field review must verify final Web Tools/layout/speed/notice behavior, physical Android insets/update/input UX and Windows Agent resize/overlay/watchdog/manual-search interaction.
+
