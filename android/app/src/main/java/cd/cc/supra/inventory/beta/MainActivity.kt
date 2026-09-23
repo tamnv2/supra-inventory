@@ -400,32 +400,42 @@ class MainActivity : Activity() {
     private fun configureOperationalDisplayControls(session: AppSession) {
         val minus = findViewById<TextView>(R.id.btnTextMinus)
         val plus = findViewById<TextView>(R.id.btnTextPlus)
+        val reset = findViewById<TextView>(R.id.btnTextReset)
         val scalable = session.role == "PICKER" || session.role == "REPORTER"
         minus.visibility = if (scalable) View.VISIBLE else View.GONE
         plus.visibility = if (scalable) View.VISIBLE else View.GONE
+        reset.visibility = if (scalable) View.VISIBLE else View.GONE
         if (!scalable) return
 
-        fun applyDelta(delta: Float) {
+        fun applyScale(nextRaw: Float) {
             val picker = session.role == "PICKER"
             val prefs = getSharedPreferences(if (picker) "picker_display_scale_v1" else "reporter_display_scale_v1", MODE_PRIVATE)
             val current = if (picker) pickerDisplayScale(session) else reporterDisplayScale(session)
-            val next = (current + delta).coerceIn(0.8f, 1.4f)
+            val next = nextRaw.coerceIn(0.8f, 1.4f)
             if (next == current) return
+            val currentFilter = reporterController?.currentFilterName() ?: "PENDING"
             prefs.edit().putFloat("user:${session.userId}", next).apply()
             if (picker) {
                 renderPickerHome(session)
             } else {
-                val currentFilter = reporterController?.currentFilterName() ?: "PENDING"
                 renderReporterHome(session, showLauncherBack = false, initialFilter = currentFilter)
             }
             val percent = (next * 100).toInt()
             Toast.makeText(this, "Cỡ hiển thị ${kit.roleLabel(session.role)}: $percent%", Toast.LENGTH_SHORT).show()
         }
 
-        minus.setOnClickListener { applyDelta(-0.1f) }
-        plus.setOnClickListener { applyDelta(0.1f) }
+        minus.setOnClickListener {
+            val current = if (session.role == "PICKER") pickerDisplayScale(session) else reporterDisplayScale(session)
+            applyScale(current - 0.1f)
+        }
+        plus.setOnClickListener {
+            val current = if (session.role == "PICKER") pickerDisplayScale(session) else reporterDisplayScale(session)
+            applyScale(current + 0.1f)
+        }
+        reset.setOnClickListener { applyScale(1.0f) }
         minus.contentDescription = "Thu nhỏ cỡ hiển thị"
         plus.contentDescription = "Phóng to cỡ hiển thị"
+        reset.contentDescription = "Đặt cỡ hiển thị về 100%"
     }
 
     private fun renderPickerHome(session: AppSession) {
@@ -783,7 +793,7 @@ class MainActivity : Activity() {
                 "WITHDRAW_WINDOW_EXPIRED" -> "Đã hết 60 giây cho phép thu hồi."
                 "TICKET_NOT_OPEN" -> "Báo này đã được xử lý hoặc thu hồi."
                 "BATCH_NOT_PENDING" -> "Đợt này đã được người khác xử lý."
-                "CORRECTION_WINDOW_EXPIRED" -> "Đã hết 5 phút cho phép sửa Skip."
+                "CORRECTION_WINDOW_EXPIRED" -> "Đã hết thời gian cho phép đổi Skip thành Đã có hàng."
                 "BATCH_NOT_CORRECTABLE" -> "Đợt này không còn ở trạng thái cho phép sửa."
                 "RESULT_ACK_NOT_FOUND" -> "Kết quả cần xác nhận không còn hợp lệ cho tài khoản này."
                 "USER_NOT_ACTIVE" -> "Tài khoản đã dừng hoạt động."
@@ -791,6 +801,8 @@ class MainActivity : Activity() {
                 "CLIENT_ROLE_NOT_ALLOWED" -> "Admin/Root hiện chỉ sử dụng Web. App/PDA chỉ hỗ trợ Picker và Reporter."
                 "SESSION_REPLACED" -> "Tài khoản đã đăng nhập ở nơi khác. Phiên trên thiết bị này đã kết thúc."
                 "SESSION_UPGRADE_REQUIRED" -> "Phiên cũ cần đăng nhập lại một lần để áp dụng cơ chế phiên mới."
+                "INVALID_CREDENTIALS" -> "Tài khoản hoặc mật khẩu không đúng."
+                "FIREBASE_LOGIN_EXCHANGE_FAILED" -> "Không thể hoàn tất đăng nhập. Vui lòng thử lại."
                 "AUTH_REQUIRED", "INVALID_AUTH_TOKEN", "SESSION_REFRESH_FAILED" -> "Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại."
                 else -> error.message
             }
