@@ -526,6 +526,8 @@ namespace SupraInventoryRelayAgent
         private int _manualPicklistOperationRunning;
         private long _localPdaRequests;
         private long _localAgentResponses;
+        private long _localConfirmSuccess;
+        private long _localConfirmFailed;
         private readonly string _agentInstanceId;
         private readonly System.Windows.Forms.Timer _updateTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer _logUploadTimer = new System.Windows.Forms.Timer();
@@ -1383,43 +1385,49 @@ namespace SupraInventoryRelayAgent
             Activate();
         }
 
-        private string BuildLaptopOverlayLine(SystemMetrics metrics, OverlaySettings options)
+        private string BuildLaptopOverlayLine(SystemMetrics metrics, string state, OverlaySettings options)
         {
             if (options == null || !options.ShowLaptopGroup) return "";
             var parts = new List<string>();
-            if (options.ShowCpu)
-                parts.Add("CPU " + (metrics.CpuPercent < 0 ? "--" : Math.Round(metrics.CpuPercent).ToString("0") + "%"));
+            if (options.ShowCpu) parts.Add("Vai trò " + state);
             if (options.ShowMemory)
-            {
-                var ram = metrics.RamTotalBytes == 0 ? "--" :
-                    (metrics.RamUsedBytes / 1073741824.0).ToString("0.0") + "/" +
-                    (metrics.RamTotalBytes / 1073741824.0).ToString("0.0") + "GB";
-                parts.Add("RAM " + ram);
-            }
+                parts.Add("Firestore " + (_leaderCoordinator != null && _leaderCoordinator.IsTransportHealthy ? "ON" : "OFF"));
             if (options.ShowDisk)
-                parts.Add("Disk " + (metrics.DiskPercent < 0 ? "--" : Math.Round(metrics.DiskPercent).ToString("0") + "%"));
-            if (options.ShowNetwork)
-            {
-                var down = metrics.NetworkDownMbps < 0 ? "--" : metrics.NetworkDownMbps.ToString("0.0");
-                var up = metrics.NetworkUpMbps < 0 ? "--" : metrics.NetworkUpMbps.ToString("0.0");
-                parts.Add(metrics.NetworkKind + " ↓" + down + " ↑" + up + "Mbps");
-            }
-            if (options.ShowInternet)
-                parts.Add("Internet " + (!metrics.InternetKnown ? "--" : (metrics.InternetConnected ? "ON" : "OFF")));
-            if (options.ShowGpu)
-                parts.Add("GPU " + (metrics.GpuPercent < 0 ? "--" : Math.Round(metrics.GpuPercent).ToString("0") + "%"));
-            return parts.Count == 0 ? "" : "Laptop | " + string.Join(" | ", parts.ToArray());
+                parts.Add("WMS " + (HasUsableWmsSession() ? "Sẵn sàng" : "Chưa sẵn sàng"));
+            if (options.ShowNetwork) parts.Add("v" + AgentConfig.AgentBuild);
+            if (options.ShowInternet) parts.Add("Nghiệp vụ " + (IsBusinessAllowed() ? "ON" : "TẠM DỪNG"));
+            if (options.ShowGpu) parts.Add("Cache " + _picklistCache.CacheCount);
+            return parts.Count == 0 ? "" : "Vận hành | " + string.Join(" | ", parts.ToArray());
         }
 
-        private string BuildAgentOverlayLine(int online, string state, OverlaySettings options)
+        private string BuildAgentOverlayLine(
+            SystemMetrics metrics,
+            int online,
+            int primaryCount,
+            int standbyCount,
+            int frozenCount,
+            OverlaySettings options)
         {
             if (options == null || !options.ShowAgentGroup) return "";
             var parts = new List<string>();
-            if (options.ShowAgentOnline) parts.Add("Online " + online);
-            if (options.ShowAgentState) parts.Add(state);
-            if (options.ShowPdaRequests) parts.Add("APK " + Interlocked.Read(ref _localPdaRequests));
-            if (options.ShowAgentResponses) parts.Add("Phản hồi " + Interlocked.Read(ref _localAgentResponses));
-            if (options.ShowWmsSession) parts.Add("Supra " + (HasUsableWmsSession() ? "Sẵn sàng" : "Chưa sẵn sàng"));
+            if (options.ShowAgentOnline)
+                parts.Add("CPU " + (metrics.ProcessCpuPercent < 0 ? "--" : metrics.ProcessCpuPercent.ToString("0") + "%"));
+            if (options.ShowAgentState)
+            {
+                var ramMb = metrics.ProcessWorkingSetBytes <= 0 ? "--" : (metrics.ProcessWorkingSetBytes / 1048576.0).ToString("0") + "MB";
+                var uptime = metrics.ProcessUptime.TotalHours >= 1
+                    ? ((int)metrics.ProcessUptime.TotalHours).ToString("0") + "h" + metrics.ProcessUptime.Minutes.ToString("00")
+                    : Math.Max(0, metrics.ProcessUptime.Minutes).ToString("0") + "m";
+                parts.Add("RAM " + ramMb + " · chạy " + uptime);
+            }
+            var requests = Interlocked.Read(ref _localPdaRequests);
+            var responses = Interlocked.Read(ref _localAgentResponses);
+            if (options.ShowPdaRequests)
+                parts.Add("Yêu cầu " + requests + " · chờ " + Math.Max(0L, requests - responses));
+            if (options.ShowAgentResponses)
+                parts.Add("OK " + Interlocked.Read(ref _localConfirmSuccess) + " · lỗi " + Interlocked.Read(ref _localConfirmFailed));
+            if (options.ShowWmsSession)
+                parts.Add("Cụm " + online + " (P" + primaryCount + "/S" + standbyCount + "/F" + frozenCount + ") · " + DateTime.Now.ToString("HH:mm:ss"));
             return parts.Count == 0 ? "" : "Agent | " + string.Join(" | ", parts.ToArray());
         }
 
@@ -1463,8 +1471,8 @@ namespace SupraInventoryRelayAgent
                 {
                     var options = _statusOverlay.DisplaySettings;
                     _statusOverlay.UpdateMetrics(
-                        BuildLaptopOverlayLine(metrics, options),
-                        BuildAgentOverlayLine(online, state, options));
+                        BuildLaptopOverlayLine(metrics, state, options),
+                        BuildAgentOverlayLine(metrics, online, primaryCount, standbyCount, frozenCount, options));
                 }
             }
             catch
@@ -1472,7 +1480,7 @@ namespace SupraInventoryRelayAgent
                 _tray.Text = "SUPRA Agent";
                 _trayStatusItem.Text = "Máy: chưa đọc được tài nguyên";
                 if (_statusOverlay != null)
-                    _statusOverlay.UpdateMetrics("Laptop | chưa đọc được tài nguyên máy", "Agent | chưa đọc được trạng thái");
+                    _statusOverlay.UpdateMetrics("Vận hành | chưa đọc được trạng thái", "Agent | chưa đọc được tải tiến trình");
             }
         }
 
@@ -3383,6 +3391,14 @@ namespace SupraInventoryRelayAgent
                     GuardId = guard.GuardId,
                     RetireAtMs = guard.RetireAtMs
                 };
+            }
+
+            foreach (var outcome in outcomes.Values)
+            {
+                if (outcome != null && string.Equals(outcome.Result, "CONFIRMED", StringComparison.Ordinal))
+                    Interlocked.Increment(ref _localConfirmSuccess);
+                else
+                    Interlocked.Increment(ref _localConfirmFailed);
             }
 
             AgentDiagnostics.WriteAudit(
