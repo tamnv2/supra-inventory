@@ -677,3 +677,10 @@ D112 is technically released on Beta and **OA032 is field-ready**.
 - D112 does not add polling cadence and preserves D097/D104/D105 Firestore/WMS/quota guards. Stable remains OWNER-GATED and untouched.
 - OA032 is `READY_FOR_OWNER_FIELD_TEST`; D112 is not Owner-PASS until explicit field confirmation.
 
+### D112 canonical current-status markers
+
+- Web: `D112_BETA_RUNTIME_PASS__TOOLS_RELEASE_CHANNEL_PRESETS_NONBLOCKING_REPORT_NOTICE_90D_RETENTION__OA032_FIELD_READY`
+- Android: `D112_SIGNED_BETA_VC68__UPDATE_CHANNEL_INSETS_LOGIN_INPUT_CLEANUP__OA032_FIELD_READY`
+- Latest Beta APK: `beta-vc68`
+- SQLite schema: `11`
+
