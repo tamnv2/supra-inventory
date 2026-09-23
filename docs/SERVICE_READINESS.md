@@ -722,3 +722,10 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA033 FIELD READY**.
 - `relay-agent-v32`: release id `395136705`, EXE asset `584751479`, size `287744`, SHA-256 `e6b838377931fd804bf4dc7de7b02577010244041867975e301fd42b9d35e80c`.
 - Fixed `inventory-channel` contains refreshed D113 PDA/Agent manifests and binaries.
 - OA033 is field-ready. Stable remains OWNER-GATED and untouched.
+
+### D113 canonical current-status markers
+
+- Web: `D113_BETA_RUNTIME_PASS__REFERENCE_LOGIN_QUEUE_BADGE_SLA_SWITCHES_FIRST_REPORT_CORRECTION_TOOLS__OA033_FIELD_READY`
+- Android: `D113_SIGNED_BETA_VC69__COMPACT_PICKER_100_RESET_LOGIN_RESPONDER__OA033_FIELD_READY`
+- Latest Beta APK: `beta-vc69`
+- SQLite schema: `11`
