@@ -13,24 +13,24 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D109_SOURCE_CANDIDATE__WEB_AUDIT_PREFS_PDA_TOOLS__ANDROID_COMPACT_TABS__SCHEMA11__PR_GATES_PENDING",
+    "beta": "D109_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_367D518D__SCHEMA11__SIGNED_BETA_VC65__OA029_FIELD_READY",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 11,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D109_DASHBOARD_PREF_GLOBAL_SLA_AUDIT_PDA_TOOLS__SOURCE_IMPLEMENTED__PR_GATES_PENDING",
-    "android": "D109_COMPACT_HEADER_BOTTOM_TABS_TIME_ONLY__SOURCE_IMPLEMENTED__TARGET_NEXT_MONOTONIC_AFTER_VC64",
-    "latest_beta_apk": "beta-vc64",
+    "web": "D109_BETA_RUNTIME_PASS__PER_USER_DASHBOARD_GLOBAL_SLA_AUDIT_PDA_TOOLS__OA029_FIELD_READY",
+    "android": "D109_SIGNED_BETA_VC65__COMPACT_HEADER_BOTTOM_TABS_TIME_ONLY__OA029_FIELD_READY",
+    "latest_beta_apk": "beta-vc65",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
     "network_scope": "D105_ANDROID_4DIGIT_AGENT_V30_RUNTIME_RELEASE_PASS__LEGACY_VC62_5DIGIT_ROLLOUT_COMPAT__D104_BATCH_PRESERVED__STABLE_UNTOUCHED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "D106_NATIVE_FIREBASE_PASSWORD_DIRECT_VERIFY_AND_FAILED_CREATE_COMPENSATION_RUNTIME_PASS__OA026_FIELD_READY",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
-    "admin_dashboard": "D109_PER_USER_RANGE_AND_RECENT_RESOLVER_ACTIVITY__SOURCE_IMPLEMENTED__PR_GATES_PENDING",
+    "admin_dashboard": "D109_RESOLVER_ACTIVITY_PER_USER_RANGE__BETA_RUNTIME_PASS",
     "quota_resilience": "D104_NO_FASTER_FIRESTORE_POLL__NO_EXTRA_COALESCING_QUERY__MAX12_LOGICAL_JOBS__WMS_MAX10_CODES__MAIN_PASS",
-    "ui_design_guard": "D109_SOURCE_CANDIDATE__PR_UI_BUILD_GATES_PENDING",
+    "ui_design_guard": "D109_MAIN_UI_PASS_RUN_35809583663",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
-    "reporting": "D109_DASHBOARD_PER_USER_RANGE__BOUNDED_RECENT_RESOLUTION_ACTIVITY__SOURCE_IMPLEMENTED",
+    "reporting": "D109_DASHBOARD_PREF_AND_RESOLVER_ACTIVITY_BETA_RUNTIME_PASS",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
     "picklist_confirmation_poc": "D105_ANDROID_VC63_AGENT_V30_RELEASED__FOUR_DIGIT_CURRENT__MANUAL_3_4__EXACT_SUFFIX_LENGTH_FAIL_CLOSED"
   },
@@ -159,6 +159,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
+    "OA029 D109 physical acceptance: live Beta Web per-user Dashboard range/global SLA/audit/PDA QR plus signed beta-vc65 compact header, stationary bottom tabs and time-only Picker history.",
     "OA026 D106 physical credential acceptance: one post-D106 ADMIN password set -> unchanged Agent v30 direct login, plus one fresh ADMIN Web create -> immediate Agent login; verify no ghost-account-on-error.",
     "OA025 D105 physical acceptance: Android 4-digit input, dimmed in-flight confirm button, prominent terminal result, Agent manual 3–4 digit search, and unique 4-digit full-PickList resolution.",
     "OA022 D102 physical Agent v27 acceptance: one Tổng quan layout, manual update, >=2 Agent role convergence, fleet table, 21:30 five-minute warning, 22:00 default business pause, explicit continue/stop and 05:00 automatic resume.",
@@ -176,7 +177,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Complete D109 authority/state/UI/Web/Service/Android PR gates; merge only after all required checks PASS. Then verify exact Beta schema-11 runtime and the next monotonic signed Android release before opening OA029 Owner field review. Stable remains OWNER-GATED.",
+  "next_action": "Owner runs OA029 on live Beta Web + signed beta-vc65: verify per-user Dashboard date persistence, global SLA propagation, Reporter/Admin/Root audit history, App PDA QR/latest download, compact Android header/bottom tabs/keyboard behavior and time-only history labels. Fix only concrete Beta defects. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -202,7 +203,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D109 SOURCE CANDIDATE: branch d109-web-audit-pda-picker-tabs implements Web dashboard preference/global SLA/audit/PDA tools plus Android compact header/bottom tabs/time-only history; source schema target 11. PR/CI/runtime/signed-release gates are pending; Stable untouched.",
+      "D109 TECHNICAL/RUNTIME/RELEASE PASS: PR #154 merged main 367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94 after PR Repo Authority 35809361069, Project State 35809361054, UI 35809360983, Android 35809360987, Firestore 35809361013 and RTDB 35809360986 PASS. Main Repo Authority 35809583637, Project State 35809583624, UI 35809583663, Deploy Beta Worker 35809583618 and Android 35809583599 PASS. Live health attempt 1 proved exact source 367d518d, schema 11/11, storage true, missing 0, Agent migration 0/0, Operational V2 5/5. Signed beta-vc65 released from exact main. OA029 field review remains; Stable untouched.",
       "D108 OWNER PASS: OA028 closed on 2026-09-23 after Owner confirmed all D108 items PASS.",
       "D108 TECHNICAL/RUNTIME/RELEASE PASS: PR #151 merged main 441f3c687ad2ef94ecc6017b8fa9846e9b34a7a2 after Repo Authority 35800721747, Project State 35800721763, UI Design 35800721806, Android 35800721751, Firestore 35800721771 and RTDB 35800721768 PASS. Test-only PR #152 live proof run 35801069626 PASS on attempt 1 with HTTP 200, env beta, exact source 441f3c68, storage true, schema 10/10, missing 0, Agent migration 0/0. GitHub tag beta-vc64 resolves and contains D108 Picker source. OA028 field review remains; Stable untouched.",
       "D107 MERGED / OWNER VISUAL REVIEW PENDING: PR #149 head acdec3bb8e0b8a0793da6127a35952e014f58655 passed Repo Authority 35729564644, Project State 35729564770, UI Design 35729564681, RTDB 35729564684 and Firestore 35729564631. Squash-merged main 4e733535ef0abe893681afdf288097767141b115. Because web/** changed, the existing main-only Deploy Beta Worker workflow is automatically applicable; current connector cannot enumerate push-triggered runs, so D107 runtime PASS is not fabricated. Stable untouched.",
@@ -234,8 +235,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "D109: finish canonical/spec/regression/state coupling, open PR, repair any failing gates, and merge only after authority/state/UI/Web/Service/Android checks PASS.",
-      "D109 after merge: verify exact live Beta source/schema 11 and next monotonic signed APK release; only then mark OA029 ready for Owner field review.",
+      "Owner runs OA029 on live Beta Web + signed beta-vc65. After PASS, record D109 Owner acceptance; otherwise repair only the concrete Beta defect.",
       "OA027: after the automatic main Web deploy has propagated, Owner reviews live Beta login + authenticated shell + Tổng quan/Báo cáo chi tiết. If accepted, record D107 OWNER PASS; if not, fix only reported Beta defects.",
       "Owner field-tests OA020 reset-mail challenge and OA019 physical Agent/PDA path using relay-agent-v25 + beta-vc62. If reset challenge returns Gmail scope unavailable, perform one bounded OAuth re-consent only; no other manual action is currently required.",
       "Owner runs OA019 on released relay-agent-v23 + beta-vc61. After OA019 PASS, resume OA017 final PDA real-WMS confirmation and the next Firestore quota optimization workstream.",
@@ -605,9 +605,10 @@
     "D108 Owner-approved 2026-09-23 after D107 PASS: Web recovery form hidden until explicit action; operational/reporting surfaces show human vs SYSTEM_TIMEOUT Skip and resolving account identity. Picker Android uses numeric-only >=3 digit SKU search, input + Xác nhận one row, selected-state emphasis, suggestion suppression after selection, semantic status cards, no automatic deadline time copy, renamed history, and per-user local 80–140% text/input scaling via A−/A+ beside Log. No new polling/backend store; Stable untouched.",
     "D108 release checkpoint 2026-09-23: exact live Beta source and beta-vc64 tag verified. Release checksum asset is published by the existing workflow but its asset metadata is not exposed by the current connected GitHub surface, so no APK checksum is fabricated in canonical state.",
     "D108 Owner acceptance 2026-09-23: Owner explicitly stated 'ok pass hết' before opening D109. OA028 is closed PASS.",
-    "D109 Owner-approved 2026-09-23: Web adds per-user persisted Dashboard range with Hôm nay default, global realtime-propagated SLA settings, bounded Reporter/Admin/Root audit history, recent resolver identity and dynamic latest-PDA QR/link. Android compacts the header, places A−/A+ together, changes operation selectors to stationary bottom tabs and uses time-only Báo hết/Invent response labels. Schema target advances additively 10→11 for audit actor identity; Stable untouched."
+    "D109 Owner-approved 2026-09-23: Web adds per-user persisted Dashboard range with Hôm nay default, global realtime-propagated SLA settings, bounded Reporter/Admin/Root audit history, recent resolver identity and dynamic latest-PDA QR/link. Android compacts the header, places A−/A+ together, changes operation selectors to stationary bottom tabs and uses time-only Báo hết/Invent response labels. Schema target advances additively 10→11 for audit actor identity; Stable untouched.",
+    "D109 release checkpoint 2026-09-23: PR #154 merged main 367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94; main Deploy Beta Worker run 35809583618 passed with HTTP 200 exact source, schema 11/11, storage true, missing bindings 0, Agent migration 0/0 and Operational V2 5/5; UI run 35809583663 and Android run 35809583599 PASS; signed beta-vc65 release id 394246239 asset 582752309 size 19015996 sha256 3e2b5284ac2ed5d3040c36338a5bdb21026958eda7e4d4a12b40ea9bf6c0ea48. OA029 field review remains; Stable untouched."
   ],
-  "active_workstream": "D109_WEB_AUDIT_PREFS_PDA_TOOLS_ANDROID_COMPACT_UI",
+  "active_workstream": "D109_OA029_FIELD_ACCEPTANCE",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
