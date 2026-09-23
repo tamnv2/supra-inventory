@@ -1128,7 +1128,12 @@ export default {
       if (request.method === "GET" && url.pathname === "/api/admin/logs") {
         await requireUser(request, env, ["ADMIN", "ROOT"]);
         try {
-          return json(await listRuntimeLogs(env, url.searchParams.get("source") || "WEB", Number(url.searchParams.get("limit") || 50)));
+          return json(await listRuntimeLogs(
+            env,
+            url.searchParams.get("source") || "WEB",
+            Number(url.searchParams.get("limit") || 100),
+            Number(url.searchParams.get("days") || 30),
+          ));
         } catch (error) {
           return json({ error: "LOG_LIST_FAILED", message: error instanceof Error ? error.message : "log_list_failed" }, 502);
         }
