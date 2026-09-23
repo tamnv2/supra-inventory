@@ -424,8 +424,8 @@ def main() -> None:
     require(relay_agent, "MainInstanceMutexName", "D089 Agent single-instance mutex")
     require(relay_agent, "EventWaitHandle.OpenExisting", "D089 duplicate launch activates existing Agent")
     require(overlay_settings, "Bật hiển thị Overlay", "D089 overlay master visibility")
-    require(overlay_settings, "Thông tin Laptop", "D089 Laptop checklist")
-    require(overlay_settings, "Thông tin Agent", "D089 Agent checklist")
+    require(overlay_settings, "Vận hành", "D112 operational overlay checklist")
+    require(overlay_settings, "Tải Agent & cụm", "D112 Agent process/fleet overlay checklist")
     require(status_overlay, "ShowCpu", "D089 Laptop metric persistence")
     require(status_overlay, "ShowAgentOnline", "D089 Agent metric persistence")
 
