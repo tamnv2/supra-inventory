@@ -634,3 +634,21 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
 - Signed `beta-vc66`: release id `394288616`; APK asset id `582908040`; size `19018752`; SHA-256 `715612464d7fd4ead1036959ce70b4fb8cf281e38566aa214a428fbebbf32328`.
 - Reporter minute ticker is presentation-only and generates no network/provider request.
 - OA030 is ready for Owner physical review. Stable remains OWNER-GATED and untouched.
+
+## D110 Owner acceptance — 2026-09-23
+
+- OA030: `PASS_OWNER_CONFIRMED_D110`; signed `beta-vc66` is Owner field-accepted.
+- Accepted D110 baseline: four pinned Reporter tabs and authoritative badges, semantic SLA backgrounds, local zero-poll minute clock, canonical Android identity/footer, Android PICKER/REPORTER-only admission.
+- D111 explicitly supersedes D110's no-preconfirm action detail and selected Reporter presentation/display-scope details only.
+- Stable remains OWNER-GATED and untouched.
+
+## D111 source checkpoint — 2026-09-23
+
+- Beta: `D111_SOURCE_IMPLEMENTED__D110_OWNER_ACCEPTED__SCHEMA11__PR_GATES_RELEASE_PENDING`.
+- Android: `D111_REPORTER_SCALE_BADGE_CONFIRM_DAILY_SCOPE__SOURCE_IMPLEMENTED__TARGET_NEXT_AFTER_VC66`.
+- Reporter now has per-user 80–140% A−/A+ scale, pending-only red/white badge priority, neutral history badges, no redundant result/ack/summary copy, and explicit confirmation before HAS_STOCK/SKIP_ALLOWED mutation.
+- Android reads use `APP_TODAY_OPEN`: Picker = today + older unresolved; Reporter pending = all unresolved; Reporter completed/withdrawn = first reported today. Filtering occurs in InventoryCore SQL before LIMIT; Web behavior is unchanged.
+- No schema migration or polling/provider cadence is added. Existing realtime and local minute ticker behavior remain unchanged.
+- OA031 is pending technical/runtime/release PASS. Current released baseline remains `beta-vc66` until the next monotonic signed Beta APK is produced.
+- Next action: PR authority/state/UI/Service/Android gates → merge only after PASS → exact Beta runtime + signed release verification → OA031 Owner field review.
+- Stable remains OWNER-GATED and untouched.
