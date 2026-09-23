@@ -535,3 +535,15 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
 - PR #151 PASS/merged; live proof run `35801069626` confirms exact D108 source on Beta with HTTP 200 and storage/schema/binding health PASS.
 - Android release tag `beta-vc64` resolves to D108 source. Release-asset checksum metadata is deliberately left unknown where the current connector cannot read it.
 - OA028 is field-ready. Stable remains OWNER-GATED and untouched.
+
+## D109 source checkpoint — 2026-09-23
+
+- Beta: `D109_SOURCE_CANDIDATE__WEB_AUDIT_PREFS_PDA_TOOLS__ANDROID_COMPACT_TABS__SCHEMA11__PR_GATES_PENDING`.
+- Web: `D109_DASHBOARD_PREF_GLOBAL_SLA_AUDIT_PDA_TOOLS__SOURCE_IMPLEMENTED__PR_GATES_PENDING`.
+- Android: `D109_COMPACT_HEADER_BOTTOM_TABS_TIME_ONLY__SOURCE_IMPLEMENTED__TARGET_NEXT_MONOTONIC_AFTER_VC64`.
+- SQLite source target: `11`; current released APK baseline remains `beta-vc64` until the D109 main release publishes the next monotonic signed build.
+- D108/OA028 is Owner PASS. D109 source is implemented on `d109-web-audit-pda-picker-tabs`; PR/CI/runtime/release gates are not yet claimed.
+- Web adds per-user Dashboard range persistence, global realtime SLA propagation, bounded Reporter/Admin/Root audit history, recent resolver identity and a version-independent App PDA QR/download path.
+- Android compacts the header, places A−/A+ together, uses stationary bottom operation tabs and time-only shortage-history labels.
+- Next action: complete authority/state/UI/Web/Service/Android PR gates → merge only after PASS → verify exact Beta schema 11 runtime + next signed Beta APK → OA029 Owner field review.
+- Stable remains OWNER-GATED and untouched.
