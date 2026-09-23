@@ -755,3 +755,10 @@ D112 is technically released on Beta and **OA032 is field-ready**.
 - `inventory-channel` refreshed: Agent manifest/exe `584751529/584751528`; PDA manifest/apk `584751996/584751999`.
 - OA033 is ready for Owner field review; do not record D113 Owner PASS until explicit confirmation.
 - Stable remains OWNER-GATED and untouched.
+
+### D113 canonical current-status markers
+
+- Web: `D113_BETA_RUNTIME_PASS__REFERENCE_LOGIN_QUEUE_BADGE_SLA_SWITCHES_FIRST_REPORT_CORRECTION_TOOLS__OA033_FIELD_READY`
+- Android: `D113_SIGNED_BETA_VC69__COMPACT_PICKER_100_RESET_LOGIN_RESPONDER__OA033_FIELD_READY`
+- Latest Beta APK: `beta-vc69`
+- SQLite schema: `11`
