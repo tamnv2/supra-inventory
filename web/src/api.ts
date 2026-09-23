@@ -270,6 +270,18 @@ export interface RealtimePresence {
   server_time: string;
 }
 
+export interface DashboardPreference {
+  from: string;
+  to: string;
+  updated_at?: string;
+  updated_by?: string | null;
+}
+
+export interface DashboardPreferenceResponse {
+  configured: boolean;
+  preference: DashboardPreference | null;
+}
+
 export interface AdminAuditItem {
   audit_id: string;
   actor_user_id: string;
@@ -844,6 +856,18 @@ export async function uploadRuntimeLog(payload: {
   return readJson(await authorizedFetch("/api/logs/upload", {
     method: "POST",
     body: JSON.stringify(payload),
+  }));
+}
+
+export async function getDashboardPreference(): Promise<DashboardPreferenceResponse> {
+  return readJson(await authorizedFetch("/api/admin/dashboard-preference"));
+}
+
+export async function saveDashboardPreference(from: string, to: string): Promise<DashboardPreferenceResponse> {
+  return readJson(await authorizedFetch("/api/admin/dashboard-preference", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ from, to }),
   }));
 }
 
