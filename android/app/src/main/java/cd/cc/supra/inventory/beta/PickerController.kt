@@ -21,6 +21,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
+import android.widget.BaseAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -31,6 +32,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 class PickerController(
     private val activity: Activity,
@@ -40,6 +42,7 @@ class PickerController(
     private val setStatus: (String) -> Unit,
     private val friendlyError: (Exception) -> String,
     private val recordLog: (String) -> Unit,
+    private val displayScale: Float = 1f,
 ) {
     private val zone = ZoneId.of("Asia/Ho_Chi_Minh")
     private val timeFmt = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(zone)
@@ -82,6 +85,31 @@ class PickerController(
     private var shortageTab: TextView? = null
     private var confirmTab: TextView? = null
 
+    private fun scaledSp(base: Float): Float = (base * displayScale).coerceIn(9f, 27f)
+
+    private fun applyDisplayScale(root: View) {
+        val density = activity.resources.displayMetrics.scaledDensity
+        fun visit(view: View) {
+            if (view is TextView) {
+                val baseSp = view.textSize / density
+                view.textSize = (baseSp * displayScale).coerceIn(9f, 27f)
+            }
+            if (view is ViewGroup) {
+                for (index in 0 until view.childCount) visit(view.getChildAt(index))
+            }
+        }
+        visit(root)
+        val controlHeight = kit.dp((48f * displayScale).roundToInt().coerceIn(44, 64))
+        listOf(
+            root.findViewById<View>(R.id.acSkuSearch),
+            root.findViewById<View>(R.id.btnReportShortage),
+            root.findViewById<View>(R.id.etRelayPicklistSuffix),
+            root.findViewById<View>(R.id.btnRelayPocSend),
+        ).forEach { control ->
+            control?.layoutParams = control?.layoutParams?.also { it.height = controlHeight }
+        }
+    }
+
     private val withdrawTicker = object : Runnable {
         override fun run() {
             val now = System.currentTimeMillis()
@@ -103,6 +131,7 @@ class PickerController(
 
     fun render(root: LinearLayout) {
         handler.post(withdrawTicker)
+        applyDisplayScale(root)
         autoInput = root.findViewById(R.id.acSkuSearch)
         input = autoInput
         selectedSkuLabel = root.findViewById(R.id.tvSelectedSku)
@@ -176,16 +205,44 @@ class PickerController(
         }
         showOperationTab(confirm = false)
 
-        autoInput?.threshold = 1
+        autoInput?.threshold = 3
         autoInput?.addTextChangedListener(object : TextWatcher {
+            private var normalizing = false
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                val value = s?.toString().orEmpty().trim()
-                if (selected?.sku != value) clearSelection()
-                if (value.length >= 3) cache.exactSku(value)?.let { if (selected == null) selectSku(it, false) }
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+            override fun afterTextChanged(s: Editable?) {
+                if (normalizing) return
+                val raw = s?.toString().orEmpty()
+                val digits = raw.filter(Char::isDigit)
+                if (raw != digits) {
+                    normalizing = true
+                    autoInput?.setText(digits)
+                    autoInput?.setSelection(digits.length)
+                    normalizing = false
+                    return
+                }
+                val value = digits.trim()
+                if (selected?.sku == value) {
+                    searchTask?.let { handler.removeCallbacks(it) }
+                    suggestionRows = emptyList()
+                    autoInput?.dismissDropDown()
+                    updateReportEnabled()
+                    return
+                }
+                if (selected != null) clearSelection()
+                if (value.length < 3) {
+                    searchTask?.let { handler.removeCallbacks(it) }
+                    suggestionRows = emptyList()
+                    autoInput?.dismissDropDown()
+                    return
+                }
+                val exact = cache.exactSku(value)
+                if (exact != null) {
+                    selectSku(exact, false)
+                    return
+                }
                 scheduleSearch(value)
             }
-            override fun afterTextChanged(s: Editable?) = Unit
         })
         autoInput?.setOnItemClickListener { _, _, position, _ ->
             suggestionRows.getOrNull(position)?.let { selectSku(it, true) }
@@ -355,7 +412,7 @@ class PickerController(
     private fun showRelayHint(message: String) {
         relayStatus?.apply {
             text = message
-            textSize = 12.5f
+            textSize = scaledSp(12.5f)
             setTypeface(typeface, Typeface.NORMAL)
             setTextColor(kit.muted)
         }
@@ -364,7 +421,7 @@ class PickerController(
     private fun showRelayProgress(message: String) {
         relayStatus?.apply {
             text = message
-            textSize = 13f
+            textSize = scaledSp(13f)
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(kit.muted)
         }
@@ -373,7 +430,7 @@ class PickerController(
     private fun showRelayResult(message: String, success: Boolean) {
         relayStatus?.apply {
             text = message
-            textSize = 17f
+            textSize = scaledSp(17f)
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(if (success) kit.greenDark else kit.redStrong)
         }
@@ -396,7 +453,11 @@ class PickerController(
     }
 
     private fun updateReportEnabled() {
-        reportButton?.isEnabled = selected != null && isOnline() && !syncing
+        val ready = selected != null && isOnline() && !syncing
+        reportButton?.apply {
+            isEnabled = ready
+            alpha = if (ready) 1.0f else 0.42f
+        }
     }
 
     private fun syncCatalog(auto: Boolean) {
@@ -432,7 +493,12 @@ class PickerController(
     private fun scheduleSearch(raw: String) {
         searchTask?.let { handler.removeCallbacks(it) }
         val query = raw.trim()
-        if (query.length < 3) { suggestions?.removeAllViews(); return }
+        if (selected != null || query.length < 3) {
+            suggestionRows = emptyList()
+            autoInput?.dismissDropDown()
+            suggestions?.removeAllViews()
+            return
+        }
         val generation = ++searchGeneration
         val task = Runnable {
             Thread {
@@ -445,30 +511,43 @@ class PickerController(
     }
 
     private fun renderSuggestions(rows: List<SkuItem>) {
-        suggestionRows = rows
         val field = autoInput ?: return
+        if (selected != null || field.text?.toString()?.trim()?.length ?: 0 < 3) {
+            suggestionRows = emptyList()
+            field.dismissDropDown()
+            return
+        }
+        suggestionRows = rows
         val labels = rows.map { "${it.sku} - ${it.productName}" }
         field.setAdapter(ArrayAdapter(activity, android.R.layout.simple_dropdown_item_1line, labels))
-        if (labels.isNotEmpty() && field.hasFocus()) field.showDropDown()
+        if (labels.isNotEmpty() && field.hasFocus()) field.showDropDown() else field.dismissDropDown()
     }
 
     private fun clearSelection() {
         selected = null
         selectedSkuLabel?.text = "Chưa chọn SKU"
         selectedNameLabel?.text = "Chọn đúng SKU cần báo"
-        selectedBox?.visibility = View.VISIBLE
+        selectedBox?.apply {
+            visibility = View.VISIBLE
+            background = kit.rounded(Color.WHITE, kit.line, 9)
+        }
         updateReportEnabled()
     }
 
     private fun selectSku(item: SkuItem, updateInput: Boolean) {
         selected = item
+        searchTask?.let { handler.removeCallbacks(it) }
+        searchGeneration += 1
         if (updateInput && input?.text?.toString()?.trim() != item.sku) {
             input?.setText(item.sku)
             input?.setSelection(item.sku.length)
         }
         selectedSkuLabel?.text = item.sku
         selectedNameLabel?.text = item.productName
-        selectedBox?.visibility = View.VISIBLE
+        selectedBox?.apply {
+            visibility = View.VISIBLE
+            background = kit.rounded(kit.blueSoft, kit.blue, 9)
+        }
         suggestionRows = emptyList()
         autoInput?.dismissDropDown()
         updateReportEnabled()
@@ -617,21 +696,22 @@ class PickerController(
         val list = historyList ?: return
         val today = LocalDate.now(zone)
         val rows = allRows.filter { reportDate(it.reportedAt) == today }
-        val labels = if (rows.isEmpty()) {
-            listOf("Hôm nay chưa có báo hàng.")
+        withdrawButtons.clear()
+        list.adapter = if (rows.isEmpty()) {
+            ArrayAdapter(activity, android.R.layout.simple_list_item_1, listOf("Hôm nay chưa có báo hàng."))
         } else {
-            rows.map { row ->
-                val source = if (row.resolutionSource == "SYSTEM_TIMEOUT") " · Hệ thống tự động do quá hạn" else ""
-                val deadline = if (row.autoSkipAllowedAt == null && !row.autoSkipDeadlineAt.isNullOrBlank()) " · Tự động: ${timestamp(row.autoSkipDeadlineAt)}" else ""
-                "${row.sku} - ${row.productName}\n${businessStatus(row)} · ${timestamp(row.reportedAt)}$source$deadline"
+            object : BaseAdapter() {
+                override fun getCount(): Int = rows.size
+                override fun getItem(position: Int): PickerReport = rows[position]
+                override fun getItemId(position: Int): Long = position.toLong()
+                override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View =
+                    buildHistoryCard(rows[position])
             }
         }
-        list.adapter = ArrayAdapter(activity, android.R.layout.simple_list_item_1, labels)
         list.setOnItemClickListener { _, _, position, _ ->
             val row = rows.getOrNull(position) ?: return@setOnItemClickListener
             if (row.status == "OPEN" && row.autoSkipAllowedAt == null && millis(row.withdrawDeadlineAt) > System.currentTimeMillis()) confirmWithdraw(row)
         }
-        withdrawButtons.clear()
     }
 
     private fun historySignature(row: PickerReport): String = listOf(
@@ -657,10 +737,11 @@ class PickerController(
             "Picker thu hồi" -> Triple(kit.graySoft, kit.line, kit.muted)
             else -> Triple(kit.pendingFill, kit.pendingStroke, kit.orange)
         }
-        return kit.card(colors.first, colors.second, 11).apply {
+        return kit.card(colors.first, colors.second, 9).apply {
+            setPadding(kit.dp(10), kit.dp(8), kit.dp(10), kit.dp(8))
             addView(TextView(activity).apply {
                 text = "${row.sku} - ${row.productName}"
-                textSize = 18f
+                textSize = scaledSp(15f)
                 maxLines = 2
                 ellipsize = TextUtils.TruncateAt.END
                 setTypeface(typeface, Typeface.BOLD)
@@ -668,27 +749,19 @@ class PickerController(
             })
             addView(TextView(activity).apply {
                 text = "$state · ${timestamp(row.reportedAt)}${if (row.resolutionSource == "SYSTEM_TIMEOUT") " · Hệ thống tự động do quá hạn" else ""}${if (row.resultEventId != null && row.acknowledgedAt == null) " · Chưa xác nhận kết quả" else ""}"
-                textSize = 12f
+                textSize = scaledSp(10.5f)
                 setTextColor(colors.third)
-                setPadding(0, kit.dp(5), 0, 0)
+                setPadding(0, kit.dp(3), 0, 0)
             })
             if (state == "Đang xử lý" && row.status == "OPEN" && row.autoSkipAllowedAt == null) {
-                if (!row.autoSkipDeadlineAt.isNullOrBlank()) {
-                    addView(TextView(activity).apply {
-                        text = "Mốc tự động: ${timestamp(row.autoSkipDeadlineAt)}"
-                        textSize = 11.5f
-                        setTextColor(kit.muted)
-                        setPadding(0, kit.dp(4), 0, 0)
-                    })
-                }
                 val deadline = millis(row.withdrawDeadlineAt)
                 if (deadline > System.currentTimeMillis()) {
                     val withdraw = Button(activity).apply {
                         text = "Thu hồi"
-                        textSize = 11.5f
+                        textSize = scaledSp(10.5f)
                         kit.styleSecondary(this)
-                        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, kit.dp(42)).apply {
-                            topMargin = kit.dp(7)
+                        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, kit.dp((38f * displayScale).roundToInt().coerceIn(36, 50))).apply {
+                            topMargin = kit.dp(5)
                         }
                         setOnClickListener { confirmWithdraw(row) }
                     }
