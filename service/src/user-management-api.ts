@@ -42,7 +42,7 @@ async function requireAdmin(request: Request, env: Env): Promise<User> {
   if (!ROLES.includes(user.role)) throw json({ error: "FORBIDDEN" }, 403);
   return user;
 }
-function actor(user: User) { return { user_id: user.user_id, employee_code: user.employee_code, role: user.role }; }
+function actor(user: User) { return { user_id: user.user_id, employee_code: user.employee_code, role: user.role, display_name: user.display_name }; }
 
 async function coreUserById(env: Env, userId: string): Promise<User | null> {
   const response = await core(env).fetch(`https://inventory-core.internal/auth/user-by-id?user_id=${encodeURIComponent(userId)}`);
