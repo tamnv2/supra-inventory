@@ -660,3 +660,22 @@ Owner approved on 2026-09-22 as a new Web requirement after the D089 baseline.
 D107 source and PR gates are PASS. PR #149 head `acdec3bb8e0b8a0793da6127a35952e014f58655` passed Repo Authority run `35729564644`, Project State run `35729564770`, UI Design/Web production build run `35729564681`, Beta RTDB Rules run `35729564684` and Beta Firestore Relay run `35729564631`. It was squash-merged to main `4e733535ef0abe893681afdf288097767141b115`.
 
 The repository's existing `Deploy Beta Worker` workflow automatically applies to `main` pushes that change `web/**`, so the D107 merge enters the normal Beta deployment path without Owner action. Current connected GitHub tooling does not enumerate main push-triggered workflow runs, so this checkpoint does **not** fabricate an exact Beta runtime PASS. Final D107 visual acceptance remains OA027 on live Beta. Stable is untouched and OWNER-GATED.
+
+## D107 Owner acceptance — 2026-09-23
+
+Owner explicitly confirmed the D107 Web identity/professional reporting result as PASS before requesting D108. OA027 is closed PASS. D107 remains the accepted Web presentation baseline and D108 supersedes only the specific Web/App points below.
+
+## D108 — Web resolution provenance + dense Picker shortage UI
+
+Owner approved on 2026-09-23.
+
+1. Password recovery on the Web login screen is collapsed by default. The email/account reset form must become visible only after the user explicitly presses **Lấy lại mật khẩu**; CSS must not override the HTML `hidden` state.
+2. Operational results and Admin/Root reporting must distinguish **human resolution** from **automatic timeout resolution**. A Skip caused by D070 timeout is visibly labeled as system automatic because Invent/Reporter did not respond before the configured deadline. Human `Đã có hàng` / `Cho phép bỏ qua` results show the resolving account, preferring display name + employee/account code. System timeout shows **Hệ thống**, never fabricating a person.
+3. Dashboard/reporting source breakdown reuses existing authoritative `resolution_source` and `resolved_by_user_id`; it adds no new polling, provider monitoring or unbounded analytics.
+4. Picker Android shortage input is numeric-only. The redundant **Quét hoặc nhập SKU** label is removed. SKU input and shortage action share one horizontal row; hint is **Nhập tối thiểu 3 chữ số SKU** and action text is **Xác nhận**.
+5. SKU suggestions start from three digits. After a suggestion/exact SKU is selected, the dropdown is cleared/dismissed and does not return until the user edits the value away from the selected SKU. The selected-SKU block uses a distinct background. The shortage confirmation action is full-emphasis only when a valid SKU is selected and the existing online/mutation gate permits submission.
+6. Picker does not display automatic-Skip deadline clock/time. It may still truthfully state that a completed result was automatic due to timeout.
+7. Picker history title is **Danh sách SKU đã báo hết hàng**. Status rows use light semantic backgrounds: Có hàng green, Đang xử lý yellow, Skip red, Picker thu hồi grey.
+8. Picker header adds **A− / A+** controls beside Log. The setting changes Picker text/input scale within a bounded range and is persisted locally **per authenticated user on that device**, so logout/login to the same device restores that user's selected scale without adding server quota.
+9. Existing Báo hàng business semantics, withdrawal window, realtime/result acknowledgement, D105 confirmation-order flow, D097 Firestore HA, Android update gate and all Stable guards are unchanged.
+10. Target is the next monotonic signed Beta Android release after `beta-vc63` (expected `beta-vc64`) plus the normal Beta Web/Worker deployment. Stable remains OWNER-GATED and untouched.
