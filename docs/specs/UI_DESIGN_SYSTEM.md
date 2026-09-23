@@ -597,3 +597,18 @@ D107 is the Owner-authorized Web visual refinement over the accepted D089 baseli
 - Automatic-Skip deadline time is not shown to Picker. Completed automatic results may say **Hệ thống tự động do quá hạn** without showing the configured clock/deadline.
 - A− / A+ controls sit beside Log for Picker only. The scale preference is bounded 80–140%, stored locally per user id, and restored on later login on the same device. It scales Picker text and primary input/action control height without changing business data.
 - Keep both bottom Picker business tabs and D105 four-digit confirmation UX unchanged.
+
+## D109 Web audit/PDA tools and Android compact tabs
+
+### Web
+- `Nhật ký` uses separate tabs for Web logs, Android logs and **Lịch sử thao tác**. The audit surface is a dense bounded table, not raw JSON.
+- `Công cụ` includes a professional **App PDA** card with current release metadata, a QR code and a stable same-origin download URL. The QR/link must resolve dynamically to the latest published Beta APK and must not hard-code a `beta-vcN` version.
+- The App PDA card follows the existing light/dark professional visual system and remains responsive on narrow screens.
+
+### Android Picker
+- The top header is compact (`wrap_content` with a small minimum height) and long identity copy may auto-size/wrap instead of forcing the old fixed 76dp header.
+- Picker header display controls are ordered **A−, A+, Log, Thoát** so size controls are adjacent.
+- `Báo hết hàng` / `Xác nhận đơn` are a compact bottom tab bar with selected underline/surface treatment, not primary/secondary action buttons.
+- The soft keyboard must not resize/push the bottom tab bar into the content area; the activity uses a stationary layout policy for IME display.
+- Shortage history uses time-only operational labels: `Báo hết lúc: HH:mm`, `Invent phản hồi lúc: HH:mm`; no date is shown in those lines.
+- D108 numeric input, semantic status cards and per-user 80–140% Picker scale remain authoritative.
