@@ -592,3 +592,17 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
 - Main UI run `35809583663`, Repo Authority `35809583637`, Project State `35809583624` and Android run `35809583599` passed.
 - Signed `beta-vc65` release id `394246239`; APK asset id `582752309`, size `19015996`, sha256 `3e2b5284ac2ed5d3040c36338a5bdb21026958eda7e4d4a12b40ea9bf6c0ea48`.
 - OA029 is ready for Owner field review. Stable remains OWNER-GATED and untouched.
+
+## D109 Owner-accepted checkpoint — 2026-09-23
+
+- Status: **OWNER FIELD PASS / COMPLETE**.
+- OA029: `PASS_OWNER_CONFIRMED_D109`.
+- Beta: `D109_OWNER_FIELD_ACCEPTED_PASS__LIVE_SOURCE_367D518D__SCHEMA11__SIGNED_BETA_VC65`.
+- Web: `D109_OWNER_ACCEPTED_PASS__PER_USER_DASHBOARD_GLOBAL_SLA_AUDIT_PDA_TOOLS`.
+- Android: `D109_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC65__COMPACT_HEADER_BOTTOM_TABS_TIME_ONLY`.
+- SQLite schema: `11`; latest signed Beta APK: `beta-vc65`; APK SHA-256 `3e2b5284ac2ed5d3040c36338a5bdb21026958eda7e4d4a12b40ea9bf6c0ea48`.
+- Runtime implementation source remains main `367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94`; checkpoint PR #155 merged at `5d3990b5a659225ecd92d4d0281ace23330fc06b`.
+- Final checkpoint guards: Repo Authority PASS, Project State PASS, UI Design Guard run `35811103699` PASS.
+- Current project workstream: `READY_FOR_NEXT_OWNER_REQUIREMENT`.
+- Next session: bootstrap from `ops/authority-manifest.json`, preserve D109 as accepted Beta baseline, then apply only the new Owner requirement.
+- Stable remains OWNER-GATED and untouched.
