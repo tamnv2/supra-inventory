@@ -664,3 +664,17 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
 - Signed `beta-vc67`: release id `394302425`, APK asset id `582970502`, size `19019076`, SHA-256 `0ea00d861d38e6f4cdd22c76120707b9f730b2c990da0ee834e3072d81318edc`.
 - OA031 is ready for Owner field review. D111 is not Owner-PASS until explicit field confirmation.
 - Stable remains OWNER-GATED and untouched.
+
+## D111 Owner-accepted checkpoint — 2026-09-23
+
+- Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
+- OA031: `PASS_OWNER_CONFIRMED_D111`.
+- Beta: `D111_OWNER_FIELD_ACCEPTED_PASS__LIVE_SOURCE_8E08BEAD__SCHEMA11__SIGNED_BETA_VC67`.
+- Android: `D111_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC67__REPORTER_SCALE_BADGE_CONFIRM_DAILY_SCOPE`.
+- Runtime implementation source: `8e08bead67b34f8302185d0d4ff259ddd5fae857`; runtime checkpoint main: `0fe8eb9578b5452fed2f2b9c1345b28de3f115af`.
+- Main technical PASS runs: Repo Authority `35819012567`, Project State `35819012547`, UI `35819012526`, Beta Worker `35819012562`, Android `35819012653`.
+- Signed `beta-vc67`: APK SHA-256 `0ea00d861d38e6f4cdd22c76120707b9f730b2c990da0ee834e3072d81318edc`.
+- Accepted behavior: Reporter scale controls; pending-only red badge; neutral history badges; minimal timing copy; confirmation before Có hàng/Skip; App shows today + older unresolved while Web history stays unchanged.
+- Current workstream after this acceptance: `READY_FOR_NEXT_OWNER_REQUIREMENT`.
+- Next session: bootstrap from `ops/authority-manifest.json`, preserve D111 as accepted Beta baseline, then apply only the new Owner requirement.
+- Stable remains OWNER-GATED and untouched.
