@@ -10,6 +10,7 @@ import "./legacy-transplant/web-fast-ui.css";
 import "./legacy-transplant/web-unified-ui.css";
 import "./legacy-transplant/web-professional-v2.css";
 import { firebaseReady } from "./firebase";
+import QRCode from "qrcode";
 import {
   applyHrPickerSync,
   changeMyPassword,
@@ -18,7 +19,9 @@ import {
   getAdminDashboard,
   getAdminOperationalInsights,
   getAdminReporting,
+  getAdminAuditHistory,
   getAdminSla,
+  getPdaAppRelease,
   getRealtimePresence,
   getRuntimeLogDetail,
   getRuntimeLogs,
@@ -51,6 +54,7 @@ import {
   updateManagedUser,
   updatePickerAccounts,
   type AppProfile,
+  type AdminAuditItem,
   type AdminDashboard,
   type AdminReportingRow,
   type BatchPickerTicket,
@@ -58,6 +62,7 @@ import {
   type HrSyncPreview,
   type ManagedUser,
   type OperationalInsights,
+  type PdaAppRelease,
   type RealtimePresence,
   type RuntimeLogDetail,
   type RuntimeLogItem,
@@ -120,6 +125,7 @@ const WEB_TEXT_BASE_SCALE = 1.05;
 const SKIP_DELAY_KEY_PREFIX = "supra_inventory_skip_delay_v1";
 const SKIP_CONFIRM_DELAY_MS = 5_000;
 const DEADLINE_NOTICE_KEY_PREFIX = "supra_inventory_deadline_notices_v1";
+const DASHBOARD_RANGE_KEY_PREFIX = "supra_inventory_dashboard_range_v1";
 
 function loadUiZoom(): number {
   const stored = Number(localStorage.getItem(UI_ZOOM_KEY) || 100);
@@ -241,6 +247,13 @@ function clearRoleScopedViewState(): void {
   systemResetSelected.clear();
   runtimeLogs = [];
   runtimeLogDetail = null;
+  auditRows = [];
+  auditTotal = 0;
+  auditOffset = 0;
+  auditRole = "";
+  auditQuery = "";
+  pdaAppRelease = null;
+  pdaQrDataUrl = "";
   selectedBatchId = null;
 }
 
@@ -310,7 +323,7 @@ let reportInsights: OperationalInsights | null = null;
 let reportTotal = 0;
 let reportOffset = 0;
 const REPORT_PAGE_SIZE = 100;
-let dashboardFrom = dateDaysAgo(6);
+let dashboardFrom = dateDaysAgo(0);
 let dashboardTo = dateDaysAgo(0);
 let reportFrom = dateDaysAgo(6);
 let reportTo = dateDaysAgo(0);
@@ -321,9 +334,18 @@ let systemStatus: SystemStatusSnapshot | null = null;
 let systemResetPreview: SystemResetPreview | null = null;
 let systemResetChallenge: { id: string; expiresAt: string; emailHint: string } | null = null;
 let systemResetSelected = new Set<SystemResetScope>();
+let logView: "WEB" | "ANDROID" | "AUDIT" = "WEB";
 let runtimeLogSource: "WEB" | "ANDROID" = "WEB";
 let runtimeLogs: RuntimeLogItem[] = [];
 let runtimeLogDetail: RuntimeLogDetail | null = null;
+let auditRows: AdminAuditItem[] = [];
+let auditTotal = 0;
+let auditOffset = 0;
+let auditRole = "";
+let auditQuery = "";
+const AUDIT_PAGE_SIZE = 100;
+let pdaAppRelease: PdaAppRelease | null = null;
+let pdaQrDataUrl = "";
 let pickerQuery = "";
 let pickerSuggestions: SkuItem[] = [];
 let pickerSelected: SkuItem | null = null;
