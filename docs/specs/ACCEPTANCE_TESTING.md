@@ -952,3 +952,19 @@ Technical/runtime PASS requires:
 8. Source/network review proves D107 adds no new backend/provider polling, stock/bin/quantity metrics, employee scoring or quota-heavy system-status route.
 9. Web production build, UI Design Guard, authority/continuity guards and Beta deployment smoke pass. Stable remains untouched.
 10. Automated PASS is technical only. Final D107 visual acceptance still requires explicit Owner review on live Beta.
+
+## D108 acceptance — Web provenance + Picker dense UI
+
+Technical/runtime acceptance requires:
+
+1. Fresh Web login shows no password-reset account/email form until **Lấy lại mật khẩu** is pressed; clicking again may collapse it.
+2. Recent operational results distinguish human Skip from `SYSTEM_TIMEOUT`; human results show resolving account identity and automatic timeout shows actor **Hệ thống**.
+3. Admin dashboard/reporting splits automatic-timeout Skip from human Skip using existing `resolution_source`, and detailed rows expose **Nguồn xử lý** + **Người xử lý** without new polling.
+4. Picker shortage screen has no **Quét hoặc nhập SKU** heading. Numeric-only SKU input and **Xác nhận** share one row; the hint is exactly **Nhập tối thiểu 3 chữ số SKU**.
+5. Typing fewer than three digits shows no SKU suggestions. Choosing a suggestion leaves exactly the selected SKU in the field and no dropdown remains until the field is edited.
+6. Selected SKU has a distinct background. Shortage **Xác nhận** is dim while no valid SKU is selected and fully emphasized when selection + existing online readiness are true.
+7. Picker contains no automatic-Skip deadline clock/time copy. Completed timeout result may state **Hệ thống tự động do quá hạn**.
+8. History title is **Danh sách SKU đã báo hết hàng**; status cards render green/yellow/red/grey for Có hàng/Đang xử lý/Skip/Picker thu hồi.
+9. A− / A+ is visible beside Log for Picker. Changing scale persists by authenticated user id; logout/login on the same device restores it, while another user keeps their own value. Scale remains bounded 80–140%.
+10. Existing D105 Xác nhận đơn four-digit behavior, withdrawal, realtime result acknowledgement, Android update gate and Stable invariants remain PASS.
+11. PR authority/state/UI/Web/Android/build guards, Beta deployment and next signed monotonic Android release must pass before technical release PASS is claimed. Final visual/device acceptance remains Owner field review.
