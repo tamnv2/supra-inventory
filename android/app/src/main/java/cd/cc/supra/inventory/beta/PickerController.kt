@@ -590,7 +590,7 @@ class PickerController(
         refreshing = true
         Thread {
             try {
-                val reports = api.getPickerReports(100)
+                val reports = api.getPickerReports(200)
                 val results = api.getPickerResults(50)
                 activity.runOnUiThread {
                     pendingResults = results
@@ -699,10 +699,10 @@ class PickerController(
     private fun renderHistory(allRows: List<PickerReport>) {
         val list = historyList ?: return
         val today = LocalDate.now(zone)
-        val rows = allRows.filter { reportDate(it.reportedAt) == today }
+        val rows = allRows.filter { reportDate(it.reportedAt) == today || isUnresolved(it) }
         withdrawButtons.clear()
         list.adapter = if (rows.isEmpty()) {
-            ArrayAdapter(activity, android.R.layout.simple_list_item_1, listOf("Hôm nay chưa có báo hàng."))
+            ArrayAdapter(activity, android.R.layout.simple_list_item_1, emptyList<String>())
         } else {
             object : BaseAdapter() {
                 override fun getCount(): Int = rows.size
@@ -804,6 +804,9 @@ class PickerController(
                 }.start()
             }.show()
     }
+
+    private fun isUnresolved(row: PickerReport): Boolean =
+        row.status == "OPEN" && row.autoSkipAllowedAt == null && row.batchStatus == "PENDING"
 
     private fun businessStatus(row: PickerReport): String = when {
         row.status == "WITHDRAWN" || row.batchStatus == "CLOSED" -> "Picker thu hồi"
