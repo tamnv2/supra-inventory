@@ -559,3 +559,21 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
 - Main UI run `35809583663`, Repo Authority `35809583637`, Project State `35809583624` and Android run `35809583599` passed.
 - Signed `beta-vc65` release id `394246239`; APK asset id `582752309`, size `19015996`, sha256 `3e2b5284ac2ed5d3040c36338a5bdb21026958eda7e4d4a12b40ea9bf6c0ea48`.
 - OA029 is ready for Owner field review. Stable remains OWNER-GATED and untouched.
+
+## D109 Owner-accepted readiness — 2026-09-23
+
+Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
+
+- Beta: `D109_OWNER_FIELD_ACCEPTED_PASS__LIVE_SOURCE_367D518D__SCHEMA11__SIGNED_BETA_VC65`.
+- Web: `D109_OWNER_ACCEPTED_PASS__PER_USER_DASHBOARD_GLOBAL_SLA_AUDIT_PDA_TOOLS`.
+- Android: `D109_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC65__COMPACT_HEADER_BOTTOM_TABS_TIME_ONLY`.
+- Admin dashboard: `D109_OWNER_ACCEPTED_PASS__RESOLVER_ACTIVITY_PER_USER_RANGE`.
+- Reporting: `D109_OWNER_ACCEPTED_PASS__DASHBOARD_PREF_RESOLVER_ACTIVITY_AUDIT`.
+
+- Beta Web and signed Android `beta-vc65` are Owner-accepted for D109.
+- SQLite source/runtime: `11/11`.
+- Live runtime authority: implementation main `367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94` with prior exact-source health PASS.
+- Signed APK SHA-256: `3e2b5284ac2ed5d3040c36338a5bdb21026958eda7e4d4a12b40ea9bf6c0ea48`.
+- Checkpoint PR #155 merged at `5d3990b5a659225ecd92d4d0281ace23330fc06b`; final Repo Authority/Project State guards and UI Design Guard `35811103699` are PASS.
+- OA029 is closed PASS. No D109 Owner action remains.
+- Ready for the Owner's next requirement. Stable remains OWNER-GATED and untouched.

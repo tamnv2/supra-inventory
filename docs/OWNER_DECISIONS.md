@@ -708,3 +708,15 @@ Owner approved on 2026-09-23.
 10. Picker shortage-history time copy contains no date. It uses `Báo hết lúc: HH:mm`; a human Invent/Reporter resolution uses `Invent phản hồi lúc: HH:mm`. Automatic timeout and Picker withdrawal may use truthful actor-specific time labels while still remaining time-only.
 11. Existing D105 four-digit confirmation, D108 numeric SKU/search/semantic cards/per-user scale, realtime acknowledgement, withdrawal, quota guards, Agent/WMS behavior and Stable OWNER-GATED state remain unchanged.
 12. D109 advances the Beta SQLite source schema additively only for audit actor-role/display-name columns. Existing business data remains preserved during migration. Target Android release is the next monotonic signed Beta release after `beta-vc64`.
+
+## D109 Owner acceptance — 2026-09-23
+
+Owner explicitly confirmed all D109 live Beta Web and signed Android `beta-vc65` field items as **PASS** after the final main checkpoint and UI guard completed.
+
+- OA029: **PASS_OWNER_CONFIRMED_D109**.
+- Accepted Web baseline: per-user Dashboard date persistence, global shared SLA settings, Reporter/Admin/Root audit history, recent resolver identity, and dynamic latest-App-PDA QR/download tooling.
+- Accepted Android baseline: signed `beta-vc65`, compact header, adjacent A−/A+ controls, stationary bottom operation tabs, and time-only shortage-history labels.
+- Technical/runtime baseline remains main source `367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94`, SQLite schema `11/11`, and signed APK SHA-256 `3e2b5284ac2ed5d3040c36338a5bdb21026958eda7e4d4a12b40ea9bf6c0ea48`.
+- Final runtime-record checkpoint PR #155 merged at `5d3990b5a659225ecd92d4d0281ace23330fc06b`; post-merge Repo Authority and Project State guards passed, and UI Design Guard run `35811103699` passed.
+- No D109 Owner field gate remains. Future work starts from this accepted Beta baseline unless the Owner explicitly supersedes it.
+- Stable remains OWNER-GATED and untouched.
