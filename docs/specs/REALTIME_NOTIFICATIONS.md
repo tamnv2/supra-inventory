@@ -391,3 +391,11 @@ For Picker `Xác nhận đơn` only:
 ## D111 — Android scoped reads do not add polling
 
 D111 changes only the row set returned by existing Android reconciliation requests. The App adds `scope=APP_TODAY_OPEN` to the existing Picker-report and Reporter-recent reads; it does not introduce a new endpoint, timer, provider listener, or polling cadence. Reporter pending realtime scopes continue to refresh the unresolved queue, and Reporter recent / Picker report scopes reconcile the bounded today-plus-unresolved projection. The local SLA minute ticker still performs zero network/provider calls.
+
+## D112 — New-shortage Web notice
+
+- A committed `REPORT_CREATED` realtime frame is sufficient for authorized Web operator roles to show an immediate in-page toast.
+- When the Web page is hidden and Browser Notification permission is already granted, the same event may create a background browser notification.
+- Same-SKU events are locally coalesced within a short bounded window to avoid notification spam. This is presentation-only and never changes report/batch grouping.
+- D112 adds no polling. Authoritative reconciliation remains the existing sequenced realtime/delta path.
+
