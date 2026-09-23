@@ -177,10 +177,14 @@ export type AutoSkipMode = "FIRST_REPORT" | "PER_PICKER";
 
 export interface SlaConfig {
   warning_minutes: number;
+  warning_enabled: boolean;
   escalation_minutes: number;
+  escalation_enabled: boolean;
   auto_skip_minutes: number;
   auto_skip_enabled: boolean;
   auto_skip_mode: AutoSkipMode;
+  skip_correction_enabled: boolean;
+  skip_correction_minutes: number;
   policy_version?: number;
   effective_at?: string;
   updated_at?: string;
@@ -797,10 +801,14 @@ export async function getAdminSla(): Promise<SlaResponse> {
 
 export async function saveAdminSla(input: {
   warning_minutes: number;
+  warning_enabled: boolean;
   escalation_minutes: number;
+  escalation_enabled: boolean;
   auto_skip_minutes: number;
   auto_skip_enabled: boolean;
   auto_skip_mode: AutoSkipMode;
+  skip_correction_enabled: boolean;
+  skip_correction_minutes: number;
 }): Promise<SlaResponse> {
   return readJson(await authorizedFetch("/api/admin/sla", {
     method: "PUT",
