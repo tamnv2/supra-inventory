@@ -797,10 +797,14 @@ export async function getAdminSla(): Promise<SlaResponse> {
 
 export async function saveAdminSla(input: {
   warning_minutes: number;
+  warning_enabled: boolean;
   escalation_minutes: number;
+  escalation_enabled: boolean;
   auto_skip_minutes: number;
   auto_skip_enabled: boolean;
   auto_skip_mode: AutoSkipMode;
+  skip_to_stock_enabled: boolean;
+  skip_to_stock_minutes: number;
 }): Promise<SlaResponse> {
   return readJson(await authorizedFetch("/api/admin/sla", {
     method: "PUT",
