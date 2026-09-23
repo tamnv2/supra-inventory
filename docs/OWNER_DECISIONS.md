@@ -687,3 +687,24 @@ D108 is technically released on Beta. PR #151 merged to main `441f3c687ad2ef94ec
 Test-only PR #152 was closed unmerged after live proof run `35801069626` / job `106991287965` passed on attempt 1: HTTP 200, environment Beta, exact live source `441f3c687ad2ef94ecc6017b8fa9846e9b34a7a2`, storage ready, schema 10/10, missing bindings 0, Agent auth migration 0/0. The signed `beta-vc64` tag resolves and contains the D108 Picker source. The existing release workflow publishes an APK checksum asset, but its release-asset metadata is not exposed through the current connected GitHub surface, so no checksum is fabricated here.
 
 OA028 is READY_FOR_OWNER_FIELD_TEST. Stable remains untouched and OWNER-GATED.
+
+## D108 Owner acceptance — 2026-09-23
+
+Owner explicitly confirmed the D108 Web + signed Android result as PASS before opening D109. OA028 is closed PASS. D108 remains the accepted baseline except where D109 explicitly supersedes presentation/preferences below.
+
+## D109 — Web audit/preferences/PDA tools + Android compact tabs/header/time labels
+
+Owner approved on 2026-09-23.
+
+1. Web `Tổng quan` defaults to **Hôm nay** when the authenticated user has never selected another range. Once that user explicitly chooses another range, the selected `from/to` range is persisted **per user account** and restored for that user. It must not become one shared range for all users.
+2. `Thời gian xử lý` remains one **global server-authoritative configuration** for the whole system. No browser/user-specific SLA copy is allowed. Saving SLA must notify/reconcile other active Web operator/admin views without adding quota-heavy polling.
+3. Admin/Root Web adds a bounded **Lịch sử thao tác** view under `Nhật ký`. It records/displays meaningful actions by `REPORTER`, `ADMIN`, and `ROOT`; Picker activity is excluded from this management audit view. Audit metadata must remain sanitized and must never expose password/token/credential material.
+4. Web `Tổng quan` additionally exposes recent `HAS_STOCK` / `SKIP_ALLOWED` results with the resolving account identity where a human acted. `SYSTEM_TIMEOUT` is shown as **Hệ thống**, never as a person.
+5. `HỆ THỐNG → Công cụ` adds a professional **App PDA** card. It shows current release metadata and generates a QR code to one stable project URL that dynamically resolves to the latest published `beta-vcN` APK asset. The QR/link must not hard-code a version number and must not embed secrets.
+6. Dynamic PDA download lookup may query only the canonical public GitHub repository release API, on explicit Tools-page/API access, with bounded in-memory caching. It must not create a background provider polling loop.
+7. Android Picker header is made materially shorter/dense while preserving readable identity text; long text may auto-size/wrap rather than forcing the old fixed-height header.
+8. Android Picker display controls are ordered **A−, A+** beside each other; Log remains a separate control after them.
+9. `Báo hết hàng` and `Xác nhận đơn` are presented as a compact **bottom tab bar**, not button-style actions. Opening the soft keyboard must not push that bottom tab bar upward and consume additional application layout height.
+10. Picker shortage-history time copy contains no date. It uses `Báo hết lúc: HH:mm`; a human Invent/Reporter resolution uses `Invent phản hồi lúc: HH:mm`. Automatic timeout and Picker withdrawal may use truthful actor-specific time labels while still remaining time-only.
+11. Existing D105 four-digit confirmation, D108 numeric SKU/search/semantic cards/per-user scale, realtime acknowledgement, withdrawal, quota guards, Agent/WMS behavior and Stable OWNER-GATED state remain unchanged.
+12. D109 advances the Beta SQLite source schema additively only for audit actor-role/display-name columns. Existing business data remains preserved during migration. Target Android release is the next monotonic signed Beta release after `beta-vc64`.
