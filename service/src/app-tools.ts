@@ -1,19 +1,3 @@
-type GithubReleaseAsset = {
-  name?: string;
-  size?: number;
-  digest?: string;
-  browser_download_url?: string;
-};
-
-type GithubRelease = {
-  tag_name?: string;
-  name?: string;
-  published_at?: string;
-  target_commitish?: string;
-  html_url?: string;
-  assets?: GithubReleaseAsset[];
-};
-
 export type PdaAppRelease = {
   tag: string;
   name: string;
@@ -26,66 +10,117 @@ export type PdaAppRelease = {
   stable_download_path: string;
 };
 
-const RELEASES_URL = "https://api.github.com/repos/tamnv2/supra-inventory/releases?per_page=30";
-const APK_ASSET_NAME = "supra-inventory-beta.apk";
-const CACHE_MS = 5 * 60_000;
-let cached: { expires_at: number; release: PdaAppRelease; asset_url: string } | null = null;
+export type AgentAppRelease = {
+  tag: string;
+  name: string;
+  published_at: string | null;
+  source: string | null;
+  release_url: string | null;
+  asset_name: string;
+  size_bytes: number;
+  digest: string | null;
+  stable_download_path: string;
+};
 
-async function loadLatest(): Promise<{ release: PdaAppRelease; asset_url: string }> {
-  if (cached && cached.expires_at > Date.now()) return { release: cached.release, asset_url: cached.asset_url };
-  const response = await fetch(RELEASES_URL, {
+type ChannelManifest = {
+  tag?: string;
+  name?: string;
+  published_at?: string;
+  source?: string;
+  size_bytes?: number;
+  sha256?: string;
+};
+
+const REPOSITORY = "tamnv2/supra-inventory";
+const CHANNEL_TAG = "inventory-channel";
+const CHANNEL_BASE = `https://github.com/${REPOSITORY}/releases/download/${CHANNEL_TAG}`;
+const RELEASE_BASE = `https://github.com/${REPOSITORY}/releases/tag`;
+const PDA_MANIFEST_URL = `${CHANNEL_BASE}/pda-latest.json`;
+const PDA_ASSET_NAME = "supra-inventory-beta.apk";
+const PDA_ASSET_URL = `${CHANNEL_BASE}/${PDA_ASSET_NAME}`;
+const AGENT_MANIFEST_URL = `${CHANNEL_BASE}/agent-latest.json`;
+const AGENT_ASSET_NAME = "Agent.Auto.Confirm.Pick.Pack.exe";
+const AGENT_ASSET_URL = `${CHANNEL_BASE}/${AGENT_ASSET_NAME}`;
+const CACHE_MS = 5 * 60_000;
+
+let pdaCache: { expires_at: number; release: PdaAppRelease } | null = null;
+let agentCache: { expires_at: number; release: AgentAppRelease } | null = null;
+
+function digestFromSha(value: unknown): string | null {
+  const sha = String(value || "").trim().toLowerCase();
+  return /^[0-9a-f]{64}$/.test(sha) ? `sha256:${sha}` : null;
+}
+
+async function loadManifest(url: string): Promise<ChannelManifest> {
+  const response = await fetch(url, {
     headers: {
-      accept: "application/vnd.github+json",
-      "user-agent": "supra-inventory-pda-download",
+      accept: "application/json",
+      "user-agent": "supra-inventory-release-channel",
+      "cache-control": "no-cache",
     },
+    redirect: "follow",
   });
-  if (!response.ok) throw new Error(`GITHUB_RELEASES_HTTP_${response.status}`);
-  const releases = (await response.json()) as GithubRelease[];
-  const candidates = releases
-    .filter((item) => /^beta-vc\d+$/.test(String(item.tag_name || "")))
-    .sort((a, b) => Number(String(b.tag_name).replace("beta-vc", "")) - Number(String(a.tag_name).replace("beta-vc", "")));
-  for (const item of candidates) {
-    const asset = (item.assets || []).find((entry) => entry.name === APK_ASSET_NAME && entry.browser_download_url);
-    if (!asset?.browser_download_url) continue;
-    const release: PdaAppRelease = {
-      tag: String(item.tag_name || ""),
-      name: String(item.name || item.tag_name || "SUPRA Inventory Beta"),
-      published_at: item.published_at ? String(item.published_at) : null,
-      source: item.target_commitish ? String(item.target_commitish) : null,
-      release_url: item.html_url ? String(item.html_url) : null,
-      asset_name: APK_ASSET_NAME,
-      size_bytes: Number(asset.size || 0),
-      digest: asset.digest ? String(asset.digest) : null,
-      stable_download_path: "/downloads/pda/latest",
-    };
-    cached = { expires_at: Date.now() + CACHE_MS, release, asset_url: asset.browser_download_url };
-    return { release, asset_url: asset.browser_download_url };
-  }
-  throw new Error("PDA_APK_RELEASE_NOT_FOUND");
+  if (!response.ok) throw new Error(`RELEASE_CHANNEL_HTTP_${response.status}`);
+  const payload = await response.json() as ChannelManifest;
+  if (!payload || typeof payload !== "object") throw new Error("RELEASE_CHANNEL_INVALID_JSON");
+  return payload;
 }
 
 export async function latestPdaAppRelease(): Promise<PdaAppRelease> {
-  return (await loadLatest()).release;
+  if (pdaCache && pdaCache.expires_at > Date.now()) return pdaCache.release;
+  const manifest = await loadManifest(PDA_MANIFEST_URL);
+  const tag = String(manifest.tag || "");
+  if (!/^beta-vc\d+$/.test(tag)) throw new Error("PDA_RELEASE_CHANNEL_INVALID_TAG");
+  const release: PdaAppRelease = {
+    tag,
+    name: String(manifest.name || `1291 Beta ${tag}`),
+    published_at: manifest.published_at ? String(manifest.published_at) : null,
+    source: manifest.source ? String(manifest.source) : null,
+    release_url: `${RELEASE_BASE}/${encodeURIComponent(tag)}`,
+    asset_name: PDA_ASSET_NAME,
+    size_bytes: Math.max(0, Number(manifest.size_bytes || 0)),
+    digest: digestFromSha(manifest.sha256),
+    stable_download_path: "/downloads/pda/latest",
+  };
+  pdaCache = { expires_at: Date.now() + CACHE_MS, release };
+  return release;
 }
 
-export async function redirectLatestPdaApk(): Promise<Response> {
-  try {
-    const latest = await loadLatest();
-    return new Response(null, {
-      status: 302,
-      headers: {
-        location: latest.asset_url,
-        "cache-control": "no-store",
-        "referrer-policy": "no-referrer",
-      },
-    });
-  } catch {
-    return new Response("Không tìm thấy bản App PDA mới nhất.", {
-      status: 503,
-      headers: {
-        "content-type": "text/plain; charset=utf-8",
-        "cache-control": "no-store",
-      },
-    });
-  }
+export async function latestAgentAppRelease(): Promise<AgentAppRelease> {
+  if (agentCache && agentCache.expires_at > Date.now()) return agentCache.release;
+  const manifest = await loadManifest(AGENT_MANIFEST_URL);
+  const tag = String(manifest.tag || "");
+  if (!/^relay-agent-v\d+$/.test(tag)) throw new Error("AGENT_RELEASE_CHANNEL_INVALID_TAG");
+  const release: AgentAppRelease = {
+    tag,
+    name: String(manifest.name || `Agent Auto Confirm Pick Pack ${tag}`),
+    published_at: manifest.published_at ? String(manifest.published_at) : null,
+    source: manifest.source ? String(manifest.source) : null,
+    release_url: `${RELEASE_BASE}/${encodeURIComponent(tag)}`,
+    asset_name: AGENT_ASSET_NAME,
+    size_bytes: Math.max(0, Number(manifest.size_bytes || 0)),
+    digest: digestFromSha(manifest.sha256),
+    stable_download_path: "/downloads/agent/latest",
+  };
+  agentCache = { expires_at: Date.now() + CACHE_MS, release };
+  return release;
+}
+
+function stableRedirect(location: string): Response {
+  return new Response(null, {
+    status: 302,
+    headers: {
+      location,
+      "cache-control": "no-store",
+      "referrer-policy": "no-referrer",
+    },
+  });
+}
+
+export function redirectLatestPdaApk(): Response {
+  return stableRedirect(PDA_ASSET_URL);
+}
+
+export function redirectLatestAgentExe(): Response {
+  return stableRedirect(AGENT_ASSET_URL);
 }
