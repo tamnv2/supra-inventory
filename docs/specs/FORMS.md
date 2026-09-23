@@ -502,3 +502,12 @@ D103 supersedes D102 layout dimensions where they conflict.
 - Primary resolution buttons do not open a second confirmation form. While one batch is being submitted, only that batch's actions are disabled/dimmed.
 - No Reporter **Làm mới** button is shown. Realtime changes refresh authoritative data; the elapsed-minute label advances locally.
 - Skip-result correction remains a distinct later action and may keep its dedicated confirmation because it changes an already-resolved result.
+
+## D111 — Android Reporter compact row contract
+
+- Reporter pending card keeps SKU, product, elapsed minutes, SLA state, report timestamp, and the two resolution actions.
+- Reporter recent/result card keeps SKU, product, **Báo lúc: HH:mm**, and **Invent phản hồi lúc: HH:mm** when a human/system Invent resolution timestamp exists.
+- The selected result tab supplies the outcome meaning; cards must not repeat “Đã có hàng”, “Cho phép skip”, or “Picker đã thu hồi” as row metadata.
+- Compact rows must not show affected-Picker or acknowledgement-count summaries.
+- Empty Reporter tabs render no duplicate explanatory/count card.
+- Both Reporter resolution actions require an explicit confirmation dialog before mutation.
