@@ -998,7 +998,7 @@ namespace SupraInventoryRelayAgent
             });
 
             _manualPicklistQuery.SetBounds(16, 42, 360, 30);
-            _manualPicklistQuery.MaxLength = 79;
+            _manualPicklistQuery.MaxLength = 220;
             _manualPicklistQuery.KeyPress += (s, e) =>
             {
                 if (char.IsControl(e.KeyChar) || char.IsDigit(e.KeyChar) || e.KeyChar == ',' || char.IsWhiteSpace(e.KeyChar))
@@ -1021,7 +1021,7 @@ namespace SupraInventoryRelayAgent
                 _manualPicklistConfirmAll.Visible = false;
                 _manualPicklistStatus.Text = string.IsNullOrWhiteSpace(_manualPicklistQuery.Text)
                     ? ""
-                    : (valid ? "Sẵn sàng." : "Nhập 3–4 số; nhiều giá trị ngăn cách bằng dấu phẩy.");
+                    : (valid ? "Sẵn sàng." : "Nhập tối thiểu 3 số; có thể nhập dài hơn. Nhiều giá trị ngăn cách bằng dấu phẩy.");
             };
             directCard.Controls.Add(_manualPicklistQuery);
 
@@ -1051,13 +1051,6 @@ namespace SupraInventoryRelayAgent
             _manualPicklistGrid.BorderStyle = BorderStyle.FixedSingle;
             _manualPicklistGrid.ScrollBars = ScrollBars.Vertical;
             _manualPicklistGrid.Columns.Clear();
-            _manualPicklistGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "PickListCode",
-                HeaderText = "PickList",
-                ReadOnly = true,
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
-            });
             _manualPicklistGrid.Columns.Add(new DataGridViewButtonColumn
             {
                 Name = "ConfirmAction",
@@ -1066,6 +1059,13 @@ namespace SupraInventoryRelayAgent
                 UseColumnTextForButtonValue = true,
                 Width = 130,
                 MinimumWidth = 130
+            });
+            _manualPicklistGrid.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "PickListCode",
+                HeaderText = "PickList",
+                ReadOnly = true,
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
             });
             _manualPicklistGrid.CellContentClick += (s, e) =>
             {
@@ -1672,7 +1672,7 @@ namespace SupraInventoryRelayAgent
             {
                 var value = (part ?? "").Trim();
                 if (value.Length == 0) continue;
-                if (value.Length < 3 || value.Length > 4) return false;
+                if (value.Length < 3 || value.Length > 20) return false;
                 foreach (var ch in value)
                     if (ch < '0' || ch > '9') return false;
                 if (seen.Add(value)) queries.Add(value);
@@ -1734,7 +1734,7 @@ namespace SupraInventoryRelayAgent
                 if (!IsBusinessAllowed())
                     throw new InvalidOperationException("Agent đang tạm dừng nghiệp vụ 22:00–05:00. Hãy xác nhận tăng ca tại Tổng quan để tiếp tục.");
                 if (queries == null || queries.Count == 0)
-                    throw new InvalidOperationException("Nhập 3–4 số; tối đa 10 giá trị, ngăn cách bằng dấu phẩy.");
+                    throw new InvalidOperationException("Nhập tối thiểu 3 số cho mỗi PickList; tối đa 10 giá trị, ngăn cách bằng dấu phẩy.");
 
                 if (!HasAgentSession())
                     throw new InvalidOperationException("Cần xác minh Agent bằng tài khoản ADMIN trước.");
@@ -1754,10 +1754,17 @@ namespace SupraInventoryRelayAgent
                     foreach (var code in result.Matches)
                         _manualPicklistGrid.Rows.Add(code);
 
-                    if (string.Equals(result.Result, "FOUND", StringComparison.Ordinal))
+                    if (string.Equals(result.Result, "AMBIGUOUS", StringComparison.Ordinal))
                     {
                         _manualPicklistStatus.Text =
-                            "Tìm thấy " + result.Matches.Count + " PickList" +
+                            result.AmbiguousFragments.Count + " từ khóa khớp nhiều PickList. Nhập thêm số để xác định duy nhất." +
+                            (result.Matches.Count > 0 ? " · " + result.Matches.Count + " từ khóa khác đã xác định được." : "");
+                        _manualPicklistStatus.ForeColor = Color.FromArgb(180, 116, 30);
+                    }
+                    else if (string.Equals(result.Result, "FOUND", StringComparison.Ordinal))
+                    {
+                        _manualPicklistStatus.Text =
+                            "Tìm thấy " + result.Matches.Count + " PickList duy nhất" +
                             (result.MissingFragments.Count > 0
                                 ? " · " + result.MissingFragments.Count + " từ khóa không có kết quả."
                                 : ".");
@@ -1780,6 +1787,7 @@ namespace SupraInventoryRelayAgent
                     "MANUAL_PICKLIST_SEARCH result=" + result.Result +
                     " query_count=" + queries.Count +
                     " missing_queries=" + result.MissingFragments.Count +
+                    " ambiguous_queries=" + result.AmbiguousFragments.Count +
                     " matches=" + result.Matches.Count +
                     " cache_count=" + result.CacheCount +
                     " values=redacted");
