@@ -892,7 +892,6 @@ async function putDashboardPreference(state: DurableObjectState, request: Reques
     at,
     actor.user_id,
   );
-  audit(state, actor, "DASHBOARD_RANGE_UPDATE", "USER_PREFERENCE", actor.user_id, { from, to }, at);
   return { status: 200, payload: { status: "saved", configured: true, preference: { from, to, updated_at: at, updated_by: actor.user_id } } };
 }
 function adminDashboard(state: DurableObjectState, url: URL): BusinessResult {
