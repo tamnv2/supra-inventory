@@ -2020,9 +2020,10 @@ function auditTargetLabel(row: AdminAuditItem): string {
   const metadata = row.metadata || {};
   if (row.action === "BATCH_RESOLVE") {
     const result = String(metadata.resolution || "");
-    return result === "HAS_STOCK" ? "Xác nhận Có hàng" : result === "SKIP_ALLOWED" ? "Cho phép bỏ qua" : "Xử lý báo hàng";
+    const label = result === "HAS_STOCK" ? "Xác nhận Có hàng" : result === "SKIP_ALLOWED" ? "Cho phép bỏ qua" : "Xử lý báo hàng";
+    return metadata.sku ? `${label} · SKU ${String(metadata.sku)}` : label;
   }
-  if (row.action === "BATCH_CORRECT") return "Sửa Skip thành Có hàng";
+  if (row.action === "BATCH_CORRECT") return metadata.sku ? `Sửa Skip thành Có hàng · SKU ${String(metadata.sku)}` : "Sửa Skip thành Có hàng";
   const target = [row.target_type, row.target_id].filter(Boolean).join(" · ");
   return target || "—";
 }
