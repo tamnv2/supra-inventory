@@ -26,6 +26,42 @@ type RuntimeLogBody = {
 
 const SENSITIVE_KEY = /authorization|bearer|token|password|secret|private|credential|api.?key|refresh|cookie|signing|keystore|session/i;
 const FILE_ID_RE = /^[A-Za-z0-9_-]{10,200}$/;
+const RUNTIME_LOG_RETENTION_DAYS = 90;
+const RETENTION_SWEEP_INTERVAL_MS = 6 * 60 * 60_000;
+let nextRetentionSweepAt = 0;
+
+async function maybeCleanupRuntimeLogs(env: RuntimeLogsEnv, token: string): Promise<void> {
+  const now = Date.now();
+  if (now < nextRetentionSweepAt) return;
+  nextRetentionSweepAt = now + RETENTION_SWEEP_INTERVAL_MS;
+  if (!env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID)) return;
+
+  const cutoff = new Date(now - RUNTIME_LOG_RETENTION_DAYS * 86_400_000).toISOString();
+  const params = new URLSearchParams({
+    q: `'${env.LOGS_FOLDER_ID}' in parents and trashed = false and createdTime < '${cutoff}'`,
+    orderBy: "createdTime asc",
+    pageSize: "100",
+    spaces: "drive",
+    fields: "files(id,name,createdTime)",
+  });
+  const response = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
+    headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+  });
+  if (!response.ok) throw new Error(`LOGS_RETENTION_LIST_FAILED:${response.status}`);
+  const payload = await response.json() as { files?: Array<{ id?: string }> };
+  for (const file of payload.files || []) {
+    const id = String(file.id || "");
+    if (!FILE_ID_RE.test(id)) continue;
+    const deletion = await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: { authorization: `Bearer ${token}` },
+    });
+    if (!deletion.ok && deletion.status !== 404) {
+      throw new Error(`LOGS_RETENTION_DELETE_FAILED:${deletion.status}`);
+    }
+  }
+}
+
 
 function scrubText(value: string): string {
   let next = value.slice(0, 2_000);
@@ -168,6 +204,7 @@ export async function uploadRuntimeLog(
 ): Promise<Record<string, unknown>> {
   if (!env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID)) throw new Error("LOGS_FOLDER_NOT_CONFIGURED");
   const token = await refreshGoogleAccessToken(env);
+  await maybeCleanupRuntimeLogs(env, token).catch(() => undefined);
   const { source, severity, filename, content } = logEnvelope(actor, body);
 
   const duplicateParams = new URLSearchParams({
@@ -265,6 +302,7 @@ export async function uploadAgentRuntimeLogText(
     .replace(/eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}/g, "[REDACTED_JWT]");
 
   const token = await refreshGoogleAccessToken(env);
+  await maybeCleanupRuntimeLogs(env, token).catch(() => undefined);
   const duplicateParams = new URLSearchParams({
     q: `'${env.LOGS_FOLDER_ID}' in parents and trashed = false and name = '${filename.replaceAll("'", "\\'")}'`,
     orderBy: "createdTime desc",
