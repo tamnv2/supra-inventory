@@ -134,8 +134,8 @@
       "worker_name": "supra-inventory-beta",
       "hostname": "inventory-beta.supra.cc.cd",
       "custom_domain_status": "ACTIVE",
-      "health_status": "D110_MAIN_DEPLOY_RUN_35816313928__HTTP_200_SOURCE_E7931CF8_EXACT__STORAGE_TRUE__SCHEMA_11_11__MISSING_0__AGENT_MIGRATION_0_0__OPERATIONAL_5_5",
-      "ci_deploy_status": "D110_PASS_RUN_35816313928_MAIN_E7931CF8",
+      "health_status": "D111_MAIN_DEPLOY_RUN_35819012562__HTTP_200_SOURCE_8E08BEAD_EXACT__STORAGE_TRUE__SCHEMA_11_11__MISSING_0__AGENT_MIGRATION_0_0__OPERATIONAL_5_5",
+      "ci_deploy_status": "D111_PASS_RUN_35819012562_MAIN_8E08BEAD",
       "web_smoke_status": "D098_PASS_RUN_35609150820",
       "app_verify_status": "D111_MAIN_ANDROID_PASS_35819012653__SIGNED_BETA_VC67__OA031_FIELD_READY",
       "durable_object_status": "READY",
@@ -194,7 +194,7 @@
       "relay_agent_release": "relay-agent-v30",
       "firebase_rtdb_rules_deploy": "D087_PR_GATE_PASS_RUN_35495453228__MAIN_SOURCE_MERGED",
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
-      "deploy_health_proof_status": "D110_PASS_RUN_35816313928__SOURCE_COMMIT_EXACT__SCHEMA11_11__AGENT_MIGRATION_0_0__OPERATIONAL5_5",
+      "deploy_health_proof_status": "D111_PASS_RUN_35819012562__SOURCE_COMMIT_EXACT__SCHEMA11_11__AGENT_MIGRATION_0_0__OPERATIONAL5_5",
       "relay_agent_release_target": "relay-agent-v30__RELEASED"
     },
     "stable": {
