@@ -181,3 +181,11 @@ Admin/Root operational results and reporting expose the provenance already recor
 - `CLOSED`: Picker withdrew the report; show the Picker-withdrawal source instead of inventing a Reporter actor.
 
 Dashboard/result-mix may split Skip into **Bỏ qua bởi nhân sự** and **Tự động bỏ qua quá hạn**. Detailed reporting includes **Nguồn xử lý** and **Người xử lý** columns. These are server-side bounded aggregates/joins on existing fields; D108 does not add polling or a new analytics store.
+
+## D109 dashboard range and resolver activity
+
+- `Tổng quan` defaults to **Hôm nay** when the authenticated user has no saved dashboard range.
+- A user-selected dashboard `from/to` range is persisted as a bounded server-side per-user preference and restored only for that same user. It is not a global report-range setting.
+- Saving a dashboard range does not create business-audit noise; it is a presentation preference rather than an operational mutation.
+- Overview may show a bounded recent-resolution list for `HAS_STOCK` / `SKIP_ALLOWED`, including the resolving display name/account code for human actions. `SYSTEM_TIMEOUT` is always shown as **Hệ thống**.
+- Existing 60-day bounds, server-side aggregation, explicit-load/realtime behavior and no employee scoring remain unchanged.
