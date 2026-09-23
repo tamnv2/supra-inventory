@@ -20,6 +20,9 @@ namespace SupraInventoryRelayAgent
         internal double NetworkUpMbps = -1;
         internal bool InternetKnown;
         internal bool InternetConnected;
+        internal double ProcessCpuPercent = -1;
+        internal long ProcessWorkingSetBytes;
+        internal TimeSpan ProcessUptime;
 
         internal string Compact()
         {
@@ -111,6 +114,8 @@ namespace SupraInventoryRelayAgent
         private DateTime _gpuLastSampleUtc = DateTime.MinValue;
         private double _gpuLastValue = -1;
         private bool _gpuInitialized;
+        private TimeSpan _previousProcessCpu = TimeSpan.Zero;
+        private DateTime _previousProcessSampleUtc = DateTime.MinValue;
 
         internal SystemMetrics Sample()
         {
@@ -123,6 +128,7 @@ namespace SupraInventoryRelayAgent
                     DiskPercent = SampleDisk(),
                     GpuPercent = SampleGpu()
                 };
+                SampleProcess(result);
 
                 var memory = new MEMORYSTATUSEX();
                 memory.dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));
@@ -147,6 +153,33 @@ namespace SupraInventoryRelayAgent
                 }
 
                 return result;
+            }
+        }
+
+        private void SampleProcess(SystemMetrics result)
+        {
+            try
+            {
+                using (var process = Process.GetCurrentProcess())
+                {
+                    process.Refresh();
+                    result.ProcessWorkingSetBytes = Math.Max(0L, process.WorkingSet64);
+                    result.ProcessUptime = DateTime.Now - process.StartTime;
+                    var now = DateTime.UtcNow;
+                    var cpu = process.TotalProcessorTime;
+                    if (_previousProcessSampleUtc != DateTime.MinValue)
+                    {
+                        var elapsedMs = Math.Max(1.0, (now - _previousProcessSampleUtc).TotalMilliseconds);
+                        var cpuMs = Math.Max(0.0, (cpu - _previousProcessCpu).TotalMilliseconds);
+                        result.ProcessCpuPercent = Math.Max(0, Math.Min(100, cpuMs / elapsedMs * 100.0 / Math.Max(1, Environment.ProcessorCount)));
+                    }
+                    _previousProcessCpu = cpu;
+                    _previousProcessSampleUtc = now;
+                }
+            }
+            catch
+            {
+                result.ProcessCpuPercent = -1;
             }
         }
 
