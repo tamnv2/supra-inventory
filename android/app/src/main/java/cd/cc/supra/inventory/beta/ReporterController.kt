@@ -32,7 +32,7 @@ class ReporterController(
     private enum class Filter { PENDING, HAS_STOCK, SKIP_ALLOWED, WITHDRAWN }
 
     private val zone = ZoneId.of("Asia/Ho_Chi_Minh")
-    private val timeFmt = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(zone)
+    private val timeFmt = DateTimeFormatter.ofPattern("HH:mm").withZone(zone)
     private val dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy").withZone(zone)
     private val handler = Handler(Looper.getMainLooper())
     private var queueServerOffsetMs = 0L
@@ -78,6 +78,8 @@ class ReporterController(
         scheduleMinuteTicker()
         refresh()
     }
+
+    fun currentFilterName(): String = filter.name
 
     fun destroy() {
         handler.removeCallbacks(minuteTicker)
