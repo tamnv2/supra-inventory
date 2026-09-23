@@ -287,7 +287,7 @@ checks = {
     "android_adaptive_launcher_icon": 'android:icon="@drawable/app_icon_d089"' in ANDROID_MANIFEST and 'android:roundIcon="@drawable/app_icon_d089"' in ANDROID_MANIFEST and ANDROID_APPROVED_ICON_EXISTS,
     "d089_shared_approved_icon": WEB_APPROVED_ICON_EXISTS and '/app-icon.png' in WEB_APP and '/app-icon.png' in WEB_INDEX,
     "android_legacy_login_xml": all(token in ANDROID_LOGIN_XML for token in ['76dp', '23sp', '@+id/etEmployeeCode', '@+id/etPassword', '@+id/btnLogin']),
-    "android_legacy_main_shell_xml": all(token in ANDROID_MAIN_XML for token in ['android:layout_height="76dp"', '@+id/contentContainer', '@+id/btnLog', '@+id/btnLogout', '@+id/tvAppVersion']),
+    "android_legacy_main_shell_xml": all(token in ANDROID_MAIN_XML for token in ['android:layout_height="wrap_content"', 'android:minHeight="56dp"', '@+id/contentContainer', '@+id/btnTextMinus', '@+id/btnTextPlus', '@+id/btnLog', '@+id/btnLogout', '@+id/tvAppVersion']),
     "android_d074_picker_dense_split_xml": all(token in ANDROID_PICKER_XML for token in ['@+id/acSkuSearch', '@+id/btnReportShortage', '@+id/listMyReports', '@+id/panelShortage', '@+id/panelConfirmOrder', '@+id/tabShortage', '@+id/tabConfirmOrder', '@+id/etRelayPicklistSuffix', 'android:maxLength="4"', 'android:layout_height="48dp"']),
     "android_legacy_reporter_xml": all(token in ANDROID_INVENT_XML for token in ['BÁO HÀNG ĐANG CHỜ XỬ LÝ', '@+id/btnRefreshIssues', '@+id/listIssues']),
     "android_legacy_admin_xml": all(token in ANDROID_ADMIN_XML for token in ['QUẢN TRỊ BÁO HÀNG', '@+id/btnOpenInventQueue', '@+id/btnImportSku']),
@@ -381,7 +381,7 @@ checks = {
     "android_d108_numeric_compact_picker": all(token in ANDROID_PICKER_XML for token in ['android:digits="0123456789"', 'android:completionThreshold="3"', 'android:hint="Nhập tối thiểu 3 chữ số SKU"', 'android:text="Xác nhận"', 'android:text="Danh sách SKU đã báo hết hàng"', '@+id/pickerSelectedCard']) and "Quét hoặc nhập SKU" not in ANDROID_PICKER_XML and "SKU tôi đã báo" not in ANDROID_PICKER_XML,
     "android_d108_selection_and_status_cards": all(token in ANDROID_PICKER for token in ["selected?.sku == value", "dismissDropDown()", "kit.rounded(kit.blueSoft, kit.blue, 9)", "object : BaseAdapter()", "kit.stockFill", "kit.pendingFill", "kit.skipFill", "kit.graySoft", "alpha = if (ready) 1.0f else 0.42f"]) and "Mốc tự động:" not in ANDROID_PICKER and '"Tự động:"' not in ANDROID_PICKER,
     "android_d108_user_display_scale": all(token in (ANDROID_MAIN + ANDROID_MAIN_XML + ANDROID_PICKER) for token in ["picker_display_scale_v1", "btnTextMinus", "btnTextPlus", "displayScale", "applyDisplayScale"]) and all(token in ANDROID_MAIN for token in ["user:${session.userId}", "coerceIn(0.8f, 1.4f)"]),
-    "android_d070_timeout_projection": all(token in (ANDROID_API + ANDROID_PICKER + ANDROID_REPORTER) for token in ["autoSkipDeadlineAt", "autoSkipAllowedAt", "autoSkipAt", "Hệ thống tự động do quá hạn"]),
+    "android_d070_timeout_projection": all(token in (ANDROID_API + ANDROID_PICKER + ANDROID_REPORTER) for token in ["autoSkipDeadlineAt", "autoSkipAllowedAt", "autoSkipAt"]) and ("Hệ thống tự động do quá hạn" in ANDROID_PICKER or "Hệ thống tự động lúc:" in ANDROID_PICKER),
     "web_online_only_no_outbox": "offline outbox" not in WEB_UI.lower() and "chờ đồng bộ" not in WEB_UI.lower(),
     "android_online_only_no_outbox": "chờ đồng bộ" not in ANDROID_ALL.lower() and "outbox" not in ANDROID_ALL.lower(),
 }
