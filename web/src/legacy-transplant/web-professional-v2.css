@@ -1290,8 +1290,13 @@ body[data-theme="dark"] .global-setting-note {
 .tabs .nav-button {
   position: relative;
 }
+.tabs .nav-button:has(.nav-notice-badge) {
+  padding-right: 38px !important;
+}
 .nav-notice-badge {
-  margin-left: auto;
+  position: absolute;
+  top: 5px;
+  right: 8px;
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
