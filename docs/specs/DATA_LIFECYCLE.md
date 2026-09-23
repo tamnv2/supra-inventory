@@ -312,3 +312,9 @@ System Reset is a deliberate ROOT-only data-zeroing operation, not normal retent
 - Confirmation guard identity continues to derive from the resolved full PickListCode, not from the short suffix, so reducing input length does not weaken cross-Agent mutation idempotency.
 - Retention/cleanup semantics are unchanged.
 
+## D109 management audit storage
+
+- Meaningful REPORTER/ADMIN/ROOT management and business mutations continue to be stored in the existing InventoryCore `audit_log`; D109 adds actor role/display-name projection to make the history readable.
+- Audit reads are bounded and paged. D109 does not add a second analytics database, browser-side audit authority or a background export/polling loop.
+- Secret-like metadata keys are redacted before audit-history responses are returned.
+- Existing ROOT System Reset `SERVICE_LOGS` semantics remain the explicit destructive path for service audit/log data; D109 does not silently purge or rewrite business history.
