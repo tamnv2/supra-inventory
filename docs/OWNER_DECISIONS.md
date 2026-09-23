@@ -806,3 +806,10 @@ D112 is technically released on Beta and **OA032 is field-ready**.
 - D112 does not add polling cadence and preserves D097/D104/D105 Firestore/WMS/quota guards. Stable remains OWNER-GATED and untouched.
 - OA032 is `READY_FOR_OWNER_FIELD_TEST`; D112 is not Owner-PASS until explicit field confirmation.
 
+## D112 Owner acceptance — 2026-09-23
+
+Owner explicitly confirmed live Beta Web, signed Android `beta-vc68`, and Agent `relay-agent-v31` as **PASS** after field review. OA032 is closed as `PASS_OWNER_CONFIRMED_D112`.
+
+The accepted D112 Beta baseline includes the version-independent App/Agent distribution channel, simplified Web Tools, exact date-preset state, 30/60/90-day management log views, non-blocking dashboard/report loading, realtime shortage notice, Android insets/update/password/footer/confirmation cleanup, and Agent v31 normal window/protected watchdog/manual exact-suffix workflow/operational overlay. D097/D104/D105 quota, Firestore/WMS, no-offline and Stable guards remain unchanged.
+
+Future work starts from this accepted D112 Beta baseline unless the Owner explicitly supersedes it. Stable remains OWNER-GATED and untouched.
