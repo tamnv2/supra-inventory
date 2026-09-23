@@ -26,6 +26,7 @@ namespace SupraInventoryRelayAgent
         internal int QueryCount;
         internal readonly List<string> Matches = new List<string>();
         internal readonly List<string> MissingFragments = new List<string>();
+        internal readonly List<string> AmbiguousFragments = new List<string>();
     }
 
     internal sealed class PicklistCacheCoordinator
@@ -231,8 +232,8 @@ namespace SupraInventoryRelayAgent
                 return new ManualPicklistSearchResult { Result = "WMS_SESSION_REQUIRED", CacheMode = "NO_SESSION" };
 
             var query = (fragment ?? "").Trim();
-            if (query.Length < 3 || query.Length > 4)
-                throw new ArgumentException("Manual Picklist search requires 3 to 4 digits.", "fragment");
+            if (query.Length < 3 || query.Length > 20)
+                throw new ArgumentException("Manual Picklist search requires 3 to 20 digits.", "fragment");
             foreach (var ch in query)
                 if (ch < '0' || ch > '9')
                     throw new ArgumentException("Manual Picklist search requires digits only.", "fragment");
@@ -274,8 +275,8 @@ namespace SupraInventoryRelayAgent
             foreach (var raw in fragments ?? new string[0])
             {
                 var query = (raw ?? "").Trim();
-                if (query.Length < 3 || query.Length > 4)
-                    throw new ArgumentException("Manual Picklist search requires each value to contain 3 to 4 digits.", "fragments");
+                if (query.Length < 3 || query.Length > 20)
+                    throw new ArgumentException("Manual Picklist search requires each value to contain 3 to 20 digits.", "fragments");
                 foreach (var ch in query)
                     if (ch < '0' || ch > '9')
                         throw new ArgumentException("Manual Picklist search requires digits only.", "fragments");
@@ -296,27 +297,10 @@ namespace SupraInventoryRelayAgent
             int statusCode,
             long elapsedMs)
         {
-            var matchedQueries = new HashSet<string>(StringComparer.Ordinal);
             var matches = new List<string>();
-            foreach (var code in _codes)
-            {
-                var matched = false;
-                foreach (var query in queries)
-                {
-                    if (code.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0) continue;
-                    matchedQueries.Add(query);
-                    matched = true;
-                }
-                if (matched) matches.Add(code);
-            }
-
-            matches.Sort(StringComparer.OrdinalIgnoreCase);
-            if (matches.Count > maxResults)
-                matches.RemoveRange(maxResults, matches.Count - maxResults);
-
+            var matchSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var result = new ManualPicklistSearchResult
             {
-                Result = matches.Count > 0 ? "FOUND" : "NOT_FOUND",
                 CacheMode = cacheMode,
                 Route = route ?? "NONE",
                 StatusCode = statusCode,
@@ -324,13 +308,38 @@ namespace SupraInventoryRelayAgent
                 CacheCount = _codes.Count,
                 QueryCount = queries.Count
             };
-            result.Matches.AddRange(matches);
+
             foreach (var query in queries)
-                if (!matchedQueries.Contains(query))
+            {
+                var queryMatches = new List<string>();
+                foreach (var code in _codes)
+                {
+                    if (!code.EndsWith(query, StringComparison.OrdinalIgnoreCase)) continue;
+                    queryMatches.Add(code);
+                }
+                queryMatches.Sort(StringComparer.OrdinalIgnoreCase);
+                if (queryMatches.Count == 0)
+                {
                     result.MissingFragments.Add(query);
+                    continue;
+                }
+                if (queryMatches.Count > 1)
+                {
+                    result.AmbiguousFragments.Add(query);
+                    continue;
+                }
+                if (matchSet.Add(queryMatches[0])) matches.Add(queryMatches[0]);
+            }
+
+            matches.Sort(StringComparer.OrdinalIgnoreCase);
+            if (matches.Count > maxResults)
+                matches.RemoveRange(maxResults, matches.Count - maxResults);
+            result.Matches.AddRange(matches);
+            result.Result = result.AmbiguousFragments.Count > 0
+                ? "AMBIGUOUS"
+                : (matches.Count > 0 ? "FOUND" : "NOT_FOUND");
             return result;
         }
-
         private ManualPicklistSearchResult SearchSnapshot(
             string query,
             int maxResults,
@@ -342,7 +351,7 @@ namespace SupraInventoryRelayAgent
             var matches = new List<string>();
             foreach (var code in _codes)
             {
-                if (code.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0) continue;
+                if (!code.EndsWith(query, StringComparison.OrdinalIgnoreCase)) continue;
                 matches.Add(code);
             }
             matches.Sort(StringComparer.OrdinalIgnoreCase);
