@@ -555,7 +555,8 @@
     "D089 Owner field acceptance PASS on 2026-09-21: Owner explicitly confirmed the released D089 result had achieved the requested requirements after testing Beta Web, signed beta-vc54 and relay-agent-v15. This closes OA011 and upgrades D089 from technical/runtime/release PASS to Owner-accepted PASS. The accepted baseline includes the exact shared icon #4, independent Service/Realtime status, dark Tools UI, granular persistent Overlay settings, and single-instance Agent duplicate-launch restore. D078 final transport remains pending, WMS remains GET-only, and Stable remains OWNER-GATED.",
     "D091 infrastructure evidence 2026-09-21: GitHub Actions run 35548094709 created/read back Beta Firestore `(default)` in asia-southeast1 successfully after Owner granted the scoped database role. Firebase CLI Rules deploy then failed only on its Service Usage preflight (`serviceusage.services.get`), so deployment is being changed to the Firebase Rules Management REST API using the already-scoped Firebase Rules Admin permission.",
     "D091 Firestore infrastructure runtime PASS: PR #107 merged at cecf56079eba144188a0080bca8b1e78bcbfdd00; main Deploy Beta Firestore Relay run 35548847740 PASS. Existing (default) database readback confirmed asia-southeast1; Firebase Rules ruleset creation PASS; cloud.firestore release deploy + readback PASS. Field artifacts remain relay-agent-v16 and beta-vc55. Physical Office E2E is still pending.",
-    "D093 Beta technical/runtime/release PASS: PR #111 merged at 377159ed6722eede6b7716c9c83066b863a4e805. Main Repo Authority 35554493313, Project State 35554493314, Beta Worker 35554493316, UI 35554493327, Relay Agent 35554493315 and Android 35554493317 all PASS. Published relay-agent-v18 EXE SHA-256 96e2cde601f41908e1af10492a4bd8b9e8a47a905ce464d33d4917038838acb7 and signed beta-vc57 APK SHA-256 f655844b1222787938cacf169ca2f158630ab536b0a9c252f19f56d60cc3ce19. OA014 physical Firestore regression re-test pending; OA013 blocked; Stable untouched."
+    "D093 Beta technical/runtime/release PASS: PR #111 merged at 377159ed6722eede6b7716c9c83066b863a4e805. Main Repo Authority 35554493313, Project State 35554493314, Beta Worker 35554493316, UI 35554493327, Relay Agent 35554493315 and Android 35554493317 all PASS. Published relay-agent-v18 EXE SHA-256 96e2cde601f41908e1af10492a4bd8b9e8a47a905ce464d33d4917038838acb7 and signed beta-vc57 APK SHA-256 f655844b1222787938cacf169ca2f158630ab536b0a9c252f19f56d60cc3ce19. OA014 physical Firestore regression re-test pending; OA013 blocked; Stable untouched.",
+    "D109 technical/runtime/release PASS 2026-09-23: PR #154 merged to main 367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94. PR PASS runs Repo Authority 35809361069, Project State 35809361054, UI 35809360983, Android 35809360987, Firestore 35809361013, RTDB 35809360986. Main PASS runs Repo Authority 35809583637, Project State 35809583624, UI 35809583663, Deploy Beta Worker 35809583618 and Android 35809583599. Live Beta health attempt 1 HTTP 200 exact source, schema 11/11, storage true, missing 0, Agent migration 0/0, Operational V2 5/5. Signed beta-vc65 release id 394246239, APK asset id 582752309 size 19015996 SHA-256 3e2b5284ac2ed5d3040c36338a5bdb21026958eda7e4d4a12b40ea9bf6c0ea48. OA029 field acceptance remains; Stable untouched."
   ],
   "implementation_notes": [
     "D068 follow-up clean-copy patch replaces raw runtime-log filenames/JSON detail on the normal Web Nhật ký surface with a structured operational summary; downloadable support logging remains available. Frozen D067 items 1–8 and 10 are unchanged.",
@@ -665,35 +666,35 @@
     "D106 exact live Beta proof 2026-09-22: test-only PR #147 was closed unmerged after Actions run 35722532394/job 106728495944 PASS. /health attempt 1 returned HTTP 200, status=ok, environment=beta, source_commit=dbcc8af2503b916282788303f9d67d72293a3de0 exact, storage=true, schema=10/10, missing_bindings=0, agent_auth_migration=0/0.",
     "D107 source/PR PASS + main merge 2026-09-22: PR #149 head acdec3bb8e0b8a0793da6127a35952e014f58655. Final PR runs: Repo Authority 35729564644 PASS, Project State 35729564770 PASS, UI Design Guard 35729564681 PASS including Web production build and all regression gates, Beta RTDB Rules 35729564684 PASS, Beta Firestore Relay 35729564631 PASS. PR squash-merged to main 4e733535ef0abe893681afdf288097767141b115. Existing Deploy Beta Worker workflow triggers on main web/** changes, therefore this merge enters automatic Beta deployment; exact push-run observation is unavailable through the current connector and is not represented as runtime PASS. Stable untouched.",
     "D107 Owner acceptance 2026-09-23: Owner stated prior D107 items passed before issuing D108. OA027 should be closed PASS in the D108 authority change set.",
-    "D108 technical/runtime/release PASS 2026-09-23: PR #151 merged to main 441f3c687ad2ef94ecc6017b8fa9846e9b34a7a2. PR runs PASS: Repo Authority 35800721747, Project State 35800721763, UI Design 35800721806, Verify Beta Android 35800721751, Firestore 35800721771, RTDB 35800721768. Test-only PR #152 live Beta proof run 35801069626/job 106991287965 PASS attempt 1: HTTP 200, status ok, env beta, source exact 441f3c68, storage true, schema 10/10, missing 0, agent 0/0. beta-vc64 tag resolves to source containing D108 Picker markers. Stable untouched."
+    "D108 technical/runtime/release PASS 2026-09-23: PR #151 merged to main 441f3c687ad2ef94ecc6017b8fa9846e9b34a7a2. PR runs PASS: Repo Authority 35800721747, Project State 35800721763, UI Design 35800721806, Verify Beta Android 35800721751, Firestore 35800721771, RTDB 35800721768. Test-only PR #152 live Beta proof run 35801069626/job 106991287965 PASS attempt 1: HTTP 200, status ok, env beta, source exact 441f3c68, storage true, schema 10/10, missing 0, agent 0/0. beta-vc64 tag resolves to source containing D108 Picker markers. Stable untouched.",
+    "D109 technical/runtime/release PASS 2026-09-23: PR #154 merged to main 367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94. PR PASS runs Repo Authority 35809361069, Project State 35809361054, UI 35809360983, Android 35809360987, Firestore 35809361013, RTDB 35809360986. Main PASS runs Repo Authority 35809583637, Project State 35809583624, UI 35809583663, Deploy Beta Worker 35809583618 and Android 35809583599. Live Beta health attempt 1 HTTP 200 exact source, schema 11/11, storage true, missing 0, Agent migration 0/0, Operational V2 5/5. Signed beta-vc65 release id 394246239, APK asset id 582752309 size 19015996 SHA-256 3e2b5284ac2ed5d3040c36338a5bdb21026958eda7e4d4a12b40ea9bf6c0ea48. OA029 field acceptance remains; Stable untouched."
   ],
   "last_runtime_evidence": {
-    "signed_beta_release": "beta-vc59",
-    "signed_beta_release_source_commit": "52aabdbd3a1eedfa96c6a525dd155b370e9d9138",
-    "signed_beta_apk_sha256": "5fb4422312cf4380a158cec9d12d1730dc184ea5a468def599edc15508ec8800",
-    "relay_agent_release": "relay-agent-v20",
-    "d094": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_FAIL_SUPERSEDED_BY_D095",
-    "d094_main": "a9d69036648aa25266241f5500df1192c3f4b3c7",
-    "d094_pr": 113,
-    "d094_main_runs": {
-      "repo_authority": 35556631757,
-      "project_state": 35556631917,
-      "beta_worker": 35556631837,
-      "ui": 35556631824,
-      "relay_agent": 35556631806,
-      "android": 35556631798
+    "signed_beta_release": "beta-vc65",
+    "signed_beta_release_source_commit": "367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94",
+    "signed_beta_release_id": 394246239,
+    "signed_beta_apk_asset_id": 582752309,
+    "signed_beta_apk_size_bytes": 19015996,
+    "signed_beta_apk_sha256": "3e2b5284ac2ed5d3040c36338a5bdb21026958eda7e4d4a12b40ea9bf6c0ea48",
+    "relay_agent_release": "relay-agent-v30",
+    "d109": "TECHNICAL_RUNTIME_RELEASE_PASS__OA029_FIELD_READY",
+    "d109_main": "367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94",
+    "d109_pr": 154,
+    "d109_pr_runs": {
+      "repo_authority": 35809361069,
+      "project_state": 35809361054,
+      "ui": 35809360983,
+      "android": 35809360987,
+      "firestore": 35809361013,
+      "rtdb": 35809360986
     },
-    "d095": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_PDA_AGENT_TRANSPORT_PASS_CURRENT_FIELD__WMS_CONFIRM_STAGE_FAIL_SUPERSEDED_BY_D096",
-    "d095_main": "52aabdbd3a1eedfa96c6a525dd155b370e9d9138",
-    "d095_pr": 115,
-    "d095_main_runs": {
-      "repo": 35558582310,
-      "state": 35558582318,
-      "beta": 35558582419,
-      "ui": 35558582329,
-      "agent": 35558582311,
-      "android": 35558582307
+    "d109_main_runs": {
+      "repo_authority": 35809583637,
+      "project_state": 35809583624,
+      "beta_worker": 35809583618,
+      "ui": 35809583663,
+      "android": 35809583599
     },
-    "d096": "SOURCE_REPAIR_READY__ROOT_CAUSE_CONFIRMED__TARGET_AGENT_V21__BETA_VC59_UNCHANGED"
+    "live_health": "HTTP_200__SOURCE_EXACT__SCHEMA_11_11__STORAGE_TRUE__MISSING_0__AGENT_0_0__OPERATIONAL_5_5"
   }
 }
