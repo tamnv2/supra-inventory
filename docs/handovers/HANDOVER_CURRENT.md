@@ -652,3 +652,15 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
 - OA031 is pending technical/runtime/release PASS. Current released baseline remains `beta-vc66` until the next monotonic signed Beta APK is produced.
 - Next action: PR authority/state/UI/Service/Android gates → merge only after PASS → exact Beta runtime + signed release verification → OA031 Owner field review.
 - Stable remains OWNER-GATED and untouched.
+
+## D111 runtime/release checkpoint — 2026-09-23
+
+- Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA031 FIELD READY**.
+- Beta: `D111_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_8E08BEAD__SCHEMA11__SIGNED_BETA_VC67__OA031_FIELD_READY`.
+- Android: `D111_SIGNED_BETA_VC67__REPORTER_SCALE_BADGE_CONFIRM_DAILY_SCOPE__OA031_FIELD_READY`.
+- PR #159 merged main `8e08bead67b34f8302185d0d4ff259ddd5fae857`.
+- Main PASS runs: Repo Authority `35819012567`, Project State `35819012547`, UI Design `35819012526`, Beta Worker `35819012562`, Android `35819012653`.
+- Live Beta health: HTTP 200 exact source `8e08bead...`, schema `11/11`, Operational V2 `5/5`, missing bindings 0, Agent migration 0/0.
+- Signed `beta-vc67`: release id `394302425`, APK asset id `582970502`, size `19019076`, SHA-256 `0ea00d861d38e6f4cdd22c76120707b9f730b2c990da0ee834e3072d81318edc`.
+- OA031 is ready for Owner field review. D111 is not Owner-PASS until explicit field confirmation.
+- Stable remains OWNER-GATED and untouched.
