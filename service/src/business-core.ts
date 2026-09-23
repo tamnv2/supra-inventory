@@ -5,6 +5,8 @@ type SqlRow = Record<string, SqlStorageValue>;
 type Actor = {
   user_id: string;
   employee_code: string | null;
+  role?: "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
+  display_name?: string;
 };
 
 type BusinessResult = {
@@ -147,11 +149,14 @@ function audit(
 ): void {
   state.storage.sql.exec(
     `INSERT INTO audit_log (
-       audit_id, actor_user_id, actor_employee_code, action, target_type, target_id, metadata_json, created_at
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+       audit_id, actor_user_id, actor_employee_code, actor_role, actor_display_name,
+       action, target_type, target_id, metadata_json, created_at
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     crypto.randomUUID(),
     actor.user_id,
     actor.employee_code,
+    actor.role || null,
+    actor.display_name || null,
     action,
     targetType,
     targetId,
@@ -910,6 +915,40 @@ function adminDashboard(state: DurableObjectState, url: URL): BusinessResult {
     count: Number(row.count || 0),
   }));
 
+  const recentResolutions = state.storage.sql.exec<SqlRow>(
+    `SELECT b.batch_id, b.sku, b.product_name, b.status, b.resolution_source,
+            b.resolved_at, b.resolved_by_user_id,
+            COALESCE(resolver.display_name, '') AS resolved_by_display_name,
+            COALESCE(
+              NULLIF(resolver.employee_code, ''),
+              (SELECT e.actor_employee_code
+                 FROM report_events e
+                WHERE e.batch_id = b.batch_id
+                  AND e.event_type IN ('BATCH_RESOLVED','BATCH_CORRECTED')
+                  AND e.actor_employee_code IS NOT NULL
+                ORDER BY e.created_at DESC
+                LIMIT 1),
+              ''
+            ) AS resolved_by_employee_code
+       FROM report_batches b
+       LEFT JOIN users resolver ON resolver.user_id = b.resolved_by_user_id
+      WHERE b.resolved_at >= ? AND b.resolved_at < ?
+        AND b.status IN ('HAS_STOCK','SKIP_ALLOWED')
+      ORDER BY b.resolved_at DESC, b.batch_id DESC
+      LIMIT 12`,
+    range.from, range.to,
+  ).toArray().map((row) => ({
+    batch_id: String(row.batch_id || ""),
+    sku: String(row.sku || ""),
+    product_name: String(row.product_name || ""),
+    status: String(row.status || ""),
+    resolution_source: String(row.resolution_source || ""),
+    resolved_at: String(row.resolved_at || ""),
+    resolved_by_user_id: row.resolved_by_user_id == null ? null : String(row.resolved_by_user_id),
+    resolved_by_display_name: String(row.resolved_by_display_name || ""),
+    resolved_by_employee_code: String(row.resolved_by_employee_code || ""),
+  }));
+
   const topSkus = state.storage.sql.exec<SqlRow>(
     `SELECT b.sku, b.product_name,
             COUNT(t.ticket_id) AS report_count,
@@ -942,6 +981,7 @@ function adminDashboard(state: DurableObjectState, url: URL): BusinessResult {
       timeline: [...timelineMap.values()].sort((a, b) => a.bucket.localeCompare(b.bucket)),
       outcomes,
       resolution_sources: resolutionSources,
+      recent_resolutions: recentResolutions,
       top_skus: topSkus,
     },
   };
@@ -997,6 +1037,98 @@ function adminReporting(state: DurableObjectState, url: URL): BusinessResult {
   ).toArray();
 
   return { status: 200, payload: { items: rows, count: rows.length, total: Number(totalRow.total || 0), limit, offset, from: range.from, to: range.to, status: validStatus, query } };
+}
+
+
+function safeAuditMetadata(value: unknown, depth = 0): unknown {
+  if (depth > 4) return "[TRUNCATED]";
+  if (value == null || typeof value === "boolean" || typeof value === "number") return value;
+  if (typeof value === "string") return value.slice(0, 300);
+  if (Array.isArray(value)) return value.slice(0, 30).map((item) => safeAuditMetadata(item, depth + 1));
+  if (typeof value === "object") {
+    const output: Record<string, unknown> = {};
+    for (const [key, item] of Object.entries(value as Record<string, unknown>).slice(0, 60)) {
+      output[key] = /password|token|secret|private|credential|cookie|authorization|api.?key|refresh/i.test(key)
+        ? "[REDACTED]"
+        : safeAuditMetadata(item, depth + 1);
+    }
+    return output;
+  }
+  return String(value).slice(0, 300);
+}
+
+function parseAuditMetadata(value: unknown): unknown {
+  if (!value) return {};
+  try {
+    return safeAuditMetadata(JSON.parse(String(value)));
+  } catch {
+    return {};
+  }
+}
+
+function adminAuditHistory(state: DurableObjectState, url: URL): BusinessResult {
+  const roleValue = String(url.searchParams.get("role") || "").trim().toUpperCase();
+  const role = ["REPORTER", "ADMIN", "ROOT"].includes(roleValue) ? roleValue : "";
+  const query = String(url.searchParams.get("query") || "").trim().toLowerCase().slice(0, 160);
+  const limit = normalizeReportingLimit(url.searchParams.get("limit"));
+  const offset = normalizeOffset(url.searchParams.get("offset"));
+  const roleExpr = "COALESCE(NULLIF(a.actor_role,''), u.role, '')";
+  const nameExpr = "COALESCE(NULLIF(a.actor_display_name,''), u.display_name, NULLIF(a.actor_employee_code,''), a.actor_user_id, '')";
+  const where = [roleExpr + " IN ('REPORTER','ADMIN','ROOT')"];
+  const args: SqlStorageValue[] = [];
+  if (role) {
+    where.push(roleExpr + " = ?");
+    args.push(role);
+  }
+  if (query) {
+    const like = "%" + query + "%";
+    where.push(
+      "(lower(COALESCE(a.actor_user_id,'')) LIKE ? OR " +
+      "lower(COALESCE(a.actor_employee_code,'')) LIKE ? OR " +
+      "lower(" + nameExpr + ") LIKE ? OR " +
+      "lower(a.action) LIKE ? OR " +
+      "lower(COALESCE(a.target_type,'')) LIKE ? OR " +
+      "lower(COALESCE(a.target_id,'')) LIKE ?)"
+    );
+    args.push(like, like, like, like, like, like);
+  }
+  const clause = where.join(" AND ");
+  const totalRow = firstRow(state.storage.sql.exec<SqlRow>(
+    "SELECT COUNT(*) AS total FROM audit_log a LEFT JOIN users u ON u.user_id = a.actor_user_id WHERE " + clause,
+    ...args,
+  ).toArray()) || {};
+  const rows = state.storage.sql.exec<SqlRow>(
+    "SELECT a.audit_id, a.actor_user_id, a.actor_employee_code, " +
+    roleExpr + " AS actor_role, " +
+    nameExpr + " AS actor_display_name, " +
+    "a.action, a.target_type, a.target_id, a.metadata_json, a.created_at " +
+    "FROM audit_log a LEFT JOIN users u ON u.user_id = a.actor_user_id " +
+    "WHERE " + clause + " ORDER BY a.created_at DESC, a.audit_id DESC LIMIT ? OFFSET ?",
+    ...args, limit, offset,
+  ).toArray().map((row) => ({
+    audit_id: String(row.audit_id || ""),
+    actor_user_id: String(row.actor_user_id || ""),
+    actor_employee_code: row.actor_employee_code == null ? null : String(row.actor_employee_code),
+    actor_role: String(row.actor_role || ""),
+    actor_display_name: String(row.actor_display_name || ""),
+    action: String(row.action || ""),
+    target_type: row.target_type == null ? null : String(row.target_type),
+    target_id: row.target_id == null ? null : String(row.target_id),
+    metadata: parseAuditMetadata(row.metadata_json),
+    created_at: String(row.created_at || ""),
+  }));
+  return {
+    status: 200,
+    payload: {
+      items: rows,
+      count: rows.length,
+      total: Number(totalRow.total || 0),
+      limit,
+      offset,
+      role,
+      query,
+    },
+  };
 }
 
 function adminReports(state: DurableObjectState, url: URL): BusinessResult {
@@ -1077,6 +1209,7 @@ export async function handleBusinessRequest(state: DurableObjectState, request: 
   else if (request.method === "POST" && url.pathname === "/business/reporter/correct") result = await correctBatch(state, request);
   else if (request.method === "GET" && url.pathname === "/business/admin/dashboard") result = adminDashboard(state, url);
   else if (request.method === "GET" && url.pathname === "/business/admin/reporting") result = adminReporting(state, url);
+  else if (request.method === "GET" && url.pathname === "/business/admin/audit-history") result = adminAuditHistory(state, url);
   else if (request.method === "GET" && url.pathname === "/business/admin/reports") result = adminReports(state, url);
 
   return result ? response(result.payload, result.status) : null;
