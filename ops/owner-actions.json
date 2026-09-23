@@ -1401,16 +1401,27 @@
     },
     {
       "id": "OA031",
-      "status": "PENDING_D111_TECHNICAL_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D111 Android compact daily Reporter/Picker workflow",
       "resource_key": "worker-beta",
       "provider": "Beta Worker + next signed Beta Android",
       "reason_owner_only": "Automated gates can verify scoped queries, build, confirmation wiring and visual tokens; final PDA density, badge readability, interaction and day-boundary behavior require Owner device review.",
       "prerequisites": {
         "d110_owner_acceptance": "PASS",
-        "source_branch": "feat/d111-android-daily-compact-confirm",
-        "current_released_baseline": "beta-vc66",
-        "target_android_release": "next monotonic signed Beta release after beta-vc66",
+        "technical_runtime_release": "PASS",
+        "merged_pr": 159,
+        "source_main": "8e08bead67b34f8302185d0d4ff259ddd5fae857",
+        "main_repo_authority_run": 35819012567,
+        "main_project_state_run": 35819012547,
+        "main_ui_run": 35819012526,
+        "main_beta_worker_run": 35819012562,
+        "main_android_run": 35819012653,
+        "live_health": "HTTP_200__STATUS_OK__ENV_BETA__SOURCE_EXACT_8E08BEAD__STORAGE_TRUE__SCHEMA_11_11__MISSING_0__AGENT_MIGRATION_0_0__OPERATIONAL_5_5",
+        "target_android_release": "beta-vc67",
+        "android_release_id": 394302425,
+        "android_asset_id": 582970502,
+        "android_asset_size": 19019076,
+        "android_sha256": "0ea00d861d38e6f4cdd22c76120707b9f730b2c990da0ee834e3072d81318edc",
         "stable": "OWNER_GATED"
       },
       "shortest_test_path": [
@@ -1431,7 +1442,7 @@
         "No new polling/provider cadence is introduced; Stable remains untouched."
       ],
       "safety": "Beta only. No secrets. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for D111 technical/runtime/release PASS, then field-test the signed Beta APK using the shortest path."
+      "remaining_owner_action": "Field-test signed beta-vc67 using the shortest path above; report PASS or only concrete failed items."
     }
   ]
 }

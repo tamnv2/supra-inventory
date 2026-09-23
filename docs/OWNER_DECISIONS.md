@@ -753,3 +753,13 @@ Owner approved on 2026-09-23 immediately after D110 field PASS.
 6. Android operational history is scoped to **today plus older unresolved work**. Picker sees its reports created today plus any older still-open unresolved ticket. Reporter pending continues to include all unresolved batches, including earlier days; Reporter completed/withdrawn tabs show batches first reported today.
 7. The scope is applied server-side for Android with the existing bounded APIs so older unresolved work cannot be lost behind a recent-row limit. Web historical/reporting behavior is unchanged.
 8. D111 adds no polling loop, provider cadence, datastore, schema migration, or Stable change. The existing realtime reconciliation and zero-network minute ticker remain unchanged. Target is the next monotonic signed Beta Android release after `beta-vc66`; Stable remains OWNER-GATED.
+
+### D111 release checkpoint — 2026-09-23
+
+D111 is technically released on Beta. PR #159 passed its final head gates and squash-merged to main `8e08bead67b34f8302185d0d4ff259ddd5fae857`. Main Repo Authority `35819012567`, Project State `35819012547`, UI Design `35819012526`, Beta Worker `35819012562`, and Verify Beta Android `35819012653` are PASS.
+
+Live Beta health converged on attempt 2 to HTTP 200 with exact source `8e08bead...`, storage ready, schema `11/11`, Operational V2 `5/5`, missing bindings 0 and Agent migration 0/0; auth API, business capability, Web shell and OAuth-start smoke checks passed.
+
+Signed Android release `beta-vc67` targets exact source `8e08bead...`. Release id `394302425`; APK asset id `582970502`; size `19019076` bytes; SHA-256 `0ea00d861d38e6f4cdd22c76120707b9f730b2c990da0ee834e3072d81318edc`.
+
+OA031 is now ready for Owner field review. Stable remains OWNER-GATED and untouched.
