@@ -495,7 +495,7 @@ def main() -> None:
     require(reporter, '.setPositiveButton("Xác nhận")', "D111 Reporter explicit confirmation action")
     require(reporter, "confirmingBatchIds", "D111 Reporter confirmation double-tap lock")
     require(reporter, '"Báo lúc: $reportTime', "D111 Reporter report time")
-    require(reporter, '"Invent phản hồi lúc: $responseTime"', "D111 Reporter response time")
+    require(reporter, 'Invent phản hồi lúc: $responseTime', "D111 Reporter response time")
     forbid(reporter, "Picker đã xác nhận", "D111 remove redundant Picker acknowledgement count")
     forbid(reporter, "Không có SKU đang xử lý.", "D111 remove redundant Reporter summary")
     require(inventory_api, "scope=APP_TODAY_OPEN", "D111 Android scoped history request")
