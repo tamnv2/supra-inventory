@@ -268,6 +268,8 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     "GET /api/admin/dashboard",
     "GET /api/admin/reporting",
     "GET /api/admin/audit-history",
+    "GET /api/admin/dashboard-preference",
+    "PUT /api/admin/dashboard-preference",
     "GET /api/admin/operational-insights",
     "GET /api/admin/sla",
     "PUT /api/admin/sla",
@@ -428,6 +430,15 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
       if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
     }
     return coreGet(env, `${key.endsWith("dashboard") ? "/business/admin/dashboard" : "/business/admin/reporting"}?${params.toString()}`);
+  }
+
+  if (key === "GET /api/admin/dashboard-preference") {
+    return coreGet(env, `/business/admin/dashboard-preference?user_id=${encodeURIComponent(user.user_id)}`);
+  }
+
+  if (key === "PUT /api/admin/dashboard-preference") {
+    const body = await parseObjectBody(request);
+    return corePut(env, "/business/admin/dashboard-preference", { ...body, actor: actor(user) });
   }
 
   if (key === "GET /api/admin/audit-history") {
