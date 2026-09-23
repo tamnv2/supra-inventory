@@ -71,10 +71,12 @@ def main() -> None:
     sla_auto = read("service/src/sla-automation.ts")
     web = read("web/src/operational-app.ts")
 
-    # F09/F11: lifecycle-safe keyed rendering and single-tap withdrawal.
+    # F09/F11 + D110: Picker keeps keyed history; Reporter uses bounded XML ListView adapters with per-batch mutation locking.
     require(keyed, "class KeyedLinearRenderer", "keyed list renderer")
     require(picker, "historyRenderer", "Picker keyed history")
-    require(reporter, "listRenderer", "Reporter keyed list")
+    require(reporter, "private fun pendingAdapter", "D110 Reporter pending adapter")
+    require(reporter, "private fun recentAdapter", "D110 Reporter recent adapter")
+    require(reporter, "processingBatchIds", "D110 Reporter per-batch mutation lock")
     require(picker, "setOnClickListener { confirmWithdraw(row) }", "single-tap withdrawal confirmation")
     forbid(picker, "setOnLongClickListener { confirmWithdraw(row)", "long-press withdrawal")
 
@@ -437,7 +439,8 @@ def main() -> None:
     require(inventory_api, "autoSkipAt", "D070 Reporter next automatic deadline projection")
     if "Hệ thống tự động do quá hạn" not in picker and "Hệ thống tự động lúc:" not in picker:
         fail("missing D070/D109 Picker timeout source copy")
-    require(reporter, "Tự động bỏ qua", "D070 Reporter timeout timing copy")
+    require(reporter, "private fun liveTiming", "D110 Reporter local SLA timing")
+    require(reporter, "scheduleMinuteTicker", "D110 Reporter minute ticker")
     require(sla_auto, "PER_PICKER", "D070 per-Picker service mode")
     require(sla_auto, "FIRST_REPORT", "D070 first-report service mode")
     # D108: dense numeric Picker shortage entry, stable selection, status backgrounds and per-user display scale.
