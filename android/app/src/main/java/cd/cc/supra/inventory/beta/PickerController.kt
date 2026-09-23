@@ -89,7 +89,7 @@ class PickerController(
     private fun applyDisplayScale(root: View) {
         val density = activity.resources.displayMetrics.scaledDensity
         fun visit(view: View) {
-            if (view is TextView) {
+            if (view is TextView && view.id != R.id.btnRelayPocSend) {
                 val baseSp = view.textSize / density
                 view.textSize = (baseSp * displayScale).coerceIn(9f, 27f)
             }
@@ -345,6 +345,11 @@ class PickerController(
                         else -> "Xác nhận lấy lại đơn chưa thành công. Vui lòng về bàn chuyên viên xử lý trực tiếp."
                     }
                     showRelayResult(headline, result.lookupStatus == "CONFIRMED")
+                    if (result.lookupStatus == "CONFIRMED") {
+                        relayPicklistInput?.setText("")
+                        relayPicklistInput?.requestFocus()
+                        setRelayButtonReady(false)
+                    }
                     if (result.lookupStatus == "PICKER_LOCKED") {
                         applyRelayLock(result.lockedUntilMs, result.lockLevel)
                     } else if (result.lookupStatus == "NOT_FOUND" && result.rateStrikes > 0) {
