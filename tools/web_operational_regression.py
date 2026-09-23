@@ -53,6 +53,7 @@ def main() -> None:
     system_reset = read("service/src/system-reset.ts")
     system_reset_core = read("service/src/system-reset-core.ts")
     google_mail = read("service/src/google-mail.ts")
+    app_tools = read("service/src/app-tools.ts")
 
     # F08: realtime/search updates preserve active context instead of rebuilding the full shell.
     require(app, "function captureUiContext()", "UI context capture")
@@ -284,6 +285,35 @@ def main() -> None:
     require(business_core, "resolved_by_employee_code", "D108 report resolver employee code")
     require(operational_core, "b.resolution_source", "D108 recent result source")
     require(operational_core, "resolved_by_display_name", "D108 recent resolver display name")
+
+    # D109: per-user Dashboard preference, global SLA, bounded audit history and latest-PDA tooling.
+    require(app, "let dashboardFrom = dateDaysAgo(0);", "D109 Dashboard defaults to today")
+    require(app, "getDashboardPreference", "D109 Dashboard preference read")
+    require(app, "saveDashboardPreference", "D109 Dashboard preference write")
+    require(api, '"/api/admin/dashboard-preference"', "D109 Dashboard preference API")
+    require(business_core, '"dashboard_range_v1:" + userId', "D109 server per-user Dashboard preference key")
+    require(app, "Cấu hình chung toàn hệ thống", "D109 global SLA user-facing authority")
+    require(business_api, 'event: "sla_settings_updated"', "D109 SLA realtime event")
+    require(business_api, 'scopes: ["sla_settings", "reporter_queue"]', "D109 SLA realtime scope")
+    require(app, 'scopes.has("sla_settings")', "D109 SLA active-view realtime reconcile")
+    require(app, "Lịch sử thao tác", "D109 management audit tab")
+    require(business_core, "actor_display_name", "D109 audit actor display identity")
+    require(business_core, "actor_role", "D109 audit actor role")
+    require(business_core, "IN ('REPORTER','ADMIN','ROOT')", "D109 audit excludes Picker")
+    require(business_core, "safeAuditMetadata", "D109 audit metadata sanitizer")
+    require(app, "recent_resolutions", "D109 Dashboard recent resolutions")
+    require(app, "Người xử lý", "D109 resolver identity presentation")
+    require(app, "QRCode.toDataURL", "D109 local QR generation")
+    require(app, "App PDA", "D109 PDA tools card")
+    require(service_index, 'url.pathname === "/downloads/pda/latest"', "D109 stable latest-PDA route")
+    require(service_index, 'url.pathname === "/api/admin/pda-app"', "D109 PDA release metadata route")
+    require(app_tools, 'https://api.github.com/repos/tamnv2/supra-inventory/releases?per_page=30', "D109 canonical GitHub release source")
+    require(app_tools, 'const APK_ASSET_NAME = "supra-inventory-beta.apk";', "D109 canonical APK asset")
+    require(app_tools, 'stable_download_path: "/downloads/pda/latest"', "D109 version-independent download path")
+    forbid(app, 'downloads/beta-vc', "D109 no hard-coded Beta tag in PDA tools URL")
+    require(core, "const SCHEMA_VERSION = 11;", "D109 additive audit schema target")
+    require(core, 'ALTER TABLE audit_log ADD COLUMN actor_role TEXT', "D109 audit role migration")
+    require(core, 'ALTER TABLE audit_log ADD COLUMN actor_display_name TEXT', "D109 audit display migration")
 
     # D060: Root can temporarily lower its effective role, and the service—not the client—enforces it.
     require(api, "setRootEffectiveRole", "Root effective-role client API")
