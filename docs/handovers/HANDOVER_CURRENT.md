@@ -621,3 +621,16 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA025 FIELD READY**.
 - Android session authority now permits only PICKER/REPORTER; base ADMIN/ROOT are server-denied on ANDROID while Web and real ADMIN Agent remain unchanged.
 - OA030 is pending technical/runtime/release PASS, then Owner physical review. Target signed release: `beta-vc66`.
 - Stable remains OWNER-GATED and untouched.
+
+## D110 technical/runtime/release checkpoint — 2026-09-23
+
+- Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA030 FIELD READY**.
+- Beta: `D110_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_E7931CF8__SCHEMA11__SIGNED_BETA_VC66__OA030_FIELD_READY`.
+- Android: `D110_SIGNED_BETA_VC66__REPORTER_PINNED_4TABS_BADGES_DIRECT_ACTION_LOCAL_MINUTE_SLA__OA030_FIELD_READY`.
+- Web remains the D109 Owner-accepted baseline: `D109_OWNER_ACCEPTED_PASS__PER_USER_DASHBOARD_GLOBAL_SLA_AUDIT_PDA_TOOLS`.
+- PR #157 squash-merged main `e7931cf892978332960e63d9a17dffe454ac1c43`.
+- Main PASS runs: Repo Authority `35816314068`, Project State `35816313998`, UI `35816313994`, Beta Worker `35816313928`, Android `35816313946`.
+- Live Beta health attempt 1: HTTP 200, exact source `e7931cf8...`, storage true, schema `11/11`, missing bindings 0, Agent migration 0/0, Operational V2 `5/5`.
+- Signed `beta-vc66`: release id `394288616`; APK asset id `582908040`; size `19018752`; SHA-256 `715612464d7fd4ead1036959ce70b4fb8cf281e38566aa214a428fbebbf32328`.
+- Reporter minute ticker is presentation-only and generates no network/provider request.
+- OA030 is ready for Owner physical review. Stable remains OWNER-GATED and untouched.
