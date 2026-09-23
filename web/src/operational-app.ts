@@ -20,6 +20,7 @@ import {
   getAdminOperationalInsights,
   getAdminReporting,
   getAdminAuditHistory,
+  getAgentAppRelease,
   getAdminSla,
   getDashboardPreference,
   getPdaAppRelease,
@@ -59,6 +60,7 @@ import {
   type AdminAuditItem,
   type AdminDashboard,
   type AdminReportingRow,
+  type AgentAppRelease,
   type BatchPickerTicket,
   type HrSourceResponse,
   type HrSyncPreview,
@@ -77,7 +79,6 @@ import {
   type SlaResponse,
   type SlaState,
 } from "./api";
-import { AGENT_BUILD, AGENT_DOWNLOAD_URL, AGENT_RELEASE_URL } from "./generated-agent-version";
 import { parseSkuExcel, type ParsedSkuWorkbook } from "./sku-excel";
 import { downloadReportWorkbook } from "./report-excel";
 import { registerRealtimeApplier, type RealtimeEventFrame } from "./realtime-client";
@@ -347,7 +348,9 @@ let auditRole = "";
 let auditQuery = "";
 const AUDIT_PAGE_SIZE = 100;
 let pdaAppRelease: PdaAppRelease | null = null;
+let agentAppRelease: AgentAppRelease | null = null;
 let pdaQrDataUrl = "";
+const reportNoticeBySku = new Map<string, number>();
 let pickerQuery = "";
 let pickerSuggestions: SkuItem[] = [];
 let pickerSelected: SkuItem | null = null;
@@ -550,10 +553,10 @@ function markDeadlineNoticeSeen(eventIds: string[]): string[] {
   return fresh;
 }
 
-function browserBackgroundNotice(title: string, body: string): void {
+function browserBackgroundNotice(title: string, body: string, tag = "supra-inventory-deadline"): void {
   if (document.visibilityState === "visible" || !("Notification" in window) || Notification.permission !== "granted") return;
   try {
-    new Notification(title, { body, tag: "supra-inventory-deadline" });
+    new Notification(title, { body, tag });
   } catch {
     // Browser notification is supplementary; realtime product state remains authoritative.
   }
@@ -601,6 +604,33 @@ function announceDeadlineEvents(events: RealtimeEventFrame[]): void {
     const text = warning === 1 ? "Một SKU vừa tới mốc cảnh báo." : `${warning} SKU vừa tới mốc cảnh báo.`;
     setNotice("warning", text);
     browserBackgroundNotice("SUPRA Inventory · SKU sắp quá hạn", text);
+  }
+}
+
+function announceNewReportEvents(events: RealtimeEventFrame[]): void {
+  if (!roleOperate()) return;
+  const now = Date.now();
+  const grouped = new Map<string, number>();
+  for (const row of events) {
+    if (String(row.event || "").toUpperCase() !== "REPORT_CREATED") continue;
+    const snapshot = row.snapshot || {};
+    const metadata = row.metadata || {};
+    const sku = String(snapshot.sku || metadata.sku || "").trim();
+    if (!sku) continue;
+    const previous = reportNoticeBySku.get(sku) || 0;
+    if (now - previous < 5_000) continue;
+    grouped.set(sku, (grouped.get(sku) || 0) + 1);
+    reportNoticeBySku.set(sku, now);
+  }
+  for (const [sku, count] of grouped) {
+    const text = count > 1
+      ? `SKU ${sku} vừa được ${count} Picker báo hết hàng.`
+      : `SKU ${sku} vừa được báo hết hàng.`;
+    setNotice("warning", text);
+    browserBackgroundNotice("SUPRA Inventory · Báo hết hàng mới", text, `supra-inventory-report-${sku}`);
+  }
+  if (reportNoticeBySku.size > 200) {
+    for (const [sku, at] of reportNoticeBySku) if (now - at > 60_000) reportNoticeBySku.delete(sku);
   }
 }
 
@@ -656,11 +686,18 @@ function resolutionActorLabel(row: {
 }
 
 function renderDatePresets(target: "dashboard" | "reports"): string {
+  const from = target === "dashboard" ? dashboardFrom : reportFrom;
+  const to = target === "dashboard" ? dashboardTo : reportTo;
+  const today = dateDaysAgo(0);
+  const button = (days: number, label: string) => {
+    const active = to === today && from === dateDaysAgo(days);
+    return `<button type="button" class="btn secondary small${active ? " active" : ""}" aria-pressed="${active ? "true" : "false"}" data-date-target="${target}" data-date-days="${days}">${label}</button>`;
+  };
   return `<div class="toolbar date-presets compact-date-presets" aria-label="Chọn nhanh khoảng ngày">
-    <button type="button" class="btn secondary small" data-date-target="${target}" data-date-days="0">Hôm nay</button>
-    <button type="button" class="btn secondary small" data-date-target="${target}" data-date-days="6">7 ngày</button>
-    <button type="button" class="btn secondary small" data-date-target="${target}" data-date-days="29">30 ngày</button>
-    <button type="button" class="btn secondary small" data-date-target="${target}" data-date-days="59">60 ngày</button>
+    ${button(0, "Hôm nay")}
+    ${button(6, "7 ngày")}
+    ${button(29, "30 ngày")}
+    ${button(59, "60 ngày")}
   </div>`;
 }
 
@@ -2127,33 +2164,32 @@ function renderSystemReset(): string {
 }
 
 function renderTools(): string {
-  const pdaStableUrl = pdaAppRelease ? `${window.location.origin}${pdaAppRelease.stable_download_path}` : `${window.location.origin}/downloads/pda/latest`;
+  const pdaStableUrl = `${window.location.origin}${pdaAppRelease?.stable_download_path || "/downloads/pda/latest"}`;
+  const agentStableUrl = `${window.location.origin}${agentAppRelease?.stable_download_path || "/downloads/agent/latest"}`;
   return `<section class="ops-route tools-workspace">
     <div class="heading">
-      <div><h2>Công cụ</h2><p class="muted">Kênh tải chính thức cho App PDA và Agent vận hành.</p></div>
+      <div><h2>Công cụ</h2><p class="muted">Hai kênh cài đặt chính thức cho thiết bị vận hành.</p></div>
     </div>
-    <div class="tools-grid tools-grid-d109">
+    <div class="tools-grid tools-grid-d112">
       <article class="ops-panel tool-card tool-card-primary pda-tool-card">
         <div class="tool-card-head">
           <img class="tool-icon-image" src="/app-icon.png" alt="" aria-hidden="true" />
-          <div><h3>App PDA — SUPRA Inventory</h3><p>Ứng dụng Android cho Picker/Reporter. Mã QR luôn trỏ tới bản Beta mới nhất đã phát hành, không cố định số version.</p></div>
+          <div><h3>App PDA</h3><p>Android · Picker / Reporter</p></div>
         </div>
         <div class="pda-tool-body">
-          <div class="pda-qr-shell">${pdaQrDataUrl ? `<img src="${pdaQrDataUrl}" alt="QR tải App PDA mới nhất" />` : `<div class="pda-qr-loading">Đang tạo QR…</div>`}<small>Quét bằng PDA để tải bản mới nhất</small></div>
+          <div class="pda-qr-shell">${pdaQrDataUrl ? `<img src="${pdaQrDataUrl}" alt="QR tải App PDA mới nhất" />` : `<div class="pda-qr-loading">Đang tạo QR…</div>`}<small>Quét để tải bản mới nhất</small></div>
           <div class="pda-release-info">
             <div class="tool-facts">
-              <div><span>Bản mới nhất</span><strong>${esc(pdaAppRelease?.tag || "Đang tải…")}</strong></div>
+              <div><span>Phiên bản</span><strong>${esc(pdaAppRelease?.tag || "Đang tải…")}</strong></div>
               <div><span>Nền tảng</span><strong>Android 11+</strong></div>
-              <div><span>Tệp</span><strong>${esc(pdaAppRelease?.asset_name || "supra-inventory-beta.apk")}</strong></div>
               <div><span>Dung lượng</span><strong>${pdaAppRelease ? fmtBytes(pdaAppRelease.size_bytes) : "—"}</strong></div>
               <div><span>Phát hành</span><strong>${pdaAppRelease?.published_at ? esc(fmt(pdaAppRelease.published_at)) : "—"}</strong></div>
-              <div><span>Cập nhật</span><strong>Luôn lấy bản mới nhất</strong></div>
+              <div><span>Kênh cập nhật</span><strong class="tool-channel-ok">Beta · hoạt động</strong></div>
             </div>
             <div class="tool-actions">
               <a class="primary tool-download" href="${esc(pdaStableUrl)}">Tải App PDA</a>
               <button type="button" class="secondary" id="copy-pda-link">Sao chép link</button>
             </div>
-            <div class="pda-stable-link"><span>Link cố định</span><code>${esc(pdaStableUrl)}</code></div>
           </div>
         </div>
       </article>
@@ -2161,41 +2197,26 @@ function renderTools(): string {
       <article class="ops-panel tool-card">
         <div class="tool-card-head">
           <img class="tool-icon-image" src="/app-icon.png" alt="" aria-hidden="true" />
-          <div><h3>Agent Auto Confirm Pick Pack</h3><p>Agent Windows phục vụ luồng xác nhận lấy lại đơn và trao đổi dữ liệu với PDA.</p></div>
+          <div><h3>Agent Windows</h3><p>Agent Auto Confirm Pick Pack</p></div>
         </div>
         <div class="tool-facts">
-          <div><span>Phiên bản</span><strong>v${AGENT_BUILD}</strong></div>
-          <div><span>Nền tảng</span><strong>Windows</strong></div>
-          <div><span>Quyền chạy</span><strong>User thường</strong></div>
-          <div><span>Cập nhật</span><strong>Tự động qua GitHub</strong></div>
+          <div><span>Phiên bản</span><strong>${esc(agentAppRelease?.tag || "Đang tải…")}</strong></div>
+          <div><span>Nền tảng</span><strong>Windows · quyền User</strong></div>
+          <div><span>Dung lượng</span><strong>${agentAppRelease ? fmtBytes(agentAppRelease.size_bytes) : "—"}</strong></div>
+          <div><span>Phát hành</span><strong>${agentAppRelease?.published_at ? esc(fmt(agentAppRelease.published_at)) : "—"}</strong></div>
+          <div><span>Kênh cập nhật</span><strong class="tool-channel-ok">Beta · hoạt động</strong></div>
         </div>
         <div class="tool-actions">
-          <a class="primary tool-download" href="${AGENT_DOWNLOAD_URL}">Tải Agent</a>
+          <a class="primary tool-download" href="${esc(agentStableUrl)}">Tải Agent</a>
           <button type="button" class="secondary" id="copy-agent-link">Sao chép link</button>
         </div>
       </article>
-
-      <article class="ops-panel tool-guide">
-        <div class="ops-panel-title"><div><h3>Hướng dẫn nhanh</h3><p>Dùng đúng kênh tải chính thức để tránh cài nhầm bản cũ.</p></div></div>
-        <ol class="tool-steps">
-          <li>App PDA: quét QR hoặc bấm <strong>Tải App PDA</strong>; link cố định tự chuyển tới APK mới nhất.</li>
-          <li>Agent: tải file EXE chính thức và chạy bằng tài khoản Windows hiện tại, không cần quyền Administrator.</li>
-          <li>Agent chỉ đăng nhập bằng tài khoản ADMIN thực và dùng phiên Supra đã được thiết lập trên máy xử lý.</li>
-        </ol>
-      </article>
-
-      <article class="ops-panel tool-safety">
-        <div class="ops-panel-title"><div><h3>Trạng thái kênh công cụ</h3></div></div>
-        <div class="tool-status-list">
-          <div><span class="badge ok">App PDA</span><span>QR/link tự trỏ bản Beta phát hành mới nhất.</span></div>
-          <div><span class="badge ok">Agent</span><span>Tự kiểm tra cập nhật qua GitHub.</span></div>
-          <div><span class="badge">An toàn</span><span>Không nhúng mật khẩu, token hoặc dữ liệu nội bộ vào QR/link.</span></div>
-        </div>
-      </article>
     </div>
+    <article class="ops-panel tool-guide tool-guide-d112">
+      <div class="ops-panel-title"><div><h3>Hướng dẫn cài đặt</h3><p>App: quét QR hoặc tải APK, xác nhận cài đặt khi Android yêu cầu. Agent: tải EXE và chạy bằng tài khoản Windows hiện tại; sau khi đăng nhập ADMIN, Agent tự duy trì và tự kiểm tra cập nhật.</p></div></div>
+    </article>
   </section>`;
 }
-
 function renderAccount(): string {
   const recoveryEmailAllowed = profile?.base_role === "ROOT" || profile?.base_role === "ADMIN";
   return `<section class="ops-route account-workspace">
@@ -2344,16 +2365,19 @@ async function loadDashboard(): Promise<void> {
     dashboardPreferenceLoadedUserId = userId;
   }
   const range = apiRange(dashboardFrom, dashboardTo);
-  const [nextDashboard, nextInsights, nextPresence] = await Promise.all([
+  const [nextDashboard, nextInsights] = await Promise.all([
     getAdminDashboard(range.from, range.to),
     getAdminOperationalInsights(range.from, range.to),
-    getRealtimePresence(),
   ]);
   if (generation !== dashboardLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   dashboardData = nextDashboard;
   operationalInsights = nextInsights;
-  realtimePresence = nextPresence;
   markWebUpdateReceived();
+  void getRealtimePresence().then((nextPresence) => {
+    if (generation !== dashboardLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+    realtimePresence = nextPresence;
+    if (activeSection === "dashboard") patchActiveSection(true);
+  }).catch((error) => runtimeLogEvent(`Không cập nhật được số người online: ${error instanceof Error ? error.message : "unknown"}`, "ERROR"));
 }
 
 async function loadReports(): Promise<void> {
@@ -2361,24 +2385,27 @@ async function loadReports(): Promise<void> {
   const sessionGeneration = sessionViewGeneration;
   const userId = profile?.user_id || "";
   const range = apiRange(reportFrom, reportTo);
-  const [result, summary, insights] = await Promise.all([
-    getAdminReporting({
-      from: range.from,
-      to: range.to,
-      status: reportStatus,
-      query: reportQuery,
-      limit: REPORT_PAGE_SIZE,
-      offset: reportOffset,
-    }),
-    getAdminDashboard(range.from, range.to),
-    getAdminOperationalInsights(range.from, range.to),
-  ]);
+  const result = await getAdminReporting({
+    from: range.from,
+    to: range.to,
+    status: reportStatus,
+    query: reportQuery,
+    limit: REPORT_PAGE_SIZE,
+    offset: reportOffset,
+  });
   if (generation !== reportLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   reportRows = result.items;
   reportTotal = result.total;
-  reportSummary = summary;
-  reportInsights = insights;
   markWebUpdateReceived();
+  void Promise.all([
+    getAdminDashboard(range.from, range.to),
+    getAdminOperationalInsights(range.from, range.to),
+  ]).then(([summary, insights]) => {
+    if (generation !== reportLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+    reportSummary = summary;
+    reportInsights = insights;
+    if (activeSection === "reports") patchActiveSection(true);
+  }).catch((error) => runtimeLogEvent(`Không tải được tổng hợp báo cáo: ${error instanceof Error ? error.message : "unknown"}`, "ERROR"));
 }
 
 async function loadUsers(): Promise<void> {
@@ -2445,15 +2472,16 @@ async function loadTools(): Promise<void> {
   if (!roleManage()) return;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const result = await getPdaAppRelease();
-  const stableUrl = `${window.location.origin}${result.release.stable_download_path}`;
+  const [pdaResult, agentResult] = await Promise.all([getPdaAppRelease(), getAgentAppRelease()]);
+  const stableUrl = `${window.location.origin}${pdaResult.release.stable_download_path}`;
   const qr = await QRCode.toDataURL(stableUrl, {
     errorCorrectionLevel: "M",
     margin: 1,
     width: 220,
   });
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
-  pdaAppRelease = result.release;
+  pdaAppRelease = pdaResult.release;
+  agentAppRelease = agentResult.release;
   pdaQrDataUrl = qr;
   markWebUpdateReceived();
 }
@@ -2868,7 +2896,8 @@ function bindSection(): void {
 
   document.querySelector<HTMLButtonElement>("#copy-agent-link")?.addEventListener("click", async () => {
     try {
-      await navigator.clipboard.writeText(AGENT_DOWNLOAD_URL);
+      const stableUrl = `${window.location.origin}${agentAppRelease?.stable_download_path || "/downloads/agent/latest"}`;
+      await navigator.clipboard.writeText(stableUrl);
       setNotice("success", "Đã sao chép link tải Agent.");
     } catch {
       setNotice("warning", "Không sao chép tự động được. Hãy dùng nút Tải Agent.");
@@ -3246,6 +3275,7 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
   if (events.length > 0) {
     markWebUpdateReceived();
     announceDeadlineEvents(events);
+    announceNewReportEvents(events);
   }
   if (context.source === "reconcile") return reconcileActive();
 
