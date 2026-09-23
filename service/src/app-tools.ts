@@ -38,9 +38,11 @@ const RELEASE_BASE = `https://github.com/${REPOSITORY}/releases/tag`;
 const PDA_MANIFEST_URL = `${CHANNEL_BASE}/pda-latest.json`;
 const PDA_ASSET_NAME = "supra-inventory-beta.apk";
 const PDA_ASSET_URL = `${CHANNEL_BASE}/${PDA_ASSET_NAME}`;
+const PDA_CHECKSUM_URL = `${CHANNEL_BASE}/${PDA_ASSET_NAME}.sha256`;
 const AGENT_MANIFEST_URL = `${CHANNEL_BASE}/agent-latest.json`;
 const AGENT_ASSET_NAME = "Agent.Auto.Confirm.Pick.Pack.exe";
 const AGENT_ASSET_URL = `${CHANNEL_BASE}/${AGENT_ASSET_NAME}`;
+const AGENT_CHECKSUM_URL = `${CHANNEL_BASE}/${AGENT_ASSET_NAME}.sha256`;
 const CACHE_MS = 5 * 60_000;
 
 let pdaCache: { expires_at: number; release: PdaAppRelease } | null = null;
@@ -121,6 +123,14 @@ export function redirectLatestPdaApk(): Response {
   return stableRedirect(PDA_ASSET_URL);
 }
 
+export function redirectLatestPdaChecksum(): Response {
+  return stableRedirect(PDA_CHECKSUM_URL);
+}
+
 export function redirectLatestAgentExe(): Response {
   return stableRedirect(AGENT_ASSET_URL);
+}
+
+export function redirectLatestAgentChecksum(): Response {
+  return stableRedirect(AGENT_CHECKSUM_URL);
 }
