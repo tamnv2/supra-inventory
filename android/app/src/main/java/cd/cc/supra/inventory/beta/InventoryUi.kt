@@ -221,7 +221,7 @@ class InventoryUi(private val activity: Activity) {
 
     fun addFooter(root: LinearLayout) {
         root.addView(TextView(activity).apply {
-            text = "Xây dựng và phát triển bởi tamnv2 - Chuyên viên Pick Pack 1291"
+            text = "Phát triển hệ thống · tamnv2 | Pick Pack 1291"
             textSize = 9f
             maxLines = 1
             setAutoSizeTextTypeUniformWithConfiguration(7, 10, 1, TypedValue.COMPLEX_UNIT_SP)
