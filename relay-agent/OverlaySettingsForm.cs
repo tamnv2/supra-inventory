@@ -133,26 +133,26 @@ namespace SupraInventoryRelayAgent
             };
             appearance.Controls.Add(_textColor);
 
-            var laptop = BuildChecklistGroup("Thông tin Laptop", 20, 280, 290, 260, new[]
+            var laptop = BuildChecklistGroup("Vận hành", 20, 280, 290, 260, new[]
             {
-                new Tuple<string,string,bool>("laptop_group", "Hiển thị dòng Laptop", options.ShowLaptopGroup),
-                new Tuple<string,string,bool>("cpu", "CPU (%)", options.ShowCpu),
-                new Tuple<string,string,bool>("memory", "RAM đã dùng / tổng", options.ShowMemory),
-                new Tuple<string,string,bool>("disk", "Disk (%)", options.ShowDisk),
-                new Tuple<string,string,bool>("network", "Wi-Fi/Ethernet + tốc độ ↓/↑", options.ShowNetwork),
-                new Tuple<string,string,bool>("internet", "Trạng thái Internet ON/OFF", options.ShowInternet),
-                new Tuple<string,string,bool>("gpu", "GPU (%) khi Windows hỗ trợ", options.ShowGpu),
+                new Tuple<string,string,bool>("laptop_group", "Hiển thị dòng Vận hành", options.ShowLaptopGroup),
+                new Tuple<string,string,bool>("cpu", "Vai trò PRIMARY/STANDBY/FROZEN", options.ShowCpu),
+                new Tuple<string,string,bool>("memory", "Trạng thái Firestore", options.ShowMemory),
+                new Tuple<string,string,bool>("disk", "Trạng thái WMS", options.ShowDisk),
+                new Tuple<string,string,bool>("network", "Phiên bản Agent", options.ShowNetwork),
+                new Tuple<string,string,bool>("internet", "Trạng thái nghiệp vụ", options.ShowInternet),
+                new Tuple<string,string,bool>("gpu", "Số PickList trong cache", options.ShowGpu),
             });
             Controls.Add(laptop);
 
-            var agent = BuildChecklistGroup("Thông tin Agent", 330, 280, 290, 260, new[]
+            var agent = BuildChecklistGroup("Tải Agent & cụm", 330, 280, 290, 260, new[]
             {
                 new Tuple<string,string,bool>("agent_group", "Hiển thị dòng Agent", options.ShowAgentGroup),
-                new Tuple<string,string,bool>("agent_online", "Tổng Agent online", options.ShowAgentOnline),
-                new Tuple<string,string,bool>("agent_state", "ACTIVE / STANDBY", options.ShowAgentState),
-                new Tuple<string,string,bool>("pda_requests", "APK gửi đến máy này", options.ShowPdaRequests),
-                new Tuple<string,string,bool>("agent_responses", "Phản hồi từ máy này", options.ShowAgentResponses),
-                new Tuple<string,string,bool>("wms_session", "Phiên Supra WMS sẵn sàng", options.ShowWmsSession),
+                new Tuple<string,string,bool>("agent_online", "CPU tiến trình Agent", options.ShowAgentOnline),
+                new Tuple<string,string,bool>("agent_state", "RAM + thời gian chạy Agent", options.ShowAgentState),
+                new Tuple<string,string,bool>("pda_requests", "Yêu cầu + số đang chờ", options.ShowPdaRequests),
+                new Tuple<string,string,bool>("agent_responses", "Xác nhận OK / lỗi", options.ShowAgentResponses),
+                new Tuple<string,string,bool>("wms_session", "Cụm Agent + thời điểm cập nhật", options.ShowWmsSession),
             });
             Controls.Add(agent);
 
