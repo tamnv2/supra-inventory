@@ -458,3 +458,10 @@ D111 applies only to Android App/PDA presentation and scoped read projections.
 - The manual rule is independent of the Android confirmation carrier. Android remains current four-digit input and Firestore keeps the accepted four/five-digit rollout guard.
 - Before ADMIN login, the Windows Agent may close normally. Once a valid ADMIN runtime is active, protected exit and the user-mode watchdog are armed. Explicit logout/authorized exit/update/shutdown suppress restart.
 
+## D113 — Reporter correction and presentation refinement
+
+- REPORTER/ADMIN/ROOT resolution authority is unchanged.
+- A `SKIP_ALLOWED` batch may be corrected to `HAS_STOCK` only when the global D113 correction switch is enabled and current server time is not later than `first_report_at + skip_to_stock_minutes`.
+- The correction window is not restarted by pressing Skip. Repeated reports in the same pending batch keep the original batch `first_report_at`.
+- Reporter result history exposes the authoritative resolver identity when available so Android can render **Invent phản hồi lúc HH:mm bởi <người xử lý>**. `SYSTEM_TIMEOUT` is represented as **Hệ thống** rather than inventing a user.
+- Picker/Reporter Android display-scale reset is presentation-only; it does not change role, business state or server data.
