@@ -478,7 +478,7 @@ def main() -> None:
     require(picker_layout, 'android:text="Xác nhận đơn"', "D109 confirmation tab label")
     require(manifest, 'android:windowSoftInputMode="adjustNothing"', "D109 stationary tabs during IME")
     require(picker, 'DateTimeFormatter.ofPattern("HH:mm")', "D109 time-only formatter")
-    require(picker, '"Báo hết lúc: ${timeOnly(row.reportedAt)}"', "D109 reported time label")
+    require(picker, 'Báo hết lúc: ${timeOnly(row.reportedAt)}', "D109 reported time label")
     require(picker, '"Invent phản hồi lúc: ${timeOnly(row.resolvedAt)}"', "D109 Invent response time label")
     forbid(picker, 'DateTimeFormatter.ofPattern("dd/MM/yyyy")', "D109 no shortage-history date formatter")
     require(picker, "R.drawable.bg_picker_tab_selected", "D109 tab selected runtime styling")
