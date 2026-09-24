@@ -130,6 +130,8 @@ jobs:
             exit 1
           fi
           grep -q 'android:maxLength="20"' android/app/src/main/res/layout/view_picker.xml
+          grep -q 'android:windowSoftInputMode="adjustResize"' android/app/src/main/AndroidManifest.xml
+          grep -q 'android:id="@+id/pickerOperationTabs"' android/app/src/main/res/layout/view_picker.xml
           if grep -q 'PROCESSING' "$client"; then
             echo "D097 confirmation client must not use PROCESSING" >&2
             exit 1
@@ -138,7 +140,7 @@ jobs:
             echo "D097 confirmation client must not use RTDB" >&2
             exit 1
           fi
-          echo "D117 Android 20-second terminal / D116 persistent result / D115 cleanup / D114 suffix guard PASS"
+          echo "D118 Android IME resize / D117 20-second terminal / D116 persistent result / D114 suffix guard PASS"
 
       - name: Assemble Android 11+ Beta APK
         env:
