@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D113_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_7DCC76AB__SCHEMA11__SIGNED_BETA_VC69__AGENT_V32__OA033_FIELD_READY",
+      "status": "D114_SOURCE_IMPLEMENTED__PR_GATES_PENDING__SCHEMA11__TARGET_NEXT_ANDROID__AGENT_V33__STABLE_UNTOUCHED",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
