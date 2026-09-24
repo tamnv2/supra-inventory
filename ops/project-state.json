@@ -13,26 +13,26 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_BCBABC09__SCHEMA11__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
+    "beta": "D116_SOURCE_READY__D115_LIVE_RUNTIME_BCBABC09__SCHEMA11__TARGET_NEXT_SIGNED_BETA__TARGET_AGENT_V35__PR_GATES_PENDING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 11,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D114_OWNER_ACCEPTED_PASS__BALANCED_TOOLS__GLOBAL_REALTIME_QUEUE_BADGE",
-    "android": "D115_SIGNED_BETA_VC71__ASYNC_UID_CLEANUP__FINAL_ACK_SERVER_READ__NEUTRAL_FAILOVER_COPY__OA035_FIELD_READY",
+    "web": "D116_SOURCE_READY__AUTO_SELECTED_PICKER_DETAIL__SKU_CATALOG_WORKSPACE__PICKER_SAFE_BULK_SELECTION",
+    "android": "D116_SOURCE_READY__TERMINAL_CONFIRM_RESULT_PERSISTS_AFTER_INPUT_RESET__LIVE_BETA_VC71__NEXT_SIGNED_BETA_PENDING",
     "latest_beta_apk": "beta-vc71",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
-    "network_scope": "D115_TECHNICAL_PASS__PRIMARY_2S__STANDBY_10S__FAILOVER_10S__ACK_RECOVERY__AGENT_V34__STABLE_UNTOUCHED",
+    "network_scope": "D116_SOURCE_READY__PRIMARY_3S__STANDBY_10S__FAILOVER_10S__ACK_RECOVERY__TARGET_AGENT_V35__STABLE_UNTOUCHED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
-    "user_management": "D106_NATIVE_FIREBASE_PASSWORD_DIRECT_VERIFY_AND_FAILED_CREATE_COMPENSATION_RUNTIME_PASS__OA026_FIELD_READY",
+    "user_management": "D116_SOURCE_READY__PICKER_ONLY_BULK_SELECTION__ALL_WITH_EXCLUSIONS__ROOT_AND_NON_PICKER_PROTECTED",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D112_OWNER_ACCEPTED_PASS__EXISTING_METRICS_OPERATIONAL_HIERARCHY__NONBLOCKING_SECONDARY_LOAD",
-    "quota_resilience": "D115_PRIMARY_2S_SINGLE_ELECTED_BUSINESS_ONLY__STANDBY_10S__FROZEN_NO_BUSINESS_POLL__NO_ANDROID_POLL__NO_PROCESSING_WRITE__OA035_FIELD_READY",
-    "ui_design_guard": "D115_MAIN_UI_PASS_RUN_35948065209__OA035_FIELD_READY",
+    "quota_resilience": "D116_PRIMARY_3S_SINGLE_ELECTED_BUSINESS_ONLY__STANDBY_10S__FROZEN_NO_BUSINESS_POLL__NO_ANDROID_POLL__NO_PROCESSING_WRITE__FIELD_UNDER5_GATE_PENDING",
+    "ui_design_guard": "D116_SOURCE_READY__PR_GATES_PENDING",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D112_OWNER_ACCEPTED_PASS__FAST_PRIMARY_ROWS__30_60_90_AUDIT_VIEW__EXISTING_AUTHORITATIVE_METRICS_ONLY",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__UNDER5S_HEALTHY_PRIMARY_TARGET__ACK_RECOVERY__OA035_FIELD_READY"
+    "picklist_confirmation_poc": "D116_SOURCE_READY__UNDER5S_HEALTHY_PRIMARY_FIELD_TARGET__TERMINAL_RESULT_PERSISTENCE__ACK_RECOVERY"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -96,7 +96,8 @@
     "D111 Owner field PASS: signed beta-vc67 is accepted for Reporter per-user A−/A+ scale, pending-only red/white badge priority, neutral history badges, explicit HAS_STOCK/SKIP confirmation, removal of redundant Reporter copy, and Android today-plus-older-unresolved display scope for Picker/Reporter without added polling.",
     "D112 Owner-approved Beta refinement: stable version-independent App/Agent distribution channel, Web Tools/preset/speed/report notice, 90-day audit/support-log retention, Android insets/update/input/password/footer cleanup, and Agent v31 normal window + post-auth watchdog + 3-20 digit exact-suffix unique-only manual search; no extra polling and Stable unchanged.",
     "D112 Owner field PASS: live Beta Web, signed beta-vc68 and relay-agent-v31 are accepted; version-independent distribution, Web operations, Android device UX and Agent v31 resilience are the current Beta baseline while D097/D104/D105 quota/Firestore/WMS/no-offline guards and Stable OWNER-GATED remain unchanged.",
-    "D113 Owner requirement: Web adopts the approved login reference while retaining project identity; pending queue badge and D112 notifications remain no-poll; warning/overdue/auto-Skip become independently switchable; Skip→Đã có hàng is globally switchable and expires from first report time; Android gains compact empty state/100% reset/friendly login/resolver identity; Agent gains explicit background action. Passwords may only be remembered by browser credential management, never plaintext application storage."
+    "D113 Owner requirement: Web adopts the approved login reference while retaining project identity; pending queue badge and D112 notifications remain no-poll; warning/overdue/auto-Skip become independently switchable; Skip→Đã có hàng is globally switchable and expires from first report time; Android gains compact empty state/100% reset/friendly login/resolver identity; Agent gains explicit background action. Passwords may only be remembered by browser credential management, never plaintext application storage.",
+    "D116 supersedes only D115 PRIMARY confirmation cadence to 3 seconds: STANDBY stays 10 seconds, FROZEN does not poll business work, Android remains listener-driven/no-poll, healthy-primary field target stays under 5 seconds; selected Web Picker detail reuses existing prefetch/cache; Picker bulk selection is Picker-only with server-authoritative exclusions."
   ],
   "completed_capabilities": [
     "Cloudflare Beta Worker/custom domain/InventoryCore SQLite provisioning",
@@ -159,6 +160,7 @@
     "D110 Beta technical/runtime/release PASS: Reporter pinned four-tab Android workflow, authoritative badges, direct primary actions, local zero-poll minute SLA clock, canonical branding, and ADMIN/ROOT Android server denial released as signed beta-vc66."
   ],
   "pending_build": [
+    "D116 source ready on feat/d116-quota-result-web-admin: PRIMARY 3s quota balance, durable Android terminal result, automatic selected-SKU Picker detail, professional SKU workspace and Picker-only all-with-exclusions account selection. PR/runtime/release gates pending; Stable untouched.",
     "D115 technical/runtime/release PASS: PR #173 merged main bcbabc09; main Authority/State/UI/Worker/Android/Agent PASS; live Beta exact source schema 11/11 Operational V2 5/5; signed beta-vc71 + relay-agent-v34 and fixed runtime channel published. OA035 Owner field review remains; Stable untouched.",
     "D114 technical/runtime/release PASS: implementation main 8cdf941b, Firestore Rules repair main e6138dbd, final release-gate main bc8d6c3e; signed beta-vc70 + relay-agent-v33 published and fixed runtime channel refreshed. OA034 Owner field review remains; Stable untouched.",
     "D096 Agent v21 release after PR authority/continuity/build/runtime-parser guards PASS; Android beta-vc59 unchanged",
@@ -168,7 +170,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "OA035 D115 READY: field-test signed beta-vc71 + relay-agent-v34 with one healthy PRIMARY/no failover; require Android create→terminal result RTT <5,000 ms and verify cleanup/ACK recovery fixes.",
+    "OA036 D116 WAITING: after technical/runtime/release PASS, Owner retests next signed Android + relay-agent-v35 for healthy <5s result, reduced Firestore read trend, durable App result and Web operations/SKU/users behavior.",
     "OA026 D106 physical credential acceptance: one post-D106 ADMIN password set -> unchanged Agent v30 direct login, plus one fresh ADMIN Web create -> immediate Agent login; verify no ghost-account-on-error.",
     "OA025 D105 physical acceptance: Android 4-digit input, dimmed in-flight confirm button, prominent terminal result, Agent manual 3–4 digit search, and unique 4-digit full-PickList resolution.",
     "OA022 D102 physical Agent v27 acceptance: one Tổng quan layout, manual update, >=2 Agent role convergence, fleet table, 21:30 five-minute warning, 22:00 default business pause, explicit continue/stop and 05:00 automatic resume.",
@@ -186,7 +188,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "OA035: Owner field-tests signed beta-vc71 + relay-agent-v34 on one healthy PRIMARY/no-failover path. Require controlled healthy Android create→terminal result RTT <5,000 ms, verify cleanup no longer delays send and ACK recovery avoids false timeout/duplicate WMS mutation. Record D115 Owner PASS only after explicit Owner confirmation; Stable remains OWNER-GATED.",
+  "next_action": "D116: complete PR authority/continuity/source gates, merge only on PASS, verify live Beta plus next signed Android and relay-agent-v35, then expose OA036 field test. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -212,6 +214,7 @@
   },
   "workboard": {
     "in_progress": [
+      "D116 IN PROGRESS: Owner-reported D115 quota/result defects plus Web admin refinements are source-implemented on feat/d116-quota-result-web-admin. Target Agent v35 + next signed Beta Android; PR/runtime/release PASS pending. Stable untouched.",
       "D115 OWNER FIELD REVIEW: technical/runtime/release PASS on main bcbabc09 with beta-vc71 + relay-agent-v34. OA035 must verify healthy PRIMARY/no-failover <5s Android RTT plus cleanup and ACK-recovery behavior. Stable untouched.",
       "D113 TECHNICAL/RUNTIME/RELEASE PASS: main 7dcc76ab, exact live Beta, signed beta-vc69 and relay-agent-v32 are released; OA033 is ready for Owner field review. Stable untouched.",
       "D112 OWNER PASS: Owner field-confirmed live Beta Web + signed beta-vc68 + relay-agent-v31 on 2026-09-23. OA032 closed. D112 is the accepted Beta baseline; Stable remains untouched.",
@@ -248,7 +251,8 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "OA035: Owner field-tests beta-vc71 + relay-agent-v34; fix only reported D115 defects on a fresh branch if needed.",
+      "D116: finish PR authority/continuity/source gates, merge only on PASS, then verify exact live Beta and publish/check next signed Android + relay-agent-v35.",
+      "OA036: after D116 technical/runtime/release PASS, Owner runs the bounded field test and D116 is recorded PASS only on explicit confirmation.",
       "D110 OA030: Owner field-tests signed beta-vc66 Reporter pinned tabs/badges/direct actions/local SLA clock/icon/footer and ADMIN/ROOT Android denial.",
       "READY: wait for the Owner's next requirement; bootstrap canonical GitHub authority before any new work. Preserve D109 accepted Beta baseline and Stable OWNER-GATED.",
       "OA027: after the automatic main Web deploy has propagated, Owner reviews live Beta login + authenticated shell + Tổng quan/Báo cáo chi tiết. If accepted, record D107 OWNER PASS; if not, fix only reported Beta defects.",
@@ -648,7 +652,7 @@
     "D115 Owner-approved 2026-09-24 after D114 PASS: repair Android cleanup/timeout and Agent ACK-delivery reliability, and target <5s PDA create→terminal result on healthy PRIMARY/no-failover path. PRIMARY Firestore job poll may change 5s→2s; STANDBY remains 10s; no Android polling/PROCESSING write/new provider; target beta-vc71 + relay-agent-v34; Stable untouched.",
     "D115 technical/runtime/release PASS 2026-09-24: PR #173 merged main bcbabc09. Main Repo Authority 35948065198, Project State 35948065182, UI 35948065209, Beta Worker 35948065164, Android 35948065152 and Relay Agent 35948065389 PASS. Live Beta health attempt 1 exact source, schema 11/11, Operational V2 5/5. Signed beta-vc71 + relay-agent-v34 published; OA035 field-ready."
   ],
-  "active_workstream": "D115_OWNER_FIELD_REVIEW",
+  "active_workstream": "D116_IMPLEMENTATION_PR_AND_RUNTIME_RELEASE",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",

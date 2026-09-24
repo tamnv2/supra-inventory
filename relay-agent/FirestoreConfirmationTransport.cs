@@ -36,7 +36,7 @@ namespace SupraInventoryRelayAgent
 
     internal sealed class FirestoreConfirmationTransport
     {
-        internal const int PrimaryPollIntervalMs = 2000;
+        internal const int PrimaryPollIntervalMs = 3000;
         internal const int StandbyPollIntervalMs = 10000;
         internal const int MaxDocumentsPerPoll = 100;
         internal const int MaxConcurrentJobs = 12;

@@ -1525,3 +1525,26 @@ body[data-theme="dark"] .global-setting-note {
   .tools-grid-d112 { grid-template-columns: 1fr !important; }
   .tools-grid-d112 .tool-card { min-height: 0; }
 }
+
+
+/* D116 — quota-safe admin refinement: automatic Picker detail, SKU workspace and protected bulk selection. */
+.picker-detail-title{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border-bottom:1px solid var(--pro-border);background:#f8fafc;color:#334155;font-size:11px}
+.picker-detail-title span{color:#667085;font-weight:600}
+.sku-top-grid{align-items:start}
+.sku-admin-search{display:grid;grid-template-columns:minmax(220px,1fr) auto auto;gap:8px;margin-bottom:12px}
+.sku-admin-search input{min-height:40px;padding:8px 10px;border:1px solid var(--pro-border);border-radius:8px;background:var(--pro-surface);color:var(--pro-text)}
+.sku-catalog-table{max-height:420px;overflow:auto}.sku-result-count{margin-top:9px}
+.sku-summary-time{font-size:16px!important;line-height:1.25!important;letter-spacing:0!important}
+.sku-summary-version{font-size:18px!important;overflow-wrap:anywhere}
+.user-select-col{width:76px;text-align:center!important}
+.bulk-picker-check{position:relative;display:inline-grid;place-items:center;width:28px;height:28px;cursor:pointer}
+.bulk-picker-check input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.bulk-picker-check span{width:18px;height:18px;border:1.5px solid #98a2b3;border-radius:5px;background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.05)}
+.bulk-picker-check input:checked+span{border-color:#2563eb;background:#2563eb}
+.bulk-picker-check input:checked+span::after{content:"";display:block;width:8px;height:4px;margin:4px 0 0 3px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg)}
+.bulk-picker-check:focus-within span{outline:3px solid rgba(37,99,235,.16);outline-offset:2px}
+.bulk-not-applicable{display:inline-flex;align-items:center;justify-content:center;min-width:40px;min-height:24px;padding:2px 6px;border-radius:999px;background:#f2f4f7;color:#667085;font-size:10px;font-weight:650}
+body[data-theme="dark"] .picker-detail-title,body[data-theme="dark"] .bulk-not-applicable{background:#162033!important;color:#cbd5e1!important;border-color:#334155!important}
+body[data-theme="dark"] .bulk-picker-check span{background:#0f172a;border-color:#64748b}
+body[data-theme="dark"] .sku-admin-search input{background:#0f172a;color:#e7edf5;border-color:#334155}
+@media(max-width:780px){.sku-admin-search{grid-template-columns:1fr 1fr}.sku-admin-search input{grid-column:1/-1}}

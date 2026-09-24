@@ -122,6 +122,7 @@ jobs:
           grep -q 'triggerCleanupAsync' "$client"
           grep -q 'Source.SERVER' "$client"
           grep -q 'final-read recovered ACK' "$client"
+          grep -q 'suppressRelayInputHint' "$picker"
           grep -q 'owner_uid' "$client"
           grep -q 'hệ thống sẽ tự chuyển Agent dự phòng nếu cần' "$client"
           if grep -A8 'fun sendProbe' "$client" | grep -q 'runDueCleanup'; then
@@ -137,7 +138,7 @@ jobs:
             echo "D097 confirmation client must not use RTDB" >&2
             exit 1
           fi
-          echo "D115 Android fast-path cleanup / final ACK recovery / D114 suffix ambiguity / D097 timing guard PASS"
+          echo "D116 Android persistent terminal-result / D115 fast-path cleanup / D114 suffix ambiguity / D097 timing guard PASS"
 
       - name: Assemble Android 11+ Beta APK
         env:

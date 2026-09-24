@@ -488,3 +488,11 @@ D114 supersedes the D105/D112 suffix-length carrier details where they conflict.
 - At 10 seconds without terminal result, Android uses neutral waiting/failover copy rather than declaring the PRIMARY inactive without evidence.
 - At 30 seconds, Android performs one final authoritative server read before showing the specialist-desk fallback.
 - ACK-delivery recovery is transport-only: it must never cause the Agent to repeat a WMS confirmation mutation.
+
+## D116 — Admin/Root catalog and account workflow
+
+- Opening **Danh mục SKU** loads current catalog metadata plus a bounded first page. Search is explicit by SKU/product name; import remains a separate controlled mutation.
+- Opening **Nhân sự & tài khoản** does not imply every account is bulk-manageable. Bulk selection is Picker-only and can span the full Picker set while carrying explicit per-Picker exclusions.
+- Selecting all Picker does not lock individual Picker checkboxes. Unchecking one Picker removes that Picker from the eventual all-set mutation even across the backend boundary.
+- ROOT/ADMIN/REPORTER are never swept into Picker bulk actions. ROOT protection is visible and server-enforced.
+- Reporter/Root/Admin operations detail shows affected Picker rows automatically for the selected shortage batch from the existing cached/prefetched detail request; no additional polling loop is introduced.

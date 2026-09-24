@@ -241,7 +241,7 @@ async function deletePicker(state: DurableObjectState, actor: Actor, target: Use
 }
 
 async function pickerBulkAction(state: DurableObjectState, request: Request): Promise<Response> {
-  const body = (await request.json()) as { actor?: Actor; action?: PickerBulkAction; user_ids?: unknown; all?: boolean; request_id?: unknown };
+  const body = (await request.json()) as { actor?: Actor; action?: PickerBulkAction; user_ids?: unknown; excluded_user_ids?: unknown; all?: boolean; request_id?: unknown };
   const actor = body.actor;
   const action = String(body.action || "").toUpperCase() as PickerBulkAction;
   if (!actor?.user_id || !["ADMIN","ROOT"].includes(actor.role) || !["ENABLE","DISABLE","DELETE"].includes(action) || !validRequestId(body.request_id)) {
@@ -250,7 +250,12 @@ async function pickerBulkAction(state: DurableObjectState, request: Request): Pr
   let targets = state.storage.sql.exec<UserRow>(
     `SELECT user_id, firebase_uid, employee_code, display_name, role, status, password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at FROM users WHERE role = 'PICKER' ORDER BY employee_code ASC`,
   ).toArray();
-  if (!body.all) {
+  const excludedIds = Array.isArray(body.excluded_user_ids)
+    ? new Set(body.excluded_user_ids.map((value) => String(value || "").trim()).filter(Boolean))
+    : new Set<string>();
+  if (body.all) {
+    if (excludedIds.size) targets = targets.filter((row) => !excludedIds.has(row.user_id));
+  } else {
     const ids = Array.isArray(body.user_ids) ? new Set(body.user_ids.map((value) => String(value || "").trim()).filter(Boolean)) : new Set<string>();
     if (!ids.size) return response({ error: "PICKER_SELECTION_REQUIRED" }, 400);
     targets = targets.filter((row) => ids.has(row.user_id));
@@ -276,7 +281,7 @@ async function pickerBulkAction(state: DurableObjectState, request: Request): Pr
       affected += 1;
     }
   });
-  audit(state, actor, "PICKER_BULK_ACTION", "USER_SET", String(body.request_id), { action, affected, all: Boolean(body.all) });
+  audit(state, actor, "PICKER_BULK_ACTION", "USER_SET", String(body.request_id), { action, affected, all: Boolean(body.all), excluded_count: body.all ? excludedIds.size : 0 });
   return response({ status: "applied", action, affected });
 }
 

@@ -1007,10 +1007,17 @@ export async function updatePickerAccounts(
   action: "ENABLE" | "DISABLE" | "DELETE",
   userIds: string[] = [],
   all = false,
+  excludedUserIds: string[] = [],
 ): Promise<{ status: string; action: string; affected: number }> {
   return readJson(await authorizedFetch("/api/admin/pickers/bulk", {
     method: "POST",
-    body: JSON.stringify({ request_id: crypto.randomUUID(), action, all, user_ids: all ? [] : userIds }),
+    body: JSON.stringify({
+      request_id: crypto.randomUUID(),
+      action,
+      all,
+      user_ids: all ? [] : userIds,
+      excluded_user_ids: all ? excludedUserIds : [],
+    }),
   }));
 }
 

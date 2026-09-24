@@ -855,3 +855,14 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - Android: `D115_SIGNED_BETA_VC71__ASYNC_UID_CLEANUP__FINAL_ACK_SERVER_READ__NEUTRAL_FAILOVER_COPY__OA035_FIELD_READY`
 - Latest Beta APK: `beta-vc71`
 - SQLite schema: `11`
+
+## D116 source checkpoint — 2026-09-24
+
+- Web: D116_SOURCE_READY__AUTO_SELECTED_PICKER_DETAIL__SKU_CATALOG_WORKSPACE__PICKER_SAFE_BULK_SELECTION
+- Android: D116_SOURCE_READY__TERMINAL_CONFIRM_RESULT_PERSISTS_AFTER_INPUT_RESET__LIVE_BETA_VC71__NEXT_SIGNED_BETA_PENDING
+- Current signed Beta before D116 merge/release: beta-vc71
+- SQLite schema: 11
+- Agent target: relay-agent-v35; PRIMARY 3s, STANDBY 10s, FROZEN no business polling.
+- D115 OA035 is superseded by OA036 after Owner-reported quota/result defects.
+- D116 source is on feat/d116-quota-result-web-admin / PR #175. Merge only after authority + continuity + source gates PASS.
+- Stable remains OWNER-GATED and untouched.

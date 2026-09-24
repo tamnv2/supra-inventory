@@ -653,3 +653,12 @@ D111 supersedes only the conflicting D110 Reporter interaction/presentation deta
 - Android Picker does not render an empty selected-SKU placeholder card. A−, A+, **100%**, Log and Thoát stay compact and touch-safe; action text auto-sizes rather than clipping.
 - Android Reporter action buttons appear after product/time metadata. Result metadata keeps the responder identity on the response-time line where available.
 - Agent adds a visible **Chuyển xuống nền** control without replacing native Windows window controls.
+
+## D116 — Result persistence and admin workspace refinement
+
+- Android **Xác nhận đơn** keeps the terminal result visible after a successful request even though the input is cleared for the next entry. The initial empty-input hint must not overwrite CONFIRMED/terminal feedback.
+- Web operations shows **Picker ảnh hưởng** immediately for the selected SKU using the already-prefetched batch detail. The redundant reveal/hide action is removed for that selected detail panel.
+- **Danh mục SKU** uses the same professional hierarchy as other management workspaces: summary cards, current-data search/table, then controlled Excel update/conflict handling.
+- **Nhân sự & tài khoản** uses a clear custom Picker selection control. Non-Picker rows show protected/not-applicable state rather than misleading checked/disabled boxes.
+- All-Picker mode keeps individual Picker controls interactive so exclusions are understandable before a destructive action. Selection status states whether all Picker or all-except-N are targeted.
+- Light/dark themes and narrow-screen layouts must remain coherent; no internal AI/Owner implementation copy is exposed to operators.
