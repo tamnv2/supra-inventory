@@ -209,6 +209,30 @@ def main() -> None:
     require(user_management_core, "excluded_user_ids", "D116 bulk exclusion authority")
     require(professional_css, "D116 — quota-safe admin refinement", "D116 professional admin style layer")
 
+    # D118: real pagination, revision-safe SLA, detailed export and professional controls.
+    require(business_core, "function adminReportingDetail(", "D118 detailed reporting backend")
+    require(business_core, "COUNT(*) AS total FROM sku_master", "D118 paged SKU total")
+    require(app, "SKU_PAGE_SIZE = 100", "D118 bounded SKU page size")
+    require(app, 'id="sku-next"', "D118 SKU next-page control")
+    require(app, "RECENT_PAGE_SIZE = 50", "D118 bounded Reporter result page size")
+    require(app, 'id="recent-next"', "D118 Reporter result next-page control")
+    require(app, "PICKER_REPORT_PAGE_SIZE = 50", "D118 Picker history page size")
+    require(app, 'id="picker-history-next"', "D118 Picker history next-page control")
+    require(app, "RUNTIME_LOG_PAGE_SIZE = 50", "D118 runtime-log page size")
+    require(app, 'id="runtime-log-next"', "D118 runtime-log next-page control")
+    require(runtime_logs, "nextPageToken", "D118 Google Drive log pagination token")
+    require(runtime_logs, "next_page_token", "D118 runtime log API next token")
+    require(operational_core, "SLA_CONFIG_STALE", "D118 stale SLA write rejection")
+    require(operational_core, "expected_policy_version", "D118 optimistic SLA revision")
+    require(app, "expected_policy_version: expectedPolicyVersion", "D118 Web SLA revision propagation")
+    require(app, "slaLoadGeneration", "D118 stale SLA GET suppression")
+    require(professional_css, "D118 authoritative SLA + pagination", "D118 professional SLA layout")
+    require(api, "getAdminReportingDetail", "D118 detailed export client")
+    require(report_excel, '"Chi tiết Picker"', "D118 detailed Picker Excel sheet")
+    require(report_excel, '"Tổng hợp SKU"', "D118 SKU aggregate Excel sheet")
+    require(report_excel, '"Diễn biến"', "D118 timeline Excel sheet")
+
+
     # D072: quota-heavy system-status surface is excluded from normal runtime.
     require(app, 'navGroup("HỆ THỐNG", profile.role === "ROOT" && profile.base_role === "ROOT"', "D100 Root-only system group branching")
     require(app, '? [["logs", "Nhật ký"], ["tools", "Công cụ"], ["system-reset", "Đặt lại hệ thống"]]', "D100 Root-only system reset child")
