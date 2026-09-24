@@ -36,6 +36,15 @@ export interface SkuCatalogPage {
   limit: number;
 }
 
+export interface SkuSearchPage {
+  items: SkuItem[];
+  count: number;
+  total: number;
+  query: string;
+  limit: number;
+  offset: number;
+}
+
 export interface SkuNameChangeConflict {
   sku: string;
   current_product_name: string;
@@ -266,6 +275,53 @@ export interface AdminReportingPage {
   query: string;
 }
 
+export interface AdminReportingDetailRow {
+  batch_id: string;
+  sku: string;
+  product_name: string;
+  batch_status: "PENDING" | "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED";
+  first_report_at: string;
+  last_report_at: string | null;
+  batch_resolved_at: string | null;
+  batch_resolution: "HAS_STOCK" | "SKIP_ALLOWED" | null;
+  batch_resolution_source: string | null;
+  correction_deadline_at: string | null;
+  previous_batch_id: string | null;
+  previous_resolved_at: string | null;
+  resolved_by_employee_code: string | null;
+  resolved_by_display_name: string | null;
+  ticket_id: string;
+  picker_user_id: string | null;
+  picker_employee_code: string;
+  picker_display_name: string;
+  ticket_status: "OPEN" | "WITHDRAWN" | "RESOLVED";
+  reported_at: string;
+  withdraw_deadline_at: string | null;
+  withdrawn_at: string | null;
+  ticket_resolved_at: string | null;
+  auto_skip_deadline_at: string | null;
+  auto_skip_allowed_at: string | null;
+  ticket_resolution: "HAS_STOCK" | "SKIP_ALLOWED" | null;
+  ticket_resolution_source: string | null;
+  result_received_at: string | null;
+  result_displayed_at: string | null;
+  result_acknowledged_at: string | null;
+  batch_duration_minutes: number | null;
+  picker_wait_minutes: number | null;
+}
+
+export interface AdminReportingDetailPage {
+  items: AdminReportingDetailRow[];
+  count: number;
+  total: number;
+  limit: number;
+  offset: number;
+  from: string;
+  to: string;
+  status: string;
+  query: string;
+}
+
 export interface RealtimePresence {
   online_users: number;
   online_sessions: number;
@@ -337,6 +393,7 @@ export interface RuntimeLogList {
   source: "WEB" | "ANDROID";
   items: RuntimeLogItem[];
   count: number;
+  next_page_token?: string | null;
 }
 
 export interface RuntimeLogDetail {
@@ -754,8 +811,8 @@ export async function importSkuChunk(
   }));
 }
 
-export async function searchSkus(query = "", limit = 50): Promise<{ items: SkuItem[]; count: number }> {
-  const params = new URLSearchParams({ query, limit: String(limit) });
+export async function searchSkus(query = "", limit = 100, offset = 0): Promise<SkuSearchPage> {
+  const params = new URLSearchParams({ query, limit: String(limit), offset: String(Math.max(0, offset)) });
   return readJson(await authorizedFetch(`/api/skus?${params.toString()}`));
 }
 
@@ -773,8 +830,29 @@ export async function getReporterQueue(limit = 100, offset = 0): Promise<{ items
   return readJson(await authorizedFetch(`/api/reporter/queue?${params.toString()}`));
 }
 
-export async function getReporterRecent(limit = 100): Promise<{ items: ReporterRecentBatch[]; count: number }> {
-  return readJson(await authorizedFetch(`/api/reporter/recent?limit=${encodeURIComponent(String(limit))}`));
+export async function getReporterRecent(
+  limit = 50,
+  offset = 0,
+  status = "",
+): Promise<{
+  items: ReporterRecentBatch[];
+  count: number;
+  total: number;
+  limit: number;
+  offset: number;
+  filter_status: string;
+  totals: {
+    has_stock: number;
+    skip_allowed: number;
+    automatic_skipped: number;
+    withdrawn: number;
+    ack_target_count: number;
+    acknowledged_count: number;
+  };
+}> {
+  const params = new URLSearchParams({ limit: String(limit), offset: String(Math.max(0, offset)) });
+  if (status) params.set("status", status);
+  return readJson(await authorizedFetch(`/api/reporter/recent?${params.toString()}`));
 }
 
 export async function getReporterBatchTickets(batchId: string): Promise<{ batch_id: string; items: BatchPickerTicket[]; count: number }> {
@@ -809,6 +887,7 @@ export async function saveAdminSla(input: {
   auto_skip_mode: AutoSkipMode;
   skip_to_stock_enabled: boolean;
   skip_to_stock_minutes: number;
+  expected_policy_version: number;
 }): Promise<SlaResponse> {
   return readJson(await authorizedFetch("/api/admin/sla", {
     method: "PUT",
@@ -843,6 +922,25 @@ export async function getAdminReporting(options: {
   if (options.status) params.set("status", options.status);
   if (options.query) params.set("query", options.query);
   return readJson(await authorizedFetch(`/api/admin/reporting?${params.toString()}`));
+}
+
+export async function getAdminReportingDetail(options: {
+  from: string;
+  to: string;
+  status?: string;
+  query?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<AdminReportingDetailPage> {
+  const params = new URLSearchParams({
+    from: options.from,
+    to: options.to,
+    limit: String(options.limit || 500),
+    offset: String(options.offset || 0),
+  });
+  if (options.status) params.set("status", options.status);
+  if (options.query) params.set("query", options.query);
+  return readJson(await authorizedFetch(`/api/admin/reporting-detail?${params.toString()}`));
 }
 
 export async function getAdminReports(limit = 100, status = ""): Promise<{ items: AdminReportBatch[]; count: number }> {
@@ -906,12 +1004,18 @@ export async function getAgentAppRelease(): Promise<{ status: string; release: A
   return readJson(await authorizedFetch("/api/admin/agent-app"));
 }
 
-export async function getRuntimeLogs(source: "WEB" | "ANDROID", limit = 100, days = 30): Promise<RuntimeLogList> {
+export async function getRuntimeLogs(
+  source: "WEB" | "ANDROID",
+  limit = 50,
+  days = 30,
+  pageToken = "",
+): Promise<RuntimeLogList> {
   const params = new URLSearchParams({
     source,
-    limit: String(Math.max(1, Math.min(500, limit))),
+    limit: String(Math.max(1, Math.min(200, limit))),
     days: String([30, 60, 90].includes(Number(days)) ? Number(days) : 30),
   });
+  if (pageToken) params.set("page_token", pageToken);
   return readJson(await authorizedFetch(`/api/admin/logs?${params.toString()}`));
 }
 
