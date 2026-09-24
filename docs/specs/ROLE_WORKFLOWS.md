@@ -465,3 +465,16 @@ D111 applies only to Android App/PDA presentation and scoped read projections.
 - The correction window is not restarted by pressing Skip. Repeated reports in the same pending batch keep the original batch `first_report_at`.
 - Reporter result history exposes the authoritative resolver identity when available so Android can render **Invent phản hồi lúc HH:mm bởi <người xử lý>**. `SYSTEM_TIMEOUT` is represented as **Hệ thống** rather than inventing a user.
 - Picker/Reporter Android display-scale reset is presentation-only; it does not change role, business state or server data.
+
+
+## D114 — Unified PickList confirmation workflow
+
+D114 supersedes the D105/D112 suffix-length carrier details where they conflict.
+
+- PDA submits one numeric suffix at a time, 3–20 digits. Agent manual search may submit 1–10 comma-separated terms, each 3–20 digits.
+- All search/resolve stages compare only the exact trailing digits of the full PickListCode. Middle-substring matching is forbidden.
+- PDA 0 matches = NOT_FOUND. PDA 1 match = existing guarded WMS confirmation path. PDA 2+ matches = AMBIGUOUS_PICKLIST, no WMS mutation, and a bounded list of matching full PickList codes is returned.
+- Android displays ambiguous full PickLists as separate rows with a row-specific confirmation button. Only one selected PickList can be sent at once. Selection requires an explicit warning confirmation; cancel performs no send.
+- A selected full PickList is re-submitted through the same Firestore → PRIMARY Agent → exact-resolution → confirmation-guard → WMS path using its full numeric tail, so the final mutation remains uniquely resolved and server/Agent guarded.
+- Agent keeps multi-term/multi-row specialist capability and conditional **Xác nhận tất cả**. PDA never receives a multi-confirm action.
+- Result codes are rendered through aligned professional copy on Android and Agent; do not expose a generic success/failure sentence when a specific terminal reason is known.
