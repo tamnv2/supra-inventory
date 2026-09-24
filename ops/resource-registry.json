@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D114_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_8CDF941B__FIRESTORE_RULES_E6138DBD__SCHEMA11__SIGNED_BETA_VC70__AGENT_V33__OA034_FIELD_READY",
+      "status": "D114_OWNER_FIELD_ACCEPTED_PASS__LIVE_SOURCE_8CDF941B__SCHEMA11__SIGNED_BETA_VC70__AGENT_V33",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -199,7 +199,7 @@
       "next_signed_beta_release_target": "NEXT_MONOTONIC_AFTER_BETA_VC70",
       "next_relay_agent_release_target": "NEXT_MONOTONIC_AFTER_RELAY_AGENT_V33",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
-      "d114_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA034_FIELD_READY"
+      "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -367,10 +367,10 @@
   },
   "ui_design": {
     "authority": "OWNER_SELECTED_D057_LEGACY_TRANSPLANT_THROUGH_D068_ACCEPTED__D069_UNIFIED_WEB_REFINEMENT",
-    "web": "D114_BETA_RUNTIME_PASS__BALANCED_TOOLS__GLOBAL_REALTIME_QUEUE_BADGE__OA034_FIELD_READY",
-    "android": "D114_SIGNED_BETA_VC70__PDA_ONE_TERM_3_20_SUFFIX__AMBIGUOUS_SINGLE_SELECT__RESULT_TAXONOMY__OA034_FIELD_READY",
+    "web": "D114_OWNER_ACCEPTED_PASS__BALANCED_TOOLS__GLOBAL_REALTIME_QUEUE_BADGE",
+    "android": "D114_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC70__PDA_SUFFIX_AMBIGUOUS_SINGLE_SELECT_RESULTS",
     "scope_guard": "D114_MAIN_UI_PASS_35940942050__STABLE_OWNER_GATED",
-    "source_candidate": "D114_TECHNICAL_RUNTIME_RELEASE_PASS__OA034_FIELD_READY",
+    "source_candidate": "D114_OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
     "navigation_proposal": "docs/proposals/D064_NAVIGATION_IA_PROPOSAL.md",
     "navigation_constraint": {
       "admin_root_large_groups": 3,
@@ -810,7 +810,7 @@
     "inventory_channel_manifest_asset_id": 584943002,
     "inventory_channel_exe_asset_id": 584943001,
     "next_target_release": "NEXT_MONOTONIC_AFTER_RELAY_AGENT_V33",
-    "next_source_status": "D114_TECHNICAL_RUNTIME_RELEASE_PASS__OA034_FIELD_READY",
+    "next_source_status": "D114_OWNER_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
     "release_publish_run": 35940942087
   },
   "distribution_channel": {
