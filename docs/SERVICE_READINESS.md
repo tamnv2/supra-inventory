@@ -887,3 +887,13 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - Final Agent source: `e583d20d12f097bd7895494992408c41976b1835`; Web/APK runtime source remains `bbb6c83b3f75d234f8220d8ef42b22c3105d9964`.
 - OA037 is READY_FOR_OWNER_FIELD_TEST. Stable remains OWNER_GATED / untouched.
 
+## D118 source readiness checkpoint — 2026-09-24
+
+- SQLite schema: `11`.
+- Latest signed Beta APK remains `beta-vc73` until D118 release publication.
+- Web: `D118_CANDIDATE__PAGED_HISTORY_SKU_LOGS__REVISION_SAFE_SLA__DETAILED_EXCEL__D117_LIVE_UNTIL_RELEASE`.
+- Android: `D118_BETA_VC74_CANDIDATE__IME_ADJUST_RESIZE__D117_VC73_LIVE_UNTIL_RELEASE`.
+- Agent target: `relay-agent-v38`.
+- D118 source implements fleet-wide single-decision overtime CAS, real bounded pagination, revision-safe global SLA, detailed multi-sheet Excel, Agent footer credit and Android IME resize.
+- D117 live runtime remains authoritative until D118 PR/main/runtime/release gates pass.
+- Stable remains OWNER-GATED and untouched.

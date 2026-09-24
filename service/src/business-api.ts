@@ -267,6 +267,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     "GET /api/admin/reports",
     "GET /api/admin/dashboard",
     "GET /api/admin/reporting",
+    "GET /api/admin/reporting-detail",
     "GET /api/admin/audit-history",
     "GET /api/admin/dashboard-preference",
     "PUT /api/admin/dashboard-preference",
@@ -294,6 +295,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     const params = new URLSearchParams();
     if (url.searchParams.has("query")) params.set("query", url.searchParams.get("query") || "");
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
+    if (url.searchParams.has("offset")) params.set("offset", url.searchParams.get("offset") || "");
     return coreGet(env, `/business/skus/search?${params.toString()}`);
   }
 
@@ -323,6 +325,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     if (!user.employee_code) return json({ error: "PICKER_EMPLOYEE_CODE_REQUIRED" }, 409);
     const params = new URLSearchParams({ user_id: user.user_id, employee_code: user.employee_code });
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
+    if (url.searchParams.has("offset")) params.set("offset", url.searchParams.get("offset") || "");
     if (url.searchParams.has("scope")) params.set("scope", url.searchParams.get("scope") || "");
     return coreGet(env, `/operational/picker/reports?${params.toString()}`);
   }
@@ -425,12 +428,15 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     return coreGet(env, `/operational/admin/insights?${params.toString()}`);
   }
 
-  if (key === "GET /api/admin/dashboard" || key === "GET /api/admin/reporting") {
+  if (key === "GET /api/admin/dashboard" || key === "GET /api/admin/reporting" || key === "GET /api/admin/reporting-detail") {
     const params = new URLSearchParams();
     for (const name of ["from", "to", "status", "query", "limit", "offset"]) {
       if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
     }
-    return coreGet(env, `${key.endsWith("dashboard") ? "/business/admin/dashboard" : "/business/admin/reporting"}?${params.toString()}`);
+    const path = key.endsWith("dashboard")
+      ? "/business/admin/dashboard"
+      : (key.endsWith("reporting-detail") ? "/business/admin/reporting-detail" : "/business/admin/reporting");
+    return coreGet(env, `${path}?${params.toString()}`);
   }
 
   if (key === "GET /api/admin/dashboard-preference") {

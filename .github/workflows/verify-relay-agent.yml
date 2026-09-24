@@ -75,7 +75,7 @@ jobs:
           $firestoreRules = Get-Content firebase/firestore.rules -Raw
           $firestoreIndexes = Get-Content firebase/firestore.indexes.json -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*37\s*;') { throw "D117 final hardening requires Agent v37." }
+          if ($config -notmatch 'AgentBuild\s*=\s*38\s*;') { throw "D118 requires Agent v38." }
           if ($firestoreLeader -notmatch 'FailoverAfterMs\s*=\s*10000' -or $firestoreLeader -notmatch 'PrimaryLeaseHeartbeatMs\s*=\s*7000') { throw "D117 proactive 7-second lease / 10-second failover guard failed." }
           if ($firestoreLeader -match 'HeartbeatIntervalMs\s*=\s*4000') { throw "D097 forbids 4-second Firestore lease heartbeat." }
           foreach ($marker in @('PRIMARY','STANDBY','FROZEN','PromoteStandbyForTakeover','replacement-standby','PrimaryLeaseHeartbeatMs = 7000','PresenceHeartbeatIntervalMs = 900000','StandbyRoleRefreshMs = 60000','FrozenRoleRefreshMs = 30000','StartupConvergenceIntervalMs = 5000','VerifyPrimaryBeforeMutation','lease_')) {
@@ -148,6 +148,9 @@ jobs:
           if ($program -notmatch '"Kiểm tra cập nhật"' -or $program -notmatch 'CheckAfterHoursSchedule' -or $program -notmatch 'TotalMinutes < 5' -or $program -notmatch 'AfterHoursDecision\.CONTINUE' -or $program -notmatch 'AfterHoursDecision\.STOP' -or $program -notmatch 'StartRelayBeforeSix' -or $program -notmatch 'ProbeWmsForTakeover') { throw "D117 update / hourly prompt / early-start / takeover-WMS-probe guard failed." }
           if ($program -match 'ProbeWmsForTakeover.*Timer' -or $program -match 'WMS.*probe.*Interval') { throw "D117 forbids periodic WMS health probing." }
           if ($firestoreLeader -notmatch 'PublishScheduleDecision' -or $firestoreLeader -notmatch 'PublishEarlyStartAndClaimPrimary' -or $firestoreLeader -notmatch 'SharedRelayOverrideAllows') { throw "D117 shared Firestore schedule authority markers missing." }
+          if ($firestoreLeader -notmatch 'ANY_AUTHENTICATED_AGENT' -or $firestoreLeader -notmatch 'currentDocument.updateTime' -or $firestoreLeader -notmatch 'RefreshSharedScheduleNow') { throw "D118 fleet-wide single-decision schedule CAS guard failed." }
+          if ($program -notmatch 'HasAgentSession\(\)' -or $program -notmatch 'Mốc giờ này đã được một Agent khác xác nhận') { throw "D118 any-authenticated-Agent overtime UI guard failed." }
+          if ($program -notmatch 'Phát triển hệ thống · tamnv2 \| Pick Pack 1291') { throw "D118 Agent product credit footer guard failed." }
           if ($firestoreLeader -notmatch 'schedule_key' -or $firestoreLeader -notmatch 'relay_override_until_ms' -or $firestoreLeader -notmatch 'WritePrimaryLease\(session\)' ) { throw "D117 schedule decision must propagate through the PRIMARY lease." }
           if ($program -notmatch 'FINAL_20S_FENCE' -or $program -notmatch 'ROLE_GENERATION_FENCE' -or $program -notmatch 'VerifyPrimaryBeforeMutation\(appSession\)') { throw "D117 final pre-WMS age/generation fence markers missing." }
           if ($firestoreTransport -notmatch '_businessEnabled\(\)' -or $firestoreTransport -notmatch 'Relay PDA đang ngủ') { throw "D117 scheduled relay-sleep gate guard failed." }

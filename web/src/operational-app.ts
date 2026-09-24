@@ -19,6 +19,7 @@ import {
   getAdminDashboard,
   getAdminOperationalInsights,
   getAdminReporting,
+  getAdminReportingDetail,
   getAdminAuditHistory,
   getAgentAppRelease,
   getAdminSla,
@@ -61,6 +62,7 @@ import {
   type AdminAuditItem,
   type AdminDashboard,
   type AdminReportingRow,
+  type AdminReportingDetailRow,
   type AgentAppRelease,
   type BatchPickerTicket,
   type HrSourceResponse,
@@ -224,6 +226,9 @@ function businessRoleLabel(role: string): string {
 function clearRoleScopedViewState(): void {
   queueRows = [];
   recentRows = [];
+  recentOffset = 0;
+  recentTotal = 0;
+  recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0 };
   batchDetails.clear();
   expandedBatchDetails.clear();
   batchDetailLoads.clear();
@@ -232,6 +237,8 @@ function clearRoleScopedViewState(): void {
   stockConfirm = null;
   skipConfirm = null;
   pickerReports = [];
+  pickerReportOffset = 0;
+  pickerReportTotal = 0;
   pickerResults = [];
   pickerSuggestions = [];
   pickerSelected = null;
@@ -243,9 +250,13 @@ function clearRoleScopedViewState(): void {
   skuCatalogInfo = null;
   skuAdminQuery = "";
   skuAdminItems = [];
+  skuAdminOffset = 0;
+  skuAdminTotal = 0;
   dashboardData = null;
   reportRows = [];
   reportTotal = 0;
+  slaResponse = null;
+  slaLoadGeneration += 1;
   operationalInsights = null;
   realtimePresence = null;
   reportSummary = null;
@@ -257,6 +268,9 @@ function clearRoleScopedViewState(): void {
   systemResetSelected.clear();
   runtimeLogs = [];
   runtimeLogDetail = null;
+  runtimeLogPageTokens = [""];
+  runtimeLogPageIndex = 0;
+  runtimeLogNextPageToken = "";
   auditRows = [];
   auditTotal = 0;
   auditOffset = 0;
@@ -304,6 +318,10 @@ let lastWebUpdateAt: Date | null = null;
 let queueRows: ReporterBatch[] = [];
 let queueServerOffsetMs = 0;
 let recentRows: ReporterRecentBatch[] = [];
+let recentOffset = 0;
+let recentTotal = 0;
+const RECENT_PAGE_SIZE = 50;
+let recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0 };
 let batchDetails = new Map<string, BatchPickerTicket[]>();
 let recentFilter: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | "ALL" = "ALL";
 let queueFilter: "ALL" | "WARNING" | "ESCALATED" = "ALL";
@@ -328,6 +346,9 @@ let pendingWorkbook: ParsedSkuWorkbook | null = null;
 let skuCatalogInfo: SkuCatalogInfo | null = null;
 let skuAdminQuery = "";
 let skuAdminItems: SkuItem[] = [];
+let skuAdminOffset = 0;
+let skuAdminTotal = 0;
+const SKU_PAGE_SIZE = 100;
 let skuConflictChoices = new Map<string, string>();
 let skuImportProgress = "";
 let dashboardData: AdminDashboard | null = null;
@@ -353,6 +374,10 @@ let logDays = 30;
 let runtimeLogSource: "WEB" | "ANDROID" = "WEB";
 let runtimeLogs: RuntimeLogItem[] = [];
 let runtimeLogDetail: RuntimeLogDetail | null = null;
+const RUNTIME_LOG_PAGE_SIZE = 50;
+let runtimeLogPageTokens: string[] = [""];
+let runtimeLogPageIndex = 0;
+let runtimeLogNextPageToken = "";
 let auditRows: AdminAuditItem[] = [];
 let auditTotal = 0;
 let auditOffset = 0;
@@ -367,6 +392,9 @@ let pickerQuery = "";
 let pickerSuggestions: SkuItem[] = [];
 let pickerSelected: SkuItem | null = null;
 let pickerReports: PickerReportV2[] = [];
+let pickerReportOffset = 0;
+let pickerReportTotal = 0;
+const PICKER_REPORT_PAGE_SIZE = 50;
 let pickerResults: PickerResultV2[] = [];
 let markedResultEvents = new Set<string>();
 let displayedResultEvents = new Set<string>();
@@ -383,6 +411,7 @@ let passwordUserId: string | null = null;
 let selectedBatchId: string | null = null;
 let dashboardLoadGeneration = 0;
 let reportLoadGeneration = 0;
+let slaLoadGeneration = 0;
 let sessionViewGeneration = 0;
 let dashboardPreferenceLoadedUserId = "";
 if (profile?.user_id) restoreDashboardRangeForUser(profile.user_id);
@@ -1241,7 +1270,7 @@ function render(): void {
 function renderOperationalTabs(current: "operations" | "results"): string {
   return `<div class="workspace-tabs" role="tablist" aria-label="Vận hành báo hàng">
     <button type="button" class="workspace-tab ${current === "operations" ? "active" : ""}" data-workspace-section="operations">Đang xử lý <b>${queueRows.length}</b></button>
-    <button type="button" class="workspace-tab ${current === "results" ? "active" : ""}" data-workspace-section="results">Kết quả gần đây <b>${recentRows.length}</b></button>
+    <button type="button" class="workspace-tab ${current === "results" ? "active" : ""}" data-workspace-section="results">Kết quả gần đây <b>${recentTotal}</b></button>
   </div>`;
 }
 
@@ -1389,14 +1418,16 @@ function updateQueueClockDom(): void {
 }
 
 function renderResults(): string {
-  const visible = recentRows.filter((row) => recentFilter === "ALL" || row.status === recentFilter);
-  const hasStock = recentRows.filter((row) => row.status === "HAS_STOCK").length;
-  const skipped = recentRows.filter((row) => row.status === "SKIP_ALLOWED").length;
-  const withdrawn = recentRows.filter((row) => row.status === "CLOSED").length;
-  const acknowledged = recentRows.reduce((sum, row) => sum + Number(row.acknowledged_count || 0), 0);
-  const targets = recentRows.reduce((sum, row) => sum + Number(row.ack_target_count || 0), 0);
-  const automaticSkipped = recentRows.filter((row) => row.status === "SKIP_ALLOWED" && row.resolution_source === "SYSTEM_TIMEOUT").length;
+  const visible = recentRows;
+  const hasStock = Number(recentTotals.has_stock || 0);
+  const skipped = Number(recentTotals.skip_allowed || 0);
+  const withdrawn = Number(recentTotals.withdrawn || 0);
+  const acknowledged = Number(recentTotals.acknowledged_count || 0);
+  const targets = Number(recentTotals.ack_target_count || 0);
+  const automaticSkipped = Number(recentTotals.automatic_skipped || 0);
   const humanSkipped = Math.max(0, skipped - automaticSkipped);
+  const pageFrom = recentTotal ? recentOffset + 1 : 0;
+  const pageTo = Math.min(recentTotal, recentOffset + recentRows.length);
   return `<section class="ops-route ops-business-workspace">
     <div class="business-page-head"><div><h2>Vận hành báo hàng</h2><p>Kiểm tra kết quả đã xử lý và tình trạng Picker nhận kết quả.</p></div></div>
     ${renderOperationalTabs("results")}
@@ -1412,13 +1443,15 @@ function renderResults(): string {
       <div class="table-wrap result-audit-table"><table><thead><tr><th>SKU / Sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Picker ảnh hưởng</th><th>Picker đã nhận</th><th>Thời điểm xử lý</th><th>Phát sinh lại</th><th>Thao tác</th></tr></thead><tbody>
         ${visible.map((row) => { const canCorrect = row.status === "SKIP_ALLOWED" && row.correction_deadline_at && Date.now() <= Date.parse(row.correction_deadline_at); const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<button class="btn secondary small" data-correct="${esc(row.batch_id)}">Sửa thành Có hàng</button>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">Chưa có kết quả phù hợp.</td></tr>`}
       </tbody></table></div>
+      <div class="user-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${recentTotal.toLocaleString("vi-VN")} kết quả</span><div><button class="secondary" id="recent-prev" ${recentOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="recent-next" ${recentOffset + RECENT_PAGE_SIZE >= recentTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
   </section>`;
 }
 
 function renderPicker(): string {
-  const today = dateDaysAgo(0);
-  const reports = pickerReports.filter((row) => todayKey(row.reported_at) === today);
+  const reports = pickerReports;
+  const pageFrom = pickerReportTotal ? pickerReportOffset + 1 : 0;
+  const pageTo = Math.min(pickerReportTotal, pickerReportOffset + pickerReports.length);
   return `<section class="picker-workspace"><div class="page-head"><div><h1>Báo SKU hết hàng</h1></div></div>
     <div class="card"><input id="picker-sku-input" class="sku-input picker-input" placeholder="Nhập / quét SKU" value="${esc(pickerQuery)}" autocomplete="off" />
       ${pickerSuggestions.length ? `<div class="suggestions">${pickerSuggestions.slice(0, 12).map((item) => `<button class="suggestion" data-pick-sku="${esc(item.sku)}"><strong>${esc(item.sku)}</strong> · ${esc(item.product_name)}</button>`).join("")}</div>` : ""}
@@ -1426,14 +1459,17 @@ function renderPicker(): string {
       <button id="picker-report" class="btn report-button" ${!pickerSelected || !onlineForMutation() || busy ? "disabled" : ""}>BÁO HẾT HÀNG</button>
       ${!onlineForMutation() ? `<div class="notice warning">Cần kết nối mạng để báo hàng. Hệ thống không có chế độ offline.</div>` : ""}
     </div>
-    <div class="page-head"><div><h1 style="font-size:18px">BÁO HÔM NAY</h1></div></div>
-    <div class="history-list">${reports.length ? reports.map((row) => { const effectiveStatus = row.resolution === "SKIP_ALLOWED" ? "SKIP_ALLOWED" : row.batch_status || row.status; const state = effectiveStatus === "HAS_STOCK" ? "ok" : effectiveStatus === "SKIP_ALLOWED" ? "skip" : row.status === "WITHDRAWN" || effectiveStatus === "CLOSED" ? "closed" : "pending"; const canWithdraw = row.status === "OPEN" && !row.auto_skip_allowed_at && Date.now() <= Date.parse(row.withdraw_deadline_at); return `<article class="history-card ${state}"><div><strong>${esc(row.sku)}</strong><div class="product-name">${esc(row.product_name)}</div><div class="tiny muted">${esc(fmt(row.reported_at))} · ${esc(statusLabel(effectiveStatus))}${row.resolution_source === "SYSTEM_TIMEOUT" ? " · Hệ thống tự động do quá hạn" : ""}${row.result_event_id && !row.acknowledged_at ? " · Chưa xác nhận kết quả" : ""}</div>${row.auto_skip_deadline_at && !row.auto_skip_allowed_at ? `<div class="tiny muted">Mốc tự động: ${esc(fmt(row.auto_skip_deadline_at))}</div>` : ""}</div>${canWithdraw ? `<button class="btn secondary small" data-withdraw="${esc(row.ticket_id)}">Thu hồi</button>` : ""}</article>`; }).join("") : `<div class="card empty">Hôm nay chưa có báo hàng.</div>`}</div>
+    <div class="page-head"><div><h1 style="font-size:18px">BÁO HÔM NAY & CHƯA XỬ LÝ</h1><p class="tiny muted">Hiển thị báo hôm nay và các báo cũ chưa hoàn tất.</p></div></div>
+    <div class="history-list">${reports.length ? reports.map((row) => { const effectiveStatus = row.resolution === "SKIP_ALLOWED" ? "SKIP_ALLOWED" : row.batch_status || row.status; const state = effectiveStatus === "HAS_STOCK" ? "ok" : effectiveStatus === "SKIP_ALLOWED" ? "skip" : row.status === "WITHDRAWN" || effectiveStatus === "CLOSED" ? "closed" : "pending"; const canWithdraw = row.status === "OPEN" && !row.auto_skip_allowed_at && Date.now() <= Date.parse(row.withdraw_deadline_at); return `<article class="history-card ${state}"><div><strong>${esc(row.sku)}</strong><div class="product-name">${esc(row.product_name)}</div><div class="tiny muted">${esc(fmt(row.reported_at))} · ${esc(statusLabel(effectiveStatus))}${row.resolution_source === "SYSTEM_TIMEOUT" ? " · Hệ thống tự động do quá hạn" : ""}${row.result_event_id && !row.acknowledged_at ? " · Chưa xác nhận kết quả" : ""}</div>${row.auto_skip_deadline_at && !row.auto_skip_allowed_at ? `<div class="tiny muted">Mốc tự động: ${esc(fmt(row.auto_skip_deadline_at))}</div>` : ""}</div>${canWithdraw ? `<button class="btn secondary small" data-withdraw="${esc(row.ticket_id)}">Thu hồi</button>` : ""}</article>`; }).join("") : `<div class="card empty">Không có báo hàng phù hợp.</div>`}</div>
+    <div class="user-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${pickerReportTotal.toLocaleString("vi-VN")}</span><div><button class="secondary" id="picker-history-prev" ${pickerReportOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="picker-history-next" ${pickerReportOffset + PICKER_REPORT_PAGE_SIZE >= pickerReportTotal ? "disabled" : ""}>Trang sau</button></div></div>
   </section>`;
 }
 
 function renderSku(): string {
   const wb = pendingWorkbook;
   const catalogCount = skuCatalogInfo?.count ?? 0;
+  const pageFrom = skuAdminTotal ? skuAdminOffset + 1 : 0;
+  const pageTo = Math.min(skuAdminTotal, skuAdminOffset + skuAdminItems.length);
   const updatedAt = skuCatalogInfo?.max_updated_at ? fmt(skuCatalogInfo.max_updated_at) : "Chưa có dữ liệu";
   const version = skuCatalogInfo?.version || "—";
   return `<section class="ops-route sku-workspace">
@@ -1454,7 +1490,7 @@ function renderSku(): string {
         <div class="table-wrap sku-catalog-table"><table><thead><tr><th>SKU</th><th>Tên sản phẩm</th><th>Cập nhật</th></tr></thead><tbody>
           ${skuAdminItems.length ? skuAdminItems.map((item) => `<tr><td><strong>${esc(item.sku)}</strong></td><td>${esc(item.product_name)}</td><td>${item.updated_at ? esc(fmt(item.updated_at)) : "—"}</td></tr>`).join("") : `<tr><td colspan="3" class="ops-empty-cell">Không có SKU phù hợp.</td></tr>`}
         </tbody></table></div>
-        <div class="tiny muted sku-result-count">Đang hiển thị ${skuAdminItems.length.toLocaleString("vi-VN")} SKU${skuAdminQuery ? " theo từ khóa đã nhập" : " đầu tiên"}.</div>
+        <div class="user-pagination sku-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${skuAdminTotal.toLocaleString("vi-VN")} SKU${skuAdminQuery ? " phù hợp" : ""}</span><div><button class="secondary" id="sku-prev" ${skuAdminOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="sku-next" ${skuAdminOffset + SKU_PAGE_SIZE >= skuAdminTotal ? "disabled" : ""}>Trang sau</button></div></div>
       </article>
       <article class="ops-panel">
         <div class="ops-panel-title"><div><h3>Cập nhật danh mục từ Excel</h3><p>File được kiểm tra trước khi ghi. SKU trùng mã nhưng khác tên phải được xác nhận rõ ràng.</p></div></div>
@@ -1571,44 +1607,86 @@ function renderUsers(): string {
 }
 
 function renderSla(): string {
-  const sla = slaResponse?.sla;
+  if (!slaResponse) {
+    return `<section class="ops-route sla-workspace">
+      <div class="business-page-head"><div><h2>Thời gian xử lý</h2><p>Cấu hình chung toàn hệ thống.</p></div><span class="global-setting-badge">Đang tải cấu hình máy chủ…</span></div>
+      <article class="ops-panel sla-loading-panel"><strong>Đang đồng bộ cấu hình hiện hành</strong><span>Web không hiển thị giá trị mặc định thay thế trong lúc chờ máy chủ để tránh nhầm cấu hình.</span></article>
+    </section>`;
+  }
+
+  const sla = slaResponse.sla;
+  const configured = Boolean(slaResponse.configured && sla);
   const insight = operationalInsights?.sla;
-  const warningEnabled = sla?.warning_enabled !== false;
-  const escalationEnabled = sla?.escalation_enabled !== false;
-  const autoEnabled = sla?.auto_skip_enabled === true;
-  const correctionEnabled = sla?.skip_to_stock_enabled !== false;
-  const mode = sla?.auto_skip_mode || "FIRST_REPORT";
-  return `<section class="ops-route sla-workspace">
-    <div class="business-page-head"><div><h2>Thời gian xử lý</h2><p>Mỗi mốc có thể bật hoặc tắt độc lập. Các giá trị phút vẫn được giữ theo thứ tự Cảnh báo &lt; Quá hạn &lt; Tự động cho phép bỏ qua để có thể bật lại an toàn.</p></div><span class="global-setting-badge">Cấu hình chung toàn hệ thống</span></div>
-    <div class="global-setting-note"><strong>Mọi tài khoản dùng cùng một cấu hình.</strong><span>Thông số được tải trực tiếp từ máy chủ; lỗi phần thống kê không làm ẩn giá trị cấu hình.</span>${sla?.updated_by ? `<small>Cập nhật gần nhất: ${esc(sla.updated_by)}${sla.updated_at ? ` · ${esc(fmt(sla.updated_at))}` : ""}</small>` : ""}</div>
-    <form id="sla-form" class="ops-panel sla-config-panel">
-      <div class="sla-config-body">
-        <div class="ops-settings-grid sla-threshold-grid">
-          <article class="ops-setting-card"><div class="sla-card-head"><span class="ops-step">01</span><label class="sla-switch"><input name="warningEnabled" type="checkbox" ${warningEnabled ? "checked" : ""}/><span>Bật</span></label></div><h3>Cảnh báo</h3><p>Đánh dấu vàng và thông báo cho bộ phận xử lý khi SKU đạt mốc này.</p><label>Phút<input name="warning" type="number" min="1" max="1440" value="${esc(sla?.warning_minutes || "")}" required /></label></article>
-          <article class="ops-setting-card"><div class="sla-card-head"><span class="ops-step">02</span><label class="sla-switch"><input name="escalationEnabled" type="checkbox" ${escalationEnabled ? "checked" : ""}/><span>Bật</span></label></div><h3>Quá hạn</h3><p>Đánh dấu đỏ và gửi cảnh báo mức cao khi tới mốc đã đặt.</p><label>Phút<input name="escalation" type="number" min="2" max="2880" value="${esc(sla?.escalation_minutes || "")}" required /></label></article>
-          <article class="ops-setting-card"><div class="sla-card-head"><span class="ops-step">03</span><label class="sla-switch"><input name="autoSkipEnabled" type="checkbox" ${autoEnabled ? "checked" : ""}/><span>Bật</span></label></div><h3>Tự động cho phép bỏ qua</h3><p>Nếu Invent chưa phản hồi khi tới mốc này, hệ thống tự cấp kết quả bỏ qua.</p><label>Phút<input name="autoSkip" type="number" min="3" max="10080" value="${esc(sla?.auto_skip_minutes || "")}" required /></label></article>
-        </div>
-        <div class="sla-policy-grid">
-          <div class="sla-auto-policy">
-            <div class="sla-mode-options">
-              <span>Cách tính mốc tự động <b>Bắt buộc chọn 1</b></span>
-              <label><input type="radio" name="autoSkipMode" value="FIRST_REPORT" ${mode === "FIRST_REPORT" ? "checked" : ""} required/> Tính từ người báo đầu tiên của SKU</label>
-              <label><input type="radio" name="autoSkipMode" value="PER_PICKER" ${mode === "PER_PICKER" ? "checked" : ""} required/> Tính riêng từ thời điểm từng Picker báo</label>
-            </div>
-          </div>
-          <div class="sla-auto-policy">
-            <label class="account-setting-row"><input name="skipToStockEnabled" type="checkbox" ${correctionEnabled ? "checked" : ""}/><span><strong>Cho phép Invent đổi Skip thành Đã có hàng</strong><small>Tính từ thời điểm SKU được báo hết hàng lần đầu trong đợt, không tính từ lúc bấm Skip.</small></span></label>
-            <label class="sla-inline-minutes">Cho phép trong <input name="skipToStockMinutes" type="number" min="1" max="10080" value="${esc(sla?.skip_to_stock_minutes || 5)}" required /> phút kể từ lúc báo hết hàng</label>
-          </div>
-        </div>
+  const warningEnabled = configured ? sla!.warning_enabled === true : false;
+  const escalationEnabled = configured ? sla!.escalation_enabled === true : false;
+  const autoEnabled = configured ? sla!.auto_skip_enabled === true : false;
+  const correctionEnabled = configured ? sla!.skip_to_stock_enabled === true : false;
+  const mode = configured ? sla!.auto_skip_mode : "";
+  const revision = Number(sla?.policy_version || 0);
+  const updatedBy = sla?.updated_by || "—";
+  const updatedAt = sla?.updated_at ? fmt(sla.updated_at) : "Chưa có";
+  return `<section class="ops-route sla-workspace sla-professional">
+    <div class="business-page-head sla-page-head">
+      <div><h2>Thời gian xử lý</h2><p>Thiết lập một lần, áp dụng đồng nhất cho toàn bộ Reporter/Admin/Root và mọi thiết bị.</p></div>
+      <div class="sla-authority-badges"><span class="global-setting-badge">Cấu hình máy chủ</span><span class="sla-revision-badge">${configured ? `Phiên bản ${revision}` : "Chưa cấu hình"}</span></div>
+    </div>
+
+    <section class="sla-authority-strip">
+      <div><span>Trạng thái</span><strong>${configured ? "Đã đồng bộ" : "Chưa thiết lập"}</strong></div>
+      <div><span>Cập nhật gần nhất</span><strong>${esc(updatedAt)}</strong></div>
+      <div><span>Người cập nhật</span><strong>${esc(updatedBy)}</strong></div>
+      <div><span>Phạm vi</span><strong>Toàn hệ thống</strong></div>
+    </section>
+
+    <form id="sla-form" class="ops-panel sla-config-panel sla-config-professional">
+      <div class="ops-panel-title sla-section-heading"><div><h3>01 · Mốc phản hồi</h3><p>Các mốc phải theo thứ tự Cảnh báo &lt; Quá hạn &lt; Tự động cho phép bỏ qua.</p></div></div>
+      <div class="sla-threshold-flow">
+        <article class="sla-threshold-card warning">
+          <div class="sla-card-head"><div><span class="ops-step">01</span><strong>Cảnh báo</strong></div><label class="sla-switch"><input name="warningEnabled" type="checkbox" ${warningEnabled ? "checked" : ""}/><span>${warningEnabled ? "Đang bật" : "Đang tắt"}</span></label></div>
+          <p>Nhắc Invent khi SKU bắt đầu cần được ưu tiên.</p>
+          <label class="sla-minute-field"><span>Sau</span><input name="warning" type="number" min="1" max="1440" value="${configured ? esc(sla!.warning_minutes) : ""}" required /><b>phút</b></label>
+        </article>
+        <span class="sla-flow-arrow" aria-hidden="true">→</span>
+        <article class="sla-threshold-card danger">
+          <div class="sla-card-head"><div><span class="ops-step">02</span><strong>Quá hạn</strong></div><label class="sla-switch"><input name="escalationEnabled" type="checkbox" ${escalationEnabled ? "checked" : ""}/><span>${escalationEnabled ? "Đang bật" : "Đang tắt"}</span></label></div>
+          <p>Đánh dấu mức ưu tiên cao khi chưa có phản hồi.</p>
+          <label class="sla-minute-field"><span>Sau</span><input name="escalation" type="number" min="2" max="2880" value="${configured ? esc(sla!.escalation_minutes) : ""}" required /><b>phút</b></label>
+        </article>
+        <span class="sla-flow-arrow" aria-hidden="true">→</span>
+        <article class="sla-threshold-card automatic">
+          <div class="sla-card-head"><div><span class="ops-step">03</span><strong>Tự động bỏ qua</strong></div><label class="sla-switch"><input name="autoSkipEnabled" type="checkbox" ${autoEnabled ? "checked" : ""}/><span>${autoEnabled ? "Đang bật" : "Đang tắt"}</span></label></div>
+          <p>Hệ thống tự cấp quyền bỏ qua nếu Invent chưa xử lý.</p>
+          <label class="sla-minute-field"><span>Sau</span><input name="autoSkip" type="number" min="3" max="10080" value="${configured ? esc(sla!.auto_skip_minutes) : ""}" required /><b>phút</b></label>
+        </article>
       </div>
-      <div class="sla-config-footer"><span class="muted tiny">Ví dụ 10 → 15 → 20 phút. Tắt một chức năng chỉ ngừng tác động của chức năng đó; không xoá các giá trị phút đã nhập.</span><button class="primary">Lưu thiết lập</button></div>
+
+      <div class="ops-panel-title sla-section-heading"><div><h3>02 · Chính sách tính thời gian</h3><p>Chọn cách tính deadline và cửa sổ sửa kết quả.</p></div></div>
+      <div class="sla-policy-professional">
+        <article class="sla-policy-card">
+          <span class="sla-policy-kicker">Deadline tự động</span>
+          <h4>Cách tính mốc tự động bỏ qua</h4>
+          <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="FIRST_REPORT" ${mode === "FIRST_REPORT" ? "checked" : ""} required/><span><strong>Theo báo đầu tiên của SKU</strong><small>Cả đợt dùng chung một mốc thời gian.</small></span></label>
+          <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="PER_PICKER" ${mode === "PER_PICKER" ? "checked" : ""} required/><span><strong>Theo từng Picker</strong><small>Mỗi Picker có deadline tính từ lúc chính người đó báo.</small></span></label>
+        </article>
+        <article class="sla-policy-card">
+          <span class="sla-policy-kicker">Sửa kết quả</span>
+          <h4>Skip → Đã có hàng</h4>
+          <label class="sla-radio-row"><input name="skipToStockEnabled" type="checkbox" ${correctionEnabled ? "checked" : ""}/><span><strong>Cho phép sửa kết quả</strong><small>Tính từ lần báo đầu tiên của SKU, không tính từ lúc bấm Skip.</small></span></label>
+          <label class="sla-minute-field compact"><span>Cho phép trong</span><input name="skipToStockMinutes" type="number" min="1" max="10080" value="${configured ? esc(sla!.skip_to_stock_minutes) : ""}" required /><b>phút</b></label>
+        </article>
+      </div>
+
+      <div class="sla-config-footer">
+        <div><strong>Lưu ý</strong><span>Hệ thống kiểm tra phiên bản cấu hình trước khi lưu. Nếu một máy khác vừa cập nhật, bản cũ sẽ không được phép ghi đè.</span></div>
+        <button class="primary">Lưu cấu hình toàn hệ thống</button>
+      </div>
     </form>
+
     <section class="sla-current-grid" aria-label="Tình trạng hiện tại">
-      <article class="sla-current-card warning"><span>Cảnh báo</span><strong>${warningEnabled ? Number(insight?.warning_count || 0) : "Tắt"}</strong></article>
-      <article class="sla-current-card danger"><span>Quá hạn</span><strong>${escalationEnabled ? Number(insight?.escalated_count || 0) : "Tắt"}</strong></article>
-      <article class="sla-current-card ${autoEnabled ? "auto" : ""}"><span>Tự động cho phép bỏ qua</span><strong>${autoEnabled ? "Bật" : "Tắt"}</strong></article>
-      <article class="sla-current-card ${correctionEnabled ? "auto" : ""}"><span>Skip → Đã có hàng</span><strong>${correctionEnabled ? `${Number(sla?.skip_to_stock_minutes || 5)} phút` : "Tắt"}</strong></article>
+      <article class="sla-current-card warning"><span>SKU đang cảnh báo</span><strong>${warningEnabled ? Number(insight?.warning_count || 0) : "Tắt"}</strong></article>
+      <article class="sla-current-card danger"><span>SKU đã quá hạn</span><strong>${escalationEnabled ? Number(insight?.escalated_count || 0) : "Tắt"}</strong></article>
+      <article class="sla-current-card ${autoEnabled ? "auto" : ""}"><span>Tự động bỏ qua</span><strong>${autoEnabled ? "Đang bật" : "Đang tắt"}</strong></article>
+      <article class="sla-current-card ${correctionEnabled ? "auto" : ""}"><span>Skip → Đã có hàng</span><strong>${correctionEnabled ? `${Number(sla?.skip_to_stock_minutes || 0)} phút` : "Đang tắt"}</strong></article>
     </section>
   </section>`;
 }
@@ -2203,8 +2281,9 @@ function renderLogs(): string {
     ` : `
       <div class="logs-layout">
         <article class="ops-panel log-list-panel">
-          <div class="ops-panel-title"><div><h3>Log ${runtimeLogSource === "WEB" ? "Web" : "Android"} gần đây</h3><p>${runtimeLogs.length} bản gần nhất.</p></div></div>
+          <div class="ops-panel-title"><div><h3>Log ${runtimeLogSource === "WEB" ? "Web" : "Android"} gần đây</h3><p>Trang ${runtimeLogPageIndex + 1} · tối đa ${RUNTIME_LOG_PAGE_SIZE} log/trang trong ${logDays} ngày.</p></div></div>
           <div class="log-list">${runtimeLogs.length ? runtimeLogs.map((item) => `<button type="button" class="log-row ${runtimeLogDetail?.file.id === item.id ? "selected" : ""}" data-log-file="${esc(item.id)}"><span class="log-severity ${item.severity === "ERROR" ? "error" : "info"}">${item.severity === "ERROR" ? "Lỗi" : "Định kỳ"}</span><div><strong>Nhật ký ${esc(logSourceLabel(item.source))}</strong><small>${esc(fmt(item.created_at))} · ${Math.max(1, Math.round(Number(item.size || 0) / 1024))} KB</small></div></button>`).join("") : `<div class="ops-empty">Chưa có log ${runtimeLogSource === "WEB" ? "Web" : "Android"}.</div>`}</div>
+          <div class="user-pagination"><span>Trang ${runtimeLogPageIndex + 1}</span><div><button class="secondary" id="runtime-log-prev" ${runtimeLogPageIndex <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="runtime-log-next" ${runtimeLogNextPageToken ? "" : "disabled"}>Trang sau</button></div></div>
         </article>
         <article class="ops-panel log-detail-panel">
           <div class="ops-panel-title"><div><h3>Tóm tắt nhật ký</h3></div></div>
@@ -2397,12 +2476,22 @@ async function loadCompleteReporterQueue(): Promise<Awaited<ReturnType<typeof ge
 async function loadOperationsSnapshot(): Promise<void> {
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const [queue, recent] = await Promise.all([loadCompleteReporterQueue(), getReporterRecent(200)]);
+  const recentStatus = recentFilter === "ALL" ? "" : recentFilter;
+  const [queue, recent] = await Promise.all([
+    loadCompleteReporterQueue(),
+    getReporterRecent(RECENT_PAGE_SIZE, recentOffset, recentStatus),
+  ]);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   const serverNow = queue.server_now ? Date.parse(queue.server_now) : NaN;
   queueServerOffsetMs = Number.isFinite(serverNow) ? serverNow - Date.now() : 0;
   queueRows = queue.items;
+  if (recent.total > 0 && recentOffset >= recent.total) {
+    recentOffset = Math.max(0, Math.floor((recent.total - 1) / RECENT_PAGE_SIZE) * RECENT_PAGE_SIZE);
+    return loadOperationsSnapshot();
+  }
   recentRows = recent.items;
+  recentTotal = recent.total;
+  recentTotals = recent.totals;
   syncOperationsNavBadge();
   if (selectedBatchId && !queueRows.some((row) => row.batch_id === selectedBatchId)) selectedBatchId = null;
   const selected = queueRows.find((row) => row.batch_id === selectedBatchId) || filteredQueueRows()[0] || queueRows[0];
@@ -2435,9 +2524,17 @@ async function loadOperations(): Promise<void> {
 async function loadPicker(): Promise<void> {
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const [reports, results] = await Promise.all([getPickerReportsV2(120), getPickerResultsV2(120)]);
+  const [reports, results] = await Promise.all([
+    getPickerReportsV2(PICKER_REPORT_PAGE_SIZE, pickerReportOffset, "APP_TODAY_OPEN"),
+    getPickerResultsV2(120),
+  ]);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+  if (reports.total > 0 && pickerReportOffset >= reports.total) {
+    pickerReportOffset = Math.max(0, Math.floor((reports.total - 1) / PICKER_REPORT_PAGE_SIZE) * PICKER_REPORT_PAGE_SIZE);
+    return loadPicker();
+  }
   pickerReports = reports.items;
+  pickerReportTotal = reports.total;
   pickerResults = results.items;
   markWebUpdateReceived();
   for (const result of pickerResults.filter((row) => !row.acknowledged_at && !markedResultEvents.has(row.result_event_id))) {
@@ -2448,18 +2545,20 @@ async function loadPicker(): Promise<void> {
 }
 
 async function loadSla(): Promise<void> {
+  const loadGeneration = ++slaLoadGeneration;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
   const range = apiRange(dateDaysAgo(6), dateDaysAgo(0));
   const nextSla = await getAdminSla();
-  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+  if (loadGeneration !== slaLoadGeneration || generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   slaResponse = nextSla;
   markWebUpdateReceived();
   if (activeSection === "sla") patchActiveSection(true);
   try {
     const nextInsights = await getAdminOperationalInsights(range.from, range.to);
-    if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+    if (loadGeneration !== slaLoadGeneration || generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
     operationalInsights = nextInsights;
+    if (activeSection === "sla") patchActiveSection(true);
   } catch (error) {
     runtimeLogEvent(`Không tải được thống kê SLA phụ: ${error instanceof Error ? error.message : "unknown"}`, "ERROR");
   }
@@ -2532,11 +2631,16 @@ async function loadSkuWorkspace(): Promise<void> {
   const userId = profile?.user_id || "";
   const [catalog, result] = await Promise.all([
     getSkuCatalogInfo(),
-    searchSkus(skuAdminQuery, 100),
+    searchSkus(skuAdminQuery, SKU_PAGE_SIZE, skuAdminOffset),
   ]);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+  if (result.total > 0 && skuAdminOffset >= result.total) {
+    skuAdminOffset = Math.max(0, Math.floor((result.total - 1) / SKU_PAGE_SIZE) * SKU_PAGE_SIZE);
+    return loadSkuWorkspace();
+  }
   skuCatalogInfo = catalog;
   skuAdminItems = result.items;
+  skuAdminTotal = result.total;
   markWebUpdateReceived();
 }
 
@@ -2594,9 +2698,11 @@ async function loadLogs(): Promise<void> {
     return;
   }
   runtimeLogSource = logView;
-  const result = await getRuntimeLogs(runtimeLogSource, 500, logDays);
+  const pageToken = runtimeLogPageTokens[runtimeLogPageIndex] || "";
+  const result = await getRuntimeLogs(runtimeLogSource, RUNTIME_LOG_PAGE_SIZE, logDays, pageToken);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   runtimeLogs = result.items;
+  runtimeLogNextPageToken = result.next_page_token || "";
   if (runtimeLogDetail && !runtimeLogs.some((item) => item.id === runtimeLogDetail?.file.id)) runtimeLogDetail = null;
   markWebUpdateReceived();
 }
@@ -2622,12 +2728,19 @@ async function loadTools(): Promise<void> {
 async function exportReportsExcel(): Promise<void> {
   const range = apiRange(reportFrom, reportTo);
   const rows: AdminReportingRow[] = [];
-  let offset = 0;
-  let total = 0;
+  const details: AdminReportingDetailRow[] = [];
   const pageSize = 500;
   const maxRows = 100_000;
+  const maxDetailRows = 100_000;
   const started = performance.now();
 
+  const [summary, insights] = await Promise.all([
+    getAdminDashboard(range.from, range.to),
+    getAdminOperationalInsights(range.from, range.to),
+  ]);
+
+  let offset = 0;
+  let total = 0;
   do {
     const page = await getAdminReporting({
       from: range.from,
@@ -2641,25 +2754,55 @@ async function exportReportsExcel(): Promise<void> {
     rows.push(...page.items);
     offset += page.items.length;
     if (!page.items.length) break;
-    if (rows.length > maxRows) throw new Error(`Bộ lọc có hơn ${maxRows.toLocaleString("vi-VN")} dòng; hãy thu hẹp khoảng ngày trước khi xuất.`);
+    if (rows.length > maxRows) {
+      throw new Error(`Bộ lọc có hơn ${maxRows.toLocaleString("vi-VN")} đợt báo hàng; hãy thu hẹp khoảng ngày trước khi xuất.`);
+    }
   } while (offset < total);
-  markWebUpdateReceived();
 
-  downloadReportWorkbook(rows, {
-    from: reportFrom,
-    to: reportTo,
-    status: reportStatus,
-    query: reportQuery,
-    generatedAt: new Date(),
-  }, statusLabel);
-  runtimeLogMetric("EXPORT", "report_excel", {
-    rows: rows.length,
+  offset = 0;
+  total = 0;
+  do {
+    const page = await getAdminReportingDetail({
+      from: range.from,
+      to: range.to,
+      status: reportStatus,
+      query: reportQuery,
+      limit: pageSize,
+      offset,
+    });
+    total = page.total;
+    details.push(...page.items);
+    offset += page.items.length;
+    if (!page.items.length) break;
+    if (details.length > maxDetailRows) {
+      throw new Error(`Bộ lọc có hơn ${maxDetailRows.toLocaleString("vi-VN")} dòng chi tiết Picker; hãy thu hẹp khoảng ngày trước khi xuất.`);
+    }
+  } while (offset < total);
+
+  markWebUpdateReceived();
+  downloadReportWorkbook(
+    rows,
+    details,
+    summary,
+    insights,
+    {
+      from: reportFrom,
+      to: reportTo,
+      status: reportStatus,
+      query: reportQuery,
+      generatedAt: new Date(),
+    },
+    statusLabel,
+  );
+  runtimeLogMetric("EXPORT", "report_excel_detailed", {
+    batch_rows: rows.length,
+    picker_rows: details.length,
     from: reportFrom,
     to: reportTo,
     status: reportStatus || "ALL",
     has_query: Boolean(reportQuery),
   }, performance.now() - started);
-  setNotice("success", `Đã xuất ${rows.length.toLocaleString("vi-VN")} dòng ra file Excel.`);
+  setNotice("success", `Đã xuất Excel chi tiết: ${rows.length.toLocaleString("vi-VN")} đợt và ${details.length.toLocaleString("vi-VN")} dòng Picker.`);
 }
 
 async function loadSection(section: Section): Promise<void> {
@@ -2991,6 +3134,9 @@ function bindSection(): void {
     logView = next;
     if (next !== "AUDIT") runtimeLogSource = next;
     runtimeLogDetail = null;
+    runtimeLogPageTokens = [""];
+    runtimeLogPageIndex = 0;
+    runtimeLogNextPageToken = "";
     auditOffset = 0;
     void run(loadLogs);
   }));
@@ -3008,6 +3154,9 @@ function bindSection(): void {
     logDays = days;
     auditOffset = 0;
     runtimeLogDetail = null;
+    runtimeLogPageTokens = [""];
+    runtimeLogPageIndex = 0;
+    runtimeLogNextPageToken = "";
     void run(loadLogs);
   }));
 
@@ -3025,6 +3174,20 @@ function bindSection(): void {
   });
   document.querySelector<HTMLButtonElement>("#audit-next")?.addEventListener("click", () => {
     auditOffset += AUDIT_PAGE_SIZE;
+    void run(loadLogs);
+  });
+  document.querySelector<HTMLButtonElement>("#runtime-log-prev")?.addEventListener("click", () => {
+    if (runtimeLogPageIndex <= 0) return;
+    runtimeLogPageIndex -= 1;
+    runtimeLogDetail = null;
+    void run(loadLogs);
+  });
+  document.querySelector<HTMLButtonElement>("#runtime-log-next")?.addEventListener("click", () => {
+    if (!runtimeLogNextPageToken) return;
+    const nextIndex = runtimeLogPageIndex + 1;
+    runtimeLogPageTokens[nextIndex] = runtimeLogNextPageToken;
+    runtimeLogPageIndex = nextIndex;
+    runtimeLogDetail = null;
     void run(loadLogs);
   });
   document.querySelector<HTMLButtonElement>("#copy-pda-link")?.addEventListener("click", async () => {
@@ -3075,9 +3238,21 @@ function bindSection(): void {
     setNotice("success", "Đã sửa kết quả thành Có hàng.");
   })));
   document.querySelectorAll<HTMLButtonElement>("[data-result-filter]").forEach((button) => button.addEventListener("click", () => {
-    recentFilter = button.dataset.resultFilter as typeof recentFilter;
-    patchActiveSection();
+    const next = button.dataset.resultFilter as typeof recentFilter;
+    if (!["ALL", "HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(next)) return;
+    recentFilter = next;
+    recentOffset = 0;
+    void run(loadOperations);
   }));
+  document.querySelector<HTMLButtonElement>("#recent-prev")?.addEventListener("click", () => {
+    recentOffset = Math.max(0, recentOffset - RECENT_PAGE_SIZE);
+    void run(loadOperations);
+  });
+  document.querySelector<HTMLButtonElement>("#recent-next")?.addEventListener("click", () => {
+    if (recentOffset + RECENT_PAGE_SIZE >= recentTotal) return;
+    recentOffset += RECENT_PAGE_SIZE;
+    void run(loadOperations);
+  });
 
   const pickerInput = document.querySelector<HTMLInputElement>("#picker-sku-input");
   let searchTimer = 0;
@@ -3132,15 +3307,35 @@ function bindSection(): void {
     await loadPicker();
     setNotice("success", "Đã thu hồi báo hàng.");
   })));
+  document.querySelector<HTMLButtonElement>("#picker-history-prev")?.addEventListener("click", () => {
+    pickerReportOffset = Math.max(0, pickerReportOffset - PICKER_REPORT_PAGE_SIZE);
+    void run(loadPicker);
+  });
+  document.querySelector<HTMLButtonElement>("#picker-history-next")?.addEventListener("click", () => {
+    if (pickerReportOffset + PICKER_REPORT_PAGE_SIZE >= pickerReportTotal) return;
+    pickerReportOffset += PICKER_REPORT_PAGE_SIZE;
+    void run(loadPicker);
+  });
 
   document.querySelector<HTMLFormElement>("#sku-admin-search-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget as HTMLFormElement);
     skuAdminQuery = String(data.get("query") || "").trim();
+    skuAdminOffset = 0;
     void run(loadSkuWorkspace);
   });
   document.querySelector<HTMLButtonElement>("#sku-admin-clear")?.addEventListener("click", () => {
     skuAdminQuery = "";
+    skuAdminOffset = 0;
+    void run(loadSkuWorkspace);
+  });
+  document.querySelector<HTMLButtonElement>("#sku-prev")?.addEventListener("click", () => {
+    skuAdminOffset = Math.max(0, skuAdminOffset - SKU_PAGE_SIZE);
+    void run(loadSkuWorkspace);
+  });
+  document.querySelector<HTMLButtonElement>("#sku-next")?.addEventListener("click", () => {
+    if (skuAdminOffset + SKU_PAGE_SIZE >= skuAdminTotal) return;
+    skuAdminOffset += SKU_PAGE_SIZE;
     void run(loadSkuWorkspace);
   });
 
@@ -3316,19 +3511,31 @@ function bindSection(): void {
         skipToStockMinutes < 1 ||
         skipToStockMinutes > 10080
       ) throw new Error("Các mốc phải là số phút nguyên hợp lệ; Cảnh báo < Quá hạn < Tự động cho phép bỏ qua.");
-      await saveAdminSla({
-        warning_minutes: warning,
-        warning_enabled: warningEnabled,
-        escalation_minutes: escalation,
-        escalation_enabled: escalationEnabled,
-        auto_skip_minutes: autoSkip,
-        auto_skip_enabled: autoSkipEnabled,
-        auto_skip_mode: autoSkipMode,
-        skip_to_stock_enabled: skipToStockEnabled,
-        skip_to_stock_minutes: skipToStockMinutes,
-      });
-      await loadSla();
-      setNotice("success", "Đã lưu thời gian nghiệp vụ.");
+      const expectedPolicyVersion = Number(slaResponse?.sla?.policy_version || 0);
+      try {
+        const saved = await saveAdminSla({
+          warning_minutes: warning,
+          warning_enabled: warningEnabled,
+          escalation_minutes: escalation,
+          escalation_enabled: escalationEnabled,
+          auto_skip_minutes: autoSkip,
+          auto_skip_enabled: autoSkipEnabled,
+          auto_skip_mode: autoSkipMode,
+          skip_to_stock_enabled: skipToStockEnabled,
+          skip_to_stock_minutes: skipToStockMinutes,
+          expected_policy_version: expectedPolicyVersion,
+        });
+        slaResponse = saved;
+        await loadSla();
+        setNotice("success", "Đã lưu cấu hình thời gian xử lý cho toàn hệ thống.");
+      } catch (error) {
+        if (error instanceof ApiError && error.code === "SLA_CONFIG_STALE") {
+          await loadSla();
+          setNotice("warning", "Cấu hình đã được cập nhật ở một phiên khác. Đã tải lại bản mới nhất; thay đổi cũ không được ghi đè.");
+          return;
+        }
+        throw error;
+      }
     });
   });
 

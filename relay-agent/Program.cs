@@ -536,6 +536,7 @@ namespace SupraInventoryRelayAgent
         private readonly AgentLogUploadBridge _agentLogBridge;
         private readonly AgentBusinessSchedule _businessSchedule;
         private DateTime _lastAfterHoursPromptAt = DateTime.MinValue;
+        private DateTime _lastAfterHoursScheduleSyncAt = DateTime.MinValue;
         private bool? _lastRelayAllowed;
 
         private static readonly string RelayDataDir = Path.Combine(
@@ -767,13 +768,14 @@ namespace SupraInventoryRelayAgent
             var shell = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                RowCount = 2,
+                RowCount = 3,
                 ColumnCount = 1,
                 Margin = Padding.Empty,
                 Padding = Padding.Empty
             };
             shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 0F));
             shell.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 24F));
             shell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
 
             var chrome = new Panel
@@ -826,8 +828,27 @@ namespace SupraInventoryRelayAgent
                     _leaderCoordinator.RequestFleetRefresh();
             };
 
+            var footer = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.FromArgb(243, 246, 248),
+                Margin = Padding.Empty
+            };
+            var footerCredit = new Label
+            {
+                Dock = DockStyle.Right,
+                Width = 360,
+                TextAlign = ContentAlignment.MiddleRight,
+                Padding = new Padding(0, 0, 12, 0),
+                Text = "Phát triển hệ thống · tamnv2 | Pick Pack 1291",
+                ForeColor = Color.FromArgb(105, 117, 128),
+                Font = new Font("Segoe UI", 8F, FontStyle.Regular)
+            };
+            footer.Controls.Add(footerCredit);
+
             shell.Controls.Add(chrome, 0, 0);
             shell.Controls.Add(_mainTabs, 0, 1);
+            shell.Controls.Add(footer, 0, 2);
             Controls.Add(shell);
 
             // Tổng quan - bố cục cố định, không cuộn toàn trang.
@@ -1259,7 +1280,7 @@ namespace SupraInventoryRelayAgent
 
         private void SetAfterHoursDecision(AfterHoursDecision decision)
         {
-            if (_businessSchedule == null || _leaderCoordinator == null || !_leaderCoordinator.IsLeader)
+            if (_businessSchedule == null || _leaderCoordinator == null || !HasAgentSession())
                 return;
 
             var now = _businessSchedule.NowOperational();
@@ -1275,13 +1296,21 @@ namespace SupraInventoryRelayAgent
                 OperationalMs(boundary),
                 decision.ToString(),
                 OperationalMs(until));
-            if (!published) return;
+            _lastAfterHoursScheduleSyncAt = DateTime.MinValue;
+            if (!published)
+            {
+                _leaderCoordinator.RefreshSharedScheduleNow();
+                _afterHoursStatus.Text = "Mốc giờ này đã được một Agent khác xác nhận. Đã đồng bộ quyết định hiện hành.";
+                CheckAfterHoursSchedule(true);
+                return;
+            }
 
             _lastAfterHoursPromptAt = DateTime.MinValue;
             Log("AFTER_HOURS decision=" + decision +
                 " boundary=" + boundary.ToString("HH:mm") +
                 " relay_until=" + until.ToString("HH:mm") +
-                " schedule_key=" + key);
+                " schedule_key=" + key +
+                " role=" + _leaderCoordinator.RoleName);
             _leaderCoordinator.RequestRoleRefreshBeforeBusiness();
             CheckAfterHoursSchedule(true);
         }
@@ -1316,9 +1345,30 @@ namespace SupraInventoryRelayAgent
         {
             if (_businessSchedule == null) return;
             var now = _businessSchedule.NowOperational();
-            var relayAllowed = IsBusinessAllowed();
             var defaultAllowed = _businessSchedule.DefaultRelayAllowed(now);
             var coordinator = _leaderCoordinator;
+
+            DateTime boundary;
+            var hasBoundary = _businessSchedule.TryGetPromptBoundary(now, out boundary);
+            if (coordinator != null && HasAgentSession())
+            {
+                var secondsToBoundary = hasBoundary ? (boundary - now).TotalSeconds : double.MaxValue;
+                var syncIntervalSeconds = secondsToBoundary >= 0 && secondsToBoundary <= 15 ? 2 : 30;
+                var localRelayAllowed = defaultAllowed ||
+                    coordinator.SharedRelayOverrideAllows(_businessSchedule.ScheduleKey(now), OperationalMs(now));
+                var needsScheduleSync =
+                    forcePrompt ||
+                    _lastAfterHoursScheduleSyncAt == DateTime.MinValue ||
+                    (now - _lastAfterHoursScheduleSyncAt).TotalSeconds >= syncIntervalSeconds ||
+                    (!defaultAllowed && !localRelayAllowed);
+                if (needsScheduleSync)
+                {
+                    coordinator.RefreshSharedScheduleNow();
+                    _lastAfterHoursScheduleSyncAt = now;
+                }
+            }
+
+            var relayAllowed = IsBusinessAllowed();
 
             if (!_lastRelayAllowed.HasValue || _lastRelayAllowed.Value != relayAllowed)
             {
@@ -1328,8 +1378,6 @@ namespace SupraInventoryRelayAgent
                     " at=" + now.ToString("HH:mm:ss"));
             }
 
-            DateTime boundary;
-            var hasBoundary = _businessSchedule.TryGetPromptBoundary(now, out boundary);
             var key = _businessSchedule.ScheduleKey(now);
             var boundaryMs = hasBoundary ? OperationalMs(boundary) : 0L;
             var earlyStarted = coordinator != null &&
@@ -1339,7 +1387,7 @@ namespace SupraInventoryRelayAgent
                 relayAllowed &&
                 !earlyStarted &&
                 coordinator != null &&
-                coordinator.IsLeader &&
+                HasAgentSession() &&
                 hasBoundary &&
                 !coordinator.HasScheduleDecision(key, boundaryMs);
             var frozenOutsideRegular = !defaultAllowed && !relayAllowed;
@@ -1384,6 +1432,17 @@ namespace SupraInventoryRelayAgent
                     "Relay PDA đang ngủ đến " + next.ToString("HH:mm") +
                     " · xác nhận trực tiếp tại Agent vẫn hoạt động.";
                 _afterHoursEarlyStart.Text = "Khởi động relay đến " + next.ToString("HH:mm");
+                return;
+            }
+
+            if (relayAllowed && hasBoundary && coordinator != null &&
+                coordinator.HasScheduleDecision(key, boundaryMs))
+            {
+                var decision = coordinator.SharedScheduleDecision;
+                var until = _businessSchedule.ExtensionUntil(boundary);
+                _afterHoursStatus.Text = string.Equals(decision, "CONTINUE", StringComparison.Ordinal)
+                    ? "Đã xác nhận tiếp tục relay đến " + until.ToString("HH:mm") + " trên hệ thống."
+                    : "Đã xác nhận dừng relay tại " + boundary.ToString("HH:mm") + " trên hệ thống.";
                 return;
             }
 

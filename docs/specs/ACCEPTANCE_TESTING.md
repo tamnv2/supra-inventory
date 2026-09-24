@@ -1142,3 +1142,29 @@ Owner field acceptance:
 - Immediately before every WMS POST chunk, the Agent must revalidate current PRIMARY generation. A lost fence stops remaining mutation, safely releases untouched guards and leaves affected jobs without terminal ACK so the valid PRIMARY may continue.
 - Early-start field acceptance requires another online Agent to converge to STANDBY/FROZEN within the bounded 30s control refresh, without PDA business polling on FROZEN.
 
+## D118 acceptance — fleet overtime, pagination, SLA, export, Agent footer and Android keyboard
+
+Technical gates must verify:
+
+1. Agent build target is v38. Overtime submission has no PRIMARY-only guard; every authenticated Agent can submit, while Firestore schedule write uses document update-time CAS and does not change role.
+2. Two Agents submitting conflicting decisions for the same boundary cannot overwrite the first authoritative decision; the loser refreshes current schedule state.
+3. D117 PRIMARY lease/failover/generation/WMS fences remain intact.
+4. SKU search, Reporter result history, Picker report history and runtime logs expose real server pagination; runtime Drive logs include nextPageToken. Existing Users/Audit/Reporting pagination remains.
+5. Reporter active pending queue still loads all server pages and is not replaced by a partial UI page.
+6. SLA save carries expected policy revision; server rejects stale revision with `SLA_CONFIG_STALE`; policy revision increments on successful writes. Web does not render fake/default values while configuration is loading.
+7. SLA professional layout exposes authority, revision, last update, thresholds and policies.
+8. Export uses the selected range/filter and produces the six D118 workbook sheets, including per-Picker lifecycle and SKU aggregation.
+9. Agent displays the approved bottom-right product credit.
+10. Android manifest uses `adjustResize` and the Picker tabs remain outside the weighted content FrameLayout so they resize above IME.
+11. Web/Worker/Android/Agent builds and existing regression guards pass; SQLite remains schema 11; Stable remains untouched.
+
+Owner field acceptance after release:
+
+- On an office STANDBY/FROZEN Agent while another machine is PRIMARY, confirm overtime and verify the fleet—including the remote PRIMARY—shows/obeys the same decision without changing which machine is PRIMARY.
+- Verify a conflicting click on another Agent cannot overwrite the first decision.
+- Navigate multiple pages for SKU, result history, Picker history, Web/Android logs and existing Audit/Reports; verify next/previous returns the expected records with no silent cut-off.
+- Change SLA on one browser, reload/open another browser, verify identical values; attempt a stale save from an older tab and verify it is rejected/reloaded instead of overwriting.
+- Export a controlled date range and verify all six sheets contain useful detailed data matching the selected range/filter.
+- Verify Agent footer visually.
+- On Android confirmation tab, open numeric keyboard and verify `Báo hết hàng` / `Xác nhận đơn` tabs remain visible immediately above the keyboard.
+

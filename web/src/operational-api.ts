@@ -153,8 +153,17 @@ export async function getReporterTicketsV2(batchId: string): Promise<{ batch_id:
   return readJson(await operationalFetch(`/api/reporter/batch-tickets?batch_id=${encodeURIComponent(batchId)}`));
 }
 
-export async function getPickerReportsV2(limit = 100): Promise<{ items: PickerReportV2[]; count: number }> {
-  return readJson(await operationalFetch(`/api/picker/reports?limit=${limit}`));
+export async function getPickerReportsV2(
+  limit = 50,
+  offset = 0,
+  scope = "APP_TODAY_OPEN",
+): Promise<{ items: PickerReportV2[]; count: number; total: number; limit: number; offset: number; scope?: string }> {
+  const params = new URLSearchParams({
+    limit: String(limit),
+    offset: String(Math.max(0, offset)),
+    scope,
+  });
+  return readJson(await operationalFetch(`/api/picker/reports?${params.toString()}`));
 }
 
 export async function getPickerResultsV2(limit = 100): Promise<{ items: PickerResultV2[]; count: number }> {

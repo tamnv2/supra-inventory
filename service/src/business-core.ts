@@ -341,30 +341,37 @@ async function importSkus(state: DurableObjectState, request: Request): Promise<
 
 function searchSkus(state: DurableObjectState, url: URL): BusinessResult {
   const query = String(url.searchParams.get("query") || "").trim();
-  const limit = normalizeLimit(url.searchParams.get("limit"), 50);
-  const rows = query
-    ? state.storage.sql
-        .exec<SkuRow>(
-          `SELECT sku, product_name, source_hash, created_at, updated_at
-             FROM sku_master
-            WHERE sku LIKE ? OR product_name LIKE ?
-            ORDER BY sku ASC
-            LIMIT ?`,
-          `%${query}%`,
-          `%${query}%`,
-          limit,
-        )
-        .toArray()
-    : state.storage.sql
-        .exec<SkuRow>(
-          `SELECT sku, product_name, source_hash, created_at, updated_at
-             FROM sku_master
-            ORDER BY sku ASC
-            LIMIT ?`,
-          limit,
-        )
-        .toArray();
-  return { status: 200, payload: { items: rows, count: rows.length, query, limit } };
+  const limit = normalizeLimit(url.searchParams.get("limit"), 100);
+  const offset = normalizeOffset(url.searchParams.get("offset"));
+  const where = query ? "WHERE sku LIKE ? OR product_name LIKE ?" : "";
+  const args: SqlStorageValue[] = query ? [`%${query}%`, `%${query}%`] : [];
+  const totalRow = firstRow(state.storage.sql.exec<SqlRow>(
+    `SELECT COUNT(*) AS total FROM sku_master ${where}`,
+    ...args,
+  ).toArray()) || {};
+  const rows = state.storage.sql
+    .exec<SkuRow>(
+      `SELECT sku, product_name, source_hash, created_at, updated_at
+         FROM sku_master
+         ${where}
+        ORDER BY sku ASC
+        LIMIT ? OFFSET ?`,
+      ...args,
+      limit,
+      offset,
+    )
+    .toArray();
+  return {
+    status: 200,
+    payload: {
+      items: rows,
+      count: rows.length,
+      total: Number(totalRow.total || 0),
+      query,
+      limit,
+      offset,
+    },
+  };
 }
 
 async function createReport(state: DurableObjectState, request: Request): Promise<BusinessResult> {
@@ -1107,6 +1114,116 @@ function adminReporting(state: DurableObjectState, url: URL): BusinessResult {
 }
 
 
+
+function adminReportingDetail(state: DurableObjectState, url: URL): BusinessResult {
+  const range = reportingRange(url);
+  if (range.error) return { status: 400, payload: { error: range.error, max_range_days: 60 } };
+  const statusValue = String(url.searchParams.get("status") || "").trim();
+  const validStatus = ["PENDING", "HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(statusValue) ? statusValue : "";
+  const query = String(url.searchParams.get("query") || "").trim().slice(0, 500);
+  const limit = normalizeReportingLimit(url.searchParams.get("limit"));
+  const offset = normalizeOffset(url.searchParams.get("offset"));
+
+  const where: string[] = ["b.first_report_at >= ?", "b.first_report_at < ?"];
+  const args: SqlStorageValue[] = [range.from, range.to];
+  if (validStatus) { where.push("b.status = ?"); args.push(validStatus); }
+  if (query) { where.push("(b.sku LIKE ? OR b.product_name LIKE ?)"); args.push(`%${query}%`, `%${query}%`); }
+  const clause = where.join(" AND ");
+
+  const totalRow = firstRow(state.storage.sql.exec<SqlRow>(
+    `SELECT COUNT(*) AS total
+       FROM report_batches b
+       JOIN report_tickets t ON t.batch_id = b.batch_id
+      WHERE ${clause}`,
+    ...args,
+  ).toArray()) || {};
+
+  const rows = state.storage.sql.exec<SqlRow>(
+    `SELECT
+        b.batch_id,
+        b.sku,
+        b.product_name,
+        b.status AS batch_status,
+        b.first_report_at,
+        b.last_report_at,
+        b.resolved_at AS batch_resolved_at,
+        b.resolution AS batch_resolution,
+        b.resolution_source AS batch_resolution_source,
+        b.correction_deadline_at,
+        b.previous_batch_id,
+        prior.resolved_at AS previous_resolved_at,
+        COALESCE(resolver.employee_code, '') AS resolved_by_employee_code,
+        COALESCE(resolver.display_name, '') AS resolved_by_display_name,
+        t.ticket_id,
+        t.picker_user_id,
+        t.picker_employee_code,
+        COALESCE(picker.display_name, '') AS picker_display_name,
+        t.status AS ticket_status,
+        t.reported_at,
+        t.withdraw_deadline_at,
+        t.withdrawn_at,
+        t.resolved_at AS ticket_resolved_at,
+        t.auto_skip_deadline_at,
+        t.auto_skip_allowed_at,
+        COALESCE(t.resolution, b.resolution) AS ticket_resolution,
+        COALESCE(t.resolution_source, b.resolution_source) AS ticket_resolution_source,
+        (
+          SELECT a.received_at
+            FROM result_acknowledgements a
+           WHERE a.batch_id = b.batch_id
+             AND a.target_user_id = t.picker_user_id
+           ORDER BY a.created_at DESC
+           LIMIT 1
+        ) AS result_received_at,
+        (
+          SELECT a.displayed_at
+            FROM result_acknowledgements a
+           WHERE a.batch_id = b.batch_id
+             AND a.target_user_id = t.picker_user_id
+           ORDER BY a.created_at DESC
+           LIMIT 1
+        ) AS result_displayed_at,
+        (
+          SELECT a.acknowledged_at
+            FROM result_acknowledgements a
+           WHERE a.batch_id = b.batch_id
+             AND a.target_user_id = t.picker_user_id
+           ORDER BY a.created_at DESC
+           LIMIT 1
+        ) AS result_acknowledged_at,
+        CASE WHEN b.resolved_at IS NULL THEN NULL
+             ELSE ROUND((julianday(b.resolved_at) - julianday(b.first_report_at)) * 1440.0, 1) END AS batch_duration_minutes,
+        CASE WHEN COALESCE(t.resolved_at, t.withdrawn_at, b.resolved_at) IS NULL THEN NULL
+             ELSE ROUND((julianday(COALESCE(t.resolved_at, t.withdrawn_at, b.resolved_at)) - julianday(t.reported_at)) * 1440.0, 1) END AS picker_wait_minutes
+       FROM report_batches b
+       JOIN report_tickets t ON t.batch_id = b.batch_id
+       LEFT JOIN report_batches prior ON prior.batch_id = b.previous_batch_id
+       LEFT JOIN users picker ON picker.user_id = t.picker_user_id
+       LEFT JOIN users resolver ON resolver.user_id = b.resolved_by_user_id
+      WHERE ${clause}
+      ORDER BY b.first_report_at DESC, b.batch_id DESC, t.reported_at ASC, t.ticket_id ASC
+      LIMIT ? OFFSET ?`,
+    ...args,
+    limit,
+    offset,
+  ).toArray();
+
+  return {
+    status: 200,
+    payload: {
+      items: rows,
+      count: rows.length,
+      total: Number(totalRow.total || 0),
+      limit,
+      offset,
+      from: range.from,
+      to: range.to,
+      status: validStatus,
+      query,
+    },
+  };
+}
+
 function safeAuditMetadata(value: unknown, depth = 0): unknown {
   if (depth > 4) return "[TRUNCATED]";
   if (value == null || typeof value === "boolean" || typeof value === "number") return value;
@@ -1282,6 +1399,7 @@ export async function handleBusinessRequest(state: DurableObjectState, request: 
   else if (request.method === "PUT" && url.pathname === "/business/admin/dashboard-preference") result = await putDashboardPreference(state, request);
   else if (request.method === "GET" && url.pathname === "/business/admin/dashboard") result = adminDashboard(state, url);
   else if (request.method === "GET" && url.pathname === "/business/admin/reporting") result = adminReporting(state, url);
+  else if (request.method === "GET" && url.pathname === "/business/admin/reporting-detail") result = adminReportingDetail(state, url);
   else if (request.method === "GET" && url.pathname === "/business/admin/audit-history") result = adminAuditHistory(state, url);
   else if (request.method === "GET" && url.pathname === "/business/admin/reports") result = adminReports(state, url);
 

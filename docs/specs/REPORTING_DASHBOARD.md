@@ -198,3 +198,12 @@ Dashboard/result-mix may split Skip into **Bỏ qua bởi nhân sự** and **T�
 - Date quick presets are exact-state controls: Hôm nay = today/today, 7 = today-6 through today, 30 = today-29 through today, 60 = today-59 through today. A custom range leaves all quick presets inactive.
 - These responsiveness changes must not add polling frequency or provider reads.
 
+## D118 — Complete paged views and detailed Excel export
+
+- Large historical/admin lists use bounded server pages with visible previous/next navigation and total/range indicators instead of silently displaying only the first N rows.
+- Page sizes: SKU search 100, Reporter result history 50, Picker report history 50, runtime Web/Android logs 50, existing Users/Audit/Report detail 100. Active pending Reporter queue is not user-truncated; it is assembled from bounded 200-row server pages for correctness.
+- Runtime Drive log pagination uses Google Drive `nextPageToken`; Web keeps a bounded token stack for back/forward navigation.
+- Detailed Excel export uses the active report date range, result filter and SKU/name query. It fetches all matching bounded pages up to explicit 100,000-row safety ceilings.
+- Workbook sheets: `Tổng quan`, `Diễn biến`, `Đợt báo hàng`, `Chi tiết Picker`, `Tổng hợp SKU`, `SKU nổi bật`.
+- Export must expose operational evolution and actors/timestamps without adding a new reporting authority; all data comes from existing InventoryCore report/ticket/acknowledgement data.
+

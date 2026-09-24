@@ -980,3 +980,17 @@ D117 final hardening is technically released and **OA037 is field-ready**.
 - Worker/Web runtime was intentionally unchanged by Agent-only v37 hardening; latest D117 live health proof remains exact implementation source `bbb6c83b...`, schema 11/11, storage ready, missing 0, Agent migration 0/0, Operational V2 5/5.
 - Stable remains OWNER-GATED and untouched.
 
+## D118 — Fleet-wide overtime control, complete paged Web data, authoritative SLA, detailed export and keyboard-safe PDA — 2026-09-24
+
+Owner approves the following Beta-only change set on top of D117. Stable remains OWNER-GATED and untouched.
+
+1. **Overtime confirmation is fleet-wide, not PRIMARY-only.** From each D117 decision window (21:30 for 22:00 and each active HH:30 thereafter), every online authenticated Agent may display and submit the decision. Submitting a schedule decision does **not** promote STANDBY/FROZEN to PRIMARY.
+2. **One authoritative decision per boundary.** Schedule decisions use the existing Firestore coordination roles document with optimistic compare-and-set on document update time. The first decision recorded for a schedule key + boundary is authoritative; later conflicting decisions cannot overwrite it and must refresh/show the existing fleet decision. PRIMARY continues to execute business work and consumes the shared decision before the boundary.
+3. **Bounded lists with real pagination.** Administrative/history lists must not silently truncate. Existing Users/Audit/Reporting pagination remains. SKU search is 100/page; Reporter result history 50/page; Picker report history 50/page; runtime Web/Android logs 50/page using Google Drive nextPageToken. Active pending Reporter queue remains correctness-first and is loaded completely through bounded server pages rather than shown partially.
+4. **SLA is server-authoritative and revision-safe.** Web must not render substitute/default threshold values while server configuration is loading. SLA configuration exposes its revision; each save includes expected revision. A stale tab/device receives `SLA_CONFIG_STALE`, cannot overwrite newer settings, and reloads authoritative state. Revision increases after each successful save.
+5. **SLA presentation is professionally restructured** into authoritative status, ordered thresholds, policy controls, current operational state, revision/update identity and explicit whole-system scope.
+6. **Detailed Excel export follows the selected reporting range/filter.** Export contains separate professional sheets for overall summary, timeline/evolution, report batches, per-Picker detail, SKU aggregation and prominent SKU metrics. It includes result source/actor, report/resolve times, waiting times, auto-skip/withdraw/ack lifecycle and recurrence context where available.
+7. **Agent product credit.** Windows Agent shows `Phát triển hệ thống · tamnv2 | Pick Pack 1291` at bottom-right without affecting the operational layout.
+8. **Android keyboard behavior.** Picker main activity uses resize-on-IME; the bottom `Báo hết hàng` / `Xác nhận đơn` tabs remain above the soft keyboard because they stay outside the weighted content frame.
+9. Final candidate targets are **relay-agent-v38** and the next monotonic signed Android release after beta-vc73 (expected beta-vc74). No new provider, database, collection or Stable resource is introduced.
+
