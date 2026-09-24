@@ -265,20 +265,47 @@ jobs:
         run: |
           $version = (Get-Content relay-agent/VERSION -Raw).Trim()
           $tag = "relay-agent-v$version"
+          $primary = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe"
+          $localSha = (Get-FileHash $primary -Algorithm SHA256).Hash.ToLowerInvariant()
+          $releaseSource = $env:GITHUB_SHA
           gh release view $tag --repo "${{ github.repository }}" *> $null
           if ($LASTEXITCODE -eq 0) {
-            throw "Agent release $tag already exists. Increment relay-agent/VERSION before publishing another Agent binary."
+            $verifyDir = Join-Path $env:RUNNER_TEMP "agent-release-$version"
+            Remove-Item $verifyDir -Recurse -Force -ErrorAction SilentlyContinue
+            New-Item -ItemType Directory -Force -Path $verifyDir | Out-Null
+            gh release download $tag --repo "${{ github.repository }}" --pattern "Agent.Auto.Confirm.Pick.Pack.exe" --dir $verifyDir
+            if ($LASTEXITCODE -ne 0) {
+              gh release download $tag --repo "${{ github.repository }}" --pattern "Agent Auto Confirm Pick Pack.exe" --dir $verifyDir
+            }
+            if ($LASTEXITCODE -ne 0) {
+              throw "Agent release $tag exists but the canonical EXE cannot be downloaded for idempotency verification."
+            }
+            $releasedExe = Get-ChildItem $verifyDir -Filter "*.exe" | Where-Object { $_.Name -notlike "SUPRA-Inventory-Relay-Test*" } | Select-Object -First 1
+            if ($null -eq $releasedExe) {
+              throw "Agent release $tag exists but the canonical EXE asset is missing."
+            }
+            $releasedSha = (Get-FileHash $releasedExe.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($releasedSha -ne $localSha) {
+              throw "Agent release $tag already exists with different binary content. Increment relay-agent/VERSION before publishing another Agent binary."
+            }
+            $releaseSource = (gh api "repos/${{ github.repository }}/git/ref/tags/$tag" --jq '.object.sha').Trim()
+            if ([string]::IsNullOrWhiteSpace($releaseSource)) {
+              throw "Agent release $tag exists but its tag source cannot be resolved."
+            }
+            Write-Host "Agent release $tag already exists with identical binary; reuse verified release."
+          } else {
+            gh release create $tag `
+              "$primary#Agent Auto Confirm Pick Pack.exe" `
+              "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256#Agent Auto Confirm Pick Pack.exe.sha256" `
+              "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe#SUPRA-Inventory-Relay-Test.exe" `
+              "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256#SUPRA-Inventory-Relay-Test.exe.sha256" `
+              "relay-agent/dist/README.md#README.md" `
+              --repo "${{ github.repository }}" `
+              --title "Agent Auto Confirm Pick Pack v$version" `
+              --notes "Beta Agent for Pick Pack / Inventory confirmation relay. Canonical executable: Agent Auto Confirm Pick Pack.exe. D097 uses request-driven PRIMARY/STANDBY/FROZEN HA, bounded network-transition recovery and quota-safe Firestore operations. WMS mutation remains bounded to confirmSkipItem after an exact unique PickListCode match." `
+              --prerelease
+            if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
           }
-          gh release create $tag `
-            "relay-agent/dist/Agent Auto Confirm Pick Pack.exe#Agent Auto Confirm Pick Pack.exe" `
-            "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256#Agent Auto Confirm Pick Pack.exe.sha256" `
-            "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe#SUPRA-Inventory-Relay-Test.exe" `
-            "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256#SUPRA-Inventory-Relay-Test.exe.sha256" `
-            "relay-agent/dist/README.md#README.md" `
-            --repo "${{ github.repository }}" `
-            --title "Agent Auto Confirm Pick Pack v$version" `
-            --notes "Beta Agent for Pick Pack / Inventory confirmation relay. Canonical executable: Agent Auto Confirm Pick Pack.exe. D097 uses request-driven PRIMARY/STANDBY/FROZEN HA, bounded network-transition recovery and quota-safe Firestore operations. WMS mutation remains bounded to confirmSkipItem after an exact unique PickListCode match." `
-            --prerelease
 
           $channel = "inventory-channel"
           gh release view $channel --repo "${{ github.repository }}" *> $null
@@ -301,7 +328,7 @@ jobs:
             tag = $tag
             name = "Agent Auto Confirm Pick Pack v$version"
             published_at = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
-            source = $env:GITHUB_SHA
+            source = $releaseSource
             asset_name = "Agent.Auto.Confirm.Pick.Pack.exe"
             size_bytes = $size
             sha256 = $sha256
