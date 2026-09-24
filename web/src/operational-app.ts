@@ -3472,19 +3472,31 @@ function bindSection(): void {
         skipToStockMinutes < 1 ||
         skipToStockMinutes > 10080
       ) throw new Error("Các mốc phải là số phút nguyên hợp lệ; Cảnh báo < Quá hạn < Tự động cho phép bỏ qua.");
-      await saveAdminSla({
-        warning_minutes: warning,
-        warning_enabled: warningEnabled,
-        escalation_minutes: escalation,
-        escalation_enabled: escalationEnabled,
-        auto_skip_minutes: autoSkip,
-        auto_skip_enabled: autoSkipEnabled,
-        auto_skip_mode: autoSkipMode,
-        skip_to_stock_enabled: skipToStockEnabled,
-        skip_to_stock_minutes: skipToStockMinutes,
-      });
-      await loadSla();
-      setNotice("success", "Đã lưu thời gian nghiệp vụ.");
+      const expectedPolicyVersion = Number(slaResponse?.sla?.policy_version || 0);
+      try {
+        const saved = await saveAdminSla({
+          warning_minutes: warning,
+          warning_enabled: warningEnabled,
+          escalation_minutes: escalation,
+          escalation_enabled: escalationEnabled,
+          auto_skip_minutes: autoSkip,
+          auto_skip_enabled: autoSkipEnabled,
+          auto_skip_mode: autoSkipMode,
+          skip_to_stock_enabled: skipToStockEnabled,
+          skip_to_stock_minutes: skipToStockMinutes,
+          expected_policy_version: expectedPolicyVersion,
+        });
+        slaResponse = saved;
+        await loadSla();
+        setNotice("success", "Đã lưu cấu hình thời gian xử lý cho toàn hệ thống.");
+      } catch (error) {
+        if (error instanceof ApiError && error.code === "SLA_CONFIG_STALE") {
+          await loadSla();
+          setNotice("warning", "Cấu hình đã được cập nhật ở một phiên khác. Đã tải lại bản mới nhất; thay đổi cũ không được ghi đè.");
+          return;
+        }
+        throw error;
+      }
     });
   });
 
