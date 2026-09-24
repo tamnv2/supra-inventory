@@ -233,34 +233,71 @@ namespace SupraInventoryRelayAgent
             return true;
         }
 
+        internal bool RefreshSharedScheduleNow()
+        {
+            try
+            {
+                _ensureFreshToken();
+                var session = _sessionProvider();
+                var read = ReadRoles(session);
+                ApplySharedSchedule(read.Snapshot);
+                return read.Snapshot != null;
+            }
+            catch (Exception ex)
+            {
+                _log("FIRESTORE SCHEDULE refresh=DEFER type=" + ex.GetType().Name +
+                     " message=" + AgentDiagnostics.Sanitize(ex.Message));
+                return false;
+            }
+        }
+
         internal bool PublishScheduleDecision(
             string scheduleKey,
             long boundaryMs,
             string decision,
             long relayOverrideUntilMs)
         {
-            if (_role != FirestoreAgentRole.PRIMARY) return false;
             if (string.IsNullOrWhiteSpace(scheduleKey) || boundaryMs <= 0) return false;
+            if (string.IsNullOrWhiteSpace(decision)) return false;
             try
             {
                 _ensureFreshToken();
                 var session = _sessionProvider();
-                WriteScheduleFields(session, scheduleKey, decision, boundaryMs, relayOverrideUntilMs);
-                SetSharedSchedule(scheduleKey, decision, boundaryMs, relayOverrideUntilMs);
-                WritePrimaryLease(session);
-                _log("FIRESTORE SCHEDULE decision=" + AgentDiagnostics.Sanitize(decision ?? "") +
-                     " boundary_ms=" + boundaryMs +
-                     " relay_until_ms=" + relayOverrideUntilMs +
-                     " by=PRIMARY");
-                try { _wake.Set(); } catch { }
-                return true;
+                for (var attempt = 0; attempt < 4; attempt++)
+                {
+                    var read = ReadRoles(session);
+                    var current = read.Snapshot;
+                    ApplySharedSchedule(current);
+
+                    if (current != null &&
+                        string.Equals(current.ScheduleKey ?? "", scheduleKey, StringComparison.Ordinal) &&
+                        current.DecisionBoundaryMs == boundaryMs &&
+                        !string.IsNullOrWhiteSpace(current.ScheduleDecision))
+                    {
+                        _log("FIRESTORE SCHEDULE decision=EXISTING boundary_ms=" + boundaryMs +
+                             " existing=" + AgentDiagnostics.Sanitize(current.ScheduleDecision));
+                        return string.Equals(current.ScheduleDecision, decision, StringComparison.Ordinal);
+                    }
+
+                    if (!TryWriteScheduleFields(session, scheduleKey, decision, boundaryMs, relayOverrideUntilMs, read))
+                        continue;
+
+                    SetSharedSchedule(scheduleKey, decision, boundaryMs, relayOverrideUntilMs);
+                    if (_role == FirestoreAgentRole.PRIMARY) WritePrimaryLease(session);
+                    _log("FIRESTORE SCHEDULE decision=" + AgentDiagnostics.Sanitize(decision ?? "") +
+                         " boundary_ms=" + boundaryMs +
+                         " relay_until_ms=" + relayOverrideUntilMs +
+                         " by=ANY_AUTHENTICATED_AGENT role=" + _role);
+                    try { _wake.Set(); } catch { }
+                    return true;
+                }
             }
             catch (Exception ex)
             {
                 _log("FIRESTORE SCHEDULE write=DEFER type=" + ex.GetType().Name +
                      " message=" + AgentDiagnostics.Sanitize(ex.Message));
-                return false;
             }
+            return false;
         }
 
         internal bool PublishEarlyStartAndClaimPrimary(string scheduleKey, long relayOverrideUntilMs)
@@ -979,13 +1016,17 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private void WriteScheduleFields(
+        private bool TryWriteScheduleFields(
             AgentSession session,
             string scheduleKey,
             string decision,
             long boundaryMs,
-            long overrideUntilMs)
+            long overrideUntilMs,
+            RoleRead previous)
         {
+            if (previous == null || !previous.Exists || string.IsNullOrWhiteSpace(previous.UpdateTime))
+                return false;
+
             var fields = new Dictionary<string, object>
             {
                 { "schedule_key", StringField(scheduleKey ?? "") },
@@ -995,15 +1036,45 @@ namespace SupraInventoryRelayAgent
                 { "schedule_updated_by_agent_instance_id", StringField(_instanceId) },
                 { "schedule_updated_at_ms", IntField(NowMs()) }
             };
-            SendJson(
-                "PATCH",
-                RolesUrl(),
-                session.IdToken,
-                _json.Serialize(new Dictionary<string, object> { { "fields", fields } }),
-                BuildMask(fields.Keys),
-                7000,
-                false,
-                "SCHEDULE_WRITE");
+            var suffix = BuildMask(fields.Keys) +
+                         "&currentDocument.updateTime=" + Uri.EscapeDataString(previous.UpdateTime);
+            try
+            {
+                SendJson(
+                    "PATCH",
+                    RolesUrl(),
+                    session.IdToken,
+                    _json.Serialize(new Dictionary<string, object> { { "fields", fields } }),
+                    suffix,
+                    7000,
+                    false,
+                    "SCHEDULE_WRITE");
+                return true;
+            }
+            catch (WebException ex)
+            {
+                var response = ex.Response as HttpWebResponse;
+                var status = response == null ? 0 : (int)response.StatusCode;
+                try { if (response != null) response.Dispose(); } catch { }
+                if (status == 409 || status == 412) return false;
+                throw;
+            }
+        }
+
+        private void WriteScheduleFields(
+            AgentSession session,
+            string scheduleKey,
+            string decision,
+            long boundaryMs,
+            long overrideUntilMs)
+        {
+            for (var attempt = 0; attempt < 4; attempt++)
+            {
+                var read = ReadRoles(session);
+                if (TryWriteScheduleFields(session, scheduleKey, decision, boundaryMs, overrideUntilMs, read))
+                    return;
+            }
+            throw new InvalidOperationException("Không ghi được trạng thái lịch vận hành.");
         }
 
         private void WritePrimaryLease(AgentSession session)
