@@ -1637,6 +1637,43 @@
       "field_result": "PASS_OWNER_CONFIRMED_D114",
       "field_result_date": "2026-09-24",
       "owner_evidence": "Owner explicitly replied 'Ok pass' after D114 field testing of live Beta Web, signed beta-vc70 and relay-agent-v33. The same message raised a separate post-pass Android relay latency/ACK observation; D114 acceptance remains closed and the new observation is not silently folded into OA034."
+    },
+    {
+      "id": "OA035",
+      "status": "PENDING_TECHNICAL_RUNTIME_RELEASE",
+      "title": "Field-accept D115 fast healthy-primary relay and ACK recovery",
+      "resource_key": "worker-beta",
+      "provider": "Beta Android + Firestore confirmation transport + relay-agent-v34",
+      "reason_owner_only": "Automated gates can verify cadence, cleanup critical-path removal, ACK retry/read-after-write and no-WMS-replay contracts; the <5s end-to-end target and physical normal-network/Agent behavior require Owner field measurement.",
+      "prerequisites": {
+        "d114_owner_acceptance": "PASS_OWNER_CONFIRMED_D114",
+        "owner_d115_approval": "PASS",
+        "source_branch": "feat/d115-relay-under5s",
+        "target_android_release": "beta-vc71",
+        "target_agent_release": "relay-agent-v34",
+        "technical_runtime_release": "PENDING",
+        "sqlite_schema": 11,
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Install signed beta-vc71 and relay-agent-v34; keep exactly one healthy PRIMARY, WMS ready, normal network and no failover.",
+        "Run at least 10 sequential controlled confirmations. Check Android request CREATE→terminal ACK/result RTT; every healthy run without identified external WMS/network anomaly must be under 5,000 ms.",
+        "Verify pressing Xác nhận creates the Firestore request promptly; old cleanup records must not add multi-second delay before CREATE and support logs must not repeat legacy PERMISSION_DENIED cleanup storms.",
+        "Verify a normal request does not falsely state that PRIMARY is inactive. The 10-second copy is neutral and standby takeover still occurs only under the existing failover rule.",
+        "Exercise an ACK-delivery interruption/uncertain case where practical: WMS mutation must not be repeated; Android must recover a server-visible ACK rather than falsely timing out when the ACK exists.",
+        "Verify 30-second unresolved fallback still works and Stable is untouched."
+      ],
+      "pass_criteria": [
+        "Healthy PRIMARY/no-failover confirmation path is <5,000 ms from Android request creation to terminal Android result in the controlled field sample.",
+        "PRIMARY poll is 2s only; STANDBY remains 10s; FROZEN has no business polling; Android adds no polling cadence.",
+        "Cleanup is background/UID-scoped and cannot delay a new confirmation request.",
+        "ACK retry/read-after-write cannot rerun WMS mutation and preserves conditional PENDING→ACK/idempotency guards.",
+        "D104 batching/chunking, D114 exact trailing suffix/ambiguity selection and SQLite 11 remain intact.",
+        "Stable remains OWNER-GATED and untouched."
+      ],
+      "safety": "Beta only. No PickList values, credentials, tokens or WMS session material in logs/source. No new provider/resource. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for technical/runtime/release PASS, then field-test beta-vc71 + relay-agent-v34 using the shortest_test_path.",
+      "closed": false
     }
   ]
 }
