@@ -994,3 +994,17 @@ Owner approves the following Beta-only change set on top of D117. Stable remains
 8. **Android keyboard behavior.** Picker main activity uses resize-on-IME; the bottom `Báo hết hàng` / `Xác nhận đơn` tabs remain above the soft keyboard because they stay outside the weighted content frame.
 9. Final candidate targets are **relay-agent-v38** and the next monotonic signed Android release after beta-vc73 (expected beta-vc74). No new provider, database, collection or Stable resource is introduced.
 
+## D118 technical/runtime/release checkpoint — 2026-09-25
+
+D118 is technically released on Beta and **OA038 is field-ready**.
+
+- PR #181 squash-merged to main `d29237c0990eb677ddef726785a88e08bce88dce`.
+- Final PR gates PASS: Repo Authority `36015364305`, Project State `36015364214`, UI Design `36015364218`, Android `36015364294`, Relay Agent `36015364286`, Firestore `36015364874`, RTDB `36015364314`.
+- Main PASS: Repo Authority `36064078289`, Project State `36064078114`, UI Design `36064078112`, Deploy Beta Worker `36064078233`, Verify Beta Android `36064078150`, Verify Beta Relay Agent `36064078151`.
+- Live Beta health passed on attempt 1 with HTTP 200, exact source `d29237c0...`, storage ready, SQLite `11/11`, missing bindings `0`, Agent migration `0/0` and Operational V2 `5/5`; auth/business/Web shell/OAuth smoke checks passed.
+- Signed Android `beta-vc74`: release id `396107357`, APK asset id `586922345`, size `19019872`, SHA-256 `c515a17456d3384a2433feb04df5b2fce8d3487a519fbb2d8522ba8a8dc756b1`; tag resolves exactly to main `d29237c0...`.
+- Agent `relay-agent-v38`: release id `396107251`, canonical EXE asset id `586921932`, size `305664`, SHA-256 `24961379327c441a6d686ac4059fd9020ce91d6ee8564cab6c2c2a1893f65bf0`; tag resolves exactly to main `d29237c0...`.
+- Fixed `inventory-channel` refreshed: PDA manifest/APK `586922418/586922421`; Agent manifest/EXE `586921987/586921986`.
+- D118 release preserves D117 proactive lease/failover/generation/WMS fences while replacing PRIMARY-only overtime choice with fleet-wide first-CAS decision authority. Web pagination/SLA/export, Agent footer and Android IME resize are live from the same source.
+- SQLite remains 11. No new provider/resource was introduced. Stable remains OWNER-GATED and untouched.
+- OA037 is superseded by OA038; D118 Owner PASS is not recorded until explicit field acceptance.
