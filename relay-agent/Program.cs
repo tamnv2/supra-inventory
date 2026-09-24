@@ -3335,7 +3335,7 @@ namespace SupraInventoryRelayAgent
                 _firestoreRateLimiter.ClearFound(appSession, work.PickerUid);
 
                 if (work.CreatedAtMs > 0 &&
-                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - work.CreatedAtMs >= 25000)
+                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - work.CreatedAtMs >= 20000)
                 {
                     outcomes[work.RequestId] = new FirestoreConfirmationOutcome
                     {
@@ -3473,14 +3473,78 @@ namespace SupraInventoryRelayAgent
                     confirmCodes.Add(exact.PickListCode);
             }
 
+            // D117 final fence: recheck the 20-second automatic window after lookup/guard work,
+            // then verify the current PRIMARY generation immediately before every WMS POST chunk.
+            var finalConfirmCodes = new List<string>();
+            var finalAgeCheckMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            foreach (var work in exactWorks)
+            {
+                FirestoreConfirmationGuardDecision guard;
+                string code;
+                if (!guardsByRequest.TryGetValue(work.RequestId ?? "", out guard) ||
+                    !codeByRequest.TryGetValue(work.RequestId ?? "", out code))
+                    continue;
+
+                if (work.CreatedAtMs <= 0 || finalAgeCheckMs - work.CreatedAtMs >= 20000L)
+                {
+                    _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
+                    CachedPicklistResult lookup;
+                    lookupBySuffix.TryGetValue(work.Suffix ?? "", out lookup);
+                    WmsExactPicklistResult exact;
+                    exactBySuffix.TryGetValue(work.Suffix ?? "", out exact);
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "REQUEST_EXPIRED",
+                        CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+GUARD+FINAL_20S_FENCE",
+                        Route = "NONE",
+                        Http = 0,
+                        OperationMs = (lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)) +
+                                      (exact == null ? 0L : Math.Max(0L, exact.ElapsedMs)),
+                        Matches = 1,
+                        Rate = new PickerRateDecision(),
+                        GuardId = guard.GuardId,
+                        RetireAtMs = guard.RetireAtMs
+                    };
+                    guardsByRequest.Remove(work.RequestId ?? "");
+                    codeByRequest.Remove(work.RequestId ?? "");
+                    continue;
+                }
+
+                if (!finalConfirmCodes.Exists(item =>
+                        string.Equals(item, code, StringComparison.OrdinalIgnoreCase)))
+                    finalConfirmCodes.Add(code);
+            }
+            confirmCodes = finalConfirmCodes;
+
             var confirmResults = new Dictionary<string, WmsPicklistConfirmResult>(StringComparer.OrdinalIgnoreCase);
             var confirmBatchSizes = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             var sessionExpired = false;
+            var generationFenceLost = false;
+            var wmsRequestCount = 0;
             for (var offset = 0; offset < confirmCodes.Count; offset += 10)
             {
                 var count = Math.Min(10, confirmCodes.Count - offset);
                 var chunk = confirmCodes.GetRange(offset, count);
+
+                var fenceOk = false;
+                try
+                {
+                    fenceOk = _leaderCoordinator != null &&
+                              _leaderCoordinator.VerifyPrimaryBeforeMutation(appSession);
+                }
+                catch (Exception ex)
+                {
+                    Log("FIRESTORE CONFIRM pre-WMS generation fence error type=" + ex.GetType().Name);
+                }
+                if (!fenceOk)
+                {
+                    generationFenceLost = true;
+                    Log("FIRESTORE CONFIRM pre-WMS generation fence=BLOCK chunk_size=" + chunk.Count);
+                    break;
+                }
+
                 var chunkResults = WmsPicklistConfirmClient.ConfirmMany(wmsSession, chunk);
+                wmsRequestCount++;
                 foreach (var pair in chunkResults)
                 {
                     confirmResults[pair.Key] = pair.Value;
@@ -3510,7 +3574,22 @@ namespace SupraInventoryRelayAgent
                 WmsPicklistConfirmResult confirmed;
                 if (!confirmResults.TryGetValue(code, out confirmed) || confirmed == null)
                 {
-                    if (sessionExpired)
+                    if (generationFenceLost)
+                    {
+                        _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
+                        outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                        {
+                            Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
+                            CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+GUARD+ROLE_GENERATION_FENCE",
+                            Route = "ROLE_GENERATION_FENCE",
+                            Matches = 1,
+                            Rate = new PickerRateDecision(),
+                            GuardId = guard.GuardId,
+                            RetireAtMs = guard.RetireAtMs,
+                            ShouldAck = false
+                        };
+                    }
+                    else if (sessionExpired)
                     {
                         _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
                         outcomes[work.RequestId] = new FirestoreConfirmationOutcome
@@ -3579,7 +3658,7 @@ namespace SupraInventoryRelayAgent
                 "PDA_CONFIRM_BATCH jobs=" + works.Count +
                 " exact_candidates=" + exactWorks.Count +
                 " wms_codes=" + confirmCodes.Count +
-                " wms_requests=" + ((confirmCodes.Count + 9) / 10) +
+                " wms_requests=" + wmsRequestCount +
                 " values=redacted");
 
             return outcomes;

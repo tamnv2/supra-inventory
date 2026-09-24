@@ -1702,7 +1702,7 @@
     },
     {
       "id": "OA036",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "SUPERSEDED_BY_D117_FINAL_RETEST",
       "title": "Field-accept D116 quota-balanced relay, durable App result and Web admin refinement",
       "resource_key": "worker-beta",
       "provider": "Beta Web + Android + Firestore confirmation transport + relay-agent-v35",
@@ -1756,7 +1756,48 @@
         "SQLite remains 11 and Stable remains OWNER-GATED/untouched."
       ],
       "safety": "Beta only. No PickList values, credentials, tokens, WMS session material or other secrets in source/logs. No new provider/resource. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Field-test signed beta-vc72 + relay-agent-v35 and live Beta Web using the shortest_test_path. Reply PASS only after healthy PRIMARY/no-failover RTT, Firestore usage trend, App result persistence and Web Operations/SKU/Users checks pass; otherwise send itemized defects.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": "SUPERSEDED_BY_D117_FINAL_RELAY_MODEL",
+      "field_result_date": "2026-09-24",
+      "owner_evidence": "Owner approved D117 to replace D116 relay HA/quota/schedule behavior. D116 durable Android result and Web admin refinements remain inherited; relay acceptance moves to OA037 after final hardened Agent v37 release."
+    },
+    {
+      "id": "OA037",
+      "status": "BLOCKED_PENDING_D117_V37_RELEASE",
+      "title": "Field-accept D117 proactive HA, scheduled relay freeze and inherited D116 UX",
+      "resource_key": "worker-beta",
+      "provider": "Beta Web + signed beta-vc73 + Firestore confirmation transport + target relay-agent-v37",
+      "reason_owner_only": "Automated gates can prove code/build/release invariants, but physical Agent death timing, real WMS/PDA RTT, notification cadence and pre-06:00 fleet behavior require Owner field observation.",
+      "prerequisites": {
+        "d117_owner_requirement": "APPROVED_BY_OWNER_2026_09_24",
+        "target_android_release": "beta-vc73",
+        "target_agent_release": "relay-agent-v37",
+        "technical_runtime_release": "PENDING_FINAL_HARDENING_PR_MAIN_RELEASE",
+        "sqlite_schema": 11,
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Install beta-vc73 and released relay-agent-v37 on PRIMARY + STANDBY after technical release PASS.",
+        "Healthy path: confirm PDA request creation to terminal result is under 10 seconds in normal conditions.",
+        "Idle failover: kill PRIMARY with no PDA request in flight; verify STANDBY becomes PRIMARY within 10 seconds and a replacement STANDBY is selected from FROZEN Agents.",
+        "In-flight failover: kill PRIMARY during one controlled request while Firestore/WMS remain responsive; verify terminal target <=20 seconds and no duplicate WMS mutation.",
+        "At 21:30 verify PRIMARY-only warning every 5 minutes; CONTINUE extends one hour; at each active HH:30 the next-hour warning cycle begins.",
+        "STOP or no answer freezes relay exactly at the boundary; manual Agent PickList confirmation remains usable while PDA relay sleeps.",
+        "Before 06:00 use Khởi động relay đến 06:00 on one WMS-ready Agent; verify that Agent becomes PRIMARY and other online Agents converge back to STANDBY/FROZEN within the bounded control refresh.",
+        "Regression smoke: Android success result remains visible after input reset; D116 Web Operations/SKU/Users refinements remain intact."
+      ],
+      "pass_criteria": [
+        "Healthy PDA→terminal result <10 seconds under normal provider/WMS conditions.",
+        "Idle PRIMARY loss promotes STANDBY within 10 seconds without requiring a PDA request.",
+        "Failover-path terminal result <=20 seconds when providers/WMS remain responsive.",
+        "Before each WMS POST chunk, Agent revalidates current PRIMARY generation and final request age <20 seconds; stale/expired work performs no new WMS mutation.",
+        "PRIMARY queue polling is 4s idle / 2s bounded hot; STANDBY/FROZEN perform no business-queue polling; no periodic WMS health polling.",
+        "Frozen Agents use only bounded control-role refresh for early-start convergence; relay sleep keeps manual Agent confirmation available.",
+        "Stable remains OWNER-GATED and untouched."
+      ],
+      "safety": "Beta only. No secrets/passwords/tokens/WMS session material in source/logs. Existing Firestore coordination resources only; no new provider/collection.",
+      "remaining_owner_action": "Wait for technical release PASS of relay-agent-v37, then field-test with the shortest_test_path.",
       "closed": false
     }
   ]

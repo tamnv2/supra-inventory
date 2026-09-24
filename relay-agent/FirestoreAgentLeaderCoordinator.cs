@@ -47,7 +47,7 @@ namespace SupraInventoryRelayAgent
         internal const int PrimaryLeaseHeartbeatMs = 7000;
         internal const int PrimaryRoleRefreshMs = 60000;
         internal const int StandbyRoleRefreshMs = 60000;
-        internal const int FrozenRoleRefreshMs = 120000;
+        internal const int FrozenRoleRefreshMs = 30000;
         internal const int StartupConvergenceIntervalMs = 5000;
         internal const int StartupConvergenceCycles = 4;
         internal const int PresenceHeartbeatIntervalMs = 900000;
@@ -247,6 +247,7 @@ namespace SupraInventoryRelayAgent
                 var session = _sessionProvider();
                 WriteScheduleFields(session, scheduleKey, decision, boundaryMs, relayOverrideUntilMs);
                 SetSharedSchedule(scheduleKey, decision, boundaryMs, relayOverrideUntilMs);
+                WritePrimaryLease(session);
                 _log("FIRESTORE SCHEDULE decision=" + AgentDiagnostics.Sanitize(decision ?? "") +
                      " boundary_ms=" + boundaryMs +
                      " relay_until_ms=" + relayOverrideUntilMs +
@@ -438,7 +439,7 @@ namespace SupraInventoryRelayAgent
                             WritePrimaryLease(session);
                         waitMs = Math.Max(1000, PrimaryLeaseHeartbeatMs - (int)Math.Min(PrimaryLeaseHeartbeatMs, Math.Max(0L, NowMs() - _lastLeaseWriteMs)));
                     }
-                    else if (_relayEnabled() && _role == FirestoreAgentRole.STANDBY)
+                    else if (_role == FirestoreAgentRole.STANDBY)
                     {
                         waitMs = CheckPrimaryLease(session);
                     }
@@ -1012,11 +1013,27 @@ namespace SupraInventoryRelayAgent
                 !_relayEnabled())
                 return;
 
+            string scheduleKey;
+            string scheduleDecision;
+            long boundaryMs;
+            long overrideUntilMs;
+            lock (_stateGate)
+            {
+                scheduleKey = _sharedScheduleKey ?? "";
+                scheduleDecision = _sharedScheduleDecision ?? "";
+                boundaryMs = _sharedDecisionBoundaryMs;
+                overrideUntilMs = _sharedRelayOverrideUntilMs;
+            }
+
             var fields = new Dictionary<string, object>
             {
                 { "generation", StringField(_generation) },
                 { "primary_agent_instance_id", StringField(_instanceId) },
-                { "heartbeat_at_ms", IntField(NowMs()) }
+                { "heartbeat_at_ms", IntField(NowMs()) },
+                { "schedule_key", StringField(scheduleKey) },
+                { "schedule_decision", StringField(scheduleDecision) },
+                { "decision_boundary_ms", IntField(Math.Max(0L, boundaryMs)) },
+                { "relay_override_until_ms", IntField(Math.Max(0L, overrideUntilMs)) }
             };
 
             Exception last = null;
@@ -1047,7 +1064,7 @@ namespace SupraInventoryRelayAgent
 
         private int CheckPrimaryLease(AgentSession session)
         {
-            if (_role != FirestoreAgentRole.STANDBY || !_relayEnabled()) return 2000;
+            if (_role != FirestoreAgentRole.STANDBY) return 30000;
             var generation = _generation ?? "";
             if (string.IsNullOrWhiteSpace(generation))
             {
@@ -1065,6 +1082,19 @@ namespace SupraInventoryRelayAgent
                     DateTimeOffset parsed;
                     if (DateTimeOffset.TryParse(Get(doc, "updateTime"), out parsed))
                         leaseUpdatedMs = parsed.ToUnixTimeMilliseconds();
+
+                    object fieldsObj;
+                    var fields = doc.TryGetValue("fields", out fieldsObj)
+                        ? fieldsObj as Dictionary<string, object>
+                        : null;
+                    if (fields != null)
+                    {
+                        SetSharedSchedule(
+                            FieldString(fields, "schedule_key"),
+                            FieldString(fields, "schedule_decision"),
+                            FieldLong(fields, "decision_boundary_ms"),
+                            FieldLong(fields, "relay_override_until_ms"));
+                    }
                 }
             }
             catch (WebException ex)
@@ -1073,6 +1103,12 @@ namespace SupraInventoryRelayAgent
                 var status = response == null ? 0 : (int)response.StatusCode;
                 try { if (response != null) response.Dispose(); } catch { }
                 if (status != 404) throw;
+            }
+
+            if (!_relayEnabled())
+            {
+                _leaseMissingSinceMs = 0;
+                return 30000;
             }
 
             var now = NowMs();
