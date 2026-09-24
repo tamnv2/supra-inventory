@@ -445,3 +445,9 @@ D115 supersedes only the PRIMARY polling cadence of the earlier D097/D104/D114 c
 - 21:30 and later HH:30 overtime warnings are local PRIMARY UI/tray notices every 5m until the upcoming boundary is decided. They create no WMS traffic.
 - Fleet schedule decisions are propagated through existing Firestore coordination state. Outside the active relay window, PDA relay is frozen while direct/manual Agent operations remain available.
 
+### D117 final control propagation
+
+- Schedule state is piggybacked on the existing generation-scoped PRIMARY lease; this does not create a new provider, collection or business polling path.
+- A schedule decision forces an immediate PRIMARY lease write. STANDBY therefore receives late overtime/stop state through its existing lease read.
+- FROZEN control-role refresh is 30s outside relay operation solely for early-start topology convergence; it does not query the PDA business queue.
+
