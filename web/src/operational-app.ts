@@ -2237,8 +2237,9 @@ function renderLogs(): string {
     ` : `
       <div class="logs-layout">
         <article class="ops-panel log-list-panel">
-          <div class="ops-panel-title"><div><h3>Log ${runtimeLogSource === "WEB" ? "Web" : "Android"} gần đây</h3><p>${runtimeLogs.length} bản gần nhất.</p></div></div>
+          <div class="ops-panel-title"><div><h3>Log ${runtimeLogSource === "WEB" ? "Web" : "Android"} gần đây</h3><p>Trang ${runtimeLogPageIndex + 1} · tối đa ${RUNTIME_LOG_PAGE_SIZE} log/trang trong ${logDays} ngày.</p></div></div>
           <div class="log-list">${runtimeLogs.length ? runtimeLogs.map((item) => `<button type="button" class="log-row ${runtimeLogDetail?.file.id === item.id ? "selected" : ""}" data-log-file="${esc(item.id)}"><span class="log-severity ${item.severity === "ERROR" ? "error" : "info"}">${item.severity === "ERROR" ? "Lỗi" : "Định kỳ"}</span><div><strong>Nhật ký ${esc(logSourceLabel(item.source))}</strong><small>${esc(fmt(item.created_at))} · ${Math.max(1, Math.round(Number(item.size || 0) / 1024))} KB</small></div></button>`).join("") : `<div class="ops-empty">Chưa có log ${runtimeLogSource === "WEB" ? "Web" : "Android"}.</div>`}</div>
+          <div class="user-pagination"><span>Trang ${runtimeLogPageIndex + 1}</span><div><button class="secondary" id="runtime-log-prev" ${runtimeLogPageIndex <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="runtime-log-next" ${runtimeLogNextPageToken ? "" : "disabled"}>Trang sau</button></div></div>
         </article>
         <article class="ops-panel log-detail-panel">
           <div class="ops-panel-title"><div><h3>Tóm tắt nhật ký</h3></div></div>
