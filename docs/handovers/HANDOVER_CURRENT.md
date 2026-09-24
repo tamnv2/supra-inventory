@@ -898,3 +898,15 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - D117 Owner-approved semantics: Firestore-only proactive 7s PRIMARY lease / 10s failover, PRIMARY 4s idle + 2s hot queue polling, STANDBY/FROZEN no business queue polling, no periodic WMS probe, 06:00–22:00 relay window, hourly after-hours extension, default fleet freeze, early-start-to-06:00, and manual Agent confirmation remains available.
 - Stable remains OWNER-GATED and untouched.
 
+## D117 release-state refresh — 2026-09-24
+
+- SQLite schema: `11`.
+- Latest signed Beta APK: `beta-vc73`.
+- Current released Agent: `relay-agent-v36`.
+- Beta: `D117_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_BBB6C83B__SCHEMA11__SIGNED_BETA_VC73__AGENT_V36__OA037_FIELD_READY`.
+- Web: `D117_BETA_RUNTIME_PASS__D116_WEB_FEATURES_PRESERVED__LIVE_SOURCE_BBB6C83B__OA037_FIELD_READY`.
+- Android: `D117_SIGNED_BETA_VC73__20S_RELAY_TERMINAL_WINDOW__OA037_FIELD_READY`.
+- Main source: `bbb6c83b3f75d234f8220d8ef42b22c3105d9964`.
+- Live health: HTTP 200, exact D117 source, storage ready, schema 11/11, missing 0, Agent migration 0/0, Operational V2 5/5.
+- OA037 is READY_FOR_OWNER_FIELD_TEST. Stable remains OWNER_GATED / untouched.
+
