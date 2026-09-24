@@ -341,30 +341,37 @@ async function importSkus(state: DurableObjectState, request: Request): Promise<
 
 function searchSkus(state: DurableObjectState, url: URL): BusinessResult {
   const query = String(url.searchParams.get("query") || "").trim();
-  const limit = normalizeLimit(url.searchParams.get("limit"), 50);
-  const rows = query
-    ? state.storage.sql
-        .exec<SkuRow>(
-          `SELECT sku, product_name, source_hash, created_at, updated_at
-             FROM sku_master
-            WHERE sku LIKE ? OR product_name LIKE ?
-            ORDER BY sku ASC
-            LIMIT ?`,
-          `%${query}%`,
-          `%${query}%`,
-          limit,
-        )
-        .toArray()
-    : state.storage.sql
-        .exec<SkuRow>(
-          `SELECT sku, product_name, source_hash, created_at, updated_at
-             FROM sku_master
-            ORDER BY sku ASC
-            LIMIT ?`,
-          limit,
-        )
-        .toArray();
-  return { status: 200, payload: { items: rows, count: rows.length, query, limit } };
+  const limit = normalizeLimit(url.searchParams.get("limit"), 100);
+  const offset = normalizeOffset(url.searchParams.get("offset"));
+  const where = query ? "WHERE sku LIKE ? OR product_name LIKE ?" : "";
+  const args: SqlStorageValue[] = query ? [`%${query}%`, `%${query}%`] : [];
+  const totalRow = firstRow(state.storage.sql.exec<SqlRow>(
+    `SELECT COUNT(*) AS total FROM sku_master ${where}`,
+    ...args,
+  ).toArray()) || {};
+  const rows = state.storage.sql
+    .exec<SkuRow>(
+      `SELECT sku, product_name, source_hash, created_at, updated_at
+         FROM sku_master
+         ${where}
+        ORDER BY sku ASC
+        LIMIT ? OFFSET ?`,
+      ...args,
+      limit,
+      offset,
+    )
+    .toArray();
+  return {
+    status: 200,
+    payload: {
+      items: rows,
+      count: rows.length,
+      total: Number(totalRow.total || 0),
+      query,
+      limit,
+      offset,
+    },
+  };
 }
 
 async function createReport(state: DurableObjectState, request: Request): Promise<BusinessResult> {
