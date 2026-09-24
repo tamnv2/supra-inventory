@@ -478,3 +478,13 @@ D114 supersedes the D105/D112 suffix-length carrier details where they conflict.
 - A selected full PickList is re-submitted through the same Firestore → PRIMARY Agent → exact-resolution → confirmation-guard → WMS path using its full numeric tail, so the final mutation remains uniquely resolved and server/Agent guarded.
 - Agent keeps multi-term/multi-row specialist capability and conditional **Xác nhận tất cả**. PDA never receives a multi-confirm action.
 - Result codes are rendered through aligned professional copy on Android and Agent; do not expose a generic success/failure sentence when a specific terminal reason is known.
+
+
+## D115 — Fast confirmation UX
+
+- Picker confirmation keeps the D114 exact trailing-suffix and ambiguity-selection workflow.
+- Cleanup/retention work is never allowed to delay the Picker’s new confirmation send.
+- While a healthy PRIMARY is available, the intended round trip from send to terminal result is under 5 seconds.
+- At 10 seconds without terminal result, Android uses neutral waiting/failover copy rather than declaring the PRIMARY inactive without evidence.
+- At 30 seconds, Android performs one final authoritative server read before showing the specialist-desk fallback.
+- ACK-delivery recovery is transport-only: it must never cause the Agent to repeat a WMS confirmation mutation.

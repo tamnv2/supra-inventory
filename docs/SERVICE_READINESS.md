@@ -789,3 +789,15 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - D097/D104 HA, batching, idempotency and fail-closed WMS guards remain authoritative.
 - Separate post-pass diagnostic: latest Android relay log reports cleanup permission failures, slower perceived confirmation, and 30-second no-ACK timeouts. No follow-up behavior is approved yet.
 - Stable remains OWNER-GATED and untouched.
+
+
+## D115 source checkpoint — 2026-09-24
+
+- Owner approved the post-D114 relay reliability repair and healthy PRIMARY/no-failover **<5s** target.
+- Branch: `feat/d115-relay-under5s`.
+- Live accepted baseline remains D114: signed `beta-vc70` + `relay-agent-v33`; D114 Owner PASS is not revoked.
+- D115 source changes PRIMARY confirmation poll 5s→2s only; STANDBY stays 10s, FROZEN has no business-job polling and failover stays 10s.
+- Android moves cleanup off the send critical path, scopes new cleanup records to Firebase UID, prunes legacy/foreign denied records in background, uses neutral 10s wait copy and performs one final server ACK read before 30s fallback.
+- Agent target v34 uses bounded Firestore ACK retry/read-after-write without rerunning the WMS business mutation and logs redacted queue/business/ACK timing.
+- Target releases: signed `beta-vc71` + `relay-agent-v34`; SQLite remains 11; Web business behavior unchanged; Stable OWNER-GATED.
+- OA035 is registered but remains pending technical/runtime/release PASS.

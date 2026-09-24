@@ -36,7 +36,7 @@ namespace SupraInventoryRelayAgent
 
     internal sealed class FirestoreConfirmationTransport
     {
-        internal const int PrimaryPollIntervalMs = 5000;
+        internal const int PrimaryPollIntervalMs = 2000;
         internal const int StandbyPollIntervalMs = 10000;
         internal const int MaxDocumentsPerPoll = 100;
         internal const int MaxConcurrentJobs = 12;
@@ -194,7 +194,8 @@ namespace SupraInventoryRelayAgent
                 var work = doc.Work;
                 _log("FIRESTORE CONFIRM pending-found request=" + Short(work.RequestId) +
                      " picker=" + Safe(work.PickerUserId) +
-                     " role=" + (_coordinator == null ? "UNKNOWN" : _coordinator.RoleName));
+                     " role=" + (_coordinator == null ? "UNKNOWN" : _coordinator.RoleName) +
+                     " queue_age_ms=" + Math.Max(0L, NowMs() - work.CreatedAtMs));
                 _onRequest();
                 _audit("PDA_REQUEST request=" + Short(work.RequestId) +
                     " picker=" + Safe(work.PickerUserId) +
@@ -205,6 +206,7 @@ namespace SupraInventoryRelayAgent
                 works.Add(work);
             }
 
+            var businessStartedMs = NowMs();
             Dictionary<string, FirestoreConfirmationOutcome> outcomes;
             try
             {
@@ -217,6 +219,9 @@ namespace SupraInventoryRelayAgent
                 _log("FIRESTORE batch business fail count=" + works.Count + " " + Describe(ex));
                 outcomes = new Dictionary<string, FirestoreConfirmationOutcome>(StringComparer.Ordinal);
             }
+
+            var businessMs = Math.Max(0L, NowMs() - businessStartedMs);
+            _log("FIRESTORE CONFIRM business batch_ms=" + businessMs + " count=" + docs.Count);
 
             var processed = 0;
             foreach (var doc in docs)
@@ -415,6 +420,7 @@ namespace SupraInventoryRelayAgent
             string jobId,
             FirestoreConfirmationOutcome outcome)
         {
+            var ackStartedMs = NowMs();
             var rate = outcome.Rate ?? new PickerRateDecision();
             var retireAtMs = outcome.RetireAtMs > 0 ? outcome.RetireAtMs : NowMs();
             var fields = new Dictionary<string, object>
@@ -443,29 +449,114 @@ namespace SupraInventoryRelayAgent
             var url = "https://firestore.googleapis.com/v1/" + name + Mask(fields.Keys);
             if (!string.IsNullOrWhiteSpace(updateTime))
                 url += "&currentDocument.updateTime=" + Uri.EscapeDataString(updateTime);
+
+            var attemptSession = session;
+            for (var attempt = 1; attempt <= 3; attempt++)
+            {
+                try
+                {
+                    Send("PATCH", url, attemptSession.IdToken,
+                        Serialize(new Dictionary<string, object> { { "fields", fields } }),
+                        false,
+                        "CONFIRM_ACK");
+                    _audit("AGENT_RESPONSE request=" + Short(jobId) +
+                        " result=" + Safe(outcome.Result) +
+                        " cache=" + Safe(outcome.CacheMode) +
+                        " http=" + outcome.Http +
+                        " strikes=" + rate.StrikeCount +
+                        " lock_level=" + rate.LockLevel +
+                        " instance=" + Short(_instanceId));
+                    _log("FIRESTORE ACK PASS request=" + Short(jobId) +
+                         " result=" + Safe(outcome.Result) +
+                         " attempt=" + attempt +
+                         " ack_ms=" + Math.Max(0L, NowMs() - ackStartedMs));
+                    return true;
+                }
+                catch (WebException ex)
+                {
+                    var response = ex.Response as HttpWebResponse;
+                    var status = response == null ? 0 : (int)response.StatusCode;
+                    try { if (response != null) response.Dispose(); } catch { }
+
+                    if (status == 401 || status == 403)
+                    {
+                        try
+                        {
+                            _ensureFreshToken();
+                            attemptSession = _sessionProvider();
+                        }
+                        catch { }
+                    }
+
+                    if (AckAlreadyVisible(attemptSession, name, jobId))
+                    {
+                        _audit("AGENT_RESPONSE_RECOVERED request=" + Short(jobId) +
+                            " result=" + Safe(outcome.Result) +
+                            " instance=" + Short(_instanceId));
+                        _log("FIRESTORE ACK RECOVERED request=" + Short(jobId) +
+                             " after_status=" + status +
+                             " ack_ms=" + Math.Max(0L, NowMs() - ackStartedMs));
+                        return true;
+                    }
+
+                    if (status == 409 || status == 412)
+                    {
+                        _log("FIRESTORE ACK conditional-lost request=" + Short(jobId) +
+                             " status=" + status);
+                        return false;
+                    }
+
+                    var retryable = status == 0 || status == 401 || status == 403 ||
+                                    status == 408 || status == 429 || status >= 500;
+                    if (!retryable || attempt >= 3) throw;
+                    Thread.Sleep(150 * attempt);
+                }
+                catch
+                {
+                    if (AckAlreadyVisible(attemptSession, name, jobId))
+                    {
+                        _log("FIRESTORE ACK RECOVERED request=" + Short(jobId) +
+                             " after_exception=true ack_ms=" + Math.Max(0L, NowMs() - ackStartedMs));
+                        return true;
+                    }
+                    if (attempt >= 3) throw;
+                    Thread.Sleep(150 * attempt);
+                }
+            }
+
+            return false;
+        }
+
+        private bool AckAlreadyVisible(AgentSession session, string name, string jobId)
+        {
+            if (session == null || string.IsNullOrWhiteSpace(session.IdToken)) return false;
             try
             {
-                Send("PATCH", url, session.IdToken,
-                    Serialize(new Dictionary<string, object> { { "fields", fields } }),
-                    false,
-                    "CONFIRM_ACK");
-                _audit("AGENT_RESPONSE request=" + Short(jobId) +
-                    " result=" + Safe(outcome.Result) +
-                    " cache=" + Safe(outcome.CacheMode) +
-                    " http=" + outcome.Http +
-                    " strikes=" + rate.StrikeCount +
-                    " lock_level=" + rate.LockLevel +
-                    " instance=" + Short(_instanceId));
-                _log("FIRESTORE ACK PASS request=" + Short(jobId) + " result=" + Safe(outcome.Result));
-                return true;
+                var raw = Send(
+                    "GET",
+                    "https://firestore.googleapis.com/v1/" + name,
+                    session.IdToken,
+                    null,
+                    true,
+                    "CONFIRM_ACK_VERIFY");
+                var doc = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                object fieldsObj;
+                var fields = doc != null && doc.TryGetValue("fields", out fieldsObj)
+                    ? fieldsObj as Dictionary<string, object>
+                    : null;
+                var visible = string.Equals(FieldString(fields, "status"), "ACK", StringComparison.Ordinal);
+                if (visible)
+                {
+                    _log("FIRESTORE ACK VERIFY PASS request=" + Short(jobId) +
+                         " result=" + Safe(FieldString(fields, "lookup_status")));
+                }
+                return visible;
             }
-            catch (WebException ex)
+            catch (Exception ex)
             {
-                var response = ex.Response as HttpWebResponse;
-                var status = response == null ? 0 : (int)response.StatusCode;
-                try { if (response != null) response.Dispose(); } catch { }
-                if (status == 403 || status == 409 || status == 412) return false;
-                throw;
+                _log("FIRESTORE ACK VERIFY deferred request=" + Short(jobId) +
+                     " " + Describe(ex));
+                return false;
             }
         }
 

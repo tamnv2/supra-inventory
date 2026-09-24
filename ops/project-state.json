@@ -22,17 +22,17 @@
     "android": "D114_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC70__PDA_SUFFIX_AMBIGUOUS_SINGLE_SELECT_RESULTS",
     "latest_beta_apk": "beta-vc70",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
-    "network_scope": "D114_OWNER_ACCEPTED_PASS__AGENT_V33__D097_D104_GUARDS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
+    "network_scope": "D114_OWNER_ACCEPTED_LIVE__D115_SOURCE_IMPLEMENTED_PRIMARY_2S_ACK_RECOVERY_PENDING_RELEASE__STABLE_UNTOUCHED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "D106_NATIVE_FIREBASE_PASSWORD_DIRECT_VERIFY_AND_FAILED_CREATE_COMPENSATION_RUNTIME_PASS__OA026_FIELD_READY",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D112_OWNER_ACCEPTED_PASS__EXISTING_METRICS_OPERATIONAL_HIERARCHY__NONBLOCKING_SECONDARY_LOAD",
-    "quota_resilience": "D104_NO_FASTER_FIRESTORE_POLL__NO_EXTRA_COALESCING_QUERY__MAX12_LOGICAL_JOBS__WMS_MAX10_CODES__MAIN_PASS",
+    "quota_resilience": "D115_OWNER_APPROVED_PRIMARY_2S_ONLY__STANDBY_10S__FROZEN_NO_BUSINESS_POLL__NO_ANDROID_POLL__NO_PROCESSING_WRITE__PENDING_RELEASE",
     "ui_design_guard": "D114_OWNER_ACCEPTED_PASS__MAIN_UI_RUN_35940942050",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D112_OWNER_ACCEPTED_PASS__FAST_PRIMARY_ROWS__30_60_90_AUDIT_VIEW__EXISTING_AUTHORITATIVE_METRICS_ONLY",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D114_OWNER_ACCEPTED_PASS__EXACT_TRAILING_3_20__AMBIGUOUS_SINGLE_SELECT__POST_PASS_ACK_LATENCY_DIAGNOSTIC_OPEN"
+    "picklist_confirmation_poc": "D114_OWNER_ACCEPTED_LIVE__D115_SOURCE_IMPLEMENTED_FAST_PRIMARY_ACK_RECOVERY__TARGET_BETA_VC71_AGENT_V34__PR_GATES_PENDING"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -159,6 +159,7 @@
     "D110 Beta technical/runtime/release PASS: Reporter pinned four-tab Android workflow, authoritative badges, direct primary actions, local zero-poll minute SLA clock, canonical branding, and ADMIN/ROOT Android server denial released as signed beta-vc66."
   ],
   "pending_build": [
+    "D115 source implemented: PRIMARY confirmation poll 2s, STANDBY 10s unchanged, Android cleanup off critical path + final ACK server-read recovery, Agent bounded ACK retry/read-after-write, v34 target; PR/runtime/release gates pending.",
     "D114 technical/runtime/release PASS: implementation main 8cdf941b, Firestore Rules repair main e6138dbd, final release-gate main bc8d6c3e; signed beta-vc70 + relay-agent-v33 published and fixed runtime channel refreshed. OA034 Owner field review remains; Stable untouched.",
     "D096 Agent v21 release after PR authority/continuity/build/runtime-parser guards PASS; Android beta-vc59 unchanged",
     "Signed Beta Android release/verification because D070 changes Android runtime UI/API projection",
@@ -184,7 +185,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Analyze Owner-reported post-D114 Android relay latency/timeout evidence from the newest Beta logs. Preserve D114 Owner acceptance. Do not change HA/polling/ACK semantics until the Owner approves a follow-up fix; any follow-up must use a fresh branch/PR and keep Stable OWNER-GATED.",
+  "next_action": "D115: run PR authority/state/UI/Android/Agent/Firestore gates, repair until PASS, merge to main, verify signed beta-vc71 + relay-agent-v34 and fixed runtime channel, then make OA035 field-ready. Healthy PRIMARY target is <5s PDA create→terminal result; Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -210,7 +211,7 @@
   },
   "workboard": {
     "in_progress": [
-      "POST-D114 RELAY DIAGNOSTIC: D114 is Owner field-accepted. New Android log evidence shows cleanup PERMISSION_DENIED retries, timer-based primary-failover messaging, and two 30s no-ACK timeouts; diagnosis only until Owner approves a separate follow-up repair. Stable untouched.",
+      "D115 IMPLEMENTATION: Owner approved post-D114 relay reliability repair plus healthy-primary <5s target. Source uses PRIMARY 2s / STANDBY 10s, Android async UID-scoped cleanup + final server ACK read, Agent ACK retry/read-after-write without WMS replay; target beta-vc71 + relay-agent-v34; Stable untouched.",
       "D113 TECHNICAL/RUNTIME/RELEASE PASS: main 7dcc76ab, exact live Beta, signed beta-vc69 and relay-agent-v32 are released; OA033 is ready for Owner field review. Stable untouched.",
       "D112 OWNER PASS: Owner field-confirmed live Beta Web + signed beta-vc68 + relay-agent-v31 on 2026-09-23. OA032 closed. D112 is the accepted Beta baseline; Stable remains untouched.",
       "D110 TECHNICAL/RUNTIME/RELEASE PASS: PR #157 merged main e7931cf8; main Authority/State/UI/Worker/Android PASS; live Beta exact source schema 11/11 and signed beta-vc66 published. OA030 Owner field review remains; Stable untouched.",
@@ -246,7 +247,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Post-D114 relay diagnostic: present root cause and safe follow-up plan; implement only after Owner approval on a fresh branch. Stable remains OWNER-GATED.",
+      "D115: PR gates → merge only on PASS → verify beta-vc71 + relay-agent-v34 → OA035 field latency/reliability acceptance.",
       "D110 OA030: Owner field-tests signed beta-vc66 Reporter pinned tabs/badges/direct actions/local SLA clock/icon/footer and ADMIN/ROOT Android denial.",
       "READY: wait for the Owner's next requirement; bootstrap canonical GitHub authority before any new work. Preserve D109 accepted Beta baseline and Stable OWNER-GATED.",
       "OA027: after the automatic main Web deploy has propagated, Owner reviews live Beta login + authenticated shell + Tổng quan/Báo cáo chi tiết. If accepted, record D107 OWNER PASS; if not, fix only reported Beta defects.",
@@ -558,12 +559,13 @@
     "review_target_android_release": "beta-vc70",
     "review_target_agent_release": "relay-agent-v33",
     "current_instruction": "D114 field review is closed PASS. Current separate item is post-pass relay latency/ACK diagnostic from the latest Android log.",
-    "next_session_command": "Tiếp tục supra-inventory. Bootstrap authority và tiếp tục OA034 D114 Owner field review.",
+    "next_session_command": "Tiếp tục supra-inventory. Bootstrap authority và tiếp tục D115 relay latency/reliability implementation.",
     "review_feedback_protocol": "D114 Owner PASS is durable. Any new relay reliability fix is a separate follow-up decision/workstream and must not silently rewrite D114 acceptance.",
     "review_target_android_source": "8cdf941be71fcfddaf074e2016336c2f8d416608",
     "review_target_agent_source": "8cdf941be71fcfddaf074e2016336c2f8d416608",
     "owner_acceptance": "PASS_OWNER_CONFIRMED_D114",
-    "owner_acceptance_date": "2026-09-24"
+    "owner_acceptance_date": "2026-09-24",
+    "current_followup": "D115_OWNER_APPROVED__UNDER5S_HEALTHY_PRIMARY__TARGET_BETA_VC71_AGENT_V34__IMPLEMENTATION"
   },
   "runtime_evidence": [
     "D064 Beta Load Test run 35376099693 PASS: 1000/1000 normal Picker reports, 100 existing Picker identities, 400 existing SKUs, duration 525.423s, avg 250.34ms, p50 235.95ms, p95 348.72ms, max 625.64ms, no errors; SQLite +2572288 bytes, +400 batches, +1000 tickets, +1000 report events, +1000 realtime events, +1000 audit rows; temporary load-test gate verified closed.",
@@ -641,9 +643,10 @@
     "D113 source checkpoint 2026-09-24: uploaded Owner requirements implemented on feat/d113-web-android-agent-refinements. D112 remains current accepted runtime until D113 gates/releases pass; no schema/new resource/Stable change.",
     "D113 technical/runtime/release PASS 2026-09-24: PR #165 merged main 7dcc76ab; main Authority/State/UI/Worker/Android/Agent PASS; live Beta exact source schema 11/11 Operational V2 5/5; signed beta-vc69 and relay-agent-v32 published; OA033 field-ready; Stable untouched.",
     "D114 Owner-reported 2026-09-24: D113 technical release exposed unclear Agent/PDA confirmation feedback, a direct-Agent grid column bug that hid PickList text, PDA need for one-by-one ambiguous candidate selection, and Web Tools/realtime badge presentation defects. D114 unifies exact trailing 3–20 digit search (PDA one term, Agent multi-term), returns bounded ambiguity candidates without mutation, adds specific aligned result copy, targets relay-agent-v33 with assembly/version parity, balances Tools cards, and refreshes the authoritative queue badge from existing realtime events without new polling. Stable untouched.",
-    "D114 Owner field acceptance 2026-09-24: Owner explicitly said 'Ok pass' after testing live Beta Web, signed beta-vc70 and relay-agent-v33. OA034 is closed PASS. In the same message Owner separately reported a new observation from the latest Android relay log about slower PickList send/result timing and 30-second no-ACK timeouts; that observation is tracked as a post-D114 diagnostic and does not erase D114 acceptance."
+    "D114 Owner field acceptance 2026-09-24: Owner explicitly said 'Ok pass' after testing live Beta Web, signed beta-vc70 and relay-agent-v33. OA034 is closed PASS. In the same message Owner separately reported a new observation from the latest Android relay log about slower PickList send/result timing and 30-second no-ACK timeouts; that observation is tracked as a post-D114 diagnostic and does not erase D114 acceptance.",
+    "D115 Owner-approved 2026-09-24 after D114 PASS: repair Android cleanup/timeout and Agent ACK-delivery reliability, and target <5s PDA create→terminal result on healthy PRIMARY/no-failover path. PRIMARY Firestore job poll may change 5s→2s; STANDBY remains 10s; no Android polling/PROCESSING write/new provider; target beta-vc71 + relay-agent-v34; Stable untouched."
   ],
-  "active_workstream": "POST_D114_RELAY_DIAGNOSTIC",
+  "active_workstream": "D115_RELAY_LATENCY_RELIABILITY_IMPLEMENTATION",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
@@ -704,7 +707,8 @@
     "D109 technical/runtime/release PASS 2026-09-23: PR #154 merged to main 367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94. PR PASS runs Repo Authority 35809361069, Project State 35809361054, UI 35809360983, Android 35809360987, Firestore 35809361013, RTDB 35809360986. Main PASS runs Repo Authority 35809583637, Project State 35809583624, UI 35809583663, Deploy Beta Worker 35809583618 and Android 35809583599. Live Beta health attempt 1 HTTP 200 exact source, schema 11/11, storage true, missing 0, Agent migration 0/0, Operational V2 5/5. Signed beta-vc65 release id 394246239, APK asset id 582752309 size 19015996 SHA-256 3e2b5284ac2ed5d3040c36338a5bdb21026958eda7e4d4a12b40ea9bf6c0ea48. OA029 field acceptance remains; Stable untouched.",
     "D109 Owner field acceptance 2026-09-23: Owner explicitly replied 'ok pass' after the final main checkpoint and UI guard completed. OA029 is closed PASS. D109 live Beta Web + signed beta-vc65 are the accepted baseline; Stable remains OWNER-GATED.",
     "D114 technical/runtime/release PASS 2026-09-24: PR #167 merged implementation main 8cdf941be71fcfddaf074e2016336c2f8d416608 after final PR Authority/State/UI/Android/Agent/Firestore/RTDB gates PASS. Main Repo Authority 35940942055, Project State 35940942026, UI 35940942050, Beta Worker 35940942052, Android 35940942048 and Agent 35940942087 PASS; live Beta health attempt 2 HTTP 200 exact source 8cdf941b, storage true, schema 11/11, missing 0, Agent migration 0/0, Operational V2 5/5. Firestore Rules source corruption discovered by main deploy was repaired through PR #168; main Firestore run 35943098393 PASS with ruleset create + release readback. Agent release rerun idempotency was hardened through PR #170; final main bc8d6c3eb9f52b1c62c86a26a356d18d9867024d Agent run 35944022982 PASS and reused exact relay-agent-v33 tag assets because relay-agent tree was unchanged. Signed beta-vc70 and relay-agent-v33 are published; OA034 field review remains; Stable untouched.",
-    "D114 Owner field acceptance PASS on 2026-09-24: Owner explicitly confirmed the released D114 result PASS. OA034 closed. Accepted artifacts remain live Beta Web source 8cdf941b, signed beta-vc70 and relay-agent-v33. A separate post-pass relay latency/ACK diagnostic is open from the Owner's newest Android log observation; Stable remains OWNER-GATED."
+    "D114 Owner field acceptance PASS on 2026-09-24: Owner explicitly confirmed the released D114 result PASS. OA034 closed. Accepted artifacts remain live Beta Web source 8cdf941b, signed beta-vc70 and relay-agent-v33. A separate post-pass relay latency/ACK diagnostic is open from the Owner's newest Android log observation; Stable remains OWNER-GATED.",
+    "D115 diagnosis source evidence: beta-vc70 log showed repeated synchronous cleanup PERMISSION_DENIED before CREATE, successful CONFIRMED RTT about 5.8–6.2s with lookup about 0.4–1.2s, and 30s no-ACK timeouts. Owner approved a separate D115 repair and healthy-primary under-5s target."
   ],
   "last_runtime_evidence": {
     "signed_beta_release": "beta-vc70",

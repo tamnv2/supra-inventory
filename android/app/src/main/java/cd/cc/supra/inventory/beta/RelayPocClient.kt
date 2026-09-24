@@ -5,18 +5,22 @@ import android.os.SystemClock
 import android.util.Base64
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.Source
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
 import java.security.MessageDigest
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
 data class RelayProbeResult(
@@ -63,6 +67,7 @@ private data class RelayCleanupEntry(
     val jobId: String,
     val guardId: String,
     val notBeforeMs: Long,
+    val ownerUid: String,
 )
 
 class RelayPocClient(
@@ -98,6 +103,8 @@ class RelayPocClient(
     }
     private val listenerGate = Any()
     private var activeListener: ListenerRegistration? = null
+    private val cleanupExecutor = Executors.newSingleThreadExecutor()
+    private val cleanupInFlight = AtomicBoolean(false)
 
     fun close() {
         synchronized(listenerGate) {
@@ -110,9 +117,12 @@ class RelayPocClient(
         require(suffix.matches(Regex("^\\d{3,20}$"))) { "PickList phải có từ 3 đến 20 chữ số cuối." }
         var session = api.session ?: throw ApiException(401, "AUTH_REQUIRED", "Chưa đăng nhập.")
         session = ensureFirestoreAuth(session)
-        runDueCleanup()
 
-        return executeProbe(session, suffix)
+        return try {
+            executeProbe(session, suffix)
+        } finally {
+            triggerCleanupAsync()
+        }
     }
 
     private fun ensureFirestoreAuth(initial: AppSession): AppSession {
@@ -214,13 +224,21 @@ class RelayPocClient(
                 val elapsed = SystemClock.elapsedRealtime() - started
                 if (!failoverNoticeShown && elapsed >= FAILOVER_NOTICE_MS) {
                     failoverNoticeShown = true
-                    onProgress("Agent chính chưa xử lý · đang chuyển Agent dự phòng... #" + shortId(requestId))
+                    onProgress("Đang chờ phản hồi · hệ thống sẽ tự chuyển Agent dự phòng nếu cần... #" + shortId(requestId))
                 }
             }
 
-            val ack = ackRef.get()
+            var ack = ackRef.get()
             if (ack == null) {
-                scheduleCleanup(requestId, "", System.currentTimeMillis() + TIMED_OUT_PENDING_RETENTION_MS)
+                ack = readAckFromServer(doc, requestId)
+            }
+            if (ack == null) {
+                scheduleCleanup(
+                    requestId,
+                    "",
+                    System.currentTimeMillis() + TIMED_OUT_PENDING_RETENTION_MS,
+                    identity.uid,
+                )
                 val listenerError = errorRef.get()
                 if (listenerError != null) {
                     log("D097 Firestore listener chưa hồi phục trong 30s request=" + shortId(requestId) +
@@ -245,10 +263,9 @@ class RelayPocClient(
             if (ack.guardId.isNotBlank()) {
                 val retire = ack.retireAtMs.takeIf { it > System.currentTimeMillis() }
                     ?: (System.currentTimeMillis() + CONFIRMED_RETENTION_MS)
-                scheduleCleanup(requestId, ack.guardId, retire)
+                scheduleCleanup(requestId, ack.guardId, retire, identity.uid)
             } else {
-                scheduleCleanup(requestId, "", System.currentTimeMillis())
-                runDueCleanup()
+                scheduleCleanup(requestId, "", System.currentTimeMillis(), identity.uid)
             }
 
             return RelayProbeResult(
@@ -299,18 +316,63 @@ class RelayPocClient(
         )
     }
 
-    private fun runDueCleanup() {
-        if (auth.currentUser == null) return
+    private fun readAckFromServer(doc: DocumentReference, requestId: String): RelayAck? {
+        return try {
+            val snapshot = Tasks.await(doc.get(Source.SERVER), 5, TimeUnit.SECONDS)
+            val ack = parseAck(snapshot)
+            if (ack != null) {
+                log("D115 Firestore final-read recovered ACK request=" + shortId(requestId))
+            }
+            ack
+        } catch (error: Exception) {
+            log(
+                "D115 Firestore final-read unavailable request=" + shortId(requestId) +
+                    " detail=" + safeText(error.message)
+            )
+            null
+        }
+    }
+
+    private fun triggerCleanupAsync() {
+        val currentUid = auth.currentUser?.uid?.trim().orEmpty()
+        if (currentUid.isBlank()) return
+        if (!cleanupInFlight.compareAndSet(false, true)) return
+
+        cleanupExecutor.execute {
+            try {
+                runDueCleanup(currentUid)
+            } catch (error: Exception) {
+                log("D115 cleanup background deferred detail=" + safeText(error.message))
+            } finally {
+                cleanupInFlight.set(false)
+            }
+        }
+    }
+
+    private fun runDueCleanup(currentUid: String) {
         val now = System.currentTimeMillis()
         val entries = readCleanupEntries()
         if (entries.isEmpty()) return
 
         val remaining = ArrayList<RelayCleanupEntry>()
+        var droppedLegacy = 0
+        var droppedForeign = 0
+        var droppedDenied = 0
+
         for (entry in entries) {
+            if (entry.ownerUid.isBlank()) {
+                droppedLegacy++
+                continue
+            }
+            if (entry.ownerUid != currentUid) {
+                droppedForeign++
+                continue
+            }
             if (entry.notBeforeMs > now) {
                 remaining += entry
                 continue
             }
+
             try {
                 Tasks.await(
                     firestore.collection(JOB_COLLECTION).document(entry.jobId).delete(),
@@ -324,22 +386,49 @@ class RelayPocClient(
                         TimeUnit.SECONDS,
                     )
                 }
-                log("D097 cleanup PASS job=" + shortId(entry.jobId) +
-                    (if (entry.guardId.isBlank()) "" else " guard=" + shortId(entry.guardId)))
+                log(
+                    "D115 cleanup PASS job=" + shortId(entry.jobId) +
+                        (if (entry.guardId.isBlank()) "" else " guard=" + shortId(entry.guardId))
+                )
             } catch (error: Exception) {
-                remaining += entry
-                log("D097 cleanup deferred job=" + shortId(entry.jobId) +
-                    " detail=" + safeText(error.message))
+                val detail = safeText(error.message)
+                if (detail.contains("PERMISSION_DENIED", ignoreCase = true)) {
+                    droppedDenied++
+                } else {
+                    remaining += entry
+                    log(
+                        "D115 cleanup background deferred job=" + shortId(entry.jobId) +
+                            " detail=" + detail
+                    )
+                }
             }
         }
+
         writeCleanupEntries(remaining)
+        if (droppedLegacy + droppedForeign + droppedDenied > 0) {
+            log(
+                "D115 cleanup pruned legacy=" + droppedLegacy +
+                    " foreign=" + droppedForeign +
+                    " denied=" + droppedDenied
+            )
+        }
     }
 
-    private fun scheduleCleanup(jobId: String, guardId: String, notBeforeMs: Long) {
+    private fun scheduleCleanup(
+        jobId: String,
+        guardId: String,
+        notBeforeMs: Long,
+        ownerUid: String,
+    ) {
         val entries = readCleanupEntries()
             .filterNot { it.jobId == jobId }
             .toMutableList()
-        entries += RelayCleanupEntry(jobId, guardId, notBeforeMs.coerceAtLeast(0L))
+        entries += RelayCleanupEntry(
+            jobId = jobId,
+            guardId = guardId,
+            notBeforeMs = notBeforeMs.coerceAtLeast(0L),
+            ownerUid = ownerUid,
+        )
         writeCleanupEntries(entries.takeLast(2_000))
     }
 
@@ -357,6 +446,7 @@ class RelayPocClient(
                             jobId = jobId,
                             guardId = row.optString("guard_id").trim(),
                             notBeforeMs = row.optLong("not_before_ms", 0L),
+                            ownerUid = row.optString("owner_uid").trim(),
                         )
                     )
                 }
@@ -374,6 +464,7 @@ class RelayPocClient(
                     .put("job_id", entry.jobId)
                     .put("guard_id", entry.guardId)
                     .put("not_before_ms", entry.notBeforeMs)
+                    .put("owner_uid", entry.ownerUid)
             )
         }
         prefs.edit().putString(CLEANUP_KEY, array.toString()).apply()

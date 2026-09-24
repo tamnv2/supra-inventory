@@ -1059,3 +1059,25 @@ Automated gates must verify source/build/security contracts before OA033 becomes
 8. Web **Công cụ** shows two equal compact cards side-by-side on desktop and one-column stack on narrow width.
 9. While Web is on another section, create a controlled shortage. Verify toast/notification still appears and the **Xử lý báo hàng** badge count changes without navigating to that section.
 10. Confirm no faster polling/provider cadence, SQLite remains 11 and Stable is untouched.
+
+
+## D115 acceptance
+
+Technical gates must verify:
+
+1. Agent build/version parity is v34 and PRIMARY confirmation polling is exactly 2,000 ms; STANDBY remains 10,000 ms; failover/takeover remains 10,000 ms.
+2. Android confirmation send path does not call cleanup synchronously. Cleanup is single-worker/background, UID-scoped and legacy/foreign denied entries cannot repeatedly block later requests.
+3. Android retains listener-driven ACK handling and adds one bounded Source.SERVER final read only when the listener reaches the terminal timeout path.
+4. Agent ACK handling has bounded retry + read-after-write verification markers and does not call the WMS business handler again from ACK recovery.
+5. Existing conditional PENDING→ACK, per-PickList confirmation guard, D104 batching/chunking, 30-second stale-job guard and D114 suffix/ambiguity rules remain.
+6. No new Android polling, no new Firestore PROCESSING write, no new provider/resource and no SQLite migration are introduced.
+7. Secrets and PickList values remain redacted from technical latency telemetry.
+
+Owner field acceptance after signed **beta-vc71** + **relay-agent-v34**:
+
+1. Use one healthy PRIMARY, WMS ready, normal network and no failover. Run at least 10 sequential controlled confirmations. For every run without an identified external WMS/network anomaly, Android create→terminal ACK/result RTT must be **<5,000 ms**.
+2. Confirm the user-visible send starts immediately; old cleanup entries must not add multi-second delay before Firestore CREATE.
+3. Confirm normal successful requests do not show a false “PRIMARY inactive” statement.
+4. Confirm a deliberately unresolved request still keeps the 10-second standby takeover rule and 30-second final fallback semantics.
+5. Confirm WMS-confirmed work cannot become a false Android timeout merely because the first ACK write/listener delivery was uncertain; ACK recovery must not duplicate WMS mutation.
+6. Confirm Stable is untouched.
