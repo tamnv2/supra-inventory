@@ -1108,7 +1108,7 @@ Owner field acceptance after the D116 signed Android + relay-agent-v35 release m
 
 Technical/source gates must verify:
 
-1. Agent build/version parity is **v36**. PRIMARY queue polling is exactly 4,000 ms idle and 2,000 ms hot; hot mode is bounded. STANDBY/FROZEN execute zero business-queue polling.
+1. Agent build/version parity is **v37**. PRIMARY queue polling is exactly 4,000 ms idle and 2,000 ms hot; hot mode is bounded. STANDBY/FROZEN execute zero business-queue polling.
 2. PRIMARY generation lease cadence is 7,000 ms and hard failover threshold is 10,000 ms. Killing an idle PRIMARY causes STANDBY promotion without creating a PDA job.
 3. Each takeover creates a new generation; a stale prior PRIMARY fails the pre-mutation role/generation fence and performs no WMS mutation.
 4. WMS has no periodic health timer. Startup validation remains; a real request may prove/expire the session; STANDBY→PRIMARY performs one read-only takeover probe.
@@ -1131,4 +1131,14 @@ Owner field acceptance:
 - Verify frozen mode rejects/does not consume PDA relay work while manual Agent confirmation still works.
 - Verify early-start before 06:00 makes the confirming Agent PRIMARY and restores the full relay model.
 - Stable remains untouched.
+
+### D117 final hardening additions
+
+- Final Windows artifact target is **relay-agent-v37**; Android remains **beta-vc73**.
+- Source/CI must prove `FrozenRoleRefreshMs = 30000`, while FROZEN still cannot business-poll.
+- PRIMARY lease payload must contain schedule key/decision/boundary/override fields and a schedule decision must trigger an immediate lease write.
+- STANDBY must read schedule fields from the generation lease even if its local schedule view has just become disabled; no takeover is allowed unless the resulting shared schedule permits relay.
+- After lookup/guard work, request age must be rechecked at 20s. Expired work performs no WMS POST.
+- Immediately before every WMS POST chunk, the Agent must revalidate current PRIMARY generation. A lost fence stops remaining mutation, safely releases untouched guards and leaves affected jobs without terminal ACK so the valid PRIMARY may continue.
+- Early-start field acceptance requires another online Agent to converge to STANDBY/FROZEN within the bounded 30s control refresh, without PDA business polling on FROZEN.
 
