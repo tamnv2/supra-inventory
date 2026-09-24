@@ -266,10 +266,29 @@ jobs:
           $version = (Get-Content relay-agent/VERSION -Raw).Trim()
           $tag = "relay-agent-v$version"
           $primary = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe"
-          $localSha = (Get-FileHash $primary -Algorithm SHA256).Hash.ToLowerInvariant()
+          $primarySha = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256"
           $releaseSource = $env:GITHUB_SHA
+          $channelSourceExe = $primary
+          $channelSourceSha = $primarySha
+
           gh release view $tag --repo "${{ github.repository }}" *> $null
           if ($LASTEXITCODE -eq 0) {
+            $releaseSource = (gh api "repos/${{ github.repository }}/git/ref/tags/$tag" --jq '.object.sha').Trim()
+            if ([string]::IsNullOrWhiteSpace($releaseSource)) {
+              throw "Agent release $tag exists but its tag source cannot be resolved."
+            }
+
+            $releaseCommitTree = (gh api "repos/${{ github.repository }}/git/commits/$releaseSource" --jq '.tree.sha').Trim()
+            $currentCommitTree = (gh api "repos/${{ github.repository }}/git/commits/$env:GITHUB_SHA" --jq '.tree.sha').Trim()
+            $releaseAgentTree = (gh api "repos/${{ github.repository }}/git/trees/$releaseCommitTree" --jq '.tree[] | select(.path=="relay-agent") | .sha').Trim()
+            $currentAgentTree = (gh api "repos/${{ github.repository }}/git/trees/$currentCommitTree" --jq '.tree[] | select(.path=="relay-agent") | .sha').Trim()
+            if ([string]::IsNullOrWhiteSpace($releaseAgentTree) -or [string]::IsNullOrWhiteSpace($currentAgentTree)) {
+              throw "Unable to resolve relay-agent tree for existing release verification."
+            }
+            if ($releaseAgentTree -ne $currentAgentTree) {
+              throw "Agent release $tag already exists but relay-agent source changed. Increment relay-agent/VERSION before publishing another Agent binary."
+            }
+
             $verifyDir = Join-Path $env:RUNNER_TEMP "agent-release-$version"
             Remove-Item $verifyDir -Recurse -Force -ErrorAction SilentlyContinue
             New-Item -ItemType Directory -Force -Path $verifyDir | Out-Null
@@ -278,25 +297,34 @@ jobs:
               gh release download $tag --repo "${{ github.repository }}" --pattern "Agent Auto Confirm Pick Pack.exe" --dir $verifyDir
             }
             if ($LASTEXITCODE -ne 0) {
-              throw "Agent release $tag exists but the canonical EXE cannot be downloaded for idempotency verification."
+              throw "Agent release $tag exists but the canonical EXE cannot be downloaded."
             }
+            gh release download $tag --repo "${{ github.repository }}" --pattern "Agent.Auto.Confirm.Pick.Pack.exe.sha256" --dir $verifyDir
+            if ($LASTEXITCODE -ne 0) {
+              gh release download $tag --repo "${{ github.repository }}" --pattern "Agent Auto Confirm Pick Pack.exe.sha256" --dir $verifyDir
+            }
+            if ($LASTEXITCODE -ne 0) {
+              throw "Agent release $tag exists but the checksum asset cannot be downloaded."
+            }
+
             $releasedExe = Get-ChildItem $verifyDir -Filter "*.exe" | Where-Object { $_.Name -notlike "SUPRA-Inventory-Relay-Test*" } | Select-Object -First 1
-            if ($null -eq $releasedExe) {
-              throw "Agent release $tag exists but the canonical EXE asset is missing."
+            $releasedShaFile = Get-ChildItem $verifyDir -Filter "*.sha256" | Where-Object { $_.Name -notlike "SUPRA-Inventory-Relay-Test*" } | Select-Object -First 1
+            if ($null -eq $releasedExe -or $null -eq $releasedShaFile) {
+              throw "Agent release $tag is missing canonical release assets."
             }
-            $releasedSha = (Get-FileHash $releasedExe.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-            if ($releasedSha -ne $localSha) {
-              throw "Agent release $tag already exists with different binary content. Increment relay-agent/VERSION before publishing another Agent binary."
+            $releasedSha = (Get-Content $releasedShaFile.FullName -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+            $actualReleasedSha = (Get-FileHash $releasedExe.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($releasedSha -ne $actualReleasedSha) {
+              throw "Agent release $tag checksum does not match the published EXE."
             }
-            $releaseSource = (gh api "repos/${{ github.repository }}/git/ref/tags/$tag" --jq '.object.sha').Trim()
-            if ([string]::IsNullOrWhiteSpace($releaseSource)) {
-              throw "Agent release $tag exists but its tag source cannot be resolved."
-            }
-            Write-Host "Agent release $tag already exists with identical binary; reuse verified release."
+
+            $channelSourceExe = $releasedExe.FullName
+            $channelSourceSha = $releasedShaFile.FullName
+            Write-Host "Agent release $tag already exists and relay-agent source tree is unchanged; reuse published release assets."
           } else {
             gh release create $tag `
               "$primary#Agent Auto Confirm Pick Pack.exe" `
-              "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256#Agent Auto Confirm Pick Pack.exe.sha256" `
+              "$primarySha#Agent Auto Confirm Pick Pack.exe.sha256" `
               "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe#SUPRA-Inventory-Relay-Test.exe" `
               "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256#SUPRA-Inventory-Relay-Test.exe.sha256" `
               "relay-agent/dist/README.md#README.md" `
@@ -318,8 +346,8 @@ jobs:
           }
           $aliasExe = "relay-agent/dist/Agent.Auto.Confirm.Pick.Pack.exe"
           $aliasSha = "relay-agent/dist/Agent.Auto.Confirm.Pick.Pack.exe.sha256"
-          Copy-Item "relay-agent/dist/Agent Auto Confirm Pick Pack.exe" $aliasExe -Force
-          Copy-Item "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256" $aliasSha -Force
+          Copy-Item $channelSourceExe $aliasExe -Force
+          Copy-Item $channelSourceSha $aliasSha -Force
           $sha256 = (Get-Content $aliasSha -Raw).Trim().Split(' ')[0].ToLowerInvariant()
           $size = (Get-Item $aliasExe).Length
           $manifest = [ordered]@{
