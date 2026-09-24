@@ -740,8 +740,10 @@ function reporterBatchTickets(state: DurableObjectState, url: URL): Response {
 function pickerReports(state: DurableObjectState, url: URL): Response {
   const userId = String(url.searchParams.get("user_id") || "").trim();
   const employeeCode = String(url.searchParams.get("employee_code") || "").trim();
-  const parsed = Number(url.searchParams.get("limit") || 100);
-  const limit = Math.max(1, Math.min(200, Number.isFinite(parsed) ? Math.trunc(parsed) : 100));
+  const parsed = Number(url.searchParams.get("limit") || 50);
+  const parsedOffset = Number(url.searchParams.get("offset") || 0);
+  const limit = Math.max(1, Math.min(200, Number.isFinite(parsed) ? Math.trunc(parsed) : 50));
+  const offset = Math.max(0, Number.isFinite(parsedOffset) ? Math.trunc(parsedOffset) : 0);
   const appTodayOpen = String(url.searchParams.get("scope") || "").toUpperCase() === APP_TODAY_OPEN_SCOPE;
   const todayStart = appTodayOpen ? appTodayStartIso() : "";
   const scopeFilter = appTodayOpen
@@ -750,7 +752,16 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
   if (!userId || !employeeCode) return json({ error: "INVALID_INPUT" }, 400);
   const args: SqlStorageValue[] = [userId, userId, userId, userId, userId, employeeCode];
   if (appTodayOpen) args.push(todayStart);
-  args.push(limit);
+  const totalRow = first(
+    state.storage.sql.exec<SqlRow>(
+      `SELECT COUNT(*) AS total
+         FROM report_tickets t
+         JOIN report_batches b ON b.batch_id = t.batch_id
+        WHERE (t.picker_user_id = ? OR t.picker_employee_code = ?)${scopeFilter}`,
+      ...(appTodayOpen ? [userId, employeeCode, todayStart] : [userId, employeeCode]),
+    ).toArray(),
+  );
+  args.push(limit, offset);
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT t.ticket_id, t.batch_id, t.sku, b.product_name, t.status,
             t.reported_at, t.withdraw_deadline_at, t.withdrawn_at, t.resolved_at,
@@ -795,12 +806,15 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
         WHEN t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL AND b.status = 'PENDING' THEN 0
         ELSE 1
       END ASC, t.reported_at DESC
-      LIMIT ?`,
+      LIMIT ? OFFSET ?`,
     ...args,
   ).toArray();
   return json({
     items: rows,
     count: rows.length,
+    total: Number(totalRow?.total || 0),
+    limit,
+    offset,
     scope: appTodayOpen ? APP_TODAY_OPEN_SCOPE : "ALL",
     today_start: appTodayOpen ? todayStart : null,
   });
