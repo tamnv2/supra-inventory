@@ -930,3 +930,4 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - D118 Agent target is `relay-agent-v38`; D117 `relay-agent-v37` remains live until release.
 - NEXT_ACTION: PR #181 → repair all required authority/state/UI/Web/Android/Agent/Firestore gates → merge only on PASS → verify exact Beta runtime + signed beta-vc74 + Agent v38 → record D118 technical/runtime/release checkpoint → make OA038 field-ready.
 - Stable remains OWNER-GATED and untouched.
+- PR #181 continuity rerun checkpoint: D118 derived views are aligned to the current candidate markers before merge.
