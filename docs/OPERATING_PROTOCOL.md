@@ -124,3 +124,8 @@ Stable Firebase Auth configuration remains OWNER-GATED.
 - Agent manual specialist search uses 3–4 digit terms only.
 - This does not change D104 batching, D097 HA/polling, D096 fail-closed mutation semantics or Stable OWNER-GATED state.
 
+
+
+## D114 PickList suffix contract supersession
+
+D114 supersedes only the D105 fixed four/five-digit carrier-length rule. New Beta PDA jobs and Agent manual lookups use exact trailing numeric suffixes of 3–20 digits. PDA submits one term; Agent manual may submit up to 10 comma-separated terms. Ambiguous PDA resolution returns candidates without mutation and a user-selected candidate is re-resolved through the existing confirmation guard before WMS mutation. D097/D104 HA, batching, idempotency, quota and fail-closed mutation rules remain authoritative.
