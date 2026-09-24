@@ -13,26 +13,26 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D117_V37_FINAL_HARDENING_CANDIDATE__LIVE_BETA_VC73_AGENT_V36_UNTIL_RELEASE",
+    "beta": "D117_TECHNICAL_RUNTIME_RELEASE_PASS__WEB_APK_SOURCE_BBB6C83B__AGENT_SOURCE_E583D20D__SIGNED_BETA_VC73__AGENT_V37__OA037_FIELD_READY",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 11,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D116_WEB_FEATURES_LIVE_UNCHANGED__D117_RELAY_HARDENING_AGENT_ONLY",
-    "android": "D117_SIGNED_BETA_VC73__20S_RELAY_TERMINAL_WINDOW__LIVE_UNCHANGED",
+    "web": "D116_WEB_FEATURES_LIVE_UNCHANGED__BETA_SOURCE_BBB6C83B__D117_AGENT_ONLY_HARDENING_PASS",
+    "android": "D117_SIGNED_BETA_VC73__20S_RELAY_TERMINAL_WINDOW__OA037_FIELD_READY",
     "latest_beta_apk": "beta-vc73",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
-    "network_scope": "D117_V37_CANDIDATE__LEASE_SCHEDULE_PROPAGATION__FROZEN_30S_EARLY_START_CONVERGENCE__PRE_WMS_GENERATION_FENCE__20S_FINAL_AGE_FENCE__STABLE_UNTOUCHED",
+    "network_scope": "D117_TECHNICAL_PASS__PRIMARY_LEASE7S__PROACTIVE_FAILOVER10S__SCHEDULE_IN_LEASE__FROZEN_CONTROL30S__PRE_WMS_GENERATION_FENCE__FINAL20S_AGE_FENCE__STABLE_UNTOUCHED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "D116_BETA_RUNTIME_PASS__PICKER_ONLY_BULK_SELECTION__ALL_WITH_EXCLUSIONS__ROOT_AND_NON_PICKER_PROTECTED",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D112_OWNER_ACCEPTED_PASS__EXISTING_METRICS_OPERATIONAL_HIERARCHY__NONBLOCKING_SECONDARY_LOAD",
-    "quota_resilience": "D117_V37_CANDIDATE__PRIMARY_IDLE4S_HOT2S__LEASE7S__STANDBY_LEASE_ONLY__FROZEN_30S_CONTROL_REFRESH_OUTSIDE_RELAY__NO_BUSINESS_POLL__NO_PERIODIC_WMS_PROBE",
-    "ui_design_guard": "D116_MAIN_UI_PASS_RUN_35962512491__OA036_FIELD_READY",
+    "quota_resilience": "D117_TECHNICAL_PASS__PRIMARY_IDLE4S_HOT2S__STANDBY_ZERO_BUSINESS_POLL__FROZEN_ZERO_BUSINESS_POLL_30S_CONTROL_ONLY__LEASE7S__NO_PERIODIC_WMS_PROBE__OA037_FIELD_READY",
+    "ui_design_guard": "D117_V37_MAIN_UI_PASS_RUN_36000749586__OA037_FIELD_READY",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D112_OWNER_ACCEPTED_PASS__FAST_PRIMARY_ROWS__30_60_90_AUDIT_VIEW__EXISTING_AUTHORITATIVE_METRICS_ONLY",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D117_V37_FINAL_HARDENING_CANDIDATE__BETA_VC73_UNCHANGED__OA037_BLOCKED_UNTIL_RELEASE"
+    "picklist_confirmation_poc": "D117_TECHNICAL_RUNTIME_RELEASE_PASS__BETA_VC73__AGENT_V37__PROACTIVE_IDLE_FAILOVER__20S_TARGET__HOURLY_FREEZE_CONTROL__OA037_FIELD_READY"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -216,7 +216,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D117 v37 FINAL HARDENING CANDIDATE: beta-vc73 remains live; relay-agent-v36 remains current until v37 passes PR/main release. v37 adds immediate schedule propagation in lease, 30s frozen control convergence for early-start and final pre-WMS generation/20s fences. Stable untouched.",
+      "D117 FINAL TECHNICAL/RUNTIME/RELEASE PASS: live Beta Web/APK remains exact bbb6c83b with signed beta-vc73; final hardened relay-agent-v37 is released from e583d20d. Authority/State/UI/Agent main gates PASS. OA037 is field-ready; Stable untouched.",
       "D116 TECHNICAL/RUNTIME/RELEASE PASS: main 9319eb30 with live exact-source Beta Web, signed beta-vc72 and relay-agent-v35. OA036 Owner field review remains; Stable untouched.",
       "D115 OWNER FIELD REVIEW: technical/runtime/release PASS on main bcbabc09 with beta-vc71 + relay-agent-v34. OA035 must verify healthy PRIMARY/no-failover <5s Android RTT plus cleanup and ACK-recovery behavior. Stable untouched.",
       "D113 TECHNICAL/RUNTIME/RELEASE PASS: main 7dcc76ab, exact live Beta, signed beta-vc69 and relay-agent-v32 are released; OA033 is ready for Owner field review. Stable untouched.",
@@ -254,7 +254,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Release relay-agent-v37 through D117 final hardening PR/main gates, then open OA037 physical field acceptance on beta-vc73 + v37.",
+      "OA037: Owner field-tests beta-vc73 + relay-agent-v37 for healthy <10s, proactive idle failover <=10s, failover-path <=20s, hourly after-hours schedule/freeze, manual Agent during sleep, and early-start topology.",
       "OA036: Owner field-tests live Beta Web + beta-vc72 + relay-agent-v35 and replies PASS or itemized defects.",
       "D110 OA030: Owner field-tests signed beta-vc66 Reporter pinned tabs/badges/direct actions/local SLA clock/icon/footer and ADMIN/ROOT Android denial.",
       "READY: wait for the Owner's next requirement; bootstrap canonical GitHub authority before any new work. Preserve D109 accepted Beta baseline and Stable OWNER-GATED.",
@@ -721,13 +721,13 @@
     "D115 release evidence: beta-vc71 release 395262617 asset 585009621 size 19019872 sha256 f1137dccd460133e5fdc41836658c6bb6b41a885f41f4ba16ca908a0c96d3d1d; relay-agent-v34 release 395262208 asset 585008591 size 294400 sha256 eef4e6e6bbb20f7fad223ba4c7a7081200eecbe74af1e43c4335fd78034f4285; both tags resolve to bcbabc09. Fixed inventory-channel refreshed with PDA manifest/APK 585009672/585009671 and Agent manifest/EXE 585008719/585008720."
   ],
   "last_runtime_evidence": {
-    "signed_beta_release": "beta-vc70",
-    "signed_beta_release_source_commit": "8cdf941be71fcfddaf074e2016336c2f8d416608",
-    "signed_beta_release_id": 395205061,
-    "signed_beta_apk_asset_id": 584890700,
+    "signed_beta_release": "beta-vc73",
+    "signed_beta_release_source_commit": "bbb6c83b3f75d234f8220d8ef42b22c3105d9964",
+    "signed_beta_release_id": 395643209,
+    "signed_beta_apk_asset_id": 585884830,
     "signed_beta_apk_size_bytes": 19019872,
-    "signed_beta_apk_sha256": "aff46b7191e2bcf95e0960e8559c75ad89df41005f183892a3a29430c1f3cfa3",
-    "relay_agent_release": "relay-agent-v33",
+    "signed_beta_apk_sha256": "6eccfd7ecaa284067e88fc08c4faac55438dceeab7f735fa45fead991361204b",
+    "relay_agent_release": "relay-agent-v37",
     "d109": "TECHNICAL_RUNTIME_RELEASE_PASS__OA029_FIELD_READY",
     "d109_main": "367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94",
     "d109_pr": 154,
@@ -773,10 +773,10 @@
     "d112_branch": "feat/d112-web-android-agent-ops-hardening",
     "d112_target_android": "NEXT_AFTER_BETA_VC67",
     "d112_target_agent": "relay-agent-v31",
-    "relay_agent_release_id": 395204655,
-    "relay_agent_exe_asset_id": 584889767,
-    "relay_agent_exe_size_bytes": 292864,
-    "relay_agent_exe_sha256": "3bcf141b30378c222b7af5f3d012e1df0151c72e9ecb11d559615da2ff27e89f",
+    "relay_agent_release_id": 395676931,
+    "relay_agent_exe_asset_id": 585941375,
+    "relay_agent_exe_size_bytes": 303104,
+    "relay_agent_exe_sha256": "28e79bf2d9e703ffc5b8ef8b074e1c2810ccb1e1dd4eecba08d9772748375a03",
     "d112_main": "92aff2fd7b617af9f8f7706e84a5232b81aab42a",
     "d112_pr": 162,
     "d112_pr_runs": {
@@ -826,6 +826,32 @@
     "d114_inventory_channel_pda_manifest_asset_id": 584890776,
     "d114_inventory_channel_pda_asset_id": 584890792,
     "d114_inventory_channel_agent_manifest_asset_id": 584943002,
-    "d114_inventory_channel_agent_asset_id": 584943001
+    "d114_inventory_channel_agent_asset_id": 584943001,
+    "d117": "TECHNICAL_RUNTIME_RELEASE_PASS__FINAL_HARDENED_V37__OA037_FIELD_READY",
+    "d117_impl_main": "bbb6c83b3f75d234f8220d8ef42b22c3105d9964",
+    "d117_final_hardening_main": "e583d20d12f097bd7895494992408c41976b1835",
+    "d117_impl_pr": 177,
+    "d117_final_hardening_pr": 179,
+    "d117_impl_main_runs": {
+      "repo_authority": 35997118302,
+      "project_state": 35997118245,
+      "ui": 35997118239,
+      "beta_worker": 35997118136,
+      "android": 35997118194,
+      "relay_agent_v36": 35997118142
+    },
+    "d117_final_main_runs": {
+      "repo_authority": 36000749512,
+      "project_state": 36000749611,
+      "ui": 36000749586,
+      "relay_agent_v37": 36000749563
+    },
+    "d117_live_health": "HTTP_200_ATTEMPT_2__STATUS_OK__ENV_BETA__SOURCE_EXACT_BBB6C83B__STORAGE_TRUE__SCHEMA_11_11__MISSING_0__AGENT_MIGRATION_0_0__OPERATIONAL_5_5",
+    "relay_agent_release_source_commit": "e583d20d12f097bd7895494992408c41976b1835",
+    "d117_inventory_channel_release_id": 394587029,
+    "d117_inventory_channel_pda_manifest_asset_id": 585884876,
+    "d117_inventory_channel_pda_asset_id": 585884875,
+    "d117_inventory_channel_agent_manifest_asset_id": 585941439,
+    "d117_inventory_channel_agent_asset_id": 585941442
   }
 }
