@@ -496,3 +496,28 @@ D114 supersedes the D105/D112 suffix-length carrier details where they conflict.
 - Selecting all Picker does not lock individual Picker checkboxes. Unchecking one Picker removes that Picker from the eventual all-set mutation even across the backend boundary.
 - ROOT/ADMIN/REPORTER are never swept into Picker bulk actions. ROOT protection is visible and server-enforced.
 - Reporter/Root/Admin operations detail shows affected Picker rows automatically for the selected shortage batch from the existing cached/prefetched detail request; no additional polling loop is introduced.
+
+## D117 — Agent relay availability and HA workflow
+
+### Automatic PDA confirmation relay
+
+- Carrier remains authenticated Firestore. Office-provider research is closed unless Owner explicitly reopens it.
+- One Agent is PRIMARY, at most one is STANDBY, all others are FROZEN.
+- PRIMARY business queue cadence is 4s idle and 2s hot for a bounded 15s period after work is found.
+- STANDBY/FROZEN never poll the business queue. STANDBY watches only the current generation PRIMARY lease.
+- PRIMARY renews its generation lease every 7s. Missing/stale lease for 10s triggers proactive STANDBY takeover even with zero queued requests.
+- Takeover performs one read-only WMS session probe, creates a new generation, starts a new generation lease and selects a replacement STANDBY best-effort.
+- Before any automatic WMS mutation, PRIMARY verifies the current role + generation. Stale generations fail closed.
+- Automatic relay ignores jobs older than the 20s terminal window and never replays an uncertain WMS mutation.
+
+### Relay schedule
+
+- Normal relay window is 06:00 inclusive through 22:00 exclusive, Asia/Ho_Chi_Minh.
+- From 21:30, PRIMARY asks every 5m whether to continue beyond 22:00.
+- A CONTINUE decision grants one hour past the upcoming boundary. During an active extension, the next decision cycle starts at each HH:30.
+- STOP or no answer at a boundary freezes the whole PDA relay fleet.
+- Frozen relay means no lease, no business queue polling and no PDA automatic processing. The Windows Agent process stays alive.
+- Outside the relay window, direct/manual specialist search and confirmation remain usable when Agent auth and WMS are usable.
+- A frozen Agent may start the relay early before 06:00; the confirming machine becomes PRIMARY and the shared override lasts until 06:00, when normal scheduling resumes.
+- Shared decisions use the existing Firestore relay coordination resource and do not introduce a new provider/collection.
+
