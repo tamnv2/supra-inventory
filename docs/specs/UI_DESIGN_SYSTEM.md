@@ -662,3 +662,11 @@ D111 supersedes only the conflicting D110 Reporter interaction/presentation deta
 - **Nhân sự & tài khoản** uses a clear custom Picker selection control. Non-Picker rows show protected/not-applicable state rather than misleading checked/disabled boxes.
 - All-Picker mode keeps individual Picker controls interactive so exclusions are understandable before a destructive action. Selection status states whether all Picker or all-except-N are targeted.
 - Light/dark themes and narrow-screen layouts must remain coherent; no internal AI/Owner implementation copy is exposed to operators.
+
+## D118 — SLA, pagination, Agent footer and Android IME
+
+- SLA page must visibly state that configuration is whole-system/server-authoritative, show revision/update metadata, and group controls as ordered thresholds plus policy cards. It must not render substitute threshold values while loading.
+- Pagination controls use one consistent `Hiển thị X–Y / Tổng` + `Trang trước / Trang sau` pattern where total-count pagination exists; token-paged logs show page number with the same navigation actions.
+- Agent bottom-right product credit is muted secondary text: `Phát triển hệ thống · tamnv2 | Pick Pack 1291`.
+- Android Picker tabs are persistent navigation controls below the weighted operation content. MainActivity must use `adjustResize` so the IME reduces content height rather than covering these tabs.
+
