@@ -1416,14 +1416,16 @@ function updateQueueClockDom(): void {
 }
 
 function renderResults(): string {
-  const visible = recentRows.filter((row) => recentFilter === "ALL" || row.status === recentFilter);
-  const hasStock = recentRows.filter((row) => row.status === "HAS_STOCK").length;
-  const skipped = recentRows.filter((row) => row.status === "SKIP_ALLOWED").length;
-  const withdrawn = recentRows.filter((row) => row.status === "CLOSED").length;
-  const acknowledged = recentRows.reduce((sum, row) => sum + Number(row.acknowledged_count || 0), 0);
-  const targets = recentRows.reduce((sum, row) => sum + Number(row.ack_target_count || 0), 0);
-  const automaticSkipped = recentRows.filter((row) => row.status === "SKIP_ALLOWED" && row.resolution_source === "SYSTEM_TIMEOUT").length;
+  const visible = recentRows;
+  const hasStock = Number(recentTotals.has_stock || 0);
+  const skipped = Number(recentTotals.skip_allowed || 0);
+  const withdrawn = Number(recentTotals.withdrawn || 0);
+  const acknowledged = Number(recentTotals.acknowledged_count || 0);
+  const targets = Number(recentTotals.ack_target_count || 0);
+  const automaticSkipped = Number(recentTotals.automatic_skipped || 0);
   const humanSkipped = Math.max(0, skipped - automaticSkipped);
+  const pageFrom = recentTotal ? recentOffset + 1 : 0;
+  const pageTo = Math.min(recentTotal, recentOffset + recentRows.length);
   return `<section class="ops-route ops-business-workspace">
     <div class="business-page-head"><div><h2>Vận hành báo hàng</h2><p>Kiểm tra kết quả đã xử lý và tình trạng Picker nhận kết quả.</p></div></div>
     ${renderOperationalTabs("results")}
@@ -1439,6 +1441,7 @@ function renderResults(): string {
       <div class="table-wrap result-audit-table"><table><thead><tr><th>SKU / Sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Picker ảnh hưởng</th><th>Picker đã nhận</th><th>Thời điểm xử lý</th><th>Phát sinh lại</th><th>Thao tác</th></tr></thead><tbody>
         ${visible.map((row) => { const canCorrect = row.status === "SKIP_ALLOWED" && row.correction_deadline_at && Date.now() <= Date.parse(row.correction_deadline_at); const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<button class="btn secondary small" data-correct="${esc(row.batch_id)}">Sửa thành Có hàng</button>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">Chưa có kết quả phù hợp.</td></tr>`}
       </tbody></table></div>
+      <div class="user-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${recentTotal.toLocaleString("vi-VN")} kết quả</span><div><button class="secondary" id="recent-prev" ${recentOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="recent-next" ${recentOffset + RECENT_PAGE_SIZE >= recentTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
   </section>`;
 }
