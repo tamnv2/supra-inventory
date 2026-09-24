@@ -253,7 +253,7 @@ def main() -> None:
     require(relay, "lookupStatus", "D092 Android confirmation result status")
     require(picker, '"CONFIRMED"', "D092 confirmed result mapping")
     require(picker, '"NOT_FOUND"', "D092 not-found result mapping")
-    require(picker, "Đã xác nhận lấy lại đơn. Hãy quay lại app SFT / SFT 3 để tiếp tục", "D092 Picker success copy")
+    require(picker, "Đã xác nhận PickList thành công. Quay lại SFT / SFT 3 để tiếp tục.", "D114 Picker success copy")
     require(picker_layout, 'android:text="XÁC NHẬN LẤY LẠI ĐƠN"', "D092 Firestore confirmation action")
     require(relay_rules, '"lookup_status"', "D082 RTDB lookup metadata validation")
     forbid(wms_picklist, 'request.Method = "POST"', "D082 WMS POST mutation")
