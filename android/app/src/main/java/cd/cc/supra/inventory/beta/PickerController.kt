@@ -76,6 +76,7 @@ class PickerController(
     }
     private var relayLockedUntilMs: Long = 0L
     @Volatile private var relayRequestInFlight = false
+    private var suppressRelayInputHint = false
     private var relayPicklistInput: EditText? = null
     private var relayButton: Button? = null
     private var relayStatus: TextView? = null
@@ -186,17 +187,19 @@ class PickerController(
                     val locked = System.currentTimeMillis() < relayLockedUntilMs
                     clearRelayCandidates()
                     setRelayButtonReady(digits.length >= 3 && !locked && !relayRequestInFlight)
-                    showRelayHint(
-                        if (locked) {
-                            "Tra cứu PickList đang bị khóa. Vui lòng về bàn chuyên viên xử lý."
-                        } else if (digits.isEmpty()) {
-                            "Nhập ít nhất 3 số cuối PickList để kiểm tra."
-                        } else if (digits.length < 3) {
-                            "Cần nhập thêm " + (3 - digits.length) + " số."
-                        } else {
-                            "Đã nhập " + digits.length + " số cuối. Sẵn sàng kiểm tra PickList."
-                        }
-                    )
+                    if (!suppressRelayInputHint) {
+                        showRelayHint(
+                            if (locked) {
+                                "Tra cứu PickList đang bị khóa. Vui lòng về bàn chuyên viên xử lý."
+                            } else if (digits.isEmpty()) {
+                                "Nhập ít nhất 3 số cuối PickList để kiểm tra."
+                            } else if (digits.length < 3) {
+                                "Cần nhập thêm " + (3 - digits.length) + " số."
+                            } else {
+                                "Đã nhập " + digits.length + " số cuối. Sẵn sàng kiểm tra PickList."
+                            }
+                        )
+                    }
                 }
             })
             setOnEditorActionListener { _, actionId, _ ->
@@ -337,16 +340,22 @@ class PickerController(
                             System.currentTimeMillis() >= relayLockedUntilMs
                     )
                     val headline = relayOutcomeText(result.lookupStatus)
-                    showRelayResult(headline, result.lookupStatus == "CONFIRMED")
                     if (result.lookupStatus == "AMBIGUOUS_PICKLIST" && result.candidatePicklists.size >= 2) {
                         renderRelayCandidates(result.candidatePicklists)
                     }
                     if (result.lookupStatus == "CONFIRMED") {
-                        relayPicklistInput?.setText("")
+                        suppressRelayInputHint = true
+                        try {
+                            relayPicklistInput?.setText("")
+                        } finally {
+                            suppressRelayInputHint = false
+                        }
                         clearRelayCandidates()
                         relayPicklistInput?.requestFocus()
                         setRelayButtonReady(false)
                     }
+                    // D116: render terminal result after the programmatic input reset.
+                    showRelayResult(headline, result.lookupStatus == "CONFIRMED")
                     if (result.lookupStatus == "PICKER_LOCKED") {
                         applyRelayLock(result.lockedUntilMs, result.lockLevel)
                     } else if (result.lookupStatus == "NOT_FOUND" && result.rateStrikes > 0) {
