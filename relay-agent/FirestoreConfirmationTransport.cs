@@ -36,8 +36,10 @@ namespace SupraInventoryRelayAgent
 
     internal sealed class FirestoreConfirmationTransport
     {
-        internal const int PrimaryPollIntervalMs = 3000;
-        internal const int StandbyPollIntervalMs = 10000;
+        internal const int PrimaryIdlePollIntervalMs = 4000;
+        internal const int PrimaryHotPollIntervalMs = 2000;
+        internal const int PrimaryPollIntervalMs = PrimaryIdlePollIntervalMs;
+        internal const int StandbyPollIntervalMs = 0;
         internal const int MaxDocumentsPerPoll = 100;
         internal const int MaxConcurrentJobs = 12;
 
@@ -55,6 +57,7 @@ namespace SupraInventoryRelayAgent
         private readonly Func<bool> _businessEnabled;
         private readonly Action<bool> _relayHealth;
         private long _lastPollTelemetryMs;
+        private long _hotUntilMs;
         private string _lastOutcomeState = "";
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024 };
 
@@ -97,14 +100,14 @@ namespace SupraInventoryRelayAgent
                 {
                     if (!_businessEnabled())
                     {
-                        _state("Relay: tạm dừng nghiệp vụ 22:00–05:00");
-                        waitMs = 5000;
+                        _state("Relay PDA đang ngủ · xác nhận trực tiếp tại Agent vẫn hoạt động");
+                        waitMs = 2000;
                     }
                     else if (_coordinator == null || !_coordinator.CanPollBusiness)
                     {
                         var role = _coordinator == null ? "FROZEN" : _coordinator.RoleName;
-                        _state("Relay: " + role + " · không đọc hàng chờ");
-                        waitMs = _coordinator == null ? 60000 : _coordinator.BusinessPollIntervalMs;
+                        _state("Relay: " + role + " · không đọc queue PDA");
+                        waitMs = _coordinator == null ? 5000 : _coordinator.BusinessPollIntervalMs;
                     }
                     else
                     {
@@ -113,16 +116,18 @@ namespace SupraInventoryRelayAgent
                         _coordinator.EnsureRoleCurrentBeforeBusiness(session);
                         var startedMs = NowMs();
                         var processed = ProcessOnce(session);
+                        if (processed > 0) _hotUntilMs = NowMs() + 15000L;
                         if (NowMs() - startedMs >= FirestoreAgentLeaderCoordinator.FailoverAfterMs)
                             _coordinator.RequestRoleRefreshBeforeBusiness();
                         _relayHealth(true);
-                        waitMs = _coordinator.BusinessPollIntervalMs;
-                        if (_coordinator.IsLeader)
-                            _state(processed > 0
-                                ? (string.IsNullOrWhiteSpace(_lastOutcomeState) ? "Relay: PRIMARY · đã xử lý yêu cầu PDA" : _lastOutcomeState)
-                                : "Relay: PRIMARY · Firestore online · chờ PDA");
-                        else
-                            _state("Relay: STANDBY · chờ failover 10s");
+                        waitMs = NowMs() < _hotUntilMs
+                            ? PrimaryHotPollIntervalMs
+                            : PrimaryIdlePollIntervalMs;
+                        _state(processed > 0
+                            ? (string.IsNullOrWhiteSpace(_lastOutcomeState) ? "Relay: PRIMARY · đã xử lý yêu cầu PDA" : _lastOutcomeState)
+                            : (waitMs == PrimaryHotPollIntervalMs
+                                ? "Relay: PRIMARY · HOT 2s · chờ PDA"
+                                : "Relay: PRIMARY · IDLE 4s · chờ PDA"));
                     }
                 }
                 catch (Exception ex)
@@ -153,26 +158,22 @@ namespace SupraInventoryRelayAgent
             {
                 if (doc == null || doc.Work == null) continue;
                 var ageMs = NowMs() - doc.Work.CreatedAtMs;
-                if (doc.Work.CreatedAtMs <= 0 || ageMs > 30000L)
+                if (doc.Work.CreatedAtMs <= 0 || ageMs > 20000L)
                 {
                     _log("FIRESTORE CONFIRM stale-skip request=" + Short(doc.Work.RequestId) +
                          " age_ms=" + Math.Max(0L, ageMs));
                     continue;
                 }
                 if (!_coordinator.CanProcessJob(doc.Work.CreatedAtMs)) continue;
-
-                if (_coordinator.IsStandby)
-                {
-                    if (!_coordinator.PromoteStandbyForTakeover() && !_coordinator.IsLeader)
-                    {
-                        _log("FIRESTORE standby takeover deferred request=" + Short(doc.Work.RequestId));
-                        continue;
-                    }
-                }
                 eligible.Add(doc);
             }
 
             if (eligible.Count == 0) return 0;
+            if (!_coordinator.VerifyPrimaryBeforeMutation(session))
+            {
+                _log("FIRESTORE CONFIRM mutation-fence=BLOCK role_or_generation_changed=true");
+                return 0;
+            }
 
             var processed = 0;
             for (var offset = 0; offset < eligible.Count; offset += MaxConcurrentJobs)
