@@ -859,3 +859,15 @@ Owner field review of D113 accepted the previously verified baseline but reporte
 8. Web **Công cụ** uses two balanced compact cards on wide screens and stacks them on narrow screens. Legacy full-width/span rules must not leave one card full-width and the other half-width.
 9. The Web **Xử lý báo hàng** navigation badge is global realtime operational state. On existing reporter-queue realtime events it refreshes from the authoritative queue even while the user is viewing another Web section. No additional polling cadence is introduced.
 10. D114 is Beta-only. SQLite schema remains 11. Existing D097/D104 batching/HA/idempotency/no-offline guards remain unless explicitly superseded above. Stable remains OWNER-GATED and untouched.
+
+
+### D114 technical/runtime/release checkpoint — 2026-09-24
+
+D114 implementation is technically complete on Beta and is now ready for OA034 Owner field review. This checkpoint does not add or supersede product behavior beyond the D114 rules above.
+
+- PR #167 merged the D114 implementation at `8cdf941be71fcfddaf074e2016336c2f8d416608`.
+- Main Repo Authority, Project State, UI Design, Beta Worker, Android and Agent runs passed. Live Beta health reached HTTP 200 on attempt 2 with exact source `8cdf941b`, SQLite `11/11`, storage ready, missing bindings `0`, Agent migration `0/0` and Operational V2 `5/5`.
+- The main Firestore deployment exposed a malformed Rules source edit. PR #168 rebuilt the Rules from the accepted baseline and reapplied only the intended D114 suffix/candidate changes; main Firestore run `35943098393` passed ruleset creation and release readback from repair main `e6138dbdd72e073e2c5a88e7fd431b1d0643c180`.
+- Signed Android `beta-vc70` and `relay-agent-v33` are published from D114 implementation source `8cdf941b`.
+- PR #170 hardened Agent release reruns: an existing release may be reused only when the exact `relay-agent/` Git tree is unchanged; published EXE/checksum must verify. Final main Agent run `35944022982` passed and refreshed the fixed runtime channel using the already-published v33 assets.
+- Stable remains OWNER-GATED and untouched. D114 Owner PASS is not recorded until explicit OA034 field confirmation.
