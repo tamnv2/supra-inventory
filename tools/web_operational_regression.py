@@ -88,7 +88,7 @@ def main() -> None:
     require(users_core, "LIMIT ? OFFSET ?", "user SQL pagination")
     forbid(users_core, "LIMIT 1000", "fixed 1000-row user load")
     require(app, 'id="toggle-all-pickers"', "select all Picker UI")
-    require(app, "updatePickerAccounts(action, ids, allPickerSelection)", "all Picker action propagation")
+    require(app, "updatePickerAccounts(action, ids, allPickerSelection, [...excludedPickerIds])", "D116 all-Picker action plus exclusions propagation")
 
     # F15: approved dashboard/reporting controls.
     require(app, "renderDatePresets(", "shared date presets")
