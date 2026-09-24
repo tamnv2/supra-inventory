@@ -41,3 +41,11 @@ Exact Owner semantics for the SKU-reset confirmation described historically as r
 - Promotion to the active catalog is one local SQLite transaction.
 - If download, pagination, validation, version recheck or promotion fails, the last valid active catalog remains usable for read-only search; no partial catalog replaces it.
 - Existing legacy TSV cache may be migrated once into SQLite, then the TSV artifacts are retired.
+
+## D116 — Admin SKU workspace
+
+- Admin/Root **Danh mục SKU** is not an upload-only screen. It shows authoritative catalog count, version and latest update timestamp from the existing catalog metadata endpoint.
+- The workspace provides bounded search by SKU or product name and renders current SKU, product name and update timestamp.
+- Excel import remains the approved validated/idempotent flow. Current catalog data remains authoritative until the uploaded workbook passes parsing/conflict checks and the user explicitly applies it.
+- Same-SKU/different-name conflicts continue to require explicit resolution; D116 does not add stock quantity, location/bin management or offline catalog mutation.
+- Loading/searching this workspace is on-demand when the route is opened or the user searches; it introduces no background polling loop.
