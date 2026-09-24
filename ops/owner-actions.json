@@ -1640,7 +1640,7 @@
     },
     {
       "id": "OA035",
-      "status": "PENDING_TECHNICAL_RUNTIME_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D115 fast healthy-primary relay and ACK recovery",
       "resource_key": "worker-beta",
       "provider": "Beta Android + Firestore confirmation transport + relay-agent-v34",
@@ -1651,9 +1651,31 @@
         "source_branch": "feat/d115-relay-under5s",
         "target_android_release": "beta-vc71",
         "target_agent_release": "relay-agent-v34",
-        "technical_runtime_release": "PENDING",
+        "technical_runtime_release": "PASS",
         "sqlite_schema": 11,
-        "stable": "OWNER_GATED"
+        "stable": "OWNER_GATED",
+        "merged_pr": 173,
+        "implementation_main": "bcbabc09928ae997d81f12404a49e7a8be6d971f",
+        "main_repo_authority_run": 35948065198,
+        "main_project_state_run": 35948065182,
+        "main_ui_run": 35948065209,
+        "main_beta_worker_run": 35948065164,
+        "main_android_run": 35948065152,
+        "main_agent_run": 35948065389,
+        "live_health": "HTTP_200_ATTEMPT_1__STATUS_OK__ENV_BETA__SOURCE_EXACT_BCBABC09__STORAGE_TRUE__SCHEMA_11_11__MISSING_0__AGENT_MIGRATION_0_0__OPERATIONAL_5_5",
+        "android_release_id": 395262617,
+        "android_asset_id": 585009621,
+        "android_asset_size": 19019872,
+        "android_sha256": "f1137dccd460133e5fdc41836658c6bb6b41a885f41f4ba16ca908a0c96d3d1d",
+        "agent_release_id": 395262208,
+        "agent_asset_id": 585008591,
+        "agent_asset_size": 294400,
+        "agent_sha256": "eef4e6e6bbb20f7fad223ba4c7a7081200eecbe74af1e43c4335fd78034f4285",
+        "inventory_channel_release_id": 394587029,
+        "inventory_channel_pda_manifest_asset_id": 585009672,
+        "inventory_channel_pda_asset_id": 585009671,
+        "inventory_channel_agent_manifest_asset_id": 585008719,
+        "inventory_channel_agent_asset_id": 585008720
       },
       "shortest_test_path": [
         "Install signed beta-vc71 and relay-agent-v34; keep exactly one healthy PRIMARY, WMS ready, normal network and no failover.",
@@ -1672,7 +1694,7 @@
         "Stable remains OWNER-GATED and untouched."
       ],
       "safety": "Beta only. No PickList values, credentials, tokens or WMS session material in logs/source. No new provider/resource. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for technical/runtime/release PASS, then field-test beta-vc71 + relay-agent-v34 using the shortest_test_path.",
+      "remaining_owner_action": "Field-test signed beta-vc71 + relay-agent-v34 using the shortest_test_path. Reply PASS only after healthy PRIMARY/no-failover RTT and cleanup/ACK-recovery checks pass; otherwise send itemized defects.",
       "closed": false
     }
   ]
