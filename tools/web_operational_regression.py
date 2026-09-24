@@ -199,6 +199,16 @@ def main() -> None:
     require(app, 'const nextSla = await getAdminSla();', "D113 primary SLA config load independent of secondary insights")
     require(professional_css, "D113 — Owner refinement", "D113 final login/tools/SLA style layer")
 
+    # D116: selected-SKU Picker detail is automatic without extra fetches; SKU and user admin are complete and safe.
+    require(app, "pickerDetailMarkup(selected.batch_id, batchDetails.get(selected.batch_id), true)", "D116 automatic affected-Picker display")
+    require(app, "getSkuCatalogInfo", "D116 SKU catalog metadata")
+    require(app, 'id="sku-admin-search-form"', "D116 SKU search workspace")
+    require(app, "excludedPickerIds", "D116 all-Picker exclusion model")
+    require(app, 'user.role === "PICKER"', "D116 Picker-only bulk selection")
+    require(api, "excluded_user_ids", "D116 bulk exclusion API")
+    require(user_management_core, "excluded_user_ids", "D116 bulk exclusion authority")
+    require(professional_css, "D116 — quota-safe admin refinement", "D116 professional admin style layer")
+
     # D072: quota-heavy system-status surface is excluded from normal runtime.
     require(app, 'navGroup("HỆ THỐNG", profile.role === "ROOT" && profile.base_role === "ROOT"', "D100 Root-only system group branching")
     require(app, '? [["logs", "Nhật ký"], ["tools", "Công cụ"], ["system-reset", "Đặt lại hệ thống"]]', "D100 Root-only system reset child")

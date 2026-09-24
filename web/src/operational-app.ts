@@ -237,8 +237,12 @@ function clearRoleScopedViewState(): void {
   pickerSelected = null;
   managedUsers = [];
   selectedUserIds.clear();
+  excludedPickerIds.clear();
   allPickerSelection = false;
   hrPreview = null;
+  skuCatalogInfo = null;
+  skuAdminQuery = "";
+  skuAdminItems = [];
   dashboardData = null;
   reportRows = [];
   reportTotal = 0;
