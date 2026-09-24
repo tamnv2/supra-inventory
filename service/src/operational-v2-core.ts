@@ -969,9 +969,23 @@ async function putSla(state: DurableObjectState, request: Request): Promise<Resp
     auto_skip_mode?: unknown;
     skip_to_stock_enabled?: unknown;
     skip_to_stock_minutes?: unknown;
+    expected_policy_version?: unknown;
     actor?: Actor;
   };
   const actor = body.actor;
+  const previous = readSlaConfig(state);
+  const currentPolicyVersion = Math.max(0, Number(previous?.policy_version || 0));
+  const expectedPolicyVersion = body.expected_policy_version == null || body.expected_policy_version === ""
+    ? currentPolicyVersion
+    : Number(body.expected_policy_version);
+  if (!Number.isInteger(expectedPolicyVersion) || expectedPolicyVersion !== currentPolicyVersion) {
+    return json({
+      error: "SLA_CONFIG_STALE",
+      message: "Cấu hình thời gian xử lý đã được cập nhật ở phiên khác. Hệ thống đã giữ bản mới nhất.",
+      configured: Boolean(previous),
+      sla: previous,
+    }, 409);
+  }
   const validated = validateOperationalSlaConfig(body);
   if (!actor?.user_id || !validated.ok) {
     return json({
@@ -990,11 +1004,10 @@ async function putSla(state: DurableObjectState, request: Request): Promise<Resp
     }, 400);
   }
 
-  const previous = readSlaConfig(state);
   const at = new Date().toISOString();
   const value: OperationalSlaConfig = {
     ...validated.value,
-    policy_version: 3,
+    policy_version: Math.max(3, currentPolicyVersion + 1),
     effective_at: Number(previous?.policy_version || 0) >= 2 && previous?.effective_at ? previous.effective_at : at,
   };
   state.storage.transactionSync(() => {
