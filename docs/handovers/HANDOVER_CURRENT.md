@@ -866,3 +866,23 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - D115 OA035 is superseded by OA036 after Owner-reported quota/result defects.
 - D116 source is on feat/d116-quota-result-web-admin / PR #175. Merge only after authority + continuity + source gates PASS.
 - Stable remains OWNER-GATED and untouched.
+
+## D116 technical/runtime/release checkpoint — 2026-09-24
+
+- Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA036 FIELD READY**.
+- PR #175 merged main `9319eb30f55e48b3c60283ab2e9135bf0a33054d`.
+- Main PASS: Authority `35962512361`, State `35962512549`, UI `35962512491`, Worker `35962512349`, Android `35962512556`, Agent `35962512375`.
+- Live Beta: HTTP 200 attempt 1, exact source `9319eb30...`, SQLite `11/11`, Operational V2 `5/5`, missing `0`, Agent migration `0/0`.
+- Signed Android: `beta-vc72`, release `395378687`, APK asset `585274995`, size `19019872`.
+- Agent: `relay-agent-v35`, release `395378457`, EXE asset `585274568`, size `294400`.
+- `inventory-channel`: PDA manifest/APK `585275037/585275028`; Agent manifest/EXE `585274637/585274636`.
+- OA036 field review remains; Stable remains OWNER-GATED and untouched.
+
+### D116 canonical current-status markers
+
+- Beta: `D116_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_9319EB30__SCHEMA11__SIGNED_BETA_VC72__AGENT_V35__OA036_FIELD_READY`
+- Web: `D116_BETA_RUNTIME_PASS__AUTO_SELECTED_PICKER_DETAIL__SKU_CATALOG_WORKSPACE__PICKER_SAFE_BULK_SELECTION__OA036_FIELD_READY`
+- Android: `D116_SIGNED_BETA_VC72__TERMINAL_CONFIRM_RESULT_PERSISTS_AFTER_INPUT_RESET__OA036_FIELD_READY`
+- Latest Beta APK: `beta-vc72`
+- SQLite schema: `11`
+- Quota contract: PRIMARY 3s, STANDBY 10s, FROZEN no business poll, Android no polling; healthy-primary field target remains under 5 seconds.
