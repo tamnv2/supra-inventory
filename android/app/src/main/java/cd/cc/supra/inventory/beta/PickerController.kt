@@ -79,6 +79,7 @@ class PickerController(
     private var relayPicklistInput: EditText? = null
     private var relayButton: Button? = null
     private var relayStatus: TextView? = null
+    private var relayCandidateList: LinearLayout? = null
     private var shortagePanel: View? = null
     private var confirmPanel: View? = null
     private var shortageTab: TextView? = null
@@ -158,6 +159,7 @@ class PickerController(
             setOnClickListener { showOperationTab(confirm = true) }
         }
         relayStatus = root.findViewById(R.id.tvRelayPocStatus)
+        relayCandidateList = root.findViewById(R.id.relayCandidateList)
         relayButton = root.findViewById<Button>(R.id.btnRelayPocSend)?.apply {
             isEnabled = false
             alpha = 0.42f
@@ -174,7 +176,7 @@ class PickerController(
                 override fun afterTextChanged(s: Editable?) {
                     if (normalizing) return
                     val raw = s?.toString().orEmpty()
-                    val digits = raw.filter(Char::isDigit).take(4)
+                    val digits = raw.filter(Char::isDigit).take(20)
                     if (raw != digits) {
                         normalizing = true
                         setText(digits)
@@ -182,22 +184,23 @@ class PickerController(
                         normalizing = false
                     }
                     val locked = System.currentTimeMillis() < relayLockedUntilMs
-                    setRelayButtonReady(digits.length == 4 && !locked && !relayRequestInFlight)
+                    clearRelayCandidates()
+                    setRelayButtonReady(digits.length >= 3 && !locked && !relayRequestInFlight)
                     showRelayHint(
                         if (locked) {
-                            "Tra cứu Picklist đang bị khóa. Vui lòng về bàn chuyên viên xử lý."
+                            "Tra cứu PickList đang bị khóa. Vui lòng về bàn chuyên viên xử lý."
                         } else if (digits.isEmpty()) {
-                            "Sẵn sàng nhập 4 số cuối để kiểm tra Picklist."
-                        } else if (digits.length < 4) {
-                            "Đã nhập " + digits.length + "/4 số."
+                            "Nhập ít nhất 3 số cuối PickList để kiểm tra."
+                        } else if (digits.length < 3) {
+                            "Cần nhập thêm " + (3 - digits.length) + " số."
                         } else {
-                            "Đủ 4 số. Sẵn sàng kiểm tra Picklist."
+                            "Đã nhập " + digits.length + " số cuối. Sẵn sàng kiểm tra PickList."
                         }
                     )
                 }
             })
             setOnEditorActionListener { _, actionId, _ ->
-                if (actionId == EditorInfo.IME_ACTION_DONE && text?.length == 4 && !relayRequestInFlight) {
+                if (actionId == EditorInfo.IME_ACTION_DONE && (text?.length ?: 0) >= 3 && !relayRequestInFlight) {
                     submitRelayProbe()
                     true
                 } else {
@@ -296,7 +299,7 @@ class PickerController(
         }
     }
 
-    private fun submitRelayProbe() {
+    private fun submitRelayProbe(suffixOverride: String? = null, selectedPickList: String? = null) {
         if (relayRequestInFlight) return
         if (System.currentTimeMillis() < relayLockedUntilMs) {
             showRelayWarning(
@@ -305,9 +308,9 @@ class PickerController(
             )
             return
         }
-        val suffix = relayPicklistInput?.text?.toString()?.trim().orEmpty()
-        if (!suffix.matches(Regex("^\\d{4}$"))) {
-            showRelayHint("Nhập đúng 4 số cuối Picklist.")
+        val suffix = suffixOverride?.trim() ?: relayPicklistInput?.text?.toString()?.trim().orEmpty()
+        if (!suffix.matches(Regex("^\\d{3,20}$"))) {
+            showRelayHint("Nhập từ 3 đến 20 số cuối PickList.")
             setRelayButtonReady(false)
             return
         }
@@ -318,35 +321,29 @@ class PickerController(
         }
         relayRequestInFlight = true
         setRelayButtonReady(false)
-        showRelayProgress("Đang xác nhận lấy lại đơn...")
-        recordLog("Bắt đầu xác nhận lấy lại đơn; không ghi giá trị Picklist vào log")
+        clearRelayCandidates()
+        showRelayProgress(
+            if (selectedPickList.isNullOrBlank()) "Đang kiểm tra và xác nhận PickList..."
+            else "Đang xác nhận PickList đã chọn..."
+        )
+        recordLog("Bắt đầu xác nhận PickList; không ghi giá trị PickList vào log")
         Thread {
             try {
                 val result = relayPocClient.sendProbe(suffix)
                 activity.runOnUiThread {
                     relayRequestInFlight = false
                     setRelayButtonReady(
-                        relayPicklistInput?.text?.length == 4 &&
+                        (relayPicklistInput?.text?.length ?: 0) >= 3 &&
                             System.currentTimeMillis() >= relayLockedUntilMs
                     )
-                    val headline = when (result.lookupStatus) {
-                        "CONFIRMED" -> "Đã xác nhận lấy lại đơn. Hãy quay lại app SFT / SFT 3 để tiếp tục"
-                        "NOT_FOUND" -> "Không tìm thấy Picklist khớp 4 số cuối. Vui lòng kiểm tra lại."
-                        "AMBIGUOUS_PICKLIST", "EXACT_CODE_NOT_RESOLVED" -> "Không xác định được duy nhất Picklist. Vui lòng về bàn chuyên viên xử lý trực tiếp."
-                        "PICKER_LOCKED" -> "TRA CỨU ĐÃ BỊ KHÓA"
-                        "WMS_SESSION_REQUIRED", "SESSION_EXPIRED" -> "Máy xử lý cần đăng nhập lại SFT / SFT 3. Vui lòng về bàn chuyên viên xử lý trực tiếp."
-                        "SCHEMA_UNSUPPORTED" -> "Không đọc được danh sách Picklist an toàn. Vui lòng về bàn chuyên viên xử lý trực tiếp."
-                        "FORBIDDEN" -> "Hệ thống Supra từ chối quyền xác nhận. Vui lòng về bàn chuyên viên xử lý trực tiếp."
-                        "PROXY_BLOCK" -> "Mạng Office đang chặn kết nối xử lý. Vui lòng về bàn chuyên viên xử lý trực tiếp."
-                        "CONFIRM_REJECTED", "CONFIRM_CONFLICT" -> "Picklist không thể xác nhận tự động. Vui lòng kiểm tra trên SFT / SFT 3."
-                        "CONFIRM_IN_PROGRESS_OR_UNCERTAIN" -> "Trạng thái xác nhận chưa chắc chắn. Không bấm lại; vui lòng về bàn chuyên viên kiểm tra trên SFT / SFT 3."
-                        "REQUEST_EXPIRED" -> "Đã quá thời gian xử lý tự động. Vui lòng về bàn Chuyên viên xử lý trực tiếp."
-                        "RATE_LIMITED" -> "Hệ thống đang giới hạn yêu cầu. Vui lòng thử lại sau."
-                        else -> "Xác nhận lấy lại đơn chưa thành công. Vui lòng về bàn chuyên viên xử lý trực tiếp."
-                    }
+                    val headline = relayOutcomeText(result.lookupStatus)
                     showRelayResult(headline, result.lookupStatus == "CONFIRMED")
+                    if (result.lookupStatus == "AMBIGUOUS_PICKLIST" && result.candidatePicklists.size >= 2) {
+                        renderRelayCandidates(result.candidatePicklists)
+                    }
                     if (result.lookupStatus == "CONFIRMED") {
                         relayPicklistInput?.setText("")
+                        clearRelayCandidates()
                         relayPicklistInput?.requestFocus()
                         setRelayButtonReady(false)
                     }
@@ -373,7 +370,7 @@ class PickerController(
                 activity.runOnUiThread {
                     relayRequestInFlight = false
                     setRelayButtonReady(
-                        relayPicklistInput?.text?.length == 4 &&
+                        (relayPicklistInput?.text?.length ?: 0) >= 3 &&
                             System.currentTimeMillis() >= relayLockedUntilMs
                     )
                     val message = error.message?.takeIf { it.isNotBlank() } ?: friendlyError(error)
@@ -405,8 +402,8 @@ class PickerController(
             if (System.currentTimeMillis() >= relayLockedUntilMs) {
                 relayLockedUntilMs = 0L
                 relayPicklistInput?.isEnabled = true
-                setRelayButtonReady(relayPicklistInput?.text?.length == 4 && !relayRequestInFlight)
-                showRelayHint("Đã hết thời gian khóa. Có thể kiểm tra Picklist.")
+                setRelayButtonReady((relayPicklistInput?.text?.length ?: 0) >= 3 && !relayRequestInFlight)
+                showRelayHint("Đã hết thời gian khóa. Có thể kiểm tra PickList.")
             }
         }, delay)
     }
@@ -416,6 +413,88 @@ class PickerController(
             isEnabled = ready
             alpha = if (ready) 1.0f else 0.42f
         }
+    }
+
+    private fun relayOutcomeText(status: String): String = when (status) {
+        "CONFIRMED" -> "Đã xác nhận PickList thành công. Quay lại SFT / SFT 3 để tiếp tục."
+        "NOT_FOUND" -> "Không tìm thấy PickList khớp đúng các số cuối đã nhập. Kiểm tra lại mã PickList."
+        "AMBIGUOUS_PICKLIST" -> "Tìm thấy nhiều PickList cùng khớp các số cuối. Hãy chọn đúng một PickList của bạn bên dưới."
+        "PICKER_LOCKED" -> "PDA tạm khóa do nhập sai nhiều lần. Vui lòng xử lý tại bàn chuyên viên."
+        "WMS_SESSION_REQUIRED", "SESSION_EXPIRED" -> "Phiên SFT / SFT 3 trên Agent chưa sẵn sàng. Vui lòng xử lý tại bàn chuyên viên."
+        "SCHEMA_UNSUPPORTED" -> "Không đọc được dữ liệu PickList an toàn. Vui lòng xử lý tại bàn chuyên viên."
+        "FORBIDDEN" -> "Hệ thống Supra từ chối quyền xác nhận PickList."
+        "PROXY_BLOCK", "PROXY_AUTH_REQUIRED", "TRANSPORT_FAIL" -> "Kết nối tới hệ thống Supra đang gián đoạn. Vui lòng thử lại hoặc xử lý tại bàn chuyên viên."
+        "CONFIRM_REJECTED" -> "Hệ thống Supra từ chối xác nhận PickList. Kiểm tra trạng thái trên SFT / SFT 3."
+        "CONFIRM_CONFLICT" -> "PickList đang có xung đột trạng thái. Kiểm tra lại trên SFT / SFT 3."
+        "CONFIRM_IN_PROGRESS_OR_UNCERTAIN" -> "Trạng thái xác nhận chưa chắc chắn. Không gửi lại; vui lòng kiểm tra trực tiếp trên SFT / SFT 3."
+        "REQUEST_EXPIRED" -> "Yêu cầu đã quá thời gian xử lý. Vui lòng gửi lại một lần hoặc xử lý tại bàn chuyên viên."
+        "RATE_LIMITED" -> "Hệ thống đang giới hạn yêu cầu. Vui lòng thử lại sau."
+        "SERVER_ERROR" -> "Hệ thống Supra đang lỗi máy chủ. Vui lòng thử lại sau."
+        "EXACT_CODE_NOT_RESOLVED" -> "Dữ liệu PickList vừa thay đổi. Vui lòng tìm lại."
+        else -> "Không thể hoàn tất xác nhận PickList (mã: $status). Vui lòng xử lý tại bàn chuyên viên."
+    }
+
+    private fun clearRelayCandidates() {
+        relayCandidateList?.removeAllViews()
+        relayCandidateList?.visibility = View.GONE
+    }
+
+    private fun renderRelayCandidates(candidates: List<String>) {
+        val rows = candidates
+            .map { it.trim().uppercase() }
+            .filter { it.matches(Regex("^PL\\d{3,20}$")) }
+            .distinct()
+            .take(20)
+        relayCandidateList?.apply {
+            removeAllViews()
+            visibility = if (rows.size >= 2) View.VISIBLE else View.GONE
+            for (code in rows) {
+                val row = LinearLayout(activity).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = Gravity.CENTER_VERTICAL
+                    setPadding(kit.dp(8), kit.dp(6), kit.dp(6), kit.dp(6))
+                    setBackgroundResource(R.drawable.bg_card)
+                }
+                val label = TextView(activity).apply {
+                    text = code
+                    textSize = scaledSp(15f)
+                    setTypeface(typeface, Typeface.BOLD)
+                    setTextColor(kit.navy)
+                }
+                val button = Button(activity).apply {
+                    text = "Xác nhận"
+                    isAllCaps = false
+                    setTextColor(Color.WHITE)
+                    setTypeface(typeface, Typeface.BOLD)
+                    setBackgroundResource(R.drawable.bg_button_primary)
+                    setOnClickListener { confirmAmbiguousPickList(code) }
+                }
+                row.addView(label, LinearLayout.LayoutParams(0, kit.dp(46), 1f).apply {
+                    gravity = Gravity.CENTER_VERTICAL
+                })
+                row.addView(button, LinearLayout.LayoutParams(kit.dp(112), kit.dp(44)).apply {
+                    marginStart = kit.dp(8)
+                })
+                addView(row, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                    bottomMargin = kit.dp(6)
+                })
+            }
+        }
+    }
+
+    private fun confirmAmbiguousPickList(code: String) {
+        if (relayRequestInFlight || activity.isFinishing) return
+        val digits = code.takeIf { it.startsWith("PL", ignoreCase = true) }?.substring(2).orEmpty()
+        if (!digits.matches(Regex("^\\d{3,20}$"))) {
+            showRelayResult("PickList được chọn không hợp lệ. Vui lòng tìm lại.", false)
+            return
+        }
+        AlertDialog.Builder(activity)
+            .setTitle("Xác nhận đúng PickList")
+            .setMessage("Bạn đang chọn $code. Hãy kiểm tra kỹ đây chính xác là PickList của bạn. Chọn Huỷ sẽ không gửi yêu cầu.")
+            .setNegativeButton("Huỷ", null)
+            .setPositiveButton("Xác nhận") { _, _ -> submitRelayProbe(digits, code) }
+            .show()
     }
 
     private fun showRelayHint(message: String) {
