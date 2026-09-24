@@ -871,3 +871,12 @@ D114 implementation is technically complete on Beta and is now ready for OA034 O
 - Signed Android `beta-vc70` and `relay-agent-v33` are published from D114 implementation source `8cdf941b`.
 - PR #170 hardened Agent release reruns: an existing release may be reused only when the exact `relay-agent/` Git tree is unchanged; published EXE/checksum must verify. Final main Agent run `35944022982` passed and refreshed the fixed runtime channel using the already-published v33 assets.
 - Stable remains OWNER-GATED and untouched. D114 Owner PASS is not recorded until explicit OA034 field confirmation.
+
+
+## D114 Owner acceptance — 2026-09-24
+
+Owner explicitly confirmed the released D114 Beta result as **PASS** after field review of live Beta Web, signed Android `beta-vc70` and `relay-agent-v33`. OA034 is closed as `PASS_OWNER_CONFIRMED_D114`.
+
+The accepted D114 baseline includes exact trailing 3–20 digit PickList search, PDA one-at-a-time ambiguous candidate selection, Agent multi-term specialist search and specific result feedback, balanced Web Tools cards, and cross-section realtime queue-badge reconciliation without faster polling. SQLite remains 11; D097/D104 HA, batching, idempotency and fail-closed WMS guards remain authoritative; Stable remains OWNER-GATED.
+
+In the same message, Owner reported a **separate post-pass observation** from the newest Android log: some PickList confirmations appear slower and some requests can show the 10-second Agent failover notice then reach the 30-second no-result timeout even when the PickList may already have been confirmed. This is diagnostic evidence for a later follow-up decision; it does not revoke D114 acceptance and no new relay behavior is approved by this acceptance record.
