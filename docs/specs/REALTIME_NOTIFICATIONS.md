@@ -410,3 +410,19 @@ D113 keeps D112 `REPORT_CREATED` realtime delivery unchanged and adds a local We
 - REPORTER/ADMIN/ROOT refresh the authoritative reporter queue when a reporter-queue/recent scope changes even if the active Web section is not **Xử lý báo hàng**.
 - The global **Xử lý báo hàng** navigation badge updates from that authoritative queue immediately after the event-driven refresh.
 - Existing foreground toast and hidden-tab Browser Notification behavior is preserved and independent from the badge refresh.
+
+
+## D115 — Confirmation latency and ACK reliability
+
+D115 supersedes only the PRIMARY polling cadence of the earlier D097/D104/D114 confirmation transport contract.
+
+- Healthy PRIMARY business polling is **2 seconds**. STANDBY remains **10 seconds** and may process only a request old enough for the existing 10-second takeover rule. FROZEN does not poll business jobs.
+- The faster cadence is restricted to the one elected PRIMARY while business processing is enabled. Android remains listener-driven and adds no polling cadence.
+- No PROCESSING/claim write is introduced. PENDING → ACK remains the single terminal job update and uses the existing conditional update-time guard.
+- Android request cleanup is asynchronous and UID-scoped. It must not execute synchronously before a new job create.
+- A timed-out Android listener performs one bounded server read of the same request before returning the 30-second specialist-desk fallback.
+- Agent ACK recovery may retry/verify only the Firestore ACK. The WMS confirmation handler is executed once per guarded business attempt; ACK retry must never resend the WMS mutation.
+- On an uncertain ACK write, Agent checks the job document. If terminal ACK is already visible, delivery is considered recovered; otherwise bounded retry may continue.
+- Latency telemetry is redacted and includes queue age, business batch time and ACK time. It must not contain the entered PickList suffix/full code, credentials, tokens or WMS session material.
+- Healthy-path acceptance target: without failover or external WMS/network degradation, Android request creation through terminal Android result should be **<5,000 ms**.
+- SQLite remains 11 and Stable remains OWNER-GATED.
