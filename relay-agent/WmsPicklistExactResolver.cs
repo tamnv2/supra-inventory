@@ -18,6 +18,7 @@ namespace SupraInventoryRelayAgent
         internal int StatusCode;
         internal long ElapsedMs;
         internal int MatchCount;
+        internal readonly List<string> Candidates = new List<string>();
     }
 
     // Post-FOUND identity resolver only. Primary existence lookup remains the D084
@@ -48,8 +49,8 @@ namespace SupraInventoryRelayAgent
             foreach (var raw in suffixes ?? new string[0])
             {
                 var suffix = (raw ?? "").Trim();
-                if (suffix.Length != 4 && suffix.Length != 5)
-                    throw new ArgumentException("Picklist suffix must contain four digits; five-digit legacy jobs remain compatible during rollout.", "suffixes");
+                if (suffix.Length < 3 || suffix.Length > 20)
+                    throw new ArgumentException("Picklist suffix must contain 3 to 20 trailing digits.", "suffixes");
                 foreach (var ch in suffix)
                     if (ch < '0' || ch > '9')
                         throw new ArgumentException("Picklist suffix must contain digits only.", "suffixes");
@@ -139,7 +140,12 @@ namespace SupraInventoryRelayAgent
                 }
                 if (bucket.Count > 1)
                 {
-                    results[suffix] = Build("AMBIGUOUS_PICKLIST", "", lastRoute, lastHttp, elapsed, bucket.Count);
+                    var ambiguous = Build("AMBIGUOUS_PICKLIST", "", lastRoute, lastHttp, elapsed, bucket.Count);
+                    var candidates = new List<string>(bucket);
+                    candidates.Sort(StringComparer.OrdinalIgnoreCase);
+                    if (candidates.Count > 20) candidates.RemoveRange(20, candidates.Count - 20);
+                    ambiguous.Candidates.AddRange(candidates);
+                    results[suffix] = ambiguous;
                     continue;
                 }
                 var exact = "";
