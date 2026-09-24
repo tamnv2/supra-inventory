@@ -426,3 +426,12 @@ D115 supersedes only the PRIMARY polling cadence of the earlier D097/D104/D114 c
 - Latency telemetry is redacted and includes queue age, business batch time and ACK time. It must not contain the entered PickList suffix/full code, credentials, tokens or WMS session material.
 - Healthy-path acceptance target: without failover or external WMS/network degradation, Android request creation through terminal Android result should be **<5,000 ms**.
 - SQLite remains 11 and Stable remains OWNER-GATED.
+
+## D116 — Quota-balanced Firestore confirmation cadence
+
+- D116 supersedes only the D115 PRIMARY interval: PRIMARY confirmation polling is **3 seconds**, STANDBY remains **10 seconds**, request failover remains **10 seconds**, and FROZEN performs no business-job polling.
+- Only the single elected PRIMARY may run the 3-second business query, and only while business processing is enabled. Quiet-hours pause still suppresses pending-job queries.
+- Android remains listener-driven for its one request document and gains no polling loop. The D115 bounded final server ACK read remains terminal-timeout recovery only.
+- No PROCESSING state/write, no global/coalescing wait query, no extra provider, no new Firestore collection and no faster presence heartbeat are permitted.
+- The 3-second cadence is deliberately bounded between D115's 2-second latency-first setting and the older 5-second quota-first setting. Healthy-primary field acceptance remains **<5,000 ms**; failure of that target fails D116 field acceptance.
+- Selected-SKU affected-Picker visibility on Web is InventoryCore/Web presentation behavior using the existing prefetch/cache and must not alter this Firestore cadence.
