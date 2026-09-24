@@ -801,3 +801,24 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - Agent target v34 uses bounded Firestore ACK retry/read-after-write without rerunning the WMS business mutation and logs redacted queue/business/ACK timing.
 - Target releases: signed `beta-vc71` + `relay-agent-v34`; SQLite remains 11; Web business behavior unchanged; Stable OWNER-GATED.
 - OA035 is registered but remains pending technical/runtime/release PASS.
+
+
+## D115 technical/runtime/release checkpoint — 2026-09-24
+
+- Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA035 FIELD READY**.
+- PR #173 merged main `bcbabc09928ae997d81f12404a49e7a8be6d971f`.
+- Main PASS: Authority `35948065198`, State `35948065182`, UI `35948065209`, Worker `35948065164`, Android `35948065152`, Agent `35948065389`.
+- Live Beta health: HTTP 200 attempt 1, exact source `bcbabc09...`, SQLite `11/11`, Operational V2 `5/5`, missing `0`, Agent migration `0/0`.
+- Signed Android `beta-vc71`: release `395262617`, asset `585009621`, size `19019872`, SHA-256 `f1137dccd460133e5fdc41836658c6bb6b41a885f41f4ba16ca908a0c96d3d1d`.
+- Agent `relay-agent-v34`: release `395262208`, asset `585008591`, size `294400`, SHA-256 `eef4e6e6bbb20f7fad223ba4c7a7081200eecbe74af1e43c4335fd78034f4285`.
+- `inventory-channel`: PDA manifest/APK `585009672/585009671`; Agent manifest/EXE `585008719/585008720`.
+- OA035 field test: one healthy PRIMARY, WMS ready, normal network, no failover; controlled Android create→terminal result RTT must be under 5 seconds, plus cleanup and ACK-recovery checks.
+- Stable remains OWNER-GATED and untouched.
+
+### D115 canonical current-status markers
+
+- Beta: `D115_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_BCBABC09__SCHEMA11__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY`
+- Web: `D114_OWNER_ACCEPTED_PASS__BALANCED_TOOLS__GLOBAL_REALTIME_QUEUE_BADGE`
+- Android: `D115_SIGNED_BETA_VC71__ASYNC_UID_CLEANUP__FINAL_ACK_SERVER_READ__NEUTRAL_FAILOVER_COPY__OA035_FIELD_READY`
+- Latest Beta APK: `beta-vc71`
+- SQLite schema: `11`
