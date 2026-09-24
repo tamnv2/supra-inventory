@@ -910,3 +910,17 @@ D115 is technically released on Beta and **OA035 is field-ready**.
 - Fixed `inventory-channel` refreshed: PDA manifest/APK `585009672/585009671`; Agent manifest/EXE `585008719/585008720`.
 - D115 source contract: PRIMARY 2s, STANDBY 10s, failover 10s; Android async UID-scoped cleanup + final server ACK read; Agent bounded ACK retry/read-after-write without WMS replay. No SQLite migration, no new provider, no Android polling and no PROCESSING write.
 - OA035 is `READY_FOR_OWNER_FIELD_TEST`; under-5-second healthy-path acceptance is not recorded until explicit Owner field confirmation. Stable remains OWNER-GATED.
+
+## D116 — Quota-balanced relay, durable App result and Web admin refinement — 2026-09-24
+
+Owner field use of released D115 confirms the healthy-primary path is materially faster, but reports two D115 defects: Firestore free-tier consumption is too high and a successful Android confirmation is visually overwritten when the input is cleared. The same Owner command also approves the Web operations/SKU/user-management refinements below. D115 is therefore **not** recorded as Owner-PASS; OA035 is superseded by D116 retest.
+
+1. Preserve the D115 practical healthy-path target: with one healthy PRIMARY, WMS ready, normal network and no failover, Android request creation → terminal result remains an **under-5-second field acceptance target**.
+2. Reduce the single elected PRIMARY confirmation query cadence from D115 2,000 ms to **3,000 ms**. STANDBY remains **10,000 ms**, FROZEN performs no business polling, request-driven failover remains **10,000 ms**, quiet-hours gating remains, and Android adds no polling. No PROCESSING write, no new provider/resource and no new Firestore collection are introduced.
+3. The 3-second PRIMARY cadence supersedes only D115's 2-second PRIMARY interval. It is a quota/latency balance: the system must not return to the older 5-second healthy path unless a later Owner decision explicitly changes the target.
+4. Android terminal confirmation feedback is durable in the current screen state. Programmatic clearing of the PickList input after CONFIRMED must not trigger the input hint to overwrite the terminal result. Specific D114 result/error semantics remain.
+5. Web **Xử lý báo hàng** automatically shows the affected Picker rows for the currently selected SKU. It uses the existing selected-batch prefetch/cache; removing the extra click must not introduce a new polling cadence or duplicate detail fetch.
+6. Web **Danh mục SKU** becomes a complete operational workspace: current catalog count/version/update time, bounded SKU/product-name search, current rows and the existing validated Excel import/conflict flow.
+7. Web **Nhân sự & tài khoản** bulk selection applies only to PICKER. ROOT/ADMIN/REPORTER rows are never bulk-selectable. ROOT is visibly protected. **Chọn tất cả Picker** may still be followed by individual Picker deselection/reselection.
+8. The Picker all-selection exception list is enforced server-side, not only visually: all=true may carry explicit excluded Picker IDs; the core still targets only rows whose role is PICKER.
+9. D116 target artifacts are the next monotonic signed Android after beta-vc71 and **relay-agent-v35**. SQLite remains 11. Stable remains OWNER-GATED and untouched.
