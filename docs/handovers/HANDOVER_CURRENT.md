@@ -931,3 +931,16 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - NEXT_ACTION: PR #181 → repair all required authority/state/UI/Web/Android/Agent/Firestore gates → merge only on PASS → verify exact Beta runtime + signed beta-vc74 + Agent v38 → record D118 technical/runtime/release checkpoint → make OA038 field-ready.
 - Stable remains OWNER-GATED and untouched.
 - PR #181 continuity rerun checkpoint: D118 derived views are aligned to the current candidate markers before merge.
+
+## D118 technical/runtime/release refresh — 2026-09-25
+
+- SQLite schema: `11`.
+- Latest signed Beta APK: `beta-vc74`.
+- Current released Agent: `relay-agent-v38`.
+- Beta: `D118_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_D29237C0__SCHEMA11__SIGNED_BETA_VC74__AGENT_V38__OA038_FIELD_READY`.
+- Web: `D118_BETA_RUNTIME_PASS__PAGED_HISTORY_SKU_LOGS__REVISION_SAFE_SLA__DETAILED_EXCEL__OA038_FIELD_READY`.
+- Android: `D118_SIGNED_BETA_VC74__IME_ADJUST_RESIZE__PICKER_TABS_ABOVE_KEYBOARD__OA038_FIELD_READY`.
+- Implementation PR #181 merged main `d29237c0990eb677ddef726785a88e08bce88dce`; all final main Authority/State/UI/Worker/Android/Agent gates PASS.
+- Live Beta is exact D118 source with schema 11/11, Operational V2 5/5, missing bindings 0 and Agent migration 0/0.
+- OA038 is READY_FOR_OWNER_FIELD_TEST. Stable remains OWNER_GATED / untouched.
+- NEXT_ACTION: Owner field-tests beta-vc74 + relay-agent-v38 for fleet-wide overtime CAS, inherited D117 HA/fencing, real pagination, revision-safe SLA, detailed Excel, Agent footer and keyboard-safe Android tabs.
