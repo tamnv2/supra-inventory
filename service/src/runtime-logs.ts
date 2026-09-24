@@ -359,6 +359,7 @@ export async function listRuntimeLogs(
   sourceValue: string,
   limitValue: number,
   daysValue = 30,
+  pageTokenValue = "",
 ): Promise<Record<string, unknown>> {
   if (!env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID)) throw new Error("LOGS_FOLDER_NOT_CONFIGURED");
   const source = normalizeSource(sourceValue);
@@ -367,17 +368,20 @@ export async function listRuntimeLogs(
   const token = await refreshGoogleAccessToken(env);
   const needle = source.toLowerCase() + "_";
   const from = new Date(Date.now() - days * 86_400_000).toISOString();
+  const pageToken = String(pageTokenValue || "").trim();
+  if (pageToken.length > 2048) throw new Error("INVALID_LOG_PAGE_TOKEN");
   const params = new URLSearchParams({
     q: `'${env.LOGS_FOLDER_ID}' in parents and trashed = false and name contains '${needle}' and createdTime >= '${from}'`,
     orderBy: "createdTime desc",
     pageSize: String(limit),
     spaces: "drive",
-    fields: "files(id,name,createdTime,modifiedTime,size,mimeType,appProperties)",
+    fields: "nextPageToken,files(id,name,createdTime,modifiedTime,size,mimeType,appProperties)",
   });
+  if (pageToken) params.set("pageToken", pageToken);
   const response = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
     headers: { authorization: `Bearer ${token}`, accept: "application/json" },
   });
-  const payload = (await response.json()) as { files?: Array<Record<string, unknown>> };
+  const payload = (await response.json()) as { nextPageToken?: string; files?: Array<Record<string, unknown>> };
   if (!response.ok) throw new Error(`LOGS_DRIVE_LIST_FAILED:${response.status}`);
   const seenNames = new Set<string>();
   const items = (payload.files || [])
@@ -396,7 +400,13 @@ export async function listRuntimeLogs(
       severity: String(file.name || "").startsWith("error_") ? "ERROR" : "INFO",
       source,
     }));
-  return { source, days, items, count: items.length };
+  return {
+    source,
+    days,
+    items,
+    count: items.length,
+    next_page_token: String(payload.nextPageToken || "") || null,
+  };
 }
 
 export async function readRuntimeLog(env: RuntimeLogsEnv, fileId: string): Promise<Record<string, unknown>> {
