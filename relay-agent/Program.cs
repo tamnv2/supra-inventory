@@ -3228,7 +3228,7 @@ namespace SupraInventoryRelayAgent
                     !string.Equals(exact.Result, "FOUND", StringComparison.Ordinal) ||
                     exact.MatchCount != 1 || string.IsNullOrWhiteSpace(exact.PickListCode))
                 {
-                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    var unresolved = new FirestoreConfirmationOutcome
                     {
                         Result = exact == null ? "EXACT_CODE_NOT_RESOLVED" : (exact.Result ?? "EXACT_CODE_NOT_RESOLVED"),
                         CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH",
@@ -3239,6 +3239,9 @@ namespace SupraInventoryRelayAgent
                         Matches = exact == null ? 0 : Math.Max(0, exact.MatchCount),
                         Rate = new PickerRateDecision()
                     };
+                    if (exact != null && exact.Candidates != null)
+                        unresolved.Candidates.AddRange(exact.Candidates);
+                    outcomes[work.RequestId] = unresolved;
                     continue;
                 }
 
