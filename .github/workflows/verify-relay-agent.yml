@@ -38,238 +38,31 @@ jobs:
         shell: pwsh
         run: |
           $version = (Get-Content relay-agent/VERSION -Raw).Trim()
-          if ($version -notmatch '^\d+$') { throw "relay-agent/VERSION must be an integer." }
-          $config = Get-Content relay-agent/AgentConfig.cs -Raw
-          if ($config -notmatch "AgentBuild\s*=\s*$version\s*;") {
-            throw "AgentConfig.AgentBuild does not match relay-agent/VERSION=$version"
-          }
-
-      - name: D097 quota-safe HA, network transition and D096 confirm guard
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = "Stop"
-          $config = Get-Content relay-agent/AgentConfig.cs -Raw
-          $program = Get-Content relay-agent/Program.cs -Raw
-          $leader = Get-Content relay-agent/AgentLeaderCoordinator.cs -Raw
-          $cache = Get-Content relay-agent/PicklistCacheCoordinator.cs -Raw
-          $rate = Get-Content relay-agent/PickerRateLimiter.cs -Raw
-          $startup = Get-Content relay-agent/UserStartupRegistration.cs -Raw
-          $overlay = Get-Content relay-agent/StatusOverlay.cs -Raw
-          $sessionStore = Get-Content relay-agent/WmsSessionStore.cs -Raw
-          $exitAuth = Get-Content relay-agent/ExitAuthorization.cs -Raw
-          $runtimeGuard = Get-Content relay-agent/AgentRuntimeGuard.cs -Raw
-          $updater = Get-Content relay-agent/AgentUpdater.cs -Raw
-          $lookup = Get-Content relay-agent/WmsPicklistLookup.cs -Raw
-          $wms = Get-Content relay-agent/WmsIntegration.cs -Raw
-          $rules = Get-Content firebase/database.rules.json -Raw
-          $overlaySettings = Get-Content relay-agent/OverlaySettingsForm.cs -Raw
-          $project = Get-Content relay-agent/SupraInventoryRelayAgent.csproj -Raw
-          $iconScript = Get-Content relay-agent/GenerateIcon.ps1 -Raw
-          $firestoreTransport = Get-Content relay-agent/FirestoreConfirmationTransport.cs -Raw
-          $firestoreHttp = Get-Content relay-agent/FirestoreHttpTransport.cs -Raw
-          $firestoreLeader = Get-Content relay-agent/FirestoreAgentLeaderCoordinator.cs -Raw
-          $firestoreRate = Get-Content relay-agent/FirestorePickerRateLimiter.cs -Raw
-          $confirmGuard = Get-Content relay-agent/FirestoreConfirmationGuard.cs -Raw
-          $confirm = Get-Content relay-agent/WmsPicklistConfirm.cs -Raw
-          $exact = Get-Content relay-agent/WmsPicklistExactResolver.cs -Raw
-          $firestoreRules = Get-Content firebase/firestore.rules -Raw
-          $firestoreIndexes = Get-Content firebase/firestore.indexes.json -Raw
-
-          if ($config -notmatch 'AgentBuild\s*=\s*33\s*;') { throw "D114 requires Agent v33." }
-          if ($firestoreLeader -notmatch 'FailoverAfterMs\s*=\s*10000' -or $firestoreLeader -notmatch 'StandbyTakeoverAgeMs\s*=\s*10000') { throw "D097 request-driven 10-second failover guard failed." }
-          if ($firestoreLeader -match 'HeartbeatIntervalMs\s*=\s*4000') { throw "D097 forbids 4-second Firestore lease heartbeat." }
-          foreach ($marker in @('PRIMARY','STANDBY','FROZEN','PromoteStandbyForTakeover','replacement-standby','PresenceHeartbeatIntervalMs = 900000','StandbyRoleRefreshMs = 60000','FrozenRoleRefreshMs = 300000','StartupConvergenceIntervalMs = 5000')) {
-            if ($firestoreLeader -notmatch [regex]::Escape($marker)) { throw "D097 Agent role marker missing: $marker" }
-          }
-          if ($firestoreLeader -notmatch 'currentDocument\.updateTime' -or $firestoreLeader -notmatch 'currentDocument\.exists=false') { throw "D097 role election must use conditional writes." }
-          if ($cache -notmatch 'CACHE_SUFFIX_MISS_REFRESH' -or $cache -notmatch 'MANUAL_MISS_REFRESH' -or $cache -notmatch 'JOIN_INFLIGHT' -or $cache -notmatch 'LoadSnapshot') { throw "D114/D101 Picklist suffix cache miss must refresh WMS before final NOT_FOUND." }
-          if ($firestoreRate -notmatch 'StrikeWindowMs\s*=\s*60L\s*\*\s*1000L' -or $firestoreRate -notmatch 'ResetEscalationAfterMs\s*=\s*24L') { throw "D092 Firestore anti-spam timing guard failed." }
-          if ($firestoreRate -notmatch 'return 5;' -or $firestoreRate -notmatch 'return 30;' -or $firestoreRate -notmatch 'return 60;') { throw "D092 5/30/60 lock escalation guard failed." }
-          if ($startup -notmatch 'Registry\.CurrentUser' -or $startup -notmatch 'CurrentVersion\\Run' -or $startup -notmatch 'admin_required=false') { throw "D085 per-user autostart guard failed." }
-          if ($program -notmatch 'Đăng nhập hệ thống Supra' -or $program -notmatch 'TryRestoreWmsSessionFileFirst' -or $program -notmatch '_leaderCoordinator\.IsLeader') { throw "D086 Agent UI/session/leader wiring guard failed." }
-          if ($program -notmatch 'ControlBox\s*=\s*true' -or $program -notmatch 'RequestProtectedExit' -or $program -notmatch 'HasAgentSession\(\)' -or $program -notmatch 'Interval\s*=\s*60000') { throw "D112 normal-window/protected-auth/low-frequency shell guard failed." }
-          if ($sessionStore -notmatch 'ProtectedData\.Protect' -or $sessionStore -notmatch 'DataProtectionScope\.CurrentUser' -or $sessionStore -notmatch 'ProtectedData\.Unprotect') { throw "D086 WMS session file must be DPAPI CurrentUser protected." }
-          if ($exitAuth -notmatch 'Rfc2898DeriveBytes' -or $exitAuth -notmatch 'ProtectedData\.Protect') { throw "D086 protected exit verifier guard failed." }
-          if ($runtimeGuard -notmatch '--watchdog' -or $runtimeGuard -notmatch 'WaitForExit' -or $runtimeGuard -notmatch '--watchdog-restart') { throw "D086 runtime watchdog guard failed." }
-          if ($overlay -notmatch 'WsExTransparent' -or $overlay -notmatch 'SetExtendedStyle' -or $overlay -notmatch 'WmNcHitTest') { throw "D086 locked overlay must use true cross-process click-through." }
-          if ($overlay -notmatch '_settings != null' -or $overlay -notmatch 'UpdateMetrics') { throw "D087 overlay null-safe/two-layer guard failed." }
-          if ($program -notmatch 'WriteAudit' -or $program -notmatch 'pda-agent-audit\.log' -or $program -notmatch 'technical-ai\.log' -or $program -notmatch 'MaxLogBytes' -or $program -notmatch 'picklist_last5') { throw "D101 bounded split sanitized logging guard failed." }
-          if ($program -notmatch 'FormBorderStyle\.Sizable' -or $program -notmatch 'MaximizeBox\s*=\s*true' -or $program -notmatch 'MinimizeBox\s*=\s*true' -or $program -notmatch 'ShowInTaskbar\s*=\s*true' -or $program -notmatch 'Chuyển xuống nền') { throw "D113 normal Windows controls/background action guard failed." }
-          if ($program -notmatch 'MainInstanceMutexName' -or $program -notmatch 'EventWaitHandle\.OpenExisting' -or $program -notmatch 'ListenForSecondLaunch') { throw "D089 single-instance activation guard failed." }
-          if ($program -notmatch 'identitytoolkit\.googleapis\.com/v1/accounts:signInWithPassword' -or $program -notmatch 'Chỉ tài khoản ADMIN thực đã đồng bộ Firebase' -or $program -notmatch 'FirestoreAgentSessionGate' -or $config -notmatch 'Agent\.Auto\.Confirm\.Pick\.Pack\.exe') { throw "D098 direct Firebase ADMIN Agent identity/channel guard failed." }
-          if ($overlay -notmatch 'SetOverlaySize' -or $overlay -notmatch 'BackgroundArgb' -or $overlay -notmatch 'TextArgb' -or $overlay -notmatch 'HtBottomRight') { throw "D088 overlay resize/color persistence guard failed." }
-          if ($overlay -notmatch 'ShowCpu' -or $overlay -notmatch 'ShowMemory' -or $overlay -notmatch 'ShowAgentOnline' -or $overlay -notmatch 'ShowWmsSession') { throw "D089 granular overlay persistence guard failed." }
-          if ($overlaySettings -notmatch 'ColorDialog' -or $overlaySettings -notmatch 'NumericUpDown' -or $overlaySettings -notmatch 'Bật hiển thị Overlay' -or $overlaySettings -notmatch 'Vận hành' -or $overlaySettings -notmatch 'Tải Agent & cụm') { throw "D112 operational/process overlay checklist UI guard failed." }
-          if ($project -notmatch '<AssemblyName>Agent Auto Confirm Pick Pack</AssemblyName>' -or $project -notmatch '<ApplicationIcon>app.ico</ApplicationIcon>') { throw "D088 EXE name/icon guard failed." }
-          if ($iconScript -notmatch 'app-icon\.png' -or $iconScript -notmatch 'HighQualityBicubic') { throw "D089 approved Agent icon source guard failed." }
-          if (-not (Test-Path "relay-agent/app-icon.png")) { throw "D089 approved Agent icon asset missing." }
-          if ($firestoreLeader -notmatch 'PresenceHeartbeatIntervalMs\s*=\s*900000' -or $firestoreLeader -notmatch 'PresenceReadIntervalMs\s*=\s*1800000' -or $firestoreLeader -notmatch 'PresenceFreshMs\s*=\s*2400000') { throw "D102 bounded Agent presence cadence guard failed." }
-          if ($firestoreHttp -notmatch 'WebRequest\.DefaultWebProxy' -or $firestoreHttp -notmatch 'WebRequest\.GetSystemWebProxy' -or $firestoreHttp -notmatch 'CredentialCache\.DefaultNetworkCredentials') { throw "D094 Firestore must keep the D091-proven default Windows proxy first and bounded fresh-system retry." }
-          if ($firestoreHttp -notmatch 'ApplyDefaultWindowsProxy' -or $firestoreHttp -notmatch 'ApplyFreshSystemProxy') { throw "D094 Firestore proxy route ordering markers missing." }
-          if ($firestoreHttp -match 'CorporateProxyFallback') { throw "D094 Firestore must not use the WMS corporate fallback proxy or bypass company filtering." }
-          foreach ($marker in @('NameResolutionFailure','ProxyNameResolutionFailure','ConnectFailure','Timeout')) {
-            if ($firestoreHttp -notmatch [regex]::Escape($marker)) { throw "D093 Firestore transient read retry marker missing: $marker" }
-          }
-          if ($firestoreLeader -notmatch 'IsTransportHealthy' -or $firestoreLeader -notmatch 'ReportRelayPoll' -or $firestoreLeader -notmatch 'role_preserved=true' -or $firestoreLeader -notmatch 'EnsureRoleCurrentBeforeBusiness') { throw "D097 Firestore transport outage must preserve role and revalidate before new work." }
-          if ($firestoreLeader -match 'OnlineAgentCount\s*\{\s*get\s*\{\s*return\s+Math\.Max\(1') { throw "D093 forbids forced Online >= 1." }
-          if ($program -notmatch 'FIRESTORE OFFLINE') { throw "D093 Agent must surface Firestore offline state." }
-          if ($program -notmatch 'Đăng xuất' -or $program -notmatch 'Xác nhận đăng xuất Agent' -or $program -notmatch 'SetAgentAuthUi' -or $program -notmatch 'Hệ thống Agent:' -or $program -notmatch 'stored_session=cleared') { throw "D101 Agent login/logout/system-status guard failed." }
-          if ($program -notmatch '"login_name"' -or $program -notmatch 'DataProtectionScope\.CurrentUser') { throw "D094 saved Agent identity/session DPAPI guard failed." }
-          if ($firestoreTransport -notmatch 'documentsBaseUrl \+ ":runQuery"' -and $firestoreTransport -notmatch 'FirestoreDocumentsBaseUrl \+ ":runQuery"') { throw "D095 pending structured query endpoint guard failed." }
-          foreach ($marker in @('structuredQuery','PENDING','ANDROID_CONFIRM_V1','LIST_FALLBACK','FIRESTORE CONFIRM poll=PASS','pending-found','as IEnumerable')) {
-            if ($firestoreTransport -notmatch [regex]::Escape($marker)) { throw "D095 Firestore pending-job receive marker missing: $marker" }
-          }
-          if ($firestoreTransport -match 'DeserializeObject\(raw\)\s+as\s+ArrayList') { throw "D095 forbids JavaScriptSerializer JSON-array cast to ArrayList; use IEnumerable." }
-          if ($firestoreTransport -match 'docsObj\s+as\s+ArrayList') { throw "D095 forbids Firestore documents-array cast to ArrayList." }
-          if ($program -notmatch 'NetworkChange\.NetworkAddressChanged' -or $program -notmatch 'NotifyNetworkChange' -or $program -notmatch '15000') { throw "D097 Agent must use staged Windows proxy refresh after network changes." }
-          if ($firestoreHttp -notmatch 'IsNetworkTransitioning' -or $firestoreHttp -notmatch '20000L') { throw "D097 Firestore network-transition window marker missing." }
-          if ($firestoreHttp -notmatch 'retrySafeRead\s*\?\s*3\s*:\s*1') { throw "D095 safe Firestore reads require three bounded route attempts." }
-          if ($rules -notmatch 'coordination' -or $rules -notmatch 'rate_limits' -or $rules -notmatch 'PICKER_LOCKED' -or $rules -notmatch 'SWITCHING') { throw "Legacy RTDB guard changed unexpectedly." }
-          if ($config -notmatch 'FIRESTORE_CONFIRM_V1' -or $config -notmatch 'relay_poc_jobs' -or $config -notmatch 'confirmSkipItem') { throw "D092 Agent config confirmation markers missing." }
-          if ($firestoreTransport -notmatch 'PrimaryPollIntervalMs\s*=\s*5000' -or $firestoreTransport -notmatch 'StandbyPollIntervalMs\s*=\s*10000' -or $firestoreTransport -notmatch 'MaxConcurrentJobs\s*=\s*12' -or $firestoreTransport -notmatch 'ageMs\s*>\s*30000L') { throw "D097 Firestore polling/concurrency/expiry guard failed." }
-          if ($firestoreTransport -match 'PROCESSING' -or $firestoreTransport -match 'TryClaim') { throw "D097 forbids per-job PROCESSING/claim write." }
-          if ($firestoreTransport -notmatch 'currentDocument\.updateTime' -or $firestoreTransport -notmatch 'status", StringField\("ACK"\)') { throw "D097 direct conditional PENDING-to-ACK guard failed." }
-          if ($program -notmatch 'FirestoreConfirmationTransport' -or $program -notmatch 'ProcessFirestoreConfirmation' -or $program -notmatch 'FirestoreAgentLeaderCoordinator' -or $program -notmatch 'WmsPicklistConfirmClient\.Confirm') { throw "D092 Agent Firestore confirmation wiring guard failed." }
-          if ($exact -notmatch '\{ "Content", "" \}' -or $exact -notmatch 'PickListCode' -or $exact -notmatch 'AMBIGUOUS_PICKLIST') { throw "D092 exact PickListCode Content-empty resolver guard failed." }
-          if ($exact -notmatch 'as IEnumerable' -or $exact -notmatch 'WMS exact-resolve(-batch)? parse=PASS') { throw "D096/D104 exact resolver must parse JavaScriptSerializer arrays through IEnumerable and emit redacted parse telemetry." }
-          if ($exact -match 'node\s+as\s+ArrayList') { throw "D096 forbids ArrayList-only exact PickListCode parsing." }
-          if ($confirm -notmatch 'request\.Method\s*=\s*"POST"' -or $confirm -notmatch '"IsAllowSkipped", true' -or $confirm -notmatch '"RemainSkip", 1' -or $confirm -notmatch '"WarehouseCode", "HY1"') { throw "D092 bounded WMS confirmation adapter guard failed." }
-          if ($confirm -notmatch 'TryReadBusinessStatus' -or $confirm -notmatch 'CONFIRM_IN_PROGRESS_OR_UNCERTAIN') { throw "D096 confirm must require a trustworthy WMS business Status=true and fail closed on uncertain 2xx." }
-          if ($program -notmatch '--d096-self-test' -or $exact -notmatch 'SelfTestJsonArrayParsing' -or $confirm -notmatch 'SelfTestResponseSemantics') { throw "D096 in-process net48 self-test wiring missing." }
-          if ($config -notmatch 'confirmSkipItem') { throw "D092 confirmSkipItem endpoint config missing." }
-          if ($confirmGuard -notmatch 'relay_poc_confirm_guards' -or $confirmGuard -notmatch 'currentDocument\.exists=false' -or $confirmGuard -notmatch 'OriginalJobProvesConfirmed' -or $confirmGuard -notmatch 'MarkLocalConfirmed') { throw "D097 single-write cross-Agent idempotency guard failed." }
-          if ($confirmGuard -match 'MarkConfirmed\(') { throw "D097 forbids second Firestore guard-confirm write." }
-          if ($program -notmatch 'SearchManualPicklists' -or $program -notmatch 'ConfirmManualPicklist' -or $cache -notmatch 'SearchContains' -or $lookup -notmatch 'PickListCodes') { throw "D112 specialist bounded manual PickList workflow guard failed." }
-          if ($program -notmatch 'DataGridViewButtonColumn' -or $program -notmatch 'Name = "ConfirmAction"' -or $program -notmatch 'Text = "Xác nhận"' -or $program -notmatch 'ConfirmManualPicklist\(code\)') { throw "D103 row-level PickList confirm UI guard failed." }
-          if ($program -match 'new TabPage\("Cài đặt"\)' -or $program -notmatch 'new TabPage\("Tổng quan"\)' -or $program -match 'new TabPage\("Hệ thống Supra"\)' -or $program -match 'new TabPage\("Xử lý PickList"\)') { throw "D102 Agent must keep one Overview with Supra/PickList sections." }
-          if ($program -notmatch '30 \* 60 \* 1000' -or $program -notmatch 'TryAutoUpdate\(false\)' -or $updater -notmatch 'AgentUpdateManifestUrl') { throw "D112 running Agent stable-channel background update guard failed." }
-          if ($program -notmatch '"Kiểm tra cập nhật"' -or $program -notmatch 'CheckAfterHoursSchedule' -or $program -notmatch 'TotalMinutes < 5' -or $program -notmatch 'AfterHoursDecision\.CONTINUE' -or $program -notmatch 'AfterHoursDecision\.STOP') { throw "D102 manual update / 21:30 five-minute prompt guard failed." }
-          if ($firestoreTransport -notmatch '_businessEnabled\(\)' -or $firestoreTransport -notmatch 'tạm dừng nghiệp vụ 22:00–05:00') { throw "D102 quiet-hour relay gate guard failed." }
-          if ($firestoreLeader -notmatch 'StandbyRoleRefreshMs\s*=\s*60000' -or $firestoreLeader -notmatch 'FrozenRoleRefreshMs\s*=\s*300000' -or $firestoreLeader -notmatch 'StartupConvergenceIntervalMs\s*=\s*5000') { throw "D102 Agent role convergence cadence guard failed." }
-          if ($program -match 'Chẩn đoán kỹ thuật cho AI' -or $program -match 'Kỹ thuật AI') { throw "D102 user-facing Agent UI must not expose AI-only copy." }
-          if ($program -notmatch 'WindowState = FormWindowState.Maximized' -or $program -notmatch '_overviewPage.AutoScroll = false') { throw "D103 Agent must open maximized with a non-scrolling Overview." }
-          if ($program -notmatch 'MaximizedBounds = screen\.WorkingArea' -or $program -notmatch 'ShowInTaskbar = true' -or $program -notmatch 'ApplyWorkingAreaMaximum\(\)') { throw "D104 maximized Agent must respect Windows WorkingArea/taskbar." }
-          if ($program -notmatch '_manualPicklistQuery\.MaxLength = 220' -or $program -notmatch 'Split\('',''\)' -or $program -notmatch 'TryParseManualPicklistQueries' -or $program -notmatch 'ConfirmAllManualPicklists' -or $program -notmatch 'Xác nhận tất cả') { throw "D112 comma multi-search / conditional confirm-all UI guard failed." }
-          if ($program -notmatch '_manualPicklistConfirmAll\.Visible = count >= 2' -or $program -notmatch 'ConfirmManualPicklists\(codes\)') { throw "D104 confirm-all must appear only for >=2 rows and target displayed codes." }
-          if ($cache -notmatch 'SearchContainsMany' -or $cache -notmatch 'LookupMany' -or $cache -notmatch 'BATCH_SUFFIX_MISS_REFRESH' -or $cache -notmatch 'MANUAL_MULTI_MISS_REFRESH') { throw "D114/D104 multi-search/PDA batch lookup must share bounded cache refresh." }
-          if ($exact -notmatch 'ResolveMany' -or $exact -notmatch 'At most 12 Picklist suffixes') { throw "D104 exact resolver batch guard failed." }
-          if ($confirm -notmatch 'ConfirmMany' -or $confirm -notmatch 'At most 10 PickListCodes' -or $confirm -notmatch '"PickListCodes", pending\.ToArray\(\)') { throw "D104 WMS confirm must batch at most 10 exact codes." }
-          if ($firestoreTransport -notmatch 'ProcessBatch' -or $firestoreTransport -notmatch '_batchHandler' -or $program -notmatch 'ProcessFirestoreConfirmations' -or $program -notmatch 'WmsPicklistConfirmClient\.ConfirmMany') { throw "D104 PDA jobs must use the bounded batch business path." }
-          if ($program -notmatch 'PDA_CONFIRM_BATCH' -or $program -notmatch 'wms_requests=' -or $program -notmatch 'for \(var offset = 0; offset < confirmCodes\.Count; offset \+= 10\)') { throw "D104 PDA WMS chunking/audit markers missing." }
-          if ($program -notmatch '_manualPicklistOperationRunning' -or $program -notmatch 'Interlocked\.CompareExchange\(ref _manualPicklistOperationRunning, 1, 0\)' -or $program -notmatch 'Interlocked\.Exchange\(ref _manualPicklistOperationRunning, 0\)') { throw "D104 manual PickList actions must be single-flight to prevent click spam." }
-          if ($program -notmatch 'batchSize > 1' -or $program -notmatch 'CONFIRM_REJECTED' -or $program -notmatch 'fail closed instead of retrying') { throw "D104 multi-code rejection must stay fail-closed." }
-          if ($program -notmatch 'value\.Length < 3 \|\| value\.Length > 20' -or $cache -notmatch 'EndsWith\(query, StringComparison\.OrdinalIgnoreCase\)' -or $cache -notmatch 'AMBIGUOUS') { throw "D112 Agent manual search must accept bounded 3-20 digit exact suffixes and fail closed on ambiguity." }
-          if ($cache -notmatch 'value\.Length < 3 \|\| value\.Length > 20' -or $cache -notmatch 'CountTrailingMatches' -or $cache -notmatch 'EndsWith\(suffix, StringComparison\.OrdinalIgnoreCase\)') { throw "D114 cache must resolve only bounded 3-20 digit trailing suffixes." }
-          if ($exact -notmatch 'suffix\.Length < 3 \|\| suffix\.Length > 20' -or $exact -notmatch 'EndsWith\(target, StringComparison\.Ordinal\)') { throw "D114 exact resolver must resolve bounded trailing suffixes fail-closed." }
-          if ($firestoreTransport -notmatch 'value\.Length < 3 \|\| value\.Length > 20' -or $firestoreTransport -notmatch 'candidate_picklists' -or $firestoreTransport -notmatch 'picklist_suffix=redacted') { throw "D114 Firestore Agent transport must accept bounded suffix jobs, return candidates, and redact suffixes." }
-          if ($firestoreRules -notmatch "\^\[0-9\]\{3,20\}\$" -or $firestoreRules -notmatch 'candidate_picklists') { throw "D114 Firestore Rules must admit bounded 3-20 digit jobs and Agent candidate ACK metadata." }
-          if ($program -notmatch 'RowStyles.Add\(new RowStyle\(SizeType.Absolute, 330F\)\)' -or $program -notmatch 'RowStyles.Add\(new RowStyle\(SizeType.Absolute, 105F\)\)' -or $program -notmatch 'RowStyles.Add\(new RowStyle\(SizeType.Percent, 100F\)\)') { throw "D103 dense Overview row layout guard failed." }
-          if ($program -notmatch '_agentFleetGrid\.SetBounds\(16, 168, 990, 146\)' -or $program -notmatch '_agentFleetGrid\.ScrollBars = ScrollBars\.Vertical' -or $program -notmatch '_agentFleetGrid\.RowTemplate\.Height = 24') { throw "D103 five-row Agent fleet viewport guard failed." }
-          if ($program -match 'Phiên WMS được bảo vệ cục bộ' -or $program -match 'Cập nhật phần mềm: tự kiểm tra' -or $program -match 'Failover job: 10 giây') { throw "D103 Overview must remove verbose internal guidance." }
-          if ($program -notmatch 'SecretPattern.*\\b' -or $program -notmatch 'Wi-Fi: ' -or $program -notmatch 'GetSsid\(\)') { throw "D101 real Wi-Fi SSID display/redaction guard failed." }
-          if ($firestoreLeader -notmatch 'OnlinePrimaryCount' -or $firestoreLeader -notmatch 'OnlineStandbyCount' -or $firestoreLeader -notmatch 'OnlineFrozenCount' -or $program -notmatch 'PRIMARY ' -or $program -notmatch 'FROZEN ') { throw "D101 quota-safe Agent fleet count guard failed." }
-          $logBridge = Get-Content relay-agent/AgentLogUploadBridge.cs -Raw
-          if ($logBridge -notmatch 'relay_agent_log_uploads' -or $logBridge -notmatch 'ResolveLatestSlot' -or $logBridge -notmatch 'crash_' -or $logBridge -notmatch 'MaxChunkChars') { throw "D101 Agent scheduled/crash log spool guard failed." }
-          if ($firestoreRules -notmatch 'relay_agent_log_uploads' -or $firestoreRules -notmatch "request.resource.data.source == 'AGENT'") { throw "D101 Agent log spool Firestore Rules guard failed." }
-          if ($program -notmatch 'MarkLocalConfirmed' -or $confirmGuard -match 'MarkDurableConfirmed' -or $confirmGuard -match 'status", StringField\("CONFIRMED"\)') { throw "D098 manual-origin must preserve one-write guard and fail closed after restart." }
-          if ($program -match 'Mô hình hiện tại' -or $program -match 'new TabPage\("Đăng nhập ADMIN"\)') { throw "D098 Agent UI must remove model card and ADMIN settings tab." }
-          if ($program -notmatch 'Nhật ký vận hành' -or $program -notmatch 'Chẩn đoán kỹ thuật' -or $overlaySettings -notmatch 'PrepareEmbedded') { throw "D098 direct settings/log-tab layout guard failed." }
-          if ($program -notmatch 'Tài khoản ADMIN' -or $program -notmatch 'return "admin\." \+ seed \+ "@auth\.supra\.invalid"' -or $program -match 'vui lòng dùng email ADMIN' -or $program -notmatch 'Supra WMS: chờ xác minh Agent' -or $program -notmatch '_supraCard.Enabled = authenticated') { throw "D100 username Agent alias/auth-first Supra guard failed." }
-          if ($program -notmatch 'KeyCode != Keys.Enter' -or $program -notmatch 'SearchManualPicklists') { throw "D099 Agent Enter shortcut guard failed." }
-          if ($overlay -match 'MinimumSize = new Size\(420, 64\)' -or $overlaySettings -match '_width.Minimum = 420' -or $overlaySettings -match '_height.Minimum = 64') { throw "D099 legacy Overlay 420x64 floor must be removed." }
-          if ($overlay -notmatch 'MinimumSize = new Size\(120, 32\)' -or $overlaySettings -notmatch '_width.Minimum = 120' -or $overlaySettings -notmatch '_height.Minimum = 32') { throw "D099 expanded Overlay size guard missing." }
-          if ($firestoreRate -notmatch 'relay_poc_rate_limits' -or $firestoreRate -notmatch 'last_request_id' -or $firestoreRate -notmatch 'ClearFound') { throw "D097 anti-spam persisted wrong-input state guard failed." }
-          foreach ($marker in @('ANDROID_CONFIRM_V1','created_at','retire_at_ms','relay_poc_rate_limits','relay_poc_coordination','relay_poc_agents','relay_poc_confirm_guards')) {
-            if ($firestoreRules -notmatch [regex]::Escape($marker)) { throw "D097 Firestore Rules marker missing: $marker" }
-          }
-          if ($firestoreRules -match "status == 'PROCESSING'") { throw "D097 Firestore Rules must not reintroduce PROCESSING." }
-          if ($firestoreRules -notmatch "resource\.data\.status == 'PENDING'" -or $firestoreRules -notmatch "request\.resource\.data\.status == 'ACK'") { throw "D097 Rules must allow direct conditional PENDING-to-ACK only for ADMIN." }
-          if ($firestoreIndexes -notmatch 'relay_poc_jobs' -or $firestoreIndexes -notmatch 'created_at' -or $firestoreIndexes -notmatch 'ASCENDING') { throw "D097 pending queue index guard failed." }
-
-          foreach ($source in @($lookup, $wms, $exact)) {
-            if ($source -match 'request\.Method\s*=\s*"(POST|PUT|PATCH|DELETE)"') {
-              throw "Unexpected WMS mutation outside the D092 bounded confirmation adapter."
-            }
-          }
-          Write-Host "D097 quota-safe HA/network + D096 WMS confirm guards PASS"
-
-      - name: Prepare Beta Agent config
-        shell: pwsh
-        run: |
-          if ([string]::IsNullOrWhiteSpace("${env:FIREBASE_API_KEY_BETA}")) { throw "FIREBASE_WEB_API_KEY_BETA is required." }
-          $path = "relay-agent/AgentConfig.cs"
-          $content = Get-Content $path -Raw
-          $content = $content.Replace("__FIREBASE_API_KEY_BETA__", "${env:FIREBASE_API_KEY_BETA}")
-          Set-Content -Path $path -Value $content -Encoding UTF8
-
-      - name: Build lightweight Windows Agent
-        shell: pwsh
-        run: |
-          dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release
-          $exe = (Resolve-Path "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe").Path
-          $smoke = Start-Process -FilePath $exe -ArgumentList "--startup-smoke" -PassThru
-          if (-not $smoke.WaitForExit(15000)) {
-            try { $smoke.Kill() } catch {}
-            throw "Agent startup smoke timed out."
-          }
-          if ($smoke.ExitCode -ne 0) {
-            throw "Agent startup smoke failed with exit code $($smoke.ExitCode)."
-          }
-          Write-Host "Agent startup smoke PASS"
-          New-Item -ItemType Directory -Force -Path relay-agent/dist | Out-Null
-          $primary = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe"
-          $legacy = "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe"
-          Copy-Item $exe $primary
-          # Compatibility alias lets v12 update directly while v14 updater uses GitHub-normalized dotted asset names.
-          Copy-Item $exe $legacy
-          Copy-Item relay-agent/README.md relay-agent/dist/
-          Copy-Item firebase/database.rules.json relay-agent/dist/
-          (Get-FileHash $primary -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256"
-          (Get-FileHash $legacy -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256"
-
-      - name: D102 night schedule regression
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = "Stop"
-          $exe = (Resolve-Path "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe").Path
-          $selfTest = Start-Process -FilePath $exe -ArgumentList "--d102-self-test" -PassThru -Wait
-          if ($selfTest.ExitCode -ne 0) {
-            throw "D102 in-process night schedule regression failed with exit code $($selfTest.ExitCode)."
-          }
-          Write-Host "D102 night schedule regression PASS"
-
-      - name: D096 runtime parser and confirm semantic regression
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = "Stop"
-          $exe = (Resolve-Path "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe").Path
-          $selfTest = Start-Process -FilePath $exe -ArgumentList "--d096-self-test" -PassThru -Wait
-          if ($selfTest.ExitCode -ne 0) {
-            throw "D096 in-process net48 self-test failed with exit code $($selfTest.ExitCode)."
-          }
-          Write-Host "D096 in-process net48 parser + confirm semantic regression PASS"
-
-      - name: Upload Agent artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: supra-inventory-relay-poc-agent
-          path: relay-agent/dist/*
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Publish dedicated Agent prerelease
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          $version = (Get-Content relay-agent/VERSION -Raw).Trim()
           $tag = "relay-agent-v$version"
           $primary = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe"
-          $localSha = (Get-FileHash $primary -Algorithm SHA256).Hash.ToLowerInvariant()
+          $primarySha = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256"
           $releaseSource = $env:GITHUB_SHA
+          $channelSourceExe = $primary
+          $channelSourceSha = $primarySha
+
           gh release view $tag --repo "${{ github.repository }}" *> $null
           if ($LASTEXITCODE -eq 0) {
+            $releaseSource = (gh api "repos/${{ github.repository }}/git/ref/tags/$tag" --jq '.object.sha').Trim()
+            if ([string]::IsNullOrWhiteSpace($releaseSource)) {
+              throw "Agent release $tag exists but its tag source cannot be resolved."
+            }
+
+            $releaseCommitTree = (gh api "repos/${{ github.repository }}/git/commits/$releaseSource" --jq '.tree.sha').Trim()
+            $currentCommitTree = (gh api "repos/${{ github.repository }}/git/commits/$env:GITHUB_SHA" --jq '.tree.sha').Trim()
+            $releaseAgentTree = (gh api "repos/${{ github.repository }}/git/trees/$releaseCommitTree" --jq '.tree[] | select(.path=="relay-agent") | .sha').Trim()
+            $currentAgentTree = (gh api "repos/${{ github.repository }}/git/trees/$currentCommitTree" --jq '.tree[] | select(.path=="relay-agent") | .sha').Trim()
+            if ([string]::IsNullOrWhiteSpace($releaseAgentTree) -or [string]::IsNullOrWhiteSpace($currentAgentTree)) {
+              throw "Unable to resolve relay-agent tree for existing release verification."
+            }
+            if ($releaseAgentTree -ne $currentAgentTree) {
+              throw "Agent release $tag already exists but relay-agent source changed. Increment relay-agent/VERSION before publishing another Agent binary."
+            }
+
             $verifyDir = Join-Path $env:RUNNER_TEMP "agent-release-$version"
             Remove-Item $verifyDir -Recurse -Force -ErrorAction SilentlyContinue
             New-Item -ItemType Directory -Force -Path $verifyDir | Out-Null
@@ -278,25 +71,34 @@ jobs:
               gh release download $tag --repo "${{ github.repository }}" --pattern "Agent Auto Confirm Pick Pack.exe" --dir $verifyDir
             }
             if ($LASTEXITCODE -ne 0) {
-              throw "Agent release $tag exists but the canonical EXE cannot be downloaded for idempotency verification."
+              throw "Agent release $tag exists but the canonical EXE cannot be downloaded."
             }
+            gh release download $tag --repo "${{ github.repository }}" --pattern "Agent.Auto.Confirm.Pick.Pack.exe.sha256" --dir $verifyDir
+            if ($LASTEXITCODE -ne 0) {
+              gh release download $tag --repo "${{ github.repository }}" --pattern "Agent Auto Confirm Pick Pack.exe.sha256" --dir $verifyDir
+            }
+            if ($LASTEXITCODE -ne 0) {
+              throw "Agent release $tag exists but the checksum asset cannot be downloaded."
+            }
+
             $releasedExe = Get-ChildItem $verifyDir -Filter "*.exe" | Where-Object { $_.Name -notlike "SUPRA-Inventory-Relay-Test*" } | Select-Object -First 1
-            if ($null -eq $releasedExe) {
-              throw "Agent release $tag exists but the canonical EXE asset is missing."
+            $releasedShaFile = Get-ChildItem $verifyDir -Filter "*.sha256" | Where-Object { $_.Name -notlike "SUPRA-Inventory-Relay-Test*" } | Select-Object -First 1
+            if ($null -eq $releasedExe -or $null -eq $releasedShaFile) {
+              throw "Agent release $tag is missing canonical release assets."
             }
-            $releasedSha = (Get-FileHash $releasedExe.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-            if ($releasedSha -ne $localSha) {
-              throw "Agent release $tag already exists with different binary content. Increment relay-agent/VERSION before publishing another Agent binary."
+            $releasedSha = (Get-Content $releasedShaFile.FullName -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+            $actualReleasedSha = (Get-FileHash $releasedExe.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($releasedSha -ne $actualReleasedSha) {
+              throw "Agent release $tag checksum does not match the published EXE."
             }
-            $releaseSource = (gh api "repos/${{ github.repository }}/git/ref/tags/$tag" --jq '.object.sha').Trim()
-            if ([string]::IsNullOrWhiteSpace($releaseSource)) {
-              throw "Agent release $tag exists but its tag source cannot be resolved."
-            }
-            Write-Host "Agent release $tag already exists with identical binary; reuse verified release."
+
+            $channelSourceExe = $releasedExe.FullName
+            $channelSourceSha = $releasedShaFile.FullName
+            Write-Host "Agent release $tag already exists and relay-agent source tree is unchanged; reuse published release assets."
           } else {
             gh release create $tag `
               "$primary#Agent Auto Confirm Pick Pack.exe" `
-              "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256#Agent Auto Confirm Pick Pack.exe.sha256" `
+              "$primarySha#Agent Auto Confirm Pick Pack.exe.sha256" `
               "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe#SUPRA-Inventory-Relay-Test.exe" `
               "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256#SUPRA-Inventory-Relay-Test.exe.sha256" `
               "relay-agent/dist/README.md#README.md" `
@@ -318,8 +120,8 @@ jobs:
           }
           $aliasExe = "relay-agent/dist/Agent.Auto.Confirm.Pick.Pack.exe"
           $aliasSha = "relay-agent/dist/Agent.Auto.Confirm.Pick.Pack.exe.sha256"
-          Copy-Item "relay-agent/dist/Agent Auto Confirm Pick Pack.exe" $aliasExe -Force
-          Copy-Item "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256" $aliasSha -Force
+          Copy-Item $channelSourceExe $aliasExe -Force
+          Copy-Item $channelSourceSha $aliasSha -Force
           $sha256 = (Get-Content $aliasSha -Raw).Trim().Split(' ')[0].ToLowerInvariant()
           $size = (Get-Item $aliasExe).Length
           $manifest = [ordered]@{
