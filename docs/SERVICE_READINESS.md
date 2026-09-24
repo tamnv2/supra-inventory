@@ -876,3 +876,14 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - v37 adds immediate schedule propagation in the PRIMARY lease, 30s FROZEN control-role convergence for early-start, final 20s age recheck and per-WMS-chunk PRIMARY generation fence.
 - OA037 is blocked until v37 technical/runtime/release PASS. Stable remains OWNER_GATED / untouched.
 
+## D117 final v37 release-state refresh — 2026-09-24
+
+- SQLite schema: `11`.
+- Latest signed Beta APK: `beta-vc73`.
+- Current released Agent: `relay-agent-v37`.
+- Beta: `D117_TECHNICAL_RUNTIME_RELEASE_PASS__WEB_APK_SOURCE_BBB6C83B__AGENT_SOURCE_E583D20D__SIGNED_BETA_VC73__AGENT_V37__OA037_FIELD_READY`.
+- Web: `D116_WEB_FEATURES_LIVE_UNCHANGED__BETA_SOURCE_BBB6C83B__D117_AGENT_ONLY_HARDENING_PASS`.
+- Android: `D117_SIGNED_BETA_VC73__20S_RELAY_TERMINAL_WINDOW__OA037_FIELD_READY`.
+- Final Agent source: `e583d20d12f097bd7895494992408c41976b1835`; Web/APK runtime source remains `bbb6c83b3f75d234f8220d8ef42b22c3105d9964`.
+- OA037 is READY_FOR_OWNER_FIELD_TEST. Stable remains OWNER_GATED / untouched.
+
