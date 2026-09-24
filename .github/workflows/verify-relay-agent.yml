@@ -75,14 +75,14 @@ jobs:
           $firestoreRules = Get-Content firebase/firestore.rules -Raw
           $firestoreIndexes = Get-Content firebase/firestore.indexes.json -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*32\s*;') { throw "D113 requires Agent v32." }
+          if ($config -notmatch 'AgentBuild\s*=\s*33\s*;') { throw "D114 requires Agent v33." }
           if ($firestoreLeader -notmatch 'FailoverAfterMs\s*=\s*10000' -or $firestoreLeader -notmatch 'StandbyTakeoverAgeMs\s*=\s*10000') { throw "D097 request-driven 10-second failover guard failed." }
           if ($firestoreLeader -match 'HeartbeatIntervalMs\s*=\s*4000') { throw "D097 forbids 4-second Firestore lease heartbeat." }
           foreach ($marker in @('PRIMARY','STANDBY','FROZEN','PromoteStandbyForTakeover','replacement-standby','PresenceHeartbeatIntervalMs = 900000','StandbyRoleRefreshMs = 60000','FrozenRoleRefreshMs = 300000','StartupConvergenceIntervalMs = 5000')) {
             if ($firestoreLeader -notmatch [regex]::Escape($marker)) { throw "D097 Agent role marker missing: $marker" }
           }
           if ($firestoreLeader -notmatch 'currentDocument\.updateTime' -or $firestoreLeader -notmatch 'currentDocument\.exists=false') { throw "D097 role election must use conditional writes." }
-          if ($cache -notmatch 'CACHE_MISS_REFRESH' -or $cache -notmatch 'MANUAL_MISS_REFRESH' -or $cache -notmatch 'JOIN_INFLIGHT' -or $cache -notmatch 'LoadSnapshot') { throw "D101 Picklist cache miss must refresh WMS before final NOT_FOUND." }
+          if ($cache -notmatch 'CACHE_SUFFIX_MISS_REFRESH' -or $cache -notmatch 'MANUAL_MISS_REFRESH' -or $cache -notmatch 'JOIN_INFLIGHT' -or $cache -notmatch 'LoadSnapshot') { throw "D114/D101 Picklist suffix cache miss must refresh WMS before final NOT_FOUND." }
           if ($firestoreRate -notmatch 'StrikeWindowMs\s*=\s*60L\s*\*\s*1000L' -or $firestoreRate -notmatch 'ResetEscalationAfterMs\s*=\s*24L') { throw "D092 Firestore anti-spam timing guard failed." }
           if ($firestoreRate -notmatch 'return 5;' -or $firestoreRate -notmatch 'return 30;' -or $firestoreRate -notmatch 'return 60;') { throw "D092 5/30/60 lock escalation guard failed." }
           if ($startup -notmatch 'Registry\.CurrentUser' -or $startup -notmatch 'CurrentVersion\\Run' -or $startup -notmatch 'admin_required=false') { throw "D085 per-user autostart guard failed." }
@@ -151,7 +151,7 @@ jobs:
           if ($program -notmatch 'MaximizedBounds = screen\.WorkingArea' -or $program -notmatch 'ShowInTaskbar = true' -or $program -notmatch 'ApplyWorkingAreaMaximum\(\)') { throw "D104 maximized Agent must respect Windows WorkingArea/taskbar." }
           if ($program -notmatch '_manualPicklistQuery\.MaxLength = 220' -or $program -notmatch 'Split\('',''\)' -or $program -notmatch 'TryParseManualPicklistQueries' -or $program -notmatch 'ConfirmAllManualPicklists' -or $program -notmatch 'Xác nhận tất cả') { throw "D112 comma multi-search / conditional confirm-all UI guard failed." }
           if ($program -notmatch '_manualPicklistConfirmAll\.Visible = count >= 2' -or $program -notmatch 'ConfirmManualPicklists\(codes\)') { throw "D104 confirm-all must appear only for >=2 rows and target displayed codes." }
-          if ($cache -notmatch 'SearchContainsMany' -or $cache -notmatch 'LookupMany' -or $cache -notmatch 'BATCH_CACHE_MISS_REFRESH' -or $cache -notmatch 'MANUAL_MULTI_MISS_REFRESH') { throw "D104 multi-search/PDA batch lookup must share bounded cache refresh." }
+          if ($cache -notmatch 'SearchContainsMany' -or $cache -notmatch 'LookupMany' -or $cache -notmatch 'BATCH_SUFFIX_MISS_REFRESH' -or $cache -notmatch 'MANUAL_MULTI_MISS_REFRESH') { throw "D114/D104 multi-search/PDA batch lookup must share bounded cache refresh." }
           if ($exact -notmatch 'ResolveMany' -or $exact -notmatch 'At most 12 Picklist suffixes') { throw "D104 exact resolver batch guard failed." }
           if ($confirm -notmatch 'ConfirmMany' -or $confirm -notmatch 'At most 10 PickListCodes' -or $confirm -notmatch '"PickListCodes", pending\.ToArray\(\)') { throw "D104 WMS confirm must batch at most 10 exact codes." }
           if ($firestoreTransport -notmatch 'ProcessBatch' -or $firestoreTransport -notmatch '_batchHandler' -or $program -notmatch 'ProcessFirestoreConfirmations' -or $program -notmatch 'WmsPicklistConfirmClient\.ConfirmMany') { throw "D104 PDA jobs must use the bounded batch business path." }
@@ -159,10 +159,10 @@ jobs:
           if ($program -notmatch '_manualPicklistOperationRunning' -or $program -notmatch 'Interlocked\.CompareExchange\(ref _manualPicklistOperationRunning, 1, 0\)' -or $program -notmatch 'Interlocked\.Exchange\(ref _manualPicklistOperationRunning, 0\)') { throw "D104 manual PickList actions must be single-flight to prevent click spam." }
           if ($program -notmatch 'batchSize > 1' -or $program -notmatch 'CONFIRM_REJECTED' -or $program -notmatch 'fail closed instead of retrying') { throw "D104 multi-code rejection must stay fail-closed." }
           if ($program -notmatch 'value\.Length < 3 \|\| value\.Length > 20' -or $cache -notmatch 'EndsWith\(query, StringComparison\.OrdinalIgnoreCase\)' -or $cache -notmatch 'AMBIGUOUS') { throw "D112 Agent manual search must accept bounded 3-20 digit exact suffixes and fail closed on ambiguity." }
-          if ($cache -notmatch 'value\.Length != 4 && value\.Length != 5' -or $cache -notmatch 'BuildLookupSuffixes') { throw "D105 cache must index four-digit PDA suffixes while retaining five-digit rollout compatibility." }
-          if ($exact -notmatch 'suffix\.Length != 4 && suffix\.Length != 5' -or $exact -notmatch 'EndsWith\(target, StringComparison\.Ordinal\)') { throw "D105 exact resolver must resolve four-digit suffixes fail-closed." }
-          if ($firestoreTransport -notmatch 'value\.Length != 4 && value\.Length != 5' -or $firestoreTransport -notmatch 'picklist_suffix=redacted') { throw "D105 Firestore Agent transport must accept 4-digit current jobs and redact suffixes." }
-          if ($firestoreRules -notmatch "\^\[0-9\]\{4,5\}\$") { throw "D105 Firestore Rules must admit current 4-digit jobs plus bounded vc62 rollout compatibility." }
+          if ($cache -notmatch 'value\.Length < 3 \|\| value\.Length > 20' -or $cache -notmatch 'CountTrailingMatches' -or $cache -notmatch 'EndsWith\(suffix, StringComparison\.OrdinalIgnoreCase\)') { throw "D114 cache must resolve only bounded 3-20 digit trailing suffixes." }
+          if ($exact -notmatch 'suffix\.Length < 3 \|\| suffix\.Length > 20' -or $exact -notmatch 'EndsWith\(target, StringComparison\.Ordinal\)') { throw "D114 exact resolver must resolve bounded trailing suffixes fail-closed." }
+          if ($firestoreTransport -notmatch 'value\.Length < 3 \|\| value\.Length > 20' -or $firestoreTransport -notmatch 'candidate_picklists' -or $firestoreTransport -notmatch 'picklist_suffix=redacted') { throw "D114 Firestore Agent transport must accept bounded suffix jobs, return candidates, and redact suffixes." }
+          if ($firestoreRules -notmatch "\^\[0-9\]\{3,20\}\$" -or $firestoreRules -notmatch 'candidate_picklists') { throw "D114 Firestore Rules must admit bounded 3-20 digit jobs and Agent candidate ACK metadata." }
           if ($program -notmatch 'RowStyles.Add\(new RowStyle\(SizeType.Absolute, 330F\)\)' -or $program -notmatch 'RowStyles.Add\(new RowStyle\(SizeType.Absolute, 105F\)\)' -or $program -notmatch 'RowStyles.Add\(new RowStyle\(SizeType.Percent, 100F\)\)') { throw "D103 dense Overview row layout guard failed." }
           if ($program -notmatch '_agentFleetGrid\.SetBounds\(16, 168, 990, 146\)' -or $program -notmatch '_agentFleetGrid\.ScrollBars = ScrollBars\.Vertical' -or $program -notmatch '_agentFleetGrid\.RowTemplate\.Height = 24') { throw "D103 five-row Agent fleet viewport guard failed." }
           if ($program -match 'Phiên WMS được bảo vệ cục bộ' -or $program -match 'Cập nhật phần mềm: tự kiểm tra' -or $program -match 'Failover job: 10 giây') { throw "D103 Overview must remove verbose internal guidance." }

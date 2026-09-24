@@ -28,6 +28,7 @@ data class RelayProbeResult(
     val roundTripMs: Long,
     val lookupStatus: String,
     val lookupMatches: Int,
+    val candidatePicklists: List<String>,
     val lookupMs: Long,
     val cacheMode: String,
     val rateStrikes: Int,
@@ -48,6 +49,7 @@ private data class RelayAck(
     val agentInstanceId: String,
     val lookupStatus: String,
     val lookupMatches: Int,
+    val candidatePicklists: List<String>,
     val lookupMs: Long,
     val cacheMode: String,
     val rateStrikes: Int,
@@ -105,7 +107,7 @@ class RelayPocClient(
     }
 
     fun sendProbe(suffix: String): RelayProbeResult {
-        require(suffix.matches(Regex("^\\d{4}$"))) { "Picklist phải đúng 4 số." }
+        require(suffix.matches(Regex("^\\d{3,20}$"))) { "PickList phải có từ 3 đến 20 chữ số cuối." }
         var session = api.session ?: throw ApiException(401, "AUTH_REQUIRED", "Chưa đăng nhập.")
         session = ensureFirestoreAuth(session)
         runDueCleanup()
@@ -258,6 +260,7 @@ class RelayPocClient(
                 roundTripMs = total,
                 lookupStatus = ack.lookupStatus,
                 lookupMatches = ack.lookupMatches,
+                candidatePicklists = ack.candidatePicklists,
                 lookupMs = ack.lookupMs,
                 cacheMode = ack.cacheMode,
                 rateStrikes = ack.rateStrikes,
@@ -281,6 +284,11 @@ class RelayPocClient(
             agentInstanceId = snapshot.getString("agent_instance_id").orEmpty().ifBlank { "UNKNOWN" },
             lookupStatus = snapshot.getString("lookup_status").orEmpty().ifBlank { "TRANSPORT_ONLY" },
             lookupMatches = (snapshot.getLong("lookup_matches") ?: 0L).toInt().coerceAtLeast(0),
+            candidatePicklists = (snapshot.get("candidate_picklists") as? List<*>)
+                .orEmpty()
+                .mapNotNull { it?.toString()?.trim()?.takeIf { code -> code.matches(Regex("^PL\\d{3,20}$", RegexOption.IGNORE_CASE)) } }
+                .distinct()
+                .take(20),
             lookupMs = (snapshot.getLong("lookup_ms") ?: 0L).coerceAtLeast(0L),
             cacheMode = snapshot.getString("cache_mode").orEmpty().ifBlank { "NONE" },
             rateStrikes = (snapshot.getLong("rate_strikes") ?: 0L).toInt().coerceAtLeast(0),

@@ -27,6 +27,7 @@ namespace SupraInventoryRelayAgent
         internal int Http;
         internal long OperationMs;
         internal int Matches;
+        internal readonly List<string> Candidates = new List<string>();
         internal PickerRateDecision Rate = new PickerRateDecision();
         internal bool ShouldAck = true;
         internal string GuardId = "";
@@ -54,6 +55,7 @@ namespace SupraInventoryRelayAgent
         private readonly Func<bool> _businessEnabled;
         private readonly Action<bool> _relayHealth;
         private long _lastPollTelemetryMs;
+        private string _lastOutcomeState = "";
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024 };
 
         internal FirestoreConfirmationTransport(
@@ -117,7 +119,7 @@ namespace SupraInventoryRelayAgent
                         waitMs = _coordinator.BusinessPollIntervalMs;
                         if (_coordinator.IsLeader)
                             _state(processed > 0
-                                ? "Relay: PRIMARY · đã xử lý yêu cầu"
+                                ? (string.IsNullOrWhiteSpace(_lastOutcomeState) ? "Relay: PRIMARY · đã xử lý yêu cầu PDA" : _lastOutcomeState)
                                 : "Relay: PRIMARY · Firestore online · chờ PDA");
                         else
                             _state("Relay: STANDBY · chờ failover 10s");
@@ -239,6 +241,7 @@ namespace SupraInventoryRelayAgent
                     continue;
 
                 _onResponse();
+                _lastOutcomeState = "Relay: PRIMARY · " + UserFacingOutcome(outcome);
                 processed++;
             }
 
@@ -425,6 +428,7 @@ namespace SupraInventoryRelayAgent
                 { "agent_ack_at_ms", IntField(NowMs()) },
                 { "lookup_status", StringField(outcome.Result ?? "CONFIRM_ERROR") },
                 { "lookup_matches", IntField(Math.Max(0, outcome.Matches)) },
+                { "candidate_picklists", StringArrayField(outcome.Candidates) },
                 { "lookup_ms", IntField(Math.Max(0L, outcome.OperationMs)) },
                 { "lookup_route", StringField(outcome.Route ?? "NONE") },
                 { "lookup_http", IntField(Math.Max(0, outcome.Http)) },
@@ -507,6 +511,48 @@ namespace SupraInventoryRelayAgent
             return new Dictionary<string, object> { { "integerValue", value.ToString() } };
         }
 
+        private static Dictionary<string, object> StringArrayField(IEnumerable<string> values)
+        {
+            var rows = new List<object>();
+            foreach (var raw in values ?? new string[0])
+            {
+                var value = (raw ?? "").Trim();
+                if (value.Length == 0 || rows.Count >= 20) continue;
+                rows.Add(StringField(value));
+            }
+            return new Dictionary<string, object>
+            {
+                { "arrayValue", new Dictionary<string, object> { { "values", rows.ToArray() } } }
+            };
+        }
+
+        private static string UserFacingOutcome(FirestoreConfirmationOutcome outcome)
+        {
+            var status = outcome == null ? "CONFIRM_ERROR" : (outcome.Result ?? "CONFIRM_ERROR");
+            switch (status)
+            {
+                case "CONFIRMED": return "Đã xác nhận PickList thành công";
+                case "NOT_FOUND": return "Không tìm thấy PickList khớp đúng các số cuối";
+                case "AMBIGUOUS_PICKLIST": return "Tìm thấy nhiều PickList · PDA cần chọn đúng một PickList";
+                case "PICKER_LOCKED": return "PDA tạm khóa do nhập sai nhiều lần";
+                case "WMS_SESSION_REQUIRED":
+                case "SESSION_EXPIRED": return "Phiên SFT / SFT 3 chưa sẵn sàng";
+                case "PROXY_BLOCK":
+                case "PROXY_AUTH_REQUIRED":
+                case "TRANSPORT_FAIL": return "Kết nối tới hệ thống Supra đang gián đoạn";
+                case "FORBIDDEN": return "Hệ thống Supra từ chối quyền xác nhận";
+                case "CONFIRM_REJECTED": return "Hệ thống Supra từ chối xác nhận PickList";
+                case "CONFIRM_CONFLICT": return "PickList đang có xung đột trạng thái";
+                case "CONFIRM_IN_PROGRESS_OR_UNCERTAIN": return "Trạng thái xác nhận chưa chắc chắn · không gửi lại";
+                case "REQUEST_EXPIRED": return "Yêu cầu PDA đã quá thời gian xử lý";
+                case "RATE_LIMITED": return "Hệ thống đang giới hạn yêu cầu";
+                case "SERVER_ERROR": return "Hệ thống Supra đang lỗi máy chủ";
+                case "SCHEMA_UNSUPPORTED": return "Không đọc được dữ liệu PickList an toàn";
+                case "EXACT_CODE_NOT_RESOLVED": return "Dữ liệu PickList vừa thay đổi · cần tìm lại";
+                default: return "Không thể hoàn tất xác nhận · mã " + status;
+            }
+        }
+
         private static string FieldString(Dictionary<string, object> fields, string key)
         {
             object raw;
@@ -566,7 +612,7 @@ namespace SupraInventoryRelayAgent
 
         private static bool ValidSuffix(string value)
         {
-            if (string.IsNullOrWhiteSpace(value) || (value.Length != 4 && value.Length != 5)) return false;
+            if (string.IsNullOrWhiteSpace(value) || value.Length < 3 || value.Length > 20) return false;
             foreach (var ch in value) if (ch < '0' || ch > '9') return false;
             return true;
         }

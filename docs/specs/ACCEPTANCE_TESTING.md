@@ -1045,3 +1045,17 @@ Automated gates must verify source/build/security contracts before OA033 becomes
 7. Android Reporter actions sit below timing; completed human resolutions show the responder after **Invent phản hồi lúc**.
 8. Agent v32 exposes **Chuyển xuống nền** while native Minimize/Restore/Maximize/X and D112 watchdog semantics still work.
 9. D097/D104/D105 quota/Firestore/WMS/no-offline guards remain PASS; Stable is untouched.
+
+
+## D114 acceptance
+
+1. Enter a 3+ digit suffix on PDA and Agent that appears only in the middle of a PickList; verify it is NOT_FOUND. Enter a true trailing suffix; verify matching works.
+2. Agent accepts comma-separated multi-search; PDA input strips/non-accepts separators and submits only one term.
+3. Force a suffix with >=2 full PickList matches. Verify Agent performs no WMS mutation and PDA shows the matching full codes as separate rows with row-level **Xác nhận**.
+4. On PDA candidate row, press **Xác nhận**, then **Huỷ**; verify no new request. Repeat and approve; verify exactly the selected PickList is re-resolved uniquely and confirmed.
+5. Exercise CONFIRMED, NOT_FOUND, AMBIGUOUS_PICKLIST plus at least one infrastructure/session failure and verify Agent/PDA show specific aligned professional messages rather than generic failure text.
+6. Agent manual search visibly shows full PickList code, action and per-row result; PDA-originated result remains visibly meaningful on Agent after ACK.
+7. Verify Agent runtime reports v33 consistently with release metadata.
+8. Web **Công cụ** shows two equal compact cards side-by-side on desktop and one-column stack on narrow width.
+9. While Web is on another section, create a controlled shortage. Verify toast/notification still appears and the **Xử lý báo hàng** badge count changes without navigating to that section.
+10. Confirm no faster polling/provider cadence, SQLite remains 11 and Stable is untouched.

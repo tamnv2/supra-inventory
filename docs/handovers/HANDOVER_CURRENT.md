@@ -762,3 +762,23 @@ D112 is technically released on Beta and **OA032 is field-ready**.
 - Android: `D113_SIGNED_BETA_VC69__COMPACT_PICKER_100_RESET_LOGIN_RESPONDER__OA033_FIELD_READY`
 - Latest Beta APK: `beta-vc69`
 - SQLite schema: `11`
+
+
+## D114 source checkpoint — 2026-09-24
+
+- Status: **SOURCE IMPLEMENTED / TECHNICAL VALIDATION PENDING**.
+- Owner's D113 field review immediately reported Agent/PDA/Web defects; D113 is not recorded as Owner PASS. OA033 is superseded by OA034 after D114 release.
+- Branch: `feat/d114-picklist-feedback-web-realtime`.
+- PickList contract: PDA one 3–20 digit numeric suffix at a time; Agent manual keeps 1–10 comma-separated 3–20 digit terms; every lookup is exact trailing digits only.
+- Ambiguous PDA lookup returns bounded full PickList candidates without WMS mutation. Android requires row-specific one-at-a-time selection plus explicit warning confirmation; Huỷ sends nothing.
+- Agent direct PickList grid is PickList → Thao tác → Kết quả with persistent specific feedback; PDA-originated terminal outcome is surfaced specifically on Agent. Target Agent is `relay-agent-v33` with assembly/file version parity.
+- Web Công cụ is two balanced compact cards on desktop and stacked on narrow width. Reporter queue badge refreshes from existing realtime reporter scopes even while another Web section is active; no polling cadence is added.
+- SQLite remains 11. D097/D104 HA, batching, idempotency and quota guards remain authoritative. Stable remains OWNER-GATED and untouched.
+- NEXT_ACTION: PR → repair all required authority/state/UI/Web/Android/Agent/Firestore gates → merge only on PASS → verify exact Beta runtime + next signed Android after beta-vc69 + relay-agent-v33 → record runtime/release checkpoint → make OA034 field-ready.
+
+### D114 canonical current-status markers
+
+- Web: `D114_SOURCE_IMPLEMENTED__BALANCED_TOOLS__GLOBAL_REALTIME_QUEUE_BADGE__PR_GATES_PENDING`
+- Android: `D114_SOURCE_IMPLEMENTED__PDA_ONE_TERM_3_20_SUFFIX__AMBIGUOUS_SINGLE_SELECT__RESULT_TAXONOMY__TARGET_NEXT_AFTER_VC69`
+- Latest Beta APK: `beta-vc69`
+- SQLite schema: `11`

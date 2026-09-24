@@ -1070,10 +1070,24 @@ namespace SupraInventoryRelayAgent
             _manualPicklistGrid.BorderStyle = BorderStyle.FixedSingle;
             _manualPicklistGrid.ScrollBars = ScrollBars.Vertical;
             _manualPicklistGrid.Columns.Clear();
+            _manualPicklistGrid.RowTemplate.Height = 34;
+            _manualPicklistGrid.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "PickListCode",
+                HeaderText = "PickList",
+                ReadOnly = true,
+                Width = 310,
+                MinimumWidth = 240,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
+                    ForeColor = Color.FromArgb(24, 43, 55)
+                }
+            });
             _manualPicklistGrid.Columns.Add(new DataGridViewButtonColumn
             {
                 Name = "ConfirmAction",
-                HeaderText = "",
+                HeaderText = "Thao tác",
                 Text = "Xác nhận",
                 UseColumnTextForButtonValue = true,
                 Width = 130,
@@ -1081,8 +1095,8 @@ namespace SupraInventoryRelayAgent
             });
             _manualPicklistGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
-                Name = "PickListCode",
-                HeaderText = "PickList",
+                Name = "ConfirmStatus",
+                HeaderText = "Kết quả",
                 ReadOnly = true,
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
             });
@@ -1096,9 +1110,10 @@ namespace SupraInventoryRelayAgent
             };
             directCard.Controls.Add(_manualPicklistGrid);
 
-            _manualPicklistStatus.SetBounds(16, 220, 1006, 24);
+            _manualPicklistStatus.SetBounds(16, 218, 1006, 42);
             _manualPicklistStatus.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
             _manualPicklistStatus.Text = "";
+            _manualPicklistStatus.Font = new Font("Segoe UI Semibold", 10.5F, FontStyle.Bold);
             _manualPicklistStatus.ForeColor = Color.FromArgb(88, 104, 115);
             directCard.Controls.Add(_manualPicklistStatus);
             overviewLayout.Controls.Add(directCard, 0, 2);
@@ -1775,7 +1790,7 @@ namespace SupraInventoryRelayAgent
                 {
                     _manualPicklistGrid.Rows.Clear();
                     foreach (var code in result.Matches)
-                        _manualPicklistGrid.Rows.Add(code);
+                        _manualPicklistGrid.Rows.Add(code, null, "Sẵn sàng xác nhận");
 
                     if (string.Equals(result.Result, "AMBIGUOUS", StringComparison.Ordinal))
                     {
@@ -1841,6 +1856,26 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private static string ManualOutcomeText(string status)
+        {
+            switch (status ?? "")
+            {
+                case "CONFIRMED": return "Đã xác nhận thành công";
+                case "ALREADY_CONFIRMED": return "Đã xác nhận trước đó";
+                case "CONFIRM_REJECTED": return "Supra từ chối xác nhận";
+                case "CONFIRM_CONFLICT": return "Xung đột trạng thái PickList";
+                case "SESSION_EXPIRED": return "Phiên SFT / SFT 3 đã hết hạn";
+                case "FORBIDDEN": return "Supra từ chối quyền xác nhận";
+                case "PROXY_BLOCK":
+                case "PROXY_AUTH_REQUIRED":
+                case "TRANSPORT_FAIL": return "Kết nối Supra đang gián đoạn";
+                case "RATE_LIMITED": return "Hệ thống đang giới hạn yêu cầu";
+                case "SERVER_ERROR": return "Supra đang lỗi máy chủ";
+                case "CONFIRM_IN_PROGRESS_OR_UNCERTAIN": return "Chưa chắc chắn · không xác nhận lại";
+                default: return "Không hoàn tất · " + (string.IsNullOrWhiteSpace(status) ? "CONFIRM_ERROR" : status);
+            }
+        }
+
         private void ConfirmManualPicklist(string pickListCode)
         {
             ConfirmManualPicklists(new[] { pickListCode });
@@ -1902,6 +1937,7 @@ namespace SupraInventoryRelayAgent
                     throw new InvalidOperationException("Phiên Supra chưa sẵn sàng.");
 
                 var acquired = new Dictionary<string, FirestoreConfirmationGuardDecision>(StringComparer.OrdinalIgnoreCase);
+                var statusByCode = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 var alreadyConfirmed = 0;
                 var uncertain = 0;
 
@@ -1918,11 +1954,13 @@ namespace SupraInventoryRelayAgent
                     if (guard.AlreadyConfirmed)
                     {
                         alreadyConfirmed++;
+                        statusByCode[code] = "ALREADY_CONFIRMED";
                         continue;
                     }
                     if (!guard.Acquired || guard.InProgressOrUncertain)
                     {
                         uncertain++;
+                        statusByCode[code] = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
                         continue;
                     }
                     acquired[code] = guard;
@@ -1947,10 +1985,12 @@ namespace SupraInventoryRelayAgent
                         if (!results.TryGetValue(code, out result) || result == null)
                         {
                             uncertain++;
+                            statusByCode[code] = "CONFIRM_ERROR";
                             continue;
                         }
 
                         var guard = acquired[code];
+                        statusByCode[code] = result.Result ?? "CONFIRM_ERROR";
                         if (string.Equals(result.Result, "CONFIRMED", StringComparison.Ordinal))
                         {
                             _confirmationGuard.MarkLocalConfirmed(guard.GuardId);
@@ -1981,17 +2021,35 @@ namespace SupraInventoryRelayAgent
                         if (processed.Contains(pair.Key)) continue;
                         _confirmationGuard.ReleaseSafeFailure(appSession, pair.Value.GuardId);
                         failedCount++;
+                        statusByCode[pair.Key] = "SESSION_EXPIRED";
                     }
                 }
 
                 Ui(() =>
                 {
+                    foreach (DataGridViewRow row in _manualPicklistGrid.Rows)
+                    {
+                        if (row == null || row.IsNewRow) continue;
+                        var code = Convert.ToString(row.Cells["PickListCode"].Value) ?? "";
+                        string rowStatus;
+                        if (statusByCode.TryGetValue(code, out rowStatus))
+                            row.Cells["ConfirmStatus"].Value = ManualOutcomeText(rowStatus);
+                    }
+
                     var totalOk = confirmedCount + alreadyConfirmed;
-                    _manualPicklistStatus.Text =
-                        "Xác nhận: " + totalOk + "/" + codes.Count +
-                        (alreadyConfirmed > 0 ? " · đã có " + alreadyConfirmed : "") +
-                        (uncertain > 0 ? " · chưa rõ " + uncertain : "") +
-                        (failedCount > 0 ? " · lỗi " + failedCount : "");
+                    if (codes.Count == 1)
+                    {
+                        string singleStatus;
+                        statusByCode.TryGetValue(codes[0], out singleStatus);
+                        _manualPicklistStatus.Text = codes[0] + " · " + ManualOutcomeText(singleStatus ?? "CONFIRM_ERROR");
+                    }
+                    else
+                    {
+                        _manualPicklistStatus.Text =
+                            "Đã xử lý " + codes.Count + " PickList · thành công " + totalOk +
+                            (uncertain > 0 ? " · chưa chắc chắn " + uncertain : "") +
+                            (failedCount > 0 ? " · lỗi " + failedCount : "");
+                    }
                     _manualPicklistStatus.ForeColor =
                         uncertain == 0 && failedCount == 0
                             ? Color.FromArgb(35, 122, 76)
@@ -3228,7 +3286,7 @@ namespace SupraInventoryRelayAgent
                     !string.Equals(exact.Result, "FOUND", StringComparison.Ordinal) ||
                     exact.MatchCount != 1 || string.IsNullOrWhiteSpace(exact.PickListCode))
                 {
-                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    var unresolved = new FirestoreConfirmationOutcome
                     {
                         Result = exact == null ? "EXACT_CODE_NOT_RESOLVED" : (exact.Result ?? "EXACT_CODE_NOT_RESOLVED"),
                         CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH",
@@ -3239,6 +3297,9 @@ namespace SupraInventoryRelayAgent
                         Matches = exact == null ? 0 : Math.Max(0, exact.MatchCount),
                         Rate = new PickerRateDecision()
                     };
+                    if (exact != null && exact.Candidates != null)
+                        unresolved.Candidates.AddRange(exact.Candidates);
+                    outcomes[work.RequestId] = unresolved;
                     continue;
                 }
 

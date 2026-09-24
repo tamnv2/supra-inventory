@@ -1514,7 +1514,7 @@
     },
     {
       "id": "OA033",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "FIELD_DEFECTS_REPORTED__SUPERSEDED_BY_D114_RETEST",
       "title": "Field-accept D113 Web login/SLA, Android compact UX and Agent v32 background action",
       "resource_key": "worker-beta",
       "provider": "Beta Worker + Web + next signed Beta Android + relay-agent-v32",
@@ -1562,7 +1562,48 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. No secrets/passwords/tokens/WMS session material in source or logs. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Field-test live Beta Web + signed beta-vc69 + relay-agent-v32 using the shortest_test_path, then reply PASS or itemized defects.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": "DEFECTS_REPORTED_D113__SUPERSEDED_BY_D114",
+      "field_result_date": "2026-09-24",
+      "owner_evidence": "Owner reviewed D113 and immediately reported concrete Agent/PDA/Web defects plus superseding PickList interaction requirements. D113 is not recorded as Owner PASS; retest moves to OA034 after D114 technical/runtime/release PASS."
+    },
+    {
+      "id": "OA034",
+      "status": "PENDING_TECHNICAL_RUNTIME_RELEASE",
+      "title": "Field-accept D114 unified PickList feedback and Web realtime/Tools fixes",
+      "resource_key": "worker-beta",
+      "provider": "Beta Worker + Web + next signed Beta Android + relay-agent-v33",
+      "reason_owner_only": "Automated gates can verify exact-suffix logic, ambiguity fail-close, candidate transport/build contracts and Web event-driven refresh; final PDA one-by-one candidate interaction, Windows feedback visibility and browser layout/realtime presentation require Owner field review.",
+      "prerequisites": {
+        "d112_owner_acceptance": "PASS",
+        "d113_field_result": "DEFECTS_REPORTED__SUPERSEDED",
+        "d114_source_branch": "feat/d114-picklist-feedback-web-realtime",
+        "technical_runtime_release": "PENDING",
+        "target_android_release": "NEXT_SIGNED_AFTER_BETA_VC69",
+        "target_agent_release": "relay-agent-v33",
+        "sqlite_schema": 11,
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "PDA and Agent: search with 3+ digits that occur only in the middle of a PickList; verify NOT_FOUND. Search a true trailing suffix; verify only PickLists ending with those digits match.",
+        "Agent: verify comma-separated multi-search still works; full PickList is clearly visible, each row has Xác nhận and per-row Kết quả, and a direct confirmation returns a specific visible outcome.",
+        "PDA: use a suffix that returns at least two PickLists; verify the full candidate list appears with one Xác nhận button per row and there is no multi-confirm action.",
+        "PDA candidate: press Xác nhận then Huỷ and verify no request is sent; repeat and approve, then verify exactly the selected PickList is re-resolved and confirmed through the normal PDA↔Agent path.",
+        "Trigger success plus at least NOT_FOUND/AMBIGUOUS and one session/network failure; verify PDA and Agent use specific aligned professional messages rather than a generic failure.",
+        "From a Web section other than Xử lý báo hàng, create a controlled shortage; verify realtime toast/notification and the Xử lý báo hàng badge count update without opening that section.",
+        "Web Công cụ: verify App PDA and Agent Windows are two balanced compact cards on desktop and stack cleanly on narrow width."
+      ],
+      "pass_criteria": [
+        "All PickList matching is exact trailing digits only; PDA accepts one 3–20 digit term and Agent retains 1–10 comma-separated 3–20 digit terms.",
+        "Ambiguous PDA lookup performs no WMS mutation until the user explicitly selects and confirms exactly one full PickList; Cancel sends nothing.",
+        "Agent/PDA terminal result copy distinguishes success, not found, ambiguity, lock/rate, session, connectivity/permission, WMS rejection/conflict, uncertain/expiry/server/schema failures.",
+        "Agent v33 shows the full PickList and result clearly for direct and PDA-originated work.",
+        "Web Tools layout is balanced and the reporter queue badge reconciles from existing realtime events across sections without added polling.",
+        "SQLite remains 11; D097/D104 HA/batching/idempotency guards remain; Stable remains untouched."
+      ],
+      "safety": "Beta only. No secrets/passwords/tokens/WMS session material in source or logs. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait until D114 technical/runtime/release PASS; then field-test the shortest path and reply PASS or itemized defects.",
       "closed": false
     }
   ]

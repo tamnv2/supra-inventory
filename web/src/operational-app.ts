@@ -3369,11 +3369,23 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
 
   const scopes = new Set(events.flatMap((row) => row.scopes || []));
   const pickerRelevant = profile?.role === "PICKER" && activeSection === "picker" && scopes.has("picker_reports");
+  const reporterScopeChanged =
+    roleOperate() && (scopes.has("reporter_queue") || scopes.has("reporter_recent"));
   const reporterRelevant =
-    roleOperate() &&
-    (activeSection === "operations" || activeSection === "results") &&
-    (scopes.has("reporter_queue") || scopes.has("reporter_recent"));
+    reporterScopeChanged && (activeSection === "operations" || activeSection === "results");
   const slaRelevant = roleManage() && activeSection === "sla" && scopes.has("sla_settings");
+
+  // D114: the Xử lý báo hàng badge is global operational state, not section-local state.
+  // Reuse the existing realtime event to refresh the authoritative queue even while the
+  // operator is viewing another section. This adds no polling cadence.
+  if (reporterScopeChanged && !reporterRelevant) {
+    try {
+      await loadOperations();
+      syncOperationsNavBadge();
+    } catch {
+      return false;
+    }
+  }
 
   if (!pickerRelevant && !reporterRelevant && !slaRelevant) return true;
   return reconcileActive();
