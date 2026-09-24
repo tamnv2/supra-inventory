@@ -843,3 +843,19 @@ D113 is technically released on Beta and **OA033 is field-ready**.
 - Fixed `inventory-channel` release id `394587029` was refreshed with Agent manifest/exe assets `584751529/584751528` and PDA manifest/apk assets `584751996/584751999`.
 - D113 adds no schema migration or faster polling/provider cadence and preserves D097/D104/D105 Firestore/WMS/no-offline guards. Stable remains OWNER-GATED and untouched.
 - OA033 is `READY_FOR_OWNER_FIELD_TEST`; D113 is not Owner-PASS until explicit field confirmation.
+
+
+## D114 — Unified PickList suffix selection, result feedback and Web realtime/tool fixes — 2026-09-24
+
+Owner field review of D113 accepted the previously verified baseline but reported concrete defects/new requirements that supersede the affected D105/D112/D113 details. D113 is therefore **not** recorded as Owner-PASS; OA033 remains historical field-review evidence and is superseded by D114 retest.
+
+1. PickList search is unified to **exact trailing-digit matching only**. Entering `3444` may match `PLxxxxxx3444`; it must never match digits occurring only in the middle of a PickList.
+2. Android/PDA accepts exactly one numeric search term per request, minimum 3 digits and bounded to 20 digits. Agent manual search retains up to 10 comma-separated numeric terms, each 3–20 digits.
+3. A PDA search with 0 matches returns a specific NOT_FOUND result. One exact candidate follows the existing guarded confirmation path. Two or more candidates must fail closed before WMS mutation and return the bounded matching full PickList codes to the PDA.
+4. For ambiguous PDA results, Android renders each full PickList on its own row with a row-specific **Xác nhận** action. PDA may confirm only one selected PickList at a time. Before sending the selected PickList, a warning dialog emphasizes that the Picker must choose their own exact PickList; **Huỷ** sends nothing.
+5. Agent and Android use aligned, human-readable result semantics for success, not found, ambiguity, lock/rate limit, WMS session expiry, permission/proxy/transport, WMS rejection/conflict, uncertain/in-progress, request expiry, server/schema and unexpected failures. Raw/general-purpose failure copy is not sufficient.
+6. Agent direct PickList rows must visibly show the full PickList code first, the row confirmation action, and per-row result feedback. Single/multi confirmation feedback must be prominent. PDA-originated jobs must also leave a clear outcome on the Agent instead of immediately collapsing to a generic “processed” state.
+7. Agent release target is `relay-agent-v33`; assembly/file version must agree with release version.
+8. Web **Công cụ** uses two balanced compact cards on wide screens and stacks them on narrow screens. Legacy full-width/span rules must not leave one card full-width and the other half-width.
+9. The Web **Xử lý báo hàng** navigation badge is global realtime operational state. On existing reporter-queue realtime events it refreshes from the authoritative queue even while the user is viewing another Web section. No additional polling cadence is introduced.
+10. D114 is Beta-only. SQLite schema remains 11. Existing D097/D104 batching/HA/idempotency/no-offline guards remain unless explicitly superseded above. Stable remains OWNER-GATED and untouched.
