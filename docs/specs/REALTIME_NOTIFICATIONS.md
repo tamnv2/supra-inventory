@@ -451,3 +451,10 @@ D115 supersedes only the PRIMARY polling cadence of the earlier D097/D104/D114 c
 - A schedule decision forces an immediate PRIMARY lease write. STANDBY therefore receives late overtime/stop state through its existing lease read.
 - FROZEN control-role refresh is 30s outside relay operation solely for early-start topology convergence; it does not query the PDA business queue.
 
+## D118 — Overtime decision reconciliation
+
+- Any authenticated Agent may submit an unresolved overtime decision through existing Firestore coordination state.
+- During decision windows each Agent refreshes shared schedule state independently; near the boundary refresh becomes bounded-fast so a decision made on another machine is reconciled before freeze/continue evaluation.
+- A conflicting second decision is never last-write-wins; it must display the existing authoritative decision.
+- This control reconciliation introduces no business queue polling and no WMS health polling.
+
