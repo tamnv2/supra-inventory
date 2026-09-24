@@ -119,6 +119,15 @@ jobs:
           grep -q 'renderRelayCandidates' "$picker"
           grep -q 'confirmAmbiguousPickList' "$picker"
           grep -q 'candidatePicklists' "$client"
+          grep -q 'triggerCleanupAsync' "$client"
+          grep -q 'Source.SERVER' "$client"
+          grep -q 'final-read recovered ACK' "$client"
+          grep -q 'owner_uid' "$client"
+          grep -q 'hệ thống sẽ tự chuyển Agent dự phòng nếu cần' "$client"
+          if grep -A8 'fun sendProbe' "$client" | grep -q 'runDueCleanup'; then
+            echo "D115 cleanup must stay off the Picker confirmation critical path" >&2
+            exit 1
+          fi
           grep -q 'android:maxLength="20"' android/app/src/main/res/layout/view_picker.xml
           if grep -q 'PROCESSING' "$client"; then
             echo "D097 confirmation client must not use PROCESSING" >&2
@@ -128,7 +137,7 @@ jobs:
             echo "D097 confirmation client must not use RTDB" >&2
             exit 1
           fi
-          echo "D114 Android Firestore listener / 3-20 suffix / ambiguity selection / D097 timing guard PASS"
+          echo "D115 Android fast-path cleanup / final ACK recovery / D114 suffix ambiguity / D097 timing guard PASS"
 
       - name: Assemble Android 11+ Beta APK
         env:
