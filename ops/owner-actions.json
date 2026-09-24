@@ -1570,7 +1570,7 @@
     },
     {
       "id": "OA034",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "PASS_OWNER_CONFIRMED_D114",
       "title": "Field-accept D114 unified PickList feedback and Web realtime/Tools fixes",
       "resource_key": "worker-beta",
       "provider": "Beta Worker + Web + signed beta-vc70 + relay-agent-v33",
@@ -1632,8 +1632,11 @@
         "SQLite remains 11; D097/D104 HA/batching/idempotency guards remain; Stable remains untouched."
       ],
       "safety": "Beta only. No secrets/passwords/tokens/WMS session material in source or logs. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Field-test live Beta Web + signed beta-vc70 + relay-agent-v33 using the shortest_test_path, then reply PASS or itemized defects.",
-      "closed": false
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": "PASS_OWNER_CONFIRMED_D114",
+      "field_result_date": "2026-09-24",
+      "owner_evidence": "Owner explicitly replied 'Ok pass' after D114 field testing of live Beta Web, signed beta-vc70 and relay-agent-v33. The same message raised a separate post-pass Android relay latency/ACK observation; D114 acceptance remains closed and the new observation is not silently folded into OA034."
     }
   ]
 }
