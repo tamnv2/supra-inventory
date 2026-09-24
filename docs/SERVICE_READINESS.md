@@ -897,3 +897,17 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - D118 source implements fleet-wide single-decision overtime CAS, real bounded pagination, revision-safe global SLA, detailed multi-sheet Excel, Agent footer credit and Android IME resize.
 - D117 live runtime remains authoritative until D118 PR/main/runtime/release gates pass.
 - Stable remains OWNER-GATED and untouched.
+
+## D118 technical/runtime/release PASS — 2026-09-25
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA038 FIELD READY**.
+
+- Main source: `d29237c0990eb677ddef726785a88e08bce88dce`.
+- Beta: `D118_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_D29237C0__SCHEMA11__SIGNED_BETA_VC74__AGENT_V38__OA038_FIELD_READY`.
+- Web: `D118_BETA_RUNTIME_PASS__PAGED_HISTORY_SKU_LOGS__REVISION_SAFE_SLA__DETAILED_EXCEL__OA038_FIELD_READY`.
+- Android: `D118_SIGNED_BETA_VC74__IME_ADJUST_RESIZE__PICKER_TABS_ABOVE_KEYBOARD__OA038_FIELD_READY`.
+- Signed Android `beta-vc74`; released Agent `relay-agent-v38`; fixed inventory channel updated to both.
+- Main runs PASS: Authority `36064078289`, State `36064078114`, UI `36064078112`, Worker `36064078233`, Android `36064078150`, Agent `36064078151`.
+- Live health attempt 1: HTTP 200, exact source, SQLite 11/11, Operational V2 5/5, missing 0, Agent migration 0/0.
+- OA038 is field-ready; Owner acceptance is still pending.
+- Stable remains OWNER-GATED and untouched.

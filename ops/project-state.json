@@ -13,26 +13,26 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D118_OWNER_APPROVED_IMPLEMENTATION_CANDIDATE__TARGET_WEB_BETA_VC74_AGENT_V38__D117_LIVE_UNTIL_RELEASE",
+    "beta": "D118_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_D29237C0__SCHEMA11__SIGNED_BETA_VC74__AGENT_V38__OA038_FIELD_READY",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 11,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D118_CANDIDATE__PAGED_HISTORY_SKU_LOGS__REVISION_SAFE_SLA__DETAILED_EXCEL__D117_LIVE_UNTIL_RELEASE",
-    "android": "D118_BETA_VC74_CANDIDATE__IME_ADJUST_RESIZE__D117_VC73_LIVE_UNTIL_RELEASE",
-    "latest_beta_apk": "beta-vc73",
+    "web": "D118_BETA_RUNTIME_PASS__PAGED_HISTORY_SKU_LOGS__REVISION_SAFE_SLA__DETAILED_EXCEL__OA038_FIELD_READY",
+    "android": "D118_SIGNED_BETA_VC74__IME_ADJUST_RESIZE__PICKER_TABS_ABOVE_KEYBOARD__OA038_FIELD_READY",
+    "latest_beta_apk": "beta-vc74",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
-    "network_scope": "D118_CANDIDATE__D117_HA_PRESERVED__FLEET_WIDE_OVERTIME_CAS__ANY_AUTHENTICATED_AGENT_CAN_DECIDE_WITHOUT_ROLE_PROMOTION__STABLE_UNTOUCHED",
+    "network_scope": "D118_TECHNICAL_PASS__D117_HA_PRESERVED__FLEET_WIDE_OVERTIME_CAS__ANY_AUTHENTICATED_AGENT_DECISION__OA038_FIELD_READY__STABLE_UNTOUCHED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "D116_BETA_RUNTIME_PASS__PICKER_ONLY_BULK_SELECTION__ALL_WITH_EXCLUSIONS__ROOT_AND_NON_PICKER_PROTECTED",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D112_OWNER_ACCEPTED_PASS__EXISTING_METRICS_OPERATIONAL_HIERARCHY__NONBLOCKING_SECONDARY_LOAD",
-    "quota_resilience": "D117_TECHNICAL_PASS__PRIMARY_IDLE4S_HOT2S__STANDBY_ZERO_BUSINESS_POLL__FROZEN_ZERO_BUSINESS_POLL_30S_CONTROL_ONLY__LEASE7S__NO_PERIODIC_WMS_PROBE__OA037_FIELD_READY",
-    "ui_design_guard": "D118_CANDIDATE__PROFESSIONAL_SERVER_AUTHORITATIVE_SLA__PAGINATION__ANDROID_IME_RESIZE__AGENT_FOOTER",
+    "quota_resilience": "D118_INHERITS_D117_QUOTA_MODEL__PRIMARY_IDLE4S_HOT2S__STANDBY_FROZEN_ZERO_BUSINESS_POLL__LEASE7S__NO_PERIODIC_WMS_PROBE__OA038_FIELD_READY",
+    "ui_design_guard": "D118_MAIN_UI_PASS_RUN_36064078112__SERVER_AUTHORITATIVE_SLA__PAGINATION__ANDROID_IME_RESIZE__AGENT_FOOTER",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
-    "reporting": "D118_CANDIDATE__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SELECTED_RANGE_FILTER_AUTHORITY",
+    "reporting": "D118_RUNTIME_PASS__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SELECTED_RANGE_FILTER__OA038_FIELD_READY",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D118_CANDIDATE__D117_RELAY_HA_PRESERVED__FLEET_OVERTIME_DECISION_FIX__TARGET_AGENT_V38__OA038_BLOCKED_UNTIL_RELEASE"
+    "picklist_confirmation_poc": "D118_TECHNICAL_RUNTIME_RELEASE_PASS__BETA_VC74__AGENT_V38__D117_HA_PRESERVED__FLEET_OVERTIME_CAS__OA038_FIELD_READY"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -160,7 +160,8 @@
     "D086 PR #92 merged to main at 207a57be6c4d95ab48d174b8af154f122bec7c5e; main Verify Beta Relay Agent run 35490227885 PASS built/startup-smoked Agent v11 and published prerelease relay-agent-v11. Release asset SUPRA-Inventory-Relay-Test.exe is 148992 bytes with SHA-256 dce3a779c86096a6a82ed1991e385e7e6acea2d9ba75078e8bf2371eb1387659; main UI Design Guard run 35490227907 PASS.",
     "D087 PR #94 merged to main at 8b0e3ec3fd1a6fffea09e3f4aafd43e544625f58; final PR gates PASS: Project State 35495453237, Repo Authority 35495453239, RTDB Rules 35495453228, Relay Agent 35495453233, UI Design 35495453255 and Android verify 35495453242.",
     "D087 relay-agent-v12 GitHub tag is published and resolves to VERSION 12. Agent-only RTDB support changes did not advance Android: beta-vc52 remains present and beta-vc53 is absent.",
-    "D110 Beta technical/runtime/release PASS: Reporter pinned four-tab Android workflow, authoritative badges, direct primary actions, local zero-poll minute SLA clock, canonical branding, and ADMIN/ROOT Android server denial released as signed beta-vc66."
+    "D110 Beta technical/runtime/release PASS: Reporter pinned four-tab Android workflow, authoritative badges, direct primary actions, local zero-poll minute SLA clock, canonical branding, and ADMIN/ROOT Android server denial released as signed beta-vc66.",
+    "D118 Beta technical/runtime/release PASS: fleet-wide overtime CAS, real paged Web history/SKU/logs, revision-safe SLA, detailed multi-sheet Excel, Agent footer and Android IME resize"
   ],
   "pending_build": [
     "D116 technical/runtime/release PASS: PR #175 merged main 9319eb30; Authority/State/UI/Worker/Android/Agent main runs PASS; live Beta exact source schema 11/11 Operational V2 5/5; signed beta-vc72 + relay-agent-v35 and fixed runtime channel published. OA036 Owner field review remains; Stable untouched.",
@@ -173,7 +174,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "OA036 D116 READY: field-test signed beta-vc72 + relay-agent-v35 with one healthy PRIMARY/no failover; require Android create→terminal result RTT <5,000 ms, verify reduced Firestore read trend, durable App result, automatic affected-Picker detail, SKU workspace and Picker-only bulk exclusions.",
+    "OA038 D118 READY: field-test signed beta-vc74 + relay-agent-v38 for fleet-wide overtime CAS without role promotion, inherited D117 proactive failover/fencing, real Web pagination, revision-safe SLA, detailed six-sheet Excel, Agent footer and Android tabs above IME.",
     "OA026 D106 physical credential acceptance: one post-D106 ADMIN password set -> unchanged Agent v30 direct login, plus one fresh ADMIN Web create -> immediate Agent login; verify no ghost-account-on-error.",
     "OA025 D105 physical acceptance: Android 4-digit input, dimmed in-flight confirm button, prominent terminal result, Agent manual 3–4 digit search, and unique 4-digit full-PickList resolution.",
     "OA022 D102 physical Agent v27 acceptance: one Tổng quan layout, manual update, >=2 Agent role convergence, fleet table, 21:30 five-minute warning, 22:00 default business pause, explicit continue/stop and 05:00 automatic resume.",
@@ -191,7 +192,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "OA036: Owner field-tests live Beta Web + signed beta-vc72 + relay-agent-v35. Verify healthy PRIMARY/no-failover Android create→terminal result remains <5s, Firestore read trend is materially lower than D115 2s, App terminal result remains visible after input reset, and Web Operations/SKU/Users behave as specified. Record D116 Owner PASS only after explicit Owner confirmation; Stable remains OWNER-GATED.",
+  "next_action": "OA038: Owner field-tests live Beta Web + signed beta-vc74 + relay-agent-v38. Record D118 Owner PASS only after fleet overtime CAS, inherited D117 HA/fencing, pagination, authoritative SLA, detailed export, Agent footer and Android keyboard behavior pass; Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -217,7 +218,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D118 OWNER-APPROVED IMPLEMENTATION CANDIDATE: fleet-wide overtime CAS, real pagination for history/SKU/logs, revision-safe server-authoritative SLA, detailed multi-sheet Excel, Agent footer and Android IME resize. Target Agent v38 + next signed beta-vc74; D117 remains live until release; Stable untouched.",
+      "D118 TECHNICAL/RUNTIME/RELEASE PASS: PR #181 merged main d29237c0; live Beta exact source, signed beta-vc74 and relay-agent-v38 released; OA038 field-ready. D117 proactive HA/fencing preserved; Stable untouched.",
       "D117 FINAL TECHNICAL/RUNTIME/RELEASE PASS: live Beta Web/APK remains exact bbb6c83b with signed beta-vc73; final hardened relay-agent-v37 is released from e583d20d. Authority/State/UI/Agent main gates PASS. OA037 is field-ready; Stable untouched.",
       "D116 TECHNICAL/RUNTIME/RELEASE PASS: main 9319eb30 with live exact-source Beta Web, signed beta-vc72 and relay-agent-v35. OA036 Owner field review remains; Stable untouched.",
       "D115 OWNER FIELD REVIEW: technical/runtime/release PASS on main bcbabc09 with beta-vc71 + relay-agent-v34. OA035 must verify healthy PRIMARY/no-failover <5s Android RTT plus cleanup and ACK-recovery behavior. Stable untouched.",
@@ -256,7 +257,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "Finish D118 PR/main gates and release target Agent v38 + signed beta-vc74, then field-test under OA038.",
+      "OA038: Owner field-tests live Beta Web + beta-vc74 + relay-agent-v38 for fleet-wide overtime CAS, D117 HA regression, real pagination, revision-safe SLA, detailed Excel, Agent footer and Android keyboard-safe tabs.",
       "OA036: Owner field-tests live Beta Web + beta-vc72 + relay-agent-v35 and replies PASS or itemized defects.",
       "D110 OA030: Owner field-tests signed beta-vc66 Reporter pinned tabs/badges/direct actions/local SLA clock/icon/footer and ADMIN/ROOT Android denial.",
       "READY: wait for the Owner's next requirement; bootstrap canonical GitHub authority before any new work. Preserve D109 accepted Beta baseline and Stable OWNER-GATED.",
@@ -558,7 +559,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-09-24",
+  "last_updated": "2026-09-25",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -723,13 +724,13 @@
     "D115 release evidence: beta-vc71 release 395262617 asset 585009621 size 19019872 sha256 f1137dccd460133e5fdc41836658c6bb6b41a885f41f4ba16ca908a0c96d3d1d; relay-agent-v34 release 395262208 asset 585008591 size 294400 sha256 eef4e6e6bbb20f7fad223ba4c7a7081200eecbe74af1e43c4335fd78034f4285; both tags resolve to bcbabc09. Fixed inventory-channel refreshed with PDA manifest/APK 585009672/585009671 and Agent manifest/EXE 585008719/585008720."
   ],
   "last_runtime_evidence": {
-    "signed_beta_release": "beta-vc73",
-    "signed_beta_release_source_commit": "bbb6c83b3f75d234f8220d8ef42b22c3105d9964",
-    "signed_beta_release_id": 395643209,
-    "signed_beta_apk_asset_id": 585884830,
+    "signed_beta_release": "beta-vc74",
+    "signed_beta_release_source_commit": "d29237c0990eb677ddef726785a88e08bce88dce",
+    "signed_beta_release_id": 396107357,
+    "signed_beta_apk_asset_id": 586922345,
     "signed_beta_apk_size_bytes": 19019872,
-    "signed_beta_apk_sha256": "6eccfd7ecaa284067e88fc08c4faac55438dceeab7f735fa45fead991361204b",
-    "relay_agent_release": "relay-agent-v37",
+    "signed_beta_apk_sha256": "c515a17456d3384a2433feb04df5b2fce8d3487a519fbb2d8522ba8a8dc756b1",
+    "relay_agent_release": "relay-agent-v38",
     "d109": "TECHNICAL_RUNTIME_RELEASE_PASS__OA029_FIELD_READY",
     "d109_main": "367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94",
     "d109_pr": 154,
@@ -748,7 +749,7 @@
       "ui": 35809583663,
       "android": 35809583599
     },
-    "live_health": "HTTP_200__STATUS_OK__ENV_BETA__SOURCE_EXACT_92AFF2FD__STORAGE_TRUE__SCHEMA_11_11__MISSING_0__AGENT_MIGRATION_0_0__OPERATIONAL_5_5",
+    "live_health": "HTTP_200_ATTEMPT_1__STATUS_OK__ENV_BETA__SOURCE_EXACT_D29237C0__STORAGE_TRUE__SCHEMA_11_11__MISSING_0__AGENT_MIGRATION_0_0__OPERATIONAL_5_5",
     "d110": "TECHNICAL_RUNTIME_RELEASE_PASS__OA030_FIELD_READY",
     "d110_main": "e7931cf892978332960e63d9a17dffe454ac1c43",
     "d110_pr": 157,
@@ -775,10 +776,10 @@
     "d112_branch": "feat/d112-web-android-agent-ops-hardening",
     "d112_target_android": "NEXT_AFTER_BETA_VC67",
     "d112_target_agent": "relay-agent-v31",
-    "relay_agent_release_id": 395676931,
-    "relay_agent_exe_asset_id": 585941375,
-    "relay_agent_exe_size_bytes": 303104,
-    "relay_agent_exe_sha256": "28e79bf2d9e703ffc5b8ef8b074e1c2810ccb1e1dd4eecba08d9772748375a03",
+    "relay_agent_release_id": 396107251,
+    "relay_agent_exe_asset_id": 586921932,
+    "relay_agent_exe_size_bytes": 305664,
+    "relay_agent_exe_sha256": "24961379327c441a6d686ac4059fd9020ce91d6ee8564cab6c2c2a1893f65bf0",
     "d112_main": "92aff2fd7b617af9f8f7706e84a5232b81aab42a",
     "d112_pr": 162,
     "d112_pr_runs": {
@@ -854,6 +855,31 @@
     "d117_inventory_channel_pda_manifest_asset_id": 585884876,
     "d117_inventory_channel_pda_asset_id": 585884875,
     "d117_inventory_channel_agent_manifest_asset_id": 585941439,
-    "d117_inventory_channel_agent_asset_id": 585941442
+    "d117_inventory_channel_agent_asset_id": 585941442,
+    "d118": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC74__AGENT_V38__OA038_FIELD_READY",
+    "d118_main": "d29237c0990eb677ddef726785a88e08bce88dce",
+    "d118_pr": 181,
+    "d118_main_runs": {
+      "repo_authority": 36064078289,
+      "project_state": 36064078114,
+      "ui": 36064078112,
+      "beta_worker": 36064078233,
+      "android": 36064078150,
+      "relay_agent": 36064078151
+    },
+    "d118_pr_runs": {
+      "repo_authority": 36015364305,
+      "project_state": 36015364214,
+      "ui": 36015364218,
+      "android": 36015364294,
+      "relay_agent": 36015364286,
+      "firestore": 36015364874,
+      "rtdb": 36015364314
+    },
+    "d118_inventory_channel_release_id": 394587029,
+    "d118_inventory_channel_pda_manifest_asset_id": 586922418,
+    "d118_inventory_channel_pda_asset_id": 586922421,
+    "d118_inventory_channel_agent_manifest_asset_id": 586921987,
+    "d118_inventory_channel_agent_asset_id": 586921986
   }
 }
