@@ -2474,12 +2474,22 @@ async function loadCompleteReporterQueue(): Promise<Awaited<ReturnType<typeof ge
 async function loadOperationsSnapshot(): Promise<void> {
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const [queue, recent] = await Promise.all([loadCompleteReporterQueue(), getReporterRecent(200)]);
+  const recentStatus = recentFilter === "ALL" ? "" : recentFilter;
+  const [queue, recent] = await Promise.all([
+    loadCompleteReporterQueue(),
+    getReporterRecent(RECENT_PAGE_SIZE, recentOffset, recentStatus),
+  ]);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   const serverNow = queue.server_now ? Date.parse(queue.server_now) : NaN;
   queueServerOffsetMs = Number.isFinite(serverNow) ? serverNow - Date.now() : 0;
   queueRows = queue.items;
+  if (recent.total > 0 && recentOffset >= recent.total) {
+    recentOffset = Math.max(0, Math.floor((recent.total - 1) / RECENT_PAGE_SIZE) * RECENT_PAGE_SIZE);
+    return loadOperationsSnapshot();
+  }
   recentRows = recent.items;
+  recentTotal = recent.total;
+  recentTotals = recent.totals;
   syncOperationsNavBadge();
   if (selectedBatchId && !queueRows.some((row) => row.batch_id === selectedBatchId)) selectedBatchId = null;
   const selected = queueRows.find((row) => row.batch_id === selectedBatchId) || filteredQueueRows()[0] || queueRows[0];
@@ -2512,9 +2522,17 @@ async function loadOperations(): Promise<void> {
 async function loadPicker(): Promise<void> {
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const [reports, results] = await Promise.all([getPickerReportsV2(120), getPickerResultsV2(120)]);
+  const [reports, results] = await Promise.all([
+    getPickerReportsV2(PICKER_REPORT_PAGE_SIZE, pickerReportOffset, "APP_TODAY_OPEN"),
+    getPickerResultsV2(120),
+  ]);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+  if (reports.total > 0 && pickerReportOffset >= reports.total) {
+    pickerReportOffset = Math.max(0, Math.floor((reports.total - 1) / PICKER_REPORT_PAGE_SIZE) * PICKER_REPORT_PAGE_SIZE);
+    return loadPicker();
+  }
   pickerReports = reports.items;
+  pickerReportTotal = reports.total;
   pickerResults = results.items;
   markWebUpdateReceived();
   for (const result of pickerResults.filter((row) => !row.acknowledged_at && !markedResultEvents.has(row.result_event_id))) {
@@ -2525,18 +2543,20 @@ async function loadPicker(): Promise<void> {
 }
 
 async function loadSla(): Promise<void> {
+  const loadGeneration = ++slaLoadGeneration;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
   const range = apiRange(dateDaysAgo(6), dateDaysAgo(0));
   const nextSla = await getAdminSla();
-  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+  if (loadGeneration !== slaLoadGeneration || generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   slaResponse = nextSla;
   markWebUpdateReceived();
   if (activeSection === "sla") patchActiveSection(true);
   try {
     const nextInsights = await getAdminOperationalInsights(range.from, range.to);
-    if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+    if (loadGeneration !== slaLoadGeneration || generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
     operationalInsights = nextInsights;
+    if (activeSection === "sla") patchActiveSection(true);
   } catch (error) {
     runtimeLogEvent(`Không tải được thống kê SLA phụ: ${error instanceof Error ? error.message : "unknown"}`, "ERROR");
   }
@@ -2609,11 +2629,16 @@ async function loadSkuWorkspace(): Promise<void> {
   const userId = profile?.user_id || "";
   const [catalog, result] = await Promise.all([
     getSkuCatalogInfo(),
-    searchSkus(skuAdminQuery, 100),
+    searchSkus(skuAdminQuery, SKU_PAGE_SIZE, skuAdminOffset),
   ]);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+  if (result.total > 0 && skuAdminOffset >= result.total) {
+    skuAdminOffset = Math.max(0, Math.floor((result.total - 1) / SKU_PAGE_SIZE) * SKU_PAGE_SIZE);
+    return loadSkuWorkspace();
+  }
   skuCatalogInfo = catalog;
   skuAdminItems = result.items;
+  skuAdminTotal = result.total;
   markWebUpdateReceived();
 }
 
@@ -2671,9 +2696,11 @@ async function loadLogs(): Promise<void> {
     return;
   }
   runtimeLogSource = logView;
-  const result = await getRuntimeLogs(runtimeLogSource, 500, logDays);
+  const pageToken = runtimeLogPageTokens[runtimeLogPageIndex] || "";
+  const result = await getRuntimeLogs(runtimeLogSource, RUNTIME_LOG_PAGE_SIZE, logDays, pageToken);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   runtimeLogs = result.items;
+  runtimeLogNextPageToken = result.next_page_token || "";
   if (runtimeLogDetail && !runtimeLogs.some((item) => item.id === runtimeLogDetail?.file.id)) runtimeLogDetail = null;
   markWebUpdateReceived();
 }
