@@ -23,7 +23,8 @@ service cloud.firestore {
         ])
         && request.resource.data.request_id == jobId
         && request.resource.data.suffix is string
-        && request.resource.data.suffix.matches('^[0-9]{3,20}        && request.resource.data.status == 'PENDING'
+        && request.resource.data.suffix.matches('^[0-9]{3,20}$')
+        && request.resource.data.status == 'PENDING'
         && request.resource.data.source == 'ANDROID_CONFIRM_V1'
         && request.resource.data.picker_uid == request.auth.uid
         && request.resource.data.picker_user_id == request.auth.token.app_user_id
