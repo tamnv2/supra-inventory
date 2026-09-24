@@ -1447,8 +1447,9 @@ function renderResults(): string {
 }
 
 function renderPicker(): string {
-  const today = dateDaysAgo(0);
-  const reports = pickerReports.filter((row) => todayKey(row.reported_at) === today);
+  const reports = pickerReports;
+  const pageFrom = pickerReportTotal ? pickerReportOffset + 1 : 0;
+  const pageTo = Math.min(pickerReportTotal, pickerReportOffset + pickerReports.length);
   return `<section class="picker-workspace"><div class="page-head"><div><h1>Báo SKU hết hàng</h1></div></div>
     <div class="card"><input id="picker-sku-input" class="sku-input picker-input" placeholder="Nhập / quét SKU" value="${esc(pickerQuery)}" autocomplete="off" />
       ${pickerSuggestions.length ? `<div class="suggestions">${pickerSuggestions.slice(0, 12).map((item) => `<button class="suggestion" data-pick-sku="${esc(item.sku)}"><strong>${esc(item.sku)}</strong> · ${esc(item.product_name)}</button>`).join("")}</div>` : ""}
@@ -1456,14 +1457,17 @@ function renderPicker(): string {
       <button id="picker-report" class="btn report-button" ${!pickerSelected || !onlineForMutation() || busy ? "disabled" : ""}>BÁO HẾT HÀNG</button>
       ${!onlineForMutation() ? `<div class="notice warning">Cần kết nối mạng để báo hàng. Hệ thống không có chế độ offline.</div>` : ""}
     </div>
-    <div class="page-head"><div><h1 style="font-size:18px">BÁO HÔM NAY</h1></div></div>
-    <div class="history-list">${reports.length ? reports.map((row) => { const effectiveStatus = row.resolution === "SKIP_ALLOWED" ? "SKIP_ALLOWED" : row.batch_status || row.status; const state = effectiveStatus === "HAS_STOCK" ? "ok" : effectiveStatus === "SKIP_ALLOWED" ? "skip" : row.status === "WITHDRAWN" || effectiveStatus === "CLOSED" ? "closed" : "pending"; const canWithdraw = row.status === "OPEN" && !row.auto_skip_allowed_at && Date.now() <= Date.parse(row.withdraw_deadline_at); return `<article class="history-card ${state}"><div><strong>${esc(row.sku)}</strong><div class="product-name">${esc(row.product_name)}</div><div class="tiny muted">${esc(fmt(row.reported_at))} · ${esc(statusLabel(effectiveStatus))}${row.resolution_source === "SYSTEM_TIMEOUT" ? " · Hệ thống tự động do quá hạn" : ""}${row.result_event_id && !row.acknowledged_at ? " · Chưa xác nhận kết quả" : ""}</div>${row.auto_skip_deadline_at && !row.auto_skip_allowed_at ? `<div class="tiny muted">Mốc tự động: ${esc(fmt(row.auto_skip_deadline_at))}</div>` : ""}</div>${canWithdraw ? `<button class="btn secondary small" data-withdraw="${esc(row.ticket_id)}">Thu hồi</button>` : ""}</article>`; }).join("") : `<div class="card empty">Hôm nay chưa có báo hàng.</div>`}</div>
+    <div class="page-head"><div><h1 style="font-size:18px">BÁO HÔM NAY & CHƯA XỬ LÝ</h1><p class="tiny muted">Hiển thị báo hôm nay và các báo cũ chưa hoàn tất.</p></div></div>
+    <div class="history-list">${reports.length ? reports.map((row) => { const effectiveStatus = row.resolution === "SKIP_ALLOWED" ? "SKIP_ALLOWED" : row.batch_status || row.status; const state = effectiveStatus === "HAS_STOCK" ? "ok" : effectiveStatus === "SKIP_ALLOWED" ? "skip" : row.status === "WITHDRAWN" || effectiveStatus === "CLOSED" ? "closed" : "pending"; const canWithdraw = row.status === "OPEN" && !row.auto_skip_allowed_at && Date.now() <= Date.parse(row.withdraw_deadline_at); return `<article class="history-card ${state}"><div><strong>${esc(row.sku)}</strong><div class="product-name">${esc(row.product_name)}</div><div class="tiny muted">${esc(fmt(row.reported_at))} · ${esc(statusLabel(effectiveStatus))}${row.resolution_source === "SYSTEM_TIMEOUT" ? " · Hệ thống tự động do quá hạn" : ""}${row.result_event_id && !row.acknowledged_at ? " · Chưa xác nhận kết quả" : ""}</div>${row.auto_skip_deadline_at && !row.auto_skip_allowed_at ? `<div class="tiny muted">Mốc tự động: ${esc(fmt(row.auto_skip_deadline_at))}</div>` : ""}</div>${canWithdraw ? `<button class="btn secondary small" data-withdraw="${esc(row.ticket_id)}">Thu hồi</button>` : ""}</article>`; }).join("") : `<div class="card empty">Không có báo hàng phù hợp.</div>`}</div>
+    <div class="user-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${pickerReportTotal.toLocaleString("vi-VN")}</span><div><button class="secondary" id="picker-history-prev" ${pickerReportOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="picker-history-next" ${pickerReportOffset + PICKER_REPORT_PAGE_SIZE >= pickerReportTotal ? "disabled" : ""}>Trang sau</button></div></div>
   </section>`;
 }
 
 function renderSku(): string {
   const wb = pendingWorkbook;
   const catalogCount = skuCatalogInfo?.count ?? 0;
+  const pageFrom = skuAdminTotal ? skuAdminOffset + 1 : 0;
+  const pageTo = Math.min(skuAdminTotal, skuAdminOffset + skuAdminItems.length);
   const updatedAt = skuCatalogInfo?.max_updated_at ? fmt(skuCatalogInfo.max_updated_at) : "Chưa có dữ liệu";
   const version = skuCatalogInfo?.version || "—";
   return `<section class="ops-route sku-workspace">
@@ -1484,7 +1488,7 @@ function renderSku(): string {
         <div class="table-wrap sku-catalog-table"><table><thead><tr><th>SKU</th><th>Tên sản phẩm</th><th>Cập nhật</th></tr></thead><tbody>
           ${skuAdminItems.length ? skuAdminItems.map((item) => `<tr><td><strong>${esc(item.sku)}</strong></td><td>${esc(item.product_name)}</td><td>${item.updated_at ? esc(fmt(item.updated_at)) : "—"}</td></tr>`).join("") : `<tr><td colspan="3" class="ops-empty-cell">Không có SKU phù hợp.</td></tr>`}
         </tbody></table></div>
-        <div class="tiny muted sku-result-count">Đang hiển thị ${skuAdminItems.length.toLocaleString("vi-VN")} SKU${skuAdminQuery ? " theo từ khóa đã nhập" : " đầu tiên"}.</div>
+        <div class="user-pagination sku-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${skuAdminTotal.toLocaleString("vi-VN")} SKU${skuAdminQuery ? " phù hợp" : ""}</span><div><button class="secondary" id="sku-prev" ${skuAdminOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="sku-next" ${skuAdminOffset + SKU_PAGE_SIZE >= skuAdminTotal ? "disabled" : ""}>Trang sau</button></div></div>
       </article>
       <article class="ops-panel">
         <div class="ops-panel-title"><div><h3>Cập nhật danh mục từ Excel</h3><p>File được kiểm tra trước khi ghi. SKU trùng mã nhưng khác tên phải được xác nhận rõ ràng.</p></div></div>
