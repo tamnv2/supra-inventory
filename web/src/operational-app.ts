@@ -2726,12 +2726,19 @@ async function loadTools(): Promise<void> {
 async function exportReportsExcel(): Promise<void> {
   const range = apiRange(reportFrom, reportTo);
   const rows: AdminReportingRow[] = [];
-  let offset = 0;
-  let total = 0;
+  const details: AdminReportingDetailRow[] = [];
   const pageSize = 500;
   const maxRows = 100_000;
+  const maxDetailRows = 100_000;
   const started = performance.now();
 
+  const [summary, insights] = await Promise.all([
+    getAdminDashboard(range.from, range.to),
+    getAdminOperationalInsights(range.from, range.to),
+  ]);
+
+  let offset = 0;
+  let total = 0;
   do {
     const page = await getAdminReporting({
       from: range.from,
@@ -2745,25 +2752,55 @@ async function exportReportsExcel(): Promise<void> {
     rows.push(...page.items);
     offset += page.items.length;
     if (!page.items.length) break;
-    if (rows.length > maxRows) throw new Error(`Bộ lọc có hơn ${maxRows.toLocaleString("vi-VN")} dòng; hãy thu hẹp khoảng ngày trước khi xuất.`);
+    if (rows.length > maxRows) {
+      throw new Error(`Bộ lọc có hơn ${maxRows.toLocaleString("vi-VN")} đợt báo hàng; hãy thu hẹp khoảng ngày trước khi xuất.`);
+    }
   } while (offset < total);
-  markWebUpdateReceived();
 
-  downloadReportWorkbook(rows, {
-    from: reportFrom,
-    to: reportTo,
-    status: reportStatus,
-    query: reportQuery,
-    generatedAt: new Date(),
-  }, statusLabel);
-  runtimeLogMetric("EXPORT", "report_excel", {
-    rows: rows.length,
+  offset = 0;
+  total = 0;
+  do {
+    const page = await getAdminReportingDetail({
+      from: range.from,
+      to: range.to,
+      status: reportStatus,
+      query: reportQuery,
+      limit: pageSize,
+      offset,
+    });
+    total = page.total;
+    details.push(...page.items);
+    offset += page.items.length;
+    if (!page.items.length) break;
+    if (details.length > maxDetailRows) {
+      throw new Error(`Bộ lọc có hơn ${maxDetailRows.toLocaleString("vi-VN")} dòng chi tiết Picker; hãy thu hẹp khoảng ngày trước khi xuất.`);
+    }
+  } while (offset < total);
+
+  markWebUpdateReceived();
+  downloadReportWorkbook(
+    rows,
+    details,
+    summary,
+    insights,
+    {
+      from: reportFrom,
+      to: reportTo,
+      status: reportStatus,
+      query: reportQuery,
+      generatedAt: new Date(),
+    },
+    statusLabel,
+  );
+  runtimeLogMetric("EXPORT", "report_excel_detailed", {
+    batch_rows: rows.length,
+    picker_rows: details.length,
     from: reportFrom,
     to: reportTo,
     status: reportStatus || "ALL",
     has_query: Boolean(reportQuery),
   }, performance.now() - started);
-  setNotice("success", `Đã xuất ${rows.length.toLocaleString("vi-VN")} dòng ra file Excel.`);
+  setNotice("success", `Đã xuất Excel chi tiết: ${rows.length.toLocaleString("vi-VN")} đợt và ${details.length.toLocaleString("vi-VN")} dòng Picker.`);
 }
 
 async function loadSection(section: Section): Promise<void> {
