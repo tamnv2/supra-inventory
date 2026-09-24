@@ -247,7 +247,7 @@ namespace SupraInventoryRelayAgent
                 var session = _sessionProvider();
                 WriteScheduleFields(session, scheduleKey, decision, boundaryMs, relayOverrideUntilMs);
                 SetSharedSchedule(scheduleKey, decision, boundaryMs, relayOverrideUntilMs);
-                _log("FIRESTORE SCHEDULE decision=" + Safe(decision) +
+                _log("FIRESTORE SCHEDULE decision=" + AgentDiagnostics.Sanitize(decision ?? "") +
                      " boundary_ms=" + boundaryMs +
                      " relay_until_ms=" + relayOverrideUntilMs +
                      " by=PRIMARY");
