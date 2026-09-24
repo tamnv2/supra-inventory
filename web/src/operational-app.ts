@@ -3095,6 +3095,9 @@ function bindSection(): void {
     logView = next;
     if (next !== "AUDIT") runtimeLogSource = next;
     runtimeLogDetail = null;
+    runtimeLogPageTokens = [""];
+    runtimeLogPageIndex = 0;
+    runtimeLogNextPageToken = "";
     auditOffset = 0;
     void run(loadLogs);
   }));
@@ -3112,6 +3115,9 @@ function bindSection(): void {
     logDays = days;
     auditOffset = 0;
     runtimeLogDetail = null;
+    runtimeLogPageTokens = [""];
+    runtimeLogPageIndex = 0;
+    runtimeLogNextPageToken = "";
     void run(loadLogs);
   }));
 
@@ -3129,6 +3135,20 @@ function bindSection(): void {
   });
   document.querySelector<HTMLButtonElement>("#audit-next")?.addEventListener("click", () => {
     auditOffset += AUDIT_PAGE_SIZE;
+    void run(loadLogs);
+  });
+  document.querySelector<HTMLButtonElement>("#runtime-log-prev")?.addEventListener("click", () => {
+    if (runtimeLogPageIndex <= 0) return;
+    runtimeLogPageIndex -= 1;
+    runtimeLogDetail = null;
+    void run(loadLogs);
+  });
+  document.querySelector<HTMLButtonElement>("#runtime-log-next")?.addEventListener("click", () => {
+    if (!runtimeLogNextPageToken) return;
+    const nextIndex = runtimeLogPageIndex + 1;
+    runtimeLogPageTokens[nextIndex] = runtimeLogNextPageToken;
+    runtimeLogPageIndex = nextIndex;
+    runtimeLogDetail = null;
     void run(loadLogs);
   });
   document.querySelector<HTMLButtonElement>("#copy-pda-link")?.addEventListener("click", async () => {
@@ -3179,9 +3199,21 @@ function bindSection(): void {
     setNotice("success", "Đã sửa kết quả thành Có hàng.");
   })));
   document.querySelectorAll<HTMLButtonElement>("[data-result-filter]").forEach((button) => button.addEventListener("click", () => {
-    recentFilter = button.dataset.resultFilter as typeof recentFilter;
-    patchActiveSection();
+    const next = button.dataset.resultFilter as typeof recentFilter;
+    if (!["ALL", "HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(next)) return;
+    recentFilter = next;
+    recentOffset = 0;
+    void run(loadOperations);
   }));
+  document.querySelector<HTMLButtonElement>("#recent-prev")?.addEventListener("click", () => {
+    recentOffset = Math.max(0, recentOffset - RECENT_PAGE_SIZE);
+    void run(loadOperations);
+  });
+  document.querySelector<HTMLButtonElement>("#recent-next")?.addEventListener("click", () => {
+    if (recentOffset + RECENT_PAGE_SIZE >= recentTotal) return;
+    recentOffset += RECENT_PAGE_SIZE;
+    void run(loadOperations);
+  });
 
   const pickerInput = document.querySelector<HTMLInputElement>("#picker-sku-input");
   let searchTimer = 0;
@@ -3236,15 +3268,35 @@ function bindSection(): void {
     await loadPicker();
     setNotice("success", "Đã thu hồi báo hàng.");
   })));
+  document.querySelector<HTMLButtonElement>("#picker-history-prev")?.addEventListener("click", () => {
+    pickerReportOffset = Math.max(0, pickerReportOffset - PICKER_REPORT_PAGE_SIZE);
+    void run(loadPicker);
+  });
+  document.querySelector<HTMLButtonElement>("#picker-history-next")?.addEventListener("click", () => {
+    if (pickerReportOffset + PICKER_REPORT_PAGE_SIZE >= pickerReportTotal) return;
+    pickerReportOffset += PICKER_REPORT_PAGE_SIZE;
+    void run(loadPicker);
+  });
 
   document.querySelector<HTMLFormElement>("#sku-admin-search-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget as HTMLFormElement);
     skuAdminQuery = String(data.get("query") || "").trim();
+    skuAdminOffset = 0;
     void run(loadSkuWorkspace);
   });
   document.querySelector<HTMLButtonElement>("#sku-admin-clear")?.addEventListener("click", () => {
     skuAdminQuery = "";
+    skuAdminOffset = 0;
+    void run(loadSkuWorkspace);
+  });
+  document.querySelector<HTMLButtonElement>("#sku-prev")?.addEventListener("click", () => {
+    skuAdminOffset = Math.max(0, skuAdminOffset - SKU_PAGE_SIZE);
+    void run(loadSkuWorkspace);
+  });
+  document.querySelector<HTMLButtonElement>("#sku-next")?.addEventListener("click", () => {
+    if (skuAdminOffset + SKU_PAGE_SIZE >= skuAdminTotal) return;
+    skuAdminOffset += SKU_PAGE_SIZE;
     void run(loadSkuWorkspace);
   });
 
