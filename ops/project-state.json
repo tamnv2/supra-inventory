@@ -13,26 +13,26 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D117_TECHNICAL_RUNTIME_RELEASE_PASS__WEB_APK_SOURCE_BBB6C83B__AGENT_SOURCE_E583D20D__SIGNED_BETA_VC73__AGENT_V37__OA037_FIELD_READY",
+    "beta": "D118_OWNER_APPROVED_IMPLEMENTATION_CANDIDATE__TARGET_WEB_BETA_VC74_AGENT_V38__D117_LIVE_UNTIL_RELEASE",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 11,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D116_WEB_FEATURES_LIVE_UNCHANGED__BETA_SOURCE_BBB6C83B__D117_AGENT_ONLY_HARDENING_PASS",
-    "android": "D117_SIGNED_BETA_VC73__20S_RELAY_TERMINAL_WINDOW__OA037_FIELD_READY",
+    "web": "D118_CANDIDATE__PAGED_HISTORY_SKU_LOGS__REVISION_SAFE_SLA__DETAILED_EXCEL__D117_LIVE_UNTIL_RELEASE",
+    "android": "D118_BETA_VC74_CANDIDATE__IME_ADJUST_RESIZE__D117_VC73_LIVE_UNTIL_RELEASE",
     "latest_beta_apk": "beta-vc73",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
-    "network_scope": "D117_TECHNICAL_PASS__PRIMARY_LEASE7S__PROACTIVE_FAILOVER10S__SCHEDULE_IN_LEASE__FROZEN_CONTROL30S__PRE_WMS_GENERATION_FENCE__FINAL20S_AGE_FENCE__STABLE_UNTOUCHED",
+    "network_scope": "D118_CANDIDATE__D117_HA_PRESERVED__FLEET_WIDE_OVERTIME_CAS__ANY_AUTHENTICATED_AGENT_CAN_DECIDE_WITHOUT_ROLE_PROMOTION__STABLE_UNTOUCHED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "D116_BETA_RUNTIME_PASS__PICKER_ONLY_BULK_SELECTION__ALL_WITH_EXCLUSIONS__ROOT_AND_NON_PICKER_PROTECTED",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D112_OWNER_ACCEPTED_PASS__EXISTING_METRICS_OPERATIONAL_HIERARCHY__NONBLOCKING_SECONDARY_LOAD",
     "quota_resilience": "D117_TECHNICAL_PASS__PRIMARY_IDLE4S_HOT2S__STANDBY_ZERO_BUSINESS_POLL__FROZEN_ZERO_BUSINESS_POLL_30S_CONTROL_ONLY__LEASE7S__NO_PERIODIC_WMS_PROBE__OA037_FIELD_READY",
-    "ui_design_guard": "D117_V37_MAIN_UI_PASS_RUN_36000749586__OA037_FIELD_READY",
+    "ui_design_guard": "D118_CANDIDATE__PROFESSIONAL_SERVER_AUTHORITATIVE_SLA__PAGINATION__ANDROID_IME_RESIZE__AGENT_FOOTER",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
-    "reporting": "D112_OWNER_ACCEPTED_PASS__FAST_PRIMARY_ROWS__30_60_90_AUDIT_VIEW__EXISTING_AUTHORITATIVE_METRICS_ONLY",
+    "reporting": "D118_CANDIDATE__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SELECTED_RANGE_FILTER_AUTHORITY",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D117_TECHNICAL_RUNTIME_RELEASE_PASS__BETA_VC73__AGENT_V37__PROACTIVE_IDLE_FAILOVER__20S_TARGET__HOURLY_FREEZE_CONTROL__OA037_FIELD_READY"
+    "picklist_confirmation_poc": "D118_CANDIDATE__D117_RELAY_HA_PRESERVED__FLEET_OVERTIME_DECISION_FIX__TARGET_AGENT_V38__OA038_BLOCKED_UNTIL_RELEASE"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -99,7 +99,8 @@
     "D113 Owner requirement: Web adopts the approved login reference while retaining project identity; pending queue badge and D112 notifications remain no-poll; warning/overdue/auto-Skip become independently switchable; Skip→Đã có hàng is globally switchable and expires from first report time; Android gains compact empty state/100% reset/friendly login/resolver identity; Agent gains explicit background action. Passwords may only be remembered by browser credential management, never plaintext application storage.",
     "D116 supersedes only D115 PRIMARY confirmation cadence to 3 seconds: STANDBY stays 10 seconds, FROZEN does not poll business work, Android remains listener-driven/no-poll, healthy-primary field target stays under 5 seconds; selected Web Picker detail reuses existing prefetch/cache; Picker bulk selection is Picker-only with server-authoritative exclusions.",
     "D117 Owner-approved relay model: Firestore-only PDA↔Agent; PRIMARY writes a generation-scoped 7-second lease, STANDBY proactively takes over after 10 seconds of missing lease without waiting for a PDA request, PRIMARY business polling is 4 seconds idle / 2 seconds hot, STANDBY/FROZEN do not business-poll, WMS is not periodically probed, relay operates 06:00–22:00 with PRIMARY-only five-minute warnings from HH:30 and one-hour overtime extensions, default freeze at each unconfirmed boundary, early-start before 06:00 claims PRIMARY, while direct/manual Agent confirmation remains available during relay sleep.",
-    "D117 final hardening: schedule decisions are propagated immediately in the generation-scoped PRIMARY lease; STANDBY continues lease reads to absorb late overtime decisions; FROZEN control-role refresh is 30s so early-start before 06:00 rebuilds standby topology promptly; every automatic WMS POST chunk revalidates current PRIMARY generation and the request is rechecked against the 20s automatic window immediately before mutation."
+    "D117 final hardening: schedule decisions are propagated immediately in the generation-scoped PRIMARY lease; STANDBY continues lease reads to absorb late overtime decisions; FROZEN control-role refresh is 30s so early-start before 06:00 rebuilds standby topology promptly; every automatic WMS POST chunk revalidates current PRIMARY generation and the request is rechecked against the 20s automatic window immediately before mutation.",
+    "D118 Owner-approved: overtime schedule decision may be submitted by any authenticated online Agent without role promotion; first Firestore CAS decision per schedule boundary is authoritative; Web large lists use real bounded pagination, SLA config is server-authoritative/revision-safe, export is detailed multi-sheet for selected range/filter, Agent shows product credit, and Android Picker tabs remain above IME via adjustResize."
   ],
   "completed_capabilities": [
     "Cloudflare Beta Worker/custom domain/InventoryCore SQLite provisioning",
@@ -216,6 +217,7 @@
   },
   "workboard": {
     "in_progress": [
+      "D118 OWNER-APPROVED IMPLEMENTATION CANDIDATE: fleet-wide overtime CAS, real pagination for history/SKU/logs, revision-safe server-authoritative SLA, detailed multi-sheet Excel, Agent footer and Android IME resize. Target Agent v38 + next signed beta-vc74; D117 remains live until release; Stable untouched.",
       "D117 FINAL TECHNICAL/RUNTIME/RELEASE PASS: live Beta Web/APK remains exact bbb6c83b with signed beta-vc73; final hardened relay-agent-v37 is released from e583d20d. Authority/State/UI/Agent main gates PASS. OA037 is field-ready; Stable untouched.",
       "D116 TECHNICAL/RUNTIME/RELEASE PASS: main 9319eb30 with live exact-source Beta Web, signed beta-vc72 and relay-agent-v35. OA036 Owner field review remains; Stable untouched.",
       "D115 OWNER FIELD REVIEW: technical/runtime/release PASS on main bcbabc09 with beta-vc71 + relay-agent-v34. OA035 must verify healthy PRIMARY/no-failover <5s Android RTT plus cleanup and ACK-recovery behavior. Stable untouched.",
@@ -254,7 +256,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "OA037: Owner field-tests beta-vc73 + relay-agent-v37 for healthy <10s, proactive idle failover <=10s, failover-path <=20s, hourly after-hours schedule/freeze, manual Agent during sleep, and early-start topology.",
+      "Finish D118 PR/main gates and release target Agent v38 + signed beta-vc74, then field-test under OA038.",
       "OA036: Owner field-tests live Beta Web + beta-vc72 + relay-agent-v35 and replies PASS or itemized defects.",
       "D110 OA030: Owner field-tests signed beta-vc66 Reporter pinned tabs/badges/direct actions/local SLA clock/icon/footer and ADMIN/ROOT Android denial.",
       "READY: wait for the Owner's next requirement; bootstrap canonical GitHub authority before any new work. Preserve D109 accepted Beta baseline and Stable OWNER-GATED.",
