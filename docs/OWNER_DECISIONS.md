@@ -880,3 +880,19 @@ Owner explicitly confirmed the released D114 Beta result as **PASS** after field
 The accepted D114 baseline includes exact trailing 3–20 digit PickList search, PDA one-at-a-time ambiguous candidate selection, Agent multi-term specialist search and specific result feedback, balanced Web Tools cards, and cross-section realtime queue-badge reconciliation without faster polling. SQLite remains 11; D097/D104 HA, batching, idempotency and fail-closed WMS guards remain authoritative; Stable remains OWNER-GATED.
 
 In the same message, Owner reported a **separate post-pass observation** from the newest Android log: some PickList confirmations appear slower and some requests can show the 10-second Agent failover notice then reach the 30-second no-result timeout even when the PickList may already have been confirmed. This is diagnostic evidence for a later follow-up decision; it does not revoke D114 acceptance and no new relay behavior is approved by this acceptance record.
+
+
+## D115 — Fast healthy-primary relay and ACK recovery — 2026-09-24
+
+Owner approved the post-D114 relay repair and added an explicit performance target: **when network/WMS are healthy and no Agent failover occurs, PDA send → terminal result back on PDA should complete in under 5 seconds**.
+
+1. D114 remains Owner-accepted. D115 is a separate Beta-only follow-up for relay latency/reliability.
+2. PRIMARY Firestore business-job polling changes from 5 seconds to **2 seconds**. STANDBY remains **10 seconds**, FROZEN still performs no business-job polling, and request-driven failover remains **10 seconds**. This D115 cadence supersedes the older D104/D114 “PRIMARY 5s” constraint only for the PRIMARY confirmation poll.
+3. The 2-second cadence is allowed only on the single elected PRIMARY and only while business processing is enabled. No Android polling, no extra coalescing query, no PROCESSING write and no new provider/resource are added.
+4. Android cleanup is removed from the confirmation critical path. Cleanup runs best-effort in one background worker, is scoped to the current Firebase UID, prunes legacy/foreign/permission-denied entries, and must never delay creation of a new confirmation request.
+5. Android keeps the Firestore snapshot listener as the normal response path. Before a 30-second terminal timeout it performs one bounded server read of that request to recover an ACK that may have been written but missed by the listener.
+6. The 10-second Android progress copy must not claim the PRIMARY is dead merely because no result has arrived. It reports continued waiting and that automatic standby takeover will occur if required.
+7. Agent v34 retries only the **Firestore ACK write/verification**, never the WMS mutation. After an uncertain ACK write, Agent performs server read-after-write; an already-visible ACK is treated as delivered. Conditional-write/idempotency guards remain authoritative.
+8. Agent adds redacted latency telemetry for queue age, business-processing time and ACK time. PickList values, tokens, credentials and WMS session material remain forbidden in logs.
+9. Target artifacts are signed Android **beta-vc71** and **relay-agent-v34**. SQLite remains 11; Web business behavior is unchanged; Stable remains OWNER-GATED.
+10. The under-5-second objective is a healthy-path field acceptance requirement, not a promise during WMS latency, network degradation, token recovery or Agent failover.
