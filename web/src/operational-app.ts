@@ -32,6 +32,7 @@ import {
   executeSystemReset,
   getHrSource,
   getMyProfile,
+  getSkuCatalogInfo,
   getReporterBatchTickets,
   getReporterQueue,
   getReporterRecent,
@@ -75,6 +76,7 @@ import {
   type SystemResetScope,
   type ReporterBatch,
   type ReporterRecentBatch,
+  type SkuCatalogInfo,
   type SkuItem,
   type SlaResponse,
   type SlaState,
@@ -315,9 +317,13 @@ let operationalInsights: OperationalInsights | null = null;
 let realtimePresence: RealtimePresence | null = null;
 let managedUsers: ManagedUser[] = [];
 let selectedUserIds = new Set<string>();
+let excludedPickerIds = new Set<string>();
 let hrSource: HrSourceResponse | null = null;
 let hrPreview: HrSyncPreview | null = null;
 let pendingWorkbook: ParsedSkuWorkbook | null = null;
+let skuCatalogInfo: SkuCatalogInfo | null = null;
+let skuAdminQuery = "";
+let skuAdminItems: SkuItem[] = [];
 let skuConflictChoices = new Map<string, string>();
 let skuImportProgress = "";
 let dashboardData: AdminDashboard | null = null;
@@ -1240,10 +1246,10 @@ function filteredQueueRows(): ReporterBatch[] {
   return queueRows.filter((row) => liveQueueTiming(row).state === queueFilter);
 }
 
-function pickerDetailMarkup(batchId: string, details: BatchPickerTicket[] | undefined): string {
-  if (!expandedBatchDetails.has(batchId)) return "";
-  if (!details) return `<div class="detail picker-detail-panel"><div class="picker-detail-loading">Đang tải danh sách Picker...</div></div>`;
-  return `<div class="detail picker-detail-panel"><div class="picker-detail-list">${details.map((item) => `
+function pickerDetailMarkup(batchId: string, details: BatchPickerTicket[] | undefined, forceVisible = false): string {
+  if (!forceVisible && !expandedBatchDetails.has(batchId)) return "";
+  if (!details) return `<div class="detail picker-detail-panel"><div class="picker-detail-title"><strong>Picker ảnh hưởng</strong></div><div class="picker-detail-loading">Đang tải danh sách Picker...</div></div>`;
+  return `<div class="detail picker-detail-panel"><div class="picker-detail-title"><strong>Picker ảnh hưởng</strong><span>${details.length.toLocaleString("vi-VN")} người</span></div><div class="picker-detail-list">${details.map((item) => `
     <div class="picker-detail-row">
       <strong>${esc(item.picker_employee_code)}</strong>
       <span>${esc(item.picker_display_name || "—")}</span>
@@ -1267,8 +1273,8 @@ function renderFastDetail(selected: ReporterBatch | null): string {
     </dl>
     ${selected.previous_batch_id ? `<div class="fast-warning">SKU này đã phát sinh lại sau lần xử lý trước.</div>` : ""}
     ${pendingResolution ? `<div class="fast-action-pending" role="status">Đang gửi xác nhận ${pendingResolution === "HAS_STOCK" ? "Có hàng" : "Bỏ qua"}…</div>` : ""}
-    <div class="fast-actions"><button class="primary" data-resolve="HAS_STOCK" data-batch="${esc(selected.batch_id)}" ${pendingResolution ? "disabled" : ""}>ĐÃ CÓ HÀNG</button><button class="danger" data-skip-batch="${esc(selected.batch_id)}" ${pendingResolution ? "disabled" : ""}>CHO PHÉP BỎ QUA</button><button class="secondary" data-detail="${esc(selected.batch_id)}">${expandedBatchDetails.has(selected.batch_id) ? "Ẩn danh sách Picker" : "Xem Picker ảnh hưởng"}</button></div>
-    ${pickerDetailMarkup(selected.batch_id, batchDetails.get(selected.batch_id))}`;
+    <div class="fast-actions"><button class="primary" data-resolve="HAS_STOCK" data-batch="${esc(selected.batch_id)}" ${pendingResolution ? "disabled" : ""}>ĐÃ CÓ HÀNG</button><button class="danger" data-skip-batch="${esc(selected.batch_id)}" ${pendingResolution ? "disabled" : ""}>CHO PHÉP BỎ QUA</button></div>
+    ${pickerDetailMarkup(selected.batch_id, batchDetails.get(selected.batch_id), true)}`;
 }
 
 function refreshFastDetailOnly(): void {
@@ -1423,15 +1429,38 @@ function renderPicker(): string {
 
 function renderSku(): string {
   const wb = pendingWorkbook;
-  return `<section class="ops-route">
-    <div class="heading"><div><h2>Danh mục SKU</h2></div></div>
-    <article class="ops-panel">
-      <div class="ops-panel-title"><div><h3>Cập nhật danh mục SKU</h3></div></div>
-      <div class="ops-form-grid"><label class="span">File Excel .xlsx<input id="sku-file" type="file" accept=".xlsx" /></label></div>
-      ${skuImportProgress ? `<div class="message">${esc(skuImportProgress)}</div>` : ""}
-      ${wb ? `<section class="ops-status-strip"><span><b>${wb.total_data_rows.toLocaleString("vi-VN")}</b> dòng dữ liệu</span><span><b>${wb.items.length.toLocaleString("vi-VN")}</b> SKU sẵn sàng</span><span><b>${wb.conflicts.length}</b> xung đột</span></section>` : ""}
-    </article>
-    ${wb?.conflicts.length ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Xử lý SKU trùng mã khác tên</h3><p>Chọn đúng tên sản phẩm trước khi cập nhật.</p></div></div><div class="ops-form-grid">${wb.conflicts.map((conflict) => `<label class="span">${esc(conflict.sku)}<select data-sku-conflict="${esc(conflict.sku)}"><option value="">Chọn tên sản phẩm</option>${conflict.candidates.map((candidate) => `<option value="${esc(candidate.product_name)}" ${skuConflictChoices.get(conflict.sku) === candidate.product_name ? "selected" : ""}>${esc(candidate.product_name)} · dòng ${candidate.rows.join(", ")}</option>`).join("")}</select></label>`).join("")}</div><div class="ops-form-actions"><button class="primary" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật danh mục SKU</button></div></article>` : wb ? `<article class="ops-panel"><div class="ops-form-actions"><button class="primary" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật danh mục SKU</button></div></article>` : ""}
+  const catalogCount = skuCatalogInfo?.count ?? 0;
+  const updatedAt = skuCatalogInfo?.max_updated_at ? fmt(skuCatalogInfo.max_updated_at) : "Chưa có dữ liệu";
+  const version = skuCatalogInfo?.version || "—";
+  return `<section class="ops-route sku-workspace">
+    <div class="business-page-head"><div><h2>Danh mục SKU</h2><p>Tra cứu danh mục đang dùng và cập nhật dữ liệu từ Excel trong cùng một màn hình.</p></div></div>
+    <section class="business-summary-grid">
+      <article class="business-summary-card primary"><span>Tổng SKU hiện hành</span><strong>${catalogCount.toLocaleString("vi-VN")}</strong><small>Danh mục đang phục vụ Web/App</small></article>
+      <article class="business-summary-card good"><span>Cập nhật gần nhất</span><strong class="sku-summary-time">${esc(updatedAt)}</strong><small>Theo dữ liệu danh mục trên hệ thống</small></article>
+      <article class="business-summary-card"><span>Phiên bản danh mục</span><strong class="sku-summary-version">${esc(version)}</strong><small>Dùng để kiểm soát đồng bộ</small></article>
+    </section>
+    <div class="users-top-grid sku-top-grid">
+      <article class="ops-panel">
+        <div class="ops-panel-title"><div><h3>Tra cứu danh mục hiện tại</h3><p>Tìm theo mã SKU hoặc tên sản phẩm; không cần tải file để kiểm tra dữ liệu đang có.</p></div></div>
+        <form id="sku-admin-search-form" class="sku-admin-search">
+          <input name="query" value="${esc(skuAdminQuery)}" placeholder="Nhập SKU hoặc tên sản phẩm" autocomplete="off" />
+          <button class="secondary">Tìm kiếm</button>
+          <button class="secondary" type="button" id="sku-admin-clear" ${skuAdminQuery ? "" : "disabled"}>Xóa lọc</button>
+        </form>
+        <div class="table-wrap sku-catalog-table"><table><thead><tr><th>SKU</th><th>Tên sản phẩm</th><th>Cập nhật</th></tr></thead><tbody>
+          ${skuAdminItems.length ? skuAdminItems.map((item) => `<tr><td><strong>${esc(item.sku)}</strong></td><td>${esc(item.product_name)}</td><td>${item.updated_at ? esc(fmt(item.updated_at)) : "—"}</td></tr>`).join("") : `<tr><td colspan="3" class="ops-empty-cell">Không có SKU phù hợp.</td></tr>`}
+        </tbody></table></div>
+        <div class="tiny muted sku-result-count">Đang hiển thị ${skuAdminItems.length.toLocaleString("vi-VN")} SKU${skuAdminQuery ? " theo từ khóa đã nhập" : " đầu tiên"}.</div>
+      </article>
+      <article class="ops-panel">
+        <div class="ops-panel-title"><div><h3>Cập nhật danh mục từ Excel</h3><p>File được kiểm tra trước khi ghi. SKU trùng mã nhưng khác tên phải được xác nhận rõ ràng.</p></div></div>
+        <div class="ops-form-grid"><label class="span">Chọn file Excel .xlsx<input id="sku-file" type="file" accept=".xlsx" /></label></div>
+        ${skuImportProgress ? `<div class="message">${esc(skuImportProgress)}</div>` : `<div class="ops-note">Hệ thống giữ nguyên danh mục hiện tại cho tới khi file hợp lệ và bạn xác nhận cập nhật.</div>`}
+        ${wb ? `<section class="ops-status-strip"><span><b>${wb.total_data_rows.toLocaleString("vi-VN")}</b> dòng dữ liệu</span><span><b>${wb.items.length.toLocaleString("vi-VN")}</b> SKU sẵn sàng</span><span><b>${wb.conflicts.length}</b> xung đột</span></section>` : ""}
+        ${wb && !wb.conflicts.length ? `<div class="ops-form-actions"><button class="primary" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật danh mục SKU</button></div>` : ""}
+      </article>
+    </div>
+    ${wb?.conflicts.length ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Xử lý SKU trùng mã khác tên</h3><p>Chọn đúng tên sản phẩm trước khi cập nhật.</p></div></div><div class="ops-form-grid">${wb.conflicts.map((conflict) => `<label class="span">${esc(conflict.sku)}<select data-sku-conflict="${esc(conflict.sku)}"><option value="">Chọn tên sản phẩm</option>${conflict.candidates.map((candidate) => `<option value="${esc(candidate.product_name)}" ${skuConflictChoices.get(conflict.sku) === candidate.product_name ? "selected" : ""}>${esc(candidate.product_name)} · dòng ${candidate.rows.join(", ")}</option>`).join("")}</select></label>`).join("")}</div><div class="ops-form-actions"><button class="primary" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật danh mục SKU</button></div></article>` : ""}
   </section>`;
 }
 
@@ -1465,11 +1494,24 @@ function renderHr(): string {
   </section>`;
 }
 
+function canManageListedUser(user: ManagedUser): boolean {
+  if (!profile || user.role === "ROOT") return false;
+  if (profile.role === "ROOT") return ["ADMIN", "REPORTER", "PICKER"].includes(user.role);
+  if (profile.role === "ADMIN") return ["REPORTER", "PICKER"].includes(user.role);
+  return false;
+}
+
+function userSelectionLabel(): string {
+  if (!allPickerSelection) return `${selectedUserIds.size.toLocaleString("vi-VN")} Picker đã chọn`;
+  return excludedPickerIds.size
+    ? `Tất cả Picker, trừ ${excludedPickerIds.size.toLocaleString("vi-VN")} đã bỏ chọn`
+    : "Đã chọn tất cả Picker";
+}
+
 function renderUsers(): string {
   const canCreateAdmin = profile?.role === "ROOT";
   const pageStart = userTotal ? userOffset + 1 : 0;
   const pageEnd = Math.min(userOffset + managedUsers.length, userTotal);
-  const selectedCount = allPickerSelection ? userTotal : selectedUserIds.size;
   const activeCount = managedUsers.filter((user) => user.status === "ACTIVE").length;
   const pickerCount = managedUsers.filter((user) => user.role === "PICKER").length;
   const reporterCount = managedUsers.filter((user) => user.role === "REPORTER").length;
@@ -1504,10 +1546,20 @@ function renderUsers(): string {
       </article>
     </div>
     <article class="ops-panel ops-users-panel">
-      <div class="ops-panel-title"><div><h3>Danh sách tài khoản</h3><p>Thao tác hàng loạt chỉ áp dụng cho Picker.</p></div><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span></div>
-      <div class="user-bulk-bar"><button class="secondary" id="toggle-all-pickers">${allPickerSelection ? "Bỏ chọn tất cả Picker" : "Chọn tất cả Picker"}</button><button class="secondary" data-picker-action="ENABLE">Mở lại</button><button class="secondary" data-picker-action="DISABLE">Dừng hoạt động</button><button class="danger" data-picker-action="DELETE">Xóa Picker</button><span>${allPickerSelection ? "Đã chọn tất cả Picker" : `${selectedCount} đã chọn`}</span></div>
-      <div class="table-wrap"><table class="ops-users-table"><thead><tr><th></th><th>Mã nhân viên</th><th>Họ và tên</th><th>Quyền</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
-        ${managedUsers.length ? managedUsers.map((user) => `<tr><td><input type="checkbox" data-user-select="${esc(user.user_id)}" ${allPickerSelection || selectedUserIds.has(user.user_id) ? "checked" : ""} ${user.role !== "PICKER" || allPickerSelection ? "disabled" : ""}/></td><td><b>${esc(user.employee_code || user.user_id)}</b></td><td>${esc(user.display_name)}</td><td>${esc(businessRoleLabel(user.role))}</td><td><span class="badge ${user.status === "ACTIVE" ? "good" : "closed"}">${user.status === "ACTIVE" ? "Đang hoạt động" : "Đã dừng"}</span></td><td><div class="user-row-actions"><button class="secondary" data-edit-user="${esc(user.user_id)}">Sửa</button><button class="secondary" data-password-user="${esc(user.user_id)}">Đổi mật khẩu</button></div></td></tr>`).join("") : `<tr><td colspan="6" class="ops-empty">Không có tài khoản phù hợp.</td></tr>`}
+      <div class="ops-panel-title"><div><h3>Danh sách tài khoản</h3><p>Chỉ Picker được chọn để thao tác hàng loạt. ROOT/ADMIN/REPORTER luôn được bảo vệ khỏi thao tác Picker.</p></div><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span></div>
+      <div class="user-bulk-bar"><button class="secondary" id="toggle-all-pickers">${allPickerSelection ? "Bỏ chọn tất cả Picker" : "Chọn tất cả Picker"}</button><button class="secondary" data-picker-action="ENABLE">Mở lại</button><button class="secondary" data-picker-action="DISABLE">Dừng hoạt động</button><button class="danger" data-picker-action="DELETE">Xóa Picker</button><span id="user-selection-status">${esc(userSelectionLabel())}</span></div>
+      <div class="table-wrap"><table class="ops-users-table"><thead><tr><th class="user-select-col">Chọn</th><th>Mã nhân viên</th><th>Họ và tên</th><th>Quyền</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
+        ${managedUsers.length ? managedUsers.map((user) => {
+          const isPicker = user.role === "PICKER";
+          const isChecked = isPicker && (allPickerSelection ? !excludedPickerIds.has(user.user_id) : selectedUserIds.has(user.user_id));
+          const selectable = isPicker
+            ? `<label class="bulk-picker-check" title="Chọn Picker này"><input type="checkbox" data-user-select="${esc(user.user_id)}" ${isChecked ? "checked" : ""}/><span aria-hidden="true"></span></label>`
+            : `<span class="bulk-not-applicable" title="Không thuộc phạm vi thao tác hàng loạt Picker">${user.role === "ROOT" ? "Bảo vệ" : "—"}</span>`;
+          const actions = canManageListedUser(user)
+            ? `<div class="user-row-actions"><button class="secondary" data-edit-user="${esc(user.user_id)}">Sửa</button><button class="secondary" data-password-user="${esc(user.user_id)}">Đổi mật khẩu</button></div>`
+            : `<span class="ops-readonly">${user.role === "ROOT" ? "Tài khoản gốc được bảo vệ" : "Không thuộc quyền quản lý hiện tại"}</span>`;
+          return `<tr><td class="user-select-col">${selectable}</td><td><b>${esc(user.employee_code || user.user_id)}</b></td><td>${esc(user.display_name)}</td><td>${esc(businessRoleLabel(user.role))}</td><td><span class="badge ${user.status === "ACTIVE" ? "good" : "closed"}">${user.status === "ACTIVE" ? "Đang hoạt động" : "Đã dừng"}</span></td><td>${actions}</td></tr>`;
+        }).join("") : `<tr><td colspan="6" class="ops-empty">Không có tài khoản phù hợp.</td></tr>`}
       </tbody></table></div>
       <div class="user-pagination"><span>Trang hiển thị ${pageStart}–${pageEnd}</span><div><button class="secondary" id="user-prev" ${userOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="user-next" ${userOffset + USER_PAGE_SIZE >= userTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
@@ -2471,6 +2523,19 @@ async function loadReports(): Promise<void> {
   }).catch((error) => runtimeLogEvent(`Không tải được tổng hợp báo cáo: ${error instanceof Error ? error.message : "unknown"}`, "ERROR"));
 }
 
+async function loadSkuWorkspace(): Promise<void> {
+  const generation = sessionViewGeneration;
+  const userId = profile?.user_id || "";
+  const [catalog, result] = await Promise.all([
+    getSkuCatalogInfo(),
+    searchSkus(skuAdminQuery, 100),
+  ]);
+  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+  skuCatalogInfo = catalog;
+  skuAdminItems = result.items;
+  markWebUpdateReceived();
+}
+
 async function loadUsers(): Promise<void> {
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
@@ -2598,6 +2663,7 @@ async function loadSection(section: Section): Promise<void> {
   let received = false;
   if ((section === "operations" || section === "results") && roleOperate()) { await loadOperations(); received = true; }
   else if (section === "picker" && profile.role === "PICKER") { await loadPicker(); received = true; }
+  else if (section === "sku" && roleManage()) { await loadSkuWorkspace(); received = true; }
   else if (section === "hr" && roleManage()) { hrSource = await getHrSource(); received = true; }
   else if (section === "users" && roleManage()) { await loadUsers(); received = true; }
   else if (section === "sla" && roleManage()) { await loadSla(); received = true; }
@@ -3063,6 +3129,17 @@ function bindSection(): void {
     setNotice("success", "Đã thu hồi báo hàng.");
   })));
 
+  document.querySelector<HTMLFormElement>("#sku-admin-search-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    skuAdminQuery = String(data.get("query") || "").trim();
+    void run(loadSkuWorkspace);
+  });
+  document.querySelector<HTMLButtonElement>("#sku-admin-clear")?.addEventListener("click", () => {
+    skuAdminQuery = "";
+    void run(loadSkuWorkspace);
+  });
+
   document.querySelector<HTMLInputElement>("#sku-file")?.addEventListener("change", (event) => {
     const file = (event.currentTarget as HTMLInputElement).files?.[0];
     if (!file) return;
@@ -3079,6 +3156,7 @@ function bindSection(): void {
   document.querySelector<HTMLButtonElement>("#apply-sku-import")?.addEventListener("click", () => void run(async () => {
     try {
       await importSkuWorkbook();
+      await loadSkuWorkspace();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Không cập nhật được danh mục SKU.";
       skuImportProgress = `Đã dừng: ${message}`;
@@ -3134,18 +3212,26 @@ function bindSection(): void {
     userStatus = String(data.get("status") || "");
     userOffset = 0;
     selectedUserIds.clear();
+    excludedPickerIds.clear();
     allPickerSelection = false;
     void run(loadUsers);
   });
   document.querySelector<HTMLButtonElement>("#toggle-all-pickers")?.addEventListener("click", () => {
     allPickerSelection = !allPickerSelection;
     selectedUserIds.clear();
+    excludedPickerIds.clear();
     patchActiveSection();
   });
   document.querySelectorAll<HTMLInputElement>("[data-user-select]").forEach((box) => box.addEventListener("change", () => {
     const id = box.dataset.userSelect || "";
-    if (box.checked) selectedUserIds.add(id);
+    if (!id) return;
+    if (allPickerSelection) {
+      if (box.checked) excludedPickerIds.delete(id);
+      else excludedPickerIds.add(id);
+    } else if (box.checked) selectedUserIds.add(id);
     else selectedUserIds.delete(id);
+    const label = document.querySelector<HTMLElement>("#user-selection-status");
+    if (label) label.textContent = userSelectionLabel();
   }));
   document.querySelectorAll<HTMLButtonElement>("[data-picker-action]").forEach((button) => button.addEventListener("click", () => {
     const action = button.dataset.pickerAction as "ENABLE" | "DISABLE" | "DELETE";
@@ -3155,11 +3241,14 @@ function bindSection(): void {
       patchActiveSection();
       return;
     }
-    const targetLabel = allPickerSelection ? "tất cả Picker" : `${ids.length} Picker đã chọn`;
+    const targetLabel = allPickerSelection
+      ? (excludedPickerIds.size ? `tất cả Picker trừ ${excludedPickerIds.size} tài khoản đã bỏ chọn` : "tất cả Picker")
+      : `${ids.length} Picker đã chọn`;
     if (action === "DELETE" && !window.confirm(`Xóa ${targetLabel}? Lịch sử nghiệp vụ vẫn được giữ.`)) return;
     void run(async () => {
-      await updatePickerAccounts(action, ids, allPickerSelection);
+      await updatePickerAccounts(action, ids, allPickerSelection, [...excludedPickerIds]);
       selectedUserIds.clear();
+      excludedPickerIds.clear();
       allPickerSelection = false;
       await loadUsers();
       setNotice("success", "Đã cập nhật Picker.");
