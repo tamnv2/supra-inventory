@@ -920,3 +920,13 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - Final Agent source: `e583d20d12f097bd7895494992408c41976b1835`; Web/APK runtime source remains `bbb6c83b3f75d234f8220d8ef42b22c3105d9964`.
 - OA037 is READY_FOR_OWNER_FIELD_TEST. Stable remains OWNER_GATED / untouched.
 
+## D118 source continuity refresh — 2026-09-24
+
+- SQLite schema: `11`.
+- Latest signed Beta APK remains `beta-vc73` until D118 merge/release gates publish the next signed build.
+- Beta candidate: `D118_OWNER_APPROVED_IMPLEMENTATION_CANDIDATE__TARGET_WEB_BETA_VC74_AGENT_V38__D117_LIVE_UNTIL_RELEASE`.
+- Web: `D118_CANDIDATE__PAGED_HISTORY_SKU_LOGS__REVISION_SAFE_SLA__DETAILED_EXCEL__D117_LIVE_UNTIL_RELEASE`.
+- Android: `D118_BETA_VC74_CANDIDATE__IME_ADJUST_RESIZE__D117_VC73_LIVE_UNTIL_RELEASE`.
+- D118 Agent target is `relay-agent-v38`; D117 `relay-agent-v37` remains live until release.
+- NEXT_ACTION: PR #181 → repair all required authority/state/UI/Web/Android/Agent/Firestore gates → merge only on PASS → verify exact Beta runtime + signed beta-vc74 + Agent v38 → record D118 technical/runtime/release checkpoint → make OA038 field-ready.
+- Stable remains OWNER-GATED and untouched.
