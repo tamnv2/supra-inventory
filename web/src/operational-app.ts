@@ -1268,7 +1268,7 @@ function render(): void {
 function renderOperationalTabs(current: "operations" | "results"): string {
   return `<div class="workspace-tabs" role="tablist" aria-label="Vận hành báo hàng">
     <button type="button" class="workspace-tab ${current === "operations" ? "active" : ""}" data-workspace-section="operations">Đang xử lý <b>${queueRows.length}</b></button>
-    <button type="button" class="workspace-tab ${current === "results" ? "active" : ""}" data-workspace-section="results">Kết quả gần đây <b>${recentRows.length}</b></button>
+    <button type="button" class="workspace-tab ${current === "results" ? "active" : ""}" data-workspace-section="results">Kết quả gần đây <b>${recentTotal}</b></button>
   </div>`;
 }
 
