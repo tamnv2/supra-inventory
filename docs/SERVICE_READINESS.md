@@ -773,3 +773,19 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA033 FIELD READY**.
 - Latest Beta APK: `beta-vc70`
 - SQLite schema: `11`
 
+
+
+## D114 Owner-accepted checkpoint — 2026-09-24
+
+Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
+
+- OA034 is closed as `PASS_OWNER_CONFIRMED_D114`.
+- Beta: `D114_OWNER_FIELD_ACCEPTED_PASS__LIVE_SOURCE_8CDF941B__SCHEMA11__SIGNED_BETA_VC70__AGENT_V33`.
+- Web: `D114_OWNER_ACCEPTED_PASS__BALANCED_TOOLS__GLOBAL_REALTIME_QUEUE_BADGE`.
+- Android: `D114_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC70__PDA_SUFFIX_AMBIGUOUS_SINGLE_SELECT_RESULTS`.
+- Latest Beta APK: `beta-vc70`.
+- Agent: `relay-agent-v33` is Owner field-accepted.
+- SQLite schema: `11`.
+- D097/D104 HA, batching, idempotency and fail-closed WMS guards remain authoritative.
+- Separate post-pass diagnostic: latest Android relay log reports cleanup permission failures, slower perceived confirmation, and 30-second no-ACK timeouts. No follow-up behavior is approved yet.
+- Stable remains OWNER-GATED and untouched.
