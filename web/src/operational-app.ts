@@ -255,6 +255,8 @@ function clearRoleScopedViewState(): void {
   dashboardData = null;
   reportRows = [];
   reportTotal = 0;
+  slaResponse = null;
+  slaLoadGeneration += 1;
   operationalInsights = null;
   realtimePresence = null;
   reportSummary = null;
