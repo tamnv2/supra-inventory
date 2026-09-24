@@ -109,14 +109,17 @@ jobs:
           grep -q 'relayCustomToken' "$api"
           grep -q 'Đã gửi #' "$client"
           grep -q 'Chuyên viên xử lý trực tiếp' "$client"
-          grep -q 'Đã xác nhận lấy lại đơn. Hãy quay lại app SFT / SFT 3 để tiếp tục' "$picker"
-          grep -Fq 'Regex("^\\d{4}$")' "$client"
+          grep -q 'Đã xác nhận PickList thành công' "$picker"
+          grep -Fq 'Regex("^\\d{3,20}$")' "$client"
           grep -q 'relayRequestInFlight' "$picker"
           grep -q 'alpha = if (ready) 1.0f else 0.42f' "$picker"
           grep -q 'textSize = scaledSp(17f)' "$picker"
           grep -q 'Typeface.BOLD' "$picker"
-          grep -q 'digits.length == 4' "$picker"
-          grep -q 'android:maxLength="4"' android/app/src/main/res/layout/view_picker.xml
+          grep -q 'digits.length < 3' "$picker"
+          grep -q 'renderRelayCandidates' "$picker"
+          grep -q 'confirmAmbiguousPickList' "$picker"
+          grep -q 'candidatePicklists' "$client"
+          grep -q 'android:maxLength="20"' android/app/src/main/res/layout/view_picker.xml
           if grep -q 'PROCESSING' "$client"; then
             echo "D097 confirmation client must not use PROCESSING" >&2
             exit 1
@@ -125,7 +128,7 @@ jobs:
             echo "D097 confirmation client must not use RTDB" >&2
             exit 1
           fi
-          echo "D097 Android Firestore listener / 10s failover / 30s terminal guard PASS"
+          echo "D114 Android Firestore listener / 3-20 suffix / ambiguity selection / D097 timing guard PASS"
 
       - name: Assemble Android 11+ Beta APK
         env:
