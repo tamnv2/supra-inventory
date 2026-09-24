@@ -325,6 +325,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     if (!user.employee_code) return json({ error: "PICKER_EMPLOYEE_CODE_REQUIRED" }, 409);
     const params = new URLSearchParams({ user_id: user.user_id, employee_code: user.employee_code });
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
+    if (url.searchParams.has("offset")) params.set("offset", url.searchParams.get("offset") || "");
     if (url.searchParams.has("scope")) params.set("scope", url.searchParams.get("scope") || "");
     return coreGet(env, `/operational/picker/reports?${params.toString()}`);
   }
