@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D116_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_9319EB30__SCHEMA11__SIGNED_BETA_VC72__AGENT_V35__OA036_FIELD_READY",
+      "status": "D117_OWNER_APPROVED_IMPLEMENTATION_CANDIDATE__D116_LIVE_UNTIL_D117_GATES_RELEASE",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -196,12 +196,13 @@
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D116_PASS_RUN_35962512349__SOURCE_COMMIT_EXACT__SCHEMA11_11__AGENT_MIGRATION_0_0__OPERATIONAL5_5",
       "relay_agent_release_target": "relay-agent-v35__RELEASED",
-      "next_signed_beta_release_target": "NEXT_MONOTONIC_AFTER_BETA_VC72",
-      "next_relay_agent_release_target": "NEXT_MONOTONIC_AFTER_RELAY_AGENT_V35",
+      "next_signed_beta_release_target": "beta-vc73",
+      "next_relay_agent_release_target": "relay-agent-v36",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
-      "d116_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC72__AGENT_V35__OA036_FIELD_READY"
+      "d116_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC72__AGENT_V35__OA036_FIELD_READY",
+      "d117_source_status": "OWNER_APPROVED_IMPLEMENTATION_CANDIDATE__BETA_VC73__AGENT_V36__PR_GATES_PENDING"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
