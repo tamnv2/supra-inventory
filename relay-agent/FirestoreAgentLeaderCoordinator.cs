@@ -124,7 +124,7 @@ namespace SupraInventoryRelayAgent
         {
             get
             {
-                if (_role == FirestoreAgentRole.PRIMARY) return 5000;
+                if (_role == FirestoreAgentRole.PRIMARY) return FirestoreConfirmationTransport.PrimaryPollIntervalMs;
                 if (_role == FirestoreAgentRole.STANDBY) return 10000;
                 return 60000;
             }
