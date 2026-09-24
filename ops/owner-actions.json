@@ -1640,7 +1640,7 @@
     },
     {
       "id": "OA035",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "FIELD_DEFECTS_REPORTED__SUPERSEDED_BY_D116_RETEST",
       "title": "Field-accept D115 fast healthy-primary relay and ACK recovery",
       "resource_key": "worker-beta",
       "provider": "Beta Android + Firestore confirmation transport + relay-agent-v34",
@@ -1694,7 +1694,49 @@
         "Stable remains OWNER-GATED and untouched."
       ],
       "safety": "Beta only. No PickList values, credentials, tokens or WMS session material in logs/source. No new provider/resource. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Field-test signed beta-vc71 + relay-agent-v34 using the shortest_test_path. Reply PASS only after healthy PRIMARY/no-failover RTT and cleanup/ACK-recovery checks pass; otherwise send itemized defects.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": "DEFECTS_REPORTED_D115__SUPERSEDED_BY_D116",
+      "field_result_date": "2026-09-24",
+      "owner_evidence": "Owner reports released D115 works and is faster, but Firestore free-tier consumption is too high and Android CONFIRMED feedback disappears when the input resets. The same command adds Web operations/SKU/users refinements. D115 is not recorded as Owner PASS; retest moves to OA036 after D116 technical/runtime/release PASS."
+    },
+    {
+      "id": "OA036",
+      "status": "WAITING_FOR_D116_TECHNICAL_RUNTIME_RELEASE",
+      "title": "Field-accept D116 quota-balanced relay, durable App result and Web admin refinement",
+      "resource_key": "worker-beta",
+      "provider": "Beta Web + Android + Firestore confirmation transport + relay-agent-v35",
+      "reason_owner_only": "Automated gates can verify cadence, result-reset ordering, no-poll contracts, Picker-only selection and backend exclusions; real healthy-path RTT, free-tier consumption trend and physical Web/PDA interaction require Owner field observation.",
+      "prerequisites": {
+        "d114_owner_acceptance": "PASS_OWNER_CONFIRMED_D114",
+        "d115_field_result": "DEFECTS_REPORTED_D115__SUPERSEDED_BY_D116",
+        "owner_d116_requirement": "APPROVED_BY_CURRENT_OWNER_COMMAND",
+        "source_branch": "feat/d116-quota-result-web-admin",
+        "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC71",
+        "target_agent_release": "relay-agent-v35",
+        "technical_runtime_release": "PENDING",
+        "sqlite_schema": 11,
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "After technical/runtime/release PASS, install the published D116 signed Android and relay-agent-v35; keep one healthy PRIMARY, WMS ready, normal network and no failover.",
+        "Run at least 10 controlled confirmations; verify healthy Android request CREATE→terminal result remains under 5,000 ms.",
+        "On a successful confirmation verify the input clears for the next entry while the terminal success result remains visible; also exercise NOT_FOUND/AMBIGUOUS and one transport/session failure.",
+        "Observe Firestore usage across a representative operating window and confirm the 3-second PRIMARY release consumes materially fewer background reads than D115 2-second operation; STANDBY remains 10 seconds and FROZEN remains no-poll.",
+        "Web Operations: select a shortage SKU and verify affected Picker rows are visible automatically without a reveal click or repeated detail fetch.",
+        "Web SKU: verify current count/version/update time, bounded search/list and one controlled Excel parse/import/conflict flow.",
+        "Web Users: verify ROOT/ADMIN/REPORTER have no Picker bulk checkbox; select all Picker, exclude one Picker and verify the backend action leaves that excluded Picker untouched."
+      ],
+      "pass_criteria": [
+        "Healthy-primary/no-failover Android create→terminal result remains <5,000 ms in the controlled sample.",
+        "PRIMARY is 3 seconds only; STANDBY 10 seconds; FROZEN no business poll; no Android polling or Firestore PROCESSING write.",
+        "Android terminal result is not overwritten by programmatic input reset.",
+        "Affected-Picker automatic display adds no polling cadence/duplicate repeated fetch.",
+        "SKU workspace and Picker-only all-with-exclusions account selection behave as specified end-to-end.",
+        "SQLite remains 11 and Stable remains OWNER-GATED/untouched."
+      ],
+      "safety": "Beta only. No PickList values, credentials, tokens, WMS session material or other secrets in source/logs. No new provider/resource. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "None until D116 technical/runtime/release PASS; then field-test the published Beta artifacts using this path.",
       "closed": false
     }
   ]
