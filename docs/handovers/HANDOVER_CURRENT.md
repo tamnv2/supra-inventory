@@ -898,3 +898,14 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - D117 Owner-approved semantics: Firestore-only proactive 7s PRIMARY lease / 10s failover, PRIMARY 4s idle + 2s hot queue polling, STANDBY/FROZEN no business queue polling, no periodic WMS probe, 06:00–22:00 relay window, hourly after-hours extension, default fleet freeze, early-start-to-06:00, and manual Agent confirmation remains available.
 - Stable remains OWNER-GATED and untouched.
 
+## D117 v37 final-hardening candidate — 2026-09-24
+
+- SQLite schema: `11`.
+- Latest signed Beta APK: `beta-vc73`.
+- Current live Agent: `relay-agent-v36`; final hardening target: `relay-agent-v37`.
+- Beta: `D117_V37_FINAL_HARDENING_CANDIDATE__LIVE_BETA_VC73_AGENT_V36_UNTIL_RELEASE`.
+- Web: `D116_WEB_FEATURES_LIVE_UNCHANGED__D117_RELAY_HARDENING_AGENT_ONLY`.
+- Android: `D117_SIGNED_BETA_VC73__20S_RELAY_TERMINAL_WINDOW__LIVE_UNCHANGED`.
+- v37 adds immediate schedule propagation in the PRIMARY lease, 30s FROZEN control-role convergence for early-start, final 20s age recheck and per-WMS-chunk PRIMARY generation fence.
+- OA037 is blocked until v37 technical/runtime/release PASS. Stable remains OWNER_GATED / untouched.
+
