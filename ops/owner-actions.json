@@ -1702,7 +1702,7 @@
     },
     {
       "id": "OA036",
-      "status": "WAITING_FOR_D116_TECHNICAL_RUNTIME_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D116 quota-balanced relay, durable App result and Web admin refinement",
       "resource_key": "worker-beta",
       "provider": "Beta Web + Android + Firestore confirmation transport + relay-agent-v35",
@@ -1712,11 +1712,31 @@
         "d115_field_result": "DEFECTS_REPORTED_D115__SUPERSEDED_BY_D116",
         "owner_d116_requirement": "APPROVED_BY_CURRENT_OWNER_COMMAND",
         "source_branch": "feat/d116-quota-result-web-admin",
-        "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC71",
+        "target_android_release": "beta-vc72",
         "target_agent_release": "relay-agent-v35",
-        "technical_runtime_release": "PENDING",
+        "technical_runtime_release": "PASS",
         "sqlite_schema": 11,
-        "stable": "OWNER_GATED"
+        "stable": "OWNER_GATED",
+        "merged_pr": 175,
+        "implementation_main": "9319eb30f55e48b3c60283ab2e9135bf0a33054d",
+        "main_repo_authority_run": 35962512361,
+        "main_project_state_run": 35962512549,
+        "main_ui_run": 35962512491,
+        "main_beta_worker_run": 35962512349,
+        "main_android_run": 35962512556,
+        "main_agent_run": 35962512375,
+        "live_health": "HTTP_200_ATTEMPT_1__STATUS_OK__ENV_BETA__SOURCE_EXACT_9319EB30__STORAGE_TRUE__SCHEMA_11_11__MISSING_0__AGENT_MIGRATION_0_0__OPERATIONAL_5_5",
+        "android_release_id": 395378687,
+        "android_asset_id": 585274995,
+        "android_asset_size": 19019872,
+        "agent_release_id": 395378457,
+        "agent_asset_id": 585274568,
+        "agent_asset_size": 294400,
+        "inventory_channel_release_id": 394587029,
+        "inventory_channel_pda_manifest_asset_id": 585275037,
+        "inventory_channel_pda_asset_id": 585275028,
+        "inventory_channel_agent_manifest_asset_id": 585274637,
+        "inventory_channel_agent_asset_id": 585274636
       },
       "shortest_test_path": [
         "After technical/runtime/release PASS, install the published D116 signed Android and relay-agent-v35; keep one healthy PRIMARY, WMS ready, normal network and no failover.",
@@ -1736,7 +1756,7 @@
         "SQLite remains 11 and Stable remains OWNER-GATED/untouched."
       ],
       "safety": "Beta only. No PickList values, credentials, tokens, WMS session material or other secrets in source/logs. No new provider/resource. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "None until D116 technical/runtime/release PASS; then field-test the published Beta artifacts using this path.",
+      "remaining_owner_action": "Field-test signed beta-vc72 + relay-agent-v35 and live Beta Web using the shortest_test_path. Reply PASS only after healthy PRIMARY/no-failover RTT, Firestore usage trend, App result persistence and Web Operations/SKU/Users checks pass; otherwise send itemized defects.",
       "closed": false
     }
   ]
