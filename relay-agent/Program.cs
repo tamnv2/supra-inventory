@@ -484,6 +484,7 @@ namespace SupraInventoryRelayAgent
         private readonly Label _afterHoursStatus = new Label();
         private readonly Button _afterHoursContinue = new Button();
         private readonly Button _afterHoursStop = new Button();
+        private readonly Button _afterHoursEarlyStart = new Button();
         private readonly Label _supraInfo = new Label();
         private readonly Panel _overlaySettingsHost = new Panel();
         private OverlaySettingsForm _embeddedOverlaySettings;
@@ -535,6 +536,7 @@ namespace SupraInventoryRelayAgent
         private readonly AgentLogUploadBridge _agentLogBridge;
         private readonly AgentBusinessSchedule _businessSchedule;
         private DateTime _lastAfterHoursPromptAt = DateTime.MinValue;
+        private bool? _lastRelayAllowed;
 
         private static readonly string RelayDataDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -694,7 +696,7 @@ namespace SupraInventoryRelayAgent
             _trayMonitorTimer.Interval = 5000;
             _trayMonitorTimer.Tick += (s, e) => UpdateTrayMonitor();
 
-            _afterHoursTimer.Interval = 60 * 1000;
+            _afterHoursTimer.Interval = 1000;
             _afterHoursTimer.Tick += (s, e) => CheckAfterHoursSchedule();
 
             // GitHub cannot push directly into a portable EXE. D101 therefore uses
@@ -964,6 +966,11 @@ namespace SupraInventoryRelayAgent
             _afterHoursStop.Text = "Ngừng từ 22:00";
             _afterHoursStop.Click += (s, e) => SetAfterHoursDecision(AfterHoursDecision.STOP);
             _afterHoursPanel.Controls.Add(_afterHoursStop);
+            _afterHoursEarlyStart.SetBounds(520, 10, 412, 32);
+            _afterHoursEarlyStart.Text = "Khởi động relay trước 06:00";
+            _afterHoursEarlyStart.Click += (s, e) => StartRelayBeforeSix();
+            _afterHoursEarlyStart.Visible = false;
+            _afterHoursPanel.Controls.Add(_afterHoursEarlyStart);
             _afterHoursPanel.Visible = false;
             agentCard.Controls.Add(_afterHoursPanel);
             overviewLayout.Controls.Add(agentCard, 0, 0);
@@ -1035,7 +1042,7 @@ namespace SupraInventoryRelayAgent
             {
                 List<string> queries;
                 var valid = TryParseManualPicklistQueries(_manualPicklistQuery.Text, out queries);
-                _manualPicklistSearch.Enabled = valid && IsBusinessAllowed();
+                _manualPicklistSearch.Enabled = valid;
                 _manualPicklistGrid.Rows.Clear();
                 _manualPicklistConfirmAll.Visible = false;
                 _manualPicklistStatus.Text = string.IsNullOrWhiteSpace(_manualPicklistQuery.Text)
@@ -1234,52 +1241,155 @@ namespace SupraInventoryRelayAgent
 
         private bool IsBusinessAllowed()
         {
-            return _businessSchedule == null || _businessSchedule.BusinessAllowed(_businessSchedule.NowOperational());
+            if (_businessSchedule == null) return true;
+            var now = _businessSchedule.NowOperational();
+            if (_businessSchedule.DefaultRelayAllowed(now)) return true;
+            var coordinator = _leaderCoordinator;
+            return coordinator != null &&
+                   coordinator.SharedRelayOverrideAllows(
+                       _businessSchedule.ScheduleKey(now),
+                       OperationalMs(now));
+        }
+
+        private static long OperationalMs(DateTime value)
+        {
+            var local = DateTime.SpecifyKind(value, DateTimeKind.Unspecified);
+            return new DateTimeOffset(local, TimeSpan.FromHours(7)).ToUnixTimeMilliseconds();
         }
 
         private void SetAfterHoursDecision(AfterHoursDecision decision)
         {
-            if (_businessSchedule == null) return;
+            if (_businessSchedule == null || _leaderCoordinator == null || !_leaderCoordinator.IsLeader)
+                return;
+
             var now = _businessSchedule.NowOperational();
-            _businessSchedule.SetDecision(now, decision);
+            DateTime boundary;
+            if (!_businessSchedule.TryGetPromptBoundary(now, out boundary)) return;
+
+            var until = decision == AfterHoursDecision.CONTINUE
+                ? _businessSchedule.ExtensionUntil(boundary)
+                : boundary;
+            var key = _businessSchedule.ScheduleKey(now);
+            var published = _leaderCoordinator.PublishScheduleDecision(
+                key,
+                OperationalMs(boundary),
+                decision.ToString(),
+                OperationalMs(until));
+            if (!published) return;
+
             _lastAfterHoursPromptAt = DateTime.MinValue;
-            Log("AFTER_HOURS decision=" + decision + " night=" + now.ToString("yyyy-MM-dd"));
+            Log("AFTER_HOURS decision=" + decision +
+                " boundary=" + boundary.ToString("HH:mm") +
+                " relay_until=" + until.ToString("HH:mm") +
+                " schedule_key=" + key);
+            _leaderCoordinator.RequestRoleRefreshBeforeBusiness();
             CheckAfterHoursSchedule(true);
-            if (decision == AfterHoursDecision.CONTINUE && _leaderCoordinator != null)
+        }
+
+        private void StartRelayBeforeSix()
+        {
+            if (_businessSchedule == null || _leaderCoordinator == null) return;
+            var now = _businessSchedule.NowOperational();
+            if (_businessSchedule.DefaultRelayAllowed(now)) return;
+            if (!HasUsableWmsSession())
+            {
+                _afterHoursStatus.Text = "Cần phiên Supra WMS sẵn sàng trước khi khởi động relay.";
+                return;
+            }
+
+            var until = _businessSchedule.NextRegularStart(now);
+            var key = _businessSchedule.ScheduleKey(now);
+            if (_leaderCoordinator.PublishEarlyStartAndClaimPrimary(key, OperationalMs(until)))
+            {
+                _lastAfterHoursPromptAt = DateTime.MinValue;
                 _leaderCoordinator.RequestRoleRefreshBeforeBusiness();
+                Log("AFTER_HOURS early_start=PASS relay_until=" + until.ToString("HH:mm") + " schedule_key=" + key);
+                CheckAfterHoursSchedule(true);
+            }
+            else
+            {
+                _afterHoursStatus.Text = "Chưa khởi động được relay sớm · kiểm tra Firestore/WMS.";
+            }
         }
 
         private void CheckAfterHoursSchedule(bool forcePrompt = false)
         {
             if (_businessSchedule == null) return;
             var now = _businessSchedule.NowOperational();
-            var needsConfirmation = _businessSchedule.NeedsConfirmation(now);
-            ApplyAfterHoursAgentLayout(needsConfirmation);
-            _afterHoursStatus.Text = _businessSchedule.StatusText(now);
+            var relayAllowed = IsBusinessAllowed();
+            var defaultAllowed = _businessSchedule.DefaultRelayAllowed(now);
+            var coordinator = _leaderCoordinator;
 
-            if (!needsConfirmation)
+            if (!_lastRelayAllowed.HasValue || _lastRelayAllowed.Value != relayAllowed)
             {
-                _lastAfterHoursPromptAt = DateTime.MinValue;
+                _lastRelayAllowed = relayAllowed;
+                if (coordinator != null) coordinator.RequestRoleRefreshBeforeBusiness();
+                Log("RELAY SCHEDULE state=" + (relayAllowed ? "ACTIVE" : "SLEEP") +
+                    " at=" + now.ToString("HH:mm:ss"));
+            }
+
+            DateTime boundary;
+            var hasBoundary = _businessSchedule.TryGetPromptBoundary(now, out boundary);
+            var key = _businessSchedule.ScheduleKey(now);
+            var boundaryMs = hasBoundary ? OperationalMs(boundary) : 0L;
+            var earlyStarted = coordinator != null &&
+                               string.Equals(coordinator.SharedScheduleDecision, "EARLY_START", StringComparison.Ordinal) &&
+                               coordinator.SharedRelayOverrideAllows(key, OperationalMs(now));
+            var needsConfirmation =
+                relayAllowed &&
+                !earlyStarted &&
+                coordinator != null &&
+                coordinator.IsLeader &&
+                hasBoundary &&
+                !coordinator.HasScheduleDecision(key, boundaryMs);
+            var frozenOutsideRegular = !defaultAllowed && !relayAllowed;
+
+            ApplyAfterHoursAgentLayout(needsConfirmation || frozenOutsideRegular);
+            _afterHoursContinue.Visible = needsConfirmation;
+            _afterHoursStop.Visible = needsConfirmation;
+            _afterHoursEarlyStart.Visible = frozenOutsideRegular;
+
+            if (needsConfirmation)
+            {
+                var until = _businessSchedule.ExtensionUntil(boundary);
+                _afterHoursStatus.Text =
+                    "Xác nhận ca: có tiếp tục relay PDA sau " + boundary.ToString("HH:mm") + " không?";
+                _afterHoursContinue.Text = "Tiếp tục đến " + until.ToString("HH:mm");
+                _afterHoursStop.Text = "Dừng lúc " + boundary.ToString("HH:mm");
+
+                if (!forcePrompt &&
+                    _lastAfterHoursPromptAt != DateTime.MinValue &&
+                    (now - _lastAfterHoursPromptAt).TotalMinutes < 5)
+                    return;
+
+                _lastAfterHoursPromptAt = now;
+                try
+                {
+                    _tray.ShowBalloonTip(
+                        5000,
+                        "Xác nhận thời gian vận hành relay",
+                        "Có tiếp tục nhận xác nhận từ PDA sau " + boundary.ToString("HH:mm") +
+                        " không? Nếu không xác nhận, relay sẽ tự ngủ tại mốc này.",
+                        ToolTipIcon.Warning);
+                }
+                catch { }
                 return;
             }
 
-            if (!forcePrompt &&
-                _lastAfterHoursPromptAt != DateTime.MinValue &&
-                (now - _lastAfterHoursPromptAt).TotalMinutes < 5)
-                return;
-
-            _lastAfterHoursPromptAt = now;
-            try
+            _lastAfterHoursPromptAt = DateTime.MinValue;
+            if (frozenOutsideRegular)
             {
-                _tray.ShowBalloonTip(
-                    5000,
-                    "Xác nhận vận hành sau 22:00",
-                    now.TimeOfDay >= new TimeSpan(22, 0, 0) || now.TimeOfDay < new TimeSpan(5, 0, 0)
-                        ? "Chưa xác nhận tăng ca. Nghiệp vụ Agent đang tạm dừng. Mở Agent để xác nhận."
-                        : "Có tiếp tục vận hành Agent sau 22:00 không? Mở Agent để xác nhận.",
-                    ToolTipIcon.Warning);
+                var next = _businessSchedule.NextRegularStart(now);
+                _afterHoursStatus.Text =
+                    "Relay PDA đang ngủ đến " + next.ToString("HH:mm") +
+                    " · xác nhận trực tiếp tại Agent vẫn hoạt động.";
+                _afterHoursEarlyStart.Text = "Khởi động relay đến " + next.ToString("HH:mm");
+                return;
             }
-            catch { }
+
+            _afterHoursStatus.Text = relayAllowed
+                ? "Relay PDA hoạt động theo lịch đã xác nhận."
+                : _businessSchedule.StatusText(now);
         }
 
         private static Panel NewCard(int left, int top, int width, int height)
@@ -1417,7 +1527,7 @@ namespace SupraInventoryRelayAgent
             if (options.ShowDisk)
                 parts.Add("WMS " + (HasUsableWmsSession() ? "Sẵn sàng" : "Chưa sẵn sàng"));
             if (options.ShowNetwork) parts.Add("v" + AgentConfig.AgentBuild);
-            if (options.ShowInternet) parts.Add("Nghiệp vụ " + (IsBusinessAllowed() ? "ON" : "TẠM DỪNG"));
+            if (options.ShowInternet) parts.Add("Relay PDA " + (IsBusinessAllowed() ? "ON" : "NGỦ"));
             if (options.ShowGpu) parts.Add("Cache " + _picklistCache.CacheCount);
             return parts.Count == 0 ? "" : "Vận hành | " + string.Join(" | ", parts.ToArray());
         }
@@ -1743,7 +1853,7 @@ namespace SupraInventoryRelayAgent
             _manualPicklistConfirmAll.Visible = count >= 2;
             _manualPicklistConfirmAll.Text = count >= 2 ? "Xác nhận tất cả (" + count + ")" : "Xác nhận tất cả";
             _manualPicklistConfirmAll.Enabled =
-                count >= 2 && HasAgentSession() && HasUsableWmsSession() && IsBusinessAllowed();
+                count >= 2 && HasAgentSession() && HasUsableWmsSession();
         }
 
         private void SearchManualPicklists()
@@ -1769,8 +1879,6 @@ namespace SupraInventoryRelayAgent
 
             try
             {
-                if (!IsBusinessAllowed())
-                    throw new InvalidOperationException("Agent đang tạm dừng nghiệp vụ 22:00–05:00. Hãy xác nhận tăng ca tại Tổng quan để tiếp tục.");
                 if (queries == null || queries.Count == 0)
                     throw new InvalidOperationException("Nhập tối thiểu 3 số cho mỗi PickList; tối đa 10 giá trị, ngăn cách bằng dấu phẩy.");
 
@@ -1847,10 +1955,9 @@ namespace SupraInventoryRelayAgent
                 {
                     List<string> parsed;
                     _manualPicklistSearch.Enabled =
-                        TryParseManualPicklistQueries(_manualPicklistQuery.Text, out parsed) &&
-                        IsBusinessAllowed();
+                        TryParseManualPicklistQueries(_manualPicklistQuery.Text, out parsed);
                     _manualPicklistGrid.Enabled =
-                        HasAgentSession() && HasUsableWmsSession() && IsBusinessAllowed();
+                        HasAgentSession() && HasUsableWmsSession();
                     UpdateManualConfirmAllVisibility();
                 });
             }
@@ -1918,8 +2025,6 @@ namespace SupraInventoryRelayAgent
 
             try
             {
-                if (!IsBusinessAllowed())
-                    throw new InvalidOperationException("Agent đang tạm dừng nghiệp vụ 22:00–05:00. Hãy xác nhận tăng ca tại Tổng quan để tiếp tục.");
                 if (codes.Count == 0)
                     throw new InvalidOperationException("Chưa chọn PickList.");
                 if (codes.Count > 50)
@@ -2081,10 +2186,9 @@ namespace SupraInventoryRelayAgent
                 {
                     List<string> parsed;
                     _manualPicklistSearch.Enabled =
-                        TryParseManualPicklistQueries(_manualPicklistQuery.Text, out parsed) &&
-                        IsBusinessAllowed();
+                        TryParseManualPicklistQueries(_manualPicklistQuery.Text, out parsed);
                     _manualPicklistGrid.Enabled =
-                        HasAgentSession() && HasUsableWmsSession() && IsBusinessAllowed();
+                        HasAgentSession() && HasUsableWmsSession();
                     UpdateManualConfirmAllVisibility();
                 });
             }
@@ -2111,6 +2215,8 @@ namespace SupraInventoryRelayAgent
                 SnapshotSession,
                 EnsureFreshToken,
                 HasUsableWmsSession,
+                ProbeWmsForTakeover,
+                IsBusinessAllowed,
                 _agentInstanceId,
                 Log,
                 (role, primaryId) =>
@@ -3503,6 +3609,31 @@ namespace SupraInventoryRelayAgent
                    string.Equals(result, "SESSION_EXPIRED", StringComparison.Ordinal);
         }
 
+        private bool ProbeWmsForTakeover()
+        {
+            var session = SnapshotWmsSession();
+            if (session == null || !session.IsValidHy1()) return false;
+            try
+            {
+                var probe = WmsReadOnlyClient.ProbeApi(session);
+                Log("WMS TAKEOVER PROBE result=" + probe.Result +
+                    " http=" + probe.StatusCode +
+                    " route=" + probe.Route +
+                    " ms=" + probe.ElapsedMs);
+                if (string.Equals(probe.Result, "PASS", StringComparison.Ordinal))
+                    return true;
+                if (string.Equals(probe.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
+                    ClearWmsSessionAfterExpiry();
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Log("WMS TAKEOVER PROBE fail type=" + ex.GetType().Name +
+                    " detail=" + SafeMessage(ex));
+                return false;
+            }
+        }
+
         private void ClearWmsSessionAfterExpiry()
         {
             lock (_wmsSessionLock) _wmsSession = null;
@@ -3510,6 +3641,8 @@ namespace SupraInventoryRelayAgent
             WmsSessionStore.Clear(WmsSessionFile);
             Ui(() => _wmsStatus.Text = "WMS: phiên hết hạn · cần đăng nhập lại");
             SetProbeButtonsEnabled(true);
+            var coordinator = _leaderCoordinator;
+            if (coordinator != null) coordinator.RequestRoleRefreshBeforeBusiness();
         }
 
         private void StartListening()

@@ -1,6 +1,4 @@
 using System;
-using System.IO;
-using System.Text;
 
 namespace SupraInventoryRelayAgent
 {
@@ -13,19 +11,14 @@ namespace SupraInventoryRelayAgent
 
     internal sealed class AgentBusinessSchedule
     {
-        private static readonly TimeSpan PromptStart = new TimeSpan(21, 30, 0);
-        private static readonly TimeSpan PauseStart = new TimeSpan(22, 0, 0);
-        private static readonly TimeSpan ResumeAt = new TimeSpan(5, 0, 0);
-
-        private readonly string _stateFile;
-        private readonly object _gate = new object();
-        private string _nightKey = "";
-        private AfterHoursDecision _decision = AfterHoursDecision.NONE;
+        internal static readonly TimeSpan RegularStart = new TimeSpan(6, 0, 0);
+        internal static readonly TimeSpan RegularEnd = new TimeSpan(22, 0, 0);
+        internal static readonly TimeSpan PromptLead = TimeSpan.FromMinutes(30);
 
         internal AgentBusinessSchedule(string stateFile)
         {
-            _stateFile = stateFile ?? "";
-            Load();
+            // D117: cross-machine operating decisions are canonical in Firestore coordination.
+            // The legacy local file path remains accepted for constructor compatibility only.
         }
 
         internal DateTime NowOperational()
@@ -41,141 +34,105 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        internal bool NeedsConfirmation(DateTime now)
+        internal bool DefaultRelayAllowed(DateTime now)
         {
             var time = now.TimeOfDay;
-            if (!IsNightWindow(time) && time < PromptStart) return false;
-            if (time >= ResumeAt && time < PromptStart) return false;
-            return GetDecision(now) == AfterHoursDecision.NONE;
+            return time >= RegularStart && time < RegularEnd;
         }
 
         internal bool BusinessAllowed(DateTime now)
         {
+            return DefaultRelayAllowed(now);
+        }
+
+        internal bool NeedsConfirmation(DateTime now)
+        {
+            DateTime boundary;
+            return TryGetPromptBoundary(now, out boundary) && DefaultRelayAllowed(now);
+        }
+
+        internal bool TryGetPromptBoundary(DateTime now, out DateTime boundary)
+        {
+            boundary = DateTime.MinValue;
             var time = now.TimeOfDay;
-            if (time >= ResumeAt && time < PauseStart) return true;
-            if (time >= PromptStart && time < PauseStart) return true;
-            if (!IsNightWindow(time)) return true;
-            return GetDecision(now) == AfterHoursDecision.CONTINUE;
+
+            // 21:30-21:59 asks whether the relay may continue after 22:00.
+            if (time >= RegularEnd.Subtract(PromptLead) && time < RegularEnd)
+            {
+                boundary = now.Date.Add(RegularEnd);
+                return true;
+            }
+
+            // After 22:00, only an already-extended relay asks again.
+            // Each next-hour decision starts at HH:30. 05:30 has no prompt because 06:00
+            // automatically returns to the regular operating window.
+            if (time >= RegularEnd || time < RegularStart)
+            {
+                var hourStart = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0, DateTimeKind.Unspecified);
+                var nextHour = hourStart.AddHours(1);
+                var nextRegular = NextRegularStart(now);
+                if (nextHour >= nextRegular) return false;
+                if (now < nextHour.Subtract(PromptLead)) return false;
+                boundary = nextHour;
+                return true;
+            }
+
+            return false;
         }
 
-        internal AfterHoursDecision GetDecision(DateTime now)
+        internal DateTime NextRegularStart(DateTime now)
         {
-            var key = NightKey(now);
-            lock (_gate)
-            {
-                if (!string.Equals(_nightKey, key, StringComparison.Ordinal))
-                    return AfterHoursDecision.NONE;
-                return _decision;
-            }
+            var today = now.Date.Add(RegularStart);
+            if (now < today) return today;
+            if (now.TimeOfDay >= RegularEnd) return today.AddDays(1);
+            return today;
         }
 
-        internal void SetDecision(DateTime now, AfterHoursDecision decision)
+        internal DateTime ExtensionUntil(DateTime boundary)
         {
-            if (decision != AfterHoursDecision.CONTINUE && decision != AfterHoursDecision.STOP)
-                throw new ArgumentOutOfRangeException("decision");
+            var nextRegular = NextRegularStart(boundary.AddSeconds(1));
+            var proposed = boundary.AddHours(1);
+            return proposed > nextRegular ? nextRegular : proposed;
+        }
 
-            var key = NightKey(now);
-            lock (_gate)
-            {
-                _nightKey = key;
-                _decision = decision;
-                Save();
-            }
+        internal string ScheduleKey(DateTime now)
+        {
+            var businessNight = now.TimeOfDay < RegularStart ? now.Date.AddDays(-1) : now.Date;
+            return businessNight.ToString("yyyyMMdd");
         }
 
         internal string StatusText(DateTime now)
         {
-            var decision = GetDecision(now);
-            if (decision == AfterHoursDecision.CONTINUE)
-                return "Đã xác nhận tiếp tục vận hành sau 22:00 đến 05:00.";
-            if (decision == AfterHoursDecision.STOP)
-                return "Đã xác nhận ngừng xử lý từ 22:00 đến 05:00.";
-            if (NeedsConfirmation(now))
-                return now.TimeOfDay >= PauseStart || now.TimeOfDay < ResumeAt
-                    ? "Chưa xác nhận tăng ca: nghiệp vụ đang tạm dừng đến khi xác nhận hoặc 05:00."
-                    : "Cần xác nhận có tiếp tục vận hành sau 22:00.";
-            return "Khung vận hành bình thường.";
+            if (DefaultRelayAllowed(now))
+                return "Relay PDA hoạt động theo khung 06:00–22:00.";
+            return "Relay PDA đang ngủ; xác nhận trực tiếp tại Agent vẫn dùng được.";
         }
 
         internal static bool SelfTestTransitions()
         {
-            var path = Path.Combine(Path.GetTempPath(), "supra-agent-d102-" + Guid.NewGuid().ToString("N") + ".txt");
-            try
-            {
-                var schedule = new AgentBusinessSchedule(path);
-                var day = new DateTime(2026, 9, 22, 0, 0, 0, DateTimeKind.Unspecified);
+            var schedule = new AgentBusinessSchedule("");
+            var day = new DateTime(2026, 9, 24, 0, 0, 0, DateTimeKind.Unspecified);
+            DateTime boundary;
 
-                if (schedule.NeedsConfirmation(day.AddHours(21).AddMinutes(29))) return false;
-                if (!schedule.NeedsConfirmation(day.AddHours(21).AddMinutes(30))) return false;
-                if (!schedule.BusinessAllowed(day.AddHours(21).AddMinutes(59))) return false;
-                if (schedule.BusinessAllowed(day.AddHours(22))) return false;
+            if (schedule.DefaultRelayAllowed(day.AddHours(5).AddMinutes(59))) return false;
+            if (!schedule.DefaultRelayAllowed(day.AddHours(6))) return false;
+            if (!schedule.DefaultRelayAllowed(day.AddHours(21).AddMinutes(59))) return false;
+            if (schedule.DefaultRelayAllowed(day.AddHours(22))) return false;
 
-                schedule.SetDecision(day.AddHours(21).AddMinutes(30), AfterHoursDecision.CONTINUE);
-                if (schedule.NeedsConfirmation(day.AddHours(21).AddMinutes(35))) return false;
-                if (!schedule.BusinessAllowed(day.AddHours(22))) return false;
-                if (!schedule.BusinessAllowed(day.AddDays(1).AddHours(4).AddMinutes(59))) return false;
-                if (!schedule.BusinessAllowed(day.AddDays(1).AddHours(5))) return false;
+            if (schedule.TryGetPromptBoundary(day.AddHours(21).AddMinutes(29), out boundary)) return false;
+            if (!schedule.TryGetPromptBoundary(day.AddHours(21).AddMinutes(30), out boundary)) return false;
+            if (boundary != day.AddHours(22)) return false;
 
-                try { File.Delete(path); } catch { }
-                schedule = new AgentBusinessSchedule(path);
-                schedule.SetDecision(day.AddHours(21).AddMinutes(30), AfterHoursDecision.STOP);
-                if (!schedule.BusinessAllowed(day.AddHours(21).AddMinutes(59))) return false;
-                if (schedule.BusinessAllowed(day.AddHours(22))) return false;
-                if (schedule.BusinessAllowed(day.AddDays(1).AddHours(4).AddMinutes(59))) return false;
-                if (!schedule.BusinessAllowed(day.AddDays(1).AddHours(5))) return false;
-                if (schedule.NeedsConfirmation(day.AddHours(22).AddMinutes(5))) return false;
-                if (!schedule.NeedsConfirmation(day.AddDays(1).AddHours(21).AddMinutes(30))) return false;
+            if (schedule.TryGetPromptBoundary(day.AddHours(22).AddMinutes(29), out boundary)) return false;
+            if (!schedule.TryGetPromptBoundary(day.AddHours(22).AddMinutes(30), out boundary)) return false;
+            if (boundary != day.AddHours(23)) return false;
 
-                return true;
-            }
-            finally
-            {
-                try { File.Delete(path); } catch { }
-                try { File.Delete(path + ".tmp"); } catch { }
-            }
-        }
+            if (!schedule.TryGetPromptBoundary(day.AddDays(1).AddHours(4).AddMinutes(30), out boundary)) return false;
+            if (boundary != day.AddDays(1).AddHours(5)) return false;
+            if (schedule.TryGetPromptBoundary(day.AddDays(1).AddHours(5).AddMinutes(30), out boundary)) return false;
+            if (schedule.NextRegularStart(day.AddDays(1).AddHours(5)) != day.AddDays(1).AddHours(6)) return false;
 
-        private static bool IsNightWindow(TimeSpan time)
-        {
-            return time >= PauseStart || time < ResumeAt;
-        }
-
-        private static string NightKey(DateTime now)
-        {
-            var businessNight = now.TimeOfDay < ResumeAt ? now.Date.AddDays(-1) : now.Date;
-            return businessNight.ToString("yyyyMMdd");
-        }
-
-        private void Load()
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(_stateFile) || !File.Exists(_stateFile)) return;
-                var raw = File.ReadAllText(_stateFile, Encoding.UTF8).Trim();
-                var parts = raw.Split('|');
-                if (parts.Length != 2 || parts[0].Length != 8) return;
-                AfterHoursDecision parsed;
-                if (!Enum.TryParse(parts[1], true, out parsed)) return;
-                if (parsed != AfterHoursDecision.CONTINUE && parsed != AfterHoursDecision.STOP) return;
-                _nightKey = parts[0];
-                _decision = parsed;
-            }
-            catch
-            {
-                _nightKey = "";
-                _decision = AfterHoursDecision.NONE;
-            }
-        }
-
-        private void Save()
-        {
-            if (string.IsNullOrWhiteSpace(_stateFile)) return;
-            var dir = Path.GetDirectoryName(_stateFile);
-            if (!string.IsNullOrWhiteSpace(dir)) Directory.CreateDirectory(dir);
-            var temp = _stateFile + ".tmp";
-            File.WriteAllText(temp, _nightKey + "|" + _decision, Encoding.UTF8);
-            if (File.Exists(_stateFile)) File.Delete(_stateFile);
-            File.Move(temp, _stateFile);
+            return true;
         }
     }
 }

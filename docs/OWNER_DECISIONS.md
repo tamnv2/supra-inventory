@@ -938,3 +938,20 @@ D116 is technically released on Beta and **OA036 is field-ready**.
 - D116 source contract: PRIMARY 3s, STANDBY 10s, failover 10s, FROZEN no business poll; Android remains listener-driven/no-poll and terminal result survives input reset; selected-SKU affected Picker detail uses existing prefetch/cache; SKU workspace and Picker-only all-with-exclusions bulk actions are live.
 - No SQLite migration, no new provider/resource, no Android polling and no PROCESSING write. Stable remains OWNER-GATED and untouched.
 - OA036 is `READY_FOR_OWNER_FIELD_TEST`; D116 Owner PASS is not recorded until explicit field confirmation.
+
+## D117 — Firestore proactive HA, quota-balanced relay and scheduled freeze — 2026-09-24
+
+Owner approves replacing only the D116 PDA↔Agent HA/polling and D102 relay operating-window semantics below. Firestore remains the selected Office-compatible carrier; Cloudflare/RTDB/Apps Script are not reopened for this path. Stable remains OWNER-GATED and untouched.
+
+1. **Healthy PRIMARY latency / quota balance.** PRIMARY reads the pending confirmation queue every **4 seconds while idle** and temporarily every **2 seconds for 15 seconds after actual work is found**. STANDBY and FROZEN perform **no business queue polling**.
+2. **Proactive idle failover.** PRIMARY writes a generation-scoped Firestore lease every **7 seconds**. STANDBY monitors only the current generation lease and promotes after **10 seconds** without a valid PRIMARY lease, even when no PDA request exists. Failover is therefore measured from PRIMARY death, not from request age.
+3. **Split-brain fence.** Every promoted PRIMARY receives a new generation. Before WMS mutation, Agent revalidates that it is still the current PRIMARY for that generation. A recovered stale PRIMARY cannot mutate WMS.
+4. **WMS health without spam.** No periodic WMS health request is allowed. WMS is validated at Agent startup, by real business calls, and exactly once when STANDBY is about to become PRIMARY. A proven expired WMS session clears local readiness and relinquishes relay authority; transport uncertainty fails closed.
+5. **PDA terminal window.** Android relay terminal wait becomes **20 seconds**. Agent must not begin new automatic WMS work for a job older than that terminal window. Existing per-PickList guard, conditional ACK and uncertain/no-replay rules remain.
+6. **Regular relay window.** PDA relay automatically operates **06:00–22:00 Asia/Ho_Chi_Minh**. The Agent process and direct/manual specialist confirmation remain available outside this relay window.
+7. **21:30 decision.** Starting **21:30**, only the current PRIMARY warns every **5 minutes** until the 22:00 boundary is decided. CONTINUE extends relay through **23:00**. STOP or no answer freezes relay at exactly the boundary.
+8. **Hourly overtime continuation.** While an after-hours relay extension is active, at every **HH:30** the PRIMARY starts five-minute warnings for the next hour boundary. Example: 22:30 asks whether relay continues after 23:00; 23:30 asks whether it continues after 00:00. CONTINUE grants one more hour; STOP/no answer freezes at the upcoming boundary. No 05:30 prompt is needed because 06:00 automatically re-enters the normal window.
+9. **Fleet-wide freeze.** When relay freezes, PRIMARY stops the lease and releases active relay roles; all online Agents become relay-frozen and stop receiving/processing PDA jobs. Direct/manual Agent confirmation remains available.
+10. **Early start before 06:00.** A frozen Agent with a usable WMS session exposes **Khởi động relay đến 06:00**. The machine that confirms early start claims PRIMARY immediately; other online Agents rejoin as STANDBY/FROZEN through the existing Firestore coordination model. At 06:00 the normal schedule takes over automatically.
+11. Schedule decisions are stored only in the existing Firestore relay coordination scope; no new provider or collection is introduced. D096/D104 confirmation mutation guards, D114 suffix/ambiguity semantics, no-offline invariant and Stable OWNER-GATED remain unchanged.
+

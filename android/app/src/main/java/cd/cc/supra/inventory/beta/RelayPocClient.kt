@@ -78,7 +78,7 @@ class RelayPocClient(
 ) {
     private companion object {
         const val FAILOVER_NOTICE_MS = 10_000L
-        const val TOTAL_WAIT_MS = 30_000L
+        const val TOTAL_WAIT_MS = 20_000L
         const val TIMED_OUT_PENDING_RETENTION_MS = 60L * 60L * 1000L
         const val CONFIRMED_RETENTION_MS = 30L * 24L * 60L * 60L * 1000L
         const val CLEANUP_PREF = "relay_d097_cleanup"

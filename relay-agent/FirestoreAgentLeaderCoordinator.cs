@@ -23,6 +23,10 @@ namespace SupraInventoryRelayAgent
         internal string StandbyAgentInstanceId = "";
         internal string Generation = "";
         internal long UpdatedAtMs;
+        internal string ScheduleKey = "";
+        internal string ScheduleDecision = "";
+        internal long RelayOverrideUntilMs;
+        internal long DecisionBoundaryMs;
     }
 
     internal sealed class AgentPresenceView
@@ -40,9 +44,10 @@ namespace SupraInventoryRelayAgent
     {
         internal const int FailoverAfterMs = 10000;
         internal const int StandbyTakeoverAgeMs = 10000;
+        internal const int PrimaryLeaseHeartbeatMs = 7000;
         internal const int PrimaryRoleRefreshMs = 60000;
         internal const int StandbyRoleRefreshMs = 60000;
-        internal const int FrozenRoleRefreshMs = 300000;
+        internal const int FrozenRoleRefreshMs = 120000;
         internal const int StartupConvergenceIntervalMs = 5000;
         internal const int StartupConvergenceCycles = 4;
         internal const int PresenceHeartbeatIntervalMs = 900000;
@@ -52,6 +57,8 @@ namespace SupraInventoryRelayAgent
         private readonly Func<AgentSession> _sessionProvider;
         private readonly Action _ensureFreshToken;
         private readonly Func<bool> _wmsReady;
+        private readonly Func<bool> _takeoverWmsProbe;
+        private readonly Func<bool> _relayEnabled;
         private readonly string _instanceId;
         private readonly Action<string> _log;
         private readonly Action<FirestoreAgentRole, string> _stateChanged;
@@ -75,11 +82,22 @@ namespace SupraInventoryRelayAgent
         private volatile bool _coordinationHealthy;
         private volatile bool _relayPollHealthy;
         private volatile bool _refreshBeforeBusiness;
+        private string _generation = "";
+        private long _lastRoleRefreshMs;
+        private long _lastLeaseWriteMs;
+        private long _leaseMissingSinceMs;
+        private long _lastTakeoverProbeMs;
+        private string _sharedScheduleKey = "";
+        private string _sharedScheduleDecision = "";
+        private long _sharedRelayOverrideUntilMs;
+        private long _sharedDecisionBoundaryMs;
 
         internal FirestoreAgentLeaderCoordinator(
             Func<AgentSession> sessionProvider,
             Action ensureFreshToken,
             Func<bool> wmsReady,
+            Func<bool> takeoverWmsProbe,
+            Func<bool> relayEnabled,
             string instanceId,
             Action<string> log,
             Action<FirestoreAgentRole, string> stateChanged)
@@ -87,6 +105,8 @@ namespace SupraInventoryRelayAgent
             _sessionProvider = sessionProvider;
             _ensureFreshToken = ensureFreshToken;
             _wmsReady = wmsReady;
+            _takeoverWmsProbe = takeoverWmsProbe ?? (() => false);
+            _relayEnabled = relayEnabled ?? (() => true);
             _instanceId = instanceId ?? "";
             _log = log ?? delegate { };
             _stateChanged = stateChanged ?? delegate { };
@@ -97,7 +117,7 @@ namespace SupraInventoryRelayAgent
         internal bool IsFrozen { get { return _role == FirestoreAgentRole.FROZEN; } }
         internal FirestoreAgentRole Role { get { return _role; } }
         internal string RoleName { get { return _role.ToString(); } }
-        internal bool CanPollBusiness { get { return _wmsReady() && (_role == FirestoreAgentRole.PRIMARY || _role == FirestoreAgentRole.STANDBY); } }
+        internal bool CanPollBusiness { get { return _relayEnabled() && _wmsReady() && _role == FirestoreAgentRole.PRIMARY; } }
         internal bool IsTransportHealthy { get { return _coordinationHealthy && (!_relayPollHealthy ? _role == FirestoreAgentRole.FROZEN : true); } }
         internal int OnlineAgentCount { get { return Math.Max(0, _onlineAgentCount); } }
         internal int OnlinePrimaryCount { get { return Math.Max(0, _onlinePrimaryCount); } }
@@ -124,19 +144,45 @@ namespace SupraInventoryRelayAgent
         {
             get
             {
-                if (_role == FirestoreAgentRole.PRIMARY) return FirestoreConfirmationTransport.PrimaryPollIntervalMs;
-                if (_role == FirestoreAgentRole.STANDBY) return 10000;
-                return 60000;
+                if (_role == FirestoreAgentRole.PRIMARY) return FirestoreConfirmationTransport.PrimaryIdlePollIntervalMs;
+                return 2000;
             }
         }
 
         internal bool CanProcessJob(long createdAtMs)
         {
-            if (!_wmsReady()) return false;
-            if (_role == FirestoreAgentRole.PRIMARY) return true;
-            if (_role != FirestoreAgentRole.STANDBY) return false;
-            if (createdAtMs <= 0) return false;
-            return NowMs() - createdAtMs >= StandbyTakeoverAgeMs;
+            return _relayEnabled() && _wmsReady() && _role == FirestoreAgentRole.PRIMARY;
+        }
+
+        internal bool SharedRelayOverrideAllows(string scheduleKey, long nowMs)
+        {
+            lock (_stateGate)
+            {
+                return !string.IsNullOrWhiteSpace(scheduleKey) &&
+                       string.Equals(_sharedScheduleKey, scheduleKey, StringComparison.Ordinal) &&
+                       _sharedRelayOverrideUntilMs > nowMs;
+            }
+        }
+
+        internal bool HasScheduleDecision(string scheduleKey, long boundaryMs)
+        {
+            lock (_stateGate)
+            {
+                return !string.IsNullOrWhiteSpace(scheduleKey) &&
+                       string.Equals(_sharedScheduleKey, scheduleKey, StringComparison.Ordinal) &&
+                       _sharedDecisionBoundaryMs == boundaryMs &&
+                       !string.IsNullOrWhiteSpace(_sharedScheduleDecision);
+            }
+        }
+
+        internal string SharedScheduleDecision
+        {
+            get { lock (_stateGate) return _sharedScheduleDecision ?? ""; }
+        }
+
+        internal long SharedRelayOverrideUntilMs
+        {
+            get { lock (_stateGate) return _sharedRelayOverrideUntilMs; }
         }
 
         internal void ReportRelayPoll(bool healthy)
@@ -165,7 +211,93 @@ namespace SupraInventoryRelayAgent
         {
             if (!_refreshBeforeBusiness) return;
             RefreshRole(session);
+            _lastRoleRefreshMs = NowMs();
             _refreshBeforeBusiness = false;
+        }
+
+        internal bool VerifyPrimaryBeforeMutation(AgentSession session)
+        {
+            if (!_relayEnabled() || !_wmsReady() || _role != FirestoreAgentRole.PRIMARY) return false;
+            var read = ReadRoles(session);
+            ApplySharedSchedule(read.Snapshot);
+            var snapshot = read.Snapshot;
+            if (snapshot == null ||
+                !string.Equals(snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal) ||
+                string.IsNullOrWhiteSpace(snapshot.Generation) ||
+                !string.Equals(snapshot.Generation, _generation, StringComparison.Ordinal))
+            {
+                ApplySnapshot(snapshot, "MUTATION_FENCE_CHANGED");
+                return false;
+            }
+            if (!_relayEnabled()) return false;
+            return true;
+        }
+
+        internal bool PublishScheduleDecision(
+            string scheduleKey,
+            long boundaryMs,
+            string decision,
+            long relayOverrideUntilMs)
+        {
+            if (_role != FirestoreAgentRole.PRIMARY) return false;
+            if (string.IsNullOrWhiteSpace(scheduleKey) || boundaryMs <= 0) return false;
+            try
+            {
+                _ensureFreshToken();
+                var session = _sessionProvider();
+                WriteScheduleFields(session, scheduleKey, decision, boundaryMs, relayOverrideUntilMs);
+                SetSharedSchedule(scheduleKey, decision, boundaryMs, relayOverrideUntilMs);
+                _log("FIRESTORE SCHEDULE decision=" + AgentDiagnostics.Sanitize(decision ?? "") +
+                     " boundary_ms=" + boundaryMs +
+                     " relay_until_ms=" + relayOverrideUntilMs +
+                     " by=PRIMARY");
+                try { _wake.Set(); } catch { }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _log("FIRESTORE SCHEDULE write=DEFER type=" + ex.GetType().Name +
+                     " message=" + AgentDiagnostics.Sanitize(ex.Message));
+                return false;
+            }
+        }
+
+        internal bool PublishEarlyStartAndClaimPrimary(string scheduleKey, long relayOverrideUntilMs)
+        {
+            if (!_wmsReady() || string.IsNullOrWhiteSpace(scheduleKey) || relayOverrideUntilMs <= NowMs())
+                return false;
+            try
+            {
+                _ensureFreshToken();
+                var session = _sessionProvider();
+                WriteScheduleFields(session, scheduleKey, "EARLY_START", 0L, relayOverrideUntilMs);
+                SetSharedSchedule(scheduleKey, "EARLY_START", 0L, relayOverrideUntilMs);
+
+                for (var attempt = 0; attempt < 4; attempt++)
+                {
+                    var read = ReadRoles(session);
+                    var next = new FirestoreRoleSnapshot
+                    {
+                        PrimaryAgentInstanceId = _instanceId,
+                        StandbyAgentInstanceId = "",
+                        Generation = Guid.NewGuid().ToString("N"),
+                        UpdatedAtMs = NowMs()
+                    };
+                    if (!TryWriteRoles(session, next, read)) continue;
+                    _generation = next.Generation;
+                    SetRole(FirestoreAgentRole.PRIMARY, _instanceId, "", "EARLY_START_PRIMARY");
+                    WritePrimaryLease(session);
+                    TrySelectReplacementStandby(session, "");
+                    _log("FIRESTORE SCHEDULE early_start=PASS relay_until_ms=" + relayOverrideUntilMs);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _log("FIRESTORE SCHEDULE early_start=DEFER type=" + ex.GetType().Name +
+                     " message=" + AgentDiagnostics.Sanitize(ex.Message));
+            }
+            return false;
         }
 
         internal void Start()
@@ -209,7 +341,16 @@ namespace SupraInventoryRelayAgent
         internal bool PromoteStandbyForTakeover()
         {
             if (_role == FirestoreAgentRole.PRIMARY) return true;
-            if (_role != FirestoreAgentRole.STANDBY || !_wmsReady()) return false;
+            if (_role != FirestoreAgentRole.STANDBY || !_relayEnabled() || !_wmsReady()) return false;
+
+            var now = NowMs();
+            if (_lastTakeoverProbeMs != 0 && now - _lastTakeoverProbeMs < 5000) return false;
+            _lastTakeoverProbeMs = now;
+            if (!_takeoverWmsProbe())
+            {
+                _log("FIRESTORE HA takeover=DEFER reason=WMS_PROBE_NOT_READY");
+                return false;
+            }
 
             try
             {
@@ -218,15 +359,21 @@ namespace SupraInventoryRelayAgent
                 for (var attempt = 0; attempt < 3; attempt++)
                 {
                     var read = ReadRoles(session);
+                    ApplySharedSchedule(read.Snapshot);
+                    if (!_relayEnabled()) return false;
+
                     if (read.Snapshot != null &&
                         string.Equals(read.Snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal))
                     {
+                        _generation = read.Snapshot.Generation ?? "";
                         SetRole(FirestoreAgentRole.PRIMARY, _instanceId, read.Snapshot.StandbyAgentInstanceId, "TAKEOVER_ALREADY_PRIMARY");
+                        WritePrimaryLease(session);
                         return true;
                     }
 
                     if (read.Snapshot == null ||
-                        !string.Equals(read.Snapshot.StandbyAgentInstanceId, _instanceId, StringComparison.Ordinal))
+                        !string.Equals(read.Snapshot.StandbyAgentInstanceId, _instanceId, StringComparison.Ordinal) ||
+                        !string.Equals(read.Snapshot.Generation ?? "", _generation ?? "", StringComparison.Ordinal))
                     {
                         ApplySnapshot(read.Snapshot, "TAKEOVER_ROLE_CHANGED");
                         return false;
@@ -242,8 +389,10 @@ namespace SupraInventoryRelayAgent
                     };
                     if (TryWriteRoles(session, next, read))
                     {
-                        SetRole(FirestoreAgentRole.PRIMARY, _instanceId, "", "ACTIVE_FAILOVER_REQUEST_DRIVEN");
-                        _log("FIRESTORE HA takeover=PASS trigger=pending_age threshold_ms=" + FailoverAfterMs +
+                        _generation = next.Generation;
+                        SetRole(FirestoreAgentRole.PRIMARY, _instanceId, "", "ACTIVE_FAILOVER_LEASE");
+                        WritePrimaryLease(session);
+                        _log("FIRESTORE HA takeover=PASS trigger=primary_lease_timeout threshold_ms=" + FailoverAfterMs +
                              " self=" + Short(_instanceId));
                         TrySelectReplacementStandby(session, previousPrimary);
                         return true;
@@ -262,13 +411,42 @@ namespace SupraInventoryRelayAgent
         {
             while (!token.IsCancellationRequested)
             {
-                var waitMs = FrozenRoleRefreshMs;
+                var waitMs = 5000;
                 try
                 {
                     _ensureFreshToken();
                     var session = _sessionProvider();
+                    var now = NowMs();
                     var startupConvergence = _startupConvergenceRemaining > 0;
-                    RefreshRole(session);
+                    var roleInterval = _role == FirestoreAgentRole.FROZEN
+                        ? FrozenRoleRefreshMs
+                        : (_role == FirestoreAgentRole.STANDBY ? StandbyRoleRefreshMs : PrimaryRoleRefreshMs);
+                    var roleRefreshDue = startupConvergence ||
+                                         _refreshBeforeBusiness ||
+                                         _lastRoleRefreshMs == 0 ||
+                                         now - _lastRoleRefreshMs >= roleInterval;
+                    if (roleRefreshDue)
+                    {
+                        RefreshRole(session);
+                        _lastRoleRefreshMs = NowMs();
+                        _refreshBeforeBusiness = false;
+                    }
+
+                    if (_relayEnabled() && _role == FirestoreAgentRole.PRIMARY)
+                    {
+                        if (_lastLeaseWriteMs == 0 || NowMs() - _lastLeaseWriteMs >= PrimaryLeaseHeartbeatMs)
+                            WritePrimaryLease(session);
+                        waitMs = Math.Max(1000, PrimaryLeaseHeartbeatMs - (int)Math.Min(PrimaryLeaseHeartbeatMs, Math.Max(0L, NowMs() - _lastLeaseWriteMs)));
+                    }
+                    else if (_relayEnabled() && _role == FirestoreAgentRole.STANDBY)
+                    {
+                        waitMs = CheckPrimaryLease(session);
+                    }
+                    else
+                    {
+                        waitMs = startupConvergence ? StartupConvergenceIntervalMs : 30000;
+                    }
+
                     MaintainPresence(session);
                     if (startupConvergence ||
                         _fleetRefreshRequested ||
@@ -281,24 +459,15 @@ namespace SupraInventoryRelayAgent
                     }
 
                     _coordinationHealthy = true;
-                    if (startupConvergence)
-                    {
-                        _startupConvergenceRemaining--;
-                        waitMs = StartupConvergenceIntervalMs;
-                    }
-                    else
-                    {
-                        waitMs = _role == FirestoreAgentRole.FROZEN
-                            ? FrozenRoleRefreshMs
-                            : (_role == FirestoreAgentRole.STANDBY ? StandbyRoleRefreshMs : PrimaryRoleRefreshMs);
-                    }
+                    if (startupConvergence) _startupConvergenceRemaining--;
                 }
                 catch (Exception ex)
                 {
                     _coordinationHealthy = false;
-                    _log("FIRESTORE HA role-refresh error role_preserved=true type=" + ex.GetType().Name +
+                    _refreshBeforeBusiness = true;
+                    _log("FIRESTORE HA coordination error role_preserved=true type=" + ex.GetType().Name +
                          " message=" + AgentDiagnostics.Sanitize(ex.Message));
-                    waitMs = 30000;
+                    waitMs = 3000;
                 }
 
                 var signaled = WaitHandle.WaitAny(new WaitHandle[] { token.WaitHandle, _wake }, Math.Max(1000, waitMs));
@@ -312,10 +481,11 @@ namespace SupraInventoryRelayAgent
             {
                 var read = ReadRoles(session);
                 var snapshot = read.Snapshot;
+                ApplySharedSchedule(snapshot);
 
                 if (snapshot == null)
                 {
-                    if (!_wmsReady())
+                    if (!_relayEnabled() || !_wmsReady())
                     {
                         SetRole(FirestoreAgentRole.FROZEN, "", "", "WMS_NOT_READY");
                         return;
@@ -329,14 +499,35 @@ namespace SupraInventoryRelayAgent
                     };
                     if (TryWriteRoles(session, first, read))
                     {
+                        _generation = first.Generation;
                         SetRole(FirestoreAgentRole.PRIMARY, _instanceId, "", "ACTIVE_FIRST");
+                        WritePrimaryLease(session);
                         return;
                     }
                     continue;
                 }
 
+                if (!_relayEnabled())
+                {
+                    if (string.Equals(snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal))
+                    {
+                        var sleep = new FirestoreRoleSnapshot
+                        {
+                            PrimaryAgentInstanceId = "",
+                            StandbyAgentInstanceId = "",
+                            Generation = Guid.NewGuid().ToString("N"),
+                            UpdatedAtMs = NowMs()
+                        };
+                        TryWriteRoles(session, sleep, read);
+                    }
+                    _generation = snapshot.Generation ?? "";
+                    SetRole(FirestoreAgentRole.FROZEN, "", "", "RELAY_SCHEDULE_SLEEP");
+                    return;
+                }
+
                 if (string.Equals(snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal))
                 {
+                    _generation = snapshot.Generation ?? "";
                     if (!_wmsReady())
                     {
                         var relinquish = new FirestoreRoleSnapshot
@@ -359,6 +550,7 @@ namespace SupraInventoryRelayAgent
 
                 if (string.Equals(snapshot.StandbyAgentInstanceId, _instanceId, StringComparison.Ordinal))
                 {
+                    _generation = snapshot.Generation ?? "";
                     if (!_wmsReady())
                     {
                         var clearStandby = new FirestoreRoleSnapshot
@@ -390,7 +582,9 @@ namespace SupraInventoryRelayAgent
                     };
                     if (TryWriteRoles(session, primary, read))
                     {
+                        _generation = primary.Generation;
                         SetRole(FirestoreAgentRole.PRIMARY, _instanceId, primary.StandbyAgentInstanceId, "ACTIVE_VACANT");
+                        WritePrimaryLease(session);
                         return;
                     }
                     continue;
@@ -407,12 +601,15 @@ namespace SupraInventoryRelayAgent
                     };
                     if (TryWriteRoles(session, standby, read))
                     {
+                        _generation = standby.Generation ?? "";
+                        _leaseMissingSinceMs = 0;
                         SetRole(FirestoreAgentRole.STANDBY, standby.PrimaryAgentInstanceId, _instanceId, "STANDBY_SELECTED");
                         return;
                     }
                     continue;
                 }
 
+                _generation = snapshot.Generation ?? "";
                 SetRole(FirestoreAgentRole.FROZEN, snapshot.PrimaryAgentInstanceId, snapshot.StandbyAgentInstanceId, "FROZEN");
                 return;
             }
@@ -617,7 +814,11 @@ namespace SupraInventoryRelayAgent
                         PrimaryAgentInstanceId = FieldString(fields, "primary_agent_instance_id"),
                         StandbyAgentInstanceId = FieldString(fields, "standby_agent_instance_id"),
                         Generation = FieldString(fields, "generation"),
-                        UpdatedAtMs = FieldLong(fields, "updated_at_ms")
+                        UpdatedAtMs = FieldLong(fields, "updated_at_ms"),
+                        ScheduleKey = FieldString(fields, "schedule_key"),
+                        ScheduleDecision = FieldString(fields, "schedule_decision"),
+                        RelayOverrideUntilMs = FieldLong(fields, "relay_override_until_ms"),
+                        DecisionBoundaryMs = FieldLong(fields, "decision_boundary_ms")
                     }
                 };
             }
@@ -708,11 +909,14 @@ namespace SupraInventoryRelayAgent
 
         private void ApplySnapshot(FirestoreRoleSnapshot snapshot, string reason)
         {
+            ApplySharedSchedule(snapshot);
             if (snapshot == null)
             {
+                _generation = "";
                 SetRole(FirestoreAgentRole.FROZEN, "", "", reason);
                 return;
             }
+            _generation = snapshot.Generation ?? "";
             if (string.Equals(snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal))
                 SetRole(FirestoreAgentRole.PRIMARY, snapshot.PrimaryAgentInstanceId, snapshot.StandbyAgentInstanceId, reason);
             else if (string.Equals(snapshot.StandbyAgentInstanceId, _instanceId, StringComparison.Ordinal))
@@ -737,6 +941,8 @@ namespace SupraInventoryRelayAgent
                     _relayPollHealthy = false;
                     _lastPresenceWriteMs = 0;
                     _fleetRefreshRequested = true;
+                    if (role == FirestoreAgentRole.PRIMARY) _lastLeaseWriteMs = 0;
+                    if (role != FirestoreAgentRole.STANDBY) _leaseMissingSinceMs = 0;
                 }
             }
             if (!changed) return;
@@ -749,6 +955,155 @@ namespace SupraInventoryRelayAgent
                  " standby=" + Short(standbyId) +
                  " failover_ms=" + FailoverAfterMs);
             _stateChanged(role, primaryId ?? "");
+        }
+
+        private void ApplySharedSchedule(FirestoreRoleSnapshot snapshot)
+        {
+            if (snapshot == null) return;
+            SetSharedSchedule(
+                snapshot.ScheduleKey ?? "",
+                snapshot.ScheduleDecision ?? "",
+                snapshot.DecisionBoundaryMs,
+                snapshot.RelayOverrideUntilMs);
+        }
+
+        private void SetSharedSchedule(string key, string decision, long boundaryMs, long overrideUntilMs)
+        {
+            lock (_stateGate)
+            {
+                _sharedScheduleKey = key ?? "";
+                _sharedScheduleDecision = decision ?? "";
+                _sharedDecisionBoundaryMs = Math.Max(0L, boundaryMs);
+                _sharedRelayOverrideUntilMs = Math.Max(0L, overrideUntilMs);
+            }
+        }
+
+        private void WriteScheduleFields(
+            AgentSession session,
+            string scheduleKey,
+            string decision,
+            long boundaryMs,
+            long overrideUntilMs)
+        {
+            var fields = new Dictionary<string, object>
+            {
+                { "schedule_key", StringField(scheduleKey ?? "") },
+                { "schedule_decision", StringField(decision ?? "") },
+                { "decision_boundary_ms", IntField(Math.Max(0L, boundaryMs)) },
+                { "relay_override_until_ms", IntField(Math.Max(0L, overrideUntilMs)) },
+                { "schedule_updated_by_agent_instance_id", StringField(_instanceId) },
+                { "schedule_updated_at_ms", IntField(NowMs()) }
+            };
+            SendJson(
+                "PATCH",
+                RolesUrl(),
+                session.IdToken,
+                _json.Serialize(new Dictionary<string, object> { { "fields", fields } }),
+                BuildMask(fields.Keys),
+                7000,
+                false,
+                "SCHEDULE_WRITE");
+        }
+
+        private void WritePrimaryLease(AgentSession session)
+        {
+            if (_role != FirestoreAgentRole.PRIMARY ||
+                string.IsNullOrWhiteSpace(_generation) ||
+                !_relayEnabled())
+                return;
+
+            var fields = new Dictionary<string, object>
+            {
+                { "generation", StringField(_generation) },
+                { "primary_agent_instance_id", StringField(_instanceId) },
+                { "heartbeat_at_ms", IntField(NowMs()) }
+            };
+
+            Exception last = null;
+            for (var attempt = 1; attempt <= 2; attempt++)
+            {
+                try
+                {
+                    SendJson(
+                        "PATCH",
+                        LeaseUrl(_generation),
+                        session.IdToken,
+                        _json.Serialize(new Dictionary<string, object> { { "fields", fields } }),
+                        BuildMask(fields.Keys),
+                        5000,
+                        false,
+                        "PRIMARY_LEASE_WRITE");
+                    _lastLeaseWriteMs = NowMs();
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    last = ex;
+                    if (attempt < 2) Thread.Sleep(250);
+                }
+            }
+            throw last ?? new InvalidOperationException("Không ghi được PRIMARY lease.");
+        }
+
+        private int CheckPrimaryLease(AgentSession session)
+        {
+            if (_role != FirestoreAgentRole.STANDBY || !_relayEnabled()) return 2000;
+            var generation = _generation ?? "";
+            if (string.IsNullOrWhiteSpace(generation))
+            {
+                _refreshBeforeBusiness = true;
+                return 1000;
+            }
+
+            long leaseUpdatedMs = 0;
+            try
+            {
+                var raw = SendJson("GET", LeaseUrl(generation), session.IdToken, null, "", 5000, true, "PRIMARY_LEASE_READ");
+                var doc = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                if (doc != null)
+                {
+                    DateTimeOffset parsed;
+                    if (DateTimeOffset.TryParse(Get(doc, "updateTime"), out parsed))
+                        leaseUpdatedMs = parsed.ToUnixTimeMilliseconds();
+                }
+            }
+            catch (WebException ex)
+            {
+                var response = ex.Response as HttpWebResponse;
+                var status = response == null ? 0 : (int)response.StatusCode;
+                try { if (response != null) response.Dispose(); } catch { }
+                if (status != 404) throw;
+            }
+
+            var now = NowMs();
+            if (leaseUpdatedMs <= 0)
+            {
+                if (_leaseMissingSinceMs == 0) _leaseMissingSinceMs = now;
+                var missingAge = now - _leaseMissingSinceMs;
+                if (missingAge >= FailoverAfterMs)
+                {
+                    PromoteStandbyForTakeover();
+                    return 1000;
+                }
+                return Math.Max(1000, FailoverAfterMs - (int)Math.Min(FailoverAfterMs, Math.Max(0L, missingAge)));
+            }
+
+            _leaseMissingSinceMs = 0;
+            var ageMs = Math.Max(0L, now - leaseUpdatedMs);
+            if (ageMs >= FailoverAfterMs)
+            {
+                PromoteStandbyForTakeover();
+                return 1000;
+            }
+
+            if (ageMs < 8000L)
+                return Math.Max(1000, 8000 - (int)ageMs);
+            return 1000;
+        }
+
+        private static string LeaseUrl(string generation)
+        {
+            return DocumentsBase + "/relay_poc_coordination/lease_" + Uri.EscapeDataString(generation ?? "");
         }
 
         private static string DocumentsBase

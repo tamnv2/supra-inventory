@@ -853,3 +853,15 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - Latest Beta APK: `beta-vc72`
 - SQLite schema: `11`
 - Quota contract: PRIMARY 3s, STANDBY 10s, FROZEN no business poll, Android no polling; healthy-primary field target remains under 5 seconds.
+
+## D117 derived continuity refresh — 2026-09-24
+
+- SQLite schema: `11`.
+- Latest signed Beta APK remains `beta-vc72` until D117 release gates pass.
+- Beta canonical status: `D117_OWNER_APPROVED_IMPLEMENTATION_CANDIDATE__D116_LIVE_UNTIL_D117_GATES_RELEASE`.
+- Web canonical status: `D116_BETA_RUNTIME_PASS__AUTO_SELECTED_PICKER_DETAIL__SKU_CATALOG_WORKSPACE__PICKER_SAFE_BULK_SELECTION__OA036_FIELD_READY`.
+- Android canonical status: `D117_BETA_VC73_CANDIDATE__20S_RELAY_TERMINAL_WINDOW__D116_LIVE_UNTIL_RELEASE`.
+- D117 target artifacts: `beta-vc73` + `relay-agent-v36`; these are source candidates, not released artifacts yet.
+- D117 Owner-approved semantics: Firestore-only proactive 7s PRIMARY lease / 10s failover, PRIMARY 4s idle + 2s hot queue polling, STANDBY/FROZEN no business queue polling, no periodic WMS probe, 06:00–22:00 relay window, hourly after-hours extension, default fleet freeze, early-start-to-06:00, and manual Agent confirmation remains available.
+- Stable remains OWNER-GATED and untouched.
+

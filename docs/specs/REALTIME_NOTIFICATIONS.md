@@ -435,3 +435,13 @@ D115 supersedes only the PRIMARY polling cadence of the earlier D097/D104/D114 c
 - No PROCESSING state/write, no global/coalescing wait query, no extra provider, no new Firestore collection and no faster presence heartbeat are permitted.
 - The 3-second cadence is deliberately bounded between D115's 2-second latency-first setting and the older 5-second quota-first setting. Healthy-primary field acceptance remains **<5,000 ms**; failure of that target fails D116 field acceptance.
 - Selected-SKU affected-Picker visibility on Web is InventoryCore/Web presentation behavior using the existing prefetch/cache and must not alter this Firestore cadence.
+
+## D117 — Agent fleet liveness and operating-window notices
+
+- Agent HA liveness for the PDA confirmation path is Firestore-only.
+- PRIMARY emits a generation-scoped lease every 7s. STANDBY uses that lease as the proactive death detector; FROZEN does not observe business jobs.
+- A lease timeout at 10s is independent of PDA request creation. Role changes are fenced by generation before WMS mutation.
+- WMS is not used as a periodic heartbeat and must never be probed on the 7s lease cadence.
+- 21:30 and later HH:30 overtime warnings are local PRIMARY UI/tray notices every 5m until the upcoming boundary is decided. They create no WMS traffic.
+- Fleet schedule decisions are propagated through existing Firestore coordination state. Outside the active relay window, PDA relay is frozen while direct/manual Agent operations remain available.
+

@@ -1103,3 +1103,32 @@ Owner field acceptance after the D116 signed Android + relay-agent-v35 release m
 5. Web SKU page shows current metadata/search/list and still completes a controlled Excel import/conflict check.
 6. Web Users: ROOT/ADMIN/REPORTER cannot be bulk-selected; select all Picker, deselect at least one Picker, perform a non-destructive status action on a safe test set, and verify the excluded Picker is untouched.
 7. Stable remains OWNER-GATED and untouched.
+
+## D117 acceptance — proactive Firestore HA and scheduled relay freeze
+
+Technical/source gates must verify:
+
+1. Agent build/version parity is **v36**. PRIMARY queue polling is exactly 4,000 ms idle and 2,000 ms hot; hot mode is bounded. STANDBY/FROZEN execute zero business-queue polling.
+2. PRIMARY generation lease cadence is 7,000 ms and hard failover threshold is 10,000 ms. Killing an idle PRIMARY causes STANDBY promotion without creating a PDA job.
+3. Each takeover creates a new generation; a stale prior PRIMARY fails the pre-mutation role/generation fence and performs no WMS mutation.
+4. WMS has no periodic health timer. Startup validation remains; a real request may prove/expire the session; STANDBY→PRIMARY performs one read-only takeover probe.
+5. Android Beta candidate is **beta-vc73** with terminal relay wait 20,000 ms. Agent skips automatic jobs older than 20,000 ms. Existing conditional ACK, D104 guard/batching and no-replay-on-uncertain semantics remain.
+6. Normal relay is enabled 06:00–22:00 Asia/Ho_Chi_Minh. At 21:30 PRIMARY starts warnings every 5m for the 22:00 boundary.
+7. CONTINUE at 21:30 keeps relay active through 23:00. At 22:30 the next five-minute warning cycle asks about continuing beyond 23:00. Equivalent hourly behavior continues after midnight until regular 06:00 resumes.
+8. STOP or no answer freezes PDA relay at the upcoming boundary. While frozen, all Agents perform no automatic PDA business processing and PRIMARY lease stops.
+9. During relay freeze, direct/manual PickList search and confirmation on the Windows Agent remain enabled and continue using existing WMS safeguards.
+10. Before 06:00, **Khởi động relay đến 06:00** succeeds only with a usable WMS session. The confirming machine becomes PRIMARY; another online eligible Agent becomes STANDBY best-effort; remaining Agents stay FROZEN.
+11. At 06:00, normal relay resumes automatically without an Owner action. At 22:00 the next evening, the new decision cycle applies.
+12. No new provider, Firestore collection, SQLite migration, PROCESSING job write, Android polling or Stable change is introduced.
+13. Repo Authority, Project State, UI/Android/Relay Agent/Firestore guards and Beta release gates must PASS before D117 is recorded as technical/runtime/release PASS.
+
+Owner field acceptance:
+
+- Verify normal healthy PDA→terminal result remains under 10s.
+- Kill PRIMARY while idle; verify STANDBY becomes PRIMARY within 10s from PRIMARY loss, then the next PDA request completes normally.
+- Kill PRIMARY during a controlled request; with Firestore/WMS still responsive, verify terminal result target is <=20s and no duplicate WMS mutation occurs.
+- Verify 21:30 warning cadence, 22:00 default freeze, one-hour overtime extension, 22:30 next-hour warning and an additional post-midnight extension.
+- Verify frozen mode rejects/does not consume PDA relay work while manual Agent confirmation still works.
+- Verify early-start before 06:00 makes the confirming Agent PRIMARY and restores the full relay model.
+- Stable remains untouched.
+
