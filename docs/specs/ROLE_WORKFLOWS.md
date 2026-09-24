@@ -521,3 +521,10 @@ D114 supersedes the D105/D112 suffix-length carrier details where they conflict.
 - A frozen Agent may start the relay early before 06:00; the confirming machine becomes PRIMARY and the shared override lasts until 06:00, when normal scheduling resumes.
 - Shared decisions use the existing Firestore relay coordination resource and do not introduce a new provider/collection.
 
+### D117 final hardening
+
+- PRIMARY schedule decisions are copied into the generation lease immediately; STANDBY consumes the schedule fields from its existing lease read.
+- FROZEN has zero PDA business polling. Outside the normal relay window it refreshes only the shared role/control document every 30s so an early-start command can rebuild standby topology without leaving HA absent for minutes.
+- After exact resolution and guard acquisition, automatic work is rechecked against the 20s window.
+- Immediately before each WMS confirmation POST chunk, PRIMARY revalidates role + generation. Fence loss stops remaining WMS mutation, safely releases untouched guards and leaves jobs un-ACKed for the valid PRIMARY.
+
