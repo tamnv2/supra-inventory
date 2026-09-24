@@ -127,7 +127,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Nhập đúng 4 số cuối Picklist cần lấy lại. Hệ thống sẽ kiểm tra và xác nhận tự động khi tìm thấy duy nhất một Picklist phù hợp."
+                android:text="Nhập từ 3 chữ số cuối PickList trở lên. Hệ thống chỉ khớp đúng phần cuối mã PickList; nếu có nhiều kết quả, hãy chọn đúng một PickList của bạn."
                 android:textColor="@color/text_secondary"
                 android:textSize="13sp" />
 
@@ -141,10 +141,10 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:gravity="center_vertical"
-                android:hint="4 số cuối Picklist"
+                android:hint="Từ 3 số cuối PickList"
                 android:imeOptions="actionDone"
                 android:inputType="number"
-                android:maxLength="4"
+                android:maxLength="20"
                 android:singleLine="true"
                 android:textSize="19sp" />
 
@@ -170,9 +170,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:text="Sẵn sàng xác nhận Picklist."
+                android:text="Sẵn sàng kiểm tra PickList."
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
+
+            <LinearLayout
+                android:id="@+id/relayCandidateList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="vertical"
+                android:visibility="gone" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -180,7 +188,7 @@
                 android:layout_marginTop="10dp"
                 android:background="@drawable/bg_card"
                 android:padding="8dp"
-                android:text="Chỉ xác nhận khi hệ thống tìm thấy duy nhất Picklist khớp đúng 4 số cuối. Trường hợp không rõ ràng sẽ dừng và yêu cầu xử lý trực tiếp."
+                android:text="Chỉ xác nhận đúng PickList của bạn. Khi có nhiều kết quả, PDA chỉ cho phép chọn và xác nhận từng PickList một; huỷ xác nhận sẽ không gửi yêu cầu."
                 android:textColor="@color/text_secondary"
                 android:textSize="11sp" />
         </LinearLayout>
