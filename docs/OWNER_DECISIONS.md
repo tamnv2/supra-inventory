@@ -924,3 +924,17 @@ Owner field use of released D115 confirms the healthy-primary path is materially
 7. Web **Nhân sự & tài khoản** bulk selection applies only to PICKER. ROOT/ADMIN/REPORTER rows are never bulk-selectable. ROOT is visibly protected. **Chọn tất cả Picker** may still be followed by individual Picker deselection/reselection.
 8. The Picker all-selection exception list is enforced server-side, not only visually: all=true may carry explicit excluded Picker IDs; the core still targets only rows whose role is PICKER.
 9. D116 target artifacts are the next monotonic signed Android after beta-vc71 and **relay-agent-v35**. SQLite remains 11. Stable remains OWNER-GATED and untouched.
+
+## D116 technical/runtime/release checkpoint — 2026-09-24
+
+D116 is technically released on Beta and **OA036 is field-ready**.
+
+- PR #175 merged to main `9319eb30f55e48b3c60283ab2e9135bf0a33054d` after all PR authority, continuity, UI, Android, Agent, Firestore and RTDB gates passed.
+- Main PASS runs: Repo Authority `35962512361`, Project State `35962512549`, UI Design `35962512491`, Deploy Beta Worker `35962512349`, Verify Beta Android `35962512556`, Verify Beta Relay Agent `35962512375`.
+- Live Beta health passed on attempt 1 with HTTP 200, exact source `9319eb30...`, storage ready, SQLite `11/11`, missing bindings `0`, Agent migration `0/0` and Operational V2 `5/5`; auth/business/Web shell/OAuth-start smoke checks passed.
+- Signed Android `beta-vc72`: release id `395378687`, APK asset id `585274995`, size `19019872` bytes; tag resolves exactly to main `9319eb30...`.
+- Agent `relay-agent-v35`: release id `395378457`, canonical EXE asset id `585274568`, size `294400` bytes; tag resolves exactly to main `9319eb30...`.
+- Fixed `inventory-channel` refreshed: PDA manifest/APK `585275037/585275028`; Agent manifest/EXE `585274637/585274636`.
+- D116 source contract: PRIMARY 3s, STANDBY 10s, failover 10s, FROZEN no business poll; Android remains listener-driven/no-poll and terminal result survives input reset; selected-SKU affected Picker detail uses existing prefetch/cache; SKU workspace and Picker-only all-with-exclusions bulk actions are live.
+- No SQLite migration, no new provider/resource, no Android polling and no PROCESSING write. Stable remains OWNER-GATED and untouched.
+- OA036 is `READY_FOR_OWNER_FIELD_TEST`; D116 Owner PASS is not recorded until explicit field confirmation.
