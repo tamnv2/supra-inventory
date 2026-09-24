@@ -1081,3 +1081,25 @@ Owner field acceptance after signed **beta-vc71** + **relay-agent-v34**:
 4. Confirm a deliberately unresolved request still keeps the 10-second standby takeover rule and 30-second final fallback semantics.
 5. Confirm WMS-confirmed work cannot become a false Android timeout merely because the first ACK write/listener delivery was uncertain; ACK recovery must not duplicate WMS mutation.
 6. Confirm Stable is untouched.
+
+## D116 acceptance
+
+Technical/source gates must verify:
+
+1. Agent build/version parity is **v35** and PRIMARY confirmation polling is exactly **3,000 ms**; STANDBY and failover/takeover remain 10,000 ms; FROZEN has no business polling.
+2. D115 ACK retry/read-after-write, conditional PENDING→ACK, no WMS replay, D104 batching/chunking, D114 suffix/ambiguity rules, 30-second stale-job guard and quiet-hours business gate remain.
+3. Android programmatic clearing of the successful PickList input cannot overwrite terminal feedback; the terminal result is rendered after the reset and all existing specific terminal statuses remain.
+4. Web operations automatically renders selected-batch Picker detail using the existing prefetch/cache path; no added interval/provider polling is introduced.
+5. Web **Danh mục SKU** shows catalog metadata, bounded current-data search/list and the existing validated Excel import/conflict flow.
+6. Web **Nhân sự & tài khoản** renders bulk checkboxes only for Picker. All-Picker mode permits individual exclusions and the API/core enforces excluded_user_ids while still targeting only PICKER.
+7. SQLite remains 11; no new provider/resource/Firestore PROCESSING state or Android polling is introduced; Stable remains untouched.
+
+Owner field acceptance after the D116 signed Android + relay-agent-v35 release must verify:
+
+1. With one healthy PRIMARY, WMS ready, normal network and no failover, run at least 10 controlled confirmations. Healthy Android create→terminal result must remain **<5,000 ms**.
+2. On CONFIRMED, the input may clear for the next entry but the success result must remain clearly visible. Exercise at least NOT_FOUND/AMBIGUOUS plus one transport/session failure and confirm their specific results also remain visible.
+3. Confirm the PRIMARY 3-second release materially reduces Firestore background-read consumption versus D115 2-second operation while STANDBY remains 10 seconds and FROZEN remains no-poll.
+4. Web Operations shows selected-SKU affected Picker rows without a reveal click and without duplicate/repeating detail loads.
+5. Web SKU page shows current metadata/search/list and still completes a controlled Excel import/conflict check.
+6. Web Users: ROOT/ADMIN/REPORTER cannot be bulk-selected; select all Picker, deselect at least one Picker, perform a non-destructive status action on a safe test set, and verify the excluded Picker is untouched.
+7. Stable remains OWNER-GATED and untouched.
