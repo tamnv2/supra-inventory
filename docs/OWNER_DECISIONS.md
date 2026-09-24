@@ -955,3 +955,15 @@ Owner approves replacing only the D116 PDA↔Agent HA/polling and D102 relay ope
 10. **Early start before 06:00.** A frozen Agent with a usable WMS session exposes **Khởi động relay đến 06:00**. The machine that confirms early start claims PRIMARY immediately; other online Agents rejoin as STANDBY/FROZEN through the existing Firestore coordination model. At 06:00 the normal schedule takes over automatically.
 11. Schedule decisions are stored only in the existing Firestore relay coordination scope; no new provider or collection is introduced. D096/D104 confirmation mutation guards, D114 suffix/ambiguity semantics, no-offline invariant and Stable OWNER-GATED remain unchanged.
 
+## D117 final hardening — 2026-09-24
+
+Before recording D117 final release PASS, final logic review found two edge cases that could violate the Owner's intended behavior. The Owner-approved D117 model is therefore hardened without changing provider/resource selection:
+
+1. The PRIMARY lease carries the shared schedule key/decision/boundary/override fields. A PRIMARY schedule decision immediately writes the lease so STANDBY can absorb a late overtime decision without waiting for the slower role refresh.
+2. STANDBY continues its existing generation-lease read even when its local schedule view has just crossed an hour boundary; it may learn a valid extension from that same lease read, but it may not take over while relay is actually disabled.
+3. FROZEN performs no business queue polling. Its **control-role refresh** outside relay operation is reduced to **30 seconds** so an Owner-triggered early start before 06:00 can rebuild PRIMARY/STANDBY/FROZEN topology promptly. This is control coordination only, not PDA business polling.
+4. Automatic work is rechecked against the **20-second** terminal window after exact lookup/guard acquisition and immediately before WMS mutation. Expired work releases its safe guard and performs no new WMS mutation.
+5. Before **every WMS confirmation POST chunk**, the Agent revalidates current PRIMARY role + generation. If the fence is lost, untouched guards are released safely, no further WMS POST occurs, and the affected Firestore job is left un-ACKed for the valid PRIMARY to handle.
+6. Final hardened Agent target becomes **relay-agent-v37**. Signed Android remains **beta-vc73** because no Android source change is required.
+7. Stable remains OWNER-GATED and untouched.
+
