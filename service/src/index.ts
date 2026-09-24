@@ -1131,8 +1131,9 @@ export default {
           return json(await listRuntimeLogs(
             env,
             url.searchParams.get("source") || "WEB",
-            Number(url.searchParams.get("limit") || 100),
+            Number(url.searchParams.get("limit") || 50),
             Number(url.searchParams.get("days") || 30),
+            String(url.searchParams.get("page_token") || ""),
           ));
         } catch (error) {
           return json({ error: "LOG_LIST_FAILED", message: error instanceof Error ? error.message : "log_list_failed" }, 502);
