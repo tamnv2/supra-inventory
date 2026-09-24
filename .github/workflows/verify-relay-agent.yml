@@ -75,10 +75,10 @@ jobs:
           $firestoreRules = Get-Content firebase/firestore.rules -Raw
           $firestoreIndexes = Get-Content firebase/firestore.indexes.json -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*36\s*;') { throw "D117 requires Agent v36." }
+          if ($config -notmatch 'AgentBuild\s*=\s*37\s*;') { throw "D117 final hardening requires Agent v37." }
           if ($firestoreLeader -notmatch 'FailoverAfterMs\s*=\s*10000' -or $firestoreLeader -notmatch 'PrimaryLeaseHeartbeatMs\s*=\s*7000') { throw "D117 proactive 7-second lease / 10-second failover guard failed." }
           if ($firestoreLeader -match 'HeartbeatIntervalMs\s*=\s*4000') { throw "D097 forbids 4-second Firestore lease heartbeat." }
-          foreach ($marker in @('PRIMARY','STANDBY','FROZEN','PromoteStandbyForTakeover','replacement-standby','PrimaryLeaseHeartbeatMs = 7000','PresenceHeartbeatIntervalMs = 900000','StandbyRoleRefreshMs = 60000','FrozenRoleRefreshMs = 120000','StartupConvergenceIntervalMs = 5000','VerifyPrimaryBeforeMutation','lease_')) {
+          foreach ($marker in @('PRIMARY','STANDBY','FROZEN','PromoteStandbyForTakeover','replacement-standby','PrimaryLeaseHeartbeatMs = 7000','PresenceHeartbeatIntervalMs = 900000','StandbyRoleRefreshMs = 60000','FrozenRoleRefreshMs = 30000','StartupConvergenceIntervalMs = 5000','VerifyPrimaryBeforeMutation','lease_')) {
             if ($firestoreLeader -notmatch [regex]::Escape($marker)) { throw "D097 Agent role marker missing: $marker" }
           }
           if ($firestoreLeader -notmatch 'currentDocument\.updateTime' -or $firestoreLeader -notmatch 'currentDocument\.exists=false') { throw "D097 role election must use conditional writes." }
@@ -148,8 +148,10 @@ jobs:
           if ($program -notmatch '"Kiểm tra cập nhật"' -or $program -notmatch 'CheckAfterHoursSchedule' -or $program -notmatch 'TotalMinutes < 5' -or $program -notmatch 'AfterHoursDecision\.CONTINUE' -or $program -notmatch 'AfterHoursDecision\.STOP' -or $program -notmatch 'StartRelayBeforeSix' -or $program -notmatch 'ProbeWmsForTakeover') { throw "D117 update / hourly prompt / early-start / takeover-WMS-probe guard failed." }
           if ($program -match 'ProbeWmsForTakeover.*Timer' -or $program -match 'WMS.*probe.*Interval') { throw "D117 forbids periodic WMS health probing." }
           if ($firestoreLeader -notmatch 'PublishScheduleDecision' -or $firestoreLeader -notmatch 'PublishEarlyStartAndClaimPrimary' -or $firestoreLeader -notmatch 'SharedRelayOverrideAllows') { throw "D117 shared Firestore schedule authority markers missing." }
+          if ($firestoreLeader -notmatch 'schedule_key' -or $firestoreLeader -notmatch 'relay_override_until_ms' -or $firestoreLeader -notmatch 'WritePrimaryLease\(session\)' ) { throw "D117 schedule decision must propagate through the PRIMARY lease." }
+          if ($program -notmatch 'FINAL_20S_FENCE' -or $program -notmatch 'ROLE_GENERATION_FENCE' -or $program -notmatch 'VerifyPrimaryBeforeMutation\(appSession\)') { throw "D117 final pre-WMS age/generation fence markers missing." }
           if ($firestoreTransport -notmatch '_businessEnabled\(\)' -or $firestoreTransport -notmatch 'Relay PDA đang ngủ') { throw "D117 scheduled relay-sleep gate guard failed." }
-          if ($firestoreLeader -notmatch 'StandbyRoleRefreshMs\s*=\s*60000' -or $firestoreLeader -notmatch 'FrozenRoleRefreshMs\s*=\s*120000' -or $firestoreLeader -notmatch 'StartupConvergenceIntervalMs\s*=\s*5000') { throw "D117 Agent role convergence cadence guard failed." }
+          if ($firestoreLeader -notmatch 'StandbyRoleRefreshMs\s*=\s*60000' -or $firestoreLeader -notmatch 'FrozenRoleRefreshMs\s*=\s*30000' -or $firestoreLeader -notmatch 'StartupConvergenceIntervalMs\s*=\s*5000') { throw "D117 Agent role convergence cadence guard failed." }
           if ($program -match 'Chẩn đoán kỹ thuật cho AI' -or $program -match 'Kỹ thuật AI') { throw "D102 user-facing Agent UI must not expose AI-only copy." }
           if ($program -notmatch 'WindowState = FormWindowState.Maximized' -or $program -notmatch '_overviewPage.AutoScroll = false') { throw "D103 Agent must open maximized with a non-scrolling Overview." }
           if ($program -notmatch 'MaximizedBounds = screen\.WorkingArea' -or $program -notmatch 'ShowInTaskbar = true' -or $program -notmatch 'ApplyWorkingAreaMaximum\(\)') { throw "D104 maximized Agent must respect Windows WorkingArea/taskbar." }
