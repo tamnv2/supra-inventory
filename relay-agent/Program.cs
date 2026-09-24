@@ -768,13 +768,14 @@ namespace SupraInventoryRelayAgent
             var shell = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                RowCount = 2,
+                RowCount = 3,
                 ColumnCount = 1,
                 Margin = Padding.Empty,
                 Padding = Padding.Empty
             };
             shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 0F));
             shell.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 24F));
             shell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
 
             var chrome = new Panel
@@ -827,8 +828,27 @@ namespace SupraInventoryRelayAgent
                     _leaderCoordinator.RequestFleetRefresh();
             };
 
+            var footer = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.FromArgb(243, 246, 248),
+                Margin = Padding.Empty
+            };
+            var footerCredit = new Label
+            {
+                Dock = DockStyle.Right,
+                Width = 360,
+                TextAlign = ContentAlignment.MiddleRight,
+                Padding = new Padding(0, 0, 12, 0),
+                Text = "Phát triển hệ thống · tamnv2 | Pick Pack 1291",
+                ForeColor = Color.FromArgb(105, 117, 128),
+                Font = new Font("Segoe UI", 8F, FontStyle.Regular)
+            };
+            footer.Controls.Add(footerCredit);
+
             shell.Controls.Add(chrome, 0, 0);
             shell.Controls.Add(_mainTabs, 0, 1);
+            shell.Controls.Add(footer, 0, 2);
             Controls.Add(shell);
 
             // Tổng quan - bố cục cố định, không cuộn toàn trang.
