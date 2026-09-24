@@ -782,3 +782,27 @@ D112 is technically released on Beta and **OA032 is field-ready**.
 - Android: `D114_SOURCE_IMPLEMENTED__PDA_ONE_TERM_3_20_SUFFIX__AMBIGUOUS_SINGLE_SELECT__RESULT_TAXONOMY__TARGET_NEXT_AFTER_VC69`
 - Latest Beta APK: `beta-vc69`
 - SQLite schema: `11`
+
+
+## D114 technical/runtime/release checkpoint — 2026-09-24
+
+- Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA034 OWNER FIELD REVIEW READY**.
+- Implementation PR #167 merged at `8cdf941be71fcfddaf074e2016336c2f8d416608`.
+- Main PASS evidence: Repo Authority `35940942055`, Project State `35940942026`, UI Design `35940942050`, Beta Worker `35940942052`, Android `35940942048`, initial Agent release `35940942087`.
+- Live Beta Worker proof: attempt 2 HTTP 200, status ok, env beta, exact source `8cdf941be71fcfddaf074e2016336c2f8d416608`, storage true, SQLite `11/11`, missing bindings `0`, Agent migration `0/0`, Operational V2 `5/5`; auth/business/Web shell smoke PASS.
+- Firestore Rules repair: PR #168 merged main `e6138dbdd72e073e2c5a88e7fd431b1d0643c180`; main run `35943098393` PASS with ruleset create + cloud.firestore release readback.
+- Final Agent release-gate hardening: PR #170 merged main `bc8d6c3eb9f52b1c62c86a26a356d18d9867024d`; Repo Authority `35944022991`, Project State `35944023044`, Agent `35944022982` PASS. Existing `relay-agent-v33` is reused only when the exact Agent source tree is unchanged and its published checksum verifies.
+- Signed Android `beta-vc70`: release `395205061`, APK asset `584890700`, size `19019872`, SHA-256 `aff46b7191e2bcf95e0960e8559c75ad89df41005f183892a3a29430c1f3cfa3`.
+- Agent `relay-agent-v33`: release `395204655`, EXE asset `584889767`, size `292864`, SHA-256 `3bcf141b30378c222b7af5f3d012e1df0151c72e9ecb11d559615da2ff27e89f`; tag resolves to implementation source `8cdf941b`.
+- Fixed `inventory-channel`: PDA manifest/APK `584890776/584890792`; Agent manifest/EXE `584943002/584943001`.
+- OA034 is now the only D114 remaining gate: Owner field-tests live Beta Web + `beta-vc70` + `relay-agent-v33`, then replies PASS or itemized defects.
+- Stable remains OWNER-GATED and untouched.
+
+### D114 canonical current-status markers
+
+- Beta: `D114_TECHNICAL_RUNTIME_RELEASE_PASS__LIVE_SOURCE_8CDF941B__FIRESTORE_RULES_E6138DBD__SCHEMA11__SIGNED_BETA_VC70__AGENT_V33__OA034_FIELD_READY`
+- Web: `D114_BETA_RUNTIME_PASS__BALANCED_TOOLS__GLOBAL_REALTIME_QUEUE_BADGE__OA034_FIELD_READY`
+- Android: `D114_SIGNED_BETA_VC70__PDA_ONE_TERM_3_20_SUFFIX__AMBIGUOUS_SINGLE_SELECT__RESULT_TAXONOMY__OA034_FIELD_READY`
+- Latest Beta APK: `beta-vc70`
+- SQLite schema: `11`
+
