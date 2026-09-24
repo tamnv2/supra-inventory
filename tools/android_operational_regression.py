@@ -301,7 +301,7 @@ def main() -> None:
     require(agent_leader, "HttpRequestHeader.IfMatch", "D085 conditional leader election")
     # D101 supersedes D085 fresh-miss suppression: every cache miss refreshes WMS once
     # before a final NOT_FOUND, while preserving single-flight refresh joining.
-    require(picklist_cache, '"CACHE_MISS_REFRESH"', "D101 PDA cache miss refresh")
+    require(picklist_cache, '"CACHE_SUFFIX_MISS_REFRESH"', "D114/D101 PDA suffix cache miss refresh")
     require(picklist_cache, '"MANUAL_MISS_REFRESH"', "D101 specialist cache miss refresh")
     require(picklist_cache, "RefreshAndResolve(session, suffix", "D101 refresh-before-NOT_FOUND path")
     require(picklist_cache, '"JOIN_INFLIGHT"', "D085 single-flight cache refresh")
