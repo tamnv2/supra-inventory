@@ -580,12 +580,28 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
 }
 
 function reporterRecent(state: DurableObjectState, url: URL): Response {
-  const parsed = Number(url.searchParams.get("limit") || 100);
-  const limit = Math.max(1, Math.min(200, Number.isFinite(parsed) ? Math.trunc(parsed) : 100));
+  const parsed = Number(url.searchParams.get("limit") || 50);
+  const parsedOffset = Number(url.searchParams.get("offset") || 0);
+  const limit = Math.max(1, Math.min(200, Number.isFinite(parsed) ? Math.trunc(parsed) : 50));
+  const offset = Math.max(0, Number.isFinite(parsedOffset) ? Math.trunc(parsedOffset) : 0);
+  const statusValue = String(url.searchParams.get("status") || "").trim().toUpperCase();
+  const status = ["HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(statusValue) ? statusValue : "";
   const appTodayOpen = String(url.searchParams.get("scope") || "").toUpperCase() === APP_TODAY_OPEN_SCOPE;
   const todayStart = appTodayOpen ? appTodayStartIso() : "";
-  const dayFilter = appTodayOpen ? " AND b.first_report_at >= ?" : "";
-  const rowArgs: SqlStorageValue[] = appTodayOpen ? [todayStart, limit] : [limit];
+
+  const where = ["b.status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')"];
+  const args: SqlStorageValue[] = [];
+  if (appTodayOpen) { where.push("b.first_report_at >= ?"); args.push(todayStart); }
+  if (status) { where.push("b.status = ?"); args.push(status); }
+  const clause = where.join(" AND ");
+
+  const totalRow = first(
+    state.storage.sql.exec<SqlRow>(
+      `SELECT COUNT(*) AS total FROM report_batches b WHERE ${clause}`,
+      ...args,
+    ).toArray(),
+  ) || {};
+
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
             b.resolved_at, b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
@@ -624,36 +640,63 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
        FROM report_batches b
        LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
        LEFT JOIN users resolver ON resolver.user_id = b.resolved_by_user_id
-      WHERE b.status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')${dayFilter}
-      ORDER BY COALESCE(b.resolved_at, b.updated_at) DESC
-      LIMIT ?`,
-    ...rowArgs,
+      WHERE ${clause}
+      ORDER BY COALESCE(b.resolved_at, b.updated_at) DESC, b.batch_id DESC
+      LIMIT ? OFFSET ?`,
+    ...args,
+    limit,
+    offset,
   ).toArray();
+
   const projectedRows = rows.map((row) => ({
     ...row,
     correction_deadline_at: String(row.status || "") === "SKIP_ALLOWED"
       ? correctionDeadlineFromFirstReport(state, String(row.first_report_at || ""))
       : null,
   }));
-  const totalsArgs: SqlStorageValue[] = appTodayOpen ? [todayStart] : [];
+
+  const summaryWhere = ["b.status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')"];
+  const summaryArgs: SqlStorageValue[] = [];
+  if (appTodayOpen) { summaryWhere.push("b.first_report_at >= ?"); summaryArgs.push(todayStart); }
+  const summaryClause = summaryWhere.join(" AND ");
   const totalsRow = first(
     state.storage.sql.exec<SqlRow>(
       `SELECT
-         COALESCE(SUM(CASE WHEN status = 'HAS_STOCK' THEN 1 ELSE 0 END), 0) AS has_stock,
-         COALESCE(SUM(CASE WHEN status = 'SKIP_ALLOWED' THEN 1 ELSE 0 END), 0) AS skip_allowed,
-         COALESCE(SUM(CASE WHEN status = 'CLOSED' THEN 1 ELSE 0 END), 0) AS withdrawn
+         COALESCE(SUM(CASE WHEN b.status = 'HAS_STOCK' THEN 1 ELSE 0 END), 0) AS has_stock,
+         COALESCE(SUM(CASE WHEN b.status = 'SKIP_ALLOWED' THEN 1 ELSE 0 END), 0) AS skip_allowed,
+         COALESCE(SUM(CASE WHEN b.status = 'SKIP_ALLOWED' AND b.resolution_source = 'SYSTEM_TIMEOUT' THEN 1 ELSE 0 END), 0) AS automatic_skipped,
+         COALESCE(SUM(CASE WHEN b.status = 'CLOSED' THEN 1 ELSE 0 END), 0) AS withdrawn
        FROM report_batches b
-      WHERE status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')${dayFilter}`,
-      ...totalsArgs,
+      WHERE ${summaryClause}`,
+      ...summaryArgs,
     ).toArray(),
   ) || {};
+  const ackTotals = first(
+    state.storage.sql.exec<SqlRow>(
+      `SELECT
+         COUNT(*) AS ack_target_count,
+         COALESCE(SUM(CASE WHEN a.acknowledged_at IS NOT NULL THEN 1 ELSE 0 END), 0) AS acknowledged_count
+       FROM result_acknowledgements a
+       JOIN report_batches b ON b.batch_id = a.batch_id AND b.version = a.batch_version
+      WHERE ${summaryClause}`,
+      ...summaryArgs,
+    ).toArray(),
+  ) || {};
+
   return json({
     items: projectedRows,
     count: projectedRows.length,
+    total: Number(totalRow.total || 0),
+    limit,
+    offset,
+    filter_status: status,
     totals: {
       has_stock: Number(totalsRow.has_stock || 0),
       skip_allowed: Number(totalsRow.skip_allowed || 0),
+      automatic_skipped: Number(totalsRow.automatic_skipped || 0),
       withdrawn: Number(totalsRow.withdrawn || 0),
+      ack_target_count: Number(ackTotals.ack_target_count || 0),
+      acknowledged_count: Number(ackTotals.acknowledged_count || 0),
     },
     scope: appTodayOpen ? APP_TODAY_OPEN_SCOPE : "ALL",
     today_start: appTodayOpen ? todayStart : null,
