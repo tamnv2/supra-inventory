@@ -68,28 +68,31 @@ namespace SupraInventoryRelayAgent
             if (session == null || !session.IsValidHy1())
                 return new CachedPicklistResult { Result = "WMS_SESSION_REQUIRED", CacheMode = "NO_SESSION" };
 
+            suffix = (suffix ?? "").Trim();
             if (!ValidLookupSuffix(suffix))
-                throw new ArgumentException("Picklist suffix must contain four digits (five-digit legacy jobs remain compatible during rollout).", "suffix");
+                throw new ArgumentException("Picklist suffix must contain 3 to 20 digits.", "suffix");
 
             lock (_gate)
             {
-                if (_refreshedUtc != DateTime.MinValue && _suffixes.Contains(suffix))
+                if (_refreshedUtc != DateTime.MinValue && _codes.Count > 0)
                 {
-                    return new CachedPicklistResult
+                    var count = CountTrailingMatches(_codes, suffix);
+                    if (count > 0)
                     {
-                        Result = "FOUND",
-                        CacheMode = "CACHE_HIT",
-                        MatchCount = 1,
-                        CacheCount = _codes.Count
-                    };
+                        return new CachedPicklistResult
+                        {
+                            Result = "FOUND",
+                            CacheMode = "CACHE_SUFFIX_HIT",
+                            MatchCount = count,
+                            CacheCount = _codes.Count
+                        };
+                    }
                 }
-
             }
 
-            // D101: a cache miss is never final. PickList can be created after the last
-            // preload, so refresh the WMS snapshot once and only then return NOT_FOUND.
-            // RefreshAndResolve is single-flight, so concurrent PDA misses share one WMS read.
-            return RefreshAndResolve(session, suffix, "CACHE_MISS_REFRESH");
+            // A cache miss is provisional because a PickList can be created after preload.
+            // Refresh once (single-flight), then resolve by exact trailing digits only.
+            return RefreshAndResolve(session, suffix, "CACHE_SUFFIX_MISS_REFRESH");
         }
 
         internal Dictionary<string, CachedPicklistResult> LookupMany(
@@ -105,7 +108,7 @@ namespace SupraInventoryRelayAgent
             {
                 var suffix = (raw ?? "").Trim();
                 if (!ValidLookupSuffix(suffix))
-                    throw new ArgumentException("Picklist suffix must contain four digits (five-digit legacy jobs remain compatible during rollout).", "suffixes");
+                    throw new ArgumentException("Each Picklist suffix must contain 3 to 20 digits.", "suffixes");
                 if (seen.Add(suffix)) unique.Add(suffix);
             }
             if (unique.Count == 0)
@@ -119,13 +122,14 @@ namespace SupraInventoryRelayAgent
             {
                 foreach (var suffix in unique)
                 {
-                    if (_refreshedUtc != DateTime.MinValue && _suffixes.Contains(suffix))
+                    var count = _refreshedUtc == DateTime.MinValue ? 0 : CountTrailingMatches(_codes, suffix);
+                    if (count > 0)
                     {
                         results[suffix] = new CachedPicklistResult
                         {
                             Result = "FOUND",
-                            CacheMode = "CACHE_HIT_BATCH",
-                            MatchCount = 1,
+                            CacheMode = "CACHE_SUFFIX_HIT_BATCH",
+                            MatchCount = count,
                             CacheCount = _codes.Count
                         };
                     }
@@ -138,7 +142,7 @@ namespace SupraInventoryRelayAgent
 
             if (missing.Count == 0) return results;
 
-            var refresh = RefreshAndResolve(session, null, "BATCH_CACHE_MISS_REFRESH");
+            var refresh = RefreshAndResolve(session, null, "BATCH_SUFFIX_MISS_REFRESH");
             if (!string.Equals(refresh.Result, "PASS", StringComparison.Ordinal))
             {
                 foreach (var suffix in missing)
@@ -161,15 +165,15 @@ namespace SupraInventoryRelayAgent
             {
                 foreach (var suffix in missing)
                 {
-                    var found = _suffixes.Contains(suffix);
+                    var count = CountTrailingMatches(_codes, suffix);
                     results[suffix] = new CachedPicklistResult
                     {
-                        Result = found ? "FOUND" : "NOT_FOUND",
-                        CacheMode = "CACHE_SEARCH_AFTER_BATCH_REFRESH",
+                        Result = count > 0 ? "FOUND" : "NOT_FOUND",
+                        CacheMode = "CACHE_SUFFIX_SEARCH_AFTER_BATCH_REFRESH",
                         Route = refresh.Route,
                         StatusCode = refresh.StatusCode,
                         ElapsedMs = refresh.ElapsedMs,
-                        MatchCount = found ? 1 : 0,
+                        MatchCount = count,
                         CacheCount = _codes.Count
                     };
                 }
@@ -374,12 +378,23 @@ namespace SupraInventoryRelayAgent
 
         private static bool ValidLookupSuffix(string value)
         {
-            if (string.IsNullOrWhiteSpace(value) || (value.Length != 4 && value.Length != 5))
+            if (string.IsNullOrWhiteSpace(value) || value.Length < 3 || value.Length > 20)
                 return false;
             foreach (var ch in value)
                 if (ch < '0' || ch > '9')
                     return false;
             return true;
+        }
+
+        private static int CountTrailingMatches(IEnumerable<string> codes, string suffix)
+        {
+            var count = 0;
+            foreach (var raw in codes ?? new string[0])
+            {
+                var code = (raw ?? "").Trim();
+                if (code.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) count++;
+            }
+            return count;
         }
 
         private static HashSet<string> BuildLookupSuffixes(IEnumerable<string> codes)
@@ -453,15 +468,19 @@ namespace SupraInventoryRelayAgent
                 codeCount = _codes.Count;
             }
 
-            var found = !string.IsNullOrWhiteSpace(suffix) && next.Contains(suffix);
+            var matchCount = 0;
+            if (!string.IsNullOrWhiteSpace(suffix))
+            {
+                lock (_gate) matchCount = CountTrailingMatches(_codes, suffix);
+            }
             return new CachedPicklistResult
             {
-                Result = string.IsNullOrWhiteSpace(suffix) ? "PASS" : (found ? "FOUND" : "NOT_FOUND"),
+                Result = string.IsNullOrWhiteSpace(suffix) ? "PASS" : (matchCount > 0 ? "FOUND" : "NOT_FOUND"),
                 CacheMode = joined ? "JOIN_INFLIGHT" : mode,
                 Route = snapshot.Route ?? "NONE",
                 StatusCode = snapshot.StatusCode,
                 ElapsedMs = Math.Max(0L, snapshot.ElapsedMs),
-                MatchCount = found ? 1 : 0,
+                MatchCount = matchCount,
                 CacheCount = codeCount
             };
         }
