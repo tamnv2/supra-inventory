@@ -967,3 +967,16 @@ Before recording D117 final release PASS, final logic review found two edge case
 6. Final hardened Agent target becomes **relay-agent-v37**. Signed Android remains **beta-vc73** because no Android source change is required.
 7. Stable remains OWNER-GATED and untouched.
 
+## D117 final v37 technical/runtime/release checkpoint — 2026-09-24
+
+D117 final hardening is technically released and **OA037 is field-ready**.
+
+- Base D117 implementation: PR #177 → main `bbb6c83b3f75d234f8220d8ef42b22c3105d9964`.
+- Final hardening: PR #179 → main `e583d20d12f097bd7895494992408c41976b1835`.
+- Final-main PASS: Repo Authority `36000749512`, Project State `36000749611`, UI Design `36000749586`, Relay Agent `36000749563`.
+- Signed Android remains `beta-vc73` from D117 implementation main; Android source was not changed by v37 hardening.
+- Final Agent `relay-agent-v37`: release id `395676931`, canonical EXE asset id `585941375`, size `303104` bytes, SHA-256 `28e79bf2d9e703ffc5b8ef8b074e1c2810ccb1e1dd4eecba08d9772748375a03`; tag resolves exactly to `e583d20d...`.
+- Fixed inventory channel now serves Agent v37 assets `585941439/585941442`; PDA channel remains beta-vc73 assets `585884876/585884875`.
+- Worker/Web runtime was intentionally unchanged by Agent-only v37 hardening; latest D117 live health proof remains exact implementation source `bbb6c83b...`, schema 11/11, storage ready, missing 0, Agent migration 0/0, Operational V2 5/5.
+- Stable remains OWNER-GATED and untouched.
+
