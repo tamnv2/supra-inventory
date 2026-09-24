@@ -19,6 +19,7 @@ import {
   getAdminDashboard,
   getAdminOperationalInsights,
   getAdminReporting,
+  getAdminReportingDetail,
   getAdminAuditHistory,
   getAgentAppRelease,
   getAdminSla,
@@ -61,6 +62,7 @@ import {
   type AdminAuditItem,
   type AdminDashboard,
   type AdminReportingRow,
+  type AdminReportingDetailRow,
   type AgentAppRelease,
   type BatchPickerTicket,
   type HrSourceResponse,
@@ -224,6 +226,9 @@ function businessRoleLabel(role: string): string {
 function clearRoleScopedViewState(): void {
   queueRows = [];
   recentRows = [];
+  recentOffset = 0;
+  recentTotal = 0;
+  recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0 };
   batchDetails.clear();
   expandedBatchDetails.clear();
   batchDetailLoads.clear();
@@ -232,6 +237,8 @@ function clearRoleScopedViewState(): void {
   stockConfirm = null;
   skipConfirm = null;
   pickerReports = [];
+  pickerReportOffset = 0;
+  pickerReportTotal = 0;
   pickerResults = [];
   pickerSuggestions = [];
   pickerSelected = null;
@@ -243,6 +250,8 @@ function clearRoleScopedViewState(): void {
   skuCatalogInfo = null;
   skuAdminQuery = "";
   skuAdminItems = [];
+  skuAdminOffset = 0;
+  skuAdminTotal = 0;
   dashboardData = null;
   reportRows = [];
   reportTotal = 0;
@@ -257,6 +266,9 @@ function clearRoleScopedViewState(): void {
   systemResetSelected.clear();
   runtimeLogs = [];
   runtimeLogDetail = null;
+  runtimeLogPageTokens = [""];
+  runtimeLogPageIndex = 0;
+  runtimeLogNextPageToken = "";
   auditRows = [];
   auditTotal = 0;
   auditOffset = 0;
@@ -304,6 +316,10 @@ let lastWebUpdateAt: Date | null = null;
 let queueRows: ReporterBatch[] = [];
 let queueServerOffsetMs = 0;
 let recentRows: ReporterRecentBatch[] = [];
+let recentOffset = 0;
+let recentTotal = 0;
+const RECENT_PAGE_SIZE = 50;
+let recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0 };
 let batchDetails = new Map<string, BatchPickerTicket[]>();
 let recentFilter: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | "ALL" = "ALL";
 let queueFilter: "ALL" | "WARNING" | "ESCALATED" = "ALL";
@@ -328,6 +344,9 @@ let pendingWorkbook: ParsedSkuWorkbook | null = null;
 let skuCatalogInfo: SkuCatalogInfo | null = null;
 let skuAdminQuery = "";
 let skuAdminItems: SkuItem[] = [];
+let skuAdminOffset = 0;
+let skuAdminTotal = 0;
+const SKU_PAGE_SIZE = 100;
 let skuConflictChoices = new Map<string, string>();
 let skuImportProgress = "";
 let dashboardData: AdminDashboard | null = null;
@@ -353,6 +372,10 @@ let logDays = 30;
 let runtimeLogSource: "WEB" | "ANDROID" = "WEB";
 let runtimeLogs: RuntimeLogItem[] = [];
 let runtimeLogDetail: RuntimeLogDetail | null = null;
+const RUNTIME_LOG_PAGE_SIZE = 50;
+let runtimeLogPageTokens: string[] = [""];
+let runtimeLogPageIndex = 0;
+let runtimeLogNextPageToken = "";
 let auditRows: AdminAuditItem[] = [];
 let auditTotal = 0;
 let auditOffset = 0;
@@ -367,6 +390,9 @@ let pickerQuery = "";
 let pickerSuggestions: SkuItem[] = [];
 let pickerSelected: SkuItem | null = null;
 let pickerReports: PickerReportV2[] = [];
+let pickerReportOffset = 0;
+let pickerReportTotal = 0;
+const PICKER_REPORT_PAGE_SIZE = 50;
 let pickerResults: PickerResultV2[] = [];
 let markedResultEvents = new Set<string>();
 let displayedResultEvents = new Set<string>();
@@ -383,6 +409,7 @@ let passwordUserId: string | null = null;
 let selectedBatchId: string | null = null;
 let dashboardLoadGeneration = 0;
 let reportLoadGeneration = 0;
+let slaLoadGeneration = 0;
 let sessionViewGeneration = 0;
 let dashboardPreferenceLoadedUserId = "";
 if (profile?.user_id) restoreDashboardRangeForUser(profile.user_id);
