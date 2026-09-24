@@ -896,3 +896,17 @@ Owner approved the post-D114 relay repair and added an explicit performance targ
 8. Agent adds redacted latency telemetry for queue age, business-processing time and ACK time. PickList values, tokens, credentials and WMS session material remain forbidden in logs.
 9. Target artifacts are signed Android **beta-vc71** and **relay-agent-v34**. SQLite remains 11; Web business behavior is unchanged; Stable remains OWNER-GATED.
 10. The under-5-second objective is a healthy-path field acceptance requirement, not a promise during WMS latency, network degradation, token recovery or Agent failover.
+
+
+## D115 technical/runtime/release checkpoint — 2026-09-24
+
+D115 is technically released on Beta and **OA035 is field-ready**.
+
+- PR #173 merged to main `bcbabc09928ae997d81f12404a49e7a8be6d971f` after Repo Authority, Project State, UI, Android, Relay Agent, Firestore and RTDB PR gates passed.
+- Main PASS runs: Repo Authority `35948065198`, Project State `35948065182`, UI Design `35948065209`, Deploy Beta Worker `35948065164`, Verify Beta Android `35948065152`, Verify Beta Relay Agent `35948065389`.
+- Live Beta health passed on attempt 1 with HTTP 200, exact source `bcbabc09...`, storage ready, SQLite `11/11`, missing bindings `0`, Agent migration `0/0` and Operational V2 `5/5`; auth/business/Web shell/OAuth smoke checks passed.
+- Signed Android `beta-vc71`: release id `395262617`, APK asset id `585009621`, size `19019872` bytes, SHA-256 `f1137dccd460133e5fdc41836658c6bb6b41a885f41f4ba16ca908a0c96d3d1d`, exact source `bcbabc09...`.
+- Agent `relay-agent-v34`: release id `395262208`, canonical EXE asset id `585008591`, size `294400` bytes, SHA-256 `eef4e6e6bbb20f7fad223ba4c7a7081200eecbe74af1e43c4335fd78034f4285`; tag resolves exactly to `bcbabc09...`.
+- Fixed `inventory-channel` refreshed: PDA manifest/APK `585009672/585009671`; Agent manifest/EXE `585008719/585008720`.
+- D115 source contract: PRIMARY 2s, STANDBY 10s, failover 10s; Android async UID-scoped cleanup + final server ACK read; Agent bounded ACK retry/read-after-write without WMS replay. No SQLite migration, no new provider, no Android polling and no PROCESSING write.
+- OA035 is `READY_FOR_OWNER_FIELD_TEST`; under-5-second healthy-path acceptance is not recorded until explicit Owner field confirmation. Stable remains OWNER-GATED.
