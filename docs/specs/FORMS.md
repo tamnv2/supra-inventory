@@ -525,3 +525,13 @@ The global Admin/Root SLA form contains these server-authoritative controls:
 Validation keeps integer bounds and `warning_minutes < escalation_minutes < auto_skip_minutes` even when one threshold is disabled, so a later re-enable is deterministic. `skip_to_stock_minutes` is 1–10080 and is counted from `report_batches.first_report_at`. If Skip correction is disabled, no correction deadline is issued and `SKIP_ALLOWED → HAS_STOCK` is not permitted.
 
 Login **Lưu thông tin đăng nhập** is a browser credential-manager/autofill preference, not an application password-storage field. Only the remembered username may be persisted by the Web UI.
+
+
+## D114 — PickList result and Tools layout forms
+
+- Android `etRelayPicklistSuffix` accepts digits only, 3–20 characters, one search term per request.
+- Ambiguous PDA results render a vertical candidate list. Every row contains the full PickList code and one **Xác nhận** button on the same row.
+- Pressing a candidate confirmation button opens a warning that names the selected PickList and requires **Xác nhận**; **Huỷ** closes without sending.
+- Android terminal confirmation feedback is bold/prominent and uses the D114 result taxonomy. Candidate rows are removed when a new search begins or confirmation succeeds.
+- Agent PickList table column order is **PickList → Thao tác → Kết quả**. PickList text is visually emphasized. Row and aggregate result copy must remain visible after the action.
+- Web **Công cụ** wide layout is exactly two balanced compact columns for App PDA and Agent Windows. At <=900px it becomes one column. Legacy span/full-width behavior is overridden.
