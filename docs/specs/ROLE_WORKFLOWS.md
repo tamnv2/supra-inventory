@@ -528,3 +528,10 @@ D114 supersedes the D105/D112 suffix-length carrier details where they conflict.
 - After exact resolution and guard acquisition, automatic work is rechecked against the 20s window.
 - Immediately before each WMS confirmation POST chunk, PRIMARY revalidates role + generation. Fence loss stops remaining WMS mutation, safely releases untouched guards and leaves jobs un-ACKed for the valid PRIMARY.
 
+## D118 — Fleet schedule decision workflow
+
+- Overtime prompts are visible on every authenticated online Agent during an unresolved decision window; PRIMARY ownership is irrelevant to who may submit the schedule choice.
+- A schedule choice from STANDBY/FROZEN changes only shared operating schedule state. It must never claim PRIMARY or mutate WMS.
+- Schedule writes use optimistic compare-and-set against the existing Firestore roles document. The first authoritative decision for a schedule-key/boundary wins. A conflicting later click refreshes and displays the already-authoritative decision.
+- PRIMARY remains the sole automatic PDA→WMS executor and must reconcile shared schedule state before a boundary. D117 lease/generation/failover rules remain unchanged.
+
