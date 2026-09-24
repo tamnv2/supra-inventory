@@ -514,7 +514,7 @@ def main() -> None:
     require(picker_layout, '@drawable/bg_picker_tab_idle', "D109 idle bottom tab surface")
     require(picker_layout, 'android:text="Báo hết hàng"', "D109 shortage tab label")
     require(picker_layout, 'android:text="Xác nhận đơn"', "D109 confirmation tab label")
-    require(manifest, 'android:windowSoftInputMode="adjustNothing"', "D109 stationary tabs during IME")
+    require(manifest, 'android:windowSoftInputMode="adjustResize"', "D118 keyboard-safe stationary tabs during IME")
     require(picker, 'DateTimeFormatter.ofPattern("HH:mm")', "D109 time-only formatter")
     require(picker, 'Báo hết lúc: ${timeOnly(row.reportedAt)}', "D109 reported time label")
     require(picker, '"Invent phản hồi lúc: ${timeOnly(row.resolvedAt)}"', "D109 Invent response time label")
