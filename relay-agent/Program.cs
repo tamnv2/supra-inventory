@@ -1937,6 +1937,7 @@ namespace SupraInventoryRelayAgent
                     throw new InvalidOperationException("Phiên Supra chưa sẵn sàng.");
 
                 var acquired = new Dictionary<string, FirestoreConfirmationGuardDecision>(StringComparer.OrdinalIgnoreCase);
+                var statusByCode = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 var alreadyConfirmed = 0;
                 var uncertain = 0;
 
@@ -1967,7 +1968,6 @@ namespace SupraInventoryRelayAgent
 
                 var confirmedCount = 0;
                 var failedCount = 0;
-                var statusByCode = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 var processed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 var acquiredCodes = new List<string>(acquired.Keys);
                 var stopAfterSessionExpiry = false;
