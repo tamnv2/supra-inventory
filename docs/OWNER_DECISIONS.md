@@ -955,3 +955,16 @@ Owner approves replacing only the D116 PDA↔Agent HA/polling and D102 relay ope
 10. **Early start before 06:00.** A frozen Agent with a usable WMS session exposes **Khởi động relay đến 06:00**. The machine that confirms early start claims PRIMARY immediately; other online Agents rejoin as STANDBY/FROZEN through the existing Firestore coordination model. At 06:00 the normal schedule takes over automatically.
 11. Schedule decisions are stored only in the existing Firestore relay coordination scope; no new provider or collection is introduced. D096/D104 confirmation mutation guards, D114 suffix/ambiguity semantics, no-offline invariant and Stable OWNER-GATED remain unchanged.
 
+## D117 technical/runtime/release checkpoint — 2026-09-24
+
+D117 is technically released on Beta and **OA037 is field-ready**.
+
+- PR #177 merged to main `bbb6c83b3f75d234f8220d8ef42b22c3105d9964` after final PR Authority, State, UI, Android, Agent, Firestore and RTDB gates passed.
+- Main PASS runs: Repo Authority `35997118302`, Project State `35997118245`, UI Design `35997118239`, Deploy Beta Worker `35997118136`, Verify Beta Android `35997118194`, Verify Beta Relay Agent `35997118142`.
+- Live Beta health passed on attempt 2 with HTTP 200, exact source `bbb6c83b...`, storage ready, SQLite `11/11`, missing bindings `0`, Agent migration `0/0` and Operational V2 `5/5`.
+- Signed Android `beta-vc73`: release id `395643209`, APK asset id `585884830`, size `19019872` bytes, SHA-256 `6eccfd7ecaa284067e88fc08c4faac55438dceeab7f735fa45fead991361204b`.
+- Agent `relay-agent-v36`: release id `395642822`, canonical EXE asset id `585883759`, size `301568` bytes, SHA-256 `c4e966b1a657b2f4d69b46f848e6e93ec7d17face2db3da6166821563c608378`; tag resolves exactly to D117 main.
+- Fixed `inventory-channel` now points to D117 PDA/Agent assets: PDA manifest/APK `585884876/585884875`; Agent manifest/EXE `585883854/585883851`.
+- OA036 is not recorded as Owner PASS; its relay acceptance is superseded by D117. D116 durable Android-result and Web admin refinements are inherited and included in OA037 regression smoke.
+- Stable remains OWNER-GATED and untouched.
+
