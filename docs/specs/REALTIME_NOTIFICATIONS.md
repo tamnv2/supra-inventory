@@ -402,3 +402,11 @@ D111 changes only the row set returned by existing Android reconciliation reques
 ## D113 — Pending-count notification badge
 
 D113 keeps D112 `REPORT_CREATED` realtime delivery unchanged and adds a local Web navigation badge for **Xử lý báo hàng** using the already loaded authoritative Reporter queue. New reports continue to produce the existing foreground toast and, when an authorized tab is hidden and browser permission is granted, a Browser Notification. The badge is updated during existing queue reconciliation; D113 introduces no polling loop, faster provider cadence or additional Firestore reads/writes.
+
+
+## D114 — Global Web queue badge realtime reconciliation
+
+- `REPORT_CREATED` / reporter-queue realtime frames remain the trigger; no timer/polling cadence is added.
+- REPORTER/ADMIN/ROOT refresh the authoritative reporter queue when a reporter-queue/recent scope changes even if the active Web section is not **Xử lý báo hàng**.
+- The global **Xử lý báo hàng** navigation badge updates from that authoritative queue immediately after the event-driven refresh.
+- Existing foreground toast and hidden-tab Browser Notification behavior is preserved and independent from the badge refresh.
