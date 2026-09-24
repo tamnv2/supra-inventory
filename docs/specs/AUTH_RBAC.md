@@ -217,3 +217,11 @@ D110 narrows the D098 Android client matrix without changing Web or Agent author
 - ROOT: WEB; **ANDROID denied**.
 - Android denial is enforced server-side from immutable/base role, so ROOT role simulation cannot bypass it and a modified/stale App cannot obtain or refresh an Android ADMIN/ROOT business session.
 - Existing same-channel session replacement rules, Firebase UID/credential authority, Web roles and real-base ADMIN Agent requirements remain unchanged.
+
+## D116 — Picker-only bulk account selection
+
+- Bulk enable/disable/delete selection is semantically limited to accounts whose role is PICKER.
+- ROOT is never bulk-selectable or normally manageable. ADMIN/REPORTER rows are not represented by Picker bulk checkboxes and cannot become selected through **Chọn tất cả Picker**.
+- In all-Picker mode, an operator may deselect/reselect individual Picker rows. The client sends the exception set and the server removes those IDs from the PICKER target set before mutation.
+- Server authority remains role-based: even malformed/non-Picker IDs cannot widen the target beyond the existing role=PICKER server filter.
+- Existing actor hierarchy remains unchanged: ROOT may manage ADMIN/REPORTER/PICKER where already authorized; ADMIN may manage REPORTER/PICKER; normal APIs cannot manage ROOT.
