@@ -538,7 +538,7 @@ D114 supersedes the D105/D112 suffix-length carrier details where they conflict.
 ## D119 — Protected additive roles and operating workflows
 
 - Display `ADMIN` as **Quản trị Invent**. Add `PICKPACK_ADMIN` as **Quản trị Pick Pack**.
-- Quản trị Pick Pack may manage Picker personnel, manual/catalog SKU workflows, read shortage operations and reporting/export, and bounded Picker-contact tools. It may not perform `HAS_STOCK`, `SKIP_ALLOWED`, correction, SLA/auto-skip timing changes, Root reset or Invent/Root account management.
+- Quản trị Pick Pack may manage Picker personnel, manual/catalog SKU workflows, read shortage operations and reporting/export, and bounded Picker-contact tools. On Windows Agent it may perform the normal PickList lookup/confirmation workflow and Agent SKU synchronization/update under the existing HA/WMS guards. It may not perform Báo hàng `HAS_STOCK`, `SKIP_ALLOWED`, correction, SLA/auto-skip timing changes, Root reset or Invent/Root account management.
 - Android ADMIN renders only the Reporter operational surface; Root remains Android-denied. The service capability check is authoritative.
 - Reporter/Quản trị Invent pending queue is oldest-first. Picker own history is newest-first; resolved history remains newest-first.
 - Agent online-Picker list contains only users with a valid Android session plus registered Android notification device. Logout, same-channel replacement, disable and expiry remove the user.
