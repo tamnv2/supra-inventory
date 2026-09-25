@@ -78,6 +78,7 @@ jobs:
           $pickerContact = Get-Content relay-agent/FirestorePickerContact.cs -Raw
           $skuSync = Get-Content relay-agent/FirestoreSkuSync.cs -Raw
           $skuCatalog = Get-Content relay-agent/WmsSkuCatalog.cs -Raw
+          $fleetMetrics = Get-Content relay-agent/FirestoreFleetMetrics.cs -Raw
 
           if ($config -notmatch 'AgentBuild\s*=\s*39\s*;') { throw "D119 requires Agent v39." }
           if ($firestoreLeader -notmatch 'FailoverAfterMs\s*=\s*10000' -or $firestoreLeader -notmatch 'PrimaryLeaseHeartbeatMs\s*=\s*7000') { throw "D117 proactive 7-second lease / 10-second failover guard failed." }
@@ -190,6 +191,7 @@ jobs:
           if ($program -notmatch 'Tài khoản quản trị Agent' -or $program -notmatch '"pickpack_admin"' -or $program -notmatch '"admin"' -or $program -notmatch '@auth\.supra\.invalid' -or $program -notmatch 'Supra WMS: chờ xác minh Agent' -or $program -notmatch '_supraCard.Enabled = authenticated') { throw "D119 username Agent alias/auth-first Supra guard failed." }
           if ($d119 -notmatch 'LoadOpen' -or $pickerContact -notmatch 'CALL_SPECIALIST' -or $pickerContact -notmatch 'BRING_TO_PACK') { throw "D119 Picker presence/contact wiring guard failed." }
           if ($d119 -notmatch 'RunSkuSync' -or $skuSync -notmatch 'AcquireDailyLease' -or $skuCatalog -notmatch 'stock_fields=discarded') { throw "D119 Agent SKU sync guard failed." }
+          if ($d119 -notmatch 'TimeSpan.FromMinutes\(30\)' -or $d119 -notmatch 'RefreshFleetMetricsIfDue' -or $fleetMetrics -notmatch 'RefreshPrimary' -or $fleetMetrics -notmatch 'relay_poc_jobs' -or $fleetMetrics -notmatch 'AcceptedIds' -or $fleetMetrics -notmatch 'ProcessedIds') { throw "D119 quota-safe fleet metrics/takeover guard failed." }
           if ($firestoreRules -notmatch 'isAgentOperator' -or $firestoreRules -notmatch 'PICKPACK_ADMIN' -or $firestoreRules -notmatch 'sku_sync_jobs' -or $firestoreRules -notmatch 'picker_alerts') { throw "D119 Firestore Agent operator guard failed." }
           if ($program -notmatch 'KeyCode != Keys.Enter' -or $program -notmatch 'SearchManualPicklists') { throw "D099 Agent Enter shortcut guard failed." }
           if ($overlay -match 'MinimumSize = new Size\(420, 64\)' -or $overlaySettings -match '_width.Minimum = 420' -or $overlaySettings -match '_height.Minimum = 64') { throw "D099 legacy Overlay 420x64 floor must be removed." }
