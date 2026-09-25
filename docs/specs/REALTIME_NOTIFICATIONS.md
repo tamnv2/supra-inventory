@@ -470,3 +470,12 @@ D115 supersedes only the PRIMARY polling cadence of the earlier D097/D104/D114 c
 - Healthy-path delivery may target approximately 3 seconds but is not represented as a hard Android/FCM guarantee. Telemetry distinguishes server send, FCM receive and display.
 - Picker-contact commands are additive, idempotent, TTL-bounded and server-authorized. FCM tokens remain private service data and are never exposed in Agent-readable documents.
 - Xác nhận đơn keeps the accepted Firestore request/ACK workflow and is not converted into the new shortage/alert path.
+
+## D120 — Single cross-app Picker result surface and durable acknowledgement
+
+- FCM remains the background wake path. D120 adds no Android polling or heartbeat.
+- Only authoritative Picker result events carrying a `result_event_id` may project the canonical red/blue `overlay_alert` surface over other apps. Agent-to-Picker locked commands remain their existing separate command overlay.
+- `report_created`, SLA warning/escalation and summary notices remain normal Android notifications; they do not create a competing full-screen result UI.
+- Result FCM payload contains bounded business display data (`sku`, `product_name`, `resolution`) plus the existing result-event correlation. Secrets/tokens are forbidden.
+- While a cross-app result overlay owns an unacknowledged result event, the Picker controller must not open the same in-app result dialog. If overlay permission is unavailable, existing notification → in-app result fallback remains.
+- Pressing **XÁC NHẬN ĐÃ NHẬN** acknowledges the existing result event only. A network/session failure leaves a durable local ACK retry marker; authenticated App resume retries it. This transport recovery must never recreate the shortage resolution or replay any WMS mutation.
