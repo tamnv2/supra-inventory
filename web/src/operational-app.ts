@@ -22,6 +22,8 @@ import {
   getAdminReportingDetail,
   getAdminAuditHistory,
   getAgentAppRelease,
+  getAndroidAlertWindow,
+  updateAndroidAlertWindow,
   getAdminSla,
   getDashboardPreference,
   getPdaAppRelease,
@@ -64,6 +66,7 @@ import {
   type AdminReportingRow,
   type AdminReportingDetailRow,
   type AgentAppRelease,
+  type AndroidAlertWindowState,
   type BatchPickerTicket,
   type HrSourceResponse,
   type HrSyncPreview,
@@ -197,27 +200,33 @@ function defaultSectionForProfile(value: AppProfile): Section {
 function canAccessSection(section: Section, value: AppProfile): boolean {
   if (value.role === "PICKER") return ["picker", "account"].includes(section);
   if (value.role === "REPORTER") return ["operations", "results", "account"].includes(section);
+  if (value.role === "PICKPACK_ADMIN") {
+    return ["operations", "results", "sku", "hr", "users", "dashboard", "reports", "account"].includes(section);
+  }
   if (section === "system-reset") return value.role === "ROOT" && value.base_role === "ROOT";
   return section !== "picker";
 }
 
 function legacyRoleLabel(value: AppProfile["role"]): string {
   if (value === "ROOT") return "Quản trị hệ thống";
-  if (value === "ADMIN") return "Quản trị hệ thống";
-  if (value === "REPORTER") return "Người báo hàng";
+  if (value === "ADMIN") return "Quản trị Invent";
+  if (value === "PICKPACK_ADMIN") return "Quản trị Pick Pack";
+  if (value === "REPORTER") return "Người xử lý báo hàng";
   return "Người lấy hàng";
 }
 
 function rootRoleOptionLabel(role: AppProfile["role"]): string {
   if (role === "ROOT") return "Quản trị hệ thống";
-  if (role === "ADMIN") return "Quản trị";
-  if (role === "REPORTER") return "Người báo hàng";
+  if (role === "ADMIN") return "Quản trị Invent";
+  if (role === "PICKPACK_ADMIN") return "Quản trị Pick Pack";
+  if (role === "REPORTER") return "Người xử lý báo hàng";
   return "Người lấy hàng";
 }
 
 function businessRoleLabel(role: string): string {
   if (role === "ROOT") return "Quản trị hệ thống";
-  if (role === "ADMIN") return "Quản trị";
+  if (role === "ADMIN") return "Quản trị Invent";
+  if (role === "PICKPACK_ADMIN") return "Quản trị Pick Pack";
   if (role === "REPORTER") return "Người xử lý báo hàng";
   if (role === "PICKER") return "Người lấy hàng";
   return role || "—";
@@ -277,6 +286,8 @@ function clearRoleScopedViewState(): void {
   auditRole = "";
   auditQuery = "";
   pdaAppRelease = null;
+  agentAppRelease = null;
+  androidAlertWindow = null;
   pdaQrDataUrl = "";
   selectedBatchId = null;
 }
@@ -386,6 +397,7 @@ let auditQuery = "";
 const AUDIT_PAGE_SIZE = 100;
 let pdaAppRelease: PdaAppRelease | null = null;
 let agentAppRelease: AgentAppRelease | null = null;
+let androidAlertWindow: AndroidAlertWindowState | null = null;
 let pdaQrDataUrl = "";
 const reportNoticeBySku = new Map<string, number>();
 let pickerQuery = "";
@@ -679,7 +691,15 @@ function roleManage(): boolean {
   return Boolean(profile && (profile.role === "ADMIN" || profile.role === "ROOT"));
 }
 
+function rolePickPackManage(): boolean {
+  return Boolean(profile && ["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile.role));
+}
+
 function roleOperate(): boolean {
+  return Boolean(profile && ["REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile.role));
+}
+
+function roleCanResolve(): boolean {
   return Boolean(profile && ["REPORTER", "ADMIN", "ROOT"].includes(profile.role));
 }
 
@@ -1009,6 +1029,12 @@ function renderNav(): string {
   if (profile.role === "REPORTER") {
     return navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"]]);
   }
+  if (profile.role === "PICKPACK_ADMIN") {
+    return [
+      navGroup("VẬN HÀNH", [["operations", "Theo dõi báo hàng"], ["dashboard", "Tổng quan & báo cáo"]]),
+      navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"]]),
+    ].join("");
+  }
   return [
     navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"]]),
     navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"], ["sla", "Thời gian xử lý"]]),
@@ -1306,7 +1332,7 @@ function renderFastDetail(selected: ReporterBatch | null): string {
     </dl>
     ${selected.previous_batch_id ? `<div class="fast-warning">SKU này đã phát sinh lại sau lần xử lý trước.</div>` : ""}
     ${pendingResolution ? `<div class="fast-action-pending" role="status">Đang gửi xác nhận ${pendingResolution === "HAS_STOCK" ? "Có hàng" : "Bỏ qua"}…</div>` : ""}
-    <div class="fast-actions"><button class="primary" data-resolve="HAS_STOCK" data-batch="${esc(selected.batch_id)}" ${pendingResolution ? "disabled" : ""}>ĐÃ CÓ HÀNG</button><button class="danger" data-skip-batch="${esc(selected.batch_id)}" ${pendingResolution ? "disabled" : ""}>CHO PHÉP BỎ QUA</button></div>
+    ${roleCanResolve() ? `<div class="fast-actions"><button class="primary" data-resolve="HAS_STOCK" data-batch="${esc(selected.batch_id)}" ${pendingResolution ? "disabled" : ""}>ĐÃ CÓ HÀNG</button><button class="danger" data-skip-batch="${esc(selected.batch_id)}" ${pendingResolution ? "disabled" : ""}>CHO PHÉP BỎ QUA</button></div>` : `<div class="fast-action-pending" role="status">Chế độ chỉ xem · Quản trị Pick Pack không xử lý kết quả Báo hàng.</div>`}
     ${pickerDetailMarkup(selected.batch_id, batchDetails.get(selected.batch_id), true)}`;
 }
 
@@ -1396,7 +1422,7 @@ function renderOperationRow(row: ReporterBatch): string {
     <div><div class="sku-code">${esc(row.sku)}</div><div class="product-name">${esc(row.product_name)}</div></div>
     <div><div class="operation-count">${Number(row.affected_picker_count)} Picker</div><div class="tiny muted">Báo gần nhất ${esc(fmt(row.last_report_at || row.first_report_at))}</div></div>
     <div class="operation-meta"><span data-wait-batch="${esc(row.batch_id)}">${timing.waiting} phút</span><span data-sla-batch="${esc(row.batch_id)}" class="badge ${sla_state === "ESCALATED" ? "escalated" : sla_state === "WARNING" ? "warning" : sla_state === "NORMAL" ? "ok" : ""}">${esc(slaLabel(sla_state))}</span>${recurrence}<span>Báo đầu ${esc(fmt(row.first_report_at))}</span></div>
-    <div class="operation-actions"><button class="btn success" data-resolve="HAS_STOCK" data-batch="${esc(row.batch_id)}">CÓ HÀNG</button><button class="btn danger" data-skip-batch="${esc(row.batch_id)}">CHO PHÉP BỎ QUA</button><button class="btn secondary" data-detail="${esc(row.batch_id)}">${expandedBatchDetails.has(row.batch_id) ? "Ẩn Picker" : "Picker"}</button></div>
+    <div class="operation-actions">${roleCanResolve() ? `<button class="btn success" data-resolve="HAS_STOCK" data-batch="${esc(row.batch_id)}">CÓ HÀNG</button><button class="btn danger" data-skip-batch="${esc(row.batch_id)}">CHO PHÉP BỎ QUA</button>` : ""}<button class="btn secondary" data-detail="${esc(row.batch_id)}">${expandedBatchDetails.has(row.batch_id) ? "Ẩn Picker" : "Picker"}</button></div>
     ${pickerDetailMarkup(row.batch_id, details)}
   </article>`;
 }
@@ -1441,7 +1467,7 @@ function renderResults(): string {
     <article class="ops-panel">
       <div class="filters">${(["ALL", "HAS_STOCK", "SKIP_ALLOWED", "CLOSED"] as const).map((id) => `<button class="filter ${recentFilter === id ? "active" : ""}" data-result-filter="${id}">${id === "ALL" ? "Tất cả kết quả" : statusLabel(id)}</button>`).join("")}</div>
       <div class="table-wrap result-audit-table"><table><thead><tr><th>SKU / Sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Picker ảnh hưởng</th><th>Picker đã nhận</th><th>Thời điểm xử lý</th><th>Phát sinh lại</th><th>Thao tác</th></tr></thead><tbody>
-        ${visible.map((row) => { const canCorrect = row.status === "SKIP_ALLOWED" && row.correction_deadline_at && Date.now() <= Date.parse(row.correction_deadline_at); const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<button class="btn secondary small" data-correct="${esc(row.batch_id)}">Sửa thành Có hàng</button>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">Chưa có kết quả phù hợp.</td></tr>`}
+        ${visible.map((row) => { const canCorrect = roleCanResolve() && row.status === "SKIP_ALLOWED" && row.correction_deadline_at && Date.now() <= Date.parse(row.correction_deadline_at); const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<button class="btn secondary small" data-correct="${esc(row.batch_id)}">Sửa thành Có hàng</button>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">Chưa có kết quả phù hợp.</td></tr>`}
       </tbody></table></div>
       <div class="user-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${recentTotal.toLocaleString("vi-VN")} kết quả</span><div><button class="secondary" id="recent-prev" ${recentOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="recent-next" ${recentOffset + RECENT_PAGE_SIZE >= recentTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
@@ -1536,8 +1562,9 @@ function renderHr(): string {
 
 function canManageListedUser(user: ManagedUser): boolean {
   if (!profile || user.role === "ROOT") return false;
-  if (profile.role === "ROOT") return ["ADMIN", "REPORTER", "PICKER"].includes(user.role);
+  if (profile.role === "ROOT") return ["ADMIN", "PICKPACK_ADMIN", "REPORTER", "PICKER"].includes(user.role);
   if (profile.role === "ADMIN") return ["REPORTER", "PICKER"].includes(user.role);
+  if (profile.role === "PICKPACK_ADMIN") return user.role === "PICKER";
   return false;
 }
 
@@ -1550,6 +1577,8 @@ function userSelectionLabel(): string {
 
 function renderUsers(): string {
   const canCreateAdmin = profile?.role === "ROOT";
+  const canCreateReporter = profile?.role === "ROOT" || profile?.role === "ADMIN";
+  const canCreateManaged = canCreateAdmin || canCreateReporter;
   const pageStart = userTotal ? userOffset + 1 : 0;
   const pageEnd = Math.min(userOffset + managedUsers.length, userTotal);
   const activeCount = managedUsers.filter((user) => user.status === "ACTIVE").length;
@@ -1565,21 +1594,21 @@ function renderUsers(): string {
     </section>
     <div class="users-top-grid">
       <article class="ops-panel users-create-panel">
-        <div class="ops-panel-title"><div><h3>Tạo tài khoản nghiệp vụ</h3><p>Dùng cho Người xử lý báo hàng và Quản trị. Picker được đồng bộ từ nguồn nhân sự.</p></div></div>
-        <form id="create-user-form" class="users-form-grid">
+        <div class="ops-panel-title"><div><h3>${canCreateManaged ? "Tạo tài khoản nghiệp vụ" : "Quản lý Picker"}</h3><p>${canCreateManaged ? "Tạo Người xử lý báo hàng hoặc vai trò quản trị được phép. Picker được đồng bộ từ nguồn nhân sự." : "Quản trị Pick Pack chỉ quản lý Picker; không tạo Reporter hay Quản trị Invent."}</p></div></div>
+        ${canCreateManaged ? `<form id="create-user-form" class="users-form-grid">
           <label>Mã nhân viên / tên đăng nhập<input name="username" autocomplete="off" required /></label>
           <label>Họ và tên<input name="displayName" autocomplete="off" required /></label>
-          <label>Quyền sử dụng<select name="role"><option value="REPORTER">Người xử lý báo hàng</option>${canCreateAdmin ? `<option value="ADMIN">Quản trị</option>` : ""}</select></label>
+          <label>Quyền sử dụng<select name="role"><option value="REPORTER">Người xử lý báo hàng</option>${canCreateAdmin ? `<option value="PICKPACK_ADMIN">Quản trị Pick Pack</option><option value="ADMIN">Quản trị Invent</option>` : ""}</select></label>
           <label>Email đăng ký<input name="authEmail" type="email" autocomplete="email" placeholder="Bắt buộc khi tạo Admin" /></label>
           <label>Mật khẩu khởi tạo<input name="password" type="password" autocomplete="new-password" required /></label>
           <div class="ops-form-actions"><button class="primary">Tạo tài khoản</button></div>
-        </form>
+        </form>` : `<div class="ops-readonly">Thêm Picker mới qua Nguồn nhân sự và đồng bộ Picker.</div>`}
       </article>
       <article class="ops-panel users-filter-panel">
         <div class="ops-panel-title"><div><h3>Tìm và lọc tài khoản</h3><p>Lọc nhanh theo mã nhân viên, họ tên, quyền hoặc trạng thái.</p></div></div>
         <form id="user-filter-form" class="users-form-grid">
           <label class="span">Tìm kiếm<input name="query" value="${esc(userQuery)}" placeholder="Mã nhân viên / họ tên / tài khoản" /></label>
-          <label>Quyền<select name="role"><option value="">Tất cả quyền</option>${["PICKER","REPORTER","ADMIN"].map((role) => `<option value="${role}" ${userRole === role ? "selected" : ""}>${esc(businessRoleLabel(role))}</option>`).join("")}</select></label>
+          <label>Quyền<select name="role"><option value="">Tất cả quyền</option>${["PICKER","REPORTER","PICKPACK_ADMIN","ADMIN"].map((role) => `<option value="${role}" ${userRole === role ? "selected" : ""}>${esc(businessRoleLabel(role))}</option>`).join("")}</select></label>
           <label>Trạng thái<select name="status"><option value="">Tất cả trạng thái</option><option value="ACTIVE" ${userStatus === "ACTIVE" ? "selected" : ""}>Đang hoạt động</option><option value="DISABLED" ${userStatus === "DISABLED" ? "selected" : ""}>Đã dừng</option></select></label>
           <div class="ops-form-actions"><button class="secondary">Áp dụng bộ lọc</button></div>
         </form>
@@ -2356,6 +2385,15 @@ function renderSystemReset(): string {
 function renderTools(): string {
   const pdaStableUrl = `${window.location.origin}${pdaAppRelease?.stable_download_path || "/downloads/pda/latest"}`;
   const agentStableUrl = `${window.location.origin}${agentAppRelease?.stable_download_path || "/downloads/agent/latest"}`;
+  const alertState = androidAlertWindow;
+  const alertStatus = alertState == null
+    ? "Đang tải…"
+    : alertState.is_open
+      ? (alertState.overtime_open ? "Đang tăng ca" : "Đang hoạt động")
+      : "Đã đóng ca";
+  const alertUntil = alertState?.overtime_until_ms
+    ? new Date(alertState.overtime_until_ms).toLocaleString("vi-VN", { hour12: false })
+    : "23:00";
   return `<section class="ops-route tools-workspace">
     <div class="heading">
       <div><h2>Công cụ</h2><p class="muted">Hai kênh cài đặt chính thức cho thiết bị vận hành.</p></div>
@@ -2379,6 +2417,15 @@ function renderTools(): string {
             <div class="tool-actions">
               <a class="primary tool-download" href="${esc(pdaStableUrl)}">Tải App PDA</a>
               <button type="button" class="secondary" id="copy-pda-link">Sao chép link</button>
+            </div>
+            <div class="tool-facts">
+              <div><span>Khung thông báo App/PDA</span><strong>05:00–23:00 · giờ hệ thống</strong></div>
+              <div><span>Trạng thái</span><strong>${esc(alertStatus)}</strong></div>
+              <div><span>Đến</span><strong>${esc(alertUntil)}</strong></div>
+            </div>
+            <div class="tool-actions">
+              <button type="button" class="secondary" id="extend-android-alert-window">Tăng ca +1 giờ</button>
+              ${alertState?.overtime_until_ms ? '<button type="button" class="secondary" id="stop-android-alert-overtime">Kết thúc tăng ca</button>' : ""}
             </div>
           </div>
         </div>
@@ -2712,6 +2759,8 @@ async function loadTools(): Promise<void> {
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
   const [pdaResult, agentResult] = await Promise.all([getPdaAppRelease(), getAgentAppRelease()]);
+  let alertWindowResult: AndroidAlertWindowState | null = null;
+  try { alertWindowResult = await getAndroidAlertWindow(); } catch { alertWindowResult = null; }
   const stableUrl = `${window.location.origin}${pdaResult.release.stable_download_path}`;
   const qr = await QRCode.toDataURL(stableUrl, {
     errorCorrectionLevel: "M",
@@ -2721,6 +2770,7 @@ async function loadTools(): Promise<void> {
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   pdaAppRelease = pdaResult.release;
   agentAppRelease = agentResult.release;
+  androidAlertWindow = alertWindowResult;
   pdaQrDataUrl = qr;
   markWebUpdateReceived();
 }
@@ -2810,12 +2860,12 @@ async function loadSection(section: Section): Promise<void> {
   let received = false;
   if ((section === "operations" || section === "results") && roleOperate()) { await loadOperations(); received = true; }
   else if (section === "picker" && profile.role === "PICKER") { await loadPicker(); received = true; }
-  else if (section === "sku" && roleManage()) { await loadSkuWorkspace(); received = true; }
-  else if (section === "hr" && roleManage()) { hrSource = await getHrSource(); received = true; }
-  else if (section === "users" && roleManage()) { await loadUsers(); received = true; }
+  else if (section === "sku" && rolePickPackManage()) { await loadSkuWorkspace(); received = true; }
+  else if (section === "hr" && rolePickPackManage()) { hrSource = await getHrSource(); received = true; }
+  else if (section === "users" && rolePickPackManage()) { await loadUsers(); received = true; }
   else if (section === "sla" && roleManage()) { await loadSla(); received = true; }
-  else if (section === "dashboard" && roleManage()) { await loadDashboard(); received = true; }
-  else if (section === "reports" && roleManage()) { await loadReports(); received = true; }
+  else if (section === "dashboard" && rolePickPackManage()) { await loadDashboard(); received = true; }
+  else if (section === "reports" && rolePickPackManage()) { await loadReports(); received = true; }
   else if (section === "logs" && roleManage()) { await loadLogs(); received = true; }
   else if (section === "tools" && roleManage()) { await loadTools(); received = true; }
   else if (section === "system-reset" && profile.role === "ROOT" && profile.base_role === "ROOT") {
@@ -2890,6 +2940,10 @@ function bindShell(): void {
 }
 
 async function commitReporterResolution(batch: ReporterBatch, resolution: "HAS_STOCK" | "SKIP_ALLOWED"): Promise<void> {
+  if (!roleCanResolve()) {
+    setNotice("warning", "Quản trị Pick Pack chỉ được xem Báo hàng, không được xử lý kết quả.");
+    return;
+  }
   if (pendingReporterResolutions.has(batch.batch_id)) return;
   const uiStarted = performance.now();
   pendingReporterResolutions.set(batch.batch_id, resolution);
@@ -3005,6 +3059,18 @@ function bindOverlay(): void {
 }
 
 function bindReporterActionButtons(root: ParentNode = document): void {
+  if (!roleCanResolve()) {
+    root.querySelectorAll<HTMLButtonElement>("[data-detail]").forEach((button) => button.addEventListener("click", () => {
+      const id = button.dataset.detail || "";
+      if (!id) return;
+      if (expandedBatchDetails.has(id)) expandedBatchDetails.delete(id);
+      else expandedBatchDetails.add(id);
+      if (activeSection === "operations" && selectedBatchId === id) refreshFastDetailOnly();
+      else patchActiveSection(true);
+      if (expandedBatchDetails.has(id)) prefetchBatchDetails(id);
+    }));
+    return;
+  }
   root.querySelectorAll<HTMLButtonElement>("[data-resolve]").forEach((button) => button.addEventListener("click", () => {
     const batchId = button.dataset.batch || "";
     stockConfirm = queueRows.find((item) => item.batch_id === batchId) || null;
@@ -3210,6 +3276,16 @@ function bindSection(): void {
     }
   });
 
+  document.querySelector<HTMLButtonElement>("#extend-android-alert-window")?.addEventListener("click", () => void run(async () => {
+    androidAlertWindow = await updateAndroidAlertWindow("EXTEND_ONE_HOUR");
+    setNotice("success", "Đã gia hạn App/PDA thêm 1 giờ tăng ca.");
+  }));
+
+  document.querySelector<HTMLButtonElement>("#stop-android-alert-overtime")?.addEventListener("click", () => void run(async () => {
+    androidAlertWindow = await updateAndroidAlertWindow("STOP_OVERTIME");
+    setNotice("success", "Đã kết thúc gia hạn tăng ca App/PDA.");
+  }));
+
   document.querySelector<HTMLButtonElement>("#send-web-log")?.addEventListener("click", () => void run(async () => {
     const sent = await sendWebRuntimeLog("manual_web_log", "INFO");
     if (!sent) throw new Error("Chưa gửi được log Web. Kiểm tra kết nối rồi thử lại.");
@@ -3395,7 +3471,7 @@ function bindSection(): void {
       await createManagedUser(
         String(data.get("username") || ""),
         String(data.get("displayName") || ""),
-        String(data.get("role") || "REPORTER") as "ADMIN" | "REPORTER",
+        String(data.get("role") || "REPORTER") as "ADMIN" | "PICKPACK_ADMIN" | "REPORTER",
         String(data.get("password") || ""),
         String(data.get("authEmail") || "").trim(),
       );

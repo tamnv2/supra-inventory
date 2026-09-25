@@ -13,13 +13,13 @@ type SqlRow = Record<string, SqlStorageValue>;
 type Actor = {
   user_id: string;
   employee_code: string | null;
-  role?: "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
+  role?: "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
   display_name?: string;
 };
 
 type SlaConfig = OperationalSlaConfig;
 
-type RealtimeRole = "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
+type RealtimeRole = "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
 
 const SLA_CONFIG_KEY = "operational_sla_v1";
 const OPERATIONAL_SCHEMA_KEY = "operational_v2_schema_version";
@@ -550,7 +550,7 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
        LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
       WHERE b.status = 'PENDING'
       GROUP BY b.batch_id
-      ORDER BY affected_picker_count DESC, b.first_report_at ASC
+      ORDER BY b.first_report_at ASC, b.batch_id ASC
       LIMIT ? OFFSET ?`,
     limit,
     offset,
@@ -1210,7 +1210,7 @@ function delta(state: DurableObjectState, url: URL): Response {
   const role = String(url.searchParams.get("role") || "") as RealtimeRole;
   const userId = String(url.searchParams.get("user_id") || "").trim();
   const clientEpoch = String(url.searchParams.get("stream_epoch") || "").trim();
-  if (!["PICKER", "REPORTER", "ADMIN", "ROOT"].includes(role) || !userId) {
+  if (!["PICKER", "REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(role) || !userId) {
     return json({ error: "INVALID_REALTIME_IDENTITY" }, 400);
   }
 

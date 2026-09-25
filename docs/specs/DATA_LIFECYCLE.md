@@ -338,3 +338,10 @@ The Android App uses an operational display projection, not a retention change.
 - Business transaction history/archive semantics remain separate from support-log retention. D112 does not convert Drive logs into business authority.
 - Android downloaded update artifacts are temporary support/distribution files and are removed best-effort after restart/current-version verification; they are not business data.
 
+## D119 — Presence, alert and fleet-metric retention
+
+- Picker presence is current-state projection only; it is not long-term attendance history.
+- FCM target/token material is private service data and is never copied into Agent-readable presence documents.
+- Picker-contact commands use bounded TTL and may retain only sanitized audit metadata after completion.
+- Fleet metric checkpoints are aggregate operational counters, not per-Picker behavioral history.
+- WMS SKU-sync staging discards stock/bin/location/quantity fields before durable product persistence and retains only bounded sync/conflict audit metadata.

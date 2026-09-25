@@ -246,7 +246,8 @@ class InventoryUi(private val activity: Activity) {
     fun roleLabel(role: String): String = when (role) {
         "PICKER" -> "Picker"
         "REPORTER" -> "Reporter"
-        "ADMIN" -> "Admin"
+        "ADMIN" -> "Quản trị Invent"
+        "PICKPACK_ADMIN" -> "Quản trị Pick Pack"
         "ROOT" -> "Root"
         else -> role
     }

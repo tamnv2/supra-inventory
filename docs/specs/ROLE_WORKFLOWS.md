@@ -535,3 +535,13 @@ D114 supersedes the D105/D112 suffix-length carrier details where they conflict.
 - Schedule writes use optimistic compare-and-set against the existing Firestore roles document. The first authoritative decision for a schedule-key/boundary wins. A conflicting later click refreshes and displays the already-authoritative decision.
 - PRIMARY remains the sole automatic PDA→WMS executor and must reconcile shared schedule state before a boundary. D117 lease/generation/failover rules remain unchanged.
 
+## D119 — Protected additive roles and operating workflows
+
+- Display `ADMIN` as **Quản trị Invent**. Add `PICKPACK_ADMIN` as **Quản trị Pick Pack**.
+- Quản trị Pick Pack may manage Picker personnel, manual/catalog SKU workflows, read shortage operations and reporting/export, and bounded Picker-contact tools. On Windows Agent it may perform the normal PickList lookup/confirmation workflow and Agent SKU synchronization/update under the existing HA/WMS guards. It may not perform Báo hàng `HAS_STOCK`, `SKIP_ALLOWED`, correction, SLA/auto-skip timing changes, Root reset or Invent/Root account management.
+- Android ADMIN renders only the Reporter operational surface; Root remains Android-denied. The service capability check is authoritative.
+- Reporter/Quản trị Invent pending queue is oldest-first. Picker own history is newest-first; resolved history remains newest-first.
+- Agent online-Picker list contains only users with a valid Android session plus registered Android notification device. Logout, same-channel replacement, disable and expiry remove the user.
+- Online-Picker presence is independent of Xác nhận đơn history.
+- Agent UI after authenticated login hides credential inputs and uses compact responsive Overview sections: Agent fleet (max five visible), Supra, PickList (max five visible), and online Picker list.
+- D118 confirmation, HA, WMS guard, scheduling and no-offline semantics remain protected and unchanged unless separately approved.

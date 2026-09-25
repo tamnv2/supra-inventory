@@ -1,4 +1,4 @@
-export type AppRole = "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
+export type AppRole = "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
 
 export interface FirebaseIdentity {
   uid: string;

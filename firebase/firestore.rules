@@ -15,6 +15,38 @@ service cloud.firestore {
         && request.auth.token.app_user_id != null;
     }
 
+    function isAgentOperator() {
+      return request.auth != null
+        && request.auth.token.app_user_id != null
+        && (
+          (
+            request.auth.token.app_role == 'ADMIN'
+            && request.auth.token.app_base_role == 'ADMIN'
+          )
+          ||
+          (
+            request.auth.token.app_role == 'PICKPACK_ADMIN'
+            && request.auth.token.app_base_role == 'PICKPACK_ADMIN'
+          )
+        );
+    }
+
+    function isPickerContactOperator() {
+      return request.auth != null
+        && request.auth.token.app_user_id != null
+        && (
+          (
+            request.auth.token.app_role == 'ADMIN'
+            && request.auth.token.app_base_role == 'ADMIN'
+          )
+          ||
+          (
+            request.auth.token.app_role == 'PICKPACK_ADMIN'
+            && request.auth.token.app_base_role == 'PICKPACK_ADMIN'
+          )
+        );
+    }
+
     match /relay_poc_jobs/{jobId} {
       allow create: if isPicker()
         && request.resource.data.keys().hasOnly([
@@ -32,12 +64,12 @@ service cloud.firestore {
         && request.resource.data.client_sent_at_ms >= 0
         && request.resource.data.created_at == request.time;
 
-      allow get: if isRealAdmin()
+      allow get: if isAgentOperator()
         || (isPicker() && resource.data.picker_uid == request.auth.uid);
 
-      allow list: if isRealAdmin();
+      allow list: if isAgentOperator();
 
-      allow update: if isRealAdmin()
+      allow update: if isAgentOperator()
         && resource.data.status == 'PENDING'
         && request.resource.data.status == 'ACK'
         && request.resource.data.agent_admin_user_id == request.auth.token.app_user_id
@@ -67,22 +99,22 @@ service cloud.firestore {
     }
 
     match /relay_poc_rate_limits/{pickerKey} {
-      allow get, create, update, delete: if isRealAdmin();
+      allow get, create, update, delete: if isAgentOperator();
       allow list: if false;
     }
 
     match /relay_poc_coordination/{docId} {
-      allow get, create, update, delete: if isRealAdmin();
+      allow get, create, update, delete: if isAgentOperator();
       allow list: if false;
     }
 
     match /relay_poc_agents/{agentId} {
-      allow get, list, create, update, delete: if isRealAdmin();
+      allow get, list, create, update, delete: if isAgentOperator();
     }
 
     match /relay_poc_agent_sessions/{uid} {
-      allow get: if isRealAdmin() && request.auth.uid == uid;
-      allow create, update: if isRealAdmin()
+      allow get: if isAgentOperator() && request.auth.uid == uid;
+      allow create, update: if isAgentOperator()
         && request.auth.uid == uid
         && request.resource.data.keys().hasOnly([
           'firebase_uid', 'agent_instance_id', 'agent_admin_user_id',
@@ -94,12 +126,12 @@ service cloud.firestore {
         && request.resource.data.agent_instance_id.size() >= 8
         && request.resource.data.agent_instance_id.size() <= 160
         && request.resource.data.claimed_at_ms is int;
-      allow delete: if isRealAdmin() && request.auth.uid == uid;
+      allow delete: if isAgentOperator() && request.auth.uid == uid;
       allow list: if false;
     }
 
     match /relay_poc_confirm_guards/{guardId} {
-      allow get, create, update, delete: if isRealAdmin();
+      allow get, create, update, delete: if isAgentOperator();
       allow delete: if isPicker()
         && resource.data.picker_uid == request.auth.uid
         && resource.data.retire_at_ms is int
@@ -107,8 +139,227 @@ service cloud.firestore {
       allow list: if false;
     }
 
+    // D119 additive online-Picker projection. Clients may read only sanitized
+    // current-state metadata; token targets stay server-private.
+    match /picker_presence_projection/{docId} {
+      allow get, list: if isPickerContactOperator();
+      allow create, update, delete: if false;
+    }
+
+    match /picker_notification_targets/{userId} {
+      allow read, write: if false;
+    }
+
+    match /picker_alerts/{alertId} {
+      allow create: if isPickerContactOperator()
+        && request.resource.data.keys().hasOnly([
+          'alert_id', 'target_user_id', 'command_type', 'message',
+          'status', 'source', 'sender_user_id', 'sender_agent_id',
+          'expires_at_ms'
+        ])
+        && request.resource.data.alert_id == alertId
+        && request.resource.data.target_user_id is string
+        && request.resource.data.target_user_id.size() >= 3
+        && request.resource.data.target_user_id.size() <= 160
+        && request.resource.data.command_type in ['CALL_SPECIALIST', 'BRING_TO_PACK']
+        && request.resource.data.message is string
+        && request.resource.data.message.size() <= 500
+        && request.resource.data.status == 'PENDING'
+        && request.resource.data.source == 'AGENT_PICKER_CONTACT_V1'
+        && request.resource.data.sender_user_id == request.auth.token.app_user_id
+        && request.resource.data.sender_agent_id is string
+        && request.resource.data.sender_agent_id.size() >= 8
+        && request.resource.data.sender_agent_id.size() <= 160
+        && request.resource.data.expires_at_ms is int
+        && request.resource.data.expires_at_ms > request.time.toMillis()
+        && request.resource.data.expires_at_ms <= request.time.toMillis() + 21600000;
+
+      allow get, list: if isPickerContactOperator();
+      allow update: if isAgentOperator()
+        && resource.data.status in ['PENDING', 'SENT', 'FAILED', 'TARGET_OFFLINE']
+        && request.resource.data.status == 'RESOLVED'
+        && request.resource.data.resolved_by_user_id == request.auth.token.app_user_id
+        && request.resource.data.resolved_by_agent_id is string
+        && request.resource.data.resolved_by_agent_id.size() >= 8
+        && request.resource.data.resolved_by_agent_id.size() <= 160
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'resolved_by_user_id', 'resolved_by_agent_id'
+        ]);
+      allow delete: if false;
+    }
+
+    // D119 fleet metrics deliberately remain separate from the accepted D117/D118
+    // HA lease. Real ADMIN and real PICKPACK_ADMIN Agent operators may write counters.
+    match /relay_fleet_metrics/{docId} {
+      allow get: if docId == 'current' && isAgentOperator();
+      allow list: if false;
+      allow create, update: if docId == 'current'
+        && isAgentOperator()
+        && request.resource.data.keys().hasOnly([
+          'schema_version', 'day_key', 'accepted_total', 'processed_total',
+          'accepted_ids', 'processed_ids', 'owner_agent_id',
+          'local_requests', 'local_responses'
+        ])
+        && request.resource.data.schema_version == 1
+        && request.resource.data.day_key is string
+        && request.resource.data.day_key.matches('^[0-9]{8}
+
+    // D119 sanitized WMS SKU/name staging. Existing WMS confirmation guards remain
+    // unchanged; real ADMIN and real PICKPACK_ADMIN Agent operators may submit/read sync jobs.
+    match /sku_sync_jobs/{jobId} {
+      allow get, list: if isAgentOperator();
+      allow create: if isAgentOperator()
+        && request.resource.data.source == 'AGENT_WMS_BINSTOCK_V1'
+        && request.resource.data.admin_user_id == request.auth.token.app_user_id
+        && (
+          (
+            request.resource.data.kind == 'LEASE'
+            && request.resource.data.status == 'LEASED'
+            && request.resource.data.job_id == jobId
+            && request.resource.data.owner_agent_id is string
+            && request.resource.data.owner_agent_id.size() >= 8
+            && request.resource.data.owner_agent_id.size() <= 160
+            && request.resource.data.day_key is string
+            && request.resource.data.lease_until_ms is int
+            && request.resource.data.lease_until_ms > request.time.toMillis()
+            && request.resource.data.lease_until_ms <= request.time.toMillis() + 900000
+          )
+          ||
+          (
+            request.resource.data.kind == 'IMPORT'
+            && request.resource.data.status == 'PENDING'
+            && request.resource.data.job_id == jobId
+            && request.resource.data.items is list
+            && request.resource.data.items.size() >= 1
+            && request.resource.data.items.size() <= 1000
+          )
+        );
+      allow update: if isAgentOperator()
+        && resource.data.kind == 'LEASE'
+        && request.resource.data.kind == 'LEASE'
+        && request.resource.data.job_id == resource.data.job_id
+        && request.resource.data.day_key == resource.data.day_key
+        && request.resource.data.admin_user_id == request.auth.token.app_user_id
+        && request.resource.data.owner_agent_id is string
+        && request.resource.data.owner_agent_id.size() >= 8
+        && request.resource.data.owner_agent_id.size() <= 160
+        && (
+          request.resource.data.owner_agent_id == resource.data.owner_agent_id
+          || resource.data.lease_until_ms <= request.time.toMillis()
+        )
+        && request.resource.data.lease_until_ms is int
+        && request.resource.data.lease_until_ms > request.time.toMillis()
+        && request.resource.data.lease_until_ms <= request.time.toMillis() + 900000;
+      allow delete: if isAgentOperator() && resource.data.kind == 'LEASE';
+    }
+
     match /relay_agent_log_uploads/{partId} {
-      allow create: if isRealAdmin()
+      allow create: if isAgentOperator()
+        && request.resource.data.keys().hasOnly([
+          'upload_id', 'part_index', 'part_count', 'status', 'source',
+          'admin_user_id', 'agent_instance_id', 'machine',
+          'generated_at_ms', 'crash', 'filename', 'content'
+        ])
+        && request.resource.data.status == 'PENDING'
+        && request.resource.data.source == 'AGENT'
+        && request.resource.data.admin_user_id == request.auth.token.app_user_id
+        && request.resource.data.upload_id is string
+        && request.resource.data.upload_id.size() >= 16
+        && request.resource.data.upload_id.size() <= 64
+        && request.resource.data.part_index is int
+        && request.resource.data.part_index >= 0
+        && request.resource.data.part_count is int
+        && request.resource.data.part_count >= 1
+        && request.resource.data.part_count <= 64
+        && request.resource.data.part_index < request.resource.data.part_count
+        && request.resource.data.agent_instance_id is string
+        && request.resource.data.agent_instance_id.size() >= 8
+        && request.resource.data.agent_instance_id.size() <= 160
+        && request.resource.data.machine is string
+        && request.resource.data.machine.size() <= 160
+        && request.resource.data.generated_at_ms is int
+        && request.resource.data.crash is bool
+        && request.resource.data.filename is string
+        && request.resource.data.filename.size() <= 160
+        && request.resource.data.filename.matches('^(crash_)?agent_[A-Za-z0-9._-]+_[0-9]{8}_[0-9]{6}\\.log$')
+        && request.resource.data.content is string
+        && request.resource.data.content.size() <= 350000;
+
+      allow get, list, update, delete: if false;
+    }
+  }
+}
+)
+        && request.resource.data.accepted_total is int
+        && request.resource.data.accepted_total >= 0
+        && request.resource.data.processed_total is int
+        && request.resource.data.processed_total >= 0
+        && request.resource.data.processed_total <= request.resource.data.accepted_total
+        && request.resource.data.accepted_ids is list
+        && request.resource.data.accepted_ids.size() <= 2500
+        && request.resource.data.processed_ids is list
+        && request.resource.data.processed_ids.size() <= 2500
+        && request.resource.data.owner_agent_id is string
+        && request.resource.data.owner_agent_id.size() >= 8
+        && request.resource.data.owner_agent_id.size() <= 160
+        && request.resource.data.local_requests is int
+        && request.resource.data.local_requests >= 0
+        && request.resource.data.local_responses is int
+        && request.resource.data.local_responses >= 0;
+      allow delete: if false;
+    }
+
+    // D119 sanitized WMS SKU/name staging. Existing WMS confirmation guards remain
+    // unchanged; real ADMIN and real PICKPACK_ADMIN Agent operators may submit/read sync jobs.
+    match /sku_sync_jobs/{jobId} {
+      allow get, list: if isAgentOperator();
+      allow create: if isAgentOperator()
+        && request.resource.data.source == 'AGENT_WMS_BINSTOCK_V1'
+        && request.resource.data.admin_user_id == request.auth.token.app_user_id
+        && (
+          (
+            request.resource.data.kind == 'LEASE'
+            && request.resource.data.status == 'LEASED'
+            && request.resource.data.job_id == jobId
+            && request.resource.data.owner_agent_id is string
+            && request.resource.data.owner_agent_id.size() >= 8
+            && request.resource.data.owner_agent_id.size() <= 160
+            && request.resource.data.day_key is string
+            && request.resource.data.lease_until_ms is int
+            && request.resource.data.lease_until_ms > request.time.toMillis()
+            && request.resource.data.lease_until_ms <= request.time.toMillis() + 900000
+          )
+          ||
+          (
+            request.resource.data.kind == 'IMPORT'
+            && request.resource.data.status == 'PENDING'
+            && request.resource.data.job_id == jobId
+            && request.resource.data.items is list
+            && request.resource.data.items.size() >= 1
+            && request.resource.data.items.size() <= 1000
+          )
+        );
+      allow update: if isAgentOperator()
+        && resource.data.kind == 'LEASE'
+        && request.resource.data.kind == 'LEASE'
+        && request.resource.data.job_id == resource.data.job_id
+        && request.resource.data.day_key == resource.data.day_key
+        && request.resource.data.admin_user_id == request.auth.token.app_user_id
+        && request.resource.data.owner_agent_id is string
+        && request.resource.data.owner_agent_id.size() >= 8
+        && request.resource.data.owner_agent_id.size() <= 160
+        && (
+          request.resource.data.owner_agent_id == resource.data.owner_agent_id
+          || resource.data.lease_until_ms <= request.time.toMillis()
+        )
+        && request.resource.data.lease_until_ms is int
+        && request.resource.data.lease_until_ms > request.time.toMillis()
+        && request.resource.data.lease_until_ms <= request.time.toMillis() + 900000;
+      allow delete: if isAgentOperator() && resource.data.kind == 'LEASE';
+    }
+
+    match /relay_agent_log_uploads/{partId} {
+      allow create: if isAgentOperator()
         && request.resource.data.keys().hasOnly([
           'upload_id', 'part_index', 'part_count', 'status', 'source',
           'admin_user_id', 'agent_instance_id', 'machine',

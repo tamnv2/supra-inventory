@@ -322,7 +322,7 @@
       "api_url": "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents/relay_poc_jobs",
       "exposure": "public_identifier",
       "status": "D105_RUNTIME_RELEASE_PASS__D104_OWNER_FIELD_PASS__ANDROID_VC63_AGENT_V30__OA025_FIELD_READY",
-      "guard": "D105_BETA_ONLY__CURRENT_ANDROID_SUFFIX_4_DIGITS__LEGACY_VC62_5_DIGIT_INGRESS_COMPAT__EXISTING_BATCH_GUARD_ACK_HA__NO_WMS_SECRET__NO_STABLE",
+      "guard": "D105_BETA_ONLY__CURRENT_ANDROID_SUFFIX_4_DIGITS__LEGACY_VC62_5_DIGIT_INGRESS_COMPAT__EXISTING_BATCH_GUARD_ACK_HA__NO_WMS_SECRET__NO_STABLE__D119_ADDITIVE_PRESENCE_ALERT_METRICS_SKU_STAGING",
       "collections": [
         "relay_poc_jobs",
         "relay_poc_rate_limits",
@@ -330,8 +330,18 @@
         "relay_poc_agents",
         "relay_poc_agent_sessions",
         "relay_poc_confirm_guards",
-        "relay_agent_log_uploads"
-      ]
+        "relay_agent_log_uploads",
+        "picker_presence_projection",
+        "picker_notification_targets",
+        "picker_alerts",
+        "relay_fleet_metrics",
+        "sku_sync_jobs"
+      ],
+      "d119_agent_operator_roles": [
+        "ADMIN",
+        "PICKPACK_ADMIN"
+      ],
+      "d119_role_guard": "PICKPACK_ADMIN_AGENT_MAY_USE_EXISTING_PICKLIST_CONFIRM_AND_SKU_SYNC__NO_BAO_HANG_RESOLUTION_AUTHORITY"
     },
     {
       "key": "supra-wms-ui-d080",
@@ -356,7 +366,10 @@
       "guard": "D105_RUNTIME_PASS__SIGNED_GET_ZONES_AND_PICKLIST_LIST__FOUR_DIGIT_CURRENT_SUFFIX_EXACT_RESOLVE__BOUNDED_CONFIRM_SKIP_ITEM_POST_AFTER_PER_CODE_GUARD__MAX10_CODES__NO_OTHER_WMS_MUTATION__NO_STABLE",
       "allowed_lookup": "GET /sft3-hy1/api/v1/autopp/pickListConfirms",
       "allowed_confirmation": "POST /sft3-hy1/api/v1/autopp/pickListConfirms/confirmSkipItem",
-      "confirmation_contract": "ONE_TO_TEN_EXACT_PICKLISTCODES__PER_CODE_FIRESTORE_GUARD__IsAllowSkipped_TRUE__RemainSkip_1__WarehouseCode_HY1__EnableDCSite_FALSE__UNCERTAIN_FAIL_CLOSED"
+      "confirmation_contract": "ONE_TO_TEN_EXACT_PICKLISTCODES__PER_CODE_FIRESTORE_GUARD__IsAllowSkipped_TRUE__RemainSkip_1__WarehouseCode_HY1__EnableDCSite_FALSE__UNCERTAIN_FAIL_CLOSED",
+      "allowed_stock_lookup": "GET /sft3-hy1/api/v1/report/stock/binStocks",
+      "allowed_stock_export": "GET /sft3-hy1/api/v1/report/stock/exportBinStocks",
+      "stock_scope_guard": "D119_READ_ONLY_SKU_NAME_DERIVATION__DISCARD_BIN_LOCATION_QUANTITY__NO_OTHER_WMS_MUTATION"
     },
     {
       "key": "wincommerce-proxy-fallback-d080",
@@ -367,6 +380,34 @@
       "url": "http://proxyclientdr.winmart.vn:9090",
       "exposure": "public_corporate_hostname",
       "guard": "FALLBACK_ROUTE_ONLY__DEFAULT_WINDOWS_CREDENTIALS__DO_NOT_BYPASS_CORPORATE_FILTERING"
+    },
+    {
+      "key": "functions-deploy-sa-beta-d119",
+      "provider": "Google Cloud",
+      "kind": "service_account",
+      "environment": "beta",
+      "name": "invent-beta-functions-deploy@supra-inventory-beta.iam.gserviceaccount.com",
+      "exposure": "public_identifier",
+      "guard": "D119_DEPLOY_IDENTITY_ONLY__NO_RUNTIME_BUSINESS_DATA"
+    },
+    {
+      "key": "picker-alert-runtime-sa-beta-d119",
+      "provider": "Google Cloud",
+      "kind": "service_account",
+      "environment": "beta",
+      "name": "inventory-beta-alert-runtime@supra-inventory-beta.iam.gserviceaccount.com",
+      "exposure": "public_identifier",
+      "guard": "D119_RUNTIME_ONLY__DATASTORE_FCM_EVENTARC_LEAST_PRIVILEGE"
+    },
+    {
+      "key": "picker-alert-function-beta-d119",
+      "provider": "Google Cloud / Firebase",
+      "kind": "cloud_run_function_gen2",
+      "environment": "beta",
+      "name": "inventory-beta-picker-alerts",
+      "exposure": "public_identifier",
+      "status": "D119_OWNER_PRESETUP_READY__SOURCE_PENDING",
+      "guard": "BETA_ONLY__FIRESTORE_EVENT_TO_FCM__STABLE_FORBIDDEN"
     }
   ],
   "secret_references": [
@@ -434,6 +475,13 @@
       "value_in_repo": false,
       "purpose": "D076 Beta RTDB Rules deployment and D091/D092 Beta Firestore Rules Management API deployment",
       "status": "CONFIGURED_VALIDATED__D076_ACTIVE__D091_FIRESTORE_RULES_PASS__D092_RULES_SOURCE_PENDING_MAIN_DEPLOY"
+    },
+    {
+      "name": "FIREBASE_FUNCTIONS_SA_JSON_BETA",
+      "storage": "GitHub Environment beta secret",
+      "value_in_repo": false,
+      "purpose": "D119 Beta Cloud Functions deployment identity",
+      "status": "OWNER_CONFIRMED_CONFIGURED__VALUE_NOT_READ_OR_RECORDED"
     }
   ],
   "explicit_out_of_scope": [

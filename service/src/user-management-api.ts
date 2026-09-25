@@ -2,6 +2,7 @@ import { hashPassword, interactiveSessionError, readBearerToken, verifyFirebaseI
 import { deleteFirebaseUsers, importPasswordIdentity, signInWithFirebasePassword, updateFirebaseIdentity, type FirebaseManagedUserSpec } from "./firebase-auth-admin";
 import { readHrEmployees, type StoredHrSource } from "./hr-sync";
 import { validateHrSheetSource } from "./hr-source";
+import { refreshPickerProjectionBestEffort } from "./firestore-projection";
 
 interface Env {
   FIREBASE_PROJECT_ID: string;
@@ -27,7 +28,7 @@ interface User {
   web_session_generation?: number;
   android_session_generation?: number;
 }
-const ROLES: AppRole[] = ["ADMIN", "ROOT"];
+const ROLES: AppRole[] = ["ADMIN", "PICKPACK_ADMIN", "ROOT"];
 
 function json(payload: unknown, status = 200): Response { return new Response(JSON.stringify(payload), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } }); }
 function core(env: Env): DurableObjectStub { return env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName("inventory-core")); }
@@ -39,6 +40,7 @@ async function requireAdmin(request: Request, env: Env): Promise<User> {
   if (!user || user.status !== "ACTIVE") throw json({ error: "USER_NOT_ACTIVE" }, 403);
   const sessionError = interactiveSessionError(identity, user);
   if (sessionError) throw json({ error: sessionError }, 401);
+  if (identity.sessionChannel === "ANDROID") throw json({ error: "MANAGEMENT_WEB_ONLY" }, 403);
   if (!ROLES.includes(user.role)) throw json({ error: "FORBIDDEN" }, 403);
   return user;
 }
@@ -126,7 +128,7 @@ async function provisionManagedCredential(
   if (verified.localId !== uid) throw new Error("FIREBASE_DIRECT_PASSWORD_VERIFY_FAILED");
   await markFirebaseReady(env, user.user_id, uid);
   const primaryReady = (await coreUserById(env, user.user_id)) || { ...user, firebase_uid: uid, firebase_password_ready: true };
-  if ((primaryReady.base_role || primaryReady.role) === "ADMIN") {
+  if (["ADMIN", "PICKPACK_ADMIN"].includes(String(primaryReady.base_role || primaryReady.role))) {
     // Same Firebase UID serves Web/App/Agent. Mark the direct Agent username
     // path ready after the primary credential is synchronized.
     await markAgentFirebaseReady(env, user.user_id);
@@ -195,6 +197,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
   if (key === "GET /api/admin/users") {
     const params = new URLSearchParams();
     for (const name of ["query","role","status","limit","offset"]) if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+    if (user.role === "PICKPACK_ADMIN") params.set("role", "PICKER");
     return core(env).fetch(`https://inventory-core.internal/admin/users?${params.toString()}`);
   }
   if (key === "POST /api/admin/users") {
@@ -223,7 +226,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
           firebase_uid: provisioned.firebase_uid,
           auth_email: provisioned.auth_email || createdUser.auth_email || null,
           firebase_password_ready: true,
-          firebase_agent_ready: (provisioned.base_role || provisioned.role) === "ADMIN",
+          firebase_agent_ready: ["ADMIN", "PICKPACK_ADMIN"].includes(String(provisioned.base_role || provisioned.role)),
         },
       }, 201);
     } catch (error) {
@@ -268,7 +271,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
         );
         await markFirebaseReady(env, updated.user_id, String(updated.firebase_uid));
         updated.firebase_password_ready = true;
-        if ((updated.base_role || updated.role) === "ADMIN") {
+        if (["ADMIN", "PICKPACK_ADMIN"].includes(String(updated.base_role || updated.role))) {
           await markAgentFirebaseReady(env, updated.user_id);
           updated.firebase_agent_ready = true;
         }
@@ -279,6 +282,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
         }, 502);
       }
     }
+    if (updated.role === "PICKER" || before?.role === "PICKER") await refreshPickerProjectionBestEffort(env);
     return json({ status: "updated", user: updated });
   }
   if (key === "PUT /api/admin/users/password") {
@@ -297,6 +301,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
       if (!changedResponse.ok) return changedResponse;
       const after = (await coreUserById(env, userId)) || before;
       await provisionManagedCredential(env, after, derived, plainPassword);
+      if (after.role === "PICKER") await refreshPickerProjectionBestEffort(env);
       return json({ status: "password_changed", user_id: userId });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Không đổi được mật khẩu.";
@@ -309,7 +314,9 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
   }
   if (key === "POST /api/admin/pickers/bulk") {
     const body = await bodyObject(request);
-    return core(env).fetch("https://inventory-core.internal/admin/pickers/bulk", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...body, actor: actor(user) }) });
+    const response = await core(env).fetch("https://inventory-core.internal/admin/pickers/bulk", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...body, actor: actor(user) }) });
+    if (response.ok) await refreshPickerProjectionBestEffort(env);
+    return response;
   }
   if (key === "PUT /api/admin/hr-source-v2") {
     if (!env.GOOGLE_RUNTIME_SA_JSON) return json({ error: "GOOGLE_RUNTIME_NOT_CONFIGURED" }, 503);
@@ -339,10 +346,12 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
     }
     const body = await bodyObject(request);
     const pickerDefault = await derivePickerDefault(env);
-    return core(env).fetch("https://inventory-core.internal/admin/hr-sync/apply", {
+    const response = await core(env).fetch("https://inventory-core.internal/admin/hr-sync/apply", {
       method: "POST", headers: { "content-type": "application/json" },
       body: JSON.stringify({ ...body, actor: actor(user), employees: read.employees, picker_password_salt: pickerDefault.salt, picker_password_hash: pickerDefault.hash }),
     });
+    if (response.ok) await refreshPickerProjectionBestEffort(env);
+    return response;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Không đọc được nguồn nhân sự.";
     return json({ error: "HR_SYNC_SOURCE_FAILED", message }, message === "PICKER_DEFAULT_PASSWORD_NOT_CONFIGURED" ? 503 : 400);

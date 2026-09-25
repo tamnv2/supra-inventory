@@ -2,7 +2,7 @@ namespace SupraInventoryRelayAgent
 {
     internal static class AgentConfig
     {
-        internal const int AgentBuild = 38;
+        internal const int AgentBuild = 39;
         internal const string ApiBaseUrl = "https://inventory-beta.supra.cc.cd";
         internal const string FirebaseProjectId = "supra-inventory-beta";
         internal const string FirebaseApiKey = "__FIREBASE_API_KEY_BETA__";
@@ -10,6 +10,9 @@ namespace SupraInventoryRelayAgent
         internal const string FirestoreDocumentsBaseUrl = "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents";
         internal const string FirestoreProbeUrl = FirestoreDocumentsBaseUrl;
         internal const string FirestoreRelayCollectionUrl = FirestoreDocumentsBaseUrl + "/relay_poc_jobs";
+        internal const string FirestorePickerPresenceUrl = FirestoreDocumentsBaseUrl + "/picker_presence_projection/current";
+        internal const string FirestoreFleetMetricsUrl = FirestoreDocumentsBaseUrl + "/relay_fleet_metrics/current";
+        internal const string FirestoreSkuSyncCollectionUrl = FirestoreDocumentsBaseUrl + "/sku_sync_jobs";
         internal const string RelayTransport = "FIRESTORE_CONFIRM_V1";
         internal const string AppsScriptWebProbeUrl = "https://script.google.com/macros/s/office-probe/exec";
         internal const string AppsScriptApiProbeUrl = "https://script.googleapis.com/v1/projects";
@@ -25,6 +28,8 @@ namespace SupraInventoryRelayAgent
         internal const string WmsPicklistConfirmUrl = "https://api-supra.winmart.vn/sft3-hy1/api/v1/autopp/pickListConfirms/confirmSkipItem";
         internal const string WmsPicklistConfirmSignPath = "/api/v1/autopp/pickListConfirms/confirmSkipItem";
         internal const string WmsPicklistConfirmUiReferenceUrl = "https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm";
+        internal const string WmsBinStocksUrl = "https://api-supra.winmart.vn/sft3-hy1/api/v1/report/stock/binStocks";
+        internal const string WmsBinStocksSignPath = "/api/v1/report/stock/binStocks";
         internal const string CorporateProxyFallback = "http://proxyclientdr.winmart.vn:9090";
         internal const string GitHubReleasesApi = "https://api.github.com/repos/tamnv2/supra-inventory/releases?per_page=30";
         internal const string AgentUpdateManifestUrl = ApiBaseUrl + "/downloads/agent/manifest";

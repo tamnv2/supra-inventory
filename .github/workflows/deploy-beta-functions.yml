@@ -1,0 +1,66 @@
+name: Verify and Deploy Beta Functions
+
+on:
+  pull_request:
+    paths:
+      - "functions/**"
+      - "firebase.json"
+      - ".github/workflows/deploy-beta-functions.yml"
+  push:
+    branches: [main]
+    paths:
+      - "functions/**"
+      - "firebase.json"
+      - ".github/workflows/deploy-beta-functions.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  functions:
+    runs-on: ubuntu-latest
+    environment: beta
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install and build Functions
+        run: |
+          npm --prefix functions install --no-audit --no-fund
+          npm --prefix functions run build
+
+      - name: D119 protected additive source guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'pickerAlertCreated' functions/src/index.ts
+          grep -q 'skuSyncCreated' functions/src/index.ts
+          grep -q 'inventory-beta-alert-runtime@supra-inventory-beta.iam.gserviceaccount.com' functions/src/index.ts
+          grep -q 'picker_notification_targets' functions/src/index.ts
+          grep -q 'picker_presence_projection/current' functions/src/index.ts
+          if grep -R -E 'private_key|BEGIN PRIVATE KEY|refresh_token' functions/src; then
+            echo "Secret material marker forbidden in Functions source"
+            exit 1
+          fi
+
+      - name: Prepare Beta deploy identity
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        env:
+          FIREBASE_FUNCTIONS_SA_JSON_BETA: ${{ secrets.FIREBASE_FUNCTIONS_SA_JSON_BETA }}
+        run: |
+          set -euo pipefail
+          test -n "$FIREBASE_FUNCTIONS_SA_JSON_BETA"
+          credential_file="$RUNNER_TEMP/firebase-functions-deploy.json"
+          printf '%s' "$FIREBASE_FUNCTIONS_SA_JSON_BETA" > "$credential_file"
+          chmod 600 "$credential_file"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$credential_file" >> "$GITHUB_ENV"
+
+      - name: Deploy Beta Functions
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          npx --yes firebase-tools@14.12.1 deploy             --only functions             --project supra-inventory-beta             --non-interactive

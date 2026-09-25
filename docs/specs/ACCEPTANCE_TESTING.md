@@ -1168,3 +1168,21 @@ Owner field acceptance after release:
 - Verify Agent footer visually.
 - On Android confirmation tab, open numeric keyboard and verify `Báo hết hàng` / `Xác nhận đơn` tabs remain visible immediately above the keyboard.
 
+## D119 — Protected-baseline and new-feature acceptance
+
+D119 cannot be called PASS unless all of the following hold:
+
+1. D118 protected regression suite remains PASS: Firestore confirmation PENDING→ACK semantics, one-write confirmation guard, PRIMARY generation fence, 7s lease/10s failover, zero STANDBY/FROZEN business polling, WMS bounded confirmation adapter, schedule authority and no-offline business guard are unchanged.
+2. Reporter/Quản trị Invent pending queue is oldest-first and no longer sorted primarily by affected-Picker count; Picker and resolved histories remain newest-first.
+3. ADMIN Android session is server-authorized only for Reporter-equivalent operations; Root Android remains denied.
+4. PICKPACK_ADMIN attempts to resolve/correct Báo hàng, modify SLA/auto-skip, reset system or manage Invent/Root are server-denied; the same PICKPACK_ADMIN account must be able to authenticate on Windows Agent and use guarded PickList lookup/confirmation plus D119 Agent SKU sync/update. WMS mutation still requires the existing exact-code, generation-fence, confirmation-guard and fail-closed checks.
+5. Login + Android notification registration makes a Picker visible in Agent presence without any prior Xác nhận đơn. Logout/session replacement/disable/expiry removes it.
+6. Presence implementation contains no periodic PDA heartbeat and stays within the approved bounded Agent refresh cadence.
+7. Critical FCM alert without overlay permission still falls back to an accepted visible notification; overlay permission must never be required for ordinary existing Báo hàng correctness.
+8. Picker-contact command data contains no FCM token/credential and stale commands expire/clear safely.
+9. WMS SKU sync persists only SKU + product name; changed names require confirmation and missing rows never delete catalog entries.
+10. Agent authenticated layout hides login controls, uses standard window chrome, max-five Agent/PickList viewports with scroll, compact Supra and compact Picker rows.
+11. Fleet metrics do not alter D117/D118 lease document shape/cadence; failover reconstruction preserves accepted/processed totals.
+12. Stable resources remain untouched. Beta Functions/Firestore resources are the only new billed Google runtime surface.
+13. Full-update release channel is advanced only after Web/Worker, Functions/Rules, Android and Agent gates all pass together.
+14. At a closed 23:00–05:00 App/PDA window, server rejects new Android business mutation and Android Xác nhận đơn cannot create a Firestore request. A one-hour Invent/Root Web overtime extension reopens the same server-authoritative window; repeated explicit extensions add one hour each without adding a PDA heartbeat/poll loop.

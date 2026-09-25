@@ -225,3 +225,13 @@ D110 narrows the D098 Android client matrix without changing Web or Agent author
 - In all-Picker mode, an operator may deselect/reselect individual Picker rows. The client sends the exception set and the server removes those IDs from the PICKER target set before mutation.
 - Server authority remains role-based: even malformed/non-Picker IDs cannot widen the target beyond the existing role=PICKER server filter.
 - Existing actor hierarchy remains unchanged: ROOT may manage ADMIN/REPORTER/PICKER where already authorized; ADMIN may manage REPORTER/PICKER; normal APIs cannot manage ROOT.
+
+## D119 — Quản trị Invent / Quản trị Pick Pack and Android capability boundary
+
+- Existing internal `ADMIN` is retained and its user-facing label becomes **Quản trị Invent**.
+- New internal role `PICKPACK_ADMIN` is **Quản trị Pick Pack**.
+- `PICKPACK_ADMIN` is additive and least-privilege: Picker personnel lifecycle, SKU catalog/import operations, read-only shortage/reporting/history/export and explicitly granted Picker-contact capability only.
+- `PICKPACK_ADMIN` cannot resolve shortage results, correct Báo hàng outcomes, modify SLA/timeout/auto-skip policy, use system reset or manage ADMIN/ROOT authority.
+- D119 supersedes D110 only for real-base `ADMIN`: ADMIN may hold an ANDROID session but Android business capability is restricted to Reporter-equivalent operations. ROOT and PICKPACK_ADMIN remain Android-denied.
+- Windows Agent is an explicit channel exception: real-base `ADMIN` **or** real-base `PICKPACK_ADMIN` may authenticate as an Agent operator. Both may use the existing guarded PickList lookup/confirmation flow; both may use D119 Agent SKU synchronization/update. `PICKPACK_ADMIN` Agent permission does not authorize any Báo hàng resolve/correct/SLA mutation API.
+- Picker-presence projections expose only bounded operational identity/status metadata; FCM tokens and credentials are not readable by Agent clients.

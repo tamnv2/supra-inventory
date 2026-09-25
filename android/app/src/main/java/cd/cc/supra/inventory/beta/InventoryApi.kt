@@ -18,6 +18,13 @@ data class AppSession(
     val relayCustomToken: String? = null,
 )
 
+data class AndroidOperatingWindow(
+    val isOpen: Boolean,
+    val serverNowMs: Long,
+    val closesAtMs: Long?,
+    val overtimeUntilMs: Long?,
+)
+
 data class SkuItem(val sku: String, val productName: String)
 data class CatalogInfo(val count: Int, val version: String)
 data class CatalogPage(val items: List<SkuItem>, val nextAfter: String?)
@@ -228,6 +235,16 @@ class InventoryApi(
         )
         updateSession(next)
         return next
+    }
+
+    fun getAndroidOperatingWindow(): AndroidOperatingWindow {
+        val payload = request("GET", "/api/auth/android-window")
+        return AndroidOperatingWindow(
+            isOpen = payload.optBoolean("is_open", false),
+            serverNowMs = payload.optLong("server_now_ms", 0L),
+            closesAtMs = payload.optLong("closes_at_ms", 0L).takeIf { it > 0L },
+            overtimeUntilMs = payload.optLong("overtime_until_ms", 0L).takeIf { it > 0L },
+        )
     }
 
     fun registerNotificationDevice(deviceId: String, token: String): JSONObject = request(

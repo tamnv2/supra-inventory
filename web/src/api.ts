@@ -8,8 +8,8 @@ export interface AppProfile {
   firebase_uid: string | null;
   employee_code: string | null;
   display_name: string;
-  role: "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
-  base_role: "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
+  role: "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
+  base_role: "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
   status: "ACTIVE" | "DISABLED";
   password_changed_at: string | null;
   auth_email?: string | null;
@@ -136,7 +136,7 @@ export interface ManagedUser {
   firebase_uid: string | null;
   employee_code: string | null;
   display_name: string;
-  role: "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
+  role: "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
   status: "ACTIVE" | "DISABLED";
   password_initialized: boolean;
   password_changed_at: string | null;
@@ -325,7 +325,7 @@ export interface AdminReportingDetailPage {
 export interface RealtimePresence {
   online_users: number;
   online_sessions: number;
-  online_users_by_role: Record<"PICKER" | "REPORTER" | "ADMIN" | "ROOT", number>;
+  online_users_by_role: Record<"PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT", number>;
   online_users_by_client: Record<"WEB" | "ANDROID", number>;
   server_time: string;
 }
@@ -378,6 +378,21 @@ export interface PdaAppRelease {
 }
 
 export interface AgentAppRelease extends PdaAppRelease {}
+
+export interface AndroidAlertWindowState {
+  start_minutes: number;
+  end_minutes: number;
+  overtime_until_ms: number | null;
+  is_open: boolean;
+  normal_window_open: boolean;
+  overtime_open: boolean;
+  server_now: string;
+  server_now_ms: number;
+  business_date: string;
+  closes_at_ms: number | null;
+  updated_at: string | null;
+  updated_by: string | null;
+}
 
 export interface RuntimeLogItem {
   id: string;
@@ -763,7 +778,7 @@ export async function getMyProfile(): Promise<AppProfile> {
   return result;
 }
 
-export async function setRootEffectiveRole(role: "PICKER" | "REPORTER" | "ADMIN" | "ROOT"): Promise<AppProfile> {
+export async function setRootEffectiveRole(role: "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT"): Promise<AppProfile> {
   const result = await readJson<{ user: AppProfile }>(await authorizedFetch("/api/auth/root-role", {
     method: "PUT",
     body: JSON.stringify({ role }),
@@ -1004,6 +1019,20 @@ export async function getAgentAppRelease(): Promise<{ status: string; release: A
   return readJson(await authorizedFetch("/api/admin/agent-app"));
 }
 
+export async function getAndroidAlertWindow(): Promise<AndroidAlertWindowState> {
+  return readJson(await authorizedFetch("/api/admin/alert-window"));
+}
+
+export async function updateAndroidAlertWindow(
+  action: "EXTEND_ONE_HOUR" | "STOP_OVERTIME",
+): Promise<AndroidAlertWindowState> {
+  return readJson(await authorizedFetch("/api/admin/alert-window", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ action }),
+  }));
+}
+
 export async function getRuntimeLogs(
   source: "WEB" | "ANDROID",
   limit = 50,
@@ -1076,7 +1105,7 @@ export async function listManagedUsers(options: {
 export async function createManagedUser(
   username: string,
   displayName: string,
-  role: "ADMIN" | "REPORTER",
+  role: "ADMIN" | "PICKPACK_ADMIN" | "REPORTER",
   password: string,
   authEmail = "",
 ): Promise<ManagedUser> {

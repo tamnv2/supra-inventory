@@ -1,12 +1,15 @@
 import { interactiveSessionError, readBearerToken, verifyFirebaseIdToken } from "./auth";
+import { mirrorPickerNotificationTarget, refreshPickerProjectionBestEffort } from "./firestore-projection";
 
 interface NotificationEnv {
   FIREBASE_PROJECT_ID: string;
+  GOOGLE_RUNTIME_SA_JSON?: string;
   INVENTORY_CORE: DurableObjectNamespace;
 }
 
 type InternalUser = {
   user_id: string;
+  role: "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
   status: "ACTIVE" | "DISABLED";
   web_session_generation?: number;
   android_session_generation?: number;
@@ -50,9 +53,24 @@ export async function handleNotificationApi(request: Request, env: NotificationE
     body = {};
   }
   const path = request.method === "POST" ? "/notifications/device/upsert" : "/notifications/device/remove";
-  return core(env).fetch(`https://inventory-core.internal${path}`, {
+  const response = await core(env).fetch(`https://inventory-core.internal${path}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ ...body, user_id: user.user_id }),
   });
+  if (response.ok && user.role === "PICKER") {
+    try {
+      await mirrorPickerNotificationTarget(env, {
+        user_id: user.user_id,
+        device_id: String(body.device_id || ""),
+        platform: String(body.platform || "ANDROID").toUpperCase(),
+        token: request.method === "POST" ? String(body.token || "") : undefined,
+        enabled: request.method === "POST",
+      });
+    } catch {
+      // New alert bridge is additive. Existing FCM registration remains authoritative.
+    }
+    await refreshPickerProjectionBestEffort(env);
+  }
+  return response;
 }

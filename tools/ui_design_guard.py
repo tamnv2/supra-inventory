@@ -118,7 +118,7 @@ checks = {
         "Dịch vụ:",
         "Cập nhật:",
     ]),
-    "web_d059_role_labels": all(token in WEB_APP for token in ["Quản trị hệ thống", "Người báo hàng", "Người lấy hàng"]),
+    "web_d059_role_labels": all(token in WEB_APP for token in ["Quản trị hệ thống", "Quản trị Invent", "Quản trị Pick Pack", "Người xử lý báo hàng", "Người lấy hàng"]),
     "web_d059_identity_fields": all(token in WEB_APP for token in ['class="header-user-identity"', 'id="logout"']),
     "web_d059_no_top_password": "change-password-top" not in WEB_APP,
     "web_d059_update_timestamp_event_driven": all(token in WEB_APP for token in [
@@ -154,7 +154,9 @@ checks = {
         'profile.base_role === "ROOT"',
         "setRootEffectiveRole(role)",
         'if (role === "ROOT") return "Quản trị hệ thống";',
-        'if (role === "REPORTER") return "Người báo hàng";',
+        'if (role === "ADMIN") return "Quản trị Invent";',
+        'if (role === "PICKPACK_ADMIN") return "Quản trị Pick Pack";',
+        'if (role === "REPORTER") return "Người xử lý báo hàng";',
         'return "Người lấy hàng";',
     ]),
     "web_d060_theme_selector": all(token in WEB_APP for token in [
@@ -313,7 +315,13 @@ checks = {
     "client_ui_has_no_internal_implementation_prose": all(token not in (WEB_UI + ANDROID_ALL) for token in ["Owner duyệt UI", "sẽ được nối sau", "đang transplant", "logic lưu sẽ"]),
     "android_picker_ack": "XÁC NHẬN ĐÃ NHẬN" in ANDROID_PICKER and "acknowledgeResult" in ANDROID_API,
     "android_d111_reporter_confirmed_actions": all(token in ANDROID_REPORTER for token in ["confirmResolution(row, \"HAS_STOCK\"", "confirmResolution(row, \"SKIP_ALLOWED\"", "processingBatchIds", "confirmingBatchIds", '.setPositiveButton("Xác nhận")', "scheduleMinuteTicker"]),
-    "android_d110_role_gate": 'channel === "ANDROID" && (user.base_role === "ADMIN" || user.base_role === "ROOT")' in SERVICE_INDEX and "CLIENT_ROLE_NOT_ALLOWED" in SERVICE_INDEX,
+    "android_d110_role_gate": all(token in SERVICE_INDEX for token in [
+        'channel === "ANDROID" && (user.base_role === "ROOT" || user.base_role === "PICKPACK_ADMIN")',
+        "CLIENT_ROLE_NOT_ALLOWED",
+    ]) and all(token in ANDROID_MAIN for token in [
+        '"ADMIN" -> renderReporterHome',
+        '"ROOT", "PICKPACK_ADMIN" ->',
+    ]),
     "android_d110_branding": "@drawable/app_icon_d089" in ANDROID_LOGIN_XML and "@drawable/app_icon_d089" in ANDROID_MAIN_XML and "Phát triển hệ thống · tamnv2 | Pick Pack 1291" in ANDROID_LOGIN_XML,
     "android_realtime_delta": "/api/realtime/delta" in ANDROID_API and "appliedSeq" in ANDROID_RT and "streamEpoch" in ANDROID_RT and "recoverDelta" in ANDROID_RT,
     "android_update_gate_preserved": all(token in ANDROID_MAIN for token in ["UpdateGate.CHECKING", "UpdateGate.REQUIRED", "UpdateGate.FAILED", "BuildConfig.UPDATE_RELEASE_API", "loginButton?.isEnabled = updateGate == UpdateGate.CURRENT"]),

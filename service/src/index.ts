@@ -20,6 +20,8 @@ import { collectSystemStatus } from "./system-status";
 import { handleSystemResetApi } from "./system-reset";
 import { sendProjectEmail } from "./google-mail";
 import { latestAgentAppRelease, latestPdaAppRelease, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestPdaApk, redirectLatestPdaChecksum } from "./app-tools";
+import { handleD119Internal } from "./internal-d119";
+import { refreshPickerProjectionBestEffort } from "./firestore-projection";
 
 export { InventoryCore };
 
@@ -157,6 +159,10 @@ async function coreJson<T>(env: Env, path: string, init?: RequestInit): Promise<
   return payload;
 }
 
+async function androidOperatingWindow(env: Env): Promise<{ is_open: boolean; server_now_ms: number; closes_at_ms: number | null }> {
+  return coreJson(env, "/notifications/alert-window");
+}
+
 async function checkCore(env: Env): Promise<{
   ok: boolean;
   status: string;
@@ -226,9 +232,11 @@ async function ensureFirebaseUid(env: Env, user: InternalUser): Promise<string> 
 
 function sessionAuthorityError(identity: Awaited<ReturnType<typeof verifyFirebaseIdToken>>, user: InternalUser): string | null {
   if (identity.sessionChannel === "AGENT") {
-    return user.role === "ADMIN" && user.base_role === "ADMIN" ? null : "AGENT_ADMIN_REQUIRED";
+    if (user.role === "ADMIN" && user.base_role === "ADMIN") return null;
+    if (user.role === "PICKPACK_ADMIN" && user.base_role === "PICKPACK_ADMIN") return null;
+    return "AGENT_ROLE_REQUIRED";
   }
-  if (identity.sessionChannel === "ANDROID" && (user.base_role === "ADMIN" || user.base_role === "ROOT")) return "CLIENT_ROLE_NOT_ALLOWED";
+  if (identity.sessionChannel === "ANDROID" && (user.base_role === "ROOT" || user.base_role === "PICKPACK_ADMIN")) return "CLIENT_ROLE_NOT_ALLOWED";
   if (identity.sessionChannel !== "WEB" && identity.sessionChannel !== "ANDROID") return "SESSION_UPGRADE_REQUIRED";
   const expected = identity.sessionChannel === "WEB"
     ? Number(user.web_session_generation || 0)
@@ -285,7 +293,10 @@ async function ensureFirebasePasswordReady(env: Env, original: InternalUser): Pr
 
 async function ensureAgentFirebaseReady(env: Env, user: InternalUser): Promise<void> {
   if (!env.GOOGLE_RUNTIME_SA_JSON) throw new Error("AUTH_RUNTIME_NOT_CONFIGURED");
-  if (user.base_role !== "ADMIN" || user.role !== "ADMIN") throw new Error("AGENT_ADMIN_REQUIRED");
+  const realAgentOperator =
+    (user.base_role === "ADMIN" && user.role === "ADMIN") ||
+    (user.base_role === "PICKPACK_ADMIN" && user.role === "PICKPACK_ADMIN");
+  if (!realAgentOperator) throw new Error("AGENT_OPERATOR_REQUIRED");
   if (!user.password_hash || !user.password_salt || !user.firebase_uid) throw new Error("AGENT_PASSWORD_NOT_READY");
   if (Number(user.firebase_agent_ready || 0) === 1) return;
 
@@ -325,13 +336,23 @@ async function migrateActiveAdminFirebaseCredentials(env: Env): Promise<{ migrat
     "/auth/firebase-migration-candidates?role=ADMIN&limit=1",
   );
 
-  const agentCandidates = await coreJson<{ items: InternalUser[]; count: number }>(
-    env,
-    "/auth/firebase-migration-candidates?role=ADMIN&channel=AGENT&limit=50",
-  );
+  const [adminAgentCandidates, pickPackAgentCandidates] = await Promise.all([
+    coreJson<{ items: InternalUser[]; count: number }>(
+      env,
+      "/auth/firebase-migration-candidates?role=ADMIN&channel=AGENT&limit=50",
+    ),
+    coreJson<{ items: InternalUser[]; count: number }>(
+      env,
+      "/auth/firebase-migration-candidates?role=PICKPACK_ADMIN&channel=AGENT&limit=50",
+    ),
+  ]);
+  const agentCandidates = [
+    ...(adminAgentCandidates.items || []),
+    ...(pickPackAgentCandidates.items || []),
+  ].slice(0, 100);
   let agentMigrated = 0;
   let agentFailed = 0;
-  for (const original of agentCandidates.items || []) {
+  for (const original of agentCandidates) {
     try {
       const prepared = Number(original.firebase_password_ready || 0) === 1
         ? original
@@ -343,10 +364,17 @@ async function migrateActiveAdminFirebaseCredentials(env: Env): Promise<{ migrat
       agentFailed += 1;
     }
   }
-  const agentRemaining = await coreJson<{ count: number }>(
-    env,
-    "/auth/firebase-migration-candidates?role=ADMIN&channel=AGENT&limit=1",
-  );
+  const [adminAgentRemaining, pickPackAgentRemaining] = await Promise.all([
+    coreJson<{ count: number }>(
+      env,
+      "/auth/firebase-migration-candidates?role=ADMIN&channel=AGENT&limit=1",
+    ),
+    coreJson<{ count: number }>(
+      env,
+      "/auth/firebase-migration-candidates?role=PICKPACK_ADMIN&channel=AGENT&limit=1",
+    ),
+  ]);
+  const agentRemaining = { count: Number(adminAgentRemaining.count || 0) + Number(pickPackAgentRemaining.count || 0) };
   return {
     migrated,
     failed,
@@ -405,6 +433,14 @@ async function requireUser(request: Request, env: Env, roles?: AppRole[]): Promi
   const sessionError = sessionAuthorityError(identity, user);
   if (sessionError) throw new Response(JSON.stringify({ error: sessionError }), { status: 401, headers: { "content-type": "application/json" } });
   if (roles && !roles.includes(user.role)) throw new Response(JSON.stringify({ error: "FORBIDDEN" }), { status: 403, headers: { "content-type": "application/json" } });
+  if (
+    identity.sessionChannel === "ANDROID" &&
+    roles &&
+    roles.length > 0 &&
+    roles.every((role) => role === "ADMIN" || role === "PICKPACK_ADMIN" || role === "ROOT")
+  ) {
+    throw new Response(JSON.stringify({ error: "MANAGEMENT_WEB_ONLY" }), { status: 403, headers: { "content-type": "application/json" } });
+  }
   return user;
 }
 
@@ -507,6 +543,16 @@ async function refreshSession(request: Request, env: Env): Promise<Response> {
     if (!resolved || resolved.status !== "ACTIVE") return json({ error: "USER_NOT_ACTIVE" }, 401);
     const sessionError = sessionAuthorityError(identity, resolved);
     if (sessionError) return json({ error: sessionError }, 401);
+    if (identity.sessionChannel === "ANDROID") {
+      const windowState = await androidOperatingWindow(env);
+      if (!windowState.is_open) {
+        return json({
+          error: "ANDROID_WINDOW_CLOSED",
+          message: "Ca vận hành App/PDA đang đóng (23:00–05:00). Quản trị Invent có thể gia hạn khi tăng ca.",
+          server_now_ms: windowState.server_now_ms,
+        }, 403);
+      }
+    }
     user = resolved;
   } catch {
     return json({ error: "INVALID_AUTH_TOKEN" }, 401);
@@ -555,8 +601,18 @@ async function login(request: Request, env: Env): Promise<Response> {
   if (channel === "WEB" && user.base_role === "PICKER") {
     return json({ error: "CLIENT_ROLE_NOT_ALLOWED", message: "Picker chỉ đăng nhập trên App/PDA." }, 403);
   }
-  if (channel === "ANDROID" && (user.base_role === "ADMIN" || user.base_role === "ROOT")) {
-    return json({ error: "CLIENT_ROLE_NOT_ALLOWED", message: "Admin/Root hiện chỉ đăng nhập trên Web. App/PDA chỉ hỗ trợ Picker và Reporter." }, 403);
+  if (channel === "ANDROID" && (user.base_role === "ROOT" || user.base_role === "PICKPACK_ADMIN")) {
+    return json({ error: "CLIENT_ROLE_NOT_ALLOWED", message: "Root/Quản trị Pick Pack hiện sử dụng Web hoặc Agent phù hợp. App/PDA hỗ trợ Picker, Reporter và Quản trị Invent ở chế độ xử lý báo hàng." }, 403);
+  }
+  if (channel === "ANDROID") {
+    const windowState = await androidOperatingWindow(env);
+    if (!windowState.is_open) {
+      return json({
+        error: "ANDROID_WINDOW_CLOSED",
+        message: "Ca vận hành App/PDA đang đóng (23:00–05:00). Quản trị Invent có thể gia hạn khi tăng ca.",
+        server_now_ms: windowState.server_now_ms,
+      }, 403);
+    }
   }
 
   try {
@@ -875,6 +931,9 @@ async function logoutInteractiveSession(request: Request, env: Env): Promise<Res
       }),
     });
     await closeUserRealtime(env, user.user_id, identity.sessionChannel);
+    if (identity.sessionChannel === "ANDROID" && user.base_role === "PICKER") {
+      await refreshPickerProjectionBestEffort(env);
+    }
   }
   return json({ status: "ended" });
 }
@@ -923,6 +982,9 @@ export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     try {
+      const d119Internal = await handleD119Internal(request, env);
+      if (d119Internal) return d119Internal;
+
       if (request.method === "GET" && url.pathname === "/health") {
         const bindingPresence = Object.fromEntries(REQUIRED_RUNTIME_BINDINGS.map((name) => [name, Boolean(env[name])]));
         const missing = REQUIRED_RUNTIME_BINDINGS.filter((name) => !env[name]);
@@ -1030,6 +1092,10 @@ export default {
       if (request.method === "POST" && url.pathname === "/api/auth/password-reset") return requestPasswordReset(request, env);
       if (request.method === "POST" && url.pathname === "/api/auth/password-reset/confirm") return confirmPasswordReset(request, env);
       if (request.method === "GET" && url.pathname === "/api/auth/me") return json({ user: publicUser(await requireUser(request, env)) });
+      if (request.method === "GET" && url.pathname === "/api/auth/android-window") {
+        await requireUser(request, env, ["PICKER", "REPORTER", "ADMIN"]);
+        return coreStub(env).fetch("https://inventory-core.internal/notifications/alert-window");
+      }
       if (request.method === "PUT" && url.pathname === "/api/auth/root-role") return setRootEffectiveRole(request, env);
       if (request.method === "PUT" && url.pathname === "/api/auth/change-password") return changePassword(request, env);
       if (request.method === "PUT" && url.pathname === "/api/auth/email") return updateMyAuthEmail(request, env);
@@ -1159,7 +1225,7 @@ export default {
       }
 
       if (request.method === "GET" && url.pathname === "/api/admin/hr-source") {
-        await requireUser(request, env, ["ADMIN", "ROOT"]);
+        await requireUser(request, env, ["ADMIN", "PICKPACK_ADMIN", "ROOT"]);
         return coreStub(env).fetch("https://inventory-core.internal/config/hr-source");
       }
       if (request.method === "PUT" && url.pathname === "/api/admin/hr-source") {

@@ -211,12 +211,17 @@ namespace SupraInventoryRelayAgent
 
         private static void EnsureSession(AgentSession session)
         {
+            var realAdmin = session != null &&
+                string.Equals(session.Role, "ADMIN", StringComparison.Ordinal) &&
+                string.Equals(session.BaseRole, "ADMIN", StringComparison.Ordinal);
+            var realPickPackAdmin = session != null &&
+                string.Equals(session.Role, "PICKPACK_ADMIN", StringComparison.Ordinal) &&
+                string.Equals(session.BaseRole, "PICKPACK_ADMIN", StringComparison.Ordinal);
             if (session == null ||
                 string.IsNullOrWhiteSpace(session.IdToken) ||
                 string.IsNullOrWhiteSpace(session.UserId) ||
-                !string.Equals(session.Role, "ADMIN", StringComparison.Ordinal) ||
-                !string.Equals(session.BaseRole, "ADMIN", StringComparison.Ordinal))
-                throw new InvalidOperationException("Thiếu phiên Firebase ADMIN hợp lệ cho Agent.");
+                (!realAdmin && !realPickPackAdmin))
+                throw new InvalidOperationException("Thiếu phiên Firebase quản trị hợp lệ cho Agent.");
         }
 
         private static string Short(string value)
