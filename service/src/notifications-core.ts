@@ -1,3 +1,4 @@
+import { readAndroidAlertWindow, updateAndroidAlertWindow } from "./alert-window-core";
 type SqlRow = Record<string, SqlStorageValue>;
 
 type DeviceBody = {
@@ -250,6 +251,26 @@ async function recordDeliveryAttempts(state: DurableObjectState, request: Reques
 
 export async function handleNotificationCoreRequest(state: DurableObjectState, request: Request): Promise<Response | null> {
   const url = new URL(request.url);
+  if (request.method === "GET" && url.pathname === "/notifications/alert-window") {
+    return response(readAndroidAlertWindow(state));
+  }
+  if (request.method === "PUT" && url.pathname === "/notifications/alert-window") {
+    const body = (await request.json()) as { actor_user_id?: unknown; action?: unknown };
+    const actorUserId = String(body.actor_user_id || "").trim();
+    const action = String(body.action || "").trim().toUpperCase();
+    if (!validUserId(actorUserId) || !["EXTEND_ONE_HOUR", "STOP_OVERTIME"].includes(action)) {
+      return response({ error: "INVALID_ALERT_WINDOW_ACTION" }, 400);
+    }
+    try {
+      return response(updateAndroidAlertWindow(
+        state,
+        actorUserId,
+        action as "EXTEND_ONE_HOUR" | "STOP_OVERTIME",
+      ));
+    } catch (error) {
+      return response({ error: error instanceof Error ? error.message : "ALERT_WINDOW_UPDATE_FAILED" }, 409);
+    }
+  }
   if (request.method === "GET" && url.pathname === "/notifications/online-pickers") {
     return onlinePickerProjection(state);
   }
