@@ -1904,6 +1904,48 @@
       "field_result": "PASS_OWNER_CONFIRMED_D118",
       "field_result_date": "2026-09-25",
       "owner_evidence": "Owner explicitly confirmed 'ok pass hết' after D118 technical/runtime/release PASS and OA038 field-ready handoff, accepting the fleet overtime CAS, inherited D117 HA/fencing, Web pagination, authoritative SLA, detailed Excel export, Agent footer and Android keyboard-safe tabs."
+    },
+    {
+      "id": "OA039",
+      "status": "WAITING_D119_MAIN_RELEASE",
+      "title": "Field-accept D119 protected additive roles, PDA alerts, Picker contact and WMS SKU sync",
+      "resource_key": "worker-beta",
+      "provider": "Beta Web + Worker + Functions + Firestore + signed Android + Windows Agent",
+      "reason_owner_only": "Automated gates can verify authority, builds, deployment, RBAC, no-poll guards and release integrity, but Android overlay behavior over third-party apps, physical PDA timing, Windows Office/normal-network WMS SKU sync and Agent-to-PDA operator interaction require field observation.",
+      "prerequisites": {
+        "d118_owner_acceptance": "PASS_OWNER_CONFIRMED_D118",
+        "d119_owner_requirement": "APPROVED_2026_09_25",
+        "implementation_pr": 184,
+        "pr_head": "c01ed9d70b62df5cf7f86ad1d3c7dba5f100bfff",
+        "pr_gates": "PASS",
+        "target_android_release": "beta-vc75",
+        "target_agent_release": "relay-agent-v39",
+        "technical_runtime_release": "PENDING_MAIN_MERGE",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "After D119 main release PASS, install signed beta-vc75 and relay-agent-v39 from the normal inventory-channel.",
+        "Android: grant notification plus Display over other apps once. Trigger a controlled shortage critical result while another app is foreground; verify full-screen overlay when permission exists and visible high-importance notification fallback when it does not.",
+        "At/after the 23:00 boundary with no overtime, verify new Android business actions/Xác nhận đơn are blocked and the App logs out on the server boundary; from Quản trị Invent/Root Web extend +1 hour and verify login/operation resumes without a PDA heartbeat service.",
+        "Role checks: ADMIN Android shows Reporter-equivalent operations only; PICKPACK_ADMIN cannot resolve/skip/correct or edit SLA/reset/Invent authority on Web, but the same PICKPACK_ADMIN can authenticate to Agent and use guarded PickList confirmation plus SKU sync.",
+        "Agent Picker list: login a Picker on Android without using Xác nhận đơn and verify the Picker appears; logout/replace/disable and verify it disappears without a PDA heartbeat.",
+        "Agent→PDA: send one CALL_SPECIALIST/BRING_TO_PACK contact command by MNV, verify the PDA critical message cannot be normally dismissed, then resolve from an authorized Agent and verify it clears.",
+        "WMS SKU sync on an authorized WMS-ready Agent: run one sync on normal or Office network; verify only SKU+name changes enter Inventory, changed names require confirmation, missing WMS rows do not delete existing SKU, and another Agent does not duplicate the daily lease.",
+        "Regression: kill PRIMARY while idle and confirm D118/D117 takeover target remains about 10 seconds; verify STANDBY/FROZEN still do zero confirmation business polling and no duplicate WMS mutation occurs."
+      ],
+      "pass_criteria": [
+        "D118 HA/confirmation/WMS fences remain unchanged and Stable is untouched.",
+        "Reporter/ADMIN queue is oldest-first while Picker/resolved histories remain newest-first.",
+        "ADMIN Android is Reporter-equivalent only; PICKPACK_ADMIN Web denials and Agent authorization match D119.",
+        "Picker presence is event-driven with no periodic PDA heartbeat.",
+        "Critical shortage/contact alerts use overlay when authorized and notification fallback otherwise.",
+        "Closed App/PDA window blocks new Android mutations and Xác nhận đơn; explicit one-hour overtime extension reopens it.",
+        "WMS-assisted SKU sync persists only SKU+product name and remains additive/non-destructive.",
+        "Fleet counters survive PRIMARY takeover from checkpoint+tail without changing D117/D118 lease cadence."
+      ],
+      "safety": "Beta only. Use authorized company WMS access. Never share passwords, tokens, cookies, WMS headers/signatures/session files, service-account material or raw sensitive WMS responses. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for automated D119 main/runtime/release PASS before field testing.",
+      "closed": false
     }
   ]
 }
