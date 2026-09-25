@@ -14,6 +14,7 @@ import {
   type OperationalDeadlineEffect,
 } from "./sla-automation";
 import { sendFcmNotifications } from "./fcm";
+import { readAndroidAlertWindow } from "./alert-window-core";
 
 const SCHEMA_VERSION = 12;
 
@@ -403,6 +404,7 @@ export class InventoryCore {
     correlateResult = true,
   ): Promise<void> {
     if (!this.env.GOOGLE_RUNTIME_SA_JSON || !this.env.FIREBASE_PROJECT_ID) return;
+    if (!readAndroidAlertWindow(this.state).is_open) return;
     const tokens = await this.notificationTokens(roles, userIds);
     if (!tokens.length) return;
     const eventRow = this.state.storage.sql.exec<Record<string, SqlStorageValue>>(
