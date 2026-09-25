@@ -875,9 +875,9 @@
       "runtime_service_account": "inventory-beta-alert-runtime@supra-inventory-beta.iam.gserviceaccount.com",
       "deploy_secret_reference": "FIREBASE_FUNCTIONS_SA_JSON_BETA",
       "target_function": "inventory-beta-picker-alerts",
-      "status": "DEPLOY_BLOCKED__DEFAULT_COMPUTE_ACTAS_REQUIRED",
+      "status": "RUNTIME_CREATED__CI_CLEANUP_POLICY_BLOCKER",
       "last_failed_run": 36156658669,
-      "last_failed_job": 108184991966,
+      "last_failed_job": 108192966062,
       "required_deploy_permission": "firebase.projects.get",
       "required_deploy_role": "roles/firebase.viewer",
       "firebase_viewer_status": "PASS__firebase.projects.get effective",
@@ -906,7 +906,15 @@
         "principal": "invent-beta-functions-deploy@supra-inventory-beta.iam.gserviceaccount.com",
         "role": "roles/iam.serviceAccountUser",
         "permission": "iam.serviceaccounts.actAs"
-      }
+      },
+      "iam_status": "PASS__current deploy permissions sufficient",
+      "api_status": "PASS__required APIs effective",
+      "runtime_create_status": {
+        "pickerAlertCreated": "PASS",
+        "pickerAlertResolved": "PASS",
+        "skuSyncCreated": "PASS"
+      },
+      "remaining_ci_blocker": "ARTIFACT_REGISTRY_CLEANUP_POLICY_NOT_CONFIGURED"
     },
     "firestore": {
       "additive_collections": [
