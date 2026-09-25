@@ -666,7 +666,7 @@ export class InventoryCore {
       }
       if (channel && channel !== "AGENT") return response({ error: "invalid_channel" }, 400);
       const readinessColumn = channel === "AGENT" ? "firebase_agent_ready" : "firebase_password_ready";
-      if (channel === "AGENT" && role !== "ADMIN") return response({ error: "agent_admin_only" }, 400);
+      if (channel === "AGENT" && !["ADMIN", "PICKPACK_ADMIN"].includes(role)) return response({ error: "agent_operator_only" }, 400);
       const rows = this.state.storage.sql.exec<InternalUser>(
         `SELECT user_id, firebase_uid, employee_code, display_name,
                 role AS role, role AS base_role, role_override, status,
@@ -692,7 +692,7 @@ export class InventoryCore {
       if (!userId) return response({ error: "invalid_input" }, 400);
       this.state.storage.sql.exec(
         `UPDATE users SET firebase_agent_ready = 1, updated_at = CURRENT_TIMESTAMP
-          WHERE user_id = ? AND role = 'ADMIN'`,
+          WHERE user_id = ? AND role IN ('ADMIN','PICKPACK_ADMIN')`,
         userId,
       );
       return response({ status: "firebase_agent_ready" });
