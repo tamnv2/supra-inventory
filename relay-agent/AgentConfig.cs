@@ -10,6 +10,9 @@ namespace SupraInventoryRelayAgent
         internal const string FirestoreDocumentsBaseUrl = "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents";
         internal const string FirestoreProbeUrl = FirestoreDocumentsBaseUrl;
         internal const string FirestoreRelayCollectionUrl = FirestoreDocumentsBaseUrl + "/relay_poc_jobs";
+        internal const string FirestorePickerPresenceUrl = FirestoreDocumentsBaseUrl + "/picker_presence_projection/current";
+        internal const string FirestoreFleetMetricsUrl = FirestoreDocumentsBaseUrl + "/relay_fleet_metrics/current";
+        internal const string FirestoreSkuSyncCollectionUrl = FirestoreDocumentsBaseUrl + "/sku_sync_jobs";
         internal const string RelayTransport = "FIRESTORE_CONFIRM_V1";
         internal const string AppsScriptWebProbeUrl = "https://script.google.com/macros/s/office-probe/exec";
         internal const string AppsScriptApiProbeUrl = "https://script.googleapis.com/v1/projects";
