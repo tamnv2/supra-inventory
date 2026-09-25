@@ -15,6 +15,22 @@ service cloud.firestore {
         && request.auth.token.app_user_id != null;
     }
 
+    function isAgentOperator() {
+      return request.auth != null
+        && request.auth.token.app_user_id != null
+        && (
+          (
+            request.auth.token.app_role == 'ADMIN'
+            && request.auth.token.app_base_role == 'ADMIN'
+          )
+          ||
+          (
+            request.auth.token.app_role == 'PICKPACK_ADMIN'
+            && request.auth.token.app_base_role == 'PICKPACK_ADMIN'
+          )
+        );
+    }
+
     function isPickerContactOperator() {
       return request.auth != null
         && request.auth.token.app_user_id != null
@@ -48,12 +64,12 @@ service cloud.firestore {
         && request.resource.data.client_sent_at_ms >= 0
         && request.resource.data.created_at == request.time;
 
-      allow get: if isRealAdmin()
+      allow get: if isAgentOperator()
         || (isPicker() && resource.data.picker_uid == request.auth.uid);
 
-      allow list: if isRealAdmin();
+      allow list: if isAgentOperator();
 
-      allow update: if isRealAdmin()
+      allow update: if isAgentOperator()
         && resource.data.status == 'PENDING'
         && request.resource.data.status == 'ACK'
         && request.resource.data.agent_admin_user_id == request.auth.token.app_user_id
@@ -83,22 +99,22 @@ service cloud.firestore {
     }
 
     match /relay_poc_rate_limits/{pickerKey} {
-      allow get, create, update, delete: if isRealAdmin();
+      allow get, create, update, delete: if isAgentOperator();
       allow list: if false;
     }
 
     match /relay_poc_coordination/{docId} {
-      allow get, create, update, delete: if isRealAdmin();
+      allow get, create, update, delete: if isAgentOperator();
       allow list: if false;
     }
 
     match /relay_poc_agents/{agentId} {
-      allow get, list, create, update, delete: if isRealAdmin();
+      allow get, list, create, update, delete: if isAgentOperator();
     }
 
     match /relay_poc_agent_sessions/{uid} {
-      allow get: if isRealAdmin() && request.auth.uid == uid;
-      allow create, update: if isRealAdmin()
+      allow get: if isAgentOperator() && request.auth.uid == uid;
+      allow create, update: if isAgentOperator()
         && request.auth.uid == uid
         && request.resource.data.keys().hasOnly([
           'firebase_uid', 'agent_instance_id', 'agent_admin_user_id',
@@ -110,12 +126,12 @@ service cloud.firestore {
         && request.resource.data.agent_instance_id.size() >= 8
         && request.resource.data.agent_instance_id.size() <= 160
         && request.resource.data.claimed_at_ms is int;
-      allow delete: if isRealAdmin() && request.auth.uid == uid;
+      allow delete: if isAgentOperator() && request.auth.uid == uid;
       allow list: if false;
     }
 
     match /relay_poc_confirm_guards/{guardId} {
-      allow get, create, update, delete: if isRealAdmin();
+      allow get, create, update, delete: if isAgentOperator();
       allow delete: if isPicker()
         && resource.data.picker_uid == request.auth.uid
         && resource.data.retire_at_ms is int
@@ -164,17 +180,17 @@ service cloud.firestore {
     }
 
     // D119 fleet metrics deliberately remain separate from the accepted D117/D118
-    // HA lease. Only real ADMIN confirmation Agents may write counters.
+    // HA lease. Real ADMIN and real PICKPACK_ADMIN Agent operators may write counters.
     match /relay_fleet_metrics/{docId} {
       allow get, list: if isPickerContactOperator();
-      allow create, update, delete: if isRealAdmin();
+      allow create, update, delete: if isAgentOperator();
     }
 
-    // D119 sanitized WMS SKU/name staging. Existing WMS confirmation authority is
-    // unchanged; only real ADMIN Agents may submit/read sync jobs.
+    // D119 sanitized WMS SKU/name staging. Existing WMS confirmation guards remain
+    // unchanged; real ADMIN and real PICKPACK_ADMIN Agent operators may submit/read sync jobs.
     match /sku_sync_jobs/{jobId} {
-      allow get, list: if isRealAdmin();
-      allow create: if isRealAdmin()
+      allow get, list: if isAgentOperator();
+      allow create: if isAgentOperator()
         && request.resource.data.source == 'AGENT_WMS_BINSTOCK_V1'
         && request.resource.data.status == 'PENDING'
         && request.resource.data.job_id == jobId
@@ -183,13 +199,13 @@ service cloud.firestore {
         && request.resource.data.items.size() >= 1
         && request.resource.data.items.size() <= 1000
         && request.resource.data.created_at == request.time;
-      allow update, delete: if isRealAdmin()
+      allow update, delete: if isAgentOperator()
         && resource.data.kind == 'LEASE'
         && request.resource.data.kind == 'LEASE';
     }
 
     match /relay_agent_log_uploads/{partId} {
-      allow create: if isRealAdmin()
+      allow create: if isAgentOperator()
         && request.resource.data.keys().hasOnly([
           'upload_id', 'part_index', 'part_count', 'status', 'source',
           'admin_user_id', 'agent_instance_id', 'machine',
