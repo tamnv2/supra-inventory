@@ -27,7 +27,7 @@ interface User {
   web_session_generation?: number;
   android_session_generation?: number;
 }
-const ROLES: AppRole[] = ["ADMIN", "ROOT"];
+const ROLES: AppRole[] = ["ADMIN", "PICKPACK_ADMIN", "ROOT"];
 
 function json(payload: unknown, status = 200): Response { return new Response(JSON.stringify(payload), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } }); }
 function core(env: Env): DurableObjectStub { return env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName("inventory-core")); }
@@ -39,6 +39,7 @@ async function requireAdmin(request: Request, env: Env): Promise<User> {
   if (!user || user.status !== "ACTIVE") throw json({ error: "USER_NOT_ACTIVE" }, 403);
   const sessionError = interactiveSessionError(identity, user);
   if (sessionError) throw json({ error: sessionError }, 401);
+  if (identity.sessionChannel === "ANDROID") throw json({ error: "MANAGEMENT_WEB_ONLY" }, 403);
   if (!ROLES.includes(user.role)) throw json({ error: "FORBIDDEN" }, 403);
   return user;
 }
@@ -195,6 +196,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
   if (key === "GET /api/admin/users") {
     const params = new URLSearchParams();
     for (const name of ["query","role","status","limit","offset"]) if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+    if (user.role === "PICKPACK_ADMIN") params.set("role", "PICKER");
     return core(env).fetch(`https://inventory-core.internal/admin/users?${params.toString()}`);
   }
   if (key === "POST /api/admin/users") {
