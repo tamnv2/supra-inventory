@@ -15,6 +15,22 @@ service cloud.firestore {
         && request.auth.token.app_user_id != null;
     }
 
+    function isPickerContactOperator() {
+      return request.auth != null
+        && request.auth.token.app_user_id != null
+        && (
+          (
+            request.auth.token.app_role == 'ADMIN'
+            && request.auth.token.app_base_role == 'ADMIN'
+          )
+          ||
+          (
+            request.auth.token.app_role == 'PICKPACK_ADMIN'
+            && request.auth.token.app_base_role == 'PICKPACK_ADMIN'
+          )
+        );
+    }
+
     match /relay_poc_jobs/{jobId} {
       allow create: if isPicker()
         && request.resource.data.keys().hasOnly([
@@ -105,6 +121,71 @@ service cloud.firestore {
         && resource.data.retire_at_ms is int
         && resource.data.retire_at_ms <= request.time.toMillis();
       allow list: if false;
+    }
+
+    // D119 additive online-Picker projection. Clients may read only sanitized
+    // current-state metadata; token targets stay server-private.
+    match /picker_presence_projection/{docId} {
+      allow get, list: if isPickerContactOperator();
+      allow create, update, delete: if false;
+    }
+
+    match /picker_notification_targets/{userId} {
+      allow read, write: if false;
+    }
+
+    match /picker_alerts/{alertId} {
+      allow create: if isPickerContactOperator()
+        && request.resource.data.keys().hasOnly([
+          'alert_id', 'target_user_id', 'command_type', 'message',
+          'status', 'source', 'sender_user_id', 'sender_agent_id',
+          'created_at', 'expires_at_ms'
+        ])
+        && request.resource.data.alert_id == alertId
+        && request.resource.data.target_user_id is string
+        && request.resource.data.target_user_id.size() >= 3
+        && request.resource.data.target_user_id.size() <= 160
+        && request.resource.data.command_type in ['CALL_SPECIALIST', 'BRING_TO_PACK']
+        && request.resource.data.message is string
+        && request.resource.data.message.size() <= 500
+        && request.resource.data.status == 'PENDING'
+        && request.resource.data.source == 'AGENT_PICKER_CONTACT_V1'
+        && request.resource.data.sender_user_id == request.auth.token.app_user_id
+        && request.resource.data.sender_agent_id is string
+        && request.resource.data.sender_agent_id.size() >= 8
+        && request.resource.data.sender_agent_id.size() <= 160
+        && request.resource.data.created_at == request.time
+        && request.resource.data.expires_at_ms is int
+        && request.resource.data.expires_at_ms > request.time.toMillis()
+        && request.resource.data.expires_at_ms <= request.time.toMillis() + 21600000;
+
+      allow get, list: if isPickerContactOperator();
+      allow update, delete: if false;
+    }
+
+    // D119 fleet metrics deliberately remain separate from the accepted D117/D118
+    // HA lease. Only real ADMIN confirmation Agents may write counters.
+    match /relay_fleet_metrics/{docId} {
+      allow get, list: if isPickerContactOperator();
+      allow create, update, delete: if isRealAdmin();
+    }
+
+    // D119 sanitized WMS SKU/name staging. Existing WMS confirmation authority is
+    // unchanged; only real ADMIN Agents may submit/read sync jobs.
+    match /sku_sync_jobs/{jobId} {
+      allow get, list: if isRealAdmin();
+      allow create: if isRealAdmin()
+        && request.resource.data.source == 'AGENT_WMS_BINSTOCK_V1'
+        && request.resource.data.status == 'PENDING'
+        && request.resource.data.job_id == jobId
+        && request.resource.data.admin_user_id == request.auth.token.app_user_id
+        && request.resource.data.items is list
+        && request.resource.data.items.size() >= 1
+        && request.resource.data.items.size() <= 1000
+        && request.resource.data.created_at == request.time;
+      allow update, delete: if isRealAdmin()
+        && resource.data.kind == 'LEASE'
+        && request.resource.data.kind == 'LEASE';
     }
 
     match /relay_agent_log_uploads/{partId} {
