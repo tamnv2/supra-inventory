@@ -670,3 +670,13 @@ D111 supersedes only the conflicting D110 Reporter interaction/presentation deta
 - Agent bottom-right product credit is muted secondary text: `Phát triển hệ thống · tamnv2 | Pick Pack 1291`.
 - Android Picker tabs are persistent navigation controls below the weighted operation content. MainActivity must use `adjustResize` so the IME reduces content height rather than covering these tabs.
 
+## D119 — Dense Windows Agent operational layout
+
+- Authenticated Agent overview hides login inputs and uses standard Windows minimize/maximize/close chrome rather than duplicate window-control buttons inside content.
+- Layout is responsive to the current working-area/window size and prioritizes dense operational information over explanatory prose.
+- Agent fleet shows at most five visible rows before internal vertical scrolling.
+- Supra status uses a reduced-height compact strip/card.
+- PickList results show at most five visible rows before internal vertical scrolling.
+- Online Picker list uses compact rows sized to show materially more users than card-style layouts; buttons must not expand row height unnecessarily.
+- Picker list contains only currently operational Android/PDA users under the D119 presence definition.
+- Visible Vietnamese copy uses full Unicode/diacritics and the established product terminology.
