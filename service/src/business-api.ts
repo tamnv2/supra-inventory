@@ -301,6 +301,18 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   // Authentication/authorization must happen before any readiness probe. An unauthenticated
   // request must never trigger schema work or turn an expected 401/403 into a readiness 503.
   const user = await requireUser(request, env, requiredRolesForBusinessRoute(key));
+  if (user.session_channel === "ANDROID" && request.method !== "GET") {
+    const windowResponse = await coreGet(env, "/notifications/alert-window");
+    if (!windowResponse.ok) return json({ error: "ANDROID_WINDOW_UNAVAILABLE" }, 503);
+    const windowState = (await windowResponse.json()) as { is_open?: boolean; server_now_ms?: number };
+    if (windowState.is_open !== true) {
+      return json({
+        error: "ANDROID_WINDOW_CLOSED",
+        message: "Ca vận hành App/PDA đang đóng (23:00–05:00).",
+        server_now_ms: Number(windowState.server_now_ms || 0),
+      }, 403);
+    }
+  }
   if (key.startsWith("GET /api/admin/") || key.startsWith("POST /api/admin/") || key.startsWith("PUT /api/admin/")) {
     if (user.session_channel === "ANDROID") return json({ error: "MANAGEMENT_WEB_ONLY" }, 403);
   }
