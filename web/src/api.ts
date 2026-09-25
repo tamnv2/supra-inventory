@@ -379,6 +379,21 @@ export interface PdaAppRelease {
 
 export interface AgentAppRelease extends PdaAppRelease {}
 
+export interface AndroidAlertWindowState {
+  start_minutes: number;
+  end_minutes: number;
+  overtime_until_ms: number | null;
+  is_open: boolean;
+  normal_window_open: boolean;
+  overtime_open: boolean;
+  server_now: string;
+  server_now_ms: number;
+  business_date: string;
+  closes_at_ms: number | null;
+  updated_at: string | null;
+  updated_by: string | null;
+}
+
 export interface RuntimeLogItem {
   id: string;
   name: string;
@@ -1002,6 +1017,20 @@ export async function getPdaAppRelease(): Promise<{ status: string; release: Pda
 
 export async function getAgentAppRelease(): Promise<{ status: string; release: AgentAppRelease }> {
   return readJson(await authorizedFetch("/api/admin/agent-app"));
+}
+
+export async function getAndroidAlertWindow(): Promise<AndroidAlertWindowState> {
+  return readJson(await authorizedFetch("/api/admin/alert-window"));
+}
+
+export async function updateAndroidAlertWindow(
+  action: "EXTEND_ONE_HOUR" | "STOP_OVERTIME",
+): Promise<AndroidAlertWindowState> {
+  return readJson(await authorizedFetch("/api/admin/alert-window", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ action }),
+  }));
 }
 
 export async function getRuntimeLogs(
