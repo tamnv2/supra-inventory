@@ -858,5 +858,49 @@
       "release": "relay-agent-v38"
     },
     "stable": "OWNER_GATED_UNTOUCHED"
+  },
+  "d119": {
+    "status": "OWNER_APPROVED__PRESETUP_PASS__IMPLEMENTATION_IN_PROGRESS",
+    "protected_baseline": "D118_OWNER_FIELD_PASS__BETA_VC74__AGENT_V38",
+    "rollout": "WHOLE_FLEET_CANONICAL_CHANNEL__NO_DELIBERATE_MIXED_VERSION",
+    "billing": {
+      "environment": "beta",
+      "billing_attached": true,
+      "budget_configured": true,
+      "spend_cap_configured": true,
+      "stable_untouched": true
+    },
+    "functions": {
+      "deploy_service_account": "invent-beta-functions-deploy@supra-inventory-beta.iam.gserviceaccount.com",
+      "runtime_service_account": "inventory-beta-alert-runtime@supra-inventory-beta.iam.gserviceaccount.com",
+      "deploy_secret_reference": "FIREBASE_FUNCTIONS_SA_JSON_BETA",
+      "target_function": "inventory-beta-picker-alerts",
+      "status": "PRESETUP_PASS__SOURCE_PENDING"
+    },
+    "firestore": {
+      "additive_collections": [
+        "picker_presence_projection",
+        "picker_notification_targets",
+        "picker_alerts",
+        "relay_fleet_metrics",
+        "sku_sync_jobs"
+      ],
+      "presence": "EVENT_DRIVEN_ANDROID_SESSION_PLUS_DEVICE__NO_PDA_HEARTBEAT",
+      "frozen_refresh": "APPROX_30_MINUTES",
+      "fleet_metrics": "SEPARATE_CHECKPOINT__DO_NOT_CHANGE_D117_D118_HA_LEASE"
+    },
+    "roles": {
+      "admin_label": "Quản trị Invent",
+      "new_role": "PICKPACK_ADMIN",
+      "new_role_label": "Quản trị Pick Pack",
+      "android_admin": "REPORTER_EQUIVALENT_ONLY",
+      "root_android": "DENIED"
+    },
+    "wms_stock": {
+      "list": "GET /sft3-hy1/api/v1/report/stock/binStocks",
+      "export": "GET /sft3-hy1/api/v1/report/stock/exportBinStocks",
+      "persistence": "SKU_PLUS_PRODUCT_NAME_ONLY__NO_BIN_LOCATION_QUANTITY"
+    },
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }
