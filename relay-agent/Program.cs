@@ -462,6 +462,7 @@ namespace SupraInventoryRelayAgent
         private readonly Button _probeDrive = new Button();
         private readonly Button _probeAll = new Button();
         private readonly Button _wmsCapture = new Button();
+        private readonly Button _wmsLogout = new Button();
         private readonly Button _wmsTest = new Button();
         private readonly Label _wmsStatus = new Label();
         private readonly Label _relay = new Label();
@@ -856,14 +857,14 @@ namespace SupraInventoryRelayAgent
             {
                 Dock = DockStyle.Fill,
                 RowCount = 3,
-                ColumnCount = 1,
+                ColumnCount = 2,
                 Margin = Padding.Empty,
                 Padding = new Padding(12)
             };
-            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 48F));
+            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 52F));
             overviewLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 260F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 82F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 220F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 120F));
             overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             _overviewPage.Controls.Add(overviewLayout);
 
@@ -1019,11 +1020,17 @@ namespace SupraInventoryRelayAgent
             _supraInfo.ForeColor = Color.FromArgb(88, 104, 115);
             _supraInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _supraCard.Controls.Add(_supraInfo);
-            _wmsCapture.SetBounds(744, 34, 160, 32);
+            _wmsCapture.SetBounds(16, 72, 138, 32);
             _wmsCapture.Text = "Đăng nhập Supra";
-            _wmsCapture.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            _wmsCapture.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _supraCard.Controls.Add(_wmsCapture);
-            _wmsTest.SetBounds(914, 34, 108, 32);
+            _wmsLogout.SetBounds(162, 72, 128, 32);
+            _wmsLogout.Text = "Đăng xuất Supra";
+            _wmsLogout.Enabled = false;
+            _wmsLogout.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            _wmsLogout.Click += (s, e) => RequestProtectedWmsLogout();
+            _supraCard.Controls.Add(_wmsLogout);
+            _wmsTest.SetBounds(298, 72, 108, 32);
             _wmsTest.Text = "Kiểm tra";
             _wmsTest.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             _supraCard.Controls.Add(_wmsTest);
@@ -1622,16 +1629,26 @@ namespace SupraInventoryRelayAgent
                 var uptime = metrics.ProcessUptime.TotalHours >= 1
                     ? ((int)metrics.ProcessUptime.TotalHours).ToString("0") + "h" + metrics.ProcessUptime.Minutes.ToString("00")
                     : Math.Max(0, metrics.ProcessUptime.Minutes).ToString("0") + "m";
-                parts.Add("RAM " + ramMb + " · chạy " + uptime);
+                parts.Add("RAM " + ramMb);
+                parts.Add("Thời gian chạy " + uptime);
             }
             var requests = Interlocked.Read(ref _localPdaRequests);
             var responses = Interlocked.Read(ref _localAgentResponses);
             if (options.ShowPdaRequests)
-                parts.Add("Yêu cầu " + requests + " · chờ " + Math.Max(0L, requests - responses));
+            {
+                parts.Add("Yêu cầu PDA " + requests);
+                parts.Add("Đang chờ " + Math.Max(0L, requests - responses));
+            }
             if (options.ShowAgentResponses)
-                parts.Add("OK " + Interlocked.Read(ref _localConfirmSuccess) + " · lỗi " + Interlocked.Read(ref _localConfirmFailed));
+            {
+                parts.Add("Xác nhận OK " + Interlocked.Read(ref _localConfirmSuccess));
+                parts.Add("Lỗi " + Interlocked.Read(ref _localConfirmFailed));
+            }
             if (options.ShowWmsSession)
-                parts.Add("Cụm " + online + " (P" + primaryCount + "/S" + standbyCount + "/F" + frozenCount + ") · " + DateTime.Now.ToString("HH:mm:ss"));
+            {
+                parts.Add("Agent online " + online);
+                parts.Add("Cập nhật " + DateTime.Now.ToString("HH:mm:ss"));
+            }
             return parts.Count == 0 ? "" : "Agent | " + string.Join(" | ", parts.ToArray());
         }
 
@@ -1666,8 +1683,12 @@ namespace SupraInventoryRelayAgent
                     " · Máy này: " + state;
                 _agentSystemInfo.Text = state;
                 UpdateAgentFleetGrid(_leaderCoordinator == null ? null : _leaderCoordinator.OnlineAgents);
+                var wmsSnapshot = SnapshotWmsSession();
+                var supraUser = wmsSnapshot == null ? "" : (wmsSnapshot.USID ?? "").Trim();
                 _supraInfo.Text =
-                    "HY1 · " + (HasUsableWmsSession() ? "Phiên sẵn sàng" : "Phiên chưa sẵn sàng") +
+                    "HY1" +
+                    (string.IsNullOrWhiteSpace(supraUser) ? "" : " · User " + supraUser) +
+                    " · " + (HasUsableWmsSession() ? "Phiên sẵn sàng" : "Phiên chưa sẵn sàng") +
                     " · Cache " + _picklistCache.CacheCount +
                     (_picklistCache.RefreshedUtc == DateTime.MinValue ? "" : " · " + _picklistCache.RefreshedUtc.ToLocalTime().ToString("HH:mm"));
 
@@ -1874,6 +1895,7 @@ namespace SupraInventoryRelayAgent
                 var hasWmsSession = HasUsableWmsSession();
                 _wmsCapture.Enabled = enabled && !hasWmsSession;
                 _wmsCapture.Text = hasWmsSession ? "Phiên Supra đang sẵn sàng" : "Đăng nhập hệ thống Supra";
+                _wmsLogout.Enabled = enabled && hasWmsSession && HasAgentSession();
                 _wmsTest.Enabled = enabled;
             });
         }
@@ -2778,6 +2800,7 @@ namespace SupraInventoryRelayAgent
             lock (_sessionLock) _session = null;
             lock (_wmsSessionLock) _wmsSession = null;
             _picklistCache.Clear();
+            WmsSessionStore.Clear(WmsSessionFile);
             ClearStoredSession();
             AgentRuntimeGuard.MarkPlannedExit();
             try { if (File.Exists(ExitVerifierFile)) File.Delete(ExitVerifierFile); } catch { }
@@ -2788,6 +2811,8 @@ namespace SupraInventoryRelayAgent
                 _relay.Text = "Relay: chưa xác minh Agent";
                 _listen.Enabled = false;
                 _testOffice.Enabled = false;
+                _wmsStatus.Text = "Supra WMS: chờ đăng nhập Agent";
+                _supraInfo.Text = "HY1 · Chưa có user Supra · Phiên chưa sẵn sàng · Cache 0";
             });
             SetAgentAuthUi(false);
             SetProbeButtonsEnabled(false);
@@ -3171,6 +3196,51 @@ namespace SupraInventoryRelayAgent
         {
             lock (_wmsSessionLock)
                 return _wmsSession;
+        }
+
+        private void RequestProtectedWmsLogout()
+        {
+            AgentSession session;
+            try { session = SnapshotSession(); }
+            catch
+            {
+                MessageBox.Show("Cần đăng nhập Agent trước khi đăng xuất hệ thống Supra.", "Đăng xuất Supra", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using (var dialog = new AgentPasswordVerificationDialog(
+                session.AppUserId,
+                "Đăng xuất hệ thống Supra",
+                "Nhập mật khẩu xác minh Agent hiện tại để kết thúc phiên Supra trên máy này.",
+                "Đăng xuất Supra"))
+            {
+                if (dialog.ShowDialog(this) != DialogResult.OK) return;
+                var password = dialog.PasswordValue;
+                try
+                {
+                    if (!ExitAuthorization.Verify(ExitVerifierFile, session.AppUserId, password))
+                    {
+                        MessageBox.Show("Mật khẩu xác minh Agent không đúng.", "Không thể đăng xuất Supra", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                }
+                finally
+                {
+                    password = null;
+                }
+            }
+
+            lock (_wmsSessionLock) _wmsSession = null;
+            _picklistCache.Clear();
+            WmsSessionStore.Clear(WmsSessionFile);
+            var profileCleared = WmsBrowserCapture.ClearDedicatedProfiles(message => Log("WMS LOGOUT " + message));
+            Ui(() =>
+            {
+                _wmsStatus.Text = "Supra WMS: đã đăng xuất · sẵn sàng đăng nhập tài khoản khác";
+                _supraInfo.Text = "HY1 · Chưa có user Supra · Phiên chưa sẵn sàng · Cache 0";
+            });
+            SetProbeButtonsEnabled(true);
+            Log("WMS LOGOUT authorized_by=" + session.AppUserId + " session=cleared profile_cleared=" + (profileCleared ? "true" : "partial"));
         }
 
         private void CaptureWmsSession()

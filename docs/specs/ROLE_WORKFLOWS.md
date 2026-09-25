@@ -545,3 +545,20 @@ D114 supersedes the D105/D112 suffix-length carrier details where they conflict.
 - Online-Picker presence is independent of Xác nhận đơn history.
 - Agent UI after authenticated login hides credential inputs and uses compact responsive Overview sections: Agent fleet (max five visible), Supra, PickList (max five visible), and online Picker list.
 - D118 confirmation, HA, WMS guard, scheduling and no-offline semantics remain protected and unchanged unless separately approved.
+
+## D120 — Agent/Supra session switching and Picker workspace workflow
+
+### Agent session
+1. Successful Agent authentication hides credential inputs but keeps **Đăng xuất** and **Chuyển xuống nền** available.
+2. Agent logout stops local relay ownership/listening as already defined, clears the saved Agent session plus local WMS session/cache, and returns the Agent username/password/login controls.
+3. Logout does not weaken D117/D118 generation/fence rules and does not modify Stable.
+
+### Supra/WMS account
+1. When a valid WMS session exists, the Overview displays the captured Supra user when available.
+2. **Đăng xuất Supra** asks for the current Agent account password verifier before clearing WMS state.
+3. On successful verification, Agent clears RAM/cache, the DPAPI WMS session file and the dedicated WMS browser profile. The next **Đăng nhập Supra** opens the existing browser capture/login workflow so an authorized different Supra account can sign in.
+4. Password/session/header values are never logged or committed.
+
+### Online Picker
+- Search is local to the already-loaded compact projection and does not add provider reads.
+- Background presence refresh updates rows in place while preserving the current visible scroll anchor and hover/search context.

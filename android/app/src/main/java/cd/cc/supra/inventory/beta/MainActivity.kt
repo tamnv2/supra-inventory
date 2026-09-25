@@ -20,6 +20,7 @@ import android.os.Looper
 import android.provider.Settings
 import android.text.InputType
 import android.text.method.PasswordTransformationMethod
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -80,7 +81,9 @@ class MainActivity : Activity() {
     @Volatile private var updateCheckRunning = false
     @Volatile private var roleSyncRunning = false
     @Volatile private var operatingWindowCheckRunning = false
+    @Volatile private var overlayAckDrainRunning = false
     @Volatile private var lastImmediateRuntimeLogAt = 0L
+    private var restoringSessionScreen = false
     private var operatingWindowTask: Runnable? = null
     private var previousUncaughtHandler: Thread.UncaughtExceptionHandler? = null
     private val runtimeLogTick = object : Runnable {
@@ -122,10 +125,15 @@ class MainActivity : Activity() {
             userAgent = "SUPRA-Inventory-Beta/${BuildConfig.VERSION_NAME}",
             onSessionChanged = ::persistInteractiveSession,
         )
-        restoreInteractiveSession()?.let(api::restoreSession)
+        val restoredSession = restoreInteractiveSession()
+        restoredSession?.let(api::restoreSession)
         skuCache = SkuCatalogCache(this)
         installCrashRuntimeLogHandler()
-        renderLogin(if (api.session == null) "Đang kiểm tra phiên bản..." else "Đang khôi phục phiên đăng nhập...")
+        if (restoredSession == null) {
+            renderLogin("Đang kiểm tra phiên bản...")
+        } else {
+            renderSessionRestoring(restoredSession)
+        }
     }
 
     override fun onDestroy() {
@@ -152,8 +160,9 @@ class MainActivity : Activity() {
         if (::api.isInitialized && api.session == null && updateGate != UpdateGate.CURRENT && !updateCheckRunning) {
             checkForUpdate(silent = true)
         }
-        if (::api.isInitialized && api.session != null) {
+        if (::api.isInitialized && api.session != null && updateGate == UpdateGate.CURRENT) {
             reconcileNotificationSignal()
+            drainOverlayAcknowledgements()
             syncEffectiveRole()
         }
     }
@@ -202,46 +211,71 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun interactiveSessionPrefs() = getSharedPreferences("interactive_session_v2", MODE_PRIVATE)
-
     private fun persistInteractiveSession(value: AppSession?) {
-        val prefs = interactiveSessionPrefs()
-        if (value == null) {
-            prefs.edit().remove("session").apply()
-            return
-        }
-        val payload = JSONObject()
-            .put("id_token", value.idToken)
-            .put("refresh_token", value.refreshToken)
-            .put("user_id", value.userId)
-            .put("display_name", value.displayName)
-            .put("role", value.role)
-            .put("employee_code", value.employeeCode ?: JSONObject.NULL)
-        prefs.edit().putString("session", payload.toString()).apply()
+        InteractiveSessionStore.save(applicationContext, value)
     }
 
-    private fun restoreInteractiveSession(): AppSession? {
-        val raw = interactiveSessionPrefs().getString("session", null) ?: return null
-        return try {
-            val payload = JSONObject(raw)
-            val next = AppSession(
-                idToken = payload.optString("id_token"),
-                refreshToken = payload.optString("refresh_token"),
-                userId = payload.optString("user_id"),
-                displayName = payload.optString("display_name"),
-                role = payload.optString("role"),
-                employeeCode = payload.optString("employee_code").takeIf { it.isNotBlank() && it != "null" },
-            )
-            if (next.idToken.isBlank() || next.refreshToken.isBlank() || next.userId.isBlank()) null else next
-        } catch (_: Exception) {
-            interactiveSessionPrefs().edit().remove("session").apply()
-            null
+    private fun restoreInteractiveSession(): AppSession? =
+        InteractiveSessionStore.load(applicationContext)
+
+    private fun renderSessionRestoring(session: AppSession) {
+        uiHandler.removeCallbacks(runtimeLogTick)
+        stopOperationalClients()
+        activeSession = session
+        contentContainer = null
+        restoringSessionScreen = true
+
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            setPadding(kit.dp(26), kit.dp(26), kit.dp(26), kit.dp(26))
+            setBackgroundColor(Color.rgb(244, 247, 250))
         }
+        root.addView(TextView(this).apply {
+            text = "1291 Beta"
+            textSize = 24f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(Color.rgb(24, 43, 55))
+            gravity = Gravity.CENTER
+        })
+        root.addView(TextView(this).apply {
+            text = "Đang khôi phục phiên làm việc"
+            textSize = 15f
+            setTextColor(Color.rgb(71, 85, 105))
+            gravity = Gravity.CENTER
+            setPadding(0, kit.dp(8), 0, kit.dp(16))
+        })
+        val progress = ProgressBar(this)
+        root.addView(progress, LinearLayout.LayoutParams(kit.dp(38), kit.dp(38)).apply {
+            gravity = Gravity.CENTER_HORIZONTAL
+        })
+        status = TextView(this).apply {
+            text = "Đang xác minh phiên bản và phiên đăng nhập..."
+            textSize = 13f
+            setTextColor(Color.rgb(71, 85, 105))
+            gravity = Gravity.CENTER
+            setPadding(0, kit.dp(14), 0, kit.dp(10))
+        }
+        root.addView(status, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        updateButton = Button(this).apply {
+            text = "Thử lại"
+            visibility = View.GONE
+            setOnClickListener { checkForUpdate(silent = false) }
+        }
+        root.addView(updateButton, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, kit.dp(48)).apply {
+            gravity = Gravity.CENTER_HORIZONTAL
+        })
+        loginButton = null
+        loginProgress = progress
+        setContentView(root)
+        applySystemBarInsets()
+        checkForUpdate(silent = true)
     }
 
     private fun renderLogin(message: String = "Đang kiểm tra phiên bản...") {
         uiHandler.removeCallbacks(runtimeLogTick)
         stopOperationalClients()
+        restoringSessionScreen = false
         activeSession = null
         contentContainer = null
         setContentView(R.layout.activity_login)
@@ -329,6 +363,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderHome(session: AppSession) {
+        restoringSessionScreen = false
         loginButton = null
         pickerController?.destroy()
         pickerController = null
@@ -376,6 +411,7 @@ class MainActivity : Activity() {
         registerBackgroundNotifications()
         ensureOverlayPermissionPrompt(session)
         drainNotificationReceipts()
+        drainOverlayAcknowledgements()
         recordLog("Đăng nhập ${kit.roleLabel(session.role)}: ${session.employeeCode ?: session.displayName}")
         flushPendingCrashRuntimeLog()
         uiHandler.removeCallbacks(runtimeLogTick)
@@ -776,6 +812,30 @@ class MainActivity : Activity() {
         }.start()
     }
 
+    private fun drainOverlayAcknowledgements() {
+        if (overlayAckDrainRunning || api.session?.role != "PICKER") return
+        val events = NotificationSignalStore.pendingOverlayAcks(applicationContext)
+        if (events.isEmpty()) return
+        overlayAckDrainRunning = true
+        Thread {
+            try {
+                for (eventId in events) {
+                    try {
+                        api.acknowledgeResult(eventId)
+                        NotificationSignalStore.clearOverlayAck(applicationContext, eventId)
+                    } catch (_: Exception) {
+                        // Keep it queued. A later authenticated resume will retry.
+                    }
+                }
+            } finally {
+                runOnUiThread {
+                    overlayAckDrainRunning = false
+                    pickerController?.refresh()
+                }
+            }
+        }.start()
+    }
+
     private fun logoutWithNotificationCleanup(message: String = "Đã đăng xuất.") {
         operatingWindowTask?.let { uiHandler.removeCallbacks(it) }
         operatingWindowTask = null
@@ -970,10 +1030,11 @@ class MainActivity : Activity() {
                     } else null
                     runOnUiThread {
                         updateCheckRunning = false
-                        if (restored != null) {
-                            renderHome(restored)
-                        } else {
-                            applyUpdateGateUi(if (api.session == null) "Sẵn sàng đăng nhập." else if (!silent) "Đang dùng bản mới nhất." else null)
+                        when {
+                            restored != null -> renderHome(restored)
+                            api.session != null -> renderHome(api.session!!)
+                            restoringSessionScreen -> renderLogin("Phiên đăng nhập cần xác thực lại.")
+                            else -> applyUpdateGateUi(if (api.session == null) "Sẵn sàng đăng nhập." else if (!silent) "Đang dùng bản mới nhất." else null)
                         }
                     }
                     return@Thread
@@ -993,7 +1054,8 @@ class MainActivity : Activity() {
                 updateGate = UpdateGate.FAILED
                 runOnUiThread {
                     updateCheckRunning = false
-                    applyUpdateGateUi("Chưa xác minh được bản cập nhật. Không thể đăng nhập. Kiểm tra mạng và thử lại.")
+                    if (restoringSessionScreen) updateButton.visibility = View.VISIBLE
+                    applyUpdateGateUi("Chưa xác minh được bản cập nhật. Kiểm tra mạng và thử lại.")
                 }
             }
         }.start()

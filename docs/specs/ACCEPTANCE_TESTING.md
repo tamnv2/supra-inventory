@@ -1186,3 +1186,34 @@ D119 cannot be called PASS unless all of the following hold:
 12. Stable resources remain untouched. Beta Functions/Firestore resources are the only new billed Google runtime surface.
 13. Full-update release channel is advanced only after Web/Worker, Functions/Rules, Android and Agent gates all pass together.
 14. At a closed 23:00–05:00 App/PDA window, server rejects new Android business mutation and Android Xác nhận đơn cannot create a Firestore request. A one-hour Invent/Root Web overtime extension reopens the same server-authoritative window; repeated explicit extensions add one hour each without adding a PDA heartbeat/poll loop.
+
+## D120 — Field-repair acceptance
+
+### Agent
+1. With >1 visible page of Pickers, scroll to the middle; allow multiple automatic refreshes and trigger one manual/state refresh. PASS only if the visible anchor remains in place and no jump-to-top occurs.
+2. Search by employee-code substring and Vietnamese/full-name substring. Verify **Mã nhân viên** header and whole-row hover on text/action cells.
+3. Verify two-column Overview: Agent/Supra/PickList left, online Picker right. Verify **Đăng xuất** and **Chuyển xuống nền** remain usable and tray restore works.
+4. Verify no redundant normal-surface `PRIMARY / STANDBY / FROZEN` summary line.
+5. With an authenticated Supra session, verify the displayed Supra user. Press **Đăng xuất Supra**: wrong Agent password rejects; correct password clears Supra session and returns the normal login button. Next login opens the browser and permits a different authorized Supra account.
+6. Verify Agent logout restores Agent username/password fields and no old local WMS session remains.
+7. Overlay settings show separate metric groups/tiles; lock/click-through, resize, opacity/color and persisted selections still pass.
+8. Quota regression: startup/UI refresh must not write/read fleet-metrics checkpoints every few seconds. Durable fleet-metrics attempt cadence is bounded to approximately 30 minutes; D117 PRIMARY business queue/lease cadences are unchanged. Inspect sanitized logs for absence of repeated `FLEET_METRICS checkpoint` storms.
+
+### Android
+9. With overlay permission granted, receive HAS_STOCK and SKIP_ALLOWED while another app is foreground. PASS only if the canonical blue/red Picker result UI appears directly over that app.
+10. A result must have one full-screen UI only: no generic **Đã xem / Mở ứng dụng** result surface followed by a second blue/red screen. ACK once and verify the same event does not reopen in-app.
+11. Deny overlay permission and verify the accepted notification → in-app result fallback still works.
+12. Kill/relaunch or switch away/back while the interactive session is valid. PASS only if login form never flashes; restore screen/home is used. True invalid/expired session still reaches login.
+13. Force temporary network failure during result ACK; verify retry remains bounded to ACK only and later authenticated resume completes it without duplicate business resolution.
+
+### Web
+14. Save `FIRST_REPORT`, reload/reopen and verify it remains authoritative. Repeat for `PER_PICKER`.
+15. While editing SLA, allow secondary statistics/realtime activity; selected radio/checkbox/input values must not reset. A concurrent newer policy revision must return `SLA_CONFIG_STALE` rather than overwrite.
+16. Radio/checkbox geometry is compact/readable and current server mode is explicitly shown.
+17. At 100% browser zoom on a Windows display with visible taskbar, scroll to the final controls/footer on long routes; nothing is permanently covered.
+18. As ROOT, change a managed account REPORTER ↔ ADMIN ↔ PICKPACK_ADMIN and verify new permissions/claims after re-login. As ADMIN/PICKPACK_ADMIN, the role-change control is absent and server rejects a crafted role change. PICKER cannot be converted manually.
+
+### Release gates
+- Repo Authority Guard, Project State Guard/continuity, UI Design Guard, Worker typecheck/Web build, Android build, Relay Agent build and all affected regression suites must PASS before merge.
+- Main Beta runtime health must report the exact merged source and all applicable deploy/release workflows must PASS.
+- Publish the next monotonic signed Android Beta and `relay-agent-v40`, refresh `inventory-channel`, and keep Stable OWNER-GATED/untouched.

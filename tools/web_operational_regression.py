@@ -232,6 +232,18 @@ def main() -> None:
     require(report_excel, '"Tổng hợp SKU"', "D118 SKU aggregate Excel sheet")
     require(report_excel, '"Diễn biến"', "D118 timeline Excel sheet")
 
+    # D120: SLA form must not self-reset, viewport bottom stays reachable, and only ROOT can change managed roles.
+    require(app, "let slaFormDirty = false;", "D120 SLA dirty-state guard")
+    require(app, "patchSlaInsightCounts", "D120 SLA statistics patch without form rebuild")
+    require(app, "if (activeSection === \"sla\" && slaFormDirty && slaResponse)", "D120 preserve edited SLA form against background refresh")
+    require(app, "Máy chủ trả về chính sách Deadline khác giá trị vừa lưu", "D120 post-save SLA mode verification")
+    require(professional_css, '.sla-radio-row input[type="radio"]', "D120 compact SLA radio geometry")
+    require(professional_css, "@supports (height: 100dvh)", "D120 visual viewport guard")
+    require(users_core, "USER_ROLE_CHANGE_ROOT_ONLY", "D120 ROOT-only role mutation authority")
+    require(users_core, '"USER_ROLE_CHANGE"', "D120 role-change audit")
+    require(app, "Quyền tài khoản · chỉ ROOT được thay đổi", "D120 ROOT-only role edit surface")
+    require(api, 'role?: "ADMIN" | "PICKPACK_ADMIN" | "REPORTER"', "D120 managed role API typing")
+
 
     # D072: quota-heavy system-status surface is excluded from normal runtime.
     require(app, 'navGroup("HỆ THỐNG", profile.role === "ROOT" && profile.base_role === "ROOT"', "D100 Root-only system group branching")

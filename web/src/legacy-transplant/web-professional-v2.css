@@ -1643,3 +1643,77 @@ body[data-theme="dark"] .sla-config-professional .sla-config-footer { background
   .user-pagination > div > button { flex:1; }
 }
 
+/* D120 — SLA controls: compact native-sized choices, explicit selected state. */
+.sla-choice-list { display:grid; gap:8px; }
+.sla-radio-row {
+  cursor:pointer;
+  min-height:64px;
+  align-items:center !important;
+  transition:border-color .12s ease, background-color .12s ease, box-shadow .12s ease;
+}
+.sla-radio-row:hover { border-color:#a9bdd0; background:#f9fbfd; }
+.sla-radio-row:has(input:checked) {
+  border-color:var(--pro-primary);
+  background:color-mix(in srgb, var(--pro-primary) 7%, var(--pro-surface));
+  box-shadow:0 0 0 1px color-mix(in srgb, var(--pro-primary) 30%, transparent);
+}
+.sla-radio-row input[type="radio"],
+.sla-radio-row input[type="checkbox"],
+.sla-switch input[type="checkbox"] {
+  appearance:auto !important;
+  -webkit-appearance:auto !important;
+  width:18px !important;
+  min-width:18px !important;
+  max-width:18px !important;
+  height:18px !important;
+  min-height:18px !important;
+  max-height:18px !important;
+  flex:0 0 18px !important;
+  margin:0 !important;
+  padding:0 !important;
+  box-shadow:none !important;
+  accent-color:var(--pro-primary);
+}
+.sla-radio-row span { min-width:0; }
+.sla-server-value {
+  padding-top:10px;
+  border-top:1px solid var(--pro-border);
+  color:var(--pro-muted);
+  font-size:11px;
+}
+.sla-server-value strong { color:var(--pro-text); font-size:12px; }
+.sla-config-error {
+  margin:0 0 12px;
+  padding:11px 13px;
+  border:1px solid #f5b8b2;
+  border-radius:10px;
+  background:#fff4f2;
+  color:#9f2f28;
+  font-size:12px;
+  font-weight:650;
+}
+
+/* D120 — use the visual viewport and reserve a real bottom scroll gutter.
+   This prevents the final controls/footer from sitting under browser/OS chrome. */
+@supports (height: 100dvh) {
+  .app-shell { height:100dvh !important; min-height:100dvh !important; }
+}
+body[data-role="ADMIN"] .content,
+body[data-role="ADMIN_INVENT"] .content,
+.content.main {
+  padding-bottom:max(72px, calc(56px + env(safe-area-inset-bottom, 0px))) !important;
+  scroll-padding-bottom:max(72px, calc(56px + env(safe-area-inset-bottom, 0px)));
+}
+.sla-workspace { padding-bottom:12px; }
+
+body[data-theme="dark"] .sla-radio-row:hover { background:#132035 !important; }
+body[data-theme="dark"] .sla-radio-row:has(input:checked) {
+  background:#142942 !important;
+  border-color:var(--pro-primary) !important;
+}
+body[data-theme="dark"] .sla-config-error {
+  background:#351a1a !important;
+  border-color:#6f302d !important;
+  color:#f6aaa3 !important;
+}
+

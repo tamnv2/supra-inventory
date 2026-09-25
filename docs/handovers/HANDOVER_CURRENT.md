@@ -958,3 +958,12 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - D118 accepted baseline preserves D117 proactive HA/fencing and accepts fleet-wide overtime CAS, real pagination, authoritative SLA, detailed Excel, Agent footer and keyboard-safe Android tabs.
 - NEXT_ACTION: await the next explicit Owner requirement and bootstrap authority before any new change.
 - Stable remains OWNER_GATED / untouched.
+
+## D120 derived continuity refresh — 2026-09-26
+
+- SQLite schema: `11`.
+- Latest signed Beta APK: `beta-vc75`.
+- Web: `D120_SOURCE_CANDIDATE__SLA_DIRTY_GUARD__COMPACT_POLICY_UI__DYNAMIC_VIEWPORT__ROOT_ROLE_EDITOR`.
+- Android: `D120_SOURCE_CANDIDATE__SINGLE_CROSS_APP_RED_BLUE_RESULT__NO_LOGIN_FLASH__ACK_RETRY`.
+- D119 is Owner field-accepted; D120 is the active Beta source-repair workstream targeting relay-agent-v40 and the next signed Android Beta after beta-vc75.
+- Stable remains OWNER-GATED and untouched.

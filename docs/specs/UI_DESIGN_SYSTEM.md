@@ -680,3 +680,22 @@ D111 supersedes only the conflicting D110 Reporter interaction/presentation deta
 - Online Picker list uses compact rows sized to show materially more users than card-style layouts; buttons must not expand row height unnecessarily.
 - Picker list contains only currently operational Android/PDA users under the D119 presence definition.
 - Visible Vietnamese copy uses full Unicode/diacritics and the established product terminology.
+
+## D120 — Agent two-pane workspace, metric tiles and Web SLA/viewport repair
+
+### Windows Agent
+- Overview is a responsive two-column workspace: Agent/fleet, Supra and PickList on the left; online-Picker tools on the right.
+- Online Picker rows show **Mã nhân viên**, full name, PDA state and the approved specialist/Pack/close actions. Search matches employee code or full name. Data refresh preserves the visible scroll anchor instead of returning to row 1.
+- Hovering any cell or action in a Picker row highlights the whole row. Refresh must not clear the user's search text or create scroll jitter.
+- Authenticated Agent keeps **Đăng xuất** and **Chuyển xuống nền** visible. The redundant normal-surface `PRIMARY / STANDBY / FROZEN` cluster summary is removed; HA state remains available to the runtime/diagnostics where required.
+- Supra shows the current captured company user where available and exposes protected **Đăng xuất Supra** beside normal login/test controls.
+- Overlay renders selected metrics as independent compact tiles. Tile groups/settings use **Trạng thái hệ thống** and **Hiệu năng & lưu lượng**; lock/click-through, color, opacity, size and persisted visibility remain unchanged.
+
+### Android
+- The canonical `overlay_alert` red/blue business-result surface is reused for cross-app Picker results. A separate generic full-screen result card is forbidden.
+- A valid saved session uses a neutral restore surface while update/profile validation completes. The login form is rendered only when no usable session remains.
+
+### Web
+- SLA radio/checkbox geometry is native-sized and compact; selected state is visually explicit and the current server value is shown in text.
+- SLA secondary statistics update must not rebuild the editable policy form.
+- Pages use dynamic viewport height where supported and reserve bottom scrolling space so the last controls remain reachable above browser/OS chrome.

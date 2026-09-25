@@ -718,6 +718,12 @@ class PickerController(
 
     private fun stageAndShowNextResult() {
         val result = pendingResults.firstOrNull { it.acknowledgedAt == null } ?: return
+        if (
+            NotificationSignalStore.isResultOverlayPresented(activity.applicationContext, result.resultEventId) ||
+            NotificationSignalStore.isOverlayAckPending(activity.applicationContext, result.resultEventId)
+        ) {
+            return
+        }
         if (result.receivedAt == null && receivedResults.add(result.resultEventId)) {
             Thread {
                 try {

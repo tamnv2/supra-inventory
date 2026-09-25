@@ -265,6 +265,7 @@ function clearRoleScopedViewState(): void {
   reportRows = [];
   reportTotal = 0;
   slaResponse = null;
+  slaFormDirty = false;
   slaLoadGeneration += 1;
   operationalInsights = null;
   realtimePresence = null;
@@ -346,6 +347,7 @@ let pendingReporterResolutions = new Map<string, "HAS_STOCK" | "SKIP_ALLOWED">()
 let operationsLoadPromise: Promise<void> | null = null;
 let operationsLoadQueued = false;
 let slaResponse: SlaResponse | null = null;
+let slaFormDirty = false;
 let operationalInsights: OperationalInsights | null = null;
 let realtimePresence: RealtimePresence | null = null;
 let managedUsers: ManagedUser[] = [];
@@ -938,6 +940,7 @@ function navigateToSection(next: Section, historyMode: SectionHistoryMode = "pus
     return;
   }
   const started = performance.now();
+  if (activeSection === "sla") slaFormDirty = false;
   activeSection = next;
   syncSectionHistory(next, historyMode);
   pickerSearchGeneration += 1;
@@ -1261,7 +1264,8 @@ function renderUserModals(): string {
       <div class="tiny muted">${esc(editUser.employee_code || editUser.user_id)} · ${esc(editUser.role)}</div>
       <form id="edit-user-form">
         <div class="field"><span>Họ tên</span><input name="displayName" value="${esc(editUser.display_name)}" required /></div>
-        <div class="field" style="margin-top:10px"><span>Email đăng ký${editUser.role === "ADMIN" ? " · bắt buộc" : ""}</span><input name="authEmail" type="email" value="${esc(editUser.auth_email || "")}" ${editUser.role === "ADMIN" ? "required" : ""} /></div>
+        ${profile?.role === "ROOT" && editUser.role !== "PICKER" ? `<div class="field" style="margin-top:10px"><span>Quyền tài khoản · chỉ ROOT được thay đổi</span><select name="role"><option value="REPORTER" ${editUser.role === "REPORTER" ? "selected" : ""}>Người xử lý báo hàng</option><option value="PICKPACK_ADMIN" ${editUser.role === "PICKPACK_ADMIN" ? "selected" : ""}>Quản trị Pick Pack</option><option value="ADMIN" ${editUser.role === "ADMIN" ? "selected" : ""}>Quản trị Invent</option></select></div>` : ""}
+        <div class="field" style="margin-top:10px"><span>Email đăng ký${editUser.role === "ADMIN" || editUser.role === "PICKPACK_ADMIN" ? " · bắt buộc với tài khoản quản trị" : ""}</span><input name="authEmail" type="email" value="${esc(editUser.auth_email || "")}" /></div>
         <div class="field" style="margin-top:10px"><span>Trạng thái</span><select name="status"><option value="ACTIVE" ${editUser.status === "ACTIVE" ? "selected" : ""}>ACTIVE</option><option value="DISABLED" ${editUser.status === "DISABLED" ? "selected" : ""}>DISABLED</option></select></div>
         <div class="modal-actions"><button type="button" class="btn secondary" id="cancel-user-modal">Huỷ</button><button class="btn">Lưu</button></div>
       </form>
@@ -1650,7 +1654,9 @@ function renderSla(): string {
   const escalationEnabled = configured ? sla!.escalation_enabled === true : false;
   const autoEnabled = configured ? sla!.auto_skip_enabled === true : false;
   const correctionEnabled = configured ? sla!.skip_to_stock_enabled === true : false;
-  const mode = configured ? sla!.auto_skip_mode : "";
+  const rawMode = configured ? String(sla!.auto_skip_mode || "") : "";
+  const mode = rawMode === "FIRST_REPORT" || rawMode === "PER_PICKER" ? rawMode : "";
+  const modeInvalid = configured && !mode;
   const revision = Number(sla?.policy_version || 0);
   const updatedBy = sla?.updated_by || "—";
   const updatedAt = sla?.updated_at ? fmt(sla.updated_at) : "Chưa có";
@@ -1666,6 +1672,7 @@ function renderSla(): string {
       <div><span>Người cập nhật</span><strong>${esc(updatedBy)}</strong></div>
       <div><span>Phạm vi</span><strong>Toàn hệ thống</strong></div>
     </section>
+    ${modeInvalid ? `<div class="sla-config-error" role="alert">Cấu hình máy chủ đang thiếu chính sách Deadline hợp lệ. Không lưu đè; hãy tải lại trang hoặc kiểm tra dịch vụ.</div>` : ""}
 
     <form id="sla-form" class="ops-panel sla-config-panel sla-config-professional">
       <div class="ops-panel-title sla-section-heading"><div><h3>01 · Mốc phản hồi</h3><p>Các mốc phải theo thứ tự Cảnh báo &lt; Quá hạn &lt; Tự động cho phép bỏ qua.</p></div></div>
@@ -1694,8 +1701,11 @@ function renderSla(): string {
         <article class="sla-policy-card">
           <span class="sla-policy-kicker">Deadline tự động</span>
           <h4>Cách tính mốc tự động bỏ qua</h4>
-          <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="FIRST_REPORT" ${mode === "FIRST_REPORT" ? "checked" : ""} required/><span><strong>Theo báo đầu tiên của SKU</strong><small>Cả đợt dùng chung một mốc thời gian.</small></span></label>
-          <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="PER_PICKER" ${mode === "PER_PICKER" ? "checked" : ""} required/><span><strong>Theo từng Picker</strong><small>Mỗi Picker có deadline tính từ lúc chính người đó báo.</small></span></label>
+          <div class="sla-choice-list" role="radiogroup" aria-label="Cách tính mốc tự động bỏ qua">
+            <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="FIRST_REPORT" ${mode === "FIRST_REPORT" ? "checked" : ""} required/><span><strong>Theo báo đầu tiên của SKU</strong><small>Cả đợt dùng chung một mốc thời gian.</small></span></label>
+            <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="PER_PICKER" ${mode === "PER_PICKER" ? "checked" : ""} required/><span><strong>Theo từng Picker</strong><small>Mỗi Picker có deadline tính từ lúc chính người đó báo.</small></span></label>
+          </div>
+          <div class="sla-server-value">Đang áp dụng: <strong>${mode === "FIRST_REPORT" ? "Theo báo đầu tiên của SKU" : mode === "PER_PICKER" ? "Theo từng Picker" : "Chưa xác định"}</strong></div>
         </article>
         <article class="sla-policy-card">
           <span class="sla-policy-kicker">Sửa kết quả</span>
@@ -1712,8 +1722,8 @@ function renderSla(): string {
     </form>
 
     <section class="sla-current-grid" aria-label="Tình trạng hiện tại">
-      <article class="sla-current-card warning"><span>SKU đang cảnh báo</span><strong>${warningEnabled ? Number(insight?.warning_count || 0) : "Tắt"}</strong></article>
-      <article class="sla-current-card danger"><span>SKU đã quá hạn</span><strong>${escalationEnabled ? Number(insight?.escalated_count || 0) : "Tắt"}</strong></article>
+      <article class="sla-current-card warning"><span>SKU đang cảnh báo</span><strong id="sla-warning-count">${warningEnabled ? Number(insight?.warning_count || 0) : "Tắt"}</strong></article>
+      <article class="sla-current-card danger"><span>SKU đã quá hạn</span><strong id="sla-escalated-count">${escalationEnabled ? Number(insight?.escalated_count || 0) : "Tắt"}</strong></article>
       <article class="sla-current-card ${autoEnabled ? "auto" : ""}"><span>Tự động bỏ qua</span><strong>${autoEnabled ? "Đang bật" : "Đang tắt"}</strong></article>
       <article class="sla-current-card ${correctionEnabled ? "auto" : ""}"><span>Skip → Đã có hàng</span><strong>${correctionEnabled ? `${Number(sla?.skip_to_stock_minutes || 0)} phút` : "Đang tắt"}</strong></article>
     </section>
@@ -2591,6 +2601,18 @@ async function loadPicker(): Promise<void> {
   }
 }
 
+function patchSlaInsightCounts(): void {
+  if (activeSection !== "sla" || !slaResponse?.sla) return;
+  const warning = document.querySelector<HTMLElement>("#sla-warning-count");
+  const escalated = document.querySelector<HTMLElement>("#sla-escalated-count");
+  if (warning) warning.textContent = slaResponse.sla.warning_enabled
+    ? String(Number(operationalInsights?.sla?.warning_count || 0))
+    : "Tắt";
+  if (escalated) escalated.textContent = slaResponse.sla.escalation_enabled
+    ? String(Number(operationalInsights?.sla?.escalated_count || 0))
+    : "Tắt";
+}
+
 async function loadSla(): Promise<void> {
   const loadGeneration = ++slaLoadGeneration;
   const generation = sessionViewGeneration;
@@ -2598,6 +2620,15 @@ async function loadSla(): Promise<void> {
   const range = apiRange(dateDaysAgo(6), dateDaysAgo(0));
   const nextSla = await getAdminSla();
   if (loadGeneration !== slaLoadGeneration || generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+
+  // Never let a background refresh replace values that the operator is currently
+  // editing. Keep the old policy_version so Save will fail stale rather than
+  // silently overwriting another machine's newer configuration.
+  if (activeSection === "sla" && slaFormDirty && slaResponse) {
+    setNotice("warning", "Cấu hình máy chủ vừa thay đổi ở phiên khác. Thay đổi đang nhập được giữ nguyên; khi lưu hệ thống sẽ kiểm tra phiên bản.");
+    return;
+  }
+
   slaResponse = nextSla;
   markWebUpdateReceived();
   if (activeSection === "sla") patchActiveSection(true);
@@ -2605,7 +2636,10 @@ async function loadSla(): Promise<void> {
     const nextInsights = await getAdminOperationalInsights(range.from, range.to);
     if (loadGeneration !== slaLoadGeneration || generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
     operationalInsights = nextInsights;
-    if (activeSection === "sla") patchActiveSection(true);
+    // Statistics are secondary. Update only their text; do not rebuild the SLA
+    // form because a full patch resets radio/checkbox edits and looked like the
+    // policy had changed by itself.
+    patchSlaInsightCounts();
   } catch (error) {
     runtimeLogEvent(`Không tải được thống kê SLA phụ: ${error instanceof Error ? error.message : "unknown"}`, "ERROR");
   }
@@ -3035,8 +3069,12 @@ function bindOverlay(): void {
     const displayName = String(data.get("displayName") || "").trim();
     const status = String(data.get("status") || "") as "ACTIVE" | "DISABLED";
     const authEmail = String(data.get("authEmail") || "").trim();
+    const roleRaw = String(data.get("role") || "").trim();
+    const role = ["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(roleRaw)
+      ? roleRaw as "ADMIN" | "PICKPACK_ADMIN" | "REPORTER"
+      : undefined;
     void run(async () => {
-      await updateManagedUser(userId, displayName, status, authEmail);
+      await updateManagedUser(userId, displayName, status, authEmail, role);
       editUserId = null;
       await loadUsers();
       setNotice("success", "Đã cập nhật tài khoản.");
@@ -3556,7 +3594,10 @@ function bindSection(): void {
     void Notification.requestPermission().then(() => patchActiveSection(true));
   });
 
-  document.querySelector<HTMLFormElement>("#sla-form")?.addEventListener("submit", (event) => {
+  const slaForm = document.querySelector<HTMLFormElement>("#sla-form");
+  slaForm?.addEventListener("input", () => { slaFormDirty = true; });
+  slaForm?.addEventListener("change", () => { slaFormDirty = true; });
+  slaForm?.addEventListener("submit", (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget as HTMLFormElement);
     void run(async () => {
@@ -3601,11 +3642,20 @@ function bindSection(): void {
           skip_to_stock_minutes: skipToStockMinutes,
           expected_policy_version: expectedPolicyVersion,
         });
+        const savedMode = saved.sla?.auto_skip_mode;
+        if (savedMode !== autoSkipMode) {
+          throw new Error("Máy chủ trả về chính sách Deadline khác giá trị vừa lưu. Không tiếp tục hiển thị như đã thành công.");
+        }
         slaResponse = saved;
+        slaFormDirty = false;
         await loadSla();
-        setNotice("success", "Đã lưu cấu hình thời gian xử lý cho toàn hệ thống.");
+        if (slaResponse?.sla?.auto_skip_mode !== autoSkipMode) {
+          throw new Error("Xác minh sau lưu thất bại: chính sách Deadline trên máy chủ không khớp.");
+        }
+        setNotice("success", "Đã lưu và xác minh cấu hình thời gian xử lý toàn hệ thống.");
       } catch (error) {
         if (error instanceof ApiError && error.code === "SLA_CONFIG_STALE") {
+          slaFormDirty = false;
           await loadSla();
           setNotice("warning", "Cấu hình đã được cập nhật ở một phiên khác. Đã tải lại bản mới nhất; thay đổi cũ không được ghi đè.");
           return;

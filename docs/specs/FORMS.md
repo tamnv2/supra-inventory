@@ -535,3 +535,10 @@ Login **Lưu thông tin đăng nhập** is a browser credential-manager/autofill
 - Android terminal confirmation feedback is bold/prominent and uses the D114 result taxonomy. Candidate rows are removed when a new search begins or confirmation succeeds.
 - Agent PickList table column order is **PickList → Thao tác → Kết quả**. PickList text is visually emphasized. Row and aggregate result copy must remain visible after the action.
 - Web **Công cụ** wide layout is exactly two balanced compact columns for App PDA and Agent Windows. At <=900px it becomes one column. Legacy span/full-width behavior is overridden.
+
+## D120 — SLA and ROOT account-editor forms
+
+- SLA form is populated only from the server response. `autoSkipMode` must be exactly one of `FIRST_REPORT` / `PER_PICKER`; invalid configured data is shown as an error and is not silently substituted.
+- Once any SLA input changes, background secondary insight refresh may update read-only counters only; it must not rerender/reset editable fields. Save includes `expected_policy_version` and verifies the returned/reloaded mode.
+- ROOT's account editor adds a **Quyền tài khoản · chỉ ROOT được thay đổi** selector for managed non-Picker accounts with Reporter / Quản trị Pick Pack / Quản trị Invent. Other roles do not receive the selector.
+- Email validation follows the resulting target role; admin-class roles require the existing registered-email rule.

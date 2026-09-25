@@ -197,6 +197,7 @@ function scheduleFcm(
     target: NotificationTarget;
     title: string;
     body: string;
+    resolution?: "HAS_STOCK" | "SKIP_ALLOWED";
   },
 ): void {
   if (!ctx || !env.GOOGLE_RUNTIME_SA_JSON || !response.ok) return;
@@ -240,6 +241,7 @@ function scheduleFcm(
       const tokens = targetPayload.tokens || [];
       if (!tokens.length) return;
       const batchSku = String(targetPayload.batch?.sku || "");
+      const batchProductName = String(targetPayload.batch?.product_name || "");
       const delivery = await sendFcmNotifications(env.GOOGLE_RUNTIME_SA_JSON!, env.FIREBASE_PROJECT_ID, tokens, {
         title: options.title,
         body: options.body.replace("{sku}", batchSku || "SKU"),
@@ -249,6 +251,9 @@ function scheduleFcm(
           result_event_id: resultEventId,
           event_seq: eventSeq,
           batch_version: batchVersion,
+          sku: batchSku,
+          product_name: batchProductName,
+          resolution: options.resolution || "",
         },
       });
       await corePost(env, "/notifications/delivery-attempts", {
@@ -434,6 +439,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
       target: { batchId },
       title: resolution === "HAS_STOCK" ? "SUPRA Inventory · Đã có hàng" : "SUPRA Inventory · Được skip",
       body: resolution === "HAS_STOCK" ? "{sku} đã được Reporter xác nhận có hàng." : "{sku} đã được Reporter cho phép skip.",
+      resolution: resolution === "HAS_STOCK" ? "HAS_STOCK" : "SKIP_ALLOWED",
     });
     return result;
   }
@@ -454,6 +460,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
       target: { batchId },
       title: "SUPRA Inventory · Cập nhật kết quả",
       body: "{sku} đã được sửa kết quả thành Có hàng.",
+      resolution: "HAS_STOCK",
     });
     return result;
   }
