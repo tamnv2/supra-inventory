@@ -42,7 +42,7 @@ jobs:
           grep -q 'inventory-beta-alert-runtime@supra-inventory-beta.iam.gserviceaccount.com' functions/src/index.ts
           grep -q 'picker_notification_targets' functions/src/index.ts
           grep -q 'picker_presence_projection/current' functions/src/index.ts
-          if grep -R -E 'private_key|BEGIN PRIVATE KEY|refresh_token' functions/src .github/workflows/deploy-beta-functions.yml; then
+          if grep -R -E 'private_key|BEGIN PRIVATE KEY|refresh_token' functions/src; then
             echo "Secret material marker forbidden in Functions source"
             exit 1
           fi
