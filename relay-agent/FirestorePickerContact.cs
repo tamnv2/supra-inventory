@@ -22,6 +22,53 @@ namespace SupraInventoryRelayAgent
             _log = log ?? delegate { };
         }
 
+        internal Dictionary<string, PickerContactCommand> LoadOpen(AgentSession session)
+        {
+            EnsureSession(session);
+            var raw = FirestoreHttpTransport.SendJson(
+                "GET",
+                AgentConfig.FirestoreDocumentsBaseUrl.TrimEnd('/') + "/picker_alerts?pageSize=100",
+                session.IdToken,
+                null,
+                "SUPRA-Inventory-Relay-Agent/" + AgentConfig.AgentBuild,
+                10000,
+                true,
+                _log,
+                "picker-contact-list");
+
+            var root = AsMap(_json.DeserializeObject(raw));
+            object docsRaw;
+            var docs = root.TryGetValue("documents", out docsRaw) ? docsRaw as System.Collections.IEnumerable : null;
+            var result = new Dictionary<string, PickerContactCommand>(StringComparer.Ordinal);
+            if (docs == null) return result;
+
+            foreach (var item in docs)
+            {
+                var doc = item as Dictionary<string, object>;
+                if (doc == null) continue;
+                var fields = GetMap(doc, "fields");
+                var status = FieldString(fields, "status");
+                if (!string.Equals(status, "PENDING", StringComparison.Ordinal) &&
+                    !string.Equals(status, "SENT", StringComparison.Ordinal))
+                    continue;
+
+                var target = FieldString(fields, "target_user_id");
+                var alertId = FieldString(fields, "alert_id");
+                var expiresAt = FieldLong(fields, "expires_at_ms");
+                if (string.IsNullOrWhiteSpace(target) || string.IsNullOrWhiteSpace(alertId)) continue;
+                if (expiresAt > 0 && expiresAt <= DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()) continue;
+
+                result[target] = new PickerContactCommand
+                {
+                    AlertId = alertId,
+                    TargetUserId = target,
+                    CommandType = FieldString(fields, "command_type"),
+                    Message = FieldString(fields, "message")
+                };
+            }
+            return result;
+        }
+
         internal PickerContactCommand Send(
             AgentSession session,
             string agentInstanceId,
@@ -125,6 +172,39 @@ namespace SupraInventoryRelayAgent
                 string.IsNullOrWhiteSpace(session.AppUserId) ||
                 (!realAdmin && !realPickPackAdmin))
                 throw new InvalidOperationException("Thiếu phiên quản trị hợp lệ cho yêu cầu Picker.");
+        }
+
+        private static Dictionary<string, object> AsMap(object value)
+        {
+            return value as Dictionary<string, object> ?? new Dictionary<string, object>();
+        }
+
+        private static Dictionary<string, object> GetMap(Dictionary<string, object> map, string key)
+        {
+            if (map == null) return null;
+            object value;
+            return map.TryGetValue(key, out value) ? value as Dictionary<string, object> : null;
+        }
+
+        private static string FieldString(Dictionary<string, object> fields, string key)
+        {
+            var field = GetMap(fields, key);
+            object value;
+            return field != null && field.TryGetValue("stringValue", out value)
+                ? Convert.ToString(value) ?? ""
+                : "";
+        }
+
+        private static long FieldLong(Dictionary<string, object> fields, string key)
+        {
+            var field = GetMap(fields, key);
+            object value;
+            long parsed;
+            return field != null &&
+                   field.TryGetValue("integerValue", out value) &&
+                   long.TryParse(Convert.ToString(value), out parsed)
+                ? parsed
+                : 0L;
         }
 
         private static Dictionary<string, object> StringField(string value)
