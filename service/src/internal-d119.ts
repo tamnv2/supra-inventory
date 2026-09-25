@@ -77,8 +77,14 @@ async function coreSkuImport(
 
 export async function handleD119Internal(request: Request, env: InternalEnv): Promise<Response | null> {
   const url = new URL(request.url);
-  if (request.method !== "POST" || url.pathname !== "/api/internal/d119/sku-sync") return null;
+  const isSkuSync = request.method === "POST" && url.pathname === "/api/internal/d119/sku-sync";
+  const isAlertWindow = request.method === "GET" && url.pathname === "/api/internal/d119/alert-window";
+  if (!isSkuSync && !isAlertWindow) return null;
   if (!(await verifyRuntimeIdentity(request, env))) return json({ error: "INTERNAL_IDENTITY_REQUIRED" }, 401);
+
+  if (isAlertWindow) {
+    return core(env).fetch("https://inventory-core.internal/notifications/alert-window");
+  }
 
   let body: {
     job_id?: unknown;
