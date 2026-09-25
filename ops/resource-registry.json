@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D119_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC75__AGENT_V39__D120_FIELD_REPAIR_SOURCE_IN_PROGRESS",
+      "status": "D119_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC75__AGENT_V39__D120_PR_GATES_PASS_MERGE_READY",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -965,12 +965,23 @@
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d120": {
-    "status": "SOURCE_IMPLEMENTATION_IN_PROGRESS__PR_189_GATES_RUNNING",
+    "status": "PR_GATES_PASS__MERGE_READY",
     "branch": "fix/d120-agent-app-web-field-repairs",
     "baseline_release": "beta-vc75 / relay-agent-v39",
     "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC75",
     "target_agent_release": "relay-agent-v40",
     "new_resources": "NONE",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "implementation_pr": 189,
+    "pr_head": "11d10f247e78913130f4ac1d0d1be535644f1221",
+    "pr_runs": {
+      "repo_authority": 36195643090,
+      "project_state": 36195643129,
+      "ui": 36195643128,
+      "android": 36195643187,
+      "relay_agent": 36195643157,
+      "firestore": 36195643116,
+      "rtdb": 36195643218
+    }
   }
 }
