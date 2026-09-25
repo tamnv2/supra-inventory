@@ -9,6 +9,7 @@ interface NotificationEnv {
 
 type InternalUser = {
   user_id: string;
+  role: "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
   status: "ACTIVE" | "DISABLED";
   web_session_generation?: number;
   android_session_generation?: number;
