@@ -115,6 +115,14 @@ class RelayPocClient(
 
     fun sendProbe(suffix: String): RelayProbeResult {
         require(suffix.matches(Regex("^\\d{3,20}$"))) { "PickList phải có từ 3 đến 20 chữ số cuối." }
+        val window = api.getAndroidOperatingWindow()
+        if (!window.isOpen) {
+            throw ApiException(
+                403,
+                "ANDROID_WINDOW_CLOSED",
+                "Ca vận hành App/PDA đang đóng (23:00–05:00).",
+            )
+        }
         var session = api.session ?: throw ApiException(401, "AUTH_REQUIRED", "Chưa đăng nhập.")
         session = ensureFirestoreAuth(session)
 
