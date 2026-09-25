@@ -1,6 +1,6 @@
 import { getServiceAccountAccessToken } from "./hr-source";
 
-export type FirebaseManagedRole = "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
+export type FirebaseManagedRole = "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
 
 export interface FirebaseManagedUserSpec {
   uid: string;
