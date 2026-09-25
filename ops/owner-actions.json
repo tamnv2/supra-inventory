@@ -1949,7 +1949,7 @@
     },
     {
       "id": "OA040",
-      "status": "ACTION_REQUIRED",
+      "status": "PASS_OWNER_COMPLETED",
       "title": "Grant Firebase project-read permission to D119 Functions deploy identity",
       "resource_key": "functions-deploy-sa-beta-d119",
       "provider": "Google Cloud IAM",
@@ -1974,7 +1974,40 @@
       ],
       "expected_success": "Rerun of Functions workflow 36156658669 passes Firebase adminSdkConfig read and proceeds to deploy.",
       "safety": "Beta project only. No Stable IAM mutation. Do not expose service-account key material.",
-      "remaining_owner_action": "Grant roles/firebase.viewer to the D119 deploy service account and reply xong.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "rerun_job": 108158421765,
+        "result": "Firebase Viewer effective; prior adminSdkConfig 403 cleared. New unrelated blocker is disabled Firebase Extensions API."
+      }
+    },
+    {
+      "id": "OA041",
+      "status": "ACTION_REQUIRED",
+      "title": "Enable Firebase Extensions API for D119 Functions deploy",
+      "resource_key": "functions-deploy-sa-beta-d119",
+      "provider": "Google Cloud APIs & Services",
+      "reason_owner_only": "Connected project tools cannot enable Google Cloud services. The D119 deploy identity now passes Firebase project-read authorization but Firebase CLI requires firebaseextensions.googleapis.com to be enabled and correctly cannot self-enable services under least-privilege IAM.",
+      "required_change": {
+        "project": "supra-inventory-beta",
+        "api": "Firebase Extensions API",
+        "service": "firebaseextensions.googleapis.com"
+      },
+      "verification_evidence": {
+        "workflow_run": 36156658669,
+        "rerun_job": 108158421765,
+        "prior_iam_gate": "PASS__firebase.projects.get effective",
+        "failure": "Permissions denied enabling firebaseextensions.googleapis.com"
+      },
+      "shortest_ui_path": [
+        "Open Google Cloud API Library for project supra-inventory-beta.",
+        "Open Firebase Extensions API (firebaseextensions.googleapis.com).",
+        "Click Enable.",
+        "Do not add Service Usage Admin or other broad IAM roles to the deploy service account."
+      ],
+      "expected_success": "Rerun of Functions workflow 36156658669 proceeds past API checks into the actual Functions deployment.",
+      "safety": "Beta project only. Stable remains OWNER-GATED. No service-account keys or secrets are changed.",
+      "remaining_owner_action": "Enable firebaseextensions.googleapis.com on supra-inventory-beta and reply xong.",
       "closed": false
     }
   ]
