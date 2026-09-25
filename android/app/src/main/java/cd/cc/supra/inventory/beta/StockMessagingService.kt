@@ -36,13 +36,16 @@ class StockMessagingService : FirebaseMessagingService() {
             return
         }
 
-        val shortageEvents = setOf(
-            "batch_resolved", "batch_corrected", "report_created",
-            "sla_warning", "sla_warning_summary", "sla_escalated", "sla_escalated_summary",
-            "ticket_auto_skip_allowed", "batch_auto_skip_allowed", "auto_skip_summary",
+        val resultEvents = setOf(
+            "batch_resolved", "batch_corrected",
+            "ticket_auto_skip_allowed", "batch_auto_skip_allowed",
         )
         val isPickerCommand = event == "picker_command"
-        val overlayEligible = isPickerCommand || event in shortageEvents
+        val resultEventId = message.data["result_event_id"].orEmpty().trim()
+        // D120: only the Picker's authoritative red/blue result surface is projected
+        // across other apps. Warning/report-created notices remain ordinary Android
+        // notifications so the user never sees two competing full-screen designs.
+        val overlayEligible = isPickerCommand || (event in resultEvents && resultEventId.isNotBlank())
         val overlayGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this)
         if (overlayEligible && overlayGranted) {
             val expiresAt = message.data["expires_at_ms"]?.toLongOrNull()
@@ -52,9 +55,12 @@ class StockMessagingService : FirebaseMessagingService() {
                     this,
                     title,
                     body,
-                    if (isPickerCommand) CriticalOverlayService.MODE_PICKER_COMMAND else CriticalOverlayService.MODE_SHORTAGE,
-                    message.data["alert_id"].orEmpty().ifBlank { message.data["result_event_id"].orEmpty() },
+                    if (isPickerCommand) CriticalOverlayService.MODE_PICKER_COMMAND else CriticalOverlayService.MODE_RESULT,
+                    message.data["alert_id"].orEmpty().ifBlank { resultEventId },
                     expiresAt,
+                    message.data["resolution"].orEmpty(),
+                    message.data["sku"].orEmpty(),
+                    message.data["product_name"].orEmpty(),
                 )
                 return
             } catch (_: Exception) {
