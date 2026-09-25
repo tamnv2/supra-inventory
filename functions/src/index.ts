@@ -37,6 +37,17 @@ function safeCode(error: unknown): string {
   return "ERROR";
 }
 
+async function alertWindowOpen(): Promise<boolean> {
+  const auth = new GoogleAuth();
+  const client = await auth.getIdTokenClient(WORKER_ORIGIN);
+  const response = await client.request<{ is_open?: boolean }>({
+    url: `${WORKER_ORIGIN}/api/internal/d119/alert-window`,
+    method: "GET",
+    timeout: 10_000,
+  });
+  return response.data?.is_open === true;
+}
+
 export const pickerAlertCreated = onDocumentCreated("picker_alerts/{alertId}", async (event) => {
   const snapshot = event.data;
   if (!snapshot) return;
@@ -69,6 +80,18 @@ export const pickerAlertCreated = onDocumentCreated("picker_alerts/{alertId}", a
   await snapshot.ref.set({ server_created_at: FieldValue.serverTimestamp() }, { merge: true });
   const latest = await snapshot.ref.get();
   if (!latest.exists || latest.get("status") !== "PENDING") return;
+
+  let windowOpen = false;
+  try { windowOpen = await alertWindowOpen(); } catch { windowOpen = false; }
+  if (!windowOpen) {
+    await snapshot.ref.set({
+      status: "WINDOW_CLOSED",
+      completed_at: FieldValue.serverTimestamp(),
+      result_code: "ANDROID_ALERT_WINDOW_CLOSED",
+    }, { merge: true });
+    return;
+  }
+
   const presence = await db.doc("picker_presence_projection/current").get();
   const pickers = presence.exists && Array.isArray(presence.get("pickers")) ? presence.get("pickers") as Array<Record<string, unknown>> : [];
   const online = pickers.some((picker) => String(picker.user_id || "") === targetUserId);
