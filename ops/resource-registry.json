@@ -875,7 +875,11 @@
       "runtime_service_account": "inventory-beta-alert-runtime@supra-inventory-beta.iam.gserviceaccount.com",
       "deploy_secret_reference": "FIREBASE_FUNCTIONS_SA_JSON_BETA",
       "target_function": "inventory-beta-picker-alerts",
-      "status": "PRESETUP_PASS__SOURCE_PENDING"
+      "status": "DEPLOY_BLOCKED__FIREBASE_PROJECT_READ_IAM_REQUIRED",
+      "last_failed_run": 36156658669,
+      "last_failed_job": 108153146315,
+      "required_deploy_permission": "firebase.projects.get",
+      "required_deploy_role": "roles/firebase.viewer"
     },
     "firestore": {
       "additive_collections": [
