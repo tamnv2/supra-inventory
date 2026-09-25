@@ -184,22 +184,76 @@ async function createManagedUser(state: DurableObjectState, request: Request): P
 }
 
 async function updateManagedUser(state: DurableObjectState, request: Request): Promise<Response> {
-  const body = (await request.json()) as { actor?: Actor; user_id?: string; display_name?: unknown; status?: UserStatus; auth_email?: unknown; request_id?: unknown };
+  const body = (await request.json()) as { actor?: Actor; user_id?: string; display_name?: unknown; status?: UserStatus; role?: AppRole; auth_email?: unknown; request_id?: unknown };
   const actor = body.actor;
   const userId = String(body.user_id || "").trim();
   const target = getUser(state, userId);
   if (!actor?.user_id || !target || !canManageTarget(actor.role, target.role) || !validRequestId(body.request_id)) return response({ error: "USER_NOT_MANAGEABLE" }, 403);
+
+  const requestedRole = String(body.role || target.role).toUpperCase() as AppRole;
+  const roleChanged = requestedRole !== target.role;
+  const managedRoles: AppRole[] = ["ADMIN", "PICKPACK_ADMIN", "REPORTER"];
+  if (roleChanged && actor.role !== "ROOT") {
+    return response({ error: "USER_ROLE_CHANGE_ROOT_ONLY", message: "Chỉ ROOT được đổi quyền tài khoản." }, 403);
+  }
+  // Picker identity remains HR-authoritative; role conversion only applies to
+  // managed accounts so HR sync cannot collide with a manually converted Picker.
+  if (roleChanged && (target.role === "PICKER" || !managedRoles.includes(requestedRole))) {
+    return response({ error: "USER_ROLE_CHANGE_INVALID", message: "Chỉ đổi giữa Quản trị Invent, Quản trị Pick Pack và Người xử lý báo hàng." }, 400);
+  }
+
   const displayName = normalizeName(body.display_name ?? target.display_name);
   const status = String(body.status || target.status).toUpperCase() as UserStatus;
   const authEmail = body.auth_email == null ? (target.auth_email || "") : String(body.auth_email || "").trim().toLowerCase();
   const emailValid = !authEmail || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail);
-  if (!displayName || displayName.length > 200 || !["ACTIVE","DISABLED"].includes(status) || !emailValid || ((target.role === "ADMIN" || target.role === "PICKPACK_ADMIN") && !authEmail)) return response({ error: "INVALID_USER_UPDATE" }, 400);
-  state.storage.sql.exec(`UPDATE users SET display_name = ?, status = ?, auth_email = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`, displayName, status, authEmail || null, userId);
-  if (status === "DISABLED") {
-    state.storage.sql.exec(`UPDATE fcm_devices SET enabled = 0, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`, userId);
-    state.storage.sql.exec(`DELETE FROM presence_sessions WHERE user_id = ?`, userId);
+  if (!displayName || displayName.length > 200 || !["ACTIVE","DISABLED"].includes(status) || !emailValid || ((requestedRole === "ADMIN" || requestedRole === "PICKPACK_ADMIN") && !authEmail)) {
+    return response({ error: "INVALID_USER_UPDATE" }, 400);
   }
-  audit(state, actor, "USER_UPDATE", "USER", userId, { display_name: displayName, status, role: target.role });
+
+  const at = new Date().toISOString();
+  state.storage.transactionSync(() => {
+    if (roleChanged) {
+      state.storage.sql.exec(
+        `UPDATE users
+            SET display_name = ?,
+                status = ?,
+                auth_email = ?,
+                role = ?,
+                role_override = NULL,
+                session_generation = COALESCE(session_generation, 0) + 1,
+                session_started_at = NULL,
+                web_session_generation = COALESCE(web_session_generation, 0) + 1,
+                web_session_device_id = NULL,
+                web_session_started_at = NULL,
+                android_session_generation = COALESCE(android_session_generation, 0) + 1,
+                android_session_device_id = NULL,
+                android_session_started_at = NULL,
+                firebase_agent_ready = 0,
+                updated_at = ?
+          WHERE user_id = ?`,
+        displayName, status, authEmail || null, requestedRole, at, userId,
+      );
+      state.storage.sql.exec(`UPDATE fcm_devices SET enabled = 0, updated_at = ? WHERE user_id = ?`, at, userId);
+      state.storage.sql.exec(`DELETE FROM presence_sessions WHERE user_id = ?`, userId);
+    } else {
+      state.storage.sql.exec(
+        `UPDATE users SET display_name = ?, status = ?, auth_email = ?, updated_at = ? WHERE user_id = ?`,
+        displayName, status, authEmail || null, at, userId,
+      );
+      if (status === "DISABLED") {
+        state.storage.sql.exec(`UPDATE fcm_devices SET enabled = 0, updated_at = ? WHERE user_id = ?`, at, userId);
+        state.storage.sql.exec(`DELETE FROM presence_sessions WHERE user_id = ?`, userId);
+      }
+    }
+  });
+  audit(state, actor, roleChanged ? "USER_ROLE_CHANGE" : "USER_UPDATE", "USER", userId, {
+    display_name: displayName,
+    status,
+    from_role: target.role,
+    role: requestedRole,
+    role_changed: roleChanged,
+    sessions_invalidated: roleChanged,
+  });
   return response({ status: "updated", user: safeUser(getUser(state, userId)!) });
 }
 
