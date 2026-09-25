@@ -49,3 +49,13 @@ Exact Owner semantics for the SKU-reset confirmation described historically as r
 - Excel import remains the approved validated/idempotent flow. Current catalog data remains authoritative until the uploaded workbook passes parsing/conflict checks and the user explicitly applies it.
 - Same-SKU/different-name conflicts continue to require explicit resolution; D116 does not add stock quantity, location/bin management or offline catalog mutation.
 - Loading/searching this workspace is on-demand when the route is opened or the user searches; it introduces no background polling loop.
+
+## D119 — WMS Tồn Bin assisted SKU synchronization
+
+- The registered Supra HY1 Tồn Bin endpoints may be used only as a read source for SKU catalog assistance.
+- Only `SKU` and `product name` are admitted into SUPRA Inventory. Bin, location, stock quantity, pending quantity and other inventory fields are discarded before persistence/logging.
+- Same SKU + same name is a no-op. A new SKU may be added. Existing SKU + changed name remains an explicit-confirmation conflict and cannot be silently overwritten.
+- A SKU missing from a later WMS result remains in the catalog; WMS sync is merge/additive, not destructive replacement.
+- One fleet sync lease/version prevents duplicate downloads. An expired lease may be taken over.
+- Existing validated Excel import remains available as manual fallback and uses the same conflict semantics.
+- D119 does not reopen bin/location/quantity product scope.
