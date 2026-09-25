@@ -13,6 +13,7 @@ interface InternalUser {
   status: "ACTIVE" | "DISABLED";
   web_session_generation?: number;
   android_session_generation?: number;
+  session_channel?: "WEB" | "ANDROID" | "AGENT" | "";
 }
 
 const REPORTER_ROLES: AppRole[] = ["REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"];
@@ -45,7 +46,8 @@ async function requireUser(request: Request, env: ReadApiEnv, roles?: AppRole[])
   const sessionError = interactiveSessionError(identity, user);
   if (sessionError) throw json({ error: sessionError }, 401);
   if (roles && !roles.includes(user.role)) throw json({ error: "FORBIDDEN" }, 403);
-  return user;
+  return { ...user, session_channel: identity.sessionChannel };
+}
 }
 
 async function ensureOperationalV2(env: ReadApiEnv): Promise<Response | null> {
@@ -108,7 +110,8 @@ export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<
   }
 
   if (request.method === "GET" && url.pathname === "/api/realtime/presence") {
-    await requireUser(request, env, ["ADMIN", "ROOT"]);
+    const manager = await requireUser(request, env, ["ADMIN", "ROOT"]);
+    if (manager.session_channel === "ANDROID") return json({ error: "MANAGEMENT_WEB_ONLY" }, 403);
     const initFailure = await ensureOperationalV2(env);
     if (initFailure) return initFailure;
     return core(env).fetch("https://inventory-core.internal/read/realtime/presence");
