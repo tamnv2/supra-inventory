@@ -1252,13 +1252,24 @@ namespace SupraInventoryRelayAgent
             _afterHoursPanel.Visible = visible;
             if (visible)
             {
-                _agentFleetGrid.SetBounds(16, 226, Math.Max(300, _agentFleetGrid.Parent == null ? 990 : _agentFleetGrid.Parent.ClientSize.Width - 32), 88);
+                _agentFleetStatus.Visible = false;
+                _afterHoursPanel.SetBounds(
+                    16,
+                    94,
+                    Math.Max(300, _afterHoursPanel.Parent == null ? 990 : _afterHoursPanel.Parent.ClientSize.Width - 32),
+                    54);
+                _agentFleetGrid.SetBounds(
+                    16,
+                    154,
+                    Math.Max(300, _agentFleetGrid.Parent == null ? 990 : _agentFleetGrid.Parent.ClientSize.Width - 32),
+                    92);
+                _agentFleetGrid.Visible = true;
                 _agentFleetGrid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             }
             else
             {
-                _agentFleetGrid.SetBounds(16, 168, Math.Max(300, _agentFleetGrid.Parent == null ? 990 : _agentFleetGrid.Parent.ClientSize.Width - 32), 146);
-                _agentFleetGrid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+                _agentFleetStatus.Visible = true;
+                ApplyD119AuthenticatedLayout(HasAgentSession());
             }
         }
 
