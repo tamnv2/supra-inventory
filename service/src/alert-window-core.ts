@@ -69,15 +69,18 @@ export function readAndroidAlertWindow(
 ): AndroidAlertWindowState {
   const parts = vietnamParts(nowMs);
   const stored = storedConfig(state);
+  const activeOvertimeUntil = stored.overtimeUntilMs != null && stored.overtimeUntilMs > nowMs
+    ? stored.overtimeUntilMs
+    : null;
   const normalOpen = parts.minutes >= START_MINUTES && parts.minutes < END_MINUTES;
-  const overtimeOpen = !normalOpen && stored.overtimeUntilMs != null && stored.overtimeUntilMs > nowMs;
+  const overtimeOpen = !normalOpen && activeOvertimeUntil != null;
   const standardClose = parts.dayStartUtcMs + END_MINUTES * 60_000;
   const normalClose = normalOpen ? standardClose : null;
-  const overtimeClose = overtimeOpen ? stored.overtimeUntilMs : null;
+  const overtimeClose = overtimeOpen ? activeOvertimeUntil : null;
   return {
     start_minutes: START_MINUTES,
     end_minutes: END_MINUTES,
-    overtime_until_ms: stored.overtimeUntilMs,
+    overtime_until_ms: activeOvertimeUntil,
     is_open: normalOpen || overtimeOpen,
     normal_window_open: normalOpen,
     overtime_open: overtimeOpen,
@@ -105,20 +108,8 @@ export function updateAndroidAlertWindow(
     const existing = current.overtime_until_ms && current.overtime_until_ms > nowMs
       ? current.overtime_until_ms
       : 0;
-    const base = Math.max(nowMs, standardCloseMs, existing);
-    const shiftedBase = new Date(base + 7 * HOUR_MS);
-    const roundedBase = shiftedBase.getUTCMinutes() === 0 && shiftedBase.getUTCSeconds() === 0 && shiftedBase.getUTCMilliseconds() === 0
-      ? base
-      : Date.UTC(
-          shiftedBase.getUTCFullYear(),
-          shiftedBase.getUTCMonth(),
-          shiftedBase.getUTCDate(),
-          shiftedBase.getUTCHours() + 1,
-          0,
-          0,
-          0,
-        ) - 7 * HOUR_MS;
-    const candidate = roundedBase + HOUR_MS;
+    const base = existing > 0 ? existing : Math.max(nowMs, standardCloseMs);
+    const candidate = base + HOUR_MS;
 
     // Maximum continuous overtime for one business boundary is 06:00 the next
     // morning. This prevents a stale extension from leaving alerts open forever.
