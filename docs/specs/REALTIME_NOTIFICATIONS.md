@@ -458,3 +458,12 @@ D115 supersedes only the PRIMARY polling cadence of the earlier D097/D104/D114 c
 - A conflicting second decision is never last-write-wins; it must display the existing authoritative decision.
 - This control reconciliation introduces no business queue polling and no WMS health polling.
 
+## D119 — Event-driven Picker presence and critical PDA commands
+
+- Picker operational presence is event-driven, not heartbeat-driven. It derives from a valid Android session plus registered Android notification device and is removed on logout/session replacement/disable/expiry.
+- A compact Firestore presence projection is allowed for Office-capable Agent reads. PRIMARY uses a bounded near-realtime refresh; non-primary Agents use coarse refresh (target around 30 minutes). No 500-PDA periodic heartbeat is permitted.
+- High-priority FCM remains the background wake mechanism. No persistent 05:00–23:00 socket or foreground service is kept merely for waiting.
+- Critical shortage alerts may request a transient overlay when the user has granted Android's display-over-other-apps permission. If unavailable, the accepted high-importance notification path remains the fallback.
+- Healthy-path delivery may target approximately 3 seconds but is not represented as a hard Android/FCM guarantee. Telemetry distinguishes server send, FCM receive and display.
+- Picker-contact commands are additive, idempotent, TTL-bounded and server-authorized. FCM tokens remain private service data and are never exposed in Agent-readable documents.
+- Xác nhận đơn keeps the accepted Firestore request/ACK workflow and is not converted into the new shortage/alert path.
