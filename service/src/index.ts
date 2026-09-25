@@ -1177,7 +1177,7 @@ export default {
       }
 
       if (request.method === "GET" && url.pathname === "/api/admin/hr-source") {
-        await requireUser(request, env, ["ADMIN", "ROOT"]);
+        await requireUser(request, env, ["ADMIN", "PICKPACK_ADMIN", "ROOT"]);
         return coreStub(env).fetch("https://inventory-core.internal/config/hr-source");
       }
       if (request.method === "PUT" && url.pathname === "/api/admin/hr-source") {
