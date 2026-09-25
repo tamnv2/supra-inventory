@@ -1946,6 +1946,36 @@
       "safety": "Beta only. Use authorized company WMS access. Never share passwords, tokens, cookies, WMS headers/signatures/session files, service-account material or raw sensitive WMS responses. Stable remains OWNER-GATED.",
       "remaining_owner_action": "Wait for automated D119 main/runtime/release PASS before field testing.",
       "closed": false
+    },
+    {
+      "id": "OA040",
+      "status": "ACTION_REQUIRED",
+      "title": "Grant Firebase project-read permission to D119 Functions deploy identity",
+      "resource_key": "functions-deploy-sa-beta-d119",
+      "provider": "Google Cloud IAM",
+      "reason_owner_only": "Connected project tools cannot mutate Google Cloud IAM policy. The D119 Functions deployment identity can now impersonate the required service account, but Firebase CLI deployment fails on Firebase Management API GetAdminSdkConfig with HTTP 403.",
+      "required_change": {
+        "project": "supra-inventory-beta",
+        "principal": "invent-beta-functions-deploy@supra-inventory-beta.iam.gserviceaccount.com",
+        "role": "Firebase Viewer",
+        "role_id": "roles/firebase.viewer",
+        "required_permission": "firebase.projects.get"
+      },
+      "verification_evidence": {
+        "workflow_run": 36156658669,
+        "rerun_job": 108153146315,
+        "failure": "GET firebase.googleapis.com/v1beta1/projects/supra-inventory-beta/adminSdkConfig -> HTTP 403"
+      },
+      "shortest_ui_path": [
+        "Open Google Cloud IAM for project supra-inventory-beta.",
+        "Edit principal invent-beta-functions-deploy@supra-inventory-beta.iam.gserviceaccount.com.",
+        "Add role Firebase Viewer (roles/firebase.viewer), then Save.",
+        "Do not paste or regenerate any service-account JSON/key."
+      ],
+      "expected_success": "Rerun of Functions workflow 36156658669 passes Firebase adminSdkConfig read and proceeds to deploy.",
+      "safety": "Beta project only. No Stable IAM mutation. Do not expose service-account key material.",
+      "remaining_owner_action": "Grant roles/firebase.viewer to the D119 deploy service account and reply xong.",
+      "closed": false
     }
   ]
 }
