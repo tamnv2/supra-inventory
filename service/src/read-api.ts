@@ -48,7 +48,6 @@ async function requireUser(request: Request, env: ReadApiEnv, roles?: AppRole[])
   if (roles && !roles.includes(user.role)) throw json({ error: "FORBIDDEN" }, 403);
   return { ...user, session_channel: identity.sessionChannel };
 }
-}
 
 async function ensureOperationalV2(env: ReadApiEnv): Promise<Response | null> {
   try {
