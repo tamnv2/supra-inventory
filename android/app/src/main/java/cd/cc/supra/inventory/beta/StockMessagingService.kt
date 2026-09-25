@@ -5,6 +5,8 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.os.Build
+import android.provider.Settings
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
@@ -28,6 +30,37 @@ class StockMessagingService : FirebaseMessagingService() {
             else -> "SUPRA Inventory"
         }
         val body = message.data["notification_body"]?.takeIf { it.isNotBlank() } ?: message.notification?.body ?: "Có cập nhật nghiệp vụ mới."
+
+        if (event == "picker_command_resolved") {
+            CriticalOverlayService.clear(this, message.data["alert_id"].orEmpty())
+            return
+        }
+
+        val shortageEvents = setOf(
+            "batch_resolved", "batch_corrected", "report_created",
+            "sla_warning", "sla_warning_summary", "sla_escalated", "sla_escalated_summary",
+            "ticket_auto_skip_allowed", "batch_auto_skip_allowed", "auto_skip_summary",
+        )
+        val isPickerCommand = event == "picker_command"
+        val overlayEligible = isPickerCommand || event in shortageEvents
+        val overlayGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this)
+        if (overlayEligible && overlayGranted) {
+            val expiresAt = message.data["expires_at_ms"]?.toLongOrNull()
+                ?: (System.currentTimeMillis() + if (isPickerCommand) 6L * 60L * 60L * 1000L else 30L * 60L * 1000L)
+            try {
+                CriticalOverlayService.show(
+                    this,
+                    title,
+                    body,
+                    if (isPickerCommand) CriticalOverlayService.MODE_PICKER_COMMAND else CriticalOverlayService.MODE_SHORTAGE,
+                    message.data["alert_id"].orEmpty().ifBlank { message.data["result_event_id"].orEmpty() },
+                    expiresAt,
+                )
+                return
+            } catch (_: Exception) {
+                // Fall through to the accepted high-importance notification path.
+            }
+        }
 
         val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
