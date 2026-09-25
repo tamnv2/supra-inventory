@@ -914,7 +914,19 @@
         "pickerAlertResolved": "PASS",
         "skuSyncCreated": "PASS"
       },
-      "remaining_ci_blocker": "ARTIFACT_REGISTRY_CLEANUP_POLICY_NOT_CONFIGURED"
+      "remaining_ci_blocker": "ARTIFACT_REGISTRY_CLEANUP_POLICY_NOT_CONFIGURED",
+      "artifact_cleanup": {
+        "status": "PR_FIX_IN_PROGRESS",
+        "location": "asia-southeast1",
+        "retention_days": 1,
+        "method": "firebase functions:artifacts:setpolicy",
+        "rationale": "OFFICIAL_FIREBASE_CLI_POLICY__COST_CONTROL__NO_DEPLOY_FORCE",
+        "deploy_scope": [
+          "pickerAlertCreated",
+          "pickerAlertResolved",
+          "skuSyncCreated"
+        ]
+      }
     },
     "firestore": {
       "additive_collections": [
