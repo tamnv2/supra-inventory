@@ -2125,6 +2125,36 @@
         "rerun_job": 108192966062,
         "result": "PASS__iam.serviceaccounts.actAs blocker cleared; all three Gen2 functions created successfully"
       }
+    },
+    {
+      "id": "OA045",
+      "status": "ACTION_REQUIRED",
+      "title": "Configure Beta Functions Artifact Registry cleanup policy",
+      "resource_key": "gcp-beta",
+      "provider": "Google Cloud Artifact Registry",
+      "reason_owner_only": "Connected project tools cannot mutate Google Cloud Artifact Registry repository settings. Functions runtime creation is already PASS, but Firebase CLI 14.12.1 requires a cleanup policy. Granting Artifact Registry Editor/Admin permanently to the deploy service account is intentionally avoided.",
+      "required_change": {
+        "project": "supra-inventory-beta",
+        "repository": "gcf-artifacts",
+        "location": "asia-southeast1",
+        "mode": "Delete artifacts",
+        "policy_type": "Conditional delete",
+        "older_than_days": 1
+      },
+      "verification_evidence": {
+        "failed_main_functions_run": 36173638920,
+        "failure_step": "Configure Beta Functions artifact cleanup",
+        "prior_runtime": "PASS__all three D119 Gen2 functions already created"
+      },
+      "shortest_ui_path": [
+        "Open Artifact Registry repositories for supra-inventory-beta.",
+        "Open gcf-artifacts in asia-southeast1 and choose Edit repository.",
+        "Under Cleanup policies choose Delete artifacts, add a delete policy for artifacts older than 1 day, then Update/Save."
+      ],
+      "expected_success": "After policy exists, the exact-three-function Firebase deploy no longer exits on the cleanup-policy gate and D119 can reach terminal technical/runtime PASS.",
+      "safety": "Beta gcf-artifacts only. Do not change Stable. No new deploy-service-account role is required by this selected approach.",
+      "remaining_owner_action": "Create the active 1-day cleanup policy on Beta gcf-artifacts and reply xong.",
+      "closed": false
     }
   ]
 }
