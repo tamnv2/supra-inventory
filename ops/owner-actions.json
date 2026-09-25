@@ -2256,7 +2256,9 @@
         "d120_hotfix_main": "916bcc16de57740e3413dd346610d74c19ec7fcf",
         "d121_branch": "fix/d121-agent-responsiveness-balanced-layout",
         "target_agent_release": "relay-agent-v42",
-        "stable": "OWNER_GATED"
+        "stable": "OWNER_GATED",
+        "implementation_pr": 191,
+        "pr_status": "OPEN__AUTOMATED_GATES_RUNNING"
       },
       "shortest_test_path": [
         "After relay-agent-v42 is published to inventory-channel, update Agent and keep Tổng quan open during normal work for several minutes.",
