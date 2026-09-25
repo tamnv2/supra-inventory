@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D119_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC75__AGENT_V39__D120_FIELD_REPAIR_SOURCE_IN_PROGRESS",
+    "beta": "D119_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC75__AGENT_V39__D120_PR_GATES_PASS_MERGE_READY",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 11,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -195,7 +195,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Finish D120 source/authority consistency on fix/d120-agent-app-web-field-repairs, open PR, drive Repo Authority + Project State/continuity + UI/Android/Agent/Worker regression gates to PASS, merge, then verify exact-source Beta runtime and publish the next signed Android Beta plus relay-agent-v40 through inventory-channel. Stable remains OWNER-GATED.",
+  "next_action": "D120 PR #189 gates are PASS. Revalidate the checkpoint commit, merge only after authority + continuity + affected source gates remain green, then drive main Beta runtime/release workflows to terminal PASS and publish the next signed Android Beta plus relay-agent-v40 through inventory-channel. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -625,7 +625,7 @@
       "owner_acceptance_date": "2026-09-26"
     },
     "d120": {
-      "status": "SOURCE_IMPLEMENTATION_IN_PROGRESS__PR_PENDING",
+      "status": "PR_GATES_PASS__MERGE_READY",
       "branch": "fix/d120-agent-app-web-field-repairs",
       "baseline_main": "f2d90f837b67b190ed8bd28659a5315ece098588",
       "baseline_release": "beta-vc75 / relay-agent-v39",
@@ -655,7 +655,18 @@
       ],
       "new_resources": "NONE",
       "stable": "OWNER_GATED_UNTOUCHED",
-      "field_action": "OA046_WAITING_D120_RELEASE"
+      "field_action": "OA046_WAITING_D120_RELEASE",
+      "implementation_pr": 189,
+      "pr_head": "11d10f247e78913130f4ac1d0d1be535644f1221",
+      "pr_runs": {
+        "repo_authority": 36195643090,
+        "project_state": 36195643129,
+        "ui": 36195643128,
+        "android": 36195643187,
+        "relay_agent": 36195643157,
+        "firestore": 36195643116,
+        "rtdb": 36195643218
+      }
     }
   },
   "authority_setup": {
