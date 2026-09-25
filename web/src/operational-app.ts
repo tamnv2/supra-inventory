@@ -22,6 +22,8 @@ import {
   getAdminReportingDetail,
   getAdminAuditHistory,
   getAgentAppRelease,
+  getAndroidAlertWindow,
+  updateAndroidAlertWindow,
   getAdminSla,
   getDashboardPreference,
   getPdaAppRelease,
@@ -64,6 +66,7 @@ import {
   type AdminReportingRow,
   type AdminReportingDetailRow,
   type AgentAppRelease,
+  type AndroidAlertWindowState,
   type BatchPickerTicket,
   type HrSourceResponse,
   type HrSyncPreview,
@@ -283,6 +286,8 @@ function clearRoleScopedViewState(): void {
   auditRole = "";
   auditQuery = "";
   pdaAppRelease = null;
+  agentAppRelease = null;
+  androidAlertWindow = null;
   pdaQrDataUrl = "";
   selectedBatchId = null;
 }
@@ -392,6 +397,7 @@ let auditQuery = "";
 const AUDIT_PAGE_SIZE = 100;
 let pdaAppRelease: PdaAppRelease | null = null;
 let agentAppRelease: AgentAppRelease | null = null;
+let androidAlertWindow: AndroidAlertWindowState | null = null;
 let pdaQrDataUrl = "";
 const reportNoticeBySku = new Map<string, number>();
 let pickerQuery = "";
@@ -2379,6 +2385,15 @@ function renderSystemReset(): string {
 function renderTools(): string {
   const pdaStableUrl = `${window.location.origin}${pdaAppRelease?.stable_download_path || "/downloads/pda/latest"}`;
   const agentStableUrl = `${window.location.origin}${agentAppRelease?.stable_download_path || "/downloads/agent/latest"}`;
+  const alertState = androidAlertWindow;
+  const alertStatus = alertState == null
+    ? "Đang tải…"
+    : alertState.is_open
+      ? (alertState.overtime_open ? "Đang tăng ca" : "Đang hoạt động")
+      : "Đã đóng ca";
+  const alertUntil = alertState?.overtime_until_ms
+    ? new Date(alertState.overtime_until_ms).toLocaleString("vi-VN", { hour12: false })
+    : "23:00";
   return `<section class="ops-route tools-workspace">
     <div class="heading">
       <div><h2>Công cụ</h2><p class="muted">Hai kênh cài đặt chính thức cho thiết bị vận hành.</p></div>
@@ -2402,6 +2417,15 @@ function renderTools(): string {
             <div class="tool-actions">
               <a class="primary tool-download" href="${esc(pdaStableUrl)}">Tải App PDA</a>
               <button type="button" class="secondary" id="copy-pda-link">Sao chép link</button>
+            </div>
+            <div class="tool-facts">
+              <div><span>Khung thông báo App/PDA</span><strong>05:00–23:00 · giờ hệ thống</strong></div>
+              <div><span>Trạng thái</span><strong>${esc(alertStatus)}</strong></div>
+              <div><span>Đến</span><strong>${esc(alertUntil)}</strong></div>
+            </div>
+            <div class="tool-actions">
+              <button type="button" class="secondary" id="extend-android-alert-window">Tăng ca +1 giờ</button>
+              ${alertState?.overtime_until_ms ? '<button type="button" class="secondary" id="stop-android-alert-overtime">Kết thúc tăng ca</button>' : ""}
             </div>
           </div>
         </div>
@@ -2734,7 +2758,11 @@ async function loadTools(): Promise<void> {
   if (!roleManage()) return;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const [pdaResult, agentResult] = await Promise.all([getPdaAppRelease(), getAgentAppRelease()]);
+  const [pdaResult, agentResult, alertWindowResult] = await Promise.all([
+    getPdaAppRelease(),
+    getAgentAppRelease(),
+    getAndroidAlertWindow(),
+  ]);
   const stableUrl = `${window.location.origin}${pdaResult.release.stable_download_path}`;
   const qr = await QRCode.toDataURL(stableUrl, {
     errorCorrectionLevel: "M",
@@ -2744,6 +2772,7 @@ async function loadTools(): Promise<void> {
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   pdaAppRelease = pdaResult.release;
   agentAppRelease = agentResult.release;
+  androidAlertWindow = alertWindowResult;
   pdaQrDataUrl = qr;
   markWebUpdateReceived();
 }
@@ -3248,6 +3277,16 @@ function bindSection(): void {
       setNotice("warning", "Không sao chép tự động được. Hãy dùng nút Tải Agent.");
     }
   });
+
+  document.querySelector<HTMLButtonElement>("#extend-android-alert-window")?.addEventListener("click", () => void run(async () => {
+    androidAlertWindow = await updateAndroidAlertWindow("EXTEND_ONE_HOUR");
+    setNotice("success", "Đã gia hạn App/PDA thêm 1 giờ tăng ca.");
+  }));
+
+  document.querySelector<HTMLButtonElement>("#stop-android-alert-overtime")?.addEventListener("click", () => void run(async () => {
+    androidAlertWindow = await updateAndroidAlertWindow("STOP_OVERTIME");
+    setNotice("success", "Đã kết thúc gia hạn tăng ca App/PDA.");
+  }));
 
   document.querySelector<HTMLButtonElement>("#send-web-log")?.addEventListener("click", () => void run(async () => {
     const sent = await sendWebRuntimeLog("manual_web_log", "INFO");
