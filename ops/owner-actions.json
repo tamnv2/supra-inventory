@@ -2093,7 +2093,7 @@
     },
     {
       "id": "OA044",
-      "status": "ACTION_REQUIRED",
+      "status": "PASS_OWNER_COMPLETED",
       "title": "Allow D119 deploy identity to act as Beta default compute SA",
       "resource_key": "default-compute-sa-beta-d119",
       "provider": "Google Cloud IAM",
@@ -2119,8 +2119,12 @@
       ],
       "expected_success": "Rerun of Functions workflow 36156658669 can create the three Gen2 functions using the required service-account identity.",
       "safety": "Grant on this Beta service-account resource only; do not grant project-wide Owner/Editor. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Grant the exact Service Account User binding above and reply xong.",
-      "closed": false
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "rerun_job": 108192966062,
+        "result": "PASS__iam.serviceaccounts.actAs blocker cleared; all three Gen2 functions created successfully"
+      }
     }
   ]
 }
