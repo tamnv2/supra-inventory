@@ -142,6 +142,7 @@ export const pickerAlertResolved = onDocumentUpdated("picker_alerts/{alertId}", 
   if (!targetUserId || !alertId) return;
 
   const db = getFirestore();
+  await after.ref.set({ server_resolved_at: FieldValue.serverTimestamp() }, { merge: true });
   const target = await db.doc(`picker_notification_targets/${targetUserId}`).get();
   const token = target.exists && target.get("enabled") === true ? String(target.get("token") || "") : "";
   if (!token) return;
