@@ -1,5 +1,5 @@
 type SqlRow = Record<string, SqlStorageValue>;
-type AppRole = "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
+type AppRole = "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
 type UserStatus = "ACTIVE" | "DISABLED";
 type PickerBulkAction = "ENABLE" | "DISABLE" | "DELETE";
 
@@ -45,15 +45,16 @@ function audit(state: DurableObjectState, actor: Actor, action: string, targetTy
 }
 
 function canCreateRole(actorRole: AppRole, targetRole: AppRole): boolean {
-  if (actorRole === "ROOT") return targetRole === "ADMIN" || targetRole === "REPORTER";
+  if (actorRole === "ROOT") return targetRole === "ADMIN" || targetRole === "PICKPACK_ADMIN" || targetRole === "REPORTER";
   if (actorRole === "ADMIN") return targetRole === "REPORTER";
   return false;
 }
 
 function canManageTarget(actorRole: AppRole, targetRole: AppRole): boolean {
   if (targetRole === "ROOT") return false;
-  if (actorRole === "ROOT") return targetRole === "ADMIN" || targetRole === "REPORTER" || targetRole === "PICKER";
+  if (actorRole === "ROOT") return targetRole === "ADMIN" || targetRole === "PICKPACK_ADMIN" || targetRole === "REPORTER" || targetRole === "PICKER";
   if (actorRole === "ADMIN") return targetRole === "REPORTER" || targetRole === "PICKER";
+  if (actorRole === "PICKPACK_ADMIN") return targetRole === "PICKER";
   return false;
 }
 
@@ -91,7 +92,7 @@ function listUsers(state: DurableObjectState, url: URL): Response {
     where.push("(lower(COALESCE(employee_code,'')) LIKE ? OR lower(display_name) LIKE ? OR lower(user_id) LIKE ?)");
     args.push(like, like, like);
   }
-  if (["PICKER","REPORTER","ADMIN","ROOT"].includes(role)) {
+  if (["PICKER","REPORTER","ADMIN","PICKPACK_ADMIN","ROOT"].includes(role)) {
     where.push("role = ?");
     args.push(role);
   }
@@ -111,7 +112,7 @@ function listUsers(state: DurableObjectState, url: URL): Response {
             password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at
        FROM users
        ${clause}
-      ORDER BY CASE role WHEN 'ROOT' THEN 1 WHEN 'ADMIN' THEN 2 WHEN 'REPORTER' THEN 3 ELSE 4 END,
+      ORDER BY CASE role WHEN 'ROOT' THEN 1 WHEN 'ADMIN' THEN 2 WHEN 'PICKPACK_ADMIN' THEN 3 WHEN 'REPORTER' THEN 4 ELSE 5 END,
                employee_code ASC, display_name ASC, user_id ASC
       LIMIT ? OFFSET ?`,
     ...args,
@@ -139,8 +140,8 @@ async function createManagedUser(state: DurableObjectState, request: Request): P
   if (!actor?.user_id) {
     return response({ error: "USER_CREATE_ACTOR_REQUIRED", message: "Phiên người tạo tài khoản không hợp lệ." }, 400);
   }
-  if (!["ADMIN", "REPORTER"].includes(targetRole)) {
-    return response({ error: "USER_CREATE_ROLE_INVALID", message: "Chỉ được tạo tài khoản Quản trị hoặc Người xử lý báo hàng." }, 400);
+  if (!["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(targetRole)) {
+    return response({ error: "USER_CREATE_ROLE_INVALID", message: "Chỉ được tạo tài khoản Quản trị Invent, Quản trị Pick Pack hoặc Người xử lý báo hàng." }, 400);
   }
   if (!canCreateRole(actor.role, targetRole)) {
     return response({ error: "USER_CREATE_ROLE_FORBIDDEN", message: "Quyền hiện tại không được tạo loại tài khoản đã chọn." }, 403);
@@ -163,7 +164,7 @@ async function createManagedUser(state: DurableObjectState, request: Request): P
   if (!emailValid) {
     return response({ error: "USER_CREATE_EMAIL_INVALID", message: "Email đăng ký không hợp lệ." }, 400);
   }
-  if (targetRole === "ADMIN" && !authEmail) {
+  if ((targetRole === "ADMIN" || targetRole === "PICKPACK_ADMIN") && !authEmail) {
     return response({ error: "USER_CREATE_ADMIN_EMAIL_REQUIRED", message: "Tài khoản Quản trị bắt buộc có email đăng ký." }, 400);
   }
   const existing = first(state.storage.sql.exec<UserRow>(
@@ -192,7 +193,7 @@ async function updateManagedUser(state: DurableObjectState, request: Request): P
   const status = String(body.status || target.status).toUpperCase() as UserStatus;
   const authEmail = body.auth_email == null ? (target.auth_email || "") : String(body.auth_email || "").trim().toLowerCase();
   const emailValid = !authEmail || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail);
-  if (!displayName || displayName.length > 200 || !["ACTIVE","DISABLED"].includes(status) || !emailValid || (target.role === "ADMIN" && !authEmail)) return response({ error: "INVALID_USER_UPDATE" }, 400);
+  if (!displayName || displayName.length > 200 || !["ACTIVE","DISABLED"].includes(status) || !emailValid || ((target.role === "ADMIN" || target.role === "PICKPACK_ADMIN") && !authEmail)) return response({ error: "INVALID_USER_UPDATE" }, 400);
   state.storage.sql.exec(`UPDATE users SET display_name = ?, status = ?, auth_email = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`, displayName, status, authEmail || null, userId);
   if (status === "DISABLED") {
     state.storage.sql.exec(`UPDATE fcm_devices SET enabled = 0, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`, userId);
