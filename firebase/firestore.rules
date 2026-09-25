@@ -231,7 +231,13 @@ service cloud.firestore {
         && request.resource.data.job_id == resource.data.job_id
         && request.resource.data.day_key == resource.data.day_key
         && request.resource.data.admin_user_id == request.auth.token.app_user_id
-        && request.resource.data.owner_agent_id == resource.data.owner_agent_id
+        && request.resource.data.owner_agent_id is string
+        && request.resource.data.owner_agent_id.size() >= 8
+        && request.resource.data.owner_agent_id.size() <= 160
+        && (
+          request.resource.data.owner_agent_id == resource.data.owner_agent_id
+          || resource.data.lease_until_ms <= request.time.toMillis()
+        )
         && request.resource.data.lease_until_ms is int
         && request.resource.data.lease_until_ms > request.time.toMillis()
         && request.resource.data.lease_until_ms <= request.time.toMillis() + 900000;
