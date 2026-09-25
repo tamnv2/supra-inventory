@@ -15,7 +15,7 @@ import {
 } from "./sla-automation";
 import { sendFcmNotifications } from "./fcm";
 
-const SCHEMA_VERSION = 11;
+const SCHEMA_VERSION = 12;
 
 interface CoreEnv {
   APP_ENV: string;
@@ -24,7 +24,7 @@ interface CoreEnv {
   GOOGLE_RUNTIME_SA_JSON?: string;
 }
 
-type AppRole = "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
+type AppRole = "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
 
 interface InternalUser extends Record<string, SqlStorageValue> {
   user_id: string;
@@ -117,7 +117,7 @@ export class InventoryCore {
         firebase_uid TEXT UNIQUE,
         employee_code TEXT,
         display_name TEXT NOT NULL,
-        role TEXT NOT NULL CHECK (role IN ('PICKER','REPORTER','ADMIN','ROOT')),
+        role TEXT NOT NULL CHECK (role IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN','ROOT')),
         role_override TEXT CHECK (role_override IS NULL OR role_override IN ('PICKER','REPORTER','ADMIN')),
         status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','DISABLED')),
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -277,6 +277,63 @@ export class InventoryCore {
     if (!this.hasColumn("users", "android_session_started_at")) sql.exec("ALTER TABLE users ADD COLUMN android_session_started_at TEXT");
     if (!this.hasColumn("audit_log", "actor_role")) sql.exec("ALTER TABLE audit_log ADD COLUMN actor_role TEXT");
     if (!this.hasColumn("audit_log", "actor_display_name")) sql.exec("ALTER TABLE audit_log ADD COLUMN actor_display_name TEXT");
+
+    // D119 additive role migration. Rebuild only the users table constraint; all
+    // accepted D118 business/HA tables and semantics remain untouched.
+    const usersTableSql = String(
+      sql.exec<{ sql: string }>("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users' LIMIT 1").toArray()[0]?.sql || "",
+    );
+    if (!usersTableSql.includes("'PICKPACK_ADMIN'")) {
+      this.state.storage.transactionSync(() => {
+        sql.exec(`
+          CREATE TABLE users_d119 (
+            user_id TEXT PRIMARY KEY,
+            firebase_uid TEXT UNIQUE,
+            employee_code TEXT,
+            display_name TEXT NOT NULL,
+            role TEXT NOT NULL CHECK (role IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN','ROOT')),
+            role_override TEXT CHECK (role_override IS NULL OR role_override IN ('PICKER','REPORTER','ADMIN')),
+            status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','DISABLED')),
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            password_salt TEXT,
+            password_hash TEXT,
+            password_changed_at TEXT,
+            session_generation INTEGER NOT NULL DEFAULT 0,
+            session_started_at TEXT,
+            auth_email TEXT,
+            firebase_password_ready INTEGER NOT NULL DEFAULT 0,
+            firebase_agent_ready INTEGER NOT NULL DEFAULT 0,
+            web_session_generation INTEGER NOT NULL DEFAULT 0,
+            web_session_device_id TEXT,
+            web_session_started_at TEXT,
+            android_session_generation INTEGER NOT NULL DEFAULT 0,
+            android_session_device_id TEXT,
+            android_session_started_at TEXT
+          );
+          INSERT INTO users_d119 (
+            user_id, firebase_uid, employee_code, display_name, role, role_override, status,
+            created_at, updated_at, password_salt, password_hash, password_changed_at,
+            session_generation, session_started_at, auth_email, firebase_password_ready, firebase_agent_ready,
+            web_session_generation, web_session_device_id, web_session_started_at,
+            android_session_generation, android_session_device_id, android_session_started_at
+          )
+          SELECT
+            user_id, firebase_uid, employee_code, display_name, role, role_override, status,
+            created_at, updated_at, password_salt, password_hash, password_changed_at,
+            session_generation, session_started_at, auth_email, firebase_password_ready, firebase_agent_ready,
+            web_session_generation, web_session_device_id, web_session_started_at,
+            android_session_generation, android_session_device_id, android_session_started_at
+          FROM users;
+          DROP TABLE users;
+          ALTER TABLE users_d119 RENAME TO users;
+          CREATE UNIQUE INDEX idx_users_employee_code
+            ON users(employee_code)
+            WHERE employee_code IS NOT NULL AND employee_code <> '';
+          CREATE INDEX idx_users_role_status ON users(role, status);
+        `);
+      });
+    }
 
     initializeBusinessSchema(this.state);
     initializeOperationalV2Schema(this.state);
@@ -604,7 +661,7 @@ export class InventoryCore {
       const role = String(url.searchParams.get("role") || "").trim().toUpperCase();
       const channel = String(url.searchParams.get("channel") || "").trim().toUpperCase();
       const limit = Math.max(1, Math.min(100, Number(url.searchParams.get("limit") || 20)));
-      if (!["ADMIN", "ROOT", "REPORTER", "PICKER"].includes(role)) {
+      if (!["ADMIN", "PICKPACK_ADMIN", "ROOT", "REPORTER", "PICKER"].includes(role)) {
         return response({ error: "invalid_role" }, 400);
       }
       if (channel && channel !== "AGENT") return response({ error: "invalid_channel" }, 400);
