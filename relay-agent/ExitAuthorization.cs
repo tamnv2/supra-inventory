@@ -104,6 +104,52 @@ namespace SupraInventoryRelayAgent
         }
     }
 
+
+    internal sealed class AgentPasswordVerificationDialog : Form
+    {
+        private readonly TextBox _password = new TextBox();
+        internal string PasswordValue { get { return _password.Text; } }
+
+        internal AgentPasswordVerificationDialog(string agentUser, string title, string message, string confirmText)
+        {
+            Text = string.IsNullOrWhiteSpace(title) ? "Xác minh Agent" : title;
+            ClientSize = new Size(440, 186);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            StartPosition = FormStartPosition.CenterParent;
+            Font = new Font("Segoe UI", 9F);
+
+            Controls.Add(new Label
+            {
+                Left = 18,
+                Top = 18,
+                Width = 400,
+                Height = 42,
+                Text = string.IsNullOrWhiteSpace(message) ? "Nhập mật khẩu xác minh Agent hiện tại." : message
+            });
+            Controls.Add(new Label
+            {
+                Left = 18,
+                Top = 66,
+                Width = 400,
+                Height = 20,
+                Text = "Tài khoản Agent: " + (string.IsNullOrWhiteSpace(agentUser) ? "chưa đăng nhập" : agentUser)
+            });
+            _password.SetBounds(18, 90, 400, 27);
+            _password.UseSystemPasswordChar = true;
+            Controls.Add(_password);
+
+            var cancel = new Button { Left = 232, Top = 136, Width = 88, Height = 32, Text = "Hủy", DialogResult = DialogResult.Cancel };
+            var ok = new Button { Left = 330, Top = 136, Width = 88, Height = 32, Text = string.IsNullOrWhiteSpace(confirmText) ? "Xác nhận" : confirmText, DialogResult = DialogResult.OK };
+            Controls.Add(cancel);
+            Controls.Add(ok);
+            AcceptButton = ok;
+            CancelButton = cancel;
+            Shown += (s, e) => _password.Focus();
+        }
+    }
+
     internal sealed class ExitPasswordDialog : Form
     {
         private readonly TextBox _password = new TextBox();
