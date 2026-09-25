@@ -699,3 +699,10 @@ D111 supersedes only the conflicting D110 Reporter interaction/presentation deta
 - SLA radio/checkbox geometry is native-sized and compact; selected state is visually explicit and the current server value is shown in text.
 - SLA secondary statistics update must not rebuild the editable policy form.
 - Pages use dynamic viewport height where supported and reserve bottom scrolling space so the last controls remain reachable above browser/OS chrome.
+
+### D120 hotfix — Picker grid rendering stability
+
+- A one-second operational timer must never clear/re-add Picker rows when authentication/layout state is unchanged.
+- The Picker DataGridView is double-buffered and skips no-op redraws when search text, visible Picker data and command state are unchanged.
+- Real data changes may update rows, but the current search text, scroll anchor and selected row are retained where the row still exists.
+- An empty result is shown only when the authoritative online projection is actually empty; no alternating empty/non-empty placeholder is permitted.

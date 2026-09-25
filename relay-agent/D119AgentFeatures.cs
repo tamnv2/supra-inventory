@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -9,11 +10,20 @@ namespace SupraInventoryRelayAgent
 {
     internal sealed partial class AgentForm
     {
-        private readonly DataGridView _pickerOnlineGrid = new DataGridView();
+        private sealed class SmoothDataGridView : DataGridView
+        {
+            internal SmoothDataGridView()
+            {
+                DoubleBuffered = true;
+            }
+        }
+
+        private readonly DataGridView _pickerOnlineGrid = new SmoothDataGridView();
         private readonly Label _pickerOnlineStatus = new Label();
         private readonly Label _fleetMetricStatus = new Label();
         private readonly TextBox _pickerSearch = new TextBox();
         private List<PickerPresenceView> _pickerOnlineSnapshot = new List<PickerPresenceView>();
+        private string _pickerOnlineRenderSignature = "";
         private bool? _d119AuthenticatedState;
         private readonly System.Windows.Forms.Timer _d119OpsTimer = new System.Windows.Forms.Timer();
         private FirestorePickerPresenceClient _pickerPresenceClient;
@@ -234,10 +244,14 @@ namespace SupraInventoryRelayAgent
             _skuSyncButton.Enabled = authenticated;
             var authChanged = !_d119AuthenticatedState.HasValue || _d119AuthenticatedState.Value != authenticated;
             _d119AuthenticatedState = authenticated;
-            if (authenticated && authChanged) RefreshD119OperationalViews(true);
+            if (authenticated)
+            {
+                if (authChanged) RefreshD119OperationalViews(true);
+            }
             else
             {
                 _pickerOnlineSnapshot = new List<PickerPresenceView>();
+                _pickerOnlineRenderSignature = "";
                 _pickerOnlineGrid.Rows.Clear();
                 _pickerOnlineStatus.Text = "Đăng nhập Agent để xem Picker đang hoạt động.";
                 _fleetMetricStatus.Text = "";
@@ -306,9 +320,29 @@ namespace SupraInventoryRelayAgent
             RenderFleetMetricStatus(primary);
         }
 
+        private string PickerOnlineRenderSignature(string query)
+        {
+            var signature = new StringBuilder(query ?? "");
+            foreach (var picker in _pickerOnlineSnapshot)
+            {
+                signature.Append('|')
+                    .Append(picker.UserId ?? "").Append(':')
+                    .Append(picker.EmployeeCode ?? "").Append(':')
+                    .Append(picker.DisplayName ?? "").Append(':')
+                    .Append(picker.DeviceId ?? "").Append(':')
+                    .Append(picker.Status ?? "").Append(':')
+                    .Append(HasActivePickerCommand(picker.UserId) ? '1' : '0');
+            }
+            return signature.ToString();
+        }
+
         private void RenderPickerOnlineSnapshot()
         {
             var query = (_pickerSearch.Text ?? "").Trim();
+            var renderSignature = PickerOnlineRenderSignature(query);
+            if (string.Equals(renderSignature, _pickerOnlineRenderSignature, StringComparison.Ordinal))
+                return;
+
             var firstUserId = "";
             try
             {
@@ -366,6 +400,7 @@ namespace SupraInventoryRelayAgent
                 }
                 if (firstIndex >= 0) _pickerOnlineGrid.FirstDisplayedScrollingRowIndex = firstIndex;
                 if (selectedIndex >= 0) _pickerOnlineGrid.Rows[selectedIndex].Selected = true;
+                _pickerOnlineRenderSignature = renderSignature;
             }
             finally
             {

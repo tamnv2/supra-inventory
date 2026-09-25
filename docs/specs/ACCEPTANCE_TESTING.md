@@ -1217,3 +1217,12 @@ D119 cannot be called PASS unless all of the following hold:
 - Repo Authority Guard, Project State Guard/continuity, UI Design Guard, Worker typecheck/Web build, Android build, Relay Agent build and all affected regression suites must PASS before merge.
 - Main Beta runtime health must report the exact merged source and all applicable deploy/release workflows must PASS.
 - Publish the next monotonic signed Android Beta and `relay-agent-v40`, refresh `inventory-channel`, and keep Stable OWNER-GATED/untouched.
+
+### D120 hotfix — Picker presence regression
+
+1. Keep Agent Overview open for at least two minutes during normal operating hours. PASS only if the Picker list never disappears/reappears on the one-second schedule timer.
+2. Log in exactly one Picker PDA, then a second. PASS only if Agent shows exactly those active Picker users after projection convergence; historical logged-in/registered-but-disconnected devices must not appear.
+3. Disconnect/terminate one active Picker realtime session without relying on a clean UI logout. PASS only if its socket lifecycle removes it from the projected online set; no per-PDA heartbeat is required.
+4. Scroll to the middle of a multi-row list and use employee/name search while refreshes occur. PASS only if no-op refreshes do not rebuild the grid and genuine updates preserve the closest valid scroll/selection anchor.
+5. Verify Agent v41 rejects a legacy schema-v1 Picker presence projection instead of treating it as current online truth.
+6. D117/D118 confirmation HA/generation/WMS mutation fences and Stable must remain unchanged.

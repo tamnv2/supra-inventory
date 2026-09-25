@@ -1055,3 +1055,14 @@ Owner states D119 is passed and immediately opens D120 to repair concrete Beta f
 10. **Web viewport.** The final page controls/footer must remain reachable above browser/OS chrome using dynamic viewport height and a real bottom scroll gutter; no content may be effectively hidden behind the Windows taskbar.
 11. **ROOT role mutation.** Only ROOT may change an existing managed account between `ADMIN`, `PICKPACK_ADMIN`, and `REPORTER`. PICKER remains HR-authoritative and is not manually converted. A role change invalidates interactive sessions/presence and synchronizes Firebase claims before the account is considered ready.
 12. **Release policy.** Beta only. Target Windows Agent is **relay-agent-v40** and Android is the next monotonic signed Beta after `beta-vc75`. No new provider/database/collection is introduced. Stable remains OWNER-GATED and untouched.
+
+### D120 field hotfix — Picker online accuracy and no-flicker Agent list — 2026-09-26
+
+Owner field-tested the released D120 Beta set (Web, signed `beta-vc76`, Agent `relay-agent-v40`) and reported the broader changes usable, but explicitly rejected the Agent online-Picker behavior: the list visibly alternates present/empty at roughly one-second cadence and reports many Pickers while only one or two PDA devices are actually online.
+
+1. The one-second list flicker is a defect, not an accepted refresh effect. Repeated schedule/status ticks must not clear authenticated Picker rows or rebuild an unchanged grid.
+2. **Online Picker** means a Picker with a currently attached Android realtime connection **and** the current valid Android session/device registration required by D119. A persisted login/FCM registration by itself is not sufficient to display the device as online.
+3. Reuse the existing D098 hibernatable Android WebSocket lifecycle. Do not add a new PDA heartbeat/poll loop. Socket connect/close/error updates the single compact Firestore projection.
+4. The projection advances to schema v2 with source `ACTIVE_ANDROID_REALTIME`. Agent must fail closed on legacy/stale projection schema rather than showing historical devices as online.
+5. Agent rendering must be double-buffered/no-op aware, preserve search/scroll selection, and the one-second after-hours timer must not churn the authenticated Overview layout.
+6. Hotfix target is `relay-agent-v41`; Android/Web source need only change where required for presence authority. Whole Beta compatibility and Stable OWNER-GATED rules remain unchanged.

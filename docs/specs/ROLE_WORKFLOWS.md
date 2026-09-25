@@ -562,3 +562,10 @@ D114 supersedes the D105/D112 suffix-length carrier details where they conflict.
 ### Online Picker
 - Search is local to the already-loaded compact projection and does not add provider reads.
 - Background presence refresh updates rows in place while preserving the current visible scroll anchor and hover/search context.
+
+### D120 hotfix — Online Picker lifecycle
+
+- Agent displays a Picker as **online** only when InventoryCore currently has an attached realtime socket whose role is `PICKER` and client type is `ANDROID`, and the same user still has the authoritative current Android session plus enabled registered notification device.
+- Android socket connect adds/reconciles the compact presence projection; socket close/error removes/reconciles it. Explicit logout/session replacement/device removal continue to refresh through their existing paths.
+- No new per-PDA heartbeat or polling loop is introduced. The existing hibernatable realtime socket lifecycle is the liveness signal.
+- Legacy projection payloads that do not declare schema v2 / `ACTIVE_ANDROID_REALTIME` are not displayed by the Agent.

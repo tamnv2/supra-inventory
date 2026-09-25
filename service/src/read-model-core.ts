@@ -192,7 +192,12 @@ async function createRealtimeTicket(state: DurableObjectState, request: Request)
   });
 }
 
-async function connectRealtime(state: DurableObjectState, request: Request, url: URL): Promise<Response> {
+async function connectRealtime(
+  state: DurableObjectState,
+  request: Request,
+  url: URL,
+  onPickerAndroidPresenceChanged?: () => Promise<void>,
+): Promise<Response> {
   if ((request.headers.get("Upgrade") || "").toLowerCase() !== "websocket") {
     return response({ error: "WEBSOCKET_UPGRADE_REQUIRED" }, 426);
   }
@@ -225,6 +230,9 @@ async function connectRealtime(state: DurableObjectState, request: Request, url:
     `client:${ticket.client_type}`,
   ]);
   state.setWebSocketAutoResponse(new WebSocketRequestResponsePair("ping", "pong"));
+  if (ticket.role === "PICKER" && ticket.client_type === "ANDROID" && onPickerAndroidPresenceChanged) {
+    state.waitUntil(onPickerAndroidPresenceChanged());
+  }
 
   try {
     const stream = realtimeStreamMetadata(state);
@@ -468,7 +476,11 @@ async function realtimeBroadcast(state: DurableObjectState, request: Request): P
   });
 }
 
-export async function handleReadModelCoreRequest(state: DurableObjectState, request: Request): Promise<Response | null> {
+export async function handleReadModelCoreRequest(
+  state: DurableObjectState,
+  request: Request,
+  onPickerAndroidPresenceChanged?: () => Promise<void>,
+): Promise<Response | null> {
   const url = new URL(request.url);
 
   if (url.pathname === "/operational/init") {
@@ -489,7 +501,9 @@ export async function handleReadModelCoreRequest(state: DurableObjectState, requ
   if (request.method === "GET" && url.pathname === "/read/reporter/recent") return reporterRecent(state, url);
   if (request.method === "GET" && url.pathname === "/read/reporter/batch-tickets") return reporterBatchTickets(state, url);
   if (request.method === "POST" && url.pathname === "/realtime/ticket") return createRealtimeTicket(state, request);
-  if (request.method === "GET" && url.pathname === "/realtime/connect") return connectRealtime(state, request, url);
+  if (request.method === "GET" && url.pathname === "/realtime/connect") {
+    return connectRealtime(state, request, url, onPickerAndroidPresenceChanged);
+  }
   if (request.method === "GET" && url.pathname === "/read/realtime/presence") return realtimePresence(state);
   if (request.method === "POST" && url.pathname === "/realtime/close-user") return closeRealtimeUser(state, request);
   if (request.method === "POST" && url.pathname === "/realtime/broadcast") return realtimeBroadcast(state, request);

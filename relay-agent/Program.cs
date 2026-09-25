@@ -539,6 +539,7 @@ namespace SupraInventoryRelayAgent
         private DateTime _lastAfterHoursPromptAt = DateTime.MinValue;
         private DateTime _lastAfterHoursScheduleSyncAt = DateTime.MinValue;
         private bool? _lastRelayAllowed;
+        private bool? _afterHoursLayoutVisible;
 
         private static readonly string RelayDataDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -1256,6 +1257,8 @@ namespace SupraInventoryRelayAgent
 
         private void ApplyAfterHoursAgentLayout(bool visible)
         {
+            if (_afterHoursLayoutVisible.HasValue && _afterHoursLayoutVisible.Value == visible) return;
+            _afterHoursLayoutVisible = visible;
             _afterHoursPanel.Visible = visible;
             if (visible)
             {

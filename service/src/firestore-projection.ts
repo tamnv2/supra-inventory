@@ -1,8 +1,12 @@
 import { getServiceAccountAccessToken } from "./hr-source";
+import { onlinePickerProjectionData } from "./notifications-core";
 
-interface ProjectionEnv {
+interface ProjectionWriteEnv {
   FIREBASE_PROJECT_ID: string;
   GOOGLE_RUNTIME_SA_JSON?: string;
+}
+
+interface ProjectionEnv extends ProjectionWriteEnv {
   INVENTORY_CORE: DurableObjectNamespace;
 }
 
@@ -33,17 +37,17 @@ function document(fields: Record<string, unknown>): { fields: Record<string, Fir
   return { fields: Object.fromEntries(Object.entries(fields).map(([key, value]) => [key, field(value)])) };
 }
 
-async function accessToken(env: ProjectionEnv): Promise<string> {
+async function accessToken(env: ProjectionWriteEnv): Promise<string> {
   if (!env.GOOGLE_RUNTIME_SA_JSON) throw new Error("GOOGLE_RUNTIME_NOT_CONFIGURED");
   return (await getServiceAccountAccessToken(env.GOOGLE_RUNTIME_SA_JSON, DATASTORE_SCOPE)).accessToken;
 }
 
-function documentUrl(env: ProjectionEnv, collection: string, id: string): string {
+function documentUrl(env: ProjectionWriteEnv, collection: string, id: string): string {
   return `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(env.FIREBASE_PROJECT_ID)}/databases/(default)/documents/${collection}/${encodeURIComponent(id)}`;
 }
 
 async function putDocument(
-  env: ProjectionEnv,
+  env: ProjectionWriteEnv,
   collection: string,
   id: string,
   fields: Record<string, unknown>,
@@ -60,7 +64,7 @@ async function putDocument(
   if (!response.ok) throw new Error(`FIRESTORE_PROJECTION_WRITE_HTTP_${response.status}`);
 }
 
-async function deleteDocument(env: ProjectionEnv, collection: string, id: string): Promise<void> {
+async function deleteDocument(env: ProjectionWriteEnv, collection: string, id: string): Promise<void> {
   const token = await accessToken(env);
   const response = await fetch(documentUrl(env, collection, id), {
     method: "DELETE",
@@ -96,21 +100,23 @@ export async function mirrorPickerNotificationTarget(
   });
 }
 
-export async function syncPickerPresenceProjection(env: ProjectionEnv): Promise<void> {
-  const core = env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName("inventory-core"));
-  const response = await core.fetch("https://inventory-core.internal/notifications/online-pickers");
-  if (!response.ok) throw new Error(`ONLINE_PICKERS_HTTP_${response.status}`);
-  const payload = (await response.json()) as {
-    items?: Array<{
-      user_id?: string;
-      employee_code?: string;
-      display_name?: string;
-      device_id?: string;
-      login_at?: string | null;
-      device_seen_at?: string | null;
-      status?: string;
-    }>;
-  };
+type PickerProjectionPayload = {
+  items?: Array<{
+    user_id?: unknown;
+    employee_code?: unknown;
+    display_name?: unknown;
+    device_id?: unknown;
+    login_at?: unknown;
+    device_seen_at?: unknown;
+    status?: unknown;
+  }>;
+  generated_at?: unknown;
+};
+
+async function writePickerPresenceProjection(
+  env: ProjectionWriteEnv,
+  payload: PickerProjectionPayload,
+): Promise<void> {
   const pickers = (payload.items || []).slice(0, 2000).map((item) => ({
     user_id: String(item.user_id || ""),
     employee_code: String(item.employee_code || ""),
@@ -121,11 +127,31 @@ export async function syncPickerPresenceProjection(env: ProjectionEnv): Promise<
     status: "PDA_READY",
   }));
   await putDocument(env, "picker_presence_projection", "current", {
-    schema_version: 1,
+    schema_version: 2,
+    presence_source: "ACTIVE_ANDROID_REALTIME",
     updated_at: new Date().toISOString(),
+    source_generated_at: payload.generated_at || null,
     count: pickers.length,
     pickers,
   });
+}
+
+export async function syncPickerPresenceProjection(env: ProjectionEnv): Promise<void> {
+  const core = env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName("inventory-core"));
+  const response = await core.fetch("https://inventory-core.internal/notifications/online-pickers");
+  if (!response.ok) throw new Error(`ONLINE_PICKERS_HTTP_${response.status}`);
+  await writePickerPresenceProjection(env, (await response.json()) as PickerProjectionPayload);
+}
+
+export async function syncPickerPresenceProjectionFromState(
+  state: DurableObjectState,
+  env: ProjectionWriteEnv,
+  excludeConnectionId = "",
+): Promise<void> {
+  await writePickerPresenceProjection(
+    env,
+    onlinePickerProjectionData(state, excludeConnectionId) as PickerProjectionPayload,
+  );
 }
 
 export async function refreshPickerProjectionBestEffort(env: ProjectionEnv): Promise<void> {

@@ -15,6 +15,7 @@ import {
 } from "./sla-automation";
 import { sendFcmNotifications } from "./fcm";
 import { readAndroidAlertWindow } from "./alert-window-core";
+import { syncPickerPresenceProjectionFromState } from "./firestore-projection";
 
 const SCHEMA_VERSION = 12;
 
@@ -554,6 +555,34 @@ export class InventoryCore {
     this.state.storage.sql.exec("DELETE FROM audit_log WHERE created_at < ?", cutoff);
   }
 
+  async webSocketClose(ws: WebSocket, _code: number, _reason: string, _wasClean: boolean): Promise<void> {
+    const attachment = ws.deserializeAttachment() as {
+      connection_id?: string;
+      role?: string;
+      client_type?: string;
+    } | null;
+    if (attachment?.role !== "PICKER" || attachment.client_type !== "ANDROID") return;
+    await syncPickerPresenceProjectionFromState(
+      this.state,
+      this.env,
+      String(attachment.connection_id || ""),
+    );
+  }
+
+  async webSocketError(ws: WebSocket, _error: unknown): Promise<void> {
+    const attachment = ws.deserializeAttachment() as {
+      connection_id?: string;
+      role?: string;
+      client_type?: string;
+    } | null;
+    if (attachment?.role !== "PICKER" || attachment.client_type !== "ANDROID") return;
+    await syncPickerPresenceProjectionFromState(
+      this.state,
+      this.env,
+      String(attachment.connection_id || ""),
+    );
+  }
+
   private getSchemaVersion(): number {
     const row = this.state.storage.sql
       .exec<{ value: string }>("SELECT value FROM schema_meta WHERE key = 'schema_version' LIMIT 1")
@@ -943,7 +972,11 @@ export class InventoryCore {
     const systemMetrics = await handleSystemMetricsCoreRequest(this.state, request);
     if (systemMetrics) return systemMetrics;
 
-    const readModel = await handleReadModelCoreRequest(this.state, request);
+    const readModel = await handleReadModelCoreRequest(
+      this.state,
+      request,
+      () => syncPickerPresenceProjectionFromState(this.state, this.env),
+    );
     if (readModel) return readModel;
 
     const business = await handleBusinessRequest(this.state, request);
