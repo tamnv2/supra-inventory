@@ -13,22 +13,22 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D119_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC75__AGENT_V39__D120_PR_GATES_PASS_MERGE_READY",
+    "beta": "D120_RELEASED_BETA_VC76_AGENT_V40__OWNER_FIELD_PARTIAL_PASS__PICKER_PRESENCE_HOTFIX_IN_PROGRESS",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
-    "sqlite_schema": 11,
+    "sqlite_schema": 12,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D120_SOURCE_CANDIDATE__SLA_DIRTY_GUARD__COMPACT_POLICY_UI__DYNAMIC_VIEWPORT__ROOT_ROLE_EDITOR",
-    "android": "D120_SOURCE_CANDIDATE__SINGLE_CROSS_APP_RED_BLUE_RESULT__NO_LOGIN_FLASH__ACK_RETRY",
-    "latest_beta_apk": "beta-vc75",
+    "web": "D120_RUNTIME_PASS_MAIN_43A94207__OWNER_FIELD_TEST_OK",
+    "android": "D120_SIGNED_BETA_VC76_RELEASED__OWNER_FIELD_TEST_OK",
+    "latest_beta_apk": "beta-vc76",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
     "network_scope": "D118_OWNER_ACCEPTED_PASS__D117_HA_PRESERVED__FLEET_WIDE_OVERTIME_CAS__ANY_AUTHENTICATED_AGENT_DECISION__STABLE_UNTOUCHED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "D120_SOURCE_CANDIDATE__ROOT_ONLY_MANAGED_ROLE_CHANGE__PICKER_HR_AUTHORITY_PRESERVED",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D112_OWNER_ACCEPTED_PASS__EXISTING_METRICS_OPERATIONAL_HIERARCHY__NONBLOCKING_SECONDARY_LOAD",
-    "quota_resilience": "D120_SOURCE_CANDIDATE__FLEET_METRICS_HARD_30MIN_ATTEMPT_THROTTLE__D117_D118_HA_UNCHANGED",
-    "ui_design_guard": "D120_SOURCE_CANDIDATE__AGENT_TWO_COLUMN__METRIC_TILES__WEB_SLA_VIEWPORT__ANDROID_SINGLE_RESULT_SURFACE",
+    "quota_resilience": "D120_V40_RELEASED__FLEET_METRICS_30MIN_GUARD_PRESERVED__PICKER_LIVENESS_USES_EXISTING_REALTIME_SOCKET_NO_NEW_HEARTBEAT",
+    "ui_design_guard": "D120_V40_FIELD_DEFECT__PICKER_LIST_FLICKER_AND_STALE_ONLINE_COUNT__V41_HOTFIX_IN_PROGRESS",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D118_OWNER_ACCEPTED_PASS__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SELECTED_RANGE_FILTER",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
@@ -195,7 +195,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D120 PR #189 gates are PASS. Revalidate the checkpoint commit, merge only after authority + continuity + affected source gates remain green, then drive main Beta runtime/release workflows to terminal PASS and publish the next signed Android Beta plus relay-agent-v40 through inventory-channel. Stable remains OWNER-GATED.",
+  "next_action": "Complete D120 Picker-presence hotfix branch through PR gates, merge, then verify main Beta runtime/release and relay-agent-v41. OA046 remains open for final field acceptance; Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -625,13 +625,13 @@
       "owner_acceptance_date": "2026-09-26"
     },
     "d120": {
-      "status": "PR_GATES_PASS__MERGE_READY",
-      "branch": "fix/d120-agent-app-web-field-repairs",
-      "baseline_main": "f2d90f837b67b190ed8bd28659a5315ece098588",
-      "baseline_release": "beta-vc75 / relay-agent-v39",
+      "status": "OWNER_FIELD_PARTIAL_PASS__PICKER_PRESENCE_HOTFIX_IMPLEMENTING",
+      "branch": "fix/d120-picker-presence-flicker-accuracy",
+      "baseline_main": "43a94207ff99f45ab932312bac80bf2b7ac99414",
+      "baseline_release": "beta-vc76 / relay-agent-v40",
       "owner_requirement_date": "2026-09-26",
-      "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC75",
-      "target_agent_release": "relay-agent-v40",
+      "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC76_IF_MAIN_RELEASE_WORKFLOW_PUBLISHES",
+      "target_agent_release": "relay-agent-v41",
       "protected_paths": [
         "D117/D118 Agent HA lease/failover/generation fences",
         "Firestore confirmation PENDING→ACK and WMS no-replay guards",
@@ -651,11 +651,14 @@
         "single Android cross-app canonical result overlay and durable ACK retry",
         "valid-session restore without login-form flash",
         "SLA edit dirty guard/post-save verification/compact controls/dynamic viewport",
-        "ROOT-only managed role changes with session invalidation and Firebase claims sync"
+        "ROOT-only managed role changes with session invalidation and Firebase claims sync",
+        "Agent Picker no-flicker authenticated layout and no-op grid rendering",
+        "online Picker accuracy from active Android realtime sockets + current session/device authority",
+        "presence projection schema v2 and legacy-projection rejection"
       ],
       "new_resources": "NONE",
       "stable": "OWNER_GATED_UNTOUCHED",
-      "field_action": "OA046_WAITING_D120_RELEASE",
+      "field_action": "OA046_WAITING_D120_HOTFIX_RELEASE",
       "implementation_pr": 189,
       "pr_head": "11d10f247e78913130f4ac1d0d1be535644f1221",
       "pr_runs": {
@@ -666,6 +669,21 @@
         "relay_agent": 36195643157,
         "firestore": 36195643116,
         "rtdb": 36195643218
+      },
+      "diagnosed_picker_presence": {
+        "owner_field_observation": "Agent Picker list alternates visible/empty at about 1 second and shows many historical devices while only 1-2 PDA devices are actually online.",
+        "flicker_root_cause": "One-second after-hours timer repeatedly called ApplyD119AuthenticatedLayout; authenticated unchanged state fell into else branch that cleared the Picker snapshot/grid.",
+        "accuracy_root_cause": "Online projection treated persisted Android session + enabled FCM registration as online without requiring a currently attached Android realtime socket.",
+        "hotfix": "Do not clear authenticated unchanged layout; suppress no-op grid redraws; derive schema-v2 projection from active PICKER/ANDROID realtime sockets intersected with current session/device authority; refresh on socket connect/close/error.",
+        "extra_polling": "NONE__REUSES_D098_HIBERNATABLE_REALTIME_SOCKET"
+      },
+      "runtime_evidence": {
+        "main": "43a94207ff99f45ab932312bac80bf2b7ac99414",
+        "worker_run": 36196164083,
+        "health": "PASS_HTTP_200_SOURCE_EXACT__SCHEMA12_12__MISSING0__AGENT0_0__OPERATIONAL5_5",
+        "android_release": "beta-vc76",
+        "agent_release": "relay-agent-v40",
+        "owner_field": "PARTIAL_PASS_WITH_PICKER_PRESENCE_DEFECT"
       }
     }
   },
@@ -792,7 +810,7 @@
     "D119 main Functions run 36173638920 proved the deploy identity cannot run functions:artifacts:setpolicy. Rather than add a permanent Artifact Registry Editor/Admin role to the deploy service account, the least-privilege repair is a one-time Owner cleanup policy on Beta gcf-artifacts (asia-southeast1), 1-day retention per Firebase's documented default. Follow-up workflow removes the policy-mutation step and keeps exact-three-function deployment without --force. Stable untouched.",
     "D119 terminal automated release evidence: PR #187 merged main fbe3292a. Main Repo Authority run 36174736954 PASS, Project State/Continuity run 36174736933 PASS, Legacy Operational V2/Web/Android regression run 36174736946 PASS, and Beta Functions run 36174736965 PASS with exact three-function deployment after the Owner-configured gcf-artifacts 1-day cleanup policy. Firestore hotfix main run 36157673480 remains PASS. beta-vc75 and relay-agent-v39 are published. D119 is technical/runtime/release PASS; OA039 physical Owner field acceptance is now the only remaining acceptance layer. Stable untouched."
   ],
-  "active_workstream": "D120_FIELD_REPAIR_IMPLEMENTATION",
+  "active_workstream": "D120_PICKER_PRESENCE_FIELD_HOTFIX",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
