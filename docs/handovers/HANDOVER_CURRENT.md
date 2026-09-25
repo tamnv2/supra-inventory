@@ -967,3 +967,11 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - Android: `D120_SOURCE_CANDIDATE__SINGLE_CROSS_APP_RED_BLUE_RESULT__NO_LOGIN_FLASH__ACK_RETRY`.
 - D119 is Owner field-accepted; D120 is the active Beta source-repair workstream targeting relay-agent-v40 and the next signed Android Beta after beta-vc75.
 - Stable remains OWNER-GATED and untouched.
+
+## D120 Picker-presence hotfix continuity — 2026-09-26
+
+- Current released Beta baseline: main `43a94207ff99f45ab932312bac80bf2b7ac99414`, signed `beta-vc76`, `relay-agent-v40`.
+- Main runtime health: source exact, SQLite `12/12`, Operational V2 `5/5`, migration `0/0`.
+- Owner field status: D120 broader test is usable/partial PASS; online-Picker list has a confirmed flicker + stale-online-count defect.
+- Active repair branch: `fix/d120-picker-presence-flicker-accuracy`; Agent target `relay-agent-v41`.
+- Presence repair reuses active Android realtime sockets and adds no PDA heartbeat/polling. Stable remains OWNER-GATED and untouched.
