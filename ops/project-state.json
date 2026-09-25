@@ -193,7 +193,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D119 IAM is sufficient and all three Gen2 Functions are created. Repair only the Firebase CLI Artifact Registry cleanup-policy gate in CI, then rerun Functions deployment to terminal PASS; finalize D119 technical/runtime/release checkpoint and OA039 field-ready. No further Owner IAM action is currently required.",
+  "next_action": "Validate PR #186 authority/continuity/source gates for the explicit Beta Artifact Registry cleanup-policy setup; merge only after PASS, then observe main Functions cleanup-policy + exact-three-function deploy to terminal PASS. If cleanup-policy configuration alone is permission-denied, record one exact Artifact Registry permission blocker; otherwise no Owner action.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -549,7 +549,7 @@
       "d110_health": "HTTP_200__SOURCE_EXACT_E7931CF8__SCHEMA_11_11__STORAGE_TRUE__MISSING_0__AGENT_0_0__OPERATIONAL_5_5"
     },
     "d119": {
-      "status": "FUNCTIONS_CREATED__CI_CLEANUP_POLICY_BLOCKER",
+      "status": "FUNCTIONS_CREATED__CLEANUP_POLICY_CI_REPAIR_IN_PR",
       "branch": "feat/d119-protected-additive-ops",
       "baseline_main": "c82d21d470f5c8dd12f795b21ef3cadf32be8ef3",
       "baseline_release": "beta-vc74 / relay-agent-v38",
@@ -578,7 +578,7 @@
       "target_android_release": "beta-vc75",
       "target_agent_release": "relay-agent-v39",
       "target_channel": "inventory-channel",
-      "runtime_release_status": "FUNCTIONS_RUNTIME_CREATED__CI_NOT_TERMINAL_PASS",
+      "runtime_release_status": "FUNCTIONS_RUNTIME_CREATED__PR_FIXING_POST_DEPLOY_CLEANUP_GATE",
       "implementation_main": "580680019fcc440eadd25955c7ea87d1ca44bd29",
       "main_firestore_failed_run": 36156658549,
       "main_firestore_failure": "RULESET_CREATE_HTTP_400_INVALID_ARGUMENT__MALFORMED_D119_RULE_REGION",
@@ -591,7 +591,16 @@
       "functions_failure": "POST_DEPLOY_ARTIFACT_REGISTRY_CLEANUP_POLICY_NOT_CONFIGURED",
       "required_owner_iam": "PASS__NO_FURTHER_IAM_REQUIRED_CURRENTLY",
       "required_owner_api": "PASS__ALL_REQUIRED_APIS_EFFECTIVE",
-      "functions_runtime_create_status": "PASS__PICKER_ALERT_CREATED__PICKER_ALERT_RESOLVED__SKU_SYNC_CREATED"
+      "functions_runtime_create_status": "PASS__PICKER_ALERT_CREATED__PICKER_ALERT_RESOLVED__SKU_SYNC_CREATED",
+      "cleanup_policy_fix": {
+        "branch": "ops/d119-functions-iam-finalize",
+        "pr": 186,
+        "location": "asia-southeast1",
+        "retention_days": 1,
+        "command": "firebase functions:artifacts:setpolicy",
+        "deploy_scope": "EXACT_D119_THREE_FUNCTIONS",
+        "force_flag": "FORBIDDEN_TO_AVOID_IMPLICIT_FUNCTION_DELETION"
+      }
     }
   },
   "authority_setup": {
@@ -712,7 +721,8 @@
     "D119 Functions rerun job 108159746542 confirms Firebase Viewer and Firebase Extensions API are both effective. Deploy proceeds through required API checks, then Firebase CLI reports three missing project IAM bindings for Google-managed/supporting principals: Pub/Sub service agent -> Service Account Token Creator; Beta default compute service account -> Cloud Run Invoker and Eventarc Event Receiver. These principals are now registered in project scope/resource registry before any Owner IAM mutation. Stable remains untouched.",
     "D119 Functions rerun job 108162904498 after Owner applied the three Firebase CLI-required service-agent IAM bindings cleared the previous IAM verification blocker and proceeded through package upload plus Run/Eventarc/PubSub/Storage API checks. It now fails only because Cloud Billing API (cloudbilling.googleapis.com) is disabled for Beta; Firebase CLI receives HTTP 403 reading projects/supra-inventory-beta/billingInfo. Next Owner-only action is enable Cloud Billing API on Beta; no broader IAM grant is indicated. Stable remains untouched.",
     "D119 Functions rerun job 108184991966 after Owner enabled Cloud Billing API cleared the billingInfo blocker, uploaded the Functions package, and reached actual Gen2 creation of pickerAlertCreated/pickerAlertResolved/skuSyncCreated. All three create calls fail only on iam.serviceaccounts.actAs for the registered Beta default compute service account. Firebase/Cloud Functions explicitly requires the deploy caller invent-beta-functions-deploy to hold roles/iam.serviceAccountUser on that service-account resource. Next Owner-only action is that exact resource-level binding; no broader project Owner/Editor grant. Stable remains untouched.",
-    "D119 Functions rerun job 108192966062 confirms IAM/API setup is sufficient: package upload PASS and all three Gen2 functions pickerAlertCreated, pickerAlertResolved and skuSyncCreated report Successful create operation in asia-southeast1. Workflow exits 1 only after deployment because Firebase CLI 14.12.1 detected no Artifact Registry cleanup policy and refused to auto-create one without an explicit cleanup-policy action/force. This is no longer an IAM blocker. D119 is not yet terminal technical PASS while the Functions CI gate is red; no additional Owner IAM action is currently required. Stable remains untouched."
+    "D119 Functions rerun job 108192966062 confirms IAM/API setup is sufficient: package upload PASS and all three Gen2 functions pickerAlertCreated, pickerAlertResolved and skuSyncCreated report Successful create operation in asia-southeast1. Workflow exits 1 only after deployment because Firebase CLI 14.12.1 detected no Artifact Registry cleanup policy and refused to auto-create one without an explicit cleanup-policy action/force. This is no longer an IAM blocker. D119 is not yet terminal technical PASS while the Functions CI gate is red; no additional Owner IAM action is currently required. Stable remains untouched.",
+    "D119 cleanup-policy repair: PR #186 now configures the official Firebase Functions Artifact Registry cleanup policy explicitly for asia-southeast1 with 1-day retention before deployment, then deploys only the exact three D119 functions. The workflow intentionally does not use firebase deploy --force because Firebase CLI documents --force as allowing implicit deletion of functions missing from the working directory; fail-closed exact targeting is safer. Official Firebase guidance states functions:artifacts:setpolicy is the supported cleanup command and defaults to 1 day. Stable untouched."
   ],
   "active_workstream": "D119_IMPLEMENTATION",
   "paused_workstreams": {
