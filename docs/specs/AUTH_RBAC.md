@@ -231,7 +231,7 @@ D110 narrows the D098 Android client matrix without changing Web or Agent author
 - Existing internal `ADMIN` is retained and its user-facing label becomes **Quản trị Invent**.
 - New internal role `PICKPACK_ADMIN` is **Quản trị Pick Pack**.
 - `PICKPACK_ADMIN` is additive and least-privilege: Picker personnel lifecycle, SKU catalog/import operations, read-only shortage/reporting/history/export and explicitly granted Picker-contact capability only.
-- `PICKPACK_ADMIN` cannot resolve shortage results, modify SLA/timeout/auto-skip policy, use system reset, manage ADMIN/ROOT authority or inherit WMS confirmation merely by role name.
-- D119 supersedes D110 only for real-base `ADMIN`: ADMIN may hold an ANDROID session but Android business capability is restricted to Reporter-equivalent operations. ROOT remains Android-denied.
-- Windows Agent WMS confirmation remains a separately authorized capability. A future/approved PICKPACK_ADMIN Agent session must not satisfy the real ADMIN WMS confirmation guard.
+- `PICKPACK_ADMIN` cannot resolve shortage results, correct Báo hàng outcomes, modify SLA/timeout/auto-skip policy, use system reset or manage ADMIN/ROOT authority.
+- D119 supersedes D110 only for real-base `ADMIN`: ADMIN may hold an ANDROID session but Android business capability is restricted to Reporter-equivalent operations. ROOT and PICKPACK_ADMIN remain Android-denied.
+- Windows Agent is an explicit channel exception: real-base `ADMIN` **or** real-base `PICKPACK_ADMIN` may authenticate as an Agent operator. Both may use the existing guarded PickList lookup/confirmation flow; both may use D119 Agent SKU synchronization/update. `PICKPACK_ADMIN` Agent permission does not authorize any Báo hàng resolve/correct/SLA mutation API.
 - Picker-presence projections expose only bounded operational identity/status metadata; FCM tokens and credentials are not readable by Agent clients.
