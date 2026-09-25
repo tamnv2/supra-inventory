@@ -75,12 +75,13 @@ jobs:
           $firestoreRules = Get-Content firebase/firestore.rules -Raw
           $firestoreIndexes = Get-Content firebase/firestore.indexes.json -Raw
           $d119 = Get-Content relay-agent/D119AgentFeatures.cs -Raw
+          $pickerPresence = Get-Content relay-agent/FirestorePickerPresence.cs -Raw
           $pickerContact = Get-Content relay-agent/FirestorePickerContact.cs -Raw
           $skuSync = Get-Content relay-agent/FirestoreSkuSync.cs -Raw
           $skuCatalog = Get-Content relay-agent/WmsSkuCatalog.cs -Raw
           $fleetMetrics = Get-Content relay-agent/FirestoreFleetMetrics.cs -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*40\s*;') { throw "D120 requires Agent v40." }
+          if ($config -notmatch 'AgentBuild\s*=\s*41\s*;') { throw "D120 Picker presence hotfix requires Agent v41." }
           if ($firestoreLeader -notmatch 'FailoverAfterMs\s*=\s*10000' -or $firestoreLeader -notmatch 'PrimaryLeaseHeartbeatMs\s*=\s*7000') { throw "D117 proactive 7-second lease / 10-second failover guard failed." }
           if ($firestoreLeader -match 'HeartbeatIntervalMs\s*=\s*4000') { throw "D097 forbids 4-second Firestore lease heartbeat." }
           foreach ($marker in @('PRIMARY','STANDBY','FROZEN','PromoteStandbyForTakeover','replacement-standby','PrimaryLeaseHeartbeatMs = 7000','PresenceHeartbeatIntervalMs = 900000','StandbyRoleRefreshMs = 60000','FrozenRoleRefreshMs = 30000','StartupConvergenceIntervalMs = 5000','VerifyPrimaryBeforeMutation','lease_')) {
@@ -193,6 +194,10 @@ jobs:
           if ($d119 -notmatch 'RunSkuSync' -or $skuSync -notmatch 'AcquireDailyLease' -or $skuCatalog -notmatch 'stock_fields=discarded') { throw "D119 Agent SKU sync guard failed." }
           if ($d119 -notmatch 'TimeSpan.FromMinutes\(30\)' -or $d119 -notmatch 'RefreshFleetMetricsIfDue' -or $fleetMetrics -notmatch 'RefreshPrimary' -or $fleetMetrics -notmatch 'relay_poc_jobs' -or $fleetMetrics -notmatch 'AcceptedIds' -or $fleetMetrics -notmatch 'ProcessedIds') { throw "D119 quota-safe fleet metrics/takeover guard failed." }
           if ($d119 -notmatch '_lastFleetMetricsAttemptUtc' -or $d119 -notmatch 'now - _lastFleetMetricsAttemptUtc < interval' -or $d119 -notmatch 'HeaderText = "Mã nhân viên"' -or $d119 -notmatch '_pickerSearch' -or $d119 -notmatch 'FirstDisplayedScrollingRowIndex') { throw "D120 Picker scroll/search and hard fleet-metrics throttle guard failed." }
+          if ($d119 -notmatch 'SmoothDataGridView' -or $d119 -notmatch '_pickerOnlineRenderSignature' -or $d119 -notmatch 'if \(authenticated\)' -or $d119 -notmatch 'if \(authChanged\) RefreshD119OperationalViews\(true\)') { throw "D120 Picker no-flicker render/auth guard failed." }
+          if ($d119 -match 'if \(authenticated && authChanged\) RefreshD119OperationalViews\(true\);') { throw "D120 forbids the authenticated-state branch that cleared the Picker list every schedule tick." }
+          if ($program -notmatch '_afterHoursLayoutVisible' -or $program -notmatch '_afterHoursLayoutVisible\.Value == visible') { throw "D120 one-second schedule timer must not churn the authenticated layout." }
+          if ($pickerPresence -notmatch 'schemaVersion != 2' -or $pickerPresence -notmatch 'ACTIVE_ANDROID_REALTIME') { throw "D120 Agent must reject legacy/stale Picker presence projections." }
           if ($program -notmatch 'RequestProtectedWmsLogout' -or $program -notmatch '_wmsLogout' -or $program -notmatch 'User " \+ supraUser' -or $wms -notmatch 'ClearDedicatedProfiles') { throw "D120 protected Supra logout/user identity guard failed." }
           if ($overlay -notmatch 'FlowLayoutPanel' -or $overlay -notmatch 'RenderMetricTiles' -or $overlay -notmatch 'AppendMetricParts') { throw "D120 independent overlay metric tiles guard failed." }
           if ($firestoreRules -notmatch 'isAgentOperator' -or $firestoreRules -notmatch 'PICKPACK_ADMIN' -or $firestoreRules -notmatch 'sku_sync_jobs' -or $firestoreRules -notmatch 'picker_alerts') { throw "D119 Firestore Agent operator guard failed." }
