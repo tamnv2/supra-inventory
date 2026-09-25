@@ -2,6 +2,7 @@ import { hashPassword, interactiveSessionError, readBearerToken, verifyFirebaseI
 import { deleteFirebaseUsers, importPasswordIdentity, signInWithFirebasePassword, updateFirebaseIdentity, type FirebaseManagedUserSpec } from "./firebase-auth-admin";
 import { readHrEmployees, type StoredHrSource } from "./hr-sync";
 import { validateHrSheetSource } from "./hr-source";
+import { refreshPickerProjectionBestEffort } from "./firestore-projection";
 
 interface Env {
   FIREBASE_PROJECT_ID: string;
@@ -281,6 +282,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
         }, 502);
       }
     }
+    if (updated.role === "PICKER" || before?.role === "PICKER") await refreshPickerProjectionBestEffort(env);
     return json({ status: "updated", user: updated });
   }
   if (key === "PUT /api/admin/users/password") {
@@ -299,6 +301,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
       if (!changedResponse.ok) return changedResponse;
       const after = (await coreUserById(env, userId)) || before;
       await provisionManagedCredential(env, after, derived, plainPassword);
+      if (after.role === "PICKER") await refreshPickerProjectionBestEffort(env);
       return json({ status: "password_changed", user_id: userId });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Không đổi được mật khẩu.";
@@ -311,7 +314,9 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
   }
   if (key === "POST /api/admin/pickers/bulk") {
     const body = await bodyObject(request);
-    return core(env).fetch("https://inventory-core.internal/admin/pickers/bulk", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...body, actor: actor(user) }) });
+    const response = await core(env).fetch("https://inventory-core.internal/admin/pickers/bulk", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...body, actor: actor(user) }) });
+    if (response.ok) await refreshPickerProjectionBestEffort(env);
+    return response;
   }
   if (key === "PUT /api/admin/hr-source-v2") {
     if (!env.GOOGLE_RUNTIME_SA_JSON) return json({ error: "GOOGLE_RUNTIME_NOT_CONFIGURED" }, 503);
@@ -341,10 +346,12 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
     }
     const body = await bodyObject(request);
     const pickerDefault = await derivePickerDefault(env);
-    return core(env).fetch("https://inventory-core.internal/admin/hr-sync/apply", {
+    const response = await core(env).fetch("https://inventory-core.internal/admin/hr-sync/apply", {
       method: "POST", headers: { "content-type": "application/json" },
       body: JSON.stringify({ ...body, actor: actor(user), employees: read.employees, picker_password_salt: pickerDefault.salt, picker_password_hash: pickerDefault.hash }),
     });
+    if (response.ok) await refreshPickerProjectionBestEffort(env);
+    return response;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Không đọc được nguồn nhân sự.";
     return json({ error: "HR_SYNC_SOURCE_FAILED", message }, message === "PICKER_DEFAULT_PASSWORD_NOT_CONFIGURED" ? 503 : 400);
