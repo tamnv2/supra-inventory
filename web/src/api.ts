@@ -1121,10 +1121,18 @@ export async function updateManagedUser(
   displayName: string,
   status: "ACTIVE" | "DISABLED",
   authEmail?: string,
+  role?: "ADMIN" | "PICKPACK_ADMIN" | "REPORTER",
 ): Promise<ManagedUser> {
   const result = await readJson<{ user: ManagedUser }>(await authorizedFetch("/api/admin/users", {
     method: "PATCH",
-    body: JSON.stringify({ request_id: crypto.randomUUID(), user_id: userId, display_name: displayName, status, ...(authEmail == null ? {} : { auth_email: authEmail }) }),
+    body: JSON.stringify({
+      request_id: crypto.randomUUID(),
+      user_id: userId,
+      display_name: displayName,
+      status,
+      ...(authEmail == null ? {} : { auth_email: authEmail }),
+      ...(role == null ? {} : { role }),
+    }),
   }));
   return result.user;
 }
