@@ -1571,6 +1571,8 @@ function userSelectionLabel(): string {
 
 function renderUsers(): string {
   const canCreateAdmin = profile?.role === "ROOT";
+  const canCreateReporter = profile?.role === "ROOT" || profile?.role === "ADMIN";
+  const canCreateManaged = canCreateAdmin || canCreateReporter;
   const pageStart = userTotal ? userOffset + 1 : 0;
   const pageEnd = Math.min(userOffset + managedUsers.length, userTotal);
   const activeCount = managedUsers.filter((user) => user.status === "ACTIVE").length;
@@ -1586,21 +1588,21 @@ function renderUsers(): string {
     </section>
     <div class="users-top-grid">
       <article class="ops-panel users-create-panel">
-        <div class="ops-panel-title"><div><h3>Tạo tài khoản nghiệp vụ</h3><p>Dùng cho Người xử lý báo hàng và Quản trị. Picker được đồng bộ từ nguồn nhân sự.</p></div></div>
-        <form id="create-user-form" class="users-form-grid">
+        <div class="ops-panel-title"><div><h3>${canCreateManaged ? "Tạo tài khoản nghiệp vụ" : "Quản lý Picker"}</h3><p>${canCreateManaged ? "Tạo Người xử lý báo hàng hoặc vai trò quản trị được phép. Picker được đồng bộ từ nguồn nhân sự." : "Quản trị Pick Pack chỉ quản lý Picker; không tạo Reporter hay Quản trị Invent."}</p></div></div>
+        ${canCreateManaged ? `<form id="create-user-form" class="users-form-grid">
           <label>Mã nhân viên / tên đăng nhập<input name="username" autocomplete="off" required /></label>
           <label>Họ và tên<input name="displayName" autocomplete="off" required /></label>
-          <label>Quyền sử dụng<select name="role"><option value="REPORTER">Người xử lý báo hàng</option>${canCreateAdmin ? `<option value="ADMIN">Quản trị</option>` : ""}</select></label>
+          <label>Quyền sử dụng<select name="role"><option value="REPORTER">Người xử lý báo hàng</option>${canCreateAdmin ? `<option value="PICKPACK_ADMIN">Quản trị Pick Pack</option><option value="ADMIN">Quản trị Invent</option>` : ""}</select></label>
           <label>Email đăng ký<input name="authEmail" type="email" autocomplete="email" placeholder="Bắt buộc khi tạo Admin" /></label>
           <label>Mật khẩu khởi tạo<input name="password" type="password" autocomplete="new-password" required /></label>
           <div class="ops-form-actions"><button class="primary">Tạo tài khoản</button></div>
-        </form>
+        </form>` : `<div class="ops-readonly">Thêm Picker mới qua Nguồn nhân sự và đồng bộ Picker.</div>`}
       </article>
       <article class="ops-panel users-filter-panel">
         <div class="ops-panel-title"><div><h3>Tìm và lọc tài khoản</h3><p>Lọc nhanh theo mã nhân viên, họ tên, quyền hoặc trạng thái.</p></div></div>
         <form id="user-filter-form" class="users-form-grid">
           <label class="span">Tìm kiếm<input name="query" value="${esc(userQuery)}" placeholder="Mã nhân viên / họ tên / tài khoản" /></label>
-          <label>Quyền<select name="role"><option value="">Tất cả quyền</option>${["PICKER","REPORTER","ADMIN"].map((role) => `<option value="${role}" ${userRole === role ? "selected" : ""}>${esc(businessRoleLabel(role))}</option>`).join("")}</select></label>
+          <label>Quyền<select name="role"><option value="">Tất cả quyền</option>${["PICKER","REPORTER","PICKPACK_ADMIN","ADMIN"].map((role) => `<option value="${role}" ${userRole === role ? "selected" : ""}>${esc(businessRoleLabel(role))}</option>`).join("")}</select></label>
           <label>Trạng thái<select name="status"><option value="">Tất cả trạng thái</option><option value="ACTIVE" ${userStatus === "ACTIVE" ? "selected" : ""}>Đang hoạt động</option><option value="DISABLED" ${userStatus === "DISABLED" ? "selected" : ""}>Đã dừng</option></select></label>
           <div class="ops-form-actions"><button class="secondary">Áp dụng bộ lọc</button></div>
         </form>
@@ -3416,7 +3418,7 @@ function bindSection(): void {
       await createManagedUser(
         String(data.get("username") || ""),
         String(data.get("displayName") || ""),
-        String(data.get("role") || "REPORTER") as "ADMIN" | "REPORTER",
+        String(data.get("role") || "REPORTER") as "ADMIN" | "PICKPACK_ADMIN" | "REPORTER",
         String(data.get("password") || ""),
         String(data.get("authEmail") || "").trim(),
       );
