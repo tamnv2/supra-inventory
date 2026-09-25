@@ -1894,7 +1894,7 @@ namespace SupraInventoryRelayAgent
                 _probeAll.Enabled = enabled;
                 var hasWmsSession = HasUsableWmsSession();
                 _wmsCapture.Enabled = enabled && !hasWmsSession;
-                _wmsCapture.Text = hasWmsSession ? "Phiên Supra sẵn sàng" : "Đăng nhập hệ thống Supra";
+                _wmsCapture.Text = hasWmsSession ? "Phiên Supra đang sẵn sàng" : "Đăng nhập hệ thống Supra";
                 _wmsLogout.Enabled = enabled && hasWmsSession && HasAgentSession();
                 _wmsTest.Enabled = enabled;
             });
