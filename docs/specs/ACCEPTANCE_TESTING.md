@@ -1175,7 +1175,7 @@ D119 cannot be called PASS unless all of the following hold:
 1. D118 protected regression suite remains PASS: Firestore confirmation PENDING→ACK semantics, one-write confirmation guard, PRIMARY generation fence, 7s lease/10s failover, zero STANDBY/FROZEN business polling, WMS bounded confirmation adapter, schedule authority and no-offline business guard are unchanged.
 2. Reporter/Quản trị Invent pending queue is oldest-first and no longer sorted primarily by affected-Picker count; Picker and resolved histories remain newest-first.
 3. ADMIN Android session is server-authorized only for Reporter-equivalent operations; Root Android remains denied.
-4. PICKPACK_ADMIN attempts to resolve shortage, modify SLA/auto-skip, reset system, manage Invent/Root or invoke WMS confirmation are server-denied.
+4. PICKPACK_ADMIN attempts to resolve/correct Báo hàng, modify SLA/auto-skip, reset system or manage Invent/Root are server-denied; the same PICKPACK_ADMIN account must be able to authenticate on Windows Agent and use guarded PickList lookup/confirmation plus D119 Agent SKU sync/update. WMS mutation still requires the existing exact-code, generation-fence, confirmation-guard and fail-closed checks.
 5. Login + Android notification registration makes a Picker visible in Agent presence without any prior Xác nhận đơn. Logout/session replacement/disable/expiry removes it.
 6. Presence implementation contains no periodic PDA heartbeat and stays within the approved bounded Agent refresh cadence.
 7. Critical FCM alert without overlay permission still falls back to an accepted visible notification; overlay permission must never be required for ordinary existing Báo hàng correctness.
