@@ -1008,3 +1008,14 @@ D118 is technically released on Beta and **OA038 is field-ready**.
 - D118 release preserves D117 proactive lease/failover/generation/WMS fences while replacing PRIMARY-only overtime choice with fleet-wide first-CAS decision authority. Web pagination/SLA/export, Agent footer and Android IME resize are live from the same source.
 - SQLite remains 11. No new provider/resource was introduced. Stable remains OWNER-GATED and untouched.
 - OA037 is superseded by OA038; D118 Owner PASS is not recorded until explicit field acceptance.
+
+## D118 Owner-accepted checkpoint — 2026-09-25
+
+Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
+
+- Owner explicitly confirmed **“ok pass hết”** after OA038 field review.
+- OA038 is closed as `PASS_OWNER_CONFIRMED_D118`.
+- Accepted Beta baseline: live Web source `d29237c0990eb677ddef726785a88e08bce88dce`, signed `beta-vc74`, and `relay-agent-v38`.
+- Accepted D118 behavior includes fleet-wide first-CAS overtime decision without role promotion, inherited D117 proactive HA/generation/WMS fences, real bounded Web pagination, server-authoritative revision-safe SLA, detailed selected-range/filter Excel, Agent footer credit and Android tabs above IME.
+- SQLite remains `11`; Operational V2 remains `5/5`.
+- Stable remains OWNER-GATED and untouched.

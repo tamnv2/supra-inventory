@@ -944,3 +944,17 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - Live Beta is exact D118 source with schema 11/11, Operational V2 5/5, missing bindings 0 and Agent migration 0/0.
 - OA038 is READY_FOR_OWNER_FIELD_TEST. Stable remains OWNER_GATED / untouched.
 - NEXT_ACTION: Owner field-tests beta-vc74 + relay-agent-v38 for fleet-wide overtime CAS, inherited D117 HA/fencing, real pagination, revision-safe SLA, detailed Excel, Agent footer and keyboard-safe Android tabs.
+
+## D118 Owner-accepted refresh — 2026-09-25
+
+- Status: **OWNER FIELD ACCEPTED PASS**.
+- SQLite schema: `11`.
+- Latest signed Beta APK: `beta-vc74`.
+- Current released Agent: `relay-agent-v38`.
+- Beta: `D118_OWNER_FIELD_ACCEPTED_PASS__LIVE_SOURCE_D29237C0__SCHEMA11__SIGNED_BETA_VC74__AGENT_V38`.
+- Web: `D118_OWNER_ACCEPTED_PASS__PAGED_HISTORY_SKU_LOGS__REVISION_SAFE_SLA__DETAILED_EXCEL`.
+- Android: `D118_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC74__IME_ADJUST_RESIZE__PICKER_TABS_ABOVE_KEYBOARD`.
+- OA038 closed as `PASS_OWNER_CONFIRMED_D118`.
+- D118 accepted baseline preserves D117 proactive HA/fencing and accepts fleet-wide overtime CAS, real pagination, authoritative SLA, detailed Excel, Agent footer and keyboard-safe Android tabs.
+- NEXT_ACTION: await the next explicit Owner requirement and bootstrap authority before any new change.
+- Stable remains OWNER_GATED / untouched.
