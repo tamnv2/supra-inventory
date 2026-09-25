@@ -70,7 +70,6 @@ async function requireUser(request: Request, env: BusinessEnv, roles?: AppRole[]
   if (roles && !roles.includes(user.role)) throw json({ error: "FORBIDDEN" }, 403);
   return { ...user, session_channel: identity.sessionChannel };
 }
-}
 
 async function sha256Hex(value: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
