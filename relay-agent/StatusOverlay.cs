@@ -55,6 +55,7 @@ namespace SupraInventoryRelayAgent
 
         private readonly Label _laptopText = new Label();
         private readonly Label _agentText = new Label();
+        private readonly FlowLayoutPanel _metricFlow = new FlowLayoutPanel();
         private OverlaySettings _settings;
         private string _settingsPath;
         private bool _dragging;
@@ -92,8 +93,18 @@ namespace SupraInventoryRelayAgent
             _agentText.Font = new Font("Segoe UI", 9F);
             _agentText.Text = "Agent | đang đọc tải tiến trình";
             Controls.Add(_agentText);
+            _laptopText.Visible = false;
+            _agentText.Visible = false;
 
-            foreach (Control control in new Control[] { this, _laptopText, _agentText })
+            _metricFlow.FlowDirection = FlowDirection.LeftToRight;
+            _metricFlow.WrapContents = true;
+            _metricFlow.AutoScroll = true;
+            _metricFlow.BackColor = Color.Transparent;
+            _metricFlow.Margin = Padding.Empty;
+            _metricFlow.Padding = Padding.Empty;
+            Controls.Add(_metricFlow);
+
+            foreach (Control control in new Control[] { this, _metricFlow })
             {
                 control.MouseDown += BeginDrag;
                 control.MouseMove += ContinueDrag;
@@ -186,10 +197,9 @@ namespace SupraInventoryRelayAgent
                 BeginInvoke(new Action<string, string>(UpdateMetrics), laptopLine, agentLine);
                 return;
             }
-            _laptopText.Visible = !string.IsNullOrWhiteSpace(laptopLine);
-            _agentText.Visible = !string.IsNullOrWhiteSpace(agentLine);
-            _laptopText.Text = _laptopText.Visible ? laptopLine : "";
-            _agentText.Text = _agentText.Visible ? agentLine : "";
+            _laptopText.Text = laptopLine ?? "";
+            _agentText.Text = agentLine ?? "";
+            RenderMetricTiles(laptopLine, agentLine);
             LayoutLabels();
         }
 
@@ -304,24 +314,66 @@ namespace SupraInventoryRelayAgent
 
         private void LayoutLabels()
         {
-            var width = Math.Max(100, ClientSize.Width - 20);
-            var usable = Math.Max(44, ClientSize.Height - 12);
-            if (_laptopText.Visible && _agentText.Visible)
+            _metricFlow.SetBounds(8, 6, Math.Max(100, ClientSize.Width - 16), Math.Max(32, ClientSize.Height - 12));
+        }
+
+        private void RenderMetricTiles(string laptopLine, string agentLine)
+        {
+            var values = new List<string>();
+            AppendMetricParts(values, laptopLine);
+            AppendMetricParts(values, agentLine);
+            _metricFlow.SuspendLayout();
+            try
             {
-                var firstHeight = Math.Max(22, usable / 2);
-                var secondTop = 6 + firstHeight;
-                var secondHeight = Math.Max(22, ClientSize.Height - secondTop - 6);
-                _laptopText.SetBounds(10, 6, width, firstHeight);
-                _agentText.SetBounds(10, secondTop, width, secondHeight);
-                return;
+                _metricFlow.Controls.Clear();
+                foreach (var value in values)
+                {
+                    var tile = new Label
+                    {
+                        AutoSize = true,
+                        MinimumSize = new Size(108, 27),
+                        MaximumSize = new Size(300, 54),
+                        Margin = new Padding(3),
+                        Padding = new Padding(8, 5, 8, 5),
+                        Text = value,
+                        TextAlign = ContentAlignment.MiddleCenter,
+                        BorderStyle = BorderStyle.FixedSingle,
+                        BackColor = Blend(OverlayBackgroundColor, Color.White, 0.12),
+                        ForeColor = OverlayTextColor,
+                        Font = new Font("Segoe UI", 8.5F, FontStyle.Bold)
+                    };
+                    _metricFlow.Controls.Add(tile);
+                }
             }
-            if (_laptopText.Visible)
+            finally
             {
-                _laptopText.SetBounds(10, 6, width, usable);
-                return;
+                _metricFlow.ResumeLayout(true);
             }
-            if (_agentText.Visible)
-                _agentText.SetBounds(10, 6, width, usable);
+        }
+
+        private static void AppendMetricParts(List<string> target, string line)
+        {
+            if (target == null || string.IsNullOrWhiteSpace(line)) return;
+            var parts = line.Split('|');
+            for (var i = 0; i < parts.Length; i++)
+            {
+                var value = (parts[i] ?? "").Trim();
+                if (value.Length == 0) continue;
+                if (i == 0 && (string.Equals(value, "Vận hành", StringComparison.OrdinalIgnoreCase) ||
+                               string.Equals(value, "Agent", StringComparison.OrdinalIgnoreCase)))
+                    continue;
+                target.Add(value);
+            }
+        }
+
+        private static Color Blend(Color background, Color foreground, double foregroundRatio)
+        {
+            foregroundRatio = Math.Max(0.0, Math.Min(1.0, foregroundRatio));
+            return Color.FromArgb(
+                255,
+                (int)Math.Round(background.R * (1.0 - foregroundRatio) + foreground.R * foregroundRatio),
+                (int)Math.Round(background.G * (1.0 - foregroundRatio) + foreground.G * foregroundRatio),
+                (int)Math.Round(background.B * (1.0 - foregroundRatio) + foreground.B * foregroundRatio));
         }
 
         private void ApplySavedPosition()
@@ -341,6 +393,11 @@ namespace SupraInventoryRelayAgent
             var text = OverlayTextColor;
             _laptopText.ForeColor = text;
             _agentText.ForeColor = text;
+            foreach (Control control in _metricFlow.Controls)
+            {
+                control.ForeColor = text;
+                control.BackColor = Blend(OverlayBackgroundColor, Color.White, 0.12);
+            }
         }
 
         private void ApplyInteractionMode()
