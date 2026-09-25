@@ -22,6 +22,11 @@ namespace SupraInventoryRelayAgent
         private readonly Button _skuSyncButton = new Button();
         private readonly Label _skuSyncStatus = new Label();
         private FirestoreSkuSyncClient _skuSyncClient;
+        private FirestoreFleetMetricsClient _fleetMetricsClient;
+        private FleetMetricSnapshot _fleetSnapshot;
+        private long _fleetMetricsRefreshRunning;
+        private DateTime _lastFleetMetricsRefreshUtc = DateTime.MinValue;
+        private bool _lastFleetPrimary;
         private long _skuSyncRunning;
         private DateTime _nextAutoSkuSyncAttemptUtc = DateTime.MinValue;
 
@@ -32,6 +37,7 @@ namespace SupraInventoryRelayAgent
             _pickerPresenceClient = new FirestorePickerPresenceClient(message => Log(message));
             _pickerContactClient = new FirestorePickerContactClient(message => Log(message));
             _skuSyncClient = new FirestoreSkuSyncClient(message => Log(message));
+            _fleetMetricsClient = new FirestoreFleetMetricsClient(message => Log(message));
 
             if (_supraCard != null)
             {
@@ -209,7 +215,12 @@ namespace SupraInventoryRelayAgent
         {
             if (!HasAgentSession() || _pickerPresenceClient == null) return;
             var coordinator = _leaderCoordinator;
-            var interval = coordinator != null && coordinator.IsLeader
+            var primary = coordinator != null && coordinator.IsLeader;
+            RefreshFleetMetricsIfDue(force || (primary && !_lastFleetPrimary), primary);
+            _lastFleetPrimary = primary;
+            RenderFleetMetricStatus(primary);
+
+            var interval = primary
                 ? TimeSpan.FromSeconds(15)
                 : TimeSpan.FromMinutes(30);
             if (!force && DateTime.UtcNow - _lastPickerPresenceRefreshUtc < interval) return;
@@ -268,9 +279,69 @@ namespace SupraInventoryRelayAgent
                 (items == null ? 0 : items.Count).ToString("N0") +
                 " Picker có phiên PDA + thông báo" +
                 (primary ? " · PRIMARY cập nhật gần realtime" : " · Agent phụ cập nhật tiết kiệm quota");
-            _fleetMetricStatus.Text =
-                "Máy này: " + Interlocked.Read(ref _localPdaRequests).ToString("N0") +
-                " yêu cầu · " + Interlocked.Read(ref _localAgentResponses).ToString("N0") + " phản hồi";
+            RenderFleetMetricStatus(primary);
+        }
+
+        private void RefreshFleetMetricsIfDue(bool force, bool primary)
+        {
+            if (_fleetMetricsClient == null || !HasAgentSession()) return;
+            var interval = TimeSpan.FromMinutes(30);
+            if (!force && DateTime.UtcNow - _lastFleetMetricsRefreshUtc < interval) return;
+            if (Interlocked.CompareExchange(ref _fleetMetricsRefreshRunning, 1L, 0L) != 0L) return;
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    EnsureFreshToken();
+                    var session = SnapshotSession();
+                    FleetMetricSnapshot snapshot;
+                    if (primary)
+                    {
+                        snapshot = _fleetMetricsClient.RefreshPrimary(
+                            session,
+                            _agentInstanceId,
+                            Interlocked.Read(ref _localPdaRequests),
+                            Interlocked.Read(ref _localAgentResponses));
+                    }
+                    else
+                    {
+                        snapshot = _fleetMetricsClient.Load(session);
+                    }
+                    _fleetSnapshot = snapshot;
+                    _lastFleetMetricsRefreshUtc = DateTime.UtcNow;
+                    Ui(() => RenderFleetMetricStatus(primary));
+                }
+                catch (Exception ex)
+                {
+                    Log("FLEET_METRICS refresh=FAIL primary=" + (primary ? "true" : "false") +
+                        " detail=" + SafeMessage(ex));
+                    Ui(() =>
+                    {
+                        RenderFleetMetricStatus(primary);
+                        if (_fleetSnapshot == null)
+                            _fleetMetricStatus.Text = "Cụm: chờ đồng bộ metrics";
+                    });
+                }
+                finally
+                {
+                    Interlocked.Exchange(ref _fleetMetricsRefreshRunning, 0L);
+                }
+            });
+        }
+
+        private void RenderFleetMetricStatus(bool primary)
+        {
+            var localRequests = Interlocked.Read(ref _localPdaRequests);
+            var localResponses = Interlocked.Read(ref _localAgentResponses);
+            var snapshot = _fleetSnapshot;
+            var fleet = snapshot == null
+                ? "Cụm: —/—"
+                : "Cụm hôm nay: " + snapshot.AcceptedTotal.ToString("N0") +
+                  "/" + snapshot.ProcessedTotal.ToString("N0");
+            _fleetMetricStatus.Text = fleet +
+                " · Máy này: " + localRequests.ToString("N0") + "/" + localResponses.ToString("N0") +
+                (primary ? " · realtime" : " · 30p");
         }
 
         private void RunSkuSync(bool manual)
