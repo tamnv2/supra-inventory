@@ -1907,7 +1907,7 @@
     },
     {
       "id": "OA039",
-      "status": "FIELD_READY",
+      "status": "PASS_OWNER_CONFIRMED_D119",
       "title": "Field-accept D119 protected additive roles, PDA alerts, Picker contact and WMS SKU sync",
       "resource_key": "worker-beta",
       "provider": "Beta Web + Worker + Functions + Firestore + signed Android + Windows Agent",
@@ -1952,8 +1952,13 @@
         "Fleet counters survive PRIMARY takeover from checkpoint+tail without changing D117/D118 lease cadence."
       ],
       "safety": "Beta only. Use authorized company WMS access. Never share passwords, tokens, cookies, WMS headers/signatures/session files, service-account material or raw sensitive WMS responses. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Run the listed D119 Beta field acceptance checks; report PASS or the failing item. Stable remains untouched.",
-      "closed": false
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "owner_statement": "D119 đã pass",
+        "confirmed_on": "2026-09-26",
+        "note": "D120 is a post-pass field-repair change set for newly reported defects; it does not revoke the D119 acceptance record."
+      }
     },
     {
       "id": "OA040",
@@ -2168,6 +2173,42 @@
         "main_functions_run": 36174736965,
         "result": "PASS__exact-three-function Firebase deploy exited successfully with cleanup policy effective"
       }
+    },
+    {
+      "id": "OA046",
+      "status": "WAITING_D120_RELEASE",
+      "title": "Field-accept D120 Agent/App/Web field repairs",
+      "resource_key": "worker-beta",
+      "provider": "Beta Web + Worker + signed Android + Windows Agent",
+      "reason_owner_only": "Automated gates can verify source, RBAC, builds, deploys, quota-cadence guards and release integrity, but smooth Windows scrolling/hover/layout, actual taskbar visibility, cross-app Android overlay behavior and real Supra account switching require physical field observation.",
+      "prerequisites": {
+        "d119_owner_acceptance": "PASS_OWNER_CONFIRMED_D119",
+        "d120_branch": "fix/d120-agent-app-web-field-repairs",
+        "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC75",
+        "target_agent_release": "relay-agent-v40",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "After D120 technical/runtime/release PASS, update through the normal inventory-channel to the new signed Android Beta and relay-agent-v40.",
+        "Agent: scroll online Picker list away from the top through repeated refreshes; search code/name; verify whole-row hover, two-column layout, Mã nhân viên, Agent logout and Chuyển xuống nền.",
+        "Agent/Supra: verify current Supra user is shown; wrong Agent password cannot log Supra out; correct password clears the local Supra session and the next login can use a different authorized company account.",
+        "Agent quota: inspect sanitized log during normal startup/use and confirm fleet metrics no longer checkpoints every seconds; confirmation/HA behavior remains normal.",
+        "Android: while another app is foreground, verify HAS_STOCK and SKIP_ALLOWED use the same canonical blue/red full-screen result surface once; no second generic full-screen result appears and no duplicate result opens after ACK.",
+        "Android: return/relaunch with a valid session and verify no login-form flash; true expired/invalid session still reaches login.",
+        "Web: save FIRST_REPORT then PER_PICKER and reload each; leave the SLA form open during background updates and verify controls do not self-reset; verify bottom controls remain reachable above the Windows taskbar.",
+        "Web: ROOT changes a managed Reporter/Admin/PickPack Admin role and the changed account must re-login with new authority; non-ROOT role change remains unavailable/forbidden."
+      ],
+      "pass_criteria": [
+        "All D120 acceptance cases pass on released Beta artifacts.",
+        "Fleet metrics checkpoint cadence is approximately 30 minutes and does not regress D117/D118 confirmation/lease cadences.",
+        "No duplicate Android result full-screen surface and no valid-session login flash.",
+        "SLA auto_skip_mode stays server-authoritative and stable across reload/background updates.",
+        "Only ROOT can change managed roles; PICKER remains HR-authoritative.",
+        "Stable remains untouched."
+      ],
+      "safety": "Beta only. Use authorized company accounts. Do not share passwords, WMS session/header material, tokens or secrets. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for D120 automated technical/runtime/release PASS before physical field acceptance.",
+      "closed": false
     }
   ]
 }
