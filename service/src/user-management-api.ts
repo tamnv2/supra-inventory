@@ -128,7 +128,7 @@ async function provisionManagedCredential(
   if (verified.localId !== uid) throw new Error("FIREBASE_DIRECT_PASSWORD_VERIFY_FAILED");
   await markFirebaseReady(env, user.user_id, uid);
   const primaryReady = (await coreUserById(env, user.user_id)) || { ...user, firebase_uid: uid, firebase_password_ready: true };
-  if ((primaryReady.base_role || primaryReady.role) === "ADMIN") {
+  if (["ADMIN", "PICKPACK_ADMIN"].includes(String(primaryReady.base_role || primaryReady.role))) {
     // Same Firebase UID serves Web/App/Agent. Mark the direct Agent username
     // path ready after the primary credential is synchronized.
     await markAgentFirebaseReady(env, user.user_id);
@@ -226,7 +226,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
           firebase_uid: provisioned.firebase_uid,
           auth_email: provisioned.auth_email || createdUser.auth_email || null,
           firebase_password_ready: true,
-          firebase_agent_ready: (provisioned.base_role || provisioned.role) === "ADMIN",
+          firebase_agent_ready: ["ADMIN", "PICKPACK_ADMIN"].includes(String(provisioned.base_role || provisioned.role)),
         },
       }, 201);
     } catch (error) {
@@ -271,7 +271,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
         );
         await markFirebaseReady(env, updated.user_id, String(updated.firebase_uid));
         updated.firebase_password_ready = true;
-        if ((updated.base_role || updated.role) === "ADMIN") {
+        if (["ADMIN", "PICKPACK_ADMIN"].includes(String(updated.base_role || updated.role))) {
           await markAgentFirebaseReady(env, updated.user_id);
           updated.firebase_agent_ready = true;
         }
