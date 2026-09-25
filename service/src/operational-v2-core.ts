@@ -13,13 +13,13 @@ type SqlRow = Record<string, SqlStorageValue>;
 type Actor = {
   user_id: string;
   employee_code: string | null;
-  role?: "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
+  role?: "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
   display_name?: string;
 };
 
 type SlaConfig = OperationalSlaConfig;
 
-type RealtimeRole = "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
+type RealtimeRole = "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
 
 const SLA_CONFIG_KEY = "operational_sla_v1";
 const OPERATIONAL_SCHEMA_KEY = "operational_v2_schema_version";
@@ -1210,7 +1210,7 @@ function delta(state: DurableObjectState, url: URL): Response {
   const role = String(url.searchParams.get("role") || "") as RealtimeRole;
   const userId = String(url.searchParams.get("user_id") || "").trim();
   const clientEpoch = String(url.searchParams.get("stream_epoch") || "").trim();
-  if (!["PICKER", "REPORTER", "ADMIN", "ROOT"].includes(role) || !userId) {
+  if (!["PICKER", "REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(role) || !userId) {
     return json({ error: "INVALID_REALTIME_IDENTITY" }, 400);
   }
 
