@@ -289,7 +289,10 @@ async function ensureFirebasePasswordReady(env: Env, original: InternalUser): Pr
 
 async function ensureAgentFirebaseReady(env: Env, user: InternalUser): Promise<void> {
   if (!env.GOOGLE_RUNTIME_SA_JSON) throw new Error("AUTH_RUNTIME_NOT_CONFIGURED");
-  if (user.base_role !== "ADMIN" || user.role !== "ADMIN") throw new Error("AGENT_ADMIN_REQUIRED");
+  const realAgentOperator =
+    (user.base_role === "ADMIN" && user.role === "ADMIN") ||
+    (user.base_role === "PICKPACK_ADMIN" && user.role === "PICKPACK_ADMIN");
+  if (!realAgentOperator) throw new Error("AGENT_OPERATOR_REQUIRED");
   if (!user.password_hash || !user.password_salt || !user.firebase_uid) throw new Error("AGENT_PASSWORD_NOT_READY");
   if (Number(user.firebase_agent_ready || 0) === 1) return;
 
@@ -329,13 +332,23 @@ async function migrateActiveAdminFirebaseCredentials(env: Env): Promise<{ migrat
     "/auth/firebase-migration-candidates?role=ADMIN&limit=1",
   );
 
-  const agentCandidates = await coreJson<{ items: InternalUser[]; count: number }>(
-    env,
-    "/auth/firebase-migration-candidates?role=ADMIN&channel=AGENT&limit=50",
-  );
+  const [adminAgentCandidates, pickPackAgentCandidates] = await Promise.all([
+    coreJson<{ items: InternalUser[]; count: number }>(
+      env,
+      "/auth/firebase-migration-candidates?role=ADMIN&channel=AGENT&limit=50",
+    ),
+    coreJson<{ items: InternalUser[]; count: number }>(
+      env,
+      "/auth/firebase-migration-candidates?role=PICKPACK_ADMIN&channel=AGENT&limit=50",
+    ),
+  ]);
+  const agentCandidates = [
+    ...(adminAgentCandidates.items || []),
+    ...(pickPackAgentCandidates.items || []),
+  ].slice(0, 100);
   let agentMigrated = 0;
   let agentFailed = 0;
-  for (const original of agentCandidates.items || []) {
+  for (const original of agentCandidates) {
     try {
       const prepared = Number(original.firebase_password_ready || 0) === 1
         ? original
@@ -347,10 +360,17 @@ async function migrateActiveAdminFirebaseCredentials(env: Env): Promise<{ migrat
       agentFailed += 1;
     }
   }
-  const agentRemaining = await coreJson<{ count: number }>(
-    env,
-    "/auth/firebase-migration-candidates?role=ADMIN&channel=AGENT&limit=1",
-  );
+  const [adminAgentRemaining, pickPackAgentRemaining] = await Promise.all([
+    coreJson<{ count: number }>(
+      env,
+      "/auth/firebase-migration-candidates?role=ADMIN&channel=AGENT&limit=1",
+    ),
+    coreJson<{ count: number }>(
+      env,
+      "/auth/firebase-migration-candidates?role=PICKPACK_ADMIN&channel=AGENT&limit=1",
+    ),
+  ]);
+  const agentRemaining = { count: Number(adminAgentRemaining.count || 0) + Number(pickPackAgentRemaining.count || 0) };
   return {
     migrated,
     failed,
