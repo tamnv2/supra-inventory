@@ -66,6 +66,8 @@ export const pickerAlertCreated = onDocumentCreated("picker_alerts/{alertId}", a
   }
 
   const db = getFirestore();
+  const latest = await snapshot.ref.get();
+  if (!latest.exists || latest.get("status") !== "PENDING") return;
   const presence = await db.doc("picker_presence_projection/current").get();
   const pickers = presence.exists && Array.isArray(presence.get("pickers")) ? presence.get("pickers") as Array<Record<string, unknown>> : [];
   const online = pickers.some((picker) => String(picker.user_id || "") === targetUserId);
