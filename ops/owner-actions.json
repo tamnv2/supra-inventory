@@ -2176,7 +2176,7 @@
     },
     {
       "id": "OA046",
-      "status": "WAITING_D120_HOTFIX_RELEASE",
+      "status": "FIELD_REVIEW_OPEN__D120_V41_RELEASED__AGENT_D121_SUPERSEDES_RESPONSIVENESS_LAYOUT_ITEMS",
       "title": "Field-accept D120 Agent/App/Web field repairs",
       "resource_key": "worker-beta",
       "provider": "Beta Web + Worker + signed Android + Windows Agent",
@@ -2200,7 +2200,7 @@
           "rtdb": 36195643218
         },
         "released_baseline": "beta-vc76 / relay-agent-v40 / main 43a94207ff99f45ab932312bac80bf2b7ac99414",
-        "owner_field_status": "PARTIAL_PASS__PICKER_PRESENCE_DEFECT_OPEN",
+        "owner_field_status": "D120_V41_RELEASED__NEW_AGENT_RESPONSIVENESS_LAYOUT_DEFECTS_MOVED_TO_D121_OA047",
         "hotfix_branch": "fix/d120-picker-presence-flicker-accuracy",
         "hotfix_pr": 190,
         "hotfix_source_head": "7a51318042570b13ad1a8fb967a835fc0cc2ce33",
@@ -2212,7 +2212,11 @@
           "relay_agent": 36198769477,
           "firestore": 36198769424,
           "rtdb": 36198769615
-        }
+        },
+        "hotfix_merged_main": "916bcc16de57740e3413dd346610d74c19ec7fcf",
+        "hotfix_agent_release": "relay-agent-v41",
+        "hotfix_main_agent_run": 36199078966,
+        "hotfix_main_ui_run": 36199079023
       },
       "shortest_test_path": [
         "After the D120 Picker-presence hotfix is technically released, update Agent through inventory-channel to relay-agent-v41.",
@@ -2237,7 +2241,40 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company accounts. Do not share passwords, WMS session/header material, tokens or secrets. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for relay-agent-v41 / hotfix runtime PASS, then retest only the compact Picker online-list cases plus any still-open D120 field cases.",
+      "remaining_owner_action": "Continue only the remaining D120 App/Web/Picker-presence field checks as needed. Agent lag/Not Responding and the new Agent/Supra/PickList/status-line layout requirements are superseded by D121/OA047.",
+      "closed": false
+    },
+    {
+      "id": "OA047",
+      "status": "WAITING_D121_RELEASE",
+      "title": "Field-accept D121 Agent responsiveness and balanced operational layout",
+      "resource_key": "repo",
+      "provider": "GitHub Beta prerelease + Windows Agent",
+      "reason_owner_only": "Automated gates can prove source/build/static non-blocking contracts, but perceived Windows responsiveness under real network/counter conditions and final equal-height visual balance require physical Agent observation.",
+      "prerequisites": {
+        "d120_hotfix_release": "relay-agent-v41",
+        "d120_hotfix_main": "916bcc16de57740e3413dd346610d74c19ec7fcf",
+        "d121_branch": "fix/d121-agent-responsiveness-balanced-layout",
+        "target_agent_release": "relay-agent-v42",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "After relay-agent-v42 is published to inventory-channel, update Agent and keep Tổng quan open during normal work for several minutes.",
+        "While Firestore/network is temporarily slow or disconnected, resize/move the window, switch tabs, scroll Picker/Agent lists and type in PickList. The window must remain interactive and must not repeatedly show Not Responding.",
+        "On Tổng quan, verify the left side is divided approximately equally among Hệ thống Agent, Hệ thống Supra and Xử lý PickList; the right Picker workspace remains separate.",
+        "Verify Agent / Relay / Wi-Fi appear on one horizontal line in Hệ thống Agent; resize the window and confirm values may ellipsize but do not overlap.",
+        "Recheck D120 Picker list scroll/search/no-flicker and one normal PickList confirmation so D117/D118 behavior remains intact."
+      ],
+      "pass_criteria": [
+        "No repeated UI freeze/Not Responding caused by scheduled Firestore refresh or system-monitor sampling.",
+        "Agent/Supra/PickList occupy three equal responsive left-column regions.",
+        "Agent/Relay/Wi-Fi render on one row and remain readable without overlap.",
+        "No new polling, heartbeat, WMS probe or quota cadence is introduced.",
+        "D120 Picker rendering and D117/D118 confirmation/HA/WMS mutation behavior remain unchanged.",
+        "Stable remains untouched."
+      ],
+      "safety": "Beta Agent only. Do not share passwords, tokens, WMS session/header material or other secrets. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for relay-agent-v42 technical/release PASS, then run the compact physical checks above.",
       "closed": false
     }
   ]
