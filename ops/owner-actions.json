@@ -2062,7 +2062,7 @@
     },
     {
       "id": "OA043",
-      "status": "ACTION_REQUIRED",
+      "status": "PASS_OWNER_COMPLETED",
       "title": "Enable Cloud Billing API for D119 Functions deploy",
       "resource_key": "gcp-beta",
       "provider": "Google Cloud APIs & Services",
@@ -2084,7 +2084,42 @@
       ],
       "expected_success": "Functions deploy proceeds past the billingInfo verification step.",
       "safety": "Beta only. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Enable cloudbilling.googleapis.com on supra-inventory-beta.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "rerun_job": 108184991966,
+        "result": "PASS__Cloud Billing API gate cleared; deploy reached Gen2 function creation."
+      }
+    },
+    {
+      "id": "OA044",
+      "status": "ACTION_REQUIRED",
+      "title": "Allow D119 deploy identity to act as Beta default compute SA",
+      "resource_key": "default-compute-sa-beta-d119",
+      "provider": "Google Cloud IAM",
+      "reason_owner_only": "Connected project tools cannot mutate Google Cloud service-account IAM policy. Gen2 function creation now fails only because the deploy service account lacks iam.serviceaccounts.actAs on the Beta default compute service account.",
+      "required_change": {
+        "resource": "572322098890-compute@developer.gserviceaccount.com",
+        "principal": "invent-beta-functions-deploy@supra-inventory-beta.iam.gserviceaccount.com",
+        "role": "Service Account User",
+        "role_id": "roles/iam.serviceAccountUser",
+        "permission": "iam.serviceaccounts.actAs"
+      },
+      "verification_evidence": {
+        "workflow_run": 36156658669,
+        "rerun_job": 108184991966,
+        "prior_api_gates": "PASS",
+        "failure": "All three Gen2 function create calls returned HTTP 403: caller missing iam.serviceaccounts.actAs on 572322098890-compute@developer.gserviceaccount.com."
+      },
+      "shortest_ui_path": [
+        "Google Cloud Console -> IAM & Admin -> Service Accounts -> select 572322098890-compute@developer.gserviceaccount.com.",
+        "Permissions -> Grant access.",
+        "New principal: invent-beta-functions-deploy@supra-inventory-beta.iam.gserviceaccount.com.",
+        "Role: Service Account User, then Save."
+      ],
+      "expected_success": "Rerun of Functions workflow 36156658669 can create the three Gen2 functions using the required service-account identity.",
+      "safety": "Grant on this Beta service-account resource only; do not grant project-wide Owner/Editor. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Grant the exact Service Account User binding above and reply xong.",
       "closed": false
     }
   ]
