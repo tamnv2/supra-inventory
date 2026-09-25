@@ -226,9 +226,11 @@ async function ensureFirebaseUid(env: Env, user: InternalUser): Promise<string> 
 
 function sessionAuthorityError(identity: Awaited<ReturnType<typeof verifyFirebaseIdToken>>, user: InternalUser): string | null {
   if (identity.sessionChannel === "AGENT") {
-    return user.role === "ADMIN" && user.base_role === "ADMIN" ? null : "AGENT_ADMIN_REQUIRED";
+    if (user.role === "ADMIN" && user.base_role === "ADMIN") return null;
+    if (user.role === "PICKPACK_ADMIN" && user.base_role === "PICKPACK_ADMIN") return null;
+    return "AGENT_ROLE_REQUIRED";
   }
-  if (identity.sessionChannel === "ANDROID" && (user.base_role === "ADMIN" || user.base_role === "ROOT")) return "CLIENT_ROLE_NOT_ALLOWED";
+  if (identity.sessionChannel === "ANDROID" && (user.base_role === "ROOT" || user.base_role === "PICKPACK_ADMIN")) return "CLIENT_ROLE_NOT_ALLOWED";
   if (identity.sessionChannel !== "WEB" && identity.sessionChannel !== "ANDROID") return "SESSION_UPGRADE_REQUIRED";
   const expected = identity.sessionChannel === "WEB"
     ? Number(user.web_session_generation || 0)
@@ -405,6 +407,14 @@ async function requireUser(request: Request, env: Env, roles?: AppRole[]): Promi
   const sessionError = sessionAuthorityError(identity, user);
   if (sessionError) throw new Response(JSON.stringify({ error: sessionError }), { status: 401, headers: { "content-type": "application/json" } });
   if (roles && !roles.includes(user.role)) throw new Response(JSON.stringify({ error: "FORBIDDEN" }), { status: 403, headers: { "content-type": "application/json" } });
+  if (
+    identity.sessionChannel === "ANDROID" &&
+    roles &&
+    roles.length > 0 &&
+    roles.every((role) => role === "ADMIN" || role === "PICKPACK_ADMIN" || role === "ROOT")
+  ) {
+    throw new Response(JSON.stringify({ error: "MANAGEMENT_WEB_ONLY" }), { status: 403, headers: { "content-type": "application/json" } });
+  }
   return user;
 }
 
@@ -555,8 +565,8 @@ async function login(request: Request, env: Env): Promise<Response> {
   if (channel === "WEB" && user.base_role === "PICKER") {
     return json({ error: "CLIENT_ROLE_NOT_ALLOWED", message: "Picker chỉ đăng nhập trên App/PDA." }, 403);
   }
-  if (channel === "ANDROID" && (user.base_role === "ADMIN" || user.base_role === "ROOT")) {
-    return json({ error: "CLIENT_ROLE_NOT_ALLOWED", message: "Admin/Root hiện chỉ đăng nhập trên Web. App/PDA chỉ hỗ trợ Picker và Reporter." }, 403);
+  if (channel === "ANDROID" && (user.base_role === "ROOT" || user.base_role === "PICKPACK_ADMIN")) {
+    return json({ error: "CLIENT_ROLE_NOT_ALLOWED", message: "Root/Quản trị Pick Pack hiện sử dụng Web hoặc Agent phù hợp. App/PDA hỗ trợ Picker, Reporter và Quản trị Invent ở chế độ xử lý báo hàng." }, 403);
   }
 
   try {
