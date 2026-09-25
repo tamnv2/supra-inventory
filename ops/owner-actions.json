@@ -2186,7 +2186,19 @@
         "d120_branch": "fix/d120-agent-app-web-field-repairs",
         "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC75",
         "target_agent_release": "relay-agent-v40",
-        "stable": "OWNER_GATED"
+        "stable": "OWNER_GATED",
+        "implementation_pr": 189,
+        "pr_head": "11d10f247e78913130f4ac1d0d1be535644f1221",
+        "pr_gates": "PASS",
+        "pr_runs": {
+          "repo_authority": 36195643090,
+          "project_state": 36195643129,
+          "ui": 36195643128,
+          "android": 36195643187,
+          "relay_agent": 36195643157,
+          "firestore": 36195643116,
+          "rtdb": 36195643218
+        }
       },
       "shortest_test_path": [
         "After D120 technical/runtime/release PASS, update through the normal inventory-channel to the new signed Android Beta and relay-agent-v40.",
