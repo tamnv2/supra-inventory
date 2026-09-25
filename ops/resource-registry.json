@@ -23,7 +23,7 @@
     "durable_object_class": "InventoryCore",
     "durable_object_binding": "INVENTORY_CORE",
     "durable_object_storage": "sqlite",
-    "beta_sqlite_schema_version": 11,
+    "beta_sqlite_schema_version": 12,
     "beta_operational_v2_extension_schema_runtime": 5,
     "beta_operational_v2_extension_schema_source_target": 5,
     "beta_sqlite_schema_source_target": 11
