@@ -66,6 +66,16 @@ async function removeDevice(state: DurableObjectState, request: Request): Promis
 }
 
 function onlinePickerProjection(state: DurableObjectState): Response {
+  const windowState = readAndroidAlertWindow(state);
+  if (!windowState.is_open) {
+    return response({
+      items: [],
+      count: 0,
+      generated_at: windowState.server_now,
+      operating_window_open: false,
+      overtime_until_ms: windowState.overtime_until_ms,
+    });
+  }
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT u.user_id,
             COALESCE(u.employee_code, '') AS employee_code,
@@ -94,7 +104,13 @@ function onlinePickerProjection(state: DurableObjectState): Response {
     device_seen_at: row.device_seen_at == null ? null : String(row.device_seen_at),
     status: "PDA_READY",
   }));
-  return response({ items: rows, count: rows.length, generated_at: new Date().toISOString() });
+  return response({
+    items: rows,
+    count: rows.length,
+    generated_at: windowState.server_now,
+    operating_window_open: true,
+    overtime_until_ms: windowState.overtime_until_ms,
+  });
 }
 
 function targetUsersForRoles(state: DurableObjectState, roles: string[]): string[] {
