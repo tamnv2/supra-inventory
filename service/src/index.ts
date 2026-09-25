@@ -159,6 +159,10 @@ async function coreJson<T>(env: Env, path: string, init?: RequestInit): Promise<
   return payload;
 }
 
+async function androidOperatingWindow(env: Env): Promise<{ is_open: boolean; server_now_ms: number; closes_at_ms: number | null }> {
+  return coreJson(env, "/notifications/alert-window");
+}
+
 async function checkCore(env: Env): Promise<{
   ok: boolean;
   status: string;
@@ -539,6 +543,16 @@ async function refreshSession(request: Request, env: Env): Promise<Response> {
     if (!resolved || resolved.status !== "ACTIVE") return json({ error: "USER_NOT_ACTIVE" }, 401);
     const sessionError = sessionAuthorityError(identity, resolved);
     if (sessionError) return json({ error: sessionError }, 401);
+    if (identity.sessionChannel === "ANDROID") {
+      const windowState = await androidOperatingWindow(env);
+      if (!windowState.is_open) {
+        return json({
+          error: "ANDROID_WINDOW_CLOSED",
+          message: "Ca vận hành App/PDA đang đóng (23:00–05:00). Quản trị Invent có thể gia hạn khi tăng ca.",
+          server_now_ms: windowState.server_now_ms,
+        }, 403);
+      }
+    }
     user = resolved;
   } catch {
     return json({ error: "INVALID_AUTH_TOKEN" }, 401);
@@ -589,6 +603,16 @@ async function login(request: Request, env: Env): Promise<Response> {
   }
   if (channel === "ANDROID" && (user.base_role === "ROOT" || user.base_role === "PICKPACK_ADMIN")) {
     return json({ error: "CLIENT_ROLE_NOT_ALLOWED", message: "Root/Quản trị Pick Pack hiện sử dụng Web hoặc Agent phù hợp. App/PDA hỗ trợ Picker, Reporter và Quản trị Invent ở chế độ xử lý báo hàng." }, 403);
+  }
+  if (channel === "ANDROID") {
+    const windowState = await androidOperatingWindow(env);
+    if (!windowState.is_open) {
+      return json({
+        error: "ANDROID_WINDOW_CLOSED",
+        message: "Ca vận hành App/PDA đang đóng (23:00–05:00). Quản trị Invent có thể gia hạn khi tăng ca.",
+        server_now_ms: windowState.server_now_ms,
+      }, 403);
+    }
   }
 
   try {
