@@ -89,9 +89,17 @@ namespace SupraInventoryRelayAgent
             _fleetMetricStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             pickerCard.Controls.Add(_fleetMetricStatus);
 
-            _pickerSearch.SetBounds(16, 36, 1006, 30);
+            pickerCard.Controls.Add(new Label
+            {
+                Left = 16,
+                Top = 43,
+                Width = 178,
+                Height = 20,
+                Text = "Tìm Mã nhân viên / họ tên",
+                ForeColor = Color.FromArgb(71, 85, 105)
+            });
+            _pickerSearch.SetBounds(198, 36, 824, 30);
             _pickerSearch.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            _pickerSearch.PlaceholderText = "Tìm Mã nhân viên hoặc họ và tên";
             _pickerSearch.TextChanged += (s, e) => RenderPickerOnlineSnapshot();
             pickerCard.Controls.Add(_pickerSearch);
 
