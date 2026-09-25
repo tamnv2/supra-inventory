@@ -85,8 +85,10 @@ jobs:
           const dayKeyGuard = "request.resource.data.day_key.matches('^[0-9]{8}" + "$" + "')";
           if (!rules.includes(dayKeyGuard)) throw new Error('D119 fleet day-key guard is incomplete');
           const trimmed = rules.trimEnd();
-          if (!trimmed.endsWith('  }\\n}')) throw new Error('Firestore Rules document has trailing/orphan content after service close');
-          if (rules.includes("\\n}\\n)\\n")) throw new Error('Firestore Rules contains orphan content after service close');
+          const tail = trimmed.split(String.fromCharCode(10)).slice(-2).map(line => line.trim());
+          if (tail.length !== 2 || tail[0] !== '}' || tail[1] !== '}') {
+            throw new Error('Firestore Rules document has trailing/orphan content after service close');
+          }
           console.log('D119 Firestore structural validation PASS');
           console.log('D097 Firestore source validation PASS');
           NODE
