@@ -1907,7 +1907,7 @@
     },
     {
       "id": "OA039",
-      "status": "WAITING_D119_MAIN_RELEASE",
+      "status": "FIELD_READY",
       "title": "Field-accept D119 protected additive roles, PDA alerts, Picker contact and WMS SKU sync",
       "resource_key": "worker-beta",
       "provider": "Beta Web + Worker + Functions + Firestore + signed Android + Windows Agent",
@@ -1920,8 +1920,16 @@
         "pr_gates": "PASS",
         "target_android_release": "beta-vc75",
         "target_agent_release": "relay-agent-v39",
-        "technical_runtime_release": "PENDING_MAIN_MERGE",
-        "stable": "OWNER_GATED"
+        "technical_runtime_release": "PASS",
+        "stable": "OWNER_GATED",
+        "final_main": "fbe3292a950ad387f34d3c965dcef7c17ed6a843",
+        "authority_run": 36174736954,
+        "continuity_run": 36174736933,
+        "operational_v2_run": 36174736946,
+        "functions_run": 36174736965,
+        "firestore_hotfix_run": 36157673480,
+        "android_release": "beta-vc75",
+        "agent_release": "relay-agent-v39"
       },
       "shortest_test_path": [
         "After D119 main release PASS, install signed beta-vc75 and relay-agent-v39 from the normal inventory-channel.",
@@ -1944,7 +1952,7 @@
         "Fleet counters survive PRIMARY takeover from checkpoint+tail without changing D117/D118 lease cadence."
       ],
       "safety": "Beta only. Use authorized company WMS access. Never share passwords, tokens, cookies, WMS headers/signatures/session files, service-account material or raw sensitive WMS responses. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for automated D119 main/runtime/release PASS before field testing.",
+      "remaining_owner_action": "Run the listed D119 Beta field acceptance checks; report PASS or the failing item. Stable remains untouched.",
       "closed": false
     },
     {
@@ -2128,7 +2136,7 @@
     },
     {
       "id": "OA045",
-      "status": "ACTION_REQUIRED",
+      "status": "PASS_OWNER_COMPLETED",
       "title": "Configure Beta Functions Artifact Registry cleanup policy",
       "resource_key": "gcp-beta",
       "provider": "Google Cloud Artifact Registry",
@@ -2153,8 +2161,13 @@
       ],
       "expected_success": "After policy exists, the exact-three-function Firebase deploy no longer exits on the cleanup-policy gate and D119 can reach terminal technical/runtime PASS.",
       "safety": "Beta gcf-artifacts only. Do not change Stable. No new deploy-service-account role is required by this selected approach.",
-      "remaining_owner_action": "Create the active 1-day cleanup policy on Beta gcf-artifacts and reply xong.",
-      "closed": false
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "owner_ui_evidence": "gcf-artifacts repository updated with cleanup configuration",
+        "main_functions_run": 36174736965,
+        "result": "PASS__exact-three-function Firebase deploy exited successfully with cleanup policy effective"
+      }
     }
   ]
 }

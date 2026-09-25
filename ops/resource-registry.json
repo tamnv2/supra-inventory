@@ -176,7 +176,7 @@
       "android_source_status": "D118_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC74__IME_ADJUST_RESIZE__PICKER_TABS_ABOVE_KEYBOARD",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
-      "latest_signed_beta_release": "beta-vc74",
+      "latest_signed_beta_release": "beta-vc75",
       "latest_signed_beta_release_name": "1291 Beta 0.2.0-beta.74",
       "latest_signed_beta_apk_sha256": "c515a17456d3384a2433feb04df5b2fce8d3487a519fbb2d8522ba8a8dc756b1",
       "latest_signed_beta_apk_size_bytes": 19019872,
@@ -191,7 +191,7 @@
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
       "relay_poc_status": "D118_OWNER_ACCEPTED_PASS__AGENT_V38__D117_HA_PRESERVED__FLEET_OVERTIME_CAS",
-      "relay_agent_release": "relay-agent-v38",
+      "relay_agent_release": "relay-agent-v39",
       "firebase_rtdb_rules_deploy": "D087_PR_GATE_PASS_RUN_35495453228__MAIN_SOURCE_MERGED",
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D118_PASS_RUN_36064078233__SOURCE_COMMIT_EXACT__SCHEMA11_11__AGENT_MIGRATION_0_0__OPERATIONAL5_5",
@@ -203,7 +203,8 @@
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
       "d116_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC72__AGENT_V35__OA036_FIELD_READY",
       "d117_source_status": "FINAL_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC73__AGENT_V37__OA037_FIELD_READY",
-      "d118_source_status": "OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC74__AGENT_V38"
+      "d118_source_status": "OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC74__AGENT_V38",
+      "d119_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA039_FIELD_READY"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -875,7 +876,7 @@
       "runtime_service_account": "inventory-beta-alert-runtime@supra-inventory-beta.iam.gserviceaccount.com",
       "deploy_secret_reference": "FIREBASE_FUNCTIONS_SA_JSON_BETA",
       "target_function": "inventory-beta-picker-alerts",
-      "status": "RUNTIME_CREATED__WAITING_OWNER_ARTIFACT_CLEANUP_POLICY",
+      "status": "PASS__GEN2_FUNCTIONS_DEPLOYED_AND_CLEANUP_POLICY_EFFECTIVE",
       "last_failed_run": 36156658669,
       "last_failed_job": 108192966062,
       "required_deploy_permission": "firebase.projects.get",
@@ -914,21 +915,21 @@
         "pickerAlertResolved": "PASS",
         "skuSyncCreated": "PASS"
       },
-      "remaining_ci_blocker": "ARTIFACT_REGISTRY_CLEANUP_POLICY_NOT_CONFIGURED",
+      "remaining_ci_blocker": null,
       "artifact_cleanup": {
-        "status": "OWNER_ONE_TIME_POLICY_REQUIRED",
+        "status": "PASS__OWNER_CONFIGURED_1_DAY_POLICY",
         "repository": "gcf-artifacts",
         "location": "asia-southeast1",
         "retention_days": 1,
-        "mode": "DELETE_ARTIFACTS",
-        "deploy_identity_extra_role": "NOT_REQUIRED_BY_SELECTED_STRATEGY",
-        "workflow_policy_mutation": "REMOVED_IN_FIX_BRANCH",
+        "workflow_policy_mutation": "NOT_REQUIRED",
         "deploy_scope": [
           "pickerAlertCreated",
           "pickerAlertResolved",
           "skuSyncCreated"
         ]
-      }
+      },
+      "last_pass_run": 36174736965,
+      "last_pass_main": "fbe3292a950ad387f34d3c965dcef7c17ed6a843"
     },
     "firestore": {
       "additive_collections": [

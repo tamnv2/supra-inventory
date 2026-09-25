@@ -193,7 +193,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Owner configures one active 1-day cleanup policy on Beta Artifact Registry repository gcf-artifacts in asia-southeast1 (no new deploy-SA IAM role), then merge the prepared cleanup-policy workflow repair after authority/continuity PASS and observe main exact-three-function deployment to terminal PASS.",
+  "next_action": "D119 automated technical/runtime/release gates are PASS. OA039 is now field-ready for Owner acceptance on live Beta: validate physical Android overlay/notification behavior, role boundaries, event-driven Picker presence/contact, WMS SKU sync and D118 HA regression. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -549,7 +549,7 @@
       "d110_health": "HTTP_200__SOURCE_EXACT_E7931CF8__SCHEMA_11_11__STORAGE_TRUE__MISSING_0__AGENT_0_0__OPERATIONAL_5_5"
     },
     "d119": {
-      "status": "FUNCTIONS_CREATED__ARTIFACT_CLEANUP_OWNER_POLICY_BLOCKER",
+      "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA039_FIELD_READY",
       "branch": "feat/d119-protected-additive-ops",
       "baseline_main": "c82d21d470f5c8dd12f795b21ef3cadf32be8ef3",
       "baseline_release": "beta-vc74 / relay-agent-v38",
@@ -578,7 +578,7 @@
       "target_android_release": "beta-vc75",
       "target_agent_release": "relay-agent-v39",
       "target_channel": "inventory-channel",
-      "runtime_release_status": "FUNCTIONS_RUNTIME_CREATED__CI_WAITING_PRECONFIGURED_ARTIFACT_POLICY",
+      "runtime_release_status": "PASS__MAIN_FUNCTIONS_EXACT_THREE_DEPLOY__CLEANUP_POLICY_EFFECTIVE",
       "implementation_main": "580680019fcc440eadd25955c7ea87d1ca44bd29",
       "main_firestore_failed_run": 36156658549,
       "main_firestore_failure": "RULESET_CREATE_HTTP_400_INVALID_ARGUMENT__MALFORMED_D119_RULE_REGION",
@@ -588,19 +588,37 @@
       "main_firestore_hotfix_status": "PASS",
       "functions_failed_run": 36156658669,
       "functions_rerun_job": 108192966062,
-      "functions_failure": "ARTIFACT_REGISTRY_CLEANUP_POLICY_MISSING",
-      "required_owner_iam": "PASS__NO_ADDITIONAL_IAM_ROLE_REQUESTED",
+      "functions_failure": null,
+      "required_owner_iam": "PASS__NO_OPEN_IAM_ACTION",
       "required_owner_api": "PASS__ALL_REQUIRED_APIS_EFFECTIVE",
       "functions_runtime_create_status": "PASS__PICKER_ALERT_CREATED__PICKER_ALERT_RESOLVED__SKU_SYNC_CREATED",
       "cleanup_policy_fix": {
-        "strategy": "OWNER_CONFIGURES_POLICY_ONCE__CI_DOES_NOT_REQUIRE_ARTIFACT_REGISTRY_EDITOR",
+        "strategy": "OWNER_CONFIGURED_ONCE__CI_READS_EXISTING_POLICY",
         "repository": "gcf-artifacts",
         "location": "asia-southeast1",
         "retention_days": 1,
+        "final_status": "PASS__MAIN_FIREBASE_DEPLOY_EXIT_0",
         "deploy_scope": "EXACT_D119_THREE_FUNCTIONS",
         "force_flag": "FORBIDDEN"
       },
-      "required_owner_action": "CONFIGURE_GCF_ARTIFACTS_1_DAY_CLEANUP_POLICY_AS_PROJECT_OWNER"
+      "required_owner_action": null,
+      "finalization_main": "fbe3292a950ad387f34d3c965dcef7c17ed6a843",
+      "final_main_runs": {
+        "repo_authority": 36174736954,
+        "project_state": 36174736933,
+        "operational_v2": 36174736946,
+        "functions": 36174736965,
+        "firestore_hotfix": 36157673480
+      },
+      "release_evidence": {
+        "android": "beta-vc75",
+        "android_release_id": 396736879,
+        "android_asset_id": 588684842,
+        "agent": "relay-agent-v39",
+        "agent_release_id": 396736476,
+        "agent_asset_id": 588683817,
+        "stable": "UNTOUCHED_OWNER_GATED"
+      }
     }
   },
   "authority_setup": {
@@ -723,7 +741,8 @@
     "D119 Functions rerun job 108184991966 after Owner enabled Cloud Billing API cleared the billingInfo blocker, uploaded the Functions package, and reached actual Gen2 creation of pickerAlertCreated/pickerAlertResolved/skuSyncCreated. All three create calls fail only on iam.serviceaccounts.actAs for the registered Beta default compute service account. Firebase/Cloud Functions explicitly requires the deploy caller invent-beta-functions-deploy to hold roles/iam.serviceAccountUser on that service-account resource. Next Owner-only action is that exact resource-level binding; no broader project Owner/Editor grant. Stable remains untouched.",
     "D119 Functions rerun job 108192966062 confirms IAM/API setup is sufficient: package upload PASS and all three Gen2 functions pickerAlertCreated, pickerAlertResolved and skuSyncCreated report Successful create operation in asia-southeast1. Workflow exits 1 only after deployment because Firebase CLI 14.12.1 detected no Artifact Registry cleanup policy and refused to auto-create one without an explicit cleanup-policy action/force. This is no longer an IAM blocker. D119 is not yet terminal technical PASS while the Functions CI gate is red; no additional Owner IAM action is currently required. Stable remains untouched.",
     "D119 cleanup-policy repair: PR #186 now configures the official Firebase Functions Artifact Registry cleanup policy explicitly for asia-southeast1 with 1-day retention before deployment, then deploys only the exact three D119 functions. The workflow intentionally does not use firebase deploy --force because Firebase CLI documents --force as allowing implicit deletion of functions missing from the working directory; fail-closed exact targeting is safer. Official Firebase guidance states functions:artifacts:setpolicy is the supported cleanup command and defaults to 1 day. Stable untouched.",
-    "D119 main Functions run 36173638920 proved the deploy identity cannot run functions:artifacts:setpolicy. Rather than add a permanent Artifact Registry Editor/Admin role to the deploy service account, the least-privilege repair is a one-time Owner cleanup policy on Beta gcf-artifacts (asia-southeast1), 1-day retention per Firebase's documented default. Follow-up workflow removes the policy-mutation step and keeps exact-three-function deployment without --force. Stable untouched."
+    "D119 main Functions run 36173638920 proved the deploy identity cannot run functions:artifacts:setpolicy. Rather than add a permanent Artifact Registry Editor/Admin role to the deploy service account, the least-privilege repair is a one-time Owner cleanup policy on Beta gcf-artifacts (asia-southeast1), 1-day retention per Firebase's documented default. Follow-up workflow removes the policy-mutation step and keeps exact-three-function deployment without --force. Stable untouched.",
+    "D119 terminal automated release evidence: PR #187 merged main fbe3292a. Main Repo Authority run 36174736954 PASS, Project State/Continuity run 36174736933 PASS, Legacy Operational V2/Web/Android regression run 36174736946 PASS, and Beta Functions run 36174736965 PASS with exact three-function deployment after the Owner-configured gcf-artifacts 1-day cleanup policy. Firestore hotfix main run 36157673480 remains PASS. beta-vc75 and relay-agent-v39 are published. D119 is technical/runtime/release PASS; OA039 physical Owner field acceptance is now the only remaining acceptance layer. Stable untouched."
   ],
   "active_workstream": "D119_IMPLEMENTATION",
   "paused_workstreams": {
