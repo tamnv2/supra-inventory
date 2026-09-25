@@ -73,6 +73,322 @@ jobs:
           );
           if (!queueIndex) throw new Error('Missing D097 pending queue composite index');
           if (/allow\s+(read|write)\s*:\s*if\s+true/.test(rules)) throw new Error('Open Firestore Rules are forbidden');
+
+          const exactCount = (needle) => rules.split(needle).length - 1;
+          for (const [marker, expected] of [
+            ['match /relay_fleet_metrics/{docId}', 1],
+            ['match /sku_sync_jobs/{jobId}', 1],
+            ['match /relay_agent_log_uploads/{partId}', 1],
+          ]) {
+            const actual = exactCount(marker);
+            if (actual !== expected) throw new Error('D119 Firestore block multiplicity mismatch for ' + marker + ': ' + actual);
+          }
+          if (!rules.includes("request.resource.data.day_key.matches('^[0-9]{8}
+          NODE
+
+      - name: Validate Beta service-account secret shape
+        shell: bash
+        env:
+          FIREBASE_RULES_SA_JSON_BETA: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+        run: |
+          set -euo pipefail
+          [ -n "${FIREBASE_RULES_SA_JSON_BETA:-}" ] || { echo "FIREBASE_RULES_SA_JSON_BETA missing"; exit 1; }
+          jq -e '.type == "service_account" and .project_id == "supra-inventory-beta" and (.private_key | startswith("-----BEGIN PRIVATE KEY-----"))' <<<"$FIREBASE_RULES_SA_JSON_BETA" >/dev/null
+          echo "Beta service-account secret shape PASS"
+
+      - name: Authenticate Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Ensure D099 Firebase email/password provider
+        shell: bash
+        env:
+          MUTATE: ${{ github.event_name != 'pull_request' }}
+        run: |
+          set -euo pipefail
+          project="supra-inventory-beta"
+          token="$(gcloud auth print-access-token)"
+          config_url="https://identitytoolkit.googleapis.com/admin/v2/projects/${project}/config"
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          code="$(curl -sS -o "$tmp" -w '%{http_code}' \
+            -H "Authorization: Bearer $token" \
+            -H "X-Goog-User-Project: $project" \
+            "$config_url")"
+          [ "$code" = "200" ] || { echo "Firebase Auth config read failed: HTTP $code"; head -c 500 "$tmp"; exit 1; }
+          enabled="$(jq -r '.signIn.email.enabled // false' "$tmp")"
+          password_required="$(jq -r '.signIn.email.passwordRequired // false' "$tmp")"
+          echo "Firebase email/password provider enabled=$enabled password_required=$password_required"
+          if [ "$enabled" = "true" ] && [ "$password_required" = "true" ]; then
+            echo "D099 Firebase email/password provider PASS"
+            exit 0
+          fi
+          if [ "$MUTATE" != "true" ]; then
+            echo "::warning::D099 detected Firebase email/password provider disabled/incomplete on Beta; main deploy will enable it."
+            exit 0
+          fi
+          patch_code="$(curl -sS -o "$tmp" -w '%{http_code}' -X PATCH \
+            -H "Authorization: Bearer $token" \
+            -H "X-Goog-User-Project: $project" \
+            -H "Content-Type: application/json" \
+            --data '{"signIn":{"email":{"enabled":true,"passwordRequired":true}}}' \
+            "$config_url?updateMask=signIn.email.enabled,signIn.email.passwordRequired")"
+          [ "$patch_code" = "200" ] || { echo "Firebase Auth config update failed: HTTP $patch_code"; head -c 500 "$tmp"; exit 1; }
+          jq -e '.signIn.email.enabled == true and .signIn.email.passwordRequired == true' "$tmp" >/dev/null
+          echo "D099 Firebase email/password provider ENABLED"
+
+      - name: D099 synthetic PBKDF2 Firebase sign-in probe
+        shell: bash
+        env:
+          FIREBASE_WEB_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+        run: |
+          set -euo pipefail
+          [ -n "${FIREBASE_WEB_API_KEY_BETA:-}" ] || { echo "FIREBASE_WEB_API_KEY_BETA missing"; exit 1; }
+          export D099_ACCESS_TOKEN="$(gcloud auth print-access-token)"
+          node <<'NODE'
+          const crypto = require('crypto');
+          const project = 'supra-inventory-beta';
+          const apiKey = process.env.FIREBASE_WEB_API_KEY_BETA;
+          const accessToken = process.env.D099_ACCESS_TOKEN;
+          const runId = String(process.env.GITHUB_RUN_ID || Date.now());
+          const uid = ('d099-ci-' + runId + '-' + String(process.env.GITHUB_RUN_ATTEMPT || '1')).slice(0, 120);
+          const email = uid + '@auth.supra.invalid';
+          const password = crypto.randomBytes(24).toString('base64url') + 'A1!';
+          const salt = crypto.randomBytes(16);
+          const hash = crypto.pbkdf2Sync(Buffer.from(password, 'utf8'), salt, 100000, 32, 'sha256');
+
+          async function json(res) {
+            const text = await res.text();
+            try { return text ? JSON.parse(text) : {}; } catch { return { raw: text.slice(0, 300) }; }
+          }
+          async function cleanup() {
+            try {
+              await fetch('https://identitytoolkit.googleapis.com/v1/projects/' + project + '/accounts:batchDelete', {
+                method: 'POST',
+                headers: { authorization: 'Bearer ' + accessToken, 'content-type': 'application/json' },
+                body: JSON.stringify({ localIds: [uid], force: true }),
+              });
+            } catch {}
+          }
+
+          (async () => {
+            const cfg = await fetch('https://identitytoolkit.googleapis.com/admin/v2/projects/' + project + '/config', {
+              headers: { authorization: 'Bearer ' + accessToken, 'X-Goog-User-Project': project },
+            });
+            const cfgBody = await json(cfg);
+            if (!cfg.ok) throw new Error('D099 config probe HTTP ' + cfg.status);
+            if (cfgBody?.signIn?.email?.enabled !== true || cfgBody?.signIn?.email?.passwordRequired !== true) {
+              console.log('D099 synthetic sign-in SKIP: provider not enabled yet on PR; main deploy step will enable it.');
+              return;
+            }
+
+            try {
+              const imported = await fetch('https://identitytoolkit.googleapis.com/v1/projects/' + project + '/accounts:batchCreate', {
+                method: 'POST',
+                headers: { authorization: 'Bearer ' + accessToken, 'content-type': 'application/json' },
+                body: JSON.stringify({
+                  hashAlgorithm: 'PBKDF2_SHA256',
+                  rounds: 100000,
+                  allowOverwrite: true,
+                  users: [{
+                    localId: uid,
+                    email,
+                    passwordHash: hash.toString('base64'),
+                    salt: salt.toString('base64'),
+                    disabled: false,
+                  }],
+                }),
+              });
+              const importedBody = await json(imported);
+              if (!imported.ok || (Array.isArray(importedBody.error) && importedBody.error.length)) {
+                throw new Error('D099 synthetic import failed HTTP ' + imported.status);
+              }
+
+              const signed = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + encodeURIComponent(apiKey), {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ email, password, returnSecureToken: true }),
+              });
+              const signedBody = await json(signed);
+              if (!signed.ok || signedBody.localId !== uid || !signedBody.idToken || !signedBody.refreshToken) {
+                throw new Error('D099 synthetic PBKDF2 sign-in failed HTTP ' + signed.status + ' code=' + String(signedBody?.error?.message || 'unknown'));
+              }
+              console.log('D099 synthetic PBKDF2 Firebase sign-in PASS');
+            } finally {
+              await cleanup();
+            }
+          })().catch(async (error) => {
+            await cleanup();
+            console.error(String(error && error.message || error));
+            process.exit(1);
+          });
+          NODE
+
+      - name: Check/create Beta default Firestore database
+        shell: bash
+        env:
+          MUTATE: ${{ github.event_name != 'pull_request' }}
+        run: |
+          set -euo pipefail
+          project="supra-inventory-beta"
+          if gcloud firestore databases describe --project="$project" --database="(default)" --format=json >/tmp/firestore-db.json 2>/tmp/firestore-db.err; then
+            echo "Firestore (default) exists"
+            location="$(jq -r '.locationId // empty' /tmp/firestore-db.json)"
+            [ "$location" = "asia-southeast1" ] || { echo "Unexpected Firestore location: $location"; exit 1; }
+            exit 0
+          fi
+
+          if [ "$MUTATE" != "true" ]; then
+            echo "PR validation: Firestore (default) not confirmed yet; no cloud mutation before merge."
+            exit 0
+          fi
+
+          echo "Creating Beta Firestore (default) in asia-southeast1..."
+          gcloud firestore databases create             --project="$project"             --database="(default)"             --location="asia-southeast1"             --type="firestore-native"             --quiet
+          gcloud firestore databases describe --project="$project" --database="(default)" --format=json >/tmp/firestore-db.json
+          [ "$(jq -r '.locationId' /tmp/firestore-db.json)" = "asia-southeast1" ]
+          echo "Firestore database create/readback PASS"
+
+      - name: Ensure D097 pending queue composite index on main
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          project="supra-inventory-beta"
+          database="(default)"
+          existing="$(gcloud firestore indexes composite list --project="$project" --database="$database" --format=json)"
+          if jq -e '
+            any(.[];
+              .collectionGroup == "relay_poc_jobs"
+              and any(.fields[]?; .fieldPath == "status" and .order == "ASCENDING")
+              and any(.fields[]?; .fieldPath == "created_at" and .order == "ASCENDING")
+            )' <<<"$existing" >/dev/null; then
+            echo "D097 pending queue composite index already exists"
+          else
+            set +e
+            create_output="$(gcloud firestore indexes composite create \
+              --project="$project" \
+              --database="$database" \
+              --collection-group="relay_poc_jobs" \
+              --query-scope="collection" \
+              --field-config="field-path=status,order=ascending" \
+              --field-config="field-path=created_at,order=ascending" \
+              --async \
+              --quiet 2>&1)"
+            create_status=$?
+            set -e
+            if [ "$create_status" -eq 0 ]; then
+              echo "D097 pending queue composite index creation requested"
+            elif grep -q "ALREADY_EXISTS" <<<"$create_output"; then
+              echo "D097 pending queue composite index already exists (create idempotency PASS)"
+            else
+              printf '%s\n' "$create_output" >&2
+              exit "$create_status"
+            fi
+          fi
+
+      - name: Deploy Firestore Rules via Rules Management API on main
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          export FIREBASE_RULES_ACCESS_TOKEN="$(gcloud auth print-access-token)"
+          node <<'NODE'
+          const fs = require('fs');
+          const projectId = 'supra-inventory-beta';
+          const token = process.env.FIREBASE_RULES_ACCESS_TOKEN;
+          const rulesSource = fs.readFileSync('firebase/firestore.rules', 'utf8');
+          if (!token) throw new Error('Missing Google OAuth access token');
+
+          const apiBase = 'https://firebaserules.googleapis.com/v1';
+          const headers = {
+            authorization: 'Bearer ' + token,
+            'content-type': 'application/json',
+          };
+
+          async function jsonOrText(res) {
+            const text = await res.text();
+            try { return text ? JSON.parse(text) : {}; }
+            catch { return { raw: text.slice(0, 500) }; }
+          }
+
+          async function main() {
+            const rulesetRes = await fetch(apiBase + '/projects/' + projectId + '/rulesets', {
+              method: 'POST',
+              headers,
+              body: JSON.stringify({
+                source: {
+                  files: [{ name: 'firestore.rules', content: rulesSource }],
+                },
+              }),
+            });
+            const ruleset = await jsonOrText(rulesetRes);
+            if (!rulesetRes.ok) {
+              throw new Error('Firebase Rules ruleset create failed: HTTP ' + rulesetRes.status + ' ' + JSON.stringify(ruleset));
+            }
+            if (!ruleset.name || !ruleset.name.startsWith('projects/' + projectId + '/rulesets/')) {
+              throw new Error('Firebase Rules ruleset create returned invalid name');
+            }
+            console.log('Firestore Rules ruleset create PASS');
+
+            const releaseName = 'projects/' + projectId + '/releases/cloud.firestore';
+            const releaseUrl = apiBase + '/' + releaseName;
+            const currentRes = await fetch(releaseUrl, { headers: { authorization: 'Bearer ' + token } });
+
+            let deployRes;
+            if (currentRes.status === 404) {
+              deployRes = await fetch(apiBase + '/projects/' + projectId + '/releases', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ name: releaseName, rulesetName: ruleset.name }),
+              });
+            } else if (currentRes.ok) {
+              deployRes = await fetch(releaseUrl, {
+                method: 'PATCH',
+                headers,
+                body: JSON.stringify({
+                  release: { name: releaseName, rulesetName: ruleset.name },
+                  updateMask: 'rulesetName',
+                }),
+              });
+            } else {
+              const current = await jsonOrText(currentRes);
+              throw new Error('Firebase Rules release read failed: HTTP ' + currentRes.status + ' ' + JSON.stringify(current));
+            }
+
+            const deployed = await jsonOrText(deployRes);
+            if (!deployRes.ok) {
+              throw new Error('Firebase Rules release deploy failed: HTTP ' + deployRes.status + ' ' + JSON.stringify(deployed));
+            }
+
+            const verifyRes = await fetch(releaseUrl, { headers: { authorization: 'Bearer ' + token } });
+            const verify = await jsonOrText(verifyRes);
+            if (!verifyRes.ok) {
+              throw new Error('Firebase Rules release verify failed: HTTP ' + verifyRes.status + ' ' + JSON.stringify(verify));
+            }
+            if (verify.rulesetName !== ruleset.name) {
+              throw new Error('Firebase Rules release verify mismatch');
+            }
+            console.log('Firestore Rules deploy + release readback PASS');
+          }
+
+          main().catch(error => {
+            console.error(error.message);
+            process.exit(1);
+          });
+          NODE
+          unset FIREBASE_RULES_ACCESS_TOKEN
+)")) {
+            throw new Error('D119 fleet day-key guard is incomplete');
+          }
+          const trimmed = rules.trimEnd();
+          if (!trimmed.endsWith('  }\n}')) throw new Error('Firestore Rules document has trailing/orphan content after service close');
+          if (/\n}\s*\n\)\s*\n/.test(rules)) throw new Error('Firestore Rules contains orphan content after service close');
+          console.log('D119 Firestore structural validation PASS');
           console.log('D097 Firestore source validation PASS');
           NODE
 
