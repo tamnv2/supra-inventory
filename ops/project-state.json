@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D120_RELEASED_BETA_VC76_AGENT_V40__OWNER_FIELD_PARTIAL_PASS__PICKER_PRESENCE_HOTFIX_IN_PROGRESS",
+    "beta": "D120_RELEASED_VC76_V40__PICKER_PRESENCE_HOTFIX_PR_GATES_PASS__V41_MERGE_READY",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 12,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -195,7 +195,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Complete D120 Picker-presence hotfix branch through PR gates, merge, then verify main Beta runtime/release and relay-agent-v41. OA046 remains open for final field acceptance; Stable remains OWNER-GATED.",
+  "next_action": "D120 Picker-presence hotfix PR #190 source gates PASS. Revalidate final authority/continuity state-only checkpoint, merge, then verify main Beta runtime and publish relay-agent-v41 / compatible channel. OA046 remains open for field retest; Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -625,7 +625,7 @@
       "owner_acceptance_date": "2026-09-26"
     },
     "d120": {
-      "status": "OWNER_FIELD_PARTIAL_PASS__PICKER_PRESENCE_HOTFIX_IMPLEMENTING",
+      "status": "PICKER_PRESENCE_HOTFIX_PR_GATES_PASS__MERGE_READY",
       "branch": "fix/d120-picker-presence-flicker-accuracy",
       "baseline_main": "43a94207ff99f45ab932312bac80bf2b7ac99414",
       "baseline_release": "beta-vc76 / relay-agent-v40",
@@ -684,6 +684,16 @@
         "android_release": "beta-vc76",
         "agent_release": "relay-agent-v40",
         "owner_field": "PARTIAL_PASS_WITH_PICKER_PRESENCE_DEFECT"
+      },
+      "hotfix_pr": 190,
+      "hotfix_source_head": "7a51318042570b13ad1a8fb967a835fc0cc2ce33",
+      "hotfix_pr_runs": {
+        "repo_authority": 36198769487,
+        "project_state": 36198769494,
+        "ui": 36198769416,
+        "relay_agent": 36198769477,
+        "firestore": 36198769424,
+        "rtdb": 36198769615
       }
     }
   },
