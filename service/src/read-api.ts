@@ -15,7 +15,7 @@ interface InternalUser {
   android_session_generation?: number;
 }
 
-const REPORTER_ROLES: AppRole[] = ["REPORTER", "ADMIN", "ROOT"];
+const REPORTER_ROLES: AppRole[] = ["REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"];
 
 function json(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload), {
