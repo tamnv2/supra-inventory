@@ -100,7 +100,8 @@
     "D116 supersedes only D115 PRIMARY confirmation cadence to 3 seconds: STANDBY stays 10 seconds, FROZEN does not poll business work, Android remains listener-driven/no-poll, healthy-primary field target stays under 5 seconds; selected Web Picker detail reuses existing prefetch/cache; Picker bulk selection is Picker-only with server-authoritative exclusions.",
     "D117 Owner-approved relay model: Firestore-only PDA↔Agent; PRIMARY writes a generation-scoped 7-second lease, STANDBY proactively takes over after 10 seconds of missing lease without waiting for a PDA request, PRIMARY business polling is 4 seconds idle / 2 seconds hot, STANDBY/FROZEN do not business-poll, WMS is not periodically probed, relay operates 06:00–22:00 with PRIMARY-only five-minute warnings from HH:30 and one-hour overtime extensions, default freeze at each unconfirmed boundary, early-start before 06:00 claims PRIMARY, while direct/manual Agent confirmation remains available during relay sleep.",
     "D117 final hardening: schedule decisions are propagated immediately in the generation-scoped PRIMARY lease; STANDBY continues lease reads to absorb late overtime decisions; FROZEN control-role refresh is 30s so early-start before 06:00 rebuilds standby topology promptly; every automatic WMS POST chunk revalidates current PRIMARY generation and the request is rechecked against the 20s automatic window immediately before mutation.",
-    "D118 Owner-approved: overtime schedule decision may be submitted by any authenticated online Agent without role promotion; first Firestore CAS decision per schedule boundary is authoritative; Web large lists use real bounded pagination, SLA config is server-authoritative/revision-safe, export is detailed multi-sheet for selected range/filter, Agent shows product credit, and Android Picker tabs remain above IME via adjustResize."
+    "D118 Owner-approved: overtime schedule decision may be submitted by any authenticated online Agent without role promotion; first Firestore CAS decision per schedule boundary is authoritative; Web large lists use real bounded pagination, SLA config is server-authoritative/revision-safe, export is detailed multi-sheet for selected range/filter, Agent shows product credit, and Android Picker tabs remain above IME via adjustResize.",
+    "D119 protected baseline: accepted stable behavior may not be changed for a new feature without explicit impact/risk/cost approval; full-fleet update, no deliberate mixed-version rollout."
   ],
   "completed_capabilities": [
     "Cloudflare Beta Worker/custom domain/InventoryCore SQLite provisioning",
@@ -192,7 +193,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D118 is Owner-accepted PASS. Await the next explicit Owner requirement; bootstrap authority before any new change. Stable remains OWNER-GATED.",
+  "next_action": "Implement D119 protected-additive Beta changes on feat/d119-protected-additive-ops; preserve D118 regression baseline; Stable untouched.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -546,6 +547,21 @@
         "android": 35816313946
       },
       "d110_health": "HTTP_200__SOURCE_EXACT_E7931CF8__SCHEMA_11_11__STORAGE_TRUE__MISSING_0__AGENT_0_0__OPERATIONAL_5_5"
+    },
+    "d119": {
+      "status": "OWNER_APPROVED__PRESETUP_PASS__IMPLEMENTATION_IN_PROGRESS",
+      "branch": "feat/d119-protected-additive-ops",
+      "baseline_main": "c82d21d470f5c8dd12f795b21ef3cadf32be8ef3",
+      "baseline_release": "beta-vc74 / relay-agent-v38",
+      "protected_paths": [
+        "D117/D118 Agent HA lease/failover",
+        "Firestore confirmation PENDING→ACK + one-write guard",
+        "bounded WMS confirmation",
+        "existing Báo hàng authoritative flow",
+        "Stable resources"
+      ],
+      "target": "NEXT_MONOTONIC_ANDROID_AND_AGENT__WHOLE_FLEET_CHANNEL_AFTER_ALL_GATES",
+      "stable": "OWNER_GATED_UNTOUCHED"
     }
   },
   "authority_setup": {
@@ -656,9 +672,10 @@
     "D114 Owner-reported 2026-09-24: D113 technical release exposed unclear Agent/PDA confirmation feedback, a direct-Agent grid column bug that hid PickList text, PDA need for one-by-one ambiguous candidate selection, and Web Tools/realtime badge presentation defects. D114 unifies exact trailing 3–20 digit search (PDA one term, Agent multi-term), returns bounded ambiguity candidates without mutation, adds specific aligned result copy, targets relay-agent-v33 with assembly/version parity, balances Tools cards, and refreshes the authoritative queue badge from existing realtime events without new polling. Stable untouched.",
     "D114 Owner field acceptance 2026-09-24: Owner explicitly said 'Ok pass' after testing live Beta Web, signed beta-vc70 and relay-agent-v33. OA034 is closed PASS. In the same message Owner separately reported a new observation from the latest Android relay log about slower PickList send/result timing and 30-second no-ACK timeouts; that observation is tracked as a post-D114 diagnostic and does not erase D114 acceptance.",
     "D115 Owner-approved 2026-09-24 after D114 PASS: repair Android cleanup/timeout and Agent ACK-delivery reliability, and target <5s PDA create→terminal result on healthy PRIMARY/no-failover path. PRIMARY Firestore job poll may change 5s→2s; STANDBY remains 10s; no Android polling/PROCESSING write/new provider; target beta-vc71 + relay-agent-v34; Stable untouched.",
-    "D115 technical/runtime/release PASS 2026-09-24: PR #173 merged main bcbabc09. Main Repo Authority 35948065198, Project State 35948065182, UI 35948065209, Beta Worker 35948065164, Android 35948065152 and Relay Agent 35948065389 PASS. Live Beta health attempt 1 exact source, schema 11/11, Operational V2 5/5. Signed beta-vc71 + relay-agent-v34 published; OA035 field-ready."
+    "D115 technical/runtime/release PASS 2026-09-24: PR #173 merged main bcbabc09. Main Repo Authority 35948065198, Project State 35948065182, UI 35948065209, Beta Worker 35948065164, Android 35948065152 and Relay Agent 35948065389 PASS. Live Beta health attempt 1 exact source, schema 11/11, Operational V2 5/5. Signed beta-vc71 + relay-agent-v34 published; OA035 field-ready.",
+    "D119 presetup PASS from Owner evidence: Beta billing attached, budget/spend cap configured, APIs enabled, deploy SA invent-beta-functions-deploy, runtime SA inventory-beta-alert-runtime with Datastore/FCM/Eventarc roles, deploy SA Service Account User on runtime SA, GitHub beta secret FIREBASE_FUNCTIONS_SA_JSON_BETA configured. Secret value is not read or recorded."
   ],
-  "active_workstream": "D116_OWNER_FIELD_REVIEW",
+  "active_workstream": "D119_IMPLEMENTATION",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
