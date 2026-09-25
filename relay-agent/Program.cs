@@ -441,7 +441,7 @@ namespace SupraInventoryRelayAgent
         }
     }
 
-    internal sealed class AgentForm : Form
+    internal sealed partial class AgentForm : Form
     {
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
         private readonly EventWaitHandle _instanceActivateEvent;
@@ -768,7 +768,7 @@ namespace SupraInventoryRelayAgent
             var shell = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                RowCount = 3,
+                RowCount = 4,
                 ColumnCount = 1,
                 Margin = Padding.Empty,
                 Padding = Padding.Empty
@@ -861,8 +861,9 @@ namespace SupraInventoryRelayAgent
                 Padding = new Padding(12)
             };
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 330F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 105F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 260F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 82F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 220F));
             overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             _overviewPage.Controls.Add(overviewLayout);
 
@@ -888,12 +889,12 @@ namespace SupraInventoryRelayAgent
             _agentAuthStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             agentCard.Controls.Add(_agentAuthStatus);
 
-            agentCard.Controls.Add(new Label { Left = 16, Top = 64, Width = 150, Height = 18, Text = "Tài khoản ADMIN" });
+            agentCard.Controls.Add(new Label { Name = "agent-auth-user-label", Left = 16, Top = 64, Width = 220, Height = 18, Text = "Tài khoản quản trị Agent" });
             _username.SetBounds(16, 82, 260, 27);
             _username.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             agentCard.Controls.Add(_username);
 
-            agentCard.Controls.Add(new Label { Left = 288, Top = 64, Width = 90, Height = 18, Text = "Mật khẩu" });
+            agentCard.Controls.Add(new Label { Name = "agent-auth-password-label", Left = 288, Top = 64, Width = 90, Height = 18, Text = "Mật khẩu" });
             _password.SetBounds(288, 82, 200, 27);
             _password.UseSystemPasswordChar = true;
             KeyEventHandler submitAgentLogin = (s, e) =>
@@ -1085,7 +1086,7 @@ namespace SupraInventoryRelayAgent
             _manualPicklistConfirmAll.Click += (s, e) => Task.Run(() => ConfirmAllManualPicklists());
             directCard.Controls.Add(_manualPicklistConfirmAll);
 
-            _manualPicklistGrid.SetBounds(16, 84, 1006, 130);
+            _manualPicklistGrid.SetBounds(16, 82, 1006, 96);
             _manualPicklistGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             _manualPicklistGrid.AllowUserToAddRows = false;
             _manualPicklistGrid.AllowUserToDeleteRows = false;
@@ -1138,13 +1139,14 @@ namespace SupraInventoryRelayAgent
             };
             directCard.Controls.Add(_manualPicklistGrid);
 
-            _manualPicklistStatus.SetBounds(16, 218, 1006, 42);
+            _manualPicklistStatus.SetBounds(16, 180, 1006, 32);
             _manualPicklistStatus.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
             _manualPicklistStatus.Text = "";
             _manualPicklistStatus.Font = new Font("Segoe UI Semibold", 10.5F, FontStyle.Bold);
             _manualPicklistStatus.ForeColor = Color.FromArgb(88, 104, 115);
             directCard.Controls.Add(_manualPicklistStatus);
             overviewLayout.Controls.Add(directCard, 0, 2);
+            InitializeD119AgentFeatures(overviewLayout);
 
             // Kết nối
             var networkCard = NewCard(22, 24, 1040, 300);
@@ -2745,6 +2747,7 @@ namespace SupraInventoryRelayAgent
                     }
                 }
             });
+            ApplyD119AuthenticatedLayout(authenticated);
         }
 
         private void LogoutAgent()
