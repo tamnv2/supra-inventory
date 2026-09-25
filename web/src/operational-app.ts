@@ -1326,7 +1326,7 @@ function renderFastDetail(selected: ReporterBatch | null): string {
     </dl>
     ${selected.previous_batch_id ? `<div class="fast-warning">SKU này đã phát sinh lại sau lần xử lý trước.</div>` : ""}
     ${pendingResolution ? `<div class="fast-action-pending" role="status">Đang gửi xác nhận ${pendingResolution === "HAS_STOCK" ? "Có hàng" : "Bỏ qua"}…</div>` : ""}
-    <div class="fast-actions"><button class="primary" data-resolve="HAS_STOCK" data-batch="${esc(selected.batch_id)}" ${pendingResolution ? "disabled" : ""}>ĐÃ CÓ HÀNG</button><button class="danger" data-skip-batch="${esc(selected.batch_id)}" ${pendingResolution ? "disabled" : ""}>CHO PHÉP BỎ QUA</button></div>
+    ${roleCanResolve() ? `<div class="fast-actions"><button class="primary" data-resolve="HAS_STOCK" data-batch="${esc(selected.batch_id)}" ${pendingResolution ? "disabled" : ""}>ĐÃ CÓ HÀNG</button><button class="danger" data-skip-batch="${esc(selected.batch_id)}" ${pendingResolution ? "disabled" : ""}>CHO PHÉP BỎ QUA</button></div>` : `<div class="fast-action-pending" role="status">Chế độ chỉ xem · Quản trị Pick Pack không xử lý kết quả Báo hàng.</div>`}
     ${pickerDetailMarkup(selected.batch_id, batchDetails.get(selected.batch_id), true)}`;
 }
 
@@ -1416,7 +1416,7 @@ function renderOperationRow(row: ReporterBatch): string {
     <div><div class="sku-code">${esc(row.sku)}</div><div class="product-name">${esc(row.product_name)}</div></div>
     <div><div class="operation-count">${Number(row.affected_picker_count)} Picker</div><div class="tiny muted">Báo gần nhất ${esc(fmt(row.last_report_at || row.first_report_at))}</div></div>
     <div class="operation-meta"><span data-wait-batch="${esc(row.batch_id)}">${timing.waiting} phút</span><span data-sla-batch="${esc(row.batch_id)}" class="badge ${sla_state === "ESCALATED" ? "escalated" : sla_state === "WARNING" ? "warning" : sla_state === "NORMAL" ? "ok" : ""}">${esc(slaLabel(sla_state))}</span>${recurrence}<span>Báo đầu ${esc(fmt(row.first_report_at))}</span></div>
-    <div class="operation-actions"><button class="btn success" data-resolve="HAS_STOCK" data-batch="${esc(row.batch_id)}">CÓ HÀNG</button><button class="btn danger" data-skip-batch="${esc(row.batch_id)}">CHO PHÉP BỎ QUA</button><button class="btn secondary" data-detail="${esc(row.batch_id)}">${expandedBatchDetails.has(row.batch_id) ? "Ẩn Picker" : "Picker"}</button></div>
+    <div class="operation-actions">${roleCanResolve() ? `<button class="btn success" data-resolve="HAS_STOCK" data-batch="${esc(row.batch_id)}">CÓ HÀNG</button><button class="btn danger" data-skip-batch="${esc(row.batch_id)}">CHO PHÉP BỎ QUA</button>` : ""}<button class="btn secondary" data-detail="${esc(row.batch_id)}">${expandedBatchDetails.has(row.batch_id) ? "Ẩn Picker" : "Picker"}</button></div>
     ${pickerDetailMarkup(row.batch_id, details)}
   </article>`;
 }
@@ -1461,7 +1461,7 @@ function renderResults(): string {
     <article class="ops-panel">
       <div class="filters">${(["ALL", "HAS_STOCK", "SKIP_ALLOWED", "CLOSED"] as const).map((id) => `<button class="filter ${recentFilter === id ? "active" : ""}" data-result-filter="${id}">${id === "ALL" ? "Tất cả kết quả" : statusLabel(id)}</button>`).join("")}</div>
       <div class="table-wrap result-audit-table"><table><thead><tr><th>SKU / Sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Picker ảnh hưởng</th><th>Picker đã nhận</th><th>Thời điểm xử lý</th><th>Phát sinh lại</th><th>Thao tác</th></tr></thead><tbody>
-        ${visible.map((row) => { const canCorrect = row.status === "SKIP_ALLOWED" && row.correction_deadline_at && Date.now() <= Date.parse(row.correction_deadline_at); const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<button class="btn secondary small" data-correct="${esc(row.batch_id)}">Sửa thành Có hàng</button>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">Chưa có kết quả phù hợp.</td></tr>`}
+        ${visible.map((row) => { const canCorrect = roleCanResolve() && row.status === "SKIP_ALLOWED" && row.correction_deadline_at && Date.now() <= Date.parse(row.correction_deadline_at); const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<button class="btn secondary small" data-correct="${esc(row.batch_id)}">Sửa thành Có hàng</button>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">Chưa có kết quả phù hợp.</td></tr>`}
       </tbody></table></div>
       <div class="user-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${recentTotal.toLocaleString("vi-VN")} kết quả</span><div><button class="secondary" id="recent-prev" ${recentOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="recent-next" ${recentOffset + RECENT_PAGE_SIZE >= recentTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
@@ -2913,6 +2913,10 @@ function bindShell(): void {
 }
 
 async function commitReporterResolution(batch: ReporterBatch, resolution: "HAS_STOCK" | "SKIP_ALLOWED"): Promise<void> {
+  if (!roleCanResolve()) {
+    setNotice("warning", "Quản trị Pick Pack chỉ được xem Báo hàng, không được xử lý kết quả.");
+    return;
+  }
   if (pendingReporterResolutions.has(batch.batch_id)) return;
   const uiStarted = performance.now();
   pendingReporterResolutions.set(batch.batch_id, resolution);
@@ -3028,6 +3032,18 @@ function bindOverlay(): void {
 }
 
 function bindReporterActionButtons(root: ParentNode = document): void {
+  if (!roleCanResolve()) {
+    root.querySelectorAll<HTMLButtonElement>("[data-detail]").forEach((button) => button.addEventListener("click", () => {
+      const id = button.dataset.detail || "";
+      if (!id) return;
+      if (expandedBatchDetails.has(id)) expandedBatchDetails.delete(id);
+      else expandedBatchDetails.add(id);
+      if (activeSection === "operations" && selectedBatchId === id) refreshFastDetailOnly();
+      else patchActiveSection(true);
+      if (expandedBatchDetails.has(id)) prefetchBatchDetails(id);
+    }));
+    return;
+  }
   root.querySelectorAll<HTMLButtonElement>("[data-resolve]").forEach((button) => button.addEventListener("click", () => {
     const batchId = button.dataset.batch || "";
     stockConfirm = queueRows.find((item) => item.batch_id === batchId) || null;
