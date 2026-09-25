@@ -44,6 +44,9 @@ ANDROID_APPROVED_ICON_EXISTS = (ROOT / "android/app/src/main/res/drawable-nodpi/
 WEB_APPROVED_ICON_EXISTS = (ROOT / "web/public/app-icon.png").is_file()
 ANDROID_ALL = "\n".join([ANDROID_MAIN, ANDROID_PICKER, ANDROID_REPORTER])
 
+RELAY_PROGRAM = read("relay-agent/Program.cs")
+RELAY_D119_FEATURES = read("relay-agent/D119AgentFeatures.cs")
+
 SERVICE_OPS = read("service/src/operational-v2-core.ts")
 SERVICE_BUSINESS = read("service/src/business-api.ts")
 SERVICE_BUSINESS_CORE = read("service/src/business-core.ts")
@@ -83,6 +86,30 @@ checks = {
     "authority_d089_field_review_repair": "D089" in DECISIONS and "D089 field-review repair" in DESIGN_SPEC,
     "authority_ui_acceptance_distinct_from_ci": "CI/build PASS" in DESIGN_SPEC and "Owner UI" in DESIGN_SPEC,
     "authority_no_offline_mode": "D043" in DECISIONS and "No offline business mode" in DESIGN_SPEC,
+    "authority_d121_agent_responsive_layout": "D121" in DECISIONS and "D121 — Windows Agent balanced workspace and responsive status line" in DESIGN_SPEC,
+    "agent_d121_equal_left_regions": all(token in RELAY_PROGRAM for token in [
+        "SizeType.Percent, 33.333F",
+        "SizeType.Percent, 33.334F",
+        "Xử lý PickList - D121 chia đều chiều cao với Agent và Supra ở cột trái.",
+    ]) and "new RowStyle(SizeType.Absolute, 260F)" not in RELAY_PROGRAM,
+    "agent_d121_one_line_system_status": all(token in RELAY_D119_FEATURES for token in [
+        "LayoutAgentSystemStatusRow(host, 100)",
+        "_identity.SetBounds(left, top, width, 20)",
+        "_relay.SetBounds(left + width + gap, top, width, 20)",
+        "_network.SetBounds(left + ((width + gap) * 2), top",
+    ]),
+    "agent_d121_schedule_refresh_off_ui_thread": all(token in RELAY_PROGRAM for token in [
+        "QueueSharedScheduleRefresh(coordinator)",
+        "Interlocked.CompareExchange(ref _afterHoursScheduleRefreshRunning",
+        "Task.Run(() =>",
+        "coordinator.RefreshSharedScheduleNow();",
+    ]) and "coordinator.RefreshSharedScheduleNow();\n                    _lastAfterHoursScheduleSyncAt" not in RELAY_PROGRAM,
+    "agent_d121_system_monitor_off_ui_thread": all(token in RELAY_PROGRAM for token in [
+        "Interlocked.CompareExchange(ref _trayMonitorRefreshRunning",
+        "var metrics = _systemMonitor.Sample();",
+        "Ui(() => ApplyTrayMonitor(metrics));",
+        "Interlocked.Exchange(ref _trayMonitorRefreshRunning, 0L)",
+    ]),
 
     "web_entrypoint_active": 'import "./operational-app"' in WEB_MAIN,
     "web_transplanted_styles_loaded": all(token in WEB_APP for token in [
