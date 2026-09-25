@@ -46,7 +46,7 @@ namespace SupraInventoryRelayAgent
             Controls.Add(new Label
             {
                 Left = 20, Top = 45, Width = 590, Height = 36,
-                Text = "Chọn chính xác thông tin cần nhìn khi vận hành. Tất cả lựa chọn được lưu cho Windows user hiện tại.",
+                Text = "Mỗi thông tin được hiển thị thành một ô riêng để đọc nhanh. Tất cả lựa chọn được lưu cho Windows user hiện tại.",
                 ForeColor = Color.DimGray
             });
 
@@ -133,9 +133,9 @@ namespace SupraInventoryRelayAgent
             };
             appearance.Controls.Add(_textColor);
 
-            var laptop = BuildChecklistGroup("Vận hành", 20, 280, 290, 260, new[]
+            var laptop = BuildChecklistGroup("Trạng thái hệ thống", 20, 280, 290, 260, new[]
             {
-                new Tuple<string,string,bool>("laptop_group", "Hiển thị dòng Vận hành", options.ShowLaptopGroup),
+                new Tuple<string,string,bool>("laptop_group", "Hiển thị nhóm trạng thái", options.ShowLaptopGroup),
                 new Tuple<string,string,bool>("cpu", "Vai trò PRIMARY/STANDBY/FROZEN", options.ShowCpu),
                 new Tuple<string,string,bool>("memory", "Trạng thái Firestore", options.ShowMemory),
                 new Tuple<string,string,bool>("disk", "Trạng thái WMS", options.ShowDisk),
@@ -145,14 +145,14 @@ namespace SupraInventoryRelayAgent
             });
             Controls.Add(laptop);
 
-            var agent = BuildChecklistGroup("Tải Agent & cụm", 330, 280, 290, 260, new[]
+            var agent = BuildChecklistGroup("Hiệu năng & lưu lượng", 330, 280, 290, 260, new[]
             {
-                new Tuple<string,string,bool>("agent_group", "Hiển thị dòng Agent", options.ShowAgentGroup),
+                new Tuple<string,string,bool>("agent_group", "Hiển thị nhóm hiệu năng", options.ShowAgentGroup),
                 new Tuple<string,string,bool>("agent_online", "CPU tiến trình Agent", options.ShowAgentOnline),
-                new Tuple<string,string,bool>("agent_state", "RAM + thời gian chạy Agent", options.ShowAgentState),
-                new Tuple<string,string,bool>("pda_requests", "Yêu cầu + số đang chờ", options.ShowPdaRequests),
-                new Tuple<string,string,bool>("agent_responses", "Xác nhận OK / lỗi", options.ShowAgentResponses),
-                new Tuple<string,string,bool>("wms_session", "Cụm Agent + thời điểm cập nhật", options.ShowWmsSession),
+                new Tuple<string,string,bool>("agent_state", "RAM và thời gian chạy · tách 2 ô", options.ShowAgentState),
+                new Tuple<string,string,bool>("pda_requests", "Yêu cầu PDA và đang chờ · tách 2 ô", options.ShowPdaRequests),
+                new Tuple<string,string,bool>("agent_responses", "Xác nhận OK và lỗi · tách 2 ô", options.ShowAgentResponses),
+                new Tuple<string,string,bool>("wms_session", "Agent online và thời điểm cập nhật · tách 2 ô", options.ShowWmsSession),
             });
             Controls.Add(agent);
 
