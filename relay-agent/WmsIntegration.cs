@@ -462,6 +462,114 @@ namespace SupraInventoryRelayAgent
                 true);
         }
 
+        internal static string GetSignedJson(
+            string url,
+            string signPath,
+            WmsSessionSnapshot session,
+            int maxBytes = 16 * 1024 * 1024)
+        {
+            if (session == null || !session.IsValidHy1())
+                throw new InvalidOperationException("Chưa có phiên WMS HY1 hợp lệ trong RAM.");
+            if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(signPath))
+                throw new InvalidOperationException("Thiếu endpoint WMS read-only.");
+            if (maxBytes < 1024 || maxBytes > 32 * 1024 * 1024)
+                throw new InvalidOperationException("Giới hạn dữ liệu WMS không hợp lệ.");
+
+            Exception lastTransport = null;
+            foreach (var route in BuildRoutes(new Uri(url)))
+            {
+                var started = Stopwatch.StartNew();
+                var uri = new Uri(url);
+                var request = (HttpWebRequest)WebRequest.Create(uri);
+                request.Method = "GET";
+                request.Proxy = route.Proxy;
+                request.Timeout = 20000;
+                request.ReadWriteTimeout = 40000;
+                request.AllowAutoRedirect = false;
+                request.KeepAlive = false;
+                request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130 Safari/537.36";
+                request.Accept = "application/json, text/plain, */*";
+                ApplySessionHeaders(request, session);
+                var signature = CreateSignature(signPath);
+                request.Headers["X-Signature"] = signature.Item1;
+                request.Headers["X-Signature-Nonce"] = signature.Item2;
+
+                try
+                {
+                    using (var response = (HttpWebResponse)request.GetResponse())
+                    {
+                        var status = (int)response.StatusCode;
+                        var body = ReadBoundedBody(response.GetResponseStream(), maxBytes);
+                        started.Stop();
+                        AgentDiagnostics.Write(
+                            "WMS READ PASS host=" + uri.Host +
+                            " path=" + signPath +
+                            " route=" + route.Name +
+                            " http=" + status +
+                            " bytes=" + Encoding.UTF8.GetByteCount(body) +
+                            " ms=" + started.ElapsedMilliseconds +
+                            " session_values=redacted");
+                        if (status < 200 || status >= 300)
+                            throw new InvalidOperationException("WMS read HTTP " + status + ".");
+                        if (LooksLikeProxyBlock(body))
+                            throw new InvalidOperationException("WMS read bị proxy chặn.");
+                        return body;
+                    }
+                }
+                catch (WebException ex)
+                {
+                    started.Stop();
+                    var response = ex.Response as HttpWebResponse;
+                    if (response == null)
+                    {
+                        lastTransport = ex;
+                        AgentDiagnostics.Write(
+                            "WMS READ transport_fail host=" + uri.Host +
+                            " path=" + signPath +
+                            " route=" + route.Name +
+                            " type=" + ex.Status +
+                            " session_values=redacted");
+                        continue;
+                    }
+
+                    var status = (int)response.StatusCode;
+                    try { response.Dispose(); } catch { }
+                    if (status == 407)
+                    {
+                        lastTransport = ex;
+                        continue;
+                    }
+                    if (status == 401)
+                        throw new InvalidOperationException("Phiên Supra WMS đã hết hạn.");
+                    if (status == 403)
+                        throw new InvalidOperationException("Supra WMS từ chối quyền đọc dữ liệu.");
+                    throw new InvalidOperationException("WMS read HTTP " + status + ".");
+                }
+            }
+
+            throw new InvalidOperationException(
+                "Không kết nối được API Supra qua các route được phép.",
+                lastTransport);
+        }
+
+        private static string ReadBoundedBody(Stream stream, int maxBytes)
+        {
+            if (stream == null) return "";
+            using (var buffer = new MemoryStream())
+            {
+                var chunk = new byte[8192];
+                while (true)
+                {
+                    var read = stream.Read(chunk, 0, chunk.Length);
+                    if (read <= 0) break;
+                    if (buffer.Length + read > maxBytes)
+                        throw new InvalidOperationException("Dữ liệu WMS vượt giới hạn an toàn.");
+                    buffer.Write(chunk, 0, read);
+                }
+                return Encoding.UTF8.GetString(buffer.ToArray());
+            }
+        }
+
         private static WmsProbeResult SendAcrossRoutes(
             string name,
             string url,
