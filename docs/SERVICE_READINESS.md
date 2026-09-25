@@ -941,3 +941,8 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 - Owner field status: D120 broader test is usable/partial PASS; online-Picker list has a confirmed flicker + stale-online-count defect.
 - Active repair branch: `fix/d120-picker-presence-flicker-accuracy`; Agent target `relay-agent-v41`.
 - Presence repair reuses active Android realtime sockets and adds no PDA heartbeat/polling. Stable remains OWNER-GATED and untouched.
+
+### Canonical current-status markers
+
+- `D120_RUNTIME_PASS_MAIN_43A94207__OWNER_FIELD_TEST_OK`
+- `D120_SIGNED_BETA_VC76_RELEASED__OWNER_FIELD_TEST_OK`
