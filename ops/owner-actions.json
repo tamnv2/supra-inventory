@@ -2201,7 +2201,18 @@
         },
         "released_baseline": "beta-vc76 / relay-agent-v40 / main 43a94207ff99f45ab932312bac80bf2b7ac99414",
         "owner_field_status": "PARTIAL_PASS__PICKER_PRESENCE_DEFECT_OPEN",
-        "hotfix_branch": "fix/d120-picker-presence-flicker-accuracy"
+        "hotfix_branch": "fix/d120-picker-presence-flicker-accuracy",
+        "hotfix_pr": 190,
+        "hotfix_source_head": "7a51318042570b13ad1a8fb967a835fc0cc2ce33",
+        "hotfix_pr_gates": "PASS",
+        "hotfix_pr_runs": {
+          "repo_authority": 36198769487,
+          "project_state": 36198769494,
+          "ui": 36198769416,
+          "relay_agent": 36198769477,
+          "firestore": 36198769424,
+          "rtdb": 36198769615
+        }
       },
       "shortest_test_path": [
         "After the D120 Picker-presence hotfix is technically released, update Agent through inventory-channel to relay-agent-v41.",
