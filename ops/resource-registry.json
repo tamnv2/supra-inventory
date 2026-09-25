@@ -894,7 +894,13 @@
       "new_role": "PICKPACK_ADMIN",
       "new_role_label": "Quản trị Pick Pack",
       "android_admin": "REPORTER_EQUIVALENT_ONLY",
-      "root_android": "DENIED"
+      "root_android": "DENIED",
+      "pickpack_admin_agent": "ALLOWED__PICKLIST_LOOKUP_CONFIRM__SKU_SYNC_UPDATE__PICKER_CONTACT",
+      "pickpack_admin_shortage": "READ_ONLY__HAS_STOCK_SKIP_CORRECTION_SLA_DENIED",
+      "agent_operator_roles": [
+        "ADMIN",
+        "PICKPACK_ADMIN"
+      ]
     },
     "wms_stock": {
       "list": "GET /sft3-hy1/api/v1/report/stock/binStocks",
