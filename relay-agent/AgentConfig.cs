@@ -28,6 +28,8 @@ namespace SupraInventoryRelayAgent
         internal const string WmsPicklistConfirmUrl = "https://api-supra.winmart.vn/sft3-hy1/api/v1/autopp/pickListConfirms/confirmSkipItem";
         internal const string WmsPicklistConfirmSignPath = "/api/v1/autopp/pickListConfirms/confirmSkipItem";
         internal const string WmsPicklistConfirmUiReferenceUrl = "https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm";
+        internal const string WmsBinStocksUrl = "https://api-supra.winmart.vn/sft3-hy1/api/v1/report/stock/binStocks";
+        internal const string WmsBinStocksSignPath = "/api/v1/report/stock/binStocks";
         internal const string CorporateProxyFallback = "http://proxyclientdr.winmart.vn:9090";
         internal const string GitHubReleasesApi = "https://api.github.com/repos/tamnv2/supra-inventory/releases?per_page=30";
         internal const string AgentUpdateManifestUrl = ApiBaseUrl + "/downloads/agent/manifest";
