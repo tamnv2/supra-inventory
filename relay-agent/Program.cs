@@ -1629,16 +1629,26 @@ namespace SupraInventoryRelayAgent
                 var uptime = metrics.ProcessUptime.TotalHours >= 1
                     ? ((int)metrics.ProcessUptime.TotalHours).ToString("0") + "h" + metrics.ProcessUptime.Minutes.ToString("00")
                     : Math.Max(0, metrics.ProcessUptime.Minutes).ToString("0") + "m";
-                parts.Add("RAM " + ramMb + " · chạy " + uptime);
+                parts.Add("RAM " + ramMb);
+                parts.Add("Thời gian chạy " + uptime);
             }
             var requests = Interlocked.Read(ref _localPdaRequests);
             var responses = Interlocked.Read(ref _localAgentResponses);
             if (options.ShowPdaRequests)
-                parts.Add("Yêu cầu " + requests + " · chờ " + Math.Max(0L, requests - responses));
+            {
+                parts.Add("Yêu cầu PDA " + requests);
+                parts.Add("Đang chờ " + Math.Max(0L, requests - responses));
+            }
             if (options.ShowAgentResponses)
-                parts.Add("OK " + Interlocked.Read(ref _localConfirmSuccess) + " · lỗi " + Interlocked.Read(ref _localConfirmFailed));
+            {
+                parts.Add("Xác nhận OK " + Interlocked.Read(ref _localConfirmSuccess));
+                parts.Add("Lỗi " + Interlocked.Read(ref _localConfirmFailed));
+            }
             if (options.ShowWmsSession)
-                parts.Add("Cụm " + online + " (P" + primaryCount + "/S" + standbyCount + "/F" + frozenCount + ") · " + DateTime.Now.ToString("HH:mm:ss"));
+            {
+                parts.Add("Agent online " + online);
+                parts.Add("Cập nhật " + DateTime.Now.ToString("HH:mm:ss"));
+            }
             return parts.Count == 0 ? "" : "Agent | " + string.Join(" | ", parts.ToArray());
         }
 
