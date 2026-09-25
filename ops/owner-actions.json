@@ -2176,7 +2176,7 @@
     },
     {
       "id": "OA046",
-      "status": "WAITING_D120_RELEASE",
+      "status": "WAITING_D120_HOTFIX_RELEASE",
       "title": "Field-accept D120 Agent/App/Web field repairs",
       "resource_key": "worker-beta",
       "provider": "Beta Web + Worker + signed Android + Windows Agent",
@@ -2184,8 +2184,8 @@
       "prerequisites": {
         "d119_owner_acceptance": "PASS_OWNER_CONFIRMED_D119",
         "d120_branch": "fix/d120-agent-app-web-field-repairs",
-        "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC75",
-        "target_agent_release": "relay-agent-v40",
+        "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC76_IF_PUBLISHED",
+        "target_agent_release": "relay-agent-v41",
         "stable": "OWNER_GATED",
         "implementation_pr": 189,
         "pr_head": "11d10f247e78913130f4ac1d0d1be535644f1221",
@@ -2198,11 +2198,16 @@
           "relay_agent": 36195643157,
           "firestore": 36195643116,
           "rtdb": 36195643218
-        }
+        },
+        "released_baseline": "beta-vc76 / relay-agent-v40 / main 43a94207ff99f45ab932312bac80bf2b7ac99414",
+        "owner_field_status": "PARTIAL_PASS__PICKER_PRESENCE_DEFECT_OPEN",
+        "hotfix_branch": "fix/d120-picker-presence-flicker-accuracy"
       },
       "shortest_test_path": [
-        "After D120 technical/runtime/release PASS, update through the normal inventory-channel to the new signed Android Beta and relay-agent-v40.",
-        "Agent: scroll online Picker list away from the top through repeated refreshes; search code/name; verify whole-row hover, two-column layout, Mã nhân viên, Agent logout and Chuyển xuống nền.",
+        "After the D120 Picker-presence hotfix is technically released, update Agent through inventory-channel to relay-agent-v41.",
+        "Keep Agent Overview visible for at least 2 minutes: Picker rows must not blink/alternate empty on the one-second schedule timer.",
+        "With exactly 1 then 2 Picker PDA realtime sessions active, Agent must show exactly those online Pickers; stale/disconnected historical devices must not appear.",
+        "Close/disconnect one PDA session and verify it is removed after projection convergence; then repeat search/scroll to confirm no jump/flicker.",
         "Agent/Supra: verify current Supra user is shown; wrong Agent password cannot log Supra out; correct password clears the local Supra session and the next login can use a different authorized company account.",
         "Agent quota: inspect sanitized log during normal startup/use and confirm fleet metrics no longer checkpoints every seconds; confirmation/HA behavior remains normal.",
         "Android: while another app is foreground, verify HAS_STOCK and SKIP_ALLOWED use the same canonical blue/red full-screen result surface once; no second generic full-screen result appears and no duplicate result opens after ACK.",
@@ -2211,7 +2216,9 @@
         "Web: ROOT changes a managed Reporter/Admin/PickPack Admin role and the changed account must re-login with new authority; non-ROOT role change remains unavailable/forbidden."
       ],
       "pass_criteria": [
-        "All D120 acceptance cases pass on released Beta artifacts.",
+        "Picker list remains visually stable with no one-second disappear/reappear cycle.",
+        "Displayed online Picker count matches active Android realtime Picker devices intersected with current valid session/device authority.",
+        "No new PDA heartbeat/polling is introduced; quota-safe D098 realtime and D117/D118 confirmation/HA contracts remain unchanged.",
         "Fleet metrics checkpoint cadence is approximately 30 minutes and does not regress D117/D118 confirmation/lease cadences.",
         "No duplicate Android result full-screen surface and no valid-session login flash.",
         "SLA auto_skip_mode stays server-authoritative and stable across reload/background updates.",
@@ -2219,7 +2226,7 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company accounts. Do not share passwords, WMS session/header material, tokens or secrets. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for D120 automated technical/runtime/release PASS before physical field acceptance.",
+      "remaining_owner_action": "Wait for relay-agent-v41 / hotfix runtime PASS, then retest only the compact Picker online-list cases plus any still-open D120 field cases.",
       "closed": false
     }
   ]
