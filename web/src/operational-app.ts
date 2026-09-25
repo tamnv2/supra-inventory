@@ -1261,7 +1261,8 @@ function renderUserModals(): string {
       <div class="tiny muted">${esc(editUser.employee_code || editUser.user_id)} · ${esc(editUser.role)}</div>
       <form id="edit-user-form">
         <div class="field"><span>Họ tên</span><input name="displayName" value="${esc(editUser.display_name)}" required /></div>
-        <div class="field" style="margin-top:10px"><span>Email đăng ký${editUser.role === "ADMIN" ? " · bắt buộc" : ""}</span><input name="authEmail" type="email" value="${esc(editUser.auth_email || "")}" ${editUser.role === "ADMIN" ? "required" : ""} /></div>
+        ${profile?.role === "ROOT" && editUser.role !== "PICKER" ? `<div class="field" style="margin-top:10px"><span>Quyền tài khoản · chỉ ROOT được thay đổi</span><select name="role"><option value="REPORTER" ${editUser.role === "REPORTER" ? "selected" : ""}>Người xử lý báo hàng</option><option value="PICKPACK_ADMIN" ${editUser.role === "PICKPACK_ADMIN" ? "selected" : ""}>Quản trị Pick Pack</option><option value="ADMIN" ${editUser.role === "ADMIN" ? "selected" : ""}>Quản trị Invent</option></select></div>` : ""}
+        <div class="field" style="margin-top:10px"><span>Email đăng ký${editUser.role === "ADMIN" || editUser.role === "PICKPACK_ADMIN" ? " · bắt buộc với tài khoản quản trị" : ""}</span><input name="authEmail" type="email" value="${esc(editUser.auth_email || "")}" /></div>
         <div class="field" style="margin-top:10px"><span>Trạng thái</span><select name="status"><option value="ACTIVE" ${editUser.status === "ACTIVE" ? "selected" : ""}>ACTIVE</option><option value="DISABLED" ${editUser.status === "DISABLED" ? "selected" : ""}>DISABLED</option></select></div>
         <div class="modal-actions"><button type="button" class="btn secondary" id="cancel-user-modal">Huỷ</button><button class="btn">Lưu</button></div>
       </form>
@@ -3035,8 +3036,12 @@ function bindOverlay(): void {
     const displayName = String(data.get("displayName") || "").trim();
     const status = String(data.get("status") || "") as "ACTIVE" | "DISABLED";
     const authEmail = String(data.get("authEmail") || "").trim();
+    const roleRaw = String(data.get("role") || "").trim();
+    const role = ["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(roleRaw)
+      ? roleRaw as "ADMIN" | "PICKPACK_ADMIN" | "REPORTER"
+      : undefined;
     void run(async () => {
-      await updateManagedUser(userId, displayName, status, authEmail);
+      await updateManagedUser(userId, displayName, status, authEmail, role);
       editUserId = null;
       await loadUsers();
       setNotice("success", "Đã cập nhật tài khoản.");
