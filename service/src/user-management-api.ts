@@ -264,10 +264,18 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
       Boolean(updated.firebase_password_ready || before?.firebase_password_ready)
     ) {
       try {
+        const firebaseUser = {
+          ...before,
+          ...updated,
+          // Core list responses do not expose base_role. For a ROOT-authorized
+          // role change, claims must use the newly persisted role rather than
+          // the pre-change base_role read before the mutation.
+          base_role: updated.role,
+        };
         await updateFirebaseIdentity(
           env.GOOGLE_RUNTIME_SA_JSON,
           env.FIREBASE_PROJECT_ID,
-          firebaseSpec({ ...before, ...updated }, String(updated.firebase_uid)),
+          firebaseSpec(firebaseUser, String(updated.firebase_uid)),
         );
         await markFirebaseReady(env, updated.user_id, String(updated.firebase_uid));
         updated.firebase_password_ready = true;
