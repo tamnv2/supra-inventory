@@ -204,6 +204,30 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        internal static bool ClearDedicatedProfiles(Action<string> progress)
+        {
+            var root = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "SUPRA Inventory", "WmsBrowser");
+            var ok = true;
+            foreach (var profile in new[] { "edge", "chrome" })
+            {
+                var path = Path.Combine(root, profile);
+                if (!Directory.Exists(path)) continue;
+                try
+                {
+                    Directory.Delete(path, true);
+                    if (progress != null) progress("profile=" + profile + " cleared=true");
+                }
+                catch (Exception ex)
+                {
+                    ok = false;
+                    if (progress != null) progress("profile=" + profile + " cleared=false type=" + ex.GetType().Name);
+                }
+            }
+            return ok;
+        }
+
         private static BrowserCandidate FindSupportedBrowser()
         {
             var pf86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
