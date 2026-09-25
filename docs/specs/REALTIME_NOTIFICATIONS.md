@@ -463,6 +463,9 @@ D115 supersedes only the PRIMARY polling cadence of the earlier D097/D104/D114 c
 - Picker operational presence is event-driven, not heartbeat-driven. It derives from a valid Android session plus registered Android notification device and is removed on logout/session replacement/disable/expiry.
 - A compact Firestore presence projection is allowed for Office-capable Agent reads. PRIMARY uses a bounded near-realtime refresh; non-primary Agents use coarse refresh (target around 30 minutes). No 500-PDA periodic heartbeat is permitted.
 - High-priority FCM remains the background wake mechanism. No persistent 05:00–23:00 socket or foreground service is kept merely for waiting.
+- The alert/session window is server-authoritative at 05:00–23:00 Asia/Ho_Chi_Minh. Android login/refresh and new Android business mutations are denied while closed; the client schedules best-effort logout against the server-reported boundary.
+- Quản trị Invent/Root Web may explicitly extend the App/PDA window in one-hour increments. An active extension adds one hour; if the normal window is already closed and no extension is active, an explicit late-overtime action starts one hour from server time.
+- Xác nhận đơn remains its accepted Firestore request/ACK path, but the Android client checks the same server window before creating a new request document.
 - Critical shortage alerts may request a transient overlay when the user has granted Android's display-over-other-apps permission. If unavailable, the accepted high-importance notification path remains the fallback.
 - Healthy-path delivery may target approximately 3 seconds but is not represented as a hard Android/FCM guarantee. Telemetry distinguishes server send, FCM receive and display.
 - Picker-contact commands are additive, idempotent, TTL-bounded and server-authorized. FCM tokens remain private service data and are never exposed in Agent-readable documents.
