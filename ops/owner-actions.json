@@ -1983,7 +1983,7 @@
     },
     {
       "id": "OA041",
-      "status": "ACTION_REQUIRED",
+      "status": "PASS_OWNER_COMPLETED",
       "title": "Enable Firebase Extensions API for D119 Functions deploy",
       "resource_key": "functions-deploy-sa-beta-d119",
       "provider": "Google Cloud APIs & Services",
@@ -2007,7 +2007,53 @@
       ],
       "expected_success": "Rerun of Functions workflow 36156658669 proceeds past API checks into the actual Functions deployment.",
       "safety": "Beta project only. Stable remains OWNER-GATED. No service-account keys or secrets are changed.",
-      "remaining_owner_action": "Enable firebaseextensions.googleapis.com on supra-inventory-beta and reply xong.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "rerun_job": 108159746542,
+        "result": "firebaseextensions.googleapis.com reported enabled by Firebase CLI"
+      }
+    },
+    {
+      "id": "OA042",
+      "status": "ACTION_REQUIRED",
+      "title": "Grant Firebase Functions service-agent IAM bindings",
+      "resource_key": "gcp-beta",
+      "provider": "Google Cloud IAM",
+      "reason_owner_only": "Connected project tools cannot mutate Google Cloud IAM policy. After Firebase Viewer and Firebase Extensions API passed, Firebase CLI reached Gen2 event-trigger IAM verification and reported three required project bindings.",
+      "required_changes": [
+        {
+          "principal": "service-572322098890@gcp-sa-pubsub.iam.gserviceaccount.com",
+          "role": "Service Account Token Creator",
+          "role_id": "roles/iam.serviceAccountTokenCreator"
+        },
+        {
+          "principal": "572322098890-compute@developer.gserviceaccount.com",
+          "role": "Cloud Run Invoker",
+          "role_id": "roles/run.invoker"
+        },
+        {
+          "principal": "572322098890-compute@developer.gserviceaccount.com",
+          "role": "Eventarc Event Receiver",
+          "role_id": "roles/eventarc.eventReceiver"
+        }
+      ],
+      "verification_evidence": {
+        "workflow_run": 36156658669,
+        "rerun_job": 108159746542,
+        "firebase_viewer": "PASS",
+        "firebase_extensions_api": "PASS",
+        "failure": "Firebase CLI failed to verify/modify the required service-agent IAM bindings and printed the exact three bindings above."
+      },
+      "shortest_ui_path": [
+        "Open Google Cloud IAM for project supra-inventory-beta.",
+        "Grant Service Account Token Creator to service-572322098890@gcp-sa-pubsub.iam.gserviceaccount.com.",
+        "Grant Cloud Run Invoker and Eventarc Event Receiver to 572322098890-compute@developer.gserviceaccount.com.",
+        "Do not add broader Owner/Editor/Service Usage Admin roles."
+      ],
+      "expected_success": "Rerun of Functions workflow 36156658669 passes service-agent IAM verification and proceeds to actual Gen2 Functions deployment.",
+      "safety": "Beta project only. These are exact Firebase CLI-required bindings for registered project-generated principals. Stable remains OWNER-GATED. No keys/secrets are changed.",
+      "remaining_owner_action": "Apply the three listed IAM bindings on supra-inventory-beta and reply xong.",
       "closed": false
     }
   ]
