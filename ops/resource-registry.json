@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D120_RELEASED_BETA_VC76_AGENT_V40__OWNER_FIELD_PARTIAL_PASS__PICKER_PRESENCE_HOTFIX_IN_PROGRESS",
+      "status": "D120_RELEASED_VC76_V40__PICKER_PRESENCE_HOTFIX_PR_GATES_PASS__V41_MERGE_READY",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -795,7 +795,7 @@
     "drive_logs": "FIRESTORE_ADMIN_SPOOL_TO_BETA_DRIVE__06_12_18_00__CRASH_BEST_EFFORT",
     "web_online": "WEB_PLUS_ANDROID_ONLY__AGENT_EXCLUDED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "release_status": "D120_V40_RELEASED_OWNER_FIELD_PARTIAL_PASS__PICKER_PRESENCE_HOTFIX_IN_PROGRESS",
+    "release_status": "D120_V40_OWNER_FIELD_PARTIAL_PASS__V41_PICKER_PRESENCE_HOTFIX_PR_GATES_PASS_MERGE_READY",
     "quiet_hours": "D118_OWNER_ACCEPTED__RELAY_0600_2200__FLEET_WIDE_DECISION_WINDOW_FROM_HH30__FIRST_CAS_DECISION_WINS__UNCONFIRMED_BOUNDARY_FREEZE__EARLY_START_BEFORE0600_CLAIMS_PRIMARY__MANUAL_AGENT_REMAINS_AVAILABLE",
     "fleet_table": "D120_V41_TARGET__TWO_COLUMN__PICKER_ACTIVE_ANDROID_REALTIME_ONLY__SEARCH_SCROLL_ANCHOR_WHOLE_ROW_HOVER__NO_FLICKER_NOOP_RENDER",
     "previous_release": "relay-agent-v40",
@@ -965,7 +965,7 @@
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d120": {
-    "status": "OWNER_FIELD_PARTIAL_PASS__PICKER_PRESENCE_HOTFIX_IN_PROGRESS",
+    "status": "PICKER_PRESENCE_HOTFIX_PR_GATES_PASS__MERGE_READY",
     "branch": "fix/d120-picker-presence-flicker-accuracy",
     "baseline_release": "beta-vc76 / relay-agent-v40",
     "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC76",
@@ -984,6 +984,16 @@
       "rtdb": 36195643218
     },
     "baseline_main": "43a94207ff99f45ab932312bac80bf2b7ac99414",
-    "picker_presence": "SCHEMA2_ACTIVE_ANDROID_REALTIME_INTERSECT_CURRENT_SESSION_ENABLED_FCM__NO_NEW_HEARTBEAT"
+    "picker_presence": "SCHEMA2_ACTIVE_ANDROID_REALTIME_INTERSECT_CURRENT_SESSION_ENABLED_FCM__NO_NEW_HEARTBEAT",
+    "hotfix_pr": 190,
+    "hotfix_source_head": "7a51318042570b13ad1a8fb967a835fc0cc2ce33",
+    "hotfix_pr_runs": {
+      "repo_authority": 36198769487,
+      "project_state": 36198769494,
+      "ui": 36198769416,
+      "relay_agent": 36198769477,
+      "firestore": 36198769424,
+      "rtdb": 36198769615
+    }
   }
 }
