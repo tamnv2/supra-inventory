@@ -19,10 +19,13 @@ interface InternalUser {
   password_changed_at: string | null;
   web_session_generation?: number;
   android_session_generation?: number;
+  session_channel?: "WEB" | "ANDROID" | "AGENT" | "";
 }
 
 const CORE_OBJECT_NAME = "inventory-core";
 const REPORTER_ROLES: AppRole[] = ["REPORTER", "ADMIN", "ROOT"];
+const REPORTER_READ_ROLES: AppRole[] = ["REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"];
+const PICKPACK_REPORT_ROLES: AppRole[] = ["ADMIN", "PICKPACK_ADMIN", "ROOT"];
 const REPORTER_TAGS = ["role:REPORTER", "role:ADMIN", "role:ROOT"];
 
 function json(payload: unknown, status = 200): Response {
@@ -65,7 +68,8 @@ async function requireUser(request: Request, env: BusinessEnv, roles?: AppRole[]
   const sessionError = interactiveSessionError(identity, user);
   if (sessionError) throw json({ error: sessionError }, 401);
   if (roles && !roles.includes(user.role)) throw json({ error: "FORBIDDEN" }, 403);
-  return user;
+  return { ...user, session_channel: identity.sessionChannel };
+}
 }
 
 async function sha256Hex(value: string): Promise<string> {
@@ -118,7 +122,18 @@ async function ensureOperationalV2(env: BusinessEnv): Promise<Response | null> {
 
 function requiredRolesForBusinessRoute(key: string): AppRole[] | undefined {
   if (key.startsWith("POST /api/picker/") || key.startsWith("GET /api/picker/")) return ["PICKER"];
-  if (key.startsWith("GET /api/reporter/") || key.startsWith("POST /api/reporter/")) return REPORTER_ROLES;
+  if (key.startsWith("GET /api/reporter/")) return REPORTER_READ_ROLES;
+  if (key.startsWith("POST /api/reporter/")) return REPORTER_ROLES;
+  if (key === "POST /api/admin/skus/import") return PICKPACK_REPORT_ROLES;
+  if ([
+    "GET /api/admin/reports",
+    "GET /api/admin/dashboard",
+    "GET /api/admin/reporting",
+    "GET /api/admin/reporting-detail",
+    "GET /api/admin/dashboard-preference",
+    "PUT /api/admin/dashboard-preference",
+    "GET /api/admin/operational-insights",
+  ].includes(key)) return PICKPACK_REPORT_ROLES;
   if (key.startsWith("GET /api/admin/") || key.startsWith("POST /api/admin/") || key.startsWith("PUT /api/admin/")) return ["ADMIN", "ROOT"];
   return undefined;
 }
@@ -280,6 +295,9 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   // Authentication/authorization must happen before any readiness probe. An unauthenticated
   // request must never trigger schema work or turn an expected 401/403 into a readiness 503.
   const user = await requireUser(request, env, requiredRolesForBusinessRoute(key));
+  if (key.startsWith("GET /api/admin/") || key.startsWith("POST /api/admin/") || key.startsWith("PUT /api/admin/")) {
+    if (user.session_channel === "ANDROID") return json({ error: "MANAGEMENT_WEB_ONLY" }, 403);
+  }
   const initializationFailure = await ensureOperationalV2(env);
   if (initializationFailure) return initializationFailure;
 
