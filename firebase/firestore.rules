@@ -233,8 +233,10 @@ service cloud.firestore {
         && request.resource.data.kind == 'LEASE'
         && request.resource.data.job_id == resource.data.job_id
         && request.resource.data.day_key == resource.data.day_key
-        && request.resource.data.owner_agent_id == request.auth.token.app_user_id
+        && request.resource.data.admin_user_id == request.auth.token.app_user_id
+        && request.resource.data.owner_agent_id == resource.data.owner_agent_id
         && request.resource.data.lease_until_ms is int
+        && request.resource.data.lease_until_ms > request.time.toMillis()
         && request.resource.data.lease_until_ms <= request.time.toMillis() + 900000;
       allow delete: if isAgentOperator() && resource.data.kind == 'LEASE';
     }
