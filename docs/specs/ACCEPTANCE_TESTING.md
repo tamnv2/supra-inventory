@@ -1226,3 +1226,16 @@ D119 cannot be called PASS unless all of the following hold:
 4. Scroll to the middle of a multi-row list and use employee/name search while refreshes occur. PASS only if no-op refreshes do not rebuild the grid and genuine updates preserve the closest valid scroll/selection anchor.
 5. Verify Agent v41 rejects a legacy schema-v1 Picker presence projection instead of treating it as current online truth.
 6. D117/D118 confirmation HA/generation/WMS mutation fences and Stable must remain unchanged.
+
+## D121 — Agent responsiveness and balanced-layout acceptance
+
+D121 passes only when all of the following are true:
+
+1. Keep Agent visible during normal work and during a temporary Firestore/network interruption. Drag/resize, switch tabs, scroll Picker/Agent grids and type in PickList while background schedule refresh occurs. The window must remain responsive and must not enter a repeated Windows **Not Responding** state.
+2. Static/source guard confirms `RefreshSharedScheduleNow()` is queued off the WinForms timer thread with a single-flight fence; the one-second schedule timer itself performs no synchronous Firestore request.
+3. System-monitor sampling (`_systemMonitor.Sample()`) is queued off the UI thread and overlapping 5-second tray-monitor ticks are coalesced.
+4. On Overview, the left column visibly contains three equal-height responsive regions: **Hệ thống Agent**, **Hệ thống Supra**, **Xử lý PickList**. Resizing preserves the three-way balance.
+5. In **Hệ thống Agent**, Agent / Relay / Wi‑Fi appear on one line. Long machine/user/network text may ellipsize but must not overlap adjacent labels.
+6. Agent fleet content uses the remaining height of its card with internal scrolling; PickList remains usable and no longer monopolizes left-column height.
+7. Existing D120 Picker search/scroll/no-flicker behavior remains PASS, and D117/D118 confirmation HA/generation/WMS mutation fences are unchanged.
+8. No new provider, database, heartbeat, polling loop or Stable change is introduced. Candidate release is `relay-agent-v42`.

@@ -706,3 +706,12 @@ D111 supersedes only the conflicting D110 Reporter interaction/presentation deta
 - The Picker DataGridView is double-buffered and skips no-op redraws when search text, visible Picker data and command state are unchanged.
 - Real data changes may update rows, but the current search text, scroll anchor and selected row are retained where the row still exists.
 - An empty result is shown only when the authoritative online projection is actually empty; no alternating empty/non-empty placeholder is permitted.
+
+## D121 — Windows Agent balanced workspace and responsive status line
+
+- The D120 two-column Overview remains: online Picker tools occupy the right workspace; Agent/Supra/PickList occupy the left workspace.
+- The three left cards use equal responsive height shares (approximately one third each). No card owns an unbounded “remaining height” slot.
+- **Hệ thống Agent** renders **Agent**, **Relay**, and **Wi‑Fi** on one horizontal responsive row. Long values use ellipsis rather than forcing stacked rows or changing card height.
+- The Agent fleet grid fills the remaining card height below the compact status row and uses its own vertical scrolling.
+- Window resize may recalculate geometry only. It must not trigger duplicate network refresh, clear Picker state, or reset search/scroll context.
+- Periodic Firestore schedule refresh and Windows CPU/GPU/Disk/Network sampling must not run synchronously on the WinForms UI thread. The UI remains interactive while those background operations are delayed or unavailable.

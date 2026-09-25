@@ -1066,3 +1066,14 @@ Owner field-tested the released D120 Beta set (Web, signed `beta-vc76`, Agent `r
 4. The projection advances to schema v2 with source `ACTIVE_ANDROID_REALTIME`. Agent must fail closed on legacy/stale projection schema rather than showing historical devices as online.
 5. Agent rendering must be double-buffered/no-op aware, preserve search/scroll selection, and the one-second after-hours timer must not churn the authenticated Overview layout.
 6. Hotfix target is `relay-agent-v41`; Android/Web source need only change where required for presence authority. Whole Beta compatibility and Stable OWNER-GATED rules remain unchanged.
+
+## D121 — Agent responsiveness and balanced left-column layout — 2026-09-26
+
+Owner confirms D120 and the D120 Picker-presence hotfix are released, then reports additional Windows Agent field defects. This is an Agent-only Beta repair on top of released `relay-agent-v41`; D117/D118 confirmation/HA/WMS mutation semantics and Stable remain protected.
+
+1. **UI responsiveness is a correctness requirement.** WinForms timers must not execute Firestore/network I/O or potentially expensive Windows performance-counter sampling synchronously on the UI thread. Schedule refresh and system-monitor sampling run in bounded single-flight background work; the UI consumes the latest cached/sampled result.
+2. **No cadence expansion.** Moving work off the UI thread must not add new polling, heartbeat, Firestore checkpoint writes, WMS probes or faster HA/business cadence. Existing D117/D118/D120 quota and confirmation timing remain authoritative.
+3. **Balanced Agent workspace.** Because the Picker workspace already owns the right side, the left side is divided evenly between **Hệ thống Agent**, **Hệ thống Supra**, and **Xử lý PickList** using responsive equal-height rows. PickList must no longer consume the remaining left-column height by default.
+4. **Compact Agent status line.** The visible **Agent**, **Relay**, and **Wi‑Fi** status labels are rendered on one responsive row with ellipsis protection instead of three stacked rows.
+5. **Responsive fleet area.** The Agent fleet table uses the remaining height inside its equal-height card and keeps internal scrolling; resizing the window recalculates the compact authenticated layout without forcing network refresh.
+6. Target release is **relay-agent-v42**. No Android/Web/business-resource change is required for this repair. Stable remains **OWNER-GATED** and untouched.

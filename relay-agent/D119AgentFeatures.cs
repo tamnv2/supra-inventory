@@ -202,6 +202,19 @@ namespace SupraInventoryRelayAgent
             RefreshD119OperationalViews(true);
         }
 
+        private void LayoutAgentSystemStatusRow(Control host, int top)
+        {
+            if (host == null) return;
+            var available = Math.Max(360, host.ClientSize.Width - 32);
+            const int gap = 10;
+            var width = Math.Max(110, (available - (gap * 2)) / 3);
+            var left = 16;
+
+            _identity.SetBounds(left, top, width, 20);
+            _relay.SetBounds(left + width + gap, top, width, 20);
+            _network.SetBounds(left + ((width + gap) * 2), top, Math.Max(110, available - ((width + gap) * 2)), 20);
+        }
+
         private void ApplyD119AuthenticatedLayout(bool authenticated)
         {
             if (_username.Parent == null) return;
@@ -225,19 +238,21 @@ namespace SupraInventoryRelayAgent
                 _manualUpdate.SetBounds(134, 62, 148, 30);
                 _background.SetBounds(292, 62, 142, 30);
 
-                _identity.SetBounds(16, 100, Math.Max(220, host.ClientSize.Width - 32), 20);
-                _relay.SetBounds(16, 124, Math.Max(220, host.ClientSize.Width - 32), 20);
-                _network.SetBounds(16, 148, Math.Max(220, host.ClientSize.Width - 32), 20);
-                _agentFleetGrid.SetBounds(16, 176, Math.Max(300, host.ClientSize.Width - 32), 70);
+                // D121: Agent / Relay / Wi-Fi are one compact status row.
+                LayoutAgentSystemStatusRow(host, 100);
+                var fleetTop = 126;
+                _agentFleetGrid.SetBounds(
+                    16,
+                    fleetTop,
+                    Math.Max(300, host.ClientSize.Width - 32),
+                    Math.Max(46, host.ClientSize.Height - fleetTop - 12));
                 _agentFleetGrid.Visible = true;
             }
             else
             {
                 _manualUpdate.SetBounds(16, 118, 148, 30);
                 _background.SetBounds(174, 118, 142, 30);
-                _identity.SetBounds(16, 154, Math.Max(220, host.ClientSize.Width - 32), 20);
-                _relay.SetBounds(16, 178, Math.Max(220, host.ClientSize.Width - 32), 20);
-                _network.SetBounds(16, 202, Math.Max(220, host.ClientSize.Width - 32), 20);
+                LayoutAgentSystemStatusRow(host, 154);
                 _agentFleetGrid.Visible = false;
             }
 
