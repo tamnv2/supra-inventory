@@ -210,6 +210,11 @@ function scheduleFcm(
       const resultEventId = String(mutation.event_id || "");
       const batchId = String(options.target.batchId || mutation.batch_id || mutation.ticket?.batch_id || "");
 
+      const alertWindowResponse = await coreGet(env, "/notifications/alert-window");
+      if (!alertWindowResponse.ok) return;
+      const alertWindow = (await alertWindowResponse.json()) as { is_open?: boolean };
+      if (alertWindow.is_open !== true) return;
+
       let eventSeq = "";
       let batchVersion = "";
       if (resultEventId) {
@@ -288,6 +293,8 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     "GET /api/admin/operational-insights",
     "GET /api/admin/sla",
     "PUT /api/admin/sla",
+    "GET /api/admin/alert-window",
+    "PUT /api/admin/alert-window",
   ]);
   if (!supported.has(key)) return null;
 
@@ -299,6 +306,22 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   }
   const initializationFailure = await ensureOperationalV2(env);
   if (initializationFailure) return initializationFailure;
+
+  if (key === "GET /api/admin/alert-window") {
+    return coreGet(env, "/notifications/alert-window");
+  }
+
+  if (key === "PUT /api/admin/alert-window") {
+    const body = await parseObjectBody(request);
+    const action = String(body.action || "").trim().toUpperCase();
+    if (!["EXTEND_ONE_HOUR", "STOP_OVERTIME"].includes(action)) {
+      return json({ error: "INVALID_ALERT_WINDOW_ACTION" }, 400);
+    }
+    return corePost(env, "/notifications/alert-window", {
+      actor_user_id: user.user_id,
+      action,
+    });
+  }
 
   if (key === "POST /api/admin/skus/import") {
     const body = await parseObjectBody(request);
