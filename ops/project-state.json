@@ -197,7 +197,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Finish D121 Agent-only source/authority/continuity/build gates on fix/d121-agent-responsiveness-balanced-layout, merge only after PASS, then verify main relay-agent-v42 release and inventory-channel. OA047 becomes field-ready after release; Stable remains OWNER-GATED.",
+  "next_action": "D121 PR #191 is open. Keep repairing until Repo Authority / Project State / UI Design / Relay Agent and applicable Firebase guards all PASS; merge only then, verify main relay-agent-v42 + inventory-channel, then OA047 field review. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -824,7 +824,8 @@
     "D119 cleanup-policy repair: PR #186 now configures the official Firebase Functions Artifact Registry cleanup policy explicitly for asia-southeast1 with 1-day retention before deployment, then deploys only the exact three D119 functions. The workflow intentionally does not use firebase deploy --force because Firebase CLI documents --force as allowing implicit deletion of functions missing from the working directory; fail-closed exact targeting is safer. Official Firebase guidance states functions:artifacts:setpolicy is the supported cleanup command and defaults to 1 day. Stable untouched.",
     "D119 main Functions run 36173638920 proved the deploy identity cannot run functions:artifacts:setpolicy. Rather than add a permanent Artifact Registry Editor/Admin role to the deploy service account, the least-privilege repair is a one-time Owner cleanup policy on Beta gcf-artifacts (asia-southeast1), 1-day retention per Firebase's documented default. Follow-up workflow removes the policy-mutation step and keeps exact-three-function deployment without --force. Stable untouched.",
     "D119 terminal automated release evidence: PR #187 merged main fbe3292a. Main Repo Authority run 36174736954 PASS, Project State/Continuity run 36174736933 PASS, Legacy Operational V2/Web/Android regression run 36174736946 PASS, and Beta Functions run 36174736965 PASS with exact three-function deployment after the Owner-configured gcf-artifacts 1-day cleanup policy. Firestore hotfix main run 36157673480 remains PASS. beta-vc75 and relay-agent-v39 are published. D119 is technical/runtime/release PASS; OA039 physical Owner field acceptance is now the only remaining acceptance layer. Stable untouched.",
-    "D121 root cause from released v41 source/log review: one-second after-hours WinForms timer could synchronously call Firestore RefreshSharedScheduleNow; five-second tray timer synchronously sampled Windows CPU/GPU/Disk/NIC counters. Both are moved to bounded background single-flight work to protect UI responsiveness."
+    "D121 root cause from released v41 source/log review: one-second after-hours WinForms timer could synchronously call Firestore RefreshSharedScheduleNow; five-second tray timer synchronously sampled Windows CPU/GPU/Disk/NIC counters. Both are moved to bounded background single-flight work to protect UI responsiveness.",
+    "D121 implementation PR #191 targets relay-agent-v42 from released v41 baseline; first Agent gate exposed AgentConfig.AgentBuild still at 41 and the same PR corrected it to 42 before build."
   ],
   "active_workstream": "D121_AGENT_RESPONSIVENESS_BALANCED_LAYOUT",
   "paused_workstreams": {
