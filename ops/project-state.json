@@ -13,26 +13,26 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D118_OWNER_FIELD_ACCEPTED_PASS__LIVE_SOURCE_D29237C0__SCHEMA11__SIGNED_BETA_VC74__AGENT_V38",
+    "beta": "D119_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC75__AGENT_V39__D120_FIELD_REPAIR_SOURCE_IN_PROGRESS",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 11,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D118_OWNER_ACCEPTED_PASS__PAGED_HISTORY_SKU_LOGS__REVISION_SAFE_SLA__DETAILED_EXCEL",
-    "android": "D118_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC74__IME_ADJUST_RESIZE__PICKER_TABS_ABOVE_KEYBOARD",
-    "latest_beta_apk": "beta-vc74",
+    "web": "D120_SOURCE_CANDIDATE__SLA_DIRTY_GUARD__COMPACT_POLICY_UI__DYNAMIC_VIEWPORT__ROOT_ROLE_EDITOR",
+    "android": "D120_SOURCE_CANDIDATE__SINGLE_CROSS_APP_RED_BLUE_RESULT__NO_LOGIN_FLASH__ACK_RETRY",
+    "latest_beta_apk": "beta-vc75",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
     "network_scope": "D118_OWNER_ACCEPTED_PASS__D117_HA_PRESERVED__FLEET_WIDE_OVERTIME_CAS__ANY_AUTHENTICATED_AGENT_DECISION__STABLE_UNTOUCHED",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
-    "user_management": "D116_BETA_RUNTIME_PASS__PICKER_ONLY_BULK_SELECTION__ALL_WITH_EXCLUSIONS__ROOT_AND_NON_PICKER_PROTECTED",
+    "user_management": "D120_SOURCE_CANDIDATE__ROOT_ONLY_MANAGED_ROLE_CHANGE__PICKER_HR_AUTHORITY_PRESERVED",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D112_OWNER_ACCEPTED_PASS__EXISTING_METRICS_OPERATIONAL_HIERARCHY__NONBLOCKING_SECONDARY_LOAD",
-    "quota_resilience": "D118_OWNER_ACCEPTED_PASS__INHERITS_D117_QUOTA_MODEL__PRIMARY_IDLE4S_HOT2S__STANDBY_FROZEN_ZERO_BUSINESS_POLL__LEASE7S__NO_PERIODIC_WMS_PROBE",
-    "ui_design_guard": "D118_OWNER_ACCEPTED_PASS__SERVER_AUTHORITATIVE_SLA__PAGINATION__ANDROID_IME_RESIZE__AGENT_FOOTER",
+    "quota_resilience": "D120_SOURCE_CANDIDATE__FLEET_METRICS_HARD_30MIN_ATTEMPT_THROTTLE__D117_D118_HA_UNCHANGED",
+    "ui_design_guard": "D120_SOURCE_CANDIDATE__AGENT_TWO_COLUMN__METRIC_TILES__WEB_SLA_VIEWPORT__ANDROID_SINGLE_RESULT_SURFACE",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D118_OWNER_ACCEPTED_PASS__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SELECTED_RANGE_FILTER",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D118_OWNER_ACCEPTED_PASS__BETA_VC74__AGENT_V38__D117_HA_PRESERVED__FLEET_OVERTIME_CAS"
+    "picklist_confirmation_poc": "D119_OWNER_ACCEPTED__D120_DOES_NOT_CHANGE_D117_D118_CONFIRMATION_OR_WMS_MUTATION_CONTRACT"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -166,6 +166,7 @@
     "D118 Owner field PASS: fleet-wide overtime CAS, inherited D117 HA/fencing, real pagination, revision-safe SLA, detailed multi-sheet Excel, Agent footer and Android keyboard-safe tabs accepted."
   ],
   "pending_build": [
+    "D120 source candidate on fix/d120-agent-app-web-field-repairs: PR/authority/continuity/build gates pending; target next signed Android after beta-vc75 and relay-agent-v40; Stable untouched.",
     "D116 technical/runtime/release PASS: PR #175 merged main 9319eb30; Authority/State/UI/Worker/Android/Agent main runs PASS; live Beta exact source schema 11/11 Operational V2 5/5; signed beta-vc72 + relay-agent-v35 and fixed runtime channel published. OA036 Owner field review remains; Stable untouched.",
     "D115 technical/runtime/release PASS: PR #173 merged main bcbabc09; main Authority/State/UI/Worker/Android/Agent PASS; live Beta exact source schema 11/11 Operational V2 5/5; signed beta-vc71 + relay-agent-v34 and fixed runtime channel published. OA035 Owner field review remains; Stable untouched.",
     "D114 technical/runtime/release PASS: implementation main 8cdf941b, Firestore Rules repair main e6138dbd, final release-gate main bc8d6c3e; signed beta-vc70 + relay-agent-v33 published and fixed runtime channel refreshed. OA034 Owner field review remains; Stable untouched.",
@@ -176,6 +177,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
+    "OA046 D120 physical field acceptance after automated release PASS: Agent smooth scroll/search/two-column/Supra account switch/quota log; Android single cross-app red/blue result + no login flash; Web SLA stability/taskbar viewport/ROOT role change.",
     "OA026 D106 physical credential acceptance: one post-D106 ADMIN password set -> unchanged Agent v30 direct login, plus one fresh ADMIN Web create -> immediate Agent login; verify no ghost-account-on-error.",
     "OA025 D105 physical acceptance: Android 4-digit input, dimmed in-flight confirm button, prominent terminal result, Agent manual 3–4 digit search, and unique 4-digit full-PickList resolution.",
     "OA022 D102 physical Agent v27 acceptance: one Tổng quan layout, manual update, >=2 Agent role convergence, fleet table, 21:30 five-minute warning, 22:00 default business pause, explicit continue/stop and 05:00 automatic resume.",
@@ -193,7 +195,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D119 automated technical/runtime/release gates are PASS. OA039 is now field-ready for Owner acceptance on live Beta: validate physical Android overlay/notification behavior, role boundaries, event-driven Picker presence/contact, WMS SKU sync and D118 HA regression. Stable remains OWNER-GATED.",
+  "next_action": "Finish D120 source/authority consistency on fix/d120-agent-app-web-field-repairs, open PR, drive Repo Authority + Project State/continuity + UI/Android/Agent/Worker regression gates to PASS, merge, then verify exact-source Beta runtime and publish the next signed Android Beta plus relay-agent-v40 through inventory-channel. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -549,7 +551,7 @@
       "d110_health": "HTTP_200__SOURCE_EXACT_E7931CF8__SCHEMA_11_11__STORAGE_TRUE__MISSING_0__AGENT_0_0__OPERATIONAL_5_5"
     },
     "d119": {
-      "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA039_FIELD_READY",
+      "status": "TECHNICAL_RUNTIME_RELEASE_OWNER_FIELD_PASS",
       "branch": "feat/d119-protected-additive-ops",
       "baseline_main": "c82d21d470f5c8dd12f795b21ef3cadf32be8ef3",
       "baseline_release": "beta-vc74 / relay-agent-v38",
@@ -618,7 +620,42 @@
         "agent_release_id": 396736476,
         "agent_asset_id": 588683817,
         "stable": "UNTOUCHED_OWNER_GATED"
-      }
+      },
+      "owner_acceptance": "PASS_OWNER_CONFIRMED_D119",
+      "owner_acceptance_date": "2026-09-26"
+    },
+    "d120": {
+      "status": "SOURCE_IMPLEMENTATION_IN_PROGRESS__PR_PENDING",
+      "branch": "fix/d120-agent-app-web-field-repairs",
+      "baseline_main": "f2d90f837b67b190ed8bd28659a5315ece098588",
+      "baseline_release": "beta-vc75 / relay-agent-v39",
+      "owner_requirement_date": "2026-09-26",
+      "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC75",
+      "target_agent_release": "relay-agent-v40",
+      "protected_paths": [
+        "D117/D118 Agent HA lease/failover/generation fences",
+        "Firestore confirmation PENDING→ACK and WMS no-replay guards",
+        "Báo hàng InventoryCore authority",
+        "Stable resources"
+      ],
+      "diagnosed_field_evidence": {
+        "agent_log": "Owner-provided Beta Agent log inspected from connected Drive",
+        "fleet_metrics_regression": "D119 FLEET_METRICS checkpoint PASS repeated roughly every 1-2 seconds due forced UI refresh bypassing intended 30-minute interval",
+        "agent_runtime_health": "No inspected evidence of crash; WMS/Firestore/confirmation activity continued while metrics checkpoint cadence was excessive",
+        "repair": "30-minute attempt throttle cannot be bypassed by normal force/UI refresh"
+      },
+      "source_scope": [
+        "Agent Picker scroll/search/hover/two-column/control repair",
+        "protected Supra logout/account switching and displayed Supra user",
+        "independent Windows overlay metric tiles",
+        "single Android cross-app canonical result overlay and durable ACK retry",
+        "valid-session restore without login-form flash",
+        "SLA edit dirty guard/post-save verification/compact controls/dynamic viewport",
+        "ROOT-only managed role changes with session invalidation and Firebase claims sync"
+      ],
+      "new_resources": "NONE",
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "field_action": "OA046_WAITING_D120_RELEASE"
     }
   },
   "authority_setup": {
@@ -632,7 +669,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-09-25",
+  "last_updated": "2026-09-26",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -744,7 +781,7 @@
     "D119 main Functions run 36173638920 proved the deploy identity cannot run functions:artifacts:setpolicy. Rather than add a permanent Artifact Registry Editor/Admin role to the deploy service account, the least-privilege repair is a one-time Owner cleanup policy on Beta gcf-artifacts (asia-southeast1), 1-day retention per Firebase's documented default. Follow-up workflow removes the policy-mutation step and keeps exact-three-function deployment without --force. Stable untouched.",
     "D119 terminal automated release evidence: PR #187 merged main fbe3292a. Main Repo Authority run 36174736954 PASS, Project State/Continuity run 36174736933 PASS, Legacy Operational V2/Web/Android regression run 36174736946 PASS, and Beta Functions run 36174736965 PASS with exact three-function deployment after the Owner-configured gcf-artifacts 1-day cleanup policy. Firestore hotfix main run 36157673480 remains PASS. beta-vc75 and relay-agent-v39 are published. D119 is technical/runtime/release PASS; OA039 physical Owner field acceptance is now the only remaining acceptance layer. Stable untouched."
   ],
-  "active_workstream": "D119_IMPLEMENTATION",
+  "active_workstream": "D120_FIELD_REPAIR_IMPLEMENTATION",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
