@@ -911,3 +911,16 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA038 FIELD READY**.
 - Live health attempt 1: HTTP 200, exact source, SQLite 11/11, Operational V2 5/5, missing 0, Agent migration 0/0.
 - OA038 is field-ready; Owner acceptance is still pending.
 - Stable remains OWNER-GATED and untouched.
+
+## D118 Owner-accepted readiness — 2026-09-25
+
+Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
+
+- OA038 is closed as `PASS_OWNER_CONFIRMED_D118`.
+- Beta: `D118_OWNER_FIELD_ACCEPTED_PASS__LIVE_SOURCE_D29237C0__SCHEMA11__SIGNED_BETA_VC74__AGENT_V38`.
+- Web: `D118_OWNER_ACCEPTED_PASS__PAGED_HISTORY_SKU_LOGS__REVISION_SAFE_SLA__DETAILED_EXCEL`.
+- Android: `D118_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC74__IME_ADJUST_RESIZE__PICKER_TABS_ABOVE_KEYBOARD`.
+- Signed Android `beta-vc74` and `relay-agent-v38` are the accepted Beta artifacts.
+- SQLite/runtime remains `11/11`; Operational V2 remains `5/5`.
+- Ready for the next explicit Owner requirement after mandatory authority bootstrap.
+- Stable remains OWNER-GATED and untouched.
