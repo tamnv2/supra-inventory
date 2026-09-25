@@ -193,7 +193,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Owner enables Firebase Extensions API (firebaseextensions.googleapis.com) on Beta project, then rerun failed Functions workflow 36156658669; if deploy PASS, finalize D119 technical/runtime/release checkpoint and OA039 field-ready.",
+  "next_action": "Owner grants the three Firebase CLI-required Beta project IAM bindings to the registered Pub/Sub service agent and default compute service account, then rerun failed Functions workflow 36156658669; if deploy PASS, finalize D119 technical/runtime/release checkpoint and OA039 field-ready.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -549,7 +549,7 @@
       "d110_health": "HTTP_200__SOURCE_EXACT_E7931CF8__SCHEMA_11_11__STORAGE_TRUE__MISSING_0__AGENT_0_0__OPERATIONAL_5_5"
     },
     "d119": {
-      "status": "MAIN_RELEASE_PARTIAL_PASS__FUNCTIONS_EXTENSIONS_API_BLOCKER",
+      "status": "MAIN_RELEASE_PARTIAL_PASS__FUNCTIONS_SERVICE_AGENT_IAM_BLOCKER",
       "branch": "feat/d119-protected-additive-ops",
       "baseline_main": "c82d21d470f5c8dd12f795b21ef3cadf32be8ef3",
       "baseline_release": "beta-vc74 / relay-agent-v38",
@@ -578,7 +578,7 @@
       "target_android_release": "beta-vc75",
       "target_agent_release": "relay-agent-v39",
       "target_channel": "inventory-channel",
-      "runtime_release_status": "BLOCKED_ONLY_BY_FIREBASE_EXTENSIONS_API",
+      "runtime_release_status": "BLOCKED_ONLY_BY_REQUIRED_GOOGLE_SERVICE_AGENT_IAM",
       "implementation_main": "580680019fcc440eadd25955c7ea87d1ca44bd29",
       "main_firestore_failed_run": 36156658549,
       "main_firestore_failure": "RULESET_CREATE_HTTP_400_INVALID_ARGUMENT__MALFORMED_D119_RULE_REGION",
@@ -587,10 +587,14 @@
       "main_firestore_hotfix_run": 36157673480,
       "main_firestore_hotfix_status": "PASS",
       "functions_failed_run": 36156658669,
-      "functions_rerun_job": 108158421765,
-      "functions_failure": "FIREBASE_EXTENSIONS_API_DISABLED__DEPLOY_SA_CANNOT_ENABLE_SERVICE",
-      "required_owner_iam": "FIREBASE_VIEWER_CONFIRMED_EFFECTIVE_BY_RERUN__NO_FURTHER_FIREBASE_PROJECTS_GET_BLOCKER",
-      "required_owner_api": "ENABLE_FIREBASE_EXTENSIONS_API_ON_BETA_PROJECT"
+      "functions_rerun_job": 108159746542,
+      "functions_failure": "FIREBASE_CLI_COULD_NOT_VERIFY_OR_APPLY_REQUIRED_SERVICE_AGENT_IAM_BINDINGS",
+      "required_owner_iam": [
+        "service-572322098890@gcp-sa-pubsub.iam.gserviceaccount.com -> roles/iam.serviceAccountTokenCreator",
+        "572322098890-compute@developer.gserviceaccount.com -> roles/run.invoker",
+        "572322098890-compute@developer.gserviceaccount.com -> roles/eventarc.eventReceiver"
+      ],
+      "required_owner_api": "PASS__FIREBASE_EXTENSIONS_API_ENABLED"
     }
   },
   "authority_setup": {
@@ -707,7 +711,8 @@
     "D119 PR checkpoint 2026-09-25: PR #184 head c01ed9d7 passes Repo Authority 36155864756, Project State 36155864801, UI 36155864720, Android 36155864708, Relay Agent 36155864832, Firestore 36155864713, RTDB 36155864655 and Beta Functions 36155864675. Target release set is signed beta-vc75 + relay-agent-v39; inventory-channel promotion waits for main release gates; Stable untouched.",
     "D119 main runtime failure 2026-09-25: after PR #184 merged at 580680019fcc440eadd25955c7ea87d1ca44bd29, main Firestore run 36156658549 failed Rules ruleset creation HTTP 400 INVALID_ARGUMENT. Inspection found the D119 relay_fleet_metrics rule truncated/duplicated around sku_sync_jobs. Hotfix fix/d119-firestore-rules-release repairs the rule document and adds PR-time structural multiplicity/terminator guards; no Stable change.",
     "D119 Functions rerun after Owner granted appspot Service Account User reached Firebase Management API and failed only on GET adminSdkConfig HTTP 403. Official permission for GetAdminSdkConfig is firebase.projects.get; next Owner-only IAM action is grant Beta deploy SA Firebase Viewer, then rerun failed Functions workflow 36156658669. Firestore hotfix main run 36157673480 is PASS; beta-vc75 and relay-agent-v39 are already published/channel-updated; Stable untouched.",
-    "D119 Functions rerun job 108158421765 after Owner added Firebase Viewer passed the prior Firebase Management API/adminSdkConfig permission gate, confirming firebase.projects.get is effective. Deployment now stops later because firebaseextensions.googleapis.com is disabled and the least-privilege deploy service account cannot enable services. Next Owner-only action: enable Firebase Extensions API once on Beta, then rerun workflow 36156658669. Do not broaden deploy IAM merely to self-enable APIs; Stable remains untouched."
+    "D119 Functions rerun job 108158421765 after Owner added Firebase Viewer passed the prior Firebase Management API/adminSdkConfig permission gate, confirming firebase.projects.get is effective. Deployment now stops later because firebaseextensions.googleapis.com is disabled and the least-privilege deploy service account cannot enable services. Next Owner-only action: enable Firebase Extensions API once on Beta, then rerun workflow 36156658669. Do not broaden deploy IAM merely to self-enable APIs; Stable remains untouched.",
+    "D119 Functions rerun job 108159746542 confirms Firebase Viewer and Firebase Extensions API are both effective. Deploy proceeds through required API checks, then Firebase CLI reports three missing project IAM bindings for Google-managed/supporting principals: Pub/Sub service agent -> Service Account Token Creator; Beta default compute service account -> Cloud Run Invoker and Eventarc Event Receiver. These principals are now registered in project scope/resource registry before any Owner IAM mutation. Stable remains untouched."
   ],
   "active_workstream": "D119_IMPLEMENTATION",
   "paused_workstreams": {
