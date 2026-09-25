@@ -193,7 +193,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Merge PR #184 after final protected PR checks, then observe main Beta Worker/Functions/Rules/Android/Agent release gates and advance inventory-channel only from main; Stable untouched.",
+  "next_action": "Hotfix D119 Firestore Rules on fix/d119-firestore-rules-release; require PR authority/continuity/source PASS, merge, then require main Firestore deploy readback PASS before D119 release finalization.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -549,7 +549,7 @@
       "d110_health": "HTTP_200__SOURCE_EXACT_E7931CF8__SCHEMA_11_11__STORAGE_TRUE__MISSING_0__AGENT_0_0__OPERATIONAL_5_5"
     },
     "d119": {
-      "status": "SOURCE_AND_PR_GATES_PASS__MERGE_READY",
+      "status": "MAIN_MERGED__FIRESTORE_RULES_DEPLOY_FAILED__HOTFIX_IN_PROGRESS",
       "branch": "feat/d119-protected-additive-ops",
       "baseline_main": "c82d21d470f5c8dd12f795b21ef3cadf32be8ef3",
       "baseline_release": "beta-vc74 / relay-agent-v38",
@@ -578,7 +578,11 @@
       "target_android_release": "beta-vc75",
       "target_agent_release": "relay-agent-v39",
       "target_channel": "inventory-channel",
-      "runtime_release_status": "PENDING_MAIN_MERGE_AND_MAIN_RELEASE_GATES"
+      "runtime_release_status": "BLOCKED_UNTIL_HOTFIX_MAIN_FIRESTORE_PASS",
+      "implementation_main": "580680019fcc440eadd25955c7ea87d1ca44bd29",
+      "main_firestore_failed_run": 36156658549,
+      "main_firestore_failure": "RULESET_CREATE_HTTP_400_INVALID_ARGUMENT__MALFORMED_D119_RULE_REGION",
+      "hotfix_branch": "fix/d119-firestore-rules-release"
     }
   },
   "authority_setup": {
@@ -692,7 +696,8 @@
     "D115 technical/runtime/release PASS 2026-09-24: PR #173 merged main bcbabc09. Main Repo Authority 35948065198, Project State 35948065182, UI 35948065209, Beta Worker 35948065164, Android 35948065152 and Relay Agent 35948065389 PASS. Live Beta health attempt 1 exact source, schema 11/11, Operational V2 5/5. Signed beta-vc71 + relay-agent-v34 published; OA035 field-ready.",
     "D119 presetup PASS from Owner evidence: Beta billing attached, budget/spend cap configured, APIs enabled, deploy SA invent-beta-functions-deploy, runtime SA inventory-beta-alert-runtime with Datastore/FCM/Eventarc roles, deploy SA Service Account User on runtime SA, GitHub beta secret FIREBASE_FUNCTIONS_SA_JSON_BETA configured. Secret value is not read or recorded.",
     "D119 Owner correction: Quản trị Pick Pack retains normal Windows Agent PickList lookup/confirmation and Agent SKU update/sync authority; only Báo hàng resolution/correction and previously excluded Web management capabilities remain denied.",
-    "D119 PR checkpoint 2026-09-25: PR #184 head c01ed9d7 passes Repo Authority 36155864756, Project State 36155864801, UI 36155864720, Android 36155864708, Relay Agent 36155864832, Firestore 36155864713, RTDB 36155864655 and Beta Functions 36155864675. Target release set is signed beta-vc75 + relay-agent-v39; inventory-channel promotion waits for main release gates; Stable untouched."
+    "D119 PR checkpoint 2026-09-25: PR #184 head c01ed9d7 passes Repo Authority 36155864756, Project State 36155864801, UI 36155864720, Android 36155864708, Relay Agent 36155864832, Firestore 36155864713, RTDB 36155864655 and Beta Functions 36155864675. Target release set is signed beta-vc75 + relay-agent-v39; inventory-channel promotion waits for main release gates; Stable untouched.",
+    "D119 main runtime failure 2026-09-25: after PR #184 merged at 580680019fcc440eadd25955c7ea87d1ca44bd29, main Firestore run 36156658549 failed Rules ruleset creation HTTP 400 INVALID_ARGUMENT. Inspection found the D119 relay_fleet_metrics rule truncated/duplicated around sku_sync_jobs. Hotfix fix/d119-firestore-rules-release repairs the rule document and adds PR-time structural multiplicity/terminator guards; no Stable change."
   ],
   "active_workstream": "D119_IMPLEMENTATION",
   "paused_workstreams": {

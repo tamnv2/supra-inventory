@@ -73,6 +73,23 @@ jobs:
           );
           if (!queueIndex) throw new Error('Missing D097 pending queue composite index');
           if (/allow\s+(read|write)\s*:\s*if\s+true/.test(rules)) throw new Error('Open Firestore Rules are forbidden');
+          const exactCount = (needle) => rules.split(needle).length - 1;
+          for (const [marker, expected] of [
+            ['match /relay_fleet_metrics/{docId}', 1],
+            ['match /sku_sync_jobs/{jobId}', 1],
+            ['match /relay_agent_log_uploads/{partId}', 1],
+          ]) {
+            const actual = exactCount(marker);
+            if (actual !== expected) throw new Error('D119 Firestore block multiplicity mismatch for ' + marker + ': ' + actual);
+          }
+          const dayKeyGuard = "request.resource.data.day_key.matches('^[0-9]{8}" + "$" + "')";
+          if (!rules.includes(dayKeyGuard)) throw new Error('D119 fleet day-key guard is incomplete');
+          const trimmed = rules.trimEnd();
+          const tail = trimmed.split(String.fromCharCode(10)).slice(-2).map(line => line.trim());
+          if (tail.length !== 2 || tail[0] !== '}' || tail[1] !== '}') {
+            throw new Error('Firestore Rules document has trailing/orphan content after service close');
+          }
+          console.log('D119 Firestore structural validation PASS');
           console.log('D097 Firestore source validation PASS');
           NODE
 
