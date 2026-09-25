@@ -64,6 +64,38 @@ async function removeDevice(state: DurableObjectState, request: Request): Promis
   return response({ status: "unregistered", device_id: deviceId, unregistered_at: at });
 }
 
+function onlinePickerProjection(state: DurableObjectState): Response {
+  const rows = state.storage.sql.exec<SqlRow>(
+    `SELECT u.user_id,
+            COALESCE(u.employee_code, '') AS employee_code,
+            u.display_name,
+            u.android_session_started_at AS login_at,
+            f.device_id,
+            MAX(f.last_seen_at) AS device_seen_at
+       FROM users u
+       JOIN fcm_devices f
+         ON f.user_id = u.user_id
+        AND f.platform = 'ANDROID'
+        AND f.enabled = 1
+        AND u.android_session_device_id = ('android:' || f.device_id)
+      WHERE u.role = 'PICKER'
+        AND u.status = 'ACTIVE'
+        AND u.android_session_device_id IS NOT NULL
+        AND u.android_session_device_id <> ''
+      GROUP BY u.user_id, u.employee_code, u.display_name, u.android_session_started_at, f.device_id
+      ORDER BY COALESCE(u.employee_code, u.user_id) ASC, u.display_name ASC`,
+  ).toArray().map((row) => ({
+    user_id: String(row.user_id || ""),
+    employee_code: String(row.employee_code || ""),
+    display_name: String(row.display_name || ""),
+    device_id: String(row.device_id || ""),
+    login_at: row.login_at == null ? null : String(row.login_at),
+    device_seen_at: row.device_seen_at == null ? null : String(row.device_seen_at),
+    status: "PDA_READY",
+  }));
+  return response({ items: rows, count: rows.length, generated_at: new Date().toISOString() });
+}
+
 function targetUsersForRoles(state: DurableObjectState, roles: string[]): string[] {
   const allowed = [...new Set(roles.filter((role) => ["PICKER", "REPORTER", "ADMIN", "ROOT"].includes(role)))];
   if (!allowed.length) return [];
@@ -218,6 +250,9 @@ async function recordDeliveryAttempts(state: DurableObjectState, request: Reques
 
 export async function handleNotificationCoreRequest(state: DurableObjectState, request: Request): Promise<Response | null> {
   const url = new URL(request.url);
+  if (request.method === "GET" && url.pathname === "/notifications/online-pickers") {
+    return onlinePickerProjection(state);
+  }
   if (request.method === "POST" && url.pathname === "/notifications/device/upsert") return upsertDevice(state, request);
   if (request.method === "POST" && url.pathname === "/notifications/device/remove") return removeDevice(state, request);
   if (request.method === "POST" && url.pathname === "/notifications/targets") return notificationTargets(state, request);
