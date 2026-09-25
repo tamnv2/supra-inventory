@@ -550,7 +550,7 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
        LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
       WHERE b.status = 'PENDING'
       GROUP BY b.batch_id
-      ORDER BY affected_picker_count DESC, b.first_report_at ASC
+      ORDER BY b.first_report_at ASC, b.batch_id ASC
       LIMIT ? OFFSET ?`,
     limit,
     offset,
