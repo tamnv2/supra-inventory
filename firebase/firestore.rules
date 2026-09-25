@@ -182,11 +182,8 @@ service cloud.firestore {
         && request.resource.data.resolved_by_agent_id is string
         && request.resource.data.resolved_by_agent_id.size() >= 8
         && request.resource.data.resolved_by_agent_id.size() <= 160
-        && request.resource.data.resolved_at_ms is int
-        && request.resource.data.resolved_at_ms <= request.time.toMillis() + 60000
-        && request.resource.data.resolved_at_ms >= request.time.toMillis() - 60000
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'status', 'resolved_by_user_id', 'resolved_by_agent_id', 'resolved_at_ms'
+          'status', 'resolved_by_user_id', 'resolved_by_agent_id'
         ]);
       allow delete: if false;
     }
