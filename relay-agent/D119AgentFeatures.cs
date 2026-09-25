@@ -12,6 +12,9 @@ namespace SupraInventoryRelayAgent
         private readonly DataGridView _pickerOnlineGrid = new DataGridView();
         private readonly Label _pickerOnlineStatus = new Label();
         private readonly Label _fleetMetricStatus = new Label();
+        private readonly TextBox _pickerSearch = new TextBox();
+        private List<PickerPresenceView> _pickerOnlineSnapshot = new List<PickerPresenceView>();
+        private bool? _d119AuthenticatedState;
         private readonly System.Windows.Forms.Timer _d119OpsTimer = new System.Windows.Forms.Timer();
         private FirestorePickerPresenceClient _pickerPresenceClient;
         private FirestorePickerContactClient _pickerContactClient;
@@ -73,20 +76,26 @@ namespace SupraInventoryRelayAgent
                 ForeColor = Color.FromArgb(24, 43, 55)
             });
 
-            _pickerOnlineStatus.SetBounds(274, 9, 470, 20);
+            _pickerOnlineStatus.SetBounds(274, 9, 250, 20);
             _pickerOnlineStatus.Text = "Đang chờ phiên Agent...";
             _pickerOnlineStatus.ForeColor = Color.FromArgb(88, 104, 115);
-            _pickerOnlineStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            _pickerOnlineStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             pickerCard.Controls.Add(_pickerOnlineStatus);
 
-            _fleetMetricStatus.SetBounds(748, 9, 274, 20);
+            _fleetMetricStatus.SetBounds(528, 9, 494, 20);
             _fleetMetricStatus.Text = "";
             _fleetMetricStatus.TextAlign = ContentAlignment.MiddleRight;
             _fleetMetricStatus.ForeColor = Color.FromArgb(88, 104, 115);
-            _fleetMetricStatus.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            _fleetMetricStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             pickerCard.Controls.Add(_fleetMetricStatus);
 
-            _pickerOnlineGrid.SetBounds(16, 34, 1006, 126);
+            _pickerSearch.SetBounds(16, 36, 1006, 30);
+            _pickerSearch.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            _pickerSearch.PlaceholderText = "Tìm Mã nhân viên hoặc họ và tên";
+            _pickerSearch.TextChanged += (s, e) => RenderPickerOnlineSnapshot();
+            pickerCard.Controls.Add(_pickerSearch);
+
+            _pickerOnlineGrid.SetBounds(16, 72, 1006, 88);
             _pickerOnlineGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             _pickerOnlineGrid.AllowUserToAddRows = false;
             _pickerOnlineGrid.AllowUserToDeleteRows = false;
@@ -105,8 +114,8 @@ namespace SupraInventoryRelayAgent
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "EmployeeCode",
-                HeaderText = "MNV",
-                Width = 105
+                HeaderText = "Mã nhân viên",
+                Width = 112
             });
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -119,7 +128,7 @@ namespace SupraInventoryRelayAgent
             {
                 Name = "PdaState",
                 HeaderText = "PDA",
-                Width = 105
+                Width = 88
             });
             _pickerOnlineGrid.Columns.Add(new DataGridViewButtonColumn
             {
@@ -127,7 +136,7 @@ namespace SupraInventoryRelayAgent
                 HeaderText = "Chuyên viên",
                 Text = "Gọi về bàn CV",
                 UseColumnTextForButtonValue = true,
-                Width = 120
+                Width = 112
             });
             _pickerOnlineGrid.Columns.Add(new DataGridViewButtonColumn
             {
@@ -135,18 +144,29 @@ namespace SupraInventoryRelayAgent
                 HeaderText = "Pack",
                 Text = "Mang hàng về Pack",
                 UseColumnTextForButtonValue = true,
-                Width = 130
+                Width = 122
             });
             _pickerOnlineGrid.Columns.Add(new DataGridViewButtonColumn
             {
                 Name = "ResolveContact",
                 HeaderText = "Kết thúc",
-                Width = 92
+                Width = 82
             });
             _pickerOnlineGrid.CellContentClick += PickerOnlineGridCellContentClick;
+            _pickerOnlineGrid.CellMouseEnter += (s, e) =>
+            {
+                if (e.RowIndex < 0) return;
+                _pickerOnlineGrid.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.FromArgb(232, 242, 252);
+            };
+            _pickerOnlineGrid.CellMouseLeave += (s, e) =>
+            {
+                if (e.RowIndex < 0) return;
+                _pickerOnlineGrid.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.White;
+            };
             pickerCard.Controls.Add(_pickerOnlineGrid);
 
-            overviewLayout.Controls.Add(pickerCard, 0, 3);
+            overviewLayout.Controls.Add(pickerCard, 1, 0);
+            overviewLayout.SetRowSpan(pickerCard, 3);
 
             _d119OpsTimer.Interval = 5000;
             _d119OpsTimer.Tick += (s, e) => RefreshD119OperationalViews(false);
@@ -174,36 +194,39 @@ namespace SupraInventoryRelayAgent
             _password.Visible = !authenticated;
             _pair.Visible = !authenticated;
 
+            _logout.Visible = authenticated;
+            _background.Visible = true;
+            _agentFleetStatus.Visible = false;
+
             if (authenticated)
             {
-                _logout.SetBounds(Math.Max(16, host.ClientSize.Width - 430), 36, 108, 30);
-                _manualUpdate.SetBounds(Math.Max(132, host.ClientSize.Width - 314), 36, 150, 30);
-                _background.Visible = false;
+                _logout.SetBounds(16, 62, 108, 30);
+                _manualUpdate.SetBounds(134, 62, 148, 30);
+                _background.SetBounds(292, 62, 142, 30);
 
-                _identity.SetBounds(16, 72, 310, 20);
-                _relay.SetBounds(336, 72, 310, 20);
-                _network.SetBounds(656, 72, Math.Max(250, host.ClientSize.Width - 672), 20);
-                _agentFleetStatus.SetBounds(16, 96, Math.Max(300, host.ClientSize.Width - 32), 20);
-                _agentFleetGrid.SetBounds(16, 118, Math.Max(300, host.ClientSize.Width - 32), 128);
+                _identity.SetBounds(16, 100, Math.Max(220, host.ClientSize.Width - 32), 20);
+                _relay.SetBounds(16, 124, Math.Max(220, host.ClientSize.Width - 32), 20);
+                _network.SetBounds(16, 148, Math.Max(220, host.ClientSize.Width - 32), 20);
+                _agentFleetGrid.SetBounds(16, 176, Math.Max(300, host.ClientSize.Width - 32), 70);
                 _agentFleetGrid.Visible = true;
             }
             else
             {
-                _logout.SetBounds(618, 80, 108, 31);
-                _manualUpdate.SetBounds(736, 80, 150, 31);
-                _background.SetBounds(886, 80, 120, 31);
-                _background.Visible = true;
-                _identity.SetBounds(16, 118, 310, 20);
-                _relay.SetBounds(336, 118, 310, 20);
-                _network.SetBounds(656, 118, 350, 20);
-                _agentFleetStatus.SetBounds(16, 144, 990, 20);
+                _manualUpdate.SetBounds(16, 118, 148, 30);
+                _background.SetBounds(174, 118, 142, 30);
+                _identity.SetBounds(16, 154, Math.Max(220, host.ClientSize.Width - 32), 20);
+                _relay.SetBounds(16, 178, Math.Max(220, host.ClientSize.Width - 32), 20);
+                _network.SetBounds(16, 202, Math.Max(220, host.ClientSize.Width - 32), 20);
                 _agentFleetGrid.Visible = false;
             }
 
             _skuSyncButton.Enabled = authenticated;
-            if (authenticated) RefreshD119OperationalViews(true);
+            var authChanged = !_d119AuthenticatedState.HasValue || _d119AuthenticatedState.Value != authenticated;
+            _d119AuthenticatedState = authenticated;
+            if (authenticated && authChanged) RefreshD119OperationalViews(true);
             else
             {
+                _pickerOnlineSnapshot = new List<PickerPresenceView>();
                 _pickerOnlineGrid.Rows.Clear();
                 _pickerOnlineStatus.Text = "Đăng nhập Agent để xem Picker đang hoạt động.";
                 _fleetMetricStatus.Text = "";
@@ -263,23 +286,80 @@ namespace SupraInventoryRelayAgent
 
         private void UpdatePickerOnlineGrid(List<PickerPresenceView> items, bool primary)
         {
-            _pickerOnlineGrid.Rows.Clear();
-            foreach (var picker in items ?? new List<PickerPresenceView>())
-            {
-                var row = _pickerOnlineGrid.Rows[_pickerOnlineGrid.Rows.Add(
-                    string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.UserId : picker.EmployeeCode,
-                    string.IsNullOrWhiteSpace(picker.DisplayName) ? "—" : picker.DisplayName,
-                    "Đang online",
-                    "Gọi về bàn CV",
-                    "Mang hàng về Pack",
-                    HasActivePickerCommand(picker.UserId) ? "Đóng" : "—")];
-                row.Tag = picker;
-            }
+            _pickerOnlineSnapshot = items ?? new List<PickerPresenceView>();
+            RenderPickerOnlineSnapshot();
             _pickerOnlineStatus.Text =
-                (items == null ? 0 : items.Count).ToString("N0") +
-                " Picker có phiên PDA + thông báo" +
-                (primary ? " · PRIMARY cập nhật gần realtime" : " · Agent phụ cập nhật tiết kiệm quota");
+                _pickerOnlineSnapshot.Count.ToString("N0") +
+                " Picker đang hoạt động" +
+                (primary ? " · cập nhật trực tiếp" : " · cập nhật tiết kiệm");
             RenderFleetMetricStatus(primary);
+        }
+
+        private void RenderPickerOnlineSnapshot()
+        {
+            var query = (_pickerSearch.Text ?? "").Trim();
+            var firstUserId = "";
+            try
+            {
+                if (_pickerOnlineGrid.Rows.Count > 0 &&
+                    _pickerOnlineGrid.FirstDisplayedScrollingRowIndex >= 0)
+                {
+                    var first = _pickerOnlineGrid.Rows[_pickerOnlineGrid.FirstDisplayedScrollingRowIndex].Tag as PickerPresenceView;
+                    firstUserId = first == null ? "" : first.UserId;
+                }
+            }
+            catch { }
+
+            var selectedUserId = "";
+            try
+            {
+                if (_pickerOnlineGrid.SelectedRows.Count > 0)
+                {
+                    var selected = _pickerOnlineGrid.SelectedRows[0].Tag as PickerPresenceView;
+                    selectedUserId = selected == null ? "" : selected.UserId;
+                }
+            }
+            catch { }
+
+            _pickerOnlineGrid.SuspendLayout();
+            try
+            {
+                _pickerOnlineGrid.Rows.Clear();
+                foreach (var picker in _pickerOnlineSnapshot)
+                {
+                    var code = string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.UserId : picker.EmployeeCode;
+                    var name = string.IsNullOrWhiteSpace(picker.DisplayName) ? "—" : picker.DisplayName;
+                    if (!string.IsNullOrWhiteSpace(query) &&
+                        code.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0 &&
+                        name.IndexOf(query, StringComparison.CurrentCultureIgnoreCase) < 0)
+                        continue;
+
+                    var row = _pickerOnlineGrid.Rows[_pickerOnlineGrid.Rows.Add(
+                        code,
+                        name,
+                        "Đang online",
+                        "Gọi về bàn CV",
+                        "Mang hàng về Pack",
+                        HasActivePickerCommand(picker.UserId) ? "Đóng" : "—")];
+                    row.Tag = picker;
+                }
+
+                var firstIndex = -1;
+                var selectedIndex = -1;
+                for (var index = 0; index < _pickerOnlineGrid.Rows.Count; index++)
+                {
+                    var picker = _pickerOnlineGrid.Rows[index].Tag as PickerPresenceView;
+                    if (picker == null) continue;
+                    if (firstIndex < 0 && picker.UserId == firstUserId) firstIndex = index;
+                    if (selectedIndex < 0 && picker.UserId == selectedUserId) selectedIndex = index;
+                }
+                if (firstIndex >= 0) _pickerOnlineGrid.FirstDisplayedScrollingRowIndex = firstIndex;
+                if (selectedIndex >= 0) _pickerOnlineGrid.Rows[selectedIndex].Selected = true;
+            }
+            finally
+            {
+                _pickerOnlineGrid.ResumeLayout();
+            }
         }
 
         private void RefreshFleetMetricsIfDue(bool force, bool primary)
