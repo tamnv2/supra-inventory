@@ -222,6 +222,17 @@ namespace SupraInventoryRelayAgent
                     EnsureFreshToken();
                     var session = SnapshotSession();
                     var items = _pickerPresenceClient.Load(session);
+                    Dictionary<string, PickerContactCommand> openCommands = null;
+                    try { openCommands = _pickerContactClient.LoadOpen(session); }
+                    catch (Exception ex) { Log("PICKER_CONTACT list=FAIL detail=" + SafeMessage(ex)); }
+                    if (openCommands != null)
+                    {
+                        lock (_activePickerCommands)
+                        {
+                            _activePickerCommands.Clear();
+                            foreach (var entry in openCommands) _activePickerCommands[entry.Key] = entry.Value;
+                        }
+                    }
                     _lastPickerPresenceRefreshUtc = DateTime.UtcNow;
                     Ui(() => UpdatePickerOnlineGrid(items, coordinator != null && coordinator.IsLeader));
                 }
@@ -417,6 +428,11 @@ namespace SupraInventoryRelayAgent
 
         private void SendPickerContact(PickerPresenceView picker, string commandType)
         {
+            if (HasActivePickerCommand(picker.UserId))
+            {
+                Ui(() => _pickerOnlineStatus.Text = "Picker này đang có yêu cầu mở. Hãy xác nhận kết thúc trước khi gửi yêu cầu mới.");
+                return;
+            }
             try
             {
                 EnsureFreshToken();
