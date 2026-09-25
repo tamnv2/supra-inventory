@@ -352,9 +352,10 @@ class MainActivity : Activity() {
         when (session.role) {
             "PICKER" -> renderPickerHome(session)
             "REPORTER" -> renderReporterHome(session, showLauncherBack = false, initialFilter = "PENDING")
-            "ADMIN", "ROOT" -> {
+            "ADMIN" -> renderReporterHome(session, showLauncherBack = false, initialFilter = "PENDING")
+            "ROOT", "PICKPACK_ADMIN" -> {
                 api.clearSession()
-                renderLogin("Admin/Root hiện chỉ sử dụng Web. App/PDA chỉ hỗ trợ Picker và Reporter.")
+                renderLogin("Root/Quản trị Pick Pack sử dụng Web hoặc Agent phù hợp. App/PDA hỗ trợ Picker, Reporter và Quản trị Invent ở chế độ xử lý báo hàng.")
                 return
             }
             else -> {
@@ -368,6 +369,7 @@ class MainActivity : Activity() {
         }
         startRealtime(session)
         registerBackgroundNotifications()
+        ensureOverlayPermissionPrompt(session)
         drainNotificationReceipts()
         recordLog("Đăng nhập ${kit.roleLabel(session.role)}: ${session.employeeCode ?: session.displayName}")
         flushPendingCrashRuntimeLog()
@@ -401,7 +403,7 @@ class MainActivity : Activity() {
         val minus = findViewById<TextView>(R.id.btnTextMinus)
         val plus = findViewById<TextView>(R.id.btnTextPlus)
         val reset = findViewById<TextView>(R.id.btnTextReset)
-        val scalable = session.role == "PICKER" || session.role == "REPORTER"
+        val scalable = session.role == "PICKER" || session.role == "REPORTER" || session.role == "ADMIN"
         minus.visibility = if (scalable) View.VISIBLE else View.GONE
         plus.visibility = if (scalable) View.VISIBLE else View.GONE
         reset.visibility = if (scalable) View.VISIBLE else View.GONE
@@ -715,6 +717,24 @@ class MainActivity : Activity() {
         manager.createNotificationChannel(channel)
     }
 
+    private fun ensureOverlayPermissionPrompt(session: AppSession) {
+        if (session.role !in setOf("PICKER", "REPORTER", "ADMIN")) return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this)) return
+        val prefs = getSharedPreferences("critical_overlay_permission_v1", MODE_PRIVATE)
+        if (prefs.getBoolean("prompted", false)) return
+        prefs.edit().putBoolean("prompted", true).apply()
+        AlertDialog.Builder(this)
+            .setTitle("Cho phép hiển thị cảnh báo toàn màn hình")
+            .setMessage("Bật quyền Hiển thị trên ứng dụng khác để nhận cảnh báo Báo hàng quan trọng ngay cả khi đang dùng SFT hoặc ứng dụng khác. Nếu chưa bật, hệ thống vẫn dùng thông báo Android như hiện tại.")
+            .setNegativeButton("Để sau", null)
+            .setPositiveButton("Mở cài đặt") { _, _ ->
+                try {
+                    startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
+                } catch (_: Exception) { }
+            }
+            .show()
+    }
+
     private fun registerBackgroundNotifications() {
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 701)
@@ -799,7 +819,7 @@ class MainActivity : Activity() {
                 "RESULT_ACK_NOT_FOUND" -> "Kết quả cần xác nhận không còn hợp lệ cho tài khoản này."
                 "USER_NOT_ACTIVE" -> "Tài khoản đã dừng hoạt động."
                 "FORBIDDEN" -> "Tài khoản không có quyền thực hiện thao tác này."
-                "CLIENT_ROLE_NOT_ALLOWED" -> "Admin/Root hiện chỉ sử dụng Web. App/PDA chỉ hỗ trợ Picker và Reporter."
+                "CLIENT_ROLE_NOT_ALLOWED" -> "Tài khoản này không được phép dùng kênh App/PDA hiện tại."
                 "SESSION_REPLACED" -> "Tài khoản đã đăng nhập ở nơi khác. Phiên trên thiết bị này đã kết thúc."
                 "SESSION_UPGRADE_REQUIRED" -> "Phiên cũ cần đăng nhập lại một lần để áp dụng cơ chế phiên mới."
                 "INVALID_CREDENTIALS" -> "Tài khoản hoặc mật khẩu không đúng."
