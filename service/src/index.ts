@@ -20,6 +20,8 @@ import { collectSystemStatus } from "./system-status";
 import { handleSystemResetApi } from "./system-reset";
 import { sendProjectEmail } from "./google-mail";
 import { latestAgentAppRelease, latestPdaAppRelease, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestPdaApk, redirectLatestPdaChecksum } from "./app-tools";
+import { handleD119Internal } from "./internal-d119";
+import { refreshPickerProjectionBestEffort } from "./firestore-projection";
 
 export { InventoryCore };
 
@@ -885,6 +887,9 @@ async function logoutInteractiveSession(request: Request, env: Env): Promise<Res
       }),
     });
     await closeUserRealtime(env, user.user_id, identity.sessionChannel);
+    if (identity.sessionChannel === "ANDROID" && user.base_role === "PICKER") {
+      await refreshPickerProjectionBestEffort(env);
+    }
   }
   return json({ status: "ended" });
 }
@@ -933,6 +938,9 @@ export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     try {
+      const d119Internal = await handleD119Internal(request, env);
+      if (d119Internal) return d119Internal;
+
       if (request.method === "GET" && url.pathname === "/health") {
         const bindingPresence = Object.fromEntries(REQUIRED_RUNTIME_BINDINGS.map((name) => [name, Boolean(env[name])]));
         const missing = REQUIRED_RUNTIME_BINDINGS.filter((name) => !env[name]);
