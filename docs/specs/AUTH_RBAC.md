@@ -235,3 +235,12 @@ D110 narrows the D098 Android client matrix without changing Web or Agent author
 - D119 supersedes D110 only for real-base `ADMIN`: ADMIN may hold an ANDROID session but Android business capability is restricted to Reporter-equivalent operations. ROOT and PICKPACK_ADMIN remain Android-denied.
 - Windows Agent is an explicit channel exception: real-base `ADMIN` **or** real-base `PICKPACK_ADMIN` may authenticate as an Agent operator. Both may use the existing guarded PickList lookup/confirmation flow; both may use D119 Agent SKU synchronization/update. `PICKPACK_ADMIN` Agent permission does not authorize any Báo hàng resolve/correct/SLA mutation API.
 - Picker-presence projections expose only bounded operational identity/status metadata; FCM tokens and credentials are not readable by Agent clients.
+
+## D120 — ROOT-only managed account role mutation
+
+- Only immutable/effective ROOT on Web management authority may change an existing managed account role.
+- Allowed conversions are strictly among `ADMIN`, `PICKPACK_ADMIN`, and `REPORTER`.
+- `PICKER` remains HR-source authoritative and cannot be converted manually through the account editor. `ROOT` cannot be assigned through this operation.
+- Non-ROOT actors retain their prior D119 management scope; passing a different role in the request is rejected server-side.
+- Successful role change clears any role override, increments server session generations, clears Web/Android device-session ownership, disables current FCM devices, removes presence, resets Agent Firebase-readiness where applicable, writes `USER_ROLE_CHANGE` audit metadata and synchronizes Firebase custom claims to the newly stored base role.
+- Admin-class target roles continue to require the configured recovery/auth email policy.
