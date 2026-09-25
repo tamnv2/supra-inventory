@@ -98,8 +98,12 @@ export async function handleD119Internal(request: Request, env: InternalEnv): Pr
   }
 
   const actor = await coreUser(env, actorUserId);
-  if (!actor || actor.status !== "ACTIVE" || actor.role !== "ADMIN" || actor.base_role !== "ADMIN") {
-    return json({ error: "WMS_SYNC_ADMIN_REQUIRED" }, 403);
+  const agentOperator = Boolean(actor && (
+    (actor.role === "ADMIN" && actor.base_role === "ADMIN") ||
+    (actor.role === "PICKPACK_ADMIN" && actor.base_role === "PICKPACK_ADMIN")
+  ));
+  if (!actor || actor.status !== "ACTIVE" || !agentOperator) {
+    return json({ error: "WMS_SYNC_AGENT_OPERATOR_REQUIRED" }, 403);
   }
 
   const rawItems = Array.isArray(body.items) ? body.items : [];
