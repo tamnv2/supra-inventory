@@ -408,6 +408,24 @@
       "exposure": "public_identifier",
       "status": "D119_OWNER_PRESETUP_READY__SOURCE_PENDING",
       "guard": "BETA_ONLY__FIRESTORE_EVENT_TO_FCM__STABLE_FORBIDDEN"
+    },
+    {
+      "key": "pubsub-service-agent-beta-d119",
+      "provider": "Google Cloud",
+      "kind": "service_agent",
+      "environment": "beta",
+      "name": "service-572322098890@gcp-sa-pubsub.iam.gserviceaccount.com",
+      "exposure": "public_identifier",
+      "guard": "D119_FUNCTIONS_EVENT_TRIGGER_SUPPORT_ONLY__TOKEN_CREATOR_BINDING_ONLY_AS_REQUIRED_BY_FIREBASE_CLI"
+    },
+    {
+      "key": "default-compute-sa-beta-d119",
+      "provider": "Google Cloud",
+      "kind": "service_account",
+      "environment": "beta",
+      "name": "572322098890-compute@developer.gserviceaccount.com",
+      "exposure": "public_identifier",
+      "guard": "D119_FUNCTIONS_EVENT_TRIGGER_SUPPORT_ONLY__RUN_INVOKER_AND_EVENTARC_EVENT_RECEIVER_BINDINGS_ONLY_AS_REQUIRED_BY_FIREBASE_CLI"
     }
   ],
   "secret_references": [
