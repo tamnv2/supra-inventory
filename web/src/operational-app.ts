@@ -197,27 +197,33 @@ function defaultSectionForProfile(value: AppProfile): Section {
 function canAccessSection(section: Section, value: AppProfile): boolean {
   if (value.role === "PICKER") return ["picker", "account"].includes(section);
   if (value.role === "REPORTER") return ["operations", "results", "account"].includes(section);
+  if (value.role === "PICKPACK_ADMIN") {
+    return ["operations", "results", "sku", "hr", "users", "dashboard", "reports", "account"].includes(section);
+  }
   if (section === "system-reset") return value.role === "ROOT" && value.base_role === "ROOT";
   return section !== "picker";
 }
 
 function legacyRoleLabel(value: AppProfile["role"]): string {
   if (value === "ROOT") return "Quản trị hệ thống";
-  if (value === "ADMIN") return "Quản trị hệ thống";
-  if (value === "REPORTER") return "Người báo hàng";
+  if (value === "ADMIN") return "Quản trị Invent";
+  if (value === "PICKPACK_ADMIN") return "Quản trị Pick Pack";
+  if (value === "REPORTER") return "Người xử lý báo hàng";
   return "Người lấy hàng";
 }
 
 function rootRoleOptionLabel(role: AppProfile["role"]): string {
   if (role === "ROOT") return "Quản trị hệ thống";
-  if (role === "ADMIN") return "Quản trị";
-  if (role === "REPORTER") return "Người báo hàng";
+  if (role === "ADMIN") return "Quản trị Invent";
+  if (role === "PICKPACK_ADMIN") return "Quản trị Pick Pack";
+  if (role === "REPORTER") return "Người xử lý báo hàng";
   return "Người lấy hàng";
 }
 
 function businessRoleLabel(role: string): string {
   if (role === "ROOT") return "Quản trị hệ thống";
-  if (role === "ADMIN") return "Quản trị";
+  if (role === "ADMIN") return "Quản trị Invent";
+  if (role === "PICKPACK_ADMIN") return "Quản trị Pick Pack";
   if (role === "REPORTER") return "Người xử lý báo hàng";
   if (role === "PICKER") return "Người lấy hàng";
   return role || "—";
@@ -679,7 +685,15 @@ function roleManage(): boolean {
   return Boolean(profile && (profile.role === "ADMIN" || profile.role === "ROOT"));
 }
 
+function rolePickPackManage(): boolean {
+  return Boolean(profile && ["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile.role));
+}
+
 function roleOperate(): boolean {
+  return Boolean(profile && ["REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile.role));
+}
+
+function roleCanResolve(): boolean {
   return Boolean(profile && ["REPORTER", "ADMIN", "ROOT"].includes(profile.role));
 }
 
@@ -1008,6 +1022,12 @@ function renderNav(): string {
   }
   if (profile.role === "REPORTER") {
     return navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"]]);
+  }
+  if (profile.role === "PICKPACK_ADMIN") {
+    return [
+      navGroup("VẬN HÀNH", [["operations", "Theo dõi báo hàng"], ["dashboard", "Tổng quan & báo cáo"]]),
+      navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"]]),
+    ].join("");
   }
   return [
     navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"]]),
@@ -1536,8 +1556,9 @@ function renderHr(): string {
 
 function canManageListedUser(user: ManagedUser): boolean {
   if (!profile || user.role === "ROOT") return false;
-  if (profile.role === "ROOT") return ["ADMIN", "REPORTER", "PICKER"].includes(user.role);
+  if (profile.role === "ROOT") return ["ADMIN", "PICKPACK_ADMIN", "REPORTER", "PICKER"].includes(user.role);
   if (profile.role === "ADMIN") return ["REPORTER", "PICKER"].includes(user.role);
+  if (profile.role === "PICKPACK_ADMIN") return user.role === "PICKER";
   return false;
 }
 
@@ -2810,12 +2831,12 @@ async function loadSection(section: Section): Promise<void> {
   let received = false;
   if ((section === "operations" || section === "results") && roleOperate()) { await loadOperations(); received = true; }
   else if (section === "picker" && profile.role === "PICKER") { await loadPicker(); received = true; }
-  else if (section === "sku" && roleManage()) { await loadSkuWorkspace(); received = true; }
-  else if (section === "hr" && roleManage()) { hrSource = await getHrSource(); received = true; }
-  else if (section === "users" && roleManage()) { await loadUsers(); received = true; }
+  else if (section === "sku" && rolePickPackManage()) { await loadSkuWorkspace(); received = true; }
+  else if (section === "hr" && rolePickPackManage()) { hrSource = await getHrSource(); received = true; }
+  else if (section === "users" && rolePickPackManage()) { await loadUsers(); received = true; }
   else if (section === "sla" && roleManage()) { await loadSla(); received = true; }
-  else if (section === "dashboard" && roleManage()) { await loadDashboard(); received = true; }
-  else if (section === "reports" && roleManage()) { await loadReports(); received = true; }
+  else if (section === "dashboard" && rolePickPackManage()) { await loadDashboard(); received = true; }
+  else if (section === "reports" && rolePickPackManage()) { await loadReports(); received = true; }
   else if (section === "logs" && roleManage()) { await loadLogs(); received = true; }
   else if (section === "tools" && roleManage()) { await loadTools(); received = true; }
   else if (section === "system-reset" && profile.role === "ROOT" && profile.base_role === "ROOT") {
