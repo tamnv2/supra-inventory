@@ -29,6 +29,7 @@ namespace SupraInventoryRelayAgent
         private FleetMetricSnapshot _fleetSnapshot;
         private long _fleetMetricsRefreshRunning;
         private DateTime _lastFleetMetricsRefreshUtc = DateTime.MinValue;
+        private DateTime _lastFleetMetricsAttemptUtc = DateTime.MinValue;
         private bool _lastFleetPrimary;
         private long _skuSyncRunning;
         private DateTime _nextAutoSkuSyncAttemptUtc = DateTime.MinValue;
@@ -44,20 +45,22 @@ namespace SupraInventoryRelayAgent
 
             if (_supraCard != null)
             {
-                _wmsCapture.SetBounds(610, 32, 142, 32);
-                _wmsTest.SetBounds(760, 32, 92, 32);
-                _skuSyncButton.SetBounds(860, 32, 162, 32);
+                _wmsCapture.SetBounds(16, 72, 138, 32);
+                _wmsLogout.SetBounds(162, 72, 128, 32);
+                _wmsTest.SetBounds(298, 72, 96, 32);
+                _skuSyncButton.SetBounds(402, 72, 140, 32);
                 _skuSyncButton.Text = "Cập nhật SKU";
-                _skuSyncButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+                _skuSyncButton.Anchor = AnchorStyles.Top | AnchorStyles.Left;
                 _skuSyncButton.Click += (s, e) => RunSkuSync(true);
                 _supraCard.Controls.Add(_skuSyncButton);
 
-                _wmsStatus.SetBounds(16, 42, 250, 22);
-                _supraInfo.SetBounds(270, 42, 330, 22);
-                _skuSyncStatus.SetBounds(610, 66, 412, 16);
+                _wmsStatus.SetBounds(16, 42, 210, 22);
+                _supraInfo.SetBounds(232, 42, Math.Max(220, _supraCard.ClientSize.Width - 248), 22);
+                _supraInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+                _skuSyncStatus.SetBounds(550, 79, Math.Max(150, _supraCard.ClientSize.Width - 566), 18);
                 _skuSyncStatus.TextAlign = ContentAlignment.MiddleRight;
                 _skuSyncStatus.ForeColor = Color.FromArgb(88, 104, 115);
-                _skuSyncStatus.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+                _skuSyncStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
                 _supraCard.Controls.Add(_skuSyncStatus);
             }
 
@@ -247,7 +250,7 @@ namespace SupraInventoryRelayAgent
             if (!HasAgentSession() || _pickerPresenceClient == null) return;
             var coordinator = _leaderCoordinator;
             var primary = coordinator != null && coordinator.IsLeader;
-            RefreshFleetMetricsIfDue(force || (primary && !_lastFleetPrimary), primary);
+            RefreshFleetMetricsIfDue(_fleetSnapshot == null || (primary && !_lastFleetPrimary), primary);
             _lastFleetPrimary = primary;
             RenderFleetMetricStatus(primary);
 
@@ -373,9 +376,14 @@ namespace SupraInventoryRelayAgent
         private void RefreshFleetMetricsIfDue(bool force, bool primary)
         {
             if (_fleetMetricsClient == null || !HasAgentSession()) return;
+            var now = DateTime.UtcNow;
             var interval = TimeSpan.FromMinutes(30);
-            if (!force && DateTime.UtcNow - _lastFleetMetricsRefreshUtc < interval) return;
+            // D120: metrics are observability-only. UI refresh, tab changes and failed reads
+            // must never turn the 30-minute checkpoint into a 5-second Firestore storm.
+            if (_lastFleetMetricsAttemptUtc != DateTime.MinValue && now - _lastFleetMetricsAttemptUtc < interval) return;
+            if (!force && _lastFleetMetricsRefreshUtc != DateTime.MinValue && now - _lastFleetMetricsRefreshUtc < interval) return;
             if (Interlocked.CompareExchange(ref _fleetMetricsRefreshRunning, 1L, 0L) != 0L) return;
+            _lastFleetMetricsAttemptUtc = now;
 
             Task.Run(() =>
             {
