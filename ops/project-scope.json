@@ -336,7 +336,12 @@
         "picker_alerts",
         "relay_fleet_metrics",
         "sku_sync_jobs"
-      ]
+      ],
+      "d119_agent_operator_roles": [
+        "ADMIN",
+        "PICKPACK_ADMIN"
+      ],
+      "d119_role_guard": "PICKPACK_ADMIN_AGENT_MAY_USE_EXISTING_PICKLIST_CONFIRM_AND_SKU_SYNC__NO_BAO_HANG_RESOLUTION_AUTHORITY"
     },
     {
       "key": "supra-wms-ui-d080",
