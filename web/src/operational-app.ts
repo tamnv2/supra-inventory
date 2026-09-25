@@ -2758,11 +2758,9 @@ async function loadTools(): Promise<void> {
   if (!roleManage()) return;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const [pdaResult, agentResult, alertWindowResult] = await Promise.all([
-    getPdaAppRelease(),
-    getAgentAppRelease(),
-    getAndroidAlertWindow(),
-  ]);
+  const [pdaResult, agentResult] = await Promise.all([getPdaAppRelease(), getAgentAppRelease()]);
+  let alertWindowResult: AndroidAlertWindowState | null = null;
+  try { alertWindowResult = await getAndroidAlertWindow(); } catch { alertWindowResult = null; }
   const stableUrl = `${window.location.origin}${pdaResult.release.stable_download_path}`;
   const qr = await QRCode.toDataURL(stableUrl, {
     errorCorrectionLevel: "M",
