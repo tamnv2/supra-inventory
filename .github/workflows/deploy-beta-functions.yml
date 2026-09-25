@@ -60,7 +60,19 @@ jobs:
           chmod 600 "$credential_file"
           echo "GOOGLE_APPLICATION_CREDENTIALS=$credential_file" >> "$GITHUB_ENV"
 
+      - name: Configure Beta Functions artifact cleanup
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          npx --yes firebase-tools@14.12.1 functions:artifacts:setpolicy \
+            --project supra-inventory-beta \
+            --location asia-southeast1 \
+            --days 1 \
+            --non-interactive
+
       - name: Deploy Beta Functions
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          npx --yes firebase-tools@14.12.1 deploy             --only functions             --project supra-inventory-beta             --non-interactive
+          npx --yes firebase-tools@14.12.1 deploy \
+            --only functions:pickerAlertCreated,functions:pickerAlertResolved,functions:skuSyncCreated \
+            --project supra-inventory-beta \
+            --non-interactive

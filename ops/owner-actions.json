@@ -1946,6 +1946,185 @@
       "safety": "Beta only. Use authorized company WMS access. Never share passwords, tokens, cookies, WMS headers/signatures/session files, service-account material or raw sensitive WMS responses. Stable remains OWNER-GATED.",
       "remaining_owner_action": "Wait for automated D119 main/runtime/release PASS before field testing.",
       "closed": false
+    },
+    {
+      "id": "OA040",
+      "status": "PASS_OWNER_COMPLETED",
+      "title": "Grant Firebase project-read permission to D119 Functions deploy identity",
+      "resource_key": "functions-deploy-sa-beta-d119",
+      "provider": "Google Cloud IAM",
+      "reason_owner_only": "Connected project tools cannot mutate Google Cloud IAM policy. The D119 Functions deployment identity can now impersonate the required service account, but Firebase CLI deployment fails on Firebase Management API GetAdminSdkConfig with HTTP 403.",
+      "required_change": {
+        "project": "supra-inventory-beta",
+        "principal": "invent-beta-functions-deploy@supra-inventory-beta.iam.gserviceaccount.com",
+        "role": "Firebase Viewer",
+        "role_id": "roles/firebase.viewer",
+        "required_permission": "firebase.projects.get"
+      },
+      "verification_evidence": {
+        "workflow_run": 36156658669,
+        "rerun_job": 108153146315,
+        "failure": "GET firebase.googleapis.com/v1beta1/projects/supra-inventory-beta/adminSdkConfig -> HTTP 403"
+      },
+      "shortest_ui_path": [
+        "Open Google Cloud IAM for project supra-inventory-beta.",
+        "Edit principal invent-beta-functions-deploy@supra-inventory-beta.iam.gserviceaccount.com.",
+        "Add role Firebase Viewer (roles/firebase.viewer), then Save.",
+        "Do not paste or regenerate any service-account JSON/key."
+      ],
+      "expected_success": "Rerun of Functions workflow 36156658669 passes Firebase adminSdkConfig read and proceeds to deploy.",
+      "safety": "Beta project only. No Stable IAM mutation. Do not expose service-account key material.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "rerun_job": 108158421765,
+        "result": "Firebase Viewer effective; prior adminSdkConfig 403 cleared. New unrelated blocker is disabled Firebase Extensions API."
+      }
+    },
+    {
+      "id": "OA041",
+      "status": "PASS_OWNER_COMPLETED",
+      "title": "Enable Firebase Extensions API for D119 Functions deploy",
+      "resource_key": "functions-deploy-sa-beta-d119",
+      "provider": "Google Cloud APIs & Services",
+      "reason_owner_only": "Connected project tools cannot enable Google Cloud services. The D119 deploy identity now passes Firebase project-read authorization but Firebase CLI requires firebaseextensions.googleapis.com to be enabled and correctly cannot self-enable services under least-privilege IAM.",
+      "required_change": {
+        "project": "supra-inventory-beta",
+        "api": "Firebase Extensions API",
+        "service": "firebaseextensions.googleapis.com"
+      },
+      "verification_evidence": {
+        "workflow_run": 36156658669,
+        "rerun_job": 108158421765,
+        "prior_iam_gate": "PASS__firebase.projects.get effective",
+        "failure": "Permissions denied enabling firebaseextensions.googleapis.com"
+      },
+      "shortest_ui_path": [
+        "Open Google Cloud API Library for project supra-inventory-beta.",
+        "Open Firebase Extensions API (firebaseextensions.googleapis.com).",
+        "Click Enable.",
+        "Do not add Service Usage Admin or other broad IAM roles to the deploy service account."
+      ],
+      "expected_success": "Rerun of Functions workflow 36156658669 proceeds past API checks into the actual Functions deployment.",
+      "safety": "Beta project only. Stable remains OWNER-GATED. No service-account keys or secrets are changed.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "rerun_job": 108159746542,
+        "result": "firebaseextensions.googleapis.com reported enabled by Firebase CLI"
+      }
+    },
+    {
+      "id": "OA042",
+      "status": "PASS_OWNER_COMPLETED",
+      "title": "Grant Firebase Functions service-agent IAM bindings",
+      "resource_key": "gcp-beta",
+      "provider": "Google Cloud IAM",
+      "reason_owner_only": "Connected project tools cannot mutate Google Cloud IAM policy. After Firebase Viewer and Firebase Extensions API passed, Firebase CLI reached Gen2 event-trigger IAM verification and reported three required project bindings.",
+      "required_changes": [
+        {
+          "principal": "service-572322098890@gcp-sa-pubsub.iam.gserviceaccount.com",
+          "role": "Service Account Token Creator",
+          "role_id": "roles/iam.serviceAccountTokenCreator"
+        },
+        {
+          "principal": "572322098890-compute@developer.gserviceaccount.com",
+          "role": "Cloud Run Invoker",
+          "role_id": "roles/run.invoker"
+        },
+        {
+          "principal": "572322098890-compute@developer.gserviceaccount.com",
+          "role": "Eventarc Event Receiver",
+          "role_id": "roles/eventarc.eventReceiver"
+        }
+      ],
+      "verification_evidence": {
+        "workflow_run": 36156658669,
+        "rerun_job": 108159746542,
+        "firebase_viewer": "PASS",
+        "firebase_extensions_api": "PASS",
+        "failure": "Firebase CLI failed to verify/modify the required service-agent IAM bindings and printed the exact three bindings above."
+      },
+      "shortest_ui_path": [
+        "Open Google Cloud IAM for project supra-inventory-beta.",
+        "Grant Service Account Token Creator to service-572322098890@gcp-sa-pubsub.iam.gserviceaccount.com.",
+        "Grant Cloud Run Invoker and Eventarc Event Receiver to 572322098890-compute@developer.gserviceaccount.com.",
+        "Do not add broader Owner/Editor/Service Usage Admin roles."
+      ],
+      "expected_success": "Rerun of Functions workflow 36156658669 passes service-agent IAM verification and proceeds to actual Gen2 Functions deployment.",
+      "safety": "Beta project only. These are exact Firebase CLI-required bindings for registered project-generated principals. Stable remains OWNER-GATED. No keys/secrets are changed.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "rerun_job": 108162904498,
+        "result": "PASS__service-agent IAM blocker cleared"
+      }
+    },
+    {
+      "id": "OA043",
+      "status": "PASS_OWNER_COMPLETED",
+      "title": "Enable Cloud Billing API for D119 Functions deploy",
+      "resource_key": "gcp-beta",
+      "provider": "Google Cloud APIs & Services",
+      "reason_owner_only": "Connected project tools cannot enable Google Cloud services. The latest Functions deploy reaches the billingInfo check but cloudbilling.googleapis.com is disabled.",
+      "required_change": {
+        "project": "supra-inventory-beta",
+        "api": "Cloud Billing API",
+        "service": "cloudbilling.googleapis.com"
+      },
+      "verification_evidence": {
+        "workflow_run": 36156658669,
+        "rerun_job": 108162904498,
+        "failure": "Cloud Billing API disabled; billingInfo request returned HTTP 403."
+      },
+      "shortest_ui_path": [
+        "Open Google Cloud API Library for project supra-inventory-beta.",
+        "Open Cloud Billing API.",
+        "Click Enable."
+      ],
+      "expected_success": "Functions deploy proceeds past the billingInfo verification step.",
+      "safety": "Beta only. Stable remains OWNER-GATED.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "rerun_job": 108184991966,
+        "result": "PASS__Cloud Billing API gate cleared; deploy reached Gen2 function creation."
+      }
+    },
+    {
+      "id": "OA044",
+      "status": "PASS_OWNER_COMPLETED",
+      "title": "Allow D119 deploy identity to act as Beta default compute SA",
+      "resource_key": "default-compute-sa-beta-d119",
+      "provider": "Google Cloud IAM",
+      "reason_owner_only": "Connected project tools cannot mutate Google Cloud service-account IAM policy. Gen2 function creation now fails only because the deploy service account lacks iam.serviceaccounts.actAs on the Beta default compute service account.",
+      "required_change": {
+        "resource": "572322098890-compute@developer.gserviceaccount.com",
+        "principal": "invent-beta-functions-deploy@supra-inventory-beta.iam.gserviceaccount.com",
+        "role": "Service Account User",
+        "role_id": "roles/iam.serviceAccountUser",
+        "permission": "iam.serviceaccounts.actAs"
+      },
+      "verification_evidence": {
+        "workflow_run": 36156658669,
+        "rerun_job": 108184991966,
+        "prior_api_gates": "PASS",
+        "failure": "All three Gen2 function create calls returned HTTP 403: caller missing iam.serviceaccounts.actAs on 572322098890-compute@developer.gserviceaccount.com."
+      },
+      "shortest_ui_path": [
+        "Google Cloud Console -> IAM & Admin -> Service Accounts -> select 572322098890-compute@developer.gserviceaccount.com.",
+        "Permissions -> Grant access.",
+        "New principal: invent-beta-functions-deploy@supra-inventory-beta.iam.gserviceaccount.com.",
+        "Role: Service Account User, then Save."
+      ],
+      "expected_success": "Rerun of Functions workflow 36156658669 can create the three Gen2 functions using the required service-account identity.",
+      "safety": "Grant on this Beta service-account resource only; do not grant project-wide Owner/Editor. Stable remains OWNER-GATED.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "rerun_job": 108192966062,
+        "result": "PASS__iam.serviceaccounts.actAs blocker cleared; all three Gen2 functions created successfully"
+      }
     }
   ]
 }
