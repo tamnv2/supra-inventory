@@ -1833,7 +1833,7 @@
     },
     {
       "id": "OA038",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "PASS_OWNER_CONFIRMED_D118",
       "title": "Field-accept D118 fleet overtime control, paged Web data, authoritative SLA, detailed export and keyboard-safe PDA",
       "resource_key": "worker-beta",
       "provider": "Beta Web + signed beta-vc74 + Firestore confirmation transport + relay-agent-v38",
@@ -1899,8 +1899,11 @@
         "SQLite remains 11 and Stable remains OWNER-GATED/untouched."
       ],
       "safety": "Beta only. No secrets/passwords/tokens/WMS session material in source/logs. Existing providers/resources only; no Stable change.",
-      "remaining_owner_action": "Field-test beta-vc74 + relay-agent-v38 using the shortest_test_path. Reply PASS only after the fleet overtime CAS, pagination, SLA, export, keyboard and inherited HA checks pass; otherwise send itemized defects.",
-      "closed": false
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": "PASS_OWNER_CONFIRMED_D118",
+      "field_result_date": "2026-09-25",
+      "owner_evidence": "Owner explicitly confirmed 'ok pass hết' after D118 technical/runtime/release PASS and OA038 field-ready handoff, accepting the fleet overtime CAS, inherited D117 HA/fencing, Web pagination, authoritative SLA, detailed Excel export, Agent footer and Android keyboard-safe tabs."
     }
   ]
 }
