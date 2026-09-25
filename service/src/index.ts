@@ -1068,6 +1068,10 @@ export default {
       if (request.method === "POST" && url.pathname === "/api/auth/password-reset") return requestPasswordReset(request, env);
       if (request.method === "POST" && url.pathname === "/api/auth/password-reset/confirm") return confirmPasswordReset(request, env);
       if (request.method === "GET" && url.pathname === "/api/auth/me") return json({ user: publicUser(await requireUser(request, env)) });
+      if (request.method === "GET" && url.pathname === "/api/auth/android-window") {
+        await requireUser(request, env, ["PICKER", "REPORTER", "ADMIN"]);
+        return coreStub(env).fetch("https://inventory-core.internal/notifications/alert-window");
+      }
       if (request.method === "PUT" && url.pathname === "/api/auth/root-role") return setRootEffectiveRole(request, env);
       if (request.method === "PUT" && url.pathname === "/api/auth/change-password") return changePassword(request, env);
       if (request.method === "PUT" && url.pathname === "/api/auth/email") return updateMyAuthEmail(request, env);
