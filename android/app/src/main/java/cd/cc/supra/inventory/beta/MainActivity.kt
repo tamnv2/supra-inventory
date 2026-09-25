@@ -79,7 +79,9 @@ class MainActivity : Activity() {
     @Volatile private var updateGate = UpdateGate.CHECKING
     @Volatile private var updateCheckRunning = false
     @Volatile private var roleSyncRunning = false
+    @Volatile private var operatingWindowCheckRunning = false
     @Volatile private var lastImmediateRuntimeLogAt = 0L
+    private var operatingWindowTask: Runnable? = null
     private var previousUncaughtHandler: Thread.UncaughtExceptionHandler? = null
     private val runtimeLogTick = object : Runnable {
         override fun run() {
@@ -128,6 +130,8 @@ class MainActivity : Activity() {
 
     override fun onDestroy() {
         statusHideTask?.let { uiHandler.removeCallbacks(it) }
+        operatingWindowTask?.let { uiHandler.removeCallbacks(it) }
+        operatingWindowTask = null
         uiHandler.removeCallbacks(runtimeLogTick)
         pickerController?.destroy()
         realtimeClient?.stop()
@@ -368,6 +372,7 @@ class MainActivity : Activity() {
             }
         }
         startRealtime(session)
+        scheduleAndroidOperatingWindowCheck(session)
         registerBackgroundNotifications()
         ensureOverlayPermissionPrompt(session)
         drainNotificationReceipts()
@@ -771,13 +776,62 @@ class MainActivity : Activity() {
         }.start()
     }
 
-    private fun logoutWithNotificationCleanup() {
+    private fun logoutWithNotificationCleanup(message: String = "Đã đăng xuất.") {
+        operatingWindowTask?.let { uiHandler.removeCallbacks(it) }
+        operatingWindowTask = null
         uiHandler.removeCallbacks(runtimeLogTick)
         stopOperationalClients()
         Thread {
             try { api.unregisterNotificationDevice(notificationDeviceId) } catch (_: Exception) { }
             try { api.logoutInteractive("android:$notificationDeviceId") } catch (_: Exception) { api.clearSession() }
-            runOnUiThread { renderLogin("Đã đăng xuất.") }
+            runOnUiThread { renderLogin(message) }
+        }.start()
+    }
+
+    private fun scheduleAndroidOperatingWindowCheck(session: AppSession) {
+        if (operatingWindowCheckRunning || api.session == null) return
+        operatingWindowCheckRunning = true
+        Thread {
+            try {
+                val window = api.getAndroidOperatingWindow()
+                runOnUiThread {
+                    operatingWindowCheckRunning = false
+                    if (api.session == null || activeSession?.userId != session.userId) return@runOnUiThread
+                    operatingWindowTask?.let { uiHandler.removeCallbacks(it) }
+                    operatingWindowTask = null
+
+                    if (!window.isOpen) {
+                        logoutWithNotificationCleanup(
+                            "Đã tự đăng xuất vì ca vận hành App/PDA đang đóng (23:00–05:00)."
+                        )
+                        return@runOnUiThread
+                    }
+
+                    val closesAt = window.closesAtMs ?: return@runOnUiThread
+                    val delayMs = (closesAt - window.serverNowMs + 1_500L)
+                        .coerceIn(1_500L, 25L * 60L * 60L * 1000L)
+                    val task = Runnable {
+                        operatingWindowTask = null
+                        scheduleAndroidOperatingWindowCheck(session)
+                    }
+                    operatingWindowTask = task
+                    uiHandler.postDelayed(task, delayMs)
+                }
+            } catch (_: Exception) {
+                runOnUiThread {
+                    operatingWindowCheckRunning = false
+                    if (api.session == null || activeSession?.userId != session.userId) return@runOnUiThread
+                    // Network failure must not fabricate a logout. Server APIs/FCM still
+                    // enforce the authoritative window; retry once after a bounded delay.
+                    operatingWindowTask?.let { uiHandler.removeCallbacks(it) }
+                    val task = Runnable {
+                        operatingWindowTask = null
+                        scheduleAndroidOperatingWindowCheck(session)
+                    }
+                    operatingWindowTask = task
+                    uiHandler.postDelayed(task, 5L * 60L * 1000L)
+                }
+            }
         }.start()
     }
 
