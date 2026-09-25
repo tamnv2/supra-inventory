@@ -1185,3 +1185,4 @@ D119 cannot be called PASS unless all of the following hold:
 11. Fleet metrics do not alter D117/D118 lease document shape/cadence; failover reconstruction preserves accepted/processed totals.
 12. Stable resources remain untouched. Beta Functions/Firestore resources are the only new billed Google runtime surface.
 13. Full-update release channel is advanced only after Web/Worker, Functions/Rules, Android and Agent gates all pass together.
+14. At a closed 23:00–05:00 App/PDA window, server rejects new Android business mutation and Android Xác nhận đơn cannot create a Firestore request. A one-hour Invent/Root Web overtime extension reopens the same server-authoritative window; repeated explicit extensions add one hour each without adding a PDA heartbeat/poll loop.
