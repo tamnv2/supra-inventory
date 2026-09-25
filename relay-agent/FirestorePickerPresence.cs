@@ -44,6 +44,13 @@ namespace SupraInventoryRelayAgent
 
             var root = AsMap(_json.DeserializeObject(raw));
             var fields = GetMap(root, "fields");
+            var schemaVersion = ReadInteger(fields, "schema_version");
+            var source = ReadString(fields, "presence_source");
+            if (schemaVersion != 2 || !string.Equals(source, "ACTIVE_ANDROID_REALTIME", StringComparison.Ordinal))
+            {
+                _log("PICKER_PRESENCE projection=IGNORED reason=STALE_OR_LEGACY_SCHEMA schema=" + schemaVersion);
+                return new List<PickerPresenceView>();
+            }
             var pickersField = GetMap(fields, "pickers");
             var array = GetMap(pickersField, "arrayValue");
             object valuesObj;
@@ -113,6 +120,18 @@ namespace SupraInventoryRelayAgent
             if (field.TryGetValue("stringValue", out value)) return Convert.ToString(value) ?? "";
             if (field.ContainsKey("nullValue")) return "";
             return "";
+        }
+
+        private static int ReadInteger(Dictionary<string, object> fields, string key)
+        {
+            var field = GetMap(fields, key);
+            if (field == null) return 0;
+            object value;
+            int parsed;
+            return field.TryGetValue("integerValue", out value) &&
+                   int.TryParse(Convert.ToString(value), out parsed)
+                ? parsed
+                : 0;
         }
     }
 }
