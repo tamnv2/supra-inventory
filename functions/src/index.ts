@@ -2,7 +2,7 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { getMessaging } from "firebase-admin/messaging";
 import { setGlobalOptions } from "firebase-functions/v2/options";
-import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
 import { GoogleAuth } from "google-auth-library";
 
 initializeApp();
@@ -66,6 +66,7 @@ export const pickerAlertCreated = onDocumentCreated("picker_alerts/{alertId}", a
   }
 
   const db = getFirestore();
+  await snapshot.ref.set({ server_created_at: FieldValue.serverTimestamp() }, { merge: true });
   const latest = await snapshot.ref.get();
   if (!latest.exists || latest.get("status") !== "PENDING") return;
   const presence = await db.doc("picker_presence_projection/current").get();
@@ -128,7 +129,48 @@ export const pickerAlertCreated = onDocumentCreated("picker_alerts/{alertId}", a
   }
 });
 
+export const pickerAlertResolved = onDocumentUpdated("picker_alerts/{alertId}", async (event) => {
+  const before = event.data?.before;
+  const after = event.data?.after;
+  if (!before || !after) return;
+  const previousStatus = String(before.get("status") || "");
+  const status = String(after.get("status") || "");
+  if (previousStatus === "RESOLVED" || status !== "RESOLVED") return;
+
+  const targetUserId = String(after.get("target_user_id") || "").trim();
+  const alertId = String(after.get("alert_id") || event.params.alertId || "").trim();
+  if (!targetUserId || !alertId) return;
+
+  const db = getFirestore();
+  const target = await db.doc(`picker_notification_targets/${targetUserId}`).get();
+  const token = target.exists && target.get("enabled") === true ? String(target.get("token") || "") : "";
+  if (!token) return;
+
+  try {
+    await getMessaging().send({
+      token,
+      data: {
+        event: "picker_command_resolved",
+        alert_id: alertId,
+        notification_title: "Yêu cầu đã hoàn tất",
+        notification_body: "Chuyên viên đã xác nhận xử lý.",
+      },
+      android: { priority: "high", ttl: 10 * 60 * 1000 },
+    });
+    await after.ref.set({
+      close_push_at: FieldValue.serverTimestamp(),
+      close_push_result: "FCM_ACCEPTED",
+    }, { merge: true });
+  } catch (error) {
+    await after.ref.set({
+      close_push_at: FieldValue.serverTimestamp(),
+      close_push_result: safeCode(error),
+    }, { merge: true });
+  }
+});
+
 type SkuSyncRecord = {
+  kind?: string;
   source?: string;
   status?: string;
   job_id?: string;
@@ -142,7 +184,7 @@ export const skuSyncCreated = onDocumentCreated("sku_sync_jobs/{jobId}", async (
   const snapshot = event.data;
   if (!snapshot) return;
   const job = snapshot.data() as SkuSyncRecord;
-  if (job.source !== "AGENT_WMS_BINSTOCK_V1" || job.status !== "PENDING") return;
+  if (job.kind !== "IMPORT" || job.source !== "AGENT_WMS_BINSTOCK_V1" || job.status !== "PENDING") return;
 
   const items = Array.isArray(job.items) ? job.items : [];
   if (items.length < 1 || items.length > MAX_SKU_ITEMS) {
