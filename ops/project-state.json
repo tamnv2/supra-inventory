@@ -561,7 +561,8 @@
         "Stable resources"
       ],
       "target": "NEXT_MONOTONIC_ANDROID_AND_AGENT__WHOLE_FLEET_CHANNEL_AFTER_ALL_GATES",
-      "stable": "OWNER_GATED_UNTOUCHED"
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "owner_correction_20260925": "PICKPACK_ADMIN_AGENT_ALLOWED__PICKLIST_CONFIRM_AND_SKU_UPDATE__WEB_SHORTAGE_MUTATION_STILL_DENIED"
     }
   },
   "authority_setup": {
@@ -673,7 +674,8 @@
     "D114 Owner field acceptance 2026-09-24: Owner explicitly said 'Ok pass' after testing live Beta Web, signed beta-vc70 and relay-agent-v33. OA034 is closed PASS. In the same message Owner separately reported a new observation from the latest Android relay log about slower PickList send/result timing and 30-second no-ACK timeouts; that observation is tracked as a post-D114 diagnostic and does not erase D114 acceptance.",
     "D115 Owner-approved 2026-09-24 after D114 PASS: repair Android cleanup/timeout and Agent ACK-delivery reliability, and target <5s PDA create→terminal result on healthy PRIMARY/no-failover path. PRIMARY Firestore job poll may change 5s→2s; STANDBY remains 10s; no Android polling/PROCESSING write/new provider; target beta-vc71 + relay-agent-v34; Stable untouched.",
     "D115 technical/runtime/release PASS 2026-09-24: PR #173 merged main bcbabc09. Main Repo Authority 35948065198, Project State 35948065182, UI 35948065209, Beta Worker 35948065164, Android 35948065152 and Relay Agent 35948065389 PASS. Live Beta health attempt 1 exact source, schema 11/11, Operational V2 5/5. Signed beta-vc71 + relay-agent-v34 published; OA035 field-ready.",
-    "D119 presetup PASS from Owner evidence: Beta billing attached, budget/spend cap configured, APIs enabled, deploy SA invent-beta-functions-deploy, runtime SA inventory-beta-alert-runtime with Datastore/FCM/Eventarc roles, deploy SA Service Account User on runtime SA, GitHub beta secret FIREBASE_FUNCTIONS_SA_JSON_BETA configured. Secret value is not read or recorded."
+    "D119 presetup PASS from Owner evidence: Beta billing attached, budget/spend cap configured, APIs enabled, deploy SA invent-beta-functions-deploy, runtime SA inventory-beta-alert-runtime with Datastore/FCM/Eventarc roles, deploy SA Service Account User on runtime SA, GitHub beta secret FIREBASE_FUNCTIONS_SA_JSON_BETA configured. Secret value is not read or recorded.",
+    "D119 Owner correction: Quản trị Pick Pack retains normal Windows Agent PickList lookup/confirmation and Agent SKU update/sync authority; only Báo hàng resolution/correction and previously excluded Web management capabilities remain denied."
   ],
   "active_workstream": "D119_IMPLEMENTATION",
   "paused_workstreams": {
