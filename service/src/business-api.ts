@@ -317,7 +317,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     if (!["EXTEND_ONE_HOUR", "STOP_OVERTIME"].includes(action)) {
       return json({ error: "INVALID_ALERT_WINDOW_ACTION" }, 400);
     }
-    return corePost(env, "/notifications/alert-window", {
+    return corePut(env, "/notifications/alert-window", {
       actor_user_id: user.user_id,
       action,
     });
