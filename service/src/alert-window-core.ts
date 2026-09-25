@@ -108,13 +108,12 @@ export function updateAndroidAlertWindow(
     const existing = current.overtime_until_ms && current.overtime_until_ms > nowMs
       ? current.overtime_until_ms
       : 0;
-    const base = existing > 0 ? existing : Math.max(nowMs, standardCloseMs);
-    const candidate = base + HOUR_MS;
-
-    // Maximum continuous overtime for one business boundary is 06:00 the next
-    // morning. This prevents a stale extension from leaving alerts open forever.
-    const maxUntil = parts.dayStartUtcMs + 30 * HOUR_MS;
-    overtimeUntilMs = Math.min(candidate, maxUntil);
+    const base = existing > 0
+      ? existing
+      : current.normal_window_open
+        ? standardCloseMs
+        : nowMs;
+    overtimeUntilMs = base + HOUR_MS;
     if (overtimeUntilMs <= nowMs) throw new Error("ALERT_OVERTIME_WINDOW_ENDED");
   }
 
