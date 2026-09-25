@@ -501,6 +501,8 @@ namespace SupraInventoryRelayAgent
         private readonly System.Windows.Forms.Timer _networkUiTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer _guardTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer _afterHoursTimer = new System.Windows.Forms.Timer();
+        private long _trayMonitorRefreshRunning;
+        private long _afterHoursScheduleRefreshRunning;
         private readonly TabControl _mainTabs = new TabControl();
         private readonly TabPage _overviewPage = new TabPage("Tổng quan");
         private readonly TabPage _connectionPage = new TabPage("Kết nối");
@@ -864,9 +866,12 @@ namespace SupraInventoryRelayAgent
             };
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 48F));
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 52F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 260F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 120F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            // D121: Picker has its own right workspace, so the three left operational
+            // surfaces share the available height equally instead of letting PickList
+            // consume the remainder.
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 33.333F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 33.333F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 33.334F));
             _overviewPage.Controls.Add(overviewLayout);
 
             // Hệ thống Agent - gọn, tối đa 5 dòng Agent trước khi cuộn trong bảng.
@@ -936,6 +941,9 @@ namespace SupraInventoryRelayAgent
             _identity.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _relay.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _network.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            _identity.AutoEllipsis = true;
+            _relay.AutoEllipsis = true;
+            _network.AutoEllipsis = true;
             agentCard.Controls.Add(_identity);
             agentCard.Controls.Add(_relay);
             agentCard.Controls.Add(_network);
@@ -997,6 +1005,7 @@ namespace SupraInventoryRelayAgent
             _afterHoursPanel.Controls.Add(_afterHoursEarlyStart);
             _afterHoursPanel.Visible = false;
             agentCard.Controls.Add(_afterHoursPanel);
+            agentCard.Resize += (s, e) => ApplyD119AuthenticatedLayout(HasAgentSession());
             overviewLayout.Controls.Add(agentCard, 0, 0);
 
             // Hệ thống Supra - chỉ giữ trạng thái cần dùng.
@@ -1038,7 +1047,7 @@ namespace SupraInventoryRelayAgent
             _supraCard.Enabled = false;
             overviewLayout.Controls.Add(_supraCard, 0, 1);
 
-            // Xử lý PickList - luôn chiếm toàn bộ phần còn lại phía dưới.
+            // Xử lý PickList - D121 chia đều chiều cao với Agent và Supra ở cột trái.
             var directCard = NewCard(0, 0, 1040, 260);
             directCard.Dock = DockStyle.Fill;
             directCard.Margin = Padding.Empty;
@@ -1364,6 +1373,24 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private void QueueSharedScheduleRefresh(FirestoreAgentLeaderCoordinator coordinator)
+        {
+            if (coordinator == null) return;
+            if (Interlocked.CompareExchange(ref _afterHoursScheduleRefreshRunning, 1L, 0L) != 0L) return;
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    coordinator.RefreshSharedScheduleNow();
+                }
+                finally
+                {
+                    Interlocked.Exchange(ref _afterHoursScheduleRefreshRunning, 0L);
+                }
+            });
+        }
+
         private void CheckAfterHoursSchedule(bool forcePrompt = false)
         {
             if (_businessSchedule == null) return;
@@ -1386,8 +1413,11 @@ namespace SupraInventoryRelayAgent
                     (!defaultAllowed && !localRelayAllowed);
                 if (needsScheduleSync)
                 {
-                    coordinator.RefreshSharedScheduleNow();
+                    // D121: never perform Firestore/network I/O on the WinForms timer thread.
+                    // The UI keeps using the latest coordinator snapshot while one bounded
+                    // background refresh updates the shared schedule cache.
                     _lastAfterHoursScheduleSyncAt = now;
+                    QueueSharedScheduleRefresh(coordinator);
                 }
             }
 
@@ -1657,9 +1687,33 @@ namespace SupraInventoryRelayAgent
 
         private void UpdateTrayMonitor()
         {
+            if (Interlocked.CompareExchange(ref _trayMonitorRefreshRunning, 1L, 0L) != 0L) return;
+
+            // D121: PerformanceCounter/GPU/NIC sampling can occasionally stall while
+            // Windows rebuilds counters or adapters. Keep it completely off the UI thread
+            // and coalesce overlapping 5-second timer ticks.
+            Task.Run(() =>
+            {
+                try
+                {
+                    var metrics = _systemMonitor.Sample();
+                    Ui(() => ApplyTrayMonitor(metrics));
+                }
+                catch
+                {
+                    Ui(ApplyTrayMonitorUnavailable);
+                }
+                finally
+                {
+                    Interlocked.Exchange(ref _trayMonitorRefreshRunning, 0L);
+                }
+            });
+        }
+
+        private void ApplyTrayMonitor(SystemMetrics metrics)
+        {
             try
             {
-                var metrics = _systemMonitor.Sample();
                 var compact = metrics.Compact();
                 if (compact.Length > 63) compact = compact.Substring(0, 63);
                 _tray.Text = compact;
@@ -1705,11 +1759,16 @@ namespace SupraInventoryRelayAgent
             }
             catch
             {
-                _tray.Text = "SUPRA Agent";
-                _trayStatusItem.Text = "Máy: chưa đọc được tài nguyên";
-                if (_statusOverlay != null)
-                    _statusOverlay.UpdateMetrics("Vận hành | chưa đọc được trạng thái", "Agent | chưa đọc được tải tiến trình");
+                ApplyTrayMonitorUnavailable();
             }
+        }
+
+        private void ApplyTrayMonitorUnavailable()
+        {
+            _tray.Text = "SUPRA Agent";
+            _trayStatusItem.Text = "Máy: chưa đọc được tài nguyên";
+            if (_statusOverlay != null)
+                _statusOverlay.UpdateMetrics("Vận hành | chưa đọc được trạng thái", "Agent | chưa đọc được tải tiến trình");
         }
 
         private void InitializeStatusOverlaySafe(bool retry = false)
