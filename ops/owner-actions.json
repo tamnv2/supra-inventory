@@ -2016,7 +2016,7 @@
     },
     {
       "id": "OA042",
-      "status": "ACTION_REQUIRED",
+      "status": "PASS_OWNER_COMPLETED",
       "title": "Grant Firebase Functions service-agent IAM bindings",
       "resource_key": "gcp-beta",
       "provider": "Google Cloud IAM",
@@ -2053,7 +2053,38 @@
       ],
       "expected_success": "Rerun of Functions workflow 36156658669 passes service-agent IAM verification and proceeds to actual Gen2 Functions deployment.",
       "safety": "Beta project only. These are exact Firebase CLI-required bindings for registered project-generated principals. Stable remains OWNER-GATED. No keys/secrets are changed.",
-      "remaining_owner_action": "Apply the three listed IAM bindings on supra-inventory-beta and reply xong.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "rerun_job": 108162904498,
+        "result": "PASS__service-agent IAM blocker cleared"
+      }
+    },
+    {
+      "id": "OA043",
+      "status": "ACTION_REQUIRED",
+      "title": "Enable Cloud Billing API for D119 Functions deploy",
+      "resource_key": "gcp-beta",
+      "provider": "Google Cloud APIs & Services",
+      "reason_owner_only": "Connected project tools cannot enable Google Cloud services. The latest Functions deploy reaches the billingInfo check but cloudbilling.googleapis.com is disabled.",
+      "required_change": {
+        "project": "supra-inventory-beta",
+        "api": "Cloud Billing API",
+        "service": "cloudbilling.googleapis.com"
+      },
+      "verification_evidence": {
+        "workflow_run": 36156658669,
+        "rerun_job": 108162904498,
+        "failure": "Cloud Billing API disabled; billingInfo request returned HTTP 403."
+      },
+      "shortest_ui_path": [
+        "Open Google Cloud API Library for project supra-inventory-beta.",
+        "Open Cloud Billing API.",
+        "Click Enable."
+      ],
+      "expected_success": "Functions deploy proceeds past the billingInfo verification step.",
+      "safety": "Beta only. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Enable cloudbilling.googleapis.com on supra-inventory-beta.",
       "closed": false
     }
   ]
