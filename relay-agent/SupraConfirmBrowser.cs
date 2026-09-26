@@ -655,83 +655,100 @@ namespace SupraInventoryRelayAgent
               const fold = v => norm(v).toLowerCase();
               const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
               const text = e => fold((e && (e.innerText || e.textContent)) || '');
-              const containsTarget = e => {
-                const value = text(e);
-                return value.includes('kho hưng yên 1') && value.includes('sft3');
-              };
+              const center = r => ({x:r.left + r.width/2, y:r.top + r.height/2});
+              const inside = (p,r,pad=0) =>
+                p.x >= r.left-pad && p.x <= r.right+pad &&
+                p.y >= r.top-pad && p.y <= r.bottom+pad;
+              const leafMatches = target => [...document.querySelectorAll('body *')].filter(e =>
+                visible(e) &&
+                text(e).includes(target) &&
+                ![...e.children].some(child => visible(child) && text(child).includes(target)));
+
+              const warehouseLeaves = leafMatches('kho hưng yên 1');
+              const sftLeaves = leafMatches('sft3');
+              if (!warehouseLeaves.length || !sftLeaves.length)
+                return JSON.stringify({result:'NOT_DASHBOARD',warehouse:warehouseLeaves.length,sft3:sftLeaves.length});
 
               const clickableSelector = 'button,a,[role=button]';
-              const ownsAction = e =>
-                (e.matches && e.matches(clickableSelector)) ||
-                !!e.querySelector(clickableSelector);
-              const containers = [...document.querySelectorAll(
-                'article,section,li,[role=listitem],[role=group],div'
-              )].filter(e => visible(e) && containsTarget(e) && ownsAction(e));
+              const allClickables = [...document.querySelectorAll(clickableSelector)]
+                .filter(e => visible(e) && !e.disabled && e.getAttribute('aria-disabled') !== 'true');
 
-              if (!containers.length) return JSON.stringify({result:'NOT_DASHBOARD'});
+              const candidates = [];
+              for (const w of warehouseLeaves) {
+                let node = w;
+                for (let depth = 0; node && depth < 10; depth++, node = node.parentElement) {
+                  if (!visible(node)) continue;
+                  const nodeText = text(node);
+                  if (!nodeText.includes('kho hưng yên 1') || !nodeText.includes('sft3')) continue;
+                  const rect = node.getBoundingClientRect();
+                  if (rect.width < 120 || rect.height < 60) continue;
 
-              // Prefer the smallest semantic card that contains both the HY1/SFT3
-              // labels and the actual access control (not only the inner text block).
-              const minimal = containers.filter(parent =>
-                ![...parent.children].some(child =>
-                  visible(child) && containsTarget(child) && ownsAction(child)));
-              const cards = (minimal.length ? minimal : containers)
-                .sort((a,b) => {
-                  const ta = norm(a.innerText || a.textContent).length;
-                  const tb = norm(b.innerText || b.textContent).length;
-                  if (ta !== tb) return ta - tb;
-                  const ra = a.getBoundingClientRect();
-                  const rb = b.getBoundingClientRect();
-                  return (ra.width * ra.height) - (rb.width * rb.height);
-                });
+                  const actions = allClickables.filter(action => {
+                    const ar = action.getBoundingClientRect();
+                    return inside(center(ar), rect, 18);
+                  });
+                  if (!actions.length) continue;
 
-              const targetCards = cards.filter((card, index) =>
-                index === 0 ||
-                norm(card.innerText || card.textContent).length ===
-                  norm(cards[0].innerText || cards[0].textContent).length);
+                  const area = rect.width * rect.height;
+                  const textLen = norm(node.innerText || node.textContent).length;
+                  candidates.push({node,rect,actions,depth,area,textLen});
+                  break;
+                }
+              }
 
-              if (targetCards.length !== 1)
-                return JSON.stringify({result:'TARGET_AMBIGUOUS',count:targetCards.length});
+              if (!candidates.length)
+                return JSON.stringify({result:'ACTION_NOT_FOUND',warehouse:warehouseLeaves.length,sft3:sftLeaves.length});
 
-              const card = targetCards[0];
-              const clickables = [
-                ...((card.matches && card.matches(clickableSelector)) ? [card] : []),
-                ...card.querySelectorAll(clickableSelector)
-              ].filter(e => visible(e) &&
-                  !e.disabled &&
-                  e.getAttribute('aria-disabled') !== 'true');
+              candidates.sort((a,b) =>
+                a.depth - b.depth ||
+                a.area - b.area ||
+                a.textLen - b.textLen);
 
-              if (!clickables.length)
-                return JSON.stringify({result:'ACTION_NOT_FOUND'});
-
-              const cardRect = card.getBoundingClientRect();
-              const score = e => {
+              const card = candidates[0];
+              const cardCenterY = card.rect.top + card.rect.height/2;
+              const ranked = card.actions.map(e => {
                 const r = e.getBoundingClientRect();
+                const p = center(r);
                 const label = fold([
                   e.innerText,
                   e.textContent,
                   e.getAttribute && e.getAttribute('aria-label'),
                   e.getAttribute && e.getAttribute('title')
                 ].filter(Boolean).join(' '));
-                let s = 0;
-                if ((e.tagName || '').toLowerCase() === 'button') s += 6;
-                if ((e.getAttribute && e.getAttribute('role')) === 'button') s += 4;
-                if (/truy cập|mở|vào|open|go/.test(label)) s += 10;
-                if (r.left >= cardRect.left + cardRect.width * 0.5) s += 4;
-                if (r.width <= 72 && r.height <= 72) s += 3;
-                if (label.length <= 12) s += 1;
-                return s;
-              };
+                let score = 0;
+                score += p.x; // right-most action in this card wins naturally
+                score -= Math.abs(p.y-cardCenterY) * 0.35;
+                if ((e.tagName || '').toLowerCase() === 'button') score += 120;
+                if ((e.getAttribute && e.getAttribute('role')) === 'button') score += 80;
+                if (/truy cập|mở|vào|open|go/.test(label)) score += 300;
+                if (r.width <= 80 && r.height <= 80) score += 100;
+                return {e,r,score,label};
+              }).sort((a,b) => b.score-a.score);
 
-              const ranked = clickables
-                .map(e => ({e,score:score(e)}))
-                .sort((a,b) => b.score - a.score);
+              const best = ranked[0];
+              if (!best)
+                return JSON.stringify({result:'ACTION_NOT_FOUND'});
 
-              if (ranked.length > 1 && ranked[0].score === ranked[1].score)
-                return JSON.stringify({result:'ACTION_AMBIGUOUS',count:ranked.length,score:ranked[0].score});
+              if (ranked.length > 1 && Math.abs(best.score-ranked[1].score) < 8)
+                return JSON.stringify({
+                  result:'ACTION_AMBIGUOUS',
+                  count:ranked.length,
+                  bestX:Math.round(best.r.left),
+                  nextX:Math.round(ranked[1].r.left)
+                });
 
-              ranked[0].e.click();
-              return JSON.stringify({result:'CLICKED',score:ranked[0].score});
+              try {
+                best.e.scrollIntoView({block:'nearest',inline:'nearest'});
+              } catch (_) {}
+              best.e.click();
+              return JSON.stringify({
+                result:'CLICKED',
+                actions:ranked.length,
+                x:Math.round(best.r.left),
+                y:Math.round(best.r.top),
+                w:Math.round(best.r.width),
+                h:Math.round(best.r.height)
+              });
             })()";
         }
 
