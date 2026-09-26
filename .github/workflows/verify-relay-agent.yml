@@ -316,7 +316,7 @@ jobs:
         shell: pwsh
         run: |
           npm install --no-save playwright-core@1.55.0
-          node tools/d127_resolve_webview2_fixed.js 153.0.4234.32
+          node tools/d127_resolve_webview2_fixed.js latest
 
       - name: Publish dedicated Agent prerelease
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -434,7 +434,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
-          $runtimeVersion = "153.0.4234.32"
+          $resolve = node tools/d127_resolve_webview2_fixed.js latest
+          if ($LASTEXITCODE -ne 0) { throw "Unable to resolve the latest official Fixed WebView2 x64 package." }
+          $match = [regex]::Match(($resolve -join "`n"), 'version=(\d+(?:\.\d+){3})')
+          if (-not $match.Success) { throw "Resolved WebView2 version was not returned." }
+          $runtimeVersion = $match.Groups[1].Value
           $channel = "inventory-channel"
           $asset = "Agent.WebView2.FixedRuntime.x64.zip"
           $assetSha = "$asset.sha256"
