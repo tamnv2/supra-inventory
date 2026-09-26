@@ -1091,7 +1091,7 @@
       "stable": "OWNER_GATED_UNTOUCHED"
     },
     "d124": {
-      "status": "SOURCE_IN_PROGRESS__PR_NOT_OPEN",
+      "status": "SOURCE_IN_PROGRESS__PR_GATES_RUNNING",
       "branch": "fix/d124-agent-sku-daily-no-overlay",
       "baseline_main": "9da487ff341cf31fe61a944b3c41b9fe20c094de",
       "baseline_agent_release": "relay-agent-v44",
@@ -1100,7 +1100,8 @@
       "protected_contracts": "D123_UI_THREAD__D120_PICKER__D117_D118_CONFIRMATION_HA_GENERATION_WMS_MUTATION_UNCHANGED",
       "new_resources": "NONE",
       "stable": "OWNER_GATED_UNTOUCHED",
-      "owner_field_action": "OA050"
+      "owner_field_action": "OA050",
+      "implementation_pr": 195
     }
   }
 }
