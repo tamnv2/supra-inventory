@@ -98,12 +98,33 @@ namespace SupraInventoryRelayAgent
                     Math.Max(120, width - 32),
                     18);
                 _browserBundleProgress.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+                const int dataButtonWidth = 150;
+                const int dataLabelWidth = 180;
+                const int dataGap = 8;
+                var browserStatusWidth = Math.Max(
+                    220,
+                    width - 32 - dataLabelWidth - dataButtonWidth - (dataGap * 2));
+
                 _browserBundleStatus.SetBounds(
                     16,
                     170,
-                    Math.Max(220, width - 32),
+                    browserStatusWidth,
                     24);
-                _browserBundleStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+                _browserBundleStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+
+                _agentDataStorageStatus.SetBounds(
+                    16 + browserStatusWidth + dataGap,
+                    170,
+                    dataLabelWidth,
+                    24);
+                _agentDataStorageStatus.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+
+                _openAgentDataFolder.SetBounds(
+                    Math.Max(16, width - 16 - dataButtonWidth),
+                    166,
+                    dataButtonWidth,
+                    28);
+                _openAgentDataFolder.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             }
 
             var pickerCard = NewCard(0, 0, 1040, 170);
