@@ -512,7 +512,7 @@ namespace SupraInventoryRelayAgent
 
         private static bool NeedsSearchRetry(SupraBrowserSearchResult result)
         {
-            return result != null && result.MissingFragments.Count > 0 && result.Matches.Count == 0 &&
+            return result != null && result.MissingFragments.Count > 0 &&
                    result.AmbiguousFragments.Count == 0;
         }
 
