@@ -26,6 +26,7 @@ namespace SupraInventoryRelayAgent
         private const int RequiredHostBuild = 4;
         private const string RequiredHostArch = "x64";
         private static int _backgroundRunning;
+        private static int _cleanupScheduled;
         private static bool _downloading;
         private static int _percent;
         private static string _version = "";
@@ -39,6 +40,35 @@ namespace SupraInventoryRelayAgent
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                     "SUPRA Inventory", "ConfirmBrowser", "OwnedWebView2");
             }
+        }
+
+        internal static string BrowserDataRoot
+        {
+            get
+            {
+                return Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "SUPRA Inventory", "ConfirmBrowser");
+            }
+        }
+
+        internal static void CleanupObsoleteBackground(Action<string> log)
+        {
+            if (Interlocked.CompareExchange(ref _cleanupScheduled, 1, 0) != 0) return;
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                try
+                {
+                    var active = ReadActiveFolder();
+                    CleanupInactiveBundles(active, log);
+                }
+                catch (Exception ex)
+                {
+                    if (log != null)
+                        log("SUPRA_BROWSER cleanup=FAIL type=" + ex.GetType().Name +
+                            " detail=" + AgentDiagnostics.Sanitize(ex.Message));
+                }
+            });
         }
 
         internal static void EnsureBackground(Action<string> log)
@@ -161,6 +191,8 @@ namespace SupraInventoryRelayAgent
                 var marker = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(currentHost)), "bundle.sha256");
                 if (File.Exists(marker) && string.Equals(File.ReadAllText(marker).Trim(), sha, StringComparison.OrdinalIgnoreCase))
                 {
+                    var activeFolder = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(currentHost)));
+                    CleanupInactiveBundles(activeFolder, log);
                     SetState(false, 100, version, "Trình duyệt Agent khả dụng.");
                     return;
                 }
@@ -206,8 +238,91 @@ namespace SupraInventoryRelayAgent
             }
 
             File.WriteAllText(Path.Combine(Root, "active.txt"), versionFolder);
+            CleanupInactiveBundles(versionFolder, log);
             SetState(false, 100, version, "Trình duyệt Agent khả dụng.");
             if (log != null) log("SUPRA_BROWSER owned_bundle=READY version=" + version);
+        }
+
+        private static string ReadActiveFolder()
+        {
+            try
+            {
+                var active = Path.Combine(Root, "active.txt");
+                if (!File.Exists(active)) return "";
+                var folder = File.ReadAllText(active).Trim();
+                return Regex.IsMatch(folder, "^[0-9A-Za-z._-]{1,96}$") ? folder : "";
+            }
+            catch { return ""; }
+        }
+
+        private static void CleanupInactiveBundles(string activeFolder, Action<string> log)
+        {
+            if (!Directory.Exists(Root)) return;
+            var deleted = 0;
+            long reclaimed = 0;
+
+            foreach (var dir in Directory.GetDirectories(Root))
+            {
+                var name = Path.GetFileName(dir);
+                if (string.Equals(name, activeFolder, StringComparison.OrdinalIgnoreCase)) continue;
+                if (!name.StartsWith("wv2-", StringComparison.OrdinalIgnoreCase)) continue;
+
+                var bytes = DirectorySizeBestEffort(dir);
+                try
+                {
+                    Directory.Delete(dir, true);
+                    deleted++;
+                    reclaimed += bytes;
+                }
+                catch (Exception ex)
+                {
+                    if (log != null)
+                        log("SUPRA_BROWSER cleanup=SKIP folder=" + AgentDiagnostics.Sanitize(name) +
+                            " type=" + ex.GetType().Name);
+                }
+            }
+
+            foreach (var file in Directory.GetFiles(Root, "*.zip.download"))
+            {
+                try
+                {
+                    reclaimed += new FileInfo(file).Length;
+                    File.Delete(file);
+                    deleted++;
+                }
+                catch { }
+            }
+
+            foreach (var dir in Directory.GetDirectories(Root, "*.extract"))
+            {
+                var bytes = DirectorySizeBestEffort(dir);
+                try
+                {
+                    Directory.Delete(dir, true);
+                    deleted++;
+                    reclaimed += bytes;
+                }
+                catch { }
+            }
+
+            if (log != null && deleted > 0)
+                log("SUPRA_BROWSER cleanup=PASS removed=" + deleted +
+                    " reclaimed_bytes=" + reclaimed +
+                    " active=" + AgentDiagnostics.Sanitize(activeFolder));
+        }
+
+        private static long DirectorySizeBestEffort(string root)
+        {
+            long total = 0;
+            try
+            {
+                foreach (var file in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
+                {
+                    try { total += new FileInfo(file).Length; } catch { }
+                }
+            }
+            catch { }
+            return total;
         }
 
         private static string RequestText(string url, bool manifest)
