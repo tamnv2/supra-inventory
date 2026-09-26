@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D122_SOURCE_IN_PROGRESS__TARGET_RELAY_AGENT_V43__OA048_AFTER_RELEASE",
+    "beta": "D124_SOURCE_IN_PROGRESS__TARGET_RELAY_AGENT_V45__OA050_AFTER_RELEASE",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 12,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -27,12 +27,12 @@
     "user_management": "D120_SOURCE_CANDIDATE__ROOT_ONLY_MANAGED_ROLE_CHANGE__PICKER_HR_AUTHORITY_PRESERVED",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D112_OWNER_ACCEPTED_PASS__EXISTING_METRICS_OPERATIONAL_HIERARCHY__NONBLOCKING_SECONDARY_LOAD",
-    "quota_resilience": "D122_SOURCE__REMAINING_AGENT_UI_BLOCKERS_OFF_UI_THREAD__D117_D118_CADENCE_UNCHANGED",
-    "ui_design_guard": "D122_SOURCE__AGENT_50_25_25__OVERLAY_CRISP_TEXT__COLUMN_PREFS__WEB_CA_VAN_HANH__GATES_PENDING",
+    "quota_resilience": "D124_SOURCE__SKU_SERVICE_DAILY_LOCK__180S_STATUS_AWARE_WAIT__NO_DUPLICATE_POST_SUBMIT_RETRY",
+    "ui_design_guard": "D124_SOURCE__AGENT_OVERLAY_REMOVED__SYSTEM_AGENT_30PCT_SUMMARY_REQUEST_METRICS__D123_UI_THREAD_GUARDS_PRESERVED",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D118_OWNER_ACCEPTED_PASS__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SELECTED_RANGE_FILTER",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D121_RELEASE_PASS__D117_D118_CONFIRMATION_AND_WMS_MUTATION_CONTRACT_UNCHANGED"
+    "picklist_confirmation_poc": "D123_TECHNICAL_RELEASE_PASS_V44__D124_SOURCE_ACTIVE__D117_D118_CONFIRMATION_WMS_CONTRACT_UNCHANGED"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -102,7 +102,8 @@
     "D117 final hardening: schedule decisions are propagated immediately in the generation-scoped PRIMARY lease; STANDBY continues lease reads to absorb late overtime decisions; FROZEN control-role refresh is 30s so early-start before 06:00 rebuilds standby topology promptly; every automatic WMS POST chunk revalidates current PRIMARY generation and the request is rechecked against the 20s automatic window immediately before mutation.",
     "D118 Owner-approved: overtime schedule decision may be submitted by any authenticated online Agent without role promotion; first Firestore CAS decision per schedule boundary is authoritative; Web large lists use real bounded pagination, SLA config is server-authoritative/revision-safe, export is detailed multi-sheet for selected range/filter, Agent shows product credit, and Android Picker tabs remain above IME via adjustResize.",
     "D119 protected baseline: accepted stable behavior may not be changed for a new feature without explicit impact/risk/cost approval; full-fleet update, no deliberate mixed-version rollout.",
-    "D121 Agent-only repair keeps periodic Firestore schedule refresh and Windows system-monitor sampling off the WinForms UI thread, divides the left Overview evenly across Agent/Supra/PickList, and keeps Agent/Relay/Wi-Fi on one responsive row without changing D117/D118 cadence or WMS semantics."
+    "D121 Agent-only repair keeps periodic Firestore schedule refresh and Windows system-monitor sampling off the WinForms UI thread, divides the left Overview evenly across Agent/Supra/PickList, and keeps Agent/Relay/Wi-Fi on one responsive row without changing D117/D118 cadence or WMS semantics.",
+    "D124 Owner-approved Agent repair removes Windows Overlay, places local confirmation counters in Hệ thống Agent, makes SKU synchronization progress explicit, and locks the Asia/Ho_Chi_Minh daily SKU operation after first Service submission so no automatic/manual duplicate is sent that day."
   ],
   "completed_capabilities": [
     "Cloudflare Beta Worker/custom domain/InventoryCore SQLite provisioning",
@@ -177,7 +178,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "OA048 WAITING RELEASE: field-accept relay-agent-v43 for Agent stability and D122 operational UX.",
+    "OA050 WAITING D124 TECHNICAL RELEASE: field-accept relay-agent-v45 for Overlay removal, Agent request metrics, visible SKU progress, single-daily Service lock and D123 no-hang regression.",
     "OA046 D120 physical field acceptance after automated release PASS: Agent smooth scroll/search/two-column/Supra account switch/quota log; Android single cross-app red/blue result + no login flash; Web SLA stability/taskbar viewport/ROOT role change.",
     "OA026 D106 physical credential acceptance: one post-D106 ADMIN password set -> unchanged Agent v30 direct login, plus one fresh ADMIN Web create -> immediate Agent login; verify no ghost-account-on-error.",
     "OA025 D105 physical acceptance: Android 4-digit input, dimmed in-flight confirm button, prominent terminal result, Agent manual 3–4 digit search, and unique 4-digit full-PickList resolution.",
@@ -196,7 +197,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Complete D123 PR gates, merge after required checks pass, publish relay-agent-v44, then run OA049 against the same saved-session startup path that field-failed v43. Stable remains OWNER-GATED.",
+  "next_action": "Complete D124 PR authority/continuity/build gates, merge only after PASS, verify Beta Function deploy + relay-agent-v45 release, then run OA050. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -829,7 +830,7 @@
     "D121 implementation PR #191 targets relay-agent-v42 from released v41 baseline; first Agent gate exposed AgentConfig.AgentBuild still at 41 and the same PR corrected it to 42 before build.",
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged."
   ],
-  "active_workstream": "D123_AGENT_UI_THREAD_AFFINITY",
+  "active_workstream": "D124_AGENT_OPERATIONAL_CLEANUP_SKU_DAILY_LOCK",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
@@ -1077,6 +1078,29 @@
       "branch": "fix/d122-agent-stability-ops-ux",
       "target_agent_release": "relay-agent-v43",
       "stable": "OWNER_GATED_UNTOUCHED"
+    },
+    "d123": {
+      "status": "TECHNICAL_RELEASE_PASS__OWNER_FIELD_SUPERSEDED_BY_D124",
+      "merged_main": "9da487ff341cf31fe61a944b3c41b9fe20c094de",
+      "implementation_pr": 194,
+      "agent_release": "relay-agent-v44",
+      "agent_release_id": 397029218,
+      "agent_asset_id": 589709181,
+      "agent_size_bytes": 368128,
+      "agent_sha256": "644609140316a9050336673f8c73bb1bcf8db26614c69216da840377d7dc1f47",
+      "stable": "OWNER_GATED_UNTOUCHED"
+    },
+    "d124": {
+      "status": "SOURCE_IN_PROGRESS__PR_NOT_OPEN",
+      "branch": "fix/d124-agent-sku-daily-no-overlay",
+      "baseline_main": "9da487ff341cf31fe61a944b3c41b9fe20c094de",
+      "baseline_agent_release": "relay-agent-v44",
+      "target_agent_release": "relay-agent-v45",
+      "scope": "AGENT_OVERLAY_REMOVAL__REQUEST_METRICS__SKU_PROGRESS__SINGLE_DAILY_SERVICE_LOCK",
+      "protected_contracts": "D123_UI_THREAD__D120_PICKER__D117_D118_CONFIRMATION_HA_GENERATION_WMS_MUTATION_UNCHANGED",
+      "new_resources": "NONE",
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "owner_field_action": "OA050"
     }
   }
 }
