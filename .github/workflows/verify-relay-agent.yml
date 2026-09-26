@@ -73,9 +73,9 @@ jobs:
           $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
           $projection = Get-Content service/src/firestore-projection.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*54\s*;') { throw "D127 hotfix requires Agent v54." }
-          if ($project -notmatch '<AssemblyVersion>0\.54\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.54\.0\.0</FileVersion>') {
-            throw "D127 hotfix assembly/file version must be 0.54."
+          if ($config -notmatch 'AgentBuild\s*=\s*55\s*;') { throw "D127 hotfix requires Agent v55." }
+          if ($project -notmatch '<AssemblyVersion>0\.55\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.55\.0\.0</FileVersion>') {
+            throw "D127 hotfix assembly/file version must be 0.55."
           }
 
           foreach ($marker in @(
@@ -128,13 +128,17 @@ jobs:
             'OpenOrShowDesktop',
             'owned_webview2=FAILED',
             'auto_fallback=false',
-            'PAGE_SIZE_CONTROL_NOT_FOUND'
+            'PAGE_SIZE_CONTROL_NOT_FOUND',
+            'BuildDashboardSft3EntryScript',
+            'HY1_SFT3_CLICKED',
+            'CONFIRM_NAVIGATE_SAME_TAB',
+            'AUTO_RECOVERING_CONFIRM'
           )) {
             if (-not $browser.Contains($marker)) { throw "D126 browser semantic guard missing: $marker" }
           }
           if (-not $browser.Contains("names(e).some(v => fold(v) === fold('Xác nhận lấy lại hàng'))")) { throw "D126 H3 readiness confirm control must remain exact-label only." }
           foreach ($marker in @(
-            'RequiredHostBuild = 3',
+            'RequiredHostBuild = 4',
             'RequiredHostArch = "x64"',
             'host-build.txt',
             'host-arch.txt',
@@ -146,9 +150,12 @@ jobs:
             'Environment.Is64BitProcess',
             'CoreWebView2Environment.SetLoaderDllFolderPath(loaderFolder)',
             'loader", "x64"',
-            'WebView2Loader.dll'
+            'WebView2Loader.dll',
+            'NewWindowRequested += HandleNewWindowRequested',
+            'e.Handled = true',
+            '_web.CoreWebView2.Navigate(target.AbsoluteUri)'
           )) {
-            if (-not $ownedHost.Contains($marker)) { throw "D127 v54 explicit x64 loader binding missing: $marker" }
+            if (-not $ownedHost.Contains($marker)) { throw "D127 v55 owned-host routing guard missing: $marker" }
           }
 
           foreach ($forbidden in @(
@@ -280,7 +287,7 @@ jobs:
             throw "D127 v53 must not auto-fallback from Agent browser to Desktop browser."
           }
 
-          Write-Host "D127 v53 explicit browser modes + page-size + protected regression guards PASS"
+          Write-Host "D127 v55 explicit browser modes + same-tab dashboard recovery + page-size guards PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh
@@ -478,7 +485,7 @@ jobs:
           $match = [regex]::Match(($resolve -join "`n"), 'version=(\d+(?:\.\d+){3})')
           if (-not $match.Success) { throw "Resolved WebView2 version was not returned." }
           $runtimeVersion = $match.Groups[1].Value
-          $hostBuild = 3
+          $hostBuild = 4
           $channel = "inventory-channel"
           $asset = "Agent.WebView2.FixedRuntime.x64.zip"
           $assetSha = "$asset.sha256"
