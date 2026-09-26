@@ -89,6 +89,7 @@ checks = {
     "authority_d121_agent_responsive_layout": "D121" in DECISIONS and "D121 — Windows Agent balanced workspace and responsive status line" in DESIGN_SPEC,
     "authority_d122_agent_stability_ops_ux": "D122" in DECISIONS and "D122 — Agent stability, operational UX and session recovery" in DESIGN_SPEC,
     "authority_d123_agent_ui_thread_affinity": "D123" in DECISIONS and "D123 — Agent UI-thread affinity and startup hang repair" in DESIGN_SPEC,
+    "authority_d124_agent_operational_cleanup": "D124" in DECISIONS and "D124 — Agent summary density and Overlay removal" in DESIGN_SPEC,
     "agent_d122_weighted_left_regions": all(token in RELAY_PROGRAM for token in [
         "SizeType.Percent, 50F",
         "SizeType.Percent, 25F",
