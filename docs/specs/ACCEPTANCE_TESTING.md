@@ -1343,3 +1343,18 @@ D126 cannot PASS until all applicable checks below pass:
 - The generic word **Xác nhận** is permitted only inside the uniquely identified exact dialog. No page-global generic confirmation search is allowed.
 - After the modal click, existing terminal DOM success/error or stable row-removal evidence is still required. Modal click alone is never reported as success.
 - Physical OA051 PASS requires the real v50 flow to complete checkbox → **Xác nhận lấy lại hàng** → dialog **Xác nhận** → trusted terminal result.
+
+## D127 — Quota, page-readiness and owned-browser acceptance
+
+1. Seed dozens of historical `PENDING` relay jobs older than 20 seconds. PRIMARY polls for at least five minutes. PASS only if query results do not contain those stale documents and no broad list fallback is used.
+2. Create a fresh PDA request and verify normal D126 processing still occurs within the existing terminal window.
+3. Log in/connect exactly one Picker Android session. PASS when PRIMARY Picker list updates without a 15-second/one-minute presence poll. Disconnect unexpectedly: row remains in temporary-disconnect state for about 180 seconds; reconnect before expiry restores it. Explicit logout removes immediately.
+4. Keep all Picker sessions unchanged for at least ten minutes. PASS only if logs show no periodic Picker projection/contact reads caused by the UI timer.
+5. Cross 14:00 with a valid Android session and verify it remains present. At a closed 23:00 window the local list clears; entering the 05:00 window performs at most one initial snapshot.
+6. Populate historical resolved Picker alerts plus one open command. PASS only if Agent query returns open `PENDING/SENT` commands without scanning the historical resolved set.
+7. On real Supra Confirm PickList with paginator not 100, verify Agent selects exact **100**, waits for reload and then resolves up to the visible maximum. Already-100 must produce no redundant selection.
+8. Use a PickList row that is visible but whose checkbox is initially disabled. PASS only if Agent spends at most one exact **Tìm kiếm** refresh for the whole batch, then proceeds if the checkbox becomes enabled. If it remains disabled, it reports Supra rejection and performs zero confirmation click.
+9. Run a burst with multiple PDA suffixes, including missing/disabled rows. PASS only if the batch produces at most one Search refresh.
+10. Install/publish the Agent-owned browser bundle. On a capable x64 machine, PASS when Agent starts the Fixed WebView2 host/profile, normal user Edge can be closed/terminated without killing Agent Web Confirm, and login/profile persistence works without Agent logging/reading credentials.
+11. Remove/corrupt/block the owned bundle on another test. PASS when Agent automatically falls back to dedicated-profile Edge or Chrome and D126 DOM confirmation still works.
+12. Source guards must prove Runtime/Page-only browser control, no Network/cookie/token/session extraction, checksum verification for the browser bundle, v51 build alignment, D117/D118 HA invariants, and Stable untouched.

@@ -780,8 +780,8 @@
     "agent_log_delivery": "D101_LOCAL_ROLLING_2MIB_X4_PLUS_CURRENT__FIRESTORE_SPOOL__BETA_DRIVE_06_12_18_00__CRASH_PREFIX"
   },
   "agent_operations": {
-    "decision": "D126",
-    "target_release": "relay-agent-v50",
+    "decision": "D127",
+    "target_release": "relay-agent-v51",
     "cache_miss": "CURRENT_RENDERED_DOM_THEN_ONE_EXACT_SEARCH_BUTTON_RETRY",
     "auto_update": "STARTUP_PLUS_30MIN_BACKGROUND_PLUS_MANUAL__SERVICE_MANIFEST__STABLE_ALIAS__SHA256",
     "layout": "KEEP_D124_RELEASED_OVERVIEW__SUPRA_CARD_BROWSER_READY_HIDE_SHOW",
@@ -791,14 +791,14 @@
     "drive_logs": "FIRESTORE_ADMIN_SPOOL_TO_BETA_DRIVE__06_12_18_00__CRASH_BEST_EFFORT",
     "web_online": "WEB_PLUS_ANDROID_ONLY__AGENT_EXCLUDED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "release_status": "D126_V50_TECHNICAL_RELEASE_PASS__OA051_FIELD_RETEST_READY",
+    "release_status": "D127_IMPLEMENTATION_IN_PROGRESS",
     "quiet_hours": "KEEP_D117_D118_PICKLIST_RELAY_SCHEDULE",
-    "fleet_table": "D120_V41_RELEASED__PICKER_ACTIVE_ANDROID_REALTIME_ONLY__SEARCH_SCROLL_ANCHOR_WHOLE_ROW_HOVER__NO_FLICKER_NOOP_RENDER",
+    "fleet_table": "D127_SCHEMA3_ACTIVE_ANDROID_EVENT_DRIVEN__180S_TRANSIENT_GRACE__NO_PERIODIC_AGENT_PRESENCE_POLL",
     "previous_release": "relay-agent-v49__D126_H3_RELEASED__SECOND_CONFIRM_DIALOG_OBSERVED",
-    "picklist_ui": "KEEP_RELEASED_MANUAL_RESULTS__BUSINESS_ADAPTER_BROWSER_DOM",
+    "picklist_ui": "D127_ROWS_PER_PAGE_100__ONE_BATCH_SEARCH_RETRY_FOR_MISS_OR_DISABLED_CHECKBOX__D126_MODAL_GUARDS",
     "visible_copy": "D118_COMPACT_OPERATIONAL_ONLY__APPROVED_BOTTOM_RIGHT_PRODUCT_CREDIT__NO_INTERNAL_IMPLEMENTATION_PROSE",
     "batch_confirmation": "PDA_EXISTING_BATCH_TRANSPORT__EACH_BROWSER_MUTATION_FAIL_CLOSED",
-    "quota": "KEEP_D117_D118_FIRESTORE_CADENCE__NO_WMS_API_POLLING",
+    "quota": "D127_FRESH_PENDING_SERVER_FILTER__EVENT_DRIVEN_PICKER_PRESENCE__OPEN_ALERT_QUERY__FLEET_METRICS_30M",
     "release_main": "1a9461b8cd3ad20bbd6e93a254f46ffd4ccbee55",
     "release_id": 397204407,
     "release_asset_id": 590503449,
@@ -811,14 +811,15 @@
     "inventory_channel_release_id": 394587029,
     "inventory_channel_manifest_asset_id": 590503527,
     "inventory_channel_exe_asset_id": 590503526,
-    "next_target_release": "FIELD_RETEST_OA051_V50",
-    "next_source_status": "D126_V50_RELEASED__OA051_FIELD_RETEST_PENDING",
+    "next_target_release": "relay-agent-v51",
+    "next_source_status": "D127_PR_PENDING",
     "release_publish_run": 36237772139,
     "wms_health": "MANAGED_BROWSER_CONFIRM_PAGE_READINESS_ONLY",
     "schedule_authority": "KEEP_D117_D118_CONFIRMATION_RELAY_SCHEDULE",
     "ui_responsiveness": "D122_SSID_WATCHDOG_SCHEDULE_SYSTEM_MONITOR_OFF_UI_BLOCKING_PATHS__FLEET_DIFF_RENDER__NO_CADENCE_EXPANSION",
     "column_sizing": "D122_AUTO_SIZE_CONTENT_OR_MANUAL_PER_USER_LOCAL_PERSISTENCE",
-    "session_recovery": "USER_REOPENS_OR_LOGS_IN_BROWSER__NO_AGENT_SESSION_CAPTURE"
+    "session_recovery": "USER_REOPENS_OR_LOGS_IN_BROWSER__NO_AGENT_SESSION_CAPTURE",
+    "browser_runtime": "OWNED_WEBVIEW2_FIXED_X64_DEDICATED_PROFILE_PREFERRED__EDGE_CHROME_DEDICATED_PROFILE_FALLBACK"
   },
   "distribution_channel": {
     "environment": "beta",
@@ -835,10 +836,16 @@
       "/downloads/pda/latest.sha256",
       "/downloads/agent/manifest",
       "/downloads/agent/latest",
-      "/downloads/agent/latest.sha256"
+      "/downloads/agent/latest.sha256",
+      "/downloads/agent/browser/manifest",
+      "/downloads/agent/browser/latest",
+      "/downloads/agent/browser/latest.sha256"
     ],
     "discovery_policy": "NORMAL_RUNTIME_DOES_NOT_ENUMERATE_GITHUB_RELEASES_REST",
-    "status": "D126_V50_RELEASED__CURRENT_CHANNEL_BETA_VC76_AGENT_V50__OA051_FIELD_RETEST_READY"
+    "status": "D127_TARGET__AGENT_V51_PLUS_OWNED_BROWSER_BUNDLE__BETA_ONLY",
+    "agent_browser_manifest_asset": "agent-browser-latest.json",
+    "agent_browser_alias_asset": "Agent.WebView2.FixedRuntime.x64.zip",
+    "agent_browser_checksum_asset": "Agent.WebView2.FixedRuntime.x64.zip.sha256"
   },
   "release_channel": {
     "environment": "beta",
@@ -860,7 +867,14 @@
       "sha256": "36edb474ec6e6d01c1eb67c36c1c136bdaf5b807f980fb00ebfae56eaea9644f",
       "source_main": "1a9461b8cd3ad20bbd6e93a254f46ffd4ccbee55"
     },
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "browser_bundle": {
+      "status": "D127_PENDING_PUBLISH",
+      "asset": "Agent.WebView2.FixedRuntime.x64.zip",
+      "manifest": "agent-browser-latest.json",
+      "runtime": "Microsoft WebView2 Fixed x64 153.0.4234.32",
+      "fallback": "SYSTEM_EDGE_THEN_CHROME"
+    }
   },
   "d119": {
     "status": "TECHNICAL_RUNTIME_RELEASE_OWNER_FIELD_PASS",
@@ -1167,5 +1181,12 @@
     "field_defect_v49": "PRIMARY_CONFIRM_OPENS_SECOND_DIALOG__GENERIC_DIALOG_XAC_NHAN_NOT_YET_CLICKED",
     "h4_contract": "UNIQUE_EXACT_DIALOG_TITLE_BODY_AND_SCOPED_CONFIRM__NEVER_DONG__POST_TERMINAL_DOM_REQUIRED",
     "h4_implementation_pr": 206
+  },
+  "d127": {
+    "status": "IMPLEMENTATION_IN_PROGRESS",
+    "target_agent_release": "relay-agent-v51",
+    "android": "beta-vc76 unchanged",
+    "browser_bundle": "inventory-channel / Agent.WebView2.FixedRuntime.x64.zip",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }

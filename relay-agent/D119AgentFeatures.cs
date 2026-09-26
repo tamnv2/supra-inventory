@@ -34,8 +34,12 @@ namespace SupraInventoryRelayAgent
         private FirestorePickerContactClient _pickerContactClient;
         private readonly Dictionary<string, PickerContactCommand> _activePickerCommands =
             new Dictionary<string, PickerContactCommand>(StringComparer.Ordinal);
+        private readonly Dictionary<string, DateTime> _pickerDisconnectGrace =
+            new Dictionary<string, DateTime>(StringComparer.Ordinal);
+        private const int PickerDisconnectGraceSeconds = 180;
         private long _pickerPresenceRefreshRunning;
         private DateTime _lastPickerPresenceRefreshUtc = DateTime.MinValue;
+        private bool? _pickerWindowOpenState;
         private FirestoreFleetMetricsClient _fleetMetricsClient;
         private FleetMetricSnapshot _fleetSnapshot;
         private long _fleetMetricsRefreshRunning;
@@ -200,8 +204,13 @@ namespace SupraInventoryRelayAgent
 
             InitializeColumnPreferences();
 
-            _d119OpsTimer.Interval = 5000;
-            _d119OpsTimer.Tick += (s, e) => RefreshD119OperationalViews(false);
+            _d119OpsTimer.Interval = 30000;
+            _d119OpsTimer.Tick += (s, e) =>
+            {
+                RefreshPickerWindowBoundary();
+                ExpirePickerPresenceGrace();
+                RefreshD119OperationalViews(false);
+            };
             _d119OpsTimer.Start();
             FormClosed += (s, e) =>
             {
@@ -500,10 +509,9 @@ namespace SupraInventoryRelayAgent
             _lastFleetPrimary = primary;
             RenderFleetMetricStatus(primary);
 
-            var interval = primary
-                ? TimeSpan.FromSeconds(15)
-                : TimeSpan.FromMinutes(30);
-            if (!force && DateTime.UtcNow - _lastPickerPresenceRefreshUtc < interval) return;
+            // D127: Picker presence is event-driven through the already-polled relay queue.
+            // Periodic UI ticks must never read the projection or picker_alerts.
+            if (!force) return;
             if (Interlocked.CompareExchange(ref _pickerPresenceRefreshRunning, 1L, 0L) != 0L) return;
 
             Task.Run(() =>
@@ -548,11 +556,115 @@ namespace SupraInventoryRelayAgent
             }
             _pickerOnlineSnapshot = items ?? new List<PickerPresenceView>();
             RenderPickerOnlineSnapshot();
+            var liveCount = _pickerOnlineSnapshot.Count(x => string.Equals(x.Status, "PDA_READY", StringComparison.Ordinal));
+            var graceCount = _pickerOnlineSnapshot.Count - liveCount;
             _pickerOnlineStatus.Text =
-                _pickerOnlineSnapshot.Count.ToString("N0") +
-                " Picker đang hoạt động" +
-                (primary ? " · cập nhật trực tiếp" : " · cập nhật tiết kiệm");
+                liveCount.ToString("N0") + " Picker đang hoạt động" +
+                (graceCount > 0 ? " · " + graceCount.ToString("N0") + " mất kết nối tạm thời" : "") +
+                (primary ? " · sự kiện trực tiếp" : " · snapshot");
             RenderFleetMetricStatus(primary);
+        }
+
+        internal void ApplyEventDrivenPickerPresence(List<PickerPresenceView> items, string reason)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<List<PickerPresenceView>, string>(ApplyEventDrivenPickerPresence), items, reason);
+                return;
+            }
+
+            var now = DateTime.UtcNow;
+            var incoming = items ?? new List<PickerPresenceView>();
+            var incomingIds = new HashSet<string>(
+                incoming.Where(x => x != null && !string.IsNullOrWhiteSpace(x.UserId)).Select(x => x.UserId),
+                StringComparer.Ordinal);
+            foreach (var id in incomingIds) _pickerDisconnectGrace.Remove(id);
+
+            var hardLeave = string.Equals(reason, "LOGOUT", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(reason, "DEVICE_REMOVE", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(reason, "session-replaced", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(reason, "session-changed", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(reason, "role-changed", StringComparison.OrdinalIgnoreCase);
+            var merged = new List<PickerPresenceView>(incoming);
+            if (!hardLeave)
+            {
+                foreach (var previous in _pickerOnlineSnapshot)
+                {
+                    if (previous == null || string.IsNullOrWhiteSpace(previous.UserId) || incomingIds.Contains(previous.UserId))
+                        continue;
+                    DateTime disconnectedAt;
+                    if (!_pickerDisconnectGrace.TryGetValue(previous.UserId, out disconnectedAt))
+                    {
+                        disconnectedAt = now;
+                        _pickerDisconnectGrace[previous.UserId] = disconnectedAt;
+                    }
+                    if (now - disconnectedAt >= TimeSpan.FromSeconds(PickerDisconnectGraceSeconds))
+                        continue;
+                    merged.Add(new PickerPresenceView
+                    {
+                        UserId = previous.UserId,
+                        EmployeeCode = previous.EmployeeCode,
+                        DisplayName = previous.DisplayName,
+                        DeviceId = previous.DeviceId,
+                        LoginAt = previous.LoginAt,
+                        DeviceSeenAt = previous.DeviceSeenAt,
+                        Status = "PDA_GRACE"
+                    });
+                }
+            }
+            else
+            {
+                foreach (var id in _pickerDisconnectGrace.Keys.Where(id => !incomingIds.Contains(id)).ToList())
+                    _pickerDisconnectGrace.Remove(id);
+            }
+
+            UpdatePickerOnlineGrid(merged, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
+        }
+
+        private void RefreshPickerWindowBoundary()
+        {
+            var now = _businessSchedule == null ? DateTime.Now : _businessSchedule.NowOperational();
+            var open = now.TimeOfDay >= new TimeSpan(5, 0, 0) && now.TimeOfDay < new TimeSpan(23, 0, 0);
+            if (_pickerWindowOpenState.HasValue && _pickerWindowOpenState.Value == open) return;
+            _pickerWindowOpenState = open;
+
+            if (!open)
+            {
+                _pickerDisconnectGrace.Clear();
+                _pickerOnlineSnapshot = new List<PickerPresenceView>();
+                _pickerOnlineRenderSignature = "";
+                UpdatePickerOnlineGrid(_pickerOnlineSnapshot, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
+                _pickerOnlineStatus.Text = "Ngoài khung PDA 05:00–23:00 · danh sách Picker đã đóng.";
+                return;
+            }
+
+            // One authoritative snapshot at 05:00 / process entry into the operating window.
+            RefreshD119OperationalViews(true);
+        }
+
+        private void ExpirePickerPresenceGrace()
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(ExpirePickerPresenceGrace));
+                return;
+            }
+            if (_pickerDisconnectGrace.Count == 0) return;
+            var now = DateTime.UtcNow;
+            var expired = _pickerDisconnectGrace
+                .Where(x => now - x.Value >= TimeSpan.FromSeconds(PickerDisconnectGraceSeconds))
+                .Select(x => x.Key)
+                .ToList();
+            if (expired.Count == 0) return;
+            foreach (var id in expired) _pickerDisconnectGrace.Remove(id);
+            if (_pickerOnlineSnapshot.RemoveAll(x =>
+                    x != null &&
+                    string.Equals(x.Status, "PDA_GRACE", StringComparison.Ordinal) &&
+                    expired.Contains(x.UserId)) > 0)
+            {
+                _pickerOnlineRenderSignature = "";
+                UpdatePickerOnlineGrid(_pickerOnlineSnapshot, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
+            }
         }
 
         private string PickerOnlineRenderSignature(string query)

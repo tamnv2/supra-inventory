@@ -13,6 +13,7 @@ interface ProjectionEnv extends ProjectionWriteEnv {
 type FirestoreValue =
   | { stringValue: string }
   | { integerValue: string }
+  | { timestampValue: string }
   | { booleanValue: boolean }
   | { nullValue: null }
   | { arrayValue: { values?: FirestoreValue[] } }
@@ -22,6 +23,7 @@ const DATASTORE_SCOPE = "https://www.googleapis.com/auth/datastore";
 
 function field(value: unknown): FirestoreValue {
   if (value === null || value === undefined) return { nullValue: null };
+  if (value instanceof Date) return { timestampValue: value.toISOString() };
   if (typeof value === "boolean") return { booleanValue: value };
   if (typeof value === "number" && Number.isFinite(value)) return { integerValue: String(Math.trunc(value)) };
   if (Array.isArray(value)) return { arrayValue: { values: value.map(field) } };
@@ -116,6 +118,7 @@ type PickerProjectionPayload = {
 async function writePickerPresenceProjection(
   env: ProjectionWriteEnv,
   payload: PickerProjectionPayload,
+  reason = "SNAPSHOT_REFRESH",
 ): Promise<void> {
   const pickers = (payload.items || []).slice(0, 2000).map((item) => ({
     user_id: String(item.user_id || ""),
@@ -126,37 +129,53 @@ async function writePickerPresenceProjection(
     device_seen_at: item.device_seen_at || null,
     status: "PDA_READY",
   }));
+  const now = new Date();
   await putDocument(env, "picker_presence_projection", "current", {
-    schema_version: 2,
-    presence_source: "ACTIVE_ANDROID_REALTIME",
-    updated_at: new Date().toISOString(),
+    schema_version: 3,
+    presence_source: "ACTIVE_ANDROID_EVENT_DRIVEN",
+    updated_at: now.toISOString(),
     source_generated_at: payload.generated_at || null,
+    count: pickers.length,
+    pickers,
+  });
+
+  // D127: reuse the already-polled relay queue as a single-slot control event.
+  // The fixed document id prevents event buildup; updateTime makes Agent ACK race-safe.
+  await putDocument(env, "relay_poc_jobs", "picker_presence_current", {
+    request_id: "picker_presence_current",
+    status: "PENDING",
+    source: "ANDROID_PRESENCE_V1",
+    created_at: now,
+    schema_version: 3,
+    reason,
     count: pickers.length,
     pickers,
   });
 }
 
-export async function syncPickerPresenceProjection(env: ProjectionEnv): Promise<void> {
+export async function syncPickerPresenceProjection(env: ProjectionEnv, reason = "SNAPSHOT_REFRESH"): Promise<void> {
   const core = env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName("inventory-core"));
   const response = await core.fetch("https://inventory-core.internal/notifications/online-pickers");
   if (!response.ok) throw new Error(`ONLINE_PICKERS_HTTP_${response.status}`);
-  await writePickerPresenceProjection(env, (await response.json()) as PickerProjectionPayload);
+  await writePickerPresenceProjection(env, (await response.json()) as PickerProjectionPayload, reason);
 }
 
 export async function syncPickerPresenceProjectionFromState(
   state: DurableObjectState,
   env: ProjectionWriteEnv,
   excludeConnectionId = "",
+  reason = "SOCKET_CHANGE",
 ): Promise<void> {
   await writePickerPresenceProjection(
     env,
     onlinePickerProjectionData(state, excludeConnectionId) as PickerProjectionPayload,
+    reason,
   );
 }
 
-export async function refreshPickerProjectionBestEffort(env: ProjectionEnv): Promise<void> {
+export async function refreshPickerProjectionBestEffort(env: ProjectionEnv, reason = "SNAPSHOT_REFRESH"): Promise<void> {
   try {
-    await syncPickerPresenceProjection(env);
+    await syncPickerPresenceProjection(env, reason);
   } catch {
     // D119 projection failure must never roll back existing login/device business behavior.
   }

@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "relay-agent/**"
+      - "relay-agent-webview2-host/**"
       - "firebase/database.rules.json"
       - "firebase/firestore.rules"
       - "firebase/firestore.indexes.json"
@@ -12,6 +13,7 @@ on:
     branches: [main]
     paths:
       - "relay-agent/**"
+      - "relay-agent-webview2-host/**"
       - "firebase/database.rules.json"
       - "firebase/firestore.rules"
       - "firebase/firestore.indexes.json"
@@ -67,10 +69,13 @@ jobs:
           $contact = Get-Content relay-agent/FirestorePickerContact.cs -Raw
           $fleet = Get-Content relay-agent/FirestoreFleetMetrics.cs -Raw
           $project = Get-Content relay-agent/SupraInventoryRelayAgent.csproj -Raw
+          $browserBundle = Get-Content relay-agent/AgentBrowserBundle.cs -Raw
+          $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
+          $projection = Get-Content service/src/firestore-projection.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*50\s*;') { throw "D126 H4 hotfix requires Agent v50." }
-          if ($project -notmatch '<AssemblyVersion>0\.50\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.50\.0\.0</FileVersion>') {
-            throw "D126 H4 hotfix assembly/file version must be 0.50."
+          if ($config -notmatch 'AgentBuild\s*=\s*51\s*;') { throw "D127 requires Agent v51." }
+          if ($project -notmatch '<AssemblyVersion>0\.51\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.51\.0\.0</FileVersion>') {
+            throw "D127 assembly/file version must be 0.51."
           }
 
           foreach ($marker in @(
@@ -111,7 +116,15 @@ jobs:
             'CONFIRM_DIALOG_BUTTON_NOT_UNIQUE',
             'CONFIRM_DIALOG_CLOSE_NOT_UNIQUE',
             "stage:'DIALOG_CONFIRMED'",
-            'dialog_required=true'
+            'dialog_required=true',
+            'private const string PageSizeLabel = "Số dòng mỗi trang"',
+            'private const string PageSizeTarget = "100"',
+            'EnsurePageSize100NoLock',
+            'PAGE_SIZE_100_VERIFY_FAILED',
+            'UnselectableFragments',
+            'StartOwnedWebView2NoLock',
+            'StartLegacyBrowserNoLock',
+            'owned_webview2=FALLBACK'
           )) {
             if (-not $browser.Contains($marker)) { throw "D126 browser semantic guard missing: $marker" }
           }
@@ -196,6 +209,10 @@ jobs:
             throw "D117 bounded Firestore cadence regression."
           }
           if ($transport -match 'PROCESSING|TryClaim' -or -not $transport.Contains('CONFIRM_ACK_VERIFY')) { throw "Firestore direct-ACK guard regression." }
+          foreach ($marker in @('MaxPendingAgeMs = 20000L','GREATER_THAN_OR_EQUAL','QUERY_FRESH_ONLY','stale_list_fallback=false','ANDROID_PRESENCE_V1','picker_presence_current')) {
+            if (-not $transport.Contains($marker)) { throw "D127 quota/event queue guard missing: $marker" }
+          }
+          if ($transport.Contains('?pageSize=' + 'MaxDocumentsPerPoll')) { throw "D127 unsafe stale list fallback returned." }
           foreach ($marker in @('relay_poc_confirm_guards','OriginalJobProvesConfirmed','MarkLocalConfirmed')) {
             if (-not $confirmGuard.Contains($marker)) { throw "Confirmation idempotency marker missing: $marker" }
           }
@@ -217,10 +234,22 @@ jobs:
           if ($program -match 'Bảng nổi|StatusOverlay|OverlaySettings' -or (Test-Path 'relay-agent/StatusOverlay.cs') -or (Test-Path 'relay-agent/OverlaySettingsForm.cs')) { throw "D124 Overlay must remain removed." }
           if (-not $ops.Contains('_agentRequestMetrics') -or -not $ops.Contains('Picker đang hoạt động trên PDA')) { throw "D124/D120 operational UI regression." }
           if (-not $ops.Contains('LoadOpen') -or -not $contact.Contains('CALL_SPECIALIST') -or -not $contact.Contains('BRING_TO_PACK')) { throw "Picker contact regression." }
-          if (-not $presence.Contains('schemaVersion != 2') -or -not $presence.Contains('ACTIVE_ANDROID_REALTIME')) { throw "Picker presence regression." }
+          if (-not $contact.Contains('picker-contact-open-query') -or $contact.Contains('/picker_alerts?pageSize=100')) { throw "D127 Picker alert query must remain server-filtered." }
+          if (-not $presence.Contains('schemaVersion != 3') -or -not $presence.Contains('ACTIVE_ANDROID_EVENT_DRIVEN')) { throw "D127 Picker presence schema regression." }
+          if (-not $projection.Contains('ANDROID_PRESENCE_V1') -or -not $projection.Contains('picker_presence_current') -or -not $projection.Contains('ACTIVE_ANDROID_EVENT_DRIVEN')) { throw "D127 event-driven Picker projection missing." }
+          if ($ops.Contains('TimeSpan.FromSeconds(15)')) { throw "D127 periodic 15-second Picker presence read returned." }
+          foreach ($marker in @('PickerDisconnectGraceSeconds = 180','RefreshPickerWindowBoundary','05:00–23:00','ApplyEventDrivenPickerPresence')) {
+            if (-not $ops.Contains($marker)) { throw "D127 Picker presence quota guard missing: $marker" }
+          }
           if (-not $ops.Contains('TimeSpan.FromMinutes(30)') -or -not $fleet.Contains('relay_poc_jobs')) { throw "Fleet metric quota regression." }
+          foreach ($marker in @('Microsoft.Web.WebView2','CoreWebView2Environment.CreateAsync','IsPasswordAutosaveEnabled','--remote-debugging-port')) {
+            if (-not $ownedHost.Contains($marker)) { throw "D127 owned WebView2 host marker missing: $marker" }
+          }
+          foreach ($marker in @('AgentBrowserBundleManifestUrl','AgentBrowserBundleUrl','TryGetReady','sha256','inventory-beta.supra.cc.cd')) {
+            if (-not $browserBundle.Contains($marker) -and -not $config.Contains($marker)) { throw "D127 browser bundle channel marker missing: $marker" }
+          }
 
-          Write-Host "D126 browser UI confirmation + protected regression guards PASS"
+          Write-Host "D127 quota-safe browser UI + protected regression guards PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh
@@ -230,6 +259,14 @@ jobs:
           $content = Get-Content $path -Raw
           $content = $content.Replace("__FIREBASE_API_KEY_BETA__", "${env:FIREBASE_API_KEY_BETA}")
           Set-Content -Path $path -Value $content -Encoding UTF8
+
+      - name: Build Agent-owned WebView2 host
+        shell: pwsh
+        run: |
+          dotnet build relay-agent-webview2-host/SupraInventoryWebView2Host.csproj -c Release
+          $hostExe = "relay-agent-webview2-host/bin/Release/net48/SUPRA.Inventory.WebView2Host.exe"
+          if (-not (Test-Path $hostExe)) { throw "Agent WebView2 host build output missing." }
+          Write-Host "Agent-owned WebView2 host build PASS"
 
       - name: Build lightweight Windows Agent
         shell: pwsh
@@ -383,3 +420,101 @@ jobs:
           gh release upload $channel $aliasExe $aliasSha "relay-agent/dist/agent-latest.json" --repo "${{ github.repository }}" --clobber
           if ($LASTEXITCODE -ne 0) { throw "Unable to update stable Agent runtime channel." }
           Write-Host "Updated stable Agent runtime channel $channel -> $tag"
+
+      - name: Publish Agent-owned Fixed WebView2 browser bundle
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $runtimeVersion = "153.0.4234.32"
+          $channel = "inventory-channel"
+          $asset = "Agent.WebView2.FixedRuntime.x64.zip"
+          $assetSha = "$asset.sha256"
+          $manifestName = "agent-browser-latest.json"
+          $reuse = $false
+          $probeDir = Join-Path $env:RUNNER_TEMP "wv2-channel-probe"
+          Remove-Item $probeDir -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $probeDir | Out-Null
+          gh release download $channel --repo "${{ github.repository }}" --pattern $manifestName --dir $probeDir 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            try {
+              $existing = Get-Content (Join-Path $probeDir $manifestName) -Raw | ConvertFrom-Json
+              if ($existing.version -eq $runtimeVersion -and $existing.sha256 -match '^[0-9a-f]{64}$') {
+                gh release download $channel --repo "${{ github.repository }}" --pattern $asset --dir $probeDir 2>$null
+                gh release download $channel --repo "${{ github.repository }}" --pattern $assetSha --dir $probeDir 2>$null
+                if ($LASTEXITCODE -eq 0) {
+                  $actual = (Get-FileHash (Join-Path $probeDir $asset) -Algorithm SHA256).Hash.ToLowerInvariant()
+                  $expected = (Get-Content (Join-Path $probeDir $assetSha) -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+                  if ($actual -eq $expected -and $actual -eq [string]$existing.sha256) { $reuse = $true }
+                }
+              }
+            } catch {}
+          }
+          if ($reuse) {
+            Write-Host "Owned WebView2 bundle $runtimeVersion already verified on $channel."
+            exit 0
+          }
+
+          $work = Join-Path $env:RUNNER_TEMP "wv2-fixed-$runtimeVersion"
+          Remove-Item $work -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $work | Out-Null
+          $page = (Invoke-WebRequest -UseBasicParsing "https://developer.microsoft.com/en-us/microsoft-edge/webview2?form=MA13LH#download-section").Content
+          $decoded = [System.Net.WebUtility]::HtmlDecode($page).Replace('\u002F','/').Replace('\/','/')
+          $escapedVersion = [regex]::Escape($runtimeVersion)
+          $filename = "Microsoft.WebView2.FixedVersionRuntime.$runtimeVersion.x64.cab"
+          $matches = [regex]::Matches($decoded, 'https:[^"''<>\s]+')
+          $cabUrl = $null
+          foreach ($m in $matches) {
+            $candidate = $m.Value
+            if ($candidate -match $escapedVersion -and $candidate -match 'x64' -and $candidate -match '\.cab(?:\?|$)') {
+              $cabUrl = $candidate
+              break
+            }
+          }
+          if ([string]::IsNullOrWhiteSpace($cabUrl)) {
+            throw "Unable to resolve official Microsoft Fixed WebView2 x64 CAB for $runtimeVersion."
+          }
+
+          $cab = Join-Path $work $filename
+          Invoke-WebRequest -UseBasicParsing $cabUrl -OutFile $cab
+          if ((Get-Item $cab).Length -lt 100MB) { throw "Downloaded Fixed WebView2 CAB is unexpectedly small." }
+
+          $expanded = Join-Path $work "expanded"
+          New-Item -ItemType Directory -Force -Path $expanded | Out-Null
+          & expand.exe $cab -F:* $expanded | Out-Host
+          if ($LASTEXITCODE -ne 0) { throw "Unable to extract Fixed WebView2 CAB." }
+          $engine = Get-ChildItem $expanded -Recurse -Filter msedgewebview2.exe | Select-Object -First 1
+          if ($null -eq $engine) { throw "Fixed WebView2 runtime executable not found after extraction." }
+          $runtimeRoot = $engine.Directory.FullName
+
+          $bundle = Join-Path $work "bundle"
+          $hostDir = Join-Path $bundle "host"
+          $runtimeDir = Join-Path $bundle "runtime"
+          New-Item -ItemType Directory -Force -Path $hostDir | Out-Null
+          New-Item -ItemType Directory -Force -Path $runtimeDir | Out-Null
+          Copy-Item "relay-agent-webview2-host/bin/Release/net48/*" $hostDir -Recurse -Force
+          Copy-Item (Join-Path $runtimeRoot "*") $runtimeDir -Recurse -Force
+          if (-not (Test-Path (Join-Path $hostDir "SUPRA.Inventory.WebView2Host.exe"))) { throw "Owned host missing from browser bundle." }
+          if (-not (Test-Path (Join-Path $runtimeDir "msedgewebview2.exe"))) { throw "Fixed runtime missing from browser bundle." }
+
+          $zip = Join-Path $work $asset
+          Compress-Archive -Path (Join-Path $bundle "*") -DestinationPath $zip -CompressionLevel Optimal
+          $sha256 = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$sha256  $asset" | Set-Content (Join-Path $work $assetSha) -Encoding ascii
+          $size = (Get-Item $zip).Length
+          $manifest = [ordered]@{
+            schema_version = 1
+            channel = "beta"
+            version = $runtimeVersion
+            asset_name = $asset
+            size_bytes = $size
+            sha256 = $sha256
+          } | ConvertTo-Json -Compress
+          $manifest | Set-Content (Join-Path $work $manifestName) -Encoding utf8
+
+          gh release upload $channel $zip (Join-Path $work $assetSha) (Join-Path $work $manifestName) --repo "${{ github.repository }}" --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent-owned browser bundle." }
+          Write-Host "Published Agent-owned Fixed WebView2 $runtimeVersion bundle size=$size sha256=$sha256"
+

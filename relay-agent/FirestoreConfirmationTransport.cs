@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Globalization;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -42,6 +43,7 @@ namespace SupraInventoryRelayAgent
         internal const int StandbyPollIntervalMs = 0;
         internal const int MaxDocumentsPerPoll = 100;
         internal const int MaxConcurrentJobs = 12;
+        internal const long MaxPendingAgeMs = 20000L;
 
         private readonly Func<AgentSession> _sessionProvider;
         private readonly Action _ensureFreshToken;
@@ -53,6 +55,7 @@ namespace SupraInventoryRelayAgent
         private readonly Action _onResponse;
         private readonly Action<string> _state;
         private readonly Func<List<FirestoreConfirmationWorkItem>, Dictionary<string, FirestoreConfirmationOutcome>> _batchHandler;
+        private readonly Action<List<PickerPresenceView>, string> _presenceSnapshotHandler;
         private readonly FirestoreAgentLeaderCoordinator _coordinator;
         private readonly Func<bool> _businessEnabled;
         private readonly Action<bool> _relayHealth;
@@ -72,6 +75,7 @@ namespace SupraInventoryRelayAgent
             Action onResponse,
             Action<string> state,
             Func<List<FirestoreConfirmationWorkItem>, Dictionary<string, FirestoreConfirmationOutcome>> batchHandler,
+            Action<List<PickerPresenceView>, string> presenceSnapshotHandler,
             FirestoreAgentLeaderCoordinator coordinator,
             Func<bool> businessEnabled,
             Action<bool> relayHealth)
@@ -86,6 +90,7 @@ namespace SupraInventoryRelayAgent
             _onResponse = onResponse ?? delegate { };
             _state = state ?? delegate { };
             _batchHandler = batchHandler;
+            _presenceSnapshotHandler = presenceSnapshotHandler ?? delegate { };
             _coordinator = coordinator;
             _businessEnabled = businessEnabled ?? (() => true);
             _relayHealth = relayHealth ?? delegate { };
@@ -146,19 +151,40 @@ namespace SupraInventoryRelayAgent
         {
             internal string Name = "";
             internal string UpdateTime = "";
-            internal FirestoreConfirmationWorkItem Work = new FirestoreConfirmationWorkItem();
+            internal string Source = "";
+            internal FirestoreConfirmationWorkItem Work;
+            internal List<PickerPresenceView> PresenceSnapshot;
+            internal string PresenceReason = "";
         }
 
         private int ProcessOnce(AgentSession session)
         {
             var docs = ReadPendingDocuments(session);
             var eligible = new List<PendingDocument>();
+            var processed = 0;
 
             foreach (var doc in docs)
             {
-                if (doc == null || doc.Work == null) continue;
+                if (doc == null) continue;
+                if (string.Equals(doc.Source, "ANDROID_PRESENCE_V1", StringComparison.Ordinal))
+                {
+                    if (doc.PresenceSnapshot == null) continue;
+                    _presenceSnapshotHandler(doc.PresenceSnapshot, doc.PresenceReason);
+                    var applied = new FirestoreConfirmationOutcome
+                    {
+                        Result = "PRESENCE_APPLIED",
+                        CacheMode = "EVENT_DRIVEN",
+                        Route = "PRESENCE_SNAPSHOT",
+                        Matches = doc.PresenceSnapshot.Count
+                    };
+                    if (TryAck(session, doc.Name, doc.UpdateTime, "picker_presence_current", applied))
+                        processed++;
+                    continue;
+                }
+
+                if (doc.Work == null) continue;
                 var ageMs = NowMs() - doc.Work.CreatedAtMs;
-                if (doc.Work.CreatedAtMs <= 0 || ageMs > 20000L)
+                if (doc.Work.CreatedAtMs <= 0 || ageMs > MaxPendingAgeMs)
                 {
                     _log("FIRESTORE CONFIRM stale-skip request=" + Short(doc.Work.RequestId) +
                          " age_ms=" + Math.Max(0L, ageMs));
@@ -168,14 +194,13 @@ namespace SupraInventoryRelayAgent
                 eligible.Add(doc);
             }
 
-            if (eligible.Count == 0) return 0;
+            if (eligible.Count == 0) return processed;
             if (!_coordinator.VerifyPrimaryBeforeMutation(session))
             {
                 _log("FIRESTORE CONFIRM mutation-fence=BLOCK role_or_generation_changed=true");
-                return 0;
+                return processed;
             }
 
-            var processed = 0;
             for (var offset = 0; offset < eligible.Count; offset += MaxConcurrentJobs)
             {
                 var count = Math.Min(MaxConcurrentJobs, eligible.Count - offset);
@@ -259,42 +284,66 @@ namespace SupraInventoryRelayAgent
 
         private List<PendingDocument> ReadPendingDocuments(AgentSession session)
         {
-            try
+            var cutoff = DateTime.UtcNow.AddMilliseconds(-MaxPendingAgeMs)
+                .ToString("o", CultureInfo.InvariantCulture);
+            var query = new Dictionary<string, object>
             {
-                var query = new Dictionary<string, object>
                 {
+                    "structuredQuery", new Dictionary<string, object>
                     {
-                        "structuredQuery", new Dictionary<string, object>
+                        { "from", new object[] { new Dictionary<string, object> { { "collectionId", "relay_poc_jobs" } } } },
                         {
-                            { "from", new object[] { new Dictionary<string, object> { { "collectionId", "relay_poc_jobs" } } } },
+                            "where", new Dictionary<string, object>
                             {
-                                "where", new Dictionary<string, object>
                                 {
+                                    "compositeFilter", new Dictionary<string, object>
                                     {
-                                        "fieldFilter", new Dictionary<string, object>
-                                        {
-                                            { "field", new Dictionary<string, object> { { "fieldPath", "status" } } },
-                                            { "op", "EQUAL" },
-                                            { "value", StringField("PENDING") }
+                                        { "op", "AND" },
+                                        { "filters", new object[]
+                                            {
+                                                new Dictionary<string, object>
+                                                {
+                                                    { "fieldFilter", new Dictionary<string, object>
+                                                        {
+                                                            { "field", new Dictionary<string, object> { { "fieldPath", "status" } } },
+                                                            { "op", "EQUAL" },
+                                                            { "value", StringField("PENDING") }
+                                                        }
+                                                    }
+                                                },
+                                                new Dictionary<string, object>
+                                                {
+                                                    { "fieldFilter", new Dictionary<string, object>
+                                                        {
+                                                            { "field", new Dictionary<string, object> { { "fieldPath", "created_at" } } },
+                                                            { "op", "GREATER_THAN_OR_EQUAL" },
+                                                            { "value", new Dictionary<string, object> { { "timestampValue", cutoff } } }
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
-                            },
+                            }
+                        },
+                        {
+                            "orderBy", new object[]
                             {
-                                "orderBy", new object[]
+                                new Dictionary<string, object>
                                 {
-                                    new Dictionary<string, object>
-                                    {
-                                        { "field", new Dictionary<string, object> { { "fieldPath", "created_at" } } },
-                                        { "direction", "ASCENDING" }
-                                    }
+                                    { "field", new Dictionary<string, object> { { "fieldPath", "created_at" } } },
+                                    { "direction", "ASCENDING" }
                                 }
-                            },
-                            { "limit", MaxDocumentsPerPoll }
-                        }
+                            }
+                        },
+                        { "limit", MaxDocumentsPerPoll }
                     }
-                };
+                }
+            };
 
+            try
+            {
                 var raw = SendSafeRead(
                     "POST",
                     AgentConfig.FirestoreDocumentsBaseUrl + ":runQuery",
@@ -320,42 +369,14 @@ namespace SupraInventoryRelayAgent
                     if (parsed != null) docs.Add(parsed);
                 }
 
-                LogPollTelemetry("QUERY", docs.Count, rowCount);
+                LogPollTelemetry("QUERY_FRESH_ONLY", docs.Count, rowCount);
                 return docs;
             }
             catch (Exception ex)
             {
-                _log("FIRESTORE CONFIRM pending-query fallback type=" + ex.GetType().Name +
-                     " detail=" + AgentDiagnostics.Sanitize(ex.Message));
-
-                var raw = Send(
-                    "GET",
-                    AgentConfig.FirestoreRelayCollectionUrl +
-                        "?pageSize=" + MaxDocumentsPerPoll +
-                        "&orderBy=" + Uri.EscapeDataString("created_at"),
-                    session.IdToken,
-                    null,
-                    true,
-                    "CONFIRM_LIST");
-                var root = _json.DeserializeObject(raw) as Dictionary<string, object>;
-                object docsObj;
-                var sourceDocs = root != null && root.TryGetValue("documents", out docsObj)
-                    ? docsObj as IEnumerable
-                    : null;
-                var docs = new List<PendingDocument>();
-                var rowCount = 0;
-                if (sourceDocs != null)
-                {
-                    foreach (var item in sourceDocs)
-                    {
-                        rowCount++;
-                        var parsed = ParsePendingDocument(item as Dictionary<string, object>);
-                        if (parsed != null) docs.Add(parsed);
-                    }
-                }
-
-                LogPollTelemetry("LIST_FALLBACK", docs.Count, rowCount);
-                return docs;
+                _log("FIRESTORE CONFIRM pending-query fail-closed stale_list_fallback=false type=" +
+                     ex.GetType().Name + " detail=" + AgentDiagnostics.Sanitize(ex.Message));
+                throw;
             }
         }
 
@@ -370,22 +391,40 @@ namespace SupraInventoryRelayAgent
                 : null;
             if (fields == null || string.IsNullOrWhiteSpace(jobId)) return null;
             if (FieldString(fields, "status") != "PENDING") return null;
-            if (FieldString(fields, "source") != "ANDROID_CONFIRM_V1") return null;
 
+            var source = FieldString(fields, "source");
             var requestId = FieldString(fields, "request_id");
+            var createdAtMs = FieldTimestampMs(fields, "created_at");
+            if (requestId != jobId || createdAtMs <= 0) return null;
+
+            if (string.Equals(source, "ANDROID_PRESENCE_V1", StringComparison.Ordinal))
+            {
+                if (!string.Equals(jobId, "picker_presence_current", StringComparison.Ordinal) ||
+                    FieldLong(fields, "schema_version") != 3)
+                    return null;
+                return new PendingDocument
+                {
+                    Name = name,
+                    UpdateTime = Get(doc, "updateTime"),
+                    Source = source,
+                    PresenceSnapshot = ParsePresenceSnapshot(fields),
+                    PresenceReason = FieldString(fields, "reason")
+                };
+            }
+
+            if (!string.Equals(source, "ANDROID_CONFIRM_V1", StringComparison.Ordinal)) return null;
             var suffix = FieldString(fields, "suffix");
             var pickerUid = FieldString(fields, "picker_uid");
             var pickerUserId = FieldString(fields, "picker_user_id");
-            var createdAtMs = FieldTimestampMs(fields, "created_at");
-            if (requestId != jobId || !ValidSuffix(suffix) ||
-                string.IsNullOrWhiteSpace(pickerUid) || string.IsNullOrWhiteSpace(pickerUserId) ||
-                createdAtMs <= 0)
+            if (!ValidSuffix(suffix) ||
+                string.IsNullOrWhiteSpace(pickerUid) || string.IsNullOrWhiteSpace(pickerUserId))
                 return null;
 
             return new PendingDocument
             {
                 Name = name,
                 UpdateTime = Get(doc, "updateTime"),
+                Source = source,
                 Work = new FirestoreConfirmationWorkItem
                 {
                     RequestId = jobId,
@@ -396,6 +435,56 @@ namespace SupraInventoryRelayAgent
                     CreatedAtMs = createdAtMs
                 }
             };
+        }
+
+        private static List<PickerPresenceView> ParsePresenceSnapshot(Dictionary<string, object> fields)
+        {
+            var result = new List<PickerPresenceView>();
+            var pickersField = FieldMap(fields, "pickers");
+            var array = pickersField == null ? null : MapValue(pickersField, "arrayValue");
+            object valuesObj;
+            var values = array != null && array.TryGetValue("values", out valuesObj)
+                ? valuesObj as IEnumerable
+                : null;
+            if (values == null) return result;
+
+            foreach (var raw in values)
+            {
+                var value = raw as Dictionary<string, object>;
+                var mapValue = value == null ? null : MapValue(value, "mapValue");
+                var item = mapValue == null ? null : MapValue(mapValue, "fields");
+                if (item == null) continue;
+                var userId = FieldString(item, "user_id");
+                if (string.IsNullOrWhiteSpace(userId)) continue;
+                result.Add(new PickerPresenceView
+                {
+                    UserId = userId,
+                    EmployeeCode = FieldString(item, "employee_code"),
+                    DisplayName = FieldString(item, "display_name"),
+                    DeviceId = FieldString(item, "device_id"),
+                    LoginAt = FieldString(item, "login_at"),
+                    DeviceSeenAt = FieldString(item, "device_seen_at"),
+                    Status = "PDA_READY"
+                });
+                if (result.Count >= 2000) break;
+            }
+            return result;
+        }
+
+        private static Dictionary<string, object> FieldMap(Dictionary<string, object> fields, string key)
+        {
+            object raw;
+            return fields != null && fields.TryGetValue(key, out raw)
+                ? raw as Dictionary<string, object>
+                : null;
+        }
+
+        private static Dictionary<string, object> MapValue(Dictionary<string, object> map, string key)
+        {
+            object raw;
+            return map != null && map.TryGetValue(key, out raw)
+                ? raw as Dictionary<string, object>
+                : null;
         }
 
         private void LogPollTelemetry(string mode, int pendingCount, int rowCount)

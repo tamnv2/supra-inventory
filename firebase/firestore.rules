@@ -71,6 +71,14 @@ service cloud.firestore {
 
       allow update: if isAgentOperator()
         && resource.data.status == 'PENDING'
+        && (
+          resource.data.source == 'ANDROID_CONFIRM_V1'
+          || (
+            jobId == 'picker_presence_current'
+            && resource.data.source == 'ANDROID_PRESENCE_V1'
+            && resource.data.schema_version == 3
+          )
+        )
         && request.resource.data.status == 'ACK'
         && request.resource.data.agent_admin_user_id == request.auth.token.app_user_id
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([

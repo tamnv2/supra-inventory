@@ -623,3 +623,25 @@ D126 supersedes the D125 workflow changes before D125 implementation.
 - Manual operator/Owner file import remains the only approved SKU-master update source.
 - Agent WMS/Tồn Bin SKU sync and the automatic daily SKU job are retired. Automatic SKU update is deferred.
 
+## D127 — Quota-safe Agent / Confirm PickList workflow
+
+### Picker presence
+- Picker enters the operational list from the authoritative Android session + realtime socket/device lifecycle, not a one-minute Agent poll.
+- Explicit logout/device removal/session replacement exits immediately. Unexpected socket loss receives a 180-second local grace; reconnect cancels it.
+- 14:00 is a shift checkpoint only. A valid user may continue across it without re-login. The operational display window is 05:00–23:00; outside it the list is closed unless the existing authoritative overtime window permits continued operation.
+- PRIMARY receives lifecycle changes through the bounded existing Firestore relay path; login/takeover/recovery may use one compact snapshot.
+
+### Supra table readiness and confirmation
+1. Verify the registered Confirm PickList page and semantic DOM.
+2. Verify **Số dòng mỗi trang = 100**. If not, select exact option 100 once and verify the table reload; ambiguity fails closed.
+3. Resolve submitted suffixes against visible full `PL+digits` rows.
+4. A unique row is ready only when its exact row checkbox exists uniquely and is enabled.
+5. If one or more requested suffixes are missing or uniquely present but their checkbox is not ready, the whole batch may click exact **Tìm kiếm** once, then re-resolve all terms.
+6. After that one refresh, a still-disabled/unselectable exact-row checkbox returns a Supra rejection without mutation.
+7. Immediately before mutation, re-resolve the exact row, checkbox and existing D126 confirmation/dialog guards. No stale row or page-global control is accepted.
+
+### Agent-owned browser
+- Preferred path is an Agent-owned WebView2 Fixed Runtime host with its own user-data/profile directory.
+- Owned runtime download/update is background and checksum-verified; browser startup never waits on a missing bundle.
+- If unavailable or unhealthy, fall back automatically to the existing dedicated-profile Edge/Chrome path.
+- Both paths expose only the approved DOM Runtime/Page control surface. Agent does not inspect Network, cookies, headers, tokens or passwords.

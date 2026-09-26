@@ -489,6 +489,7 @@ namespace SupraInventoryRelayAgent
         private SupraConfirmBrowser _supraBrowser;
         private volatile bool _supraBrowserReady;
         private volatile bool _supraBrowserHidden;
+        private volatile bool _relayPollHealthyObserved;
         private string _supraBrowserState = "NOT_OPEN";
         private readonly FirestorePickerRateLimiter _firestoreRateLimiter = new FirestorePickerRateLimiter();
         private readonly FirestoreConfirmationGuard _confirmationGuard = new FirestoreConfirmationGuard();
@@ -2128,6 +2129,7 @@ namespace SupraInventoryRelayAgent
                             ? "PRIMARY"
                             : (role == FirestoreAgentRole.STANDBY ? "STANDBY" : "FROZEN");
                         _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / " + roleText;
+                        if (role == FirestoreAgentRole.PRIMARY) RefreshD119OperationalViews(true);
                     });
                 });
             _leaderCoordinator.Start();
@@ -2270,6 +2272,7 @@ namespace SupraInventoryRelayAgent
             LogNetworkSnapshot("startup");
             if (TryAutoUpdate(true)) return;
             RestoreSession();
+            AgentBrowserBundle.EnsureBackground(Log);
         }
 
         private bool TryAutoUpdate(bool startup)
@@ -3186,6 +3189,20 @@ namespace SupraInventoryRelayAgent
                     continue;
                 }
 
+                if (search.UnselectableFragments.Exists(x => string.Equals(x, work.Suffix ?? "", StringComparison.Ordinal)))
+                {
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "CONFIRM_REJECTED",
+                        CacheMode = "BROWSER_DOM+SEARCH_REFRESH+CHECKBOX_NOT_READY",
+                        Route = "BROWSER_DOM",
+                        OperationMs = Math.Max(0L, search.ElapsedMs),
+                        Matches = 1,
+                        Rate = new PickerRateDecision()
+                    };
+                    continue;
+                }
+
                 _firestoreRateLimiter.ClearFound(appSession, work.PickerUid);
 
                 var ageNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -3431,17 +3448,24 @@ namespace SupraInventoryRelayAgent
                     },
                     state => Ui(() => _relay.Text = state),
                     ProcessFirestoreConfirmations,
+                    (items, reason) => Ui(() => ApplyEventDrivenPickerPresence(items, reason)),
                     _leaderCoordinator,
                     IsBusinessAllowed,
                     healthy =>
                     {
                         var coordinator = _leaderCoordinator;
                         if (coordinator != null) coordinator.ReportRelayPoll(healthy);
+                        var recovered = healthy && !_relayPollHealthyObserved;
+                        _relayPollHealthyObserved = healthy;
                         if (coordinator != null && coordinator.IsLeader)
                         {
-                            Ui(() => _identity.Text =
-                                "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() +
-                                (healthy ? " / ACTIVE" : " / ACTIVE · FIRESTORE OFFLINE"));
+                            Ui(() =>
+                            {
+                                _identity.Text =
+                                    "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() +
+                                    (healthy ? " / ACTIVE" : " / ACTIVE · FIRESTORE OFFLINE");
+                                if (recovered) RefreshD119OperationalViews(true);
+                            });
                         }
                     });
                 transport.Run(token);

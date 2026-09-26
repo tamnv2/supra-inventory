@@ -22,6 +22,13 @@ export type AgentAppRelease = {
   stable_download_path: string;
 };
 
+export type AgentBrowserBundleRelease = {
+  version: string;
+  asset_name: string;
+  size_bytes: number;
+  sha256: string;
+};
+
 type ChannelManifest = {
   tag?: string;
   name?: string;
@@ -43,10 +50,15 @@ const AGENT_MANIFEST_URL = `${CHANNEL_BASE}/agent-latest.json`;
 const AGENT_ASSET_NAME = "Agent.Auto.Confirm.Pick.Pack.exe";
 const AGENT_ASSET_URL = `${CHANNEL_BASE}/${AGENT_ASSET_NAME}`;
 const AGENT_CHECKSUM_URL = `${CHANNEL_BASE}/${AGENT_ASSET_NAME}.sha256`;
+const AGENT_BROWSER_MANIFEST_URL = `${CHANNEL_BASE}/agent-browser-latest.json`;
+const AGENT_BROWSER_ASSET_NAME = "Agent.WebView2.FixedRuntime.x64.zip";
+const AGENT_BROWSER_ASSET_URL = `${CHANNEL_BASE}/${AGENT_BROWSER_ASSET_NAME}`;
+const AGENT_BROWSER_CHECKSUM_URL = `${CHANNEL_BASE}/${AGENT_BROWSER_ASSET_NAME}.sha256`;
 const CACHE_MS = 5 * 60_000;
 
 let pdaCache: { expires_at: number; release: PdaAppRelease } | null = null;
 let agentCache: { expires_at: number; release: AgentAppRelease } | null = null;
+let agentBrowserCache: { expires_at: number; release: AgentBrowserBundleRelease } | null = null;
 
 function digestFromSha(value: unknown): string | null {
   const sha = String(value || "").trim().toLowerCase();
@@ -134,3 +146,29 @@ export function redirectLatestAgentExe(): Response {
 export function redirectLatestAgentChecksum(): Response {
   return stableRedirect(AGENT_CHECKSUM_URL);
 }
+
+export async function latestAgentBrowserBundle(): Promise<AgentBrowserBundleRelease> {
+  if (agentBrowserCache && agentBrowserCache.expires_at > Date.now()) return agentBrowserCache.release;
+  const manifest = await loadManifest(AGENT_BROWSER_MANIFEST_URL) as ChannelManifest & { version?: string };
+  const version = String(manifest.version || "");
+  const sha256 = String(manifest.sha256 || "").trim().toLowerCase();
+  if (!/^\d+(?:\.\d+){3}$/.test(version)) throw new Error("AGENT_BROWSER_CHANNEL_INVALID_VERSION");
+  if (!/^[0-9a-f]{64}$/.test(sha256)) throw new Error("AGENT_BROWSER_CHANNEL_INVALID_SHA256");
+  const release: AgentBrowserBundleRelease = {
+    version,
+    asset_name: AGENT_BROWSER_ASSET_NAME,
+    size_bytes: Math.max(0, Number(manifest.size_bytes || 0)),
+    sha256,
+  };
+  agentBrowserCache = { expires_at: Date.now() + CACHE_MS, release };
+  return release;
+}
+
+export function redirectLatestAgentBrowserBundle(): Response {
+  return stableRedirect(AGENT_BROWSER_ASSET_URL);
+}
+
+export function redirectLatestAgentBrowserChecksum(): Response {
+  return stableRedirect(AGENT_BROWSER_CHECKSUM_URL);
+}
+

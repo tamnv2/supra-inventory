@@ -27,12 +27,12 @@
     "user_management": "D120_SOURCE_CANDIDATE__ROOT_ONLY_MANAGED_ROLE_CHANGE__PICKER_HR_AUTHORITY_PRESERVED",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D112_OWNER_ACCEPTED_PASS__EXISTING_METRICS_OPERATIONAL_HIERARCHY__NONBLOCKING_SECONDARY_LOAD",
-    "quota_resilience": "D125_IMPLEMENTATION_PENDING__REUSE_FIREBASE_GCP_ONLY_FOR_INVENTORY_OFFICE_AND_BAO_HANG",
+    "quota_resilience": "D127_IMPLEMENTING__FRESH_PENDING_QUERY__EVENT_DRIVEN_PICKER_PRESENCE__SERVER_FILTERED_ALERTS",
     "ui_design_guard": "D125_TARGET__ANDROID_BAO_HANG_ONLY__OFFICE_CLIENT_WEB_ALIGNED__NO_SUPRA_PICKLIST_UI",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D118_OWNER_ACCEPTED_PASS__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SELECTED_RANGE_FILTER",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "RETIRED_D125__NO_RUNTIME_USE"
+    "picklist_confirmation_poc": "D127_BROWSER_UI_HARDENING__OWNED_WEBVIEW2_FIXED_PREFERRED__EDGE_CHROME_FALLBACK"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -189,7 +189,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D126 v50 technical/release PASS. Run OA051 real-Supra field re-test on relay-agent-v50, including mandatory dialog Xác nhận and trusted terminal result. Stable remains OWNER-GATED.",
+  "next_action": "Complete D127 v51 implementation, PR authority/continuity/build gates, merge and Beta release. Then run OA052 quota/browser field acceptance. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -822,7 +822,7 @@
     "D121 implementation PR #191 targets relay-agent-v42 from released v41 baseline; first Agent gate exposed AgentConfig.AgentBuild still at 41 and the same PR corrected it to 42 before build.",
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged."
   ],
-  "active_workstream": "D125_APPROVED_MODEL_REWRITE__IMPLEMENTATION_PENDING",
+  "active_workstream": "D127_QUOTA_BROWSER_HARDENING__IMPLEMENTATION_IN_PROGRESS",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -1257,5 +1257,24 @@
       "ui": 36237772206,
       "relay_agent": 36237772139
     }
+  },
+  "d127": {
+    "status": "IMPLEMENTATION_IN_PROGRESS__PR_PENDING",
+    "decision_date": "2026-09-26",
+    "branch": "d127-quota-browser-hardening",
+    "baseline_main": "a1ecf217dc1fb447a4ca445c59c01d1348cb80d2",
+    "baseline_release": "beta-vc76 / relay-agent-v50",
+    "target_agent_release": "relay-agent-v51",
+    "android": "KEEP_BETA_VC76_UNCHANGED",
+    "quota": "FIRESTORE_PENDING_CREATED_AT_SERVER_FILTER__NO_BROAD_LIST_FALLBACK__FLEET_METRICS_30M",
+    "picker_presence": "SCHEMA3_ACTIVE_ANDROID_EVENT_DRIVEN__SINGLE_SLOT_RELAY_EVENT__180S_TRANSIENT_GRACE__NO_PERIODIC_AGENT_PRESENCE_POLL",
+    "picker_window": "05_00_TO_23_00_DISPLAY__14_00_NO_FORCED_LOGOUT__23_00_HARD_CLOSE_WHEN_WINDOW_CLOSED",
+    "picker_alerts": "SERVER_QUERY_PENDING_SENT_ONLY",
+    "supra_page_size": "SEMANTIC_ROWS_PER_PAGE_100_VERIFY_OR_FAIL_CLOSED",
+    "checkbox": "UNIQUE_ROW_REQUIRES_ENABLED_CHECKBOX__ONE_BATCH_SEARCH_RETRY__STILL_DISABLED_EQUALS_CONFIRM_REJECTED",
+    "browser": "AGENT_OWNED_WEBVIEW2_FIXED_X64_DEDICATED_PROFILE_PREFERRED__CHECKSUM_BUNDLE__EDGE_THEN_CHROME_FALLBACK",
+    "browser_security": "RUNTIME_PAGE_DOM_ONLY__NO_NETWORK_COOKIE_TOKEN_PASSWORD_EXTRACTION__NO_DIRECT_WMS_API",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "next_action": "OPEN_PR_RUN_GATES_REPAIR_UNTIL_PASS_MERGE_RELEASE_V51_THEN_OA052"
   }
 }

@@ -500,3 +500,12 @@ D126 supersedes the D125 retirement of the Firestore PickList relay before that 
 - No browser cookie/token/header/signature/session material may enter Firestore, logs or ACK payloads.
 - `sku_sync_jobs` is retired from active use; existing Báo hàng FCM and Picker-contact notification paths remain unchanged.
 
+## D127 — Event-driven Picker presence projection
+
+- D127 supersedes D119/D120 only for Agent consumption cadence. Android continues using the accepted hibernatable realtime socket; no PDA heartbeat is added.
+- Socket connect, explicit logout/device/session lifecycle change and socket close/error rebuild the compact authoritative Picker projection. The service also emits a **single-slot** `ANDROID_PRESENCE_V1` control job using the existing Firestore relay collection. A new event overwrites the same control document instead of building an unbounded event queue.
+- Only the elected PRIMARY consumes near-realtime presence events. A fresh Agent login, PRIMARY takeover, relay recovery or entry into the 05:00 operating window may perform one direct compact-projection snapshot read.
+- Unexpected disconnect is presentation-graced for 180 seconds. Explicit logout/session/device removal is immediate. Reconnect within grace restores `PDA_READY` without row flicker.
+- 23:00 without an active extension closes the displayed Picker list; 05:00 opens a new display window. The 14:00 shift boundary does not force logout.
+- Periodic Agent UI timers make zero Picker-presence or Picker-alert provider reads. Fleet metrics retain the separate 30-minute hard throttle.
+- Open Picker contact commands are queried server-side for `PENDING/SENT` only; historical resolved commands are never scanned as part of presence refresh.
