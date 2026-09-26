@@ -1293,3 +1293,27 @@ D125 implementation cannot PASS until all applicable checks below pass:
 8. Office bridge traffic through Firebase/Google is bounded and contains no WMS/Supra secrets. Authoritative business transitions remain enforced by InventoryCore/Worker.
 9. Legacy PickList relay/WMS resources are disabled from runtime use or removed according to the implementation migration plan without deleting unrelated Báo hàng data.
 10. Stable remains untouched unless separately Owner-authorized.
+
+## D126 — Browser-UI PickList acceptance
+
+D126 supersedes the D125 operating-model acceptance before D125 implementation.
+
+D126 cannot PASS until all applicable checks below pass:
+
+1. Current Android/PDA `Xác nhận đơn` remains available and its existing Firestore request/result/ACK behavior regresses cleanly.
+2. Source/runtime audit finds no active programmatic capture, storage, decryption, refresh, replay or API attachment of Supra/WMS cookies, headers, tokens, signatures or browser-profile authentication material.
+3. Direct WMS PickList lookup and `confirmSkipItem` API mutation paths are removed/disabled from runtime.
+4. **Truy cập Confirm PickList** opens the registered page in the managed browser; user can log in normally; Agent becomes **Web Confirm sẵn sàng** only on the expected page with a uniquely recognized DOM.
+5. Browser can be hidden from desktop/taskbar and restored while remaining usable for DOM automation.
+6. Resolver accepts only visible full codes matching `^PL[0-9]+$` and exact submitted numeric suffix. Zero and multiple matches never become a unique result.
+7. An initial zero-match may trigger exactly one semantic **Tìm kiếm** click and one re-resolution. A second miss returns not found without mutation.
+8. Manual Agent flow displays the unique full code and waits for the Agent operator confirmation action. Immediately before mutation it re-resolves the exact row.
+9. PDA flow skips that extra human Agent confirmation only after the same unique DOM resolution and existing HA/guard/rate-limit checks.
+10. Mutation selects only the checkbox contained in the re-resolved full-code row, verifies checked state, then clicks exactly one enabled button whose normalized visible text is **Xác nhận lấy lại hàng**.
+11. Any missing/multiple/changed row, checkbox or confirmation button aborts. Tests prove Agent never chooses **Xác nhận hoàn thành lấy hàng**, **Xuất File** or another neighboring control.
+12. No coordinate-only mouse automation is used for the confirmation mutation.
+13. Uncertain post-click state is not reported as success and is not blindly retried.
+14. D117/D118 HA/generation/freshness semantics, D120 Picker presence, D123 UI-thread safety, D124 Agent counters/no-overlay behavior and Báo hàng remain functional except where explicitly superseded by D126.
+15. WMS/Tồn Bin SKU catalog sync, automatic daily SKU sync and Agent WMS SKU update are inactive. Existing Web manual SKU file import still passes canonical validation/dedupe/additive/conflict rules.
+16. Stable remains untouched unless separately authorized.
+
