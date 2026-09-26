@@ -479,3 +479,12 @@ D115 supersedes only the PRIMARY polling cadence of the earlier D097/D104/D114 c
 - Result FCM payload contains bounded business display data (`sku`, `product_name`, `resolution`) plus the existing result-event correlation. Secrets/tokens are forbidden.
 - While a cross-app result overlay owns an unacknowledged result event, the Picker controller must not open the same in-app result dialog. If overlay permission is unavailable, existing notification → in-app result fallback remains.
 - Pressing **XÁC NHẬN ĐÃ NHẬN** acknowledges the existing result event only. A network/session failure leaves a durable local ACK retry marker; authenticated App resume retries it. This transport recovery must never recreate the shortage resolution or replay any WMS mutation.
+
+## D125 — Office Firebase bridge after PickList retirement
+
+- The Firestore PickList request/ACK/confirmation path is retired from the target product model.
+- Firestore may be reused for Office-reachable Inventory projections, commands, presence and notification support where the Office network can reach Google/Firebase.
+- InventoryCore/Worker remains authoritative for Báo hàng business state; Firestore must not become a parallel transaction authority.
+- Office bridge messages must be bounded, role-scoped, idempotent where necessary and must not contain Supra/WMS session material.
+- Existing FCM delivery for Báo hàng and approved Picker-contact commands remains available where still required.
+- Legacy PickList relay/HA/guard collections may remain until implementation cleanup, but no new WMS work may be initiated through them under D125.
