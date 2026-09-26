@@ -83,8 +83,22 @@ namespace SupraInventoryRelayAgent
                 _wmsLogout.SetBounds(204, 72, 138, 32);
                 _wmsTest.SetBounds(350, 72, 108, 32);
                 _wmsStatus.SetBounds(16, 42, 260, 22);
-                _supraInfo.SetBounds(286, 42, Math.Max(220, _supraCard.ClientSize.Width - 302), 22);
+                _supraInfo.SetBounds(286, 42, Math.Max(180, _supraCard.ClientSize.Width - 302), 22);
                 _supraInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+                _browserBundleDownload.SetBounds(16, 110, 174, 30);
+                _browserBundleProgress.SetBounds(
+                    198,
+                    116,
+                    Math.Max(100, _supraCard.ClientSize.Width - 214),
+                    18);
+                _browserBundleProgress.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+                _browserBundleStatus.SetBounds(
+                    16,
+                    144,
+                    Math.Max(220, _supraCard.ClientSize.Width - 32),
+                    24);
+                _browserBundleStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             }
 
             var pickerCard = NewCard(0, 0, 1040, 170);
