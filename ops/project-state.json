@@ -1135,7 +1135,7 @@
     "inventory_channel_agent_exe_asset_id": 589796789
   },
   "d125": {
-    "status": "OWNER_APPROVED__AUTHORITY_RECORDED__IMPLEMENTATION_PENDING",
+    "status": "SUPERSEDED_BY_D126_BEFORE_IMPLEMENTATION",
     "decision_date": "2026-09-26",
     "trigger_phrase": "tiến hành sửa đổi mô hình",
     "baseline_main": "d50fd68246aa085f96feb6c18fd939df7ed3aae8",
@@ -1152,5 +1152,22 @@
     "legacy_runtime_warning": "relay-agent-v45 and D124 WMS/SKU paths may still exist in released artifacts until D125 implementation; they are historical/forbidden for field use under the new Owner/IT boundary.",
     "supersedes_field_gate": "OA050",
     "stable": "OWNER_GATED_UNTOUCHED"
+  },
+  "d126": {
+    "status": "OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS",
+    "decision_date": "2026-09-26",
+    "branch": "feat/d126-browser-ui-picklist",
+    "baseline_main": "b9341f65de1c4b1fee20a7bf10e14380739618c6",
+    "baseline_release": "beta-vc76 / relay-agent-v45",
+    "target_agent_release": "relay-agent-v46",
+    "android": "KEEP_CURRENT_PUBLISHED_PICKLIST_AND_BAO_HANG_MODEL__NO_ANDROID_CHANGE_REQUIRED_UNLESS_REGRESSION_FIX",
+    "picklist_transport": "KEEP_FIRESTORE_REQUEST_ACK_HA_GUARDS",
+    "supra_browser": "USER_LOGIN_IN_MANAGED_BROWSER__DOM_ONLY_AUTOMATION__NO_SESSION_EXTRACTION",
+    "lookup": "VISIBLE_DOM_PL_DIGITS_EXACT_SUFFIX__ONE_SEARCH_BUTTON_RETRY__FAIL_CLOSED",
+    "confirmation": "MANUAL_AGENT_REQUIRES_OPERATOR_CLICK__PDA_AUTO_AFTER_UNIQUE_MATCH__ROW_CHECKBOX_PLUS_EXACT_XAC_NHAN_LAY_LAI_HANG_BUTTON",
+    "forbidden": "NO_DIRECT_WMS_PICKLIST_API__NO_COOKIE_TOKEN_HEADER_SIGNATURE_CAPTURE_REPLAY__NO_COORDINATE_ONLY_MUTATION",
+    "sku_master": "MANUAL_FILE_IMPORT_ONLY__REMOVE_AGENT_WMS_SKU_SYNC__AUTOMATIC_DEFERRED",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "next_action": "IMPLEMENT_AGENT_BROWSER_UI_ADAPTER__RETIRE_WMS_SESSION_API_AND_SKU_SYNC__RUN_PR_GATES"
   }
 }
