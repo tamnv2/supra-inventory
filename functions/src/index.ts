@@ -233,6 +233,12 @@ export const skuSyncCreated = onDocumentCreated("sku_sync_jobs/{jobId}", async (
     return;
   }
 
+  await snapshot.ref.set({
+    status: "RUNNING",
+    service_started_at: FieldValue.serverTimestamp(),
+    result_code: "SERVICE_ACCEPTED",
+  }, { merge: true });
+
   try {
     const auth = new GoogleAuth();
     const client = await auth.getIdTokenClient(WORKER_ORIGIN);
