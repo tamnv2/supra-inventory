@@ -281,7 +281,7 @@ namespace SupraInventoryWebView2Host
               if (candidates.length !== 1)
                 return 'NO_CLICK:' + candidates.length + ':ARROWS=' + buttons.length;
               candidates[0].click();
-              return 'CLICKED';
+              return 'CLICKED:WAREHOUSE_ICON_PLUS_ARROW_SVG';
             })()";
         }
 
