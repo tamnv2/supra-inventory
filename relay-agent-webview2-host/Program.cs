@@ -70,6 +70,12 @@ namespace SupraInventoryWebView2Host
     {
         private readonly HostOptions _options;
         private readonly WebView2 _web = new WebView2 { Dock = DockStyle.Fill };
+        private readonly Timer _dashboardProbeTimer = new Timer { Interval = 700 };
+        private bool _dashboardProbeRunning;
+        private bool _warehouseEntryClickIssued;
+        private string _warehouseEntrySource = "";
+        private DateTime _warehouseEntryClickUtc = DateTime.MinValue;
+        private bool _pendingConfirmAfterWarehouseEntry;
 
         internal BrowserForm(HostOptions options)
         {
@@ -80,6 +86,10 @@ namespace SupraInventoryWebView2Host
             StartPosition = FormStartPosition.CenterScreen;
             Controls.Add(_web);
             Shown += async (_, __) => await InitializeSafeAsync();
+            FormClosed += (_, __) =>
+            {
+                try { _dashboardProbeTimer.Stop(); } catch { }
+            };
         }
 
         private async Task InitializeSafeAsync()
@@ -124,6 +134,9 @@ namespace SupraInventoryWebView2Host
             _web.CoreWebView2.Settings.IsPasswordAutosaveEnabled = true;
             _web.CoreWebView2.Settings.IsGeneralAutofillEnabled = true;
             _web.CoreWebView2.NewWindowRequested += HandleNewWindowRequested;
+            _web.CoreWebView2.NavigationCompleted += HandleNavigationCompleted;
+            _dashboardProbeTimer.Tick += async (_, __) => await ProbeDashboardAccessAsync();
+            _dashboardProbeTimer.Start();
             _web.Source = new Uri(_options.Url);
         }
 
@@ -136,9 +149,8 @@ namespace SupraInventoryWebView2Host
                 if (!string.Equals(target.Scheme, "https", StringComparison.OrdinalIgnoreCase)) return;
                 if (!string.Equals(target.Host, "wms-supra.winmart.vn", StringComparison.OrdinalIgnoreCase)) return;
 
-                // D127 v55: Supra dashboard opens SFT3 access in a new tab/window.
-                // Keep the owned Agent browser on one DevTools target by navigating the
-                // current WebView2 instance instead of creating another tab.
+                // D127 v60: keep the Supra quick-access flow on the visible Agent tab.
+                _pendingConfirmAfterWarehouseEntry = true;
                 e.Handled = true;
                 _web.CoreWebView2.Navigate(target.AbsoluteUri);
             }
@@ -146,6 +158,142 @@ namespace SupraInventoryWebView2Host
             {
                 // Fail closed: if the target cannot be validated, keep default WebView2 behavior.
             }
+        }
+
+        private async void HandleNavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
+        {
+            try
+            {
+                if (!e.IsSuccess || _web.CoreWebView2 == null) return;
+                var current = _web.CoreWebView2.Source ?? "";
+                Uri uri;
+                if (!Uri.TryCreate(current, UriKind.Absolute, out uri)) return;
+                if (!string.Equals(uri.Host, "wms-supra.winmart.vn", StringComparison.OrdinalIgnoreCase)) return;
+
+                if (_pendingConfirmAfterWarehouseEntry &&
+                    uri.AbsolutePath.IndexOf("/sft3/app/saleorder/auto-pickpack-confirm", StringComparison.OrdinalIgnoreCase) < 0)
+                {
+                    _pendingConfirmAfterWarehouseEntry = false;
+                    await Task.Delay(500);
+                    _web.CoreWebView2.Navigate(_options.Url);
+                    return;
+                }
+
+                if (_warehouseEntryClickIssued &&
+                    !string.Equals(current, _warehouseEntrySource, StringComparison.OrdinalIgnoreCase) &&
+                    uri.AbsolutePath.IndexOf("/sft3/app/saleorder/auto-pickpack-confirm", StringComparison.OrdinalIgnoreCase) < 0)
+                {
+                    _warehouseEntryClickIssued = false;
+                    _warehouseEntrySource = "";
+                    await Task.Delay(500);
+                    _web.CoreWebView2.Navigate(_options.Url);
+                }
+            }
+            catch
+            {
+                // Agent controller remains the secondary readiness guard.
+            }
+        }
+
+        private async Task ProbeDashboardAccessAsync()
+        {
+            if (_dashboardProbeRunning || _web.CoreWebView2 == null) return;
+            _dashboardProbeRunning = true;
+            try
+            {
+                var current = _web.CoreWebView2.Source ?? "";
+                Uri uri;
+                if (!Uri.TryCreate(current, UriKind.Absolute, out uri)) return;
+                if (!string.Equals(uri.Scheme, "https", StringComparison.OrdinalIgnoreCase) ||
+                    !string.Equals(uri.Host, "wms-supra.winmart.vn", StringComparison.OrdinalIgnoreCase))
+                    return;
+                if (uri.AbsolutePath.IndexOf("/sft3/app/saleorder/auto-pickpack-confirm", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    _warehouseEntryClickIssued = false;
+                    _warehouseEntrySource = "";
+                    return;
+                }
+
+                if (_warehouseEntryClickIssued)
+                {
+                    if (!string.Equals(current, _warehouseEntrySource, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _warehouseEntryClickIssued = false;
+                        _warehouseEntrySource = "";
+                        _web.CoreWebView2.Navigate(_options.Url);
+                        return;
+                    }
+
+                    if (DateTime.UtcNow - _warehouseEntryClickUtc < TimeSpan.FromSeconds(12))
+                        return;
+
+                    _warehouseEntryClickIssued = false;
+                    _warehouseEntrySource = "";
+                }
+
+                var result = await _web.CoreWebView2.ExecuteScriptAsync(BuildDashboardAccessScript());
+                if (string.IsNullOrWhiteSpace(result) ||
+                    result.IndexOf("CLICKED", StringComparison.OrdinalIgnoreCase) < 0)
+                    return;
+
+                _warehouseEntryClickIssued = true;
+                _warehouseEntrySource = current;
+                _warehouseEntryClickUtc = DateTime.UtcNow;
+            }
+            catch (Exception ex)
+            {
+                AppendHostLog("DASHBOARD_PROBE_FAIL " + ex.GetType().Name + " " + ex.Message);
+            }
+            finally
+            {
+                _dashboardProbeRunning = false;
+            }
+        }
+
+        private static string BuildDashboardAccessScript()
+        {
+            return @"(() => {
+              const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
+              const normPath = v => String(v || '').toLowerCase().replace(/[\s,]+/g,'');
+              const arrow = normPath('m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z');
+              const warehousePaths = [
+                normPath('M12 29.5 36 15l24 14.5'),
+                normPath('M17 31v25h38V31'),
+                normPath('M25 56V40h22v16')
+              ];
+              const hasWarehouseIcon = root => [...root.querySelectorAll('svg[viewBox]')].some(svg => {
+                if (String(svg.getAttribute('viewBox') || '').trim() !== '0 0 72 72') return false;
+                const paths = [...svg.querySelectorAll('path')].map(p => normPath(p.getAttribute('d')));
+                return warehousePaths.filter(p => paths.includes(p)).length >= 2;
+              });
+              const buttons = [...document.querySelectorAll('button,[role=button]')].filter(button => {
+                if (!visible(button) || button.disabled || button.getAttribute('aria-disabled') === 'true') return false;
+                return [...button.querySelectorAll('svg path')].some(path =>
+                  normPath(path.getAttribute('d')) === arrow);
+              });
+              const candidates = buttons.filter(button => {
+                let node = button.parentElement;
+                for (let depth = 0; node && depth < 6; depth++, node = node.parentElement) {
+                  if (hasWarehouseIcon(node)) return true;
+                }
+                return false;
+              });
+              if (candidates.length !== 1)
+                return 'NO_CLICK:' + candidates.length + ':ARROWS=' + buttons.length;
+              candidates[0].click();
+              return 'CLICKED';
+            })()";
+        }
+
+        private static void AppendHostLog(string message)
+        {
+            try
+            {
+                File.AppendAllText(
+                    Path.Combine(Path.GetTempPath(), "supra-webview2-host.log"),
+                    DateTime.UtcNow.ToString("o") + " " + message + Environment.NewLine);
+            }
+            catch { }
         }
 
         private static void GrantAppContainerReadBestEffort(string path)
