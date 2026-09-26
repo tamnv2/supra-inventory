@@ -90,6 +90,7 @@ checks = {
     "authority_d122_agent_stability_ops_ux": "D122" in DECISIONS and "D122 — Agent stability, operational UX and session recovery" in DESIGN_SPEC,
     "authority_d123_agent_ui_thread_affinity": "D123" in DECISIONS and "D123 — Agent UI-thread affinity and startup hang repair" in DESIGN_SPEC,
     "authority_d124_agent_operational_cleanup": "D124" in DECISIONS and "D124 — Agent summary density and Overlay removal" in DESIGN_SPEC,
+    "authority_d126_browser_ui_picklist": "D126" in DECISIONS and "D126 — Managed-browser Supra presentation" in DESIGN_SPEC,
     "agent_d122_weighted_left_regions": all(token in RELAY_PROGRAM for token in [
         "SizeType.Percent, 50F",
         "SizeType.Percent, 25F",
@@ -120,11 +121,12 @@ checks = {
         "Interlocked.CompareExchange(ref _watchdogRefreshRunning",
         "_agentFleetRenderSignature",
     ]) and '_networkUiTimer.Tick += (s, e) =>\n            {\n                if (Visible) _network.Text = "Wi-Fi: " + GetSsid();' not in RELAY_PROGRAM,
-    "agent_d122_session_recovery": all(token in RELAY_PROGRAM for token in [
+    "agent_d126_browser_readiness_recovery": all(token in RELAY_PROGRAM for token in [
         "ExpireAgentSession",
         "IsDefinitiveAgentAuthFailure",
-        "_wmsCapture.Visible = true",
-        "Supra WMS: phiên hết hạn · cần đăng nhập lại",
+        "RefreshSupraBrowserStatus",
+        "Truy cập Confirm PickList",
+        "Web Confirm: chờ đăng nhập Agent",
     ]),
     "agent_d122_column_preferences": all(token in RELAY_D119_FEATURES for token in [
         "Tự căn cột theo nội dung",
@@ -139,11 +141,12 @@ checks = {
         and not (ROOT / "relay-agent/StatusOverlay.cs").is_file()
         and not (ROOT / "relay-agent/OverlaySettingsForm.cs").is_file()
     ),
-    "agent_d122_sku_manual_feedback": all(token in RELAY_D119_FEATURES for token in [
-        "NotifySkuSyncResult",
-        "Cập nhật SKU thành công",
-        "Giữ nguyên:",
-    ]),
+    "agent_d126_sku_manual_file_only": all(token not in RELAY_D119_FEATURES for token in [
+        "RunSkuSync",
+        "FirestoreSkuSyncClient",
+        "WmsSkuCatalogClient",
+        "NextSkuSyncDayUtc",
+    ]) and "Cập nhật SKU" not in RELAY_D119_FEATURES,
     "agent_d123_ui_thread_affinity": all(token in RELAY_PROGRAM for token in [
         "D123: SetAgentAuthUi is called from startup/login/session-recovery worker tasks.",
         "ApplyD119AuthenticatedLayout(authenticated);",
