@@ -73,9 +73,9 @@ jobs:
           $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
           $projection = Get-Content service/src/firestore-projection.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*56\s*;') { throw "D127 hotfix requires Agent v56." }
-          if ($project -notmatch '<AssemblyVersion>0\.56\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.56\.0\.0</FileVersion>') {
-            throw "D127 hotfix assembly/file version must be 0.56."
+          if ($config -notmatch 'AgentBuild\s*=\s*57\s*;') { throw "D127 hotfix requires Agent v57." }
+          if ($project -notmatch '<AssemblyVersion>0\.57\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.57\.0\.0</FileVersion>') {
+            throw "D127 hotfix assembly/file version must be 0.57."
           }
 
           foreach ($marker in @(
@@ -133,10 +133,14 @@ jobs:
             'HY1_SFT3_CLICKED',
             'CONFIRM_NAVIGATE_SAME_TAB',
             'AUTO_RECOVERING_CONFIRM',
-            "leafMatches('kho hưng yên 1')",
-            "leafMatches('sft3')",
-            'inside(center(ar), rect, 18)',
-            'right-most action in this card wins naturally'
+            "exactText(e, 'Kho Hưng Yên 1')",
+            "exactText(e, 'SFT3')",
+            "button.MuiIconButton-root",
+            "MuiPaper-root",
+            "m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z",
+            'CARD_NOT_UNIQUE',
+            'ARROW_NOT_UNIQUE',
+            'ARROW_NOT_FOUND'
           )) {
             if (-not $browser.Contains($marker)) { throw "D126 browser semantic guard missing: $marker" }
           }
@@ -146,9 +150,13 @@ jobs:
             'RequiredHostArch = "x64"',
             'host-build.txt',
             'host-arch.txt',
-            'WebView2Loader.dll'
+            'WebView2Loader.dll',
+            'CleanupObsoleteBackground',
+            'CleanupInactiveBundles',
+            'reclaimed_bytes',
+            'BrowserDataRoot'
           )) {
-            if (-not $browserBundle.Contains($marker)) { throw "D127 v54 browser bundle freshness guard missing: $marker" }
+            if (-not $browserBundle.Contains($marker)) { throw "D127 v57 browser bundle/storage guard missing: $marker" }
           }
           foreach ($marker in @(
             'Environment.Is64BitProcess',
@@ -182,8 +190,13 @@ jobs:
           }
 
           foreach ($marker in @(
+            'Đăng nhập Supra',
             'Mở trình duyệt Agent',
             'Mở trình duyệt Desktop',
+            'Mở thư mục dữ liệu',
+            'Dữ liệu Agent:',
+            'QueueAgentDataStorageRefresh',
+            'OpenAgentDataFolder',
             'Web Confirm sẵn sàng',
             'OpenSupraConfirmBrowser',
             'ToggleSupraBrowserVisibility',
@@ -291,7 +304,7 @@ jobs:
             throw "D127 v53 must not auto-fallback from Agent browser to Desktop browser."
           }
 
-          Write-Host "D127 v56 geometric HY1/SFT3 arrow selector + same-tab recovery + page-size guards PASS"
+          Write-Host "D127 v57 exact HY1/SFT3 MUI arrow selector + storage cleanup/UI + same-tab recovery PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh
