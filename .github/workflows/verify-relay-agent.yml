@@ -72,7 +72,237 @@ jobs:
 
           foreach ($marker in @(
             'Runtime.enable','Page.enable','SearchText = "Tìm kiếm"','ConfirmText = "Xác nhận lấy lại hàng"',
-            '\^PL\[0-9\]\+\$',"querySelectorAll('tr')","input\[type=checkbox\]",
+            '\^PL\[0-9\]\+\
+            'CHECKBOX_VERIFY_FAILED','CONFIRM_BUTTON_NOT_UNIQUE','ROW_AMBIGUOUS',
+            'ClickExactButtonNoLock\(SearchText\)','SW_HIDE','SW_RESTORE','SetBrowserWindowsVisibleNoLock'
+          )) {
+            if ($browser -notmatch $marker) { throw "D126 browser semantic guard missing: $marker" }
+          }
+          foreach ($forbidden in @(
+            'Network\.enable','Network\.getCookies','Storage\.getCookies','Network\.requestWillBeSent',
+            'api-supra\.winmart\.vn','confirmSkipItem','APISID','X-Signature',
+            'HttpRequestHeader\.Authorization','document\.cookie','Cursor\.Position','SetCursorPos','SendKeys\.Send'
+          )) {
+            if ($browser -match $forbidden) { throw "D126 browser forbidden path present: $forbidden" }
+          }
+
+          foreach ($marker in @(
+            'Truy cập Confirm PickList','Web Confirm sẵn sàng','OpenSupraConfirmBrowser',
+            'ToggleSupraBrowserVisibility','HasReadyConfirmBrowser','ProcessFirestoreConfirmations',
+            'adapter=BROWSER_DOM','VerifyPrimaryBeforeMutation\(appSession\)',
+            'CONFIRM_IN_PROGRESS_OR_UNCERTAIN','MarkLocalConfirmed','ProbeSupraBrowserForTakeover'
+          )) {
+            if ($program -notmatch $marker) { throw "D126 Agent wiring marker missing: $marker" }
+          }
+          foreach ($forbidden in @(
+            'CaptureWmsSession','TryRestoreWmsSessionFileFirst','WmsSessionStore','WmsSessionSnapshot',
+            'WmsPicklistConfirmClient','WmsPicklistLookupClient','WmsExactPicklistResolver',
+            'WmsSkuCatalogClient','FirestoreSkuSyncClient','RunSkuSync\(','api-supra\.winmart\.vn','--d096-self-test'
+          )) {
+            if ($program -match $forbidden) { throw "D126 Program retains retired WMS path: $forbidden" }
+          }
+
+          foreach ($retiredFile in @(
+            'relay-agent/WmsIntegration.cs','relay-agent/WmsSessionStore.cs','relay-agent/WmsPicklistLookup.cs',
+            'relay-agent/WmsPicklistExactResolver.cs','relay-agent/WmsPicklistConfirm.cs','relay-agent/WmsSkuCatalog.cs',
+            'relay-agent/PicklistCacheCoordinator.cs','relay-agent/FirestoreSkuSync.cs'
+          )) {
+            if (Test-Path $retiredFile) { throw "D126 retired source still packaged: $retiredFile" }
+          }
+          if ($config -match 'api-supra\.winmart\.vn|confirmSkipItem|binStocks|sku_sync_jobs') { throw "D126 direct WMS/SKU config remains." }
+          foreach ($forbidden in @('Cập nhật SKU','RunSkuSync','FirestoreSkuSyncClient','WmsSkuCatalogClient','NextSkuSyncDayUtc')) {
+            if ($ops -match [regex]::Escape($forbidden)) { throw "D126 Agent SKU sync remains: $forbidden" }
+          }
+          if ($rules -notmatch 'match /sku_sync_jobs/\{jobId\}' -or $rules -notmatch 'allow read, write: if false;' -or $rules -match 'AGENT_WMS_BINSTOCK_V1') { throw "D126 retired SKU staging guard failed." }
+
+          if ($leader -notmatch 'FailoverAfterMs\s*=\s*10000' -or $leader -notmatch 'PrimaryLeaseHeartbeatMs\s*=\s*7000') { throw "HA cadence regression." }
+          foreach ($marker in @('PRIMARY','STANDBY','FROZEN','PromoteStandbyForTakeover','VerifyPrimaryBeforeMutation','PublishScheduleDecision','PublishEarlyStartAndClaimPrimary','ANY_AUTHENTICATED_AGENT')) {
+            if ($leader -notmatch [regex]::Escape($marker)) { throw "Protected HA marker missing: $marker" }
+          }
+          if ($transport -notmatch 'PrimaryIdlePollIntervalMs\s*=\s*4000' -or $transport -notmatch 'PrimaryHotPollIntervalMs\s*=\s*2000' -or $transport -notmatch 'StandbyPollIntervalMs\s*=\s*0' -or $transport -notmatch 'MaxConcurrentJobs\s*=\s*12') { throw "Firestore confirmation cadence regression." }
+          if ($transport -match 'PROCESSING|TryClaim' -or $transport -notmatch 'CONFIRM_ACK_VERIFY') { throw "Firestore direct-ACK guard regression." }
+          if ($guard -notmatch 'relay_poc_confirm_guards' -or $guard -notmatch 'OriginalJobProvesConfirmed' -or $guard -notmatch 'MarkLocalConfirmed') { throw "Confirmation idempotency guard regression." }
+          if ($rate -notmatch 'StrikeWindowMs\s*=\s*60L\s*\*\s*1000L' -or $rate -notmatch 'return 5;' -or $rate -notmatch 'return 30;' -or $rate -notmatch 'return 60;') { throw "PDA anti-spam regression." }
+          if ($http -notmatch 'WebRequest\.DefaultWebProxy' -or $http -notmatch 'WebRequest\.GetSystemWebProxy' -or $http -match 'CorporateProxyFallback') { throw "Firestore proxy regression." }
+          foreach ($marker in @('relay_poc_jobs','ANDROID_CONFIRM_V1','relay_poc_rate_limits','relay_poc_coordination','relay_poc_agents','relay_poc_confirm_guards','relay_agent_log_uploads','picker_alerts')) {
+            if ($rules -notmatch [regex]::Escape($marker)) { throw "Firestore protected marker missing: $marker" }
+          }
+          if ($indexes -notmatch 'relay_poc_jobs' -or $indexes -notmatch 'created_at' -or $indexes -notmatch 'ASCENDING') { throw "Pending queue index regression." }
+
+          if ($startup -notmatch 'Registry\.CurrentUser' -or $exitAuth -notmatch 'ProtectedData\.Protect' -or $runtimeGuard -notmatch '--watchdog') { throw "Agent lifecycle protection regression." }
+          if ($program -notmatch 'identitytoolkit\.googleapis\.com/v1/accounts:signInWithPassword' -or $program -notmatch 'PICKPACK_ADMIN' -or $program -notmatch 'FirestoreAgentSessionGate') { throw "Agent Firebase RBAC regression." }
+          if ($program -notmatch 'DataGridViewButtonColumn' -or $program -notmatch 'ConfirmManualPicklist\(code\)') { throw "Manual PickList UI regression." }
+          if ($program -notmatch '30 \* 60 \* 1000' -or $updater -notmatch 'AgentUpdateManifestUrl') { throw "Agent updater regression." }
+          if ($program -match 'Bảng nổi|StatusOverlay|OverlaySettings') { throw "D124 Overlay must remain removed." }
+          if ($ops -notmatch '_agentRequestMetrics' -or $ops -notmatch 'Picker đang hoạt động trên PDA') { throw "Operational UI regression." }
+          if ($ops -notmatch 'LoadOpen' -or $contact -notmatch 'CALL_SPECIALIST' -or $contact -notmatch 'BRING_TO_PACK') { throw "Picker contact regression." }
+          if ($presence -notmatch 'schemaVersion != 2' -or $presence -notmatch 'ACTIVE_ANDROID_REALTIME') { throw "Picker presence regression." }
+          if ($ops -notmatch 'TimeSpan.FromMinutes\(30\)' -or $fleet -notmatch 'relay_poc_jobs') { throw "Fleet metric quota regression." }
+
+          Write-Host "D126 browser UI confirmation + protected regression guards PASS"
+
+      - name: Prepare Beta Agent config
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace("${env:FIREBASE_API_KEY_BETA}")) { throw "FIREBASE_WEB_API_KEY_BETA is required." }
+          $path = "relay-agent/AgentConfig.cs"
+          $content = Get-Content $path -Raw
+          $content = $content.Replace("__FIREBASE_API_KEY_BETA__", "${env:FIREBASE_API_KEY_BETA}")
+          Set-Content -Path $path -Value $content -Encoding UTF8
+
+      - name: Build lightweight Windows Agent
+        shell: pwsh
+        run: |
+          dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release
+          $exe = (Resolve-Path "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe").Path
+          $smoke = Start-Process -FilePath $exe -ArgumentList "--startup-smoke" -PassThru
+          if (-not $smoke.WaitForExit(15000)) {
+            try { $smoke.Kill() } catch {}
+            throw "Agent startup smoke timed out."
+          }
+          if ($smoke.ExitCode -ne 0) {
+            throw "Agent startup smoke failed with exit code $($smoke.ExitCode)."
+          }
+          Write-Host "Agent startup smoke PASS"
+          New-Item -ItemType Directory -Force -Path relay-agent/dist | Out-Null
+          $primary = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe"
+          $legacy = "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe"
+          Copy-Item $exe $primary
+          # Compatibility alias lets v12 update directly while v14 updater uses GitHub-normalized dotted asset names.
+          Copy-Item $exe $legacy
+          Copy-Item relay-agent/README.md relay-agent/dist/
+          Copy-Item firebase/database.rules.json relay-agent/dist/
+          (Get-FileHash $primary -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256"
+          (Get-FileHash $legacy -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256"
+
+      - name: D102 night schedule regression
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $exe = (Resolve-Path "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe").Path
+          $selfTest = Start-Process -FilePath $exe -ArgumentList "--d102-self-test" -PassThru -Wait
+          if ($selfTest.ExitCode -ne 0) {
+            throw "D102 in-process night schedule regression failed with exit code $($selfTest.ExitCode)."
+          }
+          Write-Host "D102 night schedule regression PASS"
+
+      - name: Upload Agent artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supra-inventory-relay-poc-agent
+          path: relay-agent/dist/*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish dedicated Agent prerelease
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = (Get-Content relay-agent/VERSION -Raw).Trim()
+          $tag = "relay-agent-v$version"
+          $primary = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe"
+          $primarySha = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256"
+          $releaseSource = $env:GITHUB_SHA
+          $channelSourceExe = $primary
+          $channelSourceSha = $primarySha
+
+          gh release view $tag --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -eq 0) {
+            $releaseSource = (gh api "repos/${{ github.repository }}/git/ref/tags/$tag" --jq '.object.sha').Trim()
+            if ([string]::IsNullOrWhiteSpace($releaseSource)) {
+              throw "Agent release $tag exists but its tag source cannot be resolved."
+            }
+
+            $releaseCommitTree = (gh api "repos/${{ github.repository }}/git/commits/$releaseSource" --jq '.tree.sha').Trim()
+            $currentCommitTree = (gh api "repos/${{ github.repository }}/git/commits/$env:GITHUB_SHA" --jq '.tree.sha').Trim()
+            $releaseAgentTree = (gh api "repos/${{ github.repository }}/git/trees/$releaseCommitTree" --jq '.tree[] | select(.path=="relay-agent") | .sha').Trim()
+            $currentAgentTree = (gh api "repos/${{ github.repository }}/git/trees/$currentCommitTree" --jq '.tree[] | select(.path=="relay-agent") | .sha').Trim()
+            if ([string]::IsNullOrWhiteSpace($releaseAgentTree) -or [string]::IsNullOrWhiteSpace($currentAgentTree)) {
+              throw "Unable to resolve relay-agent tree for existing release verification."
+            }
+            if ($releaseAgentTree -ne $currentAgentTree) {
+              throw "Agent release $tag already exists but relay-agent source changed. Increment relay-agent/VERSION before publishing another Agent binary."
+            }
+
+            $verifyDir = Join-Path $env:RUNNER_TEMP "agent-release-$version"
+            Remove-Item $verifyDir -Recurse -Force -ErrorAction SilentlyContinue
+            New-Item -ItemType Directory -Force -Path $verifyDir | Out-Null
+            gh release download $tag --repo "${{ github.repository }}" --pattern "Agent.Auto.Confirm.Pick.Pack.exe" --dir $verifyDir
+            if ($LASTEXITCODE -ne 0) {
+              gh release download $tag --repo "${{ github.repository }}" --pattern "Agent Auto Confirm Pick Pack.exe" --dir $verifyDir
+            }
+            if ($LASTEXITCODE -ne 0) {
+              throw "Agent release $tag exists but the canonical EXE cannot be downloaded."
+            }
+            gh release download $tag --repo "${{ github.repository }}" --pattern "Agent.Auto.Confirm.Pick.Pack.exe.sha256" --dir $verifyDir
+            if ($LASTEXITCODE -ne 0) {
+              gh release download $tag --repo "${{ github.repository }}" --pattern "Agent Auto Confirm Pick Pack.exe.sha256" --dir $verifyDir
+            }
+            if ($LASTEXITCODE -ne 0) {
+              throw "Agent release $tag exists but the checksum asset cannot be downloaded."
+            }
+
+            $releasedExe = Get-ChildItem $verifyDir -Filter "*.exe" | Where-Object { $_.Name -notlike "SUPRA-Inventory-Relay-Test*" } | Select-Object -First 1
+            $releasedShaFile = Get-ChildItem $verifyDir -Filter "*.sha256" | Where-Object { $_.Name -notlike "SUPRA-Inventory-Relay-Test*" } | Select-Object -First 1
+            if ($null -eq $releasedExe -or $null -eq $releasedShaFile) {
+              throw "Agent release $tag is missing canonical release assets."
+            }
+            $releasedSha = (Get-Content $releasedShaFile.FullName -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+            $actualReleasedSha = (Get-FileHash $releasedExe.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($releasedSha -ne $actualReleasedSha) {
+              throw "Agent release $tag checksum does not match the published EXE."
+            }
+
+            $channelSourceExe = $releasedExe.FullName
+            $channelSourceSha = $releasedShaFile.FullName
+            Write-Host "Agent release $tag already exists and relay-agent source tree is unchanged; reuse published release assets."
+          } else {
+            gh release create $tag `
+              "$primary#Agent Auto Confirm Pick Pack.exe" `
+              "$primarySha#Agent Auto Confirm Pick Pack.exe.sha256" `
+              "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe#SUPRA-Inventory-Relay-Test.exe" `
+              "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256#SUPRA-Inventory-Relay-Test.exe.sha256" `
+              "relay-agent/dist/README.md#README.md" `
+              --repo "${{ github.repository }}" `
+              --title "Agent Auto Confirm Pick Pack v$version" `
+              --notes "Beta Agent for Pick Pack / Inventory confirmation relay. D126 keeps Firestore PRIMARY/STANDBY/FROZEN HA and replaces Supra session/API integration with user-login managed-browser DOM confirmation. Mutation is fail-closed to the exact matched row checkbox and exact Xác nhận lấy lại hàng button. SKU updates are manual-file-only." `
+              --prerelease
+            if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
+          }
+
+          $channel = "inventory-channel"
+          gh release view $channel --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $channel --repo "${{ github.repository }}" --target "$env:GITHUB_SHA" --title "SUPRA Inventory runtime channel" --notes "Machine-readable Beta distribution channel. Do not install directly from this release page." --prerelease
+            if ($LASTEXITCODE -ne 0) {
+              gh release view $channel --repo "${{ github.repository }}" *> $null
+              if ($LASTEXITCODE -ne 0) { throw "Unable to create or read runtime channel release." }
+            }
+          }
+          $aliasExe = "relay-agent/dist/Agent.Auto.Confirm.Pick.Pack.exe"
+          $aliasSha = "relay-agent/dist/Agent.Auto.Confirm.Pick.Pack.exe.sha256"
+          Copy-Item $channelSourceExe $aliasExe -Force
+          Copy-Item $channelSourceSha $aliasSha -Force
+          $sha256 = (Get-Content $aliasSha -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+          $size = (Get-Item $aliasExe).Length
+          $manifest = [ordered]@{
+            schema_version = 1
+            channel = "beta"
+            tag = $tag
+            name = "Agent Auto Confirm Pick Pack v$version"
+            published_at = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+            source = $releaseSource
+            asset_name = "Agent.Auto.Confirm.Pick.Pack.exe"
+            size_bytes = $size
+            sha256 = $sha256
+          } | ConvertTo-Json -Compress
+          $manifest | Set-Content "relay-agent/dist/agent-latest.json" -Encoding utf8
+          gh release upload $channel $aliasExe $aliasSha "relay-agent/dist/agent-latest.json" --repo "${{ github.repository }}" --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Unable to update stable Agent runtime channel." }
+          Write-Host "Updated stable Agent runtime channel $channel -> $tag"
+,"querySelectorAll\('tr'\)","input\[type=checkbox\]",
             'CHECKBOX_VERIFY_FAILED','CONFIRM_BUTTON_NOT_UNIQUE','ROW_AMBIGUOUS',
             'ClickExactButtonNoLock\(SearchText\)','SW_HIDE','SW_RESTORE','SetBrowserWindowsVisibleNoLock'
           )) {
