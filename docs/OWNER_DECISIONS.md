@@ -1357,3 +1357,14 @@ Owner video on v59 showed the visible Agent WebView2 remaining on Dashboard with
 - Android remains unchanged; Stable remains OWNER-GATED and untouched.
 - OA052 remains pending physical v60 verification.
 
+## D127 field failure — Agent v62 Dashboard recovery and v63 corrective direction — 2026-09-27
+
+Owner field test confirmed `relay-agent-v62` still remains on the Supra Dashboard after login; OA052 therefore remains **FIELD FAIL** for Dashboard → HY1/SFT3 → Confirm recovery. A CI/build/release PASS must not be treated as field acceptance.
+
+- Source audit found a concrete regression: the v58 outer-browser recovery walked the top document plus same-origin iframes, but the host-native implementation introduced in v60 and retained through v62 queried only the top-level `document`. Changing v62 from `HTMLElement.click()` to DevTools mouse injection did not repair a target that may live in a Dashboard frame/micro-frontend.
+- v63 restores bounded same-origin document traversal inside the visible Agent-owned WebView2 host (maximum eight documents), resolves the exact right-arrow MUI control under the unique warehouse-card structure, and fails closed on zero or multiple candidates.
+- v63 activates that unique control through CDP `Runtime.evaluate` with `userGesture=true`. This preserves browser user-activation semantics for the Supra handler that opens the warehouse route, while the existing `NewWindowRequested` handler still forces the validated `wms-supra.winmart.vn` route into the same Agent tab and then returns to the canonical Confirm PickList page.
+- Diagnostics record only sanitized structural counts (`docs/arrows/cards`) and activation state. They do not record passwords, cookies, tokens, headers, signatures, page text, or session material.
+- No Windows cursor movement/screen-coordinate automation is introduced. No direct WMS API is introduced. Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
+- v63 targets Agent build 63 and browser host build 8. Exact merged/release evidence is recorded only after CI/release reaches terminal PASS.
+
