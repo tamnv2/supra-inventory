@@ -1504,12 +1504,17 @@ function renderSku(): string {
   const pageFrom = skuAdminTotal ? skuAdminOffset + 1 : 0;
   const pageTo = Math.min(skuAdminTotal, skuAdminOffset + skuAdminItems.length);
   const updatedAt = skuCatalogInfo?.max_updated_at ? fmt(skuCatalogInfo.max_updated_at) : "Chưa có dữ liệu";
+  const lastSyncAt = skuCatalogInfo?.last_sync_at ? fmt(skuCatalogInfo.last_sync_at) : "Chưa ghi nhận";
+  const lastSyncSummary = skuCatalogInfo?.last_sync_at
+    ? `Lô gần nhất: +${Number(skuCatalogInfo.last_sync_inserted || 0).toLocaleString("vi-VN")} mới · ${Number(skuCatalogInfo.last_sync_updated || 0).toLocaleString("vi-VN")} đổi tên · ${Number(skuCatalogInfo.last_sync_unchanged || 0).toLocaleString("vi-VN")} giữ nguyên`
+    : "Chưa có lịch sử đồng bộ từ Agent";
   const version = skuCatalogInfo?.version || "—";
   return `<section class="ops-route sku-workspace">
     <div class="business-page-head"><div><h2>Danh mục SKU</h2><p>Tra cứu danh mục đang dùng và cập nhật dữ liệu từ Excel trong cùng một màn hình.</p></div></div>
     <section class="business-summary-grid">
       <article class="business-summary-card primary"><span>Tổng SKU hiện hành</span><strong>${catalogCount.toLocaleString("vi-VN")}</strong><small>Danh mục đang phục vụ Web/App</small></article>
-      <article class="business-summary-card good"><span>Cập nhật gần nhất</span><strong class="sku-summary-time">${esc(updatedAt)}</strong><small>Theo dữ liệu danh mục trên hệ thống</small></article>
+      <article class="business-summary-card good"><span>Đồng bộ Agent gần nhất</span><strong class="sku-summary-time">${esc(lastSyncAt)}</strong><small>${esc(lastSyncSummary)}</small></article>
+      <article class="business-summary-card"><span>Dữ liệu thay đổi gần nhất</span><strong class="sku-summary-time">${esc(updatedAt)}</strong><small>Thời điểm SKU thực sự được thêm mới hoặc đổi tên</small></article>
       <article class="business-summary-card"><span>Phiên bản danh mục</span><strong class="sku-summary-version">${esc(version)}</strong><small>Dùng để kiểm soát đồng bộ</small></article>
     </section>
     <div class="users-top-grid sku-top-grid">
