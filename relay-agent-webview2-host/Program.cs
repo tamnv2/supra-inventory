@@ -1,7 +1,9 @@
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
@@ -233,7 +235,7 @@ namespace SupraInventoryWebView2Host
                     _warehouseEntrySource = "";
                 }
 
-                var result = await _web.CoreWebView2.ExecuteScriptAsync(BuildDashboardAccessScript());
+                var result = await _web.CoreWebView2.ExecuteScriptAsync(BuildDashboardTargetScript());
                 var now = DateTime.UtcNow;
                 if (!string.Equals(result ?? "", _lastDashboardProbeResult, StringComparison.Ordinal) ||
                     now - _lastDashboardProbeLogUtc >= TimeSpan.FromSeconds(5))
@@ -245,9 +247,21 @@ namespace SupraInventoryWebView2Host
                         : _lastDashboardProbeResult));
                 }
 
-                if (string.IsNullOrWhiteSpace(result) ||
-                    result.IndexOf("CLICKED", StringComparison.OrdinalIgnoreCase) < 0)
+                double clickX;
+                double clickY;
+                int arrowCount;
+                int cardCount;
+                if (!TryParseDashboardTarget(result, out clickX, out clickY, out arrowCount, out cardCount))
                     return;
+                if (clickX < 0 || clickY < 0 || cardCount != 1)
+                    return;
+
+                await DispatchTrustedMouseClickAsync(clickX, clickY);
+                AppendHostLog(
+                    "DASHBOARD_TRUSTED_CLICK x=" + clickX.ToString("0.0", CultureInfo.InvariantCulture) +
+                    " y=" + clickY.ToString("0.0", CultureInfo.InvariantCulture) +
+                    " arrows=" + arrowCount +
+                    " cards=" + cardCount);
 
                 _warehouseEntryClickIssued = true;
                 _warehouseEntrySource = current;
@@ -263,14 +277,14 @@ namespace SupraInventoryWebView2Host
             }
         }
 
-        private static string BuildDashboardAccessScript()
+        private static string BuildDashboardTargetScript()
         {
             return @"(() => {
               const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
               const normPath = v => String(v || '').toLowerCase().replace(/[\s,]+/g,'');
               const exactArrow = normPath('m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z');
 
-              const exactArrowButtons = [...document.querySelectorAll('button')].filter(button => {
+              const exactArrowButtons = [...document.querySelectorAll('button.MuiIconButton-root')].filter(button => {
                 if (!visible(button) || button.disabled || button.getAttribute('aria-disabled') === 'true')
                   return false;
                 return [...button.querySelectorAll('svg[viewBox] path')].some(path => {
@@ -284,34 +298,65 @@ namespace SupraInventoryWebView2Host
               const quickAccessButtons = exactArrowButtons.filter(button => {
                 const card = button.parentElement;
                 if (!card || !visible(card)) return false;
-
-                // Exact live DOM from Owner:
-                // button is a direct child of the warehouse MuiPaper card.
                 const className = String(card.className || '');
                 if (!className.includes('MuiPaper-root')) return false;
-
-                // The same card contains the large warehouse illustration.
                 return [...card.querySelectorAll('svg[viewBox]')].some(svg =>
                   visible(svg) &&
                   String(svg.getAttribute('viewBox') || '').trim() === '0 0 72 72');
               });
 
-              if (quickAccessButtons.length !== 1) {
-                return [
-                  'NO_CLICK',
-                  'ARROWS=' + exactArrowButtons.length,
-                  'CARDS=' + quickAccessButtons.length
-                ].join(':');
-              }
+              if (quickAccessButtons.length !== 1)
+                return [-1,-1,exactArrowButtons.length,quickAccessButtons.length];
 
               const target = quickAccessButtons[0];
               try { target.scrollIntoView({block:'center',inline:'center'}); } catch (_) {}
-              try { target.focus({preventScroll:true}); } catch (_) { try { target.focus(); } catch (_) {} }
-
-              // React/MUI handles HTMLElement.click() as the same button activation.
-              target.click();
-              return 'CLICKED:EXACT_ARROW_DIRECT_MUIPAPER_72SVG';
+              const rect = target.getBoundingClientRect();
+              return [
+                rect.left + rect.width / 2,
+                rect.top + rect.height / 2,
+                exactArrowButtons.length,
+                quickAccessButtons.length
+              ];
             })()";
+        }
+
+        private static bool TryParseDashboardTarget(
+            string raw,
+            out double x,
+            out double y,
+            out int arrows,
+            out int cards)
+        {
+            x = -1;
+            y = -1;
+            arrows = 0;
+            cards = 0;
+            var match = Regex.Match(
+                raw ?? "",
+                @"^\s*\[\s*(?<x>-?[0-9]+(?:\.[0-9]+)?)\s*,\s*(?<y>-?[0-9]+(?:\.[0-9]+)?)\s*,\s*(?<a>[0-9]+)\s*,\s*(?<c>[0-9]+)\s*\]\s*$",
+                RegexOptions.CultureInvariant);
+            if (!match.Success) return false;
+
+            return double.TryParse(match.Groups["x"].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out x) &&
+                   double.TryParse(match.Groups["y"].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out y) &&
+                   int.TryParse(match.Groups["a"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out arrows) &&
+                   int.TryParse(match.Groups["c"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out cards);
+        }
+
+        private async Task DispatchTrustedMouseClickAsync(double x, double y)
+        {
+            var sx = x.ToString("0.###", CultureInfo.InvariantCulture);
+            var sy = y.ToString("0.###", CultureInfo.InvariantCulture);
+
+            await _web.CoreWebView2.CallDevToolsProtocolMethodAsync(
+                "Input.dispatchMouseEvent",
+                "{\"type\":\"mouseMoved\",\"x\":" + sx + ",\"y\":" + sy + ",\"button\":\"none\",\"buttons\":0}");
+            await _web.CoreWebView2.CallDevToolsProtocolMethodAsync(
+                "Input.dispatchMouseEvent",
+                "{\"type\":\"mousePressed\",\"x\":" + sx + ",\"y\":" + sy + ",\"button\":\"left\",\"buttons\":1,\"clickCount\":1}");
+            await _web.CoreWebView2.CallDevToolsProtocolMethodAsync(
+                "Input.dispatchMouseEvent",
+                "{\"type\":\"mouseReleased\",\"x\":" + sx + ",\"y\":" + sy + ",\"button\":\"left\",\"buttons\":0,\"clickCount\":1}");
         }
 
         private static void AppendHostLog(string message)
