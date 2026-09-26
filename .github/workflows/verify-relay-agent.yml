@@ -160,7 +160,7 @@ jobs:
             'reclaimed_bytes',
             'BrowserDataRoot'
           )) {
-            if (-not $browserBundle.Contains($marker)) { throw "D127 v58 browser bundle/storage guard missing: $marker" }
+            if (-not $browserBundle.Contains($marker)) { throw "D127 v61 browser bundle/storage guard missing: $marker" }
           }
           foreach ($marker in @(
             'Environment.Is64BitProcess',
@@ -175,9 +175,14 @@ jobs:
             '_dashboardProbeTimer',
             'DASHBOARD_PROBE_FAIL',
             'DASHBOARD_PROBE result=',
-            'NO_CLICK:CARD=',
-            'DIRECT_PARENT_72X72_PLUS_ARROW',
-            'NavigationCompleted += HandleNavigationCompleted',
+            'NO_CLICK',
+            'ARROWS=',
+            'CARDS=',
+            'EXACT_ARROW_DIRECT_MUIPAPER_72SVG',
+            'button.parentElement',
+            "className.includes('MuiPaper-root')",
+            "'0 0 72 72'",
+            'NavigationCompleted += HandleNavigationCompleted'
           )) {
             if (-not $ownedHost.Contains($marker)) { throw "D127 v61 owned-host dashboard routing guard missing: $marker" }
           }
