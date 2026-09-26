@@ -312,6 +312,12 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Resolve official Fixed WebView2 package
+        shell: pwsh
+        run: |
+          npm install --no-save playwright-core@1.55.0
+          node tools/d127_resolve_webview2_fixed.js latest
+
       - name: Publish dedicated Agent prerelease
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: pwsh
@@ -428,7 +434,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
-          $runtimeVersion = "153.0.4234.32"
+          $resolve = node tools/d127_resolve_webview2_fixed.js latest
+          if ($LASTEXITCODE -ne 0) { throw "Unable to resolve the latest official Fixed WebView2 x64 package." }
+          $match = [regex]::Match(($resolve -join "`n"), 'version=(\d+(?:\.\d+){3})')
+          if (-not $match.Success) { throw "Resolved WebView2 version was not returned." }
+          $runtimeVersion = $match.Groups[1].Value
           $channel = "inventory-channel"
           $asset = "Agent.WebView2.FixedRuntime.x64.zip"
           $assetSha = "$asset.sha256"
@@ -460,25 +470,12 @@ jobs:
           $work = Join-Path $env:RUNNER_TEMP "wv2-fixed-$runtimeVersion"
           Remove-Item $work -Recurse -Force -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Force -Path $work | Out-Null
-          $page = (Invoke-WebRequest -UseBasicParsing "https://developer.microsoft.com/en-us/microsoft-edge/webview2?form=MA13LH#download-section").Content
-          $decoded = [System.Net.WebUtility]::HtmlDecode($page).Replace('\u002F','/').Replace('\/','/')
-          $escapedVersion = [regex]::Escape($runtimeVersion)
           $filename = "Microsoft.WebView2.FixedVersionRuntime.$runtimeVersion.x64.cab"
-          $matches = [regex]::Matches($decoded, 'https:[^"''<>\s]+')
-          $cabUrl = $null
-          foreach ($m in $matches) {
-            $candidate = $m.Value
-            if ($candidate -match $escapedVersion -and $candidate -match 'x64' -and $candidate -match '\.cab(?:\?|$)') {
-              $cabUrl = $candidate
-              break
-            }
-          }
-          if ([string]::IsNullOrWhiteSpace($cabUrl)) {
-            throw "Unable to resolve official Microsoft Fixed WebView2 x64 CAB for $runtimeVersion."
-          }
-
           $cab = Join-Path $work $filename
-          Invoke-WebRequest -UseBasicParsing $cabUrl -OutFile $cab
+          node tools/d127_resolve_webview2_fixed.js $runtimeVersion $cab
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path $cab)) {
+            throw "Unable to download official Microsoft Fixed WebView2 x64 CAB for $runtimeVersion."
+          }
           if ((Get-Item $cab).Length -lt 100MB) { throw "Downloaded Fixed WebView2 CAB is unexpectedly small." }
 
           $expanded = Join-Path $work "expanded"
