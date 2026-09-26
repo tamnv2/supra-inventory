@@ -123,7 +123,29 @@ namespace SupraInventoryWebView2Host
             await _web.EnsureCoreWebView2Async(env);
             _web.CoreWebView2.Settings.IsPasswordAutosaveEnabled = true;
             _web.CoreWebView2.Settings.IsGeneralAutofillEnabled = true;
+            _web.CoreWebView2.NewWindowRequested += HandleNewWindowRequested;
             _web.Source = new Uri(_options.Url);
+        }
+
+        private void HandleNewWindowRequested(object sender, CoreWebView2NewWindowRequestedEventArgs e)
+        {
+            try
+            {
+                Uri target;
+                if (!Uri.TryCreate(e.Uri, UriKind.Absolute, out target)) return;
+                if (!string.Equals(target.Scheme, "https", StringComparison.OrdinalIgnoreCase)) return;
+                if (!string.Equals(target.Host, "wms-supra.winmart.vn", StringComparison.OrdinalIgnoreCase)) return;
+
+                // D127 v55: Supra dashboard opens SFT3 access in a new tab/window.
+                // Keep the owned Agent browser on one DevTools target by navigating the
+                // current WebView2 instance instead of creating another tab.
+                e.Handled = true;
+                _web.CoreWebView2.Navigate(target.AbsoluteUri);
+            }
+            catch
+            {
+                // Fail closed: if the target cannot be validated, keep default WebView2 behavior.
+            }
         }
 
         private static void GrantAppContainerReadBestEffort(string path)
