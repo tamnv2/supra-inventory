@@ -1368,3 +1368,20 @@ Owner field test confirmed `relay-agent-v62` still remains on the Supra Dashboar
 - No Windows cursor movement/screen-coordinate automation is introduced. No direct WMS API is introduced. Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
 - v63 targets Agent build 63 and browser host build 8. Exact merged/release evidence is recorded only after CI/release reaches terminal PASS.
 
+## D127 v63 release checkpoint — frame-aware user-gesture Dashboard recovery — 2026-09-27
+
+The v62 Owner field result remains **FAIL**: the Agent-owned browser stayed on Supra Dashboard even after v62 changed the activation mechanism to DevTools mouse events. D127 therefore must not treat v62 as field-accepted.
+
+v63 corrective release evidence:
+- PR #234 squash-merged to `main` at `f7dd84a151e295d30dc7e6082524fe198b1bb314`.
+- PR gates PASS: Repo Authority `36270734532`, Project State `36270734540`, UI Design `36270734523`, Verify Beta Relay Agent `36270734586`, Firestore `36270734659`, RTDB `36270734531`.
+- Main gates PASS: Repo Authority `36270857400`, Project State `36270857386`, UI Design `36270857416`, Verify Beta Relay Agent `36270857415`.
+- Agent release: `relay-agent-v63`, release id `397391250`, canonical EXE asset id `591438006`, size `355840` bytes, SHA-256 `7db5ca13a8fa68930553314cfee217e452fa879f8cef5f17ee542cc5bc2aba16`.
+- Inventory channel Agent alias advanced to manifest asset `591438067` and EXE asset `591438070`.
+- Agent-owned Fixed WebView2 remains version `154.0.4258.37 x64` and advances to **host build 8**. Channel bundle asset id `591439589`, size `318620689` bytes, SHA-256 `845e9b55ed1b419308c892260758da6fa547ec9e0d1f90e9b07cd8726fc01f1e`; manifest/checksum asset ids `591439590/591439588`.
+- v63 restores bounded same-origin frame traversal lost by the v60-v62 host-native rewrite and activates only the unique structural warehouse access control through CDP `Runtime.evaluate` with `userGesture=true`. Validated Supra new-window navigation is still forced into the same managed tab before canonical Confirm PickList navigation.
+- Sanitized diagnostics expose only activation state and `docs/arrows/cards` counts. No password, cookie, token, header, signature or page-content capture is added.
+- Android remains `beta-vc76`. Stable remains OWNER-GATED and untouched.
+
+D127 is now **TECHNICAL / RELEASE PASS for v63**, but OA052 remains open. Final field PASS requires the Owner to verify on the real company laptop that a Supra login landing on Dashboard automatically enters the warehouse/SFT3 route and reaches Confirm PickList **without manual Dashboard clicking**.
+

@@ -2550,7 +2550,7 @@
     },
     {
       "id": "OA052",
-      "status": "FIELD_FAIL_V62__V63_IMPLEMENTING",
+      "status": "FIELD_READY__D127_V63_TECHNICAL_RELEASE_PASS",
       "title": "Field-accept D127 quota-safe relay and Agent-owned browser fallback",
       "resource_key": "repo",
       "provider": "Beta Firestore + Windows Agent + Supra managed browser",
@@ -2560,22 +2560,27 @@
         "target_agent_release": "relay-agent-v63",
         "android_baseline": "beta-vc76",
         "stable": "OWNER_GATED",
-        "technical_release": "V62_PASS_BUT_FIELD_FAIL__V63_PENDING",
+        "technical_release": "PASS__V63_RELEASED__HOST_BUILD_8_PUBLISHED",
         "latest_field_result": "V62_FAIL__REMAINS_ON_DASHBOARD_AFTER_TRUSTED_MOUSE_CLICK",
-        "implementation_pr": 208,
-        "implementation_main": "f5ad9d45be3445b6e030d1f5f0de1abc0507b54e",
+        "v63_main": "f7dd84a151e295d30dc7e6082524fe198b1bb314",
+        "v63_main_ui_run": 36270857416,
+        "browser_host_build": 8,
+        "browser_bundle_manifest_asset_id": 591439590,
+        "browser_bundle_checksum_asset_id": 591439588,
+        "implementation_pr": 234,
+        "implementation_main": "f7dd84a151e295d30dc7e6082524fe198b1bb314",
         "release_repair_pr": 209,
         "release_repair_main": "74947a0a66bb63c0ec02d2b00ba7bda31c189b1d",
-        "agent_release_id": 397296190,
-        "agent_asset_id": 590949850,
-        "agent_sha256": "adfd0350484c41b27842d406551d3f8b0d877c076b280b7c1a932adb62421fbd",
+        "agent_release_id": 397391250,
+        "agent_asset_id": 591438006,
+        "agent_sha256": "7db5ca13a8fa68930553314cfee217e452fa879f8cef5f17ee542cc5bc2aba16",
         "browser_runtime_version": "154.0.4258.37",
-        "browser_bundle_asset_id": 590989452,
-        "browser_bundle_sha256": "d7cd8e9b295efc33b68c1bcd52248a8a6e0a04a8ec104454579570c8f446c12e",
-        "main_relay_agent_run": 36254747649
+        "browser_bundle_asset_id": 591439589,
+        "browser_bundle_sha256": "845e9b55ed1b419308c892260758da6fa547ec9e0d1f90e9b07cd8726fc01f1e",
+        "main_relay_agent_run": 36270857415
       },
       "shortest_test_path": [
-        "After v63 is released, update Beta Agent to relay-agent-v63; leave Android beta-vc76 unchanged.",
+        "Update/restart Beta Agent to relay-agent-v63; leave Android beta-vc76 unchanged.",
         "If Supra login lands on Dashboard, do not click the warehouse card manually. Verify Agent automatically enters the unique warehouse/SFT3 route in the same tab and reaches the canonical Confirm PickList page.",
         "Verify Firestore usage remains flat when there are no fresh confirmation jobs and no Picker lifecycle changes; old PENDING rows must not repeat-read.",
         "Log in/logout/reconnect a Picker and verify event-driven list plus 180-second transient disconnect grace without periodic refresh flicker.",
@@ -2593,7 +2598,7 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company Supra accounts. Do not share passwords, cookies, tokens, headers, signatures or other session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for the v63 technical/release gates, then field-test automatic Dashboard recovery without manual click. OA052 stays open until the real Supra flow passes.",
+      "remaining_owner_action": "Update/restart Beta Agent to v63 and field-test automatic Dashboard recovery without manual click. OA052 stays open until the real Supra flow passes.",
       "closed": false
     }
   ]
