@@ -1629,17 +1629,30 @@ namespace SupraInventoryRelayAgent
             {
                 try
                 {
-                    var browserBytes = DirectorySizeBestEffort(AgentBrowserBundle.BrowserDataRoot);
+                    var browserRoot = AgentBrowserBundle.BrowserDataRoot;
+                    var profileRoot = Path.Combine(browserRoot, "webview2-fixed-profile");
+                    var activeBundleRoot = ResolveActiveBrowserBundleRoot(browserRoot);
+
+                    var runtimeBytes = DirectorySizeBestEffort(activeBundleRoot);
+                    var profileBytes = DirectorySizeBestEffort(profileRoot);
+                    var browserBytes = DirectorySizeBestEffort(browserRoot);
+
                     var legacyRoot = Path.Combine(
                         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                         "Agent Auto Confirm Pick Pack");
-                    var otherBytes = DirectorySizeBestEffort(legacyRoot);
-                    var total = Math.Max(0L, browserBytes) + Math.Max(0L, otherBytes);
+                    var legacyBytes = DirectorySizeBestEffort(legacyRoot);
+
+                    var browserOtherBytes = Math.Max(0L, browserBytes - runtimeBytes - profileBytes);
+                    var otherBytes = Math.Max(0L, legacyBytes + browserOtherBytes);
+                    var total = Math.Max(0L, browserBytes) + Math.Max(0L, legacyBytes);
+
                     Ui(() =>
                     {
                         _agentDataStorageStatus.Text =
-                            "Dữ liệu Agent: " + FormatBytes(total) +
-                            " · Browser " + FormatBytes(browserBytes);
+                            "Runtime cài " + FormatBytes(runtimeBytes) +
+                            " · Profile/cache " + FormatBytes(profileBytes) +
+                            " · Khác " + FormatBytes(otherBytes) +
+                            " · Tổng " + FormatBytes(total);
                     });
                 }
                 catch
@@ -1651,6 +1664,23 @@ namespace SupraInventoryRelayAgent
                     Interlocked.Exchange(ref _agentDataSizeRefreshRunning, 0);
                 }
             });
+        }
+
+        private static string ResolveActiveBrowserBundleRoot(string browserRoot)
+        {
+            try
+            {
+                var marker = Path.Combine(browserRoot, "active.txt");
+                if (!File.Exists(marker)) return "";
+                var folder = File.ReadAllText(marker).Trim();
+                if (!Regex.IsMatch(folder, "^[0-9A-Za-z._-]{1,96}$")) return "";
+                var full = Path.Combine(browserRoot, folder);
+                return Directory.Exists(full) ? full : "";
+            }
+            catch
+            {
+                return "";
+            }
         }
 
         private static long DirectorySizeBestEffort(string root)
