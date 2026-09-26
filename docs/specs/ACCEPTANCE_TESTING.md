@@ -1325,3 +1325,12 @@ D126 cannot PASS until all applicable checks below pass:
 - Physical OA051 field PASS still requires the real page to reach **Web Confirm sẵn sàng** and then pass unique lookup, miss/ambiguity and guarded confirmation scenarios.
 
 
+
+
+### D126-H3 decorative search-label acceptance
+
+- On the real Confirm PickList page, one unique visible search action may be accepted when its normalized label is **Tìm kiếm** plus only decorative icon/glyph material. Unicode NFC and zero-width formatting differences may be normalized.
+- Decorative compatibility is limited to the non-mutating search action. Zero or multiple resolved controls remain not-ready and fail closed.
+- Readiness diagnostics may expose only exact/decorated match counts.
+- **Xác nhận lấy lại hàng** remains exact-label-only and all D126 row, checkbox, checked-state and wrong-button guards remain unchanged.
+- Physical OA051 PASS requires `relay-agent-v49` to reach **Web Confirm sẵn sàng** on the real page before the remaining lookup and confirmation field checks continue.

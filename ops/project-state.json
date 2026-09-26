@@ -189,7 +189,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D126 v48 technical/release PASS. Run OA051 real-Supra field re-test on relay-agent-v48; do not mark field PASS until readiness, exact-row lookup and guarded confirmation are observed. Stable remains OWNER-GATED.",
+  "next_action": "D126 v48 field re-test still fails search readiness on the real icon+Tìm Kiếm control. Ship relay-agent-v49 H3 decorative search-label repair, pass PR/main/release gates, then rerun OA051. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -1154,9 +1154,9 @@
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d126": {
-    "status": "TECHNICAL_RELEASE_PASS__OA051_V48_FIELD_RETEST_READY",
+    "status": "FIELD_HOTFIX_IN_PROGRESS__V48_SEARCH_ICON_LABEL_FAIL__V49_TARGET",
     "decision_date": "2026-09-26",
-    "branch": "fix/d126-v48-search-devtools-recovery",
+    "branch": "d126-v49",
     "baseline_main": "d018046c53f79418cce851398dac122125ba0391",
     "baseline_release": "beta-vc76 / relay-agent-v47",
     "field_defect": "V46_MANAGED_BROWSER_REACHES_CONFIRM_PAGE_BUT_READY_REMAINS_0",
@@ -1194,8 +1194,8 @@
     "forbidden": "NO_DIRECT_WMS_PICKLIST_API__NO_COOKIE_TOKEN_HEADER_SIGNATURE_CAPTURE_REPLAY__NO_COORDINATE_ONLY_MUTATION",
     "sku_master": "MANUAL_FILE_IMPORT_ONLY__REMOVE_AGENT_WMS_SKU_SYNC__AUTOMATIC_DEFERRED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "next_action": "RUN_OA051_FIELD_RETEST_ON_RELAY_AGENT_V48",
-    "target_agent_release": "relay-agent-v48",
+    "next_action": "SHIP_V49_H3_HOTFIX__RUN_PR_MAIN_RELEASE_GATES__THEN_OA051_FIELD_RETEST",
+    "target_agent_release": "relay-agent-v49",
     "h2_field_evidence": "V47_REAL_CONFIRM_PAGE__SEARCH_0_CONFIRM_1_VISIBLE_1_TABLE_1_FRAMES_0__THEN_DEVTOOLS_WEBSOCKET_DROP_AND_LOOPBACK_REATTACH_FAIL",
     "h2_contract": "SEARCH_EXACT_NORMALIZED_TEXT_VALUE_ARIA_LABEL_TITLE_PLUS_UNIQUE_TEXT_LEAF__DEVTOOLS_REATTACH_EXISTING_TARGET_FIRST__MANAGED_BROWSER_RESTART_FALLBACK__MUTATION_GUARDS_UNCHANGED",
     "h2_implementation_pr": 202,
@@ -1214,6 +1214,12 @@
       "project_state": 36234305282,
       "ui": 36234305275,
       "relay_agent": 36234305340
-    }
+    },
+    "h3_baseline_main": "fb1f38105650bc569d8b983205ba168ec5f1e865",
+    "h3_baseline_release": "beta-vc76 / relay-agent-v48",
+    "h3_field_evidence": "V48_REAL_CONFIRM_PAGE__SEARCH_0_CONFIRM_1_TABLE_1__DEVTOOLS_RECONNECT_PASS__VISIBLE_SEARCH_HAS_MAGNIFYING_GLASS_PLUS_TIM_KIEM",
+    "h3_contract": "SEARCH_ONLY_UNICODE_NFC_ZERO_WIDTH_NORMALIZATION__ALLOW_EXACT_TARGET_PLUS_DECORATIVE_ICON_MATERIAL__UNIQUE_ONLY__CONFIRM_EXACT_GUARDS_UNCHANGED",
+    "h3_pr_status": "OPEN__GATES_RUNNING",
+    "h3_implementation_pr": 204
   }
 }
