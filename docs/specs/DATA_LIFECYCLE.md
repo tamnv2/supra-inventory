@@ -345,3 +345,11 @@ The Android App uses an operational display projection, not a retention change.
 - Picker-contact commands use bounded TTL and may retain only sanitized audit metadata after completion.
 - Fleet metric checkpoints are aggregate operational counters, not per-Picker behavioral history.
 - WMS SKU-sync staging discards stock/bin/location/quantity fields before durable product persistence and retains only bounded sync/conflict audit metadata.
+
+## D126 — Retired WMS SKU staging and browser-session boundary
+
+- Supra/WMS browser authentication material is never project business/support data: do not persist, export, archive or upload cookies, tokens, headers, signatures or derived browser authentication.
+- Browser DOM observations used for PickList resolution are transient operational state. Sanitized audit may retain request identity, matched full PickList code, result class, Agent identity and timestamps under existing PickList audit rules, but never browser/session secrets.
+- `sku_sync_jobs` is retired from active business use under D126. Existing historical documents may remain for bounded audit/cleanup; they are not SKU authority.
+- SKU master authority remains the existing InventoryCore data produced by authorized manual file import.
+
