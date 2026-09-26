@@ -55,7 +55,7 @@ namespace SupraInventoryRelayAgent
         private readonly Action _onResponse;
         private readonly Action<string> _state;
         private readonly Func<List<FirestoreConfirmationWorkItem>, Dictionary<string, FirestoreConfirmationOutcome>> _batchHandler;
-        private readonly Action<List<PickerPresenceView>> _presenceSnapshotHandler;
+        private readonly Action<List<PickerPresenceView>, string> _presenceSnapshotHandler;
         private readonly FirestoreAgentLeaderCoordinator _coordinator;
         private readonly Func<bool> _businessEnabled;
         private readonly Action<bool> _relayHealth;
@@ -75,7 +75,7 @@ namespace SupraInventoryRelayAgent
             Action onResponse,
             Action<string> state,
             Func<List<FirestoreConfirmationWorkItem>, Dictionary<string, FirestoreConfirmationOutcome>> batchHandler,
-            Action<List<PickerPresenceView>> presenceSnapshotHandler,
+            Action<List<PickerPresenceView>, string> presenceSnapshotHandler,
             FirestoreAgentLeaderCoordinator coordinator,
             Func<bool> businessEnabled,
             Action<bool> relayHealth)
@@ -154,6 +154,7 @@ namespace SupraInventoryRelayAgent
             internal string Source = "";
             internal FirestoreConfirmationWorkItem Work;
             internal List<PickerPresenceView> PresenceSnapshot;
+            internal string PresenceReason = "";
         }
 
         private int ProcessOnce(AgentSession session)
@@ -168,7 +169,7 @@ namespace SupraInventoryRelayAgent
                 if (string.Equals(doc.Source, "ANDROID_PRESENCE_V1", StringComparison.Ordinal))
                 {
                     if (doc.PresenceSnapshot == null) continue;
-                    _presenceSnapshotHandler(doc.PresenceSnapshot);
+                    _presenceSnapshotHandler(doc.PresenceSnapshot, doc.PresenceReason);
                     var applied = new FirestoreConfirmationOutcome
                     {
                         Result = "PRESENCE_APPLIED",
@@ -406,7 +407,8 @@ namespace SupraInventoryRelayAgent
                     Name = name,
                     UpdateTime = Get(doc, "updateTime"),
                     Source = source,
-                    PresenceSnapshot = ParsePresenceSnapshot(fields)
+                    PresenceSnapshot = ParsePresenceSnapshot(fields),
+                    PresenceReason = FieldString(fields, "reason")
                 };
             }
 
