@@ -235,7 +235,13 @@ namespace SupraInventoryWebView2Host
                     _warehouseEntrySource = "";
                 }
 
-                var result = await _web.CoreWebView2.ExecuteScriptAsync(BuildDashboardTargetScript());
+                // D127 v63: mark the attempt before activating the control. A same-tab
+                // navigation can complete while the CDP call is still awaiting its response.
+                _warehouseEntryClickIssued = true;
+                _warehouseEntrySource = current;
+                _warehouseEntryClickUtc = DateTime.UtcNow;
+
+                var result = await ActivateDashboardEntryAsync();
                 var now = DateTime.UtcNow;
                 if (!string.Equals(result ?? "", _lastDashboardProbeResult, StringComparison.Ordinal) ||
                     now - _lastDashboardProbeLogUtc >= TimeSpan.FromSeconds(5))
@@ -247,25 +253,15 @@ namespace SupraInventoryWebView2Host
                         : _lastDashboardProbeResult));
                 }
 
-                double clickX;
-                double clickY;
-                int arrowCount;
-                int cardCount;
-                if (!TryParseDashboardTarget(result, out clickX, out clickY, out arrowCount, out cardCount))
+                if (string.IsNullOrWhiteSpace(result) ||
+                    result.IndexOf("ACTIVATED:", StringComparison.Ordinal) < 0)
+                {
+                    _warehouseEntryClickIssued = false;
+                    _warehouseEntrySource = "";
                     return;
-                if (clickX < 0 || clickY < 0 || cardCount != 1)
-                    return;
+                }
 
-                await DispatchTrustedMouseClickAsync(clickX, clickY);
-                AppendHostLog(
-                    "DASHBOARD_TRUSTED_CLICK x=" + clickX.ToString("0.0", CultureInfo.InvariantCulture) +
-                    " y=" + clickY.ToString("0.0", CultureInfo.InvariantCulture) +
-                    " arrows=" + arrowCount +
-                    " cards=" + cardCount);
-
-                _warehouseEntryClickIssued = true;
-                _warehouseEntrySource = current;
-                _warehouseEntryClickUtc = DateTime.UtcNow;
+                AppendHostLog("DASHBOARD_USER_GESTURE " + result);
             }
             catch (Exception ex)
             {
@@ -277,86 +273,113 @@ namespace SupraInventoryWebView2Host
             }
         }
 
-        private static string BuildDashboardTargetScript()
+        private async Task<string> ActivateDashboardEntryAsync()
+        {
+            var expression = BuildDashboardActivationScript();
+            var parameters =
+                "{\"expression\":" + QuoteJson(expression) +
+                ",\"userGesture\":true,\"awaitPromise\":false,\"returnByValue\":true}";
+            var raw = await _web.CoreWebView2.CallDevToolsProtocolMethodAsync(
+                "Runtime.evaluate",
+                parameters);
+
+            var match = Regex.Match(
+                raw ?? "",
+                @"(?<state>ACTIVATED|NOT_FOUND|AMBIGUOUS):docs=(?<docs>[0-9]+):arrows=(?<arrows>[0-9]+):cards=(?<cards>[0-9]+)",
+                RegexOptions.CultureInvariant);
+            if (!match.Success)
+                return "CDP_NO_RESULT";
+
+            return
+                match.Groups["state"].Value +
+                ":docs=" + match.Groups["docs"].Value +
+                ":arrows=" + match.Groups["arrows"].Value +
+                ":cards=" + match.Groups["cards"].Value;
+        }
+
+        private static string BuildDashboardActivationScript()
         {
             return @"(() => {
               const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
               const normPath = v => String(v || '').toLowerCase().replace(/[\s,]+/g,'');
               const exactArrow = normPath('m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z');
 
-              const exactArrowButtons = [...document.querySelectorAll('button.MuiIconButton-root')].filter(button => {
-                if (!visible(button) || button.disabled || button.getAttribute('aria-disabled') === 'true')
-                  return false;
-                return [...button.querySelectorAll('svg[viewBox] path')].some(path => {
-                  const svg = path.closest('svg');
-                  if (!svg || String(svg.getAttribute('viewBox') || '').trim() !== '0 0 24 24')
-                    return false;
-                  return normPath(path.getAttribute('d')) === exactArrow;
-                });
-              });
+              // v60-v62 accidentally regressed the v58 same-origin-frame walk when the
+              // recovery logic moved into the owned WebView2 host. Restore it here so the
+              // visible dashboard/micro-frontend document is the one being activated.
+              const docs = [];
+              const seenDocs = new Set();
+              const addDoc = d => {
+                if (!d || seenDocs.has(d) || docs.length >= 8) return;
+                seenDocs.add(d);
+                docs.push(d);
+                for (const frame of [...d.querySelectorAll('iframe')]) {
+                  try { if (frame.contentDocument) addDoc(frame.contentDocument); } catch (_) {}
+                }
+              };
+              addDoc(document);
 
-              const quickAccessButtons = exactArrowButtons.filter(button => {
-                const card = button.parentElement;
-                if (!card || !visible(card)) return false;
-                const className = String(card.className || '');
-                if (!className.includes('MuiPaper-root')) return false;
-                return [...card.querySelectorAll('svg[viewBox]')].some(svg =>
-                  visible(svg) &&
-                  String(svg.getAttribute('viewBox') || '').trim() === '0 0 72 72');
-              });
+              const exactArrowButtons = [];
+              for (const d of docs) {
+                for (const button of [...d.querySelectorAll('button.MuiIconButton-root')]) {
+                  if (!visible(button) || button.disabled || button.getAttribute('aria-disabled') === 'true')
+                    continue;
+                  const hasArrow = [...button.querySelectorAll('svg[viewBox] path')].some(path => {
+                    const svg = path.closest('svg');
+                    if (!svg || String(svg.getAttribute('viewBox') || '').trim() !== '0 0 24 24')
+                      return false;
+                    return normPath(path.getAttribute('d')) === exactArrow;
+                  });
+                  if (hasArrow) exactArrowButtons.push(button);
+                }
+              }
 
-              if (quickAccessButtons.length !== 1)
-                return [-1,-1,exactArrowButtons.length,quickAccessButtons.length];
+              const quickAccessButtons = [];
+              for (const button of exactArrowButtons) {
+                let node = button.parentElement;
+                for (let depth = 0; node && depth < 8; depth++, node = node.parentElement) {
+                  if (!visible(node)) continue;
+                  const className = String(node.className || '');
+                  if (!className.includes('MuiPaper-root')) continue;
+                  const hasWarehouseIllustration = [...node.querySelectorAll('svg[viewBox]')].some(svg =>
+                    visible(svg) &&
+                    String(svg.getAttribute('viewBox') || '').trim() === '0 0 72 72');
+                  if (hasWarehouseIllustration) {
+                    quickAccessButtons.push(button);
+                    break;
+                  }
+                }
+              }
 
-              const target = quickAccessButtons[0];
+              const targets = [...new Set(quickAccessButtons)];
+              if (targets.length === 0)
+                return 'NOT_FOUND:docs=' + docs.length + ':arrows=' + exactArrowButtons.length + ':cards=0';
+              if (targets.length !== 1)
+                return 'AMBIGUOUS:docs=' + docs.length + ':arrows=' + exactArrowButtons.length + ':cards=' + targets.length;
+
+              const target = targets[0];
               try { target.scrollIntoView({block:'center',inline:'center'}); } catch (_) {}
-              const rect = target.getBoundingClientRect();
-              return [
-                rect.left + rect.width / 2,
-                rect.top + rect.height / 2,
-                exactArrowButtons.length,
-                quickAccessButtons.length
-              ];
+              try { target.focus({preventScroll:true}); } catch (_) { try { target.focus(); } catch (_) {} }
+
+              // Runtime.evaluate is called with userGesture=true. That preserves browser
+              // user-activation for React/MUI handlers that open the SFT3 route in a new
+              // browsing context; NewWindowRequested then forces that route into this tab.
+              target.click();
+              return 'ACTIVATED:docs=' + docs.length + ':arrows=' + exactArrowButtons.length + ':cards=1';
             })()";
         }
 
-        private static bool TryParseDashboardTarget(
-            string raw,
-            out double x,
-            out double y,
-            out int arrows,
-            out int cards)
+        private static string QuoteJson(string value)
         {
-            x = -1;
-            y = -1;
-            arrows = 0;
-            cards = 0;
-            var match = Regex.Match(
-                raw ?? "",
-                @"^\s*\[\s*(?<x>-?[0-9]+(?:\.[0-9]+)?)\s*,\s*(?<y>-?[0-9]+(?:\.[0-9]+)?)\s*,\s*(?<a>[0-9]+)\s*,\s*(?<c>[0-9]+)\s*\]\s*$",
-                RegexOptions.CultureInvariant);
-            if (!match.Success) return false;
-
-            return double.TryParse(match.Groups["x"].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out x) &&
-                   double.TryParse(match.Groups["y"].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out y) &&
-                   int.TryParse(match.Groups["a"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out arrows) &&
-                   int.TryParse(match.Groups["c"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out cards);
-        }
-
-        private async Task DispatchTrustedMouseClickAsync(double x, double y)
-        {
-            var sx = x.ToString("0.###", CultureInfo.InvariantCulture);
-            var sy = y.ToString("0.###", CultureInfo.InvariantCulture);
-
-            await _web.CoreWebView2.CallDevToolsProtocolMethodAsync(
-                "Input.dispatchMouseEvent",
-                "{\"type\":\"mouseMoved\",\"x\":" + sx + ",\"y\":" + sy + ",\"button\":\"none\",\"buttons\":0}");
-            await _web.CoreWebView2.CallDevToolsProtocolMethodAsync(
-                "Input.dispatchMouseEvent",
-                "{\"type\":\"mousePressed\",\"x\":" + sx + ",\"y\":" + sy + ",\"button\":\"left\",\"buttons\":1,\"clickCount\":1}");
-            await _web.CoreWebView2.CallDevToolsProtocolMethodAsync(
-                "Input.dispatchMouseEvent",
-                "{\"type\":\"mouseReleased\",\"x\":" + sx + ",\"y\":" + sy + ",\"button\":\"left\",\"buttons\":0,\"clickCount\":1}");
+            if (value == null) return "\"\"";
+            return "\"" +
+                value
+                    .Replace("\\", "\\\\")
+                    .Replace("\"", "\\\"")
+                    .Replace("\r", "\\r")
+                    .Replace("\n", "\\n")
+                    .Replace("\t", "\\t") +
+                "\"";
         }
 
         private static void AppendHostLog(string message)
