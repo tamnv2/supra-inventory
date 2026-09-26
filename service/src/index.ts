@@ -19,7 +19,7 @@ import { drainAgentLogUploads } from "./agent-log-drain";
 import { collectSystemStatus } from "./system-status";
 import { handleSystemResetApi } from "./system-reset";
 import { sendProjectEmail } from "./google-mail";
-import { latestAgentAppRelease, latestPdaAppRelease, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestPdaApk, redirectLatestPdaChecksum } from "./app-tools";
+import { latestAgentAppRelease, latestAgentBrowserBundle, latestPdaAppRelease, redirectLatestAgentBrowserBundle, redirectLatestAgentBrowserChecksum, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestPdaApk, redirectLatestPdaChecksum } from "./app-tools";
 import { handleD119Internal } from "./internal-d119";
 import { refreshPickerProjectionBestEffort } from "./firestore-projection";
 
@@ -1057,6 +1057,28 @@ export default {
           });
         } catch (error) {
           return json({ error: "AGENT_RELEASE_CHANNEL_UNAVAILABLE", message: error instanceof Error ? error.message : "release_channel_unavailable" }, 503);
+        }
+      }
+      if (request.method === "GET" && url.pathname === "/downloads/agent/browser/latest") {
+        return redirectLatestAgentBrowserBundle();
+      }
+      if (request.method === "GET" && url.pathname === "/downloads/agent/browser/latest.sha256") {
+        return redirectLatestAgentBrowserChecksum();
+      }
+      if (request.method === "GET" && url.pathname === "/downloads/agent/browser/manifest") {
+        try {
+          const release = await latestAgentBrowserBundle();
+          return json({
+            channel: "beta",
+            version: release.version,
+            asset_name: release.asset_name,
+            size_bytes: release.size_bytes,
+            sha256: release.sha256,
+            bundle_path: "/downloads/agent/browser/latest",
+            checksum_path: "/downloads/agent/browser/latest.sha256",
+          });
+        } catch (error) {
+          return json({ error: "AGENT_BROWSER_CHANNEL_UNAVAILABLE", message: error instanceof Error ? error.message : "browser_channel_unavailable" }, 503);
         }
       }
 
