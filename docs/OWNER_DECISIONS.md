@@ -1152,3 +1152,13 @@ D126 supersedes D125 wherever D125 retired the released Android PickList flow or
 13. **D125 Office rewrite cancelled before implementation.** D125 remains historical authority explaining the rejected model, but its Android removal, Office-client rewrite and Firestore Office command bridge are not implementation targets.
 14. **Beta first / Stable guarded.** D126 implementation and release are Beta-only. Stable remains OWNER-GATED and requires a separate explicit Owner authorization.
 
+### D126-H1 — Browser readiness field hotfix — 2026-09-26
+
+Status: **OWNER-REPORTED FIELD DEFECT / HOTFIX IN PROGRESS**.
+
+- Field evidence on released `relay-agent-v46` shows the managed Edge browser starts and the user can reach the registered Confirm PickList page, but Agent remains `LOGIN_OR_DOM_NOT_READY` / `ready=0`.
+- The D126 security and mutation boundary is unchanged: DOM-only, no browser Network domain, no cookie/token/header/signature extraction, no direct WMS API and no coordinate-only mutation.
+- Hotfix target is `relay-agent-v47`. Readiness must recognize the real rendered Confirm UI through semantic action elements (`button`, `a`, `role=button`) and same-origin frame DOM when present. The exact confirmation control may be non-visible before row selection but must still be uniquely identifiable in DOM; the actual mutation still requires exactly one visible enabled **Xác nhận lấy lại hàng** control after the exact row checkbox is selected.
+- PickList rows may be semantic table rows (`tr` or `role=row`). Checkbox/confirmation framework state may settle asynchronously, so v47 may wait for a short bounded interval and must still fail closed on zero/multiple/disabled/changed controls.
+- Browser diagnostics may record only sanitized page origin/path and non-sensitive DOM counts. No query string, browser session material or authentication data may be logged.
+

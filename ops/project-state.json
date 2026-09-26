@@ -189,7 +189,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Wait for Owner phrase `tiến hành sửa đổi mô hình`; then bootstrap current main, create a fresh implementation branch, remove Android Xác nhận đơn/PickList flow, remove any Web Supra-session/WMS surfaces, retire WMS SKU sync, and repurpose Windows Agent as the Firebase-backed Office Inventory client. Stable remains OWNER-GATED.",
+  "next_action": "D126 v46 field defect confirmed: ship relay-agent-v47 browser readiness hotfix, pass PR/main/release gates, then rerun OA051 on the real Confirm PickList page. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -1154,12 +1154,14 @@
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d126": {
-    "status": "OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS",
+    "status": "FIELD_HOTFIX_IN_PROGRESS__V46_READY_DETECTION_FAIL",
     "decision_date": "2026-09-26",
-    "branch": "feat/d126-browser-ui-picklist",
-    "baseline_main": "b9341f65de1c4b1fee20a7bf10e14380739618c6",
-    "baseline_release": "beta-vc76 / relay-agent-v45",
-    "target_agent_release": "relay-agent-v46",
+    "branch": "fix/d126-browser-readiness-dom",
+    "baseline_main": "2020a12e3a3d123b80b437ec9168ef95953f71a0",
+    "baseline_release": "beta-vc76 / relay-agent-v46",
+    "target_agent_release": "relay-agent-v47",
+    "field_defect": "V46_MANAGED_BROWSER_REACHES_CONFIRM_PAGE_BUT_READY_REMAINS_0",
+    "hotfix_contract": "SEMANTIC_BUTTON_LINK_ROLE_BUTTON_PLUS_SAME_ORIGIN_FRAME_DOM__SANITIZED_COUNTS__BOUNDED_UI_SETTLE__FAIL_CLOSED",
     "android": "KEEP_CURRENT_PUBLISHED_PICKLIST_AND_BAO_HANG_MODEL__NO_ANDROID_CHANGE_REQUIRED_UNLESS_REGRESSION_FIX",
     "picklist_transport": "KEEP_FIRESTORE_REQUEST_ACK_HA_GUARDS",
     "supra_browser": "USER_LOGIN_IN_MANAGED_BROWSER__DOM_ONLY_AUTOMATION__NO_SESSION_EXTRACTION",
@@ -1168,6 +1170,6 @@
     "forbidden": "NO_DIRECT_WMS_PICKLIST_API__NO_COOKIE_TOKEN_HEADER_SIGNATURE_CAPTURE_REPLAY__NO_COORDINATE_ONLY_MUTATION",
     "sku_master": "MANUAL_FILE_IMPORT_ONLY__REMOVE_AGENT_WMS_SKU_SYNC__AUTOMATIC_DEFERRED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "next_action": "IMPLEMENT_AGENT_BROWSER_UI_ADAPTER__RETIRE_WMS_SESSION_API_AND_SKU_SYNC__RUN_PR_GATES"
+    "next_action": "SHIP_V47_BROWSER_READINESS_HOTFIX__RUN_PR_MAIN_RELEASE_GATES__THEN_OA051_FIELD_RETEST"
   }
 }

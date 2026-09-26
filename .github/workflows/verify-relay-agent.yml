@@ -68,9 +68,9 @@ jobs:
           $fleet = Get-Content relay-agent/FirestoreFleetMetrics.cs -Raw
           $project = Get-Content relay-agent/SupraInventoryRelayAgent.csproj -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*46\s*;') { throw "D126 requires Agent v46." }
-          if ($project -notmatch '<AssemblyVersion>0\.46\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.46\.0\.0</FileVersion>') {
-            throw "D126 assembly/file version must be 0.46."
+          if ($config -notmatch 'AgentBuild\s*=\s*47\s*;') { throw "D126 hotfix requires Agent v47." }
+          if ($project -notmatch '<AssemblyVersion>0\.47\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.47\.0\.0</FileVersion>') {
+            throw "D126 hotfix assembly/file version must be 0.47."
           }
 
           foreach ($marker in @(
@@ -79,7 +79,7 @@ jobs:
             'private const string SearchText = "Tìm kiếm"',
             'private const string ConfirmText = "Xác nhận lấy lại hàng"',
             '^PL[0-9]+$',
-            "querySelectorAll('tr')",
+            "tr,[role=row]",
             'input[type=checkbox]',
             'CHECKBOX_NOT_UNIQUE',
             'CHECKBOX_VERIFY_FAILED',
@@ -88,7 +88,12 @@ jobs:
             'ClickExactButtonNoLock(SearchText)',
             'SW_HIDE',
             'SW_RESTORE',
-            'SetBrowserWindowsVisibleNoLock'
+            'SetBrowserWindowsVisibleNoLock',
+            'CONFIRM_DOM_PARTIAL',
+            'ConfirmVisibleCount',
+            '[role=grid]',
+            'a,[role=button]',
+            'await new Promise'
           )) {
             if (-not $browser.Contains($marker)) { throw "D126 browser semantic guard missing: $marker" }
           }
