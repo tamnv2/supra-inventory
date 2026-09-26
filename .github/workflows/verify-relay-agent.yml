@@ -142,7 +142,7 @@ jobs:
             'WAREHOUSE_ICON_PLUS_ARROW_SVG',
             "querySelectorAll('svg[viewBox]')",
             "getAttribute('viewBox')",
-            'SCRIPT_ERROR',
+            'SCRIPT_ERROR'
           )) {
             if (-not $browser.Contains($marker)) { throw "D126 browser semantic guard missing: $marker" }
           }
