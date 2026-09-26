@@ -130,9 +130,9 @@ async function chooseX64(scope, page) {
 
   if (!download) {
     const acceptCandidates = [
-      page.getByRole("button", { name: /Accept and Download/i }),
-      page.getByRole("link", { name: /Accept and Download/i }),
-      page.getByText(/Accept and Download/i, { exact: true })
+      page.getByRole("button", { name: /accept(?:\s+|-)+and(?:\s+|-)+download/i }),
+      page.getByRole("link", { name: /accept(?:\s+|-)+and(?:\s+|-)+download/i }),
+      page.getByText(/accept(?:\s+|-)+and(?:\s+|-)+download/i, { exact: true })
     ];
     let accept = null;
     for (const candidate of acceptCandidates) {
