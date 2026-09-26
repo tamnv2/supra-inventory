@@ -12,8 +12,22 @@ namespace SupraInventoryRelayAgent
 {
     internal static class AgentBrowserBundle
     {
+        internal sealed class Status
+        {
+            internal bool Ready;
+            internal bool Downloading;
+            internal int Percent;
+            internal string Version = "";
+            internal string Detail = "";
+        }
+
         private static readonly JavaScriptSerializer Json = new JavaScriptSerializer();
+        private static readonly object StateLock = new object();
         private static int _backgroundRunning;
+        private static bool _downloading;
+        private static int _percent;
+        private static string _version = "";
+        private static string _detail = "Chưa tải trình duyệt Agent.";
 
         private static string Root
         {
@@ -28,15 +42,63 @@ namespace SupraInventoryRelayAgent
         internal static void EnsureBackground(Action<string> log)
         {
             if (Interlocked.CompareExchange(ref _backgroundRunning, 1, 0) != 0) return;
+            SetState(true, 0, _version, "Đang kiểm tra gói trình duyệt Agent...");
             ThreadPool.QueueUserWorkItem(_ =>
             {
-                try { EnsureInstalled(log); }
+                try
+                {
+                    EnsureInstalled(log);
+                    var snapshot = SnapshotStatus();
+                    SetState(false, 100, snapshot.Version, "Trình duyệt Agent khả dụng.");
+                }
                 catch (Exception ex)
                 {
+                    SetState(false, 0, _version, "Tải trình duyệt thất bại: " + AgentDiagnostics.Sanitize(ex.Message));
                     if (log != null) log("SUPRA_BROWSER owned_bundle=FALLBACK detail=" + AgentDiagnostics.Sanitize(ex.Message));
                 }
                 finally { Interlocked.Exchange(ref _backgroundRunning, 0); }
             });
+        }
+
+        internal static Status SnapshotStatus()
+        {
+            string host;
+            string runtime;
+            var ready = TryGetReady(out host, out runtime);
+            lock (StateLock)
+            {
+                var version = _version;
+                if (ready && string.IsNullOrWhiteSpace(version))
+                {
+                    try
+                    {
+                        var active = Path.Combine(Root, "active.txt");
+                        var folder = File.Exists(active) ? File.ReadAllText(active).Trim() : "";
+                        var match = Regex.Match(folder, @"^wv2-(?<version>[0-9]+(?:\.[0-9]+){3})-");
+                        if (match.Success) version = match.Groups["version"].Value;
+                    }
+                    catch { }
+                }
+                return new Status
+                {
+                    Ready = ready,
+                    Downloading = _downloading,
+                    Percent = ready ? 100 : Math.Max(0, Math.Min(100, _percent)),
+                    Version = version ?? "",
+                    Detail = ready ? "Trình duyệt Agent khả dụng." : (_detail ?? "")
+                };
+            }
+        }
+
+        private static void SetState(bool downloading, int percent, string version, string detail)
+        {
+            lock (StateLock)
+            {
+                _downloading = downloading;
+                _percent = Math.Max(0, Math.Min(100, percent));
+                if (!string.IsNullOrWhiteSpace(version)) _version = version;
+                _detail = detail ?? "";
+            }
         }
 
         internal static bool TryGetReady(out string hostExe, out string runtimeFolder)
@@ -68,6 +130,7 @@ namespace SupraInventoryRelayAgent
 
             var version = Value(manifest, "version");
             var sha = Value(manifest, "sha256").ToLowerInvariant();
+            SetState(true, 0, version, "Đang chuẩn bị tải WebView2 Fixed " + version + "...");
             if (!Regex.IsMatch(version, @"^[0-9]+(?:\.[0-9]+){3}$"))
                 throw new InvalidOperationException("Browser bundle version không hợp lệ.");
             if (!Regex.IsMatch(sha, "^[0-9a-f]{64}$"))
@@ -78,7 +141,10 @@ namespace SupraInventoryRelayAgent
             {
                 var marker = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(currentHost)), "bundle.sha256");
                 if (File.Exists(marker) && string.Equals(File.ReadAllText(marker).Trim(), sha, StringComparison.OrdinalIgnoreCase))
+                {
+                    SetState(false, 100, version, "Trình duyệt Agent khả dụng.");
                     return;
+                }
             }
 
             Directory.CreateDirectory(Root);
@@ -91,7 +157,14 @@ namespace SupraInventoryRelayAgent
                 TryDelete(tempZip);
                 TryDeleteDirectory(tempExtract);
 
-                DownloadFile(AgentConfig.AgentBrowserBundleUrl, tempZip);
+                DownloadFile(AgentConfig.AgentBrowserBundleUrl, tempZip, (downloaded, total) =>
+                {
+                    var percent = total > 0 ? (int)Math.Min(99L, downloaded * 100L / total) : 0;
+                    SetState(true, percent, version,
+                        total > 0
+                            ? "Đang tải trình duyệt Agent · " + percent + "%"
+                            : "Đang tải trình duyệt Agent...");
+                });
                 var actual = Sha256(tempZip);
                 if (!string.Equals(actual, sha, StringComparison.OrdinalIgnoreCase))
                     throw new InvalidOperationException("Browser bundle SHA-256 không khớp.");
@@ -111,6 +184,7 @@ namespace SupraInventoryRelayAgent
             }
 
             File.WriteAllText(Path.Combine(Root, "active.txt"), versionFolder);
+            SetState(false, 100, version, "Trình duyệt Agent khả dụng.");
             if (log != null) log("SUPRA_BROWSER owned_bundle=READY version=" + version);
         }
 
@@ -121,16 +195,22 @@ namespace SupraInventoryRelayAgent
                 return reader.ReadToEnd();
         }
 
-        private static void DownloadFile(string url, string target)
+        private static void DownloadFile(string url, string target, Action<long, long> progress)
         {
             using (var response = OpenTrusted(url, false))
             using (var input = response.GetResponseStream())
             using (var output = new FileStream(target, FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 var buffer = new byte[1024 * 1024];
+                var total = response.ContentLength;
+                long downloaded = 0;
                 int read;
                 while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+                {
                     output.Write(buffer, 0, read);
+                    downloaded += read;
+                    if (progress != null) progress(downloaded, total);
+                }
             }
         }
 
