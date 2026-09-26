@@ -258,6 +258,7 @@ namespace SupraInventoryRelayAgent
                 var raw = EvaluateJsonNoLock(mutationScript);
                 var map = _json.DeserializeObject(raw) as Dictionary<string, object>;
                 var stepResult = map == null ? "DOM_ERROR" : String(map, "result");
+                var stepStage = map == null ? "" : String(map, "stage");
 
                 if (!string.Equals(stepResult, "CLICKED", StringComparison.Ordinal))
                 {
@@ -268,6 +269,9 @@ namespace SupraInventoryRelayAgent
                     _log("SUPRA_BROWSER confirm result=" + result.Result + " phase=pre_click detail=" + stepResult);
                     return result;
                 }
+
+                _log("SUPRA_BROWSER confirm guard stage=" + (string.IsNullOrWhiteSpace(stepStage) ? "UNKNOWN" : stepStage) +
+                     " dialog_required=true");
 
                 // Only DOM state is observed after the exact semantic click.
                 // A visible success surface or disappearance of the exact row is trusted;
