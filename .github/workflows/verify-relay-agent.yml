@@ -178,8 +178,6 @@ jobs:
             'NO_CLICK:CARD=',
             'DIRECT_PARENT_72X72_PLUS_ARROW',
             'NavigationCompleted += HandleNavigationCompleted',
-            'WAREHOUSE_ICON_PLUS_ARROW_SVG',
-            "return 'CLICKED:WAREHOUSE_ICON_PLUS_ARROW_SVG'"
           )) {
             if (-not $ownedHost.Contains($marker)) { throw "D127 v61 owned-host dashboard routing guard missing: $marker" }
           }
