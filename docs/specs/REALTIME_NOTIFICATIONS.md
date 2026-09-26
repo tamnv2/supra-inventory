@@ -488,3 +488,15 @@ D115 supersedes only the PRIMARY polling cadence of the earlier D097/D104/D114 c
 - Office bridge messages must be bounded, role-scoped, idempotent where necessary and must not contain Supra/WMS session material.
 - Existing FCM delivery for Báo hàng and approved Picker-contact commands remains available where still required.
 - Legacy PickList relay/HA/guard collections may remain until implementation cleanup, but no new WMS work may be initiated through them under D125.
+
+## D126 — Existing PickList relay retained; browser performs the business action
+
+D126 supersedes the D125 retirement of the Firestore PickList relay before that retirement was implemented.
+
+- Keep the existing bounded Firestore PDA request/ACK transport, anti-spam, confirmation guard, Agent HA/ownership and result delivery semantics.
+- Replace only the business adapter behind the owning Agent: no direct WMS lookup/confirm API and no captured Supra session. The Agent resolves and confirms against the rendered managed-browser DOM.
+- PDA jobs may auto-confirm after a unique guarded DOM match; manual Agent searches continue to wait for the Agent operator confirmation action.
+- ACK is written only after the browser action reaches a bounded trustworthy terminal outcome. Uncertain UI state must not be reported as success and must not trigger blind retry.
+- No browser cookie/token/header/signature/session material may enter Firestore, logs or ACK payloads.
+- `sku_sync_jobs` is retired from active use; existing Báo hàng FCM and Picker-contact notification paths remain unchanged.
+
