@@ -489,6 +489,7 @@ namespace SupraInventoryRelayAgent
         private SupraConfirmBrowser _supraBrowser;
         private volatile bool _supraBrowserReady;
         private volatile bool _supraBrowserHidden;
+        private volatile bool _relayPollHealthyObserved;
         private string _supraBrowserState = "NOT_OPEN";
         private readonly FirestorePickerRateLimiter _firestoreRateLimiter = new FirestorePickerRateLimiter();
         private readonly FirestoreConfirmationGuard _confirmationGuard = new FirestoreConfirmationGuard();
@@ -3454,11 +3455,17 @@ namespace SupraInventoryRelayAgent
                     {
                         var coordinator = _leaderCoordinator;
                         if (coordinator != null) coordinator.ReportRelayPoll(healthy);
+                        var recovered = healthy && !_relayPollHealthyObserved;
+                        _relayPollHealthyObserved = healthy;
                         if (coordinator != null && coordinator.IsLeader)
                         {
-                            Ui(() => _identity.Text =
-                                "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() +
-                                (healthy ? " / ACTIVE" : " / ACTIVE · FIRESTORE OFFLINE"));
+                            Ui(() =>
+                            {
+                                _identity.Text =
+                                    "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() +
+                                    (healthy ? " / ACTIVE" : " / ACTIVE · FIRESTORE OFFLINE");
+                                if (recovered) RefreshD119OperationalViews(true);
+                            });
                         }
                     });
                 transport.Run(token);
