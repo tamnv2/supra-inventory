@@ -617,7 +617,7 @@ D126 supersedes the D125 workflow changes before D125 implementation.
 - User performs Supra login inside the browser. Agent observes only page/DOM readiness and business DOM content; it does not extract session/auth material.
 - Manual search displays unique full PickList matches. Manual mutation still requires the Agent operator confirmation action.
 - Initial rendered-table miss permits one exact `Tìm kiếm` UI click and one re-resolution only.
-- Confirmation re-validates the exact full PickList row, checks only its row checkbox and clicks only the exact approved `Xác nhận lấy lại hàng` button. Ambiguous/missing/changed DOM fails closed.
+- Confirmation re-validates the exact full PickList row, checks only its row checkbox and clicks only the exact approved `Xác nhận lấy lại hàng` button. Supra then requires the exact second-step dialog **XÁC NHẬN LẤY LẠI HÀNG** / **Bạn có chắc chắn cho phép lấy hàng lại không?**; Agent clicks only the single scoped **Xác nhận** action in that dialog. Missing/ambiguous/mismatched dialog or control fails closed, and **Đóng** is never used as fallback.
 
 ### SKU master
 - Manual operator/Owner file import remains the only approved SKU-master update source.
