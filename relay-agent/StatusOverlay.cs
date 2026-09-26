@@ -351,6 +351,19 @@ namespace SupraInventoryRelayAgent
             _metricFlow.SuspendLayout();
             try
             {
+                if (_metricFlow.Controls.Count == values.Count)
+                {
+                    for (var i = 0; i < values.Count; i++)
+                    {
+                        var existing = _metricFlow.Controls[i] as Label;
+                        if (existing == null) continue;
+                        existing.Text = values[i];
+                        existing.ForeColor = OverlayTextColor;
+                        existing.BackColor = TransparencyColor;
+                    }
+                    return;
+                }
+
                 _metricFlow.Controls.Clear();
                 foreach (var value in values)
                 {
@@ -364,10 +377,13 @@ namespace SupraInventoryRelayAgent
                         Text = value,
                         TextAlign = ContentAlignment.MiddleCenter,
                         BorderStyle = BorderStyle.FixedSingle,
-                        BackColor = Blend(OverlayBackgroundColor, Color.White, 0.12),
+                        BackColor = TransparencyColor,
                         ForeColor = OverlayTextColor,
                         Font = new Font("Segoe UI", 8.5F, FontStyle.Bold)
                     };
+                    tile.MouseDown += BeginDrag;
+                    tile.MouseMove += ContinueDrag;
+                    tile.MouseUp += EndDrag;
                     _metricFlow.Controls.Add(tile);
                 }
             }
