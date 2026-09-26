@@ -59,3 +59,12 @@ Exact Owner semantics for the SKU-reset confirmation described historically as r
 - One fleet sync lease/version prevents duplicate downloads. An expired lease may be taken over.
 - Existing validated Excel import remains available as manual fallback and uses the same conflict semantics.
 - D119 does not reopen bin/location/quantity product scope.
+
+## D122 — Agent synchronization visibility
+
+- A completed Agent/WMS SKU synchronization is an operational event even when every incoming SKU already matches the catalog.
+- Manual Agent sync must explicitly show success/failure and counts for new, renamed and unchanged SKU rows.
+- Web **Danh mục SKU** exposes the latest successful sync checkpoint independently from `sku_master.updated_at` / catalog max-update time.
+- The checkpoint is derived from the existing successful `SKU_IMPORT_CHUNK` audit event; no new table, provider, polling loop or stock/location field is introduced.
+- A no-op sync must not falsify the timestamp for actual SKU data mutation.
+
