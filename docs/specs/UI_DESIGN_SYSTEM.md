@@ -728,3 +728,11 @@ D111 supersedes only the conflicting D110 Reporter interaction/presentation deta
 - Web overtime control is presented as **Ca vận hành** under **Vận hành**, not inside Công cụ. Công cụ returns to release/download utilities only.
 - Web Danh mục SKU distinguishes **Đồng bộ Agent gần nhất** from **Dữ liệu thay đổi gần nhất** so a successful no-op sync is visible without pretending SKU data changed.
 
+## D123 — Agent UI-thread affinity and startup hang repair
+
+- Restoring a saved Agent session, logging in, expiring a session, or restoring D122 per-user column preferences may originate on worker tasks, but **no WinForms control may be read/mutated from that worker thread** when the operation affects layout/rendering.
+- `SetAgentAuthUi` queues both auth-control state and `ApplyD119AuthenticatedLayout` together on the UI thread.
+- D119/D122 layout/grid helpers self-marshal when `InvokeRequired` is true. This includes authenticated layout, column-preference application/auto-sizing, Picker rendering and fleet metric rendering.
+- Automatic DataGridView sizing is presentation-only and must execute on the grid's owning UI thread. It must not trigger provider/network work.
+- D122's 50% Agent / 25% Supra / 25% PickList layout, right-side Picker workspace, one-row Agent/Relay/Wi-Fi, overlay behavior and per-user column preference remain unchanged.
+
