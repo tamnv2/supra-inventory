@@ -13,6 +13,8 @@ namespace SupraInventoryRelayAgent
     {
         internal bool Acquired;
         internal bool AlreadyDone;
+        internal bool DayLocked;
+        internal bool ServiceStarted;
         internal string DayKey;
         internal string LeaseDocumentId;
         internal string Detail;
@@ -65,32 +67,49 @@ namespace SupraInventoryRelayAgent
                 var fields = GetMap(existing, "fields");
                 var status = FieldString(fields, "status");
                 var leaseUntil = FieldLong(fields, "lease_until_ms");
-                var owner = FieldString(fields, "owner_agent_id");
+                var serviceStarted = FieldBool(fields, "service_started");
                 if (string.Equals(status, "DONE", StringComparison.Ordinal))
                 {
                     return new SkuSyncLeaseResult
                     {
                         Acquired = false,
                         AlreadyDone = true,
+                        DayLocked = true,
+                        ServiceStarted = true,
                         DayKey = dayKey,
                         LeaseDocumentId = docId,
                         Detail = "Đã có Agent cập nhật SKU hôm nay."
                     };
                 }
-                if (leaseUntil > NowMs() && !string.Equals(owner, agentInstanceId, StringComparison.Ordinal))
+                if (serviceStarted)
                 {
                     return new SkuSyncLeaseResult
                     {
                         Acquired = false,
                         AlreadyDone = false,
+                        DayLocked = true,
+                        ServiceStarted = true,
                         DayKey = dayKey,
                         LeaseDocumentId = docId,
-                        Detail = "Agent khác đang cập nhật SKU."
+                        Detail = "Lượt cập nhật SKU hôm nay đã gửi Service. Không gửi lặp trong ngày để tránh trùng dữ liệu."
+                    };
+                }
+                if (leaseUntil > NowMs())
+                {
+                    return new SkuSyncLeaseResult
+                    {
+                        Acquired = false,
+                        AlreadyDone = false,
+                        DayLocked = false,
+                        ServiceStarted = false,
+                        DayKey = dayKey,
+                        LeaseDocumentId = docId,
+                        Detail = "Đang có Agent chuẩn bị cập nhật SKU."
                     };
                 }
 
                 var updateTime = Get(existing, "updateTime");
-                var fieldsPatch = LeaseFields(session, agentInstanceId, dayKey, docId, "LEASED", NowMs() + 10 * 60 * 1000L);
+                var fieldsPatch = LeaseFields(session, agentInstanceId, dayKey, docId, "LEASED", NowMs() + 10 * 60 * 1000L, false);
                 var suffix = BuildMask(fieldsPatch.Keys);
                 if (!string.IsNullOrWhiteSpace(updateTime))
                     suffix += "&currentDocument.updateTime=" + Uri.EscapeDataString(updateTime);
@@ -118,7 +137,7 @@ namespace SupraInventoryRelayAgent
                 Patch(
                     session,
                     url + "?currentDocument.exists=false",
-                    LeaseFields(session, agentInstanceId, dayKey, docId, "LEASED", NowMs() + 10 * 60 * 1000L),
+                    LeaseFields(session, agentInstanceId, dayKey, docId, "LEASED", NowMs() + 10 * 60 * 1000L, false),
                     "sku-lease-create");
                 return Acquired(dayKey, docId, "Đã tạo lease cập nhật SKU.");
             }
@@ -136,14 +155,31 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        internal void MarkServiceStarted(AgentSession session, string agentInstanceId, SkuSyncLeaseResult lease)
+        {
+            if (lease == null || !lease.Acquired) throw new InvalidOperationException("Thiếu lease cập nhật SKU.");
+            UpdateLease(session, agentInstanceId, lease, "RUNNING", EndOfDayLockMs(), true);
+            lease.ServiceStarted = true;
+            lease.DayLocked = true;
+            _log("SKU_SYNC daily_lock=ACTIVE day=" + lease.DayKey + " reason=service_started");
+        }
+
         internal void MarkLeaseDone(AgentSession session, string agentInstanceId, SkuSyncLeaseResult lease)
         {
-            UpdateLease(session, agentInstanceId, lease, "DONE", NowMs() + 10 * 60 * 1000L);
+            UpdateLease(session, agentInstanceId, lease, "DONE", EndOfDayLockMs(), true);
+            if (lease != null)
+            {
+                lease.ServiceStarted = true;
+                lease.DayLocked = true;
+            }
         }
 
         internal void ReleaseLeaseSoon(AgentSession session, string agentInstanceId, SkuSyncLeaseResult lease)
         {
-            try { UpdateLease(session, agentInstanceId, lease, "LEASED", NowMs() + 15 * 1000L); }
+            // Safe only before the first service job is submitted. Once service_started=true,
+            // the whole Asia/Ho_Chi_Minh day stays locked to prevent uncertain duplicate sends.
+            if (lease == null || lease.ServiceStarted) return;
+            try { UpdateLease(session, agentInstanceId, lease, "LEASED", NowMs() + 15 * 1000L, false); }
             catch { }
         }
 
@@ -152,7 +188,8 @@ namespace SupraInventoryRelayAgent
             IList<WmsSkuCatalogItem> items,
             string sourceHash,
             bool confirmNameChanges,
-            int timeoutSeconds = 75)
+            Action<string> progress = null,
+            int timeoutSeconds = 180)
         {
             EnsureSession(session);
             if (items == null || items.Count == 0 || items.Count > 1000)
@@ -195,20 +232,37 @@ namespace SupraInventoryRelayAgent
 
             var url = AgentConfig.FirestoreSkuSyncCollectionUrl.TrimEnd('/') + "/" + jobId;
             Patch(session, url + "?currentDocument.exists=false", fields, "sku-import-create");
+            if (progress != null) progress("Đã gửi lô SKU · đang chờ Service nhận...");
             _log("SKU_SYNC import_submit=PASS job=" + Short(jobId) +
                  " rows=" + items.Count +
                  " confirm_names=" + (confirmNameChanges ? "true" : "false"));
 
-            var deadline = DateTime.UtcNow.AddSeconds(Math.Max(15, Math.Min(180, timeoutSeconds)));
+            var boundedTimeout = Math.Max(30, Math.Min(300, timeoutSeconds));
+            var deadline = DateTime.UtcNow.AddSeconds(boundedTimeout);
+            var lastStatus = "PENDING";
+            var lastProgressUtc = DateTime.MinValue;
             while (DateTime.UtcNow < deadline)
             {
                 Thread.Sleep(1000);
                 var doc = Map(_json.DeserializeObject(Get(session, url, "sku-import-wait")));
                 var docFields = GetMap(doc, "fields");
                 var status = FieldString(docFields, "status");
+                if (string.IsNullOrWhiteSpace(status)) status = "PENDING";
+                var statusChanged = !string.Equals(status, lastStatus, StringComparison.Ordinal);
+                if (statusChanged || DateTime.UtcNow - lastProgressUtc >= TimeSpan.FromSeconds(10))
+                {
+                    lastStatus = status;
+                    lastProgressUtc = DateTime.UtcNow;
+                    if (progress != null)
+                    {
+                        if (string.Equals(status, "RUNNING", StringComparison.Ordinal))
+                            progress("Service đã nhận · đang xử lý lô SKU...");
+                        else if (string.Equals(status, "PENDING", StringComparison.Ordinal))
+                            progress("Đã gửi lô SKU · đang chờ Service nhận...");
+                    }
+                }
                 if (string.Equals(status, "PENDING", StringComparison.Ordinal) ||
-                    string.Equals(status, "RUNNING", StringComparison.Ordinal) ||
-                    string.IsNullOrWhiteSpace(status))
+                    string.Equals(status, "RUNNING", StringComparison.Ordinal))
                     continue;
 
                 var resultMap = FieldMap(docFields, "result");
@@ -225,7 +279,10 @@ namespace SupraInventoryRelayAgent
                 };
             }
 
-            throw new TimeoutException("Hết thời gian chờ service cập nhật SKU.");
+            throw new TimeoutException(
+                string.Equals(lastStatus, "RUNNING", StringComparison.Ordinal)
+                    ? "Service đã nhận cập nhật SKU nhưng chưa hoàn tất trong thời gian chờ. Đã giữ khóa hôm nay để không gửi trùng."
+                    : "Service chưa xác nhận xử lý cập nhật SKU trong thời gian chờ. Đã giữ khóa hôm nay để không gửi trùng.");
         }
 
         internal static string ComputeSourceHash(IList<WmsSkuCatalogItem> items)
@@ -247,7 +304,8 @@ namespace SupraInventoryRelayAgent
             string agentInstanceId,
             SkuSyncLeaseResult lease,
             string status,
-            long leaseUntilMs)
+            long leaseUntilMs,
+            bool serviceStarted)
         {
             if (lease == null || string.IsNullOrWhiteSpace(lease.LeaseDocumentId)) return;
             var fields = LeaseFields(
@@ -256,7 +314,8 @@ namespace SupraInventoryRelayAgent
                 lease.DayKey,
                 lease.LeaseDocumentId,
                 status,
-                leaseUntilMs);
+                leaseUntilMs,
+                serviceStarted);
             Patch(
                 session,
                 AgentConfig.FirestoreSkuSyncCollectionUrl.TrimEnd('/') + "/" + lease.LeaseDocumentId + BuildMask(fields.Keys),
@@ -270,7 +329,8 @@ namespace SupraInventoryRelayAgent
             string dayKey,
             string docId,
             string status,
-            long leaseUntilMs)
+            long leaseUntilMs,
+            bool serviceStarted)
         {
             return new Dictionary<string, object>
             {
@@ -281,7 +341,8 @@ namespace SupraInventoryRelayAgent
                 { "admin_user_id", StringField(session.AppUserId ?? "") },
                 { "owner_agent_id", StringField(agentInstanceId ?? "") },
                 { "day_key", StringField(dayKey ?? "") },
-                { "lease_until_ms", IntField(leaseUntilMs) }
+                { "lease_until_ms", IntField(leaseUntilMs) },
+                { "service_started", BoolField(serviceStarted) }
             };
         }
 
@@ -291,6 +352,8 @@ namespace SupraInventoryRelayAgent
             return new SkuSyncLeaseResult
             {
                 Acquired = true,
+                DayLocked = false,
+                ServiceStarted = false,
                 DayKey = dayKey,
                 LeaseDocumentId = docId,
                 Detail = detail
@@ -378,6 +441,16 @@ namespace SupraInventoryRelayAgent
                 : "";
         }
 
+        private static bool FieldBool(Dictionary<string, object> fields, string key)
+        {
+            var field = GetMap(fields, key);
+            object value;
+            return field != null &&
+                   field.TryGetValue("booleanValue", out value) &&
+                   value is bool &&
+                   (bool)value;
+        }
+
         private static long FieldLong(Dictionary<string, object> fields, string key)
         {
             var field = GetMap(fields, key);
@@ -429,6 +502,19 @@ namespace SupraInventoryRelayAgent
         private static long NowMs()
         {
             return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        }
+
+        private static long EndOfDayLockMs()
+        {
+            // Fixed project timezone is Asia/Ho_Chi_Minh (UTC+07, no DST).
+            var localNow = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7));
+            var nextDay = new DateTimeOffset(
+                localNow.Year,
+                localNow.Month,
+                localNow.Day,
+                0, 15, 0,
+                TimeSpan.FromHours(7)).AddDays(1);
+            return nextDay.ToUnixTimeMilliseconds();
         }
 
         private static string Short(string value)
