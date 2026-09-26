@@ -312,7 +312,7 @@ def main() -> None:
     require(picker, 'Không tìm thấy PickList khớp đúng các số cuối', "D126 precise not-found copy")
     forbid(picker_layout, 'android:hint="5 số cuối Picklist"', "D126 no forced five-digit hint")
     forbid(picker, "digits.length == 5", "D126 no forced five-digit readiness")
-    require(relay, 'Regex("^\\d{3,20}$")', "D126 Android 3-20 digit suffix request")
+    require(relay, 'Regex("^\\\\d{3,20}$")', "D126 Android 3-20 digit suffix request")
     require(relay, "candidatePicklists", "D126 Android receives bounded ambiguous candidates")
     forbid(relay, "/api/picker/reports", "D126 confirmation does not use Báo hàng mutation API")
 
