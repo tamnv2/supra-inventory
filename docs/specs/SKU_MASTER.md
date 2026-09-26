@@ -86,3 +86,16 @@ D125 supersedes D119/D122/D124 only for WMS-derived SKU synchronization.
 - Preserve existing file validation, header detection, safe SKU parsing, same-SKU dedupe, additive merge and explicit confirmation for changed product names.
 - A SKU absent from a later import is not deleted automatically.
 - Firestore `sku_sync_jobs` and `skuSyncCreated` are legacy implementation artifacts pending D125 cleanup; they are not authority to continue WMS SKU synchronization.
+
+## D126 — Manual SKU remains final source for this workstream
+
+D126 keeps the D125 manual-file-only SKU decision while cancelling the rest of the D125 Office rewrite.
+
+- Existing Web manual file import is the only approved SKU-master update path.
+- Agent must not read WMS/Tồn Bin to build SKU/product-name data.
+- Automatic daily Agent SKU synchronization is disabled/removed.
+- Firestore `sku_sync_jobs`, `skuSyncCreated` and WMS SKU catalog readers are legacy runtime to retire in D126; they are not fallback paths.
+- Existing validation, header detection, safe parsing, same-SKU dedupe, additive merge and explicit changed-name confirmation remain unchanged.
+- Missing SKUs in a later import are not deleted automatically.
+- Automatic SKU synchronization is deferred until a later explicit Owner decision.
+
