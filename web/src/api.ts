@@ -27,6 +27,12 @@ export interface SkuCatalogInfo {
   count: number;
   max_updated_at: string | null;
   version: string;
+  last_sync_at?: string | null;
+  last_sync_by?: string | null;
+  last_sync_total?: number;
+  last_sync_inserted?: number;
+  last_sync_updated?: number;
+  last_sync_unchanged?: number;
 }
 
 export interface SkuCatalogPage {
