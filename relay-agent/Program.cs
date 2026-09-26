@@ -1744,6 +1744,7 @@ namespace SupraInventoryRelayAgent
             {
                 case "READY": return "Web Confirm sẵn sàng";
                 case "LOGIN_OR_DOM_NOT_READY": return "Chờ đăng nhập / tải trang";
+                case "CONFIRM_DOM_PARTIAL": return "Đang nhận diện giao diện Confirm";
                 case "WRONG_PAGE": return "Sai trang Confirm";
                 case "BROWSER_ERROR": return "Lỗi trình duyệt";
                 case "DOM_UNAVAILABLE": return "DOM chưa sẵn sàng";
@@ -2156,7 +2157,11 @@ namespace SupraInventoryRelayAgent
                         : "Web Confirm: " + BrowserStateLabel(state.State);
                     _supraInfo.Text =
                         "HY1 · " + (string.IsNullOrWhiteSpace(state.Browser) ? "Trình duyệt" : state.Browser) +
-                        (state.Hidden ? " · Đang ẩn" : " · Đang hiển thị");
+                        (state.Hidden ? " · Đang ẩn" : " · Đang hiển thị") +
+                        (state.Ready ? "" :
+                            " · DOM Tìm=" + state.SearchCount +
+                            " XN=" + state.ConfirmCount +
+                            " Bảng=" + state.TableCount);
                     _wmsLogout.Text = state.Hidden ? "Hiện trình duyệt" : "Ẩn trình duyệt";
                     _wmsLogout.Enabled = !string.Equals(state.State, "NOT_OPEN", StringComparison.Ordinal) && HasAgentSession();
                     _wmsTest.Enabled = !string.Equals(state.State, "NOT_OPEN", StringComparison.Ordinal) && HasAgentSession();
@@ -2189,7 +2194,14 @@ namespace SupraInventoryRelayAgent
                 _supraBrowserHidden = state.Hidden;
                 _supraBrowserState = state.State ?? "NOT_OPEN";
                 RefreshSupraBrowserStatus();
-                Log("SUPRA_BROWSER open state=" + _supraBrowserState + " ready=" + (_supraBrowserReady ? "1" : "0") +
+                Log("SUPRA_BROWSER open state=" + _supraBrowserState +
+                    " ready=" + (_supraBrowserReady ? "1" : "0") +
+                    " page=" + (state.Url ?? "") +
+                    " search=" + state.SearchCount +
+                    " confirm=" + state.ConfirmCount +
+                    " confirm_visible=" + state.ConfirmVisibleCount +
+                    " table=" + state.TableCount +
+                    " frames=" + state.FrameCount +
                     " session_extract=false direct_wms_api=false");
             }
             catch (Exception ex)
@@ -2218,7 +2230,29 @@ namespace SupraInventoryRelayAgent
 
         private void TestSupraBrowser()
         {
-            RefreshSupraBrowserStatus();
+            try
+            {
+                var state = _supraBrowser.RefreshState();
+                _supraBrowserReady = state.Ready;
+                _supraBrowserHidden = state.Hidden;
+                _supraBrowserState = state.State ?? "NOT_OPEN";
+                Log("SUPRA_BROWSER check state=" + _supraBrowserState +
+                    " ready=" + (_supraBrowserReady ? "1" : "0") +
+                    " page=" + (state.Url ?? "") +
+                    " search=" + state.SearchCount +
+                    " confirm=" + state.ConfirmCount +
+                    " confirm_visible=" + state.ConfirmVisibleCount +
+                    " table=" + state.TableCount +
+                    " frames=" + state.FrameCount +
+                    " session_extract=false direct_wms_api=false");
+                RefreshSupraBrowserStatus();
+            }
+            catch (Exception ex)
+            {
+                _supraBrowserReady = false;
+                _supraBrowserState = "BROWSER_ERROR";
+                Log("SUPRA_BROWSER check fail type=" + ex.GetType().Name);
+            }
             Ui(() => _wmsStatus.Text = _supraBrowserReady
                 ? "Web Confirm sẵn sàng"
                 : "Web Confirm: " + BrowserStateLabel(_supraBrowserState));
