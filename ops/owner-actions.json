@@ -2483,7 +2483,7 @@
     },
     {
       "id": "OA051",
-      "status": "FIELD_RETEST_READY__D126_V50_TECHNICAL_RELEASE_PASS",
+      "status": "SUPERSEDED_BY_D127_V51_FIELD_GATE",
       "title": "Field-accept D126 managed-browser PickList confirmation",
       "resource_key": "repo",
       "provider": "Beta Android + Firestore + Windows Agent + user-controlled Supra browser",
@@ -2541,7 +2541,46 @@
         "SKU is manual-file-only and Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company Supra accounts. Do not paste or share passwords, cookies, tokens, headers, signatures or other session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Update/restart Agent to v50, confirm START version=0.50.0.0, then rerun OA051 through checkbox → Xác nhận lấy lại hàng → dialog Xác nhận → terminal result.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "result": "SUPERSEDED_BY_D127",
+        "reason": "Owner approved D127 quota/browser hardening before completing v50 field acceptance."
+      }
+    },
+    {
+      "id": "OA052",
+      "status": "WAITING_D127_TECHNICAL_RELEASE",
+      "title": "Field-accept D127 quota-safe relay and Agent-owned browser fallback",
+      "resource_key": "repo",
+      "provider": "Beta Firestore + Windows Agent + Supra managed browser",
+      "reason_owner_only": "CI can prove source/build/quota guards and package integrity, but real Supra paginator/checkbox behavior, Fixed WebView2 compatibility, browser isolation and fallback require physical company-laptop field observation.",
+      "prerequisites": {
+        "d127_branch": "d127-quota-browser-hardening",
+        "target_agent_release": "relay-agent-v51",
+        "android_baseline": "beta-vc76",
+        "stable": "OWNER_GATED",
+        "technical_release": "PENDING"
+      },
+      "shortest_test_path": [
+        "Update Beta Agent to relay-agent-v51; leave Android beta-vc76 unchanged.",
+        "Verify Firestore usage remains flat when there are no fresh confirmation jobs and no Picker lifecycle changes; old PENDING rows must not repeat-read.",
+        "Log in/logout/reconnect a Picker and verify event-driven list plus 180-second transient disconnect grace without periodic refresh flicker.",
+        "Open Confirm PickList with Số dòng mỗi trang initially below 100 and verify Agent sets/validates 100.",
+        "Test a visible PickList with initially disabled checkbox: one Tìm kiếm refresh may recover it; still-disabled after refresh must reject without confirmation click.",
+        "On a capable x64 laptop verify Agent WebView2 Fixed is used; close/end normal Edge and confirm Agent browser survives.",
+        "Block/remove owned browser bundle and verify automatic dedicated-profile Edge/Chrome fallback still reaches the same D126 exact row/dialog flow."
+      ],
+      "pass_criteria": [
+        "No stale PENDING read storm and no periodic Picker presence/alert poll loop.",
+        "Picker lifecycle, 14:00 continuation and 05:00–23:00 display rules behave as D127.",
+        "Page-size 100 and checkbox readiness logic are semantic, bounded and fail-closed.",
+        "Owned WebView2 works when supported; fallback works when unavailable.",
+        "No auth/session extraction or direct WMS API is introduced.",
+        "Stable remains untouched."
+      ],
+      "safety": "Beta only. Use authorized company Supra accounts. Do not share passwords, cookies, tokens, headers, signatures or other session material. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for D127 technical/release PASS before field testing.",
       "closed": false
     }
   ]
