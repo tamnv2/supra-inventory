@@ -2400,7 +2400,9 @@
         "d124_branch": "fix/d124-agent-sku-daily-no-overlay",
         "target_agent_release": "relay-agent-v45",
         "stable": "OWNER_GATED",
-        "technical_release": "PENDING"
+        "technical_release": "PENDING",
+        "implementation_pr": 195,
+        "pr_status": "OPEN__AUTOMATED_GATES_RUNNING"
       },
       "shortest_test_path": [
         "After D124 technical/release PASS, update through inventory-channel to relay-agent-v45 and open Tổng quan with saved Agent/Supra sessions.",
