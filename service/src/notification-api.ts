@@ -70,7 +70,7 @@ export async function handleNotificationApi(request: Request, env: NotificationE
     } catch {
       // New alert bridge is additive. Existing FCM registration remains authoritative.
     }
-    await refreshPickerProjectionBestEffort(env);
+    await refreshPickerProjectionBestEffort(env, request.method === "POST" ? "DEVICE_UPSERT" : "DEVICE_REMOVE");
   }
   return response;
 }
