@@ -189,7 +189,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Complete D127 v51 implementation, PR authority/continuity/build gates, merge and Beta release. Then run OA052 quota/browser field acceptance. Stable remains OWNER-GATED.",
+  "next_action": "Repair the D127 main relay-agent release gate by resolving the official Fixed WebView2 package through the rendered Microsoft download page, rerun PR/main gates, publish the browser bundle, then checkpoint technical release PASS. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -822,7 +822,7 @@
     "D121 implementation PR #191 targets relay-agent-v42 from released v41 baseline; first Agent gate exposed AgentConfig.AgentBuild still at 41 and the same PR corrected it to 42 before build.",
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged."
   ],
-  "active_workstream": "D127_QUOTA_BROWSER_HARDENING__IMPLEMENTATION_IN_PROGRESS",
+  "active_workstream": "D127_RELEASE_REPAIR__WEBVIEW2_BUNDLE_PUBLISH",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -1259,7 +1259,7 @@
     }
   },
   "d127": {
-    "status": "IMPLEMENTATION_IN_PROGRESS__PR_PENDING",
+    "status": "MERGED_IMPLEMENTATION__RELEASE_REPAIR_IN_PROGRESS",
     "decision_date": "2026-09-26",
     "branch": "d127-quota-browser-hardening",
     "baseline_main": "a1ecf217dc1fb447a4ca445c59c01d1348cb80d2",
@@ -1275,6 +1275,15 @@
     "browser": "AGENT_OWNED_WEBVIEW2_FIXED_X64_DEDICATED_PROFILE_PREFERRED__CHECKSUM_BUNDLE__EDGE_THEN_CHROME_FALLBACK",
     "browser_security": "RUNTIME_PAGE_DOM_ONLY__NO_NETWORK_COOKIE_TOKEN_PASSWORD_EXTRACTION__NO_DIRECT_WMS_API",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "next_action": "OPEN_PR_RUN_GATES_REPAIR_UNTIL_PASS_MERGE_RELEASE_V51_THEN_OA052"
+    "next_action": "MERGE_RELEASE_REPAIR__VERIFY_MAIN_RELAY_AGENT_PASS__PUBLISH_BROWSER_BUNDLE__THEN_CHECKPOINT",
+    "main_merge": "f5ad9d45be3445b6e030d1f5f0de1abc0507b54e",
+    "agent_release": "relay-agent-v51__PUBLISHED",
+    "agent_release_id": 397296190,
+    "agent_asset_id": 590949850,
+    "agent_sha256": "adfd0350484c41b27842d406551d3f8b0d877c076b280b7c1a932adb62421fbd",
+    "main_relay_agent_run": 36253374462,
+    "main_relay_agent_result": "FAIL__OWNED_WEBVIEW2_BUNDLE_URL_RESOLUTION",
+    "release_repair_branch": "fix/d127-webview2-bundle-download",
+    "browser_bundle": "PENDING_REPAIR__RENDERED_MICROSOFT_PAGE_RESOLVER"
   }
 }
