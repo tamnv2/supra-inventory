@@ -2348,7 +2348,7 @@
     },
     {
       "id": "OA049",
-      "status": "WAITING_D123_TECHNICAL_RELEASE",
+      "status": "FIELD_REVIEW_SUPERSEDED_BY_D124",
       "title": "Field-accept D123 Agent UI-thread affinity repair",
       "resource_key": "repo",
       "provider": "GitHub Beta prerelease + Windows Agent",
@@ -2358,7 +2358,10 @@
         "d123_branch": "fix/d123-agent-ui-thread-affinity",
         "target_agent_release": "relay-agent-v44",
         "stable": "OWNER_GATED",
-        "technical_release": "PENDING"
+        "technical_release": "PASS",
+        "implementation_pr": 194,
+        "merged_main": "9da487ff341cf31fe61a944b3c41b9fe20c094de",
+        "agent_release_id": 397029218
       },
       "shortest_test_path": [
         "After relay-agent-v44 is published to inventory-channel, update and open Agent with the same saved Agent and Supra sessions that made v43 hang.",
@@ -2374,7 +2377,49 @@
         "D120 Picker stability and D117/D118 confirmation/HA/WMS contracts remain unchanged; Stable untouched."
       ],
       "safety": "Beta Agent only. Do not share passwords, tokens, WMS session/header material or other secrets. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for D123 technical/release PASS, then run OA049.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "owner_report_date": "2026-09-26",
+        "result": "SUPERSEDED_BY_D124_AFTER_V44_FIELD_USE",
+        "evidence": "Owner reached relay-agent-v44 and opened D124 for Overlay removal, Agent request metrics and SKU daily-sync timeout/duplicate repair.",
+        "superseded_by": "D124_OA050"
+      }
+    },
+    {
+      "id": "OA050",
+      "status": "WAITING_D124_TECHNICAL_RELEASE",
+      "title": "Field-accept D124 Agent operational cleanup and single-daily SKU sync",
+      "resource_key": "repo",
+      "provider": "GitHub Beta prerelease + Beta Functions + Windows Agent",
+      "reason_owner_only": "CI can prove source/build/daily-lock guards and Function deployment, but final Windows layout/progress behavior and real Supra SKU Service completion require physical field observation.",
+      "prerequisites": {
+        "d123_technical_release": "PASS",
+        "d123_main": "9da487ff341cf31fe61a944b3c41b9fe20c094de",
+        "d123_agent_release": "relay-agent-v44",
+        "d124_branch": "fix/d124-agent-sku-daily-no-overlay",
+        "target_agent_release": "relay-agent-v45",
+        "stable": "OWNER_GATED",
+        "technical_release": "PENDING"
+      },
+      "shortest_test_path": [
+        "After D124 technical/release PASS, update through inventory-channel to relay-agent-v45 and open Tổng quan with saved Agent/Supra sessions.",
+        "Confirm Bảng nổi/Overlay is absent from tabs, tray and normal operation; keep Agent open several minutes and verify D123 no-hang behavior remains.",
+        "In Hệ thống Agent, verify Nhận / Đã xử lý / Thành công / Lỗi / Chờ update during controlled confirmation requests and the summary occupies roughly the compact upper 30% while the fleet grid uses the remainder.",
+        "Run Cập nhật SKU once. Verify visible stages from daily check through Supra read, lô X/Y, Service wait/RUNNING and terminal result.",
+        "After the first Service submission, press Cập nhật SKU again and test another online Agent: both must be refused for the same Asia/Ho_Chi_Minh day without creating another daily operation.",
+        "Run one normal PickList confirmation to confirm D117/D118 generation/WMS guards and D120 Picker presence remain normal."
+      ],
+      "pass_criteria": [
+        "No Overlay/Bảng nổi runtime or settings surface remains in Agent.",
+        "Local confirmation counters are readable in Hệ thống Agent and update without blocking UI.",
+        "SKU progress is visible and service timeout no longer produces an immediate same-day retry path.",
+        "After service_started, same-day automatic/manual duplicate SKU operation is blocked fleet-wide, including after Agent restart.",
+        "D123 startup/thread-affinity behavior, D120 Picker stability and D117/D118 confirmation/HA/WMS contracts remain unchanged.",
+        "Stable remains untouched."
+      ],
+      "safety": "Beta only. Use authorized company accounts. Do not share passwords, tokens, WMS session/header/signing material or other secrets. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for D124 technical/release PASS, then run OA050.",
       "closed": false
     }
   ]
