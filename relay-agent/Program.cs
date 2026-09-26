@@ -4574,14 +4574,24 @@ namespace SupraInventoryRelayAgent
         private static bool IsDefinitiveAgentAuthFailure(Exception ex)
         {
             var relay = ex as RelayHttpException;
-            if (relay == null || (relay.StatusCode != 400 && relay.StatusCode != 401 && relay.StatusCode != 403)) return false;
-            var detail = (relay.Detail ?? "").ToUpperInvariant();
-            return detail.Contains("INVALID_REFRESH_TOKEN") ||
-                   detail.Contains("INVALID_GRANT") ||
-                   detail.Contains("TOKEN_EXPIRED") ||
-                   detail.Contains("USER_DISABLED") ||
-                   detail.Contains("INVALID_ID_TOKEN") ||
-                   detail.Contains("CREDENTIAL_TOO_OLD");
+            if (relay != null && (relay.StatusCode == 400 || relay.StatusCode == 401 || relay.StatusCode == 403))
+            {
+                var detail = (relay.Detail ?? "").ToUpperInvariant();
+                if (detail.Contains("INVALID_REFRESH_TOKEN") ||
+                    detail.Contains("INVALID_GRANT") ||
+                    detail.Contains("TOKEN_EXPIRED") ||
+                    detail.Contains("USER_DISABLED") ||
+                    detail.Contains("INVALID_ID_TOKEN") ||
+                    detail.Contains("CREDENTIAL_TOO_OLD"))
+                    return true;
+            }
+
+            var invalid = ex as InvalidOperationException;
+            if (invalid == null) return false;
+            var message = (invalid.Message ?? "").ToUpperInvariant();
+            return message.Contains("KHÔNG CÒN QUYỀN") ||
+                   message.Contains("SAI PROJECT AUDIENCE") ||
+                   message.Contains("KHÔNG TRẢ PHIÊN FIREBASE HỢP LỆ");
         }
 
         private void ExpireAgentSession(string reason)
