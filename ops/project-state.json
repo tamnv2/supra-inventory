@@ -189,7 +189,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Wait for Owner phrase `tiến hành sửa đổi mô hình`; then bootstrap current main, create a fresh implementation branch, remove Android Xác nhận đơn/PickList flow, remove any Web Supra-session/WMS surfaces, retire WMS SKU sync, and repurpose Windows Agent as the Firebase-backed Office Inventory client. Stable remains OWNER-GATED.",
+  "next_action": "D126 v46 field defect confirmed: ship relay-agent-v47 browser readiness hotfix, pass PR/main/release gates, then rerun OA051 on the real Confirm PickList page. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
