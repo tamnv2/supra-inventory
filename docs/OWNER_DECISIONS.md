@@ -1249,3 +1249,19 @@ D127 implementation and release repair are **TECHNICAL / RELEASE PASS** on Beta.
 - D127 source guards keep fresh-only Firestore PENDING reads, event-driven Picker presence with 180-second transient disconnect grace, server-filtered open Picker alerts, semantic page-size 100, one batch Search retry for a missing/disabled exact row, owned WebView2 preferred, automatic Edge/Chrome fallback, and D126 DOM-only security/confirmation guards.
 - Stable remains OWNER-GATED and untouched.
 - Next gate: OA052 real-field acceptance. D127 is not Owner-PASS until that physical Beta review passes.
+
+## D127 hotfix — Agent v52 UI visibility and owned-browser download status — 2026-09-26
+
+Owner requested two field-facing fixes before OA052 acceptance. **TECHNICAL / RELEASE PASS** on Beta; OA052 physical field acceptance remains pending.
+
+- PR #211 squash-merged to main `50773a7001b3ab145d3e0189eed068c03b2d9ee5`.
+- Main Relay Agent run `36256314847` completed successfully.
+- Agent release advanced to `relay-agent-v52`, release id `397315426`, canonical EXE asset `591029955`, size `335360` bytes, SHA-256 `fce784ee55c7bef84c3f283cc6a0ec7e6f91dc1153f46386a0a3d2fb1edf1852`.
+- `inventory-channel` now serves v52 through manifest/EXE assets `591030008/591030007`.
+- After-hours decision UI no longer shares the Agent/Relay/Wi-Fi status area. It uses a dedicated responsive panel with the fleet table reflowed below it, so **Tiếp tục** / **Dừng** remain visible in the half-width Agent card and after resize.
+- **Hệ thống Supra** now exposes **Tải trình duyệt Agent**, a 0–100% progress bar, and a persistent **Trình duyệt Agent khả dụng · WebView2 Fixed <version>** state after checksum-verified installation.
+- Automatic background acquisition remains supported; owned WebView2 remains preferred and Edge/Chrome dedicated-profile fallback remains unchanged.
+- The WebView2 Fixed runtime bundle remains **154.0.4258.37 x64** on `inventory-channel` (asset `590989452`); no redundant browser bundle republish was required.
+- Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
+- OA052 should be run against **relay-agent-v52**.
+
