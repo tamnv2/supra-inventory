@@ -3187,6 +3187,20 @@ namespace SupraInventoryRelayAgent
                     continue;
                 }
 
+                if (search.UnselectableFragments.Exists(x => string.Equals(x, work.Suffix ?? "", StringComparison.Ordinal)))
+                {
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "CONFIRM_REJECTED",
+                        CacheMode = "BROWSER_DOM+SEARCH_REFRESH+CHECKBOX_NOT_READY",
+                        Route = "BROWSER_DOM",
+                        OperationMs = Math.Max(0L, search.ElapsedMs),
+                        Matches = 1,
+                        Rate = new PickerRateDecision()
+                    };
+                    continue;
+                }
+
                 _firestoreRateLimiter.ClearFound(appSession, work.PickerUid);
 
                 var ageNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
