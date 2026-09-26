@@ -444,6 +444,8 @@ namespace SupraInventoryRelayAgent
         private readonly Button _browserBundleDownload = new Button();
         private readonly ProgressBar _browserBundleProgress = new ProgressBar();
         private readonly Label _browserBundleStatus = new Label();
+        private readonly Label _agentDataStorageStatus = new Label();
+        private readonly Button _openAgentDataFolder = new Button();
         private readonly Label _wmsStatus = new Label();
         private readonly Label _relay = new Label();
         private readonly Label _network = new Label();
@@ -518,6 +520,8 @@ namespace SupraInventoryRelayAgent
         private DateTime _lastAfterHoursScheduleSyncAt = DateTime.MinValue;
         private bool? _lastRelayAllowed;
         private bool? _afterHoursLayoutVisible;
+        private DateTime _lastAgentDataSizeRefreshUtc = DateTime.MinValue;
+        private int _agentDataSizeRefreshRunning;
 
         private static readonly string RelayDataDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -675,6 +679,7 @@ namespace SupraInventoryRelayAgent
             {
                 CheckAfterHoursSchedule();
                 RefreshBrowserBundleUi();
+                QueueAgentDataStorageRefresh();
             };
 
             // GitHub cannot push directly into a portable EXE. D101 therefore uses
@@ -710,6 +715,8 @@ namespace SupraInventoryRelayAgent
                 _trayMonitorTimer.Start();
                 _logUploadTimer.Start();
                 _afterHoursTimer.Start();
+                AgentBrowserBundle.CleanupObsoleteBackground(message => Log(message));
+                QueueAgentDataStorageRefresh(true);
                 CheckAfterHoursSchedule(true);
                 if (_autoStarted)
                 {
@@ -980,7 +987,7 @@ namespace SupraInventoryRelayAgent
             };
             overviewLayout.Controls.Add(agentCard, 0, 0);
 
-            // Hệ thống Supra - chỉ giữ trạng thái cần dùng.
+            // Đăng nhập Supra - trạng thái trình duyệt, tải bundle và dung lượng dữ liệu cục bộ.
             _supraCard = NewCard(0, 0, 1040, 96);
             _supraCard.Dock = DockStyle.Fill;
             _supraCard.Margin = new Padding(0, 0, 0, 8);
@@ -990,7 +997,7 @@ namespace SupraInventoryRelayAgent
                 Top = 10,
                 Width = 190,
                 Height = 24,
-                Text = "Hệ thống Supra",
+                Text = "Đăng nhập Supra",
                 Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(24, 43, 55)
             });
@@ -1034,13 +1041,27 @@ namespace SupraInventoryRelayAgent
             _browserBundleProgress.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _supraCard.Controls.Add(_browserBundleProgress);
 
-            _browserBundleStatus.SetBounds(16, 170, 980, 24);
+            _browserBundleStatus.SetBounds(16, 170, 500, 24);
             _browserBundleStatus.Text = "Trình duyệt Agent: chưa tải";
             _browserBundleStatus.ForeColor = Color.FromArgb(88, 104, 115);
-            _browserBundleStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            _browserBundleStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _browserBundleStatus.AutoEllipsis = true;
             _supraCard.Controls.Add(_browserBundleStatus);
+
+            _agentDataStorageStatus.SetBounds(524, 170, 220, 24);
+            _agentDataStorageStatus.Text = "Dữ liệu Agent: đang tính...";
+            _agentDataStorageStatus.ForeColor = Color.FromArgb(88, 104, 115);
+            _agentDataStorageStatus.AutoEllipsis = true;
+            _supraCard.Controls.Add(_agentDataStorageStatus);
+
+            _openAgentDataFolder.SetBounds(752, 166, 244, 28);
+            _openAgentDataFolder.Text = "Mở thư mục dữ liệu";
+            _openAgentDataFolder.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            _openAgentDataFolder.Click += (sender, e) => OpenAgentDataFolder();
+            _supraCard.Controls.Add(_openAgentDataFolder);
+
             RefreshBrowserBundleUi();
+            QueueAgentDataStorageRefresh(true);
             _supraCard.Enabled = false;
             overviewLayout.Controls.Add(_supraCard, 0, 1);
 
@@ -1590,6 +1611,85 @@ namespace SupraInventoryRelayAgent
             _browserBundleStatus.Text = string.IsNullOrWhiteSpace(status.Detail)
                 ? "Trình duyệt Agent: chưa tải"
                 : status.Detail;
+        }
+
+        private void QueueAgentDataStorageRefresh(bool force = false)
+        {
+            var now = DateTime.UtcNow;
+            if (!force && _lastAgentDataSizeRefreshUtc != DateTime.MinValue &&
+                now - _lastAgentDataSizeRefreshUtc < TimeSpan.FromMinutes(1))
+                return;
+            if (Interlocked.CompareExchange(ref _agentDataSizeRefreshRunning, 1, 0) != 0) return;
+
+            _lastAgentDataSizeRefreshUtc = now;
+            Task.Run(() =>
+            {
+                try
+                {
+                    var browserBytes = DirectorySizeBestEffort(AgentBrowserBundle.BrowserDataRoot);
+                    var legacyRoot = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                        "Agent Auto Confirm Pick Pack");
+                    var otherBytes = DirectorySizeBestEffort(legacyRoot);
+                    var total = Math.Max(0L, browserBytes) + Math.Max(0L, otherBytes);
+                    Ui(() =>
+                    {
+                        _agentDataStorageStatus.Text =
+                            "Dữ liệu Agent: " + FormatBytes(total) +
+                            " · Browser " + FormatBytes(browserBytes);
+                    });
+                }
+                catch
+                {
+                    Ui(() => _agentDataStorageStatus.Text = "Dữ liệu Agent: chưa đọc được");
+                }
+                finally
+                {
+                    Interlocked.Exchange(ref _agentDataSizeRefreshRunning, 0);
+                }
+            });
+        }
+
+        private static long DirectorySizeBestEffort(string root)
+        {
+            long total = 0;
+            try
+            {
+                if (!Directory.Exists(root)) return 0;
+                foreach (var file in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
+                {
+                    try { total += new FileInfo(file).Length; } catch { }
+                }
+            }
+            catch { }
+            return total;
+        }
+
+        private static string FormatBytes(long bytes)
+        {
+            var value = Math.Max(0L, bytes);
+            if (value >= 1024L * 1024L * 1024L)
+                return (value / (1024d * 1024d * 1024d)).ToString("0.00") + " GB";
+            if (value >= 1024L * 1024L)
+                return (value / (1024d * 1024d)).ToString("0.0") + " MB";
+            if (value >= 1024L)
+                return (value / 1024d).ToString("0.0") + " KB";
+            return value + " B";
+        }
+
+        private void OpenAgentDataFolder()
+        {
+            try
+            {
+                var root = AgentBrowserBundle.BrowserDataRoot;
+                Directory.CreateDirectory(root);
+                Process.Start("explorer.exe", "\"" + root + "\"");
+            }
+            catch (Exception ex)
+            {
+                Log("AGENT_DATA open_folder=FAIL type=" + ex.GetType().Name +
+                    " detail=" + AgentDiagnostics.Sanitize(ex.Message));
+            }
         }
 
         private static Panel NewCard(int left, int top, int width, int height)
