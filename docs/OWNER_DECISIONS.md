@@ -1342,3 +1342,18 @@ Owner reported v57 still did not auto-click the dashboard access control and que
 - Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
 - OA052 remains pending physical v58 verification.
 
+## D127 field hotfix — Agent v60 host-native Dashboard entry + storage breakdown — 2026-09-27
+
+Owner video on v59 showed the visible Agent WebView2 remaining on Dashboard without automatically clicking the warehouse quick-access arrow. Storage UI also caused confusion because the ~318 MB downloadable browser bundle was compared with total installed/local browser data.
+
+- PR #227 squash-merged to main `dd6f6fc94e6f1097614372da1d7027f06e7fcbfa`.
+- Main Relay Agent run `36267173324` completed successfully.
+- Agent release advanced to `relay-agent-v60`, release id `397372247`, canonical EXE asset `591333970`, size `355840` bytes, SHA-256 `416f712c4f9a385d85715baaa5bfd6cf56720dcbb65d79b0fcb201c062a9b54f`.
+- Dashboard quick-access probing now runs inside the visible WebView2 host itself on a short timer, rather than relying on the outer Agent's DevTools target/cadence. The probe uses the warehouse illustration SVG plus the right-arrow SVG and only clicks a unique candidate.
+- WebView2 new-window requests remain forced into the current tab; after warehouse entry the same tab returns to the canonical Confirm URL.
+- Browser host advanced to `host_build=5`; browser bundle asset `591335732`, manifest/checksum assets `591335733/591335734`, size `318618821` bytes, SHA-256 `d23dbd53f49a30d15a5ab9647e81e476a7feb240f714f1a5c9b14cb90d8a6b48`.
+- Storage UI now separates **Runtime cài**, **Profile/cache**, **Khác**, and **Tổng**. The ~318 MB channel asset is the compressed download bundle and is not equivalent to installed runtime + browser profile/cache usage.
+- Existing cleanup still removes obsolete inactive `wv2-*` bundles and stale download/extract leftovers while preserving the active runtime and login profile.
+- Android remains unchanged; Stable remains OWNER-GATED and untouched.
+- OA052 remains pending physical v60 verification.
+
