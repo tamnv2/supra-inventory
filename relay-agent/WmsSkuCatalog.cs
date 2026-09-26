@@ -40,8 +40,12 @@ namespace SupraInventoryRelayAgent
             "tenhang", "tensanpham", "tenhanghoa"
         };
 
-        internal static WmsSkuCatalogResult Download(WmsSessionSnapshot session, Action<string> log)
+        internal static WmsSkuCatalogResult Download(
+            WmsSessionSnapshot session,
+            Action<string> log,
+            Action<string> progress = null)
         {
+            if (progress != null) progress("Đang đọc danh mục SKU từ Supra...");
             var variants = new[]
             {
                 "?Page=1&PageSize=5000",
@@ -55,6 +59,10 @@ namespace SupraInventoryRelayAgent
             {
                 try
                 {
+                    if (progress != null)
+                        progress(suffix.Length == 0
+                            ? "Đang kiểm tra dữ liệu SKU từ Supra..."
+                            : "Đang tải danh mục SKU từ Supra...");
                     var raw = WmsReadOnlyClient.GetSignedJson(
                         AgentConfig.WmsBinStocksUrl + suffix,
                         AgentConfig.WmsBinStocksSignPath,
@@ -75,6 +83,8 @@ namespace SupraInventoryRelayAgent
                         throw new InvalidOperationException(
                             "Chưa xác minh được phân trang Tồn Bin; từ chối cập nhật SKU một phần.");
 
+                    if (progress != null)
+                        progress("Đã đọc " + parsed.Items.Count.ToString("N0") + " SKU từ Supra.");
                     if (log != null)
                         log("SKU_SYNC WMS read=PASS variant=" + parsed.RequestVariant +
                             " raw_sku_rows=" + parsed.RawSkuRows +

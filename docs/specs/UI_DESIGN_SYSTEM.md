@@ -735,4 +735,10 @@ D111 supersedes only the conflicting D110 Reporter interaction/presentation deta
 - D119/D122 layout/grid helpers self-marshal when `InvokeRequired` is true. This includes authenticated layout, column-preference application/auto-sizing, Picker rendering and fleet metric rendering.
 - Automatic DataGridView sizing is presentation-only and must execute on the grid's owning UI thread. It must not trigger provider/network work.
 - D122's 50% Agent / 25% Supra / 25% PickList layout, right-side Picker workspace, one-row Agent/Relay/Wi-Fi, overlay behavior and per-user column preference remain unchanged.
+## D124 — Agent summary density and Overlay removal
 
+- D124 explicitly supersedes the earlier D089–D122 Windows Overlay/Bảng nổi UI requirements. Overlay is removed from the Windows Agent product: no Overlay tab, tray action, settings UI, runtime window or packaged Overlay source remains.
+- **Hệ thống Agent** owns the local confirmation counters: **Nhận / Đã xử lý / Thành công / Lỗi / Chờ**. Do not duplicate the machine-local request/response pair in the Picker workspace.
+- The Hệ thống Agent card uses a responsive compact summary region of approximately 30% for authentication/actions, the one-row Agent/Relay/Wi-Fi state and request counters; the Agent fleet grid uses the remaining height and scrolls internally.
+- SKU synchronization status is concise but continuously informative while active: daily-lock check, Supra read, chunk progress, Service wait/running state and final result.
+- Existing normal Windows chrome, tray background behavior, two-pane Overview, 50/25/25 left-column composition, Picker workspace, per-user column sizing and D123 UI-thread rules remain unchanged.

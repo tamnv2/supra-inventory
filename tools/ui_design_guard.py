@@ -46,7 +46,6 @@ ANDROID_ALL = "\n".join([ANDROID_MAIN, ANDROID_PICKER, ANDROID_REPORTER])
 
 RELAY_PROGRAM = read("relay-agent/Program.cs")
 RELAY_D119_FEATURES = read("relay-agent/D119AgentFeatures.cs")
-RELAY_OVERLAY = read("relay-agent/StatusOverlay.cs")
 
 SERVICE_OPS = read("service/src/operational-v2-core.ts")
 SERVICE_BUSINESS = read("service/src/business-api.ts")
@@ -90,13 +89,14 @@ checks = {
     "authority_d121_agent_responsive_layout": "D121" in DECISIONS and "D121 — Windows Agent balanced workspace and responsive status line" in DESIGN_SPEC,
     "authority_d122_agent_stability_ops_ux": "D122" in DECISIONS and "D122 — Agent stability, operational UX and session recovery" in DESIGN_SPEC,
     "authority_d123_agent_ui_thread_affinity": "D123" in DECISIONS and "D123 — Agent UI-thread affinity and startup hang repair" in DESIGN_SPEC,
+    "authority_d124_agent_operational_cleanup": "D124" in DECISIONS and "D124 — Agent summary density and Overlay removal" in DESIGN_SPEC,
     "agent_d122_weighted_left_regions": all(token in RELAY_PROGRAM for token in [
         "SizeType.Percent, 50F",
         "SizeType.Percent, 25F",
         "D122: Agent needs the larger operational surface",
     ]) and RELAY_PROGRAM.count("new RowStyle(SizeType.Percent, 25F)") >= 2,
     "agent_d121_one_line_system_status": all(token in RELAY_D119_FEATURES for token in [
-        "LayoutAgentSystemStatusRow(host, 100)",
+        "LayoutAgentSystemStatusRow(host, 96)",
         "_identity.SetBounds(left, top, width, 20)",
         "_relay.SetBounds(left + width + gap, top, width, 20)",
         "_network.SetBounds(left + ((width + gap) * 2), top",
@@ -132,12 +132,13 @@ checks = {
         "AllowUserToResizeColumns = !_autoSizeColumns.Checked",
         "SaveColumnPreferencesForCurrentUser",
     ]),
-    "agent_d122_overlay_crisp_text": all(token in RELAY_OVERLAY for token in [
-        "TransparencyKey = TransparencyColor",
-        "_backgroundLayer",
-        "Opacity = 1.0",
-        "_backgroundLayer.Opacity",
-    ]),
+    "agent_d124_overlay_removed": (
+        "Bảng nổi" not in RELAY_PROGRAM
+        and "StatusOverlay" not in RELAY_PROGRAM
+        and "OverlaySettings" not in RELAY_PROGRAM
+        and not (ROOT / "relay-agent/StatusOverlay.cs").is_file()
+        and not (ROOT / "relay-agent/OverlaySettingsForm.cs").is_file()
+    ),
     "agent_d122_sku_manual_feedback": all(token in RELAY_D119_FEATURES for token in [
         "NotifySkuSyncResult",
         "Cập nhật SKU thành công",

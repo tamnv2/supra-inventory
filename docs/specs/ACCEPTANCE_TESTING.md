@@ -1268,4 +1268,13 @@ D123 technical/release PASS requires:
 4. Physical OA049 repeats the exact v43 failure path: open/restart with saved Agent + Supra sessions at least three times, keep Overview active for several minutes, resize/move, switch tabs, scroll and type/search. PASS requires no immediate or repeatable Windows **Not Responding** state.
 5. Recheck the accepted D122 presentation/flows: 50/25/25 left layout, Picker stability, explicit SKU result/Web checkpoint, Ca vận hành, session-login recovery, Bảng nổi and per-user column sizing.
 6. Execute one controlled normal PickList confirmation to verify D117/D118 HA/generation/WMS mutation fences remain unchanged. Stable remains OWNER-GATED.
+## D124 — Agent v45 / SKU daily lock acceptance
 
+- **Overlay absence:** Agent has no Bảng nổi/Overlay top-level tab, tray action, settings control or runtime overlay window. Agent starts/restores without loading Overlay code.
+- **Agent metrics layout:** while confirmation requests arrive, Hệ thống Agent updates Nhận, Đã xử lý, Thành công, Lỗi and Chờ without requiring a tab switch. The compact state/counter region is approximately 30% of the Agent card and the fleet grid fills the remainder with internal scrolling.
+- **SKU progress:** a manual synchronization visibly advances through daily check → Supra read → chunk X/Y → Service wait/RUNNING → terminal result. Automatic synchronization uses the same concise status path without a modal success requirement.
+- **Single-daily send:** after one Agent reaches Service submission, a second Agent and a repeated manual click on the first Agent must be refused for that Asia/Ho_Chi_Minh day and must not create another daily operation. Restarting Agent must not bypass the persisted daily lock.
+- **Pre-submit retry:** a failure before any Service job is submitted may expire/release the preparation lease and retry safely.
+- **Uncertain Service timeout:** after Service submission, timeout/failure must retain the daily lock and show that the operation is held to prevent duplicate send; it must not shorten the lease to 15 seconds.
+- **Service progress contract:** `skuSyncCreated` writes `RUNNING` before invoking the internal SKU import Worker path; Agent accepts PENDING/RUNNING as non-terminal and waits up to the bounded 180-second limit.
+- **Regression:** D117/D118 confirmation, generation/failover/WMS fences, D120 Picker online rendering, D123 WinForms UI-thread affinity and Stable OWNER-GATED policy remain unchanged.

@@ -38,8 +38,12 @@ def main() -> None:
     relay_agent_updater = read("relay-agent/AgentUpdater.cs")
     wms_integration = read("relay-agent/WmsIntegration.cs")
     wms_picklist = read("relay-agent/WmsPicklistLookup.cs")
-    status_overlay = read("relay-agent/StatusOverlay.cs")
-    overlay_settings = read("relay-agent/OverlaySettingsForm.cs")
+    # D124 supersedes the legacy Windows Agent overlay requirements. Android's
+    # CriticalOverlayService remains a separate Picker notification surface.
+    if (ROOT / "relay-agent/StatusOverlay.cs").exists():
+        fail("D124 Windows Agent StatusOverlay.cs must be removed")
+    if (ROOT / "relay-agent/OverlaySettingsForm.cs").exists():
+        fail("D124 Windows Agent OverlaySettingsForm.cs must be removed")
     agent_leader = read("relay-agent/AgentLeaderCoordinator.cs")
     picklist_cache = read("relay-agent/PicklistCacheCoordinator.cs")
     picker_rate = read("relay-agent/PickerRateLimiter.cs")
@@ -196,12 +200,10 @@ def main() -> None:
     require(service_index, "app_base_role: user.base_role", "D075 immutable base-role Firebase custom claim")
     require(relay_rules, "auth.token.app_base_role == 'ADMIN'", "D075 real ADMIN RTDB rule")
     require(relay_rules, "newData.child('agent_admin_user_id').val() == auth.token.app_user_id", "D075 ADMIN ACK rule binding")
-    require(relay_agent_config, "AgentBuild = 44", "D123 Agent UI-thread affinity build channel")
+    require(relay_agent_config, "AgentBuild = 45", "D124 Agent build channel")
     require(relay_agent, "QueueNetworkStatusRefresh", "D122 SSID refresh off WinForms UI thread")
     require(relay_agent, "QueueWatchdogRefresh", "D122 watchdog refresh off WinForms UI thread")
     require(relay_agent, "ExpireAgentSession", "D122 expired Agent session login recovery")
-    require(status_overlay, "_backgroundLayer", "D122 overlay background/text opacity split")
-    require(status_overlay, "Opacity = 1.0", "D122 crisp overlay text layer")
     require(relay_agent, "var statusCode = (int)response.StatusCode", "D077 capture HTTP status before dispose")
     require(relay_agent, "ProbeAllTransports", "D078 Test all transport probe")
     require(relay_agent, "AgentConfig.FirestoreProbeUrl", "D078 Firestore probe")
@@ -220,9 +222,6 @@ def main() -> None:
     require(relay_agent_workflow, "relay-agent-v$version", "D075 Agent prerelease tag")
     require(relay_agent, "RequestProtectedWmsLogout", "D120 protected Supra logout")
     require(wms_integration, "ClearDedicatedProfiles", "D120 Supra account-switch profile reset")
-    require(status_overlay, "FlowLayoutPanel", "D120 independent overlay metric tiles")
-    require(status_overlay, "RenderMetricTiles", "D120 metric tile renderer")
-    require(overlay_settings, "Hiệu năng & lưu lượng", "D120 overlay settings grouping")
     forbid(relay_agent, 'Log("ACK " + suffix', "D075 raw Picklist suffix in Agent log")
 
     # D080: Agent-owned Edge session capture + strictly read-only Supra connectivity probe.
@@ -260,13 +259,6 @@ def main() -> None:
     require(system_monitor, "SUPRA | CPU ", "D081 compact taskbar text")
 
     # D082: persistent click-through overlay + read-only Picklist existence lookup.
-    require(status_overlay, "class StatusOverlayForm", "D082 persistent overlay form")
-    require(status_overlay, "HtTransparent", "D082 locked hit-test click-through")
-    require(status_overlay, "WsExNoActivate", "D082 locked no-activation overlay")
-    require(status_overlay, "TopMost = true", "D082 always-on-top overlay")
-    require(status_overlay, "SetOverlayOpacity", "D082 configurable overlay opacity")
-    require(status_overlay, "SetLocked", "D082 overlay lock/unlock")
-    require(relay_agent, "overlay-settings.json", "D082 overlay persisted settings")
     require(relay_agent, "HasUsableWmsSession", "D082 valid WMS session reuse guard")
     require(relay_agent, '"Phiên Supra đang sẵn sàng"', "D086 block repeated WMS login")
     require(relay_agent, "HandlePicklistLookupJob", "D082 relay Picklist lookup handler")
@@ -304,24 +296,13 @@ def main() -> None:
 
     # D083: Agent v7 startup regression must fail safe instead of silently exiting.
     require(relay_agent, "new AgentForm(startupSmoke, autoStarted, activateEvent)", "D089 startup/single-instance wiring preserving D083 smoke")
-    require(relay_agent, "InitializeStatusOverlaySafe", "D083 lazy overlay init")
     require(relay_agent, '"FATAL startup type="', "D083 top-level startup crash logging")
     require(relay_agent, '"Agent Auto Confirm Pick Pack - lỗi khởi động"', "D083 visible fatal startup message")
-    require(relay_agent, '"OVERLAY init=FAIL', "D083 overlay failure isolation")
     require(relay_agent_workflow, "--startup-smoke", "D083 CI startup smoke execution")
     require(relay_agent_workflow, "WaitForExit(15000)", "D083 startup smoke timeout")
-    forbid(status_overlay, "RecreateHandle()", "D083 no overlay handle recreation during startup")
 
     # D084: explicit overlay settings + exact all-date PickListCode scan.
-    require(relay_agent, '"Cài đặt bảng nổi"', "D084 overlay settings entry")
-    require(overlay_settings, "class OverlaySettingsForm", "D084 overlay settings dialog")
-    require(overlay_settings, "Độ trong của nền bảng nổi", "D084 overlay opacity setting")
-    require(overlay_settings, "Khóa vị trí/kích thước + click-through", "D089 overlay lock setting")
     # D086 keeps the v8 no-recreate behavior but adds a real cross-process click-through style.
-    require(status_overlay, "HtTransparent", "D086 locked hit-test fallback")
-    require(status_overlay, "WsExTransparent", "D086 true overlay click-through style")
-    require(status_overlay, "SetExtendedStyle", "D086 dynamic click-through toggle")
-    require(relay_agent, '"Cài đặt bảng nổi"', "D086 settings overlay access")
     require(relay_agent, "TryRestoreWmsSessionFileFirst", "D086 file-first WMS startup")
     require(wms_session_store, "ProtectedData.Protect", "D086 encrypted WMS session file")
     require(wms_session_store, "DataProtectionScope.CurrentUser", "D086 current-user WMS session protection")
@@ -329,7 +310,6 @@ def main() -> None:
     require(runtime_guard, "--watchdog-restart", "D086 unexpected-exit watchdog")
     require(relay_agent, "WriteAudit", "D087 split PDA-Agent audit log")
     require(relay_agent, "picklist_last5=", "D087 operational Picklist suffix audit")
-    require(status_overlay, "UpdateMetrics", "D087 two-layer overlay")
     require(system_monitor, "LaptopLine", "D087 laptop metrics overlay")
     require(agent_leader, "PresenceHeartbeatIntervalMs = 30000", "D087 legacy RTDB presence baseline")
     require(relay, "TOTAL_WAIT_MS = 20_000L", "D117 bounded Firestore confirmation terminal wait")
@@ -470,20 +450,11 @@ def main() -> None:
     require(relay_agent, "FirestoreAgentSessionGate", "D098 independent Agent session slot")
     require(relay_agent, "MinimizeToTray", "D088 Agent tray-only minimize")
     require(relay_agent, "ShowInTaskbar = false", "D088 hidden taskbar while minimized")
-    require(status_overlay, "SetOverlaySize", "D088 overlay resize")
-    require(status_overlay, "BackgroundArgb", "D088 overlay background persistence")
-    require(status_overlay, "TextArgb", "D088 overlay text-color persistence")
-    require(overlay_settings, "ColorDialog", "D088 full overlay color picker")
     require(relay_agent_config, 'AgentExeAsset = "Agent.Auto.Confirm.Pick.Pack.exe"', "D088 canonical Agent asset name")
     require(manifest, 'android:icon="@drawable/app_icon_d089"', "D089 approved Android icon")
     require(manifest, 'android:roundIcon="@drawable/app_icon_d089"', "D089 approved Android round icon")
     require(relay_agent, "MainInstanceMutexName", "D089 Agent single-instance mutex")
     require(relay_agent, "EventWaitHandle.OpenExisting", "D089 duplicate launch activates existing Agent")
-    require(overlay_settings, "Bật hiển thị Overlay", "D089 overlay master visibility")
-    require(overlay_settings, "Trạng thái hệ thống", "D120 operational overlay checklist")
-    require(overlay_settings, "Hiệu năng & lưu lượng", "D120 Agent process/fleet overlay checklist")
-    require(status_overlay, "ShowCpu", "D089 Laptop metric persistence")
-    require(status_overlay, "ShowAgentOnline", "D089 Agent metric persistence")
 
     # F22: launcher actions have distinct targets and Web honors direct hash routes.
     require(launcher, 'openWeb("/#hr"', "HR deep link")
