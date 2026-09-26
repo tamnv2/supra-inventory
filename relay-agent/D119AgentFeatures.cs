@@ -50,7 +50,7 @@ namespace SupraInventoryRelayAgent
         private bool _columnPreferenceApplying;
         private string _columnPreferenceUser = "";
 
-        private sealed class ColumnPreferenceProfile
+        public sealed class ColumnPreferenceProfile
         {
             public bool AutoSize = true;
             public Dictionary<string, int> Agent = new Dictionary<string, int>(StringComparer.Ordinal);
