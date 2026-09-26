@@ -13,6 +13,7 @@ interface ProjectionEnv extends ProjectionWriteEnv {
 type FirestoreValue =
   | { stringValue: string }
   | { integerValue: string }
+  | { timestampValue: string }
   | { booleanValue: boolean }
   | { nullValue: null }
   | { arrayValue: { values?: FirestoreValue[] } }
@@ -22,6 +23,7 @@ const DATASTORE_SCOPE = "https://www.googleapis.com/auth/datastore";
 
 function field(value: unknown): FirestoreValue {
   if (value === null || value === undefined) return { nullValue: null };
+  if (value instanceof Date) return { timestampValue: value.toISOString() };
   if (typeof value === "boolean") return { booleanValue: value };
   if (typeof value === "number" && Number.isFinite(value)) return { integerValue: String(Math.trunc(value)) };
   if (Array.isArray(value)) return { arrayValue: { values: value.map(field) } };
@@ -126,11 +128,24 @@ async function writePickerPresenceProjection(
     device_seen_at: item.device_seen_at || null,
     status: "PDA_READY",
   }));
+  const now = new Date();
   await putDocument(env, "picker_presence_projection", "current", {
-    schema_version: 2,
-    presence_source: "ACTIVE_ANDROID_REALTIME",
-    updated_at: new Date().toISOString(),
+    schema_version: 3,
+    presence_source: "ACTIVE_ANDROID_EVENT_DRIVEN",
+    updated_at: now.toISOString(),
     source_generated_at: payload.generated_at || null,
+    count: pickers.length,
+    pickers,
+  });
+
+  // D127: reuse the already-polled relay queue as a single-slot control event.
+  // The fixed document id prevents event buildup; updateTime makes Agent ACK race-safe.
+  await putDocument(env, "relay_poc_jobs", "picker_presence_current", {
+    request_id: "picker_presence_current",
+    status: "PENDING",
+    source: "ANDROID_PRESENCE_V1",
+    created_at: now,
+    schema_version: 3,
     count: pickers.length,
     pickers,
   });
