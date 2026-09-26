@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D120_HOTFIX_V41_RELEASED__D121_AGENT_RESPONSIVENESS_LAYOUT_SOURCE_CANDIDATE__TARGET_V42",
+    "beta": "D121_TECHNICAL_RELEASE_PASS__RELAY_AGENT_V42__OA047_OWNER_FIELD_READY",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 12,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -27,12 +27,12 @@
     "user_management": "D120_SOURCE_CANDIDATE__ROOT_ONLY_MANAGED_ROLE_CHANGE__PICKER_HR_AUTHORITY_PRESERVED",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D112_OWNER_ACCEPTED_PASS__EXISTING_METRICS_OPERATIONAL_HIERARCHY__NONBLOCKING_SECONDARY_LOAD",
-    "quota_resilience": "D121_SOURCE_CANDIDATE__NO_CADENCE_EXPANSION__D120_FLEET_METRICS_30MIN__D117_D118_HA_UNCHANGED",
-    "ui_design_guard": "D121_SOURCE_CANDIDATE__LEFT_EQUAL_THIRDS__AGENT_RELAY_WIFI_ONE_ROW__NONBLOCKING_UI_TIMERS",
+    "quota_resilience": "D121_RELEASE_PASS__NO_CADENCE_EXPANSION__D120_FLEET_METRICS_30MIN__D117_D118_HA_UNCHANGED",
+    "ui_design_guard": "D121_MAIN_PASS_RUN_36203135357__LEFT_EQUAL_THIRDS__AGENT_RELAY_WIFI_ONE_ROW__NONBLOCKING_UI_TIMERS",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D118_OWNER_ACCEPTED_PASS__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SELECTED_RANGE_FILTER",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D121_AGENT_UI_PERF_LAYOUT_ONLY__D117_D118_CONFIRMATION_AND_WMS_MUTATION_CONTRACT_UNCHANGED"
+    "picklist_confirmation_poc": "D121_RELEASE_PASS__D117_D118_CONFIRMATION_AND_WMS_MUTATION_CONTRACT_UNCHANGED"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -167,7 +167,6 @@
     "D118 Owner field PASS: fleet-wide overtime CAS, inherited D117 HA/fencing, real pagination, revision-safe SLA, detailed multi-sheet Excel, Agent footer and Android keyboard-safe tabs accepted."
   ],
   "pending_build": [
-    "D121 Agent-only source candidate on fix/d121-agent-responsiveness-balanced-layout: remove synchronous Firestore/system-monitor work from WinForms UI timers, balance Agent/Supra/PickList left-column heights, render Agent/Relay/Wi-Fi on one row; target relay-agent-v42; Stable untouched.",
     "D116 technical/runtime/release PASS: PR #175 merged main 9319eb30; Authority/State/UI/Worker/Android/Agent main runs PASS; live Beta exact source schema 11/11 Operational V2 5/5; signed beta-vc72 + relay-agent-v35 and fixed runtime channel published. OA036 Owner field review remains; Stable untouched.",
     "D115 technical/runtime/release PASS: PR #173 merged main bcbabc09; main Authority/State/UI/Worker/Android/Agent PASS; live Beta exact source schema 11/11 Operational V2 5/5; signed beta-vc71 + relay-agent-v34 and fixed runtime channel published. OA035 Owner field review remains; Stable untouched.",
     "D114 technical/runtime/release PASS: implementation main 8cdf941b, Firestore Rules repair main e6138dbd, final release-gate main bc8d6c3e; signed beta-vc70 + relay-agent-v33 published and fixed runtime channel refreshed. OA034 Owner field review remains; Stable untouched.",
@@ -178,7 +177,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "OA047 D121 physical Agent acceptance after v42 release: verify no repeated Not Responding under network delay, equal-height Agent/Supra/PickList regions, one-row Agent/Relay/Wi-Fi status and unchanged D120 Picker stability.",
+    "OA047 READY: field-accept relay-agent-v42 on physical Windows Agent for responsiveness/no repeated Not Responding, equal-height Agent/Supra/PickList regions, one-row Agent/Relay/Wi-Fi and unchanged D120 Picker behavior.",
     "OA046 D120 physical field acceptance after automated release PASS: Agent smooth scroll/search/two-column/Supra account switch/quota log; Android single cross-app red/blue result + no login flash; Web SLA stability/taskbar viewport/ROOT role change.",
     "OA026 D106 physical credential acceptance: one post-D106 ADMIN password set -> unchanged Agent v30 direct login, plus one fresh ADMIN Web create -> immediate Agent login; verify no ghost-account-on-error.",
     "OA025 D105 physical acceptance: Android 4-digit input, dimmed in-flight confirm button, prominent terminal result, Agent manual 3–4 digit search, and unique 4-digit full-PickList resolution.",
@@ -197,7 +196,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D121 PR #191 is open. Keep repairing until Repo Authority / Project State / UI Design / Relay Agent and applicable Firebase guards all PASS; merge only then, verify main relay-agent-v42 + inventory-channel, then OA047 field review. Stable remains OWNER-GATED.",
+  "next_action": "D121 technical/release PASS on main a3c841ae with relay-agent-v42 and inventory-channel updated. Owner may run OA047 physical Agent responsiveness/layout checks. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -223,7 +222,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D121 IN PROGRESS: Agent-only Beta repair targets relay-agent-v42. Firestore schedule refresh and Windows system-monitor sampling move off the WinForms UI thread with single-flight fences; left Agent/Supra/PickList regions become equal-height; Agent/Relay/Wi-Fi share one row. D117/D118 HA/WMS contracts and Stable unchanged.",
+      "D121 TECHNICAL/RELEASE PASS: PR #191 merged main a3c841ae; main Authority/State/Agent/UI PASS; relay-agent-v42 published from exact main and inventory-channel updated. OA047 physical field acceptance is ready; Stable untouched.",
       "D118 OWNER FIELD ACCEPTED PASS: Owner explicitly confirmed all D118 field checks PASS on live Beta Web + beta-vc74 + relay-agent-v38. Stable untouched.",
       "D117 FINAL TECHNICAL/RUNTIME/RELEASE PASS: live Beta Web/APK remains exact bbb6c83b with signed beta-vc73; final hardened relay-agent-v37 is released from e583d20d. Authority/State/UI/Agent main gates PASS. OA037 is field-ready; Stable untouched.",
       "D116 TECHNICAL/RUNTIME/RELEASE PASS: main 9319eb30 with live exact-source Beta Web, signed beta-vc72 and relay-agent-v35. OA036 Owner field review remains; Stable untouched.",
@@ -263,7 +262,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "D121: pass PR authority/state/UI/Agent gates, merge, verify main v42 prerelease + inventory-channel, then Owner runs OA047 physical responsiveness/layout check.",
+      "D121 OA047: Owner field-tests relay-agent-v42 for UI responsiveness under network delay, equal Agent/Supra/PickList left regions, one-line Agent/Relay/Wi-Fi, and D120 Picker stability.",
       "Await next explicit Owner requirement after D118 Owner PASS; Stable remains OWNER-GATED.",
       "OA036: Owner field-tests live Beta Web + beta-vc72 + relay-agent-v35 and replies PASS or itemized defects.",
       "D110 OA030: Owner field-tests signed beta-vc66 Reporter pinned tabs/badges/direct actions/local SLA clock/icon/footer and ADMIN/ROOT Android denial.",
@@ -279,7 +278,7 @@
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
     ],
     "blocked_or_owner_field_dependent": [
-      "D121 final perceived-responsiveness/layout acceptance requires OA047 on the physical Windows Agent after v42 release; technical gates can only prove source/build/static contracts.",
+      "D121 automated technical/release gates are PASS. Only OA047 physical perceived-responsiveness/layout acceptance remains; Stable promotion is not authorized.",
       "D110 technical/runtime/release is PASS. Only OA030 physical/visual Owner acceptance remains. Stable promotion is not authorized.",
       "D108 technical/runtime/release is PASS. Only OA028 physical/visual Owner acceptance remains. Stable promotion is not authorized.",
       "D107 source/PR gates and merge are PASS. Final visual acceptance is Owner-field-dependent on live Beta. Push-triggered Beta deployment exists by workflow contract, but the current GitHub connector exposes PR-triggered runs only, so exact main deploy-run/runtime evidence remains unobserved from this session.",
@@ -827,7 +826,7 @@
     "D121 root cause from released v41 source/log review: one-second after-hours WinForms timer could synchronously call Firestore RefreshSharedScheduleNow; five-second tray timer synchronously sampled Windows CPU/GPU/Disk/NIC counters. Both are moved to bounded background single-flight work to protect UI responsiveness.",
     "D121 implementation PR #191 targets relay-agent-v42 from released v41 baseline; first Agent gate exposed AgentConfig.AgentBuild still at 41 and the same PR corrected it to 42 before build."
   ],
-  "active_workstream": "D121_AGENT_RESPONSIVENESS_BALANCED_LAYOUT",
+  "active_workstream": "D121_OWNER_FIELD_ACCEPTANCE",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
@@ -891,7 +890,9 @@
     "D114 Owner field acceptance PASS on 2026-09-24: Owner explicitly confirmed the released D114 result PASS. OA034 closed. Accepted artifacts remain live Beta Web source 8cdf941b, signed beta-vc70 and relay-agent-v33. A separate post-pass relay latency/ACK diagnostic is open from the Owner's newest Android log observation; Stable remains OWNER-GATED.",
     "D115 diagnosis source evidence: beta-vc70 log showed repeated synchronous cleanup PERMISSION_DENIED before CREATE, successful CONFIRMED RTT about 5.8–6.2s with lookup about 0.4–1.2s, and 30s no-ACK timeouts. Owner approved a separate D115 repair and healthy-primary under-5s target.",
     "D115 release evidence: beta-vc71 release 395262617 asset 585009621 size 19019872 sha256 f1137dccd460133e5fdc41836658c6bb6b41a885f41f4ba16ca908a0c96d3d1d; relay-agent-v34 release 395262208 asset 585008591 size 294400 sha256 eef4e6e6bbb20f7fad223ba4c7a7081200eecbe74af1e43c4335fd78034f4285; both tags resolve to bcbabc09. Fixed inventory-channel refreshed with PDA manifest/APK 585009672/585009671 and Agent manifest/EXE 585008719/585008720.",
-    "D120 Picker-presence hotfix is released on main 916bcc16de57740e3413dd346610d74c19ec7fcf as relay-agent-v41; main Authority/State/UI/Agent gates PASS. D121 starts from this exact released baseline."
+    "D120 Picker-presence hotfix is released on main 916bcc16de57740e3413dd346610d74c19ec7fcf as relay-agent-v41; main Authority/State/UI/Agent gates PASS. D121 starts from this exact released baseline.",
+    "D121 PR #191 final head da3092bc: Repo Authority 36203031181, Project State 36203031122, Relay Agent 36203031105, UI 36203031039, Firestore 36203031044 and RTDB 36203031037 all PASS.",
+    "D121 merged main a3c841ae2961dac6eb5ad0f1909b2e5cd89c0242: Repo Authority 36203135356, Project State 36203135417, Relay Agent 36203135376 and UI Design 36203135357 PASS. relay-agent-v42 release 396990498 asset 589509071 size 358400 SHA-256 08a55caa7b350d23e99eba9eef97b93744fd32b6e9072792d22411578559c1bd; inventory-channel Agent alias updated."
   ],
   "last_runtime_evidence": {
     "signed_beta_release": "beta-vc74",
