@@ -1312,3 +1312,18 @@ Owner field review on v55 showed same-tab routing worked, but the HY1/SFT3 acces
 - Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
 - OA052 remains pending until Owner verifies the automatic arrow click on v56.
 
+## D127 field hotfix — Agent v57 exact HY1/SFT3 MUI arrow + storage management — 2026-09-27
+
+Owner supplied the live DOM for the HY1/SFT3 quick-access arrow after v56 still did not click it automatically.
+
+- PR #222 squash-merged to main `8128783905e0503658db7ac1d59f2ce3272d3f4c`.
+- Main Relay Agent run `36263791064` completed successfully.
+- Agent release advanced to `relay-agent-v57`, release id `397355162`, canonical EXE asset `591237002`, size `355328` bytes, SHA-256 `7c2684091bbeb8b4ce249c9ce5cb417ddfaef6e8292e899c95dd072882fb70b2`.
+- v57 resolves the nearest `MuiPaper-root` card containing exact visible **Kho Hưng Yên 1** and **SFT3**, then selects `button.MuiIconButton-root`; it prefers the exact right-arrow SVG path from the field DOM and only falls back when that card contains exactly one MUI icon button.
+- Same-tab WebView2 `NewWindowRequested` interception and the rows-per-page 100 field fix remain unchanged.
+- Browser host remains `host_build=4`; the existing WebView2 Fixed `154.0.4258.37 x64` bundle is reused, so v57 itself does not require another ~318 MB browser download.
+- Browser storage cleanup now removes obsolete inactive `wv2-*` bundle directories and stale download/extract leftovers after successful activation and once on Agent startup. The active runtime and persistent browser profile/session are retained.
+- The Supra card is renamed **Đăng nhập Supra**, displays total local Agent data usage plus Browser data usage, and exposes **Mở thư mục dữ liệu**.
+- Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
+- OA052 remains pending until Owner verifies the exact arrow auto-click and storage controls on v57.
+
