@@ -21,6 +21,8 @@ namespace SupraInventoryRelayAgent
         internal string Url = "";
         internal string Browser = "";
         internal int SearchCount;
+        internal int SearchExactCount;
+        internal int SearchDecoratedCount;
         internal int ConfirmCount;
         internal int ConfirmVisibleCount;
         internal int TableCount;
@@ -140,6 +142,8 @@ namespace SupraInventoryRelayAgent
                     Url = String(map, "url"),
                     Browser = _browserName,
                     SearchCount = Int(map, "searchCount"),
+                    SearchExactCount = Int(map, "searchExactCount"),
+                    SearchDecoratedCount = Int(map, "searchDecoratedCount"),
                     ConfirmCount = Int(map, "confirmCount"),
                     ConfirmVisibleCount = Int(map, "confirmVisibleCount"),
                     TableCount = Int(map, "tableCount"),
@@ -647,7 +651,11 @@ namespace SupraInventoryRelayAgent
         private static string BuildReadinessScript()
         {
             return @"(() => {
-              const norm = v => (v || '').replace(/\s+/g,' ').trim();
+              const norm = v => {
+                const raw = String(v || '');
+                const unicode = raw.normalize ? raw.normalize('NFC') : raw;
+                return unicode.replace(/[\u200B-\u200D\uFEFF]/g,' ').replace(/\s+/g,' ').trim();
+              };
               const fold = v => norm(v).toLowerCase();
               const txt = e => norm((e && (e.innerText || e.value || e.textContent)) || '');
               const names = e => !e ? [] : [
@@ -655,7 +663,26 @@ namespace SupraInventoryRelayAgent
                 e.getAttribute && e.getAttribute('aria-label'),
                 e.getAttribute && e.getAttribute('title')
               ].map(norm).filter(Boolean);
-              const named = (e, target) => names(e).some(v => fold(v) === fold(target));
+              const decorationOnly = value => {
+                let extra = fold(value);
+                extra = extra.replace(/\b(search|magnify|magnifying|glass|find|icon)\b/g,' ');
+                extra = extra.replace(/[^a-z0-9à-ỹ]+/g,'');
+                return extra.length === 0;
+              };
+              const labelKind = (e, target) => {
+                const wanted = fold(target);
+                let decorated = false;
+                for (const value of names(e)) {
+                  const current = fold(value);
+                  if (current === wanted) return 2;
+                  const at = current.indexOf(wanted);
+                  if (at < 0 || current.indexOf(wanted, at + wanted.length) >= 0) continue;
+                  const extra = current.slice(0, at) + ' ' + current.slice(at + wanted.length);
+                  if (decorationOnly(extra)) decorated = true;
+                }
+                return decorated ? 1 : 0;
+              };
+              const named = (e, target) => labelKind(e, target) > 0;
               const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
               const docs = [];
               const seen = new Set();
@@ -677,7 +704,9 @@ namespace SupraInventoryRelayAgent
               const searchSet = new Set(searchSemantic);
               for (const leaf of searchLeaf) searchSet.add(leaf.closest(semanticSelector) || leaf);
               const search = [...searchSet].filter(visible);
-              const confirm = controls.filter(e => named(e, 'Xác nhận lấy lại hàng'));
+              const searchExact = search.filter(e => labelKind(e, 'Tìm kiếm') === 2);
+              const searchDecorated = search.filter(e => labelKind(e, 'Tìm kiếm') === 1);
+              const confirm = controls.filter(e => names(e).some(v => fold(v) === fold('Xác nhận lấy lại hàng')));
               const confirmVisible = confirm.filter(visible);
               const tableSurfaces = docs.flatMap(d => [...d.querySelectorAll('table,[role=grid],[role=table]')]).filter(visible);
               const rowSurfaces = docs.flatMap(d => [...d.querySelectorAll('tr,[role=row]')]).filter(visible);
@@ -692,6 +721,8 @@ namespace SupraInventoryRelayAgent
                 state,
                 url: location.origin + location.pathname,
                 searchCount: search.length,
+                searchExactCount: searchExact.length,
+                searchDecoratedCount: searchDecorated.length,
                 confirmCount: confirm.length,
                 confirmVisibleCount: confirmVisible.length,
                 tableCount: tableSurfaces.length || rowSurfaces.length,
@@ -739,14 +770,32 @@ namespace SupraInventoryRelayAgent
             var escaped = JavaScriptString(text);
             return @"(() => {
               const target = '" + escaped + @"';
-              const norm = v => (v || '').replace(/\s+/g,' ').trim();
+              const norm = v => {
+                const raw = String(v || '');
+                const unicode = raw.normalize ? raw.normalize('NFC') : raw;
+                return unicode.replace(/[\u200B-\u200D\uFEFF]/g,' ').replace(/\s+/g,' ').trim();
+              };
               const fold = v => norm(v).toLowerCase();
               const names = e => !e ? [] : [
                 e.innerText, e.value, e.textContent,
                 e.getAttribute && e.getAttribute('aria-label'),
                 e.getAttribute && e.getAttribute('title')
               ].map(norm).filter(Boolean);
-              const named = (e, value) => names(e).some(v => fold(v) === fold(value));
+              const decorationOnly = value => {
+                let extra = fold(value);
+                extra = extra.replace(/\b(search|magnify|magnifying|glass|find|icon)\b/g,' ');
+                extra = extra.replace(/[^a-z0-9à-ỹ]+/g,'');
+                return extra.length === 0;
+              };
+              const named = (e, value) => names(e).some(candidate => {
+                const wanted = fold(value);
+                const current = fold(candidate);
+                if (current === wanted) return true;
+                const at = current.indexOf(wanted);
+                if (at < 0 || current.indexOf(wanted, at + wanted.length) >= 0) return false;
+                const extra = current.slice(0, at) + ' ' + current.slice(at + wanted.length);
+                return decorationOnly(extra);
+              });
               const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
               const docs = [];
               const seen = new Set();
