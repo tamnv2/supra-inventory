@@ -24,6 +24,8 @@ export type AgentAppRelease = {
 
 export type AgentBrowserBundleRelease = {
   version: string;
+  host_build: number;
+  host_arch: "x64";
   asset_name: string;
   size_bytes: number;
   sha256: string;
@@ -36,6 +38,8 @@ type ChannelManifest = {
   source?: string;
   size_bytes?: number;
   sha256?: string;
+  host_build?: number;
+  host_arch?: string;
 };
 
 const REPOSITORY = "tamnv2/supra-inventory";
@@ -151,11 +155,17 @@ export async function latestAgentBrowserBundle(): Promise<AgentBrowserBundleRele
   if (agentBrowserCache && agentBrowserCache.expires_at > Date.now()) return agentBrowserCache.release;
   const manifest = await loadManifest(AGENT_BROWSER_MANIFEST_URL) as ChannelManifest & { version?: string };
   const version = String(manifest.version || "");
+  const hostBuild = Math.trunc(Number(manifest.host_build || 0));
+  const hostArch = String(manifest.host_arch || "").trim().toLowerCase();
   const sha256 = String(manifest.sha256 || "").trim().toLowerCase();
   if (!/^\d+(?:\.\d+){3}$/.test(version)) throw new Error("AGENT_BROWSER_CHANNEL_INVALID_VERSION");
+  if (!Number.isInteger(hostBuild) || hostBuild < 3) throw new Error("AGENT_BROWSER_CHANNEL_INVALID_HOST_BUILD");
+  if (hostArch !== "x64") throw new Error("AGENT_BROWSER_CHANNEL_INVALID_HOST_ARCH");
   if (!/^[0-9a-f]{64}$/.test(sha256)) throw new Error("AGENT_BROWSER_CHANNEL_INVALID_SHA256");
   const release: AgentBrowserBundleRelease = {
     version,
+    host_build: hostBuild,
+    host_arch: "x64",
     asset_name: AGENT_BROWSER_ASSET_NAME,
     size_bytes: Math.max(0, Number(manifest.size_bytes || 0)),
     sha256,
