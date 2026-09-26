@@ -25,33 +25,67 @@ namespace SupraInventoryRelayAgent
         internal Dictionary<string, PickerContactCommand> LoadOpen(AgentSession session)
         {
             EnsureSession(session);
+            var query = new Dictionary<string, object>
+            {
+                {
+                    "structuredQuery", new Dictionary<string, object>
+                    {
+                        { "from", new object[] { new Dictionary<string, object> { { "collectionId", "picker_alerts" } } } },
+                        {
+                            "where", new Dictionary<string, object>
+                            {
+                                {
+                                    "fieldFilter", new Dictionary<string, object>
+                                    {
+                                        { "field", new Dictionary<string, object> { { "fieldPath", "status" } } },
+                                        { "op", "IN" },
+                                        { "value", new Dictionary<string, object>
+                                            {
+                                                { "arrayValue", new Dictionary<string, object>
+                                                    {
+                                                        { "values", new object[]
+                                                            {
+                                                                new Dictionary<string, object> { { "stringValue", "PENDING" } },
+                                                                new Dictionary<string, object> { { "stringValue", "SENT" } }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        { "limit", 100 }
+                    }
+                }
+            };
+
             var raw = FirestoreHttpTransport.SendJson(
-                "GET",
-                AgentConfig.FirestoreDocumentsBaseUrl.TrimEnd('/') + "/picker_alerts?pageSize=100",
+                "POST",
+                AgentConfig.FirestoreDocumentsBaseUrl + ":runQuery",
                 session.IdToken,
-                null,
+                _json.Serialize(query),
                 "SUPRA-Inventory-Relay-Agent/" + AgentConfig.AgentBuild,
                 10000,
                 true,
                 _log,
-                "picker-contact-list");
+                "picker-contact-open-query");
 
-            var root = AsMap(_json.DeserializeObject(raw));
-            object docsRaw;
-            var docs = root.TryGetValue("documents", out docsRaw) ? docsRaw as System.Collections.IEnumerable : null;
+            var rows = _json.DeserializeObject(raw) as System.Collections.IEnumerable;
             var result = new Dictionary<string, PickerContactCommand>(StringComparer.Ordinal);
-            if (docs == null) return result;
+            if (rows == null) return result;
 
-            foreach (var item in docs)
+            foreach (var item in rows)
             {
-                var doc = item as Dictionary<string, object>;
+                var row = item as Dictionary<string, object>;
+                object docRaw;
+                var doc = row != null && row.TryGetValue("document", out docRaw)
+                    ? docRaw as Dictionary<string, object>
+                    : null;
                 if (doc == null) continue;
                 var fields = GetMap(doc, "fields");
-                var status = FieldString(fields, "status");
-                if (!string.Equals(status, "PENDING", StringComparison.Ordinal) &&
-                    !string.Equals(status, "SENT", StringComparison.Ordinal))
-                    continue;
-
                 var target = FieldString(fields, "target_user_id");
                 var alertId = FieldString(fields, "alert_id");
                 var expiresAt = FieldLong(fields, "expires_at_ms");
