@@ -192,5 +192,3 @@ export const pickerAlertResolved = onDocumentUpdated("picker_alerts/{alertId}", 
     }, { merge: true });
   }
 });
-
-\n
