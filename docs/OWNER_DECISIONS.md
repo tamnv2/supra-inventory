@@ -1357,3 +1357,18 @@ Owner video on v59 showed the visible Agent WebView2 remaining on Dashboard with
 - Android remains unchanged; Stable remains OWNER-GATED and untouched.
 - OA052 remains pending physical v60 verification.
 
+## D127 field hotfix — Agent v62 browser-level trusted Dashboard click — 2026-09-27
+
+Owner supplied the exact live `button.MuiIconButton-root` DOM and confirmed v61 still did not activate the Dashboard navigation automatically. The button has no href; navigation is driven by the React/MUI click handler. v61 used `HTMLElement.click()`, which produces a synthetic untrusted event and did not reproduce the working manual click path in field testing.
+
+- PR #231 squash-merged to main `32fba95926011bc9bbc37d09f9806f90435e4732`.
+- Release repair PR #232 squash-merged to main `59a00b710eb89ed6a8d985310d3a45ee37577170`.
+- Main Relay Agent/release run `36269628130` completed successfully.
+- Agent release is `relay-agent-v62`, release id `397383335`, canonical EXE asset `591391228`, SHA-256 `2e16ebaaac900cfcb19074af2706a805f5f9c6788b67c1623e434e992499717e`.
+- v62 finds the exact live MUI icon button by the supplied right-arrow SVG, obtains its center with `getBoundingClientRect()`, then invokes DevTools `Input.dispatchMouseEvent` for mouse move/press/release. No Windows cursor movement is used.
+- `NewWindowRequested` remains intercepted so the resulting Supra navigation stays on the current Agent tab and then returns to the canonical Confirm route.
+- Browser host is build 7. The channel bundle asset is `591403121`, manifest/checksum assets `591403124/591403122`, size `318620469` bytes, SHA-256 `0ff7c8e8da7468007047569d9a1b34f572d53d76970dce678c921b8d8b73ad06`.
+- PR #232 removed the stale hard-coded host-build value from the publish workflow; future browser bundles derive `host_build` from `AgentBrowserBundle.RequiredHostBuild`.
+- Storage breakdown from v60 remains unchanged. Android unchanged; Stable untouched.
+- OA052 remains pending physical v62 field verification.
+
