@@ -1187,7 +1187,7 @@ Status: **TECHNICAL / RELEASE PASS — OWNER FIELD RE-TEST REQUIRED**.
 
 ### D126-H3 — Decorative search-icon label compatibility — 2026-09-26
 
-Status: **OWNER APPROVED / IMPLEMENTATION IN PROGRESS**.
+Status: **TECHNICAL / RELEASE PASS — OWNER FIELD RE-TEST REQUIRED**.
 
 - Owner field re-test on released `relay-agent-v48` confirms the Agent is on the correct registered Confirm PickList page and the v48 DevTools reconnect repair works, but readiness still remains false because the real search control is rendered visually as a magnifying-glass icon plus **Tìm Kiếm**. Sanitized field diagnostics remain `search=0`, `confirm=1`, `table=1` on the correct page.
 - The non-mutating **Tìm kiếm** recognizer may normalize Unicode NFC and ignore zero-width formatting characters. It may accept one unique control whose label is the exact target phrase plus only decorative search/icon material before or after that phrase, including private-use/search glyphs and the common textual icon tokens `search`, `magnify`, `magnifying`, `glass`, `find`, or `icon`.
@@ -1195,3 +1195,8 @@ Status: **OWNER APPROVED / IMPLEMENTATION IN PROGRESS**.
 - The confirmation mutation boundary is not widened: **Xác nhận lấy lại hàng** remains exact-label-only, with exact-row re-resolution, row checkbox uniqueness and checked-state verification before mutation.
 - Diagnostics may add only non-sensitive counts such as exact-vs-decorated search matches. No raw page business text, query string, cookie, token, header, signature, session material, Network-domain data or WMS API request may be logged or inspected.
 - Target release is `relay-agent-v49`. Android remains `beta-vc76`; SKU remains manual-file-only; Stable remains OWNER-GATED and untouched.
+- Implementation PR **#204** passed Repo Authority `36236311977`, Project State/Continuity `36236311994`, UI Design `36236311984`, Firestore `36236311979`, RTDB `36236311989` and Relay Agent `36236311982`; merged to `main` at `3a45ca0ccb62aaa6e67a9f41c0f7aac1d0f2cb39`.
+- Main verification passed: Repo Authority `36236408473`, Project State/Continuity `36236408470`, UI Design `36236408580`, Relay Agent build/startup/schedule/release `36236408518`.
+- `relay-agent-v49` release id `397195742`; canonical EXE asset `590463163`, size `297984`, SHA-256 `9c8cc4054501871443eba905dd4bc03c1dd2c6b94590bbd318eecdb3e0899dc4`. The tag points exactly to `3a45ca0ccb62aaa6e67a9f41c0f7aac1d0f2cb39`.
+- `inventory-channel` now serves v49 through manifest asset `590463228` and EXE asset `590463226`.
+- Automated technical/release evidence is PASS. OA051 remains open for real-Supra field acceptance on v49.
