@@ -75,3 +75,14 @@ Exact Owner semantics for the SKU-reset confirmation described historically as r
 - Manual and automatic runs expose concise stages for lease check, Supra catalog read, chunk number, Service processing and terminal result. These messages are observability only and do not add polling outside the active synchronization operation.
 - Pre-Service failures may release the short preparation lease because no import job has been submitted. Once Service submission starts, duplicate prevention takes precedence over same-day automatic recovery.
 - The existing additive merge/conflict rules remain unchanged: only SKU + product name, no delete on absence, explicit confirmation for name changes, and no bin/location/quantity persistence.
+
+## D125 — Manual-file-only SKU source
+
+D125 supersedes D119/D122/D124 only for WMS-derived SKU synchronization.
+
+- WMS/Tồn Bin is no longer an approved SKU source.
+- Remove/disable the automatic daily Agent SKU sync and any manual Agent action that reads SKU/product name from Supra.
+- SKU master updates use the existing authorized manual file import supplied by the Owner/operator.
+- Preserve existing file validation, header detection, safe SKU parsing, same-SKU dedupe, additive merge and explicit confirmation for changed product names.
+- A SKU absent from a later import is not deleted automatically.
+- Firestore `sku_sync_jobs` and `skuSyncCreated` are legacy implementation artifacts pending D125 cleanup; they are not authority to continue WMS SKU synchronization.
