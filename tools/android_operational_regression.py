@@ -208,7 +208,7 @@ def main() -> None:
     require(relay_agent, "AgentConfig.DriveProbeUrl", "D078 Drive probe")
     require(relay_agent, "LooksLikeCorporateProxyBlock", "D078 corporate proxy classifier")
     require(relay_agent, "PROBE SUMMARY", "D078 compact probe summary")
-    require(relay_agent, "OFFICE PROXY BLOCK / RTDB", "D078 RTDB proxy block status")
+    require(relay_agent, "OFFICE PROXY BLOCK / Firestore", "D126 Office Firestore proxy block status")
     require(relay_agent_config, "FirestoreProbeUrl", "D078 Firestore endpoint")
     forbid(relay_agent, "return new RelayHttpException((int)response.StatusCode", "D077 disposed HttpWebResponse StatusCode read")
     require(relay_agent_updater, "CheckAndInstallIfNeeded", "D075 automatic Agent updater")
