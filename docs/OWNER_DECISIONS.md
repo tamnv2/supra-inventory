@@ -1265,3 +1265,19 @@ Owner requested two field-facing fixes before OA052 acceptance. **TECHNICAL / RE
 - Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
 - OA052 should be run against **relay-agent-v52**.
 
+## D127 field hotfix — Agent v53 WebView2 x64, explicit browser choice and page-size 100 — 2026-09-26
+
+Owner field review on v52 found two remaining defects: the Agent-owned WebView2 host raised `BadImageFormatException / 0x8007000B`, and rows-per-page 100 failed with `PAGE_SIZE_CONTROL_NOT_UNIQUE`. Owner also required Desktop fallback to become an explicit user choice instead of an automatic fallback.
+
+- PR #213 squash-merged to main `beee6f8ef1f34bf2ad215794506e7363f72660f7`.
+- Main Relay Agent run `36257628819` completed successfully.
+- Agent release advanced to `relay-agent-v53`, release id `397323262`, canonical EXE asset `591068110`, size `339968` bytes, SHA-256 `c13180ff48d341bfc1e71b80d83398268597f42f1d4a5ee4b7701121b82af762`.
+- `inventory-channel` now serves v53 through manifest/EXE assets `591068167/591068168`.
+- The Agent-owned WebView2 host is now forced to **x64** with `Prefer32Bit=false`, matching the x64 Fixed Runtime and removing the architecture mismatch that produced `0x8007000B`.
+- WebView2 host asynchronous initialization failures are contained by the host process and no longer surface as the raw WinForms unhandled-exception Continue/Quit dialog.
+- Browser opening is now explicit: **Mở trình duyệt Agent** opens only the owned WebView2 browser; **Mở trình duyệt Desktop** opens Edge/Chrome. Agent-browser failure does **not** automatically open Desktop.
+- Rows-per-page 100 no longer requires a globally unique paginator control. The DOM adapter resolves the nearest semantic paginator control associated with **Số dòng mỗi trang**, supports multiple paginator structures, sets 100, then verifies the rendered value before continuing.
+- The owned browser bundle remains WebView2 Fixed **154.0.4258.37 x64**, but was republished with host build **2**. New bundle asset `591069707`, manifest/checksum assets `591069708/591069709`, size `318531105` bytes, SHA-256 `3752ea4c248d92ee3b78f7209772e6470dfd04a03cff6011d706749ecc9ed4ce`.
+- Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
+- OA052 remains pending until the Owner verifies v53 physically: owned browser opens normally, Desktop opens only when selected, and rows-per-page reaches 100.
+
