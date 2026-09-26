@@ -669,7 +669,7 @@ namespace SupraInventoryRelayAgent
               addDoc(document);
 
               const hasWarehouseIcon = root => {
-                const svgs = [...root.querySelectorAll('svg[viewBox="0 0 72 72"]')].filter(visible);
+                const svgs = [...root.querySelectorAll('svg[viewBox='0 0 72 72']')].filter(visible);
                 return svgs.some(svg => {
                   const paths = [...svg.querySelectorAll('path')]
                     .map(p => normalizePath(p.getAttribute('d')));
