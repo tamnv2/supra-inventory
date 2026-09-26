@@ -1282,3 +1282,19 @@ Owner field review on v53 confirmed the rows-per-page 100 repair works, but the 
 - Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
 - OA052 remains pending until the Owner verifies the Agent-owned browser physically on v54.
 
+## D127 field hotfix — Agent v55 same-tab HY1/SFT3 login recovery — 2026-09-27
+
+Owner confirmed WebView2 and rows-per-page 100 were working on v54, but Supra auto-login could redirect the managed tab to Dashboard. Accessing HY1/SFT3 from the Dashboard then opened another tab, leaving Agent attached to the old tab and reporting a wrong Confirm page.
+
+- PR #218 squash-merged to main `19a1a23ec893090beb494e8d26f6eb5feb47e6de`.
+- Main Relay Agent run `36261176519` completed successfully.
+- Agent release advanced to `relay-agent-v55`, release id `397341737`, canonical EXE asset `591167575`, size `351744` bytes, SHA-256 `702d2a5310f0d9b25c007a12a6762a9d668e978e075ac887f39c3923fbe1db09`.
+- Agent-owned browser host advanced to `host_build=4`. WebView2 Fixed remains `154.0.4258.37 x64`; bundle asset `591168957`, manifest/checksum assets `591168955/591168959`, size `318615768` bytes, SHA-256 `1fce2b4683cc819593663412328fa408d63ed0df9fc4f3952c579b46c376890e`.
+- If Supra auto-login returns the Agent browser to Dashboard, Agent identifies the unique **Kho Hưng Yên 1 / SFT3** quick-access card and clicks its access control automatically.
+- The WebView2 host intercepts Supra `NewWindowRequested` for the trusted WMS host and navigates the current WebView instead of creating a second tab.
+- After the warehouse route is entered, Agent navigates that same managed tab to the canonical Confirm URL and only reports READY after the Confirm DOM guard passes.
+- Desktop browser mode remains explicit and is not auto-selected.
+- Rows-per-page 100 remains unchanged and field-OK.
+- Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
+- OA052 remains pending until Owner verifies the complete same-tab auto-login recovery on v55.
+
