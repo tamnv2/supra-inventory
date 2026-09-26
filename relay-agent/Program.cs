@@ -440,6 +440,9 @@ namespace SupraInventoryRelayAgent
         private readonly Button _wmsCapture = new Button();
         private readonly Button _wmsLogout = new Button();
         private readonly Button _wmsTest = new Button();
+        private readonly Button _browserBundleDownload = new Button();
+        private readonly ProgressBar _browserBundleProgress = new ProgressBar();
+        private readonly Label _browserBundleStatus = new Label();
         private readonly Label _wmsStatus = new Label();
         private readonly Label _relay = new Label();
         private readonly Label _network = new Label();
@@ -665,7 +668,11 @@ namespace SupraInventoryRelayAgent
             _trayMonitorTimer.Tick += (s, e) => UpdateTrayMonitor();
 
             _afterHoursTimer.Interval = 1000;
-            _afterHoursTimer.Tick += (s, e) => CheckAfterHoursSchedule();
+            _afterHoursTimer.Tick += (s, e) =>
+            {
+                CheckAfterHoursSchedule();
+                RefreshBrowserBundleUi();
+            };
 
             // GitHub cannot push directly into a portable EXE. D101 therefore uses
             // a bounded direct GitHub background check while the Agent is running.
@@ -944,29 +951,30 @@ namespace SupraInventoryRelayAgent
             _agentSystemInfo.Visible = false;
             _updateStatus.Visible = false;
 
-            _afterHoursPanel.SetBounds(16, 168, 990, 54);
+            _afterHoursPanel.SetBounds(16, 142, 990, 88);
             _afterHoursPanel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _afterHoursPanel.BackColor = Color.FromArgb(255, 247, 226);
             _afterHoursPanel.BorderStyle = BorderStyle.FixedSingle;
-            _afterHoursStatus.SetBounds(10, 7, 490, 38);
+            _afterHoursStatus.SetBounds(10, 7, 470, 34);
             _afterHoursStatus.ForeColor = Color.FromArgb(111, 78, 15);
             _afterHoursPanel.Controls.Add(_afterHoursStatus);
-            _afterHoursContinue.SetBounds(520, 10, 210, 32);
             _afterHoursContinue.Text = "Tiếp tục sau 22:00";
             _afterHoursContinue.Click += (s, e) => SetAfterHoursDecision(AfterHoursDecision.CONTINUE);
             _afterHoursPanel.Controls.Add(_afterHoursContinue);
-            _afterHoursStop.SetBounds(742, 10, 190, 32);
             _afterHoursStop.Text = "Ngừng từ 22:00";
             _afterHoursStop.Click += (s, e) => SetAfterHoursDecision(AfterHoursDecision.STOP);
             _afterHoursPanel.Controls.Add(_afterHoursStop);
-            _afterHoursEarlyStart.SetBounds(520, 10, 412, 32);
             _afterHoursEarlyStart.Text = "Khởi động relay trước 06:00";
             _afterHoursEarlyStart.Click += (s, e) => StartRelayBeforeSix();
             _afterHoursEarlyStart.Visible = false;
             _afterHoursPanel.Controls.Add(_afterHoursEarlyStart);
             _afterHoursPanel.Visible = false;
             agentCard.Controls.Add(_afterHoursPanel);
-            agentCard.Resize += (s, e) => ApplyD119AuthenticatedLayout(HasAgentSession());
+            agentCard.Resize += (s, e) =>
+            {
+                ApplyD119AuthenticatedLayout(HasAgentSession());
+                if (_afterHoursLayoutVisible == true) ApplyAfterHoursAgentLayout(true);
+            };
             overviewLayout.Controls.Add(agentCard, 0, 0);
 
             // Hệ thống Supra - chỉ giữ trạng thái cần dùng.
@@ -1003,8 +1011,29 @@ namespace SupraInventoryRelayAgent
             _supraCard.Controls.Add(_wmsLogout);
             _wmsTest.SetBounds(350, 72, 108, 32);
             _wmsTest.Text = "Kiểm tra";
-            _wmsTest.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            _wmsTest.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _supraCard.Controls.Add(_wmsTest);
+
+            _browserBundleDownload.SetBounds(16, 110, 174, 30);
+            _browserBundleDownload.Text = "Tải trình duyệt Agent";
+            _browserBundleDownload.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            _browserBundleDownload.Click += (sender, e) => StartAgentBrowserDownload();
+            _supraCard.Controls.Add(_browserBundleDownload);
+
+            _browserBundleProgress.SetBounds(198, 116, 260, 18);
+            _browserBundleProgress.Minimum = 0;
+            _browserBundleProgress.Maximum = 100;
+            _browserBundleProgress.Value = 0;
+            _browserBundleProgress.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            _supraCard.Controls.Add(_browserBundleProgress);
+
+            _browserBundleStatus.SetBounds(16, 144, 980, 24);
+            _browserBundleStatus.Text = "Trình duyệt Agent: chưa tải";
+            _browserBundleStatus.ForeColor = Color.FromArgb(88, 104, 115);
+            _browserBundleStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            _browserBundleStatus.AutoEllipsis = true;
+            _supraCard.Controls.Add(_browserBundleStatus);
+            RefreshBrowserBundleUi();
             _supraCard.Enabled = false;
             overviewLayout.Controls.Add(_supraCard, 0, 1);
 
@@ -1250,24 +1279,39 @@ namespace SupraInventoryRelayAgent
                 BeginInvoke(new Action<bool>(ApplyAfterHoursAgentLayout), visible);
                 return;
             }
-            if (_afterHoursLayoutVisible.HasValue && _afterHoursLayoutVisible.Value == visible) return;
+
+            var visibilityChanged = !_afterHoursLayoutVisible.HasValue || _afterHoursLayoutVisible.Value != visible;
             _afterHoursLayoutVisible = visible;
             _afterHoursPanel.Visible = visible;
+            if (!visible && !visibilityChanged) return;
             if (visible)
             {
                 _agentFleetStatus.Visible = false;
-                _afterHoursPanel.SetBounds(
-                    16,
-                    94,
-                    Math.Max(300, _afterHoursPanel.Parent == null ? 990 : _afterHoursPanel.Parent.ClientSize.Width - 32),
-                    54);
+                var host = _afterHoursPanel.Parent;
+                var hostWidth = host == null ? 990 : host.ClientSize.Width;
+                var hostHeight = host == null ? 320 : host.ClientSize.Height;
+                var panelWidth = Math.Max(300, hostWidth - 32);
+                const int panelTop = 142;
+                const int panelHeight = 88;
+
+                _afterHoursPanel.SetBounds(16, panelTop, panelWidth, panelHeight);
+                _afterHoursStatus.SetBounds(10, 7, Math.Max(220, panelWidth - 20), 34);
+
+                const int gap = 8;
+                var actionWidth = Math.Max(120, (panelWidth - 28 - gap) / 2);
+                _afterHoursContinue.SetBounds(10, 48, actionWidth, 32);
+                _afterHoursStop.SetBounds(18 + actionWidth, 48, Math.Max(120, panelWidth - 28 - gap - actionWidth), 32);
+                _afterHoursEarlyStart.SetBounds(10, 48, Math.Max(240, panelWidth - 20), 32);
+
+                var gridTop = panelTop + panelHeight + 6;
                 _agentFleetGrid.SetBounds(
                     16,
-                    154,
-                    Math.Max(300, _agentFleetGrid.Parent == null ? 990 : _agentFleetGrid.Parent.ClientSize.Width - 32),
-                    92);
+                    gridTop,
+                    Math.Max(300, hostWidth - 32),
+                    Math.Max(46, hostHeight - gridTop - 12));
                 _agentFleetGrid.Visible = true;
-                _agentFleetGrid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+                _agentFleetGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+                _afterHoursPanel.BringToFront();
             }
             else
             {
@@ -1486,6 +1530,56 @@ namespace SupraInventoryRelayAgent
             _afterHoursStatus.Text = relayAllowed
                 ? "Relay PDA hoạt động theo lịch đã xác nhận."
                 : _businessSchedule.StatusText(now);
+        }
+
+        private void StartAgentBrowserDownload()
+        {
+            var status = AgentBrowserBundle.SnapshotStatus();
+            if (status.Ready)
+            {
+                RefreshBrowserBundleUi();
+                return;
+            }
+
+            _browserBundleDownload.Enabled = false;
+            _browserBundleStatus.Text = "Đang chuẩn bị tải trình duyệt Agent...";
+            AgentBrowserBundle.EnsureBackground(message => Log(message));
+            RefreshBrowserBundleUi();
+        }
+
+        private void RefreshBrowserBundleUi()
+        {
+            if (_browserBundleStatus == null || _browserBundleProgress == null || _browserBundleDownload == null) return;
+            var status = AgentBrowserBundle.SnapshotStatus();
+            var value = Math.Max(0, Math.Min(100, status.Percent));
+            if (_browserBundleProgress.Value != value) _browserBundleProgress.Value = value;
+
+            if (status.Ready)
+            {
+                _browserBundleDownload.Text = "Trình duyệt đã sẵn sàng";
+                _browserBundleDownload.Enabled = false;
+                _browserBundleStatus.ForeColor = Color.FromArgb(42, 126, 82);
+                _browserBundleStatus.Text = "Trình duyệt Agent khả dụng" +
+                    (string.IsNullOrWhiteSpace(status.Version) ? "" : " · WebView2 Fixed " + status.Version);
+                return;
+            }
+
+            if (status.Downloading)
+            {
+                _browserBundleDownload.Text = "Đang tải...";
+                _browserBundleDownload.Enabled = false;
+                _browserBundleStatus.ForeColor = Color.FromArgb(71, 85, 105);
+                _browserBundleStatus.Text = "Đang tải trình duyệt Agent · " + value + "%" +
+                    (string.IsNullOrWhiteSpace(status.Version) ? "" : " · " + status.Version);
+                return;
+            }
+
+            _browserBundleDownload.Text = "Tải trình duyệt Agent";
+            _browserBundleDownload.Enabled = HasAgentSession();
+            _browserBundleStatus.ForeColor = Color.FromArgb(88, 104, 115);
+            _browserBundleStatus.Text = string.IsNullOrWhiteSpace(status.Detail)
+                ? "Trình duyệt Agent: chưa tải"
+                : status.Detail;
         }
 
         private static Panel NewCard(int left, int top, int width, int height)
