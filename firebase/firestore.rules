@@ -222,7 +222,13 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // D126: WMS/Tồn Bin SKU synchronization is retired. Historical documents may\n    // remain for audit, but no client may create/read/update/delete this staging path.\n    match /sku_sync_jobs/{jobId} {\n      allow read, write: if false;\n    }\n\n    match /relay_agent_log_uploads/{partId} {
+    // D126: WMS/Tồn Bin SKU synchronization is retired. Historical documents may
+    // remain for audit, but no client may create/read/update/delete this staging path.
+    match /sku_sync_jobs/{jobId} {
+      allow read, write: if false;
+    }
+
+    match /relay_agent_log_uploads/{partId} {
       allow create: if isAgentOperator()
         && request.resource.data.keys().hasOnly([
           'upload_id', 'part_index', 'part_count', 'status', 'source',
