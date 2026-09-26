@@ -786,18 +786,18 @@
     "agent_log_delivery": "D101_LOCAL_ROLLING_2MIB_X4_PLUS_CURRENT__FIRESTORE_SPOOL__BETA_DRIVE_06_12_18_00__CRASH_PREFIX"
   },
   "agent_operations": {
-    "decision": "D122",
-    "target_release": "relay-agent-v43",
+    "decision": "D124",
+    "target_release": "relay-agent-v45",
     "cache_miss": "CACHE_MISS_REFRESH_WMS_ONCE_BEFORE_FINAL_NOT_FOUND__SINGLE_FLIGHT",
     "auto_update": "STARTUP_PLUS_30MIN_BACKGROUND_PLUS_MANUAL__SERVICE_MANIFEST__STABLE_ALIAS__SHA256",
-    "layout": "D122_TWO_COLUMN__LEFT_AGENT50_SUPRA25_PICKLIST25__RIGHT_PICKER__AGENT_RELAY_WIFI_ONE_ROW__AGENT_FLEET_FILL_SCROLL",
+    "layout": "D124_TWO_COLUMN__LEFT_AGENT50_SUPRA25_PICKLIST25__RIGHT_PICKER__AGENT_STATUS_AND_CONFIRM_COUNTERS_COMPACT_TOP__FLEET_REMAINDER_SCROLL",
     "wifi": "WINDOWS_WLAN_REAL_SSID__SANITIZER_WORD_BOUNDARY_PRESERVES_SSID",
     "ha_display": "D118_D117_HA_PRESERVED__PRIMARY_GENERATION_LEASE_7S__STANDBY_PROACTIVE_TAKEOVER_10S__FROZEN_CONTROL_REFRESH_30S__FLEET_OVERTIME_DECISION_NO_ROLE_PROMOTION",
     "local_logs": "TWO_STREAM_ROLLING_2MIB__MAX4_ROTATED_PLUS_CURRENT",
     "drive_logs": "FIRESTORE_ADMIN_SPOOL_TO_BETA_DRIVE__06_12_18_00__CRASH_BEST_EFFORT",
     "web_online": "WEB_PLUS_ANDROID_ONLY__AGENT_EXCLUDED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "release_status": "D122_SOURCE_IN_PROGRESS__V43_TARGET__OA048_AFTER_RELEASE",
+    "release_status": "D124_TECHNICAL_RUNTIME_RELEASE_PASS__OA050_FIELD_READY",
     "quiet_hours": "D118_OWNER_ACCEPTED__RELAY_0600_2200__FLEET_WIDE_DECISION_WINDOW_FROM_HH30__FIRST_CAS_DECISION_WINS__UNCONFIRMED_BOUNDARY_FREEZE__EARLY_START_BEFORE0600_CLAIMS_PRIMARY__MANUAL_AGENT_REMAINS_AVAILABLE",
     "fleet_table": "D120_V41_RELEASED__PICKER_ACTIVE_ANDROID_REALTIME_ONLY__SEARCH_SCROLL_ANCHOR_WHOLE_ROW_HOVER__NO_FLICKER_NOOP_RENDER",
     "previous_release": "relay-agent-v41",
@@ -805,21 +805,21 @@
     "visible_copy": "D118_COMPACT_OPERATIONAL_ONLY__APPROVED_BOTTOM_RIGHT_PRODUCT_CREDIT__NO_INTERNAL_IMPLEMENTATION_PROSE",
     "batch_confirmation": "D114_PDA_ONE_TERM_3_20__EXACT_TRAILING__AMBIGUOUS_CANDIDATES_NO_MUTATION__D104_PER_CODE_GUARD_AND_ACK_PRESERVED",
     "quota": "D120_FLEET_METRICS_ATTEMPT_HARD_THROTTLE_30MIN__D117_PRIMARY_IDLE4S_HOT2S__LEASE7S__STANDBY_FROZEN_ZERO_BUSINESS_POLL__NO_ANDROID_POLL__NO_PERIODIC_WMS_PROBE",
-    "release_main": "a3c841ae2961dac6eb5ad0f1909b2e5cd89c0242",
-    "release_id": 396990498,
-    "release_asset_id": 589509071,
-    "release_size_bytes": 358400,
-    "release_sha256": "08a55caa7b350d23e99eba9eef97b93744fd32b6e9072792d22411578559c1bd",
-    "main_relay_agent_run": 36203135376,
-    "main_ui_run": 36203135357,
-    "overlay": "D122_FOREGROUND_TEXT_OPAQUE__SEPARATE_TRANSLUCENT_BACKGROUND__LAZY_INIT__D120_LOCK_CLICKTHROUGH_SETTINGS_PRESERVED",
+    "release_main": "ec0584c303b17c026a03f65c200ab3b7afecb8ae",
+    "release_id": 397052383,
+    "release_asset_id": 589796709,
+    "release_size_bytes": 345600,
+    "release_sha256": "e1b6a4f2b377142f4c3054d4c09adf02655efd9b3126f473daf0d6b511684e59",
+    "main_relay_agent_run": 36213484181,
+    "main_ui_run": 36213484176,
+    "overlay": "REMOVED_D124",
     "watchdog": "D112_USERMODE_ARM_AFTER_ADMIN__PROTECTED_EXIT__PLANNED_EXIT_UPDATE_SHUTDOWN_SUPPRESS__PRELOGIN_NORMAL_CLOSE",
     "inventory_channel_release_id": 394587029,
-    "inventory_channel_manifest_asset_id": 589509126,
-    "inventory_channel_exe_asset_id": 589509123,
-    "next_target_release": "relay-agent-v43",
-    "next_source_status": "D122_SOURCE_IN_PROGRESS__PR_GATES_PENDING",
-    "release_publish_run": 36064078151,
+    "inventory_channel_manifest_asset_id": 589796792,
+    "inventory_channel_exe_asset_id": 589796789,
+    "next_target_release": "relay-agent-v45__RELEASED",
+    "next_source_status": "D124_RELEASED__OA050_FIELD_READY",
+    "release_publish_run": 36213484181,
     "wms_health": "STARTUP_VALIDATE__REAL_BUSINESS_CALL_UPDATES_EFFECTIVE_HEALTH__ONE_READ_ONLY_PROBE_ON_STANDBY_TO_PRIMARY_TAKEOVER__PRE_WMS_ROLE_GENERATION_REVALIDATION_EACH_POST_CHUNK__NO_PERIODIC_WMS_HEALTH_POLL",
     "schedule_authority": "D118_OWNER_ACCEPTED__FIRESTORE_EXISTING_RELAY_COORDINATION_ROLES_DOCUMENT__ANY_AUTHENTICATED_AGENT_MAY_DECIDE__UPDATE_TIME_CAS__FIRST_DECISION_PER_BOUNDARY_WINS__NO_ROLE_PROMOTION",
     "ui_responsiveness": "D122_SSID_WATCHDOG_SCHEDULE_SYSTEM_MONITOR_OFF_UI_BLOCKING_PATHS__FLEET_DIFF_RENDER__NO_CADENCE_EXPANSION",
@@ -844,13 +844,13 @@
       "/downloads/agent/latest.sha256"
     ],
     "discovery_policy": "NORMAL_RUNTIME_DOES_NOT_ENUMERATE_GITHUB_RELEASES_REST",
-    "status": "D122_SOURCE_IN_PROGRESS__CURRENT_CHANNEL_BETA_VC76_AGENT_V42__TARGET_AGENT_V43"
+    "status": "D124_RELEASED__CURRENT_CHANNEL_BETA_VC76_AGENT_V45__OA050_FIELD_READY"
   },
   "release_channel": {
     "environment": "beta",
     "tag": "inventory-channel",
     "release_id": 394587029,
-    "target_commit": "d29237c0990eb677ddef726785a88e08bce88dce",
+    "target_commit": "ec0584c303b17c026a03f65c200ab3b7afecb8ae",
     "policy": "VERSION_INDEPENDENT_PUBLIC_ASSET_ALIASES__NO_NORMAL_RUNTIME_GITHUB_RELEASES_REST_ENUMERATION",
     "pda": {
       "manifest_asset_id": 589368497,
@@ -859,10 +859,10 @@
       "release": "beta-vc76"
     },
     "agent": {
-      "manifest_asset_id": 589509126,
-      "exe_asset_id": 589509123,
-      "exe_size_bytes": 358400,
-      "release": "relay-agent-v42"
+      "manifest_asset_id": 589796792,
+      "exe_asset_id": 589796789,
+      "exe_size_bytes": 345600,
+      "release": "relay-agent-v45"
     },
     "stable": "OWNER_GATED_UNTOUCHED"
   },
@@ -1094,7 +1094,7 @@
     "agent_sha256": "644609140316a9050336673f8c73bb1bcf8db26614c69216da840377d7dc1f47"
   },
   "d124": {
-    "status": "SOURCE_IN_PROGRESS__PR_GATES_RUNNING",
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA050_FIELD_READY",
     "branch": "fix/d124-agent-sku-daily-no-overlay",
     "baseline_main": "9da487ff341cf31fe61a944b3c41b9fe20c094de",
     "baseline_agent_release": "relay-agent-v44",
@@ -1114,6 +1114,16 @@
     "protected_contracts": "D123_UI_THREAD__D120_PICKER__D117_D118_CONFIRMATION_HA_GENERATION_WMS_MUTATION_UNCHANGED",
     "stable": "OWNER_GATED_UNTOUCHED",
     "owner_field_action": "OA050",
-    "implementation_pr": 195
+    "implementation_pr": 195,
+    "merged_main": "ec0584c303b17c026a03f65c200ab3b7afecb8ae",
+    "functions_run": 36213484153,
+    "agent_run": 36213484181,
+    "ui_run": 36213484176,
+    "agent_release_id": 397052383,
+    "agent_asset_id": 589796709,
+    "agent_size_bytes": 345600,
+    "agent_sha256": "e1b6a4f2b377142f4c3054d4c09adf02655efd9b3126f473daf0d6b511684e59",
+    "inventory_channel_manifest_asset_id": 589796792,
+    "inventory_channel_exe_asset_id": 589796789
   }
 }
