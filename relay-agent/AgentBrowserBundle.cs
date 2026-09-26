@@ -23,7 +23,7 @@ namespace SupraInventoryRelayAgent
 
         private static readonly JavaScriptSerializer Json = new JavaScriptSerializer();
         private static readonly object StateLock = new object();
-        private const int RequiredHostBuild = 7;
+        private const int RequiredHostBuild = 8;
         private const string RequiredHostArch = "x64";
         private static int _backgroundRunning;
         private static int _cleanupScheduled;
