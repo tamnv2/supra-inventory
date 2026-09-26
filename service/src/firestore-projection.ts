@@ -118,6 +118,7 @@ type PickerProjectionPayload = {
 async function writePickerPresenceProjection(
   env: ProjectionWriteEnv,
   payload: PickerProjectionPayload,
+  reason = "SNAPSHOT_REFRESH",
 ): Promise<void> {
   const pickers = (payload.items || []).slice(0, 2000).map((item) => ({
     user_id: String(item.user_id || ""),
@@ -146,32 +147,35 @@ async function writePickerPresenceProjection(
     source: "ANDROID_PRESENCE_V1",
     created_at: now,
     schema_version: 3,
+    reason,
     count: pickers.length,
     pickers,
   });
 }
 
-export async function syncPickerPresenceProjection(env: ProjectionEnv): Promise<void> {
+export async function syncPickerPresenceProjection(env: ProjectionEnv, reason = "SNAPSHOT_REFRESH"): Promise<void> {
   const core = env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName("inventory-core"));
   const response = await core.fetch("https://inventory-core.internal/notifications/online-pickers");
   if (!response.ok) throw new Error(`ONLINE_PICKERS_HTTP_${response.status}`);
-  await writePickerPresenceProjection(env, (await response.json()) as PickerProjectionPayload);
+  await writePickerPresenceProjection(env, (await response.json()) as PickerProjectionPayload, reason);
 }
 
 export async function syncPickerPresenceProjectionFromState(
   state: DurableObjectState,
   env: ProjectionWriteEnv,
   excludeConnectionId = "",
+  reason = "SOCKET_CHANGE",
 ): Promise<void> {
   await writePickerPresenceProjection(
     env,
     onlinePickerProjectionData(state, excludeConnectionId) as PickerProjectionPayload,
+    reason,
   );
 }
 
-export async function refreshPickerProjectionBestEffort(env: ProjectionEnv): Promise<void> {
+export async function refreshPickerProjectionBestEffort(env: ProjectionEnv, reason = "SNAPSHOT_REFRESH"): Promise<void> {
   try {
-    await syncPickerPresenceProjection(env);
+    await syncPickerPresenceProjection(env, reason);
   } catch {
     // D119 projection failure must never roll back existing login/device business behavior.
   }
