@@ -36,17 +36,12 @@ namespace SupraInventoryRelayAgent
             new Dictionary<string, PickerContactCommand>(StringComparer.Ordinal);
         private long _pickerPresenceRefreshRunning;
         private DateTime _lastPickerPresenceRefreshUtc = DateTime.MinValue;
-        private readonly Button _skuSyncButton = new Button();
-        private readonly Label _skuSyncStatus = new Label();
-        private FirestoreSkuSyncClient _skuSyncClient;
         private FirestoreFleetMetricsClient _fleetMetricsClient;
         private FleetMetricSnapshot _fleetSnapshot;
         private long _fleetMetricsRefreshRunning;
         private DateTime _lastFleetMetricsRefreshUtc = DateTime.MinValue;
         private DateTime _lastFleetMetricsAttemptUtc = DateTime.MinValue;
         private bool _lastFleetPrimary;
-        private long _skuSyncRunning;
-        private DateTime _nextAutoSkuSyncAttemptUtc = DateTime.MinValue;
         private readonly CheckBox _autoSizeColumns = new CheckBox();
         private bool _columnPreferenceApplying;
         private string _columnPreferenceUser = "";
@@ -65,7 +60,6 @@ namespace SupraInventoryRelayAgent
 
             _pickerPresenceClient = new FirestorePickerPresenceClient(message => Log(message));
             _pickerContactClient = new FirestorePickerContactClient(message => Log(message));
-            _skuSyncClient = new FirestoreSkuSyncClient(message => Log(message));
             _fleetMetricsClient = new FirestoreFleetMetricsClient(message => Log(message));
 
             var agentHost = _username.Parent;
@@ -81,23 +75,12 @@ namespace SupraInventoryRelayAgent
 
             if (_supraCard != null)
             {
-                _wmsCapture.SetBounds(16, 72, 138, 32);
-                _wmsLogout.SetBounds(162, 72, 128, 32);
-                _wmsTest.SetBounds(298, 72, 96, 32);
-                _skuSyncButton.SetBounds(402, 72, 140, 32);
-                _skuSyncButton.Text = "Cập nhật SKU";
-                _skuSyncButton.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-                _skuSyncButton.Click += (s, e) => RunSkuSync(true);
-                _supraCard.Controls.Add(_skuSyncButton);
-
-                _wmsStatus.SetBounds(16, 42, 210, 22);
-                _supraInfo.SetBounds(232, 42, Math.Max(220, _supraCard.ClientSize.Width - 248), 22);
+                _wmsCapture.SetBounds(16, 72, 180, 32);
+                _wmsLogout.SetBounds(204, 72, 138, 32);
+                _wmsTest.SetBounds(350, 72, 108, 32);
+                _wmsStatus.SetBounds(16, 42, 260, 22);
+                _supraInfo.SetBounds(286, 42, Math.Max(220, _supraCard.ClientSize.Width - 302), 22);
                 _supraInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-                _skuSyncStatus.SetBounds(550, 79, Math.Max(150, _supraCard.ClientSize.Width - 566), 18);
-                _skuSyncStatus.TextAlign = ContentAlignment.MiddleRight;
-                _skuSyncStatus.ForeColor = Color.FromArgb(88, 104, 115);
-                _skuSyncStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-                _supraCard.Controls.Add(_skuSyncStatus);
             }
 
             var pickerCard = NewCard(0, 0, 1040, 170);
@@ -294,7 +277,6 @@ namespace SupraInventoryRelayAgent
                 _agentFleetGrid.Visible = false;
             }
 
-            _skuSyncButton.Enabled = authenticated;
             var authChanged = !_d119AuthenticatedState.HasValue || _d119AuthenticatedState.Value != authenticated;
             _d119AuthenticatedState = authenticated;
             if (authenticated)
@@ -312,7 +294,6 @@ namespace SupraInventoryRelayAgent
                 _pickerOnlineGrid.Rows.Clear();
                 _pickerOnlineStatus.Text = "Đăng nhập Agent để xem Picker đang hoạt động.";
                 _fleetMetricStatus.Text = "";
-                _skuSyncStatus.Text = "";
             }
         }
 
@@ -556,8 +537,6 @@ namespace SupraInventoryRelayAgent
                 }
             });
 
-            if (HasUsableWmsSession() && DateTime.UtcNow >= _nextAutoSkuSyncAttemptUtc)
-                RunSkuSync(false);
         }
 
         private void UpdatePickerOnlineGrid(List<PickerPresenceView> items, bool primary)
@@ -757,212 +736,6 @@ namespace SupraInventoryRelayAgent
                 " · Thành công " + success.ToString("N0") +
                 " · Lỗi " + failed.ToString("N0") +
                 " · Chờ " + pending.ToString("N0");
-        }
-
-        private static DateTime NextSkuSyncDayUtc()
-        {
-            var localNow = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7));
-            var next = new DateTimeOffset(
-                localNow.Year,
-                localNow.Month,
-                localNow.Day,
-                0, 5, 0,
-                TimeSpan.FromHours(7)).AddDays(1);
-            return next.UtcDateTime;
-        }
-
-        private void RunSkuSync(bool manual)
-        {
-            if (_skuSyncClient == null || !HasAgentSession())
-            {
-                if (manual) NotifySkuSyncResult(false, "Cần đăng nhập Agent trước khi cập nhật SKU.");
-                return;
-            }
-            if (Interlocked.CompareExchange(ref _skuSyncRunning, 1L, 0L) != 0L)
-            {
-                if (manual) Ui(() => _skuSyncStatus.Text = "Đang cập nhật SKU...");
-                return;
-            }
-
-            if (!manual) _nextAutoSkuSyncAttemptUtc = DateTime.UtcNow.AddMinutes(15);
-            Task.Run(() =>
-            {
-                SkuSyncLeaseResult lease = null;
-                try
-                {
-                    EnsureFreshToken();
-                    var session = SnapshotSession();
-                    var wms = SnapshotWmsSession();
-                    if (wms == null || !wms.IsValidHy1())
-                    {
-                        if (manual) NotifySkuSyncResult(false, "Cần đăng nhập Supra WMS trước khi cập nhật SKU.");
-                        return;
-                    }
-
-                    Ui(() =>
-                    {
-                        _skuSyncButton.Enabled = false;
-                        _skuSyncStatus.Text = manual
-                            ? "Đang kiểm tra lượt cập nhật SKU hôm nay..."
-                            : "Tự đồng bộ · đang kiểm tra lượt hôm nay...";
-                    });
-
-                    lease = _skuSyncClient.AcquireDailyLease(session, _agentInstanceId);
-                    if (!lease.Acquired)
-                    {
-                        Ui(() => _skuSyncStatus.Text = lease.Detail);
-                        if (lease.AlreadyDone || lease.DayLocked)
-                            _nextAutoSkuSyncAttemptUtc = NextSkuSyncDayUtc();
-                        if (manual) NotifySkuSyncResult(
-                            lease.AlreadyDone,
-                            lease.AlreadyDone
-                                ? "SKU đã được cập nhật trong ngày hôm nay. Không gửi thêm lượt tự động hoặc thủ công."
-                                : (string.IsNullOrWhiteSpace(lease.Detail) ? "Chưa thể bắt đầu cập nhật SKU." : lease.Detail));
-                        return;
-                    }
-
-                    Ui(() => _skuSyncStatus.Text = "Đã nhận lượt hôm nay · đang đọc dữ liệu Supra...");
-                    var catalog = WmsSkuCatalogClient.Download(
-                        wms,
-                        message => Log(message),
-                        message => Ui(() => _skuSyncStatus.Text = message));
-                    var sourceHash = FirestoreSkuSyncClient.ComputeSourceHash(catalog.Items);
-                    var inserted = 0;
-                    var updated = 0;
-                    var unchanged = 0;
-                    var declinedConflicts = 0;
-                    var serviceStarted = false;
-
-                    const int chunkSize = 800;
-                    var totalChunks = Math.Max(1, (int)Math.Ceiling(catalog.Items.Count / (double)chunkSize));
-                    for (var offset = 0; offset < catalog.Items.Count; offset += chunkSize)
-                    {
-                        var count = Math.Min(chunkSize, catalog.Items.Count - offset);
-                        var chunk = catalog.Items.GetRange(offset, count);
-                        var chunkIndex = (offset / chunkSize) + 1;
-                        if (!serviceStarted)
-                        {
-                            _skuSyncClient.MarkServiceStarted(session, _agentInstanceId, lease);
-                            serviceStarted = true;
-                        }
-                        Ui(() => _skuSyncStatus.Text =
-                            "Lô " + chunkIndex + "/" + totalChunks +
-                            " · chuẩn bị " + count.ToString("N0") + " SKU...");
-
-                        var result = _skuSyncClient.SubmitAndWait(
-                            session,
-                            chunk,
-                            sourceHash,
-                            false,
-                            message => Ui(() => _skuSyncStatus.Text =
-                                "Lô " + chunkIndex + "/" + totalChunks + " · " + message));
-                        if (string.Equals(result.Status, "FAILED", StringComparison.Ordinal))
-                            throw new InvalidOperationException("Service từ chối lô SKU: " + result.ResultCode);
-
-                        inserted += result.Inserted;
-                        updated += result.Updated;
-                        unchanged += result.Unchanged;
-
-                        if (string.Equals(result.Status, "AWAITING_CONFIRMATION", StringComparison.Ordinal) &&
-                            result.ConflictCount > 0)
-                        {
-                            var approve = false;
-                            UiSync(() =>
-                            {
-                                approve = MessageBox.Show(
-                                    "Supra phát hiện " + result.ConflictCount.ToString("N0") +
-                                    " SKU đã có nhưng tên sản phẩm khác.\r\n\r\n" +
-                                    "Xác nhận cập nhật tên theo Supra? SKU không có trong nguồn sẽ không bị xóa.",
-                                    "Xác nhận đổi tên SKU",
-                                    MessageBoxButtons.YesNo,
-                                    MessageBoxIcon.Question) == DialogResult.Yes;
-                            });
-
-                            if (approve)
-                            {
-                                Ui(() => _skuSyncStatus.Text =
-                                    "Lô " + chunkIndex + "/" + totalChunks + " · đang xác nhận đổi tên...");
-                                var confirmed = _skuSyncClient.SubmitAndWait(
-                                    session,
-                                    chunk,
-                                    sourceHash,
-                                    true,
-                                    message => Ui(() => _skuSyncStatus.Text =
-                                        "Lô " + chunkIndex + "/" + totalChunks + " · " + message));
-                                if (!string.Equals(confirmed.Status, "DONE", StringComparison.Ordinal))
-                                    throw new InvalidOperationException("Không hoàn tất được lô đổi tên SKU.");
-                                updated += confirmed.Updated;
-                            }
-                            else
-                            {
-                                declinedConflicts += result.ConflictCount;
-                            }
-                        }
-                    }
-
-                    _skuSyncClient.MarkLeaseDone(session, _agentInstanceId, lease);
-                    _nextAutoSkuSyncAttemptUtc = NextSkuSyncDayUtc();
-                    var successText =
-                        "SKU: +" + inserted.ToString("N0") +
-                        " mới · " + updated.ToString("N0") +
-                        " đổi tên · " + unchanged.ToString("N0") + " giữ nguyên" +
-                        (declinedConflicts > 0 ? " · " + declinedConflicts.ToString("N0") + " chưa đổi tên" : "");
-                    Ui(() => _skuSyncStatus.Text = successText);
-                    if (manual)
-                        NotifySkuSyncResult(
-                            true,
-                            "Cập nhật SKU thành công.\r\n" +
-                            "Nguồn Supra: " + catalog.Items.Count.ToString("N0") + " SKU.\r\n" +
-                            "Mới: " + inserted.ToString("N0") +
-                            " · Đổi tên: " + updated.ToString("N0") +
-                            " · Giữ nguyên: " + unchanged.ToString("N0") +
-                            (declinedConflicts > 0 ? " · Chưa đổi tên: " + declinedConflicts.ToString("N0") : ""));
-                    Log("SKU_SYNC complete=PASS unique_sku=" + catalog.Items.Count +
-                        " inserted=" + inserted +
-                        " updated=" + updated +
-                        " unchanged=" + unchanged +
-                        " declined_conflicts=" + declinedConflicts +
-                        " stock_fields=discarded");
-                }
-                catch (Exception ex)
-                {
-                    var dayLocked = lease != null && lease.ServiceStarted;
-                    try
-                    {
-                        if (lease != null && lease.Acquired && !dayLocked)
-                            _skuSyncClient.ReleaseLeaseSoon(SnapshotSession(), _agentInstanceId, lease);
-                    }
-                    catch { }
-                    _nextAutoSkuSyncAttemptUtc = dayLocked
-                        ? NextSkuSyncDayUtc()
-                        : DateTime.UtcNow.AddMinutes(15);
-                    var failureText = dayLocked
-                        ? "Cập nhật SKU chưa xác nhận hoàn tất · đã khóa lượt hôm nay để tránh gửi trùng · " + SafeMessage(ex)
-                        : "Cập nhật SKU chưa hoàn tất · " + SafeMessage(ex);
-                    Ui(() => _skuSyncStatus.Text = failureText);
-                    if (manual) NotifySkuSyncResult(false, failureText);
-                    Log("SKU_SYNC complete=FAIL type=" + ex.GetType().Name + " detail=" + SafeMessage(ex));
-                }
-                finally
-                {
-                    Interlocked.Exchange(ref _skuSyncRunning, 0L);
-                    Ui(() => _skuSyncButton.Enabled = HasAgentSession());
-                }
-            });
-        }
-
-        private void NotifySkuSyncResult(bool success, string message)
-        {
-            Ui(() =>
-            {
-                _skuSyncStatus.Text = message ?? "";
-                MessageBox.Show(
-                    this,
-                    message ?? (success ? "Cập nhật SKU thành công." : "Cập nhật SKU thất bại."),
-                    success ? "Cập nhật SKU thành công" : "Cập nhật SKU chưa hoàn tất",
-                    MessageBoxButtons.OK,
-                    success ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
-            });
         }
 
         private bool HasActivePickerCommand(string userId)
