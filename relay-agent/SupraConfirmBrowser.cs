@@ -244,6 +244,8 @@ namespace SupraInventoryRelayAgent
                 // A visible success surface or disappearance of the exact row is trusted;
                 // otherwise the outcome is uncertain and the confirmation guard stays closed.
                 var deadline = DateTime.UtcNow.AddSeconds(8);
+                var rowMissingSamples = 0;
+                var rowMissingSinceUtc = DateTime.MinValue;
                 while (DateTime.UtcNow < deadline)
                 {
                     Thread.Sleep(350);
@@ -267,6 +269,24 @@ namespace SupraInventoryRelayAgent
                         result.Result = "CONFIRM_REJECTED";
                         result.Detail = String(post, "signal");
                         break;
+                    }
+
+                    if (Bool(post, "rowMissing"))
+                    {
+                        if (rowMissingSamples == 0) rowMissingSinceUtc = DateTime.UtcNow;
+                        rowMissingSamples++;
+                        if (rowMissingSamples >= 3 &&
+                            DateTime.UtcNow - rowMissingSinceUtc >= TimeSpan.FromMilliseconds(700))
+                        {
+                            result.Result = "CONFIRMED";
+                            result.Detail = "ROW_REMOVED_STABLE";
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        rowMissingSamples = 0;
+                        rowMissingSinceUtc = DateTime.MinValue;
                     }
                 }
 
@@ -567,7 +587,7 @@ namespace SupraInventoryRelayAgent
               const search = buttons.filter(e => txt(e) === 'Tìm kiếm');
               const confirm = buttons.filter(e => txt(e) === 'Xác nhận lấy lại hàng');
               const pathOk = location.hostname === 'wms-supra.winmart.vn' && location.pathname.indexOf('" + ConfirmPath + @"') >= 0;
-              const ready = pathOk && search.length === 1 && confirm.length === 1 && !confirm[0].disabled;
+              const ready = pathOk && search.length === 1 && confirm.length === 1;
               let state = 'WRONG_PAGE';
               if (pathOk && !ready) state = 'LOGIN_OR_DOM_NOT_READY';
               if (ready) state = 'READY';
@@ -669,10 +689,10 @@ namespace SupraInventoryRelayAgent
               const dangerText = dangerNodes.map(e => (e.innerText || e.textContent || '')).join(' ').toLowerCase();
               const successWord = successText.includes('thành công') || successText.includes('success');
               const rejectWord = dangerText.includes('thất bại') || dangerText.includes('không thể') || dangerText.includes('error');
-              if (successWord) return JSON.stringify({success:true,rejected:false,signal:'SUCCESS_SURFACE'});
-              if (rejectWord) return JSON.stringify({success:false,rejected:true,signal:'ERROR_SURFACE'});
-              if (rows.length === 0) return JSON.stringify({success:true,rejected:false,signal:'ROW_REMOVED'});
-              return JSON.stringify({success:false,rejected:false,signal:'PENDING'});
+              if (successWord) return JSON.stringify({success:true,rejected:false,rowMissing:false,signal:'SUCCESS_SURFACE'});
+              if (rejectWord) return JSON.stringify({success:false,rejected:true,rowMissing:false,signal:'ERROR_SURFACE'});
+              if (rows.length === 0) return JSON.stringify({success:false,rejected:false,rowMissing:true,signal:'ROW_REMOVED'});
+              return JSON.stringify({success:false,rejected:false,rowMissing:false,signal:'PENDING'});
             })()";
         }
 
