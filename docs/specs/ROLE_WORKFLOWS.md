@@ -569,3 +569,13 @@ D114 supersedes the D105/D112 suffix-length carrier details where they conflict.
 - Android socket connect adds/reconciles the compact presence projection; socket close/error removes/reconciles it. Explicit logout/session replacement/device removal continue to refresh through their existing paths.
 - No new per-PDA heartbeat or polling loop is introduced. The existing hibernatable realtime socket lifecycle is the liveness signal.
 - Legacy projection payloads that do not declare schema v2 / `ACTIVE_ANDROID_REALTIME` are not displayed by the Agent.
+
+## D122 — Agent recovery and Ca vận hành workflow
+
+- If the saved Agent authentication is definitively no longer valid, the runtime clears the unusable local session and returns the normal Agent sign-in controls. Temporary transport failures stay fail-closed and do not clear a usable session.
+- If the Supra/WMS session is definitively expired, WMS readiness/cache is cleared and **Đăng nhập Supra** returns through the existing browser capture flow.
+- Manual SKU update always ends with explicit operator feedback, including a successful run where every SKU is unchanged.
+- Column auto-size/manual widths are presentation-only and stored locally per authenticated Agent user.
+- Existing D118 overtime controls move to **Vận hành → Ca vận hành** for the same management authority. **Gia hạn +1 giờ** and **Kết thúc tăng ca** keep the existing shared schedule semantics.
+- **Công cụ** remains focused on App/Agent release download and installation.
+
