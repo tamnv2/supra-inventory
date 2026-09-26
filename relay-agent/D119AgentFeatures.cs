@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Linq;
 using System.Text;
+using System.Web.Script.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -43,6 +46,17 @@ namespace SupraInventoryRelayAgent
         private bool _lastFleetPrimary;
         private long _skuSyncRunning;
         private DateTime _nextAutoSkuSyncAttemptUtc = DateTime.MinValue;
+        private readonly CheckBox _autoSizeColumns = new CheckBox();
+        private bool _columnPreferenceApplying;
+        private string _columnPreferenceUser = "";
+
+        private sealed class ColumnPreferenceProfile
+        {
+            public bool AutoSize = true;
+            public Dictionary<string, int> Agent = new Dictionary<string, int>(StringComparer.Ordinal);
+            public Dictionary<string, int> Picker = new Dictionary<string, int>(StringComparer.Ordinal);
+            public Dictionary<string, int> PickList = new Dictionary<string, int>(StringComparer.Ordinal);
+        }
 
         private void InitializeD119AgentFeatures(TableLayoutPanel overviewLayout)
         {
@@ -189,6 +203,8 @@ namespace SupraInventoryRelayAgent
             overviewLayout.Controls.Add(pickerCard, 1, 0);
             overviewLayout.SetRowSpan(pickerCard, 3);
 
+            InitializeColumnPreferences();
+
             _d119OpsTimer.Interval = 5000;
             _d119OpsTimer.Tick += (s, e) => RefreshD119OperationalViews(false);
             _d119OpsTimer.Start();
@@ -261,7 +277,11 @@ namespace SupraInventoryRelayAgent
             _d119AuthenticatedState = authenticated;
             if (authenticated)
             {
-                if (authChanged) RefreshD119OperationalViews(true);
+                if (authChanged)
+                {
+                    LoadColumnPreferencesForCurrentUser();
+                    RefreshD119OperationalViews(true);
+                }
             }
             else
             {
@@ -271,6 +291,179 @@ namespace SupraInventoryRelayAgent
                 _pickerOnlineStatus.Text = "Đăng nhập Agent để xem Picker đang hoạt động.";
                 _fleetMetricStatus.Text = "";
                 _skuSyncStatus.Text = "";
+            }
+        }
+
+        private string ColumnPreferencePath
+        {
+            get { return Path.Combine(RelayDataDir, "grid-column-preferences.json"); }
+        }
+
+        private void InitializeColumnPreferences()
+        {
+            var host = _username.Parent;
+            if (host != null)
+            {
+                _autoSizeColumns.Text = "Tự căn cột theo nội dung";
+                _autoSizeColumns.AutoSize = true;
+                _autoSizeColumns.Checked = true;
+                _autoSizeColumns.Top = 12;
+                _autoSizeColumns.Left = Math.Max(460, host.ClientSize.Width - 205);
+                _autoSizeColumns.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+                _autoSizeColumns.CheckedChanged += (s, e) =>
+                {
+                    if (_columnPreferenceApplying) return;
+                    ApplyColumnPreferenceMode();
+                    SaveColumnPreferencesForCurrentUser();
+                };
+                host.Controls.Add(_autoSizeColumns);
+                _autoSizeColumns.BringToFront();
+            }
+
+            foreach (var grid in new[] { _agentFleetGrid, _pickerOnlineGrid, _manualPicklistGrid })
+            {
+                grid.AllowUserToResizeColumns = false;
+                grid.ColumnWidthChanged += (s, e) =>
+                {
+                    if (_columnPreferenceApplying || _autoSizeColumns.Checked) return;
+                    SaveColumnPreferencesForCurrentUser();
+                };
+            }
+            ResizeEnd += (s, e) =>
+            {
+                if (!_autoSizeColumns.Checked) return;
+                ApplyColumnSizingIfEnabled(_agentFleetGrid);
+                ApplyColumnSizingIfEnabled(_pickerOnlineGrid);
+                ApplyColumnSizingIfEnabled(_manualPicklistGrid);
+            };
+            LoadColumnPreferencesForCurrentUser();
+        }
+
+        private string CurrentColumnPreferenceUser()
+        {
+            try { return SnapshotSession().AppUserId ?? ""; }
+            catch { return ""; }
+        }
+
+        private Dictionary<string, ColumnPreferenceProfile> ReadColumnPreferenceStore()
+        {
+            try
+            {
+                if (!File.Exists(ColumnPreferencePath)) return new Dictionary<string, ColumnPreferenceProfile>(StringComparer.Ordinal);
+                var raw = File.ReadAllText(ColumnPreferencePath, Encoding.UTF8);
+                return new JavaScriptSerializer().Deserialize<Dictionary<string, ColumnPreferenceProfile>>(raw)
+                    ?? new Dictionary<string, ColumnPreferenceProfile>(StringComparer.Ordinal);
+            }
+            catch
+            {
+                return new Dictionary<string, ColumnPreferenceProfile>(StringComparer.Ordinal);
+            }
+        }
+
+        private void WriteColumnPreferenceStore(Dictionary<string, ColumnPreferenceProfile> store)
+        {
+            try
+            {
+                Directory.CreateDirectory(RelayDataDir);
+                File.WriteAllText(ColumnPreferencePath, new JavaScriptSerializer().Serialize(store), Encoding.UTF8);
+            }
+            catch (Exception ex)
+            {
+                AgentDiagnostics.Write("GRID_PREF save=FAIL type=" + ex.GetType().Name);
+            }
+        }
+
+        private void LoadColumnPreferencesForCurrentUser()
+        {
+            var user = CurrentColumnPreferenceUser();
+            if (string.IsNullOrWhiteSpace(user)) return;
+            var store = ReadColumnPreferenceStore();
+            ColumnPreferenceProfile profile;
+            if (!store.TryGetValue(user, out profile) || profile == null) profile = new ColumnPreferenceProfile();
+
+            _columnPreferenceApplying = true;
+            try
+            {
+                _columnPreferenceUser = user;
+                _autoSizeColumns.Checked = profile.AutoSize;
+                RestoreGridWidths(_agentFleetGrid, profile.Agent);
+                RestoreGridWidths(_pickerOnlineGrid, profile.Picker);
+                RestoreGridWidths(_manualPicklistGrid, profile.PickList);
+                ApplyColumnPreferenceMode();
+            }
+            finally
+            {
+                _columnPreferenceApplying = false;
+            }
+        }
+
+        private static Dictionary<string, int> CaptureGridWidths(DataGridView grid)
+        {
+            var result = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (DataGridViewColumn column in grid.Columns)
+                if (!string.IsNullOrWhiteSpace(column.Name)) result[column.Name] = column.Width;
+            return result;
+        }
+
+        private static void RestoreGridWidths(DataGridView grid, Dictionary<string, int> widths)
+        {
+            if (widths == null) return;
+            foreach (DataGridViewColumn column in grid.Columns)
+            {
+                int width;
+                if (widths.TryGetValue(column.Name, out width))
+                    column.Width = Math.Max(column.MinimumWidth, Math.Min(800, width));
+            }
+        }
+
+        private void SaveColumnPreferencesForCurrentUser()
+        {
+            var user = CurrentColumnPreferenceUser();
+            if (string.IsNullOrWhiteSpace(user)) return;
+            var store = ReadColumnPreferenceStore();
+            var profile = new ColumnPreferenceProfile
+            {
+                AutoSize = _autoSizeColumns.Checked,
+                Agent = CaptureGridWidths(_agentFleetGrid),
+                Picker = CaptureGridWidths(_pickerOnlineGrid),
+                PickList = CaptureGridWidths(_manualPicklistGrid)
+            };
+            store[user] = profile;
+            WriteColumnPreferenceStore(store);
+            _columnPreferenceUser = user;
+        }
+
+        private void ApplyColumnPreferenceMode()
+        {
+            foreach (var grid in new[] { _agentFleetGrid, _pickerOnlineGrid, _manualPicklistGrid })
+            {
+                grid.AllowUserToResizeColumns = !_autoSizeColumns.Checked;
+                if (_autoSizeColumns.Checked) ApplyColumnSizingIfEnabled(grid);
+            }
+        }
+
+        private void ApplyColumnSizingIfEnabled(DataGridView grid)
+        {
+            if (grid == null || !_autoSizeColumns.Checked || grid.Columns.Count == 0) return;
+            _columnPreferenceApplying = true;
+            try
+            {
+                foreach (DataGridViewColumn column in grid.Columns)
+                    column.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                grid.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.DisplayedCells);
+                var available = Math.Max(200, grid.ClientSize.Width - (grid.Controls.OfType<VScrollBar>().Any(v => v.Visible) ? SystemInformation.VerticalScrollBarWidth : 4));
+                var used = 0;
+                foreach (DataGridViewColumn column in grid.Columns) used += column.Width;
+                if (used < available)
+                {
+                    var last = grid.Columns[grid.Columns.Count - 1];
+                    last.Width = Math.Min(800, Math.Max(last.MinimumWidth, last.Width + (available - used)));
+                }
+            }
+            catch { }
+            finally
+            {
+                _columnPreferenceApplying = false;
             }
         }
 
@@ -492,7 +685,11 @@ namespace SupraInventoryRelayAgent
 
         private void RunSkuSync(bool manual)
         {
-            if (_skuSyncClient == null || !HasAgentSession()) return;
+            if (_skuSyncClient == null || !HasAgentSession())
+            {
+                if (manual) NotifySkuSyncResult(false, "Cần đăng nhập Agent trước khi cập nhật SKU.");
+                return;
+            }
             if (Interlocked.CompareExchange(ref _skuSyncRunning, 1L, 0L) != 0L)
             {
                 if (manual) Ui(() => _skuSyncStatus.Text = "Đang cập nhật SKU...");
@@ -510,7 +707,7 @@ namespace SupraInventoryRelayAgent
                     var wms = SnapshotWmsSession();
                     if (wms == null || !wms.IsValidHy1())
                     {
-                        if (manual) Ui(() => _skuSyncStatus.Text = "Cần phiên Supra WMS hợp lệ.");
+                        if (manual) NotifySkuSyncResult(false, "Cần đăng nhập Supra WMS trước khi cập nhật SKU.");
                         return;
                     }
 
@@ -525,6 +722,11 @@ namespace SupraInventoryRelayAgent
                     {
                         Ui(() => _skuSyncStatus.Text = lease.Detail);
                         if (lease.AlreadyDone) _nextAutoSkuSyncAttemptUtc = DateTime.UtcNow.AddHours(6);
+                        if (manual) NotifySkuSyncResult(
+                            lease.AlreadyDone,
+                            lease.AlreadyDone
+                                ? "SKU đã được đồng bộ thành công trong chu kỳ hiện tại. Không chạy lặp để tiết kiệm tài nguyên."
+                                : (string.IsNullOrWhiteSpace(lease.Detail) ? "Chưa thể bắt đầu cập nhật SKU." : lease.Detail));
                         return;
                     }
 
@@ -583,11 +785,21 @@ namespace SupraInventoryRelayAgent
 
                     _skuSyncClient.MarkLeaseDone(session, _agentInstanceId, lease);
                     _nextAutoSkuSyncAttemptUtc = DateTime.UtcNow.AddHours(6);
-                    Ui(() => _skuSyncStatus.Text =
+                    var successText =
                         "SKU: +" + inserted.ToString("N0") +
                         " mới · " + updated.ToString("N0") +
                         " đổi tên · " + unchanged.ToString("N0") + " giữ nguyên" +
-                        (declinedConflicts > 0 ? " · " + declinedConflicts.ToString("N0") + " chưa đổi tên" : ""));
+                        (declinedConflicts > 0 ? " · " + declinedConflicts.ToString("N0") + " chưa đổi tên" : "");
+                    Ui(() => _skuSyncStatus.Text = successText);
+                    if (manual)
+                        NotifySkuSyncResult(
+                            true,
+                            "Cập nhật SKU thành công.\r\n" +
+                            "Nguồn Supra: " + catalog.Items.Count.ToString("N0") + " SKU.\r\n" +
+                            "Mới: " + inserted.ToString("N0") +
+                            " · Đổi tên: " + updated.ToString("N0") +
+                            " · Giữ nguyên: " + unchanged.ToString("N0") +
+                            (declinedConflicts > 0 ? " · Chưa đổi tên: " + declinedConflicts.ToString("N0") : ""));
                     Log("SKU_SYNC complete=PASS unique_sku=" + catalog.Items.Count +
                         " inserted=" + inserted +
                         " updated=" + updated +
@@ -604,7 +816,9 @@ namespace SupraInventoryRelayAgent
                     }
                     catch { }
                     _nextAutoSkuSyncAttemptUtc = DateTime.UtcNow.AddMinutes(15);
-                    Ui(() => _skuSyncStatus.Text = "Cập nhật SKU chưa hoàn tất · " + SafeMessage(ex));
+                    var failureText = "Cập nhật SKU chưa hoàn tất · " + SafeMessage(ex);
+                    Ui(() => _skuSyncStatus.Text = failureText);
+                    if (manual) NotifySkuSyncResult(false, failureText);
                     Log("SKU_SYNC complete=FAIL type=" + ex.GetType().Name + " detail=" + SafeMessage(ex));
                 }
                 finally
@@ -612,6 +826,20 @@ namespace SupraInventoryRelayAgent
                     Interlocked.Exchange(ref _skuSyncRunning, 0L);
                     Ui(() => _skuSyncButton.Enabled = HasAgentSession());
                 }
+            });
+        }
+
+        private void NotifySkuSyncResult(bool success, string message)
+        {
+            Ui(() =>
+            {
+                _skuSyncStatus.Text = message ?? "";
+                MessageBox.Show(
+                    this,
+                    message ?? (success ? "Cập nhật SKU thành công." : "Cập nhật SKU thất bại."),
+                    success ? "Cập nhật SKU thành công" : "Cập nhật SKU chưa hoàn tất",
+                    MessageBoxButtons.OK,
+                    success ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
             });
         }
 
