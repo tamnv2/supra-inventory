@@ -68,9 +68,9 @@ jobs:
           $fleet = Get-Content relay-agent/FirestoreFleetMetrics.cs -Raw
           $project = Get-Content relay-agent/SupraInventoryRelayAgent.csproj -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*47\s*;') { throw "D126 hotfix requires Agent v47." }
-          if ($project -notmatch '<AssemblyVersion>0\.47\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.47\.0\.0</FileVersion>') {
-            throw "D126 hotfix assembly/file version must be 0.47."
+          if ($config -notmatch 'AgentBuild\s*=\s*48\s*;') { throw "D126 H2 hotfix requires Agent v48." }
+          if ($project -notmatch '<AssemblyVersion>0\.48\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.48\.0\.0</FileVersion>') {
+            throw "D126 H2 hotfix assembly/file version must be 0.48."
           }
 
           foreach ($marker in @(
@@ -93,7 +93,12 @@ jobs:
             'ConfirmVisibleCount',
             '[role=grid]',
             'a,[role=button]',
-            'await new Promise'
+            'await new Promise',
+            'TryReconnectNoLock',
+            'StopManagedBrowserNoLock',
+            "getAttribute('aria-label')",
+            "getAttribute('title')",
+            "querySelectorAll('body *')"
           )) {
             if (-not $browser.Contains($marker)) { throw "D126 browser semantic guard missing: $marker" }
           }

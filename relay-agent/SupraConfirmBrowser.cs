@@ -84,10 +84,14 @@ namespace SupraInventoryRelayAgent
             {
                 ThrowIfDisposed();
                 if (!IsConnectedNoLock())
-                    StartNoLock();
-                else
-                    NavigateConfirmNoLock();
-
+                {
+                    if (!TryReconnectNoLock())
+                    {
+                        StopManagedBrowserNoLock();
+                        StartNoLock();
+                    }
+                }
+                NavigateConfirmNoLock();
                 ShowNoLock();
             }
             return WaitForReady(TimeSpan.FromSeconds(2));
@@ -120,7 +124,7 @@ namespace SupraInventoryRelayAgent
             lock (_gate)
             {
                 ThrowIfDisposed();
-                if (!IsConnectedNoLock())
+                if (!IsConnectedNoLock() && !TryReconnectNoLock())
                     return new SupraBrowserState { Ready = false, Hidden = _hidden, State = "NOT_OPEN", Browser = _browserName };
 
                 var raw = EvaluateJsonNoLock(BuildReadinessScript());
@@ -167,7 +171,14 @@ namespace SupraInventoryRelayAgent
             lock (_gate)
             {
                 ThrowIfDisposed();
-                if (!IsConnectedNoLock()) StartNoLock();
+                if (!IsConnectedNoLock())
+                {
+                    if (!TryReconnectNoLock())
+                    {
+                        StopManagedBrowserNoLock();
+                        StartNoLock();
+                    }
+                }
                 ShowNoLock();
             }
         }
@@ -365,6 +376,52 @@ namespace SupraInventoryRelayAgent
             {
                 { "url", AgentConfig.WmsPicklistConfirmUiReferenceUrl }
             }, TimeSpan.FromSeconds(5));
+        }
+
+        private bool TryReconnectNoLock()
+        {
+            if (_port <= 0 || _process == null || _process.HasExited) return false;
+            try
+            {
+                DisposeSocketNoLock();
+                _targetUrl = WaitForPageTarget(_port, TimeSpan.FromSeconds(4));
+                _socket = new ClientWebSocket();
+                _socket.Options.KeepAliveInterval = TimeSpan.FromSeconds(10);
+                _socket.ConnectAsync(new Uri(_targetUrl), CancellationToken.None).GetAwaiter().GetResult();
+                CommandNoLock("Runtime.enable", null, TimeSpan.FromSeconds(5));
+                CommandNoLock("Page.enable", null, TimeSpan.FromSeconds(5));
+                _log("SUPRA_BROWSER devtools=reconnected loopback=127.0.0.1 session_extract=false network_domain=false");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                DisposeSocketNoLock();
+                _log("SUPRA_BROWSER devtools=reconnect_fail type=" + ex.GetType().Name);
+                return false;
+            }
+        }
+
+        private void StopManagedBrowserNoLock()
+        {
+            DisposeSocketNoLock();
+            if (_process == null) return;
+            try
+            {
+                if (!_process.HasExited)
+                {
+                    try { _process.CloseMainWindow(); } catch { }
+                    try { _process.WaitForExit(1200); } catch { }
+                    if (!_process.HasExited)
+                    {
+                        try { _process.Kill(); } catch { }
+                        try { _process.WaitForExit(1200); } catch { }
+                    }
+                }
+            }
+            catch { }
+            _process = null;
+            _port = 0;
+            _targetUrl = "";
         }
 
         private void EnsureReadyNoLock()
@@ -591,7 +648,14 @@ namespace SupraInventoryRelayAgent
         {
             return @"(() => {
               const norm = v => (v || '').replace(/\s+/g,' ').trim();
+              const fold = v => norm(v).toLowerCase();
               const txt = e => norm((e && (e.innerText || e.value || e.textContent)) || '');
+              const names = e => !e ? [] : [
+                e.innerText, e.value, e.textContent,
+                e.getAttribute && e.getAttribute('aria-label'),
+                e.getAttribute && e.getAttribute('title')
+              ].map(norm).filter(Boolean);
+              const named = (e, target) => names(e).some(v => fold(v) === fold(target));
               const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
               const docs = [];
               const seen = new Set();
@@ -603,10 +667,17 @@ namespace SupraInventoryRelayAgent
                 }
               };
               addDoc(document);
-              const semantic = d => [...d.querySelectorAll('button,input[type=button],input[type=submit],a,[role=button]')];
+              const semanticSelector = 'button,input[type=button],input[type=submit],a,[role=button]';
+              const semantic = d => [...d.querySelectorAll(semanticSelector)];
               const controls = docs.flatMap(semantic);
-              const search = controls.filter(e => visible(e) && txt(e) === 'Tìm kiếm');
-              const confirm = controls.filter(e => txt(e) === 'Xác nhận lấy lại hàng');
+              const searchSemantic = controls.filter(e => visible(e) && named(e, 'Tìm kiếm'));
+              const searchLeaf = docs.flatMap(d => [...d.querySelectorAll('body *')]).filter(e =>
+                visible(e) && named(e, 'Tìm kiếm') &&
+                ![...e.children].some(child => visible(child) && named(child, 'Tìm kiếm')));
+              const searchSet = new Set(searchSemantic);
+              for (const leaf of searchLeaf) searchSet.add(leaf.closest(semanticSelector) || leaf);
+              const search = [...searchSet].filter(visible);
+              const confirm = controls.filter(e => named(e, 'Xác nhận lấy lại hàng'));
               const confirmVisible = confirm.filter(visible);
               const tableSurfaces = docs.flatMap(d => [...d.querySelectorAll('table,[role=grid],[role=table]')]).filter(visible);
               const rowSurfaces = docs.flatMap(d => [...d.querySelectorAll('tr,[role=row]')]).filter(visible);
@@ -669,7 +740,13 @@ namespace SupraInventoryRelayAgent
             return @"(() => {
               const target = '" + escaped + @"';
               const norm = v => (v || '').replace(/\s+/g,' ').trim();
-              const txt = e => norm((e && (e.innerText || e.value || e.textContent)) || '');
+              const fold = v => norm(v).toLowerCase();
+              const names = e => !e ? [] : [
+                e.innerText, e.value, e.textContent,
+                e.getAttribute && e.getAttribute('aria-label'),
+                e.getAttribute && e.getAttribute('title')
+              ].map(norm).filter(Boolean);
+              const named = (e, value) => names(e).some(v => fold(v) === fold(value));
               const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
               const docs = [];
               const seen = new Set();
@@ -681,8 +758,16 @@ namespace SupraInventoryRelayAgent
                 }
               };
               addDoc(document);
-              const buttons = docs.flatMap(d => [...d.querySelectorAll('button,input[type=button],input[type=submit],a,[role=button]')])
-                .filter(e => visible(e) && txt(e) === target && !e.disabled && e.getAttribute('aria-disabled') !== 'true');
+              const semanticSelector = 'button,input[type=button],input[type=submit],a,[role=button]';
+              const semantic = docs.flatMap(d => [...d.querySelectorAll(semanticSelector)])
+                .filter(e => visible(e) && named(e, target));
+              const leaf = docs.flatMap(d => [...d.querySelectorAll('body *')]).filter(e =>
+                visible(e) && named(e, target) &&
+                ![...e.children].some(child => visible(child) && named(child, target)));
+              const targets = new Set(semantic);
+              for (const e of leaf) targets.add(e.closest(semanticSelector) || e);
+              const buttons = [...targets].filter(e =>
+                visible(e) && !e.disabled && e.getAttribute('aria-disabled') !== 'true');
               if (buttons.length === 1) buttons[0].click();
               return JSON.stringify({count: buttons.length, clicked: buttons.length === 1});
             })()";
@@ -921,14 +1006,7 @@ namespace SupraInventoryRelayAgent
             {
                 if (_disposed) return;
                 _disposed = true;
-                DisposeSocketNoLock();
-                try
-                {
-                    if (_process != null && !_process.HasExited)
-                        _process.CloseMainWindow();
-                }
-                catch { }
-                _process = null;
+                StopManagedBrowserNoLock();
             }
         }
 

@@ -2483,21 +2483,21 @@
     },
     {
       "id": "OA051",
-      "status": "FIELD_RETEST_READY__D126_V47_TECHNICAL_RELEASE_PASS",
+      "status": "PENDING_AFTER_D126_V48_H2_RELEASE",
       "title": "Field-accept D126 managed-browser PickList confirmation",
       "resource_key": "repo",
       "provider": "Beta Android + Firestore + Windows Agent + user-controlled Supra browser",
       "reason_owner_only": "CI can prove source/build/guards but real company Supra login, rendered DOM, browser hide/taskbar behavior and live confirmation require physical field observation.",
       "prerequisites": {
-        "technical_release": "PASS",
-        "d126_branch": "fix/d126-browser-readiness-dom",
+        "technical_release": "PENDING_V48",
+        "d126_branch": "fix/d126-v48-search-devtools-recovery",
         "implementation_pr": 200,
         "merged_main": "3eb45c4a59564501e2b5dd95f60ee6072a79dc9a",
         "main_repo_authority_run": 36226943848,
         "main_project_state_run": 36226943851,
         "main_ui_run": 36226943951,
         "main_agent_run": 36226943832,
-        "target_agent_release": "relay-agent-v47",
+        "target_agent_release": "relay-agent-v48",
         "agent_release_id": 397141086,
         "agent_asset_id": 590174179,
         "agent_sha256": "3f31cfc6efd2a7deacdb2ca58066852f40e126ee6255d205c51fb70da3f28cfc",
@@ -2505,10 +2505,13 @@
         "inventory_channel_agent_manifest_asset_id": 590174265,
         "inventory_channel_agent_exe_asset_id": 590174261,
         "android_baseline": "beta-vc76",
-        "stable": "OWNER_GATED"
+        "stable": "OWNER_GATED",
+        "v47_field_result": "FAIL__REAL_CONFIRM_PAGE_SEARCH_CONTROL_NOT_RECOGNIZED_AND_DEVTOOLS_RECOVERY_FAILED",
+        "h2_implementation_pr": 202,
+        "h2_baseline_main": "d018046c53f79418cce851398dac122125ba0391"
       },
       "shortest_test_path": [
-        "Update Beta Agent to relay-agent-v47 while keeping current PDA build unless release notes explicitly require otherwise.",
+        "Update Beta Agent to relay-agent-v48 while keeping Android beta-vc76 unchanged.",
         "Press Truy cập Confirm PickList. If login is required, log in directly inside the opened Supra browser; verify Agent shows Web Confirm sẵn sàng only after the Confirm PickList page is loaded.",
         "Use Ẩn trình duyệt and verify the browser disappears from desktop/taskbar while Agent still reports readiness; use Hiện trình duyệt and verify the same browser returns.",
         "Manual test: enter a suffix with exactly one visible PL+digits match. Agent must display the full PickList and wait for the Agent Xác nhận action.",
@@ -2529,7 +2532,7 @@
         "SKU is manual-file-only and Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company Supra accounts. Do not paste or share passwords, cookies, tokens, headers, signatures or other session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Update/restart Agent to v47, confirm START version=0.47.0.0, then rerun OA051 beginning with Web Confirm readiness on the real company Supra page.",
+      "remaining_owner_action": "Wait for relay-agent-v48 technical/release PASS, then update/restart Agent and rerun OA051 from Web Confirm readiness. No Stable action is authorized.",
       "closed": false
     }
   ]

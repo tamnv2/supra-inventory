@@ -1317,3 +1317,11 @@ D126 cannot PASS until all applicable checks below pass:
 15. WMS/Tồn Bin SKU catalog sync, automatic daily SKU sync and Agent WMS SKU update are inactive. Existing Web manual SKU file import still passes canonical validation/dedupe/additive/conflict rules.
 16. Stable remains untouched unless separately authorized.
 
+### D126-H2 field-repair acceptance
+
+- Real-page readiness must recognize exactly one non-mutating **Tìm kiếm** action when its exact normalized label is provided by visible text/value, `aria-label`, `title`, or one unique exact-text leaf that dispatches through the page DOM. Zero/multiple matches remain not-ready/fail-closed.
+- A dropped DevTools page WebSocket must be recoverable without starting competing browser instances against the same profile: reattach to the existing loopback DevTools target first, otherwise close/restart only the managed browser and reopen the registered Confirm page.
+- Recovery must not enable Network inspection, extract/replay browser authentication material, add direct WMS API calls, weaken the one-search limit, or broaden the exact confirmation mutation selector.
+- Physical OA051 field PASS still requires the real page to reach **Web Confirm sẵn sàng** and then pass unique lookup, miss/ambiguity and guarded confirmation scenarios.
+
+
