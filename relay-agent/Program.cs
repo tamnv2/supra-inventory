@@ -2198,6 +2198,8 @@ namespace SupraInventoryRelayAgent
                     " ready=" + (_supraBrowserReady ? "1" : "0") +
                     " page=" + (state.Url ?? "") +
                     " search=" + state.SearchCount +
+                    " search_exact=" + state.SearchExactCount +
+                    " search_decorated=" + state.SearchDecoratedCount +
                     " confirm=" + state.ConfirmCount +
                     " confirm_visible=" + state.ConfirmVisibleCount +
                     " table=" + state.TableCount +
@@ -2240,6 +2242,8 @@ namespace SupraInventoryRelayAgent
                     " ready=" + (_supraBrowserReady ? "1" : "0") +
                     " page=" + (state.Url ?? "") +
                     " search=" + state.SearchCount +
+                    " search_exact=" + state.SearchExactCount +
+                    " search_decorated=" + state.SearchDecoratedCount +
                     " confirm=" + state.ConfirmCount +
                     " confirm_visible=" + state.ConfirmVisibleCount +
                     " table=" + state.TableCount +
