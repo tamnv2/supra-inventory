@@ -2550,7 +2550,7 @@
     },
     {
       "id": "OA052",
-      "status": "WAITING_D127_TECHNICAL_RELEASE",
+      "status": "FIELD_READY__D127_TECHNICAL_RELEASE_PASS",
       "title": "Field-accept D127 quota-safe relay and Agent-owned browser fallback",
       "resource_key": "repo",
       "provider": "Beta Firestore + Windows Agent + Supra managed browser",
@@ -2560,7 +2560,18 @@
         "target_agent_release": "relay-agent-v51",
         "android_baseline": "beta-vc76",
         "stable": "OWNER_GATED",
-        "technical_release": "PENDING"
+        "technical_release": "PASS",
+        "implementation_pr": 208,
+        "implementation_main": "f5ad9d45be3445b6e030d1f5f0de1abc0507b54e",
+        "release_repair_pr": 209,
+        "release_repair_main": "74947a0a66bb63c0ec02d2b00ba7bda31c189b1d",
+        "agent_release_id": 397296190,
+        "agent_asset_id": 590949850,
+        "agent_sha256": "adfd0350484c41b27842d406551d3f8b0d877c076b280b7c1a932adb62421fbd",
+        "browser_runtime_version": "154.0.4258.37",
+        "browser_bundle_asset_id": 590989452,
+        "browser_bundle_sha256": "d7cd8e9b295efc33b68c1bcd52248a8a6e0a04a8ec104454579570c8f446c12e",
+        "main_relay_agent_run": 36254747649
       },
       "shortest_test_path": [
         "Update Beta Agent to relay-agent-v51; leave Android beta-vc76 unchanged.",
@@ -2580,7 +2591,7 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company Supra accounts. Do not share passwords, cookies, tokens, headers, signatures or other session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for D127 technical/release PASS before field testing.",
+      "remaining_owner_action": "Update/restart Beta Agent to v51 and run the OA052 shortest field path. Reply PASS only after the real Supra/presence/quota/browser checks pass.",
       "closed": false
     }
   ]
