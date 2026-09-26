@@ -1264,7 +1264,7 @@
     "branch": "d127-quota-browser-hardening",
     "baseline_main": "a1ecf217dc1fb447a4ca445c59c01d1348cb80d2",
     "baseline_release": "beta-vc76 / relay-agent-v50",
-    "target_agent_release": "relay-agent-v58",
+    "target_agent_release": "relay-agent-v59",
     "android": "KEEP_BETA_VC76_UNCHANGED",
     "quota": "FIRESTORE_PENDING_CREATED_AT_SERVER_FILTER__NO_BROAD_LIST_FALLBACK__FLEET_METRICS_30M",
     "picker_presence": "SCHEMA3_ACTIVE_ANDROID_EVENT_DRIVEN__SINGLE_SLOT_RELAY_EVENT__180S_TRANSIENT_GRACE__NO_PERIODIC_AGENT_PRESENCE_POLL",
@@ -1275,7 +1275,7 @@
     "browser": "EXPLICIT_AGENT_WEBVIEW2_FIXED_X64_OR_DESKTOP_EDGE_CHROME__AGENT_DASHBOARD_AUTO_HY1_SFT3_CLICK__NEW_WINDOW_FORCED_SAME_TAB__THEN_CONFIRM_NAVIGATION__NO_AUTO_CROSS_MODE_FALLBACK",
     "browser_security": "RUNTIME_PAGE_DOM_ONLY__NO_NETWORK_COOKIE_TOKEN_PASSWORD_EXTRACTION__NO_DIRECT_WMS_API",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "next_action": "RUN_OA052_V58_STRUCTURAL_ARROW_PLUS_BUILD_ID_FIELD_ACCEPTANCE",
+    "next_action": "RELEASE_V59_AND_RUN_OA052_DASHBOARD_SCRIPT_PLUS_SUPRA_LAYOUT_FIELD_ACCEPTANCE",
     "main_merge": "f5ad9d45be3445b6e030d1f5f0de1abc0507b54e",
     "agent_release": "relay-agent-v58",
     "agent_release_id": 397361984,
@@ -1331,6 +1331,7 @@
     "v58_main": "c388b000858aeaadb4cc54ecebafb4f46d537054",
     "v58_main_run": 36265082575,
     "v58_release_sha256_verified": "6ab4d8707ca1d2d5785d598268895910980c26c1cd1230830dc2d9ef52334309",
+    "v59_scope": "FIX_INVALID_DASHBOARD_QUERYSELECTOR_JS__LOG_SCRIPT_ERROR__RESPONSIVE_SUPRA_STORAGE_CONTROLS",
     "field_gate": "OA052__PENDING_OWNER_FIELD_ACCEPTANCE"
   }
 }
