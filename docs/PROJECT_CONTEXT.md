@@ -464,6 +464,6 @@ D126 supersedes D125 as the current Owner-approved implementation direction.
 - Firestore request/ACK, HA ownership, confirmation guards, anti-spam, operating schedule, Picker presence/contact and Báo hàng behavior remain unless explicitly changed by D126.
 - SKU master is manual-file-only through the existing authorized file-import workflow. WMS/Tồn Bin SKU synchronization is retired; automatic SKU update is deferred.
 - D125 Office-client rewrite is cancelled before implementation.
-- v48 field re-test proves DevTools reconnect recovery works, but the real Confirm page still reports `search=0` while `confirm=1`, `table=1`; the visible search button contains a magnifying-glass decoration with **Tìm Kiếm**. D126-H3 targets `relay-agent-v49` with decorative-icon-tolerant search-label recognition only; exact confirmation mutation guards remain unchanged. OA051 remains open.
+- v48 field re-test isolated the remaining readiness defect to the real magnifying-glass + **Tìm Kiếm** control. D126-H3 is merged and technically released as `relay-agent-v49`, with decorative-icon-tolerant search recognition only; exact confirmation mutation guards remain unchanged. OA051 real-Supra field re-test on v49 is the remaining acceptance layer.
 - Stable remains OWNER-GATED.
 
