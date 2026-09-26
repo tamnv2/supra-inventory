@@ -1204,7 +1204,7 @@ Status: **TECHNICAL / RELEASE PASS — OWNER FIELD RE-TEST REQUIRED**.
 
 ### D126-H4 — Guarded second-step confirmation dialog — 2026-09-26
 
-Status: **OWNER APPROVED / IMPLEMENTATION IN PROGRESS**.
+Status: **TECHNICAL / RELEASE PASS — OWNER FIELD RE-TEST REQUIRED**.
 
 - Owner field observation confirms that selecting the exact PickList row checkbox and clicking **Xác nhận lấy lại hàng** does not complete the business action immediately. Supra opens a second confirmation dialog.
 - The real dialog is identified by the exact normalized title **XÁC NHẬN LẤY LẠI HÀNG**, exact normalized body **Bạn có chắc chắn cho phép lấy hàng lại không?**, one exact **Xác nhận** action and one exact **Đóng** action inside the same visible dialog surface.
@@ -1212,3 +1212,8 @@ Status: **OWNER APPROVED / IMPLEMENTATION IN PROGRESS**.
 - A missing, ambiguous, structurally mismatched or disabled dialog/confirm action fails closed. The Agent must never use a page-global generic **Xác nhận** button and must never click the dialog's **Đóng** action as a fallback.
 - Success is still not inferred from the modal click alone. Existing post-action DOM success/error/row-removal evidence remains required; uncertain state remains non-success and is not blindly retried.
 - No session/network/API boundary changes are authorized. Target release is `relay-agent-v50`; Android remains `beta-vc76`; SKU remains manual-file-only; Stable remains OWNER-GATED and untouched.
+- Implementation PR **#206** passed Repo Authority `36237696472`, Project State/Continuity `36237696471`, UI Design `36237696486`, Firestore `36237696438`, RTDB `36237696474` and Relay Agent `36237696469`; merged to `main` at `1a9461b8cd3ad20bbd6e93a254f46ffd4ccbee55`.
+- Main verification passed: Repo Authority `36237772145`, Project State/Continuity `36237772152`, UI Design `36237772206`, Relay Agent build/startup/schedule/release `36237772139`.
+- `relay-agent-v50` release id `397204407`; canonical EXE asset `590503449`, size `308736`, SHA-256 `36edb474ec6e6d01c1eb67c36c1c136bdaf5b807f980fb00ebfae56eaea9644f`. The tag points exactly to `1a9461b8cd3ad20bbd6e93a254f46ffd4ccbee55`.
+- `inventory-channel` now serves v50 through manifest asset `590503527` and EXE asset `590503526`.
+- Automated technical/release evidence is PASS. OA051 remains open for the real Supra field re-test of the full checkbox → primary confirm → dialog confirm → terminal-result sequence.

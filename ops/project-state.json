@@ -189,7 +189,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D126 owner field observation found a mandatory second confirmation dialog after Xác nhận lấy lại hàng. Ship relay-agent-v50 H4 guarded modal confirmation, pass PR/main/release gates, then rerun OA051. Stable remains OWNER-GATED.",
+  "next_action": "D126 v50 technical/release PASS. Run OA051 real-Supra field re-test on relay-agent-v50, including mandatory dialog Xác nhận and trusted terminal result. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -1154,7 +1154,7 @@
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d126": {
-    "status": "FIELD_HOTFIX_IN_PROGRESS__V49_SECOND_CONFIRM_DIALOG_UNHANDLED__V50_TARGET",
+    "status": "TECHNICAL_RELEASE_PASS__OA051_V50_FIELD_RETEST_READY",
     "decision_date": "2026-09-26",
     "branch": "d126-v50-confirm-modal",
     "baseline_main": "d018046c53f79418cce851398dac122125ba0391",
@@ -1178,14 +1178,14 @@
       "ui": 36226943951,
       "relay_agent": 36226943832
     },
-    "agent_release": "relay-agent-v49",
-    "agent_release_id": 397195742,
-    "agent_asset_id": 590463163,
-    "agent_size_bytes": 297984,
-    "agent_sha256": "9c8cc4054501871443eba905dd4bc03c1dd2c6b94590bbd318eecdb3e0899dc4",
+    "agent_release": "relay-agent-v50",
+    "agent_release_id": 397204407,
+    "agent_asset_id": 590503449,
+    "agent_size_bytes": 308736,
+    "agent_sha256": "36edb474ec6e6d01c1eb67c36c1c136bdaf5b807f980fb00ebfae56eaea9644f",
     "inventory_channel_release_id": 394587029,
-    "inventory_channel_agent_manifest_asset_id": 590463228,
-    "inventory_channel_agent_exe_asset_id": 590463226,
+    "inventory_channel_agent_manifest_asset_id": 590503527,
+    "inventory_channel_agent_exe_asset_id": 590503526,
     "android": "KEEP_BETA_VC76_UNCHANGED__PICKLIST_AND_BAO_HANG_MODEL_PRESERVED",
     "picklist_transport": "KEEP_FIRESTORE_REQUEST_ACK_HA_GUARDS",
     "supra_browser": "USER_LOGIN_IN_MANAGED_BROWSER__DOM_ONLY_AUTOMATION__NO_SESSION_EXTRACTION",
@@ -1194,7 +1194,7 @@
     "forbidden": "NO_DIRECT_WMS_PICKLIST_API__NO_COOKIE_TOKEN_HEADER_SIGNATURE_CAPTURE_REPLAY__NO_COORDINATE_ONLY_MUTATION",
     "sku_master": "MANUAL_FILE_IMPORT_ONLY__REMOVE_AGENT_WMS_SKU_SYNC__AUTOMATIC_DEFERRED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "next_action": "SHIP_V50_H4_HOTFIX__RUN_PR_MAIN_RELEASE_GATES__THEN_OA051_FIELD_RETEST",
+    "next_action": "RUN_OA051_FIELD_RETEST_ON_RELAY_AGENT_V50",
     "target_agent_release": "relay-agent-v50",
     "h2_field_evidence": "V47_REAL_CONFIRM_PAGE__SEARCH_0_CONFIRM_1_VISIBLE_1_TABLE_1_FRAMES_0__THEN_DEVTOOLS_WEBSOCKET_DROP_AND_LOOPBACK_REATTACH_FAIL",
     "h2_contract": "SEARCH_EXACT_NORMALIZED_TEXT_VALUE_ARIA_LABEL_TITLE_PLUS_UNIQUE_TEXT_LEAF__DEVTOOLS_REATTACH_EXISTING_TARGET_FIRST__MANAGED_BROWSER_RESTART_FALLBACK__MUTATION_GUARDS_UNCHANGED",
@@ -1240,7 +1240,22 @@
     "h4_baseline_release": "beta-vc76 / relay-agent-v49",
     "h4_field_evidence": "V49_REAL_CONFIRM_FLOW__ROW_CHECKBOX_AND_PRIMARY_CONFIRM_OPEN_SECOND_DIALOG__EXACT_TITLE_XAC_NHAN_LAY_LAI_HANG__BODY_BAN_CO_CHAC_CHAN_CHO_PHEP_LAY_HANG_LAI_KHONG__BUTTONS_XAC_NHAN_DONG",
     "h4_contract": "PRIMARY_EXACT_CONFIRM__REQUIRE_UNIQUE_EXACT_DIALOG_TITLE_BODY__CLICK_ONLY_DIALOG_SCOPED_XAC_NHAN__NEVER_DONG__POST_DOM_TERMINAL_EVIDENCE_STILL_REQUIRED",
-    "h4_pr_status": "OPEN__GATES_RUNNING",
-    "h4_implementation_pr": 206
+    "h4_pr_status": "MERGED__ALL_GATES_PASS",
+    "h4_implementation_pr": 206,
+    "h4_merged_main": "1a9461b8cd3ad20bbd6e93a254f46ffd4ccbee55",
+    "h4_pr_runs": {
+      "repo_authority": 36237696472,
+      "project_state": 36237696471,
+      "ui": 36237696486,
+      "firestore": 36237696438,
+      "rtdb": 36237696474,
+      "relay_agent": 36237696469
+    },
+    "h4_main_runs": {
+      "repo_authority": 36237772145,
+      "project_state": 36237772152,
+      "ui": 36237772206,
+      "relay_agent": 36237772139
+    }
   }
 }

@@ -464,6 +464,6 @@ D126 supersedes D125 as the current Owner-approved implementation direction.
 - Firestore request/ACK, HA ownership, confirmation guards, anti-spam, operating schedule, Picker presence/contact and Báo hàng behavior remain unless explicitly changed by D126.
 - SKU master is manual-file-only through the existing authorized file-import workflow. WMS/Tồn Bin SKU synchronization is retired; automatic SKU update is deferred.
 - D125 Office-client rewrite is cancelled before implementation.
-- D126-H3 is technically released as `relay-agent-v49`. Owner field observation then confirmed Supra has a mandatory second confirmation dialog after **Xác nhận lấy lại hàng**; D126-H4 targets `relay-agent-v50` to require the exact dialog title/body and click only its scoped **Xác nhận** action before existing post-confirm success evidence. OA051 remains open.
+- Owner field observation confirmed the mandatory second confirmation dialog after **Xác nhận lấy lại hàng**. D126-H4 is merged and technically released as `relay-agent-v50`; it requires the exact dialog title/body and clicks only its scoped **Xác nhận** action before existing post-confirm terminal evidence. OA051 real-Supra field re-test on v50 remains the acceptance layer.
 - Stable remains OWNER-GATED.
 

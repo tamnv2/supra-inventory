@@ -2483,7 +2483,7 @@
     },
     {
       "id": "OA051",
-      "status": "PENDING_AFTER_D126_V50_H4_RELEASE",
+      "status": "FIELD_RETEST_READY__D126_V50_TECHNICAL_RELEASE_PASS",
       "title": "Field-accept D126 managed-browser PickList confirmation",
       "resource_key": "repo",
       "provider": "Beta Android + Firestore + Windows Agent + user-controlled Supra browser",
@@ -2493,17 +2493,17 @@
         "d126_branch": "fix/d126-v48-search-devtools-recovery",
         "implementation_pr": 200,
         "merged_main": "3eb45c4a59564501e2b5dd95f60ee6072a79dc9a",
-        "main_repo_authority_run": 36236408473,
-        "main_project_state_run": 36236408470,
-        "main_ui_run": 36236408580,
-        "main_agent_run": 36236408518,
+        "main_repo_authority_run": 36237772145,
+        "main_project_state_run": 36237772152,
+        "main_ui_run": 36237772206,
+        "main_agent_run": 36237772139,
         "target_agent_release": "relay-agent-v50",
-        "agent_release_id": 397195742,
-        "agent_asset_id": 590463163,
-        "agent_sha256": "9c8cc4054501871443eba905dd4bc03c1dd2c6b94590bbd318eecdb3e0899dc4",
+        "agent_release_id": 397204407,
+        "agent_asset_id": 590503449,
+        "agent_sha256": "36edb474ec6e6d01c1eb67c36c1c136bdaf5b807f980fb00ebfae56eaea9644f",
         "inventory_channel_release_id": 394587029,
-        "inventory_channel_agent_manifest_asset_id": 590463228,
-        "inventory_channel_agent_exe_asset_id": 590463226,
+        "inventory_channel_agent_manifest_asset_id": 590503527,
+        "inventory_channel_agent_exe_asset_id": 590503526,
         "android_baseline": "beta-vc76",
         "stable": "OWNER_GATED",
         "v47_field_result": "FAIL__REAL_CONFIRM_PAGE_SEARCH_CONTROL_NOT_RECOGNIZED_AND_DEVTOOLS_RECOVERY_FAILED",
@@ -2516,7 +2516,8 @@
         "h3_merged_main": "3a45ca0ccb62aaa6e67a9f41c0f7aac1d0f2cb39",
         "v49_field_result": "PARTIAL__READINESS_FLOW_PROGRESS__PRIMARY_CONFIRM_OPENS_MANDATORY_SECOND_DIALOG_NOT_YET_AUTOMATED",
         "h4_baseline_main": "d940d2201d2cac382ccd58aa1b36171e7c5dff90",
-        "h4_implementation_pr": 206
+        "h4_implementation_pr": 206,
+        "h4_merged_main": "1a9461b8cd3ad20bbd6e93a254f46ffd4ccbee55"
       },
       "shortest_test_path": [
         "Update Beta Agent to relay-agent-v50 while keeping Android beta-vc76 unchanged.",
@@ -2540,7 +2541,7 @@
         "SKU is manual-file-only and Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company Supra accounts. Do not paste or share passwords, cookies, tokens, headers, signatures or other session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for relay-agent-v50 technical/release PASS, then update/restart Agent and rerun OA051 including the second-step Supra confirmation dialog. Stable remains untouched.",
+      "remaining_owner_action": "Update/restart Agent to v50, confirm START version=0.50.0.0, then rerun OA051 through checkbox → Xác nhận lấy lại hàng → dialog Xác nhận → terminal result.",
       "closed": false
     }
   ]
