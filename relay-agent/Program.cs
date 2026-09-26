@@ -1060,6 +1060,9 @@ namespace SupraInventoryRelayAgent
             _openAgentDataFolder.Click += (sender, e) => OpenAgentDataFolder();
             _supraCard.Controls.Add(_openAgentDataFolder);
 
+            _supraCard.Resize += (sender, e) => LayoutSupraCardControls();
+            LayoutSupraCardControls();
+
             RefreshBrowserBundleUi();
             QueueAgentDataStorageRefresh(true);
             _supraCard.Enabled = false;
