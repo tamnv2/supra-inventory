@@ -2246,7 +2246,7 @@
     },
     {
       "id": "OA047",
-      "status": "WAITING_D121_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST_D121_RELEASE_PASS",
       "title": "Field-accept D121 Agent responsiveness and balanced operational layout",
       "resource_key": "repo",
       "provider": "GitHub Beta prerelease + Windows Agent",
@@ -2258,7 +2258,19 @@
         "target_agent_release": "relay-agent-v42",
         "stable": "OWNER_GATED",
         "implementation_pr": 191,
-        "pr_status": "OPEN__AUTOMATED_GATES_RUNNING"
+        "pr_status": "OPEN__AUTOMATED_GATES_RUNNING",
+        "technical_release": "PASS",
+        "merged_main": "a3c841ae2961dac6eb5ad0f1909b2e5cd89c0242",
+        "main_repo_authority_run": 36203135356,
+        "main_project_state_run": 36203135417,
+        "main_ui_run": 36203135357,
+        "main_agent_run": 36203135376,
+        "agent_release_id": 396990498,
+        "agent_asset_id": 589509071,
+        "agent_size_bytes": 358400,
+        "agent_sha256": "08a55caa7b350d23e99eba9eef97b93744fd32b6e9072792d22411578559c1bd",
+        "inventory_channel_manifest_asset_id": 589509126,
+        "inventory_channel_exe_asset_id": 589509123
       },
       "shortest_test_path": [
         "After relay-agent-v42 is published to inventory-channel, update Agent and keep Tổng quan open during normal work for several minutes.",
@@ -2276,7 +2288,7 @@
         "Stable remains untouched."
       ],
       "safety": "Beta Agent only. Do not share passwords, tokens, WMS session/header material or other secrets. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for relay-agent-v42 technical/release PASS, then run the compact physical checks above.",
+      "remaining_owner_action": "Update Agent through the normal inventory-channel to relay-agent-v42, then run the five compact D121 physical checks above and reply PASS or itemized defects.",
       "closed": false
     }
   ]
