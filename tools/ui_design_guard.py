@@ -96,7 +96,7 @@ checks = {
         "D122: Agent needs the larger operational surface",
     ]) and RELAY_PROGRAM.count("new RowStyle(SizeType.Percent, 25F)") >= 2,
     "agent_d121_one_line_system_status": all(token in RELAY_D119_FEATURES for token in [
-        "LayoutAgentSystemStatusRow(host, 100)",
+        "LayoutAgentSystemStatusRow(host, 96)",
         "_identity.SetBounds(left, top, width, 20)",
         "_relay.SetBounds(left + width + gap, top, width, 20)",
         "_network.SetBounds(left + ((width + gap) * 2), top",
