@@ -60,29 +60,6 @@ namespace SupraInventoryRelayAgent
 
             AgentDiagnostics.Initialize();
 
-            var d096SelfTest = args != null && Array.Exists(args, item =>
-                string.Equals(item, "--d096-self-test", StringComparison.OrdinalIgnoreCase));
-            if (d096SelfTest)
-            {
-                try
-                {
-                    var parserPass = WmsExactPicklistResolver.SelfTestJsonArrayParsing();
-                    var confirmPass = WmsPicklistConfirmClient.SelfTestResponseSemantics();
-                    AgentDiagnostics.Write(
-                        "D096 SELFTEST parser=" + (parserPass ? "PASS" : "FAIL") +
-                        " confirm_semantics=" + (confirmPass ? "PASS" : "FAIL"));
-                    Environment.ExitCode = parserPass && confirmPass ? 0 : 3;
-                }
-                catch (Exception ex)
-                {
-                    AgentDiagnostics.Write(
-                        "D096 SELFTEST exception type=" + ex.GetType().Name +
-                        " message=" + AgentDiagnostics.Sanitize(ex.Message));
-                    Environment.ExitCode = 4;
-                }
-                return;
-            }
-
             var d102SelfTest = args != null && Array.Exists(args, item =>
                 string.Equals(item, "--d102-self-test", StringComparison.OrdinalIgnoreCase));
             if (d102SelfTest)
@@ -508,7 +485,6 @@ namespace SupraInventoryRelayAgent
         private readonly bool _startupSmoke;
         private readonly bool _autoStarted;
         private readonly HashSet<string> _acked = new HashSet<string>(StringComparer.Ordinal);
-        private readonly PicklistCacheCoordinator _picklistCache = new PicklistCacheCoordinator();
         private readonly PickerRateLimiter _pickerRateLimiter = new PickerRateLimiter();
         private SupraConfirmBrowser _supraBrowser;
         private volatile bool _supraBrowserReady;
@@ -519,9 +495,7 @@ namespace SupraInventoryRelayAgent
         private readonly FirestoreAgentSessionGate _agentSessionGate;
         private FirestoreAgentLeaderCoordinator _leaderCoordinator;
         private readonly object _sessionLock = new object();
-        private readonly object _wmsSessionLock = new object();
         private AgentSession _session;
-        private WmsSessionSnapshot _wmsSession;
         private CancellationTokenSource _listenCts;
         private bool _allowExit;
         private bool _updateCheckRunning;
@@ -545,7 +519,6 @@ namespace SupraInventoryRelayAgent
             "Agent Auto Confirm Pick Pack", "RelayPoc");
         private static readonly string SessionFile = Path.Combine(RelayDataDir, "session.bin");
         private static readonly string AgentInstanceFile = Path.Combine(RelayDataDir, "agent-instance-id.txt");
-        private static readonly string WmsSessionFile = Path.Combine(RelayDataDir, "wms-session.bin");
         private static readonly string ExitVerifierFile = Path.Combine(RelayDataDir, "exit-verifier.bin");
         private static readonly string AgentLogUploadCheckpointFile = Path.Combine(RelayDataDir, "agent-log-upload-checkpoint.txt");
         private static readonly string AfterHoursStateFile = Path.Combine(RelayDataDir, "after-hours-state.txt");
@@ -2166,31 +2139,6 @@ namespace SupraInventoryRelayAgent
             try { if (coordinator != null) coordinator.Stop(); } catch { }
         }
 
-        private void ProcessPendingJobsSnapshot()
-        {
-            if (_leaderCoordinator == null || !_leaderCoordinator.IsLeader) return;
-            try
-            {
-                EnsureFreshToken();
-                var session = SnapshotSession();
-                var raw = RequestJson("GET", JobsUrl(session), null, null);
-                if (string.IsNullOrWhiteSpace(raw) || string.Equals(raw.Trim(), "null", StringComparison.OrdinalIgnoreCase))
-                    return;
-                var jobs = _json.DeserializeObject(raw) as Dictionary<string, object>;
-                if (jobs == null) return;
-                foreach (var pair in jobs)
-                {
-                    if (_leaderCoordinator == null || !_leaderCoordinator.IsLeader) return;
-                    var job = pair.Value as Dictionary<string, object>;
-                    if (job != null) HandleJob(pair.Key, job);
-                }
-            }
-            catch (Exception ex)
-            {
-                Log("AGENT HA pending-scan fail: " + SafeMessage(ex));
-            }
-        }
-
         private void RefreshSupraBrowserStatus()
         {
             if (_supraBrowser == null) return;
@@ -2277,43 +2225,6 @@ namespace SupraInventoryRelayAgent
         }
 
         
-
-        private bool PreloadPicklistCache(WmsSessionSnapshot session, string reason)
-        {
-            try
-            {
-                var preload = _picklistCache.Preload(session);
-                Log(
-                    "PICKLIST CACHE preload result=" + preload.Result +
-                    " mode=" + preload.CacheMode +
-                    " count=" + preload.CacheCount +
-                    " ms=" + preload.ElapsedMs +
-                    " reason=" + reason +
-                    " values=redacted");
-                if (string.Equals(preload.Result, "PASS", StringComparison.Ordinal))
-                {
-                    WmsSessionStore.Save(WmsSessionFile, session);
-                    Ui(() => _wmsStatus.Text = "Supra WMS: OK · Picklist cache " + preload.CacheCount);
-                    SetProbeButtonsEnabled(true);
-                    Log("WMS SESSION FILE renew=PASS protection=DPAPI_CURRENT_USER values=redacted.");
-                    return true;
-                }
-
-                if (string.Equals(preload.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
-                {
-                    lock (_wmsSessionLock) _wmsSession = null;
-                    _picklistCache.Clear();
-                    WmsSessionStore.Clear(WmsSessionFile);
-                    Ui(() => _wmsStatus.Text = "Supra WMS: phiên hết hạn · cần đăng nhập lại");
-                    SetProbeButtonsEnabled(true);
-                }
-            }
-            catch (Exception ex)
-            {
-                Log("PICKLIST CACHE preload fail reason=" + reason + " detail=" + SafeMessage(ex));
-            }
-            return false;
-        }
 
         private void StartupSequence()
         {
@@ -2681,10 +2592,7 @@ namespace SupraInventoryRelayAgent
             try { StopListening(); } catch { }
             try { if (releasing != null) _agentSessionGate.Release(releasing, _agentInstanceId); } catch { }
             lock (_sessionLock) _session = null;
-            lock (_wmsSessionLock) _wmsSession = null;
-            _picklistCache.Clear();
-            WmsSessionStore.Clear(WmsSessionFile);
-            ClearStoredSession();
+ClearStoredSession();
             AgentRuntimeGuard.MarkPlannedExit();
             try { if (File.Exists(ExitVerifierFile)) File.Delete(ExitVerifierFile); } catch { }
 
@@ -2694,7 +2602,7 @@ namespace SupraInventoryRelayAgent
                 _relay.Text = "Relay: chưa xác minh Agent";
                 _listen.Enabled = false;
                 _testOffice.Enabled = false;
-                _wmsStatus.Text = "Supra WMS: chờ đăng nhập Agent";
+                _wmsStatus.Text = "Web Confirm: chờ đăng nhập Agent";
                 _supraInfo.Text = "HY1 · Chưa có user Supra · Phiên chưa sẵn sàng · Cache 0";
             });
             SetAgentAuthUi(false);
@@ -3074,14 +2982,6 @@ namespace SupraInventoryRelayAgent
             if (string.IsNullOrWhiteSpace(value)) return "";
             return Regex.Replace(value, "[^A-Za-z0-9._+;=/-]", "_").Substring(0, Math.Min(96, value.Length));
         }
-
-        private WmsSessionSnapshot SnapshotWmsSession()
-        {
-            lock (_wmsSessionLock)
-                return _wmsSession;
-        }
-
-
 
         private void TestOffice()
         {
@@ -3464,25 +3364,6 @@ namespace SupraInventoryRelayAgent
 
         
 
-        private void ClearWmsSessionAfterExpiry()
-        {
-            lock (_wmsSessionLock) _wmsSession = null;
-            _picklistCache.Clear();
-            WmsSessionStore.Clear(WmsSessionFile);
-            Ui(() =>
-            {
-                _wmsStatus.Text = "Supra WMS: phiên hết hạn · cần đăng nhập lại";
-                _supraInfo.Text = "HY1 · Phiên hết hạn · Cache 0";
-                _wmsCapture.Visible = true;
-                _wmsCapture.Enabled = HasAgentSession();
-                _wmsLogout.Enabled = false;
-                _wmsTest.Enabled = false;
-            });
-            SetProbeButtonsEnabled(true);
-            var coordinator = _leaderCoordinator;
-            if (coordinator != null) coordinator.RequestRoleRefreshBeforeBusiness();
-        }
-
         private void StartListening()
         {
             try { SnapshotSession(); } catch { Log("Chưa ghép Agent."); return; }
@@ -3538,473 +3419,6 @@ namespace SupraInventoryRelayAgent
             Ui(() => { _listen.Text = "Nghe relay"; if (_allowExit) return; _relay.Text = "Relay: đã dừng"; });
         }
 
-        private void ListenLoop(CancellationToken token)
-        {
-            while (!token.IsCancellationRequested)
-            {
-                var retrySeconds = 1;
-                try
-                {
-                    EnsureFreshToken();
-                    ListenOnce(token);
-                }
-                catch (OperationCanceledException)
-                {
-                    return;
-                }
-                catch (RelayHttpException ex)
-                {
-                    if (LooksLikeCorporateProxyBlock(ex.Detail))
-                    {
-                        retrySeconds = 10;
-                        Ui(() => _relay.Text = "Relay: OFFICE PROXY BLOCK / RTDB");
-                        Log("Relay PROXY_BLOCK RTDB http=" + ex.StatusCode + " category=" + ProxyCategory(ex.Detail) + " rule=" + ProxyRule(ex.Detail));
-                    }
-                    else if (ex.StatusCode == 403)
-                    {
-                        retrySeconds = 5;
-                        Ui(() => _relay.Text = "Relay: RTDB 403 / Rules");
-                        Log("Relay RTDB_PERMISSION_DENIED 403; Firebase/Rules response không phải proxy block. detail=" + SafeMessage(ex));
-                    }
-                    else
-                    {
-                        retrySeconds = 2;
-                        Ui(() => _relay.Text = "Relay: HTTP " + ex.StatusCode + " · thử lại");
-                        Log("Relay HTTP_FAIL " + ex.StatusCode + " detail=" + SafeMessage(ex));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Ui(() => _relay.Text = "Relay: mạng/transport · thử lại");
-                    Log("Relay TRANSPORT_FAIL " + SafeMessage(ex));
-                }
-                if (token.WaitHandle.WaitOne(TimeSpan.FromSeconds(retrySeconds))) return;
-            }
-        }
-
-        private void ListenOnce(CancellationToken token)
-        {
-            var session = SnapshotSession();
-            var url = JobsUrl(session);
-            var req = (HttpWebRequest)WebRequest.Create(url);
-            req.Method = "GET";
-            req.Accept = "text/event-stream";
-            req.UserAgent = "SUPRA-Inventory-Relay-Test/1.2";
-            req.Timeout = 10000;
-            req.ReadWriteTimeout = 65000;
-            req.KeepAlive = true;
-
-            Log("Relay SSE CONNECT host=" + AgentDiagnostics.SafeUrl(url) + " admin=" + session.AppUserId + " instance=" + Short(_agentInstanceId) + " uid=" + Fingerprint(session.UserId) + " ssid=" + GetSsid());
-            HttpWebResponse response = null;
-            try
-            {
-                using (token.Register(() => { try { req.Abort(); } catch { } }))
-                {
-                    try
-                    {
-                        response = (HttpWebResponse)req.GetResponse();
-                    }
-                    catch (WebException ex)
-                    {
-                        throw ToRelayHttpException(ex, "RTDB SSE");
-                    }
-
-                    using (response)
-                    using (var stream = response.GetResponseStream())
-                    using (var reader = new StreamReader(stream))
-                    {
-                        Ui(() => _relay.Text = "Relay: ONLINE / đang nghe");
-                        Log("Relay SSE PASS HTTP " + (int)response.StatusCode + " ssid=" + GetSsid() + " admin=" + session.AppUserId + " instance=" + Short(_agentInstanceId) + " uid=" + Fingerprint(session.UserId));
-                        var data = new StringBuilder();
-                        string line;
-                        while (!token.IsCancellationRequested && (line = reader.ReadLine()) != null)
-                        {
-                            if (line.Length == 0)
-                            {
-                                if (data.Length > 0)
-                                {
-                                    ProcessSse(data.ToString());
-                                    data.Clear();
-                                }
-                                continue;
-                            }
-                            if (line.StartsWith("data:", StringComparison.Ordinal))
-                                data.Append(line.Substring(5).Trim());
-                        }
-                    }
-                }
-            }
-            finally
-            {
-                if (response != null) response.Dispose();
-            }
-        }
-
-        private void ProcessSse(string raw)
-        {
-            Dictionary<string, object> envelope;
-            try { envelope = Map(_json.DeserializeObject(raw)); } catch { return; }
-            object pathObj, dataObj;
-            if (!envelope.TryGetValue("path", out pathObj) || !envelope.TryGetValue("data", out dataObj) || dataObj == null) return;
-            var path = Convert.ToString(pathObj) ?? "/";
-            var data = dataObj as Dictionary<string, object>;
-            if (data == null) return;
-            if (path == "/" && !data.ContainsKey("status"))
-            {
-                foreach (var pair in data) { var job = pair.Value as Dictionary<string, object>; if (job != null) HandleJob(pair.Key, job); }
-                return;
-            }
-            var jobId = path.Trim('/').Split('/')[0];
-            if (jobId.Length == 0 && data.ContainsKey("request_id")) jobId = Convert.ToString(data["request_id"]) ?? "";
-            if (jobId.Length > 0) HandleJob(jobId, data);
-        }
-
-        private void HandleJob(string jobId, Dictionary<string, object> job)
-        {
-            if (_leaderCoordinator == null || !_leaderCoordinator.IsLeader) return;
-
-            object statusObj, sourceObj, suffixObj, pickerUidObj, pickerUserObj, sentObj;
-            if (!job.TryGetValue("status", out statusObj)) return;
-            var status = Convert.ToString(statusObj) ?? "";
-            if (!string.Equals(status, "PENDING", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(status, "SWITCHING", StringComparison.OrdinalIgnoreCase))
-                return;
-
-            if (job.TryGetValue("source", out sourceObj) &&
-                !string.Equals(Convert.ToString(sourceObj), "ANDROID_POC", StringComparison.Ordinal))
-                return;
-            if (!job.TryGetValue("suffix", out suffixObj) ||
-                !job.TryGetValue("picker_uid", out pickerUidObj) ||
-                !job.TryGetValue("picker_user_id", out pickerUserObj))
-                return;
-
-            var suffix = Convert.ToString(suffixObj) ?? "";
-            var pickerUid = Convert.ToString(pickerUidObj) ?? "";
-            var pickerUserId = Convert.ToString(pickerUserObj) ?? "";
-            long clientSentAtMs = 0;
-            if (job.TryGetValue("client_sent_at_ms", out sentObj))
-                long.TryParse(Convert.ToString(sentObj), out clientSentAtMs);
-
-            if (!Regex.IsMatch(suffix, @"^\d{5}$"))
-            {
-                Log("Relay request=" + Short(jobId) + " bị từ chối vì suffix không đúng 5 số.");
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(pickerUid) || string.IsNullOrWhiteSpace(pickerUserId))
-            {
-                Log("Relay request=" + Short(jobId) + " thiếu identity Picker.");
-                return;
-            }
-
-            if (string.Equals(status, "PENDING", StringComparison.OrdinalIgnoreCase) &&
-                clientSentAtMs > 0 &&
-                NowMs() - clientSentAtMs >= AgentLeaderCoordinator.FailoverAfterMs)
-            {
-                if (!MarkJobSwitching(jobId))
-                    return;
-            }
-
-            lock (_acked)
-            {
-                if (_acked.Contains(jobId)) return;
-                _acked.Add(jobId);
-            }
-
-            Task.Run(() => HandlePicklistLookupJob(jobId, suffix, pickerUid, pickerUserId, clientSentAtMs));
-        }
-
-        private bool MarkJobSwitching(string jobId)
-        {
-            try
-            {
-                var session = SnapshotSession();
-                var patch = new Dictionary<string, object>
-                {
-                    { "status", "SWITCHING" },
-                    { "switching_at_ms", NowMs() },
-                    { "switching_agent_instance_id", _agentInstanceId }
-                };
-                RequestJson("PATCH", JobUrl(session, jobId), _json.Serialize(patch), "application/json");
-                Log("AGENT HA request=" + Short(jobId) + " status=SWITCHING leader=" + Short(_agentInstanceId));
-                return true;
-            }
-            catch (RelayHttpException ex)
-            {
-                if (ex.StatusCode == 403 && JobAlreadyAcknowledgedByAnotherAgent(SnapshotSession(), jobId))
-                    return false;
-                Log("AGENT HA switching_fail request=" + Short(jobId) + " detail=" + SafeMessage(ex));
-                return false;
-            }
-            catch (Exception ex)
-            {
-                Log("AGENT HA switching_fail request=" + Short(jobId) + " detail=" + SafeMessage(ex));
-                return false;
-            }
-        }
-
-        private void HandlePicklistLookupJob(string jobId, string suffix, string pickerUid, string pickerUserId, long clientSentAtMs)
-        {
-            var session = SnapshotSession();
-            try
-            {
-                if (_leaderCoordinator == null || !_leaderCoordinator.IsLeader)
-                {
-                    lock (_acked) _acked.Remove(jobId);
-                    return;
-                }
-
-                Interlocked.Increment(ref _localPdaRequests);
-                Ui(() => RefreshAgentRequestMetrics());
-                Audit(
-                    "PDA_REQUEST request=" + Short(jobId) +
-                    " picker=" + pickerUserId +
-                    " picker_uid=" + Fingerprint(pickerUid) +
-                    " picklist_last5=" + suffix +
-                    " client_sent_at_ms=" + clientSentAtMs +
-                    " admin=" + session.AppUserId +
-                    " machine=" + Environment.MachineName +
-                    " instance=" + Short(_agentInstanceId) +
-                    " network=" + GetSsid());
-
-                var rate = _pickerRateLimiter.Check(session, pickerUid, pickerUserId);
-                if (rate.IsLocked)
-                {
-                    AckLookupJob(
-                        session,
-                        jobId,
-                        pickerUserId,
-                        suffix,
-                        pickerUid,
-                        clientSentAtMs,
-                        "PICKER_LOCKED",
-                        "RATE_LIMIT",
-                        "NONE",
-                        0,
-                        0,
-                        0,
-                        rate);
-                    return;
-                }
-
-                CachedPicklistResult lookup;
-                var wmsSession = SnapshotWmsSession();
-                if (wmsSession == null || !wmsSession.IsValidHy1())
-                {
-                    lookup = new CachedPicklistResult
-                    {
-                        Result = "WMS_SESSION_REQUIRED",
-                        CacheMode = "NO_SESSION",
-                        Route = "NONE",
-                        StatusCode = 0,
-                        ElapsedMs = 0,
-                        MatchCount = 0
-                    };
-                }
-                else
-                {
-                    lookup = _picklistCache.Lookup(wmsSession, suffix);
-                }
-
-                if (string.Equals(lookup.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
-                {
-                    lock (_wmsSessionLock) _wmsSession = null;
-                    _picklistCache.Clear();
-                    WmsSessionStore.Clear(WmsSessionFile);
-                    Ui(() => _wmsStatus.Text = "WMS: phiên hết hạn · cần đăng nhập lại");
-                    SetProbeButtonsEnabled(true);
-                }
-
-                if ((string.Equals(lookup.Result, "FOUND", StringComparison.Ordinal) ||
-                     string.Equals(lookup.Result, "NOT_FOUND", StringComparison.Ordinal)) &&
-                    !string.Equals(lookup.CacheMode, "CACHE_HIT", StringComparison.Ordinal) &&
-                    !string.Equals(lookup.CacheMode, "CACHE_FRESH_MISS", StringComparison.Ordinal) &&
-                    wmsSession != null)
-                {
-                    try
-                    {
-                        WmsSessionStore.Save(WmsSessionFile, wmsSession);
-                        Log("WMS SESSION FILE renew=PASS reason=lookup_refresh values=redacted.");
-                    }
-                    catch (Exception ex)
-                    {
-                        Log("WMS SESSION FILE renew=FAIL type=" + ex.GetType().Name);
-                    }
-                }
-
-                if (string.Equals(lookup.Result, "FOUND", StringComparison.Ordinal))
-                {
-                    rate = _pickerRateLimiter.RecordFound(session, pickerUid, pickerUserId);
-                }
-                else if (string.Equals(lookup.Result, "NOT_FOUND", StringComparison.Ordinal))
-                {
-                    rate = _pickerRateLimiter.RecordNotFound(session, pickerUid, pickerUserId);
-                    if (rate.IsLocked)
-                        lookup.Result = "PICKER_LOCKED";
-                }
-
-                AckLookupJob(
-                    session,
-                    jobId,
-                    pickerUserId,
-                    suffix,
-                    pickerUid,
-                    clientSentAtMs,
-                    lookup.Result ?? "LOOKUP_ERROR",
-                    lookup.CacheMode ?? "NONE",
-                    lookup.Route ?? "NONE",
-                    lookup.StatusCode,
-                    Math.Max(0L, lookup.ElapsedMs),
-                    Math.Max(0, lookup.MatchCount),
-                    rate);
-            }
-            catch (RelayHttpException ex)
-            {
-                if (ex.StatusCode == 403 && JobAlreadyAcknowledgedByAnotherAgent(session, jobId))
-                {
-                    Log("ACK SKIP request=" + Short(jobId) + " another ADMIN Agent already owns ACK.");
-                    return;
-                }
-                lock (_acked) _acked.Remove(jobId);
-                Log("PICKLIST LOOKUP ACK lỗi request=" + Short(jobId) + " picker=" + pickerUserId + " detail=" + SafeMessage(ex));
-            }
-            catch (Exception ex)
-            {
-                lock (_acked) _acked.Remove(jobId);
-                Log("PICKLIST LOOKUP lỗi request=" + Short(jobId) + " picker=" + pickerUserId + " detail=" + SafeMessage(ex));
-                try
-                {
-                    AckLookupJob(
-                        session,
-                        jobId,
-                        pickerUserId,
-                        suffix,
-                        pickerUid,
-                        clientSentAtMs,
-                        "LOOKUP_ERROR",
-                        "ERROR",
-                        "NONE",
-                        0,
-                        0,
-                        0,
-                        new PickerRateDecision());
-                    lock (_acked) _acked.Add(jobId);
-                }
-                catch { }
-            }
-        }
-
-        private void AckLookupJob(
-            AgentSession session,
-            string jobId,
-            string pickerUserId,
-            string picklistLast5,
-            string pickerUid,
-            long clientSentAtMs,
-            string result,
-            string cacheMode,
-            string route,
-            int http,
-            long lookupMs,
-            int matches,
-            PickerRateDecision rate)
-        {
-            rate = rate ?? new PickerRateDecision();
-            var patch = new Dictionary<string, object>
-            {
-                { "status", "ACK" },
-                { "agent_id", Environment.MachineName },
-                { "agent_instance_id", _agentInstanceId },
-                { "agent_admin_user_id", session.AppUserId },
-                { "agent_network", GetSsid() },
-                { "agent_received_at_ms", NowMs() },
-                { "agent_ack_at_ms", NowMs() },
-                { "lookup_status", result ?? "LOOKUP_ERROR" },
-                { "lookup_matches", Math.Max(0, matches) },
-                { "lookup_ms", Math.Max(0L, lookupMs) },
-                { "lookup_route", string.IsNullOrWhiteSpace(route) ? "NONE" : route },
-                { "lookup_http", Math.Max(0, http) },
-                { "cache_mode", string.IsNullOrWhiteSpace(cacheMode) ? "NONE" : cacheMode },
-                { "rate_strikes", Math.Max(0, rate.StrikeCount) },
-                { "lock_level", Math.Max(0, rate.LockLevel) },
-                { "locked_until_ms", Math.Max(0L, rate.LockedUntilMs) }
-            };
-
-            RequestJson("PATCH", JobUrl(session, jobId), _json.Serialize(patch), "application/json");
-            Interlocked.Increment(ref _localAgentResponses);
-            Ui(() => RefreshAgentRequestMetrics());
-            Audit(
-                "AGENT_RESPONSE request=" + Short(jobId) +
-                " picker=" + pickerUserId +
-                " picker_uid=" + Fingerprint(pickerUid) +
-                " picklist_last5=" + picklistLast5 +
-                " client_sent_at_ms=" + clientSentAtMs +
-                " result=" + (result ?? "LOOKUP_ERROR") +
-                " cache=" + (cacheMode ?? "NONE") +
-                " matches=" + matches +
-                " lookup_ms=" + lookupMs +
-                " route=" + (route ?? "NONE") +
-                " http=" + http +
-                " strikes=" + rate.StrikeCount +
-                " lock_level=" + rate.LockLevel +
-                " locked_until_ms=" + rate.LockedUntilMs +
-                " admin=" + session.AppUserId +
-                " machine=" + Environment.MachineName +
-                " instance=" + Short(_agentInstanceId) +
-                " network=" + GetSsid());
-
-            Log(
-                "PICKLIST LOOKUP ACK request=" + Short(jobId) +
-                " picker=" + pickerUserId +
-                " result=" + (result ?? "LOOKUP_ERROR") +
-                " cache=" + (cacheMode ?? "NONE") +
-                " matches=" + matches +
-                " lookup_ms=" + lookupMs +
-                " route=" + (route ?? "NONE") +
-                " http=" + http +
-                " strikes=" + rate.StrikeCount +
-                " lock_level=" + rate.LockLevel +
-                " locked=" + rate.IsLocked +
-                " admin=" + session.AppUserId +
-                " machine=" + Environment.MachineName +
-                " instance=" + Short(_agentInstanceId) +
-                " network=" + GetSsid() +
-                " payload_digits=5 values=redacted"
-            );
-
-            Ui(() =>
-            {
-                if (string.Equals(result, "FOUND", StringComparison.Ordinal))
-                    _relay.Text = "Relay: CÓ PICKLIST · đã trả PDA";
-                else if (string.Equals(result, "NOT_FOUND", StringComparison.Ordinal))
-                    _relay.Text = "Relay: KHÔNG CÓ PICKLIST · đã trả PDA";
-                else if (string.Equals(result, "PICKER_LOCKED", StringComparison.Ordinal))
-                    _relay.Text = "Relay: Picker bị khóa chống spam";
-                else if (string.Equals(result, "WMS_SESSION_REQUIRED", StringComparison.Ordinal) ||
-                         string.Equals(result, "SESSION_EXPIRED", StringComparison.Ordinal))
-                    _relay.Text = "Relay: cần phiên WMS";
-                else
-                    _relay.Text = "Relay: tra cứu WMS " + (result ?? "ERROR");
-            });
-        }
-
-        private bool JobAlreadyAcknowledgedByAnotherAgent(AgentSession session, string jobId)
-        {
-            try
-            {
-                var raw = RequestJson("GET", JobUrl(session, jobId), null, null);
-                var job = _json.DeserializeObject(raw) as Dictionary<string, object>;
-                if (job == null) return false;
-                object status;
-                return job.TryGetValue("status", out status) &&
-                    string.Equals(Convert.ToString(status), "ACK", StringComparison.OrdinalIgnoreCase);
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
         private void EnsureFreshToken()
         {
             var s = SnapshotSession();
@@ -4049,9 +3463,7 @@ namespace SupraInventoryRelayAgent
             if (!HasAgentSession()) return;
             try { StopListening(); } catch { }
             lock (_sessionLock) _session = null;
-            lock (_wmsSessionLock) _wmsSession = null;
-            _picklistCache.Clear();
-            ClearStoredSession();
+ClearStoredSession();
             try { if (File.Exists(ExitVerifierFile)) File.Delete(ExitVerifierFile); } catch { }
             Ui(() =>
             {
@@ -4060,7 +3472,7 @@ namespace SupraInventoryRelayAgent
                 _listen.Enabled = false;
                 _testOffice.Enabled = false;
                 _wmsStatus.Text = "Supra WMS: chờ đăng nhập Agent";
-                _supraInfo.Text = "HY1 · Phiên tạm dừng đến khi đăng nhập Agent";
+                _supraInfo.Text = "HY1 · Web Confirm tạm dừng đến khi đăng nhập Agent";
                 _agentFleetRenderSignature = "";
             });
             SetAgentAuthUi(false);
