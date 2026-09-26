@@ -68,9 +68,9 @@ jobs:
           $fleet = Get-Content relay-agent/FirestoreFleetMetrics.cs -Raw
           $project = Get-Content relay-agent/SupraInventoryRelayAgent.csproj -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*48\s*;') { throw "D126 H2 hotfix requires Agent v48." }
-          if ($project -notmatch '<AssemblyVersion>0\.48\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.48\.0\.0</FileVersion>') {
-            throw "D126 H2 hotfix assembly/file version must be 0.48."
+          if ($config -notmatch 'AgentBuild\s*=\s*49\s*;') { throw "D126 H3 hotfix requires Agent v49." }
+          if ($project -notmatch '<AssemblyVersion>0\.49\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.49\.0\.0</FileVersion>') {
+            throw "D126 H3 hotfix assembly/file version must be 0.49."
           }
 
           foreach ($marker in @(
@@ -98,10 +98,15 @@ jobs:
             'StopManagedBrowserNoLock',
             "getAttribute('aria-label')",
             "getAttribute('title')",
-            "querySelectorAll('body *')"
+            "querySelectorAll('body *')",
+            'decorationOnly',
+            'searchDecoratedCount',
+            "search|magnify|magnifying|glass|find|icon"
           )) {
             if (-not $browser.Contains($marker)) { throw "D126 browser semantic guard missing: $marker" }
           }
+          if (-not $browser.Contains("names(e).some(v => fold(v) === fold('Xác nhận lấy lại hàng'))")) { throw "D126 H3 readiness confirm control must remain exact-label only." }
+
           foreach ($forbidden in @(
             'Network.enable',
             'Network.getCookies',
