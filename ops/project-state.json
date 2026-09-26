@@ -189,7 +189,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D126 v46 field defect confirmed: ship relay-agent-v47 browser readiness hotfix, pass PR/main/release gates, then rerun OA051 on the real Confirm PickList page. Stable remains OWNER-GATED.",
+  "next_action": "D126 v47 technical/release PASS. Run OA051 real-Supra field re-test on relay-agent-v47; do not mark field PASS until readiness, exact-row lookup and guarded confirmation are observed. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -1154,15 +1154,39 @@
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d126": {
-    "status": "FIELD_HOTFIX_IN_PROGRESS__V46_READY_DETECTION_FAIL",
+    "status": "TECHNICAL_RELEASE_PASS__OA051_FIELD_RETEST_READY",
     "decision_date": "2026-09-26",
     "branch": "fix/d126-browser-readiness-dom",
     "baseline_main": "2020a12e3a3d123b80b437ec9168ef95953f71a0",
     "baseline_release": "beta-vc76 / relay-agent-v46",
-    "target_agent_release": "relay-agent-v47",
     "field_defect": "V46_MANAGED_BROWSER_REACHES_CONFIRM_PAGE_BUT_READY_REMAINS_0",
     "hotfix_contract": "SEMANTIC_BUTTON_LINK_ROLE_BUTTON_PLUS_SAME_ORIGIN_FRAME_DOM__SANITIZED_COUNTS__BOUNDED_UI_SETTLE__FAIL_CLOSED",
-    "android": "KEEP_CURRENT_PUBLISHED_PICKLIST_AND_BAO_HANG_MODEL__NO_ANDROID_CHANGE_REQUIRED_UNLESS_REGRESSION_FIX",
+    "implementation_pr": 200,
+    "pr_head": "7edf15a468a897be2c5503b5d627ca22e6625c77",
+    "merged_main": "3eb45c4a59564501e2b5dd95f60ee6072a79dc9a",
+    "pr_runs": {
+      "repo_authority": 36226853364,
+      "project_state": 36226853436,
+      "ui": 36226853411,
+      "relay_agent": 36226853421,
+      "firestore": 36226853416,
+      "rtdb": 36226853379
+    },
+    "main_runs": {
+      "repo_authority": 36226943848,
+      "project_state": 36226943851,
+      "ui": 36226943951,
+      "relay_agent": 36226943832
+    },
+    "agent_release": "relay-agent-v47",
+    "agent_release_id": 397141086,
+    "agent_asset_id": 590174179,
+    "agent_size_bytes": 288256,
+    "agent_sha256": "3f31cfc6efd2a7deacdb2ca58066852f40e126ee6255d205c51fb70da3f28cfc",
+    "inventory_channel_release_id": 394587029,
+    "inventory_channel_agent_manifest_asset_id": 590174265,
+    "inventory_channel_agent_exe_asset_id": 590174261,
+    "android": "KEEP_BETA_VC76_UNCHANGED__PICKLIST_AND_BAO_HANG_MODEL_PRESERVED",
     "picklist_transport": "KEEP_FIRESTORE_REQUEST_ACK_HA_GUARDS",
     "supra_browser": "USER_LOGIN_IN_MANAGED_BROWSER__DOM_ONLY_AUTOMATION__NO_SESSION_EXTRACTION",
     "lookup": "VISIBLE_DOM_PL_DIGITS_EXACT_SUFFIX__ONE_SEARCH_BUTTON_RETRY__FAIL_CLOSED",
@@ -1170,6 +1194,6 @@
     "forbidden": "NO_DIRECT_WMS_PICKLIST_API__NO_COOKIE_TOKEN_HEADER_SIGNATURE_CAPTURE_REPLAY__NO_COORDINATE_ONLY_MUTATION",
     "sku_master": "MANUAL_FILE_IMPORT_ONLY__REMOVE_AGENT_WMS_SKU_SYNC__AUTOMATIC_DEFERRED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "next_action": "SHIP_V47_BROWSER_READINESS_HOTFIX__RUN_PR_MAIN_RELEASE_GATES__THEN_OA051_FIELD_RETEST"
+    "next_action": "RUN_OA051_FIELD_RETEST_ON_RELAY_AGENT_V47"
   }
 }
