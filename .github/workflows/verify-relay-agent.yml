@@ -177,7 +177,7 @@ jobs:
             'DASHBOARD_PROBE_FAIL',
             'NavigationCompleted += HandleNavigationCompleted',
             'WAREHOUSE_ICON_PLUS_ARROW_SVG',
-            "return 'CLICKED'"
+            "return 'CLICKED:WAREHOUSE_ICON_PLUS_ARROW_SVG'"
           )) {
             if (-not $ownedHost.Contains($marker)) { throw "D127 v60 owned-host dashboard routing guard missing: $marker" }
           }
