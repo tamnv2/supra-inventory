@@ -73,9 +73,9 @@ jobs:
           $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
           $projection = Get-Content service/src/firestore-projection.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*58\s*;') { throw "D127 hotfix requires Agent v58." }
-          if ($project -notmatch '<AssemblyVersion>0\.58\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.58\.0\.0</FileVersion>') {
-            throw "D127 hotfix assembly/file version must be 0.58."
+          if ($config -notmatch 'AgentBuild\s*=\s*59\s*;') { throw "D127 hotfix requires Agent v59." }
+          if ($project -notmatch '<AssemblyVersion>0\.59\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.59\.0\.0</FileVersion>') {
+            throw "D127 hotfix assembly/file version must be 0.59."
           }
 
           foreach ($marker in @(
@@ -140,7 +140,13 @@ jobs:
             "m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z",
             'STRUCTURAL_ARROW_AMBIGUOUS',
             'STRUCTURAL_ARROW_NOT_FOUND',
-            'WAREHOUSE_ICON_PLUS_ARROW_SVG'
+            'WAREHOUSE_ICON_PLUS_ARROW_SVG',
+            "querySelectorAll('svg[viewBox]')",
+            "getAttribute('viewBox')",
+            'SCRIPT_ERROR',
+            'LayoutSupraCardControls',
+            'Dữ liệu Agent:',
+            'Mở thư mục dữ liệu'
           )) {
             if (-not $browser.Contains($marker)) { throw "D126 browser semantic guard missing: $marker" }
           }
@@ -304,7 +310,7 @@ jobs:
             throw "D127 v53 must not auto-fallback from Agent browser to Desktop browser."
           }
 
-          Write-Host "D127 v58 structural warehouse-icon + arrow-SVG selector + visible build identity PASS"
+          Write-Host "D127 v59 dashboard JS syntax fix + responsive Supra storage layout PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh
