@@ -1,38 +1,90 @@
 const { chromium } = require("playwright-core");
 const fs = require("fs");
 
-const version = process.argv[2];
+const requested = process.argv[2] || "latest";
 const output = process.argv[3] || "";
-if (!/^\d+(?:\.\d+){3}$/.test(version || "")) {
+if (requested !== "latest" && !/^\d+(?:\.\d+){3}$/.test(requested)) {
   throw new Error("Invalid WebView2 runtime version.");
 }
 
-async function clickTextInScope(scope, page, text) {
-  const exact = scope.getByText(text, { exact: true });
-  if (await exact.count()) {
-    await exact.first().click();
-    return true;
+function compareVersions(a, b) {
+  const av = a.split(".").map(Number);
+  const bv = b.split(".").map(Number);
+  for (let i = 0; i < 4; i++) {
+    const d = (av[i] || 0) - (bv[i] || 0);
+    if (d) return d;
   }
-  const global = page.getByText(text, { exact: true });
-  if (await global.count()) {
-    await global.last().click();
-    return true;
-  }
-  return false;
+  return 0;
 }
 
-async function selectNative(scope, wanted, predicate) {
+async function availableVersions(scope, page) {
+  const found = new Set();
+  const selects = scope.locator("select");
+  for (let i = 0; i < await selects.count(); i++) {
+    for (const raw of await selects.nth(i).locator("option").allTextContents()) {
+      const value = raw.trim();
+      if (/^\d+(?:\.\d+){3}$/.test(value)) found.add(value);
+    }
+  }
+  if (found.size) return [...found].sort(compareVersions).reverse();
+
+  const trigger = scope.getByText("Select Version", { exact: true });
+  const globalTrigger = page.getByText("Select Version", { exact: true });
+  if (await trigger.count()) await trigger.first().click();
+  else if (await globalTrigger.count()) await globalTrigger.last().click();
+  else throw new Error("Fixed Version selector was not found.");
+  await page.waitForTimeout(350);
+
+  const texts = await page.locator("body *").allTextContents();
+  for (const raw of texts) {
+    const value = raw.trim();
+    if (/^\d+(?:\.\d+){3}$/.test(value)) found.add(value);
+  }
+  return [...found].sort(compareVersions).reverse();
+}
+
+async function chooseVersion(scope, page, version) {
   const selects = scope.locator("select");
   for (let i = 0; i < await selects.count(); i++) {
     const select = selects.nth(i);
-    const options = await select.locator("option").allTextContents();
-    const match = options.map(v => v.trim()).find(predicate);
-    if (match) {
-      await select.selectOption({ label: match });
-      return true;
+    const options = (await select.locator("option").allTextContents()).map(v => v.trim());
+    if (options.includes(version)) {
+      await select.selectOption({ label: version });
+      return;
     }
   }
-  return false;
+  const option = page.getByText(version, { exact: true });
+  if (!(await option.count())) {
+    const trigger = scope.getByText("Select Version", { exact: true });
+    const globalTrigger = page.getByText("Select Version", { exact: true });
+    if (await trigger.count()) await trigger.first().click();
+    else if (await globalTrigger.count()) await globalTrigger.last().click();
+    await page.waitForTimeout(250);
+  }
+  const refreshed = page.getByText(version, { exact: true });
+  if (!(await refreshed.count())) throw new Error("Requested Fixed Version is not available: " + version);
+  await refreshed.last().click();
+}
+
+async function chooseX64(scope, page) {
+  const selects = scope.locator("select");
+  for (let i = 0; i < await selects.count(); i++) {
+    const select = selects.nth(i);
+    const options = (await select.locator("option").allTextContents()).map(v => v.trim());
+    const match = options.find(v => /^x64$/i.test(v));
+    if (match) {
+      await select.selectOption({ label: match });
+      return;
+    }
+  }
+  let trigger = scope.getByText("Select Architecture", { exact: true });
+  if (!(await trigger.count())) trigger = page.getByText("Select Architecture", { exact: true });
+  if (!(await trigger.count())) throw new Error("Fixed Version architecture selector was not found.");
+  await trigger.last().click();
+  await page.waitForTimeout(250);
+  const option = page.getByText(/^x64$/i, { exact: true });
+  if (!(await option.count())) throw new Error("x64 Fixed Version option was not found.");
+  await option.last().click();
 }
 
 (async () => {
@@ -53,47 +105,20 @@ async function selectNative(scope, wanted, predicate) {
   );
   if (!(await scope.count())) scope = page.locator("body");
 
-  let versionSelected = await selectNative(
-    scope,
-    version,
-    value => value === version
-  );
-  if (!versionSelected) {
-    const opened = await clickTextInScope(scope, page, "Select Version");
-    if (!opened) throw new Error("Fixed Version selector was not found.");
-    await page.waitForTimeout(250);
-    const option = page.getByText(version, { exact: true });
-    if (!(await option.count())) {
-      throw new Error("Requested Fixed Version is not available on Microsoft's page: " + version);
-    }
-    await option.last().click();
-    versionSelected = true;
+  const versions = await availableVersions(scope, page);
+  if (!versions.length) throw new Error("Microsoft Fixed Version list is empty.");
+  const version = requested === "latest" ? versions[0] : requested;
+  if (!versions.includes(version)) {
+    throw new Error("Requested Fixed Version is unavailable. Available: " + versions.slice(0, 8).join(", "));
   }
 
-  let archSelected = await selectNative(
-    scope,
-    "x64",
-    value => /^x64$/i.test(value)
-  );
-  if (!archSelected) {
-    const opened = await clickTextInScope(scope, page, "Select Architecture");
-    if (!opened) throw new Error("Fixed Version architecture selector was not found.");
-    await page.waitForTimeout(250);
-    const option = page.getByText(/^x64$/i, { exact: true });
-    if (!(await option.count())) throw new Error("x64 Fixed Version option was not found.");
-    await option.last().click();
-    archSelected = true;
-  }
-
+  await chooseVersion(scope, page, version);
+  await chooseX64(scope, page);
   await page.waitForTimeout(500);
 
   let downloadControl = scope.getByRole("link", { name: "Download", exact: true });
-  if (!(await downloadControl.count())) {
-    downloadControl = scope.getByRole("button", { name: "Download", exact: true });
-  }
-  if (!(await downloadControl.count())) {
-    downloadControl = scope.getByText("Download", { exact: true });
-  }
+  if (!(await downloadControl.count())) downloadControl = scope.getByRole("button", { name: "Download", exact: true });
+  if (!(await downloadControl.count())) downloadControl = scope.getByText("Download", { exact: true });
   if (!(await downloadControl.count())) throw new Error("Fixed Version Download control was not found.");
 
   const control = downloadControl.last();
@@ -110,13 +135,11 @@ async function selectNative(scope, wanted, predicate) {
   if (output) {
     await download.saveAs(output);
     const stat = fs.statSync(output);
-    if (stat.size < 100 * 1024 * 1024) {
-      throw new Error("Downloaded Fixed WebView2 CAB is unexpectedly small.");
-    }
-    process.stdout.write(`saved=${output} bytes=${stat.size} href=${href || "download-event"}\n`);
+    if (stat.size < 100 * 1024 * 1024) throw new Error("Downloaded Fixed WebView2 CAB is unexpectedly small.");
+    process.stdout.write(`version=${version} saved=${output} bytes=${stat.size} href=${href || "download-event"}\n`);
   } else {
     await download.cancel();
-    process.stdout.write(`resolved=${suggested} href=${href || "download-event"}\n`);
+    process.stdout.write(`version=${version} resolved=${suggested} href=${href || "download-event"}\n`);
   }
 
   await browser.close();
