@@ -78,6 +78,10 @@ namespace SupraInventoryRelayAgent
         private string _browserName = "";
         private string _targetUrl = "";
         private BrowserLaunchMode _launchMode = BrowserLaunchMode.None;
+        private bool _warehouseEntryTriggered;
+        private string _warehouseEntrySourceUrl = "";
+        private DateTime _warehouseEntryTriggeredAtUtc = DateTime.MinValue;
+        private DateTime _lastDashboardRecoveryAtUtc = DateTime.MinValue;
         private bool _disposed;
 
         private const string ConfirmPath = "/sft3/app/saleorder/auto-pickpack-confirm";
@@ -125,7 +129,7 @@ namespace SupraInventoryRelayAgent
                 NavigateConfirmNoLock();
                 ShowNoLock();
             }
-            return WaitForReady(TimeSpan.FromSeconds(2));
+            return WaitForReady(TimeSpan.FromSeconds(12));
         }
 
         internal SupraBrowserState WaitForReady(TimeSpan timeout)
@@ -163,7 +167,7 @@ namespace SupraInventoryRelayAgent
                 if (map == null)
                     return new SupraBrowserState { Ready = false, Hidden = _hidden, State = "DOM_UNAVAILABLE", Browser = _browserName };
 
-                return new SupraBrowserState
+                var state = new SupraBrowserState
                 {
                     Ready = Bool(map, "ready"),
                     Hidden = _hidden,
@@ -178,6 +182,11 @@ namespace SupraInventoryRelayAgent
                     TableCount = Int(map, "tableCount"),
                     FrameCount = Int(map, "frameCount")
                 };
+
+                if (!state.Ready && TryRecoverConfirmRouteNoLock(state))
+                    state.State = "AUTO_RECOVERING_CONFIRM";
+
+                return state;
             }
         }
 
@@ -532,6 +541,10 @@ namespace SupraInventoryRelayAgent
             _process = null;
             _port = 0;
             _targetUrl = "";
+            _warehouseEntryTriggered = false;
+            _warehouseEntrySourceUrl = "";
+            _warehouseEntryTriggeredAtUtc = DateTime.MinValue;
+            _lastDashboardRecoveryAtUtc = DateTime.MinValue;
         }
 
         private void EnsureReadyNoLock()
@@ -542,6 +555,176 @@ namespace SupraInventoryRelayAgent
             var map = _json.DeserializeObject(raw) as Dictionary<string, object>;
             if (map == null || !Bool(map, "ready"))
                 throw new InvalidOperationException("Web Confirm chưa sẵn sàng. Hãy mở đúng trang và đăng nhập Supra.");
+        }
+
+        private bool TryRecoverConfirmRouteNoLock(SupraBrowserState state)
+        {
+            // The Desktop browser remains user-controlled. The one-tab recovery is only
+            // for the Agent-owned WebView2 host where NewWindowRequested is intercepted.
+            if (_launchMode != BrowserLaunchMode.Agent || state == null || state.Ready) return false;
+            if (string.IsNullOrWhiteSpace(state.Url) ||
+                state.Url.IndexOf("https://wms-supra.winmart.vn", StringComparison.OrdinalIgnoreCase) != 0)
+                return false;
+            if (state.Url.IndexOf(ConfirmPath, StringComparison.OrdinalIgnoreCase) >= 0)
+                return false;
+
+            var now = DateTime.UtcNow;
+
+            if (_warehouseEntryTriggered)
+            {
+                // Clicking the HY1/SFT3 dashboard arrow normally opens a new tab.
+                // v55 host converts that request into same-tab navigation. Once the
+                // current URL changes away from the dashboard source, return this same
+                // tab to the canonical Confirm path.
+                var changedPage = !string.Equals(
+                    NormalizeUrlPath(state.Url),
+                    NormalizeUrlPath(_warehouseEntrySourceUrl),
+                    StringComparison.OrdinalIgnoreCase);
+
+                if (changedPage && now - _warehouseEntryTriggeredAtUtc >= TimeSpan.FromMilliseconds(500))
+                {
+                    NavigateConfirmNoLock();
+                    _log("SUPRA_BROWSER dashboard_recovery=CONFIRM_NAVIGATE_SAME_TAB from=" +
+                         AgentDiagnostics.Sanitize(state.Url));
+                    _warehouseEntryTriggered = false;
+                    _warehouseEntrySourceUrl = "";
+                    return true;
+                }
+
+                if (now - _warehouseEntryTriggeredAtUtc > TimeSpan.FromSeconds(12))
+                {
+                    _log("SUPRA_BROWSER dashboard_recovery=ENTRY_TIMEOUT");
+                    _warehouseEntryTriggered = false;
+                    _warehouseEntrySourceUrl = "";
+                }
+                else
+                {
+                    return true;
+                }
+            }
+
+            if (_lastDashboardRecoveryAtUtc != DateTime.MinValue &&
+                now - _lastDashboardRecoveryAtUtc < TimeSpan.FromSeconds(2))
+                return false;
+
+            _lastDashboardRecoveryAtUtc = now;
+            Dictionary<string, object> result;
+            try
+            {
+                var raw = EvaluateJsonNoLock(BuildDashboardSft3EntryScript());
+                result = _json.DeserializeObject(raw) as Dictionary<string, object>;
+            }
+            catch
+            {
+                return false;
+            }
+
+            var action = result == null ? "" : String(result, "result");
+            if (!string.Equals(action, "CLICKED", StringComparison.Ordinal))
+            {
+                if (string.Equals(action, "TARGET_AMBIGUOUS", StringComparison.Ordinal) ||
+                    string.Equals(action, "ACTION_AMBIGUOUS", StringComparison.Ordinal))
+                {
+                    _log("SUPRA_BROWSER dashboard_recovery=" + action + " fail_closed=true");
+                }
+                return false;
+            }
+
+            _warehouseEntryTriggered = true;
+            _warehouseEntrySourceUrl = state.Url;
+            _warehouseEntryTriggeredAtUtc = now;
+            _log("SUPRA_BROWSER dashboard_recovery=HY1_SFT3_CLICKED same_tab_expected=true");
+            return true;
+        }
+
+        private static string NormalizeUrlPath(string value)
+        {
+            Uri uri;
+            if (!Uri.TryCreate(value ?? "", UriKind.Absolute, out uri)) return value ?? "";
+            return uri.GetLeftPart(UriPartial.Path).TrimEnd('/');
+        }
+
+        private static string BuildDashboardSft3EntryScript()
+        {
+            return @"(() => {
+              const norm = v => {
+                const raw = String(v || '');
+                const unicode = raw.normalize ? raw.normalize('NFC') : raw;
+                return unicode.replace(/[\u200B-\u200D\uFEFF]/g,' ').replace(/\s+/g,' ').trim();
+              };
+              const fold = v => norm(v).toLowerCase();
+              const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
+              const text = e => fold((e && (e.innerText || e.textContent)) || '');
+              const containsTarget = e => {
+                const value = text(e);
+                return value.includes('kho hưng yên 1') && value.includes('sft3');
+              };
+
+              const containers = [...document.querySelectorAll(
+                'article,section,li,[role=listitem],[role=group],div'
+              )].filter(e => visible(e) && containsTarget(e));
+
+              if (!containers.length) return JSON.stringify({result:'NOT_DASHBOARD'});
+
+              // Prefer the smallest semantic card that still contains the HY1 + SFT3 labels.
+              const minimal = containers.filter(parent =>
+                ![...parent.children].some(child => visible(child) && containsTarget(child)));
+              const cards = (minimal.length ? minimal : containers)
+                .sort((a,b) => {
+                  const ta = norm(a.innerText || a.textContent).length;
+                  const tb = norm(b.innerText || b.textContent).length;
+                  if (ta !== tb) return ta - tb;
+                  const ra = a.getBoundingClientRect();
+                  const rb = b.getBoundingClientRect();
+                  return (ra.width * ra.height) - (rb.width * rb.height);
+                });
+
+              const targetCards = cards.filter((card, index) =>
+                index === 0 ||
+                norm(card.innerText || card.textContent).length ===
+                  norm(cards[0].innerText || cards[0].textContent).length);
+
+              if (targetCards.length !== 1)
+                return JSON.stringify({result:'TARGET_AMBIGUOUS',count:targetCards.length});
+
+              const card = targetCards[0];
+              const clickables = [...card.querySelectorAll('button,a,[role=button]')]
+                .filter(e => visible(e) &&
+                  !e.disabled &&
+                  e.getAttribute('aria-disabled') !== 'true');
+
+              if (!clickables.length)
+                return JSON.stringify({result:'ACTION_NOT_FOUND'});
+
+              const cardRect = card.getBoundingClientRect();
+              const score = e => {
+                const r = e.getBoundingClientRect();
+                const label = fold([
+                  e.innerText,
+                  e.textContent,
+                  e.getAttribute && e.getAttribute('aria-label'),
+                  e.getAttribute && e.getAttribute('title')
+                ].filter(Boolean).join(' '));
+                let s = 0;
+                if ((e.tagName || '').toLowerCase() === 'button') s += 6;
+                if ((e.getAttribute && e.getAttribute('role')) === 'button') s += 4;
+                if (/truy cập|mở|vào|open|go/.test(label)) s += 10;
+                if (r.left >= cardRect.left + cardRect.width * 0.5) s += 4;
+                if (r.width <= 72 && r.height <= 72) s += 3;
+                if (label.length <= 12) s += 1;
+                return s;
+              };
+
+              const ranked = clickables
+                .map(e => ({e,score:score(e)}))
+                .sort((a,b) => b.score - a.score);
+
+              if (ranked.length > 1 && ranked[0].score === ranked[1].score)
+                return JSON.stringify({result:'ACTION_AMBIGUOUS',count:ranked.length,score:ranked[0].score});
+
+              ranked[0].e.click();
+              return JSON.stringify({result:'CLICKED',score:ranked[0].score});
+            })()";
         }
 
         private SupraBrowserSearchResult ScanNoLock(List<string> terms)
