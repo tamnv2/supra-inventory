@@ -2,7 +2,7 @@ namespace SupraInventoryRelayAgent
 {
     internal static class AgentConfig
     {
-        internal const int AgentBuild = 50;
+        internal const int AgentBuild = 51;
         internal const string ApiBaseUrl = "https://inventory-beta.supra.cc.cd";
         internal const string FirebaseProjectId = "supra-inventory-beta";
         internal const string FirebaseApiKey = "__FIREBASE_API_KEY_BETA__";
@@ -25,5 +25,8 @@ namespace SupraInventoryRelayAgent
         internal const string AgentReleaseTagPrefix = "relay-agent-v";
         internal const string AgentExeAsset = "Agent.Auto.Confirm.Pick.Pack.exe";
         internal const string AgentChecksumAsset = "Agent.Auto.Confirm.Pick.Pack.exe.sha256";
+        internal const string AgentBrowserBundleManifestUrl = ApiBaseUrl + "/downloads/agent/browser/manifest";
+        internal const string AgentBrowserBundleUrl = ApiBaseUrl + "/downloads/agent/browser/latest";
+        internal const string AgentBrowserBundleChecksumUrl = ApiBaseUrl + "/downloads/agent/browser/latest.sha256";
     }
 }
