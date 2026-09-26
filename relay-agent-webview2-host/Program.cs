@@ -104,6 +104,18 @@ namespace SupraInventoryWebView2Host
 
         private async Task InitializeAsync()
         {
+            if (!Environment.Is64BitProcess)
+                throw new BadImageFormatException("SUPRA WebView2 host phải chạy tiến trình x64.");
+
+            var loaderFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "loader", "x64");
+            var loaderPath = Path.Combine(loaderFolder, "WebView2Loader.dll");
+            if (!File.Exists(loaderPath))
+                throw new FileNotFoundException("Thiếu WebView2Loader.dll x64.", loaderPath);
+
+            // D127 v54: bind the native loader explicitly. Relying on default probing can
+            // load a loader of the wrong architecture on .NET Framework and throw 0x8007000B.
+            CoreWebView2Environment.SetLoaderDllFolderPath(loaderFolder);
+
             GrantAppContainerReadBestEffort(_options.Runtime);
             var envOptions = new CoreWebView2EnvironmentOptions(
                 "--remote-debugging-address=127.0.0.1 --remote-debugging-port=" + _options.DebugPort);
