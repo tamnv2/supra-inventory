@@ -781,7 +781,7 @@
   },
   "agent_operations": {
     "decision": "D126",
-    "target_release": "relay-agent-v47",
+    "target_release": "relay-agent-v48",
     "cache_miss": "CURRENT_RENDERED_DOM_THEN_ONE_EXACT_SEARCH_BUTTON_RETRY",
     "auto_update": "STARTUP_PLUS_30MIN_BACKGROUND_PLUS_MANUAL__SERVICE_MANIFEST__STABLE_ALIAS__SHA256",
     "layout": "KEEP_D124_RELEASED_OVERVIEW__SUPRA_CARD_BROWSER_READY_HIDE_SHOW",
@@ -791,7 +791,7 @@
     "drive_logs": "FIRESTORE_ADMIN_SPOOL_TO_BETA_DRIVE__06_12_18_00__CRASH_BEST_EFFORT",
     "web_online": "WEB_PLUS_ANDROID_ONLY__AGENT_EXCLUDED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "release_status": "D126_V47_TECHNICAL_RELEASE_PASS__OA051_FIELD_RETEST_READY",
+    "release_status": "D126_V47_RELEASED__FIELD_READY_FAIL_SEARCH_0__V48_H2_IN_PROGRESS",
     "quiet_hours": "KEEP_D117_D118_PICKLIST_RELAY_SCHEDULE",
     "fleet_table": "D120_V41_RELEASED__PICKER_ACTIVE_ANDROID_REALTIME_ONLY__SEARCH_SCROLL_ANCHOR_WHOLE_ROW_HOVER__NO_FLICKER_NOOP_RENDER",
     "previous_release": "relay-agent-v46__D126_FIELD_DEFECT_READY_0",
@@ -811,8 +811,8 @@
     "inventory_channel_release_id": 394587029,
     "inventory_channel_manifest_asset_id": 590174265,
     "inventory_channel_exe_asset_id": 590174261,
-    "next_target_release": "FIELD_RETEST_OA051",
-    "next_source_status": "D126_V47_RELEASED__OA051_FIELD_RETEST_PENDING",
+    "next_target_release": "relay-agent-v48",
+    "next_source_status": "D126_V48_SEARCH_DEVTOOLS_RECOVERY_HOTFIX_IN_PROGRESS",
     "release_publish_run": 36226943832,
     "wms_health": "MANAGED_BROWSER_CONFIRM_PAGE_READINESS_ONLY",
     "schedule_authority": "KEEP_D117_D118_CONFIRMATION_RELAY_SCHEDULE",
@@ -1136,9 +1136,9 @@
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d126": {
-    "status": "TECHNICAL_RELEASE_PASS__OA051_FIELD_RETEST_READY",
+    "status": "FIELD_HOTFIX_IN_PROGRESS__V48_TARGET",
     "decision_date": "2026-09-26",
-    "branch": "fix/d126-browser-readiness-dom",
+    "branch": "fix/d126-v48-search-devtools-recovery",
     "field_defect_baseline": "relay-agent-v46__READY_0_ON_REAL_CONFIRM_PAGE",
     "agent_release": "relay-agent-v47",
     "release_main": "3eb45c4a59564501e2b5dd95f60ee6072a79dc9a",
@@ -1155,6 +1155,10 @@
     "direct_wms_api": "FORBIDDEN_FOR_PICKLIST_AND_SKU",
     "sku_master": "WEB_MANUAL_FILE_IMPORT_ONLY",
     "field_gate": "OA051__PENDING_OWNER_REAL_SUPRA_RETEST",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "baseline_agent_release": "relay-agent-v47",
+    "target_agent_release": "relay-agent-v48",
+    "field_defect_v47": "SEARCH_0_WITH_CONFIRM_1_TABLE_1_ON_REGISTERED_PAGE__DEVTOOLS_WEBSOCKET_DROP_AND_LOOPBACK_REATTACH_FAIL",
+    "h2_contract": "EXACT_SEARCH_LABEL_TEXT_VALUE_ARIA_TITLE_OR_UNIQUE_TEXT_LEAF__LOCAL_DEVTOOLS_REATTACH_THEN_MANAGED_RESTART__NO_SESSION_EXTRACTION__NO_DIRECT_WMS_API"
   }
 }
