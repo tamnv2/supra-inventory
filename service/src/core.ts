@@ -566,6 +566,7 @@ export class InventoryCore {
       this.state,
       this.env,
       String(attachment.connection_id || ""),
+      String(_reason || "SOCKET_CLOSE").trim() || "SOCKET_CLOSE",
     );
   }
 
@@ -580,6 +581,7 @@ export class InventoryCore {
       this.state,
       this.env,
       String(attachment.connection_id || ""),
+      "SOCKET_ERROR",
     );
   }
 
@@ -975,7 +977,7 @@ export class InventoryCore {
     const readModel = await handleReadModelCoreRequest(
       this.state,
       request,
-      () => syncPickerPresenceProjectionFromState(this.state, this.env),
+      () => syncPickerPresenceProjectionFromState(this.state, this.env, "", "SOCKET_CONNECT"),
     );
     if (readModel) return readModel;
 
