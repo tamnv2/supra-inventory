@@ -2142,6 +2142,7 @@ namespace SupraInventoryRelayAgent
                         _manualPicklistStatus.ForeColor = Color.FromArgb(180, 76, 60);
                     }
                     UpdateManualConfirmAllVisibility();
+                    ApplyColumnSizingIfEnabled(_manualPicklistGrid);
                 });
 
                 AgentDiagnostics.WriteAudit(
