@@ -73,9 +73,9 @@ jobs:
           $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
           $projection = Get-Content service/src/firestore-projection.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*62\s*;') { throw "D127 hotfix requires Agent v62." }
-          if ($project -notmatch '<AssemblyVersion>0\.62\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.62\.0\.0</FileVersion>') {
-            throw "D127 hotfix assembly/file version must be 0.62."
+          if ($config -notmatch 'AgentBuild\s*=\s*63\s*;') { throw "D127 hotfix requires Agent v63." }
+          if ($project -notmatch '<AssemblyVersion>0\.63\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.63\.0\.0</FileVersion>') {
+            throw "D127 hotfix assembly/file version must be 0.63."
           }
 
           foreach ($marker in @(
@@ -147,10 +147,10 @@ jobs:
           }
           if (-not $browser.Contains("names(e).some(v => fold(v) === fold('Xác nhận lấy lại hàng'))")) { throw "D126 H3 readiness confirm control must remain exact-label only." }
           foreach ($marker in @('LayoutSupraCardControls','_agentDataStorageStatus','_openAgentDataFolder')) {
-            if (-not $ops.Contains($marker)) { throw "D127 v62 responsive Supra layout guard missing: $marker" }
+            if (-not $ops.Contains($marker)) { throw "D127 v63 responsive Supra layout guard missing: $marker" }
           }
           foreach ($marker in @(
-            'RequiredHostBuild = 7',
+            'RequiredHostBuild = 8',
             'RequiredHostArch = "x64"',
             'host-build.txt',
             'host-arch.txt',
@@ -160,7 +160,7 @@ jobs:
             'reclaimed_bytes',
             'BrowserDataRoot'
           )) {
-            if (-not $browserBundle.Contains($marker)) { throw "D127 v62 browser bundle/storage guard missing: $marker" }
+            if (-not $browserBundle.Contains($marker)) { throw "D127 v63 browser bundle/storage guard missing: $marker" }
           }
           foreach ($marker in @(
             'Environment.Is64BitProcess',
@@ -171,23 +171,23 @@ jobs:
             'e.Handled = true',
             '_web.CoreWebView2.Navigate(target.AbsoluteUri)',
             'ProbeDashboardAccessAsync',
-            'BuildDashboardTargetScript',
+            'BuildDashboardActivationScript',
             '_dashboardProbeTimer',
             'DASHBOARD_PROBE_FAIL',
             'DASHBOARD_PROBE result=',
-            'DASHBOARD_TRUSTED_CLICK',
+            'DASHBOARD_USER_GESTURE',
             'button.MuiIconButton-root',
             'button.parentElement',
             "className.includes('MuiPaper-root')",
             "'0 0 72 72'",
-            'TryParseDashboardTarget',
-            'DispatchTrustedMouseClickAsync',
-            'Input.dispatchMouseEvent',
-            'mousePressed',
-            'mouseReleased',
+            'ActivateDashboardEntryAsync',
+            'Runtime.evaluate',
+            'userGesture',
+            'contentDocument',
+            'ACTIVATED:docs=',
             'NavigationCompleted += HandleNavigationCompleted'
           )) {
-            if (-not $ownedHost.Contains($marker)) { throw "D127 v62 owned-host dashboard routing guard missing: $marker" }
+            if (-not $ownedHost.Contains($marker)) { throw "D127 v63 owned-host dashboard routing guard missing: $marker" }
           }
 
           foreach ($forbidden in @(
