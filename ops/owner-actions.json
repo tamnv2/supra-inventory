@@ -2246,7 +2246,7 @@
     },
     {
       "id": "OA047",
-      "status": "READY_FOR_OWNER_FIELD_TEST_D121_RELEASE_PASS",
+      "status": "FIELD_FAIL_SUPERSEDED_BY_D122",
       "title": "Field-accept D121 Agent responsiveness and balanced operational layout",
       "resource_key": "repo",
       "provider": "GitHub Beta prerelease + Windows Agent",
@@ -2288,8 +2288,13 @@
         "Stable remains untouched."
       ],
       "safety": "Beta Agent only. Do not share passwords, tokens, WMS session/header material or other secrets. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Update Agent through the normal inventory-channel to relay-agent-v42, then run the five compact D121 physical checks above and reply PASS or itemized defects.",
-      "closed": false
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "owner_report_date": "2026-09-26",
+        "result": "FAIL__V42_AGENT_HANG_REQUIRING_FORCE_CLOSE",
+        "superseded_by": "D122_OA048"
+      }
     }
   ]
 }
