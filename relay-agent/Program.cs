@@ -1280,8 +1280,10 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
+            var visibilityChanged = !_afterHoursLayoutVisible.HasValue || _afterHoursLayoutVisible.Value != visible;
             _afterHoursLayoutVisible = visible;
             _afterHoursPanel.Visible = visible;
+            if (!visible && !visibilityChanged) return;
             if (visible)
             {
                 _agentFleetStatus.Visible = false;
