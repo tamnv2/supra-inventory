@@ -503,6 +503,9 @@ namespace SupraInventoryRelayAgent
         private readonly System.Windows.Forms.Timer _afterHoursTimer = new System.Windows.Forms.Timer();
         private long _trayMonitorRefreshRunning;
         private long _afterHoursScheduleRefreshRunning;
+        private long _networkStatusRefreshRunning;
+        private long _watchdogRefreshRunning;
+        private string _agentFleetRenderSignature = "";
         private readonly TabControl _mainTabs = new TabControl();
         private readonly TabPage _overviewPage = new TabPage("Tổng quan");
         private readonly TabPage _connectionPage = new TabPage("Kết nối");
@@ -583,7 +586,7 @@ namespace SupraInventoryRelayAgent
 
             Controls.Add(new Label { Left = 18, Top = 16, Width = 726, Height = 30, Text = "SUPRA INVENTORY - RELAY TEST AGENT", Font = new Font("Segoe UI", 14F, FontStyle.Bold) });
             _relay.SetBounds(18, 52, 726, 24); _relay.Text = "Relay: chưa kết nối"; Controls.Add(_relay);
-            _network.SetBounds(18, 78, 726, 24); _network.Text = "Wi-Fi: " + GetSsid(); Controls.Add(_network);
+            _network.SetBounds(18, 78, 726, 24); _network.Text = "Wi-Fi: đang đọc..."; Controls.Add(_network);
             _identity.SetBounds(18, 104, 726, 24); _identity.Text = "Agent: chưa ghép"; Controls.Add(_identity);
 
             Controls.Add(new Label { Left = 18, Top = 140, Width = 90, Text = "ADMIN" });
@@ -690,13 +693,10 @@ namespace SupraInventoryRelayAgent
             };
 
             _networkUiTimer.Interval = 60000;
-            _networkUiTimer.Tick += (s, e) =>
-            {
-                if (Visible) _network.Text = "Wi-Fi: " + GetSsid();
-            };
+            _networkUiTimer.Tick += (s, e) => QueueNetworkStatusRefresh();
 
             _guardTimer.Interval = 60000;
-            _guardTimer.Tick += (s, e) => { if (HasAgentSession()) AgentRuntimeGuard.EnsureWatchdog(); };
+            _guardTimer.Tick += (s, e) => QueueWatchdogRefresh();
 
             _trayMonitorTimer.Interval = 5000;
             _trayMonitorTimer.Tick += (s, e) => UpdateTrayMonitor();
@@ -721,7 +721,8 @@ namespace SupraInventoryRelayAgent
             Shown += (s, e) =>
             {
                 ApplyWorkingAreaMaximum();
-                InitializeStatusOverlaySafe();
+                // D122: the overlay is lazy-created only when the operator opens/toggles it.
+                // WinForms handle creation must never delay the main Agent startup.
                 UpdateTrayMonitor();
 
                 if (_startupSmoke)
@@ -734,6 +735,7 @@ namespace SupraInventoryRelayAgent
 
                 _guardTimer.Start();
                 _networkUiTimer.Start();
+                QueueNetworkStatusRefresh();
                 _trayMonitorTimer.Start();
                 _logUploadTimer.Start();
                 _afterHoursTimer.Start();
@@ -830,6 +832,8 @@ namespace SupraInventoryRelayAgent
             {
                 if (_mainTabs.SelectedTab == _overviewPage && _leaderCoordinator != null)
                     _leaderCoordinator.RequestFleetRefresh();
+                if (_mainTabs.SelectedTab == _overlayPage)
+                    EnsureEmbeddedOverlaySettings();
             };
 
             var footer = new Panel
@@ -866,12 +870,11 @@ namespace SupraInventoryRelayAgent
             };
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 48F));
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 52F));
-            // D121: Picker has its own right workspace, so the three left operational
-            // surfaces share the available height equally instead of letting PickList
-            // consume the remainder.
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 33.333F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 33.333F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 33.334F));
+            // D122: Agent needs the larger operational surface; Supra and PickList
+            // remain compact while all three rows still follow the window height.
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 25F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 25F));
             _overviewPage.Controls.Add(overviewLayout);
 
             // Hệ thống Agent - gọn, tối đa 5 dòng Agent trước khi cuộn trong bảng.
@@ -955,7 +958,7 @@ namespace SupraInventoryRelayAgent
             agentCard.Controls.Add(_agentFleetStatus);
 
             _agentFleetGrid.SetBounds(16, 168, 990, 146);
-            _agentFleetGrid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            _agentFleetGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             _agentFleetGrid.AllowUserToAddRows = false;
             _agentFleetGrid.AllowUserToDeleteRows = false;
             _agentFleetGrid.AllowUserToResizeRows = false;
@@ -1242,25 +1245,54 @@ namespace SupraInventoryRelayAgent
 
         private void UpdateAgentFleetGrid(List<AgentPresenceView> agents)
         {
-            _agentFleetGrid.Rows.Clear();
-            if (agents == null || agents.Count == 0) return;
-
             var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            foreach (var agent in agents)
+            var normalized = agents ?? new List<AgentPresenceView>();
+            var signature = new StringBuilder();
+            foreach (var agent in normalized)
             {
-                var ageMs = Math.Max(0L, nowMs - agent.HeartbeatAtMs);
-                var age = ageMs < 60000
-                    ? "vừa xong"
-                    : (ageMs < 3600000
-                        ? Math.Max(1L, ageMs / 60000) + " phút"
-                        : Math.Max(1L, ageMs / 3600000) + " giờ");
-                _agentFleetGrid.Rows.Add(
-                    string.IsNullOrWhiteSpace(agent.AdminUserId) ? "--" : agent.AdminUserId,
-                    string.IsNullOrWhiteSpace(agent.Machine) ? "--" : agent.Machine,
-                    agent.Role,
-                    agent.WmsReady ? "Sẵn sàng" : "Chưa sẵn sàng",
-                    string.IsNullOrWhiteSpace(agent.Version) ? "--" : agent.Version,
-                    age);
+                var ageBucket = Math.Max(0L, nowMs - agent.HeartbeatAtMs) / 60000L;
+                signature.Append(agent.AdminUserId).Append('|')
+                    .Append(agent.Machine).Append('|')
+                    .Append(agent.Role).Append('|')
+                    .Append(agent.WmsReady ? '1' : '0').Append('|')
+                    .Append(agent.Version).Append('|')
+                    .Append(ageBucket).Append(';');
+            }
+            var nextSignature = signature.ToString();
+            if (string.Equals(_agentFleetRenderSignature, nextSignature, StringComparison.Ordinal)) return;
+            _agentFleetRenderSignature = nextSignature;
+
+            var firstVisible = -1;
+            try { firstVisible = _agentFleetGrid.FirstDisplayedScrollingRowIndex; } catch { }
+            _agentFleetGrid.SuspendLayout();
+            try
+            {
+                _agentFleetGrid.Rows.Clear();
+                foreach (var agent in normalized)
+                {
+                    var ageMs = Math.Max(0L, nowMs - agent.HeartbeatAtMs);
+                    var age = ageMs < 60000
+                        ? "vừa xong"
+                        : (ageMs < 3600000
+                            ? Math.Max(1L, ageMs / 60000) + " phút"
+                            : Math.Max(1L, ageMs / 3600000) + " giờ");
+                    _agentFleetGrid.Rows.Add(
+                        string.IsNullOrWhiteSpace(agent.AdminUserId) ? "--" : agent.AdminUserId,
+                        string.IsNullOrWhiteSpace(agent.Machine) ? "--" : agent.Machine,
+                        agent.Role,
+                        agent.WmsReady ? "Sẵn sàng" : "Chưa sẵn sàng",
+                        string.IsNullOrWhiteSpace(agent.Version) ? "--" : agent.Version,
+                        age);
+                }
+                if (firstVisible >= 0 && firstVisible < _agentFleetGrid.Rows.Count)
+                {
+                    try { _agentFleetGrid.FirstDisplayedScrollingRowIndex = firstVisible; } catch { }
+                }
+                ApplyColumnSizingIfEnabled(_agentFleetGrid);
+            }
+            finally
+            {
+                _agentFleetGrid.ResumeLayout(true);
             }
         }
 
@@ -1685,6 +1717,34 @@ namespace SupraInventoryRelayAgent
             return parts.Count == 0 ? "" : "Agent | " + string.Join(" | ", parts.ToArray());
         }
 
+        private void QueueNetworkStatusRefresh()
+        {
+            if (!Visible || Interlocked.CompareExchange(ref _networkStatusRefreshRunning, 1L, 0L) != 0L) return;
+            Task.Run(() =>
+            {
+                try
+                {
+                    var ssid = GetSsid();
+                    Ui(() => _network.Text = "Wi-Fi: " + ssid);
+                }
+                finally
+                {
+                    Interlocked.Exchange(ref _networkStatusRefreshRunning, 0L);
+                }
+            });
+        }
+
+        private void QueueWatchdogRefresh()
+        {
+            if (!HasAgentSession() || Interlocked.CompareExchange(ref _watchdogRefreshRunning, 1L, 0L) != 0L) return;
+            Task.Run(() =>
+            {
+                try { AgentRuntimeGuard.EnsureWatchdog(); }
+                catch (Exception ex) { AgentDiagnostics.Write("RUNTIME_GUARD refresh=FAIL type=" + ex.GetType().Name); }
+                finally { Interlocked.Exchange(ref _watchdogRefreshRunning, 0L); }
+            });
+        }
+
         private void UpdateTrayMonitor()
         {
             if (Interlocked.CompareExchange(ref _trayMonitorRefreshRunning, 1L, 0L) != 0L) return;
@@ -2083,6 +2143,7 @@ namespace SupraInventoryRelayAgent
                         _manualPicklistStatus.ForeColor = Color.FromArgb(180, 76, 60);
                     }
                     UpdateManualConfirmAllVisibility();
+                    ApplyColumnSizingIfEnabled(_manualPicklistGrid);
                 });
 
                 AgentDiagnostics.WriteAudit(
@@ -3969,7 +4030,16 @@ namespace SupraInventoryRelayAgent
             lock (_wmsSessionLock) _wmsSession = null;
             _picklistCache.Clear();
             WmsSessionStore.Clear(WmsSessionFile);
-            Ui(() => _wmsStatus.Text = "WMS: phiên hết hạn · cần đăng nhập lại");
+            Ui(() =>
+            {
+                _wmsStatus.Text = "Supra WMS: phiên hết hạn · cần đăng nhập lại";
+                _supraInfo.Text = "HY1 · Phiên hết hạn · Cache 0";
+                _wmsCapture.Visible = true;
+                _wmsCapture.Enabled = HasAgentSession();
+                _wmsLogout.Enabled = false;
+                _wmsTest.Enabled = false;
+                _skuSyncButton.Enabled = false;
+            });
             SetProbeButtonsEnabled(true);
             var coordinator = _leaderCoordinator;
             if (coordinator != null) coordinator.RequestRoleRefreshBeforeBusiness();
@@ -4487,7 +4557,68 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private void EnsureFreshToken() { var s = SnapshotSession(); if (s.ExpiresUtc <= DateTime.UtcNow.AddMinutes(2)) RefreshDirect(); }
+        private void EnsureFreshToken()
+        {
+            var s = SnapshotSession();
+            if (s.ExpiresUtc > DateTime.UtcNow.AddMinutes(2)) return;
+            try
+            {
+                RefreshDirect();
+            }
+            catch (Exception ex)
+            {
+                if (IsDefinitiveAgentAuthFailure(ex))
+                    ExpireAgentSession("Phiên Agent đã hết hạn hoặc bị thu hồi. Vui lòng đăng nhập lại.");
+                throw;
+            }
+        }
+
+        private static bool IsDefinitiveAgentAuthFailure(Exception ex)
+        {
+            var relay = ex as RelayHttpException;
+            if (relay != null && (relay.StatusCode == 400 || relay.StatusCode == 401 || relay.StatusCode == 403))
+            {
+                var detail = (relay.Detail ?? "").ToUpperInvariant();
+                if (detail.Contains("INVALID_REFRESH_TOKEN") ||
+                    detail.Contains("INVALID_GRANT") ||
+                    detail.Contains("TOKEN_EXPIRED") ||
+                    detail.Contains("USER_DISABLED") ||
+                    detail.Contains("INVALID_ID_TOKEN") ||
+                    detail.Contains("CREDENTIAL_TOO_OLD"))
+                    return true;
+            }
+
+            var invalid = ex as InvalidOperationException;
+            if (invalid == null) return false;
+            var message = (invalid.Message ?? "").ToUpperInvariant();
+            return message.Contains("KHÔNG CÒN QUYỀN") ||
+                   message.Contains("SAI PROJECT AUDIENCE") ||
+                   message.Contains("KHÔNG TRẢ PHIÊN FIREBASE HỢP LỆ");
+        }
+
+        private void ExpireAgentSession(string reason)
+        {
+            if (!HasAgentSession()) return;
+            try { StopListening(); } catch { }
+            lock (_sessionLock) _session = null;
+            lock (_wmsSessionLock) _wmsSession = null;
+            _picklistCache.Clear();
+            ClearStoredSession();
+            try { if (File.Exists(ExitVerifierFile)) File.Delete(ExitVerifierFile); } catch { }
+            Ui(() =>
+            {
+                _identity.Text = "Agent: cần đăng nhập lại";
+                _relay.Text = "Relay: phiên Agent hết hạn";
+                _listen.Enabled = false;
+                _testOffice.Enabled = false;
+                _wmsStatus.Text = "Supra WMS: chờ đăng nhập Agent";
+                _supraInfo.Text = "HY1 · Phiên tạm dừng đến khi đăng nhập Agent";
+                _agentFleetRenderSignature = "";
+            });
+            SetAgentAuthUi(false);
+            SetProbeButtonsEnabled(false);
+            AgentDiagnostics.Write("AGENT SESSION expired reason=" + AgentDiagnostics.Sanitize(reason));
+        }
 
         private void RefreshDirect()
         {
@@ -4867,8 +4998,15 @@ namespace SupraInventoryRelayAgent
                 using (var process = Process.Start(info))
                 {
                     if (process == null) return "UNKNOWN";
+                    // D122: never block on ReadToEnd before the timeout. netsh has been
+                    // observed to stall on adapter transitions; wait first, kill if needed,
+                    // and only read stdout after the process has definitely exited.
+                    if (!process.WaitForExit(2500))
+                    {
+                        try { process.Kill(); } catch { }
+                        return "UNKNOWN";
+                    }
                     var text = process.StandardOutput.ReadToEnd();
-                    process.WaitForExit(3000);
                     foreach (var raw in text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
                     {
                         var line = raw.Trim();

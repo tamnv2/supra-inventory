@@ -46,6 +46,7 @@ ANDROID_ALL = "\n".join([ANDROID_MAIN, ANDROID_PICKER, ANDROID_REPORTER])
 
 RELAY_PROGRAM = read("relay-agent/Program.cs")
 RELAY_D119_FEATURES = read("relay-agent/D119AgentFeatures.cs")
+RELAY_OVERLAY = read("relay-agent/StatusOverlay.cs")
 
 SERVICE_OPS = read("service/src/operational-v2-core.ts")
 SERVICE_BUSINESS = read("service/src/business-api.ts")
@@ -87,11 +88,12 @@ checks = {
     "authority_ui_acceptance_distinct_from_ci": "CI/build PASS" in DESIGN_SPEC and "Owner UI" in DESIGN_SPEC,
     "authority_no_offline_mode": "D043" in DECISIONS and "No offline business mode" in DESIGN_SPEC,
     "authority_d121_agent_responsive_layout": "D121" in DECISIONS and "D121 — Windows Agent balanced workspace and responsive status line" in DESIGN_SPEC,
-    "agent_d121_equal_left_regions": all(token in RELAY_PROGRAM for token in [
-        "SizeType.Percent, 33.333F",
-        "SizeType.Percent, 33.334F",
-        "Xử lý PickList - D121 chia đều chiều cao với Agent và Supra ở cột trái.",
-    ]) and "new RowStyle(SizeType.Absolute, 260F)" not in RELAY_PROGRAM,
+    "authority_d122_agent_stability_ops_ux": "D122" in DECISIONS and "D122 — Agent stability, operational UX and session recovery" in DESIGN_SPEC,
+    "agent_d122_weighted_left_regions": all(token in RELAY_PROGRAM for token in [
+        "SizeType.Percent, 50F",
+        "SizeType.Percent, 25F",
+        "D122: Agent needs the larger operational surface",
+    ]) and RELAY_PROGRAM.count("new RowStyle(SizeType.Percent, 25F)") >= 2,
     "agent_d121_one_line_system_status": all(token in RELAY_D119_FEATURES for token in [
         "LayoutAgentSystemStatusRow(host, 100)",
         "_identity.SetBounds(left, top, width, 20)",
@@ -109,6 +111,48 @@ checks = {
         "var metrics = _systemMonitor.Sample();",
         "Ui(() => ApplyTrayMonitor(metrics));",
         "Interlocked.Exchange(ref _trayMonitorRefreshRunning, 0L)",
+    ]),
+    "agent_d122_remaining_blockers_off_ui_thread": all(token in RELAY_PROGRAM for token in [
+        "QueueNetworkStatusRefresh()",
+        "QueueWatchdogRefresh()",
+        "Interlocked.CompareExchange(ref _networkStatusRefreshRunning",
+        "Interlocked.CompareExchange(ref _watchdogRefreshRunning",
+        "_agentFleetRenderSignature",
+    ]) and '_networkUiTimer.Tick += (s, e) =>\n            {\n                if (Visible) _network.Text = "Wi-Fi: " + GetSsid();' not in RELAY_PROGRAM,
+    "agent_d122_session_recovery": all(token in RELAY_PROGRAM for token in [
+        "ExpireAgentSession",
+        "IsDefinitiveAgentAuthFailure",
+        "_wmsCapture.Visible = true",
+        "Supra WMS: phiên hết hạn · cần đăng nhập lại",
+    ]),
+    "agent_d122_column_preferences": all(token in RELAY_D119_FEATURES for token in [
+        "Tự căn cột theo nội dung",
+        "grid-column-preferences.json",
+        "AllowUserToResizeColumns = !_autoSizeColumns.Checked",
+        "SaveColumnPreferencesForCurrentUser",
+    ]),
+    "agent_d122_overlay_crisp_text": all(token in RELAY_OVERLAY for token in [
+        "TransparencyKey = TransparencyColor",
+        "_backgroundLayer",
+        "Opacity = 1.0",
+        "_backgroundLayer.Opacity",
+    ]),
+    "agent_d122_sku_manual_feedback": all(token in RELAY_D119_FEATURES for token in [
+        "NotifySkuSyncResult",
+        "Cập nhật SKU thành công",
+        "Giữ nguyên:",
+    ]),
+    "web_d122_shift_operations": all(token in WEB_APP for token in [
+        '"shift"',
+        "function renderShiftOperations()",
+        "Ca vận hành",
+        'updateAndroidAlertWindow("EXTEND_ONE_HOUR")',
+    ]) and "Tăng ca +1 giờ" not in WEB_APP[WEB_APP.index("function renderTools"):WEB_APP.index("function renderShiftOperations")],
+    "web_d122_sku_sync_checkpoint": all(token in WEB_APP + WEB_API + SERVICE_READ_MODEL for token in [
+        "last_sync_at",
+        "Đồng bộ Agent gần nhất",
+        "SKU_IMPORT_CHUNK",
+        "last_sync_unchanged",
     ]),
 
     "web_entrypoint_active": 'import "./operational-app"' in WEB_MAIN,
@@ -209,7 +253,7 @@ checks = {
     "web_d061_generic_refresh_removed": all(token not in WEB_APP for token in ["refresh-operations", "refresh-results", "refresh-picker", "refresh-users"]),
     "web_d061_dark_surface_coverage": all(token in WEB_FAST for token in ["D061 Owner Web review", ".fast-workspace", ".fast-issue-row", ".table-wrap", "tbody tr", ".ops-status-strip"]),
     "web_d065_three_group_nav_ia": all(token in WEB_APP for token in [
-        'navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"]])',
+        'navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"], ["shift", "Ca vận hành"]])',
         'navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"], ["sla", "Thời gian xử lý"]])',
         'navGroup("HỆ THỐNG", profile.role === "ROOT" && profile.base_role === "ROOT"',
         '? [["logs", "Nhật ký"], ["tools", "Công cụ"], ["system-reset", "Đặt lại hệ thống"]]',
@@ -243,7 +287,7 @@ checks = {
     ]),
     "web_d062_sidebar_hierarchy": all(token in WEB_FAST for token in ["font-size: 13px !important", ".nav-section-label .nav-icon", "width: 15px"]),
     "web_d066_nav_children_within_owner_limit": all(token in WEB_APP for token in [
-        'navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"]])',
+        'navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"], ["shift", "Ca vận hành"]])',
         'navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"], ["sla", "Thời gian xử lý"]])',
         '? [["logs", "Nhật ký"], ["tools", "Công cụ"], ["system-reset", "Đặt lại hệ thống"]]',
         ': [["logs", "Nhật ký"], ["tools", "Công cụ"]])',
@@ -279,7 +323,7 @@ checks = {
     "web_d072_system_status_excluded": all(token in WEB_APP for token in [
         'navGroup("HỆ THỐNG", profile.role === "ROOT" && profile.base_role === "ROOT"',
         ': [["logs", "Nhật ký"], ["tools", "Công cụ"]])',
-        '"picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "tools", "system-reset", "account"',
+        '"picker", "operations", "results", "shift", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "tools", "system-reset", "account"',
     ]) and all(token not in WEB_APP for token in [
         "getSystemStatus(",
         'navButton("system"',

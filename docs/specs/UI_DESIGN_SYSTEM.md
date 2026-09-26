@@ -715,3 +715,16 @@ D111 supersedes only the conflicting D110 Reporter interaction/presentation deta
 - The Agent fleet grid fills the remaining card height below the compact status row and uses its own vertical scrolling.
 - Window resize may recalculate geometry only. It must not trigger duplicate network refresh, clear Picker state, or reset search/scroll context.
 - Periodic Firestore schedule refresh and Windows CPU/GPU/Disk/Network sampling must not run synchronously on the WinForms UI thread. The UI remains interactive while those background operations are delayed or unavailable.
+
+## D122 — Agent stability, operational UX and session recovery
+
+- D120 two-column Overview remains. Left-card height proportions are **50% Hệ thống Agent / 25% Hệ thống Supra / 25% Xử lý PickList** and recalculate with the window size.
+- The Agent fleet grid fills the remaining Hệ thống Agent card below the compact Agent / Relay / Wi-Fi status row. It shows as many rows as fit and then uses internal vertical scrolling.
+- Background refresh must not visibly clear/rebuild an unchanged Agent fleet. UI-thread timers must not run blocking SSID/process/watchdog work.
+- Definitive Agent-session expiry restores the credential inputs. Definitive Supra-session expiry restores the normal login/capture action.
+- Bảng nổi uses a fully opaque foreground text/metric layer over a separately translucent background layer. Reducing background opacity must never reduce text opacity.
+- **Tự căn cột theo nội dung** controls Agent, Picker and PickList operational grids. Checked = automatic sizing responsive to current window/content; unchecked = user resizing enabled and widths persist locally per authenticated user.
+- Manual SKU synchronization produces an explicit operator result for success, failure, already-synchronized and all-unchanged cases.
+- Web overtime control is presented as **Ca vận hành** under **Vận hành**, not inside Công cụ. Công cụ returns to release/download utilities only.
+- Web Danh mục SKU distinguishes **Đồng bộ Agent gần nhất** from **Dữ liệu thay đổi gần nhất** so a successful no-op sync is visible without pretending SKU data changed.
+

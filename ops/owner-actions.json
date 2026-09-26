@@ -2246,7 +2246,7 @@
     },
     {
       "id": "OA047",
-      "status": "READY_FOR_OWNER_FIELD_TEST_D121_RELEASE_PASS",
+      "status": "FIELD_FAIL_SUPERSEDED_BY_D122",
       "title": "Field-accept D121 Agent responsiveness and balanced operational layout",
       "resource_key": "repo",
       "provider": "GitHub Beta prerelease + Windows Agent",
@@ -2288,7 +2288,50 @@
         "Stable remains untouched."
       ],
       "safety": "Beta Agent only. Do not share passwords, tokens, WMS session/header material or other secrets. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Update Agent through the normal inventory-channel to relay-agent-v42, then run the five compact D121 physical checks above and reply PASS or itemized defects.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "owner_report_date": "2026-09-26",
+        "result": "FAIL__V42_AGENT_HANG_REQUIRING_FORCE_CLOSE",
+        "superseded_by": "D122_OA048"
+      }
+    },
+    {
+      "id": "OA048",
+      "status": "WAITING_D122_TECHNICAL_RELEASE",
+      "title": "Field-accept D122 Agent stability and operational UX",
+      "resource_key": "repo",
+      "provider": "Beta Web/Worker + Windows Agent",
+      "reason_owner_only": "Physical Windows behavior and final field interaction require Owner observation after automated release gates pass.",
+      "prerequisites": {
+        "d121_field_result": "FAIL_SUPERSEDED",
+        "d122_branch": "fix/d122-agent-stability-ops-ux",
+        "target_agent_release": "relay-agent-v43",
+        "stable": "OWNER_GATED",
+        "technical_release": "PENDING"
+      },
+      "shortest_test_path": [
+        "After D122 release PASS, update Agent through inventory-channel to relay-agent-v43.",
+        "Use Agent during normal work and a temporary network interruption; resize, switch tabs, scroll and use PickList. Verify no repeatable Not Responding state.",
+        "Verify Overview left ratio is Agent 50%, Supra 25%, PickList 25%; Agent rows fill available space then scroll.",
+        "Run Cập nhật SKU including an all-unchanged case; verify Agent result and Web latest-sync checkpoint.",
+        "Verify Vận hành → Ca vận hành owns the +1h controls and Công cụ does not.",
+        "Verify invalid Agent/Supra sessions return their normal sign-in actions.",
+        "Verify Bảng nổi works and background opacity does not reduce text readability.",
+        "Verify automatic column sizing; then manual sizing persists separately for the same Agent user."
+      ],
+      "pass_criteria": [
+        "No repeatable Agent hard hang from corrected UI paths.",
+        "Responsive 50/25/25 left-column layout and internal Agent scrolling.",
+        "Explicit SKU result and visible Web sync checkpoint including no-op success.",
+        "D118 overtime behavior unchanged after navigation move.",
+        "Agent/Supra session recovery actions are visible when required.",
+        "Overlay text remains fully opaque while background transparency changes.",
+        "Column sizing preference works per Agent user.",
+        "D120 Picker stability and D117/D118 HA/WMS contracts remain unchanged; Stable untouched."
+      ],
+      "safety": "Beta only; Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for D122 technical/release PASS, then run OA048.",
       "closed": false
     }
   ]

@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D121_TECHNICAL_RELEASE_PASS__RELAY_AGENT_V42__OA047_OWNER_FIELD_READY",
+      "status": "D122_SOURCE_IN_PROGRESS__TARGET_RELAY_AGENT_V43__OA048_AFTER_RELEASE",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -190,14 +190,14 @@
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
-      "relay_poc_status": "D119_OWNER_ACCEPTED_PASS__D120_HOTFIX_AGENT_V41_RELEASED__D121_AGENT_V42_TECHNICAL_RELEASE_PASS__D117_D118_HA_PRESERVED",
+      "relay_poc_status": "D122_SOURCE_IN_PROGRESS__TARGET_AGENT_V43__D117_D118_HA_PRESERVED",
       "relay_agent_release": "relay-agent-v42",
       "firebase_rtdb_rules_deploy": "D087_PR_GATE_PASS_RUN_35495453228__MAIN_SOURCE_MERGED",
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D118_PASS_RUN_36064078233__SOURCE_COMMIT_EXACT__SCHEMA11_11__AGENT_MIGRATION_0_0__OPERATIONAL5_5",
-      "relay_agent_release_target": "relay-agent-v42__RELEASED",
+      "relay_agent_release_target": "relay-agent-v43__SOURCE_CANDIDATE",
       "next_signed_beta_release_target": "NEXT_MONOTONIC_AFTER_BETA_VC76",
-      "next_relay_agent_release_target": "OWNER_DECISION_REQUIRED_AFTER_OA047",
+      "next_relay_agent_release_target": "relay-agent-v43",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
@@ -206,7 +206,8 @@
       "d118_source_status": "OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC74__AGENT_V38",
       "d119_source_status": "OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC75__AGENT_V39",
       "d120_source_status": "HOTFIX_V41_RELEASED__OWNER_FIELD_REVIEW_CONTINUES",
-      "d121_source_status": "TECHNICAL_RELEASE_PASS__AGENT_V42__OA047_FIELD_READY"
+      "d121_source_status": "TECHNICAL_RELEASE_PASS__AGENT_V42__OWNER_FIELD_FAIL_SUPERSEDED_BY_D122",
+      "d122_source_status": "SOURCE_IN_PROGRESS__TARGET_AGENT_V43__OA048_AFTER_RELEASE"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -785,18 +786,18 @@
     "agent_log_delivery": "D101_LOCAL_ROLLING_2MIB_X4_PLUS_CURRENT__FIRESTORE_SPOOL__BETA_DRIVE_06_12_18_00__CRASH_PREFIX"
   },
   "agent_operations": {
-    "decision": "D121",
-    "target_release": "relay-agent-v42",
+    "decision": "D122",
+    "target_release": "relay-agent-v43",
     "cache_miss": "CACHE_MISS_REFRESH_WMS_ONCE_BEFORE_FINAL_NOT_FOUND__SINGLE_FLIGHT",
     "auto_update": "STARTUP_PLUS_30MIN_BACKGROUND_PLUS_MANUAL__SERVICE_MANIFEST__STABLE_ALIAS__SHA256",
-    "layout": "D121_TWO_COLUMN__LEFT_AGENT_SUPRA_PICKLIST_EQUAL_THIRDS__RIGHT_PICKER__AGENT_RELAY_WIFI_ONE_ROW",
+    "layout": "D122_TWO_COLUMN__LEFT_AGENT50_SUPRA25_PICKLIST25__RIGHT_PICKER__AGENT_RELAY_WIFI_ONE_ROW__AGENT_FLEET_FILL_SCROLL",
     "wifi": "WINDOWS_WLAN_REAL_SSID__SANITIZER_WORD_BOUNDARY_PRESERVES_SSID",
     "ha_display": "D118_D117_HA_PRESERVED__PRIMARY_GENERATION_LEASE_7S__STANDBY_PROACTIVE_TAKEOVER_10S__FROZEN_CONTROL_REFRESH_30S__FLEET_OVERTIME_DECISION_NO_ROLE_PROMOTION",
     "local_logs": "TWO_STREAM_ROLLING_2MIB__MAX4_ROTATED_PLUS_CURRENT",
     "drive_logs": "FIRESTORE_ADMIN_SPOOL_TO_BETA_DRIVE__06_12_18_00__CRASH_BEST_EFFORT",
     "web_online": "WEB_PLUS_ANDROID_ONLY__AGENT_EXCLUDED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "release_status": "D121_TECHNICAL_RELEASE_PASS__OA047_FIELD_READY",
+    "release_status": "D122_SOURCE_IN_PROGRESS__V43_TARGET__OA048_AFTER_RELEASE",
     "quiet_hours": "D118_OWNER_ACCEPTED__RELAY_0600_2200__FLEET_WIDE_DECISION_WINDOW_FROM_HH30__FIRST_CAS_DECISION_WINS__UNCONFIRMED_BOUNDARY_FREEZE__EARLY_START_BEFORE0600_CLAIMS_PRIMARY__MANUAL_AGENT_REMAINS_AVAILABLE",
     "fleet_table": "D120_V41_RELEASED__PICKER_ACTIVE_ANDROID_REALTIME_ONLY__SEARCH_SCROLL_ANCHOR_WHOLE_ROW_HOVER__NO_FLICKER_NOOP_RENDER",
     "previous_release": "relay-agent-v41",
@@ -811,17 +812,19 @@
     "release_sha256": "08a55caa7b350d23e99eba9eef97b93744fd32b6e9072792d22411578559c1bd",
     "main_relay_agent_run": 36203135376,
     "main_ui_run": 36203135357,
-    "overlay": "D120_INDEPENDENT_METRIC_TILES__GRANULAR_TOGGLES__LOCK_CLICKTHROUGH_RESIZE_COLOR_PRESERVED",
+    "overlay": "D122_FOREGROUND_TEXT_OPAQUE__SEPARATE_TRANSLUCENT_BACKGROUND__LAZY_INIT__D120_LOCK_CLICKTHROUGH_SETTINGS_PRESERVED",
     "watchdog": "D112_USERMODE_ARM_AFTER_ADMIN__PROTECTED_EXIT__PLANNED_EXIT_UPDATE_SHUTDOWN_SUPPRESS__PRELOGIN_NORMAL_CLOSE",
     "inventory_channel_release_id": 394587029,
     "inventory_channel_manifest_asset_id": 589509126,
     "inventory_channel_exe_asset_id": 589509123,
-    "next_target_release": "OWNER_DECISION_REQUIRED_AFTER_OA047",
-    "next_source_status": "D121_TECHNICAL_RELEASE_PASS__OWNER_FIELD_OA047",
+    "next_target_release": "relay-agent-v43",
+    "next_source_status": "D122_SOURCE_IN_PROGRESS__PR_GATES_PENDING",
     "release_publish_run": 36064078151,
     "wms_health": "STARTUP_VALIDATE__REAL_BUSINESS_CALL_UPDATES_EFFECTIVE_HEALTH__ONE_READ_ONLY_PROBE_ON_STANDBY_TO_PRIMARY_TAKEOVER__PRE_WMS_ROLE_GENERATION_REVALIDATION_EACH_POST_CHUNK__NO_PERIODIC_WMS_HEALTH_POLL",
     "schedule_authority": "D118_OWNER_ACCEPTED__FIRESTORE_EXISTING_RELAY_COORDINATION_ROLES_DOCUMENT__ANY_AUTHENTICATED_AGENT_MAY_DECIDE__UPDATE_TIME_CAS__FIRST_DECISION_PER_BOUNDARY_WINS__NO_ROLE_PROMOTION",
-    "ui_responsiveness": "D121_FIRESTORE_SCHEDULE_AND_WINDOWS_SYSTEM_MONITOR_OFF_UI_THREAD__SINGLE_FLIGHT__NO_CADENCE_EXPANSION"
+    "ui_responsiveness": "D122_SSID_WATCHDOG_SCHEDULE_SYSTEM_MONITOR_OFF_UI_BLOCKING_PATHS__FLEET_DIFF_RENDER__NO_CADENCE_EXPANSION",
+    "column_sizing": "D122_AUTO_SIZE_CONTENT_OR_MANUAL_PER_USER_LOCAL_PERSISTENCE",
+    "session_recovery": "D122_DEFINITIVE_AGENT_EXPIRY_RESTORES_AGENT_LOGIN__DEFINITIVE_WMS_EXPIRY_RESTORES_SUPRA_LOGIN"
   },
   "distribution_channel": {
     "environment": "beta",
@@ -841,7 +844,7 @@
       "/downloads/agent/latest.sha256"
     ],
     "discovery_policy": "NORMAL_RUNTIME_DOES_NOT_ENUMERATE_GITHUB_RELEASES_REST",
-    "status": "D121_RELEASE_PASS__BETA_VC76__AGENT_V42"
+    "status": "D122_SOURCE_IN_PROGRESS__CURRENT_CHANNEL_BETA_VC76_AGENT_V42__TARGET_AGENT_V43"
   },
   "release_channel": {
     "environment": "beta",
@@ -1005,7 +1008,7 @@
     "hotfix_main_ui_run": 36199079023
   },
   "d121": {
-    "status": "TECHNICAL_RELEASE_PASS__OWNER_FIELD_READY",
+    "status": "TECHNICAL_RELEASE_PASS__OWNER_FIELD_FAIL_SUPERSEDED_BY_D122",
     "branch": "fix/d121-agent-responsiveness-balanced-layout",
     "baseline_main": "916bcc16de57740e3413dd346610d74c19ec7fcf",
     "baseline_release": "beta-vc76 / relay-agent-v41",
@@ -1042,6 +1045,23 @@
     "inventory_channel_release_id": 394587029,
     "inventory_channel_manifest_asset_id": 589509126,
     "inventory_channel_exe_asset_id": 589509123,
-    "owner_field_action": "OA047"
+    "owner_field_action": "OA047__FAIL_SUPERSEDED"
+  },
+  "d122": {
+    "status": "SOURCE_IN_PROGRESS__PR_GATES_PENDING",
+    "branch": "fix/d122-agent-stability-ops-ux",
+    "baseline_main": "e4ccec3fa4ddb2467a56f4332434f055727cb59d",
+    "baseline_agent_release": "relay-agent-v42",
+    "target_agent_release": "relay-agent-v43",
+    "owner_field_action": "OA048",
+    "root_cause": "REMAINING_UI_THREAD_SSID_WATCHDOG_STARTUP_OVERLAY_AND_GRID_REBUILD_CHURN",
+    "ui_contract": "LEFT_AGENT50_SUPRA25_PICKLIST25__RIGHT_PICKER__AGENT_FLEET_FILL_SCROLL__PER_USER_COLUMN_MODE",
+    "sku_contract": "EXPLICIT_AGENT_RESULT__WEB_LAST_SUCCESSFUL_SYNC_INDEPENDENT_OF_ACTUAL_ROW_CHANGE",
+    "web_contract": "OVERTIME_MOVED_TO_VAN_HANH_CA_VAN_HANH__D118_SEMANTICS_UNCHANGED",
+    "session_contract": "DEFINITIVE_AGENT_OR_WMS_EXPIRY_RESTORES_NORMAL_LOGIN_ACTIONS",
+    "overlay_contract": "OPAQUE_TEXT_FOREGROUND__SEPARATE_TRANSLUCENT_BACKGROUND__LAZY_CREATE",
+    "protected_contracts": "D117_D118_CONFIRMATION_HA_GENERATION_WMS_MUTATION_UNCHANGED",
+    "new_resources": "NONE",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }

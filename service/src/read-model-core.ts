@@ -63,7 +63,31 @@ function skuCatalogInfo(state: DurableObjectState): Response {
   }
   const count = Number(row.count || 0);
   const maxUpdatedAt = String(row.max_updated_at || "");
-  return response({ count, max_updated_at: maxUpdatedAt || null, version: `${count}:${maxUpdatedAt}` });
+
+  const lastSync = state.storage.sql.exec<SqlRow>(
+    `SELECT created_at, actor_user_id, metadata_json
+       FROM audit_log
+      WHERE action = 'SKU_IMPORT_CHUNK'
+      ORDER BY created_at DESC, audit_id DESC
+      LIMIT 1`,
+  ).toArray()[0];
+  let syncMetadata: Record<string, unknown> = {};
+  if (lastSync?.metadata_json) {
+    try { syncMetadata = JSON.parse(String(lastSync.metadata_json)) as Record<string, unknown>; }
+    catch { syncMetadata = {}; }
+  }
+
+  return response({
+    count,
+    max_updated_at: maxUpdatedAt || null,
+    version: `${count}:${maxUpdatedAt}`,
+    last_sync_at: lastSync?.created_at ? String(lastSync.created_at) : null,
+    last_sync_by: lastSync?.actor_user_id ? String(lastSync.actor_user_id) : null,
+    last_sync_total: Number(syncMetadata.total || 0),
+    last_sync_inserted: Number(syncMetadata.inserted || 0),
+    last_sync_updated: Number(syncMetadata.updated || 0),
+    last_sync_unchanged: Number(syncMetadata.unchanged || 0),
+  });
 }
 
 function skuCatalog(state: DurableObjectState, url: URL): Response {

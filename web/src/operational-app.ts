@@ -109,6 +109,7 @@ type Section =
   | "picker"
   | "operations"
   | "results"
+  | "shift"
   | "sku"
   | "hr"
   | "users"
@@ -189,7 +190,7 @@ function applyTheme(): void {
 applyTheme();
 
 const ROUTABLE_SECTIONS: Section[] = [
-  "picker", "operations", "results", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "tools", "system-reset", "account",
+  "picker", "operations", "results", "shift", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "tools", "system-reset", "account",
 ];
 
 function defaultSectionForProfile(value: AppProfile): Section {
@@ -875,6 +876,7 @@ function activeContent(): string {
   if (activeSection === "picker") return renderPicker();
   if (activeSection === "operations") return renderOperations();
   if (activeSection === "results") return renderResults();
+  if (activeSection === "shift") return renderShiftOperations();
   if (activeSection === "sku") return renderSku();
   if (activeSection === "hr") return renderHr();
   if (activeSection === "users") return renderUsers();
@@ -981,6 +983,7 @@ function navIcon(key: string): string {
   const paths: Record<string, string> = {
     dashboard: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
     operations: '<path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/>',
+    shift: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2M7 3v3M17 3v3"/>',
     results: '<circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16.5 8.5"/>',
     picker: '<path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3"/><path d="M7 9v6M10 8v8M13 9v6M16 8v8"/>',
     sku: '<path d="M4 6h16v12H4z"/><path d="M4 10h16M9 6v12"/>',
@@ -1039,7 +1042,7 @@ function renderNav(): string {
     ].join("");
   }
   return [
-    navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"]]),
+    navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["dashboard", "Tổng quan & báo cáo"], ["shift", "Ca vận hành"]]),
     navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"], ["sla", "Thời gian xử lý"]]),
     navGroup("HỆ THỐNG", profile.role === "ROOT" && profile.base_role === "ROOT"
       ? [["logs", "Nhật ký"], ["tools", "Công cụ"], ["system-reset", "Đặt lại hệ thống"]]
@@ -1501,12 +1504,17 @@ function renderSku(): string {
   const pageFrom = skuAdminTotal ? skuAdminOffset + 1 : 0;
   const pageTo = Math.min(skuAdminTotal, skuAdminOffset + skuAdminItems.length);
   const updatedAt = skuCatalogInfo?.max_updated_at ? fmt(skuCatalogInfo.max_updated_at) : "Chưa có dữ liệu";
+  const lastSyncAt = skuCatalogInfo?.last_sync_at ? fmt(skuCatalogInfo.last_sync_at) : "Chưa ghi nhận";
+  const lastSyncSummary = skuCatalogInfo?.last_sync_at
+    ? `Lô gần nhất: +${Number(skuCatalogInfo.last_sync_inserted || 0).toLocaleString("vi-VN")} mới · ${Number(skuCatalogInfo.last_sync_updated || 0).toLocaleString("vi-VN")} đổi tên · ${Number(skuCatalogInfo.last_sync_unchanged || 0).toLocaleString("vi-VN")} giữ nguyên`
+    : "Chưa có lịch sử đồng bộ từ Agent";
   const version = skuCatalogInfo?.version || "—";
   return `<section class="ops-route sku-workspace">
     <div class="business-page-head"><div><h2>Danh mục SKU</h2><p>Tra cứu danh mục đang dùng và cập nhật dữ liệu từ Excel trong cùng một màn hình.</p></div></div>
     <section class="business-summary-grid">
       <article class="business-summary-card primary"><span>Tổng SKU hiện hành</span><strong>${catalogCount.toLocaleString("vi-VN")}</strong><small>Danh mục đang phục vụ Web/App</small></article>
-      <article class="business-summary-card good"><span>Cập nhật gần nhất</span><strong class="sku-summary-time">${esc(updatedAt)}</strong><small>Theo dữ liệu danh mục trên hệ thống</small></article>
+      <article class="business-summary-card good"><span>Đồng bộ Agent gần nhất</span><strong class="sku-summary-time">${esc(lastSyncAt)}</strong><small>${esc(lastSyncSummary)}</small></article>
+      <article class="business-summary-card"><span>Dữ liệu thay đổi gần nhất</span><strong class="sku-summary-time">${esc(updatedAt)}</strong><small>Thời điểm SKU thực sự được thêm mới hoặc đổi tên</small></article>
       <article class="business-summary-card"><span>Phiên bản danh mục</span><strong class="sku-summary-version">${esc(version)}</strong><small>Dùng để kiểm soát đồng bộ</small></article>
     </section>
     <div class="users-top-grid sku-top-grid">
@@ -2164,6 +2172,7 @@ function logSectionLabel(section: unknown): string {
     picker: "Báo thiếu hàng",
     operations: "Xử lý báo hàng",
     results: "Kết quả gần đây",
+    shift: "Ca vận hành",
     sku: "Danh mục SKU",
     hr: "Nguồn nhân sự",
     users: "Nhân sự & tài khoản",
@@ -2395,15 +2404,6 @@ function renderSystemReset(): string {
 function renderTools(): string {
   const pdaStableUrl = `${window.location.origin}${pdaAppRelease?.stable_download_path || "/downloads/pda/latest"}`;
   const agentStableUrl = `${window.location.origin}${agentAppRelease?.stable_download_path || "/downloads/agent/latest"}`;
-  const alertState = androidAlertWindow;
-  const alertStatus = alertState == null
-    ? "Đang tải…"
-    : alertState.is_open
-      ? (alertState.overtime_open ? "Đang tăng ca" : "Đang hoạt động")
-      : "Đã đóng ca";
-  const alertUntil = alertState?.overtime_until_ms
-    ? new Date(alertState.overtime_until_ms).toLocaleString("vi-VN", { hour12: false })
-    : "23:00";
   return `<section class="ops-route tools-workspace">
     <div class="heading">
       <div><h2>Công cụ</h2><p class="muted">Hai kênh cài đặt chính thức cho thiết bị vận hành.</p></div>
@@ -2427,15 +2427,6 @@ function renderTools(): string {
             <div class="tool-actions">
               <a class="primary tool-download" href="${esc(pdaStableUrl)}">Tải App PDA</a>
               <button type="button" class="secondary" id="copy-pda-link">Sao chép link</button>
-            </div>
-            <div class="tool-facts">
-              <div><span>Khung thông báo App/PDA</span><strong>05:00–23:00 · giờ hệ thống</strong></div>
-              <div><span>Trạng thái</span><strong>${esc(alertStatus)}</strong></div>
-              <div><span>Đến</span><strong>${esc(alertUntil)}</strong></div>
-            </div>
-            <div class="tool-actions">
-              <button type="button" class="secondary" id="extend-android-alert-window">Tăng ca +1 giờ</button>
-              ${alertState?.overtime_until_ms ? '<button type="button" class="secondary" id="stop-android-alert-overtime">Kết thúc tăng ca</button>' : ""}
             </div>
           </div>
         </div>
@@ -2464,6 +2455,35 @@ function renderTools(): string {
     </article>
   </section>`;
 }
+
+function renderShiftOperations(): string {
+  const state = androidAlertWindow;
+  const status = state == null
+    ? "Đang tải trạng thái…"
+    : state.is_open
+      ? (state.overtime_open ? "Đang tăng ca" : "Trong ca vận hành")
+      : "Ngoài ca vận hành";
+  const overtimeUntil = state?.overtime_until_ms
+    ? new Date(state.overtime_until_ms).toLocaleString("vi-VN", { hour12: false })
+    : "Chưa gia hạn";
+  return `<section class="ops-route tools-workspace">
+    <div class="business-page-head"><div><h2>Ca vận hành</h2><p>Quản lý khung hoạt động App/PDA và gia hạn tăng ca. Thiết lập này dùng chung toàn hệ thống.</p></div></div>
+    <section class="business-summary-grid">
+      <article class="business-summary-card primary"><span>Khung tiêu chuẩn</span><strong>05:00–23:00</strong><small>Giờ hệ thống</small></article>
+      <article class="business-summary-card ${state?.overtime_open ? "warning" : "good"}"><span>Trạng thái hiện tại</span><strong>${esc(status)}</strong><small>Đồng bộ cho App/PDA</small></article>
+      <article class="business-summary-card"><span>Gia hạn đến</span><strong>${esc(overtimeUntil)}</strong><small>Mỗi lần gia hạn thêm 1 giờ</small></article>
+    </section>
+    <article class="ops-panel">
+      <div class="ops-panel-title"><div><h3>Điều khiển tăng ca</h3><p>Chỉ sử dụng khi ca thực tế kéo dài. Không thay đổi nhịp polling, heartbeat hoặc logic xác nhận PickList.</p></div></div>
+      <div class="tool-actions">
+        <button type="button" class="primary" id="extend-android-alert-window">Gia hạn +1 giờ</button>
+        ${state?.overtime_until_ms ? '<button type="button" class="secondary" id="stop-android-alert-overtime">Kết thúc tăng ca</button>' : ""}
+      </div>
+      <div class="ops-note">Sau thao tác, trạng thái mới được lưu dùng chung và hiển thị lại ngay trên trang này.</div>
+    </article>
+  </section>`;
+}
+
 function renderAccount(): string {
   const recoveryEmailAllowed = profile?.base_role === "ROOT" || profile?.base_role === "ADMIN";
   return `<section class="ops-route account-workspace">
@@ -2788,13 +2808,22 @@ async function loadLogs(): Promise<void> {
   markWebUpdateReceived();
 }
 
+async function loadShiftOperations(): Promise<void> {
+  if (!roleManage()) return;
+  const generation = sessionViewGeneration;
+  const userId = profile?.user_id || "";
+  let alertWindowResult: AndroidAlertWindowState | null = null;
+  try { alertWindowResult = await getAndroidAlertWindow(); } catch { alertWindowResult = null; }
+  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+  androidAlertWindow = alertWindowResult;
+  markWebUpdateReceived();
+}
+
 async function loadTools(): Promise<void> {
   if (!roleManage()) return;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
   const [pdaResult, agentResult] = await Promise.all([getPdaAppRelease(), getAgentAppRelease()]);
-  let alertWindowResult: AndroidAlertWindowState | null = null;
-  try { alertWindowResult = await getAndroidAlertWindow(); } catch { alertWindowResult = null; }
   const stableUrl = `${window.location.origin}${pdaResult.release.stable_download_path}`;
   const qr = await QRCode.toDataURL(stableUrl, {
     errorCorrectionLevel: "M",
@@ -2804,7 +2833,6 @@ async function loadTools(): Promise<void> {
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   pdaAppRelease = pdaResult.release;
   agentAppRelease = agentResult.release;
-  androidAlertWindow = alertWindowResult;
   pdaQrDataUrl = qr;
   markWebUpdateReceived();
 }
@@ -2893,6 +2921,7 @@ async function loadSection(section: Section): Promise<void> {
   if (!profile) return;
   let received = false;
   if ((section === "operations" || section === "results") && roleOperate()) { await loadOperations(); received = true; }
+  else if (section === "shift" && roleManage()) { await loadShiftOperations(); received = true; }
   else if (section === "picker" && profile.role === "PICKER") { await loadPicker(); received = true; }
   else if (section === "sku" && rolePickPackManage()) { await loadSkuWorkspace(); received = true; }
   else if (section === "hr" && rolePickPackManage()) { hrSource = await getHrSource(); received = true; }

@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D121_TECHNICAL_RELEASE_PASS__RELAY_AGENT_V42__OA047_OWNER_FIELD_READY",
+    "beta": "D122_SOURCE_IN_PROGRESS__TARGET_RELAY_AGENT_V43__OA048_AFTER_RELEASE",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 12,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -27,8 +27,8 @@
     "user_management": "D120_SOURCE_CANDIDATE__ROOT_ONLY_MANAGED_ROLE_CHANGE__PICKER_HR_AUTHORITY_PRESERVED",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D112_OWNER_ACCEPTED_PASS__EXISTING_METRICS_OPERATIONAL_HIERARCHY__NONBLOCKING_SECONDARY_LOAD",
-    "quota_resilience": "D121_RELEASE_PASS__NO_CADENCE_EXPANSION__D120_FLEET_METRICS_30MIN__D117_D118_HA_UNCHANGED",
-    "ui_design_guard": "D121_MAIN_PASS_RUN_36203135357__LEFT_EQUAL_THIRDS__AGENT_RELAY_WIFI_ONE_ROW__NONBLOCKING_UI_TIMERS",
+    "quota_resilience": "D122_SOURCE__REMAINING_AGENT_UI_BLOCKERS_OFF_UI_THREAD__D117_D118_CADENCE_UNCHANGED",
+    "ui_design_guard": "D122_SOURCE__AGENT_50_25_25__OVERLAY_CRISP_TEXT__COLUMN_PREFS__WEB_CA_VAN_HANH__GATES_PENDING",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D118_OWNER_ACCEPTED_PASS__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SELECTED_RANGE_FILTER",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
@@ -177,7 +177,7 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "OA047 READY: field-accept relay-agent-v42 on physical Windows Agent for responsiveness/no repeated Not Responding, equal-height Agent/Supra/PickList regions, one-row Agent/Relay/Wi-Fi and unchanged D120 Picker behavior.",
+    "OA048 WAITING RELEASE: field-accept relay-agent-v43 for Agent stability and D122 operational UX.",
     "OA046 D120 physical field acceptance after automated release PASS: Agent smooth scroll/search/two-column/Supra account switch/quota log; Android single cross-app red/blue result + no login flash; Web SLA stability/taskbar viewport/ROOT role change.",
     "OA026 D106 physical credential acceptance: one post-D106 ADMIN password set -> unchanged Agent v30 direct login, plus one fresh ADMIN Web create -> immediate Agent login; verify no ghost-account-on-error.",
     "OA025 D105 physical acceptance: Android 4-digit input, dimmed in-flight confirm button, prominent terminal result, Agent manual 3–4 digit search, and unique 4-digit full-PickList resolution.",
@@ -196,7 +196,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D121 technical/release PASS on main a3c841ae with relay-agent-v42 and inventory-channel updated. Owner may run OA047 physical Agent responsiveness/layout checks. Stable remains OWNER-GATED.",
+  "next_action": "Complete D122 PR gates, merge after required checks pass, publish relay-agent-v43, then run OA048. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -826,7 +826,7 @@
     "D121 root cause from released v41 source/log review: one-second after-hours WinForms timer could synchronously call Firestore RefreshSharedScheduleNow; five-second tray timer synchronously sampled Windows CPU/GPU/Disk/NIC counters. Both are moved to bounded background single-flight work to protect UI responsiveness.",
     "D121 implementation PR #191 targets relay-agent-v42 from released v41 baseline; first Agent gate exposed AgentConfig.AgentBuild still at 41 and the same PR corrected it to 42 before build."
   ],
-  "active_workstream": "D121_OWNER_FIELD_ACCEPTANCE",
+  "active_workstream": "D122_AGENT_STABILITY_OPS_UX",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
@@ -1066,6 +1066,13 @@
       "android_release": "beta-vc75",
       "agent_release": "relay-agent-v39",
       "inventory_channel": "UPDATED_TO_D119_ARTIFACTS",
+      "stable": "OWNER_GATED_UNTOUCHED"
+    },
+    "d121_owner_field_result": "FAIL_SUPERSEDED_BY_D122",
+    "d122": {
+      "status": "SOURCE_IN_PROGRESS__PR_GATES_PENDING",
+      "branch": "fix/d122-agent-stability-ops-ux",
+      "target_agent_release": "relay-agent-v43",
       "stable": "OWNER_GATED_UNTOUCHED"
     }
   }

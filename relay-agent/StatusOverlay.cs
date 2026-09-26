@@ -55,7 +55,9 @@ namespace SupraInventoryRelayAgent
 
         private readonly Label _laptopText = new Label();
         private readonly Label _agentText = new Label();
+        private static readonly Color TransparencyColor = Color.FromArgb(1, 2, 3);
         private readonly FlowLayoutPanel _metricFlow = new FlowLayoutPanel();
+        private readonly Form _backgroundLayer = new Form();
         private OverlaySettings _settings;
         private string _settingsPath;
         private bool _dragging;
@@ -78,8 +80,17 @@ namespace SupraInventoryRelayAgent
             MaximumSize = Size.Empty;
             Width = ClampWidth(_settings.Width);
             Height = ClampHeight(_settings.Height);
-            BackColor = SafeColor(_settings.BackgroundArgb, Color.FromArgb(28, 35, 43));
-            Opacity = ClampOpacity(_settings.Opacity);
+            BackColor = TransparencyColor;
+            TransparencyKey = TransparencyColor;
+            Opacity = 1.0;
+
+            _backgroundLayer.FormBorderStyle = FormBorderStyle.None;
+            _backgroundLayer.ShowInTaskbar = false;
+            _backgroundLayer.TopMost = true;
+            _backgroundLayer.Enabled = false;
+            _backgroundLayer.StartPosition = FormStartPosition.Manual;
+            _backgroundLayer.BackColor = OverlayBackgroundColor;
+            _backgroundLayer.Opacity = ClampOpacity(_settings.Opacity);
             Padding = new Padding(10, 6, 10, 6);
 
             _laptopText.TextAlign = ContentAlignment.MiddleLeft;
@@ -99,7 +110,7 @@ namespace SupraInventoryRelayAgent
             _metricFlow.FlowDirection = FlowDirection.LeftToRight;
             _metricFlow.WrapContents = true;
             _metricFlow.AutoScroll = true;
-            _metricFlow.BackColor = Color.Transparent;
+            _metricFlow.BackColor = TransparencyColor;
             _metricFlow.Margin = Padding.Empty;
             _metricFlow.Padding = Padding.Empty;
             Controls.Add(_metricFlow);
@@ -111,7 +122,12 @@ namespace SupraInventoryRelayAgent
                 control.MouseUp += EndDrag;
             }
 
-            Resize += (s, e) => LayoutLabels();
+            LocationChanged += (s, e) => SyncBackgroundLayer();
+            Resize += (s, e) =>
+            {
+                LayoutLabels();
+                SyncBackgroundLayer();
+            };
             ResizeEnd += (s, e) =>
             {
                 if (IsLocked) return;
@@ -126,8 +142,15 @@ namespace SupraInventoryRelayAgent
             ApplyVisualSettings();
             Shown += (s, e) =>
             {
+                SyncBackgroundLayer();
+                if (OverlayVisible && !_backgroundLayer.Visible) _backgroundLayer.Show();
                 ApplyInteractionMode();
-                if (IsLocked) SendToPinnedState();
+                BringToFront();
+                SendToPinnedState();
+            };
+            FormClosed += (s, e) =>
+            {
+                try { if (!_backgroundLayer.IsDisposed) _backgroundLayer.Close(); } catch { }
             };
         }
 
@@ -222,7 +245,7 @@ namespace SupraInventoryRelayAgent
         {
             if (_settings == null) _settings = new OverlaySettings();
             _settings.Opacity = ClampOpacity(value);
-            Opacity = _settings.Opacity;
+            if (!_backgroundLayer.IsDisposed) _backgroundLayer.Opacity = _settings.Opacity;
             Persist();
         }
 
@@ -260,13 +283,17 @@ namespace SupraInventoryRelayAgent
             _settings.Visible = visible;
             if (visible)
             {
+                SyncBackgroundLayer();
+                if (!_backgroundLayer.Visible) _backgroundLayer.Show();
                 if (!Visible) Show();
                 TopMost = true;
+                BringToFront();
                 SendToPinnedState();
             }
             else
             {
                 Hide();
+                if (_backgroundLayer.Visible) _backgroundLayer.Hide();
             }
             Persist();
         }
@@ -325,6 +352,19 @@ namespace SupraInventoryRelayAgent
             _metricFlow.SuspendLayout();
             try
             {
+                if (_metricFlow.Controls.Count == values.Count)
+                {
+                    for (var i = 0; i < values.Count; i++)
+                    {
+                        var existing = _metricFlow.Controls[i] as Label;
+                        if (existing == null) continue;
+                        existing.Text = values[i];
+                        existing.ForeColor = OverlayTextColor;
+                        existing.BackColor = TransparencyColor;
+                    }
+                    return;
+                }
+
                 _metricFlow.Controls.Clear();
                 foreach (var value in values)
                 {
@@ -338,10 +378,13 @@ namespace SupraInventoryRelayAgent
                         Text = value,
                         TextAlign = ContentAlignment.MiddleCenter,
                         BorderStyle = BorderStyle.FixedSingle,
-                        BackColor = Blend(OverlayBackgroundColor, Color.White, 0.12),
+                        BackColor = TransparencyColor,
                         ForeColor = OverlayTextColor,
                         Font = new Font("Segoe UI", 8.5F, FontStyle.Bold)
                     };
+                    tile.MouseDown += BeginDrag;
+                    tile.MouseMove += ContinueDrag;
+                    tile.MouseUp += EndDrag;
                     _metricFlow.Controls.Add(tile);
                 }
             }
@@ -389,15 +432,30 @@ namespace SupraInventoryRelayAgent
 
         private void ApplyVisualSettings()
         {
-            BackColor = OverlayBackgroundColor;
+            BackColor = TransparencyColor;
+            TransparencyKey = TransparencyColor;
+            _metricFlow.BackColor = TransparencyColor;
+            if (!_backgroundLayer.IsDisposed)
+            {
+                _backgroundLayer.BackColor = OverlayBackgroundColor;
+                _backgroundLayer.Opacity = ClampOpacity(_settings == null ? 0.78 : _settings.Opacity);
+            }
             var text = OverlayTextColor;
             _laptopText.ForeColor = text;
             _agentText.ForeColor = text;
             foreach (Control control in _metricFlow.Controls)
             {
                 control.ForeColor = text;
-                control.BackColor = Blend(OverlayBackgroundColor, Color.White, 0.12);
+                control.BackColor = TransparencyColor;
             }
+        }
+
+        private void SyncBackgroundLayer()
+        {
+            if (_backgroundLayer.IsDisposed) return;
+            _backgroundLayer.Bounds = Bounds;
+            _backgroundLayer.BackColor = OverlayBackgroundColor;
+            _backgroundLayer.Opacity = ClampOpacity(_settings == null ? 0.78 : _settings.Opacity);
         }
 
         private void ApplyInteractionMode()

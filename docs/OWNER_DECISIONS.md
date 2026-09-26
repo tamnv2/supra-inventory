@@ -1077,3 +1077,17 @@ Owner confirms D120 and the D120 Picker-presence hotfix are released, then repor
 4. **Compact Agent status line.** The visible **Agent**, **Relay**, and **Wi‑Fi** status labels are rendered on one responsive row with ellipsis protection instead of three stacked rows.
 5. **Responsive fleet area.** The Agent fleet table uses the remaining height inside its equal-height card and keeps internal scrolling; resizing the window recalculates the compact authenticated layout without forcing network refresh.
 6. Target release is **relay-agent-v42**. No Android/Web/business-resource change is required for this repair. Stable remains **OWNER-GATED** and untouched.
+
+## D122 — Agent stability, operational UX and session recovery — 2026-09-26
+
+Owner field testing of released `relay-agent-v42` found that D121 did not fully eliminate Agent hangs and therefore D121 field acceptance/OA047 is superseded by D122. The following Beta-only repair is approved; D117/D118 confirmation, HA, generation, WMS mutation and schedule semantics remain protected and unchanged.
+
+1. **Agent responsiveness.** Remaining potentially blocking SSID lookup and watchdog maintenance must not execute directly on the WinForms UI timer thread. Overlay creation is deferred from the initial `Shown` path, and unchanged Agent-fleet snapshots must not clear/rebuild the grid every refresh.
+2. **Overview proportion.** The D120 two-column shell remains. The left column is responsive **50% Hệ thống Agent / 25% Hệ thống Supra / 25% Xử lý PickList**. Agent fleet consumes the available Agent-card height and scrolls internally when rows exceed the visible area.
+3. **SKU feedback and observability.** Manual Agent **Cập nhật SKU** always returns an explicit success/failure result. A successful all-unchanged sync is still a successful synchronization event. Web **Danh mục SKU** shows the latest successful Agent synchronization checkpoint separately from the timestamp of the last actual SKU row change, using the existing SKU import audit trail rather than a new polling/provider resource.
+4. **Ca vận hành.** Existing D118 App/PDA overtime controls move from **Công cụ** to the dedicated **Ca vận hành** item under **Vận hành**. The underlying shared schedule authority, permissions and one-hour extension semantics do not change.
+5. **Session recovery.** A definitively expired/revoked Agent Firebase session clears the unusable local session and restores Agent username/password/login inputs. A definitively expired Supra/WMS session clears local WMS readiness and visibly restores the normal Supra login/capture button. Temporary transport errors remain fail-closed and must not be misclassified as credential expiry.
+6. **Bảng nổi.** Background transparency is separated from the foreground content layer so opacity affects the background while metric text remains fully opaque/readable. Overlay creation/rendering must not block normal Agent startup.
+7. **Column sizing.** Agent exposes **Tự căn cột theo nội dung**. When enabled, operational grids size columns to visible content/window width. When disabled, users may resize columns manually; those widths are persisted locally per authenticated Agent user and restored for that user.
+8. D122 introduces no new provider, database, Firestore collection, heartbeat, business polling cadence or WMS mutation route. Stable remains OWNER-GATED and untouched. Target Windows release is **relay-agent-v43**.
+
