@@ -525,7 +525,10 @@ jobs:
           $match = [regex]::Match(($resolve -join "`n"), 'version=(\d+(?:\.\d+){3})')
           if (-not $match.Success) { throw "Resolved WebView2 version was not returned." }
           $runtimeVersion = $match.Groups[1].Value
-          $hostBuild = 6
+          $browserBundleSource = Get-Content relay-agent/AgentBrowserBundle.cs -Raw
+          $hostBuildMatch = [regex]::Match($browserBundleSource, 'RequiredHostBuild\s*=\s*(\d+)\s*;')
+          if (-not $hostBuildMatch.Success) { throw "Unable to resolve RequiredHostBuild from AgentBrowserBundle.cs." }
+          $hostBuild = [int]$hostBuildMatch.Groups[1].Value
           $channel = "inventory-channel"
           $asset = "Agent.WebView2.FixedRuntime.x64.zip"
           $assetSha = "$asset.sha256"
@@ -632,5 +635,6 @@ jobs:
 
           gh release upload $channel $zip (Join-Path $work $assetSha) (Join-Path $work $manifestName) --repo "${{ github.repository }}" --clobber
           if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent-owned browser bundle." }
+          if ($hostBuild -lt 1) { throw "Resolved host build is invalid." }
           Write-Host "Published Agent-owned Fixed WebView2 $runtimeVersion host_build=$hostBuild host_arch=x64 bundle size=$size sha256=$sha256"
 
