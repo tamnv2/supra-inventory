@@ -348,9 +348,65 @@ namespace SupraInventoryRelayAgent
         {
             DisposeSocketNoLock();
 
+            string ownedHost;
+            string fixedRuntime;
+            if (AgentBrowserBundle.TryGetReady(out ownedHost, out fixedRuntime))
+            {
+                try
+                {
+                    StartOwnedWebView2NoLock(ownedHost, fixedRuntime);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    _log("SUPRA_BROWSER owned_webview2=FALLBACK type=" + ex.GetType().Name +
+                         " detail=" + AgentDiagnostics.Sanitize(ex.Message));
+                    StopManagedBrowserNoLock();
+                }
+            }
+            else
+            {
+                AgentBrowserBundle.EnsureBackground(_log);
+                _log("SUPRA_BROWSER owned_webview2=NOT_READY fallback=system_browser");
+            }
+
+            StartLegacyBrowserNoLock();
+        }
+
+        private void StartOwnedWebView2NoLock(string hostExe, string fixedRuntime)
+        {
+            _port = FindFreeLoopbackPort();
+            var profileDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "SUPRA Inventory", "ConfirmBrowser", "webview2-fixed-profile");
+            Directory.CreateDirectory(profileDir);
+
+            var args =
+                "--url=\"" + AgentConfig.WmsPicklistConfirmUiReferenceUrl.Replace("\"", "") + "\" " +
+                "--profile=\"" + profileDir.Replace("\"", "") + "\" " +
+                "--runtime=\"" + fixedRuntime.Replace("\"", "") + "\" " +
+                "--debug-port=" + _port;
+
+            _process = Process.Start(new ProcessStartInfo
+            {
+                FileName = hostExe,
+                Arguments = args,
+                UseShellExecute = false,
+                WorkingDirectory = Path.GetDirectoryName(hostExe) ?? ""
+            });
+            if (_process == null) throw new InvalidOperationException("Không mở được Agent WebView2.");
+
+            _browserName = "Agent WebView2 Fixed";
+            AttachDevToolsNoLock(TimeSpan.FromSeconds(25));
+            _hidden = false;
+            _log("SUPRA_BROWSER start browser=AGENT_WEBVIEW2_FIXED loopback=127.0.0.1 profile=dedicated fallback=armed session_extract=false network_domain=false");
+        }
+
+        private void StartLegacyBrowserNoLock()
+        {
             var browser = FindSupportedBrowser();
             if (browser == null)
-                throw new InvalidOperationException("Không tìm thấy Microsoft Edge hoặc Google Chrome.");
+                throw new InvalidOperationException("Không tìm thấy Agent WebView2, Microsoft Edge hoặc Google Chrome.");
 
             _port = FindFreeLoopbackPort();
             var profileDir = Path.Combine(
@@ -375,17 +431,20 @@ namespace SupraInventoryRelayAgent
                 throw new InvalidOperationException("Không mở được " + browser.Name + ".");
 
             _browserName = browser.Name;
-            _targetUrl = WaitForPageTarget(_port, TimeSpan.FromSeconds(20));
+            AttachDevToolsNoLock(TimeSpan.FromSeconds(20));
+            _hidden = false;
+            _log("SUPRA_BROWSER start browser=" + _browserName +
+                 " loopback=127.0.0.1 profile=dedicated fallback=system_browser session_extract=false network_domain=false");
+        }
 
+        private void AttachDevToolsNoLock(TimeSpan timeout)
+        {
+            _targetUrl = WaitForPageTarget(_port, timeout);
             _socket = new ClientWebSocket();
             _socket.Options.KeepAliveInterval = TimeSpan.FromSeconds(10);
             _socket.ConnectAsync(new Uri(_targetUrl), CancellationToken.None).GetAwaiter().GetResult();
-
             CommandNoLock("Runtime.enable", null, TimeSpan.FromSeconds(5));
             CommandNoLock("Page.enable", null, TimeSpan.FromSeconds(5));
-            _hidden = false;
-            _log("SUPRA_BROWSER start browser=" + _browserName +
-                 " loopback=127.0.0.1 profile=dedicated session_extract=false network_domain=false");
         }
 
         private void NavigateConfirmNoLock()
