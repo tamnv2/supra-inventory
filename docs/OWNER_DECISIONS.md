@@ -1265,3 +1265,20 @@ Owner requested two field-facing fixes before OA052 acceptance. **TECHNICAL / RE
 - Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
 - OA052 should be run against **relay-agent-v52**.
 
+## D127 field hotfix — Agent v54 explicit x64 WebView2Loader — 2026-09-26
+
+Owner field review on v53 confirmed the rows-per-page 100 repair works, but the Agent-owned browser still reproduced `BadImageFormatException / 0x8007000B`.
+
+- PR #215 squash-merged to main `65f17d48c6f4dd00f9dd48c52ecb05ecba3703f8`.
+- Main Relay Agent run `36258561369` completed successfully.
+- Agent release advanced to `relay-agent-v54`, release id `397327827`, canonical EXE asset `591091889`, size `340992` bytes, SHA-256 `05db596637f30c24e59c9394affbc79d97d5981d9e663b8e2d7295e53c337ca6`.
+- `inventory-channel` serves v54 through manifest/EXE assets `591091939/591091938`.
+- v54 no longer relies on default native-loader probing. The owned host requires a 64-bit process and explicitly binds the dedicated `host/loader/x64/WebView2Loader.dll` before creating the WebView2 environment.
+- CI now PE-validates both the host executable and the dedicated loader as AMD64 before publishing the browser bundle.
+- Browser bundle generation advanced to `host_build=3`; Agent v54 refuses older local browser bundles without matching host-build/host-arch markers, preventing v52/v53 browser hosts from being reused as ready.
+- New browser bundle asset `591093722`, manifest/checksum assets `591093726/591093719`, size `318615500` bytes, SHA-256 `bf3dea509fe631a59f09a49b51756c55f4086c2388241386115817ee0420d1bb`.
+- Explicit browser choice remains: **Mở trình duyệt Agent** never auto-falls back to Desktop; **Mở trình duyệt Desktop** explicitly opens Edge/Chrome.
+- Rows-per-page 100 remains unchanged from v53 and was reported field-OK by Owner.
+- Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
+- OA052 remains pending until the Owner verifies the Agent-owned browser physically on v54.
+
