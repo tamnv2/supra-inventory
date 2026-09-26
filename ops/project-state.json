@@ -189,7 +189,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D126 v49 technical/release PASS. Run OA051 real-Supra field re-test on relay-agent-v49; do not mark field PASS until readiness and guarded confirmation are observed. Stable remains OWNER-GATED.",
+  "next_action": "D126 owner field observation found a mandatory second confirmation dialog after Xác nhận lấy lại hàng. Ship relay-agent-v50 H4 guarded modal confirmation, pass PR/main/release gates, then rerun OA051. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -1154,9 +1154,9 @@
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d126": {
-    "status": "TECHNICAL_RELEASE_PASS__OA051_V49_FIELD_RETEST_READY",
+    "status": "FIELD_HOTFIX_IN_PROGRESS__V49_SECOND_CONFIRM_DIALOG_UNHANDLED__V50_TARGET",
     "decision_date": "2026-09-26",
-    "branch": "d126-v49",
+    "branch": "d126-v50-confirm-modal",
     "baseline_main": "d018046c53f79418cce851398dac122125ba0391",
     "baseline_release": "beta-vc76 / relay-agent-v47",
     "field_defect": "V46_MANAGED_BROWSER_REACHES_CONFIRM_PAGE_BUT_READY_REMAINS_0",
@@ -1194,8 +1194,8 @@
     "forbidden": "NO_DIRECT_WMS_PICKLIST_API__NO_COOKIE_TOKEN_HEADER_SIGNATURE_CAPTURE_REPLAY__NO_COORDINATE_ONLY_MUTATION",
     "sku_master": "MANUAL_FILE_IMPORT_ONLY__REMOVE_AGENT_WMS_SKU_SYNC__AUTOMATIC_DEFERRED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "next_action": "RUN_OA051_FIELD_RETEST_ON_RELAY_AGENT_V49",
-    "target_agent_release": "relay-agent-v49",
+    "next_action": "SHIP_V50_H4_HOTFIX__RUN_PR_MAIN_RELEASE_GATES__THEN_OA051_FIELD_RETEST",
+    "target_agent_release": "relay-agent-v50",
     "h2_field_evidence": "V47_REAL_CONFIRM_PAGE__SEARCH_0_CONFIRM_1_VISIBLE_1_TABLE_1_FRAMES_0__THEN_DEVTOOLS_WEBSOCKET_DROP_AND_LOOPBACK_REATTACH_FAIL",
     "h2_contract": "SEARCH_EXACT_NORMALIZED_TEXT_VALUE_ARIA_LABEL_TITLE_PLUS_UNIQUE_TEXT_LEAF__DEVTOOLS_REATTACH_EXISTING_TARGET_FIRST__MANAGED_BROWSER_RESTART_FALLBACK__MUTATION_GUARDS_UNCHANGED",
     "h2_implementation_pr": 202,
@@ -1235,6 +1235,11 @@
       "project_state": 36236408470,
       "ui": 36236408580,
       "relay_agent": 36236408518
-    }
+    },
+    "h4_baseline_main": "d940d2201d2cac382ccd58aa1b36171e7c5dff90",
+    "h4_baseline_release": "beta-vc76 / relay-agent-v49",
+    "h4_field_evidence": "V49_REAL_CONFIRM_FLOW__ROW_CHECKBOX_AND_PRIMARY_CONFIRM_OPEN_SECOND_DIALOG__EXACT_TITLE_XAC_NHAN_LAY_LAI_HANG__BODY_BAN_CO_CHAC_CHAN_CHO_PHEP_LAY_HANG_LAI_KHONG__BUTTONS_XAC_NHAN_DONG",
+    "h4_contract": "PRIMARY_EXACT_CONFIRM__REQUIRE_UNIQUE_EXACT_DIALOG_TITLE_BODY__CLICK_ONLY_DIALOG_SCOPED_XAC_NHAN__NEVER_DONG__POST_DOM_TERMINAL_EVIDENCE_STILL_REQUIRED",
+    "h4_pr_status": "IMPLEMENTATION_IN_PROGRESS"
   }
 }
