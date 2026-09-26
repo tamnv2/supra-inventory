@@ -238,7 +238,7 @@ jobs:
           if (-not $presence.Contains('schemaVersion != 3') -or -not $presence.Contains('ACTIVE_ANDROID_EVENT_DRIVEN')) { throw "D127 Picker presence schema regression." }
           if (-not $projection.Contains('ANDROID_PRESENCE_V1') -or -not $projection.Contains('picker_presence_current') -or -not $projection.Contains('ACTIVE_ANDROID_EVENT_DRIVEN')) { throw "D127 event-driven Picker projection missing." }
           if ($ops.Contains('TimeSpan.FromSeconds(15)')) { throw "D127 periodic 15-second Picker presence read returned." }
-          foreach ($marker in @('PickerDisconnectGraceSeconds = 180','RefreshPickerWindowBoundary','05:00–23:00','EVENT_DRIVEN')) {
+          foreach ($marker in @('PickerDisconnectGraceSeconds = 180','RefreshPickerWindowBoundary','05:00–23:00','ApplyEventDrivenPickerPresence')) {
             if (-not $ops.Contains($marker)) { throw "D127 Picker presence quota guard missing: $marker" }
           }
           if (-not $ops.Contains('TimeSpan.FromMinutes(30)') -or -not $fleet.Contains('relay_poc_jobs')) { throw "Fleet metric quota regression." }
