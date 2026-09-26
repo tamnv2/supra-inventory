@@ -178,7 +178,6 @@
     "Physical notification/device acceptance"
   ],
   "field_pending": [
-    "OA050 WAITING D124 TECHNICAL RELEASE: field-accept relay-agent-v45 for Overlay removal, Agent request metrics, visible SKU progress, single-daily Service lock and D123 no-hang regression.",
     "OA046 D120 physical field acceptance after automated release PASS: Agent smooth scroll/search/two-column/Supra account switch/quota log; Android single cross-app red/blue result + no login flash; Web SLA stability/taskbar viewport/ROOT role change.",
     "OA026 D106 physical credential acceptance: one post-D106 ADMIN password set -> unchanged Agent v30 direct login, plus one fresh ADMIN Web create -> immediate Agent login; verify no ghost-account-on-error.",
     "OA025 D105 physical acceptance: Android 4-digit input, dimmed in-flight confirm button, prominent terminal result, Agent manual 3–4 digit search, and unique 4-digit full-PickList resolution.",
@@ -197,7 +196,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Complete D124 PR authority/continuity/build gates, merge only after PASS, verify Beta Function deploy + relay-agent-v45 release, then run OA050. Stable remains OWNER-GATED.",
+  "next_action": "Wait for Owner phrase `tiến hành sửa đổi mô hình`; then bootstrap current main, create a fresh implementation branch, remove Android Xác nhận đơn/PickList flow, remove any Web Supra-session/WMS surfaces, retire WMS SKU sync, and repurpose Windows Agent as the Firebase-backed Office Inventory client. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -830,7 +829,7 @@
     "D121 implementation PR #191 targets relay-agent-v42 from released v41 baseline; first Agent gate exposed AgentConfig.AgentBuild still at 41 and the same PR corrected it to 42 before build.",
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged."
   ],
-  "active_workstream": "D124_AGENT_OPERATIONAL_CLEANUP_SKU_DAILY_LOCK",
+  "active_workstream": "D125_APPROVED_MODEL_REWRITE__IMPLEMENTATION_PENDING",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
@@ -1141,5 +1140,24 @@
     "inventory_channel_release_id": 394587029,
     "inventory_channel_agent_manifest_asset_id": 589796792,
     "inventory_channel_agent_exe_asset_id": 589796789
+  },
+  "d125": {
+    "status": "OWNER_APPROVED__AUTHORITY_RECORDED__IMPLEMENTATION_PENDING",
+    "decision_date": "2026-09-26",
+    "trigger_phrase": "tiến hành sửa đổi mô hình",
+    "baseline_main": "d50fd68246aa085f96feb6c18fd939df7ed3aae8",
+    "authority_branch": "docs/d125-office-model",
+    "scope": [
+      "ANDROID_REMOVE_XAC_NHAN_DON_PICKLIST_AND_BOTTOM_TAB_SWITCHER",
+      "PRESERVE_BAO_HANG_AND_XAC_NHAN_SKU_BUSINESS",
+      "WEB_REMOVE_SUPRA_SESSION_WMS_PICKLIST_WMS_SKU_SURFACES_IF_PRESENT",
+      "SKU_MASTER_MANUAL_FILE_ONLY",
+      "AGENT_REPURPOSE_TO_OFFICE_INVENTORY_CLIENT",
+      "FIREBASE_FIRESTORE_OFFICE_BRIDGE_WITH_INVENTORYCORE_AUTHORITY",
+      "NO_SUPRA_WMS_SESSION_CAPTURE_STORAGE_REFRESH_OR_USE"
+    ],
+    "legacy_runtime_warning": "relay-agent-v45 and D124 WMS/SKU paths may still exist in released artifacts until D125 implementation; they are historical/forbidden for field use under the new Owner/IT boundary.",
+    "supersedes_field_gate": "OA050",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }
