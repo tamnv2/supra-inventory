@@ -76,6 +76,8 @@ namespace SupraInventoryWebView2Host
         private string _warehouseEntrySource = "";
         private DateTime _warehouseEntryClickUtc = DateTime.MinValue;
         private bool _pendingConfirmAfterWarehouseEntry;
+        private string _lastDashboardProbeResult = "";
+        private DateTime _lastDashboardProbeLogUtc = DateTime.MinValue;
 
         internal BrowserForm(HostOptions options)
         {
@@ -232,6 +234,17 @@ namespace SupraInventoryWebView2Host
                 }
 
                 var result = await _web.CoreWebView2.ExecuteScriptAsync(BuildDashboardAccessScript());
+                var now = DateTime.UtcNow;
+                if (!string.Equals(result ?? "", _lastDashboardProbeResult, StringComparison.Ordinal) ||
+                    now - _lastDashboardProbeLogUtc >= TimeSpan.FromSeconds(5))
+                {
+                    _lastDashboardProbeResult = result ?? "";
+                    _lastDashboardProbeLogUtc = now;
+                    AppendHostLog("DASHBOARD_PROBE result=" + (_lastDashboardProbeResult.Length > 300
+                        ? _lastDashboardProbeResult.Substring(0, 300)
+                        : _lastDashboardProbeResult));
+                }
+
                 if (string.IsNullOrWhiteSpace(result) ||
                     result.IndexOf("CLICKED", StringComparison.OrdinalIgnoreCase) < 0)
                     return;
@@ -255,33 +268,49 @@ namespace SupraInventoryWebView2Host
             return @"(() => {
               const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
               const normPath = v => String(v || '').toLowerCase().replace(/[\s,]+/g,'');
-              const arrow = normPath('m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z');
-              const warehousePaths = [
-                normPath('M12 29.5 36 15l24 14.5'),
-                normPath('M17 31v25h38V31'),
-                normPath('M25 56V40h22v16')
-              ];
-              const hasWarehouseIcon = root => [...root.querySelectorAll('svg[viewBox]')].some(svg => {
-                if (String(svg.getAttribute('viewBox') || '').trim() !== '0 0 72 72') return false;
-                const paths = [...svg.querySelectorAll('path')].map(p => normPath(p.getAttribute('d')));
-                return warehousePaths.filter(p => paths.includes(p)).length >= 2;
+              const exactArrow = normPath('m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z');
+
+              const exactArrowButtons = [...document.querySelectorAll('button')].filter(button => {
+                if (!visible(button) || button.disabled || button.getAttribute('aria-disabled') === 'true')
+                  return false;
+                return [...button.querySelectorAll('svg[viewBox] path')].some(path => {
+                  const svg = path.closest('svg');
+                  if (!svg || String(svg.getAttribute('viewBox') || '').trim() !== '0 0 24 24')
+                    return false;
+                  return normPath(path.getAttribute('d')) === exactArrow;
+                });
               });
-              const buttons = [...document.querySelectorAll('button,[role=button]')].filter(button => {
-                if (!visible(button) || button.disabled || button.getAttribute('aria-disabled') === 'true') return false;
-                return [...button.querySelectorAll('svg path')].some(path =>
-                  normPath(path.getAttribute('d')) === arrow);
+
+              const quickAccessButtons = exactArrowButtons.filter(button => {
+                const card = button.parentElement;
+                if (!card || !visible(card)) return false;
+
+                // Exact live DOM from Owner:
+                // button is a direct child of the warehouse MuiPaper card.
+                const className = String(card.className || '');
+                if (!className.includes('MuiPaper-root')) return false;
+
+                // The same card contains the large warehouse illustration.
+                return [...card.querySelectorAll('svg[viewBox]')].some(svg =>
+                  visible(svg) &&
+                  String(svg.getAttribute('viewBox') || '').trim() === '0 0 72 72');
               });
-              const candidates = buttons.filter(button => {
-                let node = button.parentElement;
-                for (let depth = 0; node && depth < 6; depth++, node = node.parentElement) {
-                  if (hasWarehouseIcon(node)) return true;
-                }
-                return false;
-              });
-              if (candidates.length !== 1)
-                return 'NO_CLICK:' + candidates.length + ':ARROWS=' + buttons.length;
-              candidates[0].click();
-              return 'CLICKED:WAREHOUSE_ICON_PLUS_ARROW_SVG';
+
+              if (quickAccessButtons.length !== 1) {
+                return [
+                  'NO_CLICK',
+                  'ARROWS=' + exactArrowButtons.length,
+                  'CARDS=' + quickAccessButtons.length
+                ].join(':');
+              }
+
+              const target = quickAccessButtons[0];
+              try { target.scrollIntoView({block:'center',inline:'center'}); } catch (_) {}
+              try { target.focus({preventScroll:true}); } catch (_) { try { target.focus(); } catch (_) {} }
+
+              // React/MUI handles HTMLElement.click() as the same button activation.
+              target.click();
+              return 'CLICKED:EXACT_ARROW_DIRECT_MUIPAPER_72SVG';
             })()";
         }
 
