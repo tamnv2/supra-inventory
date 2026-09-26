@@ -2483,19 +2483,19 @@
     },
     {
       "id": "OA051",
-      "status": "PENDING_AFTER_D126_TECHNICAL_RELEASE",
+      "status": "PENDING_AFTER_D126_V47_HOTFIX_RELEASE",
       "title": "Field-accept D126 managed-browser PickList confirmation",
       "resource_key": "repo",
       "provider": "Beta Android + Firestore + Windows Agent + user-controlled Supra browser",
       "reason_owner_only": "CI can prove source/build/guards but real company Supra login, rendered DOM, browser hide/taskbar behavior and live confirmation require physical field observation.",
       "prerequisites": {
         "d126_branch": "feat/d126-browser-ui-picklist",
-        "target_agent_release": "relay-agent-v46",
+        "target_agent_release": "relay-agent-v47",
         "android_baseline": "beta-vc76",
         "stable": "OWNER_GATED"
       },
       "shortest_test_path": [
-        "Update Beta Agent to relay-agent-v46 while keeping current PDA build unless release notes explicitly require otherwise.",
+        "Update Beta Agent to relay-agent-v47 while keeping current PDA build unless release notes explicitly require otherwise.",
         "Press Truy cập Confirm PickList. If login is required, log in directly inside the opened Supra browser; verify Agent shows Web Confirm sẵn sàng only after the Confirm PickList page is loaded.",
         "Use Ẩn trình duyệt and verify the browser disappears from desktop/taskbar while Agent still reports readiness; use Hiện trình duyệt and verify the same browser returns.",
         "Manual test: enter a suffix with exactly one visible PL+digits match. Agent must display the full PickList and wait for the Agent Xác nhận action.",
