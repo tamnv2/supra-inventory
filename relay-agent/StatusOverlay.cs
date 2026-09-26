@@ -87,6 +87,7 @@ namespace SupraInventoryRelayAgent
             _backgroundLayer.FormBorderStyle = FormBorderStyle.None;
             _backgroundLayer.ShowInTaskbar = false;
             _backgroundLayer.TopMost = true;
+            _backgroundLayer.Enabled = false;
             _backgroundLayer.StartPosition = FormStartPosition.Manual;
             _backgroundLayer.BackColor = OverlayBackgroundColor;
             _backgroundLayer.Opacity = ClampOpacity(_settings.Opacity);
@@ -143,8 +144,8 @@ namespace SupraInventoryRelayAgent
             {
                 SyncBackgroundLayer();
                 if (OverlayVisible && !_backgroundLayer.Visible) _backgroundLayer.Show();
-                ApplyBackgroundClickThrough();
                 ApplyInteractionMode();
+                BringToFront();
                 SendToPinnedState();
             };
             FormClosed += (s, e) =>
@@ -286,7 +287,7 @@ namespace SupraInventoryRelayAgent
                 if (!_backgroundLayer.Visible) _backgroundLayer.Show();
                 if (!Visible) Show();
                 TopMost = true;
-                ApplyBackgroundClickThrough();
+                BringToFront();
                 SendToPinnedState();
             }
             else
@@ -431,15 +432,30 @@ namespace SupraInventoryRelayAgent
 
         private void ApplyVisualSettings()
         {
-            BackColor = OverlayBackgroundColor;
+            BackColor = TransparencyColor;
+            TransparencyKey = TransparencyColor;
+            _metricFlow.BackColor = TransparencyColor;
+            if (!_backgroundLayer.IsDisposed)
+            {
+                _backgroundLayer.BackColor = OverlayBackgroundColor;
+                _backgroundLayer.Opacity = ClampOpacity(_settings == null ? 0.78 : _settings.Opacity);
+            }
             var text = OverlayTextColor;
             _laptopText.ForeColor = text;
             _agentText.ForeColor = text;
             foreach (Control control in _metricFlow.Controls)
             {
                 control.ForeColor = text;
-                control.BackColor = Blend(OverlayBackgroundColor, Color.White, 0.12);
+                control.BackColor = TransparencyColor;
             }
+        }
+
+        private void SyncBackgroundLayer()
+        {
+            if (_backgroundLayer.IsDisposed) return;
+            _backgroundLayer.Bounds = Bounds;
+            _backgroundLayer.BackColor = OverlayBackgroundColor;
+            _backgroundLayer.Opacity = ClampOpacity(_settings == null ? 0.78 : _settings.Opacity);
         }
 
         private void ApplyInteractionMode()
