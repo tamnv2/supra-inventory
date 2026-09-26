@@ -55,7 +55,9 @@ namespace SupraInventoryRelayAgent
 
         private readonly Label _laptopText = new Label();
         private readonly Label _agentText = new Label();
+        private static readonly Color TransparencyColor = Color.FromArgb(1, 2, 3);
         private readonly FlowLayoutPanel _metricFlow = new FlowLayoutPanel();
+        private readonly Form _backgroundLayer = new Form();
         private OverlaySettings _settings;
         private string _settingsPath;
         private bool _dragging;
@@ -78,8 +80,16 @@ namespace SupraInventoryRelayAgent
             MaximumSize = Size.Empty;
             Width = ClampWidth(_settings.Width);
             Height = ClampHeight(_settings.Height);
-            BackColor = SafeColor(_settings.BackgroundArgb, Color.FromArgb(28, 35, 43));
-            Opacity = ClampOpacity(_settings.Opacity);
+            BackColor = TransparencyColor;
+            TransparencyKey = TransparencyColor;
+            Opacity = 1.0;
+
+            _backgroundLayer.FormBorderStyle = FormBorderStyle.None;
+            _backgroundLayer.ShowInTaskbar = false;
+            _backgroundLayer.TopMost = true;
+            _backgroundLayer.StartPosition = FormStartPosition.Manual;
+            _backgroundLayer.BackColor = OverlayBackgroundColor;
+            _backgroundLayer.Opacity = ClampOpacity(_settings.Opacity);
             Padding = new Padding(10, 6, 10, 6);
 
             _laptopText.TextAlign = ContentAlignment.MiddleLeft;
@@ -99,7 +109,7 @@ namespace SupraInventoryRelayAgent
             _metricFlow.FlowDirection = FlowDirection.LeftToRight;
             _metricFlow.WrapContents = true;
             _metricFlow.AutoScroll = true;
-            _metricFlow.BackColor = Color.Transparent;
+            _metricFlow.BackColor = TransparencyColor;
             _metricFlow.Margin = Padding.Empty;
             _metricFlow.Padding = Padding.Empty;
             Controls.Add(_metricFlow);
