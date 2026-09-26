@@ -932,7 +932,7 @@ async function logoutInteractiveSession(request: Request, env: Env): Promise<Res
     });
     await closeUserRealtime(env, user.user_id, identity.sessionChannel);
     if (identity.sessionChannel === "ANDROID" && user.base_role === "PICKER") {
-      await refreshPickerProjectionBestEffort(env);
+      await refreshPickerProjectionBestEffort(env, "LOGOUT");
     }
   }
   return json({ status: "ended" });
