@@ -92,10 +92,11 @@ checks = {
     "authority_d124_agent_operational_cleanup": "D124" in DECISIONS and "D124 — Agent summary density and Overlay removal" in DESIGN_SPEC,
     "authority_d126_browser_ui_picklist": "D126" in DECISIONS and "D126 — Managed-browser Supra presentation" in DESIGN_SPEC,
     "agent_d122_weighted_left_regions": all(token in RELAY_PROGRAM for token in [
-        "SizeType.Percent, 50F",
-        "SizeType.Percent, 25F",
+        "SizeType.Percent, 48F",
+        "SizeType.Percent, 29F",
+        "SizeType.Percent, 23F",
         "D122: Agent needs the larger operational surface",
-    ]) and RELAY_PROGRAM.count("new RowStyle(SizeType.Percent, 25F)") >= 2,
+    ]),
     "agent_d121_one_line_system_status": all(token in RELAY_D119_FEATURES for token in [
         "LayoutAgentSystemStatusRow(host, 96)",
         "_identity.SetBounds(left, top, width, 20)",
@@ -125,7 +126,8 @@ checks = {
         "ExpireAgentSession",
         "IsDefinitiveAgentAuthFailure",
         "RefreshSupraBrowserStatus",
-        "Truy cập Confirm PickList",
+        "Mở trình duyệt Agent",
+        "Mở trình duyệt Desktop",
         "Web Confirm: chờ đăng nhập Agent",
     ]),
     "agent_d122_column_preferences": all(token in RELAY_D119_FEATURES for token in [
