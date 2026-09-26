@@ -448,3 +448,21 @@ D125 is the current Owner-approved direction and supersedes older WMS/Agent exce
 - Legacy WMS/relay resources may remain for historical/cleanup purposes but are forbidden for runtime use under D125.
 - Exact continuation command: `tiến hành sửa đổi mô hình` starts D125 implementation from current `main`.
 - Stable remains OWNER-GATED.
+
+## D126 current operating-model boundary
+
+D126 supersedes D125 as the current Owner-approved implementation direction.
+
+- Keep the currently published Android/PDA PickList confirmation workflow and the released Agent operating model.
+- Retire all programmatic Supra/WMS session capture, DPAPI WMS-session persistence, header/token/signature replay and direct PickList WMS API calls.
+- Hệ thống Supra opens the registered Confirm PickList page in an Agent-managed browser. The user logs into Supra directly in that browser.
+- Agent becomes ready only when the Confirm PickList DOM is uniquely recognizable. The browser can be hidden from desktop/taskbar and restored later without ending the browser process.
+- Manual/PDA PickList lookup is DOM-only and accepts only full visible codes matching `^PL[0-9]+$` whose numeric suffix exactly matches the submitted suffix.
+- On an initial miss, Agent may click the exact **Tìm kiếm** button once and retry the rendered table once.
+- Manual Agent requests still require the user to press Agent confirmation. PDA requests auto-confirm after a unique guarded match.
+- Mutation is fail-closed: re-resolve the exact row, select only that row checkbox, verify checked, then click one uniquely identified enabled **Xác nhận lấy lại hàng** button. Never click **Xác nhận hoàn thành lấy hàng** or another nearby button.
+- Firestore request/ACK, HA ownership, confirmation guards, anti-spam, operating schedule, Picker presence/contact and Báo hàng behavior remain unless explicitly changed by D126.
+- SKU master is manual-file-only through the existing authorized file-import workflow. WMS/Tồn Bin SKU synchronization is retired; automatic SKU update is deferred.
+- D125 Office-client rewrite is cancelled before implementation.
+- Stable remains OWNER-GATED.
+
