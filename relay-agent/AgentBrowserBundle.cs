@@ -68,7 +68,7 @@ namespace SupraInventoryRelayAgent
 
             var version = Value(manifest, "version");
             var sha = Value(manifest, "sha256").ToLowerInvariant();
-            if (!Regex.IsMatch(version, "^[0-9]+(?:\.[0-9]+){3}$"))
+            if (!Regex.IsMatch(version, @"^[0-9]+(?:\.[0-9]+){3}$"))
                 throw new InvalidOperationException("Browser bundle version không hợp lệ.");
             if (!Regex.IsMatch(sha, "^[0-9a-f]{64}$"))
                 throw new InvalidOperationException("Browser bundle checksum không hợp lệ.");
