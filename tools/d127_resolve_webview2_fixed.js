@@ -123,9 +123,33 @@ async function chooseX64(scope, page) {
 
   const control = downloadControl.last();
   const href = await control.getAttribute("href");
-  const downloadPromise = page.waitForEvent("download", { timeout: 30000 });
+
+  let downloadPromise = page.waitForEvent("download", { timeout: 6000 }).catch(() => null);
   await control.click();
-  const download = await downloadPromise;
+  let download = await downloadPromise;
+
+  if (!download) {
+    const acceptCandidates = [
+      page.getByRole("button", { name: /Accept and Download/i }),
+      page.getByRole("link", { name: /Accept and Download/i }),
+      page.getByText(/Accept and Download/i, { exact: true })
+    ];
+    let accept = null;
+    for (const candidate of acceptCandidates) {
+      if (await candidate.count()) {
+        const visible = candidate.filter({ visible: true });
+        accept = (await visible.count()) ? visible.last() : candidate.last();
+        break;
+      }
+    }
+    if (!accept) {
+      throw new Error("Microsoft download consent did not expose an Accept and Download control.");
+    }
+    downloadPromise = page.waitForEvent("download", { timeout: 30000 });
+    await accept.click();
+    download = await downloadPromise;
+  }
+
   const suggested = download.suggestedFilename();
   const expected = `Microsoft.WebView2.FixedVersionRuntime.${version}.x64.cab`;
   if (suggested.toLowerCase() !== expected.toLowerCase()) {
