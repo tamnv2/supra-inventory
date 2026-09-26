@@ -614,8 +614,10 @@ namespace SupraInventoryRelayAgent
                 var raw = EvaluateJsonNoLock(BuildDashboardSft3EntryScript());
                 result = _json.DeserializeObject(raw) as Dictionary<string, object>;
             }
-            catch
+            catch (Exception ex)
             {
+                _log("SUPRA_BROWSER dashboard_recovery=SCRIPT_ERROR type=" +
+                     ex.GetType().Name + " detail=" + AgentDiagnostics.Sanitize(ex.Message));
                 return false;
             }
 
@@ -624,8 +626,9 @@ namespace SupraInventoryRelayAgent
             {
                 _log("SUPRA_BROWSER dashboard_recovery=" +
                      (string.IsNullOrWhiteSpace(action) ? "DOM_NO_RESULT" : action) +
-                     " warehouse=" + (result == null ? 0 : Int(result, "warehouse")) +
-                     " sft3=" + (result == null ? 0 : Int(result, "sft3")) +
+                     " docs=" + (result == null ? 0 : Int(result, "docs")) +
+                     " arrows=" + (result == null ? 0 : Int(result, "arrowButtons")) +
+                     " candidates=" + (result == null ? 0 : Int(result, "warehouseCandidates")) +
                      " fail_closed=true");
                 return false;
             }
@@ -669,7 +672,8 @@ namespace SupraInventoryRelayAgent
               addDoc(document);
 
               const hasWarehouseIcon = root => {
-                const svgs = [...root.querySelectorAll('svg[viewBox='0 0 72 72']')].filter(visible);
+                const svgs = [...root.querySelectorAll('svg[viewBox]')]
+                  .filter(svg => visible(svg) && String(svg.getAttribute('viewBox') || '').trim() === '0 0 72 72');
                 return svgs.some(svg => {
                   const paths = [...svg.querySelectorAll('path')]
                     .map(p => normalizePath(p.getAttribute('d')));

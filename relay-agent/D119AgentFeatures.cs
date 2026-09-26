@@ -13,6 +13,47 @@ namespace SupraInventoryRelayAgent
 {
     internal sealed partial class AgentForm
     {
+        private void LayoutSupraCardControls()
+        {
+            if (_supraCard == null) return;
+
+            var width = Math.Max(420, _supraCard.ClientSize.Width);
+            var openWidth = Math.Max(150, (width - 40) / 2);
+
+            _wmsStatus.SetBounds(16, 42, 260, 22);
+            _supraInfo.SetBounds(286, 42, Math.Max(120, width - 302), 22);
+            _supraInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+            _wmsCapture.SetBounds(16, 72, openWidth, 32);
+            _wmsDesktop.SetBounds(24 + openWidth, 72, Math.Max(150, width - 40 - openWidth), 32);
+
+            _wmsLogout.SetBounds(16, 110, 138, 30);
+            _wmsTest.SetBounds(162, 110, 108, 30);
+            _browserBundleDownload.SetBounds(278, 110, Math.Max(150, width - 294), 30);
+
+            _browserBundleProgress.SetBounds(16, 148, Math.Max(120, width - 32), 18);
+            _browserBundleProgress.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+            // Keep runtime status on its own row so it cannot cover the storage controls.
+            _browserBundleStatus.SetBounds(16, 170, Math.Max(220, width - 32), 20);
+            _browserBundleStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+            const int folderButtonWidth = 150;
+            _agentDataStorageStatus.SetBounds(
+                16,
+                194,
+                Math.Max(180, width - 32 - folderButtonWidth - 8),
+                24);
+            _agentDataStorageStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+            _openAgentDataFolder.SetBounds(
+                Math.Max(16, width - 16 - folderButtonWidth),
+                190,
+                folderButtonWidth,
+                28);
+            _openAgentDataFolder.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        }
+
         private sealed class SmoothDataGridView : DataGridView
         {
             internal SmoothDataGridView()
@@ -79,52 +120,7 @@ namespace SupraInventoryRelayAgent
 
             if (_supraCard != null)
             {
-                var width = Math.Max(420, _supraCard.ClientSize.Width);
-                var openWidth = Math.Max(150, (width - 40) / 2);
-                _wmsCapture.SetBounds(16, 72, openWidth, 32);
-                _wmsDesktop.SetBounds(24 + openWidth, 72, Math.Max(150, width - 40 - openWidth), 32);
-
-                _wmsLogout.SetBounds(16, 110, 138, 30);
-                _wmsTest.SetBounds(162, 110, 108, 30);
-                _browserBundleDownload.SetBounds(278, 110, Math.Max(150, width - 294), 30);
-
-                _wmsStatus.SetBounds(16, 42, 260, 22);
-                _supraInfo.SetBounds(286, 42, Math.Max(120, width - 302), 22);
-                _supraInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-
-                _browserBundleProgress.SetBounds(
-                    16,
-                    148,
-                    Math.Max(120, width - 32),
-                    18);
-                _browserBundleProgress.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-                const int dataButtonWidth = 150;
-                const int dataLabelWidth = 180;
-                const int dataGap = 8;
-                var browserStatusWidth = Math.Max(
-                    220,
-                    width - 32 - dataLabelWidth - dataButtonWidth - (dataGap * 2));
-
-                _browserBundleStatus.SetBounds(
-                    16,
-                    170,
-                    browserStatusWidth,
-                    24);
-                _browserBundleStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-
-                _agentDataStorageStatus.SetBounds(
-                    16 + browserStatusWidth + dataGap,
-                    170,
-                    dataLabelWidth,
-                    24);
-                _agentDataStorageStatus.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-
-                _openAgentDataFolder.SetBounds(
-                    Math.Max(16, width - 16 - dataButtonWidth),
-                    166,
-                    dataButtonWidth,
-                    28);
-                _openAgentDataFolder.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+                LayoutSupraCardControls();
             }
 
             var pickerCard = NewCard(0, 0, 1040, 170);
