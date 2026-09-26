@@ -20,6 +20,11 @@ namespace SupraInventoryRelayAgent
         internal string State = "NOT_OPEN";
         internal string Url = "";
         internal string Browser = "";
+        internal int SearchCount;
+        internal int ConfirmCount;
+        internal int ConfirmVisibleCount;
+        internal int TableCount;
+        internal int FrameCount;
     }
 
     internal sealed class SupraBrowserSearchResult
@@ -129,7 +134,12 @@ namespace SupraInventoryRelayAgent
                     Hidden = _hidden,
                     State = String(map, "state"),
                     Url = String(map, "url"),
-                    Browser = _browserName
+                    Browser = _browserName,
+                    SearchCount = Int(map, "searchCount"),
+                    ConfirmCount = Int(map, "confirmCount"),
+                    ConfirmVisibleCount = Int(map, "confirmVisibleCount"),
+                    TableCount = Int(map, "tableCount"),
+                    FrameCount = Int(map, "frameCount")
                 };
             }
         }
@@ -583,15 +593,39 @@ namespace SupraInventoryRelayAgent
               const norm = v => (v || '').replace(/\s+/g,' ').trim();
               const txt = e => norm((e && (e.innerText || e.value || e.textContent)) || '');
               const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
-              const buttons = [...document.querySelectorAll('button,input[type=button],input[type=submit],a[role=button]')].filter(visible);
-              const search = buttons.filter(e => txt(e) === 'Tìm kiếm');
-              const confirm = buttons.filter(e => txt(e) === 'Xác nhận lấy lại hàng');
+              const docs = [];
+              const seen = new Set();
+              const addDoc = d => {
+                if (!d || seen.has(d) || docs.length >= 8) return;
+                seen.add(d); docs.push(d);
+                for (const frame of [...d.querySelectorAll('iframe')]) {
+                  try { if (frame.contentDocument) addDoc(frame.contentDocument); } catch (_) {}
+                }
+              };
+              addDoc(document);
+              const semantic = d => [...d.querySelectorAll('button,input[type=button],input[type=submit],a,[role=button]')];
+              const controls = docs.flatMap(semantic);
+              const search = controls.filter(e => visible(e) && txt(e) === 'Tìm kiếm');
+              const confirm = controls.filter(e => txt(e) === 'Xác nhận lấy lại hàng');
+              const confirmVisible = confirm.filter(visible);
+              const tableSurfaces = docs.flatMap(d => [...d.querySelectorAll('table,[role=grid],[role=table]')]).filter(visible);
+              const rowSurfaces = docs.flatMap(d => [...d.querySelectorAll('tr,[role=row]')]).filter(visible);
               const pathOk = location.hostname === 'wms-supra.winmart.vn' && location.pathname.indexOf('" + ConfirmPath + @"') >= 0;
-              const ready = pathOk && search.length === 1 && confirm.length === 1;
+              const tableOk = tableSurfaces.length > 0 || rowSurfaces.length > 0;
+              const ready = pathOk && tableOk && search.length === 1 && confirm.length === 1;
               let state = 'WRONG_PAGE';
-              if (pathOk && !ready) state = 'LOGIN_OR_DOM_NOT_READY';
+              if (pathOk && !ready) state = (search.length > 0 || confirm.length > 0 || tableOk) ? 'CONFIRM_DOM_PARTIAL' : 'LOGIN_OR_DOM_NOT_READY';
               if (ready) state = 'READY';
-              return JSON.stringify({ready, state, url: location.href, searchCount: search.length, confirmCount: confirm.length});
+              return JSON.stringify({
+                ready,
+                state,
+                url: location.origin + location.pathname,
+                searchCount: search.length,
+                confirmCount: confirm.length,
+                confirmVisibleCount: confirmVisible.length,
+                tableCount: tableSurfaces.length || rowSurfaces.length,
+                frameCount: Math.max(0, docs.length - 1)
+              });
             })()";
         }
 
@@ -601,7 +635,17 @@ namespace SupraInventoryRelayAgent
             return @"(() => {
               const terms = " + termsJson + @";
               const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
-              const rows = [...document.querySelectorAll('tr')].filter(visible);
+              const docs = [];
+              const seen = new Set();
+              const addDoc = d => {
+                if (!d || seen.has(d) || docs.length >= 8) return;
+                seen.add(d); docs.push(d);
+                for (const frame of [...d.querySelectorAll('iframe')]) {
+                  try { if (frame.contentDocument) addDoc(frame.contentDocument); } catch (_) {}
+                }
+              };
+              addDoc(document);
+              const rows = docs.flatMap(d => [...d.querySelectorAll('tr,[role=row]')]).filter(visible);
               const candidates = {};
               for (const term of terms) candidates[term] = [];
               for (const row of rows) {
@@ -627,7 +671,17 @@ namespace SupraInventoryRelayAgent
               const norm = v => (v || '').replace(/\s+/g,' ').trim();
               const txt = e => norm((e && (e.innerText || e.value || e.textContent)) || '');
               const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
-              const buttons = [...document.querySelectorAll('button,input[type=button],input[type=submit],a[role=button]')]
+              const docs = [];
+              const seen = new Set();
+              const addDoc = d => {
+                if (!d || seen.has(d) || docs.length >= 8) return;
+                seen.add(d); docs.push(d);
+                for (const frame of [...d.querySelectorAll('iframe')]) {
+                  try { if (frame.contentDocument) addDoc(frame.contentDocument); } catch (_) {}
+                }
+              };
+              addDoc(document);
+              const buttons = docs.flatMap(d => [...d.querySelectorAll('button,input[type=button],input[type=submit],a,[role=button]')])
                 .filter(e => visible(e) && txt(e) === target && !e.disabled && e.getAttribute('aria-disabled') !== 'true');
               if (buttons.length === 1) buttons[0].click();
               return JSON.stringify({count: buttons.length, clicked: buttons.length === 1});
@@ -637,37 +691,62 @@ namespace SupraInventoryRelayAgent
         private static string BuildMutationScript(string code)
         {
             var escaped = JavaScriptString(code);
-            return @"(() => {
+            return @"(async () => {
               const code = '" + escaped + @"';
               const norm = v => (v || '').replace(/\s+/g,' ').trim();
               const txt = e => norm((e && (e.innerText || e.value || e.textContent)) || '');
               const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
+              const docs = [];
+              const seen = new Set();
+              const addDoc = d => {
+                if (!d || seen.has(d) || docs.length >= 8) return;
+                seen.add(d); docs.push(d);
+                for (const frame of [...d.querySelectorAll('iframe')]) {
+                  try { if (frame.contentDocument) addDoc(frame.contentDocument); } catch (_) {}
+                }
+              };
+              addDoc(document);
               const pathOk = location.hostname === 'wms-supra.winmart.vn' && location.pathname.indexOf('" + ConfirmPath + @"') >= 0;
               if (!pathOk) return JSON.stringify({result:'PAGE_NOT_READY'});
-              const rows = [...document.querySelectorAll('tr')].filter(visible).filter(row => {
+              const allRows = () => docs.flatMap(d => [...d.querySelectorAll('tr,[role=row]')]).filter(visible);
+              const resolveRows = () => allRows().filter(row => {
                 const codes = [...new Set((((row.innerText || row.textContent) || '').toUpperCase().match(/\bPL[0-9]+\b/g) || []))];
                 return codes.includes(code);
               });
+              let rows = resolveRows();
               if (rows.length === 0) return JSON.stringify({result:'ROW_NOT_FOUND'});
               if (rows.length !== 1) return JSON.stringify({result:'ROW_AMBIGUOUS'});
-              const row = rows[0];
+              let row = rows[0];
               const native = [...row.querySelectorAll('input[type=checkbox]')].filter(e => !e.disabled);
               const roles = native.length ? [] : [...row.querySelectorAll('[role=checkbox]')].filter(e => e.getAttribute('aria-disabled') !== 'true');
               const boxes = native.length ? native : roles;
               if (boxes.length !== 1) return JSON.stringify({result:'CHECKBOX_NOT_UNIQUE', count:boxes.length});
               const box = boxes[0];
               if (box.disabled || box.getAttribute('aria-disabled') === 'true') return JSON.stringify({result:'CHECKBOX_DISABLED'});
-              const before = native.length ? !!box.checked : box.getAttribute('aria-checked') === 'true';
-              if (!before) box.click();
-              const checked = native.length ? !!box.checked : box.getAttribute('aria-checked') === 'true';
-              if (!checked) return JSON.stringify({result:'CHECKBOX_VERIFY_FAILED'});
-              const confirmButtons = [...document.querySelectorAll('button,input[type=button],input[type=submit],a[role=button]')]
-                .filter(e => visible(e) && txt(e) === '" + ConfirmText + @"');
+              const isChecked = () => native.length ? !!box.checked : box.getAttribute('aria-checked') === 'true';
+              if (!isChecked()) box.click();
+              const checkboxDeadline = Date.now() + 1200;
+              while (!isChecked() && Date.now() < checkboxDeadline) await new Promise(r => setTimeout(r, 60));
+              if (!isChecked()) return JSON.stringify({result:'CHECKBOX_VERIFY_FAILED'});
+
+              rows = resolveRows();
+              if (rows.length === 0) return JSON.stringify({result:'ROW_NOT_FOUND'});
+              if (rows.length !== 1) return JSON.stringify({result:'ROW_AMBIGUOUS'});
+              row = rows[0];
+              const codesAgain = [...new Set((((row.innerText || row.textContent) || '').toUpperCase().match(/\bPL[0-9]+\b/g) || []))];
+              if (!codesAgain.includes(code)) return JSON.stringify({result:'ROW_CHANGED'});
+
+              const semantic = d => [...d.querySelectorAll('button,input[type=button],input[type=submit],a,[role=button]')];
+              let confirmButtons = [];
+              const confirmDeadline = Date.now() + 1600;
+              do {
+                confirmButtons = docs.flatMap(semantic).filter(e => visible(e) && txt(e) === '" + ConfirmText + @"');
+                if (confirmButtons.length === 1 && !confirmButtons[0].disabled && confirmButtons[0].getAttribute('aria-disabled') !== 'true') break;
+                await new Promise(r => setTimeout(r, 80));
+              } while (Date.now() < confirmDeadline);
               if (confirmButtons.length !== 1) return JSON.stringify({result:'CONFIRM_BUTTON_NOT_UNIQUE', count:confirmButtons.length});
               const confirm = confirmButtons[0];
               if (confirm.disabled || confirm.getAttribute('aria-disabled') === 'true') return JSON.stringify({result:'CONFIRM_BUTTON_DISABLED'});
-              const codesAgain = [...new Set((((row.innerText || row.textContent) || '').toUpperCase().match(/\bPL[0-9]+\b/g) || []))];
-              if (!codesAgain.includes(code)) return JSON.stringify({result:'ROW_CHANGED'});
               confirm.click();
               return JSON.stringify({result:'CLICKED'});
             })()";
@@ -679,13 +758,23 @@ namespace SupraInventoryRelayAgent
             return @"(() => {
               const code = '" + escaped + @"';
               const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
-              const rows = [...document.querySelectorAll('tr')].filter(visible).filter(row => {
+              const docs = [];
+              const seen = new Set();
+              const addDoc = d => {
+                if (!d || seen.has(d) || docs.length >= 8) return;
+                seen.add(d); docs.push(d);
+                for (const frame of [...d.querySelectorAll('iframe')]) {
+                  try { if (frame.contentDocument) addDoc(frame.contentDocument); } catch (_) {}
+                }
+              };
+              addDoc(document);
+              const rows = docs.flatMap(d => [...d.querySelectorAll('tr,[role=row]')]).filter(visible).filter(row => {
                 const codes = [...new Set((((row.innerText || row.textContent) || '').toUpperCase().match(/\bPL[0-9]+\b/g) || []))];
                 return codes.includes(code);
               });
-              const successNodes = [...document.querySelectorAll('.toast-success,.alert-success,.swal2-success,[role=alert]')].filter(visible);
+              const successNodes = docs.flatMap(d => [...d.querySelectorAll('.toast-success,.alert-success,.swal2-success,[role=alert]')]).filter(visible);
               const successText = successNodes.map(e => (e.innerText || e.textContent || '')).join(' ').toLowerCase();
-              const dangerNodes = [...document.querySelectorAll('.toast-error,.alert-danger,.alert-error,.swal2-error,[role=alert]')].filter(visible);
+              const dangerNodes = docs.flatMap(d => [...d.querySelectorAll('.toast-error,.alert-danger,.alert-error,.swal2-error,[role=alert]')]).filter(visible);
               const dangerText = dangerNodes.map(e => (e.innerText || e.textContent || '')).join(' ').toLowerCase();
               const successWord = successText.includes('thành công') || successText.includes('success');
               const rejectWord = dangerText.includes('thất bại') || dangerText.includes('không thể') || dangerText.includes('error');
