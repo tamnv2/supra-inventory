@@ -124,7 +124,7 @@ def main() -> None:
     require(d119_agent, "SmoothDataGridView", "D120 double-buffered Picker grid")
     require(d119_agent, "_pickerOnlineRenderSignature", "D120 no-op Picker render suppression")
     forbid(d119_agent, "if (authenticated && authChanged) RefreshD119OperationalViews(true);", "D120 authenticated list-clear flicker branch")
-    require(picker_presence, "schemaVersion != 2", "D120 legacy Picker projection rejection")
+    require(picker_presence, "schemaVersion != 3", "D127 legacy Picker projection rejection")
     require(picker_presence, "ACTIVE_ANDROID_EVENT_DRIVEN", "D127 event-driven Picker projection source enforcement")
     require(fcm_worker, "UNREGISTERED", "FCM invalid-token classification")
     require(operational, "notification_delivery_attempts", "delivery attempt schema readiness")
