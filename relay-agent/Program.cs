@@ -438,6 +438,7 @@ namespace SupraInventoryRelayAgent
         private readonly Button _probeDrive = new Button();
         private readonly Button _probeAll = new Button();
         private readonly Button _wmsCapture = new Button();
+        private readonly Button _wmsDesktop = new Button();
         private readonly Button _wmsLogout = new Button();
         private readonly Button _wmsTest = new Button();
         private readonly Button _browserBundleDownload = new Button();
@@ -606,11 +607,13 @@ namespace SupraInventoryRelayAgent
             _probeAll.Click += (s, e) => Task.Run(() => ProbeAllTransports()); Controls.Add(_probeAll);
 
             Controls.Add(new Label { Left = 18, Top = 286, Width = 726, Height = 20, Text = "Supra — người dùng đăng nhập trực tiếp trên Web Confirm; Agent không lấy phiên:", ForeColor = Color.DimGray });
-            _wmsCapture.SetBounds(18, 308, 172, 32); _wmsCapture.Text = "Truy cập Confirm PickList";
-            _wmsCapture.Click += (sender, e) => Task.Run(() => OpenSupraConfirmBrowser()); Controls.Add(_wmsCapture);
-            _wmsTest.SetBounds(198, 308, 142, 32); _wmsTest.Text = "KIỂM TRA WEB";
+            _wmsCapture.SetBounds(18, 308, 172, 32); _wmsCapture.Text = "Mở trình duyệt Agent";
+            _wmsCapture.Click += (sender, e) => Task.Run(() => OpenSupraConfirmBrowser(false)); Controls.Add(_wmsCapture);
+            _wmsDesktop.SetBounds(198, 308, 176, 32); _wmsDesktop.Text = "Mở trình duyệt Desktop";
+            _wmsDesktop.Click += (sender, e) => Task.Run(() => OpenSupraConfirmBrowser(true)); Controls.Add(_wmsDesktop);
+            _wmsTest.SetBounds(382, 308, 142, 32); _wmsTest.Text = "KIỂM TRA WEB";
             _wmsTest.Click += (sender, e) => Task.Run(() => TestSupraBrowser()); Controls.Add(_wmsTest);
-            _wmsStatus.SetBounds(350, 311, 394, 28); _wmsStatus.Text = "Web Confirm: chưa mở"; Controls.Add(_wmsStatus);
+            _wmsStatus.SetBounds(532, 311, 212, 28); _wmsStatus.Text = "Web Confirm: chưa mở"; Controls.Add(_wmsStatus);
             SetProbeButtonsEnabled(false);
 
             _log.SetBounds(18, 356, 726, 255); Controls.Add(_log);
@@ -999,35 +1002,39 @@ namespace SupraInventoryRelayAgent
             _supraInfo.ForeColor = Color.FromArgb(88, 104, 115);
             _supraInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _supraCard.Controls.Add(_supraInfo);
-            _wmsCapture.SetBounds(16, 72, 180, 32);
-            _wmsCapture.Text = "Truy cập Confirm PickList";
+            _wmsCapture.SetBounds(16, 72, 188, 32);
+            _wmsCapture.Text = "Mở trình duyệt Agent";
             _wmsCapture.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _supraCard.Controls.Add(_wmsCapture);
-            _wmsLogout.SetBounds(204, 72, 138, 32);
+            _wmsDesktop.SetBounds(212, 72, 198, 32);
+            _wmsDesktop.Text = "Mở trình duyệt Desktop";
+            _wmsDesktop.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            _supraCard.Controls.Add(_wmsDesktop);
+            _wmsLogout.SetBounds(16, 110, 138, 30);
             _wmsLogout.Text = "Ẩn trình duyệt";
             _wmsLogout.Enabled = false;
             _wmsLogout.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _wmsLogout.Click += (sender, e) => Task.Run(() => ToggleSupraBrowserVisibility());
             _supraCard.Controls.Add(_wmsLogout);
-            _wmsTest.SetBounds(350, 72, 108, 32);
+            _wmsTest.SetBounds(162, 110, 108, 30);
             _wmsTest.Text = "Kiểm tra";
             _wmsTest.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _supraCard.Controls.Add(_wmsTest);
 
-            _browserBundleDownload.SetBounds(16, 110, 174, 30);
+            _browserBundleDownload.SetBounds(278, 110, 180, 30);
             _browserBundleDownload.Text = "Tải trình duyệt Agent";
             _browserBundleDownload.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _browserBundleDownload.Click += (sender, e) => StartAgentBrowserDownload();
             _supraCard.Controls.Add(_browserBundleDownload);
 
-            _browserBundleProgress.SetBounds(198, 116, 260, 18);
+            _browserBundleProgress.SetBounds(16, 148, 442, 18);
             _browserBundleProgress.Minimum = 0;
             _browserBundleProgress.Maximum = 100;
             _browserBundleProgress.Value = 0;
             _browserBundleProgress.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _supraCard.Controls.Add(_browserBundleProgress);
 
-            _browserBundleStatus.SetBounds(16, 144, 980, 24);
+            _browserBundleStatus.SetBounds(16, 170, 980, 24);
             _browserBundleStatus.Text = "Trình duyệt Agent: chưa tải";
             _browserBundleStatus.ForeColor = Color.FromArgb(88, 104, 115);
             _browserBundleStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
@@ -1820,8 +1827,10 @@ namespace SupraInventoryRelayAgent
                 _probeSheets.Enabled = enabled;
                 _probeDrive.Enabled = enabled;
                 _probeAll.Enabled = enabled;
-                _wmsCapture.Enabled = enabled && HasAgentSession();
-                _wmsCapture.Text = "Truy cập Confirm PickList";
+                _wmsCapture.Enabled = enabled && HasAgentSession() && AgentBrowserBundle.SnapshotStatus().Ready;
+                _wmsCapture.Text = "Mở trình duyệt Agent";
+                _wmsDesktop.Enabled = enabled && HasAgentSession();
+                _wmsDesktop.Text = "Mở trình duyệt Desktop";
                 _wmsLogout.Enabled = enabled && !string.Equals(_supraBrowserState, "NOT_OPEN", StringComparison.Ordinal);
                 _wmsLogout.Text = _supraBrowserHidden ? "Hiện trình duyệt" : "Ẩn trình duyệt";
                 _wmsTest.Enabled = enabled && !string.Equals(_supraBrowserState, "NOT_OPEN", StringComparison.Ordinal);
@@ -1921,7 +1930,7 @@ namespace SupraInventoryRelayAgent
                 if (!HasAgentSession())
                     throw new InvalidOperationException("Cần xác minh Agent bằng tài khoản quản trị trước.");
                 if (!HasReadyConfirmBrowser())
-                    throw new InvalidOperationException("Web Confirm chưa sẵn sàng. Hãy Truy cập Confirm PickList và đăng nhập Supra.");
+                    throw new InvalidOperationException("Web Confirm chưa sẵn sàng. Hãy mở Trình duyệt Agent hoặc Trình duyệt Desktop và đăng nhập Supra.");
 
                 var result = _supraBrowser.SearchMany(queries, true);
 
@@ -2261,6 +2270,8 @@ namespace SupraInventoryRelayAgent
                     _wmsLogout.Text = state.Hidden ? "Hiện trình duyệt" : "Ẩn trình duyệt";
                     _wmsLogout.Enabled = !string.Equals(state.State, "NOT_OPEN", StringComparison.Ordinal) && HasAgentSession();
                     _wmsTest.Enabled = !string.Equals(state.State, "NOT_OPEN", StringComparison.Ordinal) && HasAgentSession();
+                    _wmsCapture.Enabled = HasAgentSession() && AgentBrowserBundle.SnapshotStatus().Ready;
+                    _wmsDesktop.Enabled = HasAgentSession();
                     _manualPicklistGrid.Enabled = HasAgentSession() && state.Ready;
                     UpdateManualConfirmAllVisibility();
                 });
@@ -2280,17 +2291,22 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private void OpenSupraConfirmBrowser()
+        private void OpenSupraConfirmBrowser(bool desktop)
         {
-            Ui(() => _wmsStatus.Text = "Web Confirm: đang mở...");
+            Ui(() => _wmsStatus.Text = desktop
+                ? "Web Confirm: đang mở Desktop..."
+                : "Web Confirm: đang mở trình duyệt Agent...");
             try
             {
-                var state = _supraBrowser.OpenOrShow();
+                var state = desktop
+                    ? _supraBrowser.OpenOrShowDesktop()
+                    : _supraBrowser.OpenOrShowAgent();
                 _supraBrowserReady = state.Ready;
                 _supraBrowserHidden = state.Hidden;
                 _supraBrowserState = state.State ?? "NOT_OPEN";
                 RefreshSupraBrowserStatus();
-                Log("SUPRA_BROWSER open state=" + _supraBrowserState +
+                Log("SUPRA_BROWSER open mode=" + (desktop ? "DESKTOP" : "AGENT") +
+                    " state=" + _supraBrowserState +
                     " ready=" + (_supraBrowserReady ? "1" : "0") +
                     " page=" + (state.Url ?? "") +
                     " search=" + state.SearchCount +
@@ -2300,14 +2316,17 @@ namespace SupraInventoryRelayAgent
                     " confirm_visible=" + state.ConfirmVisibleCount +
                     " table=" + state.TableCount +
                     " frames=" + state.FrameCount +
-                    " session_extract=false direct_wms_api=false");
+                    " session_extract=false direct_wms_api=false auto_fallback=false");
             }
             catch (Exception ex)
             {
                 _supraBrowserReady = false;
                 _supraBrowserState = "BROWSER_ERROR";
-                Ui(() => _wmsStatus.Text = "Web Confirm: không mở được · xem log");
-                Log("SUPRA_BROWSER open fail: " + SafeMessage(ex));
+                Ui(() => _wmsStatus.Text = desktop
+                    ? "Desktop: không mở được · xem log"
+                    : "Trình duyệt Agent: không mở được · xem log");
+                Log("SUPRA_BROWSER open fail mode=" + (desktop ? "DESKTOP" : "AGENT") +
+                    " type=" + ex.GetType().Name + " detail=" + SafeMessage(ex) + " auto_fallback=false");
             }
             finally { SetProbeButtonsEnabled(true); }
         }
@@ -2705,6 +2724,7 @@ namespace SupraInventoryRelayAgent
                     {
                         _wmsStatus.Text = "Web Confirm: chờ xác minh Agent";
                         _wmsCapture.Enabled = false;
+                        _wmsDesktop.Enabled = false;
                         _wmsTest.Enabled = false;
                     }
                 }
