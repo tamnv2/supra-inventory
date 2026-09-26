@@ -76,6 +76,8 @@ namespace SupraInventoryWebView2Host
         private string _warehouseEntrySource = "";
         private DateTime _warehouseEntryClickUtc = DateTime.MinValue;
         private bool _pendingConfirmAfterWarehouseEntry;
+        private string _lastDashboardProbeResult = "";
+        private DateTime _lastDashboardProbeLogUtc = DateTime.MinValue;
 
         internal BrowserForm(HostOptions options)
         {
@@ -232,6 +234,17 @@ namespace SupraInventoryWebView2Host
                 }
 
                 var result = await _web.CoreWebView2.ExecuteScriptAsync(BuildDashboardAccessScript());
+                var now = DateTime.UtcNow;
+                if (!string.Equals(result ?? "", _lastDashboardProbeResult, StringComparison.Ordinal) ||
+                    now - _lastDashboardProbeLogUtc >= TimeSpan.FromSeconds(5))
+                {
+                    _lastDashboardProbeResult = result ?? "";
+                    _lastDashboardProbeLogUtc = now;
+                    AppendHostLog("DASHBOARD_PROBE result=" + (_lastDashboardProbeResult.Length > 300
+                        ? _lastDashboardProbeResult.Substring(0, 300)
+                        : _lastDashboardProbeResult));
+                }
+
                 if (string.IsNullOrWhiteSpace(result) ||
                     result.IndexOf("CLICKED", StringComparison.OrdinalIgnoreCase) < 0)
                     return;
@@ -256,32 +269,41 @@ namespace SupraInventoryWebView2Host
               const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
               const normPath = v => String(v || '').toLowerCase().replace(/[\s,]+/g,'');
               const arrow = normPath('m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z');
-              const warehousePaths = [
-                normPath('M12 29.5 36 15l24 14.5'),
-                normPath('M17 31v25h38V31'),
-                normPath('M25 56V40h22v16')
-              ];
-              const hasWarehouseIcon = root => [...root.querySelectorAll('svg[viewBox]')].some(svg => {
-                if (String(svg.getAttribute('viewBox') || '').trim() !== '0 0 72 72') return false;
-                const paths = [...svg.querySelectorAll('path')].map(p => normPath(p.getAttribute('d')));
-                return warehousePaths.filter(p => paths.includes(p)).length >= 2;
-              });
-              const buttons = [...document.querySelectorAll('button,[role=button]')].filter(button => {
+
+              const arrowButtons = [...document.querySelectorAll('button,[role=button]')].filter(button => {
                 if (!visible(button) || button.disabled || button.getAttribute('aria-disabled') === 'true') return false;
                 return [...button.querySelectorAll('svg path')].some(path =>
                   normPath(path.getAttribute('d')) === arrow);
               });
-              const candidates = buttons.filter(button => {
-                let node = button.parentElement;
-                for (let depth = 0; node && depth < 6; depth++, node = node.parentElement) {
-                  if (hasWarehouseIcon(node)) return true;
-                }
-                return false;
+
+              const cardCandidates = arrowButtons.filter(button => {
+                const card = button.parentElement;
+                if (!card || !visible(card)) return false;
+
+                const largeWarehouseSvgs = [...card.querySelectorAll('svg[viewBox]')].filter(svg =>
+                  visible(svg) &&
+                  String(svg.getAttribute('viewBox') || '').trim() === '0 0 72 72');
+
+                return largeWarehouseSvgs.length >= 1;
               });
-              if (candidates.length !== 1)
-                return 'NO_CLICK:' + candidates.length + ':ARROWS=' + buttons.length;
-              candidates[0].click();
-              return 'CLICKED:WAREHOUSE_ICON_PLUS_ARROW_SVG';
+
+              if (cardCandidates.length !== 1) {
+                return 'NO_CLICK:CARD=' + cardCandidates.length +
+                  ':ARROWS=' + arrowButtons.length +
+                  ':BUTTONS=' + document.querySelectorAll('button').length;
+              }
+
+              const target = cardCandidates[0];
+              try { target.scrollIntoView({block:'nearest',inline:'nearest'}); } catch (_) {}
+              try { target.focus({preventScroll:true}); } catch (_) { try { target.focus(); } catch (_) {} }
+
+              try {
+                target.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true,view:window}));
+                target.dispatchEvent(new MouseEvent('mouseup',{bubbles:true,cancelable:true,view:window}));
+              } catch (_) {}
+
+              target.click();
+              return 'CLICKED:DIRECT_PARENT_72X72_PLUS_ARROW';
             })()";
         }
 
