@@ -1154,11 +1154,15 @@ D126 supersedes D125 wherever D125 retired the released Android PickList flow or
 
 ### D126-H1 — Browser readiness field hotfix — 2026-09-26
 
-Status: **OWNER-REPORTED FIELD DEFECT / HOTFIX IN PROGRESS**.
+Status: **TECHNICAL / RELEASE PASS — OWNER FIELD RE-TEST REQUIRED**.
 
 - Field evidence on released `relay-agent-v46` shows the managed Edge browser starts and the user can reach the registered Confirm PickList page, but Agent remains `LOGIN_OR_DOM_NOT_READY` / `ready=0`.
 - The D126 security and mutation boundary is unchanged: DOM-only, no browser Network domain, no cookie/token/header/signature extraction, no direct WMS API and no coordinate-only mutation.
 - Hotfix target is `relay-agent-v47`. Readiness must recognize the real rendered Confirm UI through semantic action elements (`button`, `a`, `role=button`) and same-origin frame DOM when present. The exact confirmation control may be non-visible before row selection but must still be uniquely identifiable in DOM; the actual mutation still requires exactly one visible enabled **Xác nhận lấy lại hàng** control after the exact row checkbox is selected.
 - PickList rows may be semantic table rows (`tr` or `role=row`). Checkbox/confirmation framework state may settle asynchronously, so v47 may wait for a short bounded interval and must still fail closed on zero/multiple/disabled/changed controls.
 - Browser diagnostics may record only sanitized page origin/path and non-sensitive DOM counts. No query string, browser session material or authentication data may be logged.
+- Hotfix PR **#200** passed Repo Authority, Project State/Continuity, UI Design, Firestore, RTDB and Relay Agent gates, then merged to `main` at `3eb45c4a59564501e2b5dd95f60ee6072a79dc9a`.
+- Main verification passed: Repo Authority run `36226943848`, Project State/Continuity run `36226943851`, UI/Operational regression run `36226943951`, and Relay Agent build/startup/schedule/release run `36226943832`.
+- `relay-agent-v47` is published as prerelease `397141086`; canonical EXE asset `590174179`, size `288256`, SHA-256 `3f31cfc6efd2a7deacdb2ca58066852f40e126ee6255d205c51fb70da3f28cfc`. The fixed `inventory-channel` now serves v47 through manifest asset `590174265` and EXE asset `590174261`.
+- This evidence closes the automated technical/release layer only. OA051 remains open because the real company Supra DOM/login and guarded business click must be re-tested physically on v47 before D126 can be field-PASS.
 
