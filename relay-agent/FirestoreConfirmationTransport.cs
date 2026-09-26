@@ -628,7 +628,7 @@ namespace SupraInventoryRelayAgent
                 case "AMBIGUOUS_PICKLIST": return "Tìm thấy nhiều PickList · PDA cần chọn đúng một PickList";
                 case "PICKER_LOCKED": return "PDA tạm khóa do nhập sai nhiều lần";
                 case "WMS_SESSION_REQUIRED":
-                case "SESSION_EXPIRED": return "Phiên SFT / SFT 3 chưa sẵn sàng";
+                case "SESSION_EXPIRED": return "Web Confirm chưa sẵn sàng";
                 case "PROXY_BLOCK":
                 case "PROXY_AUTH_REQUIRED":
                 case "TRANSPORT_FAIL": return "Kết nối tới hệ thống Supra đang gián đoạn";
