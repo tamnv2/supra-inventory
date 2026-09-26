@@ -196,7 +196,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Complete D122 PR gates, merge after required checks pass, publish relay-agent-v43, then run OA048. Stable remains OWNER-GATED.",
+  "next_action": "Complete D123 PR gates, merge after required checks pass, publish relay-agent-v44, then run OA049 against the same saved-session startup path that field-failed v43. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -222,6 +222,8 @@
   },
   "workboard": {
     "in_progress": [
+      "D123 IN PROGRESS: v43 field-failed immediately after UI/session restore. Root cause confirmed in source: startup/login worker paths called D119 WinForms layout/DataGridView auto-size outside the UI thread. Target relay-agent-v44 marshals those mutations to the owning UI thread; no cadence/provider/WMS change.",
+      "D122 TECHNICAL/RELEASE PASS BUT OWNER FIELD FAIL: PR #193 merged main cb999100, main Authority/State/UI/Worker/Agent PASS and relay-agent-v43 published; Owner screenshot shows immediate Windows Not Responding after Agent/Supra/Picker state rendered. Superseded by D123/OA049.",
       "D121 TECHNICAL/RELEASE PASS: PR #191 merged main a3c841ae; main Authority/State/Agent/UI PASS; relay-agent-v42 published from exact main and inventory-channel updated. OA047 physical field acceptance is ready; Stable untouched.",
       "D118 OWNER FIELD ACCEPTED PASS: Owner explicitly confirmed all D118 field checks PASS on live Beta Web + beta-vc74 + relay-agent-v38. Stable untouched.",
       "D117 FINAL TECHNICAL/RUNTIME/RELEASE PASS: live Beta Web/APK remains exact bbb6c83b with signed beta-vc73; final hardened relay-agent-v37 is released from e583d20d. Authority/State/UI/Agent main gates PASS. OA037 is field-ready; Stable untouched.",
@@ -262,7 +264,7 @@
       "Stable remains Owner-gated"
     ],
     "next": [
-      "D121 OA047: Owner field-tests relay-agent-v42 for UI responsiveness under network delay, equal Agent/Supra/PickList left regions, one-line Agent/Relay/Wi-Fi, and D120 Picker stability.",
+      "D123 OA049: after relay-agent-v44 technical/release PASS, Owner repeats saved-session startup/restart and normal interaction checks.",
       "Await next explicit Owner requirement after D118 Owner PASS; Stable remains OWNER-GATED.",
       "OA036: Owner field-tests live Beta Web + beta-vc72 + relay-agent-v35 and replies PASS or itemized defects.",
       "D110 OA030: Owner field-tests signed beta-vc66 Reporter pinned tabs/badges/direct actions/local SLA clock/icon/footer and ADMIN/ROOT Android denial.",
@@ -278,7 +280,7 @@
       "Fix only reported Beta defects; no Stable promotion without explicit Owner command"
     ],
     "blocked_or_owner_field_dependent": [
-      "D121 automated technical/release gates are PASS. Only OA047 physical perceived-responsiveness/layout acceptance remains; Stable promotion is not authorized.",
+      "D123 requires OA049 physical startup/interaction field acceptance after v44 release; Stable promotion is not authorized.",
       "D110 technical/runtime/release is PASS. Only OA030 physical/visual Owner acceptance remains. Stable promotion is not authorized.",
       "D108 technical/runtime/release is PASS. Only OA028 physical/visual Owner acceptance remains. Stable promotion is not authorized.",
       "D107 source/PR gates and merge are PASS. Final visual acceptance is Owner-field-dependent on live Beta. Push-triggered Beta deployment exists by workflow contract, but the current GitHub connector exposes PR-triggered runs only, so exact main deploy-run/runtime evidence remains unobserved from this session.",
@@ -824,9 +826,10 @@
     "D119 main Functions run 36173638920 proved the deploy identity cannot run functions:artifacts:setpolicy. Rather than add a permanent Artifact Registry Editor/Admin role to the deploy service account, the least-privilege repair is a one-time Owner cleanup policy on Beta gcf-artifacts (asia-southeast1), 1-day retention per Firebase's documented default. Follow-up workflow removes the policy-mutation step and keeps exact-three-function deployment without --force. Stable untouched.",
     "D119 terminal automated release evidence: PR #187 merged main fbe3292a. Main Repo Authority run 36174736954 PASS, Project State/Continuity run 36174736933 PASS, Legacy Operational V2/Web/Android regression run 36174736946 PASS, and Beta Functions run 36174736965 PASS with exact three-function deployment after the Owner-configured gcf-artifacts 1-day cleanup policy. Firestore hotfix main run 36157673480 remains PASS. beta-vc75 and relay-agent-v39 are published. D119 is technical/runtime/release PASS; OA039 physical Owner field acceptance is now the only remaining acceptance layer. Stable untouched.",
     "D121 root cause from released v41 source/log review: one-second after-hours WinForms timer could synchronously call Firestore RefreshSharedScheduleNow; five-second tray timer synchronously sampled Windows CPU/GPU/Disk/NIC counters. Both are moved to bounded background single-flight work to protect UI responsiveness.",
-    "D121 implementation PR #191 targets relay-agent-v42 from released v41 baseline; first Agent gate exposed AgentConfig.AgentBuild still at 41 and the same PR corrected it to 42 before build."
+    "D121 implementation PR #191 targets relay-agent-v42 from released v41 baseline; first Agent gate exposed AgentConfig.AgentBuild still at 41 and the same PR corrected it to 42 before build.",
+    "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged."
   ],
-  "active_workstream": "D122_AGENT_STABILITY_OPS_UX",
+  "active_workstream": "D123_AGENT_UI_THREAD_AFFINITY",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "D078_TRANSPORT_SELECTION_PENDING_WITHIN_ACTIVE_D085_CONFIRMATION_WORKSTREAM",
