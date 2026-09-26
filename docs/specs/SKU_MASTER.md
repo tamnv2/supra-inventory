@@ -67,4 +67,11 @@ Exact Owner semantics for the SKU-reset confirmation described historically as r
 - Web **Danh mục SKU** exposes the latest successful sync checkpoint independently from `sku_master.updated_at` / catalog max-update time.
 - The checkpoint is derived from the existing successful `SKU_IMPORT_CHUNK` audit event; no new table, provider, polling loop or stock/location field is introduced.
 - A no-op sync must not falsify the timestamp for actual SKU data mutation.
+## D124 — Fleet-wide single-daily Agent sync and observable progress
 
+- The D119 expired-lease takeover rule is narrowed by D124: an expired **pre-Service preparation lease** may still be retried, but after the first Service import job is submitted the Asia/Ho_Chi_Minh daily operation is locked and no second automatic or manual Agent operation may be submitted that day.
+- The daily lease persists `service_started=true` before the first import job. Successful completion records `DONE`; an uncertain post-submit timeout remains day-locked rather than being released for duplicate retry.
+- Agent waits up to 180 seconds for each Service job and surfaces `PENDING` versus `RUNNING` progress. The Beta Function writes `RUNNING` before calling the internal Worker import endpoint.
+- Manual and automatic runs expose concise stages for lease check, Supra catalog read, chunk number, Service processing and terminal result. These messages are observability only and do not add polling outside the active synchronization operation.
+- Pre-Service failures may release the short preparation lease because no import job has been submitted. Once Service submission starts, duplicate prevention takes precedence over same-day automatic recovery.
+- The existing additive merge/conflict rules remain unchanged: only SKU + product name, no delete on absence, explicit confirmation for name changes, and no bin/location/quantity persistence.
