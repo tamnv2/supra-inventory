@@ -73,9 +73,9 @@ jobs:
           $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
           $projection = Get-Content service/src/firestore-projection.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*53\s*;') { throw "D127 hotfix requires Agent v53." }
-          if ($project -notmatch '<AssemblyVersion>0\.53\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.53\.0\.0</FileVersion>') {
-            throw "D127 hotfix assembly/file version must be 0.53."
+          if ($config -notmatch 'AgentBuild\s*=\s*54\s*;') { throw "D127 hotfix requires Agent v54." }
+          if ($project -notmatch '<AssemblyVersion>0\.54\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.54\.0\.0</FileVersion>') {
+            throw "D127 hotfix assembly/file version must be 0.54."
           }
 
           foreach ($marker in @(
@@ -133,6 +133,23 @@ jobs:
             if (-not $browser.Contains($marker)) { throw "D126 browser semantic guard missing: $marker" }
           }
           if (-not $browser.Contains("names(e).some(v => fold(v) === fold('Xác nhận lấy lại hàng'))")) { throw "D126 H3 readiness confirm control must remain exact-label only." }
+          foreach ($marker in @(
+            'RequiredHostBuild = 3',
+            'RequiredHostArch = "x64"',
+            'host-build.txt',
+            'host-arch.txt',
+            'WebView2Loader.dll'
+          )) {
+            if (-not $browserBundle.Contains($marker)) { throw "D127 v54 browser bundle freshness guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'Environment.Is64BitProcess',
+            'CoreWebView2Environment.SetLoaderDllFolderPath(loaderFolder)',
+            'loader", "x64"',
+            'WebView2Loader.dll'
+          )) {
+            if (-not $ownedHost.Contains($marker)) { throw "D127 v54 explicit x64 loader binding missing: $marker" }
+          }
 
           foreach ($forbidden in @(
             'Network.enable',
@@ -284,7 +301,571 @@ jobs:
             throw "Agent WebView2 host must be x64 because the published Fixed Runtime is x64."
           }
           if (-not (Test-Path $hostExe)) { throw "Agent WebView2 host build output missing." }
-          Write-Host "Agent-owned WebView2 host build PASS"
+          $loaderX64 = Get-ChildItem "relay-agent-webview2-host/bin/Release/net48" -Recurse -Filter "WebView2Loader.dll" |
+            Where-Object { $_.FullName -match 'runtimes[\\/]win-x64[\\/]native[\\/]WebView2Loader\.dll
+      - name: Build lightweight Windows Agent
+        shell: pwsh
+        run: |
+          dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release
+          $exe = (Resolve-Path "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe").Path
+          $smoke = Start-Process -FilePath $exe -ArgumentList "--startup-smoke" -PassThru
+          if (-not $smoke.WaitForExit(15000)) {
+            try { $smoke.Kill() } catch {}
+            throw "Agent startup smoke timed out."
+          }
+          if ($smoke.ExitCode -ne 0) {
+            throw "Agent startup smoke failed with exit code $($smoke.ExitCode)."
+          }
+          Write-Host "Agent startup smoke PASS"
+          New-Item -ItemType Directory -Force -Path relay-agent/dist | Out-Null
+          $primary = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe"
+          $legacy = "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe"
+          Copy-Item $exe $primary
+          # Compatibility alias lets v12 update directly while v14 updater uses GitHub-normalized dotted asset names.
+          Copy-Item $exe $legacy
+          Copy-Item relay-agent/README.md relay-agent/dist/
+          Copy-Item firebase/database.rules.json relay-agent/dist/
+          (Get-FileHash $primary -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256"
+          (Get-FileHash $legacy -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256"
+
+      - name: D102 night schedule regression
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $exe = (Resolve-Path "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe").Path
+          $selfTest = Start-Process -FilePath $exe -ArgumentList "--d102-self-test" -PassThru -Wait
+          if ($selfTest.ExitCode -ne 0) {
+            throw "D102 in-process night schedule regression failed with exit code $($selfTest.ExitCode)."
+          }
+          Write-Host "D102 night schedule regression PASS"
+
+      - name: Upload Agent artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supra-inventory-relay-poc-agent
+          path: relay-agent/dist/*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Resolve official Fixed WebView2 package
+        shell: pwsh
+        run: |
+          npm install --no-save playwright-core@1.55.0
+          node tools/d127_resolve_webview2_fixed.js latest
+
+      - name: Publish dedicated Agent prerelease
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = (Get-Content relay-agent/VERSION -Raw).Trim()
+          $tag = "relay-agent-v$version"
+          $primary = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe"
+          $primarySha = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256"
+          $releaseSource = $env:GITHUB_SHA
+          $channelSourceExe = $primary
+          $channelSourceSha = $primarySha
+
+          gh release view $tag --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -eq 0) {
+            $releaseSource = (gh api "repos/${{ github.repository }}/git/ref/tags/$tag" --jq '.object.sha').Trim()
+            if ([string]::IsNullOrWhiteSpace($releaseSource)) {
+              throw "Agent release $tag exists but its tag source cannot be resolved."
+            }
+
+            $releaseCommitTree = (gh api "repos/${{ github.repository }}/git/commits/$releaseSource" --jq '.tree.sha').Trim()
+            $currentCommitTree = (gh api "repos/${{ github.repository }}/git/commits/$env:GITHUB_SHA" --jq '.tree.sha').Trim()
+            $releaseAgentTree = (gh api "repos/${{ github.repository }}/git/trees/$releaseCommitTree" --jq '.tree[] | select(.path=="relay-agent") | .sha').Trim()
+            $currentAgentTree = (gh api "repos/${{ github.repository }}/git/trees/$currentCommitTree" --jq '.tree[] | select(.path=="relay-agent") | .sha').Trim()
+            if ([string]::IsNullOrWhiteSpace($releaseAgentTree) -or [string]::IsNullOrWhiteSpace($currentAgentTree)) {
+              throw "Unable to resolve relay-agent tree for existing release verification."
+            }
+            if ($releaseAgentTree -ne $currentAgentTree) {
+              throw "Agent release $tag already exists but relay-agent source changed. Increment relay-agent/VERSION before publishing another Agent binary."
+            }
+
+            $verifyDir = Join-Path $env:RUNNER_TEMP "agent-release-$version"
+            Remove-Item $verifyDir -Recurse -Force -ErrorAction SilentlyContinue
+            New-Item -ItemType Directory -Force -Path $verifyDir | Out-Null
+            gh release download $tag --repo "${{ github.repository }}" --pattern "Agent.Auto.Confirm.Pick.Pack.exe" --dir $verifyDir
+            if ($LASTEXITCODE -ne 0) {
+              gh release download $tag --repo "${{ github.repository }}" --pattern "Agent Auto Confirm Pick Pack.exe" --dir $verifyDir
+            }
+            if ($LASTEXITCODE -ne 0) {
+              throw "Agent release $tag exists but the canonical EXE cannot be downloaded."
+            }
+            gh release download $tag --repo "${{ github.repository }}" --pattern "Agent.Auto.Confirm.Pick.Pack.exe.sha256" --dir $verifyDir
+            if ($LASTEXITCODE -ne 0) {
+              gh release download $tag --repo "${{ github.repository }}" --pattern "Agent Auto Confirm Pick Pack.exe.sha256" --dir $verifyDir
+            }
+            if ($LASTEXITCODE -ne 0) {
+              throw "Agent release $tag exists but the checksum asset cannot be downloaded."
+            }
+
+            $releasedExe = Get-ChildItem $verifyDir -Filter "*.exe" | Where-Object { $_.Name -notlike "SUPRA-Inventory-Relay-Test*" } | Select-Object -First 1
+            $releasedShaFile = Get-ChildItem $verifyDir -Filter "*.sha256" | Where-Object { $_.Name -notlike "SUPRA-Inventory-Relay-Test*" } | Select-Object -First 1
+            if ($null -eq $releasedExe -or $null -eq $releasedShaFile) {
+              throw "Agent release $tag is missing canonical release assets."
+            }
+            $releasedSha = (Get-Content $releasedShaFile.FullName -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+            $actualReleasedSha = (Get-FileHash $releasedExe.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($releasedSha -ne $actualReleasedSha) {
+              throw "Agent release $tag checksum does not match the published EXE."
+            }
+
+            $channelSourceExe = $releasedExe.FullName
+            $channelSourceSha = $releasedShaFile.FullName
+            Write-Host "Agent release $tag already exists and relay-agent source tree is unchanged; reuse published release assets."
+          } else {
+            gh release create $tag `
+              "$primary#Agent Auto Confirm Pick Pack.exe" `
+              "$primarySha#Agent Auto Confirm Pick Pack.exe.sha256" `
+              "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe#SUPRA-Inventory-Relay-Test.exe" `
+              "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256#SUPRA-Inventory-Relay-Test.exe.sha256" `
+              "relay-agent/dist/README.md#README.md" `
+              --repo "${{ github.repository }}" `
+              --title "Agent Auto Confirm Pick Pack v$version" `
+              --notes "Beta Agent for Pick Pack / Inventory confirmation relay. D126 keeps Firestore PRIMARY/STANDBY/FROZEN HA and replaces Supra session/API integration with user-login managed-browser DOM confirmation. Mutation is fail-closed to the exact matched row checkbox and exact Xác nhận lấy lại hàng button. SKU updates are manual-file-only." `
+              --prerelease
+            if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
+          }
+
+          $channel = "inventory-channel"
+          gh release view $channel --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $channel --repo "${{ github.repository }}" --target "$env:GITHUB_SHA" --title "SUPRA Inventory runtime channel" --notes "Machine-readable Beta distribution channel. Do not install directly from this release page." --prerelease
+            if ($LASTEXITCODE -ne 0) {
+              gh release view $channel --repo "${{ github.repository }}" *> $null
+              if ($LASTEXITCODE -ne 0) { throw "Unable to create or read runtime channel release." }
+            }
+          }
+          $aliasExe = "relay-agent/dist/Agent.Auto.Confirm.Pick.Pack.exe"
+          $aliasSha = "relay-agent/dist/Agent.Auto.Confirm.Pick.Pack.exe.sha256"
+          Copy-Item $channelSourceExe $aliasExe -Force
+          Copy-Item $channelSourceSha $aliasSha -Force
+          $sha256 = (Get-Content $aliasSha -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+          $size = (Get-Item $aliasExe).Length
+          $manifest = [ordered]@{
+            schema_version = 1
+            channel = "beta"
+            tag = $tag
+            name = "Agent Auto Confirm Pick Pack v$version"
+            published_at = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+            source = $releaseSource
+            asset_name = "Agent.Auto.Confirm.Pick.Pack.exe"
+            size_bytes = $size
+            sha256 = $sha256
+          } | ConvertTo-Json -Compress
+          $manifest | Set-Content "relay-agent/dist/agent-latest.json" -Encoding utf8
+          gh release upload $channel $aliasExe $aliasSha "relay-agent/dist/agent-latest.json" --repo "${{ github.repository }}" --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Unable to update stable Agent runtime channel." }
+          Write-Host "Updated stable Agent runtime channel $channel -> $tag"
+
+      - name: Publish Agent-owned Fixed WebView2 browser bundle
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $resolve = node tools/d127_resolve_webview2_fixed.js latest
+          if ($LASTEXITCODE -ne 0) { throw "Unable to resolve the latest official Fixed WebView2 x64 package." }
+          $match = [regex]::Match(($resolve -join "`n"), 'version=(\d+(?:\.\d+){3})')
+          if (-not $match.Success) { throw "Resolved WebView2 version was not returned." }
+          $runtimeVersion = $match.Groups[1].Value
+          $hostBuild = 3
+          $channel = "inventory-channel"
+          $asset = "Agent.WebView2.FixedRuntime.x64.zip"
+          $assetSha = "$asset.sha256"
+          $manifestName = "agent-browser-latest.json"
+          $reuse = $false
+          $probeDir = Join-Path $env:RUNNER_TEMP "wv2-channel-probe"
+          Remove-Item $probeDir -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $probeDir | Out-Null
+          gh release download $channel --repo "${{ github.repository }}" --pattern $manifestName --dir $probeDir 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            try {
+              $existing = Get-Content (Join-Path $probeDir $manifestName) -Raw | ConvertFrom-Json
+              if ($existing.version -eq $runtimeVersion -and
+                  [int]$existing.host_build -eq $hostBuild -and
+                  $existing.sha256 -match '^[0-9a-f]{64}$') {
+                gh release download $channel --repo "${{ github.repository }}" --pattern $asset --dir $probeDir 2>$null
+                gh release download $channel --repo "${{ github.repository }}" --pattern $assetSha --dir $probeDir 2>$null
+                if ($LASTEXITCODE -eq 0) {
+                  $actual = (Get-FileHash (Join-Path $probeDir $asset) -Algorithm SHA256).Hash.ToLowerInvariant()
+                  $expected = (Get-Content (Join-Path $probeDir $assetSha) -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+                  if ($actual -eq $expected -and $actual -eq [string]$existing.sha256) { $reuse = $true }
+                }
+              }
+            } catch {}
+          }
+          if ($reuse) {
+            Write-Host "Owned WebView2 bundle $runtimeVersion already verified on $channel."
+            exit 0
+          }
+
+          $work = Join-Path $env:RUNNER_TEMP "wv2-fixed-$runtimeVersion"
+          Remove-Item $work -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $work | Out-Null
+          $filename = "Microsoft.WebView2.FixedVersionRuntime.$runtimeVersion.x64.cab"
+          $cab = Join-Path $work $filename
+          node tools/d127_resolve_webview2_fixed.js $runtimeVersion $cab
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path $cab)) {
+            throw "Unable to download official Microsoft Fixed WebView2 x64 CAB for $runtimeVersion."
+          }
+          if ((Get-Item $cab).Length -lt 100MB) { throw "Downloaded Fixed WebView2 CAB is unexpectedly small." }
+
+          $expanded = Join-Path $work "expanded"
+          New-Item -ItemType Directory -Force -Path $expanded | Out-Null
+          & expand.exe $cab -F:* $expanded | Out-Host
+          if ($LASTEXITCODE -ne 0) { throw "Unable to extract Fixed WebView2 CAB." }
+          $engine = Get-ChildItem $expanded -Recurse -Filter msedgewebview2.exe | Select-Object -First 1
+          if ($null -eq $engine) { throw "Fixed WebView2 runtime executable not found after extraction." }
+          $runtimeRoot = $engine.Directory.FullName
+
+          $bundle = Join-Path $work "bundle"
+          $hostDir = Join-Path $bundle "host"
+          $runtimeDir = Join-Path $bundle "runtime"
+          New-Item -ItemType Directory -Force -Path $hostDir | Out-Null
+          New-Item -ItemType Directory -Force -Path $runtimeDir | Out-Null
+          Copy-Item "relay-agent-webview2-host/bin/Release/net48/*" $hostDir -Recurse -Force
+
+          $loaderSource = Get-ChildItem "relay-agent-webview2-host/bin/Release/net48" -Recurse -Filter "WebView2Loader.dll" |
+            Where-Object { $_.FullName -match 'runtimes[\\/]win-x64[\\/]native[\\/]WebView2Loader\.dll
+          $zip = Join-Path $work $asset
+          Compress-Archive -Path (Join-Path $bundle "*") -DestinationPath $zip -CompressionLevel Optimal
+          $sha256 = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$sha256  $asset" | Set-Content (Join-Path $work $assetSha) -Encoding ascii
+          $size = (Get-Item $zip).Length
+          $manifest = [ordered]@{
+            schema_version = 1
+            channel = "beta"
+            version = $runtimeVersion
+            host_build = $hostBuild
+            host_arch = "x64"
+            asset_name = $asset
+            size_bytes = $size
+            sha256 = $sha256
+          } | ConvertTo-Json -Compress
+          $manifest | Set-Content (Join-Path $work $manifestName) -Encoding utf8
+
+          gh release upload $channel $zip (Join-Path $work $assetSha) (Join-Path $work $manifestName) --repo "${{ github.repository }}" --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent-owned browser bundle." }
+          Write-Host "Published Agent-owned Fixed WebView2 $runtimeVersion host_build=$hostBuild host_arch=x64 bundle size=$size sha256=$sha256"
+
+ } |
+            Select-Object -First 1
+          if ($null -eq $loaderX64) { throw "WebView2Loader x64 was not produced by the WebView2 SDK build." }
+          Write-Host "Agent-owned WebView2 host build PASS loader=$($loaderX64.FullName)"
+
+      - name: Build lightweight Windows Agent
+        shell: pwsh
+        run: |
+          dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release
+          $exe = (Resolve-Path "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe").Path
+          $smoke = Start-Process -FilePath $exe -ArgumentList "--startup-smoke" -PassThru
+          if (-not $smoke.WaitForExit(15000)) {
+            try { $smoke.Kill() } catch {}
+            throw "Agent startup smoke timed out."
+          }
+          if ($smoke.ExitCode -ne 0) {
+            throw "Agent startup smoke failed with exit code $($smoke.ExitCode)."
+          }
+          Write-Host "Agent startup smoke PASS"
+          New-Item -ItemType Directory -Force -Path relay-agent/dist | Out-Null
+          $primary = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe"
+          $legacy = "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe"
+          Copy-Item $exe $primary
+          # Compatibility alias lets v12 update directly while v14 updater uses GitHub-normalized dotted asset names.
+          Copy-Item $exe $legacy
+          Copy-Item relay-agent/README.md relay-agent/dist/
+          Copy-Item firebase/database.rules.json relay-agent/dist/
+          (Get-FileHash $primary -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256"
+          (Get-FileHash $legacy -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256"
+
+      - name: D102 night schedule regression
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $exe = (Resolve-Path "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe").Path
+          $selfTest = Start-Process -FilePath $exe -ArgumentList "--d102-self-test" -PassThru -Wait
+          if ($selfTest.ExitCode -ne 0) {
+            throw "D102 in-process night schedule regression failed with exit code $($selfTest.ExitCode)."
+          }
+          Write-Host "D102 night schedule regression PASS"
+
+      - name: Upload Agent artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supra-inventory-relay-poc-agent
+          path: relay-agent/dist/*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Resolve official Fixed WebView2 package
+        shell: pwsh
+        run: |
+          npm install --no-save playwright-core@1.55.0
+          node tools/d127_resolve_webview2_fixed.js latest
+
+      - name: Publish dedicated Agent prerelease
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = (Get-Content relay-agent/VERSION -Raw).Trim()
+          $tag = "relay-agent-v$version"
+          $primary = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe"
+          $primarySha = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256"
+          $releaseSource = $env:GITHUB_SHA
+          $channelSourceExe = $primary
+          $channelSourceSha = $primarySha
+
+          gh release view $tag --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -eq 0) {
+            $releaseSource = (gh api "repos/${{ github.repository }}/git/ref/tags/$tag" --jq '.object.sha').Trim()
+            if ([string]::IsNullOrWhiteSpace($releaseSource)) {
+              throw "Agent release $tag exists but its tag source cannot be resolved."
+            }
+
+            $releaseCommitTree = (gh api "repos/${{ github.repository }}/git/commits/$releaseSource" --jq '.tree.sha').Trim()
+            $currentCommitTree = (gh api "repos/${{ github.repository }}/git/commits/$env:GITHUB_SHA" --jq '.tree.sha').Trim()
+            $releaseAgentTree = (gh api "repos/${{ github.repository }}/git/trees/$releaseCommitTree" --jq '.tree[] | select(.path=="relay-agent") | .sha').Trim()
+            $currentAgentTree = (gh api "repos/${{ github.repository }}/git/trees/$currentCommitTree" --jq '.tree[] | select(.path=="relay-agent") | .sha').Trim()
+            if ([string]::IsNullOrWhiteSpace($releaseAgentTree) -or [string]::IsNullOrWhiteSpace($currentAgentTree)) {
+              throw "Unable to resolve relay-agent tree for existing release verification."
+            }
+            if ($releaseAgentTree -ne $currentAgentTree) {
+              throw "Agent release $tag already exists but relay-agent source changed. Increment relay-agent/VERSION before publishing another Agent binary."
+            }
+
+            $verifyDir = Join-Path $env:RUNNER_TEMP "agent-release-$version"
+            Remove-Item $verifyDir -Recurse -Force -ErrorAction SilentlyContinue
+            New-Item -ItemType Directory -Force -Path $verifyDir | Out-Null
+            gh release download $tag --repo "${{ github.repository }}" --pattern "Agent.Auto.Confirm.Pick.Pack.exe" --dir $verifyDir
+            if ($LASTEXITCODE -ne 0) {
+              gh release download $tag --repo "${{ github.repository }}" --pattern "Agent Auto Confirm Pick Pack.exe" --dir $verifyDir
+            }
+            if ($LASTEXITCODE -ne 0) {
+              throw "Agent release $tag exists but the canonical EXE cannot be downloaded."
+            }
+            gh release download $tag --repo "${{ github.repository }}" --pattern "Agent.Auto.Confirm.Pick.Pack.exe.sha256" --dir $verifyDir
+            if ($LASTEXITCODE -ne 0) {
+              gh release download $tag --repo "${{ github.repository }}" --pattern "Agent Auto Confirm Pick Pack.exe.sha256" --dir $verifyDir
+            }
+            if ($LASTEXITCODE -ne 0) {
+              throw "Agent release $tag exists but the checksum asset cannot be downloaded."
+            }
+
+            $releasedExe = Get-ChildItem $verifyDir -Filter "*.exe" | Where-Object { $_.Name -notlike "SUPRA-Inventory-Relay-Test*" } | Select-Object -First 1
+            $releasedShaFile = Get-ChildItem $verifyDir -Filter "*.sha256" | Where-Object { $_.Name -notlike "SUPRA-Inventory-Relay-Test*" } | Select-Object -First 1
+            if ($null -eq $releasedExe -or $null -eq $releasedShaFile) {
+              throw "Agent release $tag is missing canonical release assets."
+            }
+            $releasedSha = (Get-Content $releasedShaFile.FullName -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+            $actualReleasedSha = (Get-FileHash $releasedExe.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($releasedSha -ne $actualReleasedSha) {
+              throw "Agent release $tag checksum does not match the published EXE."
+            }
+
+            $channelSourceExe = $releasedExe.FullName
+            $channelSourceSha = $releasedShaFile.FullName
+            Write-Host "Agent release $tag already exists and relay-agent source tree is unchanged; reuse published release assets."
+          } else {
+            gh release create $tag `
+              "$primary#Agent Auto Confirm Pick Pack.exe" `
+              "$primarySha#Agent Auto Confirm Pick Pack.exe.sha256" `
+              "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe#SUPRA-Inventory-Relay-Test.exe" `
+              "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256#SUPRA-Inventory-Relay-Test.exe.sha256" `
+              "relay-agent/dist/README.md#README.md" `
+              --repo "${{ github.repository }}" `
+              --title "Agent Auto Confirm Pick Pack v$version" `
+              --notes "Beta Agent for Pick Pack / Inventory confirmation relay. D126 keeps Firestore PRIMARY/STANDBY/FROZEN HA and replaces Supra session/API integration with user-login managed-browser DOM confirmation. Mutation is fail-closed to the exact matched row checkbox and exact Xác nhận lấy lại hàng button. SKU updates are manual-file-only." `
+              --prerelease
+            if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
+          }
+
+          $channel = "inventory-channel"
+          gh release view $channel --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $channel --repo "${{ github.repository }}" --target "$env:GITHUB_SHA" --title "SUPRA Inventory runtime channel" --notes "Machine-readable Beta distribution channel. Do not install directly from this release page." --prerelease
+            if ($LASTEXITCODE -ne 0) {
+              gh release view $channel --repo "${{ github.repository }}" *> $null
+              if ($LASTEXITCODE -ne 0) { throw "Unable to create or read runtime channel release." }
+            }
+          }
+          $aliasExe = "relay-agent/dist/Agent.Auto.Confirm.Pick.Pack.exe"
+          $aliasSha = "relay-agent/dist/Agent.Auto.Confirm.Pick.Pack.exe.sha256"
+          Copy-Item $channelSourceExe $aliasExe -Force
+          Copy-Item $channelSourceSha $aliasSha -Force
+          $sha256 = (Get-Content $aliasSha -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+          $size = (Get-Item $aliasExe).Length
+          $manifest = [ordered]@{
+            schema_version = 1
+            channel = "beta"
+            tag = $tag
+            name = "Agent Auto Confirm Pick Pack v$version"
+            published_at = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+            source = $releaseSource
+            asset_name = "Agent.Auto.Confirm.Pick.Pack.exe"
+            size_bytes = $size
+            sha256 = $sha256
+          } | ConvertTo-Json -Compress
+          $manifest | Set-Content "relay-agent/dist/agent-latest.json" -Encoding utf8
+          gh release upload $channel $aliasExe $aliasSha "relay-agent/dist/agent-latest.json" --repo "${{ github.repository }}" --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Unable to update stable Agent runtime channel." }
+          Write-Host "Updated stable Agent runtime channel $channel -> $tag"
+
+      - name: Publish Agent-owned Fixed WebView2 browser bundle
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $resolve = node tools/d127_resolve_webview2_fixed.js latest
+          if ($LASTEXITCODE -ne 0) { throw "Unable to resolve the latest official Fixed WebView2 x64 package." }
+          $match = [regex]::Match(($resolve -join "`n"), 'version=(\d+(?:\.\d+){3})')
+          if (-not $match.Success) { throw "Resolved WebView2 version was not returned." }
+          $runtimeVersion = $match.Groups[1].Value
+          $hostBuild = 2
+          $channel = "inventory-channel"
+          $asset = "Agent.WebView2.FixedRuntime.x64.zip"
+          $assetSha = "$asset.sha256"
+          $manifestName = "agent-browser-latest.json"
+          $reuse = $false
+          $probeDir = Join-Path $env:RUNNER_TEMP "wv2-channel-probe"
+          Remove-Item $probeDir -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $probeDir | Out-Null
+          gh release download $channel --repo "${{ github.repository }}" --pattern $manifestName --dir $probeDir 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            try {
+              $existing = Get-Content (Join-Path $probeDir $manifestName) -Raw | ConvertFrom-Json
+              if ($existing.version -eq $runtimeVersion -and
+                  [int]$existing.host_build -eq $hostBuild -and
+                  $existing.sha256 -match '^[0-9a-f]{64}$') {
+                gh release download $channel --repo "${{ github.repository }}" --pattern $asset --dir $probeDir 2>$null
+                gh release download $channel --repo "${{ github.repository }}" --pattern $assetSha --dir $probeDir 2>$null
+                if ($LASTEXITCODE -eq 0) {
+                  $actual = (Get-FileHash (Join-Path $probeDir $asset) -Algorithm SHA256).Hash.ToLowerInvariant()
+                  $expected = (Get-Content (Join-Path $probeDir $assetSha) -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+                  if ($actual -eq $expected -and $actual -eq [string]$existing.sha256) { $reuse = $true }
+                }
+              }
+            } catch {}
+          }
+          if ($reuse) {
+            Write-Host "Owned WebView2 bundle $runtimeVersion already verified on $channel."
+            exit 0
+          }
+
+          $work = Join-Path $env:RUNNER_TEMP "wv2-fixed-$runtimeVersion"
+          Remove-Item $work -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $work | Out-Null
+          $filename = "Microsoft.WebView2.FixedVersionRuntime.$runtimeVersion.x64.cab"
+          $cab = Join-Path $work $filename
+          node tools/d127_resolve_webview2_fixed.js $runtimeVersion $cab
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path $cab)) {
+            throw "Unable to download official Microsoft Fixed WebView2 x64 CAB for $runtimeVersion."
+          }
+          if ((Get-Item $cab).Length -lt 100MB) { throw "Downloaded Fixed WebView2 CAB is unexpectedly small." }
+
+          $expanded = Join-Path $work "expanded"
+          New-Item -ItemType Directory -Force -Path $expanded | Out-Null
+          & expand.exe $cab -F:* $expanded | Out-Host
+          if ($LASTEXITCODE -ne 0) { throw "Unable to extract Fixed WebView2 CAB." }
+          $engine = Get-ChildItem $expanded -Recurse -Filter msedgewebview2.exe | Select-Object -First 1
+          if ($null -eq $engine) { throw "Fixed WebView2 runtime executable not found after extraction." }
+          $runtimeRoot = $engine.Directory.FullName
+
+          $bundle = Join-Path $work "bundle"
+          $hostDir = Join-Path $bundle "host"
+          $runtimeDir = Join-Path $bundle "runtime"
+          New-Item -ItemType Directory -Force -Path $hostDir | Out-Null
+          New-Item -ItemType Directory -Force -Path $runtimeDir | Out-Null
+          Copy-Item "relay-agent-webview2-host/bin/Release/net48/*" $hostDir -Recurse -Force
+          Copy-Item (Join-Path $runtimeRoot "*") $runtimeDir -Recurse -Force
+          if (-not (Test-Path (Join-Path $hostDir "SUPRA.Inventory.WebView2Host.exe"))) { throw "Owned host missing from browser bundle." }
+          if (-not (Test-Path (Join-Path $runtimeDir "msedgewebview2.exe"))) { throw "Fixed runtime missing from browser bundle." }
+
+          $zip = Join-Path $work $asset
+          Compress-Archive -Path (Join-Path $bundle "*") -DestinationPath $zip -CompressionLevel Optimal
+          $sha256 = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$sha256  $asset" | Set-Content (Join-Path $work $assetSha) -Encoding ascii
+          $size = (Get-Item $zip).Length
+          $manifest = [ordered]@{
+            schema_version = 1
+            channel = "beta"
+            version = $runtimeVersion
+            host_build = $hostBuild
+            host_arch = "x64"
+            asset_name = $asset
+            size_bytes = $size
+            sha256 = $sha256
+          } | ConvertTo-Json -Compress
+          $manifest | Set-Content (Join-Path $work $manifestName) -Encoding utf8
+
+          gh release upload $channel $zip (Join-Path $work $assetSha) (Join-Path $work $manifestName) --repo "${{ github.repository }}" --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent-owned browser bundle." }
+          Write-Host "Published Agent-owned Fixed WebView2 $runtimeVersion bundle size=$size sha256=$sha256"
+
+ } |
+            Select-Object -First 1
+          if ($null -eq $loaderSource) { throw "WebView2Loader x64 missing from host build output." }
+          $loaderDir = Join-Path $hostDir "loader/x64"
+          New-Item -ItemType Directory -Force -Path $loaderDir | Out-Null
+          Copy-Item $loaderSource.FullName (Join-Path $loaderDir "WebView2Loader.dll") -Force
+
+          function Get-PeMachine([string]$path) {
+            $stream = [System.IO.File]::OpenRead($path)
+            try {
+              $reader = New-Object System.IO.BinaryReader($stream)
+              $stream.Position = 0x3c
+              $peOffset = $reader.ReadInt32()
+              $stream.Position = $peOffset + 4
+              return $reader.ReadUInt16()
+            } finally {
+              $stream.Dispose()
+            }
+          }
+
+          $hostMachine = Get-PeMachine (Join-Path $hostDir "SUPRA.Inventory.WebView2Host.exe")
+          $loaderMachine = Get-PeMachine (Join-Path $loaderDir "WebView2Loader.dll")
+          if ($hostMachine -ne 0x8664) { throw "Owned WebView2 host PE machine is not AMD64: $hostMachine" }
+          if ($loaderMachine -ne 0x8664) { throw "WebView2Loader PE machine is not AMD64: $loaderMachine" }
+
+          Copy-Item (Join-Path $runtimeRoot "*") $runtimeDir -Recurse -Force
+          if (-not (Test-Path (Join-Path $hostDir "SUPRA.Inventory.WebView2Host.exe"))) { throw "Owned host missing from browser bundle." }
+          if (-not (Test-Path (Join-Path $hostDir "loader/x64/WebView2Loader.dll"))) { throw "Owned host x64 WebView2Loader missing from browser bundle." }
+          if (-not (Test-Path (Join-Path $runtimeDir "msedgewebview2.exe"))) { throw "Fixed runtime missing from browser bundle." }
+
+          $zip = Join-Path $work $asset
+          Compress-Archive -Path (Join-Path $bundle "*") -DestinationPath $zip -CompressionLevel Optimal
+          $sha256 = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$sha256  $asset" | Set-Content (Join-Path $work $assetSha) -Encoding ascii
+          $size = (Get-Item $zip).Length
+          $manifest = [ordered]@{
+            schema_version = 1
+            channel = "beta"
+            version = $runtimeVersion
+            host_build = $hostBuild
+            host_arch = "x64"
+            asset_name = $asset
+            size_bytes = $size
+            sha256 = $sha256
+          } | ConvertTo-Json -Compress
+          $manifest | Set-Content (Join-Path $work $manifestName) -Encoding utf8
+
+          gh release upload $channel $zip (Join-Path $work $assetSha) (Join-Path $work $manifestName) --repo "${{ github.repository }}" --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent-owned browser bundle." }
+          Write-Host "Published Agent-owned Fixed WebView2 $runtimeVersion bundle size=$size sha256=$sha256"
+
+ } |
+            Select-Object -First 1
+          if ($null -eq $loaderX64) { throw "WebView2Loader x64 was not produced by the WebView2 SDK build." }
+          Write-Host "Agent-owned WebView2 host build PASS loader=$($loaderX64.FullName)"
 
       - name: Build lightweight Windows Agent
         shell: pwsh
