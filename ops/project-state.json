@@ -896,7 +896,8 @@
     "D115 release evidence: beta-vc71 release 395262617 asset 585009621 size 19019872 sha256 f1137dccd460133e5fdc41836658c6bb6b41a885f41f4ba16ca908a0c96d3d1d; relay-agent-v34 release 395262208 asset 585008591 size 294400 sha256 eef4e6e6bbb20f7fad223ba4c7a7081200eecbe74af1e43c4335fd78034f4285; both tags resolve to bcbabc09. Fixed inventory-channel refreshed with PDA manifest/APK 585009672/585009671 and Agent manifest/EXE 585008719/585008720.",
     "D120 Picker-presence hotfix is released on main 916bcc16de57740e3413dd346610d74c19ec7fcf as relay-agent-v41; main Authority/State/UI/Agent gates PASS. D121 starts from this exact released baseline.",
     "D121 PR #191 final head da3092bc: Repo Authority 36203031181, Project State 36203031122, Relay Agent 36203031105, UI 36203031039, Firestore 36203031044 and RTDB 36203031037 all PASS.",
-    "D121 merged main a3c841ae2961dac6eb5ad0f1909b2e5cd89c0242: Repo Authority 36203135356, Project State 36203135417, Relay Agent 36203135376 and UI Design 36203135357 PASS. relay-agent-v42 release 396990498 asset 589509071 size 358400 SHA-256 08a55caa7b350d23e99eba9eef97b93744fd32b6e9072792d22411578559c1bd; inventory-channel Agent alias updated."
+    "D121 merged main a3c841ae2961dac6eb5ad0f1909b2e5cd89c0242: Repo Authority 36203135356, Project State 36203135417, Relay Agent 36203135376 and UI Design 36203135357 PASS. relay-agent-v42 release 396990498 asset 589509071 size 358400 SHA-256 08a55caa7b350d23e99eba9eef97b93744fd32b6e9072792d22411578559c1bd; inventory-channel Agent alias updated.",
+    "D124 technical/runtime/release PASS 2026-09-26: PR #195 final head fde674d1 passed Repo Authority 36213350980, Project State 36213350966, UI 36213350983, Beta Functions 36213350988, Relay Agent 36213350951, Firestore 36213350939 and RTDB 36213350967; squash-merged to main ec0584c303b17c026a03f65c200ab3b7afecb8ae. Main Repo Authority 36213484175, Project State 36213484169, UI 36213484176, Beta Functions 36213484153 and Relay Agent 36213484181 PASS. skuSyncCreated redeployed successfully with RUNNING acknowledgement. relay-agent-v45 release 397052383 asset 589796709 size 345600 SHA-256 e1b6a4f2b377142f4c3054d4c09adf02655efd9b3126f473daf0d6b511684e59 is tagged exactly at main; inventory-channel Agent manifest/EXE 589796792/589796789 refreshed. OA050 field review remains; Stable untouched."
   ],
   "last_runtime_evidence": {
     "signed_beta_release": "beta-vc74",
@@ -905,7 +906,7 @@
     "signed_beta_apk_asset_id": 586922345,
     "signed_beta_apk_size_bytes": 19019872,
     "signed_beta_apk_sha256": "c515a17456d3384a2433feb04df5b2fce8d3487a519fbb2d8522ba8a8dc756b1",
-    "relay_agent_release": "relay-agent-v38",
+    "relay_agent_release": "relay-agent-v45",
     "d109": "TECHNICAL_RUNTIME_RELEASE_PASS__OA029_FIELD_READY",
     "d109_main": "367d518d5e76ce5f7c0776ff8f6a3857ef2a9f94",
     "d109_pr": 154,
@@ -951,10 +952,10 @@
     "d112_branch": "feat/d112-web-android-agent-ops-hardening",
     "d112_target_android": "NEXT_AFTER_BETA_VC67",
     "d112_target_agent": "relay-agent-v31",
-    "relay_agent_release_id": 396107251,
-    "relay_agent_exe_asset_id": 586921932,
-    "relay_agent_exe_size_bytes": 305664,
-    "relay_agent_exe_sha256": "24961379327c441a6d686ac4059fd9020ce91d6ee8564cab6c2c2a1893f65bf0",
+    "relay_agent_release_id": 397052383,
+    "relay_agent_exe_asset_id": 589796709,
+    "relay_agent_exe_size_bytes": 345600,
+    "relay_agent_exe_sha256": "e1b6a4f2b377142f4c3054d4c09adf02655efd9b3126f473daf0d6b511684e59",
     "d112_main": "92aff2fd7b617af9f8f7706e84a5232b81aab42a",
     "d112_pr": 162,
     "d112_pr_runs": {
@@ -1090,18 +1091,55 @@
       "agent_sha256": "644609140316a9050336673f8c73bb1bcf8db26614c69216da840377d7dc1f47",
       "stable": "OWNER_GATED_UNTOUCHED"
     },
-    "d124": {
-      "status": "SOURCE_IN_PROGRESS__PR_GATES_RUNNING",
-      "branch": "fix/d124-agent-sku-daily-no-overlay",
-      "baseline_main": "9da487ff341cf31fe61a944b3c41b9fe20c094de",
-      "baseline_agent_release": "relay-agent-v44",
-      "target_agent_release": "relay-agent-v45",
-      "scope": "AGENT_OVERLAY_REMOVAL__REQUEST_METRICS__SKU_PROGRESS__SINGLE_DAILY_SERVICE_LOCK",
-      "protected_contracts": "D123_UI_THREAD__D120_PICKER__D117_D118_CONFIRMATION_HA_GENERATION_WMS_MUTATION_UNCHANGED",
-      "new_resources": "NONE",
-      "stable": "OWNER_GATED_UNTOUCHED",
-      "owner_field_action": "OA050",
-      "implementation_pr": 195
+    "d124": "TECHNICAL_RUNTIME_RELEASE_PASS__OA050_FIELD_READY",
+    "d124_main": "ec0584c303b17c026a03f65c200ab3b7afecb8ae",
+    "d124_pr": 195,
+    "d124_main_runs": {
+      "repo_authority": 36213484175,
+      "project_state": 36213484169,
+      "ui": 36213484176,
+      "beta_functions": 36213484153,
+      "relay_agent": 36213484181
     }
+  },
+  "d124": {
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA050_FIELD_READY",
+    "branch": "fix/d124-agent-sku-daily-no-overlay",
+    "baseline_main": "9da487ff341cf31fe61a944b3c41b9fe20c094de",
+    "baseline_agent_release": "relay-agent-v44",
+    "target_agent_release": "relay-agent-v45",
+    "scope": "AGENT_OVERLAY_REMOVAL__REQUEST_METRICS__SKU_PROGRESS__SINGLE_DAILY_SERVICE_LOCK",
+    "protected_contracts": "D123_UI_THREAD__D120_PICKER__D117_D118_CONFIRMATION_HA_GENERATION_WMS_MUTATION_UNCHANGED",
+    "new_resources": "NONE",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "owner_field_action": "OA050",
+    "implementation_pr": 195,
+    "merged_main": "ec0584c303b17c026a03f65c200ab3b7afecb8ae",
+    "pr_head": "fde674d1f69b6ee03445d44f0b8e58c577479784",
+    "pr_runs": {
+      "repo_authority": 36213350980,
+      "project_state": 36213350966,
+      "ui": 36213350983,
+      "beta_functions": 36213350988,
+      "relay_agent": 36213350951,
+      "firestore": 36213350939,
+      "rtdb": 36213350967
+    },
+    "main_runs": {
+      "repo_authority": 36213484175,
+      "project_state": 36213484169,
+      "ui": 36213484176,
+      "beta_functions": 36213484153,
+      "relay_agent": 36213484181
+    },
+    "functions": "PASS__SKU_SYNC_CREATED_REDEPLOYED_WITH_RUNNING_ACK",
+    "agent_release": "relay-agent-v45",
+    "agent_release_id": 397052383,
+    "agent_asset_id": 589796709,
+    "agent_size_bytes": 345600,
+    "agent_sha256": "e1b6a4f2b377142f4c3054d4c09adf02655efd9b3126f473daf0d6b511684e59",
+    "inventory_channel_release_id": 394587029,
+    "inventory_channel_agent_manifest_asset_id": 589796792,
+    "inventory_channel_agent_exe_asset_id": 589796789
   }
 }
