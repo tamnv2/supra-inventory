@@ -464,6 +464,6 @@ D126 supersedes D125 as the current Owner-approved implementation direction.
 - Firestore request/ACK, HA ownership, confirmation guards, anti-spam, operating schedule, Picker presence/contact and Báo hàng behavior remain unless explicitly changed by D126.
 - SKU master is manual-file-only through the existing authorized file-import workflow. WMS/Tồn Bin SKU synchronization is retired; automatic SKU update is deferred.
 - D125 Office-client rewrite is cancelled before implementation.
-- Field evidence on `relay-agent-v46` found a readiness defect: the managed browser can be logged in on the registered Confirm PickList page while Agent remains `ready=0`. The v47 semantic-DOM hotfix is now merged, technically verified and published through `inventory-channel`; OA051 real-Supra field re-test is the remaining acceptance layer.
+- Field re-test on released `relay-agent-v47` still fails readiness on the correct Confirm page: sanitized diagnostics resolve the table and confirmation control but not the `Tìm kiếm` control (`search=0`, `confirm=1`, `table=1`), and the same run exposes DevTools target/socket recovery failure. D126-H2 targets `relay-agent-v48` with exact-label search recognition plus local DevTools reattach/restart recovery while preserving all no-session-extraction/no-direct-WMS-API guards.
 - Stable remains OWNER-GATED.
 
