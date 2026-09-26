@@ -1166,3 +1166,15 @@ Status: **TECHNICAL / RELEASE PASS — OWNER FIELD RE-TEST REQUIRED**.
 - `relay-agent-v47` is published as prerelease `397141086`; canonical EXE asset `590174179`, size `288256`, SHA-256 `3f31cfc6efd2a7deacdb2ca58066852f40e126ee6255d205c51fb70da3f28cfc`. The fixed `inventory-channel` now serves v47 through manifest asset `590174265` and EXE asset `590174261`.
 - This evidence closes the automated technical/release layer only. OA051 remains open because the real company Supra DOM/login and guarded business click must be re-tested physically on v47 before D126 can be field-PASS.
 
+
+
+### D126-H2 — Search-control and DevTools recovery field hotfix — 2026-09-26
+
+Status: **OWNER-REPORTED FIELD DEFECT / HOTFIX IN PROGRESS**.
+
+- Owner field evidence on released `relay-agent-v47` confirms the correct registered Confirm PickList page is loaded and the browser DOM is partially recognized, but readiness remains false. Sanitized diagnostics show `search=0`, `confirm=1`, `confirm_visible=1`, `table=1`, `frames=0`; therefore the current readiness blocker is the **Tìm kiếm** control recognizer rather than page URL, login state, table presence or confirmation-control presence.
+- The same field run shows a later DevTools WebSocket loss followed by repeated loopback attach failure while the browser window remains open. v48 must first reattach to the existing managed-browser DevTools port/target; only if that local reattach is impossible may it close/restart the managed browser process and reopen the same registered page.
+- Search recognition remains semantic DOM-only and fail-closed. For the non-mutating **Tìm kiếm** action, v48 may resolve one unique visible exact normalized label from element text/value, `aria-label`, `title`, or a unique exact-text leaf whose click bubbles to the page handler. Zero or multiple candidates block the search click.
+- The one-search-retry limit is unchanged. This fallback applies only to the **Tìm kiếm** action; the business mutation still requires the exact row checkbox plus exactly one visible enabled semantic **Xác nhận lấy lại hàng** control.
+- DevTools recovery must remain loopback-only and must not enable the browser Network domain, inspect requests, read cookies/storage, extract/persist/replay Supra authentication material or call WMS APIs.
+- Target release is `relay-agent-v48`. Android remains `beta-vc76`; SKU remains manual-file-only; Stable remains OWNER-GATED and untouched.
