@@ -1200,3 +1200,15 @@ Status: **TECHNICAL / RELEASE PASS — OWNER FIELD RE-TEST REQUIRED**.
 - `relay-agent-v49` release id `397195742`; canonical EXE asset `590463163`, size `297984`, SHA-256 `9c8cc4054501871443eba905dd4bc03c1dd2c6b94590bbd318eecdb3e0899dc4`. The tag points exactly to `3a45ca0ccb62aaa6e67a9f41c0f7aac1d0f2cb39`.
 - `inventory-channel` now serves v49 through manifest asset `590463228` and EXE asset `590463226`.
 - Automated technical/release evidence is PASS. OA051 remains open for real-Supra field acceptance on v49.
+
+
+### D126-H4 — Guarded second-step confirmation dialog — 2026-09-26
+
+Status: **OWNER APPROVED / IMPLEMENTATION IN PROGRESS**.
+
+- Owner field observation confirms that selecting the exact PickList row checkbox and clicking **Xác nhận lấy lại hàng** does not complete the business action immediately. Supra opens a second confirmation dialog.
+- The real dialog is identified by the exact normalized title **XÁC NHẬN LẤY LẠI HÀNG**, exact normalized body **Bạn có chắc chắn cho phép lấy hàng lại không?**, one exact **Xác nhận** action and one exact **Đóng** action inside the same visible dialog surface.
+- The Agent must treat this dialog as a mandatory second step of the already-authorized mutation. After the existing exact-row/checkbox/exact-main-button guards pass, it waits a short bounded interval for exactly one matching dialog and automatically clicks only that dialog's exact **Xác nhận** action.
+- A missing, ambiguous, structurally mismatched or disabled dialog/confirm action fails closed. The Agent must never use a page-global generic **Xác nhận** button and must never click the dialog's **Đóng** action as a fallback.
+- Success is still not inferred from the modal click alone. Existing post-action DOM success/error/row-removal evidence remains required; uncertain state remains non-success and is not blindly retried.
+- No session/network/API boundary changes are authorized. Target release is `relay-agent-v50`; Android remains `beta-vc76`; SKU remains manual-file-only; Stable remains OWNER-GATED and untouched.

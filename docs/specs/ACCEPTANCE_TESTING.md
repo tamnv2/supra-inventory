@@ -1309,8 +1309,8 @@ D126 cannot PASS until all applicable checks below pass:
 7. An initial zero-match may trigger exactly one semantic **Tìm kiếm** click and one re-resolution. A second miss returns not found without mutation.
 8. Manual Agent flow displays the unique full code and waits for the Agent operator confirmation action. Immediately before mutation it re-resolves the exact row.
 9. PDA flow skips that extra human Agent confirmation only after the same unique DOM resolution and existing HA/guard/rate-limit checks.
-10. Mutation selects only the checkbox contained in the re-resolved full-code row, verifies checked state, then clicks exactly one enabled button whose normalized visible text is **Xác nhận lấy lại hàng**.
-11. Any missing/multiple/changed row, checkbox or confirmation button aborts. Tests prove Agent never chooses **Xác nhận hoàn thành lấy hàng**, **Xuất File** or another neighboring control.
+10. Mutation selects only the checkbox contained in the re-resolved full-code row, verifies checked state, then clicks exactly one enabled button whose normalized visible text is **Xác nhận lấy lại hàng**. It must then require exactly one visible second-step dialog with exact title **XÁC NHẬN LẤY LẠI HÀNG**, exact question **Bạn có chắc chắn cho phép lấy hàng lại không?**, exactly one scoped **Xác nhận** action and exactly one scoped **Đóng** action; only **Xác nhận** may be clicked.
+11. Any missing/multiple/changed row, checkbox, primary confirmation button, dialog, dialog title/body or dialog action aborts. Tests prove Agent never chooses **Xác nhận hoàn thành lấy hàng**, **Xuất File**, dialog **Đóng**, or a page-global generic **Xác nhận** control.
 12. No coordinate-only mouse automation is used for the confirmation mutation.
 13. Uncertain post-click state is not reported as success and is not blindly retried.
 14. D117/D118 HA/generation/freshness semantics, D120 Picker presence, D123 UI-thread safety, D124 Agent counters/no-overlay behavior and Báo hàng remain functional except where explicitly superseded by D126.
@@ -1334,3 +1334,12 @@ D126 cannot PASS until all applicable checks below pass:
 - Readiness diagnostics may expose only exact/decorated match counts.
 - **Xác nhận lấy lại hàng** remains exact-label-only and all D126 row, checkbox, checked-state and wrong-button guards remain unchanged.
 - Physical OA051 PASS requires `relay-agent-v49` to reach **Web Confirm sẵn sàng** on the real page before the remaining lookup and confirmation field checks continue.
+
+
+### D126-H4 second-step modal acceptance
+
+- The primary **Xác nhận lấy lại hàng** click is not terminal success; Agent must observe the exact second-step confirmation dialog and activate only its uniquely scoped **Xác nhận** action.
+- Missing dialog, duplicate dialog, title/body mismatch, duplicate/missing/disabled dialog confirm, or missing/duplicate **Đóng** shape guard must fail closed without a fallback click.
+- The generic word **Xác nhận** is permitted only inside the uniquely identified exact dialog. No page-global generic confirmation search is allowed.
+- After the modal click, existing terminal DOM success/error or stable row-removal evidence is still required. Modal click alone is never reported as success.
+- Physical OA051 PASS requires the real v50 flow to complete checkbox → **Xác nhận lấy lại hàng** → dialog **Xác nhận** → trusted terminal result.

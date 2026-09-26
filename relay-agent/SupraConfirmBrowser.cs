@@ -74,6 +74,10 @@ namespace SupraInventoryRelayAgent
         private const string ConfirmPath = "/sft3/app/saleorder/auto-pickpack-confirm";
         private const string SearchText = "Tìm kiếm";
         private const string ConfirmText = "Xác nhận lấy lại hàng";
+        private const string ConfirmDialogTitle = "XÁC NHẬN LẤY LẠI HÀNG";
+        private const string ConfirmDialogBody = "Bạn có chắc chắn cho phép lấy hàng lại không?";
+        private const string ConfirmDialogButtonText = "Xác nhận";
+        private const string ConfirmDialogCloseText = "Đóng";
 
         internal SupraConfirmBrowser(Action<string> log)
         {
@@ -254,6 +258,7 @@ namespace SupraInventoryRelayAgent
                 var raw = EvaluateJsonNoLock(mutationScript);
                 var map = _json.DeserializeObject(raw) as Dictionary<string, object>;
                 var stepResult = map == null ? "DOM_ERROR" : String(map, "result");
+                var stepStage = map == null ? "" : String(map, "stage");
 
                 if (!string.Equals(stepResult, "CLICKED", StringComparison.Ordinal))
                 {
@@ -264,6 +269,9 @@ namespace SupraInventoryRelayAgent
                     _log("SUPRA_BROWSER confirm result=" + result.Result + " phase=pre_click detail=" + stepResult);
                     return result;
                 }
+
+                _log("SUPRA_BROWSER confirm guard stage=" + (string.IsNullOrWhiteSpace(stepStage) ? "UNKNOWN" : stepStage) +
+                     " dialog_required=true");
 
                 // Only DOM state is observed after the exact semantic click.
                 // A visible success surface or disappearance of the exact row is trusted;
@@ -641,6 +649,13 @@ namespace SupraInventoryRelayAgent
                 case "CHECKBOX_VERIFY_FAILED":
                 case "CONFIRM_BUTTON_NOT_UNIQUE":
                 case "CONFIRM_BUTTON_DISABLED":
+                case "CONFIRM_DIALOG_NOT_FOUND":
+                case "CONFIRM_DIALOG_AMBIGUOUS":
+                case "CONFIRM_DIALOG_TITLE_MISMATCH":
+                case "CONFIRM_DIALOG_BODY_MISMATCH":
+                case "CONFIRM_DIALOG_BUTTON_NOT_UNIQUE":
+                case "CONFIRM_DIALOG_BUTTON_DISABLED":
+                case "CONFIRM_DIALOG_CLOSE_NOT_UNIQUE":
                 case "PAGE_NOT_READY":
                     return "CONFIRM_REJECTED";
                 default:
@@ -882,7 +897,83 @@ namespace SupraInventoryRelayAgent
               const confirm = confirmButtons[0];
               if (confirm.disabled || confirm.getAttribute('aria-disabled') === 'true') return JSON.stringify({result:'CONFIRM_BUTTON_DISABLED'});
               confirm.click();
-              return JSON.stringify({result:'CLICKED'});
+
+              const dialogTitle = '" + ConfirmDialogTitle + @"';
+              const dialogBody = '" + ConfirmDialogBody + @"';
+              const dialogConfirmText = '" + ConfirmDialogButtonText + @"';
+              const dialogCloseText = '" + ConfirmDialogCloseText + @"';
+              const fold = v => norm(v).toLowerCase();
+              const exact = (e, value) => fold(txt(e)) === fold(value);
+              const semanticButtons = root => [...root.querySelectorAll('button,input[type=button],input[type=submit],a,[role=button]')].filter(visible);
+              const exactVisibleDescendants = (root, value) => {
+                const nodes = [root, ...root.querySelectorAll('*')];
+                return nodes.filter(e =>
+                  visible(e) && exact(e, value) &&
+                  ![...e.children].some(child => visible(child) && exact(child, value)));
+              };
+              const dialogSelector = '[role=dialog],.modal-dialog,.modal-content,.mat-dialog-container,.mat-mdc-dialog-container,.ant-modal,.swal2-popup';
+              const resolveDialog = () => {
+                const candidates = new Set();
+                for (const d of docs) {
+                  for (const node of [...d.querySelectorAll(dialogSelector)].filter(visible)) candidates.add(node);
+                  const titleLeaves = [...d.querySelectorAll('body *')].filter(e =>
+                    visible(e) && exact(e, dialogTitle) &&
+                    ![...e.children].some(child => visible(child) && exact(child, dialogTitle)));
+                  for (const title of titleLeaves) {
+                    let node = title.parentElement;
+                    let depth = 0;
+                    while (node && depth++ < 8) {
+                      if (!visible(node)) { node = node.parentElement; continue; }
+                      const bodyOk = exactVisibleDescendants(node, dialogBody).length === 1;
+                      const actions = semanticButtons(node);
+                      const confirmCount = actions.filter(e => exact(e, dialogConfirmText)).length;
+                      const closeCount = actions.filter(e => exact(e, dialogCloseText)).length;
+                      if (bodyOk && confirmCount === 1 && closeCount === 1) {
+                        candidates.add(node);
+                        break;
+                      }
+                      node = node.parentElement;
+                    }
+                  }
+                }
+
+                let matches = [...candidates].filter(root =>
+                  visible(root) &&
+                  exactVisibleDescendants(root, dialogTitle).length === 1 &&
+                  exactVisibleDescendants(root, dialogBody).length === 1);
+                matches = matches.filter(root =>
+                  !matches.some(other => other !== root && root.contains(other)));
+                if (matches.length === 0) return {result:'WAIT'};
+                if (matches.length !== 1) return {result:'CONFIRM_DIALOG_AMBIGUOUS', count:matches.length};
+
+                const dialog = matches[0];
+                const titleCount = exactVisibleDescendants(dialog, dialogTitle).length;
+                if (titleCount !== 1) return {result:'CONFIRM_DIALOG_TITLE_MISMATCH', count:titleCount};
+                const bodyCount = exactVisibleDescendants(dialog, dialogBody).length;
+                if (bodyCount !== 1) return {result:'CONFIRM_DIALOG_BODY_MISMATCH', count:bodyCount};
+
+                const actions = semanticButtons(dialog);
+                const dialogConfirm = actions.filter(e => exact(e, dialogConfirmText));
+                const dialogClose = actions.filter(e => exact(e, dialogCloseText));
+                if (dialogConfirm.length !== 1) return {result:'CONFIRM_DIALOG_BUTTON_NOT_UNIQUE', count:dialogConfirm.length};
+                if (dialogClose.length !== 1) return {result:'CONFIRM_DIALOG_CLOSE_NOT_UNIQUE', count:dialogClose.length};
+                if (dialogConfirm[0].disabled || dialogConfirm[0].getAttribute('aria-disabled') === 'true')
+                  return {result:'CONFIRM_DIALOG_BUTTON_DISABLED'};
+                return {result:'READY', button:dialogConfirm[0]};
+              };
+
+              const dialogDeadline = Date.now() + 2500;
+              let dialogState = {result:'WAIT'};
+              do {
+                dialogState = resolveDialog();
+                if (dialogState.result !== 'WAIT') break;
+                await new Promise(r => setTimeout(r, 80));
+              } while (Date.now() < dialogDeadline);
+
+              if (dialogState.result === 'WAIT') return JSON.stringify({result:'CONFIRM_DIALOG_NOT_FOUND'});
+              if (dialogState.result !== 'READY') return JSON.stringify({result:dialogState.result, count:dialogState.count || 0});
+              dialogState.button.click();
+              return JSON.stringify({result:'CLICKED', stage:'DIALOG_CONFIRMED'});
             })()";
         }
 

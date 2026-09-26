@@ -573,6 +573,7 @@ D126 cancels the unimplemented D125 removal of Picker `Xác nhận đơn`.
 - Provide **Ẩn trình duyệt** when visible and **Hiện trình duyệt** when hidden. Hiding removes the managed browser window from normal desktop/taskbar presentation but keeps its process alive.
 - Manual PickList search keeps the current Agent input/results pattern. Unique match is displayed; user presses the existing row confirmation action before mutation.
 - PDA jobs use the same browser resolution but do not require the extra Agent confirmation click after a unique match.
+- After the exact row checkbox and **Xác nhận lấy lại hàng** action, Agent expects the Supra confirmation dialog with title **XÁC NHẬN LẤY LẠI HÀNG**, question **Bạn có chắc chắn cho phép lấy hàng lại không?**, and exact actions **Xác nhận / Đóng**. Only the dialog-scoped **Xác nhận** action is permitted.
 - No Supra username/password, cookie, token, session header or signature is shown or stored by Agent.
 
 ### SKU

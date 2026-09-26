@@ -2483,7 +2483,7 @@
     },
     {
       "id": "OA051",
-      "status": "FIELD_RETEST_READY__D126_V49_TECHNICAL_RELEASE_PASS",
+      "status": "PENDING_AFTER_D126_V50_H4_RELEASE",
       "title": "Field-accept D126 managed-browser PickList confirmation",
       "resource_key": "repo",
       "provider": "Beta Android + Firestore + Windows Agent + user-controlled Supra browser",
@@ -2497,7 +2497,7 @@
         "main_project_state_run": 36236408470,
         "main_ui_run": 36236408580,
         "main_agent_run": 36236408518,
-        "target_agent_release": "relay-agent-v49",
+        "target_agent_release": "relay-agent-v50",
         "agent_release_id": 397195742,
         "agent_asset_id": 590463163,
         "agent_sha256": "9c8cc4054501871443eba905dd4bc03c1dd2c6b94590bbd318eecdb3e0899dc4",
@@ -2513,16 +2513,19 @@
         "v48_field_result": "FAIL__CORRECT_CONFIRM_PAGE__SEARCH_0_CONFIRM_1_TABLE_1__DEVTOOLS_RECONNECT_PASS__VISIBLE_SEARCH_ICON_PLUS_LABEL",
         "h3_implementation_pr": 204,
         "h3_baseline_main": "fb1f38105650bc569d8b983205ba168ec5f1e865",
-        "h3_merged_main": "3a45ca0ccb62aaa6e67a9f41c0f7aac1d0f2cb39"
+        "h3_merged_main": "3a45ca0ccb62aaa6e67a9f41c0f7aac1d0f2cb39",
+        "v49_field_result": "PARTIAL__READINESS_FLOW_PROGRESS__PRIMARY_CONFIRM_OPENS_MANDATORY_SECOND_DIALOG_NOT_YET_AUTOMATED",
+        "h4_baseline_main": "d940d2201d2cac382ccd58aa1b36171e7c5dff90",
+        "h4_implementation_pr": 206
       },
       "shortest_test_path": [
-        "Update Beta Agent to relay-agent-v49 while keeping Android beta-vc76 unchanged.",
+        "Update Beta Agent to relay-agent-v50 while keeping Android beta-vc76 unchanged.",
         "Press Truy cập Confirm PickList. If login is required, log in directly inside the opened Supra browser; verify Agent shows Web Confirm sẵn sàng only after the Confirm PickList page is loaded.",
         "Use Ẩn trình duyệt and verify the browser disappears from desktop/taskbar while Agent still reports readiness; use Hiện trình duyệt and verify the same browser returns.",
         "Manual test: enter a suffix with exactly one visible PL+digits match. Agent must display the full PickList and wait for the Agent Xác nhận action.",
         "Manual miss: use a suffix not initially present. Agent may press Tìm kiếm once; if still absent it must report Không tìm thấy and must not check any row.",
         "Ambiguous suffix: verify multiple PL matches never auto-confirm.",
-        "Controlled manual confirmation: verify only the matching row checkbox is selected and only Xác nhận lấy lại hàng is activated; Xác nhận hoàn thành lấy hàng and Xuất File remain untouched.",
+        "Controlled manual confirmation: verify only the exact matched row checkbox is selected, only Xác nhận lấy lại hàng is activated, then the exact XÁC NHẬN LẤY LẠI HÀNG dialog appears and Agent activates only its scoped Xác nhận action; Đóng, Xác nhận hoàn thành lấy hàng and Xuất File remain untouched.",
         "PDA test: submit a unique suffix. The PRIMARY Agent should resolve and confirm automatically after guards, then PDA receives the normal terminal result without a second Agent confirmation click.",
         "Verify no Agent WMS SKU sync action/automatic daily SKU sync remains; update SKU through the existing Web manual file import."
       ],
@@ -2537,7 +2540,7 @@
         "SKU is manual-file-only and Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company Supra accounts. Do not paste or share passwords, cookies, tokens, headers, signatures or other session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Update/restart Agent to v49, confirm START version=0.49.0.0, then rerun OA051 beginning with Web Confirm readiness on the real company Supra page.",
+      "remaining_owner_action": "Wait for relay-agent-v50 technical/release PASS, then update/restart Agent and rerun OA051 including the second-step Supra confirmation dialog. Stable remains untouched.",
       "closed": false
     }
   ]

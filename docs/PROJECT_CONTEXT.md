@@ -460,10 +460,10 @@ D126 supersedes D125 as the current Owner-approved implementation direction.
 - Manual/PDA PickList lookup is DOM-only and accepts only full visible codes matching `^PL[0-9]+$` whose numeric suffix exactly matches the submitted suffix.
 - On an initial miss, Agent may click the exact **Tìm kiếm** button once and retry the rendered table once.
 - Manual Agent requests still require the user to press Agent confirmation. PDA requests auto-confirm after a unique guarded match.
-- Mutation is fail-closed: re-resolve the exact row, select only that row checkbox, verify checked, then click one uniquely identified enabled **Xác nhận lấy lại hàng** button. Never click **Xác nhận hoàn thành lấy hàng** or another nearby button.
+- Mutation is fail-closed: re-resolve the exact row, select only that row checkbox, verify checked, click one uniquely identified enabled **Xác nhận lấy lại hàng** button, then require the exact Supra confirmation dialog and click only its scoped **Xác nhận** action. Never click **Xác nhận hoàn thành lấy hàng**, **Đóng**, or another neighboring/global action as fallback.
 - Firestore request/ACK, HA ownership, confirmation guards, anti-spam, operating schedule, Picker presence/contact and Báo hàng behavior remain unless explicitly changed by D126.
 - SKU master is manual-file-only through the existing authorized file-import workflow. WMS/Tồn Bin SKU synchronization is retired; automatic SKU update is deferred.
 - D125 Office-client rewrite is cancelled before implementation.
-- v48 field re-test isolated the remaining readiness defect to the real magnifying-glass + **Tìm Kiếm** control. D126-H3 is merged and technically released as `relay-agent-v49`, with decorative-icon-tolerant search recognition only; exact confirmation mutation guards remain unchanged. OA051 real-Supra field re-test on v49 is the remaining acceptance layer.
+- D126-H3 is technically released as `relay-agent-v49`. Owner field observation then confirmed Supra has a mandatory second confirmation dialog after **Xác nhận lấy lại hàng**; D126-H4 targets `relay-agent-v50` to require the exact dialog title/body and click only its scoped **Xác nhận** action before existing post-confirm success evidence. OA051 remains open.
 - Stable remains OWNER-GATED.
 
