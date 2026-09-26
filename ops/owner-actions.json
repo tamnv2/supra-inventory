@@ -2388,7 +2388,7 @@
     },
     {
       "id": "OA050",
-      "status": "READY_FOR_OWNER_FIELD_TEST_D124_RELEASE",
+      "status": "CANCELLED_SUPERSEDED_BY_D125_SECURITY_BOUNDARY",
       "title": "Field-accept D124 Agent operational cleanup and single-daily SKU sync",
       "resource_key": "repo",
       "provider": "GitHub Beta prerelease + Beta Functions + Windows Agent",
@@ -2432,8 +2432,13 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company accounts. Do not share passwords, tokens, WMS session/header/signing material or other secrets. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Update Agent through inventory-channel to relay-agent-v45 and run the OA050 physical checks.",
-      "closed": false
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "owner_decision_date": "2026-09-26",
+        "result": "SUPERSEDED__DO_NOT_RUN_D124_WMS_SKU_OR_PICKLIST_FIELD_TESTS",
+        "reason": "D125 retires all project use of Supra/WMS session material, PickList confirmation and WMS-derived SKU synchronization."
+      }
     }
   ]
 }
