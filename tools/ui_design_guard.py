@@ -132,12 +132,13 @@ checks = {
         "AllowUserToResizeColumns = !_autoSizeColumns.Checked",
         "SaveColumnPreferencesForCurrentUser",
     ]),
-    "agent_d122_overlay_crisp_text": all(token in RELAY_OVERLAY for token in [
-        "TransparencyKey = TransparencyColor",
-        "_backgroundLayer",
-        "Opacity = 1.0",
-        "_backgroundLayer.Opacity",
-    ]),
+    "agent_d124_overlay_removed": (
+        "Bảng nổi" not in RELAY_PROGRAM
+        and "StatusOverlay" not in RELAY_PROGRAM
+        and "OverlaySettings" not in RELAY_PROGRAM
+        and not (ROOT / "relay-agent/StatusOverlay.cs").is_file()
+        and not (ROOT / "relay-agent/OverlaySettingsForm.cs").is_file()
+    ),
     "agent_d122_sku_manual_feedback": all(token in RELAY_D119_FEATURES for token in [
         "NotifySkuSyncResult",
         "Cập nhật SKU thành công",
