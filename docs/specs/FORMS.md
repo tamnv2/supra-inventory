@@ -557,3 +557,25 @@ Login **Lưu thông tin đăng nhập** is a browser credential-manager/autofill
 - Replace the Supra/PickList-oriented Agent presentation with an Office Inventory workspace aligned with the Web's operational information architecture.
 - Surfaces may include role-authorized Báo hàng processing, personnel/Picker operations, manual SKU-file import/search and other Web-authorized Inventory functions selected during implementation.
 - There is no Supra login/logout/session state, PickList search/confirm form, Tồn Bin sync control or WMS diagnostic action.
+
+## D126 — Agent-managed Confirm PickList browser
+
+D126 cancels the unimplemented D125 removal of Picker `Xác nhận đơn`.
+
+### Android Picker
+- Keep the currently published `Báo hết hàng / Xác nhận đơn` navigation and PickList suffix form.
+- Existing in-flight disabled state, result presentation, ambiguity handling and ACK behavior remain.
+
+### Windows Agent
+- Hệ thống Supra replaces session-capture/login controls with **Truy cập Confirm PickList** plus browser state.
+- Clicking it opens the registered Confirm PickList page. Login, when required, happens only inside the browser.
+- Ready state is **Web Confirm sẵn sàng** only after the expected page and required DOM controls are uniquely present.
+- Provide **Ẩn trình duyệt** when visible and **Hiện trình duyệt** when hidden. Hiding removes the managed browser window from normal desktop/taskbar presentation but keeps its process alive.
+- Manual PickList search keeps the current Agent input/results pattern. Unique match is displayed; user presses the existing row confirmation action before mutation.
+- PDA jobs use the same browser resolution but do not require the extra Agent confirmation click after a unique match.
+- No Supra username/password, cookie, token, session header or signature is shown or stored by Agent.
+
+### SKU
+- Remove the Agent WMS-derived **Cập nhật SKU** action and automatic SKU sync.
+- Existing authorized Web manual file import remains the SKU update form.
+
