@@ -136,11 +136,15 @@ async function chooseX64(scope, page) {
     ];
     let accept = null;
     for (const candidate of acceptCandidates) {
-      if (await candidate.count()) {
-        const visible = candidate.filter({ visible: true });
-        accept = (await visible.count()) ? visible.last() : candidate.last();
-        break;
+      const count = await candidate.count();
+      for (let i = count - 1; i >= 0; i--) {
+        const item = candidate.nth(i);
+        if (await item.isVisible().catch(() => false)) {
+          accept = item;
+          break;
+        }
       }
+      if (accept) break;
     }
     if (!accept) {
       throw new Error("Microsoft download consent did not expose an Accept and Download control.");
