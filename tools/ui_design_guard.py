@@ -89,6 +89,7 @@ checks = {
     "authority_no_offline_mode": "D043" in DECISIONS and "No offline business mode" in DESIGN_SPEC,
     "authority_d121_agent_responsive_layout": "D121" in DECISIONS and "D121 — Windows Agent balanced workspace and responsive status line" in DESIGN_SPEC,
     "authority_d122_agent_stability_ops_ux": "D122" in DECISIONS and "D122 — Agent stability, operational UX and session recovery" in DESIGN_SPEC,
+    "authority_d123_agent_ui_thread_affinity": "D123" in DECISIONS and "D123 — Agent UI-thread affinity and startup hang repair" in DESIGN_SPEC,
     "agent_d122_weighted_left_regions": all(token in RELAY_PROGRAM for token in [
         "SizeType.Percent, 50F",
         "SizeType.Percent, 25F",
@@ -142,6 +143,18 @@ checks = {
         "Cập nhật SKU thành công",
         "Giữ nguyên:",
     ]),
+    "agent_d123_ui_thread_affinity": all(token in RELAY_PROGRAM for token in [
+        "D123: SetAgentAuthUi is called from startup/login/session-recovery worker tasks.",
+        "ApplyD119AuthenticatedLayout(authenticated);",
+    ]) and all(token in RELAY_D119_FEATURES for token in [
+        "private void ApplyD119AuthenticatedLayout(bool authenticated)",
+        "private void ApplyColumnSizingIfEnabled(DataGridView grid)",
+        "grid.InvokeRequired",
+        "private void RefreshD119OperationalViews(bool force)",
+        "private void RenderPickerOnlineSnapshot()",
+        "private void RenderFleetMetricStatus(bool primary)",
+    ]) and RELAY_D119_FEATURES.count("InvokeRequired") >= 7
+       and "}\n            ApplyD119AuthenticatedLayout(authenticated);" not in RELAY_PROGRAM,
     "web_d122_shift_operations": all(token in WEB_APP for token in [
         '"shift"',
         "function renderShiftOperations()",
