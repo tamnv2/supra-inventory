@@ -1245,6 +1245,11 @@ namespace SupraInventoryRelayAgent
 
         private void UpdateAgentFleetGrid(List<AgentPresenceView> agents)
         {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<List<AgentPresenceView>>(UpdateAgentFleetGrid), agents);
+                return;
+            }
             var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             var normalized = agents ?? new List<AgentPresenceView>();
             var signature = new StringBuilder();
@@ -1298,6 +1303,11 @@ namespace SupraInventoryRelayAgent
 
         private void ApplyAfterHoursAgentLayout(bool visible)
         {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<bool>(ApplyAfterHoursAgentLayout), visible);
+                return;
+            }
             if (_afterHoursLayoutVisible.HasValue && _afterHoursLayoutVisible.Value == visible) return;
             _afterHoursLayoutVisible = visible;
             _afterHoursPanel.Visible = visible;
@@ -1772,6 +1782,11 @@ namespace SupraInventoryRelayAgent
 
         private void ApplyTrayMonitor(SystemMetrics metrics)
         {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<SystemMetrics>(ApplyTrayMonitor), metrics);
+                return;
+            }
             try
             {
                 var compact = metrics.Compact();
@@ -2872,6 +2887,10 @@ namespace SupraInventoryRelayAgent
                 }
             }
 
+            // D123: SetAgentAuthUi is called from startup/login/session-recovery worker tasks.
+            // Every WinForms mutation, including the D119 layout/column sizing path, must
+            // execute on the UI thread. Cross-thread DataGridView AutoResize was able to
+            // deadlock the window after the UI had already rendered.
             Ui(() =>
             {
                 _username.Enabled = !authenticated;
@@ -2902,8 +2921,8 @@ namespace SupraInventoryRelayAgent
                         _wmsTest.Enabled = false;
                     }
                 }
+                ApplyD119AuthenticatedLayout(authenticated);
             });
-            ApplyD119AuthenticatedLayout(authenticated);
         }
 
         private void LogoutAgent()
