@@ -3477,7 +3477,6 @@ namespace SupraInventoryRelayAgent
                 _wmsCapture.Enabled = HasAgentSession();
                 _wmsLogout.Enabled = false;
                 _wmsTest.Enabled = false;
-                _skuSyncButton.Enabled = false;
             });
             SetProbeButtonsEnabled(true);
             var coordinator = _leaderCoordinator;
