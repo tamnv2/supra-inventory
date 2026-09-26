@@ -366,7 +366,7 @@ def main() -> None:
     require(exit_authorization, "Rfc2898DeriveBytes", "D126 protected Agent exit verifier")
     require(runtime_guard, "--watchdog-restart", "D126 unexpected-exit watchdog")
     require(relay_agent, "WriteAudit", "D126 split PDA-Agent audit")
-    require(relay_agent, "picklist_last5=", "D126 operational suffix audit")
+    require(firestore_transport, "picklist_suffix=redacted", "D126 operational suffix audit stays redacted")
     require(user_startup, "Registry.CurrentUser", "D126 normal-user autostart")
     require(user_startup, "CurrentVersion\\Run", "D126 HKCU Run registration")
     require(relay_agent, "NetworkChange.NetworkAddressChanged", "D126 network-change proxy refresh")
