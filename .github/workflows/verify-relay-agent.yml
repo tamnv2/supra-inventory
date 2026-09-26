@@ -264,8 +264,8 @@ jobs:
         shell: pwsh
         run: |
           dotnet build relay-agent-webview2-host/SupraInventoryWebView2Host.csproj -c Release
-          $host = "relay-agent-webview2-host/bin/Release/net48/SUPRA.Inventory.WebView2Host.exe"
-          if (-not (Test-Path $host)) { throw "Agent WebView2 host build output missing." }
+          $hostExe = "relay-agent-webview2-host/bin/Release/net48/SUPRA.Inventory.WebView2Host.exe"
+          if (-not (Test-Path $hostExe)) { throw "Agent WebView2 host build output missing." }
           Write-Host "Agent-owned WebView2 host build PASS"
 
       - name: Build lightweight Windows Agent
