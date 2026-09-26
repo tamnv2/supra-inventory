@@ -2489,7 +2489,7 @@
       "provider": "Beta Android + Firestore + Windows Agent + user-controlled Supra browser",
       "reason_owner_only": "CI can prove source/build/guards but real company Supra login, rendered DOM, browser hide/taskbar behavior and live confirmation require physical field observation.",
       "prerequisites": {
-        "d126_branch": "feat/d126-browser-ui-picklist",
+        "d126_branch": "fix/d126-browser-readiness-dom",
         "target_agent_release": "relay-agent-v47",
         "android_baseline": "beta-vc76",
         "stable": "OWNER_GATED"
