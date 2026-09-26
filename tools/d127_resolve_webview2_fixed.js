@@ -147,6 +147,17 @@ async function chooseX64(scope, page) {
       if (accept) break;
     }
     if (!accept) {
+      const buttons = await page.locator("button,a,[role=button],[role=link]").evaluateAll(nodes =>
+        nodes.filter(n => {
+          const s = getComputedStyle(n);
+          const r = n.getBoundingClientRect();
+          return s.visibility !== "hidden" && s.display !== "none" && r.width > 0 && r.height > 0;
+        }).map(n => String(n.innerText || n.textContent || "").replace(/\\s+/g, " ").trim()).filter(Boolean).slice(-80)
+      ).catch(() => []);
+      const pages = context.pages().map(p => p.url());
+      process.stderr.write("D127 WebView2 resolver diagnostics href=" + String(href || "") +
+        " page=" + page.url() + " pages=" + JSON.stringify(pages) +
+        " controls=" + JSON.stringify(buttons) + "\\n");
       throw new Error("Microsoft download consent did not expose an Accept and Download control.");
     }
     downloadPromise = page.waitForEvent("download", { timeout: 30000 });
