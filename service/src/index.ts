@@ -1071,6 +1071,8 @@ export default {
           return json({
             channel: "beta",
             version: release.version,
+            host_build: release.host_build,
+            host_arch: release.host_arch,
             asset_name: release.asset_name,
             size_bytes: release.size_bytes,
             sha256: release.sha256,
