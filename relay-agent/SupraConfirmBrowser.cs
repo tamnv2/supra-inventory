@@ -641,7 +641,7 @@ namespace SupraInventoryRelayAgent
         {
             Uri uri;
             if (!Uri.TryCreate(value ?? "", UriKind.Absolute, out uri)) return value ?? "";
-            return uri.GetLeftPart(UriPartial.Path).TrimEnd('/');
+            return (uri.GetLeftPart(UriPartial.Path).TrimEnd('/') + uri.Fragment);
         }
 
         private static string BuildDashboardSft3EntryScript()
@@ -660,15 +660,21 @@ namespace SupraInventoryRelayAgent
                 return value.includes('kho hưng yên 1') && value.includes('sft3');
               };
 
+              const clickableSelector = 'button,a,[role=button]';
+              const ownsAction = e =>
+                (e.matches && e.matches(clickableSelector)) ||
+                !!e.querySelector(clickableSelector);
               const containers = [...document.querySelectorAll(
                 'article,section,li,[role=listitem],[role=group],div'
-              )].filter(e => visible(e) && containsTarget(e));
+              )].filter(e => visible(e) && containsTarget(e) && ownsAction(e));
 
               if (!containers.length) return JSON.stringify({result:'NOT_DASHBOARD'});
 
-              // Prefer the smallest semantic card that still contains the HY1 + SFT3 labels.
+              // Prefer the smallest semantic card that contains both the HY1/SFT3
+              // labels and the actual access control (not only the inner text block).
               const minimal = containers.filter(parent =>
-                ![...parent.children].some(child => visible(child) && containsTarget(child)));
+                ![...parent.children].some(child =>
+                  visible(child) && containsTarget(child) && ownsAction(child)));
               const cards = (minimal.length ? minimal : containers)
                 .sort((a,b) => {
                   const ta = norm(a.innerText || a.textContent).length;
@@ -688,8 +694,10 @@ namespace SupraInventoryRelayAgent
                 return JSON.stringify({result:'TARGET_AMBIGUOUS',count:targetCards.length});
 
               const card = targetCards[0];
-              const clickables = [...card.querySelectorAll('button,a,[role=button]')]
-                .filter(e => visible(e) &&
+              const clickables = [
+                ...((card.matches && card.matches(clickableSelector)) ? [card] : []),
+                ...card.querySelectorAll(clickableSelector)
+              ].filter(e => visible(e) &&
                   !e.disabled &&
                   e.getAttribute('aria-disabled') !== 'true');
 
@@ -1155,7 +1163,7 @@ namespace SupraInventoryRelayAgent
               return JSON.stringify({
                 ready,
                 state,
-                url: location.origin + location.pathname,
+                url: location.origin + location.pathname + location.hash,
                 searchCount: search.length,
                 searchExactCount: searchExact.length,
                 searchDecoratedCount: searchDecorated.length,
