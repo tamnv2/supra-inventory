@@ -997,7 +997,7 @@ namespace SupraInventoryRelayAgent
                 Top = 10,
                 Width = 190,
                 Height = 24,
-                Text = "Đăng nhập Supra",
+                Text = "Đăng nhập Supra · v" + AgentConfig.AgentBuild,
                 Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(24, 43, 55)
             });

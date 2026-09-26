@@ -73,9 +73,9 @@ jobs:
           $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
           $projection = Get-Content service/src/firestore-projection.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*57\s*;') { throw "D127 hotfix requires Agent v57." }
-          if ($project -notmatch '<AssemblyVersion>0\.57\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.57\.0\.0</FileVersion>') {
-            throw "D127 hotfix assembly/file version must be 0.57."
+          if ($config -notmatch 'AgentBuild\s*=\s*58\s*;') { throw "D127 hotfix requires Agent v58." }
+          if ($project -notmatch '<AssemblyVersion>0\.58\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.58\.0\.0</FileVersion>') {
+            throw "D127 hotfix assembly/file version must be 0.58."
           }
 
           foreach ($marker in @(
@@ -133,14 +133,14 @@ jobs:
             'HY1_SFT3_CLICKED',
             'CONFIRM_NAVIGATE_SAME_TAB',
             'AUTO_RECOVERING_CONFIRM',
-            "exactText(e, 'Kho Hưng Yên 1')",
-            "exactText(e, 'SFT3')",
-            "button.MuiIconButton-root",
-            "MuiPaper-root",
+            "svg[viewBox='0 0 72 72']",
+            "M12 29.5 36 15l24 14.5",
+            "M17 31v25h38V31",
+            "M25 56V40h22v16",
             "m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z",
-            'CARD_NOT_UNIQUE',
-            'ARROW_NOT_UNIQUE',
-            'ARROW_NOT_FOUND'
+            'STRUCTURAL_ARROW_AMBIGUOUS',
+            'STRUCTURAL_ARROW_NOT_FOUND',
+            'WAREHOUSE_ICON_PLUS_ARROW_SVG'
           )) {
             if (-not $browser.Contains($marker)) { throw "D126 browser semantic guard missing: $marker" }
           }
@@ -156,7 +156,7 @@ jobs:
             'reclaimed_bytes',
             'BrowserDataRoot'
           )) {
-            if (-not $browserBundle.Contains($marker)) { throw "D127 v57 browser bundle/storage guard missing: $marker" }
+            if (-not $browserBundle.Contains($marker)) { throw "D127 v58 browser bundle/storage guard missing: $marker" }
           }
           foreach ($marker in @(
             'Environment.Is64BitProcess',
@@ -190,7 +190,7 @@ jobs:
           }
 
           foreach ($marker in @(
-            'Đăng nhập Supra',
+            'Đăng nhập Supra · v',
             'Mở trình duyệt Agent',
             'Mở trình duyệt Desktop',
             'Mở thư mục dữ liệu',
@@ -304,7 +304,7 @@ jobs:
             throw "D127 v53 must not auto-fallback from Agent browser to Desktop browser."
           }
 
-          Write-Host "D127 v57 exact HY1/SFT3 MUI arrow selector + storage cleanup/UI + same-tab recovery PASS"
+          Write-Host "D127 v58 structural warehouse-icon + arrow-SVG selector + visible build identity PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh
