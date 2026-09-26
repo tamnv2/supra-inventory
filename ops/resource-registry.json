@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D124_SOURCE_IN_PROGRESS__TARGET_RELAY_AGENT_V45__OA050_AFTER_RELEASE",
+      "status": "D125_OWNER_APPROVED_MODEL_REWRITE__IMPLEMENTATION_PENDING__D124_V45_HISTORICAL_DO_NOT_USE_WMS_FEATURES",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -190,14 +190,14 @@
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
-      "relay_poc_status": "D122_SOURCE_IN_PROGRESS__TARGET_AGENT_V43__D117_D118_HA_PRESERVED",
-      "relay_agent_release": "relay-agent-v42",
+      "relay_poc_status": "D125_PICKLIST_RELAY_RETIRED__FIRESTORE_REUSE_FOR_OFFICE_INVENTORY_BRIDGE",
+      "relay_agent_release": "relay-agent-v45__HISTORICAL_D124",
       "firebase_rtdb_rules_deploy": "D087_PR_GATE_PASS_RUN_35495453228__MAIN_SOURCE_MERGED",
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D118_PASS_RUN_36064078233__SOURCE_COMMIT_EXACT__SCHEMA11_11__AGENT_MIGRATION_0_0__OPERATIONAL5_5",
-      "relay_agent_release_target": "relay-agent-v43__SOURCE_CANDIDATE",
+      "relay_agent_release_target": "D125_IMPLEMENTATION_PENDING",
       "next_signed_beta_release_target": "NEXT_MONOTONIC_AFTER_BETA_VC76",
-      "next_relay_agent_release_target": "relay-agent-v43",
+      "next_relay_agent_release_target": "D125_IMPLEMENTATION_PENDING",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
@@ -207,7 +207,8 @@
       "d119_source_status": "OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC75__AGENT_V39",
       "d120_source_status": "HOTFIX_V41_RELEASED__OWNER_FIELD_REVIEW_CONTINUES",
       "d121_source_status": "TECHNICAL_RELEASE_PASS__AGENT_V42__OWNER_FIELD_FAIL_SUPERSEDED_BY_D122",
-      "d122_source_status": "SOURCE_IN_PROGRESS__TARGET_AGENT_V43__OA048_AFTER_RELEASE"
+      "d122_source_status": "SUPERSEDED_BY_D125_MODEL_REWRITE",
+      "d125_source_status": "OWNER_APPROVED__AUTHORITY_RECORDED__IMPLEMENTATION_PENDING"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
