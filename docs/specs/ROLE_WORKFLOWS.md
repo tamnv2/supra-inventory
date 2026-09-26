@@ -601,3 +601,25 @@ D114 supersedes the D105/D112 suffix-length carrier details where they conflict.
 ### SKU master
 - Operator/Owner-supplied manual file import is the only D125 SKU-update source.
 - Existing import validation, dedupe, additive merge and changed-name confirmation remain.
+
+## D126 — Browser-UI PickList workflow
+
+D126 supersedes the D125 workflow changes before D125 implementation.
+
+### Picker Android / PDA
+- Keep the currently published `Xác nhận đơn` workflow and bottom navigation.
+- PDA continues to submit its PickList suffix through the existing Firestore request channel and receives the existing terminal ACK/result.
+- After one Agent uniquely resolves the PickList through the managed Confirm PickList browser, the PDA path does not require a second human click in Agent; the owning Agent performs the guarded browser confirmation automatically.
+
+### Windows Agent
+- Keep the released Agent authentication, HA roles, schedule, Picker presence/contact and PickList workspace.
+- Replace Supra-session acquisition/API lookup/API confirmation with an Agent-managed browser opened directly to the Confirm PickList page.
+- User performs Supra login inside the browser. Agent observes only page/DOM readiness and business DOM content; it does not extract session/auth material.
+- Manual search displays unique full PickList matches. Manual mutation still requires the Agent operator confirmation action.
+- Initial rendered-table miss permits one exact `Tìm kiếm` UI click and one re-resolution only.
+- Confirmation re-validates the exact full PickList row, checks only its row checkbox and clicks only the exact approved `Xác nhận lấy lại hàng` button. Ambiguous/missing/changed DOM fails closed.
+
+### SKU master
+- Manual operator/Owner file import remains the only approved SKU-master update source.
+- Agent WMS/Tồn Bin SKU sync and the automatic daily SKU job are retired. Automatic SKU update is deferred.
+
