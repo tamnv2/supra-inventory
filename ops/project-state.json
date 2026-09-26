@@ -1264,7 +1264,7 @@
     "branch": "d127-quota-browser-hardening",
     "baseline_main": "a1ecf217dc1fb447a4ca445c59c01d1348cb80d2",
     "baseline_release": "beta-vc76 / relay-agent-v50",
-    "target_agent_release": "relay-agent-v60",
+    "target_agent_release": "relay-agent-v61",
     "android": "KEEP_BETA_VC76_UNCHANGED",
     "quota": "FIRESTORE_PENDING_CREATED_AT_SERVER_FILTER__NO_BROAD_LIST_FALLBACK__FLEET_METRICS_30M",
     "picker_presence": "SCHEMA3_ACTIVE_ANDROID_EVENT_DRIVEN__SINGLE_SLOT_RELAY_EVENT__180S_TRANSIENT_GRACE__NO_PERIODIC_AGENT_PRESENCE_POLL",
@@ -1275,7 +1275,7 @@
     "browser": "EXPLICIT_AGENT_WEBVIEW2_FIXED_X64_OR_DESKTOP_EDGE_CHROME__AGENT_DASHBOARD_AUTO_HY1_SFT3_CLICK__NEW_WINDOW_FORCED_SAME_TAB__THEN_CONFIRM_NAVIGATION__NO_AUTO_CROSS_MODE_FALLBACK",
     "browser_security": "RUNTIME_PAGE_DOM_ONLY__NO_NETWORK_COOKIE_TOKEN_PASSWORD_EXTRACTION__NO_DIRECT_WMS_API",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "next_action": "RUN_OA052_V60_HOST_NATIVE_DASHBOARD_ENTRY_PLUS_STORAGE_BREAKDOWN_FIELD_ACCEPTANCE",
+    "next_action": "RELEASE_V61_AND_RUN_OA052_DIRECT_CARD_ARROW_FIELD_ACCEPTANCE",
     "main_merge": "f5ad9d45be3445b6e030d1f5f0de1abc0507b54e",
     "agent_release": "relay-agent-v60",
     "agent_release_id": 397372247,
@@ -1307,7 +1307,7 @@
     "field_hotfix_main": "65f17d48c6f4dd00f9dd48c52ecb05ecba3703f8",
     "field_hotfix_run": 36258561369,
     "field_hotfix_scope": "EXPLICIT_WEBVIEW2_LOADER_X64__REQUIRE_64BIT_HOST__FRESH_HOST_BUILD_3_MARKERS__REFUSE_STALE_V52_V53_BUNDLES__NO_AUTO_FALLBACK__PAGE_SIZE_100_UNCHANGED",
-    "browser_host_build": 5,
+    "browser_host_build": 6,
     "browser_host_arch": "x64",
     "browser_manifest_service": "BETA_ENDPOINT_PRESERVES_AND_VALIDATES_HOST_BUILD_3_AND_HOST_ARCH_X64",
     "browser_manifest_hotfix_pr": 217,
@@ -1336,6 +1336,7 @@
     "v60_pr": 227,
     "v60_main": "dd6f6fc94e6f1097614372da1d7027f06e7fcbfa",
     "v60_main_run": 36267173324,
+    "v61_scope": "DIRECT_PARENT_CARD_WITH_72X72_SVG_PLUS_EXACT_ARROW__HOST_PROBE_RESULT_LOGGING__NO_WAREHOUSE_NAME_OR_ICON_PATH_DEPENDENCY__HOST_BUILD_6",
     "field_gate": "OA052__PENDING_OWNER_FIELD_ACCEPTANCE"
   }
 }
