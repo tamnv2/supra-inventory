@@ -35,6 +35,7 @@ namespace SupraInventoryRelayAgent
         internal readonly List<string> Matches = new List<string>();
         internal readonly List<string> MissingFragments = new List<string>();
         internal readonly List<string> AmbiguousFragments = new List<string>();
+        internal readonly List<string> UnselectableFragments = new List<string>();
         internal readonly Dictionary<string, List<string>> Candidates =
             new Dictionary<string, List<string>>(StringComparer.Ordinal);
         internal long ElapsedMs;
@@ -78,6 +79,8 @@ namespace SupraInventoryRelayAgent
         private const string ConfirmDialogBody = "Bạn có chắc chắn cho phép lấy hàng lại không?";
         private const string ConfirmDialogButtonText = "Xác nhận";
         private const string ConfirmDialogCloseText = "Đóng";
+        private const string PageSizeLabel = "Số dòng mỗi trang";
+        private const string PageSizeTarget = "100";
 
         internal SupraConfirmBrowser(Action<string> log)
         {
@@ -206,6 +209,7 @@ namespace SupraInventoryRelayAgent
             {
                 ThrowIfDisposed();
                 EnsureReadyNoLock();
+                EnsurePageSize100NoLock();
                 var scan = ScanNoLock(terms);
                 if (NeedsSearchRetry(scan) && allowOneSearchClick)
                 {
@@ -233,6 +237,7 @@ namespace SupraInventoryRelayAgent
                  " matches=" + output.Matches.Count +
                  " ambiguous=" + output.AmbiguousFragments.Count +
                  " missing=" + output.MissingFragments.Count +
+                 " unselectable=" + output.UnselectableFragments.Count +
                  " ui_search_click=" + (output.SearchClicked ? "1" : "0"));
             return output;
         }
@@ -253,6 +258,7 @@ namespace SupraInventoryRelayAgent
             {
                 ThrowIfDisposed();
                 EnsureReadyNoLock();
+                EnsurePageSize100NoLock();
 
                 var mutationScript = BuildMutationScript(code);
                 var raw = EvaluateJsonNoLock(mutationScript);
@@ -460,6 +466,9 @@ namespace SupraInventoryRelayAgent
             var rows = map.TryGetValue("candidates", out var candidateObj)
                 ? candidateObj as Dictionary<string, object>
                 : null;
+            var selectableRows = map.TryGetValue("selectable", out var selectableObj)
+                ? selectableObj as Dictionary<string, object>
+                : null;
 
             foreach (var term in terms)
             {
@@ -481,7 +490,25 @@ namespace SupraInventoryRelayAgent
                 result.Candidates[term] = candidates;
                 if (candidates.Count == 0) result.MissingFragments.Add(term);
                 else if (candidates.Count > 1) result.AmbiguousFragments.Add(term);
-                else result.Matches.Add(candidates[0]);
+                else
+                {
+                    result.Matches.Add(candidates[0]);
+                    var selectableCodes = new List<string>();
+                    object rawSelectable;
+                    var arr = selectableRows != null && selectableRows.TryGetValue(term, out rawSelectable)
+                        ? rawSelectable as object[]
+                        : null;
+                    if (arr != null)
+                    {
+                        foreach (var item in arr)
+                        {
+                            var code = Convert.ToString(item) ?? "";
+                            if (!string.IsNullOrWhiteSpace(code)) selectableCodes.Add(code);
+                        }
+                    }
+                    if (!selectableCodes.Exists(x => string.Equals(x, candidates[0], StringComparison.OrdinalIgnoreCase)))
+                        result.UnselectableFragments.Add(term);
+                }
             }
 
             if (result.AmbiguousFragments.Count > 0) result.Result = "AMBIGUOUS";
@@ -611,7 +638,8 @@ namespace SupraInventoryRelayAgent
 
         private static bool NeedsSearchRetry(SupraBrowserSearchResult result)
         {
-            return result != null && result.MissingFragments.Count > 0 &&
+            return result != null &&
+                   (result.MissingFragments.Count > 0 || result.UnselectableFragments.Count > 0) &&
                    result.AmbiguousFragments.Count == 0;
         }
 
@@ -621,6 +649,7 @@ namespace SupraInventoryRelayAgent
             target.Matches.AddRange(source.Matches);
             target.MissingFragments.AddRange(source.MissingFragments);
             target.AmbiguousFragments.AddRange(source.AmbiguousFragments);
+            target.UnselectableFragments.AddRange(source.UnselectableFragments);
             foreach (var pair in source.Candidates)
                 target.Candidates[pair.Key] = new List<string>(pair.Value);
         }
@@ -661,6 +690,84 @@ namespace SupraInventoryRelayAgent
                 default:
                     return "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
             }
+        }
+
+        private void EnsurePageSize100NoLock()
+        {
+            var raw = EvaluateJsonNoLock(BuildEnsurePageSize100Script());
+            var map = _json.DeserializeObject(raw) as Dictionary<string, object>;
+            var result = map == null ? "DOM_ERROR" : String(map, "result");
+            if (string.Equals(result, "ALREADY_100", StringComparison.Ordinal) ||
+                string.Equals(result, "CHANGED_100", StringComparison.Ordinal))
+                return;
+            throw new InvalidOperationException("Không đặt được Số dòng mỗi trang = 100 · " + result);
+        }
+
+        private static string BuildEnsurePageSize100Script()
+        {
+            return @"(async () => {
+              const norm = v => String(v || '').replace(/\s+/g,' ').trim();
+              const fold = v => norm(v).toLowerCase();
+              const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
+              const docs = [];
+              const seen = new Set();
+              const addDoc = d => {
+                if (!d || seen.has(d) || docs.length >= 8) return;
+                seen.add(d); docs.push(d);
+                for (const frame of [...d.querySelectorAll('iframe')]) {
+                  try { if (frame.contentDocument) addDoc(frame.contentDocument); } catch (_) {}
+                }
+              };
+              addDoc(document);
+              const labelText = '" + PageSizeLabel + @"';
+              const targetText = '" + PageSizeTarget + @"';
+              const leaves = docs.flatMap(d => [...d.querySelectorAll('body *')]).filter(e =>
+                visible(e) && fold(e.innerText || e.textContent) === fold(labelText) &&
+                ![...e.children].some(child => visible(child) && fold(child.innerText || child.textContent) === fold(labelText)));
+              if (leaves.length !== 1) return JSON.stringify({result:'PAGE_SIZE_LABEL_NOT_UNIQUE',count:leaves.length});
+
+              let host = leaves[0];
+              let control = null;
+              for (let depth = 0; host && depth < 8; depth++, host = host.parentElement) {
+                const controls = [...host.querySelectorAll('select,[role=combobox],mat-select,.mat-select-trigger,.mat-mdc-select-trigger')].filter(visible);
+                if (controls.length === 1) { control = controls[0]; break; }
+              }
+              if (!control) return JSON.stringify({result:'PAGE_SIZE_CONTROL_NOT_UNIQUE'});
+
+              const current = () => norm(control.value || control.innerText || control.textContent);
+              if (/(^|\s)100(\s|$)/.test(current())) return JSON.stringify({result:'ALREADY_100'});
+
+              if (control.tagName && control.tagName.toLowerCase() === 'select') {
+                const options = [...control.options].filter(o => norm(o.value) === targetText || norm(o.textContent) === targetText);
+                if (options.length !== 1) return JSON.stringify({result:'PAGE_SIZE_100_OPTION_NOT_UNIQUE',count:options.length});
+                control.value = options[0].value;
+                control.dispatchEvent(new Event('input',{bubbles:true}));
+                control.dispatchEvent(new Event('change',{bubbles:true}));
+              } else {
+                control.click();
+                let option = null;
+                const deadline = Date.now() + 2500;
+                do {
+                  const options = docs.flatMap(d => [...d.querySelectorAll('[role=option],mat-option,.mat-option,.mat-mdc-option')])
+                    .filter(e => visible(e) && norm(e.innerText || e.textContent) === targetText);
+                  if (options.length === 1) { option = options[0]; break; }
+                  if (options.length > 1) return JSON.stringify({result:'PAGE_SIZE_100_OPTION_NOT_UNIQUE',count:options.length});
+                  await new Promise(r => setTimeout(r,80));
+                } while (Date.now() < deadline);
+                if (!option) return JSON.stringify({result:'PAGE_SIZE_100_OPTION_NOT_FOUND'});
+                option.click();
+              }
+
+              const verifyDeadline = Date.now() + 4000;
+              do {
+                await new Promise(r => setTimeout(r,100));
+                if (/(^|\s)100(\s|$)/.test(current())) {
+                  await new Promise(r => setTimeout(r,300));
+                  return JSON.stringify({result:'CHANGED_100'});
+                }
+              } while (Date.now() < verifyDeadline);
+              return JSON.stringify({result:'PAGE_SIZE_100_VERIFY_FAILED',value:current()});
+            })()";
         }
 
         private static string BuildReadinessScript()
@@ -764,19 +871,28 @@ namespace SupraInventoryRelayAgent
               addDoc(document);
               const rows = docs.flatMap(d => [...d.querySelectorAll('tr,[role=row]')]).filter(visible);
               const candidates = {};
-              for (const term of terms) candidates[term] = [];
+              const selectable = {};
+              for (const term of terms) { candidates[term] = []; selectable[term] = []; }
               for (const row of rows) {
                 const text = ((row.innerText || row.textContent) || '').toUpperCase();
                 const codes = [...new Set(text.match(/\bPL[0-9]+\b/g) || [])];
+                if (!codes.length) continue;
+                const native = [...row.querySelectorAll('input[type=checkbox]')];
+                const roles = native.length ? [] : [...row.querySelectorAll('[role=checkbox]')];
+                const boxes = native.length ? native : roles;
+                const boxReady = boxes.length === 1 &&
+                  !boxes[0].disabled &&
+                  boxes[0].getAttribute('aria-disabled') !== 'true';
                 for (const code of codes) {
                   if (!/^PL[0-9]+$/.test(code)) continue;
                   for (const term of terms) {
-                    if (code.endsWith(term) && !candidates[term].includes(code))
-                      candidates[term].push(code);
+                    if (!code.endsWith(term)) continue;
+                    if (!candidates[term].includes(code)) candidates[term].push(code);
+                    if (boxReady && !selectable[term].includes(code)) selectable[term].push(code);
                   }
                 }
               }
-              return JSON.stringify({candidates});
+              return JSON.stringify({candidates,selectable});
             })()";
         }
 
