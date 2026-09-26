@@ -586,7 +586,7 @@ namespace SupraInventoryRelayAgent
 
             Controls.Add(new Label { Left = 18, Top = 16, Width = 726, Height = 30, Text = "SUPRA INVENTORY - RELAY TEST AGENT", Font = new Font("Segoe UI", 14F, FontStyle.Bold) });
             _relay.SetBounds(18, 52, 726, 24); _relay.Text = "Relay: chưa kết nối"; Controls.Add(_relay);
-            _network.SetBounds(18, 78, 726, 24); _network.Text = "Wi-Fi: " + GetSsid(); Controls.Add(_network);
+            _network.SetBounds(18, 78, 726, 24); _network.Text = "Wi-Fi: đang đọc..."; Controls.Add(_network);
             _identity.SetBounds(18, 104, 726, 24); _identity.Text = "Agent: chưa ghép"; Controls.Add(_identity);
 
             Controls.Add(new Label { Left = 18, Top = 140, Width = 90, Text = "ADMIN" });
@@ -735,6 +735,7 @@ namespace SupraInventoryRelayAgent
 
                 _guardTimer.Start();
                 _networkUiTimer.Start();
+                QueueNetworkStatusRefresh();
                 _trayMonitorTimer.Start();
                 _logUploadTimer.Start();
                 _afterHoursTimer.Start();
@@ -4997,8 +4998,15 @@ namespace SupraInventoryRelayAgent
                 using (var process = Process.Start(info))
                 {
                     if (process == null) return "UNKNOWN";
+                    // D122: never block on ReadToEnd before the timeout. netsh has been
+                    // observed to stall on adapter transitions; wait first, kill if needed,
+                    // and only read stdout after the process has definitely exited.
+                    if (!process.WaitForExit(2500))
+                    {
+                        try { process.Kill(); } catch { }
+                        return "UNKNOWN";
+                    }
                     var text = process.StandardOutput.ReadToEnd();
-                    process.WaitForExit(3000);
                     foreach (var raw in text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
                     {
                         var line = raw.Trim();
