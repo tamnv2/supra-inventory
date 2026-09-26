@@ -139,7 +139,6 @@ jobs:
             "m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z",
             'STRUCTURAL_ARROW_AMBIGUOUS',
             'STRUCTURAL_ARROW_NOT_FOUND',
-            'DIRECT_PARENT_72X72_PLUS_ARROW',
             "querySelectorAll('svg[viewBox]')",
             "getAttribute('viewBox')",
             'SCRIPT_ERROR'
@@ -177,6 +176,7 @@ jobs:
             'DASHBOARD_PROBE_FAIL',
             'DASHBOARD_PROBE result=',
             'NO_CLICK:CARD=',
+            'DIRECT_PARENT_72X72_PLUS_ARROW',
             'NavigationCompleted += HandleNavigationCompleted',
             'WAREHOUSE_ICON_PLUS_ARROW_SVG',
             "return 'CLICKED:WAREHOUSE_ICON_PLUS_ARROW_SVG'"
