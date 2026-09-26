@@ -133,7 +133,7 @@ jobs:
             'HY1_SFT3_CLICKED',
             'CONFIRM_NAVIGATE_SAME_TAB',
             'AUTO_RECOVERING_CONFIRM',
-            'svg[viewBox="0 0 72 72"]',
+            "svg[viewBox='0 0 72 72']",
             "M12 29.5 36 15l24 14.5",
             "M17 31v25h38V31",
             "M25 56V40h22v16",
