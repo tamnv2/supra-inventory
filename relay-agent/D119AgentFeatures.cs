@@ -608,6 +608,7 @@ namespace SupraInventoryRelayAgent
                 }
                 if (firstIndex >= 0) _pickerOnlineGrid.FirstDisplayedScrollingRowIndex = firstIndex;
                 if (selectedIndex >= 0) _pickerOnlineGrid.Rows[selectedIndex].Selected = true;
+                ApplyColumnSizingIfEnabled(_pickerOnlineGrid);
                 _pickerOnlineRenderSignature = renderSignature;
             }
             finally
