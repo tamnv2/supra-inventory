@@ -89,6 +89,9 @@ jobs:
           if (tail.length !== 2 || tail[0] !== '}' || tail[1] !== '}') {
             throw new Error('Firestore Rules document has trailing/orphan content after service close');
           }
+          if (rules.includes('match /sku_sync_jobs/{jobId} {\\n')) {
+            throw new Error('D126 Firestore Rules contain escaped newline text instead of real line breaks');
+          }
           const skuBlock = rules.match(/match \/sku_sync_jobs\/\{jobId\} \{[\s\S]*?\n    \}/)?.[0] || '';
           if (!skuBlock.includes('allow read, write: if false;')) throw new Error('D126 sku_sync_jobs must be deny-all');
           if (skuBlock.includes('AGENT_WMS_BINSTOCK_V1')) throw new Error('D126 forbids WMS SKU staging authority');
