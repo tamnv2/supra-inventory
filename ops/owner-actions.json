@@ -2298,7 +2298,7 @@
     },
     {
       "id": "OA048",
-      "status": "WAITING_D122_TECHNICAL_RELEASE",
+      "status": "FIELD_FAIL_SUPERSEDED_BY_D123",
       "title": "Field-accept D122 Agent stability and operational UX",
       "resource_key": "repo",
       "provider": "Beta Web/Worker + Windows Agent",
@@ -2308,7 +2308,13 @@
         "d122_branch": "fix/d122-agent-stability-ops-ux",
         "target_agent_release": "relay-agent-v43",
         "stable": "OWNER_GATED",
-        "technical_release": "PENDING"
+        "technical_release": "PASS",
+        "implementation_pr": 193,
+        "merged_main": "cb999100a25fa36eae80115a75ce83badc46a3e6",
+        "agent_release_id": 397019271,
+        "agent_asset_id": 589654008,
+        "agent_size_bytes": 367616,
+        "agent_sha256": "433f373e054a56a0d0f36881764b32b62ca9db30e1e59986fd8830c405880aa6"
       },
       "shortest_test_path": [
         "After D122 release PASS, update Agent through inventory-channel to relay-agent-v43.",
@@ -2331,7 +2337,44 @@
         "D120 Picker stability and D117/D118 HA/WMS contracts remain unchanged; Stable untouched."
       ],
       "safety": "Beta only; Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for D122 technical/release PASS, then run OA048.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "owner_report_date": "2026-09-26",
+        "result": "FAIL__V43_IMMEDIATE_NOT_RESPONDING_AFTER_UI_RENDER",
+        "evidence": "Owner screenshot shows relay-agent-v43 fully rendered/restored Agent+Supra+Picker state and then Windows Not Responding.",
+        "superseded_by": "D123_OA049"
+      }
+    },
+    {
+      "id": "OA049",
+      "status": "WAITING_D123_TECHNICAL_RELEASE",
+      "title": "Field-accept D123 Agent UI-thread affinity repair",
+      "resource_key": "repo",
+      "provider": "GitHub Beta prerelease + Windows Agent",
+      "reason_owner_only": "CI can prove UI-thread marshalling/static guards/builds, but only physical Windows use can prove the v43 immediate Not Responding condition is eliminated.",
+      "prerequisites": {
+        "d122_field_result": "FAIL_SUPERSEDED",
+        "d123_branch": "fix/d123-agent-ui-thread-affinity",
+        "target_agent_release": "relay-agent-v44",
+        "stable": "OWNER_GATED",
+        "technical_release": "PENDING"
+      },
+      "shortest_test_path": [
+        "After relay-agent-v44 is published to inventory-channel, update and open Agent with the same saved Agent and Supra sessions that made v43 hang.",
+        "Keep Tổng quan open for at least several minutes; move/resize the window, scroll Agent/Picker lists, switch tabs and type in PickList. The window must remain interactive from startup onward.",
+        "Restart Agent at least three times with saved sessions. Verify Agent/Supra/Picker restore without any immediate Windows Not Responding state.",
+        "Verify the D122 50/25/25 layout, SKU feedback, Ca vận hành, session recovery, Bảng nổi and column-size behavior remain intact.",
+        "Run one controlled normal PickList confirmation to confirm D117/D118 HA/generation/WMS guards remain unchanged."
+      ],
+      "pass_criteria": [
+        "No UI mutation from startup/session-recovery worker paths accesses D119 WinForms controls directly; all such layout/grid work is marshalled to the owning UI thread.",
+        "No repeatable startup or post-restore Not Responding state on v44.",
+        "D122 UX requirements remain functional and no new polling/heartbeat/WMS probe/provider is introduced.",
+        "D120 Picker stability and D117/D118 confirmation/HA/WMS contracts remain unchanged; Stable untouched."
+      ],
+      "safety": "Beta Agent only. Do not share passwords, tokens, WMS session/header material or other secrets. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for D123 technical/release PASS, then run OA049.",
       "closed": false
     }
   ]

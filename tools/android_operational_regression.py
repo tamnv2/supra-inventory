@@ -196,7 +196,7 @@ def main() -> None:
     require(service_index, "app_base_role: user.base_role", "D075 immutable base-role Firebase custom claim")
     require(relay_rules, "auth.token.app_base_role == 'ADMIN'", "D075 real ADMIN RTDB rule")
     require(relay_rules, "newData.child('agent_admin_user_id').val() == auth.token.app_user_id", "D075 ADMIN ACK rule binding")
-    require(relay_agent_config, "AgentBuild = 43", "D122 Agent stability/UX build channel")
+    require(relay_agent_config, "AgentBuild = 44", "D123 Agent UI-thread affinity build channel")
     require(relay_agent, "QueueNetworkStatusRefresh", "D122 SSID refresh off WinForms UI thread")
     require(relay_agent, "QueueWatchdogRefresh", "D122 watchdog refresh off WinForms UI thread")
     require(relay_agent, "ExpireAgentSession", "D122 expired Agent session login recovery")

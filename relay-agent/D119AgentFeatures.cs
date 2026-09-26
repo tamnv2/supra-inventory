@@ -233,6 +233,11 @@ namespace SupraInventoryRelayAgent
 
         private void ApplyD119AuthenticatedLayout(bool authenticated)
         {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<bool>(ApplyD119AuthenticatedLayout), authenticated);
+                return;
+            }
             if (_username.Parent == null) return;
             var host = _username.Parent;
 
@@ -375,6 +380,11 @@ namespace SupraInventoryRelayAgent
 
         private void LoadColumnPreferencesForCurrentUser()
         {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(LoadColumnPreferencesForCurrentUser));
+                return;
+            }
             var user = CurrentColumnPreferenceUser();
             if (string.IsNullOrWhiteSpace(user)) return;
             var store = ReadColumnPreferenceStore();
@@ -435,6 +445,11 @@ namespace SupraInventoryRelayAgent
 
         private void ApplyColumnPreferenceMode()
         {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(ApplyColumnPreferenceMode));
+                return;
+            }
             foreach (var grid in new[] { _agentFleetGrid, _pickerOnlineGrid, _manualPicklistGrid })
             {
                 grid.AllowUserToResizeColumns = !_autoSizeColumns.Checked;
@@ -444,7 +459,13 @@ namespace SupraInventoryRelayAgent
 
         private void ApplyColumnSizingIfEnabled(DataGridView grid)
         {
-            if (grid == null || !_autoSizeColumns.Checked || grid.Columns.Count == 0) return;
+            if (grid == null || grid.IsDisposed) return;
+            if (grid.InvokeRequired)
+            {
+                grid.BeginInvoke(new Action<DataGridView>(ApplyColumnSizingIfEnabled), grid);
+                return;
+            }
+            if (!_autoSizeColumns.Checked || grid.Columns.Count == 0) return;
             _columnPreferenceApplying = true;
             try
             {
@@ -469,6 +490,11 @@ namespace SupraInventoryRelayAgent
 
         private void RefreshD119OperationalViews(bool force)
         {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<bool>(RefreshD119OperationalViews), force);
+                return;
+            }
             if (!HasAgentSession() || _pickerPresenceClient == null) return;
             var coordinator = _leaderCoordinator;
             var primary = coordinator != null && coordinator.IsLeader;
@@ -519,6 +545,11 @@ namespace SupraInventoryRelayAgent
 
         private void UpdatePickerOnlineGrid(List<PickerPresenceView> items, bool primary)
         {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<List<PickerPresenceView>, bool>(UpdatePickerOnlineGrid), items, primary);
+                return;
+            }
             _pickerOnlineSnapshot = items ?? new List<PickerPresenceView>();
             RenderPickerOnlineSnapshot();
             _pickerOnlineStatus.Text =
@@ -546,6 +577,11 @@ namespace SupraInventoryRelayAgent
 
         private void RenderPickerOnlineSnapshot()
         {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(RenderPickerOnlineSnapshot));
+                return;
+            }
             var query = (_pickerSearch.Text ?? "").Trim();
             var renderSignature = PickerOnlineRenderSignature(query);
             if (string.Equals(renderSignature, _pickerOnlineRenderSignature, StringComparison.Ordinal))
@@ -672,6 +708,11 @@ namespace SupraInventoryRelayAgent
 
         private void RenderFleetMetricStatus(bool primary)
         {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<bool>(RenderFleetMetricStatus), primary);
+                return;
+            }
             var localRequests = Interlocked.Read(ref _localPdaRequests);
             var localResponses = Interlocked.Read(ref _localAgentResponses);
             var snapshot = _fleetSnapshot;

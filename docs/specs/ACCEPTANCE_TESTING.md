@@ -1258,3 +1258,14 @@ D122 technical/release PASS requires:
 
 Owner field acceptance remains required after release before D122 is called Owner-PASS.
 
+## D123 — Agent UI-thread affinity / v44 acceptance
+
+D123 technical/release PASS requires:
+
+1. Target Agent is **relay-agent-v44** and source guards reject the v43 pattern where `ApplyD119AuthenticatedLayout(authenticated)` executes after/outside the UI-dispatch block in `SetAgentAuthUi`.
+2. Authenticated layout, column preference application, DataGridView auto-sizing, Picker rendering and fleet metric rendering contain WinForms thread-affinity guards and marshal to the owning UI thread before touching controls.
+3. Existing network/system-monitor/watchdog/schedule background protections from D121/D122 remain intact. No polling, heartbeat, Firestore checkpoint, WMS probe or mutation cadence is increased.
+4. Physical OA049 repeats the exact v43 failure path: open/restart with saved Agent + Supra sessions at least three times, keep Overview active for several minutes, resize/move, switch tabs, scroll and type/search. PASS requires no immediate or repeatable Windows **Not Responding** state.
+5. Recheck the accepted D122 presentation/flows: 50/25/25 left layout, Picker stability, explicit SKU result/Web checkpoint, Ca vận hành, session-login recovery, Bảng nổi and per-user column sizing.
+6. Execute one controlled normal PickList confirmation to verify D117/D118 HA/generation/WMS mutation fences remain unchanged. Stable remains OWNER-GATED.
+

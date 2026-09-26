@@ -1048,7 +1048,7 @@
     "owner_field_action": "OA047__FAIL_SUPERSEDED"
   },
   "d122": {
-    "status": "SOURCE_IN_PROGRESS__PR_GATES_PENDING",
+    "status": "TECHNICAL_RELEASE_PASS__OWNER_FIELD_FAIL_SUPERSEDED_BY_D123",
     "branch": "fix/d122-agent-stability-ops-ux",
     "baseline_main": "e4ccec3fa4ddb2467a56f4332434f055727cb59d",
     "baseline_agent_release": "relay-agent-v42",
@@ -1062,6 +1062,28 @@
     "overlay_contract": "OPAQUE_TEXT_FOREGROUND__SEPARATE_TRANSLUCENT_BACKGROUND__LAZY_CREATE",
     "protected_contracts": "D117_D118_CONFIRMATION_HA_GENERATION_WMS_MUTATION_UNCHANGED",
     "new_resources": "NONE",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "implementation_pr": 193,
+    "merged_main": "cb999100a25fa36eae80115a75ce83badc46a3e6",
+    "agent_release": "relay-agent-v43",
+    "agent_release_id": 397019271,
+    "agent_asset_id": 589654008,
+    "agent_size_bytes": 367616,
+    "agent_sha256": "433f373e054a56a0d0f36881764b32b62ca9db30e1e59986fd8830c405880aa6",
+    "owner_field_result": "FAIL__V43_IMMEDIATE_NOT_RESPONDING_AFTER_UI_RENDER"
+  },
+  "d123": {
+    "status": "SOURCE_IN_PROGRESS__PR_GATES_PENDING",
+    "branch": "fix/d123-agent-ui-thread-affinity",
+    "baseline_main": "cb999100a25fa36eae80115a75ce83badc46a3e6",
+    "baseline_agent_release": "relay-agent-v43",
+    "target_agent_release": "relay-agent-v44",
+    "scope": "AGENT_ONLY_UI_THREAD_AFFINITY_REPAIR",
+    "root_cause": "BACKGROUND_STARTUP_AND_LOGIN_PATH_ENTERED_D119_LAYOUT_GRID_AUTOSIZE_WITHOUT_WINFORMS_MARSHAL",
+    "runtime_contract": "ALL_WINFORMS_LAYOUT_GRID_COLUMN_MUTATION_UI_THREAD_ONLY__NETWORK_AND_HA_CADENCE_UNCHANGED",
+    "protected_contracts": "D122_UX__D120_PICKER__D117_D118_CONFIRMATION_HA_GENERATION_WMS_MUTATION_UNCHANGED",
+    "new_resources": "NONE",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "owner_field_action": "OA049"
   }
 }
