@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D122_SOURCE_IN_PROGRESS__TARGET_RELAY_AGENT_V43__OA048_AFTER_RELEASE",
+      "status": "D124_SOURCE_IN_PROGRESS__TARGET_RELAY_AGENT_V45__OA050_AFTER_RELEASE",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
