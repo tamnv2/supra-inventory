@@ -2141,7 +2141,7 @@ namespace SupraInventoryRelayAgent
             _leaderCoordinator = new FirestoreAgentLeaderCoordinator(
                 SnapshotSession,
                 EnsureFreshToken,
-                HasUsableWmsSession,
+                HasReadyConfirmBrowser,
                 ProbeSupraBrowserForTakeover,
                 IsBusinessAllowed,
                 _agentInstanceId,
