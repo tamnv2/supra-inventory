@@ -1239,3 +1239,22 @@ D121 passes only when all of the following are true:
 6. Agent fleet content uses the remaining height of its card with internal scrolling; PickList remains usable and no longer monopolizes left-column height.
 7. Existing D120 Picker search/scroll/no-flicker behavior remains PASS, and D117/D118 confirmation HA/generation/WMS mutation fences are unchanged.
 8. No new provider, database, heartbeat, polling loop or Stable change is introduced. Candidate release is `relay-agent-v42`.
+
+## D122 — Agent stability, recovery and operational UX acceptance
+
+D122 technical/release PASS requires:
+
+1. Agent target is **relay-agent-v43**. D117/D118 PRIMARY/STANDBY/FROZEN business polling, 7-second lease, 10-second failover, generation fence and guarded WMS mutation semantics remain unchanged.
+2. WinForms network-status and watchdog timer callbacks queue their blocking work off the UI thread with single-flight protection. Startup does not synchronously create the overlay before the main window becomes interactive.
+3. Keep Agent visible through normal use and temporary network/Firestore disruption; resize, move, switch tabs, scroll grids and type/search. PASS only if the main window remains interactive and no repeatable Windows **Not Responding** condition is produced by the corrected paths.
+4. Overview left column renders approximately 50% Agent / 25% Supra / 25% PickList at multiple window sizes. Agent fleet fills its card and scrolls internally after visible capacity is exhausted.
+5. Agent / Relay / Wi-Fi remain on one responsive line.
+6. Manual **Cập nhật SKU** displays explicit success/failure. Run a controlled all-unchanged synchronization and verify Agent reports success with unchanged count, while Web **Danh mục SKU** advances **Đồng bộ Agent gần nhất** but does not falsely advance **Dữ liệu thay đổi gần nhất**.
+7. **Ca vận hành** appears under Vận hành for the existing authorized management roles; +1h/stop controls use the existing D118 shared schedule endpoint. Công cụ no longer contains overtime controls.
+8. Expire/revoke Agent credentials in a controlled test: login inputs must return without requiring process restart. Expire the Supra/WMS session: normal Supra login/capture action must return and open the existing browser capture flow.
+9. Bảng nổi opens reliably. Change background opacity from opaque to translucent: background changes opacity while all metric text remains crisp/fully opaque. Lock/click-through, move/resize and persisted visibility remain functional.
+10. With **Tự căn cột theo nội dung** checked, resize the Agent window and verify Agent/Picker/PickList grids recalculate. Uncheck it, manually resize columns, restart/re-login the same Agent user and verify widths restore. Another Agent user must not inherit those manual widths.
+11. Existing D120 Picker search/scroll/no-flicker behavior stays PASS. No new provider, database, heartbeat or business polling loop is introduced. Stable remains OWNER-GATED and untouched.
+
+Owner field acceptance remains required after release before D122 is called Owner-PASS.
+
