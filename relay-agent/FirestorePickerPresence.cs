@@ -46,7 +46,7 @@ namespace SupraInventoryRelayAgent
             var fields = GetMap(root, "fields");
             var schemaVersion = ReadInteger(fields, "schema_version");
             var source = ReadString(fields, "presence_source");
-            if (schemaVersion != 2 || !string.Equals(source, "ACTIVE_ANDROID_REALTIME", StringComparison.Ordinal))
+            if (schemaVersion != 3 || !string.Equals(source, "ACTIVE_ANDROID_EVENT_DRIVEN", StringComparison.Ordinal))
             {
                 _log("PICKER_PRESENCE projection=IGNORED reason=STALE_OR_LEGACY_SCHEMA schema=" + schemaVersion);
                 return new List<PickerPresenceView>();
