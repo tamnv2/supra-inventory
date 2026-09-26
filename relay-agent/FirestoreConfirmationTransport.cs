@@ -574,7 +574,7 @@ namespace SupraInventoryRelayAgent
                 url,
                 token,
                 body,
-                "Agent-Auto-Confirm-Pick-Pack/D097",
+                "Agent-Auto-Confirm-Pick-Pack/D126",
                 12000,
                 retrySafeRead,
                 _log,
