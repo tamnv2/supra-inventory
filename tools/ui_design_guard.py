@@ -46,7 +46,6 @@ ANDROID_ALL = "\n".join([ANDROID_MAIN, ANDROID_PICKER, ANDROID_REPORTER])
 
 RELAY_PROGRAM = read("relay-agent/Program.cs")
 RELAY_D119_FEATURES = read("relay-agent/D119AgentFeatures.cs")
-RELAY_OVERLAY = read("relay-agent/StatusOverlay.cs")
 
 SERVICE_OPS = read("service/src/operational-v2-core.ts")
 SERVICE_BUSINESS = read("service/src/business-api.ts")
