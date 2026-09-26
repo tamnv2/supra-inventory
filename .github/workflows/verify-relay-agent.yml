@@ -68,9 +68,9 @@ jobs:
           $fleet = Get-Content relay-agent/FirestoreFleetMetrics.cs -Raw
           $project = Get-Content relay-agent/SupraInventoryRelayAgent.csproj -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*49\s*;') { throw "D126 H3 hotfix requires Agent v49." }
-          if ($project -notmatch '<AssemblyVersion>0\.49\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.49\.0\.0</FileVersion>') {
-            throw "D126 H3 hotfix assembly/file version must be 0.49."
+          if ($config -notmatch 'AgentBuild\s*=\s*50\s*;') { throw "D126 H4 hotfix requires Agent v50." }
+          if ($project -notmatch '<AssemblyVersion>0\.50\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.50\.0\.0</FileVersion>') {
+            throw "D126 H4 hotfix assembly/file version must be 0.50."
           }
 
           foreach ($marker in @(
@@ -101,7 +101,17 @@ jobs:
             "querySelectorAll('body *')",
             'decorationOnly',
             'searchDecoratedCount',
-            "search|magnify|magnifying|glass|find|icon"
+            "search|magnify|magnifying|glass|find|icon",
+            'private const string ConfirmDialogTitle = "XÁC NHẬN LẤY LẠI HÀNG"',
+            'private const string ConfirmDialogBody = "Bạn có chắc chắn cho phép lấy hàng lại không?"',
+            'private const string ConfirmDialogButtonText = "Xác nhận"',
+            'private const string ConfirmDialogCloseText = "Đóng"',
+            'CONFIRM_DIALOG_NOT_FOUND',
+            'CONFIRM_DIALOG_AMBIGUOUS',
+            'CONFIRM_DIALOG_BUTTON_NOT_UNIQUE',
+            'CONFIRM_DIALOG_CLOSE_NOT_UNIQUE',
+            "stage:'DIALOG_CONFIRMED'",
+            'dialog_required=true'
           )) {
             if (-not $browser.Contains($marker)) { throw "D126 browser semantic guard missing: $marker" }
           }
@@ -120,7 +130,8 @@ jobs:
             'document.cookie',
             'Cursor.Position',
             'SetCursorPos',
-            'SendKeys.Send'
+            'SendKeys.Send',
+            'dialogClose[0].click'
           )) {
             if ($browser.Contains($forbidden)) { throw "D126 browser forbidden path present: $forbidden" }
           }
