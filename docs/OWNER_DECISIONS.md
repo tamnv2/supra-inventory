@@ -1233,3 +1233,19 @@ Owner approves one coordinated Beta change set on top of D126. Stable remains OW
 9. **Isolation.** User Edge/Chrome and the Agent-owned WebView2 runtime are separate processes/profiles. Closing or terminating the user's normal Edge must not terminate the owned browser host. The legacy fallback remains available for machines that cannot run the owned runtime.
 10. **Security boundary unchanged.** DOM-only automation remains limited to Runtime/Page semantics. Network inspection, auth extraction/replay, direct WMS APIs and coordinate-only mutation remain forbidden. D117/D118 HA/generation fences and D126 exact row/modal confirmation remain protected.
 11. Candidate Agent target is **relay-agent-v51**. Android remains **beta-vc76** unless a later implementation defect requires a separately justified Android rebuild. No Stable change is authorized.
+
+## D127 technical / release checkpoint — 2026-09-26
+
+D127 implementation and release repair are **TECHNICAL / RELEASE PASS** on Beta. Owner field acceptance remains pending under OA052.
+
+- Implementation PR #208 squash-merged to main `f5ad9d45be3445b6e030d1f5f0de1abc0507b54e`; all PR gates passed before merge.
+- The first main Relay Agent release job published `relay-agent-v51` and advanced the normal Agent channel, but failed only while trying to scrape the non-rendered Microsoft WebView2 page for the Fixed Runtime bundle. The Agent binary itself was already valid and published.
+- Release-repair PR #209 replaced static HTML scraping with a rendered Microsoft Edge/Playwright resolver, dynamically selecting the currently offered official x64 Fixed Version Runtime. All PR gates passed; it squash-merged to main `74947a0a66bb63c0ec02d2b00ba7bda31c189b1d`.
+- Final main gates after the repair passed, including Relay Agent run `36254747649`. The normal v51 Agent source tree did not change during the repair.
+- Agent release: `relay-agent-v51`, release id `397296190`, canonical EXE asset id `590949850`, size `331264` bytes, SHA-256 `adfd0350484c41b27842d406551d3f8b0d877c076b280b7c1a932adb62421fbd`.
+- `inventory-channel` now serves the v51 Agent manifest/EXE assets `590987988/590987986`.
+- Agent-owned browser bundle is published on the same channel using official Microsoft WebView2 Fixed Runtime **154.0.4258.37 x64**. Bundle asset id `590989452`, size `318502518` bytes, SHA-256 `d7cd8e9b295efc33b68c1bcd52248a8a6e0a04a8ec104454579570c8f446c12e`; manifest/checksum assets `590989453/590989454`.
+- Android remains signed `beta-vc76`; D127 required no Android rebuild.
+- D127 source guards keep fresh-only Firestore PENDING reads, event-driven Picker presence with 180-second transient disconnect grace, server-filtered open Picker alerts, semantic page-size 100, one batch Search retry for a missing/disabled exact row, owned WebView2 preferred, automatic Edge/Chrome fallback, and D126 DOM-only security/confirmation guards.
+- Stable remains OWNER-GATED and untouched.
+- Next gate: OA052 real-field acceptance. D127 is not Owner-PASS until that physical Beta review passes.
