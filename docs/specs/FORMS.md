@@ -542,3 +542,18 @@ Login **Lưu thông tin đăng nhập** is a browser credential-manager/autofill
 - Once any SLA input changes, background secondary insight refresh may update read-only counters only; it must not rerender/reset editable fields. Save includes `expected_policy_version` and verifies the returned/reloaded mode.
 - ROOT's account editor adds a **Quyền tài khoản · chỉ ROOT được thay đổi** selector for managed non-Picker accounts with Reporter / Quản trị Pick Pack / Quản trị Invent. Other roles do not receive the selector.
 - Email validation follows the resulting target role; admin-class roles require the existing registered-email rule.
+
+## D125 — Android and Office forms
+
+### Android Picker
+- Remove the `Xác nhận đơn` form and its PickList input/result surfaces.
+- Remove the bottom `Báo hết hàng / Xác nhận đơn` navigation. With one remaining Picker business workflow, render Báo hàng directly.
+- Preserve the accepted Báo hàng input, result and acknowledgement forms unless separately changed.
+
+### Web
+- Remove any form/control/instruction dedicated to Supra session capture/reuse, WMS/PickList automation or WMS SKU synchronization. Do not change unrelated forms merely to satisfy D125.
+
+### Office Windows client
+- Replace the Supra/PickList-oriented Agent presentation with an Office Inventory workspace aligned with the Web's operational information architecture.
+- Surfaces may include role-authorized Báo hàng processing, personnel/Picker operations, manual SKU-file import/search and other Web-authorized Inventory functions selected during implementation.
+- There is no Supra login/logout/session state, PickList search/confirm form, Tồn Bin sync control or WMS diagnostic action.

@@ -31,3 +31,7 @@ Also canonical:
 - Superseded behavior is marked historically; do not silently erase the decision trail.
 - Meaningful implementation change → update `ops/project-state.json`.
 - Resource change → update both `ops/project-scope.json` and `ops/resource-registry.json` as applicable.
+
+## D125 current model note
+
+D125 is the current cross-spec override where older specs describe Supra/WMS session capture, PickList confirmation or WMS-derived SKU synchronization. Those capabilities are retired from the target model. Android becomes Báo hàng-only; SKU master is manual-file-only; and the Windows Agent is repurposed as an Office Inventory client using permitted Firebase/Google bridge mechanisms while InventoryCore/Worker remains business authority. See OWNER_DECISIONS D125 and the D125 sections in ROLE_WORKFLOWS, AUTH_RBAC, FORMS, SKU_MASTER, REALTIME_NOTIFICATIONS, UI_DESIGN_SYSTEM and ACCEPTANCE_TESTING.

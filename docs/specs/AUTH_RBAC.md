@@ -244,3 +244,13 @@ D110 narrows the D098 Android client matrix without changing Web or Agent author
 - Non-ROOT actors retain their prior D119 management scope; passing a different role in the request is rejected server-side.
 - Successful role change clears any role override, increments server session generations, clears Web/Android device-session ownership, disables current FCM devices, removes presence, resets Agent Firebase-readiness where applicable, writes `USER_ROLE_CHANGE` audit metadata and synchronizes Firebase custom claims to the newly stored base role.
 - Admin-class target roles continue to require the configured recovery/auth email policy.
+
+## D125 — Office client RBAC boundary
+
+- D125 removes all Agent-specific business authority that existed solely for Supra/WMS/PickList confirmation or WMS-derived SKU synchronization.
+- The Office Windows client must not gain a business permission merely because it runs on the Office network or uses an AGENT authentication channel.
+- Every Office business read/mutation must be constrained by the authenticated application identity and the same server-side role capability that authorizes the corresponding Inventory/Web operation.
+- Wi-Fi/SSID detection is presentation/activation context only and is never authentication, authorization or trust proof.
+- Firebase/Firestore rules may protect the Office bridge, but they do not replace InventoryCore/Worker RBAC for authoritative business transitions.
+- No role, including ROOT/ADMIN/PICKPACK_ADMIN, is authorized by D125 to expose or use a Supra/WMS user session through project software.
+- Stable remains OWNER-GATED.

@@ -671,7 +671,7 @@
     },
     {
       "id": "OA016",
-      "status": "OWNER_CONFIRMED_PDA_AGENT_TRANSPORT_PASS_CURRENT_FIELD__D096_WMS_STAGE_NEXT",
+      "status": "SUPERSEDED_BY_D125_MODEL_REWRITE",
       "title": "Field-test D095 Firestore job visibility on normal and Office Agent networks",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Physical Beta PDA on normal Internet + Windows Agent on normal Internet and company Office network",
@@ -721,11 +721,17 @@
         "android_release_id": 392682842
       },
       "field_result": "PDA_FIRESTORE_AGENT_REQUEST_CLAIM_ACK_PATH_PASS_CURRENT_FIELD",
-      "field_result_date": "2026-09-21"
+      "field_result_date": "2026-09-21",
+      "closed": true,
+      "completion_evidence": {
+        "owner_decision_date": "2026-09-26",
+        "result": "SUPERSEDED__OLD_AGENT_PICKLIST_OR_SUPRA_FIELD_GATE_NO_LONGER_APPLIES",
+        "successor": "D125_ACCEPTANCE_AFTER_MODEL_REWRITE"
+      }
     },
     {
       "id": "OA017",
-      "status": "BLOCKED_BY_OA019_D098_FIELD_GATE",
+      "status": "SUPERSEDED_BY_D125_MODEL_REWRITE",
       "title": "Field-test D096 exact PickListCode resolution and real WMS confirmation",
       "resource_key": "supra-api-d080",
       "provider": "Physical Beta PDA + Windows Agent + authorized company WMS session",
@@ -759,7 +765,13 @@
       "safety": "Use only an authorized company WMS session and an eligible Picklist. Do not share passwords, Authorization/Token/APISID/SID/SCID/USID, signatures/nonces, cookies, encrypted session files or raw sensitive WMS responses.",
       "remaining_owner_action": null,
       "blocked_by": "OA019",
-      "block_reason": "D098 changes the released identity/session/UI wrapper and supersedes OA018 artifacts while preserving D096/D097 confirmation behavior. Final PDA real-WMS acceptance must use Agent v23 + beta-vc61 after OA019 proves D098 plus retained D097 field behavior."
+      "block_reason": "D098 changes the released identity/session/UI wrapper and supersedes OA018 artifacts while preserving D096/D097 confirmation behavior. Final PDA real-WMS acceptance must use Agent v23 + beta-vc61 after OA019 proves D098 plus retained D097 field behavior.",
+      "closed": true,
+      "completion_evidence": {
+        "owner_decision_date": "2026-09-26",
+        "result": "SUPERSEDED__OLD_AGENT_PICKLIST_OR_SUPRA_FIELD_GATE_NO_LONGER_APPLIES",
+        "successor": "D125_ACCEPTANCE_AFTER_MODEL_REWRITE"
+      }
     },
     {
       "id": "OA018",
@@ -816,7 +828,7 @@
     },
     {
       "id": "OA019",
-      "status": "READY_FOR_OWNER_FIELD_TEST_D100_RELEASE",
+      "status": "SUPERSEDED_BY_D125_MODEL_REWRITE",
       "title": "Field-accept D098 unified Firebase identity, realtime and specialist Agent flow",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Beta Web + signed Android PDA + company Windows Agent + authorized Supra WMS session",
@@ -846,7 +858,7 @@
         "Normal Báo hàng remains Worker/InventoryCore and Agent-independent; Stable remains untouched."
       ],
       "safety": "Beta only. Use an eligible controlled PickList for the specialist confirm. Do not share passwords, Firebase tokens, cookies, WMS headers/signatures, encrypted session files or sensitive payloads.",
-      "remaining_owner_action": "Use relay-agent-v25 + beta-vc62 for the consolidated physical acceptance matrix.",
+      "remaining_owner_action": null,
       "prerequisites": {
         "source_main": "bbc2127fa345879c4603a5baaa48cc566150af0f",
         "runtime_pr": 121,
@@ -866,7 +878,13 @@
         "d100_final_main": "dc5607a91c9b95e05344673daaa983c7d8bf5b86"
       },
       "blocked_by": null,
-      "block_reason": null
+      "block_reason": null,
+      "closed": true,
+      "completion_evidence": {
+        "owner_decision_date": "2026-09-26",
+        "result": "SUPERSEDED__OLD_AGENT_PICKLIST_OR_SUPRA_FIELD_GATE_NO_LONGER_APPLIES",
+        "successor": "D125_ACCEPTANCE_AFTER_MODEL_REWRITE"
+      }
     },
     {
       "id": "OA020",
@@ -970,7 +988,7 @@
     },
     {
       "id": "OA022",
-      "status": "SUPERSEDED_BY_OA023_D103",
+      "status": "SUPERSEDED_BY_D125_MODEL_REWRITE",
       "title": "Field-accept D102 Agent v27 Overview, HA convergence and night schedule",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Beta Windows Agent + Firestore relay + authorized Supra WMS",
@@ -1018,7 +1036,13 @@
       ],
       "safety": "Beta only. Use controlled eligible PickLists. Do not share passwords, Firebase tokens, WMS cookies/headers/signatures or local DPAPI files.",
       "remaining_owner_action": null,
-      "superseded_reason": "Owner field review of v27 reopened the Overview presentation. Final Agent field acceptance moves to relay-agent-v28 under OA023."
+      "superseded_reason": "Owner field review of v27 reopened the Overview presentation. Final Agent field acceptance moves to relay-agent-v28 under OA023.",
+      "closed": true,
+      "completion_evidence": {
+        "owner_decision_date": "2026-09-26",
+        "result": "SUPERSEDED__OLD_AGENT_PICKLIST_OR_SUPRA_FIELD_GATE_NO_LONGER_APPLIES",
+        "successor": "D125_ACCEPTANCE_AFTER_MODEL_REWRITE"
+      }
     },
     {
       "id": "OA023",
@@ -1123,7 +1147,7 @@
     },
     {
       "id": "OA025",
-      "status": "READY_FOR_OWNER_FIELD_TEST_D105_RELEASE",
+      "status": "SUPERSEDED_BY_D125_MODEL_REWRITE",
       "title": "Field-accept D105 Android four-digit confirmation UX",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "Beta Android + Beta Windows Agent + existing Firestore relay + authorized Supra WMS endpoint",
@@ -1171,11 +1195,17 @@
         "D104 batch/guard/ACK/HA/quota behavior remains PASS and Stable is untouched."
       ],
       "safety": "Beta only. Use controlled eligible PickLists. Never share or commit WMS Authorization/APISID/SID/Token/signature/session material.",
-      "remaining_owner_action": "Run the OA025 physical field matrix on released beta-vc63 + relay-agent-v30. No code/build/deploy/release blocker remains."
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "owner_decision_date": "2026-09-26",
+        "result": "SUPERSEDED__OLD_AGENT_PICKLIST_OR_SUPRA_FIELD_GATE_NO_LONGER_APPLIES",
+        "successor": "D125_ACCEPTANCE_AFTER_MODEL_REWRITE"
+      }
     },
     {
       "id": "OA026",
-      "status": "READY_FOR_OWNER_FIELD_TEST_D106_RUNTIME_PASS",
+      "status": "SUPERSEDED_BY_D125_MODEL_REWRITE",
       "title": "Field-accept D106 managed-account create/reset and Agent direct login",
       "resource_key": "worker-beta",
       "provider": "Beta Web + InventoryCore + Firebase Auth + unchanged relay-agent-v30",
@@ -1206,7 +1236,13 @@
         "No password/token/hash/salt is exposed in logs or chat; Stable remains untouched."
       ],
       "safety": "Beta only. Never share the ADMIN password, Firebase token, WMS credential/session material or service-account material. Agent v30 binary does not need replacement for D106.",
-      "remaining_owner_action": "Run the two short credential checks above. If either fails, provide only the new sanitized Web/Agent log; do not send the password."
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "owner_decision_date": "2026-09-26",
+        "result": "SUPERSEDED__OLD_AGENT_PICKLIST_OR_SUPRA_FIELD_GATE_NO_LONGER_APPLIES",
+        "successor": "D125_ACCEPTANCE_AFTER_MODEL_REWRITE"
+      }
     },
     {
       "id": "OA027",
@@ -2176,7 +2212,7 @@
     },
     {
       "id": "OA046",
-      "status": "FIELD_REVIEW_OPEN__D120_V41_RELEASED__AGENT_D121_SUPERSEDES_RESPONSIVENESS_LAYOUT_ITEMS",
+      "status": "SUPERSEDED_BY_D125_MODEL_REWRITE",
       "title": "Field-accept D120 Agent/App/Web field repairs",
       "resource_key": "worker-beta",
       "provider": "Beta Web + Worker + signed Android + Windows Agent",
@@ -2241,8 +2277,13 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company accounts. Do not share passwords, WMS session/header material, tokens or secrets. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Continue only the remaining D120 App/Web/Picker-presence field checks as needed. Agent lag/Not Responding and the new Agent/Supra/PickList/status-line layout requirements are superseded by D121/OA047.",
-      "closed": false
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "owner_decision_date": "2026-09-26",
+        "result": "SUPERSEDED__OLD_AGENT_PICKLIST_OR_SUPRA_FIELD_GATE_NO_LONGER_APPLIES",
+        "successor": "D125_ACCEPTANCE_AFTER_MODEL_REWRITE"
+      }
     },
     {
       "id": "OA047",
@@ -2388,7 +2429,7 @@
     },
     {
       "id": "OA050",
-      "status": "READY_FOR_OWNER_FIELD_TEST_D124_RELEASE",
+      "status": "CANCELLED_SUPERSEDED_BY_D125_SECURITY_BOUNDARY",
       "title": "Field-accept D124 Agent operational cleanup and single-daily SKU sync",
       "resource_key": "repo",
       "provider": "GitHub Beta prerelease + Beta Functions + Windows Agent",
@@ -2432,8 +2473,13 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company accounts. Do not share passwords, tokens, WMS session/header/signing material or other secrets. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Update Agent through inventory-channel to relay-agent-v45 and run the OA050 physical checks.",
-      "closed": false
+      "remaining_owner_action": null,
+      "closed": true,
+      "completion_evidence": {
+        "owner_decision_date": "2026-09-26",
+        "result": "SUPERSEDED__DO_NOT_RUN_D124_WMS_SKU_OR_PICKLIST_FIELD_TESTS",
+        "reason": "D125 retires all project use of Supra/WMS session material, PickList confirmation and WMS-derived SKU synchronization."
+      }
     }
   ]
 }

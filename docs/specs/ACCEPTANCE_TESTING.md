@@ -1278,3 +1278,18 @@ D123 technical/release PASS requires:
 - **Uncertain Service timeout:** after Service submission, timeout/failure must retain the daily lock and show that the operation is held to prevent duplicate send; it must not shorten the lease to 15 seconds.
 - **Service progress contract:** `skuSyncCreated` writes `RUNNING` before invoking the internal SKU import Worker path; Agent accepts PENDING/RUNNING as non-terminal and waits up to the bounded 180-second limit.
 - **Regression:** D117/D118 confirmation, generation/failover/WMS fences, D120 Picker online rendering, D123 WinForms UI-thread affinity and Stable OWNER-GATED policy remain unchanged.
+
+## D125 — Operating-model acceptance
+
+D125 implementation cannot PASS until all applicable checks below pass:
+
+1. Android Picker contains no `Xác nhận đơn` tab, PickList input, PickList Firestore request or PickList result UI; Báo hàng opens directly and existing Báo hàng behavior still passes.
+2. Source/runtime audit finds no active path that captures, persists, refreshes or uses Supra/WMS session cookies, headers, tokens, signatures, browser-profile session material or derived auth.
+3. No active Agent/Web/Function path performs PickList lookup/confirmation or WMS/Tồn Bin SKU synchronization.
+4. Web exposes no obsolete Supra-session/PickList/WMS-SKU controls; unrelated accepted Web functions are regression-tested.
+5. Manual SKU file import remains functional with the canonical validation/dedupe/additive/conflict rules.
+6. Windows client runs in dormant/lightweight non-Office mode and activates Office Inventory UI on the approved Office network without treating SSID as authorization.
+7. Office UI exposes only role-authorized Inventory capabilities and contains no Supra/WMS session, PickList or Tồn Bin surface.
+8. Office bridge traffic through Firebase/Google is bounded and contains no WMS/Supra secrets. Authoritative business transitions remain enforced by InventoryCore/Worker.
+9. Legacy PickList relay/WMS resources are disabled from runtime use or removed according to the implementation migration plan without deleting unrelated Báo hàng data.
+10. Stable remains untouched unless separately Owner-authorized.

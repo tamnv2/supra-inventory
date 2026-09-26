@@ -579,3 +579,25 @@ D114 supersedes the D105/D112 suffix-length carrier details where they conflict.
 - Existing D118 overtime controls move to **Vận hành → Ca vận hành** for the same management authority. **Gia hạn +1 giờ** and **Kết thúc tăng ca** keep the existing shared schedule semantics.
 - **Công cụ** remains focused on App/Agent release download and installation.
 
+## D125 — Office model workflow
+
+### Picker Android
+- The normal Picker workflow is Báo hàng only.
+- The `Xác nhận đơn` / PickList workflow is removed from the target model.
+- The bottom two-tab switcher is removed; the Báo hàng screen is the direct business surface.
+- Existing Báo hàng report/withdraw/result/ack rules remain unless separately superseded.
+
+### Inventory resolution
+- `Xác nhận SKU` refers to the existing Báo hàng resolution workflow.
+- Reporter/Admin role-authorized Có hàng / Cho phép skip and related correction/ack semantics remain server-authoritative.
+
+### Office Windows client
+- The Windows Agent becomes an Office Inventory client, not a Supra/WMS automation Agent.
+- Non-Office state is lightweight/dormant and limited to local network-state observation plus normal application lifecycle/update behavior approved during implementation.
+- On the approved Office network, Office mode exposes the authenticated role's Inventory business functions aligned with Web.
+- Office actions travel through approved Firebase/Google bridge mechanisms and are committed/validated by InventoryCore/Worker authority.
+- No Office workflow may capture/use a Supra session, query PickLists, confirm PickLists, or read WMS stock/SKU data.
+
+### SKU master
+- Operator/Owner-supplied manual file import is the only D125 SKU-update source.
+- Existing import validation, dedupe, additive merge and changed-name confirmation remain.

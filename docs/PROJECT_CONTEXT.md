@@ -433,3 +433,18 @@ D105 Android vc63 + Agent v30 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta.
 - Both tags point exactly to `e73206dea01e4c599d19abe040ffc8662b8836bf`.
 - Beta Firestore Rules deployment for bounded current 4-digit + legacy 5-digit rollout compatibility passed.
 - OA025 is the remaining physical Owner acceptance gate. Stable remains OWNER-GATED and untouched.
+
+## D125 current operating-model boundary
+
+D125 is the current Owner-approved direction and supersedes older WMS/Agent exceptions wherever they conflict.
+
+- Background software must not obtain, store, refresh or use any Supra/WMS user-session material.
+- Picker `Xác nhận đơn` (Supra PickList confirmation) is retired from the target Android/Agent model.
+- Picker Android becomes a single-purpose Báo hàng client with no `Xác nhận đơn` tab.
+- `Xác nhận SKU` remains the Báo hàng resolution workflow and is unrelated to the retired PickList confirmation feature.
+- SKU master updates are manual-file based only; WMS/Tồn Bin SKU synchronization is retired.
+- Windows Agent is repurposed as an Office Inventory client that mirrors role-authorized Web business capabilities through permitted Firebase/Google transport. It has no Supra/WMS session, lookup, confirmation or SKU-read authority.
+- InventoryCore/Worker remains business authority; Firestore is only an Office-reachable projection/command bridge and never an independent business store.
+- Legacy WMS/relay resources may remain for historical/cleanup purposes but are forbidden for runtime use under D125.
+- Exact continuation command: `tiến hành sửa đổi mô hình` starts D125 implementation from current `main`.
+- Stable remains OWNER-GATED.
