@@ -622,11 +622,11 @@ namespace SupraInventoryRelayAgent
             var action = result == null ? "" : String(result, "result");
             if (!string.Equals(action, "CLICKED", StringComparison.Ordinal))
             {
-                if (string.Equals(action, "TARGET_AMBIGUOUS", StringComparison.Ordinal) ||
-                    string.Equals(action, "ACTION_AMBIGUOUS", StringComparison.Ordinal))
-                {
-                    _log("SUPRA_BROWSER dashboard_recovery=" + action + " fail_closed=true");
-                }
+                _log("SUPRA_BROWSER dashboard_recovery=" +
+                     (string.IsNullOrWhiteSpace(action) ? "DOM_NO_RESULT" : action) +
+                     " warehouse=" + (result == null ? 0 : Int(result, "warehouse")) +
+                     " sft3=" + (result == null ? 0 : Int(result, "sft3")) +
+                     " fail_closed=true");
                 return false;
             }
 
