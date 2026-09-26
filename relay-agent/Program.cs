@@ -563,7 +563,7 @@ namespace SupraInventoryRelayAgent
             _logout.Text = "Đăng xuất"; _logout.Enabled = false; _logout.Click += (s, e) =>
             {
                 if (MessageBox.Show(
-                    "Đăng xuất Agent sẽ dừng xử lý trên máy này và xóa phiên Agent/Supra đang lưu cục bộ.\r\n\r\nTiếp tục đăng xuất?",
+                    "Đăng xuất Agent sẽ dừng xử lý trên máy này và xóa phiên Agent đã lưu cục bộ. Đăng nhập Supra trong trình duyệt được quản lý riêng bởi trình duyệt.\r\n\r\nTiếp tục đăng xuất?",
                     "Xác nhận đăng xuất Agent",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Warning) != DialogResult.Yes) return;
@@ -576,7 +576,7 @@ namespace SupraInventoryRelayAgent
             _listen.Click += (s, e) => { if (_listenCts == null) StartListening(); else StopListening(); }; Controls.Add(_listen);
             _openLog.SetBounds(302, 176, 105, 32); _openLog.Text = "Mở log";
             _openLog.Click += (s, e) => AgentDiagnostics.OpenLog(); Controls.Add(_openLog);
-            Controls.Add(new Label { Left = 560, Top = 178, Width = 184, Height = 38, Text = "POC chỉ đọc WMS; chưa xác nhận đơn.", ForeColor = Color.DimGray });
+            Controls.Add(new Label { Left = 560, Top = 178, Width = 184, Height = 38, Text = "Confirm PickList qua Web; Agent không lấy phiên Supra.", ForeColor = Color.DimGray });
 
             Controls.Add(new Label { Left = 18, Top = 220, Width = 726, Height = 20, Text = "Probe transport Office — chỉ GET/read-only, không tạo dữ liệu:", ForeColor = Color.DimGray });
 
@@ -934,7 +934,7 @@ namespace SupraInventoryRelayAgent
             _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Admin", HeaderText = "Tài khoản", Width = 155 });
             _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Machine", HeaderText = "Máy", Width = 190 });
             _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Role", HeaderText = "Vai trò", Width = 120 });
-            _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Supra", HeaderText = "Supra", Width = 110 });
+            _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Supra", HeaderText = "Web Confirm", Width = 110 });
             _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Version", HeaderText = "Phiên bản", Width = 95 });
             _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "LastSeen", HeaderText = "Cập nhật", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
             agentCard.Controls.Add(_agentFleetGrid);
@@ -2568,7 +2568,7 @@ namespace SupraInventoryRelayAgent
                     _supraCard.Enabled = authenticated;
                     if (!authenticated)
                     {
-                        _wmsStatus.Text = "Supra WMS: chờ xác minh Agent";
+                        _wmsStatus.Text = "Web Confirm: chờ xác minh Agent";
                         _wmsCapture.Enabled = false;
                         _wmsTest.Enabled = false;
                     }
@@ -2592,7 +2592,7 @@ namespace SupraInventoryRelayAgent
             try { StopListening(); } catch { }
             try { if (releasing != null) _agentSessionGate.Release(releasing, _agentInstanceId); } catch { }
             lock (_sessionLock) _session = null;
-ClearStoredSession();
+            ClearStoredSession();
             AgentRuntimeGuard.MarkPlannedExit();
             try { if (File.Exists(ExitVerifierFile)) File.Delete(ExitVerifierFile); } catch { }
 
@@ -2603,7 +2603,7 @@ ClearStoredSession();
                 _listen.Enabled = false;
                 _testOffice.Enabled = false;
                 _wmsStatus.Text = "Web Confirm: chờ đăng nhập Agent";
-                _supraInfo.Text = "HY1 · Chưa có user Supra · Phiên chưa sẵn sàng · Cache 0";
+                _supraInfo.Text = "HY1 · Web Confirm tạm dừng đến khi đăng nhập Agent";
             });
             SetAgentAuthUi(false);
             SetProbeButtonsEnabled(false);
@@ -3471,7 +3471,7 @@ ClearStoredSession();
                 _relay.Text = "Relay: phiên Agent hết hạn";
                 _listen.Enabled = false;
                 _testOffice.Enabled = false;
-                _wmsStatus.Text = "Supra WMS: chờ đăng nhập Agent";
+                _wmsStatus.Text = "Web Confirm: chờ đăng nhập Agent";
                 _supraInfo.Text = "HY1 · Web Confirm tạm dừng đến khi đăng nhập Agent";
                 _agentFleetRenderSignature = "";
             });
