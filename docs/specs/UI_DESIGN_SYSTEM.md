@@ -742,3 +742,11 @@ D111 supersedes only the conflicting D110 Reporter interaction/presentation deta
 - The Hệ thống Agent card uses a responsive compact summary region of approximately 30% for authentication/actions, the one-row Agent/Relay/Wi-Fi state and request counters; the Agent fleet grid uses the remaining height and scrolls internally.
 - SKU synchronization status is concise but continuously informative while active: daily-lock check, Supra read, chunk progress, Service wait/running state and final result.
 - Existing normal Windows chrome, tray background behavior, two-pane Overview, 50/25/25 left-column composition, Picker workspace, per-user column sizing and D123 UI-thread rules remain unchanged.
+
+## D125 — Single-purpose Picker and Office client UI
+
+- Picker Android has one primary business surface: Báo hàng. Do not retain a redundant bottom tab bar for a removed second workflow.
+- Remove all PickList/Supra/WMS copy, status cards and actions from the target Android/Office UI.
+- The Office Windows client should visually align with the existing professional Web Inventory information architecture and component density while remaining appropriate for native Windows interaction.
+- Office mode must clearly present Inventory business status; it must not imply that the client is connected to or authorized for Supra/WMS.
+- Network mode transitions should not require visible process churn solely because Wi-Fi changed; activate/deactivate the Office workspace within the running client where technically practical.
