@@ -143,13 +143,13 @@ jobs:
             "querySelectorAll('svg[viewBox]')",
             "getAttribute('viewBox')",
             'SCRIPT_ERROR',
-            'LayoutSupraCardControls',
-            'Dữ liệu Agent:',
-            'Mở thư mục dữ liệu'
           )) {
             if (-not $browser.Contains($marker)) { throw "D126 browser semantic guard missing: $marker" }
           }
           if (-not $browser.Contains("names(e).some(v => fold(v) === fold('Xác nhận lấy lại hàng'))")) { throw "D126 H3 readiness confirm control must remain exact-label only." }
+          foreach ($marker in @('LayoutSupraCardControls','_agentDataStorageStatus','_openAgentDataFolder')) {
+            if (-not $ops.Contains($marker)) { throw "D127 v59 responsive Supra layout guard missing: $marker" }
+          }
           foreach ($marker in @(
             'RequiredHostBuild = 4',
             'RequiredHostArch = "x64"',
