@@ -2271,6 +2271,7 @@ namespace SupraInventoryRelayAgent
             LogNetworkSnapshot("startup");
             if (TryAutoUpdate(true)) return;
             RestoreSession();
+            AgentBrowserBundle.EnsureBackground(Log);
         }
 
         private bool TryAutoUpdate(bool startup)
