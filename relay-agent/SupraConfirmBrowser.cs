@@ -647,87 +647,83 @@ namespace SupraInventoryRelayAgent
         private static string BuildDashboardSft3EntryScript()
         {
             return @"(() => {
-              const norm = v => {
-                const raw = String(v || '');
-                const unicode = raw.normalize ? raw.normalize('NFC') : raw;
-                return unicode.replace(/[\u200B-\u200D\uFEFF]/g,' ').replace(/\s+/g,' ').trim();
-              };
-              const fold = v => norm(v).toLowerCase();
               const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
-              const exactText = (e, value) => visible(e) && fold(e.innerText || e.textContent) === fold(value);
-              const arrowPath = 'm12 4-1.41 1.41l16.17 11h4v2h12.17l-5.58 5.59l12 20l8-8z';
               const normalizePath = v => String(v || '').toLowerCase().replace(/[\s,]+/g,'');
+              const arrowPath = normalizePath('m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z');
+              const warehousePaths = [
+                normalizePath('M12 29.5 36 15l24 14.5'),
+                normalizePath('M17 31v25h38V31'),
+                normalizePath('M25 56V40h22v16')
+              ];
 
-              const warehouseLabels = [...document.querySelectorAll('p,span,div')]
-                .filter(e => exactText(e, 'Kho Hưng Yên 1'));
-              const sftLabels = [...document.querySelectorAll('p,span,div')]
-                .filter(e => exactText(e, 'SFT3'));
+              const docs = [];
+              const seenDocs = new Set();
+              const addDoc = d => {
+                if (!d || seenDocs.has(d) || docs.length >= 8) return;
+                seenDocs.add(d);
+                docs.push(d);
+                for (const frame of [...d.querySelectorAll('iframe')]) {
+                  try { if (frame.contentDocument) addDoc(frame.contentDocument); } catch (_) {}
+                }
+              };
+              addDoc(document);
 
-              if (!warehouseLabels.length || !sftLabels.length)
-                return JSON.stringify({
-                  result:'NOT_DASHBOARD',
-                  warehouse:warehouseLabels.length,
-                  sft3:sftLabels.length
+              const hasWarehouseIcon = root => {
+                const svgs = [...root.querySelectorAll('svg[viewBox="0 0 72 72"]')].filter(visible);
+                return svgs.some(svg => {
+                  const paths = [...svg.querySelectorAll('path')]
+                    .map(p => normalizePath(p.getAttribute('d')));
+                  return warehousePaths.filter(expected => paths.includes(expected)).length >= 2;
                 });
+              };
 
-              const cards = [];
-              const seen = new Set();
-              for (const label of warehouseLabels) {
-                let node = label;
-                for (let depth = 0; node && depth < 8; depth++, node = node.parentElement) {
-                  if (!visible(node)) continue;
-                  const className = String(node.className || '');
-                  if (!className.includes('MuiPaper-root')) continue;
-                  const hasWarehouse = [...node.querySelectorAll('p,span,div')]
-                    .some(e => exactText(e, 'Kho Hưng Yên 1'));
-                  const hasSft3 = [...node.querySelectorAll('p,span,div')]
-                    .some(e => exactText(e, 'SFT3'));
-                  if (!hasWarehouse || !hasSft3) continue;
-                  if (!seen.has(node)) {
-                    seen.add(node);
-                    cards.push(node);
-                  }
-                  break;
+              const arrowButtons = [];
+              for (const d of docs) {
+                const buttons = [...d.querySelectorAll('button,[role=button]')]
+                  .filter(e => visible(e) && !e.disabled && e.getAttribute('aria-disabled') !== 'true');
+                for (const button of buttons) {
+                  const hasArrow = [...button.querySelectorAll('svg path')].some(path =>
+                    normalizePath(path.getAttribute('d')) === arrowPath);
+                  if (hasArrow) arrowButtons.push(button);
                 }
               }
 
-              if (cards.length !== 1)
-                return JSON.stringify({result:'CARD_NOT_UNIQUE',count:cards.length});
+              const candidates = [];
+              for (const button of arrowButtons) {
+                let node = button.parentElement;
+                for (let depth = 0; node && depth < 8; depth++, node = node.parentElement) {
+                  if (!visible(node)) continue;
+                  if (hasWarehouseIcon(node)) {
+                    candidates.push({button,root:node,depth});
+                    break;
+                  }
+                }
+              }
 
-              const card = cards[0];
-              const iconButtons = [...card.querySelectorAll('button.MuiIconButton-root')]
-                .filter(e => visible(e) && !e.disabled && e.getAttribute('aria-disabled') !== 'true');
-
-              const exactArrowButtons = iconButtons.filter(button =>
-                [...button.querySelectorAll('svg path')].some(path =>
-                  normalizePath(path.getAttribute('d')) === normalizePath('m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z')));
-
-              let target = null;
-              if (exactArrowButtons.length === 1) {
-                target = exactArrowButtons[0];
-              } else if (exactArrowButtons.length > 1) {
-                return JSON.stringify({result:'ARROW_NOT_UNIQUE',count:exactArrowButtons.length});
-              } else if (iconButtons.length === 1) {
-                // Structural fallback for harmless class/hash changes: the HY1/SFT3 card
-                // from the field DOM contains exactly one MUI IconButton.
-                target = iconButtons[0];
-              } else {
+              const uniqueButtons = [...new Set(candidates.map(x => x.button))];
+              if (uniqueButtons.length !== 1) {
                 return JSON.stringify({
-                  result:'ARROW_NOT_FOUND',
-                  iconButtons:iconButtons.length
+                  result: uniqueButtons.length ? 'STRUCTURAL_ARROW_AMBIGUOUS' : 'STRUCTURAL_ARROW_NOT_FOUND',
+                  docs: docs.length,
+                  arrowButtons: arrowButtons.length,
+                  warehouseCandidates: uniqueButtons.length
                 });
               }
 
+              const target = uniqueButtons[0];
               try { target.scrollIntoView({block:'nearest',inline:'nearest'}); } catch (_) {}
-              target.focus();
+              try { target.focus({preventScroll:true}); } catch (_) { try { target.focus(); } catch (_) {} }
+
+              // Native HTMLElement.click() reaches the React/MUI onClick handler without
+              // depending on generated JSS/CSS class names or localized warehouse labels.
               target.click();
 
               return JSON.stringify({
                 result:'CLICKED',
-                exactArrow:exactArrowButtons.length === 1,
-                iconButtons:iconButtons.length,
-                tag:target.tagName,
-                type:target.getAttribute('type') || ''
+                strategy:'WAREHOUSE_ICON_PLUS_ARROW_SVG',
+                docs:docs.length,
+                arrowButtons:arrowButtons.length,
+                warehouseCandidates:uniqueButtons.length
               });
             })()";
         }
