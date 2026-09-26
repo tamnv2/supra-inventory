@@ -1298,3 +1298,17 @@ Owner confirmed WebView2 and rows-per-page 100 were working on v54, but Supra au
 - Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
 - OA052 remains pending until Owner verifies the complete same-tab auto-login recovery on v55.
 
+## D127 field hotfix — Agent v56 HY1/SFT3 geometric arrow selector — 2026-09-27
+
+Owner field review on v55 showed same-tab routing worked, but the HY1/SFT3 access arrow was not clicked automatically. The rendered action can be visually inside the warehouse card while not being a direct DOM descendant of the smallest text container.
+
+- PR #220 squash-merged to main `1644b1d63fddda22d9e24828c172e52870397720`.
+- Main Relay Agent run `36262177317` completed successfully.
+- Agent release advanced to `relay-agent-v56`, release id `397346966`, canonical EXE asset `591193432`, size `353280` bytes, SHA-256 `9f4530ff5a66edeec27804b125e833eb4925a659fcaa7c1dbef4e19eaa17b2a6`.
+- v56 anchors on visible **Kho Hưng Yên 1** and **SFT3** text, resolves the nearest card rectangle, finds enabled DOM actions whose centers lie inside the card, and chooses the right-most action corresponding to the access arrow.
+- Automation remains DOM-only; no Windows cursor movement or screen-coordinate click is used.
+- v55 same-tab `NewWindowRequested` interception remains unchanged. Rows-per-page 100 remains unchanged and field-OK.
+- Browser host remains `host_build=4`; the ~318 MB browser bundle does not need to be re-downloaded for v56.
+- Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
+- OA052 remains pending until Owner verifies the automatic arrow click on v56.
+
