@@ -453,7 +453,6 @@ namespace SupraInventoryRelayAgent
         private readonly Button _listen = new Button();
         private readonly Button _openLog = new Button();
         private readonly Button _openAuditLog = new Button();
-        private readonly Button _overlaySettingsButton = new Button();
         private readonly Button _probeAuth = new Button();
         private readonly Button _probeRtdb = new Button();
         private readonly Button _probeFirestore = new Button();
@@ -487,15 +486,10 @@ namespace SupraInventoryRelayAgent
         private readonly Button _afterHoursStop = new Button();
         private readonly Button _afterHoursEarlyStart = new Button();
         private readonly Label _supraInfo = new Label();
-        private readonly Panel _overlaySettingsHost = new Panel();
-        private OverlaySettingsForm _embeddedOverlaySettings;
         private readonly ListBox _log = new ListBox();
         private readonly ListBox _auditLog = new ListBox();
         private readonly NotifyIcon _tray = new NotifyIcon();
         private readonly ToolStripMenuItem _trayStatusItem = new ToolStripMenuItem();
-        private readonly ToolStripMenuItem _trayOverlayVisibleItem = new ToolStripMenuItem();
-        private readonly ToolStripMenuItem _trayOverlayLockItem = new ToolStripMenuItem();
-        private readonly ToolStripMenuItem _trayOverlayOpacityMenu = new ToolStripMenuItem();
         private readonly SystemMonitor _systemMonitor = new SystemMonitor();
         private readonly System.Windows.Forms.Timer _trayMonitorTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer _networkUiTimer = new System.Windows.Forms.Timer();
@@ -509,14 +503,10 @@ namespace SupraInventoryRelayAgent
         private readonly TabControl _mainTabs = new TabControl();
         private readonly TabPage _overviewPage = new TabPage("Tổng quan");
         private readonly TabPage _connectionPage = new TabPage("Kết nối");
-        private readonly TabPage _overlayPage = new TabPage("Bảng nổi");
         private readonly TabPage _auditPage = new TabPage("Nhật ký vận hành");
         private readonly TabPage _technicalPage = new TabPage("Chẩn đoán kỹ thuật");
-        private StatusOverlayForm _statusOverlay;
-        private readonly OverlaySettings _overlaySettings;
         private readonly bool _startupSmoke;
         private readonly bool _autoStarted;
-        private bool _overlayInitFailed;
         private readonly HashSet<string> _acked = new HashSet<string>(StringComparer.Ordinal);
         private readonly PicklistCacheCoordinator _picklistCache = new PicklistCacheCoordinator();
         private readonly PickerRateLimiter _pickerRateLimiter = new PickerRateLimiter();
@@ -551,7 +541,6 @@ namespace SupraInventoryRelayAgent
             "Agent Auto Confirm Pick Pack", "RelayPoc");
         private static readonly string SessionFile = Path.Combine(RelayDataDir, "session.bin");
         private static readonly string AgentInstanceFile = Path.Combine(RelayDataDir, "agent-instance-id.txt");
-        private static readonly string OverlaySettingsFile = Path.Combine(RelayDataDir, "overlay-settings.json");
         private static readonly string WmsSessionFile = Path.Combine(RelayDataDir, "wms-session.bin");
         private static readonly string ExitVerifierFile = Path.Combine(RelayDataDir, "exit-verifier.bin");
         private static readonly string AgentLogUploadCheckpointFile = Path.Combine(RelayDataDir, "agent-log-upload-checkpoint.txt");
@@ -574,7 +563,6 @@ namespace SupraInventoryRelayAgent
                 AgentLogUploadCheckpointFile,
                 message => Log(message));
             AgentDiagnostics.CrashUploadCallback = crashType => _agentLogBridge.TryQueueCrashSnapshot(crashType);
-            _overlaySettings = StatusOverlayForm.LoadSettings(OverlaySettingsFile);
             Text = "SUPRA Inventory - Relay Test v" + AgentConfig.AgentBuild;
             Width = 780;
             Height = 680;
@@ -610,8 +598,6 @@ namespace SupraInventoryRelayAgent
             _listen.Click += (s, e) => { if (_listenCts == null) StartListening(); else StopListening(); }; Controls.Add(_listen);
             _openLog.SetBounds(302, 176, 105, 32); _openLog.Text = "Mở log";
             _openLog.Click += (s, e) => AgentDiagnostics.OpenLog(); Controls.Add(_openLog);
-            _overlaySettingsButton.SetBounds(414, 176, 135, 32); _overlaySettingsButton.Text = "Cài đặt bảng nổi";
-            _overlaySettingsButton.Click += (s, e) => OpenOverlaySettings(); Controls.Add(_overlaySettingsButton);
             Controls.Add(new Label { Left = 560, Top = 178, Width = 184, Height = 38, Text = "POC chỉ đọc WMS; chưa xác nhận đơn.", ForeColor = Color.DimGray });
 
             Controls.Add(new Label { Left = 18, Top = 220, Width = 726, Height = 20, Text = "Probe transport Office — chỉ GET/read-only, không tạo dữ liệu:", ForeColor = Color.DimGray });
@@ -656,7 +642,6 @@ namespace SupraInventoryRelayAgent
             menu.Items.Add(new ToolStripSeparator());
 
             menu.Items.Add("Mở Agent", null, (s, e) => RestoreFromTray());
-            menu.Items.Add("Bảng nổi", null, (s, e) => OpenSettingsFromTray());
             menu.Items.Add("Mở log", null, (s, e) => AgentDiagnostics.OpenLog());
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add("Tắt Agent...", null, (s, e) => RequestProtectedExit());
@@ -665,7 +650,6 @@ namespace SupraInventoryRelayAgent
             catch { _tray.Icon = SystemIcons.Application; }
             try { Icon = _tray.Icon; } catch { }
             _tray.ContextMenuStrip = menu; _tray.Visible = true;
-            RefreshOverlayMenu();
             _tray.DoubleClick += (s, e) => RestoreFromTray();
 
             // D088: minimize/user-close hides the window from taskbar and leaves the Agent in System Tray.
@@ -688,7 +672,6 @@ namespace SupraInventoryRelayAgent
                 _trayMonitorTimer.Stop();
                 _logUploadTimer.Stop();
                 _afterHoursTimer.Stop();
-                try { if (_statusOverlay != null) _statusOverlay.Close(); } catch { }
                 _tray.Visible = false;
             };
 
@@ -721,13 +704,11 @@ namespace SupraInventoryRelayAgent
             Shown += (s, e) =>
             {
                 ApplyWorkingAreaMaximum();
-                // D122: the overlay is lazy-created only when the operator opens/toggles it.
-                // WinForms handle creation must never delay the main Agent startup.
                 UpdateTrayMonitor();
 
                 if (_startupSmoke)
                 {
-                    AgentDiagnostics.Write("STARTUP_SMOKE PASS overlay=" + (_statusOverlay == null ? "fallback" : "ready"));
+                    AgentDiagnostics.Write("STARTUP_SMOKE PASS shell=ready");
                     _allowExit = true;
                     BeginInvoke(new Action(Close));
                     return;
@@ -820,20 +801,17 @@ namespace SupraInventoryRelayAgent
 
             _mainTabs.Dock = DockStyle.Fill;
             _mainTabs.Font = new Font("Segoe UI", 9F);
-            foreach (var page in new[] { _overviewPage, _connectionPage, _overlayPage, _auditPage, _technicalPage })
+            foreach (var page in new[] { _overviewPage, _connectionPage, _auditPage, _technicalPage })
                 page.BackColor = Color.FromArgb(243, 246, 248);
             _overviewPage.AutoScroll = false;
             _mainTabs.TabPages.Add(_overviewPage);
             _mainTabs.TabPages.Add(_connectionPage);
-            _mainTabs.TabPages.Add(_overlayPage);
             _mainTabs.TabPages.Add(_auditPage);
             _mainTabs.TabPages.Add(_technicalPage);
             _mainTabs.SelectedIndexChanged += (s, e) =>
             {
                 if (_mainTabs.SelectedTab == _overviewPage && _leaderCoordinator != null)
                     _leaderCoordinator.RequestFleetRefresh();
-                if (_mainTabs.SelectedTab == _overlayPage)
-                    EnsureEmbeddedOverlaySettings();
             };
 
             var footer = new Panel
@@ -1195,22 +1173,6 @@ namespace SupraInventoryRelayAgent
             });
             _connectionPage.Controls.Add(networkCard);
 
-            // Bảng nổi
-            _overlaySettingsHost.Dock = DockStyle.Fill;
-            _overlaySettingsHost.BackColor = Color.White;
-            _overlaySettingsHost.AutoScroll = true;
-            _overlaySettingsHost.Controls.Add(new Label
-            {
-                Name = "overlay-loading",
-                Left = 24,
-                Top = 24,
-                Width = 960,
-                Height = 28,
-                Text = "Đang khởi tạo cài đặt bảng nổi...",
-                ForeColor = Color.DimGray
-            });
-            _overlayPage.Controls.Add(_overlaySettingsHost);
-            _overlayPage.Enter += (s, e) => EnsureEmbeddedOverlaySettings();
 
             // Nhật ký
             _auditPage.Controls.Add(new Label
@@ -1559,11 +1521,6 @@ namespace SupraInventoryRelayAgent
             };
         }
 
-        private void OpenSettingsFromTray()
-        {
-            RestoreFromTray();
-            _mainTabs.SelectedTab = _connectionPage;
-        }
 
         private void RequestProtectedExit()
         {
@@ -1671,62 +1628,6 @@ namespace SupraInventoryRelayAgent
             Activate();
         }
 
-        private string BuildLaptopOverlayLine(SystemMetrics metrics, string state, OverlaySettings options)
-        {
-            if (options == null || !options.ShowLaptopGroup) return "";
-            var parts = new List<string>();
-            if (options.ShowCpu) parts.Add("Vai trò " + state);
-            if (options.ShowMemory)
-                parts.Add("Firestore " + (_leaderCoordinator != null && _leaderCoordinator.IsTransportHealthy ? "ON" : "OFF"));
-            if (options.ShowDisk)
-                parts.Add("WMS " + (HasUsableWmsSession() ? "Sẵn sàng" : "Chưa sẵn sàng"));
-            if (options.ShowNetwork) parts.Add("v" + AgentConfig.AgentBuild);
-            if (options.ShowInternet) parts.Add("Relay PDA " + (IsBusinessAllowed() ? "ON" : "NGỦ"));
-            if (options.ShowGpu) parts.Add("Cache " + _picklistCache.CacheCount);
-            return parts.Count == 0 ? "" : "Vận hành | " + string.Join(" | ", parts.ToArray());
-        }
-
-        private string BuildAgentOverlayLine(
-            SystemMetrics metrics,
-            int online,
-            int primaryCount,
-            int standbyCount,
-            int frozenCount,
-            OverlaySettings options)
-        {
-            if (options == null || !options.ShowAgentGroup) return "";
-            var parts = new List<string>();
-            if (options.ShowAgentOnline)
-                parts.Add("CPU " + (metrics.ProcessCpuPercent < 0 ? "--" : metrics.ProcessCpuPercent.ToString("0") + "%"));
-            if (options.ShowAgentState)
-            {
-                var ramMb = metrics.ProcessWorkingSetBytes <= 0 ? "--" : (metrics.ProcessWorkingSetBytes / 1048576.0).ToString("0") + "MB";
-                var uptime = metrics.ProcessUptime.TotalHours >= 1
-                    ? ((int)metrics.ProcessUptime.TotalHours).ToString("0") + "h" + metrics.ProcessUptime.Minutes.ToString("00")
-                    : Math.Max(0, metrics.ProcessUptime.Minutes).ToString("0") + "m";
-                parts.Add("RAM " + ramMb);
-                parts.Add("Thời gian chạy " + uptime);
-            }
-            var requests = Interlocked.Read(ref _localPdaRequests);
-            var responses = Interlocked.Read(ref _localAgentResponses);
-            if (options.ShowPdaRequests)
-            {
-                parts.Add("Yêu cầu PDA " + requests);
-                parts.Add("Đang chờ " + Math.Max(0L, requests - responses));
-            }
-            if (options.ShowAgentResponses)
-            {
-                parts.Add("Xác nhận OK " + Interlocked.Read(ref _localConfirmSuccess));
-                parts.Add("Lỗi " + Interlocked.Read(ref _localConfirmFailed));
-            }
-            if (options.ShowWmsSession)
-            {
-                parts.Add("Agent online " + online);
-                parts.Add("Cập nhật " + DateTime.Now.ToString("HH:mm:ss"));
-            }
-            return parts.Count == 0 ? "" : "Agent | " + string.Join(" | ", parts.ToArray());
-        }
-
         private void QueueNetworkStatusRefresh()
         {
             if (!Visible || Interlocked.CompareExchange(ref _networkStatusRefreshRunning, 1L, 0L) != 0L) return;
@@ -1824,13 +1725,6 @@ namespace SupraInventoryRelayAgent
                     " · Cache " + _picklistCache.CacheCount +
                     (_picklistCache.RefreshedUtc == DateTime.MinValue ? "" : " · " + _picklistCache.RefreshedUtc.ToLocalTime().ToString("HH:mm"));
 
-                if (_statusOverlay != null)
-                {
-                    var options = _statusOverlay.DisplaySettings;
-                    _statusOverlay.UpdateMetrics(
-                        BuildLaptopOverlayLine(metrics, state, options),
-                        BuildAgentOverlayLine(metrics, online, primaryCount, standbyCount, frozenCount, options));
-                }
             }
             catch
             {
@@ -1842,180 +1736,6 @@ namespace SupraInventoryRelayAgent
         {
             _tray.Text = "SUPRA Agent";
             _trayStatusItem.Text = "Máy: chưa đọc được tài nguyên";
-            if (_statusOverlay != null)
-                _statusOverlay.UpdateMetrics("Vận hành | chưa đọc được trạng thái", "Agent | chưa đọc được tải tiến trình");
-        }
-
-        private void InitializeStatusOverlaySafe(bool retry = false)
-        {
-            if (_statusOverlay != null) return;
-            if (_overlayInitFailed && !retry) return;
-            _overlayInitFailed = false;
-            try
-            {
-                var overlay = new StatusOverlayForm(_overlaySettings, OverlaySettingsFile);
-                overlay.SettingsChanged += () =>
-                {
-                    RefreshOverlayMenu();
-                    UpdateTrayMonitor();
-                };
-                _statusOverlay = overlay;
-                if (overlay.OverlayVisible) overlay.Show();
-                AgentDiagnostics.Write("OVERLAY init=PASS mode=lazy-after-main-shown");
-            }
-            catch (Exception ex)
-            {
-                _overlayInitFailed = true;
-                AgentDiagnostics.Write(
-                    "OVERLAY init=FAIL type=" + ex.GetType().Name +
-                    " message=" + AgentDiagnostics.Sanitize(ex.Message) +
-                    " detail=" + AgentDiagnostics.Sanitize(ex.ToString()));
-            }
-            RefreshOverlayMenu();
-        }
-
-        private void ToggleOverlayVisibility()
-        {
-            InitializeStatusOverlaySafe(true);
-            if (_statusOverlay == null) return;
-            try { _statusOverlay.SetOverlayVisible(!_statusOverlay.OverlayVisible); }
-            catch (Exception ex)
-            {
-                AgentDiagnostics.Write("OVERLAY visibility-fail type=" + ex.GetType().Name);
-            }
-        }
-
-        private void ToggleOverlayLock()
-        {
-            InitializeStatusOverlaySafe(true);
-            if (_statusOverlay == null) return;
-            try { _statusOverlay.SetLocked(!_statusOverlay.IsLocked); }
-            catch (Exception ex)
-            {
-                AgentDiagnostics.Write("OVERLAY lock-fail type=" + ex.GetType().Name);
-            }
-        }
-
-        private void SetOverlayOpacitySafe(double opacity)
-        {
-            InitializeStatusOverlaySafe(true);
-            if (_statusOverlay == null) return;
-            try { _statusOverlay.SetOverlayOpacity(opacity); }
-            catch (Exception ex)
-            {
-                AgentDiagnostics.Write("OVERLAY opacity-fail type=" + ex.GetType().Name);
-            }
-        }
-
-        private void OpenOverlaySettings()
-        {
-            InitializeStatusOverlaySafe(true);
-            if (_statusOverlay == null)
-            {
-                MessageBox.Show(
-                    "Bảng nổi chưa khởi tạo được. Có thể thử lại ngay; mở Chẩn đoán kỹ thuật để xem chi tiết.",
-                    "Agent Auto Confirm Pick Pack",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-                return;
-            }
-
-            try
-            {
-                using (var settings = new OverlaySettingsForm(_statusOverlay))
-                    settings.ShowDialog(this);
-                RefreshOverlayMenu();
-            }
-            catch (Exception ex)
-            {
-                AgentDiagnostics.Write("OVERLAY settings-fail type=" + ex.GetType().Name);
-                MessageBox.Show(
-                    "Không mở được cài đặt bảng nổi. Đã ghi log cục bộ.",
-                    "Agent Auto Confirm Pick Pack",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-            }
-        }
-
-        private void EnsureEmbeddedOverlaySettings()
-        {
-            if (InvokeRequired)
-            {
-                BeginInvoke(new Action(EnsureEmbeddedOverlaySettings));
-                return;
-            }
-            if (_embeddedOverlaySettings != null && !_embeddedOverlaySettings.IsDisposed) return;
-
-            InitializeStatusOverlaySafe(true);
-            _overlaySettingsHost.Controls.Clear();
-            if (_statusOverlay == null)
-            {
-                _overlaySettingsHost.Controls.Add(new Label
-                {
-                    Left = 24,
-                    Top = 24,
-                    Width = 760,
-                    Height = 54,
-                    Text = "Không khởi tạo được bảng nổi. Mở tab Chẩn đoán kỹ thuật để xem log rồi quay lại tab này để thử lại.",
-                    ForeColor = Color.FromArgb(180, 76, 60)
-                });
-                return;
-            }
-
-            try
-            {
-                _embeddedOverlaySettings = new OverlaySettingsForm(_statusOverlay);
-                _embeddedOverlaySettings.PrepareEmbedded();
-                _overlaySettingsHost.Controls.Add(_embeddedOverlaySettings);
-                _embeddedOverlaySettings.Show();
-            }
-            catch (Exception ex)
-            {
-                AgentDiagnostics.Write("OVERLAY embedded-settings-fail type=" + ex.GetType().Name);
-                _embeddedOverlaySettings = null;
-                _overlaySettingsHost.Controls.Add(new Label
-                {
-                    Left = 24,
-                    Top = 24,
-                    Width = 760,
-                    Height = 54,
-                    Text = "Không hiển thị được cài đặt bảng nổi. Đã ghi log kỹ thuật.",
-                    ForeColor = Color.FromArgb(180, 76, 60)
-                });
-            }
-        }
-
-        private void RefreshOverlayMenu()
-        {
-            if (InvokeRequired)
-            {
-                BeginInvoke(new Action(RefreshOverlayMenu));
-                return;
-            }
-
-            var visible = _statusOverlay != null ? _statusOverlay.OverlayVisible : _overlaySettings.Visible;
-            var locked = _statusOverlay != null ? _statusOverlay.IsLocked : _overlaySettings.Locked;
-            var opacity = _statusOverlay != null ? _statusOverlay.OverlayOpacity : _overlaySettings.Opacity;
-
-            _trayOverlayVisibleItem.Checked = visible;
-            _trayOverlayLockItem.Checked = locked;
-            _trayOverlayVisibleItem.Enabled = true;
-            _trayOverlayLockItem.Enabled = true;
-            _trayOverlayOpacityMenu.Enabled = true;
-            _overlaySettingsButton.Enabled = true;
-            _overlaySettingsButton.Text = _overlayInitFailed ? "Thử lại cài đặt bảng nổi" : "Cài đặt bảng nổi";
-            if (_overlayInitFailed)
-                _trayOverlayVisibleItem.Text = "Bảng nổi lỗi - bấm để thử lại";
-            else
-                _trayOverlayVisibleItem.Text = "Hiển thị bảng nổi";
-
-            foreach (ToolStripItem item in _trayOverlayOpacityMenu.DropDownItems)
-            {
-                var menuItem = item as ToolStripMenuItem;
-                if (menuItem == null || !(menuItem.Tag is double)) continue;
-                var value = (double)menuItem.Tag;
-                menuItem.Checked = Math.Abs(value - opacity) < 0.02;
-            }
         }
 
         private void SetProbeButtonsEnabled(bool enabled)
@@ -3984,6 +3704,7 @@ namespace SupraInventoryRelayAgent
                 else
                     Interlocked.Increment(ref _localConfirmFailed);
             }
+            Ui(() => RefreshAgentRequestMetrics());
 
             AgentDiagnostics.WriteAudit(
                 "PDA_CONFIRM_BATCH jobs=" + works.Count +
@@ -4081,8 +3802,16 @@ namespace SupraInventoryRelayAgent
                     GetSsid,
                     Log,
                     Audit,
-                    () => Interlocked.Increment(ref _localPdaRequests),
-                    () => Interlocked.Increment(ref _localAgentResponses),
+                    () =>
+                    {
+                        Interlocked.Increment(ref _localPdaRequests);
+                        Ui(() => RefreshAgentRequestMetrics());
+                    },
+                    () =>
+                    {
+                        Interlocked.Increment(ref _localAgentResponses);
+                        Ui(() => RefreshAgentRequestMetrics());
+                    },
                     state => Ui(() => _relay.Text = state),
                     ProcessFirestoreConfirmations,
                     _leaderCoordinator,
@@ -4328,6 +4057,7 @@ namespace SupraInventoryRelayAgent
                 }
 
                 Interlocked.Increment(ref _localPdaRequests);
+                Ui(() => RefreshAgentRequestMetrics());
                 Audit(
                     "PDA_REQUEST request=" + Short(jobId) +
                     " picker=" + pickerUserId +
@@ -4504,6 +4234,7 @@ namespace SupraInventoryRelayAgent
 
             RequestJson("PATCH", JobUrl(session, jobId), _json.Serialize(patch), "application/json");
             Interlocked.Increment(ref _localAgentResponses);
+            Ui(() => RefreshAgentRequestMetrics());
             Audit(
                 "AGENT_RESPONSE request=" + Short(jobId) +
                 " picker=" + pickerUserId +
