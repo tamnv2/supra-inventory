@@ -840,9 +840,9 @@ namespace SupraInventoryRelayAgent
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 52F));
             // D122: Agent needs the larger operational surface; Supra and PickList
             // remain compact while all three rows still follow the window height.
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 25F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 25F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 48F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 29F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 23F));
             _overviewPage.Controls.Add(overviewLayout);
 
             // Hệ thống Agent - gọn, tối đa 5 dòng Agent trước khi cuộn trong bảng.
