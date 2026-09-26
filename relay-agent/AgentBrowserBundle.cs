@@ -56,7 +56,7 @@ namespace SupraInventoryRelayAgent
                 catch (Exception ex)
                 {
                     SetState(false, 0, _version, "Tải trình duyệt thất bại: " + AgentDiagnostics.Sanitize(ex.Message));
-                    if (log != null) log("SUPRA_BROWSER owned_bundle=FALLBACK detail=" + AgentDiagnostics.Sanitize(ex.Message));
+                    if (log != null) log("SUPRA_BROWSER owned_bundle=FAILED detail=" + AgentDiagnostics.Sanitize(ex.Message) + " auto_fallback=false");
                 }
                 finally { Interlocked.Exchange(ref _backgroundRunning, 0); }
             });
