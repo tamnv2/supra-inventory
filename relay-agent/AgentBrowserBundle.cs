@@ -23,6 +23,8 @@ namespace SupraInventoryRelayAgent
 
         private static readonly JavaScriptSerializer Json = new JavaScriptSerializer();
         private static readonly object StateLock = new object();
+        private const int RequiredHostBuild = 3;
+        private const string RequiredHostArch = "x64";
         private static int _backgroundRunning;
         private static bool _downloading;
         private static int _percent;
@@ -54,7 +56,7 @@ namespace SupraInventoryRelayAgent
                 catch (Exception ex)
                 {
                     SetState(false, 0, _version, "Tải trình duyệt thất bại: " + AgentDiagnostics.Sanitize(ex.Message));
-                    if (log != null) log("SUPRA_BROWSER owned_bundle=FALLBACK detail=" + AgentDiagnostics.Sanitize(ex.Message));
+                    if (log != null) log("SUPRA_BROWSER owned_bundle=FAILED detail=" + AgentDiagnostics.Sanitize(ex.Message) + " auto_fallback=false");
                 }
                 finally { Interlocked.Exchange(ref _backgroundRunning, 0); }
             });
@@ -115,7 +117,15 @@ namespace SupraInventoryRelayAgent
                 var dir = Path.Combine(Root, folder);
                 var host = Path.Combine(dir, "host", "SUPRA.Inventory.WebView2Host.exe");
                 var runtime = Path.Combine(dir, "runtime");
+                var hostBuildMarker = Path.Combine(dir, "host-build.txt");
+                var hostArchMarker = Path.Combine(dir, "host-arch.txt");
                 if (!File.Exists(host) || !File.Exists(Path.Combine(runtime, "msedgewebview2.exe"))) return false;
+                if (!File.Exists(hostBuildMarker) ||
+                    !string.Equals(File.ReadAllText(hostBuildMarker).Trim(), RequiredHostBuild.ToString(), StringComparison.Ordinal))
+                    return false;
+                if (!File.Exists(hostArchMarker) ||
+                    !string.Equals(File.ReadAllText(hostArchMarker).Trim(), RequiredHostArch, StringComparison.OrdinalIgnoreCase))
+                    return false;
                 hostExe = host;
                 runtimeFolder = runtime;
                 return true;
@@ -131,7 +141,15 @@ namespace SupraInventoryRelayAgent
 
             var version = Value(manifest, "version");
             var sha = Value(manifest, "sha256").ToLowerInvariant();
-            SetState(true, 0, version, "Đang chuẩn bị tải WebView2 Fixed " + version + "...");
+            int hostBuild;
+            if (!int.TryParse(Value(manifest, "host_build"), out hostBuild))
+                throw new InvalidOperationException("Browser bundle thiếu host_build.");
+            var hostArch = Value(manifest, "host_arch");
+            if (hostBuild < RequiredHostBuild)
+                throw new InvalidOperationException("Browser bundle host quá cũ. Cần host build " + RequiredHostBuild + ".");
+            if (!string.Equals(hostArch, RequiredHostArch, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Browser bundle host không đúng kiến trúc x64.");
+            SetState(true, 0, version, "Đang chuẩn bị tải WebView2 Fixed " + version + " · host " + hostBuild + " " + hostArch + "...");
             if (!Regex.IsMatch(version, @"^[0-9]+(?:\.[0-9]+){3}$"))
                 throw new InvalidOperationException("Browser bundle version không hợp lệ.");
             if (!Regex.IsMatch(sha, "^[0-9a-f]{64}$"))
@@ -149,7 +167,7 @@ namespace SupraInventoryRelayAgent
             }
 
             Directory.CreateDirectory(Root);
-            var versionFolder = "wv2-" + version + "-" + sha.Substring(0, 12);
+            var versionFolder = "wv2-" + version + "-h" + hostBuild + "-" + sha.Substring(0, 12);
             var target = Path.Combine(Root, versionFolder);
             if (!Directory.Exists(target))
             {
@@ -175,11 +193,14 @@ namespace SupraInventoryRelayAgent
                 TryDelete(tempZip);
 
                 var host = Path.Combine(tempExtract, "host", "SUPRA.Inventory.WebView2Host.exe");
+                var loader = Path.Combine(tempExtract, "host", "loader", "x64", "WebView2Loader.dll");
                 var runtime = Path.Combine(tempExtract, "runtime", "msedgewebview2.exe");
-                if (!File.Exists(host) || !File.Exists(runtime))
-                    throw new InvalidOperationException("Browser bundle thiếu host hoặc Fixed Runtime.");
+                if (!File.Exists(host) || !File.Exists(loader) || !File.Exists(runtime))
+                    throw new InvalidOperationException("Browser bundle thiếu host, WebView2Loader x64 hoặc Fixed Runtime.");
 
                 File.WriteAllText(Path.Combine(tempExtract, "bundle.sha256"), sha);
+                File.WriteAllText(Path.Combine(tempExtract, "host-build.txt"), hostBuild.ToString());
+                File.WriteAllText(Path.Combine(tempExtract, "host-arch.txt"), hostArch);
                 if (Directory.Exists(target)) TryDeleteDirectory(target);
                 Directory.Move(tempExtract, target);
             }
