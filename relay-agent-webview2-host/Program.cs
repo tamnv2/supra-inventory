@@ -268,42 +268,49 @@ namespace SupraInventoryWebView2Host
             return @"(() => {
               const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
               const normPath = v => String(v || '').toLowerCase().replace(/[\s,]+/g,'');
-              const arrow = normPath('m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z');
+              const exactArrow = normPath('m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z');
 
-              const arrowButtons = [...document.querySelectorAll('button,[role=button]')].filter(button => {
-                if (!visible(button) || button.disabled || button.getAttribute('aria-disabled') === 'true') return false;
-                return [...button.querySelectorAll('svg path')].some(path =>
-                  normPath(path.getAttribute('d')) === arrow);
+              const exactArrowButtons = [...document.querySelectorAll('button')].filter(button => {
+                if (!visible(button) || button.disabled || button.getAttribute('aria-disabled') === 'true')
+                  return false;
+                return [...button.querySelectorAll('svg[viewBox] path')].some(path => {
+                  const svg = path.closest('svg');
+                  if (!svg || String(svg.getAttribute('viewBox') || '').trim() !== '0 0 24 24')
+                    return false;
+                  return normPath(path.getAttribute('d')) === exactArrow;
+                });
               });
 
-              const cardCandidates = arrowButtons.filter(button => {
+              const quickAccessButtons = exactArrowButtons.filter(button => {
                 const card = button.parentElement;
                 if (!card || !visible(card)) return false;
 
-                const largeWarehouseSvgs = [...card.querySelectorAll('svg[viewBox]')].filter(svg =>
+                // Exact live DOM from Owner:
+                // button is a direct child of the warehouse MuiPaper card.
+                const className = String(card.className || '');
+                if (!className.includes('MuiPaper-root')) return false;
+
+                // The same card contains the large warehouse illustration.
+                return [...card.querySelectorAll('svg[viewBox]')].some(svg =>
                   visible(svg) &&
                   String(svg.getAttribute('viewBox') || '').trim() === '0 0 72 72');
-
-                return largeWarehouseSvgs.length >= 1;
               });
 
-              if (cardCandidates.length !== 1) {
-                return 'NO_CLICK:CARD=' + cardCandidates.length +
-                  ':ARROWS=' + arrowButtons.length +
-                  ':BUTTONS=' + document.querySelectorAll('button').length;
+              if (quickAccessButtons.length !== 1) {
+                return [
+                  'NO_CLICK',
+                  'ARROWS=' + exactArrowButtons.length,
+                  'CARDS=' + quickAccessButtons.length
+                ].join(':');
               }
 
-              const target = cardCandidates[0];
-              try { target.scrollIntoView({block:'nearest',inline:'nearest'}); } catch (_) {}
+              const target = quickAccessButtons[0];
+              try { target.scrollIntoView({block:'center',inline:'center'}); } catch (_) {}
               try { target.focus({preventScroll:true}); } catch (_) { try { target.focus(); } catch (_) {} }
 
-              try {
-                target.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true,view:window}));
-                target.dispatchEvent(new MouseEvent('mouseup',{bubbles:true,cancelable:true,view:window}));
-              } catch (_) {}
-
+              // React/MUI handles HTMLElement.click() as the same button activation.
               target.click();
-              return 'CLICKED:DIRECT_PARENT_72X72_PLUS_ARROW';
+              return 'CLICKED:EXACT_ARROW_DIRECT_MUIPAPER_72SVG';
             })()";
         }
 
