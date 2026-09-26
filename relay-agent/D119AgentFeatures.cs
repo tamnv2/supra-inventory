@@ -39,6 +39,7 @@ namespace SupraInventoryRelayAgent
         private const int PickerDisconnectGraceSeconds = 180;
         private long _pickerPresenceRefreshRunning;
         private DateTime _lastPickerPresenceRefreshUtc = DateTime.MinValue;
+        private bool? _pickerWindowOpenState;
         private FirestoreFleetMetricsClient _fleetMetricsClient;
         private FleetMetricSnapshot _fleetSnapshot;
         private long _fleetMetricsRefreshRunning;
@@ -206,6 +207,7 @@ namespace SupraInventoryRelayAgent
             _d119OpsTimer.Interval = 30000;
             _d119OpsTimer.Tick += (s, e) =>
             {
+                RefreshPickerWindowBoundary();
                 ExpirePickerPresenceGrace();
                 RefreshD119OperationalViews(false);
             };
@@ -617,6 +619,27 @@ namespace SupraInventoryRelayAgent
             }
 
             UpdatePickerOnlineGrid(merged, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
+        }
+
+        private void RefreshPickerWindowBoundary()
+        {
+            var now = _businessSchedule == null ? DateTime.Now : _businessSchedule.NowOperational();
+            var open = now.TimeOfDay >= new TimeSpan(5, 0, 0) && now.TimeOfDay < new TimeSpan(23, 0, 0);
+            if (_pickerWindowOpenState.HasValue && _pickerWindowOpenState.Value == open) return;
+            _pickerWindowOpenState = open;
+
+            if (!open)
+            {
+                _pickerDisconnectGrace.Clear();
+                _pickerOnlineSnapshot = new List<PickerPresenceView>();
+                _pickerOnlineRenderSignature = "";
+                UpdatePickerOnlineGrid(_pickerOnlineSnapshot, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
+                _pickerOnlineStatus.Text = "Ngoài khung PDA 05:00–23:00 · danh sách Picker đã đóng.";
+                return;
+            }
+
+            // One authoritative snapshot at 05:00 / process entry into the operating window.
+            RefreshD119OperationalViews(true);
         }
 
         private void ExpirePickerPresenceGrace()
