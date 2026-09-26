@@ -869,10 +869,10 @@
     },
     "stable": "OWNER_GATED_UNTOUCHED",
     "browser_bundle": {
-      "status": "D127_PENDING_PUBLISH",
+      "status": "D127_RELEASE_REPAIR__DYNAMIC_MICROSOFT_PAGE_RESOLUTION",
       "asset": "Agent.WebView2.FixedRuntime.x64.zip",
       "manifest": "agent-browser-latest.json",
-      "runtime": "Microsoft WebView2 Fixed x64 153.0.4234.32",
+      "runtime": "Microsoft WebView2 Fixed x64__LATEST_OFFICIALLY_OFFERED_AT_PUBLISH",
       "fallback": "SYSTEM_EDGE_THEN_CHROME"
     }
   },
