@@ -73,9 +73,9 @@ jobs:
           $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
           $projection = Get-Content service/src/firestore-projection.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*59\s*;') { throw "D127 hotfix requires Agent v59." }
-          if ($project -notmatch '<AssemblyVersion>0\.59\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.59\.0\.0</FileVersion>') {
-            throw "D127 hotfix assembly/file version must be 0.59."
+          if ($config -notmatch 'AgentBuild\s*=\s*60\s*;') { throw "D127 hotfix requires Agent v60." }
+          if ($project -notmatch '<AssemblyVersion>0\.60\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.60\.0\.0</FileVersion>') {
+            throw "D127 hotfix assembly/file version must be 0.60."
           }
 
           foreach ($marker in @(
@@ -148,10 +148,10 @@ jobs:
           }
           if (-not $browser.Contains("names(e).some(v => fold(v) === fold('Xác nhận lấy lại hàng'))")) { throw "D126 H3 readiness confirm control must remain exact-label only." }
           foreach ($marker in @('LayoutSupraCardControls','_agentDataStorageStatus','_openAgentDataFolder')) {
-            if (-not $ops.Contains($marker)) { throw "D127 v59 responsive Supra layout guard missing: $marker" }
+            if (-not $ops.Contains($marker)) { throw "D127 v60 responsive Supra layout guard missing: $marker" }
           }
           foreach ($marker in @(
-            'RequiredHostBuild = 4',
+            'RequiredHostBuild = 5',
             'RequiredHostArch = "x64"',
             'host-build.txt',
             'host-arch.txt',
@@ -170,9 +170,16 @@ jobs:
             'WebView2Loader.dll',
             'NewWindowRequested += HandleNewWindowRequested',
             'e.Handled = true',
-            '_web.CoreWebView2.Navigate(target.AbsoluteUri)'
+            '_web.CoreWebView2.Navigate(target.AbsoluteUri)',
+            'ProbeDashboardAccessAsync',
+            'BuildDashboardAccessScript',
+            '_dashboardProbeTimer',
+            'DASHBOARD_PROBE_FAIL',
+            'NavigationCompleted += HandleNavigationCompleted',
+            'WAREHOUSE_ICON_PLUS_ARROW_SVG',
+            "return 'CLICKED'"
           )) {
-            if (-not $ownedHost.Contains($marker)) { throw "D127 v55 owned-host routing guard missing: $marker" }
+            if (-not $ownedHost.Contains($marker)) { throw "D127 v60 owned-host dashboard routing guard missing: $marker" }
           }
 
           foreach ($forbidden in @(
@@ -202,6 +209,9 @@ jobs:
             'Dữ liệu Agent:',
             'QueueAgentDataStorageRefresh',
             'OpenAgentDataFolder',
+            'Runtime cài ',
+            'Profile/cache ',
+            'ResolveActiveBrowserBundleRoot',
             'Web Confirm sẵn sàng',
             'OpenSupraConfirmBrowser',
             'ToggleSupraBrowserVisibility',
@@ -309,7 +319,7 @@ jobs:
             throw "D127 v53 must not auto-fallback from Agent browser to Desktop browser."
           }
 
-          Write-Host "D127 v59 dashboard JS syntax fix + responsive Supra storage layout PASS"
+          Write-Host "D127 v60 host-native dashboard entry + storage breakdown PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh
@@ -507,7 +517,7 @@ jobs:
           $match = [regex]::Match(($resolve -join "`n"), 'version=(\d+(?:\.\d+){3})')
           if (-not $match.Success) { throw "Resolved WebView2 version was not returned." }
           $runtimeVersion = $match.Groups[1].Value
-          $hostBuild = 4
+          $hostBuild = 5
           $channel = "inventory-channel"
           $asset = "Agent.WebView2.FixedRuntime.x64.zip"
           $assetSha = "$asset.sha256"
