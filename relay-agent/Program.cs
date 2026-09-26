@@ -1014,20 +1014,20 @@ namespace SupraInventoryRelayAgent
             _wmsTest.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _supraCard.Controls.Add(_wmsTest);
 
-            _browserBundleDownload.SetBounds(466, 72, 174, 32);
+            _browserBundleDownload.SetBounds(16, 110, 174, 30);
             _browserBundleDownload.Text = "Tải trình duyệt Agent";
             _browserBundleDownload.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _browserBundleDownload.Click += (sender, e) => StartAgentBrowserDownload();
             _supraCard.Controls.Add(_browserBundleDownload);
 
-            _browserBundleProgress.SetBounds(16, 112, 280, 18);
+            _browserBundleProgress.SetBounds(198, 116, 260, 18);
             _browserBundleProgress.Minimum = 0;
             _browserBundleProgress.Maximum = 100;
             _browserBundleProgress.Value = 0;
-            _browserBundleProgress.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            _browserBundleProgress.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _supraCard.Controls.Add(_browserBundleProgress);
 
-            _browserBundleStatus.SetBounds(306, 109, 690, 24);
+            _browserBundleStatus.SetBounds(16, 144, 980, 24);
             _browserBundleStatus.Text = "Trình duyệt Agent: chưa tải";
             _browserBundleStatus.ForeColor = Color.FromArgb(88, 104, 115);
             _browserBundleStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
