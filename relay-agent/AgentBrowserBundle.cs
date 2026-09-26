@@ -79,13 +79,14 @@ namespace SupraInventoryRelayAgent
                     }
                     catch { }
                 }
+                var effectiveReady = ready && !_downloading;
                 return new Status
                 {
-                    Ready = ready,
+                    Ready = effectiveReady,
                     Downloading = _downloading,
-                    Percent = ready ? 100 : Math.Max(0, Math.Min(100, _percent)),
+                    Percent = effectiveReady ? 100 : Math.Max(0, Math.Min(100, _percent)),
                     Version = version ?? "",
-                    Detail = ready ? "Trình duyệt Agent khả dụng." : (_detail ?? "")
+                    Detail = effectiveReady ? "Trình duyệt Agent khả dụng." : (_detail ?? "")
                 };
             }
         }

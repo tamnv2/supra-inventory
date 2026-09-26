@@ -79,24 +79,29 @@ namespace SupraInventoryRelayAgent
 
             if (_supraCard != null)
             {
-                _wmsCapture.SetBounds(16, 72, 180, 32);
-                _wmsLogout.SetBounds(204, 72, 138, 32);
-                _wmsTest.SetBounds(350, 72, 108, 32);
+                var width = Math.Max(420, _supraCard.ClientSize.Width);
+                var openWidth = Math.Max(150, (width - 40) / 2);
+                _wmsCapture.SetBounds(16, 72, openWidth, 32);
+                _wmsDesktop.SetBounds(24 + openWidth, 72, Math.Max(150, width - 40 - openWidth), 32);
+
+                _wmsLogout.SetBounds(16, 110, 138, 30);
+                _wmsTest.SetBounds(162, 110, 108, 30);
+                _browserBundleDownload.SetBounds(278, 110, Math.Max(150, width - 294), 30);
+
                 _wmsStatus.SetBounds(16, 42, 260, 22);
-                _supraInfo.SetBounds(286, 42, Math.Max(180, _supraCard.ClientSize.Width - 302), 22);
+                _supraInfo.SetBounds(286, 42, Math.Max(120, width - 302), 22);
                 _supraInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
-                _browserBundleDownload.SetBounds(16, 110, 174, 30);
                 _browserBundleProgress.SetBounds(
-                    198,
-                    116,
-                    Math.Max(100, _supraCard.ClientSize.Width - 214),
+                    16,
+                    148,
+                    Math.Max(120, width - 32),
                     18);
                 _browserBundleProgress.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
                 _browserBundleStatus.SetBounds(
                     16,
-                    144,
-                    Math.Max(220, _supraCard.ClientSize.Width - 32),
+                    170,
+                    Math.Max(220, width - 32),
                     24);
                 _browserBundleStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             }

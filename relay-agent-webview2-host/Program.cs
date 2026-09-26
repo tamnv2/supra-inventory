@@ -79,7 +79,27 @@ namespace SupraInventoryWebView2Host
             Height = 900;
             StartPosition = FormStartPosition.CenterScreen;
             Controls.Add(_web);
-            Shown += async (_, __) => await InitializeAsync();
+            Shown += async (_, __) => await InitializeSafeAsync();
+        }
+
+        private async Task InitializeSafeAsync()
+        {
+            try
+            {
+                await InitializeAsync();
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    File.AppendAllText(
+                        Path.Combine(Path.GetTempPath(), "supra-webview2-host.log"),
+                        DateTime.UtcNow.ToString("o") + " INIT_FAIL " + ex.GetType().Name + " " + ex.Message + Environment.NewLine);
+                }
+                catch { }
+                Environment.ExitCode = 2;
+                try { Close(); } catch { }
+            }
         }
 
         private async Task InitializeAsync()

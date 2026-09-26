@@ -60,6 +60,13 @@ namespace SupraInventoryRelayAgent
             internal string ProfileKey;
         }
 
+        private enum BrowserLaunchMode
+        {
+            None,
+            Agent,
+            Desktop
+        }
+
         private readonly Action<string> _log;
         private readonly object _gate = new object();
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
@@ -70,6 +77,7 @@ namespace SupraInventoryRelayAgent
         private bool _hidden;
         private string _browserName = "";
         private string _targetUrl = "";
+        private BrowserLaunchMode _launchMode = BrowserLaunchMode.None;
         private bool _disposed;
 
         private const string ConfirmPath = "/sft3/app/saleorder/auto-pickpack-confirm";
@@ -87,19 +95,33 @@ namespace SupraInventoryRelayAgent
             _log = log ?? (_ => { });
         }
 
-        internal SupraBrowserState OpenOrShow()
+        internal SupraBrowserState OpenOrShowAgent()
+        {
+            return OpenOrShow(BrowserLaunchMode.Agent);
+        }
+
+        internal SupraBrowserState OpenOrShowDesktop()
+        {
+            return OpenOrShow(BrowserLaunchMode.Desktop);
+        }
+
+        private SupraBrowserState OpenOrShow(BrowserLaunchMode mode)
         {
             lock (_gate)
             {
                 ThrowIfDisposed();
-                if (!IsConnectedNoLock())
+
+                if (_launchMode != mode)
                 {
-                    if (!TryReconnectNoLock())
-                    {
-                        StopManagedBrowserNoLock();
-                        StartNoLock();
-                    }
+                    StopManagedBrowserNoLock();
+                    StartNoLock(mode);
                 }
+                else if (!IsConnectedNoLock() && !TryReconnectNoLock())
+                {
+                    StopManagedBrowserNoLock();
+                    StartNoLock(mode);
+                }
+
                 NavigateConfirmNoLock();
                 ShowNoLock();
             }
@@ -186,8 +208,11 @@ namespace SupraInventoryRelayAgent
                 {
                     if (!TryReconnectNoLock())
                     {
+                        var mode = _launchMode;
+                        if (mode == BrowserLaunchMode.None)
+                            throw new InvalidOperationException("Chưa chọn trình duyệt Agent hoặc Desktop.");
                         StopManagedBrowserNoLock();
-                        StartNoLock();
+                        StartNoLock(mode);
                     }
                 }
                 ShowNoLock();
@@ -344,33 +369,41 @@ namespace SupraInventoryRelayAgent
             return result;
         }
 
-        private void StartNoLock()
+        private void StartNoLock(BrowserLaunchMode mode)
         {
             DisposeSocketNoLock();
 
-            string ownedHost;
-            string fixedRuntime;
-            if (AgentBrowserBundle.TryGetReady(out ownedHost, out fixedRuntime))
+            if (mode == BrowserLaunchMode.Agent)
             {
+                string ownedHost;
+                string fixedRuntime;
+                if (!AgentBrowserBundle.TryGetReady(out ownedHost, out fixedRuntime))
+                    throw new InvalidOperationException("Trình duyệt Agent chưa khả dụng. Hãy tải trình duyệt Agent trước.");
+
                 try
                 {
                     StartOwnedWebView2NoLock(ownedHost, fixedRuntime);
+                    _launchMode = BrowserLaunchMode.Agent;
                     return;
                 }
                 catch (Exception ex)
                 {
-                    _log("SUPRA_BROWSER owned_webview2=FALLBACK type=" + ex.GetType().Name +
-                         " detail=" + AgentDiagnostics.Sanitize(ex.Message));
+                    _log("SUPRA_BROWSER owned_webview2=FAILED type=" + ex.GetType().Name +
+                         " detail=" + AgentDiagnostics.Sanitize(ex.Message) +
+                         " auto_fallback=false");
                     StopManagedBrowserNoLock();
+                    throw;
                 }
             }
-            else
+
+            if (mode == BrowserLaunchMode.Desktop)
             {
-                AgentBrowserBundle.EnsureBackground(_log);
-                _log("SUPRA_BROWSER owned_webview2=NOT_READY fallback=system_browser");
+                StartLegacyBrowserNoLock();
+                _launchMode = BrowserLaunchMode.Desktop;
+                return;
             }
 
-            StartLegacyBrowserNoLock();
+            throw new InvalidOperationException("Chưa chọn loại trình duyệt.");
         }
 
         private void StartOwnedWebView2NoLock(string hostExe, string fixedRuntime)
@@ -399,7 +432,7 @@ namespace SupraInventoryRelayAgent
             _browserName = "Agent WebView2 Fixed";
             AttachDevToolsNoLock(TimeSpan.FromSeconds(25));
             _hidden = false;
-            _log("SUPRA_BROWSER start browser=AGENT_WEBVIEW2_FIXED loopback=127.0.0.1 profile=dedicated fallback=armed session_extract=false network_domain=false");
+            _log("SUPRA_BROWSER start browser=AGENT_WEBVIEW2_FIXED loopback=127.0.0.1 profile=dedicated auto_fallback=false session_extract=false network_domain=false");
         }
 
         private void StartLegacyBrowserNoLock()
@@ -434,7 +467,7 @@ namespace SupraInventoryRelayAgent
             AttachDevToolsNoLock(TimeSpan.FromSeconds(20));
             _hidden = false;
             _log("SUPRA_BROWSER start browser=" + _browserName +
-                 " loopback=127.0.0.1 profile=dedicated fallback=system_browser session_extract=false network_domain=false");
+                 " loopback=127.0.0.1 profile=dedicated launch=DESKTOP session_extract=false network_domain=false");
         }
 
         private void AttachDevToolsNoLock(TimeSpan timeout)
@@ -769,63 +802,102 @@ namespace SupraInventoryRelayAgent
               const fold = v => norm(v).toLowerCase();
               const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
               const docs = [];
-              const seen = new Set();
+              const seenDocs = new Set();
               const addDoc = d => {
-                if (!d || seen.has(d) || docs.length >= 8) return;
-                seen.add(d); docs.push(d);
+                if (!d || seenDocs.has(d) || docs.length >= 8) return;
+                seenDocs.add(d); docs.push(d);
                 for (const frame of [...d.querySelectorAll('iframe')]) {
                   try { if (frame.contentDocument) addDoc(frame.contentDocument); } catch (_) {}
                 }
               };
               addDoc(document);
+
               const labelText = '" + PageSizeLabel + @"';
               const targetText = '" + PageSizeTarget + @"';
+              const controlSelector = 'select,[role=combobox],mat-select,.mat-select-trigger,.mat-mdc-select-trigger';
+              const allowed = /^(5|7|10|25|50|100)$/;
               const leaves = docs.flatMap(d => [...d.querySelectorAll('body *')]).filter(e =>
                 visible(e) && fold(e.innerText || e.textContent) === fold(labelText) &&
                 ![...e.children].some(child => visible(child) && fold(child.innerText || child.textContent) === fold(labelText)));
-              if (leaves.length !== 1) return JSON.stringify({result:'PAGE_SIZE_LABEL_NOT_UNIQUE',count:leaves.length});
 
-              let host = leaves[0];
-              let control = null;
-              for (let depth = 0; host && depth < 8; depth++, host = host.parentElement) {
-                const controls = [...host.querySelectorAll('select,[role=combobox],mat-select,.mat-select-trigger,.mat-mdc-select-trigger')].filter(visible);
-                if (controls.length === 1) { control = controls[0]; break; }
+              if (!leaves.length) return JSON.stringify({result:'PAGE_SIZE_LABEL_NOT_FOUND'});
+
+              const candidates = [];
+              const seenControls = new Set();
+              for (const label of leaves) {
+                let host = label.parentElement;
+                for (let depth = 1; host && depth <= 8; depth++, host = host.parentElement) {
+                  const controls = [...host.querySelectorAll(controlSelector)].filter(visible);
+                  for (const control of controls) {
+                    if (seenControls.has(control)) continue;
+                    const value = norm(control.value || control.innerText || control.textContent);
+                    const aria = norm(control.getAttribute && (control.getAttribute('aria-label') || control.getAttribute('title')));
+                    const semantic = allowed.test(value) ||
+                      fold(aria).includes(fold(labelText)) ||
+                      fold(host.innerText || host.textContent).includes(fold(labelText));
+                    if (!semantic) continue;
+                    seenControls.add(control);
+                    candidates.push({control,depth,value});
+                  }
+                  if (candidates.some(x => x.depth === depth)) break;
+                }
               }
-              if (!control) return JSON.stringify({result:'PAGE_SIZE_CONTROL_NOT_UNIQUE'});
 
-              const current = () => norm(control.value || control.innerText || control.textContent);
-              if (/(^|\s)100(\s|$)/.test(current())) return JSON.stringify({result:'ALREADY_100'});
+              if (!candidates.length) return JSON.stringify({result:'PAGE_SIZE_CONTROL_NOT_FOUND',labels:leaves.length});
 
-              if (control.tagName && control.tagName.toLowerCase() === 'select') {
-                const options = [...control.options].filter(o => norm(o.value) === targetText || norm(o.textContent) === targetText);
-                if (options.length !== 1) return JSON.stringify({result:'PAGE_SIZE_100_OPTION_NOT_UNIQUE',count:options.length});
+              candidates.sort((a,b) => a.depth - b.depth);
+              const setNative = control => {
+                const options = [...control.options].filter(o =>
+                  norm(o.value) === targetText || norm(o.textContent) === targetText);
+                if (options.length !== 1) return false;
                 control.value = options[0].value;
                 control.dispatchEvent(new Event('input',{bubbles:true}));
                 control.dispatchEvent(new Event('change',{bubbles:true}));
-              } else {
-                control.click();
-                let option = null;
-                const deadline = Date.now() + 2500;
+                return true;
+              };
+
+              const current = control => norm(control.value || control.innerText || control.textContent);
+              for (const candidate of candidates) {
+                const control = candidate.control;
+                if (/(^|\s)100(\s|$)/.test(current(control)))
+                  return JSON.stringify({result:'ALREADY_100',candidates:candidates.length});
+
+                let changed = false;
+                if (control.tagName && control.tagName.toLowerCase() === 'select') {
+                  changed = setNative(control);
+                } else {
+                  try { control.click(); } catch (_) { continue; }
+                  let option = null;
+                  const deadline = Date.now() + 2500;
+                  do {
+                    const options = docs.flatMap(d => [...d.querySelectorAll('[role=option],mat-option,.mat-option,.mat-mdc-option')])
+                      .filter(e => visible(e) && norm(e.innerText || e.textContent) === targetText);
+                    if (options.length) { option = options[0]; break; }
+                    await new Promise(r => setTimeout(r,80));
+                  } while (Date.now() < deadline);
+                  if (option) {
+                    option.click();
+                    changed = true;
+                  }
+                }
+
+                if (!changed) continue;
+                const verifyDeadline = Date.now() + 4500;
                 do {
-                  const options = docs.flatMap(d => [...d.querySelectorAll('[role=option],mat-option,.mat-option,.mat-mdc-option')])
-                    .filter(e => visible(e) && norm(e.innerText || e.textContent) === targetText);
-                  if (options.length === 1) { option = options[0]; break; }
-                  if (options.length > 1) return JSON.stringify({result:'PAGE_SIZE_100_OPTION_NOT_UNIQUE',count:options.length});
-                  await new Promise(r => setTimeout(r,80));
-                } while (Date.now() < deadline);
-                if (!option) return JSON.stringify({result:'PAGE_SIZE_100_OPTION_NOT_FOUND'});
-                option.click();
+                  await new Promise(r => setTimeout(r,100));
+                  if (/(^|\s)100(\s|$)/.test(current(control))) {
+                    await new Promise(r => setTimeout(r,300));
+                    return JSON.stringify({result:'CHANGED_100',candidates:candidates.length});
+                  }
+                } while (Date.now() < verifyDeadline);
               }
 
-              const verifyDeadline = Date.now() + 4000;
-              do {
-                await new Promise(r => setTimeout(r,100));
-                if (/(^|\s)100(\s|$)/.test(current())) {
-                  await new Promise(r => setTimeout(r,300));
-                  return JSON.stringify({result:'CHANGED_100'});
-                }
-              } while (Date.now() < verifyDeadline);
-              return JSON.stringify({result:'PAGE_SIZE_100_VERIFY_FAILED',value:current()});
+              return JSON.stringify({
+                result:'PAGE_SIZE_100_VERIFY_FAILED',
+                labels:leaves.length,
+                candidates:candidates.length,
+                values:candidates.map(x => current(x.control)).slice(0,6)
+              });
             })()";
         }
 

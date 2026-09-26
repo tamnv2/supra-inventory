@@ -73,9 +73,9 @@ jobs:
           $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
           $projection = Get-Content service/src/firestore-projection.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*52\s*;') { throw "D127 hotfix requires Agent v52." }
-          if ($project -notmatch '<AssemblyVersion>0\.52\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.52\.0\.0</FileVersion>') {
-            throw "D127 hotfix assembly/file version must be 0.52."
+          if ($config -notmatch 'AgentBuild\s*=\s*53\s*;') { throw "D127 hotfix requires Agent v53." }
+          if ($project -notmatch '<AssemblyVersion>0\.53\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.53\.0\.0</FileVersion>') {
+            throw "D127 hotfix assembly/file version must be 0.53."
           }
 
           foreach ($marker in @(
@@ -124,7 +124,11 @@ jobs:
             'UnselectableFragments',
             'StartOwnedWebView2NoLock',
             'StartLegacyBrowserNoLock',
-            'owned_webview2=FALLBACK'
+            'OpenOrShowAgent',
+            'OpenOrShowDesktop',
+            'owned_webview2=FAILED',
+            'auto_fallback=false',
+            'PAGE_SIZE_CONTROL_NOT_FOUND'
           )) {
             if (-not $browser.Contains($marker)) { throw "D126 browser semantic guard missing: $marker" }
           }
@@ -150,7 +154,8 @@ jobs:
           }
 
           foreach ($marker in @(
-            'Truy cập Confirm PickList',
+            'Mở trình duyệt Agent',
+            'Mở trình duyệt Desktop',
             'Web Confirm sẵn sàng',
             'OpenSupraConfirmBrowser',
             'ToggleSupraBrowserVisibility',
@@ -251,11 +256,14 @@ jobs:
           foreach ($marker in @('SnapshotStatus','Downloading','Percent','Trình duyệt Agent khả dụng','Tải trình duyệt thất bại')) {
             if (-not $browserBundle.Contains($marker) -and -not $program.Contains($marker)) { throw "D127 hotfix browser progress marker missing: $marker" }
           }
-          foreach ($marker in @('const int panelTop = 142','const int panelHeight = 88','_afterHoursPanel.BringToFront()','Tải trình duyệt Agent')) {
+          foreach ($marker in @('const int panelTop = 142','const int panelHeight = 88','_afterHoursPanel.BringToFront()','Tải trình duyệt Agent','Mở trình duyệt Agent','Mở trình duyệt Desktop')) {
             if (-not $program.Contains($marker)) { throw "D127 hotfix UI layout marker missing: $marker" }
           }
+          if ($browser.Contains('fallback=system_browser') -or $browser.Contains('fallback=armed')) {
+            throw "D127 v53 must not auto-fallback from Agent browser to Desktop browser."
+          }
 
-          Write-Host "D127 quota-safe browser UI + protected regression guards PASS"
+          Write-Host "D127 v53 explicit browser modes + page-size + protected regression guards PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh
@@ -269,8 +277,12 @@ jobs:
       - name: Build Agent-owned WebView2 host
         shell: pwsh
         run: |
-          dotnet build relay-agent-webview2-host/SupraInventoryWebView2Host.csproj -c Release
+          dotnet build relay-agent-webview2-host/SupraInventoryWebView2Host.csproj -c Release -p:PlatformTarget=x64
           $hostExe = "relay-agent-webview2-host/bin/Release/net48/SUPRA.Inventory.WebView2Host.exe"
+          $hostProject = Get-Content relay-agent-webview2-host/SupraInventoryWebView2Host.csproj -Raw
+          if ($hostProject -notmatch '<PlatformTarget>x64</PlatformTarget>' -or $hostProject -notmatch '<Prefer32Bit>false</Prefer32Bit>') {
+            throw "Agent WebView2 host must be x64 because the published Fixed Runtime is x64."
+          }
           if (-not (Test-Path $hostExe)) { throw "Agent WebView2 host build output missing." }
           Write-Host "Agent-owned WebView2 host build PASS"
 
@@ -445,6 +457,7 @@ jobs:
           $match = [regex]::Match(($resolve -join "`n"), 'version=(\d+(?:\.\d+){3})')
           if (-not $match.Success) { throw "Resolved WebView2 version was not returned." }
           $runtimeVersion = $match.Groups[1].Value
+          $hostBuild = 2
           $channel = "inventory-channel"
           $asset = "Agent.WebView2.FixedRuntime.x64.zip"
           $assetSha = "$asset.sha256"
@@ -457,7 +470,9 @@ jobs:
           if ($LASTEXITCODE -eq 0) {
             try {
               $existing = Get-Content (Join-Path $probeDir $manifestName) -Raw | ConvertFrom-Json
-              if ($existing.version -eq $runtimeVersion -and $existing.sha256 -match '^[0-9a-f]{64}$') {
+              if ($existing.version -eq $runtimeVersion -and
+                  [int]$existing.host_build -eq $hostBuild -and
+                  $existing.sha256 -match '^[0-9a-f]{64}$') {
                 gh release download $channel --repo "${{ github.repository }}" --pattern $asset --dir $probeDir 2>$null
                 gh release download $channel --repo "${{ github.repository }}" --pattern $assetSha --dir $probeDir 2>$null
                 if ($LASTEXITCODE -eq 0) {
@@ -511,6 +526,8 @@ jobs:
             schema_version = 1
             channel = "beta"
             version = $runtimeVersion
+            host_build = $hostBuild
+            host_arch = "x64"
             asset_name = $asset
             size_bytes = $size
             sha256 = $sha256
