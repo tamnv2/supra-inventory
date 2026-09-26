@@ -1565,6 +1565,7 @@ namespace SupraInventoryRelayAgent
             {
                 _browserBundleDownload.Text = "Trình duyệt đã sẵn sàng";
                 _browserBundleDownload.Enabled = false;
+                _wmsCapture.Enabled = HasAgentSession();
                 _browserBundleStatus.ForeColor = Color.FromArgb(42, 126, 82);
                 _browserBundleStatus.Text = "Trình duyệt Agent khả dụng" +
                     (string.IsNullOrWhiteSpace(status.Version) ? "" : " · WebView2 Fixed " + status.Version);
@@ -1575,6 +1576,7 @@ namespace SupraInventoryRelayAgent
             {
                 _browserBundleDownload.Text = "Đang tải...";
                 _browserBundleDownload.Enabled = false;
+                _wmsCapture.Enabled = false;
                 _browserBundleStatus.ForeColor = Color.FromArgb(71, 85, 105);
                 _browserBundleStatus.Text = "Đang tải trình duyệt Agent · " + value + "%" +
                     (string.IsNullOrWhiteSpace(status.Version) ? "" : " · " + status.Version);
@@ -1583,6 +1585,7 @@ namespace SupraInventoryRelayAgent
 
             _browserBundleDownload.Text = "Tải trình duyệt Agent";
             _browserBundleDownload.Enabled = HasAgentSession();
+            _wmsCapture.Enabled = false;
             _browserBundleStatus.ForeColor = Color.FromArgb(88, 104, 115);
             _browserBundleStatus.Text = string.IsNullOrWhiteSpace(status.Detail)
                 ? "Trình duyệt Agent: chưa tải"
