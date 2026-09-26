@@ -2483,14 +2483,27 @@
     },
     {
       "id": "OA051",
-      "status": "PENDING_AFTER_D126_V47_HOTFIX_RELEASE",
+      "status": "FIELD_RETEST_READY__D126_V47_TECHNICAL_RELEASE_PASS",
       "title": "Field-accept D126 managed-browser PickList confirmation",
       "resource_key": "repo",
       "provider": "Beta Android + Firestore + Windows Agent + user-controlled Supra browser",
       "reason_owner_only": "CI can prove source/build/guards but real company Supra login, rendered DOM, browser hide/taskbar behavior and live confirmation require physical field observation.",
       "prerequisites": {
+        "technical_release": "PASS",
         "d126_branch": "fix/d126-browser-readiness-dom",
+        "implementation_pr": 200,
+        "merged_main": "3eb45c4a59564501e2b5dd95f60ee6072a79dc9a",
+        "main_repo_authority_run": 36226943848,
+        "main_project_state_run": 36226943851,
+        "main_ui_run": 36226943951,
+        "main_agent_run": 36226943832,
         "target_agent_release": "relay-agent-v47",
+        "agent_release_id": 397141086,
+        "agent_asset_id": 590174179,
+        "agent_sha256": "3f31cfc6efd2a7deacdb2ca58066852f40e126ee6255d205c51fb70da3f28cfc",
+        "inventory_channel_release_id": 394587029,
+        "inventory_channel_agent_manifest_asset_id": 590174265,
+        "inventory_channel_agent_exe_asset_id": 590174261,
         "android_baseline": "beta-vc76",
         "stable": "OWNER_GATED"
       },
@@ -2516,7 +2529,7 @@
         "SKU is manual-file-only and Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company Supra accounts. Do not paste or share passwords, cookies, tokens, headers, signatures or other session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Run OA051 only after D126 technical/release PASS.",
+      "remaining_owner_action": "Update/restart Agent to v47, confirm START version=0.47.0.0, then rerun OA051 beginning with Web Confirm readiness on the real company Supra page.",
       "closed": false
     }
   ]
