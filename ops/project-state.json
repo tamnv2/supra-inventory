@@ -189,7 +189,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D126 v47 field re-test failed on real Confirm DOM: ship relay-agent-v48 H2 search-control recognition + DevTools recovery hotfix, pass PR/main/release gates, then rerun OA051. Stable remains OWNER-GATED.",
+  "next_action": "D126 v48 technical/release PASS. Run OA051 real-Supra field re-test on relay-agent-v48; do not mark field PASS until readiness, exact-row lookup and guarded confirmation are observed. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -1154,7 +1154,7 @@
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d126": {
-    "status": "FIELD_HOTFIX_IN_PROGRESS__V47_SEARCH_0_AND_DEVTOOLS_RECOVERY",
+    "status": "TECHNICAL_RELEASE_PASS__OA051_V48_FIELD_RETEST_READY",
     "decision_date": "2026-09-26",
     "branch": "fix/d126-v48-search-devtools-recovery",
     "baseline_main": "d018046c53f79418cce851398dac122125ba0391",
@@ -1178,14 +1178,14 @@
       "ui": 36226943951,
       "relay_agent": 36226943832
     },
-    "agent_release": "relay-agent-v47",
-    "agent_release_id": 397141086,
-    "agent_asset_id": 590174179,
-    "agent_size_bytes": 288256,
-    "agent_sha256": "3f31cfc6efd2a7deacdb2ca58066852f40e126ee6255d205c51fb70da3f28cfc",
+    "agent_release": "relay-agent-v48",
+    "agent_release_id": 397181209,
+    "agent_asset_id": 590402152,
+    "agent_size_bytes": 292864,
+    "agent_sha256": "3808846da171791f50945bc5a086a29d2c45e0f366725933c653ce9d584d3f8d",
     "inventory_channel_release_id": 394587029,
-    "inventory_channel_agent_manifest_asset_id": 590174265,
-    "inventory_channel_agent_exe_asset_id": 590174261,
+    "inventory_channel_agent_manifest_asset_id": 590402203,
+    "inventory_channel_agent_exe_asset_id": 590402204,
     "android": "KEEP_BETA_VC76_UNCHANGED__PICKLIST_AND_BAO_HANG_MODEL_PRESERVED",
     "picklist_transport": "KEEP_FIRESTORE_REQUEST_ACK_HA_GUARDS",
     "supra_browser": "USER_LOGIN_IN_MANAGED_BROWSER__DOM_ONLY_AUTOMATION__NO_SESSION_EXTRACTION",
@@ -1194,11 +1194,26 @@
     "forbidden": "NO_DIRECT_WMS_PICKLIST_API__NO_COOKIE_TOKEN_HEADER_SIGNATURE_CAPTURE_REPLAY__NO_COORDINATE_ONLY_MUTATION",
     "sku_master": "MANUAL_FILE_IMPORT_ONLY__REMOVE_AGENT_WMS_SKU_SYNC__AUTOMATIC_DEFERRED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "next_action": "SHIP_V48_H2_HOTFIX__RUN_PR_MAIN_RELEASE_GATES__THEN_OA051_FIELD_RETEST",
+    "next_action": "RUN_OA051_FIELD_RETEST_ON_RELAY_AGENT_V48",
     "target_agent_release": "relay-agent-v48",
     "h2_field_evidence": "V47_REAL_CONFIRM_PAGE__SEARCH_0_CONFIRM_1_VISIBLE_1_TABLE_1_FRAMES_0__THEN_DEVTOOLS_WEBSOCKET_DROP_AND_LOOPBACK_REATTACH_FAIL",
     "h2_contract": "SEARCH_EXACT_NORMALIZED_TEXT_VALUE_ARIA_LABEL_TITLE_PLUS_UNIQUE_TEXT_LEAF__DEVTOOLS_REATTACH_EXISTING_TARGET_FIRST__MANAGED_BROWSER_RESTART_FALLBACK__MUTATION_GUARDS_UNCHANGED",
     "h2_implementation_pr": 202,
-    "h2_pr_status": "OPEN__GATES_RUNNING"
+    "h2_pr_status": "MERGED__ALL_GATES_PASS",
+    "h2_merged_main": "b130cc1d63411b05fd0aeeb5fbe7823e31c7616b",
+    "h2_pr_runs": {
+      "repo_authority": 36234210939,
+      "project_state": 36234210941,
+      "ui": 36234210930,
+      "firestore": 36234210953,
+      "rtdb": 36234210932,
+      "relay_agent": 36234210980
+    },
+    "h2_main_runs": {
+      "repo_authority": 36234305295,
+      "project_state": 36234305282,
+      "ui": 36234305275,
+      "relay_agent": 36234305340
+    }
   }
 }

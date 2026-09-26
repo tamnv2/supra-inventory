@@ -1170,7 +1170,7 @@ Status: **TECHNICAL / RELEASE PASS — OWNER FIELD RE-TEST REQUIRED**.
 
 ### D126-H2 — Search-control and DevTools recovery field hotfix — 2026-09-26
 
-Status: **OWNER-REPORTED FIELD DEFECT / HOTFIX IN PROGRESS**.
+Status: **TECHNICAL / RELEASE PASS — OWNER FIELD RE-TEST REQUIRED**.
 
 - Owner field evidence on released `relay-agent-v47` confirms the correct registered Confirm PickList page is loaded and the browser DOM is partially recognized, but readiness remains false. Sanitized diagnostics show `search=0`, `confirm=1`, `confirm_visible=1`, `table=1`, `frames=0`; therefore the current readiness blocker is the **Tìm kiếm** control recognizer rather than page URL, login state, table presence or confirmation-control presence.
 - The same field run shows a later DevTools WebSocket loss followed by repeated loopback attach failure while the browser window remains open. v48 must first reattach to the existing managed-browser DevTools port/target; only if that local reattach is impossible may it close/restart the managed browser process and reopen the same registered page.
@@ -1178,3 +1178,8 @@ Status: **OWNER-REPORTED FIELD DEFECT / HOTFIX IN PROGRESS**.
 - The one-search-retry limit is unchanged. This fallback applies only to the **Tìm kiếm** action; the business mutation still requires the exact row checkbox plus exactly one visible enabled semantic **Xác nhận lấy lại hàng** control.
 - DevTools recovery must remain loopback-only and must not enable the browser Network domain, inspect requests, read cookies/storage, extract/persist/replay Supra authentication material or call WMS APIs.
 - Target release is `relay-agent-v48`. Android remains `beta-vc76`; SKU remains manual-file-only; Stable remains OWNER-GATED and untouched.
+- Implementation PR **#202** passed Repo Authority `36234210939`, Project State/Continuity `36234210941`, UI Design `36234210930`, Firestore `36234210953`, RTDB `36234210932` and Relay Agent `36234210980`; merged to `main` at `b130cc1d63411b05fd0aeeb5fbe7823e31c7616b`.
+- Main verification passed: Repo Authority `36234305295`, Project State/Continuity `36234305282`, UI Design `36234305275`, Relay Agent `36234305340`.
+- `relay-agent-v48` release id `397181209`; EXE asset `590402152`, size `292864`, SHA-256 `3808846da171791f50945bc5a086a29d2c45e0f366725933c653ce9d584d3f8d`.
+- `inventory-channel` now carries v48 through manifest asset `590402203` and EXE asset `590402204`.
+- Automated technical/release evidence is PASS. OA051 remains open for the real Supra field re-test on v48.
