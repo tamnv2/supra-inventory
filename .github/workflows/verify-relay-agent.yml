@@ -54,7 +54,6 @@ jobs:
           $cache = Get-Content relay-agent/PicklistCacheCoordinator.cs -Raw
           $rate = Get-Content relay-agent/PickerRateLimiter.cs -Raw
           $startup = Get-Content relay-agent/UserStartupRegistration.cs -Raw
-          $overlay = Get-Content relay-agent/StatusOverlay.cs -Raw
           $sessionStore = Get-Content relay-agent/WmsSessionStore.cs -Raw
           $exitAuth = Get-Content relay-agent/ExitAuthorization.cs -Raw
           $runtimeGuard = Get-Content relay-agent/AgentRuntimeGuard.cs -Raw
@@ -62,7 +61,6 @@ jobs:
           $lookup = Get-Content relay-agent/WmsPicklistLookup.cs -Raw
           $wms = Get-Content relay-agent/WmsIntegration.cs -Raw
           $rules = Get-Content firebase/database.rules.json -Raw
-          $overlaySettings = Get-Content relay-agent/OverlaySettingsForm.cs -Raw
           $project = Get-Content relay-agent/SupraInventoryRelayAgent.csproj -Raw
           $iconScript = Get-Content relay-agent/GenerateIcon.ps1 -Raw
           $firestoreTransport = Get-Content relay-agent/FirestoreConfirmationTransport.cs -Raw
@@ -81,7 +79,7 @@ jobs:
           $skuCatalog = Get-Content relay-agent/WmsSkuCatalog.cs -Raw
           $fleetMetrics = Get-Content relay-agent/FirestoreFleetMetrics.cs -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*44\s*;') { throw "D123 Agent UI-thread affinity repair requires Agent v44." }
+          if ($config -notmatch 'AgentBuild\s*=\s*45\s*;') { throw "D124 Agent operational cleanup requires Agent v45." }
           if ($firestoreLeader -notmatch 'FailoverAfterMs\s*=\s*10000' -or $firestoreLeader -notmatch 'PrimaryLeaseHeartbeatMs\s*=\s*7000') { throw "D117 proactive 7-second lease / 10-second failover guard failed." }
           if ($firestoreLeader -match 'HeartbeatIntervalMs\s*=\s*4000') { throw "D097 forbids 4-second Firestore lease heartbeat." }
           foreach ($marker in @('PRIMARY','STANDBY','FROZEN','PromoteStandbyForTakeover','replacement-standby','PrimaryLeaseHeartbeatMs = 7000','PresenceHeartbeatIntervalMs = 900000','StandbyRoleRefreshMs = 60000','FrozenRoleRefreshMs = 30000','StartupConvergenceIntervalMs = 5000','VerifyPrimaryBeforeMutation','lease_')) {
@@ -97,15 +95,10 @@ jobs:
           if ($sessionStore -notmatch 'ProtectedData\.Protect' -or $sessionStore -notmatch 'DataProtectionScope\.CurrentUser' -or $sessionStore -notmatch 'ProtectedData\.Unprotect') { throw "D086 WMS session file must be DPAPI CurrentUser protected." }
           if ($exitAuth -notmatch 'Rfc2898DeriveBytes' -or $exitAuth -notmatch 'ProtectedData\.Protect') { throw "D086 protected exit verifier guard failed." }
           if ($runtimeGuard -notmatch '--watchdog' -or $runtimeGuard -notmatch 'WaitForExit' -or $runtimeGuard -notmatch '--watchdog-restart') { throw "D086 runtime watchdog guard failed." }
-          if ($overlay -notmatch 'WsExTransparent' -or $overlay -notmatch 'SetExtendedStyle' -or $overlay -notmatch 'WmNcHitTest') { throw "D086 locked overlay must use true cross-process click-through." }
-          if ($overlay -notmatch '_settings != null' -or $overlay -notmatch 'UpdateMetrics') { throw "D087 overlay null-safe/two-layer guard failed." }
           if ($program -notmatch 'WriteAudit' -or $program -notmatch 'pda-agent-audit\.log' -or $program -notmatch 'technical-ai\.log' -or $program -notmatch 'MaxLogBytes' -or $program -notmatch 'picklist_last5') { throw "D101 bounded split sanitized logging guard failed." }
           if ($program -notmatch 'FormBorderStyle\.Sizable' -or $program -notmatch 'MaximizeBox\s*=\s*true' -or $program -notmatch 'MinimizeBox\s*=\s*true' -or $program -notmatch 'ShowInTaskbar\s*=\s*true' -or $program -notmatch 'Chuyển xuống nền') { throw "D113 normal Windows controls/background action guard failed." }
           if ($program -notmatch 'MainInstanceMutexName' -or $program -notmatch 'EventWaitHandle\.OpenExisting' -or $program -notmatch 'ListenForSecondLaunch') { throw "D089 single-instance activation guard failed." }
           if ($program -notmatch 'identitytoolkit\.googleapis\.com/v1/accounts:signInWithPassword' -or $program -notmatch 'PICKPACK_ADMIN' -or $program -notmatch 'IsAgentOperatorRole' -or $program -notmatch 'FirestoreAgentSessionGate' -or $config -notmatch 'Agent\.Auto\.Confirm\.Pick\.Pack\.exe') { throw "D119 Invent/PickPack direct Firebase Agent identity guard failed." }
-          if ($overlay -notmatch 'SetOverlaySize' -or $overlay -notmatch 'BackgroundArgb' -or $overlay -notmatch 'TextArgb' -or $overlay -notmatch 'HtBottomRight') { throw "D088 overlay resize/color persistence guard failed." }
-          if ($overlay -notmatch 'ShowCpu' -or $overlay -notmatch 'ShowMemory' -or $overlay -notmatch 'ShowAgentOnline' -or $overlay -notmatch 'ShowWmsSession') { throw "D089 granular overlay persistence guard failed." }
-          if ($overlaySettings -notmatch 'ColorDialog' -or $overlaySettings -notmatch 'NumericUpDown' -or $overlaySettings -notmatch 'Bật hiển thị Overlay' -or $overlaySettings -notmatch 'Trạng thái hệ thống' -or $overlaySettings -notmatch 'Hiệu năng & lưu lượng') { throw "D120 independent metric-tile overlay settings guard failed." }
           if ($project -notmatch '<AssemblyName>Agent Auto Confirm Pick Pack</AssemblyName>' -or $project -notmatch '<ApplicationIcon>app.ico</ApplicationIcon>') { throw "D088 EXE name/icon guard failed." }
           if ($iconScript -notmatch 'app-icon\.png' -or $iconScript -notmatch 'HighQualityBicubic') { throw "D089 approved Agent icon source guard failed." }
           if (-not (Test-Path "relay-agent/app-icon.png")) { throw "D089 approved Agent icon asset missing." }
@@ -179,7 +172,7 @@ jobs:
           if ($firestoreTransport -notmatch 'value\.Length < 3 \|\| value\.Length > 20' -or $firestoreTransport -notmatch 'candidate_picklists' -or $firestoreTransport -notmatch 'picklist_suffix=redacted') { throw "D114 Firestore Agent transport must accept bounded suffix jobs, return candidates, and redact suffixes." }
           if ($firestoreRules -notmatch "\^\[0-9\]\{3,20\}\$" -or $firestoreRules -notmatch 'candidate_picklists') { throw "D114 Firestore Rules must admit bounded 3-20 digit jobs and Agent candidate ACK metadata." }
           if ($program -notmatch 'ColumnCount\s*=\s*2' -or $program -notmatch 'ColumnStyle\(SizeType.Percent, 48F\)' -or $program -notmatch 'ColumnStyle\(SizeType.Percent, 52F\)' -or $program -notmatch 'RowStyles.Add\(new RowStyle\(SizeType.Percent, 50F\)\)' -or (($program | Select-String -Pattern 'RowStyles.Add\(new RowStyle\(SizeType.Percent, 25F\)\)' -AllMatches).Matches.Count -lt 2) -or $program -notmatch 'InitializeD119AgentFeatures') { throw "D122 Overview must keep Agent/Supra/PickList at 50/25/25 with separate Picker workspace." }
-          if ($program -notmatch 'QueueSharedScheduleRefresh' -or $program -notmatch '_afterHoursScheduleRefreshRunning' -or $program -notmatch '_trayMonitorRefreshRunning' -or $program -notmatch 'QueueNetworkStatusRefresh' -or $program -notmatch 'QueueWatchdogRefresh' -or $program -notmatch '_agentFleetRenderSignature' -or $program -notmatch 'Ui\(\(\) => ApplyTrayMonitor\(metrics\)\)' -or $d119 -notmatch 'LayoutAgentSystemStatusRow\(host, 100\)') { throw "D122 non-blocking WinForms background work / stable fleet rendering / one-row Agent-Relay-Wi-Fi guard failed." }
+          if ($program -notmatch 'QueueSharedScheduleRefresh' -or $program -notmatch '_afterHoursScheduleRefreshRunning' -or $program -notmatch '_trayMonitorRefreshRunning' -or $program -notmatch 'QueueNetworkStatusRefresh' -or $program -notmatch 'QueueWatchdogRefresh' -or $program -notmatch '_agentFleetRenderSignature' -or $program -notmatch 'Ui\(\(\) => ApplyTrayMonitor\(metrics\)\)' -or $d119 -notmatch 'LayoutAgentSystemStatusRow\(host, 96\)') { throw "D124 non-blocking WinForms background work / stable fleet rendering / one-row Agent-Relay-Wi-Fi guard failed." }
           $setAuth = [regex]::Match($program, 'private void SetAgentAuthUi\(bool authenticated\)(?s:.*?)private void LogoutAgent\(').Value
           if ($setAuth -notmatch 'Ui\(\(\) =>' -or $setAuth -notmatch 'ApplyD119AuthenticatedLayout\(authenticated\);' -or $setAuth -match '\}\);\s*ApplyD119AuthenticatedLayout\(authenticated\);') { throw "D123 Agent auth restore must marshal the D119 layout onto the WinForms UI thread." }
           foreach ($method in @('ApplyD119AuthenticatedLayout', 'LoadColumnPreferencesForCurrentUser', 'ApplyColumnPreferenceMode', 'RefreshD119OperationalViews', 'RenderPickerOnlineSnapshot', 'RenderFleetMetricStatus')) {
@@ -192,7 +185,6 @@ jobs:
           if ($program -notmatch 'ExpireAgentSession' -or $program -notmatch 'IsDefinitiveAgentAuthFailure' -or $program -notmatch '_wmsCapture\.Visible = true' -or $program -notmatch 'Supra WMS: phiên hết hạn') { throw "D122 expired Agent/Supra sessions must restore their login controls." }
           if ($d119 -notmatch 'Tự căn cột theo nội dung' -or $d119 -notmatch 'grid-column-preferences\.json' -or $d119 -notmatch 'AllowUserToResizeColumns = !_autoSizeColumns\.Checked' -or $d119 -notmatch 'SaveColumnPreferencesForCurrentUser') { throw "D122 per-user automatic/manual column sizing guard failed." }
           if ($d119 -notmatch 'NotifySkuSyncResult' -or $d119 -notmatch 'Cập nhật SKU thành công' -or $d119 -notmatch 'Giữ nguyên:') { throw "D122 manual SKU sync must surface explicit success/failure including no-op counts." }
-          if ($overlay -notmatch 'TransparencyKey = TransparencyColor' -or $overlay -notmatch '_backgroundLayer' -or $overlay -notmatch 'Opacity = 1\.0' -or $overlay -notmatch '_backgroundLayer\.Opacity') { throw "D122 overlay opacity must affect the background layer without fading text." }
           if ($program -notmatch '_agentFleetGrid\.ScrollBars = ScrollBars\.Vertical' -or $program -notmatch '_agentFleetGrid\.RowTemplate\.Height = 24' -or $d119 -notmatch 'Picker đang hoạt động trên PDA' -or $d119 -notmatch 'RowTemplate.Height = 28') { throw "D119 compact five-row Agent / Picker viewport guard failed." }
           if ($program -match 'Phiên WMS được bảo vệ cục bộ' -or $program -match 'Cập nhật phần mềm: tự kiểm tra' -or $program -match 'Failover job: 10 giây') { throw "D103 Overview must remove verbose internal guidance." }
           if ($program -notmatch 'SecretPattern.*\\b' -or $program -notmatch 'Wi-Fi: ' -or $program -notmatch 'GetSsid\(\)') { throw "D101 real Wi-Fi SSID display/redaction guard failed." }
@@ -202,7 +194,11 @@ jobs:
           if ($firestoreRules -notmatch 'relay_agent_log_uploads' -or $firestoreRules -notmatch "request.resource.data.source == 'AGENT'") { throw "D101 Agent log spool Firestore Rules guard failed." }
           if ($program -notmatch 'MarkLocalConfirmed' -or $confirmGuard -match 'MarkDurableConfirmed' -or $confirmGuard -match 'status", StringField\("CONFIRMED"\)') { throw "D098 manual-origin must preserve one-write guard and fail closed after restart." }
           if ($program -match 'Mô hình hiện tại' -or $program -match 'new TabPage\("Đăng nhập ADMIN"\)') { throw "D098 Agent UI must remove model card and ADMIN settings tab." }
-          if ($program -notmatch 'Nhật ký vận hành' -or $program -notmatch 'Chẩn đoán kỹ thuật' -or $overlaySettings -notmatch 'PrepareEmbedded') { throw "D098 direct settings/log-tab layout guard failed." }
+          if ($program -notmatch 'Nhật ký vận hành' -or $program -notmatch 'Chẩn đoán kỹ thuật') { throw "D098 direct log-tab layout guard failed." }
+          if ($program -match 'Bảng nổi' -or $program -match 'StatusOverlay' -or $program -match 'OverlaySettings' -or (Test-Path "relay-agent/StatusOverlay.cs") -or (Test-Path "relay-agent/OverlaySettingsForm.cs")) { throw "D124 Agent overlay must be completely removed from runtime/source." }
+          if ($d119 -notmatch '_agentRequestMetrics' -or ($d119 -notmatch 'Host.ClientSize.Height \* 0.30' -and $d119 -notmatch 'host.ClientSize.Height \* 0.30') -or $d119 -notmatch 'Xác nhận đơn · Nhận' -or $d119 -notmatch 'Đã xử lý' -or $d119 -notmatch 'Thành công' -or $d119 -notmatch 'Lỗi') { throw "D124 Agent request metrics / ~30% summary layout guard failed." }
+          if ($skuSync -notmatch 'MarkServiceStarted' -or $skuSync -notmatch 'service_started' -or $skuSync -notmatch 'EndOfDayLockMs' -or $skuSync -notmatch 'timeoutSeconds = 180' -or $skuSync -notmatch 'Đã giữ khóa hôm nay để không gửi trùng') { throw "D124 one-daily SKU service lock / bounded wait guard failed." }
+          if ($d119 -notmatch 'NextSkuSyncDayUtc' -or $d119 -notmatch 'Đang kiểm tra lượt cập nhật SKU hôm nay' -or ($d119 -notmatch 'Đang đọc danh mục SKU từ Supra' -and $skuCatalog -notmatch 'Đang đọc danh mục SKU từ Supra') -or $d119 -notmatch 'Lô " \+ chunkIndex') { throw "D124 SKU progress visibility guard failed." }
           if ($program -notmatch 'Tài khoản quản trị Agent' -or $program -notmatch '"pickpack_admin"' -or $program -notmatch '"admin"' -or $program -notmatch '@auth\.supra\.invalid' -or $program -notmatch 'Supra WMS: chờ xác minh Agent' -or $program -notmatch '_supraCard.Enabled = authenticated') { throw "D119 username Agent alias/auth-first Supra guard failed." }
           if ($d119 -notmatch 'LoadOpen' -or $pickerContact -notmatch 'CALL_SPECIALIST' -or $pickerContact -notmatch 'BRING_TO_PACK') { throw "D119 Picker presence/contact wiring guard failed." }
           if ($d119 -notmatch 'RunSkuSync' -or $skuSync -notmatch 'AcquireDailyLease' -or $skuCatalog -notmatch 'stock_fields=discarded') { throw "D119 Agent SKU sync guard failed." }
@@ -213,11 +209,8 @@ jobs:
           if ($program -notmatch '_afterHoursLayoutVisible' -or $program -notmatch '_afterHoursLayoutVisible\.Value == visible') { throw "D120 one-second schedule timer must not churn the authenticated layout." }
           if ($pickerPresence -notmatch 'schemaVersion != 2' -or $pickerPresence -notmatch 'ACTIVE_ANDROID_REALTIME') { throw "D120 Agent must reject legacy/stale Picker presence projections." }
           if ($program -notmatch 'RequestProtectedWmsLogout' -or $program -notmatch '_wmsLogout' -or $program -notmatch 'User " \+ supraUser' -or $wms -notmatch 'ClearDedicatedProfiles') { throw "D120 protected Supra logout/user identity guard failed." }
-          if ($overlay -notmatch 'FlowLayoutPanel' -or $overlay -notmatch 'RenderMetricTiles' -or $overlay -notmatch 'AppendMetricParts') { throw "D120 independent overlay metric tiles guard failed." }
           if ($firestoreRules -notmatch 'isAgentOperator' -or $firestoreRules -notmatch 'PICKPACK_ADMIN' -or $firestoreRules -notmatch 'sku_sync_jobs' -or $firestoreRules -notmatch 'picker_alerts') { throw "D119 Firestore Agent operator guard failed." }
           if ($program -notmatch 'KeyCode != Keys.Enter' -or $program -notmatch 'SearchManualPicklists') { throw "D099 Agent Enter shortcut guard failed." }
-          if ($overlay -match 'MinimumSize = new Size\(420, 64\)' -or $overlaySettings -match '_width.Minimum = 420' -or $overlaySettings -match '_height.Minimum = 64') { throw "D099 legacy Overlay 420x64 floor must be removed." }
-          if ($overlay -notmatch 'MinimumSize = new Size\(120, 32\)' -or $overlaySettings -notmatch '_width.Minimum = 120' -or $overlaySettings -notmatch '_height.Minimum = 32') { throw "D099 expanded Overlay size guard missing." }
           if ($firestoreRate -notmatch 'relay_poc_rate_limits' -or $firestoreRate -notmatch 'last_request_id' -or $firestoreRate -notmatch 'ClearFound') { throw "D097 anti-spam persisted wrong-input state guard failed." }
           foreach ($marker in @('ANDROID_CONFIRM_V1','created_at','retire_at_ms','relay_poc_rate_limits','relay_poc_coordination','relay_poc_agents','relay_poc_confirm_guards')) {
             if ($firestoreRules -notmatch [regex]::Escape($marker)) { throw "D097 Firestore Rules marker missing: $marker" }
