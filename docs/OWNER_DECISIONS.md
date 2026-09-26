@@ -1327,3 +1327,18 @@ Owner supplied the live DOM for the HY1/SFT3 quick-access arrow after v56 still 
 - Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
 - OA052 remains pending until Owner verifies the exact arrow auto-click and storage controls on v57.
 
+## D127 field hotfix — Agent v58 structural quick-access selector + visible build identity — 2026-09-27
+
+Owner reported v57 still did not auto-click the dashboard access control and questioned whether generated names differed between browser runtimes. The v57 official artifact was independently inspected and did contain the intended UI/storage/selector strings, so v58 makes the selector independent of visible warehouse names and adds an obvious in-UI build identity.
+
+- PR #224 squash-merged to main `c388b000858aeaadb4cc54ecebafb4f46d537054`.
+- Main Relay Agent run `36265082575` completed successfully.
+- Agent release advanced to `relay-agent-v58`, release id `397361984`, EXE asset `591275971`, size `354816` bytes, SHA-256 `6ab4d8707ca1d2d5785d598268895910980c26c1cd1230830dc2d9ef52334309`.
+- v58 no longer uses **Kho Hưng Yên 1**, **SFT3**, generated JSS classes, or generated CSS hashes to identify the access action.
+- It resolves the warehouse quick-access card by the distinctive warehouse illustration SVG paths and resolves the action by the exact right-arrow SVG path; same-origin iframes are included and the action fails closed unless exactly one structural candidate exists.
+- The Supra card title now renders **Đăng nhập Supra · v58**, making stale/wrong binary detection visible without relying only on the window title.
+- The v57 data-size display, data-folder button, browser cleanup, same-tab WebView2 routing, and rows-per-page 100 behavior remain.
+- Browser host remains build 4; no WebView2 bundle redownload is required solely for v58.
+- Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
+- OA052 remains pending physical v58 verification.
+
