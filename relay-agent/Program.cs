@@ -2128,6 +2128,7 @@ namespace SupraInventoryRelayAgent
                             ? "PRIMARY"
                             : (role == FirestoreAgentRole.STANDBY ? "STANDBY" : "FROZEN");
                         _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / " + roleText;
+                        if (role == FirestoreAgentRole.PRIMARY) RefreshD119OperationalViews(true);
                     });
                 });
             _leaderCoordinator.Start();
@@ -3431,6 +3432,7 @@ namespace SupraInventoryRelayAgent
                     },
                     state => Ui(() => _relay.Text = state),
                     ProcessFirestoreConfirmations,
+                    (items, reason) => Ui(() => ApplyEventDrivenPickerPresence(items, reason)),
                     _leaderCoordinator,
                     IsBusinessAllowed,
                     healthy =>
