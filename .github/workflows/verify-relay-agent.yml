@@ -73,9 +73,9 @@ jobs:
           $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
           $projection = Get-Content service/src/firestore-projection.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*51\s*;') { throw "D127 requires Agent v51." }
-          if ($project -notmatch '<AssemblyVersion>0\.51\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.51\.0\.0</FileVersion>') {
-            throw "D127 assembly/file version must be 0.51."
+          if ($config -notmatch 'AgentBuild\s*=\s*52\s*;') { throw "D127 hotfix requires Agent v52." }
+          if ($project -notmatch '<AssemblyVersion>0\.52\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.52\.0\.0</FileVersion>') {
+            throw "D127 hotfix assembly/file version must be 0.52."
           }
 
           foreach ($marker in @(
@@ -247,6 +247,12 @@ jobs:
           }
           foreach ($marker in @('AgentBrowserBundleManifestUrl','AgentBrowserBundleUrl','TryGetReady','sha256','inventory-beta.supra.cc.cd')) {
             if (-not $browserBundle.Contains($marker) -and -not $config.Contains($marker)) { throw "D127 browser bundle channel marker missing: $marker" }
+          }
+          foreach ($marker in @('SnapshotStatus','Downloading','Percent','Trình duyệt Agent khả dụng','Tải trình duyệt thất bại')) {
+            if (-not $browserBundle.Contains($marker) -and -not $program.Contains($marker)) { throw "D127 hotfix browser progress marker missing: $marker" }
+          }
+          foreach ($marker in @('const int panelTop = 142','const int panelHeight = 88','_afterHoursPanel.BringToFront()','Tải trình duyệt Agent')) {
+            if (-not $program.Contains($marker)) { throw "D127 hotfix UI layout marker missing: $marker" }
           }
 
           Write-Host "D127 quota-safe browser UI + protected regression guards PASS"
