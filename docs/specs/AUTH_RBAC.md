@@ -254,3 +254,15 @@ D110 narrows the D098 Android client matrix without changing Web or Agent author
 - Firebase/Firestore rules may protect the Office bridge, but they do not replace InventoryCore/Worker RBAC for authoritative business transitions.
 - No role, including ROOT/ADMIN/PICKPACK_ADMIN, is authorized by D125 to expose or use a Supra/WMS user session through project software.
 - Stable remains OWNER-GATED.
+
+## D126 — Browser UI authority boundary
+
+D126 supersedes D125 before implementation.
+
+- Agent business roles remain the currently approved Agent operator roles. Office/Wi-Fi state does not create new business authority.
+- Supra authentication belongs only to the user-controlled managed browser. Project code must not extract, persist, replay or refresh browser/Supra authentication material.
+- Browser DOM automation does not grant broader authority than the existing PickList confirmation workflow. Existing Agent identity, PRIMARY ownership, generation/freshness, confirmation guards and rate limits remain required before any PDA-triggered or manual mutation.
+- Direct WMS/API authentication with captured Supra session material is forbidden.
+- Browser DOM mutation is limited to the exact D126 Confirm PickList page and exact approved controls. Failure to establish page/control identity blocks the action.
+- Stable remains OWNER-GATED.
+

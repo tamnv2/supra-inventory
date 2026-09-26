@@ -750,3 +750,17 @@ D111 supersedes only the conflicting D110 Reporter interaction/presentation deta
 - The Office Windows client should visually align with the existing professional Web Inventory information architecture and component density while remaining appropriate for native Windows interaction.
 - Office mode must clearly present Inventory business status; it must not imply that the client is connected to or authorized for Supra/WMS.
 - Network mode transitions should not require visible process churn solely because Wi-Fi changed; activate/deactivate the Office workspace within the running client where technically practical.
+
+## D126 — Managed-browser Supra presentation
+
+D126 supersedes the unimplemented D125 Office-client UI.
+
+- Keep the released Agent Overview structure and Android/PDA PickList surfaces.
+- Hệ thống Supra no longer presents captured-session state. It presents managed-browser state: not opened / login required / wrong page / **Web Confirm sẵn sàng** / hidden.
+- Primary actions are **Truy cập Confirm PickList** and contextually **Ẩn trình duyệt / Hiện trình duyệt**.
+- Browser hiding must remove visual/taskbar clutter without terminating the browser or silently changing business readiness.
+- PickList results continue to show the exact full PickList code in Agent before manual confirmation.
+- Business automation must identify DOM elements by semantic structure/text, never by fixed screen coordinates.
+- The exact allowed confirmation action is **Xác nhận lấy lại hàng**. Neighboring controls such as **Xác nhận hoàn thành lấy hàng** and **Xuất File** are never fallback targets.
+- Fail-closed browser/DOM states must be visible to the operator in concise operational language.
+

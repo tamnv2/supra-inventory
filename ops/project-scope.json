@@ -321,8 +321,8 @@
       "collection": "relay_poc_jobs",
       "api_url": "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents/relay_poc_jobs",
       "exposure": "public_identifier",
-      "status": "D125_REUSE_ALLOWED_FOR_INVENTORY_OFFICE_BRIDGE__LEGACY_PICKLIST_PATH_RETIRED_PENDING_IMPLEMENTATION",
-      "guard": "D125_BETA_FIRESTORE_MAY_SUPPORT_OFFICE_INVENTORY_PROJECTION_COMMAND_PRESENCE_ALERTS_ONLY__NO_WMS_PICKLIST_OR_SUPRA_SESSION_DATA__INVENTORYCORE_REMAINS_BUSINESS_AUTHORITY__STABLE_OWNER_GATED",
+      "status": "D126_ACTIVE_PICKLIST_REQUEST_ACK_HA_CARRIER__SKU_SYNC_COLLECTION_RETIRED",
+      "guard": "D126_PICKLIST_REQUEST_ACK_HA_ONLY_FOR_CONFIRMATION__NO_SUPRA_SESSION_DATA__NO_WMS_API_AUTH_MATERIAL__STABLE_OWNER_GATED",
       "collections": [
         "relay_poc_jobs",
         "relay_poc_rate_limits",
@@ -341,7 +341,7 @@
         "ADMIN",
         "PICKPACK_ADMIN"
       ],
-      "d119_role_guard": "SUPERSEDED_D125__NO_AGENT_WMS_OR_PICKLIST_AUTHORITY"
+      "d119_role_guard": "D126_AGENT_OPERATOR_ROLES_RETAINED_FOR_PICKLIST_AND_PICKER_CONTACT__SKU_WMS_SYNC_RETIRED"
     },
     {
       "key": "supra-wms-ui-d080",
@@ -351,9 +351,9 @@
       "name": "wms-supra.winmart.vn",
       "url": "https://wms-supra.winmart.vn/",
       "exposure": "public_corporate_hostname",
-      "guard": "D125_NO_PROJECT_SOFTWARE_MAY_CAPTURE_USE_OR_REUSE_SUPRA_WMS_SESSION__NO_RUNTIME_AUTOMATION__HISTORICAL_REFERENCE_ONLY",
-      "allowed_reference_page": "HISTORICAL_ONLY__DO_NOT_OPEN_OR_AUTOMATE_FROM_PROJECT_CLIENT",
-      "status": "D125_HISTORICAL_REFERENCE_ONLY__RUNTIME_USE_FORBIDDEN"
+      "guard": "D126_BROWSER_UI_ONLY__USER_LOGS_IN_DIRECTLY__NO_SESSION_CAPTURE_EXTRACTION_REPLAY__DOM_ONLY_CONFIRM_PICKLIST_AUTOMATION",
+      "allowed_reference_page": "https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm",
+      "status": "D126_BETA_BROWSER_UI_AUTOMATION_ALLOWED__USER_LOGIN_ONLY"
     },
     {
       "key": "supra-api-d080",
@@ -363,15 +363,15 @@
       "name": "api-supra.winmart.vn",
       "url": "https://api-supra.winmart.vn",
       "exposure": "public_corporate_hostname",
-      "allowed_probe": "RETIRED_D125",
-      "guard": "D125_FORBIDS_ALL_PROJECT_RUNTIME_WMS_API_USE_UNLESS_FUTURE_OWNER_DECISION_HAS_EXPLICIT_IT_AUTHORIZATION",
-      "allowed_lookup": "RETIRED_D125",
-      "allowed_confirmation": "RETIRED_D125",
-      "confirmation_contract": "RETIRED_D125",
-      "allowed_stock_lookup": "RETIRED_D125",
-      "allowed_stock_export": "RETIRED_D125",
-      "stock_scope_guard": "RETIRED_D125__SKU_SOURCE_MANUAL_FILE_ONLY",
-      "status": "D125_HISTORICAL__ALL_PROJECT_RUNTIME_CALLS_FORBIDDEN"
+      "allowed_probe": "FORBIDDEN_D126",
+      "guard": "D126_FORBIDS_PROJECT_RUNTIME_WMS_API_USE_FOR_PICKLIST_OR_SKU",
+      "allowed_lookup": "FORBIDDEN_D126",
+      "allowed_confirmation": "FORBIDDEN_D126",
+      "confirmation_contract": "FORBIDDEN_D126__BROWSER_UI_ONLY",
+      "allowed_stock_lookup": "FORBIDDEN_D126",
+      "allowed_stock_export": "FORBIDDEN_D126",
+      "stock_scope_guard": "D126_SKU_SOURCE_MANUAL_FILE_ONLY",
+      "status": "D126_HISTORICAL_REFERENCE__ALL_PROJECT_RUNTIME_API_CALLS_FORBIDDEN"
     },
     {
       "key": "wincommerce-proxy-fallback-d080",
@@ -513,8 +513,8 @@
     "stock quantity management",
     "Office-network fallback/provider research unless Owner reopens it",
     "all offline business modes, offline report/mutation outboxes, direct-to-Sheet fallback, or alternate offline transaction paths",
-    "all project capture, persistence, refresh, replay or use of Supra/WMS user-session material in background software",
-    "all automated Supra PickList lookup/confirmation and project-driven WMS mutation under D125",
-    "all WMS/Tồn Bin-derived automatic or Agent-triggered SKU master synchronization under D125"
+    "all programmatic capture, extraction, persistence, refresh, replay or use of Supra/WMS user-session cookies, headers, tokens, signatures or browser-profile authentication material outside the user-controlled D126 managed browser context",
+    "all direct WMS/API PickList lookup or confirmation and all project-driven WMS mutation outside D126 semantic browser-UI automation of the registered Confirm PickList page",
+    "all WMS/Tồn Bin-derived automatic or Agent-triggered SKU master synchronization under D126"
   ]
 }

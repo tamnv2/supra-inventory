@@ -2480,6 +2480,44 @@
         "result": "SUPERSEDED__DO_NOT_RUN_D124_WMS_SKU_OR_PICKLIST_FIELD_TESTS",
         "reason": "D125 retires all project use of Supra/WMS session material, PickList confirmation and WMS-derived SKU synchronization."
       }
+    },
+    {
+      "id": "OA051",
+      "status": "PENDING_AFTER_D126_TECHNICAL_RELEASE",
+      "title": "Field-accept D126 managed-browser PickList confirmation",
+      "resource_key": "repo",
+      "provider": "Beta Android + Firestore + Windows Agent + user-controlled Supra browser",
+      "reason_owner_only": "CI can prove source/build/guards but real company Supra login, rendered DOM, browser hide/taskbar behavior and live confirmation require physical field observation.",
+      "prerequisites": {
+        "d126_branch": "feat/d126-browser-ui-picklist",
+        "target_agent_release": "relay-agent-v46",
+        "android_baseline": "beta-vc76",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Update Beta Agent to relay-agent-v46 while keeping current PDA build unless release notes explicitly require otherwise.",
+        "Press Truy cập Confirm PickList. If login is required, log in directly inside the opened Supra browser; verify Agent shows Web Confirm sẵn sàng only after the Confirm PickList page is loaded.",
+        "Use Ẩn trình duyệt and verify the browser disappears from desktop/taskbar while Agent still reports readiness; use Hiện trình duyệt and verify the same browser returns.",
+        "Manual test: enter a suffix with exactly one visible PL+digits match. Agent must display the full PickList and wait for the Agent Xác nhận action.",
+        "Manual miss: use a suffix not initially present. Agent may press Tìm kiếm once; if still absent it must report Không tìm thấy and must not check any row.",
+        "Ambiguous suffix: verify multiple PL matches never auto-confirm.",
+        "Controlled manual confirmation: verify only the matching row checkbox is selected and only Xác nhận lấy lại hàng is activated; Xác nhận hoàn thành lấy hàng and Xuất File remain untouched.",
+        "PDA test: submit a unique suffix. The PRIMARY Agent should resolve and confirm automatically after guards, then PDA receives the normal terminal result without a second Agent confirmation click.",
+        "Verify no Agent WMS SKU sync action/automatic daily SKU sync remains; update SKU through the existing Web manual file import."
+      ],
+      "pass_criteria": [
+        "No programmatic Supra session/token/header/cookie/signature extraction or persistence.",
+        "No direct WMS PickList lookup/confirm API call or WMS SKU catalog call.",
+        "Browser readiness, hide/show and semantic DOM lookup work on the real Confirm PickList page.",
+        "Zero/multiple/changed matches fail closed.",
+        "Only the checkbox in the exact matched row and the exact Xác nhận lấy lại hàng button can be used for mutation.",
+        "Manual flow waits for operator confirmation; PDA flow auto-confirms only after existing HA/rate-limit/idempotency guards.",
+        "Existing Báo hàng, Picker presence/contact, Agent counters and schedule remain functional.",
+        "SKU is manual-file-only and Stable remains untouched."
+      ],
+      "safety": "Beta only. Use authorized company Supra accounts. Do not paste or share passwords, cookies, tokens, headers, signatures or other session material. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Run OA051 only after D126 technical/release PASS.",
+      "closed": false
     }
   ]
 }

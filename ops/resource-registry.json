@@ -721,9 +721,9 @@
     }
   },
   "wms_poc": {
-    "decision": "D114",
+    "decision": "D126",
     "environment": "beta_poc",
-    "status": "D125_RETIRED__HISTORICAL_ONLY__NO_RUNTIME_USE",
+    "status": "D126_BROWSER_UI_ONLY__NO_DIRECT_API_RUNTIME",
     "ui_resource_key": "supra-wms-ui-d080",
     "api_resource_key": "supra-api-d080",
     "proxy_resource_key": "wincommerce-proxy-fallback-d080",
@@ -738,7 +738,7 @@
       "SCID",
       "USID"
     ],
-    "session_capture": "FORBIDDEN_D125",
+    "session_capture": "FORBIDDEN_D126",
     "route_order": [
       "WINDOWS_SYSTEM_PROXY",
       "ENV_PROXY",
@@ -746,20 +746,20 @@
       "CORPORATE_PROXY_FALLBACK"
     ],
     "corporate_proxy_fallback": "proxyclientdr.winmart.vn:9090",
-    "mutation": "FORBIDDEN_D125",
-    "picklist_lookup": "FORBIDDEN_D125",
+    "mutation": "BROWSER_UI_ONLY_D126",
+    "picklist_lookup": "BROWSER_DOM_ONLY_D126",
     "stable": "UNTOUCHED_OWNER_GATED",
     "agent_release": "relay-agent-v33",
     "browser_order": [
       "MICROSOFT_EDGE",
       "GOOGLE_CHROME"
     ],
-    "wms_credentials": "OFFICIAL_BROWSER_PAGE_ONLY__NO_AGENT_FORM_OR_STORAGE",
+    "wms_credentials": "USER_CONTROLLED_BROWSER_LOGIN_ONLY__NO_AGENT_FORM_STORAGE_OR_EXTRACTION",
     "taskbar_monitor": "D104_WORKING_AREA_MAXIMIZED__TASKBAR_VISIBLE__D103_DENSE_OVERVIEW_PRESERVED",
-    "read_only_lookup": "FORBIDDEN_D125",
+    "read_only_lookup": "BROWSER_DOM_ONLY_D126",
     "confirm_ui_reference": "https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm",
-    "confirmation": "FORBIDDEN_D125",
-    "session_login_suppression": "SUPERSEDED_D125",
+    "confirmation": "BROWSER_UI_ONLY_D126",
+    "session_login_suppression": "REMOVED_D126",
     "agent_release_target": "relay-agent-v33__RELEASED",
     "release_source_commit": "8cdf941be71fcfddaf074e2016336c2f8d416608",
     "agent_release_verification": "D114_FINAL_MAIN_AGENT_RUN_35944022982_PASS__TAG_REF_8CDF941B__ASSET_CHECKSUM_VERIFIED",
@@ -776,29 +776,29 @@
       "exe_asset_id": 576140376,
       "exe_sha256": "dce3a779c86096a6a82ed1991e385e7e6acea2d9ba75078e8bf2371eb1387659"
     },
-    "confirm_endpoint": "FORBIDDEN_D125",
+    "confirm_endpoint": "FORBIDDEN_D126_DIRECT_API",
     "agent_log_delivery": "D101_LOCAL_ROLLING_2MIB_X4_PLUS_CURRENT__FIRESTORE_SPOOL__BETA_DRIVE_06_12_18_00__CRASH_PREFIX"
   },
   "agent_operations": {
-    "decision": "D125",
-    "target_release": "D125_IMPLEMENTATION_PENDING",
-    "cache_miss": "RETIRED_D125_PICKLIST_CACHE",
+    "decision": "D126",
+    "target_release": "relay-agent-v46",
+    "cache_miss": "CURRENT_RENDERED_DOM_THEN_ONE_EXACT_SEARCH_BUTTON_RETRY",
     "auto_update": "STARTUP_PLUS_30MIN_BACKGROUND_PLUS_MANUAL__SERVICE_MANIFEST__STABLE_ALIAS__SHA256",
-    "layout": "TARGET_D125_OFFICE_INVENTORY_CLIENT__WEB_ALIGNED_ROLE_AUTHORIZED_BUSINESS_UI",
+    "layout": "KEEP_D124_RELEASED_OVERVIEW__SUPRA_CARD_BROWSER_READY_HIDE_SHOW",
     "wifi": "TARGET_D125_LOCAL_NETWORK_STATE_ONLY_FOR_OFFICE_MODE_ACTIVATION__NOT_AUTHORIZATION",
-    "ha_display": "RETIRED_D125_PICKLIST_CONFIRMATION_HA",
+    "ha_display": "KEEP_D117_D118_PICKLIST_HA",
     "local_logs": "TWO_STREAM_ROLLING_2MIB__MAX4_ROTATED_PLUS_CURRENT",
     "drive_logs": "FIRESTORE_ADMIN_SPOOL_TO_BETA_DRIVE__06_12_18_00__CRASH_BEST_EFFORT",
     "web_online": "WEB_PLUS_ANDROID_ONLY__AGENT_EXCLUDED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "release_status": "D124_V45_HISTORICAL__D125_IMPLEMENTATION_PENDING__DO_NOT_USE_WMS_FEATURES",
-    "quiet_hours": "RETIRED_D125_CONFIRMATION_RELAY_SCHEDULE",
+    "release_status": "D126_IMPLEMENTATION_IN_PROGRESS__BASELINE_V45",
+    "quiet_hours": "KEEP_D117_D118_PICKLIST_RELAY_SCHEDULE",
     "fleet_table": "D120_V41_RELEASED__PICKER_ACTIVE_ANDROID_REALTIME_ONLY__SEARCH_SCROLL_ANCHOR_WHOLE_ROW_HOVER__NO_FLICKER_NOOP_RENDER",
     "previous_release": "relay-agent-v45__HISTORICAL_D124",
-    "picklist_ui": "RETIRED_D125",
+    "picklist_ui": "KEEP_RELEASED_MANUAL_RESULTS__BUSINESS_ADAPTER_BROWSER_DOM",
     "visible_copy": "D118_COMPACT_OPERATIONAL_ONLY__APPROVED_BOTTOM_RIGHT_PRODUCT_CREDIT__NO_INTERNAL_IMPLEMENTATION_PROSE",
-    "batch_confirmation": "RETIRED_D125",
-    "quota": "TARGET_D125_OFFICE_CLIENT_QUOTA_MODEL_PENDING__NO_WMS_OR_PICKLIST_POLLING",
+    "batch_confirmation": "PDA_EXISTING_BATCH_TRANSPORT__EACH_BROWSER_MUTATION_FAIL_CLOSED",
+    "quota": "KEEP_D117_D118_FIRESTORE_CADENCE__NO_WMS_API_POLLING",
     "release_main": "ec0584c303b17c026a03f65c200ab3b7afecb8ae",
     "release_id": 397052383,
     "release_asset_id": 589796709,
@@ -811,14 +811,14 @@
     "inventory_channel_release_id": 394587029,
     "inventory_channel_manifest_asset_id": 589796792,
     "inventory_channel_exe_asset_id": 589796789,
-    "next_target_release": "D125_IMPLEMENTATION_PENDING",
-    "next_source_status": "OWNER_APPROVED_MODEL_REWRITE_PENDING_IMPLEMENTATION",
+    "next_target_release": "relay-agent-v46",
+    "next_source_status": "D126_BROWSER_UI_ADAPTER_IMPLEMENTATION_IN_PROGRESS",
     "release_publish_run": 36213484181,
-    "wms_health": "RETIRED_D125",
-    "schedule_authority": "RETIRED_D125_PICKLIST_RELAY_SCHEDULE",
+    "wms_health": "MANAGED_BROWSER_CONFIRM_PAGE_READINESS_ONLY",
+    "schedule_authority": "KEEP_D117_D118_CONFIRMATION_RELAY_SCHEDULE",
     "ui_responsiveness": "D122_SSID_WATCHDOG_SCHEDULE_SYSTEM_MONITOR_OFF_UI_BLOCKING_PATHS__FLEET_DIFF_RENDER__NO_CADENCE_EXPANSION",
     "column_sizing": "D122_AUTO_SIZE_CONTENT_OR_MANUAL_PER_USER_LOCAL_PERSISTENCE",
-    "session_recovery": "SUPRA_WMS_SESSION_RECOVERY_FORBIDDEN_D125"
+    "session_recovery": "USER_REOPENS_OR_LOGS_IN_BROWSER__NO_AGENT_SESSION_CAPTURE"
   },
   "distribution_channel": {
     "environment": "beta",
@@ -1121,7 +1121,7 @@
     "inventory_channel_exe_asset_id": 589796789
   },
   "d125": {
-    "status": "OWNER_APPROVED__IMPLEMENTATION_PENDING",
+    "status": "SUPERSEDED_BY_D126_BEFORE_IMPLEMENTATION",
     "decision_date": "2026-09-26",
     "trigger_phrase": "tiến hành sửa đổi mô hình",
     "android": "BAO_HANG_ONLY__REMOVE_XAC_NHAN_DON_AND_BOTTOM_TAB_SWITCHER",
@@ -1131,6 +1131,19 @@
     "sku_master": "MANUAL_FILE_IMPORT_ONLY__NO_WMS_TON_BIN_SYNC",
     "terminology": "XAC_NHAN_SKU_IS_BAO_HANG_RESOLUTION__XAC_NHAN_DON_IS_RETIRED_SUPRA_PICKLIST_CONFIRMATION",
     "resource_policy": "REUSE_EXISTING_FIREBASE_GCP_DRIVE_GITHUB_WHERE_USEFUL__WMS_RESOURCES_HISTORICAL_FORBIDDEN_RUNTIME__NO_DESTRUCTIVE_CLEANUP_IN_AUTHORITY_ONLY_CHANGE",
+    "stable": "OWNER_GATED_UNTOUCHED"
+  },
+  "d126": {
+    "status": "OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS",
+    "decision_date": "2026-09-26",
+    "branch": "feat/d126-browser-ui-picklist",
+    "baseline_agent_release": "relay-agent-v45",
+    "target_agent_release": "relay-agent-v46",
+    "android_release": "beta-vc76__UNCHANGED_UNLESS_REQUIRED",
+    "firestore": "KEEP_PICKLIST_REQUEST_ACK_HA_GUARDS__RETIRE_SKU_SYNC_JOBS_ACTIVE_USE",
+    "supra_ui": "MANAGED_BROWSER__USER_LOGIN__DOM_ONLY__HIDE_SHOW_SUPPORTED",
+    "direct_wms_api": "FORBIDDEN_FOR_PICKLIST_AND_SKU",
+    "sku_master": "WEB_MANUAL_FILE_IMPORT_ONLY",
     "stable": "OWNER_GATED_UNTOUCHED"
   }
 }

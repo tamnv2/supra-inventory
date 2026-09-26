@@ -60,29 +60,6 @@ namespace SupraInventoryRelayAgent
 
             AgentDiagnostics.Initialize();
 
-            var d096SelfTest = args != null && Array.Exists(args, item =>
-                string.Equals(item, "--d096-self-test", StringComparison.OrdinalIgnoreCase));
-            if (d096SelfTest)
-            {
-                try
-                {
-                    var parserPass = WmsExactPicklistResolver.SelfTestJsonArrayParsing();
-                    var confirmPass = WmsPicklistConfirmClient.SelfTestResponseSemantics();
-                    AgentDiagnostics.Write(
-                        "D096 SELFTEST parser=" + (parserPass ? "PASS" : "FAIL") +
-                        " confirm_semantics=" + (confirmPass ? "PASS" : "FAIL"));
-                    Environment.ExitCode = parserPass && confirmPass ? 0 : 3;
-                }
-                catch (Exception ex)
-                {
-                    AgentDiagnostics.Write(
-                        "D096 SELFTEST exception type=" + ex.GetType().Name +
-                        " message=" + AgentDiagnostics.Sanitize(ex.Message));
-                    Environment.ExitCode = 4;
-                }
-                return;
-            }
-
             var d102SelfTest = args != null && Array.Exists(args, item =>
                 string.Equals(item, "--d102-self-test", StringComparison.OrdinalIgnoreCase));
             if (d102SelfTest)
@@ -508,16 +485,17 @@ namespace SupraInventoryRelayAgent
         private readonly bool _startupSmoke;
         private readonly bool _autoStarted;
         private readonly HashSet<string> _acked = new HashSet<string>(StringComparer.Ordinal);
-        private readonly PicklistCacheCoordinator _picklistCache = new PicklistCacheCoordinator();
         private readonly PickerRateLimiter _pickerRateLimiter = new PickerRateLimiter();
+        private SupraConfirmBrowser _supraBrowser;
+        private volatile bool _supraBrowserReady;
+        private volatile bool _supraBrowserHidden;
+        private string _supraBrowserState = "NOT_OPEN";
         private readonly FirestorePickerRateLimiter _firestoreRateLimiter = new FirestorePickerRateLimiter();
         private readonly FirestoreConfirmationGuard _confirmationGuard = new FirestoreConfirmationGuard();
         private readonly FirestoreAgentSessionGate _agentSessionGate;
         private FirestoreAgentLeaderCoordinator _leaderCoordinator;
         private readonly object _sessionLock = new object();
-        private readonly object _wmsSessionLock = new object();
         private AgentSession _session;
-        private WmsSessionSnapshot _wmsSession;
         private CancellationTokenSource _listenCts;
         private bool _allowExit;
         private bool _updateCheckRunning;
@@ -541,7 +519,6 @@ namespace SupraInventoryRelayAgent
             "Agent Auto Confirm Pick Pack", "RelayPoc");
         private static readonly string SessionFile = Path.Combine(RelayDataDir, "session.bin");
         private static readonly string AgentInstanceFile = Path.Combine(RelayDataDir, "agent-instance-id.txt");
-        private static readonly string WmsSessionFile = Path.Combine(RelayDataDir, "wms-session.bin");
         private static readonly string ExitVerifierFile = Path.Combine(RelayDataDir, "exit-verifier.bin");
         private static readonly string AgentLogUploadCheckpointFile = Path.Combine(RelayDataDir, "agent-log-upload-checkpoint.txt");
         private static readonly string AfterHoursStateFile = Path.Combine(RelayDataDir, "after-hours-state.txt");
@@ -553,6 +530,7 @@ namespace SupraInventoryRelayAgent
             _instanceActivateEvent = instanceActivateEvent;
             _agentInstanceId = LoadOrCreateAgentInstanceId();
             _businessSchedule = new AgentBusinessSchedule(AfterHoursStateFile);
+            _supraBrowser = new SupraConfirmBrowser(message => Log(message));
             _agentSessionGate = new FirestoreAgentSessionGate(message => Log(message));
             _agentLogBridge = new AgentLogUploadBridge(
                 () =>
@@ -585,7 +563,7 @@ namespace SupraInventoryRelayAgent
             _logout.Text = "Đăng xuất"; _logout.Enabled = false; _logout.Click += (s, e) =>
             {
                 if (MessageBox.Show(
-                    "Đăng xuất Agent sẽ dừng xử lý trên máy này và xóa phiên Agent/Supra đang lưu cục bộ.\r\n\r\nTiếp tục đăng xuất?",
+                    "Đăng xuất Agent sẽ dừng xử lý trên máy này và xóa phiên Agent đã lưu cục bộ. Đăng nhập Supra trong trình duyệt được quản lý riêng bởi trình duyệt.\r\n\r\nTiếp tục đăng xuất?",
                     "Xác nhận đăng xuất Agent",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Warning) != DialogResult.Yes) return;
@@ -598,7 +576,7 @@ namespace SupraInventoryRelayAgent
             _listen.Click += (s, e) => { if (_listenCts == null) StartListening(); else StopListening(); }; Controls.Add(_listen);
             _openLog.SetBounds(302, 176, 105, 32); _openLog.Text = "Mở log";
             _openLog.Click += (s, e) => AgentDiagnostics.OpenLog(); Controls.Add(_openLog);
-            Controls.Add(new Label { Left = 560, Top = 178, Width = 184, Height = 38, Text = "POC chỉ đọc WMS; chưa xác nhận đơn.", ForeColor = Color.DimGray });
+            Controls.Add(new Label { Left = 560, Top = 178, Width = 184, Height = 38, Text = "Confirm PickList qua Web; Agent không lấy phiên Supra.", ForeColor = Color.DimGray });
 
             Controls.Add(new Label { Left = 18, Top = 220, Width = 726, Height = 20, Text = "Probe transport Office — chỉ GET/read-only, không tạo dữ liệu:", ForeColor = Color.DimGray });
 
@@ -623,12 +601,12 @@ namespace SupraInventoryRelayAgent
             _probeAll.SetBounds(622, 242, 122, 32); _probeAll.Text = "TEST TẤT CẢ";
             _probeAll.Click += (s, e) => Task.Run(() => ProbeAllTransports()); Controls.Add(_probeAll);
 
-            Controls.Add(new Label { Left = 18, Top = 286, Width = 726, Height = 20, Text = "Supra WMS — tự lấy phiên từ Edge/Chrome riêng, chỉ kiểm tra kết nối đọc:", ForeColor = Color.DimGray });
-            _wmsCapture.SetBounds(18, 308, 172, 32); _wmsCapture.Text = "Mở WMS + lấy phiên";
-            _wmsCapture.Click += (s, e) => Task.Run(() => CaptureWmsSession()); Controls.Add(_wmsCapture);
-            _wmsTest.SetBounds(198, 308, 142, 32); _wmsTest.Text = "TEST SUPRA";
-            _wmsTest.Click += (s, e) => Task.Run(() => TestWmsConnection()); Controls.Add(_wmsTest);
-            _wmsStatus.SetBounds(350, 311, 394, 28); _wmsStatus.Text = "WMS: chưa kiểm tra"; Controls.Add(_wmsStatus);
+            Controls.Add(new Label { Left = 18, Top = 286, Width = 726, Height = 20, Text = "Supra — người dùng đăng nhập trực tiếp trên Web Confirm; Agent không lấy phiên:", ForeColor = Color.DimGray });
+            _wmsCapture.SetBounds(18, 308, 172, 32); _wmsCapture.Text = "Truy cập Confirm PickList";
+            _wmsCapture.Click += (sender, e) => Task.Run(() => OpenSupraConfirmBrowser()); Controls.Add(_wmsCapture);
+            _wmsTest.SetBounds(198, 308, 142, 32); _wmsTest.Text = "KIỂM TRA WEB";
+            _wmsTest.Click += (sender, e) => Task.Run(() => TestSupraBrowser()); Controls.Add(_wmsTest);
+            _wmsStatus.SetBounds(350, 311, 394, 28); _wmsStatus.Text = "Web Confirm: chưa mở"; Controls.Add(_wmsStatus);
             SetProbeButtonsEnabled(false);
 
             _log.SetBounds(18, 356, 726, 255); Controls.Add(_log);
@@ -672,6 +650,7 @@ namespace SupraInventoryRelayAgent
                 _trayMonitorTimer.Stop();
                 _logUploadTimer.Stop();
                 _afterHoursTimer.Stop();
+                try { if (_supraBrowser != null) _supraBrowser.Dispose(); } catch { }
                 _tray.Visible = false;
             };
 
@@ -955,7 +934,7 @@ namespace SupraInventoryRelayAgent
             _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Admin", HeaderText = "Tài khoản", Width = 155 });
             _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Machine", HeaderText = "Máy", Width = 190 });
             _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Role", HeaderText = "Vai trò", Width = 120 });
-            _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Supra", HeaderText = "Supra", Width = 110 });
+            _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Supra", HeaderText = "Web Confirm", Width = 110 });
             _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Version", HeaderText = "Phiên bản", Width = 95 });
             _agentFleetGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "LastSeen", HeaderText = "Cập nhật", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
             agentCard.Controls.Add(_agentFleetGrid);
@@ -1004,24 +983,24 @@ namespace SupraInventoryRelayAgent
                 ForeColor = Color.FromArgb(24, 43, 55)
             });
             _wmsStatus.SetBounds(16, 42, 300, 22);
-            _wmsStatus.Text = "Supra: chờ đăng nhập Agent";
+            _wmsStatus.Text = "Web Confirm: chưa mở";
             _supraCard.Controls.Add(_wmsStatus);
             _supraInfo.SetBounds(320, 42, 410, 22);
-            _supraInfo.Text = "HY1 · Phiên chưa sẵn sàng · Cache 0";
+            _supraInfo.Text = "HY1 · Trình duyệt chưa mở";
             _supraInfo.ForeColor = Color.FromArgb(88, 104, 115);
             _supraInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _supraCard.Controls.Add(_supraInfo);
-            _wmsCapture.SetBounds(16, 72, 138, 32);
-            _wmsCapture.Text = "Đăng nhập Supra";
+            _wmsCapture.SetBounds(16, 72, 180, 32);
+            _wmsCapture.Text = "Truy cập Confirm PickList";
             _wmsCapture.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _supraCard.Controls.Add(_wmsCapture);
-            _wmsLogout.SetBounds(162, 72, 128, 32);
-            _wmsLogout.Text = "Đăng xuất Supra";
+            _wmsLogout.SetBounds(204, 72, 138, 32);
+            _wmsLogout.Text = "Ẩn trình duyệt";
             _wmsLogout.Enabled = false;
             _wmsLogout.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-            _wmsLogout.Click += (s, e) => RequestProtectedWmsLogout();
+            _wmsLogout.Click += (sender, e) => Task.Run(() => ToggleSupraBrowserVisibility());
             _supraCard.Controls.Add(_wmsLogout);
-            _wmsTest.SetBounds(298, 72, 108, 32);
+            _wmsTest.SetBounds(350, 72, 108, 32);
             _wmsTest.Text = "Kiểm tra";
             _wmsTest.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             _supraCard.Controls.Add(_wmsTest);
@@ -1356,9 +1335,9 @@ namespace SupraInventoryRelayAgent
             if (_businessSchedule == null || _leaderCoordinator == null) return;
             var now = _businessSchedule.NowOperational();
             if (_businessSchedule.DefaultRelayAllowed(now)) return;
-            if (!HasUsableWmsSession())
+            if (!HasReadyConfirmBrowser())
             {
-                _afterHoursStatus.Text = "Cần phiên Supra WMS sẵn sàng trước khi khởi động relay.";
+                _afterHoursStatus.Text = "Cần Web Confirm sẵn sàng trước khi khởi động relay.";
                 return;
             }
 
@@ -1373,7 +1352,7 @@ namespace SupraInventoryRelayAgent
             }
             else
             {
-                _afterHoursStatus.Text = "Chưa khởi động được relay sớm · kiểm tra Firestore/WMS.";
+                _afterHoursStatus.Text = "Chưa khởi động được relay sớm · kiểm tra Firestore/Web Confirm.";
             }
         }
 
@@ -1668,6 +1647,7 @@ namespace SupraInventoryRelayAgent
                 try
                 {
                     var metrics = _systemMonitor.Sample();
+                    RefreshSupraBrowserStatus();
                     Ui(() => ApplyTrayMonitor(metrics));
                 }
                 catch
@@ -1696,7 +1676,7 @@ namespace SupraInventoryRelayAgent
                 _trayStatusItem.Text = metrics.MenuText();
 
                 var online = _leaderCoordinator == null
-                    ? (_listenCts != null ? 1 : (HasUsableWmsSession() ? 1 : 0))
+                    ? (_listenCts != null ? 1 : (HasReadyConfirmBrowser() ? 1 : 0))
                     : _leaderCoordinator.OnlineAgentCount;
                 var state = _leaderCoordinator == null
                     ? (_listenCts != null ? "FIRESTORE" : "CHƯA PHỐI HỢP")
@@ -1716,14 +1696,10 @@ namespace SupraInventoryRelayAgent
                     " · Máy này: " + state;
                 _agentSystemInfo.Text = state;
                 UpdateAgentFleetGrid(_leaderCoordinator == null ? null : _leaderCoordinator.OnlineAgents);
-                var wmsSnapshot = SnapshotWmsSession();
-                var supraUser = wmsSnapshot == null ? "" : (wmsSnapshot.USID ?? "").Trim();
                 _supraInfo.Text =
-                    "HY1" +
-                    (string.IsNullOrWhiteSpace(supraUser) ? "" : " · User " + supraUser) +
-                    " · " + (HasUsableWmsSession() ? "Phiên sẵn sàng" : "Phiên chưa sẵn sàng") +
-                    " · Cache " + _picklistCache.CacheCount +
-                    (_picklistCache.RefreshedUtc == DateTime.MinValue ? "" : " · " + _picklistCache.RefreshedUtc.ToLocalTime().ToString("HH:mm"));
+                    "HY1 · " +
+                    (HasReadyConfirmBrowser() ? "Web Confirm sẵn sàng" : BrowserStateLabel(_supraBrowserState)) +
+                    (_supraBrowserHidden ? " · Đang ẩn" : " · Đang hiển thị");
 
             }
             catch
@@ -1749,19 +1725,33 @@ namespace SupraInventoryRelayAgent
                 _probeSheets.Enabled = enabled;
                 _probeDrive.Enabled = enabled;
                 _probeAll.Enabled = enabled;
-                var hasWmsSession = HasUsableWmsSession();
-                _wmsCapture.Enabled = enabled && !hasWmsSession;
-                _wmsCapture.Text = hasWmsSession ? "Phiên Supra đang sẵn sàng" : "Đăng nhập hệ thống Supra";
-                _wmsLogout.Enabled = enabled && hasWmsSession && HasAgentSession();
-                _wmsTest.Enabled = enabled;
+                _wmsCapture.Enabled = enabled && HasAgentSession();
+                _wmsCapture.Text = "Truy cập Confirm PickList";
+                _wmsLogout.Enabled = enabled && !string.Equals(_supraBrowserState, "NOT_OPEN", StringComparison.Ordinal);
+                _wmsLogout.Text = _supraBrowserHidden ? "Hiện trình duyệt" : "Ẩn trình duyệt";
+                _wmsTest.Enabled = enabled && !string.Equals(_supraBrowserState, "NOT_OPEN", StringComparison.Ordinal);
             });
         }
 
-        private bool HasUsableWmsSession()
+        private bool HasReadyConfirmBrowser()
         {
-            lock (_wmsSessionLock)
-                return _wmsSession != null && _wmsSession.IsValidHy1();
+            return _supraBrowserReady;
         }
+
+        private static string BrowserStateLabel(string state)
+        {
+            switch (state ?? "")
+            {
+                case "READY": return "Web Confirm sẵn sàng";
+                case "LOGIN_OR_DOM_NOT_READY": return "Chờ đăng nhập / tải trang";
+                case "WRONG_PAGE": return "Sai trang Confirm";
+                case "BROWSER_ERROR": return "Lỗi trình duyệt";
+                case "DOM_UNAVAILABLE": return "DOM chưa sẵn sàng";
+                default: return "Trình duyệt chưa mở";
+            }
+        }
+
+        
 
         private static bool TryParseManualPicklistQueries(string raw, out List<string> queries)
         {
@@ -1804,7 +1794,7 @@ namespace SupraInventoryRelayAgent
             _manualPicklistConfirmAll.Visible = count >= 2;
             _manualPicklistConfirmAll.Text = count >= 2 ? "Xác nhận tất cả (" + count + ")" : "Xác nhận tất cả";
             _manualPicklistConfirmAll.Enabled =
-                count >= 2 && HasAgentSession() && HasUsableWmsSession();
+                count >= 2 && HasAgentSession() && HasReadyConfirmBrowser();
         }
 
         private void SearchManualPicklists()
@@ -1824,7 +1814,7 @@ namespace SupraInventoryRelayAgent
                 _manualPicklistConfirmAll.Visible = false;
                 _manualPicklistGrid.Enabled = false;
                 _manualPicklistGrid.Rows.Clear();
-                _manualPicklistStatus.Text = "Đang tìm PickList...";
+                _manualPicklistStatus.Text = "Đang tìm PickList trên Web Confirm...";
                 _manualPicklistStatus.ForeColor = Color.FromArgb(88, 104, 115);
             });
 
@@ -1832,18 +1822,12 @@ namespace SupraInventoryRelayAgent
             {
                 if (queries == null || queries.Count == 0)
                     throw new InvalidOperationException("Nhập tối thiểu 3 số cho mỗi PickList; tối đa 10 giá trị, ngăn cách bằng dấu phẩy.");
-
                 if (!HasAgentSession())
-                    throw new InvalidOperationException("Cần xác minh Agent bằng tài khoản ADMIN trước.");
-                var wmsSession = SnapshotWmsSession();
-                if (wmsSession == null || !wmsSession.IsValidHy1())
-                    throw new InvalidOperationException("Phiên Supra chưa sẵn sàng.");
+                    throw new InvalidOperationException("Cần xác minh Agent bằng tài khoản quản trị trước.");
+                if (!HasReadyConfirmBrowser())
+                    throw new InvalidOperationException("Web Confirm chưa sẵn sàng. Hãy Truy cập Confirm PickList và đăng nhập Supra.");
 
-                // D104: search all terms against one cache snapshot. If any term misses,
-                // refresh WMS at most once and search all terms again.
-                var result = _picklistCache.SearchContainsMany(wmsSession, queries, 50);
-                if (string.Equals(result.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
-                    ClearWmsSessionAfterExpiry();
+                var result = _supraBrowser.SearchMany(queries, true);
 
                 Ui(() =>
                 {
@@ -1863,7 +1847,7 @@ namespace SupraInventoryRelayAgent
                         _manualPicklistStatus.Text =
                             "Tìm thấy " + result.Matches.Count + " PickList duy nhất" +
                             (result.MissingFragments.Count > 0
-                                ? " · " + result.MissingFragments.Count + " từ khóa không có kết quả."
+                                ? " · " + result.MissingFragments.Count + " từ khóa không có kết quả sau khi tìm lại."
                                 : ".");
                         _manualPicklistStatus.ForeColor = Color.FromArgb(35, 122, 76);
                     }
@@ -1882,13 +1866,13 @@ namespace SupraInventoryRelayAgent
                 });
 
                 AgentDiagnostics.WriteAudit(
-                    "MANUAL_PICKLIST_SEARCH result=" + result.Result +
+                    "MANUAL_PICKLIST_SEARCH adapter=BROWSER_DOM result=" + result.Result +
                     " query_count=" + queries.Count +
                     " missing_queries=" + result.MissingFragments.Count +
                     " ambiguous_queries=" + result.AmbiguousFragments.Count +
                     " matches=" + result.Matches.Count +
-                    " cache_count=" + result.CacheCount +
-                    " values=redacted");
+                    " search_click=" + (result.SearchClicked ? "1" : "0") +
+                    " session_extract=false direct_wms_api=false");
             }
             catch (Exception ex)
             {
@@ -1898,7 +1882,7 @@ namespace SupraInventoryRelayAgent
                     _manualPicklistStatus.ForeColor = Color.FromArgb(180, 76, 60);
                     _manualPicklistConfirmAll.Visible = false;
                 });
-                Log("Manual PickList search fail: " + SafeMessage(ex));
+                Log("Manual PickList browser search fail: " + SafeMessage(ex));
             }
             finally
             {
@@ -1909,11 +1893,13 @@ namespace SupraInventoryRelayAgent
                     _manualPicklistSearch.Enabled =
                         TryParseManualPicklistQueries(_manualPicklistQuery.Text, out parsed);
                     _manualPicklistGrid.Enabled =
-                        HasAgentSession() && HasUsableWmsSession();
+                        HasAgentSession() && HasReadyConfirmBrowser();
                     UpdateManualConfirmAllVisibility();
                 });
             }
         }
+
+        
 
         private static string ManualOutcomeText(string status)
         {
@@ -1923,7 +1909,11 @@ namespace SupraInventoryRelayAgent
                 case "ALREADY_CONFIRMED": return "Đã xác nhận trước đó";
                 case "CONFIRM_REJECTED": return "Supra từ chối xác nhận";
                 case "CONFIRM_CONFLICT": return "Xung đột trạng thái PickList";
-                case "SESSION_EXPIRED": return "Phiên SFT / SFT 3 đã hết hạn";
+                case "SESSION_EXPIRED":
+                case "WMS_SESSION_REQUIRED":
+                case "WEB_CONFIRM_REQUIRED": return "Web Confirm chưa sẵn sàng";
+                case "EXACT_CODE_NOT_RESOLVED": return "PickList đã thay đổi · cần tìm lại";
+                case "AMBIGUOUS_PICKLIST": return "Có nhiều PickList trùng số đuôi";
                 case "FORBIDDEN": return "Supra từ chối quyền xác nhận";
                 case "PROXY_BLOCK":
                 case "PROXY_AUTH_REQUIRED":
@@ -1959,8 +1949,8 @@ namespace SupraInventoryRelayAgent
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var raw in pickListCodes ?? new string[0])
             {
-                var code = (raw ?? "").Trim();
-                if (code.Length == 0 || !seen.Add(code)) continue;
+                var code = (raw ?? "").Trim().ToUpperInvariant();
+                if (!Regex.IsMatch(code, "^PL[0-9]+$") || !seen.Add(code)) continue;
                 codes.Add(code);
             }
 
@@ -1970,28 +1960,22 @@ namespace SupraInventoryRelayAgent
                 _manualPicklistSearch.Enabled = false;
                 _manualPicklistConfirmAll.Enabled = false;
                 _manualPicklistStatus.Text = codes.Count <= 1
-                    ? "Đang xác nhận PickList..."
+                    ? "Đang xác nhận PickList trên Web Confirm..."
                     : "Đang xác nhận " + codes.Count + " PickList...";
                 _manualPicklistStatus.ForeColor = Color.FromArgb(88, 104, 115);
             });
 
             try
             {
-                if (codes.Count == 0)
-                    throw new InvalidOperationException("Chưa chọn PickList.");
-                if (codes.Count > 50)
-                    throw new InvalidOperationException("Tối đa 50 PickList hiển thị cho một lần xác nhận tất cả.");
-                if (!HasAgentSession())
-                    throw new InvalidOperationException("Phiên xác minh Agent không còn hợp lệ.");
+                if (codes.Count == 0) throw new InvalidOperationException("Chưa chọn PickList.");
+                if (codes.Count > 50) throw new InvalidOperationException("Tối đa 50 PickList hiển thị cho một lần xác nhận tất cả.");
+                if (!HasAgentSession()) throw new InvalidOperationException("Phiên xác minh Agent không còn hợp lệ.");
+                if (!HasReadyConfirmBrowser()) throw new InvalidOperationException("Web Confirm chưa sẵn sàng.");
 
                 EnsureFreshToken();
                 var appSession = SnapshotSession();
                 if (!_agentSessionGate.IsCurrent(appSession, _agentInstanceId))
                     throw new InvalidOperationException("Phiên Agent này đã bị thay thế bởi Agent khác.");
-
-                var wmsSession = SnapshotWmsSession();
-                if (wmsSession == null || !wmsSession.IsValidHy1())
-                    throw new InvalidOperationException("Phiên Supra chưa sẵn sàng.");
 
                 var acquired = new Dictionary<string, FirestoreConfirmationGuardDecision>(StringComparer.OrdinalIgnoreCase);
                 var statusByCode = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -2002,84 +1986,47 @@ namespace SupraInventoryRelayAgent
                 {
                     var requestId = "manual:" + Guid.NewGuid().ToString("N");
                     var guard = _confirmationGuard.TryBegin(
-                        appSession,
-                        code,
-                        requestId,
-                        _agentInstanceId,
-                        "manual:" + appSession.UserId);
+                        appSession, code, requestId, _agentInstanceId, "manual:" + appSession.UserId);
 
                     if (guard.AlreadyConfirmed)
                     {
                         alreadyConfirmed++;
                         statusByCode[code] = "ALREADY_CONFIRMED";
-                        continue;
                     }
-                    if (!guard.Acquired || guard.InProgressOrUncertain)
+                    else if (!guard.Acquired || guard.InProgressOrUncertain)
                     {
                         uncertain++;
                         statusByCode[code] = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
-                        continue;
                     }
-                    acquired[code] = guard;
+                    else acquired[code] = guard;
                 }
 
                 var confirmedCount = 0;
                 var failedCount = 0;
-                var processed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                var acquiredCodes = new List<string>(acquired.Keys);
-                var stopAfterSessionExpiry = false;
-
-                for (var offset = 0; offset < acquiredCodes.Count; offset += 10)
+                foreach (var pair in acquired)
                 {
-                    var count = Math.Min(10, acquiredCodes.Count - offset);
-                    var chunk = acquiredCodes.GetRange(offset, count);
-                    var results = WmsPicklistConfirmClient.ConfirmMany(wmsSession, chunk);
-
-                    foreach (var code in chunk)
+                    SupraBrowserConfirmResult result;
+                    try { result = _supraBrowser.ConfirmExact(pair.Key); }
+                    catch (Exception ex)
                     {
-                        processed.Add(code);
-                        WmsPicklistConfirmResult result;
-                        if (!results.TryGetValue(code, out result) || result == null)
-                        {
-                            uncertain++;
-                            statusByCode[code] = "CONFIRM_ERROR";
-                            continue;
-                        }
-
-                        var guard = acquired[code];
-                        statusByCode[code] = result.Result ?? "CONFIRM_ERROR";
-                        if (string.Equals(result.Result, "CONFIRMED", StringComparison.Ordinal))
-                        {
-                            _confirmationGuard.MarkLocalConfirmed(guard.GuardId);
-                            confirmedCount++;
-                        }
-                        else if (IsSafeConfirmationFailure(result, chunk.Count))
-                        {
-                            _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
-                            failedCount++;
-                        }
-                        else
-                        {
-                            uncertain++;
-                        }
-
-                        if (string.Equals(result.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
-                            stopAfterSessionExpiry = true;
+                        uncertain++;
+                        statusByCode[pair.Key] = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
+                        Log("Manual browser confirm uncertain code=redacted type=" + ex.GetType().Name);
+                        continue;
                     }
 
-                    if (stopAfterSessionExpiry) break;
-                }
-
-                if (stopAfterSessionExpiry)
-                {
-                    ClearWmsSessionAfterExpiry();
-                    foreach (var pair in acquired)
+                    statusByCode[pair.Key] = result.Result ?? "CONFIRM_ERROR";
+                    if (string.Equals(result.Result, "CONFIRMED", StringComparison.Ordinal))
                     {
-                        if (processed.Contains(pair.Key)) continue;
+                        _confirmationGuard.MarkLocalConfirmed(pair.Value.GuardId);
+                        confirmedCount++;
+                    }
+                    else if (IsSafeBrowserFailure(result))
+                    {
                         _confirmationGuard.ReleaseSafeFailure(appSession, pair.Value.GuardId);
                         failedCount++;
-                        statusByCode[pair.Key] = "SESSION_EXPIRED";
                     }
+                    else uncertain++;
                 }
 
                 Ui(() =>
@@ -2114,13 +2061,12 @@ namespace SupraInventoryRelayAgent
                 });
 
                 AgentDiagnostics.WriteAudit(
-                    "MANUAL_PICKLIST_CONFIRM_BATCH requested=" + codes.Count +
-                    " sent=" + acquired.Count +
+                    "MANUAL_PICKLIST_CONFIRM adapter=BROWSER_DOM requested=" + codes.Count +
                     " confirmed=" + confirmedCount +
                     " already=" + alreadyConfirmed +
                     " uncertain=" + uncertain +
                     " failed=" + failedCount +
-                    " picklists=redacted");
+                    " session_extract=false direct_wms_api=false");
             }
             catch (Exception ex)
             {
@@ -2129,7 +2075,7 @@ namespace SupraInventoryRelayAgent
                     _manualPicklistStatus.Text = SafeMessage(ex);
                     _manualPicklistStatus.ForeColor = Color.FromArgb(180, 76, 60);
                 });
-                Log("Manual PickList confirm batch fail: " + SafeMessage(ex));
+                Log("Manual PickList browser confirm fail: " + SafeMessage(ex));
             }
             finally
             {
@@ -2140,11 +2086,13 @@ namespace SupraInventoryRelayAgent
                     _manualPicklistSearch.Enabled =
                         TryParseManualPicklistQueries(_manualPicklistQuery.Text, out parsed);
                     _manualPicklistGrid.Enabled =
-                        HasAgentSession() && HasUsableWmsSession();
+                        HasAgentSession() && HasReadyConfirmBrowser();
                     UpdateManualConfirmAllVisibility();
                 });
             }
         }
+
+        
 
         private void ActivateRelayRuntime()
         {
@@ -2166,8 +2114,8 @@ namespace SupraInventoryRelayAgent
             _leaderCoordinator = new FirestoreAgentLeaderCoordinator(
                 SnapshotSession,
                 EnsureFreshToken,
-                HasUsableWmsSession,
-                ProbeWmsForTakeover,
+                HasReadyConfirmBrowser,
+                ProbeSupraBrowserForTakeover,
                 IsBusinessAllowed,
                 _agentInstanceId,
                 Log,
@@ -2191,108 +2139,92 @@ namespace SupraInventoryRelayAgent
             try { if (coordinator != null) coordinator.Stop(); } catch { }
         }
 
-        private void ProcessPendingJobsSnapshot()
+        private void RefreshSupraBrowserStatus()
         {
-            if (_leaderCoordinator == null || !_leaderCoordinator.IsLeader) return;
+            if (_supraBrowser == null) return;
+            var wasReady = _supraBrowserReady;
             try
             {
-                EnsureFreshToken();
-                var session = SnapshotSession();
-                var raw = RequestJson("GET", JobsUrl(session), null, null);
-                if (string.IsNullOrWhiteSpace(raw) || string.Equals(raw.Trim(), "null", StringComparison.OrdinalIgnoreCase))
-                    return;
-                var jobs = _json.DeserializeObject(raw) as Dictionary<string, object>;
-                if (jobs == null) return;
-                foreach (var pair in jobs)
+                var state = _supraBrowser.RefreshState();
+                _supraBrowserReady = state.Ready;
+                _supraBrowserHidden = state.Hidden;
+                _supraBrowserState = state.State ?? "NOT_OPEN";
+                Ui(() =>
                 {
-                    if (_leaderCoordinator == null || !_leaderCoordinator.IsLeader) return;
-                    var job = pair.Value as Dictionary<string, object>;
-                    if (job != null) HandleJob(pair.Key, job);
-                }
+                    _wmsStatus.Text = state.Ready
+                        ? "Web Confirm sẵn sàng"
+                        : "Web Confirm: " + BrowserStateLabel(state.State);
+                    _supraInfo.Text =
+                        "HY1 · " + (string.IsNullOrWhiteSpace(state.Browser) ? "Trình duyệt" : state.Browser) +
+                        (state.Hidden ? " · Đang ẩn" : " · Đang hiển thị");
+                    _wmsLogout.Text = state.Hidden ? "Hiện trình duyệt" : "Ẩn trình duyệt";
+                    _wmsLogout.Enabled = !string.Equals(state.State, "NOT_OPEN", StringComparison.Ordinal) && HasAgentSession();
+                    _wmsTest.Enabled = !string.Equals(state.State, "NOT_OPEN", StringComparison.Ordinal) && HasAgentSession();
+                    _manualPicklistGrid.Enabled = HasAgentSession() && state.Ready;
+                    UpdateManualConfirmAllVisibility();
+                });
             }
             catch (Exception ex)
             {
-                Log("AGENT HA pending-scan fail: " + SafeMessage(ex));
+                _supraBrowserReady = false;
+                _supraBrowserState = "BROWSER_ERROR";
+                Ui(() => _wmsStatus.Text = "Web Confirm: lỗi trình duyệt");
+                AgentDiagnostics.Write("SUPRA_BROWSER readiness=FAIL type=" + ex.GetType().Name);
+            }
+
+            if (wasReady != _supraBrowserReady)
+            {
+                var coordinator = _leaderCoordinator;
+                if (coordinator != null) coordinator.RequestRoleRefreshBeforeBusiness();
             }
         }
 
-        private void TryRestoreWmsSessionFileFirst()
+        private void OpenSupraConfirmBrowser()
         {
-            if (!HasAgentSession())
-            {
-                Ui(() => _wmsStatus.Text = "Supra WMS: chờ xác minh Agent");
-                return;
-            }
-            if (HasUsableWmsSession()) return;
-            Ui(() => _wmsStatus.Text = "Supra WMS: đang đọc phiên đã mã hóa...");
+            Ui(() => _wmsStatus.Text = "Web Confirm: đang mở...");
             try
             {
-                var stored = WmsSessionStore.Load(WmsSessionFile);
-                if (stored == null)
-                    throw new InvalidOperationException("Chưa có file phiên WMS trên Windows user này.");
-
-                var probe = WmsReadOnlyClient.ProbeApi(stored);
-                if (!string.Equals(probe.Result, "PASS", StringComparison.Ordinal))
-                    throw new InvalidOperationException("Phiên WMS đã lưu không còn hợp lệ: " + probe.Result + ".");
-
-                lock (_wmsSessionLock) _wmsSession = stored;
-                Ui(() => _wmsStatus.Text = "Supra WMS: phiên cũ hợp lệ · đang nạp Picklist");
-                SetProbeButtonsEnabled(true);
-                Log("WMS SESSION RESTORE PASS source=dpapi_file values=redacted.");
-                if (PreloadPicklistCache(stored, "STARTUP_FILE"))
-                    return;
-
-                throw new InvalidOperationException("Không nạp được danh sách Picklist từ phiên đã lưu.");
+                var state = _supraBrowser.OpenOrShow();
+                _supraBrowserReady = state.Ready;
+                _supraBrowserHidden = state.Hidden;
+                _supraBrowserState = state.State ?? "NOT_OPEN";
+                RefreshSupraBrowserStatus();
+                Log("SUPRA_BROWSER open state=" + _supraBrowserState + " ready=" + (_supraBrowserReady ? "1" : "0") +
+                    " session_extract=false direct_wms_api=false");
             }
             catch (Exception ex)
             {
-                WmsSessionStore.Clear(WmsSessionFile);
-                lock (_wmsSessionLock) _wmsSession = null;
-                _picklistCache.Clear();
-                Ui(() => _wmsStatus.Text = "Supra WMS: phiên cũ không dùng được · đang mở đăng nhập");
-                SetProbeButtonsEnabled(true);
-                Log("WMS SESSION RESTORE unavailable; opening_local_browser=true detail=" + SafeMessage(ex));
+                _supraBrowserReady = false;
+                _supraBrowserState = "BROWSER_ERROR";
+                Ui(() => _wmsStatus.Text = "Web Confirm: không mở được · xem log");
+                Log("SUPRA_BROWSER open fail: " + SafeMessage(ex));
             }
-
-            CaptureWmsSession();
+            finally { SetProbeButtonsEnabled(true); }
         }
 
-        private bool PreloadPicklistCache(WmsSessionSnapshot session, string reason)
+        private void ToggleSupraBrowserVisibility()
         {
             try
             {
-                var preload = _picklistCache.Preload(session);
-                Log(
-                    "PICKLIST CACHE preload result=" + preload.Result +
-                    " mode=" + preload.CacheMode +
-                    " count=" + preload.CacheCount +
-                    " ms=" + preload.ElapsedMs +
-                    " reason=" + reason +
-                    " values=redacted");
-                if (string.Equals(preload.Result, "PASS", StringComparison.Ordinal))
-                {
-                    WmsSessionStore.Save(WmsSessionFile, session);
-                    Ui(() => _wmsStatus.Text = "Supra WMS: OK · Picklist cache " + preload.CacheCount);
-                    SetProbeButtonsEnabled(true);
-                    Log("WMS SESSION FILE renew=PASS protection=DPAPI_CURRENT_USER values=redacted.");
-                    return true;
-                }
-
-                if (string.Equals(preload.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
-                {
-                    lock (_wmsSessionLock) _wmsSession = null;
-                    _picklistCache.Clear();
-                    WmsSessionStore.Clear(WmsSessionFile);
-                    Ui(() => _wmsStatus.Text = "Supra WMS: phiên hết hạn · cần đăng nhập lại");
-                    SetProbeButtonsEnabled(true);
-                }
+                if (_supraBrowserHidden) _supraBrowser.Show();
+                else _supraBrowser.Hide();
+                RefreshSupraBrowserStatus();
             }
             catch (Exception ex)
             {
-                Log("PICKLIST CACHE preload fail reason=" + reason + " detail=" + SafeMessage(ex));
+                Log("SUPRA_BROWSER visibility fail: " + SafeMessage(ex));
             }
-            return false;
         }
+
+        private void TestSupraBrowser()
+        {
+            RefreshSupraBrowserStatus();
+            Ui(() => _wmsStatus.Text = _supraBrowserReady
+                ? "Web Confirm sẵn sàng"
+                : "Web Confirm: " + BrowserStateLabel(_supraBrowserState));
+        }
+
+        
 
         private void StartupSequence()
         {
@@ -2385,7 +2317,7 @@ namespace SupraInventoryRelayAgent
                 {
                     _agentLogBridge.TryFlushPendingCrash();
                     _agentLogBridge.TryQueueScheduledSnapshot();
-                    TryRestoreWmsSessionFileFirst();
+                    RefreshSupraBrowserStatus();
                 });
             }
             catch (Exception ex)
@@ -2575,7 +2507,7 @@ namespace SupraInventoryRelayAgent
                 {
                     _agentLogBridge.TryFlushPendingCrash();
                     _agentLogBridge.TryQueueScheduledSnapshot();
-                    TryRestoreWmsSessionFileFirst();
+                    RefreshSupraBrowserStatus();
                 });
             }
             catch (Exception ex)
@@ -2636,7 +2568,7 @@ namespace SupraInventoryRelayAgent
                     _supraCard.Enabled = authenticated;
                     if (!authenticated)
                     {
-                        _wmsStatus.Text = "Supra WMS: chờ xác minh Agent";
+                        _wmsStatus.Text = "Web Confirm: chờ xác minh Agent";
                         _wmsCapture.Enabled = false;
                         _wmsTest.Enabled = false;
                     }
@@ -2660,9 +2592,6 @@ namespace SupraInventoryRelayAgent
             try { StopListening(); } catch { }
             try { if (releasing != null) _agentSessionGate.Release(releasing, _agentInstanceId); } catch { }
             lock (_sessionLock) _session = null;
-            lock (_wmsSessionLock) _wmsSession = null;
-            _picklistCache.Clear();
-            WmsSessionStore.Clear(WmsSessionFile);
             ClearStoredSession();
             AgentRuntimeGuard.MarkPlannedExit();
             try { if (File.Exists(ExitVerifierFile)) File.Delete(ExitVerifierFile); } catch { }
@@ -2673,8 +2602,8 @@ namespace SupraInventoryRelayAgent
                 _relay.Text = "Relay: chưa xác minh Agent";
                 _listen.Enabled = false;
                 _testOffice.Enabled = false;
-                _wmsStatus.Text = "Supra WMS: chờ đăng nhập Agent";
-                _supraInfo.Text = "HY1 · Chưa có user Supra · Phiên chưa sẵn sàng · Cache 0";
+                _wmsStatus.Text = "Web Confirm: chờ đăng nhập Agent";
+                _supraInfo.Text = "HY1 · Web Confirm tạm dừng đến khi đăng nhập Agent";
             });
             SetAgentAuthUi(false);
             SetProbeButtonsEnabled(false);
@@ -3054,159 +2983,6 @@ namespace SupraInventoryRelayAgent
             return Regex.Replace(value, "[^A-Za-z0-9._+;=/-]", "_").Substring(0, Math.Min(96, value.Length));
         }
 
-        private WmsSessionSnapshot SnapshotWmsSession()
-        {
-            lock (_wmsSessionLock)
-                return _wmsSession;
-        }
-
-        private void RequestProtectedWmsLogout()
-        {
-            AgentSession session;
-            try { session = SnapshotSession(); }
-            catch
-            {
-                MessageBox.Show("Cần đăng nhập Agent trước khi đăng xuất hệ thống Supra.", "Đăng xuất Supra", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            using (var dialog = new AgentPasswordVerificationDialog(
-                session.AppUserId,
-                "Đăng xuất hệ thống Supra",
-                "Nhập mật khẩu xác minh Agent hiện tại để kết thúc phiên Supra trên máy này.",
-                "Đăng xuất Supra"))
-            {
-                if (dialog.ShowDialog(this) != DialogResult.OK) return;
-                var password = dialog.PasswordValue;
-                try
-                {
-                    if (!ExitAuthorization.Verify(ExitVerifierFile, session.AppUserId, password))
-                    {
-                        MessageBox.Show("Mật khẩu xác minh Agent không đúng.", "Không thể đăng xuất Supra", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
-                    }
-                }
-                finally
-                {
-                    password = null;
-                }
-            }
-
-            lock (_wmsSessionLock) _wmsSession = null;
-            _picklistCache.Clear();
-            WmsSessionStore.Clear(WmsSessionFile);
-            var profileCleared = WmsBrowserCapture.ClearDedicatedProfiles(message => Log("WMS LOGOUT " + message));
-            Ui(() =>
-            {
-                _wmsStatus.Text = "Supra WMS: đã đăng xuất · sẵn sàng đăng nhập tài khoản khác";
-                _supraInfo.Text = "HY1 · Chưa có user Supra · Phiên chưa sẵn sàng · Cache 0";
-            });
-            SetProbeButtonsEnabled(true);
-            Log("WMS LOGOUT authorized_by=" + session.AppUserId + " session=cleared profile_cleared=" + (profileCleared ? "true" : "partial"));
-        }
-
-        private void CaptureWmsSession()
-        {
-            if (HasUsableWmsSession())
-            {
-                Ui(() => _wmsStatus.Text = "WMS: phiên HY1 đang OK · không mở lại login");
-                Log("WMS SESSION REUSE valid_in_ram=true browser_login_skipped=true values=redacted.");
-                SetProbeButtonsEnabled(true);
-                return;
-            }
-
-            SetProbeButtonsEnabled(false);
-            Ui(() => _wmsStatus.Text = "WMS: đang mở trình duyệt / chờ phiên...");
-            try
-            {
-                LogNetworkSnapshot("wms-session-capture");
-                var captured = WmsBrowserCapture.CaptureSession(300, message => Log("WMS " + message));
-                var probe = WmsReadOnlyClient.ProbeApi(captured);
-                if (!string.Equals(probe.Result, "PASS", StringComparison.Ordinal))
-                    throw new InvalidOperationException("Phiên WMS vừa lấy chưa sử dụng được: " + probe.Result + ".");
-                lock (_wmsSessionLock) _wmsSession = captured;
-                Ui(() => _wmsStatus.Text = "WMS: phiên HY1 đã lấy · đang nạp Picklist");
-                Log("WMS SESSION PASS scope=HY1 storage=BROWSER_PROFILE_PLUS_RAM_CAPTURE values=redacted.");
-                PreloadPicklistCache(captured, "MANUAL_LOGIN");
-            }
-            catch (Exception ex)
-            {
-                lock (_wmsSessionLock) _wmsSession = null;
-                _picklistCache.Clear();
-                Ui(() => _wmsStatus.Text = "WMS: chưa lấy được phiên");
-                Log("WMS SESSION FAIL " + SafeMessage(ex));
-            }
-            finally
-            {
-                SetProbeButtonsEnabled(true);
-            }
-        }
-
-        private void TestWmsConnection()
-        {
-            SetProbeButtonsEnabled(false);
-            Ui(() => _wmsStatus.Text = "WMS: đang kiểm tra kết nối...");
-            try
-            {
-                LogNetworkSnapshot("wms-readonly-test");
-                var ui = WmsReadOnlyClient.ProbeUi();
-                Log("WMS PROBE " + ui.Summary());
-
-                if (string.Equals(ui.Result, "TRANSPORT_FAIL", StringComparison.Ordinal) ||
-                    string.Equals(ui.Result, "PROXY_AUTH_REQUIRED", StringComparison.Ordinal) ||
-                    string.Equals(ui.Result, "PROXY_BLOCK", StringComparison.Ordinal))
-                {
-                    Ui(() => _wmsStatus.Text = "WMS UI: " + ui.Result + " · " + ui.Route);
-                    return;
-                }
-
-                var session = SnapshotWmsSession();
-                if (session == null || !session.IsValidHy1())
-                {
-                    Log("WMS chưa có phiên HY1 trong RAM; tự mở trình duyệt để lấy phiên.");
-                    session = WmsBrowserCapture.CaptureSession(300, message => Log("WMS " + message));
-                    lock (_wmsSessionLock) _wmsSession = session;
-                }
-
-                var api = WmsReadOnlyClient.ProbeApi(session);
-                Log("WMS PROBE " + api.Summary());
-
-                if (string.Equals(api.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
-                {
-                    lock (_wmsSessionLock) _wmsSession = null;
-                    _picklistCache.Clear();
-                    Log("WMS phiên cũ hết hạn; tự mở trình duyệt để lấy phiên mới một lần.");
-                    var refreshed = WmsBrowserCapture.CaptureSession(300, message => Log("WMS " + message));
-                    lock (_wmsSessionLock) _wmsSession = refreshed;
-                    session = refreshed;
-                    api = WmsReadOnlyClient.ProbeApi(refreshed);
-                    Log("WMS PROBE RETRY " + api.Summary());
-                }
-
-                if (string.Equals(api.Result, "PASS", StringComparison.Ordinal))
-                {
-                    Ui(() => _wmsStatus.Text = "WMS: PASS · API HY1 · " + api.Route + " · " + api.ElapsedMs + "ms");
-                    Log("WMS READ_ONLY PASS ui=" + ui.Result + " api=PASS route=" + api.Route + " no_mutation=true.");
-                    if (session != null && session.IsValidHy1())
-                        PreloadPicklistCache(session, "MANUAL_TEST");
-                }
-                else
-                {
-                    Ui(() => _wmsStatus.Text = "WMS API: " + api.Result + " · HTTP " + api.StatusCode);
-                    Log("WMS READ_ONLY FAIL api=" + api.Result + " http=" + api.StatusCode + " route=" + api.Route + ".");
-                }
-            }
-            catch (Exception ex)
-            {
-                Ui(() => _wmsStatus.Text = "WMS: lỗi · xem log");
-                Log("WMS TEST FAIL " + SafeMessage(ex));
-            }
-            finally
-            {
-                SetProbeButtonsEnabled(true);
-            }
-        }
-
         private void TestOffice()
         {
             Ui(() =>
@@ -3271,8 +3047,6 @@ namespace SupraInventoryRelayAgent
                 throw new InvalidOperationException("Confirmation batch exceeds bounded job limit.");
 
             var appSession = SnapshotSession();
-            var wmsSession = SnapshotWmsSession();
-
             foreach (var work in works)
             {
                 if (work == null || string.IsNullOrWhiteSpace(work.RequestId)) continue;
@@ -3289,7 +3063,7 @@ namespace SupraInventoryRelayAgent
                 }
             }
 
-            if (wmsSession == null || !wmsSession.IsValidHy1())
+            if (!HasReadyConfirmBrowser())
             {
                 foreach (var work in works)
                 {
@@ -3297,201 +3071,113 @@ namespace SupraInventoryRelayAgent
                     outcomes[work.RequestId] = new FirestoreConfirmationOutcome
                     {
                         Result = "WMS_SESSION_REQUIRED",
-                        CacheMode = "NO_SESSION",
-                        Route = "NONE"
+                        CacheMode = "WEB_CONFIRM_NOT_READY",
+                        Route = "BROWSER_DOM"
                     };
                 }
                 return outcomes;
             }
 
-            var lookupWorks = new List<FirestoreConfirmationWorkItem>();
-            var lookupSuffixes = new List<string>();
+            var eligible = new List<FirestoreConfirmationWorkItem>();
+            var suffixes = new List<string>();
             foreach (var work in works)
             {
                 if (work == null || string.IsNullOrWhiteSpace(work.RequestId) || outcomes.ContainsKey(work.RequestId)) continue;
-                lookupWorks.Add(work);
-                lookupSuffixes.Add(work.Suffix);
+                eligible.Add(work);
+                suffixes.Add(work.Suffix);
             }
 
-            Dictionary<string, CachedPicklistResult> lookupBySuffix;
+            SupraBrowserSearchResult search;
             try
             {
-                lookupBySuffix = lookupWorks.Count == 0
-                    ? new Dictionary<string, CachedPicklistResult>(StringComparer.Ordinal)
-                    : _picklistCache.LookupMany(wmsSession, lookupSuffixes);
+                search = eligible.Count == 0
+                    ? new SupraBrowserSearchResult { Result = "NOT_FOUND" }
+                    : _supraBrowser.SearchMany(suffixes, true);
             }
             catch (Exception ex)
             {
-                foreach (var work in lookupWorks)
+                foreach (var work in eligible)
                     outcomes[work.RequestId] = new FirestoreConfirmationOutcome
                     {
                         Result = "LOOKUP_ERROR",
-                        CacheMode = "BATCH_LOOKUP_ERROR",
-                        Route = "NONE"
+                        CacheMode = "BROWSER_DOM_ERROR",
+                        Route = "BROWSER_DOM"
                     };
-                Log("FIRESTORE batch lookup fail type=" + ex.GetType().Name);
+                Log("FIRESTORE browser lookup fail type=" + ex.GetType().Name);
                 return outcomes;
             }
 
-            var exactWorks = new List<FirestoreConfirmationWorkItem>();
-            var exactSuffixes = new List<string>();
-            foreach (var work in lookupWorks)
+            var guardsByRequest = new Dictionary<string, FirestoreConfirmationGuardDecision>(StringComparer.Ordinal);
+            var codeByRequest = new Dictionary<string, string>(StringComparer.Ordinal);
+
+            foreach (var work in eligible)
             {
-                CachedPicklistResult lookup;
-                if (!lookupBySuffix.TryGetValue(work.Suffix ?? "", out lookup) || lookup == null)
-                {
-                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                    {
-                        Result = "LOOKUP_ERROR",
-                        CacheMode = "BATCH_LOOKUP_MISSING",
-                        Route = "NONE"
-                    };
-                    continue;
-                }
+                List<string> candidates;
+                if (!search.Candidates.TryGetValue(work.Suffix ?? "", out candidates))
+                    candidates = new List<string>();
 
-                if (string.Equals(lookup.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
-                    ClearWmsSessionAfterExpiry();
-
-                if (string.Equals(lookup.Result, "NOT_FOUND", StringComparison.Ordinal))
+                if (candidates.Count == 0)
                 {
                     var rate = _firestoreRateLimiter.RecordNotFound(
                         appSession, work.PickerUid, work.PickerUserId, work.RequestId);
                     outcomes[work.RequestId] = new FirestoreConfirmationOutcome
                     {
                         Result = rate.IsLocked ? "PICKER_LOCKED" : "NOT_FOUND",
-                        CacheMode = lookup.CacheMode,
-                        Route = lookup.Route,
-                        Http = lookup.StatusCode,
-                        OperationMs = Math.Max(0L, lookup.ElapsedMs),
+                        CacheMode = "BROWSER_DOM" + (search.SearchClicked ? "+SEARCH_CLICK" : ""),
+                        Route = "BROWSER_DOM",
+                        OperationMs = Math.Max(0L, search.ElapsedMs),
                         Matches = 0,
                         Rate = rate
                     };
                     continue;
                 }
 
-                if (!string.Equals(lookup.Result, "FOUND", StringComparison.Ordinal))
+                if (candidates.Count != 1)
                 {
-                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    var ambiguous = new FirestoreConfirmationOutcome
                     {
-                        Result = lookup.Result ?? "LOOKUP_ERROR",
-                        CacheMode = lookup.CacheMode,
-                        Route = lookup.Route,
-                        Http = lookup.StatusCode,
-                        OperationMs = Math.Max(0L, lookup.ElapsedMs),
-                        Matches = Math.Max(0, lookup.MatchCount)
+                        Result = "AMBIGUOUS_PICKLIST",
+                        CacheMode = "BROWSER_DOM",
+                        Route = "BROWSER_DOM",
+                        OperationMs = Math.Max(0L, search.ElapsedMs),
+                        Matches = candidates.Count,
+                        Rate = new PickerRateDecision()
                     };
+                    ambiguous.Candidates.AddRange(candidates);
+                    outcomes[work.RequestId] = ambiguous;
                     continue;
                 }
 
                 _firestoreRateLimiter.ClearFound(appSession, work.PickerUid);
 
-                if (work.CreatedAtMs > 0 &&
-                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - work.CreatedAtMs >= 20000)
+                var ageNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                if (work.CreatedAtMs <= 0 || ageNow - work.CreatedAtMs >= 20000L)
                 {
                     outcomes[work.RequestId] = new FirestoreConfirmationOutcome
                     {
                         Result = "REQUEST_EXPIRED",
-                        CacheMode = lookup.CacheMode + "+EXPIRED",
-                        Route = lookup.Route,
-                        Http = lookup.StatusCode,
-                        OperationMs = Math.Max(0L, lookup.ElapsedMs),
-                        Matches = Math.Max(0, lookup.MatchCount),
-                        Rate = new PickerRateDecision()
-                    };
-                    continue;
-                }
-
-                exactWorks.Add(work);
-                exactSuffixes.Add(work.Suffix);
-            }
-
-            Dictionary<string, WmsExactPicklistResult> exactBySuffix;
-            try
-            {
-                exactBySuffix = exactWorks.Count == 0
-                    ? new Dictionary<string, WmsExactPicklistResult>(StringComparer.Ordinal)
-                    : WmsExactPicklistResolver.ResolveMany(wmsSession, exactSuffixes);
-            }
-            catch (Exception ex)
-            {
-                foreach (var work in exactWorks)
-                {
-                    CachedPicklistResult lookup;
-                    lookupBySuffix.TryGetValue(work.Suffix ?? "", out lookup);
-                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                    {
-                        Result = "EXACT_CODE_NOT_RESOLVED",
-                        CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_BATCH_ERROR",
-                        Route = "NONE",
-                        OperationMs = lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)
-                    };
-                }
-                Log("FIRESTORE exact batch fail type=" + ex.GetType().Name);
-                return outcomes;
-            }
-
-            var guardsByRequest = new Dictionary<string, FirestoreConfirmationGuardDecision>(StringComparer.Ordinal);
-            var codeByRequest = new Dictionary<string, string>(StringComparer.Ordinal);
-            var confirmCodes = new List<string>();
-
-            foreach (var work in exactWorks)
-            {
-                CachedPicklistResult lookup;
-                lookupBySuffix.TryGetValue(work.Suffix ?? "", out lookup);
-                WmsExactPicklistResult exact;
-                if (!exactBySuffix.TryGetValue(work.Suffix ?? "", out exact) || exact == null ||
-                    !string.Equals(exact.Result, "FOUND", StringComparison.Ordinal) ||
-                    exact.MatchCount != 1 || string.IsNullOrWhiteSpace(exact.PickListCode))
-                {
-                    var unresolved = new FirestoreConfirmationOutcome
-                    {
-                        Result = exact == null ? "EXACT_CODE_NOT_RESOLVED" : (exact.Result ?? "EXACT_CODE_NOT_RESOLVED"),
-                        CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH",
-                        Route = exact == null ? "NONE" : exact.Route,
-                        Http = exact == null ? 0 : exact.StatusCode,
-                        OperationMs = (lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)) +
-                                      (exact == null ? 0L : Math.Max(0L, exact.ElapsedMs)),
-                        Matches = exact == null ? 0 : Math.Max(0, exact.MatchCount),
-                        Rate = new PickerRateDecision()
-                    };
-                    if (exact != null && exact.Candidates != null)
-                        unresolved.Candidates.AddRange(exact.Candidates);
-                    outcomes[work.RequestId] = unresolved;
-                    continue;
-                }
-
-                if (work.CreatedAtMs > 0 &&
-                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - work.CreatedAtMs >= 25000)
-                {
-                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                    {
-                        Result = "REQUEST_EXPIRED",
-                        CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+EXPIRED",
-                        Route = exact.Route,
-                        Http = exact.StatusCode,
-                        OperationMs = (lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)) + Math.Max(0L, exact.ElapsedMs),
+                        CacheMode = "BROWSER_DOM+AGE_FENCE",
+                        Route = "BROWSER_DOM",
+                        OperationMs = Math.Max(0L, search.ElapsedMs),
                         Matches = 1,
                         Rate = new PickerRateDecision()
                     };
                     continue;
                 }
 
+                var code = candidates[0];
                 var guard = _confirmationGuard.TryBegin(
-                    appSession,
-                    exact.PickListCode,
-                    work.RequestId,
-                    _agentInstanceId,
-                    work.PickerUid);
+                    appSession, code, work.RequestId, _agentInstanceId, work.PickerUid);
 
                 if (guard.AlreadyConfirmed)
                 {
                     outcomes[work.RequestId] = new FirestoreConfirmationOutcome
                     {
                         Result = "CONFIRMED",
-                        CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+IDEMPOTENT",
+                        CacheMode = "BROWSER_DOM+IDEMPOTENT",
                         Route = "FIRESTORE_CONFIRM_GUARD",
                         Http = 200,
-                        OperationMs = (lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)) + Math.Max(0L, exact.ElapsedMs),
+                        OperationMs = Math.Max(0L, search.ElapsedMs),
                         Matches = 1,
                         Rate = new PickerRateDecision(),
                         GuardId = guard.GuardId,
@@ -3505,10 +3191,10 @@ namespace SupraInventoryRelayAgent
                     outcomes[work.RequestId] = new FirestoreConfirmationOutcome
                     {
                         Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
-                        CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+GUARD",
+                        CacheMode = "BROWSER_DOM+GUARD",
                         Route = "FIRESTORE_CONFIRM_GUARD",
                         Http = 409,
-                        OperationMs = (lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)) + Math.Max(0L, exact.ElapsedMs),
+                        OperationMs = Math.Max(0L, search.ElapsedMs),
                         Matches = 1,
                         Rate = new PickerRateDecision(),
                         GuardId = guard.GuardId,
@@ -3518,17 +3204,11 @@ namespace SupraInventoryRelayAgent
                 }
 
                 guardsByRequest[work.RequestId] = guard;
-                codeByRequest[work.RequestId] = exact.PickListCode;
-                if (!confirmCodes.Exists(item =>
-                        string.Equals(item, exact.PickListCode, StringComparison.OrdinalIgnoreCase)))
-                    confirmCodes.Add(exact.PickListCode);
+                codeByRequest[work.RequestId] = code;
             }
 
-            // D117 final fence: recheck the 20-second automatic window after lookup/guard work,
-            // then verify the current PRIMARY generation immediately before every WMS POST chunk.
-            var finalConfirmCodes = new List<string>();
-            var finalAgeCheckMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            foreach (var work in exactWorks)
+            var browserMutationCount = 0;
+            foreach (var work in eligible)
             {
                 FirestoreConfirmationGuardDecision guard;
                 string code;
@@ -3536,46 +3216,22 @@ namespace SupraInventoryRelayAgent
                     !codeByRequest.TryGetValue(work.RequestId ?? "", out code))
                     continue;
 
-                if (work.CreatedAtMs <= 0 || finalAgeCheckMs - work.CreatedAtMs >= 20000L)
+                var finalAgeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                if (work.CreatedAtMs <= 0 || finalAgeMs - work.CreatedAtMs >= 20000L)
                 {
                     _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
-                    CachedPicklistResult lookup;
-                    lookupBySuffix.TryGetValue(work.Suffix ?? "", out lookup);
-                    WmsExactPicklistResult exact;
-                    exactBySuffix.TryGetValue(work.Suffix ?? "", out exact);
                     outcomes[work.RequestId] = new FirestoreConfirmationOutcome
                     {
                         Result = "REQUEST_EXPIRED",
-                        CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+GUARD+FINAL_20S_FENCE",
-                        Route = "NONE",
-                        Http = 0,
-                        OperationMs = (lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)) +
-                                      (exact == null ? 0L : Math.Max(0L, exact.ElapsedMs)),
+                        CacheMode = "BROWSER_DOM+GUARD+FINAL_20S_FENCE",
+                        Route = "BROWSER_DOM",
                         Matches = 1,
-                        Rate = new PickerRateDecision(),
                         GuardId = guard.GuardId,
-                        RetireAtMs = guard.RetireAtMs
+                        RetireAtMs = guard.RetireAtMs,
+                        Rate = new PickerRateDecision()
                     };
-                    guardsByRequest.Remove(work.RequestId ?? "");
-                    codeByRequest.Remove(work.RequestId ?? "");
                     continue;
                 }
-
-                if (!finalConfirmCodes.Exists(item =>
-                        string.Equals(item, code, StringComparison.OrdinalIgnoreCase)))
-                    finalConfirmCodes.Add(code);
-            }
-            confirmCodes = finalConfirmCodes;
-
-            var confirmResults = new Dictionary<string, WmsPicklistConfirmResult>(StringComparer.OrdinalIgnoreCase);
-            var confirmBatchSizes = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            var sessionExpired = false;
-            var generationFenceLost = false;
-            var wmsRequestCount = 0;
-            for (var offset = 0; offset < confirmCodes.Count; offset += 10)
-            {
-                var count = Math.Min(10, confirmCodes.Count - offset);
-                var chunk = confirmCodes.GetRange(offset, count);
 
                 var fenceOk = false;
                 try
@@ -3585,111 +3241,59 @@ namespace SupraInventoryRelayAgent
                 }
                 catch (Exception ex)
                 {
-                    Log("FIRESTORE CONFIRM pre-WMS generation fence error type=" + ex.GetType().Name);
+                    Log("FIRESTORE CONFIRM browser generation fence error type=" + ex.GetType().Name);
                 }
                 if (!fenceOk)
                 {
-                    generationFenceLost = true;
-                    Log("FIRESTORE CONFIRM pre-WMS generation fence=BLOCK chunk_size=" + chunk.Count);
-                    break;
-                }
-
-                var chunkResults = WmsPicklistConfirmClient.ConfirmMany(wmsSession, chunk);
-                wmsRequestCount++;
-                foreach (var pair in chunkResults)
-                {
-                    confirmResults[pair.Key] = pair.Value;
-                    confirmBatchSizes[pair.Key] = chunk.Count;
-                }
-                foreach (var result in chunkResults.Values)
-                    if (result != null && string.Equals(result.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
-                        sessionExpired = true;
-                if (sessionExpired) break;
-            }
-
-            if (sessionExpired) ClearWmsSessionAfterExpiry();
-
-            foreach (var work in exactWorks)
-            {
-                FirestoreConfirmationGuardDecision guard;
-                string code;
-                if (!guardsByRequest.TryGetValue(work.RequestId ?? "", out guard) ||
-                    !codeByRequest.TryGetValue(work.RequestId ?? "", out code))
+                    _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
+                        CacheMode = "BROWSER_DOM+ROLE_GENERATION_FENCE",
+                        Route = "ROLE_GENERATION_FENCE",
+                        Matches = 1,
+                        GuardId = guard.GuardId,
+                        RetireAtMs = guard.RetireAtMs,
+                        Rate = new PickerRateDecision(),
+                        ShouldAck = false
+                    };
                     continue;
+                }
 
-                CachedPicklistResult lookup;
-                lookupBySuffix.TryGetValue(work.Suffix ?? "", out lookup);
-                WmsExactPicklistResult exact;
-                exactBySuffix.TryGetValue(work.Suffix ?? "", out exact);
-
-                WmsPicklistConfirmResult confirmed;
-                if (!confirmResults.TryGetValue(code, out confirmed) || confirmed == null)
+                SupraBrowserConfirmResult confirmed;
+                try
                 {
-                    if (generationFenceLost)
+                    confirmed = _supraBrowser.ConfirmExact(code);
+                    browserMutationCount++;
+                }
+                catch (Exception ex)
+                {
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
                     {
-                        _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
-                        outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                        {
-                            Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
-                            CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+GUARD+ROLE_GENERATION_FENCE",
-                            Route = "ROLE_GENERATION_FENCE",
-                            Matches = 1,
-                            Rate = new PickerRateDecision(),
-                            GuardId = guard.GuardId,
-                            RetireAtMs = guard.RetireAtMs,
-                            ShouldAck = false
-                        };
-                    }
-                    else if (sessionExpired)
-                    {
-                        _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
-                        outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                        {
-                            Result = "SESSION_EXPIRED",
-                            CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+GUARD+BATCH_CONFIRM",
-                            Route = "NONE",
-                            Matches = 1,
-                            Rate = new PickerRateDecision(),
-                            GuardId = guard.GuardId,
-                            RetireAtMs = guard.RetireAtMs
-                        };
-                    }
-                    else
-                    {
-                        outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                        {
-                            Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
-                            CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+GUARD+BATCH_CONFIRM",
-                            Route = "NONE",
-                            Matches = 1,
-                            Rate = new PickerRateDecision(),
-                            GuardId = guard.GuardId,
-                            RetireAtMs = guard.RetireAtMs
-                        };
-                    }
+                        Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
+                        CacheMode = "BROWSER_DOM+EXCEPTION",
+                        Route = "BROWSER_DOM",
+                        Matches = 1,
+                        GuardId = guard.GuardId,
+                        RetireAtMs = guard.RetireAtMs,
+                        Rate = new PickerRateDecision()
+                    };
+                    Log("FIRESTORE browser confirm uncertain type=" + ex.GetType().Name);
                     continue;
                 }
 
                 if (string.Equals(confirmed.Result, "CONFIRMED", StringComparison.Ordinal))
                     _confirmationGuard.MarkLocalConfirmed(guard.GuardId);
-                else
-                {
-                    int batchSize;
-                    if (!confirmBatchSizes.TryGetValue(code, out batchSize)) batchSize = 1;
-                    if (IsSafeConfirmationFailure(confirmed, batchSize))
-                        _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
-                }
+                else if (IsSafeBrowserFailure(confirmed))
+                    _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
 
                 outcomes[work.RequestId] = new FirestoreConfirmationOutcome
                 {
                     Result = confirmed.Result ?? "CONFIRM_ERROR",
-                    CacheMode = (lookup == null ? "NONE" : lookup.CacheMode) + "+EXACT_RESOLVE_BATCH+GUARD+BATCH_CONFIRM",
-                    Route = confirmed.Route,
-                    Http = confirmed.StatusCode,
-                    OperationMs =
-                        (lookup == null ? 0L : Math.Max(0L, lookup.ElapsedMs)) +
-                        (exact == null ? 0L : Math.Max(0L, exact.ElapsedMs)) +
-                        Math.Max(0L, confirmed.ElapsedMs),
+                    CacheMode = "BROWSER_DOM+GUARD+EXACT_ROW",
+                    Route = "BROWSER_DOM",
+                    Http = 0,
+                    OperationMs = Math.Max(0L, search.ElapsedMs) + Math.Max(0L, confirmed.ElapsedMs),
                     Matches = 1,
                     Rate = new PickerRateDecision(),
                     GuardId = guard.GuardId,
@@ -3707,83 +3311,58 @@ namespace SupraInventoryRelayAgent
             Ui(() => RefreshAgentRequestMetrics());
 
             AgentDiagnostics.WriteAudit(
-                "PDA_CONFIRM_BATCH jobs=" + works.Count +
-                " exact_candidates=" + exactWorks.Count +
-                " wms_codes=" + confirmCodes.Count +
-                " wms_requests=" + wmsRequestCount +
-                " values=redacted");
+                "PDA_CONFIRM_BATCH adapter=BROWSER_DOM jobs=" + works.Count +
+                " mutations=" + browserMutationCount +
+                " search_click=" + (search.SearchClicked ? "1" : "0") +
+                " session_extract=false direct_wms_api=false");
 
             return outcomes;
         }
 
-        private static bool IsSafeConfirmationFailure(WmsPicklistConfirmResult result, int batchSize)
+        
+
+        private static bool IsSafeBrowserFailure(SupraBrowserConfirmResult result)
         {
             if (result == null) return false;
-            if (batchSize > 1 &&
-                string.Equals(result.Result, "CONFIRM_REJECTED", StringComparison.Ordinal))
-            {
-                // The supplied multi-code request shape proves batching is accepted, but
-                // not that Status=false can identify which individual code mutated.
-                // Preserve all acquired guards and fail closed instead of retrying.
+            if (string.Equals(result.Result, "EXACT_CODE_NOT_RESOLVED", StringComparison.Ordinal) ||
+                string.Equals(result.Result, "AMBIGUOUS_PICKLIST", StringComparison.Ordinal))
+                return true;
+
+            if (!string.Equals(result.Result, "CONFIRM_REJECTED", StringComparison.Ordinal))
                 return false;
+
+            switch (result.Detail ?? "")
+            {
+                case "ROW_NOT_FOUND":
+                case "ROW_AMBIGUOUS":
+                case "CHECKBOX_NOT_UNIQUE":
+                case "CHECKBOX_DISABLED":
+                case "CHECKBOX_VERIFY_FAILED":
+                case "CONFIRM_BUTTON_NOT_UNIQUE":
+                case "CONFIRM_BUTTON_DISABLED":
+                case "PAGE_NOT_READY":
+                case "ROW_CHANGED":
+                    return true;
+                default:
+                    return false;
             }
-            return IsSafeConfirmationFailure(result.Result);
         }
 
-        private static bool IsSafeConfirmationFailure(string result)
+        private bool ProbeSupraBrowserForTakeover()
         {
-            return string.Equals(result, "FORBIDDEN", StringComparison.Ordinal) ||
-                   string.Equals(result, "PROXY_BLOCK", StringComparison.Ordinal) ||
-                   string.Equals(result, "PROXY_AUTH_REQUIRED", StringComparison.Ordinal) ||
-                   string.Equals(result, "CONFIRM_REJECTED", StringComparison.Ordinal) ||
-                   string.Equals(result, "RATE_LIMITED", StringComparison.Ordinal) ||
-                   string.Equals(result, "SESSION_EXPIRED", StringComparison.Ordinal);
-        }
-
-        private bool ProbeWmsForTakeover()
-        {
-            var session = SnapshotWmsSession();
-            if (session == null || !session.IsValidHy1()) return false;
             try
             {
-                var probe = WmsReadOnlyClient.ProbeApi(session);
-                Log("WMS TAKEOVER PROBE result=" + probe.Result +
-                    " http=" + probe.StatusCode +
-                    " route=" + probe.Route +
-                    " ms=" + probe.ElapsedMs);
-                if (string.Equals(probe.Result, "PASS", StringComparison.Ordinal))
-                    return true;
-                if (string.Equals(probe.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
-                    ClearWmsSessionAfterExpiry();
-                return false;
+                RefreshSupraBrowserStatus();
+                return HasReadyConfirmBrowser();
             }
             catch (Exception ex)
             {
-                Log("WMS TAKEOVER PROBE fail type=" + ex.GetType().Name +
-                    " detail=" + SafeMessage(ex));
+                Log("SUPRA_BROWSER takeover readiness fail type=" + ex.GetType().Name);
                 return false;
             }
         }
 
-        private void ClearWmsSessionAfterExpiry()
-        {
-            lock (_wmsSessionLock) _wmsSession = null;
-            _picklistCache.Clear();
-            WmsSessionStore.Clear(WmsSessionFile);
-            Ui(() =>
-            {
-                _wmsStatus.Text = "Supra WMS: phiên hết hạn · cần đăng nhập lại";
-                _supraInfo.Text = "HY1 · Phiên hết hạn · Cache 0";
-                _wmsCapture.Visible = true;
-                _wmsCapture.Enabled = HasAgentSession();
-                _wmsLogout.Enabled = false;
-                _wmsTest.Enabled = false;
-                _skuSyncButton.Enabled = false;
-            });
-            SetProbeButtonsEnabled(true);
-            var coordinator = _leaderCoordinator;
-            if (coordinator != null) coordinator.RequestRoleRefreshBeforeBusiness();
-        }
+        
 
         private void StartListening()
         {
@@ -3840,473 +3419,6 @@ namespace SupraInventoryRelayAgent
             Ui(() => { _listen.Text = "Nghe relay"; if (_allowExit) return; _relay.Text = "Relay: đã dừng"; });
         }
 
-        private void ListenLoop(CancellationToken token)
-        {
-            while (!token.IsCancellationRequested)
-            {
-                var retrySeconds = 1;
-                try
-                {
-                    EnsureFreshToken();
-                    ListenOnce(token);
-                }
-                catch (OperationCanceledException)
-                {
-                    return;
-                }
-                catch (RelayHttpException ex)
-                {
-                    if (LooksLikeCorporateProxyBlock(ex.Detail))
-                    {
-                        retrySeconds = 10;
-                        Ui(() => _relay.Text = "Relay: OFFICE PROXY BLOCK / RTDB");
-                        Log("Relay PROXY_BLOCK RTDB http=" + ex.StatusCode + " category=" + ProxyCategory(ex.Detail) + " rule=" + ProxyRule(ex.Detail));
-                    }
-                    else if (ex.StatusCode == 403)
-                    {
-                        retrySeconds = 5;
-                        Ui(() => _relay.Text = "Relay: RTDB 403 / Rules");
-                        Log("Relay RTDB_PERMISSION_DENIED 403; Firebase/Rules response không phải proxy block. detail=" + SafeMessage(ex));
-                    }
-                    else
-                    {
-                        retrySeconds = 2;
-                        Ui(() => _relay.Text = "Relay: HTTP " + ex.StatusCode + " · thử lại");
-                        Log("Relay HTTP_FAIL " + ex.StatusCode + " detail=" + SafeMessage(ex));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Ui(() => _relay.Text = "Relay: mạng/transport · thử lại");
-                    Log("Relay TRANSPORT_FAIL " + SafeMessage(ex));
-                }
-                if (token.WaitHandle.WaitOne(TimeSpan.FromSeconds(retrySeconds))) return;
-            }
-        }
-
-        private void ListenOnce(CancellationToken token)
-        {
-            var session = SnapshotSession();
-            var url = JobsUrl(session);
-            var req = (HttpWebRequest)WebRequest.Create(url);
-            req.Method = "GET";
-            req.Accept = "text/event-stream";
-            req.UserAgent = "SUPRA-Inventory-Relay-Test/1.2";
-            req.Timeout = 10000;
-            req.ReadWriteTimeout = 65000;
-            req.KeepAlive = true;
-
-            Log("Relay SSE CONNECT host=" + AgentDiagnostics.SafeUrl(url) + " admin=" + session.AppUserId + " instance=" + Short(_agentInstanceId) + " uid=" + Fingerprint(session.UserId) + " ssid=" + GetSsid());
-            HttpWebResponse response = null;
-            try
-            {
-                using (token.Register(() => { try { req.Abort(); } catch { } }))
-                {
-                    try
-                    {
-                        response = (HttpWebResponse)req.GetResponse();
-                    }
-                    catch (WebException ex)
-                    {
-                        throw ToRelayHttpException(ex, "RTDB SSE");
-                    }
-
-                    using (response)
-                    using (var stream = response.GetResponseStream())
-                    using (var reader = new StreamReader(stream))
-                    {
-                        Ui(() => _relay.Text = "Relay: ONLINE / đang nghe");
-                        Log("Relay SSE PASS HTTP " + (int)response.StatusCode + " ssid=" + GetSsid() + " admin=" + session.AppUserId + " instance=" + Short(_agentInstanceId) + " uid=" + Fingerprint(session.UserId));
-                        var data = new StringBuilder();
-                        string line;
-                        while (!token.IsCancellationRequested && (line = reader.ReadLine()) != null)
-                        {
-                            if (line.Length == 0)
-                            {
-                                if (data.Length > 0)
-                                {
-                                    ProcessSse(data.ToString());
-                                    data.Clear();
-                                }
-                                continue;
-                            }
-                            if (line.StartsWith("data:", StringComparison.Ordinal))
-                                data.Append(line.Substring(5).Trim());
-                        }
-                    }
-                }
-            }
-            finally
-            {
-                if (response != null) response.Dispose();
-            }
-        }
-
-        private void ProcessSse(string raw)
-        {
-            Dictionary<string, object> envelope;
-            try { envelope = Map(_json.DeserializeObject(raw)); } catch { return; }
-            object pathObj, dataObj;
-            if (!envelope.TryGetValue("path", out pathObj) || !envelope.TryGetValue("data", out dataObj) || dataObj == null) return;
-            var path = Convert.ToString(pathObj) ?? "/";
-            var data = dataObj as Dictionary<string, object>;
-            if (data == null) return;
-            if (path == "/" && !data.ContainsKey("status"))
-            {
-                foreach (var pair in data) { var job = pair.Value as Dictionary<string, object>; if (job != null) HandleJob(pair.Key, job); }
-                return;
-            }
-            var jobId = path.Trim('/').Split('/')[0];
-            if (jobId.Length == 0 && data.ContainsKey("request_id")) jobId = Convert.ToString(data["request_id"]) ?? "";
-            if (jobId.Length > 0) HandleJob(jobId, data);
-        }
-
-        private void HandleJob(string jobId, Dictionary<string, object> job)
-        {
-            if (_leaderCoordinator == null || !_leaderCoordinator.IsLeader) return;
-
-            object statusObj, sourceObj, suffixObj, pickerUidObj, pickerUserObj, sentObj;
-            if (!job.TryGetValue("status", out statusObj)) return;
-            var status = Convert.ToString(statusObj) ?? "";
-            if (!string.Equals(status, "PENDING", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(status, "SWITCHING", StringComparison.OrdinalIgnoreCase))
-                return;
-
-            if (job.TryGetValue("source", out sourceObj) &&
-                !string.Equals(Convert.ToString(sourceObj), "ANDROID_POC", StringComparison.Ordinal))
-                return;
-            if (!job.TryGetValue("suffix", out suffixObj) ||
-                !job.TryGetValue("picker_uid", out pickerUidObj) ||
-                !job.TryGetValue("picker_user_id", out pickerUserObj))
-                return;
-
-            var suffix = Convert.ToString(suffixObj) ?? "";
-            var pickerUid = Convert.ToString(pickerUidObj) ?? "";
-            var pickerUserId = Convert.ToString(pickerUserObj) ?? "";
-            long clientSentAtMs = 0;
-            if (job.TryGetValue("client_sent_at_ms", out sentObj))
-                long.TryParse(Convert.ToString(sentObj), out clientSentAtMs);
-
-            if (!Regex.IsMatch(suffix, @"^\d{5}$"))
-            {
-                Log("Relay request=" + Short(jobId) + " bị từ chối vì suffix không đúng 5 số.");
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(pickerUid) || string.IsNullOrWhiteSpace(pickerUserId))
-            {
-                Log("Relay request=" + Short(jobId) + " thiếu identity Picker.");
-                return;
-            }
-
-            if (string.Equals(status, "PENDING", StringComparison.OrdinalIgnoreCase) &&
-                clientSentAtMs > 0 &&
-                NowMs() - clientSentAtMs >= AgentLeaderCoordinator.FailoverAfterMs)
-            {
-                if (!MarkJobSwitching(jobId))
-                    return;
-            }
-
-            lock (_acked)
-            {
-                if (_acked.Contains(jobId)) return;
-                _acked.Add(jobId);
-            }
-
-            Task.Run(() => HandlePicklistLookupJob(jobId, suffix, pickerUid, pickerUserId, clientSentAtMs));
-        }
-
-        private bool MarkJobSwitching(string jobId)
-        {
-            try
-            {
-                var session = SnapshotSession();
-                var patch = new Dictionary<string, object>
-                {
-                    { "status", "SWITCHING" },
-                    { "switching_at_ms", NowMs() },
-                    { "switching_agent_instance_id", _agentInstanceId }
-                };
-                RequestJson("PATCH", JobUrl(session, jobId), _json.Serialize(patch), "application/json");
-                Log("AGENT HA request=" + Short(jobId) + " status=SWITCHING leader=" + Short(_agentInstanceId));
-                return true;
-            }
-            catch (RelayHttpException ex)
-            {
-                if (ex.StatusCode == 403 && JobAlreadyAcknowledgedByAnotherAgent(SnapshotSession(), jobId))
-                    return false;
-                Log("AGENT HA switching_fail request=" + Short(jobId) + " detail=" + SafeMessage(ex));
-                return false;
-            }
-            catch (Exception ex)
-            {
-                Log("AGENT HA switching_fail request=" + Short(jobId) + " detail=" + SafeMessage(ex));
-                return false;
-            }
-        }
-
-        private void HandlePicklistLookupJob(string jobId, string suffix, string pickerUid, string pickerUserId, long clientSentAtMs)
-        {
-            var session = SnapshotSession();
-            try
-            {
-                if (_leaderCoordinator == null || !_leaderCoordinator.IsLeader)
-                {
-                    lock (_acked) _acked.Remove(jobId);
-                    return;
-                }
-
-                Interlocked.Increment(ref _localPdaRequests);
-                Ui(() => RefreshAgentRequestMetrics());
-                Audit(
-                    "PDA_REQUEST request=" + Short(jobId) +
-                    " picker=" + pickerUserId +
-                    " picker_uid=" + Fingerprint(pickerUid) +
-                    " picklist_last5=" + suffix +
-                    " client_sent_at_ms=" + clientSentAtMs +
-                    " admin=" + session.AppUserId +
-                    " machine=" + Environment.MachineName +
-                    " instance=" + Short(_agentInstanceId) +
-                    " network=" + GetSsid());
-
-                var rate = _pickerRateLimiter.Check(session, pickerUid, pickerUserId);
-                if (rate.IsLocked)
-                {
-                    AckLookupJob(
-                        session,
-                        jobId,
-                        pickerUserId,
-                        suffix,
-                        pickerUid,
-                        clientSentAtMs,
-                        "PICKER_LOCKED",
-                        "RATE_LIMIT",
-                        "NONE",
-                        0,
-                        0,
-                        0,
-                        rate);
-                    return;
-                }
-
-                CachedPicklistResult lookup;
-                var wmsSession = SnapshotWmsSession();
-                if (wmsSession == null || !wmsSession.IsValidHy1())
-                {
-                    lookup = new CachedPicklistResult
-                    {
-                        Result = "WMS_SESSION_REQUIRED",
-                        CacheMode = "NO_SESSION",
-                        Route = "NONE",
-                        StatusCode = 0,
-                        ElapsedMs = 0,
-                        MatchCount = 0
-                    };
-                }
-                else
-                {
-                    lookup = _picklistCache.Lookup(wmsSession, suffix);
-                }
-
-                if (string.Equals(lookup.Result, "SESSION_EXPIRED", StringComparison.Ordinal))
-                {
-                    lock (_wmsSessionLock) _wmsSession = null;
-                    _picklistCache.Clear();
-                    WmsSessionStore.Clear(WmsSessionFile);
-                    Ui(() => _wmsStatus.Text = "WMS: phiên hết hạn · cần đăng nhập lại");
-                    SetProbeButtonsEnabled(true);
-                }
-
-                if ((string.Equals(lookup.Result, "FOUND", StringComparison.Ordinal) ||
-                     string.Equals(lookup.Result, "NOT_FOUND", StringComparison.Ordinal)) &&
-                    !string.Equals(lookup.CacheMode, "CACHE_HIT", StringComparison.Ordinal) &&
-                    !string.Equals(lookup.CacheMode, "CACHE_FRESH_MISS", StringComparison.Ordinal) &&
-                    wmsSession != null)
-                {
-                    try
-                    {
-                        WmsSessionStore.Save(WmsSessionFile, wmsSession);
-                        Log("WMS SESSION FILE renew=PASS reason=lookup_refresh values=redacted.");
-                    }
-                    catch (Exception ex)
-                    {
-                        Log("WMS SESSION FILE renew=FAIL type=" + ex.GetType().Name);
-                    }
-                }
-
-                if (string.Equals(lookup.Result, "FOUND", StringComparison.Ordinal))
-                {
-                    rate = _pickerRateLimiter.RecordFound(session, pickerUid, pickerUserId);
-                }
-                else if (string.Equals(lookup.Result, "NOT_FOUND", StringComparison.Ordinal))
-                {
-                    rate = _pickerRateLimiter.RecordNotFound(session, pickerUid, pickerUserId);
-                    if (rate.IsLocked)
-                        lookup.Result = "PICKER_LOCKED";
-                }
-
-                AckLookupJob(
-                    session,
-                    jobId,
-                    pickerUserId,
-                    suffix,
-                    pickerUid,
-                    clientSentAtMs,
-                    lookup.Result ?? "LOOKUP_ERROR",
-                    lookup.CacheMode ?? "NONE",
-                    lookup.Route ?? "NONE",
-                    lookup.StatusCode,
-                    Math.Max(0L, lookup.ElapsedMs),
-                    Math.Max(0, lookup.MatchCount),
-                    rate);
-            }
-            catch (RelayHttpException ex)
-            {
-                if (ex.StatusCode == 403 && JobAlreadyAcknowledgedByAnotherAgent(session, jobId))
-                {
-                    Log("ACK SKIP request=" + Short(jobId) + " another ADMIN Agent already owns ACK.");
-                    return;
-                }
-                lock (_acked) _acked.Remove(jobId);
-                Log("PICKLIST LOOKUP ACK lỗi request=" + Short(jobId) + " picker=" + pickerUserId + " detail=" + SafeMessage(ex));
-            }
-            catch (Exception ex)
-            {
-                lock (_acked) _acked.Remove(jobId);
-                Log("PICKLIST LOOKUP lỗi request=" + Short(jobId) + " picker=" + pickerUserId + " detail=" + SafeMessage(ex));
-                try
-                {
-                    AckLookupJob(
-                        session,
-                        jobId,
-                        pickerUserId,
-                        suffix,
-                        pickerUid,
-                        clientSentAtMs,
-                        "LOOKUP_ERROR",
-                        "ERROR",
-                        "NONE",
-                        0,
-                        0,
-                        0,
-                        new PickerRateDecision());
-                    lock (_acked) _acked.Add(jobId);
-                }
-                catch { }
-            }
-        }
-
-        private void AckLookupJob(
-            AgentSession session,
-            string jobId,
-            string pickerUserId,
-            string picklistLast5,
-            string pickerUid,
-            long clientSentAtMs,
-            string result,
-            string cacheMode,
-            string route,
-            int http,
-            long lookupMs,
-            int matches,
-            PickerRateDecision rate)
-        {
-            rate = rate ?? new PickerRateDecision();
-            var patch = new Dictionary<string, object>
-            {
-                { "status", "ACK" },
-                { "agent_id", Environment.MachineName },
-                { "agent_instance_id", _agentInstanceId },
-                { "agent_admin_user_id", session.AppUserId },
-                { "agent_network", GetSsid() },
-                { "agent_received_at_ms", NowMs() },
-                { "agent_ack_at_ms", NowMs() },
-                { "lookup_status", result ?? "LOOKUP_ERROR" },
-                { "lookup_matches", Math.Max(0, matches) },
-                { "lookup_ms", Math.Max(0L, lookupMs) },
-                { "lookup_route", string.IsNullOrWhiteSpace(route) ? "NONE" : route },
-                { "lookup_http", Math.Max(0, http) },
-                { "cache_mode", string.IsNullOrWhiteSpace(cacheMode) ? "NONE" : cacheMode },
-                { "rate_strikes", Math.Max(0, rate.StrikeCount) },
-                { "lock_level", Math.Max(0, rate.LockLevel) },
-                { "locked_until_ms", Math.Max(0L, rate.LockedUntilMs) }
-            };
-
-            RequestJson("PATCH", JobUrl(session, jobId), _json.Serialize(patch), "application/json");
-            Interlocked.Increment(ref _localAgentResponses);
-            Ui(() => RefreshAgentRequestMetrics());
-            Audit(
-                "AGENT_RESPONSE request=" + Short(jobId) +
-                " picker=" + pickerUserId +
-                " picker_uid=" + Fingerprint(pickerUid) +
-                " picklist_last5=" + picklistLast5 +
-                " client_sent_at_ms=" + clientSentAtMs +
-                " result=" + (result ?? "LOOKUP_ERROR") +
-                " cache=" + (cacheMode ?? "NONE") +
-                " matches=" + matches +
-                " lookup_ms=" + lookupMs +
-                " route=" + (route ?? "NONE") +
-                " http=" + http +
-                " strikes=" + rate.StrikeCount +
-                " lock_level=" + rate.LockLevel +
-                " locked_until_ms=" + rate.LockedUntilMs +
-                " admin=" + session.AppUserId +
-                " machine=" + Environment.MachineName +
-                " instance=" + Short(_agentInstanceId) +
-                " network=" + GetSsid());
-
-            Log(
-                "PICKLIST LOOKUP ACK request=" + Short(jobId) +
-                " picker=" + pickerUserId +
-                " result=" + (result ?? "LOOKUP_ERROR") +
-                " cache=" + (cacheMode ?? "NONE") +
-                " matches=" + matches +
-                " lookup_ms=" + lookupMs +
-                " route=" + (route ?? "NONE") +
-                " http=" + http +
-                " strikes=" + rate.StrikeCount +
-                " lock_level=" + rate.LockLevel +
-                " locked=" + rate.IsLocked +
-                " admin=" + session.AppUserId +
-                " machine=" + Environment.MachineName +
-                " instance=" + Short(_agentInstanceId) +
-                " network=" + GetSsid() +
-                " payload_digits=5 values=redacted"
-            );
-
-            Ui(() =>
-            {
-                if (string.Equals(result, "FOUND", StringComparison.Ordinal))
-                    _relay.Text = "Relay: CÓ PICKLIST · đã trả PDA";
-                else if (string.Equals(result, "NOT_FOUND", StringComparison.Ordinal))
-                    _relay.Text = "Relay: KHÔNG CÓ PICKLIST · đã trả PDA";
-                else if (string.Equals(result, "PICKER_LOCKED", StringComparison.Ordinal))
-                    _relay.Text = "Relay: Picker bị khóa chống spam";
-                else if (string.Equals(result, "WMS_SESSION_REQUIRED", StringComparison.Ordinal) ||
-                         string.Equals(result, "SESSION_EXPIRED", StringComparison.Ordinal))
-                    _relay.Text = "Relay: cần phiên WMS";
-                else
-                    _relay.Text = "Relay: tra cứu WMS " + (result ?? "ERROR");
-            });
-        }
-
-        private bool JobAlreadyAcknowledgedByAnotherAgent(AgentSession session, string jobId)
-        {
-            try
-            {
-                var raw = RequestJson("GET", JobUrl(session, jobId), null, null);
-                var job = _json.DeserializeObject(raw) as Dictionary<string, object>;
-                if (job == null) return false;
-                object status;
-                return job.TryGetValue("status", out status) &&
-                    string.Equals(Convert.ToString(status), "ACK", StringComparison.OrdinalIgnoreCase);
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
         private void EnsureFreshToken()
         {
             var s = SnapshotSession();
@@ -4351,9 +3463,7 @@ namespace SupraInventoryRelayAgent
             if (!HasAgentSession()) return;
             try { StopListening(); } catch { }
             lock (_sessionLock) _session = null;
-            lock (_wmsSessionLock) _wmsSession = null;
-            _picklistCache.Clear();
-            ClearStoredSession();
+ClearStoredSession();
             try { if (File.Exists(ExitVerifierFile)) File.Delete(ExitVerifierFile); } catch { }
             Ui(() =>
             {
@@ -4361,8 +3471,8 @@ namespace SupraInventoryRelayAgent
                 _relay.Text = "Relay: phiên Agent hết hạn";
                 _listen.Enabled = false;
                 _testOffice.Enabled = false;
-                _wmsStatus.Text = "Supra WMS: chờ đăng nhập Agent";
-                _supraInfo.Text = "HY1 · Phiên tạm dừng đến khi đăng nhập Agent";
+                _wmsStatus.Text = "Web Confirm: chờ đăng nhập Agent";
+                _supraInfo.Text = "HY1 · Web Confirm tạm dừng đến khi đăng nhập Agent";
                 _agentFleetRenderSignature = "";
             });
             SetAgentAuthUi(false);

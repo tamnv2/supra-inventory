@@ -33,12 +33,15 @@ jobs:
           npm --prefix functions install --no-audit --no-fund
           npm --prefix functions run build
 
-      - name: D119 protected additive source guard
+      - name: D126 protected Functions source guard
         shell: bash
         run: |
           set -euo pipefail
           grep -q 'pickerAlertCreated' functions/src/index.ts
-          grep -q 'skuSyncCreated' functions/src/index.ts
+          if grep -q 'skuSyncCreated' functions/src/index.ts; then
+            echo "D126 forbids skuSyncCreated in active Functions source"
+            exit 1
+          fi
           grep -q 'inventory-beta-alert-runtime@supra-inventory-beta.iam.gserviceaccount.com' functions/src/index.ts
           grep -q 'picker_notification_targets' functions/src/index.ts
           grep -q 'picker_presence_projection/current' functions/src/index.ts
@@ -64,6 +67,21 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           npx --yes firebase-tools@14.12.1 deploy \
-            --only functions:pickerAlertCreated,functions:pickerAlertResolved,functions:skuSyncCreated \
+            --only functions:pickerAlertCreated,functions:pickerAlertResolved \
             --project supra-inventory-beta \
             --non-interactive
+
+      - name: Retire Beta WMS SKU sync Function
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          list_json="$(npx --yes firebase-tools@14.12.1 functions:list --project supra-inventory-beta --json)"
+          if grep -q 'skuSyncCreated' <<<"$list_json"; then
+            npx --yes firebase-tools@14.12.1 functions:delete skuSyncCreated \
+              --region asia-southeast1 \
+              --project supra-inventory-beta \
+              --force
+          else
+            echo "skuSyncCreated already absent"
+          fi

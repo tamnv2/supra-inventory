@@ -35,3 +35,8 @@ Also canonical:
 ## D125 current model note
 
 D125 is the current cross-spec override where older specs describe Supra/WMS session capture, PickList confirmation or WMS-derived SKU synchronization. Those capabilities are retired from the target model. Android becomes Báo hàng-only; SKU master is manual-file-only; and the Windows Agent is repurposed as an Office Inventory client using permitted Firebase/Google bridge mechanisms while InventoryCore/Worker remains business authority. See OWNER_DECISIONS D125 and the D125 sections in ROLE_WORKFLOWS, AUTH_RBAC, FORMS, SKU_MASTER, REALTIME_NOTIFICATIONS, UI_DESIGN_SYSTEM and ACCEPTANCE_TESTING.
+
+## D126 current model note
+
+D126 supersedes the D125 target model before D125 implementation. The current published Android/PDA PickList flow and Agent operating model remain. Supra integration changes to user-login browser UI automation only: no session extraction/persistence/replay and no direct WMS PickList API. SKU master remains manual-file-only; WMS/Tồn Bin SKU sync stays retired. See OWNER_DECISIONS D126 and the D126 sections in ROLE_WORKFLOWS, AUTH_RBAC, FORMS, SKU_MASTER, REALTIME_NOTIFICATIONS, UI_DESIGN_SYSTEM and ACCEPTANCE_TESTING.
+
