@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D120_HOTFIX_V41_RELEASED__D121_AGENT_RESPONSIVENESS_LAYOUT_SOURCE_CANDIDATE__TARGET_V42",
+      "status": "D121_TECHNICAL_RELEASE_PASS__RELAY_AGENT_V42__OA047_OWNER_FIELD_READY",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -190,14 +190,14 @@
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
-      "relay_poc_status": "D119_OWNER_ACCEPTED_PASS__D120_HOTFIX_AGENT_V41_RELEASED__D117_D118_HA_PRESERVED__D121_UI_PERF_LAYOUT_ONLY",
-      "relay_agent_release": "relay-agent-v41",
+      "relay_poc_status": "D119_OWNER_ACCEPTED_PASS__D120_HOTFIX_AGENT_V41_RELEASED__D121_AGENT_V42_TECHNICAL_RELEASE_PASS__D117_D118_HA_PRESERVED",
+      "relay_agent_release": "relay-agent-v42",
       "firebase_rtdb_rules_deploy": "D087_PR_GATE_PASS_RUN_35495453228__MAIN_SOURCE_MERGED",
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D118_PASS_RUN_36064078233__SOURCE_COMMIT_EXACT__SCHEMA11_11__AGENT_MIGRATION_0_0__OPERATIONAL5_5",
-      "relay_agent_release_target": "relay-agent-v41__RELEASED",
+      "relay_agent_release_target": "relay-agent-v42__RELEASED",
       "next_signed_beta_release_target": "NEXT_MONOTONIC_AFTER_BETA_VC76",
-      "next_relay_agent_release_target": "relay-agent-v42",
+      "next_relay_agent_release_target": "OWNER_DECISION_REQUIRED_AFTER_OA047",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
@@ -206,7 +206,7 @@
       "d118_source_status": "OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC74__AGENT_V38",
       "d119_source_status": "OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC75__AGENT_V39",
       "d120_source_status": "HOTFIX_V41_RELEASED__OWNER_FIELD_REVIEW_CONTINUES",
-      "d121_source_status": "SOURCE_CANDIDATE__AGENT_ONLY_NONBLOCKING_UI_TIMERS__BALANCED_LEFT_THIRDS__TARGET_V42"
+      "d121_source_status": "TECHNICAL_RELEASE_PASS__AGENT_V42__OA047_FIELD_READY"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -796,7 +796,7 @@
     "drive_logs": "FIRESTORE_ADMIN_SPOOL_TO_BETA_DRIVE__06_12_18_00__CRASH_BEST_EFFORT",
     "web_online": "WEB_PLUS_ANDROID_ONLY__AGENT_EXCLUDED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "release_status": "D120_V41_RELEASED__D121_SOURCE_CANDIDATE_TARGET_V42",
+    "release_status": "D121_TECHNICAL_RELEASE_PASS__OA047_FIELD_READY",
     "quiet_hours": "D118_OWNER_ACCEPTED__RELAY_0600_2200__FLEET_WIDE_DECISION_WINDOW_FROM_HH30__FIRST_CAS_DECISION_WINS__UNCONFIRMED_BOUNDARY_FREEZE__EARLY_START_BEFORE0600_CLAIMS_PRIMARY__MANUAL_AGENT_REMAINS_AVAILABLE",
     "fleet_table": "D120_V41_RELEASED__PICKER_ACTIVE_ANDROID_REALTIME_ONLY__SEARCH_SCROLL_ANCHOR_WHOLE_ROW_HOVER__NO_FLICKER_NOOP_RENDER",
     "previous_release": "relay-agent-v41",
@@ -804,20 +804,20 @@
     "visible_copy": "D118_COMPACT_OPERATIONAL_ONLY__APPROVED_BOTTOM_RIGHT_PRODUCT_CREDIT__NO_INTERNAL_IMPLEMENTATION_PROSE",
     "batch_confirmation": "D114_PDA_ONE_TERM_3_20__EXACT_TRAILING__AMBIGUOUS_CANDIDATES_NO_MUTATION__D104_PER_CODE_GUARD_AND_ACK_PRESERVED",
     "quota": "D120_FLEET_METRICS_ATTEMPT_HARD_THROTTLE_30MIN__D117_PRIMARY_IDLE4S_HOT2S__LEASE7S__STANDBY_FROZEN_ZERO_BUSINESS_POLL__NO_ANDROID_POLL__NO_PERIODIC_WMS_PROBE",
-    "release_main": "916bcc16de57740e3413dd346610d74c19ec7fcf",
-    "release_id": 396972209,
-    "release_asset_id": 589423180,
-    "release_size_bytes": 357376,
-    "release_sha256": "fc1b0b490d276078b67a2bcad7517e608fb52946f35bd2f6e24170207c432ba9",
-    "main_relay_agent_run": 36199078966,
-    "main_ui_run": 36199079023,
+    "release_main": "a3c841ae2961dac6eb5ad0f1909b2e5cd89c0242",
+    "release_id": 396990498,
+    "release_asset_id": 589509071,
+    "release_size_bytes": 358400,
+    "release_sha256": "08a55caa7b350d23e99eba9eef97b93744fd32b6e9072792d22411578559c1bd",
+    "main_relay_agent_run": 36203135376,
+    "main_ui_run": 36203135357,
     "overlay": "D120_INDEPENDENT_METRIC_TILES__GRANULAR_TOGGLES__LOCK_CLICKTHROUGH_RESIZE_COLOR_PRESERVED",
     "watchdog": "D112_USERMODE_ARM_AFTER_ADMIN__PROTECTED_EXIT__PLANNED_EXIT_UPDATE_SHUTDOWN_SUPPRESS__PRELOGIN_NORMAL_CLOSE",
     "inventory_channel_release_id": 394587029,
-    "inventory_channel_manifest_asset_id": 589423279,
-    "inventory_channel_exe_asset_id": 589423277,
-    "next_target_release": "relay-agent-v42",
-    "next_source_status": "D121_AGENT_RESPONSIVENESS_BALANCED_LAYOUT_SOURCE_CANDIDATE",
+    "inventory_channel_manifest_asset_id": 589509126,
+    "inventory_channel_exe_asset_id": 589509123,
+    "next_target_release": "OWNER_DECISION_REQUIRED_AFTER_OA047",
+    "next_source_status": "D121_TECHNICAL_RELEASE_PASS__OWNER_FIELD_OA047",
     "release_publish_run": 36064078151,
     "wms_health": "STARTUP_VALIDATE__REAL_BUSINESS_CALL_UPDATES_EFFECTIVE_HEALTH__ONE_READ_ONLY_PROBE_ON_STANDBY_TO_PRIMARY_TAKEOVER__PRE_WMS_ROLE_GENERATION_REVALIDATION_EACH_POST_CHUNK__NO_PERIODIC_WMS_HEALTH_POLL",
     "schedule_authority": "D118_OWNER_ACCEPTED__FIRESTORE_EXISTING_RELAY_COORDINATION_ROLES_DOCUMENT__ANY_AUTHENTICATED_AGENT_MAY_DECIDE__UPDATE_TIME_CAS__FIRST_DECISION_PER_BOUNDARY_WINS__NO_ROLE_PROMOTION",
@@ -841,7 +841,7 @@
       "/downloads/agent/latest.sha256"
     ],
     "discovery_policy": "NORMAL_RUNTIME_DOES_NOT_ENUMERATE_GITHUB_RELEASES_REST",
-    "status": "D120_HOTFIX_RELEASED__BETA_VC76__AGENT_V41__D121_TARGET_V42"
+    "status": "D121_RELEASE_PASS__BETA_VC76__AGENT_V42"
   },
   "release_channel": {
     "environment": "beta",
@@ -856,10 +856,10 @@
       "release": "beta-vc76"
     },
     "agent": {
-      "manifest_asset_id": 589423279,
-      "exe_asset_id": 589423277,
-      "exe_size_bytes": 357376,
-      "release": "relay-agent-v41"
+      "manifest_asset_id": 589509126,
+      "exe_asset_id": 589509123,
+      "exe_size_bytes": 358400,
+      "release": "relay-agent-v42"
     },
     "stable": "OWNER_GATED_UNTOUCHED"
   },
@@ -1005,7 +1005,7 @@
     "hotfix_main_ui_run": 36199079023
   },
   "d121": {
-    "status": "SOURCE_CANDIDATE",
+    "status": "TECHNICAL_RELEASE_PASS__OWNER_FIELD_READY",
     "branch": "fix/d121-agent-responsiveness-balanced-layout",
     "baseline_main": "916bcc16de57740e3413dd346610d74c19ec7fcf",
     "baseline_release": "beta-vc76 / relay-agent-v41",
@@ -1018,6 +1018,30 @@
     "new_resources": "NONE",
     "stable": "OWNER_GATED_UNTOUCHED",
     "implementation_pr": 191,
-    "pr_status": "OPEN__GATES_RERUN_AFTER_AGENTBUILD_ALIGNMENT"
+    "pr_status": "OPEN__GATES_RERUN_AFTER_AGENTBUILD_ALIGNMENT",
+    "merged_main": "a3c841ae2961dac6eb5ad0f1909b2e5cd89c0242",
+    "pr_head": "da3092bcac168b662f1bd16c5327354dc6d72f85",
+    "pr_runs": {
+      "repo_authority": 36203031181,
+      "project_state": 36203031122,
+      "ui": 36203031039,
+      "relay_agent": 36203031105,
+      "firestore": 36203031044,
+      "rtdb": 36203031037
+    },
+    "main_runs": {
+      "repo_authority": 36203135356,
+      "project_state": 36203135417,
+      "ui": 36203135357,
+      "relay_agent": 36203135376
+    },
+    "agent_release_id": 396990498,
+    "agent_asset_id": 589509071,
+    "agent_size_bytes": 358400,
+    "agent_sha256": "08a55caa7b350d23e99eba9eef97b93744fd32b6e9072792d22411578559c1bd",
+    "inventory_channel_release_id": 394587029,
+    "inventory_channel_manifest_asset_id": 589509126,
+    "inventory_channel_exe_asset_id": 589509123,
+    "owner_field_action": "OA047"
   }
 }
