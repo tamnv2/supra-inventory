@@ -1309,6 +1309,9 @@
     "field_hotfix_scope": "EXPLICIT_WEBVIEW2_LOADER_X64__REQUIRE_64BIT_HOST__FRESH_HOST_BUILD_3_MARKERS__REFUSE_STALE_V52_V53_BUNDLES__NO_AUTO_FALLBACK__PAGE_SIZE_100_UNCHANGED",
     "browser_host_build": 3,
     "browser_host_arch": "x64",
+    "browser_manifest_service": "BETA_ENDPOINT_PRESERVES_AND_VALIDATES_HOST_BUILD_3_AND_HOST_ARCH_X64",
+    "browser_manifest_hotfix_pr": 217,
+    "browser_manifest_hotfix_scope": "SERVICE_APP_TOOLS_NO_LONGER_DROPS_HOST_BUILD_OR_HOST_ARCH",
     "field_gate": "OA052__PENDING_OWNER_FIELD_ACCEPTANCE"
   }
 }
