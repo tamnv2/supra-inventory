@@ -183,8 +183,8 @@ jobs:
             'TryParseDashboardTarget',
             'DispatchTrustedMouseClickAsync',
             'Input.dispatchMouseEvent',
-            '"mousePressed"',
-            '"mouseReleased"',
+            'mousePressed',
+            'mouseReleased',
             'NavigationCompleted += HandleNavigationCompleted'
           )) {
             if (-not $ownedHost.Contains($marker)) { throw "D127 v62 owned-host dashboard routing guard missing: $marker" }
