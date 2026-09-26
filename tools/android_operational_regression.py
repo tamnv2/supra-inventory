@@ -295,7 +295,8 @@ def main() -> None:
     forbid(relay_agent_config, "binStocks", "D126 WMS SKU catalog config")
     forbid(relay_agent_config, "sku_sync_jobs", "D126 Agent SKU staging config")
 
-    require(relay_agent, "Truy cập Confirm PickList", "D126 browser open action")
+    require(relay_agent, "Mở trình duyệt Agent", "D127 explicit Agent browser open action")
+    require(relay_agent, "Mở trình duyệt Desktop", "D127 explicit Desktop browser open action")
     require(relay_agent, "Web Confirm sẵn sàng", "D126 browser ready state")
     require(relay_agent, "OpenSupraConfirmBrowser", "D126 browser open wiring")
     require(relay_agent, "ToggleSupraBrowserVisibility", "D126 hide/show wiring")

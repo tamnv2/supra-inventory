@@ -781,7 +781,7 @@
   },
   "agent_operations": {
     "decision": "D127",
-    "target_release": "relay-agent-v52",
+    "target_release": "relay-agent-v54",
     "cache_miss": "CURRENT_RENDERED_DOM_THEN_ONE_EXACT_SEARCH_BUTTON_RETRY",
     "auto_update": "STARTUP_PLUS_30MIN_BACKGROUND_PLUS_MANUAL__SERVICE_MANIFEST__STABLE_ALIAS__SHA256",
     "layout": "D127_HOTFIX__AFTER_HOURS_PANEL_RESPONSIVE_UNCLIPPED__SUPRA_CARD_BROWSER_DOWNLOAD_PROGRESS_READY_STATUS",
@@ -791,35 +791,35 @@
     "drive_logs": "FIRESTORE_ADMIN_SPOOL_TO_BETA_DRIVE__06_12_18_00__CRASH_BEST_EFFORT",
     "web_online": "WEB_PLUS_ANDROID_ONLY__AGENT_EXCLUDED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "release_status": "D127_V52_HOTFIX_TECHNICAL_RELEASE_PASS__OA052_FIELD_READY",
+    "release_status": "D127_V54_FIELD_HOTFIX_TECHNICAL_RELEASE_PASS__OA052_FIELD_READY",
     "quiet_hours": "KEEP_D117_D118_PICKLIST_RELAY_SCHEDULE",
     "fleet_table": "D127_SCHEMA3_ACTIVE_ANDROID_EVENT_DRIVEN__180S_TRANSIENT_GRACE__NO_PERIODIC_AGENT_PRESENCE_POLL",
-    "previous_release": "relay-agent-v51__D127_TECHNICAL_RELEASE_PASS",
-    "picklist_ui": "D127_ROWS_PER_PAGE_100__ONE_BATCH_SEARCH_RETRY_FOR_MISS_OR_DISABLED_CHECKBOX__D126_MODAL_GUARDS",
+    "previous_release": "relay-agent-v53__PAGE_SIZE_100_OK__AGENT_BROWSER_STILL_0X8007000B",
+    "picklist_ui": "D127_V54_ROWS_PER_PAGE_100_FIELD_OK__ONE_BATCH_SEARCH_RETRY__D126_MODAL_GUARDS",
     "visible_copy": "D118_COMPACT_OPERATIONAL_ONLY__APPROVED_BOTTOM_RIGHT_PRODUCT_CREDIT__NO_INTERNAL_IMPLEMENTATION_PROSE",
     "batch_confirmation": "PDA_EXISTING_BATCH_TRANSPORT__EACH_BROWSER_MUTATION_FAIL_CLOSED",
     "quota": "D127_FRESH_PENDING_SERVER_FILTER__EVENT_DRIVEN_PICKER_PRESENCE__OPEN_ALERT_QUERY__FLEET_METRICS_30M",
-    "release_main": "50773a7001b3ab145d3e0189eed068c03b2d9ee5",
-    "release_id": 397315426,
-    "release_asset_id": 591029955,
-    "release_size_bytes": 335360,
-    "release_sha256": "fce784ee55c7bef84c3f283cc6a0ec7e6f91dc1153f46386a0a3d2fb1edf1852",
-    "main_relay_agent_run": 36237772139,
+    "release_main": "65f17d48c6f4dd00f9dd48c52ecb05ecba3703f8",
+    "release_id": 397327827,
+    "release_asset_id": 591091889,
+    "release_size_bytes": 340992,
+    "release_sha256": "05db596637f30c24e59c9394affbc79d97d5981d9e663b8e2d7295e53c337ca6",
+    "main_relay_agent_run": 36258561369,
     "main_ui_run": 36237772206,
     "overlay": "REMOVED_D124",
     "watchdog": "D112_USERMODE_ARM_AFTER_ADMIN__PROTECTED_EXIT__PLANNED_EXIT_UPDATE_SHUTDOWN_SUPPRESS__PRELOGIN_NORMAL_CLOSE",
     "inventory_channel_release_id": 394587029,
-    "inventory_channel_manifest_asset_id": 591030008,
-    "inventory_channel_exe_asset_id": 591030007,
-    "next_target_release": "FIELD_REVIEW_OA052_V52",
-    "next_source_status": "D127_V52_HOTFIX_RELEASED__OA052_FIELD_PENDING",
-    "release_publish_run": 36256314847,
+    "inventory_channel_manifest_asset_id": 591091939,
+    "inventory_channel_exe_asset_id": 591091938,
+    "next_target_release": "FIELD_REVIEW_OA052_V54",
+    "next_source_status": "D127_V54_FIELD_HOTFIX_RELEASED__OA052_FIELD_PENDING",
+    "release_publish_run": 36258561369,
     "wms_health": "MANAGED_BROWSER_CONFIRM_PAGE_READINESS_ONLY",
     "schedule_authority": "KEEP_D117_D118_CONFIRMATION_RELAY_SCHEDULE",
     "ui_responsiveness": "D122_SSID_WATCHDOG_SCHEDULE_SYSTEM_MONITOR_OFF_UI_BLOCKING_PATHS__FLEET_DIFF_RENDER__NO_CADENCE_EXPANSION",
     "column_sizing": "D122_AUTO_SIZE_CONTENT_OR_MANUAL_PER_USER_LOCAL_PERSISTENCE",
     "session_recovery": "USER_REOPENS_OR_LOGS_IN_BROWSER__NO_AGENT_SESSION_CAPTURE",
-    "browser_runtime": "OWNED_WEBVIEW2_FIXED_X64_DEDICATED_PROFILE_PREFERRED__EDGE_CHROME_DEDICATED_PROFILE_FALLBACK"
+    "browser_runtime": "EXPLICIT_AGENT_WEBVIEW2_FIXED_X64_WITH_EXPLICIT_X64_LOADER__HOST_BUILD_3_REQUIRED__DESKTOP_EDGE_CHROME_BY_BUTTON__NO_AUTO_FALLBACK"
   },
   "distribution_channel": {
     "environment": "beta",
@@ -842,7 +842,7 @@
       "/downloads/agent/browser/latest.sha256"
     ],
     "discovery_policy": "NORMAL_RUNTIME_DOES_NOT_ENUMERATE_GITHUB_RELEASES_REST",
-    "status": "D127_V52_HOTFIX_RELEASED__OWNED_WEBVIEW2_FIXED_BUNDLE_PUBLISHED__VISIBLE_DOWNLOAD_STATUS__OA052_FIELD_READY",
+    "status": "D127_V54_FIELD_HOTFIX_RELEASED__EXPLICIT_X64_LOADER__HOST_BUILD_3_BUNDLE__OA052_FIELD_READY",
     "agent_browser_manifest_asset": "agent-browser-latest.json",
     "agent_browser_alias_asset": "Agent.WebView2.FixedRuntime.x64.zip",
     "agent_browser_checksum_asset": "Agent.WebView2.FixedRuntime.x64.zip.sha256"
@@ -860,25 +860,28 @@
       "release": "beta-vc76"
     },
     "agent": {
-      "manifest_asset_id": 591030008,
-      "exe_asset_id": 591030007,
-      "exe_size_bytes": 335360,
-      "release": "relay-agent-v52",
-      "sha256": "fce784ee55c7bef84c3f283cc6a0ec7e6f91dc1153f46386a0a3d2fb1edf1852",
-      "source_main": "50773a7001b3ab145d3e0189eed068c03b2d9ee5"
+      "manifest_asset_id": 591091939,
+      "exe_asset_id": 591091938,
+      "exe_size_bytes": 340992,
+      "release": "relay-agent-v54",
+      "sha256": "05db596637f30c24e59c9394affbc79d97d5981d9e663b8e2d7295e53c337ca6",
+      "source_main": "65f17d48c6f4dd00f9dd48c52ecb05ecba3703f8"
     },
     "stable": "OWNER_GATED_UNTOUCHED",
     "browser_bundle": {
       "status": "PASS__PUBLISHED",
       "version": "154.0.4258.37",
       "asset": "Agent.WebView2.FixedRuntime.x64.zip",
-      "asset_id": 590989452,
-      "size_bytes": 318502518,
-      "sha256": "d7cd8e9b295efc33b68c1bcd52248a8a6e0a04a8ec104454579570c8f446c12e",
+      "asset_id": 591093722,
+      "size_bytes": 318615500,
+      "sha256": "bf3dea509fe631a59f09a49b51756c55f4086c2388241386115817ee0420d1bb",
       "manifest": "agent-browser-latest.json",
-      "manifest_asset_id": 590989453,
-      "checksum_asset_id": 590989454,
-      "fallback": "SYSTEM_EDGE_THEN_CHROME"
+      "manifest_asset_id": 591093726,
+      "checksum_asset_id": 591093719,
+      "host_build": 3,
+      "host_arch": "x64",
+      "loader_binding": "EXPLICIT_DEDICATED_X64_WEBVIEW2LOADER",
+      "fallback": "EXPLICIT_DESKTOP_BUTTON_EDGE_THEN_CHROME__NO_AUTO_FALLBACK"
     }
   },
   "d119": {
@@ -1189,10 +1192,10 @@
   },
   "d127": {
     "status": "TECHNICAL_RELEASE_PASS__OA052_FIELD_READY",
-    "target_agent_release": "relay-agent-v52",
+    "target_agent_release": "relay-agent-v54",
     "android": "beta-vc76 unchanged",
     "browser_bundle": "inventory-channel / WebView2 Fixed 154.0.4258.37",
-    "main_relay_agent_run": 36256314847,
+    "main_relay_agent_run": 36258561369,
     "stable": "OWNER_GATED_UNTOUCHED"
   }
 }
