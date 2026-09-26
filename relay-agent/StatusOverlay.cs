@@ -121,7 +121,12 @@ namespace SupraInventoryRelayAgent
                 control.MouseUp += EndDrag;
             }
 
-            Resize += (s, e) => LayoutLabels();
+            LocationChanged += (s, e) => SyncBackgroundLayer();
+            Resize += (s, e) =>
+            {
+                LayoutLabels();
+                SyncBackgroundLayer();
+            };
             ResizeEnd += (s, e) =>
             {
                 if (IsLocked) return;
@@ -136,8 +141,15 @@ namespace SupraInventoryRelayAgent
             ApplyVisualSettings();
             Shown += (s, e) =>
             {
+                SyncBackgroundLayer();
+                if (OverlayVisible && !_backgroundLayer.Visible) _backgroundLayer.Show();
+                ApplyBackgroundClickThrough();
                 ApplyInteractionMode();
-                if (IsLocked) SendToPinnedState();
+                SendToPinnedState();
+            };
+            FormClosed += (s, e) =>
+            {
+                try { if (!_backgroundLayer.IsDisposed) _backgroundLayer.Close(); } catch { }
             };
         }
 
@@ -232,7 +244,7 @@ namespace SupraInventoryRelayAgent
         {
             if (_settings == null) _settings = new OverlaySettings();
             _settings.Opacity = ClampOpacity(value);
-            Opacity = _settings.Opacity;
+            if (!_backgroundLayer.IsDisposed) _backgroundLayer.Opacity = _settings.Opacity;
             Persist();
         }
 
@@ -270,13 +282,17 @@ namespace SupraInventoryRelayAgent
             _settings.Visible = visible;
             if (visible)
             {
+                SyncBackgroundLayer();
+                if (!_backgroundLayer.Visible) _backgroundLayer.Show();
                 if (!Visible) Show();
                 TopMost = true;
+                ApplyBackgroundClickThrough();
                 SendToPinnedState();
             }
             else
             {
                 Hide();
+                if (_backgroundLayer.Visible) _backgroundLayer.Hide();
             }
             Persist();
         }
