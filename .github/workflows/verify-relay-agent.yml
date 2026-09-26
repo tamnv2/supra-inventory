@@ -73,9 +73,9 @@ jobs:
           $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
           $projection = Get-Content service/src/firestore-projection.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*55\s*;') { throw "D127 hotfix requires Agent v55." }
-          if ($project -notmatch '<AssemblyVersion>0\.55\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.55\.0\.0</FileVersion>') {
-            throw "D127 hotfix assembly/file version must be 0.55."
+          if ($config -notmatch 'AgentBuild\s*=\s*56\s*;') { throw "D127 hotfix requires Agent v56." }
+          if ($project -notmatch '<AssemblyVersion>0\.56\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.56\.0\.0</FileVersion>') {
+            throw "D127 hotfix assembly/file version must be 0.56."
           }
 
           foreach ($marker in @(
@@ -132,7 +132,11 @@ jobs:
             'BuildDashboardSft3EntryScript',
             'HY1_SFT3_CLICKED',
             'CONFIRM_NAVIGATE_SAME_TAB',
-            'AUTO_RECOVERING_CONFIRM'
+            'AUTO_RECOVERING_CONFIRM',
+            "leafMatches('kho hưng yên 1')",
+            "leafMatches('sft3')",
+            'inside(center(ar), rect, 18)',
+            'right-most action in this card wins naturally'
           )) {
             if (-not $browser.Contains($marker)) { throw "D126 browser semantic guard missing: $marker" }
           }
@@ -287,7 +291,7 @@ jobs:
             throw "D127 v53 must not auto-fallback from Agent browser to Desktop browser."
           }
 
-          Write-Host "D127 v55 explicit browser modes + same-tab dashboard recovery + page-size guards PASS"
+          Write-Host "D127 v56 geometric HY1/SFT3 arrow selector + same-tab recovery + page-size guards PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh

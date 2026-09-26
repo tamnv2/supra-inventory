@@ -189,7 +189,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Run OA052 field acceptance on relay-agent-v55: verify auto-login Dashboard recovery clicks HY1/SFT3 access automatically, no second tab opens, the same tab reaches Confirm, rows-per-page 100 remains OK, and existing quota/picker/confirmation guards remain healthy. Stable remains OWNER-GATED.",
+  "next_action": "Release relay-agent-v56 and verify the geometric HY1/SFT3 card selector automatically clicks the right-most access arrow, stays on one Agent tab, reaches Confirm, and keeps rows-per-page 100 OK. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -1264,7 +1264,7 @@
     "branch": "d127-quota-browser-hardening",
     "baseline_main": "a1ecf217dc1fb447a4ca445c59c01d1348cb80d2",
     "baseline_release": "beta-vc76 / relay-agent-v50",
-    "target_agent_release": "relay-agent-v55",
+    "target_agent_release": "relay-agent-v56",
     "android": "KEEP_BETA_VC76_UNCHANGED",
     "quota": "FIRESTORE_PENDING_CREATED_AT_SERVER_FILTER__NO_BROAD_LIST_FALLBACK__FLEET_METRICS_30M",
     "picker_presence": "SCHEMA3_ACTIVE_ANDROID_EVENT_DRIVEN__SINGLE_SLOT_RELAY_EVENT__180S_TRANSIENT_GRACE__NO_PERIODIC_AGENT_PRESENCE_POLL",
