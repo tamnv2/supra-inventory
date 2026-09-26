@@ -189,7 +189,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D126 v47 technical/release PASS. Run OA051 real-Supra field re-test on relay-agent-v47; do not mark field PASS until readiness, exact-row lookup and guarded confirmation are observed. Stable remains OWNER-GATED.",
+  "next_action": "D126 v47 field re-test failed on real Confirm DOM: ship relay-agent-v48 H2 search-control recognition + DevTools recovery hotfix, pass PR/main/release gates, then rerun OA051. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -1154,11 +1154,11 @@
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d126": {
-    "status": "TECHNICAL_RELEASE_PASS__OA051_FIELD_RETEST_READY",
+    "status": "FIELD_HOTFIX_IN_PROGRESS__V47_SEARCH_0_AND_DEVTOOLS_RECOVERY",
     "decision_date": "2026-09-26",
-    "branch": "fix/d126-browser-readiness-dom",
-    "baseline_main": "2020a12e3a3d123b80b437ec9168ef95953f71a0",
-    "baseline_release": "beta-vc76 / relay-agent-v46",
+    "branch": "fix/d126-v48-search-devtools-recovery",
+    "baseline_main": "d018046c53f79418cce851398dac122125ba0391",
+    "baseline_release": "beta-vc76 / relay-agent-v47",
     "field_defect": "V46_MANAGED_BROWSER_REACHES_CONFIRM_PAGE_BUT_READY_REMAINS_0",
     "hotfix_contract": "SEMANTIC_BUTTON_LINK_ROLE_BUTTON_PLUS_SAME_ORIGIN_FRAME_DOM__SANITIZED_COUNTS__BOUNDED_UI_SETTLE__FAIL_CLOSED",
     "implementation_pr": 200,
@@ -1194,6 +1194,9 @@
     "forbidden": "NO_DIRECT_WMS_PICKLIST_API__NO_COOKIE_TOKEN_HEADER_SIGNATURE_CAPTURE_REPLAY__NO_COORDINATE_ONLY_MUTATION",
     "sku_master": "MANUAL_FILE_IMPORT_ONLY__REMOVE_AGENT_WMS_SKU_SYNC__AUTOMATIC_DEFERRED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "next_action": "RUN_OA051_FIELD_RETEST_ON_RELAY_AGENT_V47"
+    "next_action": "SHIP_V48_H2_HOTFIX__RUN_PR_MAIN_RELEASE_GATES__THEN_OA051_FIELD_RETEST",
+    "target_agent_release": "relay-agent-v48",
+    "h2_field_evidence": "V47_REAL_CONFIRM_PAGE__SEARCH_0_CONFIRM_1_VISIBLE_1_TABLE_1_FRAMES_0__THEN_DEVTOOLS_WEBSOCKET_DROP_AND_LOOPBACK_REATTACH_FAIL",
+    "h2_contract": "SEARCH_EXACT_NORMALIZED_TEXT_VALUE_ARIA_LABEL_TITLE_PLUS_UNIQUE_TEXT_LEAF__DEVTOOLS_REATTACH_EXISTING_TARGET_FIRST__MANAGED_BROWSER_RESTART_FALLBACK__MUTATION_GUARDS_UNCHANGED"
   }
 }
