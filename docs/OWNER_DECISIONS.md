@@ -1091,3 +1091,12 @@ Owner field testing of released `relay-agent-v42` found that D121 did not fully 
 7. **Column sizing.** Agent exposes **Tự căn cột theo nội dung**. When enabled, operational grids size columns to visible content/window width. When disabled, users may resize columns manually; those widths are persisted locally per authenticated Agent user and restored for that user.
 8. D122 introduces no new provider, database, Firestore collection, heartbeat, business polling cadence or WMS mutation route. Stable remains OWNER-GATED and untouched. Target Windows release is **relay-agent-v43**.
 
+## D123 — Agent UI-thread affinity and startup hang repair — 2026-09-26
+
+Owner field testing of released `relay-agent-v43` shows an immediate Windows **Not Responding** state after the Overview has already rendered/restored Agent, Supra and Picker state. D122 technical/release gates therefore remain valid, but D122 field acceptance/OA048 is **FAIL** and is superseded by D123/OA049.
+
+1. Source review identifies a concrete WinForms thread-affinity defect: startup/session restore and login run on worker tasks, while `SetAgentAuthUi()` could enter `ApplyD119AuthenticatedLayout()` directly outside the UI dispatcher. That path includes operational grid layout and D122 automatic column sizing, so worker and UI threads could mutate the same WinForms/DataGridView controls concurrently.
+2. All D119/D122 layout, grid rendering and automatic column-sizing mutations reachable from startup/login/session recovery must marshal to the owning WinForms UI thread before touching controls. Helper methods also self-guard with `InvokeRequired` so future worker callers fail safe.
+3. D123 does not add polling, heartbeat, Firestore/WMS probes, provider resources, database changes or a new WMS mutation route. D117/D118 HA/generation/confirmation rules, D120 Picker-presence authority and all D122 UX/business requirements remain unchanged.
+4. D123 target is **relay-agent-v44**. Stable remains OWNER-GATED and untouched.
+
