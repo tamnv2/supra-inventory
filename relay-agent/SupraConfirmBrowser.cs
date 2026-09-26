@@ -654,100 +654,80 @@ namespace SupraInventoryRelayAgent
               };
               const fold = v => norm(v).toLowerCase();
               const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
-              const text = e => fold((e && (e.innerText || e.textContent)) || '');
-              const center = r => ({x:r.left + r.width/2, y:r.top + r.height/2});
-              const inside = (p,r,pad=0) =>
-                p.x >= r.left-pad && p.x <= r.right+pad &&
-                p.y >= r.top-pad && p.y <= r.bottom+pad;
-              const leafMatches = target => [...document.querySelectorAll('body *')].filter(e =>
-                visible(e) &&
-                text(e).includes(target) &&
-                ![...e.children].some(child => visible(child) && text(child).includes(target)));
+              const exactText = (e, value) => visible(e) && fold(e.innerText || e.textContent) === fold(value);
+              const arrowPath = 'm12 4-1.41 1.41l16.17 11h4v2h12.17l-5.58 5.59l12 20l8-8z';
+              const normalizePath = v => String(v || '').toLowerCase().replace(/[\s,]+/g,'');
 
-              const warehouseLeaves = leafMatches('kho hưng yên 1');
-              const sftLeaves = leafMatches('sft3');
-              if (!warehouseLeaves.length || !sftLeaves.length)
-                return JSON.stringify({result:'NOT_DASHBOARD',warehouse:warehouseLeaves.length,sft3:sftLeaves.length});
+              const warehouseLabels = [...document.querySelectorAll('p,span,div')]
+                .filter(e => exactText(e, 'Kho Hưng Yên 1'));
+              const sftLabels = [...document.querySelectorAll('p,span,div')]
+                .filter(e => exactText(e, 'SFT3'));
 
-              const clickableSelector = 'button,a,[role=button]';
-              const allClickables = [...document.querySelectorAll(clickableSelector)]
-                .filter(e => visible(e) && !e.disabled && e.getAttribute('aria-disabled') !== 'true');
+              if (!warehouseLabels.length || !sftLabels.length)
+                return JSON.stringify({
+                  result:'NOT_DASHBOARD',
+                  warehouse:warehouseLabels.length,
+                  sft3:sftLabels.length
+                });
 
-              const candidates = [];
-              for (const w of warehouseLeaves) {
-                let node = w;
-                for (let depth = 0; node && depth < 10; depth++, node = node.parentElement) {
+              const cards = [];
+              const seen = new Set();
+              for (const label of warehouseLabels) {
+                let node = label;
+                for (let depth = 0; node && depth < 8; depth++, node = node.parentElement) {
                   if (!visible(node)) continue;
-                  const nodeText = text(node);
-                  if (!nodeText.includes('kho hưng yên 1') || !nodeText.includes('sft3')) continue;
-                  const rect = node.getBoundingClientRect();
-                  if (rect.width < 120 || rect.height < 60) continue;
-
-                  const actions = allClickables.filter(action => {
-                    const ar = action.getBoundingClientRect();
-                    return inside(center(ar), rect, 18);
-                  });
-                  if (!actions.length) continue;
-
-                  const area = rect.width * rect.height;
-                  const textLen = norm(node.innerText || node.textContent).length;
-                  candidates.push({node,rect,actions,depth,area,textLen});
+                  const className = String(node.className || '');
+                  if (!className.includes('MuiPaper-root')) continue;
+                  const hasWarehouse = [...node.querySelectorAll('p,span,div')]
+                    .some(e => exactText(e, 'Kho Hưng Yên 1'));
+                  const hasSft3 = [...node.querySelectorAll('p,span,div')]
+                    .some(e => exactText(e, 'SFT3'));
+                  if (!hasWarehouse || !hasSft3) continue;
+                  if (!seen.has(node)) {
+                    seen.add(node);
+                    cards.push(node);
+                  }
                   break;
                 }
               }
 
-              if (!candidates.length)
-                return JSON.stringify({result:'ACTION_NOT_FOUND',warehouse:warehouseLeaves.length,sft3:sftLeaves.length});
+              if (cards.length !== 1)
+                return JSON.stringify({result:'CARD_NOT_UNIQUE',count:cards.length});
 
-              candidates.sort((a,b) =>
-                a.depth - b.depth ||
-                a.area - b.area ||
-                a.textLen - b.textLen);
+              const card = cards[0];
+              const iconButtons = [...card.querySelectorAll('button.MuiIconButton-root')]
+                .filter(e => visible(e) && !e.disabled && e.getAttribute('aria-disabled') !== 'true');
 
-              const card = candidates[0];
-              const cardCenterY = card.rect.top + card.rect.height/2;
-              const ranked = card.actions.map(e => {
-                const r = e.getBoundingClientRect();
-                const p = center(r);
-                const label = fold([
-                  e.innerText,
-                  e.textContent,
-                  e.getAttribute && e.getAttribute('aria-label'),
-                  e.getAttribute && e.getAttribute('title')
-                ].filter(Boolean).join(' '));
-                let score = 0;
-                score += p.x; // right-most action in this card wins naturally
-                score -= Math.abs(p.y-cardCenterY) * 0.35;
-                if ((e.tagName || '').toLowerCase() === 'button') score += 120;
-                if ((e.getAttribute && e.getAttribute('role')) === 'button') score += 80;
-                if (/truy cập|mở|vào|open|go/.test(label)) score += 300;
-                if (r.width <= 80 && r.height <= 80) score += 100;
-                return {e,r,score,label};
-              }).sort((a,b) => b.score-a.score);
+              const exactArrowButtons = iconButtons.filter(button =>
+                [...button.querySelectorAll('svg path')].some(path =>
+                  normalizePath(path.getAttribute('d')) === normalizePath('m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z')));
 
-              const best = ranked[0];
-              if (!best)
-                return JSON.stringify({result:'ACTION_NOT_FOUND'});
-
-              if (ranked.length > 1 && Math.abs(best.score-ranked[1].score) < 8)
+              let target = null;
+              if (exactArrowButtons.length === 1) {
+                target = exactArrowButtons[0];
+              } else if (exactArrowButtons.length > 1) {
+                return JSON.stringify({result:'ARROW_NOT_UNIQUE',count:exactArrowButtons.length});
+              } else if (iconButtons.length === 1) {
+                // Structural fallback for harmless class/hash changes: the HY1/SFT3 card
+                // from the field DOM contains exactly one MUI IconButton.
+                target = iconButtons[0];
+              } else {
                 return JSON.stringify({
-                  result:'ACTION_AMBIGUOUS',
-                  count:ranked.length,
-                  bestX:Math.round(best.r.left),
-                  nextX:Math.round(ranked[1].r.left)
+                  result:'ARROW_NOT_FOUND',
+                  iconButtons:iconButtons.length
                 });
+              }
 
-              try {
-                best.e.scrollIntoView({block:'nearest',inline:'nearest'});
-              } catch (_) {}
-              best.e.click();
+              try { target.scrollIntoView({block:'nearest',inline:'nearest'}); } catch (_) {}
+              target.focus();
+              target.click();
+
               return JSON.stringify({
                 result:'CLICKED',
-                actions:ranked.length,
-                x:Math.round(best.r.left),
-                y:Math.round(best.r.top),
-                w:Math.round(best.r.width),
-                h:Math.round(best.r.height)
+                exactArrow:exactArrowButtons.length === 1,
+                iconButtons:iconButtons.length,
+                tag:target.tagName,
+                type:target.getAttribute('type') || ''
               });
             })()";
         }
