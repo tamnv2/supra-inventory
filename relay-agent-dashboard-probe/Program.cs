@@ -701,48 +701,38 @@ namespace SupraDashboardProbe
                 _web.CoreWebView2 == null)
                 return;
 
-            await Task.Delay(300);
-
-            try
-            {
-                await InstallInstrumentationAsync();
-            }
-            catch (Exception ex)
-            {
-                LogException(
-                    "AUTO_INSTRUMENT_FAIL",
-                    ex);
-            }
-
-            var inspect =
-                await InspectTargetAsync();
-
-            Log(
-                "TARGET_SCAN",
-                inspect.LogSummary);
-
-            if (!inspect.Unique)
-            {
-                _probeCompleted = true;
-                SetStatus(
-                    "Không xác định duy nhất nút Truy cập. Bấm Theo dõi thao tác người dùng rồi tự bấm đúng nút một lần.");
-                Log(
-                    "AUTO_STOP",
-                    "reason=target_not_unique");
-                return;
-            }
-
             _probeRunning = true;
 
-            SetStatus(
-                "Đã thấy đúng nút Dashboard. Đang thử các cơ chế kích hoạt...");
-
-            Log(
-                "PROBE_BEGIN",
-                "methods=js_click,synthetic_pointer,cdp_user_gesture,cdp_mouse,cdp_keyboard_enter,cdp_keyboard_space anti_detection=false");
-
             try
             {
+                await Task.Delay(300);
+                await InstallInstrumentationAsync();
+
+                var inspect =
+                    await InspectTargetAsync();
+
+                Log(
+                    "TARGET_SCAN",
+                    inspect.LogSummary);
+
+                if (!inspect.Unique)
+                {
+                    _probeCompleted = true;
+                    SetStatus(
+                        "Không xác định duy nhất nút Truy cập. Bấm Theo dõi thao tác người dùng rồi tự bấm đúng nút một lần.");
+                    Log(
+                        "AUTO_STOP",
+                        "reason=target_not_unique");
+                    return;
+                }
+
+                SetStatus(
+                    "Đã xác định target. Đang thử các cơ chế thao tác trình duyệt...");
+
+                Log(
+                    "PROBE_BEGIN",
+                    "methods=js_click,synthetic_pointer,cdp_user_gesture,cdp_mouse,cdp_keyboard_enter,cdp_keyboard_space");
+
                 if (await TryJsClickAsync())
                     return;
                 if (await TrySyntheticPointerAsync())
@@ -768,7 +758,9 @@ namespace SupraDashboardProbe
             catch (Exception ex)
             {
                 _probeCompleted = true;
-                LogException("PROBE_FAIL", ex);
+                LogException(
+                    "PROBE_FAIL",
+                    ex);
 
                 SetStatus(
                     "Probe gặp lỗi. Bấm Theo dõi thao tác người dùng rồi thao tác thật một lần.");
