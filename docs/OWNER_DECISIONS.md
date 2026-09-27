@@ -1665,3 +1665,19 @@ D129 refines the accepted D128 Beta Agent without changing D117 confirmation lat
 10. **Protected cadence remains unchanged.** PRIMARY confirmation queue stays 4s idle / 2s bounded-hot, PRIMARY lease 7s, STANDBY takeover threshold 10s, and STANDBY/FROZEN business-poll rules remain D117-authoritative. D127 fresh-only PENDING and event-driven Picker presence remain authoritative.
 11. **Realtime-listener optimization is not silently activated.** A Firestore realtime-listener replacement for PRIMARY queue polling may be researched later as a separate bounded Office field POC. It must prove proxy/stream stability and cost behavior before any runtime switch.
 12. Target is Beta Windows Agent **v69**. Android remains **beta-vc76** unless an independently justified defect requires rebuild. No new provider/resource/collection is introduced. Stable remains OWNER-GATED and untouched.
+
+
+## D129 technical/release checkpoint — 2026-09-27
+
+Status: **TECHNICAL / RELEASE PASS — OA054 FIELD READY**.
+
+- Implementation PR **#251** passed final PR gates and squash-merged to `main` at `28294cc98770f35e98b4dfeca8aca9d655ea39fb`.
+- Final PR PASS runs: Repo Authority `36305018957`, Project State `36305018948`, UI Design `36305018950`, Relay Agent `36305018938`, Dashboard Probe `36305018928`, Firestore `36305018966`, RTDB `36305018924`.
+- Main PASS runs: Repo Authority `36305126289`, Project State `36305126367`, UI Design `36305126316`, Relay Agent `36305126265`, Dashboard Probe `36305126268`.
+- Agent prerelease **relay-agent-v69** points exactly to main `28294cc9...`; release id `397561381`.
+- Canonical EXE asset id `592453697`, size `388096` bytes, SHA-256 `b282cfb63b879d330a13bab80df69dee622ca5efd96e1895a3fea262709e82a4`; checksum asset id `592453700`.
+- Fixed `inventory-channel` Agent alias advanced to manifest asset `592453790`, EXE asset `592453786`, checksum asset `592453783`.
+- Agent-owned WebView2 runtime did not change: existing browser manifest/bundle assets `592065625/592065629`, bundle size `318616553`, SHA-256 `bb623ac7e6c252b21c5f6b23be22ccb4681f3d7ffb42314cee9e014cd8427042`.
+- Android remains **beta-vc76**. No new provider, database, collection or Stable resource was introduced.
+- Automated evidence proves D129 source/build guards, D117 cadence preservation, PDA grace presentation, exclusive managed-browser lifecycle, local-only quota guard, fleet-metrics no-delta suppression and removal of the parallel UI schedule-read loop.
+- **OA054** is the remaining physical field gate for v69. Stable remains OWNER-GATED and untouched.
