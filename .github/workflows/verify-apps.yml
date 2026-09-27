@@ -134,7 +134,8 @@ jobs:
           grep -q '12_000L' "$realtime"
           grep -q 'Realtime handshake timeout' "$realtime"
           grep -q 'suppressRelayInputHint' "$picker"
-          grep -q '"picker_employee_code"' "$client"\n          grep -q '"picker_display_name"' "$client"
+          grep -q '"picker_employee_code"' "$client"
+          grep -q '"picker_display_name"' "$client"
           grep -q 'hệ thống sẽ tự chuyển Agent dự phòng nếu cần' "$client"
           if grep -A8 'fun sendProbe' "$client" | grep -q 'runDueCleanup'; then
             echo "D115 cleanup must stay off the Picker confirmation critical path" >&2
