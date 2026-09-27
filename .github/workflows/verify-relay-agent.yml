@@ -74,9 +74,9 @@ jobs:
           $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
           $projection = Get-Content service/src/firestore-projection.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*69\s*;') { throw "D129 requires Agent v69." }
-          if ($project -notmatch '<AssemblyVersion>0\.69\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.69\.0\.0</FileVersion>') {
-            throw "D129 assembly/file version must be 0.69."
+          if ($config -notmatch 'AgentBuild\s*=\s*70\s*;') { throw "D130 requires Agent v70." }
+          if ($project -notmatch '<AssemblyVersion>0\.70\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.70\.0\.0</FileVersion>') {
+            throw "D130 assembly/file version must be 0.70."
           }
 
           foreach ($marker in @(
@@ -367,6 +367,28 @@ jobs:
             throw "D129 must preserve D117 queue/lease/failover cadence."
           }
 
+          foreach ($marker in @(
+            'DefaultConnectionLimit = Math.Max(ServicePointManager.DefaultConnectionLimit, 16)',
+            'FIRESTORE transport supervisor restart=',
+            'RefreshD130ResourceClock',
+            '_lastD130ResourceSampleUtc'
+          )) {
+            if (-not $program.Contains($marker) -and -not $ops.Contains($marker)) {
+              throw "D130 Agent live-metrics/relay-supervisor marker missing: $marker"
+            }
+          }
+          foreach ($marker in @(
+            'retry_ms=',
+            '4000',
+            '"CONFIRM_QUERY"',
+            '2);'
+          )) {
+            if (-not $transport.Contains($marker)) { throw "D130 bounded confirmation transport marker missing: $marker" }
+          }
+          if (-not $http.Contains('int safeReadAttempts = 3') -or -not $http.Contains('Math.Max(1, safeReadAttempts)')) {
+            throw "D130 safe-read budget control missing."
+          }
+
           foreach ($retiredFile in @(
             'relay-agent/WmsIntegration.cs',
             'relay-agent/WmsSessionStore.cs',
@@ -444,7 +466,7 @@ jobs:
             throw "D127 v53 must not auto-fallback from Agent browser to Desktop browser."
           }
 
-          Write-Host "D129 Agent UX + PDA state + quota hardening regression PASS"
+          Write-Host "D130 live metrics + relay recovery regression PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh
