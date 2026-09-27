@@ -2494,6 +2494,7 @@ namespace SupraInventoryRelayAgent
                 var coordinator = _leaderCoordinator;
                 if (coordinator != null) coordinator.RequestRoleRefreshBeforeBusiness();
             }
+            ReconcileOperationalReadiness();
         }
 
         private void OpenSupraConfirmBrowser(bool desktop)
