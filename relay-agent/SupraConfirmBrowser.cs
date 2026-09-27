@@ -84,7 +84,6 @@ namespace SupraInventoryRelayAgent
         private bool _loginMarkerObserved;
         private string _loadedNonConfirmObservedUrl = "";
         private DateTime _loadedNonConfirmObservedAtUtc = DateTime.MinValue;
-        private string _confirmRetrySourceUrl = "";
         private DateTime _confirmRetryIssuedAtUtc = DateTime.MinValue;
         private bool _disposed;
 
@@ -587,14 +586,12 @@ namespace SupraInventoryRelayAgent
             _loginMarkerObserved = false;
             _loadedNonConfirmObservedUrl = "";
             _loadedNonConfirmObservedAtUtc = DateTime.MinValue;
-            _confirmRetrySourceUrl = "";
             _confirmRetryIssuedAtUtc = DateTime.MinValue;
         }
 
         private void IssueDirectConfirmRetryNoLock(string sourceUrl, string reason)
         {
             _confirmRouteRetryCount = 1;
-            _confirmRetrySourceUrl = sourceUrl ?? "";
             _confirmRetryIssuedAtUtc = DateTime.UtcNow;
             _loadedNonConfirmObservedUrl = "";
             _loadedNonConfirmObservedAtUtc = DateTime.MinValue;
@@ -620,7 +617,6 @@ namespace SupraInventoryRelayAgent
                 _confirmRouteRetryCount = 0;
                 _loadedNonConfirmObservedUrl = "";
                 _loadedNonConfirmObservedAtUtc = DateTime.MinValue;
-                _confirmRetrySourceUrl = "";
                 _confirmRetryIssuedAtUtc = DateTime.MinValue;
                 return false;
             }
