@@ -2630,6 +2630,47 @@
         "result": "PASS",
         "evidence": "Owner explicitly confirmed D127 v67 passed the requested Confirm-access behavior on the company laptop."
       }
+    },
+    {
+      "id": "OA053",
+      "status": "PENDING_OWNER_FIELD_ACCEPTANCE__D128_V68",
+      "title": "Field-accept D128 v68 background browser, resource monitoring and Picklist overlay",
+      "resource_key": "repo",
+      "provider": "Beta Windows Agent + Supra managed browser",
+      "reason_owner_only": "CI proves source guards, build integrity, release packaging and static readiness behavior, but real Windows/WebView2 visibility, physical click-through behavior and hidden-window resource behavior require company-laptop observation.",
+      "prerequisites": {
+        "implementation_pr": 249,
+        "implementation_main": "921f52274d1634d11cad2ea0ed439d3dfa2eaa21",
+        "target_agent_release": "relay-agent-v68",
+        "agent_release_id": 397536007,
+        "agent_asset_id": 592310281,
+        "agent_sha256": "23b23d24418f15a2a7b028df2cc1ac595319ead7a177276e3828a1bc298c4618",
+        "main_relay_agent_run": 36300178380,
+        "main_ui_run": 36300178365,
+        "technical_release": "PASS",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Update/restart Beta Agent to v68.",
+        "With Agent application login valid and a reusable Supra session, verify Agent-owned WebView2 reaches Web Confirm without showing its window.",
+        "For a login-required case, verify WebView2 appears only when Lưu thông tin đăng nhập is present; enter Supra credentials manually and verify the browser hides again after Web Confirm becomes ready.",
+        "Verify Confirm-dependent relay/manual PickList logic remains unavailable before Agent login + Web Confirm READY and becomes available only after both prerequisites are true.",
+        "Minimize Agent to tray; verify tray shows only the normal Agent icon/name with no CPU/RAM telemetry. Restore Agent and verify resource lines resume with CPU, RAM and Thời gian chạy.",
+        "Enable the Picklist overlay and verify the exact counters Picklist nhận | Picklist xác nhận | Picklist lỗi update during PDA confirmation activity.",
+        "Verify overlay show/hide, lock/unlock, move, size, background color, text color and background opacity persist. When locked, click a control in the application behind the overlay and confirm the click passes through."
+      ],
+      "pass_criteria": [
+        "Owned WebView2 is background by default and visible only for mandatory manual Supra login.",
+        "Owned WebView2 hides automatically after canonical Confirm READY.",
+        "No Confirm-dependent business processing starts unless Agent authentication and Web Confirm readiness are both valid; loss of either prerequisite fails closed.",
+        "Agent and browser resource metrics are visible only while the main Agent window is visible and use the label Thời gian chạy rather than Uptime.",
+        "Resource sampling is not exposed through tray hover/status and does not continue for the hidden main window.",
+        "Overlay displays Picklist nhận, Picklist xác nhận and Picklist lỗi from operational counters; locked mode is click-through and settings persist.",
+        "D126/D127 Confirm behavior remains functional and Stable remains untouched."
+      ],
+      "safety": "Beta only. Use authorized company Supra accounts. Do not share passwords, cookies, tokens, headers, signatures or other session material. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Run the shortest test path on one company Windows laptop.",
+      "closed": false
     }
   ]
 }
