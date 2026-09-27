@@ -2799,6 +2799,37 @@
       "safety": "Beta only. No secrets/session material in logs. Stable remains OWNER-GATED.",
       "remaining_owner_action": "Wait for D131 implementation/technical release PASS, then run the physical field path.",
       "closed": false
+    },
+    {
+      "id": "OA057",
+      "status": "PENDING_D131_REVIEW_TRIGGER_AND_OWNER_CODE_APPROVAL",
+      "title": "Review D131 optimized model and authorize implementation",
+      "resource_key": "repo",
+      "provider": "GitHub canonical design + current provider quota references",
+      "reason_owner_only": "Owner explicitly requires a review-only next session before any runtime code. The full D131 change list and maximum-envelope usage projection must be reviewed and may be edited by Owner before implementation authorization.",
+      "prerequisites": {
+        "trigger_phrase": "bắt đầu tối ưu lại mô hình",
+        "design_status": "OWNER_APPROVED_DESIGN__NO_CODE_YET",
+        "runtime_baseline": "relay-agent-v70 / beta-vc77",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Send the exact phrase `bắt đầu tối ưu lại mô hình` in a new session.",
+        "Review the complete D131 planned change list produced from fresh GitHub authority.",
+        "Review the final maximum-envelope usage projection with current provider limits, assumptions and headroom.",
+        "Request any logic changes; require the usage projection to be recalculated after those changes.",
+        "Only when satisfied, explicitly reply OK / đồng ý chạy code / equivalent."
+      ],
+      "pass_criteria": [
+        "Review response contains the full D131 change set and no runtime code is started.",
+        "Usage projection uses the maximum approved model envelope and freshly verified provider limits.",
+        "Any Owner logic changes are reflected and the projection is recalculated.",
+        "Implementation begins only after a separate explicit Owner code authorization.",
+        "Stable remains untouched."
+      ],
+      "safety": "Design/review only until explicit Owner code authorization. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "In the next session, send `bắt đầu tối ưu lại mô hình`, review the complete design and max-envelope usage, then explicitly authorize code only when satisfied.",
+      "closed": false
     }
   ]
 }
