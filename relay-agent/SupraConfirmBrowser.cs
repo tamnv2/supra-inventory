@@ -2002,6 +2002,37 @@ namespace SupraInventoryRelayAgent
             if (_disposed) throw new ObjectDisposedException(nameof(SupraConfirmBrowser));
         }
 
+        private const uint Th32csSnapProcess = 0x00000002;
+        private static readonly IntPtr InvalidHandleValue = new IntPtr(-1);
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        private struct ProcessEntry32
+        {
+            internal uint dwSize;
+            internal uint cntUsage;
+            internal uint th32ProcessID;
+            internal IntPtr th32DefaultHeapID;
+            internal uint th32ModuleID;
+            internal uint cntThreads;
+            internal uint th32ParentProcessID;
+            internal int pcPriClassBase;
+            internal uint dwFlags;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+            internal string szExeFile;
+        }
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern IntPtr CreateToolhelp32Snapshot(uint dwFlags, uint th32ProcessID);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern bool Process32First(IntPtr hSnapshot, ref ProcessEntry32 lppe);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern bool Process32Next(IntPtr hSnapshot, ref ProcessEntry32 lppe);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool CloseHandle(IntPtr hObject);
+
         private const int SW_HIDE = 0;
         private const int SW_SHOW = 5;
         private const int SW_RESTORE = 9;
