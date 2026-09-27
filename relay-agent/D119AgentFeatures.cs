@@ -80,6 +80,7 @@ namespace SupraInventoryRelayAgent
         private long _pickerPresenceRefreshRunning;
         private DateTime _lastPickerPresenceRefreshUtc = DateTime.MinValue;
         private bool? _pickerWindowOpenState;
+        private volatile int _activePdaCountForRelay;
         private FirestoreFleetMetricsClient _fleetMetricsClient;
         private FleetMetricSnapshot _fleetSnapshot;
         private long _fleetMetricsRefreshRunning;
@@ -617,6 +618,7 @@ namespace SupraInventoryRelayAgent
             _pickerOnlineSnapshot = items ?? new List<PickerPresenceView>();
             RenderPickerOnlineSnapshot();
             var liveCount = _pickerOnlineSnapshot.Count(x => string.Equals(x.Status, "PDA_READY", StringComparison.Ordinal));
+            _activePdaCountForRelay = liveCount;
             var graceCount = _pickerOnlineSnapshot.Count - liveCount;
             _pickerOnlineStatus.Text =
                 liveCount.ToString("N0") + " Picker đang hoạt động" +
@@ -828,9 +830,9 @@ namespace SupraInventoryRelayAgent
         {
             if (_fleetMetricsClient == null || !HasAgentSession()) return;
             var now = DateTime.UtcNow;
-            var interval = TimeSpan.FromMinutes(30);
+            var interval = TimeSpan.FromMinutes(10);
             // D120: metrics are observability-only. UI refresh, tab changes and failed reads
-            // must never turn the 30-minute checkpoint into a 5-second Firestore storm.
+            // must never turn the 10-minute snapshot into a provider polling storm.
             if (_lastFleetMetricsAttemptUtc != DateTime.MinValue && now - _lastFleetMetricsAttemptUtc < interval) return;
             if (!force && _lastFleetMetricsRefreshUtc != DateTime.MinValue && now - _lastFleetMetricsRefreshUtc < interval) return;
             if (Interlocked.CompareExchange(ref _fleetMetricsRefreshRunning, 1L, 0L) != 0L) return;
@@ -900,9 +902,10 @@ namespace SupraInventoryRelayAgent
             var snapshot = _fleetSnapshot;
             _fleetMetricStatus.Text = snapshot == null
                 ? "Cụm hôm nay: chờ đồng bộ"
-                : "Cụm hôm nay: " + snapshot.AcceptedTotal.ToString("N0") +
-                  " nhận · " + snapshot.ProcessedTotal.ToString("N0") + " xử lý" +
-                  (primary ? " · realtime" : " · 30p");
+                : "Cụm hôm nay: " + snapshot.ReceivedTotal.ToString("N0") +
+                  " nhận · " + snapshot.ConfirmedTotal.ToString("N0") + " xác nhận · " +
+                  snapshot.ErrorTotal.ToString("N0") + " lỗi" +
+                  (primary ? " · durable" : " · 10p");
             RefreshAgentRequestMetrics();
         }
 
@@ -1650,5 +1653,10 @@ namespace SupraInventoryRelayAgent
                 Ui(() => _pickerOnlineStatus.Text = "Không đóng được yêu cầu Picker · " + SafeMessage(ex));
             }
         }
+        internal bool HasActivePdaForRelay()
+        {
+            return _activePdaCountForRelay > 0;
+        }
+
     }
 }
