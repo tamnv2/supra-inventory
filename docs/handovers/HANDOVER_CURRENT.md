@@ -8,7 +8,7 @@
 - SQLite schema: `12`
 - Latest signed Beta APK: `beta-vc77`
 - Current released Agent: `relay-agent-v70`
-- Beta: `D131_OWNER_APPROVED_FIRESTORE_ONLY_FREE_TIER_HA_DESIGN__IMPLEMENTATION_PENDING`
+- Beta: `D131_OWNER_APPROVED_DESIGN__REVIEW_FIRST_GATE_PENDING__NO_CODE_YET`
 - Web: `D120_RUNTIME_PASS_MAIN_43A94207__OWNER_FIELD_TEST_OK`
 - Android: `D130_SIGNED_BETA_VC77_RELEASED__D131_DESIGN_PENDING_IMPLEMENTATION`
 - D089: **OWNER ACCEPTED PASS**
@@ -985,10 +985,20 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 ## D131 current design checkpoint — 2026-09-27
 
 - Owner keeps Firestore as the only PDA↔Agent confirmation carrier; the dual Cloudflare+Firestore relay proposal is closed.
-- Capacity model: max 6 Agents, one PRIMARY, business-hibernating NEXT-A/NEXT-B/deep sleepers; 50 PDA per shift, 75 overlap, ~1,200 requests/day and 40 simultaneous burst.
+- Capacity model: up to 20 Agents, one PRIMARY, NEXT-A/NEXT-B plus deep business-hibernating Agents; all keep managed Web Confirm warm for local/manual use; 50 PDA per shift, 75 overlap, ~1,200 requests/day and 40 simultaneous burst.
 - Operating relay window: 05:00–23:00 Asia/Ho_Chi_Minh unless explicitly extended for overtime.
 - Initial design targets: PRIMARY queue 3s, lease heartbeat 8s, lease expiry 12s, query limit >=100.
 - Shared received/confirmed/error counters piggyback PRIMARY lease and are tail-reconciled on takeover.
 - D131 soft quota targets: <=42k reads/day, <=15k writes/day, <=2k deletes/day, <=0.75 GiB storage, <=8 GiB/month outbound; quota day is America/Los_Angeles.
-- D130 v70/beta-vc77 remain the released baseline. OA055 is superseded; OA056 opens after D131 implementation/release.
+- D130 v70/beta-vc77 remain the released baseline. OA055 is superseded; OA057 is the pre-implementation review/approval gate and OA056 remains the post-release field gate.
 - Stable remains OWNER-GATED and untouched.
+
+
+## D131 continuation gate — review before implementation
+
+- Exact trigger phrase: `bắt đầu tối ưu lại mô hình`.
+- On that phrase, fresh-bootstrap canonical GitHub and present the complete D131 planned change set; do not write runtime code.
+- End the review with a maximum-envelope usage projection using current provider limits and explicit assumptions/headroom.
+- Approved envelope includes up to 20 Agents, warm Web Confirm on every Agent, 05:00–23:00 base relay, 50 PDA per shift / 75 overlap, ~1,200 daily requests, 40 simultaneous burst, durable non-RAM counters, 10-minute non-primary snapshot refresh and one server-side daily Drive export independent of Agent liveness.
+- If Owner changes logic, update design/recalculate usage first.
+- Runtime implementation requires a later explicit Owner OK/equivalent. Stable remains OWNER-GATED.

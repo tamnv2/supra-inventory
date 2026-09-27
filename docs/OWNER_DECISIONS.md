@@ -1714,7 +1714,7 @@ Status: **OWNER APPROVED DESIGN — IMPLEMENTATION PENDING**.
 Owner explicitly rejects the dual Cloudflare+Firestore relay proposal for PickList confirmation because keeping both relay paths warm would spend quota without enough operational benefit. D131 keeps **Cloud Firestore as the only PDA↔Agent confirmation carrier** and redesigns HA, cadence, presence and counters to stay below the Firestore no-cost allowance while meeting the real operating model.
 
 Authoritative operating envelope:
-- Maximum **6 Windows Agents**.
+- Up to **20 Windows Agents** in the design envelope.
 - Exactly **1 PRIMARY** may consume PickList business jobs. The other Agents are business-hibernating and must not query the PENDING business queue.
 - The fleet runs PDA↔Agent business transport from **05:00 through 23:00 Asia/Ho_Chi_Minh**. Without an explicit overtime extension, business relay stops at 23:00 and resumes at 05:00 even if Windows remains running. Manual/local Agent operations may remain available.
 - Shift capacity: 06:00–14:00 up to 50 PDA; 14:00–22:00 up to 50 PDA; overlap/overtime 10:00–16:00 may reach **75 simultaneously active PDA**.
@@ -1737,9 +1737,9 @@ Business queue:
 
 Counters and fleet visibility:
 - All Agents should display a common daily received / confirmed / error view without a separate high-frequency metrics stream.
-- PRIMARY keeps live counters in RAM and piggybacks the latest counters plus metrics_checkpoint_at onto its existing coordination lease write; this adds no extra periodic metrics write.
+- Daily counters are durable from relay job state plus a coordination summary/checkpoint. RAM may cache values only for UI; it is not counter authority.
 - On takeover, the new PRIMARY reads the last checkpoint and performs one bounded tail reconciliation of request documents newer than the checkpoint, deduplicated by request id, before continuing counters. This makes counters exact across failover without replaying the full day.
-- Fleet status for up to 6 Agents is compact: Agent id/machine, role, Agent auth ready, Web Confirm ready, Firestore ready, last_seen and current network label. PRIMARY lease doubles as PRIMARY heartbeat. Hibernating Agents use coarse readiness heartbeats only; no per-second global presence writes.
+- Fleet status supports up to 20 Agents: Agent id/machine, role, Agent auth ready, Web Confirm ready, Firestore ready, last_seen and current network label. PRIMARY lease doubles as PRIMARY heartbeat. Hibernating Agents use coarse readiness heartbeats only; no per-second global presence writes.
 - Fleet UI may be slightly stale on deep-hibernating Agents and must show last_seen/age rather than pretending per-second accuracy.
 
 PDA activity list:
@@ -1756,3 +1756,51 @@ No-cost budget guard:
 - TTL deletes are not used for this free-tier design. Retention cleanup is bounded/manual-scheduled deletion so delete/read cost stays inside the daily budget.
 
 D130 self-healing transport, Android same-id create recovery, managed-browser security boundaries and D127 fresh-only queue filtering remain inherited unless D131 explicitly supersedes cadence values above. OA055 is superseded by D131 implementation/field acceptance; D130 technical/release evidence remains historical PASS. Stable remains OWNER-GATED and untouched.
+
+
+### D131 refinement — warm managed browser, durable daily counters and audit export
+
+Owner keeps D131 in design-only status and refines the model before implementation:
+
+- Fleet design expands from max 6 to **up to 20 Agents**, while preserving exactly one business-queue PRIMARY, one NEXT-A and one NEXT-B. All remaining Agents are DEEP-HIBERNATE for Firestore business work; they do not consume the PENDING queue.
+- Hibernation applies to relay/business provider work, **not to the managed Supra browser**. Every authenticated Agent keeps its single managed WebView2/profile available so manual/local PickList confirmation on that laptop remains immediately usable. Background Agents must remove unnecessary DOM polling, resource sampling and provider refresh, but must not close the prepared Confirm page merely because they are not PRIMARY.
+- Promotion prefers an Agent whose Agent auth + Firestore + Web Confirm readiness are already valid. A non-ready candidate must not claim business work merely because its relay rank is next.
+- Shared daily PickList counters are no longer RAM-authoritative. The durable relay_poc_jobs documents are the audit authority. Each request carries request id, business date, user identity snapshot, submitted suffix and server receive time; terminal ACK adds result/status, sanitized error/result code, owning Agent identity and terminal timestamps/duration.
+- A compact **daily durable summary/checkpoint** lives in existing Firestore coordination state. PRIMARY updates it only when terminal work is committed, preferably once per processed batch. The terminal job updates and summary checkpoint must be transactionally/conditionally consistent enough that failover can verify uncertainty instead of double-counting.
+- New PRIMARY reconstructs exact daily counters from the durable summary plus a bounded tail, or uses Firestore aggregation queries for the current business day when checkpoint confidence is uncertain. RAM may cache the result for UI only; it is never the authority.
+- Every open Agent may refresh the shared daily counters/fleet snapshot at a **10-minute cadence**. Bringing the Agent window to foreground or pressing explicit refresh may perform one bounded authoritative refresh. Do not attach every Agent to the high-frequency PRIMARY lease or counter updates.
+- Detailed daily export is supported from the durable relay job ledger and must include at least: request id, employee/user identity, send time, submitted suffix, terminal result, result/error code, Agent identity, completion time and elapsed time. Export is one bounded read of the selected day and may be delivered through the existing scoped Beta exports/Drive mechanism; no secrets, browser session material or WMS auth data may enter the file.
+- Target retention for relay audit documents is bounded so Firestore storage remains under the D131 soft ceiling; after steady-state retention, bounded cleanup rather than TTL is used.
+
+For a 20-Agent design, fleet/counter synchronization must use coarse snapshots and aggregation rather than per-Agent realtime listeners. PRIMARY lease, NEXT-A failover watch and business queue remain the high-priority operations; deep-Agent presentation is allowed to be up to 10 minutes stale and must show its freshness age.
+
+This refinement supersedes D131's earlier PRIMARY RAM counters and max 6 Agent wording. It does not authorize runtime code yet. Stable remains OWNER-GATED and untouched.
+
+
+### D131 refinement — server-side daily Drive export independent of Agents
+
+Owner confirms one automatic detailed PickList audit export to the existing scoped Beta Drive exports area per business day.
+
+- Export execution is **server-side**, owned by the existing Beta Cloudflare Worker/scheduled runtime and Google Drive OAuth configuration. No Windows Agent needs to be online.
+- Source is the durable Firestore PickList job ledger, not Agent RAM/local files.
+- Business day uses Asia/Ho_Chi_Minh with a 05:00 boundary so authorized overtime after 23:00 remains part of the preceding operational day.
+- Preferred schedule is shortly after the next 05:00 boundary (target 05:10 Asia/Ho_Chi_Minh) and exports the just-closed business day. This avoids truncating late overtime.
+- The logical export is exactly one file per business day. Execution is idempotent: a transient Firestore/Drive failure may retry server-side, but retries must update/complete the same business-day export identity rather than create duplicate files.
+- File detail includes request id, employee/user identity, send time, submitted suffix, terminal result/status, sanitized result/error code, processing Agent identity, completion time and elapsed duration. No password, browser cookie, token, header, signature or Supra session material is exported.
+- Export failure is recorded for retry/diagnostics and must not require an Agent to start. If Google OAuth/Drive authorization is revoked or unavailable, the server records the failure and retries boundedly after provider recovery.
+
+This is still D131 design authority only; runtime implementation has not started. Stable remains OWNER-GATED.
+
+
+### D131 continuation gate — review first, code only after explicit OK
+
+Owner closes the current D131 design discussion with the following continuation contract:
+
+- Exact future trigger phrase: **`bắt đầu tối ưu lại mô hình`**.
+- On that phrase, the next session must first bootstrap fresh canonical GitHub authority and **must not write runtime code yet**.
+- The response must enumerate the full D131 planned change set in detail from canonical authority, including at least: Firestore-only carrier; up-to-20-Agent fleet roles; one PRIMARY + NEXT-A + NEXT-B + deep business-hibernating Agents; all managed Web Confirm browsers kept warm for local/manual PickList; 05:00–23:00 base relay window with overtime extension; 50/50 shift load, 75-PDA overlap, ~1,200 daily submissions/results, 40 simultaneous burst; latency/failover targets; event-driven PDA presence; durable daily request/audit ledger; non-RAM daily counters; 10-minute non-primary counter/fleet refresh; exact failover reconstruction; and server-side once-daily Drive export independent of Agent liveness.
+- That design-review response must finish with a **worst-case/free-usage projection** using the maximum approved model envelope. It must show the component-level assumptions for Firestore document reads/writes/deletes/storage/outbound and any other materially affected free/paid-limited service, compare totals against current provider allowances/soft guards, and identify remaining headroom. Provider limits must be freshly verified from authoritative/current sources rather than copied blindly from an old chat estimate.
+- If Owner requests logic changes in that review session, update the design first and recalculate the worst-case usage before implementation.
+- Only after Owner explicitly replies **OK / đồng ý chạy code / equivalent final approval** may implementation start. Implementation then begins from a fresh `main` short-lived branch and follows branch → PR → authority/continuity/build/quota guards → merge → Beta release/field gate.
+- A message containing the trigger phrase alone is **not** implementation authorization.
+- Stable remains OWNER-GATED and untouched.

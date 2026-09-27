@@ -1505,7 +1505,7 @@ D130 cannot be technical/release PASS unless all applicable checks pass:
 
 D131 implementation is not technical PASS until all applicable checks pass:
 
-1. Maximum 6 Agents converge to exactly one PRIMARY; every non-primary role performs zero PENDING business queue queries.
+1. Up to 20 Agents converge to exactly one PRIMARY; every non-primary role performs zero PENDING business queue queries.
 2. PRIMARY heartbeat target is 8s and lease expiry target is 12s. Killing PRIMARY while there is no PDA traffic still promotes NEXT_A without requiring a new job.
 3. If NEXT_A is unavailable, NEXT_B can become the bounded fallback candidate; no two Agents may hold a valid current generation simultaneously.
 4. Relay business work is enabled from 05:00 through 23:00 Asia/Ho_Chi_Minh and is frozen outside that window unless the shared overtime extension is active. No overnight business poll loop remains.
@@ -1513,9 +1513,30 @@ D131 implementation is not technical PASS until all applicable checks pass:
 6. Under good network and ready browser, normal/small-burst end-to-end terminal result target is <=6s. A 40-request burst is separately measured; if the rendered Confirm page cannot safely batch the browser mutation, CI/field notes must not claim an impossible 6s guarantee.
 7. PRIMARY death/transport failure must return either the business terminal result or a specific failover/error terminal result before 20s; indefinite spinner/wait is failure.
 8. Daily shared received / confirmed / error counters survive PRIMARY kill. Promoted PRIMARY reads the latest checkpoint, reconciles only the bounded newer tail and produces the exact expected totals with no double count.
-9. All 6 Agents can display fleet readiness and freshness age. PRIMARY/next candidate readiness is sufficiently fresh for failover; deep hibernators may be coarse but must not be mislabeled realtime.
+9. All registered Agents up to the 20-Agent design envelope can display fleet readiness and freshness age. PRIMARY/next candidate readiness is sufficiently fresh for failover; deep hibernators may be coarse but must not be mislabeled realtime.
 10. Android login/realtime connection adds PDA presence, explicit logout/session/device replacement removes immediately, unexpected disconnect removes after bounded grace, and an already-read PickList job refreshes PRIMARY-local activity with zero extra Firestore write.
 11. Synthetic worst-day quota accounting for 18h operation, 1,200 requests and specified Agent/PDA scale remains <=42k reads, <=15k writes and <=2k deletes. Quota guard day boundary uses America/Los_Angeles.
 12. Firestore storage remains <=0.75 GiB and outbound <=8 GiB/month under the measured retained-document size and configured retention.
 13. No Cloudflare confirmation relay, RTDB fallback, periodic PDA heartbeat, direct WMS API or new Stable runtime resource is introduced.
 14. Stable remains OWNER-GATED.
+
+
+### D131 refinement acceptance — warm browser, 20 Agents, durable accounting
+
+1. With 10 and then 20 registered Agents, exactly one PRIMARY queries PENDING jobs; NEXT_A/NEXT_B/deep Agents produce zero business queue queries.
+2. A non-primary Agent keeps its managed Web Confirm page/profile ready for manual local PickList operation without being promoted to PRIMARY.
+3. Background hibernating Agent performs no periodic DOM search/resource sampling solely to prove readiness; navigation/readiness events and explicit local actions are sufficient.
+4. Daily received/confirmed/error totals survive process kill and machine change without RAM state. Kill PRIMARY after a known set of mixed results; promoted PRIMARY reconstructs exactly from durable state with no missing/double counts.
+5. Every Agent that is foregrounded or explicitly refreshed displays the current durable daily counters. Background refresh is no faster than 10 minutes.
+6. A 20-Agent 18-hour synthetic quota model, including PRIMARY 3s business polling, 8s lease writes, NEXT_A/NEXT_B liveness reads, 10-minute fleet/counter snapshots, 1,200 request create/ACK/result-listen operations and one daily 1,200-row export, remains below D131 soft ceilings.
+7. Export for one business day contains request id, user/employee identity, send time, submitted suffix, result/status, sanitized result/error code, Agent identity, completion time and elapsed duration; no browser/WMS secret/session material appears.
+8. Firestore count aggregation is used for exact rebuild/verification when appropriate instead of full-document scans; query/index cost is included in the quota simulation.
+
+
+### D131 daily export acceptance
+
+1. Stop every Windows Agent before the scheduled export time. PASS only if the server-side runtime still generates the just-closed business-day Drive export.
+2. Include at least one authorized post-23:00 overtime request and verify it appears in the preceding business-day file generated after the 05:00 boundary.
+3. Force one temporary Drive/export failure. PASS only if the retry remains the same logical business-day export and no duplicate file is created.
+4. Verify row count and received/confirmed/error totals reconcile with durable Firestore state for that business day.
+5. Verify the file contains no credential, cookie, token, auth header, signature or browser-session material.

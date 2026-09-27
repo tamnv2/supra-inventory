@@ -362,3 +362,25 @@ The Android App uses an operational display projection, not a retention change.
 - Expired relay documents are deleted by bounded scheduled/manual cleanup, never by a burst that risks the daily delete/read budget.
 - Cleanup is lower priority than business queue/HA work and stops when the local quota guard approaches its soft read/delete ceilings.
 - Counter takeover reconstruction reads only a tail newer than metrics_checkpoint_at; it never scans the whole retained collection.
+
+
+### D131 refinement — durable PickList audit ledger and daily export
+
+- relay_poc_jobs is the durable audit authority for D131 PickList relay accounting.
+- Request-side audit fields include request id, business date, user/application identity snapshot, employee code/display name where already authorized, submitted suffix, source/device identifier and server receive timestamp.
+- Terminal-side fields include terminal status/result, sanitized result/error code, Agent instance/machine identity, processing/ACK timestamps and elapsed duration.
+- Do not persist browser credentials, cookies, headers, signatures, session data or other WMS auth material.
+- A compact daily summary/checkpoint in existing coordination state is a derived durable cache, not a replacement for job-level audit.
+- Daily detailed export reads the selected day's bounded job set once and produces a file with the authorized audit columns. The existing Beta exports/Drive resource may be reused; normal Agent laptops never receive Drive secrets.
+- At the design volume of about 1,200 jobs/day, a once-per-day detailed export is expected to cost roughly one document read per exported job, while count aggregation is substantially cheaper because Firestore bills aggregation by index entries scanned.
+- Retain Firestore job detail only for the bounded operational window needed for audit/reconciliation; longer-term file retention may use the existing scoped Drive exports area. Cleanup remains bounded and does not use TTL.
+
+
+### D131 daily Drive export scheduling
+
+- One logical detailed audit file is produced per Asia/Ho_Chi_Minh business day.
+- Business-day boundary is 05:00 local time; jobs from authorized late overtime before 05:00 belong to the preceding business day.
+- Server-side scheduled execution target is 05:10 local time for the just-closed business day.
+- Export is independent of Windows Agent liveness because its source is durable Firestore state and its destination is the existing scoped Beta Drive exports folder.
+- Use an idempotent business-day export key/file identity. Bounded retries after temporary provider failure must not create duplicate daily files.
+- A successful export checkpoint records business date, generated-at, row count and file identity/reference; secrets and provider access tokens are never persisted in the export.

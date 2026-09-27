@@ -543,7 +543,7 @@ D129 does not change the selected Firestore PDA↔Agent carrier or D117 latency/
 D131 supersedes D117/D130 cadence values only where explicitly stated below. Firestore remains the only PickList request/ACK carrier; Cloudflare is not a second confirmation relay.
 
 ### Fleet roles and liveness
-- Maximum 6 Agents.
+- Fleet capacity target is up to 20 Agents.
 - Exactly one PRIMARY consumes PENDING / ANDROID_CONFIRM_V1 jobs.
 - One business-hibernating NEXT_A watches the compact coordination lease and may take over after expiry.
 - One business-hibernating NEXT_B is the secondary candidate at coarser cadence.
@@ -572,8 +572,8 @@ D131 supersedes D117/D130 cadence values only where explicitly stated below. Fir
 - 05:00 entry/PRIMARY takeover may perform one bounded projection snapshot; normal UI timers perform no presence read.
 
 ### Exact cross-Agent counters
-- PRIMARY RAM counters are received, confirmed, error.
-- The existing PRIMARY lease write carries the latest counters and metrics_checkpoint_at; no independent periodic counter write is allowed.
+- Durable relay job state is the received/confirmed/error counter authority; RAM is cache-only.
+- A compact durable daily summary/checkpoint carries the latest counters and metrics_checkpoint_at. It is updated only when terminal work is durably committed, preferably once per completed batch.
 - Takeover reads the checkpoint and reconciles one bounded request tail newer than the checkpoint, deduplicated by request id, then resumes from the exact reconstructed value.
 - Hibernating Agents display counters from their most recent coordination read with an age indicator.
 
@@ -586,3 +586,18 @@ D131 engineering targets per provider quota day:
 - monthly outbound <= 8 GiB.
 
 Quota accounting must use the Firestore quota reset day in America/Los_Angeles. If a soft budget is approached, degrade nonessential fleet/UI refresh first; do not silently remove generation fencing, terminal ACK safety or freshness filtering.
+
+
+### D131 refinement — 20-Agent coarse fleet sync and durable counters
+
+This subsection supersedes conflicting D131 max-6/RAM-counter wording above.
+
+- Fleet capacity target is up to 20 Agents: exactly one PRIMARY, one NEXT_A, one NEXT_B and the remainder DEEP_HIBERNATE for business-provider work.
+- Only PRIMARY queries PENDING business jobs. Deep Agents never subscribe to or poll the business queue.
+- All Agents keep their managed WebView2 Confirm page/profile warm for local/manual PickList work. Non-primary hibernation disables relay business work, high-frequency DOM scans, provider refresh and background resource sampling; it does not shut down the prepared browser.
+- NEXT_A alone receives the fastest lease/failover observation. NEXT_B is coarser. Deep Agents do not listen to each 8-second lease update.
+- Durable job documents, not RAM, are the daily counter authority.
+- Terminal job state carries the fields required for audit and count reconstruction. Daily summary/checkpoint state is stored inside the existing coordination collection and updated only when terminal work is durably committed, preferably once per completed browser batch.
+- New PRIMARY immediately verifies/reconstructs the daily summary from a bounded tail; if summary confidence is uncertain, use current-day Firestore count aggregations rather than scanning every document payload.
+- Non-primary presentation reads one compact fleet/counter snapshot at most every 10 minutes while the Agent is open. Foreground/open/manual refresh may perform one immediate bounded read.
+- Do not create realtime counter listeners on every Agent.

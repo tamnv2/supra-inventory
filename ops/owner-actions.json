@@ -2772,28 +2772,63 @@
         "target_android": "NEXT_MONOTONIC_IF_ANDROID_CHANGE_REQUIRED",
         "technical_release": "PENDING",
         "new_resources": "NONE",
-        "stable": "OWNER_GATED"
+        "stable": "OWNER_GATED",
+        "target_fleet": "UP_TO_20_AGENTS",
+        "counter_authority": "DURABLE_FIRESTORE_JOB_LEDGER__NOT_RAM"
       },
       "shortest_test_path": [
-        "Run up to 6 Agents and verify exactly one PRIMARY; all others show hibernating roles and no non-primary business queue polling.",
-        "Kill PRIMARY during an idle period and verify NEXT_A promotes without a PDA request; counters remain exact after bounded reconciliation.",
-        "Send normal requests and verify good-network terminal result target <=6s; run one 40-request burst and record actual browser-batch latency.",
-        "Verify a failover/transport fault returns a business result or explicit terminal failover/error before 20s.",
-        "Verify 05:00-23:00 relay schedule and no-PDA-business polling outside the window without overtime.",
-        "Verify PDA list add/remove/grace and request-as-local-activity behavior without a periodic PDA heartbeat.",
-        "Review quota counters after a representative shift and confirm D131 soft ceilings remain unbreached."
+        "Run 10 Agents, then scale the fleet model to 20 registered Agents; verify exactly one PRIMARY and zero PENDING business queries from every non-primary Agent.",
+        "On a hibernating non-primary Agent, verify the managed Web Confirm page remains ready and local/manual PickList confirmation can be used without promoting that Agent.",
+        "Create a known mixed set of success/error requests, kill PRIMARY, and verify the promoted PRIMARY reconstructs the exact daily received/confirmed/error totals from durable state.",
+        "Keep multiple Agent windows open and verify shared durable counters/fleet snapshot refresh no faster than 10 minutes unless the window is foregrounded or explicit refresh is used.",
+        "Run normal requests and one 40-request burst; record terminal latency and verify failover/error terminal behavior remains under 20 seconds.",
+        "Export one business-day PickList audit file and verify user identity, send time, submitted suffix, result, Agent identity and duration are present with no secrets/session material.",
+        "Review synthetic and representative-shift Firestore usage against D131 soft ceilings.",
+        "Turn off all Windows Agents before the scheduled daily export and verify the existing server-side Beta runtime still writes exactly one idempotent Drive file for the just-closed 05:00-boundary business day."
       ],
       "pass_criteria": [
-        "Exactly one PRIMARY and no non-primary PENDING business query.",
-        "Idle-time PRIMARY death promotes automatically with generation fencing.",
-        "Daily shared received/confirmed/error counters remain exact through takeover.",
-        "Normal/small-burst good-network target <=6s is met in field; 40-burst actual is recorded honestly and remains bounded.",
-        "Every failover/error path terminates specifically before 20s.",
-        "Provider-day reads/writes/deletes remain within D131 soft targets and no new relay provider is used.",
-        "Stable remains untouched."
+        "Exactly one PRIMARY; NEXT_A/NEXT_B/deep Agents do not poll the PENDING business queue.",
+        "Non-primary managed Web Confirm remains warm/ready for local manual PickList work.",
+        "Daily counters are durable and exact across process/machine failover; RAM is not the authority.",
+        "Fleet/counter refresh on non-primary Agents is no faster than 10 minutes except foreground/manual refresh.",
+        "Detailed daily export is complete and secret-free.",
+        "Provider-day reads/writes/deletes remain within D131 soft targets at the 20-Agent synthetic envelope.",
+        "Stable remains untouched.",
+        "Daily Drive export succeeds with all Agents offline; bounded retry never creates duplicate business-day files."
       ],
       "safety": "Beta only. No secrets/session material in logs. Stable remains OWNER-GATED.",
       "remaining_owner_action": "Wait for D131 implementation/technical release PASS, then run the physical field path.",
+      "closed": false
+    },
+    {
+      "id": "OA057",
+      "status": "PENDING_D131_REVIEW_TRIGGER_AND_OWNER_CODE_APPROVAL",
+      "title": "Review D131 optimized model and authorize implementation",
+      "resource_key": "repo",
+      "provider": "GitHub canonical design + current provider quota references",
+      "reason_owner_only": "Owner explicitly requires a review-only next session before any runtime code. The full D131 change list and maximum-envelope usage projection must be reviewed and may be edited by Owner before implementation authorization.",
+      "prerequisites": {
+        "trigger_phrase": "bắt đầu tối ưu lại mô hình",
+        "design_status": "OWNER_APPROVED_DESIGN__NO_CODE_YET",
+        "runtime_baseline": "relay-agent-v70 / beta-vc77",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Send the exact phrase `bắt đầu tối ưu lại mô hình` in a new session.",
+        "Review the complete D131 planned change list produced from fresh GitHub authority.",
+        "Review the final maximum-envelope usage projection with current provider limits, assumptions and headroom.",
+        "Request any logic changes; require the usage projection to be recalculated after those changes.",
+        "Only when satisfied, explicitly reply OK / đồng ý chạy code / equivalent."
+      ],
+      "pass_criteria": [
+        "Review response contains the full D131 change set and no runtime code is started.",
+        "Usage projection uses the maximum approved model envelope and freshly verified provider limits.",
+        "Any Owner logic changes are reflected and the projection is recalculated.",
+        "Implementation begins only after a separate explicit Owner code authorization.",
+        "Stable remains untouched."
+      ],
+      "safety": "Design/review only until explicit Owner code authorization. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "In the next session, send `bắt đầu tối ưu lại mô hình`, review the complete design and max-envelope usage, then explicitly authorize code only when satisfied.",
       "closed": false
     }
   ]

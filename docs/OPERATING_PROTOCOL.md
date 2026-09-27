@@ -159,3 +159,17 @@ For the Beta PDA↔Agent confirmation path:
 - Protected operations are PRIMARY business query, generation/lease fencing and terminal ACK. When soft ceilings approach, first reduce deep-hibernator fleet refresh, optional diagnostics and cleanup.
 - Do not use Firestore TTL for D131 relay retention. Bounded cleanup must stop before read/delete soft ceilings.
 - A quota-saving optimization may not create a second confirmation provider, weaken single-PRIMARY fencing, or hide an over-budget condition.
+
+
+## D131 review-first continuation routing
+
+Exact Owner phrase **`bắt đầu tối ưu lại mô hình`** routes to the D131 design-review checkpoint.
+
+1. Fresh-bootstrap `ops/authority-manifest.json` and its complete `bootstrap_order`.
+2. Do not mutate runtime/source implementation.
+3. Present the complete D131 planned behavior and resource/cadence changes from canonical authority.
+4. End with a maximum-envelope usage model and current provider-limit comparison, including assumptions and headroom.
+5. If Owner edits logic, update/review the design and recalculate usage.
+6. Start code only after a subsequent explicit Owner approval such as **OK / đồng ý chạy code**.
+7. Implementation must use a new short-lived branch from then-current `main`; never continue implementation directly on the design-record branch.
+8. Stable remains OWNER-GATED.

@@ -813,10 +813,21 @@ Stable remains OWNER-GATED.
 
 ## D131 — Agent fleet and counter presentation
 
-- Hệ thống Agent shows at most 6 fleet rows.
+- Hệ thống Agent supports up to 20 fleet rows with internal scrolling.
 - Each row shows concise role/state: PRIMARY, NGỦ ĐÔNG · NEXT A, NGỦ ĐÔNG · NEXT B, or NGỦ ĐÔNG; plus Agent auth, Web Confirm readiness, Firestore readiness and last_seen.
 - Deep-hibernating rows must show freshness age when their state is coarse; do not present stale data as realtime.
 - Daily PickList counters are one shared fleet view: Picklist nhận | Picklist xác nhận | Picklist lỗi.
-- PRIMARY may update its local counter presentation immediately. Other Agents may lag until the next coordination read, but after takeover the promoted PRIMARY must reconcile before presenting itself as authoritative.
+- Counter presentation is durable-state based. Non-primary Agents refresh the compact snapshot every 10 minutes or on foreground/manual refresh; promoted PRIMARY reconstructs exact durable totals before presenting itself as authoritative.
 - PDA list remains event-driven and preserves scroll/search. A request already consumed by PRIMARY may refresh the matching PDA last activity locally without forcing a provider refresh.
 - Outside 05:00–23:00 with no overtime, the UI explicitly shows PDA ↔ Agent: Tạm dừng ngoài giờ rather than appearing disconnected/broken.
+
+
+### D131 refinement — warm browser and 10-minute fleet presentation
+
+- Fleet table supports up to 20 Agents with internal scrolling.
+- Each Agent keeps the managed Confirm browser prepared even when relay-hibernating, because local/manual PickList confirmation must remain available on that laptop.
+- Ngủ đông means no PDA business-queue work; it must not imply that Web Confirm is closed.
+- Show Web Confirm readiness separately from relay role. A hibernating Agent may display Ngủ đông | Web Confirm sẵn sàng.
+- Shared PickList counters are durable daily values, not local-RAM totals.
+- PRIMARY may show the newest committed durable values; other Agents refresh the compact fleet/counter snapshot every 10 minutes, on foreground activation, or by explicit refresh.
+- Every non-realtime fleet/counter value shows a freshness age/time so a 10-minute snapshot is never presented as second-by-second realtime.
