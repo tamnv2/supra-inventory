@@ -1420,3 +1420,20 @@ D126 cannot PASS until all applicable checks below pass:
 11. CI rejects Network/cookie/storage capture, direct WMS API access, browser-identification spoofing and regression to forced same-tab popup handling.
 12. Probe v2 output is diagnostic evidence only; Agent behavior is not changed by this change set.
 13. Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
+
+## D127-v67 — Dashboard click + real child popup acceptance
+
+1. Agent build is 67 and owned WebView2 host build is 10.
+2. Login-required case preserves the exact **Lưu thông tin đăng nhập** pause and one post-login canonical Confirm retry; no Dashboard click occurs while the login marker is visible.
+3. Stored-session case: when canonical Confirm settles on exact auth Dashboard, Agent waits at least 750 ms and performs at most one Dashboard access attempt.
+4. Dashboard target selection uses the Probe-v2 field-proven right-arrow selector and HY1/SFT3 semantic-card disambiguation. Ambiguous or missing targets fail closed.
+5. The automatic action is only `button.click()`. No CDP mouse, keyboard simulation, userGesture injection, cursor movement or stealth/browser-identity modification is permitted.
+6. The WebView2 host must not convert validated Dashboard `NewWindowRequested` into same-tab `Navigate()`. It must create a child WebView2 with the same environment/profile, assign `e.NewWindow`, and keep the opener context alive.
+7. Agent must reattach DevTools to an HTTPS WMS child page target. The auth Dashboard target must not be used for post-popup Confirm operations.
+8. Direct Agent navigation to `/sft3/session` is forbidden. That path may appear only as a page-generated popup/navigation target.
+9. While the attached child is on `/sft3/session` or `/sft3/`, recovery remains bounded. When exact `/sft3/app/dashboard` loads, Agent performs exactly one canonical Confirm navigation.
+10. Missing popup target, child attach failure, ambiguous Dashboard target or SFT3 flow timeout produces a terminal Dashboard-access failure; no click/navigation loop.
+11. D126 page-size 100, search retry, exact row resolution, checkbox uniqueness/verification, exact confirmation modal and uncertain-terminal fail-closed guards remain unchanged.
+12. Existing HA, idempotency, Firestore cadence, quota and schedule guards remain unchanged.
+13. No Network/cookie/token/header/storage/request/profile extraction or direct WMS API is introduced.
+14. Android remains beta-vc76; Stable remains OWNER-GATED and untouched.
