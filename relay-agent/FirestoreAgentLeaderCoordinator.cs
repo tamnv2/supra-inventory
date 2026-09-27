@@ -328,7 +328,7 @@ namespace SupraInventoryRelayAgent
                     var next = new FirestoreRoleSnapshot
                     {
                         PrimaryAgentInstanceId = _instanceId,
-                        StandbyAgentInstanceId = read.Snapshot.NextBAgentInstanceId ?? "",
+                        StandbyAgentInstanceId = "",
                         NextBAgentInstanceId = "",
                         Generation = Guid.NewGuid().ToString("N"),
                         UpdatedAtMs = NowMs()
@@ -433,7 +433,8 @@ namespace SupraInventoryRelayAgent
                     var next = new FirestoreRoleSnapshot
                     {
                         PrimaryAgentInstanceId = _instanceId,
-                        StandbyAgentInstanceId = "",
+                        StandbyAgentInstanceId = read.Snapshot.NextBAgentInstanceId ?? "",
+                        NextBAgentInstanceId = "",
                         Generation = Guid.NewGuid().ToString("N"),
                         UpdatedAtMs = NowMs()
                     };
@@ -597,7 +598,7 @@ namespace SupraInventoryRelayAgent
                         };
                         if (TryWriteRoles(session, relinquish, read))
                         {
-                            SetRole(FirestoreAgentRole.DEEP_HIBERNATE, relinquish.PrimaryAgentInstanceId, "", "PRIMARY_WMS_NOT_READY");
+                            SetRole(FirestoreAgentRole.DEEP_HIBERNATE, relinquish.PrimaryAgentInstanceId, relinquish.StandbyAgentInstanceId, "PRIMARY_WMS_NOT_READY");
                             return;
                         }
                         continue;
@@ -621,7 +622,7 @@ namespace SupraInventoryRelayAgent
                         };
                         if (TryWriteRoles(session, clearStandby, read))
                         {
-                            SetRole(FirestoreAgentRole.DEEP_HIBERNATE, clearStandby.PrimaryAgentInstanceId, "", "STANDBY_WMS_NOT_READY");
+                            SetRole(FirestoreAgentRole.DEEP_HIBERNATE, clearStandby.PrimaryAgentInstanceId, clearStandby.StandbyAgentInstanceId, "NEXT_A_WMS_NOT_READY");
                             return;
                         }
                         continue;
@@ -1054,6 +1055,7 @@ namespace SupraInventoryRelayAgent
         private void ApplySnapshot(FirestoreRoleSnapshot snapshot, string reason)
         {
             ApplySharedSchedule(snapshot);
+            lock (_stateGate) _nextBId = snapshot == null ? "" : (snapshot.NextBAgentInstanceId ?? "");
             if (snapshot == null)
             {
                 _generation = "";
