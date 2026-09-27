@@ -285,6 +285,113 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        internal BrowserResourceSnapshot SampleResourceUsage()
+        {
+            lock (_gate)
+            {
+                var output = new BrowserResourceSnapshot { Browser = _browserName ?? "" };
+                if (_disposed || _process == null) return output;
+
+                int rootPid;
+                DateTime rootStarted;
+                try
+                {
+                    if (_process.HasExited) return output;
+                    rootPid = _process.Id;
+                    rootStarted = _process.StartTime;
+                }
+                catch { return output; }
+
+                var ids = ProcessTreeIds(rootPid);
+                if (!ids.Contains(rootPid)) ids.Add(rootPid);
+
+                long workingSet = 0L;
+                var totalCpu = TimeSpan.Zero;
+                var count = 0;
+                foreach (var pid in ids)
+                {
+                    try
+                    {
+                        using (var process = Process.GetProcessById(pid))
+                        {
+                            if (process.HasExited) continue;
+                            totalCpu += process.TotalProcessorTime;
+                            workingSet += Math.Max(0L, process.WorkingSet64);
+                            count++;
+                        }
+                    }
+                    catch { }
+                }
+
+                var now = DateTime.UtcNow;
+                double cpu = 0d;
+                if (_resourceRootPid == rootPid &&
+                    _resourceSampleAtUtc != DateTime.MinValue &&
+                    now > _resourceSampleAtUtc &&
+                    totalCpu >= _resourceCpuTotal)
+                {
+                    var elapsedMs = (now - _resourceSampleAtUtc).TotalMilliseconds;
+                    var cpuMs = (totalCpu - _resourceCpuTotal).TotalMilliseconds;
+                    if (elapsedMs > 0d)
+                        cpu = Math.Max(0d, Math.Min(100d,
+                            cpuMs / elapsedMs / Math.Max(1, Environment.ProcessorCount) * 100d));
+                }
+
+                _resourceRootPid = rootPid;
+                _resourceCpuTotal = totalCpu;
+                _resourceSampleAtUtc = now;
+
+                output.Available = count > 0;
+                output.CpuPercent = cpu;
+                output.WorkingSetBytes = workingSet;
+                output.ProcessCount = count;
+                output.RunningFor = DateTime.Now > rootStarted ? DateTime.Now - rootStarted : TimeSpan.Zero;
+                return output;
+            }
+        }
+
+        private static HashSet<int> ProcessTreeIds(int rootPid)
+        {
+            var parentByPid = SnapshotParentProcessIds();
+            var output = new HashSet<int> { rootPid };
+            var changed = true;
+            while (changed)
+            {
+                changed = false;
+                foreach (var pair in parentByPid)
+                {
+                    if (output.Contains(pair.Key) || !output.Contains(pair.Value)) continue;
+                    output.Add(pair.Key);
+                    changed = true;
+                }
+            }
+            return output;
+        }
+
+        private static Dictionary<int, int> SnapshotParentProcessIds()
+        {
+            var output = new Dictionary<int, int>();
+            var snapshot = CreateToolhelp32Snapshot(Th32csSnapProcess, 0);
+            if (snapshot == InvalidHandleValue) return output;
+            try
+            {
+                var entry = new ProcessEntry32();
+                entry.dwSize = (uint)Marshal.SizeOf(typeof(ProcessEntry32));
+                if (!Process32First(snapshot, ref entry)) return output;
+                do
+                {
+                    output[(int)entry.th32ProcessID] = (int)entry.th32ParentProcessID;
+                    entry.dwSize = (uint)Marshal.SizeOf(typeof(ProcessEntry32));
+                }
+                while (Process32Next(snapshot, ref entry));
+            }
+            finally
+            {
+                CloseHandle(snapshot);
+            }
+            return output;
+        }
+
         internal SupraBrowserSearchResult SearchMany(IEnumerable<string> fragments, bool allowOneSearchClick)
         {
             var started = Stopwatch.StartNew();
