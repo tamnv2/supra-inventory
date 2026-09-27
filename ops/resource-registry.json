@@ -814,8 +814,8 @@
     "inventory_channel_release_id": 394587029,
     "inventory_channel_manifest_asset_id": 591974644,
     "inventory_channel_exe_asset_id": 591974642,
-    "next_target_release": "DIAGNOSTIC_D127_DASHBOARD_PROBE_V2",
-    "next_source_status": "D127_V66_FIELD_FAIL__PROBE_V2_IMPLEMENTING__OA052_PENDING",
+    "next_target_release": "FIELD_EVIDENCE_OA052_D127_DASHBOARD_PROBE_V2",
+    "next_source_status": "D127_V66_FIELD_FAIL__PROBE_V2_RELEASE_PASS__OA052_LOG_PENDING",
     "release_publish_run": 36286366107,
     "wms_health": "MANAGED_BROWSER_CONFIRM_PAGE_READINESS_ONLY",
     "schedule_authority": "KEEP_D117_D118_CONFIRMATION_RELAY_SCHEDULE",
@@ -824,7 +824,7 @@
     "session_recovery": "USER_REOPENS_OR_LOGS_IN_BROWSER__NO_AGENT_SESSION_CAPTURE",
     "browser_runtime": "EXPLICIT_AGENT_WEBVIEW2_FIXED_X64__HOST_BUILD_9_REUSED__AUTH_DASHBOARD_TO_FIXED_/sft3/session__10S_BOUNDED_BOOTSTRAP__WAIT_/sft3/app/dashboard__THEN_CONFIRM_ONCE__NO_DASHBOARD_CLICK",
     "local_storage": "DISPLAY_RUNTIME_PROFILE_CACHE_OTHER_TOTAL_BREAKDOWN__OPEN_BROWSER_DATA_FOLDER__AUTO_DELETE_OBSOLETE_WV2_BUNDLES__KEEP_ACTIVE_AND_PROFILE",
-    "dashboard_probe": "D127_V2_IMPLEMENTING__EXPLICIT_AUTO_VS_TRUSTED_CLICK_COMPARISON__DEFAULT_NEW_WINDOW__LOCAL_SANITIZED_LOG"
+    "dashboard_probe": "D127_V2_RELEASED_FIELD_READY__EXPLICIT_AUTO_VS_TRUSTED_CLICK__DEFAULT_POPUP__LOCAL_SANITIZED_LOG"
   },
   "distribution_channel": {
     "environment": "beta",
@@ -1197,7 +1197,7 @@
     "h4_implementation_pr": 206
   },
   "d127": {
-    "status": "V66_FIELD_FAIL__DASHBOARD_PROBE_V2_IMPLEMENTING",
+    "status": "DASHBOARD_PROBE_V2_RELEASE_PASS__OA052_FIELD_READY",
     "target_agent_release": "relay-agent-v66",
     "android": "beta-vc76 unchanged",
     "browser_bundle": "inventory-channel / WebView2 Fixed 154.0.4258.37",
@@ -1221,6 +1221,14 @@
     "v66_release_sha256": "3093d244aa97a28bf855b76d41554a43fcf4a7fcbe9d7d3c91de87503a5653d0",
     "dashboard_probe_v2_release_target": "d127-dashboard-probe-v2",
     "dashboard_probe_v2_policy": "USER_URL_APPROVED_HOSTS_ONLY__MANUAL_LOGIN__EXPLICIT_BOUNDED_AUTO__CLICK_ONLY_MONITOR__DEFAULT_POPUP",
-    "dashboard_probe_v2_security": "LOCAL_SANITIZED_LOG_ONLY__NO_SENSITIVE_CAPTURE__NO_STEALTH"
+    "dashboard_probe_v2_security": "LOCAL_SANITIZED_LOG_ONLY__NO_SENSITIVE_CAPTURE__NO_STEALTH",
+    "dashboard_probe_v2_release": "d127-dashboard-probe-v2",
+    "dashboard_probe_v2_release_id": 397490971,
+    "dashboard_probe_v2_source_main": "2286f553c17722dce9a932d2aa09a75bd387750e",
+    "dashboard_probe_v2_main_run": 36290763125,
+    "dashboard_probe_v2_zip_asset_id": 592021858,
+    "dashboard_probe_v2_zip_size_bytes": 488910,
+    "dashboard_probe_v2_zip_sha256": "1111204c23ce1e121c47d3859c0193c467b90f1eca70867028fba3fbb282f0fa",
+    "dashboard_probe_v2_checksum_asset_id": 592021856
   }
 }
