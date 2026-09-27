@@ -374,3 +374,13 @@ The Android App uses an operational display projection, not a retention change.
 - Daily detailed export reads the selected day's bounded job set once and produces a file with the authorized audit columns. The existing Beta exports/Drive resource may be reused; normal Agent laptops never receive Drive secrets.
 - At the design volume of about 1,200 jobs/day, a once-per-day detailed export is expected to cost roughly one document read per exported job, while count aggregation is substantially cheaper because Firestore bills aggregation by index entries scanned.
 - Retain Firestore job detail only for the bounded operational window needed for audit/reconciliation; longer-term file retention may use the existing scoped Drive exports area. Cleanup remains bounded and does not use TTL.
+
+
+### D131 daily Drive export scheduling
+
+- One logical detailed audit file is produced per Asia/Ho_Chi_Minh business day.
+- Business-day boundary is 05:00 local time; jobs from authorized late overtime before 05:00 belong to the preceding business day.
+- Server-side scheduled execution target is 05:10 local time for the just-closed business day.
+- Export is independent of Windows Agent liveness because its source is durable Firestore state and its destination is the existing scoped Beta Drive exports folder.
+- Use an idempotent business-day export key/file identity. Bounded retries after temporary provider failure must not create duplicate daily files.
+- A successful export checkpoint records business date, generated-at, row count and file identity/reference; secrets and provider access tokens are never persisted in the export.
