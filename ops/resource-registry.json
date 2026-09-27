@@ -1252,13 +1252,23 @@
     "field_acceptance": "PASS__2026_09_27__V67_CONFIRM_ACCESS"
   },
   "d128": {
-    "status": "OWNER_APPROVED__V68_IMPLEMENTATION_IN_PROGRESS",
+    "status": "TECHNICAL_RELEASE_PASS__FIELD_ACCEPTANCE_PENDING",
     "resource_change": "NONE__USES_EXISTING_SCOPED_AGENT_AND_SUPRA_BROWSER_RESOURCES",
     "agent_browser_behavior": "OWNED_WEBVIEW2_BACKGROUND_DEFAULT__SHOW_ONLY_FOR_MANUAL_LOGIN__HIDE_AFTER_READY",
     "readiness_barrier": "VALID_AGENT_SESSION_PLUS_CONFIRM_READY_REQUIRED_BEFORE_CONFIRM_DEPENDENT_BUSINESS_LOGIC",
     "observability": "LOCAL_PROCESS_METRICS_ONLY__VISIBLE_MAIN_WINDOW_ONLY__BROWSER_PROCESS_TREE_AGGREGATION__NO_UPLOAD",
     "overlay": "LOCAL_UI_ONLY__EXISTING_PICKLIST_COUNTERS__CLICK_THROUGH_WHEN_LOCKED__PERSIST_LOCAL_SETTINGS",
+    "implementation_pr": 249,
+    "main_merge": "921f52274d1634d11cad2ea0ed439d3dfa2eaa21",
+    "main_relay_agent_run": 36300178380,
+    "main_ui_run": 36300178365,
     "target_agent_release": "relay-agent-v68",
+    "agent_release_id": 397536007,
+    "agent_asset_id": 592310281,
+    "agent_size_bytes": 380416,
+    "agent_sha256": "23b23d24418f15a2a7b028df2cc1ac595319ead7a177276e3828a1bc298c4618",
+    "agent_checksum_asset_id": 592310280,
+    "field_acceptance": "PENDING__OA053",
     "stable": "OWNER_GATED_UNTOUCHED"
   }
 }
