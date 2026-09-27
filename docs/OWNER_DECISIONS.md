@@ -1495,3 +1495,18 @@ Approved v66 behavior:
 - For other stable loaded non-login/non-Confirm destinations, preserve the v65 one direct Confirm retry behavior.
 - No Dashboard DOM selector/click automation, screen-coordinate automation, Network DevTools, cookie/token/header/storage extraction, direct WMS API, or session-file capture is introduced.
 - WebView2 Fixed Runtime remains `154.0.4258.37 x64`, host build 9 is reused, Android remains `beta-vc76`, and Stable remains OWNER-GATED.
+
+## D127 v66 release checkpoint — SFT3 session bootstrap — 2026-09-27
+
+The D127 Dashboard Probe v1 field evidence established that the missing Dashboard action is the browser UI session route `https://wms-supra.winmart.vn/sft3/session`. v66 implements that exact bounded bootstrap without Dashboard DOM clicking.
+
+Release evidence:
+- PR #242 passed Repo Authority, Project State, UI Design, Verify Beta Relay Agent, D127 Dashboard Probe, Firestore and RTDB gates, then squash-merged to `main` at `a65437585bb86ad187c733d7dca80a441047f2fa`.
+- Main **Verify Beta Relay Agent** run `36289263800` completed **PASS**.
+- Agent release: `relay-agent-v66`, release id `397480817`.
+- Canonical EXE asset id `591974558`, size `352256` bytes, SHA-256 `3093d244aa97a28bf855b76d41554a43fcf4a7fcbe9d7d3c91de87503a5653d0`.
+- Inventory channel advanced to Agent manifest asset `591974644` and EXE asset `591974642`.
+- WebView2 Fixed Runtime remains `154.0.4258.37 x64` and host build 9 is reused; the browser bundle was not republished for this controller-only correction.
+- Android remains `beta-vc76`. Stable remains OWNER-GATED and untouched.
+
+D127 v66 is **TECHNICAL / RELEASE PASS**. OA052 remains open for the Owner to verify the real already-authenticated Dashboard path and the logged-out/login regression path on the company laptop.

@@ -353,7 +353,7 @@
       "exposure": "public_corporate_hostname",
       "guard": "D126_D127_BROWSER_UI_ONLY__USER_LOGS_IN_DIRECTLY__NO_SESSION_CAPTURE_EXTRACTION_REPLAY__CONFIRM_DOM_AUTOMATION__D127_FIXED_SESSION_ACTIVATION_ROUTE_ALLOWED",
       "allowed_reference_page": "https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm",
-      "status": "D127_V66_BROWSER_UI_SESSION_ACTIVATION_ALLOWED__NO_API",
+      "status": "D127_V66_SESSION_ACTIVATION_ROUTE_RELEASED__FIELD_ACCEPTANCE_PENDING",
       "allowed_session_activation_page": "https://wms-supra.winmart.vn/sft3/session"
     },
     {
