@@ -73,9 +73,9 @@ jobs:
           $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
           $projection = Get-Content service/src/firestore-projection.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*67\s*;') { throw "D127 v67 requires Agent v67." }
-          if ($project -notmatch '<AssemblyVersion>0\.67\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.67\.0\.0</FileVersion>') {
-            throw "D127 v67 assembly/file version must be 0.67."
+          if ($config -notmatch 'AgentBuild\s*=\s*68\s*;') { throw "D128 requires Agent v68." }
+          if ($project -notmatch '<AssemblyVersion>0\.68\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.68\.0\.0</FileVersion>') {
+            throw "D128 assembly/file version must be 0.68."
           }
 
           foreach ($marker in @(
@@ -277,6 +277,36 @@ jobs:
             '--d096-self-test'
           )) {
             if ($program.Contains($forbidden)) { throw "D126 Program retains retired WMS/session path: $forbidden" }
+          }
+
+          foreach ($marker in @(
+            'HasOperationalReadiness',
+            'ReconcileOperationalReadiness',
+            'QueueD128BrowserStateRefresh',
+            'EnsureD128BrowserReadyPath',
+            'SetD128ResourceMonitoringPaused',
+            'ApplyD128ResourceMetrics',
+            'Picklist nhận:',
+            'Picklist xác nhận:',
+            'Picklist lỗi:',
+            'Cài đặt bảng nổi'
+          )) {
+            if (-not $program.Contains($marker) -and -not $ops.Contains($marker)) { throw "D128 Agent marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'OpenAgentBackground',
+            'IsAgentOwnedMode',
+            'IsDesktopSelected',
+            'SampleResourceUsage',
+            'CreateToolhelp32Snapshot',
+            'ProcessTreeIds',
+            'state.LoginMarkerDetected && _hidden',
+            'state.Ready && !_hidden'
+          )) {
+            if (-not $browser.Contains($marker)) { throw "D128 browser marker missing: $marker" }
+          }
+          if ($program.Contains('_trayStatusItem.Text = metrics.MenuText()')) {
+            throw "D128 must not expose CPU/RAM through tray hover/status."
           }
 
           foreach ($retiredFile in @(
