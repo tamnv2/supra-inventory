@@ -1134,8 +1134,7 @@ namespace SupraDashboardProbe
                 "};" +
                 "const locate=()=>{" +
                 "walk(document,0,0);" +
-                "const targeted=[];" +
-                "const fallback=[];" +
+                "const candidates=[];" +
                 "let arrows=0;" +
                 "for(const item of docs){" +
                 "const d=item.doc;" +
@@ -1147,39 +1146,47 @@ namespace SupraDashboardProbe
                 "const b=p.closest('button,[role=button],a');" +
                 "if(!b||!vis(b)||b.disabled||b.getAttribute('aria-disabled')==='true')continue;" +
                 "const br=b.getBoundingClientRect();" +
-                "const candidate={button:b,x:item.ox+br.left+br.width/2,y:item.oy+br.top+br.height/2};" +
-                "fallback.push(candidate);" +
-                "let c=b;" +
-                "let ok=false;" +
-                "for(let i=0;i<10&&c;i++,c=c.parentElement){" +
-                "const t=norm(c.innerText||c.textContent);" +
-                "if(t.includes('kho hưng yên 1')&&t.includes('sft3')){" +
-                "ok=true;break;" +
+                "let best=null;" +
+                "let node=b;" +
+                "for(let depth=0;node&&depth<10;depth++,node=node.parentElement){" +
+                "if(!vis(node))continue;" +
+                "const t=norm(node.innerText||node.textContent);" +
+                "if(!t.includes('sft3'))continue;" +
+                "if(!(t.includes('kho hưng yên 1')||t.includes('hy1')))continue;" +
+                "const rr=node.getBoundingClientRect();" +
+                "const area=Math.max(1,rr.width*rr.height);" +
+                "if(!best||area<best.area)best={area:area,depth:depth};" +
+                "}" +
+                "candidates.push({" +
+                "button:b," +
+                "x:item.ox+br.left+br.width/2," +
+                "y:item.oy+br.top+br.height/2," +
+                "area:best?best.area:Number.MAX_VALUE," +
+                "matched:!!best" +
+                "});" +
                 "}" +
                 "}" +
-                "if(ok)targeted.push(candidate);" +
+                "const matched=candidates.filter(x=>x.matched);" +
+                "let selected=[];" +
+                "let reason='NOT_FOUND';" +
+                "if(matched.length===1){selected=matched;reason='HY1_SFT3_UNIQUE';}" +
+                "else if(matched.length>1){" +
+                "const min=Math.min(...matched.map(x=>x.area));" +
+                "const smallest=matched.filter(x=>x.area<=min*1.05);" +
+                "if(smallest.length===1){selected=smallest;reason='HY1_SFT3_SMALLEST_CARD';}" +
+                "else reason='HY1_SFT3_AMBIGUOUS';" +
                 "}" +
-                "}" +
-                "const dedupe=a=>{" +
-                "const out=[];" +
-                "for(const x of a)if(!out.some(y=>y.button===x.button))out.push(x);" +
-                "return out;" +
-                "};" +
-                "const primary=dedupe(targeted);" +
-                "const all=dedupe(fallback);" +
-                "const selected=primary.length===1?primary:(primary.length===0&&all.length===1?all:[]);" +
-                "const reason=primary.length===1?'HY1_SFT3_UNIQUE':" +
-                "(primary.length>1?'HY1_SFT3_AMBIGUOUS':" +
-                "(all.length===1?'UNIQUE_ARROW_FALLBACK':" +
-                "(all.length===0?'NOT_FOUND':'ARROW_AMBIGUOUS')));" +
+                "else if(candidates.length===1){selected=candidates;reason='UNIQUE_ARROW_FALLBACK';}" +
+                "else if(candidates.length>1){reason='ARROW_AMBIGUOUS';}" +
+                "const chosen=selected.length===1?selected[0]:null;" +
                 "return {" +
-                "unique:selected.length===1," +
-                "button:selected.length===1?selected[0].button:null," +
-                "x:selected.length===1?selected[0].x:0," +
-                "y:selected.length===1?selected[0].y:0," +
+                "unique:!!chosen," +
+                "button:chosen?chosen.button:null," +
+                "x:chosen?chosen.x:0," +
+                "y:chosen?chosen.y:0," +
                 "docs:docs.length," +
                 "arrows:arrows," +
-                "targets:primary.length," +
+                "targets:matched.length," +
                 "reason:reason" +
                 "};" +
                 "};";
