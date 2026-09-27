@@ -1874,18 +1874,20 @@ namespace SupraInventoryRelayAgent
 
         private void UpdateTrayMonitor()
         {
+            if (!Visible) return;
             if (Interlocked.CompareExchange(ref _trayMonitorRefreshRunning, 1L, 0L) != 0L) return;
 
-            // D121: PerformanceCounter/GPU/NIC sampling can occasionally stall while
-            // Windows rebuilds counters or adapters. Keep it completely off the UI thread
-            // and coalesce overlapping 5-second timer ticks.
+            // D128: resource sampling is visible-window only. Background operation keeps
+            // business/readiness logic alive but does not read PerformanceCounter or
+            // managed browser process CPU/RAM.
             Task.Run(() =>
             {
                 try
                 {
                     var metrics = _systemMonitor.Sample();
-                    RefreshSupraBrowserStatus();
-                    Ui(() => ApplyTrayMonitor(metrics));
+                    BrowserResourceSnapshot browser = null;
+                    try { browser = _supraBrowser == null ? null : _supraBrowser.SampleResourceUsage(); } catch { }
+                    Ui(() => ApplyTrayMonitor(metrics, browser));
                 }
                 catch
                 {
@@ -1898,19 +1900,17 @@ namespace SupraInventoryRelayAgent
             });
         }
 
-        private void ApplyTrayMonitor(SystemMetrics metrics)
+        private void ApplyTrayMonitor(SystemMetrics metrics, BrowserResourceSnapshot browser)
         {
             if (InvokeRequired)
             {
-                BeginInvoke(new Action<SystemMetrics>(ApplyTrayMonitor), metrics);
+                BeginInvoke(new Action<SystemMetrics, BrowserResourceSnapshot>(ApplyTrayMonitor), metrics, browser);
                 return;
             }
             try
             {
-                var compact = metrics.Compact();
-                if (compact.Length > 63) compact = compact.Substring(0, 63);
-                _tray.Text = compact;
-                _trayStatusItem.Text = metrics.MenuText();
+                _tray.Text = "Agent Auto Confirm Pick Pack";
+                ApplyD128ResourceMetrics(metrics, browser);
 
                 var online = _leaderCoordinator == null
                     ? (_listenCts != null ? 1 : (HasReadyConfirmBrowser() ? 1 : 0))
@@ -1947,8 +1947,7 @@ namespace SupraInventoryRelayAgent
 
         private void ApplyTrayMonitorUnavailable()
         {
-            _tray.Text = "SUPRA Agent";
-            _trayStatusItem.Text = "Máy: chưa đọc được tài nguyên";
+            _tray.Text = "Agent Auto Confirm Pick Pack";
         }
 
         private void SetProbeButtonsEnabled(bool enabled)
