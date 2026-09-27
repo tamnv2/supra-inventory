@@ -479,6 +479,7 @@ namespace SupraInventoryRelayAgent
         private readonly System.Windows.Forms.Timer _guardTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer _afterHoursTimer = new System.Windows.Forms.Timer();
         private long _trayMonitorRefreshRunning;
+        private long _browserStatusRefreshRunning;
         private long _afterHoursScheduleRefreshRunning;
         private long _networkStatusRefreshRunning;
         private long _watchdogRefreshRunning;
