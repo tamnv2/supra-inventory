@@ -112,7 +112,7 @@ checks = {
     "agent_d121_system_monitor_off_ui_thread": all(token in RELAY_PROGRAM for token in [
         "Interlocked.CompareExchange(ref _trayMonitorRefreshRunning",
         "var metrics = _systemMonitor.Sample();",
-        "Ui(() => ApplyTrayMonitor(metrics));",
+        "Ui(() => ApplyTrayMonitor(metrics, browser));",
         "Interlocked.Exchange(ref _trayMonitorRefreshRunning, 0L)",
     ]),
     "agent_d122_remaining_blockers_off_ui_thread": all(token in RELAY_PROGRAM for token in [
@@ -143,6 +143,37 @@ checks = {
         and not (ROOT / "relay-agent/StatusOverlay.cs").is_file()
         and not (ROOT / "relay-agent/OverlaySettingsForm.cs").is_file()
     ),
+    "authority_d128_readiness_resource_overlay": (
+        "D128" in DECISIONS
+        and "Picklist overlay" in DECISIONS
+        and "D128 Windows Agent resource/status presentation" in DESIGN_SPEC
+    ),
+    "agent_d128_resource_monitor_pauses_hidden": all(token in RELAY_PROGRAM for token in [
+        "_trayMonitorTimer.Stop();",
+        "SetD128ResourceMonitoringPaused();",
+        "if (!Visible) return;",
+        "SampleResourceUsage()",
+        '_tray.Text = "Agent Auto Confirm Pick Pack"',
+    ]) and "_trayStatusItem.Text = metrics.MenuText()" not in RELAY_PROGRAM,
+    "agent_d128_picklist_overlay": all(token in RELAY_D119_FEATURES for token in [
+        "Picklist nhận:",
+        "Picklist xác nhận:",
+        "Picklist lỗi:",
+        "Cài đặt bảng nổi",
+        "SetOverlayVisible",
+        "SetLocked",
+        "SetOverlayOpacity",
+        "SetBackgroundColor",
+        "SetTextColor",
+        "WsExTransparent",
+    ]),
+    "agent_d128_readiness_barrier": all(token in RELAY_PROGRAM for token in [
+        "HasOperationalReadiness",
+        "ReconcileOperationalReadiness",
+        "QueueD128BrowserStateRefresh",
+        "EnsureD128BrowserReadyPath",
+    ]),
+
     "agent_d126_sku_manual_file_only": all(token not in RELAY_D119_FEATURES for token in [
         "RunSkuSync",
         "FirestoreSkuSyncClient",
