@@ -21,9 +21,11 @@ namespace SupraInventoryRelayAgent
             var width = Math.Max(420, _supraCard.ClientSize.Width);
             var openWidth = Math.Max(150, (width - 40) / 2);
 
-            _wmsStatus.SetBounds(16, 42, 260, 22);
-            _supraInfo.SetBounds(286, 42, Math.Max(120, width - 302), 22);
-            _supraInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            _wmsStatus.SetBounds(16, 42, 220, 22);
+            _supraInfo.SetBounds(246, 42, 250, 22);
+            _supraInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            _d128BrowserResourceStatus.SetBounds(506, 42, Math.Max(120, width - 522), 22);
+            _d128BrowserResourceStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
             _wmsCapture.SetBounds(16, 72, openWidth, 32);
             _wmsDesktop.SetBounds(24 + openWidth, 72, Math.Max(150, width - 40 - openWidth), 32);
@@ -67,6 +69,8 @@ namespace SupraInventoryRelayAgent
         private readonly Label _pickerOnlineStatus = new Label();
         private readonly Label _fleetMetricStatus = new Label();
         private readonly Label _agentRequestMetrics = new Label();
+        private readonly Label _d128AgentResourceStatus = new Label();
+        private readonly Label _d128BrowserResourceStatus = new Label();
         private readonly TextBox _pickerSearch = new TextBox();
         private List<PickerPresenceView> _pickerOnlineSnapshot = new List<PickerPresenceView>();
         private string _pickerOnlineRenderSignature = "";
@@ -119,6 +123,15 @@ namespace SupraInventoryRelayAgent
             var agentHost = _username.Parent;
             if (agentHost != null)
             {
+                _d128AgentResourceStatus.Text = "Tài nguyên Agent: chờ đo...";
+                _d128AgentResourceStatus.ForeColor = Color.FromArgb(88, 104, 115);
+                _d128AgentResourceStatus.AutoEllipsis = true;
+                _d128AgentResourceStatus.TextAlign = ContentAlignment.MiddleRight;
+                _d128AgentResourceStatus.SetBounds(420, 38, Math.Max(160, agentHost.ClientSize.Width - 436), 20);
+                _d128AgentResourceStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+                agentHost.Controls.Add(_d128AgentResourceStatus);
+                _d128AgentResourceStatus.BringToFront();
+
                 _agentRequestMetrics.Text = "Xác nhận đơn · Nhận 0 · Đã xử lý 0 · Thành công 0 · Lỗi 0 · Chờ 0";
                 _agentRequestMetrics.ForeColor = Color.FromArgb(71, 85, 105);
                 _agentRequestMetrics.AutoEllipsis = true;
@@ -129,6 +142,12 @@ namespace SupraInventoryRelayAgent
 
             if (_supraCard != null)
             {
+                _d128BrowserResourceStatus.Text = "Tài nguyên Web: chờ đo...";
+                _d128BrowserResourceStatus.ForeColor = Color.FromArgb(88, 104, 115);
+                _d128BrowserResourceStatus.AutoEllipsis = true;
+                _d128BrowserResourceStatus.Font = new Font("Segoe UI", 8F);
+                _supraCard.Controls.Add(_d128BrowserResourceStatus);
+                _d128BrowserResourceStatus.BringToFront();
                 LayoutSupraCardControls();
             }
 
