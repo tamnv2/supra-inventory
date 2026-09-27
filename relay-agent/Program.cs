@@ -451,6 +451,9 @@ namespace SupraInventoryRelayAgent
         private readonly Label _network = new Label();
         private readonly Label _identity = new Label();
         private readonly Label _agentAuthStatus = new Label();
+        private readonly Label _agentCardTitle = new Label();
+        private readonly Label _supraCardTitle = new Label();
+        private readonly Label _picklistCardTitle = new Label();
         private Panel _supraCard;
         private readonly TextBox _manualPicklistQuery = new TextBox();
         private readonly Button _manualPicklistSearch = new Button();
@@ -499,6 +502,8 @@ namespace SupraInventoryRelayAgent
         private volatile bool _supraBrowserHidden;
         private volatile bool _relayPollHealthyObserved;
         private string _supraBrowserState = "NOT_OPEN";
+        private string _currentWifiName = "đang đọc...";
+        private bool _autoAgentBrowserSuppressedByUser;
         private readonly FirestorePickerRateLimiter _firestoreRateLimiter = new FirestorePickerRateLimiter();
         private readonly FirestoreConfirmationGuard _confirmationGuard = new FirestoreConfirmationGuard();
         private readonly FirestoreAgentSessionGate _agentSessionGate;
@@ -853,22 +858,18 @@ namespace SupraInventoryRelayAgent
             var agentCard = NewCard(0, 0, 1040, 320);
             agentCard.Dock = DockStyle.Fill;
             agentCard.Margin = new Padding(0, 0, 0, 8);
-            agentCard.Controls.Add(new Label
-            {
-                Left = 16,
-                Top = 10,
-                Width = 980,
-                Height = 24,
-                Text = "Hệ thống Agent",
-                Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold),
-                ForeColor = Color.FromArgb(24, 43, 55),
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
-            });
+            _agentCardTitle.SetBounds(16, 10, 980, 24);
+            _agentCardTitle.Text = "Hệ thống Agent | Chưa đăng nhập";
+            _agentCardTitle.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
+            _agentCardTitle.ForeColor = Color.FromArgb(24, 43, 55);
+            _agentCardTitle.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            agentCard.Controls.Add(_agentCardTitle);
 
             _agentAuthStatus.SetBounds(16, 38, 980, 20);
             _agentAuthStatus.Text = "CHƯA ĐĂNG NHẬP";
             _agentAuthStatus.ForeColor = Color.FromArgb(180, 76, 60);
             _agentAuthStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            _agentAuthStatus.Visible = false;
             agentCard.Controls.Add(_agentAuthStatus);
 
             agentCard.Controls.Add(new Label { Name = "agent-auth-user-label", Left = 16, Top = 64, Width = 220, Height = 18, Text = "Tài khoản quản trị Agent" });
@@ -988,16 +989,12 @@ namespace SupraInventoryRelayAgent
             _supraCard = NewCard(0, 0, 1040, 96);
             _supraCard.Dock = DockStyle.Fill;
             _supraCard.Margin = new Padding(0, 0, 0, 8);
-            _supraCard.Controls.Add(new Label
-            {
-                Left = 16,
-                Top = 10,
-                Width = 190,
-                Height = 24,
-                Text = "Đăng nhập Supra · v" + AgentConfig.AgentBuild,
-                Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold),
-                ForeColor = Color.FromArgb(24, 43, 55)
-            });
+            _supraCardTitle.SetBounds(16, 10, 980, 24);
+            _supraCardTitle.Text = "Đăng nhập Supra | Chưa sẵn sàng";
+            _supraCardTitle.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
+            _supraCardTitle.ForeColor = Color.FromArgb(24, 43, 55);
+            _supraCardTitle.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            _supraCard.Controls.Add(_supraCardTitle);
             _wmsStatus.SetBounds(16, 42, 300, 22);
             _wmsStatus.Text = "Web Confirm: chưa mở";
             _supraCard.Controls.Add(_wmsStatus);
@@ -1069,16 +1066,11 @@ namespace SupraInventoryRelayAgent
             var directCard = NewCard(0, 0, 1040, 260);
             directCard.Dock = DockStyle.Fill;
             directCard.Margin = Padding.Empty;
-            directCard.Controls.Add(new Label
-            {
-                Left = 16,
-                Top = 10,
-                Width = 620,
-                Height = 24,
-                Text = "Xử lý PickList",
-                Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold),
-                ForeColor = Color.FromArgb(24, 43, 55)
-            });
+            _picklistCardTitle.SetBounds(16, 10, 620, 24);
+            _picklistCardTitle.Text = "Xử lý PickList | Chưa sẵn sàng";
+            _picklistCardTitle.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
+            _picklistCardTitle.ForeColor = Color.FromArgb(24, 43, 55);
+            directCard.Controls.Add(_picklistCardTitle);
 
             _manualPicklistQuery.SetBounds(16, 42, 360, 30);
             _manualPicklistQuery.MaxLength = 220;
