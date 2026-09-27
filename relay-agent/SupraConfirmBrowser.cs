@@ -608,9 +608,10 @@ namespace SupraInventoryRelayAgent
             _loadedNonConfirmObservedUrl = "";
             _loadedNonConfirmObservedAtUtc = DateTime.MinValue;
             _confirmRetryIssuedAtUtc = DateTime.MinValue;
-            _sessionBootstrapIssued = false;
-            _sessionBootstrapFailed = false;
-            _sessionBootstrapIssuedAtUtc = DateTime.MinValue;
+            _dashboardAccessAttemptCount = 0;
+            _dashboardAccessFailed = false;
+            _dashboardWmsTargetAttached = false;
+            _dashboardAccessIssuedAtUtc = DateTime.MinValue;
         }
 
         private void ResetRouteObservationNoLock()
@@ -650,31 +651,61 @@ namespace SupraInventoryRelayAgent
                    string.Equals(uri.AbsolutePath.TrimEnd('/'), WmsAppDashboardPath, StringComparison.OrdinalIgnoreCase);
         }
 
-        private void IssueSessionBootstrapNoLock(string reason)
+        private bool IssueDashboardAccessClickNoLock(string reason)
         {
-            _sessionBootstrapIssued = true;
-            _sessionBootstrapFailed = false;
-            _sessionBootstrapIssuedAtUtc = DateTime.UtcNow;
-            _confirmRouteRetryCount = 0;
-            _confirmRetryIssuedAtUtc = DateTime.MinValue;
+            if (_dashboardAccessAttemptCount >= 1)
+            {
+                _dashboardAccessFailed = true;
+                _log("SUPRA_BROWSER dashboard_access=REFUSED reason=already_attempted no_loop=true");
+                return false;
+            }
+
+            _dashboardAccessAttemptCount = 1;
+            _dashboardAccessFailed = false;
+            _dashboardWmsTargetAttached = false;
+            _dashboardAccessIssuedAtUtc = DateTime.UtcNow;
             ResetRouteObservationNoLock();
 
-            CommandNoLock("Page.navigate", new Dictionary<string, object>
-            {
-                { "url", SessionBootstrapUrl }
-            }, TimeSpan.FromSeconds(5));
+            var raw = EvaluateJsonNoLock(BuildDashboardAccessClickScript());
+            var map = _json.DeserializeObject(raw) as Dictionary<string, object>;
+            var result = map == null ? "DOM_ERROR" : String(map, "result");
+            var reasonCode = map == null ? "DOM_ERROR" : String(map, "reason");
+            var arrows = map == null ? 0 : Int(map, "arrows");
+            var targets = map == null ? 0 : Int(map, "targets");
 
-            _log("SUPRA_BROWSER route_recovery=SFT3_SESSION_BOOTSTRAP reason=" + reason +
-                 " target=/sft3/session field_evidence=manual_dashboard_click");
+            _log("SUPRA_BROWSER dashboard_access=" + result +
+                 " reason=" + reason +
+                 " selector_reason=" + (string.IsNullOrWhiteSpace(reasonCode) ? "UNKNOWN" : reasonCode) +
+                 " arrows=" + arrows +
+                 " targets=" + targets +
+                 " method=DOM_CLICK popup_semantics=preserve");
+
+            if (!string.Equals(result, "CLICKED", StringComparison.Ordinal))
+            {
+                _dashboardAccessFailed = true;
+                return false;
+            }
+
+            try
+            {
+                ReconnectToWmsPageTargetNoLock(TimeSpan.FromSeconds(8));
+                _dashboardWmsTargetAttached = true;
+                _log("SUPRA_BROWSER dashboard_popup=ATTACHED devtools_target=WMS child_context=true");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _dashboardAccessFailed = true;
+                _log("SUPRA_BROWSER dashboard_popup=ATTACH_FAILED type=" + ex.GetType().Name +
+                     " no_direct_session_fallback=true");
+                return false;
+            }
         }
 
         private void IssueDirectConfirmRetryNoLock(string sourceUrl, string reason)
         {
             _confirmRouteRetryCount = 1;
             _confirmRetryIssuedAtUtc = DateTime.UtcNow;
-            _sessionBootstrapIssued = false;
-            _sessionBootstrapFailed = false;
-            _sessionBootstrapIssuedAtUtc = DateTime.MinValue;
             ResetRouteObservationNoLock();
             NavigateConfirmNoLock();
             _log("SUPRA_BROWSER route_recovery=DIRECT_CONFIRM_RETRY retry=1 reason=" + reason +
@@ -683,11 +714,6 @@ namespace SupraInventoryRelayAgent
 
         private bool TryRecoverConfirmRouteNoLock(SupraBrowserState state)
         {
-            // v66 field evidence: a real trusted click on the Supra auth Dashboard opens
-            // https://wms-supra.winmart.vn/sft3/session, which establishes the SFT3 browser
-            // session and redirects through /sft3/ to /sft3/app/dashboard. Only after that
-            // bootstrap completes is the canonical Confirm URL retried. No Dashboard DOM
-            // selector/click automation is required.
             if (_launchMode != BrowserLaunchMode.Agent || state == null || state.Ready)
                 return false;
 
@@ -699,9 +725,10 @@ namespace SupraInventoryRelayAgent
                 _loginMarkerObserved = true;
                 _confirmRouteRetryCount = 0;
                 _confirmRetryIssuedAtUtc = DateTime.MinValue;
-                _sessionBootstrapIssued = false;
-                _sessionBootstrapFailed = false;
-                _sessionBootstrapIssuedAtUtc = DateTime.MinValue;
+                _dashboardAccessAttemptCount = 0;
+                _dashboardAccessFailed = false;
+                _dashboardWmsTargetAttached = false;
+                _dashboardAccessIssuedAtUtc = DateTime.MinValue;
                 ResetRouteObservationNoLock();
                 return false;
             }
@@ -712,9 +739,10 @@ namespace SupraInventoryRelayAgent
                 _loginMarkerObserved = false;
                 _confirmRouteRetryCount = 0;
                 _confirmRetryIssuedAtUtc = DateTime.MinValue;
-                _sessionBootstrapIssued = false;
-                _sessionBootstrapFailed = false;
-                _sessionBootstrapIssuedAtUtc = DateTime.MinValue;
+                _dashboardAccessAttemptCount = 0;
+                _dashboardAccessFailed = false;
+                _dashboardWmsTargetAttached = false;
+                _dashboardAccessIssuedAtUtc = DateTime.MinValue;
                 ResetRouteObservationNoLock();
                 loginJustCleared = true;
                 _log("SUPRA_BROWSER login_marker=CLEARED route_recovery=rearmed");
@@ -727,50 +755,54 @@ namespace SupraInventoryRelayAgent
 
             var now = DateTime.UtcNow;
 
-            if (_sessionBootstrapIssued)
+            // Preserve the already field-proven login path: after the visible login marker
+            // clears, retry the canonical Confirm URL once. If that later settles back on
+            // auth Dashboard, the dashboard-click recovery below gets one bounded attempt.
+            if (loginJustCleared)
             {
+                IssueDirectConfirmRetryNoLock(state.Url, "login_marker_cleared");
+                return true;
+            }
+
+            if (_dashboardAccessAttemptCount > 0)
+            {
+                if (_dashboardAccessFailed)
+                    return false;
+
+                if (!_dashboardWmsTargetAttached)
+                {
+                    if (_dashboardAccessIssuedAtUtc != DateTime.MinValue &&
+                        now - _dashboardAccessIssuedAtUtc < TimeSpan.FromSeconds(8))
+                        return true;
+
+                    _dashboardAccessFailed = true;
+                    _log("SUPRA_BROWSER dashboard_popup=ATTACH_TIMEOUT no_loop=true");
+                    return false;
+                }
+
                 if (IsWmsAppDashboardUrl(state.Url))
                 {
-                    IssueDirectConfirmRetryNoLock(state.Url, "sft3_session_bootstrap_complete");
-                    _log("SUPRA_BROWSER sft3_session=READY dashboard=/sft3/app/dashboard confirm_next=true");
+                    if (_confirmRouteRetryCount == 0)
+                    {
+                        IssueDirectConfirmRetryNoLock(state.Url, "dashboard_popup_sft3_ready");
+                        _log("SUPRA_BROWSER dashboard_popup=SFT3_READY confirm_next=true");
+                    }
                     return true;
                 }
 
                 if (IsWmsSessionTransitionUrl(state.Url) ||
-                    now - _sessionBootstrapIssuedAtUtc < TimeSpan.FromSeconds(10))
+                    now - _dashboardAccessIssuedAtUtc < TimeSpan.FromSeconds(12))
                 {
                     return true;
                 }
 
-                _sessionBootstrapIssued = false;
-                _sessionBootstrapFailed = true;
-                _sessionBootstrapIssuedAtUtc = DateTime.MinValue;
-                _log("SUPRA_BROWSER route_recovery=SFT3_SESSION_BOOTSTRAP_EXHAUSTED no_loop=true");
+                _dashboardAccessFailed = true;
+                _log("SUPRA_BROWSER dashboard_popup=FLOW_TIMEOUT no_loop=true");
                 return false;
             }
 
-            if (_sessionBootstrapFailed)
-                return false;
-
-            if (_confirmRouteRetryCount >= 1)
-            {
-                // Do not call a just-issued Confirm navigation exhausted while WebView2
-                // is still committing/redirecting.
-                return _confirmRetryIssuedAtUtc != DateTime.MinValue &&
-                       now - _confirmRetryIssuedAtUtc < TimeSpan.FromSeconds(3);
-            }
-
-            if (loginJustCleared)
-            {
-                if (IsAuthDashboardUrl(state.Url))
-                    IssueSessionBootstrapNoLock("login_marker_cleared_auth_dashboard");
-                else
-                    IssueDirectConfirmRetryNoLock(state.Url, "login_marker_cleared_non_confirm");
-                return true;
-            }
-
-            // Let the first fully loaded non-Confirm page settle before recovery. This
-            // avoids consuming the bounded action on transient SSO/SPA redirects.
+            // Let a fully loaded non-Confirm page settle before deciding whether it is the
+            // auth Dashboard or another transient SSO destination.
             if (!string.Equals(_loadedNonConfirmObservedUrl, state.Url, StringComparison.Ordinal))
             {
                 _loadedNonConfirmObservedUrl = state.Url;
@@ -783,9 +815,27 @@ namespace SupraInventoryRelayAgent
                 return false;
 
             if (IsAuthDashboardUrl(state.Url))
-                IssueSessionBootstrapNoLock("stable_auth_dashboard");
-            else
-                IssueDirectConfirmRetryNoLock(state.Url, "stable_loaded_non_login_non_confirm");
+            {
+                // If a direct Confirm retry was just issued after login, give that normal
+                // navigation a short grace before clicking Dashboard.
+                if (_confirmRouteRetryCount >= 1 &&
+                    _confirmRetryIssuedAtUtc != DateTime.MinValue &&
+                    now - _confirmRetryIssuedAtUtc < TimeSpan.FromSeconds(3))
+                    return true;
+
+                return IssueDashboardAccessClickNoLock(
+                    _confirmRouteRetryCount >= 1
+                        ? "confirm_retry_returned_auth_dashboard"
+                        : "initial_confirm_returned_auth_dashboard");
+            }
+
+            if (_confirmRouteRetryCount >= 1)
+            {
+                return _confirmRetryIssuedAtUtc != DateTime.MinValue &&
+                       now - _confirmRetryIssuedAtUtc < TimeSpan.FromSeconds(3);
+            }
+
+            IssueDirectConfirmRetryNoLock(state.Url, "stable_loaded_non_login_non_confirm");
             return true;
         }
 
