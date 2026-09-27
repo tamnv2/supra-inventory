@@ -69,6 +69,8 @@ namespace SupraInventoryWebView2Host
     {
         private readonly HostOptions _options;
         private readonly WebView2 _web = new WebView2 { Dock = DockStyle.Fill };
+        private CoreWebView2Environment _environment;
+        private WebView2 _activeWeb;
 
         internal BrowserForm(HostOptions options)
         {
@@ -116,33 +118,63 @@ namespace SupraInventoryWebView2Host
             GrantAppContainerReadBestEffort(_options.Runtime);
             var envOptions = new CoreWebView2EnvironmentOptions(
                 "--remote-debugging-address=127.0.0.1 --remote-debugging-port=" + _options.DebugPort);
-            var env = await CoreWebView2Environment.CreateAsync(_options.Runtime, _options.Profile, envOptions);
-            await _web.EnsureCoreWebView2Async(env);
-            _web.CoreWebView2.Settings.IsPasswordAutosaveEnabled = true;
-            _web.CoreWebView2.Settings.IsGeneralAutofillEnabled = true;
-
-            // v64 deliberately does not inspect/click the Supra Dashboard. The outer Agent
-            // controller owns the bounded direct-Confirm navigation/retry policy.
-            _web.CoreWebView2.NewWindowRequested += HandleNewWindowRequested;
+            _environment = await CoreWebView2Environment.CreateAsync(_options.Runtime, _options.Profile, envOptions);
+            await ConfigureWebViewAsync(_web);
+            _activeWeb = _web;
             _web.Source = new Uri(_options.Url);
         }
 
-        private void HandleNewWindowRequested(object sender, CoreWebView2NewWindowRequestedEventArgs e)
+        private async Task ConfigureWebViewAsync(WebView2 view)
         {
+            await view.EnsureCoreWebView2Async(_environment);
+            view.CoreWebView2.Settings.IsPasswordAutosaveEnabled = true;
+            view.CoreWebView2.Settings.IsGeneralAutofillEnabled = true;
+            view.CoreWebView2.NewWindowRequested += HandleNewWindowRequested;
+        }
+
+        private async void HandleNewWindowRequested(object sender, CoreWebView2NewWindowRequestedEventArgs e)
+        {
+            var deferral = e.GetDeferral();
             try
             {
                 Uri target;
-                if (!Uri.TryCreate(e.Uri, UriKind.Absolute, out target)) return;
-                if (!string.Equals(target.Scheme, "https", StringComparison.OrdinalIgnoreCase)) return;
-                if (!string.Equals(target.Host, "wms-supra.winmart.vn", StringComparison.OrdinalIgnoreCase)) return;
+                if (!Uri.TryCreate(e.Uri, UriKind.Absolute, out target) ||
+                    !string.Equals(target.Scheme, "https", StringComparison.OrdinalIgnoreCase) ||
+                    !string.Equals(target.Host, "wms-supra.winmart.vn", StringComparison.OrdinalIgnoreCase))
+                {
+                    e.Handled = true;
+                    return;
+                }
 
-                // Keep any validated Supra navigation in the one visible Agent tab.
+                // v67: preserve real browser new-window/opener semantics inside the owned
+                // WebView2 environment instead of converting the request into Navigate().
+                // This keeps the same dedicated profile while giving Supra a genuine child
+                // browsing context, matching the Probe v2 field-success path.
+                var child = new WebView2
+                {
+                    Dock = DockStyle.Fill,
+                    Visible = false
+                };
+                Controls.Add(child);
+                await ConfigureWebViewAsync(child);
+
+                e.NewWindow = child.CoreWebView2;
                 e.Handled = true;
-                _web.CoreWebView2.Navigate(target.AbsoluteUri);
+
+                if (_activeWeb != null)
+                    _activeWeb.Visible = false;
+
+                _activeWeb = child;
+                child.Visible = true;
+                child.BringToFront();
             }
             catch
             {
-                // Fail closed: unvalidated targets keep WebView2 default behavior.
+                e.Handled = true;
+            }
+            finally
+            {
+                deferral.Complete();
             }
         }
 
