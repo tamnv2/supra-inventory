@@ -813,11 +813,11 @@ Stable remains OWNER-GATED.
 
 ## D131 — Agent fleet and counter presentation
 
-- Hệ thống Agent shows at most 6 fleet rows.
+- Hệ thống Agent supports up to 20 fleet rows with internal scrolling.
 - Each row shows concise role/state: PRIMARY, NGỦ ĐÔNG · NEXT A, NGỦ ĐÔNG · NEXT B, or NGỦ ĐÔNG; plus Agent auth, Web Confirm readiness, Firestore readiness and last_seen.
 - Deep-hibernating rows must show freshness age when their state is coarse; do not present stale data as realtime.
 - Daily PickList counters are one shared fleet view: Picklist nhận | Picklist xác nhận | Picklist lỗi.
-- PRIMARY may update its local counter presentation immediately. Other Agents may lag until the next coordination read, but after takeover the promoted PRIMARY must reconcile before presenting itself as authoritative.
+- Counter presentation is durable-state based. Non-primary Agents refresh the compact snapshot every 10 minutes or on foreground/manual refresh; promoted PRIMARY reconstructs exact durable totals before presenting itself as authoritative.
 - PDA list remains event-driven and preserves scroll/search. A request already consumed by PRIMARY may refresh the matching PDA last activity locally without forcing a provider refresh.
 - Outside 05:00–23:00 with no overtime, the UI explicitly shows PDA ↔ Agent: Tạm dừng ngoài giờ rather than appearing disconnected/broken.
 
