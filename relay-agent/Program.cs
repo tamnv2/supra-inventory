@@ -2510,7 +2510,7 @@ namespace SupraInventoryRelayAgent
             {
                 var state = desktop
                     ? _supraBrowser.OpenOrShowDesktop()
-                    : _supraBrowser.OpenOrShowAgent();
+                    : _supraBrowser.OpenAgentBackground();
                 _supraBrowserReady = state.Ready;
                 _supraBrowserHidden = state.Hidden;
                 _supraBrowserState = state.State ?? "NOT_OPEN";
