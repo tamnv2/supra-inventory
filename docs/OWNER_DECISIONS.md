@@ -1790,3 +1790,17 @@ Owner confirms one automatic detailed PickList audit export to the existing scop
 - Export failure is recorded for retry/diagnostics and must not require an Agent to start. If Google OAuth/Drive authorization is revoked or unavailable, the server records the failure and retries boundedly after provider recovery.
 
 This is still D131 design authority only; runtime implementation has not started. Stable remains OWNER-GATED.
+
+
+### D131 continuation gate — review first, code only after explicit OK
+
+Owner closes the current D131 design discussion with the following continuation contract:
+
+- Exact future trigger phrase: **`bắt đầu tối ưu lại mô hình`**.
+- On that phrase, the next session must first bootstrap fresh canonical GitHub authority and **must not write runtime code yet**.
+- The response must enumerate the full D131 planned change set in detail from canonical authority, including at least: Firestore-only carrier; up-to-20-Agent fleet roles; one PRIMARY + NEXT-A + NEXT-B + deep business-hibernating Agents; all managed Web Confirm browsers kept warm for local/manual PickList; 05:00–23:00 base relay window with overtime extension; 50/50 shift load, 75-PDA overlap, ~1,200 daily submissions/results, 40 simultaneous burst; latency/failover targets; event-driven PDA presence; durable daily request/audit ledger; non-RAM daily counters; 10-minute non-primary counter/fleet refresh; exact failover reconstruction; and server-side once-daily Drive export independent of Agent liveness.
+- That design-review response must finish with a **worst-case/free-usage projection** using the maximum approved model envelope. It must show the component-level assumptions for Firestore document reads/writes/deletes/storage/outbound and any other materially affected free/paid-limited service, compare totals against current provider allowances/soft guards, and identify remaining headroom. Provider limits must be freshly verified from authoritative/current sources rather than copied blindly from an old chat estimate.
+- If Owner requests logic changes in that review session, update the design first and recalculate the worst-case usage before implementation.
+- Only after Owner explicitly replies **OK / đồng ý chạy code / equivalent final approval** may implementation start. Implementation then begins from a fresh `main` short-lived branch and follows branch → PR → authority/continuity/build/quota guards → merge → Beta release/field gate.
+- A message containing the trigger phrase alone is **not** implementation authorization.
+- Stable remains OWNER-GATED and untouched.
