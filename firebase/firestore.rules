@@ -51,7 +51,8 @@ service cloud.firestore {
       allow create: if isPicker()
         && request.resource.data.keys().hasOnly([
           'request_id', 'suffix', 'status', 'source',
-          'picker_uid', 'picker_user_id', 'client_sent_at_ms', 'created_at'
+          'picker_uid', 'picker_user_id', 'picker_employee_code', 'picker_display_name',
+          'client_sent_at_ms', 'created_at'
         ])
         && request.resource.data.request_id == jobId
         && request.resource.data.suffix is string
@@ -60,6 +61,10 @@ service cloud.firestore {
         && request.resource.data.source == 'ANDROID_CONFIRM_V1'
         && request.resource.data.picker_uid == request.auth.uid
         && request.resource.data.picker_user_id == request.auth.token.app_user_id
+        && request.resource.data.picker_employee_code is string
+        && request.resource.data.picker_employee_code.size() <= 64
+        && request.resource.data.picker_display_name is string
+        && request.resource.data.picker_display_name.size() <= 160
         && request.resource.data.client_sent_at_ms is int
         && request.resource.data.client_sent_at_ms >= 0
         && request.resource.data.created_at == request.time;
@@ -86,24 +91,13 @@ service cloud.firestore {
           'agent_network', 'agent_received_at_ms', 'agent_ack_at_ms',
           'lookup_status', 'lookup_matches', 'candidate_picklists', 'lookup_ms', 'lookup_route',
           'lookup_http', 'cache_mode', 'rate_strikes', 'lock_level',
-          'locked_until_ms', 'guard_id', 'retire_at_ms'
+          'locked_until_ms', 'guard_id', 'retire_at_ms',
+          'business_day', 'terminal_at_ms', 'terminal_duration_ms'
         ]);
 
-      allow delete: if isPicker()
-        && resource.data.picker_uid == request.auth.uid
-        && (
-          (
-            resource.data.status == 'PENDING'
-            && resource.data.created_at is timestamp
-            && request.time >= resource.data.created_at + duration.value(1, 'h')
-          )
-          ||
-          (
-            resource.data.status == 'ACK'
-            && resource.data.retire_at_ms is int
-            && resource.data.retire_at_ms <= request.time.toMillis()
-          )
-        );
+      // D131 durable audit: Android never deletes confirmation jobs. Bounded
+      // server cleanup runs only after export/retention policy permits it.
+      allow delete: if false;
     }
 
     match /relay_poc_rate_limits/{pickerKey} {
@@ -156,6 +150,58 @@ service cloud.firestore {
 
     match /picker_notification_targets/{userId} {
       allow read, write: if false;
+    }
+
+    match /picker_active_calls/{targetUserId} {
+      allow get, list: if isPickerContactOperator();
+
+      allow create: if isPickerContactOperator()
+        && request.resource.data.keys().hasOnly([
+          'call_id', 'target_user_id', 'command_type', 'message',
+          'status', 'source', 'sender_user_id', 'sender_agent_id',
+          'sender_role', 'created_at_ms'
+        ])
+        && request.resource.data.target_user_id == targetUserId
+        && request.resource.data.call_id is string
+        && request.resource.data.call_id.matches('^call-[A-Za-z0-9]{16,80}$')
+        && request.resource.data.command_type == 'CALL_SPECIALIST'
+        && request.resource.data.status == 'ACTIVE'
+        && request.resource.data.source == 'AGENT_PICKER_ACTIVE_CALL_V2'
+        && request.resource.data.sender_user_id == request.auth.token.app_user_id
+        && request.resource.data.sender_agent_id is string
+        && request.resource.data.sender_agent_id.size() >= 8
+        && request.resource.data.sender_agent_id.size() <= 160
+        && request.resource.data.sender_role in ['INVENTORY', 'PICK_PACK']
+        && (
+          (
+            request.auth.token.app_role == 'ADMIN'
+            && request.auth.token.app_base_role == 'ADMIN'
+            && request.resource.data.sender_role == 'INVENTORY'
+          )
+          ||
+          (
+            request.auth.token.app_role == 'PICKPACK_ADMIN'
+            && request.auth.token.app_base_role == 'PICKPACK_ADMIN'
+            && request.resource.data.sender_role == 'PICK_PACK'
+          )
+        )
+        && request.resource.data.message is string
+        && request.resource.data.message.size() <= 500
+        && request.resource.data.created_at_ms is int
+        && request.resource.data.created_at_ms <= request.time.toMillis() + 60000;
+
+      allow update: if isPickerContactOperator()
+        && resource.data.status == 'ACTIVE'
+        && request.resource.data.status == 'RESOLVED'
+        && request.resource.data.resolved_by_user_id == request.auth.token.app_user_id
+        && request.resource.data.resolved_by_agent_id == resource.data.sender_agent_id
+        && request.resource.data.resolved_at_ms is int
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'resolved_by_user_id', 'resolved_by_agent_id', 'resolved_at_ms'
+        ]);
+
+      // Admin SDK function closes the PDA push then removes the active lock.
+      allow delete: if false;
     }
 
     match /picker_alerts/{alertId} {
