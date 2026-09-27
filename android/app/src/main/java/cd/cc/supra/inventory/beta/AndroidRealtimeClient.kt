@@ -22,6 +22,7 @@ class AndroidRealtimeClient(
     private val api: InventoryApi,
     private val baseUrl: String,
     private val userId: String,
+    private val log: (String) -> Unit = {},
     private val onApply: (Set<String>, (Boolean) -> Unit) -> Unit,
 ) {
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -35,6 +36,8 @@ class AndroidRealtimeClient(
     @Volatile private var stopped = true
     @Volatile private var connecting = false
     @Volatile private var socket: WebSocket? = null
+    @Volatile private var pendingSocket: WebSocket? = null
+    @Volatile private var connectionAttempt = 0L
     @Volatile private var reconnectDelayMs = 1_000L
     @Volatile private var recovering = false
     @Volatile private var dirtyRecoveryScheduled = false
@@ -68,6 +71,8 @@ class AndroidRealtimeClient(
         dirtyRecoveryScheduled = false
         mainHandler.removeCallbacksAndMessages(null)
         socket?.close(1000, "session-ended")
+        pendingSocket?.cancel()
+        pendingSocket = null
         socket = null
         client.dispatcher.cancelAll()
         client.connectionPool.evictAll()
@@ -77,10 +82,12 @@ class AndroidRealtimeClient(
     private fun connectAsync() {
         if (stopped || connecting || executor.isShutdown) return
         connecting = true
+        val attempt = connectionAttempt + 1L
+        connectionAttempt = attempt
         executor.execute {
             try {
                 val ticket = api.createRealtimeTicket()
-                if (stopped) {
+                if (stopped || attempt != connectionAttempt) {
                     connecting = false
                     return@execute
                 }
@@ -88,23 +95,47 @@ class AndroidRealtimeClient(
                     .url(websocketUrl(ticket))
                     .header("User-Agent", "SUPRA-Inventory-Beta/${BuildConfig.VERSION_NAME}")
                     .build()
-                client.newWebSocket(request, listener())
-            } catch (_: Exception) {
-                connecting = false
-                scheduleReconnect()
+                val pending = client.newWebSocket(request, listener(attempt))
+                pendingSocket = pending
+                if (socket === pending) pendingSocket = null
+
+                // D130: recover a handshake path that wedges without promptly delivering onFailure.
+                mainHandler.postDelayed({
+                    if (!stopped &&
+                        attempt == connectionAttempt &&
+                        connecting &&
+                        socket == null &&
+                        pendingSocket === pending
+                    ) {
+                        log("Realtime handshake timeout · tự kết nối lại.")
+                        pendingSocket = null
+                        connecting = false
+                        try { pending.cancel() } catch (_: Exception) { }
+                        scheduleReconnect()
+                    }
+                }, 12_000L)
+            } catch (error: Exception) {
+                if (attempt == connectionAttempt) {
+                    connecting = false
+                    pendingSocket = null
+                    log("Realtime connect fail · tự kết nối lại: " + (error.message ?: error.javaClass.simpleName))
+                    scheduleReconnect()
+                }
             }
         }
     }
 
-    private fun listener(): WebSocketListener = object : WebSocketListener() {
+    private fun listener(attempt: Long): WebSocketListener = object : WebSocketListener() {
         override fun onOpen(webSocket: WebSocket, response: Response) {
-            if (stopped) {
-                webSocket.close(1000, "stopped")
+            if (stopped || attempt != connectionAttempt) {
+                webSocket.close(1000, "stale-attempt")
                 return
             }
             socket = webSocket
+            if (pendingSocket === webSocket) pendingSocket = null
             connecting = false
             reconnectDelayMs = 1_000L
+            log("Realtime WebSocket connected.")
         }
 
         override fun onMessage(webSocket: WebSocket, text: String) {
@@ -128,13 +159,19 @@ class AndroidRealtimeClient(
 
         override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
             if (socket === webSocket) socket = null
+            if (pendingSocket === webSocket) pendingSocket = null
+            if (attempt != connectionAttempt) return
             connecting = false
+            log("Realtime WebSocket closed · tự kết nối lại.")
             scheduleReconnect()
         }
 
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
             if (socket === webSocket) socket = null
+            if (pendingSocket === webSocket) pendingSocket = null
+            if (attempt != connectionAttempt) return
             connecting = false
+            log("Realtime WebSocket fail · tự kết nối lại: " + (t.message ?: t.javaClass.simpleName))
             scheduleReconnect()
         }
     }
