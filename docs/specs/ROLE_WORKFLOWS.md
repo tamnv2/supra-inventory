@@ -662,14 +662,17 @@ D126 supersedes the D125 workflow changes before D125 implementation.
 
 ## D128 Agent startup/readiness workflow
 
-For the Beta Windows Agent, a restored or newly authenticated Agent session is necessary but no longer sufficient to start Confirm-dependent business processing.
+For the Beta Windows Agent v68, a restored or newly authenticated Agent session is necessary but not sufficient for Confirm-dependent processing.
 
 1. Validate/restore the Agent application session.
-2. Ensure the preferred Agent-owned WebView2 browser is running against the canonical Confirm flow in the background. Do not expose the browser window during normal ready operation.
-3. If the exact visible **Lưu thông tin đăng nhập** marker is encountered, show the owned browser and wait for the user to complete Supra login manually. Never read credential values.
-4. After the login marker clears and canonical Confirm readiness passes, hide the owned browser again.
-5. Only when **Agent session valid + Web Confirm READY** are both true may Confirm-dependent relay/HA/manual PickList operations become active.
-6. If browser readiness or Agent authentication is later lost, those operations pause/fail closed until both prerequisites are restored.
-7. **Mở trình duyệt Desktop** remains an explicit user-selected alternative and may satisfy the same READY prerequisite. There is no silent owned-browser → Desktop fallback under D128.
+2. Ensure preferred Agent-owned WebView2 is running against canonical Confirm in the background.
+3. If exact visible **Lưu thông tin đăng nhập** appears, show owned WebView2 and wait for manual Supra login. Never read credential values.
+4. After the login marker clears and canonical Confirm becomes READY, hide owned WebView2 again.
+5. Only while **Agent session valid + Web Confirm READY** are both true may Confirm-dependent relay/HA/manual PickList operations run.
+6. If either prerequisite is lost, those operations pause/fail closed until readiness returns.
+7. **Mở trình duyệt Desktop** remains an explicit user-selected alternative. No silent Agent-owned → Desktop fallback is allowed.
+8. Main-window resource monitoring is separate from business readiness: when the Agent window is hidden/background, CPU/RAM/resource sampling stops, while normal readiness/business/HA/schedule logic continues.
+9. Picklist overlay is independent of resource monitoring and may remain visible in background mode because it renders only existing in-memory counters.
 
-D126/D127 confirmation and browser-security guards remain authoritative; Stable remains OWNER-GATED.
+D126/D127 confirmation and browser-security guards remain authoritative. Stable remains OWNER-GATED.
+
