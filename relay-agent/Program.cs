@@ -1091,7 +1091,7 @@ namespace SupraInventoryRelayAgent
             {
                 List<string> queries;
                 var valid = TryParseManualPicklistQueries(_manualPicklistQuery.Text, out queries);
-                _manualPicklistSearch.Enabled = valid;
+                _manualPicklistSearch.Enabled = valid && HasOperationalReadiness();
                 _manualPicklistGrid.Rows.Clear();
                 _manualPicklistConfirmAll.Visible = false;
                 _manualPicklistStatus.Text = string.IsNullOrWhiteSpace(_manualPicklistQuery.Text)
@@ -1422,24 +1422,8 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private void QueueSharedScheduleRefresh(FirestoreAgentLeaderCoordinator coordinator)
-        {
-            if (coordinator == null) return;
-            if (Interlocked.CompareExchange(ref _afterHoursScheduleRefreshRunning, 1L, 0L) != 0L) return;
-
-            Task.Run(() =>
-            {
-                try
-                {
-                    coordinator.RefreshSharedScheduleNow();
-                }
-                finally
-                {
-                    Interlocked.Exchange(ref _afterHoursScheduleRefreshRunning, 0L);
-                }
-            });
-        }
-
+        // D129: shared schedule is propagated by the existing role/lease coordinator.
+        // The one-second UI timer must never add a parallel Firestore schedule-read loop.
         private void CheckAfterHoursSchedule(bool forcePrompt = false)
         {
             QueueD128BrowserStateRefresh();
@@ -1450,25 +1434,11 @@ namespace SupraInventoryRelayAgent
 
             DateTime boundary;
             var hasBoundary = _businessSchedule.TryGetPromptBoundary(now, out boundary);
-            if (coordinator != null && HasAgentSession())
+            if (coordinator != null && HasAgentSession() && forcePrompt)
             {
-                var secondsToBoundary = hasBoundary ? (boundary - now).TotalSeconds : double.MaxValue;
-                var syncIntervalSeconds = secondsToBoundary >= 0 && secondsToBoundary <= 15 ? 2 : 30;
-                var localRelayAllowed = defaultAllowed ||
-                    coordinator.SharedRelayOverrideAllows(_businessSchedule.ScheduleKey(now), OperationalMs(now));
-                var needsScheduleSync =
-                    forcePrompt ||
-                    _lastAfterHoursScheduleSyncAt == DateTime.MinValue ||
-                    (now - _lastAfterHoursScheduleSyncAt).TotalSeconds >= syncIntervalSeconds ||
-                    (!defaultAllowed && !localRelayAllowed);
-                if (needsScheduleSync)
-                {
-                    // D121: never perform Firestore/network I/O on the WinForms timer thread.
-                    // The UI keeps using the latest coordinator snapshot while one bounded
-                    // background refresh updates the shared schedule cache.
-                    _lastAfterHoursScheduleSyncAt = now;
-                    QueueSharedScheduleRefresh(coordinator);
-                }
+                // Explicit user/boundary actions may request one coordinator refresh.
+                // Normal UI ticks consume the schedule already carried by role/lease state.
+                coordinator.RequestRoleRefreshBeforeBusiness();
             }
 
             var relayAllowed = IsBusinessAllowed();
@@ -1848,7 +1818,12 @@ namespace SupraInventoryRelayAgent
                 try
                 {
                     var ssid = GetSsid();
-                    Ui(() => _network.Text = "Wi-Fi: " + ssid);
+                    Ui(() =>
+                    {
+                        _currentWifiName = string.IsNullOrWhiteSpace(ssid) ? "không xác định" : ssid;
+                        _network.Text = "Wi-Fi: " + _currentWifiName;
+                        UpdateD129AgentHeader();
+                    });
                 }
                 finally
                 {
@@ -1929,10 +1904,8 @@ namespace SupraInventoryRelayAgent
                     " · Máy này: " + state;
                 _agentSystemInfo.Text = state;
                 UpdateAgentFleetGrid(_leaderCoordinator == null ? null : _leaderCoordinator.OnlineAgents);
-                _supraInfo.Text =
-                    "HY1 · " +
-                    (HasReadyConfirmBrowser() ? "Web Confirm sẵn sàng" : BrowserStateLabel(_supraBrowserState)) +
-                    (_supraBrowserHidden ? " · Đang ẩn" : " · Đang hiển thị");
+                UpdateD129AgentHeader();
+                UpdateD129SupraUi();
 
             }
             catch
@@ -1957,13 +1930,7 @@ namespace SupraInventoryRelayAgent
                 _probeSheets.Enabled = enabled;
                 _probeDrive.Enabled = enabled;
                 _probeAll.Enabled = enabled;
-                _wmsCapture.Enabled = enabled && HasAgentSession() && AgentBrowserBundle.SnapshotStatus().Ready;
-                _wmsCapture.Text = "Mở trình duyệt Agent";
-                _wmsDesktop.Enabled = enabled && HasAgentSession();
-                _wmsDesktop.Text = "Mở trình duyệt Desktop";
-                _wmsLogout.Enabled = enabled && !string.Equals(_supraBrowserState, "NOT_OPEN", StringComparison.Ordinal);
-                _wmsLogout.Text = _supraBrowserHidden ? "Hiện trình duyệt" : "Ẩn trình duyệt";
-                _wmsTest.Enabled = enabled && !string.Equals(_supraBrowserState, "NOT_OPEN", StringComparison.Ordinal);
+                UpdateD129SupraUi();
             });
         }
 
@@ -1977,6 +1944,178 @@ namespace SupraInventoryRelayAgent
             return HasAgentSession() && HasReadyConfirmBrowser();
         }
 
+        private void UpdateD129AgentHeader()
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(UpdateD129AgentHeader));
+                return;
+            }
+
+            AgentSession session = null;
+            try { session = SnapshotSession(); } catch { }
+            if (session == null)
+            {
+                _agentCardTitle.Text = "Hệ thống Agent | Chưa đăng nhập";
+                _relay.Text = "Chế độ nhận tin từ PDA: Chưa đăng nhập | Wi-Fi hiện tại: " + _currentWifiName;
+                return;
+            }
+
+            var user = string.IsNullOrWhiteSpace(session.LoginName) ? session.AppUserId : session.LoginName;
+            _agentCardTitle.Text =
+                "Hệ thống Agent | Sẵn sàng | " + (string.IsNullOrWhiteSpace(user) ? "--" : user) +
+                " | " + AgentRoleLabel(session.Role);
+
+            string relayMode;
+            var coordinator = _leaderCoordinator;
+            if (coordinator == null)
+                relayMode = "Đang khởi tạo";
+            else if (!coordinator.IsTransportHealthy)
+                relayMode = coordinator.RoleName + " · Mất kết nối";
+            else if (coordinator.IsLeader)
+                relayMode = "PRIMARY · Đang nhận";
+            else if (coordinator.IsStandby)
+                relayMode = "STANDBY · Dự phòng";
+            else
+                relayMode = "FROZEN · Tạm dừng";
+
+            _relay.Text =
+                "Chế độ nhận tin từ PDA: " + relayMode +
+                " | Wi-Fi hiện tại: " + (string.IsNullOrWhiteSpace(_currentWifiName) ? "không xác định" : _currentWifiName);
+        }
+
+        private void UpdateD129SupraUi()
+        {
+            UpdateD129SupraUi(null);
+        }
+
+        private void UpdateD129SupraUi(SupraBrowserState state)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<SupraBrowserState>(UpdateD129SupraUi), state);
+                return;
+            }
+
+            var authenticated = HasAgentSession();
+            var active = _supraBrowser != null && _supraBrowser.HasActiveBrowser();
+            var agentMode = active && _supraBrowser.IsAgentOwnedMode();
+            var desktopMode = active && _supraBrowser.IsDesktopSelected();
+            var mode = active ? _supraBrowser.ActiveModeLabel() : "";
+            var ready = state == null ? _supraBrowserReady : state.Ready;
+            var loginRequired = state != null && state.LoginMarkerDetected;
+            var browserState = state == null ? _supraBrowserState : (state.State ?? _supraBrowserState);
+            var hidden = state == null ? _supraBrowserHidden : state.Hidden;
+
+            if (!authenticated || !active)
+                _supraCardTitle.Text = "Đăng nhập Supra | Chưa sẵn sàng";
+            else if (ready)
+                _supraCardTitle.Text = "Đăng nhập Supra | Sẵn sàng | " + mode;
+            else if (loginRequired)
+                _supraCardTitle.Text = "Đăng nhập Supra | Cần đăng nhập | " + mode;
+            else if (string.Equals(browserState, "BROWSER_ERROR", StringComparison.Ordinal) ||
+                     string.Equals(browserState, "DASHBOARD_ACCESS_FAILED", StringComparison.Ordinal) ||
+                     string.Equals(browserState, "CONFIRM_RETRY_EXHAUSTED", StringComparison.Ordinal))
+                _supraCardTitle.Text = "Đăng nhập Supra | Lỗi " + mode;
+            else
+                _supraCardTitle.Text = "Đăng nhập Supra | Đang chuẩn bị | " + mode;
+
+            _wmsStatus.Text = active ? BrowserStateLabel(browserState) : "Chưa mở Web Confirm";
+            _wmsStatus.ForeColor = ready
+                ? Color.FromArgb(35, 122, 76)
+                : (loginRequired ? Color.FromArgb(180, 116, 30) : SystemColors.ControlText);
+            _supraInfo.Text = active
+                ? mode + (hidden ? " · đang chạy nền" : " · đang hiển thị")
+                : "Chưa có Web Confirm đang chạy";
+
+            var bundleReady = AgentBrowserBundle.SnapshotStatus().Ready;
+            if (!active)
+            {
+                _wmsCapture.Text = "Mở Web Agent";
+                _wmsDesktop.Text = "Mở Web Desktop";
+                _wmsCapture.Enabled = authenticated && bundleReady;
+                _wmsDesktop.Enabled = authenticated;
+                _wmsLogout.Text = "Web chưa chạy";
+                _wmsLogout.Enabled = false;
+            }
+            else if (agentMode)
+            {
+                _wmsCapture.Text = "Tắt Web Agent";
+                _wmsDesktop.Text = "Chuyển sang Web Desktop";
+                _wmsCapture.Enabled = authenticated;
+                _wmsDesktop.Enabled = authenticated;
+                _wmsLogout.Text = hidden ? "Hiện Web" : "Chuyển Web chạy nền";
+                _wmsLogout.Enabled = authenticated;
+            }
+            else if (desktopMode)
+            {
+                _wmsCapture.Text = "Chuyển sang Web Agent";
+                _wmsDesktop.Text = "Tắt Web Desktop";
+                _wmsCapture.Enabled = authenticated && bundleReady;
+                _wmsDesktop.Enabled = authenticated;
+                _wmsLogout.Text = hidden ? "Hiện Web" : "Chuyển Web chạy nền";
+                _wmsLogout.Enabled = authenticated;
+            }
+
+            _wmsTest.Enabled = authenticated && active;
+            UpdateD129PicklistReadinessUi();
+        }
+
+        private void UpdateD129PicklistReadinessUi()
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(UpdateD129PicklistReadinessUi));
+                return;
+            }
+
+            var ready = HasOperationalReadiness();
+            _picklistCardTitle.Text = ready
+                ? "Xử lý PickList | Sẵn sàng"
+                : "Xử lý PickList | Chưa sẵn sàng";
+            _picklistCardTitle.ForeColor = ready
+                ? Color.FromArgb(35, 122, 76)
+                : Color.FromArgb(24, 43, 55);
+            _manualPicklistQuery.Enabled = ready;
+            List<string> parsed;
+            var valid = TryParseManualPicklistQueries(_manualPicklistQuery.Text, out parsed);
+            _manualPicklistSearch.Enabled = ready && valid && Interlocked.CompareExchange(ref _manualPicklistOperationRunning, 0, 0) == 0;
+            _manualPicklistGrid.Enabled = ready;
+            UpdateManualConfirmAllVisibility();
+        }
+
+        private bool VerifyCurrentAgentPasswordForBrowserAction(string title, string message, string confirmText)
+        {
+            if (InvokeRequired)
+                return (bool)Invoke(new Func<string, string, string, bool>(VerifyCurrentAgentPasswordForBrowserAction), title, message, confirmText);
+
+            AgentSession session = null;
+            try { session = SnapshotSession(); } catch { }
+            if (session == null || string.IsNullOrWhiteSpace(session.AppUserId)) return false;
+
+            using (var dialog = new AgentPasswordVerificationDialog(
+                string.IsNullOrWhiteSpace(session.LoginName) ? session.AppUserId : session.LoginName,
+                title,
+                message,
+                confirmText))
+            {
+                if (dialog.ShowDialog(this) != DialogResult.OK) return false;
+                var password = dialog.PasswordValue;
+                try
+                {
+                    if (ExitAuthorization.Verify(ExitVerifierFile, session.AppUserId, password)) return true;
+                    MessageBox.Show(
+                        "Mật khẩu Agent không đúng. Web hiện tại vẫn được giữ nguyên.",
+                        "Không thể thay đổi Web",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                    return false;
+                }
+                finally { password = null; }
+            }
+        }
+
+        private static string BrowserStateLabel(string state)
         private static string BrowserStateLabel(string state)
         {
             switch (state ?? "")
@@ -2357,6 +2496,13 @@ namespace SupraInventoryRelayAgent
         private void ReconcileOperationalReadiness()
         {
             var ready = HasOperationalReadiness();
+            Ui(() =>
+            {
+                UpdateD129AgentHeader();
+                UpdateD129SupraUi();
+                UpdateD129PicklistReadinessUi();
+            });
+
             if (ready)
             {
                 if (_listenCts == null) StartListening();
@@ -2369,9 +2515,6 @@ namespace SupraInventoryRelayAgent
             {
                 _listen.Enabled = false;
                 _manualPicklistGrid.Enabled = false;
-                _relay.Text = HasAgentSession()
-                    ? "Relay: chờ Web Confirm sẵn sàng"
-                    : "Relay: chờ đăng nhập Agent";
                 UpdateManualConfirmAllVisibility();
             });
         }
@@ -2395,6 +2538,7 @@ namespace SupraInventoryRelayAgent
                             ? "PRIMARY"
                             : (role == FirestoreAgentRole.STANDBY ? "STANDBY" : "FROZEN");
                         _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / " + roleText;
+                        UpdateD129AgentHeader();
                         if (role == FirestoreAgentRole.PRIMARY) RefreshD119OperationalViews(true);
                     });
                 });
@@ -2426,9 +2570,9 @@ namespace SupraInventoryRelayAgent
         private void EnsureD128BrowserReadyPath()
         {
             if (_supraBrowser == null || _supraBrowser.IsDesktopSelected()) return;
+            if (_autoAgentBrowserSuppressedByUser) return;
             if (!AgentBrowserBundle.SnapshotStatus().Ready) return;
-            if (!string.Equals(_supraBrowserState, "NOT_OPEN", StringComparison.Ordinal) &&
-                !string.Equals(_supraBrowserState, "BROWSER_ERROR", StringComparison.Ordinal))
+            if (!string.Equals(_supraBrowserState, "NOT_OPEN", StringComparison.Ordinal))
                 return;
 
             var state = _supraBrowser.OpenAgentBackground();
@@ -2447,35 +2591,7 @@ namespace SupraInventoryRelayAgent
                 _supraBrowserReady = state.Ready;
                 _supraBrowserHidden = state.Hidden;
                 _supraBrowserState = state.State ?? "NOT_OPEN";
-                Ui(() =>
-                {
-                    _wmsStatus.Text = state.Ready
-                        ? "Web Confirm sẵn sàng"
-                        : "Web Confirm: " + BrowserStateLabel(state.State);
-                    _wmsStatus.ForeColor = state.Ready
-                        ? Color.FromArgb(35, 122, 76)
-                        : (state.LoginMarkerDetected ? Color.FromArgb(180, 116, 30) : SystemColors.ControlText);
-                    _supraInfo.Text =
-                        "HY1 · " + (string.IsNullOrWhiteSpace(state.Browser) ? "Trình duyệt" : state.Browser) +
-                        (state.Hidden ? " · Đang ẩn" : " · Đang hiển thị") +
-                        (state.LoginMarkerDetected
-                            ? " · Cần nhập thông tin đăng nhập Supra"
-                            : (state.Ready ? "" :
-                                " · DOM Tìm=" + state.SearchCount +
-                                " XN=" + state.ConfirmCount +
-                                " Bảng=" + state.TableCount));
-                    var agentOwned = _supraBrowser.IsAgentOwnedMode();
-                    _wmsLogout.Text = agentOwned
-                        ? (state.LoginMarkerDetected ? "Đăng nhập Supra" : "Web Agent chạy nền")
-                        : (state.Hidden ? "Hiện trình duyệt" : "Ẩn trình duyệt");
-                    _wmsLogout.Enabled = !agentOwned &&
-                        !string.Equals(state.State, "NOT_OPEN", StringComparison.Ordinal) && HasAgentSession();
-                    _wmsTest.Enabled = !string.Equals(state.State, "NOT_OPEN", StringComparison.Ordinal) && HasAgentSession();
-                    _wmsCapture.Enabled = HasAgentSession() && AgentBrowserBundle.SnapshotStatus().Ready;
-                    _wmsDesktop.Enabled = HasAgentSession();
-                    _manualPicklistGrid.Enabled = HasAgentSession() && state.Ready;
-                    UpdateManualConfirmAllVisibility();
-                });
+                Ui(() => UpdateD129SupraUi(state));
             }
             catch (Exception ex)
             {
@@ -2495,11 +2611,56 @@ namespace SupraInventoryRelayAgent
 
         private void OpenSupraConfirmBrowser(bool desktop)
         {
-            Ui(() => _wmsStatus.Text = desktop
-                ? "Web Confirm: đang mở Desktop..."
-                : "Web Confirm: đang mở trình duyệt Agent...");
+            var targetLabel = desktop ? "Web Desktop" : "Web Agent";
+            var active = _supraBrowser != null && _supraBrowser.HasActiveBrowser();
+            var sameMode = active && (desktop ? _supraBrowser.IsDesktopSelected() : _supraBrowser.IsAgentOwnedMode());
+
+            if (sameMode)
+            {
+                if (!VerifyCurrentAgentPasswordForBrowserAction(
+                    "Tắt " + targetLabel,
+                    "Web Confirm đang phục vụ xử lý PickList. Nhập mật khẩu Agent hiện tại để tắt có chủ đích.",
+                    "Tắt Web"))
+                    return;
+
+                try
+                {
+                    _supraBrowser.StopManagedBrowser();
+                    _autoAgentBrowserSuppressedByUser = true;
+                    _supraBrowserReady = false;
+                    _supraBrowserHidden = false;
+                    _supraBrowserState = "NOT_OPEN";
+                    Log("SUPRA_BROWSER stop mode=" + (desktop ? "DESKTOP" : "AGENT") + " protected=true");
+                }
+                catch (Exception ex)
+                {
+                    Log("SUPRA_BROWSER stop fail type=" + ex.GetType().Name + " detail=" + SafeMessage(ex));
+                }
+                Ui(() => UpdateD129SupraUi());
+                ReconcileOperationalReadiness();
+                return;
+            }
+
+            if (active)
+            {
+                var current = _supraBrowser.ActiveModeLabel();
+                if (!VerifyCurrentAgentPasswordForBrowserAction(
+                    "Chuyển Web Confirm",
+                    current + " đang chạy. Agent sẽ tắt Web hiện tại trước khi mở " + targetLabel +
+                    " để tránh hai cơ chế cùng thao tác. Nhập mật khẩu Agent để tiếp tục.",
+                    "Chuyển Web"))
+                    return;
+            }
+
+            Ui(() =>
+            {
+                _wmsStatus.Text = desktop ? "Đang mở Web Desktop..." : "Đang mở Web Agent...";
+                _supraCardTitle.Text = "Đăng nhập Supra | Đang chuẩn bị | " + targetLabel;
+            });
+
             try
             {
+                _autoAgentBrowserSuppressedByUser = desktop;
                 var state = desktop
                     ? _supraBrowser.OpenOrShowDesktop()
                     : _supraBrowser.OpenAgentBackground();
@@ -2512,23 +2673,18 @@ namespace SupraInventoryRelayAgent
                     " ready=" + (_supraBrowserReady ? "1" : "0") +
                     " page=" + (state.Url ?? "") +
                     " search=" + state.SearchCount +
-                    " search_exact=" + state.SearchExactCount +
-                    " search_decorated=" + state.SearchDecoratedCount +
                     " confirm=" + state.ConfirmCount +
-                    " confirm_visible=" + state.ConfirmVisibleCount +
                     " table=" + state.TableCount +
                     " frames=" + state.FrameCount +
                     " loaded=" + (state.PageLoaded ? "1" : "0") +
                     " login_marker=" + (state.LoginMarkerDetected ? "1" : "0") +
-                    " session_extract=false direct_wms_api=false auto_fallback=false");
+                    " exclusive_mode=true session_extract=false direct_wms_api=false auto_fallback=false");
             }
             catch (Exception ex)
             {
                 _supraBrowserReady = false;
                 _supraBrowserState = "BROWSER_ERROR";
-                Ui(() => _wmsStatus.Text = desktop
-                    ? "Desktop: không mở được · xem log"
-                    : "Trình duyệt Agent: không mở được · xem log");
+                Ui(() => UpdateD129SupraUi());
                 Log("SUPRA_BROWSER open fail mode=" + (desktop ? "DESKTOP" : "AGENT") +
                     " type=" + ex.GetType().Name + " detail=" + SafeMessage(ex) + " auto_fallback=false");
             }
@@ -2539,11 +2695,7 @@ namespace SupraInventoryRelayAgent
         {
             try
             {
-                if (_supraBrowser.IsAgentOwnedMode())
-                {
-                    RefreshSupraBrowserStatus();
-                    return;
-                }
+                if (_supraBrowser == null || !_supraBrowser.HasActiveBrowser()) return;
                 if (_supraBrowserHidden) _supraBrowser.Show();
                 else _supraBrowser.Hide();
                 RefreshSupraBrowserStatus();
@@ -2895,12 +3047,14 @@ namespace SupraInventoryRelayAgent
         {
             string loginName = "";
             string appUser = "";
+            string role = "";
             lock (_sessionLock)
             {
                 if (_session != null)
                 {
                     loginName = _session.LoginName ?? "";
                     appUser = _session.AppUserId ?? "";
+                    role = _session.Role ?? "";
                 }
             }
 
@@ -2928,6 +3082,12 @@ namespace SupraInventoryRelayAgent
                 _agentAuthStatus.ForeColor = authenticated
                     ? Color.FromArgb(35, 122, 76)
                     : Color.FromArgb(180, 76, 60);
+                if (!authenticated) _autoAgentBrowserSuppressedByUser = false;
+                _agentCardTitle.Text = authenticated
+                    ? "Hệ thống Agent | Sẵn sàng | " +
+                      (string.IsNullOrWhiteSpace(loginName) ? appUser : loginName) +
+                      " | " + AgentRoleLabel(role)
+                    : "Hệ thống Agent | Chưa đăng nhập";
                 if (_supraCard != null)
                 {
                     _supraCard.Enabled = authenticated;
@@ -2940,6 +3100,9 @@ namespace SupraInventoryRelayAgent
                     }
                 }
                 ApplyD119AuthenticatedLayout(authenticated);
+                UpdateD129AgentHeader();
+                UpdateD129SupraUi();
+                UpdateD129PicklistReadinessUi();
             });
         }
 
@@ -2965,11 +3128,11 @@ namespace SupraInventoryRelayAgent
             Ui(() =>
             {
                 _identity.Text = "Agent: cần đăng nhập quản trị";
-                _relay.Text = "Relay: chưa xác minh Agent";
+                _relay.Text = "Chế độ nhận tin từ PDA: Chưa đăng nhập | Wi-Fi hiện tại: " + _currentWifiName;
                 _listen.Enabled = false;
                 _testOffice.Enabled = false;
-                _wmsStatus.Text = "Web Confirm: chờ đăng nhập Agent";
-                _supraInfo.Text = "HY1 · Web Confirm tạm dừng đến khi đăng nhập Agent";
+                _wmsStatus.Text = "Chưa mở Web Confirm";
+                _supraInfo.Text = "Chưa có Web Confirm đang chạy";
             });
             SetAgentAuthUi(false);
             SetProbeButtonsEnabled(false);
