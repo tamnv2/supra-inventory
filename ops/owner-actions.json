@@ -2706,17 +2706,30 @@
     },
     {
       "id": "OA055",
-      "status": "PENDING_TECHNICAL_RELEASE__D130",
+      "status": "PENDING_OWNER_FIELD_ACCEPTANCE__D130_V70_BETA_VC77",
       "title": "Field-accept D130 PDA-Agent relay recovery and live metrics",
       "resource_key": "repo",
       "provider": "Beta Windows Agent + Beta Android + Firestore + existing realtime service",
       "reason_owner_only": "CI can prove source/build invariants, but real Firestore transient recovery, Android WebSocket recovery and foreground WinForms repaint require company laptop/PDA observation.",
       "prerequisites": {
         "target_agent_release": "relay-agent-v70",
-        "target_android": "NEXT_MONOTONIC_SIGNED_BETA",
-        "technical_release": "PENDING",
+        "target_android": "beta-vc77",
+        "technical_release": "PASS",
         "new_resources": "NONE",
-        "stable": "OWNER_GATED"
+        "stable": "OWNER_GATED",
+        "implementation_pr": 254,
+        "implementation_main": "241f1cd464ff005969b1d7a6f2d979fb64342b50",
+        "main_relay_agent_run": 36308658298,
+        "main_android_run": 36308658342,
+        "main_ui_run": 36308658329,
+        "main_authority_run": 36308658427,
+        "main_project_state_run": 36308658322,
+        "agent_release_id": 397580687,
+        "agent_asset_id": 592563191,
+        "agent_sha256": "708400f835ca671bd15632d6c7db93387aff3ed10a307ddcbba2ff3ba7307f02",
+        "android_release_id": 397580708,
+        "android_asset_id": 592563343,
+        "android_sha256": "1d9b0583e5df5537e1a2b1e5936ca015a03e3f18ed830544d8eead34cee5909a"
       },
       "shortest_test_path": [
         "Update Beta Agent to v70 and Android to the D130 signed Beta release after technical/release PASS.",
@@ -2736,7 +2749,7 @@
         "No new provider/heartbeat/presence poll is introduced and Stable remains untouched."
       ],
       "safety": "Beta only. Do not share passwords, tokens, cookies, headers, signatures or session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for D130 technical/release PASS, then run the shortest field path on one company laptop and at least one PDA.",
+      "remaining_owner_action": "Update to Agent v70 + Android beta-vc77 and run the OA055 field path on one company laptop and at least one PDA.",
       "closed": false
     }
   ]
