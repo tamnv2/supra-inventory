@@ -652,3 +652,10 @@ D126 supersedes the D125 workflow changes before D125 implementation.
 - After the marker disappears, a fully loaded non-Confirm page receives exactly one direct navigation retry to the canonical Confirm URL. An already-authenticated initial redirect to Dashboard receives the same one retry.
 - One failed retry is terminal for that cycle: Agent reports that Confirm could not be reached and does not loop. A later exact login-marker cycle or successful READY cycle rearms the bounded retry.
 - User credentials stay browser-only. No Dashboard click, screen-coordinate input, session extraction or direct WMS API is introduced.
+
+### D127 v65 cross-host retry refinement
+- The current redirected page host is not a prerequisite for the one direct Confirm retry. Dashboard/SSO may be on another company host.
+- The retry target itself remains fixed to the canonical Confirm PickList URL; no arbitrary current-page URL is followed.
+- Logged-out behavior is unchanged: exact **Lưu thông tin đăng nhập** pauses retry until the marker clears.
+- Already-authenticated non-login/non-Confirm pages must be fully loaded and stable for at least 750 ms before retry. After retry, allow a 3-second navigation grace before declaring retry exhausted.
+- WebView2 host build 9 is reused. v65 is an Agent/controller-only correction.
