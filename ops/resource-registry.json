@@ -777,7 +777,10 @@
       "exe_sha256": "dce3a779c86096a6a82ed1991e385e7e6acea2d9ba75078e8bf2371eb1387659"
     },
     "confirm_endpoint": "FORBIDDEN_D126_DIRECT_API",
-    "agent_log_delivery": "D101_LOCAL_ROLLING_2MIB_X4_PLUS_CURRENT__FIRESTORE_SPOOL__BETA_DRIVE_06_12_18_00__CRASH_PREFIX"
+    "agent_log_delivery": "D101_LOCAL_ROLLING_2MIB_X4_PLUS_CURRENT__FIRESTORE_SPOOL__BETA_DRIVE_06_12_18_00__CRASH_PREFIX",
+    "auth_ui_resource_key": "supra-auth-ui-d127-probe",
+    "auth_ui_url": "https://auth-supra.winmart.vn/dashboard",
+    "dashboard_probe": "D127_STANDALONE_DIAGNOSTIC_ONLY__WEBVIEW2_FIXED__SEPARATE_PROFILE__SANITIZED_EVENT_NAVIGATION_LOGS__NO_SESSION_EXTRACTION__NO_API"
   },
   "agent_operations": {
     "decision": "D127",
@@ -811,8 +814,8 @@
     "inventory_channel_release_id": 394587029,
     "inventory_channel_manifest_asset_id": 591888652,
     "inventory_channel_exe_asset_id": 591888651,
-    "next_target_release": "FIELD_REVIEW_OA052_V65",
-    "next_source_status": "D127_V65_CROSS_HOST_DIRECT_CONFIRM_RETRY_RELEASED__OA052_FIELD_PENDING",
+    "next_target_release": "DIAGNOSTIC_D127_DASHBOARD_PROBE_V1",
+    "next_source_status": "D127_V65_FIELD_FAIL__PROBE_V1_IMPLEMENTING__OA052_PENDING",
     "release_publish_run": 36286366107,
     "wms_health": "MANAGED_BROWSER_CONFIRM_PAGE_READINESS_ONLY",
     "schedule_authority": "KEEP_D117_D118_CONFIRMATION_RELAY_SCHEDULE",
@@ -820,7 +823,8 @@
     "column_sizing": "D122_AUTO_SIZE_CONTENT_OR_MANUAL_PER_USER_LOCAL_PERSISTENCE",
     "session_recovery": "USER_REOPENS_OR_LOGS_IN_BROWSER__NO_AGENT_SESSION_CAPTURE",
     "browser_runtime": "EXPLICIT_AGENT_WEBVIEW2_FIXED_X64__HOST_BUILD_9_REUSED__DIRECT_CONFIRM__NO_CURRENT_PAGE_HOST_GATE__750MS_STABLE_NON_LOGIN_RETRY__3S_NAVIGATION_GRACE__NO_DASHBOARD_CLICK__DESKTOP_BY_BUTTON",
-    "local_storage": "DISPLAY_RUNTIME_PROFILE_CACHE_OTHER_TOTAL_BREAKDOWN__OPEN_BROWSER_DATA_FOLDER__AUTO_DELETE_OBSOLETE_WV2_BUNDLES__KEEP_ACTIVE_AND_PROFILE"
+    "local_storage": "DISPLAY_RUNTIME_PROFILE_CACHE_OTHER_TOTAL_BREAKDOWN__OPEN_BROWSER_DATA_FOLDER__AUTO_DELETE_OBSOLETE_WV2_BUNDLES__KEEP_ACTIVE_AND_PROFILE",
+    "dashboard_probe": "D127_V1_STANDALONE__AUTH_DASHBOARD_ONLY__JS_CLICK_SYNTHETIC_POINTER_CDP_USER_GESTURE_CDP_MOUSE_FRAME_OFFSET_CDP_ENTER__MANUAL_TRUSTED_EVENT_CAPTURE_FALLBACK"
   },
   "distribution_channel": {
     "environment": "beta",
@@ -1193,11 +1197,14 @@
     "h4_implementation_pr": 206
   },
   "d127": {
-    "status": "TECHNICAL_RELEASE_PASS__OA052_FIELD_READY",
-    "target_agent_release": "relay-agent-v60",
+    "status": "V65_OWNER_FIELD_FAIL__DASHBOARD_PROBE_V1_IMPLEMENTING",
+    "target_agent_release": "relay-agent-v65",
     "android": "beta-vc76 unchanged",
     "browser_bundle": "inventory-channel / WebView2 Fixed 154.0.4258.37",
     "main_relay_agent_run": 36265082575,
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "dashboard_probe_release_target": "d127-dashboard-probe-v1",
+    "dashboard_probe_auth_ui": "https://auth-supra.winmart.vn/dashboard",
+    "dashboard_probe_policy": "BOUNDED_CLICK_METHOD_MATRIX__SANITIZED_LOG__NO_NETWORK_COOKIE_TOKEN_HEADER_STORAGE_CAPTURE__STABLE_UNTOUCHED"
   }
 }

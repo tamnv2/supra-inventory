@@ -428,6 +428,18 @@
       "name": "572322098890-compute@developer.gserviceaccount.com",
       "exposure": "public_identifier",
       "guard": "D119_FUNCTIONS_EVENT_TRIGGER_SUPPORT_ONLY__RUN_INVOKER_AND_EVENTARC_EVENT_RECEIVER_BINDINGS_ONLY_AS_REQUIRED_BY_FIREBASE_CLI"
+    },
+    {
+      "key": "supra-auth-ui-d127-probe",
+      "provider": "Wincommerce Supra",
+      "kind": "external_https_endpoint",
+      "environment": "beta_poc",
+      "name": "auth-supra.winmart.vn",
+      "url": "https://auth-supra.winmart.vn/",
+      "exposure": "public_corporate_hostname",
+      "allowed_reference_page": "https://auth-supra.winmart.vn/dashboard",
+      "guard": "D127_DASHBOARD_PROBE_ONLY__USER_LOGIN_BROWSER_UI__NO_SESSION_CAPTURE_EXTRACTION_REPLAY__NO_NETWORK_DOMAIN__NO_API_CALLS",
+      "status": "OWNER_APPROVED_D127_DIAGNOSTIC_ONLY"
     }
   ],
   "secret_references": [

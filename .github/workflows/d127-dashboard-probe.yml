@@ -1,0 +1,103 @@
+name: D127 Dashboard Probe
+
+on:
+  pull_request:
+    paths:
+      - "relay-agent-dashboard-probe/**"
+      - ".github/workflows/d127-dashboard-probe.yml"
+      - "docs/OWNER_DECISIONS.md"
+      - "docs/specs/ACCEPTANCE_TESTING.md"
+      - "ops/project-state.json"
+      - "ops/owner-actions.json"
+      - "ops/project-scope.json"
+      - "ops/resource-registry.json"
+  push:
+    branches: [main]
+    paths:
+      - "relay-agent-dashboard-probe/**"
+      - ".github/workflows/d127-dashboard-probe.yml"
+      - "docs/OWNER_DECISIONS.md"
+      - "docs/specs/ACCEPTANCE_TESTING.md"
+      - "ops/project-state.json"
+      - "ops/owner-actions.json"
+      - "ops/project-scope.json"
+      - "ops/resource-registry.json"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-probe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Source safety guard
+        shell: pwsh
+        run: |
+          $src = Get-Content relay-agent-dashboard-probe/Program.cs -Raw
+          foreach ($forbidden in @('Network.enable','document.cookie','GetCookiesAsync','localStorage','sessionStorage','Authorization','Set-Cookie','api-supra.winmart.vn')) {
+            if ($src.Contains($forbidden)) { throw "Forbidden probe capability marker: $forbidden" }
+          }
+          foreach ($required in @('https://auth-supra.winmart.vn/dashboard','https://wms-supra.winmart.vn','NewWindowRequested','Input.dispatchMouseEvent','Runtime.evaluate','userGesture','Input.dispatchKeyEvent','SanitizeUrl','isTrusted','mode=same_tab','profile=probe_dedicated','HY1_SFT3_UNIQUE','UNIQUE_ARROW_FALLBACK')) {
+            if (-not $src.Contains($required)) { throw "Required D127 probe marker missing: $required" }
+          }
+          Write-Host "D127 Dashboard Probe source safety guard PASS"
+
+      - name: Build probe
+        shell: pwsh
+        run: |
+          dotnet build relay-agent-dashboard-probe/SupraDashboardProbe.csproj -c Release -p:PlatformTarget=x64
+          $exe = "relay-agent-dashboard-probe/bin/Release/net48/SUPRA.Dashboard.Probe.exe"
+          if (-not (Test-Path $exe)) { throw "Probe EXE missing." }
+          $self = Start-Process -FilePath $exe -ArgumentList "--self-test" -PassThru -Wait
+          if ($self.ExitCode -ne 0) { throw "Probe self-test failed: $($self.ExitCode)" }
+
+          $loader = Get-ChildItem "relay-agent-dashboard-probe/bin/Release/net48" -Recurse -Filter "WebView2Loader.dll" | Where-Object { $_.FullName -match 'runtimes[\\/]win-x64[\\/]native[\\/]WebView2Loader\.dll$' } | Select-Object -First 1
+          if ($null -eq $loader) { throw "Probe WebView2Loader x64 missing." }
+
+          $dist = "relay-agent-dashboard-probe/dist"
+          Remove-Item $dist -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $dist | Out-Null
+          Copy-Item "relay-agent-dashboard-probe/bin/Release/net48/*" $dist -Recurse -Force
+          New-Item -ItemType Directory -Force -Path "$dist/loader/x64" | Out-Null
+          Copy-Item $loader.FullName "$dist/loader/x64/WebView2Loader.dll" -Force
+          Copy-Item "relay-agent-dashboard-probe/README.md" "$dist/README.md" -Force
+
+          $version = (Get-Content relay-agent-dashboard-probe/VERSION -Raw).Trim()
+          $zip = "relay-agent-dashboard-probe/SUPRA.Dashboard.Probe.v$version.zip"
+          Compress-Archive -Path "$dist/*" -DestinationPath $zip -Force
+          (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant() | Set-Content "$zip.sha256" -Encoding ascii
+          Write-Host "Probe build PASS version=$version"
+
+      - name: Upload probe artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: d127-dashboard-probe
+          path: |
+            relay-agent-dashboard-probe/SUPRA.Dashboard.Probe.v*.zip
+            relay-agent-dashboard-probe/SUPRA.Dashboard.Probe.v*.zip.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish diagnostic prerelease
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = (Get-Content relay-agent-dashboard-probe/VERSION -Raw).Trim()
+          $tag = "d127-dashboard-probe-v$version"
+          $zip = "relay-agent-dashboard-probe/SUPRA.Dashboard.Probe.v$version.zip"
+          $sha = "$zip.sha256"
+
+          gh release view $tag --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag --repo "${{ github.repository }}" --target "$env:GITHUB_SHA" --title "D127 Dashboard Probe v$version" --notes "Beta-only diagnostic browser for Supra Dashboard activation. Reuses the installed Agent WebView2 Fixed Runtime, uses a separate probe profile, logs sanitized DOM/input/navigation evidence, and does not read cookies/tokens/headers/storage or call WMS APIs." --prerelease
+            if ($LASTEXITCODE -ne 0) { throw "Unable to create probe prerelease." }
+          }
+
+          gh release upload $tag "$zip#SUPRA.Dashboard.Probe.v$version.zip" "$sha#SUPRA.Dashboard.Probe.v$version.zip.sha256" --repo "${{ github.repository }}" --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Unable to upload probe release assets." }
+          Write-Host "Published $tag"

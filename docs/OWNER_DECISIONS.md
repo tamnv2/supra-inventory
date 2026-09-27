@@ -1452,3 +1452,17 @@ Release evidence:
 
 D127 v65 is **TECHNICAL / RELEASE PASS**. OA052 remains open for Owner field verification on the real company laptop.
 
+## D127 Dashboard activation diagnostic probe — 2026-09-27
+
+Owner field evidence on `relay-agent-v65` changes the diagnosis: the logged-out flow can recover after login, but when the managed browser is already authenticated and the Confirm request lands on `https://auth-supra.winmart.vn/dashboard`, a second direct Confirm navigation still returns to Dashboard. Dashboard activation is therefore a real prerequisite that must be observed rather than bypassed with further blind reloads.
+
+Approved diagnostic scope:
+- Add a standalone **D127 Dashboard Probe v1** for Beta field diagnosis. It opens the registered auth UI page `https://auth-supra.winmart.vn/dashboard` using the already-installed Agent Fixed WebView2 runtime but a separate probe browser profile.
+- The probe does not change normal Agent v65 confirmation behavior. No Agent v66 behavior is approved until field evidence identifies the real Dashboard activation contract.
+- Target discovery is bounded to the supplied right-arrow SVG path. It prefers the unique arrow whose ancestor card contains **Kho Hưng Yên 1** and **SFT3**; if there is only one right-arrow candidate on the page it may use that unique fallback. Ambiguous/missing targets fail closed and ask for one manual click.
+- Automatic activation trials are bounded and sequential: DOM `.click()`, synthetic pointer/mouse events, CDP `Runtime.evaluate` with `userGesture=true`, browser-level CDP mouse input using iframe-offset-aware viewport coordinates, then focused target + browser-level Enter key. The probe stops when navigation or a new-window request is observed.
+- The probe records target counts, the attempted method, target input-event `isTrusted` state, sanitized NavigationStarting/SourceChanged/NavigationCompleted evidence, and sanitized `NewWindowRequested` target.
+- A new-window target is kept in the same probe tab only when it is HTTPS on exact `auth-supra.winmart.vn` or `wms-supra.winmart.vn`. Any other host is logged as scheme + host + path and blocked fail-closed.
+- If no automatic method transitions, the Owner clicks the intended Dashboard arrow once manually while the probe remains open. That trusted click is diagnostic evidence; the probe records the resulting trusted input/navigation/new-window behavior.
+- Logs strip query strings and fragments and must never include passwords, cookies, tokens, headers, signatures, web-storage values, request payloads or browser-profile contents. The probe never enables the DevTools Network domain and never calls the WMS API.
+- `auth-supra.winmart.vn` is added to project scope only for this D127 Beta browser diagnostic. Stable remains OWNER-GATED and untouched.
