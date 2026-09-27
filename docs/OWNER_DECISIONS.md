@@ -1466,3 +1466,17 @@ Approved diagnostic scope:
 - If no automatic method transitions, the Owner clicks the intended Dashboard arrow once manually while the probe remains open. That trusted click is diagnostic evidence; the probe records the resulting trusted input/navigation/new-window behavior.
 - Logs strip query strings and fragments and must never include passwords, cookies, tokens, headers, signatures, web-storage values, request payloads or browser-profile contents. The probe never enables the DevTools Network domain and never calls the WMS API.
 - `auth-supra.winmart.vn` is added to project scope only for this D127 Beta browser diagnostic. Stable remains OWNER-GATED and untouched.
+
+## D127 Dashboard Probe v1 release checkpoint — 2026-09-27
+
+The standalone Beta diagnostic probe is now released and ready for OA052 field evidence.
+
+Release evidence:
+- Implementation PR #240 passed D127 Dashboard Probe, Repo Authority Guard, Project State Guard, UI Design Guard, Firestore and RTDB PR gates, then squash-merged to `main` at `b3dd0e2b101432595956311b476a25444ee066cb`.
+- Main D127 Dashboard Probe workflow run `36288410742` completed **PASS** and published prerelease `d127-dashboard-probe-v1`.
+- Release id: `397476380`.
+- ZIP asset id: `591948670`, size `485027` bytes.
+- SHA-256 companion asset id: `591948671`.
+- The probe remains diagnostic-only: it does not modify relay-agent v65, Android `beta-vc76`, normal Confirm mutation logic, or Stable.
+- OA052 remains open until the Owner runs the probe on the company laptop and uploads only the newest sanitized `dashboard-probe-*.log`.
+
