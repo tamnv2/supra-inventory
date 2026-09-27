@@ -1984,8 +1984,8 @@ namespace SupraInventoryRelayAgent
             {
                 case "READY": return "Web Confirm sẵn sàng";
                 case "LOGIN_REQUIRED": return "Cần đăng nhập Supra trên trình duyệt";
-                case "SFT3_SESSION_BOOTSTRAP": return "Đang khởi tạo phiên SFT3";
-                case "SFT3_SESSION_BOOTSTRAP_EXHAUSTED": return "Không khởi tạo được phiên SFT3";
+                case "DASHBOARD_ACCESS_CLICK": return "Đang truy cập SFT3 từ Dashboard";
+                case "DASHBOARD_ACCESS_FAILED": return "Không truy cập được SFT3 từ Dashboard";
                 case "AUTO_RETRY_CONFIRM": return "Đang mở trang Confirm";
                 case "CONFIRM_RETRY_EXHAUSTED": return "Chưa vào được Confirm sau khi thử lại";
                 case "LOGIN_OR_DOM_NOT_READY": return "Chờ tải trang Confirm";
