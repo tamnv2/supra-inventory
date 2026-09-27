@@ -479,6 +479,8 @@ namespace SupraInventoryRelayAgent
         private readonly System.Windows.Forms.Timer _guardTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer _afterHoursTimer = new System.Windows.Forms.Timer();
         private long _trayMonitorRefreshRunning;
+        private long _browserStatusRefreshRunning;
+        private long _readinessRefreshRunning;
         private long _afterHoursScheduleRefreshRunning;
         private long _networkStatusRefreshRunning;
         private long _watchdogRefreshRunning;
@@ -625,11 +627,6 @@ namespace SupraInventoryRelayAgent
             BuildProfessionalLayout();
 
             var menu = new ContextMenuStrip();
-            _trayStatusItem.Enabled = false;
-            _trayStatusItem.Text = "Máy: đang đọc...";
-            menu.Items.Add(_trayStatusItem);
-            menu.Items.Add(new ToolStripSeparator());
-
             menu.Items.Add("Mở Agent", null, (s, e) => RestoreFromTray());
             menu.Items.Add("Mở log", null, (s, e) => AgentDiagnostics.OpenLog());
             menu.Items.Add(new ToolStripSeparator());
@@ -1353,6 +1350,7 @@ namespace SupraInventoryRelayAgent
 
         private bool IsBusinessAllowed()
         {
+            if (!HasOperationalReadiness()) return false;
             if (_businessSchedule == null) return true;
             var now = _businessSchedule.NowOperational();
             if (_businessSchedule.DefaultRelayAllowed(now)) return true;
@@ -1452,6 +1450,7 @@ namespace SupraInventoryRelayAgent
 
         private void CheckAfterHoursSchedule(bool forcePrompt = false)
         {
+            QueueD128BrowserStateRefresh();
             if (_businessSchedule == null) return;
             var now = _businessSchedule.NowOperational();
             var defaultAllowed = _businessSchedule.DefaultRelayAllowed(now);
@@ -1832,6 +1831,8 @@ namespace SupraInventoryRelayAgent
 
         private void MinimizeToTray()
         {
+            _trayMonitorTimer.Stop();
+            SetD128ResourceMonitoringPaused();
             WindowState = FormWindowState.Minimized;
             ShowInTaskbar = false;
             Hide();
@@ -1843,6 +1844,8 @@ namespace SupraInventoryRelayAgent
             Show();
             if (WindowState == FormWindowState.Minimized) WindowState = FormWindowState.Normal;
             Activate();
+            _trayMonitorTimer.Start();
+            UpdateTrayMonitor();
         }
 
         private void QueueNetworkStatusRefresh()
@@ -1875,18 +1878,20 @@ namespace SupraInventoryRelayAgent
 
         private void UpdateTrayMonitor()
         {
+            if (!Visible) return;
             if (Interlocked.CompareExchange(ref _trayMonitorRefreshRunning, 1L, 0L) != 0L) return;
 
-            // D121: PerformanceCounter/GPU/NIC sampling can occasionally stall while
-            // Windows rebuilds counters or adapters. Keep it completely off the UI thread
-            // and coalesce overlapping 5-second timer ticks.
+            // D128: resource sampling is visible-window only. Background operation keeps
+            // business/readiness logic alive but does not read PerformanceCounter or
+            // managed browser process CPU/RAM.
             Task.Run(() =>
             {
                 try
                 {
                     var metrics = _systemMonitor.Sample();
-                    RefreshSupraBrowserStatus();
-                    Ui(() => ApplyTrayMonitor(metrics));
+                    BrowserResourceSnapshot browser = null;
+                    try { browser = _supraBrowser == null ? null : _supraBrowser.SampleResourceUsage(); } catch { }
+                    Ui(() => ApplyTrayMonitor(metrics, browser));
                 }
                 catch
                 {
@@ -1899,19 +1904,17 @@ namespace SupraInventoryRelayAgent
             });
         }
 
-        private void ApplyTrayMonitor(SystemMetrics metrics)
+        private void ApplyTrayMonitor(SystemMetrics metrics, BrowserResourceSnapshot browser)
         {
             if (InvokeRequired)
             {
-                BeginInvoke(new Action<SystemMetrics>(ApplyTrayMonitor), metrics);
+                BeginInvoke(new Action<SystemMetrics, BrowserResourceSnapshot>(ApplyTrayMonitor), metrics, browser);
                 return;
             }
             try
             {
-                var compact = metrics.Compact();
-                if (compact.Length > 63) compact = compact.Substring(0, 63);
-                _tray.Text = compact;
-                _trayStatusItem.Text = metrics.MenuText();
+                _tray.Text = "Agent Auto Confirm Pick Pack";
+                ApplyD128ResourceMetrics(metrics, browser);
 
                 var online = _leaderCoordinator == null
                     ? (_listenCts != null ? 1 : (HasReadyConfirmBrowser() ? 1 : 0))
@@ -1948,8 +1951,7 @@ namespace SupraInventoryRelayAgent
 
         private void ApplyTrayMonitorUnavailable()
         {
-            _tray.Text = "SUPRA Agent";
-            _trayStatusItem.Text = "Máy: chưa đọc được tài nguyên";
+            _tray.Text = "Agent Auto Confirm Pick Pack";
         }
 
         private void SetProbeButtonsEnabled(bool enabled)
@@ -1976,6 +1978,11 @@ namespace SupraInventoryRelayAgent
         private bool HasReadyConfirmBrowser()
         {
             return _supraBrowserReady;
+        }
+
+        private bool HasOperationalReadiness()
+        {
+            return HasAgentSession() && HasReadyConfirmBrowser();
         }
 
         private static string BrowserStateLabel(string state)
@@ -2345,13 +2352,36 @@ namespace SupraInventoryRelayAgent
             try
             {
                 AgentRuntimeGuard.EnsureWatchdog();
-                if (_listenCts == null) StartListening();
-                Ui(() => _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / FIRESTORE");
+                QueueD128BrowserStateRefresh();
+                ReconcileOperationalReadiness();
+                Ui(() => _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser());
             }
             catch (Exception ex)
             {
                 Log("Relay runtime chưa thể tự khởi động: " + SafeMessage(ex));
             }
+        }
+
+        private void ReconcileOperationalReadiness()
+        {
+            var ready = HasOperationalReadiness();
+            if (ready)
+            {
+                if (_listenCts == null) StartListening();
+                Ui(() => _listen.Enabled = true);
+                return;
+            }
+
+            if (_listenCts != null || _leaderCoordinator != null) StopListening();
+            Ui(() =>
+            {
+                _listen.Enabled = false;
+                _manualPicklistGrid.Enabled = false;
+                _relay.Text = HasAgentSession()
+                    ? "Relay: chờ Web Confirm sẵn sàng"
+                    : "Relay: chờ đăng nhập Agent";
+                UpdateManualConfirmAllVisibility();
+            });
         }
 
         private void StartLeaderCoordination()
@@ -2386,6 +2416,35 @@ namespace SupraInventoryRelayAgent
             try { if (coordinator != null) coordinator.Stop(); } catch { }
         }
 
+        private void QueueD128BrowserStateRefresh()
+        {
+            if (!HasAgentSession()) return;
+            if (Interlocked.CompareExchange(ref _readinessRefreshRunning, 1L, 0L) != 0L) return;
+            Task.Run(() =>
+            {
+                try
+                {
+                    EnsureD128BrowserReadyPath();
+                    RefreshSupraBrowserStatus();
+                }
+                finally { Interlocked.Exchange(ref _readinessRefreshRunning, 0L); }
+            });
+        }
+
+        private void EnsureD128BrowserReadyPath()
+        {
+            if (_supraBrowser == null || _supraBrowser.IsDesktopSelected()) return;
+            if (!AgentBrowserBundle.SnapshotStatus().Ready) return;
+            if (!string.Equals(_supraBrowserState, "NOT_OPEN", StringComparison.Ordinal) &&
+                !string.Equals(_supraBrowserState, "BROWSER_ERROR", StringComparison.Ordinal))
+                return;
+
+            var state = _supraBrowser.OpenAgentBackground();
+            _supraBrowserReady = state.Ready;
+            _supraBrowserHidden = state.Hidden;
+            _supraBrowserState = state.State ?? "LOADING";
+        }
+
         private void RefreshSupraBrowserStatus()
         {
             if (_supraBrowser == null) return;
@@ -2413,8 +2472,12 @@ namespace SupraInventoryRelayAgent
                                 " · DOM Tìm=" + state.SearchCount +
                                 " XN=" + state.ConfirmCount +
                                 " Bảng=" + state.TableCount));
-                    _wmsLogout.Text = state.Hidden ? "Hiện trình duyệt" : "Ẩn trình duyệt";
-                    _wmsLogout.Enabled = !string.Equals(state.State, "NOT_OPEN", StringComparison.Ordinal) && HasAgentSession();
+                    var agentOwned = _supraBrowser.IsAgentOwnedMode();
+                    _wmsLogout.Text = agentOwned
+                        ? (state.LoginMarkerDetected ? "Đăng nhập Supra" : "Web Agent chạy nền")
+                        : (state.Hidden ? "Hiện trình duyệt" : "Ẩn trình duyệt");
+                    _wmsLogout.Enabled = !agentOwned &&
+                        !string.Equals(state.State, "NOT_OPEN", StringComparison.Ordinal) && HasAgentSession();
                     _wmsTest.Enabled = !string.Equals(state.State, "NOT_OPEN", StringComparison.Ordinal) && HasAgentSession();
                     _wmsCapture.Enabled = HasAgentSession() && AgentBrowserBundle.SnapshotStatus().Ready;
                     _wmsDesktop.Enabled = HasAgentSession();
@@ -2435,6 +2498,7 @@ namespace SupraInventoryRelayAgent
                 var coordinator = _leaderCoordinator;
                 if (coordinator != null) coordinator.RequestRoleRefreshBeforeBusiness();
             }
+            ReconcileOperationalReadiness();
         }
 
         private void OpenSupraConfirmBrowser(bool desktop)
@@ -2446,7 +2510,7 @@ namespace SupraInventoryRelayAgent
             {
                 var state = desktop
                     ? _supraBrowser.OpenOrShowDesktop()
-                    : _supraBrowser.OpenOrShowAgent();
+                    : _supraBrowser.OpenAgentBackground();
                 _supraBrowserReady = state.Ready;
                 _supraBrowserHidden = state.Hidden;
                 _supraBrowserState = state.State ?? "NOT_OPEN";
@@ -2483,6 +2547,11 @@ namespace SupraInventoryRelayAgent
         {
             try
             {
+                if (_supraBrowser.IsAgentOwnedMode())
+                {
+                    RefreshSupraBrowserStatus();
+                    return;
+                }
                 if (_supraBrowserHidden) _supraBrowser.Show();
                 else _supraBrowser.Hide();
                 RefreshSupraBrowserStatus();
@@ -2610,7 +2679,7 @@ namespace SupraInventoryRelayAgent
                 Ui(() =>
                 {
                     _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser();
-                    _listen.Enabled = true;
+                    _listen.Enabled = false;
                     _testOffice.Enabled = true;
                 });
                 SetAgentAuthUi(true);
@@ -2795,7 +2864,7 @@ namespace SupraInventoryRelayAgent
                 {
                     _password.Clear();
                     _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser();
-                    _listen.Enabled = true;
+                    _listen.Enabled = false;
                     _testOffice.Enabled = true;
                 });
                 SetAgentAuthUi(true);
@@ -3686,6 +3755,7 @@ namespace SupraInventoryRelayAgent
         private void StartListening()
         {
             try { SnapshotSession(); } catch { Log("Chưa ghép Agent."); return; }
+            if (!HasOperationalReadiness()) return;
             if (_listenCts != null) return;
             StartLeaderCoordination();
             _listenCts = new CancellationTokenSource();

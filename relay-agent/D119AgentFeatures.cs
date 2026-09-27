@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Web.Script.Serialization;
 using System.Threading;
@@ -20,9 +21,11 @@ namespace SupraInventoryRelayAgent
             var width = Math.Max(420, _supraCard.ClientSize.Width);
             var openWidth = Math.Max(150, (width - 40) / 2);
 
-            _wmsStatus.SetBounds(16, 42, 260, 22);
-            _supraInfo.SetBounds(286, 42, Math.Max(120, width - 302), 22);
-            _supraInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            _wmsStatus.SetBounds(16, 42, 220, 22);
+            _supraInfo.SetBounds(246, 42, 250, 22);
+            _supraInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            _d128BrowserResourceStatus.SetBounds(506, 42, Math.Max(120, width - 522), 22);
+            _d128BrowserResourceStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
             _wmsCapture.SetBounds(16, 72, openWidth, 32);
             _wmsDesktop.SetBounds(24 + openWidth, 72, Math.Max(150, width - 40 - openWidth), 32);
@@ -66,6 +69,8 @@ namespace SupraInventoryRelayAgent
         private readonly Label _pickerOnlineStatus = new Label();
         private readonly Label _fleetMetricStatus = new Label();
         private readonly Label _agentRequestMetrics = new Label();
+        private readonly Label _d128AgentResourceStatus = new Label();
+        private readonly Label _d128BrowserResourceStatus = new Label();
         private readonly TextBox _pickerSearch = new TextBox();
         private List<PickerPresenceView> _pickerOnlineSnapshot = new List<PickerPresenceView>();
         private string _pickerOnlineRenderSignature = "";
@@ -90,6 +95,13 @@ namespace SupraInventoryRelayAgent
         private readonly CheckBox _autoSizeColumns = new CheckBox();
         private bool _columnPreferenceApplying;
         private string _columnPreferenceUser = "";
+        private D128OverlayForm _d128Overlay;
+        private readonly Button _d128OverlaySettingsButton = new Button();
+        private ToolStripMenuItem _d128OverlayVisibleMenu;
+        private ToolStripMenuItem _d128OverlayLockedMenu;
+        private static readonly string D128OverlaySettingsFile = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Agent Auto Confirm Pick Pack", "RelayPoc", "overlay-settings.json");
 
         public sealed class ColumnPreferenceProfile
         {
@@ -106,10 +118,20 @@ namespace SupraInventoryRelayAgent
             _pickerPresenceClient = new FirestorePickerPresenceClient(message => Log(message));
             _pickerContactClient = new FirestorePickerContactClient(message => Log(message));
             _fleetMetricsClient = new FirestoreFleetMetricsClient(message => Log(message));
+            InitializeD128Overlay();
 
             var agentHost = _username.Parent;
             if (agentHost != null)
             {
+                _d128AgentResourceStatus.Text = "Tài nguyên Agent: chờ đo...";
+                _d128AgentResourceStatus.ForeColor = Color.FromArgb(88, 104, 115);
+                _d128AgentResourceStatus.AutoEllipsis = true;
+                _d128AgentResourceStatus.TextAlign = ContentAlignment.MiddleRight;
+                _d128AgentResourceStatus.SetBounds(420, 38, Math.Max(160, agentHost.ClientSize.Width - 436), 20);
+                _d128AgentResourceStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+                agentHost.Controls.Add(_d128AgentResourceStatus);
+                _d128AgentResourceStatus.BringToFront();
+
                 _agentRequestMetrics.Text = "Xác nhận đơn · Nhận 0 · Đã xử lý 0 · Thành công 0 · Lỗi 0 · Chờ 0";
                 _agentRequestMetrics.ForeColor = Color.FromArgb(71, 85, 105);
                 _agentRequestMetrics.AutoEllipsis = true;
@@ -120,6 +142,12 @@ namespace SupraInventoryRelayAgent
 
             if (_supraCard != null)
             {
+                _d128BrowserResourceStatus.Text = "Tài nguyên Web: chờ đo...";
+                _d128BrowserResourceStatus.ForeColor = Color.FromArgb(88, 104, 115);
+                _d128BrowserResourceStatus.AutoEllipsis = true;
+                _d128BrowserResourceStatus.Font = new Font("Segoe UI", 8F);
+                _supraCard.Controls.Add(_d128BrowserResourceStatus);
+                _d128BrowserResourceStatus.BringToFront();
                 LayoutSupraCardControls();
             }
 
@@ -884,6 +912,544 @@ namespace SupraInventoryRelayAgent
                 " · Thành công " + success.ToString("N0") +
                 " · Lỗi " + failed.ToString("N0") +
                 " · Chờ " + pending.ToString("N0");
+            RefreshD128Overlay();
+        }
+
+        private void InitializeD128Overlay()
+        {
+            try
+            {
+                _d128Overlay = new D128OverlayForm(D128OverlaySettingsFile);
+                _d128Overlay.SettingsChanged += RefreshD128OverlayMenu;
+                RefreshD128Overlay();
+                if (_d128Overlay.OverlayVisible) _d128Overlay.Show();
+
+                var overlayCard = NewCard(22, 344, 1040, 150);
+                overlayCard.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+                overlayCard.Controls.Add(new Label
+                {
+                    Left = 18, Top = 14, Width = 980, Height = 28,
+                    Text = "Bảng nổi Picklist",
+                    Font = new Font("Segoe UI Semibold", 13F, FontStyle.Bold),
+                    ForeColor = Color.FromArgb(24, 43, 55)
+                });
+                overlayCard.Controls.Add(new Label
+                {
+                    Left = 18, Top = 50, Width = 780, Height = 42,
+                    Text = "Picklist nhận | Picklist xác nhận | Picklist lỗi. Khi khóa, chuột xuyên qua bảng nổi xuống chương trình phía sau.",
+                    ForeColor = Color.DimGray
+                });
+                _d128OverlaySettingsButton.SetBounds(18, 100, 190, 34);
+                _d128OverlaySettingsButton.Text = "Cài đặt bảng nổi";
+                _d128OverlaySettingsButton.Click += (s, e) => OpenD128OverlaySettings();
+                overlayCard.Controls.Add(_d128OverlaySettingsButton);
+                _connectionPage.Controls.Add(overlayCard);
+
+                var menu = _tray.ContextMenuStrip;
+                if (menu != null)
+                {
+                    menu.Items.Add(new ToolStripSeparator());
+                    _d128OverlayVisibleMenu = new ToolStripMenuItem("Hiển thị bảng nổi");
+                    _d128OverlayVisibleMenu.Click += (s, e) =>
+                    {
+                        if (_d128Overlay == null) return;
+                        _d128Overlay.SetOverlayVisible(!_d128Overlay.OverlayVisible);
+                        RefreshD128OverlayMenu();
+                    };
+                    menu.Items.Add(_d128OverlayVisibleMenu);
+
+                    _d128OverlayLockedMenu = new ToolStripMenuItem("Khóa bảng nổi / chuột xuyên qua");
+                    _d128OverlayLockedMenu.Click += (s, e) =>
+                    {
+                        if (_d128Overlay == null) return;
+                        _d128Overlay.SetLocked(!_d128Overlay.IsLocked);
+                        RefreshD128OverlayMenu();
+                    };
+                    menu.Items.Add(_d128OverlayLockedMenu);
+
+                    var settings = new ToolStripMenuItem("Cài đặt bảng nổi...");
+                    settings.Click += (s, e) => OpenD128OverlaySettings();
+                    menu.Items.Add(settings);
+                }
+                RefreshD128OverlayMenu();
+            }
+            catch (Exception ex)
+            {
+                AgentDiagnostics.Write("D128_OVERLAY init=FAIL type=" + ex.GetType().Name);
+            }
+        }
+
+        private void RefreshD128Overlay()
+        {
+            var overlay = _d128Overlay;
+            if (overlay == null || overlay.IsDisposed) return;
+            overlay.UpdatePicklistMetrics(
+                Interlocked.Read(ref _localPdaRequests),
+                Interlocked.Read(ref _localConfirmSuccess),
+                Interlocked.Read(ref _localConfirmFailed));
+        }
+
+        private void RefreshD128OverlayMenu()
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(RefreshD128OverlayMenu));
+                return;
+            }
+            if (_d128OverlayVisibleMenu != null)
+                _d128OverlayVisibleMenu.Checked = _d128Overlay != null && _d128Overlay.OverlayVisible;
+            if (_d128OverlayLockedMenu != null)
+                _d128OverlayLockedMenu.Checked = _d128Overlay != null && _d128Overlay.IsLocked;
+        }
+
+        private void OpenD128OverlaySettings()
+        {
+            if (_d128Overlay == null || _d128Overlay.IsDisposed) return;
+            using (var dialog = new D128OverlaySettingsDialog(_d128Overlay))
+                dialog.ShowDialog(this);
+            RefreshD128OverlayMenu();
+        }
+
+        private sealed class D128OverlayForm : Form
+        {
+            private const int WsExTransparent = 0x20;
+            private const int WsExToolWindow = 0x80;
+            private const int WsExNoActivate = 0x08000000;
+            private const int GwlExStyle = -20;
+            private const int WmNcHitTest = 0x0084;
+            private const int HtTransparent = -1;
+            private const int ResizeGrip = 9;
+
+            private readonly Label _text = new Label();
+            private readonly string _settingsPath;
+            private int _savedLeft = int.MinValue;
+            private int _savedTop = int.MinValue;
+            private int _backgroundArgb = Color.FromArgb(28, 35, 43).ToArgb();
+            private int _textArgb = Color.White.ToArgb();
+            private double _overlayOpacity = 0.78;
+            private bool _locked = true;
+            private bool _overlayVisible = true;
+            private bool _dragging;
+            private Point _dragOrigin;
+            private Point _windowOrigin;
+
+            internal event Action SettingsChanged;
+
+            internal D128OverlayForm(string settingsPath)
+            {
+                _settingsPath = settingsPath ?? "";
+                LoadSettings();
+
+                Text = "Agent Auto Confirm Pick Pack - Overlay";
+                FormBorderStyle = FormBorderStyle.None;
+                ShowInTaskbar = false;
+                TopMost = true;
+                StartPosition = FormStartPosition.Manual;
+                MinimumSize = new Size(430, 42);
+                MaximumSize = new Size(1600, 180);
+                Size = new Size(ClampWidth(Width <= 0 ? 620 : Width), ClampHeight(Height <= 0 ? 52 : Height));
+                BackColor = SafeColor(_backgroundArgb, Color.FromArgb(28, 35, 43));
+                Opacity = ClampOpacity(_overlayOpacity);
+                Padding = new Padding(10, 5, 10, 5);
+
+                _text.Dock = DockStyle.Fill;
+                _text.TextAlign = ContentAlignment.MiddleLeft;
+                _text.AutoEllipsis = true;
+                _text.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+                _text.Text = "Picklist nhận: 0 | Picklist xác nhận: 0 | Picklist lỗi: 0";
+                _text.ForeColor = SafeColor(_textArgb, Color.White);
+                Controls.Add(_text);
+
+                foreach (Control control in new Control[] { this, _text })
+                {
+                    control.MouseDown += BeginDrag;
+                    control.MouseMove += ContinueDrag;
+                    control.MouseUp += EndDrag;
+                }
+
+                ApplySavedPosition();
+                Shown += (s, e) => ApplyInteractionMode();
+                ResizeEnd += (s, e) => { if (!IsLocked) Persist(); };
+            }
+
+            protected override bool ShowWithoutActivation { get { return IsLocked; } }
+
+            protected override CreateParams CreateParams
+            {
+                get
+                {
+                    var cp = base.CreateParams;
+                    cp.ExStyle |= WsExToolWindow | WsExNoActivate;
+                    if (IsLocked) cp.ExStyle |= WsExTransparent;
+                    return cp;
+                }
+            }
+
+            protected override void WndProc(ref Message m)
+            {
+                if (m.Msg == WmNcHitTest && IsLocked)
+                {
+                    m.Result = new IntPtr(HtTransparent);
+                    return;
+                }
+                base.WndProc(ref m);
+            }
+
+            internal bool IsLocked { get { return _locked; } }
+            internal bool OverlayVisible { get { return _overlayVisible; } }
+            internal double OverlayOpacity { get { return _overlayOpacity; } }
+            internal int OverlayWidth { get { return Width; } }
+            internal int OverlayHeight { get { return Height; } }
+            internal Color OverlayBackgroundColor { get { return SafeColor(_backgroundArgb, Color.FromArgb(28, 35, 43)); } }
+            internal Color OverlayTextColor { get { return SafeColor(_textArgb, Color.White); } }
+
+            internal void UpdatePicklistMetrics(long received, long confirmed, long failed)
+            {
+                if (IsDisposed) return;
+                if (InvokeRequired)
+                {
+                    BeginInvoke(new Action<long, long, long>(UpdatePicklistMetrics), received, confirmed, failed);
+                    return;
+                }
+                _text.Text =
+                    "Picklist nhận: " + Math.Max(0L, received).ToString("N0") +
+                    " | Picklist xác nhận: " + Math.Max(0L, confirmed).ToString("N0") +
+                    " | Picklist lỗi: " + Math.Max(0L, failed).ToString("N0");
+            }
+
+            internal void SetLocked(bool locked)
+            {
+                if (_locked == locked) return;
+                _locked = locked;
+                _dragging = false;
+                ApplyInteractionMode();
+                Persist();
+            }
+
+            internal void SetOverlayVisible(bool visible)
+            {
+                _overlayVisible = visible;
+                if (visible)
+                {
+                    if (!Visible) Show();
+                    TopMost = true;
+                }
+                else Hide();
+                Persist();
+            }
+
+            internal void SetOverlayOpacity(double value)
+            {
+                _overlayOpacity = ClampOpacity(value);
+                Opacity = _overlayOpacity;
+                Persist();
+            }
+
+            internal void SetOverlaySize(int width, int height)
+            {
+                if (IsLocked) return;
+                Size = new Size(ClampWidth(width), ClampHeight(height));
+                Persist();
+            }
+
+            internal void SetBackgroundColor(Color color)
+            {
+                _backgroundArgb = color.ToArgb();
+                BackColor = color;
+                Persist();
+            }
+
+            internal void SetTextColor(Color color)
+            {
+                _textArgb = color.ToArgb();
+                _text.ForeColor = color;
+                Persist();
+            }
+
+            private void ApplySavedPosition()
+            {
+                if (_savedLeft != int.MinValue && _savedTop != int.MinValue)
+                {
+                    Location = ClampToScreens(new Point(_savedLeft, _savedTop), Size);
+                    return;
+                }
+                var area = Screen.PrimaryScreen == null ? new Rectangle(0, 0, 1280, 720) : Screen.PrimaryScreen.WorkingArea;
+                Location = new Point(Math.Max(area.Left, area.Right - Width - 12), Math.Max(area.Top, area.Bottom - Height - 12));
+            }
+
+            private void ApplyInteractionMode()
+            {
+                TopMost = true;
+                Cursor = IsLocked ? Cursors.Default : Cursors.SizeAll;
+                try
+                {
+                    var style = GetWindowLong(Handle, GwlExStyle);
+                    var next = IsLocked ? style | WsExTransparent | WsExNoActivate : style & ~WsExTransparent;
+                    if (next != style) SetWindowLong(Handle, GwlExStyle, next);
+                }
+                catch { }
+            }
+
+            private void BeginDrag(object sender, MouseEventArgs e)
+            {
+                if (IsLocked || e.Button != MouseButtons.Left) return;
+                var p = PointToClient(Cursor.Position);
+                if (p.X <= ResizeGrip || p.X >= ClientSize.Width - ResizeGrip ||
+                    p.Y <= ResizeGrip || p.Y >= ClientSize.Height - ResizeGrip) return;
+                _dragging = true;
+                _dragOrigin = Cursor.Position;
+                _windowOrigin = Location;
+            }
+
+            private void ContinueDrag(object sender, MouseEventArgs e)
+            {
+                if (!_dragging || IsLocked) return;
+                var now = Cursor.Position;
+                Location = ClampToScreens(
+                    new Point(_windowOrigin.X + now.X - _dragOrigin.X, _windowOrigin.Y + now.Y - _dragOrigin.Y),
+                    Size);
+            }
+
+            private void EndDrag(object sender, MouseEventArgs e)
+            {
+                if (!_dragging) return;
+                _dragging = false;
+                Persist();
+            }
+
+            private void LoadSettings()
+            {
+                Width = 620;
+                Height = 52;
+                try
+                {
+                    if (string.IsNullOrWhiteSpace(_settingsPath) || !File.Exists(_settingsPath)) return;
+                    var map = new JavaScriptSerializer().DeserializeObject(File.ReadAllText(_settingsPath)) as Dictionary<string, object>;
+                    if (map == null) return;
+                    object value;
+                    if (map.TryGetValue("left", out value)) _savedLeft = Convert.ToInt32(value);
+                    if (map.TryGetValue("top", out value)) _savedTop = Convert.ToInt32(value);
+                    if (map.TryGetValue("width", out value)) Width = ClampWidth(Convert.ToInt32(value));
+                    if (map.TryGetValue("height", out value)) Height = ClampHeight(Convert.ToInt32(value));
+                    if (map.TryGetValue("background_argb", out value)) _backgroundArgb = Convert.ToInt32(value);
+                    if (map.TryGetValue("text_argb", out value)) _textArgb = Convert.ToInt32(value);
+                    if (map.TryGetValue("opacity", out value)) _overlayOpacity = ClampOpacity(Convert.ToDouble(value));
+                    if (map.TryGetValue("locked", out value)) _locked = Convert.ToBoolean(value);
+                    if (map.TryGetValue("visible", out value)) _overlayVisible = Convert.ToBoolean(value);
+                }
+                catch { }
+            }
+
+            private void Persist()
+            {
+                _savedLeft = Left;
+                _savedTop = Top;
+                try
+                {
+                    var dir = Path.GetDirectoryName(_settingsPath);
+                    if (!string.IsNullOrWhiteSpace(dir)) Directory.CreateDirectory(dir);
+                    var payload = new Dictionary<string, object>
+                    {
+                        { "left", Left }, { "top", Top }, { "width", Width }, { "height", Height },
+                        { "background_argb", _backgroundArgb }, { "text_argb", _textArgb },
+                        { "opacity", _overlayOpacity }, { "locked", _locked }, { "visible", _overlayVisible }
+                    };
+                    File.WriteAllText(_settingsPath, new JavaScriptSerializer().Serialize(payload));
+                }
+                catch { }
+                var handler = SettingsChanged;
+                if (handler != null) handler();
+            }
+
+            private static int ClampWidth(int value) { return Math.Max(430, Math.Min(1600, value)); }
+            private static int ClampHeight(int value) { return Math.Max(42, Math.Min(180, value)); }
+            private static double ClampOpacity(double value) { return Math.Max(0.35, Math.Min(1.0, value)); }
+            private static Color SafeColor(int argb, Color fallback)
+            {
+                try { return argb == 0 ? fallback : Color.FromArgb(argb); } catch { return fallback; }
+            }
+            private static Point ClampToScreens(Point point, Size size)
+            {
+                foreach (var screen in Screen.AllScreens)
+                {
+                    var area = screen.WorkingArea;
+                    if (area.IntersectsWith(new Rectangle(point, size)))
+                        return new Point(
+                            Math.Max(area.Left, Math.Min(point.X, area.Right - size.Width)),
+                            Math.Max(area.Top, Math.Min(point.Y, area.Bottom - size.Height)));
+                }
+                var fallback = Screen.PrimaryScreen == null ? new Rectangle(0, 0, 1280, 720) : Screen.PrimaryScreen.WorkingArea;
+                return new Point(Math.Max(fallback.Left, fallback.Right - size.Width - 12),
+                    Math.Max(fallback.Top, fallback.Bottom - size.Height - 12));
+            }
+
+            [DllImport("user32.dll", EntryPoint = "GetWindowLong", SetLastError = true)]
+            private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+            [DllImport("user32.dll", EntryPoint = "SetWindowLong", SetLastError = true)]
+            private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+        }
+
+        private sealed class D128OverlaySettingsDialog : Form
+        {
+            private readonly D128OverlayForm _overlay;
+            private readonly CheckBox _visible = new CheckBox();
+            private readonly CheckBox _locked = new CheckBox();
+            private readonly TrackBar _opacity = new TrackBar();
+            private readonly Label _opacityValue = new Label();
+            private readonly NumericUpDown _width = new NumericUpDown();
+            private readonly NumericUpDown _height = new NumericUpDown();
+            private readonly Label _help = new Label();
+
+            internal D128OverlaySettingsDialog(D128OverlayForm overlay)
+            {
+                _overlay = overlay;
+                Text = "Cài đặt bảng nổi";
+                Width = 490;
+                Height = 450;
+                FormBorderStyle = FormBorderStyle.FixedDialog;
+                MaximizeBox = false;
+                MinimizeBox = false;
+                ShowInTaskbar = false;
+                StartPosition = FormStartPosition.CenterParent;
+                Font = new Font("Segoe UI", 9F);
+
+                _visible.SetBounds(18, 18, 420, 26);
+                _visible.Text = "Hiển thị bảng nổi Picklist";
+                _visible.Checked = overlay.OverlayVisible;
+                _visible.CheckedChanged += (s, e) => overlay.SetOverlayVisible(_visible.Checked);
+                Controls.Add(_visible);
+
+                Controls.Add(new Label { Left = 18, Top = 56, Width = 330, Height = 22, Text = "Độ trong của nền" });
+                _opacity.SetBounds(16, 80, 360, 42);
+                _opacity.Minimum = 35;
+                _opacity.Maximum = 100;
+                _opacity.TickFrequency = 5;
+                _opacity.Value = Math.Max(35, Math.Min(100, (int)Math.Round(overlay.OverlayOpacity * 100.0)));
+                _opacity.Scroll += (s, e) =>
+                {
+                    overlay.SetOverlayOpacity(_opacity.Value / 100.0);
+                    _opacityValue.Text = _opacity.Value + "%";
+                };
+                Controls.Add(_opacity);
+                _opacityValue.SetBounds(384, 86, 58, 24);
+                _opacityValue.Text = _opacity.Value + "%";
+                Controls.Add(_opacityValue);
+
+                _locked.SetBounds(18, 132, 430, 26);
+                _locked.Text = "Khóa vị trí/kích thước và cho chuột xuyên qua";
+                _locked.Checked = overlay.IsLocked;
+                _locked.CheckedChanged += (s, e) =>
+                {
+                    overlay.SetLocked(_locked.Checked);
+                    RefreshEditState();
+                };
+                Controls.Add(_locked);
+
+                Controls.Add(new Label { Left = 18, Top = 176, Width = 95, Height = 22, Text = "Chiều rộng" });
+                _width.SetBounds(118, 172, 100, 28);
+                _width.Minimum = 430;
+                _width.Maximum = 1600;
+                _width.Value = Math.Max(_width.Minimum, Math.Min(_width.Maximum, overlay.OverlayWidth));
+                Controls.Add(_width);
+
+                Controls.Add(new Label { Left = 248, Top = 176, Width = 85, Height = 22, Text = "Chiều cao" });
+                _height.SetBounds(338, 172, 100, 28);
+                _height.Minimum = 42;
+                _height.Maximum = 180;
+                _height.Value = Math.Max(_height.Minimum, Math.Min(_height.Maximum, overlay.OverlayHeight));
+                Controls.Add(_height);
+
+                _width.ValueChanged += (s, e) => { if (!_locked.Checked) overlay.SetOverlaySize((int)_width.Value, (int)_height.Value); };
+                _height.ValueChanged += (s, e) => { if (!_locked.Checked) overlay.SetOverlaySize((int)_width.Value, (int)_height.Value); };
+
+                var background = new Button { Left = 18, Top = 220, Width = 200, Height = 34, Text = "Chọn màu nền..." };
+                background.Click += (s, e) =>
+                {
+                    using (var dialog = new ColorDialog { FullOpen = true, AnyColor = true, Color = overlay.OverlayBackgroundColor })
+                    {
+                        if (dialog.ShowDialog(this) == DialogResult.OK) overlay.SetBackgroundColor(dialog.Color);
+                    }
+                };
+                Controls.Add(background);
+
+                var foreground = new Button { Left = 238, Top = 220, Width = 200, Height = 34, Text = "Chọn màu chữ..." };
+                foreground.Click += (s, e) =>
+                {
+                    using (var dialog = new ColorDialog { FullOpen = true, AnyColor = true, Color = overlay.OverlayTextColor })
+                    {
+                        if (dialog.ShowDialog(this) == DialogResult.OK) overlay.SetTextColor(dialog.Color);
+                    }
+                };
+                Controls.Add(foreground);
+
+                _help.SetBounds(18, 274, 420, 76);
+                _help.ForeColor = Color.DimGray;
+                Controls.Add(_help);
+
+                var close = new Button { Left = 348, Top = 370, Width = 90, Height = 30, Text = "Đóng" };
+                close.Click += (s, e) => Close();
+                Controls.Add(close);
+                RefreshEditState();
+            }
+
+            private void RefreshEditState()
+            {
+                var editable = !_locked.Checked;
+                _width.Enabled = editable;
+                _height.Enabled = editable;
+                _help.Text = _locked.Checked
+                    ? "Đang khóa: bảng nổi cố định và chuột xuyên xuống chương trình phía sau. Mở khóa để kéo hoặc đổi kích thước."
+                    : "Đang mở khóa: kéo bảng nổi để đổi vị trí; nhập kích thước hoặc kéo mép/góc. Màu nền, màu chữ và độ trong vẫn thay đổi được.";
+            }
+        }
+
+        private void ApplyD128ResourceMetrics(SystemMetrics agent, BrowserResourceSnapshot browser)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<SystemMetrics, BrowserResourceSnapshot>(ApplyD128ResourceMetrics), agent, browser);
+                return;
+            }
+
+            if (agent != null)
+            {
+                _d128AgentResourceStatus.Text =
+                    "Agent · CPU " + agent.ProcessCpuPercent.ToString("0.0") + "% · RAM " +
+                    (agent.ProcessWorkingSetBytes / 1024d / 1024d).ToString("0") + " MB · Thời gian chạy " +
+                    FormatD128Duration(agent.ProcessUptime);
+            }
+
+            if (browser == null || !browser.Available)
+            {
+                _d128BrowserResourceStatus.Text = "Tài nguyên Web: chưa có tiến trình";
+            }
+            else
+            {
+                _d128BrowserResourceStatus.Text =
+                    (string.IsNullOrWhiteSpace(browser.Browser) ? "Web" : browser.Browser) +
+                    " · CPU " + browser.CpuPercent.ToString("0.0") + "% · RAM " +
+                    (browser.WorkingSetBytes / 1024d / 1024d).ToString("0") + " MB · " +
+                    browser.ProcessCount + " tiến trình · Thời gian chạy " +
+                    FormatD128Duration(browser.RunningFor);
+            }
+        }
+
+        private void SetD128ResourceMonitoringPaused()
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(SetD128ResourceMonitoringPaused));
+                return;
+            }
+            _d128AgentResourceStatus.Text = "Tài nguyên Agent: tạm dừng đo khi chạy nền";
+            _d128BrowserResourceStatus.Text = "Tài nguyên Web: tạm dừng đo khi chạy nền";
+        }
+
+        private static string FormatD128Duration(TimeSpan value)
+        {
+            if (value < TimeSpan.Zero) value = TimeSpan.Zero;
+            var totalHours = (int)Math.Floor(value.TotalHours);
+            return totalHours.ToString("00") + ":" + value.Minutes.ToString("00") + ":" + value.Seconds.ToString("00");
         }
 
         private bool HasActivePickerCommand(string userId)
