@@ -85,6 +85,8 @@ namespace SupraInventoryRelayAgent
         private long _fleetMetricsRefreshRunning;
         private DateTime _lastFleetMetricsRefreshUtc = DateTime.MinValue;
         private DateTime _lastFleetMetricsAttemptUtc = DateTime.MinValue;
+        private long _lastFleetCheckpointLocalRequests = -1L;
+        private long _lastFleetCheckpointLocalResponses = -1L;
         private bool _lastFleetPrimary;
         private readonly CheckBox _autoSizeColumns = new CheckBox();
         private bool _columnPreferenceApplying;
@@ -117,11 +119,11 @@ namespace SupraInventoryRelayAgent
             var agentHost = _username.Parent;
             if (agentHost != null)
             {
-                _d128AgentResourceStatus.Text = "Tài nguyên Agent: chờ đo...";
+                _d128AgentResourceStatus.Text = "CPU: -- | RAM: -- | Thời gian chạy: --";
                 _d128AgentResourceStatus.ForeColor = Color.FromArgb(88, 104, 115);
                 _d128AgentResourceStatus.AutoEllipsis = true;
-                _d128AgentResourceStatus.TextAlign = ContentAlignment.MiddleRight;
-                _d128AgentResourceStatus.SetBounds(420, 38, Math.Max(160, agentHost.ClientSize.Width - 436), 20);
+                _d128AgentResourceStatus.TextAlign = ContentAlignment.MiddleLeft;
+                _d128AgentResourceStatus.SetBounds(16, 62, Math.Max(160, agentHost.ClientSize.Width - 32), 20);
                 _d128AgentResourceStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
                 agentHost.Controls.Add(_d128AgentResourceStatus);
                 _d128AgentResourceStatus.BringToFront();
@@ -130,8 +132,8 @@ namespace SupraInventoryRelayAgent
                 _agentRequestMetrics.ForeColor = Color.FromArgb(71, 85, 105);
                 _agentRequestMetrics.AutoEllipsis = true;
                 _agentRequestMetrics.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+                _agentRequestMetrics.Visible = false;
                 agentHost.Controls.Add(_agentRequestMetrics);
-                _agentRequestMetrics.BringToFront();
             }
 
             if (_supraCard != null)
@@ -220,7 +222,7 @@ namespace SupraInventoryRelayAgent
             {
                 Name = "PdaState",
                 HeaderText = "PDA",
-                Width = 88
+                Width = 148
             });
             _pickerOnlineGrid.Columns.Add(new DataGridViewButtonColumn
             {
