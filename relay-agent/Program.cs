@@ -2387,6 +2387,12 @@ namespace SupraInventoryRelayAgent
             try { if (coordinator != null) coordinator.Stop(); } catch { }
         }
 
+        private void QueueD128BrowserStateRefresh()
+        {
+            if (!HasAgentSession()) return;
+            RefreshSupraBrowserStatus();
+        }
+
         private void RefreshSupraBrowserStatus()
         {
             if (_supraBrowser == null) return;
