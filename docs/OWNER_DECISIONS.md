@@ -1480,3 +1480,18 @@ Release evidence:
 - The probe remains diagnostic-only: it does not modify relay-agent v65, Android `beta-vc76`, normal Confirm mutation logic, or Stable.
 - OA052 remains open until the Owner runs the probe on the company laptop and uploads only the newest sanitized `dashboard-probe-*.log`.
 
+## D127 v66 — SFT3 browser-session bootstrap from field evidence — 2026-09-27
+
+Owner field log from D127 Dashboard Probe v1 proves the missing Dashboard action semantics. The auth Dashboard loaded successfully and exposed three matching right-arrow controls, so selector-based auto-click remains ambiguous. A real manual trusted click on the intended control emitted trusted pointer/mouse/click events and then a `NewWindowRequested` target of exactly `https://wms-supra.winmart.vn/sft3/session`. Keeping that target in the same tab produced the redirect chain `/sft3/session` → `/sft3/` → `/sft3/app/dashboard`.
+
+The v65 direct-Confirm retry model is therefore insufficient when an authenticated browser is parked on `auth-supra.winmart.vn/dashboard`: the Dashboard control first establishes/activates an SFT3 browser session through the fixed WMS UI route `/sft3/session`.
+
+Approved v66 behavior:
+- Keep the initial canonical Confirm navigation and exact visible login marker **Lưu thông tin đăng nhập**.
+- If a fully loaded non-login page settles on exact `https://auth-supra.winmart.vn/dashboard`, do not reload Confirm and do not attempt DOM/card/SVG clicking.
+- Navigate the same managed browser once to exact `https://wms-supra.winmart.vn/sft3/session`.
+- Allow up to 10 seconds for the observed WMS browser redirect sequence. When exact `https://wms-supra.winmart.vn/sft3/app/dashboard` is fully loaded, navigate once to the canonical Confirm PickList URL.
+- If the session bootstrap does not reach the WMS app Dashboard within the bounded window, stop and report a terminal SFT3-session bootstrap failure. No loop.
+- For other stable loaded non-login/non-Confirm destinations, preserve the v65 one direct Confirm retry behavior.
+- No Dashboard DOM selector/click automation, screen-coordinate automation, Network DevTools, cookie/token/header/storage extraction, direct WMS API, or session-file capture is introduced.
+- WebView2 Fixed Runtime remains `154.0.4258.37 x64`, host build 9 is reused, Android remains `beta-vc76`, and Stable remains OWNER-GATED.
