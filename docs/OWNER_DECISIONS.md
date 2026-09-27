@@ -1714,7 +1714,7 @@ Status: **OWNER APPROVED DESIGN — IMPLEMENTATION PENDING**.
 Owner explicitly rejects the dual Cloudflare+Firestore relay proposal for PickList confirmation because keeping both relay paths warm would spend quota without enough operational benefit. D131 keeps **Cloud Firestore as the only PDA↔Agent confirmation carrier** and redesigns HA, cadence, presence and counters to stay below the Firestore no-cost allowance while meeting the real operating model.
 
 Authoritative operating envelope:
-- Maximum **6 Windows Agents**.
+- Up to **20 Windows Agents** in the design envelope.
 - Exactly **1 PRIMARY** may consume PickList business jobs. The other Agents are business-hibernating and must not query the PENDING business queue.
 - The fleet runs PDA↔Agent business transport from **05:00 through 23:00 Asia/Ho_Chi_Minh**. Without an explicit overtime extension, business relay stops at 23:00 and resumes at 05:00 even if Windows remains running. Manual/local Agent operations may remain available.
 - Shift capacity: 06:00–14:00 up to 50 PDA; 14:00–22:00 up to 50 PDA; overlap/overtime 10:00–16:00 may reach **75 simultaneously active PDA**.
@@ -1737,9 +1737,9 @@ Business queue:
 
 Counters and fleet visibility:
 - All Agents should display a common daily received / confirmed / error view without a separate high-frequency metrics stream.
-- PRIMARY keeps live counters in RAM and piggybacks the latest counters plus metrics_checkpoint_at onto its existing coordination lease write; this adds no extra periodic metrics write.
+- Daily counters are durable from relay job state plus a coordination summary/checkpoint. RAM may cache values only for UI; it is not counter authority.
 - On takeover, the new PRIMARY reads the last checkpoint and performs one bounded tail reconciliation of request documents newer than the checkpoint, deduplicated by request id, before continuing counters. This makes counters exact across failover without replaying the full day.
-- Fleet status for up to 6 Agents is compact: Agent id/machine, role, Agent auth ready, Web Confirm ready, Firestore ready, last_seen and current network label. PRIMARY lease doubles as PRIMARY heartbeat. Hibernating Agents use coarse readiness heartbeats only; no per-second global presence writes.
+- Fleet status supports up to 20 Agents: Agent id/machine, role, Agent auth ready, Web Confirm ready, Firestore ready, last_seen and current network label. PRIMARY lease doubles as PRIMARY heartbeat. Hibernating Agents use coarse readiness heartbeats only; no per-second global presence writes.
 - Fleet UI may be slightly stale on deep-hibernating Agents and must show last_seen/age rather than pretending per-second accuracy.
 
 PDA activity list:
