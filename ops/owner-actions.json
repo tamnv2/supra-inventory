@@ -2550,7 +2550,7 @@
     },
     {
       "id": "OA052",
-      "status": "FIELD_READY__D127_V65_TECHNICAL_RELEASE_PASS",
+      "status": "FIELD_FAIL_V65__DASHBOARD_PROBE_V1_IMPLEMENTING",
       "title": "Field-accept D127 quota-safe relay and Agent-owned browser fallback",
       "resource_key": "repo",
       "provider": "Beta Firestore + Windows Agent + Supra managed browser",
@@ -2561,7 +2561,7 @@
         "android_baseline": "beta-vc76",
         "stable": "OWNER_GATED",
         "technical_release": "PASS__V65_RELEASED__HOST_BUILD_9_REUSED",
-        "latest_field_result": "V64_FAIL__LOGIN_PATH_RECOVERS__ALREADY_AUTHENTICATED_DASHBOARD_PATH_STAYS_WRONG_PAGE",
+        "latest_field_result": "V65_FAIL__LOGIN_PATH_OK__AUTHENTICATED_DASHBOARD_REQUIRES_ACTIVATION",
         "v63_main": "f7dd84a151e295d30dc7e6082524fe198b1bb314",
         "v64_main": "402faa0c073a34fa968b1b056fb74c6f857c0b64",
         "v65_main": "f623a83ec6785f920aa2a6916a1f016e9ec63680",
@@ -2580,33 +2580,28 @@
         "browser_runtime_version": "154.0.4258.37",
         "browser_bundle_asset_id": 591861254,
         "browser_bundle_sha256": "2be8b5665c7793dbbd3d54d58d96d487003aaa9dd8e51c8f034a8644461fdbec",
-        "main_relay_agent_run": 36286366107
+        "main_relay_agent_run": 36286366107,
+        "diagnostic_release_target": "d127-dashboard-probe-v1"
       },
       "shortest_test_path": [
-        "Update/restart Beta Agent to relay-agent-v65; leave Android beta-vc76 unchanged.",
-        "Open the Agent browser. It must navigate directly to the canonical Confirm PickList URL and must not click any Dashboard card/action.",
-        "Logged-out path: when the loaded page visibly contains exact text Lưu thông tin đăng nhập, Agent must show Cần đăng nhập Supra trên trình duyệt and must not retry/reload Confirm while that marker remains.",
-        "After the user completes login, if the fully loaded page is not the Confirm URL, Agent may navigate directly to Confirm exactly once. The same one-retry behavior applies when an already-authenticated first navigation lands on Dashboard.",
-        "v65 correction: do not require the current page to be on wms-supra.winmart.vn before that retry; the retry target itself remains fixed to the canonical Confirm URL.",
-        "If the one retry still ends on a loaded non-login, non-Confirm page, Agent must stop retrying and show Chưa vào được Confirm sau khi thử lại.",
-        "Verify Firestore usage remains flat when there are no fresh confirmation jobs and no Picker lifecycle changes; old PENDING rows must not repeat-read.",
-        "Log in/logout/reconnect a Picker and verify event-driven list plus 180-second transient disconnect grace without periodic refresh flicker.",
-        "Open Confirm PickList with Số dòng mỗi trang initially below 100 and verify Agent sets/validates 100.",
-        "Test a visible PickList with initially disabled checkbox: one Tìm kiếm refresh may recover it; still-disabled after refresh must reject without confirmation click.",
-        "On a capable x64 laptop verify Agent WebView2 Fixed is used; close/end normal Edge and confirm Agent browser survives.",
-        "Block/remove owned browser bundle and verify automatic dedicated-profile Edge/Chrome fallback still reaches the same D126 exact row/dialog flow."
+        "Download and extract D127 Dashboard Probe v1 after its diagnostic prerelease is published.",
+        "Run SUPRA.Dashboard.Probe.exe. It opens the Beta diagnostic browser at https://auth-supra.winmart.vn/dashboard using the installed Agent WebView2 Fixed Runtime and a separate probe profile.",
+        "If Supra asks for login, log in normally in that browser. Do not send credentials or screenshots containing credentials.",
+        "On Dashboard, let the probe try its bounded activation methods automatically. It stops as soon as navigation or NewWindowRequested is observed.",
+        "If the probe says automatic activation did not transition, click the intended Kho Hưng Yên 1 / SFT3 right-arrow once manually so the probe can capture trusted input plus navigation/new-window evidence.",
+        "Click Mở thư mục log and upload only the newest dashboard-probe-*.log to the project chat.",
+        "Do not upload browser profile files, cookies, tokens, headers, passwords, or any other session material.",
+        "Stable remains untouched."
       ],
       "pass_criteria": [
-        "No stale PENDING read storm and no periodic Picker presence/alert poll loop.",
-        "Picker lifecycle, 14:00 continuation and 05:00–23:00 display rules behave as D127.",
-        "Page-size 100 and checkbox readiness logic are semantic, bounded and fail-closed.",
-        "Owned WebView2 works when supported; Desktop Edge/Chrome remains an explicit operator fallback and is never auto-selected.",
-        "Login detection uses the exact visible text Lưu thông tin đăng nhập; the direct Confirm recovery is bounded to one retry per login/ready cycle and never clicks Dashboard.",
-        "No auth/session extraction or direct WMS API is introduced.",
+        "Probe build/self-test and safety guards PASS on x64 Windows.",
+        "Probe records target counts, activation method, isTrusted input evidence, sanitized navigation and NewWindowRequested target without query/fragment.",
+        "Field log identifies either the first automatic method that causes the Dashboard transition or the behavior produced by one manual trusted click.",
+        "No Network-domain, cookie, token, header, storage, password, request-payload capture or direct WMS API use is introduced.",
         "Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company Supra accounts. Do not share passwords, cookies, tokens, headers, signatures or other session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Update/restart Beta Agent to v65 and field-test both paths. Already-authenticated Dashboard must trigger one direct Confirm retry even when the current Dashboard/SSO host differs from wms-supra.winmart.vn.",
+      "remaining_owner_action": "After d127-dashboard-probe-v1 is published, run it on the company laptop and upload the newest sanitized dashboard-probe-*.log.",
       "closed": false
     }
   ]
