@@ -1593,7 +1593,7 @@ Release evidence:
 - v67 keeps the manual-login flow, uses one Probe-v2-proven DOM click only for stored-session Dashboard recovery, preserves a real child WebView2 popup, and forbids direct `/sft3/session` navigation.
 - Android remains `beta-vc76`. Stable remains OWNER-GATED and untouched.
 
-D127 v67 is **TECHNICAL / RELEASE PASS**. OA052 remains open for two company-laptop field cases: login-required and stored-session Dashboard recovery without manual Dashboard click.
+D127 v67 is **TECHNICAL / RELEASE PASS** and **OWNER FIELD PASS**. OA052 is closed.
 
 ## D128 — Agent/browser resource observability, readiness barrier and Picklist overlay — 2026-09-27
 
@@ -1628,4 +1628,12 @@ Approved Picklist overlay:
 Release target:
 - Beta Windows Agent **v68**.
 - Android remains unchanged. Stable remains OWNER-GATED and untouched.
+
+Release evidence:
+- Implementation PR **#249** merged to main commit `921f52274d1634d11cad2ea0ed439d3dfa2eaa21`.
+- PR #249 authority/state/Firestore/RTDB/D127-probe/Relay-Agent/UI gates all PASS before merge.
+- Main runs PASS: Repo Authority `36300178425`, Project State `36300178375`, D127 Dashboard Probe `36300178448`, Verify Beta Relay Agent `36300178380`, UI Design Guard `36300178365`.
+- `relay-agent-v68` prerelease id `397536007` published from main. Primary EXE asset id `592310281`, size `380416` bytes, SHA-256 `23b23d24418f15a2a7b028df2cc1ac595319ead7a177276e3828a1bc298c4618`; checksum asset id `592310280`.
+- Main Relay Agent run confirms both Agent EXE build and Agent-owned Fixed WebView2 bundle publication PASS.
+- D128 is **TECHNICAL / RELEASE PASS**. Physical company-laptop field acceptance remains separate as OA053.
 
