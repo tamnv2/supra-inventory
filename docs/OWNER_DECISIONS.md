@@ -1665,3 +1665,9 @@ D129 refines the accepted D128 Beta Agent without changing D117 confirmation lat
 10. **Protected cadence remains unchanged.** PRIMARY confirmation queue stays 4s idle / 2s bounded-hot, PRIMARY lease 7s, STANDBY takeover threshold 10s, and STANDBY/FROZEN business-poll rules remain D117-authoritative. D127 fresh-only PENDING and event-driven Picker presence remain authoritative.
 11. **Realtime-listener optimization is not silently activated.** A Firestore realtime-listener replacement for PRIMARY queue polling may be researched later as a separate bounded Office field POC. It must prove proxy/stream stability and cost behavior before any runtime switch.
 12. Target is Beta Windows Agent **v69**. Android remains **beta-vc76** unless an independently justified defect requires rebuild. No new provider/resource/collection is introduced. Stable remains OWNER-GATED and untouched.
+
+Release evidence:
+- Implementation PR **#251** merged to main commit `28294cc98770f35e98b4dfeca8aca9d655ea39fb`.
+- Main gates PASS: Repo Authority `36305126289`, Project State `36305126367`, D127 Dashboard Probe `36305126268`, UI Design `36305126316`, Verify Beta Relay Agent `36305126265`.
+- Beta prerelease **relay-agent-v69** id `397561381` published from main. Primary EXE asset id `592453697`, size `388096` bytes, SHA-256 `b282cfb63b879d330a13bab80df69dee622ca5efd96e1895a3fea262709e82a4`.
+- D129 is **TECHNICAL / RELEASE PASS**. Remaining gate is **OA054 Owner field acceptance** on one company laptop/PDA. Stable remains OWNER-GATED and untouched.
