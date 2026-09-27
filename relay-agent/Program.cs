@@ -2472,8 +2472,12 @@ namespace SupraInventoryRelayAgent
                                 " · DOM Tìm=" + state.SearchCount +
                                 " XN=" + state.ConfirmCount +
                                 " Bảng=" + state.TableCount));
-                    _wmsLogout.Text = state.Hidden ? "Hiện trình duyệt" : "Ẩn trình duyệt";
-                    _wmsLogout.Enabled = !string.Equals(state.State, "NOT_OPEN", StringComparison.Ordinal) && HasAgentSession();
+                    var agentOwned = _supraBrowser.IsAgentOwnedMode();
+                    _wmsLogout.Text = agentOwned
+                        ? (state.LoginMarkerDetected ? "Đăng nhập Supra" : "Web Agent chạy nền")
+                        : (state.Hidden ? "Hiện trình duyệt" : "Ẩn trình duyệt");
+                    _wmsLogout.Enabled = !agentOwned &&
+                        !string.Equals(state.State, "NOT_OPEN", StringComparison.Ordinal) && HasAgentSession();
                     _wmsTest.Enabled = !string.Equals(state.State, "NOT_OPEN", StringComparison.Ordinal) && HasAgentSession();
                     _wmsCapture.Enabled = HasAgentSession() && AgentBrowserBundle.SnapshotStatus().Ready;
                     _wmsDesktop.Enabled = HasAgentSession();
