@@ -1207,6 +1207,108 @@ namespace SupraInventoryRelayAgent
             })()";
         }
 
+        private string BuildDashboardAccessClickScript()
+        {
+            var arrowJson = _json.Serialize(DashboardArrowPath);
+            return @"(() => {
+              const arrowPath = " + arrowJson + @";
+              const fold = value => (value || '')
+                .normalize('NFC')
+                .replace(/[\u200B-\u200D\uFEFF]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .toLowerCase();
+              const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
+              const docs = [];
+              const seen = new Set();
+              const addDoc = d => {
+                if (!d || seen.has(d) || docs.length >= 8) return;
+                seen.add(d);
+                docs.push(d);
+                for (const frame of [...d.querySelectorAll('iframe,frame')]) {
+                  try { if (frame.contentDocument) addDoc(frame.contentDocument); } catch (_) {}
+                }
+              };
+              addDoc(document);
+
+              const candidates = [];
+              let arrows = 0;
+              for (const d of docs) {
+                for (const path of [...d.querySelectorAll('path')]) {
+                  if (path.getAttribute('d') !== arrowPath) continue;
+                  const svg = path.closest('svg');
+                  if (!svg || !visible(svg)) continue;
+                  arrows++;
+                  const button = path.closest('button,[role=button],a');
+                  if (!button || !visible(button) || button.disabled ||
+                      button.getAttribute('aria-disabled') === 'true') continue;
+
+                  let best = null;
+                  let node = button;
+                  for (let depth = 0; node && depth < 10; depth++, node = node.parentElement) {
+                    if (!visible(node)) continue;
+                    const text = fold(node.innerText || node.textContent);
+                    if (!text.includes('sft3')) continue;
+                    if (!(text.includes('kho hưng yên 1') || text.includes('hy1'))) continue;
+                    const rect = node.getBoundingClientRect();
+                    const area = Math.max(1, rect.width * rect.height);
+                    if (!best || area < best.area) best = { area };
+                  }
+
+                  candidates.push({
+                    button,
+                    area: best ? best.area : Number.MAX_VALUE,
+                    matched: !!best
+                  });
+                }
+              }
+
+              const matched = candidates.filter(x => x.matched);
+              let chosen = null;
+              let reason = 'NOT_FOUND';
+
+              if (matched.length === 1) {
+                chosen = matched[0];
+                reason = 'HY1_SFT3_UNIQUE';
+              } else if (matched.length > 1) {
+                const min = Math.min(...matched.map(x => x.area));
+                const smallest = matched.filter(x => x.area <= min * 1.05);
+                if (smallest.length === 1) {
+                  chosen = smallest[0];
+                  reason = 'HY1_SFT3_SMALLEST_CARD';
+                } else {
+                  reason = 'HY1_SFT3_AMBIGUOUS';
+                }
+              } else if (candidates.length === 1) {
+                chosen = candidates[0];
+                reason = 'UNIQUE_ARROW_FALLBACK';
+              } else if (candidates.length > 1) {
+                reason = 'ARROW_AMBIGUOUS';
+              }
+
+              if (!chosen) {
+                return JSON.stringify({
+                  result: 'TARGET_NOT_UNIQUE',
+                  reason,
+                  arrows,
+                  targets: matched.length,
+                  docs: docs.length
+                });
+              }
+
+              chosen.button.focus({ preventScroll: true });
+              chosen.button.click();
+
+              return JSON.stringify({
+                result: 'CLICKED',
+                reason,
+                arrows,
+                targets: matched.length,
+                docs: docs.length
+              });
+            })()";
+        }
+
         private static string BuildReadinessScript()
         {
             return @"(() => {
