@@ -567,6 +567,17 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private void ReconnectToWmsPageTargetNoLock(TimeSpan timeout)
+        {
+            DisposeSocketNoLock();
+            _targetUrl = WaitForPageTarget(_port, timeout, true);
+            _socket = new ClientWebSocket();
+            _socket.Options.KeepAliveInterval = TimeSpan.FromSeconds(10);
+            _socket.ConnectAsync(new Uri(_targetUrl), CancellationToken.None).GetAwaiter().GetResult();
+            CommandNoLock("Runtime.enable", null, TimeSpan.FromSeconds(5));
+            CommandNoLock("Page.enable", null, TimeSpan.FromSeconds(5));
+        }
+
         private void StopManagedBrowserNoLock()
         {
             DisposeSocketNoLock();
@@ -1597,6 +1608,11 @@ namespace SupraInventoryRelayAgent
 
         private static string WaitForPageTarget(int port, TimeSpan timeout)
         {
+            return WaitForPageTarget(port, timeout, false);
+        }
+
+        private static string WaitForPageTarget(int port, TimeSpan timeout, bool requireWms)
+        {
             var deadline = DateTime.UtcNow.Add(timeout);
             Exception last = null;
             while (DateTime.UtcNow < deadline)
@@ -1624,10 +1640,13 @@ namespace SupraInventoryRelayAgent
                                 if (string.IsNullOrWhiteSpace(ws)) continue;
                                 if (fallback == null) fallback = ws;
                                 var url = String(map, "url");
-                                if (url.IndexOf("wms-supra.winmart.vn", StringComparison.OrdinalIgnoreCase) >= 0)
+                                Uri pageUri;
+                                if (Uri.TryCreate(url, UriKind.Absolute, out pageUri) &&
+                                    string.Equals(pageUri.Scheme, "https", StringComparison.OrdinalIgnoreCase) &&
+                                    string.Equals(pageUri.Host, WmsHost, StringComparison.OrdinalIgnoreCase))
                                     return ws;
                             }
-                            if (!string.IsNullOrWhiteSpace(fallback)) return fallback;
+                            if (!requireWms && !string.IsNullOrWhiteSpace(fallback)) return fallback;
                         }
                     }
                 }
