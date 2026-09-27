@@ -351,10 +351,10 @@
       "name": "wms-supra.winmart.vn",
       "url": "https://wms-supra.winmart.vn/",
       "exposure": "public_corporate_hostname",
-      "guard": "D126_D127_BROWSER_UI_ONLY__USER_LOGS_IN_DIRECTLY__NO_SESSION_CAPTURE_EXTRACTION_REPLAY__CONFIRM_DOM_AUTOMATION__D127_PROBE_V2_POPUP_OBSERVATION_ALLOWED",
+      "guard": "D126_D127_BROWSER_UI_ONLY__DASHBOARD_POPUP_TARGET_MAY_ONLY_ARISE_FROM_PAGE_CLICK__NO_DIRECT_SESSION_NAVIGATION__NO_SESSION_CAPTURE_EXTRACTION_REPLAY__NO_API",
       "allowed_reference_page": "https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm",
-      "status": "D127_PROBE_V2_BROWSER_UI_OBSERVATION_RELEASED__FIELD_EVIDENCE_PENDING",
-      "allowed_session_activation_page": "https://wms-supra.winmart.vn/sft3/session"
+      "status": "D127_V67_CHILD_POPUP_FLOW_IMPLEMENTING__DIRECT_SESSION_NAVIGATION_FORBIDDEN",
+      "observed_dashboard_popup_target": "https://wms-supra.winmart.vn/sft3/session"
     },
     {
       "key": "supra-api-d080",
@@ -439,8 +439,8 @@
       "url": "https://auth-supra.winmart.vn/",
       "exposure": "public_corporate_hostname",
       "allowed_reference_page": "https://auth-supra.winmart.vn/dashboard",
-      "guard": "D127_DASHBOARD_PROBE_V2__USER_ENTERED_APPROVED_URL__MANUAL_LOGIN__EXPLICIT_AUTO_OR_CLICK_ONLY_MONITOR__NO_SENSITIVE_CAPTURE__NO_STEALTH",
-      "status": "D127_DASHBOARD_PROBE_V2_RELEASED__FIELD_EVIDENCE_PENDING"
+      "guard": "D127_V67_BROWSER_UI__MANUAL_LOGIN_WHEN_REQUIRED__ONE_BOUNDED_DOM_CLICK_ON_FIELD_PROVEN_DASHBOARD_ACCESS_CONTROL__NO_SENSITIVE_CAPTURE__NO_STEALTH",
+      "status": "D127_V67_DASHBOARD_UI_AUTOMATION_IMPLEMENTING"
     }
   ],
   "secret_references": [
