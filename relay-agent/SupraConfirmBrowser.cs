@@ -31,6 +31,16 @@ namespace SupraInventoryRelayAgent
         internal bool LoginMarkerDetected;
     }
 
+    internal sealed class BrowserResourceSnapshot
+    {
+        internal bool Available;
+        internal string Browser = "";
+        internal double CpuPercent;
+        internal long WorkingSetBytes;
+        internal int ProcessCount;
+        internal TimeSpan RunningFor;
+    }
+
     internal sealed class SupraBrowserSearchResult
     {
         internal string Result = "LOOKUP_ERROR";
@@ -90,6 +100,9 @@ namespace SupraInventoryRelayAgent
         private bool _dashboardWmsTargetAttached;
         private DateTime _dashboardAccessIssuedAtUtc = DateTime.MinValue;
         private bool _disposed;
+        private TimeSpan _resourceCpuTotal = TimeSpan.Zero;
+        private DateTime _resourceSampleAtUtc = DateTime.MinValue;
+        private int _resourceRootPid;
 
         private const string WmsHost = "wms-supra.winmart.vn";
         private const string AuthDashboardHost = "auth-supra.winmart.vn";
