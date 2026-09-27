@@ -1595,26 +1595,37 @@ Release evidence:
 
 D127 v67 is **TECHNICAL / RELEASE PASS**. OA052 remains open for two company-laptop field cases: login-required and stored-session Dashboard recovery without manual Dashboard click.
 
-## D128 — Agent/browser resource observability and readiness barrier — 2026-09-27
+## D128 — Agent/browser resource observability, readiness barrier and Picklist overlay — 2026-09-27
 
-Status: **PARTIALLY APPROVED — BEHAVIOR LOCKED; RESOURCE-METRIC SET AWAITS OWNER SELECTION**.
+Status: **OWNER APPROVED — IMPLEMENTATION TARGET AGENT v68**.
 
 D127 v67 field acceptance:
-- Owner explicitly confirms the released **D127 v67** flow passes the required Confirm-access behavior on the company laptop. OA052 is therefore closed as **OWNER FIELD PASS**.
-- Technical/release evidence remains the v67 checkpoint already recorded in D127. This acceptance does not authorize Stable; Stable remains OWNER-GATED and untouched.
+- Owner explicitly confirms the released **D127 v67** Confirm-access flow passes on the company laptop. OA052 remains closed as **OWNER FIELD PASS**.
+- Stable remains OWNER-GATED and untouched.
 
-Approved runtime behavior for the next Agent change:
-1. **Agent-owned WebView2 runs in the background by default.** After a valid Agent login/session restore, the Agent should ensure the owned WebView2 Confirm browser is running and progressing toward the canonical Confirm page without presenting its window to the operator.
-2. **Show only for mandatory manual Supra login.** If the exact visible login marker **Lưu thông tin đăng nhập** is detected, the owned browser is brought to the foreground so the user can enter credentials manually. Agent code must not read or persist the credential fields. After the login marker clears and Confirm readiness is established, the owned browser returns to the hidden/background state automatically.
-3. **Desktop browser remains an explicit alternative.** The existing **Mở trình duyệt Desktop** path remains user-selected; D128 does not silently auto-fallback from owned WebView2 to Edge/Chrome and does not weaken D127 browser isolation/security rules.
-4. **Strict readiness barrier.** No confirmation relay/HA business processing, manual PickList business action or other Confirm-dependent operational logic may proceed until both conditions are true: **(a) Agent application login/session is valid; (b) either Agent-owned WebView2 or the explicitly selected Desktop browser reports canonical Web Confirm READY**. If either prerequisite is lost, Confirm-dependent business processing fails closed/pauses until readiness is restored.
-5. D126/D127 semantic page-size, search, unique-row, checkbox, modal, terminal-result, quota and browser-security guards remain unchanged. No session/cookie/token/header/storage/profile extraction or direct WMS API is authorized.
+Approved D128 runtime behavior:
+1. **Agent-owned WebView2 runs in the background by default.** After a valid Agent login/session restore, the Agent automatically ensures the owned WebView2 is progressing toward canonical Web Confirm without presenting its window.
+2. **Show only for mandatory manual Supra login.** If exact visible **Lưu thông tin đăng nhập** is detected, owned WebView2 is shown for the operator to enter credentials manually. Agent never reads/persists credential values. When canonical Confirm becomes READY, owned WebView2 hides again automatically.
+3. **Desktop remains explicit.** **Mở trình duyệt Desktop** is a user-selected alternative; there is no silent Agent-owned → Desktop fallback.
+4. **Strict readiness barrier.** Confirm-dependent relay/HA/manual PickList business processing is allowed only while both are true: valid Agent application session + canonical Web Confirm READY. Losing either prerequisite pauses/fails closed those paths.
+5. D126/D127 page-size/search/exact-row/checkbox/modal/terminal-result/quota/browser-security guards remain unchanged. No cookie/token/header/storage/profile extraction or direct WMS API is authorized.
 
-Resource-observability proposal pending Owner selection:
-- **Hệ thống Agent — recommended default:** Agent process CPU %, Working Set RAM (MB), and Agent uptime. These values are already sampled by the current local SystemMonitor, so exposing them adds negligible monitoring cost.
-- **Hệ thống Agent — optional detail:** thread count and handle count. Per-process network/GPU/disk-I/O attribution is not recommended for the default Overview because it adds complexity/overhead with limited operational value.
-- **Đăng nhập Supra — recommended default:** browser mode/name, aggregate browser-tree CPU %, aggregate browser-tree RAM (MB), browser process count, and browser uptime. Browser-tree aggregation is required because WebView2/Chromium is multi-process; root-process-only numbers would materially understate usage.
-- Existing local browser/profile data-size display remains separate and should not be duplicated as runtime RAM usage.
-- Sampling should reuse the existing coarse local monitoring cadence (currently 5 seconds) and remain local-only; these resource metrics are not uploaded to Firebase/Drive and contain no sensitive Supra/session data.
+Approved resource presentation:
+- **Hệ thống Agent:** show Agent process **CPU % · RAM MB · Thời gian chạy**.
+- **Đăng nhập Supra:** show managed browser mode/name plus aggregate browser-process-tree **CPU % · RAM MB · process count · Thời gian chạy**.
+- Do not use the English user-visible label **Uptime**.
+- Resource sampling remains local-only, coarse (5-second visible-window cadence), non-blocking and is never uploaded.
+- **When the main Agent window is hidden/background, resource sampling stops completely** for Agent/browser CPU/RAM/runtime presentation. Normal business, readiness, Firestore, HA, schedule and Web Confirm logic continue.
+- Tray icon no longer exposes CPU/RAM/resource details by hover; it remains the normal Agent icon/name only.
 
-No Agent release target is assigned until the Owner selects the resource metrics to display, so the approved background/readiness behavior and chosen observability UI can ship in one bounded Agent release.
+Approved Picklist overlay:
+- Restore the lightweight always-on-top overlay and display exactly: **Picklist nhận: xx | Picklist xác nhận: xx | Picklist lỗi: xx**.
+- Overlay uses existing in-memory operational counters only and must not add CPU/RAM/GPU/disk/network resource polling or provider traffic.
+- Settings must support: show/hide, lock/unlock position, movable position when unlocked, background color, text color, background opacity, size and persisted local settings.
+- When locked, the overlay is click-through so the operator can select/click objects in the application behind it.
+- The overlay may remain active while the main Agent window is hidden because it only renders existing Picklist counters.
+
+Release target:
+- Beta Windows Agent **v68**.
+- Android remains unchanged. Stable remains OWNER-GATED and untouched.
+
