@@ -439,7 +439,7 @@
       "exposure": "public_corporate_hostname",
       "allowed_reference_page": "https://auth-supra.winmart.vn/dashboard",
       "guard": "D127_DASHBOARD_PROBE_ONLY__USER_LOGIN_BROWSER_UI__NO_SESSION_CAPTURE_EXTRACTION_REPLAY__NO_NETWORK_DOMAIN__NO_API_CALLS",
-      "status": "OWNER_APPROVED_D127_DIAGNOSTIC_ONLY"
+      "status": "D127_DASHBOARD_PROBE_V1_RELEASED__FIELD_EVIDENCE_PENDING"
     }
   ],
   "secret_references": [

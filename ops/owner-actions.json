@@ -2550,7 +2550,7 @@
     },
     {
       "id": "OA052",
-      "status": "FIELD_FAIL_V65__DASHBOARD_PROBE_V1_IMPLEMENTING",
+      "status": "FIELD_READY__D127_DASHBOARD_PROBE_V1_RELEASE_PASS",
       "title": "Field-accept D127 quota-safe relay and Agent-owned browser fallback",
       "resource_key": "repo",
       "provider": "Beta Firestore + Windows Agent + Supra managed browser",
@@ -2581,7 +2581,14 @@
         "browser_bundle_asset_id": 591861254,
         "browser_bundle_sha256": "2be8b5665c7793dbbd3d54d58d96d487003aaa9dd8e51c8f034a8644461fdbec",
         "main_relay_agent_run": 36286366107,
-        "diagnostic_release_target": "d127-dashboard-probe-v1"
+        "diagnostic_release_target": "d127-dashboard-probe-v1",
+        "diagnostic_release": "d127-dashboard-probe-v1",
+        "diagnostic_release_id": 397476380,
+        "diagnostic_source_main": "b3dd0e2b101432595956311b476a25444ee066cb",
+        "diagnostic_main_run": 36288410742,
+        "diagnostic_zip_asset_id": 591948670,
+        "diagnostic_zip_size_bytes": 485027,
+        "diagnostic_checksum_asset_id": 591948671
       },
       "shortest_test_path": [
         "Download and extract D127 Dashboard Probe v1 after its diagnostic prerelease is published.",
@@ -2601,7 +2608,7 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company Supra accounts. Do not share passwords, cookies, tokens, headers, signatures or other session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "After d127-dashboard-probe-v1 is published, run it on the company laptop and upload the newest sanitized dashboard-probe-*.log.",
+      "remaining_owner_action": "Download D127 Dashboard Probe v1, run it on the company laptop, then upload only the newest sanitized dashboard-probe-*.log from the probe log folder.",
       "closed": false
     }
   ]
