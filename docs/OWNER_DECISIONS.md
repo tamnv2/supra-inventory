@@ -1385,3 +1385,19 @@ v63 corrective release evidence:
 
 D127 is now **TECHNICAL / RELEASE PASS for v63**, but OA052 remains open. Final field PASS requires the Owner to verify on the real company laptop that a Supra login landing on Dashboard automatically enters the warehouse/SFT3 route and reaches Confirm PickList **without manual Dashboard clicking**.
 
+## D127 v64 — direct Confirm navigation with bounded login-aware retry — 2026-09-27
+
+Owner field test reports `relay-agent-v63` still remains on the Supra Dashboard. The Dashboard-card automation introduced across v55–v63 is therefore retired for the Agent-owned browser.
+
+Approved v64 behavior:
+- Pressing **Mở trình duyệt Agent** targets the canonical Confirm PickList URL directly: `https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm`.
+- After the page is fully loaded, Agent detects the login screen only by the exact visible text **Lưu thông tin đăng nhập**. When present, Agent shows **Cần đăng nhập Supra trên trình duyệt**, performs no Dashboard action and does not repeatedly reload Confirm.
+- The user enters Supra credentials only inside the browser. Agent does not read, capture, store or log those credentials or any cookie/token/header/signature/session material.
+- When the exact login marker disappears, if the fully loaded page is not the canonical Confirm URL, Agent navigates directly to Confirm **once**. The same one-retry rule applies when an already-authenticated initial Confirm navigation redirects to Dashboard.
+- If that one retry still ends on a fully loaded page that is neither the login marker state nor the Confirm URL, Agent stops and reports **Chưa vào được Confirm sau khi thử lại**. No infinite navigation loop is allowed.
+- The Agent-owned WebView2 host no longer searches for, identifies or clicks any Dashboard warehouse/SFT3 card, arrow, SVG or other Dashboard action.
+- Desktop Edge/Chrome remains an explicit operator-selected fallback button; v64 does not auto-switch browser modes.
+- Existing D126 semantic Confirm DOM, paginator 100, row checkbox, exact confirmation dialog, HA/rate-limit/idempotency, quota protections and Android `beta-vc76` remain unchanged. Stable remains OWNER-GATED and untouched.
+
+v64 targets Agent build 64 and Agent-owned browser host build 9. Technical/release PASS is recorded only after PR/main gates and release assets complete; OA052 remains open for real-company-laptop field acceptance.
+

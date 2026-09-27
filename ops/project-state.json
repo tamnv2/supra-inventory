@@ -1259,12 +1259,12 @@
     }
   },
   "d127": {
-    "status": "TECHNICAL_RELEASE_PASS__OA052_V63_FIELD_READY",
+    "status": "V63_OWNER_FIELD_FAIL__V64_IMPLEMENTING",
     "decision_date": "2026-09-26",
     "branch": "d127-quota-browser-hardening",
     "baseline_main": "a1ecf217dc1fb447a4ca445c59c01d1348cb80d2",
     "baseline_release": "beta-vc76 / relay-agent-v50",
-    "target_agent_release": "relay-agent-v63",
+    "target_agent_release": "relay-agent-v64",
     "android": "KEEP_BETA_VC76_UNCHANGED",
     "quota": "FIRESTORE_PENDING_CREATED_AT_SERVER_FILTER__NO_BROAD_LIST_FALLBACK__FLEET_METRICS_30M",
     "picker_presence": "SCHEMA3_ACTIVE_ANDROID_EVENT_DRIVEN__SINGLE_SLOT_RELAY_EVENT__180S_TRANSIENT_GRACE__NO_PERIODIC_AGENT_PRESENCE_POLL",
@@ -1275,7 +1275,7 @@
     "browser": "EXPLICIT_AGENT_WEBVIEW2_FIXED_X64_OR_DESKTOP_EDGE_CHROME__AGENT_DASHBOARD_AUTO_HY1_SFT3_CLICK__NEW_WINDOW_FORCED_SAME_TAB__THEN_CONFIRM_NAVIGATION__NO_AUTO_CROSS_MODE_FALLBACK",
     "browser_security": "RUNTIME_PAGE_DOM_ONLY__NO_NETWORK_COOKIE_TOKEN_PASSWORD_EXTRACTION__NO_DIRECT_WMS_API",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "next_action": "RUN_OA052_V63_FRAME_AWARE_USER_GESTURE_FIELD_ACCEPTANCE",
+    "next_action": "MERGE_RELEASE_V64_THEN_RUN_OA052_DIRECT_CONFIRM_RETRY_FIELD_ACCEPTANCE",
     "main_merge": "f5ad9d45be3445b6e030d1f5f0de1abc0507b54e",
     "agent_release": "relay-agent-v63",
     "agent_release_id": 397391250,
@@ -1307,7 +1307,7 @@
     "field_hotfix_main": "65f17d48c6f4dd00f9dd48c52ecb05ecba3703f8",
     "field_hotfix_run": 36258561369,
     "field_hotfix_scope": "EXPLICIT_WEBVIEW2_LOADER_X64__REQUIRE_64BIT_HOST__FRESH_HOST_BUILD_3_MARKERS__REFUSE_STALE_V52_V53_BUNDLES__NO_AUTO_FALLBACK__PAGE_SIZE_100_UNCHANGED",
-    "browser_host_build": 8,
+    "browser_host_build": 9,
     "browser_host_arch": "x64",
     "browser_manifest_service": "BETA_ENDPOINT_PRESERVES_AND_VALIDATES_HOST_BUILD_3_AND_HOST_ARCH_X64",
     "browser_manifest_hotfix_pr": 217,
@@ -1358,6 +1358,8 @@
     "v63_release_id": 397391250,
     "v63_release_asset_id": 591438006,
     "v63_release_sha256": "7db5ca13a8fa68930553314cfee217e452fa879f8cef5f17ee542cc5bc2aba16",
-    "field_gate": "OA052__V62_FAIL_RECORDED__V63_PENDING_OWNER_FIELD_ACCEPTANCE"
+    "v63_field_result": "FAIL__OWNER_REPORTS_BROWSER_STILL_REMAINS_ON_DASHBOARD",
+    "v64_scope": "DIRECT_CONFIRM_INITIAL_NAVIGATE__EXACT_VISIBLE_LOGIN_MARKER_LUU_THONG_TIN_DANG_NHAP__LOGIN_REQUIRED_NO_RETRY__AFTER_MARKER_CLEARS_OR_ALREADY_LOGGED_IN_NON_CONFIRM_COMPLETE_PAGE_RETRY_CONFIRM_ONCE__NO_DASHBOARD_CLICK__RETRY_EXHAUSTED_NO_LOOP__HOST_BUILD_9",
+    "field_gate": "OA052__V63_FAIL_RECORDED__V64_PENDING_OWNER_FIELD_ACCEPTANCE"
   }
 }
