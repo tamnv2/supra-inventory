@@ -284,6 +284,23 @@ namespace SupraInventoryRelayAgent
                     state.State = "CONFIRM_RETRY_EXHAUSTED";
                 }
 
+                // D128: Agent-owned WebView2 remains background-only except when the
+                // exact login marker requires the operator to enter credentials.
+                if (_launchMode == BrowserLaunchMode.Agent)
+                {
+                    if (state.LoginMarkerDetected && _hidden)
+                    {
+                        ShowNoLock();
+                        state.Hidden = false;
+                    }
+                    else if (state.Ready && !_hidden)
+                    {
+                        SetBrowserWindowsVisibleNoLock(false);
+                        _hidden = true;
+                        state.Hidden = true;
+                    }
+                }
+
                 return state;
             }
         }
