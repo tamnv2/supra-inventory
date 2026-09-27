@@ -1644,6 +1644,10 @@
     "trigger_phrase": "bắt đầu tối ưu lại mô hình",
     "preimplementation_gate": "REVIEW_FULL_CHANGESET_PLUS_CURRENT_MAX_ENVELOPE_USAGE__THEN_EXPLICIT_OWNER_OK_REQUIRED",
     "review_max_envelope": "UP_TO20_AGENTS__ALL_MANAGED_WEB_CONFIRM_WARM__05_23_BASE_WINDOW__50_PDA_PER_SHIFT__75_OVERLAP__1200_REQUESTS_PER_DAY__40_SIMULTANEOUS__PRIMARY_3S_ACTIVE_15S_INACTIVE_QUERY__10S_LEASE_WRITE__15S_EXPIRY__10M_NONPRIMARY_COUNTER_REFRESH__ONE_DAILY_AGENT_INDEPENDENT_DRIVE_EXPORT",
-    "no_code_until_owner_ok": false,\n    "owner_code_authorization": "PASS__2026_09_28",\n    "implementation_pr": 259,\n    "target_agent_release": "relay-agent-v71",\n    "target_android": "NEXT_MONOTONIC_AFTER_BETA_VC77"
+    "no_code_until_owner_ok": false,
+    "owner_code_authorization": "PASS__2026_09_28",
+    "implementation_pr": 259,
+    "target_agent_release": "relay-agent-v71",
+    "target_android": "NEXT_MONOTONIC_AFTER_BETA_VC77"
   }
 }
