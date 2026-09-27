@@ -2390,7 +2390,12 @@ namespace SupraInventoryRelayAgent
         private void QueueD128BrowserStateRefresh()
         {
             if (!HasAgentSession()) return;
-            RefreshSupraBrowserStatus();
+            if (Interlocked.CompareExchange(ref _readinessRefreshRunning, 1L, 0L) != 0L) return;
+            Task.Run(() =>
+            {
+                try { RefreshSupraBrowserStatus(); }
+                finally { Interlocked.Exchange(ref _readinessRefreshRunning, 0L); }
+            });
         }
 
         private void RefreshSupraBrowserStatus()
