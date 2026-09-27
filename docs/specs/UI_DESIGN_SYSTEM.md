@@ -756,7 +756,7 @@ D111 supersedes only the conflicting D110 Reporter interaction/presentation deta
 D126 supersedes the unimplemented D125 Office-client UI.
 
 - Keep the released Agent Overview structure and Android/PDA PickList surfaces.
-- Hệ thống Supra no longer presents captured-session state. It presents managed-browser state: not opened / login required / wrong page / **Web Confirm sẵn sàng** / hidden.
+- Hệ thống Supra no longer presents captured-session state. It presents managed-browser state: not opened / **Cần đăng nhập Supra trên trình duyệt** / đang thử lại Confirm / chưa vào được Confirm sau khi thử lại / **Web Confirm sẵn sàng** / hidden. Login-required is driven only by exact visible text **Lưu thông tin đăng nhập**; no Dashboard-click state is shown.
 - Primary actions are **Truy cập Confirm PickList** and contextually **Ẩn trình duyệt / Hiện trình duyệt**.
 - Browser hiding must remove visual/taskbar clutter without terminating the browser or silently changing business readiness.
 - PickList results continue to show the exact full PickList code in Agent before manual confirmation.
