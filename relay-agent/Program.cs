@@ -2547,6 +2547,11 @@ namespace SupraInventoryRelayAgent
         {
             try
             {
+                if (_supraBrowser.IsAgentOwnedMode())
+                {
+                    RefreshSupraBrowserStatus();
+                    return;
+                }
                 if (_supraBrowserHidden) _supraBrowser.Show();
                 else _supraBrowser.Hide();
                 RefreshSupraBrowserStatus();
