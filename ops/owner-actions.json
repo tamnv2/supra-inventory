@@ -2760,7 +2760,7 @@
     },
     {
       "id": "OA056",
-      "status": "BLOCKED_PENDING_D131_IMPLEMENTATION_RELEASE",
+      "status": "PENDING_OWNER_FIELD_ACCEPTANCE",
       "title": "Field-accept D131 Firestore-only free-tier HA, failover, counters and latency",
       "resource_key": "repo",
       "provider": "Beta Windows Agent + Beta Android + existing Cloud Firestore relay",
@@ -2769,12 +2769,28 @@
         "baseline_agent_release": "relay-agent-v70",
         "baseline_android": "beta-vc77",
         "target_agent_release": "relay-agent-v71",
-        "target_android": "NEXT_MONOTONIC_IF_ANDROID_CHANGE_REQUIRED",
-        "technical_release": "PENDING",
+        "target_android": "beta-vc78",
+        "technical_release": "PASS",
         "new_resources": "NONE",
         "stable": "OWNER_GATED",
         "target_fleet": "UP_TO_20_AGENTS",
-        "counter_authority": "DURABLE_FIRESTORE_JOB_LEDGER__NOT_RAM"
+        "counter_authority": "DURABLE_FIRESTORE_JOB_LEDGER__NOT_RAM",
+        "implementation_pr": 259,
+        "implementation_main": "3569934ec2a36f6fa2f6fe92cf332ae679ad4070",
+        "main_relay_agent_run": 36351588527,
+        "main_android_run": 36351588555,
+        "main_ui_run": 36351588512,
+        "main_worker_run": 36351588539,
+        "main_functions_run": 36351588564,
+        "main_firestore_run": 36351588514,
+        "main_authority_run": 36351588508,
+        "main_project_state_run": 36351588659,
+        "agent_release_id": 397818991,
+        "agent_asset_id": 593804846,
+        "agent_sha256": "e9fac90ebd5d89c6accdf1df903673cad3971a65c3333806602a636b3b55c508",
+        "android_release_id": 397819144,
+        "android_asset_id": 593805739,
+        "android_sha256": "032d17f774592464101ed9711677f98117fddb17a2dcad53da3ea1feae6005f4"
       },
       "shortest_test_path": [
         "Run 10 Agents, then scale the fleet model to 20 registered Agents; verify exactly one PRIMARY and zero PENDING business queries from every non-primary Agent.",
@@ -2797,12 +2813,12 @@
         "Daily Drive export succeeds with all Agents offline; bounded retry never creates duplicate business-day files."
       ],
       "safety": "Beta only. No secrets/session material in logs. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for D131 implementation/technical release PASS, then run the physical field path.",
+      "remaining_owner_action": "Install/update Beta Agent v71 and Android beta-vc78, then run the physical OA056 path. Technical/release gates are PASS; only real field acceptance remains.",
       "closed": false
     },
     {
       "id": "OA057",
-      "status": "PENDING_D131_REVIEW_TRIGGER_AND_OWNER_CODE_APPROVAL",
+      "status": "PASS__OWNER_CODE_AUTHORIZED_2026_09_28",
       "title": "Review D131 optimized model and authorize implementation",
       "resource_key": "repo",
       "provider": "GitHub canonical design + current provider quota references",
@@ -2828,8 +2844,13 @@
         "Stable remains untouched."
       ],
       "safety": "Design/review only until explicit Owner code authorization. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "In the next session, send `bắt đầu tối ưu lại mô hình`, review the complete design and max-envelope usage, then explicitly authorize code only when satisfied.",
-      "closed": false
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-28",
+        "result": "PASS",
+        "evidence": "Owner reviewed D131 final model and explicitly authorized implementation; PR #259 subsequently passed all gates and merged."
+      }
     }
   ]
 }
