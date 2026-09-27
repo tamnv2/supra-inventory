@@ -3953,6 +3953,7 @@ namespace SupraInventoryRelayAgent
                             (items, reason) => Ui(() => ApplyEventDrivenPickerPresence(items, reason)),
                             _leaderCoordinator,
                             IsBusinessAllowed,
+                            HasActivePdaForRelay,
                             healthy =>
                             {
                                 var coordinator = _leaderCoordinator;
