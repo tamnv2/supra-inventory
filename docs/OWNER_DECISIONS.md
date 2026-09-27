@@ -1756,3 +1756,22 @@ No-cost budget guard:
 - TTL deletes are not used for this free-tier design. Retention cleanup is bounded/manual-scheduled deletion so delete/read cost stays inside the daily budget.
 
 D130 self-healing transport, Android same-id create recovery, managed-browser security boundaries and D127 fresh-only queue filtering remain inherited unless D131 explicitly supersedes cadence values above. OA055 is superseded by D131 implementation/field acceptance; D130 technical/release evidence remains historical PASS. Stable remains OWNER-GATED and untouched.
+
+
+### D131 refinement — warm managed browser, durable daily counters and audit export
+
+Owner keeps D131 in design-only status and refines the model before implementation:
+
+- Fleet design expands from max 6 to **up to 20 Agents**, while preserving exactly one business-queue PRIMARY, one NEXT-A and one NEXT-B. All remaining Agents are DEEP-HIBERNATE for Firestore business work; they do not consume the PENDING queue.
+- Hibernation applies to relay/business provider work, **not to the managed Supra browser**. Every authenticated Agent keeps its single managed WebView2/profile available so manual/local PickList confirmation on that laptop remains immediately usable. Background Agents must remove unnecessary DOM polling, resource sampling and provider refresh, but must not close the prepared Confirm page merely because they are not PRIMARY.
+- Promotion prefers an Agent whose Agent auth + Firestore + Web Confirm readiness are already valid. A non-ready candidate must not claim business work merely because its relay rank is next.
+- Shared daily PickList counters are no longer RAM-authoritative. The durable relay_poc_jobs documents are the audit authority. Each request carries request id, business date, user identity snapshot, submitted suffix and server receive time; terminal ACK adds result/status, sanitized error/result code, owning Agent identity and terminal timestamps/duration.
+- A compact **daily durable summary/checkpoint** lives in existing Firestore coordination state. PRIMARY updates it only when terminal work is committed, preferably once per processed batch. The terminal job updates and summary checkpoint must be transactionally/conditionally consistent enough that failover can verify uncertainty instead of double-counting.
+- New PRIMARY reconstructs exact daily counters from the durable summary plus a bounded tail, or uses Firestore aggregation queries for the current business day when checkpoint confidence is uncertain. RAM may cache the result for UI only; it is never the authority.
+- Every open Agent may refresh the shared daily counters/fleet snapshot at a **10-minute cadence**. Bringing the Agent window to foreground or pressing explicit refresh may perform one bounded authoritative refresh. Do not attach every Agent to the high-frequency PRIMARY lease or counter updates.
+- Detailed daily export is supported from the durable relay job ledger and must include at least: request id, employee/user identity, send time, submitted suffix, terminal result, result/error code, Agent identity, completion time and elapsed time. Export is one bounded read of the selected day and may be delivered through the existing scoped Beta exports/Drive mechanism; no secrets, browser session material or WMS auth data may enter the file.
+- Target retention for relay audit documents is bounded so Firestore storage remains under the D131 soft ceiling; after steady-state retention, bounded cleanup rather than TTL is used.
+
+For a 20-Agent design, fleet/counter synchronization must use coarse snapshots and aggregation rather than per-Agent realtime listeners. PRIMARY lease, NEXT-A failover watch and business queue remain the high-priority operations; deep-Agent presentation is allowed to be up to 10 minutes stale and must show its freshness age.
+
+This refinement supersedes D131's earlier PRIMARY RAM counters and max 6 Agent wording. It does not authorize runtime code yet. Stable remains OWNER-GATED and untouched.
