@@ -2783,7 +2783,8 @@
         "Keep multiple Agent windows open and verify shared durable counters/fleet snapshot refresh no faster than 10 minutes unless the window is foregrounded or explicit refresh is used.",
         "Run normal requests and one 40-request burst; record terminal latency and verify failover/error terminal behavior remains under 20 seconds.",
         "Export one business-day PickList audit file and verify user identity, send time, submitted suffix, result, Agent identity and duration are present with no secrets/session material.",
-        "Review synthetic and representative-shift Firestore usage against D131 soft ceilings."
+        "Review synthetic and representative-shift Firestore usage against D131 soft ceilings.",
+        "Turn off all Windows Agents before the scheduled daily export and verify the existing server-side Beta runtime still writes exactly one idempotent Drive file for the just-closed 05:00-boundary business day."
       ],
       "pass_criteria": [
         "Exactly one PRIMARY; NEXT_A/NEXT_B/deep Agents do not poll the PENDING business queue.",
@@ -2792,7 +2793,8 @@
         "Fleet/counter refresh on non-primary Agents is no faster than 10 minutes except foreground/manual refresh.",
         "Detailed daily export is complete and secret-free.",
         "Provider-day reads/writes/deletes remain within D131 soft targets at the 20-Agent synthetic envelope.",
-        "Stable remains untouched."
+        "Stable remains untouched.",
+        "Daily Drive export succeeds with all Agents offline; bounded retry never creates duplicate business-day files."
       ],
       "safety": "Beta only. No secrets/session material in logs. Stable remains OWNER-GATED.",
       "remaining_owner_action": "Wait for D131 implementation/technical release PASS, then run the physical field path.",
