@@ -351,9 +351,10 @@
       "name": "wms-supra.winmart.vn",
       "url": "https://wms-supra.winmart.vn/",
       "exposure": "public_corporate_hostname",
-      "guard": "D126_BROWSER_UI_ONLY__USER_LOGS_IN_DIRECTLY__NO_SESSION_CAPTURE_EXTRACTION_REPLAY__DOM_ONLY_CONFIRM_PICKLIST_AUTOMATION",
+      "guard": "D126_D127_BROWSER_UI_ONLY__USER_LOGS_IN_DIRECTLY__NO_SESSION_CAPTURE_EXTRACTION_REPLAY__CONFIRM_DOM_AUTOMATION__D127_FIXED_SESSION_ACTIVATION_ROUTE_ALLOWED",
       "allowed_reference_page": "https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm",
-      "status": "D126_BETA_BROWSER_UI_AUTOMATION_ALLOWED__USER_LOGIN_ONLY"
+      "status": "D127_V66_BROWSER_UI_SESSION_ACTIVATION_ALLOWED__NO_API",
+      "allowed_session_activation_page": "https://wms-supra.winmart.vn/sft3/session"
     },
     {
       "key": "supra-api-d080",
