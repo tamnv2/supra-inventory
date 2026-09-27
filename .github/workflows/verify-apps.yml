@@ -90,7 +90,7 @@ jobs:
             echo "SIGNING_READY=false" >> "$GITHUB_ENV"
             echo "Beta signing secrets are not configured; building debug artifact only. Auto-update release publishing will stay disabled."
           fi
-      - name: D117 Firestore listener and 20-second confirmation source guard
+      - name: D131 Firestore listener durable-ledger and 20-second confirmation guard
         shell: bash
         run: |
           set -euo pipefail
@@ -151,7 +151,7 @@ jobs:
             echo "D097 confirmation client must not use RTDB" >&2
             exit 1
           fi
-          echo "D130 Android relay-create recovery / realtime-handshake watchdog / D117 20-second terminal PASS"
+          echo "D131 Android durable relay ledger / create recovery / 20-second terminal PASS"
 
       - name: Assemble Android 11+ Beta APK
         env:
