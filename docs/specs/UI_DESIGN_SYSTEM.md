@@ -809,3 +809,14 @@ Stable remains OWNER-GATED.
 - CPU/RAM/browser-process values continue to use bounded background sampling rather than a one-second expensive process/resource scan.
 - Each newly sampled resource value must repaint immediately on the owning WinForms UI thread. The one-second display clock is presentation-only and performs no provider/network I/O.
 - Hiding/minimizing the Agent keeps D128 behavior: resource sampling/display clock is paused and normal business/HA/browser readiness continues.
+
+
+## D131 — Agent fleet and counter presentation
+
+- Hệ thống Agent shows at most 6 fleet rows.
+- Each row shows concise role/state: PRIMARY, NGỦ ĐÔNG · NEXT A, NGỦ ĐÔNG · NEXT B, or NGỦ ĐÔNG; plus Agent auth, Web Confirm readiness, Firestore readiness and last_seen.
+- Deep-hibernating rows must show freshness age when their state is coarse; do not present stale data as realtime.
+- Daily PickList counters are one shared fleet view: Picklist nhận | Picklist xác nhận | Picklist lỗi.
+- PRIMARY may update its local counter presentation immediately. Other Agents may lag until the next coordination read, but after takeover the promoted PRIMARY must reconcile before presenting itself as authoritative.
+- PDA list remains event-driven and preserves scroll/search. A request already consumed by PRIMARY may refresh the matching PDA last activity locally without forcing a provider refresh.
+- Outside 05:00–23:00 with no overtime, the UI explicitly shows PDA ↔ Agent: Tạm dừng ngoài giờ rather than appearing disconnected/broken.
