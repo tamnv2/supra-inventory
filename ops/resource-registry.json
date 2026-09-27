@@ -1295,7 +1295,7 @@
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d130": {
-    "status": "TECHNICAL_RELEASE_PASS__OA055_FIELD_PENDING",
+    "status": "TECHNICAL_RELEASE_PASS__FIELD_GATE_SUPERSEDED_BY_D131",
     "resource_change": "NONE__REUSES_EXISTING_BETA_FIRESTORE_ANDROID_REALTIME_AGENT_BROWSER_AND_DISTRIBUTION_RESOURCES",
     "target_agent_release": "relay-agent-v70",
     "target_android": "beta-vc77",
@@ -1305,7 +1305,7 @@
     "android_realtime": "12S_HANDSHAKE_WATCHDOG__BOUNDED_RECONNECT__ACTIVE_SOCKET_PRESENCE_AUTHORITY",
     "protected_cadence": "PRIMARY_4S_IDLE_2S_HOT__LEASE_7S__FAILOVER_10S",
     "new_resources": "NONE",
-    "field_acceptance": "PENDING__OA055_OWNER_FIELD",
+    "field_acceptance": "SUPERSEDED_BY_D131_OA056",
     "stable": "OWNER_GATED_UNTOUCHED",
     "implementation_pr": 254,
     "main_merge": "241f1cd464ff005969b1d7a6f2d979fb64342b50",
@@ -1320,5 +1320,22 @@
     "android_asset_id": 592563343,
     "android_size_bytes": 19052908,
     "android_sha256": "1d9b0583e5df5537e1a2b1e5936ca015a03e3f18ed830544d8eead34cee5909a"
+  },
+  "d131": {
+    "status": "OWNER_APPROVED_DESIGN__IMPLEMENTATION_PENDING",
+    "resource_change": "NONE__REUSES_EXISTING_BETA_FIRESTORE_ANDROID_AGENT_BROWSER_AND_DISTRIBUTION_RESOURCES",
+    "baseline_agent_release": "relay-agent-v70",
+    "baseline_android": "beta-vc77",
+    "transport": "FIRESTORE_ONLY",
+    "fleet": "MAX6__ONE_PRIMARY__NEXT_A__NEXT_B__DEEP_HIBERNATE",
+    "schedule": "05_23__OVERTIME_EXTENSION_ONLY",
+    "load_model": "50_SHIFT__75_OVERLAP__1200_DAY__40_SIMULTANEOUS",
+    "cadence": "PRIMARY_QUERY_3S__LEASE_HEARTBEAT_8S__LEASE_EXPIRY_12S__NON_PRIMARY_ZERO_BUSINESS_QUERY",
+    "counter_model": "PRIMARY_RAM__LEASE_PIGGYBACK__TAIL_RECONCILE_ON_TAKEOVER",
+    "quota_soft_target": "READS_42000__WRITES_15000__DELETES_2000__STORAGE_0_75GIB__OUTBOUND_8GIB_MONTH",
+    "quota_day": "AMERICA_LOS_ANGELES",
+    "new_resources": "NONE",
+    "field_acceptance": "PENDING__OA056_AFTER_RELEASE",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }
