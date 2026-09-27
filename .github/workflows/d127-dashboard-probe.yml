@@ -37,13 +37,51 @@ jobs:
         shell: pwsh
         run: |
           $src = Get-Content relay-agent-dashboard-probe/Program.cs -Raw
-          foreach ($forbidden in @('Network.enable','document.cookie','GetCookiesAsync','localStorage','sessionStorage','Authorization','Set-Cookie','api-supra.winmart.vn')) {
+          foreach ($forbidden in @(
+            'Network.enable',
+            'Network.getCookies',
+            'Storage.getCookies',
+            'document.cookie',
+            'GetCookiesAsync',
+            'localStorage',
+            'sessionStorage',
+            'Authorization',
+            'Set-Cookie',
+            'api-supra.winmart.vn',
+            'AutomationControlled',
+            '--disable-blink-features',
+            'user-agent=',
+            'WebResourceRequested'
+          )) {
             if ($src.Contains($forbidden)) { throw "Forbidden probe capability marker: $forbidden" }
           }
-          foreach ($required in @('https://auth-supra.winmart.vn/dashboard','https://wms-supra.winmart.vn','NewWindowRequested','Input.dispatchMouseEvent','Runtime.evaluate','userGesture','Input.dispatchKeyEvent','SanitizeUrl','isTrusted','mode=same_tab','profile=probe_dedicated','HY1_SFT3_UNIQUE','UNIQUE_ARROW_FALLBACK')) {
-            if (-not $src.Contains($required)) { throw "Required D127 probe marker missing: $required" }
+          foreach ($required in @(
+            'https://auth-supra.winmart.vn/dashboard',
+            'https://wms-supra.winmart.vn',
+            'NewWindowRequested',
+            'popup_mode=webview2_default',
+            'Input.dispatchMouseEvent',
+            'Runtime.evaluate',
+            'userGesture',
+            'Input.dispatchKeyEvent',
+            'cdp_keyboard_space',
+            'SanitizeUrl',
+            'isTrusted',
+            'profile=probe_v2_dedicated',
+            'log_transport=local_only',
+            'HY1_SFT3_SMALLEST_CARD',
+            'UNIQUE_ARROW_FALLBACK',
+            'Tự động kiểm tra',
+            'Theo dõi thao tác người dùng',
+            'input_fields=false',
+            'USER_NAV_REJECTED'
+          )) {
+            if (-not $src.Contains($required)) { throw "Required D127 probe v2 marker missing: $required" }
           }
-          Write-Host "D127 Dashboard Probe source safety guard PASS"
+          if ($src.Contains('NEW_WINDOW_INTERCEPT') -or $src.Contains('mode=same_tab')) {
+            throw "Probe v2 must not force approved Dashboard new-window into the current tab."
+          }
+          Write-Host "D127 Dashboard Probe v2 source safety guard PASS"
 
       - name: Build probe
         shell: pwsh
@@ -94,7 +132,7 @@ jobs:
 
           gh release view $tag --repo "${{ github.repository }}" *> $null
           if ($LASTEXITCODE -ne 0) {
-            gh release create $tag --repo "${{ github.repository }}" --target "$env:GITHUB_SHA" --title "D127 Dashboard Probe v$version" --notes "Beta-only diagnostic browser for Supra Dashboard activation. Reuses the installed Agent WebView2 Fixed Runtime, uses a separate probe profile, logs sanitized DOM/input/navigation evidence, and does not read cookies/tokens/headers/storage or call WMS APIs." --prerelease
+            gh release create $tag --repo "${{ github.repository }}" --target "$env:GITHUB_SHA" --title "D127 Dashboard Probe v$version" --notes "Beta-only Dashboard Probe v2. User enters an approved Supra URL, logs in manually, then explicitly starts bounded automation or click-only monitoring. Approved new-window behavior is not forced into the same tab. Logs are local and sanitized; no cookies/tokens/headers/storage/passwords/request bodies, DevTools Network, direct WMS APIs, stealth or user-agent spoofing." --prerelease
             if ($LASTEXITCODE -ne 0) { throw "Unable to create probe prerelease." }
           }
 
