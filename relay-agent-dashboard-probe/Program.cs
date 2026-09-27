@@ -45,15 +45,18 @@ namespace SupraDashboardProbe
                 if (!ProbeSecurity.IsApprovedTarget(
                         "https://auth-supra.winmart.vn/dashboard"))
                     return 12;
+                if (!ProbeSecurity.IsDashboardPage(
+                        "https://auth-supra.winmart.vn/dashboard/"))
+                    return 13;
                 if (!ProbeSecurity.IsApprovedTarget(
                         "https://wms-supra.winmart.vn/sft3/app"))
-                    return 13;
-                if (ProbeSecurity.IsApprovedTarget(
-                        "https://example.invalid/path"))
                     return 14;
                 if (ProbeSecurity.IsApprovedTarget(
-                        "http://wms-supra.winmart.vn/path"))
+                        "https://example.invalid/path"))
                     return 15;
+                if (ProbeSecurity.IsApprovedTarget(
+                        "http://wms-supra.winmart.vn/path"))
+                    return 16;
                 return 0;
             }
             catch
@@ -132,6 +135,26 @@ namespace SupraDashboardProbe
                 return uri.Scheme + "://invalid";
 
             return uri.Scheme + "://" + uri.Host + uri.AbsolutePath;
+        }
+
+        internal static bool IsDashboardPage(string raw)
+        {
+            Uri uri;
+            if (!Uri.TryCreate(raw ?? "", UriKind.Absolute, out uri))
+                return false;
+            if (!string.Equals(
+                    uri.Scheme,
+                    "https",
+                    StringComparison.OrdinalIgnoreCase))
+                return false;
+            return string.Equals(
+                       uri.Host,
+                       "auth-supra.winmart.vn",
+                       StringComparison.OrdinalIgnoreCase) &&
+                   string.Equals(
+                       uri.AbsolutePath.TrimEnd('/'),
+                       "/dashboard",
+                       StringComparison.OrdinalIgnoreCase);
         }
 
         internal static bool IsApprovedTarget(string raw)
@@ -540,10 +563,7 @@ namespace SupraDashboardProbe
 
             var safeUrl = CurrentSafeUrl();
 
-            if (!string.Equals(
-                    safeUrl,
-                    DashboardUrl,
-                    StringComparison.OrdinalIgnoreCase))
+            if (!ProbeSecurity.IsDashboardPage(safeUrl))
             {
                 if (safeUrl.IndexOf(
                         "auth-supra.winmart.vn",
@@ -1042,13 +1062,7 @@ namespace SupraDashboardProbe
                 "if(!e||!e.closest)return false;" +
                 "const b=e.closest('button,[role=button],a');" +
                 "if(!b)return false;" +
-                "if(![...b.querySelectorAll('path')].some(x=>x.getAttribute('d')===arrowPath))return false;" +
-                "let c=b;" +
-                "for(let i=0;i<10&&c;i++,c=c.parentElement){" +
-                "const t=norm(c.innerText||c.textContent);" +
-                "if(t.includes('kho hưng yên 1')&&t.includes('sft3'))return true;" +
-                "}" +
-                "return false;" +
+                "return [...b.querySelectorAll('path')].some(x=>x.getAttribute('d')===arrowPath);" +
                 "};" +
                 "for(const n of ['pointerdown','pointerup','mousedown','mouseup','click']){" +
                 "d.addEventListener(n,e=>{" +
