@@ -1578,3 +1578,19 @@ Approved flow:
 - After the WMS child reaches `/sft3/app/dashboard`, Agent navigates that child context once to canonical Confirm. Session/popup flow is bounded and fail-closed.
 - No stealth, user-agent spoofing, fake referrer/header, CDP mouse/keyboard simulation, Network-domain access, cookie/token/header/storage extraction, browser-profile reads or direct WMS API calls are introduced.
 - Host build increments to 10; Agent target is v67. Android remains beta-vc76. Stable remains OWNER-GATED and untouched.
+
+## D127 v67 release checkpoint — Dashboard click + child popup — 2026-09-27
+
+The Probe-v2 field conclusion is now implemented and technically released.
+
+Release evidence:
+- PR #246 passed Repo Authority, Project State, UI Design, Verify Beta Relay Agent, D127 Dashboard Probe, Firestore and RTDB gates, then squash-merged to `main` at `62aa2cb8430b28619b72f2515fbdbfe456f1a3c3`.
+- Main Verify Beta Relay Agent run `36292073068` completed PASS; UI regression run `36292073085` completed PASS.
+- Agent release `relay-agent-v67`, release id `397498020`.
+- Agent EXE asset id `592064220`, size `361984` bytes, SHA-256 `01067a5443a68b084266d012355fe9a8abd94b655994b4493f655a31d8bff790`.
+- Inventory channel Agent manifest/exe asset ids: `592064311` / `592064314`.
+- Owned browser host build is now `10`. Browser manifest asset id `592065625`; bundle asset id `592065629`, size `318616553` bytes, SHA-256 `bb623ac7e6c252b21c5f6b23be22ccb4681f3d7ffb42314cee9e014cd8427042`; checksum asset id `592065626`.
+- v67 keeps the manual-login flow, uses one Probe-v2-proven DOM click only for stored-session Dashboard recovery, preserves a real child WebView2 popup, and forbids direct `/sft3/session` navigation.
+- Android remains `beta-vc76`. Stable remains OWNER-GATED and untouched.
+
+D127 v67 is **TECHNICAL / RELEASE PASS**. OA052 remains open for two company-laptop field cases: login-required and stored-session Dashboard recovery without manual Dashboard click.
