@@ -139,18 +139,6 @@ async function writePickerPresenceProjection(
     pickers,
   });
 
-  // D127: reuse the already-polled relay queue as a single-slot control event.
-  // The fixed document id prevents event buildup; updateTime makes Agent ACK race-safe.
-  await putDocument(env, "relay_poc_jobs", "picker_presence_current", {
-    request_id: "picker_presence_current",
-    status: "PENDING",
-    source: "ANDROID_PRESENCE_V1",
-    created_at: now,
-    schema_version: 3,
-    reason,
-    count: pickers.length,
-    pickers,
-  });
 }
 
 export async function syncPickerPresenceProjection(env: ProjectionEnv, reason = "SNAPSHOT_REFRESH"): Promise<void> {
