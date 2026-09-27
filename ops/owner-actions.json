@@ -2550,18 +2550,18 @@
     },
     {
       "id": "OA052",
-      "status": "FIELD_READY__D127_DASHBOARD_PROBE_V2_RELEASE_PASS",
+      "status": "PROBE_V2_FIELD_PASS__V67_IMPLEMENTING",
       "title": "Field-accept D127 quota-safe relay and Agent-owned browser fallback",
       "resource_key": "repo",
       "provider": "Beta Firestore + Windows Agent + Supra managed browser",
       "reason_owner_only": "CI can prove source/build/quota guards and package integrity, but real Supra paginator/checkbox behavior, Fixed WebView2 compatibility, browser isolation and fallback require physical company-laptop field observation.",
       "prerequisites": {
         "d127_branch": "d127-quota-browser-hardening",
-        "target_agent_release": "relay-agent-v66",
+        "target_agent_release": "relay-agent-v67",
         "android_baseline": "beta-vc76",
         "stable": "OWNER_GATED",
         "technical_release": "PASS__V66_RELEASED__HOST_BUILD_9_REUSED",
-        "latest_field_result": "V66_FAIL__DIRECT_/sft3/session_NAVIGATION_ACCESS_DENIED",
+        "latest_field_result": "PROBE_V2_PASS__AUTO_DOM_CLICK_AND_TRUSTED_MANUAL_CLICK_SAME_TARGET_AND_POPUP__AUTO_REACHES_CONFIRM",
         "v63_main": "f7dd84a151e295d30dc7e6082524fe198b1bb314",
         "v64_main": "402faa0c073a34fa968b1b056fb74c6f857c0b64",
         "v65_main": "f623a83ec6785f920aa2a6916a1f016e9ec63680",
@@ -2597,31 +2597,29 @@
         "inventory_channel_agent_exe_asset_id": 591974642,
         "probe_v2_scope": "USER_URL__MANUAL_LOGIN__EXPLICIT_AUTO_TEST__CLICK_ONLY_MONITOR",
         "diagnostic_ui_run": 36290763091,
-        "diagnostic_zip_sha256": "1111204c23ce1e121c47d3859c0193c467b90f1eca70867028fba3fbb282f0fa"
+        "diagnostic_zip_sha256": "1111204c23ce1e121c47d3859c0193c467b90f1eca70867028fba3fbb282f0fa",
+        "v67_source_target": "LOGIN_PATH_DIRECT_CONFIRM_RETRY__STORED_SESSION_DASHBOARD_DOM_CLICK__REAL_CHILD_WEBVIEW2_POPUP__WMS_CHILD_ATTACH__CONFIRM"
       },
       "shortest_test_path": [
-        "Download and extract D127 Dashboard Probe v2 after its diagnostic prerelease is published.",
-        "Run SUPRA.Dashboard.Probe.exe. Enter an approved HTTPS URL on auth-supra.winmart.vn or wms-supra.winmart.vn, then click Đi tới.",
-        "If Supra requests login, log in manually in the probe. Probe does not read or log input values.",
-        "When the target page is loaded, click Tự động kiểm tra. Let the bounded method matrix finish or stop on the first navigation/new-window.",
-        "If automatic testing does not transition or cannot identify a unique target, click Theo dõi thao tác người dùng, then manually click the intended Truy cập control exactly once.",
-        "Do not close an approved popup immediately; allow the normal browser flow to settle so NewWindowRequested/navigation evidence is captured.",
-        "Click Mở thư mục log and upload only the newest dashboard-probe-v2-*.log to the project chat.",
-        "Do not upload browser profiles, screenshots containing credentials, cookies, tokens, headers, passwords or other session material.",
+        "After relay-agent-v67 and browser host build 10 are released, update/restart Beta Agent and let the Agent browser bundle update if prompted.",
+        "Login-required case: open Agent browser, log in manually when Lưu thông tin đăng nhập is visible, then verify Agent reaches Web Confirm without a manual Dashboard click.",
+        "Stored-session case: open Agent browser while auth session is still valid. If initial Confirm lands on auth Dashboard, do not click anything; Agent must click the field-proven HY1/SFT3 access control once and preserve the child popup context.",
+        "PASS only if the WMS child browsing context reaches SFT3 and Agent reconnects to that child target, then reaches the canonical Confirm page.",
+        "No direct navigation to /sft3/session is allowed. If target selection, child popup attach, or SFT3 transition fails, Agent must stop fail-closed without retry loops.",
+        "Confirm D126 paginator 100, row checkbox, exact modal, HA/idempotency/quota guards remain unchanged.",
         "Stable remains untouched."
       ],
       "pass_criteria": [
-        "Probe v2 build/self-test and privacy/safety guards PASS on x64 Windows.",
-        "User-entered URL is fail-closed to HTTPS auth-supra.winmart.vn or wms-supra.winmart.vn and rejects embedded user/password.",
-        "Automation runs only after explicit Tự động kiểm tra and uses a bounded method matrix.",
-        "Approved NewWindowRequested is not forced into the current tab; unapproved hosts are blocked fail-closed.",
-        "User-monitor mode records only click-target event structure/isTrusted/geometry and sanitized navigation evidence; no input values are observed.",
-        "No DevTools Network, cookies, tokens, headers, web storage, password/request-body/profile capture, direct WMS API, stealth or user-agent spoofing is introduced.",
-        "Field log is sufficient to compare automatic action against one trusted manual click.",
-        "Stable remains untouched."
+        "Login-required path remains field-compatible and needs only manual credential entry.",
+        "Stored-session Dashboard path needs no manual Dashboard click.",
+        "Dashboard automation uses one simple DOM click on the Probe-v2-proven target; no CDP mouse, keyboard simulation, stealth or browser-identity spoofing.",
+        "Owned WebView2 preserves a genuine child new-window context in the same environment/profile instead of same-tab Navigate().",
+        "Agent reconnects DevTools to the WMS child page target before any post-popup Confirm navigation.",
+        "No direct /sft3/session navigation, session extraction, Network/cookie/token/header/storage capture or direct WMS API is introduced.",
+        "Android remains beta-vc76 and Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company Supra accounts. Do not share passwords, cookies, tokens, headers, signatures or other session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Run Dashboard Probe v2: enter the approved Supra URL, login manually, press Tự động kiểm tra; if it does not transition, press Theo dõi thao tác người dùng and manually click Truy cập once; upload only the newest sanitized dashboard-probe-v2-*.log.",
+      "remaining_owner_action": "Wait for relay-agent-v67 + host build 10 release, then field-test the login-required path and the stored-session Dashboard path without manually clicking Dashboard.",
       "closed": false
     }
   ]
