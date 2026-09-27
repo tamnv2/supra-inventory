@@ -1041,6 +1041,7 @@ namespace SupraInventoryRelayAgent
             private double _overlayOpacity = 0.78;
             private bool _locked = true;
             private bool _overlayVisible = true;
+            private bool _sizeCustomized;
             private bool _dragging;
             private Point _dragOrigin;
             private Point _windowOrigin;
@@ -1057,8 +1058,8 @@ namespace SupraInventoryRelayAgent
                 ShowInTaskbar = false;
                 TopMost = true;
                 StartPosition = FormStartPosition.Manual;
-                MinimumSize = new Size(430, 42);
-                MaximumSize = new Size(1600, 180);
+                MinimumSize = new Size(120, 24);
+                MaximumSize = new Size(7680, 4320);
                 Size = new Size(ClampWidth(Width <= 0 ? 620 : Width), ClampHeight(Height <= 0 ? 52 : Height));
                 BackColor = SafeColor(_backgroundArgb, Color.FromArgb(28, 35, 43));
                 Opacity = ClampOpacity(_overlayOpacity);
@@ -1071,6 +1072,7 @@ namespace SupraInventoryRelayAgent
                 _text.Text = "Picklist nhận: 0 | Picklist xác nhận: 0 | Picklist lỗi: 0";
                 _text.ForeColor = SafeColor(_textArgb, Color.White);
                 Controls.Add(_text);
+                if (!_sizeCustomized) AutoFitToContent();
 
                 foreach (Control control in new Control[] { this, _text })
                 {
@@ -1081,7 +1083,12 @@ namespace SupraInventoryRelayAgent
 
                 ApplySavedPosition();
                 Shown += (s, e) => ApplyInteractionMode();
-                ResizeEnd += (s, e) => { if (!IsLocked) Persist(); };
+                ResizeEnd += (s, e) =>
+                {
+                    if (IsLocked) return;
+                    _sizeCustomized = true;
+                    Persist();
+                };
             }
 
             protected override bool ShowWithoutActivation { get { return IsLocked; } }
@@ -1127,6 +1134,7 @@ namespace SupraInventoryRelayAgent
                     "Picklist nhận: " + Math.Max(0L, received).ToString("N0") +
                     " | Picklist xác nhận: " + Math.Max(0L, confirmed).ToString("N0") +
                     " | Picklist lỗi: " + Math.Max(0L, failed).ToString("N0");
+                if (!_sizeCustomized) AutoFitToContent();
             }
 
             internal void SetLocked(bool locked)
@@ -1160,6 +1168,7 @@ namespace SupraInventoryRelayAgent
             internal void SetOverlaySize(int width, int height)
             {
                 if (IsLocked) return;
+                _sizeCustomized = true;
                 Size = new Size(ClampWidth(width), ClampHeight(height));
                 Persist();
             }
@@ -1248,6 +1257,27 @@ namespace SupraInventoryRelayAgent
                     if (map.TryGetValue("opacity", out value)) _overlayOpacity = ClampOpacity(Convert.ToDouble(value));
                     if (map.TryGetValue("locked", out value)) _locked = Convert.ToBoolean(value);
                     if (map.TryGetValue("visible", out value)) _overlayVisible = Convert.ToBoolean(value);
+                    if (map.TryGetValue("size_customized", out value))
+                        _sizeCustomized = Convert.ToBoolean(value);
+                    else if (map.ContainsKey("width") || map.ContainsKey("height"))
+                        _sizeCustomized = true;
+                }
+                catch { }
+            }
+
+            private void AutoFitToContent()
+            {
+                if (_sizeCustomized || _text == null) return;
+                try
+                {
+                    var measured = TextRenderer.MeasureText(
+                        _text.Text ?? "",
+                        _text.Font,
+                        new Size(int.MaxValue, int.MaxValue),
+                        TextFormatFlags.SingleLine | TextFormatFlags.NoPadding);
+                    Size = new Size(
+                        ClampWidth(measured.Width + Padding.Horizontal + 12),
+                        ClampHeight(measured.Height + Padding.Vertical + 8));
                 }
                 catch { }
             }
@@ -1264,7 +1294,8 @@ namespace SupraInventoryRelayAgent
                     {
                         { "left", Left }, { "top", Top }, { "width", Width }, { "height", Height },
                         { "background_argb", _backgroundArgb }, { "text_argb", _textArgb },
-                        { "opacity", _overlayOpacity }, { "locked", _locked }, { "visible", _overlayVisible }
+                        { "opacity", _overlayOpacity }, { "locked", _locked }, { "visible", _overlayVisible },
+                        { "size_customized", _sizeCustomized }
                     };
                     File.WriteAllText(_settingsPath, new JavaScriptSerializer().Serialize(payload));
                 }
@@ -1273,8 +1304,8 @@ namespace SupraInventoryRelayAgent
                 if (handler != null) handler();
             }
 
-            private static int ClampWidth(int value) { return Math.Max(430, Math.Min(1600, value)); }
-            private static int ClampHeight(int value) { return Math.Max(42, Math.Min(180, value)); }
+            private static int ClampWidth(int value) { return Math.Max(120, Math.Min(7680, value)); }
+            private static int ClampHeight(int value) { return Math.Max(24, Math.Min(4320, value)); }
             private static double ClampOpacity(double value) { return Math.Max(0.35, Math.Min(1.0, value)); }
             private static Color SafeColor(int argb, Color fallback)
             {
@@ -1359,15 +1390,15 @@ namespace SupraInventoryRelayAgent
 
                 Controls.Add(new Label { Left = 18, Top = 176, Width = 95, Height = 22, Text = "Chiều rộng" });
                 _width.SetBounds(118, 172, 100, 28);
-                _width.Minimum = 430;
-                _width.Maximum = 1600;
+                _width.Minimum = 120;
+                _width.Maximum = 7680;
                 _width.Value = Math.Max(_width.Minimum, Math.Min(_width.Maximum, overlay.OverlayWidth));
                 Controls.Add(_width);
 
                 Controls.Add(new Label { Left = 248, Top = 176, Width = 85, Height = 22, Text = "Chiều cao" });
                 _height.SetBounds(338, 172, 100, 28);
-                _height.Minimum = 42;
-                _height.Maximum = 180;
+                _height.Minimum = 24;
+                _height.Maximum = 4320;
                 _height.Value = Math.Max(_height.Minimum, Math.Min(_height.Maximum, overlay.OverlayHeight));
                 Controls.Add(_height);
 
