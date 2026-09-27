@@ -1272,7 +1272,7 @@
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d129": {
-    "status": "TECHNICAL_RELEASE_PASS__OA054_FIELD_PENDING",
+    "status": "OWNER_FIELD_PASS",
     "resource_change": "NONE__REUSES_EXISTING_BETA_FIRESTORE_AGENT_BROWSER_AND_DISTRIBUTION_RESOURCES",
     "target_agent_release": "relay-agent-v69",
     "android": "beta-vc76__UNCHANGED",
@@ -1291,7 +1291,21 @@
     "agent_release_id": 397561381,
     "agent_asset_id": 592453697,
     "agent_sha256": "b282cfb63b879d330a13bab80df69dee622ca5efd96e1895a3fea262709e82a4",
-    "field_acceptance": "PENDING__OA054_OWNER_FIELD",
+    "field_acceptance": "PASS__OA054_OWNER_CONFIRMED__2026_09_27",
+    "stable": "OWNER_GATED_UNTOUCHED"
+  },
+  "d130": {
+    "status": "OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS",
+    "resource_change": "NONE__REUSES_EXISTING_BETA_FIRESTORE_ANDROID_REALTIME_AGENT_BROWSER_AND_DISTRIBUTION_RESOURCES",
+    "target_agent_release": "relay-agent-v70",
+    "target_android": "NEXT_MONOTONIC_SIGNED_BETA",
+    "agent_metrics": "LOCAL_VISIBLE_WINDOW_ONLY__1S_DISPLAY_CLOCK__BOUNDED_RESOURCE_SAMPLE__NO_UPLOAD",
+    "agent_transport": "SELF_HEALING_CONFIRM_LOOP__SUPERVISED_RESTART__CONNECTION_LIMIT_FLOOR_16__CONFIRM_QUERY_2X4S_SAFE_READ",
+    "android_confirm": "SAME_REQUEST_ID_CREATE_VERIFY__ONE_SAME_ID_RETRY__20S_TERMINAL",
+    "android_realtime": "12S_HANDSHAKE_WATCHDOG__BOUNDED_RECONNECT__ACTIVE_SOCKET_PRESENCE_AUTHORITY",
+    "protected_cadence": "PRIMARY_4S_IDLE_2S_HOT__LEASE_7S__FAILOVER_10S",
+    "new_resources": "NONE",
+    "field_acceptance": "PENDING__OA055_AFTER_RELEASE",
     "stable": "OWNER_GATED_UNTOUCHED"
   }
 }
