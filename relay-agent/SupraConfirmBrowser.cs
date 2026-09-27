@@ -85,18 +85,19 @@ namespace SupraInventoryRelayAgent
         private string _loadedNonConfirmObservedUrl = "";
         private DateTime _loadedNonConfirmObservedAtUtc = DateTime.MinValue;
         private DateTime _confirmRetryIssuedAtUtc = DateTime.MinValue;
-        private bool _sessionBootstrapIssued;
-        private bool _sessionBootstrapFailed;
-        private DateTime _sessionBootstrapIssuedAtUtc = DateTime.MinValue;
+        private int _dashboardAccessAttemptCount;
+        private bool _dashboardAccessFailed;
+        private bool _dashboardWmsTargetAttached;
+        private DateTime _dashboardAccessIssuedAtUtc = DateTime.MinValue;
         private bool _disposed;
 
         private const string WmsHost = "wms-supra.winmart.vn";
         private const string AuthDashboardHost = "auth-supra.winmart.vn";
         private const string AuthDashboardPath = "/dashboard";
-        private const string SessionBootstrapUrl = "https://wms-supra.winmart.vn/sft3/session";
         private const string SessionPath = "/sft3/session";
         private const string WmsAppDashboardPath = "/sft3/app/dashboard";
         private const string ConfirmPath = "/sft3/app/saleorder/auto-pickpack-confirm";
+        private const string DashboardArrowPath = "m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z";
         private const string LoginMarkerText = "Lưu thông tin đăng nhập";
         private const string SearchText = "Tìm kiếm";
         private const string ConfirmText = "Xác nhận lấy lại hàng";
@@ -207,14 +208,18 @@ namespace SupraInventoryRelayAgent
                 }
                 else if (TryRecoverConfirmRouteNoLock(state))
                 {
-                    state.State = _sessionBootstrapIssued
-                        ? "SFT3_SESSION_BOOTSTRAP"
-                        : "AUTO_RETRY_CONFIRM";
+                    state.State = _dashboardAccessAttemptCount > 0 &&
+                                  !_dashboardAccessFailed &&
+                                  !_confirmRetryIssuedAtUtc.Equals(DateTime.MinValue)
+                        ? "AUTO_RETRY_CONFIRM"
+                        : (_dashboardAccessAttemptCount > 0
+                            ? "DASHBOARD_ACCESS_CLICK"
+                            : "AUTO_RETRY_CONFIRM");
                 }
                 else if (_launchMode == BrowserLaunchMode.Agent &&
-                         _sessionBootstrapFailed)
+                         _dashboardAccessFailed)
                 {
-                    state.State = "SFT3_SESSION_BOOTSTRAP_EXHAUSTED";
+                    state.State = "DASHBOARD_ACCESS_FAILED";
                 }
                 else if (_launchMode == BrowserLaunchMode.Agent &&
                          state.PageLoaded &&
