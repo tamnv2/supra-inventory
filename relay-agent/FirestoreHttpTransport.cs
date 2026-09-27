@@ -39,9 +39,10 @@ namespace SupraInventoryRelayAgent
             int timeoutMs,
             bool retrySafeRead,
             Action<string> log,
-            string component)
+            string component,
+            int safeReadAttempts = 3)
         {
-            var attempts = retrySafeRead ? 3 : 1;
+            var attempts = retrySafeRead ? Math.Max(1, safeReadAttempts) : 1;
             WebException last = null;
 
             for (var attempt = 1; attempt <= attempts; attempt++)

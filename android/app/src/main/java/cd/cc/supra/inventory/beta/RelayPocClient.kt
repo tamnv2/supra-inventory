@@ -79,6 +79,9 @@ class RelayPocClient(
     private companion object {
         const val FAILOVER_NOTICE_MS = 10_000L
         const val TOTAL_WAIT_MS = 20_000L
+        const val CREATE_FIRST_WAIT_SECONDS = 5L
+        const val CREATE_VERIFY_WAIT_SECONDS = 3L
+        const val CREATE_RETRY_WAIT_SECONDS = 4L
         const val TIMED_OUT_PENDING_RETENTION_MS = 60L * 60L * 1000L
         const val CONFIRMED_RETENTION_MS = 30L * 24L * 60L * 60L * 1000L
         const val CLEANUP_PREF = "relay_d097_cleanup"
@@ -194,11 +197,7 @@ class RelayPocClient(
         )
         onProgress("Đang gửi qua Firestore...")
 
-        try {
-            Tasks.await(doc.set(fields), 15, TimeUnit.SECONDS)
-        } catch (error: Exception) {
-            throw IOException("Không gửi được yêu cầu Xác nhận đơn qua Firestore.", error)
-        }
+        createRequestWithRecovery(doc, fields, requestId, identity.uid)
 
         log("D097 Firestore CREATE PASS request=" + shortId(requestId))
         onProgress("Đã gửi #" + shortId(requestId) + " · đang chờ Agent chính...")
@@ -254,7 +253,7 @@ class RelayPocClient(
                 }
                 throw IOException(
                     "Không xử lý được request #" + shortId(requestId) +
-                        " trong 30 giây. Vui lòng về bàn Chuyên viên xử lý trực tiếp."
+                        " trong 20 giây. Vui lòng về bàn Chuyên viên xử lý trực tiếp."
                 )
             }
 
@@ -297,6 +296,63 @@ class RelayPocClient(
             synchronized(listenerGate) {
                 if (activeListener === registration) activeListener = null
             }
+        }
+    }
+
+    private fun createRequestWithRecovery(
+        doc: DocumentReference,
+        fields: Map<String, Any>,
+        requestId: String,
+        ownerUid: String,
+    ) {
+        try {
+            Tasks.await(doc.set(fields), CREATE_FIRST_WAIT_SECONDS, TimeUnit.SECONDS)
+            return
+        } catch (first: Exception) {
+            log(
+                "D130 Firestore create uncertain request=" + shortId(requestId) +
+                    " · đang xác minh trên server."
+            )
+            if (requestExistsOnServer(doc, requestId, ownerUid)) {
+                log("D130 Firestore CREATE RECOVERED request=" + shortId(requestId) + " phase=verify1")
+                return
+            }
+
+            // Reuse the exact same document id. Firestore Rules allow Picker create only,
+            // so a late first write/Agent ACK cannot be overwritten by this retry.
+            try {
+                Tasks.await(doc.set(fields), CREATE_RETRY_WAIT_SECONDS, TimeUnit.SECONDS)
+                log("D130 Firestore CREATE RETRY PASS request=" + shortId(requestId))
+                return
+            } catch (second: Exception) {
+                if (requestExistsOnServer(doc, requestId, ownerUid)) {
+                    log("D130 Firestore CREATE RECOVERED request=" + shortId(requestId) + " phase=verify2")
+                    return
+                }
+                throw IOException("Không gửi được yêu cầu Xác nhận đơn qua Firestore.", second)
+            }
+        }
+    }
+
+    private fun requestExistsOnServer(
+        doc: DocumentReference,
+        requestId: String,
+        ownerUid: String,
+    ): Boolean {
+        return try {
+            val snapshot = Tasks.await(
+                doc.get(Source.SERVER),
+                CREATE_VERIFY_WAIT_SECONDS,
+                TimeUnit.SECONDS,
+            )
+            if (!snapshot.exists()) return false
+            val status = snapshot.getString("status").orEmpty()
+            snapshot.getString("request_id") == requestId &&
+                snapshot.getString("picker_uid") == ownerUid &&
+                snapshot.getString("source") == "ANDROID_CONFIRM_V1" &&
+                (status == "PENDING" || status == "ACK")
+        } catch (_: Exception) {
+            false
         }
     }
 

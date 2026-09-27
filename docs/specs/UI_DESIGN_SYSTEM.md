@@ -801,3 +801,11 @@ Stable remains OWNER-GATED.
 - Picker PDA column uses **Đang hoạt động** for current realtime attachment and **Mất kết nối tạm thời** for the 180-second grace state. Never label grace as online.
 - Picklist overlay defaults visible. Before the user customizes size, derive initial width/height from rendered counter text + font/DPI/padding. User resize persists and disables further auto-fit. Technical minimum is 120×24; do not restore the old 430×42/50 fixed minimum.
 - Overlay text remains the exact concise counter line and locked mode remains click-through.
+
+
+## D130 — live Agent resource presentation
+
+- While the main Agent window is visible, **Thời gian chạy** for Agent/browser updates visibly every second from local cached state and must not depend on focus loss/regain.
+- CPU/RAM/browser-process values continue to use bounded background sampling rather than a one-second expensive process/resource scan.
+- Each newly sampled resource value must repaint immediately on the owning WinForms UI thread. The one-second display clock is presentation-only and performs no provider/network I/O.
+- Hiding/minimizing the Agent keeps D128 behavior: resource sampling/display clock is paused and normal business/HA/browser readiness continues.

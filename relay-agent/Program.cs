@@ -113,6 +113,8 @@ namespace SupraInventoryRelayAgent
             {
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 ServicePointManager.DnsRefreshTimeout = 15000;
+                ServicePointManager.DefaultConnectionLimit = Math.Max(ServicePointManager.DefaultConnectionLimit, 16);
+                ServicePointManager.Expect100Continue = false;
                 RefreshDefaultWindowsProxy("startup");
                 if (!startupSmoke)
                 {
@@ -482,6 +484,9 @@ namespace SupraInventoryRelayAgent
         private readonly System.Windows.Forms.Timer _guardTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer _afterHoursTimer = new System.Windows.Forms.Timer();
         private long _trayMonitorRefreshRunning;
+        private SystemMetrics _lastD130AgentMetrics;
+        private BrowserResourceSnapshot _lastD130BrowserMetrics;
+        private DateTime _lastD130ResourceSampleUtc = DateTime.MinValue;
         private long _browserStatusRefreshRunning;
         private long _readinessRefreshRunning;
         private long _afterHoursScheduleRefreshRunning;
@@ -682,6 +687,7 @@ namespace SupraInventoryRelayAgent
                 CheckAfterHoursSchedule();
                 RefreshBrowserBundleUi();
                 QueueAgentDataStorageRefresh();
+                RefreshD130ResourceClock();
             };
 
             // GitHub cannot push directly into a portable EXE. D101 therefore uses
@@ -1881,6 +1887,9 @@ namespace SupraInventoryRelayAgent
             try
             {
                 _tray.Text = "Agent Auto Confirm Pick Pack";
+                _lastD130AgentMetrics = metrics;
+                _lastD130BrowserMetrics = browser;
+                _lastD130ResourceSampleUtc = DateTime.UtcNow;
                 ApplyD128ResourceMetrics(metrics, browser);
 
                 var online = _leaderCoordinator == null
@@ -3917,46 +3926,71 @@ namespace SupraInventoryRelayAgent
             var token = _listenCts.Token;
             Task.Run(() =>
             {
-                var transport = new FirestoreConfirmationTransport(
-                    SnapshotSession,
-                    EnsureFreshToken,
-                    _agentInstanceId,
-                    GetSsid,
-                    Log,
-                    Audit,
-                    () =>
+                var restartCount = 0;
+                while (!token.IsCancellationRequested)
+                {
+                    try
                     {
-                        Interlocked.Increment(ref _localPdaRequests);
-                        Ui(() => RefreshAgentRequestMetrics());
-                    },
-                    () =>
-                    {
-                        Interlocked.Increment(ref _localAgentResponses);
-                        Ui(() => RefreshAgentRequestMetrics());
-                    },
-                    state => Ui(() => _relay.Text = state),
-                    ProcessFirestoreConfirmations,
-                    (items, reason) => Ui(() => ApplyEventDrivenPickerPresence(items, reason)),
-                    _leaderCoordinator,
-                    IsBusinessAllowed,
-                    healthy =>
-                    {
-                        var coordinator = _leaderCoordinator;
-                        if (coordinator != null) coordinator.ReportRelayPoll(healthy);
-                        var recovered = healthy && !_relayPollHealthyObserved;
-                        _relayPollHealthyObserved = healthy;
-                        if (coordinator != null && coordinator.IsLeader)
-                        {
-                            Ui(() =>
+                        var transport = new FirestoreConfirmationTransport(
+                            SnapshotSession,
+                            EnsureFreshToken,
+                            _agentInstanceId,
+                            GetSsid,
+                            Log,
+                            Audit,
+                            () =>
                             {
-                                _identity.Text =
-                                    "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() +
-                                    (healthy ? " / ACTIVE" : " / ACTIVE · FIRESTORE OFFLINE");
-                                if (recovered) RefreshD119OperationalViews(true);
+                                Interlocked.Increment(ref _localPdaRequests);
+                                Ui(() => RefreshAgentRequestMetrics());
+                            },
+                            () =>
+                            {
+                                Interlocked.Increment(ref _localAgentResponses);
+                                Ui(() => RefreshAgentRequestMetrics());
+                            },
+                            state => Ui(() => _relay.Text = state),
+                            ProcessFirestoreConfirmations,
+                            (items, reason) => Ui(() => ApplyEventDrivenPickerPresence(items, reason)),
+                            _leaderCoordinator,
+                            IsBusinessAllowed,
+                            healthy =>
+                            {
+                                var coordinator = _leaderCoordinator;
+                                if (coordinator != null) coordinator.ReportRelayPoll(healthy);
+                                var recovered = healthy && !_relayPollHealthyObserved;
+                                _relayPollHealthyObserved = healthy;
+                                if (coordinator != null && coordinator.IsLeader)
+                                {
+                                    Ui(() =>
+                                    {
+                                        _identity.Text =
+                                            "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() +
+                                            (healthy ? " / ACTIVE" : " / ACTIVE · FIRESTORE OFFLINE");
+                                        if (recovered) RefreshD119OperationalViews(true);
+                                    });
+                                }
                             });
+                        transport.Run(token);
+                        if (token.IsCancellationRequested) break;
+                        throw new InvalidOperationException("Firestore confirmation transport exited unexpectedly.");
+                    }
+                    catch (Exception ex)
+                    {
+                        if (token.IsCancellationRequested) break;
+                        restartCount++;
+                        _relayPollHealthyObserved = false;
+                        try
+                        {
+                            var coordinator = _leaderCoordinator;
+                            if (coordinator != null) coordinator.ReportRelayPoll(false);
                         }
-                    });
-                transport.Run(token);
+                        catch { }
+                        Log("FIRESTORE transport supervisor restart=" + restartCount +
+                            " type=" + ex.GetType().Name + " detail=" + SafeMessage(ex));
+                        var backoff = Math.Min(5000, 500 * Math.Max(1, restartCount));
+                        if (token.WaitHandle.WaitOne(backoff)) break;
+                    }
+                }
             }, token);
         }
 
@@ -4500,9 +4534,17 @@ ClearStoredSession();
 
         private void Ui(Action action)
         {
-            if (IsDisposed) return;
-            if (InvokeRequired) BeginInvoke(action);
-            else action();
+            if (IsDisposed || Disposing) return;
+            if (InvokeRequired)
+            {
+                try
+                {
+                    if (IsHandleCreated) BeginInvoke(action);
+                }
+                catch (InvalidOperationException) { }
+                return;
+            }
+            action();
         }
 
         private void UiSync(Action action)

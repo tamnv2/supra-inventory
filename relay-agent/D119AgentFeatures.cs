@@ -1512,6 +1512,40 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private void RefreshD130ResourceClock()
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(RefreshD130ResourceClock));
+                return;
+            }
+            if (!Visible || _lastD130ResourceSampleUtc == DateTime.MinValue) return;
+
+            var elapsed = DateTime.UtcNow - _lastD130ResourceSampleUtc;
+            if (elapsed < TimeSpan.Zero) elapsed = TimeSpan.Zero;
+
+            var agent = _lastD130AgentMetrics;
+            if (agent != null)
+            {
+                _d128AgentResourceStatus.Text =
+                    "CPU: " + agent.ProcessCpuPercent.ToString("0.0") + "% | RAM: " +
+                    (agent.ProcessWorkingSetBytes / 1024d / 1024d).ToString("0") + " MB | Thời gian chạy: " +
+                    FormatD128Duration(agent.ProcessUptime + elapsed);
+                _d128AgentResourceStatus.Refresh();
+            }
+
+            var browser = _lastD130BrowserMetrics;
+            if (browser != null && browser.Available)
+            {
+                _d128BrowserResourceStatus.Text =
+                    "CPU: " + browser.CpuPercent.ToString("0.0") + "% | RAM: " +
+                    (browser.WorkingSetBytes / 1024d / 1024d).ToString("0") + " MB | Tiến trình: " +
+                    browser.ProcessCount + " | Thời gian chạy: " +
+                    FormatD128Duration(browser.RunningFor + elapsed);
+                _d128BrowserResourceStatus.Refresh();
+            }
+        }
+
         private void SetD128ResourceMonitoringPaused()
         {
             if (InvokeRequired)
@@ -1519,6 +1553,9 @@ namespace SupraInventoryRelayAgent
                 BeginInvoke(new Action(SetD128ResourceMonitoringPaused));
                 return;
             }
+            _lastD130AgentMetrics = null;
+            _lastD130BrowserMetrics = null;
+            _lastD130ResourceSampleUtc = DateTime.MinValue;
             _d128AgentResourceStatus.Text = "Tài nguyên Agent: tạm dừng đo khi chạy nền";
             _d128BrowserResourceStatus.Text = "Tài nguyên Web: tạm dừng đo khi chạy nền";
         }

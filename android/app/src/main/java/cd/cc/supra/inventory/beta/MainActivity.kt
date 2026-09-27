@@ -902,6 +902,7 @@ class MainActivity : Activity() {
             api = api,
             baseUrl = BuildConfig.API_BASE_URL.trimEnd('/'),
             userId = session.userId,
+            log = { message -> recordLog(message) },
         ) { scopes, completion ->
             runOnUiThread {
                 if (api.session == null || isFinishing) {

@@ -96,6 +96,7 @@ jobs:
           set -euo pipefail
           client="android/app/src/main/java/cd/cc/supra/inventory/beta/RelayPocClient.kt"
           picker="android/app/src/main/java/cd/cc/supra/inventory/beta/PickerController.kt"
+          realtime="android/app/src/main/java/cd/cc/supra/inventory/beta/AndroidRealtimeClient.kt"
           api="android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt"
           gradle_file="android/app/build.gradle.kts"
           grep -q 'com.google.firebase:firebase-auth' "$gradle_file"
@@ -122,6 +123,16 @@ jobs:
           grep -q 'triggerCleanupAsync' "$client"
           grep -q 'Source.SERVER' "$client"
           grep -q 'final-read recovered ACK' "$client"
+          grep -q 'createRequestWithRecovery' "$client"
+          grep -q 'CREATE_FIRST_WAIT_SECONDS = 5L' "$client"
+          grep -q 'CREATE_VERIFY_WAIT_SECONDS = 3L' "$client"
+          grep -q 'CREATE_RETRY_WAIT_SECONDS = 4L' "$client"
+          grep -q 'CREATE RECOVERED' "$client"
+          grep -q 'trong 20 giây' "$client"
+          grep -q 'pendingSocket' "$realtime"
+          grep -q 'connectionAttempt' "$realtime"
+          grep -q '12_000L' "$realtime"
+          grep -q 'Realtime handshake timeout' "$realtime"
           grep -q 'suppressRelayInputHint' "$picker"
           grep -q 'owner_uid' "$client"
           grep -q 'hệ thống sẽ tự chuyển Agent dự phòng nếu cần' "$client"
@@ -140,7 +151,7 @@ jobs:
             echo "D097 confirmation client must not use RTDB" >&2
             exit 1
           fi
-          echo "D118 Android IME resize / D117 20-second terminal / D116 persistent result / D114 suffix guard PASS"
+          echo "D130 Android relay-create recovery / realtime-handshake watchdog / D117 20-second terminal PASS"
 
       - name: Assemble Android 11+ Beta APK
         env:

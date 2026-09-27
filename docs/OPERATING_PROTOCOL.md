@@ -141,3 +141,12 @@ For the Beta PDA↔Agent confirmation path:
 - CI must reject reintroduction of the Sep 25–26 fleet-metrics storm, broad stale queue reads, a new periodic Picker-presence loop, or a parallel schedule-read loop.
 - A Firestore realtime-listener alternative for PRIMARY may be implemented only as a separate bounded Beta/Office POC. Do not replace the field-proven REST path until company-network proxy/stream stability, reconnect behavior and read consumption are measured.
 - Stable remains OWNER-GATED.
+
+
+## D130 relay reliability operating rule
+
+- Treat FIRESTORE transport=OFFLINE followed by loss of later confirmation-poll activity as a transport-loop defect, not an operator restart procedure.
+- Agent must self-recover confirmation transport with bounded retries/supervision; do not instruct normal operators to stop/start relay as the steady-state recovery path.
+- Android confirmation diagnostics distinguish create attempt, same-id create recovery, CREATE PASS, ACK and terminal timeout without logging PickList values or credentials.
+- Android realtime diagnostics may log sanitized connected/fail/handshake-timeout state only; never log realtime tickets, tokens or session material.
+- Keep Stable OWNER-GATED and do not add a second provider/heartbeat to mask Firestore or WebSocket failures.
