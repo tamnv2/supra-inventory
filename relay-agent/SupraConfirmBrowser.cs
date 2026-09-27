@@ -82,7 +82,10 @@ namespace SupraInventoryRelayAgent
         private BrowserLaunchMode _launchMode = BrowserLaunchMode.None;
         private int _confirmRouteRetryCount;
         private bool _loginMarkerObserved;
-        private DateTime _lastConfirmRouteRetryAtUtc = DateTime.MinValue;
+        private string _loadedNonConfirmObservedUrl = "";
+        private DateTime _loadedNonConfirmObservedAtUtc = DateTime.MinValue;
+        private string _confirmRetrySourceUrl = "";
+        private DateTime _confirmRetryIssuedAtUtc = DateTime.MinValue;
         private bool _disposed;
 
         private const string ConfirmPath = "/sft3/app/saleorder/auto-pickpack-confirm";
@@ -202,6 +205,8 @@ namespace SupraInventoryRelayAgent
                          state.PageLoaded &&
                          !state.LoginMarkerDetected &&
                          _confirmRouteRetryCount >= 1 &&
+                         _confirmRetryIssuedAtUtc != DateTime.MinValue &&
+                         DateTime.UtcNow - _confirmRetryIssuedAtUtc >= TimeSpan.FromSeconds(3) &&
                          !string.IsNullOrWhiteSpace(state.Url) &&
                          state.Url.IndexOf(ConfirmPath, StringComparison.OrdinalIgnoreCase) < 0)
                 {
@@ -580,56 +585,94 @@ namespace SupraInventoryRelayAgent
         {
             _confirmRouteRetryCount = 0;
             _loginMarkerObserved = false;
-            _lastConfirmRouteRetryAtUtc = DateTime.MinValue;
+            _loadedNonConfirmObservedUrl = "";
+            _loadedNonConfirmObservedAtUtc = DateTime.MinValue;
+            _confirmRetrySourceUrl = "";
+            _confirmRetryIssuedAtUtc = DateTime.MinValue;
+        }
+
+        private void IssueDirectConfirmRetryNoLock(string sourceUrl, string reason)
+        {
+            _confirmRouteRetryCount = 1;
+            _confirmRetrySourceUrl = sourceUrl ?? "";
+            _confirmRetryIssuedAtUtc = DateTime.UtcNow;
+            _loadedNonConfirmObservedUrl = "";
+            _loadedNonConfirmObservedAtUtc = DateTime.MinValue;
+            NavigateConfirmNoLock();
+            _log("SUPRA_BROWSER route_recovery=DIRECT_CONFIRM_RETRY retry=1 reason=" + reason +
+                 " source_host_unrestricted=true");
         }
 
         private bool TryRecoverConfirmRouteNoLock(SupraBrowserState state)
         {
-            // v64: the Agent-owned browser no longer clicks Dashboard. It always targets
-            // the canonical Confirm URL directly and permits one bounded retry after a
-            // fully loaded non-login page. Desktop mode remains explicitly user-controlled.
+            // v65: current-page host is intentionally NOT a retry gate. Supra may redirect
+            // the canonical Confirm request through another company Dashboard/SSO host.
+            // The only retry target is the fixed canonical Confirm URL.
             if (_launchMode != BrowserLaunchMode.Agent || state == null || state.Ready)
-                return false;
-            if (string.IsNullOrWhiteSpace(state.Url) ||
-                state.Url.IndexOf("https://wms-supra.winmart.vn", StringComparison.OrdinalIgnoreCase) != 0)
                 return false;
 
             if (state.LoginMarkerDetected)
             {
                 if (!_loginMarkerObserved)
-                {
                     _log("SUPRA_BROWSER login_marker=DETECTED awaiting_user=true direct_retry=paused");
-                }
+
                 _loginMarkerObserved = true;
                 _confirmRouteRetryCount = 0;
-                _lastConfirmRouteRetryAtUtc = DateTime.MinValue;
+                _loadedNonConfirmObservedUrl = "";
+                _loadedNonConfirmObservedAtUtc = DateTime.MinValue;
+                _confirmRetrySourceUrl = "";
+                _confirmRetryIssuedAtUtc = DateTime.MinValue;
                 return false;
             }
 
+            var loginJustCleared = false;
             if (_loginMarkerObserved)
             {
                 _loginMarkerObserved = false;
                 _confirmRouteRetryCount = 0;
-                _lastConfirmRouteRetryAtUtc = DateTime.MinValue;
+                _loadedNonConfirmObservedUrl = "";
+                _loadedNonConfirmObservedAtUtc = DateTime.MinValue;
+                _confirmRetrySourceUrl = "";
+                _confirmRetryIssuedAtUtc = DateTime.MinValue;
+                loginJustCleared = true;
                 _log("SUPRA_BROWSER login_marker=CLEARED direct_retry=rearmed");
             }
 
-            if (!state.PageLoaded)
+            if (!state.PageLoaded || string.IsNullOrWhiteSpace(state.Url))
                 return false;
             if (state.Url.IndexOf(ConfirmPath, StringComparison.OrdinalIgnoreCase) >= 0)
                 return false;
-            if (_confirmRouteRetryCount >= 1)
-                return false;
 
             var now = DateTime.UtcNow;
-            if (_lastConfirmRouteRetryAtUtc != DateTime.MinValue &&
-                now - _lastConfirmRouteRetryAtUtc < TimeSpan.FromMilliseconds(500))
+            if (_confirmRouteRetryCount >= 1)
+            {
+                // Do not call a just-issued navigation exhausted while WebView2 is still
+                // committing/redirecting. After this grace, a loaded non-login/non-Confirm
+                // page is terminal for the bounded one-retry cycle.
+                return _confirmRetryIssuedAtUtc != DateTime.MinValue &&
+                       now - _confirmRetryIssuedAtUtc < TimeSpan.FromSeconds(3);
+            }
+
+            if (loginJustCleared)
+            {
+                IssueDirectConfirmRetryNoLock(state.Url, "login_marker_cleared_non_confirm");
+                return true;
+            }
+
+            // On an already-authenticated browser, allow the SPA to settle before deciding
+            // that the first direct Confirm request really landed somewhere else.
+            if (!string.Equals(_loadedNonConfirmObservedUrl, state.Url, StringComparison.Ordinal))
+            {
+                _loadedNonConfirmObservedUrl = state.Url;
+                _loadedNonConfirmObservedAtUtc = now;
+                return false;
+            }
+
+            if (_loadedNonConfirmObservedAtUtc == DateTime.MinValue ||
+                now - _loadedNonConfirmObservedAtUtc < TimeSpan.FromMilliseconds(750))
                 return false;
 
-            _confirmRouteRetryCount = 1;
-            _lastConfirmRouteRetryAtUtc = now;
-            NavigateConfirmNoLock();
-            _log("SUPRA_BROWSER route_recovery=DIRECT_CONFIRM_RETRY retry=1 reason=loaded_non_login_non_confirm");
+            IssueDirectConfirmRetryNoLock(state.Url, "stable_loaded_non_login_non_confirm");
             return true;
         }
 
