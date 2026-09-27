@@ -3746,6 +3746,7 @@ namespace SupraInventoryRelayAgent
         private void StartListening()
         {
             try { SnapshotSession(); } catch { Log("Chưa ghép Agent."); return; }
+            if (!HasOperationalReadiness()) return;
             if (_listenCts != null) return;
             StartLeaderCoordination();
             _listenCts = new CancellationTokenSource();
