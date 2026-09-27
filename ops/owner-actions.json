@@ -2550,7 +2550,7 @@
     },
     {
       "id": "OA052",
-      "status": "FIELD_READY__D127_V66_TECHNICAL_RELEASE_PASS",
+      "status": "V66_FIELD_FAIL__DASHBOARD_PROBE_V2_IMPLEMENTING",
       "title": "Field-accept D127 quota-safe relay and Agent-owned browser fallback",
       "resource_key": "repo",
       "provider": "Beta Firestore + Windows Agent + Supra managed browser",
@@ -2561,7 +2561,7 @@
         "android_baseline": "beta-vc76",
         "stable": "OWNER_GATED",
         "technical_release": "PASS__V66_RELEASED__HOST_BUILD_9_REUSED",
-        "latest_field_result": "V65_FAIL__TRUSTED_DASHBOARD_CLICK_PROVES_/sft3/session_BOOTSTRAP",
+        "latest_field_result": "V66_FAIL__DIRECT_/sft3/session_NAVIGATION_ACCESS_DENIED",
         "v63_main": "f7dd84a151e295d30dc7e6082524fe198b1bb314",
         "v64_main": "402faa0c073a34fa968b1b056fb74c6f857c0b64",
         "v65_main": "f623a83ec6785f920aa2a6916a1f016e9ec63680",
@@ -2581,7 +2581,7 @@
         "browser_bundle_asset_id": 591861254,
         "browser_bundle_sha256": "2be8b5665c7793dbbd3d54d58d96d487003aaa9dd8e51c8f034a8644461fdbec",
         "main_relay_agent_run": 36286366107,
-        "diagnostic_release_target": "d127-dashboard-probe-v1",
+        "diagnostic_release_target": "d127-dashboard-probe-v2",
         "diagnostic_release": "d127-dashboard-probe-v1",
         "diagnostic_release_id": 397476380,
         "diagnostic_source_main": "b3dd0e2b101432595956311b476a25444ee066cb",
@@ -2594,27 +2594,32 @@
         "v66_main_relay_agent_run": 36289263800,
         "agent_size_bytes": 352256,
         "inventory_channel_agent_manifest_asset_id": 591974644,
-        "inventory_channel_agent_exe_asset_id": 591974642
+        "inventory_channel_agent_exe_asset_id": 591974642,
+        "probe_v2_scope": "USER_URL__MANUAL_LOGIN__EXPLICIT_AUTO_TEST__CLICK_ONLY_MONITOR"
       },
       "shortest_test_path": [
-        "After relay-agent-v66 is released, update/restart Beta Agent; Android beta-vc76 remains unchanged.",
-        "Already-authenticated case: open Agent browser. If direct Confirm lands on auth-supra Dashboard, Agent must automatically navigate once to https://wms-supra.winmart.vn/sft3/session.",
-        "PASS only if Supra redirects through the SFT3 bootstrap flow and reaches /sft3/app/dashboard, after which Agent navigates once to the canonical Confirm PickList URL and becomes Web Confirm sẵn sàng.",
-        "Logged-out regression: exact visible Lưu thông tin đăng nhập still pauses recovery. After login, if Dashboard is reached, the same bounded /sft3/session bootstrap applies.",
-        "If the SFT3 bootstrap does not reach /sft3/app/dashboard within 10 seconds, Agent must stop and show Không khởi tạo được phiên SFT3; no loop.",
-        "Confirm D126 paginator 100, row checkbox, exact confirmation modal, HA/idempotency/quota guards remain unchanged.",
+        "Download and extract D127 Dashboard Probe v2 after its diagnostic prerelease is published.",
+        "Run SUPRA.Dashboard.Probe.exe. Enter an approved HTTPS URL on auth-supra.winmart.vn or wms-supra.winmart.vn, then click Đi tới.",
+        "If Supra requests login, log in manually in the probe. Probe does not read or log input values.",
+        "When the target page is loaded, click Tự động kiểm tra. Let the bounded method matrix finish or stop on the first navigation/new-window.",
+        "If automatic testing does not transition or cannot identify a unique target, click Theo dõi thao tác người dùng, then manually click the intended Truy cập control exactly once.",
+        "Do not close an approved popup immediately; allow the normal browser flow to settle so NewWindowRequested/navigation evidence is captured.",
+        "Click Mở thư mục log and upload only the newest dashboard-probe-v2-*.log to the project chat.",
+        "Do not upload browser profiles, screenshots containing credentials, cookies, tokens, headers, passwords or other session material.",
         "Stable remains untouched."
       ],
       "pass_criteria": [
-        "Authenticated Dashboard path requires no manual Dashboard click.",
-        "Agent uses only the fixed browser UI route /sft3/session observed from the trusted field click; no Dashboard selector or coordinate automation.",
-        "After /sft3/app/dashboard completes, exactly one Confirm navigation occurs.",
-        "Bootstrap and Confirm recovery are bounded and produce no navigation loop.",
-        "No Network-domain, cookie, token, header, storage, password, request-payload capture or direct WMS API use is introduced.",
-        "Android remains beta-vc76 and Stable remains untouched."
+        "Probe v2 build/self-test and privacy/safety guards PASS on x64 Windows.",
+        "User-entered URL is fail-closed to HTTPS auth-supra.winmart.vn or wms-supra.winmart.vn and rejects embedded user/password.",
+        "Automation runs only after explicit Tự động kiểm tra and uses a bounded method matrix.",
+        "Approved NewWindowRequested is not forced into the current tab; unapproved hosts are blocked fail-closed.",
+        "User-monitor mode records only click-target event structure/isTrusted/geometry and sanitized navigation evidence; no input values are observed.",
+        "No DevTools Network, cookies, tokens, headers, web storage, password/request-body/profile capture, direct WMS API, stealth or user-agent spoofing is introduced.",
+        "Field log is sufficient to compare automatic action against one trusted manual click.",
+        "Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company Supra accounts. Do not share passwords, cookies, tokens, headers, signatures or other session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Update/restart Beta Agent to v66, then field-test already-authenticated Dashboard and logged-out login flows. No manual Dashboard click should be required.",
+      "remaining_owner_action": "After d127-dashboard-probe-v2 is published, run the explicit auto test and, if needed, one click-only monitored manual Truy cập action; upload the newest sanitized v2 log.",
       "closed": false
     }
   ]
