@@ -57,6 +57,9 @@ namespace SupraDashboardProbe
                 if (ProbeSecurity.IsApprovedTarget(
                         "http://wms-supra.winmart.vn/path"))
                     return 16;
+                if (ProbeSecurity.IsApprovedTarget(
+                        "https://user:pass@auth-supra.winmart.vn/dashboard"))
+                    return 17;
                 return 0;
             }
             catch
@@ -641,12 +644,43 @@ namespace SupraDashboardProbe
             }
             else
             {
+                await DisableInstrumentationAsync();
                 _monitor.Text = "Theo dõi thao tác người dùng";
                 Log(
                     "MONITOR",
                     "state=stopped");
                 SetStatus(
                     "Đã dừng theo dõi. Có thể mở thư mục log và gửi file mới nhất.");
+            }
+        }
+
+        private async Task DisableInstrumentationAsync()
+        {
+            if (_web.CoreWebView2 == null)
+                return;
+
+            try
+            {
+                await _web.CoreWebView2.ExecuteScriptAsync(
+                    "(() => {" +
+                    "const docs=[];" +
+                    "const walk=d=>{" +
+                    "if(!d||docs.includes(d))return;" +
+                    "docs.push(d);" +
+                    "for(const f of d.querySelectorAll('iframe,frame')){" +
+                    "try{if(f.contentDocument)walk(f.contentDocument);}catch(e){}" +
+                    "}" +
+                    "};" +
+                    "walk(document);" +
+                    "for(const d of docs)d.__d127ProbeV2Enabled=false;" +
+                    "return 'DISABLED_'+docs.length;" +
+                    "})()");
+            }
+            catch (Exception ex)
+            {
+                LogException(
+                    "INSTRUMENT_DISABLE_FAIL",
+                    ex);
             }
         }
 
@@ -742,6 +776,8 @@ namespace SupraDashboardProbe
             finally
             {
                 _probeRunning = false;
+                if (!_monitoring)
+                    await DisableInstrumentationAsync();
             }
         }
 
@@ -1219,8 +1255,12 @@ namespace SupraDashboardProbe
                 "walk(document);" +
                 "let installed=0;" +
                 "for(const d of docs){" +
-                "if(d.__d127ProbeV2Installed)continue;" +
+                "if(d.__d127ProbeV2Installed){" +
+                "d.__d127ProbeV2Enabled=true;" +
+                "continue;" +
+                "}" +
                 "d.__d127ProbeV2Installed=true;" +
+                "d.__d127ProbeV2Enabled=true;" +
                 "const resolve=e=>{" +
                 "if(!e||!e.closest)return null;" +
                 "const b=e.closest('button,[role=button],a');" +
@@ -1242,6 +1282,7 @@ namespace SupraDashboardProbe
                 "};" +
                 "for(const n of ['pointerdown','pointerup','mousedown','mouseup','click']){" +
                 "d.addEventListener(n,e=>{" +
+                "if(!d.__d127ProbeV2Enabled)return;" +
                 "const r=resolve(e.target);" +
                 "if(!r)return;" +
                 "const b=r.button.getBoundingClientRect();" +
@@ -1260,6 +1301,7 @@ namespace SupraDashboardProbe
                 "},true);" +
                 "}" +
                 "d.addEventListener('keydown',e=>{" +
+                "if(!d.__d127ProbeV2Enabled)return;" +
                 "const r=resolve(e.target);" +
                 "if(!r)return;" +
                 "const keyClass=e.key==='Enter'?'enter':(e.key===' '?'space':'other');" +
