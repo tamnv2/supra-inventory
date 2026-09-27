@@ -1499,3 +1499,23 @@ D130 cannot be technical/release PASS unless all applicable checks pass:
 10. Hold a realtime WebSocket handshake without open/failure completion. Near 12 seconds the attempt is cancelled and reconnect begins automatically; the client may not remain indefinitely in `connecting`.
 11. After realtime recovers, event-driven Picker presence appears on Agent without app restart. Login alone still does not count as online.
 12. D127 fresh-only PENDING, D129 quota safeguards, managed-browser security and Stable OWNER-GATED policy remain PASS.
+
+
+## D131 — Firestore-only HA / quota / latency acceptance
+
+D131 implementation is not technical PASS until all applicable checks pass:
+
+1. Maximum 6 Agents converge to exactly one PRIMARY; every non-primary role performs zero PENDING business queue queries.
+2. PRIMARY heartbeat target is 8s and lease expiry target is 12s. Killing PRIMARY while there is no PDA traffic still promotes NEXT_A without requiring a new job.
+3. If NEXT_A is unavailable, NEXT_B can become the bounded fallback candidate; no two Agents may hold a valid current generation simultaneously.
+4. Relay business work is enabled from 05:00 through 23:00 Asia/Ho_Chi_Minh and is frozen outside that window unless the shared overtime extension is active. No overnight business poll loop remains.
+5. 50-PDA shift load, 75-PDA overlap load and a 40-simultaneous-request burst all remain bounded. The 40-request query is collected with limit >=100 rather than 40 separate queue queries.
+6. Under good network and ready browser, normal/small-burst end-to-end terminal result target is <=6s. A 40-request burst is separately measured; if the rendered Confirm page cannot safely batch the browser mutation, CI/field notes must not claim an impossible 6s guarantee.
+7. PRIMARY death/transport failure must return either the business terminal result or a specific failover/error terminal result before 20s; indefinite spinner/wait is failure.
+8. Daily shared received / confirmed / error counters survive PRIMARY kill. Promoted PRIMARY reads the latest checkpoint, reconciles only the bounded newer tail and produces the exact expected totals with no double count.
+9. All 6 Agents can display fleet readiness and freshness age. PRIMARY/next candidate readiness is sufficiently fresh for failover; deep hibernators may be coarse but must not be mislabeled realtime.
+10. Android login/realtime connection adds PDA presence, explicit logout/session/device replacement removes immediately, unexpected disconnect removes after bounded grace, and an already-read PickList job refreshes PRIMARY-local activity with zero extra Firestore write.
+11. Synthetic worst-day quota accounting for 18h operation, 1,200 requests and specified Agent/PDA scale remains <=42k reads, <=15k writes and <=2k deletes. Quota guard day boundary uses America/Los_Angeles.
+12. Firestore storage remains <=0.75 GiB and outbound <=8 GiB/month under the measured retained-document size and configured retention.
+13. No Cloudflare confirmation relay, RTDB fallback, periodic PDA heartbeat, direct WMS API or new Stable runtime resource is introduced.
+14. Stable remains OWNER-GATED.
