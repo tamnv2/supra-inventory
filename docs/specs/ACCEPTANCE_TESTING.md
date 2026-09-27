@@ -1519,3 +1519,15 @@ D131 implementation is not technical PASS until all applicable checks pass:
 12. Firestore storage remains <=0.75 GiB and outbound <=8 GiB/month under the measured retained-document size and configured retention.
 13. No Cloudflare confirmation relay, RTDB fallback, periodic PDA heartbeat, direct WMS API or new Stable runtime resource is introduced.
 14. Stable remains OWNER-GATED.
+
+
+### D131 refinement acceptance — warm browser, 20 Agents, durable accounting
+
+1. With 10 and then 20 registered Agents, exactly one PRIMARY queries PENDING jobs; NEXT_A/NEXT_B/deep Agents produce zero business queue queries.
+2. A non-primary Agent keeps its managed Web Confirm page/profile ready for manual local PickList operation without being promoted to PRIMARY.
+3. Background hibernating Agent performs no periodic DOM search/resource sampling solely to prove readiness; navigation/readiness events and explicit local actions are sufficient.
+4. Daily received/confirmed/error totals survive process kill and machine change without RAM state. Kill PRIMARY after a known set of mixed results; promoted PRIMARY reconstructs exactly from durable state with no missing/double counts.
+5. Every Agent that is foregrounded or explicitly refreshed displays the current durable daily counters. Background refresh is no faster than 10 minutes.
+6. A 20-Agent 18-hour synthetic quota model, including PRIMARY 3s business polling, 8s lease writes, NEXT_A/NEXT_B liveness reads, 10-minute fleet/counter snapshots, 1,200 request create/ACK/result-listen operations and one daily 1,200-row export, remains below D131 soft ceilings.
+7. Export for one business day contains request id, user/employee identity, send time, submitted suffix, result/status, sanitized result/error code, Agent identity, completion time and elapsed duration; no browser/WMS secret/session material appears.
+8. Firestore count aggregation is used for exact rebuild/verification when appropriate instead of full-document scans; query/index cost is included in the quota simulation.
