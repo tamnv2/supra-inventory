@@ -1259,8 +1259,8 @@ namespace SupraInventoryRelayAgent
                     if (map.TryGetValue("visible", out value)) _overlayVisible = Convert.ToBoolean(value);
                     if (map.TryGetValue("size_customized", out value))
                         _sizeCustomized = Convert.ToBoolean(value);
-                    else if (map.ContainsKey("width") || map.ContainsKey("height"))
-                        _sizeCustomized = true;
+                    else
+                        _sizeCustomized = Width != 620 || Height != 52;
                 }
                 catch { }
             }
