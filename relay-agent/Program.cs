@@ -1350,6 +1350,7 @@ namespace SupraInventoryRelayAgent
 
         private bool IsBusinessAllowed()
         {
+            if (!HasOperationalReadiness()) return false;
             if (_businessSchedule == null) return true;
             var now = _businessSchedule.NowOperational();
             if (_businessSchedule.DefaultRelayAllowed(now)) return true;
