@@ -784,7 +784,7 @@
   },
   "agent_operations": {
     "decision": "D127",
-    "target_release": "relay-agent-v65",
+    "target_release": "relay-agent-v66",
     "cache_miss": "CURRENT_RENDERED_DOM_THEN_ONE_EXACT_SEARCH_BUTTON_RETRY",
     "auto_update": "STARTUP_PLUS_30MIN_BACKGROUND_PLUS_MANUAL__SERVICE_MANIFEST__STABLE_ALIAS__SHA256",
     "layout": "D127_HOTFIX__AFTER_HOURS_PANEL_RESPONSIVE_UNCLIPPED__SUPRA_CARD_BROWSER_DOWNLOAD_PROGRESS_READY_STATUS",
@@ -794,11 +794,11 @@
     "drive_logs": "FIRESTORE_ADMIN_SPOOL_TO_BETA_DRIVE__06_12_18_00__CRASH_BEST_EFFORT",
     "web_online": "WEB_PLUS_ANDROID_ONLY__AGENT_EXCLUDED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "release_status": "D127_V65_CROSS_HOST_DIRECT_CONFIRM_RETRY_TECHNICAL_RELEASE_PASS__OA052_FIELD_READY",
+    "release_status": "D127_V65_FIELD_FAIL__V66_IMPLEMENTING",
     "quiet_hours": "KEEP_D117_D118_PICKLIST_RELAY_SCHEDULE",
     "fleet_table": "D127_SCHEMA3_ACTIVE_ANDROID_EVENT_DRIVEN__180S_TRANSIENT_GRACE__NO_PERIODIC_AGENT_PRESENCE_POLL",
-    "previous_release": "relay-agent-v64__LOGIN_PATH_OK__AUTHENTICATED_DASHBOARD_PATH_FIELD_FAIL",
-    "picklist_ui": "D127_ROWS_PER_PAGE_100_FIELD_OK__V65_CROSS_HOST_DIRECT_CONFIRM_LOGIN_MARKER_ONE_RETRY_NO_DASHBOARD_CLICK__D126_MODAL_GUARDS",
+    "previous_release": "relay-agent-v65__AUTH_DASHBOARD_DIRECT_CONFIRM_RELOAD_FIELD_FAIL",
+    "picklist_ui": "D127_V66_SESSION_BOOTSTRAP_FROM_AUTH_DASHBOARD__THEN_CONFIRM__D126_MODAL_GUARDS",
     "visible_copy": "D118_COMPACT_OPERATIONAL_ONLY__APPROVED_BOTTOM_RIGHT_PRODUCT_CREDIT__NO_INTERNAL_IMPLEMENTATION_PROSE",
     "batch_confirmation": "PDA_EXISTING_BATCH_TRANSPORT__EACH_BROWSER_MUTATION_FAIL_CLOSED",
     "quota": "D127_FRESH_PENDING_SERVER_FILTER__EVENT_DRIVEN_PICKER_PRESENCE__OPEN_ALERT_QUERY__FLEET_METRICS_30M",
@@ -814,15 +814,15 @@
     "inventory_channel_release_id": 394587029,
     "inventory_channel_manifest_asset_id": 591888652,
     "inventory_channel_exe_asset_id": 591888651,
-    "next_target_release": "FIELD_EVIDENCE_OA052_D127_DASHBOARD_PROBE_V1",
-    "next_source_status": "D127_V65_FIELD_FAIL__PROBE_V1_RELEASE_PASS__OA052_LOG_PENDING",
+    "next_target_release": "RELEASE_THEN_FIELD_REVIEW_OA052_V66",
+    "next_source_status": "D127_V66_SFT3_SESSION_BOOTSTRAP_IMPLEMENTING__OA052_PENDING",
     "release_publish_run": 36286366107,
     "wms_health": "MANAGED_BROWSER_CONFIRM_PAGE_READINESS_ONLY",
     "schedule_authority": "KEEP_D117_D118_CONFIRMATION_RELAY_SCHEDULE",
     "ui_responsiveness": "D122_SSID_WATCHDOG_SCHEDULE_SYSTEM_MONITOR_OFF_UI_BLOCKING_PATHS__FLEET_DIFF_RENDER__NO_CADENCE_EXPANSION",
     "column_sizing": "D122_AUTO_SIZE_CONTENT_OR_MANUAL_PER_USER_LOCAL_PERSISTENCE",
     "session_recovery": "USER_REOPENS_OR_LOGS_IN_BROWSER__NO_AGENT_SESSION_CAPTURE",
-    "browser_runtime": "EXPLICIT_AGENT_WEBVIEW2_FIXED_X64__HOST_BUILD_9_REUSED__DIRECT_CONFIRM__NO_CURRENT_PAGE_HOST_GATE__750MS_STABLE_NON_LOGIN_RETRY__3S_NAVIGATION_GRACE__NO_DASHBOARD_CLICK__DESKTOP_BY_BUTTON",
+    "browser_runtime": "EXPLICIT_AGENT_WEBVIEW2_FIXED_X64__HOST_BUILD_9_REUSED__AUTH_DASHBOARD_TO_FIXED_/sft3/session__10S_BOUNDED_BOOTSTRAP__WAIT_/sft3/app/dashboard__THEN_CONFIRM_ONCE__NO_DASHBOARD_CLICK",
     "local_storage": "DISPLAY_RUNTIME_PROFILE_CACHE_OTHER_TOTAL_BREAKDOWN__OPEN_BROWSER_DATA_FOLDER__AUTO_DELETE_OBSOLETE_WV2_BUNDLES__KEEP_ACTIVE_AND_PROFILE",
     "dashboard_probe": "D127_V1_RELEASED_FIELD_READY__STANDALONE_AUTH_DASHBOARD_DIAGNOSTIC__SANITIZED_LOG"
   },
@@ -1197,8 +1197,8 @@
     "h4_implementation_pr": 206
   },
   "d127": {
-    "status": "DASHBOARD_PROBE_V1_RELEASE_PASS__OA052_FIELD_READY",
-    "target_agent_release": "relay-agent-v65",
+    "status": "V65_FIELD_FAIL__V66_SFT3_SESSION_BOOTSTRAP_IMPLEMENTING",
+    "target_agent_release": "relay-agent-v66",
     "android": "beta-vc76 unchanged",
     "browser_bundle": "inventory-channel / WebView2 Fixed 154.0.4258.37",
     "main_relay_agent_run": 36265082575,
@@ -1212,6 +1212,8 @@
     "dashboard_probe_main_run": 36288410742,
     "dashboard_probe_zip_asset_id": 591948670,
     "dashboard_probe_zip_size_bytes": 485027,
-    "dashboard_probe_checksum_asset_id": 591948671
+    "dashboard_probe_checksum_asset_id": 591948671,
+    "v66_browser_flow": "AUTH_DASHBOARD__FIXED_/sft3/session__WAIT_/sft3/app/dashboard__CANONICAL_CONFIRM",
+    "v66_probe_evidence": "TRUSTED_CLICK_OPENED_/sft3/session_AND_REDIRECTED_TO_/sft3/app/dashboard"
   }
 }
