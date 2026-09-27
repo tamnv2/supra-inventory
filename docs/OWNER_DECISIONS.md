@@ -1709,7 +1709,7 @@ Release evidence:
 
 ## D131 — Firestore-only free-tier HA redesign for PDA ↔ Agent — 2026-09-27
 
-Status: **OWNER APPROVED — IMPLEMENTATION AUTHORIZED AND IN PROGRESS**.
+Status: **TECHNICAL RELEASE PASS — OWNER FIELD ACCEPTANCE OA056 PENDING**.
 
 Owner explicitly rejects the dual Cloudflare+Firestore relay proposal for PickList confirmation because keeping both relay paths warm would spend quota without enough operational benefit. D131 keeps **Cloud Firestore as the only PDA↔Agent confirmation carrier** and redesigns HA, cadence, presence and counters to stay below the Firestore no-cost allowance while meeting the real operating model.
 
@@ -1819,3 +1819,12 @@ Owner completed the review-first gate and explicitly authorized implementation o
 - Agent adds a scoped Usage tab for PDA↔Agent/export dependencies. Provider metrics are fetched server-side; provider credentials are never sent to Agent. Failure to read Monitoring is shown explicitly and must not be hidden by Firestore self-scans that increase quota.
 - Server-side daily PickList export remains one idempotent file per 05:00-boundary business day and is independent of Agent liveness.
 - Implementation branch is feat/d131-firestore-ha-usage and PR is #259. Stable remains OWNER-GATED and untouched.
+
+
+### D131 technical release checkpoint — 2026-09-28
+
+- PR #259 passed all required authority, continuity, UI, Android, Relay Agent, Firestore, Functions, RTDB and D127 probe gates and was squash-merged to main as `3569934ec2a36f6fa2f6fe92cf332ae679ad4070`.
+- Main deployment gates passed for Beta Worker, Firestore Rules, Firebase Functions, Android, Agent, UI, authority/state and the D127 probe.
+- Published Beta artifacts are `relay-agent-v71` and signed `beta-vc78`; both tags resolve to the D131 main commit. The runtime channel now carries the same Agent/APK bytes.
+- D131 is therefore technical/release PASS. It is **not** Owner field PASS yet; OA056 is now the only remaining acceptance gate for real company-network/fleet/burst/export observation.
+- Stable remains OWNER-GATED and untouched.
