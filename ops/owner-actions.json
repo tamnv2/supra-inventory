@@ -2550,7 +2550,7 @@
     },
     {
       "id": "OA052",
-      "status": "V65_FIELD_FAIL__V66_IMPLEMENTING",
+      "status": "FIELD_READY__D127_V66_TECHNICAL_RELEASE_PASS",
       "title": "Field-accept D127 quota-safe relay and Agent-owned browser fallback",
       "resource_key": "repo",
       "provider": "Beta Firestore + Windows Agent + Supra managed browser",
@@ -2560,7 +2560,7 @@
         "target_agent_release": "relay-agent-v66",
         "android_baseline": "beta-vc76",
         "stable": "OWNER_GATED",
-        "technical_release": "PASS__V65_RELEASED__HOST_BUILD_9_REUSED",
+        "technical_release": "PASS__V66_RELEASED__HOST_BUILD_9_REUSED",
         "latest_field_result": "V65_FAIL__TRUSTED_DASHBOARD_CLICK_PROVES_/sft3/session_BOOTSTRAP",
         "v63_main": "f7dd84a151e295d30dc7e6082524fe198b1bb314",
         "v64_main": "402faa0c073a34fa968b1b056fb74c6f857c0b64",
@@ -2574,9 +2574,9 @@
         "implementation_main": "f623a83ec6785f920aa2a6916a1f016e9ec63680",
         "release_repair_pr": 209,
         "release_repair_main": "74947a0a66bb63c0ec02d2b00ba7bda31c189b1d",
-        "agent_release_id": 397466396,
-        "agent_asset_id": 591888602,
-        "agent_sha256": "3df5c5aab895e2c7ae26f8d7eec016fa6ea4cea5aef1a5c883fb30c9910ef75b",
+        "agent_release_id": 397480817,
+        "agent_asset_id": 591974558,
+        "agent_sha256": "3093d244aa97a28bf855b76d41554a43fcf4a7fcbe9d7d3c91de87503a5653d0",
         "browser_runtime_version": "154.0.4258.37",
         "browser_bundle_asset_id": 591861254,
         "browser_bundle_sha256": "2be8b5665c7793dbbd3d54d58d96d487003aaa9dd8e51c8f034a8644461fdbec",
@@ -2589,7 +2589,12 @@
         "diagnostic_zip_asset_id": 591948670,
         "diagnostic_zip_size_bytes": 485027,
         "diagnostic_checksum_asset_id": 591948671,
-        "v66_source_target": "AUTH_DASHBOARD_TO_FIXED_/sft3/session__WAIT_WMS_APP_DASHBOARD__THEN_CONFIRM"
+        "v66_source_target": "AUTH_DASHBOARD_TO_FIXED_/sft3/session__WAIT_WMS_APP_DASHBOARD__THEN_CONFIRM",
+        "v66_main": "a65437585bb86ad187c733d7dca80a441047f2fa",
+        "v66_main_relay_agent_run": 36289263800,
+        "agent_size_bytes": 352256,
+        "inventory_channel_agent_manifest_asset_id": 591974644,
+        "inventory_channel_agent_exe_asset_id": 591974642
       },
       "shortest_test_path": [
         "After relay-agent-v66 is released, update/restart Beta Agent; Android beta-vc76 remains unchanged.",
@@ -2609,7 +2614,7 @@
         "Android remains beta-vc76 and Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company Supra accounts. Do not share passwords, cookies, tokens, headers, signatures or other session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for relay-agent-v66 release, then field-test already-authenticated Dashboard and logged-out login flows.",
+      "remaining_owner_action": "Update/restart Beta Agent to v66, then field-test already-authenticated Dashboard and logged-out login flows. No manual Dashboard click should be required.",
       "closed": false
     }
   ]
