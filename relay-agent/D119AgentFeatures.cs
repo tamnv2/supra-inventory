@@ -570,8 +570,8 @@ namespace SupraInventoryRelayAgent
             _lastFleetPrimary = primary;
             RenderFleetMetricStatus(primary);
 
-            // D127: Picker presence is event-driven through the already-polled relay queue.
-            // Periodic UI ticks must never read the projection or picker_alerts.
+            // D131: Picker presence authority is the dedicated event-driven projection.
+            // Normal UI ticks never read it; bounded foreground/start/boundary refreshes do.
             if (!force) return;
             if (Interlocked.CompareExchange(ref _pickerPresenceRefreshRunning, 1L, 0L) != 0L) return;
 
@@ -854,21 +854,14 @@ namespace SupraInventoryRelayAgent
             var interval = TimeSpan.FromMinutes(10);
             // D120: metrics are observability-only. UI refresh, tab changes and failed reads
             // must never turn the 10-minute snapshot into a provider polling storm.
-            if (_lastFleetMetricsAttemptUtc != DateTime.MinValue && now - _lastFleetMetricsAttemptUtc < interval) return;
+            if (!force && _lastFleetMetricsAttemptUtc != DateTime.MinValue && now - _lastFleetMetricsAttemptUtc < interval) return;
+            if (force && _lastFleetMetricsAttemptUtc != DateTime.MinValue && now - _lastFleetMetricsAttemptUtc < TimeSpan.FromSeconds(30)) return;
             if (!force && _lastFleetMetricsRefreshUtc != DateTime.MinValue && now - _lastFleetMetricsRefreshUtc < interval) return;
             if (Interlocked.CompareExchange(ref _fleetMetricsRefreshRunning, 1L, 0L) != 0L) return;
             _lastFleetMetricsAttemptUtc = now;
 
             var localRequests = Interlocked.Read(ref _localPdaRequests);
             var localResponses = Interlocked.Read(ref _localAgentResponses);
-            if (primary && !force && _fleetSnapshot != null &&
-                localRequests == _lastFleetCheckpointLocalRequests &&
-                localResponses == _lastFleetCheckpointLocalResponses)
-            {
-                Log("FLEET_METRICS checkpoint=SKIP reason=no_local_delta provider_read=false provider_write=false");
-                RenderFleetMetricStatus(primary);
-                return;
-            }
 
             Task.Run(() =>
             {
