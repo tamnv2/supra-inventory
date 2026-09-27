@@ -137,10 +137,10 @@ namespace SupraInventoryRelayAgent
                 }
                 catch (Exception ex)
                 {
-                    _relayHealth(false);
-                    waitMs = _coordinator == null ? 10000 : _coordinator.BusinessPollIntervalMs;
-                    _state("Relay: FIRESTORE tạm gián đoạn · giữ vai trò / đang kết nối lại");
-                    _log("FIRESTORE confirm loop fail role_preserved=true " + Describe(ex));
+                    waitMs = _coordinator == null ? 2000 : Math.Min(4000, Math.Max(1000, _coordinator.BusinessPollIntervalMs));
+                    try { _relayHealth(false); } catch { }
+                    try { _state("Relay: FIRESTORE tạm gián đoạn · giữ vai trò / đang kết nối lại"); } catch { }
+                    try { _log("FIRESTORE confirm loop fail role_preserved=true retry_ms=" + waitMs + " " + Describe(ex)); } catch { }
                 }
 
                 if (token.WaitHandle.WaitOne(Math.Max(1000, waitMs))) break;
@@ -500,7 +500,19 @@ namespace SupraInventoryRelayAgent
 
         private string SendSafeRead(string method, string url, string token, string body)
         {
-            return Send(method, url, token, body, true, "CONFIRM_QUERY");
+            // D130: a dead Firestore route must not block the PRIMARY loop for 3 x 12s.
+            // Two 4s safe-read attempts keep recovery bounded inside the PDA wait window.
+            return FirestoreHttpTransport.SendJson(
+                method,
+                url,
+                token,
+                body,
+                "Agent-Auto-Confirm-Pick-Pack/D130",
+                4000,
+                true,
+                _log,
+                "CONFIRM_QUERY",
+                2);
         }
 
         private bool TryAck(
