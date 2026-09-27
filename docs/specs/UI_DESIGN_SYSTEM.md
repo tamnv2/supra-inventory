@@ -788,3 +788,16 @@ Beta Windows Agent v68 keeps resource information compact and stops measuring it
 
 Stable remains OWNER-GATED.
 
+
+
+## D129 Windows Agent compact operational presentation
+
+- **Hệ thống Agent** title carries readiness + current login + role. Do not duplicate a second auth-status sentence under it after authentication.
+- First operational detail row: **Chế độ nhận tin từ PDA: ... | Wi-Fi hiện tại: ...**. Second row: **CPU | RAM | Thời gian chạy**. Keep the Agent fleet grid below; do not duplicate Picklist received/confirmed/error counters in this card.
+- **Đăng nhập Supra** title carries the browser state and active mode. No version suffix and no HY1/DOM diagnostic sentence in normal Overview. The normal detail row is managed-browser **CPU | RAM | Tiến trình | Thời gian chạy**.
+- Supra actions are mutually exclusive: open/stop/switch Agent or Desktop plus one visibility action. Visibility text is **Chuyển Web chạy nền** when visible and **Hiện Web** when hidden. With no active Web, the visibility action is disabled.
+- Browser package area shows download/install progress only as needed and the verified installed state **Web Agent đang khả dụng**.
+- **Xử lý PickList** title includes **Sẵn sàng / Chưa sẵn sàng**. Disabled readiness must be visually consistent with disabled input/search, not merely informational text.
+- Picker PDA column uses **Đang hoạt động** for current realtime attachment and **Mất kết nối tạm thời** for the 180-second grace state. Never label grace as online.
+- Picklist overlay defaults visible. Before the user customizes size, derive initial width/height from rendered counter text + font/DPI/padding. User resize persists and disables further auto-fit. Technical minimum is 120×24; do not restore the old 430×42/50 fixed minimum.
+- Overlay text remains the exact concise counter line and locked mode remains click-through.

@@ -68,14 +68,15 @@ jobs:
           $presence = Get-Content relay-agent/FirestorePickerPresence.cs -Raw
           $contact = Get-Content relay-agent/FirestorePickerContact.cs -Raw
           $fleet = Get-Content relay-agent/FirestoreFleetMetrics.cs -Raw
+          $quota = Get-Content relay-agent/FirestoreQuotaGuard.cs -Raw
           $project = Get-Content relay-agent/SupraInventoryRelayAgent.csproj -Raw
           $browserBundle = Get-Content relay-agent/AgentBrowserBundle.cs -Raw
           $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
           $projection = Get-Content service/src/firestore-projection.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*68\s*;') { throw "D128 requires Agent v68." }
-          if ($project -notmatch '<AssemblyVersion>0\.68\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.68\.0\.0</FileVersion>') {
-            throw "D128 assembly/file version must be 0.68."
+          if ($config -notmatch 'AgentBuild\s*=\s*69\s*;') { throw "D129 requires Agent v69." }
+          if ($project -notmatch '<AssemblyVersion>0\.69\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.69\.0\.0</FileVersion>') {
+            throw "D129 assembly/file version must be 0.69."
           }
 
           foreach ($marker in @(
@@ -239,7 +240,7 @@ jobs:
           }
 
           foreach ($marker in @(
-            'Đăng nhập Supra · v',
+            'Đăng nhập Supra |',
             'Mở trình duyệt Agent',
             'Mở trình duyệt Desktop',
             'Mở thư mục dữ liệu',
@@ -307,6 +308,63 @@ jobs:
           }
           if ($program.Contains('_trayStatusItem.Text = metrics.MenuText()')) {
             throw "D128 must not expose CPU/RAM through tray hover/status."
+          }
+
+          foreach ($marker in @(
+            'Hệ thống Agent |',
+            'Đăng nhập Supra |',
+            'Xử lý PickList |',
+            'VerifyCurrentAgentPasswordForBrowserAction',
+            'Mở Web Agent',
+            'Tắt Web Agent',
+            'Chuyển sang Web Desktop',
+            'Chuyển Web chạy nền',
+            'Hiện Web'
+          )) {
+            if (-not $program.Contains($marker)) { throw "D129 compact/exclusive browser UI marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'HasActiveBrowser',
+            'ActiveModeLabel',
+            'StopManagedBrowser',
+            '_manualVisibilityOverride'
+          )) {
+            if (-not $browser.Contains($marker)) { throw "D129 browser lifecycle marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'Mất kết nối tạm thời',
+            'Đang hoạt động',
+            'MinimumSize = new Size(120, 24)',
+            'MaximumSize = new Size(7680, 4320)',
+            'AutoFitToContent',
+            'size_customized',
+            'checkpoint=SKIP reason=no_local_delta'
+          )) {
+            if (-not $ops.Contains($marker)) { throw "D129 PDA/overlay/quota UI marker missing: $marker" }
+          }
+          if ($program.Contains('Đăng nhập Supra · v')) { throw "D129 must remove version from the Supra card title." }
+          if ($program.Contains('QueueSharedScheduleRefresh')) { throw "D129 must not restore the parallel UI schedule-refresh loop." }
+          foreach ($marker in @(
+            'ReferenceReadsPerDay = 50000L',
+            'ReferenceWritesPerDay = 20000L',
+            'ratio >= 70.0',
+            'ratio >= 85.0',
+            'ratio >= 95.0',
+            'reference_only=true provider_poll=false'
+          )) {
+            if (-not $quota.Contains($marker)) { throw "D129 local quota guard marker missing: $marker" }
+          }
+          if (-not $http.Contains('FirestoreQuotaGuard.Record(method, url, component, log)')) {
+            throw "D129 Firestore transport must feed the local quota guard."
+          }
+          if (-not $fleet.Contains('checkpoint=SKIP reason=no_durable_delta provider_write=false')) {
+            throw "D129 fleet metrics must skip unchanged durable writes."
+          }
+          if ($transport -notmatch 'PrimaryIdlePollIntervalMs\s*=\s*4000' -or
+              $transport -notmatch 'PrimaryHotPollIntervalMs\s*=\s*2000' -or
+              $leader -notmatch 'PrimaryLeaseHeartbeatMs\s*=\s*7000' -or
+              $leader -notmatch 'FailoverAfterMs\s*=\s*10000') {
+            throw "D129 must preserve D117 queue/lease/failover cadence."
           }
 
           foreach ($retiredFile in @(
@@ -386,7 +444,7 @@ jobs:
             throw "D127 v53 must not auto-fallback from Agent browser to Desktop browser."
           }
 
-          Write-Host "D127 v61 direct-card arrow click + host probe diagnostics PASS"
+          Write-Host "D129 Agent UX + PDA state + quota hardening regression PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh

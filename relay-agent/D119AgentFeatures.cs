@@ -19,41 +19,35 @@ namespace SupraInventoryRelayAgent
             if (_supraCard == null) return;
 
             var width = Math.Max(420, _supraCard.ClientSize.Width);
-            var openWidth = Math.Max(150, (width - 40) / 2);
+            const int gap = 8;
+            var buttonWidth = Math.Max(120, (width - 32 - (gap * 2)) / 3);
 
-            _wmsStatus.SetBounds(16, 42, 220, 22);
-            _supraInfo.SetBounds(246, 42, 250, 22);
-            _supraInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-            _d128BrowserResourceStatus.SetBounds(506, 42, Math.Max(120, width - 522), 22);
+            // D129: readiness is in the title; the first detail row is resource-only.
+            _wmsStatus.Visible = false;
+            _supraInfo.Visible = false;
+            _wmsTest.Visible = false;
+            _d128BrowserResourceStatus.SetBounds(16, 40, Math.Max(180, width - 32), 22);
             _d128BrowserResourceStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
-            _wmsCapture.SetBounds(16, 72, openWidth, 32);
-            _wmsDesktop.SetBounds(24 + openWidth, 72, Math.Max(150, width - 40 - openWidth), 32);
+            _wmsCapture.SetBounds(16, 70, buttonWidth, 32);
+            _wmsDesktop.SetBounds(16 + buttonWidth + gap, 70, buttonWidth, 32);
+            _wmsLogout.SetBounds(16 + ((buttonWidth + gap) * 2), 70,
+                Math.Max(120, width - 32 - ((buttonWidth + gap) * 2)), 32);
 
-            _wmsLogout.SetBounds(16, 110, 138, 30);
-            _wmsTest.SetBounds(162, 110, 108, 30);
-            _browserBundleDownload.SetBounds(278, 110, Math.Max(150, width - 294), 30);
-
-            _browserBundleProgress.SetBounds(16, 148, Math.Max(120, width - 32), 18);
-            _browserBundleProgress.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-
-            // Keep runtime status on its own row so it cannot cover the storage controls.
-            _browserBundleStatus.SetBounds(16, 170, Math.Max(220, width - 32), 20);
+            const int downloadWidth = 196;
+            _browserBundleDownload.SetBounds(16, 110, downloadWidth, 30);
+            _browserBundleStatus.SetBounds(220, 112, Math.Max(180, width - 236), 24);
             _browserBundleStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+            _browserBundleProgress.SetBounds(16, 146, Math.Max(120, width - 32), 16);
+            _browserBundleProgress.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
             const int folderButtonWidth = 150;
             _agentDataStorageStatus.SetBounds(
-                16,
-                194,
-                Math.Max(180, width - 32 - folderButtonWidth - 8),
-                24);
+                16, 170, Math.Max(180, width - 32 - folderButtonWidth - 8), 24);
             _agentDataStorageStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-
             _openAgentDataFolder.SetBounds(
-                Math.Max(16, width - 16 - folderButtonWidth),
-                190,
-                folderButtonWidth,
-                28);
+                Math.Max(16, width - 16 - folderButtonWidth), 166, folderButtonWidth, 28);
             _openAgentDataFolder.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         }
 
@@ -91,6 +85,8 @@ namespace SupraInventoryRelayAgent
         private long _fleetMetricsRefreshRunning;
         private DateTime _lastFleetMetricsRefreshUtc = DateTime.MinValue;
         private DateTime _lastFleetMetricsAttemptUtc = DateTime.MinValue;
+        private long _lastFleetCheckpointLocalRequests = -1L;
+        private long _lastFleetCheckpointLocalResponses = -1L;
         private bool _lastFleetPrimary;
         private readonly CheckBox _autoSizeColumns = new CheckBox();
         private bool _columnPreferenceApplying;
@@ -123,11 +119,11 @@ namespace SupraInventoryRelayAgent
             var agentHost = _username.Parent;
             if (agentHost != null)
             {
-                _d128AgentResourceStatus.Text = "Tài nguyên Agent: chờ đo...";
+                _d128AgentResourceStatus.Text = "CPU: -- | RAM: -- | Thời gian chạy: --";
                 _d128AgentResourceStatus.ForeColor = Color.FromArgb(88, 104, 115);
                 _d128AgentResourceStatus.AutoEllipsis = true;
-                _d128AgentResourceStatus.TextAlign = ContentAlignment.MiddleRight;
-                _d128AgentResourceStatus.SetBounds(420, 38, Math.Max(160, agentHost.ClientSize.Width - 436), 20);
+                _d128AgentResourceStatus.TextAlign = ContentAlignment.MiddleLeft;
+                _d128AgentResourceStatus.SetBounds(16, 62, Math.Max(160, agentHost.ClientSize.Width - 32), 20);
                 _d128AgentResourceStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
                 agentHost.Controls.Add(_d128AgentResourceStatus);
                 _d128AgentResourceStatus.BringToFront();
@@ -136,8 +132,8 @@ namespace SupraInventoryRelayAgent
                 _agentRequestMetrics.ForeColor = Color.FromArgb(71, 85, 105);
                 _agentRequestMetrics.AutoEllipsis = true;
                 _agentRequestMetrics.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+                _agentRequestMetrics.Visible = false;
                 agentHost.Controls.Add(_agentRequestMetrics);
-                _agentRequestMetrics.BringToFront();
             }
 
             if (_supraCard != null)
@@ -226,7 +222,7 @@ namespace SupraInventoryRelayAgent
             {
                 Name = "PdaState",
                 HeaderText = "PDA",
-                Width = 88
+                Width = 148
             });
             _pickerOnlineGrid.Columns.Add(new DataGridViewButtonColumn
             {
@@ -290,14 +286,13 @@ namespace SupraInventoryRelayAgent
         private void LayoutAgentSystemStatusRow(Control host, int top)
         {
             if (host == null) return;
-            var available = Math.Max(360, host.ClientSize.Width - 32);
-            const int gap = 10;
-            var width = Math.Max(110, (available - (gap * 2)) / 3);
-            var left = 16;
-
-            _identity.SetBounds(left, top, width, 20);
-            _relay.SetBounds(left + width + gap, top, width, 20);
-            _network.SetBounds(left + ((width + gap) * 2), top, Math.Max(110, available - ((width + gap) * 2)), 20);
+            _identity.Visible = false;
+            _network.Visible = false;
+            _relay.Visible = true;
+            _relay.SetBounds(16, top, Math.Max(300, host.ClientSize.Width - 32), 20);
+            _relay.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            _d128AgentResourceStatus.SetBounds(16, top + 24, Math.Max(300, host.ClientSize.Width - 32), 20);
+            _d128AgentResourceStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         }
 
         private void ApplyD119AuthenticatedLayout(bool authenticated)
@@ -324,16 +319,14 @@ namespace SupraInventoryRelayAgent
 
             if (authenticated)
             {
-                _logout.SetBounds(16, 62, 108, 30);
-                _manualUpdate.SetBounds(134, 62, 148, 30);
-                _background.SetBounds(292, 62, 142, 30);
+                LayoutAgentSystemStatusRow(host, 38);
+                _d128AgentResourceStatus.Visible = true;
+                _logout.SetBounds(16, 88, 108, 30);
+                _manualUpdate.SetBounds(134, 88, 148, 30);
+                _background.SetBounds(292, 88, 142, 30);
+                _agentRequestMetrics.Visible = false;
 
-                // D124: basic Agent state + local request counters occupy about the
-                // upper 30% of the Agent card; the fleet table consumes the rest.
-                LayoutAgentSystemStatusRow(host, 96);
-                _agentRequestMetrics.SetBounds(16, 118, Math.Max(300, host.ClientSize.Width - 32), 20);
-                _agentRequestMetrics.Visible = true;
-                var fleetTop = Math.Max(142, (int)Math.Round(host.ClientSize.Height * 0.30));
+                var fleetTop = 126;
                 _agentFleetGrid.SetBounds(
                     16,
                     fleetTop,
@@ -343,9 +336,12 @@ namespace SupraInventoryRelayAgent
             }
             else
             {
+                _relay.Visible = false;
+                _identity.Visible = false;
+                _network.Visible = false;
+                _d128AgentResourceStatus.Visible = false;
                 _manualUpdate.SetBounds(16, 118, 148, 30);
                 _background.SetBounds(174, 118, 142, 30);
-                LayoutAgentSystemStatusRow(host, 154);
                 _agentRequestMetrics.Visible = false;
                 _agentFleetGrid.Visible = false;
             }
@@ -795,10 +791,13 @@ namespace SupraInventoryRelayAgent
                         name.IndexOf(query, StringComparison.CurrentCultureIgnoreCase) < 0)
                         continue;
 
+                    var pdaState = string.Equals(picker.Status, "PDA_GRACE", StringComparison.Ordinal)
+                        ? "Mất kết nối tạm thời"
+                        : "Đang hoạt động";
                     var row = _pickerOnlineGrid.Rows[_pickerOnlineGrid.Rows.Add(
                         code,
                         name,
-                        "Đang online",
+                        pdaState,
                         "Gọi về bàn CV",
                         "Mang hàng về Pack",
                         HasActivePickerCommand(picker.UserId) ? "Đóng" : "—")];
@@ -837,6 +836,17 @@ namespace SupraInventoryRelayAgent
             if (Interlocked.CompareExchange(ref _fleetMetricsRefreshRunning, 1L, 0L) != 0L) return;
             _lastFleetMetricsAttemptUtc = now;
 
+            var localRequests = Interlocked.Read(ref _localPdaRequests);
+            var localResponses = Interlocked.Read(ref _localAgentResponses);
+            if (primary && !force && _fleetSnapshot != null &&
+                localRequests == _lastFleetCheckpointLocalRequests &&
+                localResponses == _lastFleetCheckpointLocalResponses)
+            {
+                Log("FLEET_METRICS checkpoint=SKIP reason=no_local_delta provider_read=false provider_write=false");
+                RenderFleetMetricStatus(primary);
+                return;
+            }
+
             Task.Run(() =>
             {
                 try
@@ -849,8 +859,10 @@ namespace SupraInventoryRelayAgent
                         snapshot = _fleetMetricsClient.RefreshPrimary(
                             session,
                             _agentInstanceId,
-                            Interlocked.Read(ref _localPdaRequests),
-                            Interlocked.Read(ref _localAgentResponses));
+                            localRequests,
+                            localResponses);
+                        _lastFleetCheckpointLocalRequests = localRequests;
+                        _lastFleetCheckpointLocalResponses = localResponses;
                     }
                     else
                     {
@@ -1018,6 +1030,14 @@ namespace SupraInventoryRelayAgent
             private const int GwlExStyle = -20;
             private const int WmNcHitTest = 0x0084;
             private const int HtTransparent = -1;
+            private const int HtLeft = 10;
+            private const int HtRight = 11;
+            private const int HtTop = 12;
+            private const int HtTopLeft = 13;
+            private const int HtTopRight = 14;
+            private const int HtBottom = 15;
+            private const int HtBottomLeft = 16;
+            private const int HtBottomRight = 17;
             private const int ResizeGrip = 9;
 
             private readonly Label _text = new Label();
@@ -1029,6 +1049,7 @@ namespace SupraInventoryRelayAgent
             private double _overlayOpacity = 0.78;
             private bool _locked = true;
             private bool _overlayVisible = true;
+            private bool _sizeCustomized;
             private bool _dragging;
             private Point _dragOrigin;
             private Point _windowOrigin;
@@ -1045,8 +1066,8 @@ namespace SupraInventoryRelayAgent
                 ShowInTaskbar = false;
                 TopMost = true;
                 StartPosition = FormStartPosition.Manual;
-                MinimumSize = new Size(430, 42);
-                MaximumSize = new Size(1600, 180);
+                MinimumSize = new Size(120, 24);
+                MaximumSize = new Size(7680, 4320);
                 Size = new Size(ClampWidth(Width <= 0 ? 620 : Width), ClampHeight(Height <= 0 ? 52 : Height));
                 BackColor = SafeColor(_backgroundArgb, Color.FromArgb(28, 35, 43));
                 Opacity = ClampOpacity(_overlayOpacity);
@@ -1059,6 +1080,7 @@ namespace SupraInventoryRelayAgent
                 _text.Text = "Picklist nhận: 0 | Picklist xác nhận: 0 | Picklist lỗi: 0";
                 _text.ForeColor = SafeColor(_textArgb, Color.White);
                 Controls.Add(_text);
+                if (!_sizeCustomized) AutoFitToContent();
 
                 foreach (Control control in new Control[] { this, _text })
                 {
@@ -1069,7 +1091,12 @@ namespace SupraInventoryRelayAgent
 
                 ApplySavedPosition();
                 Shown += (s, e) => ApplyInteractionMode();
-                ResizeEnd += (s, e) => { if (!IsLocked) Persist(); };
+                ResizeEnd += (s, e) =>
+                {
+                    if (IsLocked) return;
+                    _sizeCustomized = true;
+                    Persist();
+                };
             }
 
             protected override bool ShowWithoutActivation { get { return IsLocked; } }
@@ -1087,9 +1114,37 @@ namespace SupraInventoryRelayAgent
 
             protected override void WndProc(ref Message m)
             {
-                if (m.Msg == WmNcHitTest && IsLocked)
+                if (m.Msg == WmNcHitTest)
                 {
-                    m.Result = new IntPtr(HtTransparent);
+                    if (IsLocked)
+                    {
+                        m.Result = new IntPtr(HtTransparent);
+                        return;
+                    }
+
+                    var raw = m.LParam.ToInt64();
+                    var screenPoint = new Point(
+                        unchecked((short)(raw & 0xffff)),
+                        unchecked((short)((raw >> 16) & 0xffff)));
+                    var point = PointToClient(screenPoint);
+                    var left = point.X <= ResizeGrip;
+                    var right = point.X >= ClientSize.Width - ResizeGrip;
+                    var top = point.Y <= ResizeGrip;
+                    var bottom = point.Y >= ClientSize.Height - ResizeGrip;
+
+                    if (left && top) m.Result = new IntPtr(HtTopLeft);
+                    else if (right && top) m.Result = new IntPtr(HtTopRight);
+                    else if (left && bottom) m.Result = new IntPtr(HtBottomLeft);
+                    else if (right && bottom) m.Result = new IntPtr(HtBottomRight);
+                    else if (left) m.Result = new IntPtr(HtLeft);
+                    else if (right) m.Result = new IntPtr(HtRight);
+                    else if (top) m.Result = new IntPtr(HtTop);
+                    else if (bottom) m.Result = new IntPtr(HtBottom);
+                    else
+                    {
+                        base.WndProc(ref m);
+                        return;
+                    }
                     return;
                 }
                 base.WndProc(ref m);
@@ -1115,6 +1170,7 @@ namespace SupraInventoryRelayAgent
                     "Picklist nhận: " + Math.Max(0L, received).ToString("N0") +
                     " | Picklist xác nhận: " + Math.Max(0L, confirmed).ToString("N0") +
                     " | Picklist lỗi: " + Math.Max(0L, failed).ToString("N0");
+                if (!_sizeCustomized) AutoFitToContent();
             }
 
             internal void SetLocked(bool locked)
@@ -1148,6 +1204,7 @@ namespace SupraInventoryRelayAgent
             internal void SetOverlaySize(int width, int height)
             {
                 if (IsLocked) return;
+                _sizeCustomized = true;
                 Size = new Size(ClampWidth(width), ClampHeight(height));
                 Persist();
             }
@@ -1236,6 +1293,27 @@ namespace SupraInventoryRelayAgent
                     if (map.TryGetValue("opacity", out value)) _overlayOpacity = ClampOpacity(Convert.ToDouble(value));
                     if (map.TryGetValue("locked", out value)) _locked = Convert.ToBoolean(value);
                     if (map.TryGetValue("visible", out value)) _overlayVisible = Convert.ToBoolean(value);
+                    if (map.TryGetValue("size_customized", out value))
+                        _sizeCustomized = Convert.ToBoolean(value);
+                    else
+                        _sizeCustomized = Width != 620 || Height != 52;
+                }
+                catch { }
+            }
+
+            private void AutoFitToContent()
+            {
+                if (_sizeCustomized || _text == null) return;
+                try
+                {
+                    var measured = TextRenderer.MeasureText(
+                        _text.Text ?? "",
+                        _text.Font,
+                        new Size(int.MaxValue, int.MaxValue),
+                        TextFormatFlags.SingleLine | TextFormatFlags.NoPadding);
+                    Size = new Size(
+                        ClampWidth(measured.Width + Padding.Horizontal + 12),
+                        ClampHeight(measured.Height + Padding.Vertical + 8));
                 }
                 catch { }
             }
@@ -1252,7 +1330,8 @@ namespace SupraInventoryRelayAgent
                     {
                         { "left", Left }, { "top", Top }, { "width", Width }, { "height", Height },
                         { "background_argb", _backgroundArgb }, { "text_argb", _textArgb },
-                        { "opacity", _overlayOpacity }, { "locked", _locked }, { "visible", _overlayVisible }
+                        { "opacity", _overlayOpacity }, { "locked", _locked }, { "visible", _overlayVisible },
+                        { "size_customized", _sizeCustomized }
                     };
                     File.WriteAllText(_settingsPath, new JavaScriptSerializer().Serialize(payload));
                 }
@@ -1261,8 +1340,8 @@ namespace SupraInventoryRelayAgent
                 if (handler != null) handler();
             }
 
-            private static int ClampWidth(int value) { return Math.Max(430, Math.Min(1600, value)); }
-            private static int ClampHeight(int value) { return Math.Max(42, Math.Min(180, value)); }
+            private static int ClampWidth(int value) { return Math.Max(120, Math.Min(7680, value)); }
+            private static int ClampHeight(int value) { return Math.Max(24, Math.Min(4320, value)); }
             private static double ClampOpacity(double value) { return Math.Max(0.35, Math.Min(1.0, value)); }
             private static Color SafeColor(int argb, Color fallback)
             {
@@ -1347,15 +1426,15 @@ namespace SupraInventoryRelayAgent
 
                 Controls.Add(new Label { Left = 18, Top = 176, Width = 95, Height = 22, Text = "Chiều rộng" });
                 _width.SetBounds(118, 172, 100, 28);
-                _width.Minimum = 430;
-                _width.Maximum = 1600;
+                _width.Minimum = 120;
+                _width.Maximum = 7680;
                 _width.Value = Math.Max(_width.Minimum, Math.Min(_width.Maximum, overlay.OverlayWidth));
                 Controls.Add(_width);
 
                 Controls.Add(new Label { Left = 248, Top = 176, Width = 85, Height = 22, Text = "Chiều cao" });
                 _height.SetBounds(338, 172, 100, 28);
-                _height.Minimum = 42;
-                _height.Maximum = 180;
+                _height.Minimum = 24;
+                _height.Maximum = 4320;
                 _height.Value = Math.Max(_height.Minimum, Math.Min(_height.Maximum, overlay.OverlayHeight));
                 Controls.Add(_height);
 
@@ -1414,22 +1493,21 @@ namespace SupraInventoryRelayAgent
             if (agent != null)
             {
                 _d128AgentResourceStatus.Text =
-                    "Agent · CPU " + agent.ProcessCpuPercent.ToString("0.0") + "% · RAM " +
-                    (agent.ProcessWorkingSetBytes / 1024d / 1024d).ToString("0") + " MB · Thời gian chạy " +
+                    "CPU: " + agent.ProcessCpuPercent.ToString("0.0") + "% | RAM: " +
+                    (agent.ProcessWorkingSetBytes / 1024d / 1024d).ToString("0") + " MB | Thời gian chạy: " +
                     FormatD128Duration(agent.ProcessUptime);
             }
 
             if (browser == null || !browser.Available)
             {
-                _d128BrowserResourceStatus.Text = "Tài nguyên Web: chưa có tiến trình";
+                _d128BrowserResourceStatus.Text = "CPU: -- | RAM: -- | Tiến trình: -- | Thời gian chạy: --";
             }
             else
             {
                 _d128BrowserResourceStatus.Text =
-                    (string.IsNullOrWhiteSpace(browser.Browser) ? "Web" : browser.Browser) +
-                    " · CPU " + browser.CpuPercent.ToString("0.0") + "% · RAM " +
-                    (browser.WorkingSetBytes / 1024d / 1024d).ToString("0") + " MB · " +
-                    browser.ProcessCount + " tiến trình · Thời gian chạy " +
+                    "CPU: " + browser.CpuPercent.ToString("0.0") + "% | RAM: " +
+                    (browser.WorkingSetBytes / 1024d / 1024d).ToString("0") + " MB | Tiến trình: " +
+                    browser.ProcessCount + " | Thời gian chạy: " +
                     FormatD128Duration(browser.RunningFor);
             }
         }

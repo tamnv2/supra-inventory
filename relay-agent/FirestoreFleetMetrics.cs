@@ -72,10 +72,23 @@ namespace SupraInventoryRelayAgent
             for (var attempt = 1; attempt <= 2; attempt++)
             {
                 var snapshot = Load(session);
+                var acceptedBefore = snapshot.AcceptedTotal;
+                var processedBefore = snapshot.ProcessedTotal;
+                var ownerBefore = snapshot.OwnerAgentId ?? "";
                 MergeTail(session, snapshot, ScanStartUtc(snapshot));
                 snapshot.LocalRequests = Math.Max(0L, localRequests);
                 snapshot.LocalResponses = Math.Max(0L, localResponses);
                 snapshot.OwnerAgentId = agentInstanceId ?? "";
+
+                var durableChanged =
+                    snapshot.AcceptedTotal != acceptedBefore ||
+                    snapshot.ProcessedTotal != processedBefore ||
+                    !string.Equals(ownerBefore, snapshot.OwnerAgentId, StringComparison.Ordinal);
+                if (!durableChanged && !string.IsNullOrWhiteSpace(snapshot.UpdateTime))
+                {
+                    _log("FLEET_METRICS checkpoint=SKIP reason=no_durable_delta provider_write=false");
+                    return snapshot;
+                }
 
                 try
                 {

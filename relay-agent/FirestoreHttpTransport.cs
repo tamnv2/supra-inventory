@@ -59,6 +59,7 @@ namespace SupraInventoryRelayAgent
                 var route = attempt == 2
                     ? ApplyFreshSystemProxy(request, url)
                     : ApplyDefaultWindowsProxy(request, url);
+                FirestoreQuotaGuard.Record(method, url, component, log);
                 try
                 {
                     if (body != null)

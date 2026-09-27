@@ -87,6 +87,7 @@ namespace SupraInventoryRelayAgent
         private int _port;
         private int _nextCommandId;
         private bool _hidden;
+        private bool _manualVisibilityOverride;
         private string _browserName = "";
         private string _targetUrl = "";
         private BrowserLaunchMode _launchMode = BrowserLaunchMode.None;
@@ -153,6 +154,7 @@ namespace SupraInventoryRelayAgent
                 }
 
                 ResetDirectConfirmRecoveryNoLock();
+                _manualVisibilityOverride = false;
                 NavigateConfirmNoLock();
                 SetBrowserWindowsVisibleNoLock(false);
                 _hidden = true;
@@ -177,6 +179,35 @@ namespace SupraInventoryRelayAgent
             lock (_gate) return _launchMode == BrowserLaunchMode.Desktop;
         }
 
+        internal bool HasActiveBrowser()
+        {
+            lock (_gate) return _launchMode != BrowserLaunchMode.None;
+        }
+
+        internal string ActiveModeLabel()
+        {
+            lock (_gate)
+            {
+                if (_launchMode == BrowserLaunchMode.Agent) return "Web Agent";
+                if (_launchMode == BrowserLaunchMode.Desktop) return "Web Desktop";
+                return "";
+            }
+        }
+
+        internal void StopManagedBrowser()
+        {
+            lock (_gate)
+            {
+                ThrowIfDisposed();
+                StopManagedBrowserNoLock();
+                _launchMode = BrowserLaunchMode.None;
+                _browserName = "";
+                _hidden = false;
+                _manualVisibilityOverride = false;
+                _log("SUPRA_BROWSER stopped_by_operator=true");
+            }
+        }
+
         private SupraBrowserState OpenOrShow(BrowserLaunchMode mode)
         {
             lock (_gate)
@@ -195,6 +226,7 @@ namespace SupraInventoryRelayAgent
                 }
 
                 ResetDirectConfirmRecoveryNoLock();
+                _manualVisibilityOverride = true;
                 NavigateConfirmNoLock();
                 _log("SUPRA_BROWSER direct_confirm=INITIAL_NAVIGATE mode=" +
                      (mode == BrowserLaunchMode.Agent ? "AGENT" : "DESKTOP"));
@@ -293,7 +325,7 @@ namespace SupraInventoryRelayAgent
                         ShowNoLock();
                         state.Hidden = false;
                     }
-                    else if (state.Ready && !_hidden)
+                    else if (state.Ready && !_hidden && !_manualVisibilityOverride)
                     {
                         SetBrowserWindowsVisibleNoLock(false);
                         _hidden = true;
@@ -319,6 +351,7 @@ namespace SupraInventoryRelayAgent
                 if (!IsConnectedNoLock()) return;
                 SetBrowserWindowsVisibleNoLock(false);
                 _hidden = true;
+                _manualVisibilityOverride = false;
                 _log("SUPRA_BROWSER visibility=HIDDEN taskbar=true process_alive=true");
             }
         }
@@ -340,6 +373,7 @@ namespace SupraInventoryRelayAgent
                     }
                 }
                 ShowNoLock();
+                _manualVisibilityOverride = true;
             }
         }
 

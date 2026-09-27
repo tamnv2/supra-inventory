@@ -98,17 +98,18 @@ checks = {
         "D122: Agent needs the larger operational surface",
     ]),
     "agent_d121_one_line_system_status": all(token in RELAY_D119_FEATURES for token in [
-        "LayoutAgentSystemStatusRow(host, 96)",
-        "_identity.SetBounds(left, top, width, 20)",
-        "_relay.SetBounds(left + width + gap, top, width, 20)",
-        "_network.SetBounds(left + ((width + gap) * 2), top",
+        "LayoutAgentSystemStatusRow(host, 38)",
+        "_identity.Visible = false",
+        "_network.Visible = false",
+        "_relay.SetBounds(16, top",
+        "_d128AgentResourceStatus.SetBounds(16, top + 24",
     ]),
-    "agent_d121_schedule_refresh_off_ui_thread": all(token in RELAY_PROGRAM for token in [
-        "QueueSharedScheduleRefresh(coordinator)",
-        "Interlocked.CompareExchange(ref _afterHoursScheduleRefreshRunning",
-        "Task.Run(() =>",
-        "coordinator.RefreshSharedScheduleNow();",
-    ]) and "coordinator.RefreshSharedScheduleNow();\n                    _lastAfterHoursScheduleSyncAt" not in RELAY_PROGRAM,
+    "agent_d121_schedule_refresh_off_ui_thread": (
+        "QueueSharedScheduleRefresh" not in RELAY_PROGRAM
+        and "D129: shared schedule is propagated by the existing role/lease coordinator." in RELAY_PROGRAM
+        and "if (coordinator != null && HasAgentSession() && forcePrompt)" in RELAY_PROGRAM
+        and "coordinator.RequestRoleRefreshBeforeBusiness();" in RELAY_PROGRAM
+    ),
     "agent_d121_system_monitor_off_ui_thread": all(token in RELAY_PROGRAM for token in [
         "Interlocked.CompareExchange(ref _trayMonitorRefreshRunning",
         "var metrics = _systemMonitor.Sample();",
@@ -142,6 +143,10 @@ checks = {
         and "OverlaySettings" not in RELAY_PROGRAM
         and not (ROOT / "relay-agent/StatusOverlay.cs").is_file()
         and not (ROOT / "relay-agent/OverlaySettingsForm.cs").is_file()
+    ),
+    "authority_d129_agent_ux_quota": (
+        "D129 — Agent operational UX and Firestore quota hardening" in DECISIONS
+        and "D129 Windows Agent compact operational presentation" in DESIGN_SPEC
     ),
     "authority_d128_readiness_resource_overlay": (
         "D128" in DECISIONS
