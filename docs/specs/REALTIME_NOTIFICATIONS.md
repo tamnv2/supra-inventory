@@ -509,3 +509,17 @@ D126 supersedes the D125 retirement of the Firestore PickList relay before that 
 - 23:00 without an active extension closes the displayed Picker list; 05:00 opens a new display window. The 14:00 shift boundary does not force logout.
 - Periodic Agent UI timers make zero Picker-presence or Picker-alert provider reads. Fleet metrics retain the separate 30-minute hard throttle.
 - Open Picker contact commands are queried server-side for `PENDING/SENT` only; historical resolved commands are never scanned as part of presence refresh.
+
+
+## D129 Firestore quota-hardening invariants
+
+D129 does not change the selected Firestore PDA↔Agent carrier or D117 latency/failover cadence.
+
+- Confirmation polling remains **PRIMARY 4s idle / 2s bounded-hot** with fresh-only PENDING query; STANDBY/FROZEN perform no business queue polling.
+- PRIMARY lease remains 7 seconds and STANDBY takeover remains 10 seconds.
+- Picker presence stays **ACTIVE_ANDROID_EVENT_DRIVEN**. UI refresh never becomes a 15s/60s presence query loop. READY/grace presentation is local on top of the event-driven projection.
+- Durable fleet metrics remain observability-only. UI redraw/tab refresh cannot force a checkpoint. A PRIMARY with no local request/response delta skips the provider checkpoint attempt where a current snapshot is already available; the fleet client also skips unchanged durable writes after tail reconciliation.
+- Overtime/schedule UI ticks do not add a separate periodic roles/schedule Firestore read. Shared schedule fields already carried by existing role/lease coordination are used; explicit schedule conflicts may perform one bounded authoritative refresh.
+- All Firestore REST attempts pass through a **local-only quota counter**. It may log 70/85/95% reference-threshold warnings and per-component counts, but the counter itself does not read/write Firebase, Drive or any other provider.
+- Reference thresholds are conservative public no-cost quota reference points only; runtime code must not treat them as proof of the current billing plan or as a hard business cutoff.
+- Replacing REST polling with a streaming listener is deferred to a separate Office field POC. No listener is activated by D129.
