@@ -85,8 +85,17 @@ namespace SupraInventoryRelayAgent
         private string _loadedNonConfirmObservedUrl = "";
         private DateTime _loadedNonConfirmObservedAtUtc = DateTime.MinValue;
         private DateTime _confirmRetryIssuedAtUtc = DateTime.MinValue;
+        private bool _sessionBootstrapIssued;
+        private bool _sessionBootstrapFailed;
+        private DateTime _sessionBootstrapIssuedAtUtc = DateTime.MinValue;
         private bool _disposed;
 
+        private const string WmsHost = "wms-supra.winmart.vn";
+        private const string AuthDashboardHost = "auth-supra.winmart.vn";
+        private const string AuthDashboardPath = "/dashboard";
+        private const string SessionBootstrapUrl = "https://wms-supra.winmart.vn/sft3/session";
+        private const string SessionPath = "/sft3/session";
+        private const string WmsAppDashboardPath = "/sft3/app/dashboard";
         private const string ConfirmPath = "/sft3/app/saleorder/auto-pickpack-confirm";
         private const string LoginMarkerText = "Lưu thông tin đăng nhập";
         private const string SearchText = "Tìm kiếm";
@@ -198,7 +207,14 @@ namespace SupraInventoryRelayAgent
                 }
                 else if (TryRecoverConfirmRouteNoLock(state))
                 {
-                    state.State = "AUTO_RETRY_CONFIRM";
+                    state.State = _sessionBootstrapIssued
+                        ? "SFT3_SESSION_BOOTSTRAP"
+                        : "AUTO_RETRY_CONFIRM";
+                }
+                else if (_launchMode == BrowserLaunchMode.Agent &&
+                         _sessionBootstrapFailed)
+                {
+                    state.State = "SFT3_SESSION_BOOTSTRAP_EXHAUSTED";
                 }
                 else if (_launchMode == BrowserLaunchMode.Agent &&
                          state.PageLoaded &&
@@ -587,14 +603,74 @@ namespace SupraInventoryRelayAgent
             _loadedNonConfirmObservedUrl = "";
             _loadedNonConfirmObservedAtUtc = DateTime.MinValue;
             _confirmRetryIssuedAtUtc = DateTime.MinValue;
+            _sessionBootstrapIssued = false;
+            _sessionBootstrapFailed = false;
+            _sessionBootstrapIssuedAtUtc = DateTime.MinValue;
+        }
+
+        private void ResetRouteObservationNoLock()
+        {
+            _loadedNonConfirmObservedUrl = "";
+            _loadedNonConfirmObservedAtUtc = DateTime.MinValue;
+        }
+
+        private static bool IsAuthDashboardUrl(string value)
+        {
+            Uri uri;
+            if (!Uri.TryCreate(value ?? "", UriKind.Absolute, out uri)) return false;
+            return string.Equals(uri.Scheme, "https", StringComparison.OrdinalIgnoreCase) &&
+                   string.Equals(uri.Host, AuthDashboardHost, StringComparison.OrdinalIgnoreCase) &&
+                   string.Equals(uri.AbsolutePath.TrimEnd('/'), AuthDashboardPath, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsWmsSessionTransitionUrl(string value)
+        {
+            Uri uri;
+            if (!Uri.TryCreate(value ?? "", UriKind.Absolute, out uri)) return false;
+            if (!string.Equals(uri.Scheme, "https", StringComparison.OrdinalIgnoreCase) ||
+                !string.Equals(uri.Host, WmsHost, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            var path = uri.AbsolutePath.TrimEnd('/');
+            return string.Equals(path, SessionPath, StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(path, "/sft3", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsWmsAppDashboardUrl(string value)
+        {
+            Uri uri;
+            if (!Uri.TryCreate(value ?? "", UriKind.Absolute, out uri)) return false;
+            return string.Equals(uri.Scheme, "https", StringComparison.OrdinalIgnoreCase) &&
+                   string.Equals(uri.Host, WmsHost, StringComparison.OrdinalIgnoreCase) &&
+                   string.Equals(uri.AbsolutePath.TrimEnd('/'), WmsAppDashboardPath, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void IssueSessionBootstrapNoLock(string reason)
+        {
+            _sessionBootstrapIssued = true;
+            _sessionBootstrapFailed = false;
+            _sessionBootstrapIssuedAtUtc = DateTime.UtcNow;
+            _confirmRouteRetryCount = 0;
+            _confirmRetryIssuedAtUtc = DateTime.MinValue;
+            ResetRouteObservationNoLock();
+
+            CommandNoLock("Page.navigate", new Dictionary<string, object>
+            {
+                { "url", SessionBootstrapUrl }
+            }, TimeSpan.FromSeconds(5));
+
+            _log("SUPRA_BROWSER route_recovery=SFT3_SESSION_BOOTSTRAP reason=" + reason +
+                 " target=/sft3/session field_evidence=manual_dashboard_click");
         }
 
         private void IssueDirectConfirmRetryNoLock(string sourceUrl, string reason)
         {
             _confirmRouteRetryCount = 1;
             _confirmRetryIssuedAtUtc = DateTime.UtcNow;
-            _loadedNonConfirmObservedUrl = "";
-            _loadedNonConfirmObservedAtUtc = DateTime.MinValue;
+            _sessionBootstrapIssued = false;
+            _sessionBootstrapFailed = false;
+            _sessionBootstrapIssuedAtUtc = DateTime.MinValue;
+            ResetRouteObservationNoLock();
             NavigateConfirmNoLock();
             _log("SUPRA_BROWSER route_recovery=DIRECT_CONFIRM_RETRY retry=1 reason=" + reason +
                  " source_host_unrestricted=true");
@@ -602,22 +678,26 @@ namespace SupraInventoryRelayAgent
 
         private bool TryRecoverConfirmRouteNoLock(SupraBrowserState state)
         {
-            // v65: current-page host is intentionally NOT a retry gate. Supra may redirect
-            // the canonical Confirm request through another company Dashboard/SSO host.
-            // The only retry target is the fixed canonical Confirm URL.
+            // v66 field evidence: a real trusted click on the Supra auth Dashboard opens
+            // https://wms-supra.winmart.vn/sft3/session, which establishes the SFT3 browser
+            // session and redirects through /sft3/ to /sft3/app/dashboard. Only after that
+            // bootstrap completes is the canonical Confirm URL retried. No Dashboard DOM
+            // selector/click automation is required.
             if (_launchMode != BrowserLaunchMode.Agent || state == null || state.Ready)
                 return false;
 
             if (state.LoginMarkerDetected)
             {
                 if (!_loginMarkerObserved)
-                    _log("SUPRA_BROWSER login_marker=DETECTED awaiting_user=true direct_retry=paused");
+                    _log("SUPRA_BROWSER login_marker=DETECTED awaiting_user=true route_recovery=paused");
 
                 _loginMarkerObserved = true;
                 _confirmRouteRetryCount = 0;
-                _loadedNonConfirmObservedUrl = "";
-                _loadedNonConfirmObservedAtUtc = DateTime.MinValue;
                 _confirmRetryIssuedAtUtc = DateTime.MinValue;
+                _sessionBootstrapIssued = false;
+                _sessionBootstrapFailed = false;
+                _sessionBootstrapIssuedAtUtc = DateTime.MinValue;
+                ResetRouteObservationNoLock();
                 return false;
             }
 
@@ -626,11 +706,13 @@ namespace SupraInventoryRelayAgent
             {
                 _loginMarkerObserved = false;
                 _confirmRouteRetryCount = 0;
-                _loadedNonConfirmObservedUrl = "";
-                _loadedNonConfirmObservedAtUtc = DateTime.MinValue;
                 _confirmRetryIssuedAtUtc = DateTime.MinValue;
+                _sessionBootstrapIssued = false;
+                _sessionBootstrapFailed = false;
+                _sessionBootstrapIssuedAtUtc = DateTime.MinValue;
+                ResetRouteObservationNoLock();
                 loginJustCleared = true;
-                _log("SUPRA_BROWSER login_marker=CLEARED direct_retry=rearmed");
+                _log("SUPRA_BROWSER login_marker=CLEARED route_recovery=rearmed");
             }
 
             if (!state.PageLoaded || string.IsNullOrWhiteSpace(state.Url))
@@ -639,23 +721,51 @@ namespace SupraInventoryRelayAgent
                 return false;
 
             var now = DateTime.UtcNow;
+
+            if (_sessionBootstrapIssued)
+            {
+                if (IsWmsAppDashboardUrl(state.Url))
+                {
+                    IssueDirectConfirmRetryNoLock(state.Url, "sft3_session_bootstrap_complete");
+                    _log("SUPRA_BROWSER sft3_session=READY dashboard=/sft3/app/dashboard confirm_next=true");
+                    return true;
+                }
+
+                if (IsWmsSessionTransitionUrl(state.Url) ||
+                    now - _sessionBootstrapIssuedAtUtc < TimeSpan.FromSeconds(10))
+                {
+                    return true;
+                }
+
+                _sessionBootstrapIssued = false;
+                _sessionBootstrapFailed = true;
+                _sessionBootstrapIssuedAtUtc = DateTime.MinValue;
+                _log("SUPRA_BROWSER route_recovery=SFT3_SESSION_BOOTSTRAP_EXHAUSTED no_loop=true");
+                return false;
+            }
+
+            if (_sessionBootstrapFailed)
+                return false;
+
             if (_confirmRouteRetryCount >= 1)
             {
-                // Do not call a just-issued navigation exhausted while WebView2 is still
-                // committing/redirecting. After this grace, a loaded non-login/non-Confirm
-                // page is terminal for the bounded one-retry cycle.
+                // Do not call a just-issued Confirm navigation exhausted while WebView2
+                // is still committing/redirecting.
                 return _confirmRetryIssuedAtUtc != DateTime.MinValue &&
                        now - _confirmRetryIssuedAtUtc < TimeSpan.FromSeconds(3);
             }
 
             if (loginJustCleared)
             {
-                IssueDirectConfirmRetryNoLock(state.Url, "login_marker_cleared_non_confirm");
+                if (IsAuthDashboardUrl(state.Url))
+                    IssueSessionBootstrapNoLock("login_marker_cleared_auth_dashboard");
+                else
+                    IssueDirectConfirmRetryNoLock(state.Url, "login_marker_cleared_non_confirm");
                 return true;
             }
 
-            // On an already-authenticated browser, allow the SPA to settle before deciding
-            // that the first direct Confirm request really landed somewhere else.
+            // Let the first fully loaded non-Confirm page settle before recovery. This
+            // avoids consuming the bounded action on transient SSO/SPA redirects.
             if (!string.Equals(_loadedNonConfirmObservedUrl, state.Url, StringComparison.Ordinal))
             {
                 _loadedNonConfirmObservedUrl = state.Url;
@@ -667,7 +777,10 @@ namespace SupraInventoryRelayAgent
                 now - _loadedNonConfirmObservedAtUtc < TimeSpan.FromMilliseconds(750))
                 return false;
 
-            IssueDirectConfirmRetryNoLock(state.Url, "stable_loaded_non_login_non_confirm");
+            if (IsAuthDashboardUrl(state.Url))
+                IssueSessionBootstrapNoLock("stable_auth_dashboard");
+            else
+                IssueDirectConfirmRetryNoLock(state.Url, "stable_loaded_non_login_non_confirm");
             return true;
         }
 
