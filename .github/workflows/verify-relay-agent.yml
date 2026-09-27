@@ -338,7 +338,7 @@ jobs:
             'MaximumSize = new Size(7680, 4320)',
             'AutoFitToContent',
             'size_customized',
-            'checkpoint=SKIP reason=no_local_delta'
+            'TimeSpan.FromMinutes(10)'
           )) {
             if (-not $ops.Contains($marker)) { throw "D129 PDA/overlay/quota UI marker missing: $marker" }
           }
