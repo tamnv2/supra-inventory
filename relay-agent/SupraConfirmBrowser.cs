@@ -209,12 +209,9 @@ namespace SupraInventoryRelayAgent
                 else if (TryRecoverConfirmRouteNoLock(state))
                 {
                     state.State = _dashboardAccessAttemptCount > 0 &&
-                                  !_dashboardAccessFailed &&
-                                  !_confirmRetryIssuedAtUtc.Equals(DateTime.MinValue)
-                        ? "AUTO_RETRY_CONFIRM"
-                        : (_dashboardAccessAttemptCount > 0
-                            ? "DASHBOARD_ACCESS_CLICK"
-                            : "AUTO_RETRY_CONFIRM");
+                                  _confirmRouteRetryCount == 0
+                        ? "DASHBOARD_ACCESS_CLICK"
+                        : "AUTO_RETRY_CONFIRM";
                 }
                 else if (_launchMode == BrowserLaunchMode.Agent &&
                          _dashboardAccessFailed)
