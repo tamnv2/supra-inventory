@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Web.Script.Serialization;
 using System.Threading;
@@ -90,7 +91,13 @@ namespace SupraInventoryRelayAgent
         private readonly CheckBox _autoSizeColumns = new CheckBox();
         private bool _columnPreferenceApplying;
         private string _columnPreferenceUser = "";
-        private readonly Label _d128OverlayMarker = new Label();
+        private D128OverlayForm _d128Overlay;
+        private readonly Button _d128OverlaySettingsButton = new Button();
+        private ToolStripMenuItem _d128OverlayVisibleMenu;
+        private ToolStripMenuItem _d128OverlayLockedMenu;
+        private static readonly string D128OverlaySettingsFile = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Agent Auto Confirm Pick Pack", "RelayPoc", "overlay-settings.json");
 
         public sealed class ColumnPreferenceProfile
         {
