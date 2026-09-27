@@ -1401,3 +1401,21 @@ Approved v64 behavior:
 
 v64 targets Agent build 64 and Agent-owned browser host build 9. Technical/release PASS is recorded only after PR/main gates and release assets complete; OA052 remains open for real-company-laptop field acceptance.
 
+## D127 v64 release checkpoint — direct Confirm retry — 2026-09-27
+
+The v63 Owner field result remains **FAIL** because the Agent-owned browser still remained on Supra Dashboard. v64 retires Dashboard-card automation and implements the Owner-approved direct-Confirm retry model.
+
+Release evidence:
+- PR #236 squash-merged to `main` at `402faa0c073a34fa968b1b056fb74c6f857c0b64`.
+- PR gates PASS: Repo Authority `36285503453`, Project State `36285503407`, UI Design `36285503355`, Verify Beta Relay Agent `36285503361`, Firestore `36285503354`, RTDB `36285503357`.
+- Main gates PASS: Repo Authority `36285587047`, Project State `36285587052`, UI Design `36285587090`, Verify Beta Relay Agent `36285587114`.
+- Agent release: `relay-agent-v64`, release id `397461190`, canonical EXE asset id `591859697`, size `349184` bytes, SHA-256 `c0a5d56d77ee2b701207082706afc3adf14aab966c72187168ba6420986f079c`.
+- Inventory channel Agent alias advanced to manifest asset `591859771` and EXE asset `591859762`.
+- Agent-owned Fixed WebView2 remains `154.0.4258.37 x64` and advances to **host build 9**. Main workflow log confirms publication with bundle size `318615765` bytes and SHA-256 `2be8b5665c7793dbbd3d54d58d96d487003aaa9dd8e51c8f034a8644461fdbec`; channel bundle/manifest/checksum asset ids are `591861254/591861251/591861252`.
+- The host/controller no longer contains Dashboard warehouse/SFT3 selector/click automation. Agent initially navigates directly to the canonical Confirm URL, pauses on exact visible **Lưu thông tin đăng nhập**, and after login or an already-authenticated Dashboard redirect performs at most one loaded-page direct Confirm retry.
+- If one retry still ends on a loaded non-login, non-Confirm page, Agent stops and exposes **Chưa vào được Confirm sau khi thử lại** rather than looping.
+- Desktop Edge/Chrome remains explicit operator fallback. No password/session/token/cookie/header/signature extraction and no direct WMS API is introduced.
+- Android remains `beta-vc76`. Stable remains OWNER-GATED and untouched.
+
+D127 v64 is **TECHNICAL / RELEASE PASS**. OA052 remains open until the Owner verifies the real logged-out and already-authenticated flows on the company laptop.
+
