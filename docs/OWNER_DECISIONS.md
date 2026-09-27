@@ -1709,7 +1709,7 @@ Release evidence:
 
 ## D131 — Firestore-only free-tier HA redesign for PDA ↔ Agent — 2026-09-27
 
-Status: **OWNER APPROVED DESIGN — IMPLEMENTATION PENDING**.
+Status: **OWNER APPROVED — IMPLEMENTATION AUTHORIZED AND IN PROGRESS**.
 
 Owner explicitly rejects the dual Cloudflare+Firestore relay proposal for PickList confirmation because keeping both relay paths warm would spend quota without enough operational benefit. D131 keeps **Cloud Firestore as the only PDA↔Agent confirmation carrier** and redesigns HA, cadence, presence and counters to stay below the Firestore no-cost allowance while meeting the real operating model.
 
@@ -1722,7 +1722,7 @@ Authoritative operating envelope:
 - Good-network objective: PDA submission to terminal result **<=6 seconds** for normal/small-burst operation. Any Agent death/failover/transport defect must produce either the business terminal result or a specific failover/error terminal result **before 20 seconds**. A single browser cannot truthfully guarantee 40 independent sequential DOM mutations inside 6 seconds; D131 therefore requires bounded coalescing/batch DOM handling where the managed page safely supports it and treats a 40-request burst as an explicit acceptance test.
 
 HA/state model:
-- PRIMARY heartbeat/lease is a compact Firestore coordination document. Initial design target is **8-second heartbeat / 12-second lease expiry**.
+- PRIMARY heartbeat/lease is a compact Firestore coordination document. Final implementation cadence is **10-second heartbeat / 15-second lease expiry**.
 - One hibernating Agent is deterministic **NEXT-A**. It does zero business queue polling and watches only the compact coordination/lease state, scheduled from the observed lease expiry so it can take over around lease expiry rather than blind high-frequency polling.
 - One hibernating Agent is deterministic **NEXT-B** as second failover candidate at a coarser cadence. Remaining Agents are **DEEP-HIBERNATE**.
 - PRIMARY death during idle time must still trigger takeover; work traffic is not required to detect failure.
@@ -1730,7 +1730,7 @@ HA/state model:
 - NEXT-A/other hibernating readiness is maintained with coarse compact state only; they never poll the business queue.
 
 Business queue:
-- PRIMARY-only PENDING polling target is **3 seconds while operational**, with a bounded short hot/drain mode only after a real multi-job burst. Query limit must cover the 40-request burst in one fetch (target limit >=100).
+- PRIMARY-only PENDING polling is **3 seconds while at least one operational PDA is active** and **15 seconds while the operational window is open but no PDA is active**. A bounded short hot/drain mode may run only after a real multi-job burst; PDA activity immediately returns the PRIMARY to the 3-second cadence. Query limit must cover the 40-request burst in one fetch (target limit >=100).
 - Returned jobs are deduplicated by request id and exact suffix rules remain fail-closed.
 - Multi-request bursts are coalesced into a bounded browser batch. Where the rendered Confirm page safely allows multiple exact rows to be resolved/selected/confirmed in one DOM cycle, D131 must use that path instead of serially repeating full page work. No direct WMS API, cookie/header/session extraction, or network interception is authorized.
 - Android continues one logical request/document id with exact-document result observation and D130 same-id uncertain-create recovery.
@@ -1750,7 +1750,7 @@ PDA activity list:
 
 No-cost budget guard:
 - D131 targets Firestore Standard no-cost limits with engineering headroom, not merely staying one operation below provider limits.
-- Daily target ceilings: **<=42,000 document reads**, **<=15,000 document writes**, **<=2,000 deletes**, **<=0.75 GiB stored**, **<=8 GiB monthly outbound** for this project path.
+- Daily target ceilings: **<=42,000 document reads**, **<=15,000 document writes**, **<=3,000 deletes**, **<=0.75 GiB stored**, **<=8 GiB monthly outbound** for this project path.
 - Provider hard/no-cost reference at decision time is 50,000 reads/day, 20,000 writes/day, 20,000 deletes/day, 1 GiB storage and 10 GiB/month outbound. Runtime quota accounting must reset on the **Firestore provider day (America/Los_Angeles)**, not Asia/Ho_Chi_Minh.
 - Nonessential fleet/UI refresh is throttled before business latency is degraded. Business queue, lease/fencing and terminal ACK remain the protected operations.
 - TTL deletes are not used for this free-tier design. Retention cleanup is bounded/manual-scheduled deletion so delete/read cost stays inside the daily budget.
@@ -1804,3 +1804,18 @@ Owner closes the current D131 design discussion with the following continuation 
 - Only after Owner explicitly replies **OK / đồng ý chạy code / equivalent final approval** may implementation start. Implementation then begins from a fresh `main` short-lived branch and follows branch → PR → authority/continuity/build/quota guards → merge → Beta release/field gate.
 - A message containing the trigger phrase alone is **not** implementation authorization.
 - Stable remains OWNER-GATED and untouched.
+
+
+### D131 implementation authorization and final refinements — 2026-09-28
+
+Owner completed the review-first gate and explicitly authorized implementation of the full D131 change set on Beta.
+
+- Final HA cadence is 10-second PRIMARY lease heartbeat / 15-second expiry. NEXT_A alone watches the lease for takeover; NEXT_B is coarse; DEEP_HIBERNATE Agents do not poll the business queue.
+- PRIMARY business polling is adaptive: 3 seconds when at least one operational PDA is active, 15 seconds during the 05:00–23:00 window when no PDA is active, plus a bounded short hot/drain cadence after a real burst.
+- D131 delete soft guard is 3,000/day. This does not change the current provider reference; it is an engineering soft ceiling sized for bounded job + confirmation-guard cleanup.
+- The D127 picker_presence_current pseudo-job is retired. PDA activity uses only picker_presence_projection/current plus PRIMARY-local zero-write request activity.
+- Daily received/confirmed/error values use durable job state + compact daily coordination summary. Android must not delete ACK jobs before server export/retention cleanup.
+- "Gọi về bàn CV" becomes a persistent per-Picker active call. A create-only lock prevents two Agents from opening duplicate simultaneous calls. The originating Agent owns the close action; the PDA overlay remains until that call is resolved and can restore from Firestore after app/PDA restart.
+- Agent adds a scoped Usage tab for PDA↔Agent/export dependencies. Provider metrics are fetched server-side; provider credentials are never sent to Agent. Failure to read Monitoring is shown explicitly and must not be hidden by Firestore self-scans that increase quota.
+- Server-side daily PickList export remains one idempotent file per 05:00-boundary business day and is independent of Agent liveness.
+- Implementation branch is feat/d131-firestore-ha-usage and PR is #259. Stable remains OWNER-GATED and untouched.

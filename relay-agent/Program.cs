@@ -498,6 +498,7 @@ namespace SupraInventoryRelayAgent
         private readonly TabPage _connectionPage = new TabPage("Kết nối");
         private readonly TabPage _auditPage = new TabPage("Nhật ký vận hành");
         private readonly TabPage _technicalPage = new TabPage("Chẩn đoán kỹ thuật");
+        private readonly TabPage _usagePage = new TabPage("Usage");
         private readonly bool _startupSmoke;
         private readonly bool _autoStarted;
         private readonly HashSet<string> _acked = new HashSet<string>(StringComparer.Ordinal);
@@ -806,17 +807,20 @@ namespace SupraInventoryRelayAgent
 
             _mainTabs.Dock = DockStyle.Fill;
             _mainTabs.Font = new Font("Segoe UI", 9F);
-            foreach (var page in new[] { _overviewPage, _connectionPage, _auditPage, _technicalPage })
+            foreach (var page in new[] { _overviewPage, _connectionPage, _auditPage, _technicalPage, _usagePage })
                 page.BackColor = Color.FromArgb(243, 246, 248);
             _overviewPage.AutoScroll = false;
             _mainTabs.TabPages.Add(_overviewPage);
             _mainTabs.TabPages.Add(_connectionPage);
             _mainTabs.TabPages.Add(_auditPage);
             _mainTabs.TabPages.Add(_technicalPage);
+            _mainTabs.TabPages.Add(_usagePage);
             _mainTabs.SelectedIndexChanged += (s, e) =>
             {
                 if (_mainTabs.SelectedTab == _overviewPage && _leaderCoordinator != null)
                     _leaderCoordinator.RequestFleetRefresh();
+                if (_mainTabs.SelectedTab == _usagePage)
+                    D131UsageTabActivated();
             };
 
             var footer = new Panel
@@ -1180,6 +1184,7 @@ namespace SupraInventoryRelayAgent
             directCard.Controls.Add(_manualPicklistStatus);
             overviewLayout.Controls.Add(directCard, 0, 2);
             InitializeD119AgentFeatures(overviewLayout);
+            InitializeD131UsageFeatures();
 
             // Kết nối
             var networkCard = NewCard(22, 24, 1040, 300);
@@ -2544,7 +2549,9 @@ namespace SupraInventoryRelayAgent
                     {
                         var roleText = role == FirestoreAgentRole.PRIMARY
                             ? "PRIMARY"
-                            : (role == FirestoreAgentRole.STANDBY ? "STANDBY" : "FROZEN");
+                            : (role == FirestoreAgentRole.NEXT_A
+                                ? "NGỦ ĐÔNG · NEXT A"
+                                : (role == FirestoreAgentRole.NEXT_B ? "NGỦ ĐÔNG · NEXT B" : "NGỦ ĐÔNG"));
                         _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / " + roleText;
                         UpdateD129AgentHeader();
                         if (role == FirestoreAgentRole.PRIMARY) RefreshD119OperationalViews(true);
@@ -3953,6 +3960,7 @@ namespace SupraInventoryRelayAgent
                             (items, reason) => Ui(() => ApplyEventDrivenPickerPresence(items, reason)),
                             _leaderCoordinator,
                             IsBusinessAllowed,
+                            HasActivePdaForRelay,
                             healthy =>
                             {
                                 var coordinator = _leaderCoordinator;

@@ -73,6 +73,7 @@ class MainActivity : Activity() {
     private var reporterController: ReporterController? = null
     private var adminLauncherController: AdminLauncherController? = null
     private var realtimeClient: AndroidRealtimeClient? = null
+    private var activeCallWatcher: PickerActiveCallWatcher? = null
     private var contentContainer: FrameLayout? = null
     private var activeSession: AppSession? = null
     private var statusHideTask: Runnable? = null
@@ -142,6 +143,8 @@ class MainActivity : Activity() {
         operatingWindowTask = null
         uiHandler.removeCallbacks(runtimeLogTick)
         pickerController?.destroy()
+        activeCallWatcher?.close()
+        activeCallWatcher = null
         realtimeClient?.stop()
         realtimeClient = null
         super.onDestroy()
@@ -163,6 +166,7 @@ class MainActivity : Activity() {
         if (::api.isInitialized && api.session != null && updateGate == UpdateGate.CURRENT) {
             reconcileNotificationSignal()
             drainOverlayAcknowledgements()
+            activeCallWatcher?.reconcile(api.session)
             syncEffectiveRole()
         }
     }
@@ -407,6 +411,12 @@ class MainActivity : Activity() {
             }
         }
         startRealtime(session)
+        if (session.role == "PICKER") {
+            if (activeCallWatcher == null) activeCallWatcher = PickerActiveCallWatcher(applicationContext, ::recordLog)
+            activeCallWatcher?.start(session)
+        } else {
+            activeCallWatcher?.close()
+        }
         scheduleAndroidOperatingWindowCheck(session)
         registerBackgroundNotifications()
         ensureOverlayPermissionPrompt(session)
@@ -552,6 +562,8 @@ class MainActivity : Activity() {
         reporterController?.destroy()
         reporterController = null
         adminLauncherController = null
+        activeCallWatcher?.close()
+        activeCallWatcher = null
         realtimeClient?.stop()
         realtimeClient = null
     }

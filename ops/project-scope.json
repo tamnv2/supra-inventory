@@ -321,7 +321,7 @@
       "collection": "relay_poc_jobs",
       "api_url": "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents/relay_poc_jobs",
       "exposure": "public_identifier",
-      "status": "D126_ACTIVE_PICKLIST_REQUEST_ACK_HA_CARRIER__SKU_SYNC_COLLECTION_RETIRED",
+      "status": "D131_ACTIVE_FIRESTORE_ONLY_PICKLIST_HA_DURABLE_AUDIT_AND_PICKER_CALL_STATE__SKU_SYNC_COLLECTION_RETIRED",
       "guard": "D126_PICKLIST_REQUEST_ACK_HA_ONLY_FOR_CONFIRMATION__NO_SUPRA_SESSION_DATA__NO_WMS_API_AUTH_MATERIAL__STABLE_OWNER_GATED",
       "collections": [
         "relay_poc_jobs",
@@ -341,7 +341,7 @@
         "ADMIN",
         "PICKPACK_ADMIN"
       ],
-      "d119_role_guard": "D126_AGENT_OPERATOR_ROLES_RETAINED_FOR_PICKLIST_AND_PICKER_CONTACT__SKU_WMS_SYNC_RETIRED"
+      "d119_role_guard": "D131_AGENT_OPERATOR_ROLES_RETAINED_FOR_PICKLIST_AND_PICKER_CONTACT__ACTIVE_CALL_LOCK_SCOPED__SKU_WMS_SYNC_RETIRED"
     },
     {
       "key": "supra-wms-ui-d080",

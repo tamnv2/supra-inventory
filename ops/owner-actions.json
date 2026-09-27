@@ -2768,7 +2768,7 @@
       "prerequisites": {
         "baseline_agent_release": "relay-agent-v70",
         "baseline_android": "beta-vc77",
-        "target_agent_release": "NEXT_MONOTONIC_AFTER_V70",
+        "target_agent_release": "relay-agent-v71",
         "target_android": "NEXT_MONOTONIC_IF_ANDROID_CHANGE_REQUIRED",
         "technical_release": "PENDING",
         "new_resources": "NONE",
@@ -2809,7 +2809,7 @@
       "reason_owner_only": "Owner explicitly requires a review-only next session before any runtime code. The full D131 change list and maximum-envelope usage projection must be reviewed and may be edited by Owner before implementation authorization.",
       "prerequisites": {
         "trigger_phrase": "bắt đầu tối ưu lại mô hình",
-        "design_status": "OWNER_APPROVED_DESIGN__NO_CODE_YET",
+        "design_status": "OWNER_REVIEWED__IMPLEMENTATION_AUTHORIZED",
         "runtime_baseline": "relay-agent-v70 / beta-vc77",
         "stable": "OWNER_GATED"
       },

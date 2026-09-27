@@ -68,8 +68,11 @@ class CriticalOverlayService : Service() {
         }
         showOverlay(title, body, activeMode, resolution, sku, productName)
         expiryTask?.let(handler::removeCallbacks)
-        expiryTask = Runnable { stopSelf() }.also { task ->
-            handler.postDelayed(task, (expiresAt - System.currentTimeMillis()).coerceIn(1_000L, MAX_TTL_MS))
+        expiryTask = null
+        if (activeMode != MODE_PICKER_COMMAND) {
+            expiryTask = Runnable { stopSelf() }.also { task ->
+                handler.postDelayed(task, (expiresAt - System.currentTimeMillis()).coerceIn(1_000L, MAX_TTL_MS))
+            }
         }
         return START_NOT_STICKY
     }
@@ -180,7 +183,7 @@ class CriticalOverlayService : Service() {
             setPadding(0, 18, 0, 18)
         }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         card.addView(TextView(this).apply {
-            text = "Cảnh báo sẽ được đóng khi Chuyên viên xác nhận đã xử lý."
+            text = "Cảnh báo sẽ tự đóng khi chuyên viên đã kết thúc yêu cầu trên Agent."
             textSize = 14f
             setTextColor(Color.rgb(71, 85, 105))
             gravity = Gravity.CENTER

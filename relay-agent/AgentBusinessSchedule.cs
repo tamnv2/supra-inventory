@@ -11,8 +11,8 @@ namespace SupraInventoryRelayAgent
 
     internal sealed class AgentBusinessSchedule
     {
-        internal static readonly TimeSpan RegularStart = new TimeSpan(6, 0, 0);
-        internal static readonly TimeSpan RegularEnd = new TimeSpan(22, 0, 0);
+        internal static readonly TimeSpan RegularStart = new TimeSpan(5, 0, 0);
+        internal static readonly TimeSpan RegularEnd = new TimeSpan(23, 0, 0);
         internal static readonly TimeSpan PromptLead = TimeSpan.FromMinutes(30);
 
         internal AgentBusinessSchedule(string stateFile)
@@ -56,15 +56,15 @@ namespace SupraInventoryRelayAgent
             boundary = DateTime.MinValue;
             var time = now.TimeOfDay;
 
-            // 21:30-21:59 asks whether the relay may continue after 22:00.
+            // 22:30-22:59 asks whether the relay may continue after 23:00.
             if (time >= RegularEnd.Subtract(PromptLead) && time < RegularEnd)
             {
                 boundary = now.Date.Add(RegularEnd);
                 return true;
             }
 
-            // After 22:00, only an already-extended relay asks again.
-            // Each next-hour decision starts at HH:30. 05:30 has no prompt because 06:00
+            // After 23:00, only an already-extended relay asks again.
+            // Each next-hour decision starts at HH:30. 04:30 has no prompt because 05:00
             // automatically returns to the regular operating window.
             if (time >= RegularEnd || time < RegularStart)
             {
@@ -104,7 +104,7 @@ namespace SupraInventoryRelayAgent
         internal string StatusText(DateTime now)
         {
             if (DefaultRelayAllowed(now))
-                return "Relay PDA hoạt động theo khung 06:00–22:00.";
+                return "Relay PDA hoạt động theo khung 05:00–23:00.";
             return "Relay PDA đang ngủ; xác nhận trực tiếp tại Agent vẫn dùng được.";
         }
 
@@ -114,23 +114,23 @@ namespace SupraInventoryRelayAgent
             var day = new DateTime(2026, 9, 24, 0, 0, 0, DateTimeKind.Unspecified);
             DateTime boundary;
 
-            if (schedule.DefaultRelayAllowed(day.AddHours(5).AddMinutes(59))) return false;
-            if (!schedule.DefaultRelayAllowed(day.AddHours(6))) return false;
-            if (!schedule.DefaultRelayAllowed(day.AddHours(21).AddMinutes(59))) return false;
-            if (schedule.DefaultRelayAllowed(day.AddHours(22))) return false;
-
-            if (schedule.TryGetPromptBoundary(day.AddHours(21).AddMinutes(29), out boundary)) return false;
-            if (!schedule.TryGetPromptBoundary(day.AddHours(21).AddMinutes(30), out boundary)) return false;
-            if (boundary != day.AddHours(22)) return false;
+            if (schedule.DefaultRelayAllowed(day.AddHours(4).AddMinutes(59))) return false;
+            if (!schedule.DefaultRelayAllowed(day.AddHours(5))) return false;
+            if (!schedule.DefaultRelayAllowed(day.AddHours(22).AddMinutes(59))) return false;
+            if (schedule.DefaultRelayAllowed(day.AddHours(23))) return false;
 
             if (schedule.TryGetPromptBoundary(day.AddHours(22).AddMinutes(29), out boundary)) return false;
             if (!schedule.TryGetPromptBoundary(day.AddHours(22).AddMinutes(30), out boundary)) return false;
             if (boundary != day.AddHours(23)) return false;
 
-            if (!schedule.TryGetPromptBoundary(day.AddDays(1).AddHours(4).AddMinutes(30), out boundary)) return false;
-            if (boundary != day.AddDays(1).AddHours(5)) return false;
-            if (schedule.TryGetPromptBoundary(day.AddDays(1).AddHours(5).AddMinutes(30), out boundary)) return false;
-            if (schedule.NextRegularStart(day.AddDays(1).AddHours(5)) != day.AddDays(1).AddHours(6)) return false;
+            if (schedule.TryGetPromptBoundary(day.AddHours(23).AddMinutes(29), out boundary)) return false;
+            if (!schedule.TryGetPromptBoundary(day.AddHours(23).AddMinutes(30), out boundary)) return false;
+            if (boundary != day.AddDays(1)) return false;
+
+            if (!schedule.TryGetPromptBoundary(day.AddDays(1).AddHours(3).AddMinutes(30), out boundary)) return false;
+            if (boundary != day.AddDays(1).AddHours(4)) return false;
+            if (schedule.TryGetPromptBoundary(day.AddDays(1).AddHours(4).AddMinutes(30), out boundary)) return false;
+            if (schedule.NextRegularStart(day.AddDays(1).AddHours(4)) != day.AddDays(1).AddHours(5)) return false;
 
             return true;
         }

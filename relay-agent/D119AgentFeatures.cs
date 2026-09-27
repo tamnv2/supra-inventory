@@ -80,6 +80,7 @@ namespace SupraInventoryRelayAgent
         private long _pickerPresenceRefreshRunning;
         private DateTime _lastPickerPresenceRefreshUtc = DateTime.MinValue;
         private bool? _pickerWindowOpenState;
+        private volatile int _activePdaCountForRelay;
         private FirestoreFleetMetricsClient _fleetMetricsClient;
         private FleetMetricSnapshot _fleetSnapshot;
         private long _fleetMetricsRefreshRunning;
@@ -569,8 +570,8 @@ namespace SupraInventoryRelayAgent
             _lastFleetPrimary = primary;
             RenderFleetMetricStatus(primary);
 
-            // D127: Picker presence is event-driven through the already-polled relay queue.
-            // Periodic UI ticks must never read the projection or picker_alerts.
+            // D131: Picker presence authority is the dedicated event-driven projection.
+            // Normal UI ticks never read it; bounded foreground/start/boundary refreshes do.
             if (!force) return;
             if (Interlocked.CompareExchange(ref _pickerPresenceRefreshRunning, 1L, 0L) != 0L) return;
 
@@ -617,6 +618,7 @@ namespace SupraInventoryRelayAgent
             _pickerOnlineSnapshot = items ?? new List<PickerPresenceView>();
             RenderPickerOnlineSnapshot();
             var liveCount = _pickerOnlineSnapshot.Count(x => string.Equals(x.Status, "PDA_READY", StringComparison.Ordinal));
+            _activePdaCountForRelay = liveCount;
             var graceCount = _pickerOnlineSnapshot.Count - liveCount;
             _pickerOnlineStatus.Text =
                 liveCount.ToString("N0") + " Picker đang hoạt động" +
@@ -737,8 +739,11 @@ namespace SupraInventoryRelayAgent
                     .Append(picker.EmployeeCode ?? "").Append(':')
                     .Append(picker.DisplayName ?? "").Append(':')
                     .Append(picker.DeviceId ?? "").Append(':')
-                    .Append(picker.Status ?? "").Append(':')
-                    .Append(HasActivePickerCommand(picker.UserId) ? '1' : '0');
+                    .Append(picker.Status ?? "").Append(':');
+                var active = ActivePickerCommand(picker.UserId);
+                signature.Append(active == null ? "0" : "1")
+                    .Append(':').Append(active == null ? "" : active.SenderAgentId ?? "")
+                    .Append(':').Append(active == null ? "" : active.SenderRole ?? "");
             }
             return signature.ToString();
         }
@@ -794,14 +799,32 @@ namespace SupraInventoryRelayAgent
                     var pdaState = string.Equals(picker.Status, "PDA_GRACE", StringComparison.Ordinal)
                         ? "Mất kết nối tạm thời"
                         : "Đang hoạt động";
+                    var active = ActivePickerCommand(picker.UserId);
+                    var canResolve = active != null && CanResolvePickerCommand(picker.UserId);
+                    var callText = active == null
+                        ? "Gọi về bàn CV"
+                        : (active.SenderRole == "PICK_PACK" ? "Đang gọi · Pick Pack" : "Đang gọi · Inventory");
+                    var resolveText = active == null ? "—" : (canResolve ? "Kết thúc" : "Agent khác đang gọi");
                     var row = _pickerOnlineGrid.Rows[_pickerOnlineGrid.Rows.Add(
                         code,
                         name,
                         pdaState,
-                        "Gọi về bàn CV",
+                        callText,
                         "Mang hàng về Pack",
-                        HasActivePickerCommand(picker.UserId) ? "Đóng" : "—")];
+                        resolveText)];
                     row.Tag = picker;
+                    if (active != null)
+                    {
+                        row.Cells["CallSpecialist"].ReadOnly = true;
+                        row.Cells["CallSpecialist"].Style.BackColor = Color.Gainsboro;
+                        row.Cells["CallSpecialist"].Style.ForeColor = Color.DimGray;
+                    }
+                    if (!canResolve)
+                    {
+                        row.Cells["ResolveContact"].ReadOnly = true;
+                        row.Cells["ResolveContact"].Style.BackColor = Color.Gainsboro;
+                        row.Cells["ResolveContact"].Style.ForeColor = Color.DimGray;
+                    }
                 }
 
                 var firstIndex = -1;
@@ -828,24 +851,17 @@ namespace SupraInventoryRelayAgent
         {
             if (_fleetMetricsClient == null || !HasAgentSession()) return;
             var now = DateTime.UtcNow;
-            var interval = TimeSpan.FromMinutes(30);
+            var interval = TimeSpan.FromMinutes(10);
             // D120: metrics are observability-only. UI refresh, tab changes and failed reads
-            // must never turn the 30-minute checkpoint into a 5-second Firestore storm.
-            if (_lastFleetMetricsAttemptUtc != DateTime.MinValue && now - _lastFleetMetricsAttemptUtc < interval) return;
+            // must never turn the 10-minute snapshot into a provider polling storm.
+            if (!force && _lastFleetMetricsAttemptUtc != DateTime.MinValue && now - _lastFleetMetricsAttemptUtc < interval) return;
+            if (force && _lastFleetMetricsAttemptUtc != DateTime.MinValue && now - _lastFleetMetricsAttemptUtc < TimeSpan.FromSeconds(30)) return;
             if (!force && _lastFleetMetricsRefreshUtc != DateTime.MinValue && now - _lastFleetMetricsRefreshUtc < interval) return;
             if (Interlocked.CompareExchange(ref _fleetMetricsRefreshRunning, 1L, 0L) != 0L) return;
             _lastFleetMetricsAttemptUtc = now;
 
             var localRequests = Interlocked.Read(ref _localPdaRequests);
             var localResponses = Interlocked.Read(ref _localAgentResponses);
-            if (primary && !force && _fleetSnapshot != null &&
-                localRequests == _lastFleetCheckpointLocalRequests &&
-                localResponses == _lastFleetCheckpointLocalResponses)
-            {
-                Log("FLEET_METRICS checkpoint=SKIP reason=no_local_delta provider_read=false provider_write=false");
-                RenderFleetMetricStatus(primary);
-                return;
-            }
 
             Task.Run(() =>
             {
@@ -900,9 +916,10 @@ namespace SupraInventoryRelayAgent
             var snapshot = _fleetSnapshot;
             _fleetMetricStatus.Text = snapshot == null
                 ? "Cụm hôm nay: chờ đồng bộ"
-                : "Cụm hôm nay: " + snapshot.AcceptedTotal.ToString("N0") +
-                  " nhận · " + snapshot.ProcessedTotal.ToString("N0") + " xử lý" +
-                  (primary ? " · realtime" : " · 30p");
+                : "Cụm hôm nay: " + snapshot.ReceivedTotal.ToString("N0") +
+                  " nhận · " + snapshot.ConfirmedTotal.ToString("N0") + " xác nhận · " +
+                  snapshot.ErrorTotal.ToString("N0") + " lỗi" +
+                  (primary ? " · durable" : " · 10p");
             RefreshAgentRequestMetrics();
         }
 
@@ -1572,6 +1589,23 @@ namespace SupraInventoryRelayAgent
             lock (_activePickerCommands) return _activePickerCommands.ContainsKey(userId);
         }
 
+        private PickerContactCommand ActivePickerCommand(string userId)
+        {
+            lock (_activePickerCommands)
+            {
+                PickerContactCommand command;
+                return _activePickerCommands.TryGetValue(userId ?? "", out command) ? command : null;
+            }
+        }
+
+        private bool CanResolvePickerCommand(string userId)
+        {
+            var command = ActivePickerCommand(userId);
+            return command != null &&
+                (!command.IsActiveCall ||
+                 string.Equals(command.SenderAgentId, _agentInstanceId, StringComparison.Ordinal));
+        }
+
         private void PickerOnlineGridCellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
@@ -1581,6 +1615,11 @@ namespace SupraInventoryRelayAgent
 
             if (column == "CallSpecialist")
             {
+                if (HasActivePickerCommand(picker.UserId))
+                {
+                    _pickerOnlineStatus.Text = "Picker này đã có yêu cầu đang mở; không gửi trùng.";
+                    return;
+                }
                 Task.Run(() => SendPickerContact(picker, "CALL_SPECIALIST"));
                 return;
             }
@@ -1591,6 +1630,13 @@ namespace SupraInventoryRelayAgent
             }
             if (column == "ResolveContact")
             {
+                if (!CanResolvePickerCommand(picker.UserId))
+                {
+                    _pickerOnlineStatus.Text = HasActivePickerCommand(picker.UserId)
+                        ? "Chỉ Agent đã gọi Picker mới được kết thúc yêu cầu."
+                        : "Picker này không có yêu cầu đang mở.";
+                    return;
+                }
                 Task.Run(() => ResolvePickerContact(picker));
             }
         }
@@ -1618,7 +1664,11 @@ namespace SupraInventoryRelayAgent
             }
             catch (Exception ex)
             {
-                Ui(() => _pickerOnlineStatus.Text = "Gửi yêu cầu Picker thất bại · " + SafeMessage(ex));
+                Ui(() =>
+                {
+                    _pickerOnlineStatus.Text = "Gửi yêu cầu Picker thất bại · " + SafeMessage(ex);
+                    RefreshD119OperationalViews(true);
+                });
             }
         }
 
@@ -1629,7 +1679,13 @@ namespace SupraInventoryRelayAgent
             {
                 if (!_activePickerCommands.TryGetValue(picker.UserId, out command))
                 {
-                    Ui(() => _pickerOnlineStatus.Text = "Picker này không có yêu cầu đang mở từ Agent hiện tại.");
+                    Ui(() => _pickerOnlineStatus.Text = "Picker này không có yêu cầu đang mở.");
+                    return;
+                }
+                if (command.IsActiveCall &&
+                    !string.Equals(command.SenderAgentId, _agentInstanceId, StringComparison.Ordinal))
+                {
+                    Ui(() => _pickerOnlineStatus.Text = "Chỉ Agent đã gọi Picker mới được kết thúc yêu cầu.");
                     return;
                 }
             }
@@ -1650,5 +1706,10 @@ namespace SupraInventoryRelayAgent
                 Ui(() => _pickerOnlineStatus.Text = "Không đóng được yêu cầu Picker · " + SafeMessage(ex));
             }
         }
+        internal bool HasActivePdaForRelay()
+        {
+            return _activePdaCountForRelay > 0;
+        }
+
     }
 }

@@ -595,9 +595,17 @@ This subsection supersedes conflicting D131 max-6/RAM-counter wording above.
 - Fleet capacity target is up to 20 Agents: exactly one PRIMARY, one NEXT_A, one NEXT_B and the remainder DEEP_HIBERNATE for business-provider work.
 - Only PRIMARY queries PENDING business jobs. Deep Agents never subscribe to or poll the business queue.
 - All Agents keep their managed WebView2 Confirm page/profile warm for local/manual PickList work. Non-primary hibernation disables relay business work, high-frequency DOM scans, provider refresh and background resource sampling; it does not shut down the prepared browser.
-- NEXT_A alone receives the fastest lease/failover observation. NEXT_B is coarser. Deep Agents do not listen to each 8-second lease update.
+- NEXT_A alone receives the fastest lease/failover observation. NEXT_B is coarser. Deep Agents do not listen to each 10-second lease update.
 - Durable job documents, not RAM, are the daily counter authority.
 - Terminal job state carries the fields required for audit and count reconstruction. Daily summary/checkpoint state is stored inside the existing coordination collection and updated only when terminal work is durably committed, preferably once per completed browser batch.
 - New PRIMARY immediately verifies/reconstructs the daily summary from a bounded tail; if summary confidence is uncertain, use current-day Firestore count aggregations rather than scanning every document payload.
 - Non-primary presentation reads one compact fleet/counter snapshot at most every 10 minutes while the Agent is open. Foreground/open/manual refresh may perform one immediate bounded read.
 - Do not create realtime counter listeners on every Agent.
+
+
+### D131 final adaptive cadence and specialist-call state
+
+- PRIMARY confirmation queue cadence is 3 seconds while at least one operational PDA is active, 15 seconds while the 05:00–23:00 relay window is open with zero active PDA, and a bounded short hot/drain cadence after a real burst.
+- PRIMARY lease heartbeat is 10 seconds and failover expiry is 15 seconds. NEXT_A alone owns the fast lease watch; NEXT_B is coarse and DEEP_HIBERNATE Agents have zero business queue polling.
+- picker_presence_projection/current remains the event-driven PDA-presence authority. The former relay_poc_jobs/picker_presence_current pseudo-job is removed so presence changes never enter the business confirmation queue.
+- picker_active_calls/{picker_user_id} is the durable active specialist-call authority. FCM is a fast delivery/close signal only; Android also observes its own exact active-call document so unresolved calls restore after restart and resolved calls converge closed.

@@ -360,7 +360,7 @@ The Android App uses an operational display projection, not a retention change.
 - Do not enable Firestore TTL for the D131 relay path.
 - Keep request/ACK documents only as long as required for bounded operational diagnostics and counter reconciliation; target retention remains within the project retention policy and must keep measured Firestore storage below 0.75 GiB.
 - Expired relay documents are deleted by bounded scheduled/manual cleanup, never by a burst that risks the daily delete/read budget.
-- Cleanup is lower priority than business queue/HA work and stops when the local quota guard approaches its soft read/delete ceilings.
+- Cleanup is lower priority than business queue/HA work and stops when the local quota guard approaches its soft read/delete ceilings; D131 final delete soft ceiling is 3,000/provider-day.
 - Counter takeover reconstruction reads only a tail newer than metrics_checkpoint_at; it never scans the whole retained collection.
 
 
@@ -384,3 +384,10 @@ The Android App uses an operational display projection, not a retention change.
 - Export is independent of Windows Agent liveness because its source is durable Firestore state and its destination is the existing scoped Beta Drive exports folder.
 - Use an idempotent business-day export key/file identity. Bounded retries after temporary provider failure must not create duplicate daily files.
 - A successful export checkpoint records business date, generated-at, row count and file identity/reference; secrets and provider access tokens are never persisted in the export.
+
+
+### D131 persistent Picker active-call lifecycle
+
+- picker_active_calls/{picker_user_id} is a single active-call lock/state document, not a history ledger.
+- Only one ACTIVE document may exist for a Picker. It contains sanitized call identity, target user, originating Agent/user, specialist role, status and timestamps; no notification token or browser/WMS material is stored in it.
+- Resolving the call triggers the PDA close signal and then removes the active lock. Historical operational evidence, when required, remains in existing sanitized Agent/function logs rather than retaining active-call documents indefinitely.

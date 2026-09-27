@@ -74,9 +74,9 @@ jobs:
           $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
           $projection = Get-Content service/src/firestore-projection.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*70\s*;') { throw "D130 requires Agent v70." }
-          if ($project -notmatch '<AssemblyVersion>0\.70\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.70\.0\.0</FileVersion>') {
-            throw "D130 assembly/file version must be 0.70."
+          if ($config -notmatch 'AgentBuild\s*=\s*71\s*;') { throw "D131 requires Agent v71." }
+          if ($project -notmatch '<AssemblyVersion>0\.71\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.71\.0\.0</FileVersion>') {
+            throw "D131 assembly/file version must be 0.71."
           }
 
           foreach ($marker in @(
@@ -338,7 +338,7 @@ jobs:
             'MaximumSize = new Size(7680, 4320)',
             'AutoFitToContent',
             'size_customized',
-            'checkpoint=SKIP reason=no_local_delta'
+            'TimeSpan.FromMinutes(10)'
           )) {
             if (-not $ops.Contains($marker)) { throw "D129 PDA/overlay/quota UI marker missing: $marker" }
           }
@@ -357,14 +357,21 @@ jobs:
           if (-not $http.Contains('FirestoreQuotaGuard.Record(method, url, component, log)')) {
             throw "D129 Firestore transport must feed the local quota guard."
           }
-          if (-not $fleet.Contains('checkpoint=SKIP reason=no_durable_delta provider_write=false')) {
-            throw "D129 fleet metrics must skip unchanged durable writes."
+          foreach ($marker in @(
+            'relay_poc_coordination/daily_',
+            'ReceivedTotal',
+            'ConfirmedTotal',
+            'ErrorTotal',
+            'provider_write=false'
+          )) {
+            if (-not $fleet.Contains($marker)) { throw "D131 durable fleet-counter marker missing: $marker" }
           }
-          if ($transport -notmatch 'PrimaryIdlePollIntervalMs\s*=\s*4000' -or
-              $transport -notmatch 'PrimaryHotPollIntervalMs\s*=\s*2000' -or
-              $leader -notmatch 'PrimaryLeaseHeartbeatMs\s*=\s*7000' -or
-              $leader -notmatch 'FailoverAfterMs\s*=\s*10000') {
-            throw "D129 must preserve D117 queue/lease/failover cadence."
+          if ($transport -notmatch 'PrimaryActivePollIntervalMs\s*=\s*3000' -or
+              $transport -notmatch 'PrimaryInactivePollIntervalMs\s*=\s*15000' -or
+              $transport -notmatch 'PrimaryHotPollIntervalMs\s*=\s*1000' -or
+              $leader -notmatch 'PrimaryLeaseHeartbeatMs\s*=\s*10000' -or
+              $leader -notmatch 'FailoverAfterMs\s*=\s*15000') {
+            throw "D131 queue/lease/failover cadence regression."
           }
 
           foreach ($marker in @(
@@ -409,16 +416,16 @@ jobs:
             throw "D126 retired sku_sync_jobs must remain deny-all."
           }
 
-          if ($leader -notmatch 'FailoverAfterMs\s*=\s*10000' -or $leader -notmatch 'PrimaryLeaseHeartbeatMs\s*=\s*7000') { throw "D117 HA cadence regression." }
-          foreach ($marker in @('PRIMARY','STANDBY','FROZEN','PromoteStandbyForTakeover','VerifyPrimaryBeforeMutation','PublishScheduleDecision','PublishEarlyStartAndClaimPrimary','ANY_AUTHENTICATED_AGENT')) {
-            if (-not $leader.Contains($marker)) { throw "Protected HA/schedule marker missing: $marker" }
+          if ($leader -notmatch 'FailoverAfterMs\s*=\s*15000' -or $leader -notmatch 'PrimaryLeaseHeartbeatMs\s*=\s*10000') { throw "D131 HA cadence regression." }
+          foreach ($marker in @('PRIMARY','NEXT_A','NEXT_B','DEEP_HIBERNATE','PromoteStandbyForTakeover','VerifyPrimaryBeforeMutation','PublishScheduleDecision','PublishEarlyStartAndClaimPrimary','ANY_AUTHENTICATED_AGENT')) {
+            if (-not $leader.Contains($marker)) { throw "Protected D131 HA/schedule marker missing: $marker" }
           }
-          if ($transport -notmatch 'PrimaryIdlePollIntervalMs\s*=\s*4000' -or $transport -notmatch 'PrimaryHotPollIntervalMs\s*=\s*2000' -or $transport -notmatch 'StandbyPollIntervalMs\s*=\s*0' -or $transport -notmatch 'MaxConcurrentJobs\s*=\s*12') {
-            throw "D117 bounded Firestore cadence regression."
+          if ($transport -notmatch 'PrimaryActivePollIntervalMs\s*=\s*3000' -or $transport -notmatch 'PrimaryInactivePollIntervalMs\s*=\s*15000' -or $transport -notmatch 'PrimaryHotPollIntervalMs\s*=\s*1000' -or $transport -notmatch 'StandbyPollIntervalMs\s*=\s*0' -or $transport -notmatch 'MaxConcurrentJobs\s*=\s*12') {
+            throw "D131 bounded Firestore cadence regression."
           }
           if ($transport -match 'PROCESSING|TryClaim' -or -not $transport.Contains('CONFIRM_ACK_VERIFY')) { throw "Firestore direct-ACK guard regression." }
-          foreach ($marker in @('MaxPendingAgeMs = 20000L','GREATER_THAN_OR_EQUAL','QUERY_FRESH_ONLY','stale_list_fallback=false','ANDROID_PRESENCE_V1','picker_presence_current')) {
-            if (-not $transport.Contains($marker)) { throw "D127 quota/event queue guard missing: $marker" }
+          foreach ($marker in @('MaxPendingAgeMs = 20000L','GREATER_THAN_OR_EQUAL','QUERY_FRESH_ONLY','stale_list_fallback=false','CONFIRM_ACK_DURABLE_COMMIT','business_day','terminal_duration_ms')) {
+            if (-not $transport.Contains($marker)) { throw "D131 queue/audit guard missing: $marker" }
           }
           if ($transport.Contains('?pageSize=' + 'MaxDocumentsPerPoll')) { throw "D127 unsafe stale list fallback returned." }
           foreach ($marker in @('relay_poc_confirm_guards','OriginalJobProvesConfirmed','MarkLocalConfirmed')) {
@@ -444,12 +451,12 @@ jobs:
           if (-not $ops.Contains('LoadOpen') -or -not $contact.Contains('CALL_SPECIALIST') -or -not $contact.Contains('BRING_TO_PACK')) { throw "Picker contact regression." }
           if (-not $contact.Contains('picker-contact-open-query') -or $contact.Contains('/picker_alerts?pageSize=100')) { throw "D127 Picker alert query must remain server-filtered." }
           if (-not $presence.Contains('schemaVersion != 3') -or -not $presence.Contains('ACTIVE_ANDROID_EVENT_DRIVEN')) { throw "D127 Picker presence schema regression." }
-          if (-not $projection.Contains('ANDROID_PRESENCE_V1') -or -not $projection.Contains('picker_presence_current') -or -not $projection.Contains('ACTIVE_ANDROID_EVENT_DRIVEN')) { throw "D127 event-driven Picker projection missing." }
+          if ($projection.Contains('picker_presence_current') -or $projection.Contains('ANDROID_PRESENCE_V1') -or -not $projection.Contains('ACTIVE_ANDROID_EVENT_DRIVEN')) { throw "D131 Picker projection must use only the dedicated event-driven projection document." }
           if ($ops.Contains('TimeSpan.FromSeconds(15)')) { throw "D127 periodic 15-second Picker presence read returned." }
           foreach ($marker in @('PickerDisconnectGraceSeconds = 180','RefreshPickerWindowBoundary','05:00–23:00','ApplyEventDrivenPickerPresence')) {
             if (-not $ops.Contains($marker)) { throw "D127 Picker presence quota guard missing: $marker" }
           }
-          if (-not $ops.Contains('TimeSpan.FromMinutes(30)') -or -not $fleet.Contains('relay_poc_jobs')) { throw "Fleet metric quota regression." }
+          if (-not $ops.Contains('TimeSpan.FromMinutes(10)') -or -not $fleet.Contains('relay_poc_coordination/daily_')) { throw "D131 fleet metric quota regression." }
           foreach ($marker in @('Microsoft.Web.WebView2','CoreWebView2Environment.CreateAsync','IsPasswordAutosaveEnabled','--remote-debugging-port')) {
             if (-not $ownedHost.Contains($marker)) { throw "D127 owned WebView2 host marker missing: $marker" }
           }
@@ -466,7 +473,7 @@ jobs:
             throw "D127 v53 must not auto-fallback from Agent browser to Desktop browser."
           }
 
-          Write-Host "D130 live metrics + relay recovery regression PASS"
+          Write-Host "D131 Firestore-only HA + durable accounting regression PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh
