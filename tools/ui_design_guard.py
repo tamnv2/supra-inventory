@@ -148,6 +148,16 @@ checks = {
         "D129 — Agent operational UX and Firestore quota hardening" in DECISIONS
         and "D129 Windows Agent compact operational presentation" in DESIGN_SPEC
     ),
+    "authority_d130_relay_live_metrics": (
+        "D130 — PDA↔Agent transport recovery and live resource presentation" in DECISIONS
+        and "D130 — live Agent resource presentation" in DESIGN_SPEC
+    ),
+    "agent_d130_live_resource_clock": all(token in (RELAY_PROGRAM + RELAY_D119_FEATURES) for token in [
+        "RefreshD130ResourceClock",
+        "_lastD130ResourceSampleUtc",
+        "_d128AgentResourceStatus.Refresh()",
+        "_d128BrowserResourceStatus.Refresh()",
+    ]),
     "authority_d128_readiness_resource_overlay": (
         "D128" in DECISIONS
         and "Picklist overlay" in DECISIONS
