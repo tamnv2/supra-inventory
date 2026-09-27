@@ -628,7 +628,6 @@ namespace SupraInventoryRelayAgent
                 _confirmRouteRetryCount = 0;
                 _loadedNonConfirmObservedUrl = "";
                 _loadedNonConfirmObservedAtUtc = DateTime.MinValue;
-                _confirmRetrySourceUrl = "";
                 _confirmRetryIssuedAtUtc = DateTime.MinValue;
                 loginJustCleared = true;
                 _log("SUPRA_BROWSER login_marker=CLEARED direct_retry=rearmed");
