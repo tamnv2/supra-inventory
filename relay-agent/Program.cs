@@ -2393,9 +2393,27 @@ namespace SupraInventoryRelayAgent
             if (Interlocked.CompareExchange(ref _readinessRefreshRunning, 1L, 0L) != 0L) return;
             Task.Run(() =>
             {
-                try { RefreshSupraBrowserStatus(); }
+                try
+                {
+                    EnsureD128BrowserReadyPath();
+                    RefreshSupraBrowserStatus();
+                }
                 finally { Interlocked.Exchange(ref _readinessRefreshRunning, 0L); }
             });
+        }
+
+        private void EnsureD128BrowserReadyPath()
+        {
+            if (_supraBrowser == null || _supraBrowser.IsDesktopSelected()) return;
+            if (!AgentBrowserBundle.SnapshotStatus().Ready) return;
+            if (!string.Equals(_supraBrowserState, "NOT_OPEN", StringComparison.Ordinal) &&
+                !string.Equals(_supraBrowserState, "BROWSER_ERROR", StringComparison.Ordinal))
+                return;
+
+            var state = _supraBrowser.OpenAgentBackground();
+            _supraBrowserReady = state.Ready;
+            _supraBrowserHidden = state.Hidden;
+            _supraBrowserState = state.State ?? "LOADING";
         }
 
         private void RefreshSupraBrowserStatus()
