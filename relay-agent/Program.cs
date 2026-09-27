@@ -1449,6 +1449,7 @@ namespace SupraInventoryRelayAgent
 
         private void CheckAfterHoursSchedule(bool forcePrompt = false)
         {
+            QueueD128BrowserStateRefresh();
             if (_businessSchedule == null) return;
             var now = _businessSchedule.NowOperational();
             var defaultAllowed = _businessSchedule.DefaultRelayAllowed(now);
