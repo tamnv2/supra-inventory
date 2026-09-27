@@ -153,7 +153,9 @@ service cloud.firestore {
     }
 
     match /picker_active_calls/{targetUserId} {
-      allow get, list: if isPickerContactOperator();
+      allow get: if isPickerContactOperator()
+        || (isPicker() && targetUserId == request.auth.token.app_user_id);
+      allow list: if isPickerContactOperator();
 
       allow create: if isPickerContactOperator()
         && request.resource.data.keys().hasOnly([
