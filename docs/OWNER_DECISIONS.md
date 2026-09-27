@@ -1683,7 +1683,7 @@ Status: **OWNER FIELD PASS**.
 
 ## D130 — PDA↔Agent transport recovery and live resource presentation — 2026-09-27
 
-Status: **OWNER APPROVED — IMPLEMENTATION TARGET AGENT v70 + NEXT SIGNED BETA ANDROID**.
+Status: **TECHNICAL / RELEASE PASS — OWNER FIELD ACCEPTANCE OA055 PENDING**.
 
 Field evidence after D129 acceptance shows two independent reliability defects:
 1. Agent CPU/RAM/runtime values are sampled but do not repaint continuously while the main window remains foreground; switching away/back forces visible refresh.
@@ -1698,3 +1698,10 @@ Approved D130 correction:
 - Android foreground realtime gains a 12-second WebSocket handshake watchdog so `connecting` cannot remain indefinitely. A wedged handshake is cancelled and reconnects using the existing bounded backoff.
 - Picker presence remains active-socket/event-driven. Login alone is still not an online-PDA signal; however a healthy logged-in foreground client must recover its realtime socket automatically so presence can appear without app restart.
 - No new provider, collection, heartbeat or periodic presence poll is introduced. Existing D127 fresh-only PENDING, D129 quota guard and Stable OWNER-GATED policy remain authoritative.
+
+Release evidence:
+- Implementation PR **#254** merged to main commit `241f1cd464ff005969b1d7a6f2d979fb64342b50`.
+- Main PASS runs: Repo Authority **36308658427**, Project State **36308658322**, D127 Dashboard Probe **36308658310**, Verify Beta Android **36308658342**, UI Design **36308658329**, Deploy Beta Worker **36308658284**, Verify Beta Relay Agent **36308658298**.
+- Beta Windows Agent **relay-agent-v70** release id **397580687**; EXE asset id **592563191**, size **389632 bytes**, SHA-256 **708400f835ca671bd15632d6c7db93387aff3ed10a307ddcbba2ff3ba7307f02**.
+- Signed Android Beta **beta-vc77** release id **397580708**; APK asset id **592563343**, size **19052908 bytes**, SHA-256 **1d9b0583e5df5537e1a2b1e5936ca015a03e3f18ed830544d8eead34cee5909a**.
+- D130 is technically/release PASS. Remaining gate is **OA055 Owner field acceptance** on one company laptop/PDA. Stable remains OWNER-GATED and untouched.
