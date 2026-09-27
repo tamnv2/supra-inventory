@@ -1403,6 +1403,55 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private void ApplyD128ResourceMetrics(SystemMetrics agent, BrowserResourceSnapshot browser)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<SystemMetrics, BrowserResourceSnapshot>(ApplyD128ResourceMetrics), agent, browser);
+                return;
+            }
+
+            if (agent != null)
+            {
+                _d128AgentResourceStatus.Text =
+                    "Agent · CPU " + agent.ProcessCpuPercent.ToString("0.0") + "% · RAM " +
+                    (agent.ProcessWorkingSetBytes / 1024d / 1024d).ToString("0") + " MB · Thời gian chạy " +
+                    FormatD128Duration(agent.ProcessUptime);
+            }
+
+            if (browser == null || !browser.Available)
+            {
+                _d128BrowserResourceStatus.Text = "Tài nguyên Web: chưa có tiến trình";
+            }
+            else
+            {
+                _d128BrowserResourceStatus.Text =
+                    (string.IsNullOrWhiteSpace(browser.Browser) ? "Web" : browser.Browser) +
+                    " · CPU " + browser.CpuPercent.ToString("0.0") + "% · RAM " +
+                    (browser.WorkingSetBytes / 1024d / 1024d).ToString("0") + " MB · " +
+                    browser.ProcessCount + " tiến trình · Thời gian chạy " +
+                    FormatD128Duration(browser.RunningFor);
+            }
+        }
+
+        private void SetD128ResourceMonitoringPaused()
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(SetD128ResourceMonitoringPaused));
+                return;
+            }
+            _d128AgentResourceStatus.Text = "Tài nguyên Agent: tạm dừng đo khi chạy nền";
+            _d128BrowserResourceStatus.Text = "Tài nguyên Web: tạm dừng đo khi chạy nền";
+        }
+
+        private static string FormatD128Duration(TimeSpan value)
+        {
+            if (value < TimeSpan.Zero) value = TimeSpan.Zero;
+            var totalHours = (int)Math.Floor(value.TotalHours);
+            return totalHours.ToString("00") + ":" + value.Minutes.ToString("00") + ":" + value.Seconds.ToString("00");
+        }
+
         private bool HasActivePickerCommand(string userId)
         {
             lock (_activePickerCommands) return _activePickerCommands.ContainsKey(userId);
