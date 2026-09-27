@@ -676,3 +676,17 @@ For the Beta Windows Agent v68, a restored or newly authenticated Agent session 
 
 D126/D127 confirmation and browser-security guards remain authoritative. Stable remains OWNER-GATED.
 
+
+
+## D129 Agent/browser operating workflow
+
+For Beta Windows Agent v69:
+
+1. Agent authentication restores the preferred Agent-owned Web path unless the operator deliberately stopped it for the current Agent session or explicitly selected Web Desktop.
+2. Exactly one managed browser mode exists at a time. Switching Agent↔Desktop closes the current managed process/profile instance before the other mode starts.
+3. Stop or switch is a deliberate protected action: show the operational warning, request the current Agent user's password, verify against the existing DPAPI-protected local verifier, then perform the change. Password values are never logged or persisted in plaintext.
+4. Agent-owned Web remains background-first. Exact visible Supra login marker may bring it forward for manual credentials. A user may explicitly **Hiện Web** for inspection; **Chuyển Web chạy nền** returns it to hidden operation.
+5. Confirm-dependent automatic relay and manual PickList controls require Agent auth + canonical Web Confirm READY. PRIMARY/STANDBY/FROZEN affects automatic PDA relay authority only; it must not disable otherwise-ready direct/manual PickList work.
+6. Picker presence remains event-driven. READY renders **Đang hoạt động**; transient unexpected disconnect renders **Mất kết nối tạm thời** for the existing 180-second grace; reconnect cancels grace and hard-leave reasons remove immediately.
+7. Shared overtime schedule state is consumed from existing D117 role/lease coordination. Normal UI timers do not create a separate Firestore schedule-read loop. A bounded read after a conflicting explicit schedule submission remains allowed to show the authoritative winning decision.
+8. Realtime-listener research for PRIMARY is a separate field POC and is not part of the v69 runtime.
