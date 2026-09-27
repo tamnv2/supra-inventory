@@ -12,15 +12,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Source
-import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
 import java.security.MessageDigest
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
 data class RelayProbeResult(
@@ -63,13 +60,6 @@ private data class RelayAck(
     val retireAtMs: Long,
 )
 
-private data class RelayCleanupEntry(
-    val jobId: String,
-    val guardId: String,
-    val notBeforeMs: Long,
-    val ownerUid: String,
-)
-
 class RelayPocClient(
     context: Context,
     private val api: InventoryApi,
@@ -82,16 +72,10 @@ class RelayPocClient(
         const val CREATE_FIRST_WAIT_SECONDS = 5L
         const val CREATE_VERIFY_WAIT_SECONDS = 3L
         const val CREATE_RETRY_WAIT_SECONDS = 4L
-        const val TIMED_OUT_PENDING_RETENTION_MS = 60L * 60L * 1000L
-        const val CONFIRMED_RETENTION_MS = 30L * 24L * 60L * 60L * 1000L
-        const val CLEANUP_PREF = "relay_d097_cleanup"
-        const val CLEANUP_KEY = "entries"
         const val JOB_COLLECTION = "relay_poc_jobs"
-        const val GUARD_COLLECTION = "relay_poc_confirm_guards"
     }
 
     private val appContext = context.applicationContext
-    private val prefs = appContext.getSharedPreferences(CLEANUP_PREF, Context.MODE_PRIVATE)
     private val auth by lazy { FirebaseAuth.getInstance() }
     private val firestore by lazy {
         val db = FirebaseFirestore.getInstance()
@@ -106,8 +90,6 @@ class RelayPocClient(
     }
     private val listenerGate = Any()
     private var activeListener: ListenerRegistration? = null
-    private val cleanupExecutor = Executors.newSingleThreadExecutor()
-    private val cleanupInFlight = AtomicBoolean(false)
 
     fun close() {
         synchronized(listenerGate) {
@@ -129,11 +111,7 @@ class RelayPocClient(
         var session = api.session ?: throw ApiException(401, "AUTH_REQUIRED", "Chưa đăng nhập.")
         session = ensureFirestoreAuth(session)
 
-        return try {
-            executeProbe(session, suffix)
-        } finally {
-            triggerCleanupAsync()
-        }
+        return executeProbe(session, suffix)
     }
 
     private fun ensureFirestoreAuth(initial: AppSession): AppSession {
@@ -186,6 +164,8 @@ class RelayPocClient(
             "source" to "ANDROID_CONFIRM_V1",
             "picker_uid" to identity.uid,
             "picker_user_id" to session.userId,
+            "picker_employee_code" to (session.employeeCode ?: ""),
+            "picker_display_name" to session.displayName,
             "client_sent_at_ms" to System.currentTimeMillis(),
             "created_at" to FieldValue.serverTimestamp(),
         )
@@ -240,12 +220,6 @@ class RelayPocClient(
                 ack = readAckFromServer(doc, requestId)
             }
             if (ack == null) {
-                scheduleCleanup(
-                    requestId,
-                    "",
-                    System.currentTimeMillis() + TIMED_OUT_PENDING_RETENTION_MS,
-                    identity.uid,
-                )
                 val listenerError = errorRef.get()
                 if (listenerError != null) {
                     log("D097 Firestore listener chưa hồi phục trong 30s request=" + shortId(requestId) +
@@ -267,13 +241,7 @@ class RelayPocClient(
                     " rtt=" + total + "ms"
             )
 
-            if (ack.guardId.isNotBlank()) {
-                val retire = ack.retireAtMs.takeIf { it > System.currentTimeMillis() }
-                    ?: (System.currentTimeMillis() + CONFIRMED_RETENTION_MS)
-                scheduleCleanup(requestId, ack.guardId, retire, identity.uid)
-            } else {
-                scheduleCleanup(requestId, "", System.currentTimeMillis(), identity.uid)
-            }
+
 
             return RelayProbeResult(
                 requestId = requestId,
@@ -395,143 +363,6 @@ class RelayPocClient(
             )
             null
         }
-    }
-
-    private fun triggerCleanupAsync() {
-        val currentUid = auth.currentUser?.uid?.trim().orEmpty()
-        if (currentUid.isBlank()) return
-        if (!cleanupInFlight.compareAndSet(false, true)) return
-
-        cleanupExecutor.execute {
-            try {
-                runDueCleanup(currentUid)
-            } catch (error: Exception) {
-                log("D115 cleanup background deferred detail=" + safeText(error.message))
-            } finally {
-                cleanupInFlight.set(false)
-            }
-        }
-    }
-
-    private fun runDueCleanup(currentUid: String) {
-        val now = System.currentTimeMillis()
-        val entries = readCleanupEntries()
-        if (entries.isEmpty()) return
-
-        val remaining = ArrayList<RelayCleanupEntry>()
-        var droppedLegacy = 0
-        var droppedForeign = 0
-        var droppedDenied = 0
-
-        for (entry in entries) {
-            if (entry.ownerUid.isBlank()) {
-                droppedLegacy++
-                continue
-            }
-            if (entry.ownerUid != currentUid) {
-                droppedForeign++
-                continue
-            }
-            if (entry.notBeforeMs > now) {
-                remaining += entry
-                continue
-            }
-
-            try {
-                Tasks.await(
-                    firestore.collection(JOB_COLLECTION).document(entry.jobId).delete(),
-                    10,
-                    TimeUnit.SECONDS,
-                )
-                if (entry.guardId.isNotBlank()) {
-                    Tasks.await(
-                        firestore.collection(GUARD_COLLECTION).document(entry.guardId).delete(),
-                        10,
-                        TimeUnit.SECONDS,
-                    )
-                }
-                log(
-                    "D115 cleanup PASS job=" + shortId(entry.jobId) +
-                        (if (entry.guardId.isBlank()) "" else " guard=" + shortId(entry.guardId))
-                )
-            } catch (error: Exception) {
-                val detail = safeText(error.message)
-                if (detail.contains("PERMISSION_DENIED", ignoreCase = true)) {
-                    droppedDenied++
-                } else {
-                    remaining += entry
-                    log(
-                        "D115 cleanup background deferred job=" + shortId(entry.jobId) +
-                            " detail=" + detail
-                    )
-                }
-            }
-        }
-
-        writeCleanupEntries(remaining)
-        if (droppedLegacy + droppedForeign + droppedDenied > 0) {
-            log(
-                "D115 cleanup pruned legacy=" + droppedLegacy +
-                    " foreign=" + droppedForeign +
-                    " denied=" + droppedDenied
-            )
-        }
-    }
-
-    private fun scheduleCleanup(
-        jobId: String,
-        guardId: String,
-        notBeforeMs: Long,
-        ownerUid: String,
-    ) {
-        val entries = readCleanupEntries()
-            .filterNot { it.jobId == jobId }
-            .toMutableList()
-        entries += RelayCleanupEntry(
-            jobId = jobId,
-            guardId = guardId,
-            notBeforeMs = notBeforeMs.coerceAtLeast(0L),
-            ownerUid = ownerUid,
-        )
-        writeCleanupEntries(entries.takeLast(2_000))
-    }
-
-    private fun readCleanupEntries(): List<RelayCleanupEntry> {
-        val raw = prefs.getString(CLEANUP_KEY, null) ?: return emptyList()
-        return try {
-            val array = JSONArray(raw)
-            buildList {
-                for (index in 0 until array.length()) {
-                    val row = array.optJSONObject(index) ?: continue
-                    val jobId = row.optString("job_id").trim()
-                    if (jobId.isBlank()) continue
-                    add(
-                        RelayCleanupEntry(
-                            jobId = jobId,
-                            guardId = row.optString("guard_id").trim(),
-                            notBeforeMs = row.optLong("not_before_ms", 0L),
-                            ownerUid = row.optString("owner_uid").trim(),
-                        )
-                    )
-                }
-            }
-        } catch (_: Exception) {
-            emptyList()
-        }
-    }
-
-    private fun writeCleanupEntries(entries: List<RelayCleanupEntry>) {
-        val array = JSONArray()
-        for (entry in entries) {
-            array.put(
-                JSONObject()
-                    .put("job_id", entry.jobId)
-                    .put("guard_id", entry.guardId)
-                    .put("not_before_ms", entry.notBeforeMs)
-                    .put("owner_uid", entry.ownerUid)
-            )
-        }
-        prefs.edit().putString(CLEANUP_KEY, array.toString()).apply()
     }
 
     private fun firebaseIdentity(idToken: String): RelayFirebaseIdentity {
