@@ -27,12 +27,12 @@
     "user_management": "D120_SOURCE_CANDIDATE__ROOT_ONLY_MANAGED_ROLE_CHANGE__PICKER_HR_AUTHORITY_PRESERVED",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D112_OWNER_ACCEPTED_PASS__EXISTING_METRICS_OPERATIONAL_HIERARCHY__NONBLOCKING_SECONDARY_LOAD",
-    "quota_resilience": "D127_OWNER_FIELD_PASS__D128_V68_READINESS_RESOURCE_OVERLAY_IMPLEMENTATION_IN_PROGRESS",
+    "quota_resilience": "D127_OWNER_FIELD_PASS__D128_V68_TECHNICAL_RELEASE_PASS__FIELD_PENDING",
     "ui_design_guard": "D125_TARGET__ANDROID_BAO_HANG_ONLY__OFFICE_CLIENT_WEB_ALIGNED__NO_SUPRA_PICKLIST_UI",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D118_OWNER_ACCEPTED_PASS__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SELECTED_RANGE_FILTER",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D127_V67_OWNER_FIELD_PASS__D128_V68_BACKGROUND_BROWSER_READINESS_BARRIER_RESOURCE_UI_OVERLAY_IMPLEMENTATION_IN_PROGRESS"
+    "picklist_confirmation_poc": "D128_V68_RELEASED__BACKGROUND_BROWSER_READINESS_BARRIER_RESOURCE_UI_OVERLAY__FIELD_PENDING"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -189,7 +189,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Complete D128 Agent v68 branch, pass authority/continuity/build guards, merge to main and verify Beta relay-agent-v68 release. Stable remains OWNER-GATED.",
+  "next_action": "Run OA053 field acceptance on relay-agent-v68 for hidden Agent WebView2 behavior, readiness barrier, visible-window-only resource monitoring and Picklist overlay. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -822,7 +822,7 @@
     "D121 implementation PR #191 targets relay-agent-v42 from released v41 baseline; first Agent gate exposed AgentConfig.AgentBuild still at 41 and the same PR corrected it to 42 before build.",
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged."
   ],
-  "active_workstream": "D128_AGENT_V68_IMPLEMENTATION__READINESS_RESOURCE_OVERLAY",
+  "active_workstream": "D128_V68_RELEASED__OA053_FIELD_REVIEW",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -1463,9 +1463,9 @@
     "field_acceptance_date": "2026-09-27"
   },
   "d128": {
-    "status": "OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS",
+    "status": "TECHNICAL_RELEASE_PASS__FIELD_ACCEPTANCE_PENDING",
     "date": "2026-09-27",
-    "branch": "d128-agent-readiness-overlay-v68",
+    "branch": "docs/d128-v68-release-checkpoint",
     "baseline_agent_release": "relay-agent-v67",
     "target_agent_release": "relay-agent-v68",
     "d127_field_acceptance": "OWNER_PASS",
@@ -1499,7 +1499,24 @@
     },
     "monitoring_policy": "LOCAL_ONLY__5S_WHILE_MAIN_WINDOW_VISIBLE__STOP_WHEN_HIDDEN__NON_BLOCKING__NO_UPLOAD__NO_SENSITIVE_SUPRA_SESSION_DATA",
     "overlay": "EXISTING_IN_MEMORY_COUNTERS_ONLY__PICKLIST_NHAN__PICKLIST_XAC_NHAN__PICKLIST_LOI__NO_RESOURCE_POLLING__CLICK_THROUGH_WHEN_LOCKED",
-    "implementation": "SOURCE_IN_PROGRESS__CI_NOT_YET_RUN",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "implementation": "MERGED_MAIN__PR_249__ALL_PR_AND_MAIN_GATES_PASS",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "implementation_pr": 249,
+    "main_merge": "921f52274d1634d11cad2ea0ed439d3dfa2eaa21",
+    "main_runs": {
+      "repo_authority": 36300178425,
+      "project_state": 36300178375,
+      "dashboard_probe": 36300178448,
+      "relay_agent": 36300178380,
+      "ui_design": 36300178365
+    },
+    "agent_release": "relay-agent-v68",
+    "agent_release_id": 397536007,
+    "agent_asset_id": 592310281,
+    "agent_size_bytes": 380416,
+    "agent_sha256": "23b23d24418f15a2a7b028df2cc1ac595319ead7a177276e3828a1bc298c4618",
+    "agent_checksum_asset_id": 592310280,
+    "browser_bundle_publish": "PASS__MAIN_RELAY_AGENT_RUN_36300178380",
+    "field_acceptance": "PENDING__OA053"
   }
 }
