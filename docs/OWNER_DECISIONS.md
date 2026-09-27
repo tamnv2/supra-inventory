@@ -1671,3 +1671,30 @@ Release evidence:
 - Main gates PASS: Repo Authority `36305126289`, Project State `36305126367`, D127 Dashboard Probe `36305126268`, UI Design `36305126316`, Verify Beta Relay Agent `36305126265`.
 - Beta prerelease **relay-agent-v69** id `397561381` published from main. Primary EXE asset id `592453697`, size `388096` bytes, SHA-256 `b282cfb63b879d330a13bab80df69dee622ca5efd96e1895a3fea262709e82a4`.
 - D129 is **TECHNICAL / RELEASE PASS**. Remaining gate is **OA054 Owner field acceptance** on one company laptop/PDA. Stable remains OWNER-GATED and untouched.
+
+
+## D129 Owner field acceptance — 2026-09-27
+
+Status: **OWNER FIELD PASS**.
+
+- Owner explicitly confirmed the released Beta Agent **v69** passes the D129 field review.
+- OA054 is closed as OWNER FIELD PASS. This acceptance does not waive defects discovered immediately afterward; those defects are tracked separately under D130.
+- Stable remains OWNER-GATED and untouched.
+
+## D130 — PDA↔Agent transport recovery and live resource presentation — 2026-09-27
+
+Status: **OWNER APPROVED — IMPLEMENTATION TARGET AGENT v70 + NEXT SIGNED BETA ANDROID**.
+
+Field evidence after D129 acceptance shows two independent reliability defects:
+1. Agent CPU/RAM/runtime values are sampled but do not repaint continuously while the main window remains foreground; switching away/back forces visible refresh.
+2. PDA→Firestore→Agent delivery can become unavailable until relay restart. Current field logs show successful PRIMARY polling followed by a Firestore transport-offline transition with no later confirmation polling until the relay is restarted. Android logs independently show both uncertain Firestore creates and requests that are created successfully but never consumed inside the bounded wait. One PDA also remained in realtime `connecting`, so event-driven Picker presence never became authoritative for that device.
+
+Approved D130 correction:
+- Keep expensive Agent/browser resource sampling local-only and visible-window-only. A one-second UI-only clock/repaint updates **Thời gian chạy** continuously from the latest cached sample; CPU/RAM remain bounded coarse samples and must repaint without requiring focus changes.
+- Raise the .NET per-host connection pool floor to 16 for the Agent process. Preserve TLS/proxy policy and do not bypass company filtering.
+- Firestore confirmation transport must be self-healing. Callback/log/UI faults inside a failed poll are isolated, failed confirmation reads use a bounded retry budget, and an unexpected transport-loop exit is supervised/restarted automatically without operator stop/start.
+- Preserve D117 business cadence: PRIMARY 4s idle / 2s hot, 7s lease, 10s failover; STANDBY/FROZEN do not business-poll.
+- Android Firestore request creation uses one logical request/document id. If the SDK write is uncertain, verify that exact document on the server and perform at most one same-id retry; a late first create/Agent ACK must never be overwritten. The terminal wait remains 20 seconds and user copy must state 20 seconds.
+- Android foreground realtime gains a 12-second WebSocket handshake watchdog so `connecting` cannot remain indefinitely. A wedged handshake is cancelled and reconnects using the existing bounded backoff.
+- Picker presence remains active-socket/event-driven. Login alone is still not an online-PDA signal; however a healthy logged-in foreground client must recover its realtime socket automatically so presence can appear without app restart.
+- No new provider, collection, heartbeat or periodic presence poll is introduced. Existing D127 fresh-only PENDING, D129 quota guard and Stable OWNER-GATED policy remain authoritative.
