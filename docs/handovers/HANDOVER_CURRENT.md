@@ -985,7 +985,7 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 ## D131 current design checkpoint — 2026-09-27
 
 - Owner keeps Firestore as the only PDA↔Agent confirmation carrier; the dual Cloudflare+Firestore relay proposal is closed.
-- Capacity model: max 6 Agents, one PRIMARY, business-hibernating NEXT-A/NEXT-B/deep sleepers; 50 PDA per shift, 75 overlap, ~1,200 requests/day and 40 simultaneous burst.
+- Capacity model: up to 20 Agents, one PRIMARY, NEXT-A/NEXT-B plus deep business-hibernating Agents; all keep managed Web Confirm warm for local/manual use; 50 PDA per shift, 75 overlap, ~1,200 requests/day and 40 simultaneous burst.
 - Operating relay window: 05:00–23:00 Asia/Ho_Chi_Minh unless explicitly extended for overtime.
 - Initial design targets: PRIMARY queue 3s, lease heartbeat 8s, lease expiry 12s, query limit >=100.
 - Shared received/confirmed/error counters piggyback PRIMARY lease and are tail-reconciled on takeover.
