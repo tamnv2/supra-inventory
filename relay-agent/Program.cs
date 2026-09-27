@@ -2855,7 +2855,7 @@ namespace SupraInventoryRelayAgent
                 {
                     _password.Clear();
                     _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser();
-                    _listen.Enabled = true;
+                    _listen.Enabled = false;
                     _testOffice.Enabled = true;
                 });
                 SetAgentAuthUi(true);
