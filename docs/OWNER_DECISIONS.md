@@ -1528,3 +1528,20 @@ Approved diagnostic v2:
 - Probe writes logs locally only. No upload/sync transport is implemented.
 - No stealth, anti-detection bypass, user-agent spoofing, `AutomationControlled` bypass, fake headers/referrers, direct WMS API or DevTools Network use is allowed.
 - Stable remains OWNER-GATED and untouched.
+
+## D127 Dashboard Probe v2 — explicit test vs trusted click — 2026-09-27
+
+Field result: v66 direct navigation to the observed WMS session path returned access denied. The prior assumption that a URL seen after a trusted Dashboard click can be replayed directly is therefore rejected.
+
+Approved diagnostic:
+- Keep Agent v66 unchanged while collecting evidence.
+- Probe v2 uses the installed Fixed WebView2 runtime with a separate profile.
+- User-entered navigation is limited to HTTPS on exact auth-supra.winmart.vn or wms-supra.winmart.vn. URL credentials are rejected.
+- Login is manual; form/input values are never read or logged.
+- **Tự động kiểm tra** explicitly starts one bounded method sequence: DOM click, synthetic pointer/mouse, CDP userGesture, browser-level CDP mouse, Enter, Space. Stop on the first navigation or new-window event.
+- Access-target discovery remains fail-closed. If multiple HY1/SFT3 matches exist, only a unique smallest semantic-card candidate may be used.
+- Approved new-window behavior is left to WebView2 instead of being forced into the current tab. Unapproved hosts are blocked.
+- If automatic testing fails, **Theo dõi thao tác người dùng** records only events on the known access-arrow clickable control and sanitized navigation/new-window evidence while the Owner performs one real click.
+- Local log may contain event type, isTrusted, default-prevented, arrow index/count, geometry and boolean semantic flags. It must not contain page text, form values, passwords, cookies, tokens, headers, request bodies, web storage, profile contents, query strings or fragments.
+- Probe has no log-upload transport, no direct WMS API path and no browser-identification spoofing.
+- Stable remains OWNER-GATED and untouched.
