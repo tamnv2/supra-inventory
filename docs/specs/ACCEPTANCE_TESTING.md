@@ -1378,3 +1378,17 @@ D126 cannot PASS until all applicable checks below pass:
 6. Source guard must reject reintroduction of the v64 current-page host-prefix gate. Agent target is v65; WebView2 host remains build 9 and must not be republished solely for this controller fix.
 7. Existing D126 semantic row/checkbox/search/modal guards, D127 quota/presence guards, Android `beta-vc76`, and Stable OWNER-GATED remain unchanged.
 
+## D127 Dashboard Probe v1 — field diagnosis acceptance
+
+1. Windows x64 build and self-test PASS. The packaged probe reuses the installed Agent Fixed WebView2 runtime and uses its own probe profile; it does not bundle or read authentication material from the normal Agent browser profile.
+2. Initial navigation is exactly `https://auth-supra.winmart.vn/dashboard`. If Supra requires login, credentials remain browser-only and the probe waits for the Dashboard.
+3. Target scan records only structural counts. Automatic activation proceeds only when the intended right-arrow target is unique by **Kho Hưng Yên 1 + SFT3**, or when there is exactly one right-arrow candidate on the whole accessible document/frame tree.
+4. Same-origin iframe traversal must accumulate each frame's viewport offset before browser-level CDP mouse input. PASS only if the logged CDP mouse coordinates refer to the target center in the top-level viewport.
+5. Trial order is bounded: DOM click → synthetic pointer/mouse → CDP user-gesture evaluation → CDP trusted mouse → focused target + CDP Enter. Each method gets one observation window; probing stops after navigation/new-window evidence.
+6. Target-event diagnostics record event type plus `isTrusted`/default-prevented state only. No field values, page text dump, credential values or session material are logged.
+7. `NavigationStarting`, `SourceChanged`, `NavigationCompleted`, and `NewWindowRequested` logs reduce URLs to scheme + host + path, removing query strings and fragments.
+8. New-window routing is fail-closed: exact HTTPS `auth-supra.winmart.vn` and `wms-supra.winmart.vn` may remain in the same probe tab; every other host is blocked after sanitized logging.
+9. If all automatic methods fail, one Owner manual click on the intended arrow is allowed while instrumentation stays active. PASS diagnostic evidence identifies whether that manual trusted click emits the missing event/new-window/navigation behavior.
+10. Source guard rejects DevTools Network use, cookie APIs, token/header/storage capture and direct `api-supra.winmart.vn` use.
+11. Probe success is **diagnostic evidence only**. Normal Agent logic must not adopt a newly discovered activation method until a separate source change preserves D126/D127 fail-closed confirmation guards.
+12. Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
