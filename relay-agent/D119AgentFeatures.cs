@@ -19,41 +19,35 @@ namespace SupraInventoryRelayAgent
             if (_supraCard == null) return;
 
             var width = Math.Max(420, _supraCard.ClientSize.Width);
-            var openWidth = Math.Max(150, (width - 40) / 2);
+            const int gap = 8;
+            var buttonWidth = Math.Max(120, (width - 32 - (gap * 2)) / 3);
 
-            _wmsStatus.SetBounds(16, 42, 220, 22);
-            _supraInfo.SetBounds(246, 42, 250, 22);
-            _supraInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-            _d128BrowserResourceStatus.SetBounds(506, 42, Math.Max(120, width - 522), 22);
+            // D129: readiness is in the title; the first detail row is resource-only.
+            _wmsStatus.Visible = false;
+            _supraInfo.Visible = false;
+            _wmsTest.Visible = false;
+            _d128BrowserResourceStatus.SetBounds(16, 40, Math.Max(180, width - 32), 22);
             _d128BrowserResourceStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
-            _wmsCapture.SetBounds(16, 72, openWidth, 32);
-            _wmsDesktop.SetBounds(24 + openWidth, 72, Math.Max(150, width - 40 - openWidth), 32);
+            _wmsCapture.SetBounds(16, 70, buttonWidth, 32);
+            _wmsDesktop.SetBounds(16 + buttonWidth + gap, 70, buttonWidth, 32);
+            _wmsLogout.SetBounds(16 + ((buttonWidth + gap) * 2), 70,
+                Math.Max(120, width - 32 - ((buttonWidth + gap) * 2)), 32);
 
-            _wmsLogout.SetBounds(16, 110, 138, 30);
-            _wmsTest.SetBounds(162, 110, 108, 30);
-            _browserBundleDownload.SetBounds(278, 110, Math.Max(150, width - 294), 30);
-
-            _browserBundleProgress.SetBounds(16, 148, Math.Max(120, width - 32), 18);
-            _browserBundleProgress.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-
-            // Keep runtime status on its own row so it cannot cover the storage controls.
-            _browserBundleStatus.SetBounds(16, 170, Math.Max(220, width - 32), 20);
+            const int downloadWidth = 196;
+            _browserBundleDownload.SetBounds(16, 110, downloadWidth, 30);
+            _browserBundleStatus.SetBounds(220, 112, Math.Max(180, width - 236), 24);
             _browserBundleStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+            _browserBundleProgress.SetBounds(16, 146, Math.Max(120, width - 32), 16);
+            _browserBundleProgress.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
             const int folderButtonWidth = 150;
             _agentDataStorageStatus.SetBounds(
-                16,
-                194,
-                Math.Max(180, width - 32 - folderButtonWidth - 8),
-                24);
+                16, 170, Math.Max(180, width - 32 - folderButtonWidth - 8), 24);
             _agentDataStorageStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-
             _openAgentDataFolder.SetBounds(
-                Math.Max(16, width - 16 - folderButtonWidth),
-                190,
-                folderButtonWidth,
-                28);
+                Math.Max(16, width - 16 - folderButtonWidth), 166, folderButtonWidth, 28);
             _openAgentDataFolder.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         }
 
