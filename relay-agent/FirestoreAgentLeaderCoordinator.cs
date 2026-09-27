@@ -12,15 +12,17 @@ namespace SupraInventoryRelayAgent
 {
     internal enum FirestoreAgentRole
     {
-        FROZEN = 0,
-        STANDBY = 1,
-        PRIMARY = 2
+        DEEP_HIBERNATE = 0,
+        NEXT_B = 1,
+        NEXT_A = 2,
+        PRIMARY = 3
     }
 
     internal sealed class FirestoreRoleSnapshot
     {
         internal string PrimaryAgentInstanceId = "";
-        internal string StandbyAgentInstanceId = "";
+        internal string StandbyAgentInstanceId = ""; // D131 NEXT_A compatibility field in code
+        internal string NextBAgentInstanceId = "";
         internal string Generation = "";
         internal long UpdatedAtMs;
         internal string ScheduleKey = "";
@@ -34,7 +36,7 @@ namespace SupraInventoryRelayAgent
         internal string AgentInstanceId = "";
         internal string AdminUserId = "";
         internal string Machine = "";
-        internal string Role = "FROZEN";
+        internal string Role = "DEEP_HIBERNATE";
         internal string Version = "";
         internal bool WmsReady;
         internal long HeartbeatAtMs;
@@ -42,17 +44,18 @@ namespace SupraInventoryRelayAgent
 
     internal sealed class FirestoreAgentLeaderCoordinator : IDisposable
     {
-        internal const int FailoverAfterMs = 10000;
-        internal const int StandbyTakeoverAgeMs = 10000;
-        internal const int PrimaryLeaseHeartbeatMs = 7000;
+        internal const int FailoverAfterMs = 15000;
+        internal const int StandbyTakeoverAgeMs = 15000;
+        internal const int PrimaryLeaseHeartbeatMs = 10000;
         internal const int PrimaryRoleRefreshMs = 60000;
-        internal const int StandbyRoleRefreshMs = 60000;
-        internal const int FrozenRoleRefreshMs = 30000;
+        internal const int NextARoleRefreshMs = 60000;
+        internal const int NextBRoleRefreshMs = 120000;
+        internal const int DeepHibernateRoleRefreshMs = 600000;
         internal const int StartupConvergenceIntervalMs = 5000;
         internal const int StartupConvergenceCycles = 4;
-        internal const int PresenceHeartbeatIntervalMs = 900000;
-        internal const int PresenceReadIntervalMs = 1800000;
-        internal const int PresenceFreshMs = 2400000;
+        internal const int PresenceHeartbeatIntervalMs = 600000;
+        internal const int PresenceReadIntervalMs = 600000;
+        internal const int PresenceFreshMs = 1500000;
 
         private readonly Func<AgentSession> _sessionProvider;
         private readonly Action _ensureFreshToken;
@@ -67,14 +70,16 @@ namespace SupraInventoryRelayAgent
         private readonly AutoResetEvent _wake = new AutoResetEvent(false);
 
         private CancellationTokenSource _cts;
-        private volatile FirestoreAgentRole _role = FirestoreAgentRole.FROZEN;
+        private volatile FirestoreAgentRole _role = FirestoreAgentRole.DEEP_HIBERNATE;
         private string _primaryId = "";
         private string _standbyId = "";
+        private string _nextBId = "";
         private long _lastPresenceWriteMs;
         private long _lastPresenceReadMs;
         private volatile int _onlineAgentCount;
         private volatile int _onlinePrimaryCount;
         private volatile int _onlineStandbyCount;
+        private volatile int _onlineNextBCount;
         private volatile int _onlineFrozenCount;
         private List<AgentPresenceView> _onlineAgents = new List<AgentPresenceView>();
         private volatile bool _fleetRefreshRequested = true;
@@ -113,15 +118,19 @@ namespace SupraInventoryRelayAgent
         }
 
         internal bool IsLeader { get { return _role == FirestoreAgentRole.PRIMARY; } }
-        internal bool IsStandby { get { return _role == FirestoreAgentRole.STANDBY; } }
-        internal bool IsFrozen { get { return _role == FirestoreAgentRole.FROZEN; } }
+        internal bool IsStandby { get { return _role == FirestoreAgentRole.NEXT_A; } }
+        internal bool IsNextA { get { return _role == FirestoreAgentRole.NEXT_A; } }
+        internal bool IsNextB { get { return _role == FirestoreAgentRole.NEXT_B; } }
+        internal bool IsFrozen { get { return _role == FirestoreAgentRole.DEEP_HIBERNATE; } }
+        internal bool IsDeepHibernate { get { return _role == FirestoreAgentRole.DEEP_HIBERNATE; } }
         internal FirestoreAgentRole Role { get { return _role; } }
         internal string RoleName { get { return _role.ToString(); } }
         internal bool CanPollBusiness { get { return _relayEnabled() && _wmsReady() && _role == FirestoreAgentRole.PRIMARY; } }
-        internal bool IsTransportHealthy { get { return _coordinationHealthy && (!_relayPollHealthy ? _role == FirestoreAgentRole.FROZEN : true); } }
+        internal bool IsTransportHealthy { get { return _coordinationHealthy && (!_relayPollHealthy ? _role == FirestoreAgentRole.DEEP_HIBERNATE : true); } }
         internal int OnlineAgentCount { get { return Math.Max(0, _onlineAgentCount); } }
         internal int OnlinePrimaryCount { get { return Math.Max(0, _onlinePrimaryCount); } }
         internal int OnlineStandbyCount { get { return Math.Max(0, _onlineStandbyCount); } }
+        internal int OnlineNextBCount { get { return Math.Max(0, _onlineNextBCount); } }
         internal int OnlineFrozenCount { get { return Math.Max(0, _onlineFrozenCount); } }
 
         internal List<AgentPresenceView> OnlineAgents
@@ -144,8 +153,10 @@ namespace SupraInventoryRelayAgent
         {
             get
             {
-                if (_role == FirestoreAgentRole.PRIMARY) return FirestoreConfirmationTransport.PrimaryIdlePollIntervalMs;
-                return 2000;
+                if (_role == FirestoreAgentRole.PRIMARY) return FirestoreConfirmationTransport.PrimaryInactivePollIntervalMs;
+                if (_role == FirestoreAgentRole.NEXT_A) return 5000;
+                if (_role == FirestoreAgentRole.NEXT_B) return 30000;
+                return 60000;
             }
         }
 
@@ -371,7 +382,7 @@ namespace SupraInventoryRelayAgent
             try { if (cts != null) cts.Cancel(); } catch { }
             try { if (cts != null) cts.Dispose(); } catch { }
             try { _wake.Set(); } catch { }
-            SetRole(FirestoreAgentRole.FROZEN, "", "", "STOPPED");
+            SetRole(FirestoreAgentRole.DEEP_HIBERNATE, "", "", "STOPPED");
         }
 
         public void Dispose() { Stop(); }
@@ -379,7 +390,7 @@ namespace SupraInventoryRelayAgent
         internal bool PromoteStandbyForTakeover()
         {
             if (_role == FirestoreAgentRole.PRIMARY) return true;
-            if (_role != FirestoreAgentRole.STANDBY || !_relayEnabled() || !_wmsReady()) return false;
+            if (_role != FirestoreAgentRole.NEXT_A || !_relayEnabled() || !_wmsReady()) return false;
 
             var now = NowMs();
             if (_lastTakeoverProbeMs != 0 && now - _lastTakeoverProbeMs < 5000) return false;
@@ -456,9 +467,11 @@ namespace SupraInventoryRelayAgent
                     var session = _sessionProvider();
                     var now = NowMs();
                     var startupConvergence = _startupConvergenceRemaining > 0;
-                    var roleInterval = _role == FirestoreAgentRole.FROZEN
-                        ? FrozenRoleRefreshMs
-                        : (_role == FirestoreAgentRole.STANDBY ? StandbyRoleRefreshMs : PrimaryRoleRefreshMs);
+                    var roleInterval = _role == FirestoreAgentRole.DEEP_HIBERNATE
+                        ? DeepHibernateRoleRefreshMs
+                        : (_role == FirestoreAgentRole.NEXT_A
+                            ? NextARoleRefreshMs
+                            : (_role == FirestoreAgentRole.NEXT_B ? NextBRoleRefreshMs : PrimaryRoleRefreshMs));
                     var roleRefreshDue = startupConvergence ||
                                          _refreshBeforeBusiness ||
                                          _lastRoleRefreshMs == 0 ||
@@ -476,13 +489,17 @@ namespace SupraInventoryRelayAgent
                             WritePrimaryLease(session);
                         waitMs = Math.Max(1000, PrimaryLeaseHeartbeatMs - (int)Math.Min(PrimaryLeaseHeartbeatMs, Math.Max(0L, NowMs() - _lastLeaseWriteMs)));
                     }
-                    else if (_role == FirestoreAgentRole.STANDBY)
+                    else if (_role == FirestoreAgentRole.NEXT_A)
                     {
                         waitMs = CheckPrimaryLease(session);
                     }
+                    else if (_role == FirestoreAgentRole.NEXT_B)
+                    {
+                        waitMs = startupConvergence ? StartupConvergenceIntervalMs : 60000;
+                    }
                     else
                     {
-                        waitMs = startupConvergence ? StartupConvergenceIntervalMs : 30000;
+                        waitMs = startupConvergence ? StartupConvergenceIntervalMs : 600000;
                     }
 
                     MaintainPresence(session);
@@ -525,7 +542,7 @@ namespace SupraInventoryRelayAgent
                 {
                     if (!_relayEnabled() || !_wmsReady())
                     {
-                        SetRole(FirestoreAgentRole.FROZEN, "", "", "WMS_NOT_READY");
+                        SetRole(FirestoreAgentRole.DEEP_HIBERNATE, "", "", "WMS_NOT_READY");
                         return;
                     }
                     var first = new FirestoreRoleSnapshot
@@ -559,7 +576,7 @@ namespace SupraInventoryRelayAgent
                         TryWriteRoles(session, sleep, read);
                     }
                     _generation = snapshot.Generation ?? "";
-                    SetRole(FirestoreAgentRole.FROZEN, "", "", "RELAY_SCHEDULE_SLEEP");
+                    SetRole(FirestoreAgentRole.DEEP_HIBERNATE, "", "", "RELAY_SCHEDULE_SLEEP");
                     return;
                 }
 
@@ -577,7 +594,7 @@ namespace SupraInventoryRelayAgent
                         };
                         if (TryWriteRoles(session, relinquish, read))
                         {
-                            SetRole(FirestoreAgentRole.FROZEN, relinquish.PrimaryAgentInstanceId, "", "PRIMARY_WMS_NOT_READY");
+                            SetRole(FirestoreAgentRole.DEEP_HIBERNATE, relinquish.PrimaryAgentInstanceId, "", "PRIMARY_WMS_NOT_READY");
                             return;
                         }
                         continue;
@@ -600,12 +617,36 @@ namespace SupraInventoryRelayAgent
                         };
                         if (TryWriteRoles(session, clearStandby, read))
                         {
-                            SetRole(FirestoreAgentRole.FROZEN, clearStandby.PrimaryAgentInstanceId, "", "STANDBY_WMS_NOT_READY");
+                            SetRole(FirestoreAgentRole.DEEP_HIBERNATE, clearStandby.PrimaryAgentInstanceId, "", "STANDBY_WMS_NOT_READY");
                             return;
                         }
                         continue;
                     }
-                    SetRole(FirestoreAgentRole.STANDBY, snapshot.PrimaryAgentInstanceId, _instanceId, "STANDBY");
+                    SetRole(FirestoreAgentRole.NEXT_A, snapshot.PrimaryAgentInstanceId, _instanceId, "NEXT_A");
+                    return;
+                }
+
+                if (string.Equals(snapshot.NextBAgentInstanceId, _instanceId, StringComparison.Ordinal))
+                {
+                    _generation = snapshot.Generation ?? "";
+                    if (!_wmsReady())
+                    {
+                        var clearNextB = new FirestoreRoleSnapshot
+                        {
+                            PrimaryAgentInstanceId = snapshot.PrimaryAgentInstanceId,
+                            StandbyAgentInstanceId = snapshot.StandbyAgentInstanceId,
+                            NextBAgentInstanceId = "",
+                            Generation = snapshot.Generation,
+                            UpdatedAtMs = NowMs()
+                        };
+                        if (TryWriteRoles(session, clearNextB, read))
+                        {
+                            SetRole(FirestoreAgentRole.DEEP_HIBERNATE, clearNextB.PrimaryAgentInstanceId, clearNextB.StandbyAgentInstanceId, "NEXT_B_WMS_NOT_READY");
+                            return;
+                        }
+                        continue;
+                    }
+                    SetRole(FirestoreAgentRole.NEXT_B, snapshot.PrimaryAgentInstanceId, snapshot.StandbyAgentInstanceId, "NEXT_B");
                     return;
                 }
 
@@ -641,14 +682,33 @@ namespace SupraInventoryRelayAgent
                     {
                         _generation = standby.Generation ?? "";
                         _leaseMissingSinceMs = 0;
-                        SetRole(FirestoreAgentRole.STANDBY, standby.PrimaryAgentInstanceId, _instanceId, "STANDBY_SELECTED");
+                        SetRole(FirestoreAgentRole.NEXT_A, standby.PrimaryAgentInstanceId, _instanceId, "STANDBY_SELECTED");
+                        return;
+                    }
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(snapshot.NextBAgentInstanceId) && _wmsReady())
+                {
+                    var nextB = new FirestoreRoleSnapshot
+                    {
+                        PrimaryAgentInstanceId = snapshot.PrimaryAgentInstanceId,
+                        StandbyAgentInstanceId = snapshot.StandbyAgentInstanceId,
+                        NextBAgentInstanceId = _instanceId,
+                        Generation = snapshot.Generation,
+                        UpdatedAtMs = NowMs()
+                    };
+                    if (TryWriteRoles(session, nextB, read))
+                    {
+                        _generation = nextB.Generation ?? "";
+                        SetRole(FirestoreAgentRole.NEXT_B, nextB.PrimaryAgentInstanceId, nextB.StandbyAgentInstanceId, "NEXT_B_SELECTED");
                         return;
                     }
                     continue;
                 }
 
                 _generation = snapshot.Generation ?? "";
-                SetRole(FirestoreAgentRole.FROZEN, snapshot.PrimaryAgentInstanceId, snapshot.StandbyAgentInstanceId, "FROZEN");
+                SetRole(FirestoreAgentRole.DEEP_HIBERNATE, snapshot.PrimaryAgentInstanceId, snapshot.StandbyAgentInstanceId, "DEEP_HIBERNATE");
                 return;
             }
 
@@ -690,7 +750,7 @@ namespace SupraInventoryRelayAgent
                         continue;
 
                     candidate = agentId;
-                    if (string.Equals(FieldString(fields, "role"), "FROZEN", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(FieldString(fields, "role"), "DEEP_HIBERNATE", StringComparison.OrdinalIgnoreCase))
                         break;
                 }
 
@@ -806,12 +866,12 @@ namespace SupraInventoryRelayAgent
             {
                 view.Role = string.Equals(view.AgentInstanceId, primary, StringComparison.Ordinal)
                     ? "PRIMARY"
-                    : (string.Equals(view.AgentInstanceId, standby, StringComparison.Ordinal) ? "STANDBY" : "FROZEN");
+                    : (string.Equals(view.AgentInstanceId, standby, StringComparison.Ordinal) ? "NEXT_A" : "DEEP_HIBERNATE");
             }
             views.Sort((a, b) =>
             {
-                var rankA = a.Role == "PRIMARY" ? 0 : (a.Role == "STANDBY" ? 1 : 2);
-                var rankB = b.Role == "PRIMARY" ? 0 : (b.Role == "STANDBY" ? 1 : 2);
+                var rankA = a.Role == "PRIMARY" ? 0 : (a.Role == "NEXT_A" ? 1 : 2);
+                var rankB = b.Role == "PRIMARY" ? 0 : (b.Role == "NEXT_A" ? 1 : 2);
                 var rank = rankA.CompareTo(rankB);
                 if (rank != 0) return rank;
                 return string.Compare(a.Machine ?? "", b.Machine ?? "", StringComparison.OrdinalIgnoreCase);
@@ -851,6 +911,7 @@ namespace SupraInventoryRelayAgent
                     {
                         PrimaryAgentInstanceId = FieldString(fields, "primary_agent_instance_id"),
                         StandbyAgentInstanceId = FieldString(fields, "standby_agent_instance_id"),
+                        NextBAgentInstanceId = FieldString(fields, "next_b_agent_instance_id"),
                         Generation = FieldString(fields, "generation"),
                         UpdatedAtMs = FieldLong(fields, "updated_at_ms"),
                         ScheduleKey = FieldString(fields, "schedule_key"),
@@ -878,6 +939,7 @@ namespace SupraInventoryRelayAgent
             {
                 { "primary_agent_instance_id", StringField(snapshot.PrimaryAgentInstanceId ?? "") },
                 { "standby_agent_instance_id", StringField(snapshot.StandbyAgentInstanceId ?? "") },
+                { "next_b_agent_instance_id", StringField(snapshot.NextBAgentInstanceId ?? "") },
                 { "generation", StringField(snapshot.Generation ?? "") },
                 { "updated_at_ms", IntField(snapshot.UpdatedAtMs) }
             };
@@ -951,16 +1013,18 @@ namespace SupraInventoryRelayAgent
             if (snapshot == null)
             {
                 _generation = "";
-                SetRole(FirestoreAgentRole.FROZEN, "", "", reason);
+                SetRole(FirestoreAgentRole.DEEP_HIBERNATE, "", "", reason);
                 return;
             }
             _generation = snapshot.Generation ?? "";
             if (string.Equals(snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal))
                 SetRole(FirestoreAgentRole.PRIMARY, snapshot.PrimaryAgentInstanceId, snapshot.StandbyAgentInstanceId, reason);
             else if (string.Equals(snapshot.StandbyAgentInstanceId, _instanceId, StringComparison.Ordinal))
-                SetRole(FirestoreAgentRole.STANDBY, snapshot.PrimaryAgentInstanceId, snapshot.StandbyAgentInstanceId, reason);
+                SetRole(FirestoreAgentRole.NEXT_A, snapshot.PrimaryAgentInstanceId, snapshot.StandbyAgentInstanceId, reason);
+            else if (string.Equals(snapshot.NextBAgentInstanceId, _instanceId, StringComparison.Ordinal))
+                SetRole(FirestoreAgentRole.NEXT_B, snapshot.PrimaryAgentInstanceId, snapshot.StandbyAgentInstanceId, reason);
             else
-                SetRole(FirestoreAgentRole.FROZEN, snapshot.PrimaryAgentInstanceId, snapshot.StandbyAgentInstanceId, reason);
+                SetRole(FirestoreAgentRole.DEEP_HIBERNATE, snapshot.PrimaryAgentInstanceId, snapshot.StandbyAgentInstanceId, reason);
         }
 
         private void SetRole(FirestoreAgentRole role, string primaryId, string standbyId, string reason)
@@ -980,7 +1044,7 @@ namespace SupraInventoryRelayAgent
                     _lastPresenceWriteMs = 0;
                     _fleetRefreshRequested = true;
                     if (role == FirestoreAgentRole.PRIMARY) _lastLeaseWriteMs = 0;
-                    if (role != FirestoreAgentRole.STANDBY) _leaseMissingSinceMs = 0;
+                    if (role != FirestoreAgentRole.NEXT_A) _leaseMissingSinceMs = 0;
                 }
             }
             if (!changed) return;
@@ -1135,7 +1199,7 @@ namespace SupraInventoryRelayAgent
 
         private int CheckPrimaryLease(AgentSession session)
         {
-            if (_role != FirestoreAgentRole.STANDBY) return 30000;
+            if (_role != FirestoreAgentRole.NEXT_A) return 30000;
             var generation = _generation ?? "";
             if (string.IsNullOrWhiteSpace(generation))
             {
