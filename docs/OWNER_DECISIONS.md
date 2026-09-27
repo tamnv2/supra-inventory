@@ -1419,3 +1419,19 @@ Release evidence:
 
 D127 v64 is **TECHNICAL / RELEASE PASS**. OA052 remains open until the Owner verifies the real logged-out and already-authenticated flows on the company laptop.
 
+## D127 v65 — cross-host direct Confirm retry — 2026-09-27
+
+Owner field evidence on `relay-agent-v64`: the logged-out path works, but an already-authenticated direct Confirm request may redirect to Dashboard and remain there while Agent reports **Sai trang Confirm**.
+
+Root cause is confirmed in v64 source: the retry path returned early unless the *current* page URL started with `https://wms-supra.winmart.vn`. That contradicts the approved behavior because a Dashboard/SSO redirect may use another company host.
+
+v65 correction:
+- Current page host is no longer used to decide whether the bounded retry may run.
+- The retry destination remains fixed to the canonical Confirm URL: `https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm`.
+- Exact visible **Lưu thông tin đăng nhập** still pauses automatic retry and waits for the user.
+- When that marker clears on a fully loaded non-Confirm page, retry Confirm once immediately.
+- For an already-authenticated loaded non-login/non-Confirm page, require the same URL to remain stable for at least 750 ms before issuing the one retry, preventing a SPA-render race.
+- After retry issuance, allow 3 seconds for navigation/redirect before reporting **Chưa vào được Confirm sau khi thử lại**. No loop.
+- No Dashboard selector/click automation is restored. WebView2 host build 9 is reused; only the Agent/controller advances to v65.
+- Existing D126/D127 confirmation, HA, idempotency, quota and security guards remain unchanged. Android remains `beta-vc76`; Stable remains OWNER-GATED.
+
