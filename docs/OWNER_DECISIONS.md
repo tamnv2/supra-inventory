@@ -1435,3 +1435,20 @@ v65 correction:
 - No Dashboard selector/click automation is restored. WebView2 host build 9 is reused; only the Agent/controller advances to v65.
 - Existing D126/D127 confirmation, HA, idempotency, quota and security guards remain unchanged. Android remains `beta-vc76`; Stable remains OWNER-GATED.
 
+## D127 v65 release checkpoint — cross-host direct Confirm retry — 2026-09-27
+
+v64 Owner field acceptance is **FAIL** for the already-authenticated Dashboard path. v65 removes the incorrect current-page host gate and keeps the retry destination fixed to the canonical Confirm URL.
+
+Release evidence:
+- PR #238 squash-merged to `main` at `f623a83ec6785f920aa2a6916a1f016e9ec63680`.
+- PR gates PASS: Repo Authority `36286272704`, Project State `36286272723`, UI Design `36286272697`, Verify Beta Relay Agent `36286272725`, Firestore `36286272715`, RTDB `36286272676`.
+- Main gates PASS: Repo Authority `36286366129`, Project State `36286366233`, UI Design `36286366194`, Verify Beta Relay Agent `36286366107`.
+- Agent release: `relay-agent-v65`, release id `397466396`, canonical EXE asset id `591888602`, size `349696` bytes, SHA-256 `3df5c5aab895e2c7ae26f8d7eec016fa6ea4cea5aef1a5c883fb30c9910ef75b`.
+- Inventory channel Agent alias advanced to manifest asset `591888652` and EXE asset `591888651`.
+- Agent-owned Fixed WebView2 remains `154.0.4258.37 x64`, host build **9**. The browser channel assets remain unchanged at bundle/manifest/checksum ids `591861254/591861251/591861252`, proving this was an Agent/controller-only release.
+- v65 no longer requires the current Dashboard/SSO page to be hosted at `wms-supra.winmart.vn` before retry. The retry target is still only the canonical Confirm URL.
+- Logged-out exact-marker behavior remains unchanged. Already-authenticated non-login/non-Confirm pages settle for 750 ms, then receive one retry; retry has a 3-second navigation grace before terminal exhaustion. No loop or Dashboard click is introduced.
+- Android remains `beta-vc76`. Stable remains OWNER-GATED and untouched.
+
+D127 v65 is **TECHNICAL / RELEASE PASS**. OA052 remains open for Owner field verification on the real company laptop.
+
