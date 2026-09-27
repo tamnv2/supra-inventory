@@ -2116,7 +2116,6 @@ namespace SupraInventoryRelayAgent
         }
 
         private static string BrowserStateLabel(string state)
-        private static string BrowserStateLabel(string state)
         {
             switch (state ?? "")
             {
@@ -2275,9 +2274,9 @@ namespace SupraInventoryRelayAgent
                 {
                     List<string> parsed;
                     _manualPicklistSearch.Enabled =
+                        HasOperationalReadiness() &&
                         TryParseManualPicklistQueries(_manualPicklistQuery.Text, out parsed);
-                    _manualPicklistGrid.Enabled =
-                        HasAgentSession() && HasReadyConfirmBrowser();
+                    _manualPicklistGrid.Enabled = HasOperationalReadiness();
                     UpdateManualConfirmAllVisibility();
                 });
             }
