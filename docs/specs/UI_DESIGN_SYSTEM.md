@@ -766,13 +766,25 @@ D126 supersedes the unimplemented D125 Office-client UI.
 
 ## D128 Windows Agent resource/status presentation
 
-The next Beta Agent UI change keeps resource information compact and operational rather than turning Overview into a diagnostic dashboard.
+Beta Windows Agent v68 keeps resource information compact and stops measuring it while the main window is hidden.
 
-- **Hệ thống Agent:** reserve one compact resource line below/alongside the existing Agent state area. Recommended default content is **CPU % · RAM MB · Uptime** for the Agent process. Thread/handle counts are optional expanded detail only if the Owner selects them.
-- **Đăng nhập Supra:** reserve one compact browser resource line. Recommended default content is **browser mode/name · aggregate CPU % · aggregate RAM MB · process count · uptime**. CPU/RAM must aggregate the managed browser process tree, not just the root host process.
-- Existing installed/profile storage size remains a separate storage indicator; do not label disk footprint as RAM.
-- Resource sampling remains local, coarse and non-blocking. Do not add high-frequency animation or polling that can itself become a measurable load source.
-- Agent-owned WebView2 is normally hidden/background once Confirm is READY. It is automatically shown only when manual Supra login is required, then hidden again after readiness returns.
-- While either Agent authentication or Web Confirm readiness is missing, Confirm-dependent controls/statuses must visibly remain unavailable rather than appearing operational.
+- **Hệ thống Agent:** one compact line: **CPU % · RAM MB · Thời gian chạy** for the Agent process.
+- **Đăng nhập Supra:** one compact line: managed browser mode/name · aggregate browser-process-tree **CPU % · RAM MB · process count · Thời gian chạy**.
+- Do not show the English user-visible label **Uptime**.
+- Existing installed/profile storage size remains a separate storage indicator; never label disk footprint as RAM.
+- Resource sampling is local-only, non-blocking and coarse. It runs only while the main Agent window is visible; hiding/minimizing to tray stops Agent/browser resource sampling entirely.
+- Tray icon remains the normal Agent icon/name; do not show CPU/RAM/resource metrics in tray hover/status.
+- Agent-owned WebView2 normally runs hidden/background and becomes visible only for mandatory manual Supra login, then hides again after Confirm READY.
+- Confirm-dependent controls remain unavailable until Agent authentication + Web Confirm READY.
 
-Exact resource fields beyond the recommended defaults remain an Owner selection before implementation. Stable remains OWNER-GATED.
+### D128 Picklist overlay
+
+- Overlay content is exactly **Picklist nhận: xx | Picklist xác nhận: xx | Picklist lỗi: xx**.
+- It is always-on-top when enabled and can remain visible while the main Agent window is hidden.
+- Settings: show/hide; lock/unlock; persisted position and size; background color; text color; background opacity.
+- Unlocked: operator can move the overlay.
+- Locked: position is fixed and the overlay is click-through so mouse interaction reaches the application behind it.
+- Overlay updates only from existing in-memory Picklist counters and must not start resource polling or external/provider traffic.
+
+Stable remains OWNER-GATED.
+
