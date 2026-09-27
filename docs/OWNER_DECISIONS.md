@@ -1510,3 +1510,38 @@ Release evidence:
 - Android remains `beta-vc76`. Stable remains OWNER-GATED and untouched.
 
 D127 v66 is **TECHNICAL / RELEASE PASS**. OA052 remains open for the Owner to verify the real already-authenticated Dashboard path and the logged-out/login regression path on the company laptop.
+
+## D127 Dashboard Probe v2 — explicit auto vs trusted user action — 2026-09-27
+
+Owner field evidence invalidates the v66 assumption that the `/sft3/session` URL observed after a trusted Dashboard click can be replayed by direct navigation. On the company laptop, direct v66 navigation to that path returns an access-denied result. Therefore v66 is field-failed for the authenticated-Dashboard recovery path.
+
+Approved diagnostic v2:
+- Keep Agent v66 unchanged during diagnosis. Do not add another Agent auto-click or direct-session workaround until field evidence is complete.
+- Build a lightweight standalone browser using the installed Agent Fixed WebView2 runtime and a separate diagnostic profile.
+- User may enter a URL only on exact HTTPS `auth-supra.winmart.vn` or `wms-supra.winmart.vn`; embedded URL credentials are rejected.
+- Login remains manual in the browser. Probe must never read or log form/input values.
+- Automation starts only when the user presses **Tự động kiểm tra**. The bounded matrix is: DOM click → synthetic pointer/mouse → CDP `Runtime.evaluate` with `userGesture=true` → browser-level CDP mouse → Enter → Space. Stop after the first navigation/new-window evidence.
+- Target discovery may use the known access-arrow SVG plus local semantic checks. When several candidates exist, prefer the unique HY1/SFT3 candidate with the smallest containing semantic area; otherwise fail closed.
+- Unlike v1, approved `NewWindowRequested` is not forced into the current tab. Let WebView2 use its default popup/new-window behavior so the diagnostic stays closer to ordinary browser semantics. New-window to an unscoped host is blocked fail-closed.
+- If auto testing fails or target selection remains ambiguous, the user presses **Theo dõi thao tác người dùng** and then clicks the intended access arrow once. Monitoring is click-target-only: pointer/mouse/click and Enter/Space on the known access-arrow control, plus sanitized navigation/new-window evidence.
+- Logs may include `isTrusted`, preventDefault state, arrow index/count, geometry, and boolean semantic flags. Logs must not include page text, input values, password, cookies, tokens, headers, request bodies, web storage, browser-profile contents, query strings, or fragments.
+- Probe writes logs locally only. No upload/sync transport is implemented.
+- No stealth, anti-detection bypass, user-agent spoofing, `AutomationControlled` bypass, fake headers/referrers, direct WMS API or DevTools Network use is allowed.
+- Stable remains OWNER-GATED and untouched.
+
+## D127 Dashboard Probe v2 — explicit test vs trusted click — 2026-09-27
+
+Field result: v66 direct navigation to the observed WMS session path returned access denied. The prior assumption that a URL seen after a trusted Dashboard click can be replayed directly is therefore rejected.
+
+Approved diagnostic:
+- Keep Agent v66 unchanged while collecting evidence.
+- Probe v2 uses the installed Fixed WebView2 runtime with a separate profile.
+- User-entered navigation is limited to HTTPS on exact auth-supra.winmart.vn or wms-supra.winmart.vn. URL credentials are rejected.
+- Login is manual; form/input values are never read or logged.
+- **Tự động kiểm tra** explicitly starts one bounded method sequence: DOM click, synthetic pointer/mouse, CDP userGesture, browser-level CDP mouse, Enter, Space. Stop on the first navigation or new-window event.
+- Access-target discovery remains fail-closed. If multiple HY1/SFT3 matches exist, only a unique smallest semantic-card candidate may be used.
+- Approved new-window behavior is left to WebView2 instead of being forced into the current tab. Unapproved hosts are blocked.
+- If automatic testing fails, **Theo dõi thao tác người dùng** records only events on the known access-arrow clickable control and sanitized navigation/new-window evidence while the Owner performs one real click.
+- Local log may contain event type, isTrusted, default-prevented, arrow index/count, geometry and boolean semantic flags. It must not contain page text, form values, passwords, cookies, tokens, headers, request bodies, web storage, profile contents, query strings or fragments.
+- Probe has no log-upload transport, no direct WMS API path and no browser-identification spoofing.
+- Stable remains OWNER-GATED and untouched.

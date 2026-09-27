@@ -1,22 +1,33 @@
-# D127 Dashboard Probe
+# D127 Dashboard Probe v2
 
-Purpose: diagnose the real Supra Dashboard activation path without changing normal Agent confirmation behavior.
+Mục tiêu: so sánh **thao tác tự động** với **thao tác người dùng thật** trên Supra Dashboard mà không đọc hoặc xuất dữ liệu đăng nhập/phiên.
 
-## Run
+## Cách dùng
 
-1. Close only the visible **Trình duyệt Agent** window first. The Agent application itself may remain open.
-2. Extract the whole probe ZIP.
-3. Run `SUPRA.Dashboard.Probe.exe`.
-4. The probe opens only `https://auth-supra.winmart.vn/dashboard`.
-5. If Supra shows login, log in normally. The probe waits until Dashboard is loaded, then tests bounded activation methods against the exact right-arrow control.
-6. If automatic methods do not transition, the status asks you to click the intended Dashboard arrow manually once.
-7. Click **Mở thư mục log** and attach the newest `dashboard-probe-*.log` to the project chat.
+1. Giải nén toàn bộ ZIP và chạy `SUPRA.Dashboard.Probe.exe`.
+2. Nhập URL cần kiểm tra vào ô **URL**. Probe chỉ cho phép HTTPS trên đúng `auth-supra.winmart.vn` hoặc `wms-supra.winmart.vn`; URL có user/password bị từ chối.
+3. Bấm **Đi tới**. Nếu Supra yêu cầu đăng nhập, đăng nhập trực tiếp như trình duyệt bình thường.
+4. Khi trang cần kiểm tra đã tải xong, bấm **Tự động kiểm tra**. Probe thử hữu hạn: DOM click → synthetic pointer → CDP `userGesture=true` → browser-level mouse → Enter → Space. Dừng ngay khi có navigation/new-window.
+5. Với new-window hợp lệ, v2 **không ép cùng tab**; để WebView2 xử lý popup mặc định nhằm giữ hành vi gần trình duyệt thường hơn.
+6. Nếu tự động không chuyển trang hoặc target chưa đủ duy nhất, bấm **Theo dõi thao tác người dùng**, sau đó tự bấm đúng nút **Truy cập** một lần.
+7. Bấm **Mở thư mục log** và gửi file `dashboard-probe-v2-*.log` mới nhất vào project chat.
 
-## Safety
+## Log được phép ghi
 
-- Reuses the installed Agent WebView2 Fixed Runtime and dedicated profile only through WebView2.
-- Does not read or copy browser profile files.
-- Does not enable the DevTools Network domain.
-- Does not read cookies, tokens, headers, web storage, password fields, or request payloads.
-- Logged URLs are reduced to scheme + host + path; query strings and fragments are removed.
-- Stable is not touched.
+- Navigation/Source/NewWindow với URL đã bỏ toàn bộ query và fragment.
+- Event trên đúng phần tử mũi tên truy cập: `pointerdown`, `pointerup`, `mousedown`, `mouseup`, `click`, Enter/Space.
+- `isTrusted`, `defaultPrevented`, thứ tự mũi tên, tổng số mũi tên, vị trí/kích thước và các cờ semantic dạng boolean.
+- Runtime/host build và trạng thái probe.
+
+## Tuyệt đối không ghi/đọc
+
+- password hoặc nội dung ô nhập;
+- cookie, token, header, request body;
+- localStorage/sessionStorage;
+- browser profile;
+- DevTools Network;
+- thông tin query/fragment của URL.
+
+Probe không gửi log đi đâu; log chỉ nằm local tại `%LOCALAPPDATA%\SUPRA Inventory\DashboardProbeV2\Logs`.
+
+Không có stealth, user-agent spoofing, bypass `AutomationControlled`, giả header/referrer hoặc cơ chế né giám sát. Đây là công cụ Beta diagnostic; Stable không bị thay đổi.

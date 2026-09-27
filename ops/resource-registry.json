@@ -794,7 +794,7 @@
     "drive_logs": "FIRESTORE_ADMIN_SPOOL_TO_BETA_DRIVE__06_12_18_00__CRASH_BEST_EFFORT",
     "web_online": "WEB_PLUS_ANDROID_ONLY__AGENT_EXCLUDED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "release_status": "D127_V66_SFT3_SESSION_BOOTSTRAP_TECHNICAL_RELEASE_PASS__OA052_FIELD_READY",
+    "release_status": "D127_V66_FIELD_FAIL__DIRECT_SESSION_ACCESS_DENIED",
     "quiet_hours": "KEEP_D117_D118_PICKLIST_RELAY_SCHEDULE",
     "fleet_table": "D127_SCHEMA3_ACTIVE_ANDROID_EVENT_DRIVEN__180S_TRANSIENT_GRACE__NO_PERIODIC_AGENT_PRESENCE_POLL",
     "previous_release": "relay-agent-v65__AUTH_DASHBOARD_DIRECT_CONFIRM_RELOAD_FIELD_FAIL",
@@ -814,8 +814,8 @@
     "inventory_channel_release_id": 394587029,
     "inventory_channel_manifest_asset_id": 591974644,
     "inventory_channel_exe_asset_id": 591974642,
-    "next_target_release": "FIELD_REVIEW_OA052_V66",
-    "next_source_status": "D127_V66_RELEASED__OA052_FIELD_PENDING",
+    "next_target_release": "DIAGNOSTIC_D127_DASHBOARD_PROBE_V2",
+    "next_source_status": "D127_V66_FIELD_FAIL__PROBE_V2_IMPLEMENTING__OA052_PENDING",
     "release_publish_run": 36286366107,
     "wms_health": "MANAGED_BROWSER_CONFIRM_PAGE_READINESS_ONLY",
     "schedule_authority": "KEEP_D117_D118_CONFIRMATION_RELAY_SCHEDULE",
@@ -824,7 +824,7 @@
     "session_recovery": "USER_REOPENS_OR_LOGS_IN_BROWSER__NO_AGENT_SESSION_CAPTURE",
     "browser_runtime": "EXPLICIT_AGENT_WEBVIEW2_FIXED_X64__HOST_BUILD_9_REUSED__AUTH_DASHBOARD_TO_FIXED_/sft3/session__10S_BOUNDED_BOOTSTRAP__WAIT_/sft3/app/dashboard__THEN_CONFIRM_ONCE__NO_DASHBOARD_CLICK",
     "local_storage": "DISPLAY_RUNTIME_PROFILE_CACHE_OTHER_TOTAL_BREAKDOWN__OPEN_BROWSER_DATA_FOLDER__AUTO_DELETE_OBSOLETE_WV2_BUNDLES__KEEP_ACTIVE_AND_PROFILE",
-    "dashboard_probe": "D127_V1_RELEASED_FIELD_READY__STANDALONE_AUTH_DASHBOARD_DIAGNOSTIC__SANITIZED_LOG"
+    "dashboard_probe": "D127_V2_IMPLEMENTING__EXPLICIT_AUTO_VS_TRUSTED_CLICK_COMPARISON__DEFAULT_NEW_WINDOW__LOCAL_SANITIZED_LOG"
   },
   "distribution_channel": {
     "environment": "beta",
@@ -1197,7 +1197,7 @@
     "h4_implementation_pr": 206
   },
   "d127": {
-    "status": "TECHNICAL_RELEASE_PASS__OA052_V66_FIELD_READY",
+    "status": "V66_FIELD_FAIL__DASHBOARD_PROBE_V2_IMPLEMENTING",
     "target_agent_release": "relay-agent-v66",
     "android": "beta-vc76 unchanged",
     "browser_bundle": "inventory-channel / WebView2 Fixed 154.0.4258.37",
@@ -1218,6 +1218,9 @@
     "v66_main": "a65437585bb86ad187c733d7dca80a441047f2fa",
     "v66_release_id": 397480817,
     "v66_release_asset_id": 591974558,
-    "v66_release_sha256": "3093d244aa97a28bf855b76d41554a43fcf4a7fcbe9d7d3c91de87503a5653d0"
+    "v66_release_sha256": "3093d244aa97a28bf855b76d41554a43fcf4a7fcbe9d7d3c91de87503a5653d0",
+    "dashboard_probe_v2_release_target": "d127-dashboard-probe-v2",
+    "dashboard_probe_v2_policy": "USER_URL_APPROVED_HOSTS_ONLY__MANUAL_LOGIN__EXPLICIT_BOUNDED_AUTO__CLICK_ONLY_MONITOR__DEFAULT_POPUP",
+    "dashboard_probe_v2_security": "LOCAL_SANITIZED_LOG_ONLY__NO_SENSITIVE_CAPTURE__NO_STEALTH"
   }
 }
