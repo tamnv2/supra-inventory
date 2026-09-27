@@ -643,5 +643,12 @@ D126 supersedes the D125 workflow changes before D125 implementation.
 ### Agent-owned browser
 - Preferred path is an Agent-owned WebView2 Fixed Runtime host with its own user-data/profile directory.
 - Owned runtime download/update is background and checksum-verified; browser startup never waits on a missing bundle.
-- If unavailable or unhealthy, fall back automatically to the existing dedicated-profile Edge/Chrome path.
+- Desktop Edge/Chrome is an explicit operator-selected fallback through its own button; Agent does not auto-switch browser modes.
 - Both paths expose only the approved DOM Runtime/Page control surface. Agent does not inspect Network, cookies, headers, tokens or passwords.
+
+### D127 v64 direct Confirm route recovery
+- Agent-owned browser startup navigates directly to the canonical Confirm PickList URL. Dashboard-card/warehouse-arrow automation is retired.
+- A fully loaded page containing exact visible text **Lưu thông tin đăng nhập** is treated as login-required. Agent shows a concise login warning and does not retry/reload Confirm while that marker remains.
+- After the marker disappears, a fully loaded non-Confirm page receives exactly one direct navigation retry to the canonical Confirm URL. An already-authenticated initial redirect to Dashboard receives the same one retry.
+- One failed retry is terminal for that cycle: Agent reports that Confirm could not be reached and does not loop. A later exact login-marker cycle or successful READY cycle rearms the bounded retry.
+- User credentials stay browser-only. No Dashboard click, screen-coordinate input, session extraction or direct WMS API is introduced.
