@@ -1559,3 +1559,22 @@ Release evidence:
 - Agent v66 remains unchanged and field-failed for direct session-route recovery. Probe v2 is diagnostic only.
 - Stable remains OWNER-GATED and untouched.
 - OA052 remains open until the Owner uploads the newest sanitized `dashboard-probe-v2-*.log`.
+
+## D127 v67 — field-proven Dashboard click with real child popup — 2026-09-27
+
+Probe v2 field logs establish that automatic DOM click and the Owner's trusted manual click hit the same Dashboard access control: arrow 1 of 3, same HY1/SFT3 semantic match, same 36x36 geometry at the same coordinates, and both produce the same WMS new-window target. The only observed input difference is that the manual action includes trusted pointer/mouse events while DOM click produces an untrusted click event. The Owner confirmed the automatic Probe path still reaches Confirm successfully.
+
+Therefore v67 intentionally uses the simplest successful browser action: one DOM `.click()` on the field-proven HY1/SFT3 target. It does not emulate pointer sequences, keyboard input or trusted events.
+
+The v66 field failure is attributed to host behavior after the click boundary: v66 converted the Dashboard-created new-window target into a same-tab direct navigation. v67 removes that rewrite.
+
+Approved flow:
+- Initial canonical Confirm navigation remains unchanged.
+- Exact visible **Lưu thông tin đăng nhập** remains the login gate. User enters credentials manually; after the marker clears, the existing one direct Confirm retry is preserved because that path previously field-passed.
+- If a valid stored auth session causes Confirm to settle on exact auth Dashboard, wait 750 ms, identify the same HY1/SFT3 access control used by Probe v2, and call `.click()` exactly once.
+- Target selection is fail-closed: use exact right-arrow SVG; prefer the unique HY1/SFT3 semantic candidate; if several semantic candidates exist, only a unique smallest semantic-card candidate within 5% tolerance may be clicked.
+- The owned WebView2 host must preserve new-window/opener semantics. A validated WMS popup is assigned to a new child WebView2 created with the same CoreWebView2Environment and dedicated profile. The original page remains alive but hidden.
+- Agent DevTools disconnects from auth Dashboard and attaches only to an HTTPS WMS page target created by that child popup. No direct navigation to the observed `/sft3/session` URL is allowed.
+- After the WMS child reaches `/sft3/app/dashboard`, Agent navigates that child context once to canonical Confirm. Session/popup flow is bounded and fail-closed.
+- No stealth, user-agent spoofing, fake referrer/header, CDP mouse/keyboard simulation, Network-domain access, cookie/token/header/storage extraction, browser-profile reads or direct WMS API calls are introduced.
+- Host build increments to 10; Agent target is v67. Android remains beta-vc76. Stable remains OWNER-GATED and untouched.
