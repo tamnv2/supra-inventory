@@ -1368,3 +1368,13 @@ D126 cannot PASS until all applicable checks below pass:
 5. Source guards must fail if Agent-owned host/controller contains Dashboard warehouse/SFT3 selector/click automation. They must require exact login marker detection, `document.readyState === 'complete'`, one bounded direct Confirm retry, Agent build 64 and host build 9.
 6. Existing D126 Confirm semantic DOM, paginator 100, checkbox/search/modal mutation guards, Firestore HA/idempotency/quota rules and Android `beta-vc76` remain unchanged. Desktop browser fallback remains explicit; Stable remains OWNER-GATED.
 
+## D127-v65 — cross-host Dashboard retry acceptance
+
+1. Start with an already-authenticated Agent WebView2 profile. Open the Agent browser and let the canonical Confirm request redirect to Dashboard. PASS only if Agent retries the canonical Confirm URL once even when the Dashboard/SSO current host is not `wms-supra.winmart.vn`.
+2. The first loaded non-login/non-Confirm URL must remain stable for at least 750 ms before that retry. PASS only if transient SPA/redirect states do not consume the single retry.
+3. After retry issuance, Agent must show retry-in-progress during a 3-second navigation grace. It must not immediately report retry exhausted while navigation is still committing.
+4. If the retry settles again on a loaded non-login/non-Confirm page, PASS only if Agent stops after that single retry and shows **Chưa vào được Confirm sau khi thử lại**.
+5. Logged-out regression: exact visible **Lưu thông tin đăng nhập** still blocks retry; after successful login and marker removal, a non-Confirm destination receives one direct Confirm retry.
+6. Source guard must reject reintroduction of the v64 current-page host-prefix gate. Agent target is v65; WebView2 host remains build 9 and must not be republished solely for this controller fix.
+7. Existing D126 semantic row/checkbox/search/modal guards, D127 quota/presence guards, Android `beta-vc76`, and Stable OWNER-GATED remain unchanged.
+
