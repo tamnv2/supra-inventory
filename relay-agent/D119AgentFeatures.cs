@@ -1270,6 +1270,120 @@ namespace SupraInventoryRelayAgent
             private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
         }
 
+        private sealed class D128OverlaySettingsDialog : Form
+        {
+            private readonly D128OverlayForm _overlay;
+            private readonly CheckBox _visible = new CheckBox();
+            private readonly CheckBox _locked = new CheckBox();
+            private readonly TrackBar _opacity = new TrackBar();
+            private readonly Label _opacityValue = new Label();
+            private readonly NumericUpDown _width = new NumericUpDown();
+            private readonly NumericUpDown _height = new NumericUpDown();
+            private readonly Label _help = new Label();
+
+            internal D128OverlaySettingsDialog(D128OverlayForm overlay)
+            {
+                _overlay = overlay;
+                Text = "Cài đặt bảng nổi";
+                Width = 490;
+                Height = 450;
+                FormBorderStyle = FormBorderStyle.FixedDialog;
+                MaximizeBox = false;
+                MinimizeBox = false;
+                ShowInTaskbar = false;
+                StartPosition = FormStartPosition.CenterParent;
+                Font = new Font("Segoe UI", 9F);
+
+                _visible.SetBounds(18, 18, 420, 26);
+                _visible.Text = "Hiển thị bảng nổi Picklist";
+                _visible.Checked = overlay.OverlayVisible;
+                _visible.CheckedChanged += (s, e) => overlay.SetOverlayVisible(_visible.Checked);
+                Controls.Add(_visible);
+
+                Controls.Add(new Label { Left = 18, Top = 56, Width = 330, Height = 22, Text = "Độ trong của nền" });
+                _opacity.SetBounds(16, 80, 360, 42);
+                _opacity.Minimum = 35;
+                _opacity.Maximum = 100;
+                _opacity.TickFrequency = 5;
+                _opacity.Value = Math.Max(35, Math.Min(100, (int)Math.Round(overlay.OverlayOpacity * 100.0)));
+                _opacity.Scroll += (s, e) =>
+                {
+                    overlay.SetOverlayOpacity(_opacity.Value / 100.0);
+                    _opacityValue.Text = _opacity.Value + "%";
+                };
+                Controls.Add(_opacity);
+                _opacityValue.SetBounds(384, 86, 58, 24);
+                _opacityValue.Text = _opacity.Value + "%";
+                Controls.Add(_opacityValue);
+
+                _locked.SetBounds(18, 132, 430, 26);
+                _locked.Text = "Khóa vị trí/kích thước và cho chuột xuyên qua";
+                _locked.Checked = overlay.IsLocked;
+                _locked.CheckedChanged += (s, e) =>
+                {
+                    overlay.SetLocked(_locked.Checked);
+                    RefreshEditState();
+                };
+                Controls.Add(_locked);
+
+                Controls.Add(new Label { Left = 18, Top = 176, Width = 95, Height = 22, Text = "Chiều rộng" });
+                _width.SetBounds(118, 172, 100, 28);
+                _width.Minimum = 430;
+                _width.Maximum = 1600;
+                _width.Value = Math.Max(_width.Minimum, Math.Min(_width.Maximum, overlay.OverlayWidth));
+                Controls.Add(_width);
+
+                Controls.Add(new Label { Left = 248, Top = 176, Width = 85, Height = 22, Text = "Chiều cao" });
+                _height.SetBounds(338, 172, 100, 28);
+                _height.Minimum = 42;
+                _height.Maximum = 180;
+                _height.Value = Math.Max(_height.Minimum, Math.Min(_height.Maximum, overlay.OverlayHeight));
+                Controls.Add(_height);
+
+                _width.ValueChanged += (s, e) => { if (!_locked.Checked) overlay.SetOverlaySize((int)_width.Value, (int)_height.Value); };
+                _height.ValueChanged += (s, e) => { if (!_locked.Checked) overlay.SetOverlaySize((int)_width.Value, (int)_height.Value); };
+
+                var background = new Button { Left = 18, Top = 220, Width = 200, Height = 34, Text = "Chọn màu nền..." };
+                background.Click += (s, e) =>
+                {
+                    using (var dialog = new ColorDialog { FullOpen = true, AnyColor = true, Color = overlay.OverlayBackgroundColor })
+                    {
+                        if (dialog.ShowDialog(this) == DialogResult.OK) overlay.SetBackgroundColor(dialog.Color);
+                    }
+                };
+                Controls.Add(background);
+
+                var foreground = new Button { Left = 238, Top = 220, Width = 200, Height = 34, Text = "Chọn màu chữ..." };
+                foreground.Click += (s, e) =>
+                {
+                    using (var dialog = new ColorDialog { FullOpen = true, AnyColor = true, Color = overlay.OverlayTextColor })
+                    {
+                        if (dialog.ShowDialog(this) == DialogResult.OK) overlay.SetTextColor(dialog.Color);
+                    }
+                };
+                Controls.Add(foreground);
+
+                _help.SetBounds(18, 274, 420, 76);
+                _help.ForeColor = Color.DimGray;
+                Controls.Add(_help);
+
+                var close = new Button { Left = 348, Top = 370, Width = 90, Height = 30, Text = "Đóng" };
+                close.Click += (s, e) => Close();
+                Controls.Add(close);
+                RefreshEditState();
+            }
+
+            private void RefreshEditState()
+            {
+                var editable = !_locked.Checked;
+                _width.Enabled = editable;
+                _height.Enabled = editable;
+                _help.Text = _locked.Checked
+                    ? "Đang khóa: bảng nổi cố định và chuột xuyên xuống chương trình phía sau. Mở khóa để kéo hoặc đổi kích thước."
+                    : "Đang mở khóa: kéo bảng nổi để đổi vị trí; nhập kích thước hoặc kéo mép/góc. Màu nền, màu chữ và độ trong vẫn thay đổi được.";
+            }
+        }
+
         private bool HasActivePickerCommand(string userId)
         {
             lock (_activePickerCommands) return _activePickerCommands.ContainsKey(userId);
