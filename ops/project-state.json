@@ -1259,7 +1259,7 @@
     }
   },
   "d127": {
-    "status": "TECHNICAL_RELEASE_PASS__OA052_V67_FIELD_READY",
+    "status": "OWNER_FIELD_PASS__TECHNICAL_RELEASE_PASS",
     "decision_date": "2026-09-26",
     "branch": "d127-quota-browser-hardening",
     "baseline_main": "a1ecf217dc1fb447a4ca445c59c01d1348cb80d2",
@@ -1275,7 +1275,7 @@
     "browser": "EXPLICIT_AGENT_WEBVIEW2_FIXED_X64_OR_DESKTOP_EDGE_CHROME__DIRECT_CONFIRM_INITIAL_NAV__EXACT_LOGIN_MARKER__POST_LOGIN_ONE_CONFIRM_RETRY__STORED_SESSION_AUTH_DASHBOARD_ONE_FIELD_PROVEN_DOM_CLICK__REAL_CHILD_POPUP__WMS_CHILD_REATTACH__NO_DIRECT_SESSION_NAV",
     "browser_security": "RUNTIME_PAGE_DOM_ONLY__NO_NETWORK_COOKIE_TOKEN_PASSWORD_HEADER_STORAGE_REQUEST_PROFILE_EXTRACTION__NO_DIRECT_WMS_API__NO_STEALTH",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "next_action": "RUN_OA052_V67_LOGIN_AND_STORED_SESSION_DASHBOARD_ACCEPTANCE",
+    "next_action": "D128_REQUIREMENTS_INTAKE__METRIC_SELECTION_PENDING",
     "main_merge": "f5ad9d45be3445b6e030d1f5f0de1abc0507b54e",
     "agent_release": "relay-agent-v67",
     "agent_release_id": 397498020,
@@ -1458,6 +1458,49 @@
     "v67_release_id": 397498020,
     "v67_release_asset_id": 592064220,
     "v67_release_size_bytes": 361984,
-    "v67_release_sha256": "01067a5443a68b084266d012355fe9a8abd94b655994b4493f655a31d8bff790"
+    "v67_release_sha256": "01067a5443a68b084266d012355fe9a8abd94b655994b4493f655a31d8bff790",
+    "field_acceptance": "PASS__OWNER_CONFIRMED_V67_CONFIRM_ACCESS_REQUIREMENT",
+    "field_acceptance_date": "2026-09-27"
+  },
+  "d128": {
+    "status": "REQUIREMENTS_PARTIALLY_APPROVED__METRICS_OWNER_SELECTION_PENDING",
+    "date": "2026-09-27",
+    "branch": "docs/d128-readiness-resource-observability",
+    "baseline_agent_release": "relay-agent-v67",
+    "d127_field_acceptance": "OWNER_PASS",
+    "approved_scope": [
+      "OWNED_WEBVIEW2_BACKGROUND_BY_DEFAULT_AFTER_VALID_AGENT_AUTH",
+      "SHOW_OWNED_BROWSER_ONLY_WHEN_EXACT_SUPRA_LOGIN_MARKER_REQUIRES_MANUAL_LOGIN",
+      "AUTO_HIDE_AGAIN_AFTER_CONFIRM_READY",
+      "STRICT_AGENT_AUTH_PLUS_CONFIRM_READY_BARRIER_BEFORE_CONFIRM_DEPENDENT_BUSINESS_LOGIC",
+      "PAUSE_FAIL_CLOSED_IF_EITHER_PREREQUISITE_IS_LOST",
+      "DESKTOP_BROWSER_REMAINS_EXPLICIT_USER_SELECTED_ALTERNATIVE"
+    ],
+    "resource_metrics_recommended": {
+      "agent": [
+        "PROCESS_CPU_PERCENT",
+        "PROCESS_WORKING_SET_MB",
+        "PROCESS_UPTIME"
+      ],
+      "browser": [
+        "MODE_NAME",
+        "PROCESS_TREE_CPU_PERCENT",
+        "PROCESS_TREE_WORKING_SET_MB",
+        "PROCESS_COUNT",
+        "PROCESS_TREE_UPTIME"
+      ]
+    },
+    "resource_metrics_optional": {
+      "agent": [
+        "THREAD_COUNT",
+        "HANDLE_COUNT"
+      ],
+      "browser": [
+        "PROFILE_STORAGE_SIZE_ALREADY_PRESENT"
+      ]
+    },
+    "monitoring_policy": "LOCAL_ONLY__COARSE_EXISTING_5S_CADENCE__NON_BLOCKING__NO_UPLOAD__NO_SENSITIVE_SUPRA_SESSION_DATA",
+    "implementation": "NOT_STARTED__WAITING_OWNER_METRIC_SELECTION_TO_SHIP_ONE_BOUNDED_AGENT_RELEASE",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }
