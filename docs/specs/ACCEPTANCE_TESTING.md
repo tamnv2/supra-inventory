@@ -1358,3 +1358,13 @@ D126 cannot PASS until all applicable checks below pass:
 10. Install/publish the Agent-owned browser bundle. On a capable x64 machine, PASS when Agent starts the Fixed WebView2 host/profile, normal user Edge can be closed/terminated without killing Agent Web Confirm, and login/profile persistence works without Agent logging/reading credentials.
 11. Remove/corrupt/block the owned bundle on another test. PASS when Agent automatically falls back to dedicated-profile Edge or Chrome and D126 DOM confirmation still works.
 12. Source guards must prove Runtime/Page-only browser control, no Network/cookie/token/session extraction, checksum verification for the browser bundle, v51 build alignment, D117/D118 HA invariants, and Stable untouched.
+
+## D127-v64 — login-aware direct Confirm route acceptance
+
+1. **Logged-out path:** open the Agent-owned browser. It must target the canonical Confirm PickList URL. After the login page fully loads and exact visible text **Lưu thông tin đăng nhập** is present, PASS only if Agent shows **Cần đăng nhập Supra trên trình duyệt** and performs no automatic Confirm reload while that marker remains.
+2. Complete Supra login manually in the browser. If Supra lands on Dashboard, PASS only if Agent directly navigates the same tab to the canonical Confirm URL exactly once and then reaches normal D126/D127 readiness without clicking any Dashboard card/action.
+3. **Already-authenticated path:** with the saved browser profile already logged in, open the Agent browser. If the first canonical Confirm navigation is redirected to Dashboard, PASS only if the fully loaded non-login page triggers exactly one direct Confirm retry and reaches Confirm.
+4. Force the retry target to remain on a loaded non-login, non-Confirm page. PASS only if Agent stops after one retry, shows **Chưa vào được Confirm sau khi thử lại**, and produces no navigation loop.
+5. Source guards must fail if Agent-owned host/controller contains Dashboard warehouse/SFT3 selector/click automation. They must require exact login marker detection, `document.readyState === 'complete'`, one bounded direct Confirm retry, Agent build 64 and host build 9.
+6. Existing D126 Confirm semantic DOM, paginator 100, checkbox/search/modal mutation guards, Firestore HA/idempotency/quota rules and Android `beta-vc76` remain unchanged. Desktop browser fallback remains explicit; Stable remains OWNER-GATED.
+
