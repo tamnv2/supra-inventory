@@ -2550,7 +2550,7 @@
     },
     {
       "id": "OA052",
-      "status": "FIELD_FAIL_V64__V65_IMPLEMENTING",
+      "status": "FIELD_READY__D127_V65_TECHNICAL_RELEASE_PASS",
       "title": "Field-accept D127 quota-safe relay and Agent-owned browser fallback",
       "resource_key": "repo",
       "provider": "Beta Firestore + Windows Agent + Supra managed browser",
@@ -2560,28 +2560,30 @@
         "target_agent_release": "relay-agent-v65",
         "android_baseline": "beta-vc76",
         "stable": "OWNER_GATED",
-        "technical_release": "V64_PASS_BUT_FIELD_FAIL__V65_PENDING",
+        "technical_release": "PASS__V65_RELEASED__HOST_BUILD_9_REUSED",
         "latest_field_result": "V64_FAIL__LOGIN_PATH_RECOVERS__ALREADY_AUTHENTICATED_DASHBOARD_PATH_STAYS_WRONG_PAGE",
         "v63_main": "f7dd84a151e295d30dc7e6082524fe198b1bb314",
         "v64_main": "402faa0c073a34fa968b1b056fb74c6f857c0b64",
+        "v65_main": "f623a83ec6785f920aa2a6916a1f016e9ec63680",
+        "v65_main_ui_run": 36286366194,
         "v64_main_ui_run": 36285587090,
         "browser_host_build": 9,
         "browser_bundle_manifest_asset_id": 591861251,
         "browser_bundle_checksum_asset_id": 591861252,
-        "implementation_pr": 236,
-        "implementation_main": "402faa0c073a34fa968b1b056fb74c6f857c0b64",
+        "implementation_pr": 238,
+        "implementation_main": "f623a83ec6785f920aa2a6916a1f016e9ec63680",
         "release_repair_pr": 209,
         "release_repair_main": "74947a0a66bb63c0ec02d2b00ba7bda31c189b1d",
-        "agent_release_id": 397461190,
-        "agent_asset_id": 591859697,
-        "agent_sha256": "c0a5d56d77ee2b701207082706afc3adf14aab966c72187168ba6420986f079c",
+        "agent_release_id": 397466396,
+        "agent_asset_id": 591888602,
+        "agent_sha256": "3df5c5aab895e2c7ae26f8d7eec016fa6ea4cea5aef1a5c883fb30c9910ef75b",
         "browser_runtime_version": "154.0.4258.37",
         "browser_bundle_asset_id": 591861254,
         "browser_bundle_sha256": "2be8b5665c7793dbbd3d54d58d96d487003aaa9dd8e51c8f034a8644461fdbec",
-        "main_relay_agent_run": 36285587114
+        "main_relay_agent_run": 36286366107
       },
       "shortest_test_path": [
-        "After v65 is released, update/restart Beta Agent to relay-agent-v65; leave Android beta-vc76 unchanged.",
+        "Update/restart Beta Agent to relay-agent-v65; leave Android beta-vc76 unchanged.",
         "Open the Agent browser. It must navigate directly to the canonical Confirm PickList URL and must not click any Dashboard card/action.",
         "Logged-out path: when the loaded page visibly contains exact text Lưu thông tin đăng nhập, Agent must show Cần đăng nhập Supra trên trình duyệt and must not retry/reload Confirm while that marker remains.",
         "After the user completes login, if the fully loaded page is not the Confirm URL, Agent may navigate directly to Confirm exactly once. The same one-retry behavior applies when an already-authenticated first navigation lands on Dashboard.",
@@ -2604,7 +2606,7 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company Supra accounts. Do not share passwords, cookies, tokens, headers, signatures or other session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for v65 release, then field-test both paths. Already-authenticated Dashboard must trigger one direct Confirm retry even when the current Dashboard/SSO host differs from wms-supra.winmart.vn.",
+      "remaining_owner_action": "Update/restart Beta Agent to v65 and field-test both paths. Already-authenticated Dashboard must trigger one direct Confirm retry even when the current Dashboard/SSO host differs from wms-supra.winmart.vn.",
       "closed": false
     }
   ]
