@@ -1983,7 +1983,10 @@ namespace SupraInventoryRelayAgent
             switch (state ?? "")
             {
                 case "READY": return "Web Confirm sẵn sàng";
-                case "LOGIN_OR_DOM_NOT_READY": return "Chờ đăng nhập / tải trang";
+                case "LOGIN_REQUIRED": return "Cần đăng nhập Supra trên trình duyệt";
+                case "AUTO_RETRY_CONFIRM": return "Đang thử lại trang Confirm";
+                case "CONFIRM_RETRY_EXHAUSTED": return "Chưa vào được Confirm sau khi thử lại";
+                case "LOGIN_OR_DOM_NOT_READY": return "Chờ tải trang Confirm";
                 case "CONFIRM_DOM_PARTIAL": return "Đang nhận diện giao diện Confirm";
                 case "WRONG_PAGE": return "Sai trang Confirm";
                 case "BROWSER_ERROR": return "Lỗi trình duyệt";
@@ -2396,13 +2399,18 @@ namespace SupraInventoryRelayAgent
                     _wmsStatus.Text = state.Ready
                         ? "Web Confirm sẵn sàng"
                         : "Web Confirm: " + BrowserStateLabel(state.State);
+                    _wmsStatus.ForeColor = state.Ready
+                        ? Color.FromArgb(35, 122, 76)
+                        : (state.LoginMarkerDetected ? Color.FromArgb(180, 116, 30) : SystemColors.ControlText);
                     _supraInfo.Text =
                         "HY1 · " + (string.IsNullOrWhiteSpace(state.Browser) ? "Trình duyệt" : state.Browser) +
                         (state.Hidden ? " · Đang ẩn" : " · Đang hiển thị") +
-                        (state.Ready ? "" :
-                            " · DOM Tìm=" + state.SearchCount +
-                            " XN=" + state.ConfirmCount +
-                            " Bảng=" + state.TableCount);
+                        (state.LoginMarkerDetected
+                            ? " · Cần nhập thông tin đăng nhập Supra"
+                            : (state.Ready ? "" :
+                                " · DOM Tìm=" + state.SearchCount +
+                                " XN=" + state.ConfirmCount +
+                                " Bảng=" + state.TableCount));
                     _wmsLogout.Text = state.Hidden ? "Hiện trình duyệt" : "Ẩn trình duyệt";
                     _wmsLogout.Enabled = !string.Equals(state.State, "NOT_OPEN", StringComparison.Ordinal) && HasAgentSession();
                     _wmsTest.Enabled = !string.Equals(state.State, "NOT_OPEN", StringComparison.Ordinal) && HasAgentSession();
@@ -2452,6 +2460,8 @@ namespace SupraInventoryRelayAgent
                     " confirm_visible=" + state.ConfirmVisibleCount +
                     " table=" + state.TableCount +
                     " frames=" + state.FrameCount +
+                    " loaded=" + (state.PageLoaded ? "1" : "0") +
+                    " login_marker=" + (state.LoginMarkerDetected ? "1" : "0") +
                     " session_extract=false direct_wms_api=false auto_fallback=false");
             }
             catch (Exception ex)
@@ -2499,6 +2509,8 @@ namespace SupraInventoryRelayAgent
                     " confirm_visible=" + state.ConfirmVisibleCount +
                     " table=" + state.TableCount +
                     " frames=" + state.FrameCount +
+                    " loaded=" + (state.PageLoaded ? "1" : "0") +
+                    " login_marker=" + (state.LoginMarkerDetected ? "1" : "0") +
                     " session_extract=false direct_wms_api=false");
                 RefreshSupraBrowserStatus();
             }
