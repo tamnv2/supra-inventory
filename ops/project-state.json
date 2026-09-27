@@ -1259,12 +1259,12 @@
     }
   },
   "d127": {
-    "status": "DASHBOARD_PROBE_V2_RELEASE_PASS__OA052_FIELD_READY",
+    "status": "PROBE_V2_FIELD_PASS__V67_DASHBOARD_CLICK_POPUP_IMPLEMENTING",
     "decision_date": "2026-09-26",
     "branch": "d127-quota-browser-hardening",
     "baseline_main": "a1ecf217dc1fb447a4ca445c59c01d1348cb80d2",
     "baseline_release": "beta-vc76 / relay-agent-v50",
-    "target_agent_release": "relay-agent-v66",
+    "target_agent_release": "relay-agent-v67",
     "android": "KEEP_BETA_VC76_UNCHANGED",
     "quota": "FIRESTORE_PENDING_CREATED_AT_SERVER_FILTER__NO_BROAD_LIST_FALLBACK__FLEET_METRICS_30M",
     "picker_presence": "SCHEMA3_ACTIVE_ANDROID_EVENT_DRIVEN__SINGLE_SLOT_RELAY_EVENT__180S_TRANSIENT_GRACE__NO_PERIODIC_AGENT_PRESENCE_POLL",
@@ -1275,7 +1275,7 @@
     "browser": "EXPLICIT_AGENT_WEBVIEW2_FIXED_X64_OR_DESKTOP_EDGE_CHROME__DIRECT_CONFIRM_NAVIGATION__EXACT_LOGIN_MARKER__ONE_BOUNDED_RETRY__NO_DASHBOARD_CLICK__NO_AUTO_CROSS_MODE_FALLBACK",
     "browser_security": "RUNTIME_PAGE_DOM_ONLY__NO_NETWORK_COOKIE_TOKEN_PASSWORD_EXTRACTION__NO_DIRECT_WMS_API",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "next_action": "RUN_OA052_DASHBOARD_PROBE_V2__UPLOAD_SANITIZED_LOG",
+    "next_action": "MERGE_RELEASE_V67__FIELD_TEST_LOGIN_AND_STORED_SESSION_DASHBOARD",
     "main_merge": "f5ad9d45be3445b6e030d1f5f0de1abc0507b54e",
     "agent_release": "relay-agent-v66",
     "agent_release_id": 397480817,
@@ -1403,7 +1403,7 @@
     "v65_release_asset_id": 591888602,
     "v65_release_size_bytes": 349696,
     "v65_release_sha256": "3df5c5aab895e2c7ae26f8d7eec016fa6ea4cea5aef1a5c883fb30c9910ef75b",
-    "field_gate": "OA052__V66_FIELD_FAIL_RECORDED__PROBE_V2_RELEASED__FIELD_LOG_PENDING",
+    "field_gate": "OA052__V67_IMPLEMENTING__FIELD_ACCEPTANCE_PENDING",
     "v65_field_result": "FAIL__AUTH_DASHBOARD_REQUIRES_SFT3_SESSION_ACTIVATION",
     "dashboard_probe_branch": "diag/d127-dashboard-click-probe",
     "dashboard_probe_release_target": "d127-dashboard-probe-v1",
@@ -1445,6 +1445,12 @@
     "dashboard_probe_v2_zip_size_bytes": 488910,
     "dashboard_probe_v2_zip_sha256": "1111204c23ce1e121c47d3859c0193c467b90f1eca70867028fba3fbb282f0fa",
     "dashboard_probe_v2_checksum_asset_id": 592021856,
-    "dashboard_probe_v2_field_gate": "OA052__FIELD_READY__AUTO_THEN_CLICK_ONLY_MONITOR_LOG"
+    "dashboard_probe_v2_field_gate": "OA052__FIELD_READY__AUTO_THEN_CLICK_ONLY_MONITOR_LOG",
+    "probe_v2_field_result": "PASS__AUTO_DOM_CLICK_OPENS_CONFIRM__MANUAL_CLICK_MATCHES_SAME_TARGET_AND_POPUP",
+    "probe_v2_auto_evidence": "ARROW_1_OF_3__HY1_SFT3__36X36_AT_489_270__CLICK_TRUSTED_FALSE__NEW_WINDOW_/sft3/session__FIELD_CONFIRM_OK",
+    "probe_v2_manual_evidence": "SAME_ARROW_1_OF_3__SAME_GEOMETRY__POINTER_MOUSE_CLICK_TRUSTED_TRUE__SAME_NEW_WINDOW_/sft3/session",
+    "v67_root_cause": "V66_FAILED_BECAUSE_HOST_CONVERTED_DASHBOARD_POPUP_TO_DIRECT_SAME_TAB_NAVIGATION__LOSING_NEW_WINDOW_OPENER_CONTEXT",
+    "v67_scope": "LOGIN_PATH_KEEP_DIRECT_CONFIRM_RETRY__STORED_SESSION_AUTH_DASHBOARD_STABLE_750MS__ONE_DOM_CLICK_ON_FIELD_PROVEN_HY1_SFT3_SMALLEST_CARD__HOST_BUILD_10_REAL_CHILD_WEBVIEW2_SAME_ENV_PROFILE__RECONNECT_WMS_CHILD_TARGET__WAIT_SFT3_APP_DASHBOARD__THEN_CONFIRM_ONCE__NO_DIRECT_SESSION_NAV__NO_LOOP",
+    "v67_security": "NO_STEALTH__NO_UA_SPOOF__NO_NETWORK_COOKIE_TOKEN_HEADER_STORAGE_REQUEST_CAPTURE__NO_DIRECT_WMS_API"
   }
 }
