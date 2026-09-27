@@ -27,6 +27,8 @@ namespace SupraInventoryRelayAgent
         internal int ConfirmVisibleCount;
         internal int TableCount;
         internal int FrameCount;
+        internal bool PageLoaded;
+        internal bool LoginMarkerDetected;
     }
 
     internal sealed class SupraBrowserSearchResult
@@ -78,13 +80,13 @@ namespace SupraInventoryRelayAgent
         private string _browserName = "";
         private string _targetUrl = "";
         private BrowserLaunchMode _launchMode = BrowserLaunchMode.None;
-        private bool _warehouseEntryTriggered;
-        private string _warehouseEntrySourceUrl = "";
-        private DateTime _warehouseEntryTriggeredAtUtc = DateTime.MinValue;
-        private DateTime _lastDashboardRecoveryAtUtc = DateTime.MinValue;
+        private int _confirmRouteRetryCount;
+        private bool _loginMarkerObserved;
+        private DateTime _lastConfirmRouteRetryAtUtc = DateTime.MinValue;
         private bool _disposed;
 
         private const string ConfirmPath = "/sft3/app/saleorder/auto-pickpack-confirm";
+        private const string LoginMarkerText = "Lưu thông tin đăng nhập";
         private const string SearchText = "Tìm kiếm";
         private const string ConfirmText = "Xác nhận lấy lại hàng";
         private const string ConfirmDialogTitle = "XÁC NHẬN LẤY LẠI HÀNG";
@@ -126,7 +128,10 @@ namespace SupraInventoryRelayAgent
                     StartNoLock(mode);
                 }
 
+                ResetDirectConfirmRecoveryNoLock();
                 NavigateConfirmNoLock();
+                _log("SUPRA_BROWSER direct_confirm=INITIAL_NAVIGATE mode=" +
+                     (mode == BrowserLaunchMode.Agent ? "AGENT" : "DESKTOP"));
                 ShowNoLock();
             }
             return WaitForReady(TimeSpan.FromSeconds(12));
@@ -180,11 +185,28 @@ namespace SupraInventoryRelayAgent
                     ConfirmCount = Int(map, "confirmCount"),
                     ConfirmVisibleCount = Int(map, "confirmVisibleCount"),
                     TableCount = Int(map, "tableCount"),
-                    FrameCount = Int(map, "frameCount")
+                    FrameCount = Int(map, "frameCount"),
+                    PageLoaded = Bool(map, "pageLoaded"),
+                    LoginMarkerDetected = Bool(map, "loginMarker")
                 };
 
-                if (!state.Ready && TryRecoverConfirmRouteNoLock(state))
-                    state.State = "AUTO_RECOVERING_CONFIRM";
+                if (state.Ready)
+                {
+                    ResetDirectConfirmRecoveryNoLock();
+                }
+                else if (TryRecoverConfirmRouteNoLock(state))
+                {
+                    state.State = "AUTO_RETRY_CONFIRM";
+                }
+                else if (_launchMode == BrowserLaunchMode.Agent &&
+                         state.PageLoaded &&
+                         !state.LoginMarkerDetected &&
+                         _confirmRouteRetryCount >= 1 &&
+                         !string.IsNullOrWhiteSpace(state.Url) &&
+                         state.Url.IndexOf(ConfirmPath, StringComparison.OrdinalIgnoreCase) < 0)
+                {
+                    state.State = "CONFIRM_RETRY_EXHAUSTED";
+                }
 
                 return state;
             }
@@ -541,10 +563,7 @@ namespace SupraInventoryRelayAgent
             _process = null;
             _port = 0;
             _targetUrl = "";
-            _warehouseEntryTriggered = false;
-            _warehouseEntrySourceUrl = "";
-            _warehouseEntryTriggeredAtUtc = DateTime.MinValue;
-            _lastDashboardRecoveryAtUtc = DateTime.MinValue;
+            ResetDirectConfirmRecoveryNoLock();
         }
 
         private void EnsureReadyNoLock()
@@ -557,179 +576,61 @@ namespace SupraInventoryRelayAgent
                 throw new InvalidOperationException("Web Confirm chưa sẵn sàng. Hãy mở đúng trang và đăng nhập Supra.");
         }
 
+        private void ResetDirectConfirmRecoveryNoLock()
+        {
+            _confirmRouteRetryCount = 0;
+            _loginMarkerObserved = false;
+            _lastConfirmRouteRetryAtUtc = DateTime.MinValue;
+        }
+
         private bool TryRecoverConfirmRouteNoLock(SupraBrowserState state)
         {
-            // The Desktop browser remains user-controlled. The one-tab recovery is only
-            // for the Agent-owned WebView2 host where NewWindowRequested is intercepted.
-            if (_launchMode != BrowserLaunchMode.Agent || state == null || state.Ready) return false;
+            // v64: the Agent-owned browser no longer clicks Dashboard. It always targets
+            // the canonical Confirm URL directly and permits one bounded retry after a
+            // fully loaded non-login page. Desktop mode remains explicitly user-controlled.
+            if (_launchMode != BrowserLaunchMode.Agent || state == null || state.Ready)
+                return false;
             if (string.IsNullOrWhiteSpace(state.Url) ||
                 state.Url.IndexOf("https://wms-supra.winmart.vn", StringComparison.OrdinalIgnoreCase) != 0)
                 return false;
+
+            if (state.LoginMarkerDetected)
+            {
+                if (!_loginMarkerObserved)
+                {
+                    _log("SUPRA_BROWSER login_marker=DETECTED awaiting_user=true direct_retry=paused");
+                }
+                _loginMarkerObserved = true;
+                _confirmRouteRetryCount = 0;
+                _lastConfirmRouteRetryAtUtc = DateTime.MinValue;
+                return false;
+            }
+
+            if (_loginMarkerObserved)
+            {
+                _loginMarkerObserved = false;
+                _confirmRouteRetryCount = 0;
+                _lastConfirmRouteRetryAtUtc = DateTime.MinValue;
+                _log("SUPRA_BROWSER login_marker=CLEARED direct_retry=rearmed");
+            }
+
+            if (!state.PageLoaded)
+                return false;
             if (state.Url.IndexOf(ConfirmPath, StringComparison.OrdinalIgnoreCase) >= 0)
+                return false;
+            if (_confirmRouteRetryCount >= 1)
                 return false;
 
             var now = DateTime.UtcNow;
-
-            if (_warehouseEntryTriggered)
-            {
-                // Clicking the HY1/SFT3 dashboard arrow normally opens a new tab.
-                // v55 host converts that request into same-tab navigation. Once the
-                // current URL changes away from the dashboard source, return this same
-                // tab to the canonical Confirm path.
-                var changedPage = !string.Equals(
-                    NormalizeUrlPath(state.Url),
-                    NormalizeUrlPath(_warehouseEntrySourceUrl),
-                    StringComparison.OrdinalIgnoreCase);
-
-                if (changedPage && now - _warehouseEntryTriggeredAtUtc >= TimeSpan.FromMilliseconds(500))
-                {
-                    NavigateConfirmNoLock();
-                    _log("SUPRA_BROWSER dashboard_recovery=CONFIRM_NAVIGATE_SAME_TAB from=" +
-                         AgentDiagnostics.Sanitize(state.Url));
-                    _warehouseEntryTriggered = false;
-                    _warehouseEntrySourceUrl = "";
-                    return true;
-                }
-
-                if (now - _warehouseEntryTriggeredAtUtc > TimeSpan.FromSeconds(12))
-                {
-                    _log("SUPRA_BROWSER dashboard_recovery=ENTRY_TIMEOUT");
-                    _warehouseEntryTriggered = false;
-                    _warehouseEntrySourceUrl = "";
-                }
-                else
-                {
-                    return true;
-                }
-            }
-
-            if (_lastDashboardRecoveryAtUtc != DateTime.MinValue &&
-                now - _lastDashboardRecoveryAtUtc < TimeSpan.FromSeconds(2))
+            if (_lastConfirmRouteRetryAtUtc != DateTime.MinValue &&
+                now - _lastConfirmRouteRetryAtUtc < TimeSpan.FromMilliseconds(500))
                 return false;
 
-            _lastDashboardRecoveryAtUtc = now;
-            Dictionary<string, object> result;
-            try
-            {
-                var raw = EvaluateJsonNoLock(BuildDashboardSft3EntryScript());
-                result = _json.DeserializeObject(raw) as Dictionary<string, object>;
-            }
-            catch (Exception ex)
-            {
-                _log("SUPRA_BROWSER dashboard_recovery=SCRIPT_ERROR type=" +
-                     ex.GetType().Name + " detail=" + AgentDiagnostics.Sanitize(ex.Message));
-                return false;
-            }
-
-            var action = result == null ? "" : String(result, "result");
-            if (!string.Equals(action, "CLICKED", StringComparison.Ordinal))
-            {
-                _log("SUPRA_BROWSER dashboard_recovery=" +
-                     (string.IsNullOrWhiteSpace(action) ? "DOM_NO_RESULT" : action) +
-                     " docs=" + (result == null ? 0 : Int(result, "docs")) +
-                     " arrows=" + (result == null ? 0 : Int(result, "arrowButtons")) +
-                     " candidates=" + (result == null ? 0 : Int(result, "warehouseCandidates")) +
-                     " fail_closed=true");
-                return false;
-            }
-
-            _warehouseEntryTriggered = true;
-            _warehouseEntrySourceUrl = state.Url;
-            _warehouseEntryTriggeredAtUtc = now;
-            _log("SUPRA_BROWSER dashboard_recovery=HY1_SFT3_CLICKED same_tab_expected=true");
+            _confirmRouteRetryCount = 1;
+            _lastConfirmRouteRetryAtUtc = now;
+            NavigateConfirmNoLock();
+            _log("SUPRA_BROWSER route_recovery=DIRECT_CONFIRM_RETRY retry=1 reason=loaded_non_login_non_confirm");
             return true;
-        }
-
-        private static string NormalizeUrlPath(string value)
-        {
-            Uri uri;
-            if (!Uri.TryCreate(value ?? "", UriKind.Absolute, out uri)) return value ?? "";
-            return (uri.GetLeftPart(UriPartial.Path).TrimEnd('/') + uri.Fragment);
-        }
-
-        private static string BuildDashboardSft3EntryScript()
-        {
-            return @"(() => {
-              const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
-              const normalizePath = v => String(v || '').toLowerCase().replace(/[\s,]+/g,'');
-              const arrowPath = normalizePath('m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z');
-              const warehousePaths = [
-                normalizePath('M12 29.5 36 15l24 14.5'),
-                normalizePath('M17 31v25h38V31'),
-                normalizePath('M25 56V40h22v16')
-              ];
-
-              const docs = [];
-              const seenDocs = new Set();
-              const addDoc = d => {
-                if (!d || seenDocs.has(d) || docs.length >= 8) return;
-                seenDocs.add(d);
-                docs.push(d);
-                for (const frame of [...d.querySelectorAll('iframe')]) {
-                  try { if (frame.contentDocument) addDoc(frame.contentDocument); } catch (_) {}
-                }
-              };
-              addDoc(document);
-
-              const hasWarehouseIcon = root => {
-                const svgs = [...root.querySelectorAll('svg[viewBox]')]
-                  .filter(svg => visible(svg) && String(svg.getAttribute('viewBox') || '').trim() === '0 0 72 72');
-                return svgs.some(svg => {
-                  const paths = [...svg.querySelectorAll('path')]
-                    .map(p => normalizePath(p.getAttribute('d')));
-                  return warehousePaths.filter(expected => paths.includes(expected)).length >= 2;
-                });
-              };
-
-              const arrowButtons = [];
-              for (const d of docs) {
-                const buttons = [...d.querySelectorAll('button,[role=button]')]
-                  .filter(e => visible(e) && !e.disabled && e.getAttribute('aria-disabled') !== 'true');
-                for (const button of buttons) {
-                  const hasArrow = [...button.querySelectorAll('svg path')].some(path =>
-                    normalizePath(path.getAttribute('d')) === arrowPath);
-                  if (hasArrow) arrowButtons.push(button);
-                }
-              }
-
-              const candidates = [];
-              for (const button of arrowButtons) {
-                let node = button.parentElement;
-                for (let depth = 0; node && depth < 8; depth++, node = node.parentElement) {
-                  if (!visible(node)) continue;
-                  if (hasWarehouseIcon(node)) {
-                    candidates.push({button,root:node,depth});
-                    break;
-                  }
-                }
-              }
-
-              const uniqueButtons = [...new Set(candidates.map(x => x.button))];
-              if (uniqueButtons.length !== 1) {
-                return JSON.stringify({
-                  result: uniqueButtons.length ? 'STRUCTURAL_ARROW_AMBIGUOUS' : 'STRUCTURAL_ARROW_NOT_FOUND',
-                  docs: docs.length,
-                  arrowButtons: arrowButtons.length,
-                  warehouseCandidates: uniqueButtons.length
-                });
-              }
-
-              const target = uniqueButtons[0];
-              try { target.scrollIntoView({block:'nearest',inline:'nearest'}); } catch (_) {}
-              try { target.focus({preventScroll:true}); } catch (_) { try { target.focus(); } catch (_) {} }
-
-              // Native HTMLElement.click() reaches the React/MUI onClick handler without
-              // depending on generated JSS/CSS class names or localized warehouse labels.
-              target.click();
-
-              return JSON.stringify({
-                result:'CLICKED',
-                strategy:'WAREHOUSE_ICON_PLUS_ARROW_SVG',
-                docs:docs.length,
-                arrowButtons:arrowButtons.length,
-                warehouseCandidates:uniqueButtons.length
-              });
-            })()";
         }
 
         private SupraBrowserSearchResult ScanNoLock(List<string> terms)
@@ -1151,15 +1052,21 @@ namespace SupraInventoryRelayAgent
               const confirmVisible = confirm.filter(visible);
               const tableSurfaces = docs.flatMap(d => [...d.querySelectorAll('table,[role=grid],[role=table]')]).filter(visible);
               const rowSurfaces = docs.flatMap(d => [...d.querySelectorAll('tr,[role=row]')]).filter(visible);
+              const loginMarker = docs.flatMap(d => [...d.querySelectorAll('body *')]).some(e =>
+                visible(e) && fold(txt(e)) === fold('" + LoginMarkerText + @"'));
+              const pageLoaded = document.readyState === 'complete';
               const pathOk = location.hostname === 'wms-supra.winmart.vn' && location.pathname.indexOf('" + ConfirmPath + @"') >= 0;
               const tableOk = tableSurfaces.length > 0 || rowSurfaces.length > 0;
               const ready = pathOk && tableOk && search.length === 1 && confirm.length === 1;
               let state = 'WRONG_PAGE';
-              if (pathOk && !ready) state = (search.length > 0 || confirm.length > 0 || tableOk) ? 'CONFIRM_DOM_PARTIAL' : 'LOGIN_OR_DOM_NOT_READY';
+              if (loginMarker) state = 'LOGIN_REQUIRED';
+              else if (pathOk && !ready) state = (search.length > 0 || confirm.length > 0 || tableOk) ? 'CONFIRM_DOM_PARTIAL' : 'LOGIN_OR_DOM_NOT_READY';
               if (ready) state = 'READY';
               return JSON.stringify({
                 ready,
                 state,
+                pageLoaded,
+                loginMarker,
                 url: location.origin + location.pathname + location.hash,
                 searchCount: search.length,
                 searchExactCount: searchExact.length,
