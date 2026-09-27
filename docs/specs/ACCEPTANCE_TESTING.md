@@ -1392,3 +1392,15 @@ D126 cannot PASS until all applicable checks below pass:
 10. Source guard rejects DevTools Network use, cookie APIs, token/header/storage capture and direct `api-supra.winmart.vn` use.
 11. Probe success is **diagnostic evidence only**. Normal Agent logic must not adopt a newly discovered activation method until a separate source change preserves D126/D127 fail-closed confirmation guards.
 12. Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
+
+## D127-v66 — SFT3 session-bootstrap acceptance
+
+1. Already-authenticated case: initial Confirm navigation may land on exact `https://auth-supra.winmart.vn/dashboard`. PASS only if Agent performs one same-tab browser navigation to exact `https://wms-supra.winmart.vn/sft3/session`; it must not click Dashboard DOM.
+2. During bootstrap, observed WMS transitions such as `/sft3/session` and `/sft3/` are treated as in-progress. PASS only if the flow remains bounded to 10 seconds.
+3. When exact `https://wms-supra.winmart.vn/sft3/app/dashboard` is fully loaded, Agent must navigate once to the canonical Confirm PickList URL and then rely on the existing D126 readiness DOM.
+4. If the bootstrap window expires before WMS app Dashboard is reached, Agent must stop and expose **Không khởi tạo được phiên SFT3**. It must not restart bootstrap or loop Confirm navigation automatically.
+5. Logged-out regression: exact visible **Lưu thông tin đăng nhập** pauses recovery. After login, if auth Dashboard is the loaded destination, the same one-time session bootstrap applies.
+6. A stable loaded wrong page other than the exact auth Dashboard may still use the existing one direct Confirm retry. That retry remains bounded with the existing navigation grace.
+7. Source guards require the exact fixed session URL, auth Dashboard host/path detection, WMS app Dashboard path, 10-second bootstrap bound, and the two UI states `SFT3_SESSION_BOOTSTRAP` / `SFT3_SESSION_BOOTSTRAP_EXHAUSTED`.
+8. Source guards continue to reject Dashboard DOM click automation, DevTools Network/cookie/session extraction, direct WMS API, cursor/screen automation, and any weakening of D126 row/checkbox/modal fail-closed confirmation semantics.
+9. Agent target is v66; WebView2 host build 9 is reused. Android remains `beta-vc76`; Stable remains OWNER-GATED.
