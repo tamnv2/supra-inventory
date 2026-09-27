@@ -2679,48 +2679,64 @@
     },
     {
       "id": "OA054",
-      "status": "PENDING_OWNER_FIELD_ACCEPTANCE__D129_V69",
+      "status": "OWNER_FIELD_PASS__D129_V69",
       "title": "Field-accept D129 v69 compact Agent UX, browser exclusivity, PDA state and quota hardening",
       "resource_key": "repo",
       "provider": "Beta Windows Agent + Firestore + Supra managed browser",
-      "reason_owner_only": "CI can prove source/build/cadence/quota guards, but real Windows layout, managed browser switching/visibility, PDA transient-disconnect presentation and runtime behavior require company-laptop/PDA observation.",
+      "reason_owner_only": "Real Windows layout/browser/PDA presentation required Owner field observation.",
       "prerequisites": {
         "implementation_pr": 251,
         "implementation_main": "28294cc98770f35e98b4dfeca8aca9d655ea39fb",
         "target_agent_release": "relay-agent-v69",
         "android_baseline": "beta-vc76",
         "technical_release": "PASS",
-        "main_relay_agent_run": 36305126265,
-        "main_ui_run": 36305126316,
-        "main_authority_run": 36305126289,
-        "main_project_state_run": 36305126367,
         "agent_release_id": 397561381,
         "agent_asset_id": 592453697,
         "agent_sha256": "b282cfb63b879d330a13bab80df69dee622ca5efd96e1895a3fea262709e82a4",
+        "stable": "OWNER_GATED"
+      },
+      "safety": "Beta only. Stable remains OWNER-GATED.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-27",
+        "result": "PASS",
+        "evidence": "Owner explicitly confirmed D129 v69 PASS after field review."
+      }
+    },
+    {
+      "id": "OA055",
+      "status": "PENDING_TECHNICAL_RELEASE__D130",
+      "title": "Field-accept D130 PDA-Agent relay recovery and live metrics",
+      "resource_key": "repo",
+      "provider": "Beta Windows Agent + Beta Android + Firestore + existing realtime service",
+      "reason_owner_only": "CI can prove source/build invariants, but real Firestore transient recovery, Android WebSocket recovery and foreground WinForms repaint require company laptop/PDA observation.",
+      "prerequisites": {
+        "target_agent_release": "relay-agent-v70",
+        "target_android": "NEXT_MONOTONIC_SIGNED_BETA",
+        "technical_release": "PENDING",
         "new_resources": "NONE",
         "stable": "OWNER_GATED"
       },
       "shortest_test_path": [
-        "Update/restart Beta Agent to v69 after the release gate is PASS.",
-        "Verify Hệ thống Agent header/user/role, PDA-mode + Wi-Fi line, CPU/RAM/Thời gian chạy line and Agent fleet table.",
-        "Verify Web Agent starts preferred/background, Web state title is truthful, and only one Agent-managed browser mode is active.",
-        "Use Hiện Web / Chuyển Web chạy nền. Try stop/switch, cancel/wrong password, then correct current Agent password; verify the existing Web is preserved on failed verification and the other mode never overlaps.",
-        "Verify Xử lý PickList is ready only with Agent auth + Web Confirm READY and remains manually usable while relay is FROZEN.",
-        "Disconnect one PDA unexpectedly: row becomes Mất kết nối tạm thời, reconnect before 180s restores Đang hoạt động; let one grace expire and verify row disappears without scroll flicker.",
-        "On a clean/local overlay state verify default visible auto-fit size, then resize and restart to verify custom size persistence and locked click-through.",
-        "Run a normal confirmation and inspect sanitized Agent diagnostics for no stale-list fallback, no UI schedule-read loop, no fleet-metrics checkpoint storm and local-only quota-counter entries."
+        "Update Beta Agent to v70 and Android to the D130 signed Beta release after technical/release PASS.",
+        "Keep Agent visible for at least 15 seconds and verify Thời gian chạy moves every second without changing windows; CPU/RAM also refresh without focus switching.",
+        "Login one Picker PDA and verify realtime reaches connected and the Picker appears in the Agent list without restarting either app.",
+        "Send several confirmation requests in sequence and verify every successful CREATE is observed by PRIMARY without manually stopping/starting relay.",
+        "Temporarily interrupt/recover Internet or the Firestore path once; verify Agent reports temporary interruption and resumes consuming later requests automatically.",
+        "If an Android create becomes uncertain, verify diagnostics show same-request server verification/recovery rather than a new logical request.",
+        "Verify normal PickList lookup/ACK still works and D117 HA cadence remains unchanged."
       ],
       "pass_criteria": [
-        "Compact Agent/Supra/PickList presentation matches D129 without duplicated status lines.",
-        "Managed Web Agent/Desktop are mutually exclusive and stop/switch is password-protected.",
-        "PDA_READY and PDA_GRACE are presented distinctly while preserving event-driven/no-heartbeat behavior.",
-        "Overlay first-run auto-fit and user-size persistence work with 120x24 technical minimum.",
-        "D117 4s/2s queue, 7s lease and 10s failover cadence is unchanged.",
-        "D127 fresh-only PENDING and D128 browser/readiness/security guards remain functional.",
-        "No new provider/listener is active and Stable remains untouched."
+        "Visible Agent/browser runtime display refreshes without focus changes.",
+        "A transient Firestore confirmation transport failure cannot permanently stop PRIMARY business polling.",
+        "Android Firestore create uncertainty is recovered using the same request id with no duplicate logical confirmation.",
+        "Android realtime cannot remain indefinitely in connecting; handshake timeout triggers reconnect and active Picker presence recovers.",
+        "PRIMARY 4s idle / 2s hot, 7s lease, 10s failover and D127 fresh-only queue remain unchanged.",
+        "No new provider/heartbeat/presence poll is introduced and Stable remains untouched."
       ],
-      "safety": "Beta only. Do not share Agent/Supra passwords, tokens, cookies, headers, signatures or other session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Run the shortest field path on released Beta Agent v69 using one company laptop and one PDA.",
+      "safety": "Beta only. Do not share passwords, tokens, cookies, headers, signatures or session material. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for D130 technical/release PASS, then run the shortest field path on one company laptop and at least one PDA.",
       "closed": false
     }
   ]
