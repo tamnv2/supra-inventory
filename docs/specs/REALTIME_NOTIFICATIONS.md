@@ -523,3 +523,16 @@ D129 does not change the selected Firestore PDA↔Agent carrier or D117 latency/
 - All Firestore REST attempts pass through a **local-only quota counter**. It may log 70/85/95% reference-threshold warnings and per-component counts, but the counter itself does not read/write Firebase, Drive or any other provider.
 - Reference thresholds are conservative public no-cost quota reference points only; runtime code must not treat them as proof of the current billing plan or as a hard business cutoff.
 - Replacing REST polling with a streaming listener is deferred to a separate Office field POC. No listener is activated by D129.
+
+
+## D130 — relay self-recovery and Android connection recovery
+
+- Firestore remains the sole PDA↔Agent confirmation carrier. No Cloudflare/RTDB/Apps Script fallback is introduced.
+- PRIMARY confirmation polling remains 4 seconds idle / 2 seconds hot. A failed poll must return to the loop within a bounded retry window; a callback/UI/log failure may not terminate business polling.
+- Agent owns a supervisor around the Firestore confirmation transport. Unexpected transport-loop exit restarts automatically with bounded backoff while preserving cancellation and HA fencing.
+- Confirmation safe-read failure is bounded to two 4-second attempts rather than three 12-second attempts. This applies to the confirmation queue path only; HA cadence remains unchanged.
+- Android confirmation create recovery keeps the same request/document id. An uncertain write is verified from Firestore server state and may be retried once with the same id. There is no second logical request and no overwrite of a late ACK.
+- Android terminal confirmation wait remains 20 seconds.
+- Android realtime WebSocket connection attempts have a 12-second handshake watchdog. A stuck CONNECTING attempt is cancelled and reconnects through existing bounded backoff.
+- Online Picker authority remains an active Android realtime socket. Login/device registration alone does not count as online. Recovery of a stuck socket must not require app restart.
+- No periodic Picker-presence heartbeat/poll is added. Existing event-driven projection and 180-second Agent-side transient disconnect grace remain.
