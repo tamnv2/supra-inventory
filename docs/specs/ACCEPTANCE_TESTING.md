@@ -1404,3 +1404,19 @@ D126 cannot PASS until all applicable checks below pass:
 7. Source guards require the exact fixed session URL, auth Dashboard host/path detection, WMS app Dashboard path, 10-second bootstrap bound, and the two UI states `SFT3_SESSION_BOOTSTRAP` / `SFT3_SESSION_BOOTSTRAP_EXHAUSTED`.
 8. Source guards continue to reject Dashboard DOM click automation, DevTools Network/cookie/session extraction, direct WMS API, cursor/screen automation, and any weakening of D126 row/checkbox/modal fail-closed confirmation semantics.
 9. Agent target is v66; WebView2 host build 9 is reused. Android remains `beta-vc76`; Stable remains OWNER-GATED.
+
+## D127 Dashboard Probe v2 — acceptance
+
+1. Probe v2 builds x64 and self-test PASS using the installed Fixed WebView2 runtime with a dedicated `dashboard-probe-v2-profile`.
+2. UI contains editable URL plus **Đi tới**, **Tự động kiểm tra**, **Theo dõi thao tác người dùng / Dừng theo dõi**, and **Mở thư mục log**.
+3. Navigation is fail-closed to HTTPS on exact `auth-supra.winmart.vn` or `wms-supra.winmart.vn`; URL credentials are rejected.
+4. Login remains manual. No input values, passwords, cookies, tokens, headers, request bodies, web storage or profile files may be read or logged.
+5. Auto testing begins only after the explicit button and is bounded: DOM click → synthetic pointer → CDP userGesture → CDP mouse → Enter → Space.
+6. Target selection fails closed unless unique. If multiple HY1/SFT3 semantic matches exist, only a unique smallest semantic-card candidate within the defined tolerance may be selected.
+7. Approved Supra new-window requests are logged but not forced into the current tab. Unapproved hosts are blocked.
+8. User monitoring starts only after the explicit monitor button and records only events resolving to the known right-arrow clickable control.
+9. Monitoring logs event type, `isTrusted`, default-prevented, arrow index/count, geometry, boolean semantic flags and sanitized browser navigation evidence.
+10. Logged URLs are scheme + host + path only; query and fragment are stripped.
+11. CI rejects Network/cookie/storage capture, direct WMS API access, browser-identification spoofing and regression to forced same-tab popup handling.
+12. Probe v2 output is diagnostic evidence only; Agent behavior is not changed by this change set.
+13. Android remains `beta-vc76`; Stable remains OWNER-GATED and untouched.
