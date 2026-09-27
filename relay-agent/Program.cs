@@ -2549,7 +2549,9 @@ namespace SupraInventoryRelayAgent
                     {
                         var roleText = role == FirestoreAgentRole.PRIMARY
                             ? "PRIMARY"
-                            : (role == FirestoreAgentRole.STANDBY ? "STANDBY" : "FROZEN");
+                            : (role == FirestoreAgentRole.NEXT_A
+                                ? "NGỦ ĐÔNG · NEXT A"
+                                : (role == FirestoreAgentRole.NEXT_B ? "NGỦ ĐÔNG · NEXT B" : "NGỦ ĐÔNG"));
                         _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / " + roleText;
                         UpdateD129AgentHeader();
                         if (role == FirestoreAgentRole.PRIMARY) RefreshD119OperationalViews(true);
