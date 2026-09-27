@@ -88,8 +88,7 @@ def main() -> None:
     require(picker, 'api.markResultStage(result.resultEventId, "RECEIVED")', "Picker RECEIVED stage")
     require(picker, "dialog.setOnShowListener", "result visible hook")
     require(picker, 'api.markResultStage(result.resultEventId, "DISPLAYED")', "Picker DISPLAYED stage")
-    forbid(picker, 'api.markResultStage(result.resultEventId, "RECEIVED")
-                    api.markResultStage(result.resultEventId, "DISPLAYED")', "eager DISPLAYED after fetch")
+    forbid(picker, 'api.markResultStage(result.resultEventId, "RECEIVED")\n                    api.markResultStage(result.resultEventId, "DISPLAYED")', "eager DISPLAYED after fetch")
 
     # F13: SQLite staging protects the previous valid catalog.
     require(cache, "SQLiteOpenHelper", "SQLite catalog")
