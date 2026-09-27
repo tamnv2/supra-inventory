@@ -1030,6 +1030,14 @@ namespace SupraInventoryRelayAgent
             private const int GwlExStyle = -20;
             private const int WmNcHitTest = 0x0084;
             private const int HtTransparent = -1;
+            private const int HtLeft = 10;
+            private const int HtRight = 11;
+            private const int HtTop = 12;
+            private const int HtTopLeft = 13;
+            private const int HtTopRight = 14;
+            private const int HtBottom = 15;
+            private const int HtBottomLeft = 16;
+            private const int HtBottomRight = 17;
             private const int ResizeGrip = 9;
 
             private readonly Label _text = new Label();
@@ -1106,9 +1114,37 @@ namespace SupraInventoryRelayAgent
 
             protected override void WndProc(ref Message m)
             {
-                if (m.Msg == WmNcHitTest && IsLocked)
+                if (m.Msg == WmNcHitTest)
                 {
-                    m.Result = new IntPtr(HtTransparent);
+                    if (IsLocked)
+                    {
+                        m.Result = new IntPtr(HtTransparent);
+                        return;
+                    }
+
+                    var raw = m.LParam.ToInt64();
+                    var screenPoint = new Point(
+                        unchecked((short)(raw & 0xffff)),
+                        unchecked((short)((raw >> 16) & 0xffff)));
+                    var point = PointToClient(screenPoint);
+                    var left = point.X <= ResizeGrip;
+                    var right = point.X >= ClientSize.Width - ResizeGrip;
+                    var top = point.Y <= ResizeGrip;
+                    var bottom = point.Y >= ClientSize.Height - ResizeGrip;
+
+                    if (left && top) m.Result = new IntPtr(HtTopLeft);
+                    else if (right && top) m.Result = new IntPtr(HtTopRight);
+                    else if (left && bottom) m.Result = new IntPtr(HtBottomLeft);
+                    else if (right && bottom) m.Result = new IntPtr(HtBottomRight);
+                    else if (left) m.Result = new IntPtr(HtLeft);
+                    else if (right) m.Result = new IntPtr(HtRight);
+                    else if (top) m.Result = new IntPtr(HtTop);
+                    else if (bottom) m.Result = new IntPtr(HtBottom);
+                    else
+                    {
+                        base.WndProc(ref m);
+                        return;
+                    }
                     return;
                 }
                 base.WndProc(ref m);
