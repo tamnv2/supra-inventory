@@ -1219,26 +1219,59 @@ namespace SupraDashboardProbe
                 "walk(document);" +
                 "let installed=0;" +
                 "for(const d of docs){" +
-                "if(d.__d127ProbeInstalled)continue;" +
-                "d.__d127ProbeInstalled=true;" +
-                "const isTarget=e=>{" +
-                "if(!e||!e.closest)return false;" +
+                "if(d.__d127ProbeV2Installed)continue;" +
+                "d.__d127ProbeV2Installed=true;" +
+                "const resolve=e=>{" +
+                "if(!e||!e.closest)return null;" +
                 "const b=e.closest('button,[role=button],a');" +
-                "if(!b)return false;" +
-                "return [...b.querySelectorAll('path')].some(x=>x.getAttribute('d')===arrowPath);" +
+                "if(!b)return null;" +
+                "const all=[...d.querySelectorAll('path')]" +
+                ".filter(p=>p.getAttribute('d')===arrowPath)" +
+                ".map(p=>p.closest('button,[role=button],a'))" +
+                ".filter(Boolean);" +
+                "if(!all.includes(b))return null;" +
+                "let sft3=false;" +
+                "let hy1=false;" +
+                "let node=b;" +
+                "for(let depth=0;node&&depth<10;depth++,node=node.parentElement){" +
+                "const t=norm(node.innerText||node.textContent);" +
+                "if(t.includes('sft3'))sft3=true;" +
+                "if(t.includes('kho hưng yên 1')||t.includes('hy1'))hy1=true;" +
+                "}" +
+                "return {button:b,index:all.indexOf(b)+1,total:all.length,sft3:sft3,hy1:hy1};" +
                 "};" +
                 "for(const n of ['pointerdown','pointerup','mousedown','mouseup','click']){" +
                 "d.addEventListener(n,e=>{" +
-                "if(isTarget(e.target))post(" +
+                "const r=resolve(e.target);" +
+                "if(!r)return;" +
+                "const b=r.button.getBoundingClientRect();" +
+                "post(" +
                 "'event='+n+" +
                 "' trusted='+e.isTrusted+" +
-                "' default_prevented='+e.defaultPrevented);" +
+                "' default_prevented='+e.defaultPrevented+" +
+                "' arrow_index='+r.index+" +
+                "' arrow_total='+r.total+" +
+                "' semantic_sft3='+r.sft3+" +
+                "' semantic_hy1='+r.hy1+" +
+                "' x='+Math.round(b.left)+" +
+                "' y='+Math.round(b.top)+" +
+                "' w='+Math.round(b.width)+" +
+                "' h='+Math.round(b.height));" +
                 "},true);" +
                 "}" +
                 "d.addEventListener('keydown',e=>{" +
-                "if(isTarget(e.target))post(" +
+                "const r=resolve(e.target);" +
+                "if(!r)return;" +
+                "const keyClass=e.key==='Enter'?'enter':(e.key===' '?'space':'other');" +
+                "if(keyClass==='other')return;" +
+                "post(" +
                 "'event=keydown_on_target trusted='+e.isTrusted+" +
-                "' default_prevented='+e.defaultPrevented);" +
+                "' default_prevented='+e.defaultPrevented+" +
+                "' key_class='+keyClass+" +
+                "' arrow_index='+r.index+" +
+                "' arrow_total='+r.total+" +
+                "' semantic_sft3='+r.sft3+" +
+                "' semantic_hy1='+r.hy1);" +
                 "},true);" +
                 "installed++;" +
                 "}" +
