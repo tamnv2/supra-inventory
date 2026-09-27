@@ -1459,3 +1459,25 @@ D128 v68 PASS requires all applicable checks below:
 15. All D126/D127 page-size/search/row/checkbox/modal/terminal/browser-security guards remain PASS.
 16. Android remains unchanged; Stable remains OWNER-GATED and untouched.
 
+
+
+## D129 — compact Agent UX, PDA state and quota hardening
+
+D129 v69 cannot be technical/release PASS unless all applicable checks below pass:
+
+1. Agent build/version is **69** and Android remains beta-vc76.
+2. Logged out title is **Hệ thống Agent | Chưa đăng nhập**. After ADMIN/PICKPACK_ADMIN login, title contains **Hệ thống Agent | Sẵn sàng | <login> | <role label>**.
+3. Authenticated Agent card shows one PDA-mode/Wi-Fi line, one CPU/RAM/**Thời gian chạy** line and the Agent fleet table; the old visible confirmation-counter line is absent.
+4. Supra card has no build suffix and exposes truthful **Chưa sẵn sàng / Cần đăng nhập / Đang chuẩn bị / Sẵn sàng / Lỗi** state with **Web Agent/Web Desktop** mode where applicable.
+5. At no time are Agent-managed Web Agent and Web Desktop both active. Stop and mode-switch actions require current Agent password verification and leave the existing Web untouched on cancel/wrong password.
+6. Active Web exposes **Chuyển Web chạy nền** when visible and **Hiện Web** when hidden. Agent-owned automatic startup stays background-first; exact login marker can still foreground for manual login.
+7. Verified runtime/download UI reports **Web Agent đang khả dụng**; downloading shows bounded progress and does not enable the Agent mode prematurely.
+8. **Xử lý PickList | Sẵn sàng** requires Agent auth + Web Confirm READY only. FROZEN relay with those prerequisites still permits direct/manual PickList. Losing auth/readiness disables input/search and reports **Chưa sẵn sàng**.
+9. Picker row renders PDA_READY as **Đang hoạt động** and PDA_GRACE as **Mất kết nối tạm thời**. Reconnect restores active immediately; grace expires near 180 seconds; refresh/search preserves scroll and selection without flicker.
+10. First-run overlay is visible and auto-fits counter content. User-customized size persists; minimum is 120×24 rather than the prior 430-class minimum. Lock/click-through, move, colors and opacity remain functional.
+11. Source/runtime guard proves fresh-only PENDING query remains and D117 cadences remain exactly PRIMARY idle 4s, hot 2s, lease 7s, failover 10s.
+12. Normal schedule/UI timer source contains no QueueSharedScheduleRefresh parallel read loop; explicit schedule-conflict refresh remains bounded.
+13. After a 30-minute fleet-metrics interval with no local request/response delta and a current snapshot, no provider fleet checkpoint is attempted. After tail reconciliation with no durable change, no metrics PATCH is sent.
+14. Every Firestore REST attempt feeds the local quota guard. The guard contains 70/85/95 reference warnings, makes no provider request itself and does not expose secrets/session material.
+15. No Firestore streaming listener/provider switch is introduced in v69.
+16. D126/D127 semantic Confirm guards, D128 readiness/browser-security behavior and Stable OWNER-GATED policy remain PASS.
