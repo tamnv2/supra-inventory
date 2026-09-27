@@ -625,11 +625,6 @@ namespace SupraInventoryRelayAgent
             BuildProfessionalLayout();
 
             var menu = new ContextMenuStrip();
-            _trayStatusItem.Enabled = false;
-            _trayStatusItem.Text = "Máy: đang đọc...";
-            menu.Items.Add(_trayStatusItem);
-            menu.Items.Add(new ToolStripSeparator());
-
             menu.Items.Add("Mở Agent", null, (s, e) => RestoreFromTray());
             menu.Items.Add("Mở log", null, (s, e) => AgentDiagnostics.OpenLog());
             menu.Items.Add(new ToolStripSeparator());
@@ -1832,6 +1827,8 @@ namespace SupraInventoryRelayAgent
 
         private void MinimizeToTray()
         {
+            _trayMonitorTimer.Stop();
+            SetD128ResourceMonitoringPaused();
             WindowState = FormWindowState.Minimized;
             ShowInTaskbar = false;
             Hide();
@@ -1843,6 +1840,8 @@ namespace SupraInventoryRelayAgent
             Show();
             if (WindowState == FormWindowState.Minimized) WindowState = FormWindowState.Normal;
             Activate();
+            _trayMonitorTimer.Start();
+            UpdateTrayMonitor();
         }
 
         private void QueueNetworkStatusRefresh()
