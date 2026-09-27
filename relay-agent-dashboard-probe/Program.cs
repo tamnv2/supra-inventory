@@ -83,7 +83,7 @@ namespace SupraDashboardProbe
             Path.Combine(BrowserRoot, "OwnedWebView2");
 
         internal static readonly string ProbeProfile =
-            Path.Combine(BrowserRoot, "dashboard-probe-profile");
+            Path.Combine(BrowserRoot, "dashboard-probe-v2-profile");
 
         internal static RuntimeInfo Locate()
         {
@@ -168,6 +168,9 @@ namespace SupraDashboardProbe
                     StringComparison.OrdinalIgnoreCase))
                 return false;
 
+            if (!string.IsNullOrEmpty(uri.UserInfo))
+                return false;
+
             return string.Equals(
                        uri.Host,
                        "auth-supra.winmart.vn",
@@ -230,7 +233,7 @@ namespace SupraDashboardProbe
                     out result.Y);
                 result.Reason = Regex.IsMatch(
                     parts[6],
-                    "^[A-Z_]{1,40}$")
+                    "^[A-Z0-9_]{1,40}$")
                     ? parts[6]
                     : "INVALID";
             }
@@ -253,28 +256,51 @@ namespace SupraDashboardProbe
         private readonly WebView2 _web =
             new WebView2 { Dock = DockStyle.Fill };
 
-        private readonly Label _status =
-            new Label
+        private readonly TextBox _urlInput =
+            new TextBox
             {
-                Dock = DockStyle.Fill,
-                AutoEllipsis = true,
-                TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+                Width = 470,
+                Text = DashboardUrl
+            };
+
+        private readonly Button _go =
+            new Button
+            {
+                Text = "Đi tới",
+                Width = 72,
+                Height = 28
+            };
+
+        private readonly Button _auto =
+            new Button
+            {
+                Text = "Tự động kiểm tra",
+                Width = 125,
+                Height = 28
+            };
+
+        private readonly Button _monitor =
+            new Button
+            {
+                Text = "Theo dõi thao tác người dùng",
+                Width = 190,
+                Height = 28
             };
 
         private readonly Button _openLog =
             new Button
             {
                 Text = "Mở thư mục log",
-                Width = 135,
-                Dock = DockStyle.Right
+                Width = 125,
+                Height = 28
             };
 
-        private readonly Button _rerun =
-            new Button
+        private readonly Label _status =
+            new Label
             {
-                Text = "Chạy lại probe",
-                Width = 125,
-                Dock = DockStyle.Right
+                Dock = DockStyle.Fill,
+                AutoEllipsis = true,
+                TextAlign = System.Drawing.ContentAlignment.MiddleLeft
             };
 
         private readonly JavaScriptSerializer _json =
@@ -284,15 +310,17 @@ namespace SupraDashboardProbe
         private readonly string _logFile;
         private readonly object _logGate = new object();
 
+        private CoreWebView2Environment _environment;
         private bool _probeRunning;
         private bool _probeCompleted;
+        private bool _monitoring;
         private int _transitionGeneration;
         private TaskCompletionSource<bool> _transitionSignal =
             new TaskCompletionSource<bool>();
 
         internal ProbeForm()
         {
-            Text = "SUPRA Dashboard Probe · D127";
+            Text = "SUPRA Dashboard Probe v2 · D127";
             Width = 1360;
             Height = 900;
             StartPosition = FormStartPosition.CenterScreen;
@@ -301,31 +329,58 @@ namespace SupraDashboardProbe
                 Environment.GetFolderPath(
                     Environment.SpecialFolder.LocalApplicationData),
                 "SUPRA Inventory",
-                "DashboardProbe",
+                "DashboardProbeV2",
                 "Logs");
             Directory.CreateDirectory(_logDir);
 
             _logFile = Path.Combine(
                 _logDir,
-                "dashboard-probe-" +
+                "dashboard-probe-v2-" +
                 DateTime.Now.ToString("yyyyMMdd-HHmmss") +
                 ".log");
+
+            var actions = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                Height = 38,
+                WrapContents = false,
+                AutoScroll = true,
+                Padding = new Padding(8, 5, 8, 3)
+            };
+            actions.Controls.Add(new Label
+            {
+                Text = "URL",
+                AutoSize = true,
+                Padding = new Padding(0, 6, 2, 0)
+            });
+            actions.Controls.Add(_urlInput);
+            actions.Controls.Add(_go);
+            actions.Controls.Add(_auto);
+            actions.Controls.Add(_monitor);
+            actions.Controls.Add(_openLog);
 
             var top = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 52,
-                Padding = new Padding(10, 7, 10, 7)
+                Height = 72,
+                Padding = new Padding(8, 0, 8, 4)
             };
             top.Controls.Add(_status);
-            top.Controls.Add(_rerun);
-            top.Controls.Add(_openLog);
+            top.Controls.Add(actions);
 
             Controls.Add(_web);
             Controls.Add(top);
 
             _openLog.Click += delegate { OpenLogFolder(); };
-            _rerun.Click += async delegate { await RerunAsync(); };
+            _go.Click += async delegate { await NavigateFromInputAsync(); };
+            _auto.Click += async delegate { await StartAutoProbeAsync(); };
+            _monitor.Click += async delegate { await ToggleMonitoringAsync(); };
+            _urlInput.KeyDown += async delegate(object sender, KeyEventArgs e)
+            {
+                if (e.KeyCode != Keys.Enter) return;
+                e.SuppressKeyPress = true;
+                await NavigateFromInputAsync();
+            };
             Shown += async delegate { await InitializeSafeAsync(); };
         }
 
@@ -357,12 +412,12 @@ namespace SupraDashboardProbe
                 Directory.CreateDirectory(
                     ProbeRuntime.ProbeProfile);
 
-                var env = await CoreWebView2Environment.CreateAsync(
+                _environment = await CoreWebView2Environment.CreateAsync(
                     info.RuntimePath,
                     ProbeRuntime.ProbeProfile,
                     new CoreWebView2EnvironmentOptions());
 
-                await _web.EnsureCoreWebView2Async(env);
+                await _web.EnsureCoreWebView2Async(_environment);
 
                 _web.CoreWebView2.Settings.IsPasswordAutosaveEnabled = true;
                 _web.CoreWebView2.Settings.IsGeneralAutofillEnabled = true;
@@ -373,12 +428,13 @@ namespace SupraDashboardProbe
                     "START",
                     "runtime_version=" + info.Version +
                     " host_build=" + info.HostBuild +
-                    " profile=probe_dedicated" +
+                    " profile=probe_v2_dedicated" +
                     " network_domain=false" +
-                    " session_extract=false");
+                    " session_extract=false" +
+                    " log_transport=local_only");
 
                 SetStatus(
-                    "Đang mở Supra Dashboard. Nếu hiện đăng nhập, đăng nhập bình thường.");
+                    "Nhập URL, đăng nhập thủ công nếu cần, sau đó bấm Tự động kiểm tra.");
 
                 _web.CoreWebView2.Navigate(DashboardUrl);
             }
