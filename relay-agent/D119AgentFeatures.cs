@@ -739,8 +739,11 @@ namespace SupraInventoryRelayAgent
                     .Append(picker.EmployeeCode ?? "").Append(':')
                     .Append(picker.DisplayName ?? "").Append(':')
                     .Append(picker.DeviceId ?? "").Append(':')
-                    .Append(picker.Status ?? "").Append(':')
-                    .Append(HasActivePickerCommand(picker.UserId) ? '1' : '0');
+                    .Append(picker.Status ?? "").Append(':');
+                var active = ActivePickerCommand(picker.UserId);
+                signature.Append(active == null ? "0" : "1")
+                    .Append(':').Append(active == null ? "" : active.SenderAgentId ?? "")
+                    .Append(':').Append(active == null ? "" : active.SenderRole ?? "");
             }
             return signature.ToString();
         }
@@ -796,14 +799,32 @@ namespace SupraInventoryRelayAgent
                     var pdaState = string.Equals(picker.Status, "PDA_GRACE", StringComparison.Ordinal)
                         ? "Mất kết nối tạm thời"
                         : "Đang hoạt động";
+                    var active = ActivePickerCommand(picker.UserId);
+                    var canResolve = active != null && CanResolvePickerCommand(picker.UserId);
+                    var callText = active == null
+                        ? "Gọi về bàn CV"
+                        : (active.SenderRole == "PICK_PACK" ? "Đang gọi · Pick Pack" : "Đang gọi · Inventory");
+                    var resolveText = active == null ? "—" : (canResolve ? "Kết thúc" : "Agent khác đang gọi");
                     var row = _pickerOnlineGrid.Rows[_pickerOnlineGrid.Rows.Add(
                         code,
                         name,
                         pdaState,
-                        "Gọi về bàn CV",
+                        callText,
                         "Mang hàng về Pack",
-                        HasActivePickerCommand(picker.UserId) ? "Đóng" : "—")];
+                        resolveText)];
                     row.Tag = picker;
+                    if (active != null)
+                    {
+                        row.Cells["CallSpecialist"].ReadOnly = true;
+                        row.Cells["CallSpecialist"].Style.BackColor = Color.Gainsboro;
+                        row.Cells["CallSpecialist"].Style.ForeColor = Color.DimGray;
+                    }
+                    if (!canResolve)
+                    {
+                        row.Cells["ResolveContact"].ReadOnly = true;
+                        row.Cells["ResolveContact"].Style.BackColor = Color.Gainsboro;
+                        row.Cells["ResolveContact"].Style.ForeColor = Color.DimGray;
+                    }
                 }
 
                 var firstIndex = -1;
@@ -1575,6 +1596,23 @@ namespace SupraInventoryRelayAgent
             lock (_activePickerCommands) return _activePickerCommands.ContainsKey(userId);
         }
 
+        private PickerContactCommand ActivePickerCommand(string userId)
+        {
+            lock (_activePickerCommands)
+            {
+                PickerContactCommand command;
+                return _activePickerCommands.TryGetValue(userId ?? "", out command) ? command : null;
+            }
+        }
+
+        private bool CanResolvePickerCommand(string userId)
+        {
+            var command = ActivePickerCommand(userId);
+            return command != null &&
+                (!command.IsActiveCall ||
+                 string.Equals(command.SenderAgentId, _agentInstanceId, StringComparison.Ordinal));
+        }
+
         private void PickerOnlineGridCellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
@@ -1584,6 +1622,11 @@ namespace SupraInventoryRelayAgent
 
             if (column == "CallSpecialist")
             {
+                if (HasActivePickerCommand(picker.UserId))
+                {
+                    _pickerOnlineStatus.Text = "Picker này đã có yêu cầu đang mở; không gửi trùng.";
+                    return;
+                }
                 Task.Run(() => SendPickerContact(picker, "CALL_SPECIALIST"));
                 return;
             }
@@ -1594,6 +1637,13 @@ namespace SupraInventoryRelayAgent
             }
             if (column == "ResolveContact")
             {
+                if (!CanResolvePickerCommand(picker.UserId))
+                {
+                    _pickerOnlineStatus.Text = HasActivePickerCommand(picker.UserId)
+                        ? "Chỉ Agent đã gọi Picker mới được kết thúc yêu cầu."
+                        : "Picker này không có yêu cầu đang mở.";
+                    return;
+                }
                 Task.Run(() => ResolvePickerContact(picker));
             }
         }
@@ -1621,7 +1671,11 @@ namespace SupraInventoryRelayAgent
             }
             catch (Exception ex)
             {
-                Ui(() => _pickerOnlineStatus.Text = "Gửi yêu cầu Picker thất bại · " + SafeMessage(ex));
+                Ui(() =>
+                {
+                    _pickerOnlineStatus.Text = "Gửi yêu cầu Picker thất bại · " + SafeMessage(ex);
+                    RefreshD119OperationalViews(true);
+                });
             }
         }
 
@@ -1632,7 +1686,13 @@ namespace SupraInventoryRelayAgent
             {
                 if (!_activePickerCommands.TryGetValue(picker.UserId, out command))
                 {
-                    Ui(() => _pickerOnlineStatus.Text = "Picker này không có yêu cầu đang mở từ Agent hiện tại.");
+                    Ui(() => _pickerOnlineStatus.Text = "Picker này không có yêu cầu đang mở.");
+                    return;
+                }
+                if (command.IsActiveCall &&
+                    !string.Equals(command.SenderAgentId, _agentInstanceId, StringComparison.Ordinal))
+                {
+                    Ui(() => _pickerOnlineStatus.Text = "Chỉ Agent đã gọi Picker mới được kết thúc yêu cầu.");
                     return;
                 }
             }
