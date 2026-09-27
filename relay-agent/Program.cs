@@ -1979,6 +1979,11 @@ namespace SupraInventoryRelayAgent
             return _supraBrowserReady;
         }
 
+        private bool HasOperationalReadiness()
+        {
+            return HasAgentSession() && HasReadyConfirmBrowser();
+        }
+
         private static string BrowserStateLabel(string state)
         {
             switch (state ?? "")
