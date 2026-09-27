@@ -2550,7 +2550,7 @@
     },
     {
       "id": "OA052",
-      "status": "V66_FIELD_FAIL__DASHBOARD_PROBE_V2_IMPLEMENTING",
+      "status": "FIELD_READY__D127_DASHBOARD_PROBE_V2_RELEASE_PASS",
       "title": "Field-accept D127 quota-safe relay and Agent-owned browser fallback",
       "resource_key": "repo",
       "provider": "Beta Firestore + Windows Agent + Supra managed browser",
@@ -2582,20 +2582,22 @@
         "browser_bundle_sha256": "2be8b5665c7793dbbd3d54d58d96d487003aaa9dd8e51c8f034a8644461fdbec",
         "main_relay_agent_run": 36286366107,
         "diagnostic_release_target": "d127-dashboard-probe-v2",
-        "diagnostic_release": "d127-dashboard-probe-v1",
-        "diagnostic_release_id": 397476380,
-        "diagnostic_source_main": "b3dd0e2b101432595956311b476a25444ee066cb",
-        "diagnostic_main_run": 36288410742,
-        "diagnostic_zip_asset_id": 591948670,
-        "diagnostic_zip_size_bytes": 485027,
-        "diagnostic_checksum_asset_id": 591948671,
+        "diagnostic_release": "d127-dashboard-probe-v2",
+        "diagnostic_release_id": 397490971,
+        "diagnostic_source_main": "2286f553c17722dce9a932d2aa09a75bd387750e",
+        "diagnostic_main_run": 36290763125,
+        "diagnostic_zip_asset_id": 592021858,
+        "diagnostic_zip_size_bytes": 488910,
+        "diagnostic_checksum_asset_id": 592021856,
         "v66_source_target": "AUTH_DASHBOARD_TO_FIXED_/sft3/session__WAIT_WMS_APP_DASHBOARD__THEN_CONFIRM",
         "v66_main": "a65437585bb86ad187c733d7dca80a441047f2fa",
         "v66_main_relay_agent_run": 36289263800,
         "agent_size_bytes": 352256,
         "inventory_channel_agent_manifest_asset_id": 591974644,
         "inventory_channel_agent_exe_asset_id": 591974642,
-        "probe_v2_scope": "USER_URL__MANUAL_LOGIN__EXPLICIT_AUTO_TEST__CLICK_ONLY_MONITOR"
+        "probe_v2_scope": "USER_URL__MANUAL_LOGIN__EXPLICIT_AUTO_TEST__CLICK_ONLY_MONITOR",
+        "diagnostic_ui_run": 36290763091,
+        "diagnostic_zip_sha256": "1111204c23ce1e121c47d3859c0193c467b90f1eca70867028fba3fbb282f0fa"
       },
       "shortest_test_path": [
         "Download and extract D127 Dashboard Probe v2 after its diagnostic prerelease is published.",
@@ -2619,7 +2621,7 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company Supra accounts. Do not share passwords, cookies, tokens, headers, signatures or other session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "After d127-dashboard-probe-v2 is published, run the explicit auto test and, if needed, one click-only monitored manual Truy cập action; upload the newest sanitized v2 log.",
+      "remaining_owner_action": "Run Dashboard Probe v2: enter the approved Supra URL, login manually, press Tự động kiểm tra; if it does not transition, press Theo dõi thao tác người dùng and manually click Truy cập once; upload only the newest sanitized dashboard-probe-v2-*.log.",
       "closed": false
     }
   ]
