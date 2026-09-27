@@ -172,6 +172,11 @@ namespace SupraInventoryRelayAgent
             lock (_gate) return _launchMode == BrowserLaunchMode.Agent;
         }
 
+        internal bool IsDesktopSelected()
+        {
+            lock (_gate) return _launchMode == BrowserLaunchMode.Desktop;
+        }
+
         private SupraBrowserState OpenOrShow(BrowserLaunchMode mode)
         {
             lock (_gate)
