@@ -240,7 +240,7 @@ jobs:
           }
 
           foreach ($marker in @(
-            'Đăng nhập Supra · v',
+            'Đăng nhập Supra |',
             'Mở trình duyệt Agent',
             'Mở trình duyệt Desktop',
             'Mở thư mục dữ liệu',
