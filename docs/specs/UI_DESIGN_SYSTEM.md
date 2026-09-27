@@ -831,3 +831,12 @@ Stable remains OWNER-GATED.
 - Shared PickList counters are durable daily values, not local-RAM totals.
 - PRIMARY may show the newest committed durable values; other Agents refresh the compact fleet/counter snapshot every 10 minutes, on foreground activation, or by explicit refresh.
 - Every non-realtime fleet/counter value shows a freshness age/time so a 10-minute snapshot is never presented as second-by-second realtime.
+
+
+### D131 persistent call and Usage UI
+
+- When a Picker has no active specialist call, the Agent row shows Gọi về bàn CV.
+- While ACTIVE, every Agent shows that Picker as already called and disables duplicate call creation. The row identifies Inventory vs Pick Pack origin. Only the originating Agent exposes Kết thúc; other Agents show Agent khác đang gọi.
+- Picker full-screen/overlay copy names the specialist role and remains visible until the originating Agent resolves the call. Reopening the app must restore an unresolved call.
+- Agent adds a Usage tab scoped to PDA↔Agent/export dependencies: Firestore reads/writes/deletes/storage/connections/listeners when provider metrics are available, Firebase Auth/Function indicators, FCM no-cost label, daily export state, Drive storage, HA/Web Confirm state and local Agent resource/quota diagnostics.
+- Provider Usage may be cached for 10 minutes. Explicit refresh is allowed. Provider-unavailable state must be visible rather than replaced by a quota-consuming estimate.
