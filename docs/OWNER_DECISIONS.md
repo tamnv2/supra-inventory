@@ -1545,3 +1545,17 @@ Approved diagnostic:
 - Local log may contain event type, isTrusted, default-prevented, arrow index/count, geometry and boolean semantic flags. It must not contain page text, form values, passwords, cookies, tokens, headers, request bodies, web storage, profile contents, query strings or fragments.
 - Probe has no log-upload transport, no direct WMS API path and no browser-identification spoofing.
 - Stable remains OWNER-GATED and untouched.
+
+## D127 Dashboard Probe v2 release checkpoint — 2026-09-27
+
+Probe v2 is technically released and ready for OA052 field evidence.
+
+Release evidence:
+- Implementation PR #244 passed Repo Authority, Project State, UI Design, D127 Dashboard Probe, Firestore and RTDB gates and merged to `main` at `2286f553c17722dce9a932d2aa09a75bd387750e`.
+- Main D127 Dashboard Probe run `36290763125` completed PASS and UI regression run `36290763091` completed PASS.
+- Prerelease `d127-dashboard-probe-v2`, release id `397490971`.
+- ZIP asset id `592021858`, size `488910` bytes, SHA-256 `1111204c23ce1e121c47d3859c0193c467b90f1eca70867028fba3fbb282f0fa`.
+- Checksum companion asset id `592021856`.
+- Agent v66 remains unchanged and field-failed for direct session-route recovery. Probe v2 is diagnostic only.
+- Stable remains OWNER-GATED and untouched.
+- OA052 remains open until the Owner uploads the newest sanitized `dashboard-probe-v2-*.log`.
