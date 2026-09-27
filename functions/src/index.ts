@@ -32,6 +32,19 @@ type AlertRecord = {
   expires_at_ms?: number;
 };
 
+type ActiveCallRecord = {
+  call_id?: string;
+  target_user_id?: string;
+  command_type?: string;
+  message?: string;
+  status?: string;
+  source?: string;
+  sender_user_id?: string;
+  sender_agent_id?: string;
+  sender_role?: string;
+  created_at_ms?: number;
+};
+
 function safeCode(error: unknown): string {
   if (error instanceof Error) return error.name.slice(0, 80) || "ERROR";
   return "ERROR";
@@ -47,6 +60,116 @@ async function alertWindowOpen(): Promise<boolean> {
   });
   return response.data?.is_open === true;
 }
+
+export const pickerActiveCallCreated = onDocumentCreated("picker_active_calls/{targetUserId}", async (event) => {
+  const snapshot = event.data;
+  if (!snapshot) return;
+  const call = snapshot.data() as ActiveCallRecord;
+  const targetUserId = String(call.target_user_id || event.params.targetUserId || "").trim();
+  const callId = String(call.call_id || "").trim();
+  const senderRole = String(call.sender_role || "").trim();
+  if (
+    call.status !== "ACTIVE" ||
+    call.source !== "AGENT_PICKER_ACTIVE_CALL_V2" ||
+    call.command_type !== "CALL_SPECIALIST" ||
+    targetUserId !== String(event.params.targetUserId || "") ||
+    !callId ||
+    !["INVENTORY", "PICK_PACK"].includes(senderRole)
+  ) {
+    await snapshot.ref.delete();
+    return;
+  }
+
+  const title = senderRole === "PICK_PACK"
+    ? "YÊU CẦU TỪ CHUYÊN VIÊN PICK PACK"
+    : "YÊU CẦU TỪ CHUYÊN VIÊN INVENTORY";
+  const fallbackBody = senderRole === "PICK_PACK"
+    ? "Vui lòng di chuyển về bàn chuyên viên Pick Pack để phối hợp xử lý công việc."
+    : "Vui lòng di chuyển về bàn chuyên viên Inventory để phối hợp xử lý công việc.";
+  const body = String(call.message || "").slice(0, 500) || fallbackBody;
+
+  const db = getFirestore();
+  await snapshot.ref.set({ server_created_at: FieldValue.serverTimestamp() }, { merge: true });
+  const target = await db.doc(`picker_notification_targets/${targetUserId}`).get();
+  const token = target.exists && target.get("enabled") === true ? String(target.get("token") || "") : "";
+  if (!token) {
+    await snapshot.ref.set({
+      delivery_status: "TARGET_OFFLINE",
+      delivery_code: "FCM_TARGET_NOT_READY",
+    }, { merge: true });
+    return;
+  }
+
+  try {
+    const messageId = await getMessaging().send({
+      token,
+      data: {
+        event: "picker_command",
+        alert_id: callId,
+        command_type: "CALL_SPECIALIST",
+        notification_title: title,
+        notification_body: body,
+      },
+      android: {
+        priority: "high",
+        ttl: 6 * 60 * 60 * 1000,
+      },
+    });
+    await snapshot.ref.set({
+      delivery_status: "SENT",
+      sent_at: FieldValue.serverTimestamp(),
+      delivery_code: "FCM_ACCEPTED",
+      fcm_message_id: messageId,
+    }, { merge: true });
+  } catch (error) {
+    await snapshot.ref.set({
+      delivery_status: "FAILED",
+      delivery_code: safeCode(error),
+    }, { merge: true });
+  }
+});
+
+export const pickerActiveCallResolved = onDocumentUpdated("picker_active_calls/{targetUserId}", async (event) => {
+  const before = event.data?.before;
+  const after = event.data?.after;
+  if (!before || !after) return;
+  if (String(before.get("status") || "") !== "ACTIVE" || String(after.get("status") || "") !== "RESOLVED") return;
+
+  const targetUserId = String(after.get("target_user_id") || event.params.targetUserId || "").trim();
+  const callId = String(after.get("call_id") || "").trim();
+  if (!targetUserId || !callId) {
+    await after.ref.delete();
+    return;
+  }
+
+  const db = getFirestore();
+  const target = await db.doc(`picker_notification_targets/${targetUserId}`).get();
+  const token = target.exists && target.get("enabled") === true ? String(target.get("token") || "") : "";
+  if (token) {
+    try {
+      await getMessaging().send({
+        token,
+        data: {
+          event: "picker_command_resolved",
+          alert_id: callId,
+          notification_title: "Yêu cầu đã kết thúc",
+          notification_body: "Yêu cầu từ chuyên viên đã được kết thúc.",
+        },
+        android: { priority: "high", ttl: 10 * 60 * 1000 },
+      });
+      await after.ref.set({
+        close_push_at: FieldValue.serverTimestamp(),
+        close_push_result: "FCM_ACCEPTED",
+      }, { merge: true });
+    } catch (error) {
+      await after.ref.set({
+        close_push_at: FieldValue.serverTimestamp(),
+        close_push_result: safeCode(error),
+      }, { merge: true });
+    }
+  }
+  await after.ref.delete();
+});
 
 export const pickerAlertCreated = onDocumentCreated("picker_alerts/{alertId}", async (event) => {
   const snapshot = event.data;
