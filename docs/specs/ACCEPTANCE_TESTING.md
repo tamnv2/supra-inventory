@@ -1481,3 +1481,21 @@ D129 v69 cannot be technical/release PASS unless all applicable checks below pas
 14. Every Firestore REST attempt feeds the local quota guard. The guard contains 70/85/95 reference warnings, makes no provider request itself and does not expose secrets/session material.
 15. No Firestore streaming listener/provider switch is introduced in v69.
 16. D126/D127 semantic Confirm guards, D128 readiness/browser-security behavior and Stable OWNER-GATED policy remain PASS.
+
+
+## D130 — live metrics and PDA↔Agent recovery acceptance
+
+D130 cannot be technical/release PASS unless all applicable checks pass:
+
+1. Agent build/version is **70**; Android source change produces the next monotonic signed Beta release.
+2. Keep Agent main window foreground for at least 15 seconds. Agent and managed-Web **Thời gian chạy** change every second without switching windows; CPU/RAM refresh when the bounded sample completes.
+3. Minimize Agent to tray and verify resource monitoring remains paused; restore and verify display resumes without stale focus-dependent rendering.
+4. Source guard proves .NET Firestore connection limit floor 16 and no proxy/filter bypass.
+5. D117 cadence remains exactly PRIMARY idle 4s / hot 2s, lease 7s, failover 10s; STANDBY/FROZEN business-poll rules are unchanged.
+6. Force/observe one transient confirmation-query transport failure. Agent reports temporary offline state, the confirmation transport loop remains alive or is automatically supervised/restarted, and a later PDA request is consumed without manually toggling relay.
+7. Confirmation queue safe-read outage is bounded to two 4-second attempts; no 3×12-second blocking path remains for `CONFIRM_QUERY`.
+8. Simulate an uncertain Android Firestore create. The same request id is server-verified and at most one same-id retry occurs; no duplicate logical request is created.
+9. Android terminal timeout copy states **20 giây**, matching `TOTAL_WAIT_MS = 20_000L`.
+10. Hold a realtime WebSocket handshake without open/failure completion. Near 12 seconds the attempt is cancelled and reconnect begins automatically; the client may not remain indefinitely in `connecting`.
+11. After realtime recovers, event-driven Picker presence appears on Agent without app restart. Login alone still does not count as online.
+12. D127 fresh-only PENDING, D129 quota safeguards, managed-browser security and Stable OWNER-GATED policy remain PASS.
