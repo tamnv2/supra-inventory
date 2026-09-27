@@ -991,6 +991,285 @@ namespace SupraInventoryRelayAgent
             RefreshD128OverlayMenu();
         }
 
+        private sealed class D128OverlayForm : Form
+        {
+            private const int WsExTransparent = 0x20;
+            private const int WsExToolWindow = 0x80;
+            private const int WsExNoActivate = 0x08000000;
+            private const int GwlExStyle = -20;
+            private const int WmNcHitTest = 0x0084;
+            private const int HtTransparent = -1;
+            private const int ResizeGrip = 9;
+
+            private readonly Label _text = new Label();
+            private readonly string _settingsPath;
+            private int _savedLeft = int.MinValue;
+            private int _savedTop = int.MinValue;
+            private int _backgroundArgb = Color.FromArgb(28, 35, 43).ToArgb();
+            private int _textArgb = Color.White.ToArgb();
+            private double _overlayOpacity = 0.78;
+            private bool _locked = true;
+            private bool _overlayVisible = true;
+            private bool _dragging;
+            private Point _dragOrigin;
+            private Point _windowOrigin;
+
+            internal event Action SettingsChanged;
+
+            internal D128OverlayForm(string settingsPath)
+            {
+                _settingsPath = settingsPath ?? "";
+                LoadSettings();
+
+                Text = "Agent Auto Confirm Pick Pack - Overlay";
+                FormBorderStyle = FormBorderStyle.None;
+                ShowInTaskbar = false;
+                TopMost = true;
+                StartPosition = FormStartPosition.Manual;
+                MinimumSize = new Size(430, 42);
+                MaximumSize = new Size(1600, 180);
+                Size = new Size(ClampWidth(Width <= 0 ? 620 : Width), ClampHeight(Height <= 0 ? 52 : Height));
+                BackColor = SafeColor(_backgroundArgb, Color.FromArgb(28, 35, 43));
+                Opacity = ClampOpacity(_overlayOpacity);
+                Padding = new Padding(10, 5, 10, 5);
+
+                _text.Dock = DockStyle.Fill;
+                _text.TextAlign = ContentAlignment.MiddleLeft;
+                _text.AutoEllipsis = true;
+                _text.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+                _text.Text = "Picklist nhận: 0 | Picklist xác nhận: 0 | Picklist lỗi: 0";
+                _text.ForeColor = SafeColor(_textArgb, Color.White);
+                Controls.Add(_text);
+
+                foreach (Control control in new Control[] { this, _text })
+                {
+                    control.MouseDown += BeginDrag;
+                    control.MouseMove += ContinueDrag;
+                    control.MouseUp += EndDrag;
+                }
+
+                ApplySavedPosition();
+                Shown += (s, e) => ApplyInteractionMode();
+                ResizeEnd += (s, e) => { if (!IsLocked) Persist(); };
+            }
+
+            protected override bool ShowWithoutActivation { get { return IsLocked; } }
+
+            protected override CreateParams CreateParams
+            {
+                get
+                {
+                    var cp = base.CreateParams;
+                    cp.ExStyle |= WsExToolWindow | WsExNoActivate;
+                    if (IsLocked) cp.ExStyle |= WsExTransparent;
+                    return cp;
+                }
+            }
+
+            protected override void WndProc(ref Message m)
+            {
+                if (m.Msg == WmNcHitTest && IsLocked)
+                {
+                    m.Result = new IntPtr(HtTransparent);
+                    return;
+                }
+                base.WndProc(ref m);
+            }
+
+            internal bool IsLocked { get { return _locked; } }
+            internal bool OverlayVisible { get { return _overlayVisible; } }
+            internal double OverlayOpacity { get { return _overlayOpacity; } }
+            internal int OverlayWidth { get { return Width; } }
+            internal int OverlayHeight { get { return Height; } }
+            internal Color OverlayBackgroundColor { get { return SafeColor(_backgroundArgb, Color.FromArgb(28, 35, 43)); } }
+            internal Color OverlayTextColor { get { return SafeColor(_textArgb, Color.White); } }
+
+            internal void UpdatePicklistMetrics(long received, long confirmed, long failed)
+            {
+                if (IsDisposed) return;
+                if (InvokeRequired)
+                {
+                    BeginInvoke(new Action<long, long, long>(UpdatePicklistMetrics), received, confirmed, failed);
+                    return;
+                }
+                _text.Text =
+                    "Picklist nhận: " + Math.Max(0L, received).ToString("N0") +
+                    " | Picklist xác nhận: " + Math.Max(0L, confirmed).ToString("N0") +
+                    " | Picklist lỗi: " + Math.Max(0L, failed).ToString("N0");
+            }
+
+            internal void SetLocked(bool locked)
+            {
+                if (_locked == locked) return;
+                _locked = locked;
+                _dragging = false;
+                ApplyInteractionMode();
+                Persist();
+            }
+
+            internal void SetOverlayVisible(bool visible)
+            {
+                _overlayVisible = visible;
+                if (visible)
+                {
+                    if (!Visible) Show();
+                    TopMost = true;
+                }
+                else Hide();
+                Persist();
+            }
+
+            internal void SetOverlayOpacity(double value)
+            {
+                _overlayOpacity = ClampOpacity(value);
+                Opacity = _overlayOpacity;
+                Persist();
+            }
+
+            internal void SetOverlaySize(int width, int height)
+            {
+                if (IsLocked) return;
+                Size = new Size(ClampWidth(width), ClampHeight(height));
+                Persist();
+            }
+
+            internal void SetBackgroundColor(Color color)
+            {
+                _backgroundArgb = color.ToArgb();
+                BackColor = color;
+                Persist();
+            }
+
+            internal void SetTextColor(Color color)
+            {
+                _textArgb = color.ToArgb();
+                _text.ForeColor = color;
+                Persist();
+            }
+
+            private void ApplySavedPosition()
+            {
+                if (_savedLeft != int.MinValue && _savedTop != int.MinValue)
+                {
+                    Location = ClampToScreens(new Point(_savedLeft, _savedTop), Size);
+                    return;
+                }
+                var area = Screen.PrimaryScreen == null ? new Rectangle(0, 0, 1280, 720) : Screen.PrimaryScreen.WorkingArea;
+                Location = new Point(Math.Max(area.Left, area.Right - Width - 12), Math.Max(area.Top, area.Bottom - Height - 12));
+            }
+
+            private void ApplyInteractionMode()
+            {
+                TopMost = true;
+                Cursor = IsLocked ? Cursors.Default : Cursors.SizeAll;
+                try
+                {
+                    var style = GetWindowLong(Handle, GwlExStyle);
+                    var next = IsLocked ? style | WsExTransparent | WsExNoActivate : style & ~WsExTransparent;
+                    if (next != style) SetWindowLong(Handle, GwlExStyle, next);
+                }
+                catch { }
+            }
+
+            private void BeginDrag(object sender, MouseEventArgs e)
+            {
+                if (IsLocked || e.Button != MouseButtons.Left) return;
+                var p = PointToClient(Cursor.Position);
+                if (p.X <= ResizeGrip || p.X >= ClientSize.Width - ResizeGrip ||
+                    p.Y <= ResizeGrip || p.Y >= ClientSize.Height - ResizeGrip) return;
+                _dragging = true;
+                _dragOrigin = Cursor.Position;
+                _windowOrigin = Location;
+            }
+
+            private void ContinueDrag(object sender, MouseEventArgs e)
+            {
+                if (!_dragging || IsLocked) return;
+                var now = Cursor.Position;
+                Location = ClampToScreens(
+                    new Point(_windowOrigin.X + now.X - _dragOrigin.X, _windowOrigin.Y + now.Y - _dragOrigin.Y),
+                    Size);
+            }
+
+            private void EndDrag(object sender, MouseEventArgs e)
+            {
+                if (!_dragging) return;
+                _dragging = false;
+                Persist();
+            }
+
+            private void LoadSettings()
+            {
+                Width = 620;
+                Height = 52;
+                try
+                {
+                    if (string.IsNullOrWhiteSpace(_settingsPath) || !File.Exists(_settingsPath)) return;
+                    var map = new JavaScriptSerializer().DeserializeObject(File.ReadAllText(_settingsPath)) as Dictionary<string, object>;
+                    if (map == null) return;
+                    object value;
+                    if (map.TryGetValue("left", out value)) _savedLeft = Convert.ToInt32(value);
+                    if (map.TryGetValue("top", out value)) _savedTop = Convert.ToInt32(value);
+                    if (map.TryGetValue("width", out value)) Width = ClampWidth(Convert.ToInt32(value));
+                    if (map.TryGetValue("height", out value)) Height = ClampHeight(Convert.ToInt32(value));
+                    if (map.TryGetValue("background_argb", out value)) _backgroundArgb = Convert.ToInt32(value);
+                    if (map.TryGetValue("text_argb", out value)) _textArgb = Convert.ToInt32(value);
+                    if (map.TryGetValue("opacity", out value)) _overlayOpacity = ClampOpacity(Convert.ToDouble(value));
+                    if (map.TryGetValue("locked", out value)) _locked = Convert.ToBoolean(value);
+                    if (map.TryGetValue("visible", out value)) _overlayVisible = Convert.ToBoolean(value);
+                }
+                catch { }
+            }
+
+            private void Persist()
+            {
+                _savedLeft = Left;
+                _savedTop = Top;
+                try
+                {
+                    var dir = Path.GetDirectoryName(_settingsPath);
+                    if (!string.IsNullOrWhiteSpace(dir)) Directory.CreateDirectory(dir);
+                    var payload = new Dictionary<string, object>
+                    {
+                        { "left", Left }, { "top", Top }, { "width", Width }, { "height", Height },
+                        { "background_argb", _backgroundArgb }, { "text_argb", _textArgb },
+                        { "opacity", _overlayOpacity }, { "locked", _locked }, { "visible", _overlayVisible }
+                    };
+                    File.WriteAllText(_settingsPath, new JavaScriptSerializer().Serialize(payload));
+                }
+                catch { }
+                var handler = SettingsChanged;
+                if (handler != null) handler();
+            }
+
+            private static int ClampWidth(int value) { return Math.Max(430, Math.Min(1600, value)); }
+            private static int ClampHeight(int value) { return Math.Max(42, Math.Min(180, value)); }
+            private static double ClampOpacity(double value) { return Math.Max(0.35, Math.Min(1.0, value)); }
+            private static Color SafeColor(int argb, Color fallback)
+            {
+                try { return argb == 0 ? fallback : Color.FromArgb(argb); } catch { return fallback; }
+            }
+            private static Point ClampToScreens(Point point, Size size)
+            {
+                foreach (var screen in Screen.AllScreens)
+                {
+                    var area = screen.WorkingArea;
+                    if (area.IntersectsWith(new Rectangle(point, size)))
+                        return new Point(
+                            Math.Max(area.Left, Math.Min(point.X, area.Right - size.Width)),
+                            Math.Max(area.Top, Math.Min(point.Y, area.Bottom - size.Height)));
+                }
+                var fallback = Screen.PrimaryScreen == null ? new Rectangle(0, 0, 1280, 720) : Screen.PrimaryScreen.WorkingArea;
+                return new Point(Math.Max(fallback.Left, fallback.Right - size.Width - 12),
+                    Math.Max(fallback.Top, fallback.Bottom - size.Height - 12));
+            }
+
+            [DllImport("user32.dll", EntryPoint = "GetWindowLong", SetLastError = true)]
+            private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+            [DllImport("user32.dll", EntryPoint = "SetWindowLong", SetLastError = true)]
+            private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+        }
+
         private bool HasActivePickerCommand(string userId)
         {
             lock (_activePickerCommands) return _activePickerCommands.ContainsKey(userId);
