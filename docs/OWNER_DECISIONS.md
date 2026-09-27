@@ -1637,3 +1637,31 @@ Release evidence:
 - Main Relay Agent run confirms both Agent EXE build and Agent-owned Fixed WebView2 bundle publication PASS.
 - D128 is **TECHNICAL / RELEASE PASS**. Physical company-laptop field acceptance remains separate as OA053.
 
+
+
+## D128 Owner field acceptance — 2026-09-27
+
+Status: **OWNER FIELD PASS**.
+
+- Owner explicitly confirms released Beta Agent **v68** passes the D128 field review.
+- Accepted D128 baseline includes Agent-owned WebView2 background operation, manual-login foreground recovery, strict Agent-auth + Web-Confirm readiness barrier, visible-window-only Agent/browser resource sampling and lightweight Picklist overlay.
+- OA053 is closed. Stable remains OWNER-GATED and untouched.
+
+## D129 — Agent operational UX and Firestore quota hardening — 2026-09-27
+
+Status: **OWNER APPROVED — IMPLEMENTATION TARGET AGENT v69**.
+
+D129 refines the accepted D128 Beta Agent without changing D117 confirmation latency/failover contracts or introducing a new runtime provider.
+
+1. **Hệ thống Agent is compact and truthful.** Authenticated header is `Hệ thống Agent | Sẵn sàng | <user> | <role label>`; logged-out header is `Hệ thống Agent | Chưa đăng nhập`. The next line is `Chế độ nhận tin từ PDA: <role state> | Wi-Fi hiện tại: <SSID>` using friendly PRIMARY/Đang nhận, STANDBY/Dự phòng and FROZEN/Tạm dừng labels. The following line is local Agent CPU, RAM and **Thời gian chạy**. Visible confirmation counters are removed from this card because the Picklist overlay already owns that presentation. The Agent fleet table remains.
+2. **Supra card is a single-browser state machine.** Remove the build/version suffix and redundant HY1/DOM/readiness copy. Header states are `Chưa sẵn sàng`, `Cần đăng nhập | Web Agent/Web Desktop`, `Đang chuẩn bị | ...`, `Sẵn sàng | ...` or `Lỗi ...` according to real state. Resource detail is only Agent-controlled browser process-tree CPU, RAM, process count and **Thời gian chạy**.
+3. **Exactly one managed Web mode may run.** Web Agent remains preferred. With no browser active, expose **Mở Web Agent** and **Mở Web Desktop**. A running mode exposes a protected **Tắt Web Agent/Desktop** action; switching modes stops the current managed browser before opening the other. Stop/switch requires warning plus the currently authenticated Agent user's local password verifier. No Agent-managed Web Agent and Web Desktop may operate simultaneously.
+4. **Browser visibility is explicit.** Active visible Web exposes **Chuyển Web chạy nền**; active hidden Web exposes **Hiện Web**. Normal Agent-owned startup remains background-first; exact Supra login marker may still show it automatically. Explicit user show is respected until the operator returns it to background. Browser runtime download/install progress stays visible; an installed verified runtime reports **Web Agent đang khả dụng**.
+5. **PickList readiness is visible.** Card title is **Xử lý PickList | Sẵn sàng** only when Agent authentication + one managed Web Confirm READY are both true; otherwise **Chưa sẵn sàng** and manual input/search are disabled. Manual PickList readiness does not depend on PRIMARY/STANDBY/FROZEN, preserving specialist work while relay is frozen.
+6. **Picklist overlay sizing.** Overlay defaults ON. With no user-customized size, it auto-fits the exact Picklist counter text rather than starting from a fixed 430×50 class size. User sizing then persists. Keep a small technical minimum **120×24**, broad desktop maximum, show/hide, move, lock, locked click-through, background/text color and background opacity.
+7. **PDA row state is corrected.** `PDA_READY` renders **Đang hoạt động**. `PDA_GRACE` renders **Mất kết nối tạm thời** during the existing 180-second transient-disconnect grace. Reconnect restores active state immediately; grace expiry removes the row. Existing event-driven projection, search, scroll/selection preservation and no-flicker behavior remain.
+8. **Quota hardening targets the two observed Sep 25–26 failure classes.** Historical/stale PENDING list reads remain forbidden under D127. UI refresh may not trigger durable fleet-metrics checkpoints or a parallel periodic Firestore schedule-read loop. Fleet metrics remain RAM-realtime locally and skip unchanged durable writes/checkpoints. Shared schedule propagation uses the existing D117 role/lease coordination; explicit conflicting schedule actions may perform a bounded refresh.
+9. **Local quota guard only.** Agent counts Firestore HTTP read/write attempts locally by component and may warn at 70%/85%/95% of conservative public reference points (50k reads/day, 20k writes/day). These are reference thresholds only, never a claim about the account's billing entitlement. The guard itself performs no provider read/write and uploads no quota telemetry.
+10. **Protected cadence remains unchanged.** PRIMARY confirmation queue stays 4s idle / 2s bounded-hot, PRIMARY lease 7s, STANDBY takeover threshold 10s, and STANDBY/FROZEN business-poll rules remain D117-authoritative. D127 fresh-only PENDING and event-driven Picker presence remain authoritative.
+11. **Realtime-listener optimization is not silently activated.** A Firestore realtime-listener replacement for PRIMARY queue polling may be researched later as a separate bounded Office field POC. It must prove proxy/stream stability and cost behavior before any runtime switch.
+12. Target is Beta Windows Agent **v69**. Android remains **beta-vc76** unless an independently justified defect requires rebuild. No new provider/resource/collection is introduced. Stable remains OWNER-GATED and untouched.
