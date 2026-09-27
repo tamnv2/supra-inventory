@@ -286,14 +286,13 @@ namespace SupraInventoryRelayAgent
         private void LayoutAgentSystemStatusRow(Control host, int top)
         {
             if (host == null) return;
-            var available = Math.Max(360, host.ClientSize.Width - 32);
-            const int gap = 10;
-            var width = Math.Max(110, (available - (gap * 2)) / 3);
-            var left = 16;
-
-            _identity.SetBounds(left, top, width, 20);
-            _relay.SetBounds(left + width + gap, top, width, 20);
-            _network.SetBounds(left + ((width + gap) * 2), top, Math.Max(110, available - ((width + gap) * 2)), 20);
+            _identity.Visible = false;
+            _network.Visible = false;
+            _relay.Visible = true;
+            _relay.SetBounds(16, top, Math.Max(300, host.ClientSize.Width - 32), 20);
+            _relay.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            _d128AgentResourceStatus.SetBounds(16, top + 24, Math.Max(300, host.ClientSize.Width - 32), 20);
+            _d128AgentResourceStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         }
 
         private void ApplyD119AuthenticatedLayout(bool authenticated)
@@ -320,16 +319,14 @@ namespace SupraInventoryRelayAgent
 
             if (authenticated)
             {
-                _logout.SetBounds(16, 62, 108, 30);
-                _manualUpdate.SetBounds(134, 62, 148, 30);
-                _background.SetBounds(292, 62, 142, 30);
+                LayoutAgentSystemStatusRow(host, 38);
+                _d128AgentResourceStatus.Visible = true;
+                _logout.SetBounds(16, 88, 108, 30);
+                _manualUpdate.SetBounds(134, 88, 148, 30);
+                _background.SetBounds(292, 88, 142, 30);
+                _agentRequestMetrics.Visible = false;
 
-                // D124: basic Agent state + local request counters occupy about the
-                // upper 30% of the Agent card; the fleet table consumes the rest.
-                LayoutAgentSystemStatusRow(host, 96);
-                _agentRequestMetrics.SetBounds(16, 118, Math.Max(300, host.ClientSize.Width - 32), 20);
-                _agentRequestMetrics.Visible = true;
-                var fleetTop = Math.Max(142, (int)Math.Round(host.ClientSize.Height * 0.30));
+                var fleetTop = 126;
                 _agentFleetGrid.SetBounds(
                     16,
                     fleetTop,
@@ -339,9 +336,12 @@ namespace SupraInventoryRelayAgent
             }
             else
             {
+                _relay.Visible = false;
+                _identity.Visible = false;
+                _network.Visible = false;
+                _d128AgentResourceStatus.Visible = false;
                 _manualUpdate.SetBounds(16, 118, 148, 30);
                 _background.SetBounds(174, 118, 142, 30);
-                LayoutAgentSystemStatusRow(host, 154);
                 _agentRequestMetrics.Visible = false;
                 _agentFleetGrid.Visible = false;
             }
