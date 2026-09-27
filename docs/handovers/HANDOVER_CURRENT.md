@@ -8,9 +8,9 @@
 - SQLite schema: `12`
 - Latest signed Beta APK: `beta-vc77`
 - Current released Agent: `relay-agent-v70`
-- Beta: `D130_V70_BETA_VC77_TECHNICAL_RELEASE_PASS__OA055_OWNER_FIELD_PENDING`
+- Beta: `D131_OWNER_APPROVED_FIRESTORE_ONLY_FREE_TIER_HA_DESIGN__IMPLEMENTATION_PENDING`
 - Web: `D120_RUNTIME_PASS_MAIN_43A94207__OWNER_FIELD_TEST_OK`
-- Android: `D130_SIGNED_BETA_VC77_RELEASED__OA055_OWNER_FIELD_PENDING`
+- Android: `D130_SIGNED_BETA_VC77_RELEASED__D131_DESIGN_PENDING_IMPLEMENTATION`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -980,3 +980,15 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 
 - `D120_RUNTIME_PASS_MAIN_43A94207__OWNER_FIELD_TEST_OK`
 - `D120_SIGNED_BETA_VC76_RELEASED__OWNER_FIELD_TEST_OK`
+
+
+## D131 current design checkpoint — 2026-09-27
+
+- Owner keeps Firestore as the only PDA↔Agent confirmation carrier; the dual Cloudflare+Firestore relay proposal is closed.
+- Capacity model: max 6 Agents, one PRIMARY, business-hibernating NEXT-A/NEXT-B/deep sleepers; 50 PDA per shift, 75 overlap, ~1,200 requests/day and 40 simultaneous burst.
+- Operating relay window: 05:00–23:00 Asia/Ho_Chi_Minh unless explicitly extended for overtime.
+- Initial design targets: PRIMARY queue 3s, lease heartbeat 8s, lease expiry 12s, query limit >=100.
+- Shared received/confirmed/error counters piggyback PRIMARY lease and are tail-reconciled on takeover.
+- D131 soft quota targets: <=42k reads/day, <=15k writes/day, <=2k deletes/day, <=0.75 GiB storage, <=8 GiB/month outbound; quota day is America/Los_Angeles.
+- D130 v70/beta-vc77 remain the released baseline. OA055 is superseded; OA056 opens after D131 implementation/release.
+- Stable remains OWNER-GATED and untouched.

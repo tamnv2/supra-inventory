@@ -536,3 +536,53 @@ D129 does not change the selected Firestore PDA↔Agent carrier or D117 latency/
 - Android realtime WebSocket connection attempts have a 12-second handshake watchdog. A stuck CONNECTING attempt is cancelled and reconnects through existing bounded backoff.
 - Online Picker authority remains an active Android realtime socket. Login/device registration alone does not count as online. Recovery of a stuck socket must not require app restart.
 - No periodic Picker-presence heartbeat/poll is added. Existing event-driven projection and 180-second Agent-side transient disconnect grace remain.
+
+
+## D131 — Firestore-only free-tier PDA↔Agent HA
+
+D131 supersedes D117/D130 cadence values only where explicitly stated below. Firestore remains the only PickList request/ACK carrier; Cloudflare is not a second confirmation relay.
+
+### Fleet roles and liveness
+- Maximum 6 Agents.
+- Exactly one PRIMARY consumes PENDING / ANDROID_CONFIRM_V1 jobs.
+- One business-hibernating NEXT_A watches the compact coordination lease and may take over after expiry.
+- One business-hibernating NEXT_B is the secondary candidate at coarser cadence.
+- Remaining Agents are DEEP_HIBERNATE.
+- NEXT_A, NEXT_B and DEEP_HIBERNATE perform zero business queue queries.
+- Initial lease target: PRIMARY heartbeat every 8 seconds, lease expiry 12 seconds. Candidate wakeups should be scheduled from the observed lease_until rather than blind rapid polling.
+- Promotion is conditional/fenced by generation. A stale Agent may not process WMS/DOM business work.
+
+### Business queue and burst handling
+- PRIMARY operational polling target is 3 seconds while 05:00–23:00 relay is open.
+- A real multi-job result may open a short bounded hot/drain window; idle polling must not become permanently faster.
+- Query limit is at least 100 so a 40-PDA simultaneous burst can be collected in one query.
+- One logical Android request id remains authoritative through create, Agent processing and ACK.
+- Burst processing deduplicates request ids and may group exact suffix work into a managed-browser DOM batch when the rendered page supports safe multi-row resolution/selection/confirmation.
+- No direct WMS API, auth/session extraction or hidden network replay is allowed.
+
+### Operating window
+- Base PDA↔Agent relay window is 05:00–23:00 Asia/Ho_Chi_Minh.
+- Without an explicit shared overtime extension, all business queue polling and PDA confirmation work stop at 23:00 and resume locally at 05:00.
+- Overtime state reuses the existing bounded shared coordination mechanism; repeated local UI ticks do not create extra provider reads/writes.
+
+### PDA activity projection
+- Do not add a PDA heartbeat.
+- Authenticated Android login/realtime connect is the add signal; explicit logout/session/device replacement is immediate remove; unexpected disconnect keeps bounded grace.
+- A PickList request refreshes PRIMARY-local last activity for that PDA using the already-read job and therefore adds zero provider operation.
+- 05:00 entry/PRIMARY takeover may perform one bounded projection snapshot; normal UI timers perform no presence read.
+
+### Exact cross-Agent counters
+- PRIMARY RAM counters are received, confirmed, error.
+- The existing PRIMARY lease write carries the latest counters and metrics_checkpoint_at; no independent periodic counter write is allowed.
+- Takeover reads the checkpoint and reconciles one bounded request tail newer than the checkpoint, deduplicated by request id, then resumes from the exact reconstructed value.
+- Hibernating Agents display counters from their most recent coordination read with an age indicator.
+
+### Firestore no-cost engineering budget
+D131 engineering targets per provider quota day:
+- reads <= 42,000;
+- writes <= 15,000;
+- deletes <= 2,000;
+- storage <= 0.75 GiB;
+- monthly outbound <= 8 GiB.
+
+Quota accounting must use the Firestore quota reset day in America/Los_Angeles. If a soft budget is approached, degrade nonessential fleet/UI refresh first; do not silently remove generation fencing, terminal ACK safety or freshness filtering.

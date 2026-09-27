@@ -353,3 +353,12 @@ The Android App uses an operational display projection, not a retention change.
 - `sku_sync_jobs` is retired from active business use under D126. Existing historical documents may remain for bounded audit/cleanup; they are not SKU authority.
 - SKU master authority remains the existing InventoryCore data produced by authorized manual file import.
 
+
+
+## D131 — Firestore confirmation retention under no-cost budget
+
+- Do not enable Firestore TTL for the D131 relay path.
+- Keep request/ACK documents only as long as required for bounded operational diagnostics and counter reconciliation; target retention remains within the project retention policy and must keep measured Firestore storage below 0.75 GiB.
+- Expired relay documents are deleted by bounded scheduled/manual cleanup, never by a burst that risks the daily delete/read budget.
+- Cleanup is lower priority than business queue/HA work and stops when the local quota guard approaches its soft read/delete ceilings.
+- Counter takeover reconstruction reads only a tail newer than metrics_checkpoint_at; it never scans the whole retained collection.

@@ -150,3 +150,12 @@ For the Beta PDA↔Agent confirmation path:
 - Android confirmation diagnostics distinguish create attempt, same-id create recovery, CREATE PASS, ACK and terminal timeout without logging PickList values or credentials.
 - Android realtime diagnostics may log sanitized connected/fail/handshake-timeout state only; never log realtime tickets, tokens or session material.
 - Keep Stable OWNER-GATED and do not add a second provider/heartbeat to mask Firestore or WebSocket failures.
+
+
+## D131 Firestore no-cost operating discipline
+
+- Treat Firestore quota as a shared project budget. D131 soft targets are lower than provider no-cost limits and are enforced before optional UI/fleet refresh.
+- Quota-day counters use America/Los_Angeles because Firestore no-cost daily quotas reset on the provider day, not Vietnam midnight.
+- Protected operations are PRIMARY business query, generation/lease fencing and terminal ACK. When soft ceilings approach, first reduce deep-hibernator fleet refresh, optional diagnostics and cleanup.
+- Do not use Firestore TTL for D131 relay retention. Bounded cleanup must stop before read/delete soft ceilings.
+- A quota-saving optimization may not create a second confirmation provider, weaken single-PRIMARY fencing, or hide an over-budget condition.

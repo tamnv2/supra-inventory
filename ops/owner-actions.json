@@ -2706,7 +2706,7 @@
     },
     {
       "id": "OA055",
-      "status": "PENDING_OWNER_FIELD_ACCEPTANCE__D130_V70_BETA_VC77",
+      "status": "SUPERSEDED_BY_D131",
       "title": "Field-accept D130 PDA-Agent relay recovery and live metrics",
       "resource_key": "repo",
       "provider": "Beta Windows Agent + Beta Android + Firestore + existing realtime service",
@@ -2749,7 +2749,51 @@
         "No new provider/heartbeat/presence poll is introduced and Stable remains untouched."
       ],
       "safety": "Beta only. Do not share passwords, tokens, cookies, headers, signatures or session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Update to Agent v70 + Android beta-vc77 and run the OA055 field path on one company laptop and at least one PDA.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "superseded_by": "OA056",
+      "field_result": {
+        "date": "2026-09-27",
+        "result": "SUPERSEDED",
+        "evidence": "Owner replaced the D130 field gate with D131 Firestore-only free-tier HA design before final field acceptance."
+      }
+    },
+    {
+      "id": "OA056",
+      "status": "BLOCKED_PENDING_D131_IMPLEMENTATION_RELEASE",
+      "title": "Field-accept D131 Firestore-only free-tier HA, failover, counters and latency",
+      "resource_key": "repo",
+      "provider": "Beta Windows Agent + Beta Android + existing Cloud Firestore relay",
+      "reason_owner_only": "CI can prove quota/cadence/fencing and synthetic burst behavior, but real company-network failover, managed-browser latency and PDA concurrency require physical field observation.",
+      "prerequisites": {
+        "baseline_agent_release": "relay-agent-v70",
+        "baseline_android": "beta-vc77",
+        "target_agent_release": "NEXT_MONOTONIC_AFTER_V70",
+        "target_android": "NEXT_MONOTONIC_IF_ANDROID_CHANGE_REQUIRED",
+        "technical_release": "PENDING",
+        "new_resources": "NONE",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Run up to 6 Agents and verify exactly one PRIMARY; all others show hibernating roles and no non-primary business queue polling.",
+        "Kill PRIMARY during an idle period and verify NEXT_A promotes without a PDA request; counters remain exact after bounded reconciliation.",
+        "Send normal requests and verify good-network terminal result target <=6s; run one 40-request burst and record actual browser-batch latency.",
+        "Verify a failover/transport fault returns a business result or explicit terminal failover/error before 20s.",
+        "Verify 05:00-23:00 relay schedule and no-PDA-business polling outside the window without overtime.",
+        "Verify PDA list add/remove/grace and request-as-local-activity behavior without a periodic PDA heartbeat.",
+        "Review quota counters after a representative shift and confirm D131 soft ceilings remain unbreached."
+      ],
+      "pass_criteria": [
+        "Exactly one PRIMARY and no non-primary PENDING business query.",
+        "Idle-time PRIMARY death promotes automatically with generation fencing.",
+        "Daily shared received/confirmed/error counters remain exact through takeover.",
+        "Normal/small-burst good-network target <=6s is met in field; 40-burst actual is recorded honestly and remains bounded.",
+        "Every failover/error path terminates specifically before 20s.",
+        "Provider-day reads/writes/deletes remain within D131 soft targets and no new relay provider is used.",
+        "Stable remains untouched."
+      ],
+      "safety": "Beta only. No secrets/session material in logs. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for D131 implementation/technical release PASS, then run the physical field path.",
       "closed": false
     }
   ]

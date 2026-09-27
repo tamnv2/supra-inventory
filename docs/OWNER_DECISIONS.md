@@ -1705,3 +1705,54 @@ Release evidence:
 - Beta Windows Agent **relay-agent-v70** release id **397580687**; EXE asset id **592563191**, size **389632 bytes**, SHA-256 **708400f835ca671bd15632d6c7db93387aff3ed10a307ddcbba2ff3ba7307f02**.
 - Signed Android Beta **beta-vc77** release id **397580708**; APK asset id **592563343**, size **19052908 bytes**, SHA-256 **1d9b0583e5df5537e1a2b1e5936ca015a03e3f18ed830544d8eead34cee5909a**.
 - D130 is technically/release PASS. Remaining gate is **OA055 Owner field acceptance** on one company laptop/PDA. Stable remains OWNER-GATED and untouched.
+
+
+## D131 — Firestore-only free-tier HA redesign for PDA ↔ Agent — 2026-09-27
+
+Status: **OWNER APPROVED DESIGN — IMPLEMENTATION PENDING**.
+
+Owner explicitly rejects the dual Cloudflare+Firestore relay proposal for PickList confirmation because keeping both relay paths warm would spend quota without enough operational benefit. D131 keeps **Cloud Firestore as the only PDA↔Agent confirmation carrier** and redesigns HA, cadence, presence and counters to stay below the Firestore no-cost allowance while meeting the real operating model.
+
+Authoritative operating envelope:
+- Maximum **6 Windows Agents**.
+- Exactly **1 PRIMARY** may consume PickList business jobs. The other Agents are business-hibernating and must not query the PENDING business queue.
+- The fleet runs PDA↔Agent business transport from **05:00 through 23:00 Asia/Ho_Chi_Minh**. Without an explicit overtime extension, business relay stops at 23:00 and resumes at 05:00 even if Windows remains running. Manual/local Agent operations may remain available.
+- Shift capacity: 06:00–14:00 up to 50 PDA; 14:00–22:00 up to 50 PDA; overlap/overtime 10:00–16:00 may reach **75 simultaneously active PDA**.
+- Design volume: approximately **1,200 PDA confirmation submissions/results per day**, including invalid suffixes; burst capacity **40 simultaneous requests** plus arbitrary 1–2 second consecutive submissions.
+- Good-network objective: PDA submission to terminal result **<=6 seconds** for normal/small-burst operation. Any Agent death/failover/transport defect must produce either the business terminal result or a specific failover/error terminal result **before 20 seconds**. A single browser cannot truthfully guarantee 40 independent sequential DOM mutations inside 6 seconds; D131 therefore requires bounded coalescing/batch DOM handling where the managed page safely supports it and treats a 40-request burst as an explicit acceptance test.
+
+HA/state model:
+- PRIMARY heartbeat/lease is a compact Firestore coordination document. Initial design target is **8-second heartbeat / 12-second lease expiry**.
+- One hibernating Agent is deterministic **NEXT-A**. It does zero business queue polling and watches only the compact coordination/lease state, scheduled from the observed lease expiry so it can take over around lease expiry rather than blind high-frequency polling.
+- One hibernating Agent is deterministic **NEXT-B** as second failover candidate at a coarser cadence. Remaining Agents are **DEEP-HIBERNATE**.
+- PRIMARY death during idle time must still trigger takeover; work traffic is not required to detect failure.
+- Promotion uses the existing generation/fencing model. A new PRIMARY must not process a PENDING job until it owns the current generation.
+- NEXT-A/other hibernating readiness is maintained with coarse compact state only; they never poll the business queue.
+
+Business queue:
+- PRIMARY-only PENDING polling target is **3 seconds while operational**, with a bounded short hot/drain mode only after a real multi-job burst. Query limit must cover the 40-request burst in one fetch (target limit >=100).
+- Returned jobs are deduplicated by request id and exact suffix rules remain fail-closed.
+- Multi-request bursts are coalesced into a bounded browser batch. Where the rendered Confirm page safely allows multiple exact rows to be resolved/selected/confirmed in one DOM cycle, D131 must use that path instead of serially repeating full page work. No direct WMS API, cookie/header/session extraction, or network interception is authorized.
+- Android continues one logical request/document id with exact-document result observation and D130 same-id uncertain-create recovery.
+
+Counters and fleet visibility:
+- All Agents should display a common daily received / confirmed / error view without a separate high-frequency metrics stream.
+- PRIMARY keeps live counters in RAM and piggybacks the latest counters plus metrics_checkpoint_at onto its existing coordination lease write; this adds no extra periodic metrics write.
+- On takeover, the new PRIMARY reads the last checkpoint and performs one bounded tail reconciliation of request documents newer than the checkpoint, deduplicated by request id, before continuing counters. This makes counters exact across failover without replaying the full day.
+- Fleet status for up to 6 Agents is compact: Agent id/machine, role, Agent auth ready, Web Confirm ready, Firestore ready, last_seen and current network label. PRIMARY lease doubles as PRIMARY heartbeat. Hibernating Agents use coarse readiness heartbeats only; no per-second global presence writes.
+- Fleet UI may be slightly stale on deep-hibernating Agents and must show last_seen/age rather than pretending per-second accuracy.
+
+PDA activity list:
+- Active-PDA authority remains event-driven from the authenticated Android session/realtime lifecycle already projected to Firestore; do not add a per-PDA heartbeat.
+- Login/realtime connect may add the PDA, explicit logout/session/device replacement removes immediately, and unexpected disconnect retains the existing bounded grace before removal.
+- Every PickList request is also an implicit last activity signal for the PRIMARY in RAM and may refresh that row locally with **zero additional Firestore write**.
+- At 23:00 without overtime the operational PDA list is hidden/frozen with the relay; 05:00 re-entry performs one bounded authoritative snapshot.
+
+No-cost budget guard:
+- D131 targets Firestore Standard no-cost limits with engineering headroom, not merely staying one operation below provider limits.
+- Daily target ceilings: **<=42,000 document reads**, **<=15,000 document writes**, **<=2,000 deletes**, **<=0.75 GiB stored**, **<=8 GiB monthly outbound** for this project path.
+- Provider hard/no-cost reference at decision time is 50,000 reads/day, 20,000 writes/day, 20,000 deletes/day, 1 GiB storage and 10 GiB/month outbound. Runtime quota accounting must reset on the **Firestore provider day (America/Los_Angeles)**, not Asia/Ho_Chi_Minh.
+- Nonessential fleet/UI refresh is throttled before business latency is degraded. Business queue, lease/fencing and terminal ACK remain the protected operations.
+- TTL deletes are not used for this free-tier design. Retention cleanup is bounded/manual-scheduled deletion so delete/read cost stays inside the daily budget.
+
+D130 self-healing transport, Android same-id create recovery, managed-browser security boundaries and D127 fresh-only queue filtering remain inherited unless D131 explicitly supersedes cadence values above. OA055 is superseded by D131 implementation/field acceptance; D130 technical/release evidence remains historical PASS. Stable remains OWNER-GATED and untouched.
