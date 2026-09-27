@@ -2352,13 +2352,36 @@ namespace SupraInventoryRelayAgent
             try
             {
                 AgentRuntimeGuard.EnsureWatchdog();
-                if (_listenCts == null) StartListening();
-                Ui(() => _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / FIRESTORE");
+                QueueD128BrowserStateRefresh();
+                ReconcileOperationalReadiness();
+                Ui(() => _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser());
             }
             catch (Exception ex)
             {
                 Log("Relay runtime chưa thể tự khởi động: " + SafeMessage(ex));
             }
+        }
+
+        private void ReconcileOperationalReadiness()
+        {
+            var ready = HasOperationalReadiness();
+            if (ready)
+            {
+                if (_listenCts == null) StartListening();
+                Ui(() => _listen.Enabled = true);
+                return;
+            }
+
+            if (_listenCts != null || _leaderCoordinator != null) StopListening();
+            Ui(() =>
+            {
+                _listen.Enabled = false;
+                _manualPicklistGrid.Enabled = false;
+                _relay.Text = HasAgentSession()
+                    ? "Relay: chờ Web Confirm sẵn sàng"
+                    : "Relay: chờ đăng nhập Agent";
+                UpdateManualConfirmAllVisibility();
+            });
         }
 
         private void StartLeaderCoordination()
