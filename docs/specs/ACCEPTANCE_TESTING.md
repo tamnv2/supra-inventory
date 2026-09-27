@@ -1531,3 +1531,12 @@ D131 implementation is not technical PASS until all applicable checks pass:
 6. A 20-Agent 18-hour synthetic quota model, including PRIMARY 3s business polling, 8s lease writes, NEXT_A/NEXT_B liveness reads, 10-minute fleet/counter snapshots, 1,200 request create/ACK/result-listen operations and one daily 1,200-row export, remains below D131 soft ceilings.
 7. Export for one business day contains request id, user/employee identity, send time, submitted suffix, result/status, sanitized result/error code, Agent identity, completion time and elapsed duration; no browser/WMS secret/session material appears.
 8. Firestore count aggregation is used for exact rebuild/verification when appropriate instead of full-document scans; query/index cost is included in the quota simulation.
+
+
+### D131 daily export acceptance
+
+1. Stop every Windows Agent before the scheduled export time. PASS only if the server-side runtime still generates the just-closed business-day Drive export.
+2. Include at least one authorized post-23:00 overtime request and verify it appears in the preceding business-day file generated after the 05:00 boundary.
+3. Force one temporary Drive/export failure. PASS only if the retry remains the same logical business-day export and no duplicate file is created.
+4. Verify row count and received/confirmed/error totals reconcile with durable Firestore state for that business day.
+5. Verify the file contains no credential, cookie, token, auth header, signature or browser-session material.
