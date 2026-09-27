@@ -67,7 +67,9 @@ function hcmParts(now = new Date()): { year: number; month: number; day: number;
 function closedBusinessDayKey(now = new Date()): string {
   const p = hcmParts(now);
   const local = new Date(Date.UTC(p.year, p.month - 1, p.day));
-  local.setUTCDate(local.getUTCDate() - 1);
+  // Before 05:00 the current business day has not closed yet; the latest
+  // completed business day therefore started two calendar days earlier.
+  local.setUTCDate(local.getUTCDate() - (p.hour < 5 ? 2 : 1));
   return `${local.getUTCFullYear()}${String(local.getUTCMonth() + 1).padStart(2, "0")}${String(local.getUTCDate()).padStart(2, "0")}`;
 }
 
