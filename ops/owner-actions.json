@@ -2679,15 +2679,24 @@
     },
     {
       "id": "OA054",
-      "status": "PENDING_TECHNICAL_RELEASE__D129_V69",
+      "status": "PENDING_OWNER_FIELD_ACCEPTANCE__D129_V69",
       "title": "Field-accept D129 v69 compact Agent UX, browser exclusivity, PDA state and quota hardening",
       "resource_key": "repo",
       "provider": "Beta Windows Agent + Firestore + Supra managed browser",
       "reason_owner_only": "CI can prove source/build/cadence/quota guards, but real Windows layout, managed browser switching/visibility, PDA transient-disconnect presentation and runtime behavior require company-laptop/PDA observation.",
       "prerequisites": {
+        "implementation_pr": 251,
+        "implementation_main": "28294cc98770f35e98b4dfeca8aca9d655ea39fb",
         "target_agent_release": "relay-agent-v69",
         "android_baseline": "beta-vc76",
-        "technical_release": "PENDING",
+        "technical_release": "PASS",
+        "main_relay_agent_run": 36305126265,
+        "main_ui_run": 36305126316,
+        "main_authority_run": 36305126289,
+        "main_project_state_run": 36305126367,
+        "agent_release_id": 397561381,
+        "agent_asset_id": 592453697,
+        "agent_sha256": "b282cfb63b879d330a13bab80df69dee622ca5efd96e1895a3fea262709e82a4",
         "new_resources": "NONE",
         "stable": "OWNER_GATED"
       },
@@ -2711,7 +2720,7 @@
         "No new provider/listener is active and Stable remains untouched."
       ],
       "safety": "Beta only. Do not share Agent/Supra passwords, tokens, cookies, headers, signatures or other session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for technical/release PASS, then run the shortest field path on one company laptop and one PDA.",
+      "remaining_owner_action": "Run the shortest field path on released Beta Agent v69 using one company laptop and one PDA.",
       "closed": false
     }
   ]
