@@ -2550,28 +2550,24 @@
     },
     {
       "id": "OA052",
-      "status": "FIELD_READY__D127_V64_TECHNICAL_RELEASE_PASS",
+      "status": "FIELD_FAIL_V64__V65_IMPLEMENTING",
       "title": "Field-accept D127 quota-safe relay and Agent-owned browser fallback",
       "resource_key": "repo",
       "provider": "Beta Firestore + Windows Agent + Supra managed browser",
       "reason_owner_only": "CI can prove source/build/quota guards and package integrity, but real Supra paginator/checkbox behavior, Fixed WebView2 compatibility, browser isolation and fallback require physical company-laptop field observation.",
       "prerequisites": {
         "d127_branch": "d127-quota-browser-hardening",
-        "target_agent_release": "relay-agent-v64",
+        "target_agent_release": "relay-agent-v65",
         "android_baseline": "beta-vc76",
         "stable": "OWNER_GATED",
-        "technical_release": "PASS__V64_RELEASED__HOST_BUILD_9_PUBLISHED",
-        "latest_field_result": "V63_FAIL__REMAINS_ON_DASHBOARD_AFTER_FRAME_AWARE_USER_GESTURE",
+        "technical_release": "V64_PASS_BUT_FIELD_FAIL__V65_PENDING",
+        "latest_field_result": "V64_FAIL__LOGIN_PATH_RECOVERS__ALREADY_AUTHENTICATED_DASHBOARD_PATH_STAYS_WRONG_PAGE",
         "v63_main": "f7dd84a151e295d30dc7e6082524fe198b1bb314",
         "v64_main": "402faa0c073a34fa968b1b056fb74c6f857c0b64",
         "v64_main_ui_run": 36285587090,
         "browser_host_build": 9,
         "browser_bundle_manifest_asset_id": 591861251,
         "browser_bundle_checksum_asset_id": 591861252,
-        "v63_main_ui_run": 36270857416,
-        "browser_host_build": 8,
-        "browser_bundle_manifest_asset_id": 591439590,
-        "browser_bundle_checksum_asset_id": 591439588,
         "implementation_pr": 236,
         "implementation_main": "402faa0c073a34fa968b1b056fb74c6f857c0b64",
         "release_repair_pr": 209,
@@ -2585,10 +2581,11 @@
         "main_relay_agent_run": 36285587114
       },
       "shortest_test_path": [
-        "Update/restart Beta Agent to relay-agent-v64; leave Android beta-vc76 unchanged.",
+        "After v65 is released, update/restart Beta Agent to relay-agent-v65; leave Android beta-vc76 unchanged.",
         "Open the Agent browser. It must navigate directly to the canonical Confirm PickList URL and must not click any Dashboard card/action.",
         "Logged-out path: when the loaded page visibly contains exact text Lưu thông tin đăng nhập, Agent must show Cần đăng nhập Supra trên trình duyệt and must not retry/reload Confirm while that marker remains.",
         "After the user completes login, if the fully loaded page is not the Confirm URL, Agent may navigate directly to Confirm exactly once. The same one-retry behavior applies when an already-authenticated first navigation lands on Dashboard.",
+        "v65 correction: do not require the current page to be on wms-supra.winmart.vn before that retry; the retry target itself remains fixed to the canonical Confirm URL.",
         "If the one retry still ends on a loaded non-login, non-Confirm page, Agent must stop retrying and show Chưa vào được Confirm sau khi thử lại.",
         "Verify Firestore usage remains flat when there are no fresh confirmation jobs and no Picker lifecycle changes; old PENDING rows must not repeat-read.",
         "Log in/logout/reconnect a Picker and verify event-driven list plus 180-second transient disconnect grace without periodic refresh flicker.",
@@ -2607,7 +2604,7 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company Supra accounts. Do not share passwords, cookies, tokens, headers, signatures or other session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Update/restart Beta Agent to v64 and field-test the bounded direct-Confirm retry: logged-out login marker path, already-logged-in Dashboard redirect path, and no retry loop after one failed retry.",
+      "remaining_owner_action": "Wait for v65 release, then field-test both paths. Already-authenticated Dashboard must trigger one direct Confirm retry even when the current Dashboard/SSO host differs from wms-supra.winmart.vn.",
       "closed": false
     }
   ]
