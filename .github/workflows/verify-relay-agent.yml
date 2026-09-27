@@ -73,9 +73,9 @@ jobs:
           $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
           $projection = Get-Content service/src/firestore-projection.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*65\s*;') { throw "D127 hotfix requires Agent v65." }
-          if ($project -notmatch '<AssemblyVersion>0\.65\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.65\.0\.0</FileVersion>') {
-            throw "D127 hotfix assembly/file version must be 0.65."
+          if ($config -notmatch 'AgentBuild\s*=\s*66\s*;') { throw "D127 v66 requires Agent v66." }
+          if ($project -notmatch '<AssemblyVersion>0\.66\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.66\.0\.0</FileVersion>') {
+            throw "D127 v66 assembly/file version must be 0.66."
           }
 
           foreach ($marker in @(
@@ -143,14 +143,23 @@ jobs:
             'stable_loaded_non_login_non_confirm',
             'login_marker_cleared_non_confirm',
             'TimeSpan.FromMilliseconds(750)',
-            'TimeSpan.FromSeconds(3)'
+            'TimeSpan.FromSeconds(3)',
+            'SessionBootstrapUrl = "https://wms-supra.winmart.vn/sft3/session"',
+            'AuthDashboardHost = "auth-supra.winmart.vn"',
+            'AuthDashboardPath = "/dashboard"',
+            'WmsAppDashboardPath = "/sft3/app/dashboard"',
+            'SFT3_SESSION_BOOTSTRAP',
+            'SFT3_SESSION_BOOTSTRAP_EXHAUSTED',
+            'route_recovery=SFT3_SESSION_BOOTSTRAP',
+            'sft3_session_bootstrap_complete',
+            'TimeSpan.FromSeconds(10)'
           )) {
             if (-not $browser.Contains($marker)) { throw "D126 browser semantic guard missing: $marker" }
           }
           if (-not $browser.Contains("names(e).some(v => fold(v) === fold('Xác nhận lấy lại hàng'))")) { throw "D126 H3 readiness confirm control must remain exact-label only." }
-          if ($browser.Contains('state.Url.IndexOf("https://wms-supra.winmart.vn"')) { throw "D127 v65 current-page host must not gate direct Confirm retry." }
+          if ($browser.Contains('state.Url.IndexOf("https://wms-supra.winmart.vn"')) { throw "D127 v66 current-page host must not gate direct Confirm retry." }
           foreach ($marker in @('LayoutSupraCardControls','_agentDataStorageStatus','_openAgentDataFolder')) {
-            if (-not $ops.Contains($marker)) { throw "D127 v65 responsive Supra layout guard missing: $marker" }
+            if (-not $ops.Contains($marker)) { throw "D127 v66 responsive Supra layout guard missing: $marker" }
           }
           foreach ($marker in @(
             'RequiredHostBuild = 9',
@@ -163,7 +172,7 @@ jobs:
             'reclaimed_bytes',
             'BrowserDataRoot'
           )) {
-            if (-not $browserBundle.Contains($marker)) { throw "D127 v65 browser bundle/storage guard missing: $marker" }
+            if (-not $browserBundle.Contains($marker)) { throw "D127 v66 browser bundle/storage guard missing: $marker" }
           }
           foreach ($marker in @(
             'Environment.Is64BitProcess',
@@ -176,7 +185,7 @@ jobs:
             'outer Agent',
             'bounded direct-Confirm navigation/retry policy'
           )) {
-            if (-not $ownedHost.Contains($marker)) { throw "D127 v65 owned-host direct navigation guard missing: $marker" }
+            if (-not $ownedHost.Contains($marker)) { throw "D127 v66 owned-host direct navigation guard missing: $marker" }
           }
           foreach ($retiredDashboardMarker in @(
             'ProbeDashboardAccessAsync',
@@ -186,7 +195,7 @@ jobs:
             'userGesture',
             '_warehouseEntry'
           )) {
-            if ($ownedHost.Contains($retiredDashboardMarker)) { throw "D127 v65 retired Dashboard host automation remains: $retiredDashboardMarker" }
+            if ($ownedHost.Contains($retiredDashboardMarker)) { throw "D127 v66 retired Dashboard host automation remains: $retiredDashboardMarker" }
           }
           foreach ($retiredBrowserMarker in @(
             'BuildDashboardSft3EntryScript',
@@ -194,7 +203,7 @@ jobs:
             'STRUCTURAL_ARROW_NOT_FOUND',
             '_warehouseEntryTriggered'
           )) {
-            if ($browser.Contains($retiredBrowserMarker)) { throw "D127 v65 retired Dashboard controller automation remains: $retiredBrowserMarker" }
+            if ($browser.Contains($retiredBrowserMarker)) { throw "D127 v66 retired Dashboard controller automation remains: $retiredBrowserMarker" }
           }
 
           foreach ($forbidden in @(
@@ -325,10 +334,10 @@ jobs:
             if (-not $browserBundle.Contains($marker) -and -not $config.Contains($marker)) { throw "D127 browser bundle channel marker missing: $marker" }
           }
           foreach ($marker in @('SnapshotStatus','Downloading','Percent','Trình duyệt Agent khả dụng','Tải trình duyệt thất bại')) {
-            if (-not $browserBundle.Contains($marker) -and -not $program.Contains($marker)) { throw "D127 hotfix browser progress marker missing: $marker" }
+            if (-not $browserBundle.Contains($marker) -and -not $program.Contains($marker)) { throw "D127 v66 browser progress marker missing: $marker" }
           }
           foreach ($marker in @('const int panelTop = 142','const int panelHeight = 88','_afterHoursPanel.BringToFront()','Tải trình duyệt Agent','Mở trình duyệt Agent','Mở trình duyệt Desktop')) {
-            if (-not $program.Contains($marker)) { throw "D127 hotfix UI layout marker missing: $marker" }
+            if (-not $program.Contains($marker)) { throw "D127 v66 UI layout marker missing: $marker" }
           }
           if ($browser.Contains('fallback=system_browser') -or $browser.Contains('fallback=armed')) {
             throw "D127 v53 must not auto-fallback from Agent browser to Desktop browser."
