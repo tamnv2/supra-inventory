@@ -4534,9 +4534,18 @@ ClearStoredSession();
 
         private void Ui(Action action)
         {
-            if (IsDisposed) return;
-            if (InvokeRequired) BeginInvoke(action);
-            else action();
+            if (IsDisposed || Disposing) return;
+            if (InvokeRequired)
+            {
+                try
+                {
+                    if (IsHandleCreated) BeginInvoke(action);
+                }
+                catch (InvalidOperationException) { }
+                catch (ObjectDisposedException) { }
+                return;
+            }
+            action();
         }
 
         private void UiSync(Action action)
