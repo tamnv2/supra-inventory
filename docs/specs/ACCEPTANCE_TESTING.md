@@ -1437,3 +1437,14 @@ D126 cannot PASS until all applicable checks below pass:
 12. Existing HA, idempotency, Firestore cadence, quota and schedule guards remain unchanged.
 13. No Network/cookie/token/header/storage/request/profile extraction or direct WMS API is introduced.
 14. Android remains beta-vc76; Stable remains OWNER-GATED and untouched.
+
+## D128 — background browser, readiness barrier and resource observability
+
+Behavioral acceptance locked by Owner:
+1. With a valid restored/new Agent application login and a reusable Supra browser session, the Agent-owned WebView2 starts/continues toward Confirm without showing its window. PASS only if canonical Confirm becomes READY while the browser remains hidden/background.
+2. When exact visible **Lưu thông tin đăng nhập** is detected, the owned browser becomes visible for manual login. PASS only if the Agent does not read/log form values and, after login clears and Confirm becomes READY, the owned browser returns to hidden/background state.
+3. Before **Agent login valid + Web Confirm READY**, Confirm-dependent relay/HA/manual PickList business processing must not start or mutate anything. Losing either prerequisite after startup must pause/fail closed those paths.
+4. Explicit Desktop Edge/Chrome may satisfy the browser READY prerequisite when the operator selects **Mở trình duyệt Desktop**; no automatic fallback from owned WebView2 is introduced.
+5. All D126/D127 page-size/search/row/checkbox/modal/terminal and browser-security guards remain PASS. Stable remains untouched.
+
+Resource-observability acceptance is pending the Owner's exact metric selection. Whichever metrics are selected must be sampled locally on a coarse cadence, must not block the WinForms UI thread, must not be uploaded, and must never collect Supra credentials/session material. Browser CPU/RAM acceptance requires aggregation across the managed browser process tree.

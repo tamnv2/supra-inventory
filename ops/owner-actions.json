@@ -2550,7 +2550,7 @@
     },
     {
       "id": "OA052",
-      "status": "FIELD_READY__D127_V67_TECHNICAL_RELEASE_PASS",
+      "status": "OWNER_FIELD_PASS__D127_V67",
       "title": "Field-accept D127 quota-safe relay and Agent-owned browser fallback",
       "resource_key": "repo",
       "provider": "Beta Firestore + Windows Agent + Supra managed browser",
@@ -2623,8 +2623,13 @@
         "Android remains beta-vc76 and Stable remains untouched."
       ],
       "safety": "Beta only. Use authorized company Supra accounts. Do not share passwords, cookies, tokens, headers, signatures or other session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Update/restart Beta Agent to v67 and ensure Trình duyệt Agent downloads host build 10, then test: (1) login-required flow; (2) stored-session Dashboard flow with no manual Dashboard click.",
-      "closed": false
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-27",
+        "result": "PASS",
+        "evidence": "Owner explicitly confirmed D127 v67 passed the requested Confirm-access behavior on the company laptop."
+      }
     }
   ]
 }

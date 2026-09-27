@@ -1202,7 +1202,7 @@
     "h4_implementation_pr": 206
   },
   "d127": {
-    "status": "TECHNICAL_RELEASE_PASS__OA052_V67_FIELD_READY",
+    "status": "OWNER_FIELD_PASS__TECHNICAL_RELEASE_PASS",
     "target_agent_release": "relay-agent-v67",
     "android": "beta-vc76 unchanged",
     "browser_bundle": "inventory-channel / WebView2 Fixed 154.0.4258.37",
@@ -1248,6 +1248,15 @@
     "browser_bundle_manifest_asset_id": 592065625,
     "browser_bundle_asset_id": 592065629,
     "browser_bundle_size_bytes": 318616553,
-    "browser_bundle_sha256": "bb623ac7e6c252b21c5f6b23be22ccb4681f3d7ffb42314cee9e014cd8427042"
+    "browser_bundle_sha256": "bb623ac7e6c252b21c5f6b23be22ccb4681f3d7ffb42314cee9e014cd8427042",
+    "field_acceptance": "PASS__2026_09_27__V67_CONFIRM_ACCESS"
+  },
+  "d128": {
+    "status": "REQUIREMENTS_PARTIALLY_APPROVED__METRICS_OWNER_SELECTION_PENDING",
+    "resource_change": "NONE__USES_EXISTING_SCOPED_AGENT_AND_SUPRA_BROWSER_RESOURCES",
+    "agent_browser_behavior": "OWNED_WEBVIEW2_BACKGROUND_DEFAULT__SHOW_ONLY_FOR_MANUAL_LOGIN__HIDE_AFTER_READY",
+    "readiness_barrier": "VALID_AGENT_SESSION_PLUS_CONFIRM_READY_REQUIRED_BEFORE_CONFIRM_DEPENDENT_BUSINESS_LOGIC",
+    "observability": "LOCAL_PROCESS_METRICS_ONLY__BROWSER_PROCESS_TREE_AGGREGATION__NO_UPLOAD",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }
