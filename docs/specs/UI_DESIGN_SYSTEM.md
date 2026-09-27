@@ -820,3 +820,14 @@ Stable remains OWNER-GATED.
 - PRIMARY may update its local counter presentation immediately. Other Agents may lag until the next coordination read, but after takeover the promoted PRIMARY must reconcile before presenting itself as authoritative.
 - PDA list remains event-driven and preserves scroll/search. A request already consumed by PRIMARY may refresh the matching PDA last activity locally without forcing a provider refresh.
 - Outside 05:00–23:00 with no overtime, the UI explicitly shows PDA ↔ Agent: Tạm dừng ngoài giờ rather than appearing disconnected/broken.
+
+
+### D131 refinement — warm browser and 10-minute fleet presentation
+
+- Fleet table supports up to 20 Agents with internal scrolling.
+- Each Agent keeps the managed Confirm browser prepared even when relay-hibernating, because local/manual PickList confirmation must remain available on that laptop.
+- Ngủ đông means no PDA business-queue work; it must not imply that Web Confirm is closed.
+- Show Web Confirm readiness separately from relay role. A hibernating Agent may display Ngủ đông | Web Confirm sẵn sàng.
+- Shared PickList counters are durable daily values, not local-RAM totals.
+- PRIMARY may show the newest committed durable values; other Agents refresh the compact fleet/counter snapshot every 10 minutes, on foreground activation, or by explicit refresh.
+- Every non-realtime fleet/counter value shows a freshness age/time so a 10-minute snapshot is never presented as second-by-second realtime.
