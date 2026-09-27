@@ -73,9 +73,9 @@ jobs:
           $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
           $projection = Get-Content service/src/firestore-projection.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*64\s*;') { throw "D127 hotfix requires Agent v64." }
-          if ($project -notmatch '<AssemblyVersion>0\.64\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.64\.0\.0</FileVersion>') {
-            throw "D127 hotfix assembly/file version must be 0.64."
+          if ($config -notmatch 'AgentBuild\s*=\s*65\s*;') { throw "D127 hotfix requires Agent v65." }
+          if ($project -notmatch '<AssemblyVersion>0\.65\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.65\.0\.0</FileVersion>') {
+            throw "D127 hotfix assembly/file version must be 0.65."
           }
 
           foreach ($marker in @(
@@ -138,13 +138,19 @@ jobs:
             'login_marker=DETECTED',
             'login_marker=CLEARED',
             'AUTO_RETRY_CONFIRM',
-            'CONFIRM_RETRY_EXHAUSTED'
+            'CONFIRM_RETRY_EXHAUSTED',
+            'source_host_unrestricted=true',
+            'stable_loaded_non_login_non_confirm',
+            'login_marker_cleared_non_confirm',
+            'TimeSpan.FromMilliseconds(750)',
+            'TimeSpan.FromSeconds(3)'
           )) {
             if (-not $browser.Contains($marker)) { throw "D126 browser semantic guard missing: $marker" }
           }
           if (-not $browser.Contains("names(e).some(v => fold(v) === fold('Xác nhận lấy lại hàng'))")) { throw "D126 H3 readiness confirm control must remain exact-label only." }
+          if ($browser.Contains('state.Url.IndexOf("https://wms-supra.winmart.vn"')) { throw "D127 v65 current-page host must not gate direct Confirm retry." }
           foreach ($marker in @('LayoutSupraCardControls','_agentDataStorageStatus','_openAgentDataFolder')) {
-            if (-not $ops.Contains($marker)) { throw "D127 v64 responsive Supra layout guard missing: $marker" }
+            if (-not $ops.Contains($marker)) { throw "D127 v65 responsive Supra layout guard missing: $marker" }
           }
           foreach ($marker in @(
             'RequiredHostBuild = 9',
@@ -157,7 +163,7 @@ jobs:
             'reclaimed_bytes',
             'BrowserDataRoot'
           )) {
-            if (-not $browserBundle.Contains($marker)) { throw "D127 v64 browser bundle/storage guard missing: $marker" }
+            if (-not $browserBundle.Contains($marker)) { throw "D127 v65 browser bundle/storage guard missing: $marker" }
           }
           foreach ($marker in @(
             'Environment.Is64BitProcess',
@@ -170,7 +176,7 @@ jobs:
             'outer Agent',
             'bounded direct-Confirm navigation/retry policy'
           )) {
-            if (-not $ownedHost.Contains($marker)) { throw "D127 v64 owned-host direct navigation guard missing: $marker" }
+            if (-not $ownedHost.Contains($marker)) { throw "D127 v65 owned-host direct navigation guard missing: $marker" }
           }
           foreach ($retiredDashboardMarker in @(
             'ProbeDashboardAccessAsync',
@@ -180,7 +186,7 @@ jobs:
             'userGesture',
             '_warehouseEntry'
           )) {
-            if ($ownedHost.Contains($retiredDashboardMarker)) { throw "D127 v64 retired Dashboard host automation remains: $retiredDashboardMarker" }
+            if ($ownedHost.Contains($retiredDashboardMarker)) { throw "D127 v65 retired Dashboard host automation remains: $retiredDashboardMarker" }
           }
           foreach ($retiredBrowserMarker in @(
             'BuildDashboardSft3EntryScript',
@@ -188,7 +194,7 @@ jobs:
             'STRUCTURAL_ARROW_NOT_FOUND',
             '_warehouseEntryTriggered'
           )) {
-            if ($browser.Contains($retiredBrowserMarker)) { throw "D127 v64 retired Dashboard controller automation remains: $retiredBrowserMarker" }
+            if ($browser.Contains($retiredBrowserMarker)) { throw "D127 v65 retired Dashboard controller automation remains: $retiredBrowserMarker" }
           }
 
           foreach ($forbidden in @(
