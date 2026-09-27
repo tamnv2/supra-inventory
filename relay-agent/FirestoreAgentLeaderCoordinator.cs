@@ -328,7 +328,8 @@ namespace SupraInventoryRelayAgent
                     var next = new FirestoreRoleSnapshot
                     {
                         PrimaryAgentInstanceId = _instanceId,
-                        StandbyAgentInstanceId = "",
+                        StandbyAgentInstanceId = read.Snapshot.NextBAgentInstanceId ?? "",
+                        NextBAgentInstanceId = "",
                         Generation = Guid.NewGuid().ToString("N"),
                         UpdatedAtMs = NowMs()
                     };
@@ -439,7 +440,7 @@ namespace SupraInventoryRelayAgent
                     if (TryWriteRoles(session, next, read))
                     {
                         _generation = next.Generation;
-                        SetRole(FirestoreAgentRole.PRIMARY, _instanceId, "", "ACTIVE_FAILOVER_LEASE");
+                        SetRole(FirestoreAgentRole.PRIMARY, _instanceId, next.StandbyAgentInstanceId, "ACTIVE_FAILOVER_LEASE");
                         WritePrimaryLease(session);
                         _log("FIRESTORE HA takeover=PASS trigger=primary_lease_timeout threshold_ms=" + FailoverAfterMs +
                              " self=" + Short(_instanceId));
@@ -537,6 +538,7 @@ namespace SupraInventoryRelayAgent
                 var read = ReadRoles(session);
                 var snapshot = read.Snapshot;
                 ApplySharedSchedule(snapshot);
+                lock (_stateGate) _nextBId = snapshot == null ? "" : (snapshot.NextBAgentInstanceId ?? "");
 
                 if (snapshot == null)
                 {
@@ -588,7 +590,8 @@ namespace SupraInventoryRelayAgent
                         var relinquish = new FirestoreRoleSnapshot
                         {
                             PrimaryAgentInstanceId = snapshot.StandbyAgentInstanceId ?? "",
-                            StandbyAgentInstanceId = "",
+                            StandbyAgentInstanceId = snapshot.NextBAgentInstanceId ?? "",
+                            NextBAgentInstanceId = "",
                             Generation = Guid.NewGuid().ToString("N"),
                             UpdatedAtMs = NowMs()
                         };
@@ -611,7 +614,8 @@ namespace SupraInventoryRelayAgent
                         var clearStandby = new FirestoreRoleSnapshot
                         {
                             PrimaryAgentInstanceId = snapshot.PrimaryAgentInstanceId,
-                            StandbyAgentInstanceId = "",
+                            StandbyAgentInstanceId = snapshot.NextBAgentInstanceId ?? "",
+                            NextBAgentInstanceId = "",
                             Generation = snapshot.Generation,
                             UpdatedAtMs = NowMs()
                         };
@@ -656,6 +660,7 @@ namespace SupraInventoryRelayAgent
                     {
                         PrimaryAgentInstanceId = _instanceId,
                         StandbyAgentInstanceId = snapshot.StandbyAgentInstanceId,
+                        NextBAgentInstanceId = snapshot.NextBAgentInstanceId,
                         Generation = Guid.NewGuid().ToString("N"),
                         UpdatedAtMs = NowMs()
                     };
@@ -675,6 +680,7 @@ namespace SupraInventoryRelayAgent
                     {
                         PrimaryAgentInstanceId = snapshot.PrimaryAgentInstanceId,
                         StandbyAgentInstanceId = _instanceId,
+                        NextBAgentInstanceId = snapshot.NextBAgentInstanceId,
                         Generation = snapshot.Generation,
                         UpdatedAtMs = NowMs()
                     };
@@ -719,7 +725,7 @@ namespace SupraInventoryRelayAgent
         {
             try
             {
-                var raw = SendJson("GET", PresenceCollectionUrl(), session.IdToken, null, "", 7000, true, "STANDBY_DISCOVERY");
+                var raw = SendJson("GET", PresenceCollectionUrl(), session.IdToken, null, "", 7000, true, "NEXT_AB_DISCOVERY");
                 var root = _json.DeserializeObject(raw) as Dictionary<string, object>;
                 object docsObj;
                 var docs = root != null && root.TryGetValue("documents", out docsObj)
@@ -728,13 +734,12 @@ namespace SupraInventoryRelayAgent
                 if (docs == null) return;
 
                 var now = NowMs();
-                var candidate = "";
+                var candidates = new List<string>();
                 foreach (var item in docs)
                 {
                     var doc = item as Dictionary<string, object>;
-                    if (doc == null) continue;
                     object fieldsObj;
-                    var fields = doc.TryGetValue("fields", out fieldsObj)
+                    var fields = doc != null && doc.TryGetValue("fields", out fieldsObj)
                         ? fieldsObj as Dictionary<string, object>
                         : null;
                     if (fields == null) continue;
@@ -748,44 +753,63 @@ namespace SupraInventoryRelayAgent
                         heartbeat <= 0 || age < -60000 || age > PresenceFreshMs ||
                         !FieldBool(fields, "wms_ready"))
                         continue;
-
-                    candidate = agentId;
-                    if (string.Equals(FieldString(fields, "role"), "DEEP_HIBERNATE", StringComparison.OrdinalIgnoreCase))
-                        break;
+                    if (!candidates.Contains(agentId)) candidates.Add(agentId);
                 }
-
-                if (string.IsNullOrWhiteSpace(candidate))
+                candidates.Sort(StringComparer.Ordinal);
+                if (candidates.Count == 0)
                 {
-                    _log("FIRESTORE HA replacement-standby=NONE available_candidate=false");
+                    _log("FIRESTORE HA next_ab=NONE available_candidate=false");
                     return;
                 }
 
                 for (var attempt = 0; attempt < 3; attempt++)
                 {
                     var roles = ReadRoles(session);
-                    if (roles.Snapshot == null ||
-                        !string.Equals(roles.Snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal) ||
-                        !string.IsNullOrWhiteSpace(roles.Snapshot.StandbyAgentInstanceId))
+                    var current = roles.Snapshot;
+                    if (current == null ||
+                        !string.Equals(current.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal))
+                        return;
+
+                    var nextA = current.StandbyAgentInstanceId ?? "";
+                    var nextB = current.NextBAgentInstanceId ?? "";
+                    foreach (var candidate in candidates)
+                    {
+                        if (string.IsNullOrWhiteSpace(nextA))
+                        {
+                            nextA = candidate;
+                            continue;
+                        }
+                        if (string.IsNullOrWhiteSpace(nextB) &&
+                            !string.Equals(candidate, nextA, StringComparison.Ordinal))
+                        {
+                            nextB = candidate;
+                            break;
+                        }
+                    }
+                    if (string.Equals(nextA, current.StandbyAgentInstanceId ?? "", StringComparison.Ordinal) &&
+                        string.Equals(nextB, current.NextBAgentInstanceId ?? "", StringComparison.Ordinal))
                         return;
 
                     var next = new FirestoreRoleSnapshot
                     {
                         PrimaryAgentInstanceId = _instanceId,
-                        StandbyAgentInstanceId = candidate,
-                        Generation = roles.Snapshot.Generation ?? Guid.NewGuid().ToString("N"),
+                        StandbyAgentInstanceId = nextA,
+                        NextBAgentInstanceId = nextB,
+                        Generation = current.Generation ?? Guid.NewGuid().ToString("N"),
                         UpdatedAtMs = NowMs()
                     };
                     if (TryWriteRoles(session, next, roles))
                     {
-                        SetRole(FirestoreAgentRole.PRIMARY, _instanceId, candidate, "REPLACEMENT_STANDBY_SELECTED");
-                        _log("FIRESTORE HA replacement-standby=SELECTED candidate=" + Short(candidate));
+                        lock (_stateGate) _nextBId = nextB;
+                        SetRole(FirestoreAgentRole.PRIMARY, _instanceId, nextA, "NEXT_AB_SELECTED");
+                        _log("FIRESTORE HA next_ab=SELECTED next_a=" + Short(nextA) + " next_b=" + Short(nextB));
                         return;
                     }
                 }
             }
             catch (Exception ex)
             {
-                _log("FIRESTORE HA replacement-standby=DEFER type=" + ex.GetType().Name +
+                _log("FIRESTORE HA next_ab=DEFER type=" + ex.GetType().Name +
                      " message=" + AgentDiagnostics.Sanitize(ex.Message));
             }
         }
@@ -821,6 +845,7 @@ namespace SupraInventoryRelayAgent
                 _onlineAgentCount = 0;
                 _onlinePrimaryCount = 0;
                 _onlineStandbyCount = 0;
+                _onlineNextBCount = 0;
                 _onlineFrozenCount = 0;
                 lock (_stateGate) _onlineAgents = new List<AgentPresenceView>();
                 return;
@@ -856,22 +881,26 @@ namespace SupraInventoryRelayAgent
 
             string primary;
             string standby;
+            string nextB;
             lock (_stateGate)
             {
                 primary = _primaryId ?? "";
                 standby = _standbyId ?? "";
+                nextB = _nextBId ?? "";
             }
 
             foreach (var view in views)
             {
                 view.Role = string.Equals(view.AgentInstanceId, primary, StringComparison.Ordinal)
                     ? "PRIMARY"
-                    : (string.Equals(view.AgentInstanceId, standby, StringComparison.Ordinal) ? "NEXT_A" : "DEEP_HIBERNATE");
+                    : (string.Equals(view.AgentInstanceId, standby, StringComparison.Ordinal)
+                        ? "NEXT_A"
+                        : (string.Equals(view.AgentInstanceId, nextB, StringComparison.Ordinal) ? "NEXT_B" : "DEEP_HIBERNATE"));
             }
             views.Sort((a, b) =>
             {
-                var rankA = a.Role == "PRIMARY" ? 0 : (a.Role == "NEXT_A" ? 1 : 2);
-                var rankB = b.Role == "PRIMARY" ? 0 : (b.Role == "NEXT_A" ? 1 : 2);
+                var rankA = a.Role == "PRIMARY" ? 0 : (a.Role == "NEXT_A" ? 1 : (a.Role == "NEXT_B" ? 2 : 3));
+                var rankB = b.Role == "PRIMARY" ? 0 : (b.Role == "NEXT_A" ? 1 : (b.Role == "NEXT_B" ? 2 : 3));
                 var rank = rankA.CompareTo(rankB);
                 if (rank != 0) return rank;
                 return string.Compare(a.Machine ?? "", b.Machine ?? "", StringComparison.OrdinalIgnoreCase);
@@ -879,10 +908,12 @@ namespace SupraInventoryRelayAgent
 
             var primaryCount = !string.IsNullOrWhiteSpace(primary) && freshIds.Contains(primary) ? 1 : 0;
             var standbyCount = !string.IsNullOrWhiteSpace(standby) && freshIds.Contains(standby) ? 1 : 0;
+            var nextBCount = !string.IsNullOrWhiteSpace(nextB) && freshIds.Contains(nextB) ? 1 : 0;
             _onlineAgentCount = freshIds.Count;
             _onlinePrimaryCount = primaryCount;
             _onlineStandbyCount = standbyCount;
-            _onlineFrozenCount = Math.Max(0, freshIds.Count - primaryCount - standbyCount);
+            _onlineNextBCount = nextBCount;
+            _onlineFrozenCount = Math.Max(0, freshIds.Count - primaryCount - standbyCount - nextBCount);
             lock (_stateGate) _onlineAgents = views;
         }
 
@@ -972,28 +1003,41 @@ namespace SupraInventoryRelayAgent
                 var snapshot = read.Snapshot;
                 if (snapshot == null) return;
 
+                FirestoreRoleSnapshot next = null;
                 if (string.Equals(snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal))
                 {
-                    var next = new FirestoreRoleSnapshot
+                    next = new FirestoreRoleSnapshot
                     {
                         PrimaryAgentInstanceId = snapshot.StandbyAgentInstanceId ?? "",
-                        StandbyAgentInstanceId = "",
+                        StandbyAgentInstanceId = snapshot.NextBAgentInstanceId ?? "",
+                        NextBAgentInstanceId = "",
                         Generation = Guid.NewGuid().ToString("N"),
                         UpdatedAtMs = NowMs()
                     };
-                    TryWriteRoles(session, next, read);
                 }
                 else if (string.Equals(snapshot.StandbyAgentInstanceId, _instanceId, StringComparison.Ordinal))
                 {
-                    var next = new FirestoreRoleSnapshot
+                    next = new FirestoreRoleSnapshot
                     {
                         PrimaryAgentInstanceId = snapshot.PrimaryAgentInstanceId ?? "",
-                        StandbyAgentInstanceId = "",
+                        StandbyAgentInstanceId = snapshot.NextBAgentInstanceId ?? "",
+                        NextBAgentInstanceId = "",
                         Generation = snapshot.Generation ?? "",
                         UpdatedAtMs = NowMs()
                     };
-                    TryWriteRoles(session, next, read);
                 }
+                else if (string.Equals(snapshot.NextBAgentInstanceId, _instanceId, StringComparison.Ordinal))
+                {
+                    next = new FirestoreRoleSnapshot
+                    {
+                        PrimaryAgentInstanceId = snapshot.PrimaryAgentInstanceId ?? "",
+                        StandbyAgentInstanceId = snapshot.StandbyAgentInstanceId ?? "",
+                        NextBAgentInstanceId = "",
+                        Generation = snapshot.Generation ?? "",
+                        UpdatedAtMs = NowMs()
+                    };
+                }
+                if (next != null) TryWriteRoles(session, next, read);
             }
             catch { }
         }
@@ -1267,8 +1311,8 @@ namespace SupraInventoryRelayAgent
                 return 1000;
             }
 
-            if (ageMs < 8000L)
-                return Math.Max(1000, 8000 - (int)ageMs);
+            if (ageMs < PrimaryLeaseHeartbeatMs)
+                return Math.Max(1000, PrimaryLeaseHeartbeatMs - (int)ageMs);
             return 1000;
         }
 
