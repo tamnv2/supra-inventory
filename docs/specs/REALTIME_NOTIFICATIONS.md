@@ -543,7 +543,7 @@ D129 does not change the selected Firestore PDA↔Agent carrier or D117 latency/
 D131 supersedes D117/D130 cadence values only where explicitly stated below. Firestore remains the only PickList request/ACK carrier; Cloudflare is not a second confirmation relay.
 
 ### Fleet roles and liveness
-- Maximum 6 Agents.
+- Fleet capacity target is up to 20 Agents.
 - Exactly one PRIMARY consumes PENDING / ANDROID_CONFIRM_V1 jobs.
 - One business-hibernating NEXT_A watches the compact coordination lease and may take over after expiry.
 - One business-hibernating NEXT_B is the secondary candidate at coarser cadence.
@@ -572,8 +572,8 @@ D131 supersedes D117/D130 cadence values only where explicitly stated below. Fir
 - 05:00 entry/PRIMARY takeover may perform one bounded projection snapshot; normal UI timers perform no presence read.
 
 ### Exact cross-Agent counters
-- PRIMARY RAM counters are received, confirmed, error.
-- The existing PRIMARY lease write carries the latest counters and metrics_checkpoint_at; no independent periodic counter write is allowed.
+- Durable relay job state is the received/confirmed/error counter authority; RAM is cache-only.
+- A compact durable daily summary/checkpoint carries the latest counters and metrics_checkpoint_at. It is updated only when terminal work is durably committed, preferably once per completed batch.
 - Takeover reads the checkpoint and reconciles one bounded request tail newer than the checkpoint, deduplicated by request id, then resumes from the exact reconstructed value.
 - Hibernating Agents display counters from their most recent coordination read with an age indicator.
 
