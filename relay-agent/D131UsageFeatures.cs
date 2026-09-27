@@ -183,12 +183,12 @@ namespace SupraInventoryRelayAgent
         private void RenderD131Usage(Dictionary<string, object> payload)
         {
             var monitoring = Map(payload, "monitoring");
-            var generated = Text(payload, "generated_at");
+            var generated = JsonText(payload, "generated_at");
             var cached = Bool(payload, "cached");
             if (!Bool(monitoring, "available"))
             {
                 _d131UsageProviderStatus.Text =
-                    "Provider Usage: Monitoring chưa khả dụng · " + Text(monitoring, "error") +
+                    "Provider Usage: Monitoring chưa khả dụng · " + JsonText(monitoring, "error") +
                     " · không fallback bằng cách quét Firestore";
                 _d131UsageFirestore.Text = "Chưa có số provider-authoritative.";
                 _d131UsageAuth.Text = "Firebase Auth: chưa có số provider-authoritative.";
@@ -198,7 +198,7 @@ namespace SupraInventoryRelayAgent
             {
                 _d131UsageProviderStatus.Text =
                     "Provider Usage · " + (cached ? "cache ≤10 phút" : "vừa làm mới") +
-                    " · provider day " + Text(monitoring, "provider_day") +
+                    " · provider day " + JsonText(monitoring, "provider_day") +
                     (generated.Length > 0 ? " · " + generated : "");
 
                 var fs = Map(monitoring, "firestore");
@@ -225,21 +225,21 @@ namespace SupraInventoryRelayAgent
                 _d131UsageFunction.Text =
                     "Picker-call Function hôm nay: " + N(Long(functions, "executions")) +
                     " · lỗi: " + N(Long(functions, "errors")) +
-                    " · FCM: " + (Text(fcm, "pricing") == "NO_COST" ? "No-cost" : Text(fcm, "pricing"));
+                    " · FCM: " + (JsonText(fcm, "pricing") == "NO_COST" ? "No-cost" : JsonText(fcm, "pricing"));
             }
 
             var export = Map(payload, "export");
             _d131UsageExport.Text =
-                "Business day: " + Text(export, "business_day") +
-                " · " + Text(export, "status") +
+                "Business day: " + JsonText(export, "business_day") +
+                " · " + JsonText(export, "status") +
                 Environment.NewLine +
-                "File: " + EmptyAsDash(Text(export, "file_name")) +
+                "File: " + EmptyAsDash(JsonText(export, "file_name")) +
                 " · dòng: " + N(Long(export, "rows")) +
                 " · thời gian: " + N(Long(export, "duration_ms")) + " ms" +
                 Environment.NewLine +
                 "Cleanup: " + N(Long(export, "deleted_jobs")) + " job · " +
                 N(Long(export, "deleted_guards")) + " guard" +
-                (Text(export, "error_code").Length == 0 ? "" : " · lỗi: " + Text(export, "error_code"));
+                (JsonText(export, "error_code").Length == 0 ? "" : " · lỗi: " + JsonText(export, "error_code"));
 
             var drive = Map(payload, "drive");
             _d131UsageDrive.Text = drive.Count == 0
@@ -276,7 +276,7 @@ namespace SupraInventoryRelayAgent
                 : new Dictionary<string, object>();
         }
 
-        private static string Text(Dictionary<string, object> map, string key)
+        private static string JsonText(Dictionary<string, object> map, string key)
         {
             object value;
             return map != null && map.TryGetValue(key, out value) ? Convert.ToString(value) ?? "" : "";
