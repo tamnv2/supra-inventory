@@ -971,3 +971,12 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 
 
 D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IMPLEMENTATION_IN_PROGRESS
+
+## D131 technical release checkpoint — 2026-09-28
+
+- Main: `3569934ec2a36f6fa2f6fe92cf332ae679ad4070`
+- Agent: `relay-agent-v71` · SHA-256 `e9fac90ebd5d89c6accdf1df903673cad3971a65c3333806602a636b3b55c508`
+- Android: `beta-vc78` · SHA-256 `032d17f774592464101ed9711677f98117fddb17a2dcad53da3ea1feae6005f4`
+- Android state: `D131_SIGNED_BETA_VC78_RELEASED__FIELD_GATE_OA056_PENDING`
+- Latest Beta APK: `beta-vc78`
+- Technical release: PASS. Remaining gate: OA056 physical field acceptance. Stable untouched.
