@@ -1259,7 +1259,7 @@
     }
   },
   "d127": {
-    "status": "TECHNICAL_RELEASE_PASS__OA052_V65_FIELD_READY",
+    "status": "V65_OWNER_FIELD_FAIL__DASHBOARD_PROBE_V1_IMPLEMENTING",
     "decision_date": "2026-09-26",
     "branch": "d127-quota-browser-hardening",
     "baseline_main": "a1ecf217dc1fb447a4ca445c59c01d1348cb80d2",
@@ -1275,7 +1275,7 @@
     "browser": "EXPLICIT_AGENT_WEBVIEW2_FIXED_X64_OR_DESKTOP_EDGE_CHROME__DIRECT_CONFIRM_NAVIGATION__EXACT_LOGIN_MARKER__ONE_BOUNDED_RETRY__NO_DASHBOARD_CLICK__NO_AUTO_CROSS_MODE_FALLBACK",
     "browser_security": "RUNTIME_PAGE_DOM_ONLY__NO_NETWORK_COOKIE_TOKEN_PASSWORD_EXTRACTION__NO_DIRECT_WMS_API",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "next_action": "RUN_OA052_V65_CROSS_HOST_DIRECT_CONFIRM_RETRY_FIELD_ACCEPTANCE",
+    "next_action": "BUILD_RELEASE_D127_DASHBOARD_PROBE_V1__COLLECT_SANITIZED_FIELD_LOG",
     "main_merge": "f5ad9d45be3445b6e030d1f5f0de1abc0507b54e",
     "agent_release": "relay-agent-v65",
     "agent_release_id": 397466396,
@@ -1403,6 +1403,12 @@
     "v65_release_asset_id": 591888602,
     "v65_release_size_bytes": 349696,
     "v65_release_sha256": "3df5c5aab895e2c7ae26f8d7eec016fa6ea4cea5aef1a5c883fb30c9910ef75b",
-    "field_gate": "OA052__V64_FAIL_RECORDED__V65_PENDING_OWNER_FIELD_ACCEPTANCE"
+    "field_gate": "OA052__V65_FAIL_RECORDED__DASHBOARD_PROBE_V1_PENDING_FIELD_EVIDENCE",
+    "v65_field_result": "FAIL__LOGIN_PATH_RECOVERS__ALREADY_AUTHENTICATED_DASHBOARD_STILL_REQUIRES_DASHBOARD_ACTIVATION",
+    "dashboard_probe_branch": "diag/d127-dashboard-click-probe",
+    "dashboard_probe_release_target": "d127-dashboard-probe-v1",
+    "dashboard_probe_scope": "AUTH_DASHBOARD_STANDALONE_WEBVIEW2_FIXED__BOUNDED_ACTIVATION_METHODS__IFRAME_OFFSET_AWARE_CDP_INPUT__MANUAL_TRUSTED_EVENT_CAPTURE",
+    "dashboard_probe_security": "NO_NETWORK_DOMAIN__NO_COOKIE_TOKEN_HEADER_STORAGE_PASSWORD_OR_REQUEST_CAPTURE__URL_SCHEME_HOST_PATH_ONLY",
+    "dashboard_probe_field_gate": "OA052__UPLOAD_LATEST_SANITIZED_DASHBOARD_PROBE_LOG"
   }
 }
