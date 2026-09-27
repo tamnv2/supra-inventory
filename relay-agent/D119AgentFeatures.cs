@@ -896,6 +896,101 @@ namespace SupraInventoryRelayAgent
             RefreshD128Overlay();
         }
 
+        private void InitializeD128Overlay()
+        {
+            try
+            {
+                _d128Overlay = new D128OverlayForm(D128OverlaySettingsFile);
+                _d128Overlay.SettingsChanged += RefreshD128OverlayMenu;
+                RefreshD128Overlay();
+                if (_d128Overlay.OverlayVisible) _d128Overlay.Show();
+
+                var overlayCard = NewCard(22, 344, 1040, 150);
+                overlayCard.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+                overlayCard.Controls.Add(new Label
+                {
+                    Left = 18, Top = 14, Width = 980, Height = 28,
+                    Text = "Bảng nổi Picklist",
+                    Font = new Font("Segoe UI Semibold", 13F, FontStyle.Bold),
+                    ForeColor = Color.FromArgb(24, 43, 55)
+                });
+                overlayCard.Controls.Add(new Label
+                {
+                    Left = 18, Top = 50, Width = 780, Height = 42,
+                    Text = "Picklist nhận | Picklist xác nhận | Picklist lỗi. Khi khóa, chuột xuyên qua bảng nổi xuống chương trình phía sau.",
+                    ForeColor = Color.DimGray
+                });
+                _d128OverlaySettingsButton.SetBounds(18, 100, 190, 34);
+                _d128OverlaySettingsButton.Text = "Cài đặt bảng nổi";
+                _d128OverlaySettingsButton.Click += (s, e) => OpenD128OverlaySettings();
+                overlayCard.Controls.Add(_d128OverlaySettingsButton);
+                _connectionPage.Controls.Add(overlayCard);
+
+                var menu = _tray.ContextMenuStrip;
+                if (menu != null)
+                {
+                    menu.Items.Add(new ToolStripSeparator());
+                    _d128OverlayVisibleMenu = new ToolStripMenuItem("Hiển thị bảng nổi");
+                    _d128OverlayVisibleMenu.Click += (s, e) =>
+                    {
+                        if (_d128Overlay == null) return;
+                        _d128Overlay.SetOverlayVisible(!_d128Overlay.OverlayVisible);
+                        RefreshD128OverlayMenu();
+                    };
+                    menu.Items.Add(_d128OverlayVisibleMenu);
+
+                    _d128OverlayLockedMenu = new ToolStripMenuItem("Khóa bảng nổi / chuột xuyên qua");
+                    _d128OverlayLockedMenu.Click += (s, e) =>
+                    {
+                        if (_d128Overlay == null) return;
+                        _d128Overlay.SetLocked(!_d128Overlay.IsLocked);
+                        RefreshD128OverlayMenu();
+                    };
+                    menu.Items.Add(_d128OverlayLockedMenu);
+
+                    var settings = new ToolStripMenuItem("Cài đặt bảng nổi...");
+                    settings.Click += (s, e) => OpenD128OverlaySettings();
+                    menu.Items.Add(settings);
+                }
+                RefreshD128OverlayMenu();
+            }
+            catch (Exception ex)
+            {
+                AgentDiagnostics.Write("D128_OVERLAY init=FAIL type=" + ex.GetType().Name);
+            }
+        }
+
+        private void RefreshD128Overlay()
+        {
+            var overlay = _d128Overlay;
+            if (overlay == null || overlay.IsDisposed) return;
+            overlay.UpdatePicklistMetrics(
+                Interlocked.Read(ref _localPdaRequests),
+                Interlocked.Read(ref _localConfirmSuccess),
+                Interlocked.Read(ref _localConfirmFailed));
+        }
+
+        private void RefreshD128OverlayMenu()
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(RefreshD128OverlayMenu));
+                return;
+            }
+            if (_d128OverlayVisibleMenu != null)
+                _d128OverlayVisibleMenu.Checked = _d128Overlay != null && _d128Overlay.OverlayVisible;
+            if (_d128OverlayLockedMenu != null)
+                _d128OverlayLockedMenu.Checked = _d128Overlay != null && _d128Overlay.IsLocked;
+        }
+
+        private void OpenD128OverlaySettings()
+        {
+            if (_d128Overlay == null || _d128Overlay.IsDisposed) return;
+            using (var dialog = new D128OverlaySettingsDialog(_d128Overlay))
+                dialog.ShowDialog(this);
+            RefreshD128OverlayMenu();
+        }
+
         private bool HasActivePickerCommand(string userId)
         {
             lock (_activePickerCommands) return _activePickerCommands.ContainsKey(userId);
