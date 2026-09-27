@@ -667,20 +667,17 @@ namespace SupraDashboardProbe
                 _web.CoreWebView2 == null)
                 return;
 
-            await Task.Delay(1000);
+            await Task.Delay(300);
 
-            var safeUrl = CurrentSafeUrl();
-
-            if (!ProbeSecurity.IsDashboardPage(safeUrl))
+            try
             {
-                if (safeUrl.IndexOf(
-                        "auth-supra.winmart.vn",
-                        StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    SetStatus(
-                        "Đang chờ Dashboard. Nếu đang ở màn hình đăng nhập, hãy đăng nhập bình thường.");
-                }
-                return;
+                await InstallInstrumentationAsync();
+            }
+            catch (Exception ex)
+            {
+                LogException(
+                    "AUTO_INSTRUMENT_FAIL",
+                    ex);
             }
 
             var inspect =
@@ -694,7 +691,10 @@ namespace SupraDashboardProbe
             {
                 _probeCompleted = true;
                 SetStatus(
-                    "Không xác định duy nhất nút đích. Hãy bấm đúng mũi tên bằng tay 1 lần; Probe vẫn ghi log.");
+                    "Không xác định duy nhất nút Truy cập. Bấm Theo dõi thao tác người dùng rồi tự bấm đúng nút một lần.");
+                Log(
+                    "AUTO_STOP",
+                    "reason=target_not_unique");
                 return;
             }
 
@@ -705,7 +705,7 @@ namespace SupraDashboardProbe
 
             Log(
                 "PROBE_BEGIN",
-                "methods=js_click,synthetic_pointer,cdp_user_gesture,cdp_mouse,cdp_keyboard_enter");
+                "methods=js_click,synthetic_pointer,cdp_user_gesture,cdp_mouse,cdp_keyboard_enter,cdp_keyboard_space anti_detection=false");
 
             try
             {
@@ -719,6 +719,8 @@ namespace SupraDashboardProbe
                     return;
                 if (await TryCdpKeyboardAsync())
                     return;
+                if (await TryCdpSpaceAsync())
+                    return;
 
                 _probeCompleted = true;
 
@@ -727,7 +729,7 @@ namespace SupraDashboardProbe
                     "transition=false manual_click_capture=true");
 
                 SetStatus(
-                    "Tự động chưa kích hoạt được. Anh bấm đúng mũi tên bằng tay 1 lần; Probe đang ghi log.");
+                    "Tự động chưa kích hoạt được. Bấm Theo dõi thao tác người dùng rồi tự bấm đúng nút Truy cập một lần.");
             }
             catch (Exception ex)
             {
@@ -735,7 +737,7 @@ namespace SupraDashboardProbe
                 LogException("PROBE_FAIL", ex);
 
                 SetStatus(
-                    "Probe gặp lỗi. Có thể bấm mũi tên bằng tay 1 lần rồi gửi log.");
+                    "Probe gặp lỗi. Bấm Theo dõi thao tác người dùng rồi thao tác thật một lần.");
             }
             finally
             {
@@ -908,6 +910,52 @@ namespace SupraDashboardProbe
 
             return await ObserveTransitionAsync(
                 "cdp_keyboard_enter");
+        }
+
+        private async Task<bool> TryCdpSpaceAsync()
+        {
+            ResetTransitionSignal();
+
+            var result =
+                await ExecuteStringAsync(
+                    BuildTargetActionExpression(
+                        "focus_only"));
+
+            Log(
+                "METHOD",
+                "name=cdp_keyboard_space focus=" +
+                SafeToken(result));
+
+            if (!string.Equals(
+                    result,
+                    "FOCUSED",
+                    StringComparison.Ordinal))
+                return false;
+
+            await _web.CoreWebView2
+                .CallDevToolsProtocolMethodAsync(
+                    "Input.dispatchKeyEvent",
+                    "{\"type\":\"keyDown\"" +
+                    ",\"key\":\" \"" +
+                    ",\"code\":\"Space\"" +
+                    ",\"windowsVirtualKeyCode\":32" +
+                    ",\"nativeVirtualKeyCode\":32}");
+
+            await _web.CoreWebView2
+                .CallDevToolsProtocolMethodAsync(
+                    "Input.dispatchKeyEvent",
+                    "{\"type\":\"keyUp\"" +
+                    ",\"key\":\" \"" +
+                    ",\"code\":\"Space\"" +
+                    ",\"windowsVirtualKeyCode\":32" +
+                    ",\"nativeVirtualKeyCode\":32}");
+
+            Log(
+                "METHOD",
+                "name=cdp_keyboard_space result=issued");
+
+            return await ObserveTransitionAsync(
+                "cdp_keyboard_space");
         }
 
         private async Task<bool> ObserveTransitionAsync(
