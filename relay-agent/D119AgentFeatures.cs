@@ -114,6 +114,7 @@ namespace SupraInventoryRelayAgent
             _pickerPresenceClient = new FirestorePickerPresenceClient(message => Log(message));
             _pickerContactClient = new FirestorePickerContactClient(message => Log(message));
             _fleetMetricsClient = new FirestoreFleetMetricsClient(message => Log(message));
+            InitializeD128Overlay();
 
             var agentHost = _username.Parent;
             if (agentHost != null)
