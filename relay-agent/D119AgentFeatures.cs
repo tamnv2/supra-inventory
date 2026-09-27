@@ -791,10 +791,13 @@ namespace SupraInventoryRelayAgent
                         name.IndexOf(query, StringComparison.CurrentCultureIgnoreCase) < 0)
                         continue;
 
+                    var pdaState = string.Equals(picker.Status, "PDA_GRACE", StringComparison.Ordinal)
+                        ? "Mất kết nối tạm thời"
+                        : "Đang hoạt động";
                     var row = _pickerOnlineGrid.Rows[_pickerOnlineGrid.Rows.Add(
                         code,
                         name,
-                        "Đang online",
+                        pdaState,
                         "Gọi về bàn CV",
                         "Mang hàng về Pack",
                         HasActivePickerCommand(picker.UserId) ? "Đóng" : "—")];
@@ -833,6 +836,17 @@ namespace SupraInventoryRelayAgent
             if (Interlocked.CompareExchange(ref _fleetMetricsRefreshRunning, 1L, 0L) != 0L) return;
             _lastFleetMetricsAttemptUtc = now;
 
+            var localRequests = Interlocked.Read(ref _localPdaRequests);
+            var localResponses = Interlocked.Read(ref _localAgentResponses);
+            if (primary && !force && _fleetSnapshot != null &&
+                localRequests == _lastFleetCheckpointLocalRequests &&
+                localResponses == _lastFleetCheckpointLocalResponses)
+            {
+                Log("FLEET_METRICS checkpoint=SKIP reason=no_local_delta provider_read=false provider_write=false");
+                RenderFleetMetricStatus(primary);
+                return;
+            }
+
             Task.Run(() =>
             {
                 try
@@ -845,8 +859,10 @@ namespace SupraInventoryRelayAgent
                         snapshot = _fleetMetricsClient.RefreshPrimary(
                             session,
                             _agentInstanceId,
-                            Interlocked.Read(ref _localPdaRequests),
-                            Interlocked.Read(ref _localAgentResponses));
+                            localRequests,
+                            localResponses);
+                        _lastFleetCheckpointLocalRequests = localRequests;
+                        _lastFleetCheckpointLocalResponses = localResponses;
                     }
                     else
                     {
@@ -1410,22 +1426,21 @@ namespace SupraInventoryRelayAgent
             if (agent != null)
             {
                 _d128AgentResourceStatus.Text =
-                    "Agent · CPU " + agent.ProcessCpuPercent.ToString("0.0") + "% · RAM " +
-                    (agent.ProcessWorkingSetBytes / 1024d / 1024d).ToString("0") + " MB · Thời gian chạy " +
+                    "CPU: " + agent.ProcessCpuPercent.ToString("0.0") + "% | RAM: " +
+                    (agent.ProcessWorkingSetBytes / 1024d / 1024d).ToString("0") + " MB | Thời gian chạy: " +
                     FormatD128Duration(agent.ProcessUptime);
             }
 
             if (browser == null || !browser.Available)
             {
-                _d128BrowserResourceStatus.Text = "Tài nguyên Web: chưa có tiến trình";
+                _d128BrowserResourceStatus.Text = "CPU: -- | RAM: -- | Tiến trình: -- | Thời gian chạy: --";
             }
             else
             {
                 _d128BrowserResourceStatus.Text =
-                    (string.IsNullOrWhiteSpace(browser.Browser) ? "Web" : browser.Browser) +
-                    " · CPU " + browser.CpuPercent.ToString("0.0") + "% · RAM " +
-                    (browser.WorkingSetBytes / 1024d / 1024d).ToString("0") + " MB · " +
-                    browser.ProcessCount + " tiến trình · Thời gian chạy " +
+                    "CPU: " + browser.CpuPercent.ToString("0.0") + "% | RAM: " +
+                    (browser.WorkingSetBytes / 1024d / 1024d).ToString("0") + " MB | Tiến trình: " +
+                    browser.ProcessCount + " | Thời gian chạy: " +
                     FormatD128Duration(browser.RunningFor);
             }
         }
