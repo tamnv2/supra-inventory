@@ -659,3 +659,17 @@ D126 supersedes the D125 workflow changes before D125 implementation.
 - Logged-out behavior is unchanged: exact **Lưu thông tin đăng nhập** pauses retry until the marker clears.
 - Already-authenticated non-login/non-Confirm pages must be fully loaded and stable for at least 750 ms before retry. After retry, allow a 3-second navigation grace before declaring retry exhausted.
 - WebView2 host build 9 is reused. v65 is an Agent/controller-only correction.
+
+## D128 Agent startup/readiness workflow
+
+For the Beta Windows Agent, a restored or newly authenticated Agent session is necessary but no longer sufficient to start Confirm-dependent business processing.
+
+1. Validate/restore the Agent application session.
+2. Ensure the preferred Agent-owned WebView2 browser is running against the canonical Confirm flow in the background. Do not expose the browser window during normal ready operation.
+3. If the exact visible **Lưu thông tin đăng nhập** marker is encountered, show the owned browser and wait for the user to complete Supra login manually. Never read credential values.
+4. After the login marker clears and canonical Confirm readiness passes, hide the owned browser again.
+5. Only when **Agent session valid + Web Confirm READY** are both true may Confirm-dependent relay/HA/manual PickList operations become active.
+6. If browser readiness or Agent authentication is later lost, those operations pause/fail closed until both prerequisites are restored.
+7. **Mở trình duyệt Desktop** remains an explicit user-selected alternative and may satisfy the same READY prerequisite. There is no silent owned-browser → Desktop fallback under D128.
+
+D126/D127 confirmation and browser-security guards remain authoritative; Stable remains OWNER-GATED.
