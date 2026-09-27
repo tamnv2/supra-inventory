@@ -1775,3 +1775,18 @@ Owner keeps D131 in design-only status and refines the model before implementati
 For a 20-Agent design, fleet/counter synchronization must use coarse snapshots and aggregation rather than per-Agent realtime listeners. PRIMARY lease, NEXT-A failover watch and business queue remain the high-priority operations; deep-Agent presentation is allowed to be up to 10 minutes stale and must show its freshness age.
 
 This refinement supersedes D131's earlier PRIMARY RAM counters and max 6 Agent wording. It does not authorize runtime code yet. Stable remains OWNER-GATED and untouched.
+
+
+### D131 refinement — server-side daily Drive export independent of Agents
+
+Owner confirms one automatic detailed PickList audit export to the existing scoped Beta Drive exports area per business day.
+
+- Export execution is **server-side**, owned by the existing Beta Cloudflare Worker/scheduled runtime and Google Drive OAuth configuration. No Windows Agent needs to be online.
+- Source is the durable Firestore PickList job ledger, not Agent RAM/local files.
+- Business day uses Asia/Ho_Chi_Minh with a 05:00 boundary so authorized overtime after 23:00 remains part of the preceding operational day.
+- Preferred schedule is shortly after the next 05:00 boundary (target 05:10 Asia/Ho_Chi_Minh) and exports the just-closed business day. This avoids truncating late overtime.
+- The logical export is exactly one file per business day. Execution is idempotent: a transient Firestore/Drive failure may retry server-side, but retries must update/complete the same business-day export identity rather than create duplicate files.
+- File detail includes request id, employee/user identity, send time, submitted suffix, terminal result/status, sanitized result/error code, processing Agent identity, completion time and elapsed duration. No password, browser cookie, token, header, signature or Supra session material is exported.
+- Export failure is recorded for retry/diagnostics and must not require an Agent to start. If Google OAuth/Drive authorization is revoked or unavailable, the server records the failure and retries boundedly after provider recovery.
+
+This is still D131 design authority only; runtime implementation has not started. Stable remains OWNER-GATED.
