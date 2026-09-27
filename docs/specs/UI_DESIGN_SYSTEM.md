@@ -764,3 +764,15 @@ D126 supersedes the unimplemented D125 Office-client UI.
 - The exact allowed confirmation action is **Xác nhận lấy lại hàng**. Neighboring controls such as **Xác nhận hoàn thành lấy hàng** and **Xuất File** are never fallback targets.
 - Fail-closed browser/DOM states must be visible to the operator in concise operational language.
 
+## D128 Windows Agent resource/status presentation
+
+The next Beta Agent UI change keeps resource information compact and operational rather than turning Overview into a diagnostic dashboard.
+
+- **Hệ thống Agent:** reserve one compact resource line below/alongside the existing Agent state area. Recommended default content is **CPU % · RAM MB · Uptime** for the Agent process. Thread/handle counts are optional expanded detail only if the Owner selects them.
+- **Đăng nhập Supra:** reserve one compact browser resource line. Recommended default content is **browser mode/name · aggregate CPU % · aggregate RAM MB · process count · uptime**. CPU/RAM must aggregate the managed browser process tree, not just the root host process.
+- Existing installed/profile storage size remains a separate storage indicator; do not label disk footprint as RAM.
+- Resource sampling remains local, coarse and non-blocking. Do not add high-frequency animation or polling that can itself become a measurable load source.
+- Agent-owned WebView2 is normally hidden/background once Confirm is READY. It is automatically shown only when manual Supra login is required, then hidden again after readiness returns.
+- While either Agent authentication or Web Confirm readiness is missing, Confirm-dependent controls/statuses must visibly remain unavailable rather than appearing operational.
+
+Exact resource fields beyond the recommended defaults remain an Owner selection before implementation. Stable remains OWNER-GATED.
