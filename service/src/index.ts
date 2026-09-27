@@ -22,6 +22,8 @@ import { sendProjectEmail } from "./google-mail";
 import { latestAgentAppRelease, latestAgentBrowserBundle, latestPdaAppRelease, redirectLatestAgentBrowserBundle, redirectLatestAgentBrowserChecksum, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestPdaApk, redirectLatestPdaChecksum } from "./app-tools";
 import { handleD119Internal } from "./internal-d119";
 import { refreshPickerProjectionBestEffort } from "./firestore-projection";
+import { maybeRunRelayAuditExport } from "./relay-audit";
+import { collectRelayUsage } from "./relay-usage";
 
 export { InventoryCore };
 
@@ -1129,6 +1131,18 @@ export default {
         return json({ error: "SYSTEM_STATUS_DISABLED_QUOTA_GUARD" }, 410);
       }
 
+      if (request.method === "GET" && url.pathname === "/api/agent/usage") {
+        await requireUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
+        try {
+          return json(await collectRelayUsage(env, url.searchParams.get("refresh") === "1"));
+        } catch (error) {
+          return json({
+            error: "RELAY_USAGE_UNAVAILABLE",
+            message: error instanceof Error ? error.message : "usage_unavailable",
+          }, 502);
+        }
+      }
+
       if (request.method === "GET" && url.pathname === "/api/admin/pda-app") {
         await requireUser(request, env, ["ADMIN", "ROOT"]);
         try {
@@ -1302,6 +1316,8 @@ export default {
     if (controller.cron === "*/5 * * * *") {
       ctx.waitUntil(drainAgentLogUploads(env).then(() => undefined).catch((error) =>
         console.error("agent_log_drain_failed", error instanceof Error ? error.message : "unknown")));
+      ctx.waitUntil(maybeRunRelayAuditExport(env).then(() => undefined).catch((error) =>
+        console.error("relay_audit_export_failed", error instanceof Error ? error.message : "unknown")));
     }
   },
 } satisfies ExportedHandler<Env>;
