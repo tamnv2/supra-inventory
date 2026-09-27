@@ -893,6 +893,7 @@ namespace SupraInventoryRelayAgent
                 " · Thành công " + success.ToString("N0") +
                 " · Lỗi " + failed.ToString("N0") +
                 " · Chờ " + pending.ToString("N0");
+            RefreshD128Overlay();
         }
 
         private bool HasActivePickerCommand(string userId)
