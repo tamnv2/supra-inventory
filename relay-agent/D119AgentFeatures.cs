@@ -90,6 +90,7 @@ namespace SupraInventoryRelayAgent
         private readonly CheckBox _autoSizeColumns = new CheckBox();
         private bool _columnPreferenceApplying;
         private string _columnPreferenceUser = "";
+        private readonly Label _d128OverlayMarker = new Label();
 
         public sealed class ColumnPreferenceProfile
         {
