@@ -136,6 +136,42 @@ namespace SupraInventoryRelayAgent
             return OpenOrShow(BrowserLaunchMode.Desktop);
         }
 
+        internal SupraBrowserState OpenAgentBackground()
+        {
+            lock (_gate)
+            {
+                ThrowIfDisposed();
+                if (_launchMode != BrowserLaunchMode.Agent)
+                {
+                    StopManagedBrowserNoLock();
+                    StartNoLock(BrowserLaunchMode.Agent);
+                }
+                else if (!IsConnectedNoLock() && !TryReconnectNoLock())
+                {
+                    StopManagedBrowserNoLock();
+                    StartNoLock(BrowserLaunchMode.Agent);
+                }
+
+                ResetDirectConfirmRecoveryNoLock();
+                NavigateConfirmNoLock();
+                SetBrowserWindowsVisibleNoLock(false);
+                _hidden = true;
+                _log("SUPRA_BROWSER direct_confirm=INITIAL_NAVIGATE mode=AGENT background=true");
+                return new SupraBrowserState
+                {
+                    Ready = false,
+                    Hidden = true,
+                    State = "LOADING",
+                    Browser = _browserName
+                };
+            }
+        }
+
+        internal bool IsAgentOwnedMode()
+        {
+            lock (_gate) return _launchMode == BrowserLaunchMode.Agent;
+        }
+
         private SupraBrowserState OpenOrShow(BrowserLaunchMode mode)
         {
             lock (_gate)
