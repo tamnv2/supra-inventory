@@ -129,3 +129,15 @@ Stable Firebase Auth configuration remains OWNER-GATED.
 ## D114 PickList suffix contract supersession
 
 D114 supersedes only the D105 fixed four/five-digit carrier-length rule. New Beta PDA jobs and Agent manual lookups use exact trailing numeric suffixes of 3–20 digits. PDA submits one term; Agent manual may submit up to 10 comma-separated terms. Ambiguous PDA resolution returns candidates without mutation and a user-selected candidate is re-resolved through the existing confirmation guard before WMS mutation. D097/D104 HA, batching, idempotency, quota and fail-closed mutation rules remain authoritative.
+
+
+## D129 Firestore cost/quota operating rule
+
+For the Beta PDA↔Agent confirmation path:
+
+- Preserve the accepted D117 latency/failover envelope unless a later Owner decision explicitly trades latency for lower quota.
+- Remove accidental amplification before changing provider/cadence: no stale PENDING list fallback, no UI-driven presence polling, no UI-driven schedule polling and no unchanged fleet-metrics checkpoint writes.
+- Firestore request accounting is local diagnostics only. Reference warning thresholds are 70/85/95% of 50k reads/day and 20k writes/day; they are conservative reference values, not an entitlement assertion and not a hard runtime shutdown threshold.
+- CI must reject reintroduction of the Sep 25–26 fleet-metrics storm, broad stale queue reads, a new periodic Picker-presence loop, or a parallel schedule-read loop.
+- A Firestore realtime-listener alternative for PRIMARY may be implemented only as a separate bounded Beta/Office POC. Do not replace the field-proven REST path until company-network proxy/stream stability, reconnect behavior and read consumption are measured.
+- Stable remains OWNER-GATED.
