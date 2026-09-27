@@ -4542,7 +4542,6 @@ ClearStoredSession();
                     if (IsHandleCreated) BeginInvoke(action);
                 }
                 catch (InvalidOperationException) { }
-                catch (ObjectDisposedException) { }
                 return;
             }
             action();
