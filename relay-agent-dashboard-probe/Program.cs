@@ -479,19 +479,19 @@ namespace SupraDashboardProbe
                         " web_error=" + e.WebErrorStatus +
                         " url=" + CurrentSafeUrl());
 
-                    try
+                    if (_monitoring)
                     {
-                        await InstallInstrumentationAsync();
+                        try
+                        {
+                            await InstallInstrumentationAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            LogException(
+                                "INSTRUMENT_FAIL",
+                                ex);
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        LogException(
-                            "INSTRUMENT_FAIL",
-                            ex);
-                    }
-
-                    if (!_probeCompleted)
-                        await TryStartProbeAsync();
                 };
 
             _web.CoreWebView2.NewWindowRequested +=
@@ -507,24 +507,17 @@ namespace SupraDashboardProbe
                     Log(
                         "NEW_WINDOW",
                         "target=" + safe +
-                        " approved_same_tab=" +
+                        " approved=" +
                         approved
                             .ToString()
-                            .ToLowerInvariant());
+                            .ToLowerInvariant() +
+                        " popup_mode=webview2_default");
 
                     SignalTransition();
 
-                    e.Handled = true;
-
-                    if (approved)
+                    if (!approved)
                     {
-                        _web.CoreWebView2.Navigate(e.Uri);
-                        Log(
-                            "NEW_WINDOW_INTERCEPT",
-                            "mode=same_tab target=" + safe);
-                    }
-                    else
-                    {
+                        e.Handled = true;
                         Log(
                             "NEW_WINDOW_BLOCKED",
                             "target=" + safe +
@@ -581,21 +574,80 @@ namespace SupraDashboardProbe
                 };
         }
 
-        private async Task RerunAsync()
+        private async Task NavigateFromInputAsync()
         {
             if (_web.CoreWebView2 == null)
                 return;
+
+            var raw = (_urlInput.Text ?? "").Trim();
+            if (!ProbeSecurity.IsApprovedTarget(raw))
+            {
+                SetStatus(
+                    "Chỉ chấp nhận HTTPS trên auth-supra.winmart.vn hoặc wms-supra.winmart.vn; URL không được chứa user/password.");
+                Log(
+                    "USER_NAV_REJECTED",
+                    "url=" + ProbeSecurity.SanitizeUrl(raw));
+                return;
+            }
 
             _probeRunning = false;
             _probeCompleted = false;
             ResetTransitionSignal();
 
-            Log("RERUN", "requested=true");
-            SetStatus(
-                "Đang tải lại Supra Dashboard để chạy probe.");
+            Log(
+                "USER_NAV",
+                "url=" + ProbeSecurity.SanitizeUrl(raw));
 
-            _web.CoreWebView2.Navigate(DashboardUrl);
+            SetStatus(
+                "Đang mở URL. Nếu cần, đăng nhập trực tiếp trên trang.");
+            _web.CoreWebView2.Navigate(raw);
             await Task.CompletedTask;
+        }
+
+        private async Task StartAutoProbeAsync()
+        {
+            if (_probeRunning || _web.CoreWebView2 == null)
+                return;
+
+            _probeCompleted = false;
+            _auto.Enabled = false;
+
+            try
+            {
+                await TryStartProbeAsync();
+            }
+            finally
+            {
+                _auto.Enabled = true;
+            }
+        }
+
+        private async Task ToggleMonitoringAsync()
+        {
+            if (_web.CoreWebView2 == null)
+                return;
+
+            _monitoring = !_monitoring;
+
+            if (_monitoring)
+            {
+                await InstallInstrumentationAsync();
+                _monitor.Text = "Dừng theo dõi";
+                Log(
+                    "MONITOR",
+                    "state=started clickable_only=true input_fields=false local_log_only=true");
+                SetStatus(
+                    "Đang theo dõi phần tử click được. Hãy tự bấm đúng nút Truy cập một lần.");
+            }
+            else
+            {
+                _monitor.Text = "Theo dõi thao tác người dùng";
+                Log(
+                    "MONITOR",
+                    "state=stopped");
+                SetStatus(
+                    "Đã dừng theo dõi. Có thể mở thư mục log và gửi file mới nhất.");
+            }
         }
 
         private async Task InstallInstrumentationAsync()
