@@ -2772,24 +2772,26 @@
         "target_android": "NEXT_MONOTONIC_IF_ANDROID_CHANGE_REQUIRED",
         "technical_release": "PENDING",
         "new_resources": "NONE",
-        "stable": "OWNER_GATED"
+        "stable": "OWNER_GATED",
+        "target_fleet": "UP_TO_20_AGENTS",
+        "counter_authority": "DURABLE_FIRESTORE_JOB_LEDGER__NOT_RAM"
       },
       "shortest_test_path": [
-        "Run up to 6 Agents and verify exactly one PRIMARY; all others show hibernating roles and no non-primary business queue polling.",
-        "Kill PRIMARY during an idle period and verify NEXT_A promotes without a PDA request; counters remain exact after bounded reconciliation.",
-        "Send normal requests and verify good-network terminal result target <=6s; run one 40-request burst and record actual browser-batch latency.",
-        "Verify a failover/transport fault returns a business result or explicit terminal failover/error before 20s.",
-        "Verify 05:00-23:00 relay schedule and no-PDA-business polling outside the window without overtime.",
-        "Verify PDA list add/remove/grace and request-as-local-activity behavior without a periodic PDA heartbeat.",
-        "Review quota counters after a representative shift and confirm D131 soft ceilings remain unbreached."
+        "Run 10 Agents, then scale the fleet model to 20 registered Agents; verify exactly one PRIMARY and zero PENDING business queries from every non-primary Agent.",
+        "On a hibernating non-primary Agent, verify the managed Web Confirm page remains ready and local/manual PickList confirmation can be used without promoting that Agent.",
+        "Create a known mixed set of success/error requests, kill PRIMARY, and verify the promoted PRIMARY reconstructs the exact daily received/confirmed/error totals from durable state.",
+        "Keep multiple Agent windows open and verify shared durable counters/fleet snapshot refresh no faster than 10 minutes unless the window is foregrounded or explicit refresh is used.",
+        "Run normal requests and one 40-request burst; record terminal latency and verify failover/error terminal behavior remains under 20 seconds.",
+        "Export one business-day PickList audit file and verify user identity, send time, submitted suffix, result, Agent identity and duration are present with no secrets/session material.",
+        "Review synthetic and representative-shift Firestore usage against D131 soft ceilings."
       ],
       "pass_criteria": [
-        "Exactly one PRIMARY and no non-primary PENDING business query.",
-        "Idle-time PRIMARY death promotes automatically with generation fencing.",
-        "Daily shared received/confirmed/error counters remain exact through takeover.",
-        "Normal/small-burst good-network target <=6s is met in field; 40-burst actual is recorded honestly and remains bounded.",
-        "Every failover/error path terminates specifically before 20s.",
-        "Provider-day reads/writes/deletes remain within D131 soft targets and no new relay provider is used.",
+        "Exactly one PRIMARY; NEXT_A/NEXT_B/deep Agents do not poll the PENDING business queue.",
+        "Non-primary managed Web Confirm remains warm/ready for local manual PickList work.",
+        "Daily counters are durable and exact across process/machine failover; RAM is not the authority.",
+        "Fleet/counter refresh on non-primary Agents is no faster than 10 minutes except foreground/manual refresh.",
+        "Detailed daily export is complete and secret-free.",
+        "Provider-day reads/writes/deletes remain within D131 soft targets at the 20-Agent synthetic envelope.",
         "Stable remains untouched."
       ],
       "safety": "Beta only. No secrets/session material in logs. Stable remains OWNER-GATED.",
