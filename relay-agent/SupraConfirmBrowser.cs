@@ -714,6 +714,9 @@ namespace SupraInventoryRelayAgent
             }
             catch { }
             _process = null;
+            _resourceRootPid = 0;
+            _resourceCpuTotal = TimeSpan.Zero;
+            _resourceSampleAtUtc = DateTime.MinValue;
             _port = 0;
             _targetUrl = "";
             ResetDirectConfirmRecoveryNoLock();
