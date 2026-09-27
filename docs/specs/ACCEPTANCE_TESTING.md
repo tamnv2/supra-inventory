@@ -1438,13 +1438,24 @@ D126 cannot PASS until all applicable checks below pass:
 13. No Network/cookie/token/header/storage/request/profile extraction or direct WMS API is introduced.
 14. Android remains beta-vc76; Stable remains OWNER-GATED and untouched.
 
-## D128 — background browser, readiness barrier and resource observability
+## D128 — background browser, readiness barrier, resource observability and Picklist overlay
 
-Behavioral acceptance locked by Owner:
-1. With a valid restored/new Agent application login and a reusable Supra browser session, the Agent-owned WebView2 starts/continues toward Confirm without showing its window. PASS only if canonical Confirm becomes READY while the browser remains hidden/background.
-2. When exact visible **Lưu thông tin đăng nhập** is detected, the owned browser becomes visible for manual login. PASS only if the Agent does not read/log form values and, after login clears and Confirm becomes READY, the owned browser returns to hidden/background state.
-3. Before **Agent login valid + Web Confirm READY**, Confirm-dependent relay/HA/manual PickList business processing must not start or mutate anything. Losing either prerequisite after startup must pause/fail closed those paths.
-4. Explicit Desktop Edge/Chrome may satisfy the browser READY prerequisite when the operator selects **Mở trình duyệt Desktop**; no automatic fallback from owned WebView2 is introduced.
-5. All D126/D127 page-size/search/row/checkbox/modal/terminal and browser-security guards remain PASS. Stable remains untouched.
+D128 v68 PASS requires all applicable checks below:
 
-Resource-observability acceptance is pending the Owner's exact metric selection. Whichever metrics are selected must be sampled locally on a coarse cadence, must not block the WinForms UI thread, must not be uploaded, and must never collect Supra credentials/session material. Browser CPU/RAM acceptance requires aggregation across the managed browser process tree.
+1. With valid restored/new Agent authentication and reusable Supra session, Agent-owned WebView2 starts/continues toward canonical Confirm while hidden/background.
+2. Exact visible **Lưu thông tin đăng nhập** causes owned WebView2 to become visible for manual login; Agent does not read/log credential form values.
+3. After login clears and canonical Confirm becomes READY, owned WebView2 hides automatically.
+4. Explicit Desktop Edge/Chrome may satisfy browser READY only after operator selects **Mở trình duyệt Desktop**; no automatic Agent-owned → Desktop fallback is introduced.
+5. Before **Agent login valid + Web Confirm READY**, Confirm-dependent relay/HA/manual PickList processing must not start or mutate business state.
+6. Losing either prerequisite after startup pauses/fails closed those Confirm-dependent paths; restoration re-enables them without requiring Agent restart.
+7. **Hệ thống Agent** displays process CPU %, RAM MB and **Thời gian chạy** while the main Agent window is visible.
+8. **Đăng nhập Supra** displays browser mode/name plus aggregate process-tree CPU %, RAM MB, process count and **Thời gian chạy** while the main Agent window is visible.
+9. Hiding/minimizing the main Agent window stops resource sampling; no SystemMonitor/browser-process resource sampling continues in background. Normal business/readiness/HA/schedule logic continues.
+10. Tray hover/status contains no CPU/RAM/resource telemetry.
+11. Overlay can show exactly **Picklist nhận: xx | Picklist xác nhận: xx | Picklist lỗi: xx** from existing local counters.
+12. Overlay settings persist show/hide, lock state, position/size, background color, text color and background opacity.
+13. Locked overlay is click-through; unlocked overlay can be moved.
+14. Overlay remains lightweight and must not add CPU/RAM/GPU/disk/network monitoring or Firebase/Drive traffic.
+15. All D126/D127 page-size/search/row/checkbox/modal/terminal/browser-security guards remain PASS.
+16. Android remains unchanged; Stable remains OWNER-GATED and untouched.
+
