@@ -242,7 +242,7 @@ async function uploadDriveFile(
       {
         method: "PATCH",
         headers: { authorization: `Bearer ${token}`, "content-type": XLS_MIME },
-        body: bytes,
+        body: bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer,
       },
     );
     if (!response.ok) throw new Error(`DRIVE_UPDATE_HTTP_${response.status}`);
@@ -275,7 +275,7 @@ async function uploadDriveFile(
         authorization: `Bearer ${token}`,
         "content-type": `multipart/related; boundary=${boundary}`,
       },
-      body,
+      body: body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength) as ArrayBuffer,
     },
   );
   if (!response.ok) throw new Error(`DRIVE_CREATE_HTTP_${response.status}`);
