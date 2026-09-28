@@ -1182,3 +1182,12 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Web marker: `D141_RUNTIME_PASS_MAIN_966B6D1F__SLA_SERVER_DRAFT_SPLIT__SQLITE_READBACK__NON_DROPPABLE_SAVE__OA067_FIELD_READY`.
 - OA067 is READY_FOR_OWNER_FIELD_TEST. D140 Agent v80 remains parallel. D137 OA063 remains independently open.
 - Android unchanged; Stable remains OWNER-GATED.
+
+## D142 Android 11 critical-alert candidate — 2026-09-28
+
+- Scope: Beta Android only; supported warehouse targets are Newland NLS-MT90 Android 11 and Urovo DT50 Android 11.
+- Current released baseline remains signed `beta-vc82` until D142 main/release gates publish the next monotonic APK.
+- Candidate readiness gate is local/event-driven: notifications + overlay + DND policy + battery exemption + critical channel HIGH/DND-bypass must pass before login/business use.
+- Missing requirements expose direct/closest Android Settings actions and concise guidance; returning from Settings automatically rechecks. There is no manual check/test-alert step.
+- Critical delivery retains existing data-only FCM HIGH and D133/D135 overlay/local-first ACK; Android 11 full-screen wake is bounded and adds no persistent wake lock or alert polling.
+- OA068 is blocked pending D142 technical/release PASS. D141/D140 parallel workstreams are unchanged. No new provider resource; Stable remains OWNER-GATED.
