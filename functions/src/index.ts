@@ -225,7 +225,7 @@ export const pickerAlertCreated = onDocumentCreated("picker_alerts/{alertId}", a
             ? "Yêu cầu về bàn Chuyên viên"
             : "Yêu cầu lấy hàng về bàn Pack",
         notification_body: commandType === "CHAT_MESSAGE"
-          ? ((String(alert.message || "").slice(0, 200) || "Có thông báo mới.") + "\n\nHãy đọc kĩ và thực hiện theo!")
+          ? (("- " + (String(alert.message || "").slice(0, 200) || "Có thông báo mới.")) + "\n\nHãy đọc kĩ và thực hiện theo!")
           : (String(alert.message || "").slice(0, 500) || (
               commandType === "CALL_SPECIALIST"
                 ? "Vui lòng về bàn Chuyên viên để xử lý."
