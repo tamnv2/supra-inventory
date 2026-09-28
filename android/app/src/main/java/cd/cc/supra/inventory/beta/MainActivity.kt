@@ -450,7 +450,19 @@ class MainActivity : Activity() {
             return
         }
         if (activeCallWatcher == null) {
-            activeCallWatcher = PickerActiveCallWatcher(applicationContext, ::recordLog)
+            activeCallWatcher = PickerActiveCallWatcher(
+                applicationContext,
+                onSessionRevoked = {
+                    runOnUiThread {
+                        if (api.session?.role == "PICKER") {
+                            logoutWithNotificationCleanup(
+                                "Phiên PDA đã bị Kích User. Vui lòng đăng nhập lại."
+                            )
+                        }
+                    }
+                },
+                log = ::recordLog,
+            )
         }
         if (!session.relayCustomToken.isNullOrBlank()) {
             activeCallWatcher?.reconcile(session)
