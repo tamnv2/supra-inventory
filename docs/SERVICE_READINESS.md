@@ -1063,3 +1063,13 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Runtime health is exact-source PASS with SQLite `12/12`, Operational V2 `5/5`, Agent migration `0/0`.
 - Inventory distribution channel now points to Agent v76 and Android vc82.
 - OA061 is READY_FOR_OWNER_FIELD_TEST. Stable remains OWNER-GATED and untouched.
+
+## D136 candidate — 2026-09-28
+
+- Canonical Android marker: `D135_OWNER_FIELD_PASS__SIGNED_BETA_VC82__1291_BAO_HANG_BETA`.
+- D135 is Owner field PASS on Agent v76 / Android vc82.
+- D136 target is Agent v77 plus a Beta Worker deploy; Android stays `beta-vc82`.
+- Manual PickList UI must preserve code/action/status simultaneously across sizing modes.
+- Provider Usage runtime is intentionally retired: no scheduled Google Monitoring Usage collection and no periodic `usage_current` write for the removed UI. Local quota reference guard remains.
+- Web Confirm hide-to-background is no-password; protected show/stop/logout/switch actions remain.
+- No new provider resource. Stable remains OWNER-GATED.
