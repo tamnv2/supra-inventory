@@ -2099,3 +2099,11 @@ D143 is one coordinated Beta refinement and preserves previously accepted busine
 9. **Agent → Picker contact split.** **Liên hệ picker** first offers: (a) call the Picker directly back to the specialist desk using the existing 60-second shared call lock/resolve flow, or (b) send a free-text notification up to 200 characters. Chat produces a critical Picker alert with title **Chuyên viên gửi thông báo tới bạn:**, the message, and **Hãy đọc kĩ và thực hiện theo!**. The Picker's **Xác nhận** closes chat locally only; no acknowledgement is written back and no Kết thúc action exists for chat.
 10. **Managed WebView2 resource bound.** The Agent-owned browser keeps the existing D126/D127 page/credential/security boundary. Hidden obsolete child WebViews are disposed with a small bounded retained set; cosmetic browser chrome is reduced and WebView2 process failure closes the host so the existing Agent lifecycle can recover it. No Network-domain/session/cookie/header extraction is introduced.
 11. **Release/scope.** Target Windows Agent is `relay-agent-v81`; Android target is the next monotonic signed Beta release after `beta-vc83`. D143 uses existing Beta Worker/InventoryCore/Firebase/Firestore/GitHub distribution resources only. **No new provider resource. Stable remains OWNER-GATED and untouched.**
+
+## D141 Owner field acceptance — 2026-09-29
+
+Status: **OWNER FIELD PASS**.
+
+- Owner explicitly confirmed D141 OK before opening D143.
+- Accepted behavior is the end-to-end server-authoritative SLA persistence repair: separate server/draft state, non-droppable Save, SQLite post-write readback, fresh GET verification and consistent FIRST_REPORT presentation after reload.
+- OA067 is closed PASS. D143 may refine adjacent Web presentation/RBAC but must not regress the D141 persistence contract.
