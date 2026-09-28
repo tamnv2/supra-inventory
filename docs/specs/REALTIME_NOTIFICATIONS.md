@@ -683,3 +683,4 @@ Stable remains OWNER-GATED.
 - Picker **Xác nhận** dismisses only on the PDA; no remote acknowledgement is written.
 - Late duplicate FCM for a locally dismissed chat is ignored.
 - Existing `picker_active_calls` direct-call lock and resolve behavior is unchanged.
+- Agent chat entry is a modal editor isolated from periodic Agent UI refresh timers while open; it adds no polling or provider write loop.
