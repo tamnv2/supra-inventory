@@ -707,7 +707,7 @@ class MainActivity : Activity() {
             .setTitle("Log hỗ trợ")
             .setView(scroll)
             .setNegativeButton("Đóng", null)
-            .setNeutralButton("Gửi lên Drive") { _, _ ->
+            .setNeutralButton("Gửi log") { _, _ ->
                 sendAndroidRuntimeLog("INFO", "manual_android_log", JSONObject(payload), showResult = true)
                 Toast.makeText(this, "Đang gửi log...", Toast.LENGTH_SHORT).show()
             }
