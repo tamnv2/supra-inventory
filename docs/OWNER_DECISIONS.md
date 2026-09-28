@@ -2031,3 +2031,16 @@ Status: **OWNER-REPORTED PRODUCTION-LIKE BETA DEFECT / AGENT HOTFIX AUTHORIZED**
 - The Android/PDA confirmation carrier, APK version and business flow are unchanged. D140 is **Agent-only** plus repository/CI authority. No Stable mutation is authorized.
 - Agent target is v80. CI must keep the packaged gRPC native smoke test and additionally enforce routing metadata, retry/circuit policy, HA-trio listener gating and the D140 sync-safety self-test.
 
+
+
+## D141 — SLA Save must prove server persistence end-to-end
+
+Status: **OWNER AUTHORIZED / IMPLEMENTATION ACTIVE** — 2026-09-28
+
+- D139 is field-failed. The observed clean-page contradiction **radio FIRST_REPORT / Đang áp dụng PER_PICKER** is not an acceptable state.
+- Source review identified the concrete UI cause: shared `restoreUiContext()` restored pre-render SLA radio/field values after an authoritative rerender. SLA form controls are therefore excluded from generic field restoration.
+- SLA now has separate concepts: **server/applied mode** and **draft mode**. Before Save, a changed radio is shown as an explicit unsaved draft while **Đang áp dụng** remains server authority.
+- SLA Save must not use the generic `run()` busy gate because `run()` silently returns while another generic action is busy. SLA uses its own single-flight lock; one click either runs or visibly reports an in-progress save.
+- A PUT is successful only after InventoryCore rereads the just-written SQLite policy and verifies the complete policy, requested mode and incremented policy version. The Web then performs a fresh no-cache GET and verifies the exact persisted mode/version again.
+- A sanitized request id, requested mode, previous mode and policy version are recorded for diagnosis. No secret/session material may be logged.
+- D141 is Beta Web/Worker only. Schema, provider resources, Android and Agent are unchanged. D140 Agent v80 remains a parallel workstream. Stable remains OWNER-GATED.
