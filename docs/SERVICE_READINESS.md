@@ -1116,3 +1116,5 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Existing optimistic policy-version check and save-response/post-save-GET mode verification remain unchanged.
 - No provider, schema, Android or Agent changes. D137 OA063 remains independently field-ready. Stable remains OWNER-GATED.
 - OA064 is blocked until PR gates and exact-source Beta deployment PASS.
+
+- Canonical Web marker: `D138_SOURCE_CANDIDATE__SLA_DIRTY_FORM_REALTIME_RECONCILE_PRESERVATION`.
