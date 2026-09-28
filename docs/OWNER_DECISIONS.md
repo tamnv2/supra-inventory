@@ -1951,3 +1951,15 @@ After D134 hotfix field operation passed the restored PickList send/receive path
 9. **Current PickList resolution taxonomy remains unchanged.** Android input stays 3–20 numeric suffix digits; NOT_FOUND alone contributes anti-spam strikes; ambiguous results require explicit candidate selection; confirmation remains exact-row, generation/PRIMARY/guard fenced and fail-closed.
 
 Implementation targets: **relay-agent-v76** and next monotonic signed Beta Android release after `beta-vc81` (expected `beta-vc82`). Existing Beta Worker/Firestore/Functions resources are reused. Stable remains OWNER-GATED and untouched.
+
+## D136 — Manual PickList result visibility, retire Usage, and no-password Web background hide — 2026-09-28
+
+Status: **OWNER APPROVED — IMPLEMENTATION IN PROGRESS**.
+
+Owner explicitly confirmed D135 PASS, then approved these follow-up corrections:
+
+1. **Manual PickList result is a complete operational row.** Every uniquely found PickList shown in Agent must simultaneously expose the full PickList code, its row-specific **Xác nhận** action, and its current **Trạng thái**. Auto-size, manual saved widths, normal/maximized transitions and window resize must not silently hide the action/status columns. A horizontal-scroll fallback is allowed only when the actual viewport cannot physically fit all critical minimum widths.
+2. **Manual confirmation action follows row state.** Successful/already-confirmed rows are non-repeatable. An uncertain in-progress outcome must not offer a resend. Retryable failures may return the row action to **Xác nhận**.
+3. **Usage is retired rather than presenting unreliable provider numbers.** The Agent Usage tab is removed. The Beta Worker no longer polls Google Monitoring for the Usage feature and no longer periodically writes `relay_poc_coordination/usage_current`. Do not replace this with self-counted numbers presented as Firebase/provider-authoritative usage. Existing local `FirestoreQuotaGuard` may remain only as a reference/soft guard based on operations observed by that Agent.
+4. **Web Confirm hide is presentation-only.** **Chuyển Web chạy nền** hides the managed browser without asking for the Agent password. Security-sensitive actions remain protected: showing the hidden Web, stopping Web, Agent logout and switching managed browser mode retain the current password gates.
+5. D135 PickList safety/HA/generation/idempotency behavior remains unchanged. No direct WMS API/session extraction is introduced. Android remains `beta-vc82`. Target Agent is `relay-agent-v77`. Stable remains OWNER-GATED and untouched.
