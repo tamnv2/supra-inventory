@@ -626,3 +626,13 @@ The v78 early-reload rule is superseded by the following readiness sequence:
 - The reloaded Confirm DOM must satisfy the existing exact search/confirm/table guards continuously for 1.2 seconds before READY.
 - If the first actual PickList search after READY sees zero full `PL...` codes anywhere in the table, Agent may run one local self-heal reload and one local search retry. A genuine NOT_FOUND after that remains NOT_FOUND.
 - This one-shot recovery does not add Firestore/Worker/provider reads or writes and must not become a periodic reload loop.
+
+
+### D138 SLA realtime form preservation
+
+For Web **Thời gian xử lý**:
+
+- `autoSkipMode=FIRST_REPORT` renders **Theo báo đầu tiên của SKU**; `PER_PICKER` renders **Theo từng Picker**.
+- Once any SLA form control is edited, background realtime/reconcile may fetch newer server authority but must not rebuild the form until the operator saves, navigates away, or otherwise abandons the edit.
+- The SLA route's `loadSla()` function owns both dirty-state protection and rendering. Generic active-section reconciliation must not apply a second unconditional patch after `loadSla()`.
+- Save remains server-authoritative: selected mode is sent exactly; success requires the save response and a fresh GET to return the same mode.
