@@ -57,6 +57,7 @@ namespace SupraInventoryRelayAgent
         private readonly Action<string> _audit;
         private readonly Action _onRequest;
         private readonly Action _onResponse;
+        private readonly Action<string, FirestoreConfirmationOutcome> _onDurableAck;
         private readonly Action<string> _state;
         private readonly Func<List<FirestoreConfirmationWorkItem>, Dictionary<string, FirestoreConfirmationOutcome>> _batchHandler;
         private readonly Action<List<PickerPresenceView>, string> _presenceSnapshotHandler;
@@ -83,6 +84,7 @@ namespace SupraInventoryRelayAgent
             Action<string> audit,
             Action onRequest,
             Action onResponse,
+            Action<string, FirestoreConfirmationOutcome> onDurableAck,
             Action<string> state,
             Func<List<FirestoreConfirmationWorkItem>, Dictionary<string, FirestoreConfirmationOutcome>> batchHandler,
             Action<List<PickerPresenceView>, string> presenceSnapshotHandler,
@@ -100,6 +102,7 @@ namespace SupraInventoryRelayAgent
             _audit = audit ?? delegate { };
             _onRequest = onRequest ?? delegate { };
             _onResponse = onResponse ?? delegate { };
+            _onDurableAck = onDurableAck ?? delegate { };
             _state = state ?? delegate { };
             _batchHandler = batchHandler;
             _presenceSnapshotHandler = presenceSnapshotHandler ?? delegate { };
@@ -308,6 +311,7 @@ namespace SupraInventoryRelayAgent
                     continue;
 
                 _onResponse();
+                try { _onDurableAck(FindBusinessDay(work.RequestId), outcome); } catch { }
                 _lastOutcomeState = "Relay: PRIMARY · " + UserFacingOutcome(outcome);
                 processed++;
             }
