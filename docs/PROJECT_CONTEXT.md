@@ -694,3 +694,10 @@ Owner reopened the Beta support-log delivery path after confirming the Beta Goog
 - Managed-account deletion is true-ROOT-only at Web, Worker and InventoryCore boundaries. ROOT effective PICKPACK_ADMIN and real PICKPACK_ADMIN cannot delete ADMIN.
 - Agent protected password/browser-action dialogs pause the periodic UI timers while text is being entered and the generic tick avoids repaint work during interactive text focus.
 - Target releases: Agent `relay-agent-v83`; next monotonic signed Android after `beta-vc85`. Stable remains OWNER-GATED and untouched.
+
+
+## D146 Owner acceptance checkpoint — 2026-09-29
+
+Owner explicitly confirmed **D146 done / PASS** after the D146 release and Firestore-rules hotfix sequence. D146 is therefore the current Owner-accepted Beta baseline for the support-log schedule/delivery repair, live PDA SKU refresh after Web import, true-ROOT-only managed-account deletion, and Agent protected-input focus stability.
+
+Technical/release evidence: implementation PR #294 merged at `108756a09d54ba100b1fff1d47f5345122bbe1bf`; signed Android `beta-vc86`; Agent `relay-agent-v83`; final Firestore-rules hotfix main `d7e0cb944b29ee7245053be64f5409be36e2b6c3` with main Firestore run `36498146440` PASS. OA073 and OA074 are closed by this Owner acceptance. Stable remains OWNER-GATED and untouched.
