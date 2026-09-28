@@ -13,12 +13,12 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D140_AGENT_FIRESTORE_LISTENER_STORM_HOTFIX_IN_PROGRESS__D139_OA065_FIELD_READY__D137_OA063_STILL_OPEN",
+    "beta": "D141_SLA_END_TO_END_PERSISTENCE_HOTFIX_IN_PROGRESS__D140_AGENT_V80_PARALLEL__D137_OA063_STILL_OPEN",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 12,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D139_RUNTIME_PASS_MAIN_21946984__GLOBAL_DIRTY_SLA_FORM_RERENDER_GUARD__OA065_FIELD_READY",
+    "web": "D141_SOURCE_CANDIDATE__SLA_SERVER_DRAFT_SPLIT__SQLITE_READBACK__NON_DROPPABLE_SAVE",
     "android": "D135_OWNER_FIELD_PASS__SIGNED_BETA_VC82__1291_BAO_HANG_BETA",
     "latest_beta_apk": "beta-vc82",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
@@ -190,7 +190,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Run OA065 on live Beta Web: wait until SLA page is fully loaded, select FIRST_REPORT, leave it selected for several seconds, save, then reload and verify both the radio and Đang áp dụng remain FIRST_REPORT. D137 OA063 remains independently open. Stable remains OWNER-GATED.",
+  "next_action": "Complete D141 PR/gates and exact-source Beta deploy. Then Owner runs OA067: reload SLA page, verify initial radio equals Đang áp dụng, select FIRST_REPORT, save, require verified-success notice, reload and verify both remain FIRST_REPORT. D140 Agent v80 remains parallel; Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -216,6 +216,7 @@
   },
   "workboard": {
     "in_progress": [
+      "D141 IN PROGRESS: D139 field FAIL. Root cause now confirmed in source: restoreUiContext() replayed stale SLA radio controls after authoritative rerender; SLA submit also passed through run() which silently returns when generic busy=true. D141 separates server/draft authority, bypasses the generic busy-drop path, adds SQLite readback + no-cache GET verification, and fails closed with requested/server mode evidence. Beta Web/Worker only; D140 Agent work remains parallel.",
       "D139 TECHNICAL/RUNTIME PASS: PR #279 merged main 21946984; main Authority/State/UI/Beta Worker/Dashboard gates PASS. OA065 is READY_FOR_OWNER_FIELD_TEST for FIRST_REPORT Save + reload persistence. D138 is field-failed/superseded. D137 OA063 remains independently open; Android/Agent unchanged; Stable untouched.",
       "D138 TECHNICAL/RUNTIME PASS: PR #277 merged main 005d8298; main Authority/State/UI/Beta Worker/Dashboard gates PASS. OA064 is READY_FOR_OWNER_FIELD_TEST for FIRST_REPORT persistence. D137 OA063 remains independently open; Android/Agent unchanged; Stable untouched.",
       "D137 TECHNICAL/RELEASE PASS: PR #275 merged main b177ef0f; main Authority/State/UI/Agent/Dashboard gates PASS; relay-agent-v79 published and inventory-channel points to the exact v79 binary. OA063 is READY_FOR_OWNER_FIELD_TEST for real Confirm hydration without manual F5. Android beta-vc82 and Stable unchanged.",
@@ -827,7 +828,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D139_TECHNICAL_RUNTIME_PASS__OA065_OWNER_FIELD_READY",
+  "active_workstream": "D141_SLA_END_TO_END_PERSISTENCE_HOTFIX_IN_PROGRESS",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -2072,7 +2073,7 @@
     "field_evidence": "OWNER_SELECTED_FIRST_REPORT__SAVE_AND_F5_STILL_RETURNED_PER_PICKER"
   },
   "d139": {
-    "status": "TECHNICAL_RUNTIME_PASS__OA065_FIELD_READY",
+    "status": "FIELD_FAIL__SUPERSEDED_BY_D141",
     "date": "2026-09-28",
     "baseline_main": "401cd3a70b42c9629faa16531a137a7636d0ff13",
     "implementation_branch": "fix/d139-sla-dirty-form-global-rerender",
@@ -2080,7 +2081,7 @@
     "root_cause": "D138_GUARDED_REALTIME_RECONCILE_ONLY__SHARED_PATCH_ACTIVE_SECTION_COULD_STILL_REBUILD_DIRTY_SLA_FORM_FROM_OLD_SERVER_SNAPSHOT_VIA_DELAYED_SECTION_LOAD_NETWORK_EVENTS_OR_ACTION_FINALLY",
     "fix": "GLOBAL_PATCH_ACTIVE_SECTION_DIRTY_SLA_GUARD__EXPLICIT_CHECKED_RADIO_SUBMIT_AUTHORITY__EXISTING_SERVER_ROUNDTRIP_VERIFY_RETAINED",
     "scope": "BETA_WEB_WORKER_ASSET_DEPLOY_ONLY__NO_SCHEMA_PROVIDER_ANDROID_AGENT_CHANGE",
-    "field_gate": "OA065_READY_FOR_OWNER_FIELD_TEST",
+    "field_gate": "OA065_FIELD_FAIL__SUPERSEDED_BY_D141",
     "d137_parallel_gate": "OA063_REMAINS_OPEN_UNCHANGED",
     "stable": "OWNER_GATED_UNTOUCHED",
     "implementation_pr": 279,
@@ -2092,7 +2093,8 @@
       "ui_design": 36414388476,
       "dashboard_probe": 36414388435
     },
-    "runtime_proof": "BETA_DEPLOY_RUN_36414388456_PASS__WORKER_WEB_ASSETS_DURABLE_OBJECT_DEPLOY__HEALTH_SCHEMA_AUTH_BUSINESS_WEB_SHELL_OAUTH_GATES_PASS"
+    "runtime_proof": "BETA_DEPLOY_RUN_36414388456_PASS__WORKER_WEB_ASSETS_DURABLE_OBJECT_DEPLOY__HEALTH_SCHEMA_AUTH_BUSINESS_WEB_SHELL_OAUTH_GATES_PASS",
+    "field_evidence": "OWNER_RELOADED_AFTER_D139__RADIO_FIRST_REPORT_BUT_SERVER_LABEL_PER_PICKER__SERVER_AUTHORITY_REMAINED_PER_PICKER"
   },
   "d140": {
     "status": "IMPLEMENTATION_IN_PROGRESS__AGENT_V80_ONLY",
@@ -2129,6 +2131,31 @@
     "d139_parallel_gate": "OA065_READY_FOR_OWNER_FIELD_TEST_UNCHANGED",
     "d137_parallel_gate": "OA063_REMAINS_OPEN_UNCHANGED",
     "stable": "OWNER_GATED_UNTOUCHED"
+  },
+  "d141": {
+    "status": "IMPLEMENTATION_IN_PROGRESS__BETA_WEB_WORKER_ONLY",
+    "date": "2026-09-28",
+    "baseline_main": "ab9c867c92c13ff1391fef4f29b5de2cd412ea14",
+    "implementation_branch": "fix/d141-sla-server-draft-persistence",
+    "field_failure": "AFTER_D139_RELOAD__RADIO_FIRST_REPORT__SERVER_APPLIED_LABEL_PER_PICKER",
+    "confirmed_root_cause": [
+      "GENERIC_RESTORE_UI_CONTEXT_REPLAYED_STALE_SLA_FORM_CONTROLS_AFTER_AUTHORITATIVE_RERENDER",
+      "SLA_SAVE_USED_GENERIC_RUN_BUSY_GATE_WHICH_CAN_DROP_SUBMIT_SILENTLY_WHEN_BUSY",
+      "PUT_RESPONSE_TRUSTED_IN_MEMORY_VALUE_WITHOUT_SQLITE_POST_WRITE_READBACK"
+    ],
+    "fix": [
+      "SEPARATE_SERVER_MODE_AND_DRAFT_MODE",
+      "FORBID_GENERIC_UI_CONTEXT_FIELD_RESTORE_FOR_SLA",
+      "DEDICATED_NON_DROPPABLE_SLA_SAVE_SINGLE_FLIGHT",
+      "EXPLICIT_REQUEST_ID_AND_CHECKED_MODE_CAPTURE",
+      "SQLITE_POST_WRITE_FULL_POLICY_READBACK_BEFORE_SUCCESS",
+      "FRESH_NO_CACHE_GET_MUST_MATCH_MODE_AND_POLICY_VERSION",
+      "FAIL_CLOSED_WITH_REQUESTED_VS_SERVER_MODE_AND_SANITIZED_RUNTIME_TELEMETRY"
+    ],
+    "scope": "BETA_WEB_WORKER_ONLY__NO_SCHEMA_PROVIDER_ANDROID_AGENT_OR_STABLE_CHANGE",
+    "field_gate": "OA067_BLOCKED_PENDING_TECHNICAL_RUNTIME_PASS",
+    "d140_parallel": "AGENT_V80_WORKSTREAM_PRESERVED",
+    "d137_parallel_gate": "OA063_REMAINS_OPEN_UNCHANGED",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
-
 }
