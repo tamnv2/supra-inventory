@@ -74,9 +74,9 @@ jobs:
           $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
           $projection = Get-Content service/src/firestore-projection.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*71\s*;') { throw "D131 requires Agent v71." }
-          if ($project -notmatch '<AssemblyVersion>0\.71\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.71\.0\.0</FileVersion>') {
-            throw "D131 assembly/file version must be 0.71."
+          if ($config -notmatch 'AgentBuild\s*=\s*72\s*;') { throw "D132 requires Agent v72." }
+          if ($project -notmatch '<AssemblyVersion>0\.72\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.72\.0\.0</FileVersion>') {
+            throw "D132 assembly/file version must be 0.72."
           }
 
           foreach ($marker in @(
@@ -451,7 +451,15 @@ jobs:
           if (-not $ops.Contains('LoadOpen') -or -not $contact.Contains('CALL_SPECIALIST') -or -not $contact.Contains('BRING_TO_PACK')) { throw "Picker contact regression." }
           if (-not $contact.Contains('picker-contact-open-query') -or $contact.Contains('/picker_alerts?pageSize=100')) { throw "D127 Picker alert query must remain server-filtered." }
           if (-not $presence.Contains('schemaVersion != 3') -or -not $presence.Contains('ACTIVE_ANDROID_EVENT_DRIVEN')) { throw "D127 Picker presence schema regression." }
-          if ($projection.Contains('picker_presence_current') -or $projection.Contains('ANDROID_PRESENCE_V1') -or -not $projection.Contains('ACTIVE_ANDROID_EVENT_DRIVEN')) { throw "D131 Picker projection must use only the dedicated event-driven projection document." }
+          foreach ($marker in @('ACTIVE_ANDROID_EVENT_DRIVEN','picker_presence_current','ANDROID_PRESENCE_V1','single-slot control event')) {
+            if (-not $projection.Contains($marker)) { throw "D132 Picker-presence signal marker missing: $marker" }
+          }
+          foreach ($marker in @('PRESENCE_ACK_CONTROL','durable_business_counter=false','_pickerActivityHandler')) {
+            if (-not $transport.Contains($marker)) { throw "D132 presence ACK/activity guard missing: $marker" }
+          }
+          foreach ($marker in @('Auto size cột: Bật','Auto size cột: Tắt','HasWindowBounds','RefreshPickerPresenceOnForeground','ApplyPickerRequestActivity')) {
+            if (-not $ops.Contains($marker)) { throw "D132 Agent UI/presence marker missing: $marker" }
+          }
           if ($ops.Contains('TimeSpan.FromSeconds(15)')) { throw "D127 periodic 15-second Picker presence read returned." }
           foreach ($marker in @('PickerDisconnectGraceSeconds = 180','RefreshPickerWindowBoundary','05:00–23:00','ApplyEventDrivenPickerPresence')) {
             if (-not $ops.Contains($marker)) { throw "D127 Picker presence quota guard missing: $marker" }
@@ -473,7 +481,7 @@ jobs:
             throw "D127 v53 must not auto-fallback from Agent browser to Desktop browser."
           }
 
-          Write-Host "D131 Firestore-only HA + durable accounting regression PASS"
+          Write-Host "D132 Agent presence + relay status + layout persistence regression PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh
