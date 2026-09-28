@@ -14,6 +14,7 @@ val betaKeystorePassword = System.getenv("BETA_KEYSTORE_PASSWORD")
 val betaKeyAlias = System.getenv("BETA_KEY_ALIAS")
 val betaKeyPassword = System.getenv("BETA_KEY_PASSWORD")
 val trustedSignerSha256 = System.getenv("BETA_SIGNER_SHA256") ?: ""
+val defaultPickerPassword = System.getenv("ANDROID_PICKER_DEFAULT_PASSWORD") ?: ""
 val firebaseRtdbUrl = (providers.gradleProperty("FIREBASE_RTDB_URL").orNull ?: System.getenv("FIREBASE_RTDB_URL_BETA")).orEmpty().trim().ifBlank { "https://supra-inventory-beta-default-rtdb.asia-southeast1.firebasedatabase.app" }
 val betaSigningReady = listOf(betaKeystorePath, betaKeystorePassword, betaKeyAlias, betaKeyPassword).all { !it.isNullOrBlank() }
 
@@ -48,6 +49,7 @@ android {
         buildConfigField("String", "FIRESTORE_RELAY_COLLECTION_URL", quoted("https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents/relay_poc_jobs"))
         buildConfigField("String", "UPDATE_RELEASE_API", quoted("https://inventory-beta.supra.cc.cd/downloads/pda/manifest"))
         buildConfigField("String", "TRUSTED_SIGNER_SHA256", quoted(trustedSignerSha256))
+        buildConfigField("String", "DEFAULT_PICKER_PASSWORD", quoted(defaultPickerPassword))
     }
 
     buildFeatures {

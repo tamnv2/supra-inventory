@@ -132,6 +132,8 @@ function requiredRolesForBusinessRoute(key: string): AppRole[] | undefined {
     "GET /api/admin/dashboard-preference",
     "PUT /api/admin/dashboard-preference",
     "GET /api/admin/operational-insights",
+    "GET /api/admin/alert-window",
+    "PUT /api/admin/alert-window",
   ].includes(key)) return PICKPACK_REPORT_ROLES;
   if (key.startsWith("GET /api/admin/") || key.startsWith("POST /api/admin/") || key.startsWith("PUT /api/admin/")) return ["ADMIN", "ROOT"];
   return undefined;

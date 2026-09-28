@@ -715,3 +715,23 @@ For any managed Agent path that reaches the canonical Supra Confirm page:
 6. Only then enable manual/PDA PickList search and confirmation.
 
 If the reload returns to login, Dashboard, a partial DOM, or another page, existing fail-closed recovery applies and no PickList mutation is enabled. D137 adds no background polling and does not widen the WMS/browser security boundary.
+
+## D143 operational workflow refinements
+
+### Android startup
+- Critical-alert readiness remains a blocking pre-login gate.
+- Returning from Android Settings automatically re-evaluates readiness. The operator also has **Kiểm tra cấp quyền** for OEM cases where the visible gate does not advance immediately.
+- **Đặt lại mặc định** resets application-side gate/check presentation and routes to Android app Settings; Android system special permissions remain user-controlled.
+- The password field may be prefilled from a protected build-time Picker default-password secret and remains masked. No plaintext default password belongs in repository source or logs.
+
+### Web roles
+- `PICKPACK_ADMIN` can open/use **Ca vận hành** in addition to its existing approved Pick Pack management/reporting capabilities.
+- ROOT permission review may simulate `PICKPACK_ADMIN`.
+- ROOT itself is excluded from the managed-user list. A real ROOT may explicitly select/delete managed ADMIN/PICKPACK_ADMIN/REPORTER accounts; Picker bulk lifecycle remains independently role-filtered.
+
+### Agent schedule, Picker state and contact
+- Standard automatic PDA relay business window is 05:00–22:00.
+- At 21:30, then at each HH:30 preceding an overtime boundary, show one foreground decision: **Tăng ca thêm 1 giờ** or **Đúng giờ về**. Do not repeat five-minute warning spam.
+- Without an applicable extension at the boundary, automatic relay work sleeps/deep-hibernates; a later approved extension/regular start resumes through existing HA authority.
+- Picker visibility is event-driven from authoritative LOGIN presence and/or valid PickList activity. Logout/revocation/kick removes it. Older sync versions are ignored.
+- **Liên hệ picker** opens a choice between the existing direct-call flow and a <=200-character chat. Chat has no shared 60-second call lock, no Agent-side resolve button, and no network ACK from the Picker when they dismiss it.

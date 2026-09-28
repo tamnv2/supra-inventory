@@ -16,6 +16,7 @@ import {
   changeMyPassword,
   clearSession,
   createManagedUser,
+  deleteManagedUsers,
   getAdminDashboard,
   getAdminOperationalInsights,
   getAdminReporting,
@@ -203,7 +204,7 @@ function canAccessSection(section: Section, value: AppProfile): boolean {
   if (value.role === "PICKER") return ["picker", "account"].includes(section);
   if (value.role === "REPORTER") return ["operations", "results", "account"].includes(section);
   if (value.role === "PICKPACK_ADMIN") {
-    return ["operations", "results", "sku", "hr", "users", "dashboard", "reports", "account"].includes(section);
+    return ["operations", "results", "shift", "sku", "hr", "users", "dashboard", "reports", "account"].includes(section);
   }
   if (section === "system-reset") return value.role === "ROOT" && value.base_role === "ROOT";
   return section !== "picker";
@@ -255,6 +256,7 @@ function clearRoleScopedViewState(): void {
   pickerSelected = null;
   managedUsers = [];
   selectedUserIds.clear();
+  selectedManagedUserIds.clear();
   excludedPickerIds.clear();
   allPickerSelection = false;
   hrPreview = null;
@@ -356,6 +358,7 @@ let operationalInsights: OperationalInsights | null = null;
 let realtimePresence: RealtimePresence | null = null;
 let managedUsers: ManagedUser[] = [];
 let selectedUserIds = new Set<string>();
+let selectedManagedUserIds = new Set<string>();
 let excludedPickerIds = new Set<string>();
 let hrSource: HrSourceResponse | null = null;
 let hrPreview: HrSyncPreview | null = null;
@@ -377,7 +380,7 @@ let reportOffset = 0;
 const REPORT_PAGE_SIZE = 100;
 let dashboardFrom = dateDaysAgo(0);
 let dashboardTo = dateDaysAgo(0);
-let reportFrom = dateDaysAgo(6);
+let reportFrom = dateDaysAgo(0);
 let reportTo = dateDaysAgo(0);
 let reportStatus = "";
 let reportQuery = "";
@@ -694,7 +697,7 @@ function announceNewReportEvents(events: RealtimeEventFrame[]): void {
 }
 
 function roleManage(): boolean {
-  return Boolean(profile && (profile.role === "ADMIN" || profile.role === "ROOT"));
+  return Boolean(profile && ["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile.role));
 }
 
 function rolePickPackManage(): boolean {
@@ -795,12 +798,20 @@ function resolutionActorLabel(row: {
   return String(row.resolved_by_user_id || "—");
 }
 
+function matchingDatePreset(from: string, to: string): number | null {
+  if (to !== dateDaysAgo(0)) return null;
+  for (const days of [0, 6, 29, 59]) {
+    if (from === dateDaysAgo(days)) return days;
+  }
+  return null;
+}
+
 function renderDatePresets(target: "dashboard" | "reports"): string {
   const from = target === "dashboard" ? dashboardFrom : reportFrom;
   const to = target === "dashboard" ? dashboardTo : reportTo;
-  const today = dateDaysAgo(0);
+  const matched = matchingDatePreset(from, to);
   const button = (days: number, label: string) => {
-    const active = to === today && from === dateDaysAgo(days);
+    const active = matched === days;
     return `<button type="button" class="btn secondary small${active ? " active" : ""}" aria-pressed="${active ? "true" : "false"}" data-date-target="${target}" data-date-days="${days}">${label}</button>`;
   };
   return `<div class="toolbar date-presets compact-date-presets" aria-label="Chọn nhanh khoảng ngày">
@@ -812,7 +823,8 @@ function renderDatePresets(target: "dashboard" | "reports"): string {
 }
 
 function renderCompactDateRange(target: "dashboard" | "reports", from: string, to: string): string {
-  return `<div class="compact-date-range" role="group" aria-label="Khoảng ngày dữ liệu">
+  const custom = matchingDatePreset(from, to) == null;
+  return `<div class="compact-date-range${custom ? " custom-range-active" : ""}" role="group" aria-label="Khoảng ngày dữ liệu">
     <label><span>Từ</span><input name="from" type="date" value="${esc(from)}" /></label>
     <span class="compact-date-separator">–</span>
     <label><span>Đến</span><input name="to" type="date" value="${esc(to)}" /></label>
@@ -1079,12 +1091,13 @@ function navIcon(key: string): string {
 
 function navButton(section: Section, label: string): string {
   const noticeCount = section === "operations" && roleOperate() ? queueRows.length : null;
-  const notice = noticeCount == null ? "" : `<b class="nav-notice-badge" data-operations-nav-count>${noticeCount > 99 ? "99+" : noticeCount}</b>`;
+  const notice = noticeCount == null || noticeCount <= 0 ? "" : `<b class="nav-notice-badge" data-operations-nav-count>${noticeCount > 99 ? "99+" : noticeCount}</b>`;
   return `<button class="nav-button ${activeSection === section ? "active" : ""}" data-section="${section}"${activeSection === section ? ' aria-current="page"' : ""}>${navIcon(section)}<span>${esc(label)}</span>${notice}</button>`;
 }
 
 function syncOperationsNavBadge(): void {
   const node = document.querySelector<HTMLElement>("[data-operations-nav-count]");
+  if (queueRows.length <= 0) { node?.remove(); return; }
   if (!node) return;
   node.textContent = queueRows.length > 99 ? "99+" : String(queueRows.length);
 }
@@ -1108,7 +1121,7 @@ function renderNav(): string {
   }
   if (profile.role === "PICKPACK_ADMIN") {
     return [
-      navGroup("VẬN HÀNH", [["operations", "Theo dõi báo hàng"], ["dashboard", "Tổng quan & báo cáo"]]),
+      navGroup("VẬN HÀNH", [["operations", "Theo dõi báo hàng"], ["dashboard", "Tổng quan & báo cáo"], ["shift", "Ca vận hành"]]),
       navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"]]),
     ].join("");
   }
@@ -1281,7 +1294,7 @@ function renderShell(content: string): void {
           <span>${esc(legacyRoleLabel(profile.role))}</span>
         </div>
         <div class="header-controls">
-          ${profile.base_role === "ROOT" ? `<label class="header-control root-role-control"><span>Kiểm tra quyền</span><select id="root-role-select">${(["ROOT","ADMIN","REPORTER","PICKER"] as AppProfile["role"][]).map((role) => `<option value="${role}" ${profile?.role === role ? "selected" : ""}>${esc(rootRoleOptionLabel(role))}</option>`).join("")}</select></label>` : ""}
+          ${profile.base_role === "ROOT" ? `<label class="header-control root-role-control"><span>Kiểm tra quyền</span><select id="root-role-select">${(["ROOT","ADMIN","PICKPACK_ADMIN","REPORTER","PICKER"] as AppProfile["role"][]).map((role) => `<option value="${role}" ${profile?.role === role ? "selected" : ""}>${esc(rootRoleOptionLabel(role))}</option>`).join("")}</select></label>` : ""}
           <label class="header-control theme-control"><span>Giao diện</span><select id="theme-mode"><option value="AUTO" ${themeMode === "AUTO" ? "selected" : ""}>Tự động</option><option value="LIGHT" ${themeMode === "LIGHT" ? "selected" : ""}>Sáng</option><option value="DARK" ${themeMode === "DARK" ? "selected" : ""}>Tối</option></select></label>
           <div class="header-control zoom-control"><span>Cỡ chữ</span><div class="zoom-buttons"><button type="button" class="ghost" data-ui-zoom="-10" aria-label="Giảm cỡ chữ">A−</button><button type="button" class="ghost zoom-value" data-ui-zoom="0" id="ui-zoom-value" aria-label="Đặt cỡ chữ về 100%">${uiZoom}%</button><button type="button" class="ghost" data-ui-zoom="10" aria-label="Tăng cỡ chữ">A+</button></div></div>
           <div class="user-actions"><button type="button" class="ghost header-account-action ${activeSection === "account" ? "active" : ""}" data-section="account">Tài khoản</button><button id="logout" class="ghost">Đăng xuất</button></div>
@@ -1698,15 +1711,18 @@ function renderUsers(): string {
       </article>
     </div>
     <article class="ops-panel ops-users-panel">
-      <div class="ops-panel-title"><div><h3>Danh sách tài khoản</h3><p>Chỉ Picker được chọn để thao tác hàng loạt. ROOT/ADMIN/REPORTER luôn được bảo vệ khỏi thao tác Picker.</p></div><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span></div>
-      <div class="user-bulk-bar"><button class="secondary" id="toggle-all-pickers">${allPickerSelection ? "Bỏ chọn tất cả Picker" : "Chọn tất cả Picker"}</button><button class="secondary" data-picker-action="ENABLE">Mở lại</button><button class="secondary" data-picker-action="DISABLE">Dừng hoạt động</button><button class="danger" data-picker-action="DELETE">Xóa Picker</button><span id="user-selection-status">${esc(userSelectionLabel())}</span></div>
+      <div class="ops-panel-title"><div><h3>Danh sách tài khoản</h3><p>ROOT được ẩn khỏi danh sách. Picker dùng thao tác hàng loạt riêng; ROOT có thể chọn Admin / Quản trị Pick Pack / Reporter để xóa.</p></div><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span></div>
+      <div class="user-bulk-bar"><button class="secondary" id="toggle-all-pickers">${allPickerSelection ? "Bỏ chọn tất cả Picker" : "Chọn tất cả Picker"}</button><button class="secondary" data-picker-action="ENABLE">Mở lại</button><button class="secondary" data-picker-action="DISABLE">Dừng hoạt động</button><button class="danger" data-picker-action="DELETE">Xóa Picker</button><span id="user-selection-status">${esc(userSelectionLabel())}</span>${profile?.role === "ROOT" ? `<button class="danger" id="delete-selected-managed" ${selectedManagedUserIds.size ? "" : "disabled"}>Xóa tài khoản đã chọn (${selectedManagedUserIds.size})</button>` : ""}</div>
       <div class="table-wrap"><table class="ops-users-table"><thead><tr><th class="user-select-col">Chọn</th><th>Mã nhân viên</th><th>Họ và tên</th><th>Quyền</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
         ${managedUsers.length ? managedUsers.map((user) => {
           const isPicker = user.role === "PICKER";
           const isChecked = isPicker && (allPickerSelection ? !excludedPickerIds.has(user.user_id) : selectedUserIds.has(user.user_id));
+          const rootCanDeleteManaged = profile?.role === "ROOT" && ["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(user.role);
           const selectable = isPicker
             ? `<label class="bulk-picker-check" title="Chọn Picker này"><input type="checkbox" data-user-select="${esc(user.user_id)}" ${isChecked ? "checked" : ""}/><span aria-hidden="true"></span></label>`
-            : `<span class="bulk-not-applicable" title="Không thuộc phạm vi thao tác hàng loạt Picker">${user.role === "ROOT" ? "Bảo vệ" : "—"}</span>`;
+            : rootCanDeleteManaged
+              ? `<label class="bulk-picker-check" title="Chọn tài khoản để xóa"><input type="checkbox" data-managed-user-select="${esc(user.user_id)}" ${selectedManagedUserIds.has(user.user_id) ? "checked" : ""}/><span aria-hidden="true"></span></label>`
+              : `<span class="bulk-not-applicable">—</span>`;
           const actions = canManageListedUser(user)
             ? `<div class="user-row-actions"><button class="secondary" data-edit-user="${esc(user.user_id)}">Sửa</button><button class="secondary" data-password-user="${esc(user.user_id)}">Đổi mật khẩu</button></div>`
             : `<span class="ops-readonly">${user.role === "ROOT" ? "Tài khoản gốc được bảo vệ" : "Không thuộc quyền quản lý hiện tại"}</span>`;
@@ -2355,6 +2371,7 @@ function auditActionLabel(action: string): string {
     PICKER_BULK_ACTION: "Thao tác Picker hàng loạt",
     HR_PICKER_SYNC: "Đồng bộ Picker",
     USER_CREATE_ROLLBACK: "Hoàn tác tạo tài khoản",
+    MANAGED_USER_DELETE: "Xóa tài khoản quản trị / Reporter",
   };
   return labels[action] || action.replaceAll("_", " ");
 }
@@ -2389,6 +2406,7 @@ function renderLogs(): string {
     ${auditActive ? `
       <article class="ops-panel audit-history-panel">
         <div class="ops-panel-title"><div><h3>Lịch sử thao tác Admin / Reporter / Root</h3><p>Không ghi thao tác Picker vào danh sách này. Dữ liệu được lưu tại hệ thống nghiệp vụ và phân trang giới hạn.</p></div><span>${auditPageFrom}–${auditPageTo} / ${auditTotal.toLocaleString("vi-VN")}</span></div>
+        <div class="user-pagination audit-pagination-top"><span>Hiển thị ${auditPageFrom}–${auditPageTo}</span><div><button class="secondary" id="audit-prev" ${auditOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="audit-next" ${auditOffset + AUDIT_PAGE_SIZE >= auditTotal ? "disabled" : ""}>Trang sau</button></div></div>
         <form id="audit-filter" class="report-filter-row audit-filter-row">
           <label>Quyền<select name="role"><option value="">Tất cả</option>${["REPORTER","ADMIN","ROOT"].map((role) => `<option value="${role}" ${auditRole === role ? "selected" : ""}>${esc(businessRoleLabel(role))}</option>`).join("")}</select></label>
           <label class="audit-query-field">Tìm kiếm<input name="query" value="${esc(auditQuery)}" placeholder="Người dùng / thao tác / đối tượng" /></label>
@@ -2397,7 +2415,6 @@ function renderLogs(): string {
         <div class="table-wrap audit-table"><table><thead><tr><th>Thời gian</th><th>Người thao tác</th><th>Quyền</th><th>Thao tác</th><th>Đối tượng / kết quả</th></tr></thead><tbody>
           ${auditRows.length ? auditRows.map((row) => `<tr><td>${esc(fmt(row.created_at))}</td><td><strong>${esc(row.actor_display_name || row.actor_employee_code || row.actor_user_id)}</strong><small>${esc(row.actor_employee_code || row.actor_user_id)}</small></td><td><span class="badge">${esc(businessRoleLabel(row.actor_role))}</span></td><td>${esc(auditActionLabel(row.action))}</td><td>${esc(auditTargetLabel(row))}</td></tr>`).join("") : `<tr><td colspan="5" class="ops-empty">Chưa có thao tác phù hợp.</td></tr>`}
         </tbody></table></div>
-        <div class="user-pagination"><span>Hiển thị ${auditPageFrom}–${auditPageTo}</span><div><button class="secondary" id="audit-prev" ${auditOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="audit-next" ${auditOffset + AUDIT_PAGE_SIZE >= auditTotal ? "disabled" : ""}>Trang sau</button></div></div>
       </article>
     ` : `
       <div class="logs-layout">
@@ -3218,7 +3235,7 @@ function bindShell(): void {
   document.querySelector<HTMLSelectElement>("#root-role-select")?.addEventListener("change", (event) => {
     if (!profile || profile.base_role !== "ROOT") return;
     const role = String((event.currentTarget as HTMLSelectElement).value || "ROOT") as AppProfile["role"];
-    if (!["ROOT", "ADMIN", "REPORTER", "PICKER"].includes(role) || role === profile.role) return;
+    if (!["ROOT", "ADMIN", "PICKPACK_ADMIN", "REPORTER", "PICKER"].includes(role) || role === profile.role) return;
     void run(async () => {
       profile = await setRootEffectiveRole(role);
       sessionViewGeneration += 1;
@@ -3811,6 +3828,7 @@ function bindSection(): void {
     userStatus = String(data.get("status") || "");
     userOffset = 0;
     selectedUserIds.clear();
+    selectedManagedUserIds.clear();
     excludedPickerIds.clear();
     allPickerSelection = false;
     void run(loadUsers);
@@ -3832,6 +3850,24 @@ function bindSection(): void {
     const label = document.querySelector<HTMLElement>("#user-selection-status");
     if (label) label.textContent = userSelectionLabel();
   }));
+  document.querySelectorAll<HTMLInputElement>("[data-managed-user-select]").forEach((box) => box.addEventListener("change", () => {
+    const id = box.dataset.managedUserSelect || "";
+    if (!id) return;
+    if (box.checked) selectedManagedUserIds.add(id);
+    else selectedManagedUserIds.delete(id);
+    patchActiveSection();
+  }));
+  document.querySelector<HTMLButtonElement>("#delete-selected-managed")?.addEventListener("click", () => {
+    const ids = [...selectedManagedUserIds];
+    if (!ids.length) return;
+    if (!window.confirm(`Xóa ${ids.length} tài khoản Admin / Quản trị Pick Pack / Reporter đã chọn? Tài khoản ROOT không nằm trong thao tác này.`)) return;
+    void run(async () => {
+      const result = await deleteManagedUsers(ids);
+      selectedManagedUserIds.clear();
+      await loadUsers();
+      setNotice("success", `Đã xóa ${result.affected} tài khoản.`);
+    });
+  });
   document.querySelectorAll<HTMLButtonElement>("[data-picker-action]").forEach((button) => button.addEventListener("click", () => {
     const action = button.dataset.pickerAction as "ENABLE" | "DISABLE" | "DELETE";
     const ids = [...selectedUserIds];
@@ -3847,6 +3883,7 @@ function bindSection(): void {
     void run(async () => {
       await updatePickerAccounts(action, ids, allPickerSelection, [...excludedPickerIds]);
       selectedUserIds.clear();
+      selectedManagedUserIds.clear();
       excludedPickerIds.clear();
       allPickerSelection = false;
       await loadUsers();

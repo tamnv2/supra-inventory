@@ -217,3 +217,11 @@ The Agent Usage page remains server-mediated and provider-authoritative. The Win
 - The Beta Worker does not continue the D131/D134 Google Monitoring Usage polling solely for this UI and does not periodically publish `relay_poc_coordination/usage_current`.
 - Do not infer an exact Firebase free-quota balance by counting only application-side events. Such a number is not provider-authoritative and may omit SDK/listener/provider-side operations.
 - Existing local `FirestoreQuotaGuard` remains an internal reference guard only. Its soft thresholds continue to protect operational design but must not be labeled as actual provider usage or remaining free quota.
+
+## D143 date/filter and navigation presentation
+
+- Dashboard and detailed reporting initial range is **Hôm nay** for a fresh view; the existing per-user saved Dashboard preference remains authoritative where it already applies.
+- Quick presets are exact interval indicators: Hôm nay=today/today, 7 ngày=today-6..today, 30 ngày=today-29..today, 60 ngày=today-59..today.
+- If manually selected dates equal one of those exact intervals, that preset is highlighted too. Otherwise no preset is highlighted and both date inputs receive the custom-range selected treatment.
+- The Xử lý báo hàng navigation badge is omitted entirely when pending count is zero; a visible numeric zero badge is not rendered.
+- Audit pagination controls are placed at the top immediately below the visible `from–to / total` indicator.

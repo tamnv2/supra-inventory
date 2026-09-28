@@ -16,7 +16,7 @@ import {
 import { sendFcmNotifications } from "./fcm";
 import { readAndroidAlertWindow } from "./alert-window-core";
 
-const SCHEMA_VERSION = 12;
+const SCHEMA_VERSION = 13;
 
 interface CoreEnv {
   APP_ENV: string;
@@ -119,7 +119,7 @@ export class InventoryCore {
         employee_code TEXT,
         display_name TEXT NOT NULL,
         role TEXT NOT NULL CHECK (role IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN','ROOT')),
-        role_override TEXT CHECK (role_override IS NULL OR role_override IN ('PICKER','REPORTER','ADMIN')),
+        role_override TEXT CHECK (role_override IS NULL OR role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN')),
         status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','DISABLED')),
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -279,12 +279,12 @@ export class InventoryCore {
     if (!this.hasColumn("audit_log", "actor_role")) sql.exec("ALTER TABLE audit_log ADD COLUMN actor_role TEXT");
     if (!this.hasColumn("audit_log", "actor_display_name")) sql.exec("ALTER TABLE audit_log ADD COLUMN actor_display_name TEXT");
 
-    // D119 additive role migration. Rebuild only the users table constraint; all
-    // accepted D118 business/HA tables and semantics remain untouched.
+    // D143 extends ROOT acceptance-review role_override to PICKPACK_ADMIN.
+    // Rebuild only the users table CHECK constraint; business rows/identities are preserved.
     const usersTableSql = String(
       sql.exec<{ sql: string }>("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users' LIMIT 1").toArray()[0]?.sql || "",
     );
-    if (!usersTableSql.includes("'PICKPACK_ADMIN'")) {
+    if (!usersTableSql.includes("role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN')")) {
       this.state.storage.transactionSync(() => {
         sql.exec(`
           CREATE TABLE users_d119 (
@@ -293,7 +293,7 @@ export class InventoryCore {
             employee_code TEXT,
             display_name TEXT NOT NULL,
             role TEXT NOT NULL CHECK (role IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN','ROOT')),
-            role_override TEXT CHECK (role_override IS NULL OR role_override IN ('PICKER','REPORTER','ADMIN')),
+            role_override TEXT CHECK (role_override IS NULL OR role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN')),
             status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','DISABLED')),
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -574,7 +574,7 @@ export class InventoryCore {
     const rows = this.state.storage.sql.exec<InternalUser>(
       `SELECT user_id, firebase_uid, employee_code, display_name,
               CASE
-                WHEN role = 'ROOT' AND role_override IN ('PICKER','REPORTER','ADMIN') THEN role_override
+                WHEN role = 'ROOT' AND role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN') THEN role_override
                 ELSE role
               END AS role,
               role AS base_role,
@@ -598,7 +598,7 @@ export class InventoryCore {
     const rows = this.state.storage.sql.exec<InternalUser>(
       `SELECT user_id, firebase_uid, employee_code, display_name,
               CASE
-                WHEN role = 'ROOT' AND role_override IN ('PICKER','REPORTER','ADMIN') THEN role_override
+                WHEN role = 'ROOT' AND role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN') THEN role_override
                 ELSE role
               END AS role,
               role AS base_role,
@@ -621,7 +621,7 @@ export class InventoryCore {
     const rows = this.state.storage.sql.exec<InternalUser>(
       `SELECT user_id, firebase_uid, employee_code, display_name,
               CASE
-                WHEN role = 'ROOT' AND role_override IN ('PICKER','REPORTER','ADMIN') THEN role_override
+                WHEN role = 'ROOT' AND role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN') THEN role_override
                 ELSE role
               END AS role,
               role AS base_role,
@@ -846,7 +846,7 @@ export class InventoryCore {
       const body = (await request.json()) as { user_id?: string; role?: string };
       const userId = String(body.user_id || "").trim();
       const nextRole = String(body.role || "").trim().toUpperCase();
-      if (!userId || !["ROOT", "ADMIN", "REPORTER", "PICKER"].includes(nextRole)) {
+      if (!userId || !["ROOT", "ADMIN", "PICKPACK_ADMIN", "REPORTER", "PICKER"].includes(nextRole)) {
         return response({ error: "invalid_input" }, 400);
       }
       const base = this.state.storage.sql.exec<{ role: string }>(

@@ -211,6 +211,19 @@ button.danger:hover { background:#8f1c13; }
   color: #fff;
   box-shadow: 0 0 0 1px rgba(8, 116, 67, .08);
 }
+
+.compact-date-range.custom-range-active > label {
+  background: rgba(8, 116, 67, .10);
+  border-radius: 6px;
+  padding: 3px 5px;
+}
+.compact-date-range.custom-range-active input[type="date"] {
+  border-color: var(--brand, #087443) !important;
+  box-shadow: 0 0 0 1px rgba(8, 116, 67, .10);
+}
+.audit-pagination-top {
+  margin: 0 0 10px;
+}
 .tools-grid-d112 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

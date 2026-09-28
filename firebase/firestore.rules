@@ -37,7 +37,9 @@ service cloud.firestore {
         && request.resource.data.sender_agent_id.size() <= 160
         && request.resource.data.sender_role in ['INVENTORY', 'PICK_PACK']
         && request.resource.data.message is string
-        && request.resource.data.message.size() <= 500
+        && request.resource.data.message.size() <= (request.resource.data.command_type == 'CHAT_MESSAGE' ? 200 : 500)
+        && (request.resource.data.command_type != 'CHAT_MESSAGE'
+            || request.resource.data.message.size() <= 200)
         && request.resource.data.created_at_ms is int
         && request.resource.data.lock_until_ms is int
         && request.resource.data.lock_until_ms == request.resource.data.created_at_ms + 60000
@@ -274,7 +276,7 @@ service cloud.firestore {
         && request.resource.data.target_user_id is string
         && request.resource.data.target_user_id.size() >= 3
         && request.resource.data.target_user_id.size() <= 160
-        && request.resource.data.command_type in ['CALL_SPECIALIST', 'BRING_TO_PACK']
+        && request.resource.data.command_type in ['CALL_SPECIALIST', 'BRING_TO_PACK', 'CHAT_MESSAGE']
         && request.resource.data.message is string
         && request.resource.data.message.size() <= 500
         && request.resource.data.status == 'PENDING'

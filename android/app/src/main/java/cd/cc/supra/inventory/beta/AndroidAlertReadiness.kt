@@ -139,7 +139,7 @@ object AndroidAlertReadiness {
         }
     }
 
-    private fun openAppDetails(context: Context) {
+    fun openAppDetails(context: Context) {
         context.startActivity(
             Intent(
                 Settings.ACTION_APPLICATION_DETAILS_SETTINGS,

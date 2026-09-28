@@ -1213,3 +1213,13 @@ Status: **OWNER FIELD PASS**.
 - OA068 is closed PASS. No further D142 field action remains.
 - Canonical Android marker: `D142_OWNER_FIELD_PASS__SIGNED_BETA_VC83__ANDROID11_MT90_DT50_CRITICAL_ALERT_READINESS`.
 - D141 OA067 and D140 Agent v80 remain independent open workstreams. Stable remains OWNER-GATED and untouched.
+
+## D143 derived continuity refresh — 2026-09-29
+
+- SQLite schema: `13`.
+- Latest signed Beta APK remains `beta-vc83` until D143 main/release gates publish the next monotonic signed build.
+- Beta marker: `D143_IMPLEMENTATION_ACTIVE__D142_OWNER_PASS__D141_OWNER_PASS__D140_AGENT_V80_PARALLEL`.
+- Web marker: `D141_OWNER_FIELD_PASS__SLA_FIRST_REPORT_SERVER_PERSISTENCE_ACCEPTED__D143_WEB_REFINEMENTS_IN_PROGRESS`.
+- Android marker: `D143_ANDROID_REFINEMENTS_IN_PROGRESS__BASELINE_D142_OWNER_PASS_BETA_VC83`.
+- D141 is now Owner field PASS; OA067 closed. D143 implementation branch targets Agent v81 plus the next signed Android Beta, with OA069 blocked until technical/runtime/release PASS.
+- No new provider resource. Stable remains OWNER-GATED and untouched.

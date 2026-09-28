@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
@@ -71,6 +72,7 @@ namespace SupraInventoryWebView2Host
         private readonly WebView2 _web = new WebView2 { Dock = DockStyle.Fill };
         private CoreWebView2Environment _environment;
         private WebView2 _activeWeb;
+        private readonly List<WebView2> _childWebViews = new List<WebView2>();
 
         internal BrowserForm(HostOptions options)
         {
@@ -129,7 +131,21 @@ namespace SupraInventoryWebView2Host
             await view.EnsureCoreWebView2Async(_environment);
             view.CoreWebView2.Settings.IsPasswordAutosaveEnabled = true;
             view.CoreWebView2.Settings.IsGeneralAutofillEnabled = true;
+            view.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
+            view.CoreWebView2.Settings.IsStatusBarEnabled = false;
             view.CoreWebView2.NewWindowRequested += HandleNewWindowRequested;
+            view.CoreWebView2.ProcessFailed += (_, __) =>
+            {
+                try
+                {
+                    BeginInvoke(new Action(() =>
+                    {
+                        Environment.ExitCode = 3;
+                        Close();
+                    }));
+                }
+                catch { }
+            };
         }
 
         private async void HandleNewWindowRequested(object sender, CoreWebView2NewWindowRequestedEventArgs e)
@@ -157,6 +173,7 @@ namespace SupraInventoryWebView2Host
                 };
                 Controls.Add(child);
                 await ConfigureWebViewAsync(child);
+                _childWebViews.Add(child);
 
                 e.NewWindow = child.CoreWebView2;
                 e.Handled = true;
@@ -167,6 +184,7 @@ namespace SupraInventoryWebView2Host
                 _activeWeb = child;
                 child.Visible = true;
                 child.BringToFront();
+                TrimRetiredChildren();
             }
             catch
             {
@@ -175,6 +193,21 @@ namespace SupraInventoryWebView2Host
             finally
             {
                 deferral.Complete();
+            }
+        }
+
+        private void TrimRetiredChildren()
+        {
+            // Keep the active child and its immediate predecessor so genuine opener
+            // semantics remain available. Older hidden WebViews only consume RAM and
+            // can accumulate during a long 16-hour Agent session.
+            while (_childWebViews.Count > 2)
+            {
+                var retired = _childWebViews[0];
+                _childWebViews.RemoveAt(0);
+                if (ReferenceEquals(retired, _activeWeb)) continue;
+                try { Controls.Remove(retired); } catch { }
+                try { retired.Dispose(); } catch { }
             }
         }
 

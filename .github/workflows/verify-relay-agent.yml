@@ -77,9 +77,9 @@ jobs:
           $serviceIndex = Get-Content service/src/index.ts -Raw
           $notifications = Get-Content service/src/notifications-core.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*80\s*;') { throw "D140 quota-storm hotfix requires Agent v80." }
-          if ($project -notmatch '<AssemblyVersion>0\.80\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.80\.0\.0</FileVersion>') {
-            throw "D140 quota-storm hotfix assembly/file version must be 0.80."
+          if ($config -notmatch 'AgentBuild\s*=\s*81\s*;') { throw "D143 requires Agent v81 while retaining D140 quota-storm safeguards." }
+          if ($project -notmatch '<AssemblyVersion>0\.81\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.81\.0\.0</FileVersion>') {
+            throw "D143 Agent assembly/file version must be 0.81."
           }
 
           foreach ($marker in @(
@@ -569,7 +569,10 @@ jobs:
           foreach ($marker in @(
             'ApplyD135DurableCounterAck',
             'Hôm nay toàn cụm:',
-            'Xác nhận Liên hệ picker',
+            'ShowPickerContactChoice',
+            'Gọi thẳng về bàn CV',
+            'Gửi nội dung chat',
+            'CHAT_MESSAGE',
             'Xác nhận kết thúc Liên hệ picker',
             'IsPickerCallPending'
           )) {
@@ -583,6 +586,18 @@ jobs:
           }
           if (-not $browser.Contains('AddMilliseconds(4500)') -or -not $browser.Contains('SearchFingerprint')) {
             throw "D135 bounded DOM settle optimization missing."
+          }
+          foreach ($marker in @(
+            'RegularEnd = new TimeSpan(22, 0, 0)',
+            'SHOW_ONCE',
+            '_lastAfterHoursPromptBoundaryMs',
+            'ScheduleAutoSizeAfterForegroundRestore',
+            'IGNORED_STALE',
+            'TrimRetiredChildren'
+          )) {
+            if (-not $program.Contains($marker) -and -not $ops.Contains($marker) -and -not $ownedHost.Contains($marker) -and -not (Get-Content relay-agent/AgentBusinessSchedule.cs -Raw).Contains($marker)) {
+              throw "D143 Agent stability marker missing: $marker"
+            }
           }
           foreach ($marker in @('Microsoft.Web.WebView2','CoreWebView2Environment.CreateAsync','IsPasswordAutosaveEnabled','--remote-debugging-port')) {
             if (-not $ownedHost.Contains($marker)) { throw "D127 owned WebView2 host marker missing: $marker" }

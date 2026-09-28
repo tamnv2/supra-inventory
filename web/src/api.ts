@@ -1166,6 +1166,16 @@ export async function setManagedUserPassword(userId: string, password: string): 
   }));
 }
 
+export async function deleteManagedUsers(userIds: string[]): Promise<{ status: string; affected: number; firebase_cleanup: string }> {
+  return readJson(await authorizedFetch("/api/admin/users/delete", {
+    method: "POST",
+    body: JSON.stringify({
+      request_id: crypto.randomUUID(),
+      user_ids: userIds,
+    }),
+  }));
+}
+
 export async function updatePickerAccounts(
   action: "ENABLE" | "DISABLE" | "DELETE",
   userIds: string[] = [],

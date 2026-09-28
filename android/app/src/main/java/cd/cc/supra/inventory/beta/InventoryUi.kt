@@ -221,13 +221,13 @@ class InventoryUi(private val activity: Activity) {
 
     fun addFooter(root: LinearLayout) {
         root.addView(TextView(activity).apply {
-            text = "Phát triển hệ thống · tamnv2 | Pick Pack 1291"
-            textSize = 9f
+            text = "Phát triển hệ thống - tamnv2 | Pick Pack 1291"
+            textSize = 7f
             maxLines = 1
-            setAutoSizeTextTypeUniformWithConfiguration(7, 10, 1, TypedValue.COMPLEX_UNIT_SP)
-            gravity = Gravity.CENTER
+            setAutoSizeTextTypeUniformWithConfiguration(6, 8, 1, TypedValue.COMPLEX_UNIT_SP)
+            gravity = Gravity.END
             setTextColor(muted)
-            setPadding(dp(6), dp(16), dp(6), dp(2))
+            setPadding(dp(4), dp(4), dp(4), dp(1))
         })
     }
 

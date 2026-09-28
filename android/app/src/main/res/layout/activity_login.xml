@@ -28,7 +28,7 @@
             android:layout_marginTop="12dp"
             android:gravity="center"
             android:maxLines="2"
-            android:text="CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN"
+            android:text="CÔNG TY CỔ PHẦN THE SUPRA&#10;DC HƯNG YÊN"
             android:textColor="@color/navy_900"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -149,10 +149,10 @@
             android:autoSizeMinTextSize="7sp"
             android:autoSizeStepGranularity="1sp"
             android:autoSizeTextType="uniform"
-            android:gravity="center"
+            android:gravity="end"
             android:maxLines="1"
-            android:text="Phát triển hệ thống · tamnv2 | Pick Pack 1291"
+            android:text="Phát triển hệ thống - tamnv2 | Pick Pack 1291"
             android:textColor="@color/text_secondary"
-            android:textSize="9sp" />
+            android:textSize="7sp" />
     </LinearLayout>
 </ScrollView>

@@ -96,7 +96,7 @@ class CriticalOverlayService : Service() {
         val view = if (mode == MODE_RESULT) {
             buildResultOverlay(body, resolution, sku, productName)
         } else {
-            buildCommandOverlay(title, body)
+            buildCommandOverlay(title, body, mode == MODE_PICKER_CHAT)
         }
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
@@ -162,7 +162,7 @@ class CriticalOverlayService : Service() {
         return surface
     }
 
-    private fun buildCommandOverlay(title: String, body: String): View {
+    private fun buildCommandOverlay(title: String, body: String, localAcknowledge: Boolean): View {
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
@@ -189,6 +189,21 @@ class CriticalOverlayService : Service() {
             gravity = Gravity.CENTER
             setPadding(0, 18, 0, 18)
         }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+        if (localAcknowledge) {
+            card.addView(Button(this).apply {
+                text = "XÁC NHẬN"
+                textSize = 17f
+                setTypeface(typeface, Typeface.BOLD)
+                setOnClickListener {
+                    // D143 chat acknowledgement is intentionally local-only:
+                    // dismiss the alert without writing an ACK or consuming provider usage.
+                    stopSelf()
+                }
+            }, LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ))
+        }
         root.addView(card, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -274,6 +289,7 @@ class CriticalOverlayService : Service() {
         const val EXTRA_SKU = "sku"
         const val EXTRA_PRODUCT_NAME = "product_name"
         const val MODE_PICKER_COMMAND = "PICKER_COMMAND"
+        const val MODE_PICKER_CHAT = "PICKER_CHAT"
         const val MODE_RESULT = "RESULT"
         private const val OVERLAY_NOTIFICATION_ID = 129119
         private const val WAKE_REQUEST_BASE = 129200
