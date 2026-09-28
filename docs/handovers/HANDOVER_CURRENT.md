@@ -1264,7 +1264,7 @@ Status: **OWNER FIELD PASS**.
 
 ## D143 derived continuity refresh — 2026-09-29
 
-- SQLite schema: `12`.
+- SQLite schema: `13`.
 - Latest signed Beta APK remains `beta-vc83` until D143 main/release gates publish the next monotonic signed build.
 - Beta marker: `D143_IMPLEMENTATION_ACTIVE__D142_OWNER_PASS__D141_OWNER_PASS__D140_AGENT_V80_PARALLEL`.
 - Web marker: `D141_OWNER_FIELD_PASS__SLA_FIRST_REPORT_SERVER_PERSISTENCE_ACCEPTED__D143_WEB_REFINEMENTS_IN_PROGRESS`.
