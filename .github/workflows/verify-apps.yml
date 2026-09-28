@@ -160,15 +160,15 @@ jobs:
           grep -q 'activeResultDialog' "$picker"
           grep -q 'NotificationSignalStore.markOverlayAckPending' "$picker"
           python3 - <<'PY'
-from pathlib import Path
-picker = Path("android/app/src/main/java/cd/cc/supra/inventory/beta/PickerController.kt").read_text(encoding="utf-8")
-start = picker.find("acknowledge.setOnClickListener")
-local_ack = picker.find("NotificationSignalStore.markOverlayAckPending", start)
-dismiss = picker.find("dialog.dismiss()", start)
-network_ack = picker.find("api.acknowledgeResult(eventId)", start)
-if min(start, local_ack, dismiss, network_ack) < 0 or not (local_ack < dismiss < network_ack):
-    raise SystemExit("D135 in-app result acknowledgement must dismiss locally before network ACK")
-PY
+          from pathlib import Path
+          picker = Path("android/app/src/main/java/cd/cc/supra/inventory/beta/PickerController.kt").read_text(encoding="utf-8")
+          start = picker.find("acknowledge.setOnClickListener")
+          local_ack = picker.find("NotificationSignalStore.markOverlayAckPending", start)
+          dismiss = picker.find("dialog.dismiss()", start)
+          network_ack = picker.find("api.acknowledgeResult(eventId)", start)
+          if min(start, local_ack, dismiss, network_ack) < 0 or not (local_ack < dismiss < network_ack):
+              raise SystemExit("D135 in-app result acknowledgement must dismiss locally before network ACK")
+          PY
           if grep -q 'Cảnh báo tự đóng sau tối đa 60 giây' "$critical"; then
             echo "D135 must not expose the specialist-call TTL implementation detail to Picker." >&2
             exit 1
