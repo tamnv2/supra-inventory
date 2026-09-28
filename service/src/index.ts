@@ -1233,6 +1233,7 @@ export default {
             user_id: userId,
             firebase_uid: firebaseUid,
             revoked_generation: revokedGeneration,
+            force_current: true,
           }),
         });
         const payload = await response.json() as Record<string, unknown>;
