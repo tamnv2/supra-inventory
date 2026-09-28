@@ -1081,6 +1081,7 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Stable remains OWNER-GATED and untouched.
 
 ## D135 implementation continuity — 2026-09-28
+- Canonical Android source marker: `D135_TARGET_BETA_VC82__1291_BAO_HANG_BETA__LOCAL_FIRST_RESULT_ACK_ALL_SURFACES`.
 
 - D134 hotfix core field path is Owner-confirmed PASS on Agent v75 / Android vc81. OA060 is closed; D135 follow-up acceptance is OA061.
 - Active branch: `fix/d135-post-d134-field-refinements`, based on main `fd57b420ff80fea6cd259e9ea1daa22b00c9535b`. Targets are Agent v76 and next monotonic signed Android Beta after vc81.
