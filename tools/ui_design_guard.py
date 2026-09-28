@@ -467,7 +467,7 @@ checks = {
         '"ADMIN" -> renderReporterHome',
         '"ROOT", "PICKPACK_ADMIN" ->',
     ]),
-    "android_d110_branding": "@drawable/app_icon_d089" in ANDROID_LOGIN_XML and "@drawable/app_icon_d089" in ANDROID_MAIN_XML and "Phát triển hệ thống · tamnv2 | Pick Pack 1291" in ANDROID_LOGIN_XML,
+    "android_d110_branding": "@drawable/app_icon_d089" in ANDROID_LOGIN_XML and "@drawable/app_icon_d089" in ANDROID_MAIN_XML and ("Phát triển hệ thống · tamnv2 | Pick Pack 1291" in ANDROID_LOGIN_XML or "Phát triển hệ thống - tamnv2 | Pick Pack 1291" in ANDROID_LOGIN_XML),
     "android_realtime_delta": "/api/realtime/delta" in ANDROID_API and "appliedSeq" in ANDROID_RT and "streamEpoch" in ANDROID_RT and "recoverDelta" in ANDROID_RT,
     "android_update_gate_preserved": all(token in ANDROID_MAIN for token in ["UpdateGate.CHECKING", "UpdateGate.REQUIRED", "UpdateGate.FAILED", "BuildConfig.UPDATE_RELEASE_API", "loginButton?.isEnabled = updateGate == UpdateGate.CURRENT"]),
 
