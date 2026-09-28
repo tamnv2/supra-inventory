@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D139_TECHNICAL_RUNTIME_PASS__OA065_FIELD_READY__D137_OA063_STILL_OPEN",
+      "status": "D140_AGENT_HOTFIX_IN_PROGRESS__D139_OA065_FIELD_READY__D137_OA063_STILL_OPEN",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -197,7 +197,7 @@
       "deploy_health_proof_status": "D118_PASS_RUN_36064078233__SOURCE_COMMIT_EXACT__SCHEMA11_11__AGENT_MIGRATION_0_0__OPERATIONAL5_5",
       "relay_agent_release_target": "relay-agent-v79__RELEASED",
       "next_signed_beta_release_target": "NEXT_MONOTONIC_AFTER_BETA_VC82",
-      "next_relay_agent_release_target": "NEXT_AFTER_V79",
+      "next_relay_agent_release_target": "relay-agent-v80__D140_TARGET",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
@@ -1603,5 +1603,15 @@
     "repo_authority_run": 36414388407,
     "project_state_run": 36414388431,
     "dashboard_probe_run": 36414388435
+  },
+  "d140": {
+    "status": "IMPLEMENTATION_IN_PROGRESS__AGENT_V80_TARGET",
+    "resource_change": "NONE__REUSES_EXISTING_BETA_FIRESTORE_AND_AGENT_DISTRIBUTION",
+    "agent_fix": "FIRESTORE_STREAM_ROUTING_METADATA__ACCEPTED_RESPONSE_BACKOFF_RESET__5M_PERMANENT_CIRCUIT__2S_TO_60S_TRANSIENT_BACKOFF__HA_TRIO_LISTENER_ONLY__NOOP_PATCH_SKIP",
+    "agent_release_target": "relay-agent-v80",
+    "android": "beta-vc82__UNCHANGED",
+    "owner_gate": "OA066_BLOCKED_PENDING_TECHNICAL_RUNTIME_RELEASE_PASS",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
+
 }
