@@ -505,14 +505,34 @@ namespace SupraInventoryRelayAgent
                 {
                     ClickExactButtonNoLock(SearchText);
                     output.SearchClicked = true;
-                    var deadline = DateTime.UtcNow.AddSeconds(8);
+                    // D135: DOM retry is local-only and must not increase Firestore usage.
+                    // Positive/ambiguous results return immediately. A persistent miss may
+                    // settle early only after multiple identical DOM samples; 4.5s remains
+                    // the hard safety bound for unusually slow WMS rendering.
+                    var deadline = DateTime.UtcNow.AddMilliseconds(4500);
+                    var settleNotBefore = DateTime.UtcNow.AddMilliseconds(2000);
+                    var stableMissSamples = 0;
+                    var lastMissFingerprint = "";
                     SupraBrowserSearchResult latest = scan;
                     while (DateTime.UtcNow < deadline)
                     {
-                        Thread.Sleep(300);
+                        Thread.Sleep(200);
                         EnsureReadyNoLock();
                         latest = ScanNoLock(terms);
                         if (!NeedsSearchRetry(latest)) break;
+
+                        if (DateTime.UtcNow >= settleNotBefore)
+                        {
+                            var fingerprint = SearchFingerprint(latest);
+                            if (string.Equals(fingerprint, lastMissFingerprint, StringComparison.Ordinal))
+                                stableMissSamples++;
+                            else
+                            {
+                                lastMissFingerprint = fingerprint;
+                                stableMissSamples = 1;
+                            }
+                            if (stableMissSamples >= 4) break;
+                        }
                     }
                     scan = latest;
                 }
@@ -1251,6 +1271,24 @@ namespace SupraInventoryRelayAgent
             return result != null &&
                    (result.MissingFragments.Count > 0 || result.UnselectableFragments.Count > 0) &&
                    result.AmbiguousFragments.Count == 0;
+        }
+
+        private static string SearchFingerprint(SupraBrowserSearchResult result)
+        {
+            if (result == null) return "NULL";
+            var parts = new List<string>
+            {
+                result.Result ?? "",
+                "M:" + string.Join(",", result.MissingFragments.ToArray()),
+                "A:" + string.Join(",", result.AmbiguousFragments.ToArray()),
+                "U:" + string.Join(",", result.UnselectableFragments.ToArray())
+            };
+            foreach (var pair in result.Candidates.OrderBy(x => x.Key, StringComparer.Ordinal))
+            {
+                var values = pair.Value == null ? new string[0] : pair.Value.OrderBy(x => x, StringComparer.Ordinal).ToArray();
+                parts.Add(pair.Key + "=" + string.Join(",", values));
+            }
+            return string.Join("|", parts.ToArray());
         }
 
         private static void CopySearch(SupraBrowserSearchResult source, SupraBrowserSearchResult target)
