@@ -187,7 +187,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
   const url = new URL(request.url);
   const supported = new Set([
     "GET /api/admin/users", "POST /api/admin/users", "PATCH /api/admin/users",
-    "PUT /api/admin/users/password", "POST /api/admin/pickers/bulk",
+    "PUT /api/admin/users/password", "POST /api/admin/users/delete", "POST /api/admin/pickers/bulk",
     "PUT /api/admin/hr-source-v2", "POST /api/admin/hr-sync/preview", "POST /api/admin/hr-sync/apply",
   ]);
   const key = `${request.method} ${url.pathname}`;
@@ -319,6 +319,43 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
         message: credentialFailure ? "Không đồng bộ được mật khẩu Firebase." : message,
       }, credentialFailure ? 502 : 400);
     }
+  }
+  if (key === "POST /api/admin/users/delete") {
+    if (user.role !== "ROOT" || user.base_role !== "ROOT") {
+      return json({ error: "MANAGED_USER_DELETE_FORBIDDEN" }, 403);
+    }
+    const body = await bodyObject(request);
+    const ids = Array.isArray(body.user_ids)
+      ? [...new Set(body.user_ids.map((value) => String(value || "").trim()).filter(Boolean))].slice(0, 100)
+      : [];
+    if (!ids.length) return json({ error: "MANAGED_USER_SELECTION_REQUIRED" }, 400);
+    const response = await core(env).fetch("https://inventory-core.internal/admin/users/delete", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ request_id: body.request_id, user_ids: ids, actor: actor(user) }),
+    });
+    const payload = (await response.json()) as { status?: string; affected?: number; firebase_uids?: string[]; error?: string };
+    if (!response.ok) return json(payload, response.status);
+    let firebaseCleanup = "NOT_REQUIRED";
+    if ((payload.firebase_uids || []).length) {
+      if (!env.GOOGLE_RUNTIME_SA_JSON) {
+        firebaseCleanup = "DEFERRED";
+      } else {
+        try {
+          await deleteFirebaseUsers(env.GOOGLE_RUNTIME_SA_JSON, env.FIREBASE_PROJECT_ID, payload.firebase_uids || []);
+          firebaseCleanup = "PASS";
+        } catch {
+          // InventoryCore authority is already removed, so the orphaned Firebase
+          // identity cannot authorize application access. External cleanup is best-effort.
+          firebaseCleanup = "DEFERRED";
+        }
+      }
+    }
+    return json({
+      status: payload.status || "deleted",
+      affected: Number(payload.affected || 0),
+      firebase_cleanup: firebaseCleanup,
+    });
   }
   if (key === "POST /api/admin/pickers/bulk") {
     const body = await bodyObject(request);
