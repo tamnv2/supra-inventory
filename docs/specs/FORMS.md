@@ -658,3 +658,25 @@ The **Thời gian xử lý** form must keep these states separate:
 - Save captures the checked mode at submit, sends a non-secret request id and the expected policy version, and remains revision-safe.
 - Server success requires post-write SQLite readback of all SLA fields and policy version. Web success additionally requires a fresh no-cache GET with the same mode and committed version.
 - On any mismatch, do not show success. Keep the draft visible and show requested mode versus current server mode.
+
+## D143 Android/Web/Agent form refinements
+
+### Android permission and login
+- Readiness screen: separate cards for app notifications, overlay, DND policy access, battery optimization exemption and critical channel readiness. Each card states why the permission matters and gives the shortest relevant Settings action.
+- Bottom actions are **Kiểm tra cấp quyền** and **Đặt lại mặc định**. Manual check and automatic on-resume check use the same readiness evaluator.
+- Company login heading is two lines: **CÔNG TY CỔ PHẦN THE SUPRA** / **DC HƯNG YÊN**.
+- Android Picker password may arrive already filled from protected signed-build configuration, but is always rendered as a password field and remains editable for accounts using a different password.
+- Confirmation/PickList instructions are concise and non-duplicative.
+- SKU autocomplete popup uses the available screen width so long SKU/product names are not clipped to the input width.
+- Bottom-right credit is tiny/non-intrusive: **Phát triển hệ thống - tamnv2 | Pick Pack 1291**.
+
+### Agent Picker contact
+- Pressing **Liên hệ picker** opens two choices: **Gọi thẳng về bàn CV** and **Gửi nội dung chat**.
+- Direct call retains confirmation, fleet-wide 60-second anti-spam lock and originating-Agent resolve semantics.
+- Chat opens a multiline input with a live 0–200 character bound. Sending writes one alert only.
+- Picker chat surface shows the specialist heading, message and **Hãy đọc kĩ và thực hiện theo!**, with one **Xác nhận** button that dismisses locally. Chat has no Kết thúc action and no ACK write.
+
+### Web date and audit controls
+- Dashboard and detailed report start on **Hôm nay** unless an existing same-user saved dashboard preference applies where already specified.
+- Today/7/30/60 quick buttons visibly identify the exact selected interval. A custom interval highlights both date fields and leaves presets neutral unless it exactly equals one preset.
+- Audit previous/next controls sit directly below the current visible range/total at the top of the audit result panel.
