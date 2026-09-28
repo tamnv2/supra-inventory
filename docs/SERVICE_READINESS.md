@@ -1169,3 +1169,5 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Failures expose requested versus current server mode without secret/session data.
 - No schema/provider/Android/Agent changes. D140 remains parallel. Stable remains OWNER-GATED.
 - OA067 blocked pending PR/main/exact-source Beta runtime PASS.
+
+- Canonical Web marker: `D141_SOURCE_CANDIDATE__SLA_SERVER_DRAFT_SPLIT__SQLITE_READBACK__NON_DROPPABLE_SAVE`.
