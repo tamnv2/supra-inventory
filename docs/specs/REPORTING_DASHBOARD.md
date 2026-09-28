@@ -210,3 +210,10 @@ Dashboard/result-mix may split Skip into **Bỏ qua bởi nhân sự** and **T�
 ## D133 Agent Usage authentication
 
 The Agent Usage page remains server-mediated and provider-authoritative. The Windows Agent's direct Firebase password token is accepted only when the resolved application user is an active real ADMIN/ADMIN or PICKPACK_ADMIN/PICKPACK_ADMIN, and the token is either the legacy direct-Agent shape with no interactive session channel or an explicit future AGENT channel. Tokens marked WEB or ANDROID are rejected from this Agent-only path. No Google/provider credential is stored in the Agent.
+
+## D136 Agent Usage retirement
+
+- The Agent **Usage** dashboard is retired.
+- The Beta Worker does not continue the D131/D134 Google Monitoring Usage polling solely for this UI and does not periodically publish `relay_poc_coordination/usage_current`.
+- Do not infer an exact Firebase free-quota balance by counting only application-side events. Such a number is not provider-authoritative and may omit SDK/listener/provider-side operations.
+- Existing local `FirestoreQuotaGuard` remains an internal reference guard only. Its soft thresholds continue to protect operational design but must not be labeled as actual provider usage or remaining free quota.
