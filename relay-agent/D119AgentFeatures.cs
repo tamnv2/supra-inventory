@@ -394,6 +394,7 @@ namespace SupraInventoryRelayAgent
                 {
                     if (_columnPreferenceApplying) return;
                     _autoSizeColumnsEnabled = !_autoSizeColumnsEnabled;
+                    if (!_autoSizeColumnsEnabled) RestoreManualGridWidthsForCurrentUser();
                     UpdateAutoSizeColumnsButton();
                     ApplyColumnPreferenceMode();
                     SaveColumnPreferencesForCurrentUser();
@@ -549,15 +550,23 @@ namespace SupraInventoryRelayAgent
             var user = CurrentColumnPreferenceUser();
             if (string.IsNullOrWhiteSpace(user)) return;
             var store = ReadColumnPreferenceStore();
+            ColumnPreferenceProfile existing;
+            store.TryGetValue(user, out existing);
             var bounds = _savedNormalWindowBounds;
             if (WindowState == FormWindowState.Normal && !_restoringSavedWindowBounds)
                 bounds = Bounds;
             var profile = new ColumnPreferenceProfile
             {
                 AutoSize = _autoSizeColumnsEnabled,
-                Agent = CaptureGridWidths(_agentFleetGrid),
-                Picker = CaptureGridWidths(_pickerOnlineGrid),
-                PickList = CaptureGridWidths(_manualPicklistGrid),
+                Agent = _autoSizeColumnsEnabled && existing != null
+                    ? existing.Agent
+                    : CaptureGridWidths(_agentFleetGrid),
+                Picker = _autoSizeColumnsEnabled && existing != null
+                    ? existing.Picker
+                    : CaptureGridWidths(_pickerOnlineGrid),
+                PickList = _autoSizeColumnsEnabled && existing != null
+                    ? existing.PickList
+                    : CaptureGridWidths(_manualPicklistGrid),
                 HasWindowBounds = !bounds.IsEmpty,
                 WindowLeft = bounds.IsEmpty ? 0 : bounds.Left,
                 WindowTop = bounds.IsEmpty ? 0 : bounds.Top,
@@ -567,6 +576,26 @@ namespace SupraInventoryRelayAgent
             store[user] = profile;
             WriteColumnPreferenceStore(store);
             _columnPreferenceUser = user;
+        }
+
+        private void RestoreManualGridWidthsForCurrentUser()
+        {
+            var user = CurrentColumnPreferenceUser();
+            if (string.IsNullOrWhiteSpace(user)) return;
+            var store = ReadColumnPreferenceStore();
+            ColumnPreferenceProfile profile;
+            if (!store.TryGetValue(user, out profile) || profile == null) return;
+            _columnPreferenceApplying = true;
+            try
+            {
+                RestoreGridWidths(_agentFleetGrid, profile.Agent);
+                RestoreGridWidths(_pickerOnlineGrid, profile.Picker);
+                RestoreGridWidths(_manualPicklistGrid, profile.PickList);
+            }
+            finally
+            {
+                _columnPreferenceApplying = false;
+            }
         }
 
         private void ApplyColumnPreferenceMode()
