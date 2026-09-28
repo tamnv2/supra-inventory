@@ -30,6 +30,7 @@ namespace SupraInventoryRelayAgent
         internal int FrameCount;
         internal bool PageLoaded;
         internal bool LoginMarkerDetected;
+        internal string NavigationType = "";
     }
 
     internal sealed class BrowserResourceSnapshot
@@ -102,6 +103,10 @@ namespace SupraInventoryRelayAgent
         private bool _dashboardAccessFailed;
         private bool _dashboardWmsTargetAttached;
         private DateTime _dashboardAccessIssuedAtUtc = DateTime.MinValue;
+        private bool _confirmReloadRequired;
+        private bool _confirmReloadIssued;
+        private DateTime _confirmReloadIssuedAtUtc = DateTime.MinValue;
+        private DateTime _confirmReloadStableSinceUtc = DateTime.MinValue;
         private bool _disposed;
         private TimeSpan _resourceCpuTotal = TimeSpan.Zero;
         private DateTime _resourceSampleAtUtc = DateTime.MinValue;
@@ -287,14 +292,20 @@ namespace SupraInventoryRelayAgent
                     TableCount = Int(map, "tableCount"),
                     FrameCount = Int(map, "frameCount"),
                     PageLoaded = Bool(map, "pageLoaded"),
-                    LoginMarkerDetected = Bool(map, "loginMarker")
+                    LoginMarkerDetected = Bool(map, "loginMarker"),
+                    NavigationType = String(map, "navigationType")
                 };
 
-                if (state.Ready)
+                // D137: the first DOM-complete arrival at Confirm is not sufficient proof
+                // that WMS data is hydrated. Require one normal browser reload (F5
+                // semantics) and a stable READY DOM after that reload before exposing
+                // operational readiness.
+                var reloadBarrierActive = ApplyConfirmReloadBarrierNoLock(state);
+                if (!reloadBarrierActive && state.Ready)
                 {
                     ResetDirectConfirmRecoveryNoLock();
                 }
-                else if (TryRecoverConfirmRouteNoLock(state))
+                else if (!reloadBarrierActive && TryRecoverConfirmRouteNoLock(state))
                 {
                     state.State = _dashboardAccessAttemptCount > 0 &&
                                   _confirmRouteRetryCount == 0
@@ -774,10 +785,82 @@ namespace SupraInventoryRelayAgent
 
         private void NavigateConfirmNoLock()
         {
+            ArmConfirmReloadBarrierNoLock("canonical_confirm_navigation");
             CommandNoLock("Page.navigate", new Dictionary<string, object>
             {
                 { "url", AgentConfig.WmsPicklistConfirmUiReferenceUrl }
             }, TimeSpan.FromSeconds(5));
+        }
+
+        private void ArmConfirmReloadBarrierNoLock(string reason)
+        {
+            _confirmReloadRequired = true;
+            _confirmReloadIssued = false;
+            _confirmReloadIssuedAtUtc = DateTime.MinValue;
+            _confirmReloadStableSinceUtc = DateTime.MinValue;
+            _log("SUPRA_BROWSER confirm_reload=ARMED reason=" + reason + " normal_f5=true");
+        }
+
+        private bool ApplyConfirmReloadBarrierNoLock(SupraBrowserState state)
+        {
+            if (state == null || state.LoginMarkerDetected || !state.PageLoaded ||
+                string.IsNullOrWhiteSpace(state.Url) ||
+                state.Url.IndexOf(ConfirmPath, StringComparison.OrdinalIgnoreCase) < 0)
+                return false;
+
+            // Also cover a manual/SPA transition into Confirm that did not pass through
+            // NavigateConfirmNoLock. If the top document is not already a reload, arm it.
+            if (!_confirmReloadRequired &&
+                !string.Equals(state.NavigationType, "reload", StringComparison.OrdinalIgnoreCase))
+                ArmConfirmReloadBarrierNoLock("observed_confirm_without_reload");
+
+            if (!_confirmReloadRequired) return false;
+
+            if (!_confirmReloadIssued)
+            {
+                CommandNoLock("Page.reload", new Dictionary<string, object>
+                {
+                    { "ignoreCache", false }
+                }, TimeSpan.FromSeconds(5));
+                _confirmReloadIssued = true;
+                _confirmReloadIssuedAtUtc = DateTime.UtcNow;
+                _confirmReloadStableSinceUtc = DateTime.MinValue;
+                state.Ready = false;
+                state.State = "CONFIRM_REFRESHING";
+                _log("SUPRA_BROWSER confirm_reload=ISSUED method=Page.reload ignore_cache=false");
+                return true;
+            }
+
+            var realReload = string.Equals(state.NavigationType, "reload", StringComparison.OrdinalIgnoreCase);
+            if (!realReload || !state.Ready)
+            {
+                _confirmReloadStableSinceUtc = DateTime.MinValue;
+                state.Ready = false;
+                state.State = realReload ? "CONFIRM_RELOAD_VERIFY" : "CONFIRM_REFRESHING";
+                return true;
+            }
+
+            if (_confirmReloadStableSinceUtc == DateTime.MinValue)
+            {
+                _confirmReloadStableSinceUtc = DateTime.UtcNow;
+                state.Ready = false;
+                state.State = "CONFIRM_RELOAD_VERIFY";
+                return true;
+            }
+
+            if (DateTime.UtcNow - _confirmReloadStableSinceUtc < TimeSpan.FromMilliseconds(600))
+            {
+                state.Ready = false;
+                state.State = "CONFIRM_RELOAD_VERIFY";
+                return true;
+            }
+
+            _confirmReloadRequired = false;
+            _confirmReloadIssued = false;
+            _confirmReloadIssuedAtUtc = DateTime.MinValue;
+            _confirmReloadStableSinceUtc = DateTime.MinValue;
+            _log("SUPRA_BROWSER confirm_reload=PASS navigation_type=reload stable_ms=600 data_dom_ready=true");
+            return false;
         }
 
         private bool TryReconnectNoLock()
@@ -839,16 +922,23 @@ namespace SupraInventoryRelayAgent
             _port = 0;
             _targetUrl = "";
             ResetDirectConfirmRecoveryNoLock();
+            _confirmReloadRequired = false;
+            _confirmReloadIssued = false;
+            _confirmReloadIssuedAtUtc = DateTime.MinValue;
+            _confirmReloadStableSinceUtc = DateTime.MinValue;
         }
 
         private void EnsureReadyNoLock()
         {
             if (!IsConnectedNoLock())
                 throw new InvalidOperationException("Chưa mở trình duyệt Confirm PickList.");
+            if (_confirmReloadRequired)
+                throw new InvalidOperationException("Web Confirm đang làm mới dữ liệu trước khi cho phép xử lý PickList.");
             var raw = EvaluateJsonNoLock(BuildReadinessScript());
             var map = _json.DeserializeObject(raw) as Dictionary<string, object>;
-            if (map == null || !Bool(map, "ready"))
-                throw new InvalidOperationException("Web Confirm chưa sẵn sàng. Hãy mở đúng trang và đăng nhập Supra.");
+            if (map == null || !Bool(map, "ready") ||
+                !string.Equals(String(map, "navigationType"), "reload", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Web Confirm chưa sẵn sàng sau bước làm mới dữ liệu. Hãy chờ Agent xác nhận sẵn sàng.");
         }
 
         private void ResetDirectConfirmRecoveryNoLock()
@@ -1633,6 +1723,10 @@ namespace SupraInventoryRelayAgent
               const loginMarker = docs.flatMap(d => [...d.querySelectorAll('body *')]).some(e =>
                 visible(e) && fold(txt(e)) === fold('" + LoginMarkerText + @"'));
               const pageLoaded = document.readyState === 'complete';
+              const navigationEntries = (performance && performance.getEntriesByType)
+                ? performance.getEntriesByType('navigation') : [];
+              const navigationType = navigationEntries && navigationEntries.length
+                ? String(navigationEntries[navigationEntries.length - 1].type || '') : '';
               const pathOk = location.hostname === 'wms-supra.winmart.vn' && location.pathname.indexOf('" + ConfirmPath + @"') >= 0;
               const tableOk = tableSurfaces.length > 0 || rowSurfaces.length > 0;
               const ready = pathOk && tableOk && search.length === 1 && confirm.length === 1;
@@ -1645,6 +1739,7 @@ namespace SupraInventoryRelayAgent
                 state,
                 pageLoaded,
                 loginMarker,
+                navigationType,
                 url: location.origin + location.pathname + location.hash,
                 searchCount: search.length,
                 searchExactCount: searchExact.length,
