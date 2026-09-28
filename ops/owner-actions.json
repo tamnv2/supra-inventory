@@ -3074,7 +3074,7 @@
     },
     {
       "id": "OA062",
-      "status": "BLOCKED_PENDING_D136_TECHNICAL_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D136 manual PickList UI, Usage retirement and Web background hide",
       "resource_key": "repo",
       "provider": "Beta Windows Agent + Beta Worker; Android beta-vc82 unchanged",
@@ -3087,7 +3087,22 @@
         "implementation_branch": "fix/d136-picklist-ui-retire-usage-background-hide",
         "new_provider_resources": "NONE",
         "stable": "OWNER_GATED",
-        "technical_release": "PENDING"
+        "technical_release": "PASS__MAIN_62AB2AA1__AGENT_V77__ANDROID_VC82_UNCHANGED",
+        "implementation_pr": 272,
+        "main_merge": "62ab2aa11cda251f18090fc0bd637a092ab0998d",
+        "main_runs": {
+          "repo_authority": 36393891751,
+          "project_state": 36393891808,
+          "beta_worker": 36393891801,
+          "relay_agent": 36393891772,
+          "ui_design": 36393891791,
+          "dashboard_probe": 36393891774
+        },
+        "release_evidence": {
+          "agent_release_id": 398043114,
+          "agent_sha256": "8bd186c7ff2faa03f64f94f96412bafa38ee992dcfc71250473bac9b3e2ffe9b",
+          "android": "beta-vc82__UNCHANGED"
+        }
       },
       "shortest_test_path": [
         "Update the test Agent to relay-agent-v77 after release; Android remains beta-vc82.",
@@ -3105,7 +3120,7 @@
         "No new provider resource and Stable remains untouched."
       ],
       "safety": "Beta only. No new provider resource, no credential/session exposure, no direct WMS API path. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for D136 technical/release PASS and relay-agent-v77, then run the OA062 shortest field test path.",
+      "remaining_owner_action": "Update the Agent to relay-agent-v77; Android remains beta-vc82. Run the OA062 shortest field test path. Stable remains untouched.",
       "closed": false
     }
   ]
