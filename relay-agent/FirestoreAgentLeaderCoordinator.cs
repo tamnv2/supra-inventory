@@ -844,7 +844,7 @@ namespace SupraInventoryRelayAgent
             var fields = new Dictionary<string, object>
             {
                 { "agent_instance_id", StringField(_instanceId) },
-                { "agent_admin_user_id", StringField(session == null ? "" : session.AppUserId ?? "") },
+                { "agent_admin_user_id", StringField(AgentDisplayUsername(session)) },
                 { "machine", StringField(Environment.MachineName) },
                 { "heartbeat_at_ms", IntField(now) },
                 { "wms_ready", BoolField(_wmsReady()) },
@@ -1453,6 +1453,18 @@ namespace SupraInventoryRelayAgent
         {
             if (string.IsNullOrWhiteSpace(value)) return "";
             return value.Substring(0, Math.Min(8, value.Length));
+        }
+
+        private static string AgentDisplayUsername(AgentSession session)
+        {
+            if (session == null) return "";
+            var value = string.IsNullOrWhiteSpace(session.LoginName)
+                ? (session.AppUserId ?? "")
+                : session.LoginName;
+            value = (value ?? "").Trim();
+            var colon = value.LastIndexOf(':');
+            if (colon >= 0 && colon < value.Length - 1) value = value.Substring(colon + 1);
+            return value.Trim();
         }
 
         private static long NowMs()

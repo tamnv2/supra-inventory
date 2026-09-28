@@ -2919,7 +2919,7 @@
     },
     {
       "id": "OA060",
-      "status": "READY_FOR_OWNER_FIELD_RETEST",
+      "status": "PASS__OWNER_CONFIRMED_D134_HOTFIX_CORE",
       "title": "Field-accept D134 Agent/PDA reliability, compact fleet sync and session kick",
       "resource_key": "repo",
       "provider": "Beta Windows Agent + Beta Android + existing Worker/Firestore/Functions",
@@ -2997,7 +2997,56 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Do not expose passwords, Firebase tokens, WMS/browser session material or signing credentials. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Update Agent to relay-agent-v75 and Android to beta-vc81, then retest PickList send first. PASS requires Android Firestore CREATE to succeed, Agent to receive the PDA request, and no AGENT_SYNC grpc native reconnect. Continue the remaining OA060 field checks only after that first path passes. Stable remains untouched.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-28",
+        "result": "PASS__D134_HOTFIX_CORE__FOLLOWUP_REFINEMENTS_MOVED_TO_D135",
+        "evidence": "Owner confirmed D134 hotfix PickList send/receive path passes in the field, then approved D135 follow-up refinements for call anti-spam/confirmation, lookup latency, counter presentation/immediacy, username display, Android branding and full-screen result acknowledgement safety.",
+        "successor": "OA061_D135"
+      }
+    },
+    {
+      "id": "OA061",
+      "status": "BLOCKED_PENDING_D135_TECHNICAL_RELEASE",
+      "title": "Field-accept D135 post-D134 realtime counters, alert safety and UI refinements",
+      "resource_key": "repo",
+      "provider": "Beta Windows Agent + Beta Android + existing Firestore/Worker/Functions",
+      "reason_owner_only": "CI can prove source ordering, no-extra-provider-operation invariants, versions and regression guards, but actual WMS DOM settle speed, overlay immediacy, full-screen behavior under network/session loss and multi-Agent call UI require physical field observation.",
+      "prerequisites": {
+        "baseline_main": "fd57b420ff80fea6cd259e9ea1daa22b00c9535b",
+        "baseline_agent_release": "relay-agent-v75",
+        "baseline_android": "beta-vc81",
+        "target_agent_release": "relay-agent-v76",
+        "target_android": "beta-vc82",
+        "implementation_branch": "fix/d135-post-d134-field-refinements",
+        "new_provider_resources": "NONE",
+        "stable": "OWNER_GATED",
+        "technical_release": "PENDING"
+      },
+      "shortest_test_path": [
+        "Update the processing Agent to D135 relay-agent-v76 and the test PDA to the D135 signed Beta Android build.",
+        "Send a PickList from PDA and watch the processing Agent overlay: Nhận must advance immediately after durable ACK processing, then either Xác nhận or Lỗi must advance in the same completed request without waiting 1–2 minutes.",
+        "Keep another Agent in non-processing/deep-hibernate state and confirm it may converge by the existing compact synchronization cadence without creating a new realtime counter feed.",
+        "Test a NOT_FOUND PickList and compare response time with D134: Agent must click Tìm kiếm at most once and normally finish after stable DOM observation instead of the former ~8-second wait.",
+        "Press Liên hệ picker, cancel once, then approve once; verify the originating Agent button dims immediately and cannot be spam-clicked. Resolve also requires one confirmation and the call button stays locked for the original 60-second window.",
+        "Verify the PDA specialist-call overlay does not show automatic-close-after-60-seconds text.",
+        "Verify Agent title/fleet rows show only usernames such as admin or tamnv2, never admin:admin/admin:tamnv2.",
+        "Verify the Android app is named 1291 Báo hàng Beta.",
+        "With a Báo hàng full-screen result open, remove network or revoke/logout the session, press XÁC NHẬN ĐÃ NHẬN and verify the blocking screen closes immediately and the PDA remains usable/login-capable."
+      ],
+      "pass_criteria": [
+        "Processing-Agent overlay counters update immediately from known durable ACK result with no new Firestore read/write/listener/poll.",
+        "Durable daily counter authority survives restart/failover and compact snapshots never move visible totals backward.",
+        "D134 quota cadence and 45,000/day soft read target remain unchanged.",
+        "PickList lookup remains one-search-click and fail-closed while materially reducing stable NOT_FOUND latency.",
+        "Call/resolve confirmation and local pending lock prevent initiating-Agent spam while preserving the fleet-wide 60-second lock.",
+        "Every Báo hàng result acknowledgement surface is local-first and cannot trap the PDA because network/session acknowledgement failed.",
+        "Visible Agent identity is username-only and Android branding is 1291 Báo hàng Beta.",
+        "Stable remains untouched."
+      ],
+      "safety": "Beta only. No new provider resource, no secret/session-material exposure, no offline Báo hàng mutation. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for D135 technical/release PASS and released relay-agent-v76 + signed Beta Android build, then perform the shortest field test path above.",
       "closed": false
     }
   ]

@@ -54,6 +54,7 @@ class PickerController(
     private var refreshDirty = false
     private val refreshWaiters = mutableListOf<(Boolean) -> Unit>()
     private var resultDialogShowing = false
+    private var activeResultDialog: Dialog? = null
     private val receivedResults = mutableSetOf<String>()
     private val displayedResults = mutableSetOf<String>()
     private var input: EditText? = null
@@ -273,6 +274,11 @@ class PickerController(
     fun destroy() {
         searchTask?.let { handler.removeCallbacks(it) }
         handler.removeCallbacks(withdrawTicker)
+        activeResultDialog?.let { dialog ->
+            try { if (dialog.isShowing) dialog.dismiss() } catch (_: Exception) { }
+        }
+        activeResultDialog = null
+        resultDialogShowing = false
         historyRenderer = null
         relayPocClient.close()
     }
@@ -757,6 +763,7 @@ class PickerController(
             setContentView(surface)
             setCancelable(false)
         }
+        activeResultDialog = dialog
         dialog.setOnShowListener {
             dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
             if (result.displayedAt == null && displayedResults.add(result.resultEventId)) {
@@ -770,25 +777,33 @@ class PickerController(
             }
         }
         acknowledge.setOnClickListener {
+            val eventId = result.resultEventId
+            if (eventId.isBlank()) return@setOnClickListener
+
+            // D135: acknowledgement is local-first on the in-app full-screen path too.
+            // Network/session state must never trap the Picker behind this dialog.
+            NotificationSignalStore.markOverlayAckPending(activity.applicationContext, eventId)
             acknowledge.isEnabled = false
+            acknowledge.text = "ĐÃ GHI NHẬN"
+            try { dialog.dismiss() } catch (_: Exception) { }
+            activeResultDialog = null
+            resultDialogShowing = false
+            setStatus("Đã ghi nhận kết quả ${result.sku}.")
+
             Thread {
                 try {
-                    api.acknowledgeResult(result.resultEventId)
-                    activity.runOnUiThread {
-                        dialog.dismiss()
-                        resultDialogShowing = false
-                        setStatus("Đã xác nhận nhận kết quả ${result.sku}.")
-                        refresh()
-                    }
-                } catch (e: Exception) {
-                    activity.runOnUiThread {
-                        acknowledge.isEnabled = true
-                        setStatus(friendlyError(e))
-                    }
+                    api.acknowledgeResult(eventId)
+                    NotificationSignalStore.clearOverlayAck(activity.applicationContext, eventId)
+                    activity.runOnUiThread { refresh() }
+                } catch (_: Exception) {
+                    // Keep pending locally. MainActivity retries after a valid session/network returns.
                 }
             }.start()
         }
-        dialog.setOnDismissListener { resultDialogShowing = false }
+        dialog.setOnDismissListener {
+            if (activeResultDialog === dialog) activeResultDialog = null
+            resultDialogShowing = false
+        }
         dialog.show()
     }
 

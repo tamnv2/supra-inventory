@@ -1040,3 +1040,15 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Distribution channel has been refreshed to the v74/vc80 artifacts.
 - OA060 is READY_FOR_OWNER_FIELD_TEST for Usage, balanced Auto size, truthful Firestore health, reusable 60-second call, Login/Logout/PickList presence authority, Kick User generation fencing and Agent password gates.
 - Stable remains OWNER-GATED and untouched.
+
+## D135 candidate — 2026-09-28
+- Canonical Android source marker: `D135_TARGET_BETA_VC82__1291_BAO_HANG_BETA__LOCAL_FIRST_RESULT_ACK_ALL_SURFACES`.
+
+- Baseline field-passed D134 hotfix artifacts are `relay-agent-v75` and signed `beta-vc81`.
+- D135 target Agent is `relay-agent-v76`; Android target is the next monotonic signed Beta release after vc81.
+- No new Worker, Firestore, Functions, Firebase or Cloudflare resource is required.
+- Processing-Agent counter immediacy uses only the terminal result already known after the existing durable ACK/daily-summary atomic commit; there is no new counter read/listener/write/poll.
+- WMS lookup acceleration is local DOM observation only and retains one semantic search click plus exact-row/checkbox/dialog fail-closed guards.
+- Báo hàng result surfaces must dismiss local-first even during network loss or session revocation, with pending ACK metadata retried later.
+- OA061 becomes field-ready only after D135 PR gates, main gates and v76/signed-Android release evidence pass.
+- Stable remains OWNER-GATED and untouched.

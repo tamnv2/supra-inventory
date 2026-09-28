@@ -855,3 +855,11 @@ Stable remains OWNER-GATED.
 - When Auto size is **Bật**, all covered grids re-fit to displayed content after their data render. When **Tắt**, operator-adjusted widths are restored and persisted per Agent app user.
 - Android has a blocking startup permission screen whenever required alert permissions are incomplete. It must show separate, explicit states for **Thông báo** and **Hiển thị trên ứng dụng khác**, provide the shortest Android settings action for each missing permission, and provide **Kiểm tra lại**. Operational login/home content is not accessible until both are ready.
 - Picker command overlay copy states that it self-closes within 60 seconds and may be ended earlier by the specialist Agent.
+
+## D135 naming, identity and counter presentation
+
+- Android Beta branding text is **1291 Báo hàng Beta** wherever the application itself is named to the user.
+- Agent user labels display only the login username. Composite internal IDs are backend/audit metadata, not UI copy.
+- Use **Hôm nay toàn cụm** for the three durable PickList daily totals and **Agent này** for local process diagnostics.
+- A Picker call action that has been confirmed but whose shared write is still in flight is visually disabled the same way as the active 60-second fleet lock; do not leave a clickable spam window.
+- Internal timeout/TTL implementation details are not Picker-facing instructional text unless the Owner explicitly asks for them.

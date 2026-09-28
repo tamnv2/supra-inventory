@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Net.WebSockets;
@@ -52,6 +53,7 @@ namespace SupraInventoryRelayAgent
             new Dictionary<string, List<string>>(StringComparer.Ordinal);
         internal long ElapsedMs;
         internal bool SearchClicked;
+        internal string DomFingerprint = "";
     }
 
     internal sealed class SupraBrowserConfirmResult
@@ -505,14 +507,39 @@ namespace SupraInventoryRelayAgent
                 {
                     ClickExactButtonNoLock(SearchText);
                     output.SearchClicked = true;
-                    var deadline = DateTime.UtcNow.AddSeconds(8);
+                    // D135: DOM retry is local-only and must not increase Firestore usage.
+                    // Positive/ambiguous results return immediately. A persistent miss may
+                    // settle early only after multiple identical DOM samples; 4.5s remains
+                    // the hard safety bound for unusually slow WMS rendering.
+                    var deadline = DateTime.UtcNow.AddMilliseconds(4500);
+                    var settleNotBefore = DateTime.UtcNow.AddMilliseconds(900);
+                    var initialDomFingerprint = scan.DomFingerprint ?? "";
+                    var domChangedAfterSearch = false;
+                    var stableMissSamples = 0;
+                    var lastMissFingerprint = "";
                     SupraBrowserSearchResult latest = scan;
                     while (DateTime.UtcNow < deadline)
                     {
-                        Thread.Sleep(300);
+                        Thread.Sleep(200);
                         EnsureReadyNoLock();
                         latest = ScanNoLock(terms);
                         if (!NeedsSearchRetry(latest)) break;
+
+                        if (!string.Equals(latest.DomFingerprint ?? "", initialDomFingerprint, StringComparison.Ordinal))
+                            domChangedAfterSearch = true;
+
+                        if (domChangedAfterSearch && DateTime.UtcNow >= settleNotBefore)
+                        {
+                            var fingerprint = SearchFingerprint(latest);
+                            if (string.Equals(fingerprint, lastMissFingerprint, StringComparison.Ordinal))
+                                stableMissSamples++;
+                            else
+                            {
+                                lastMissFingerprint = fingerprint;
+                                stableMissSamples = 1;
+                            }
+                            if (stableMissSamples >= 4) break;
+                        }
                     }
                     scan = latest;
                 }
@@ -1073,6 +1100,7 @@ namespace SupraInventoryRelayAgent
                 return result;
             }
 
+            result.DomFingerprint = String(map, "domFingerprint");
             var rows = map.TryGetValue("candidates", out var candidateObj)
                 ? candidateObj as Dictionary<string, object>
                 : null;
@@ -1251,6 +1279,25 @@ namespace SupraInventoryRelayAgent
             return result != null &&
                    (result.MissingFragments.Count > 0 || result.UnselectableFragments.Count > 0) &&
                    result.AmbiguousFragments.Count == 0;
+        }
+
+        private static string SearchFingerprint(SupraBrowserSearchResult result)
+        {
+            if (result == null) return "NULL";
+            var parts = new List<string>
+            {
+                result.Result ?? "",
+                "M:" + string.Join(",", result.MissingFragments.ToArray()),
+                "A:" + string.Join(",", result.AmbiguousFragments.ToArray()),
+                "U:" + string.Join(",", result.UnselectableFragments.ToArray()),
+                "D:" + (result.DomFingerprint ?? "")
+            };
+            foreach (var pair in result.Candidates.OrderBy(x => x.Key, StringComparer.Ordinal))
+            {
+                var values = pair.Value == null ? new string[0] : pair.Value.OrderBy(x => x, StringComparer.Ordinal).ToArray();
+                parts.Add(pair.Key + "=" + string.Join(",", values));
+            }
+            return string.Join("|", parts.ToArray());
         }
 
         private static void CopySearch(SupraBrowserSearchResult source, SupraBrowserSearchResult target)
@@ -1629,10 +1676,12 @@ namespace SupraInventoryRelayAgent
               const rows = docs.flatMap(d => [...d.querySelectorAll('tr,[role=row]')]).filter(visible);
               const candidates = {};
               const selectable = {};
+              const allCodes = [];
               for (const term of terms) { candidates[term] = []; selectable[term] = []; }
               for (const row of rows) {
                 const text = ((row.innerText || row.textContent) || '').toUpperCase();
                 const codes = [...new Set(text.match(/\bPL[0-9]+\b/g) || [])];
+                for (const code of codes) if (!allCodes.includes(code)) allCodes.push(code);
                 if (!codes.length) continue;
                 const native = [...row.querySelectorAll('input[type=checkbox]')];
                 const roles = native.length ? [] : [...row.querySelectorAll('[role=checkbox]')];
@@ -1649,7 +1698,9 @@ namespace SupraInventoryRelayAgent
                   }
                 }
               }
-              return JSON.stringify({candidates,selectable});
+              allCodes.sort();
+              const domFingerprint = rows.length + ':' + allCodes.join(',');
+              return JSON.stringify({candidates,selectable,domFingerprint});
             })()";
         }
 

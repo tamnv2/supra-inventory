@@ -1307,7 +1307,7 @@ namespace SupraInventoryRelayAgent
                             ? Math.Max(1L, ageMs / 60000) + " phút"
                             : Math.Max(1L, ageMs / 3600000) + " giờ");
                     _agentFleetGrid.Rows.Add(
-                        string.IsNullOrWhiteSpace(agent.AdminUserId) ? "--" : agent.AdminUserId,
+                        CleanAgentUsername(agent.AdminUserId),
                         string.IsNullOrWhiteSpace(agent.Machine) ? "--" : agent.Machine,
                         agent.Role,
                         agent.WmsReady ? "Sẵn sàng" : "Chưa sẵn sàng",
@@ -4046,6 +4046,7 @@ namespace SupraInventoryRelayAgent
                                 Interlocked.Increment(ref _localAgentResponses);
                                 Ui(() => RefreshAgentRequestMetrics());
                             },
+                            (dayKey, outcome) => ApplyD135DurableCounterAck(dayKey, outcome),
                             state => SetRelayTransportState(state),
                             ProcessFirestoreConfirmations,
                             (items, reason) => Ui(() => ApplyEventDrivenPickerPresence(items, reason)),
@@ -4236,16 +4237,21 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private static string CleanAgentUsername(string value)
+        {
+            value = (value ?? "").Trim();
+            var colon = value.LastIndexOf(':');
+            if (colon >= 0 && colon < value.Length - 1) value = value.Substring(colon + 1);
+            return string.IsNullOrWhiteSpace(value) ? "--" : value;
+        }
+
         private static string DisplayAgentUsername(AgentSession session)
         {
             if (session == null) return "--";
             var value = string.IsNullOrWhiteSpace(session.LoginName)
                 ? (session.AppUserId ?? "")
                 : session.LoginName;
-            value = (value ?? "").Trim();
-            var colon = value.LastIndexOf(':');
-            if (colon >= 0 && colon < value.Length - 1) value = value.Substring(colon + 1);
-            return string.IsNullOrWhiteSpace(value) ? "--" : value;
+            return CleanAgentUsername(value);
         }
 
         private string CurrentSessionUser()

@@ -78,9 +78,9 @@ jobs:
           $serviceUsage = Get-Content service/src/relay-usage.ts -Raw
           $notifications = Get-Content service/src/notifications-core.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*75\s*;') { throw "D134 hotfix requires Agent v75." }
-          if ($project -notmatch '<AssemblyVersion>0\.75\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.75\.0\.0</FileVersion>') {
-            throw "D134 hotfix assembly/file version must be 0.75."
+          if ($config -notmatch 'AgentBuild\s*=\s*76\s*;') { throw "D135 requires Agent v76." }
+          if ($project -notmatch '<AssemblyVersion>0\.76\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.76\.0\.0</FileVersion>') {
+            throw "D135 assembly/file version must be 0.76."
           }
 
           foreach ($marker in @(
@@ -491,6 +491,24 @@ jobs:
             throw "D134 Worker Picker session-authority regression."
           }
           if (-not $fleet.Contains('relay_poc_coordination/daily_')) { throw "D134 durable fleet metric authority regression." }
+          foreach ($marker in @(
+            'ApplyD135DurableCounterAck',
+            'Hôm nay toàn cụm:',
+            'Xác nhận Liên hệ picker',
+            'Xác nhận kết thúc Liên hệ picker',
+            'IsPickerCallPending'
+          )) {
+            if (-not $ops.Contains($marker)) { throw "D135 realtime counter/call-action marker missing: $marker" }
+          }
+          if (-not $transport.Contains('_onDurableAck') -or -not $transport.Contains('FindBusinessDay(work.RequestId), outcome')) {
+            throw "D135 durable-ACK local counter hook missing."
+          }
+          if (-not $program.Contains('CleanAgentUsername') -or -not $leader.Contains('AgentDisplayUsername')) {
+            throw "D135 username-only presentation marker missing."
+          }
+          if (-not $browser.Contains('AddMilliseconds(4500)') -or -not $browser.Contains('SearchFingerprint')) {
+            throw "D135 bounded DOM settle optimization missing."
+          }
           foreach ($marker in @('Microsoft.Web.WebView2','CoreWebView2Environment.CreateAsync','IsPasswordAutosaveEnabled','--remote-debugging-port')) {
             if (-not $ownedHost.Contains($marker)) { throw "D127 owned WebView2 host marker missing: $marker" }
           }
@@ -507,7 +525,7 @@ jobs:
             throw "D127 v53 must not auto-fallback from Agent browser to Desktop browser."
           }
 
-          Write-Host "D134 Agent field reliability + compact fleet sync + Usage regression PASS"
+          Write-Host "D135 post-D134 field refinements regression PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh

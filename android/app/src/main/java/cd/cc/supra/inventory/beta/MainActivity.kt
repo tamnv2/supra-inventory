@@ -186,7 +186,7 @@ class MainActivity : Activity() {
             if (!hasRequiredNotificationPermissions()) {
                 if (!permissionGateActive) {
                     stopOperationalClients()
-                    renderRequiredPermissionsGate("Cần cấp đủ quyền để tiếp tục sử dụng 1291 Beta.")
+                    renderRequiredPermissionsGate("Cần cấp đủ quyền để tiếp tục sử dụng 1291 Báo hàng Beta.")
                 }
                 return
             }
@@ -271,7 +271,7 @@ class MainActivity : Activity() {
             setBackgroundColor(Color.rgb(244, 247, 250))
         }
         root.addView(TextView(this).apply {
-            text = "1291 Beta"
+            text = "1291 Báo hàng Beta"
             textSize = 24f
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(Color.rgb(24, 43, 55))
@@ -415,7 +415,7 @@ class MainActivity : Activity() {
         applySystemBarInsets()
         contentContainer = findViewById(R.id.contentContainer)
         status = TextView(this)
-        findViewById<TextView>(R.id.tvHeaderTitle).text = "1291 Beta"
+        findViewById<TextView>(R.id.tvHeaderTitle).text = "1291 Báo hàng Beta"
         findViewById<TextView>(R.id.tvHeaderUser).text =
             "${session.employeeCode ?: session.userId} · ${session.displayName}"
         findViewById<TextView>(R.id.tvAppVersion).apply {
@@ -677,7 +677,7 @@ class MainActivity : Activity() {
             .setPositiveButton("Chia sẻ") { _, _ ->
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
-                    putExtra(Intent.EXTRA_SUBJECT, "1291 Beta support log")
+                    putExtra(Intent.EXTRA_SUBJECT, "1291 Báo hàng Beta support log")
                     putExtra(Intent.EXTRA_TEXT, payload)
                 }
                 startActivity(Intent.createChooser(intent, "Chia sẻ log hỗ trợ"))
@@ -892,7 +892,7 @@ class MainActivity : Activity() {
         })
         content.addView(TextView(this).apply {
             text = if (message.isBlank()) {
-                "1291 Beta cần quyền thông báo và quyền Hiển thị trên ứng dụng khác để cảnh báo nghiệp vụ hoạt động đúng khi đang dùng SFT hoặc ứng dụng khác."
+                "1291 Báo hàng Beta cần quyền thông báo và quyền Hiển thị trên ứng dụng khác để cảnh báo nghiệp vụ hoạt động đúng khi đang dùng SFT hoặc ứng dụng khác."
             } else message
             textSize = 15f
             setTextColor(Color.rgb(71, 85, 105))
@@ -1299,7 +1299,7 @@ class MainActivity : Activity() {
     private fun requestInstall(apk: File) {
         if (!packageManager.canRequestPackageInstalls()) {
             pendingInstallFile = apk
-            setStatus("Cần cấp quyền cài ứng dụng không rõ nguồn gốc một lần cho 1291 Beta.")
+            setStatus("Cần cấp quyền cài ứng dụng không rõ nguồn gốc một lần cho 1291 Báo hàng Beta.")
             startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName")))
             return
         }
