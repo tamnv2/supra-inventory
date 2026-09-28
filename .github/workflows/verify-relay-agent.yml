@@ -78,9 +78,9 @@ jobs:
           $serviceUsage = Get-Content service/src/relay-usage.ts -Raw
           $notifications = Get-Content service/src/notifications-core.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*74\s*;') { throw "D134 requires Agent v74." }
-          if ($project -notmatch '<AssemblyVersion>0\.74\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.74\.0\.0</FileVersion>') {
-            throw "D134 assembly/file version must be 0.74."
+          if ($config -notmatch 'AgentBuild\s*=\s*75\s*;') { throw "D134 hotfix requires Agent v75." }
+          if ($project -notmatch '<AssemblyVersion>0\.75\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.75\.0\.0</FileVersion>') {
+            throw "D134 hotfix assembly/file version must be 0.75."
           }
 
           foreach ($marker in @(
@@ -548,6 +548,17 @@ jobs:
             throw "Agent startup smoke failed with exit code $($smoke.ExitCode)."
           }
           Write-Host "Agent startup smoke PASS"
+
+          $grpcSmoke = Start-Process -FilePath $exe -ArgumentList "--d134-grpc-native-self-test" -PassThru
+          if (-not $grpcSmoke.WaitForExit(15000)) {
+            try { $grpcSmoke.Kill() } catch {}
+            throw "D134 packaged gRPC native smoke timed out."
+          }
+          if ($grpcSmoke.ExitCode -ne 0) {
+            throw "D134 packaged gRPC native smoke failed with exit code $($grpcSmoke.ExitCode)."
+          }
+          Write-Host "D134 packaged gRPC native smoke PASS"
+
           New-Item -ItemType Directory -Force -Path relay-agent/dist | Out-Null
           $primary = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe"
           $legacy = "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe"

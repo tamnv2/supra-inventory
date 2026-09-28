@@ -9,7 +9,6 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Source
 import org.json.JSONObject
@@ -78,17 +77,7 @@ class RelayPocClient(
 
     private val appContext = context.applicationContext
     private val auth by lazy { FirebaseAuth.getInstance() }
-    private val firestore by lazy {
-        val db = FirebaseFirestore.getInstance()
-        try {
-            db.firestoreSettings = FirebaseFirestoreSettings.Builder()
-                .setPersistenceEnabled(false)
-                .build()
-        } catch (error: Exception) {
-            log("D097 Firestore persistence config: " + safeText(error.message))
-        }
-        db
-    }
+    private val firestore by lazy { FirebaseFirestore.getInstance() }
     private val listenerGate = Any()
     private var activeListener: ListenerRegistration? = null
 
@@ -117,26 +106,30 @@ class RelayPocClient(
 
     private fun ensureFirestoreAuth(initial: AppSession): AppSession {
         val identity = firebaseIdentity(initial.idToken)
-        val existing = auth.currentUser
-        if (existing != null && existing.uid == identity.uid) return initial
+        if (hasCompatibleFirebaseSession(identity)) return initial
 
-        var session = initial
+        // D134 hotfix: an already signed-in Firebase user can still carry the pre-fix
+        // string-typed app_session_generation claim. Refresh once and re-authenticate
+        // so Firestore Rules receive the required numeric claim without forcing logout.
+        var session = api.refreshSessionForRelay()
         var token = session.relayCustomToken
-        if (token.isNullOrBlank()) {
-            session = api.refreshSessionForRelay()
-            token = session.relayCustomToken
-        }
         if (token.isNullOrBlank()) {
             throw IOException("Không lấy được phiên Firestore realtime cho Xác nhận đơn.")
         }
 
         try {
             val result = Tasks.await(auth.signInWithCustomToken(token), 15, TimeUnit.SECONDS)
-            if (result.user?.uid != firebaseIdentity(session.idToken).uid) {
+            val refreshedIdentity = firebaseIdentity(session.idToken)
+            if (result.user?.uid != refreshedIdentity.uid) {
                 auth.signOut()
                 throw IOException("Firebase relay identity không khớp Picker hiện tại.")
             }
-            log("D097 Firestore listener auth PASS uid=" + firebaseIdentity(session.idToken).fingerprint)
+            if (!hasCompatibleFirebaseSession(refreshedIdentity)) {
+                auth.signOut()
+                throw IOException("Phiên Firestore chưa có session generation kiểu số hợp lệ.")
+            }
+            log("D134 Firestore auth repaired uid=" + refreshedIdentity.fingerprint +
+                " generation=" + refreshedIdentity.sessionGeneration)
             return session
         } catch (first: Exception) {
             log("D097 Firestore listener auth retry sau refresh: " + safeText(first.message))
@@ -149,6 +142,20 @@ class RelayPocClient(
                 throw IOException("Firebase relay identity không khớp sau refresh.")
             }
             return session
+        }
+    }
+
+
+    private fun hasCompatibleFirebaseSession(identity: RelayFirebaseIdentity): Boolean {
+        val existing = auth.currentUser ?: return false
+        if (existing.uid != identity.uid) return false
+        return try {
+            val tokenResult = Tasks.await(existing.getIdToken(false), 5, TimeUnit.SECONDS)
+            val rawGeneration = tokenResult.claims["app_session_generation"]
+            rawGeneration is Number && rawGeneration.toLong() == identity.sessionGeneration
+        } catch (error: Exception) {
+            log("D134 Firestore auth claim check deferred: " + safeText(error.message))
+            false
         }
     }
 
@@ -281,6 +288,7 @@ class RelayPocClient(
         } catch (first: Exception) {
             log(
                 "D130 Firestore create uncertain request=" + shortId(requestId) +
+                    " reason=" + safeText(first.message) +
                     " · đang xác minh trên server."
             )
             if (requestExistsOnServer(doc, requestId, ownerUid)) {
@@ -295,6 +303,8 @@ class RelayPocClient(
                 log("D130 Firestore CREATE RETRY PASS request=" + shortId(requestId))
                 return
             } catch (second: Exception) {
+                log("D134 Firestore create retry failed request=" + shortId(requestId) +
+                    " reason=" + safeText(second.message))
                 if (requestExistsOnServer(doc, requestId, ownerUid)) {
                     log("D130 Firestore CREATE RECOVERED request=" + shortId(requestId) + " phase=verify2")
                     return

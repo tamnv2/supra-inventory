@@ -2919,7 +2919,7 @@
     },
     {
       "id": "OA060",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "FIELD_DEFECTS_REPORTED__D134_HOTFIX_IN_PROGRESS",
       "title": "Field-accept D134 Agent/PDA reliability, compact fleet sync and session kick",
       "resource_key": "repo",
       "provider": "Beta Windows Agent + Beta Android + existing Worker/Firestore/Functions",
@@ -2954,10 +2954,13 @@
           "agent_sha256": "3c3792de465cc1e81f772a90ad2591c14bf79c8e97298ea743ca7701edbf366b",
           "android_release": "beta-vc80",
           "android_sha256": "c25e052f308154ed4fe30ea584ecebc7aab0c26bcd9fb53f99313070c73cf330"
-        }
+        },
+        "hotfix_target_agent_release": "relay-agent-v75",
+        "hotfix_target_android": "beta-vc81",
+        "field_failure": "VC80_FIRESTORE_CREATE_DENIED_BY_STRING_SESSION_GENERATION__V74_GRPC_NATIVE_MISSING"
       },
       "shortest_test_path": [
-        "Update all test Agents to v74 and one or more PDAs to the D134 signed Beta build.",
+        "Update all test Agents to v75 and one or more PDAs to the beta-vc81 D134 hotfix build.",
         "Verify Usage loads through the Firestore snapshot on normal and Office networks without requiring inventory-beta.supra.cc.cd reachability from the laptop.",
         "Verify only Hệ thống Agent has the Auto size button; resize the Agent window and confirm balanced proportional columns, ellipsis for long text, and per-account manual widths when Auto size is off.",
         "Verify Hệ thống Agent / Đăng nhập Supra / Xử lý PickList titles are green only when ready, red when definitely unavailable, and transient preparation is neutral.",
@@ -2977,7 +2980,7 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Do not expose passwords, Firebase tokens, WMS/browser session material or signing credentials. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Run the OA060 physical Beta field path using relay-agent-v74 + beta-vc80. Stable remains untouched.",
+      "remaining_owner_action": "No field retest until D134 hotfix is merged and relay-agent-v75 + beta-vc81 are published. Then rerun OA060 from PickList send first; Stable remains untouched.",
       "closed": false
     }
   ]

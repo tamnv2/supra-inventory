@@ -595,7 +595,7 @@ async function refreshSession(request: Request, env: Env): Promise<Response> {
       app_user_id: user.user_id,
       employee_code: user.employee_code || "",
       app_session_channel: "ANDROID",
-      app_session_generation: String(identity.sessionGeneration),
+      app_session_generation: identity.sessionGeneration,
     });
   }
 
@@ -700,7 +700,7 @@ async function login(request: Request, env: Env): Promise<Response> {
     app_user_id: user.user_id,
     employee_code: user.employee_code || "",
     app_session_channel: channel,
-    app_session_generation: String(activated.generation),
+    app_session_generation: activated.generation,
   });
   try {
     const session = await exchangeCustomToken(env, customToken);
@@ -711,7 +711,7 @@ async function login(request: Request, env: Env): Promise<Response> {
           app_user_id: user.user_id,
           employee_code: user.employee_code || "",
           app_session_channel: "ANDROID",
-          app_session_generation: String(activated.generation),
+          app_session_generation: activated.generation,
         })
       : undefined;
     return json({

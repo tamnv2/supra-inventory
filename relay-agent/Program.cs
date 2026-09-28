@@ -60,6 +60,26 @@ namespace SupraInventoryRelayAgent
 
             AgentDiagnostics.Initialize();
 
+            var d134GrpcNativeSelfTest = args != null && Array.Exists(args, item =>
+                string.Equals(item, "--d134-grpc-native-self-test", StringComparison.OrdinalIgnoreCase));
+            if (d134GrpcNativeSelfTest)
+            {
+                try
+                {
+                    var nativePass = FirestoreAgentSyncListener.SelfTestNative();
+                    AgentDiagnostics.Write("D134 GRPC_NATIVE_SELFTEST native=" + (nativePass ? "PASS" : "FAIL"));
+                    Environment.ExitCode = nativePass ? 0 : 7;
+                }
+                catch (Exception ex)
+                {
+                    AgentDiagnostics.Write(
+                        "D134 GRPC_NATIVE_SELFTEST exception type=" + ex.GetType().Name +
+                        " message=" + AgentDiagnostics.Sanitize(ex.Message));
+                    Environment.ExitCode = 8;
+                }
+                return;
+            }
+
             var d102SelfTest = args != null && Array.Exists(args, item =>
                 string.Equals(item, "--d102-self-test", StringComparison.OrdinalIgnoreCase));
             if (d102SelfTest)
