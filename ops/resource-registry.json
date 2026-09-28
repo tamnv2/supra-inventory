@@ -1367,5 +1367,18 @@
     "android_asset_id": 593805739,
     "android_size_bytes": 19052908,
     "android_sha256": "032d17f774592464101ed9711677f98117fddb17a2dcad53da3ea1feae6005f4"
+  },
+  "d132": {
+    "status": "OWNER_AUTHORIZED_IMPLEMENTATION__SOURCE_IN_PROGRESS",
+    "resource_change": "NONE__REUSES_EXISTING_BETA_WORKER_FIRESTORE_RELAY_AND_AGENT_LOCAL_STORAGE",
+    "baseline_agent_release": "relay-agent-v71",
+    "target_agent_release": "relay-agent-v72",
+    "android": "beta-vc78__UNCHANGED",
+    "presence_signal": "relay_poc_jobs/picker_presence_current__FIXED_SINGLE_SLOT__ANDROID_PRESENCE_V1",
+    "presence_projection": "picker_presence_projection/current__SCHEMA3__ACTIVE_ANDROID_EVENT_DRIVEN",
+    "counter_guard": "PRESENCE_ACK_CONTROL__NO_DAILY_PICKLIST_COUNTER_INCREMENT",
+    "local_preferences": "PER_AGENT_APP_USER_ID__GRID_WIDTHS__AUTO_SIZE_MODE__NORMAL_WINDOW_BOUNDS",
+    "provider_change": "NONE",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }
