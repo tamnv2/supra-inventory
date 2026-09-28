@@ -127,7 +127,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Nhập từ 3 chữ số cuối PickList trở lên. Hệ thống chỉ khớp đúng phần cuối mã PickList; nếu có nhiều kết quả, hãy chọn đúng một PickList của bạn."
+                android:text="Nhập ít nhất 3 số cuối PickList. Nếu có nhiều kết quả, chọn đúng PickList của bạn rồi xác nhận."
                 android:textColor="@color/text_secondary"
                 android:textSize="13sp" />
 
@@ -188,7 +188,7 @@
                 android:layout_marginTop="10dp"
                 android:background="@drawable/bg_card"
                 android:padding="8dp"
-                android:text="Chỉ xác nhận đúng PickList của bạn. Khi có nhiều kết quả, PDA chỉ cho phép chọn và xác nhận từng PickList một; huỷ xác nhận sẽ không gửi yêu cầu."
+                android:text="Chỉ xác nhận PickList của bạn. Hủy ở bước xác nhận sẽ không gửi yêu cầu."
                 android:textColor="@color/text_secondary"
                 android:textSize="11sp" />
         </LinearLayout>
