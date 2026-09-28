@@ -1819,3 +1819,12 @@ Owner completed the review-first gate and explicitly authorized implementation o
 - Agent adds a scoped Usage tab for PDA↔Agent/export dependencies. Provider metrics are fetched server-side; provider credentials are never sent to Agent. Failure to read Monitoring is shown explicitly and must not be hidden by Firestore self-scans that increase quota.
 - Server-side daily PickList export remains one idempotent file per 05:00-boundary business day and is independent of Agent liveness.
 - Implementation branch is feat/d131-firestore-ha-usage and PR is #259. Stable remains OWNER-GATED and untouched.
+
+
+### D131 technical/runtime/release evidence — 2026-09-28
+
+- Implementation PR **#259** passed all applicable PR gates and squash-merged to main commit `3569934ec2a36f6fa2f6fe92cf332ae679ad4070`.
+- Main PASS runs: Repo Authority **36351588508**, Project State **36351588659**, Firestore **36351588514**, Beta Worker **36351588539**, Android **36351588555**, Relay Agent **36351588527**, UI Design **36351588512**, Functions **36351588564**, D127 Dashboard Probe **36351588613**.
+- Beta Windows Agent **relay-agent-v71** release id **397818991**; canonical EXE asset id **593804846**, size **404992 bytes**, SHA-256 **e9fac90ebd5d89c6accdf1df903673cad3971a65c3333806602a636b3b55c508**.
+- Signed Android Beta **beta-vc78** release id **397819144**; APK asset id **593805739**, size **19052908 bytes**, SHA-256 **032d17f774592464101ed9711677f98117fddb17a2dcad53da3ea1feae6005f4**.
+- D131 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta. Remaining gate is **OA056 Owner physical field acceptance** for real company-network/fleet/latency behavior. Stable remains OWNER-GATED and untouched.
