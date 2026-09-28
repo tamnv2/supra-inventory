@@ -22,7 +22,8 @@ service cloud.firestore {
       return request.resource.data.keys().hasOnly([
           'call_id', 'target_user_id', 'command_type', 'message',
           'status', 'source', 'sender_user_id', 'sender_agent_id',
-          'sender_role', 'created_at_ms', 'lock_until_ms'
+          'sender_role', 'created_at_ms', 'lock_until_ms',
+          'resolved_by_user_id', 'resolved_by_agent_id', 'resolved_at_ms'
         ])
         && request.resource.data.target_user_id == targetUserId
         && request.resource.data.call_id is string
