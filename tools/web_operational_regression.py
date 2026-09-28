@@ -190,7 +190,7 @@ def main() -> None:
     require(app, 'name="escalationEnabled"', "D113 escalation enable control")
     require(app, 'name="skipToStockEnabled"', "D113 Skip-to-stock correction enable control")
     require(app, 'name="skipToStockMinutes"', "D113 Skip-to-stock correction window")
-    require(app, 'autoSkipModeRaw', "D113 mandatory auto-skip mode validation")
+    require(app, 'if (!requestedMode)', "D113 mandatory auto-skip mode validation")
     require(api, 'skip_to_stock_minutes: number', "D113 Web correction-window model")
     require(sla_auto, 'skip_to_stock_enabled: boolean', "D113 service correction-window switch")
     require(sla_auto, 'correctionDeadlineFromFirstReport', "D113 first-report correction deadline authority")
