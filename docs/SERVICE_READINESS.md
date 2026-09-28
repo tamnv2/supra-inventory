@@ -1202,3 +1202,14 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - D142 technical/runtime/release state is PASS. OA068 is field-ready for normal operation on one MT90 Android 11 and one DT50 Android 11.
 - App startup blocks login only for missing critical-alert readiness items, routes the user to the relevant Settings screen, and auto-rechecks on Android Back. No manual check/test button is required.
 - Existing FCM HIGH, D133/D135 overlay/local-first ACK, Agent/Web behavior and Stable are unchanged.
+
+## D142 Owner field acceptance — 2026-09-28
+
+Status: **OWNER FIELD PASS**.
+
+- Owner explicitly confirmed D142 PASS after the signed `beta-vc83` technical/runtime/release checkpoint.
+- Accepted PDA scope: **Newland NLS-MT90 Android 11** and **Urovo DT50 Android 11**.
+- Accepted behavior includes the automatic pre-login critical-alert readiness gate, missing-setting list with Settings routing/guidance, automatic recheck after Android Back, and preservation of the existing critical alert/overlay/local-first acknowledgement path.
+- OA068 is closed PASS. No further D142 field action remains.
+- Canonical Android marker: `D142_OWNER_FIELD_PASS__SIGNED_BETA_VC83__ANDROID11_MT90_DT50_CRITICAL_ALERT_READINESS`.
+- D141 OA067 and D140 Agent v80 remain independent open workstreams. Stable remains OWNER-GATED and untouched.
