@@ -13,14 +13,14 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D144_SOURCE_IMPLEMENTED__PENDING_PR_GATES",
+    "beta": "D144_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC85__AGENT_V82__OA071_FIELD_READY",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 14,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D144_INVENTORYCORE_RUNTIME_LOG_BUFFER_SOURCE_READY__D143_WEB_RUNTIME_BASELINE_PASS",
-    "android": "D144_DIRECT_CHAT_AND_KICK_COMPAT_SOURCE_READY__BASELINE_BETA_VC84",
-    "latest_beta_apk": "beta-vc84",
+    "web": "D144_RUNTIME_PASS__INVENTORYCORE_LOG_BUFFER__SCHEMA14__OAUTH_NONBLOCKING",
+    "android": "D144_SIGNED_BETA_VC85__DIRECT_CHAT_AND_AUTHORITATIVE_KICK__OA071_FIELD_READY",
+    "latest_beta_apk": "beta-vc85",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
     "network_scope": "D125_OFFICE_FIREBASE_BRIDGE_TARGET__NO_SUPRA_WMS_BACKGROUND_SESSION_OR_AUTOMATION",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D118_OWNER_ACCEPTED_PASS__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SELECTED_RANGE_FILTER",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D144_AGENT_V82_SOURCE_READY__DIRECT_CHAT_AND_AUTHORITATIVE_KICK"
+    "picklist_confirmation_poc": "D144_AGENT_V82_RELEASED__DIRECT_CHAT_AND_AUTHORITATIVE_KICK__OA071_FIELD_READY"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -190,7 +190,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Complete D144 PR gates, merge, deploy Beta Worker/Firestore/Functions, publish Agent v82 and the next monotonic signed Beta Android release, then run OA071 field acceptance for logs/chat/kick. No Google Drive permission change is required. Stable remains OWNER-GATED.",
+  "next_action": "Owner runs OA071 field acceptance on Beta using relay-agent-v82 and signed beta-vc85: Web Nhật ký must work despite revoked Drive OAuth; Agent chat must accept continuous typing and reach PDA; Kích User must remove stale/older APK presence and invalidate Android business authority. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -829,7 +829,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D144_FIELD_REPAIR_LOGS_CHAT_KICK",
+  "active_workstream": "D144_OWNER_FIELD_ACCEPTANCE_OA071",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -2275,7 +2275,7 @@
     "field_acceptance": "FAIL__OWNER_2026_09_29__LOGS_OAUTH_REVOKED__CHAT_INPUT_DELIVERY_FAIL__LEGACY_KICK_RESURRECTION"
   },
   "d144": {
-    "status": "SOURCE_IMPLEMENTED_PENDING_PR_GATES",
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC85__AGENT_V82__OA071_FIELD_READY",
     "date": "2026-09-29",
     "baseline_main": "76417cd9062c03b7e3a3f63bf87dda8c6a97c478",
     "branch": "d144-field-repair",
@@ -2293,12 +2293,49 @@
       "LEGACY_KICK_COMPATIBILITY_FCM_ALERT_BEFORE_TOKEN_DISABLE",
       "EXISTING_PICKER_CONTROL_COLLECTION_SCOPE_RECONCILIATION"
     ],
-    "target_agent_release": "relay-agent-v82",
-    "target_android_release": "NEXT_MONOTONIC_SIGNED_BETA_AFTER_VC84",
+    "target_agent_release": "relay-agent-v82__RELEASED",
+    "target_android_release": "beta-vc85__RELEASED",
     "schema": "14__ADDITIVE_RUNTIME_LOG_BUFFER",
     "resource_change": "NO_NEW_PROVIDER_RESOURCE__REUSES_EXISTING_INVENTORYCORE_LOGS_FOLDER_FIRESTORE_CONTROL_COLLECTIONS",
     "owner_blocker": null,
-    "field_gate": "OA071_BLOCKED_PENDING_TECHNICAL_RELEASE",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "field_gate": "OA071_READY_FOR_OWNER_FIELD_TEST",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "implementation_pr": 290,
+    "main_merge": "2b2b5a622b971efbb676e7143573652abf6f9570",
+    "main_runs": {
+      "repo_authority": 36477936191,
+      "project_state": 36477936152,
+      "beta_worker": 36477936028,
+      "firestore": 36477936251,
+      "ui_design": 36477936434,
+      "dashboard_probe": 36477936051,
+      "android": 36477936034,
+      "relay_agent": 36477936087
+    },
+    "runtime_proof": "BETA_HEALTH_HTTP200__SOURCE_2B2B5A62_EXACT__SCHEMA14_14__OPERATIONAL5_5__AGENT_MIGRATION0_0",
+    "agent_release": {
+      "tag": "relay-agent-v82",
+      "release_id": 398591606,
+      "asset_id": 596320198,
+      "size_bytes": 7045120,
+      "sha256": "264f7068f7c9fd39f8a153e6c895dc1c5dfccacdd49f87cf35eb2f098f76256c",
+      "source_commit": "2b2b5a622b971efbb676e7143573652abf6f9570"
+    },
+    "android_release": {
+      "tag": "beta-vc85",
+      "release_id": 398591717,
+      "apk_asset_id": 596320670,
+      "checksum_asset_id": 596320669,
+      "size_bytes": 19085892,
+      "sha256": "fdf561f67a65a0f99393b0c3fff6b5853adcd87c3b37bd624d04451493ce6466",
+      "source_commit": "2b2b5a622b971efbb676e7143573652abf6f9570"
+    },
+    "channel_evidence": {
+      "release_id": 394587029,
+      "agent_manifest_asset_id": 596320401,
+      "agent_asset_id": 596320414,
+      "pda_manifest_asset_id": 596320823,
+      "pda_asset_id": 596320818
+    }
   }
 }
