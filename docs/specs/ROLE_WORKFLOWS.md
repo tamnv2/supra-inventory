@@ -690,3 +690,15 @@ For Beta Windows Agent v69:
 6. Picker presence remains event-driven. READY renders **Đang hoạt động**; transient unexpected disconnect renders **Mất kết nối tạm thời** for the existing 180-second grace; reconnect cancels grace and hard-leave reasons remove immediately.
 7. Shared overtime schedule state is consumed from existing D117 role/lease coordination. Normal UI timers do not create a separate Firestore schedule-read loop. A bounded read after a conflicting explicit schedule submission remains allowed to show the authoritative winning decision.
 8. Realtime-listener research for PRIMARY is a separate field POC and is not part of the v69 runtime.
+
+## D134 — Agent/PDA operational workflow
+
+1. Agent authentication starts the compact Firestore fleet listener immediately; Web Confirm readiness is not required for Call/Kick state synchronization.
+2. The Agent fleet is bounded to 10 displayed/managed entries. Only PRIMARY polls the business PickList queue; non-primary roles still receive compact fleet Call/Kick/state updates.
+3. Picker list columns are **Mã nhân viên / Họ tên / Nguồn xác nhận / Kích User / Liên hệ picker / Kết thúc**. Source is LOGIN or PICKLIST.
+4. Kích User requires two explicit confirmations. Successful kick revokes the current Android generation, removes the row across Agents and returns that PDA to login. New login receives a newer generation.
+5. Liên hệ picker locks the call action fleet-wide for 60 seconds. The originating Agent may end the active call earlier, but a new call cannot start until the 60-second lock expires.
+6. Auto size is controlled only from Hệ thống Agent and applies to all operational grids. Manual widths/window bounds persist per Agent account when Auto size is off.
+7. Hiện/ẩn Web Confirm and other protected Web lifecycle changes plus Agent logout require the current Agent password. User-facing Agent identity is the clean login username.
+8. Usage reads the server-produced Firestore snapshot. The Agent does not call the Worker Usage endpoint as its normal provider path.
+9. Window focus/restore is presentation-only and performs no provider presence/counter read.

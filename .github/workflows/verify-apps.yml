@@ -90,7 +90,7 @@ jobs:
             echo "SIGNING_READY=false" >> "$GITHUB_ENV"
             echo "Beta signing secrets are not configured; building debug artifact only. Auto-update release publishing will stay disabled."
           fi
-      - name: D131 Firestore listener durable-ledger and 20-second confirmation guard
+      - name: D134 Firestore session-generation, kick, call and confirmation guard
         shell: bash
         run: |
           set -euo pipefail
@@ -98,6 +98,8 @@ jobs:
           picker="android/app/src/main/java/cd/cc/supra/inventory/beta/PickerController.kt"
           realtime="android/app/src/main/java/cd/cc/supra/inventory/beta/AndroidRealtimeClient.kt"
           api="android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt"
+          watcher="android/app/src/main/java/cd/cc/supra/inventory/beta/PickerActiveCallWatcher.kt"
+          main="android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt"
           gradle_file="android/app/build.gradle.kts"
           grep -q 'com.google.firebase:firebase-auth' "$gradle_file"
           grep -q 'com.google.firebase:firebase-firestore' "$gradle_file"
@@ -136,6 +138,13 @@ jobs:
           grep -q 'suppressRelayInputHint' "$picker"
           grep -q '"picker_employee_code"' "$client"
           grep -q '"picker_display_name"' "$client"
+          grep -q '"picker_session_generation"' "$client"
+          grep -q 'app_session_generation' "$client"
+          grep -q 'picker_session_controls' "$watcher"
+          grep -q 'revoked_generation' "$watcher"
+          grep -q 'lock_until_ms' "$watcher"
+          grep -q 'System.currentTimeMillis() + 60_000L' "$watcher"
+          grep -q 'Phiên PDA đã bị Kích User' "$main"
           grep -q 'hệ thống sẽ tự chuyển Agent dự phòng nếu cần' "$client"
           if grep -A8 'fun sendProbe' "$client" | grep -q 'runDueCleanup'; then
             echo "D115 cleanup must stay off the Picker confirmation critical path" >&2
@@ -152,7 +161,7 @@ jobs:
             echo "D097 confirmation client must not use RTDB" >&2
             exit 1
           fi
-          echo "D131 Android durable relay ledger / create recovery / 20-second terminal PASS"
+          echo "D134 Android generation fence / Kick User / 60-second call / relay terminal PASS"
 
       - name: Assemble Android 11+ Beta APK
         env:

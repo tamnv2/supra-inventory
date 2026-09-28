@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 using System.Web.Script.Serialization;
 
 namespace SupraInventoryRelayAgent
@@ -142,6 +143,23 @@ namespace SupraInventoryRelayAgent
                     return new List<AgentPresenceView>(_onlineAgents);
                 }
             }
+        }
+
+        internal void ApplySyncedFleet(IEnumerable<AgentPresenceView> fleet)
+        {
+            var views = new List<AgentPresenceView>();
+            foreach (var item in fleet ?? new AgentPresenceView[0])
+            {
+                if (item == null || string.IsNullOrWhiteSpace(item.AgentInstanceId)) continue;
+                views.Add(item);
+                if (views.Count >= FirestoreAgentSyncClient.MaxAgents) break;
+            }
+            lock (_stateGate) _onlineAgents = views;
+            _onlineAgentCount = views.Count;
+            _onlinePrimaryCount = views.Count(x => string.Equals(x.Role, "PRIMARY", StringComparison.Ordinal));
+            _onlineStandbyCount = views.Count(x => string.Equals(x.Role, "NEXT_A", StringComparison.Ordinal));
+            _onlineNextBCount = views.Count(x => string.Equals(x.Role, "NEXT_B", StringComparison.Ordinal));
+            _onlineFrozenCount = Math.Max(0, views.Count - _onlinePrimaryCount - _onlineStandbyCount - _onlineNextBCount);
         }
 
         internal string CurrentLeaderId
@@ -757,6 +775,10 @@ namespace SupraInventoryRelayAgent
                     if (!candidates.Contains(agentId)) candidates.Add(agentId);
                 }
                 candidates.Sort(StringComparer.Ordinal);
+                if (candidates.Count > FirestoreAgentSyncClient.MaxAgents - 1)
+                    candidates.RemoveRange(
+                        FirestoreAgentSyncClient.MaxAgents - 1,
+                        candidates.Count - (FirestoreAgentSyncClient.MaxAgents - 1));
                 if (candidates.Count == 0)
                 {
                     _log("FIRESTORE HA next_ab=NONE available_candidate=false");
@@ -907,14 +929,18 @@ namespace SupraInventoryRelayAgent
                 return string.Compare(a.Machine ?? "", b.Machine ?? "", StringComparison.OrdinalIgnoreCase);
             });
 
-            var primaryCount = !string.IsNullOrWhiteSpace(primary) && freshIds.Contains(primary) ? 1 : 0;
-            var standbyCount = !string.IsNullOrWhiteSpace(standby) && freshIds.Contains(standby) ? 1 : 0;
-            var nextBCount = !string.IsNullOrWhiteSpace(nextB) && freshIds.Contains(nextB) ? 1 : 0;
-            _onlineAgentCount = freshIds.Count;
+            if (views.Count > FirestoreAgentSyncClient.MaxAgents)
+                views.RemoveRange(FirestoreAgentSyncClient.MaxAgents, views.Count - FirestoreAgentSyncClient.MaxAgents);
+
+            var visibleIds = new HashSet<string>(views.Select(item => item.AgentInstanceId), StringComparer.Ordinal);
+            var primaryCount = !string.IsNullOrWhiteSpace(primary) && visibleIds.Contains(primary) ? 1 : 0;
+            var standbyCount = !string.IsNullOrWhiteSpace(standby) && visibleIds.Contains(standby) ? 1 : 0;
+            var nextBCount = !string.IsNullOrWhiteSpace(nextB) && visibleIds.Contains(nextB) ? 1 : 0;
+            _onlineAgentCount = views.Count;
             _onlinePrimaryCount = primaryCount;
             _onlineStandbyCount = standbyCount;
             _onlineNextBCount = nextBCount;
-            _onlineFrozenCount = Math.Max(0, freshIds.Count - primaryCount - standbyCount - nextBCount);
+            _onlineFrozenCount = Math.Max(0, views.Count - primaryCount - standbyCount - nextBCount);
             lock (_stateGate) _onlineAgents = views;
         }
 

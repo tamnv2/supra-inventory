@@ -1575,3 +1575,20 @@ D133 is acceptable only when all of the following pass:
 6. Launch Android with notifications disabled and/or **Hiển thị trên ứng dụng khác** disabled. The app blocks operational use, routes to the relevant Android permission/settings page, and only continues after both permissions are granted.
 
 Regression: no new offline Báo hàng path, no new provider resource, D117/D131 HA and Firestore cadence remain unchanged, and Stable stays OWNER-GATED.
+
+## D134 field-reliability Beta acceptance
+
+D134 is acceptable only when all of the following pass:
+
+1. On normal Internet and Office, open Usage under a valid Agent operator. Provider Usage loads from the Firestore snapshot without requiring laptop access to `inventory-beta.supra.cc.cd`. If one Monitoring metric is unavailable, that metric shows `N/A` while available metrics remain visible.
+2. Confirm there is exactly one Auto size control and it is under Hệ thống Agent. Test narrow/normal/maximized widths: columns remain proportionally balanced, action columns stay bounded and long text does not force a single huge column. Auto off restores per-account manual widths and normal window bounds.
+3. Verify Hệ thống Agent, Đăng nhập Supra and Xử lý PickList title colors: green when ready, red when definitely unavailable/error, neutral only during preparation.
+4. Process normal PickLists and a burst. No `UriFormatException` or other local processing fault may surface as Firestore offline. Interrupt real connectivity once and verify transport-offline/recovery remains truthful.
+5. Login and logout a Picker. Login adds it, logout removes it, and socket disconnect alone does neither. Delay a projection and submit one valid PickList; the Picker appears with source PICKLIST without any heartbeat.
+6. With multiple open Agents including a Replay/deep-hibernate Agent, press Liên hệ picker. All Agents disable that action for the same Picker immediately for 60 seconds. Only the originating Agent can end an active call. After the lock expires, a second call succeeds.
+7. Kích User requires two confirmations. After success, all open Agents remove the Picker promptly, the PDA returns to login, and the stale generation is denied if it attempts a new PickList. A subsequent legitimate login with a newer generation works.
+8. Restart/update an Agent and verify received/confirmed/error counters converge from the durable Firestore daily summary on the five-minute compact reconciliation; per-job immediate summary reads do not occur.
+9. Verify the fleet never presents more than 10 Agent entries in the D134 model and Call/Kick sync continues while non-primary Agents are Replay/deep-hibernate.
+10. Verify Hiện/ẩn Web Confirm and Agent logout require the Agent password; visible account text is the clean username only.
+11. Existing D133 Android permission gate and local-first shortage-result acknowledgement remain intact.
+12. Stable remains OWNER-GATED and untouched.

@@ -2875,7 +2875,7 @@
     },
     {
       "id": "OA059",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "FIELD_DEFECTS_FOUND__SUPERSEDED_BY_OA060_D134",
       "title": "Field-accept D133 six-field reliability and alert-safety hotfix",
       "resource_key": "repo",
       "provider": "Beta Windows Agent + Beta Android + existing Worker/Firestore/Functions",
@@ -2908,7 +2908,56 @@
         "No offline Báo hàng path or new provider resource is introduced; Stable remains untouched."
       ],
       "safety": "Beta only. Do not expose tokens, credentials or private session material. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Run the OA059 physical Beta field path using relay-agent-v73 + beta-vc79. Stable remains untouched.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-28",
+        "result": "FIELD_DEFECTS_FOUND__SUPERSEDED",
+        "evidence": "Owner field-tested relay-agent-v73 + beta-vc79 and reported Usage failure, duplicated/unbalanced Auto size UI, misleading Firestore interruption state, one-shot specialist call, insufficient password gates and inaccurate PDA presence semantics.",
+        "successor": "OA060_D134"
+      }
+    },
+    {
+      "id": "OA060",
+      "status": "IMPLEMENTATION_IN_PROGRESS__OWNER_APPROVED",
+      "title": "Field-accept D134 Agent/PDA reliability, compact fleet sync and session kick",
+      "resource_key": "repo",
+      "provider": "Beta Windows Agent + Beta Android + existing Worker/Firestore/Functions",
+      "reason_owner_only": "CI can prove generation fencing, compact sync, rules/build and quota guards, but real Office Agent/PDA behavior, multi-Agent Call/Kick propagation and visual sizing require physical field observation.",
+      "prerequisites": {
+        "baseline_main": "efdce403685efb800d84fe72002ba374a84af55d",
+        "baseline_agent_release": "relay-agent-v73",
+        "baseline_android": "beta-vc79",
+        "target_agent_release": "relay-agent-v74",
+        "target_android": "NEXT_MONOTONIC_BETA_AFTER_VC79",
+        "target_fleet": "UP_TO_10_AGENTS",
+        "compact_reconcile": "5_MINUTES",
+        "soft_firestore_reads_day": 45000,
+        "new_provider_resources": "NONE",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Update all test Agents to v74 and one or more PDAs to the D134 signed Beta build.",
+        "Verify Usage loads through the Firestore snapshot on normal and Office networks without requiring inventory-beta.supra.cc.cd reachability from the laptop.",
+        "Verify only Hệ thống Agent has the Auto size button; resize the Agent window and confirm balanced proportional columns, ellipsis for long text, and per-account manual widths when Auto size is off.",
+        "Verify Hệ thống Agent / Đăng nhập Supra / Xử lý PickList titles are green only when ready, red when definitely unavailable, and transient preparation is neutral.",
+        "Run normal and burst PickList traffic; confirm no Invalid URI logic fault is presented as Firestore offline and only actual transport/network failures show Firestore interruption.",
+        "Use Liên hệ picker twice for the same Picker with more than 60 seconds between calls; verify all open Agents immediately lock the call button for exactly 60 seconds and only the originating Agent may end an active call.",
+        "Login/logout a Picker and verify the fleet list follows those explicit events. Submit a valid PickList during delayed projection and verify PICKLIST fallback restores that Picker without a heartbeat.",
+        "Use Kích User and approve both confirmations; verify all open Agents remove the Picker immediately, the PDA returns to login, and the kicked generation cannot submit a new PickList.",
+        "Verify Hiện/ẩn Web Confirm and Đăng xuất Agent require the current Agent password and UI shows only the clean username."
+      ],
+      "pass_criteria": [
+        "Fleet is bounded to 10 Agents with one compact event listener per Agent and one PRIMARY five-minute reconciliation cadence.",
+        "No socket connect/close/error or UI focus event is authoritative for Picker online/offline state.",
+        "Valid PickList fallback cannot bypass a generation that has been kicked.",
+        "Liên hệ picker is reusable, race-safe and fleet-locked for 60 seconds; FCM/listener recovery remains available.",
+        "Usage is provider-backed, partial-metric safe and delivered to Agent through Firestore without provider credentials on the Agent.",
+        "Firestore logic exceptions do not fabricate transport-offline state.",
+        "Stable remains untouched."
+      ],
+      "safety": "Beta only. Do not expose passwords, Firebase tokens, WMS/browser session material or signing credentials. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait until D134 technical/runtime/release PASS, then execute the short physical Beta field path. No Stable action is authorized.",
       "closed": false
     }
   ]

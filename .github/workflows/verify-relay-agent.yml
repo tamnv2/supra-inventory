@@ -73,10 +73,14 @@ jobs:
           $browserBundle = Get-Content relay-agent/AgentBrowserBundle.cs -Raw
           $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
           $projection = Get-Content service/src/firestore-projection.ts -Raw
+          $sync = Get-Content relay-agent/FirestoreAgentSync.cs -Raw
+          $usage = Get-Content relay-agent/D131UsageFeatures.cs -Raw
+          $serviceUsage = Get-Content service/src/relay-usage.ts -Raw
+          $notifications = Get-Content service/src/notifications-core.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*73\s*;') { throw "D133 requires Agent v73." }
-          if ($project -notmatch '<AssemblyVersion>0\.73\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.73\.0\.0</FileVersion>') {
-            throw "D133 assembly/file version must be 0.73."
+          if ($config -notmatch 'AgentBuild\s*=\s*74\s*;') { throw "D134 requires Agent v74." }
+          if ($project -notmatch '<AssemblyVersion>0\.74\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.74\.0\.0</FileVersion>') {
+            throw "D134 assembly/file version must be 0.74."
           }
 
           foreach ($marker in @(
@@ -332,15 +336,21 @@ jobs:
             if (-not $browser.Contains($marker)) { throw "D129 browser lifecycle marker missing: $marker" }
           }
           foreach ($marker in @(
-            'Mất kết nối tạm thời',
-            'Đang hoạt động',
             'MinimumSize = new Size(120, 24)',
             'MaximumSize = new Size(7680, 4320)',
             'AutoFitToContent',
             'size_customized',
-            'TimeSpan.FromMinutes(10)'
+            'Nguồn xác nhận',
+            'Kích User',
+            'Liên hệ picker',
+            'Auto size cột: Bật',
+            'Auto size cột: Tắt'
           )) {
-            if (-not $ops.Contains($marker)) { throw "D129 PDA/overlay/quota UI marker missing: $marker" }
+            if (-not $ops.Contains($marker)) { throw "D134 PDA/overlay/UI marker missing: $marker" }
+          }
+          if ($ops.Contains('_autoSizeColumnsButton')) { throw "D134 Auto size control must exist only in Hệ thống Agent." }
+          if ($ops.Contains('PickerDisconnectGraceSeconds') -or $ops.Contains('PDA_GRACE')) {
+            throw "D134 must not restore heartbeat/disconnect-grace Picker presence."
           }
           if ($program.Contains('Đăng nhập Supra · v')) { throw "D129 must remove version from the Supra card title." }
           if ($program.Contains('QueueSharedScheduleRefresh')) { throw "D129 must not restore the parallel UI schedule-refresh loop." }
@@ -450,26 +460,37 @@ jobs:
           if (-not $ops.Contains('_agentRequestMetrics') -or -not $ops.Contains('Picker đang hoạt động trên PDA')) { throw "D124/D120 operational UI regression." }
           if (-not $ops.Contains('LoadOpen') -or -not $contact.Contains('CALL_SPECIALIST') -or -not $contact.Contains('BRING_TO_PACK')) { throw "Picker contact regression." }
           if (-not $contact.Contains('picker-contact-open-query') -or $contact.Contains('/picker_alerts?pageSize=100')) { throw "D127 Picker alert query must remain server-filtered." }
-          if (-not $presence.Contains('schemaVersion != 3') -or -not $presence.Contains('ACTIVE_ANDROID_EVENT_DRIVEN')) { throw "D127 Picker presence schema regression." }
-          foreach ($marker in @('ACTIVE_ANDROID_EVENT_DRIVEN','picker_presence_current','ANDROID_PRESENCE_V1','single-slot control event')) {
-            if (-not $projection.Contains($marker)) { throw "D132 Picker-presence signal marker missing: $marker" }
+          if (-not $presence.Contains('schemaVersion != 4') -or -not $presence.Contains('ANDROID_SESSION_AUTHORITY')) {
+            throw "D134 Picker session-authority projection regression."
           }
-          foreach ($marker in @('PRESENCE_ACK_CONTROL','durable_business_counter=false','_pickerActivityHandler')) {
-            if (-not $transport.Contains($marker)) { throw "D132 presence ACK/activity guard missing: $marker" }
+          foreach ($marker in @('ANDROID_SESSION_AUTHORITY','picker_presence_current','ANDROID_PRESENCE_V1','schema_version: 4')) {
+            if (-not $projection.Contains($marker)) { throw "D134 Picker-presence projection marker missing: $marker" }
           }
-          foreach ($marker in @('Auto size cột: Bật','Auto size cột: Tắt','HasWindowBounds','RefreshPickerPresenceOnForeground','ApplyPickerRequestActivity')) {
-            if (-not $ops.Contains($marker)) { throw "D132 Agent UI/presence marker missing: $marker" }
+          foreach ($marker in @('PRESENCE_ACK_CONTROL','durable_business_counter=false','_pickerActivityHandler','PickerSessionGeneration')) {
+            if (-not $transport.Contains($marker)) { throw "D134 presence/PickList generation guard missing: $marker" }
           }
-          if ($ops.Contains('_d119OpsTimer.Interval = 15000') -or $ops.Contains('PickerPresenceRefreshIntervalMs = 15000')) {
-            throw "D127 periodic 15-second Picker presence read returned."
+          foreach ($marker in @('HasWindowBounds','RefreshPickerPresenceOnForeground','ApplyPickerRequestActivity','StartD134AgentSync','StopD134AgentSync')) {
+            if (-not $ops.Contains($marker)) { throw "D134 Agent fleet marker missing: $marker" }
           }
-          if (-not $ops.Contains('RefreshPickerPresenceOnForeground') -or -not $ops.Contains('TimeSpan.FromSeconds(15)')) {
-            throw "D132 bounded foreground Picker presence reconcile guard missing."
+          if ($ops.Contains('TimeSpan.FromSeconds(15)') -or $ops.Contains('PickerPresenceRefreshIntervalMs = 15000')) {
+            throw "D134 foreground/periodic fast Picker reads are forbidden."
           }
-          foreach ($marker in @('PickerDisconnectGraceSeconds = 180','RefreshPickerWindowBoundary','05:00–23:00','ApplyEventDrivenPickerPresence')) {
-            if (-not $ops.Contains($marker)) { throw "D127 Picker presence quota guard missing: $marker" }
+          foreach ($marker in @('MaxAgents = 10','ReconcileInterval = TimeSpan.FromMinutes(5)','AGENT_SYNC listen=CONNECTED','PICKER_SESSION_KICK')) {
+            if (-not $sync.Contains($marker)) { throw "D134 compact fleet-sync marker missing: $marker" }
           }
-          if (-not $ops.Contains('TimeSpan.FromMinutes(10)') -or -not $fleet.Contains('relay_poc_coordination/daily_')) { throw "D131 fleet metric quota regression." }
+          if (-not $quota.Contains('SoftReadsPerDay = 45000L')) { throw "D134 Firestore read soft target must be 45,000/day." }
+          if (-not $usage.Contains('FirestoreUsageSnapshotUrl') -or $usage.Contains('AgentUsageUrl +')) {
+            throw "D134 Agent Usage must read the Firestore snapshot directly."
+          }
+          if (-not $serviceUsage.Contains('publishRelayUsageSnapshot') -or -not $serviceUsage.Contains('reads: 45000')) {
+            throw "D134 provider Usage snapshot/soft-read guard missing."
+          }
+          if (-not $notifications.Contains('android_session_generation') -or
+              -not $notifications.Contains('source: "LOGIN"') -or
+              $notifications.Contains('PDA_GRACE')) {
+            throw "D134 Worker Picker session-authority regression."
+          }
+          if (-not $fleet.Contains('relay_poc_coordination/daily_')) { throw "D134 durable fleet metric authority regression." }
           foreach ($marker in @('Microsoft.Web.WebView2','CoreWebView2Environment.CreateAsync','IsPasswordAutosaveEnabled','--remote-debugging-port')) {
             if (-not $ownedHost.Contains($marker)) { throw "D127 owned WebView2 host marker missing: $marker" }
           }
@@ -486,7 +507,7 @@ jobs:
             throw "D127 v53 must not auto-fallback from Agent browser to Desktop browser."
           }
 
-          Write-Host "D132 Agent presence + relay status + layout persistence regression PASS"
+          Write-Host "D134 Agent field reliability + compact fleet sync + Usage regression PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh

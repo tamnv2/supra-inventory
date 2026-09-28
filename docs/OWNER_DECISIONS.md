@@ -1890,3 +1890,22 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA059 OWNER FIELD REVIEW READY*
 - Agent release: `relay-agent-v73`, release `397895794`, EXE asset `594221966`, size `412160`, SHA-256 `65ffe4e5486d9b074925d5dec0f9c01bca4bda3b647bc0b85306647bf2aa33eb`.
 - Fixed `inventory-channel` was refreshed to the D133 Agent/APK artifacts.
 - OA059 is the remaining physical Owner field gate. Stable remains OWNER-GATED and untouched.
+
+## D134 — Agent/PDA field reliability, compact fleet sync and session authority — 2026-09-28
+
+Status: **OWNER APPROVED — BETA IMPLEMENTATION IN PROGRESS**.
+
+D133 technical/release gates passed, but the Owner's physical field test found defects. D134 supersedes OA059 field acceptance and authorizes the following coordinated Beta repair:
+
+1. **Usage is server-collected and Agent-consumed through Firestore.** Provider Monitoring/Drive data is cached server-side and mirrored to `relay_poc_coordination/usage_current` every 10 minutes. The Office Agent reads that compact document directly with its Firebase identity; it does not depend on Cloudflare DNS/Worker reachability to display Usage. One unavailable Monitoring metric becomes `N/A` and must not make all provider metrics unavailable.
+2. **Auto size has one operator control only.** The button exists only under Hệ thống Agent but applies to Agent fleet, Picker and manual PickList grids. Auto mode measures displayed content, bounds action/text columns and distributes compression/slack proportionally. Long text is single-line/clipped with tooltip behavior. Manual widths and normal window bounds stay per Agent account when Auto is off.
+3. **Readiness colors are truthful.** Hệ thống Agent, Đăng nhập Supra and Xử lý PickList are green only when ready, red for definite unavailable/error states and neutral while transiently preparing.
+4. **Firestore transport health is separated from logic faults.** Firestore resource names are normalized to REST URLs before mutation. A URI/data/processing exception must not mark Firestore transport offline; only actual transport/network failures do.
+5. **Liên hệ picker is reusable with a fleet-wide 60-second lock.** The per-Picker active-call document may transition back to ACTIVE after RESOLVED or expiry using conditional update-time fencing. FCM remains the fast path and the exact Picker document listener remains recovery. Every Agent receives the compact call lock immediately, including Replay/deep-hibernate Agents. Only the originating Agent may end an active call; the call button remains locked for the full 60 seconds.
+6. **PDA presence authority is explicit session state, not socket/heartbeat state.** LOGIN shows online, LOGOUT removes, and a valid PickList may repair a delayed/missing presence projection with source `PICKLIST`. Socket connect/close/error, window focus and silence are not online/offline authority.
+7. **Kích User is generation-fenced.** The Picker grid exposes Kích User with two confirmations. Kicking writes the revoked Android session generation, removes the Picker fleet-wide immediately and makes the PDA return to login. Firestore Rules reject PickList creates from a revoked generation so a stale session cannot resurrect itself.
+8. **Fleet/quota model is bounded.** D134 supports up to 10 Agent entries, one compact listener per authenticated Agent, one PRIMARY five-minute reconcile, no per-job counter refresh, no UI-focus presence read and no socket-presence write. Internal Firestore read soft target is 45,000/day.
+9. **Sensitive Agent actions require the Agent password and UI identity is clean.** Web visibility/stop/switch paths and Agent logout are password protected as applicable; user-visible identity is the login username only, never a composite internal id.
+10. **Existing resources only.** Beta Worker, Firestore, Functions, Android and Agent distribution resources are reused. Stable remains OWNER-GATED and untouched.
+
+Implementation target: **relay-agent-v74** plus the next monotonic signed Beta Android release after `beta-vc79`. No Stable mutation is authorized.

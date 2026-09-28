@@ -105,6 +105,9 @@ export async function mirrorPickerNotificationTarget(
 type PickerProjectionPayload = {
   items?: Array<{
     user_id?: unknown;
+    firebase_uid?: unknown;
+    session_generation?: unknown;
+    source?: unknown;
     employee_code?: unknown;
     display_name?: unknown;
     device_id?: unknown;
@@ -122,6 +125,9 @@ async function writePickerPresenceProjection(
 ): Promise<void> {
   const pickers = (payload.items || []).slice(0, 2000).map((item) => ({
     user_id: String(item.user_id || ""),
+    firebase_uid: String(item.firebase_uid || ""),
+    session_generation: Number(item.session_generation || 0),
+    source: String(item.source || "LOGIN") === "PICKLIST" ? "PICKLIST" : "LOGIN",
     employee_code: String(item.employee_code || ""),
     display_name: String(item.display_name || ""),
     device_id: String(item.device_id || ""),
@@ -131,8 +137,8 @@ async function writePickerPresenceProjection(
   }));
   const now = new Date();
   await putDocument(env, "picker_presence_projection", "current", {
-    schema_version: 3,
-    presence_source: "ACTIVE_ANDROID_EVENT_DRIVEN",
+    schema_version: 4,
+    presence_source: "ANDROID_SESSION_AUTHORITY",
     updated_at: now.toISOString(),
     source_generated_at: payload.generated_at || null,
     count: pickers.length,
@@ -147,7 +153,7 @@ async function writePickerPresenceProjection(
     status: "PENDING",
     source: "ANDROID_PRESENCE_V1",
     created_at: now,
-    schema_version: 3,
+    schema_version: 4,
     reason,
     count: pickers.length,
     pickers,

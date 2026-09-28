@@ -23,7 +23,7 @@ import { latestAgentAppRelease, latestAgentBrowserBundle, latestPdaAppRelease, r
 import { handleD119Internal } from "./internal-d119";
 import { refreshPickerProjectionBestEffort } from "./firestore-projection";
 import { maybeRunRelayAuditExport } from "./relay-audit";
-import { collectRelayUsage } from "./relay-usage";
+import { collectRelayUsage, publishRelayUsageSnapshot } from "./relay-usage";
 
 export { InventoryCore };
 
@@ -1345,6 +1345,11 @@ export default {
         console.error("agent_log_drain_failed", error instanceof Error ? error.message : "unknown")));
       ctx.waitUntil(maybeRunRelayAuditExport(env).then(() => undefined).catch((error) =>
         console.error("relay_audit_export_failed", error instanceof Error ? error.message : "unknown")));
+      const scheduledMinute = Math.floor(Number(controller.scheduledTime || Date.now()) / 60000);
+      if (scheduledMinute % 10 === 0) {
+        ctx.waitUntil(publishRelayUsageSnapshot(env).then(() => undefined).catch((error) =>
+          console.error("relay_usage_snapshot_failed", error instanceof Error ? error.message : "unknown")));
+      }
     }
   },
 } satisfies ExportedHandler<Env>;

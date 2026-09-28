@@ -628,3 +628,14 @@ This subsection supersedes conflicting D131 max-6/RAM-counter wording above.
 - Result overlays (HAS_STOCK / SKIP_ALLOWED) use local-first acknowledgement: persist the result-event id in the existing local pending-ACK store, dismiss the overlay immediately, then attempt the server acknowledgement. Pending ACK is retried on Activity resume and on the existing one-minute runtime tick while the Activity remains alive. This queue is acknowledgement metadata only; it must never create or mutate a Báo hàng report offline.
 - Android operational access is blocked until app notifications are enabled and the SYSTEM_ALERT_WINDOW special permission (**Hiển thị trên ứng dụng khác**) is granted. On Android 13+ the POST_NOTIFICATIONS runtime permission is also required. There is no “Để sau” bypass.
 - The active-call Firebase Functions are part of the Beta deployment set: pickerActiveCallCreated and pickerActiveCallResolved.
+
+## D134 — Explicit PDA session authority and compact Agent fleet stream
+
+- Android socket lifecycle is not Picker presence authority. Socket connect, close, error or temporary realtime disconnect must not add/remove Picker presence and must not trigger presence projection writes.
+- Picker presence is derived from the current Android session generation plus registered Android notification device. Explicit login/device registration adds or refreshes; explicit logout/device removal removes.
+- A valid `ANDROID_CONFIRM_V1` PickList carrying the authenticated `app_session_generation` may repair delayed presence with source `PICKLIST`. A kicked generation is rejected by Firestore Rules before job creation.
+- `picker_session_controls/<firebase_uid>` is the bounded revocation fence. The current PDA listens only to its own document and returns to login when `revoked_generation >= app_session_generation`.
+- `relay_poc_coordination/agent_sync` is one compact fleet document. Authenticated Agents listen to that single document regardless of PRIMARY/Replay/deep-hibernate role. Call/Kick changes publish immediately; PRIMARY performs a five-minute reconciliation of presence, active calls, durable counters and at most 10 Agent entries.
+- Liên hệ picker uses `picker_active_calls/<user_id>` with an exact 60-second `lock_until_ms`. Reuse after RESOLVED/expiry is conditional on Firestore update-time. FCM is fast delivery and the exact-document listener is convergence/recovery.
+- Transient listener/DNS failures are logged and retried without repeated user-facing technical popups.
+- Stable remains OWNER-GATED.

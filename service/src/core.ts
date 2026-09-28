@@ -15,7 +15,6 @@ import {
 } from "./sla-automation";
 import { sendFcmNotifications } from "./fcm";
 import { readAndroidAlertWindow } from "./alert-window-core";
-import { syncPickerPresenceProjectionFromState } from "./firestore-projection";
 
 const SCHEMA_VERSION = 12;
 
@@ -555,34 +554,13 @@ export class InventoryCore {
     this.state.storage.sql.exec("DELETE FROM audit_log WHERE created_at < ?", cutoff);
   }
 
-  async webSocketClose(ws: WebSocket, _code: number, _reason: string, _wasClean: boolean): Promise<void> {
-    const attachment = ws.deserializeAttachment() as {
-      connection_id?: string;
-      role?: string;
-      client_type?: string;
-    } | null;
-    if (attachment?.role !== "PICKER" || attachment.client_type !== "ANDROID") return;
-    await syncPickerPresenceProjectionFromState(
-      this.state,
-      this.env,
-      String(attachment.connection_id || ""),
-      String(_reason || "SOCKET_CLOSE").trim() || "SOCKET_CLOSE",
-    );
+  async webSocketClose(_ws: WebSocket, _code: number, _reason: string, _wasClean: boolean): Promise<void> {
+    // D134: socket lifecycle is not Picker presence authority.
+    // Login/logout/session generation and valid PickList activity are authoritative.
   }
 
-  async webSocketError(ws: WebSocket, _error: unknown): Promise<void> {
-    const attachment = ws.deserializeAttachment() as {
-      connection_id?: string;
-      role?: string;
-      client_type?: string;
-    } | null;
-    if (attachment?.role !== "PICKER" || attachment.client_type !== "ANDROID") return;
-    await syncPickerPresenceProjectionFromState(
-      this.state,
-      this.env,
-      String(attachment.connection_id || ""),
-      "SOCKET_ERROR",
-    );
+  async webSocketError(_ws: WebSocket, _error: unknown): Promise<void> {
+    // D134: transient realtime transport errors must not remove or rewrite Picker presence.
   }
 
   private getSchemaVersion(): number {
@@ -977,7 +955,7 @@ export class InventoryCore {
     const readModel = await handleReadModelCoreRequest(
       this.state,
       request,
-      () => syncPickerPresenceProjectionFromState(this.state, this.env, "", "SOCKET_CONNECT"),
+      async () => { /* D134: socket connect does not mutate Picker presence. */ },
     );
     if (readModel) return readModel;
 

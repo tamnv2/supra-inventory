@@ -8,6 +8,42 @@ service cloud.firestore {
         && request.auth.token.app_user_id != null;
     }
 
+    function pickerSessionNotRevoked() {
+      return request.auth != null
+        && request.auth.token.app_session_generation is int
+        && (
+          !exists(/databases/$(database)/documents/picker_session_controls/$(request.auth.uid))
+          || get(/databases/$(database)/documents/picker_session_controls/$(request.auth.uid)).data.revoked_generation
+             < request.auth.token.app_session_generation
+        );
+    }
+
+    function validActiveCall(targetUserId) {
+      return request.resource.data.keys().hasOnly([
+          'call_id', 'target_user_id', 'command_type', 'message',
+          'status', 'source', 'sender_user_id', 'sender_agent_id',
+          'sender_role', 'created_at_ms', 'lock_until_ms',
+          'resolved_by_user_id', 'resolved_by_agent_id', 'resolved_at_ms'
+        ])
+        && request.resource.data.target_user_id == targetUserId
+        && request.resource.data.call_id is string
+        && request.resource.data.call_id.matches('^call-[A-Za-z0-9]{16,80}$')
+        && request.resource.data.command_type == 'CALL_SPECIALIST'
+        && request.resource.data.status == 'ACTIVE'
+        && request.resource.data.source == 'AGENT_PICKER_ACTIVE_CALL_V2'
+        && request.resource.data.sender_user_id == request.auth.token.app_user_id
+        && request.resource.data.sender_agent_id is string
+        && request.resource.data.sender_agent_id.size() >= 8
+        && request.resource.data.sender_agent_id.size() <= 160
+        && request.resource.data.sender_role in ['INVENTORY', 'PICK_PACK']
+        && request.resource.data.message is string
+        && request.resource.data.message.size() <= 500
+        && request.resource.data.created_at_ms is int
+        && request.resource.data.lock_until_ms is int
+        && request.resource.data.lock_until_ms == request.resource.data.created_at_ms + 60000
+        && request.resource.data.created_at_ms <= request.time.toMillis() + 60000;
+    }
+
     function isRealAdmin() {
       return request.auth != null
         && request.auth.token.app_role == 'ADMIN'
@@ -52,7 +88,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly([
           'request_id', 'suffix', 'status', 'source',
           'picker_uid', 'picker_user_id', 'picker_employee_code', 'picker_display_name',
-          'client_sent_at_ms', 'created_at'
+          'picker_session_generation', 'client_sent_at_ms', 'created_at'
         ])
         && request.resource.data.request_id == jobId
         && request.resource.data.suffix is string
@@ -61,6 +97,8 @@ service cloud.firestore {
         && request.resource.data.source == 'ANDROID_CONFIRM_V1'
         && request.resource.data.picker_uid == request.auth.uid
         && request.resource.data.picker_user_id == request.auth.token.app_user_id
+        && request.resource.data.picker_session_generation == request.auth.token.app_session_generation
+        && pickerSessionNotRevoked()
         && request.resource.data.picker_employee_code is string
         && request.resource.data.picker_employee_code.size() <= 64
         && request.resource.data.picker_display_name is string
@@ -81,7 +119,7 @@ service cloud.firestore {
           || (
             jobId == 'picker_presence_current'
             && resource.data.source == 'ANDROID_PRESENCE_V1'
-            && resource.data.schema_version == 3
+            && resource.data.schema_version == 4
           )
         )
         && request.resource.data.status == 'ACK'
@@ -152,55 +190,74 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /picker_session_controls/{firebaseUid} {
+      allow get: if isPickerContactOperator()
+        || (isPicker() && request.auth.uid == firebaseUid);
+      allow list: if false;
+      allow create, update: if isPickerContactOperator()
+        && request.resource.data.keys().hasOnly([
+          'firebase_uid', 'user_id', 'revoked_generation',
+          'kicked_at_ms', 'kicked_by_user_id', 'kicked_by_agent_id'
+        ])
+        && request.resource.data.firebase_uid == firebaseUid
+        && request.resource.data.user_id is string
+        && request.resource.data.revoked_generation is int
+        && request.resource.data.revoked_generation >= 1
+        && request.resource.data.kicked_at_ms is int
+        && request.resource.data.kicked_by_user_id == request.auth.token.app_user_id
+        && request.resource.data.kicked_by_agent_id is string
+        && request.resource.data.kicked_by_agent_id.size() >= 8
+        && request.resource.data.kicked_by_agent_id.size() <= 160;
+      allow delete: if false;
+    }
+
     match /picker_active_calls/{targetUserId} {
       allow get: if isPickerContactOperator()
         || (isPicker() && targetUserId == request.auth.token.app_user_id);
       allow list: if isPickerContactOperator();
 
       allow create: if isPickerContactOperator()
-        && request.resource.data.keys().hasOnly([
-          'call_id', 'target_user_id', 'command_type', 'message',
-          'status', 'source', 'sender_user_id', 'sender_agent_id',
-          'sender_role', 'created_at_ms'
-        ])
-        && request.resource.data.target_user_id == targetUserId
-        && request.resource.data.call_id is string
-        && request.resource.data.call_id.matches('^call-[A-Za-z0-9]{16,80}$')
-        && request.resource.data.command_type == 'CALL_SPECIALIST'
-        && request.resource.data.status == 'ACTIVE'
-        && request.resource.data.source == 'AGENT_PICKER_ACTIVE_CALL_V2'
-        && request.resource.data.sender_user_id == request.auth.token.app_user_id
-        && request.resource.data.sender_agent_id is string
-        && request.resource.data.sender_agent_id.size() >= 8
-        && request.resource.data.sender_agent_id.size() <= 160
-        && request.resource.data.sender_role in ['INVENTORY', 'PICK_PACK']
+        && validActiveCall(targetUserId)
+        && (
+          (request.auth.token.app_role == 'ADMIN'
+           && request.auth.token.app_base_role == 'ADMIN'
+           && request.resource.data.sender_role == 'INVENTORY')
+          ||
+          (request.auth.token.app_role == 'PICKPACK_ADMIN'
+           && request.auth.token.app_base_role == 'PICKPACK_ADMIN'
+           && request.resource.data.sender_role == 'PICK_PACK')
+        );
+
+      allow update: if isPickerContactOperator()
         && (
           (
-            request.auth.token.app_role == 'ADMIN'
-            && request.auth.token.app_base_role == 'ADMIN'
-            && request.resource.data.sender_role == 'INVENTORY'
+            resource.data.status == 'ACTIVE'
+            && request.resource.data.status == 'RESOLVED'
+            && request.resource.data.resolved_by_user_id == request.auth.token.app_user_id
+            && request.resource.data.resolved_by_agent_id == resource.data.sender_agent_id
+            && request.resource.data.resolved_at_ms is int
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'status', 'resolved_by_user_id', 'resolved_by_agent_id', 'resolved_at_ms'
+            ])
           )
           ||
           (
-            request.auth.token.app_role == 'PICKPACK_ADMIN'
-            && request.auth.token.app_base_role == 'PICKPACK_ADMIN'
-            && request.resource.data.sender_role == 'PICK_PACK'
+            (resource.data.status == 'RESOLVED'
+             || (resource.data.status == 'ACTIVE'
+                 && resource.data.lock_until_ms is int
+                 && resource.data.lock_until_ms <= request.time.toMillis()))
+            && validActiveCall(targetUserId)
+            && (
+              (request.auth.token.app_role == 'ADMIN'
+               && request.auth.token.app_base_role == 'ADMIN'
+               && request.resource.data.sender_role == 'INVENTORY')
+              ||
+              (request.auth.token.app_role == 'PICKPACK_ADMIN'
+               && request.auth.token.app_base_role == 'PICKPACK_ADMIN'
+               && request.resource.data.sender_role == 'PICK_PACK')
+            )
           )
-        )
-        && request.resource.data.message is string
-        && request.resource.data.message.size() <= 500
-        && request.resource.data.created_at_ms is int
-        && request.resource.data.created_at_ms <= request.time.toMillis() + 60000;
-
-      allow update: if isPickerContactOperator()
-        && resource.data.status == 'ACTIVE'
-        && request.resource.data.status == 'RESOLVED'
-        && request.resource.data.resolved_by_user_id == request.auth.token.app_user_id
-        && request.resource.data.resolved_by_agent_id == resource.data.sender_agent_id
-        && request.resource.data.resolved_at_ms is int
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'status', 'resolved_by_user_id', 'resolved_by_agent_id', 'resolved_at_ms'
-        ]);
+        );
 
       // Admin SDK function closes the PDA push then removes the active lock.
       allow delete: if false;

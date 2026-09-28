@@ -8,6 +8,9 @@ namespace SupraInventoryRelayAgent
     internal sealed class PickerPresenceView
     {
         internal string UserId;
+        internal string FirebaseUid;
+        internal long SessionGeneration;
+        internal string Source = "LOGIN";
         internal string EmployeeCode;
         internal string DisplayName;
         internal string DeviceId;
@@ -46,7 +49,7 @@ namespace SupraInventoryRelayAgent
             var fields = GetMap(root, "fields");
             var schemaVersion = ReadInteger(fields, "schema_version");
             var source = ReadString(fields, "presence_source");
-            if (schemaVersion != 3 || !string.Equals(source, "ACTIVE_ANDROID_EVENT_DRIVEN", StringComparison.Ordinal))
+            if (schemaVersion != 4 || !string.Equals(source, "ANDROID_SESSION_AUTHORITY", StringComparison.Ordinal))
             {
                 _log("PICKER_PRESENCE projection=IGNORED reason=STALE_OR_LEGACY_SCHEMA schema=" + schemaVersion);
                 return new List<PickerPresenceView>();
@@ -78,6 +81,9 @@ namespace SupraInventoryRelayAgent
                     result.Add(new PickerPresenceView
                     {
                         UserId = userId,
+                        FirebaseUid = ReadString(itemFields, "firebase_uid"),
+                        SessionGeneration = ReadLong(itemFields, "session_generation"),
+                        Source = string.Equals(ReadString(itemFields, "source"), "PICKLIST", StringComparison.Ordinal) ? "PICKLIST" : "LOGIN",
                         EmployeeCode = employeeCode,
                         DisplayName = displayName,
                         DeviceId = ReadString(itemFields, "device_id"),
@@ -120,6 +126,16 @@ namespace SupraInventoryRelayAgent
             if (field.TryGetValue("stringValue", out value)) return Convert.ToString(value) ?? "";
             if (field.ContainsKey("nullValue")) return "";
             return "";
+        }
+
+        private static long ReadLong(Dictionary<string, object> fields, string key)
+        {
+            var field = GetMap(fields, key);
+            if (field == null) return 0L;
+            object value;
+            long parsed;
+            return field.TryGetValue("integerValue", out value) &&
+                   long.TryParse(Convert.ToString(value), out parsed) ? parsed : 0L;
         }
 
         private static int ReadInteger(Dictionary<string, object> fields, string key)

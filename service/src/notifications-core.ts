@@ -74,7 +74,7 @@ type RealtimePickerAttachment = {
 
 export function onlinePickerProjectionData(
   state: DurableObjectState,
-  excludeConnectionId = "",
+  _excludeConnectionId = "",
 ): {
   items: Array<Record<string, unknown>>;
   count: number;
@@ -93,35 +93,15 @@ export function onlinePickerProjectionData(
     };
   }
 
-  // D120 field hotfix: a persisted login/device registration is necessary but not
-  // sufficient to call a PDA "online". The live list is bounded to Picker Android
-  // realtime sockets that are actually attached to InventoryCore right now.
-  // This reuses the accepted D098 hibernatable WebSocket and adds no PDA heartbeat.
-  const activePickerIds = new Set<string>();
-  for (const socket of state.getWebSockets("role:PICKER")) {
-    const attachment = socket.deserializeAttachment() as RealtimePickerAttachment | null;
-    if (!attachment?.user_id) continue;
-    if (excludeConnectionId && attachment.connection_id === excludeConnectionId) continue;
-    if (attachment.role !== "PICKER" || attachment.client_type !== "ANDROID") continue;
-    activePickerIds.add(String(attachment.user_id));
-  }
-
-  if (!activePickerIds.size) {
-    return {
-      items: [],
-      count: 0,
-      generated_at: windowState.server_now,
-      operating_window_open: true,
-      overtime_until_ms: windowState.overtime_until_ms,
-    };
-  }
-
-  const userIds = [...activePickerIds].slice(0, 2000);
-  const placeholders = userIds.map(() => "?").join(",");
+  // D134: explicit Android session authority replaces socket/disconnect presence.
+  // A transient realtime disconnect never removes a Picker. Login/session creation
+  // adds the row; explicit logout/session replacement clears the session fields.
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT u.user_id,
+            COALESCE(u.firebase_uid, '') AS firebase_uid,
             COALESCE(u.employee_code, '') AS employee_code,
             u.display_name,
+            u.android_session_generation,
             u.android_session_started_at AS login_at,
             f.device_id,
             MAX(f.last_seen_at) AS device_seen_at
@@ -135,17 +115,20 @@ export function onlinePickerProjectionData(
         AND u.status = 'ACTIVE'
         AND u.android_session_device_id IS NOT NULL
         AND u.android_session_device_id <> ''
-        AND u.user_id IN (${placeholders})
-      GROUP BY u.user_id, u.employee_code, u.display_name, u.android_session_started_at, f.device_id
-      ORDER BY COALESCE(u.employee_code, u.user_id) ASC, u.display_name ASC`,
-    ...userIds,
+      GROUP BY u.user_id, u.firebase_uid, u.employee_code, u.display_name,
+               u.android_session_generation, u.android_session_started_at, f.device_id
+      ORDER BY COALESCE(u.employee_code, u.user_id) ASC, u.display_name ASC
+      LIMIT 2000`,
   ).toArray().map((row) => ({
     user_id: String(row.user_id || ""),
+    firebase_uid: String(row.firebase_uid || ""),
     employee_code: String(row.employee_code || ""),
     display_name: String(row.display_name || ""),
     device_id: String(row.device_id || ""),
     login_at: row.login_at == null ? null : String(row.login_at),
     device_seen_at: row.device_seen_at == null ? null : String(row.device_seen_at),
+    session_generation: Number(row.android_session_generation || 0),
+    source: "LOGIN",
     status: "PDA_READY",
   }));
 

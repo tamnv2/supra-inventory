@@ -467,3 +467,12 @@ D126 supersedes D125 as the current Owner-approved implementation direction.
 - Owner field observation confirmed the mandatory second confirmation dialog after **Xác nhận lấy lại hàng**. D126-H4 is merged and technically released as `relay-agent-v50`; it requires the exact dialog title/body and clicks only its scoped **Xác nhận** action before existing post-confirm terminal evidence. OA051 real-Supra field re-test on v50 remains the acceptance layer.
 - Stable remains OWNER-GATED.
 
+## D134 current implementation context — 2026-09-28
+
+- Owner field testing of released D133 (`relay-agent-v73` + `beta-vc79`) exposed defects in Usage reachability, Auto size presentation, Firestore health classification, repeat specialist call behavior, Agent/Web password gates and Picker presence semantics.
+- D134 is Owner-approved and Beta-only. Stable remains OWNER-GATED.
+- Target fleet is up to 10 Agents. All authenticated Agents receive one compact Firestore sync document; PRIMARY performs one five-minute reconcile. Call/Kick changes are event-driven and reach Replay/deep-hibernate Agents.
+- Picker presence authority is explicit Android session state; valid PickList identity is the fallback. Socket disconnect/silence is not offline authority.
+- Kích User revokes the current Android session generation; stale generations cannot create new PickList jobs.
+- Usage provider metrics are collected server-side and mirrored to Firestore every 10 minutes for direct Office Agent reads.
+- D134 Agent target is v74 and Android target is the next monotonic signed Beta after vc79.

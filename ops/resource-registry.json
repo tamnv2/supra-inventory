@@ -1417,5 +1417,22 @@
     "inventory_channel_release_id": 394587029,
     "new_resources": "NONE",
     "stable": "OWNER_GATED_UNTOUCHED"
+  },
+  "d134": {
+    "status": "OWNER_APPROVED_IMPLEMENTATION_IN_PROGRESS",
+    "resource_change": "NONE__REUSES_EXISTING_BETA_FIRESTORE_WORKER_FUNCTIONS_ANDROID_AGENT_DISTRIBUTION",
+    "baseline_agent_release": "relay-agent-v73",
+    "target_agent_release": "relay-agent-v74",
+    "baseline_android": "beta-vc79",
+    "target_android": "NEXT_MONOTONIC_BETA_AFTER_VC79",
+    "agent_sync_document": "relay_poc_coordination/agent_sync",
+    "usage_snapshot_document": "relay_poc_coordination/usage_current",
+    "picker_session_control": "picker_session_controls/<firebase_uid>",
+    "picker_active_call": "picker_active_calls/<user_id>",
+    "presence_projection": "picker_presence_projection/current__SCHEMA4__ANDROID_SESSION_AUTHORITY",
+    "fleet": "UP_TO10__ONE_PRIMARY__NEXT_A__NEXT_B__DEEP_HIBERNATE__ALL_ROLES_COMPACT_LISTENER",
+    "reconcile": "PRIMARY_5_MINUTES__EVENT_IMMEDIATE_CALL_KICK",
+    "quota_soft_target": "READS_45000_DAY__NO_PER_JOB_COUNTER_REFRESH__NO_UI_FOCUS_READ__NO_SOCKET_PRESENCE_WRITE",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }
