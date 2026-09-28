@@ -150,7 +150,7 @@ service cloud.firestore {
         && request.resource.data.request_id == jobId
         && request.resource.data.suffix is string
         && request.resource.data.suffix.matches('^[0-9]{3,20}$')
-        && request.resource.data.status == 'PENDING'
+        && request.resource.data.status in ['PENDING', 'DIRECT_PENDING']
         && request.resource.data.source == 'ANDROID_CONFIRM_V1'
         && request.resource.data.picker_uid == request.auth.uid
         && request.resource.data.picker_user_id == request.auth.token.app_user_id
@@ -459,7 +459,15 @@ service cloud.firestore {
         && request.resource.data.crash is bool
         && request.resource.data.filename is string
         && request.resource.data.filename.size() <= 160
-        && request.resource.data.filename.matches('^(crash_)?agent_[A-Za-z0-9._-]+_[0-9]{8}_[0-9]{6}\\.log$')
+        && request.resource.data.filename.matches('^(agent_|scheduled_agent_|error_agent_|crash_agent_)[A-Za-z0-9._-]+_[0-9]{8}_[0-9]{6}\\.log
+        && request.resource.data.content is string
+        && request.resource.data.content.size() <= 350000;
+
+      allow get, list, update, delete: if false;
+    }
+  }
+}
+)
         && request.resource.data.content is string
         && request.resource.data.content.size() <= 350000;
 

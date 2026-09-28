@@ -910,3 +910,13 @@ When the Agent chat dialog opens, the message field is the active control. Norma
 - Each page links to the other two pages and back to the application. The Privacy link is visible from the About page.
 - Login, password-reset and authenticated Web footers expose compact links to About, Privacy and Terms without competing with operational controls.
 - Public pages use static server-rendered HTML with no client-side script or analytics requirement. They must not expose internal IDs, tokens, credentials or debugging information.
+## D146 — Truthful log status and stable protected Agent input
+
+### Android support log
+The support dialog action is labeled **Gửi log**, not **Gửi lên Drive**. The app must wait for the API result before claiming Drive archival:
+- `DRIVE_SYNCED`: state that the log was sent and saved to Google Drive.
+- accepted in InventoryCore but Drive deferred: state that the system saved the log and Drive is waiting to synchronize.
+- request failure: show the bounded failure reason.
+
+### Agent protected input
+Password dialogs for protected Agent actions are treated as interactive editing surfaces. While such a modal is open, periodic after-hours/operational repaint timers are paused and restored afterward. General periodic UI repaint work is also skipped while protected text entry or core text inputs have focus. No timer is allowed to rebuild/activate the parent UI and steal keyboard focus from the password field.

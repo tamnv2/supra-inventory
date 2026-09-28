@@ -109,6 +109,7 @@ class MainActivity : Activity() {
     private val runtimeLogTick = object : Runnable {
         override fun run() {
             maybeUploadScheduledRuntimeLog()
+            reconcileSkuCatalogRefresh()
             if (::api.isInitialized && api.session?.role == "PICKER") {
                 drainOverlayAcknowledgements()
             }
@@ -205,6 +206,7 @@ class MainActivity : Activity() {
         }
         if (::api.isInitialized && api.session != null && updateGate == UpdateGate.CURRENT) {
             reconcileNotificationSignal()
+            reconcileSkuCatalogRefresh()
             drainOverlayAcknowledgements()
             ensurePickerActiveCallWatcher(api.session!!)
             syncEffectiveRole()
@@ -243,6 +245,35 @@ class MainActivity : Activity() {
         if (::api.isInitialized && api.session != null) reconcileNotificationSignal()
     }
 
+    private fun reconcileSkuCatalogRefresh() {
+        if (!::api.isInitialized || api.session == null) return
+        if (!NotificationSignalStore.consumeSkuCatalogRefresh(applicationContext)) return
+        syncSkuCatalogAsync("push")
+    }
+
+    private fun syncSkuCatalogAsync(reason: String, onDone: (Boolean) -> Unit = {}) {
+        if (api.session == null) {
+            onDone(false)
+            return
+        }
+        Thread {
+            try {
+                val result = skuCache.sync(api)
+                runOnUiThread {
+                    recordLog(
+                        if (result.updated) "Đã tự cập nhật Master SKU · ${result.count} SKU · $reason"
+                        else "Master SKU đã mới nhất · ${result.count} SKU · $reason"
+                    )
+                    onDone(true)
+                }
+            } catch (error: Exception) {
+                runOnUiThread {
+                    recordLog("Tự cập nhật Master SKU thất bại · $reason · ${sanitizeDiagnosticText(error.message ?: "unknown")}")
+                    onDone(false)
+                }
+            }
+        }.start()
+    }
     private fun reconcileNotificationSignal() {
         if (!NotificationSignalStore.consumeDirty(applicationContext)) return
         drainNotificationReceipts()
@@ -676,9 +707,9 @@ class MainActivity : Activity() {
             .setTitle("Log hỗ trợ")
             .setView(scroll)
             .setNegativeButton("Đóng", null)
-            .setNeutralButton("Gửi lên Drive") { _, _ ->
-                sendAndroidRuntimeLog("INFO", "manual_android_log", JSONObject(payload))
-                Toast.makeText(this, "Đang gửi log vào Beta / Logs.", Toast.LENGTH_SHORT).show()
+            .setNeutralButton("Gửi log") { _, _ ->
+                sendAndroidRuntimeLog("INFO", "manual_android_log", JSONObject(payload), showResult = true)
+                Toast.makeText(this, "Đang gửi log...", Toast.LENGTH_SHORT).show()
             }
             .setPositiveButton("Chia sẻ") { _, _ ->
                 val intent = Intent(Intent.ACTION_SEND).apply {
@@ -758,13 +789,14 @@ class MainActivity : Activity() {
 
     private fun runtimeLogPrefs() = getSharedPreferences("runtime_logs", MODE_PRIVATE)
 
-    private fun currentRuntimeLogSlot(): String {
+    private fun currentRuntimeLogSlot(): String? {
         val now = Instant.now().atZone(ZoneId.of("Asia/Ho_Chi_Minh"))
+        if (now.hour < 6) return null
         val slot = when {
+            now.hour >= 21 -> 21
             now.hour >= 18 -> 18
             now.hour >= 12 -> 12
-            now.hour >= 6 -> 6
-            else -> 0
+            else -> 6
         }
         return "%04d%02d%02d-%02d".format(now.year, now.monthValue, now.dayOfMonth, slot)
     }
@@ -778,38 +810,64 @@ class MainActivity : Activity() {
         .put("version_code", BuildConfig.VERSION_CODE)
         .put("version_name", BuildConfig.VERSION_NAME)
 
-    private fun uploadAndroidRuntimeLog(severity: String, reason: String, payload: JSONObject): Boolean {
-        if (api.session == null || !hasValidatedInternet()) return false
+    private data class AndroidLogSendResult(
+        val accepted: Boolean,
+        val archiveStatus: String = "",
+        val error: String = "",
+    )
+
+    private fun uploadAndroidRuntimeLog(severity: String, reason: String, payload: JSONObject): AndroidLogSendResult {
+        if (api.session == null) return AndroidLogSendResult(false, error = "Chưa đăng nhập.")
+        if (!hasValidatedInternet()) return AndroidLogSendResult(false, error = "Chưa có Internet.")
         return try {
-            api.uploadRuntimeLog(
+            val response = api.uploadRuntimeLog(
                 severity = severity,
                 reason = sanitizeDiagnosticText(reason),
                 generatedAt = Instant.now().toString(),
                 device = androidRuntimeLogDevice(),
                 payload = payload,
             )
-            true
+            AndroidLogSendResult(
+                accepted = true,
+                archiveStatus = response.optString("archive_status", "DEFERRED"),
+            )
         } catch (error: Exception) {
-            recordLog("Lỗi gửi log: ${sanitizeDiagnosticText(error.message ?: "unknown")}")
-            false
+            val safe = sanitizeDiagnosticText(error.message ?: "unknown")
+            recordLog("Lỗi gửi log: $safe")
+            AndroidLogSendResult(false, error = safe)
         }
     }
 
-    private fun sendAndroidRuntimeLog(severity: String, reason: String, payload: JSONObject = JSONObject(buildSupportDiagnostics())) {
+    private fun sendAndroidRuntimeLog(
+        severity: String,
+        reason: String,
+        payload: JSONObject = JSONObject(buildSupportDiagnostics()),
+        showResult: Boolean = false,
+    ) {
         Thread {
-            val sent = uploadAndroidRuntimeLog(severity, reason, payload)
-            if (sent) recordLog("Đã gửi log $severity · $reason")
+            val result = uploadAndroidRuntimeLog(severity, reason, payload)
+            if (result.accepted) recordLog("Đã gửi log $severity · $reason · ${result.archiveStatus}")
+            if (showResult) {
+                runOnUiThread {
+                    val message = when {
+                        !result.accepted -> "Không gửi được log: ${result.error.ifBlank { "không xác định" }}"
+                        result.archiveStatus == "DRIVE_SYNCED" -> "Đã gửi log và lưu Google Drive."
+                        else -> "Đã lưu log hệ thống; Drive sẽ tự tiếp tục gửi."
+                    }
+                    Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+                }
+            }
         }.start()
     }
 
     private fun maybeUploadScheduledRuntimeLog() {
         if (api.session == null || !hasValidatedInternet()) return
-        val slot = currentRuntimeLogSlot()
+        val slot = currentRuntimeLogSlot() ?: return
         val prefs = runtimeLogPrefs()
         if (prefs.getString("last_slot", "") == slot) return
         Thread {
             val sent = uploadAndroidRuntimeLog("INFO", "scheduled_$slot", JSONObject(buildSupportDiagnostics()))
-            if (sent) prefs.edit().putString("last_slot", slot).apply()
+            if (sent.accepted) prefs.edit().putString("last_slot", slot).apply()
         }.start()
     }
 
@@ -818,7 +876,7 @@ class MainActivity : Activity() {
         val raw = prefs.getString("pending_crash", null) ?: return
         Thread {
             val payload = try { JSONObject(raw) } catch (_: Exception) { JSONObject().put("raw", sanitizeDiagnosticText(raw)) }
-            if (uploadAndroidRuntimeLog("ERROR", "deferred_android_crash", payload)) {
+            if (uploadAndroidRuntimeLog("ERROR", "deferred_android_crash", payload).accepted) {
                 prefs.edit().remove("pending_crash").apply()
             }
         }.start()
@@ -1192,13 +1250,25 @@ class MainActivity : Activity() {
                     completion(false)
                     return@runOnUiThread
                 }
-                if (session.role == "PICKER") {
-                    val controller = pickerController
-                    if (controller != null) controller.onRealtime(scopes, completion) else completion(true)
-                } else {
-                    val controller = reporterController
-                    if (controller != null) controller.onRealtime(scopes, completion) else completion(true)
+
+                val catalogChanged = scopes.contains("sku_catalog")
+                val remainingScopes = if (catalogChanged) scopes.filterNot { it == "sku_catalog" }.toSet() else scopes
+                val applyRemaining: (Boolean) -> Unit = { catalogOk ->
+                    if (!catalogOk) {
+                        completion(false)
+                    } else if (remainingScopes.isEmpty()) {
+                        completion(true)
+                    } else if (session.role == "PICKER") {
+                        val controller = pickerController
+                        if (controller != null) controller.onRealtime(remainingScopes, completion) else completion(true)
+                    } else {
+                        val controller = reporterController
+                        if (controller != null) controller.onRealtime(remainingScopes, completion) else completion(true)
+                    }
                 }
+
+                if (catalogChanged) syncSkuCatalogAsync("realtime", applyRemaining)
+                else applyRemaining(true)
             }
         }.also { it.start() }
     }

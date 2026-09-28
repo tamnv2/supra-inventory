@@ -77,9 +77,9 @@ jobs:
           $serviceIndex = Get-Content service/src/index.ts -Raw
           $notifications = Get-Content service/src/notifications-core.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*82\s*;') { throw "D144 requires Agent v82 while retaining D140 quota-storm safeguards." }
-          if ($project -notmatch '<AssemblyVersion>0\.82\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.82\.0\.0</FileVersion>') {
-            throw "D144 Agent assembly/file version must be 0.82."
+          if ($config -notmatch 'AgentBuild\s*=\s*83\s*;') { throw "D146 requires Agent v83 while retaining D140 quota-storm safeguards." }
+          if ($project -notmatch '<AssemblyVersion>0\.83\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.83\.0\.0</FileVersion>') {
+            throw "D146 Agent assembly/file version must be 0.83."
           }
 
           foreach ($marker in @(
@@ -641,6 +641,36 @@ jobs:
             Select-Object -First 1
           if ($null -eq $loaderX64) { throw "WebView2Loader x64 was not produced by the WebView2 SDK build." }
           Write-Host "Agent-owned WebView2 host build PASS loader=$($loaderX64.FullName)"
+
+      - name: D146 Agent log transport and input-focus guard
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $program = Get-Content relay-agent/Program.cs -Raw
+          $bridge = Get-Content relay-agent/AgentLogUploadBridge.cs -Raw
+          $rules = Get-Content firebase/firestore.rules -Raw
+
+          foreach ($marker in @(
+            'ShowProtectedInputDialog',
+            '_interactiveInputGuardDepth',
+            'InteractiveTextEntryActive',
+            'TryQueueErrorSnapshot',
+            'ErrorUploadCallback',
+            'DIRECT_PENDING',
+            'scheduled_agent_',
+            'error_agent_',
+            'crash_agent_',
+            'new[] { 6, 12, 18, 21 }'
+          )) {
+            if (-not ($program.Contains($marker) -or $bridge.Contains($marker) -or $rules.Contains($marker))) {
+              throw "D146 Agent guard missing: $marker"
+            }
+          }
+          if ($bridge.Contains('new[] { 0, 6, 12, 18 }')) {
+            throw "D146 Agent must not retain the midnight scheduled-log slot."
+          }
+          if ($rules -notmatch "DIRECT_PENDING") { throw "D146 Firestore rules must allow DIRECT_PENDING Agent log parts." }
+          Write-Host "D146 Agent Google-first logs / protected text input guard PASS"
 
       - name: Build lightweight Windows Agent
         shell: pwsh

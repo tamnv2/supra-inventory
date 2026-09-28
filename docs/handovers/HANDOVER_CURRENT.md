@@ -1341,3 +1341,22 @@ Status: **OWNER FIELD PASS**.
 - Beta runtime verifies public HTTP 200 for `/about`, `/privacy`, `/terms`, exact Google scope disclosure and Privacy/Limited-Use markers.
 - OA073 is READY: Owner may now save the three URLs in Google Auth Platform Branding, publish the existing Beta OAuth app to In production, consent once again and replace the Worker refresh-token secret directly. Token values must never enter chat/repo/logs.
 - Stable remains OWNER-GATED and untouched.
+## D146 source candidate — 2026-09-29
+
+Owner approved one combined Beta change set for reliable support logs, PDA SKU invalidation, managed-user delete authority and Agent protected-input focus.
+
+- Logs run 06:00 / 12:00 / 18:00 / 21:00 HCM; errors/crashes attempt immediate delivery. Web/Android persist first to InventoryCore and retry deferred Drive archive. Names distinguish scheduled/manual/error/crash.
+- Agent v83 uses Google Firestore as first hop so Office does not depend on Cloudflare reachability from the laptop. The Beta Google Function obtains a trusted short-lived Drive resumable upload session from the Worker and sends the payload Google Function → Drive; Worker fallback is retained. No Drive/OAuth secret is placed on Agent.
+- Existing Beta OAuth is Owner-confirmed In production with refreshed token deployed; Gmail transactional send is field PASS; D146 will re-prove `drive.file` through actual log archival. Do not request or connect another Gmail account.
+- Web SKU import emits realtime + silent-FCM catalog invalidation; Android syncs local SKU cache without logout/login.
+- Managed user deletion requires true ROOT mode at Web/API/Core; PICKPACK_ADMIN, including ROOT downgraded to that effective role, cannot delete ADMIN.
+- Protected Agent password/browser-action dialogs isolate periodic timers to prevent focus loss.
+- Target releases: `relay-agent-v83` + next Android Beta after `beta-vc85`. OA074 stays blocked until technical/runtime/release PASS. Stable remains OWNER-GATED.
+
+
+## D146 source candidate status
+
+- Web: `D146_SOURCE_CANDIDATE__LOG_DRIVE_RETRY__SKU_PDA_PUSH__TRUE_ROOT_DELETE_GUARD`
+- Android: `D146_SOURCE_CANDIDATE__NEXT_AFTER_VC85__LIVE_SKU_REFRESH__06_12_18_21_LOGS`
+- Latest Beta APK: `beta-vc85`
+- SQLite schema: `14`

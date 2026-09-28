@@ -44,7 +44,15 @@ async function requireAdmin(request: Request, env: Env): Promise<User> {
   if (!ROLES.includes(user.role)) throw json({ error: "FORBIDDEN" }, 403);
   return user;
 }
-function actor(user: User) { return { user_id: user.user_id, employee_code: user.employee_code, role: user.role, display_name: user.display_name }; }
+function actor(user: User) {
+  return {
+    user_id: user.user_id,
+    employee_code: user.employee_code,
+    role: user.role,
+    base_role: user.base_role || user.role,
+    display_name: user.display_name,
+  };
+}
 
 async function coreUserById(env: Env, userId: string): Promise<User | null> {
   const response = await core(env).fetch(`https://inventory-core.internal/auth/user-by-id?user_id=${encodeURIComponent(userId)}`);
@@ -329,6 +337,11 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
       ? [...new Set(body.user_ids.map((value) => String(value || "").trim()).filter(Boolean))].slice(0, 100)
       : [];
     if (!ids.length) return json({ error: "MANAGED_USER_SELECTION_REQUIRED" }, 400);
+    const targets = await Promise.all(ids.map((id) => coreUserById(env, id)));
+    if (targets.some((target) => !target)) return json({ error: "MANAGED_USER_DELETE_TARGET_INVALID" }, 409);
+    if ((user.base_role || user.role) !== "ROOT" || user.role !== "ROOT") {
+      return json({ error: "MANAGED_USER_DELETE_FORBIDDEN" }, 403);
+    }
     const response = await core(env).fetch("https://inventory-core.internal/admin/users/delete", {
       method: "POST",
       headers: { "content-type": "application/json" },

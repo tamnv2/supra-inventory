@@ -240,6 +240,8 @@ namespace SupraInventoryRelayAgent
         internal static string RelayAuditLogFile { get; private set; }
         internal static string LogFile { get { return DiagnosticLogFile; } }
         internal static Action<string> CrashUploadCallback { get; set; }
+        internal static Action<string> ErrorUploadCallback { get; set; }
+        private static int _errorUploadCallbackRunning;
 
         internal static void Initialize()
         {
@@ -295,6 +297,31 @@ namespace SupraInventoryRelayAgent
         internal static void Write(string message)
         {
             AppendSanitized(DiagnosticLogFile, message);
+            if (!IsImmediateErrorSignal(message)) return;
+            if (Interlocked.CompareExchange(ref _errorUploadCallbackRunning, 1, 0) != 0) return;
+            var safeMessage = Sanitize(message ?? "UNKNOWN");
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                try
+                {
+                    var callback = ErrorUploadCallback;
+                    if (callback != null) callback(safeMessage);
+                }
+                catch { }
+                finally { Interlocked.Exchange(ref _errorUploadCallbackRunning, 0); }
+            });
+        }
+
+        private static bool IsImmediateErrorSignal(string message)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return false;
+            var upper = message.ToUpperInvariant();
+            if (upper.StartsWith("AGENT LOG ", StringComparison.Ordinal)) return false;
+            return upper.Contains("=FAIL") ||
+                   upper.Contains(" ERROR ") ||
+                   upper.StartsWith("ERROR ", StringComparison.Ordinal) ||
+                   upper.Contains("EXCEPTION") ||
+                   upper.Contains(" FATAL ");
         }
 
         internal static void WriteAudit(string message)
@@ -569,6 +596,7 @@ namespace SupraInventoryRelayAgent
         private readonly System.Windows.Forms.Timer _updateTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer _logUploadTimer = new System.Windows.Forms.Timer();
         private readonly AgentLogUploadBridge _agentLogBridge;
+        private int _interactiveInputGuardDepth;
         private readonly AgentBusinessSchedule _businessSchedule;
         private DateTime _lastAfterHoursPromptAt = DateTime.MinValue;
         private long _lastAfterHoursPromptBoundaryMs;
@@ -605,6 +633,10 @@ namespace SupraInventoryRelayAgent
                 AgentLogUploadCheckpointFile,
                 message => Log(message));
             AgentDiagnostics.CrashUploadCallback = crashType => _agentLogBridge.TryQueueCrashSnapshot(crashType);
+            AgentDiagnostics.ErrorUploadCallback = errorType =>
+            {
+                Task.Run(() => _agentLogBridge.TryQueueErrorSnapshot(errorType));
+            };
             Text = "SUPRA Inventory - Relay Test v" + AgentConfig.AgentBuild;
             Width = 780;
             Height = 680;
@@ -729,6 +761,7 @@ namespace SupraInventoryRelayAgent
             _afterHoursTimer.Interval = 1000;
             _afterHoursTimer.Tick += (s, e) =>
             {
+                if (InteractiveTextEntryActive()) return;
                 CheckAfterHoursSchedule();
                 RefreshBrowserBundleUi();
                 QueueAgentDataStorageRefresh();
@@ -1772,6 +1805,39 @@ namespace SupraInventoryRelayAgent
         }
 
 
+        private bool InteractiveTextEntryActive()
+        {
+            if (Interlocked.CompareExchange(ref _interactiveInputGuardDepth, 0, 0) > 0) return true;
+            return (_username != null && _username.Focused) ||
+                   (_password != null && _password.Focused) ||
+                   (_manualPicklistQuery != null && _manualPicklistQuery.Focused) ||
+                   (_pickerSearch != null && _pickerSearch.Focused);
+        }
+
+        private DialogResult ShowProtectedInputDialog(Form dialog)
+        {
+            var afterHoursWasEnabled = _afterHoursTimer.Enabled;
+            var opsWasEnabled = _d119OpsTimer.Enabled;
+            Interlocked.Increment(ref _interactiveInputGuardDepth);
+            if (afterHoursWasEnabled) _afterHoursTimer.Stop();
+            if (opsWasEnabled) _d119OpsTimer.Stop();
+            try
+            {
+                return dialog.ShowDialog(this);
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _interactiveInputGuardDepth);
+                if (afterHoursWasEnabled) _afterHoursTimer.Start();
+                if (opsWasEnabled) _d119OpsTimer.Start();
+                BeginInvoke(new Action(() =>
+                {
+                    CheckAfterHoursSchedule();
+                    RefreshD119OperationalViews(false);
+                }));
+            }
+        }
+
         private void RequestProtectedExit()
         {
             AgentSession session = null;
@@ -1787,7 +1853,7 @@ namespace SupraInventoryRelayAgent
 
             using (var dialog = new ExitPasswordDialog(session.AppUserId))
             {
-                if (dialog.ShowDialog(this) != DialogResult.OK) return;
+                if (ShowProtectedInputDialog(dialog) != DialogResult.OK) return;
                 var password = dialog.PasswordValue;
                 try
                 {
@@ -2222,7 +2288,7 @@ namespace SupraInventoryRelayAgent
                 message,
                 confirmText))
             {
-                if (dialog.ShowDialog(this) != DialogResult.OK) return false;
+                if (ShowProtectedInputDialog(dialog) != DialogResult.OK) return false;
                 var password = dialog.PasswordValue;
                 try
                 {

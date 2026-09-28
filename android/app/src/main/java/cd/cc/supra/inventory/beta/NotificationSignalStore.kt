@@ -14,6 +14,7 @@ object NotificationSignalStore {
     private const val KEY_OVERLAY_PRESENTED_RESULTS = "overlay_presented_results"
     private const val KEY_OVERLAY_ACK_PENDING = "overlay_ack_pending"
     private const val KEY_PICKER_CHAT_DISMISSED = "picker_chat_dismissed"
+    private const val KEY_SKU_CATALOG_REFRESH = "sku_catalog_refresh_pending"
 
     fun saveToken(context: Context, token: String) {
         if (token.isBlank()) return
@@ -27,6 +28,22 @@ object NotificationSignalStore {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getString(KEY_TOKEN, null)
             ?.takeIf { it.isNotBlank() }
+
+    @Synchronized
+    fun markSkuCatalogRefresh(context: Context) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_SKU_CATALOG_REFRESH, true)
+            .apply()
+    }
+
+    @Synchronized
+    fun consumeSkuCatalogRefresh(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val pending = prefs.getBoolean(KEY_SKU_CATALOG_REFRESH, false)
+        if (pending) prefs.edit().putBoolean(KEY_SKU_CATALOG_REFRESH, false).apply()
+        return pending
+    }
 
     @Synchronized
     fun markMessage(context: Context, data: Map<String, String>) {

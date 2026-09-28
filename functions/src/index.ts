@@ -13,6 +13,9 @@ const WORKER_ORIGIN = "https://inventory-beta.supra.cc.cd";
 const MAX_ALERT_TTL_MS = 6 * 60 * 60 * 1000;
 const PICKER_ACTIVE_CALL_TTL_MS = 60 * 1000;
 const MAX_SKU_ITEMS = 1000;
+const AGENT_LOG_COLLECTION = "relay_agent_log_uploads";
+const AGENT_LOG_FILENAME_RE = /^(?:agent_|scheduled_agent_|error_agent_|crash_agent_)[A-Za-z0-9._-]+_[0-9]{8}_[0-9]{6}\.log$/;
+const AGENT_LOG_MAX_BYTES = 8_000_000;
 
 setGlobalOptions({
   region: REGION,
@@ -291,5 +294,124 @@ export const pickerAlertResolved = onDocumentUpdated("picker_alerts/{alertId}", 
       close_push_at: FieldValue.serverTimestamp(),
       close_push_result: safeCode(error),
     }, { merge: true });
+  }
+});
+
+
+type AgentLogUploadRecord = {
+  upload_id?: string;
+  source?: string;
+  status?: string;
+  part_index?: number;
+  part_count?: number;
+  filename?: string;
+  content?: string;
+  generated_at_ms?: number;
+  crash?: boolean;
+};
+
+async function uploadAgentLogDirectToDrive(filename: string, content: string): Promise<string> {
+  if (!AGENT_LOG_FILENAME_RE.test(filename)) throw new Error("AGENT_LOG_FILENAME_INVALID");
+  const bodyBytes = Buffer.from(content, "utf8");
+  if (bodyBytes.length <= 0 || bodyBytes.length > AGENT_LOG_MAX_BYTES) throw new Error("AGENT_LOG_SIZE_INVALID");
+
+  // The Agent itself only talks to Google Firestore. This Google Function uses
+  // its workload identity to request a short-lived resumable Drive upload
+  // session from the trusted Worker. The OAuth token never leaves the Worker,
+  // and the log payload is uploaded by Google Function -> Google Drive.
+  const auth = new GoogleAuth();
+  const client = await auth.getIdTokenClient(WORKER_ORIGIN);
+  const sessionResponse = await client.request<{
+    status?: string;
+    drive_file_id?: string;
+    upload_url?: string;
+    error?: string;
+  }>({
+    url: `${WORKER_ORIGIN}/api/internal/d146/agent-log-upload-session`,
+    method: "POST",
+    data: {
+      filename,
+      content_length: bodyBytes.length,
+    },
+    timeout: 10_000,
+  });
+  const session = sessionResponse.data || {};
+  if (session.status === "existing" && session.drive_file_id) return session.drive_file_id;
+  const uploadUrl = String(session.upload_url || "");
+  if (session.status !== "upload_required" || !uploadUrl.startsWith("https://")) {
+    throw new Error(String(session.error || "DRIVE_UPLOAD_SESSION_UNAVAILABLE"));
+  }
+
+  const response = await fetch(uploadUrl, {
+    method: "PUT",
+    headers: {
+      "content-type": "text/plain; charset=UTF-8",
+      "content-length": String(bodyBytes.length),
+    },
+    body: bodyBytes,
+  });
+  const payload = await response.json() as { id?: string };
+  if (!response.ok || !payload.id) throw new Error(`DRIVE_UPLOAD_HTTP_${response.status}`);
+  return payload.id;
+}
+
+export const agentLogUploadWritten = onDocumentWritten(`${AGENT_LOG_COLLECTION}/{partId}`, async (event) => {
+  const after = event.data?.after;
+  if (!after || !after.exists) return;
+  const first = after.data() as AgentLogUploadRecord;
+  if (first.status !== "DIRECT_PENDING" || first.source !== "AGENT") return;
+
+  const uploadId = String(first.upload_id || "").trim();
+  if (!/^[A-Za-z0-9_-]{12,100}$/.test(uploadId)) return;
+  const db = getFirestore();
+  const snapshot = await db.collection(AGENT_LOG_COLLECTION).where("upload_id", "==", uploadId).get();
+  if (snapshot.empty) return;
+
+  const rows = snapshot.docs.map((doc) => ({ ref: doc.ref, data: doc.data() as AgentLogUploadRecord }));
+  const expected = Number(rows[0]?.data.part_count || 0);
+  if (expected < 1 || expected > 64 || rows.length !== expected) return;
+  rows.sort((a, b) => Number(a.data.part_index || 0) - Number(b.data.part_index || 0));
+  const filename = String(rows[0]?.data.filename || "");
+  if (!AGENT_LOG_FILENAME_RE.test(filename)) return;
+  if (rows.some((row, index) =>
+    row.data.status !== "DIRECT_PENDING" ||
+    row.data.source !== "AGENT" ||
+    Number(row.data.part_index) !== index ||
+    Number(row.data.part_count) !== expected ||
+    String(row.data.filename || "") !== filename
+  )) return;
+
+  const claimed = await db.runTransaction(async (tx) => {
+    const current = await Promise.all(rows.map((row) => tx.get(row.ref)));
+    if (current.some((doc) => !doc.exists || doc.get("status") !== "DIRECT_PENDING")) return false;
+    for (const row of rows) {
+      tx.update(row.ref, {
+        status: "GOOGLE_DIRECT_IN_PROGRESS",
+        direct_claimed_at: FieldValue.serverTimestamp(),
+      });
+    }
+    return true;
+  });
+  if (!claimed) return;
+
+  const content = rows.map((row) => String(row.data.content || "")).join("");
+  try {
+    const driveFileId = await uploadAgentLogDirectToDrive(filename, content);
+    const batch = db.batch();
+    for (const row of rows) batch.delete(row.ref);
+    await batch.commit();
+    console.info("agent_log_google_direct_pass", { upload_id: uploadId, parts: expected, drive_file: Boolean(driveFileId) });
+  } catch (error) {
+    const code = safeCode(error);
+    const batch = db.batch();
+    for (const row of rows) {
+      batch.update(row.ref, {
+        status: "WORKER_FALLBACK",
+        direct_error_code: code,
+        direct_failed_at: FieldValue.serverTimestamp(),
+      });
+    }
+    await batch.commit();
+    console.error("agent_log_google_direct_deferred", code);
   }
 });

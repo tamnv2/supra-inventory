@@ -63,6 +63,18 @@ jobs:
         working-directory: service
         run: npm run typecheck
 
+      - name: D146 source contract guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'retryBufferedRuntimeLogArchives' service/src/runtime-logs.ts
+          grep -q 'pending-drive' service/src/runtime-logs-core.ts
+          grep -q 'agent-log-upload-session' service/src/internal-d119.ts
+          grep -q 'sku_catalog_updated' service/src/business-api.ts
+          grep -q 'profile?.base_role === "ROOT"' web/src/operational-app.ts
+          grep -q 'actor.base_role !== "ROOT"' service/src/user-management-core.ts
+          grep -q 'hour >= 21 ? 21' web/src/runtime-logger.ts
+          echo "D146 source contract PASS"
       - name: Cloudflare token preflight
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
@@ -195,6 +207,18 @@ jobs:
           grep -Fq 'Limited Use' "$tmp" || { echo "/privacy missing Limited Use disclosure"; exit 1; }
           echo "Beta OAuth public disclosure pages PASS"
 
+      - name: Verify D146 internal Agent Drive broker is protected
+        env:
+          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' -H 'content-type: application/json' --data '{"filename":"scheduled_agent_ci_20260929_060000.log","content_length":1}' "https://${BETA_HOSTNAME}/api/internal/d146/agent-log-upload-session")"
+          [ "$code" = "401" ] || { echo "D146 broker expected unauthenticated HTTP 401, got $code"; cat "$tmp"; exit 1; }
+          grep -q 'INTERNAL_IDENTITY_REQUIRED' "$tmp"
+          echo "D146 protected Agent Drive broker PASS"
       - name: Verify Beta Google OAuth start
         env:
           BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}

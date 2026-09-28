@@ -5,7 +5,7 @@ const MAX_CONTENT_CHARS = 192_000;
 const VALID_SOURCE = new Set(["WEB", "ANDROID"]);
 const VALID_SEVERITY = new Set(["INFO", "ERROR"]);
 const LOCAL_ID_RE = /^local_[a-f0-9]{32}$/;
-const FILENAME_RE = /^(error_)?(web|android)_[A-Za-z0-9._-]+_[0-9]{8}_[0-9]{6}\.json$/;
+const FILENAME_RE = /^(scheduled|manual|error|crash)_(web|android)_[A-Za-z0-9._-]+_[0-9]{8}_[0-9]{6}\.json$/;
 
 function response(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload, null, 2), {
@@ -129,6 +129,40 @@ export async function handleRuntimeLogCoreRequest(
       filename,
     ).toArray()[0];
     return response({ status: "buffered", file: row || null });
+  }
+
+  if (request.method === "GET" && url.pathname === "/runtime-logs/pending-drive") {
+    prune(state);
+    const limitRaw = Number(url.searchParams.get("limit") || 20);
+    const limit = Math.max(1, Math.min(50, Number.isFinite(limitRaw) ? Math.trunc(limitRaw) : 20));
+    const retryBefore = new Date(Date.now() - 2 * 60_000).toISOString();
+    const rows = state.storage.sql.exec<SqlRow>(
+      `SELECT log_id, filename, source, severity, generated_at, received_at,
+              size_bytes, content_text, drive_file_id, drive_synced_at, last_drive_error, updated_at
+         FROM runtime_log_buffer
+        WHERE drive_file_id IS NULL
+          AND (last_drive_error IS NULL OR updated_at <= ?)
+        ORDER BY CASE WHEN last_drive_error IS NULL THEN 0 ELSE 1 END ASC,
+                 updated_at ASC, received_at ASC, log_id ASC
+        LIMIT ?`,
+      retryBefore,
+      limit,
+    ).toArray();
+    return response({
+      items: rows.map((row) => ({
+        log_id: row.log_id,
+        filename: row.filename,
+        source: row.source,
+        severity: row.severity,
+        generated_at: row.generated_at,
+        received_at: row.received_at,
+        size_bytes: Number(row.size_bytes || 0),
+        content: row.content_text,
+        last_drive_error: row.last_drive_error || null,
+      })),
+      count: rows.length,
+      authority: "INVENTORY_CORE_BUFFER",
+    });
   }
 
   if (request.method === "GET" && url.pathname === "/runtime-logs/list") {

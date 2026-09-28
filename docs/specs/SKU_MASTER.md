@@ -99,3 +99,13 @@ D126 keeps the D125 manual-file-only SKU decision while cancelling the rest of t
 - Missing SKUs in a later import are not deleted automatically.
 - Automatic SKU synchronization is deferred until a later explicit Owner decision.
 
+## D146 — Live PDA catalog refresh after Web import
+
+A successful Web SKU import must refresh logged-in PDAs without requiring logout/login.
+
+1. The committed import emits one realtime event `sku_catalog_updated` with scope `sku_catalog`.
+2. Foreground Android clients receiving that scope run the existing version/delta-aware `SkuCatalogCache.sync()`; business/report scopes continue only after the catalog-sync completion callback.
+3. The Worker also sends a **silent data-only FCM** compatibility signal with event `sku_catalog_updated`. It must not display an operational alert or full-screen notification.
+4. Android persists a bounded local “catalog refresh pending” marker when the silent FCM arrives. Resume and the existing low-cost local runtime tick consume the marker and perform the same version/delta-aware sync.
+5. The Worker remains the SKU authority; the push is an invalidation signal, not the data payload. The PDA still verifies server catalog count/version and uses the existing delta/full fallback logic.
+6. Failure is retriable and must not require the user to sign out. No new polling cadence is introduced.

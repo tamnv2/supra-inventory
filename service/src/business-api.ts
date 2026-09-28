@@ -276,6 +276,45 @@ function scheduleFcm(
   })());
 }
 
+
+function scheduleCatalogRefreshFcm(
+  response: Response,
+  env: BusinessEnv,
+  ctx: ExecutionContext | undefined,
+): void {
+  if (!ctx || !env.GOOGLE_RUNTIME_SA_JSON || !response.ok) return;
+  ctx.waitUntil((async () => {
+    try {
+      const targetResponse = await corePost(env, "/notifications/targets", {
+        roles: ["PICKER", "REPORTER", "ADMIN"],
+        user_ids: [],
+      });
+      if (!targetResponse.ok) return;
+      const targetPayload = (await targetResponse.json()) as { tokens?: string[] };
+      const tokens = targetPayload.tokens || [];
+      if (!tokens.length) return;
+      const delivery = await sendFcmNotifications(
+        env.GOOGLE_RUNTIME_SA_JSON!,
+        env.FIREBASE_PROJECT_ID,
+        tokens,
+        {
+          title: "",
+          body: "",
+          data: {
+            event: "sku_catalog_updated",
+            source: "WEB_SKU_IMPORT",
+          },
+        },
+      );
+      if (delivery.invalidTokens.length) {
+        await corePost(env, "/notifications/disable-tokens", { tokens: delivery.invalidTokens });
+      }
+    } catch {
+      // Silent catalog refresh is best-effort. Realtime/version reconciliation remains authoritative.
+    }
+  })());
+}
+
 export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?: ExecutionContext): Promise<Response | null> {
   const url = new URL(request.url);
   const key = `${request.method} ${url.pathname}`;
@@ -347,7 +386,15 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     const items = Array.isArray(body.items) ? body.items : [];
     const suppliedHash = String(body.source_hash || "").trim();
     const sourceHash = suppliedHash || (await sha256Hex(JSON.stringify(items)));
-    return corePost(env, "/business/skus/import-v2", { ...body, source_hash: sourceHash, actor: actor(user) });
+    const response = await corePost(env, "/business/skus/import-v2", { ...body, source_hash: sourceHash, actor: actor(user) });
+    const result = await realtimeAfter(response, env, {
+      event: "sku_catalog_updated",
+      scopes: ["sku_catalog"],
+      tags: ["role:PICKER", "role:REPORTER", "role:ADMIN"],
+      metadata: { source: "WEB_SKU_IMPORT" },
+    });
+    scheduleCatalogRefreshFcm(result, env, ctx);
+    return result;
   }
 
   if (key === "GET /api/skus") {

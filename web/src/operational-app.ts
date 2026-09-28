@@ -1714,12 +1714,12 @@ function renderUsers(): string {
     </div>
     <article class="ops-panel ops-users-panel">
       <div class="ops-panel-title"><div><h3>Danh sách tài khoản</h3><p>ROOT được ẩn khỏi danh sách. Picker dùng thao tác hàng loạt riêng; ROOT có thể chọn Admin / Quản trị Pick Pack / Reporter để xóa.</p></div><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span></div>
-      <div class="user-bulk-bar"><button class="secondary" id="toggle-all-pickers">${allPickerSelection ? "Bỏ chọn tất cả Picker" : "Chọn tất cả Picker"}</button><button class="secondary" data-picker-action="ENABLE">Mở lại</button><button class="secondary" data-picker-action="DISABLE">Dừng hoạt động</button><button class="danger" data-picker-action="DELETE">Xóa Picker</button><span id="user-selection-status">${esc(userSelectionLabel())}</span>${profile?.role === "ROOT" ? `<button class="danger" id="delete-selected-managed" ${selectedManagedUserIds.size ? "" : "disabled"}>Xóa tài khoản đã chọn (${selectedManagedUserIds.size})</button>` : ""}</div>
+      <div class="user-bulk-bar"><button class="secondary" id="toggle-all-pickers">${allPickerSelection ? "Bỏ chọn tất cả Picker" : "Chọn tất cả Picker"}</button><button class="secondary" data-picker-action="ENABLE">Mở lại</button><button class="secondary" data-picker-action="DISABLE">Dừng hoạt động</button><button class="danger" data-picker-action="DELETE">Xóa Picker</button><span id="user-selection-status">${esc(userSelectionLabel())}</span>${profile?.role === "ROOT" && profile?.base_role === "ROOT" ? `<button class="danger" id="delete-selected-managed" ${selectedManagedUserIds.size ? "" : "disabled"}>Xóa tài khoản đã chọn (${selectedManagedUserIds.size})</button>` : ""}</div>
       <div class="table-wrap"><table class="ops-users-table"><thead><tr><th class="user-select-col">Chọn</th><th>Mã nhân viên</th><th>Họ và tên</th><th>Quyền</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
         ${managedUsers.length ? managedUsers.map((user) => {
           const isPicker = user.role === "PICKER";
           const isChecked = isPicker && (allPickerSelection ? !excludedPickerIds.has(user.user_id) : selectedUserIds.has(user.user_id));
-          const rootCanDeleteManaged = profile?.role === "ROOT" && ["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(user.role);
+          const rootCanDeleteManaged = profile?.role === "ROOT" && profile?.base_role === "ROOT" && ["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(user.role);
           const selectable = isPicker
             ? `<label class="bulk-picker-check" title="Chọn Picker này"><input type="checkbox" data-user-select="${esc(user.user_id)}" ${isChecked ? "checked" : ""}/><span aria-hidden="true"></span></label>`
             : rootCanDeleteManaged

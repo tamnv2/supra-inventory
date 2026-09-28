@@ -204,7 +204,7 @@
         "https://www.googleapis.com/auth/drive.file",
         "https://www.googleapis.com/auth/gmail.send"
       ],
-      "note": "D100 reuses the existing Beta Google OAuth client; gmail.send is added only for ROOT system-reset six-digit OTP. No Gmail read scope. Existing Drive scope remains."
+      "note": "D146 keeps the existing Beta Google OAuth client with only drive.file + gmail.send. Owner confirmed Google Auth Platform is now In production and the refresh token was re-consented/replaced on 2026-09-29, removing the Testing 7-day expiry condition. gmail.send field path is confirmed working. No Gmail read scope."
     },
     {
       "key": "oauth-stable",
@@ -281,7 +281,7 @@
       "id": "17Ealimu__NFxeEzG3mUfivpEEacX_vgo",
       "name": "Inventory/Beta/Logs",
       "exposure": "operational_metadata_existing_public",
-      "note": "Runtime support/error logs for Web, Android and sanitized Agent bundles; Agent reaches this folder only through the Beta Firestore spool + Worker Drive drain, never with Drive secrets on the laptop."
+      "note": "Runtime support/error logs for Web, Android and sanitized Agent bundles. D146: Web/Android use Worker -> InventoryCore -> OAuth Drive archive with bounded retry; Agent sends log parts first-hop directly to Google Firestore, then the Beta Google Function obtains a short-lived resumable Drive upload session from the trusted Worker and uploads the payload Google Function -> Google Drive. No Google Drive/OAuth secret is stored on the laptop."
     },
     {
       "key": "archive-sheet-beta",
@@ -321,8 +321,8 @@
       "collection": "relay_poc_jobs",
       "api_url": "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents/relay_poc_jobs",
       "exposure": "public_identifier",
-      "status": "D144_ACTIVE_FIRESTORE_CONFIRM_HA_PICKER_PRESENCE_CONTACT_CHAT_SESSION_CONTROL",
-      "guard": "D144_BETA_ONLY__CONFIRMATION_PLUS_PICKER_CONTACT_AND_SESSION_CONTROL__NO_SUPRA_SESSION_DATA__NO_WMS_API_AUTH_MATERIAL__STABLE_OWNER_GATED",
+      "status": "D146_ACTIVE_FIRESTORE_CONFIRM_HA_PICKER_PRESENCE_CONTACT_CHAT_SESSION_CONTROL_AGENT_LOG_GOOGLE_FIRST",
+      "guard": "D146_BETA_ONLY__CONFIRMATION_PLUS_PICKER_CONTACT_SESSION_CONTROL_AND_BOUNDED_AGENT_LOG_PARTS__NO_SUPRA_SESSION_DATA__NO_WMS_API_AUTH_MATERIAL__STABLE_OWNER_GATED",
       "collections": [
         "relay_poc_jobs",
         "relay_poc_rate_limits",
@@ -402,7 +402,7 @@
       "environment": "beta",
       "name": "inventory-beta-alert-runtime@supra-inventory-beta.iam.gserviceaccount.com",
       "exposure": "public_identifier",
-      "guard": "D119_RUNTIME_ONLY__DATASTORE_FCM_EVENTARC_LEAST_PRIVILEGE"
+      "guard": "D146_RUNTIME_ONLY__DATASTORE_FCM_EVENTARC__TRUSTED_IDENTITY_FOR_AGENT_LOG_DRIVE_SESSION_BROKER__NO_DRIVE_OR_OAUTH_SECRET"
     },
     {
       "key": "picker-alert-function-beta-d119",
@@ -411,8 +411,21 @@
       "environment": "beta",
       "name": "inventory-beta-picker-alerts",
       "exposure": "public_identifier",
-      "status": "D119_OWNER_PRESETUP_READY__SOURCE_PENDING",
-      "guard": "BETA_ONLY__FIRESTORE_EVENT_TO_FCM__STABLE_FORBIDDEN"
+      "status": "D146_EXISTING_BETA_FUNCTION_RUNTIME__FCM_PLUS_AGENT_LOG_GOOGLE_FIRST_EXTENSION",
+      "guard": "BETA_ONLY__FIRESTORE_EVENT_TO_FCM_OR_D146_AGENT_LOG_GOOGLE_FIRST_UPLOAD__STABLE_FORBIDDEN"
+    },
+    {
+      "key": "agent-log-function-beta-d146",
+      "provider": "Google Cloud / Firebase",
+      "kind": "cloud_run_function_gen2",
+      "environment": "beta",
+      "name": "agentLogUploadWritten",
+      "project_id": "supra-inventory-beta",
+      "trigger": "firestore:relay_agent_log_uploads/{partId}",
+      "runtime_service_account": "inventory-beta-alert-runtime@supra-inventory-beta.iam.gserviceaccount.com",
+      "exposure": "public_identifier",
+      "status": "D146_SOURCE_PENDING_PR_GATES",
+      "guard": "BETA_ONLY__AGENT_FIRST_HOP_FIRESTORE__GOOGLE_FUNCTION_TO_DRIVE_RESUMABLE_UPLOAD__WORKER_METADATA_SESSION_BROKER_ONLY__NO_LOG_PAYLOAD_VIA_OFFICE_CLOUDFLARE__NO_OAUTH_SECRET_IN_AGENT_OR_FUNCTION_SOURCE__STABLE_FORBIDDEN"
     },
     {
       "key": "pubsub-service-agent-beta-d119",
@@ -526,7 +539,7 @@
     "VHDCHY resources",
     "location/bin/pickface inventory management",
     "stock quantity management",
-    "Office-network fallback/provider research unless Owner reopens it",
+    "Office-network fallback/provider research except the Owner-approved D146 Google-first Agent support-log transport (Agent -> Firestore -> Beta Google Function -> Drive; Worker only brokers the short-lived Drive upload session)",
     "all offline business modes, offline report/mutation outboxes, direct-to-Sheet fallback, or alternate offline transaction paths",
     "all programmatic capture, extraction, persistence, refresh, replay or use of Supra/WMS user-session cookies, headers, tokens, signatures or browser-profile authentication material outside the user-controlled D126 managed browser context",
     "all direct WMS/API PickList lookup or confirmation and all project-driven WMS mutation outside D126 semantic browser-UI automation of the registered Confirm PickList page",

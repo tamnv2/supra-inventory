@@ -1793,3 +1793,25 @@ OA068 physical acceptance after signed release:
 - Privacy runtime HTML contains the Google API Services User Data Policy and Limited Use disclosure.
 - Existing `/health`, Web login, API routing and D144 business/runtime behavior remain available after the deploy.
 - Only after this runtime gate passes may OA073 move to READY for the Owner's Google Auth Platform publish/re-consent and protected refresh-token replacement.
+## D146 — Acceptance gates
+
+### Source/CI
+- Web, Android and Agent scheduled-log source contains only 06/12/18/21 HCM slots; the old 00:00 scheduled slot is absent.
+- Web/Android log filenames classify scheduled/manual/error/crash; Agent filenames classify scheduled/error/crash.
+- Web/Android error/crash paths attempt immediate upload and InventoryCore deferred Drive rows have a bounded retry path.
+- Agent v83 writes `DIRECT_PENDING` parts to the existing Firestore log collection; the Google Function claims complete parts, requests a protected short-lived Drive resumable upload session, uploads payload Google Function → Drive and changes failures to `WORKER_FALLBACK`.
+- Agent source contains no Google OAuth refresh token/client secret/Drive credential.
+- The protected D146 Worker session-broker endpoint rejects unauthenticated requests.
+- Web SKU import emits `sku_catalog_updated`; Android contains realtime + silent-FCM cache-refresh paths.
+- Managed-user deletion requires effective ROOT and base ROOT in UI, Worker API and InventoryCore.
+- Agent v83 protected password dialogs use timer isolation/input-focus guard.
+- Service typecheck, Web build, Android build, Agent build, Firebase Functions build, Firestore rules, authority/state/continuity and secret guards pass.
+
+### Beta runtime/release
+- Renewed Beta OAuth remains In production and Gmail transactional send remains working; no Gmail-read permission is introduced.
+- A new Web/Android support log reaches InventoryCore and the Logs Drive folder, including bounded retry if the first archive attempt is deferred.
+- An Agent v83 log reaches Firestore directly from the Agent and then the Logs Drive folder through the Google-side function path; Worker fallback remains available if the direct Google-side upload fails.
+- Updating/importing an SKU from Web causes a logged-in PDA to sync the catalog without logout/login.
+- ROOT effective PICKPACK_ADMIN and real PICKPACK_ADMIN cannot select/delete ADMIN; true ROOT in ROOT mode retains its existing authority.
+- Password entry for protected Agent actions remains focused through continuous typing.
+- Stable is untouched.
