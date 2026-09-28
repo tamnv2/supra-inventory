@@ -3982,7 +3982,11 @@ namespace SupraInventoryRelayAgent
                             () =>
                             {
                                 Interlocked.Increment(ref _localAgentResponses);
-                                Ui(() => RefreshAgentRequestMetrics());
+                                Ui(() =>
+                                {
+                                    RefreshAgentRequestMetrics();
+                                    QueueD133DurableCounterRefresh();
+                                });
                             },
                             state => SetRelayTransportState(state),
                             ProcessFirestoreConfirmations,
