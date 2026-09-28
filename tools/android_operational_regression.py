@@ -532,7 +532,8 @@ def main() -> None:
     require(relay_agent, "CheckAfterHoursSchedule", "D126 after-hours prompt loop")
     require(relay_agent, "StartRelayBeforeSix", "D126 early-start relay control")
     require(relay_agent, "Phát triển hệ thống · tamnv2 | Pick Pack 1291", "D126 Agent footer")
-    require(relay_agent, "TotalMinutes < 5", "D126 five-minute reminder")
+    require(relay_agent, "_lastAfterHoursPromptBoundaryMs", "D143 one-shot overtime prompt dedupe")
+    forbid(relay_agent, "TotalMinutes < 5", "D143 no five-minute overtime reminder spam")
     require(firestore_transport, "_businessEnabled()", "D126 scheduled relay business gate")
 
     # D088: unified naming/icon, persistent Android session, tray-only Agent and editable overlay.
