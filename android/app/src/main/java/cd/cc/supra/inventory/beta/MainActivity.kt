@@ -1250,13 +1250,25 @@ class MainActivity : Activity() {
                     completion(false)
                     return@runOnUiThread
                 }
-                if (session.role == "PICKER") {
-                    val controller = pickerController
-                    if (controller != null) controller.onRealtime(scopes, completion) else completion(true)
-                } else {
-                    val controller = reporterController
-                    if (controller != null) controller.onRealtime(scopes, completion) else completion(true)
+
+                val catalogChanged = scopes.contains("sku_catalog")
+                val remainingScopes = if (catalogChanged) scopes.filterNot { it == "sku_catalog" }.toSet() else scopes
+                val applyRemaining: (Boolean) -> Unit = { catalogOk ->
+                    if (!catalogOk) {
+                        completion(false)
+                    } else if (remainingScopes.isEmpty()) {
+                        completion(true)
+                    } else if (session.role == "PICKER") {
+                        val controller = pickerController
+                        if (controller != null) controller.onRealtime(remainingScopes, completion) else completion(true)
+                    } else {
+                        val controller = reporterController
+                        if (controller != null) controller.onRealtime(remainingScopes, completion) else completion(true)
+                    }
                 }
+
+                if (catalogChanged) syncSkuCatalogAsync("realtime", applyRemaining)
+                else applyRemaining(true)
             }
         }.also { it.start() }
     }
