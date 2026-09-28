@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D141_SLA_END_TO_END_PERSISTENCE_HOTFIX_IN_PROGRESS__D140_AGENT_V80_PARALLEL__D137_OA063_STILL_OPEN",
+      "status": "D141_TECHNICAL_RUNTIME_PASS__OA067_FIELD_READY__D140_AGENT_V80_PARALLEL__D137_OA063_STILL_OPEN",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -1614,7 +1614,7 @@
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d141": {
-    "status": "IMPLEMENTATION_IN_PROGRESS",
+    "status": "TECHNICAL_RUNTIME_PASS__OA067_FIELD_READY",
     "resource_change": "NONE__REUSES_EXISTING_BETA_WEB_WORKER_AND_INVENTORYCORE_SQLITE",
     "web_fix": "SERVER_DRAFT_SPLIT__NO_SLA_CONTEXT_RESTORE__DEDICATED_SAVE_SINGLE_FLIGHT",
     "server_fix": "POST_WRITE_SQLITE_FULL_POLICY_READBACK__REQUEST_ID__MODE_VERSION_PROOF",
@@ -1622,6 +1622,13 @@
     "schema": "UNCHANGED_12",
     "android": "beta-vc82__UNCHANGED",
     "agent": "D140_V80_PARALLEL__NO_D141_MUTATION",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "implementation_pr": 282,
+    "main_merge": "966b6d1f561768551969694065b1035bb2e2b234",
+    "beta_worker_run": 36421277405,
+    "ui_run": 36421277430,
+    "repo_authority_run": 36421277425,
+    "project_state_run": 36421277410,
+    "dashboard_probe_run": 36421277613
   }
 }
