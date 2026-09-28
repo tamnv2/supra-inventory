@@ -3357,7 +3357,7 @@
     },
     {
       "id": "OA068",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "OWNER_FIELD_PASS",
       "title": "Field-accept D142 Android 11 critical-alert readiness on MT90 and DT50",
       "resource_key": "repo",
       "provider": "Beta Android + existing FCM; no new provider resource",
@@ -3405,8 +3405,21 @@
         "No D142 Agent/Web business/provider/Stable mutation."
       ],
       "safety": "Beta Android only. Normal Android settings remain user-granted; app does not silently modify DND/battery policy. Force Stop, powered-off device or total network loss remain platform conditions the app cannot override. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Install beta-vc83 on one MT90 Android 11 and one DT50 Android 11 and use the normal automatic permission/readiness flow. No special test button and no deliberate Battery Saver/DND toggle sequence are required.",
-      "closed": false
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-28",
+        "result": "PASS",
+        "evidence": "Owner explicitly confirmed D142 PASS after beta-vc83 technical/runtime/release PASS.",
+        "accepted_scope": [
+          "Newland NLS-MT90 Android 11",
+          "Urovo DT50 Android 11",
+          "automatic critical-alert readiness gate",
+          "direct Settings guidance",
+          "automatic recheck on return",
+          "existing critical alert/overlay path preserved"
+        ]
+      }
     }
   ]
 }
