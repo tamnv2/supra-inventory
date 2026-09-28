@@ -6,11 +6,11 @@
 
 - Project: `supra-inventory`
 - SQLite schema: `12`
-- Latest signed Beta APK: `beta-vc77`
-- Current released Agent: `relay-agent-v70`
-- Beta: `D131_OWNER_APPROVED_DESIGN__REVIEW_FIRST_GATE_PENDING__NO_CODE_YET`
+- Latest signed Beta APK: `beta-vc78`
+- Current released Agent: `relay-agent-v71`
+- Beta: `D131_TECHNICAL_RUNTIME_RELEASE_PASS__OA056_FIELD_READY`
 - Web: `D120_RUNTIME_PASS_MAIN_43A94207__OWNER_FIELD_TEST_OK`
-- Android: `D130_SIGNED_BETA_VC77_RELEASED__D131_DESIGN_PENDING_IMPLEMENTATION`
+- Android: `D131_SIGNED_BETA_VC78_TECHNICAL_RELEASE_PASS__OA056_FIELD_READY`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -971,3 +971,12 @@ Status: **TECHNICAL / RUNTIME / RELEASE / OWNER FIELD PASS**.
 
 
 D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IMPLEMENTATION_IN_PROGRESS
+
+
+## D131 release-state refresh — 2026-09-28
+
+- Main source: `3569934ec2a36f6fa2f6fe92cf332ae679ad4070`.
+- Windows Agent: `relay-agent-v71`.
+- Signed Android Beta: `beta-vc78`.
+- D131 technical/runtime/release: **PASS**; OA056 physical Owner field acceptance is READY.
+- Stable remains OWNER-GATED / untouched.
