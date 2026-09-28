@@ -903,3 +903,10 @@ The Android permission/readiness surface is an operational gate, not a generic p
 ## D144 — Agent chat input stability
 
 When the Agent chat dialog opens, the message field is the active control. Normal background Agent refreshes must not take input away from that editor while the operator is typing. The PDA chat remains a full-screen alert with one local **Xác nhận** action; chat has no remote completion button.
+## D145 — Public OAuth information pages
+
+- `/about`, `/privacy` and `/terms` are public information surfaces, not operational application screens. They require no sign-in and must be readable on desktop and mobile.
+- Keep the product identity **SUPRA Inventory Beta** and **Website nghiệp vụ Inventory · DC Hưng Yên** visible, with restrained styling consistent with the existing product.
+- Each page links to the other two pages and back to the application. The Privacy link is visible from the About page.
+- Login, password-reset and authenticated Web footers expose compact links to About, Privacy and Terms without competing with operational controls.
+- Public pages use static server-rendered HTML with no client-side script or analytics requirement. They must not expose internal IDs, tokens, credentials or debugging information.
