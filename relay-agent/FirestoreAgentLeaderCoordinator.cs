@@ -775,6 +775,10 @@ namespace SupraInventoryRelayAgent
                     if (!candidates.Contains(agentId)) candidates.Add(agentId);
                 }
                 candidates.Sort(StringComparer.Ordinal);
+                if (candidates.Count > FirestoreAgentSyncClient.MaxAgents - 1)
+                    candidates.RemoveRange(
+                        FirestoreAgentSyncClient.MaxAgents - 1,
+                        candidates.Count - (FirestoreAgentSyncClient.MaxAgents - 1));
                 if (candidates.Count == 0)
                 {
                     _log("FIRESTORE HA next_ab=NONE available_candidate=false");
@@ -928,14 +932,15 @@ namespace SupraInventoryRelayAgent
             if (views.Count > FirestoreAgentSyncClient.MaxAgents)
                 views.RemoveRange(FirestoreAgentSyncClient.MaxAgents, views.Count - FirestoreAgentSyncClient.MaxAgents);
 
-            var primaryCount = !string.IsNullOrWhiteSpace(primary) && freshIds.Contains(primary) ? 1 : 0;
-            var standbyCount = !string.IsNullOrWhiteSpace(standby) && freshIds.Contains(standby) ? 1 : 0;
-            var nextBCount = !string.IsNullOrWhiteSpace(nextB) && freshIds.Contains(nextB) ? 1 : 0;
-            _onlineAgentCount = freshIds.Count;
+            var visibleIds = new HashSet<string>(views.Select(item => item.AgentInstanceId), StringComparer.Ordinal);
+            var primaryCount = !string.IsNullOrWhiteSpace(primary) && visibleIds.Contains(primary) ? 1 : 0;
+            var standbyCount = !string.IsNullOrWhiteSpace(standby) && visibleIds.Contains(standby) ? 1 : 0;
+            var nextBCount = !string.IsNullOrWhiteSpace(nextB) && visibleIds.Contains(nextB) ? 1 : 0;
+            _onlineAgentCount = views.Count;
             _onlinePrimaryCount = primaryCount;
             _onlineStandbyCount = standbyCount;
             _onlineNextBCount = nextBCount;
-            _onlineFrozenCount = Math.Max(0, freshIds.Count - primaryCount - standbyCount - nextBCount);
+            _onlineFrozenCount = Math.Max(0, views.Count - primaryCount - standbyCount - nextBCount);
             lock (_stateGate) _onlineAgents = views;
         }
 
