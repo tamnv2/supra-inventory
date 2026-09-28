@@ -327,6 +327,7 @@ class MainActivity : Activity() {
 
         val username = findViewById<EditText>(R.id.etEmployeeCode)
         val password = findViewById<EditText>(R.id.etPassword)
+        if (BuildConfig.DEFAULT_PICKER_PASSWORD.isNotBlank()) password.setText(BuildConfig.DEFAULT_PICKER_PASSWORD)
         val passwordVisibility = findViewById<ImageButton>(R.id.btnPasswordVisibility)
         var passwordVisible = false
         passwordVisibility.setOnClickListener {
