@@ -2070,3 +2070,14 @@ Field gate: **OA068** after technical/release PASS, using one normal MT90 Androi
 - The Android release workflow publishes a signed Beta only after its exact-source Beta runtime gate succeeds; therefore publication of `beta-vc83` is release evidence for the merged D142 source.
 - OA068 is now **READY_FOR_OWNER_FIELD_TEST** on one Newland NLS-MT90 Android 11 and one Urovo DT50 Android 11 using the normal automatic setup flow. No deliberate Battery Saver/DND toggle-and-test ceremony is required.
 - No Agent/Web/provider/Stable resource was changed by D142. Stable remains OWNER-GATED.
+
+## D142 Owner field acceptance — 2026-09-28
+
+Status: **OWNER FIELD PASS**.
+
+- Owner explicitly confirmed D142 PASS after the signed `beta-vc83` technical/runtime/release checkpoint.
+- Accepted PDA scope: **Newland NLS-MT90 Android 11** and **Urovo DT50 Android 11**.
+- Accepted behavior includes the automatic pre-login critical-alert readiness gate, missing-setting list with Settings routing/guidance, automatic recheck after Android Back, and preservation of the existing critical alert/overlay/local-first acknowledgement path.
+- OA068 is closed PASS. No further D142 field action remains.
+- Canonical Android marker: `D142_OWNER_FIELD_PASS__SIGNED_BETA_VC83__ANDROID11_MT90_DT50_CRITICAL_ALERT_READINESS`.
+- D141 OA067 and D140 Agent v80 remain independent open workstreams. Stable remains OWNER-GATED and untouched.
