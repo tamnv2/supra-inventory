@@ -131,7 +131,7 @@ export async function verifyPassword(password: string, saltB64: string, expected
 export async function createFirebaseCustomToken(
   rawServiceAccountJson: string,
   uid: string,
-  claims: Record<string, string>,
+  claims: Record<string, string | number | boolean>,
 ): Promise<string> {
   const credentials = parseServiceAccount(rawServiceAccountJson);
   const now = Math.floor(Date.now() / 1000);
