@@ -460,7 +460,12 @@ jobs:
           foreach ($marker in @('Auto size cột: Bật','Auto size cột: Tắt','HasWindowBounds','RefreshPickerPresenceOnForeground','ApplyPickerRequestActivity')) {
             if (-not $ops.Contains($marker)) { throw "D132 Agent UI/presence marker missing: $marker" }
           }
-          if ($ops.Contains('TimeSpan.FromSeconds(15)')) { throw "D127 periodic 15-second Picker presence read returned." }
+          if ($ops.Contains('_d119OpsTimer.Interval = 15000') -or $ops.Contains('PickerPresenceRefreshIntervalMs = 15000')) {
+            throw "D127 periodic 15-second Picker presence read returned."
+          }
+          if (-not $ops.Contains('RefreshPickerPresenceOnForeground') -or -not $ops.Contains('TimeSpan.FromSeconds(15)')) {
+            throw "D132 bounded foreground Picker presence reconcile guard missing."
+          }
           foreach ($marker in @('PickerDisconnectGraceSeconds = 180','RefreshPickerWindowBoundary','05:00–23:00','ApplyEventDrivenPickerPresence')) {
             if (-not $ops.Contains($marker)) { throw "D127 Picker presence quota guard missing: $marker" }
           }
