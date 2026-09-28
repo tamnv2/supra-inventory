@@ -469,18 +469,18 @@
       "ANDROID",
       "AGENT"
     ],
-    "filename_rule": "[error_]source_device_YYYYMMDD_HHmmss.json",
+    "filename_rule": "(scheduled|manual|error|crash)_(web|android)_device_YYYYMMDD_HHmmss.json__scheduled_agent|error_agent|crash_agent_machine_YYYYMMDD_HHmmss.log",
     "local_schedule_hcm": [
-      "00:00",
       "06:00",
       "12:00",
-      "18:00"
+      "18:00",
+      "21:00"
     ],
     "upload_auth": "AUTHENTICATED_CLIENT_ONLY",
     "sanitization": "PASSWORD_TOKEN_AUTH_COOKIE_CREDENTIAL_PRIVATE_SIGNING_KEYSTORE_SESSION_FIELDS_REDACTED__NO_TYPED_FORM_VALUES",
     "max_file_bytes": 192000,
     "android_crash_retry": "BOUNDED_SANITIZED_LOCAL_ENVELOPE_RETRY_AFTER_NEXT_AUTHENTICATED_START",
-    "status": "D144_RUNTIME_PASS__INVENTORYCORE_BUFFER_PRIMARY__DRIVE_ARCHIVE_BEST_EFFORT__OA071_FIELD_READY",
+    "status": "D146_SOURCE_READY__WEB_ANDROID_INVENTORYCORE_PRIMARY_PLUS_OAUTH_DRIVE_RETRY__AGENT_GOOGLE_FIRST_PENDING_RUNTIME_GATES",
     "web_duplicate_guard": "CLIENT_SINGLE_FLIGHT_PLUS_INVENTORYCORE_FILENAME_IDEMPOTENCY",
     "web_diagnostics": "API_RENDER_REALTIME_NAVIGATION_LONG_TASK_RESOURCE_DOM_INTERACTION_BOUNDED_TELEMETRY",
     "retention_days": 90,
@@ -490,17 +490,19 @@
       90
     ],
     "cleanup": "INVENTORYCORE_BOUNDED_90D_PRUNE__DRIVE_CLEANUP_BEST_EFFORT_WHEN_OAUTH_VALID",
-    "drive_auth": "OAUTH_ARCHIVE_ONLY__NOT_REQUIRED_FOR_RUNTIME_LOG_LIST_OR_CLIENT_UPLOAD_SUCCESS",
+    "drive_auth": "WEB_ANDROID_EXISTING_PRODUCTION_OAUTH__AGENT_GOOGLE_FUNCTION_REQUESTS_SHORT_LIVED_RESUMABLE_SESSION_FROM_TRUSTED_WORKER__NO_OAUTH_SECRET_ON_AGENT",
     "runtime_service_account": "inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com",
-    "logs_folder_permission": "OWNER_ONLY_OBSERVED_2026_09_29__NOT_A_D144_RUNTIME_BLOCKER",
-    "primary_authority": "INVENTORY_CORE_SQLITE_RUNTIME_LOG_BUFFER",
-    "drive_role": "BEST_EFFORT_ARCHIVE_ONLY"
+    "logs_folder_permission": "OWNER_ACCOUNT_OAUTH_AUTHORITY__NO_SERVICE_ACCOUNT_OWNERSHIP_REQUIRED",
+    "primary_authority": "WEB_ANDROID_INVENTORYCORE_SQLITE__AGENT_LOCAL_ROLLING_PLUS_GOOGLE_FIRESTORE_DELIVERY",
+    "drive_role": "CANONICAL_SUPPORT_ARCHIVE__WEB_ANDROID_BOUNDED_RETRY__AGENT_GOOGLE_FIRST_WITH_WORKER_FALLBACK",
+    "immediate_error_policy": "WEB_ANDROID_AGENT_ERROR_OR_CRASH__IMMEDIATE_BEST_EFFORT_TO_LOGS",
+    "agent_transport": "AGENT_TO_GOOGLE_FIRESTORE_DIRECT__GOOGLE_FUNCTION_TO_GOOGLE_DRIVE_RESUMABLE__WORKER_BROKERS_METADATA_SESSION_ONLY__WORKER_FALLBACK_ON_DIRECT_FAILURE"
   },
   "android": {
     "latest_beta_release": "beta-vc85",
     "latest_beta_release_source": "2b2b5a622b971efbb676e7143573652abf6f9570",
     "latest_beta_apk_sha256": "fdf561f67a65a0f99393b0c3fff6b5853adcd87c3b37bd624d04451493ce6466",
-    "target_beta_release": "NO_D144_ANDROID_RELEASE_PENDING__BETA_VC85_RELEASED",
+    "target_beta_release": "D146_NEXT_MONOTONIC_AFTER_BETA_VC85",
     "update_channel": "SERVICE_MANIFEST__INVENTORY_CHANNEL__VERSION_INDEPENDENT_PDA_ALIAS__HTTPS_SHA256_SIGNER_FAIL_CLOSED",
     "update_artifact_cleanup": "BEST_EFFORT_DELETE_TEMP_DOWNLOADED_APK_AFTER_CURRENT_VERSION_START",
     "latest_beta_apk_size_bytes": 19085892,
@@ -508,7 +510,9 @@
     "latest_beta_apk_asset_id": 596320670,
     "inventory_channel_release_id": 394587029,
     "inventory_channel_manifest_asset_id": 596320823,
-    "inventory_channel_apk_asset_id": 596320818
+    "inventory_channel_apk_asset_id": 596320818,
+    "d146_sku_refresh": "WEB_IMPORT_REALTIME_SCOPE_PLUS_SILENT_FCM__PDA_CACHE_SYNC_WITHOUT_LOGOUT",
+    "d146_logs": "06_12_18_21__ERROR_CRASH_IMMEDIATE__TRUTHFUL_ARCHIVE_STATUS"
   },
   "system_status": {
     "environment": "beta",
@@ -798,15 +802,15 @@
     "dashboard_probe": "D127_STANDALONE_DIAGNOSTIC_ONLY__WEBVIEW2_FIXED__SEPARATE_PROFILE__SANITIZED_EVENT_NAVIGATION_LOGS__NO_SESSION_EXTRACTION__NO_API"
   },
   "agent_operations": {
-    "decision": "D127",
-    "target_release": "relay-agent-v67",
+    "decision": "D146",
+    "target_release": "relay-agent-v83",
     "cache_miss": "CURRENT_RENDERED_DOM_THEN_ONE_EXACT_SEARCH_BUTTON_RETRY",
     "auto_update": "STARTUP_PLUS_30MIN_BACKGROUND_PLUS_MANUAL__SERVICE_MANIFEST__STABLE_ALIAS__SHA256",
     "layout": "D127_HOTFIX__AFTER_HOURS_PANEL_RESPONSIVE_UNCLIPPED__SUPRA_CARD_BROWSER_DOWNLOAD_PROGRESS_READY_STATUS",
     "wifi": "TARGET_D125_LOCAL_NETWORK_STATE_ONLY_FOR_OFFICE_MODE_ACTIVATION__NOT_AUTHORIZATION",
     "ha_display": "KEEP_D117_D118_PICKLIST_HA",
     "local_logs": "TWO_STREAM_ROLLING_2MIB__MAX4_ROTATED_PLUS_CURRENT",
-    "drive_logs": "FIRESTORE_ADMIN_SPOOL_TO_BETA_DRIVE__06_12_18_00__CRASH_BEST_EFFORT",
+    "drive_logs": "GOOGLE_FIRST__AGENT_FIRESTORE_DIRECT__GOOGLE_FUNCTION_TO_DRIVE_RESUMABLE__06_12_18_21__ERROR_CRASH_IMMEDIATE__WORKER_FALLBACK",
     "web_online": "WEB_PLUS_ANDROID_ONLY__AGENT_EXCLUDED",
     "stable": "OWNER_GATED_UNTOUCHED",
     "release_status": "D127_V67_TECHNICAL_RELEASE_PASS__OA052_FIELD_READY",
@@ -829,8 +833,8 @@
     "inventory_channel_release_id": 394587029,
     "inventory_channel_manifest_asset_id": 591974644,
     "inventory_channel_exe_asset_id": 591974642,
-    "next_target_release": "FIELD_REVIEW_OA052_V67",
-    "next_source_status": "D127_V67_RELEASED__OA052_FIELD_PENDING",
+    "next_target_release": "relay-agent-v83",
+    "next_source_status": "D146_SOURCE_READY_PENDING_PR_GATES",
     "release_publish_run": 36286366107,
     "wms_health": "MANAGED_BROWSER_CONFIRM_PAGE_READINESS_ONLY",
     "schedule_authority": "KEEP_D117_D118_CONFIRMATION_RELAY_SCHEDULE",
@@ -844,7 +848,8 @@
     "browser_bundle_manifest_asset_id": 592065625,
     "browser_bundle_asset_id": 592065629,
     "browser_bundle_size_bytes": 318616553,
-    "browser_bundle_sha256": "bb623ac7e6c252b21c5f6b23be22ccb4681f3d7ffb42314cee9e014cd8427042"
+    "browser_bundle_sha256": "bb623ac7e6c252b21c5f6b23be22ccb4681f3d7ffb42314cee9e014cd8427042",
+    "input_focus": "PROTECTED_PASSWORD_AND_BROWSER_ACTION_DIALOGS_PAUSE_PERIODIC_UI_TIMERS__GENERIC_INTERACTIVE_GUARD"
   },
   "distribution_channel": {
     "environment": "beta",
@@ -963,7 +968,8 @@
       "runtime_create_status": {
         "pickerAlertCreated": "PASS",
         "pickerAlertResolved": "PASS",
-        "skuSyncCreated": "LEGACY_DEPLOYED__RETIRE_IN_D125_IMPLEMENTATION__DO_NOT_USE_FOR_WMS_SKU_SYNC"
+        "skuSyncCreated": "LEGACY_DEPLOYED__RETIRE_IN_D125_IMPLEMENTATION__DO_NOT_USE_FOR_WMS_SKU_SYNC",
+        "agentLogUploadWritten": "D146_SOURCE_PENDING_PR_GATES"
       },
       "remaining_ci_blocker": null,
       "artifact_cleanup": {
@@ -975,7 +981,9 @@
         "deploy_scope": [
           "pickerAlertCreated",
           "pickerAlertResolved",
-          "skuSyncCreated"
+          "pickerActiveCallCreated",
+          "pickerActiveCallResolved",
+          "agentLogUploadWritten"
         ]
       },
       "last_pass_run": 36174736965,
@@ -1680,6 +1688,20 @@
     "kick": "FIRESTORE_CONTROL_PLUS_WORKER_AUTHORITATIVE_ANDROID_SESSION_REVOKE__LEGACY_FCM_COMPAT_ALERT",
     "schema": "14__ADDITIVE_RUNTIME_LOG_BUFFER",
     "new_provider_resources": "NONE",
+    "stable": "OWNER_GATED_UNTOUCHED"
+  },
+  "d146": {
+    "status": "SOURCE_IMPLEMENTED__PENDING_PR_GATES",
+    "date": "2026-09-29",
+    "baseline_main": "b4d935f93b12f531e4a2cca424db45eb2011cd65",
+    "branch": "feat/d146-runtime-log-sku-rbac-agent-input",
+    "google_oauth": "OWNER_CONFIRMED_IN_PRODUCTION__FRESH_REFRESH_TOKEN__NO_TESTING_7_DAY_EXPIRY__GMAIL_SEND_FIELD_PASS__DRIVE_RUNTIME_RETEST_IN_D146",
+    "logs": "WEB_ANDROID_CLOUDFLARE_INVENTORYCORE_THEN_DRIVE_WITH_RETRY__AGENT_GOOGLE_FIRST_FIRESTORE_FUNCTION_DRIVE_WITH_WORKER_SESSION_BROKER_AND_FALLBACK__06_12_18_21__ERROR_CRASH_IMMEDIATE__TYPED_FILENAMES",
+    "sku_refresh": "WEB_IMPORT_REALTIME_EVENT_PLUS_SILENT_FCM__PDA_AUTO_SYNC_CACHE",
+    "rbac": "TRUE_ROOT_MODE_ONLY_MANAGED_USER_DELETE__PICKPACK_EFFECTIVE_MODE_CANNOT_DELETE_ADMIN",
+    "agent_input": "PASSWORD_AND_PROTECTED_BROWSER_ACTION_MODAL_TIMER_ISOLATION",
+    "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC85",
+    "target_agent_release": "relay-agent-v83",
     "stable": "OWNER_GATED_UNTOUCHED"
   }
 }
