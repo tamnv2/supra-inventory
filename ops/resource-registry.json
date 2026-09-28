@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D135_TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_6D929E42__AGENT_V76__BETA_VC82__OA061_FIELD_READY",
+      "status": "D136_OWNER_APPROVED__IMPLEMENTATION_BRANCH_ACTIVE__D135_OWNER_FIELD_PASS",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -197,7 +197,7 @@
       "deploy_health_proof_status": "D118_PASS_RUN_36064078233__SOURCE_COMMIT_EXACT__SCHEMA11_11__AGENT_MIGRATION_0_0__OPERATIONAL5_5",
       "relay_agent_release_target": "relay-agent-v76__RELEASED",
       "next_signed_beta_release_target": "NEXT_MONOTONIC_AFTER_BETA_VC82",
-      "next_relay_agent_release_target": "NEXT_AFTER_V76",
+      "next_relay_agent_release_target": "relay-agent-v77",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
@@ -210,7 +210,8 @@
       "d122_source_status": "SUPERSEDED_BY_D125_MODEL_REWRITE",
       "d125_source_status": "OWNER_APPROVED__AUTHORITY_RECORDED__IMPLEMENTATION_PENDING",
       "d133_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC79__AGENT_V73__OA059_FIELD_READY",
-      "d135_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_6D929E42__AGENT_V76__BETA_VC82__OA061_FIELD_READY"
+      "d135_source_status": "OWNER_FIELD_PASS__MAIN_6D929E42__AGENT_V76__BETA_VC82",
+      "d136_source_status": "OWNER_APPROVED__IMPLEMENTATION_BRANCH_ACTIVE__TARGET_AGENT_V77__ANDROID_VC82_UNCHANGED__USAGE_RUNTIME_RETIREMENT"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -1466,7 +1467,7 @@
     "hotfix_android_release": "beta-vc81"
   },
   "d135": {
-    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA061_FIELD_READY",
+    "status": "OWNER_FIELD_PASS__TECHNICAL_RUNTIME_RELEASE_PASS",
     "resource_change": "NONE__REUSES_EXISTING_BETA_FIRESTORE_WORKER_FUNCTIONS_ANDROID_AGENT_DISTRIBUTION",
     "baseline_agent_release": "relay-agent-v75",
     "target_agent_release": "relay-agent-v76",
@@ -1509,6 +1510,19 @@
       "inventory_channel_pda_manifest_asset_id": 594694994,
       "inventory_channel_pda_asset_id": 594694996
     },
-    "field_gate": "OA061_READY_FOR_OWNER_FIELD_TEST"
+    "field_gate": "OA061_READY_FOR_OWNER_FIELD_TEST",
+    "field_acceptance": "PASS__OWNER_CONFIRMED__2026_09_28__FOLLOWUP_D136"
+  },
+  "d136": {
+    "status": "OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS",
+    "resource_change": "NONE__REUSES_EXISTING_BETA_WORKER_AGENT_DISTRIBUTION",
+    "baseline_agent_release": "relay-agent-v76",
+    "target_agent_release": "relay-agent-v77",
+    "android": "beta-vc82__UNCHANGED",
+    "manual_picklist_ui": "CODE_ACTION_STATUS_ALWAYS_VISIBLE__CRITICAL_WIDTH_GUARD__HORIZONTAL_SCROLL_FALLBACK",
+    "usage": "USER_FACING_TAB_RETIRED__PROVIDER_MONITORING_POLL_AND_USAGE_CURRENT_PUBLICATION_RETIRED__LOCAL_QUOTA_REFERENCE_GUARD_RETAINED",
+    "web_visibility": "HIDE_TO_BACKGROUND_NO_PASSWORD__SHOW_STOP_LOGOUT_SWITCH_PASSWORD_GATES_RETAINED",
+    "field_gate": "OA062_BLOCKED_PENDING_D136_RELEASE",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }

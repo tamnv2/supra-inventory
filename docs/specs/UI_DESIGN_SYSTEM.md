@@ -863,3 +863,10 @@ Stable remains OWNER-GATED.
 - Use **Hôm nay toàn cụm** for the three durable PickList daily totals and **Agent này** for local process diagnostics.
 - A Picker call action that has been confirmed but whose shared write is still in flight is visually disabled the same way as the active 60-second fleet lock; do not leave a clickable spam window.
 - Internal timeout/TTL implementation details are not Picker-facing instructional text unless the Owner explicitly asks for them.
+
+## D136 critical manual PickList row visibility
+
+- The manual PickList grid treats **PickList**, **Thao tác**, and **Trạng thái** as critical columns. Their order and visibility cannot be changed by auto-size recovery or persisted manual widths.
+- Responsive sizing prioritizes readable PickList code, a usable confirmation button and a readable status. If minimum widths cannot fit, expose horizontal scroll rather than hiding an operational control.
+- The former **Usage** top-level tab is removed because unavailable/partial provider metrics are not an acceptable operational display.
+- Hiding Web Confirm to background is a lightweight presentation action and must not interrupt the operator with an Agent-password dialog.

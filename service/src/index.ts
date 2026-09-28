@@ -23,7 +23,7 @@ import { latestAgentAppRelease, latestAgentBrowserBundle, latestPdaAppRelease, r
 import { handleD119Internal } from "./internal-d119";
 import { refreshPickerProjectionBestEffort } from "./firestore-projection";
 import { maybeRunRelayAuditExport } from "./relay-audit";
-import { collectRelayUsage, publishRelayUsageSnapshot } from "./relay-usage";
+
 
 export { InventoryCore };
 
@@ -419,33 +419,6 @@ async function activateInteractiveSession(
     generation: Math.max(1, Number(payload.session_generation || 0)),
     replaced: Boolean(payload.replaced_other_device),
   };
-}
-
-async function requireAgentUsageUser(request: Request, env: Env): Promise<InternalUser> {
-  const token = readBearerToken(request);
-  if (!token) throw new Response(JSON.stringify({ error: "AUTH_REQUIRED" }), { status: 401, headers: { "content-type": "application/json" } });
-  let identity;
-  try {
-    identity = await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID);
-  } catch {
-    throw new Response(JSON.stringify({ error: "INVALID_AUTH_TOKEN" }), { status: 401, headers: { "content-type": "application/json" } });
-  }
-  const user = await getUserByFirebaseUid(env, identity.uid);
-  if (!user || user.status !== "ACTIVE") throw new Response(JSON.stringify({ error: "USER_NOT_ACTIVE" }), { status: 403, headers: { "content-type": "application/json" } });
-
-  // D133: the Windows Agent signs in directly through Firebase password auth.
-  // Those real ADMIN/PICKPACK_ADMIN tokens intentionally have role claims but no
-  // interactive WEB/ANDROID generation/channel claim. Accept only that legacy
-  // direct-Agent shape (or a future explicit AGENT channel); reject Web/Android.
-  if (identity.sessionChannel === "WEB" || identity.sessionChannel === "ANDROID") {
-    throw new Response(JSON.stringify({ error: "AGENT_SESSION_REQUIRED" }), { status: 401, headers: { "content-type": "application/json" } });
-  }
-  const realAdmin = user.role === "ADMIN" && user.base_role === "ADMIN";
-  const realPickPackAdmin = user.role === "PICKPACK_ADMIN" && user.base_role === "PICKPACK_ADMIN";
-  if (!realAdmin && !realPickPackAdmin) {
-    throw new Response(JSON.stringify({ error: "AGENT_ROLE_REQUIRED" }), { status: 403, headers: { "content-type": "application/json" } });
-  }
-  return user;
 }
 
 async function requireUser(request: Request, env: Env, roles?: AppRole[]): Promise<InternalUser> {
@@ -1159,15 +1132,7 @@ export default {
       }
 
       if (request.method === "GET" && url.pathname === "/api/agent/usage") {
-        await requireAgentUsageUser(request, env);
-        try {
-          return json(await collectRelayUsage(env, url.searchParams.get("refresh") === "1"));
-        } catch (error) {
-          return json({
-            error: "RELAY_USAGE_UNAVAILABLE",
-            message: error instanceof Error ? error.message : "usage_unavailable",
-          }, 502);
-        }
+        return json({ error: "USAGE_RETIRED_D136" }, 410);
       }
 
       if (request.method === "GET" && url.pathname === "/api/admin/pda-app") {
@@ -1345,11 +1310,8 @@ export default {
         console.error("agent_log_drain_failed", error instanceof Error ? error.message : "unknown")));
       ctx.waitUntil(maybeRunRelayAuditExport(env).then(() => undefined).catch((error) =>
         console.error("relay_audit_export_failed", error instanceof Error ? error.message : "unknown")));
-      const scheduledMinute = Math.floor(Number(controller.scheduledTime || Date.now()) / 60000);
-      if (scheduledMinute % 10 === 0) {
-        ctx.waitUntil(publishRelayUsageSnapshot(env).then(() => undefined).catch((error) =>
-          console.error("relay_usage_snapshot_failed", error instanceof Error ? error.message : "unknown")));
-      }
+      // D136: provider Usage polling/snapshot publication retired. No periodic
+      // Monitoring API calls and no usage_current Firestore writes are scheduled.
     }
   },
 } satisfies ExportedHandler<Env>;

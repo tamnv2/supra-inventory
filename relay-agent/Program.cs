@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Reflection;
@@ -518,7 +519,6 @@ namespace SupraInventoryRelayAgent
         private readonly TabPage _connectionPage = new TabPage("Kết nối");
         private readonly TabPage _auditPage = new TabPage("Nhật ký vận hành");
         private readonly TabPage _technicalPage = new TabPage("Chẩn đoán kỹ thuật");
-        private readonly TabPage _usagePage = new TabPage("Usage");
         private readonly bool _startupSmoke;
         private readonly bool _autoStarted;
         private readonly HashSet<string> _acked = new HashSet<string>(StringComparer.Ordinal);
@@ -830,20 +830,17 @@ namespace SupraInventoryRelayAgent
 
             _mainTabs.Dock = DockStyle.Fill;
             _mainTabs.Font = new Font("Segoe UI", 9F);
-            foreach (var page in new[] { _overviewPage, _connectionPage, _auditPage, _technicalPage, _usagePage })
+            foreach (var page in new[] { _overviewPage, _connectionPage, _auditPage, _technicalPage })
                 page.BackColor = Color.FromArgb(243, 246, 248);
             _overviewPage.AutoScroll = false;
             _mainTabs.TabPages.Add(_overviewPage);
             _mainTabs.TabPages.Add(_connectionPage);
             _mainTabs.TabPages.Add(_auditPage);
             _mainTabs.TabPages.Add(_technicalPage);
-            _mainTabs.TabPages.Add(_usagePage);
             _mainTabs.SelectedIndexChanged += (s, e) =>
             {
                 if (_mainTabs.SelectedTab == _overviewPage && _leaderCoordinator != null)
                     _leaderCoordinator.RequestFleetRefresh();
-                if (_mainTabs.SelectedTab == _usagePage)
-                    D131UsageTabActivated();
             };
 
             var footer = new Panel
@@ -1157,7 +1154,7 @@ namespace SupraInventoryRelayAgent
             _manualPicklistGrid.AutoGenerateColumns = false;
             _manualPicklistGrid.BackgroundColor = Color.White;
             _manualPicklistGrid.BorderStyle = BorderStyle.FixedSingle;
-            _manualPicklistGrid.ScrollBars = ScrollBars.Vertical;
+            _manualPicklistGrid.ScrollBars = ScrollBars.Both;
             _manualPicklistGrid.Columns.Clear();
             _manualPicklistGrid.RowTemplate.Height = 34;
             _manualPicklistGrid.Columns.Add(new DataGridViewTextBoxColumn
@@ -1178,21 +1175,24 @@ namespace SupraInventoryRelayAgent
                 Name = "ConfirmAction",
                 HeaderText = "Thao tác",
                 Text = "Xác nhận",
-                UseColumnTextForButtonValue = true,
-                Width = 130,
-                MinimumWidth = 130
+                UseColumnTextForButtonValue = false,
+                Width = 118,
+                MinimumWidth = 100
             });
             _manualPicklistGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "ConfirmStatus",
-                HeaderText = "Kết quả",
+                HeaderText = "Trạng thái",
                 ReadOnly = true,
+                MinimumWidth = 130,
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
             });
             _manualPicklistGrid.CellContentClick += (s, e) =>
             {
                 if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
                 if (_manualPicklistGrid.Columns[e.ColumnIndex].Name != "ConfirmAction") return;
+                var actionCell = _manualPicklistGrid.Rows[e.RowIndex].Cells["ConfirmAction"];
+                if (actionCell.ReadOnly) return;
                 var code = Convert.ToString(_manualPicklistGrid.Rows[e.RowIndex].Cells["PickListCode"].Value) ?? "";
                 if (string.IsNullOrWhiteSpace(code)) return;
                 Task.Run(() => ConfirmManualPicklist(code));
@@ -1207,7 +1207,6 @@ namespace SupraInventoryRelayAgent
             directCard.Controls.Add(_manualPicklistStatus);
             overviewLayout.Controls.Add(directCard, 0, 2);
             InitializeD119AgentFeatures(overviewLayout);
-            InitializeD131UsageFeatures();
 
             // Kết nối
             var networkCard = NewCard(22, 24, 1040, 300);
@@ -2273,6 +2272,63 @@ namespace SupraInventoryRelayAgent
                 count >= 2 && HasAgentSession() && HasReadyConfirmBrowser();
         }
 
+        private void ApplyManualPicklistCriticalLayout(bool forceResponsive)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<bool>(ApplyManualPicklistCriticalLayout), forceResponsive);
+                return;
+            }
+            if (_manualPicklistGrid == null || _manualPicklistGrid.IsDisposed || _manualPicklistGrid.Columns.Count < 3) return;
+
+            var pick = _manualPicklistGrid.Columns["PickListCode"];
+            var action = _manualPicklistGrid.Columns["ConfirmAction"];
+            var status = _manualPicklistGrid.Columns["ConfirmStatus"];
+            if (pick == null || action == null || status == null) return;
+
+            pick.Visible = true;
+            action.Visible = true;
+            status.Visible = true;
+            pick.DisplayIndex = 0;
+            action.DisplayIndex = 1;
+            status.DisplayIndex = 2;
+
+            var available = Math.Max(390,
+                _manualPicklistGrid.ClientSize.Width -
+                (_manualPicklistGrid.Controls.OfType<VScrollBar>().Any(v => v.Visible)
+                    ? SystemInformation.VerticalScrollBarWidth
+                    : 4));
+
+            pick.MinimumWidth = 150;
+            action.MinimumWidth = 100;
+            status.MinimumWidth = 130;
+
+            var currentTotal = pick.Width + action.Width + status.Width;
+            if (!forceResponsive && currentTotal <= available)
+            {
+                _manualPicklistGrid.ScrollBars = ScrollBars.Both;
+                return;
+            }
+
+            var actionWidth = Math.Min(124, Math.Max(100, (int)Math.Round(available * 0.25)));
+            var pickWidth = Math.Min(250, Math.Max(150, (int)Math.Round(available * 0.40)));
+            var statusWidth = available - actionWidth - pickWidth;
+            if (statusWidth < 130)
+            {
+                var need = 130 - statusWidth;
+                pickWidth = Math.Max(150, pickWidth - need);
+                statusWidth = available - actionWidth - pickWidth;
+            }
+
+            pick.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            action.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            status.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            pick.Width = pickWidth;
+            action.Width = actionWidth;
+            status.Width = Math.Max(130, statusWidth);
+            _manualPicklistGrid.ScrollBars = ScrollBars.Both;
+        }
+
         private void SearchManualPicklists()
         {
             if (Interlocked.CompareExchange(ref _manualPicklistOperationRunning, 1, 0) != 0)
@@ -2309,7 +2365,14 @@ namespace SupraInventoryRelayAgent
                 {
                     _manualPicklistGrid.Rows.Clear();
                     foreach (var code in result.Matches)
-                        _manualPicklistGrid.Rows.Add(code, null, "Sẵn sàng xác nhận");
+                    {
+                        var rowIndex = _manualPicklistGrid.Rows.Add(code, "Xác nhận", "Sẵn sàng xác nhận");
+                        var row = _manualPicklistGrid.Rows[rowIndex];
+                        row.Cells["ConfirmAction"].ReadOnly = false;
+                        row.Cells["ConfirmAction"].ToolTipText = "Xác nhận đúng PickList này trên Web Confirm";
+                        row.Cells["ConfirmStatus"].ToolTipText = "Trạng thái xử lý PickList";
+                    }
+                    ApplyManualPicklistCriticalLayout(true);
 
                     if (string.Equals(result.Result, "AMBIGUOUS", StringComparison.Ordinal))
                     {
@@ -2513,7 +2576,25 @@ namespace SupraInventoryRelayAgent
                         var code = Convert.ToString(row.Cells["PickListCode"].Value) ?? "";
                         string rowStatus;
                         if (statusByCode.TryGetValue(code, out rowStatus))
+                        {
                             row.Cells["ConfirmStatus"].Value = ManualOutcomeText(rowStatus);
+                            if (string.Equals(rowStatus, "CONFIRMED", StringComparison.Ordinal) ||
+                                string.Equals(rowStatus, "ALREADY_CONFIRMED", StringComparison.Ordinal))
+                            {
+                                row.Cells["ConfirmAction"].Value = "Đã xác nhận";
+                                row.Cells["ConfirmAction"].ReadOnly = true;
+                            }
+                            else if (string.Equals(rowStatus, "CONFIRM_IN_PROGRESS_OR_UNCERTAIN", StringComparison.Ordinal))
+                            {
+                                row.Cells["ConfirmAction"].Value = "Không gửi lại";
+                                row.Cells["ConfirmAction"].ReadOnly = true;
+                            }
+                            else
+                            {
+                                row.Cells["ConfirmAction"].Value = "Xác nhận";
+                                row.Cells["ConfirmAction"].ReadOnly = false;
+                            }
+                        }
                     }
 
                     var totalOk = confirmedCount + alreadyConfirmed;
@@ -2534,6 +2615,7 @@ namespace SupraInventoryRelayAgent
                         uncertain == 0 && failedCount == 0
                             ? Color.FromArgb(35, 122, 76)
                             : Color.FromArgb(180, 76, 60);
+                    ApplyManualPicklistCriticalLayout(true);
                 });
 
                 AgentDiagnostics.WriteAudit(
@@ -2791,14 +2873,22 @@ namespace SupraInventoryRelayAgent
             try
             {
                 if (_supraBrowser == null || !_supraBrowser.HasActiveBrowser()) return;
-                var action = _supraBrowserHidden ? "Hiện Web Confirm" : "Chuyển Web chạy nền";
-                if (!VerifyCurrentAgentPasswordForBrowserAction(
-                    action,
-                    "Nhập mật khẩu Agent hiện tại để " + action.ToLowerInvariant() + ".",
-                    action))
-                    return;
-                if (_supraBrowserHidden) _supraBrowser.Show();
-                else _supraBrowser.Hide();
+                if (_supraBrowserHidden)
+                {
+                    const string action = "Hiện Web Confirm";
+                    if (!VerifyCurrentAgentPasswordForBrowserAction(
+                        action,
+                        "Nhập mật khẩu Agent hiện tại để hiện Web Confirm.",
+                        action))
+                        return;
+                    _supraBrowser.Show();
+                }
+                else
+                {
+                    // D136: hiding a ready browser is a presentation-only action.
+                    // Password remains required for showing, stopping, logout and mode-switch actions.
+                    _supraBrowser.Hide();
+                }
                 RefreshSupraBrowserStatus();
             }
             catch (Exception ex)
