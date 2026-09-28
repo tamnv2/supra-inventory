@@ -1978,3 +1978,20 @@ Owner explicitly confirmed D136 field operation OK on `relay-agent-v77`, then ap
 6. **Security boundary is unchanged.** The implementation remains browser-UI automation using DevTools Page/Runtime only. Do not enable Network, inspect cookies/tokens/headers/storage/session material, or introduce direct WMS API calls.
 
 Implementation target: **relay-agent-v78**. Android remains **beta-vc82**. Existing Agent-owned WebView2 host build 10 is reused. No new provider resource is introduced. Stable remains OWNER-GATED and untouched.
+
+### D137 v79 hotfix — final Confirm data hydration
+
+Status: **OWNER APPROVED — HOTFIX IN PROGRESS**.
+
+Owner field-tested released `relay-agent-v78`. The D137 normal-window PickList result presentation is accepted, but the Confirm data-loading defect remains. Sanitized v78 log evidence shows the final WMS child was attached at 15:30:08.784, the automatic reload was issued at 15:30:09.400, and the Agent declared reload PASS at 15:30:12.391. The first real PickList search at 15:30:34.222 returned `NOT_FOUND`; after the operator manually pressed F5, the same workflow returned `FOUND` at 15:31:03.904 and confirmation succeeded.
+
+The v78 assumption is therefore superseded: DOM controls + `navigationType=reload` are not sufficient evidence that WMS PickList data is hydrated when the reload fires immediately after final-route arrival.
+
+Approved hotfix behavior:
+- Target **relay-agent-v79**; Android remains **beta-vc82** and WebView2 host build 10 is reused.
+- Do not reload the transient first Confirm shell. The same final canonical Confirm document must remain loaded for **3 seconds** before the automatic normal reload is issued.
+- After reload, require the existing exact Confirm DOM guards to remain ready for **1.2 seconds** before publishing READY.
+- If the first real search still sees **zero `PL...` codes in the entire visible table**, Agent may perform **one** bounded local normal reload and retry the search once. This recovery is one-shot per Confirm navigation and must never loop.
+- The empty-table self-heal is browser-local only: no additional Firestore/Worker/provider operation or polling is introduced.
+- DevTools remains Page/Runtime only. Network, cookie/token/header/storage/session extraction and direct WMS API remain forbidden.
+- Stable remains OWNER-GATED and untouched.
