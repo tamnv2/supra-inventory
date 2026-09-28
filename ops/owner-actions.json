@@ -2835,6 +2835,38 @@
         "result": "PASS",
         "evidence": "Owner reviewed the maximum-envelope design/refinements and explicitly authorized D131 code implementation before PR #259."
       }
+    },
+    {
+      "id": "OA058",
+      "status": "BLOCKED_PENDING_D132_TECHNICAL_RELEASE",
+      "title": "Field-accept D132 Agent presence/status/layout hotfix",
+      "resource_key": "repo",
+      "provider": "Beta Windows Agent + existing Beta Worker/Firestore + beta-vc78 Android",
+      "reason_owner_only": "CI can prove source/build/counter guards, but visible status stability, login/logout presence timing and Windows restore-bounds behavior require physical field observation.",
+      "prerequisites": {
+        "target_agent_release": "relay-agent-v72",
+        "android": "beta-vc78",
+        "technical_release": "PENDING",
+        "new_resources": "NONE",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Update one Agent to v72 and keep beta-vc78 on one PDA.",
+        "Watch Hệ thống Agent while relay state changes; receive mode, Relay and Wi-Fi must stay on one stable line.",
+        "Login/logout Picker and verify presence add/remove; send one PickList and verify immediate activity refresh.",
+        "Toggle Auto size cột OFF/ON, resize columns and verify per-account persistence.",
+        "Resize/move the normal Agent window, maximize then restore, and verify saved normal bounds return."
+      ],
+      "pass_criteria": [
+        "No status-line blinking/alternation.",
+        "Picker login/logout and PickList activity are reflected accurately without periodic PDA heartbeat.",
+        "Presence control events do not change PickList business counters.",
+        "Column and window preferences persist per Agent account.",
+        "Stable remains untouched."
+      ],
+      "safety": "Beta only. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for relay-agent-v72 technical release, then run this short field path.",
+      "closed": false
     }
   ]
 }
