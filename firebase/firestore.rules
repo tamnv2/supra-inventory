@@ -37,7 +37,7 @@ service cloud.firestore {
         && request.resource.data.sender_agent_id.size() <= 160
         && request.resource.data.sender_role in ['INVENTORY', 'PICK_PACK']
         && request.resource.data.message is string
-        && request.resource.data.message.size() <= 500
+        && request.resource.data.message.size() <= (request.resource.data.command_type == 'CHAT_MESSAGE' ? 200 : 500)
         && (request.resource.data.command_type != 'CHAT_MESSAGE'
             || request.resource.data.message.size() <= 200)
         && request.resource.data.created_at_ms is int
