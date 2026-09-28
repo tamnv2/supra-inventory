@@ -85,7 +85,7 @@ function listUsers(state: DurableObjectState, url: URL): Response {
   const limit = Math.max(1, Math.min(200, Number.isFinite(parsedLimit) ? Math.trunc(parsedLimit) : 100));
   const offset = Math.max(0, Math.min(100_000, Number.isFinite(parsedOffset) ? Math.trunc(parsedOffset) : 0));
 
-  const where: string[] = [];
+  const where: string[] = ["role <> 'ROOT'"];
   const args: SqlStorageValue[] = [];
   if (query) {
     const like = `%${query}%`;
@@ -295,6 +295,42 @@ async function deletePicker(state: DurableObjectState, actor: Actor, target: Use
   state.storage.sql.exec(`DELETE FROM users WHERE user_id = ? AND role = 'PICKER'`, target.user_id);
 }
 
+async function deleteManagedUsers(state: DurableObjectState, request: Request): Promise<Response> {
+  const body = (await request.json()) as { actor?: Actor; user_ids?: unknown; request_id?: unknown };
+  const actor = body.actor;
+  const ids = Array.isArray(body.user_ids)
+    ? [...new Set(body.user_ids.map((value) => String(value || "").trim()).filter(Boolean))].slice(0, 100)
+    : [];
+  if (!actor?.user_id || actor.role !== "ROOT" || !ids.length || !validRequestId(body.request_id)) {
+    return response({ error: "MANAGED_USER_DELETE_FORBIDDEN" }, 403);
+  }
+  const targets = ids.map((id) => getUser(state, id)).filter((row): row is UserRow => Boolean(row));
+  if (targets.length !== ids.length || targets.some((row) => !["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(row.role))) {
+    return response({ error: "MANAGED_USER_DELETE_TARGET_INVALID" }, 409);
+  }
+  const firebaseUids = targets.map((row) => row.firebase_uid).filter((uid): uid is string => Boolean(uid));
+  state.storage.transactionSync(() => {
+    for (const target of targets) {
+      audit(state, actor, "MANAGED_USER_DELETE", "USER", target.user_id, {
+        role: target.role,
+        employee_code: target.employee_code,
+        display_name: target.display_name,
+      });
+      state.storage.sql.exec("DELETE FROM fcm_devices WHERE user_id = ?", target.user_id);
+      state.storage.sql.exec("DELETE FROM presence_sessions WHERE user_id = ?", target.user_id);
+      state.storage.sql.exec(
+        "DELETE FROM users WHERE user_id = ? AND role IN ('ADMIN','PICKPACK_ADMIN','REPORTER')",
+        target.user_id,
+      );
+    }
+  });
+  return response({
+    status: "deleted",
+    affected: targets.length,
+    firebase_uids: firebaseUids,
+  });
+}
+
 async function pickerBulkAction(state: DurableObjectState, request: Request): Promise<Response> {
   const body = (await request.json()) as { actor?: Actor; action?: PickerBulkAction; user_ids?: unknown; excluded_user_ids?: unknown; all?: boolean; request_id?: unknown };
   const actor = body.actor;
@@ -455,6 +491,7 @@ export async function handleUserManagementCoreRequest(state: DurableObjectState,
   if (request.method === "POST" && url.pathname === "/admin/users/rollback-create") return rollbackManagedUserCreate(state, request);
   if (request.method === "POST" && url.pathname === "/admin/users/update") return updateManagedUser(state, request);
   if (request.method === "POST" && url.pathname === "/admin/users/set-password") return setManagedPassword(state, request);
+  if (request.method === "POST" && url.pathname === "/admin/users/delete") return deleteManagedUsers(state, request);
   if (request.method === "POST" && url.pathname === "/admin/pickers/bulk") return pickerBulkAction(state, request);
   if (request.method === "POST" && url.pathname === "/admin/hr-sync/preview") return hrPreview(state, request);
   if (request.method === "POST" && url.pathname === "/admin/hr-sync/apply") return hrApply(state, request);
