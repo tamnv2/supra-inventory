@@ -881,16 +881,22 @@ function restoreUiContext(snapshot: UiContextSnapshot | null): void {
   if (!snapshot || snapshot.section !== activeSection || snapshot.userId !== (profile?.user_id || null)) return;
   const main = document.querySelector<HTMLElement>(".main");
   if (!main) return;
-  for (const saved of snapshot.fields) {
-    let field: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null = null;
-    if (saved.id) field = document.getElementById(saved.id) as typeof field;
-    if (!field && saved.name) {
-      field = [...main.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("input, textarea, select")]
-        .find((candidate) => candidate.name === saved.name) || null;
+  // D141: SLA has explicit server/draft state. Generic context restoration used to
+  // replay stale radio values after an authoritative GET, producing the impossible
+  // visual state "radio FIRST_REPORT / Đang áp dụng PER_PICKER". Never restore SLA
+  // form controls from a pre-render snapshot; renderSla + slaDraftMode own them.
+  if (snapshot.section !== "sla") {
+    for (const saved of snapshot.fields) {
+      let field: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null = null;
+      if (saved.id) field = document.getElementById(saved.id) as typeof field;
+      if (!field && saved.name) {
+        field = [...main.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("input, textarea, select")]
+          .find((candidate) => candidate.name === saved.name) || null;
+      }
+      if (!field) continue;
+      field.value = saved.value;
+      if (saved.checked != null && field instanceof HTMLInputElement) field.checked = saved.checked;
     }
-    if (!field) continue;
-    field.value = saved.value;
-    if (saved.checked != null && field instanceof HTMLInputElement) field.checked = saved.checked;
   }
   main.scrollTop = snapshot.mainScrollTop;
   main.scrollLeft = snapshot.mainScrollLeft;
@@ -2712,6 +2718,7 @@ async function loadSla(): Promise<void> {
   }
 
   slaResponse = nextSla;
+  slaDraftMode = normalizeAutoSkipMode(nextSla.sla?.auto_skip_mode);
   markWebUpdateReceived();
   if (activeSection === "sla") patchActiveSection(true);
   try {
