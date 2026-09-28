@@ -3131,7 +3131,7 @@
     },
     {
       "id": "OA063",
-      "status": "BLOCKED_PENDING_D137_V79_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D137 v79 final Confirm hydration and normal-window PickList visibility",
       "resource_key": "repo",
       "provider": "Beta Windows Agent; Android beta-vc82 unchanged",
@@ -3145,7 +3145,23 @@
         "new_provider_resources": "NONE",
         "browser_host_build": "10__UNCHANGED",
         "stable": "OWNER_GATED",
-        "technical_release": "PENDING_D137_V79_PR_GATES_AND_RELEASE"
+        "technical_release": "PASS__MAIN_B177EF0F__AGENT_V79__ANDROID_VC82_UNCHANGED",
+        "implementation_pr": 275,
+        "main_merge": "b177ef0f9169b051fe90349460c1c3e2d7a07663",
+        "main_runs": {
+          "repo_authority": 36399738005,
+          "project_state": 36399738124,
+          "ui_design": 36399738032,
+          "relay_agent": 36399738111,
+          "dashboard_probe": 36399738038
+        },
+        "release_evidence": {
+          "agent_release_id": 398080917,
+          "agent_asset_id": 594949767,
+          "agent_sha256": "e88108a53ff5def868c7ca036318fcac5a2ba19da2fe426fddb1983fa1056d23",
+          "inventory_channel_agent_manifest_asset_id": 594949850,
+          "inventory_channel_agent_asset_id": 594949844
+        }
       },
       "shortest_test_path": [
         "Update the test Agent to relay-agent-v79 after release; Android remains beta-vc82.",
@@ -3162,7 +3178,7 @@
         "No new provider resource or Firestore/Worker operation is added; Android unchanged and Stable untouched."
       ],
       "safety": "Beta Agent only. No new provider resource, no credential/session exposure, no direct WMS API path, no DevTools Network domain. Stable remains OWNER-GATED.",
-      "remaining_owner_action": null,
+      "remaining_owner_action": "Update the Agent to relay-agent-v79 and run the OA063 shortest test path. Do not press F5 manually during the hydration test. Android remains beta-vc82; Stable remains untouched.",
       "closed": false
     }
   ]
