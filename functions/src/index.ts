@@ -14,7 +14,6 @@ const MAX_ALERT_TTL_MS = 6 * 60 * 60 * 1000;
 const PICKER_ACTIVE_CALL_TTL_MS = 60 * 1000;
 const MAX_SKU_ITEMS = 1000;
 const AGENT_LOG_COLLECTION = "relay_agent_log_uploads";
-const AGENT_LOG_FOLDER_ID = "17Ealimu__NFxeEzG3mUfivpEEacX_vgo";
 const AGENT_LOG_FILENAME_RE = /^(?:agent_|scheduled_agent_|error_agent_|crash_agent_)[A-Za-z0-9._-]+_[0-9]{8}_[0-9]{6}\.log$/;
 const AGENT_LOG_MAX_BYTES = 8_000_000;
 
@@ -316,58 +315,41 @@ async function uploadAgentLogDirectToDrive(filename: string, content: string): P
   const bodyBytes = Buffer.from(content, "utf8");
   if (bodyBytes.length <= 0 || bodyBytes.length > AGENT_LOG_MAX_BYTES) throw new Error("AGENT_LOG_SIZE_INVALID");
 
-  const auth = new GoogleAuth({ scopes: ["https://www.googleapis.com/auth/drive.file"] });
-  const client = await auth.getClient();
-  const tokenResult = await client.getAccessToken();
-  const accessToken = typeof tokenResult === "string" ? tokenResult : tokenResult?.token;
-  if (!accessToken) throw new Error("DRIVE_ACCESS_TOKEN_UNAVAILABLE");
-
-  const duplicateParams = new URLSearchParams({
-    q: `'${AGENT_LOG_FOLDER_ID}' in parents and trashed = false and name = '${filename.replaceAll("'", "\\'")}'`,
-    orderBy: "createdTime desc",
-    pageSize: "1",
-    spaces: "drive",
-    fields: "files(id,name)",
+  // The Agent itself only talks to Google Firestore. This Google Function uses
+  // its workload identity to request a short-lived resumable Drive upload
+  // session from the trusted Worker. The OAuth token never leaves the Worker,
+  // and the log payload is uploaded by Google Function -> Google Drive.
+  const auth = new GoogleAuth();
+  const client = await auth.getIdTokenClient(WORKER_ORIGIN);
+  const sessionResponse = await client.request<{
+    status?: string;
+    drive_file_id?: string;
+    upload_url?: string;
+    error?: string;
+  }>({
+    url: `${WORKER_ORIGIN}/api/internal/d146/agent-log-upload-session`,
+    method: "POST",
+    data: {
+      filename,
+      content_length: bodyBytes.length,
+    },
+    timeout: 10_000,
   });
-  const duplicateResponse = await fetch(`https://www.googleapis.com/drive/v3/files?${duplicateParams.toString()}`, {
-    headers: { authorization: `Bearer ${accessToken}`, accept: "application/json" },
-  });
-  if (duplicateResponse.ok) {
-    const duplicate = await duplicateResponse.json() as { files?: Array<{ id?: string }> };
-    const existing = String(duplicate.files?.[0]?.id || "");
-    if (existing) return existing;
+  const session = sessionResponse.data || {};
+  if (session.status === "existing" && session.drive_file_id) return session.drive_file_id;
+  const uploadUrl = String(session.upload_url || "");
+  if (session.status !== "upload_required" || !uploadUrl.startsWith("https://")) {
+    throw new Error(String(session.error || "DRIVE_UPLOAD_SESSION_UNAVAILABLE"));
   }
 
-  const boundary = "supra_agent_direct_" + Math.random().toString(36).slice(2);
-  const metadata = JSON.stringify({
-    name: filename,
-    parents: [AGENT_LOG_FOLDER_ID],
-    mimeType: "text/plain",
-    appProperties: {
-      project: "supra-inventory",
-      source: "AGENT",
-      transport: "GOOGLE_DIRECT",
-      severity: /^(?:crash_|error_)/.test(filename) ? "ERROR" : "INFO",
+  const response = await fetch(uploadUrl, {
+    method: "PUT",
+    headers: {
+      "content-type": "text/plain; charset=UTF-8",
+      "content-length": String(bodyBytes.length),
     },
+    body: bodyBytes,
   });
-  const prefix = Buffer.from(
-    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n` +
-    `--${boundary}\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n`,
-    "utf8",
-  );
-  const suffix = Buffer.from(`\r\n--${boundary}--\r\n`, "utf8");
-  const multipart = Buffer.concat([prefix, bodyBytes, suffix]);
-  const response = await fetch(
-    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name",
-    {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${accessToken}`,
-        "content-type": `multipart/related; boundary=${boundary}`,
-      },
-      body: multipart,
-    },
-  );
   const payload = await response.json() as { id?: string };
   if (!response.ok || !payload.id) throw new Error(`DRIVE_UPLOAD_HTTP_${response.status}`);
   return payload.id;
