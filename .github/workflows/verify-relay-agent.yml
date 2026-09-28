@@ -74,9 +74,9 @@ jobs:
           $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
           $projection = Get-Content service/src/firestore-projection.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*72\s*;') { throw "D132 requires Agent v72." }
-          if ($project -notmatch '<AssemblyVersion>0\.72\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.72\.0\.0</FileVersion>') {
-            throw "D132 assembly/file version must be 0.72."
+          if ($config -notmatch 'AgentBuild\s*=\s*73\s*;') { throw "D133 requires Agent v73." }
+          if ($project -notmatch '<AssemblyVersion>0\.73\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.73\.0\.0</FileVersion>') {
+            throw "D133 assembly/file version must be 0.73."
           }
 
           foreach ($marker in @(
