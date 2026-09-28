@@ -190,7 +190,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Complete D144 source/CI/runtime/release. Runtime logs service-account fallback additionally requires Owner to share the existing Beta Logs folder to the existing Beta runtime service account as Editor because current Drive permission metadata is owner-only. Then field retest chat and legacy kick on Agent v82 + next signed Beta. Stable remains OWNER-GATED.",
+  "next_action": "Complete D144 PR gates, merge, deploy Beta Worker/Firestore/Functions, publish Agent v82 and the next monotonic signed Beta Android release, then run OA071 field acceptance for logs/chat/kick. No Google Drive permission change is required. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
