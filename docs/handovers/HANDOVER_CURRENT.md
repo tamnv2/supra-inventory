@@ -1159,3 +1159,13 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - OA064 opens after technical/runtime PASS. D137 OA063 remains open independently. Stable remains OWNER-GATED.
 
 - Canonical Web marker: `D138_SOURCE_CANDIDATE__SLA_DIRTY_FORM_REALTIME_RECONCILE_PRESERVATION`.
+
+
+## D138 runtime PASS — 2026-09-28
+
+- PR #277 merged to main `005d829811ddfa534f0552cd808d69e12c5cf763`.
+- Main Repo Authority, Project State, UI Design, Beta Worker and Dashboard Probe gates PASS.
+- Beta Worker/Web deploy run `36408876240` PASS under the exact-source runtime health workflow.
+- Web marker: `D138_RUNTIME_PASS_MAIN_005D8298__SLA_DIRTY_FORM_REALTIME_PRESERVATION__OA064_FIELD_READY`.
+- OA064 is READY_FOR_OWNER_FIELD_TEST. D137 OA063 remains independently open.
+- Android remains `beta-vc82`; Agent remains `relay-agent-v79`; Stable remains OWNER-GATED.
