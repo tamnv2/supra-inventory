@@ -1127,7 +1127,7 @@ namespace SupraInventoryRelayAgent
                     }
                 });
             }
-            Log("PICKER_PRESENCE authority=LOGIN_LOGOUT reason=" + SafeMessage(reason) +
+            Log("PICKER_PRESENCE authority=LOGIN_LOGOUT reason=" + AgentDiagnostics.Sanitize(reason) +
                 " count=" + incoming.Count);
         }
 
