@@ -666,3 +666,11 @@ Status: **OWNER FIELD PASS**.
 - Kích User now revokes the Worker-authoritative Android session, closes realtime presence, refreshes the Picker projection and retains bounded compact-sync reconciliation for a direct-call failure.
 - OA071 is READY_FOR_OWNER_FIELD_TEST on `relay-agent-v82` + `beta-vc85`.
 - Stable remains OWNER-GATED and untouched.
+## D145 public OAuth disclosure workstream — 2026-09-29
+
+- Owner requires three public Beta OAuth information pages at `/about`, `/privacy` and `/terms` so Google Auth Platform can use public application/home/privacy/terms URLs instead of the authenticated Web shell.
+- Source routes are unauthenticated GET/HEAD responses from the existing Beta Worker custom domain. About identifies the application and existing `drive.file` + `gmail.send` purposes; Privacy covers Google-data access/use/storage/sharing, revocation and Limited Use; Terms covers authorized business use.
+- Web login, password-reset and authenticated footer link to all three public surfaces.
+- The Beta deploy workflow now probes all three URLs and verifies the scope/privacy markers after deployment.
+- No new provider resource, OAuth scope, storage path or credential is introduced. OA073 remains Owner-only for Google Auth Platform publish/re-consent and Worker refresh-token secret replacement after D145 runtime PASS. Stable remains OWNER-GATED and untouched.
+- Current D145 Web source marker: `D145_OAUTH_PUBLIC_PAGES_SOURCE_READY__D144_RUNTIME_BASELINE_PASS`.

@@ -288,3 +288,26 @@ button.danger:hover { background:#8f1c13; }
 @media (max-width: 900px) {
   .tools-grid-d112 { grid-template-columns: 1fr !important; }
 }
+
+
+/* D145: public OAuth disclosure links remain visible before and after login. */
+.oauth-public-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 14px;
+  margin-top: 14px;
+  font-size: .78rem;
+}
+.oauth-public-links a,
+.app-footer-public-links a {
+  color: var(--green-700);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.app-footer-public-links {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-left: 14px;
+}

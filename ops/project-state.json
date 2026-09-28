@@ -18,7 +18,7 @@
     "sqlite_schema": 14,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D144_RUNTIME_PASS__INVENTORYCORE_LOG_BUFFER__SCHEMA14__OAUTH_NONBLOCKING",
+    "web": "D145_OAUTH_PUBLIC_PAGES_SOURCE_READY__D144_RUNTIME_BASELINE_PASS",
     "android": "D144_SIGNED_BETA_VC85__DIRECT_CHAT_AND_AUTHORITATIVE_KICK__OA071_FIELD_READY",
     "latest_beta_apk": "beta-vc85",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
@@ -2337,5 +2337,28 @@
       "pda_manifest_asset_id": 596320823,
       "pda_asset_id": 596320818
     }
+  },
+  "d145": {
+    "status": "SOURCE_IMPLEMENTED__PENDING_PR_GATES",
+    "date": "2026-09-29",
+    "baseline_main": "f8712ac76c48531933541611c5d0d31a50396f7a",
+    "branch": "feat/d145-oauth-public-pages",
+    "owner_requirement": "PUBLIC_OAUTH_PRODUCTION_DISCLOSURE_PAGES",
+    "public_urls": [
+      "https://inventory-beta.supra.cc.cd/about",
+      "https://inventory-beta.supra.cc.cd/privacy",
+      "https://inventory-beta.supra.cc.cd/terms"
+    ],
+    "google_scopes": [
+      "https://www.googleapis.com/auth/drive.file",
+      "https://www.googleapis.com/auth/gmail.send"
+    ],
+    "routes": "WORKER_PUBLIC_GET_HEAD__NO_AUTH",
+    "web_links": "LOGIN_RESET_AUTHENTICATED_FOOTER",
+    "disclosure_contract": "APP_FUNCTIONS__GOOGLE_SCOPE_PURPOSE__ACCESS_USE_STORAGE_SHARING__REVOCATION__LIMITED_USE",
+    "deploy_guard": "HTTP200__PUBLIC_IDENTITY__SCOPE_DISCLOSURE__PRIVACY_LIMITED_USE",
+    "resource_change": "NONE__REUSES_EXISTING_BETA_WORKER_CUSTOM_DOMAIN_AND_OAUTH_RESOURCE",
+    "owner_gate": "OA073_BLOCKED_PENDING_RUNTIME_PASS",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }

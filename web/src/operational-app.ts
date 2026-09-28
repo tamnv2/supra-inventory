@@ -1148,6 +1148,7 @@ function renderLogin(): void {
         <button class="primary wide">ĐẶT LẠI MẬT KHẨU</button>
         <div id="confirm-password-reset-result" class="tiny muted"></div>
       </form>
+      <div class="oauth-public-links"><a href="/about">Giới thiệu</a><a href="/privacy">Quyền riêng tư</a><a href="/terms">Điều khoản</a></div>
       <p class="security">${PRODUCT_CREDIT}</p>
     </section></main>`;
     document.querySelector<HTMLFormElement>("#confirm-password-reset-form")?.addEventListener("submit", (event) => {
@@ -1188,6 +1189,7 @@ function renderLogin(): void {
         <button class="secondary wide">GỬI LINK ĐẶT LẠI MẬT KHẨU</button>
         <div id="reset-password-result" class="tiny muted"></div>
       </form>
+      <div class="oauth-public-links"><a href="/about">Giới thiệu</a><a href="/privacy">Quyền riêng tư</a><a href="/terms">Điều khoản</a></div>
       <p class="security">${PRODUCT_CREDIT}</p>
     </section>
   </div></main>`;
@@ -1303,7 +1305,7 @@ function renderShell(content: string): void {
     </header>
     <nav class="tabs" data-shell-generation="legacy-direct-transplant">${renderNav()}</nav>
     <main id="content" class="content main" data-active-section="${esc(activeSection)}">${content}</main>
-    <footer id="appCopyright" class="app-footer">${PRODUCT_CREDIT}</footer>
+    <footer id="appCopyright" class="app-footer"><span>${PRODUCT_CREDIT}</span><span class="app-footer-public-links"><a href="/about">Giới thiệu</a><a href="/privacy">Quyền riêng tư</a><a href="/terms">Điều khoản</a></span></footer>
     <div id="overlay-root">${renderStockModal()}${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}</div>
   </div>`;
   bindShell();
