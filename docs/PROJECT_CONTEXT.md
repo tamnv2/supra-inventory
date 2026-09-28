@@ -543,3 +543,12 @@ D136 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta.
 - Released Windows Agent: `relay-agent-v79`, release id 398080917, canonical EXE asset id 594949767, SHA-256 `e88108a53ff5def868c7ca036318fcac5a2ba19da2fe426fddb1983fa1056d23`.
 - Inventory channel now carries the same v79 EXE (asset id 594949844) and refreshed Agent manifest (asset id 594949850).
 - OA063 is READY_FOR_OWNER_FIELD_TEST. Android remains `beta-vc82`; Stable remains OWNER-GATED and untouched.
+
+
+## D138 Web SLA realtime dirty-form repair — 2026-09-28
+
+Owner reported that selecting **Theo báo đầu tiên của SKU** on Web **Thời gian xử lý** could jump back to **Theo từng Picker**, even though the page later showed the successful-save notice.
+
+Source analysis isolates the defect to the Web realtime reconciliation path, not the SLA persistence contract. `loadSla()` already refuses to replace a dirty form, but `reconcileActive()` then performed an unconditional generic section patch using the older `slaResponse`, which visually reset the radio before Save captured `FormData`.
+
+D138 makes the SLA reconcile branch return immediately after `loadSla()`. This leaves dirty-state protection and SLA rendering under one authority while retaining the existing server response + post-save reload verification. There is no schema, provider, Android or Agent change. D137 OA063 remains independently open; Stable remains OWNER-GATED.
