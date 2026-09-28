@@ -16,6 +16,7 @@ namespace SupraInventoryRelayAgent
         internal string SenderRole;
         internal string UpdateTime;
         internal bool IsActiveCall;
+        internal long LockUntilMs;
     }
 
     internal sealed class FirestorePickerContactClient
@@ -62,6 +63,8 @@ namespace SupraInventoryRelayAgent
                 var fields = GetMap(doc, "fields");
                 if (fields == null || !string.Equals(FieldString(fields, "status"), "ACTIVE", StringComparison.Ordinal))
                     continue;
+                var lockUntilMs = FieldLong(fields, "lock_until_ms");
+                if (lockUntilMs > 0 && lockUntilMs <= DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()) continue;
                 var target = FieldString(fields, "target_user_id");
                 var callId = FieldString(fields, "call_id");
                 if (string.IsNullOrWhiteSpace(target) || string.IsNullOrWhiteSpace(callId)) continue;
@@ -74,7 +77,8 @@ namespace SupraInventoryRelayAgent
                     SenderAgentId = FieldString(fields, "sender_agent_id"),
                     SenderRole = FieldString(fields, "sender_role"),
                     UpdateTime = Get(doc, "updateTime"),
-                    IsActiveCall = true
+                    IsActiveCall = true,
+                    LockUntilMs = lockUntilMs
                 };
             }
             return result;
@@ -191,6 +195,29 @@ namespace SupraInventoryRelayAgent
             var message = senderRole == "PICK_PACK"
                 ? "Vui lòng di chuyển về bàn chuyên viên Pick Pack để phối hợp xử lý công việc."
                 : "Vui lòng di chuyển về bàn chuyên viên Inventory để phối hợp xử lý công việc.";
+            var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var lockUntilMs = nowMs + 60000L;
+            var updateTime = "";
+
+            try
+            {
+                var existingRaw = FirestoreHttpTransport.SendJson(
+                    "GET", ActiveCallUrl(picker.UserId), session.IdToken, null,
+                    UserAgent(), 7000, true, _log, "picker-active-call-read", 2);
+                var existingDoc = _json.DeserializeObject(existingRaw) as Dictionary<string, object>;
+                var existingFields = GetMap(existingDoc, "fields");
+                var status = FieldString(existingFields, "status");
+                var existingLock = FieldLong(existingFields, "lock_until_ms");
+                if (string.Equals(status, "ACTIVE", StringComparison.Ordinal) && existingLock > nowMs)
+                    throw new InvalidOperationException("Picker này đang trong thời gian Liên hệ picker 60 giây.");
+                updateTime = Get(existingDoc, "updateTime");
+            }
+            catch (WebException ex)
+            {
+                var status = Status(ex);
+                if (status != 404) throw;
+            }
+
             var fields = new Dictionary<string, object>
             {
                 { "call_id", StringField(callId) },
@@ -202,24 +229,23 @@ namespace SupraInventoryRelayAgent
                 { "sender_user_id", StringField(session.AppUserId ?? "") },
                 { "sender_agent_id", StringField(agentInstanceId) },
                 { "sender_role", StringField(senderRole) },
-                { "created_at_ms", IntField(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()) }
+                { "created_at_ms", IntField(nowMs) },
+                { "lock_until_ms", IntField(lockUntilMs) }
             };
 
+            var suffix = BuildMask(fields.Keys);
+            suffix += string.IsNullOrWhiteSpace(updateTime)
+                ? "&currentDocument.exists=false"
+                : "&currentDocument.updateTime=" + Uri.EscapeDataString(updateTime);
             try
             {
                 var raw = FirestoreHttpTransport.SendJson(
-                    "PATCH",
-                    ActiveCallUrl(picker.UserId) + "?currentDocument.exists=false",
-                    session.IdToken,
+                    "PATCH", ActiveCallUrl(picker.UserId) + suffix, session.IdToken,
                     _json.Serialize(new Dictionary<string, object> { { "fields", fields } }),
-                    UserAgent(),
-                    10000,
-                    false,
-                    _log,
-                    "picker-active-call-create");
+                    UserAgent(), 10000, false, _log, "picker-active-call-upsert");
                 var written = _json.DeserializeObject(raw) as Dictionary<string, object>;
-                _log("PICKER_ACTIVE_CALL create=PASS target=" + Safe(picker.EmployeeCode) +
-                     " role=" + senderRole + " call=" + Short(callId));
+                _log("PICKER_ACTIVE_CALL upsert=PASS target=" + Safe(picker.EmployeeCode) +
+                     " role=" + senderRole + " call=" + Short(callId) + " lock_ms=60000");
                 return new PickerContactCommand
                 {
                     AlertId = callId,
@@ -229,14 +255,15 @@ namespace SupraInventoryRelayAgent
                     SenderAgentId = agentInstanceId,
                     SenderRole = senderRole,
                     UpdateTime = Get(written, "updateTime"),
-                    IsActiveCall = true
+                    IsActiveCall = true,
+                    LockUntilMs = lockUntilMs
                 };
             }
             catch (WebException ex)
             {
                 var status = Status(ex);
                 if (status == 409 || status == 412)
-                    throw new InvalidOperationException("Picker này đã được một Agent khác gọi về bàn chuyên viên.");
+                    throw new InvalidOperationException("Trạng thái Liên hệ picker vừa thay đổi trên Agent khác. Vui lòng thử lại.");
                 throw;
             }
         }
