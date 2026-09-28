@@ -2134,3 +2134,19 @@ Owner field evidence on D143 `beta-vc84` + Agent v81 supersedes OA069 acceptance
    - An old APK that has no revocation listener cannot be forced to visually close its local screen while totally idle; however its server session/business authority must be revoked when the Worker revoke succeeds, and it must be removed from the Agent list. A fresh explicit login creates a new valid session.
 
 D144 target: Beta Agent v82 + next signed Beta after vc84. SQLite schema target is 14 with an additive bounded runtime-log buffer. No new provider resource. Stable remains OWNER-GATED.
+## D145 — Public OAuth production disclosure pages for Beta
+
+Owner requires the Beta OAuth application to have public, Google-reviewable application information pages so the existing Beta OAuth client can move out of Testing without inventing a new provider resource.
+
+1. **Public URLs.** The existing Beta host exposes unauthenticated GET/HEAD routes:
+   - `https://inventory-beta.supra.cc.cd/about`
+   - `https://inventory-beta.supra.cc.cd/privacy`
+   - `https://inventory-beta.supra.cc.cd/terms`
+   These pages must remain public and must not redirect to the application login.
+2. **Application identity and purpose.** The About page identifies **SUPRA Inventory Beta**, describes the Inventory/Báo hàng workflow and explains the two existing Google scopes used by the application.
+3. **Google scope boundary.** OAuth scope remains exactly the existing `drive.file` + `gmail.send` contract. The public copy states that Drive access is limited to app-created/user-authorized files and Gmail is used only to send transactional verification/recovery messages; the application does not request inbox-read permission.
+4. **Privacy disclosure.** The Privacy page describes Google-data access, use, server-side OAuth credential storage, sharing/processor boundary, revocation and Google API Services User Data Policy / Limited Use. Google user data is not sold or used for advertising.
+5. **Terms.** The Terms page describes authorized business use, account security, Google integration, Beta changes and third-party infrastructure without claiming Google sponsorship.
+6. **Discoverability.** Web login/password-reset surfaces and the authenticated footer link to About, Privacy and Terms so the policy remains discoverable from the product.
+7. **Verification/deploy guard.** Beta deployment must prove all three URLs return HTTP 200 and must verify application identity, exact scope disclosure and Privacy/Limited-Use markers.
+8. **Provider and security guard.** No new provider resource is introduced and no OAuth token, client secret, service-account key or other secret may appear in source/logs. After runtime PASS, OA073 is the bounded Owner-only step to publish the existing Beta OAuth app and replace its revoked refresh token. Stable remains OWNER-GATED and untouched.
