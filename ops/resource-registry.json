@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D142_ANDROID11_CRITICAL_ALERT_READINESS_IN_PROGRESS__D141_RUNTIME_PASS_OA067_READY__D140_AGENT_V80_PARALLEL",
+      "status": "D142_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC83__OA068_FIELD_READY__D141_OA067_READY__D140_AGENT_V80_PARALLEL",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -173,19 +173,19 @@
       "web_source_status": "D120_SOURCE_CANDIDATE__SLA_DIRTY_GUARD__COMPACT_POLICY_UI__DYNAMIC_VIEWPORT__ROOT_ROLE_EDITOR",
       "web_admin_sku_excel_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
       "web_admin_report_monitoring": "D118_RUNTIME_PASS__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SELECTED_RANGE_FILTER",
-      "android_source_status": "D142_SOURCE_CANDIDATE__MT90_DT50_ANDROID11_CRITICAL_ALERT_READINESS__TARGET_NEXT_AFTER_VC82",
+      "android_source_status": "D142_SIGNED_BETA_VC83__MT90_DT50_ANDROID11_CRITICAL_ALERT_READINESS__OA068_FIELD_READY",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
-      "latest_signed_beta_release": "beta-vc82",
-      "latest_signed_beta_release_name": "1291 Báo hàng Beta 0.2.0-beta.82",
-      "latest_signed_beta_apk_sha256": "71c164ef5085e6bb99ece1672b5d23138fdb0a43e466981dc5dac5ffed6efac0",
-      "latest_signed_beta_apk_size_bytes": 19069316,
+      "latest_signed_beta_release": "beta-vc83",
+      "latest_signed_beta_release_name": "1291 Báo hàng Beta 0.2.0-beta.83",
+      "latest_signed_beta_apk_sha256": "NOT_RECORDED_BY_CURRENT_GITHUB_CONNECTOR__DO_NOT_INFER",
+      "latest_signed_beta_apk_size_bytes": null,
       "auth_rbac_status": "D110_ANDROID_PICKER_REPORTER_ONLY__ADMIN_ROOT_SERVER_DENIED__WEB_AGENT_UNCHANGED__RUNTIME_PASS",
       "auth_api_route_smoke": "PASS",
       "root_bootstrap_path_smoke": "PASS",
       "hr_settings_ui_status": "CONFIGURABLE_URL_TAB_EMPLOYEE_AND_NAME_HEADERS_DEPLOYED_PASS",
       "business_api_status": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
-      "latest_signed_beta_release_source_commit": "6d929e42fa2474712e0629a95bb5ac9cf59112bd",
+      "latest_signed_beta_release_source_commit": "4e382a39fa574fe49d176af435c1a6a4afdf75f4",
       "managed_password_status": "D100_ONE_FIREBASE_UID_PASSWORD_AUTHORITY__ADMIN_USERNAME_AGENT_LOGIN__ROOT_ADMIN_GMAIL_RECOVERY_LINK",
       "picker_lifecycle_status": "ONE_MANY_ALL_ENABLE_DISABLE_DELETE_IMPLEMENTED_DEPLOYED_BUILD_PASS",
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
@@ -196,7 +196,7 @@
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D118_PASS_RUN_36064078233__SOURCE_COMMIT_EXACT__SCHEMA11_11__AGENT_MIGRATION_0_0__OPERATIONAL5_5",
       "relay_agent_release_target": "relay-agent-v79__RELEASED",
-      "next_signed_beta_release_target": "NEXT_MONOTONIC_AFTER_BETA_VC82__D142_TARGET",
+      "next_signed_beta_release_target": "NO_D142_RELEASE_PENDING__BETA_VC83_RELEASED",
       "next_relay_agent_release_target": "relay-agent-v80__D140_TARGET",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
@@ -1632,7 +1632,7 @@
     "dashboard_probe_run": 36421277613
   },
   "d142": {
-    "status": "SOURCE_IMPLEMENTATION_IN_PROGRESS",
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC83__OA068_FIELD_READY",
     "scope": "BETA_ANDROID_ONLY__NEWLAND_MT90_AND_UROVO_DT50_ANDROID11",
     "branch": "feat/d142-android11-critical-alert-readiness",
     "baseline_main": "29c0d1577abe61a59b397d3e6c4b397196f37556",
@@ -1649,9 +1649,13 @@
     ],
     "battery_policy": "EVENT_DRIVEN__NO_ALERT_POLLING__NO_PERSISTENT_WAKELOCK__FOREGROUND_OVERLAY_ONLY_DURING_ACTIVE_ALERT",
     "new_provider_resources": "NONE",
-    "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC82",
+    "target_android_release": "beta-vc83__RELEASED",
     "agent_change": "NONE",
     "web_worker_change": "NONE__D141_RUNTIME_PASS_PRESERVED",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "implementation_pr": 284,
+    "main_merge": "4e382a39fa574fe49d176af435c1a6a4afdf75f4",
+    "release_source": "beta-vc83__EXACT_MAIN_4e382a39fa574fe49d176af435c1a6a4afdf75f4",
+    "release_asset_metadata": "TAG_AND_SOURCE_VERIFIED__ASSET_HASH_SIZE_NOT_EXPOSED_BY_CURRENT_CONNECTOR"
   }
 }
