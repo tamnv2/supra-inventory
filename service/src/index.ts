@@ -21,7 +21,7 @@ import { handleSystemResetApi } from "./system-reset";
 import { sendProjectEmail } from "./google-mail";
 import { latestAgentAppRelease, latestAgentBrowserBundle, latestPdaAppRelease, redirectLatestAgentBrowserBundle, redirectLatestAgentBrowserChecksum, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestPdaApk, redirectLatestPdaChecksum } from "./app-tools";
 import { handleD119Internal } from "./internal-d119";
-import { refreshPickerProjectionBestEffort } from "./firestore-projection";
+import { reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
 import { maybeRunRelayAuditExport } from "./relay-audit";
 
 
@@ -1340,6 +1340,8 @@ export default {
     if (controller.cron === "*/5 * * * *") {
       ctx.waitUntil(drainAgentLogUploads(env).then(() => undefined).catch((error) =>
         console.error("agent_log_drain_failed", error instanceof Error ? error.message : "unknown")));
+      ctx.waitUntil(reconcileRecentAgentKicks(env).then(() => undefined).catch((error) =>
+        console.error("agent_kick_reconcile_failed", error instanceof Error ? error.message : "unknown")));
       ctx.waitUntil(maybeRunRelayAuditExport(env).then(() => undefined).catch((error) =>
         console.error("relay_audit_export_failed", error instanceof Error ? error.message : "unknown")));
       // D136: provider Usage polling/snapshot publication retired. No periodic
