@@ -492,7 +492,7 @@ def main() -> None:
     require(firestore_transport, "_businessEnabled()", "D126 scheduled relay business gate")
 
     # D088: unified naming/icon, persistent Android session, tray-only Agent and editable overlay.
-    require(main_activity, '"1291 Beta"', "D088 Android product name")
+    require(main_activity, '"1291 Báo hàng Beta"', "D135 Android product name")
     require(inventory_api, '.put("client_type", "ANDROID")', "D088 Android session channel")
     require(main_activity, "restoreInteractiveSession", "D088 Android persistent session restore")
     require(main_activity, "persistInteractiveSession", "D088 Android persistent session save")
