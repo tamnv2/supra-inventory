@@ -13,12 +13,12 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D139_OWNER_FIELD_FAIL_REPAIR_IN_PROGRESS__D138_SUPERSEDED__D137_OA063_STILL_OPEN",
+    "beta": "D139_TECHNICAL_RUNTIME_PASS__OA065_FIELD_READY__D137_OA063_STILL_OPEN",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 12,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D139_SOURCE_CANDIDATE__GLOBAL_DIRTY_SLA_FORM_RERENDER_GUARD",
+    "web": "D139_RUNTIME_PASS_MAIN_21946984__GLOBAL_DIRTY_SLA_FORM_RERENDER_GUARD__OA065_FIELD_READY",
     "android": "D135_OWNER_FIELD_PASS__SIGNED_BETA_VC82__1291_BAO_HANG_BETA",
     "latest_beta_apk": "beta-vc82",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
@@ -190,7 +190,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Complete D139 PR/gates and Beta Web deploy, then Owner selects FIRST_REPORT, saves, reloads and verifies server-authoritative FIRST_REPORT persists. D137 OA063 remains independently open. Stable remains OWNER-GATED.",
+  "next_action": "Run OA065 on live Beta Web: wait until SLA page is fully loaded, select FIRST_REPORT, leave it selected for several seconds, save, then reload and verify both the radio and Đang áp dụng remain FIRST_REPORT. D137 OA063 remains independently open. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -216,7 +216,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D139 IN PROGRESS: D138 field FAIL. Owner saved FIRST_REPORT then F5 still returned PER_PICKER. D138 only guarded realtime reconcile; shared patchActiveSection could still rebuild a dirty SLA form from the old server snapshot through delayed section-load completion, network events or generic action-finally repaint. D139 moves protection to the shared patch boundary and submits the explicitly checked radio. Beta Web only; no schema/provider/Android/Agent change.",
+      "D139 TECHNICAL/RUNTIME PASS: PR #279 merged main 21946984; main Authority/State/UI/Beta Worker/Dashboard gates PASS. OA065 is READY_FOR_OWNER_FIELD_TEST for FIRST_REPORT Save + reload persistence. D138 is field-failed/superseded. D137 OA063 remains independently open; Android/Agent unchanged; Stable untouched.",
       "D138 TECHNICAL/RUNTIME PASS: PR #277 merged main 005d8298; main Authority/State/UI/Beta Worker/Dashboard gates PASS. OA064 is READY_FOR_OWNER_FIELD_TEST for FIRST_REPORT persistence. D137 OA063 remains independently open; Android/Agent unchanged; Stable untouched.",
       "D137 TECHNICAL/RELEASE PASS: PR #275 merged main b177ef0f; main Authority/State/UI/Agent/Dashboard gates PASS; relay-agent-v79 published and inventory-channel points to the exact v79 binary. OA063 is READY_FOR_OWNER_FIELD_TEST for real Confirm hydration without manual F5. Android beta-vc82 and Stable unchanged.",
       "D123 IN PROGRESS: v43 field-failed immediately after UI/session restore. Root cause confirmed in source: startup/login worker paths called D119 WinForms layout/DataGridView auto-size outside the UI thread. Target relay-agent-v44 marshals those mutations to the owning UI thread; no cadence/provider/WMS change.",
@@ -827,7 +827,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D139_SLA_GLOBAL_DIRTY_FORM_RERENDER_FIX_IN_PROGRESS",
+  "active_workstream": "D139_TECHNICAL_RUNTIME_PASS__OA065_OWNER_FIELD_READY",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -2072,7 +2072,7 @@
     "field_evidence": "OWNER_SELECTED_FIRST_REPORT__SAVE_AND_F5_STILL_RETURNED_PER_PICKER"
   },
   "d139": {
-    "status": "IMPLEMENTATION_IN_PROGRESS__BETA_WEB_ONLY",
+    "status": "TECHNICAL_RUNTIME_PASS__OA065_FIELD_READY",
     "date": "2026-09-28",
     "baseline_main": "401cd3a70b42c9629faa16531a137a7636d0ff13",
     "implementation_branch": "fix/d139-sla-dirty-form-global-rerender",
@@ -2080,8 +2080,18 @@
     "root_cause": "D138_GUARDED_REALTIME_RECONCILE_ONLY__SHARED_PATCH_ACTIVE_SECTION_COULD_STILL_REBUILD_DIRTY_SLA_FORM_FROM_OLD_SERVER_SNAPSHOT_VIA_DELAYED_SECTION_LOAD_NETWORK_EVENTS_OR_ACTION_FINALLY",
     "fix": "GLOBAL_PATCH_ACTIVE_SECTION_DIRTY_SLA_GUARD__EXPLICIT_CHECKED_RADIO_SUBMIT_AUTHORITY__EXISTING_SERVER_ROUNDTRIP_VERIFY_RETAINED",
     "scope": "BETA_WEB_WORKER_ASSET_DEPLOY_ONLY__NO_SCHEMA_PROVIDER_ANDROID_AGENT_CHANGE",
-    "field_gate": "OA065_BLOCKED_PENDING_TECHNICAL_RUNTIME_PASS",
+    "field_gate": "OA065_READY_FOR_OWNER_FIELD_TEST",
     "d137_parallel_gate": "OA063_REMAINS_OPEN_UNCHANGED",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "implementation_pr": 279,
+    "main_merge": "219469840a9ece147441b1ef9a0db8242109e5a7",
+    "main_runs": {
+      "repo_authority": 36414388407,
+      "project_state": 36414388431,
+      "beta_worker": 36414388456,
+      "ui_design": 36414388476,
+      "dashboard_probe": 36414388435
+    },
+    "runtime_proof": "BETA_DEPLOY_RUN_36414388456_PASS__WORKER_WEB_ASSETS_DURABLE_OBJECT_DEPLOY__HEALTH_SCHEMA_AUTH_BUSINESS_WEB_SHELL_OAUTH_GATES_PASS"
   }
 }
