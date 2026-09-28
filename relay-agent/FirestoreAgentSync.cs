@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -684,6 +685,7 @@ namespace SupraInventoryRelayAgent
                         throw new InvalidOperationException("Agent sync thiếu Firebase token.");
 
                     ApplyGrpcProxyFromWindows();
+                    PrepareGrpcNativeOverride();
                     channel = new Channel("firestore.googleapis.com", 443, new SslCredentials());
                     var client = new Google.Cloud.Firestore.V1.Firestore.FirestoreClient(channel);
                     var headers = new Metadata { { "authorization", "Bearer " + session.IdToken } };
@@ -746,11 +748,22 @@ namespace SupraInventoryRelayAgent
             catch { }
         }
 
+        private static string PrepareGrpcNativeOverride()
+        {
+            var assemblyDirectory = Path.GetDirectoryName(typeof(Channel).Assembly.Location) ?? "";
+            var nativePath = Path.Combine(assemblyDirectory, "win-x64", "grpc_csharp_ext.x64.dll");
+            if (!File.Exists(nativePath))
+                throw new FileNotFoundException("Costura gRPC native runtime was not extracted.", nativePath);
+            Environment.SetEnvironmentVariable("GRPC_CSHARP_EXT_OVERRIDE_LOCATION", nativePath);
+            return nativePath;
+        }
+
         internal static bool SelfTestNative()
         {
             Channel channel = null;
             try
             {
+                PrepareGrpcNativeOverride();
                 channel = new Channel("firestore.googleapis.com", 443, new SslCredentials());
                 return channel != null;
             }
