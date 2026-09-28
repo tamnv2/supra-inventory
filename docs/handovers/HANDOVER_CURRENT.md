@@ -1130,3 +1130,11 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Login and stored-session Dashboard recovery converge on the same refresh barrier. No reload loop, DevTools Network, session extraction, direct WMS API or additional provider polling.
 - Target: `relay-agent-v78`; Android `beta-vc82` unchanged; WebView2 host build 10 reused.
 - Branch: `fix/d137-picklist-height-confirm-refresh`; OA063 blocked pending release. Stable OWNER-GATED.
+
+## D137 v79 hotfix continuity — 2026-09-28
+
+- Owner field result on v78: normal-window PickList UI PASS; Confirm data hydration FAIL.
+- Sanitized field log: final WMS child attach 15:30:08.784 → v78 auto reload 15:30:09.400 → reload PASS 15:30:12.391 → first search NOT_FOUND 15:30:34.222 → after operator F5 search FOUND 15:31:03.904 and confirm PASS.
+- Root cause in v78 gating: reload fired against the final route too early and READY was based on DOM shell/navigation proof rather than data-hydration resilience.
+- v79 hotfix: final Confirm 3s settle → one normal reload → 1.2s stable post-reload DOM; first search with zero table PickList codes gets one bounded local reload/search retry.
+- Target `relay-agent-v79`; Android `beta-vc82` unchanged; no new provider resources; Stable OWNER-GATED.
