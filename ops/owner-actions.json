@@ -3357,7 +3357,7 @@
     },
     {
       "id": "OA068",
-      "status": "BLOCKED_PENDING_D142_TECHNICAL_RELEASE_PASS",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D142 Android 11 critical-alert readiness on MT90 and DT50",
       "resource_key": "repo",
       "provider": "Beta Android + existing FCM; no new provider resource",
@@ -3365,8 +3365,8 @@
       "prerequisites": {
         "baseline_main": "29c0d1577abe61a59b397d3e6c4b397196f37556",
         "implementation_branch": "feat/d142-android11-critical-alert-readiness",
-        "current_android": "beta-vc82",
-        "target_android": "NEXT_MONOTONIC_AFTER_BETA_VC82",
+        "current_android": "beta-vc83__RELEASED",
+        "target_android": "beta-vc83__RELEASED",
         "target_devices": [
           "Newland NLS-MT90 Android 11",
           "Urovo DT50 Android 11"
@@ -3374,7 +3374,20 @@
         "d141": "TECHNICAL_RUNTIME_PASS__OA067_FIELD_READY__UNCHANGED",
         "agent": "NO_D142_CHANGE",
         "new_provider_resources": "NONE",
-        "stable": "OWNER_GATED"
+        "stable": "OWNER_GATED",
+        "technical_release": "PASS__MAIN_4E382A39__SIGNED_BETA_VC83",
+        "implementation_pr": 284,
+        "main_merge": "4e382a39fa574fe49d176af435c1a6a4afdf75f4",
+        "pr_runs": {
+          "repo_authority": 36427225972,
+          "project_state": 36427226166,
+          "ui_design": 36427226362,
+          "android": 36427226198,
+          "firestore": 36427226312,
+          "rtdb": 36427225990,
+          "dashboard_probe": 36427226365
+        },
+        "release_proof": "beta-vc83 ref is identical to main 4e382a39; Android release workflow publishes only after exact-source Beta runtime gate success"
       },
       "shortest_test_path": [
         "Install the released D142 Beta APK on one normal Newland MT90 Android 11 and one Urovo DT50 Android 11.",
@@ -3392,7 +3405,7 @@
         "No D142 Agent/Web business/provider/Stable mutation."
       ],
       "safety": "Beta Android only. Normal Android settings remain user-granted; app does not silently modify DND/battery policy. Force Stop, powered-off device or total network loss remain platform conditions the app cannot override. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for D142 technical/release PASS, install the signed Beta on one MT90 and one DT50, and use the normal automatic setup flow. No manual alert-test button or deliberate Battery Saver/DND toggle sequence is required.",
+      "remaining_owner_action": "Install beta-vc83 on one MT90 Android 11 and one DT50 Android 11 and use the normal automatic permission/readiness flow. No special test button and no deliberate Battery Saver/DND toggle sequence are required.",
       "closed": false
     }
   ]

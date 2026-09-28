@@ -1240,3 +1240,13 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Existing data-only FCM HIGH delivery, D133/D135 full-screen overlay and local-first ACK are preserved. Full-screen intent/wake is a bounded Android 11 reliability layer only; no polling/persistent wake lock.
 - Target signed Android: next monotonic release after `beta-vc82`; OA068 opens after technical/release PASS.
 - D141 Web/SLA and D140 Agent v80 remain parallel/untouched by D142. No provider resource change. Stable OWNER-GATED.
+
+## D142 signed Beta release PASS — 2026-09-28
+
+- Canonical Android marker: `D142_SIGNED_BETA_VC83__ANDROID11_MT90_DT50_CRITICAL_ALERT_READINESS__OA068_FIELD_READY`.
+- Latest Beta APK: `beta-vc83`.
+- PR #284 merged main `4e382a39fa574fe49d176af435c1a6a4afdf75f4`; all D142 PR authority/state/UI/Android/Firestore/RTDB/Dashboard gates PASS.
+- `beta-vc83` resolves exactly to that main commit. The signed-release step is ordered after the exact-source Beta runtime gate in `Verify Beta Android`.
+- D142 technical/runtime/release state is PASS. OA068 is field-ready for normal operation on one MT90 Android 11 and one DT50 Android 11.
+- App startup blocks login only for missing critical-alert readiness items, routes the user to the relevant Settings screen, and auto-rechecks on Android Back. No manual check/test button is required.
+- Existing FCM HIGH, D133/D135 overlay/local-first ACK, Agent/Web behavior and Stable are unchanged.
