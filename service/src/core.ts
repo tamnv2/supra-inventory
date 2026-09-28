@@ -7,6 +7,7 @@ import { handleArchiveCoreRequest } from "./archive-core";
 import { handleSystemMetricsCoreRequest } from "./system-metrics-core";
 import { handleSystemResetCoreRequest } from "./system-reset-core";
 import { handleAuthRecoveryCoreRequest } from "./auth-recovery-core";
+import { handleRuntimeLogCoreRequest, initializeRuntimeLogSchema } from "./runtime-logs-core";
 import { handleOperationalV2CoreRequest, initializeOperationalV2Schema, operationalV2Readiness } from "./operational-v2-core";
 import {
   processOperationalDeadlines,
@@ -16,7 +17,7 @@ import {
 import { sendFcmNotifications } from "./fcm";
 import { readAndroidAlertWindow } from "./alert-window-core";
 
-const SCHEMA_VERSION = 13;
+const SCHEMA_VERSION = 14;
 
 interface CoreEnv {
   APP_ENV: string;
@@ -338,6 +339,7 @@ export class InventoryCore {
 
     initializeBusinessSchema(this.state);
     initializeOperationalV2Schema(this.state);
+    initializeRuntimeLogSchema(this.state);
 
     sql.exec(
       `INSERT OR IGNORE INTO users (user_id, firebase_uid, employee_code, display_name, role, status)
@@ -1052,6 +1054,9 @@ export class InventoryCore {
 
     const systemMetrics = await handleSystemMetricsCoreRequest(this.state, request);
     if (systemMetrics) return systemMetrics;
+
+    const runtimeLogs = await handleRuntimeLogCoreRequest(this.state, request);
+    if (runtimeLogs) return runtimeLogs;
 
     const readModel = await handleReadModelCoreRequest(
       this.state,
