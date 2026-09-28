@@ -3269,6 +3269,39 @@
       "safety": "Beta Web only. Revision-safe server authority remains unchanged. Stable remains OWNER-GATED.",
       "remaining_owner_action": "On live Beta Web, wait until Thời gian xử lý is fully loaded, select FIRST_REPORT, leave it selected for several seconds, save, reload, and verify the radio plus Đang áp dụng both remain FIRST_REPORT.",
       "closed": false
+    },
+    {
+      "id": "OA066",
+      "status": "BLOCKED_PENDING_D140_TECHNICAL_RUNTIME_PASS",
+      "title": "Field-accept D140 Firestore Agent listener storm and quota repair",
+      "resource_key": "repo",
+      "provider": "Beta Windows Agent + existing Beta Firestore",
+      "reason_owner_only": "CI can prove source/build routing, retry, circuit and HA-role guards, but final acceptance requires real Beta Agent/Firestore streaming behavior and post-fix usage observation on the field network.",
+      "prerequisites": {
+        "baseline_main": "4d072280d219b6a41e837c8b781b30684541e9a3",
+        "implementation_branch": "fix/d140-firestore-listener-storm-r2",
+        "target_agent": "relay-agent-v80",
+        "android": "beta-vc82__UNCHANGED",
+        "new_provider_resources": "NONE",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Update test laptops to relay-agent-v80; no PDA/APK update is required.",
+        "Run PRIMARY + NEXT_A + NEXT_B and at least one DEEP_HIBERNATE Agent for 30–60 minutes.",
+        "Confirm only the HA trio has the compact listener, no repeating InvalidArgument appears, and normal PDA PickList confirmation still returns correctly.",
+        "Check Firebase Firestore Usage after the soak window and confirm reads no longer spike from reconnect attempts."
+      ],
+      "pass_criteria": [
+        "No one-second AGENT_SYNC reconnect loop.",
+        "Permanent gRPC failure opens a five-minute circuit and logs sanitized Status.Detail.",
+        "DEEP_HIBERNATE keeps no compact agent_sync listener.",
+        "Normal steady PRIMARY reconciliation remains five-minute bounded and unchanged sync state skips writes.",
+        "PickList confirmation/failover behavior remains functional with beta-vc82 unchanged.",
+        "Firestore read growth is proportional to real events/bounded reconciliation rather than reconnect amplification."
+      ],
+      "safety": "Beta Agent only. Do not expose Firebase tokens, Agent credentials or WMS session data. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for D140 technical/runtime/release PASS and relay-agent-v80 publication, then run the shortest field soak path.",
+      "closed": false
     }
   ]
 }

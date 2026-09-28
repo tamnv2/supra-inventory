@@ -1149,3 +1149,12 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - OA065 is READY_FOR_OWNER_FIELD_TEST for FIRST_REPORT save + browser-reload persistence.
 - D138 is field-failed and superseded by D139. D137 OA063 remains independently open.
 - Android remains `beta-vc82`; Agent remains `relay-agent-v79`; Stable remains OWNER-GATED.
+
+## D140 Agent Firestore listener storm candidate — 2026-09-28
+
+- Target Agent: `relay-agent-v80`; Android remains `beta-vc82`.
+- Candidate adds Firestore streaming routing metadata, accepted-response-gated backoff reset, 5-minute permanent-error circuit, 2s→60s transient retry, HA-trio-only compact listeners and unchanged-state PATCH suppression.
+- CI must pass v80 build, packaged gRPC native smoke, D140 sync-safety self-test and source guards before main publication.
+- OA066 remains blocked until v80 is released and the Owner completes a 30–60 minute multi-Agent soak with no reconnect storm and normalized Firestore usage.
+- No new provider resource; Stable remains OWNER-GATED.
+
