@@ -3435,7 +3435,7 @@
     },
     {
       "id": "OA069",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "FIELD_FAIL__SUPERSEDED_BY_D144",
       "title": "Field-accept D143 Android, Web and Agent operational refinements",
       "resource_key": "repo",
       "provider": "Beta Android + Web/Worker + existing Firebase/Firestore + Windows Agent",
@@ -3476,8 +3476,14 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. No new provider resources, no plaintext password/token/session material, no Stable mutation.",
-      "remaining_owner_action": "Run the OA069 shortest field path on relay-agent-v81 + beta-vc84 and report any failing item; Stable remains untouched.",
-      "closed": false
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-29",
+        "result": "FAIL",
+        "evidence": "Owner field test found revoked runtime-log OAuth, Agent chat input/delivery failure, and legacy Picker session reappearing after Kích User. Direct call remains PASS.",
+        "superseded_by": "D144"
+      }
     },
     {
       "id": "OA070",
@@ -3516,6 +3522,66 @@
         "release_id": 398516587,
         "source_commit": "96e38ca88633ef9a0114d6682bdac5bea2d4f2c8"
       }
+    },
+    {
+      "id": "OA071",
+      "status": "BLOCKED_PENDING_D144_TECHNICAL_RELEASE_AND_OA072",
+      "title": "Field-accept D144 logs, Picker chat and legacy kick repair",
+      "resource_key": "repo",
+      "provider": "Beta Web/Worker + Android + existing Firestore + Windows Agent",
+      "reason_owner_only": "Final chat/full-screen behavior, legacy APK kick behavior and Web runtime-log listing need one real PDA/Agent/browser field check.",
+      "prerequisites": {
+        "target_agent": "relay-agent-v82",
+        "target_android": "next monotonic signed Beta after beta-vc84",
+        "logs_folder_access": "OA072_PASS_REQUIRED",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Open Web → Nhật ký and require Android/Web logs to list without LOGS_OAUTH_FAILED.",
+        "Agent v82: open Gửi nội dung chat, type a normal 20–100 character sentence continuously, then send.",
+        "PDA on the new Beta build: require full-screen chat with the exact specialist wording; Xác nhận closes locally with no Agent ACK/end action.",
+        "Repeat direct Gọi thẳng về bàn CV and confirm existing 60-second call/resolve behavior remains unchanged.",
+        "Kích one Picker logged in on an older APK. The Agent list must remove it immediately; when Worker is reachable its Android server session must be invalidated so business requests are rejected until a fresh login."
+      ],
+      "pass_criteria": [
+        "Runtime-log list/upload no longer depends solely on a user OAuth refresh token.",
+        "Chat input keeps focus and allows up to 200 characters.",
+        "Chat has direct Firestore control delivery plus FCM compatibility and local-only dismiss.",
+        "Kích User invalidates server Android session and does not let stale legacy presence simply resurrect.",
+        "Stable remains untouched."
+      ],
+      "safety": "Beta only; no new provider resource; no secret/token/session material in logs or repo.",
+      "remaining_owner_action": "Complete OA072, then install released D144 Agent/Android and run the shortest test path.",
+      "closed": false
+    },
+    {
+      "id": "OA072",
+      "status": "OWNER_ACTION_REQUIRED",
+      "title": "Grant Beta runtime service account access to Logs folder",
+      "resource_key": "logs-folder-beta",
+      "provider": "Google Drive",
+      "reason_owner_only": "Drive metadata proves the existing Beta Logs folder is currently owner-only. The connected Drive action can inspect but cannot share folders. D144 removes runtime-log dependence on a revocable user OAuth token by falling back to the existing Beta runtime service account, which needs Editor access to this already-scoped folder.",
+      "prerequisites": {
+        "folder": "Inventory/Beta/Logs",
+        "runtime_service_account": "inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com",
+        "permission": "Editor",
+        "new_provider_resource": "NONE",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_test_path": [
+        "Google Drive → Inventory/Beta/Logs → Share.",
+        "Add inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com as Editor.",
+        "Save. No link/public sharing is needed."
+      ],
+      "pass_criteria": [
+        "Only the existing Beta runtime service account gains Editor access to the existing Logs folder.",
+        "Folder remains non-public.",
+        "D144 runtime-log list/upload works when the user OAuth refresh token is revoked.",
+        "Stable remains untouched."
+      ],
+      "safety": "Do not share publicly and do not paste OAuth tokens or service-account keys into chat/repo.",
+      "remaining_owner_action": "Share the existing Beta Logs folder to the existing Beta runtime service account as Editor.",
+      "closed": false
     }
   ]
 }
