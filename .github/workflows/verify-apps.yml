@@ -100,6 +100,8 @@ jobs:
           api="android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt"
           watcher="android/app/src/main/java/cd/cc/supra/inventory/beta/PickerActiveCallWatcher.kt"
           main="android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt"
+          critical="android/app/src/main/java/cd/cc/supra/inventory/beta/CriticalOverlayService.kt"
+          manifest="android/app/src/main/AndroidManifest.xml"
           gradle_file="android/app/build.gradle.kts"
           grep -q 'com.google.firebase:firebase-auth' "$gradle_file"
           grep -q 'com.google.firebase:firebase-firestore' "$gradle_file"
@@ -155,6 +157,24 @@ jobs:
           grep -q 'lock_until_ms' "$watcher"
           grep -q 'System.currentTimeMillis() + 60_000L' "$watcher"
           grep -q 'Phiên PDA đã bị Kích User' "$main"
+          grep -q 'activeResultDialog' "$picker"
+          grep -q 'NotificationSignalStore.markOverlayAckPending' "$picker"
+          python3 - <<'PY'
+from pathlib import Path
+picker = Path("android/app/src/main/java/cd/cc/supra/inventory/beta/PickerController.kt").read_text(encoding="utf-8")
+start = picker.find("acknowledge.setOnClickListener")
+local_ack = picker.find("NotificationSignalStore.markOverlayAckPending", start)
+dismiss = picker.find("dialog.dismiss()", start)
+network_ack = picker.find("api.acknowledgeResult(eventId)", start)
+if min(start, local_ack, dismiss, network_ack) < 0 or not (local_ack < dismiss < network_ack):
+    raise SystemExit("D135 in-app result acknowledgement must dismiss locally before network ACK")
+PY
+          if grep -q 'Cảnh báo tự đóng sau tối đa 60 giây' "$critical"; then
+            echo "D135 must not expose the specialist-call TTL implementation detail to Picker." >&2
+            exit 1
+          fi
+          grep -q 'android:label="1291 Báo hàng Beta"' "$manifest"
+          grep -q '1291 Báo hàng Beta' "$main"
           grep -q 'hệ thống sẽ tự chuyển Agent dự phòng nếu cần' "$client"
           if grep -A8 'fun sendProbe' "$client" | grep -q 'runDueCleanup'; then
             echo "D115 cleanup must stay off the Picker confirmation critical path" >&2
@@ -171,7 +191,7 @@ jobs:
             echo "D097 confirmation client must not use RTDB" >&2
             exit 1
           fi
-          echo "D134 Android generation fence / Kick User / 60-second call / relay terminal PASS"
+          echo "D135 Android local-first ACK / branding / D134 relay guards PASS"
 
       - name: Assemble Android 11+ Beta APK
         env:
