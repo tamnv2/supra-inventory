@@ -2919,7 +2919,7 @@
     },
     {
       "id": "OA060",
-      "status": "FIELD_DEFECTS_REPORTED__D134_HOTFIX_IN_PROGRESS",
+      "status": "READY_FOR_OWNER_FIELD_RETEST",
       "title": "Field-accept D134 Agent/PDA reliability, compact fleet sync and session kick",
       "resource_key": "repo",
       "provider": "Beta Windows Agent + Beta Android + existing Worker/Firestore/Functions",
@@ -2928,14 +2928,14 @@
         "baseline_main": "efdce403685efb800d84fe72002ba374a84af55d",
         "baseline_agent_release": "relay-agent-v73",
         "baseline_android": "beta-vc79",
-        "target_agent_release": "relay-agent-v74",
-        "target_android": "beta-vc80",
+        "target_agent_release": "relay-agent-v75",
+        "target_android": "beta-vc81",
         "target_fleet": "UP_TO_10_AGENTS",
         "compact_reconcile": "5_MINUTES",
         "soft_firestore_reads_day": 45000,
         "new_provider_resources": "NONE",
         "stable": "OWNER_GATED",
-        "technical_release": "PASS__MAIN_8B703F12__AGENT_V74__BETA_VC80",
+        "technical_release": "HOTFIX_PASS__MAIN_3D44E798__AGENT_V75__BETA_VC81",
         "implementation_pr": 266,
         "main_merge": "8b703f12ec6f1667e43dab101114f2fbcc1a8819",
         "main_runs": {
@@ -2957,7 +2957,24 @@
         },
         "hotfix_target_agent_release": "relay-agent-v75",
         "hotfix_target_android": "beta-vc81",
-        "field_failure": "VC80_FIRESTORE_CREATE_DENIED_BY_STRING_SESSION_GENERATION__V74_GRPC_NATIVE_MISSING"
+        "field_failure": "VC80_FIRESTORE_CREATE_DENIED_BY_STRING_SESSION_GENERATION__V74_GRPC_NATIVE_MISSING",
+        "hotfix_implementation_pr": 268,
+        "hotfix_main_merge": "3d44e798a2f0a4cf8b6950a86740bec806798a57",
+        "hotfix_main_runs": {
+          "repo_authority": 36381893542,
+          "project_state": 36381893536,
+          "beta_worker": 36381893522,
+          "android": 36381893549,
+          "relay_agent": 36381893558,
+          "ui_design": 36381893554,
+          "dashboard_probe": 36381893533
+        },
+        "hotfix_release_evidence": {
+          "agent_release": "relay-agent-v75",
+          "agent_sha256": "fd698b987aa2f3861c07fddd5c74c9ec3acf04462be138b290a0f26d9cb876de",
+          "android_release": "beta-vc81",
+          "android_sha256": "ecfc70f218bcaa78d11e756315da8ca42e75b4ce536117fb5ccb317fc5775d0e"
+        }
       },
       "shortest_test_path": [
         "Update all test Agents to v75 and one or more PDAs to the beta-vc81 D134 hotfix build.",
@@ -2980,7 +2997,7 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Do not expose passwords, Firebase tokens, WMS/browser session material or signing credentials. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "No field retest until D134 hotfix is merged and relay-agent-v75 + beta-vc81 are published. Then rerun OA060 from PickList send first; Stable remains untouched.",
+      "remaining_owner_action": "Update Agent to relay-agent-v75 and Android to beta-vc81, then retest PickList send first. PASS requires Android Firestore CREATE to succeed, Agent to receive the PDA request, and no AGENT_SYNC grpc native reconnect. Continue the remaining OA060 field checks only after that first path passes. Stable remains untouched.",
       "closed": false
     }
   ]
