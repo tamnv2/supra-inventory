@@ -552,3 +552,12 @@ Owner reported that selecting **Theo báo đầu tiên của SKU** on Web **Th�
 Source analysis isolates the defect to the Web realtime reconciliation path, not the SLA persistence contract. `loadSla()` already refuses to replace a dirty form, but `reconcileActive()` then performed an unconditional generic section patch using the older `slaResponse`, which visually reset the radio before Save captured `FormData`.
 
 D138 makes the SLA reconcile branch return immediately after `loadSla()`. This leaves dirty-state protection and SLA rendering under one authority while retaining the existing server response + post-save reload verification. There is no schema, provider, Android or Agent change. D137 OA063 remains independently open; Stable remains OWNER-GATED.
+
+
+## D138 runtime checkpoint — 2026-09-28
+
+- PR #277 merged to main `005d829811ddfa534f0552cd808d69e12c5cf763`.
+- Main Authority/State/UI/Beta Worker/Dashboard gates PASS; Beta deploy run `36408876240` PASS.
+- Live Beta Web now contains the SLA realtime dirty-form preservation fix. No service schema, provider, Android or Agent change was required.
+- OA064 is READY_FOR_OWNER_FIELD_TEST: select `FIRST_REPORT`, allow realtime activity, save, reload, and verify the server-authoritative mode remains `FIRST_REPORT`.
+- D137 OA063 remains independently open. Stable remains OWNER-GATED.
