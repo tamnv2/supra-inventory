@@ -1673,3 +1673,24 @@ In addition to the D137 UI checks:
 5. Refresh the browser.
    - PASS: radio and **Đang áp dụng** both show **Theo báo đầu tiên của SKU**.
 6. Confirm no schema/provider/Android/Agent changes and Stable remains untouched.
+
+### D140 — Agent Firestore listener storm / quota regression
+
+1. Build Agent v80 and run the packaged gRPC native smoke test plus `--d140-sync-safety-self-test`.
+   - PASS: routing metadata, retry classification and circuit policy self-test exit 0.
+2. Start at least PRIMARY + NEXT_A + NEXT_B + one DEEP_HIBERNATE Agent.
+   - PASS: PRIMARY/NEXT_A/NEXT_B may log one compact `AGENT_SYNC listen=CONNECTED`; DEEP_HIBERNATE logs listener disabled and creates no compact listener connection.
+3. Validate a normal compact listener session.
+   - PASS: no repeating `InvalidArgument`; the first accepted server response is required before retry backoff resets.
+4. Simulate a permanent listener failure.
+   - PASS: one error includes sanitized `Status.Detail`, `circuit=OPEN`, and the next probe is delayed at least five minutes; no one-second reconnect loop exists.
+5. Simulate a transient transport failure.
+   - PASS: retry grows from at least 2s toward 60s and resets only after a valid Firestore response.
+6. Leave PRIMARY steady for at least 15 minutes with no Picker/fleet/call/counter changes.
+   - PASS: reconcile cadence stays at five minutes and unchanged `agent_sync` state logs `write=SKIP_NO_CHANGE` instead of PATCH.
+7. Send normal PDA PickList requests and verify confirmation result/ACK latency and failover behavior remain within the already accepted transport envelope.
+   - PASS: no Android/APK update is required.
+8. Compare Firestore usage before/after the field run.
+   - PASS: reads track actual listener events/bounded reconciliation rather than thousands of reconnect attempts per hour.
+9. Stable remains untouched.
+
