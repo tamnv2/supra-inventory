@@ -1909,3 +1909,17 @@ D133 technical/release gates passed, but the Owner's physical field test found d
 10. **Existing resources only.** Beta Worker, Firestore, Functions, Android and Agent distribution resources are reused. Stable remains OWNER-GATED and untouched.
 
 Implementation target: **relay-agent-v74** plus the next monotonic signed Beta Android release after `beta-vc79`. No Stable mutation is authorized.
+
+## D134 technical/runtime/release checkpoint — 2026-09-28
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA060 OWNER FIELD REVIEW READY**.
+
+- Implementation PR #266 merged to main `8b703f12ec6f1667e43dab101114f2fbcc1a8819`.
+- Main PASS evidence: Repo Authority `36378669821`, Project State `36378669818`, Beta Worker `36378669809`, Beta Firestore `36378669837`, Beta Functions `36378669820`, Android `36378669791`, Agent `36378669807`, UI `36378669834`, Dashboard Probe `36378669798`.
+- Beta runtime health passed on the exact merged source: HTTP 200/status ok, source commit exact, SQLite `12/12`, Operational V2 `5/5`, Agent migration `0/0`.
+- Firestore Rules deployed and release readback PASS. Beta Functions updated `pickerAlertCreated`, `pickerAlertResolved`, `pickerActiveCallCreated`, and `pickerActiveCallResolved`.
+- Signed Android release: `beta-vc80`, release `397956615`, APK asset `594510841`, size `19069292`, SHA-256 `c25e052f308154ed4fe30ea584ecebc7aab0c26bcd9fb53f99313070c73cf330`.
+- Agent release: `relay-agent-v74`, release `397956520`, EXE asset `594510384`, size `7029760`, SHA-256 `3c3792de465cc1e81f772a90ad2591c14bf79c8e97298ea743ca7701edbf366b`.
+- Fixed `inventory-channel` now carries the D134 Agent/APK artifacts; the approved Fixed WebView2 bundle remains unchanged.
+- OA060 is the remaining physical Owner field gate. Stable remains OWNER-GATED and untouched.
+
