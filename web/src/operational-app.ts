@@ -798,12 +798,20 @@ function resolutionActorLabel(row: {
   return String(row.resolved_by_user_id || "—");
 }
 
+function matchingDatePreset(from: string, to: string): number | null {
+  if (to !== dateDaysAgo(0)) return null;
+  for (const days of [0, 6, 29, 59]) {
+    if (from === dateDaysAgo(days)) return days;
+  }
+  return null;
+}
+
 function renderDatePresets(target: "dashboard" | "reports"): string {
   const from = target === "dashboard" ? dashboardFrom : reportFrom;
   const to = target === "dashboard" ? dashboardTo : reportTo;
-  const today = dateDaysAgo(0);
+  const matched = matchingDatePreset(from, to);
   const button = (days: number, label: string) => {
-    const active = to === today && from === dateDaysAgo(days);
+    const active = matched === days;
     return `<button type="button" class="btn secondary small${active ? " active" : ""}" aria-pressed="${active ? "true" : "false"}" data-date-target="${target}" data-date-days="${days}">${label}</button>`;
   };
   return `<div class="toolbar date-presets compact-date-presets" aria-label="Chọn nhanh khoảng ngày">
@@ -815,7 +823,8 @@ function renderDatePresets(target: "dashboard" | "reports"): string {
 }
 
 function renderCompactDateRange(target: "dashboard" | "reports", from: string, to: string): string {
-  return `<div class="compact-date-range" role="group" aria-label="Khoảng ngày dữ liệu">
+  const custom = matchingDatePreset(from, to) == null;
+  return `<div class="compact-date-range${custom ? " custom-range-active" : ""}" role="group" aria-label="Khoảng ngày dữ liệu">
     <label><span>Từ</span><input name="from" type="date" value="${esc(from)}" /></label>
     <span class="compact-date-separator">–</span>
     <label><span>Đến</span><input name="to" type="date" value="${esc(to)}" /></label>
