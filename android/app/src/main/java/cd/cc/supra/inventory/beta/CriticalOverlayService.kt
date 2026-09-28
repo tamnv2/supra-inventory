@@ -186,12 +186,6 @@ class CriticalOverlayService : Service() {
             gravity = Gravity.CENTER
             setPadding(0, 18, 0, 18)
         }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
-        card.addView(TextView(this).apply {
-            text = "Cảnh báo tự đóng sau tối đa 60 giây; chuyên viên có thể kết thúc sớm trên Agent."
-            textSize = 14f
-            setTextColor(Color.rgb(71, 85, 105))
-            gravity = Gravity.CENTER
-        })
         root.addView(card, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT,
