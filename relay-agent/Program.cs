@@ -81,6 +81,26 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
+            var d139SyncSafetySelfTest = args != null && Array.Exists(args, item =>
+                string.Equals(item, "--d139-sync-safety-self-test", StringComparison.OrdinalIgnoreCase));
+            if (d139SyncSafetySelfTest)
+            {
+                try
+                {
+                    var safetyPass = FirestoreAgentSyncListener.SelfTestSafetyPolicy();
+                    AgentDiagnostics.Write("D139 AGENT_SYNC_SAFETY routing_retry_circuit=" + (safetyPass ? "PASS" : "FAIL"));
+                    Environment.ExitCode = safetyPass ? 0 : 9;
+                }
+                catch (Exception ex)
+                {
+                    AgentDiagnostics.Write(
+                        "D139 AGENT_SYNC_SAFETY exception type=" + ex.GetType().Name +
+                        " message=" + AgentDiagnostics.Sanitize(ex.Message));
+                    Environment.ExitCode = 10;
+                }
+                return;
+            }
+
             var d102SelfTest = args != null && Array.Exists(args, item =>
                 string.Equals(item, "--d102-self-test", StringComparison.OrdinalIgnoreCase));
             if (d102SelfTest)
@@ -2685,7 +2705,6 @@ namespace SupraInventoryRelayAgent
             try
             {
                 AgentRuntimeGuard.EnsureWatchdog();
-                StartD134AgentSync();
                 QueueD128BrowserStateRefresh();
                 ReconcileOperationalReadiness();
                 Ui(() => _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser());
@@ -2735,6 +2754,7 @@ namespace SupraInventoryRelayAgent
                 Log,
                 (role, primaryId) =>
                 {
+                    ApplyD139AgentSyncRole(role);
                     Ui(() =>
                     {
                         var roleText = role == FirestoreAgentRole.PRIMARY
@@ -2754,6 +2774,7 @@ namespace SupraInventoryRelayAgent
         {
             var coordinator = _leaderCoordinator;
             _leaderCoordinator = null;
+            ApplyD139AgentSyncRole(FirestoreAgentRole.DEEP_HIBERNATE);
             try { if (coordinator != null) coordinator.Stop(); } catch { }
         }
 
