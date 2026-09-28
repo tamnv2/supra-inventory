@@ -1091,6 +1091,8 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - D134 fleet/presence/generation/quota architecture is preserved. Stable remains OWNER-GATED and untouched.
 
 ## D135 release-state refresh — 2026-09-28
+- Canonical release marker: `D135_TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_6D929E42__AGENT_V76__BETA_VC82__OA061_FIELD_READY`.
+- Canonical release marker: `D135_SIGNED_BETA_VC82__1291_BAO_HANG_BETA__LOCAL_FIRST_RESULT_ACK_ALL_SURFACES__OA061_FIELD_READY`.
 
 - Main source: `6d929e42fa2474712e0629a95bb5ac9cf59112bd`.
 - Windows Agent: `relay-agent-v76`.
