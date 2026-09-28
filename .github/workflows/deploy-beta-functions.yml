@@ -40,7 +40,7 @@ jobs:
           grep -q 'pickerAlertCreated' functions/src/index.ts
           grep -q 'pickerActiveCallCreated' functions/src/index.ts
           grep -q 'pickerActiveCallResolved' functions/src/index.ts
-          grep -q 'PICKER_ACTIVE_CALL_TTL_MS = 60 * 1000' functions/src/index.ts
+          grep -Fq 'PICKER_ACTIVE_CALL_TTL_MS = 60 * 1000' functions/src/index.ts
           if grep -q 'skuSyncCreated' functions/src/index.ts; then
             echo "D126 forbids skuSyncCreated in active Functions source"
             exit 1
