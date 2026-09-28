@@ -89,9 +89,13 @@ namespace SupraInventoryRelayAgent
         private long _lastFleetCheckpointLocalRequests = -1L;
         private long _lastFleetCheckpointLocalResponses = -1L;
         private bool _lastFleetPrimary;
-        private readonly CheckBox _autoSizeColumns = new CheckBox();
+        private readonly Button _autoSizeColumnsButton = new Button();
+        private bool _autoSizeColumnsEnabled = true;
         private bool _columnPreferenceApplying;
         private string _columnPreferenceUser = "";
+        private Rectangle _savedNormalWindowBounds = Rectangle.Empty;
+        private FormWindowState _lastTrackedWindowState = FormWindowState.Normal;
+        private bool _restoringSavedWindowBounds;
         private D128OverlayForm _d128Overlay;
         private readonly Button _d128OverlaySettingsButton = new Button();
         private ToolStripMenuItem _d128OverlayVisibleMenu;
@@ -106,6 +110,11 @@ namespace SupraInventoryRelayAgent
             public Dictionary<string, int> Agent = new Dictionary<string, int>(StringComparer.Ordinal);
             public Dictionary<string, int> Picker = new Dictionary<string, int>(StringComparer.Ordinal);
             public Dictionary<string, int> PickList = new Dictionary<string, int>(StringComparer.Ordinal);
+            public bool HasWindowBounds;
+            public int WindowLeft;
+            public int WindowTop;
+            public int WindowWidth;
+            public int WindowHeight;
         }
 
         private void InitializeD119AgentFeatures(TableLayoutPanel overviewLayout)
@@ -263,7 +272,7 @@ namespace SupraInventoryRelayAgent
             overviewLayout.Controls.Add(pickerCard, 1, 0);
             overviewLayout.SetRowSpan(pickerCard, 3);
 
-            InitializeColumnPreferences();
+            InitializeColumnPreferences(pickerCard);
 
             _d119OpsTimer.Interval = 30000;
             _d119OpsTimer.Tick += (s, e) =>
@@ -372,44 +381,75 @@ namespace SupraInventoryRelayAgent
             get { return Path.Combine(RelayDataDir, "grid-column-preferences.json"); }
         }
 
-        private void InitializeColumnPreferences()
+        private void InitializeColumnPreferences(Control pickerCard)
         {
-            var host = _username.Parent;
-            if (host != null)
+            if (pickerCard != null)
             {
-                _autoSizeColumns.Text = "Tự căn cột theo nội dung";
-                _autoSizeColumns.AutoSize = true;
-                _autoSizeColumns.Checked = true;
-                _autoSizeColumns.Top = 12;
-                _autoSizeColumns.Left = Math.Max(460, host.ClientSize.Width - 205);
-                _autoSizeColumns.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-                _autoSizeColumns.CheckedChanged += (s, e) =>
+                _autoSizeColumnsButton.Width = 152;
+                _autoSizeColumnsButton.Height = 28;
+                _autoSizeColumnsButton.Top = 4;
+                _autoSizeColumnsButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+                _autoSizeColumnsButton.FlatStyle = FlatStyle.System;
+                _autoSizeColumnsButton.Click += (s, e) =>
                 {
                     if (_columnPreferenceApplying) return;
+                    _autoSizeColumnsEnabled = !_autoSizeColumnsEnabled;
+                    UpdateAutoSizeColumnsButton();
                     ApplyColumnPreferenceMode();
                     SaveColumnPreferencesForCurrentUser();
                 };
-                host.Controls.Add(_autoSizeColumns);
-                _autoSizeColumns.BringToFront();
+                pickerCard.Controls.Add(_autoSizeColumnsButton);
+                pickerCard.Resize += (s, e) =>
+                {
+                    _autoSizeColumnsButton.Left = Math.Max(8, pickerCard.ClientSize.Width - _autoSizeColumnsButton.Width - 12);
+                };
+                _autoSizeColumnsButton.Left = Math.Max(8, pickerCard.ClientSize.Width - _autoSizeColumnsButton.Width - 12);
+                _autoSizeColumnsButton.BringToFront();
             }
+            UpdateAutoSizeColumnsButton();
 
             foreach (var grid in new[] { _agentFleetGrid, _pickerOnlineGrid, _manualPicklistGrid })
             {
                 grid.AllowUserToResizeColumns = false;
                 grid.ColumnWidthChanged += (s, e) =>
                 {
-                    if (_columnPreferenceApplying || _autoSizeColumns.Checked) return;
+                    if (_columnPreferenceApplying || _autoSizeColumnsEnabled) return;
                     SaveColumnPreferencesForCurrentUser();
                 };
             }
+
             ResizeEnd += (s, e) =>
             {
-                if (!_autoSizeColumns.Checked) return;
+                if (WindowState == FormWindowState.Normal)
+                {
+                    CaptureCurrentNormalWindowBounds(true);
+                    SaveColumnPreferencesForCurrentUser();
+                }
+                if (!_autoSizeColumnsEnabled) return;
                 ApplyColumnSizingIfEnabled(_agentFleetGrid);
                 ApplyColumnSizingIfEnabled(_pickerOnlineGrid);
                 ApplyColumnSizingIfEnabled(_manualPicklistGrid);
             };
+            Move += (s, e) =>
+            {
+                if (WindowState == FormWindowState.Normal && !_restoringSavedWindowBounds)
+                    CaptureCurrentNormalWindowBounds(false);
+            };
+            Resize += (s, e) => HandleTrackedWindowStateChange();
+            Activated += (s, e) =>
+            {
+                RestoreSavedNormalBoundsIfNeeded();
+                RefreshPickerPresenceOnForeground();
+            };
+
             LoadColumnPreferencesForCurrentUser();
+        }
+
+        private void UpdateAutoSizeColumnsButton()
+        {
+            _autoSizeColumnsButton.Text = _autoSizeColumnsEnabled
+                ? "Auto size cột: Bật"
+                : "Auto size cột: Tắt";
         }
 
         private string CurrentColumnPreferenceUser()
@@ -463,7 +503,16 @@ namespace SupraInventoryRelayAgent
             try
             {
                 _columnPreferenceUser = user;
-                _autoSizeColumns.Checked = profile.AutoSize;
+                _autoSizeColumnsEnabled = profile.AutoSize;
+                UpdateAutoSizeColumnsButton();
+                if (profile.HasWindowBounds)
+                {
+                    _savedNormalWindowBounds = NormalizeSavedWindowBounds(new Rectangle(
+                        profile.WindowLeft,
+                        profile.WindowTop,
+                        profile.WindowWidth,
+                        profile.WindowHeight));
+                }
                 RestoreGridWidths(_agentFleetGrid, profile.Agent);
                 RestoreGridWidths(_pickerOnlineGrid, profile.Picker);
                 RestoreGridWidths(_manualPicklistGrid, profile.PickList);
@@ -499,12 +548,20 @@ namespace SupraInventoryRelayAgent
             var user = CurrentColumnPreferenceUser();
             if (string.IsNullOrWhiteSpace(user)) return;
             var store = ReadColumnPreferenceStore();
+            var bounds = _savedNormalWindowBounds;
+            if (WindowState == FormWindowState.Normal && !_restoringSavedWindowBounds)
+                bounds = Bounds;
             var profile = new ColumnPreferenceProfile
             {
-                AutoSize = _autoSizeColumns.Checked,
+                AutoSize = _autoSizeColumnsEnabled,
                 Agent = CaptureGridWidths(_agentFleetGrid),
                 Picker = CaptureGridWidths(_pickerOnlineGrid),
-                PickList = CaptureGridWidths(_manualPicklistGrid)
+                PickList = CaptureGridWidths(_manualPicklistGrid),
+                HasWindowBounds = !bounds.IsEmpty,
+                WindowLeft = bounds.IsEmpty ? 0 : bounds.Left,
+                WindowTop = bounds.IsEmpty ? 0 : bounds.Top,
+                WindowWidth = bounds.IsEmpty ? 0 : bounds.Width,
+                WindowHeight = bounds.IsEmpty ? 0 : bounds.Height
             };
             store[user] = profile;
             WriteColumnPreferenceStore(store);
@@ -520,8 +577,8 @@ namespace SupraInventoryRelayAgent
             }
             foreach (var grid in new[] { _agentFleetGrid, _pickerOnlineGrid, _manualPicklistGrid })
             {
-                grid.AllowUserToResizeColumns = !_autoSizeColumns.Checked;
-                if (_autoSizeColumns.Checked) ApplyColumnSizingIfEnabled(grid);
+                grid.AllowUserToResizeColumns = !_autoSizeColumnsEnabled;
+                if (_autoSizeColumnsEnabled) ApplyColumnSizingIfEnabled(grid);
             }
         }
 
@@ -533,7 +590,7 @@ namespace SupraInventoryRelayAgent
                 grid.BeginInvoke(new Action<DataGridView>(ApplyColumnSizingIfEnabled), grid);
                 return;
             }
-            if (!_autoSizeColumns.Checked || grid.Columns.Count == 0) return;
+            if (!_autoSizeColumnsEnabled || grid.Columns.Count == 0) return;
             _columnPreferenceApplying = true;
             try
             {
@@ -554,6 +611,74 @@ namespace SupraInventoryRelayAgent
             {
                 _columnPreferenceApplying = false;
             }
+        }
+
+        private void CaptureCurrentNormalWindowBounds(bool persist)
+        {
+            if (WindowState != FormWindowState.Normal || _restoringSavedWindowBounds) return;
+            var bounds = NormalizeSavedWindowBounds(Bounds);
+            if (bounds.IsEmpty) return;
+            _savedNormalWindowBounds = bounds;
+            if (persist) SaveColumnPreferencesForCurrentUser();
+        }
+
+        private Rectangle NormalizeSavedWindowBounds(Rectangle bounds)
+        {
+            if (bounds.Width < MinimumSize.Width || bounds.Height < MinimumSize.Height)
+                return Rectangle.Empty;
+            var center = new Point(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2);
+            var screen = Screen.FromPoint(center);
+            var area = screen == null ? Screen.PrimaryScreen.WorkingArea : screen.WorkingArea;
+            var width = Math.Min(Math.Max(MinimumSize.Width, bounds.Width), area.Width);
+            var height = Math.Min(Math.Max(MinimumSize.Height, bounds.Height), area.Height);
+            var left = Math.Max(area.Left, Math.Min(bounds.Left, area.Right - width));
+            var top = Math.Max(area.Top, Math.Min(bounds.Top, area.Bottom - height));
+            return new Rectangle(left, top, width, height);
+        }
+
+        private void RestoreSavedNormalBoundsIfNeeded()
+        {
+            if (WindowState != FormWindowState.Normal || _savedNormalWindowBounds.IsEmpty) return;
+            var wanted = NormalizeSavedWindowBounds(_savedNormalWindowBounds);
+            if (wanted.IsEmpty) return;
+            if (Math.Abs(Bounds.Left - wanted.Left) <= 2 &&
+                Math.Abs(Bounds.Top - wanted.Top) <= 2 &&
+                Math.Abs(Bounds.Width - wanted.Width) <= 2 &&
+                Math.Abs(Bounds.Height - wanted.Height) <= 2)
+                return;
+            _restoringSavedWindowBounds = true;
+            try { Bounds = wanted; }
+            finally { _restoringSavedWindowBounds = false; }
+        }
+
+        private void HandleTrackedWindowStateChange()
+        {
+            var current = WindowState;
+            if (_lastTrackedWindowState == FormWindowState.Normal &&
+                current != FormWindowState.Normal &&
+                !_restoringSavedWindowBounds)
+            {
+                CaptureCurrentNormalWindowBounds(true);
+            }
+            else if (_lastTrackedWindowState == FormWindowState.Maximized &&
+                     current == FormWindowState.Normal)
+            {
+                BeginInvoke(new Action(RestoreSavedNormalBoundsIfNeeded));
+            }
+            else if (current == FormWindowState.Normal && !_restoringSavedWindowBounds)
+            {
+                CaptureCurrentNormalWindowBounds(false);
+            }
+            _lastTrackedWindowState = current;
+        }
+
+        private void RefreshPickerPresenceOnForeground()
+        {
+            if (!HasAgentSession() || _pickerPresenceClient == null) return;
+            if (_lastPickerPresenceRefreshUtc != DateTime.MinValue &&
+                DateTime.UtcNow - _lastPickerPresenceRefreshUtc < TimeSpan.FromSeconds(15))
+                return;
+            RefreshD119OperationalViews(true);
         }
 
         private void RefreshD119OperationalViews(bool force)
