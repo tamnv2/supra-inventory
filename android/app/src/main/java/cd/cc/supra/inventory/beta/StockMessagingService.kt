@@ -50,7 +50,11 @@ class StockMessagingService : FirebaseMessagingService() {
         val overlayGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this)
         if (overlayEligible && overlayGranted) {
             val expiresAt = message.data["expires_at_ms"]?.toLongOrNull()
-                ?: (System.currentTimeMillis() + if (isPickerCommand) 60L * 1000L else 30L * 60L * 1000L)
+                ?: (System.currentTimeMillis() + when {
+                    isPickerChat -> 30L * 60L * 1000L
+                    isPickerCommand -> 60L * 1000L
+                    else -> 30L * 60L * 1000L
+                })
             try {
                 CriticalOverlayService.show(
                     this,
