@@ -2107,3 +2107,30 @@ Status: **OWNER FIELD PASS**.
 - Owner explicitly confirmed D141 OK before opening D143.
 - Accepted behavior is the end-to-end server-authoritative SLA persistence repair: separate server/draft state, non-droppable Save, SQLite post-write readback, fresh GET verification and consistent FIRST_REPORT presentation after reload.
 - OA067 is closed PASS. D143 may refine adjacent Web presentation/RBAC but must not regress the D141 persistence contract.
+
+## D144 — Field repair: runtime logs, Picker chat, legacy Kích User
+
+Owner field evidence on D143 `beta-vc84` + Agent v81 supersedes OA069 acceptance for three defects while preserving the parts already working.
+
+1. **Runtime logs**
+   - `LOGS_OAUTH_FAILED: Token has been expired or revoked` is a real provider-auth failure, not a Web rendering issue.
+   - Runtime log list/upload must no longer depend solely on the user Google OAuth refresh token.
+   - The existing Beta runtime service account is the approved fallback identity for the existing scoped `Inventory/Beta/Logs` folder.
+   - No OAuth token, service-account key, or credential value may be committed/logged.
+   - The existing Logs folder remains private; only the existing Beta runtime service account may be added as Editor for this fallback.
+
+2. **Picker chat**
+   - Direct call behavior remains unchanged and is the reference delivery model.
+   - Chat must use the existing per-Picker Firestore session-control realtime listener as the authoritative direct path; D143 FCM remains a compatibility fast-path.
+   - Message length is 1–200 characters.
+   - PDA presentation is full-screen: **Chuyên viên gửi thông báo tới bạn:**, the message, then **Hãy đọc kĩ và thực hiện theo!**
+   - Picker **Xác nhận** dismisses locally only. No provider ACK, no Agent “Kết thúc” action and no extra usage write is allowed.
+   - Agent chat input must retain keyboard focus during normal typing.
+
+3. **Kích User / legacy APK**
+   - Firestore session-control revocation remains the immediate client signal for supported builds.
+   - Agent must additionally request an authoritative Worker-side Android session revoke, incrementing the server generation, clearing Android device/presence and disabling the old Android notification registration.
+   - The Agent fleet list must not treat a stale legacy presence as authoritative over a live kick.
+   - An old APK that has no revocation listener cannot be forced to visually close its local screen while totally idle; however its server session/business authority must be revoked when the Worker revoke succeeds, and it must be removed from the Agent list. A fresh explicit login creates a new valid session.
+
+D144 target: Beta Agent v82 + next signed Beta after vc84. SQLite schema remains 13. No new provider resource. Stable remains OWNER-GATED.
