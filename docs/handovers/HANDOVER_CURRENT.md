@@ -1352,3 +1352,11 @@ Owner approved one combined Beta change set for reliable support logs, PDA SKU i
 - Managed user deletion requires true ROOT mode at Web/API/Core; PICKPACK_ADMIN, including ROOT downgraded to that effective role, cannot delete ADMIN.
 - Protected Agent password/browser-action dialogs isolate periodic timers to prevent focus loss.
 - Target releases: `relay-agent-v83` + next Android Beta after `beta-vc85`. OA074 stays blocked until technical/runtime/release PASS. Stable remains OWNER-GATED.
+
+
+## D146 source candidate status
+
+- Web: `D146_SOURCE_CANDIDATE__LOG_DRIVE_RETRY__SKU_PDA_PUSH__TRUE_ROOT_DELETE_GUARD`
+- Android: `D146_SOURCE_CANDIDATE__NEXT_AFTER_VC85__LIVE_SKU_REFRESH__06_12_18_21_LOGS`
+- Latest Beta APK: `beta-vc85`
+- SQLite schema: `14`
