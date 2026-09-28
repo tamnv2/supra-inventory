@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D136_TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_62AB2AA1__AGENT_V77__ANDROID_VC82__OA062_FIELD_READY",
+    "beta": "D137_OWNER_APPROVED__IMPLEMENTATION_BRANCH_ACTIVE__D136_OWNER_FIELD_PASS",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 12,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D118_OWNER_ACCEPTED_PASS__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SELECTED_RANGE_FILTER",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D136_RELEASE_PASS__AGENT_V77__MANUAL_PICKLIST_CODE_ACTION_STATUS_PROTECTED__WEB_HIDE_NO_PASSWORD"
+    "picklist_confirmation_poc": "D137_TARGET_AGENT_V78__NORMAL_WINDOW_PICKLIST_RESULT_VISIBLE__CONFIRM_POST_ARRIVAL_F5_REQUIRED"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -190,7 +190,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Run OA062 on relay-agent-v77 (Android remains beta-vc82): verify manual PickList result rows show PickList + Xác nhận + Trạng thái across sizing modes, Usage tab is absent, and Chuyển Web chạy nền hides without password while protected actions remain gated. Stable remains OWNER-GATED.",
+  "next_action": "Complete D137 Agent v78 implementation/gates: keep the manual PickList result grid operationally visible in normal and maximized windows, and require one normal browser reload after every first arrival at Confirm before READY. Then merge/release through PR and open OA063. Android remains beta-vc82. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -216,6 +216,7 @@
   },
   "workboard": {
     "in_progress": [
+      "D137 IN PROGRESS: Owner confirmed D136 field PASS and reported two follow-up defects: the manual PickList result grid collapses in the normal window, and first arrival at Confirm can expose an empty/unhydrated page until F5. Target relay-agent-v78 makes the PickList card vertically responsive and requires one normal browser reload plus stable post-reload DOM before READY; Android beta-vc82 and Stable unchanged.",
       "D123 IN PROGRESS: v43 field-failed immediately after UI/session restore. Root cause confirmed in source: startup/login worker paths called D119 WinForms layout/DataGridView auto-size outside the UI thread. Target relay-agent-v44 marshals those mutations to the owning UI thread; no cadence/provider/WMS change.",
       "D122 TECHNICAL/RELEASE PASS BUT OWNER FIELD FAIL: PR #193 merged main cb999100, main Authority/State/UI/Worker/Agent PASS and relay-agent-v43 published; Owner screenshot shows immediate Windows Not Responding after Agent/Supra/Picker state rendered. Superseded by D123/OA049.",
       "D121 TECHNICAL/RELEASE PASS: PR #191 merged main a3c841ae; main Authority/State/Agent/UI PASS; relay-agent-v42 published from exact main and inventory-channel updated. OA047 physical field acceptance is ready; Stable untouched.",
@@ -824,7 +825,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D136_TECHNICAL_RUNTIME_RELEASE_PASS__OA062_OWNER_FIELD_READY",
+  "active_workstream": "D137_OWNER_APPROVED__IMPLEMENTATION_BRANCH_fix/d137-picklist-height-confirm-refresh",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -1950,7 +1951,7 @@
     "field_acceptance": "PASS__OWNER_CONFIRMED__2026_09_28__FOLLOWUP_D136_OPENED"
   },
   "d136": {
-    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA062_FIELD_READY",
+    "status": "OWNER_FIELD_PASS__TECHNICAL_RUNTIME_RELEASE_PASS",
     "date": "2026-09-28",
     "baseline_main": "d6c31d4ac96c6519d15fa7d233b92de63429be7d",
     "baseline_agent_release": "relay-agent-v76",
@@ -1971,7 +1972,7 @@
     "picklist_ui": "PICKLIST_ACTION_STATUS_SIMULTANEOUSLY_VISIBLE__RESPONSIVE_FIXED_CRITICAL_WIDTHS__BOTH_SCROLLBARS_FALLBACK",
     "browser_visibility": "HIDE_PRESENTATION_ONLY_NO_PASSWORD__SHOW_STOP_LOGOUT_SWITCH_REMAIN_PROTECTED",
     "resource_change": "NONE__REUSES_EXISTING_BETA_WORKER_AGENT_DISTRIBUTION",
-    "field_gate": "OA062_READY_FOR_OWNER_FIELD_TEST",
+    "field_gate": "PASS__OWNER_CONFIRMED_D136_2026_09_28",
     "stable": "OWNER_GATED_UNTOUCHED",
     "implementation_pr": 272,
     "main_merge": "62ab2aa11cda251f18090fc0bd637a092ab0998d",
@@ -1994,6 +1995,30 @@
       "inventory_channel_agent_manifest_asset_id": 594839528,
       "inventory_channel_agent_asset_id": 594839527,
       "android_release": "beta-vc82__UNCHANGED"
-    }
+    },
+    "field_acceptance": "PASS__OWNER_CONFIRMED__2026_09_28__FOLLOWUP_D137_OPENED"
+  },
+  "d137": {
+    "status": "OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS",
+    "date": "2026-09-28",
+    "baseline_main": "6ce3424193edbc2f9ecc48f1d051bdfd2e305c63",
+    "baseline_agent_release": "relay-agent-v77",
+    "target_agent_release": "relay-agent-v78",
+    "android": "beta-vc82__UNCHANGED",
+    "implementation_branch": "fix/d137-picklist-height-confirm-refresh",
+    "requirements": [
+      "NORMAL_WINDOW_MANUAL_PICKLIST_RESULT_GRID_MUST_SHOW_ACTIONABLE_ROW_NOT_ONLY_STATUS_TEXT",
+      "PICKLIST_CARD_VERTICAL_LAYOUT_HAS_MINIMUM_ACTIONABLE_GRID_HEIGHT_ACROSS_NORMAL_MAXIMIZED_AND_RESIZE_TRANSITIONS",
+      "D136_CODE_ACTION_STATUS_HORIZONTAL_GUARDS_RETAINED",
+      "FIRST_ARRIVAL_AT_CONFIRM_MUST_NOT_DECLARE_READY_BEFORE_ONE_NORMAL_BROWSER_RELOAD",
+      "POST_RELOAD_CONFIRM_DOM_MUST_BE_STABLY_READY_BEFORE_PICKLIST_SEARCH_OR_CONFIRM_IS_ENABLED",
+      "LOGIN_AND_AUTH_DASHBOARD_RECOVERY_PATHS_USE_THE_SAME_POST_CONFIRM_RELOAD_BARRIER",
+      "NO_DEVTOOLS_NETWORK_COOKIE_TOKEN_HEADER_STORAGE_OR_DIRECT_WMS_API_ACCESS"
+    ],
+    "picklist_ui": "RESPONSIVE_VERTICAL_LAYOUT__MIN_180_CARD__GRID_MIN_58__STATUS_BOTTOM__D136_CRITICAL_COLUMNS_RETAINED",
+    "confirm_readiness": "CANONICAL_CONFIRM_NAVIGATION_OR_OBSERVED_UNRELOADED_CONFIRM__PAGE_RELOAD_IGNORECACHE_FALSE_ONCE__NAVIGATION_TYPE_RELOAD__600MS_STABLE_READY__FAIL_CLOSED",
+    "resource_change": "NONE__AGENT_ONLY__REUSES_EXISTING_WEBVIEW2_HOST_BUILD10_AND_BETA_DISTRIBUTION",
+    "field_gate": "OA063_BLOCKED_PENDING_D137_RELEASE",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }

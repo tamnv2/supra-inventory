@@ -1121,3 +1121,12 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Main Authority/State/UI/Worker/Agent/Dashboard gates PASS.
 - Runtime exact-source health PASS with schema `12/12`, Operational `5/5`, migration `0/0`.
 - OA062 is READY_FOR_OWNER_FIELD_TEST. Stable remains OWNER-GATED.
+
+## D137 implementation continuity — 2026-09-28
+
+- Owner confirmed D136 field PASS on Agent v77 and opened D137 for two follow-up field defects.
+- Normal/restored Agent windows must keep the manual PickList grid itself visible with at least one actionable row; D136 PickList/Xác nhận/Trạng thái width guards remain.
+- First loaded arrival at the canonical Confirm route is never READY. Agent v78 performs one normal F5-equivalent reload and requires stable post-reload DOM before enabling PickList work.
+- Login and stored-session Dashboard recovery converge on the same refresh barrier. No reload loop, DevTools Network, session extraction, direct WMS API or additional provider polling.
+- Target: `relay-agent-v78`; Android `beta-vc82` unchanged; WebView2 host build 10 reused.
+- Branch: `fix/d137-picklist-height-confirm-refresh`; OA063 blocked pending release. Stable OWNER-GATED.

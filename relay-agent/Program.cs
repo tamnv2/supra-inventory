@@ -877,11 +877,12 @@ namespace SupraInventoryRelayAgent
             };
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 48F));
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 52F));
-            // D122: Agent needs the larger operational surface; Supra and PickList
-            // remain compact while all three rows still follow the window height.
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 48F));
+            // D137: preserve enough vertical space for the operational PickList result
+            // in a normal window. D136 protected horizontal columns; D137 also prevents
+            // the result grid from collapsing below its header + one actionable row.
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 43F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 28F));
             overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 29F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 23F));
             _overviewPage.Controls.Add(overviewLayout);
 
             // Hệ thống Agent - gọn, tối đa 5 dòng Agent trước khi cuộn trong bảng.
@@ -1096,6 +1097,7 @@ namespace SupraInventoryRelayAgent
             var directCard = NewCard(0, 0, 1040, 260);
             directCard.Dock = DockStyle.Fill;
             directCard.Margin = Padding.Empty;
+            directCard.MinimumSize = new Size(0, 180);
             _picklistCardTitle.SetBounds(16, 10, 620, 24);
             _picklistCardTitle.Text = "Xử lý PickList | Chưa sẵn sàng";
             _picklistCardTitle.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
@@ -1205,6 +1207,8 @@ namespace SupraInventoryRelayAgent
             _manualPicklistStatus.Font = new Font("Segoe UI Semibold", 10.5F, FontStyle.Bold);
             _manualPicklistStatus.ForeColor = Color.FromArgb(88, 104, 115);
             directCard.Controls.Add(_manualPicklistStatus);
+            directCard.Resize += (sender, e) => LayoutManualPicklistCard(directCard);
+            LayoutManualPicklistCard(directCard);
             overviewLayout.Controls.Add(directCard, 0, 2);
             InitializeD119AgentFeatures(overviewLayout);
 
@@ -2216,6 +2220,8 @@ namespace SupraInventoryRelayAgent
                 case "DASHBOARD_ACCESS_CLICK": return "Đang truy cập SFT3 từ Dashboard";
                 case "DASHBOARD_ACCESS_FAILED": return "Không truy cập được SFT3 từ Dashboard";
                 case "AUTO_RETRY_CONFIRM": return "Đang mở trang Confirm";
+                case "CONFIRM_REFRESHING": return "Đang làm mới dữ liệu Confirm";
+                case "CONFIRM_RELOAD_VERIFY": return "Đang kiểm tra dữ liệu sau khi làm mới";
                 case "CONFIRM_RETRY_EXHAUSTED": return "Chưa vào được Confirm sau khi thử lại";
                 case "LOGIN_OR_DOM_NOT_READY": return "Chờ tải trang Confirm";
                 case "CONFIRM_DOM_PARTIAL": return "Đang nhận diện giao diện Confirm";
@@ -2270,6 +2276,27 @@ namespace SupraInventoryRelayAgent
             _manualPicklistConfirmAll.Text = count >= 2 ? "Xác nhận tất cả (" + count + ")" : "Xác nhận tất cả";
             _manualPicklistConfirmAll.Enabled =
                 count >= 2 && HasAgentSession() && HasReadyConfirmBrowser();
+        }
+
+        private void LayoutManualPicklistCard(Control host)
+        {
+            if (host == null || host.IsDisposed) return;
+
+            var width = Math.Max(220, host.ClientSize.Width);
+            var height = Math.Max(180, host.ClientSize.Height);
+            const int left = 16;
+            const int right = 16;
+            const int gridTop = 82;
+            const int statusHeight = 26;
+            const int statusBottom = 8;
+            const int gap = 4;
+
+            _picklistCardTitle.SetBounds(left, 10, Math.Max(180, width - left - right), 24);
+            var statusTop = Math.Max(gridTop + 58 + gap, height - statusBottom - statusHeight);
+            var gridHeight = Math.Max(58, statusTop - gridTop - gap);
+            _manualPicklistGrid.SetBounds(left, gridTop, Math.Max(180, width - left - right), gridHeight);
+            _manualPicklistStatus.SetBounds(left, statusTop, Math.Max(180, width - left - right), statusHeight);
+            ApplyManualPicklistCriticalLayout(_autoSizeColumnsEnabled);
         }
 
         private void ApplyManualPicklistCriticalLayout(bool forceResponsive)

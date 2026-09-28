@@ -6,8 +6,8 @@
     <ApplicationIcon>app.ico</ApplicationIcon>
     <RootNamespace>SupraInventoryRelayAgent</RootNamespace>
     <AssemblyName>Agent Auto Confirm Pick Pack</AssemblyName>
-    <AssemblyVersion>0.77.0.0</AssemblyVersion>
-    <FileVersion>0.77.0.0</FileVersion>
+    <AssemblyVersion>0.78.0.0</AssemblyVersion>
+    <FileVersion>0.78.0.0</FileVersion>
     <LangVersion>latest</LangVersion>
     <Deterministic>true</Deterministic>
     <PlatformTarget>x64</PlatformTarget>

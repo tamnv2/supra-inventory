@@ -1081,3 +1081,12 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Worker deploy and exact-source health PASS; Usage polling/publication runtime is retired.
 - Main authority, continuity, UI and Agent gates PASS.
 - OA062 is READY_FOR_OWNER_FIELD_TEST. Stable remains OWNER-GATED and untouched.
+
+## D137 candidate — 2026-09-28
+
+- D136 is Owner field PASS on released `relay-agent-v77`.
+- D137 targets `relay-agent-v78`; Android remains `beta-vc82`; WebView2 host build 10 is reused.
+- Normal-window PickList UI reserves a minimum actionable grid height and recalculates grid/status bounds from the current card size.
+- Confirm readiness requires one normal top-level reload after first Confirm arrival and a stable post-reload DOM before READY/search/confirmation.
+- No new provider resource or cadence is introduced. DevTools Network/session capture/direct WMS API remain forbidden.
+- OA063 opens after D137 technical/release PASS. Stable remains OWNER-GATED.

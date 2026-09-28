@@ -702,3 +702,16 @@ For Beta Windows Agent v69:
 7. Hiện/ẩn Web Confirm and other protected Web lifecycle changes plus Agent logout require the current Agent password. User-facing Agent identity is the clean login username.
 8. Usage reads the server-produced Firestore snapshot. The Agent does not call the Worker Usage endpoint as its normal provider path.
 9. Window focus/restore is presentation-only and performs no provider presence/counter read.
+
+## D137 Agent Confirm first-arrival workflow
+
+For any managed Agent path that reaches the canonical Supra Confirm page:
+
+1. Reach Confirm through the existing D127 login/Dashboard recovery path.
+2. Treat the first loaded Confirm document as **not operational yet**.
+3. Issue one normal browser reload without cache bypass.
+4. Wait for the reloaded document to expose the existing unique search control, unique confirm control and table/row surface.
+5. Require that post-reload READY state to remain stable for the bounded D137 settle interval.
+6. Only then enable manual/PDA PickList search and confirmation.
+
+If the reload returns to login, Dashboard, a partial DOM, or another page, existing fail-closed recovery applies and no PickList mutation is enabled. D137 adds no background polling and does not widen the WMS/browser security boundary.
