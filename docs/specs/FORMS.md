@@ -615,3 +615,14 @@ D126 cancels the unimplemented D125 removal of Picker `Xác nhận đơn`.
 - READY requires the reloaded top document plus the existing exact Confirm DOM guards. The reload/navigation proof must identify the current top document as a reload before mutation/search eligibility is restored.
 - Manual login and authenticated Dashboard recovery converge on the same post-arrival reload barrier.
 - No reload loop is allowed. No DevTools Network domain, cookie/token/header/storage/session extraction, or direct WMS API is permitted.
+
+### D137 v79 Confirm hydration hotfix
+
+The v78 early-reload rule is superseded by the following readiness sequence:
+
+- Reaching the Confirm URL starts a **settling** state; it does not immediately trigger reload or READY.
+- The final same Confirm document must remain loaded for 3 seconds. If routing moves to login, Dashboard, SFT3 transition or another page during that window, the settle observation resets.
+- After the final Confirm document is stable, Agent performs one normal top-level reload with cache bypass disabled.
+- The reloaded Confirm DOM must satisfy the existing exact search/confirm/table guards continuously for 1.2 seconds before READY.
+- If the first actual PickList search after READY sees zero full `PL...` codes anywhere in the table, Agent may run one local self-heal reload and one local search retry. A genuine NOT_FOUND after that remains NOT_FOUND.
+- This one-shot recovery does not add Firestore/Worker/provider reads or writes and must not become a periodic reload loop.
