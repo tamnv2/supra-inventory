@@ -77,9 +77,9 @@ jobs:
           $serviceIndex = Get-Content service/src/index.ts -Raw
           $notifications = Get-Content service/src/notifications-core.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*78\s*;') { throw "D137 requires Agent v78." }
-          if ($project -notmatch '<AssemblyVersion>0\.78\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.78\.0\.0</FileVersion>') {
-            throw "D137 assembly/file version must be 0.78."
+          if ($config -notmatch 'AgentBuild\s*=\s*79\s*;') { throw "D137 hotfix requires Agent v79." }
+          if ($project -notmatch '<AssemblyVersion>0\.79\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.79\.0\.0</FileVersion>') {
+            throw "D137 hotfix assembly/file version must be 0.79."
           }
 
           foreach ($marker in @(
@@ -519,13 +519,20 @@ jobs:
             'Page.reload',
             '"ignoreCache", false',
             'navigationType',
+            'CONFIRM_SETTLING',
             'CONFIRM_REFRESHING',
             'CONFIRM_RELOAD_VERIFY',
-            'observed_confirm_without_reload',
-            'stable_ms=600',
-            'if (_confirmReloadRequired)'
+            'settle_ms=3000',
+            'stable_after_ms=1200',
+            '_confirmReloadVerified',
+            'empty_data_self_heal=START',
+            'WaitForForcedConfirmReloadNoLock',
+            'allCodeCount'
           )) {
-            if (-not $browser.Contains($marker)) { throw "D137 Confirm post-arrival reload guard missing: $marker" }
+            if (-not $browser.Contains($marker) -and -not $program.Contains($marker)) { throw "D137 hotfix Confirm hydration guard missing: $marker" }
+          }
+          if ($browser.Contains('ArmConfirmReloadBarrierNoLock("canonical_confirm_navigation")')) {
+            throw "D137 hotfix must not reload the transient first Confirm shell before the final route settles."
           }
           if ($browser.Contains('Network.enable')) {
             throw "D137 must not enable DevTools Network while implementing Confirm refresh."
@@ -570,7 +577,7 @@ jobs:
             throw "D127 v53 must not auto-fallback from Agent browser to Desktop browser."
           }
 
-          Write-Host "D137 normal-window PickList / post-Confirm F5 readiness regression PASS"
+          Write-Host "D137 v79 delayed-F5 / empty-data self-heal regression PASS"
 
       - name: Prepare Beta Agent config
         shell: pwsh
