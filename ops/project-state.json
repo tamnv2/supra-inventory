@@ -1773,7 +1773,7 @@
     }
   },
   "d134": {
-    "status": "FIELD_DEFECTS_FOUND__D134_HOTFIX_IN_PROGRESS",
+    "status": "HOTFIX_TECHNICAL_RUNTIME_RELEASE_PASS__OA060_FIELD_RETEST_READY",
     "date": "2026-09-28",
     "baseline_main": "efdce403685efb800d84fe72002ba374a84af55d",
     "baseline_agent_release": "relay-agent-v73",
@@ -1799,7 +1799,7 @@
     "ui_model": "AUTO_SIZE_CONTROL_AGENT_CARD_ONLY__WEIGHTED_PROPORTIONAL_COLUMNS__ELLIPSIS__PER_ACCOUNT_MANUAL_WIDTHS_AND_WINDOW_BOUNDS__READY_GREEN_NOT_READY_RED_TRANSIENT_NEUTRAL",
     "security": "KICK_REVOKED_GENERATION_ENFORCED_IN_RULES__WEB_VISIBILITY_AND_AGENT_LOGOUT_REQUIRE_AGENT_PASSWORD__UI_USERNAME_ONLY",
     "resource_change": "NONE__REUSES_EXISTING_BETA_WORKER_FIRESTORE_FUNCTIONS_ANDROID_AGENT_DISTRIBUTION",
-    "field_gate": "OA060_BLOCKED_PENDING_D134_HOTFIX_RELEASE_AND_RETEST",
+    "field_gate": "OA060_READY_FOR_OWNER_HOTFIX_RETEST",
     "stable": "OWNER_GATED_UNTOUCHED",
     "implementation_pr": 266,
     "main_merge": "8b703f12ec6f1667e43dab101114f2fbcc1a8819",
@@ -1853,8 +1853,40 @@
         "EARLY_FIRESTORE_ONLINE_ONLY_CONFIGURATION",
         "SELF_HEAL_OLD_FIREBASE_AUTH_ON_FIRST_CONFIRM",
         "COSTURA_X64_NATIVE_PACKAGING",
-        "FINAL_SINGLE_EXE_GRPC_NATIVE_CI_SELF_TEST"
+        "FINAL_SINGLE_EXE_GRPC_NATIVE_CI_SELF_TEST",
+        "COSTURA_WIN_X64_NATIVE_PACKAGING",
+        "GRPC_CORE_OVERRIDE_TO_COSTURA_EXTRACTED_NATIVE_PATH",
+        "FINAL_SINGLE_EXE_GRPC_NATIVE_CI_SELF_TEST_PASS"
       ]
+    },
+    "hotfix_implementation_pr": 268,
+    "hotfix_main_merge": "3d44e798a2f0a4cf8b6950a86740bec806798a57",
+    "hotfix_main_runs": {
+      "repo_authority": 36381893542,
+      "project_state": 36381893536,
+      "beta_worker": 36381893522,
+      "android": 36381893549,
+      "relay_agent": 36381893558,
+      "ui_design": 36381893554,
+      "dashboard_probe": 36381893533
+    },
+    "hotfix_runtime_proof": "BETA_HEALTH_HTTP200__SOURCE_3D44E798_EXACT__SCHEMA12_12__OPERATIONAL5_5__AGENT_MIGRATION0_0",
+    "hotfix_release_evidence": {
+      "agent_release": "relay-agent-v75",
+      "agent_release_id": 397972585,
+      "agent_asset_id": 594589576,
+      "agent_size_bytes": 7030784,
+      "agent_sha256": "fd698b987aa2f3861c07fddd5c74c9ec3acf04462be138b290a0f26d9cb876de",
+      "android_release": "beta-vc81",
+      "android_release_id": 397972764,
+      "android_asset_id": 594590579,
+      "android_size_bytes": 19069292,
+      "android_sha256": "ecfc70f218bcaa78d11e756315da8ca42e75b4ce536117fb5ccb317fc5775d0e",
+      "inventory_channel_release_id": 394587029,
+      "inventory_channel_agent_manifest_asset_id": 594589658,
+      "inventory_channel_agent_asset_id": 594589661,
+      "inventory_channel_pda_manifest_asset_id": 594590704,
+      "inventory_channel_pda_asset_id": 594590703
     }
   }
 }
