@@ -377,6 +377,20 @@ def main() -> None:
     require(app, 'if (activeSection === "sla" && slaFormDirty && preserveContext)', "D139 global dirty SLA patch guard")
     require(app, '"sla_dirty_patch_skipped"', "D139 dirty SLA repaint telemetry")
     require(app, 'input[name="autoSkipMode"]:checked', "D139 explicit checked SLA mode submit authority")
+    # D141: SLA server authority and draft state are separate, generic UI-context
+    # restoration is forbidden for SLA controls, Save is non-droppable, and server
+    # success requires SQLite readback plus a fresh no-cache GET.
+    require(app, "let slaDraftMode: AutoSkipMode | null = null;", "D141 explicit SLA draft state")
+    require(app, "let slaSaveBusy = false;", "D141 dedicated SLA save single-flight")
+    require(app, 'if (snapshot.section !== "sla")', "D141 no generic SLA field restoration")
+    require(app, "async function saveSlaConfiguration(form: HTMLFormElement)", "D141 dedicated SLA save path")
+    require(app, "void saveSlaConfiguration(event.currentTarget as HTMLFormElement)", "D141 SLA submit bypasses generic busy drop")
+    require(app, "save_verify_failed", "D141 SLA failed verification telemetry")
+    require(api, 'authorizedFetch("/api/admin/sla", { cache: "no-store" })', "D141 no-cache SLA authority GET")
+    require(api, "request_id: string;", "D141 SLA mutation correlation id")
+    require(operational_core, "SLA_PERSISTENCE_VERIFY_FAILED", "D141 server persistence fail-closed")
+    require(operational_core, 'sqlite_readback: "PASS"', "D141 SQLite readback proof")
+    require(operational_core, "const persisted = readSlaConfig(state);", "D141 authoritative post-write readback")
     require(app, "Lịch sử thao tác", "D109 management audit tab")
     require(business_core, "actor_display_name", "D109 audit actor display identity")
     require(business_core, "actor_role", "D109 audit actor role")
