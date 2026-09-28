@@ -798,6 +798,151 @@ namespace SupraInventoryRelayAgent
             RefreshD119OperationalViews(true);
         }
 
+        internal void StartD134AgentSync()
+        {
+            if (!HasAgentSession() || _agentSyncClient == null) return;
+            if (_agentSyncListener != null) return;
+            _agentSyncListener = new FirestoreAgentSyncListener(
+                SnapshotSession,
+                EnsureFreshToken,
+                ApplyD134AgentSyncSnapshot,
+                message => Log(message));
+            _agentSyncListener.Start();
+            Task.Run(() =>
+            {
+                try
+                {
+                    EnsureFreshToken();
+                    ApplyD134AgentSyncSnapshot(_agentSyncClient.Load(SnapshotSession()));
+                }
+                catch (Exception ex)
+                {
+                    Log("AGENT_SYNC bootstrap=DEFER detail=" + SafeMessage(ex));
+                }
+            });
+        }
+
+        internal void StopD134AgentSync()
+        {
+            var listener = _agentSyncListener;
+            _agentSyncListener = null;
+            try { if (listener != null) listener.Stop(); } catch { }
+        }
+
+        private void ApplyD134AgentSyncSnapshot(AgentSyncSnapshot snapshot)
+        {
+            if (snapshot == null) return;
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<AgentSyncSnapshot>(ApplyD134AgentSyncSnapshot), snapshot);
+                return;
+            }
+
+            _agentSyncSnapshot = snapshot;
+            var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            lock (_pickerCallLocks)
+            {
+                _pickerCallLocks.Clear();
+                foreach (var pair in snapshot.Calls)
+                {
+                    var call = pair.Value;
+                    if (call == null || call.LockUntilMs <= nowMs) continue;
+                    _pickerCallLocks[pair.Key] = call.LockUntilMs;
+                    SchedulePickerCallUnlock(pair.Key, call.LockUntilMs);
+                }
+            }
+
+            lock (_activePickerCommands)
+            {
+                _activePickerCommands.Clear();
+                foreach (var pair in snapshot.Calls)
+                {
+                    var call = pair.Value;
+                    if (call == null || !call.Active || call.LockUntilMs <= nowMs) continue;
+                    _activePickerCommands[pair.Key] = new PickerContactCommand
+                    {
+                        AlertId = call.CallId,
+                        TargetUserId = call.TargetUserId,
+                        CommandType = "CALL_SPECIALIST",
+                        SenderAgentId = call.SenderAgentId,
+                        SenderRole = call.SenderRole,
+                        LockUntilMs = call.LockUntilMs,
+                        IsActiveCall = true
+                    };
+                }
+            }
+
+            _fleetSnapshot = new FleetMetricSnapshot
+            {
+                DayKey = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow),
+                ReceivedTotal = Math.Max(0L, snapshot.ReceivedTotal),
+                ConfirmedTotal = Math.Max(0L, snapshot.ConfirmedTotal),
+                ErrorTotal = Math.Max(0L, snapshot.ErrorTotal),
+                OwnerAgentId = "D134_AGENT_SYNC"
+            };
+            if (_leaderCoordinator != null) _leaderCoordinator.ApplySyncedFleet(snapshot.Fleet);
+
+            if (_pickerWindowOpenState != false)
+                UpdatePickerOnlineGrid(snapshot.Pickers, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
+            RenderFleetMetricStatus(_leaderCoordinator != null && _leaderCoordinator.IsLeader);
+            RefreshD128Overlay();
+            Log("AGENT_SYNC apply version=" + snapshot.Version +
+                " pickers=" + snapshot.Pickers.Count +
+                " calls=" + snapshot.Calls.Count +
+                " kicks=" + snapshot.Kicks.Count +
+                " source=LISTEN_OR_RECONCILE");
+        }
+
+        private void SchedulePickerCallUnlock(string userId, long lockUntilMs)
+        {
+            var delay = Math.Max(0L, lockUntilMs - DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+            if (delay <= 0L) return;
+            Task.Run(() =>
+            {
+                Thread.Sleep((int)Math.Min(int.MaxValue, delay + 25L));
+                Ui(() =>
+                {
+                    lock (_pickerCallLocks)
+                    {
+                        long current;
+                        if (_pickerCallLocks.TryGetValue(userId ?? "", out current) && current <= DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
+                            _pickerCallLocks.Remove(userId ?? "");
+                    }
+                    _pickerOnlineRenderSignature = "";
+                    RenderPickerOnlineSnapshot();
+                });
+            });
+        }
+
+        private void ExpirePickerCallLocks()
+        {
+            var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var changed = false;
+            lock (_pickerCallLocks)
+            {
+                foreach (var key in _pickerCallLocks.Where(x => x.Value <= now).Select(x => x.Key).ToList())
+                {
+                    _pickerCallLocks.Remove(key);
+                    changed = true;
+                }
+            }
+            if (changed)
+            {
+                _pickerOnlineRenderSignature = "";
+                RenderPickerOnlineSnapshot();
+            }
+        }
+
+        private bool IsPickerCallLocked(string userId)
+        {
+            lock (_pickerCallLocks)
+            {
+                long until;
+                return _pickerCallLocks.TryGetValue(userId ?? "", out until) &&
+                    until > DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            }
+        }
+
         private void RefreshD119OperationalViews(bool force)
         {
             if (InvokeRequired)
@@ -805,17 +950,40 @@ namespace SupraInventoryRelayAgent
                 BeginInvoke(new Action<bool>(RefreshD119OperationalViews), force);
                 return;
             }
-            if (!HasAgentSession() || _pickerPresenceClient == null) return;
+            if (!HasAgentSession() || _agentSyncClient == null) return;
             var coordinator = _leaderCoordinator;
             var primary = coordinator != null && coordinator.IsLeader;
-            RefreshFleetMetricsIfDue(_fleetSnapshot == null || (primary && !_lastFleetPrimary), primary);
             _lastFleetPrimary = primary;
             RenderFleetMetricStatus(primary);
 
-            // D131: Picker presence authority is the dedicated event-driven projection.
-            // Normal UI ticks never read it; bounded foreground/start/boundary refreshes do.
-            if (!force) return;
-            if (Interlocked.CompareExchange(ref _pickerPresenceRefreshRunning, 1L, 0L) != 0L) return;
+            if (primary)
+                ReconcileD134AgentSync(force);
+            else if (force && (_agentSyncSnapshot == null || _agentSyncSnapshot.Version <= 0))
+            {
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        EnsureFreshToken();
+                        ApplyD134AgentSyncSnapshot(_agentSyncClient.Load(SnapshotSession()));
+                    }
+                    catch (Exception ex)
+                    {
+                        Log("AGENT_SYNC foreground=DEFER detail=" + SafeMessage(ex));
+                    }
+                });
+            }
+        }
+
+        private void ReconcileD134AgentSync(bool force)
+        {
+            if (_agentSyncClient == null || _pickerPresenceClient == null || _fleetMetricsClient == null) return;
+            var now = DateTime.UtcNow;
+            if (!force && _lastAgentSyncReconcileUtc != DateTime.MinValue &&
+                now - _lastAgentSyncReconcileUtc < FirestoreAgentSyncClient.ReconcileInterval) return;
+            if (force && _lastAgentSyncReconcileUtc != DateTime.MinValue &&
+                now - _lastAgentSyncReconcileUtc < TimeSpan.FromSeconds(20)) return;
+            if (Interlocked.CompareExchange(ref _agentSyncReconcileRunning, 1L, 0L) != 0L) return;
 
             Task.Run(() =>
             {
@@ -823,31 +991,35 @@ namespace SupraInventoryRelayAgent
                 {
                     EnsureFreshToken();
                     var session = SnapshotSession();
-                    var items = _pickerPresenceClient.Load(session);
-                    Dictionary<string, PickerContactCommand> openCommands = null;
-                    try { openCommands = _pickerContactClient.LoadOpen(session); }
-                    catch (Exception ex) { Log("PICKER_CONTACT list=FAIL detail=" + SafeMessage(ex)); }
-                    if (openCommands != null)
-                    {
-                        lock (_activePickerCommands)
-                        {
-                            _activePickerCommands.Clear();
-                            foreach (var entry in openCommands) _activePickerCommands[entry.Key] = entry.Value;
-                        }
-                    }
-                    _lastPickerPresenceRefreshUtc = DateTime.UtcNow;
-                    Ui(() => UpdatePickerOnlineGrid(items, coordinator != null && coordinator.IsLeader));
+                    var pickers = _pickerPresenceClient.Load(session);
+                    var metrics = _fleetMetricsClient.RefreshPrimary(
+                        session,
+                        _agentInstanceId,
+                        Interlocked.Read(ref _localPdaRequests),
+                        Interlocked.Read(ref _localAgentResponses));
+                    var fleet = _leaderCoordinator == null
+                        ? new List<AgentPresenceView>()
+                        : _leaderCoordinator.OnlineAgents;
+                    var snapshot = _agentSyncClient.Reconcile(
+                        session,
+                        pickers,
+                        fleet,
+                        metrics.ReceivedTotal,
+                        metrics.ConfirmedTotal,
+                        metrics.ErrorTotal);
+                    _lastAgentSyncReconcileUtc = DateTime.UtcNow;
+                    ApplyD134AgentSyncSnapshot(snapshot);
+                    Log("AGENT_SYNC reconcile=PASS cadence=5m max_agents=10");
                 }
                 catch (Exception ex)
                 {
-                    Ui(() => _pickerOnlineStatus.Text = "Không đọc được danh sách Picker · " + SafeMessage(ex));
+                    Log("AGENT_SYNC reconcile=DEFER detail=" + SafeMessage(ex));
                 }
                 finally
                 {
-                    Interlocked.Exchange(ref _pickerPresenceRefreshRunning, 0L);
+                    Interlocked.Exchange(ref _agentSyncReconcileRunning, 0L);
                 }
             });
-
         }
 
         private void UpdatePickerOnlineGrid(List<PickerPresenceView> items, bool primary)
@@ -857,62 +1029,77 @@ namespace SupraInventoryRelayAgent
                 BeginInvoke(new Action<List<PickerPresenceView>, bool>(UpdatePickerOnlineGrid), items, primary);
                 return;
             }
-            _pickerOnlineSnapshot = items ?? new List<PickerPresenceView>();
+            _pickerOnlineSnapshot = (items ?? new List<PickerPresenceView>())
+                .Where(x => x != null && !string.IsNullOrWhiteSpace(x.UserId))
+                .OrderBy(x => string.IsNullOrWhiteSpace(x.EmployeeCode) ? x.UserId : x.EmployeeCode, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(x => x.DisplayName ?? "", StringComparer.CurrentCultureIgnoreCase)
+                .ToList();
+            _activePdaCountForRelay = _pickerOnlineSnapshot.Count;
+            _pickerOnlineRenderSignature = "";
             RenderPickerOnlineSnapshot();
-            var liveCount = _pickerOnlineSnapshot.Count(x => string.Equals(x.Status, "PDA_READY", StringComparison.Ordinal));
-            _activePdaCountForRelay = liveCount;
-            var graceCount = _pickerOnlineSnapshot.Count - liveCount;
             _pickerOnlineStatus.Text =
-                liveCount.ToString("N0") + " Picker đang hoạt động" +
-                (graceCount > 0 ? " · " + graceCount.ToString("N0") + " mất kết nối tạm thời" : "") +
-                (primary ? " · sự kiện trực tiếp" : " · snapshot");
+                _pickerOnlineSnapshot.Count.ToString("N0") + " Picker đang hoạt động" +
+                (primary ? " · PRIMARY" : " · đồng bộ fleet");
             RenderFleetMetricStatus(primary);
         }
 
         internal void ApplyPickerRequestActivity(FirestoreConfirmationWorkItem work)
         {
             if (work == null || string.IsNullOrWhiteSpace(work.PickerUserId)) return;
+            var picker = new PickerPresenceView
+            {
+                UserId = work.PickerUserId,
+                FirebaseUid = work.PickerUid ?? "",
+                SessionGeneration = Math.Max(0L, work.PickerSessionGeneration),
+                Source = "PICKLIST",
+                EmployeeCode = work.PickerEmployeeCode ?? "",
+                DisplayName = work.PickerDisplayName ?? "",
+                DeviceId = "",
+                LoginAt = "",
+                DeviceSeenAt = DateTime.UtcNow.ToString("o"),
+                Status = "PDA_READY"
+            };
+
             if (InvokeRequired)
             {
                 BeginInvoke(new Action<FirestoreConfirmationWorkItem>(ApplyPickerRequestActivity), work);
                 return;
             }
 
-            _pickerDisconnectGrace.Remove(work.PickerUserId);
-            var current = _pickerOnlineSnapshot.FirstOrDefault(x =>
+            var existing = _pickerOnlineSnapshot.FirstOrDefault(x =>
                 x != null && string.Equals(x.UserId, work.PickerUserId, StringComparison.Ordinal));
-            if (current == null)
-            {
-                current = new PickerPresenceView
-                {
-                    UserId = work.PickerUserId,
-                    EmployeeCode = work.PickerEmployeeCode ?? "",
-                    DisplayName = work.PickerDisplayName ?? "",
-                    DeviceId = "",
-                    LoginAt = "",
-                    DeviceSeenAt = DateTime.UtcNow.ToString("o"),
-                    Status = "PDA_READY"
-                };
-                _pickerOnlineSnapshot.Add(current);
-            }
+            if (existing == null)
+                _pickerOnlineSnapshot.Add(picker);
             else
             {
-                if (!string.IsNullOrWhiteSpace(work.PickerEmployeeCode))
-                    current.EmployeeCode = work.PickerEmployeeCode;
-                if (!string.IsNullOrWhiteSpace(work.PickerDisplayName))
-                    current.DisplayName = work.PickerDisplayName;
-                current.DeviceSeenAt = DateTime.UtcNow.ToString("o");
-                current.Status = "PDA_READY";
+                existing.FirebaseUid = picker.FirebaseUid;
+                existing.SessionGeneration = picker.SessionGeneration;
+                existing.Source = "PICKLIST";
+                if (!string.IsNullOrWhiteSpace(picker.EmployeeCode)) existing.EmployeeCode = picker.EmployeeCode;
+                if (!string.IsNullOrWhiteSpace(picker.DisplayName)) existing.DisplayName = picker.DisplayName;
+                existing.DeviceSeenAt = picker.DeviceSeenAt;
+                existing.Status = "PDA_READY";
+                picker = existing;
             }
-
-            _pickerOnlineSnapshot = _pickerOnlineSnapshot
-                .OrderBy(x => string.IsNullOrWhiteSpace(x.EmployeeCode) ? x.UserId : x.EmployeeCode, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(x => x.DisplayName ?? "", StringComparer.CurrentCultureIgnoreCase)
-                .ToList();
-            _pickerOnlineRenderSignature = "";
             UpdatePickerOnlineGrid(_pickerOnlineSnapshot, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
-            Log("PICKER_PRESENCE activity=REQUEST_REFRESH user=" + SafeUserLabel(current.EmployeeCode, current.UserId) +
-                " provider_write=false");
+
+            if (_leaderCoordinator != null && _leaderCoordinator.IsLeader && _agentSyncClient != null)
+            {
+                var captured = picker;
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        EnsureFreshToken();
+                        ApplyD134AgentSyncSnapshot(_agentSyncClient.UpsertPicker(SnapshotSession(), captured));
+                    }
+                    catch (Exception ex)
+                    {
+                        Log("AGENT_SYNC picklist-upsert=DEFER detail=" + SafeMessage(ex));
+                    }
+                });
+            }
+            Log("PICKER_PRESENCE activity=PICKLIST user=" + SafeUserLabel(picker.EmployeeCode, picker.UserId));
         }
 
         private static string SafeUserLabel(string employeeCode, string userId)
@@ -929,52 +1116,26 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
-            var now = DateTime.UtcNow;
             var incoming = items ?? new List<PickerPresenceView>();
-            var incomingIds = new HashSet<string>(
-                incoming.Where(x => x != null && !string.IsNullOrWhiteSpace(x.UserId)).Select(x => x.UserId),
-                StringComparer.Ordinal);
-            foreach (var id in incomingIds) _pickerDisconnectGrace.Remove(id);
-
-            var hardLeave = string.Equals(reason, "LOGOUT", StringComparison.OrdinalIgnoreCase) ||
-                            string.Equals(reason, "DEVICE_REMOVE", StringComparison.OrdinalIgnoreCase) ||
-                            string.Equals(reason, "session-replaced", StringComparison.OrdinalIgnoreCase) ||
-                            string.Equals(reason, "session-changed", StringComparison.OrdinalIgnoreCase) ||
-                            string.Equals(reason, "role-changed", StringComparison.OrdinalIgnoreCase);
-            var merged = new List<PickerPresenceView>(incoming);
-            if (!hardLeave)
+            UpdatePickerOnlineGrid(incoming, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
+            if (_leaderCoordinator != null && _leaderCoordinator.IsLeader && _agentSyncClient != null)
             {
-                foreach (var previous in _pickerOnlineSnapshot)
+                var snapshot = incoming.ToList();
+                Task.Run(() =>
                 {
-                    if (previous == null || string.IsNullOrWhiteSpace(previous.UserId) || incomingIds.Contains(previous.UserId))
-                        continue;
-                    DateTime disconnectedAt;
-                    if (!_pickerDisconnectGrace.TryGetValue(previous.UserId, out disconnectedAt))
+                    try
                     {
-                        disconnectedAt = now;
-                        _pickerDisconnectGrace[previous.UserId] = disconnectedAt;
+                        EnsureFreshToken();
+                        ApplyD134AgentSyncSnapshot(_agentSyncClient.PublishPresence(SnapshotSession(), snapshot));
                     }
-                    if (now - disconnectedAt >= TimeSpan.FromSeconds(PickerDisconnectGraceSeconds))
-                        continue;
-                    merged.Add(new PickerPresenceView
+                    catch (Exception ex)
                     {
-                        UserId = previous.UserId,
-                        EmployeeCode = previous.EmployeeCode,
-                        DisplayName = previous.DisplayName,
-                        DeviceId = previous.DeviceId,
-                        LoginAt = previous.LoginAt,
-                        DeviceSeenAt = previous.DeviceSeenAt,
-                        Status = "PDA_GRACE"
-                    });
-                }
+                        Log("AGENT_SYNC presence=DEFER reason=" + SafeMessage(ex));
+                    }
+                });
             }
-            else
-            {
-                foreach (var id in _pickerDisconnectGrace.Keys.Where(id => !incomingIds.Contains(id)).ToList())
-                    _pickerDisconnectGrace.Remove(id);
-            }
-
-            UpdatePickerOnlineGrid(merged, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
+            Log("PICKER_PRESENCE authority=LOGIN_LOGOUT reason=" + SafeMessage(reason) +
+                " count=" + incoming.Count);
         }
 
         private void RefreshPickerWindowBoundary()
@@ -986,41 +1147,13 @@ namespace SupraInventoryRelayAgent
 
             if (!open)
             {
-                _pickerDisconnectGrace.Clear();
                 _pickerOnlineSnapshot = new List<PickerPresenceView>();
                 _pickerOnlineRenderSignature = "";
                 UpdatePickerOnlineGrid(_pickerOnlineSnapshot, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
                 _pickerOnlineStatus.Text = "Ngoài khung PDA 05:00–23:00 · danh sách Picker đã đóng.";
                 return;
             }
-
-            // One authoritative snapshot at 05:00 / process entry into the operating window.
             RefreshD119OperationalViews(true);
-        }
-
-        private void ExpirePickerPresenceGrace()
-        {
-            if (InvokeRequired)
-            {
-                BeginInvoke(new Action(ExpirePickerPresenceGrace));
-                return;
-            }
-            if (_pickerDisconnectGrace.Count == 0) return;
-            var now = DateTime.UtcNow;
-            var expired = _pickerDisconnectGrace
-                .Where(x => now - x.Value >= TimeSpan.FromSeconds(PickerDisconnectGraceSeconds))
-                .Select(x => x.Key)
-                .ToList();
-            if (expired.Count == 0) return;
-            foreach (var id in expired) _pickerDisconnectGrace.Remove(id);
-            if (_pickerOnlineSnapshot.RemoveAll(x =>
-                    x != null &&
-                    string.Equals(x.Status, "PDA_GRACE", StringComparison.Ordinal) &&
-                    expired.Contains(x.UserId)) > 0)
-            {
-                _pickerOnlineRenderSignature = "";
-                UpdatePickerOnlineGrid(_pickerOnlineSnapshot, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
-            }
         }
 
         private string PickerOnlineRenderSignature(string query)
