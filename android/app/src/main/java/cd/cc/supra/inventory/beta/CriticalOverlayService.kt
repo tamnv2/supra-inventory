@@ -68,7 +68,10 @@ class CriticalOverlayService : Service() {
             requestedExpiresAt
         }
 
-        startForeground(OVERLAY_NOTIFICATION_ID, foregroundNotification(title, body))
+        startForeground(
+            OVERLAY_NOTIFICATION_ID,
+            foregroundNotification(title, body, activeAlertId),
+        )
         if (activeMode == MODE_RESULT && activeAlertId.isNotBlank()) {
             NotificationSignalStore.markResultOverlayPresented(applicationContext, activeAlertId)
         }
@@ -196,7 +199,8 @@ class CriticalOverlayService : Service() {
         return root
     }
 
-    private fun foregroundNotification(title: String, body: String): Notification {
+    private fun foregroundNotification(title: String, body: String, alertId: String): Notification {
+        val channelId = ensureChannel()
         val open = Intent(this, MainActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         val pending = PendingIntent.getActivity(
@@ -205,24 +209,36 @@ class CriticalOverlayService : Service() {
             open,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        return Notification.Builder(this, CHANNEL_ID)
+        val wakePending = PendingIntent.getActivity(
+            this,
+            (WAKE_REQUEST_BASE + alertId.hashCode()).and(0x7fffffff),
+            CriticalWakeActivity.intent(this, title, body),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        return Notification.Builder(this, channelId)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(title)
             .setContentText(body.take(180))
             .setStyle(Notification.BigTextStyle().bigText(body.take(500)))
             .setContentIntent(pending)
+            .setFullScreenIntent(wakePending, true)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setOngoing(true)
             .build()
     }
 
-    private fun ensureChannel() {
+    private fun ensureChannel(): String {
+        if (AndroidAlertReadiness.ensureCriticalChannel(this)) {
+            return AndroidAlertReadiness.CRITICAL_CHANNEL_ID
+        }
         getSystemService(NotificationManager::class.java).createNotificationChannel(
             NotificationChannel(
-                CHANNEL_ID,
-                "SUPRA Inventory · Cảnh báo toàn màn hình",
+                StockMessagingService.CHANNEL_ID,
+                "SUPRA Inventory · Nghiệp vụ",
                 NotificationManager.IMPORTANCE_HIGH,
-            ).apply { description = "Cảnh báo nghiệp vụ Báo hàng cần chú ý ngay" },
+            ).apply { description = "Cảnh báo nghiệp vụ khi SUPRA Inventory chạy nền" },
         )
+        return StockMessagingService.CHANNEL_ID
     }
 
     private fun removeOverlay() {
@@ -259,8 +275,8 @@ class CriticalOverlayService : Service() {
         const val EXTRA_PRODUCT_NAME = "product_name"
         const val MODE_PICKER_COMMAND = "PICKER_COMMAND"
         const val MODE_RESULT = "RESULT"
-        private const val CHANNEL_ID = "inventory_critical_overlay"
         private const val OVERLAY_NOTIFICATION_ID = 129119
+        private const val WAKE_REQUEST_BASE = 129200
         private const val DEFAULT_TTL_MS = 30L * 60L * 1000L
         private const val PICKER_COMMAND_TTL_MS = 60L * 1000L
         private const val MAX_TTL_MS = 6L * 60L * 60L * 1000L
