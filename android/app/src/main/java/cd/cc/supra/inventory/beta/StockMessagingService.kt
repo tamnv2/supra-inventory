@@ -16,10 +16,14 @@ class StockMessagingService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
+        val event = message.data["event"].orEmpty()
+        if (event == "sku_catalog_updated") {
+            NotificationSignalStore.markSkuCatalogRefresh(applicationContext)
+            return
+        }
+
         NotificationSignalStore.markMessage(applicationContext, message.data)
         ensureChannel()
-
-        val event = message.data["event"].orEmpty()
         val title = message.data["notification_title"]?.takeIf { it.isNotBlank() } ?: message.notification?.title ?: when (event) {
             "batch_resolved" -> "SUPRA Inventory · Kết quả báo hàng"
             "batch_corrected" -> "SUPRA Inventory · Cập nhật kết quả"
