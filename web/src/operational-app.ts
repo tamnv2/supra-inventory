@@ -713,6 +713,47 @@ function onlineForMutation(): boolean {
   return navigator.onLine;
 }
 
+function normalizeAutoSkipMode(value: unknown): AutoSkipMode | null {
+  const mode = String(value || "").toUpperCase();
+  return mode === "FIRST_REPORT" || mode === "PER_PICKER" ? mode : null;
+}
+
+function autoSkipModeLabel(mode: AutoSkipMode | null): string {
+  return mode === "FIRST_REPORT" ? "Theo báo đầu tiên của SKU"
+    : mode === "PER_PICKER" ? "Theo từng Picker"
+      : "Chưa xác định";
+}
+
+function currentSlaServerMode(): AutoSkipMode | null {
+  return normalizeAutoSkipMode(slaResponse?.sla?.auto_skip_mode);
+}
+
+function patchSlaDraftIndicator(): void {
+  const node = document.querySelector<HTMLElement>("#sla-draft-value");
+  if (!node) return;
+  const serverMode = currentSlaServerMode();
+  const draftMode = slaDraftMode || serverMode;
+  const pending = Boolean(slaFormDirty && draftMode && draftMode !== serverMode);
+  node.dataset.pending = pending ? "true" : "false";
+  node.textContent = pending
+    ? `Thay đổi chưa lưu: ${autoSkipModeLabel(draftMode)}`
+    : "Biểu mẫu đang khớp cấu hình máy chủ.";
+}
+
+function syncSlaModeControlsFromState(): void {
+  if (activeSection !== "sla") return;
+  const serverMode = currentSlaServerMode();
+  const desiredMode = slaFormDirty ? (slaDraftMode || serverMode) : serverMode;
+  if (!desiredMode) return;
+  document.querySelectorAll<HTMLInputElement>('input[name="autoSkipMode"]').forEach((input) => {
+    const selected = input.value === desiredMode;
+    input.checked = selected;
+    input.defaultChecked = selected;
+    input.autocomplete = "off";
+  });
+  patchSlaDraftIndicator();
+}
+
 function slaLabel(state: string): string {
   if (state === "ESCALATED") return "Quá thời gian";
   if (state === "WARNING") return "Sắp quá thời gian";
