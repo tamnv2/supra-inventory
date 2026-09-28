@@ -237,10 +237,10 @@ Release target: `relay-agent-v81`.
 
 Release target: `relay-agent-v82`.
 
-- The chat editor keeps its text input active during normal typing and accepts 1–200 characters with an explicit Send action.
+- The chat editor keeps its text input active during normal typing and accepts 1–200 characters with an explicit Send action. The modal temporarily isolates the one-second after-hours and 30-second Picker-view UI refresh timers, restoring them when the editor closes.
 - Chat delivery writes the current message directly into the existing per-Picker Firestore session-control document. The existing FCM alert path is retained only as a compatibility fast path using the same alert id.
 - Picker chat acknowledgement is local dismiss only; no ACK or Agent resolve action is created.
 - **Kích User** keeps the immediate Firestore revocation signal and additionally asks the Beta Worker to revoke the authoritative Android session. If the Agent cannot reach the Worker, the existing 5-minute Worker schedule reconciles recent kick state from the compact Agent sync document with bounded provider usage.
-- A revoked session disables the previous Android device/presence and notification target. Older APKs without the direct revocation listener may keep a stale local screen while idle, but the previous server session no longer retains business authority after revoke.
+- Before the previous Android notification target is disabled, Worker sends one best-effort backward-compatible re-login Picker command. A revoked session then disables the previous Android device/presence and notification target. Older APKs without any compatible receiver may keep a stale local screen while idle, but the previous server session no longer retains business authority after revoke.
 - Direct specialist call behavior, D140 quota/listener guards and D143 overtime/autosize/WebView2 behavior remain unchanged.
 - Stable remains OWNER-GATED.
