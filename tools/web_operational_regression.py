@@ -371,6 +371,12 @@ def main() -> None:
     require(app, "D138: loadSla owns SLA rendering", "D138 dirty SLA form reconcile marker")
     require(app, 'if (activeSection === "sla" && slaFormDirty && slaResponse)', "D138 dirty SLA form server-refresh guard")
     forbid(app, 'else if (activeSection === "sla" && roleManage()) await loadSla();', "D138 old SLA reconcile fall-through")
+    # D139: the dirty SLA form is protected at the shared patch boundary, not only
+    # the realtime reconcile caller. This prevents delayed-load/network/finally
+    # rerenders from changing FIRST_REPORT back to the last server snapshot.
+    require(app, 'if (activeSection === "sla" && slaFormDirty && preserveContext)', "D139 global dirty SLA patch guard")
+    require(app, '"sla_dirty_patch_skipped"', "D139 dirty SLA repaint telemetry")
+    require(app, 'input[name="autoSkipMode"]:checked', "D139 explicit checked SLA mode submit authority")
     require(app, "Lịch sử thao tác", "D109 management audit tab")
     require(business_core, "actor_display_name", "D109 audit actor display identity")
     require(business_core, "actor_role", "D109 audit actor role")
