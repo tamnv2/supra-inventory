@@ -232,3 +232,15 @@ Release target: `relay-agent-v81`.
 - **Liên hệ picker** now separates direct specialist call from <=200-character chat. Direct call retains the existing 60-second fleet lock/resolve model. Chat has no resolve action and Picker acknowledgement is local dismiss only.
 - The Agent-owned WebView2 host bounds obsolete hidden child views and exits on WebView process failure so existing supervision can recover instead of allowing an unbounded hidden-view/RAM chain.
 - D126/D127 browser security constraints and D140 Firestore quota/listener safeguards remain unchanged. No new provider resource is introduced and Stable remains OWNER-GATED.
+
+## D144 — Agent v82 field repair
+
+Release target: `relay-agent-v82`.
+
+- The chat editor keeps its text input active during normal typing and accepts 1–200 characters with an explicit Send action.
+- Chat delivery writes the current message directly into the existing per-Picker Firestore session-control document. The existing FCM alert path is retained only as a compatibility fast path using the same alert id.
+- Picker chat acknowledgement is local dismiss only; no ACK or Agent resolve action is created.
+- **Kích User** keeps the immediate Firestore revocation signal and additionally asks the Beta Worker to revoke the authoritative Android session. If the Agent cannot reach the Worker, the existing 5-minute Worker schedule reconciles recent kick state from the compact Agent sync document with bounded provider usage.
+- A revoked session disables the previous Android device/presence and notification target. Older APKs without the direct revocation listener may keep a stale local screen while idle, but the previous server session no longer retains business authority after revoke.
+- Direct specialist call behavior, D140 quota/listener guards and D143 overtime/autosize/WebView2 behavior remain unchanged.
+- Stable remains OWNER-GATED.
