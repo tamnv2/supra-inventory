@@ -1294,3 +1294,15 @@ Status: **OWNER FIELD PASS**.
 - The Beta deploy's dedicated OAuth-page probe confirms public HTTP 200 for About/Privacy/Terms and validates the required app identity, exact `drive.file` + `gmail.send` disclosure, Google API Services User Data Policy/Limited Use disclosure, existing health gates and OAuth start route.
 - OA073 is READY_FOR_OWNER_GOOGLE_PUBLISH; no source/runtime blocker remains for entering the URLs in Google Auth Platform.
 - Existing D144 Android/Agent releases remain unchanged. Stable remains OWNER-GATED and untouched.
+## D146 source candidate — 2026-09-29
+
+- Baseline main: `b4d935f93b12f531e4a2cca424db45eb2011cd65`.
+- Branch: `feat/d146-runtime-log-sku-rbac-agent-input`.
+- Target Agent: `relay-agent-v83`; target Android: next monotonic signed Beta after `beta-vc85`.
+- Beta OAuth: Owner-confirmed **In production**, refresh token re-consented/deployed, former Testing 7-day expiry condition removed, transactional Gmail send field PASS. Drive runtime revalidation is included in D146.
+- Web/Android logs: InventoryCore primary + immediate Drive attempt + bounded deferred retry; schedule 06/12/18/21 HCM; error/crash immediate; typed filenames.
+- Agent logs: direct first hop to Google Firestore, Beta Google Function assembles and uploads payload to Drive through a protected short-lived resumable session broker; no OAuth/Drive secret on laptop; Worker drain is bounded fallback.
+- SKU import: realtime `sku_catalog_updated` + silent FCM invalidation causes PDA local cache sync without relogin.
+- Managed-user deletion: effective ROOT + base ROOT required at UI/API/Core.
+- Agent protected password/browser-action inputs: periodic UI timer isolation and focus guard.
+- Status: source implemented; PR/runtime/release evidence pending. Stable remains OWNER-GATED and untouched.
