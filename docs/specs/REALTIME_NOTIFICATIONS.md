@@ -684,3 +684,9 @@ Stable remains OWNER-GATED.
 - Late duplicate FCM for a locally dismissed chat is ignored.
 - Existing `picker_active_calls` direct-call lock and resolve behavior is unchanged.
 - Agent chat entry is a modal editor isolated from periodic Agent UI refresh timers while open; it adds no polling or provider write loop.
+## D146 — SKU catalog invalidation signal
+
+- `sku_catalog_updated` is a non-alert invalidation event for authenticated operational clients.
+- Web SKU import emits realtime scope `sku_catalog` for foreground convergence and sends a silent FCM data event for Android background/resume convergence.
+- The FCM event carries no SKU master payload and must not show a notification, overlay, sound or vibration. Android marks a local refresh-pending flag and fetches authoritative catalog data through the existing authenticated API.
+- This signal does not alter the critical-alert channel, specialist call/chat delivery, D142 notification-readiness contract, or existing realtime backoff.
