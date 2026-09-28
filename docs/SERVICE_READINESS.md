@@ -1248,3 +1248,16 @@ Status: **OWNER FIELD PASS**.
 - Agent `relay-agent-v81` remains released and D143 Web/Worker runtime remains PASS on SQLite `13/13`, Operational V2 `5/5`, Agent migration `0/0`.
 - OA070 is closed PASS. OA069 is READY_FOR_OWNER_FIELD_TEST on `relay-agent-v81` + `beta-vc84`.
 - Stable remains OWNER-GATED and untouched.
+
+## D144 field-repair workstream — 2026-09-29
+
+- Beta marker: `D144_FIELD_REPAIR_IMPLEMENTATION__D143_FIELD_FAIL_LOGS_CHAT_KICK`.
+- Web marker: `D144_LOGS_AUTH_FALLBACK_SOURCE_PENDING__D143_WEB_RUNTIME_BASELINE_PASS`.
+- Android marker: `D144_DIRECT_CHAT_SOURCE_PENDING__BASELINE_BETA_VC84`.
+- D143 OA069 field acceptance failed on three bounded items: runtime-log OAuth refresh revoked, Agent chat input/delivery, and legacy Picker Kích User resurrection. Direct specialist call remains PASS.
+- D144 reuses existing Beta resources only: existing Logs folder + runtime service account, existing Firestore Picker session/control collections, existing Worker/InventoryCore and Android/Agent distribution.
+- Target Agent is `relay-agent-v82`; Android target is the next monotonic signed Beta after `beta-vc84`; SQLite remains schema 13.
+- Runtime logs gain existing-runtime-service-account fallback. OA072 is required once because the existing Logs folder is currently owner-only and must grant that existing Beta runtime service account direct Editor access; no public sharing.
+- Chat uses the existing per-Picker session-control listener as direct realtime authority, with FCM compatibility delivery and local-only PDA dismiss.
+- Kích User adds authoritative Worker Android-session revocation plus a bounded 5-minute fallback reconciliation from the existing compact Agent sync document when direct Worker access is unavailable.
+- Stable remains OWNER-GATED and untouched.
