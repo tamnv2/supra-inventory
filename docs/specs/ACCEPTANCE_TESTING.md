@@ -1764,3 +1764,13 @@ OA068 physical acceptance after signed release:
 - On Web, check Pick Pack Admin Ca vận hành, ROOT permission review/deletion, hidden ROOT, zero badge, date selected states and top audit paging.
 - On Agent, verify tray/visible 21:30 prompt appears once, overtime extends one hour, no five-minute spam, auto-size survives tray restore, Picker list does not jump to an older snapshot, direct call still works and chat dismisses locally with no Kết thúc.
 - Leave managed Web Confirm/Agent running through an extended work session and verify browser RAM does not grow from an unbounded hidden child-window chain.
+
+## D144 — Logs, Picker chat and legacy kick field repair
+
+- Web → Nhật ký lists runtime logs without `LOGS_OAUTH_FAILED` after the scoped Logs-folder permission is effective.
+- Android scheduled/error log upload uses the same resilient runtime-log authentication.
+- Agent chat editor accepts a normal 20–100 character sentence continuously without losing focus.
+- Sending chat produces the direct full-screen PDA alert; local **Xác nhận** closes it without any remote acknowledgement.
+- Existing direct-call behavior remains unchanged.
+- Kích User removes the Picker from Agent state and revokes the Worker-authoritative Android session. Previous business requests are rejected until a fresh login.
+- D140 quota/listener protections, D142 critical-alert readiness and Stable OWNER-GATED behavior remain unchanged.
