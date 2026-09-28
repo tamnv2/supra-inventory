@@ -91,11 +91,18 @@ checks = {
     "authority_d123_agent_ui_thread_affinity": "D123" in DECISIONS and "D123 — Agent UI-thread affinity and startup hang repair" in DESIGN_SPEC,
     "authority_d124_agent_operational_cleanup": "D124" in DECISIONS and "D124 — Agent summary density and Overlay removal" in DESIGN_SPEC,
     "authority_d126_browser_ui_picklist": "D126" in DECISIONS and "D126 — Managed-browser Supra presentation" in DESIGN_SPEC,
-    "agent_d122_weighted_left_regions": all(token in RELAY_PROGRAM for token in [
-        "SizeType.Percent, 48F",
+    "authority_d137_normal_window_picklist": (
+        "D137 — Normal-window PickList visibility and mandatory post-arrival Confirm refresh" in DECISIONS
+        and "D137 normal-window manual PickList vertical layout" in DESIGN_SPEC
+    ),
+    "agent_d137_weighted_left_regions": all(token in RELAY_PROGRAM for token in [
+        "SizeType.Percent, 43F",
+        "SizeType.Percent, 28F",
         "SizeType.Percent, 29F",
-        "SizeType.Percent, 23F",
-        "D122: Agent needs the larger operational surface",
+        "D137: preserve enough vertical space for the operational PickList result",
+        "directCard.MinimumSize = new Size(0, 180)",
+        "LayoutManualPicklistCard",
+        "Math.Max(58, statusTop - gridTop - gap)",
     ]),
     "agent_d121_one_line_system_status": all(token in RELAY_D119_FEATURES for token in [
         "LayoutAgentSystemStatusRow(host, 38)",
