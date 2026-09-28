@@ -2703,6 +2703,189 @@ function patchSlaInsightCounts(): void {
     : "Tắt";
 }
 
+async function saveSlaConfiguration(form: HTMLFormElement): Promise<void> {
+  if (slaSaveBusy) {
+    setNotice("warning", "Cấu hình thời gian đang được lưu. Vui lòng chờ kết quả hiện tại.");
+    return;
+  }
+  if (!onlineForMutation()) {
+    setNotice("error", "Cần kết nối mạng để lưu cấu hình thời gian xử lý.");
+    return;
+  }
+
+  const data = new FormData(form);
+  const warning = Number(data.get("warning"));
+  const warningEnabled = data.get("warningEnabled") === "on";
+  const escalation = Number(data.get("escalation"));
+  const escalationEnabled = data.get("escalationEnabled") === "on";
+  const autoSkip = Number(data.get("autoSkip"));
+  const autoSkipEnabled = data.get("autoSkipEnabled") === "on";
+  const checkedMode = form.querySelector<HTMLInputElement>('input[name="autoSkipMode"]:checked');
+  const requestedMode = normalizeAutoSkipMode(checkedMode?.value || slaDraftMode || data.get("autoSkipMode"));
+  const skipToStockEnabled = data.get("skipToStockEnabled") === "on";
+  const skipToStockMinutes = Number(data.get("skipToStockMinutes"));
+
+  if (!requestedMode) {
+    setNotice("error", "Cách tính mốc tự động bắt buộc phải chọn đúng 1 phương án.");
+    return;
+  }
+  slaDraftMode = requestedMode;
+  slaFormDirty = true;
+  patchSlaDraftIndicator();
+
+  if (
+    !Number.isInteger(warning) ||
+    !Number.isInteger(escalation) ||
+    !Number.isInteger(autoSkip) ||
+    !Number.isInteger(skipToStockMinutes) ||
+    warning < 1 ||
+    warning > 1440 ||
+    escalation <= warning ||
+    escalation > 2880 ||
+    autoSkip <= escalation ||
+    autoSkip > 10080 ||
+    skipToStockMinutes < 1 ||
+    skipToStockMinutes > 10080
+  ) {
+    setNotice("error", "Các mốc phải là số phút nguyên hợp lệ; Cảnh báo < Quá hạn < Tự động cho phép bỏ qua.");
+    return;
+  }
+
+  const expectedPolicyVersion = Number(slaResponse?.sla?.policy_version || 0);
+  const requestId = crypto.randomUUID();
+  const saveButton = form.querySelector<HTMLButtonElement>("#sla-save-button");
+  slaSaveBusy = true;
+  if (saveButton) {
+    saveButton.disabled = true;
+    saveButton.textContent = "Đang lưu…";
+  }
+  const started = performance.now();
+
+  try {
+    runtimeLogMetric("SLA", "save_start", {
+      request_id: requestId,
+      requested_mode: requestedMode,
+      expected_policy_version: expectedPolicyVersion,
+    }, 0);
+
+    const saved = await saveAdminSla({
+      warning_minutes: warning,
+      warning_enabled: warningEnabled,
+      escalation_minutes: escalation,
+      escalation_enabled: escalationEnabled,
+      auto_skip_minutes: autoSkip,
+      auto_skip_enabled: autoSkipEnabled,
+      auto_skip_mode: requestedMode,
+      skip_to_stock_enabled: skipToStockEnabled,
+      skip_to_stock_minutes: skipToStockMinutes,
+      expected_policy_version: expectedPolicyVersion,
+      request_id: requestId,
+    });
+
+    const verification = saved.verification;
+    const savedMode = normalizeAutoSkipMode(saved.sla?.auto_skip_mode);
+    const savedVersion = Number(saved.sla?.policy_version || 0);
+    const verificationValid = Boolean(
+      verification &&
+      verification.request_id === requestId &&
+      verification.sqlite_readback === "PASS" &&
+      verification.requested_mode === requestedMode &&
+      verification.persisted_mode === requestedMode &&
+      Number(verification.expected_policy_version || 0) === savedVersion &&
+      Number(verification.persisted_policy_version || 0) === savedVersion &&
+      savedMode === requestedMode &&
+      savedVersion > expectedPolicyVersion
+    );
+    if (!verificationValid) {
+      throw new Error(
+        `Xác minh ghi SQLite thất bại. Yêu cầu ${requestedMode}; phản hồi ${savedMode || "UNKNOWN"}; phiên bản ${savedVersion || 0}.`,
+      );
+    }
+
+    // D141 end-to-end authority check: use a fresh no-cache GET after the server's
+    // SQLite readback. Success is impossible unless both reads agree with the
+    // operator's requested mode and the exact committed policy version.
+    const authoritative = await getAdminSla();
+    const authoritativeMode = normalizeAutoSkipMode(authoritative.sla?.auto_skip_mode);
+    const authoritativeVersion = Number(authoritative.sla?.policy_version || 0);
+    if (authoritativeMode !== requestedMode || authoritativeVersion !== savedVersion) {
+      throw new Error(
+        `Xác minh GET sau lưu thất bại. Yêu cầu ${requestedMode}; máy chủ ${authoritativeMode || "UNKNOWN"}; phiên bản ${authoritativeVersion || 0}/${savedVersion}.`,
+      );
+    }
+
+    slaResponse = authoritative;
+    slaDraftMode = authoritativeMode;
+    slaFormDirty = false;
+    markWebUpdateReceived();
+    runtimeLogMetric("SLA", "save_verified", {
+      request_id: requestId,
+      requested_mode: requestedMode,
+      persisted_mode: authoritativeMode,
+      policy_version: authoritativeVersion,
+      sqlite_readback: "PASS",
+    }, performance.now() - started);
+    setNotice("success", `Đã lưu và xác minh: ${autoSkipModeLabel(authoritativeMode)} · phiên bản ${authoritativeVersion}.`);
+  } catch (error) {
+    if (error instanceof ApiError && error.code === "SLA_CONFIG_STALE") {
+      slaFormDirty = false;
+      slaDraftMode = null;
+      await loadSla();
+      setNotice("warning", "Cấu hình đã được cập nhật ở phiên khác. Đã tải lại bản mới nhất; thay đổi cũ không được ghi đè.");
+      return;
+    }
+
+    const message = error instanceof Error ? error.message : "Không lưu được cấu hình thời gian xử lý.";
+    let latest: SlaResponse | null = null;
+    try {
+      latest = await getAdminSla();
+    } catch {
+      // Keep the current server snapshot if the verification read is unavailable.
+    }
+    if (latest) {
+      slaResponse = latest;
+      markWebUpdateReceived();
+    }
+    const serverMode = normalizeAutoSkipMode((latest || slaResponse)?.sla?.auto_skip_mode);
+    const serverVersion = Number((latest || slaResponse)?.sla?.policy_version || 0);
+    slaDraftMode = requestedMode;
+    slaFormDirty = true;
+    patchSlaDraftIndicator();
+    runtimeLogMetric("SLA", "save_verify_failed", {
+      request_id: requestId,
+      requested_mode: requestedMode,
+      server_mode: serverMode,
+      server_policy_version: serverVersion,
+      error: message,
+    }, performance.now() - started, "ERROR");
+    void sendWebRuntimeLog("sla_save_verify_failed", "ERROR", {
+      request_id: requestId,
+      requested_mode: requestedMode,
+      server_mode: serverMode,
+      server_policy_version: serverVersion,
+      message,
+    });
+    setNotice(
+      "error",
+      `Lưu chưa được xác nhận. Yêu cầu: ${autoSkipModeLabel(requestedMode)} · Máy chủ hiện tại: ${autoSkipModeLabel(serverMode)}. ${message}`,
+    );
+  } finally {
+    slaSaveBusy = false;
+    if (saveButton && saveButton.isConnected) {
+      saveButton.disabled = false;
+      saveButton.textContent = "Lưu cấu hình toàn hệ thống";
+    }
+    if (activeSection === "sla") {
+      if (slaFormDirty) {
+        syncSlaModeControlsFromState();
+        patchSlaDraftIndicator();
+      } else {
+        patchActiveSection(true);
+      }
+    }
+  }
+}
+
 async function loadSla(): Promise<void> {
   const loadGeneration = ++slaLoadGeneration;
   const generation = sessionViewGeneration;
