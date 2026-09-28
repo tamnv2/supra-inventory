@@ -1157,3 +1157,5 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Existing save verification remains: immediate server result and fresh reload must equal the selected mode before success.
 - Target: Beta Web/Worker deploy only; no schema/provider/Android/Agent change.
 - OA064 opens after technical/runtime PASS. D137 OA063 remains open independently. Stable remains OWNER-GATED.
+
+- Canonical Web marker: `D138_SOURCE_CANDIDATE__SLA_DIRTY_FORM_REALTIME_RECONCILE_PRESERVATION`.
