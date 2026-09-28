@@ -59,8 +59,14 @@ class CriticalOverlayService : Service() {
         val resolution = intent.getStringExtra(EXTRA_RESOLUTION).orEmpty()
         val sku = intent.getStringExtra(EXTRA_SKU).orEmpty()
         val productName = intent.getStringExtra(EXTRA_PRODUCT_NAME).orEmpty()
-        val expiresAt = intent.getLongExtra(EXTRA_EXPIRES_AT_MS, System.currentTimeMillis() + DEFAULT_TTL_MS)
-            .coerceAtMost(System.currentTimeMillis() + MAX_TTL_MS)
+        val nowMs = System.currentTimeMillis()
+        val requestedExpiresAt = intent.getLongExtra(EXTRA_EXPIRES_AT_MS, nowMs + DEFAULT_TTL_MS)
+            .coerceAtMost(nowMs + MAX_TTL_MS)
+        val expiresAt = if (activeMode == MODE_PICKER_COMMAND) {
+            minOf(requestedExpiresAt, nowMs + PICKER_COMMAND_TTL_MS)
+        } else {
+            requestedExpiresAt
+        }
 
         startForeground(OVERLAY_NOTIFICATION_ID, foregroundNotification(title, body))
         if (activeMode == MODE_RESULT && activeAlertId.isNotBlank()) {
@@ -68,11 +74,9 @@ class CriticalOverlayService : Service() {
         }
         showOverlay(title, body, activeMode, resolution, sku, productName)
         expiryTask?.let(handler::removeCallbacks)
-        expiryTask = null
-        if (activeMode != MODE_PICKER_COMMAND) {
-            expiryTask = Runnable { stopSelf() }.also { task ->
-                handler.postDelayed(task, (expiresAt - System.currentTimeMillis()).coerceIn(1_000L, MAX_TTL_MS))
-            }
+        expiryTask = Runnable { stopSelf() }.also { task ->
+            val maxDelay = if (activeMode == MODE_PICKER_COMMAND) PICKER_COMMAND_TTL_MS else MAX_TTL_MS
+            handler.postDelayed(task, (expiresAt - System.currentTimeMillis()).coerceIn(1_000L, maxDelay))
         }
         return START_NOT_STICKY
     }
@@ -126,13 +130,19 @@ class CriticalOverlayService : Service() {
         acknowledge.setOnClickListener {
             val eventId = activeAlertId
             if (eventId.isBlank()) return@setOnClickListener
-            acknowledge.isEnabled = false
-            acknowledge.text = "ĐANG XÁC NHẬN..."
+
+            // D133 local-first acknowledgement: the Picker can always dismiss the
+            // full-screen result. Network delivery remains a durable pending ACK
+            // retried by MainActivity; this is not an offline Báo hàng mutation.
             NotificationSignalStore.markOverlayAckPending(applicationContext, eventId)
+            acknowledge.isEnabled = false
+            acknowledge.text = "ĐÃ GHI NHẬN"
+            stopSelf()
+
             Thread {
                 try {
                     val session = InteractiveSessionStore.load(applicationContext)
-                        ?: throw IllegalStateException("Phiên đăng nhập chưa sẵn sàng.")
+                        ?: return@Thread
                     val api = InventoryApi(
                         baseUrl = BuildConfig.API_BASE_URL.trimEnd('/'),
                         userAgent = "SUPRA-Inventory-Beta/" + BuildConfig.VERSION_NAME,
@@ -141,14 +151,8 @@ class CriticalOverlayService : Service() {
                     api.restoreSession(session)
                     api.acknowledgeResult(eventId)
                     NotificationSignalStore.clearOverlayAck(applicationContext, eventId)
-                    handler.post { stopSelf() }
                 } catch (_: Exception) {
-                    handler.post {
-                        acknowledge.isEnabled = true
-                        acknowledge.text = "THỬ XÁC NHẬN LẠI"
-                        surface.findViewById<TextView>(R.id.tvOverlayDismissHint).text =
-                            "Chưa gửi được xác nhận • kiểm tra mạng rồi thử lại"
-                    }
+                    // Keep the local pending ACK. MainActivity retries when connectivity/session returns.
                 }
             }.start()
         }
@@ -183,7 +187,7 @@ class CriticalOverlayService : Service() {
             setPadding(0, 18, 0, 18)
         }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         card.addView(TextView(this).apply {
-            text = "Cảnh báo sẽ tự đóng khi chuyên viên đã kết thúc yêu cầu trên Agent."
+            text = "Cảnh báo tự đóng sau tối đa 60 giây; chuyên viên có thể kết thúc sớm trên Agent."
             textSize = 14f
             setTextColor(Color.rgb(71, 85, 105))
             gravity = Gravity.CENTER
@@ -264,6 +268,7 @@ class CriticalOverlayService : Service() {
         private const val CHANNEL_ID = "inventory_critical_overlay"
         private const val OVERLAY_NOTIFICATION_ID = 129119
         private const val DEFAULT_TTL_MS = 30L * 60L * 1000L
+        private const val PICKER_COMMAND_TTL_MS = 60L * 1000L
         private const val MAX_TTL_MS = 6L * 60L * 60L * 1000L
 
         fun show(
