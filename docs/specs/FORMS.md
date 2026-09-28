@@ -580,3 +580,12 @@ D126 cancels the unimplemented D125 removal of Picker `Xác nhận đơn`.
 - Remove the Agent WMS-derived **Cập nhật SKU** action and automatic SKU sync.
 - Existing authorized Web manual file import remains the SKU update form.
 
+## D135 Android/Agent field refinement forms
+
+- Android Beta visible application name is **1291 Báo hàng Beta**. Package ID and Beta update channel are unchanged.
+- Agent **Liên hệ picker** requires one confirmation dialog with **Đồng ý/Xác nhận** versus **Huỷ** semantics before sending. Once accepted, the initiating Agent immediately dims/disables the action while the shared call is being created.
+- Agent **Kết thúc** requires one confirmation dialog before resolving an active call. Early resolve closes the PDA warning but does not reopen **Liên hệ picker** before the original 60-second lock expires.
+- Picker call overlay displays only the business instruction; do not show text explaining that it auto-closes after 60 seconds.
+- Shared PickList count wording is **Hôm nay toàn cụm: <nhận> nhận · <xác nhận> xác nhận · <lỗi> lỗi**. Process-local diagnostics, when shown, begin with **Agent này** so they cannot be confused with durable fleet totals.
+- User-visible Agent identity is username only. Strip internal prefixes such as `admin:`; do not expose composite authority IDs in titles or fleet rows.
+- The in-app full-screen Báo hàng result button **XÁC NHẬN ĐÃ NHẬN** dismisses immediately after local pending-ACK persistence. Network acknowledgement is asynchronous and must not control whether the dialog can close.
