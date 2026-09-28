@@ -636,3 +636,12 @@ For Web **Thời gian xử lý**:
 - Once any SLA form control is edited, background realtime/reconcile may fetch newer server authority but must not rebuild the form until the operator saves, navigates away, or otherwise abandons the edit.
 - The SLA route's `loadSla()` function owns both dirty-state protection and rendering. Generic active-section reconciliation must not apply a second unconditional patch after `loadSla()`.
 - Save remains server-authoritative: selected mode is sent exactly; success requires the save response and a fresh GET to return the same mode.
+
+
+### D139 SLA dirty form global render guard
+
+- A dirty **Thời gian xử lý** form must survive every generic preserved-context section repaint, not only realtime reconciliation.
+- Generic repaint sources include delayed initial section load completion, online/offline events, action-finally repaint and future shared `patchActiveSection(true)` callers.
+- While dirty, only non-destructive secondary patches such as SLA insight counts/overlays may update.
+- Submit authority for Deadline mode is the currently checked `input[name="autoSkipMode"]`.
+- Authoritative server rerender is allowed only after successful save clears dirty state, explicit stale-conflict reload, navigation away/back, or fresh page load.

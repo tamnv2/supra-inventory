@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D138_TECHNICAL_RUNTIME_PASS__OA064_FIELD_READY__D137_OA063_STILL_OPEN",
+      "status": "D139_OWNER_FIELD_FAIL_REPAIR_IN_PROGRESS__D138_SUPERSEDED__D137_OA063_STILL_OPEN",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -1573,7 +1573,7 @@
     }
   },
   "d138": {
-    "status": "TECHNICAL_RUNTIME_PASS__OA064_FIELD_READY",
+    "status": "FIELD_FAIL__SUPERSEDED_BY_D139",
     "resource_change": "NONE__REUSES_EXISTING_BETA_WEB_WORKER_INVENTORYCORE_REALTIME",
     "web_fix": "DIRTY_SLA_FORM_NOT_GENERIC_REPATCHED_DURING_REALTIME_RECONCILE",
     "server_contract": "FIRST_REPORT_AND_PER_PICKER_EXISTING_AUTHORITY_UNCHANGED__ROUNDTRIP_VERIFY_RETAINED",
@@ -1587,5 +1587,14 @@
     "repo_authority_run": 36408876273,
     "project_state_run": 36408876275,
     "dashboard_probe_run": 36408876231
+  },
+  "d139": {
+    "status": "IMPLEMENTATION_IN_PROGRESS",
+    "resource_change": "NONE__REUSES_EXISTING_BETA_WEB_WORKER_INVENTORYCORE_REALTIME",
+    "web_fix": "GLOBAL_PATCH_BOUNDARY_PROTECTS_DIRTY_SLA_FORM__EXPLICIT_CHECKED_MODE_SUBMIT",
+    "server_contract": "EXISTING_FIRST_REPORT_PER_PICKER_PERSISTENCE_AND_POLICY_VERSION_GUARD_UNCHANGED",
+    "android": "beta-vc82__UNCHANGED",
+    "agent": "relay-agent-v79__UNCHANGED",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }

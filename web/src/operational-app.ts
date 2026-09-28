@@ -909,6 +909,22 @@ function patchActiveSection(preserveContext = true): void {
     render();
     return;
   }
+
+  // D139: while the operator is editing the SLA form, no generic section refresh
+  // may rebuild .main from the last server snapshot. This covers realtime, delayed
+  // initial-load completion, network online/offline events, action-finally patches
+  // and any other shared repaint path. Successful/stale-authoritative SLA flows
+  // explicitly clear slaFormDirty before they need a server-owned rerender.
+  if (activeSection === "sla" && slaFormDirty && preserveContext) {
+    patchSlaInsightCounts();
+    patchOverlays();
+    runtimeLogMetric("RENDER", "sla_dirty_patch_skipped", {
+      section: activeSection,
+      reason: "operator_edit_in_progress",
+    }, 0);
+    return;
+  }
+
   const started = performance.now();
   const snapshot = preserveContext ? captureUiContext() : null;
   main.innerHTML = mainMarkup();
@@ -3636,7 +3652,8 @@ function bindSection(): void {
       const escalationEnabled = data.get("escalationEnabled") === "on";
       const autoSkip = Number(data.get("autoSkip"));
       const autoSkipEnabled = data.get("autoSkipEnabled") === "on";
-      const autoSkipModeRaw = String(data.get("autoSkipMode") || "");
+      const checkedMode = slaForm.querySelector<HTMLInputElement>('input[name="autoSkipMode"]:checked');
+      const autoSkipModeRaw = String(checkedMode?.value || data.get("autoSkipMode") || "");
       const skipToStockEnabled = data.get("skipToStockEnabled") === "on";
       const skipToStockMinutes = Number(data.get("skipToStockMinutes"));
       if (!["FIRST_REPORT", "PER_PICKER"].includes(autoSkipModeRaw)) {

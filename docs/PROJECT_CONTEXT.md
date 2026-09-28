@@ -561,3 +561,12 @@ D138 makes the SLA reconcile branch return immediately after `loadSla()`. This l
 - Live Beta Web now contains the SLA realtime dirty-form preservation fix. No service schema, provider, Android or Agent change was required.
 - OA064 is READY_FOR_OWNER_FIELD_TEST: select `FIRST_REPORT`, allow realtime activity, save, reload, and verify the server-authoritative mode remains `FIRST_REPORT`.
 - D137 OA063 remains independently open. Stable remains OWNER-GATED.
+
+
+## D139 SLA field-failure repair — 2026-09-28
+
+D138 field acceptance failed: Owner selected `FIRST_REPORT`, saved and refreshed, but Web still returned `PER_PICKER`.
+
+The remaining source risk is broader than realtime reconciliation. The shared `patchActiveSection(true)` can still rebuild the SLA form from the previous server snapshot through delayed section-load completion, network online/offline repaint, or generic action-finally repaint. D139 therefore moves dirty-form protection to that shared render boundary and reads the explicitly checked radio at submit time.
+
+Existing server policy-version safety and save-response/post-save-GET verification remain unchanged. Scope is Beta Web only. Android beta-vc82 and Agent v79 remain unchanged. D137 OA063 stays open independently. Stable remains OWNER-GATED.

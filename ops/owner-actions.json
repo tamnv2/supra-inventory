@@ -3183,7 +3183,7 @@
     },
     {
       "id": "OA064",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "FIELD_FAIL__SUPERSEDED_BY_OA065_D139",
       "title": "Field-accept D138 Web SLA FIRST_REPORT persistence during realtime reconciliation",
       "resource_key": "repo",
       "provider": "Beta Web + existing Beta Worker/InventoryCore",
@@ -3219,7 +3219,45 @@
         "No schema/provider/Android/Agent change and Stable remains untouched."
       ],
       "safety": "Beta Web only. Existing server-authoritative version guard remains. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "On live Beta Web, select FIRST_REPORT, wait through normal realtime activity, save, reload the page, and verify FIRST_REPORT remains selected and shown as Đang áp dụng.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-28",
+        "result": "FAIL",
+        "evidence": "Owner selected FIRST_REPORT, saved, refreshed the browser, and the authoritative display still returned PER_PICKER.",
+        "successor": "OA065_D139"
+      }
+    },
+    {
+      "id": "OA065",
+      "status": "BLOCKED_PENDING_D139_TECHNICAL_RUNTIME_PASS",
+      "title": "Field-accept D139 global SLA dirty-form persistence repair",
+      "resource_key": "repo",
+      "provider": "Beta Web + existing Beta Worker/InventoryCore",
+      "reason_owner_only": "The failure is browser timing dependent. CI can prove every generic patch path respects dirty SLA state, but live save/reload persistence needs one Owner browser test.",
+      "prerequisites": {
+        "baseline_main": "401cd3a70b42c9629faa16531a137a7636d0ff13",
+        "implementation_branch": "fix/d139-sla-dirty-form-global-rerender",
+        "new_provider_resources": "NONE",
+        "android": "beta-vc82__UNCHANGED",
+        "agent": "relay-agent-v79__UNCHANGED",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Open Beta Web → Thời gian xử lý and wait until the page is fully loaded.",
+        "Select Theo báo đầu tiên của SKU and leave it selected for at least several seconds; no background/network/delayed-load repaint may change it.",
+        "Press Lưu cấu hình toàn hệ thống.",
+        "Reload the browser and verify the radio plus Đang áp dụng both show Theo báo đầu tiên của SKU."
+      ],
+      "pass_criteria": [
+        "Dirty FIRST_REPORT cannot be replaced by any generic active-section rerender.",
+        "Save reads the explicitly checked radio at submit time.",
+        "Successful save still requires immediate server response and post-save GET to equal FIRST_REPORT.",
+        "Browser reload returns FIRST_REPORT from server authority.",
+        "No schema/provider/Android/Agent change and Stable remains untouched."
+      ],
+      "safety": "Beta Web only. Revision-safe server authority remains unchanged. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for D139 technical/runtime PASS, then run the four-step live Beta test.",
       "closed": false
     }
   ]

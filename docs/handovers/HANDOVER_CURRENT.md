@@ -1169,3 +1169,14 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Web marker: `D138_RUNTIME_PASS_MAIN_005D8298__SLA_DIRTY_FORM_REALTIME_PRESERVATION__OA064_FIELD_READY`.
 - OA064 is READY_FOR_OWNER_FIELD_TEST. D137 OA063 remains independently open.
 - Android remains `beta-vc82`; Agent remains `relay-agent-v79`; Stable remains OWNER-GATED.
+
+
+## D139 continuity — 2026-09-28
+
+- D138 OA064: **FIELD FAIL**, superseded by D139/OA065.
+- Owner evidence: choose FIRST_REPORT → Save → F5 → server-authoritative view still PER_PICKER.
+- D139 branch: `fix/d139-sla-dirty-form-global-rerender`.
+- Fix moves SLA dirty-form protection from one realtime caller into shared `patchActiveSection`, covering delayed section load, network repaint and action-finally repaint.
+- Save explicitly reads the checked Deadline radio; backend revision/roundtrip guards remain unchanged.
+- Beta Web only; no resource/schema/Android/Agent change. D137 OA063 remains open. Stable OWNER-GATED.
+- Canonical Web marker: `D139_SOURCE_CANDIDATE__GLOBAL_DIRTY_SLA_FORM_RERENDER_GUARD`.
