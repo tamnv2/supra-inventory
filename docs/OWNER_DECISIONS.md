@@ -2017,3 +2017,17 @@ Status: **OWNER FIELD DEFECT / HOTFIX AUTHORIZED** — 2026-09-28
 - D139 moves dirty-form protection into the shared `patchActiveSection` boundary. While `slaFormDirty=true`, generic preserved-context patches must not rebuild the SLA form.
 - Save reads the actually checked `autoSkipMode` radio at submit time. Existing policy-version protection and server response + post-save GET verification remain mandatory.
 - Beta Web only. No schema/provider/Android/Agent change. D137 OA063 remains independent. Stable remains OWNER-GATED.
+
+## D140 — Firestore Agent-sync reconnect storm and quota protection
+
+Status: **OWNER-REPORTED PRODUCTION-LIKE BETA DEFECT / AGENT HOTFIX AUTHORIZED** — 2026-09-28
+
+- The Sep 28 Beta Agent logs show the compact `agent_sync` gRPC listener repeatedly opening and failing with `InvalidArgument` roughly once per second while real PDA PickList volume remained low. This is an Agent implementation defect, not normal load from many PDA devices.
+- Root cause 1: the raw streaming Firestore gRPC client did not provide the Firestore streaming routing metadata. D140 adds both `google-cloud-resource-prefix` and `x-goog-request-params` for the configured database before opening `Listen`.
+- Root cause 2: retry backoff was reset immediately after sending the Listen request, before Firestore had accepted the target. A rejected target therefore looped near 1 second indefinitely. D140 resets backoff only after the first valid server response, uses exponential transient retry, and opens a five-minute circuit for permanent/configuration/quota errors such as `InvalidArgument`, `PermissionDenied`, `FailedPrecondition` and `ResourceExhausted`.
+- Root cause 3: D134 allowed every authenticated Agent, including deep-hibernate Agents, to keep the same compact listener. D140 supersedes that rule: only PRIMARY, NEXT_A and NEXT_B may keep the realtime compact listener; DEEP_HIBERNATE keeps no `agent_sync` listener.
+- PRIMARY full reconciliation remains bounded to five minutes; forced reconcile cannot repeat faster than one minute. Window focus/restore remains UI-only.
+- Mutations of the compact sync document compare normalized business state and skip PATCH when the state is unchanged. This removes avoidable writes without weakening call/kick/presence/counter semantics.
+- The Android/PDA confirmation carrier, APK version and business flow are unchanged. D140 is **Agent-only** plus repository/CI authority. No Stable mutation is authorized.
+- Agent target is v80. CI must keep the packaged gRPC native smoke test and additionally enforce routing metadata, retry/circuit policy, HA-trio listener gating and the D140 sync-safety self-test.
+
