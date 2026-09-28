@@ -3605,6 +3605,38 @@
         "result": "SUPERSEDED",
         "evidence": "D144 switched runtime-log authority to bounded InventoryCore SQLite; Drive remains best-effort archive only."
       }
+    },
+    {
+      "id": "OA073",
+      "status": "BLOCKED_PENDING_D145_RUNTIME",
+      "title": "Publish Beta Google OAuth and replace production refresh token",
+      "resource_key": "oauth-beta",
+      "provider": "Google Auth Platform + Cloudflare Worker",
+      "reason_owner_only": "Google Auth Platform publishing status/re-consent and the Google OAuth refresh-token secret are Owner-controlled provider actions. The refresh-token value must never be pasted into chat, GitHub, logs or source.",
+      "prerequisites": {
+        "d145_public_pages": "PENDING_RUNTIME_PASS",
+        "current_google_state": "TESTING__OWNER_SCREENSHOT_2026_09_29",
+        "required_scopes": "drive.file__gmail.send",
+        "beta_only": true,
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_test_path": [
+        "After D145 runtime PASS, open Google Auth Platform Branding for supra-inventory-beta and set Application home page to https://inventory-beta.supra.cc.cd/about, Privacy policy to https://inventory-beta.supra.cc.cd/privacy, and Terms of use to https://inventory-beta.supra.cc.cd/terms; save.",
+        "Open Google Auth Platform Audience and publish the Beta OAuth app from Testing to In production.",
+        "Start a fresh Beta OAuth consent from https://inventory-beta.supra.cc.cd/api/oauth/google/start and grant only drive.file + gmail.send.",
+        "Copy the returned refresh token directly into the Cloudflare Worker secret GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN for supra-inventory-beta. Never send or store the token in chat/repo/logs.",
+        "Re-test one Gmail transactional message path and the bounded Drive/archive status path; Stable remains untouched."
+      ],
+      "pass_criteria": [
+        "All three public disclosure URLs return HTTP 200 without authentication and visibly identify SUPRA Inventory Beta.",
+        "Google Auth Platform shows the Beta OAuth app In production.",
+        "A newly issued refresh token is stored only as the protected Worker secret and can refresh the approved drive.file + gmail.send access.",
+        "Gmail transactional sending and the intended Drive-backed support/archive functions operate without expired/revoked-token errors.",
+        "No Stable OAuth resource or Stable runtime is changed."
+      ],
+      "safety": "Beta only. No OAuth token/client secret/service-account key may be pasted into chat, source, issue, PR or log. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for D145 technical/runtime PASS. Then perform the Google Auth Platform publish/re-consent and protected Cloudflare secret replacement steps above.",
+      "closed": false
     }
   ]
 }
