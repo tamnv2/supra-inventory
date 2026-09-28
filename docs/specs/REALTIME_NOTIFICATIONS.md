@@ -619,3 +619,12 @@ This subsection supersedes conflicting D131 max-6/RAM-counter wording above.
 - A real `ANDROID_CONFIRM_V1` request is an implicit zero-extra-write activity refresh for that Picker on PRIMARY.
 - Non-primary Agents never poll the business queue. Bringing an Agent window to foreground may issue one bounded projection refresh, rate-limited locally, to reconcile the operator view.
 - Login/logout/device/socket changes continue to update the projection from authoritative Android realtime/session state.
+
+## D133 alert delivery, acknowledgement and permission contract
+
+- Picker active-call delivery is dual-path: Firestore picker_active_calls/{app_user_id} is the reconciled state and FCM picker_command is the fast path. Android must never attach the Firestore listener under a different Firebase user than the current Picker session.
+- A restored Picker session that has no in-memory relay custom token must refresh the Android session once and then establish FirebaseAuth before attaching the active-call listener.
+- Gọi về bàn CV is visually bounded to **60 seconds maximum**. FCM TTL is 60 seconds and the Android overlay independently enforces the same local safety TTL. A resolved event from the originating Agent clears it earlier.
+- Result overlays (HAS_STOCK / SKIP_ALLOWED) use local-first acknowledgement: persist the result-event id in the existing local pending-ACK store, dismiss the overlay immediately, then attempt the server acknowledgement. Pending ACK is retried on Activity resume and on the existing one-minute runtime tick while the Activity remains alive. This queue is acknowledgement metadata only; it must never create or mutate a Báo hàng report offline.
+- Android operational access is blocked until app notifications are enabled and the SYSTEM_ALERT_WINDOW special permission (**Hiển thị trên ứng dụng khác**) is granted. On Android 13+ the POST_NOTIFICATIONS runtime permission is also required. There is no “Để sau” bypass.
+- The active-call Firebase Functions are part of the Beta deployment set: pickerActiveCallCreated and pickerActiveCallResolved.
