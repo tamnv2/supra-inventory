@@ -589,3 +589,12 @@ D126 cancels the unimplemented D125 removal of Picker `Xác nhận đơn`.
 - Shared PickList count wording is **Hôm nay toàn cụm: <nhận> nhận · <xác nhận> xác nhận · <lỗi> lỗi**. Process-local diagnostics, when shown, begin with **Agent này** so they cannot be confused with durable fleet totals.
 - User-visible Agent identity is username only. Strip internal prefixes such as `admin:`; do not expose composite authority IDs in titles or fleet rows.
 - The in-app full-screen Báo hàng result button **XÁC NHẬN ĐÃ NHẬN** dismisses immediately after local pending-ACK persistence. Network acknowledgement is asynchronous and must not control whether the dialog can close.
+
+## D136 Agent manual PickList and browser visibility controls
+
+- A manual search result row has three required visible semantics in this order: **PickList**, **Xác nhận**, **Trạng thái**.
+- Found rows initialize as `PickList=<full code>`, action **Xác nhận**, status **Sẵn sàng xác nhận**.
+- A successful/already-confirmed result changes the action to **Đã xác nhận** and disables repeat mutation. An uncertain result changes the action to **Không gửi lại** and disables repeat mutation. Retryable failures may restore **Xác nhận**.
+- Auto-size and manual saved-width modes must preserve the three critical columns. When the viewport is too narrow, horizontal scrolling is the fallback instead of silently clipping the action/status columns.
+- The Agent top-level **Usage** tab is removed.
+- **Chuyển Web chạy nền** performs an immediate hide with no password prompt. **Hiện Web Confirm**, stopping Web, Agent logout and browser-mode switching remain password-protected.
