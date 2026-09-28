@@ -266,3 +266,11 @@ D126 supersedes D125 before implementation.
 - Browser DOM mutation is limited to the exact D126 Confirm PickList page and exact approved controls. Failure to establish page/control identity blocks the action.
 - Stable remains OWNER-GATED.
 
+
+## D143 RBAC refinements
+
+- `PICKPACK_ADMIN` gains the existing **Ca vận hành** read/control capability only; this does not grant Reporter result resolution, SLA-policy mutation, system reset, ROOT/ADMIN authority management or any unrelated ADMIN capability.
+- The base ROOT Web permission-review selector may choose effective `PICKPACK_ADMIN` in addition to ROOT/ADMIN/REPORTER/PICKER.
+- Managed-user listing excludes ROOT from normal personnel/account presentation.
+- Deletion of managed ADMIN/PICKPACK_ADMIN/REPORTER accounts is a real-ROOT-only operation. Server validation rejects ROOT, Picker, unknown, mixed-invalid or non-ROOT actor targets. Picker bulk enable/disable/delete remains a separate Picker-only operation.
+- External Firebase identity cleanup after an authoritative managed-user deletion is best-effort. InventoryCore removal revokes application authority even if external identity cleanup must be retried later.
