@@ -17,6 +17,7 @@ namespace SupraInventoryRelayAgent
         internal string CallId = "";
         internal string SenderAgentId = "";
         internal string SenderRole = "";
+        internal bool Active;
         internal long LockUntilMs;
     }
 
@@ -173,9 +174,46 @@ namespace SupraInventoryRelayAgent
                     CallId = callId ?? "",
                     SenderAgentId = senderAgentId ?? "",
                     SenderRole = senderRole ?? "",
+                    Active = true,
                     LockUntilMs = Math.Max(NowMs(), lockUntilMs)
                 };
             }, "AGENT_SYNC_CALL");
+        }
+
+        internal AgentSyncSnapshot SetCallResolved(AgentSession session, string targetUserId, string callId)
+        {
+            return Mutate(session, snapshot =>
+            {
+                PickerCallLockView current;
+                if (!snapshot.Calls.TryGetValue(targetUserId ?? "", out current) || current == null) return;
+                if (!string.Equals(current.CallId, callId ?? "", StringComparison.Ordinal)) return;
+                current.Active = false;
+            }, "AGENT_SYNC_CALL_RESOLVE");
+        }
+
+        internal void RevokePickerSession(
+            AgentSession session,
+            PickerPresenceView picker,
+            string agentInstanceId)
+        {
+            EnsureSession(session);
+            if (picker == null || string.IsNullOrWhiteSpace(picker.FirebaseUid) || picker.SessionGeneration <= 0)
+                throw new InvalidOperationException("Picker thiếu generation hợp lệ để Kích User.");
+            var fields = new Dictionary<string, object>
+            {
+                { "firebase_uid", StringField(picker.FirebaseUid) },
+                { "user_id", StringField(picker.UserId ?? "") },
+                { "revoked_generation", IntField(picker.SessionGeneration) },
+                { "kicked_at_ms", IntField(NowMs()) },
+                { "kicked_by_user_id", StringField(session.AppUserId ?? "") },
+                { "kicked_by_agent_id", StringField(agentInstanceId ?? "") }
+            };
+            FirestoreHttpTransport.SendJson(
+                "PATCH",
+                AgentConfig.FirestorePickerSessionControlBaseUrl + "/" + Uri.EscapeDataString(picker.FirebaseUid) + BuildMask(fields.Keys),
+                session.IdToken,
+                _json.Serialize(new Dictionary<string, object> { { "fields", fields } }),
+                "Agent-Auto-Confirm-Pick-Pack/D134", 7000, false, _log, "PICKER_SESSION_KICK");
         }
 
         internal AgentSyncSnapshot SetKick(
@@ -273,6 +311,14 @@ namespace SupraInventoryRelayAgent
             if (snapshot.Kicks == null) snapshot.Kicks = new Dictionary<string, PickerKickView>(StringComparer.Ordinal);
             if (snapshot.Fleet == null) snapshot.Fleet = new List<AgentPresenceView>();
             var now = NowMs();
+            foreach (var picker in snapshot.Pickers)
+            {
+                if (picker == null || string.IsNullOrWhiteSpace(picker.FirebaseUid)) continue;
+                PickerKickView staleKick;
+                if (snapshot.Kicks.TryGetValue(picker.FirebaseUid, out staleKick) &&
+                    staleKick != null && picker.SessionGeneration > staleKick.RevokedGeneration)
+                    snapshot.Kicks.Remove(picker.FirebaseUid);
+            }
             var expiredCalls = new List<string>();
             foreach (var pair in snapshot.Calls)
                 if (pair.Value == null || pair.Value.LockUntilMs <= now) expiredCalls.Add(pair.Key);
@@ -366,7 +412,7 @@ namespace SupraInventoryRelayAgent
                 list.Add(new Dictionary<string, object> {
                     { "target_user_id", item.TargetUserId ?? "" }, { "call_id", item.CallId ?? "" },
                     { "sender_agent_id", item.SenderAgentId ?? "" }, { "sender_role", item.SenderRole ?? "" },
-                    { "lock_until_ms", item.LockUntilMs }
+                    { "active", item.Active }, { "lock_until_ms", item.LockUntilMs }
                 });
             }
             return _json.Serialize(list);
@@ -422,7 +468,7 @@ namespace SupraInventoryRelayAgent
                 var user = S(map, "target_user_id"); if (user.Length == 0) continue;
                 result[user] = new PickerCallLockView {
                     TargetUserId = user, CallId = S(map, "call_id"), SenderAgentId = S(map, "sender_agent_id"),
-                    SenderRole = S(map, "sender_role"), LockUntilMs = L(map, "lock_until_ms")
+                    SenderRole = S(map, "sender_role"), Active = B(map, "active"), LockUntilMs = L(map, "lock_until_ms")
                 };
             }
             return result;
