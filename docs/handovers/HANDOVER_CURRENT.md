@@ -6,11 +6,11 @@
 
 - Project: `supra-inventory`
 - SQLite schema: `12`
-- Latest signed Beta APK: `beta-vc79`
-- Current released Agent: `relay-agent-v73`
-- Beta: `D134_OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS__D133_FIELD_DEFECTS_SUPERSEDED`
+- Latest signed Beta APK: `beta-vc80`
+- Current released Agent: `relay-agent-v74`
+- Beta: `D134_TECHNICAL_RUNTIME_RELEASE_PASS__OA060_FIELD_READY`
 - Web: `D120_RUNTIME_PASS_MAIN_43A94207__OWNER_FIELD_TEST_OK`
-- Android: `D133_SIGNED_BETA_VC79__D134_NEXT_MONOTONIC_TARGET`
+- Android: `D134_SIGNED_BETA_VC80__OA060_FIELD_READY`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -1067,4 +1067,15 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Usage is server-collected and mirrored every 10 minutes to `relay_poc_coordination/usage_current`; Windows Agent reads it directly from Firestore so Office does not depend on Worker DNS.
 - D134 soft Firestore read target is 45k/day; no UI-focus read and no per-job durable-counter refresh remain.
 - Auto size control exists only in Hệ thống Agent; title readiness colors and password-protected Web/Agent logout are part of the same change set.
+- Stable remains OWNER-GATED and untouched.
+
+## D134 release-state refresh — 2026-09-28
+
+- Main source: `8b703f12ec6f1667e43dab101114f2fbcc1a8819`.
+- Windows Agent: `relay-agent-v74`, SHA-256 `3c3792de465cc1e81f772a90ad2591c14bf79c8e97298ea743ca7701edbf366b`.
+- Signed Android Beta: `beta-vc80`, SHA-256 `c25e052f308154ed4fe30ea584ecebc7aab0c26bcd9fb53f99313070c73cf330`.
+- Worker runtime exact-source health PASS: schema `12/12`, Operational V2 `5/5`, Agent migration `0/0`.
+- Firestore Rules deployment/readback, Functions deployment, Agent, Android, UI, Authority, State and Dashboard Probe main workflows all PASS.
+- `inventory-channel` is refreshed to v74/vc80. Fixed WebView2 runtime bundle is reused unchanged.
+- D134 technical/runtime/release is PASS; OA060 physical Owner field acceptance is READY.
 - Stable remains OWNER-GATED and untouched.
