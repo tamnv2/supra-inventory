@@ -1592,3 +1592,18 @@ D134 is acceptable only when all of the following pass:
 10. Verify Hiện/ẩn Web Confirm and Agent logout require the Agent password; visible account text is the clean username only.
 11. Existing D133 Android permission gate and local-first shortage-result acknowledgement remain intact.
 12. Stable remains OWNER-GATED and untouched.
+
+## D135 post-D134 field-refinement acceptance
+
+D135 Beta acceptance must prove all of the following:
+
+- On the originating Agent, confirming **Liên hệ picker** immediately disables/dims the call action before the network operation completes. Repeated clicks cannot create duplicate calls. A failed write restores the action; a successful write remains locked for the full 60 seconds on all Agents.
+- **Liên hệ picker** and **Kết thúc** each show exactly one confirmation dialog. Cancelling performs no mutation.
+- The Picker specialist-call alert contains no visible automatic-60-second-close explanation while the internal safety TTL still expires the alert.
+- Android launcher/header/permission/update copy uses **1291 Báo hàng Beta** and the Beta package/signing/update channel remains unchanged.
+- `admin:admin` and `admin:tamnv2` are never visible as Agent usernames; display is `admin` and `tamnv2`.
+- For a PDA request processed by PRIMARY, the three PickList overlay totals change immediately after the durable ACK commit without waiting for the five-minute compact reconciliation. Restart/failover still restores exact durable totals.
+- Counter immediacy introduces zero additional Firestore reads/writes/listeners/polls compared with the same confirmation transaction. Non-processing/deep-hibernate Agents retain D134 synchronization cadence.
+- A NOT_FOUND browser lookup normally terminates after stable local DOM observation rather than waiting the former eight-second loop; only one search-button click is allowed and fail-closed uniqueness/checkbox/dialog guards remain.
+- With a Báo hàng full-screen result visible, disconnect network or revoke/logout the current session and press **XÁC NHẬN ĐÃ NHẬN**. The full-screen surface closes immediately; the PDA is usable/login-capable; pending ACK is retained for later authenticated retry.
+- Existing D134 generation fencing, single-PRIMARY mutation fencing, anti-spam escalation, no-offline-business guard, 45,000/day soft read target and Stable OWNER-GATE remain PASS.
