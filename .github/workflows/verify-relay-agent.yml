@@ -77,9 +77,9 @@ jobs:
           $serviceIndex = Get-Content service/src/index.ts -Raw
           $notifications = Get-Content service/src/notifications-core.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*80\s*;') { throw "D139 quota-storm hotfix requires Agent v80." }
+          if ($config -notmatch 'AgentBuild\s*=\s*80\s*;') { throw "D140 quota-storm hotfix requires Agent v80." }
           if ($project -notmatch '<AssemblyVersion>0\.80\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.80\.0\.0</FileVersion>') {
-            throw "D139 quota-storm hotfix assembly/file version must be 0.80."
+            throw "D140 quota-storm hotfix assembly/file version must be 0.80."
           }
 
           foreach ($marker in @(
@@ -487,18 +487,18 @@ jobs:
             'SelfTestSafetyPolicy',
             'write=SKIP_NO_CHANGE'
           )) {
-            if (-not $sync.Contains($marker)) { throw "D139 compact fleet-sync safety marker missing: $marker" }
+            if (-not $sync.Contains($marker)) { throw "D140 compact fleet-sync safety marker missing: $marker" }
           }
           if ($sync.Contains('role_independent=true') -or -not $sync.Contains('role_limited=true')) {
-            throw "D139 Agent sync listener must no longer be role-independent."
+            throw "D140 Agent sync listener must no longer be role-independent."
           }
-          foreach ($marker in @('ApplyD139AgentSyncRole','policy=PRIMARY_NEXT_A_NEXT_B_ONLY','TimeSpan.FromMinutes(1)')) {
-            if (-not $ops.Contains($marker)) { throw "D139 HA-trio listener gate marker missing: $marker" }
+          foreach ($marker in @('ApplyD140AgentSyncRole','policy=PRIMARY_NEXT_A_NEXT_B_ONLY','TimeSpan.FromMinutes(1)')) {
+            if (-not $ops.Contains($marker)) { throw "D140 HA-trio listener gate marker missing: $marker" }
           }
-          if (-not $program.Contains('ApplyD139AgentSyncRole(role)') -or
-              -not $program.Contains('ApplyD139AgentSyncRole(FirestoreAgentRole.DEEP_HIBERNATE)') -or
-              -not $program.Contains('--d139-sync-safety-self-test')) {
-            throw "D139 listener lifecycle/self-test wiring missing."
+          if (-not $program.Contains('ApplyD140AgentSyncRole(role)') -or
+              -not $program.Contains('ApplyD140AgentSyncRole(FirestoreAgentRole.DEEP_HIBERNATE)') -or
+              -not $program.Contains('--d140-sync-safety-self-test')) {
+            throw "D140 listener lifecycle/self-test wiring missing."
           }
           if (-not $quota.Contains('SoftReadsPerDay = 45000L')) { throw "D134 Firestore read soft target must be 45,000/day." }
           if ($program.Contains('_mainTabs.TabPages.Add(_usagePage)') -or
@@ -652,15 +652,15 @@ jobs:
           }
           Write-Host "D134 packaged gRPC native smoke PASS"
 
-          $syncSafety = Start-Process -FilePath $exe -ArgumentList "--d139-sync-safety-self-test" -PassThru
+          $syncSafety = Start-Process -FilePath $exe -ArgumentList "--d140-sync-safety-self-test" -PassThru
           if (-not $syncSafety.WaitForExit(15000)) {
             try { $syncSafety.Kill() } catch {}
-            throw "D139 Agent sync safety self-test timed out."
+            throw "D140 Agent sync safety self-test timed out."
           }
           if ($syncSafety.ExitCode -ne 0) {
-            throw "D139 Agent sync safety self-test failed with exit code $($syncSafety.ExitCode)."
+            throw "D140 Agent sync safety self-test failed with exit code $($syncSafety.ExitCode)."
           }
-          Write-Host "D139 Agent sync routing/retry/circuit self-test PASS"
+          Write-Host "D140 Agent sync routing/retry/circuit self-test PASS"
 
           New-Item -ItemType Directory -Force -Path relay-agent/dist | Out-Null
           $primary = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe"
