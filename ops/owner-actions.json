@@ -2838,7 +2838,7 @@
     },
     {
       "id": "OA058",
-      "status": "BLOCKED_PENDING_D132_TECHNICAL_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D132 Agent presence/status/layout hotfix",
       "resource_key": "repo",
       "provider": "Beta Windows Agent + existing Beta Worker/Firestore + beta-vc78 Android",
@@ -2846,7 +2846,7 @@
       "prerequisites": {
         "target_agent_release": "relay-agent-v72",
         "android": "beta-vc78",
-        "technical_release": "PENDING",
+        "technical_release": "PASS__MAIN_32411D15__AGENT_V72__WORKER_DEPLOY_PASS",
         "new_resources": "NONE",
         "stable": "OWNER_GATED"
       },
@@ -2865,7 +2865,7 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for relay-agent-v72 technical release, then run this short field path.",
+      "remaining_owner_action": "Run the OA058 short field retest using relay-agent-v72 + beta-vc78. Stable remains untouched.",
       "closed": false
     }
   ]
