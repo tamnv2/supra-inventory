@@ -519,3 +519,12 @@ D136 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta.
 - Main Repo Authority, Project State, UI Design, Beta Worker, Relay Agent and Dashboard Probe gates PASS.
 - Agent Usage UI/provider collection is retired; no scheduled Google Monitoring Usage collection or `usage_current` publication remains.
 - OA062 is READY_FOR_OWNER_FIELD_TEST. Stable remains OWNER-GATED and untouched.
+
+## D137 active follow-up — 2026-09-28
+
+- D136 is Owner field PASS on `relay-agent-v77`; Android remains `beta-vc82`.
+- Owner field evidence exposed two D137 defects: the manual PickList grid can collapse vertically in the restored/normal window, and the first loaded Confirm document can contain no usable data until a normal F5.
+- D137 target is `relay-agent-v78`, Agent-only. The Overview allocation and PickList card bounds become vertically responsive with an actionable-grid minimum while retaining D136 critical-column protection.
+- Managed Confirm readiness now requires one normal post-arrival top-level reload plus a stable post-reload DOM before READY. Login and Dashboard recovery use the same barrier.
+- WebView2 host build 10, Android beta-vc82, provider resources and service cadence remain unchanged. DevTools Network/session extraction/direct WMS API remain forbidden.
+- Active implementation branch: `fix/d137-picklist-height-confirm-refresh`. OA063 remains blocked until technical/release PASS. Stable remains OWNER-GATED.
