@@ -219,14 +219,18 @@ export const pickerAlertCreated = onDocumentCreated("picker_alerts/{alertId}", a
         event: "picker_command",
         alert_id: alertId,
         command_type: commandType,
-        notification_title: commandType === "CALL_SPECIALIST"
-          ? "Yêu cầu về bàn Chuyên viên"
-          : "Yêu cầu lấy hàng về bàn Pack",
-        notification_body: String(alert.message || "").slice(0, 500) || (
-          commandType === "CALL_SPECIALIST"
-            ? "Vui lòng về bàn Chuyên viên để xử lý."
-            : "Vui lòng lấy hàng về bàn Pack."
-        ),
+        notification_title: commandType === "CHAT_MESSAGE"
+          ? "Chuyên viên gửi thông báo tới bạn:"
+          : commandType === "CALL_SPECIALIST"
+            ? "Yêu cầu về bàn Chuyên viên"
+            : "Yêu cầu lấy hàng về bàn Pack",
+        notification_body: commandType === "CHAT_MESSAGE"
+          ? ((String(alert.message || "").slice(0, 200) || "Có thông báo mới.") + "\n\nHãy đọc kĩ và thực hiện theo!")
+          : (String(alert.message || "").slice(0, 500) || (
+              commandType === "CALL_SPECIALIST"
+                ? "Vui lòng về bàn Chuyên viên để xử lý."
+                : "Vui lòng lấy hàng về bàn Pack."
+            )),
         expires_at_ms: String(expiresAtMs),
       },
       android: {
