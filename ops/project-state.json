@@ -13,26 +13,26 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D125_OWNER_APPROVED_MODEL_REWRITE__IMPLEMENTATION_PENDING__D124_V45_HISTORICAL_DO_NOT_USE_WMS_FEATURES",
+    "beta": "D133_TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_42909CFD__AGENT_V73__BETA_VC79__OA059_FIELD_READY",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 12,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
     "web": "D120_RUNTIME_PASS_MAIN_43A94207__OWNER_FIELD_TEST_OK",
-    "android": "D133_SOURCE_READY__NEXT_SIGNED_BETA_AFTER_VC78__HARD_ALERT_PERMISSION_GATE__LOCAL_FIRST_ACK",
-    "latest_beta_apk": "beta-vc78",
+    "android": "D133_SIGNED_BETA_VC79__HARD_ALERT_PERMISSION_GATE__LOCAL_FIRST_ACK__60S_CALL_SPECIALIST__OA059_FIELD_READY",
+    "latest_beta_apk": "beta-vc79",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
     "network_scope": "D125_OFFICE_FIREBASE_BRIDGE_TARGET__NO_SUPRA_WMS_BACKGROUND_SESSION_OR_AUTOMATION",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
     "user_management": "D120_SOURCE_CANDIDATE__ROOT_ONLY_MANAGED_ROLE_CHANGE__PICKER_HR_AUTHORITY_PRESERVED",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D112_OWNER_ACCEPTED_PASS__EXISTING_METRICS_OPERATIONAL_HIERARCHY__NONBLOCKING_SECONDARY_LOAD",
-    "quota_resilience": "D133_SOURCE_READY__D131_FIRESTORE_DURABLE_COUNTER_AUTHORITY_PRESERVED__POST_ACK_COALESCED_REFRESH",
+    "quota_resilience": "D133_TECHNICAL_RELEASE_PASS__FIRESTORE_DURABLE_PICKLIST_COUNTER_AUTHORITY__COALESCED_POST_ACK_REFRESH",
     "ui_design_guard": "D125_TARGET__ANDROID_BAO_HANG_ONLY__OFFICE_CLIENT_WEB_ALIGNED__NO_SUPRA_PICKLIST_UI",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D118_OWNER_ACCEPTED_PASS__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SELECTED_RANGE_FILTER",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D133_SOURCE_READY__AGENT_V73__DURABLE_COUNTER_OVERLAY__ACTIVE_CALL_DUAL_PATH_60S"
+    "picklist_confirmation_poc": "D133_TECHNICAL_RELEASE_PASS__AGENT_V73__BETA_VC79__DURABLE_COUNTERS__ACTIVE_CALL_DUAL_PATH_60S__OA059_FIELD_READY"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -189,7 +189,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Open D133 PR from fix/d133-six-field-fixes, require authority/state/Worker/Android/Agent/Functions/UI gates PASS, merge to main, verify Beta deploys and publish relay-agent-v73 plus next signed Android release. Then run OA059 field check. Stable remains OWNER-GATED.",
+  "next_action": "Run OA059 on relay-agent-v73 + beta-vc79: verify shared Auto size, Usage refresh without 401, durable PickList counters across restart/update, current-account Gọi về bàn CV delivery with 60s safety TTL, local-first result ACK recovery, and hard notification + overlay permission gate. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -823,7 +823,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D133_IMPLEMENTATION_SOURCE_READY__PR_GATES_PENDING",
+  "active_workstream": "D133_TECHNICAL_RUNTIME_RELEASE_PASS__OA059_OWNER_FIELD_READY",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -1718,14 +1718,14 @@
     "field_acceptance": "PASS__OWNER_CONFIRMED__2026_09_28"
   },
   "d133": {
-    "status": "IMPLEMENTATION_SOURCE_READY__PR_GATES_PENDING",
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA059_FIELD_READY",
     "date": "2026-09-28",
     "baseline_main": "f9442fcb657dfdd6414071aab3711a083f8af5ed",
     "baseline_agent_release": "relay-agent-v72",
     "baseline_android": "beta-vc78",
     "implementation_branch": "fix/d133-six-field-fixes",
     "target_agent_release": "relay-agent-v73",
-    "target_android": "NEXT_SIGNED_BETA_AFTER_VC78",
+    "target_android": "beta-vc79",
     "requirements": [
       "AUTO_SIZE_SHARED_AGENT_FLEET_PICKER_MANUAL_PICKLIST_PER_ACCOUNT",
       "AGENT_USAGE_DIRECT_FIREBASE_AUTH_NO_HTTP_401",
@@ -1740,7 +1740,36 @@
     "permission_gate": "NOTIFICATIONS_ENABLED__POST_NOTIFICATIONS_WHERE_APPLICABLE__SYSTEM_ALERT_WINDOW__NO_BYPASS",
     "usage_auth": "REAL_ADMIN_OR_PICKPACK_ADMIN_DIRECT_FIREBASE_TOKEN_WITH_EMPTY_OR_AGENT_CHANNEL__WEB_ANDROID_REJECTED",
     "resource_change": "NONE__REUSES_EXISTING_BETA_WORKER_FIRESTORE_FUNCTIONS_ANDROID_AGENT_DISTRIBUTION",
-    "field_gate": "OA059_PENDING_TECHNICAL_RELEASE",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "field_gate": "OA059_READY_FOR_OWNER_FIELD_TEST",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "implementation_pr": 264,
+    "main_merge": "42909cfdd9c577a18cadc012506fb597bc13c381",
+    "main_runs": {
+      "repo_authority": 36367536057,
+      "project_state": 36367536023,
+      "beta_worker": 36367536034,
+      "beta_functions": 36367536035,
+      "android": 36367536084,
+      "relay_agent": 36367536068,
+      "ui_design": 36367536031,
+      "dashboard_probe": 36367536141
+    },
+    "release_evidence": {
+      "agent_release": "relay-agent-v73",
+      "agent_release_id": 397895794,
+      "agent_asset_id": 594221966,
+      "agent_size_bytes": 412160,
+      "agent_sha256": "65ffe4e5486d9b074925d5dec0f9c01bca4bda3b647bc0b85306647bf2aa33eb",
+      "android_release": "beta-vc79",
+      "android_release_id": 397895785,
+      "android_asset_id": 594221883,
+      "android_size_bytes": 19052908,
+      "android_sha256": "af78c15d69c9c108fe63b302985b913b8b3190742b468e98d3c32583d73c29a5",
+      "inventory_channel_release_id": 394587029,
+      "inventory_channel_agent_manifest_asset_id": 594222061,
+      "inventory_channel_agent_asset_id": 594222063,
+      "inventory_channel_pda_manifest_asset_id": 594222001,
+      "inventory_channel_pda_asset_id": 594221999
+    }
   }
 }

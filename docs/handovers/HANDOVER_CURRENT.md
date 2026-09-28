@@ -1044,3 +1044,14 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - D132 Owner field result: **PASS**.
 - D133 covers shared Auto-size for Agent grids, Agent Usage 401 repair, Firestore-authoritative PickList overlay counters, current-account Gọi về bàn CV delivery, local-first result acknowledgement, 60-second command-overlay safety TTL, and hard Android notification/overlay permission gating.
 - No new provider resource. Stable remains OWNER-GATED and untouched.
+
+## D133 release-state refresh — 2026-09-28
+
+- SQLite schema: `12`.
+- Latest signed Beta APK: `beta-vc79`.
+- Web: `D120_RUNTIME_PASS_MAIN_43A94207__OWNER_FIELD_TEST_OK`.
+- Android: `D133_SIGNED_BETA_VC79__HARD_ALERT_PERMISSION_GATE__LOCAL_FIRST_ACK__60S_CALL_SPECIALIST__OA059_FIELD_READY`.
+- Beta: `D133_TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_42909CFD__AGENT_V73__BETA_VC79__OA059_FIELD_READY`.
+- Windows Agent: `relay-agent-v73`.
+- D133 Worker/Functions/Android/Agent/UI/Authority/State main gates are PASS and the distribution channel is refreshed.
+- OA059 is READY_FOR_OWNER_FIELD_TEST. Stable remains OWNER-GATED and untouched.

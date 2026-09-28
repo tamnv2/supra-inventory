@@ -1877,3 +1877,16 @@ After D132 field PASS, Owner approves the following coordinated Beta changes:
 6. **Required Android alert permissions are a hard startup gate.** The app may enter operational UI only when Android notifications are enabled (including POST_NOTIFICATIONS where runtime permission applies) and SYSTEM_ALERT_WINDOW / **Hiển thị trên ứng dụng khác** is granted. Missing permission shows a blocking permission screen with direct system-settings actions and no bypass. The product does not rely on Android full-screen-intent permission for this flow; the current mechanism is the application overlay.
 
 Implementation targets: **relay-agent-v73** and the next signed Beta Android release after beta-vc78. Existing Beta Worker, Firebase/Firestore/Functions and distribution resources are reused. No new provider resource is authorized. Stable remains OWNER-GATED and untouched.
+
+## D133 technical/runtime/release checkpoint — 2026-09-28
+
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA059 OWNER FIELD REVIEW READY**.
+
+- Implementation PR #264 merged to main `42909cfdd9c577a18cadc012506fb597bc13c381`.
+- Main PASS evidence: Repo Authority `36367536057`, Project State `36367536023`, Beta Worker `36367536034`, Beta Functions `36367536035`, Android `36367536084`, Agent `36367536068`, UI `36367536031`, Dashboard Probe `36367536141`.
+- Beta Worker includes the bounded Agent Usage authentication repair.
+- Beta Functions deployment includes `pickerActiveCallCreated` and `pickerActiveCallResolved`.
+- Signed Android release: `beta-vc79`, release `397895785`, APK asset `594221883`, size `19052908`, SHA-256 `af78c15d69c9c108fe63b302985b913b8b3190742b468e98d3c32583d73c29a5`.
+- Agent release: `relay-agent-v73`, release `397895794`, EXE asset `594221966`, size `412160`, SHA-256 `65ffe4e5486d9b074925d5dec0f9c01bca4bda3b647bc0b85306647bf2aa33eb`.
+- Fixed `inventory-channel` was refreshed to the D133 Agent/APK artifacts.
+- OA059 is the remaining physical Owner field gate. Stable remains OWNER-GATED and untouched.
