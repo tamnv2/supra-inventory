@@ -16,6 +16,7 @@ import {
   changeMyPassword,
   clearSession,
   createManagedUser,
+  deleteManagedUsers,
   getAdminDashboard,
   getAdminOperationalInsights,
   getAdminReporting,
@@ -203,7 +204,7 @@ function canAccessSection(section: Section, value: AppProfile): boolean {
   if (value.role === "PICKER") return ["picker", "account"].includes(section);
   if (value.role === "REPORTER") return ["operations", "results", "account"].includes(section);
   if (value.role === "PICKPACK_ADMIN") {
-    return ["operations", "results", "sku", "hr", "users", "dashboard", "reports", "account"].includes(section);
+    return ["operations", "results", "shift", "sku", "hr", "users", "dashboard", "reports", "account"].includes(section);
   }
   if (section === "system-reset") return value.role === "ROOT" && value.base_role === "ROOT";
   return section !== "picker";
@@ -255,6 +256,7 @@ function clearRoleScopedViewState(): void {
   pickerSelected = null;
   managedUsers = [];
   selectedUserIds.clear();
+  selectedManagedUserIds.clear();
   excludedPickerIds.clear();
   allPickerSelection = false;
   hrPreview = null;
@@ -356,6 +358,7 @@ let operationalInsights: OperationalInsights | null = null;
 let realtimePresence: RealtimePresence | null = null;
 let managedUsers: ManagedUser[] = [];
 let selectedUserIds = new Set<string>();
+let selectedManagedUserIds = new Set<string>();
 let excludedPickerIds = new Set<string>();
 let hrSource: HrSourceResponse | null = null;
 let hrPreview: HrSyncPreview | null = null;
@@ -377,7 +380,7 @@ let reportOffset = 0;
 const REPORT_PAGE_SIZE = 100;
 let dashboardFrom = dateDaysAgo(0);
 let dashboardTo = dateDaysAgo(0);
-let reportFrom = dateDaysAgo(6);
+let reportFrom = dateDaysAgo(0);
 let reportTo = dateDaysAgo(0);
 let reportStatus = "";
 let reportQuery = "";
@@ -694,7 +697,7 @@ function announceNewReportEvents(events: RealtimeEventFrame[]): void {
 }
 
 function roleManage(): boolean {
-  return Boolean(profile && (profile.role === "ADMIN" || profile.role === "ROOT"));
+  return Boolean(profile && ["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile.role));
 }
 
 function rolePickPackManage(): boolean {
@@ -1079,12 +1082,13 @@ function navIcon(key: string): string {
 
 function navButton(section: Section, label: string): string {
   const noticeCount = section === "operations" && roleOperate() ? queueRows.length : null;
-  const notice = noticeCount == null ? "" : `<b class="nav-notice-badge" data-operations-nav-count>${noticeCount > 99 ? "99+" : noticeCount}</b>`;
+  const notice = noticeCount == null || noticeCount <= 0 ? "" : `<b class="nav-notice-badge" data-operations-nav-count>${noticeCount > 99 ? "99+" : noticeCount}</b>`;
   return `<button class="nav-button ${activeSection === section ? "active" : ""}" data-section="${section}"${activeSection === section ? ' aria-current="page"' : ""}>${navIcon(section)}<span>${esc(label)}</span>${notice}</button>`;
 }
 
 function syncOperationsNavBadge(): void {
   const node = document.querySelector<HTMLElement>("[data-operations-nav-count]");
+  if (queueRows.length <= 0) { node?.remove(); return; }
   if (!node) return;
   node.textContent = queueRows.length > 99 ? "99+" : String(queueRows.length);
 }
@@ -1108,7 +1112,7 @@ function renderNav(): string {
   }
   if (profile.role === "PICKPACK_ADMIN") {
     return [
-      navGroup("VẬN HÀNH", [["operations", "Theo dõi báo hàng"], ["dashboard", "Tổng quan & báo cáo"]]),
+      navGroup("VẬN HÀNH", [["operations", "Theo dõi báo hàng"], ["dashboard", "Tổng quan & báo cáo"], ["shift", "Ca vận hành"]]),
       navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"]]),
     ].join("");
   }
@@ -1281,7 +1285,7 @@ function renderShell(content: string): void {
           <span>${esc(legacyRoleLabel(profile.role))}</span>
         </div>
         <div class="header-controls">
-          ${profile.base_role === "ROOT" ? `<label class="header-control root-role-control"><span>Kiểm tra quyền</span><select id="root-role-select">${(["ROOT","ADMIN","REPORTER","PICKER"] as AppProfile["role"][]).map((role) => `<option value="${role}" ${profile?.role === role ? "selected" : ""}>${esc(rootRoleOptionLabel(role))}</option>`).join("")}</select></label>` : ""}
+          ${profile.base_role === "ROOT" ? `<label class="header-control root-role-control"><span>Kiểm tra quyền</span><select id="root-role-select">${(["ROOT","ADMIN","PICKPACK_ADMIN","REPORTER","PICKER"] as AppProfile["role"][]).map((role) => `<option value="${role}" ${profile?.role === role ? "selected" : ""}>${esc(rootRoleOptionLabel(role))}</option>`).join("")}</select></label>` : ""}
           <label class="header-control theme-control"><span>Giao diện</span><select id="theme-mode"><option value="AUTO" ${themeMode === "AUTO" ? "selected" : ""}>Tự động</option><option value="LIGHT" ${themeMode === "LIGHT" ? "selected" : ""}>Sáng</option><option value="DARK" ${themeMode === "DARK" ? "selected" : ""}>Tối</option></select></label>
           <div class="header-control zoom-control"><span>Cỡ chữ</span><div class="zoom-buttons"><button type="button" class="ghost" data-ui-zoom="-10" aria-label="Giảm cỡ chữ">A−</button><button type="button" class="ghost zoom-value" data-ui-zoom="0" id="ui-zoom-value" aria-label="Đặt cỡ chữ về 100%">${uiZoom}%</button><button type="button" class="ghost" data-ui-zoom="10" aria-label="Tăng cỡ chữ">A+</button></div></div>
           <div class="user-actions"><button type="button" class="ghost header-account-action ${activeSection === "account" ? "active" : ""}" data-section="account">Tài khoản</button><button id="logout" class="ghost">Đăng xuất</button></div>
@@ -3218,7 +3222,7 @@ function bindShell(): void {
   document.querySelector<HTMLSelectElement>("#root-role-select")?.addEventListener("change", (event) => {
     if (!profile || profile.base_role !== "ROOT") return;
     const role = String((event.currentTarget as HTMLSelectElement).value || "ROOT") as AppProfile["role"];
-    if (!["ROOT", "ADMIN", "REPORTER", "PICKER"].includes(role) || role === profile.role) return;
+    if (!["ROOT", "ADMIN", "PICKPACK_ADMIN", "REPORTER", "PICKER"].includes(role) || role === profile.role) return;
     void run(async () => {
       profile = await setRootEffectiveRole(role);
       sessionViewGeneration += 1;
