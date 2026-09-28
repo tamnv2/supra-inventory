@@ -211,7 +211,7 @@ export interface SlaPersistenceVerification {
   requested_mode: AutoSkipMode;
   previous_mode: AutoSkipMode | null;
   persisted_mode: AutoSkipMode;
-  expected_policy_version: number;
+  base_policy_version: number;
   persisted_policy_version: number;
   sqlite_readback: "PASS";
 }
