@@ -1054,6 +1054,8 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Stable remains OWNER-GATED and untouched.
 
 ## D135 release checkpoint — 2026-09-28
+- Canonical release marker: `D135_TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_6D929E42__AGENT_V76__BETA_VC82__OA061_FIELD_READY`.
+- Canonical release marker: `D135_SIGNED_BETA_VC82__1291_BAO_HANG_BETA__LOCAL_FIRST_RESULT_ACK_ALL_SURFACES__OA061_FIELD_READY`.
 
 - PR #270 merged to main `6d929e42fa2474712e0629a95bb5ac9cf59112bd`.
 - Released Agent: `relay-agent-v76`; released signed Android: `beta-vc82` with visible name **1291 Báo hàng Beta**.
