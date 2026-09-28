@@ -771,6 +771,59 @@ export class InventoryCore {
       });
     }
 
+    if (request.method === "PUT" && url.pathname === "/auth/revoke-android-session") {
+      const body = (await request.json()) as {
+        user_id?: string;
+        firebase_uid?: string;
+        revoked_generation?: number;
+      };
+      const userId = String(body.user_id || "").trim();
+      const firebaseUid = String(body.firebase_uid || "").trim();
+      const requestedGeneration = Math.max(0, Math.trunc(Number(body.revoked_generation || 0)));
+      if (!userId || !firebaseUid || requestedGeneration <= 0) {
+        return response({ error: "invalid_input" }, 400);
+      }
+      const current = this.state.storage.sql.exec<{
+        firebase_uid: string | null;
+        android_session_generation: number;
+      }>(
+        "SELECT firebase_uid, android_session_generation FROM users WHERE user_id = ? LIMIT 1",
+        userId,
+      ).toArray()[0];
+      if (!current || String(current.firebase_uid || "") !== firebaseUid) {
+        return response({ error: "picker_session_not_found" }, 404);
+      }
+
+      // D144 live kick is authoritative against the currently active Android
+      // generation, including a generation that raced ahead of the Agent row.
+      const nextGeneration = Math.max(
+        Number(current.android_session_generation || 0),
+        requestedGeneration,
+      ) + 1;
+      this.state.storage.sql.exec(
+        `UPDATE users
+            SET android_session_generation = ?,
+                android_session_device_id = NULL,
+                android_session_started_at = NULL,
+                updated_at = CURRENT_TIMESTAMP
+          WHERE user_id = ? AND firebase_uid = ?`,
+        nextGeneration,
+        userId,
+        firebaseUid,
+      );
+      this.state.storage.sql.exec(
+        "UPDATE fcm_devices SET enabled = 0, updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND platform = 'ANDROID'",
+        userId,
+      );
+      this.state.storage.sql.exec("DELETE FROM presence_sessions WHERE user_id = ?", userId);
+      return response({
+        status: "android_session_revoked",
+        user_id: userId,
+        previous_generation: Number(current.android_session_generation || 0),
+        revoked_generation: nextGeneration,
+      });
+    }
+
     if (request.method === "PUT" && url.pathname === "/auth/end-session") {
       const body = (await request.json()) as {
         user_id?: string;
