@@ -14,6 +14,7 @@ namespace SupraInventoryRelayAgent
         internal const string FirestoreFleetMetricsUrl = FirestoreDocumentsBaseUrl + "/relay_fleet_metrics/current";
         internal const string FirestoreCoordinationBaseUrl = FirestoreDocumentsBaseUrl + "/relay_poc_coordination";
         internal const string FirestoreAgentSyncUrl = FirestoreCoordinationBaseUrl + "/agent_sync";
+        internal const string FirestoreUsageSnapshotUrl = FirestoreCoordinationBaseUrl + "/usage_current";
         internal const string FirestoreAgentSyncDocumentName = "projects/" + FirebaseProjectId + "/databases/(default)/documents/relay_poc_coordination/agent_sync";
         internal const string FirestoreDatabaseName = "projects/" + FirebaseProjectId + "/databases/(default)";
         internal const string FirestorePickerSessionControlBaseUrl = FirestoreDocumentsBaseUrl + "/picker_session_controls";
