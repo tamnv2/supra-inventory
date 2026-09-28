@@ -1659,3 +1659,17 @@ In addition to the D137 UI checks:
 5. Repeat `PER_PICKER → FIRST_REPORT → PER_PICKER` once.
    - PASS: both supported modes persist exactly and optimistic policy-version protection remains active.
 6. Regression: no schema/provider/Android/Agent change; D137 OA063 remains open; Stable remains untouched.
+
+
+### D139 — Global dirty SLA persistence
+
+1. Load Beta Web **Thời gian xử lý** and wait until current server state is visible.
+2. Select **Theo báo đầu tiên của SKU**.
+3. Trigger or wait through ordinary realtime/network/header activity and delayed background loads.
+   - PASS: the selected radio does not revert.
+4. Save.
+   - PASS: submit reads the checked radio as `FIRST_REPORT`.
+   - PASS: server save response and immediate authoritative GET both return `FIRST_REPORT`.
+5. Refresh the browser.
+   - PASS: radio and **Đang áp dụng** both show **Theo báo đầu tiên của SKU**.
+6. Confirm no schema/provider/Android/Agent changes and Stable remains untouched.
