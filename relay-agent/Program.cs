@@ -299,13 +299,17 @@ namespace SupraInventoryRelayAgent
             AppendSanitized(DiagnosticLogFile, message);
             if (!IsImmediateErrorSignal(message)) return;
             if (Interlocked.CompareExchange(ref _errorUploadCallbackRunning, 1, 0) != 0) return;
-            try
+            var safeMessage = Sanitize(message ?? "UNKNOWN");
+            ThreadPool.QueueUserWorkItem(_ =>
             {
-                var callback = ErrorUploadCallback;
-                if (callback != null) callback(Sanitize(message ?? "UNKNOWN"));
-            }
-            catch { }
-            finally { Interlocked.Exchange(ref _errorUploadCallbackRunning, 0); }
+                try
+                {
+                    var callback = ErrorUploadCallback;
+                    if (callback != null) callback(safeMessage);
+                }
+                catch { }
+                finally { Interlocked.Exchange(ref _errorUploadCallbackRunning, 0); }
+            });
         }
 
         private static bool IsImmediateErrorSignal(string message)
