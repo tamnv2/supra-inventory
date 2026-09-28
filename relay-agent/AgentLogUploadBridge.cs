@@ -15,6 +15,8 @@ namespace SupraInventoryRelayAgent
         private readonly string _instanceId;
         private readonly string _checkpointFile;
         private readonly Action<string> _log;
+        private readonly object _errorGate = new object();
+        private DateTime _lastErrorQueuedUtc = DateTime.MinValue;
 
         internal AgentLogUploadBridge(Func<AgentSession> sessionProvider, string instanceId, string checkpointFile, Action<string> log)
         {
@@ -38,14 +40,14 @@ namespace SupraInventoryRelayAgent
                 var checkpoint = ReadCheckpoint();
                 if (checkpoint >= slot) return;
 
-                var content = AgentDiagnostics.BuildUploadSnapshot(checkpoint == DateTime.MinValue ? slot.AddHours(-6) : checkpoint, false);
+                var content = AgentDiagnostics.BuildUploadSnapshot(checkpoint == DateTime.MinValue ? slot.AddHours(-9) : checkpoint, false);
                 if (string.IsNullOrWhiteSpace(content))
                 {
                     WriteCheckpoint(slot);
                     return;
                 }
 
-                Queue(session, slot, false, content);
+                Queue(session, slot, "scheduled", content);
                 WriteCheckpoint(slot);
                 _log("AGENT LOG queue=PASS type=scheduled slot=" + slot.ToString("yyyyMMdd-HHmm", CultureInfo.InvariantCulture));
             }
@@ -69,12 +71,36 @@ namespace SupraInventoryRelayAgent
 
                 var content = AgentDiagnostics.BuildUploadSnapshot(DateTime.Now.AddHours(-2), true);
                 if (string.IsNullOrWhiteSpace(content)) return;
-                Queue(session, DateTime.Now, true, content);
+                Queue(session, DateTime.Now, "crash", content);
                 _log("AGENT LOG queue=PASS type=crash");
             }
             catch
             {
                 PersistCrashPending(crashType);
+            }
+        }
+
+        internal void TryQueueErrorSnapshot(string errorType)
+        {
+            lock (_errorGate)
+            {
+                if (DateTime.UtcNow - _lastErrorQueuedUtc < TimeSpan.FromSeconds(20)) return;
+                _lastErrorQueuedUtc = DateTime.UtcNow;
+            }
+            try
+            {
+                var session = _sessionProvider();
+                if (session == null || string.IsNullOrWhiteSpace(session.IdToken) || string.IsNullOrWhiteSpace(session.AppUserId))
+                    return;
+                var content = AgentDiagnostics.BuildUploadSnapshot(DateTime.Now.AddMinutes(-30), true);
+                if (string.IsNullOrWhiteSpace(content)) return;
+                content = "ERROR_MARKER=" + AgentDiagnostics.Sanitize(errorType ?? "UNKNOWN") + Environment.NewLine + content;
+                Queue(session, DateTime.Now, "error", content);
+                _log("AGENT LOG queue=PASS type=error");
+            }
+            catch (Exception ex)
+            {
+                _log("AGENT LOG queue=DEFER type=error detail=" + ex.GetType().Name);
             }
         }
 
@@ -94,7 +120,7 @@ namespace SupraInventoryRelayAgent
                     content = "CRASH_MARKER=" + AgentDiagnostics.Sanitize(marker) + Environment.NewLine + content;
                 if (string.IsNullOrWhiteSpace(content)) return;
 
-                Queue(session, DateTime.Now, true, content);
+                Queue(session, DateTime.Now, "crash", content);
                 File.Delete(pending);
                 _log("AGENT LOG pending-crash=FLUSHED");
             }
@@ -104,17 +130,20 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private void Queue(AgentSession session, DateTime generatedLocal, bool crash, string content)
+        private void Queue(AgentSession session, DateTime generatedLocal, string kind, string content)
         {
             var safe = AgentDiagnostics.SanitizeBundle(content);
             if (string.IsNullOrWhiteSpace(safe)) return;
 
             var uploadId = Guid.NewGuid().ToString("N");
             var chunks = Split(safe, MaxChunkChars);
-            var filename = (crash ? "crash_" : "") +
-                           "agent_" + SafeSlug(Environment.MachineName) + "_" +
+            var normalizedKind = string.Equals(kind, "crash", StringComparison.OrdinalIgnoreCase)
+                ? "crash"
+                : (string.Equals(kind, "error", StringComparison.OrdinalIgnoreCase) ? "error" : "scheduled");
+            var filename = normalizedKind + "_agent_" + SafeSlug(Environment.MachineName) + "_" +
                            generatedLocal.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture) + ".log";
             var generatedAtMs = new DateTimeOffset(generatedLocal).ToUnixTimeMilliseconds();
+            var crash = normalizedKind == "crash";
 
             for (var index = 0; index < chunks.Count; index++)
             {
@@ -124,7 +153,7 @@ namespace SupraInventoryRelayAgent
                     { "upload_id", StringField(uploadId) },
                     { "part_index", IntField(index) },
                     { "part_count", IntField(chunks.Count) },
-                    { "status", StringField("PENDING") },
+                    { "status", StringField("DIRECT_PENDING") },
                     { "source", StringField("AGENT") },
                     { "admin_user_id", StringField(session.AppUserId ?? "") },
                     { "agent_instance_id", StringField(_instanceId) },
@@ -165,8 +194,9 @@ namespace SupraInventoryRelayAgent
 
         private static DateTime ResolveLatestSlot(DateTime now)
         {
-            var slots = new[] { 0, 6, 12, 18 };
-            var hour = 0;
+            if (now.Hour < 6) return DateTime.MinValue;
+            var slots = new[] { 6, 12, 18, 21 };
+            var hour = 6;
             foreach (var candidate in slots)
                 if (candidate <= now.Hour) hour = candidate;
             return new DateTime(now.Year, now.Month, now.Day, hour, 0, 0, DateTimeKind.Local);
