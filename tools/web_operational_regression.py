@@ -120,7 +120,8 @@ def main() -> None:
     require(app, "SKIP_CONFIRM_DELAY_MS = 5_000", "five-second Skip confirmation delay")
     require(app, 'id="skip-delay-setting"', "per-user Skip delay setting")
     require(web_logger, "scheduledSendInFlight", "single-flight scheduled Web log")
-    require(runtime_logs, 'status: "already_uploaded"', "runtime log filename idempotency")
+    require(runtime_logs_core, "filename TEXT NOT NULL UNIQUE", "runtime log filename idempotency")
+    require(runtime_logs_core, "ON CONFLICT(filename) DO UPDATE", "runtime log filename upsert")
     forbid(app, "Beta / Logs", "internal environment log copy")
     forbid(app, "Tự gửi định kỳ", "internal log schedule copy")
 
