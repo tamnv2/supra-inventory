@@ -682,3 +682,15 @@ Status: **OWNER FIELD PASS**.
 - Beta deploy verified `/about`, `/privacy` and `/terms` at HTTP 200 without auth and passed the required application identity, exact OAuth scope, Privacy/Limited-Use and Google OAuth start checks.
 - OA073 is now READY_FOR_OWNER_GOOGLE_PUBLISH. The remaining bounded Owner action is Google Auth Platform Testing → In production, one fresh Beta consent, and direct replacement of the protected Worker refresh-token secret without exposing its value.
 - Stable remains OWNER-GATED and untouched.
+
+
+## D146 source candidate — 2026-09-29
+
+Owner reopened the Beta support-log delivery path after confirming the Beta Google OAuth app is **In production**, the refresh token was renewed/deployed, and transactional Gmail send works. D146 keeps the existing `drive.file + gmail.send` scope and does not request Gmail-read access.
+
+- Web/Android support logs keep InventoryCore SQLite as primary authority and now retry deferred Drive archival on the bounded five-minute Worker cron. Error/crash delivery remains immediate best effort. Scheduled slots are 06:00 / 12:00 / 18:00 / 21:00 HCM; midnight is removed. Filenames distinguish scheduled/manual/error/crash and source/device.
+- Agent v83 uses Google Firestore as its first hop for support-log parts, so Office operation does not require the laptop to reach Cloudflare. A Beta Google Function assembles the parts. The Function obtains a protected short-lived resumable Drive upload session from the Worker using Google workload identity; no OAuth token is returned and no Drive/OAuth secret exists on the laptop. The log payload is uploaded Google Function → Google Drive, with existing Worker drain as bounded fallback.
+- Web SKU import broadcasts `sku_catalog_updated` and sends a silent FCM compatibility marker; Android syncs its local SKU catalog without logout/login.
+- Managed-account deletion is true-ROOT-only at Web, Worker and InventoryCore boundaries. ROOT effective PICKPACK_ADMIN and real PICKPACK_ADMIN cannot delete ADMIN.
+- Agent protected password/browser-action dialogs pause the periodic UI timers while text is being entered and the generic tick avoids repaint work during interactive text focus.
+- Target releases: Agent `relay-agent-v83`; next monotonic signed Android after `beta-vc85`. Stable remains OWNER-GATED and untouched.
