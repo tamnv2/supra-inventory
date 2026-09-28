@@ -1285,3 +1285,14 @@ Status: **OWNER FIELD PASS**.
 - The password is intentionally not committed to this public repository. OA070 is the single Owner-only setup action; OA069 field acceptance remains blocked until the next signed Beta Android release is published.
 - Latest signed Android therefore remains `beta-vc83`.
 - Stable remains OWNER-GATED and untouched.
+
+## D143 full technical/runtime/release PASS — 2026-09-29
+
+- Canonical Beta marker: `D143_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC84__AGENT_V81__OA069_FIELD_READY`.
+- Canonical Android marker: `D143_SIGNED_BETA_VC84__SECURE_DEFAULT_PASSWORD_INJECTION__OA069_FIELD_READY`.
+- Latest signed Beta APK: `beta-vc84`; release id `398516587`; APK asset id `596111333`; size `19085892` bytes; SHA-256 `8f060f6d8482efca73bf01279435126a7e5ba1c9ac39f916f077e1bd0dddaaa4`.
+- Android source is exact D143 implementation main `96e38ca88633ef9a0114d6682bdac5bea2d4f2c8`. Verify Beta Android run `36463932866`, attempt 2, PASS; secure default-password injection check, signed APK build, exact-source Beta runtime gate and release publication all PASS.
+- GitHub Beta environment secret `ANDROID_PICKER_DEFAULT_PASSWORD` is configured; only the secret reference is recorded. No plaintext password is stored in repo/logs.
+- Agent `relay-agent-v81` remains released and D143 Web/Worker runtime remains PASS on SQLite `13/13`, Operational V2 `5/5`, Agent migration `0/0`.
+- OA070 is closed PASS. OA069 is READY_FOR_OWNER_FIELD_TEST on `relay-agent-v81` + `beta-vc84`.
+- Stable remains OWNER-GATED and untouched.
