@@ -206,9 +206,21 @@ export interface SlaConfig {
   updated_by?: string | null;
 }
 
+export interface SlaPersistenceVerification {
+  request_id: string;
+  requested_mode: AutoSkipMode;
+  previous_mode: AutoSkipMode | null;
+  persisted_mode: AutoSkipMode;
+  expected_policy_version: number;
+  persisted_policy_version: number;
+  sqlite_readback: "PASS";
+}
+
 export interface SlaResponse {
+  status?: string;
   configured: boolean;
   sla: SlaConfig | null;
+  verification?: SlaPersistenceVerification;
 }
 
 export interface OperationalInsights {
@@ -895,7 +907,9 @@ export async function correctReporterBatch(batchId: string): Promise<unknown> {
 }
 
 export async function getAdminSla(): Promise<SlaResponse> {
-  return readJson(await authorizedFetch("/api/admin/sla"));
+  // D141: management authority reads must bypass browser HTTP cache. The service
+  // already returns no-store, but Request.cache makes the client intent explicit.
+  return readJson(await authorizedFetch("/api/admin/sla", { cache: "no-store" }));
 }
 
 export async function saveAdminSla(input: {
@@ -909,9 +923,11 @@ export async function saveAdminSla(input: {
   skip_to_stock_enabled: boolean;
   skip_to_stock_minutes: number;
   expected_policy_version: number;
+  request_id: string;
 }): Promise<SlaResponse> {
   return readJson(await authorizedFetch("/api/admin/sla", {
     method: "PUT",
+    cache: "no-store",
     body: JSON.stringify(input),
   }));
 }
