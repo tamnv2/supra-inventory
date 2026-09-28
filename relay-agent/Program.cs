@@ -571,6 +571,7 @@ namespace SupraInventoryRelayAgent
         private readonly AgentLogUploadBridge _agentLogBridge;
         private readonly AgentBusinessSchedule _businessSchedule;
         private DateTime _lastAfterHoursPromptAt = DateTime.MinValue;
+        private long _lastAfterHoursPromptBoundaryMs;
         private DateTime _lastAfterHoursScheduleSyncAt = DateTime.MinValue;
         private bool? _lastRelayAllowed;
         private bool? _afterHoursLayoutVisible;
@@ -1017,13 +1018,13 @@ namespace SupraInventoryRelayAgent
             _afterHoursStatus.SetBounds(10, 7, 470, 34);
             _afterHoursStatus.ForeColor = Color.FromArgb(111, 78, 15);
             _afterHoursPanel.Controls.Add(_afterHoursStatus);
-            _afterHoursContinue.Text = "Tiếp tục sau 22:00";
+            _afterHoursContinue.Text = "Tăng ca thêm 1 giờ";
             _afterHoursContinue.Click += (s, e) => SetAfterHoursDecision(AfterHoursDecision.CONTINUE);
             _afterHoursPanel.Controls.Add(_afterHoursContinue);
-            _afterHoursStop.Text = "Ngừng từ 22:00";
+            _afterHoursStop.Text = "Đúng giờ về";
             _afterHoursStop.Click += (s, e) => SetAfterHoursDecision(AfterHoursDecision.STOP);
             _afterHoursPanel.Controls.Add(_afterHoursStop);
-            _afterHoursEarlyStart.Text = "Khởi động relay trước 06:00";
+            _afterHoursEarlyStart.Text = "Khởi động relay trước giờ vận hành";
             _afterHoursEarlyStart.Click += (s, e) => StartRelayBeforeSix();
             _afterHoursEarlyStart.Visible = false;
             _afterHoursPanel.Controls.Add(_afterHoursEarlyStart);
@@ -1444,6 +1445,8 @@ namespace SupraInventoryRelayAgent
             }
 
             _lastAfterHoursPromptAt = DateTime.MinValue;
+            _lastAfterHoursPromptBoundaryMs = 0L;
+            TopMost = false;
             Log("AFTER_HOURS decision=" + decision +
                 " boundary=" + boundary.ToString("HH:mm") +
                 " relay_until=" + until.ToString("HH:mm") +
@@ -1469,6 +1472,8 @@ namespace SupraInventoryRelayAgent
             if (_leaderCoordinator.PublishEarlyStartAndClaimPrimary(key, OperationalMs(until)))
             {
                 _lastAfterHoursPromptAt = DateTime.MinValue;
+                _lastAfterHoursPromptBoundaryMs = 0L;
+                TopMost = false;
                 _leaderCoordinator.RequestRoleRefreshBeforeBusiness();
                 Log("AFTER_HOURS early_start=PASS relay_until=" + until.ToString("HH:mm") + " schedule_key=" + key);
                 CheckAfterHoursSchedule(true);
@@ -1535,26 +1540,36 @@ namespace SupraInventoryRelayAgent
                 _afterHoursContinue.Text = "Tiếp tục đến " + until.ToString("HH:mm");
                 _afterHoursStop.Text = "Dừng lúc " + boundary.ToString("HH:mm");
 
-                if (!forcePrompt &&
-                    _lastAfterHoursPromptAt != DateTime.MinValue &&
-                    (now - _lastAfterHoursPromptAt).TotalMinutes < 5)
+                var promptBoundaryMs = OperationalMs(boundary);
+                if (_lastAfterHoursPromptBoundaryMs == promptBoundaryMs)
                     return;
 
                 _lastAfterHoursPromptAt = now;
+                _lastAfterHoursPromptBoundaryMs = promptBoundaryMs;
                 try
                 {
-                    _tray.ShowBalloonTip(
-                        5000,
-                        "Xác nhận thời gian vận hành relay",
-                        "Có tiếp tục nhận xác nhận từ PDA sau " + boundary.ToString("HH:mm") +
-                        " không? Nếu không xác nhận, relay sẽ tự ngủ tại mốc này.",
-                        ToolTipIcon.Warning);
+                    if (!Visible || WindowState == FormWindowState.Minimized)
+                        RestoreFromTray();
+                    else
+                    {
+                        ShowInTaskbar = true;
+                        Show();
+                        Activate();
+                    }
+                    TopMost = true;
+                    BringToFront();
+                    Activate();
+                    _afterHoursPanel.BringToFront();
                 }
                 catch { }
+                Log("AFTER_HOURS prompt=SHOW_ONCE boundary=" + boundary.ToString("HH:mm") +
+                    " next=" + until.ToString("HH:mm"));
                 return;
             }
 
             _lastAfterHoursPromptAt = DateTime.MinValue;
+            _lastAfterHoursPromptBoundaryMs = 0L;
+            TopMost = false;
             if (frozenOutsideRegular)
             {
                 var next = _businessSchedule.NextRegularStart(now);
@@ -1863,6 +1878,7 @@ namespace SupraInventoryRelayAgent
             Show();
             if (WindowState == FormWindowState.Minimized) WindowState = FormWindowState.Normal;
             Activate();
+            ScheduleAutoSizeAfterForegroundRestore();
             _trayMonitorTimer.Start();
             UpdateTrayMonitor();
         }
