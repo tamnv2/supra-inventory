@@ -581,3 +581,12 @@ Existing server policy-version safety and save-response/post-save-GET verificati
 - OA065 is READY_FOR_OWNER_FIELD_TEST for FIRST_REPORT save + browser-reload persistence.
 - D138 is field-failed and superseded by D139. D137 OA063 remains independently open.
 - Android remains `beta-vc82`; Agent remains `relay-agent-v79`; Stable remains OWNER-GATED.
+
+## D140 Agent Firestore listener storm repair — 2026-09-28
+
+Owner-reported Firebase usage showed a sharp Firestore read spike while real PDA PickList volume remained low. Sanitized Agent evidence isolated the amplification to the D134 compact `agent_sync` gRPC stream: one Agent produced 10,939 `InvalidArgument` reconnects during the 14–17h window while only 47 PDA PickList requests were observed.
+
+D140 is Agent-only. The raw streaming client now supplies Firestore database routing metadata, retry state resets only after a valid server response, permanent/configuration/quota failures open a five-minute circuit, transient failures back off from 2s to 60s, and logs expose sanitized gRPC status detail/circuit state. Compact realtime listening is limited to PRIMARY/NEXT_A/NEXT_B; DEEP_HIBERNATE keeps no compact listener. PRIMARY reconciliation remains five-minute bounded with a one-minute forced floor, and unchanged normalized `agent_sync` state skips PATCH.
+
+Target is `relay-agent-v80`. Android remains `beta-vc82`; no APK update, provider resource, schema or Stable change is part of D140. OA066 remains blocked until PR/CI/main/release PASS and a 30–60 minute Owner field soak confirms the reconnect storm and usage spike are gone.
+
