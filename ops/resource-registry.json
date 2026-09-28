@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D136_OWNER_APPROVED__IMPLEMENTATION_BRANCH_ACTIVE__D135_OWNER_FIELD_PASS",
+      "status": "D136_TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_62AB2AA1__AGENT_V77__ANDROID_VC82__OA062_FIELD_READY",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -191,13 +191,13 @@
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
       "relay_poc_status": "D125_PICKLIST_RELAY_RETIRED__FIRESTORE_REUSE_FOR_OFFICE_INVENTORY_BRIDGE",
-      "relay_agent_release": "relay-agent-v76",
+      "relay_agent_release": "relay-agent-v77",
       "firebase_rtdb_rules_deploy": "D087_PR_GATE_PASS_RUN_35495453228__MAIN_SOURCE_MERGED",
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D118_PASS_RUN_36064078233__SOURCE_COMMIT_EXACT__SCHEMA11_11__AGENT_MIGRATION_0_0__OPERATIONAL5_5",
-      "relay_agent_release_target": "relay-agent-v76__RELEASED",
+      "relay_agent_release_target": "relay-agent-v77__RELEASED",
       "next_signed_beta_release_target": "NEXT_MONOTONIC_AFTER_BETA_VC82",
-      "next_relay_agent_release_target": "relay-agent-v77",
+      "next_relay_agent_release_target": "NEXT_AFTER_V77",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
@@ -211,7 +211,7 @@
       "d125_source_status": "OWNER_APPROVED__AUTHORITY_RECORDED__IMPLEMENTATION_PENDING",
       "d133_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC79__AGENT_V73__OA059_FIELD_READY",
       "d135_source_status": "OWNER_FIELD_PASS__MAIN_6D929E42__AGENT_V76__BETA_VC82",
-      "d136_source_status": "OWNER_APPROVED__IMPLEMENTATION_BRANCH_ACTIVE__TARGET_AGENT_V77__ANDROID_VC82_UNCHANGED__USAGE_RUNTIME_RETIREMENT"
+      "d136_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_62AB2AA1__AGENT_V77__ANDROID_VC82_UNCHANGED__OA062_FIELD_READY"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -1514,7 +1514,7 @@
     "field_acceptance": "PASS__OWNER_CONFIRMED__2026_09_28__FOLLOWUP_D136"
   },
   "d136": {
-    "status": "OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS",
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA062_FIELD_READY",
     "resource_change": "NONE__REUSES_EXISTING_BETA_WORKER_AGENT_DISTRIBUTION",
     "baseline_agent_release": "relay-agent-v76",
     "target_agent_release": "relay-agent-v77",
@@ -1522,7 +1522,29 @@
     "manual_picklist_ui": "CODE_ACTION_STATUS_ALWAYS_VISIBLE__CRITICAL_WIDTH_GUARD__HORIZONTAL_SCROLL_FALLBACK",
     "usage": "USER_FACING_TAB_RETIRED__PROVIDER_MONITORING_POLL_AND_USAGE_CURRENT_PUBLICATION_RETIRED__LOCAL_QUOTA_REFERENCE_GUARD_RETAINED",
     "web_visibility": "HIDE_TO_BACKGROUND_NO_PASSWORD__SHOW_STOP_LOGOUT_SWITCH_PASSWORD_GATES_RETAINED",
-    "field_gate": "OA062_BLOCKED_PENDING_D136_RELEASE",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "field_gate": "OA062_READY_FOR_OWNER_FIELD_TEST",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "implementation_pr": 272,
+    "main_merge": "62ab2aa11cda251f18090fc0bd637a092ab0998d",
+    "main_runs": {
+      "repo_authority": 36393891751,
+      "project_state": 36393891808,
+      "beta_worker": 36393891801,
+      "relay_agent": 36393891772,
+      "ui_design": 36393891791,
+      "dashboard_probe": 36393891774
+    },
+    "runtime_proof": "BETA_HEALTH_HTTP200__SOURCE_62AB2AA1_EXACT__SCHEMA12_12__OPERATIONAL5_5__AGENT_MIGRATION0_0",
+    "release_evidence": {
+      "agent_release": "relay-agent-v77",
+      "agent_release_id": 398043114,
+      "agent_asset_id": 594839426,
+      "agent_size_bytes": 7026176,
+      "agent_sha256": "8bd186c7ff2faa03f64f94f96412bafa38ee992dcfc71250473bac9b3e2ffe9b",
+      "inventory_channel_release_id": 394587029,
+      "inventory_channel_agent_manifest_asset_id": 594839528,
+      "inventory_channel_agent_asset_id": 594839527,
+      "android_release": "beta-vc82__UNCHANGED"
+    }
   }
 }
