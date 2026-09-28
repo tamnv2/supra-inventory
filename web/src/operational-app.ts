@@ -3867,7 +3867,7 @@ function bindSection(): void {
       await loadUsers();
       setNotice("success", `Đã xóa ${result.affected} tài khoản.`);
     });
-  }));
+  });
   document.querySelectorAll<HTMLButtonElement>("[data-picker-action]").forEach((button) => button.addEventListener("click", () => {
     const action = button.dataset.pickerAction as "ENABLE" | "DISABLE" | "DELETE";
     const ids = [...selectedUserIds];
