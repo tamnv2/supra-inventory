@@ -3435,7 +3435,7 @@
     },
     {
       "id": "OA069",
-      "status": "BLOCKED_BY_OA070_ANDROID_RELEASE_SECRET_SETUP",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D143 Android, Web and Agent operational refinements",
       "resource_key": "repo",
       "provider": "Beta Android + Web/Worker + existing Firebase/Firestore + Windows Agent",
@@ -3443,16 +3443,20 @@
       "prerequisites": {
         "implementation_branch": "d143-owner-adjustments-android-web-agent",
         "target_agent": "relay-agent-v81",
-        "target_android": "next monotonic signed Beta after beta-vc83",
+        "target_android": "beta-vc84__RELEASED",
         "new_provider_resources": "NONE",
         "stable": "OWNER_GATED",
-        "technical_runtime": "WEB_AGENT_PASS__ANDROID_SIGNED_RELEASE_BLOCKED",
+        "technical_runtime": "PASS__BETA_WORKER_SCHEMA13__ANDROID_VC84__AGENT_V81",
         "implementation_pr": 287,
         "main_merge": "96e38ca88633ef9a0114d6682bdac5bea2d4f2c8",
-        "agent_release": "relay-agent-v81__RELEASED"
+        "agent_release": "relay-agent-v81__RELEASED",
+        "android_release": "beta-vc84",
+        "android_release_id": 398516587,
+        "android_run": 36463932866,
+        "android_run_attempt": 2
       },
       "shortest_test_path": [
-        "Update one test Agent to v81 and one warehouse PDA to the signed D143 Beta Android release after technical release PASS.",
+        "Update one test Agent to relay-agent-v81 and one warehouse PDA to signed beta-vc84.",
         "Android: verify permission cards, automatic return check, manual Kiểm tra cấp quyền fallback, Đặt lại mặc định route, masked prefilled Picker password, two-line company heading, compact footer, concise Xác nhận đơn guidance and full-width SKU suggestions.",
         "Web: verify Quản trị Pick Pack can use Ca vận hành; ROOT can review that role, ROOT is hidden, managed Admin/Pick Pack Admin/Reporter deletion works only for ROOT, zero badge is hidden, date states are clear and audit paging is at the top.",
         "Agent: verify 21:30 decision appears once above tray/visible window; +1h extension asks again at next HH:30; no five-minute warning spam; no extension sleeps automatic relay at the boundary.",
@@ -3472,12 +3476,12 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. No new provider resources, no plaintext password/token/session material, no Stable mutation.",
-      "remaining_owner_action": "Complete OA070 once in GitHub Beta environment; automation can then rerun Android release and unlock this field test.",
+      "remaining_owner_action": "Run the OA069 shortest field path on relay-agent-v81 + beta-vc84 and report any failing item; Stable remains untouched.",
       "closed": false
     },
     {
       "id": "OA070",
-      "status": "OWNER_ACTION_REQUIRED",
+      "status": "OWNER_ACTION_PASS__ANDROID_RELEASE_PASS",
       "title": "Configure D143 Android default-password build secret",
       "resource_key": "repo",
       "provider": "GitHub Actions environment beta",
@@ -3502,8 +3506,16 @@
         "Stable remains untouched."
       ],
       "safety": "Do not store the password as a repository file, variable, PR comment or log. Beta environment secret only.",
-      "remaining_owner_action": "Add the Beta environment secret once, then rerun Verify Beta Android.",
-      "closed": false
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-29",
+        "result": "PASS",
+        "evidence": "Owner confirmed the Beta environment secret was added; rerun of Verify Beta Android run 36463932866 attempt 2 passed all steps and published signed beta-vc84.",
+        "release": "beta-vc84",
+        "release_id": 398516587,
+        "source_commit": "96e38ca88633ef9a0114d6682bdac5bea2d4f2c8"
+      }
     }
   ]
 }
