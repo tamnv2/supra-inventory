@@ -601,3 +601,14 @@ The source review isolated a concrete rendering defect that D138/D139 had missed
 D141 replaces the mixed state with explicit server/draft mode ownership, excludes SLA fields from generic context restoration, gives SLA Save its own single-flight path, and adds two-stage persistence proof: InventoryCore SQLite post-write readback followed by a fresh no-cache Web GET. A mismatch is fail-closed and logged only with sanitized request/mode/version metadata.
 
 Scope: Beta Web/Worker only. No provider/schema/Android/Agent mutation. D140 Agent v80 remains parallel, D137 OA063 remains open, and Stable remains OWNER-GATED.
+
+
+## D141 runtime PASS — 2026-09-28
+
+- PR #282 merged to main `966b6d1f561768551969694065b1035bb2e2b234`.
+- Main Repo Authority, Project State, UI Design, Beta Worker and Dashboard Probe gates PASS.
+- Beta Worker/Web exact-source deploy run `36421277405` PASS.
+- D141 now separates server-applied SLA authority from browser draft state, uses a dedicated non-droppable save path, verifies SQLite readback before server success, and requires a fresh no-cache GET match before Web success.
+- Web marker: `D141_RUNTIME_PASS_MAIN_966B6D1F__SLA_SERVER_DRAFT_SPLIT__SQLITE_READBACK__NON_DROPPABLE_SAVE__OA067_FIELD_READY`.
+- OA067 is READY_FOR_OWNER_FIELD_TEST. D140 Agent v80 remains parallel. D137 OA063 remains independently open.
+- Android unchanged; Stable remains OWNER-GATED.
