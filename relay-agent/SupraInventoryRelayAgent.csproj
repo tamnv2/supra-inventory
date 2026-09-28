@@ -30,7 +30,7 @@
   <Target Name="EmbedGrpcNativeForCostura" BeforeTargets="FodyTarget">
     <ItemGroup>
       <EmbeddedResource Include="$(PkgGrpc_Core)\runtimes\win-x64\native\grpc_csharp_ext.x64.dll">
-        <Link>costuraX64\grpc_csharp_ext.x64.dll</Link>
+        <Link>costura-win-x64\grpc_csharp_ext.x64.dll</Link>
       </EmbeddedResource>
     </ItemGroup>
   </Target>
