@@ -612,3 +612,11 @@ Scope: Beta Web/Worker only. No provider/schema/Android/Agent mutation. D140 Age
 - Web marker: `D141_RUNTIME_PASS_MAIN_966B6D1F__SLA_SERVER_DRAFT_SPLIT__SQLITE_READBACK__NON_DROPPABLE_SAVE__OA067_FIELD_READY`.
 - OA067 is READY_FOR_OWNER_FIELD_TEST. D140 Agent v80 remains parallel. D137 OA063 remains independently open.
 - Android unchanged; Stable remains OWNER-GATED.
+
+## D142 Android 11 PDA critical-alert readiness — 2026-09-28
+
+Owner approved a Beta Android-only hardening for the two warehouse PDA families: **Newland NLS-MT90 Android 11** and **Urovo DT50 Android 11**. Branch `feat/d142-android11-critical-alert-readiness` starts from main `966b6d1f` and leaves D141 Web/SLA plus D140 Agent v80 work intact.
+
+Candidate behavior: automatic start/resume readiness gate for app notifications, overlay, DND Policy Access, battery-optimization exemption and a high-importance DND-bypass critical channel; direct/closest Settings actions with short operator guidance; automatic recheck after Android Back; no manual check/test button. Critical FCM remains data-only HIGH and existing D133/D135 overlay/local-first ACK remains authoritative. Android 11 full-screen intent adds bounded screen wake/fallback without polling, persistent wake locks or an always-on new service.
+
+Target: next monotonic signed Beta APK after `beta-vc82`. OA068 is blocked until technical/release PASS, then one normal MT90 and one normal DT50 field check. No new provider resource. Stable remains OWNER-GATED.
