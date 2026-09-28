@@ -1302,7 +1302,9 @@ namespace SupraInventoryRelayAgent
         private void RefreshPickerWindowBoundary()
         {
             var now = _businessSchedule == null ? DateTime.Now : _businessSchedule.NowOperational();
-            var open = now.TimeOfDay >= new TimeSpan(5, 0, 0) && now.TimeOfDay < new TimeSpan(23, 0, 0);
+            var start = _businessSchedule == null ? new TimeSpan(5, 0, 0) : AgentBusinessSchedule.RegularStart;
+            var end = _businessSchedule == null ? new TimeSpan(22, 0, 0) : AgentBusinessSchedule.RegularEnd;
+            var open = now.TimeOfDay >= start && now.TimeOfDay < end;
             if (_pickerWindowOpenState.HasValue && _pickerWindowOpenState.Value == open) return;
             _pickerWindowOpenState = open;
 
@@ -1311,7 +1313,7 @@ namespace SupraInventoryRelayAgent
                 _pickerOnlineSnapshot = new List<PickerPresenceView>();
                 _pickerOnlineRenderSignature = "";
                 UpdatePickerOnlineGrid(_pickerOnlineSnapshot, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
-                _pickerOnlineStatus.Text = "Ngoài khung PDA 05:00–23:00 · danh sách Picker đã đóng.";
+                _pickerOnlineStatus.Text = "Ngoài khung PDA 05:00–22:00 · danh sách Picker đã đóng.";
                 return;
             }
             RefreshD119OperationalViews(true);
