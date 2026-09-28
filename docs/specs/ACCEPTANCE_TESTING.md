@@ -1632,3 +1632,14 @@ D137 cannot be called Owner field PASS until all applicable checks below pass:
 - After READY, verify no repeated reload loop, no extra search-button clicks, and no periodic provider/browser polling is introduced.
 - Source regression must prove DevTools **Network** remains disabled/absent and no cookie/token/header/storage/session extraction or direct WMS API path is added.
 - Android remains `beta-vc82`; WebView2 host build remains 10; Stable remains OWNER-GATED and untouched.
+
+### D137 v79 hydration hotfix acceptance
+
+In addition to the D137 UI checks:
+
+- Reproduce the v78 path from an authenticated Dashboard and from a fresh login. The Agent must not reload within the first transient Confirm-shell moment; it waits for the final Confirm route to remain stable before reloading.
+- A known PickList that previously required manual F5 must be found on v79 without operator F5.
+- If the first search encounters a truly empty table, logs may show exactly one `empty_data_self_heal=START` sequence. A second automatic empty-table recovery in the same Confirm navigation is a FAIL.
+- Post-reload READY requires the reload document to remain DOM-ready for the bounded stable interval; the previous v78 `600ms` proof is no longer sufficient.
+- No DevTools Network domain, cookie/token/header/storage/session extraction, direct WMS API, new Firestore call, Worker call or provider poll may be introduced by the hotfix.
+- Android remains `beta-vc82`; Stable remains OWNER-GATED.

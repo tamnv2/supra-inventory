@@ -195,9 +195,9 @@
       "firebase_rtdb_rules_deploy": "D087_PR_GATE_PASS_RUN_35495453228__MAIN_SOURCE_MERGED",
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D118_PASS_RUN_36064078233__SOURCE_COMMIT_EXACT__SCHEMA11_11__AGENT_MIGRATION_0_0__OPERATIONAL5_5",
-      "relay_agent_release_target": "relay-agent-v78__D137_TARGET",
+      "relay_agent_release_target": "relay-agent-v79",
       "next_signed_beta_release_target": "NEXT_MONOTONIC_AFTER_BETA_VC82",
-      "next_relay_agent_release_target": "relay-agent-v78",
+      "next_relay_agent_release_target": "relay-agent-v79",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
@@ -1550,16 +1550,17 @@
     "field_acceptance": "PASS__OWNER_CONFIRMED__FOLLOWUP_D137_OPENED"
   },
   "d137": {
-    "status": "OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS",
+    "status": "V78_FIELD_PARTIAL_PASS__CONFIRM_DATA_HYDRATION_FAIL__V79_HOTFIX_IN_PROGRESS",
     "resource_change": "NONE__REUSES_EXISTING_BETA_AGENT_DISTRIBUTION_AND_WEBVIEW2_HOST_BUILD10",
-    "baseline_agent_release": "relay-agent-v77",
-    "target_agent_release": "relay-agent-v78",
+    "baseline_agent_release": "relay-agent-v78",
+    "target_agent_release": "relay-agent-v79",
     "android": "beta-vc82__UNCHANGED",
     "browser_host_build": 10,
-    "manual_picklist_ui": "NORMAL_WINDOW_VERTICAL_GRID_MINIMUM__D136_CODE_ACTION_STATUS_GUARDS_RETAINED",
-    "confirm_readiness": "ONE_NORMAL_PAGE_RELOAD_AFTER_FIRST_CONFIRM_ARRIVAL__POST_RELOAD_STABLE_DOM_BEFORE_READY",
+    "manual_picklist_ui": "OWNER_FIELD_PASS_ON_V78__NORMAL_WINDOW_VERTICAL_GRID_MINIMUM__D136_GUARDS_RETAINED",
+    "confirm_readiness": "V79_FINAL_CONFIRM_3S_SETTLE__ONE_NORMAL_RELOAD__1_2S_POST_RELOAD_STABLE__ONE_EMPTY_TABLE_SELF_HEAL_MAX",
     "devtools_scope": "PAGE_AND_RUNTIME_ONLY__NETWORK_FORBIDDEN__NO_COOKIE_TOKEN_HEADER_STORAGE_SESSION_EXTRACTION",
-    "field_gate": "OA063_BLOCKED_PENDING_D137_RELEASE",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "field_gate": "OA063_BLOCKED_PENDING_D137_V79_RELEASE",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "field_evidence": "V78_AUTO_RELOAD_TOO_EARLY__FIRST_SEARCH_NOT_FOUND__OPERATOR_F5_THEN_FOUND_CONFIRM_PASS"
   }
 }

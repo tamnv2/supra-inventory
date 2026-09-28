@@ -3131,35 +3131,35 @@
     },
     {
       "id": "OA063",
-      "status": "BLOCKED_PENDING_D137_RELEASE",
-      "title": "Field-accept D137 normal-window PickList visibility and post-Confirm reload readiness",
+      "status": "BLOCKED_PENDING_D137_V79_RELEASE",
+      "title": "Field-accept D137 v79 final Confirm hydration and normal-window PickList visibility",
       "resource_key": "repo",
       "provider": "Beta Windows Agent; Android beta-vc82 unchanged",
-      "reason_owner_only": "CI can prove the vertical layout/reload barriers and compile the Agent, but physical WinForms rendering at the Owner's normal window size and the real Supra first-arrival data hydration behavior require company-laptop field evidence.",
+      "reason_owner_only": "v78 field log proves the normal-window PickList surface is fixed but the first Confirm document can still be data-empty even after an early automatic reload. CI can prove the delayed reload/self-heal state machine, but real Supra data hydration requires company-laptop field evidence.",
       "prerequisites": {
-        "baseline_main": "6ce3424193edbc2f9ecc48f1d051bdfd2e305c63",
-        "baseline_agent_release": "relay-agent-v77",
-        "target_agent_release": "relay-agent-v78",
+        "baseline_main": "6158ba6d212d98b6b3fa7243203a56bf3c51476d",
+        "baseline_agent_release": "relay-agent-v78",
+        "target_agent_release": "relay-agent-v79",
         "android": "beta-vc82__UNCHANGED",
-        "implementation_branch": "fix/d137-picklist-height-confirm-refresh",
+        "implementation_branch": "fix/d137-confirm-data-reload-hotfix",
         "new_provider_resources": "NONE",
         "browser_host_build": "10__UNCHANGED",
         "stable": "OWNER_GATED",
-        "technical_release": "PENDING_D137_PR_GATES_AND_RELEASE"
+        "technical_release": "PENDING_D137_V79_PR_GATES_AND_RELEASE"
       },
       "shortest_test_path": [
-        "Update the test Agent to relay-agent-v78 after release; Android remains beta-vc82.",
-        "At the same normal/smaller window size from the reported screenshot, search a valid PickList. The grid itself must remain visible with PickList, Xác nhận and Trạng thái; maximize and restore and repeat.",
-        "Open Web Agent from logged-out state, login, and let Agent reach Confirm. Agent must perform one normal reload before declaring Web Confirm sẵn sàng; only then search a known PickList and verify real data is returned.",
-        "Repeat from an already-authenticated auth Dashboard path. The same one-reload-before-READY rule must apply and the known PickList must be searchable without manually pressing F5.",
-        "Verify no repeated reload loop occurs after READY and D136 security/confirmation guards remain intact."
+        "Update the test Agent to relay-agent-v79 after release; Android remains beta-vc82.",
+        "Open Web Agent from a logged-out or Dashboard-authenticated state and do not press F5 manually. Agent must wait for the final Confirm route to settle, perform its bounded reload, and only then show Web Confirm sẵn sàng.",
+        "Search the same known PickList that failed on v78. It must return live data without manual F5. If the table is initially empty, Agent may perform one automatic local self-heal reload/retry; it must not loop.",
+        "Confirm one returned PickList and verify the existing exact checkbox/dialog guards still work.",
+        "Recheck normal/restored and maximized Agent windows: the PickList result grid remains visible with PickList, Xác nhận and Trạng thái."
       ],
       "pass_criteria": [
-        "Normal-window PickList result grid is not vertically clipped and at least one actionable result row is visible.",
-        "Maximize/restore/resizing preserves the operational PickList result surface and D136 critical columns.",
-        "Every first Confirm arrival is followed by exactly one normal browser reload before READY; search/confirm cannot run before the post-reload stable DOM gate.",
-        "Login and Dashboard recovery both reach post-reload READY without manual F5 or reload loops.",
-        "No new provider resource, no Network/cookie/token/session extraction, Android unchanged and Stable untouched."
+        "Known PickList is searchable from the first operational v79 session without operator F5.",
+        "Automatic reload is not fired against the transient first Confirm shell; it occurs only after the final Confirm document has settled.",
+        "READY is granted only after the reload document is stable; an empty first search can trigger at most one local reload/retry.",
+        "Normal-window PickList UI remains PASS and D136 confirmation/security guards remain intact.",
+        "No new provider resource or Firestore/Worker operation is added; Android unchanged and Stable untouched."
       ],
       "safety": "Beta Agent only. No new provider resource, no credential/session exposure, no direct WMS API path, no DevTools Network domain. Stable remains OWNER-GATED.",
       "remaining_owner_action": null,

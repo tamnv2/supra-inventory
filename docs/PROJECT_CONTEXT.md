@@ -528,3 +528,10 @@ D136 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta.
 - Managed Confirm readiness now requires one normal post-arrival top-level reload plus a stable post-reload DOM before READY. Login and Dashboard recovery use the same barrier.
 - WebView2 host build 10, Android beta-vc82, provider resources and service cadence remain unchanged. DevTools Network/session extraction/direct WMS API remain forbidden.
 - Active implementation branch: `fix/d137-picklist-height-confirm-refresh`. OA063 remains blocked until technical/release PASS. Stable remains OWNER-GATED.
+
+## D137 v79 field-driven hotfix — 2026-09-28
+
+- Released Agent v78 fixed the normal/restored PickList result surface, but Owner field evidence shows the Confirm page can still be visually READY while its PickList data is not hydrated.
+- v78 log timing proves the automatic reload was issued roughly 0.6s after final WMS child attachment and was accepted as PASS before a later real search returned NOT_FOUND. Manual F5 then restored the same known PickList and confirmation succeeded.
+- D137 therefore continues as Agent v79: wait for the final Confirm document to remain stable for 3s, issue one normal reload, require 1.2s post-reload stable DOM, and allow one empty-table local reload/search retry only when the first search sees zero PickList codes.
+- Android remains beta-vc82; WebView2 host build 10 and provider resources are unchanged. Stable remains OWNER-GATED.

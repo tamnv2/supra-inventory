@@ -2220,6 +2220,7 @@ namespace SupraInventoryRelayAgent
                 case "DASHBOARD_ACCESS_CLICK": return "Đang truy cập SFT3 từ Dashboard";
                 case "DASHBOARD_ACCESS_FAILED": return "Không truy cập được SFT3 từ Dashboard";
                 case "AUTO_RETRY_CONFIRM": return "Đang mở trang Confirm";
+                case "CONFIRM_SETTLING": return "Đang chờ trang Confirm ổn định";
                 case "CONFIRM_REFRESHING": return "Đang làm mới dữ liệu Confirm";
                 case "CONFIRM_RELOAD_VERIFY": return "Đang kiểm tra dữ liệu sau khi làm mới";
                 case "CONFIRM_RETRY_EXHAUSTED": return "Chưa vào được Confirm sau khi thử lại";

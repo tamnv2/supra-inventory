@@ -55,6 +55,7 @@ namespace SupraInventoryRelayAgent
         internal long ElapsedMs;
         internal bool SearchClicked;
         internal string DomFingerprint = "";
+        internal int PicklistCodeCount;
     }
 
     internal sealed class SupraBrowserConfirmResult
@@ -105,8 +106,12 @@ namespace SupraInventoryRelayAgent
         private DateTime _dashboardAccessIssuedAtUtc = DateTime.MinValue;
         private bool _confirmReloadRequired;
         private bool _confirmReloadIssued;
+        private bool _confirmReloadVerified;
         private DateTime _confirmReloadIssuedAtUtc = DateTime.MinValue;
         private DateTime _confirmReloadStableSinceUtc = DateTime.MinValue;
+        private DateTime _confirmArrivalObservedAtUtc = DateTime.MinValue;
+        private string _confirmArrivalUrl = "";
+        private bool _emptyDataRecoveryUsed;
         private bool _disposed;
         private TimeSpan _resourceCpuTotal = TimeSpan.Zero;
         private DateTime _resourceSampleAtUtc = DateTime.MinValue;
@@ -555,6 +560,35 @@ namespace SupraInventoryRelayAgent
                     scan = latest;
                 }
 
+                // D137 hotfix: v78 proved that the Confirm shell may be READY while its
+                // PickList table is still empty. If the first real search sees zero PL
+                // codes in the entire table, perform one bounded browser reload and retry
+                // locally. This adds no Firestore/provider operation and never loops.
+                if (allowOneSearchClick && NeedsSearchRetry(scan) &&
+                    scan.PicklistCodeCount == 0 && !_emptyDataRecoveryUsed)
+                {
+                    _emptyDataRecoveryUsed = true;
+                    _log("SUPRA_BROWSER empty_data_self_heal=START first_search_zero_picklist_codes=true");
+                    IssueConfirmReloadNowNoLock("empty_table_after_search");
+                    if (WaitForForcedConfirmReloadNoLock(TimeSpan.FromSeconds(10)))
+                    {
+                        EnsurePageSize100NoLock();
+                        ClickExactButtonNoLock(SearchText);
+                        output.SearchClicked = true;
+                        var healDeadline = DateTime.UtcNow.AddMilliseconds(4500);
+                        var healed = ScanNoLock(terms);
+                        while (DateTime.UtcNow < healDeadline && NeedsSearchRetry(healed))
+                        {
+                            Thread.Sleep(200);
+                            healed = ScanNoLock(terms);
+                            if (healed.PicklistCodeCount > 0) break;
+                        }
+                        scan = healed;
+                        _log("SUPRA_BROWSER empty_data_self_heal=END picklist_codes=" +
+                             scan.PicklistCodeCount + " result=" + scan.Result);
+                    }
+                }
+
                 CopySearch(scan, output);
             }
 
@@ -785,50 +819,109 @@ namespace SupraInventoryRelayAgent
 
         private void NavigateConfirmNoLock()
         {
-            ArmConfirmReloadBarrierNoLock("canonical_confirm_navigation");
+            ResetConfirmReloadGateNoLock();
             CommandNoLock("Page.navigate", new Dictionary<string, object>
             {
                 { "url", AgentConfig.WmsPicklistConfirmUiReferenceUrl }
             }, TimeSpan.FromSeconds(5));
+            _log("SUPRA_BROWSER confirm_reload=WAIT_FINAL_CONFIRM settle_ms=3000 reason=canonical_confirm_navigation");
         }
 
-        private void ArmConfirmReloadBarrierNoLock(string reason)
+        private void ResetConfirmReloadGateNoLock()
         {
-            _confirmReloadRequired = true;
+            _confirmReloadRequired = false;
             _confirmReloadIssued = false;
+            _confirmReloadVerified = false;
             _confirmReloadIssuedAtUtc = DateTime.MinValue;
             _confirmReloadStableSinceUtc = DateTime.MinValue;
-            _log("SUPRA_BROWSER confirm_reload=ARMED reason=" + reason + " normal_f5=true");
+            _confirmArrivalObservedAtUtc = DateTime.MinValue;
+            _confirmArrivalUrl = "";
+            _emptyDataRecoveryUsed = false;
+        }
+
+        private void ResetConfirmArrivalObservationNoLock()
+        {
+            if (_confirmReloadIssued) return;
+            _confirmReloadRequired = false;
+            _confirmArrivalObservedAtUtc = DateTime.MinValue;
+            _confirmArrivalUrl = "";
+            _confirmReloadStableSinceUtc = DateTime.MinValue;
+        }
+
+        private void IssueConfirmReloadNowNoLock(string reason)
+        {
+            _confirmReloadRequired = true;
+            _confirmReloadIssued = true;
+            _confirmReloadVerified = false;
+            _confirmReloadIssuedAtUtc = DateTime.UtcNow;
+            _confirmReloadStableSinceUtc = DateTime.MinValue;
+            CommandNoLock("Page.reload", new Dictionary<string, object>
+            {
+                { "ignoreCache", false }
+            }, TimeSpan.FromSeconds(5));
+            _log("SUPRA_BROWSER confirm_reload=ISSUED method=Page.reload ignore_cache=false reason=" + reason);
         }
 
         private bool ApplyConfirmReloadBarrierNoLock(SupraBrowserState state)
         {
-            if (state == null || state.LoginMarkerDetected || !state.PageLoaded ||
-                string.IsNullOrWhiteSpace(state.Url) ||
+            if (state == null || state.LoginMarkerDetected || string.IsNullOrWhiteSpace(state.Url) ||
                 state.Url.IndexOf(ConfirmPath, StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                ResetConfirmArrivalObservationNoLock();
                 return false;
+            }
 
-            // Also cover a manual/SPA transition into Confirm that did not pass through
-            // NavigateConfirmNoLock. If the top document is not already a reload, arm it.
-            if (!_confirmReloadRequired &&
-                !string.Equals(state.NavigationType, "reload", StringComparison.OrdinalIgnoreCase))
-                ArmConfirmReloadBarrierNoLock("observed_confirm_without_reload");
+            if (_confirmReloadVerified) return false;
 
-            if (!_confirmReloadRequired) return false;
+            if (!state.PageLoaded)
+            {
+                state.Ready = false;
+                state.State = _confirmReloadIssued ? "CONFIRM_REFRESHING" : "CONFIRM_SETTLING";
+                return true;
+            }
+
+            var now = DateTime.UtcNow;
+            if (_confirmArrivalObservedAtUtc == DateTime.MinValue ||
+                !string.Equals(_confirmArrivalUrl, state.Url, StringComparison.Ordinal))
+            {
+                _confirmArrivalObservedAtUtc = now;
+                _confirmArrivalUrl = state.Url;
+                _confirmReloadRequired = true;
+                _confirmReloadIssued = false;
+                _confirmReloadIssuedAtUtc = DateTime.MinValue;
+                _confirmReloadStableSinceUtc = DateTime.MinValue;
+                state.Ready = false;
+                state.State = "CONFIRM_SETTLING";
+                _log("SUPRA_BROWSER confirm_reload=ARMED reason=stable_final_confirm settle_ms=3000 normal_f5=true");
+                return true;
+            }
 
             if (!_confirmReloadIssued)
             {
-                CommandNoLock("Page.reload", new Dictionary<string, object>
+                // D137 hotfix: v78 reloaded only ~0.6s after the final WMS child appeared.
+                // That can reload the visual shell before the authenticated WMS data
+                // bootstrap settles. Hold the same final Confirm document for 3s first.
+                if (now - _confirmArrivalObservedAtUtc < TimeSpan.FromSeconds(3))
                 {
-                    { "ignoreCache", false }
-                }, TimeSpan.FromSeconds(5));
-                _confirmReloadIssued = true;
-                _confirmReloadIssuedAtUtc = DateTime.UtcNow;
-                _confirmReloadStableSinceUtc = DateTime.MinValue;
-                state.Ready = false;
-                state.State = "CONFIRM_REFRESHING";
-                _log("SUPRA_BROWSER confirm_reload=ISSUED method=Page.reload ignore_cache=false");
-                return true;
+                    state.Ready = false;
+                    state.State = "CONFIRM_SETTLING";
+                    return true;
+                }
+
+                if (string.Equals(state.NavigationType, "reload", StringComparison.OrdinalIgnoreCase))
+                {
+                    _confirmReloadIssued = true;
+                    _confirmReloadIssuedAtUtc = now;
+                    _confirmReloadStableSinceUtc = DateTime.MinValue;
+                    _log("SUPRA_BROWSER confirm_reload=MANUAL_OR_EXISTING_RELOAD observed_after_settle=true");
+                }
+                else
+                {
+                    IssueConfirmReloadNowNoLock("final_confirm_settled");
+                    state.Ready = false;
+                    state.State = "CONFIRM_REFRESHING";
+                    return true;
+                }
             }
 
             var realReload = string.Equals(state.NavigationType, "reload", StringComparison.OrdinalIgnoreCase);
@@ -842,13 +935,13 @@ namespace SupraInventoryRelayAgent
 
             if (_confirmReloadStableSinceUtc == DateTime.MinValue)
             {
-                _confirmReloadStableSinceUtc = DateTime.UtcNow;
+                _confirmReloadStableSinceUtc = now;
                 state.Ready = false;
                 state.State = "CONFIRM_RELOAD_VERIFY";
                 return true;
             }
 
-            if (DateTime.UtcNow - _confirmReloadStableSinceUtc < TimeSpan.FromMilliseconds(600))
+            if (now - _confirmReloadStableSinceUtc < TimeSpan.FromMilliseconds(1200))
             {
                 state.Ready = false;
                 state.State = "CONFIRM_RELOAD_VERIFY";
@@ -857,9 +950,50 @@ namespace SupraInventoryRelayAgent
 
             _confirmReloadRequired = false;
             _confirmReloadIssued = false;
+            _confirmReloadVerified = true;
             _confirmReloadIssuedAtUtc = DateTime.MinValue;
             _confirmReloadStableSinceUtc = DateTime.MinValue;
-            _log("SUPRA_BROWSER confirm_reload=PASS navigation_type=reload stable_ms=600 data_dom_ready=true");
+            _log("SUPRA_BROWSER confirm_reload=PASS navigation_type=reload settle_before_ms=3000 stable_after_ms=1200 data_dom_ready=true");
+            return false;
+        }
+
+        private bool WaitForForcedConfirmReloadNoLock(TimeSpan timeout)
+        {
+            var deadline = DateTime.UtcNow.Add(timeout);
+            var stableSince = DateTime.MinValue;
+            while (DateTime.UtcNow < deadline)
+            {
+                Thread.Sleep(250);
+                var raw = EvaluateJsonNoLock(BuildReadinessScript());
+                var map = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                var loaded = map != null && Bool(map, "pageLoaded");
+                var ready = map != null && Bool(map, "ready");
+                var nav = map == null ? "" : String(map, "navigationType");
+                var url = map == null ? "" : String(map, "url");
+                var onConfirm = url.IndexOf(ConfirmPath, StringComparison.OrdinalIgnoreCase) >= 0;
+                if (loaded && ready && onConfirm &&
+                    string.Equals(nav, "reload", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (stableSince == DateTime.MinValue) stableSince = DateTime.UtcNow;
+                    if (DateTime.UtcNow - stableSince >= TimeSpan.FromMilliseconds(1200))
+                    {
+                        _confirmReloadRequired = false;
+                        _confirmReloadIssued = false;
+                        _confirmReloadVerified = true;
+                        _confirmReloadIssuedAtUtc = DateTime.MinValue;
+                        _confirmReloadStableSinceUtc = DateTime.MinValue;
+                        _confirmArrivalObservedAtUtc = DateTime.UtcNow;
+                        _confirmArrivalUrl = url;
+                        _log("SUPRA_BROWSER confirm_reload=SELF_HEAL_PASS navigation_type=reload stable_after_ms=1200");
+                        return true;
+                    }
+                }
+                else
+                {
+                    stableSince = DateTime.MinValue;
+                }
+            }
+            _log("SUPRA_BROWSER confirm_reload=SELF_HEAL_TIMEOUT fail_closed=true");
             return false;
         }
 
@@ -922,18 +1056,15 @@ namespace SupraInventoryRelayAgent
             _port = 0;
             _targetUrl = "";
             ResetDirectConfirmRecoveryNoLock();
-            _confirmReloadRequired = false;
-            _confirmReloadIssued = false;
-            _confirmReloadIssuedAtUtc = DateTime.MinValue;
-            _confirmReloadStableSinceUtc = DateTime.MinValue;
+            ResetConfirmReloadGateNoLock();
         }
 
         private void EnsureReadyNoLock()
         {
             if (!IsConnectedNoLock())
                 throw new InvalidOperationException("Chưa mở trình duyệt Confirm PickList.");
-            if (_confirmReloadRequired)
-                throw new InvalidOperationException("Web Confirm đang làm mới dữ liệu trước khi cho phép xử lý PickList.");
+            if (_confirmReloadRequired || !_confirmReloadVerified)
+                throw new InvalidOperationException("Web Confirm đang hoàn tất bước làm mới dữ liệu trước khi cho phép xử lý PickList.");
             var raw = EvaluateJsonNoLock(BuildReadinessScript());
             var map = _json.DeserializeObject(raw) as Dictionary<string, object>;
             if (map == null || !Bool(map, "ready") ||
@@ -1191,6 +1322,7 @@ namespace SupraInventoryRelayAgent
             }
 
             result.DomFingerprint = String(map, "domFingerprint");
+            result.PicklistCodeCount = Int(map, "allCodeCount");
             var rows = map.TryGetValue("candidates", out var candidateObj)
                 ? candidateObj as Dictionary<string, object>
                 : null;
@@ -1393,6 +1525,7 @@ namespace SupraInventoryRelayAgent
         private static void CopySearch(SupraBrowserSearchResult source, SupraBrowserSearchResult target)
         {
             target.Result = source.Result;
+            target.PicklistCodeCount = source.PicklistCodeCount;
             target.Matches.AddRange(source.Matches);
             target.MissingFragments.AddRange(source.MissingFragments);
             target.AmbiguousFragments.AddRange(source.AmbiguousFragments);
@@ -1795,7 +1928,7 @@ namespace SupraInventoryRelayAgent
               }
               allCodes.sort();
               const domFingerprint = rows.length + ':' + allCodes.join(',');
-              return JSON.stringify({candidates,selectable,domFingerprint});
+              return JSON.stringify({candidates,selectable,domFingerprint,allCodeCount:allCodes.length});
             })()";
         }
 
