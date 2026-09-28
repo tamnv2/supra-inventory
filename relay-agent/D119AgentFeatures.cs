@@ -2438,8 +2438,28 @@ namespace SupraInventoryRelayAgent
                     }
                 };
 
-                var result = dialog.ShowDialog(this);
-                return result == DialogResult.OK ? accepted : null;
+                // D144: isolate the modal editor from the one-second after-hours
+                // repaint and the 30-second Picker view refresh. Both timers run on the
+                // WinForms message loop and can otherwise disturb focus on weak laptops.
+                var afterHoursWasEnabled = _afterHoursTimer.Enabled;
+                var opsWasEnabled = _d119OpsTimer.Enabled;
+                if (afterHoursWasEnabled) _afterHoursTimer.Stop();
+                if (opsWasEnabled) _d119OpsTimer.Stop();
+                try
+                {
+                    var result = dialog.ShowDialog(this);
+                    return result == DialogResult.OK ? accepted : null;
+                }
+                finally
+                {
+                    if (afterHoursWasEnabled) _afterHoursTimer.Start();
+                    if (opsWasEnabled) _d119OpsTimer.Start();
+                    BeginInvoke(new Action(() =>
+                    {
+                        CheckAfterHoursSchedule();
+                        RefreshD119OperationalViews(false);
+                    }));
+                }
             }
         }
 
