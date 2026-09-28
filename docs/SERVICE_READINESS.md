@@ -1138,3 +1138,14 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - No schema/provider/Android/Agent change.
 - OA065 blocked until PR/main/runtime gates PASS. D137 OA063 remains independently open. Stable remains OWNER-GATED.
 - Web marker: `D139_SOURCE_CANDIDATE__GLOBAL_DIRTY_SLA_FORM_RERENDER_GUARD`.
+
+
+## D139 runtime PASS — 2026-09-28
+
+- PR #279 merged to main `219469840a9ece147441b1ef9a0db8242109e5a7`.
+- Main Repo Authority, Project State, UI Design, Beta Worker and Dashboard Probe gates PASS.
+- Beta Worker/Web deploy run `36414388456` PASS, including service typecheck, Worker/Web assets/Durable Object deploy, Beta health/schema/auth/business/Web-shell/OAuth verification.
+- Web marker: `D139_RUNTIME_PASS_MAIN_21946984__GLOBAL_DIRTY_SLA_FORM_RERENDER_GUARD__OA065_FIELD_READY`.
+- OA065 is READY_FOR_OWNER_FIELD_TEST for FIRST_REPORT save + browser-reload persistence.
+- D138 is field-failed and superseded by D139. D137 OA063 remains independently open.
+- Android remains `beta-vc82`; Agent remains `relay-agent-v79`; Stable remains OWNER-GATED.
