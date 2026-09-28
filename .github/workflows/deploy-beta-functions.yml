@@ -43,6 +43,12 @@ jobs:
           grep -q 'agentLogUploadWritten' functions/src/index.ts
           grep -q 'GOOGLE_DIRECT_IN_PROGRESS' functions/src/index.ts
           grep -q 'WORKER_FALLBACK' functions/src/index.ts
+          grep -q 'agent-log-upload-session' functions/src/index.ts
+          grep -q 'GOOGLE_DIRECT_BROKERED_SESSION' service/src/internal-d119.ts
+          if grep -q 'GoogleAuth({ scopes: \["https://www.googleapis.com/auth/drive.file"\] })' functions/src/index.ts; then
+            echo "D146 Agent function must not attempt to own My Drive files with a service account." >&2
+            exit 1
+          fi
           grep -Fq 'PICKER_ACTIVE_CALL_TTL_MS = 60 * 1000' functions/src/index.ts
           if grep -q 'skuSyncCreated' functions/src/index.ts; then
             echo "D126 forbids skuSyncCreated in active Functions source"
