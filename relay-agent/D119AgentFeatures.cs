@@ -1165,12 +1165,15 @@ namespace SupraInventoryRelayAgent
                     .Append(picker.UserId ?? "").Append(':')
                     .Append(picker.EmployeeCode ?? "").Append(':')
                     .Append(picker.DisplayName ?? "").Append(':')
-                    .Append(picker.DeviceId ?? "").Append(':')
-                    .Append(picker.Status ?? "").Append(':');
+                    .Append(picker.Source ?? "").Append(':')
+                    .Append(picker.SessionGeneration).Append(':');
                 var active = ActivePickerCommand(picker.UserId);
+                long lockUntil;
+                lock (_pickerCallLocks) _pickerCallLocks.TryGetValue(picker.UserId ?? "", out lockUntil);
                 signature.Append(active == null ? "0" : "1")
                     .Append(':').Append(active == null ? "" : active.SenderAgentId ?? "")
-                    .Append(':').Append(active == null ? "" : active.SenderRole ?? "");
+                    .Append(':').Append(active == null ? "" : active.SenderRole ?? "")
+                    .Append(':').Append(lockUntil);
             }
             return signature.ToString();
         }
@@ -1223,24 +1226,22 @@ namespace SupraInventoryRelayAgent
                         name.IndexOf(query, StringComparison.CurrentCultureIgnoreCase) < 0)
                         continue;
 
-                    var pdaState = string.Equals(picker.Status, "PDA_GRACE", StringComparison.Ordinal)
-                        ? "Mất kết nối tạm thời"
-                        : "Đang hoạt động";
+                    var source = string.Equals(picker.Source, "PICKLIST", StringComparison.Ordinal)
+                        ? "PICKLIST"
+                        : "LOGIN";
                     var active = ActivePickerCommand(picker.UserId);
+                    var callLocked = IsPickerCallLocked(picker.UserId);
                     var canResolve = active != null && CanResolvePickerCommand(picker.UserId);
-                    var callText = active == null
-                        ? "Gọi về bàn CV"
-                        : (active.SenderRole == "PICK_PACK" ? "Đang gọi · Pick Pack" : "Đang gọi · Inventory");
                     var resolveText = active == null ? "—" : (canResolve ? "Kết thúc" : "Agent khác đang gọi");
                     var row = _pickerOnlineGrid.Rows[_pickerOnlineGrid.Rows.Add(
                         code,
                         name,
-                        pdaState,
-                        callText,
-                        "Mang hàng về Pack",
+                        source,
+                        "Kích User",
+                        "Liên hệ picker",
                         resolveText)];
                     row.Tag = picker;
-                    if (active != null)
+                    if (callLocked)
                     {
                         row.Cells["CallSpecialist"].ReadOnly = true;
                         row.Cells["CallSpecialist"].Style.BackColor = Color.Gainsboro;
@@ -1251,6 +1252,12 @@ namespace SupraInventoryRelayAgent
                         row.Cells["ResolveContact"].ReadOnly = true;
                         row.Cells["ResolveContact"].Style.BackColor = Color.Gainsboro;
                         row.Cells["ResolveContact"].Style.ForeColor = Color.DimGray;
+                    }
+                    if (string.IsNullOrWhiteSpace(picker.FirebaseUid) || picker.SessionGeneration <= 0)
+                    {
+                        row.Cells["KickUser"].ReadOnly = true;
+                        row.Cells["KickUser"].Style.BackColor = Color.Gainsboro;
+                        row.Cells["KickUser"].Style.ForeColor = Color.DimGray;
                     }
                 }
 
@@ -1278,9 +1285,9 @@ namespace SupraInventoryRelayAgent
         {
             if (_fleetMetricsClient == null || !HasAgentSession()) return;
             var now = DateTime.UtcNow;
-            var interval = TimeSpan.FromMinutes(10);
+            var interval = TimeSpan.FromMinutes(5);
             // D120: metrics are observability-only. UI refresh, tab changes and failed reads
-            // must never turn the 10-minute snapshot into a provider polling storm.
+            // must never turn the 5-minute compact snapshot into a provider polling storm.
             if (!force && _lastFleetMetricsAttemptUtc != DateTime.MinValue && now - _lastFleetMetricsAttemptUtc < interval) return;
             if (force && _lastFleetMetricsAttemptUtc != DateTime.MinValue && now - _lastFleetMetricsAttemptUtc < TimeSpan.FromSeconds(30)) return;
             if (!force && _lastFleetMetricsRefreshUtc != DateTime.MinValue && now - _lastFleetMetricsRefreshUtc < interval) return;
@@ -1346,7 +1353,7 @@ namespace SupraInventoryRelayAgent
                 : "Cụm hôm nay: " + snapshot.ReceivedTotal.ToString("N0") +
                   " nhận · " + snapshot.ConfirmedTotal.ToString("N0") + " xác nhận · " +
                   snapshot.ErrorTotal.ToString("N0") + " lỗi" +
-                  (primary ? " · durable" : " · 10p");
+                  (primary ? " · durable" : " · 5p");
             RefreshAgentRequestMetrics();
         }
 
