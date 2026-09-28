@@ -705,7 +705,7 @@ async function setRootEffectiveRole(request: Request, env: Env): Promise<Respons
   let body: { role?: string } = {};
   try { body = (await request.json()) as { role?: string }; } catch { body = {}; }
   const role = String(body.role || "").trim().toUpperCase() as AppRole;
-  if (!["ROOT", "ADMIN", "REPORTER", "PICKER"].includes(role)) return json({ error: "INVALID_ROLE" }, 400);
+  if (!["ROOT", "ADMIN", "PICKPACK_ADMIN", "REPORTER", "PICKER"].includes(role)) return json({ error: "INVALID_ROLE" }, 400);
 
   const result = await coreJson<{ user: InternalUser | null }>(env, "/auth/root-role-override", {
     method: "PUT",
