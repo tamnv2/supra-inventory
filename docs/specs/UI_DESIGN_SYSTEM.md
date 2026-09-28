@@ -870,3 +870,10 @@ Stable remains OWNER-GATED.
 - Responsive sizing prioritizes readable PickList code, a usable confirmation button and a readable status. If minimum widths cannot fit, expose horizontal scroll rather than hiding an operational control.
 - The former **Usage** top-level tab is removed because unavailable/partial provider metrics are not an acceptable operational display.
 - Hiding Web Confirm to background is a lightweight presentation action and must not interrupt the operator with an Agent-password dialog.
+
+## D137 normal-window manual PickList vertical layout
+
+- The manual PickList card has a minimum operational height sufficient for the title, query/search row, grid header, at least one result row, and the local status line.
+- Window resize must relayout the grid/status bounds from the current card client height; do not rely on the original design-time bottom-anchor offsets because they can collapse the grid in a restored/normal window.
+- The Overview row allocation gives the PickList region materially more vertical space than D136 while preserving the right-side Picker list across all three rows.
+- D136 horizontal semantics remain unchanged: **PickList**, **Xác nhận**, **Trạng thái** are critical columns and horizontal scrolling is the fallback when width is physically insufficient.
