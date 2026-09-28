@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 using System.Web.Script.Serialization;
 using Google.Cloud.Firestore.V1;
 using Grpc.Core;
@@ -121,6 +122,7 @@ namespace SupraInventoryRelayAgent
         internal AgentSyncSnapshot Reconcile(
             AgentSession session,
             IEnumerable<PickerPresenceView> pickers,
+            IDictionary<string, PickerContactCommand> openCalls,
             IEnumerable<AgentPresenceView> fleet,
             long received,
             long confirmed,
@@ -128,7 +130,65 @@ namespace SupraInventoryRelayAgent
         {
             return Mutate(session, snapshot =>
             {
-                snapshot.Pickers = ClonePickers(pickers);
+                var incoming = ClonePickers(pickers);
+                var incomingIds = new HashSet<string>(
+                    incoming.Where(item => item != null && !string.IsNullOrWhiteSpace(item.UserId))
+                        .Select(item => item.UserId),
+                    StringComparer.Ordinal);
+
+                // A valid PickList is an approved fallback presence source. Keep that
+                // fallback through periodic reconciliation until the authoritative
+                // LOGIN projection catches up or an explicit presence event/kick removes it.
+                foreach (var previous in snapshot.Pickers ?? new List<PickerPresenceView>())
+                {
+                    if (previous == null ||
+                        !string.Equals(previous.Source, "PICKLIST", StringComparison.Ordinal) ||
+                        string.IsNullOrWhiteSpace(previous.UserId) ||
+                        incomingIds.Contains(previous.UserId))
+                        continue;
+                    incoming.Add(ClonePicker(previous));
+                    incomingIds.Add(previous.UserId);
+                }
+                snapshot.Pickers = incoming;
+
+                var now = NowMs();
+                var repairedCalls = new Dictionary<string, PickerCallLockView>(StringComparer.Ordinal);
+                foreach (var pair in snapshot.Calls ?? new Dictionary<string, PickerCallLockView>())
+                {
+                    var existing = pair.Value;
+                    if (existing != null && existing.LockUntilMs > now)
+                    {
+                        repairedCalls[pair.Key] = new PickerCallLockView
+                        {
+                            TargetUserId = existing.TargetUserId,
+                            CallId = existing.CallId,
+                            SenderAgentId = existing.SenderAgentId,
+                            SenderRole = existing.SenderRole,
+                            Active = false,
+                            LockUntilMs = existing.LockUntilMs
+                        };
+                    }
+                }
+                if (openCalls != null)
+                {
+                    foreach (var pair in openCalls)
+                    {
+                        var command = pair.Value;
+                        if (command == null || !command.IsActiveCall || string.IsNullOrWhiteSpace(command.TargetUserId))
+                            continue;
+                        var lockUntil = command.LockUntilMs > now ? command.LockUntilMs : now + 60000L;
+                        repairedCalls[command.TargetUserId] = new PickerCallLockView
+                        {
+                            TargetUserId = command.TargetUserId,
+                            CallId = command.AlertId ?? "",
+                            SenderAgentId = command.SenderAgentId ?? "",
+                            SenderRole = command.SenderRole ?? "",
+                            Active = true,
+                            LockUntilMs = lockUntil
+                        };
+                    }
+                }
+                snapshot.Calls = repairedCalls;
                 snapshot.Fleet = CloneFleet(fleet);
                 snapshot.ReceivedTotal = Math.Max(0L, received);
                 snapshot.ConfirmedTotal = Math.Max(0L, confirmed);
