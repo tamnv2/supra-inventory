@@ -3435,7 +3435,7 @@
     },
     {
       "id": "OA069",
-      "status": "BLOCKED_PENDING_D143_TECHNICAL_RUNTIME_RELEASE_PASS",
+      "status": "BLOCKED_BY_OA070_ANDROID_RELEASE_SECRET_SETUP",
       "title": "Field-accept D143 Android, Web and Agent operational refinements",
       "resource_key": "repo",
       "provider": "Beta Android + Web/Worker + existing Firebase/Firestore + Windows Agent",
@@ -3445,7 +3445,11 @@
         "target_agent": "relay-agent-v81",
         "target_android": "next monotonic signed Beta after beta-vc83",
         "new_provider_resources": "NONE",
-        "stable": "OWNER_GATED"
+        "stable": "OWNER_GATED",
+        "technical_runtime": "WEB_AGENT_PASS__ANDROID_SIGNED_RELEASE_BLOCKED",
+        "implementation_pr": 287,
+        "main_merge": "96e38ca88633ef9a0114d6682bdac5bea2d4f2c8",
+        "agent_release": "relay-agent-v81__RELEASED"
       },
       "shortest_test_path": [
         "Update one test Agent to v81 and one warehouse PDA to the signed D143 Beta Android release after technical release PASS.",
@@ -3468,7 +3472,37 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. No new provider resources, no plaintext password/token/session material, no Stable mutation.",
-      "remaining_owner_action": "Wait for D143 technical/runtime/release PASS, then run the shortest field path.",
+      "remaining_owner_action": "Complete OA070 once in GitHub Beta environment; automation can then rerun Android release and unlock this field test.",
+      "closed": false
+    },
+    {
+      "id": "OA070",
+      "status": "OWNER_ACTION_REQUIRED",
+      "title": "Configure D143 Android default-password build secret",
+      "resource_key": "repo",
+      "provider": "GitHub Actions environment beta",
+      "reason_owner_only": "The connected GitHub capability cannot create or update Actions secrets. Main Android run 36463932866 failed closed because ANDROID_PICKER_DEFAULT_PASSWORD is absent. The password must never be committed to the public repository.",
+      "prerequisites": {
+        "main_merge": "96e38ca88633ef9a0114d6682bdac5bea2d4f2c8",
+        "failed_android_run": 36463932866,
+        "target_secret_name": "ANDROID_PICKER_DEFAULT_PASSWORD",
+        "fallback_secret_name": "PICKER_DEFAULT_PASSWORD",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_test_path": [
+        "GitHub repo → Settings → Environments → beta → Environment secrets → Add environment secret.",
+        "Name: ANDROID_PICKER_DEFAULT_PASSWORD.",
+        "Value: enter the approved common Picker default password already chosen by Owner; do not paste it into source, issue, PR or log.",
+        "Save the secret, then rerun the failed Verify Beta Android workflow for main 96e38ca8."
+      ],
+      "pass_criteria": [
+        "ANDROID_PICKER_DEFAULT_PASSWORD is available only as a protected Beta environment secret.",
+        "Verify Beta Android passes and publishes the next monotonic signed Beta release after beta-vc83.",
+        "The app pre-fills the password field masked; plaintext remains absent from GitHub source/logs.",
+        "Stable remains untouched."
+      ],
+      "safety": "Do not store the password as a repository file, variable, PR comment or log. Beta environment secret only.",
+      "remaining_owner_action": "Add the Beta environment secret once, then rerun Verify Beta Android.",
       "closed": false
     }
   ]
