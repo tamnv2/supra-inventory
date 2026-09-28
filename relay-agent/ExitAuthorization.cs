@@ -118,6 +118,7 @@ namespace SupraInventoryRelayAgent
             MaximizeBox = false;
             MinimizeBox = false;
             StartPosition = FormStartPosition.CenterParent;
+            TopMost = true;
             Font = new Font("Segoe UI", 9F);
 
             Controls.Add(new Label
@@ -146,7 +147,21 @@ namespace SupraInventoryRelayAgent
             Controls.Add(ok);
             AcceptButton = ok;
             CancelButton = cancel;
-            Shown += (s, e) => _password.Focus();
+            Shown += (s, e) =>
+            {
+                ActiveControl = _password;
+                _password.Focus();
+                _password.SelectionStart = _password.TextLength;
+            };
+            Activated += (s, e) =>
+            {
+                if (!ok.Focused && !cancel.Focused)
+                {
+                    ActiveControl = _password;
+                    _password.Focus();
+                    _password.SelectionStart = _password.TextLength;
+                }
+            };
         }
     }
 
@@ -191,7 +206,21 @@ namespace SupraInventoryRelayAgent
             Controls.Add(ok);
             AcceptButton = ok;
             CancelButton = cancel;
-            Shown += (s, e) => _password.Focus();
+            Shown += (s, e) =>
+            {
+                ActiveControl = _password;
+                _password.Focus();
+                _password.SelectionStart = _password.TextLength;
+            };
+            Activated += (s, e) =>
+            {
+                if (!ok.Focused && !cancel.Focused)
+                {
+                    ActiveControl = _password;
+                    _password.Focus();
+                    _password.SelectionStart = _password.TextLength;
+                }
+            };
         }
     }
 }
