@@ -639,3 +639,13 @@ This subsection supersedes conflicting D131 max-6/RAM-counter wording above.
 - Liên hệ picker uses `picker_active_calls/<user_id>` with an exact 60-second `lock_until_ms`. Reuse after RESOLVED/expiry is conditional on Firestore update-time. FCM is fast delivery and the exact-document listener is convergence/recovery.
 - Transient listener/DNS failures are logged and retried without repeated user-facing technical popups.
 - Stable remains OWNER-GATED.
+
+## D135 processing-Agent counter immediacy and local-first result surface
+
+- Durable `relay_poc_coordination/daily_<business_day>` counters remain the cross-process authority.
+- After a PRIMARY Agent successfully commits the terminal job ACK and daily-summary increment in the existing atomic Firestore commit, that same Agent may apply the known received/confirmed/error delta directly to its local presentation. This is display state only and creates no additional provider operation.
+- The processing Agent overlay and **Hôm nay toàn cụm** surface therefore update immediately after durable ACK. A later compact/durable snapshot merges monotonically and cannot visually move the displayed daily counters backward.
+- Non-processing / deep-hibernate Agents keep the existing D134 compact-listener and periodic-reconciliation behavior. D135 does not add realtime counter listeners to the fleet and does not change PRIMARY 3s/15s/1s adaptive queue cadence or the D134 five-minute reconciliation bound.
+- Both Android result surfaces — cross-app `CriticalOverlayService` and the in-app Picker result dialog — follow the same local-first acknowledgement contract: persist pending ACK metadata, dismiss immediately, then attempt network acknowledgement. Logout, session revocation, account change or connectivity loss cannot make the result surface a blocking network gate.
+- The 60-second specialist-call TTL remains an internal safety bound only; the Picker-facing call overlay does not advertise the automatic-close timer.
+- The originating Agent reserves the call action locally as soon as the operator confirms it, before the asynchronous shared-state write. Shared call authority and the full 60-second fleet lock remain unchanged.
