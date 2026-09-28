@@ -729,9 +729,11 @@ function currentSlaServerMode(): AutoSkipMode | null {
 }
 
 function patchSlaDraftIndicator(): void {
+  const serverMode = currentSlaServerMode();
+  const serverNode = document.querySelector<HTMLElement>("#sla-server-mode-value");
+  if (serverNode) serverNode.textContent = autoSkipModeLabel(serverMode);
   const node = document.querySelector<HTMLElement>("#sla-draft-value");
   if (!node) return;
-  const serverMode = currentSlaServerMode();
   const draftMode = slaDraftMode || serverMode;
   const pending = Boolean(slaFormDirty && draftMode && draftMode !== serverMode);
   node.dataset.pending = pending ? "true" : "false";
@@ -1780,7 +1782,7 @@ function renderSla(): string {
             <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="FIRST_REPORT" autocomplete="off" ${mode === "FIRST_REPORT" ? "checked" : ""} required/><span><strong>Theo báo đầu tiên của SKU</strong><small>Cả đợt dùng chung một mốc thời gian.</small></span></label>
             <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="PER_PICKER" autocomplete="off" ${mode === "PER_PICKER" ? "checked" : ""} required/><span><strong>Theo từng Picker</strong><small>Mỗi Picker có deadline tính từ lúc chính người đó báo.</small></span></label>
           </div>
-          <div class="sla-server-value">Đang áp dụng: <strong>${autoSkipModeLabel(serverMode)}</strong></div>
+          <div class="sla-server-value">Đang áp dụng: <strong id="sla-server-mode-value">${autoSkipModeLabel(serverMode)}</strong></div>
           <div id="sla-draft-value" class="sla-draft-value" data-pending="${draftModePending ? "true" : "false"}">${draftModePending ? `Thay đổi chưa lưu: ${autoSkipModeLabel(mode)}` : "Biểu mẫu đang khớp cấu hình máy chủ."}</div>
         </article>
         <article class="sla-policy-card">
