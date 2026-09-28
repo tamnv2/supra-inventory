@@ -1138,3 +1138,11 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Root cause in v78 gating: reload fired against the final route too early and READY was based on DOM shell/navigation proof rather than data-hydration resilience.
 - v79 hotfix: final Confirm 3s settle → one normal reload → 1.2s stable post-reload DOM; first search with zero table PickList codes gets one bounded local reload/search retry.
 - Target `relay-agent-v79`; Android `beta-vc82` unchanged; no new provider resources; Stable OWNER-GATED.
+
+## D137 v79 release continuity — 2026-09-28
+
+- D137 v79 hotfix is technical/release PASS on main `b177ef0f9169b051fe90349460c1c3e2d7a07663`.
+- PR #275 and all applicable main Authority/State/UI/Agent/Dashboard gates passed.
+- `relay-agent-v79` is published; inventory-channel Agent manifest/EXE point to the v79 binary with SHA-256 `e88108a53ff5def868c7ca036318fcac5a2ba19da2fe426fddb1983fa1056d23`.
+- OA063 is field-ready: update to v79, enter Confirm without manual F5, search the known PickList, verify bounded self-heal/no loop and confirmation success.
+- Android remains `beta-vc82`; Stable remains OWNER-GATED.

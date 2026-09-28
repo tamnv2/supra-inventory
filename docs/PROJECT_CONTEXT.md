@@ -535,3 +535,11 @@ D136 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta.
 - v78 log timing proves the automatic reload was issued roughly 0.6s after final WMS child attachment and was accepted as PASS before a later real search returned NOT_FOUND. Manual F5 then restored the same known PickList and confirmation succeeded.
 - D137 therefore continues as Agent v79: wait for the final Confirm document to remain stable for 3s, issue one normal reload, require 1.2s post-reload stable DOM, and allow one empty-table local reload/search retry only when the first search sees zero PickList codes.
 - Android remains beta-vc82; WebView2 host build 10 and provider resources are unchanged. Stable remains OWNER-GATED.
+
+## D137 v79 release checkpoint — 2026-09-28
+
+- PR #275 merged to main `b177ef0f9169b051fe90349460c1c3e2d7a07663`.
+- Main Repo Authority, Project State, UI Design, Relay Agent and Dashboard Probe workflows PASS.
+- Released Windows Agent: `relay-agent-v79`, release id 398080917, canonical EXE asset id 594949767, SHA-256 `e88108a53ff5def868c7ca036318fcac5a2ba19da2fe426fddb1983fa1056d23`.
+- Inventory channel now carries the same v79 EXE (asset id 594949844) and refreshed Agent manifest (asset id 594949850).
+- OA063 is READY_FOR_OWNER_FIELD_TEST. Android remains `beta-vc82`; Stable remains OWNER-GATED and untouched.
