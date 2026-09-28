@@ -2098,19 +2098,37 @@ namespace SupraInventoryRelayAgent
             if (picker == null) return;
             var column = _pickerOnlineGrid.Columns[e.ColumnIndex].Name;
 
-            if (column == "CallSpecialist")
+            if (column == "KickUser")
             {
-                if (HasActivePickerCommand(picker.UserId))
+                if (string.IsNullOrWhiteSpace(picker.FirebaseUid) || picker.SessionGeneration <= 0)
                 {
-                    _pickerOnlineStatus.Text = "Picker này đã có yêu cầu đang mở; không gửi trùng.";
+                    _pickerOnlineStatus.Text = "Phiên Picker chưa có generation hợp lệ để Kích User.";
                     return;
                 }
-                Task.Run(() => SendPickerContact(picker, "CALL_SPECIALIST"));
+                if (MessageBox.Show(
+                    "Kích User sẽ thu hồi phiên PDA hiện tại của " +
+                    (string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.DisplayName : picker.EmployeeCode) +
+                    " và xóa khỏi danh sách trên toàn bộ Agent. Tiếp tục?",
+                    "Xác nhận Kích User · bước 1/2",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning) != DialogResult.Yes) return;
+                if (MessageBox.Show(
+                    "Xác nhận lần 2: Picker sẽ phải đăng nhập lại trước khi gửi PickList mới.",
+                    "Xác nhận Kích User · bước 2/2",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning) != DialogResult.Yes) return;
+                Task.Run(() => KickPickerUser(picker));
                 return;
             }
-            if (column == "BringToPack")
+
+            if (column == "CallSpecialist")
             {
-                Task.Run(() => SendPickerContact(picker, "BRING_TO_PACK"));
+                if (IsPickerCallLocked(picker.UserId))
+                {
+                    _pickerOnlineStatus.Text = "Liên hệ picker đang khóa 60 giây trên toàn bộ Agent.";
+                    return;
+                }
+                Task.Run(() => SendPickerContact(picker));
                 return;
             }
             if (column == "ResolveContact")
@@ -2118,7 +2136,7 @@ namespace SupraInventoryRelayAgent
                 if (!CanResolvePickerCommand(picker.UserId))
                 {
                     _pickerOnlineStatus.Text = HasActivePickerCommand(picker.UserId)
-                        ? "Chỉ Agent đã gọi Picker mới được kết thúc yêu cầu."
+                        ? "Chỉ Agent đã Liên hệ picker mới được kết thúc yêu cầu."
                         : "Picker này không có yêu cầu đang mở.";
                     return;
                 }
@@ -2126,34 +2144,63 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private void SendPickerContact(PickerPresenceView picker, string commandType)
+        private void KickPickerUser(PickerPresenceView picker)
         {
-            if (HasActivePickerCommand(picker.UserId))
+            try
             {
-                Ui(() => _pickerOnlineStatus.Text = "Picker này đang có yêu cầu mở. Hãy xác nhận kết thúc trước khi gửi yêu cầu mới.");
+                EnsureFreshToken();
+                var session = SnapshotSession();
+                _agentSyncClient.RevokePickerSession(session, picker, _agentInstanceId);
+                var snapshot = _agentSyncClient.SetKick(
+                    session,
+                    picker.UserId,
+                    picker.FirebaseUid,
+                    picker.SessionGeneration);
+                ApplyD134AgentSyncSnapshot(snapshot);
+                Ui(() => _pickerOnlineStatus.Text =
+                    "Đã Kích User " +
+                    (string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.DisplayName : picker.EmployeeCode) +
+                    " · toàn bộ Agent đã nhận trạng thái thu hồi.");
+                Log("PICKER_SESSION kick=PASS user=" + SafeUserLabel(picker.EmployeeCode, picker.UserId) +
+                    " generation=" + picker.SessionGeneration);
+            }
+            catch (Exception ex)
+            {
+                Ui(() => _pickerOnlineStatus.Text = "Kích User thất bại · " + SafeMessage(ex));
+            }
+        }
+
+        private void SendPickerContact(PickerPresenceView picker)
+        {
+            if (IsPickerCallLocked(picker.UserId))
+            {
+                Ui(() => _pickerOnlineStatus.Text = "Liên hệ picker đang khóa 60 giây trên toàn bộ Agent.");
                 return;
             }
             try
             {
                 EnsureFreshToken();
-                var command = _pickerContactClient.Send(SnapshotSession(), _agentInstanceId, picker, commandType);
-                lock (_activePickerCommands) _activePickerCommands[picker.UserId] = command;
+                var session = SnapshotSession();
+                var command = _pickerContactClient.Send(session, _agentInstanceId, picker, "CALL_SPECIALIST");
+                var snapshot = _agentSyncClient.SetCallLock(
+                    session,
+                    picker.UserId,
+                    command.AlertId,
+                    command.SenderAgentId,
+                    command.SenderRole,
+                    command.LockUntilMs);
+                ApplyD134AgentSyncSnapshot(snapshot);
                 Ui(() =>
                 {
                     _pickerOnlineStatus.Text =
-                        (commandType == "CALL_SPECIALIST" ? "Đã gọi " : "Đã gửi yêu cầu Pack cho ") +
+                        "Đã Liên hệ picker " +
                         (string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.DisplayName : picker.EmployeeCode) +
-                        ". PDA sẽ hiển thị cảnh báo toàn màn hình.";
-                    RefreshD119OperationalViews(true);
+                        " · nút gọi khóa 60 giây trên toàn bộ Agent.";
                 });
             }
             catch (Exception ex)
             {
-                Ui(() =>
-                {
-                    _pickerOnlineStatus.Text = "Gửi yêu cầu Picker thất bại · " + SafeMessage(ex);
-                    RefreshD119OperationalViews(true);
-                });
+                Ui(() => _pickerOnlineStatus.Text = "Liên hệ picker thất bại · " + SafeMessage(ex));
             }
         }
 
@@ -2170,7 +2217,7 @@ namespace SupraInventoryRelayAgent
                 if (command.IsActiveCall &&
                     !string.Equals(command.SenderAgentId, _agentInstanceId, StringComparison.Ordinal))
                 {
-                    Ui(() => _pickerOnlineStatus.Text = "Chỉ Agent đã gọi Picker mới được kết thúc yêu cầu.");
+                    Ui(() => _pickerOnlineStatus.Text = "Chỉ Agent đã Liên hệ picker mới được kết thúc yêu cầu.");
                     return;
                 }
             }
@@ -2178,19 +2225,19 @@ namespace SupraInventoryRelayAgent
             try
             {
                 EnsureFreshToken();
-                _pickerContactClient.Resolve(SnapshotSession(), _agentInstanceId, command);
-                lock (_activePickerCommands) _activePickerCommands.Remove(picker.UserId);
-                Ui(() =>
-                {
-                    _pickerOnlineStatus.Text = "Đã xác nhận xử lý Picker · PDA sẽ đóng cảnh báo.";
-                    RefreshD119OperationalViews(true);
-                });
+                var session = SnapshotSession();
+                _pickerContactClient.Resolve(session, _agentInstanceId, command);
+                var snapshot = _agentSyncClient.SetCallResolved(session, picker.UserId, command.AlertId);
+                ApplyD134AgentSyncSnapshot(snapshot);
+                Ui(() => _pickerOnlineStatus.Text =
+                    "Đã kết thúc Liên hệ picker · PDA sẽ đóng cảnh báo; nút gọi vẫn khóa đủ 60 giây.");
             }
             catch (Exception ex)
             {
-                Ui(() => _pickerOnlineStatus.Text = "Không đóng được yêu cầu Picker · " + SafeMessage(ex));
+                Ui(() => _pickerOnlineStatus.Text = "Không kết thúc được Liên hệ picker · " + SafeMessage(ex));
             }
         }
+
         internal bool HasActivePdaForRelay()
         {
             return _activePdaCountForRelay > 0;
