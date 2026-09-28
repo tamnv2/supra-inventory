@@ -41,6 +41,7 @@ private data class RelayFirebaseIdentity(
     val uid: String,
     val audience: String,
     val fingerprint: String,
+    val sessionGeneration: Long,
 )
 
 private data class RelayAck(
@@ -166,6 +167,7 @@ class RelayPocClient(
             "picker_user_id" to session.userId,
             "picker_employee_code" to (session.employeeCode ?: ""),
             "picker_display_name" to session.displayName,
+            "picker_session_generation" to identity.sessionGeneration,
             "client_sent_at_ms" to System.currentTimeMillis(),
             "created_at" to FieldValue.serverTimestamp(),
         )
@@ -381,7 +383,8 @@ class RelayPocClient(
         val uid = payload.optString("sub").trim()
         if (uid.isBlank() || uid.length > 128) throw IllegalStateException("Firebase UID trong phiên không hợp lệ.")
         val audience = payload.optString("aud").trim()
-        return RelayFirebaseIdentity(uid, audience, fingerprint(uid))
+        val sessionGeneration = payload.optLong("app_session_generation", 0L).coerceAtLeast(0L)
+        return RelayFirebaseIdentity(uid, audience, fingerprint(uid), sessionGeneration)
     }
 
     private fun fingerprint(value: String): String =
