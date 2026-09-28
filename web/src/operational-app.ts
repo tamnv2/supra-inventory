@@ -67,6 +67,7 @@ import {
   type AdminReportingDetailRow,
   type AgentAppRelease,
   type AndroidAlertWindowState,
+  type AutoSkipMode,
   type BatchPickerTicket,
   type HrSourceResponse,
   type HrSyncPreview,
@@ -349,6 +350,8 @@ let operationsLoadPromise: Promise<void> | null = null;
 let operationsLoadQueued = false;
 let slaResponse: SlaResponse | null = null;
 let slaFormDirty = false;
+let slaDraftMode: AutoSkipMode | null = null;
+let slaSaveBusy = false;
 let operationalInsights: OperationalInsights | null = null;
 let realtimePresence: RealtimePresence | null = null;
 let managedUsers: ManagedUser[] = [];
