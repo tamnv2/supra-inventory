@@ -15,7 +15,7 @@ namespace SupraInventoryRelayAgent
         internal const long ReferenceReadsPerDay = 50000L;
         internal const long ReferenceWritesPerDay = 20000L;
         internal const long ReferenceDeletesPerDay = 20000L;
-        internal const long SoftReadsPerDay = 42000L;
+        internal const long SoftReadsPerDay = 45000L;
         internal const long SoftWritesPerDay = 15000L;
         internal const long SoftDeletesPerDay = 3000L;
 
