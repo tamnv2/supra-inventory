@@ -809,6 +809,43 @@ export class InventoryCore {
       // D144 live Agent revoke uses force_current=true and always invalidates the
       // current authoritative session, including a generation that raced ahead
       // of the Agent row. The scheduled Firestore fallback is idempotent.
+      // Before disabling the Android token, send one backward-compatible
+      // picker_command. Older APKs that do not know the D144 session-control
+      // listener still receive a visible "re-login" alert, while server/Firestore
+      // authority below blocks all old-session business operations regardless.
+      let compatibilityPush = "SKIPPED";
+      if (this.env.GOOGLE_RUNTIME_SA_JSON && this.env.FIREBASE_PROJECT_ID) {
+        try {
+          const tokens = await this.notificationTokens([], [userId]);
+          if (tokens.length) {
+            const expiresAtMs = Date.now() + 60_000;
+            const delivery = await sendFcmNotifications(
+              this.env.GOOGLE_RUNTIME_SA_JSON,
+              this.env.FIREBASE_PROJECT_ID,
+              tokens,
+              {
+                title: "SUPRA Inventory · Phiên PDA đã bị thu hồi",
+                body: "Phiên làm việc đã được quản trị viên thu hồi. Vui lòng đăng nhập lại.",
+                data: {
+                  event: "picker_command",
+                  alert_id: "kick-" + crypto.randomUUID().replaceAll("-", ""),
+                  command_type: "CALL_SPECIALIST",
+                  notification_title: "PHIÊN PDA ĐÃ BỊ THU HỒI",
+                  notification_body: "Phiên làm việc đã được quản trị viên thu hồi. Vui lòng đăng nhập lại.",
+                  expires_at_ms: String(expiresAtMs),
+                  source: "D144_SESSION_REVOKE_COMPAT",
+                },
+              },
+            );
+            compatibilityPush = delivery.attempts.some((attempt) => attempt.status === "SENT")
+              ? "SENT"
+              : "FAILED";
+          }
+        } catch {
+          compatibilityPush = "FAILED";
+        }
+      }
+
       const nextGeneration = Math.max(currentGeneration, requestedGeneration) + 1;
       this.state.storage.sql.exec(
         `UPDATE users
@@ -831,6 +868,7 @@ export class InventoryCore {
         user_id: userId,
         previous_generation: Number(current.android_session_generation || 0),
         revoked_generation: nextGeneration,
+        compatibility_push: compatibilityPush,
       });
     }
 
