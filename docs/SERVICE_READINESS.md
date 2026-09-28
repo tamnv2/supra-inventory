@@ -1073,3 +1073,11 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Provider Usage runtime is intentionally retired: no scheduled Google Monitoring Usage collection and no periodic `usage_current` write for the removed UI. Local quota reference guard remains.
 - Web Confirm hide-to-background is no-password; protected show/stop/logout/switch actions remain.
 - No new provider resource. Stable remains OWNER-GATED.
+
+## D136 release checkpoint — 2026-09-28
+
+- PR #272 merged to `main` `62ab2aa11cda251f18090fc0bd637a092ab0998d`.
+- `relay-agent-v77` is published and the inventory channel points to the v77 Agent asset. Android remains `beta-vc82`.
+- Worker deploy and exact-source health PASS; Usage polling/publication runtime is retired.
+- Main authority, continuity, UI and Agent gates PASS.
+- OA062 is READY_FOR_OWNER_FIELD_TEST. Stable remains OWNER-GATED and untouched.
