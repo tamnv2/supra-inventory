@@ -840,3 +840,11 @@ Stable remains OWNER-GATED.
 - Picker full-screen/overlay copy names the specialist role and remains visible until the originating Agent resolves the call. Reopening the app must restore an unresolved call.
 - Agent adds a Usage tab scoped to PDA↔Agent/export dependencies: Firestore reads/writes/deletes/storage/connections/listeners when provider metrics are available, Firebase Auth/Function indicators, FCM no-cost label, daily export state, Drive storage, HA/Web Confirm state and local Agent resource/quota diagnostics.
 - Provider Usage may be cached for 10 minutes. Explicit refresh is allowed. Provider-unavailable state must be visible rather than replaced by a quota-consuming estimate.
+
+
+### D132 Agent status and sizing controls
+
+- The Hệ thống Agent detail row is stable and single-source rendered: `Chế độ nhận tin từ PDA: <HA mode> | Relay: <transport state> | Wi-Fi hiện tại: <SSID>`. Relay callbacks update the Relay segment instead of replacing the whole row.
+- Replace the grid auto-size checkbox with a visible button labelled `Auto size cột: Bật` or `Auto size cột: Tắt`.
+- Auto size ON fits displayed content and prevents manual width changes. Auto size OFF allows manual column resizing and persists Agent/Fleet, Picker and PickList grid widths per authenticated Agent account.
+- Persist the main Agent normal-window left/top/width/height per authenticated Agent account. Maximize -> restore returns to those saved normal bounds; invalid/off-screen bounds are clamped to the current working area.

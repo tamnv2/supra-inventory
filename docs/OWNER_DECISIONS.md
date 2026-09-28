@@ -1828,3 +1828,18 @@ Owner completed the review-first gate and explicitly authorized implementation o
 - Beta Windows Agent **relay-agent-v71** release id **397818991**; canonical EXE asset id **593804846**, size **404992 bytes**, SHA-256 **e9fac90ebd5d89c6accdf1df903673cad3971a65c3333806602a636b3b55c508**.
 - Signed Android Beta **beta-vc78** release id **397819144**; APK asset id **593805739**, size **19052908 bytes**, SHA-256 **032d17f774592464101ed9711677f98117fddb17a2dcad53da3ea1feae6005f4**.
 - D131 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta. Remaining gate is **OA056 Owner physical field acceptance** for real company-network/fleet/latency behavior. Stable remains OWNER-GATED and untouched.
+
+
+## D132 — Agent presence/status/layout hotfix — 2026-09-28
+
+Status: **OWNER AUTHORIZED IMPLEMENTATION — BETA HOTFIX IN PROGRESS**.
+
+Owner reports three post-D131 field defects and authorizes a coordinated Beta hotfix:
+
+1. The Agent status line must never alternate between the high-level PDA receive mode and the low-level Relay state. It renders one stable line containing **Chế độ nhận tin từ PDA + Relay + current Wi-Fi**. D131 HA role semantics remain unchanged.
+2. **Picker đang hoạt động trên PDA** must reflect Android login/logout and real PickList activity. Root cause from the latest Beta logs/source is that D131 retained the Firestore projection writer but removed the fixed presence control event while the Agent had no Firestore realtime listener for that projection. D132 restores exactly one fixed `relay_poc_jobs/picker_presence_current` single-slot control event on presence state changes. It is overwritten, not accumulated, uses no per-PDA heartbeat and adds no new polling loop. The PRIMARY ACKs this control event without changing PickList received/confirmed/error durable counters. A real PickList request also refreshes that Picker in PRIMARY RAM with zero extra provider write. Foreground Agent activation may perform one bounded authoritative projection refresh so a non-primary operator can reconcile the current list without continuous polling.
+3. Column sizing changes from a hidden checkbox to one visible **Auto size cột: Bật/Tắt** button. ON auto-fits displayed content and disables manual column resizing. OFF enables manual sizing and stores widths per authenticated Agent account.
+4. The Agent normal-window bounds (position/width/height) are stored per authenticated Agent account. Maximizing and restoring must return to that account's last manually adjusted normal bounds rather than the default small bounds. Existing startup maximized behavior remains allowed.
+5. Target release is **relay-agent-v72**. Android remains **beta-vc78**; Worker/service changes only restore the existing Firestore presence signal. No new provider/resource is introduced. Stable remains OWNER-GATED and untouched.
+
+Quota boundary: D132 presence delivery uses the already-running PRIMARY PENDING query. Each actual presence-state change adds a bounded fixed-document projection/control write, one returned control document read when PRIMARY observes it, and one control ACK write. It does not create a periodic PDA heartbeat, a second queue poll, or non-primary business polling. D131 soft quota guards remain authoritative.

@@ -189,7 +189,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Run OA056 physical field acceptance on Beta using relay-agent-v71 + beta-vc78; verify one PRIMARY, NEXT_A/NEXT_B/deep zero business polling, failover/counters, 40-request burst, persistent Picker call, Usage and daily Drive export. Stable remains OWNER-GATED.",
+  "next_action": "Complete D132 Beta hotfix branch fix/d132-agent-presence-layout through PR guards, merge, Worker deploy and relay-agent-v72 release; then run OA058 field retest. Android remains beta-vc78 and Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -823,7 +823,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D131_TECHNICAL_RELEASE_PASS__OA056_OWNER_FIELD_ACCEPTANCE_READY",
+  "active_workstream": "D132_AGENT_PRESENCE_STATUS_LAYOUT_HOTFIX_IN_PROGRESS",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -1673,5 +1673,27 @@
       "android_size_bytes": 19052908,
       "android_sha256": "032d17f774592464101ed9711677f98117fddb17a2dcad53da3ea1feae6005f4"
     }
+  },
+  "d132": {
+    "status": "OWNER_AUTHORIZED_IMPLEMENTATION__SOURCE_IN_PROGRESS",
+    "date": "2026-09-28",
+    "baseline_main": "8944d767c8044cb970a54bd58072b35ae27750f2",
+    "baseline_agent_release": "relay-agent-v71",
+    "baseline_android": "beta-vc78",
+    "implementation_branch": "fix/d132-agent-presence-layout",
+    "target_agent_release": "relay-agent-v72",
+    "android_change": "NONE__REUSE_BETA_VC78",
+    "defects": [
+      "RELAY_STATE_ALTERNATES_WITH_RECEIVE_MODE_TEXT",
+      "PICKER_PRESENCE_NOT_CONSUMED_AFTER_D131_CONTROL_EVENT_REMOVAL",
+      "GRID_AUTOSIZE_CHECKBOX_NOT_OPERATOR_VISIBLE",
+      "NORMAL_WINDOW_BOUNDS_NOT_PERSISTED_PER_AGENT_ACCOUNT"
+    ],
+    "presence_fix": "FIXED_SINGLE_SLOT_PICKER_PRESENCE_CONTROL_EVENT__PRIMARY_ACK_NO_BUSINESS_COUNTER__PICKLIST_REQUEST_ZERO_WRITE_ACTIVITY_REFRESH__BOUNDED_FOREGROUND_PROJECTION_RECONCILE",
+    "ui_fix": "ONE_STABLE_RECEIVE_MODE_PLUS_RELAY_PLUS_WIFI_LINE__AUTO_SIZE_BUTTON__PER_ACCOUNT_GRID_WIDTHS_AND_NORMAL_WINDOW_BOUNDS",
+    "quota": "NO_HEARTBEAT__NO_NEW_POLL_LOOP__NO_NONPRIMARY_BUSINESS_QUEUE_POLL",
+    "resource_change": "NONE",
+    "field_gate": "OA058_AFTER_TECHNICAL_RELEASE",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }

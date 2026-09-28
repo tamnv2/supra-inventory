@@ -139,6 +139,19 @@ async function writePickerPresenceProjection(
     pickers,
   });
 
+  // D132: one fixed single-slot control event restores event-driven delivery to
+  // the current PRIMARY without adding a new poll loop or per-PDA heartbeat.
+  // Repeated changes overwrite this same document; Agent ACK is race-safe by updateTime.
+  await putDocument(env, "relay_poc_jobs", "picker_presence_current", {
+    request_id: "picker_presence_current",
+    status: "PENDING",
+    source: "ANDROID_PRESENCE_V1",
+    created_at: now,
+    schema_version: 3,
+    reason,
+    count: pickers.length,
+    pickers,
+  });
 }
 
 export async function syncPickerPresenceProjection(env: ProjectionEnv, reason = "SNAPSHOT_REFRESH"): Promise<void> {

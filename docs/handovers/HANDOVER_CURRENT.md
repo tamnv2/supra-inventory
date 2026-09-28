@@ -1014,3 +1014,12 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Signed Android Beta: `beta-vc78`.
 - D131 technical/runtime/release: **PASS**; OA056 physical Owner field acceptance is READY.
 - Stable remains OWNER-GATED / untouched.
+
+
+## D132 hotfix in progress — 2026-09-28
+
+- Baseline main: `8944d767c8044cb970a54bd58072b35ae27750f2`.
+- D131 remains technical/runtime/release PASS; Android remains `beta-vc78`.
+- D132 branch: `fix/d132-agent-presence-layout`; target Agent: `relay-agent-v72`.
+- Scope: stable combined receive-mode/Relay/Wi-Fi row; restore fixed single-slot event-driven Picker presence signal without business-counter pollution; PickList request zero-write activity refresh; visible Auto size cột button; per-Agent-account column widths and normal-window bounds.
+- No new provider/resource, no PDA heartbeat, no non-primary business-queue polling. Stable remains OWNER-GATED.

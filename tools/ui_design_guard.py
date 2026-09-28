@@ -132,9 +132,11 @@ checks = {
         "Web Confirm: chờ đăng nhập Agent",
     ]),
     "agent_d122_column_preferences": all(token in RELAY_D119_FEATURES for token in [
-        "Tự căn cột theo nội dung",
+        "Auto size cột: Bật",
+        "Auto size cột: Tắt",
         "grid-column-preferences.json",
-        "AllowUserToResizeColumns = !_autoSizeColumns.Checked",
+        "AllowUserToResizeColumns = !_autoSizeColumnsEnabled",
+        "HasWindowBounds",
         "SaveColumnPreferencesForCurrentUser",
     ]),
     "agent_d124_overlay_removed": (
