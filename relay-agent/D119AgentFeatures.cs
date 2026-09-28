@@ -435,6 +435,7 @@ namespace SupraInventoryRelayAgent
                 if (WindowState == FormWindowState.Normal && !_restoringSavedWindowBounds)
                     CaptureCurrentNormalWindowBounds(false);
             };
+            _lastTrackedWindowState = WindowState;
             Resize += (s, e) => HandleTrackedWindowStateChange();
             Activated += (s, e) =>
             {
@@ -658,7 +659,9 @@ namespace SupraInventoryRelayAgent
                 current != FormWindowState.Normal &&
                 !_restoringSavedWindowBounds)
             {
-                CaptureCurrentNormalWindowBounds(true);
+                var restore = NormalizeSavedWindowBounds(RestoreBounds);
+                if (!restore.IsEmpty) _savedNormalWindowBounds = restore;
+                SaveColumnPreferencesForCurrentUser();
             }
             else if (_lastTrackedWindowState == FormWindowState.Maximized &&
                      current == FormWindowState.Normal)
@@ -750,6 +753,58 @@ namespace SupraInventoryRelayAgent
                 (graceCount > 0 ? " · " + graceCount.ToString("N0") + " mất kết nối tạm thời" : "") +
                 (primary ? " · sự kiện trực tiếp" : " · snapshot");
             RenderFleetMetricStatus(primary);
+        }
+
+        internal void ApplyPickerRequestActivity(FirestoreConfirmationWorkItem work)
+        {
+            if (work == null || string.IsNullOrWhiteSpace(work.PickerUserId)) return;
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<FirestoreConfirmationWorkItem>(ApplyPickerRequestActivity), work);
+                return;
+            }
+
+            _pickerDisconnectGrace.Remove(work.PickerUserId);
+            var current = _pickerOnlineSnapshot.FirstOrDefault(x =>
+                x != null && string.Equals(x.UserId, work.PickerUserId, StringComparison.Ordinal));
+            if (current == null)
+            {
+                current = new PickerPresenceView
+                {
+                    UserId = work.PickerUserId,
+                    EmployeeCode = work.PickerEmployeeCode ?? "",
+                    DisplayName = work.PickerDisplayName ?? "",
+                    DeviceId = "",
+                    LoginAt = "",
+                    DeviceSeenAt = DateTime.UtcNow.ToString("o"),
+                    Status = "PDA_READY"
+                };
+                _pickerOnlineSnapshot.Add(current);
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(work.PickerEmployeeCode))
+                    current.EmployeeCode = work.PickerEmployeeCode;
+                if (!string.IsNullOrWhiteSpace(work.PickerDisplayName))
+                    current.DisplayName = work.PickerDisplayName;
+                current.DeviceSeenAt = DateTime.UtcNow.ToString("o");
+                current.Status = "PDA_READY";
+            }
+
+            _pickerOnlineSnapshot = _pickerOnlineSnapshot
+                .OrderBy(x => string.IsNullOrWhiteSpace(x.EmployeeCode) ? x.UserId : x.EmployeeCode, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(x => x.DisplayName ?? "", StringComparer.CurrentCultureIgnoreCase)
+                .ToList();
+            _pickerOnlineRenderSignature = "";
+            UpdatePickerOnlineGrid(_pickerOnlineSnapshot, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
+            Log("PICKER_PRESENCE activity=REQUEST_REFRESH user=" + SafeUserLabel(current.EmployeeCode, current.UserId) +
+                " provider_write=false");
+        }
+
+        private static string SafeUserLabel(string employeeCode, string userId)
+        {
+            var value = string.IsNullOrWhiteSpace(employeeCode) ? (userId ?? "") : employeeCode;
+            return value.Length <= 32 ? value : value.Substring(0, 32);
         }
 
         internal void ApplyEventDrivenPickerPresence(List<PickerPresenceView> items, string reason)
