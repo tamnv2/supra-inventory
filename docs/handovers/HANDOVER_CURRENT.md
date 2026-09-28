@@ -1216,3 +1216,5 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Branch: `fix/d141-sla-server-draft-persistence`.
 - OA067 opens only after PR/main/Beta runtime PASS.
 - D140 Agent v80 is parallel and unchanged by D141. Android beta-vc82 unchanged. D137 OA063 remains open. Stable OWNER-GATED.
+
+- Canonical Web marker: `D141_SOURCE_CANDIDATE__SLA_SERVER_DRAFT_SPLIT__SQLITE_READBACK__NON_DROPPABLE_SAVE`.
