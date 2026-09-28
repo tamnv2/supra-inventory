@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Text;
 using System.Web.Script.Serialization;
 using Google.Cloud.Firestore.V1;
 using Grpc.Core;
@@ -87,8 +88,16 @@ namespace SupraInventoryRelayAgent
                 try
                 {
                     var current = Load(session);
+                    Normalize(current);
+                    var beforeState = SerializeMutableState(current);
                     if (mutation != null) mutation(current);
                     Normalize(current);
+                    var afterState = SerializeMutableState(current);
+                    if (string.Equals(beforeState, afterState, StringComparison.Ordinal))
+                    {
+                        _log(component + " write=SKIP_NO_CHANGE");
+                        return current;
+                    }
                     current.Version = Math.Max(current.Version + 1L, NowMs());
                     current.UpdatedAtMs = NowMs();
                     var fields = SerializeFields(current);
@@ -347,6 +356,26 @@ namespace SupraInventoryRelayAgent
             return snapshot;
         }
 
+        private string SerializeMutableState(AgentSyncSnapshot snapshot)
+        {
+            snapshot = snapshot ?? new AgentSyncSnapshot();
+            var stableFleet = (snapshot.Fleet ?? new List<AgentPresenceView>())
+                .Where(item => item != null)
+                .OrderBy(item => item.AgentInstanceId ?? "", StringComparer.Ordinal)
+                .ThenBy(item => item.Role ?? "", StringComparer.Ordinal)
+                .ToList();
+            return _json.Serialize(new Dictionary<string, object>
+            {
+                { "pickers_json", SerializePickers(snapshot.Pickers) },
+                { "calls_json", SerializeCalls(snapshot.Calls) },
+                { "kicks_json", SerializeKicks(snapshot.Kicks) },
+                { "fleet_json", SerializeFleet(stableFleet) },
+                { "received_total", Math.Max(0L, snapshot.ReceivedTotal) },
+                { "confirmed_total", Math.Max(0L, snapshot.ConfirmedTotal) },
+                { "error_total", Math.Max(0L, snapshot.ErrorTotal) }
+            });
+        }
+
         private Dictionary<string, object> SerializeFields(AgentSyncSnapshot snapshot)
         {
             return new Dictionary<string, object>
@@ -467,7 +496,8 @@ namespace SupraInventoryRelayAgent
         private string SerializeCalls(Dictionary<string, PickerCallLockView> items)
         {
             var list = new List<object>();
-            foreach (var pair in items ?? new Dictionary<string, PickerCallLockView>())
+            foreach (var pair in (items ?? new Dictionary<string, PickerCallLockView>())
+                .OrderBy(item => item.Key, StringComparer.Ordinal))
             {
                 var item = pair.Value; if (item == null) continue;
                 list.Add(new Dictionary<string, object> {
@@ -482,7 +512,8 @@ namespace SupraInventoryRelayAgent
         private string SerializeKicks(Dictionary<string, PickerKickView> items)
         {
             var list = new List<object>();
-            foreach (var pair in items ?? new Dictionary<string, PickerKickView>())
+            foreach (var pair in (items ?? new Dictionary<string, PickerKickView>())
+                .OrderBy(item => item.Key, StringComparer.Ordinal))
             {
                 var item = pair.Value; if (item == null) continue;
                 list.Add(new Dictionary<string, object> {
@@ -671,12 +702,19 @@ namespace SupraInventoryRelayAgent
             try { if (cts != null) cts.Dispose(); } catch { }
         }
 
+        internal static readonly TimeSpan PermanentFailureCooldown = TimeSpan.FromMinutes(5);
+        internal const int InitialRetryMs = 2000;
+        internal const int MaxRetryMs = 60000;
+
         private async Task Loop(CancellationToken token)
         {
-            var backoff = 1000;
+            var backoff = InitialRetryMs;
             while (!token.IsCancellationRequested)
             {
                 Channel channel = null;
+                var acceptedResponse = false;
+                var permanentFailure = false;
+                var retryDelayMs = backoff;
                 try
                 {
                     _ensureFreshToken();
@@ -688,7 +726,12 @@ namespace SupraInventoryRelayAgent
                     PrepareGrpcNativeOverride();
                     channel = new Channel("firestore.googleapis.com", 443, new SslCredentials());
                     var client = new Google.Cloud.Firestore.V1.Firestore.FirestoreClient(channel);
-                    var headers = new Metadata { { "authorization", "Bearer " + session.IdToken } };
+                    var headers = new Metadata
+                    {
+                        { "authorization", "Bearer " + session.IdToken },
+                        { "google-cloud-resource-prefix", AgentConfig.FirestoreDatabaseName },
+                        { "x-goog-request-params", BuildRequestParamsHeader() }
+                    };
                     using (var call = client.Listen(headers, cancellationToken: token))
                     {
                         var docs = new Target.Types.DocumentsTarget();
@@ -698,11 +741,26 @@ namespace SupraInventoryRelayAgent
                             Database = AgentConfig.FirestoreDatabaseName,
                             AddTarget = new Target { TargetId = 134, Documents = docs }
                         }).ConfigureAwait(false);
-                        _log("AGENT_SYNC listen=CONNECTED role_independent=true cadence=EVENT_PLUS_5M");
-                        backoff = 1000;
+                        _log("AGENT_SYNC listen=OPEN role_limited=true routing_headers=true cadence=EVENT_PLUS_5M");
+
                         while (await call.ResponseStream.MoveNext(token).ConfigureAwait(false))
                         {
                             var response = call.ResponseStream.Current;
+                            var targetChange = response == null ? null : response.TargetChange;
+                            if (targetChange != null && targetChange.Cause != null && targetChange.Cause.Code != 0)
+                            {
+                                throw new RpcException(new Status(
+                                    (StatusCode)targetChange.Cause.Code,
+                                    targetChange.Cause.Message ?? "Firestore listen target rejected."));
+                            }
+
+                            if (!acceptedResponse)
+                            {
+                                acceptedResponse = true;
+                                backoff = InitialRetryMs;
+                                _log("AGENT_SYNC listen=CONNECTED role_limited=true cadence=EVENT_PLUS_5M");
+                            }
+
                             var doc = response == null || response.DocumentChange == null
                                 ? null : response.DocumentChange.Document;
                             if (doc == null || !string.Equals(doc.Name, AgentConfig.FirestoreAgentSyncDocumentName, StringComparison.Ordinal))
@@ -711,16 +769,34 @@ namespace SupraInventoryRelayAgent
                             _onSnapshot(snapshot);
                             FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreAgentSyncUrl, "AGENT_SYNC_LISTEN_EVENT", _log);
                         }
+
+                        retryDelayMs = backoff;
+                        _log("AGENT_SYNC listen=ENDED retry_ms=" + retryDelayMs);
                     }
                 }
                 catch (OperationCanceledException) { return; }
                 catch (RpcException ex)
                 {
-                    _log("AGENT_SYNC listen=RECONNECT grpc=" + ex.Status.StatusCode + " retry_ms=" + backoff);
+                    permanentFailure = IsPermanentRpcStatus(ex.Status.StatusCode);
+                    retryDelayMs = permanentFailure
+                        ? (int)PermanentFailureCooldown.TotalMilliseconds
+                        : backoff;
+                    _log(
+                        "AGENT_SYNC listen=RECONNECT grpc=" + ex.Status.StatusCode +
+                        " detail=" + AgentDiagnostics.Sanitize(ex.Status.Detail) +
+                        " accepted=" + (acceptedResponse ? "true" : "false") +
+                        " retry_ms=" + retryDelayMs +
+                        " circuit=" + (permanentFailure ? "OPEN" : "CLOSED"));
                 }
                 catch (Exception ex)
                 {
-                    _log("AGENT_SYNC listen=RECONNECT type=" + ex.GetType().Name + " detail=" + AgentDiagnostics.Sanitize(ex.Message) + " retry_ms=" + backoff);
+                    retryDelayMs = backoff;
+                    _log(
+                        "AGENT_SYNC listen=RECONNECT type=" + ex.GetType().Name +
+                        " detail=" + AgentDiagnostics.Sanitize(ex.Message) +
+                        " accepted=" + (acceptedResponse ? "true" : "false") +
+                        " retry_ms=" + retryDelayMs +
+                        " circuit=CLOSED");
                 }
                 finally
                 {
@@ -729,9 +805,53 @@ namespace SupraInventoryRelayAgent
                         try { await channel.ShutdownAsync().ConfigureAwait(false); } catch { }
                     }
                 }
-                if (token.WaitHandle.WaitOne(backoff)) return;
-                backoff = Math.Min(30000, backoff * 2);
+
+                if (token.WaitHandle.WaitOne(Math.Max(InitialRetryMs, retryDelayMs))) return;
+                if (permanentFailure)
+                    backoff = InitialRetryMs;
+                else
+                    backoff = Math.Min(MaxRetryMs, Math.Max(InitialRetryMs, backoff) * 2);
             }
+        }
+
+        private static bool IsPermanentRpcStatus(StatusCode status)
+        {
+            switch (status)
+            {
+                case StatusCode.InvalidArgument:
+                case StatusCode.PermissionDenied:
+                case StatusCode.Unauthenticated:
+                case StatusCode.FailedPrecondition:
+                case StatusCode.NotFound:
+                case StatusCode.ResourceExhausted:
+                case StatusCode.Unimplemented:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static string BuildRequestParamsHeader()
+        {
+            var parts = (AgentConfig.FirestoreDatabaseName ?? "").Split('/');
+            var projectId = parts.Length > 1 ? parts[1] : AgentConfig.FirebaseProjectId;
+            var databaseId = parts.Length > 3 ? parts[3] : "(default)";
+            return "project_id=" + Uri.EscapeDataString(projectId) +
+                   "&database_id=" + Uri.EscapeDataString(databaseId);
+        }
+
+        internal static bool SelfTestSafetyPolicy()
+        {
+            var routing = BuildRequestParamsHeader();
+            return IsPermanentRpcStatus(StatusCode.InvalidArgument) &&
+                   IsPermanentRpcStatus(StatusCode.ResourceExhausted) &&
+                   !IsPermanentRpcStatus(StatusCode.Unavailable) &&
+                   PermanentFailureCooldown >= TimeSpan.FromMinutes(5) &&
+                   InitialRetryMs >= 2000 &&
+                   MaxRetryMs >= 60000 &&
+                   routing.IndexOf("project_id=", StringComparison.Ordinal) >= 0 &&
+                   routing.IndexOf("database_id=", StringComparison.Ordinal) >= 0 &&
+                   !string.IsNullOrWhiteSpace(AgentConfig.FirestoreDatabaseName);
         }
 
         private static void ApplyGrpcProxyFromWindows()
