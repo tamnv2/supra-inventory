@@ -111,10 +111,11 @@ function vietnamParts(date = new Date()): Record<string, string> {
   return Object.fromEntries(parts.map((part) => [part.type, part.value]));
 }
 
-function currentSlotKey(): string {
+function currentSlotKey(): string | null {
   const parts = vietnamParts();
   const hour = Number(parts.hour || 0);
-  const slot = hour >= 18 ? 18 : hour >= 12 ? 12 : hour >= 6 ? 6 : 0;
+  if (hour < 6) return null;
+  const slot = hour >= 21 ? 21 : hour >= 18 ? 18 : hour >= 12 ? 12 : 6;
   return `${parts.year}${parts.month}${parts.day}-${String(slot).padStart(2, "0")}`;
 }
 
@@ -369,6 +370,7 @@ export async function maybeSendScheduledWebLog(): Promise<void> {
   try {
     await flushPendingError();
     const slot = currentSlotKey();
+    if (!slot) return;
     if (localStorage.getItem(SLOT_KEY) === slot) return;
     if (await send("INFO", `scheduled_${slot}`)) localStorage.setItem(SLOT_KEY, slot);
   } finally {
