@@ -6,11 +6,11 @@
 
 - Project: `supra-inventory`
 - SQLite schema: `12`
-- Latest signed Beta APK: `beta-vc78`
-- Current released Agent: `relay-agent-v72`
-- Beta: `D132_TECHNICAL_RUNTIME_RELEASE_PASS__OA058_FIELD_READY`
+- Latest signed Beta APK: `beta-vc79`
+- Current released Agent: `relay-agent-v73`
+- Beta: `D134_OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS`
 - Web: `D120_RUNTIME_PASS_MAIN_43A94207__OWNER_FIELD_TEST_OK`
-- Android: `D131_SIGNED_BETA_VC78_TECHNICAL_RELEASE_PASS__OA056_FIELD_READY`
+- Android: `D133_SIGNED_BETA_VC79__D134_NEXT_MONOTONIC_TARGET`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -1021,3 +1021,12 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Windows Agent: `relay-agent-v73`.
 - D133 Worker/Functions/Android/Agent/UI/Authority/State main gates are PASS and the distribution channel is refreshed.
 - OA059 is READY_FOR_OWNER_FIELD_TEST. Stable remains OWNER-GATED and untouched.
+
+## D134 current candidate — 2026-09-28
+
+- Baseline released artifacts remain `relay-agent-v73` and signed `beta-vc79` until D134 gates publish replacements.
+- Target Agent is `relay-agent-v74`; Android target is the next monotonic signed Beta release.
+- Owner has approved D134 implementation after D133 field defects. OA059 is superseded; OA060 becomes field-ready only after technical/runtime/release PASS.
+- Candidate architecture: explicit Android session authority, generation-fenced Kick User, reusable 60-second specialist call, compact all-Agent Firestore listener, PRIMARY 5-minute reconciliation, 10-Agent fleet cap and 45k/day read soft target.
+- Agent Usage is a server-produced 10-minute Firestore snapshot; Office Agent no longer requires Worker-domain reachability to render Usage.
+- No new provider resource is introduced. Stable remains OWNER-GATED.
