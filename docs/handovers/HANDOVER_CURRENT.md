@@ -6,11 +6,11 @@
 
 - Project: `supra-inventory`
 - SQLite schema: `12`
-- Latest signed Beta APK: `beta-vc78`
-- Current released Agent: `relay-agent-v72`
-- Beta: `D132_TECHNICAL_RUNTIME_RELEASE_PASS__OA058_FIELD_READY`
+- Latest signed Beta APK: `beta-vc79`
+- Current released Agent: `relay-agent-v73`
+- Beta: `D134_OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS__D133_FIELD_DEFECTS_SUPERSEDED`
 - Web: `D120_RUNTIME_PASS_MAIN_43A94207__OWNER_FIELD_TEST_OK`
-- Android: `D131_SIGNED_BETA_VC78_TECHNICAL_RELEASE_PASS__OA056_FIELD_READY`
+- Android: `D133_SIGNED_BETA_VC79__D134_NEXT_MONOTONIC_TARGET`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -1055,3 +1055,16 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Windows Agent: `relay-agent-v73`.
 - D133 Worker/Functions/Android/Agent/UI/Authority/State main gates are PASS and the distribution channel is refreshed.
 - OA059 is READY_FOR_OWNER_FIELD_TEST. Stable remains OWNER-GATED and untouched.
+
+## D134 implementation continuity — 2026-09-28
+
+- D133 v73/vc79 passed technical/release gates but Owner field testing found concrete defects; OA059 is superseded by OA060.
+- Active branch: `fix/d134-field-reliability-pda-sync`; target Agent `relay-agent-v74`; Android target is the next monotonic signed Beta after `beta-vc79`.
+- D134 removes socket/disconnect-grace presence authority. LOGIN/LOGOUT are authoritative; a valid PickList may repair delayed presence and carries the Android session generation.
+- Kích User writes `picker_session_controls/<firebase_uid>`; Firestore Rules reject jobs from the revoked generation and the PDA returns to login. Two confirmations are required.
+- Liên hệ picker is reusable after RESOLVED/expiry and has a fleet-wide 60-second lock. FCM remains fast path; exact document listeners provide recovery.
+- All authenticated Agents listen to one compact `relay_poc_coordination/agent_sync` document, including Replay/deep-hibernate roles. PRIMARY reconciles every 5 minutes; fleet presentation is capped at 10.
+- Usage is server-collected and mirrored every 10 minutes to `relay_poc_coordination/usage_current`; Windows Agent reads it directly from Firestore so Office does not depend on Worker DNS.
+- D134 soft Firestore read target is 45k/day; no UI-focus read and no per-job durable-counter refresh remain.
+- Auto size control exists only in Hệ thống Agent; title readiness colors and password-protected Web/Agent logout are part of the same change set.
+- Stable remains OWNER-GATED and untouched.
