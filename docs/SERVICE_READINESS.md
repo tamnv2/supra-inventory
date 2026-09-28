@@ -1286,3 +1286,11 @@ Status: **OWNER FIELD PASS**.
 - Web login/reset/authenticated footer links to the three public surfaces.
 - Deploy workflow includes runtime HTTP/content probes. OA073 stays blocked until the main Beta deploy proves all three URLs live.
 - No new resource or secret is introduced. Stable remains OWNER-GATED and untouched.
+## D145 technical/runtime PASS — 2026-09-29
+
+- Web marker: `D145_OAUTH_PUBLIC_PAGES_RUNTIME_PASS__OA073_GOOGLE_PUBLISH_READY`.
+- PR #292 merged to main `5e11a0941bdc94272246cf745bd3d4d53d9824b5`.
+- Repo Authority `36482437090`, Project State `36482437070`, Beta Worker `36482436903`, UI Design `36482436949` and Dashboard Probe `36482436885` all PASS.
+- The Beta deploy's dedicated OAuth-page probe confirms public HTTP 200 for About/Privacy/Terms and validates the required app identity, exact `drive.file` + `gmail.send` disclosure, Google API Services User Data Policy/Limited Use disclosure, existing health gates and OAuth start route.
+- OA073 is READY_FOR_OWNER_GOOGLE_PUBLISH; no source/runtime blocker remains for entering the URLs in Google Auth Platform.
+- Existing D144 Android/Agent releases remain unchanged. Stable remains OWNER-GATED and untouched.

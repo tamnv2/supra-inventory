@@ -1333,3 +1333,11 @@ Status: **OWNER FIELD PASS**.
 - Web login/reset/authenticated footer links to the public pages. The Beta deploy workflow proves HTTP 200 plus required identity/scope/privacy markers.
 - OA073 is blocked until D145 runtime PASS, then the Owner may publish the existing Beta Google OAuth app and replace the refresh-token Worker secret without exposing the token.
 - No new provider resource or OAuth scope. Stable remains OWNER-GATED and untouched.
+## D145 technical/runtime PASS — 2026-09-29
+
+- Web marker: `D145_OAUTH_PUBLIC_PAGES_RUNTIME_PASS__OA073_GOOGLE_PUBLISH_READY`.
+- PR #292 merged to main `5e11a0941bdc94272246cf745bd3d4d53d9824b5`.
+- Main Repo Authority `36482437090`, Project State `36482437070`, Beta Worker `36482436903`, UI Design `36482436949` and Dashboard Probe `36482436885` all PASS.
+- Beta runtime verifies public HTTP 200 for `/about`, `/privacy`, `/terms`, exact Google scope disclosure and Privacy/Limited-Use markers.
+- OA073 is READY: Owner may now save the three URLs in Google Auth Platform Branding, publish the existing Beta OAuth app to In production, consent once again and replace the Worker refresh-token secret directly. Token values must never enter chat/repo/logs.
+- Stable remains OWNER-GATED and untouched.
