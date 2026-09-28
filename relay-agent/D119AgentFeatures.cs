@@ -992,6 +992,9 @@ namespace SupraInventoryRelayAgent
                     EnsureFreshToken();
                     var session = SnapshotSession();
                     var pickers = _pickerPresenceClient.Load(session);
+                    Dictionary<string, PickerContactCommand> openCalls = null;
+                    try { openCalls = _pickerContactClient.LoadOpen(session); }
+                    catch (Exception ex) { Log("PICKER_ACTIVE_CALL reconcile=DEFER detail=" + SafeMessage(ex)); }
                     var metrics = _fleetMetricsClient.RefreshPrimary(
                         session,
                         _agentInstanceId,
@@ -1003,6 +1006,7 @@ namespace SupraInventoryRelayAgent
                     var snapshot = _agentSyncClient.Reconcile(
                         session,
                         pickers,
+                        openCalls,
                         fleet,
                         metrics.ReceivedTotal,
                         metrics.ConfirmedTotal,
