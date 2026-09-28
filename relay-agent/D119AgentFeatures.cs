@@ -394,9 +394,9 @@ namespace SupraInventoryRelayAgent
                 {
                     if (_columnPreferenceApplying) return;
                     _autoSizeColumnsEnabled = !_autoSizeColumnsEnabled;
-                    if (!_autoSizeColumnsEnabled) RestoreManualGridWidthsForCurrentUser();
                     UpdateAutoSizeColumnsButton();
                     ApplyColumnPreferenceMode();
+                    if (!_autoSizeColumnsEnabled) RestoreManualGridWidthsForCurrentUser();
                     SaveColumnPreferencesForCurrentUser();
                 };
                 pickerCard.Controls.Add(_autoSizeColumnsButton);
@@ -515,10 +515,13 @@ namespace SupraInventoryRelayAgent
                         profile.WindowWidth,
                         profile.WindowHeight));
                 }
-                RestoreGridWidths(_agentFleetGrid, profile.Agent);
-                RestoreGridWidths(_pickerOnlineGrid, profile.Picker);
-                RestoreGridWidths(_manualPicklistGrid, profile.PickList);
                 ApplyColumnPreferenceMode();
+                if (!_autoSizeColumnsEnabled)
+                {
+                    RestoreGridWidths(_agentFleetGrid, profile.Agent);
+                    RestoreGridWidths(_pickerOnlineGrid, profile.Picker);
+                    RestoreGridWidths(_manualPicklistGrid, profile.PickList);
+                }
             }
             finally
             {
@@ -608,7 +611,15 @@ namespace SupraInventoryRelayAgent
             foreach (var grid in new[] { _agentFleetGrid, _pickerOnlineGrid, _manualPicklistGrid })
             {
                 grid.AllowUserToResizeColumns = !_autoSizeColumnsEnabled;
-                if (_autoSizeColumnsEnabled) ApplyColumnSizingIfEnabled(grid);
+                if (_autoSizeColumnsEnabled)
+                {
+                    ApplyColumnSizingIfEnabled(grid);
+                }
+                else
+                {
+                    foreach (DataGridViewColumn column in grid.Columns)
+                        column.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                }
             }
         }
 
