@@ -1963,3 +1963,18 @@ Owner explicitly confirmed D135 PASS, then approved these follow-up corrections:
 3. **Usage is retired rather than presenting unreliable provider numbers.** The Agent Usage tab is removed. The Beta Worker no longer polls Google Monitoring for the Usage feature and no longer periodically writes `relay_poc_coordination/usage_current`. Do not replace this with self-counted numbers presented as Firebase/provider-authoritative usage. Existing local `FirestoreQuotaGuard` may remain only as a reference/soft guard based on operations observed by that Agent.
 4. **Web Confirm hide is presentation-only.** **Chuyển Web chạy nền** hides the managed browser without asking for the Agent password. Security-sensitive actions remain protected: showing the hidden Web, stopping Web, Agent logout and switching managed browser mode retain the current password gates.
 5. D135 PickList safety/HA/generation/idempotency behavior remains unchanged. No direct WMS API/session extraction is introduced. Android remains `beta-vc82`. Target Agent is `relay-agent-v77`. Stable remains OWNER-GATED and untouched.
+
+## D137 — Normal-window PickList visibility and mandatory post-arrival Confirm refresh — 2026-09-28
+
+Status: **OWNER APPROVED — IMPLEMENTATION IN PROGRESS**.
+
+Owner explicitly confirmed D136 field operation OK on `relay-agent-v77`, then approved these follow-up repairs:
+
+1. **The manual PickList result surface must remain operational in the normal/smaller Agent window.** The reported normal-window screenshot shows the input/search and bottom status text while the result grid itself collapses out of view. D137 must reserve enough vertical space for the result grid to show its header plus at least one actionable row. Maximize → restore, saved window bounds and Auto size on/off must not regress this.
+2. **D136 horizontal protection remains mandatory.** PickList, **Xác nhận** and **Trạng thái** stay simultaneously visible/reachable; D137 adds vertical protection rather than replacing the D136 width rules.
+3. **First arrival at Confirm is not READY evidence.** After Agent reaches the canonical Confirm page—whether after manual Supra login, stored-session Dashboard recovery, or another managed route—the Agent must perform one normal browser reload equivalent to F5 before it may declare Web Confirm ready.
+4. **READY is granted only after the reloaded document is actually ready and stable.** Search/confirm actions remain disabled until the post-reload Confirm DOM satisfies the existing exact search/confirm/table guards for a bounded stable interval. An empty/unhydrated first document must never be treated as operational.
+5. **Reload is bounded and non-looping.** Exactly one normal reload is required per first Confirm arrival. No periodic reload, cache-bypass reload loop, extra provider polling, or search-button spam is introduced.
+6. **Security boundary is unchanged.** The implementation remains browser-UI automation using DevTools Page/Runtime only. Do not enable Network, inspect cookies/tokens/headers/storage/session material, or introduce direct WMS API calls.
+
+Implementation target: **relay-agent-v78**. Android remains **beta-vc82**. Existing Agent-owned WebView2 host build 10 is reused. No new provider resource is introduced. Stable remains OWNER-GATED and untouched.
