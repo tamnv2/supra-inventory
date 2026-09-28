@@ -1203,3 +1203,16 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - OA066 is blocked pending technical/runtime/release PASS, then 30–60 minute field soak + Firestore Usage check.
 - D139 OA065 and D137 OA063 remain independent. Stable remains OWNER-GATED.
 
+
+
+## D141 SLA persistence continuity — 2026-09-28
+
+- D139/OA065: **FIELD FAIL**, superseded by D141/OA067.
+- Field evidence: after reload, radio = FIRST_REPORT while **Đang áp dụng** = PER_PICKER.
+- Confirmed UI source defect: `restoreUiContext()` restored SLA form controls after authoritative rerender, creating mixed draft/server presentation.
+- Additional reliability defect removed: SLA Save no longer goes through generic `run()` / `if (busy) return`; it has dedicated single-flight execution.
+- Server now rereads the SQLite SLA row after PUT and returns success only when full policy/mode/version match.
+- Web then issues a fresh no-cache GET and requires identical persisted mode/version before success.
+- Branch: `fix/d141-sla-server-draft-persistence`.
+- OA067 opens only after PR/main/Beta runtime PASS.
+- D140 Agent v80 is parallel and unchanged by D141. Android beta-vc82 unchanged. D137 OA063 remains open. Stable OWNER-GATED.
