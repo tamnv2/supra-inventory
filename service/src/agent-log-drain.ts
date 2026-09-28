@@ -65,7 +65,8 @@ async function listPendingParts(env: AgentLogDrainEnv, accessToken: string): Pro
     const payload = (await response.json()) as { documents?: FirestoreDoc[]; nextPageToken?: string };
     for (const doc of payload.documents || []) {
       const fields = doc.fields;
-      if (!doc.name || fieldString(fields, "status") !== "PENDING" || fieldString(fields, "source") !== "AGENT") continue;
+      const status = fieldString(fields, "status");
+      if (!doc.name || !["PENDING", "WORKER_FALLBACK"].includes(status) || fieldString(fields, "source") !== "AGENT") continue;
       const uploadId = fieldString(fields, "upload_id");
       const index = fieldInt(fields, "part_index");
       const count = fieldInt(fields, "part_count");
