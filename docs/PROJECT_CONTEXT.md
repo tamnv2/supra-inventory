@@ -508,3 +508,14 @@ D135 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta.
 - Usage retirement removes the visible Agent tab and the Beta Worker scheduled Google Monitoring / `usage_current` publication path. The local Firestore quota guard remains only a reference/soft guard and is not presented as provider-authoritative usage.
 - Web Confirm hide-to-background is presentation-only. Showing hidden Web, stopping Web, Agent logout and switching browser mode remain password-protected.
 - Target Agent: `relay-agent-v77`. Android remains signed `beta-vc82`. No new resource. Stable remains OWNER-GATED.
+
+## D136 release checkpoint — 2026-09-28
+
+D136 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta.
+
+- PR #272 merged to `main` at `62ab2aa11cda251f18090fc0bd637a092ab0998d`.
+- Released Windows Agent: `relay-agent-v77`. Android remains signed `beta-vc82`.
+- Beta Worker exact-source health PASS: SQLite `12/12`, Operational V2 `5/5`, Agent migration `0/0`.
+- Main Repo Authority, Project State, UI Design, Beta Worker, Relay Agent and Dashboard Probe gates PASS.
+- Agent Usage UI/provider collection is retired; no scheduled Google Monitoring Usage collection or `usage_current` publication remains.
+- OA062 is READY_FOR_OWNER_FIELD_TEST. Stable remains OWNER-GATED and untouched.
