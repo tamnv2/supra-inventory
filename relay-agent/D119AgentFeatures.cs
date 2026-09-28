@@ -2306,6 +2306,8 @@ namespace SupraInventoryRelayAgent
                 dialog.MinimizeBox = false;
                 dialog.MaximizeBox = false;
                 dialog.ShowInTaskbar = false;
+                dialog.TopMost = true;
+                dialog.KeyPreview = false;
                 dialog.ClientSize = new Size(520, 260);
                 dialog.Font = Font;
 
@@ -2318,14 +2320,17 @@ namespace SupraInventoryRelayAgent
                 var note = new Label
                 {
                     Left = 18, Top = 44, Width = 480, Height = 34,
-                    Text = "Tối đa 200 ký tự. Picker chỉ cần bấm Xác nhận để đóng cảnh báo; hệ thống không gửi ACK về Agent."
+                    Text = "Tối đa 200 ký tự. Picker bấm Xác nhận để đóng cảnh báo; không gửi ACK về Agent."
                 };
                 var input = new TextBox
                 {
                     Left = 18, Top = 84, Width = 480, Height = 92,
                     Multiline = true,
+                    AcceptsReturn = true,
+                    AcceptsTab = false,
                     MaxLength = 200,
-                    ScrollBars = ScrollBars.Vertical
+                    ScrollBars = ScrollBars.Vertical,
+                    TabIndex = 0
                 };
                 var count = new Label
                 {
@@ -2333,38 +2338,64 @@ namespace SupraInventoryRelayAgent
                     Text = "0 / 200"
                 };
                 input.TextChanged += (sender, args) => count.Text = input.TextLength + " / 200";
+
+                string accepted = null;
                 var send = new Button
                 {
                     Left = 286, Top = 212, Width = 100, Height = 34,
                     Text = "Gửi",
-                    DialogResult = DialogResult.OK
+                    TabIndex = 1
                 };
                 var cancel = new Button
                 {
                     Left = 398, Top = 212, Width = 100, Height = 34,
                     Text = "Hủy",
-                    DialogResult = DialogResult.Cancel
+                    DialogResult = DialogResult.Cancel,
+                    TabIndex = 2
                 };
+                send.Click += (sender, args) =>
+                {
+                    var message = (input.Text ?? "").Trim();
+                    if (message.Length == 0 || message.Length > 200)
+                    {
+                        MessageBox.Show(
+                            dialog,
+                            "Nhập nội dung từ 1 đến 200 ký tự.",
+                            "Nội dung chưa hợp lệ",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                        input.Focus();
+                        return;
+                    }
+                    accepted = message;
+                    dialog.DialogResult = DialogResult.OK;
+                    dialog.Close();
+                };
+
                 dialog.Controls.Add(title);
                 dialog.Controls.Add(note);
                 dialog.Controls.Add(input);
                 dialog.Controls.Add(count);
                 dialog.Controls.Add(send);
                 dialog.Controls.Add(cancel);
-                dialog.AcceptButton = send;
                 dialog.CancelButton = cancel;
-
-                while (dialog.ShowDialog(this) == DialogResult.OK)
+                dialog.Shown += (sender, args) =>
                 {
-                    var message = (input.Text ?? "").Trim();
-                    if (message.Length > 0 && message.Length <= 200) return message;
-                    MessageBox.Show(
-                        "Nhập nội dung từ 1 đến 200 ký tự.",
-                        "Nội dung chưa hợp lệ",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information);
-                }
-                return null;
+                    dialog.ActiveControl = input;
+                    input.Focus();
+                    input.SelectionStart = input.TextLength;
+                };
+                dialog.Activated += (sender, args) =>
+                {
+                    if (!send.Focused && !cancel.Focused)
+                    {
+                        input.Focus();
+                        input.SelectionStart = input.TextLength;
+                    }
+                };
+
+                var result = dialog.ShowDialog(this);
+                return result == DialogResult.OK ? accepted : null;
             }
         }
 
