@@ -598,3 +598,20 @@ D126 cancels the unimplemented D125 removal of Picker `Xác nhận đơn`.
 - Auto-size and manual saved-width modes must preserve the three critical columns. When the viewport is too narrow, horizontal scrolling is the fallback instead of silently clipping the action/status columns.
 - The Agent top-level **Usage** tab is removed.
 - **Chuyển Web chạy nền** performs an immediate hide with no password prompt. **Hiện Web Confirm**, stopping Web, Agent logout and browser-mode switching remain password-protected.
+
+## D137 Agent PickList card and Confirm readiness
+
+### Manual PickList card
+
+- At both normal/restored and maximized Agent window sizes, the manual result grid itself remains visible after a search; showing only the query controls and bottom result sentence is not acceptable.
+- The card relayout reserves at least one grid header plus one actionable result row. Maximize → restore and saved normal window bounds must preserve that surface.
+- Existing D136 row semantics remain: full PickList code, row action and current status are visible/reachable together.
+
+### Managed Web Confirm readiness
+
+- Arrival at the canonical Confirm route is an intermediate state, not a READY state.
+- On first loaded arrival to Confirm, the managed browser performs one normal top-level reload (`Page.reload`, cache bypass disabled), equivalent to a normal F5.
+- Agent keeps PickList search/confirmation disabled while the reload is in flight and while the post-reload DOM is not yet stable.
+- READY requires the reloaded top document plus the existing exact Confirm DOM guards. The reload/navigation proof must identify the current top document as a reload before mutation/search eligibility is restored.
+- Manual login and authenticated Dashboard recovery converge on the same post-arrival reload barrier.
+- No reload loop is allowed. No DevTools Network domain, cookie/token/header/storage/session extraction, or direct WMS API is permitted.
