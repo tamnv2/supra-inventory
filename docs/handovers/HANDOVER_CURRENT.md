@@ -1089,3 +1089,13 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Approved D135 changes: immediate initiating-Agent call lock + single confirmations, faster one-click DOM lookup with stable-miss settle, explicit fleet/local counter labels, processing-Agent overlay counter immediacy after durable ACK, hidden Picker TTL implementation text, username-only display, Android name **1291 Báo hàng Beta**, and local-first ACK on both Báo hàng result surfaces.
 - Counter immediacy is local presentation derived from the already-successful durable ACK commit. It must not add Firestore provider operations. Durable daily summary remains cross-process authority; compact snapshots reconcile without moving totals backward.
 - D134 fleet/presence/generation/quota architecture is preserved. Stable remains OWNER-GATED and untouched.
+
+## D135 release-state refresh — 2026-09-28
+
+- Main source: `6d929e42fa2474712e0629a95bb5ac9cf59112bd`.
+- Windows Agent: `relay-agent-v76`.
+- Signed Android Beta: `beta-vc82` — **1291 Báo hàng Beta 0.2.0-beta.82**.
+- Main Repo Authority, Project State, UI Design, Beta Worker, Android, Relay Agent and Dashboard Probe workflows all PASS.
+- Runtime health proves exact main source, SQLite `12/12`, Operational V2 `5/5`, Agent migration `0/0`.
+- D135 is **TECHNICAL / RUNTIME / RELEASE PASS**. OA061 is READY_FOR_OWNER_FIELD_TEST.
+- Stable remains OWNER-GATED and untouched.
