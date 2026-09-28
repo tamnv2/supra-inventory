@@ -1325,3 +1325,11 @@ Status: **OWNER FIELD PASS**.
 - Kích User now revokes the Worker-authoritative Android session, closes realtime presence, refreshes the Picker projection and retains bounded compact-sync reconciliation for a direct-call failure.
 - OA071 is READY_FOR_OWNER_FIELD_TEST on `relay-agent-v82` + `beta-vc85`.
 - Stable remains OWNER-GATED and untouched.
+## D145 public OAuth pages — source candidate — 2026-09-29
+
+- Web marker: `D145_OAUTH_PUBLIC_PAGES_SOURCE_READY__D144_RUNTIME_BASELINE_PASS`.
+- Existing D144 Beta/Android/Agent status remains unchanged: `D144_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC85__AGENT_V82__OA071_FIELD_READY`, `beta-vc85`, Agent v82.
+- Public Beta no-auth routes are `/about`, `/privacy` and `/terms`; they disclose the existing application identity, Google scope purposes, privacy/Limited-Use contract and authorized-use terms.
+- Web login/reset/authenticated footer links to the public pages. The Beta deploy workflow proves HTTP 200 plus required identity/scope/privacy markers.
+- OA073 is blocked until D145 runtime PASS, then the Owner may publish the existing Beta Google OAuth app and replace the refresh-token Worker secret without exposing the token.
+- No new provider resource or OAuth scope. Stable remains OWNER-GATED and untouched.
