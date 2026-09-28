@@ -1722,9 +1722,10 @@ function renderSla(): string {
   const escalationEnabled = configured ? sla!.escalation_enabled === true : false;
   const autoEnabled = configured ? sla!.auto_skip_enabled === true : false;
   const correctionEnabled = configured ? sla!.skip_to_stock_enabled === true : false;
-  const rawMode = configured ? String(sla!.auto_skip_mode || "") : "";
-  const mode = rawMode === "FIRST_REPORT" || rawMode === "PER_PICKER" ? rawMode : "";
-  const modeInvalid = configured && !mode;
+  const serverMode = configured ? normalizeAutoSkipMode(sla!.auto_skip_mode) : null;
+  const mode = slaFormDirty ? (slaDraftMode || serverMode) : serverMode;
+  const modeInvalid = configured && !serverMode;
+  const draftModePending = Boolean(slaFormDirty && mode && mode !== serverMode);
   const revision = Number(sla?.policy_version || 0);
   const updatedBy = sla?.updated_by || "—";
   const updatedAt = sla?.updated_at ? fmt(sla.updated_at) : "Chưa có";
@@ -1742,7 +1743,7 @@ function renderSla(): string {
     </section>
     ${modeInvalid ? `<div class="sla-config-error" role="alert">Cấu hình máy chủ đang thiếu chính sách Deadline hợp lệ. Không lưu đè; hãy tải lại trang hoặc kiểm tra dịch vụ.</div>` : ""}
 
-    <form id="sla-form" class="ops-panel sla-config-panel sla-config-professional">
+    <form id="sla-form" class="ops-panel sla-config-panel sla-config-professional" autocomplete="off">
       <div class="ops-panel-title sla-section-heading"><div><h3>01 · Mốc phản hồi</h3><p>Các mốc phải theo thứ tự Cảnh báo &lt; Quá hạn &lt; Tự động cho phép bỏ qua.</p></div></div>
       <div class="sla-threshold-flow">
         <article class="sla-threshold-card warning">
@@ -1770,10 +1771,11 @@ function renderSla(): string {
           <span class="sla-policy-kicker">Deadline tự động</span>
           <h4>Cách tính mốc tự động bỏ qua</h4>
           <div class="sla-choice-list" role="radiogroup" aria-label="Cách tính mốc tự động bỏ qua">
-            <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="FIRST_REPORT" ${mode === "FIRST_REPORT" ? "checked" : ""} required/><span><strong>Theo báo đầu tiên của SKU</strong><small>Cả đợt dùng chung một mốc thời gian.</small></span></label>
-            <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="PER_PICKER" ${mode === "PER_PICKER" ? "checked" : ""} required/><span><strong>Theo từng Picker</strong><small>Mỗi Picker có deadline tính từ lúc chính người đó báo.</small></span></label>
+            <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="FIRST_REPORT" autocomplete="off" ${mode === "FIRST_REPORT" ? "checked" : ""} required/><span><strong>Theo báo đầu tiên của SKU</strong><small>Cả đợt dùng chung một mốc thời gian.</small></span></label>
+            <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="PER_PICKER" autocomplete="off" ${mode === "PER_PICKER" ? "checked" : ""} required/><span><strong>Theo từng Picker</strong><small>Mỗi Picker có deadline tính từ lúc chính người đó báo.</small></span></label>
           </div>
-          <div class="sla-server-value">Đang áp dụng: <strong>${mode === "FIRST_REPORT" ? "Theo báo đầu tiên của SKU" : mode === "PER_PICKER" ? "Theo từng Picker" : "Chưa xác định"}</strong></div>
+          <div class="sla-server-value">Đang áp dụng: <strong>${autoSkipModeLabel(serverMode)}</strong></div>
+          <div id="sla-draft-value" class="sla-draft-value" data-pending="${draftModePending ? "true" : "false"}">${draftModePending ? `Thay đổi chưa lưu: ${autoSkipModeLabel(mode)}` : "Biểu mẫu đang khớp cấu hình máy chủ."}</div>
         </article>
         <article class="sla-policy-card">
           <span class="sla-policy-kicker">Sửa kết quả</span>
@@ -1785,7 +1787,7 @@ function renderSla(): string {
 
       <div class="sla-config-footer">
         <div><strong>Lưu ý</strong><span>Hệ thống kiểm tra phiên bản cấu hình trước khi lưu. Nếu một máy khác vừa cập nhật, bản cũ sẽ không được phép ghi đè.</span></div>
-        <button class="primary">Lưu cấu hình toàn hệ thống</button>
+        <button id="sla-save-button" class="primary" ${slaSaveBusy ? "disabled" : ""}>${slaSaveBusy ? "Đang lưu…" : "Lưu cấu hình toàn hệ thống"}</button>
       </div>
     </form>
 
