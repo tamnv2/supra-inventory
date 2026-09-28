@@ -3008,7 +3008,7 @@
     },
     {
       "id": "OA061",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "PASS__OWNER_CONFIRMED_D135_2026_09_28",
       "title": "Field-accept D135 post-D134 realtime counters, alert safety and UI refinements",
       "resource_key": "repo",
       "provider": "Beta Windows Agent + Beta Android + existing Firestore/Worker/Functions",
@@ -3063,7 +3063,49 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. No new provider resource, no secret/session-material exposure, no offline Báo hàng mutation. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Update the processing Agent to relay-agent-v76 and the test PDA to beta-vc82, then run the OA061 shortest field test path. Stable remains untouched.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-28",
+        "result": "PASS__OWNER_CONFIRMED_D135",
+        "evidence": "Owner explicitly confirmed D135 PASS, then opened D136 follow-up issues for manual PickList result presentation, Usage removal and Web Confirm background-hide password behavior.",
+        "successor": "OA062_D136"
+      }
+    },
+    {
+      "id": "OA062",
+      "status": "BLOCKED_PENDING_D136_TECHNICAL_RELEASE",
+      "title": "Field-accept D136 manual PickList UI, Usage retirement and Web background hide",
+      "resource_key": "repo",
+      "provider": "Beta Windows Agent + Beta Worker; Android beta-vc82 unchanged",
+      "reason_owner_only": "CI can prove column/order/action source guards, Usage runtime retirement and password branch ordering, but actual WinForms rendering across saved widths/window sizes and real browser visibility behavior require physical Agent review.",
+      "prerequisites": {
+        "baseline_main": "d6c31d4ac96c6519d15fa7d233b92de63429be7d",
+        "baseline_agent_release": "relay-agent-v76",
+        "target_agent_release": "relay-agent-v77",
+        "android": "beta-vc82__UNCHANGED",
+        "implementation_branch": "fix/d136-picklist-ui-retire-usage-background-hide",
+        "new_provider_resources": "NONE",
+        "stable": "OWNER_GATED",
+        "technical_release": "PENDING"
+      },
+      "shortest_test_path": [
+        "Update the test Agent to relay-agent-v77 after release; Android remains beta-vc82.",
+        "Search one valid PickList in the Agent at normal window size and maximized size. The row must simultaneously show PickList code, Xác nhận button and Trạng thái text.",
+        "Toggle Auto size cột off/on, resize the window, and relaunch with saved column preferences. The three critical PickList columns must remain reachable; no trailing action/status column may disappear without horizontal fallback.",
+        "Confirm one PickList. The row status must update and a successful/already-confirmed row must no longer offer a repeat confirmation mutation.",
+        "Verify the Usage tab is absent. Normal PickList/PDA/Agent behavior must continue without provider Usage polling or usage_current publication.",
+        "With Web Confirm visible, press Chuyển Web chạy nền. It must hide immediately without Agent password. Showing Web again, stopping Web, Agent logout and mode switch retain their password gates."
+      ],
+      "pass_criteria": [
+        "Manual PickList search visibly returns code + row-specific action + status together.",
+        "Auto/manual column sizing and window resize cannot silently hide critical manual PickList controls; horizontal fallback exists when needed.",
+        "Usage UI/provider polling is retired and local Firestore quota guard remains reference-only.",
+        "Web Confirm hide-to-background requires no password while security-sensitive show/stop/logout/switch actions remain protected.",
+        "No new provider resource and Stable remains untouched."
+      ],
+      "safety": "Beta only. No new provider resource, no credential/session exposure, no direct WMS API path. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for D136 technical/release PASS and relay-agent-v77, then run the OA062 shortest field test path.",
       "closed": false
     }
   ]
