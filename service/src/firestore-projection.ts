@@ -242,7 +242,10 @@ export async function reconcileRecentAgentKicks(env: ProjectionEnv): Promise<voi
       throw new Error(`AGENT_KICK_RECONCILE_CORE_HTTP_${revoke.status}`);
     }
     const result = await revoke.json() as { status?: string };
-    if (result.status === "android_session_revoked") changed = true;
+    if (result.status === "android_session_revoked") {
+      changed = true;
+      await deleteDocument(env, "picker_notification_targets", userId).catch(() => undefined);
+    }
   }
   if (changed) await syncPickerPresenceProjection(env, "AGENT_KICK_SCHEDULED_RECONCILE");
 }
