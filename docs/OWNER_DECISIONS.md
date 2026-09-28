@@ -1934,3 +1934,20 @@ After installing signed `beta-vc80` and `relay-agent-v74`, Owner reported that A
 
 Hotfix targets are **relay-agent-v75** and the next monotonic signed Android release **beta-vc81**. OA060 remains blocked until those Beta artifacts are published and re-tested. Existing Worker/Firestore/Functions/Android/Agent resources are reused. **Stable remains OWNER-GATED and untouched.**
 
+## D135 — Post-D134 field refinements: realtime processing counters, alert safety and UI cleanup — 2026-09-28
+
+Status: **OWNER APPROVED — BETA IMPLEMENTATION IN PROGRESS**.
+
+After D134 hotfix field operation passed the restored PickList send/receive path, the Owner approved the following Beta refinements. D135 reuses the existing D134 resources and does not authorize any Stable mutation.
+
+1. **Liên hệ picker is locally anti-spam before network completion.** After the operator confirms Liên hệ picker, the originating Agent immediately enters a local pending/disabled state before the asynchronous Firestore mutation. A successful call remains fleet-locked for the full existing 60-second window. A failed call rolls the local pending state back. Both **Liên hệ picker** and **Kết thúc** require one explicit Đồng ý/Huỷ confirmation. Ending early closes the Picker alert but does not shorten the 60-second call-button lock.
+2. **PickList browser lookup is faster without extra provider usage.** The existing one-click **Tìm kiếm** retry remains. Agent observes the already-open browser DOM locally and may conclude a stable miss after repeated identical DOM samples; positive/ambiguous results return immediately. No Firestore cadence, listener, read/write or additional WMS search click is introduced.
+3. **Counter labels distinguish fleet authority from process diagnostics.** Durable daily counters remain the authority. The shared presentation is labeled **Hôm nay toàn cụm**; process-local diagnostic counters are labeled **Agent này**.
+4. **Processing-Agent overlay counters update immediately after durable terminal ACK.** The Agent that successfully commits a PickList terminal ACK updates its visible received/confirmed/error floor from that known durable result without another provider read. Later compact/durable snapshots merge by monotonic maximum and remain authoritative across restart/failover. Deep-hibernate/non-processing Agents keep the existing compact synchronization cadence. This optimization must not add Firestore listeners, reads, writes or polling.
+5. **Picker does not see the 60-second implementation TTL text.** The internal call TTL remains for safety, but its automatic-close implementation detail is not displayed to the Picker.
+6. **Agent identity is username-only in visible UI.** Composite internal values such as `admin:admin` or `admin:tamnv2` must render as `admin` or `tamnv2`. Internal application identity used for authorization/audit is not weakened.
+7. **Android Beta product name is `1291 Báo hàng Beta`.** Package ID, Beta channel, update identity and signing model remain unchanged.
+8. **Every Báo hàng full-screen result acknowledgement is local-first.** Both the overlay-service path and the in-app dialog path persist pending ACK metadata locally, dismiss the blocking surface immediately, then attempt server acknowledgement. Network loss, logout, session replacement or Kích User must never leave the PDA blocked behind the result dialog. Pending ACK retries only after a valid authenticated/network state returns and never creates an offline Báo hàng mutation.
+9. **Current PickList resolution taxonomy remains unchanged.** Android input stays 3–20 numeric suffix digits; NOT_FOUND alone contributes anti-spam strikes; ambiguous results require explicit candidate selection; confirmation remains exact-row, generation/PRIMARY/guard fenced and fail-closed.
+
+Implementation targets: **relay-agent-v76** and next monotonic signed Beta Android release after `beta-vc81` (expected `beta-vc82`). Existing Beta Worker/Firestore/Functions resources are reused. Stable remains OWNER-GATED and untouched.
