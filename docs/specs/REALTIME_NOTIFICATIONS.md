@@ -665,3 +665,11 @@ For the Owner-supported warehouse PDA baseline (**Newland NLS-MT90 Android 11** 
 - platform Force Stop, device power-off and total network loss are not claimed as bypassable conditions.
 
 Stable remains OWNER-GATED.
+
+## D143 Picker contact and Android readiness notification rules
+
+- Agent chat uses the existing `picker_alerts` / FCM data-only path with command type `CHAT_MESSAGE`; message payload is server/rules bounded to 200 characters.
+- Chat FCM remains Android high priority like other urgent Picker commands. It does not add polling, a wake loop or a new persistent service.
+- Chat display is local-ack only: **Xác nhận** dismisses the active overlay/service state without writing acknowledgement status back to Firestore/Worker. No close push is required because there is no Agent-side Kết thúc operation for chat.
+- Existing direct `CALL_SPECIALIST` remains distinct: it uses the shared active-call lock and may be resolved by the originating Agent.
+- D143 readiness UI adds a manual **Kiểm tra cấp quyền** fallback but retains automatic on-resume checks and D142's event-driven battery policy.
