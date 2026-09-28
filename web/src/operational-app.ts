@@ -3878,76 +3878,38 @@ function bindSection(): void {
   });
 
   const slaForm = document.querySelector<HTMLFormElement>("#sla-form");
-  slaForm?.addEventListener("input", () => { slaFormDirty = true; });
-  slaForm?.addEventListener("change", () => { slaFormDirty = true; });
-  slaForm?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget as HTMLFormElement);
-    void run(async () => {
-      const warning = Number(data.get("warning"));
-      const warningEnabled = data.get("warningEnabled") === "on";
-      const escalation = Number(data.get("escalation"));
-      const escalationEnabled = data.get("escalationEnabled") === "on";
-      const autoSkip = Number(data.get("autoSkip"));
-      const autoSkipEnabled = data.get("autoSkipEnabled") === "on";
-      const checkedMode = slaForm.querySelector<HTMLInputElement>('input[name="autoSkipMode"]:checked');
-      const autoSkipModeRaw = String(checkedMode?.value || data.get("autoSkipMode") || "");
-      const skipToStockEnabled = data.get("skipToStockEnabled") === "on";
-      const skipToStockMinutes = Number(data.get("skipToStockMinutes"));
-      if (!["FIRST_REPORT", "PER_PICKER"].includes(autoSkipModeRaw)) {
-        throw new Error("Cách tính mốc tự động bắt buộc phải chọn đúng 1 phương án.");
+  if (slaForm) {
+    // D141: server authority and browser draft are separate. Initialize the DOM
+    // from explicit state after every render so native/browser context restoration
+    // cannot silently select a different radio than the server value.
+    syncSlaModeControlsFromState();
+
+    slaForm.addEventListener("input", (event) => {
+      slaFormDirty = true;
+      const target = event.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null;
+      if (target instanceof HTMLInputElement && target.name === "autoSkipMode" && target.checked) {
+        slaDraftMode = normalizeAutoSkipMode(target.value);
       }
-      const autoSkipMode = autoSkipModeRaw as "FIRST_REPORT" | "PER_PICKER";
-      if (
-        !Number.isInteger(warning) ||
-        !Number.isInteger(escalation) ||
-        !Number.isInteger(autoSkip) ||
-        !Number.isInteger(skipToStockMinutes) ||
-        warning < 1 ||
-        warning > 1440 ||
-        escalation <= warning ||
-        escalation > 2880 ||
-        autoSkip <= escalation ||
-        autoSkip > 10080 ||
-        skipToStockMinutes < 1 ||
-        skipToStockMinutes > 10080
-      ) throw new Error("Các mốc phải là số phút nguyên hợp lệ; Cảnh báo < Quá hạn < Tự động cho phép bỏ qua.");
-      const expectedPolicyVersion = Number(slaResponse?.sla?.policy_version || 0);
-      try {
-        const saved = await saveAdminSla({
-          warning_minutes: warning,
-          warning_enabled: warningEnabled,
-          escalation_minutes: escalation,
-          escalation_enabled: escalationEnabled,
-          auto_skip_minutes: autoSkip,
-          auto_skip_enabled: autoSkipEnabled,
-          auto_skip_mode: autoSkipMode,
-          skip_to_stock_enabled: skipToStockEnabled,
-          skip_to_stock_minutes: skipToStockMinutes,
-          expected_policy_version: expectedPolicyVersion,
-        });
-        const savedMode = saved.sla?.auto_skip_mode;
-        if (savedMode !== autoSkipMode) {
-          throw new Error("Máy chủ trả về chính sách Deadline khác giá trị vừa lưu. Không tiếp tục hiển thị như đã thành công.");
-        }
-        slaResponse = saved;
-        slaFormDirty = false;
-        await loadSla();
-        if (slaResponse?.sla?.auto_skip_mode !== autoSkipMode) {
-          throw new Error("Xác minh sau lưu thất bại: chính sách Deadline trên máy chủ không khớp.");
-        }
-        setNotice("success", "Đã lưu và xác minh cấu hình thời gian xử lý toàn hệ thống.");
-      } catch (error) {
-        if (error instanceof ApiError && error.code === "SLA_CONFIG_STALE") {
-          slaFormDirty = false;
-          await loadSla();
-          setNotice("warning", "Cấu hình đã được cập nhật ở một phiên khác. Đã tải lại bản mới nhất; thay đổi cũ không được ghi đè.");
-          return;
-        }
-        throw error;
-      }
+      patchSlaDraftIndicator();
     });
-  });
+    slaForm.addEventListener("change", (event) => {
+      slaFormDirty = true;
+      const target = event.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null;
+      if (target instanceof HTMLInputElement && target.name === "autoSkipMode" && target.checked) {
+        slaDraftMode = normalizeAutoSkipMode(target.value);
+      }
+      patchSlaDraftIndicator();
+    });
+    slaForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      // Do not route this global configuration write through run(): run() drops
+      // work when another action owns the generic busy flag. SLA Save has its own
+      // single-flight lock and must never disappear silently.
+      void saveSlaConfiguration(event.currentTarget as HTMLFormElement);
+    });
+
+    requestAnimationFrame(() => syncSlaModeControlsFromState());
+  }
 
   document.querySelector<HTMLFormElement>("#dashboard-filter")?.addEventListener("submit", (event) => {
     event.preventDefault();
