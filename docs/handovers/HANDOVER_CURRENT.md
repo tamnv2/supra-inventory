@@ -1191,3 +1191,15 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - OA065 is READY_FOR_OWNER_FIELD_TEST for FIRST_REPORT save + browser-reload persistence.
 - D138 is field-failed and superseded by D139. D137 OA063 remains independently open.
 - Android remains `beta-vc82`; Agent remains `relay-agent-v79`; Stable remains OWNER-GATED.
+
+## D140 Agent Firestore usage-storm continuity — 2026-09-28
+
+- Root cause: raw Firestore gRPC streaming lacked required database routing metadata, and retry backoff reset before any accepted server response; D134 also multiplied the fault by allowing every authenticated Agent to listen.
+- Fix target: `relay-agent-v80`.
+- Listener policy: PRIMARY/NEXT_A/NEXT_B only; DEEP_HIBERNATE listener disabled.
+- Retry policy: permanent/configuration/quota error → 5-minute circuit; transient error → 2s exponential backoff capped at 60s; reset only after a valid response.
+- PRIMARY reconcile remains 5 minutes steady / at least 1 minute forced; unchanged compact state skips PATCH.
+- Android remains `beta-vc82` and requires no update.
+- OA066 is blocked pending technical/runtime/release PASS, then 30–60 minute field soak + Firestore Usage check.
+- D139 OA065 and D137 OA063 remain independent. Stable remains OWNER-GATED.
+
