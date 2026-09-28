@@ -397,3 +397,7 @@ The Android App uses an operational display projection, not a retention change.
 - The PickList overlay's received / confirmed / error totals are derived from the durable Firestore business-day summary relay_poc_coordination/daily_<YYYYMMDD>. Process RAM counters are diagnostic only and must not be the displayed authority across Agent restart/update.
 - A successful terminal ACK transaction increments the daily summary atomically with the relay job terminal write. Agent may coalesce subsequent summary reads for presentation but must not reconstruct the authoritative total from local process counters.
 - Local pending result acknowledgements store only result-event ids required to retry the server acknowledgement after connectivity/session recovery. They are not report creation, resolution, inventory mutation, WMS mutation or an offline business outbox. D043's no-offline-business-mode decision remains unchanged.
+
+## D144 — Runtime-log Drive authentication resilience
+
+Runtime support logs keep the existing 90-day Drive model and existing `Inventory/Beta/Logs` folder. When the configured user OAuth credential is unavailable, runtime log list/upload may fall back to the existing Beta runtime service account. The Logs folder must grant that service account Editor access directly; public or domain-wide sharing is forbidden. No credential value is stored in source, SQLite, Firestore, or support logs.
