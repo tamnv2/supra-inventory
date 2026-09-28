@@ -38,6 +38,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.messaging.FirebaseMessaging
 import org.json.JSONArray
 import org.json.JSONObject
@@ -50,6 +52,20 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.ArrayDeque
 import java.util.UUID
+
+@Volatile private var firestoreOnlineOnlyConfigured = false
+
+private fun configureFirestoreOnlineOnly() {
+    if (firestoreOnlineOnlyConfigured) return
+    synchronized(FirebaseFirestore::class.java) {
+        if (firestoreOnlineOnlyConfigured) return
+        val db = FirebaseFirestore.getInstance()
+        db.firestoreSettings = FirebaseFirestoreSettings.Builder()
+            .setPersistenceEnabled(false)
+            .build()
+        firestoreOnlineOnlyConfigured = true
+    }
+}
 
 class MainActivity : Activity() {
     private enum class UpdateGate { CHECKING, CURRENT, REQUIRED, FAILED }
@@ -125,6 +141,7 @@ class MainActivity : Activity() {
             .setGcmSenderId(BuildConfig.FIREBASE_MESSAGING_SENDER_ID)
             .build()
         if (FirebaseApp.getApps(this).isEmpty()) FirebaseApp.initializeApp(this, options)
+        configureFirestoreOnlineOnly()
         createNotificationChannel()
         api = InventoryApi(
             baseUrl = BuildConfig.API_BASE_URL.trimEnd('/'),
