@@ -499,3 +499,12 @@ D135 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta.
 - Beta runtime health proves exact source, SQLite `12/12`, Operational V2 `5/5`, Agent migration `0/0`.
 - OA061 remains the physical Owner field acceptance gate for realtime processing-Agent counters, lookup latency, call anti-spam/confirmations, username-only presentation and local-first result dismissal.
 - Stable remains OWNER-GATED and untouched.
+
+## D136 active follow-up — 2026-09-28
+
+- Owner explicitly confirmed D135 **PASS**. D135 is now Owner field accepted on `relay-agent-v76` + `beta-vc82`.
+- D136 addresses three follow-ups on Beta only: manual PickList results must always show **PickList + Xác nhận + Trạng thái**; the unreliable Agent **Usage** surface/provider polling is retired; **Chuyển Web chạy nền** no longer requires the Agent password.
+- Manual PickList critical columns are protected across Auto size, manual saved widths, normal/maximized transitions and resize. Horizontal scroll is the narrow-viewport fallback. Confirmed/already-confirmed and uncertain rows are non-repeatable.
+- Usage retirement removes the visible Agent tab and the Beta Worker scheduled Google Monitoring / `usage_current` publication path. The local Firestore quota guard remains only a reference/soft guard and is not presented as provider-authoritative usage.
+- Web Confirm hide-to-background is presentation-only. Showing hidden Web, stopping Web, Agent logout and switching browser mode remain password-protected.
+- Target Agent: `relay-agent-v77`. Android remains signed `beta-vc82`. No new resource. Stable remains OWNER-GATED.
