@@ -2919,7 +2919,7 @@
     },
     {
       "id": "OA060",
-      "status": "IMPLEMENTATION_IN_PROGRESS__OWNER_APPROVED",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D134 Agent/PDA reliability, compact fleet sync and session kick",
       "resource_key": "repo",
       "provider": "Beta Windows Agent + Beta Android + existing Worker/Firestore/Functions",
@@ -2929,12 +2929,32 @@
         "baseline_agent_release": "relay-agent-v73",
         "baseline_android": "beta-vc79",
         "target_agent_release": "relay-agent-v74",
-        "target_android": "NEXT_MONOTONIC_BETA_AFTER_VC79",
+        "target_android": "beta-vc80",
         "target_fleet": "UP_TO_10_AGENTS",
         "compact_reconcile": "5_MINUTES",
         "soft_firestore_reads_day": 45000,
         "new_provider_resources": "NONE",
-        "stable": "OWNER_GATED"
+        "stable": "OWNER_GATED",
+        "technical_release": "PASS__MAIN_8B703F12__AGENT_V74__BETA_VC80",
+        "implementation_pr": 266,
+        "main_merge": "8b703f12ec6f1667e43dab101114f2fbcc1a8819",
+        "main_runs": {
+          "repo_authority": 36378669821,
+          "project_state": 36378669818,
+          "beta_worker": 36378669809,
+          "beta_firestore": 36378669837,
+          "beta_functions": 36378669820,
+          "android": 36378669791,
+          "relay_agent": 36378669807,
+          "ui_design": 36378669834,
+          "dashboard_probe": 36378669798
+        },
+        "release_evidence": {
+          "agent_release": "relay-agent-v74",
+          "agent_sha256": "3c3792de465cc1e81f772a90ad2591c14bf79c8e97298ea743ca7701edbf366b",
+          "android_release": "beta-vc80",
+          "android_sha256": "c25e052f308154ed4fe30ea584ecebc7aab0c26bcd9fb53f99313070c73cf330"
+        }
       },
       "shortest_test_path": [
         "Update all test Agents to v74 and one or more PDAs to the D134 signed Beta build.",
@@ -2957,7 +2977,7 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Do not expose passwords, Firebase tokens, WMS/browser session material or signing credentials. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait until D134 technical/runtime/release PASS, then execute the short physical Beta field path. No Stable action is authorized.",
+      "remaining_owner_action": "Run the OA060 physical Beta field path using relay-agent-v74 + beta-vc80. Stable remains untouched.",
       "closed": false
     }
   ]

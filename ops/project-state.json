@@ -1773,14 +1773,14 @@
     }
   },
   "d134": {
-    "status": "OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS",
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA060_FIELD_READY",
     "date": "2026-09-28",
     "baseline_main": "efdce403685efb800d84fe72002ba374a84af55d",
     "baseline_agent_release": "relay-agent-v73",
     "baseline_android": "beta-vc79",
     "implementation_branch": "fix/d134-field-reliability-pda-sync",
     "target_agent_release": "relay-agent-v74",
-    "target_android": "NEXT_MONOTONIC_BETA_AFTER_VC79",
+    "target_android": "beta-vc80",
     "field_defects": [
       "USAGE_UNAVAILABLE_ON_OFFICE_PATH",
       "DUPLICATE_AUTO_SIZE_CONTROL_AND_UNBALANCED_LAST_COLUMN",
@@ -1799,7 +1799,38 @@
     "ui_model": "AUTO_SIZE_CONTROL_AGENT_CARD_ONLY__WEIGHTED_PROPORTIONAL_COLUMNS__ELLIPSIS__PER_ACCOUNT_MANUAL_WIDTHS_AND_WINDOW_BOUNDS__READY_GREEN_NOT_READY_RED_TRANSIENT_NEUTRAL",
     "security": "KICK_REVOKED_GENERATION_ENFORCED_IN_RULES__WEB_VISIBILITY_AND_AGENT_LOGOUT_REQUIRE_AGENT_PASSWORD__UI_USERNAME_ONLY",
     "resource_change": "NONE__REUSES_EXISTING_BETA_WORKER_FIRESTORE_FUNCTIONS_ANDROID_AGENT_DISTRIBUTION",
-    "field_gate": "OA060_AFTER_TECHNICAL_RUNTIME_RELEASE_PASS",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "field_gate": "OA060_READY_FOR_OWNER_FIELD_TEST",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "implementation_pr": 266,
+    "main_merge": "8b703f12ec6f1667e43dab101114f2fbcc1a8819",
+    "main_runs": {
+      "repo_authority": 36378669821,
+      "project_state": 36378669818,
+      "beta_worker": 36378669809,
+      "beta_firestore": 36378669837,
+      "beta_functions": 36378669820,
+      "android": 36378669791,
+      "relay_agent": 36378669807,
+      "ui_design": 36378669834,
+      "dashboard_probe": 36378669798
+    },
+    "runtime_proof": "BETA_HEALTH_HTTP200__SOURCE_8B703F12_EXACT__SCHEMA12_12__OPERATIONAL5_5__AGENT_MIGRATION0_0",
+    "release_evidence": {
+      "agent_release": "relay-agent-v74",
+      "agent_release_id": 397956520,
+      "agent_asset_id": 594510384,
+      "agent_size_bytes": 7029760,
+      "agent_sha256": "3c3792de465cc1e81f772a90ad2591c14bf79c8e97298ea743ca7701edbf366b",
+      "android_release": "beta-vc80",
+      "android_release_id": 397956615,
+      "android_asset_id": 594510841,
+      "android_size_bytes": 19069292,
+      "android_sha256": "c25e052f308154ed4fe30ea584ecebc7aab0c26bcd9fb53f99313070c73cf330",
+      "inventory_channel_release_id": 394587029,
+      "inventory_channel_agent_manifest_asset_id": 594510452,
+      "inventory_channel_agent_asset_id": 594510447,
+      "inventory_channel_pda_manifest_asset_id": 594510931,
+      "inventory_channel_pda_asset_id": 594510929
+    }
   }
 }
