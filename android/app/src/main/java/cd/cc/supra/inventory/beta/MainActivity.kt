@@ -83,13 +83,18 @@ class MainActivity : Activity() {
     @Volatile private var roleSyncRunning = false
     @Volatile private var operatingWindowCheckRunning = false
     @Volatile private var overlayAckDrainRunning = false
+    @Volatile private var activeCallAuthRefreshRunning = false
     @Volatile private var lastImmediateRuntimeLogAt = 0L
+    private var permissionGateActive = false
     private var restoringSessionScreen = false
     private var operatingWindowTask: Runnable? = null
     private var previousUncaughtHandler: Thread.UncaughtExceptionHandler? = null
     private val runtimeLogTick = object : Runnable {
         override fun run() {
             maybeUploadScheduledRuntimeLog()
+            if (::api.isInitialized && api.session?.role == "PICKER") {
+                drainOverlayAcknowledgements()
+            }
             uiHandler.postDelayed(this, 60_000L)
         }
     }
@@ -130,10 +135,10 @@ class MainActivity : Activity() {
         restoredSession?.let(api::restoreSession)
         skuCache = SkuCatalogCache(this)
         installCrashRuntimeLogHandler()
-        if (restoredSession == null) {
-            renderLogin("Đang kiểm tra phiên bản...")
+        if (hasRequiredNotificationPermissions()) {
+            continueStartupAfterPermissionGate()
         } else {
-            renderSessionRestoring(restoredSession)
+            renderRequiredPermissionsGate()
         }
     }
 
@@ -160,13 +165,26 @@ class MainActivity : Activity() {
             }
             return
         }
+        if (::api.isInitialized) {
+            if (!hasRequiredNotificationPermissions()) {
+                if (!permissionGateActive) {
+                    stopOperationalClients()
+                    renderRequiredPermissionsGate("Cần cấp đủ quyền để tiếp tục sử dụng 1291 Beta.")
+                }
+                return
+            }
+            if (permissionGateActive) {
+                continueStartupAfterPermissionGate()
+                return
+            }
+        }
         if (::api.isInitialized && api.session == null && updateGate != UpdateGate.CURRENT && !updateCheckRunning) {
             checkForUpdate(silent = true)
         }
         if (::api.isInitialized && api.session != null && updateGate == UpdateGate.CURRENT) {
             reconcileNotificationSignal()
             drainOverlayAcknowledgements()
-            activeCallWatcher?.reconcile(api.session)
+            ensurePickerActiveCallWatcher(api.session!!)
             syncEffectiveRole()
         }
     }
@@ -412,20 +430,51 @@ class MainActivity : Activity() {
         }
         startRealtime(session)
         if (session.role == "PICKER") {
-            if (activeCallWatcher == null) activeCallWatcher = PickerActiveCallWatcher(applicationContext, ::recordLog)
-            activeCallWatcher?.start(session)
+            ensurePickerActiveCallWatcher(session)
         } else {
             activeCallWatcher?.close()
         }
         scheduleAndroidOperatingWindowCheck(session)
         registerBackgroundNotifications()
-        ensureOverlayPermissionPrompt(session)
         drainNotificationReceipts()
         drainOverlayAcknowledgements()
         recordLog("Đăng nhập ${kit.roleLabel(session.role)}: ${session.employeeCode ?: session.displayName}")
         flushPendingCrashRuntimeLog()
         uiHandler.removeCallbacks(runtimeLogTick)
         uiHandler.post(runtimeLogTick)
+    }
+
+    private fun ensurePickerActiveCallWatcher(session: AppSession) {
+        if (session.role != "PICKER") {
+            activeCallWatcher?.close()
+            return
+        }
+        if (activeCallWatcher == null) {
+            activeCallWatcher = PickerActiveCallWatcher(applicationContext, ::recordLog)
+        }
+        if (!session.relayCustomToken.isNullOrBlank()) {
+            activeCallWatcher?.reconcile(session)
+            return
+        }
+        if (activeCallAuthRefreshRunning) return
+        activeCallAuthRefreshRunning = true
+        Thread {
+            try {
+                val refreshed = api.refreshSessionForRelay()
+                runOnUiThread {
+                    activeCallAuthRefreshRunning = false
+                    if (api.session?.userId == refreshed.userId && refreshed.role == "PICKER") {
+                        activeSession = refreshed
+                        activeCallWatcher?.start(refreshed)
+                    }
+                }
+            } catch (error: Exception) {
+                runOnUiThread {
+                    activeCallAuthRefreshRunning = false
+                    recordLog("D133 active-call auth refresh deferred: " + error.message.orEmpty().take(160))
+                }
+            }
+        }.start()
     }
 
     private fun showBack(show: Boolean) {
@@ -770,28 +819,129 @@ class MainActivity : Activity() {
         manager.createNotificationChannel(channel)
     }
 
-    private fun ensureOverlayPermissionPrompt(session: AppSession) {
-        if (session.role !in setOf("PICKER", "REPORTER", "ADMIN")) return
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this)) return
-        val prefs = getSharedPreferences("critical_overlay_permission_v1", MODE_PRIVATE)
-        if (prefs.getBoolean("prompted", false)) return
-        prefs.edit().putBoolean("prompted", true).apply()
-        AlertDialog.Builder(this)
-            .setTitle("Cho phép hiển thị cảnh báo toàn màn hình")
-            .setMessage("Bật quyền Hiển thị trên ứng dụng khác để nhận cảnh báo Báo hàng quan trọng ngay cả khi đang dùng SFT hoặc ứng dụng khác. Nếu chưa bật, hệ thống vẫn dùng thông báo Android như hiện tại.")
-            .setNegativeButton("Để sau", null)
-            .setPositiveButton("Mở cài đặt") { _, _ ->
-                try {
-                    startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
-                } catch (_: Exception) { }
+    private fun notificationPermissionGranted(): Boolean {
+        val runtimeGranted = Build.VERSION.SDK_INT < 33 ||
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        val appNotificationsEnabled = getSystemService(NotificationManager::class.java).areNotificationsEnabled()
+        return runtimeGranted && appNotificationsEnabled
+    }
+
+    private fun overlayPermissionGranted(): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this)
+
+    private fun hasRequiredNotificationPermissions(): Boolean =
+        notificationPermissionGranted() && overlayPermissionGranted()
+
+    private fun continueStartupAfterPermissionGate() {
+        permissionGateActive = false
+        val session = api.session
+        if (session == null) {
+            renderLogin("Đang kiểm tra phiên bản...")
+        } else {
+            renderSessionRestoring(session)
+        }
+    }
+
+    private fun renderRequiredPermissionsGate(message: String = "") {
+        permissionGateActive = true
+        stopOperationalClients()
+
+        val notificationReady = notificationPermissionGranted()
+        val overlayReady = overlayPermissionGranted()
+        val root = ScrollView(this).apply {
+            setBackgroundColor(Color.rgb(243, 246, 248))
+        }
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(36, 48, 36, 48)
+        }
+        content.addView(TextView(this).apply {
+            text = "CẦN CẤP QUYỀN ĐỂ TIẾP TỤC"
+            textSize = 22f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(Color.rgb(15, 23, 42))
+        })
+        content.addView(TextView(this).apply {
+            text = if (message.isBlank()) {
+                "1291 Beta cần quyền thông báo và quyền Hiển thị trên ứng dụng khác để cảnh báo nghiệp vụ hoạt động đúng khi đang dùng SFT hoặc ứng dụng khác."
+            } else message
+            textSize = 15f
+            setTextColor(Color.rgb(71, 85, 105))
+            setPadding(0, 14, 0, 24)
+        })
+
+        fun addPermissionRow(title: String, ready: Boolean, action: () -> Unit) {
+            content.addView(TextView(this).apply {
+                text = (if (ready) "✓ " else "• ") + title + ": " + if (ready) "Đã cấp" else "Chưa cấp"
+                textSize = 16f
+                setTypeface(typeface, Typeface.BOLD)
+                setTextColor(if (ready) Color.rgb(22, 101, 52) else Color.rgb(153, 27, 27))
+                setPadding(0, 10, 0, 8)
+            })
+            if (!ready) {
+                content.addView(Button(this).apply {
+                    text = "Cấp quyền"
+                    setOnClickListener { action() }
+                }, LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                ))
             }
-            .show()
+        }
+
+        addPermissionRow("Thông báo", notificationReady) { requestNotificationPermissionFromGate() }
+        addPermissionRow("Hiển thị trên ứng dụng khác", overlayReady) {
+            try {
+                startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
+            } catch (_: Exception) {
+                startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
+            }
+        }
+        content.addView(Button(this).apply {
+            text = "KIỂM TRA LẠI"
+            setOnClickListener {
+                if (hasRequiredNotificationPermissions()) continueStartupAfterPermissionGate()
+                else renderRequiredPermissionsGate("Vẫn còn quyền bắt buộc chưa được cấp.")
+            }
+        }, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+        ).apply { topMargin = 24 })
+        root.addView(content)
+        setContentView(root)
+    }
+
+    private fun requestNotificationPermissionFromGate() {
+        if (Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            val prefs = getSharedPreferences("required_permission_gate_v1", MODE_PRIVATE)
+            if (!prefs.getBoolean("notification_requested", false)) {
+                prefs.edit().putBoolean("notification_requested", true).apply()
+                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 701)
+                return
+            }
+        }
+        try {
+            startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+            })
+        } catch (_: Exception) {
+            startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode != 701) return
+        if (hasRequiredNotificationPermissions()) {
+            continueStartupAfterPermissionGate()
+        } else {
+            renderRequiredPermissionsGate("Quyền thông báo là bắt buộc để tiếp tục sử dụng ứng dụng.")
+        }
     }
 
     private fun registerBackgroundNotifications() {
-        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 701)
-        }
         NotificationSignalStore.latestToken(applicationContext)?.let(::registerNotificationToken)
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             val token = if (task.isSuccessful) task.result else null
