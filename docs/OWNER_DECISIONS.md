@@ -1922,4 +1922,15 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA060 OWNER FIELD REVIEW READY*
 - Agent release: `relay-agent-v74`, release `397956520`, EXE asset `594510384`, size `7029760`, SHA-256 `3c3792de465cc1e81f772a90ad2591c14bf79c8e97298ea743ca7701edbf366b`.
 - Fixed `inventory-channel` now carries the D134 Agent/APK artifacts; the approved Fixed WebView2 bundle remains unchanged.
 - OA060 is the remaining physical Owner field gate. Stable remains OWNER-GATED and untouched.
+## D134 field hotfix — 2026-09-28
+
+Status: **OWNER REPORTED FIELD FAILURE — HOTFIX AUTHORIZED**.
+
+After installing signed `beta-vc80` and `relay-agent-v74`, Owner reported that Android could not send PickList confirmation requests. Scoped runtime evidence identified two D134 implementation defects, without changing the approved product model:
+
+1. Firestore Rules require `app_session_generation` to be numeric, while the Worker-generated Firebase custom token emitted that claim as a string. Android request creation is therefore rejected before Agent receipt. The repair keeps the generation fence and emits a true numeric custom claim; it must not weaken the Rules.
+2. D134 starts Picker Firestore listeners before the older relay client attempts its per-client Firestore persistence setting. Firestore online-only configuration moves to application startup before any listener, and existing pre-fix Firebase auth is refreshed once on first confirmation so the user is not forced to manually clear app data.
+3. Agent v74 compact `agent_sync` listener is also field-broken because the final single EXE does not expose `grpc_csharp_ext.x64.dll` where Grpc.Core loads it. The hotfix must package the x64 native library correctly and CI must execute a native-load self-test against the final EXE, not only compile it.
+
+Hotfix targets are **relay-agent-v75** and the next monotonic signed Android release **beta-vc81**. OA060 remains blocked until those Beta artifacts are published and re-tested. Existing Worker/Firestore/Functions/Android/Agent resources are reused. **Stable remains OWNER-GATED and untouched.**
 
