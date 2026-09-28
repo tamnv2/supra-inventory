@@ -221,3 +221,14 @@ Agent v16 changes the confirmation relay **field-test carrier only** from RTDB t
 - No RTDB fallback is used for the D091 field PASS.
 - D085 multi-Agent election/failover is intentionally deferred until this transport actually passes on Office; final Firestore HA must be redesigned to fit quota rather than writing a 3-second heartbeat per Agent.
 - If the authenticated round trip is blocked on Office, the next candidate is Apps Script under D091/D090.
+
+## D143 — Agent v81 operational refinements
+
+Release target: `relay-agent-v81`.
+
+- Standard automatic PDA relay window closes at 22:00. A single foreground/topmost decision is raised at 21:30, then at each HH:30 before an approved overtime boundary. **Tăng ca thêm 1 giờ** advances exactly one hour; **Đúng giờ về** leaves the boundary unchanged. Five-minute warning balloon spam is removed.
+- Auto-size never recalculates from hidden/minimized/tiny grid geometry and is re-applied after tray/normal/maximize restoration only after the visible layout settles.
+- Compact `agent_sync` snapshots older than the current applied version are ignored to prevent stale Picker-list flicker.
+- **Liên hệ picker** now separates direct specialist call from <=200-character chat. Direct call retains the existing 60-second fleet lock/resolve model. Chat has no resolve action and Picker acknowledgement is local dismiss only.
+- The Agent-owned WebView2 host bounds obsolete hidden child views and exits on WebView process failure so existing supervision can recover instead of allowing an unbounded hidden-view/RAM chain.
+- D126/D127 browser security constraints and D140 Firestore quota/listener safeguards remain unchanged. No new provider resource is introduced and Stable remains OWNER-GATED.
