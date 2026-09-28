@@ -1101,3 +1101,14 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Runtime health proves exact main source, SQLite `12/12`, Operational V2 `5/5`, Agent migration `0/0`.
 - D135 is **TECHNICAL / RUNTIME / RELEASE PASS**. OA061 is READY_FOR_OWNER_FIELD_TEST.
 - Stable remains OWNER-GATED and untouched.
+
+## D136 implementation continuity — 2026-09-28
+
+- Canonical Android marker: `D135_OWNER_FIELD_PASS__SIGNED_BETA_VC82__1291_BAO_HANG_BETA`.
+- Released Android baseline remains `beta-vc82`.
+- D135 field acceptance is Owner-confirmed PASS; OA061 is closed.
+- Active D136 branch: `fix/d136-picklist-ui-retire-usage-background-hide`; target Agent `relay-agent-v77`; Android unchanged.
+- D136 manual PickList rows require code + **Xác nhận** + **Trạng thái** together and protect those columns from saved-width/auto-size clipping.
+- D136 retires the Agent Usage tab and provider Usage Monitoring/snapshot publication. The local Firestore quota guard remains reference-only.
+- **Chuyển Web chạy nền** requires no password; showing/stopping/logout/mode-switch security gates remain.
+- OA062 opens after technical/release PASS. Stable remains OWNER-GATED and untouched.
