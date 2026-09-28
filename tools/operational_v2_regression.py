@@ -38,6 +38,10 @@ def require_source_markers() -> None:
         "D070 bounded alarm catch-up": "const MAX_DUE_PER_ALARM = 50",
         "D070 alarm minimum delay": "const MIN_ALARM_DELAY_MS = 1_000",
         "D070 alarm delivery failure isolation": "Provider failure must not throw the alarm and cause platform retry storms.",
+        "D141 SLA SQLite readback": "const persisted = readSlaConfig(state);",
+        "D141 SLA persistence mismatch fail closed": "SLA_PERSISTENCE_VERIFY_FAILED",
+        "D141 SLA readback proof": 'sqlite_readback: "PASS"',
+        "D141 SLA requested mode audit": "requested_auto_skip_mode: value.auto_skip_mode",
     }
     haystacks = {
         "immutable result snapshot table": operational,
@@ -56,6 +60,10 @@ def require_source_markers() -> None:
         "D070 bounded alarm catch-up": sla_auto,
         "D070 alarm minimum delay": sla_auto,
         "D070 alarm delivery failure isolation": core,
+        "D141 SLA SQLite readback": operational,
+        "D141 SLA persistence mismatch fail closed": operational,
+        "D141 SLA readback proof": operational,
+        "D141 SLA requested mode audit": operational,
     }
     for name, marker in markers.items():
         if marker not in haystacks[name]:
