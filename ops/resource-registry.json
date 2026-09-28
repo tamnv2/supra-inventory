@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D138_OWNER_REPORTED__WEB_SLA_REALTIME_DIRTY_FORM_FIX_IN_PROGRESS__D137_OA063_STILL_OPEN",
+      "status": "D138_TECHNICAL_RUNTIME_PASS__OA064_FIELD_READY__D137_OA063_STILL_OPEN",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -1573,12 +1573,19 @@
     }
   },
   "d138": {
-    "status": "IMPLEMENTATION_IN_PROGRESS",
+    "status": "TECHNICAL_RUNTIME_PASS__OA064_FIELD_READY",
     "resource_change": "NONE__REUSES_EXISTING_BETA_WEB_WORKER_INVENTORYCORE_REALTIME",
     "web_fix": "DIRTY_SLA_FORM_NOT_GENERIC_REPATCHED_DURING_REALTIME_RECONCILE",
     "server_contract": "FIRST_REPORT_AND_PER_PICKER_EXISTING_AUTHORITY_UNCHANGED__ROUNDTRIP_VERIFY_RETAINED",
     "android": "beta-vc82__UNCHANGED",
     "agent": "relay-agent-v79__UNCHANGED",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "implementation_pr": 277,
+    "main_merge": "005d829811ddfa534f0552cd808d69e12c5cf763",
+    "beta_worker_run": 36408876240,
+    "ui_run": 36408876497,
+    "repo_authority_run": 36408876273,
+    "project_state_run": 36408876275,
+    "dashboard_probe_run": 36408876231
   }
 }

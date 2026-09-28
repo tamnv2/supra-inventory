@@ -3183,7 +3183,7 @@
     },
     {
       "id": "OA064",
-      "status": "BLOCKED_PENDING_D138_TECHNICAL_RUNTIME_PASS",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D138 Web SLA FIRST_REPORT persistence during realtime reconciliation",
       "resource_key": "repo",
       "provider": "Beta Web + existing Beta Worker/InventoryCore",
@@ -3194,7 +3194,17 @@
         "new_provider_resources": "NONE",
         "android": "beta-vc82__UNCHANGED",
         "agent": "relay-agent-v79__UNCHANGED",
-        "stable": "OWNER_GATED"
+        "stable": "OWNER_GATED",
+        "technical_runtime": "PASS__MAIN_005D8298__BETA_DEPLOY_RUN_36408876240",
+        "implementation_pr": 277,
+        "main_merge": "005d829811ddfa534f0552cd808d69e12c5cf763",
+        "main_runs": {
+          "repo_authority": 36408876273,
+          "project_state": 36408876275,
+          "beta_worker": 36408876240,
+          "ui_design": 36408876497,
+          "dashboard_probe": 36408876231
+        }
       },
       "shortest_test_path": [
         "Open Beta Web → Thời gian xử lý.",
@@ -3209,7 +3219,7 @@
         "No schema/provider/Android/Agent change and Stable remains untouched."
       ],
       "safety": "Beta Web only. Existing server-authoritative version guard remains. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for D138 technical/runtime PASS; then run the four-step live Beta check.",
+      "remaining_owner_action": "On live Beta Web, select FIRST_REPORT, wait through normal realtime activity, save, reload the page, and verify FIRST_REPORT remains selected and shown as Đang áp dụng.",
       "closed": false
     }
   ]
