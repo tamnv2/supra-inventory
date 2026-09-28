@@ -1562,3 +1562,16 @@ D131 implementation is not technical PASS until all applicable checks pass:
 6. In normal window state, manually resize/move the Agent, maximize it, then restore. Verify the exact saved normal bounds return. Restart/re-authenticate with the same Agent account and verify the saved normal bounds remain available.
 7. Verify a different Agent account receives its own column/window profile rather than the previous account's profile.
 8. D131 PickList counters must not change when only Picker presence control events are processed. Stable remains untouched.
+
+## D133 six-field Beta acceptance
+
+D133 is acceptable only when all of the following pass:
+
+1. Toggle Auto size cột from either Hệ thống Agent or Picker area; Agent fleet, Picker and manual PickList grids follow the same state. With Auto size off, manual widths persist for the Agent account.
+2. With a real Agent ADMIN/PICKPACK_ADMIN login, **Làm mới Usage** returns a non-401 response. Web/Android interactive tokens remain outside the Agent Usage auth path.
+3. Create terminal PickList outcomes, note the three overlay totals, update/restart Agent, and verify received / confirmed / error restore from the same Firestore business-day summary. New ACKs refresh the overlay from that durable summary without waiting ten minutes.
+4. Login Picker, including one restored-session case and one account-switch case, then press **Gọi về bàn CV**. The current Picker receives the full-screen command; no stale-account PERMISSION_DENIED listener is accepted. FCM active-call Functions are deployed.
+5. While a HAS_STOCK/SKIP_ALLOWED overlay is visible, disconnect network and acknowledge it. The overlay closes immediately, the event remains pending locally, and the server acknowledgement is retried later. A Gọi về bàn CV overlay disappears automatically by 60 seconds even if network/account connectivity is lost, and can be closed earlier from the originating Agent.
+6. Launch Android with notifications disabled and/or **Hiển thị trên ứng dụng khác** disabled. The app blocks operational use, routes to the relevant Android permission/settings page, and only continues after both permissions are granted.
+
+Regression: no new offline Báo hàng path, no new provider resource, D117/D131 HA and Firestore cadence remain unchanged, and Stable stays OWNER-GATED.

@@ -11,6 +11,7 @@ const REGION = "asia-southeast1";
 const RUNTIME_SA = "inventory-beta-alert-runtime@supra-inventory-beta.iam.gserviceaccount.com";
 const WORKER_ORIGIN = "https://inventory-beta.supra.cc.cd";
 const MAX_ALERT_TTL_MS = 6 * 60 * 60 * 1000;
+const PICKER_ACTIVE_CALL_TTL_MS = 60 * 1000;
 const MAX_SKU_ITEMS = 1000;
 
 setGlobalOptions({
@@ -101,6 +102,7 @@ export const pickerActiveCallCreated = onDocumentCreated("picker_active_calls/{t
   }
 
   try {
+    const expiresAtMs = Date.now() + PICKER_ACTIVE_CALL_TTL_MS;
     const messageId = await getMessaging().send({
       token,
       data: {
@@ -109,10 +111,11 @@ export const pickerActiveCallCreated = onDocumentCreated("picker_active_calls/{t
         command_type: "CALL_SPECIALIST",
         notification_title: title,
         notification_body: body,
+        expires_at_ms: String(expiresAtMs),
       },
       android: {
         priority: "high",
-        ttl: 6 * 60 * 60 * 1000,
+        ttl: PICKER_ACTIVE_CALL_TTL_MS,
       },
     });
     await snapshot.ref.set({

@@ -207,3 +207,6 @@ Dashboard/result-mix may split Skip into **Bỏ qua bởi nhân sự** and **T�
 - Workbook sheets: `Tổng quan`, `Diễn biến`, `Đợt báo hàng`, `Chi tiết Picker`, `Tổng hợp SKU`, `SKU nổi bật`.
 - Export must expose operational evolution and actors/timestamps without adding a new reporting authority; all data comes from existing InventoryCore report/ticket/acknowledgement data.
 
+## D133 Agent Usage authentication
+
+The Agent Usage page remains server-mediated and provider-authoritative. The Windows Agent's direct Firebase password token is accepted only when the resolved application user is an active real ADMIN/ADMIN or PICKPACK_ADMIN/PICKPACK_ADMIN, and the token is either the legacy direct-Agent shape with no interactive session channel or an explicit future AGENT channel. Tokens marked WEB or ANDROID are rejected from this Agent-only path. No Google/provider credential is stored in the Agent.

@@ -2838,7 +2838,7 @@
     },
     {
       "id": "OA058",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "PASS__OWNER_CONFIRMED_2026_09_28",
       "title": "Field-accept D132 Agent presence/status/layout hotfix",
       "resource_key": "repo",
       "provider": "Beta Windows Agent + existing Beta Worker/Firestore + beta-vc78 Android",
@@ -2865,7 +2865,48 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Run the OA058 short field retest using relay-agent-v72 + beta-vc78. Stable remains untouched.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-28",
+        "result": "PASS",
+        "evidence": "Owner explicitly confirmed hotfix 132 PASS before authorizing D133 follow-up requirements."
+      }
+    },
+    {
+      "id": "OA059",
+      "status": "PENDING_TECHNICAL_RELEASE",
+      "title": "Field-accept D133 six-field reliability and alert-safety hotfix",
+      "resource_key": "repo",
+      "provider": "Beta Windows Agent + Beta Android + existing Worker/Firestore/Functions",
+      "reason_owner_only": "CI can prove build/auth/TTL/durable-source invariants, but Windows sizing/Usage presentation and Android notification/overlay behavior across real permission, account-switch and network-loss states require physical field observation.",
+      "prerequisites": {
+        "target_agent_release": "relay-agent-v73",
+        "target_android": "NEXT_SIGNED_BETA_AFTER_VC78",
+        "technical_release": "PENDING",
+        "new_resources": "NONE",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Update to D133 released Agent v73 and the D133 signed Beta Android build.",
+        "Toggle Auto size cột in Hệ thống Agent and Picker views; confirm both buttons share one state and all three grids follow it, with manual widths restored when off.",
+        "Press Làm mới Usage under a real Agent ADMIN/PICKPACK_ADMIN account and verify it no longer returns HTTP 401.",
+        "Record the three PickList overlay totals, restart/update Agent, and confirm the same business-day totals restore from Firestore; process one new request and confirm the durable totals refresh promptly.",
+        "On a Picker restored session and after switching Picker accounts, press Gọi về bàn CV; verify the current Picker receives the full-screen alert and it self-closes by 60 seconds or earlier when the originating Agent ends it.",
+        "Show a HAS_STOCK/SKIP_ALLOWED overlay, disconnect network, press acknowledgement and verify the overlay closes immediately; restore connectivity and verify the pending acknowledgement drains.",
+        "Disable notifications and then Hiển thị trên ứng dụng khác separately; relaunch the app and verify operational UI stays blocked until both required permissions are granted."
+      ],
+      "pass_criteria": [
+        "Shared Auto size state covers Agent fleet, Picker and manual PickList grids with per-account manual widths.",
+        "Usage refresh succeeds without HTTP 401 for valid Agent operator accounts.",
+        "PickList received/confirmed/error totals survive Agent update/restart and use Firestore daily summary authority.",
+        "Gọi về bàn CV reaches the current Picker through listener/FCM recovery and never remains full-screen beyond 60 seconds.",
+        "Result acknowledgement is local-first for dismissal and later reaches the server after network/session recovery.",
+        "Android cannot enter operational UI without notifications plus SYSTEM_ALERT_WINDOW permission.",
+        "No offline Báo hàng path or new provider resource is introduced; Stable remains untouched."
+      ],
+      "safety": "Beta only. Do not expose tokens, credentials or private session material. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for D133 technical/runtime/release PASS, then run the OA059 physical field path.",
       "closed": false
     }
   ]

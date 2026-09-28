@@ -848,3 +848,10 @@ Stable remains OWNER-GATED.
 - Replace the grid auto-size checkbox with a visible button labelled `Auto size cột: Bật` or `Auto size cột: Tắt`.
 - Auto size ON fits displayed content and prevents manual width changes. Auto size OFF allows manual column resizing and persists Agent/Fleet, Picker and PickList grid widths per authenticated Agent account.
 - Persist the main Agent normal-window left/top/width/height per authenticated Agent account. Maximize -> restore returns to those saved normal bounds; invalid/off-screen bounds are clamped to the current working area.
+
+## D133 Agent sizing and Android permission-gate UI
+
+- **Auto size cột** is one per-Agent-account preference shared by the Hệ thống Agent fleet grid, Picker list and manual PickList grid. The Hệ thống Agent area and Picker area may each expose the toggle, but both reflect and change the same state.
+- When Auto size is **Bật**, all covered grids re-fit to displayed content after their data render. When **Tắt**, operator-adjusted widths are restored and persisted per Agent app user.
+- Android has a blocking startup permission screen whenever required alert permissions are incomplete. It must show separate, explicit states for **Thông báo** and **Hiển thị trên ứng dụng khác**, provide the shortest Android settings action for each missing permission, and provide **Kiểm tra lại**. Operational login/home content is not accessible until both are ready.
+- Picker command overlay copy states that it self-closes within 60 seconds and may be ended earlier by the specialist Agent.

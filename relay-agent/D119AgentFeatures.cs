@@ -88,8 +88,11 @@ namespace SupraInventoryRelayAgent
         private DateTime _lastFleetMetricsAttemptUtc = DateTime.MinValue;
         private long _lastFleetCheckpointLocalRequests = -1L;
         private long _lastFleetCheckpointLocalResponses = -1L;
+        private long _d133DurableCounterRefreshGeneration;
+        private int _d133DurableCounterRefreshRunning;
         private bool _lastFleetPrimary;
         private readonly Button _autoSizeColumnsButton = new Button();
+        private readonly Button _autoSizeAgentColumnsButton = new Button();
         private bool _autoSizeColumnsEnabled = true;
         private bool _columnPreferenceApplying;
         private string _columnPreferenceUser = "";
@@ -334,6 +337,12 @@ namespace SupraInventoryRelayAgent
                 _logout.SetBounds(16, 88, 108, 30);
                 _manualUpdate.SetBounds(134, 88, 148, 30);
                 _background.SetBounds(292, 88, 142, 30);
+                _autoSizeAgentColumnsButton.SetBounds(
+                    Math.Max(446, host.ClientSize.Width - 184),
+                    88,
+                    168,
+                    30);
+                _autoSizeAgentColumnsButton.Visible = true;
                 _agentRequestMetrics.Visible = false;
 
                 var fleetTop = 126;
@@ -352,6 +361,7 @@ namespace SupraInventoryRelayAgent
                 _d128AgentResourceStatus.Visible = false;
                 _manualUpdate.SetBounds(16, 118, 148, 30);
                 _background.SetBounds(174, 118, 142, 30);
+                _autoSizeAgentColumnsButton.Visible = false;
                 _agentRequestMetrics.Visible = false;
                 _agentFleetGrid.Visible = false;
             }
@@ -407,6 +417,23 @@ namespace SupraInventoryRelayAgent
                 _autoSizeColumnsButton.Left = Math.Max(8, pickerCard.ClientSize.Width - _autoSizeColumnsButton.Width - 12);
                 _autoSizeColumnsButton.BringToFront();
             }
+            var agentHost = _username.Parent;
+            if (agentHost != null)
+            {
+                _autoSizeAgentColumnsButton.AutoSize = true;
+                _autoSizeAgentColumnsButton.Height = 30;
+                _autoSizeAgentColumnsButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+                _autoSizeAgentColumnsButton.Click += (s, e) =>
+                {
+                    _autoSizeColumnsEnabled = !_autoSizeColumnsEnabled;
+                    UpdateAutoSizeColumnsButton();
+                    ApplyColumnPreferenceMode();
+                    if (!_autoSizeColumnsEnabled) RestoreManualGridWidthsForCurrentUser();
+                    SaveColumnPreferencesForCurrentUser();
+                };
+                agentHost.Controls.Add(_autoSizeAgentColumnsButton);
+                _autoSizeAgentColumnsButton.BringToFront();
+            }
             UpdateAutoSizeColumnsButton();
 
             foreach (var grid in new[] { _agentFleetGrid, _pickerOnlineGrid, _manualPicklistGrid })
@@ -449,9 +476,11 @@ namespace SupraInventoryRelayAgent
 
         private void UpdateAutoSizeColumnsButton()
         {
-            _autoSizeColumnsButton.Text = _autoSizeColumnsEnabled
+            var text = _autoSizeColumnsEnabled
                 ? "Auto size cột: Bật"
                 : "Auto size cột: Tắt";
+            _autoSizeColumnsButton.Text = text;
+            _autoSizeAgentColumnsButton.Text = text;
         }
 
         private string CurrentColumnPreferenceUser()
@@ -1232,10 +1261,61 @@ namespace SupraInventoryRelayAgent
         {
             var overlay = _d128Overlay;
             if (overlay == null || overlay.IsDisposed) return;
+            var snapshot = _fleetSnapshot;
             overlay.UpdatePicklistMetrics(
-                Interlocked.Read(ref _localPdaRequests),
-                Interlocked.Read(ref _localConfirmSuccess),
-                Interlocked.Read(ref _localConfirmFailed));
+                snapshot == null ? 0L : snapshot.ReceivedTotal,
+                snapshot == null ? 0L : snapshot.ConfirmedTotal,
+                snapshot == null ? 0L : snapshot.ErrorTotal);
+        }
+
+        private void QueueD133DurableCounterRefresh()
+        {
+            Interlocked.Increment(ref _d133DurableCounterRefreshGeneration);
+            if (Interlocked.CompareExchange(ref _d133DurableCounterRefreshRunning, 1, 0) != 0) return;
+
+            Task.Run(() =>
+            {
+                long appliedGeneration = -1L;
+                try
+                {
+                    while (HasAgentSession())
+                    {
+                        var targetGeneration = Interlocked.Read(ref _d133DurableCounterRefreshGeneration);
+                        Thread.Sleep(750);
+                        if (Interlocked.CompareExchange(ref _fleetMetricsRefreshRunning, 1L, 0L) != 0L)
+                        {
+                            Thread.Sleep(250);
+                            continue;
+                        }
+                        try
+                        {
+                            EnsureFreshToken();
+                            var snapshot = _fleetMetricsClient.Load(SnapshotSession());
+                            _fleetSnapshot = snapshot;
+                            _lastFleetMetricsAttemptUtc = DateTime.UtcNow;
+                            _lastFleetMetricsRefreshUtc = DateTime.UtcNow;
+                            appliedGeneration = targetGeneration;
+                            Ui(() => RenderFleetMetricStatus(_leaderCoordinator != null && _leaderCoordinator.IsLeader));
+                        }
+                        finally
+                        {
+                            Interlocked.Exchange(ref _fleetMetricsRefreshRunning, 0L);
+                        }
+                        if (Interlocked.Read(ref _d133DurableCounterRefreshGeneration) == targetGeneration) break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log("D133 DAILY_COUNTER refresh=DEFER detail=" + SafeMessage(ex));
+                }
+                finally
+                {
+                    Interlocked.Exchange(ref _d133DurableCounterRefreshRunning, 0);
+                    if (HasAgentSession() &&
+                        Interlocked.Read(ref _d133DurableCounterRefreshGeneration) != appliedGeneration)
+                        QueueD133DurableCounterRefresh();
+                }
+            });
         }
 
         private void RefreshD128OverlayMenu()

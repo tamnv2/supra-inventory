@@ -391,3 +391,9 @@ The Android App uses an operational display projection, not a retention change.
 - picker_active_calls/{picker_user_id} is a single active-call lock/state document, not a history ledger.
 - Only one ACTIVE document may exist for a Picker. It contains sanitized call identity, target user, originating Agent/user, specialist role, status and timestamps; no notification token or browser/WMS material is stored in it.
 - Resolving the call triggers the PDA close signal and then removes the active lock. Historical operational evidence, when required, remains in existing sanitized Agent/function logs rather than retaining active-call documents indefinitely.
+
+## D133 durable counter and local acknowledgement boundaries
+
+- The PickList overlay's received / confirmed / error totals are derived from the durable Firestore business-day summary relay_poc_coordination/daily_<YYYYMMDD>. Process RAM counters are diagnostic only and must not be the displayed authority across Agent restart/update.
+- A successful terminal ACK transaction increments the daily summary atomically with the relay job terminal write. Agent may coalesce subsequent summary reads for presentation but must not reconstruct the authoritative total from local process counters.
+- Local pending result acknowledgements store only result-event ids required to retry the server acknowledgement after connectivity/session recovery. They are not report creation, resolution, inventory mutation, WMS mutation or an offline business outbox. D043's no-offline-business-mode decision remains unchanged.
