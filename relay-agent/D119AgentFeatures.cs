@@ -81,20 +81,10 @@ namespace SupraInventoryRelayAgent
             new Dictionary<string, long>(StringComparer.Ordinal);
         private long _agentSyncReconcileRunning;
         private DateTime _lastAgentSyncReconcileUtc = DateTime.MinValue;
-        private long _pickerPresenceRefreshRunning;
-        private DateTime _lastPickerPresenceRefreshUtc = DateTime.MinValue;
         private bool? _pickerWindowOpenState;
         private volatile int _activePdaCountForRelay;
         private FirestoreFleetMetricsClient _fleetMetricsClient;
         private FleetMetricSnapshot _fleetSnapshot;
-        private long _fleetMetricsRefreshRunning;
-        private DateTime _lastFleetMetricsRefreshUtc = DateTime.MinValue;
-        private DateTime _lastFleetMetricsAttemptUtc = DateTime.MinValue;
-        private long _lastFleetCheckpointLocalRequests = -1L;
-        private long _lastFleetCheckpointLocalResponses = -1L;
-        private long _d133DurableCounterRefreshGeneration;
-        private int _d133DurableCounterRefreshRunning;
-        private bool _lastFleetPrimary;
         private readonly Button _autoSizeAgentColumnsButton = new Button();
         private bool _autoSizeColumnsEnabled = true;
         private bool _columnPreferenceApplying;
@@ -791,11 +781,11 @@ namespace SupraInventoryRelayAgent
 
         private void RefreshPickerPresenceOnForeground()
         {
-            if (!HasAgentSession() || _pickerPresenceClient == null) return;
-            if (_lastPickerPresenceRefreshUtc != DateTime.MinValue &&
-                DateTime.UtcNow - _lastPickerPresenceRefreshUtc < TimeSpan.FromSeconds(15))
-                return;
-            RefreshD119OperationalViews(true);
+            if (!HasAgentSession()) return;
+            // D134: focus/restore is UI-only. The compact listener already holds the
+            // latest fleet state; foreground changes must never create provider reads.
+            RenderPickerOnlineSnapshot();
+            RenderFleetMetricStatus(_leaderCoordinator != null && _leaderCoordinator.IsLeader);
         }
 
         internal void StartD134AgentSync()
@@ -953,7 +943,6 @@ namespace SupraInventoryRelayAgent
             if (!HasAgentSession() || _agentSyncClient == null) return;
             var coordinator = _leaderCoordinator;
             var primary = coordinator != null && coordinator.IsLeader;
-            _lastFleetPrimary = primary;
             RenderFleetMetricStatus(primary);
 
             if (primary)
@@ -1285,65 +1274,6 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private void RefreshFleetMetricsIfDue(bool force, bool primary)
-        {
-            if (_fleetMetricsClient == null || !HasAgentSession()) return;
-            var now = DateTime.UtcNow;
-            var interval = TimeSpan.FromMinutes(5);
-            // D120: metrics are observability-only. UI refresh, tab changes and failed reads
-            // must never turn the 5-minute compact snapshot into a provider polling storm.
-            if (!force && _lastFleetMetricsAttemptUtc != DateTime.MinValue && now - _lastFleetMetricsAttemptUtc < interval) return;
-            if (force && _lastFleetMetricsAttemptUtc != DateTime.MinValue && now - _lastFleetMetricsAttemptUtc < TimeSpan.FromSeconds(30)) return;
-            if (!force && _lastFleetMetricsRefreshUtc != DateTime.MinValue && now - _lastFleetMetricsRefreshUtc < interval) return;
-            if (Interlocked.CompareExchange(ref _fleetMetricsRefreshRunning, 1L, 0L) != 0L) return;
-            _lastFleetMetricsAttemptUtc = now;
-
-            var localRequests = Interlocked.Read(ref _localPdaRequests);
-            var localResponses = Interlocked.Read(ref _localAgentResponses);
-
-            Task.Run(() =>
-            {
-                try
-                {
-                    EnsureFreshToken();
-                    var session = SnapshotSession();
-                    FleetMetricSnapshot snapshot;
-                    if (primary)
-                    {
-                        snapshot = _fleetMetricsClient.RefreshPrimary(
-                            session,
-                            _agentInstanceId,
-                            localRequests,
-                            localResponses);
-                        _lastFleetCheckpointLocalRequests = localRequests;
-                        _lastFleetCheckpointLocalResponses = localResponses;
-                    }
-                    else
-                    {
-                        snapshot = _fleetMetricsClient.Load(session);
-                    }
-                    _fleetSnapshot = snapshot;
-                    _lastFleetMetricsRefreshUtc = DateTime.UtcNow;
-                    Ui(() => RenderFleetMetricStatus(primary));
-                }
-                catch (Exception ex)
-                {
-                    Log("FLEET_METRICS refresh=FAIL primary=" + (primary ? "true" : "false") +
-                        " detail=" + SafeMessage(ex));
-                    Ui(() =>
-                    {
-                        RenderFleetMetricStatus(primary);
-                        if (_fleetSnapshot == null)
-                            _fleetMetricStatus.Text = "Cụm: chờ đồng bộ metrics";
-                    });
-                }
-                finally
-                {
-                    Interlocked.Exchange(ref _fleetMetricsRefreshRunning, 0L);
-                }
-            });
-        }
-
         private void RenderFleetMetricStatus(bool primary)
         {
             if (InvokeRequired)
@@ -1455,56 +1385,6 @@ namespace SupraInventoryRelayAgent
                 snapshot == null ? 0L : snapshot.ReceivedTotal,
                 snapshot == null ? 0L : snapshot.ConfirmedTotal,
                 snapshot == null ? 0L : snapshot.ErrorTotal);
-        }
-
-        private void QueueD133DurableCounterRefresh()
-        {
-            Interlocked.Increment(ref _d133DurableCounterRefreshGeneration);
-            if (Interlocked.CompareExchange(ref _d133DurableCounterRefreshRunning, 1, 0) != 0) return;
-
-            Task.Run(() =>
-            {
-                long appliedGeneration = -1L;
-                try
-                {
-                    while (HasAgentSession())
-                    {
-                        var targetGeneration = Interlocked.Read(ref _d133DurableCounterRefreshGeneration);
-                        Thread.Sleep(750);
-                        if (Interlocked.CompareExchange(ref _fleetMetricsRefreshRunning, 1L, 0L) != 0L)
-                        {
-                            Thread.Sleep(250);
-                            continue;
-                        }
-                        try
-                        {
-                            EnsureFreshToken();
-                            var snapshot = _fleetMetricsClient.Load(SnapshotSession());
-                            _fleetSnapshot = snapshot;
-                            _lastFleetMetricsAttemptUtc = DateTime.UtcNow;
-                            _lastFleetMetricsRefreshUtc = DateTime.UtcNow;
-                            appliedGeneration = targetGeneration;
-                            Ui(() => RenderFleetMetricStatus(_leaderCoordinator != null && _leaderCoordinator.IsLeader));
-                        }
-                        finally
-                        {
-                            Interlocked.Exchange(ref _fleetMetricsRefreshRunning, 0L);
-                        }
-                        if (Interlocked.Read(ref _d133DurableCounterRefreshGeneration) == targetGeneration) break;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log("D133 DAILY_COUNTER refresh=DEFER detail=" + SafeMessage(ex));
-                }
-                finally
-                {
-                    Interlocked.Exchange(ref _d133DurableCounterRefreshRunning, 0);
-                    if (HasAgentSession() &&
-                        Interlocked.Read(ref _d133DurableCounterRefreshGeneration) != appliedGeneration)
-                        QueueD133DurableCounterRefresh();
-                }
-            });
         }
 
         private void RefreshD128OverlayMenu()
