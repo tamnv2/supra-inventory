@@ -404,3 +404,13 @@ Sanitized Web/Android runtime support logs are written to the existing Inventory
 ## D145 — Google OAuth public disclosure contract
 
 The public Privacy/About pages document the existing Google-data boundary; they do not create a new data path. `drive.file` is used only for files the application creates or the user authorizes for the supported archive/export workflow. `gmail.send` is used only to send transactional verification/recovery messages and does not grant inbox-read capability. OAuth client secrets and refresh tokens remain protected server-side secrets and are never exposed in public HTML, client bundles, repository content or logs. Google user data is not sold or used for advertising, and provider processing is limited to infrastructure needed to deliver the disclosed features. A user may revoke Google authorization; a revoked refresh token must be replaced only through a fresh Owner-authorized consent flow.
+## D146 — Support-log Drive delivery lifecycle
+
+- Runtime support-log schedule is 06:00 / 12:00 / 18:00 / 21:00 Asia/Ho_Chi_Minh. There is no midnight slot.
+- Error/crash evidence attempts immediate delivery independently of the scheduled slots.
+- Web/Android sanitized logs are first persisted in InventoryCore SQLite. Drive archive is attempted immediately; unsynced rows remain bounded by the existing 90-day log retention and are retried from the existing five-minute Worker cron after a short retry backoff.
+- Web/Android Drive names identify kind/source/device/time: `scheduled|manual|error|crash_web|android_<device>_YYYYMMDD_HHmmss.json`.
+- Agent keeps its local rolling technical/audit logs and uploads bounded sanitized snapshots as `scheduled_agent_`, `error_agent_` or `crash_agent_` files.
+- Agent payload transport is Google-first: Windows Agent → authenticated Google Firestore parts → Beta Google Function → Google Drive resumable upload. The Function uses its workload identity only to authenticate to the protected Worker session-broker endpoint; the Worker uses the existing renewed human-user OAuth to create the short-lived Drive upload session and never returns the OAuth token. The Agent never stores Drive/OAuth credentials.
+- A Google-side Agent upload failure converts the Firestore parts to `WORKER_FALLBACK`; the existing Worker drain may archive them with the same renewed OAuth. This fallback does not change the Office first-hop requirement because the laptop has already delivered the payload to Google Firestore.
+- Beta OAuth remains `drive.file + gmail.send`, Owner-confirmed In production with the refreshed token deployed on 2026-09-29. No Gmail-read scope is permitted.
