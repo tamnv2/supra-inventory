@@ -3525,16 +3525,39 @@
     },
     {
       "id": "OA071",
-      "status": "BLOCKED_PENDING_D144_TECHNICAL_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D144 logs, Picker chat and legacy kick repair",
       "resource_key": "repo",
       "provider": "Beta Web/Worker + Android + existing Firestore + Windows Agent",
       "reason_owner_only": "Final chat/full-screen behavior, legacy APK kick behavior and Web runtime-log listing need one real PDA/Agent/browser field check after the technical release. D144 no longer requires any Google Drive folder permission change.",
       "prerequisites": {
-        "target_agent": "relay-agent-v82",
-        "target_android": "next monotonic signed Beta after beta-vc84",
+        "target_agent": "relay-agent-v82__RELEASED",
+        "target_android": "beta-vc85__RELEASED",
         "stable": "OWNER_GATED",
-        "logs_runtime": "INVENTORYCORE_LOCAL_BUFFER__NO_OAUTH_OR_FOLDER_SHARE_REQUIRED_FOR_LIST_UPLOAD"
+        "logs_runtime": "INVENTORYCORE_LOCAL_BUFFER__NO_OAUTH_OR_FOLDER_SHARE_REQUIRED_FOR_LIST_UPLOAD",
+        "technical_runtime": "PASS__MAIN_2B2B5A62__SCHEMA14__AGENT_V82__ANDROID_VC85",
+        "implementation_pr": 290,
+        "main_merge": "2b2b5a622b971efbb676e7143573652abf6f9570",
+        "main_runs": {
+          "repo_authority": 36477936191,
+          "project_state": 36477936152,
+          "beta_worker": 36477936028,
+          "firestore": 36477936251,
+          "ui_design": 36477936434,
+          "dashboard_probe": 36477936051,
+          "android": 36477936034,
+          "relay_agent": 36477936087
+        },
+        "release_evidence": {
+          "agent_release": "relay-agent-v82",
+          "agent_release_id": 398591606,
+          "agent_asset_id": 596320198,
+          "agent_sha256": "264f7068f7c9fd39f8a153e6c895dc1c5dfccacdd49f87cf35eb2f098f76256c",
+          "android_release": "beta-vc85",
+          "android_release_id": 398591717,
+          "android_asset_id": 596320670,
+          "android_sha256": "fdf561f67a65a0f99393b0c3fff6b5853adcd87c3b37bd624d04451493ce6466"
+        }
       },
       "shortest_test_path": [
         "Open Web → Nhật ký and require Android/Web logs to list without LOGS_OAUTH_FAILED.",
@@ -3551,7 +3574,7 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only; no new provider resource; no secret/token/session material in logs or repo.",
-      "remaining_owner_action": "After D144 technical/runtime releases are PASS, install the released Agent/Android build and run the shortest field test path.",
+      "remaining_owner_action": "Update the test Agent to relay-agent-v82 and PDA to beta-vc85, then run the OA071 shortest field path for Web Nhật ký, chat typing/delivery, direct-call regression, and old-APK Kích User behavior. Stable remains untouched.",
       "closed": false
     },
     {

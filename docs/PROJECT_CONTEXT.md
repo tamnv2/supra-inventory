@@ -650,3 +650,19 @@ Status: **OWNER FIELD PASS**.
 - Agent v82 chat uses the existing per-Picker `picker_session_controls` listener as direct delivery, keeps the D143 FCM path for compatibility, and pauses periodic Agent UI refresh timers while the modal editor is open. Picker Xác nhận remains local-only with duplicate suppression.
 - Kích User keeps Firestore generation revocation and additionally revokes the Worker-authoritative Android session. Before disabling the old Android notification target, Worker sends one best-effort backward-compatible re-login command. A five-minute Worker reconciliation over existing compact Agent sync covers office-network Worker unreachability.
 - No new provider resource is introduced. Stable remains OWNER-GATED and untouched.
+
+## D144 technical/runtime/release PASS — 2026-09-29
+
+- Canonical Beta marker: `D144_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC85__AGENT_V82__OA071_FIELD_READY`.
+- Canonical Web marker: `D144_RUNTIME_PASS__INVENTORYCORE_LOG_BUFFER__SCHEMA14__OAUTH_NONBLOCKING`.
+- Canonical Android marker: `D144_SIGNED_BETA_VC85__DIRECT_CHAT_AND_AUTHORITATIVE_KICK__OA071_FIELD_READY`.
+- PR #290 merged to main `2b2b5a622b971efbb676e7143573652abf6f9570`.
+- Main Repo Authority `36477936191`, Project State `36477936152`, Firestore `36477936251`, Dashboard `36477936051`, UI `36477936434`, Worker `36477936028`, Android `36477936034` and Relay Agent `36477936087` all PASS.
+- Beta Worker exact-source health reached SQLite `14/14`, Operational V2 `5/5`, Agent migration `0/0`.
+- Signed Android `beta-vc85` is published from the exact D144 main source; APK SHA-256 `fdf561f67a65a0f99393b0c3fff6b5853adcd87c3b37bd624d04451493ce6466`.
+- Agent `relay-agent-v82` is published from the exact D144 main source; EXE SHA-256 `264f7068f7c9fd39f8a153e6c895dc1c5dfccacdd49f87cf35eb2f098f76256c`.
+- Runtime-log authority is now the bounded InventoryCore SQLite buffer; revoked Google Drive OAuth can defer Drive archival but cannot block new Web/Android log upload/list/detail.
+- Picker chat uses direct per-Picker Firestore session control plus FCM compatibility; PDA dismiss is local-only with duplicate suppression.
+- Kích User now revokes the Worker-authoritative Android session, closes realtime presence, refreshes the Picker projection and retains bounded compact-sync reconciliation for a direct-call failure.
+- OA071 is READY_FOR_OWNER_FIELD_TEST on `relay-agent-v82` + `beta-vc85`.
+- Stable remains OWNER-GATED and untouched.
