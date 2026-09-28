@@ -1042,6 +1042,7 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Stable remains OWNER-GATED and untouched.
 
 ## D135 candidate — 2026-09-28
+- Canonical Android source marker: `D135_TARGET_BETA_VC82__1291_BAO_HANG_BETA__LOCAL_FIRST_RESULT_ACK_ALL_SURFACES`.
 
 - Baseline field-passed D134 hotfix artifacts are `relay-agent-v75` and signed `beta-vc81`.
 - D135 target Agent is `relay-agent-v76`; Android target is the next monotonic signed Beta release after vc81.
