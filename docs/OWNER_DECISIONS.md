@@ -2047,7 +2047,7 @@ Status: **OWNER AUTHORIZED / IMPLEMENTATION ACTIVE** — 2026-09-28
 
 ## D142 — Android 11 critical-alert readiness for Newland MT90 and Urovo DT50 — 2026-09-28
 
-Status: **OWNER APPROVED — BETA ANDROID IMPLEMENTATION IN PROGRESS**.
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — SIGNED BETA-VC83 — OA068 FIELD READY**.
 
 The warehouse currently uses **Newland NLS-MT90 Android 11** and **Urovo DT50 Android 11**. D142 hardens only the Beta Android alert/readiness path and must not reopen already accepted Báo hàng, PickList, Agent or Web behavior.
 
@@ -2061,3 +2061,12 @@ The warehouse currently uses **Newland NLS-MT90 Android 11** and **Urovo DT50 An
 8. **Scope isolation.** Beta Android only, target the next monotonic signed release after `beta-vc82`. D141 Web/SLA and D140 Agent v80 remain parallel and unchanged. No new Firebase/Cloudflare/provider resource is introduced. **Stable remains OWNER-GATED and untouched.**
 
 Field gate: **OA068** after technical/release PASS, using one normal MT90 Android 11 and one normal DT50 Android 11. Setup validation uses the automatic gate; no special manual DND/Battery Saver toggle-and-test workflow is required.
+
+## D142 release checkpoint — 2026-09-28
+
+- Implementation PR #284 merged to main `4e382a39fa574fe49d176af435c1a6a4afdf75f4`.
+- PR gates PASS: Repo Authority `36427225972`, Project State `36427226166`, UI Design `36427226362`, Verify Beta Android `36427226198`, Firestore `36427226312`, RTDB `36427225990`, Dashboard Probe `36427226365`.
+- Signed release `beta-vc83` exists and the tag resolves exactly to main `4e382a39fa574fe49d176af435c1a6a4afdf75f4`.
+- The Android release workflow publishes a signed Beta only after its exact-source Beta runtime gate succeeds; therefore publication of `beta-vc83` is release evidence for the merged D142 source.
+- OA068 is now **READY_FOR_OWNER_FIELD_TEST** on one Newland NLS-MT90 Android 11 and one Urovo DT50 Android 11 using the normal automatic setup flow. No deliberate Battery Saver/DND toggle-and-test ceremony is required.
+- No Agent/Web/provider/Stable resource was changed by D142. Stable remains OWNER-GATED.
