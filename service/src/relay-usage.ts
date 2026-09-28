@@ -28,6 +28,11 @@ type FirestoreDoc = {
   fields?: Record<string, FirestoreValue>;
 };
 
+type MetricResult = {
+  series: TimeSeries[];
+  error: string | null;
+};
+
 const MONITORING_SCOPE = "https://www.googleapis.com/auth/monitoring.read";
 const FIRESTORE_READ = "firestore.googleapis.com/document/read_ops_count";
 const FIRESTORE_WRITE = "firestore.googleapis.com/document/write_ops_count";
@@ -127,6 +132,32 @@ async function metricSeries(
   return payload.timeSeries || [];
 }
 
+async function safeMetricSeries(
+  env: RelayUsageEnv,
+  token: string,
+  metricType: string,
+  start: Date,
+  end: Date,
+): Promise<MetricResult> {
+  try {
+    return { series: await metricSeries(env, token, metricType, start, end), error: null };
+  } catch (error) {
+    return {
+      series: [],
+      error: error instanceof Error ? error.message.slice(0, 80) : "MONITORING_UNAVAILABLE",
+    };
+  }
+}
+
+function metricValue(result: MetricResult, mode: "SUM" | "LATEST"): number | null {
+  if (result.error) return null;
+  return Math.round(mode === "LATEST" ? latestSeriesSum(result.series) : sumSeries(result.series));
+}
+
+function firestoreDocumentUrl(env: RelayUsageEnv, documentPath: string): string {
+  return `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(env.FIREBASE_PROJECT_ID)}/databases/(default)/documents/${documentPath}`;
+}
+
 function fsString(fields: Record<string, FirestoreValue> | undefined, key: string): string {
   return String(fields?.[key]?.stringValue || "");
 }
@@ -219,64 +250,81 @@ export async function collectRelayUsage(env: RelayUsageEnv, force = false): Prom
     const recentStart = new Date(now.getTime() - 30 * 60 * 1000);
 
     const [
-      readsSeries,
-      writesSeries,
-      deletesSeries,
-      storageSeries,
-      connectionsSeries,
-      listenersSeries,
-      dailyAuthSeries,
-      monthlyAuthSeries,
-      functionSeries,
+      reads,
+      writes,
+      deletes,
+      storage,
+      connections,
+      listeners,
+      dailyAuth,
+      monthlyAuth,
+      functions,
     ] = await Promise.all([
-      metricSeries(env, token, FIRESTORE_READ, providerDayStart, now),
-      metricSeries(env, token, FIRESTORE_WRITE, providerDayStart, now),
-      metricSeries(env, token, FIRESTORE_DELETE, providerDayStart, now),
-      metricSeries(env, token, FIRESTORE_STORAGE, recentStart, now),
-      metricSeries(env, token, FIRESTORE_CONNECTIONS, recentStart, now),
-      metricSeries(env, token, FIRESTORE_LISTENERS, recentStart, now),
-      metricSeries(env, token, AUTH_DAILY, providerDayStart, now),
-      metricSeries(env, token, AUTH_MONTHLY, monthStart, now),
-      metricSeries(env, token, FUNCTION_EXECUTIONS, providerDayStart, now),
+      safeMetricSeries(env, token, FIRESTORE_READ, providerDayStart, now),
+      safeMetricSeries(env, token, FIRESTORE_WRITE, providerDayStart, now),
+      safeMetricSeries(env, token, FIRESTORE_DELETE, providerDayStart, now),
+      safeMetricSeries(env, token, FIRESTORE_STORAGE, recentStart, now),
+      safeMetricSeries(env, token, FIRESTORE_CONNECTIONS, recentStart, now),
+      safeMetricSeries(env, token, FIRESTORE_LISTENERS, recentStart, now),
+      safeMetricSeries(env, token, AUTH_DAILY, providerDayStart, now),
+      safeMetricSeries(env, token, AUTH_MONTHLY, monthStart, now),
+      safeMetricSeries(env, token, FUNCTION_EXECUTIONS, providerDayStart, now),
     ]);
 
-    const functionExecutions = sumSeries(functionSeries);
-    const functionErrors = sumSeries(functionSeries.filter((row) =>
-      String(row.metric?.labels?.status || "").toLowerCase() !== "ok"));
+    const partialErrors: Record<string, string> = {};
+    const named: Array<[string, MetricResult]> = [
+      ["firestore_reads", reads], ["firestore_writes", writes], ["firestore_deletes", deletes],
+      ["firestore_storage", storage], ["firestore_connections", connections],
+      ["firestore_listeners", listeners], ["auth_daily", dailyAuth], ["auth_monthly", monthlyAuth],
+      ["functions", functions],
+    ];
+    for (const [name, result] of named) if (result.error) partialErrors[name] = result.error;
+
+    const functionExecutions = metricValue(functions, "SUM");
+    const functionErrors = functions.error
+      ? null
+      : Math.round(sumSeries(functions.series.filter((row) =>
+          String(row.metric?.labels?.status || "").toLowerCase() !== "ok")));
 
     monitoring = {
-      available: true,
+      available: Object.keys(partialErrors).length < named.length,
       provider_day: providerDayStart.toISOString(),
+      partial: Object.keys(partialErrors).length > 0,
+      partial_errors: partialErrors,
       firestore: {
-        reads: Math.round(sumSeries(readsSeries)),
-        writes: Math.round(sumSeries(writesSeries)),
-        deletes: Math.round(sumSeries(deletesSeries)),
-        storage_bytes: Math.round(latestSeriesSum(storageSeries)),
-        active_connections: Math.round(latestSeriesSum(connectionsSeries)),
-        snapshot_listeners: Math.round(latestSeriesSum(listenersSeries)),
-        soft: { reads: 42000, writes: 15000, deletes: 3000, storage_bytes: 805306368 },
+        reads: metricValue(reads, "SUM"),
+        writes: metricValue(writes, "SUM"),
+        deletes: metricValue(deletes, "SUM"),
+        storage_bytes: metricValue(storage, "LATEST"),
+        active_connections: metricValue(connections, "LATEST"),
+        snapshot_listeners: metricValue(listeners, "LATEST"),
+        soft: { reads: 45000, writes: 15000, deletes: 3000, storage_bytes: 805306368 },
         free_reference: { reads: 50000, writes: 20000, deletes: 20000, storage_bytes: 1073741824 },
       },
       auth: {
-        daily_active: Math.round(sumSeries(dailyAuthSeries)),
-        monthly_active: Math.round(sumSeries(monthlyAuthSeries)),
+        daily_active: metricValue(dailyAuth, "SUM"),
+        monthly_active: metricValue(monthlyAuth, "SUM"),
       },
       functions: {
-        executions: Math.round(functionExecutions),
-        errors: Math.round(functionErrors),
+        executions: functionExecutions,
+        errors: functionErrors,
       },
       fcm: { pricing: "NO_COST" },
     };
   } catch (error) {
     monitoring = {
       available: false,
+      partial: false,
       error: error instanceof Error ? error.message.slice(0, 120) : "MONITORING_UNAVAILABLE",
     };
   }
 
   try {
     if (!env.GOOGLE_RUNTIME_SA_JSON) throw new Error("GOOGLE_RUNTIME_NOT_CONFIGURED");
-    firestoreToken = (await getServiceAccountAccessToken(env.GOOGLE_RUNTIME_SA_JSON, "https://www.googleapis.com/auth/datastore")).accessToken;
+    firestoreToken = (await getServiceAccountAccessToken(
+      env.GOOGLE_RUNTIME_SA_JSON,
+      "https://www.googleapis.com/auth/datastore",
+    )).accessToken;
   } catch {
     firestoreToken = "";
   }
@@ -293,3 +341,32 @@ export async function collectRelayUsage(env: RelayUsageEnv, force = false): Prom
   providerCache = { at: nowMs, value: result };
   return result;
 }
+
+export async function publishRelayUsageSnapshot(env: RelayUsageEnv): Promise<void> {
+  if (!env.GOOGLE_RUNTIME_SA_JSON) throw new Error("GOOGLE_RUNTIME_NOT_CONFIGURED");
+  const payload = await collectRelayUsage(env, false);
+  const token = (await getServiceAccountAccessToken(
+    env.GOOGLE_RUNTIME_SA_JSON,
+    "https://www.googleapis.com/auth/datastore",
+  )).accessToken;
+  const body = {
+    fields: {
+      schema_version: { integerValue: "1" },
+      updated_at_ms: { integerValue: String(Date.now()) },
+      payload_json: { stringValue: JSON.stringify(payload) },
+    },
+  };
+  const response = await fetch(
+    firestoreDocumentUrl(env, "relay_poc_coordination/usage_current"),
+    {
+      method: "PATCH",
+      headers: {
+        authorization: `Bearer ${token}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(body),
+    },
+  );
+  if (!response.ok) throw new Error(`RELAY_USAGE_SNAPSHOT_HTTP_${response.status}`);
+}
+
