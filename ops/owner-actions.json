@@ -2760,7 +2760,7 @@
     },
     {
       "id": "OA056",
-      "status": "BLOCKED_PENDING_D131_IMPLEMENTATION_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D131 Firestore-only free-tier HA, failover, counters and latency",
       "resource_key": "repo",
       "provider": "Beta Windows Agent + Beta Android + existing Cloud Firestore relay",
@@ -2769,9 +2769,9 @@
         "baseline_agent_release": "relay-agent-v70",
         "baseline_android": "beta-vc77",
         "target_agent_release": "relay-agent-v71",
-        "target_android": "NEXT_MONOTONIC_IF_ANDROID_CHANGE_REQUIRED",
-        "technical_release": "PENDING",
-        "new_resources": "NONE",
+        "target_android": "beta-vc78",
+        "technical_release": "PASS__MAIN_3569934E__AGENT_V71__ANDROID_BETA_VC78",
+        "new_resources": "NO_NEW_PROVIDER__SCOPED_PICKER_ACTIVE_CALLS_COLLECTION",
         "stable": "OWNER_GATED",
         "target_fleet": "UP_TO_20_AGENTS",
         "counter_authority": "DURABLE_FIRESTORE_JOB_LEDGER__NOT_RAM"
@@ -2797,12 +2797,12 @@
         "Daily Drive export succeeds with all Agents offline; bounded retry never creates duplicate business-day files."
       ],
       "safety": "Beta only. No secrets/session material in logs. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for D131 implementation/technical release PASS, then run the physical field path.",
+      "remaining_owner_action": "Run the OA056 physical field path on Beta with relay-agent-v71 + beta-vc78. No Stable action is authorized.",
       "closed": false
     },
     {
       "id": "OA057",
-      "status": "PENDING_D131_REVIEW_TRIGGER_AND_OWNER_CODE_APPROVAL",
+      "status": "PASS__OWNER_CODE_AUTHORIZED_2026_09_28",
       "title": "Review D131 optimized model and authorize implementation",
       "resource_key": "repo",
       "provider": "GitHub canonical design + current provider quota references",
@@ -2828,8 +2828,13 @@
         "Stable remains untouched."
       ],
       "safety": "Design/review only until explicit Owner code authorization. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "In the next session, send `bắt đầu tối ưu lại mô hình`, review the complete design and max-envelope usage, then explicitly authorize code only when satisfied.",
-      "closed": false
+      "remaining_owner_action": "None. Owner completed review and explicitly authorized D131 implementation.",
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-28",
+        "result": "PASS",
+        "evidence": "Owner reviewed the maximum-envelope design/refinements and explicitly authorized D131 code implementation before PR #259."
+      }
     }
   ]
 }
