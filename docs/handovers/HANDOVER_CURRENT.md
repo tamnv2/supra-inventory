@@ -1271,3 +1271,16 @@ Status: **OWNER FIELD PASS**.
 - Android marker: `D143_ANDROID_REFINEMENTS_IN_PROGRESS__BASELINE_D142_OWNER_PASS_BETA_VC83`.
 - D141 is now Owner field PASS; OA067 closed. D143 implementation branch targets Agent v81 plus the next signed Android Beta, with OA069 blocked until technical/runtime/release PASS.
 - No new provider resource. Stable remains OWNER-GATED and untouched.
+
+## D143 runtime/release partial PASS — 2026-09-29
+
+- Canonical marker: `D143_WEB_AGENT_RUNTIME_RELEASE_PASS__ANDROID_OWNER_SECRET_BLOCKED`.
+- Main implementation PR #287 merged to `96e38ca88633ef9a0114d6682bdac5bea2d4f2c8`.
+- Beta Worker/Web run `36463932814` PASS with exact-source health: HTTP 200, source `96e38ca8`, SQLite `13/13`, Operational V2 `5/5`, Agent migration `0/0`.
+- Web marker: `D143_RUNTIME_PASS__MAIN_96E38CA8__SCHEMA13__RBAC_DATE_AUDIT_REFINEMENTS`.
+- Agent main run `36463932863` PASS and prerelease `relay-agent-v81` is published.
+- Main Authority, State, UI, Dashboard, Firestore and Functions gates PASS.
+- Signed Android source/PR gates passed, but main Android release run `36463932866` failed closed before build because GitHub Beta environment secret `ANDROID_PICKER_DEFAULT_PASSWORD` is not configured.
+- The password is intentionally not committed to this public repository. OA070 is the single Owner-only setup action; OA069 field acceptance remains blocked until the next signed Beta Android release is published.
+- Latest signed Android therefore remains `beta-vc83`.
+- Stable remains OWNER-GATED and untouched.
