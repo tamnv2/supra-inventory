@@ -142,7 +142,8 @@ export async function handleRuntimeLogCoreRequest(
          FROM runtime_log_buffer
         WHERE drive_file_id IS NULL
           AND (last_drive_error IS NULL OR updated_at <= ?)
-        ORDER BY received_at ASC, log_id ASC
+        ORDER BY CASE WHEN last_drive_error IS NULL THEN 0 ELSE 1 END ASC,
+                 updated_at ASC, received_at ASC, log_id ASC
         LIMIT ?`,
       retryBefore,
       limit,
