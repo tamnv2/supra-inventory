@@ -3008,7 +3008,7 @@
     },
     {
       "id": "OA061",
-      "status": "BLOCKED_PENDING_D135_TECHNICAL_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D135 post-D134 realtime counters, alert safety and UI refinements",
       "resource_key": "repo",
       "provider": "Beta Windows Agent + Beta Android + existing Firestore/Worker/Functions",
@@ -3022,7 +3022,24 @@
         "implementation_branch": "fix/d135-post-d134-field-refinements",
         "new_provider_resources": "NONE",
         "stable": "OWNER_GATED",
-        "technical_release": "PENDING"
+        "technical_release": "PASS__MAIN_6D929E42__AGENT_V76__BETA_VC82",
+        "implementation_pr": 270,
+        "main_merge": "6d929e42fa2474712e0629a95bb5ac9cf59112bd",
+        "main_runs": {
+          "repo_authority": 36386485505,
+          "project_state": 36386485589,
+          "beta_worker": 36386485508,
+          "android": 36386485549,
+          "relay_agent": 36386485487,
+          "ui_design": 36386485504,
+          "dashboard_probe": 36386485509
+        },
+        "release_evidence": {
+          "agent_release_id": 397996913,
+          "agent_sha256": "a9a4493284752692f338432c1432254c8b8f76e473d2363a7fad031719f6a857",
+          "android_release_id": 397997150,
+          "android_sha256": "71c164ef5085e6bb99ece1672b5d23138fdb0a43e466981dc5dac5ffed6efac0"
+        }
       },
       "shortest_test_path": [
         "Update the processing Agent to D135 relay-agent-v76 and the test PDA to the D135 signed Beta Android build.",
@@ -3046,7 +3063,7 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. No new provider resource, no secret/session-material exposure, no offline Báo hàng mutation. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for D135 technical/release PASS and released relay-agent-v76 + signed Beta Android build, then perform the shortest field test path above.",
+      "remaining_owner_action": "Update the processing Agent to relay-agent-v76 and the test PDA to beta-vc82, then run the OA061 shortest field test path. Stable remains untouched.",
       "closed": false
     }
   ]
