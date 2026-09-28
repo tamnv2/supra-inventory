@@ -184,3 +184,7 @@ Exact Owner phrase **`bắt đầu tối ưu lại mô hình`** routes to the D1
 - Picker online/offline state must not be inferred from heartbeat silence or socket close/error. Explicit Android session state is authority; valid PickList identity is fallback.
 - A local URI/parser/state-machine defect is an application fault and must not be labeled Firestore offline. Transport-offline is reserved for actual network/provider failures.
 - No new provider resource and no Stable mutation are authorized.
+
+## D137 Confirm readiness refresh rule
+
+A managed browser reaching the canonical Confirm URL must not publish READY from the first loaded document. The Agent performs exactly one normal top-level reload for that first arrival and requires a stable post-reload READY DOM before enabling Confirm-dependent work. This is a local browser action only: it does not add Firestore/Worker/provider polling and must not enable DevTools Network or expose session material. If the post-reload page is login, Dashboard, partial, or wrong, fail closed through the existing bounded recovery path. Stable remains OWNER-GATED.
