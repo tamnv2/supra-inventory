@@ -44,6 +44,7 @@ type ActiveCallRecord = {
   sender_agent_id?: string;
   sender_role?: string;
   created_at_ms?: number;
+  lock_until_ms?: number;
 };
 
 function safeCode(error: unknown): string {
