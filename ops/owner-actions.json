@@ -3311,7 +3311,7 @@
     },
     {
       "id": "OA067",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "OWNER_FIELD_PASS",
       "title": "Field-accept D141 end-to-end SLA persistence and authority UI",
       "resource_key": "repo",
       "provider": "Beta Web + existing Beta Worker/InventoryCore SQLite",
@@ -3352,8 +3352,20 @@
         "No schema/provider/Android/Agent change from D141 and Stable remains untouched."
       ],
       "safety": "Beta Web/Worker only. No secrets or session material are logged. Existing optimistic policy-version protection remains. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "On live Beta Web, run the six-step OA067 SLA test: clean F5, verify initial authority alignment, select FIRST_REPORT, confirm unsaved draft label, save once, require verified-success, F5 and confirm radio + Đang áp dụng remain FIRST_REPORT.",
-      "closed": false
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-29",
+        "result": "PASS",
+        "evidence": "Owner explicitly confirmed D141 OK before authorizing D143 follow-up work.",
+        "accepted_scope": [
+          "SLA server/draft state separation",
+          "non-droppable save",
+          "SQLite post-write readback",
+          "fresh GET verification",
+          "FIRST_REPORT persistence behavior"
+        ]
+      }
     },
     {
       "id": "OA068",
@@ -3420,6 +3432,44 @@
           "existing critical alert/overlay path preserved"
         ]
       }
+    },
+    {
+      "id": "OA069",
+      "status": "BLOCKED_PENDING_D143_TECHNICAL_RUNTIME_RELEASE_PASS",
+      "title": "Field-accept D143 Android, Web and Agent operational refinements",
+      "resource_key": "repo",
+      "provider": "Beta Android + Web/Worker + existing Firebase/Firestore + Windows Agent",
+      "reason_owner_only": "CI can prove source/build/RBAC/rules/schedule/self-test invariants, but final OEM permission behavior, masked default-password presentation, Web operator UX, 21:30 foreground prompt, tray autosize restore, Picker-list stability, chat alert and long-running WebView2 memory behavior require field observation.",
+      "prerequisites": {
+        "implementation_branch": "d143-owner-adjustments-android-web-agent",
+        "target_agent": "relay-agent-v81",
+        "target_android": "next monotonic signed Beta after beta-vc83",
+        "new_provider_resources": "NONE",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Update one test Agent to v81 and one warehouse PDA to the signed D143 Beta Android release after technical release PASS.",
+        "Android: verify permission cards, automatic return check, manual Kiểm tra cấp quyền fallback, Đặt lại mặc định route, masked prefilled Picker password, two-line company heading, compact footer, concise Xác nhận đơn guidance and full-width SKU suggestions.",
+        "Web: verify Quản trị Pick Pack can use Ca vận hành; ROOT can review that role, ROOT is hidden, managed Admin/Pick Pack Admin/Reporter deletion works only for ROOT, zero badge is hidden, date states are clear and audit paging is at the top.",
+        "Agent: verify 21:30 decision appears once above tray/visible window; +1h extension asks again at next HH:30; no five-minute warning spam; no extension sleeps automatic relay at the boundary.",
+        "Restore Agent from tray/maximized/normal and verify Auto size remains readable. Exercise login/PickList/logout/kick while watching Picker list and confirm no older list temporarily replaces the newer state.",
+        "Use Liên hệ picker: test direct call and 200-character chat separately. Chat must show the required Picker wording and local Xác nhận must close without Agent Kết thúc/ACK.",
+        "Keep managed Web Confirm active through an extended session and watch that hidden child WebViews do not grow without bound."
+      ],
+      "pass_criteria": [
+        "All D143 Android permission/login/presentation refinements work on the supported warehouse Android 11 devices without weakening D142 critical-alert readiness.",
+        "No plaintext Picker default password is present in GitHub/logs; signed build still pre-fills the masked field.",
+        "Web RBAC and destructive account operations match D143 server-side authority.",
+        "Date selection/badge/audit pagination presentation matches D143.",
+        "Agent overtime prompt is one-shot per boundary and relay sleeps outside approved time without replay/business polling.",
+        "Auto-size and Picker list remain stable through tray/restore/realtime ordering.",
+        "Direct call retains lock/resolve semantics; chat is <=200 chars and local-dismiss only.",
+        "D126/D127 browser security boundaries and D140 quota/listener safeguards remain PASS.",
+        "Stable remains untouched."
+      ],
+      "safety": "Beta only. No new provider resources, no plaintext password/token/session material, no Stable mutation.",
+      "remaining_owner_action": "Wait for D143 technical/runtime/release PASS, then run the shortest field path.",
+      "closed": false
     }
   ]
 }
