@@ -1112,3 +1112,12 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - D136 retires the Agent Usage tab and provider Usage Monitoring/snapshot publication. The local Firestore quota guard remains reference-only.
 - **Chuyển Web chạy nền** requires no password; showing/stopping/logout/mode-switch security gates remain.
 - OA062 opens after technical/release PASS. Stable remains OWNER-GATED and untouched.
+
+## D136 release-state refresh — 2026-09-28
+
+- D136 status: **TECHNICAL / RUNTIME / RELEASE PASS**.
+- Main: `62ab2aa11cda251f18090fc0bd637a092ab0998d`.
+- Agent: `relay-agent-v77`; Android: `beta-vc82` unchanged.
+- Main Authority/State/UI/Worker/Agent/Dashboard gates PASS.
+- Runtime exact-source health PASS with schema `12/12`, Operational `5/5`, migration `0/0`.
+- OA062 is READY_FOR_OWNER_FIELD_TEST. Stable remains OWNER-GATED.
