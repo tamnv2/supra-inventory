@@ -13,6 +13,7 @@ object NotificationSignalStore {
     private const val KEY_BATCH_VERSION = "last_batch_version"
     private const val KEY_OVERLAY_PRESENTED_RESULTS = "overlay_presented_results"
     private const val KEY_OVERLAY_ACK_PENDING = "overlay_ack_pending"
+    private const val KEY_PICKER_CHAT_DISMISSED = "picker_chat_dismissed"
 
     fun saveToken(context: Context, token: String) {
         if (token.isBlank()) return
@@ -88,6 +89,22 @@ object NotificationSignalStore {
         val values = prefs.getStringSet(KEY_OVERLAY_PRESENTED_RESULTS, emptySet()).orEmpty().toMutableSet()
         if (values.remove(eventId)) prefs.edit().putStringSet(KEY_OVERLAY_PRESENTED_RESULTS, values).apply()
     }
+
+    @Synchronized
+    fun markPickerChatDismissed(context: Context, alertId: String) {
+        if (!alertId.matches(Regex("[A-Za-z0-9._:-]{1,128}"))) return
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val values = prefs.getStringSet(KEY_PICKER_CHAT_DISMISSED, emptySet()).orEmpty().toMutableSet()
+        values += alertId
+        while (values.size > 64) values.remove(values.first())
+        prefs.edit().putStringSet(KEY_PICKER_CHAT_DISMISSED, values).apply()
+    }
+
+    fun isPickerChatDismissed(context: Context, alertId: String): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getStringSet(KEY_PICKER_CHAT_DISMISSED, emptySet())
+            .orEmpty()
+            .contains(alertId)
 
     @Synchronized
     fun markOverlayAckPending(context: Context, eventId: String) {
