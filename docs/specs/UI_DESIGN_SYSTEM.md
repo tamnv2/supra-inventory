@@ -890,3 +890,12 @@ The Android permission/readiness surface is an operational gate, not a generic p
 - Do not display a manual **KIỂM TRA LẠI** button. The footer tells the user to press Android Back; the app rechecks automatically.
 - Do not add test-alert controls, engineering terminology, decision IDs or battery/FCM implementation details to the operator-facing screen.
 - Existing application visual scale, Báo hàng result overlay and local-first acknowledgement surface remain unchanged.
+
+## D143 compact UI stability rules
+
+- Android permission requirements are visually separated as individual cards; reason/guidance copy must stay short and operational.
+- Android login company identity uses the approved two-line company/DC heading. The developer credit is a very small bottom-right secondary label and must not take meaningful operational space.
+- Android SKU suggestions may extend across the usable screen width independently of the SKU input width.
+- Web quick-range selected state uses a distinct filled button. For non-preset custom dates, both date inputs get the selected emphasis instead.
+- Agent overtime decision must surface above normal windows once per boundary, including when Agent was in tray; it must not create recurring balloon spam.
+- Agent auto-size runs only on visible grids with stable usable width. Tray/maximize/normal restoration schedules a deferred re-fit after layout settles; hidden/collapsed dimensions are never persisted as auto-size output.
