@@ -509,6 +509,7 @@ namespace SupraInventoryRelayAgent
         private volatile bool _relayPollHealthyObserved;
         private string _supraBrowserState = "NOT_OPEN";
         private string _currentWifiName = "đang đọc...";
+        private string _relayTransportState = "đang khởi tạo";
         private bool _autoAgentBrowserSuppressedByUser;
         private readonly FirestorePickerRateLimiter _firestoreRateLimiter = new FirestorePickerRateLimiter();
         private readonly FirestoreConfirmationGuard _confirmationGuard = new FirestoreConfirmationGuard();
@@ -1988,14 +1989,34 @@ namespace SupraInventoryRelayAgent
                 relayMode = coordinator.RoleName + " · Mất kết nối";
             else if (coordinator.IsLeader)
                 relayMode = "PRIMARY · Đang nhận";
-            else if (coordinator.IsStandby)
-                relayMode = "STANDBY · Dự phòng";
+            else if (coordinator.IsNextA)
+                relayMode = "NEXT_A · Dự phòng 1";
+            else if (coordinator.IsNextB)
+                relayMode = "NEXT_B · Dự phòng 2";
             else
-                relayMode = "FROZEN · Tạm dừng";
+                relayMode = "DEEP_HIBERNATE · Ngủ";
 
+            var transport = string.IsNullOrWhiteSpace(_relayTransportState)
+                ? "chưa có trạng thái"
+                : _relayTransportState;
             _relay.Text =
                 "Chế độ nhận tin từ PDA: " + relayMode +
+                " | Relay: " + transport +
                 " | Wi-Fi hiện tại: " + (string.IsNullOrWhiteSpace(_currentWifiName) ? "không xác định" : _currentWifiName);
+        }
+
+        private void SetRelayTransportState(string state)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<string>(SetRelayTransportState), state);
+                return;
+            }
+            var next = (state ?? "").Trim();
+            if (next.StartsWith("Relay:", StringComparison.OrdinalIgnoreCase))
+                next = next.Substring("Relay:".Length).Trim();
+            _relayTransportState = string.IsNullOrWhiteSpace(next) ? "chưa có trạng thái" : next;
+            UpdateD129AgentHeader();
         }
 
         private void UpdateD129SupraUi()
@@ -3929,7 +3950,11 @@ namespace SupraInventoryRelayAgent
             if (_listenCts != null) return;
             StartLeaderCoordination();
             _listenCts = new CancellationTokenSource();
-            Ui(() => { _listen.Text = "Dừng nghe"; _relay.Text = "Relay: đang kết nối Firestore..."; });
+            Ui(() =>
+            {
+                _listen.Text = "Dừng nghe";
+                SetRelayTransportState("đang kết nối Firestore...");
+            });
             var token = _listenCts.Token;
             Task.Run(() =>
             {
@@ -3955,9 +3980,10 @@ namespace SupraInventoryRelayAgent
                                 Interlocked.Increment(ref _localAgentResponses);
                                 Ui(() => RefreshAgentRequestMetrics());
                             },
-                            state => Ui(() => _relay.Text = state),
+                            state => SetRelayTransportState(state),
                             ProcessFirestoreConfirmations,
                             (items, reason) => Ui(() => ApplyEventDrivenPickerPresence(items, reason)),
+                            work => Ui(() => ApplyPickerRequestActivity(work)),
                             _leaderCoordinator,
                             IsBusinessAllowed,
                             HasActivePdaForRelay,
@@ -4008,7 +4034,12 @@ namespace SupraInventoryRelayAgent
             try { if (cts != null) cts.Cancel(); } catch { }
             try { if (cts != null) cts.Dispose(); } catch { }
             StopLeaderCoordination();
-            Ui(() => { _listen.Text = "Nghe relay"; if (_allowExit) return; _relay.Text = "Relay: đã dừng"; });
+            Ui(() =>
+            {
+                _listen.Text = "Nghe relay";
+                if (_allowExit) return;
+                SetRelayTransportState("đã dừng");
+            });
         }
 
         private void EnsureFreshToken()
