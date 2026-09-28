@@ -1,4 +1,7 @@
+import { getServiceAccountAccessToken } from "./hr-source";
+
 interface RuntimeLogsEnv {
+  GOOGLE_RUNTIME_SA_JSON?: string;
   GOOGLE_DRIVE_OAUTH_CLIENT_ID?: string;
   GOOGLE_DRIVE_OAUTH_CLIENT_SECRET?: string;
   GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN?: string;
@@ -120,25 +123,42 @@ function vietnamStamp(input?: string): string {
   return `${pick("year")}${pick("month")}${pick("day")}_${pick("hour")}${pick("minute")}${pick("second")}`;
 }
 
+const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive";
+
 async function refreshGoogleAccessToken(env: RuntimeLogsEnv): Promise<string> {
-  if (!env.GOOGLE_DRIVE_OAUTH_CLIENT_ID || !env.GOOGLE_DRIVE_OAUTH_CLIENT_SECRET || !env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN) {
-    throw new Error("LOGS_OAUTH_NOT_CONFIGURED");
+  let oauthFailure = "LOGS_OAUTH_NOT_CONFIGURED";
+  if (env.GOOGLE_DRIVE_OAUTH_CLIENT_ID && env.GOOGLE_DRIVE_OAUTH_CLIENT_SECRET && env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN) {
+    try {
+      const response = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          client_id: env.GOOGLE_DRIVE_OAUTH_CLIENT_ID,
+          client_secret: env.GOOGLE_DRIVE_OAUTH_CLIENT_SECRET,
+          refresh_token: env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN,
+          grant_type: "refresh_token",
+        }),
+      });
+      const payload = (await response.json()) as { access_token?: string; error?: string; error_description?: string };
+      if (response.ok && payload.access_token) return payload.access_token;
+      oauthFailure = `LOGS_OAUTH_FAILED:${payload.error_description || payload.error || response.status}`;
+    } catch {
+      oauthFailure = "LOGS_OAUTH_FAILED:token_endpoint_unreachable";
+    }
   }
-  const response = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: env.GOOGLE_DRIVE_OAUTH_CLIENT_ID,
-      client_secret: env.GOOGLE_DRIVE_OAUTH_CLIENT_SECRET,
-      refresh_token: env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN,
-      grant_type: "refresh_token",
-    }),
-  });
-  const payload = (await response.json()) as { access_token?: string; error?: string; error_description?: string };
-  if (!response.ok || !payload.access_token) {
-    throw new Error(`LOGS_OAUTH_FAILED:${payload.error_description || payload.error || response.status}`);
+
+  // D144: runtime logs must not become unreadable only because the user OAuth
+  // refresh token was revoked. Reuse the existing Beta runtime service account
+  // as a least-privilege fallback when the scoped Logs folder is shared to it.
+  if (env.GOOGLE_RUNTIME_SA_JSON) {
+    try {
+      return (await getServiceAccountAccessToken(env.GOOGLE_RUNTIME_SA_JSON, DRIVE_SCOPE)).accessToken;
+    } catch (error) {
+      const fallback = error instanceof Error ? error.message.slice(0, 160) : "service_account_failed";
+      throw new Error(`LOGS_AUTH_FAILED:${oauthFailure};SERVICE_ACCOUNT:${fallback}`);
+    }
   }
-  return payload.access_token;
+  throw new Error(oauthFailure);
 }
 
 function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
