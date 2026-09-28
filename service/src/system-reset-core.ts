@@ -66,6 +66,7 @@ function resetPreview(state: DurableObjectState): Record<string, number> {
     history_events: count(state, "SELECT COUNT(*) AS n FROM report_events"),
     audit_log: count(state, "SELECT COUNT(*) AS n FROM audit_log"),
     notification_delivery_attempts: count(state, "SELECT COUNT(*) AS n FROM notification_delivery_attempts"),
+    runtime_log_buffer: count(state, "SELECT COUNT(*) AS n FROM runtime_log_buffer"),
     fcm_devices: count(state, "SELECT COUNT(*) AS n FROM fcm_devices"),
     presence_sessions: count(state, "SELECT COUNT(*) AS n FROM presence_sessions"),
     app_config: count(state, "SELECT COUNT(*) AS n FROM app_config WHERE key <> 'realtime_stream_epoch_v1'"),
@@ -130,6 +131,7 @@ function executeReset(state: DurableObjectState, scopes: SystemResetScope[]): Re
     if (selected.has("SERVICE_LOGS")) {
       state.storage.sql.exec("DELETE FROM audit_log");
       state.storage.sql.exec("DELETE FROM notification_delivery_attempts");
+      state.storage.sql.exec("DELETE FROM runtime_log_buffer");
     }
 
     if (selected.has("SESSIONS_DEVICES")) {
