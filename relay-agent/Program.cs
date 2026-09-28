@@ -585,11 +585,12 @@ namespace SupraInventoryRelayAgent
             _pair.SetBounds(545, 135, 105, 28); _pair.Text = "Đăng nhập"; _pair.Click += (s, e) => Task.Run(() => PairLogin()); Controls.Add(_pair);
             _logout.Text = "Đăng xuất"; _logout.Enabled = false; _logout.Click += (s, e) =>
             {
-                if (MessageBox.Show(
-                    "Đăng xuất Agent sẽ dừng xử lý trên máy này và xóa phiên Agent đã lưu cục bộ. Đăng nhập Supra trong trình duyệt được quản lý riêng bởi trình duyệt.\r\n\r\nTiếp tục đăng xuất?",
-                    "Xác nhận đăng xuất Agent",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Warning) != DialogResult.Yes) return;
+                if (!VerifyCurrentAgentPasswordForAction(
+                    "Đăng xuất Agent",
+                    "Nhập mật khẩu Agent hiện tại để đăng xuất và xóa phiên Agent đã lưu trên máy này.",
+                    "Đăng xuất",
+                    "Mật khẩu Agent không đúng. Phiên Agent vẫn được giữ nguyên."))
+                    return;
                 Task.Run(() => LogoutAgent());
             };
 
@@ -666,6 +667,7 @@ namespace SupraInventoryRelayAgent
                 }
                 if (e.CloseReason == CloseReason.WindowsShutDown) AgentRuntimeGuard.MarkPlannedExit();
                 StopListening();
+                StopD134AgentSync();
                 StopLeaderCoordination();
                 _trayMonitorTimer.Stop();
                 _logUploadTimer.Stop();
@@ -1972,16 +1974,18 @@ namespace SupraInventoryRelayAgent
             if (session == null)
             {
                 _agentCardTitle.Text = "Hệ thống Agent | Chưa đăng nhập";
+                _agentCardTitle.ForeColor = Color.FromArgb(180, 76, 60);
                 _relay.Text = "Chế độ nhận tin từ PDA: Chưa đăng nhập | Relay: " +
                     (string.IsNullOrWhiteSpace(_relayTransportState) ? "chưa có trạng thái" : _relayTransportState) +
                     " | Wi-Fi hiện tại: " + _currentWifiName;
                 return;
             }
 
-            var user = string.IsNullOrWhiteSpace(session.LoginName) ? session.AppUserId : session.LoginName;
+            var user = DisplayAgentUsername(session);
             _agentCardTitle.Text =
-                "Hệ thống Agent | Sẵn sàng | " + (string.IsNullOrWhiteSpace(user) ? "--" : user) +
+                "Hệ thống Agent | Sẵn sàng | " + user +
                 " | " + AgentRoleLabel(session.Role);
+            _agentCardTitle.ForeColor = Color.FromArgb(35, 122, 76);
 
             string relayMode;
             var coordinator = _leaderCoordinator;
@@ -2047,17 +2051,32 @@ namespace SupraInventoryRelayAgent
             var hidden = state == null ? _supraBrowserHidden : state.Hidden;
 
             if (!authenticated || !active)
+            {
                 _supraCardTitle.Text = "Đăng nhập Supra | Chưa sẵn sàng";
+                _supraCardTitle.ForeColor = Color.FromArgb(180, 76, 60);
+            }
             else if (ready)
+            {
                 _supraCardTitle.Text = "Đăng nhập Supra | Sẵn sàng | " + mode;
+                _supraCardTitle.ForeColor = Color.FromArgb(35, 122, 76);
+            }
             else if (loginRequired)
+            {
                 _supraCardTitle.Text = "Đăng nhập Supra | Cần đăng nhập | " + mode;
+                _supraCardTitle.ForeColor = Color.FromArgb(180, 76, 60);
+            }
             else if (string.Equals(browserState, "BROWSER_ERROR", StringComparison.Ordinal) ||
                      string.Equals(browserState, "DASHBOARD_ACCESS_FAILED", StringComparison.Ordinal) ||
                      string.Equals(browserState, "CONFIRM_RETRY_EXHAUSTED", StringComparison.Ordinal))
+            {
                 _supraCardTitle.Text = "Đăng nhập Supra | Lỗi " + mode;
+                _supraCardTitle.ForeColor = Color.FromArgb(180, 76, 60);
+            }
             else
+            {
                 _supraCardTitle.Text = "Đăng nhập Supra | Đang chuẩn bị | " + mode;
+                _supraCardTitle.ForeColor = Color.FromArgb(88, 104, 115);
+            }
 
             _wmsStatus.Text = active ? BrowserStateLabel(browserState) : "Chưa mở Web Confirm";
             _wmsStatus.ForeColor = ready
@@ -2114,7 +2133,7 @@ namespace SupraInventoryRelayAgent
                 : "Xử lý PickList | Chưa sẵn sàng";
             _picklistCardTitle.ForeColor = ready
                 ? Color.FromArgb(35, 122, 76)
-                : Color.FromArgb(24, 43, 55);
+                : Color.FromArgb(180, 76, 60);
             _manualPicklistQuery.Enabled = ready;
             List<string> parsed;
             var valid = TryParseManualPicklistQueries(_manualPicklistQuery.Text, out parsed);
@@ -2123,17 +2142,23 @@ namespace SupraInventoryRelayAgent
             UpdateManualConfirmAllVisibility();
         }
 
-        private bool VerifyCurrentAgentPasswordForBrowserAction(string title, string message, string confirmText)
+        private bool VerifyCurrentAgentPasswordForAction(
+            string title,
+            string message,
+            string confirmText,
+            string invalidPasswordMessage)
         {
             if (InvokeRequired)
-                return (bool)Invoke(new Func<string, string, string, bool>(VerifyCurrentAgentPasswordForBrowserAction), title, message, confirmText);
+                return (bool)Invoke(new Func<string, string, string, string, bool>(
+                    VerifyCurrentAgentPasswordForAction),
+                    title, message, confirmText, invalidPasswordMessage);
 
             AgentSession session = null;
             try { session = SnapshotSession(); } catch { }
             if (session == null || string.IsNullOrWhiteSpace(session.AppUserId)) return false;
 
             using (var dialog = new AgentPasswordVerificationDialog(
-                string.IsNullOrWhiteSpace(session.LoginName) ? session.AppUserId : session.LoginName,
+                DisplayAgentUsername(session),
                 title,
                 message,
                 confirmText))
@@ -2144,14 +2169,23 @@ namespace SupraInventoryRelayAgent
                 {
                     if (ExitAuthorization.Verify(ExitVerifierFile, session.AppUserId, password)) return true;
                     MessageBox.Show(
-                        "Mật khẩu Agent không đúng. Web hiện tại vẫn được giữ nguyên.",
-                        "Không thể thay đổi Web",
+                        invalidPasswordMessage,
+                        title,
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
                     return false;
                 }
                 finally { password = null; }
             }
+        }
+
+        private bool VerifyCurrentAgentPasswordForBrowserAction(string title, string message, string confirmText)
+        {
+            return VerifyCurrentAgentPasswordForAction(
+                title,
+                message,
+                confirmText,
+                "Mật khẩu Agent không đúng. Web hiện tại vẫn được giữ nguyên.");
         }
 
         private static string BrowserStateLabel(string state)
@@ -2521,6 +2555,7 @@ namespace SupraInventoryRelayAgent
             try
             {
                 AgentRuntimeGuard.EnsureWatchdog();
+                StartD134AgentSync();
                 QueueD128BrowserStateRefresh();
                 ReconcileOperationalReadiness();
                 Ui(() => _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser());
@@ -2736,6 +2771,12 @@ namespace SupraInventoryRelayAgent
             try
             {
                 if (_supraBrowser == null || !_supraBrowser.HasActiveBrowser()) return;
+                var action = _supraBrowserHidden ? "Hiện Web Confirm" : "Chuyển Web chạy nền";
+                if (!VerifyCurrentAgentPasswordForBrowserAction(
+                    action,
+                    "Nhập mật khẩu Agent hiện tại để " + action.ToLowerInvariant() + ".",
+                    action))
+                    return;
                 if (_supraBrowserHidden) _supraBrowser.Show();
                 else _supraBrowser.Hide();
                 RefreshSupraBrowserStatus();
@@ -3159,6 +3200,7 @@ namespace SupraInventoryRelayAgent
             AgentSession releasing = null;
             try { releasing = SnapshotSession(); } catch { }
             try { StopListening(); } catch { }
+            try { StopD134AgentSync(); } catch { }
             try { if (releasing != null) _agentSessionGate.Release(releasing, _agentInstanceId); } catch { }
             lock (_sessionLock) _session = null;
             ClearStoredSession();
@@ -4093,8 +4135,9 @@ namespace SupraInventoryRelayAgent
         {
             if (!HasAgentSession()) return;
             try { StopListening(); } catch { }
+            try { StopD134AgentSync(); } catch { }
             lock (_sessionLock) _session = null;
-ClearStoredSession();
+            ClearStoredSession();
             try { if (File.Exists(ExitVerifierFile)) File.Delete(ExitVerifierFile); } catch { }
             Ui(() =>
             {
@@ -4177,13 +4220,24 @@ ClearStoredSession();
             }
         }
 
+        private static string DisplayAgentUsername(AgentSession session)
+        {
+            if (session == null) return "--";
+            var value = string.IsNullOrWhiteSpace(session.LoginName)
+                ? (session.AppUserId ?? "")
+                : session.LoginName;
+            value = (value ?? "").Trim();
+            var colon = value.LastIndexOf(':');
+            if (colon >= 0 && colon < value.Length - 1) value = value.Substring(colon + 1);
+            return string.IsNullOrWhiteSpace(value) ? "--" : value;
+        }
+
         private string CurrentSessionUser()
         {
             lock (_sessionLock)
             {
                 if (_session == null) return "chưa đăng nhập";
-                var appUser = string.IsNullOrWhiteSpace(_session.AppUserId) ? "user?" : _session.AppUserId;
-                return AgentRoleLabel(_session.Role) + " " + appUser + " / device:" + Short(_agentInstanceId);
+                return DisplayAgentUsername(_session);
             }
         }
 
