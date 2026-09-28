@@ -548,6 +548,17 @@ jobs:
             throw "Agent startup smoke failed with exit code $($smoke.ExitCode)."
           }
           Write-Host "Agent startup smoke PASS"
+
+          $grpcSmoke = Start-Process -FilePath $exe -ArgumentList "--d134-grpc-native-self-test" -PassThru
+          if (-not $grpcSmoke.WaitForExit(15000)) {
+            try { $grpcSmoke.Kill() } catch {}
+            throw "D134 packaged gRPC native smoke timed out."
+          }
+          if ($grpcSmoke.ExitCode -ne 0) {
+            throw "D134 packaged gRPC native smoke failed with exit code $($grpcSmoke.ExitCode)."
+          }
+          Write-Host "D134 packaged gRPC native smoke PASS"
+
           New-Item -ItemType Directory -Force -Path relay-agent/dist | Out-Null
           $primary = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe"
           $legacy = "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe"
