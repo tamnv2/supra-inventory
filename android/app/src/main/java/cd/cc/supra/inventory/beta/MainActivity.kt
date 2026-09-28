@@ -707,7 +707,7 @@ class MainActivity : Activity() {
             .setTitle("Log hỗ trợ")
             .setView(scroll)
             .setNegativeButton("Đóng", null)
-            .setNeutralButton("Gửi log") { _, _ ->
+            .setNeutralButton("Gửi lên Drive") { _, _ ->
                 sendAndroidRuntimeLog("INFO", "manual_android_log", JSONObject(payload), showResult = true)
                 Toast.makeText(this, "Đang gửi log...", Toast.LENGTH_SHORT).show()
             }
@@ -852,7 +852,7 @@ class MainActivity : Activity() {
                     val message = when {
                         !result.accepted -> "Không gửi được log: ${result.error.ifBlank { "không xác định" }}"
                         result.archiveStatus == "DRIVE_SYNCED" -> "Đã gửi log và lưu Google Drive."
-                        else -> "Đã lưu log hệ thống; Drive đang chờ đồng bộ."
+                        else -> "Đã lưu log hệ thống; Drive sẽ tự tiếp tục gửi."
                     }
                     Toast.makeText(this, message, Toast.LENGTH_LONG).show()
                 }
