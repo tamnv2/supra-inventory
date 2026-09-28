@@ -146,6 +146,8 @@ namespace SupraInventoryRelayAgent
                 if (fields == null) continue;
                 var target = FieldString(fields, "target_user_id");
                 var alertId = FieldString(fields, "alert_id");
+                var commandType = FieldString(fields, "command_type");
+                if (string.Equals(commandType, "CHAT_MESSAGE", StringComparison.Ordinal)) continue;
                 var expiresAt = FieldLong(fields, "expires_at_ms");
                 if (string.IsNullOrWhiteSpace(target) || string.IsNullOrWhiteSpace(alertId)) continue;
                 if (expiresAt > 0 && expiresAt <= DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()) continue;
@@ -154,7 +156,7 @@ namespace SupraInventoryRelayAgent
                 {
                     AlertId = alertId,
                     TargetUserId = target,
-                    CommandType = FieldString(fields, "command_type"),
+                    CommandType = commandType,
                     Message = FieldString(fields, "message"),
                     SenderAgentId = FieldString(fields, "sender_agent_id"),
                     SenderRole = "",
@@ -168,7 +170,8 @@ namespace SupraInventoryRelayAgent
             AgentSession session,
             string agentInstanceId,
             PickerPresenceView picker,
-            string commandType)
+            string commandType,
+            string message = "")
         {
             EnsureSession(session);
             if (picker == null || string.IsNullOrWhiteSpace(picker.UserId))
@@ -180,6 +183,8 @@ namespace SupraInventoryRelayAgent
                 return SendActiveCall(session, agentInstanceId, picker);
             if (string.Equals(commandType, "BRING_TO_PACK", StringComparison.Ordinal))
                 return SendLegacyPack(session, agentInstanceId, picker);
+            if (string.Equals(commandType, "CHAT_MESSAGE", StringComparison.Ordinal))
+                return SendChatMessage(session, agentInstanceId, picker, message);
             throw new InvalidOperationException("Loại yêu cầu Picker không hợp lệ.");
         }
 
@@ -266,6 +271,56 @@ namespace SupraInventoryRelayAgent
                     throw new InvalidOperationException("Trạng thái Liên hệ picker vừa thay đổi trên Agent khác. Vui lòng thử lại.");
                 throw;
             }
+        }
+
+        private PickerContactCommand SendChatMessage(
+            AgentSession session,
+            string agentInstanceId,
+            PickerPresenceView picker,
+            string requestedMessage)
+        {
+            var message = (requestedMessage ?? "").Trim();
+            if (message.Length == 0) throw new InvalidOperationException("Nội dung thông báo không được để trống.");
+            if (message.Length > 200) throw new InvalidOperationException("Nội dung thông báo tối đa 200 ký tự.");
+
+            var alertId = "alert-" + Guid.NewGuid().ToString("N");
+            var expiresAtMs = DateTimeOffset.UtcNow.AddMinutes(30).ToUnixTimeMilliseconds();
+            var fields = new Dictionary<string, object>
+            {
+                { "alert_id", StringField(alertId) },
+                { "target_user_id", StringField(picker.UserId) },
+                { "command_type", StringField("CHAT_MESSAGE") },
+                { "message", StringField(message) },
+                { "status", StringField("PENDING") },
+                { "source", StringField("AGENT_PICKER_CONTACT_V1") },
+                { "sender_user_id", StringField(session.AppUserId ?? "") },
+                { "sender_agent_id", StringField(agentInstanceId) },
+                { "expires_at_ms", IntField(expiresAtMs) }
+            };
+            var raw = FirestoreHttpTransport.SendJson(
+                "PATCH",
+                AgentConfig.FirestoreDocumentsBaseUrl.TrimEnd('/') +
+                    "/picker_alerts/" + Uri.EscapeDataString(alertId) +
+                    "?currentDocument.exists=false",
+                session.IdToken,
+                _json.Serialize(new Dictionary<string, object> { { "fields", fields } }),
+                UserAgent(),
+                10000,
+                false,
+                _log,
+                "picker-chat-create");
+            var written = _json.DeserializeObject(raw) as Dictionary<string, object>;
+            _log("PICKER_CHAT send=PASS target=" + Safe(picker.EmployeeCode) + " chars=" + message.Length);
+            return new PickerContactCommand
+            {
+                AlertId = alertId,
+                TargetUserId = picker.UserId,
+                CommandType = "CHAT_MESSAGE",
+                Message = message,
+                SenderAgentId = agentInstanceId,
+                UpdateTime = Get(written, "updateTime"),
+                IsActiveCall = false
+            };
         }
 
         private PickerContactCommand SendLegacyPack(
