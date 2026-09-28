@@ -421,33 +421,6 @@ async function activateInteractiveSession(
   };
 }
 
-async function requireAgentUsageUser(request: Request, env: Env): Promise<InternalUser> {
-  const token = readBearerToken(request);
-  if (!token) throw new Response(JSON.stringify({ error: "AUTH_REQUIRED" }), { status: 401, headers: { "content-type": "application/json" } });
-  let identity;
-  try {
-    identity = await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID);
-  } catch {
-    throw new Response(JSON.stringify({ error: "INVALID_AUTH_TOKEN" }), { status: 401, headers: { "content-type": "application/json" } });
-  }
-  const user = await getUserByFirebaseUid(env, identity.uid);
-  if (!user || user.status !== "ACTIVE") throw new Response(JSON.stringify({ error: "USER_NOT_ACTIVE" }), { status: 403, headers: { "content-type": "application/json" } });
-
-  // D133: the Windows Agent signs in directly through Firebase password auth.
-  // Those real ADMIN/PICKPACK_ADMIN tokens intentionally have role claims but no
-  // interactive WEB/ANDROID generation/channel claim. Accept only that legacy
-  // direct-Agent shape (or a future explicit AGENT channel); reject Web/Android.
-  if (identity.sessionChannel === "WEB" || identity.sessionChannel === "ANDROID") {
-    throw new Response(JSON.stringify({ error: "AGENT_SESSION_REQUIRED" }), { status: 401, headers: { "content-type": "application/json" } });
-  }
-  const realAdmin = user.role === "ADMIN" && user.base_role === "ADMIN";
-  const realPickPackAdmin = user.role === "PICKPACK_ADMIN" && user.base_role === "PICKPACK_ADMIN";
-  if (!realAdmin && !realPickPackAdmin) {
-    throw new Response(JSON.stringify({ error: "AGENT_ROLE_REQUIRED" }), { status: 403, headers: { "content-type": "application/json" } });
-  }
-  return user;
-}
-
 async function requireUser(request: Request, env: Env, roles?: AppRole[]): Promise<InternalUser> {
   const token = readBearerToken(request);
   if (!token) throw new Response(JSON.stringify({ error: "AUTH_REQUIRED" }), { status: 401, headers: { "content-type": "application/json" } });
