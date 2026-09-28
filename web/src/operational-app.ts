@@ -1010,7 +1010,10 @@ function navigateToSection(next: Section, historyMode: SectionHistoryMode = "pus
     return;
   }
   const started = performance.now();
-  if (activeSection === "sla") slaFormDirty = false;
+  if (activeSection === "sla") {
+    slaFormDirty = false;
+    slaDraftMode = null;
+  }
   activeSection = next;
   syncSectionHistory(next, historyMode);
   pickerSearchGeneration += 1;
@@ -4100,6 +4103,11 @@ window.addEventListener("offline", () => {
 });
 window.addEventListener("popstate", handleSectionHistoryNavigation);
 window.addEventListener("hashchange", handleSectionHistoryNavigation);
+window.addEventListener("pageshow", () => {
+  // D141: browsers may restore form controls on reload/back-forward navigation.
+  // Re-assert explicit SLA server/draft authority after page restoration.
+  requestAnimationFrame(() => syncSlaModeControlsFromState());
+});
 
 async function bootstrap(): Promise<void> {
   if (!hasSession()) { renderLogin(); return; }
