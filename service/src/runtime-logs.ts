@@ -1,5 +1,5 @@
 interface RuntimeLogsEnv {
-  INVENTORY_CORE: DurableObjectNamespace;
+  INVENTORY_CORE?: DurableObjectNamespace;
   GOOGLE_DRIVE_OAUTH_CLIENT_ID?: string;
   GOOGLE_DRIVE_OAUTH_CLIENT_SECRET?: string;
   GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN?: string;
@@ -122,6 +122,7 @@ function vietnamStamp(input?: string): string {
 }
 
 function core(env: RuntimeLogsEnv): DurableObjectStub {
+  if (!env.INVENTORY_CORE) throw new Error("LOGS_BUFFER_NOT_CONFIGURED");
   return env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName("inventory-core"));
 }
 
