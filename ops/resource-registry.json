@@ -1369,7 +1369,7 @@
     "android_sha256": "032d17f774592464101ed9711677f98117fddb17a2dcad53da3ea1feae6005f4"
   },
   "d132": {
-    "status": "OWNER_AUTHORIZED_IMPLEMENTATION__SOURCE_IN_PROGRESS",
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA058_FIELD_READY",
     "resource_change": "NONE__REUSES_EXISTING_BETA_WORKER_FIRESTORE_RELAY_AND_AGENT_LOCAL_STORAGE",
     "baseline_agent_release": "relay-agent-v71",
     "target_agent_release": "relay-agent-v72",
@@ -1379,6 +1379,22 @@
     "counter_guard": "PRESENCE_ACK_CONTROL__NO_DAILY_PICKLIST_COUNTER_INCREMENT",
     "local_preferences": "PER_AGENT_APP_USER_ID__GRID_WIDTHS__AUTO_SIZE_MODE__NORMAL_WINDOW_BOUNDS",
     "provider_change": "NONE",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "implementation_pr": 262,
+    "main_merge": "32411d15198331e8763f4d9a73288dd89524b65a",
+    "main_runs": {
+      "repo_authority": 36363752173,
+      "project_state": 36363752156,
+      "beta_worker": 36363752158,
+      "relay_agent": 36363752155,
+      "ui_design": 36363752204,
+      "dashboard_probe": 36363752172
+    },
+    "agent_release": "relay-agent-v72",
+    "agent_release_id": 397878131,
+    "agent_asset_id": 594118802,
+    "agent_size_bytes": 411136,
+    "agent_sha256": "3de3db7f21f838341bf0c5f66057924cb72727fefa623537f1955866fd44114d",
+    "field_acceptance": "READY__OA058_OWNER_FIELD_RETEST"
   }
 }

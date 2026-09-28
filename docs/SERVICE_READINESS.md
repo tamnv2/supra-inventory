@@ -7,8 +7,8 @@
 - Project: `supra-inventory`
 - SQLite schema: `12`
 - Latest signed Beta APK: `beta-vc78`
-- Current released Agent: `relay-agent-v71`
-- Beta: `D131_TECHNICAL_RUNTIME_RELEASE_PASS__OA056_FIELD_READY`
+- Current released Agent: `relay-agent-v72`
+- Beta: `D132_TECHNICAL_RUNTIME_RELEASE_PASS__OA058_FIELD_READY`
 - Web: `D120_RUNTIME_PASS_MAIN_43A94207__OWNER_FIELD_TEST_OK`
 - Android: `D131_SIGNED_BETA_VC78_TECHNICAL_RELEASE_PASS__OA056_FIELD_READY`
 - D089: **OWNER ACCEPTED PASS**
@@ -989,3 +989,13 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - D132 branch: `fix/d132-agent-presence-layout`; target Agent: `relay-agent-v72`.
 - Scope: stable combined receive-mode/Relay/Wi-Fi row; restore fixed single-slot event-driven Picker presence signal without business-counter pollution; PickList request zero-write activity refresh; visible Auto size cột button; per-Agent-account column widths and normal-window bounds.
 - No new provider/resource, no PDA heartbeat, no non-primary business-queue polling. Stable remains OWNER-GATED.
+
+
+## D132 release-state refresh — 2026-09-28
+
+- Main source: `32411d15198331e8763f4d9a73288dd89524b65a`.
+- Windows Agent: `relay-agent-v72`.
+- Android remains `beta-vc78`.
+- Beta Worker presence-signal repair: deployed PASS.
+- D132 technical/runtime/release: **PASS**; OA058 short Owner field retest is READY. D131 OA056 broader fleet/failover acceptance remains open.
+- Stable remains OWNER-GATED / untouched.
