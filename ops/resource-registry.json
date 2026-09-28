@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D144_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC85__AGENT_V82__OA071_FIELD_READY",
+      "status": "D146_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC86__AGENT_V83__FINAL_HOTFIX_MAIN_D7E0CB94",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -170,17 +170,17 @@
       "cloudflare_oauth_refresh_token_secret": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
       "oauth_refresh_token_configured": true,
       "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA",
-      "web_source_status": "D144_RUNTIME_PASS__INVENTORYCORE_LOG_BUFFER__SCHEMA14__OAUTH_NONBLOCKING",
+      "web_source_status": "D146_OWNER_FIELD_PASS__LOG_DRIVE_RETRY__SKU_PDA_PUSH__TRUE_ROOT_DELETE_GUARD",
       "web_admin_sku_excel_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
       "web_admin_report_monitoring": "D118_RUNTIME_PASS__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SELECTED_RANGE_FILTER",
-      "android_source_status": "D144_SIGNED_BETA_VC85__DIRECT_CHAT_AND_KICK_COMPAT__OA071_FIELD_READY",
+      "android_source_status": "D146_OWNER_FIELD_PASS__SIGNED_BETA_VC86__LIVE_SKU_REFRESH__06_12_18_21_LOGS",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
       "latest_signed_beta_release": "beta-vc85",
       "latest_signed_beta_release_name": "1291 Báo hàng Beta 0.2.0-beta.85",
       "latest_signed_beta_apk_sha256": "fdf561f67a65a0f99393b0c3fff6b5853adcd87c3b37bd624d04451493ce6466",
       "latest_signed_beta_apk_size_bytes": 19085892,
-      "auth_rbac_status": "D143_RUNTIME_PASS__ROOT_REVIEW_PICKPACK_ADMIN__ROOT_DELETE_MANAGED__PICKPACK_SHIFT",
+      "auth_rbac_status": "D146_OWNER_FIELD_PASS__TRUE_ROOT_MODE_ONLY_MANAGED_DELETE__PICKPACK_CANNOT_DELETE_ADMIN",
       "auth_api_route_smoke": "PASS",
       "root_bootstrap_path_smoke": "PASS",
       "hr_settings_ui_status": "CONFIGURABLE_URL_TAB_EMPLOYEE_AND_NAME_HEADERS_DEPLOYED_PASS",
@@ -191,13 +191,13 @@
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
       "relay_poc_status": "D125_PICKLIST_RELAY_RETIRED__FIRESTORE_REUSE_FOR_OFFICE_INVENTORY_BRIDGE",
-      "relay_agent_release": "relay-agent-v82",
+      "relay_agent_release": "relay-agent-v83",
       "firebase_rtdb_rules_deploy": "D087_PR_GATE_PASS_RUN_35495453228__MAIN_SOURCE_MERGED",
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D144_PASS_RUN_36477936028__SOURCE_2B2B5A62__SCHEMA14_14__AGENT_MIGRATION0_0__OPERATIONAL5_5",
-      "relay_agent_release_target": "relay-agent-v82__RELEASED",
-      "next_signed_beta_release_target": "NO_D144_ANDROID_RELEASE_PENDING__BETA_VC85_RELEASED",
-      "next_relay_agent_release_target": "NO_D144_AGENT_RELEASE_PENDING__V82_RELEASED",
+      "relay_agent_release_target": "relay-agent-v83__RELEASED",
+      "next_signed_beta_release_target": "NO_D146_ANDROID_RELEASE_PENDING__BETA_VC86_RELEASED",
+      "next_relay_agent_release_target": "NO_D146_AGENT_RELEASE_PENDING__V83_RELEASED",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
@@ -216,7 +216,8 @@
       "d143_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC84__AGENT_V81__OA069_FIELD_READY",
       "android_default_picker_password_secret": "ANDROID_PICKER_DEFAULT_PASSWORD",
       "android_default_picker_password_secret_status": "CONFIGURED_GITHUB_BETA_ENV__VALUE_NOT_RECORDED",
-      "d144_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC85__AGENT_V82__OA071_FIELD_READY"
+      "d144_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC85__AGENT_V82__OA071_FIELD_READY",
+      "d146_source_status": "OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC86__AGENT_V83__FINAL_FIRESTORE_HOTFIX_PASS"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -1691,17 +1692,19 @@
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d146": {
-    "status": "SOURCE_IMPLEMENTED__PENDING_PR_GATES",
+    "status": "OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC86__AGENT_V83__FINAL_FIRESTORE_HOTFIX_PASS",
     "date": "2026-09-29",
     "baseline_main": "b4d935f93b12f531e4a2cca424db45eb2011cd65",
     "branch": "feat/d146-runtime-log-sku-rbac-agent-input",
-    "google_oauth": "OWNER_CONFIRMED_IN_PRODUCTION__FRESH_REFRESH_TOKEN__NO_TESTING_7_DAY_EXPIRY__GMAIL_SEND_FIELD_PASS__DRIVE_RUNTIME_RETEST_IN_D146",
+    "google_oauth": "OWNER_CONFIRMED_IN_PRODUCTION__FRESH_REFRESH_TOKEN__NO_TESTING_7_DAY_EXPIRY__GMAIL_SEND_FIELD_PASS__DRIVE_RUNTIME_OWNER_ACCEPTED_D146",
     "logs": "WEB_ANDROID_CLOUDFLARE_INVENTORYCORE_THEN_DRIVE_WITH_RETRY__AGENT_GOOGLE_FIRST_FIRESTORE_FUNCTION_DRIVE_WITH_WORKER_SESSION_BROKER_AND_FALLBACK__06_12_18_21__ERROR_CRASH_IMMEDIATE__TYPED_FILENAMES",
     "sku_refresh": "WEB_IMPORT_REALTIME_EVENT_PLUS_SILENT_FCM__PDA_AUTO_SYNC_CACHE",
     "rbac": "TRUE_ROOT_MODE_ONLY_MANAGED_USER_DELETE__PICKPACK_EFFECTIVE_MODE_CANNOT_DELETE_ADMIN",
     "agent_input": "PASSWORD_AND_PROTECTED_BROWSER_ACTION_MODAL_TIMER_ISOLATION",
-    "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC85",
-    "target_agent_release": "relay-agent-v83",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "target_android_release": "beta-vc86__RELEASED",
+    "target_agent_release": "relay-agent-v83__RELEASED",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "final_main": "d7e0cb944b29ee7245053be64f5409be36e2b6c3",
+    "owner_field_result": "PASS__OWNER_CONFIRMED_D146_DONE_2026_09_29"
   }
 }
