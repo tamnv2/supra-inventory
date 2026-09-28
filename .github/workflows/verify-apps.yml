@@ -224,9 +224,10 @@ jobs:
           grep -q 'markSkuCatalogRefresh' "$signal"
           grep -q 'consumeSkuCatalogRefresh' "$signal"
           grep -q 'Đã gửi log và lưu Google Drive' "$main"
-          grep -q 'Drive đang chờ đồng bộ' "$main"
-          if grep -q 'setNeutralButton("Gửi lên Drive")' "$main"; then
-            echo "D146 Android manual log control must not claim Drive success before archive confirmation." >&2
+          grep -q 'Drive sẽ tự tiếp tục gửi' "$main"
+          grep -q 'setNeutralButton("Gửi log")' "$main"
+          if grep -q 'Drive đang chờ đồng bộ' "$main" || grep -q 'setNeutralButton("Gửi lên Drive")' "$main"; then
+            echo "D146 Android log UI must not imply Drive sync before archive confirmation." >&2
             exit 1
           fi
           echo "D146 Android log schedule / live SKU refresh guard PASS"
