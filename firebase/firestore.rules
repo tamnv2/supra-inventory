@@ -226,8 +226,8 @@ service cloud.firestore {
         || (isPicker() && request.auth.uid == firebaseUid);
       allow list: if false;
 
-      // D144 keeps one per-Picker control document for both session revocation
-      // and current chat delivery. Chat is display-only: no Picker ACK write.
+      // D144: one per-Picker control document carries session revocation plus
+      // current direct chat delivery. Picker remains read-only and sends no chat ACK.
       allow create: if isPickerContactOperator()
         && request.resource.data.keys().hasOnly([
           'firebase_uid', 'user_id',
