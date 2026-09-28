@@ -1776,3 +1776,20 @@ OA068 physical acceptance after signed release:
 - Kích User removes the Picker from Agent state and revokes the Worker-authoritative Android session. Supported builds receive the Firestore revocation immediately; older command-capable APKs receive a best-effort re-login alert before their notification target is disabled. Previous business requests from the revoked generation are rejected until a fresh login.
 - An arbitrary older APK that never implemented any compatible revocation/command receiver may keep its stale local screen while idle; this must never restore server business authority.
 - D140 quota/listener protections, D142 critical-alert readiness and Stable OWNER-GATED behavior remain unchanged.
+## D145 — OAuth public-page acceptance
+
+### Automated/source gates
+- Worker exposes unauthenticated GET/HEAD for `/about`, `/privacy` and `/terms`; trailing-slash variants resolve to the same public content.
+- All three pages identify **SUPRA Inventory Beta** and cross-link the public policy surfaces.
+- About contains the exact approved scopes `https://www.googleapis.com/auth/drive.file` and `https://www.googleapis.com/auth/gmail.send` plus their user-facing purposes.
+- Privacy states access/use/storage/sharing boundaries, revocation, Google API Services User Data Policy and Limited Use; it does not claim Gmail inbox-read capability.
+- Web login/password-reset/authenticated footer contains public links to About, Privacy and Terms.
+- Service typecheck, Web build, authority/continuity guards and public-repository secret guard pass.
+- Stable remains untouched and no new provider resource is introduced.
+
+### Beta runtime gate
+- `https://inventory-beta.supra.cc.cd/about`, `/privacy` and `/terms` each return HTTP 200 without authentication.
+- About runtime HTML contains the exact `drive.file` and `gmail.send` scope strings.
+- Privacy runtime HTML contains the Google API Services User Data Policy and Limited Use disclosure.
+- Existing `/health`, Web login, API routing and D144 business/runtime behavior remain available after the deploy.
+- Only after this runtime gate passes may OA073 move to READY for the Owner's Google Auth Platform publish/re-consent and protected refresh-token replacement.
