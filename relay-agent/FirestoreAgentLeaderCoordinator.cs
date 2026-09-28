@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 using System.Web.Script.Serialization;
 
 namespace SupraInventoryRelayAgent
@@ -142,6 +143,23 @@ namespace SupraInventoryRelayAgent
                     return new List<AgentPresenceView>(_onlineAgents);
                 }
             }
+        }
+
+        internal void ApplySyncedFleet(IEnumerable<AgentPresenceView> fleet)
+        {
+            var views = new List<AgentPresenceView>();
+            foreach (var item in fleet ?? new AgentPresenceView[0])
+            {
+                if (item == null || string.IsNullOrWhiteSpace(item.AgentInstanceId)) continue;
+                views.Add(item);
+                if (views.Count >= FirestoreAgentSyncClient.MaxAgents) break;
+            }
+            lock (_stateGate) _onlineAgents = views;
+            _onlineAgentCount = views.Count;
+            _onlinePrimaryCount = views.Count(x => string.Equals(x.Role, "PRIMARY", StringComparison.Ordinal));
+            _onlineStandbyCount = views.Count(x => string.Equals(x.Role, "NEXT_A", StringComparison.Ordinal));
+            _onlineNextBCount = views.Count(x => string.Equals(x.Role, "NEXT_B", StringComparison.Ordinal));
+            _onlineFrozenCount = Math.Max(0, views.Count - _onlinePrimaryCount - _onlineStandbyCount - _onlineNextBCount);
         }
 
         internal string CurrentLeaderId
@@ -906,6 +924,9 @@ namespace SupraInventoryRelayAgent
                 if (rank != 0) return rank;
                 return string.Compare(a.Machine ?? "", b.Machine ?? "", StringComparison.OrdinalIgnoreCase);
             });
+
+            if (views.Count > FirestoreAgentSyncClient.MaxAgents)
+                views.RemoveRange(FirestoreAgentSyncClient.MaxAgents, views.Count - FirestoreAgentSyncClient.MaxAgents);
 
             var primaryCount = !string.IsNullOrWhiteSpace(primary) && freshIds.Contains(primary) ? 1 : 0;
             var standbyCount = !string.IsNullOrWhiteSpace(standby) && freshIds.Contains(standby) ? 1 : 0;
