@@ -1694,3 +1694,27 @@ In addition to the D137 UI checks:
    - PASS: reads track actual listener events/bounded reconciliation rather than thousands of reconnect attempts per hour.
 9. Stable remains untouched.
 
+
+
+### D141 — SLA end-to-end persistence and false-success prevention
+
+1. Open Beta Web **Thời gian xử lý** and press F5.
+   - PASS: selected Deadline radio equals **Đang áp dụng**.
+2. Change the radio from the current server mode to `FIRST_REPORT`.
+   - PASS: **Đang áp dụng** remains the current server mode.
+   - PASS: **Thay đổi chưa lưu: Theo báo đầu tiên của SKU** is visible.
+3. Save once while normal realtime/network activity is present.
+   - PASS: the Save action is not silently discarded by the generic busy state.
+   - PASS: the button shows `Đang lưu…` during the dedicated single-flight mutation.
+4. Server mutation:
+   - PASS: request carries a correlation id and expected policy version.
+   - PASS: SQLite is read back after the write using the same SLA parser used by GET.
+   - PASS: all persisted policy fields, `auto_skip_mode` and the incremented policy version match the requested write before HTTP success.
+5. Web verification:
+   - PASS: the save response contains `sqlite_readback=PASS`, matching request id/mode/version.
+   - PASS: a fresh `cache: no-store` GET returns the same mode/version.
+   - PASS: success notice names the committed mode and version.
+6. Press F5 again.
+   - PASS: radio and **Đang áp dụng** both remain `FIRST_REPORT`.
+7. Negative cases: stale version, network failure, readback mismatch or a second concurrent save.
+   - PASS: no false success; requested/current server modes remain diagnosable and Stable is untouched.
