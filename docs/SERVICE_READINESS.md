@@ -1306,3 +1306,11 @@ Status: **OWNER FIELD PASS**.
 - Managed-user deletion: effective ROOT + base ROOT required at UI/API/Core.
 - Agent protected password/browser-action inputs: periodic UI timer isolation and focus guard.
 - Status: source implemented; PR/runtime/release evidence pending. Stable remains OWNER-GATED and untouched.
+
+
+## D146 source candidate
+
+- Web: `D146_SOURCE_CANDIDATE__LOG_DRIVE_RETRY__SKU_PDA_PUSH__TRUE_ROOT_DELETE_GUARD`
+- Android: `D146_SOURCE_CANDIDATE__NEXT_AFTER_VC85__LIVE_SKU_REFRESH__06_12_18_21_LOGS`
+- Latest Beta APK: `beta-vc85`
+- SQLite schema: `14`
