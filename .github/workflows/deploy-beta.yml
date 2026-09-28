@@ -63,6 +63,18 @@ jobs:
         working-directory: service
         run: npm run typecheck
 
+      - name: D146 source contract guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'retryBufferedRuntimeLogArchives' service/src/runtime-logs.ts
+          grep -q 'pending-drive' service/src/runtime-logs-core.ts
+          grep -q 'agent-log-upload-session' service/src/internal-d119.ts
+          grep -q 'sku_catalog_updated' service/src/business-api.ts
+          grep -q 'profile?.base_role === "ROOT"' web/src/operational-app.ts
+          grep -q 'actor.base_role !== "ROOT"' service/src/user-management-core.ts
+          grep -q 'hour >= 21 ? 21' web/src/runtime-logger.ts
+          echo "D146 source contract PASS"
       - name: Cloudflare token preflight
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
