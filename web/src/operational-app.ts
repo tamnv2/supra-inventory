@@ -2794,7 +2794,7 @@ async function saveSlaConfiguration(form: HTMLFormElement): Promise<void> {
       verification.sqlite_readback === "PASS" &&
       verification.requested_mode === requestedMode &&
       verification.persisted_mode === requestedMode &&
-      Number(verification.expected_policy_version || 0) === savedVersion &&
+      Number(verification.base_policy_version || 0) === expectedPolicyVersion &&
       Number(verification.persisted_policy_version || 0) === savedVersion &&
       savedMode === requestedMode &&
       savedVersion > expectedPolicyVersion
