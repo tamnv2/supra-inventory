@@ -1232,6 +1232,7 @@ Status: **OWNER FIELD PASS**.
 - Web marker: `D143_RUNTIME_PASS__MAIN_96E38CA8__SCHEMA13__RBAC_DATE_AUDIT_REFINEMENTS`.
 - Agent main run `36463932863` PASS and prerelease `relay-agent-v81` is published.
 - Main Authority, State, UI, Dashboard, Firestore and Functions gates PASS.
+- Android marker: `D143_SOURCE_AND_PR_GATES_PASS__SIGNED_BETA_RELEASE_BLOCKED_MISSING_GITHUB_BETA_DEFAULT_PASSWORD_SECRET__BASELINE_BETA_VC83`.
 - Signed Android source/PR gates passed, but main Android release run `36463932866` failed closed before build because GitHub Beta environment secret `ANDROID_PICKER_DEFAULT_PASSWORD` is not configured.
 - The password is intentionally not committed to this public repository. OA070 is the single Owner-only setup action; OA069 field acceptance remains blocked until the next signed Beta Android release is published.
 - Latest signed Android therefore remains `beta-vc83`.
