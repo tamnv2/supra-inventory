@@ -629,7 +629,10 @@ namespace SupraInventoryRelayAgent
                 AgentLogUploadCheckpointFile,
                 message => Log(message));
             AgentDiagnostics.CrashUploadCallback = crashType => _agentLogBridge.TryQueueCrashSnapshot(crashType);
-            AgentDiagnostics.ErrorUploadCallback = errorType => _agentLogBridge.TryQueueErrorSnapshot(errorType);
+            AgentDiagnostics.ErrorUploadCallback = errorType =>
+            {
+                Task.Run(() => _agentLogBridge.TryQueueErrorSnapshot(errorType));
+            };
             Text = "SUPRA Inventory - Relay Test v" + AgentConfig.AgentBuild;
             Width = 780;
             Height = 680;
