@@ -431,10 +431,13 @@ namespace SupraInventoryRelayAgent
                     CaptureCurrentNormalWindowBounds(true);
                     SaveColumnPreferencesForCurrentUser();
                 }
-                if (!_autoSizeColumnsEnabled) return;
-                ApplyColumnSizingIfEnabled(_agentFleetGrid);
-                ApplyColumnSizingIfEnabled(_pickerOnlineGrid);
-                ApplyColumnSizingIfEnabled(_manualPicklistGrid);
+                if (_autoSizeColumnsEnabled)
+                {
+                    ApplyColumnSizingIfEnabled(_agentFleetGrid);
+                    ApplyColumnSizingIfEnabled(_pickerOnlineGrid);
+                    ApplyColumnSizingIfEnabled(_manualPicklistGrid);
+                }
+                ApplyManualPicklistCriticalLayout(_autoSizeColumnsEnabled);
             };
             Move += (s, e) =>
             {
@@ -527,6 +530,7 @@ namespace SupraInventoryRelayAgent
                     RestoreGridWidths(_agentFleetGrid, profile.Agent);
                     RestoreGridWidths(_pickerOnlineGrid, profile.Picker);
                     RestoreGridWidths(_manualPicklistGrid, profile.PickList);
+                    ApplyManualPicklistCriticalLayout(false);
                 }
             }
             finally
@@ -627,6 +631,7 @@ namespace SupraInventoryRelayAgent
                         column.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
                 }
             }
+            ApplyManualPicklistCriticalLayout(_autoSizeColumnsEnabled);
         }
 
         private void ApplyColumnSizingIfEnabled(DataGridView grid)
@@ -638,6 +643,11 @@ namespace SupraInventoryRelayAgent
                 return;
             }
             if (!_autoSizeColumnsEnabled || grid.Columns.Count == 0) return;
+            if (ReferenceEquals(grid, _manualPicklistGrid))
+            {
+                ApplyManualPicklistCriticalLayout(true);
+                return;
+            }
             _columnPreferenceApplying = true;
             try
             {
