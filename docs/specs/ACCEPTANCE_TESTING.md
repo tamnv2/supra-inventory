@@ -1550,3 +1550,15 @@ D131 implementation is not technical PASS until all applicable checks pass:
 4. Only the originating Agent can end the active call. After that Agent resolves it, FCM provides the fast close signal and the Picker snapshot listener also converges to closed state.
 5. Usage tab reads provider metrics through the authenticated Beta service gateway at no faster than the configured cache cadence except explicit refresh. No Google/Cloudflare credential is persisted in Agent.
 6. If provider Monitoring permission is unavailable, the Usage tab must state that provider usage is unavailable; it must not scan Firestore documents to estimate provider usage.
+
+
+### D132 Agent presence/status/layout acceptance
+
+1. Leave Agent running as PRIMARY and verify the Hệ thống Agent row does not blink between receive-mode text and Relay text; both remain visible on the same line while Relay state changes.
+2. Login one beta-vc78 Picker. The PRIMARY list must receive the event-driven snapshot without a new polling loop. Logout must remove that Picker (subject only to the explicitly allowed disconnect grace for unexpected socket loss; explicit LOGOUT is immediate).
+3. Submit a PickList from a Picker whose projection signal was delayed. The PRIMARY must immediately add/refresh that Picker from the request identity snapshot with `provider_write=false`.
+4. On a non-primary Agent, foreground the window after a Picker login/logout and verify one bounded projection refresh reconciles the list; repeated focus changes inside the local throttle do not create repeated reads.
+5. Toggle `Auto size cột: Tắt`, resize columns, switch away/reopen/re-authenticate the same Agent account and verify widths persist. Toggle ON and verify displayed-content sizing is restored.
+6. In normal window state, manually resize/move the Agent, maximize it, then restore. Verify the exact saved normal bounds return. Restart/re-authenticate with the same Agent account and verify the saved normal bounds remain available.
+7. Verify a different Agent account receives its own column/window profile rather than the previous account's profile.
+8. D131 PickList counters must not change when only Picker presence control events are processed. Stable remains untouched.
