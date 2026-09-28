@@ -739,7 +739,7 @@ If the reload returns to login, Dashboard, a partial DOM, or another page, exist
 ## D144 — Agent chat and Kích User repair
 
 ### Gửi nội dung chat
-1. Agent opens an editor that keeps keyboard focus and accepts 1–200 characters.
+1. Agent opens an editor that keeps keyboard focus and accepts 1–200 characters; periodic Agent UI refresh timers are paused for the modal and restored after it closes.
 2. Send writes the current message to the Picker session-control document and retains FCM only as a compatibility path.
 3. PDA displays the full-screen specialist message.
 4. Picker presses **Xác nhận** to dismiss locally. Chat has no Agent completion action.
@@ -747,5 +747,5 @@ If the reload returns to login, Dashboard, a partial DOM, or another page, exist
 ### Kích User
 1. Agent writes the Firestore session-control revocation.
 2. Agent also requests an authoritative Beta Worker Android-session revoke.
-3. Worker advances Android session generation, clears the Android device/presence state and closes Android realtime.
-4. Supported clients return to login immediately. Older clients without the revocation listener may keep a stale local screen while idle, but after server revocation their previous business session is invalid.
+3. Worker sends one best-effort backward-compatible re-login Picker command, then advances Android session generation, clears the Android device/presence state, disables the old notification target and closes Android realtime.
+4. Supported clients return to login immediately. Older command-capable clients may at least show the re-login alert; arbitrary older clients without a compatible listener may keep a stale local screen while idle, but after server revocation their previous business session is invalid.
