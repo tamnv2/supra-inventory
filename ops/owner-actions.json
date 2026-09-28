@@ -3074,7 +3074,7 @@
     },
     {
       "id": "OA062",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "PASS__OWNER_CONFIRMED",
       "title": "Field-accept D136 manual PickList UI, Usage retirement and Web background hide",
       "resource_key": "repo",
       "provider": "Beta Windows Agent + Beta Worker; Android beta-vc82 unchanged",
@@ -3120,7 +3120,49 @@
         "No new provider resource and Stable remains untouched."
       ],
       "safety": "Beta only. No new provider resource, no credential/session exposure, no direct WMS API path. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Update the Agent to relay-agent-v77; Android remains beta-vc82. Run the OA062 shortest field test path. Stable remains untouched.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-28",
+        "result": "PASS__OWNER_CONFIRMED_D136",
+        "evidence": "Owner explicitly confirmed D136 OK after updating to relay-agent-v77, then reported two separate D137 follow-up defects: the manual PickList result grid is clipped in the normal window, and first arrival at Confirm can have no data until a manual F5.",
+        "successor": "OA063_D137"
+      }
+    },
+    {
+      "id": "OA063",
+      "status": "BLOCKED_PENDING_D137_RELEASE",
+      "title": "Field-accept D137 normal-window PickList visibility and post-Confirm reload readiness",
+      "resource_key": "repo",
+      "provider": "Beta Windows Agent; Android beta-vc82 unchanged",
+      "reason_owner_only": "CI can prove the vertical layout/reload barriers and compile the Agent, but physical WinForms rendering at the Owner's normal window size and the real Supra first-arrival data hydration behavior require company-laptop field evidence.",
+      "prerequisites": {
+        "baseline_main": "6ce3424193edbc2f9ecc48f1d051bdfd2e305c63",
+        "baseline_agent_release": "relay-agent-v77",
+        "target_agent_release": "relay-agent-v78",
+        "android": "beta-vc82__UNCHANGED",
+        "implementation_branch": "fix/d137-picklist-height-confirm-refresh",
+        "new_provider_resources": "NONE",
+        "browser_host_build": "10__UNCHANGED",
+        "stable": "OWNER_GATED",
+        "technical_release": "PENDING_D137_PR_GATES_AND_RELEASE"
+      },
+      "shortest_test_path": [
+        "Update the test Agent to relay-agent-v78 after release; Android remains beta-vc82.",
+        "At the same normal/smaller window size from the reported screenshot, search a valid PickList. The grid itself must remain visible with PickList, Xác nhận and Trạng thái; maximize and restore and repeat.",
+        "Open Web Agent from logged-out state, login, and let Agent reach Confirm. Agent must perform one normal reload before declaring Web Confirm sẵn sàng; only then search a known PickList and verify real data is returned.",
+        "Repeat from an already-authenticated auth Dashboard path. The same one-reload-before-READY rule must apply and the known PickList must be searchable without manually pressing F5.",
+        "Verify no repeated reload loop occurs after READY and D136 security/confirmation guards remain intact."
+      ],
+      "pass_criteria": [
+        "Normal-window PickList result grid is not vertically clipped and at least one actionable result row is visible.",
+        "Maximize/restore/resizing preserves the operational PickList result surface and D136 critical columns.",
+        "Every first Confirm arrival is followed by exactly one normal browser reload before READY; search/confirm cannot run before the post-reload stable DOM gate.",
+        "Login and Dashboard recovery both reach post-reload READY without manual F5 or reload loops.",
+        "No new provider resource, no Network/cookie/token/session extraction, Android unchanged and Stable untouched."
+      ],
+      "safety": "Beta Agent only. No new provider resource, no credential/session exposure, no direct WMS API path, no DevTools Network domain. Stable remains OWNER-GATED.",
+      "remaining_owner_action": null,
       "closed": false
     }
   ]
