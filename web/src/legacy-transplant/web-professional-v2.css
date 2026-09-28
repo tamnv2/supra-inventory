@@ -1682,6 +1682,15 @@ body[data-theme="dark"] .sla-config-professional .sla-config-footer { background
   font-size:11px;
 }
 .sla-server-value strong { color:var(--pro-text); font-size:12px; }
+.sla-draft-value {
+  min-height:18px;
+  color:var(--pro-muted);
+  font-size:11px;
+  font-weight:650;
+}
+.sla-draft-value[data-pending="true"] {
+  color:var(--pro-primary);
+}
 .sla-config-error {
   margin:0 0 12px;
   padding:11px 13px;
