@@ -487,3 +487,15 @@ D126 supersedes D125 as the current Owner-approved implementation direction.
 - Both Báo hàng result full-screen paths are local-first: persist pending ACK, dismiss immediately, then acknowledge over the network. Logout, Kích User or lost connectivity must never trap the PDA behind a result screen.
 - Android Beta user-visible name becomes **1291 Báo hàng Beta**. Visible Agent identity is username-only; internal authorization/audit identity is retained.
 - Existing PickList 3–20 digit suffix taxonomy, anti-spam escalation, single-PRIMARY/guard fencing, D134 45k/day soft read target and Stable OWNER-GATE remain unchanged.
+
+## D135 release checkpoint — 2026-09-28
+
+D135 is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta.
+
+- PR #270 merged to `main` at `6d929e42fa2474712e0629a95bb5ac9cf59112bd`.
+- Released Windows Agent: `relay-agent-v76`.
+- Released signed Android: `beta-vc82`, visible product name **1291 Báo hàng Beta 0.2.0-beta.82**.
+- Main Repo Authority, Project State, UI Design, Beta Worker, Android, Relay Agent and Dashboard Probe gates PASS.
+- Beta runtime health proves exact source, SQLite `12/12`, Operational V2 `5/5`, Agent migration `0/0`.
+- OA061 remains the physical Owner field acceptance gate for realtime processing-Agent counters, lookup latency, call anti-spam/confirmations, username-only presentation and local-first result dismissal.
+- Stable remains OWNER-GATED and untouched.
