@@ -192,3 +192,18 @@ A managed browser reaching the canonical Confirm URL must not publish READY from
 ## D137 v79 final-route hydration rule
 
 Do not treat the first appearance of the Confirm URL as a safe reload point. The final Confirm document must remain on the same canonical route for 3 seconds before the one normal reload is issued, then remain post-reload READY for 1.2 seconds before Confirm-dependent work is enabled. If the first real search proves the table contains zero PickList codes, one local browser reload/search retry is allowed as a bounded self-heal. It must not loop and must not add Firestore/Worker/provider operations. Stable remains OWNER-GATED.
+
+## D140 Firestore Agent-sync storm prevention rule
+
+D140 supersedes only the D134 rule that allowed every authenticated Agent to keep the compact `agent_sync` listener.
+
+- Compact realtime listeners are limited to the HA trio: PRIMARY, NEXT_A and NEXT_B. DEEP_HIBERNATE must not keep that listener.
+- Firestore streaming calls must include the database routing metadata required by the raw gRPC streaming client: `google-cloud-resource-prefix` and `x-goog-request-params`.
+- A stream is not considered connected merely because the client wrote an AddTarget request. Retry state may reset only after Firestore returns a valid response.
+- Permanent/configuration/quota status codes must open a bounded circuit for at least five minutes. Transient failures use exponential retry from at least 2 seconds up to at least 60 seconds.
+- Logs must include sanitized gRPC status detail, accepted-response state, retry delay and circuit state, but never tokens/session secrets.
+- PRIMARY reconciliation remains no faster than five minutes in steady state; forced reconciliation is rate-limited to at least one minute.
+- Unchanged normalized `agent_sync` business state must skip PATCH.
+- Android/PDA transport semantics are unchanged; no APK release is required solely for this hotfix.
+- Stable remains OWNER-GATED and untouched.
+
