@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D141_TECHNICAL_RUNTIME_PASS__OA067_FIELD_READY__D140_AGENT_V80_PARALLEL__D137_OA063_STILL_OPEN",
+      "status": "D142_ANDROID11_CRITICAL_ALERT_READINESS_IN_PROGRESS__D141_RUNTIME_PASS_OA067_READY__D140_AGENT_V80_PARALLEL",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -173,7 +173,7 @@
       "web_source_status": "D120_SOURCE_CANDIDATE__SLA_DIRTY_GUARD__COMPACT_POLICY_UI__DYNAMIC_VIEWPORT__ROOT_ROLE_EDITOR",
       "web_admin_sku_excel_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
       "web_admin_report_monitoring": "D118_RUNTIME_PASS__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SELECTED_RANGE_FILTER",
-      "android_source_status": "D135_SIGNED_BETA_VC82__1291_BAO_HANG_BETA__LOCAL_FIRST_RESULT_ACK_ALL_SURFACES__OA061_FIELD_READY",
+      "android_source_status": "D142_SOURCE_CANDIDATE__MT90_DT50_ANDROID11_CRITICAL_ALERT_READINESS__TARGET_NEXT_AFTER_VC82",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
       "latest_signed_beta_release": "beta-vc82",
@@ -196,7 +196,7 @@
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D118_PASS_RUN_36064078233__SOURCE_COMMIT_EXACT__SCHEMA11_11__AGENT_MIGRATION_0_0__OPERATIONAL5_5",
       "relay_agent_release_target": "relay-agent-v79__RELEASED",
-      "next_signed_beta_release_target": "NEXT_MONOTONIC_AFTER_BETA_VC82",
+      "next_signed_beta_release_target": "NEXT_MONOTONIC_AFTER_BETA_VC82__D142_TARGET",
       "next_relay_agent_release_target": "relay-agent-v80__D140_TARGET",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
@@ -1630,5 +1630,28 @@
     "repo_authority_run": 36421277425,
     "project_state_run": 36421277410,
     "dashboard_probe_run": 36421277613
+  },
+  "d142": {
+    "status": "SOURCE_IMPLEMENTATION_IN_PROGRESS",
+    "scope": "BETA_ANDROID_ONLY__NEWLAND_MT90_AND_UROVO_DT50_ANDROID11",
+    "branch": "feat/d142-android11-critical-alert-readiness",
+    "baseline_main": "29c0d1577abe61a59b397d3e6c4b397196f37556",
+    "android_package": "cd.cc.supra.inventory.beta",
+    "existing_fcm_provider": "FCM_HTTP_V1__DATA_ONLY__ANDROID_PRIORITY_HIGH_RETAINED",
+    "critical_channel": "inventory_critical_alert_v2",
+    "required_capabilities": [
+      "APP_NOTIFICATIONS_ENABLED",
+      "SYSTEM_ALERT_WINDOW",
+      "NOTIFICATION_POLICY_ACCESS",
+      "IGNORE_BATTERY_OPTIMIZATIONS",
+      "CRITICAL_CHANNEL_IMPORTANCE_HIGH_AND_BYPASS_DND",
+      "USE_FULL_SCREEN_INTENT_ANDROID11"
+    ],
+    "battery_policy": "EVENT_DRIVEN__NO_ALERT_POLLING__NO_PERSISTENT_WAKELOCK__FOREGROUND_OVERLAY_ONLY_DURING_ACTIVE_ALERT",
+    "new_provider_resources": "NONE",
+    "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC82",
+    "agent_change": "NONE",
+    "web_worker_change": "NONE__D141_RUNTIME_PASS_PRESERVED",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }
