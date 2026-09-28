@@ -451,6 +451,7 @@ namespace SupraInventoryRelayAgent
             Activated += (s, e) =>
             {
                 RestoreSavedNormalBoundsIfNeeded();
+                ScheduleAutoSizeAfterForegroundRestore();
                 RefreshPickerPresenceOnForeground();
             };
 
@@ -645,6 +646,10 @@ namespace SupraInventoryRelayAgent
                 return;
             }
             if (!_autoSizeColumnsEnabled || grid.Columns.Count == 0) return;
+            // Never calculate widths while the form is hidden/minimized or while the
+            // layout is temporarily collapsed during tray restore. Those tiny client
+            // widths were the cause of columns reopening as a narrow "clump".
+            if (!Visible || WindowState == FormWindowState.Minimized || !grid.Visible || grid.ClientSize.Width < 520) return;
             if (ReferenceEquals(grid, _manualPicklistGrid))
             {
                 ApplyManualPicklistCriticalLayout(true);
@@ -745,6 +750,27 @@ namespace SupraInventoryRelayAgent
             if (persist) SaveColumnPreferencesForCurrentUser();
         }
 
+        private void ScheduleAutoSizeAfterForegroundRestore()
+        {
+            if (!_autoSizeColumnsEnabled || IsDisposed) return;
+            try
+            {
+                BeginInvoke(new Action(() =>
+                {
+                    if (IsDisposed || !Visible || WindowState == FormWindowState.Minimized) return;
+                    BeginInvoke(new Action(() =>
+                    {
+                        if (IsDisposed || !Visible || WindowState == FormWindowState.Minimized) return;
+                        ApplyColumnSizingIfEnabled(_agentFleetGrid);
+                        ApplyColumnSizingIfEnabled(_pickerOnlineGrid);
+                        ApplyColumnSizingIfEnabled(_manualPicklistGrid);
+                        ApplyManualPicklistCriticalLayout(true);
+                    }));
+                }));
+            }
+            catch { }
+        }
+
         private Rectangle NormalizeSavedWindowBounds(Rectangle bounds)
         {
             if (bounds.Width < MinimumSize.Width || bounds.Height < MinimumSize.Height)
@@ -788,7 +814,11 @@ namespace SupraInventoryRelayAgent
             else if (_lastTrackedWindowState == FormWindowState.Maximized &&
                      current == FormWindowState.Normal)
             {
-                BeginInvoke(new Action(RestoreSavedNormalBoundsIfNeeded));
+                BeginInvoke(new Action(() =>
+                {
+                    RestoreSavedNormalBoundsIfNeeded();
+                    ScheduleAutoSizeAfterForegroundRestore();
+                }));
             }
             else if (current == FormWindowState.Normal && !_restoringSavedWindowBounds)
             {
@@ -874,6 +904,16 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
+            var currentSnapshot = _agentSyncSnapshot;
+            if (snapshot.Version > 0 &&
+                currentSnapshot != null &&
+                currentSnapshot.Version > 0 &&
+                snapshot.Version < currentSnapshot.Version)
+            {
+                Log("AGENT_SYNC apply=IGNORED_STALE incoming=" + snapshot.Version +
+                    " current=" + currentSnapshot.Version);
+                return;
+            }
             _agentSyncSnapshot = snapshot;
             var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             lock (_pickerCallLocks)
@@ -2136,20 +2176,31 @@ namespace SupraInventoryRelayAgent
 
             if (column == "CallSpecialist")
             {
-                if (IsPickerCallLocked(picker.UserId) || IsPickerCallPending(picker.UserId))
+                var pickerLabel = string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.DisplayName : picker.EmployeeCode;
+                var choice = ShowPickerContactChoice(pickerLabel);
+                if (choice == 1)
                 {
-                    _pickerOnlineStatus.Text = "Liên hệ picker đang khóa 60 giây trên toàn bộ Agent.";
+                    if (IsPickerCallLocked(picker.UserId) || IsPickerCallPending(picker.UserId))
+                    {
+                        _pickerOnlineStatus.Text = "Liên hệ picker đang khóa 60 giây trên toàn bộ Agent.";
+                        return;
+                    }
+                    if (MessageBox.Show(
+                        "Gọi " + pickerLabel +
+                        " về bàn chuyên viên? Sau khi gửi, nút gọi sẽ khóa đủ 60 giây để tránh gửi lặp.",
+                        "Xác nhận gọi Picker",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question) != DialogResult.Yes) return;
+                    SetPickerCallPending(picker.UserId, true);
+                    Task.Run(() => SendPickerContact(picker, true));
                     return;
                 }
-                var pickerLabel = string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.DisplayName : picker.EmployeeCode;
-                if (MessageBox.Show(
-                    "Gửi yêu cầu Liên hệ picker đến " + pickerLabel +
-                    "? Sau khi gửi, nút gọi sẽ khóa đủ 60 giây để tránh gửi lặp.",
-                    "Xác nhận Liên hệ picker",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question) != DialogResult.Yes) return;
-                SetPickerCallPending(picker.UserId, true);
-                Task.Run(() => SendPickerContact(picker, true));
+                if (choice == 2)
+                {
+                    var chat = PromptPickerChatMessage(pickerLabel);
+                    if (chat == null) return;
+                    Task.Run(() => SendPickerChat(picker, chat));
+                }
                 return;
             }
             if (column == "ResolveContact")
@@ -2195,6 +2246,141 @@ namespace SupraInventoryRelayAgent
             catch (Exception ex)
             {
                 Ui(() => _pickerOnlineStatus.Text = "Kích User thất bại · " + SafeMessage(ex));
+            }
+        }
+
+        private int ShowPickerContactChoice(string pickerLabel)
+        {
+            using (var dialog = new Form())
+            {
+                dialog.Text = "Liên hệ Picker";
+                dialog.StartPosition = FormStartPosition.CenterParent;
+                dialog.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dialog.MinimizeBox = false;
+                dialog.MaximizeBox = false;
+                dialog.ShowInTaskbar = false;
+                dialog.ClientSize = new Size(470, 190);
+                dialog.Font = Font;
+                dialog.Controls.Add(new Label
+                {
+                    Left = 18, Top = 16, Width = 430, Height = 42,
+                    Text = "Chọn cách liên hệ " + pickerLabel + ":",
+                    Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold)
+                });
+                var direct = new Button
+                {
+                    Left = 18, Top = 72, Width = 205, Height = 44,
+                    Text = "Gọi thẳng về bàn CV",
+                    DialogResult = DialogResult.Yes
+                };
+                var chat = new Button
+                {
+                    Left = 241, Top = 72, Width = 205, Height = 44,
+                    Text = "Gửi nội dung chat",
+                    DialogResult = DialogResult.Retry
+                };
+                var cancel = new Button
+                {
+                    Left = 341, Top = 136, Width = 105, Height = 32,
+                    Text = "Hủy",
+                    DialogResult = DialogResult.Cancel
+                };
+                dialog.Controls.Add(direct);
+                dialog.Controls.Add(chat);
+                dialog.Controls.Add(cancel);
+                dialog.CancelButton = cancel;
+                var result = dialog.ShowDialog(this);
+                return result == DialogResult.Yes ? 1 : result == DialogResult.Retry ? 2 : 0;
+            }
+        }
+
+        private string PromptPickerChatMessage(string pickerLabel)
+        {
+            using (var dialog = new Form())
+            {
+                dialog.Text = "Gửi thông báo tới Picker";
+                dialog.StartPosition = FormStartPosition.CenterParent;
+                dialog.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dialog.MinimizeBox = false;
+                dialog.MaximizeBox = false;
+                dialog.ShowInTaskbar = false;
+                dialog.ClientSize = new Size(520, 260);
+                dialog.Font = Font;
+
+                var title = new Label
+                {
+                    Left = 18, Top = 14, Width = 480, Height = 28,
+                    Text = "Gửi nội dung tới " + pickerLabel,
+                    Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold)
+                };
+                var note = new Label
+                {
+                    Left = 18, Top = 44, Width = 480, Height = 34,
+                    Text = "Tối đa 200 ký tự. Picker chỉ cần bấm Xác nhận để đóng cảnh báo; hệ thống không gửi ACK về Agent."
+                };
+                var input = new TextBox
+                {
+                    Left = 18, Top = 84, Width = 480, Height = 92,
+                    Multiline = true,
+                    MaxLength = 200,
+                    ScrollBars = ScrollBars.Vertical
+                };
+                var count = new Label
+                {
+                    Left = 18, Top = 180, Width = 120, Height = 22,
+                    Text = "0 / 200"
+                };
+                input.TextChanged += (sender, args) => count.Text = input.TextLength + " / 200";
+                var send = new Button
+                {
+                    Left = 286, Top = 212, Width = 100, Height = 34,
+                    Text = "Gửi",
+                    DialogResult = DialogResult.OK
+                };
+                var cancel = new Button
+                {
+                    Left = 398, Top = 212, Width = 100, Height = 34,
+                    Text = "Hủy",
+                    DialogResult = DialogResult.Cancel
+                };
+                dialog.Controls.Add(title);
+                dialog.Controls.Add(note);
+                dialog.Controls.Add(input);
+                dialog.Controls.Add(count);
+                dialog.Controls.Add(send);
+                dialog.Controls.Add(cancel);
+                dialog.AcceptButton = send;
+                dialog.CancelButton = cancel;
+
+                while (dialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    var message = (input.Text ?? "").Trim();
+                    if (message.Length > 0 && message.Length <= 200) return message;
+                    MessageBox.Show(
+                        "Nhập nội dung từ 1 đến 200 ký tự.",
+                        "Nội dung chưa hợp lệ",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
+                return null;
+            }
+        }
+
+        private void SendPickerChat(PickerPresenceView picker, string message)
+        {
+            try
+            {
+                EnsureFreshToken();
+                var session = SnapshotSession();
+                _pickerContactClient.Send(session, _agentInstanceId, picker, "CHAT_MESSAGE", message);
+                Ui(() => _pickerOnlineStatus.Text =
+                    "Đã gửi thông báo tới " +
+                    (string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.DisplayName : picker.EmployeeCode) +
+                    " · Picker xác nhận đóng cảnh báo ngay trên PDA.");
+            }
+            catch (Exception ex)
+            {
+                Ui(() => _pickerOnlineStatus.Text = "Gửi thông báo tới Picker thất bại · " + SafeMessage(ex));
             }
         }
 
