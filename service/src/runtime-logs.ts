@@ -95,6 +95,14 @@ function normalizeSeverity(value: unknown): RuntimeLogSeverity {
   return String(value || "").toUpperCase() === "ERROR" ? "ERROR" : "INFO";
 }
 
+function runtimeLogKind(reasonValue: unknown, severity: RuntimeLogSeverity): "scheduled" | "manual" | "error" | "crash" {
+  const reason = String(reasonValue || "").trim().toLowerCase();
+  if (reason.includes("crash") || reason.includes("fatal") || reason.includes("uncaught")) return "crash";
+  if (severity === "ERROR") return "error";
+  if (reason.includes("manual")) return "manual";
+  return "scheduled";
+}
+
 function safeSlug(value: unknown, fallback: string): string {
   const slug = String(value || "")
     .normalize("NFKD")
@@ -186,8 +194,8 @@ function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
   const receivedAt = new Date().toISOString();
   const device = sanitize(body.device || {}) as Record<string, unknown>;
   const deviceSlug = safeSlug(device.device_id || device.id || device.model || device.label, source.toLowerCase());
-  const prefix = severity === "ERROR" ? "error_" : "";
-  const filename = `${prefix}${source.toLowerCase()}_${deviceSlug}_${vietnamStamp(generatedAt)}.json`;
+  const kind = runtimeLogKind(body.reason, severity);
+  const filename = `${kind}_${source.toLowerCase()}_${deviceSlug}_${vietnamStamp(generatedAt)}.json`;
 
   const envelope: Record<string, unknown> = {
     format: "supra-inventory-runtime-log-v1",
@@ -374,6 +382,120 @@ export async function uploadRuntimeLog(
   }
 }
 
+
+type PendingRuntimeLogArchive = {
+  log_id?: string;
+  filename?: string;
+  source?: string;
+  severity?: string;
+  content?: string;
+};
+
+async function archiveBufferedJson(
+  env: RuntimeLogsEnv,
+  token: string,
+  item: PendingRuntimeLogArchive,
+): Promise<string> {
+  if (!env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID)) throw new Error("LOGS_FOLDER_NOT_CONFIGURED");
+  const logId = String(item.log_id || "");
+  const filename = String(item.filename || "");
+  const source = normalizeSource(item.source);
+  const severity = normalizeSeverity(item.severity);
+  const content = String(item.content || "");
+  if (!/^local_[a-f0-9]{32}$/.test(logId) || !filename || !content) throw new Error("INVALID_BUFFERED_RUNTIME_LOG");
+
+  const duplicateParams = new URLSearchParams({
+    q: `'${env.LOGS_FOLDER_ID}' in parents and trashed = false and name = '${filename.replaceAll("'", "\\'")}'`,
+    orderBy: "createdTime desc",
+    pageSize: "1",
+    spaces: "drive",
+    fields: "files(id,name,createdTime,size)",
+  });
+  const duplicateResponse = await fetch(`https://www.googleapis.com/drive/v3/files?${duplicateParams.toString()}`, {
+    headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+  });
+  if (duplicateResponse.ok) {
+    const duplicatePayload = (await duplicateResponse.json()) as { files?: Array<Record<string, unknown>> };
+    const existingId = String(duplicatePayload.files?.[0]?.id || "");
+    if (existingId) return existingId;
+  }
+
+  const boundary = `supra_runtime_retry_${crypto.randomUUID().replaceAll("-", "")}`;
+  const metadata = JSON.stringify({
+    name: filename,
+    parents: [env.LOGS_FOLDER_ID],
+    mimeType: "application/json",
+    appProperties: { project: "supra-inventory", source, severity },
+  });
+  const multipart = [
+    `--${boundary}`,
+    "Content-Type: application/json; charset=UTF-8",
+    "",
+    metadata,
+    `--${boundary}`,
+    "Content-Type: application/json; charset=UTF-8",
+    "",
+    content,
+    `--${boundary}--`,
+    "",
+  ].join("\r\n");
+  const response = await fetch(
+    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,createdTime,modifiedTime,size",
+    {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`,
+        "content-type": `multipart/related; boundary=${boundary}`,
+      },
+      body: multipart,
+    },
+  );
+  const payload = (await response.json()) as { id?: string };
+  if (!response.ok || !payload.id) throw new Error(`LOGS_DRIVE_RETRY_UPLOAD_FAILED:${response.status}`);
+  return payload.id;
+}
+
+export async function retryBufferedRuntimeLogArchives(
+  env: RuntimeLogsEnv,
+  limit = 20,
+): Promise<{ pending: number; synced: number; failed: number }> {
+  if (!env.INVENTORY_CORE || !env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID)) {
+    return { pending: 0, synced: 0, failed: 0 };
+  }
+  const pendingResponse = await core(env).fetch(
+    `https://inventory-core.internal/runtime-logs/pending-drive?limit=${Math.max(1, Math.min(50, Math.trunc(limit || 20)))}`,
+  );
+  const pendingPayload = await pendingResponse.json() as { items?: PendingRuntimeLogArchive[] };
+  if (!pendingResponse.ok) throw new Error(`LOGS_PENDING_READ_FAILED:${pendingResponse.status}`);
+  const items = Array.isArray(pendingPayload.items) ? pendingPayload.items : [];
+  if (!items.length) return { pending: 0, synced: 0, failed: 0 };
+
+  let token: string;
+  try {
+    token = await refreshGoogleAccessToken(env);
+  } catch (error) {
+    const code = archiveErrorCode(error);
+    await Promise.all(items.map((item) => markDriveState(env, String(item.log_id || ""), "", code)));
+    return { pending: items.length, synced: 0, failed: items.length };
+  }
+
+  await maybeCleanupRuntimeLogs(env, token).catch(() => undefined);
+  let synced = 0;
+  let failed = 0;
+  for (const item of items) {
+    const logId = String(item.log_id || "");
+    try {
+      const driveId = await archiveBufferedJson(env, token, item);
+      await markDriveState(env, logId, driveId);
+      synced += 1;
+    } catch (error) {
+      await markDriveState(env, logId, "", archiveErrorCode(error));
+      failed += 1;
+    }
+  }
+  return { pending: items.length, synced, failed };
+}
+
 export async function uploadAgentRuntimeLogText(
   env: RuntimeLogsEnv,
   filenameValue: string,
@@ -383,7 +505,7 @@ export async function uploadAgentRuntimeLogText(
   const filename = String(filenameValue || "")
     .replace(/[^A-Za-z0-9._-]+/g, "-")
     .slice(0, 140);
-  if (!filename || (!filename.startsWith("agent_") && !filename.startsWith("crash_agent_"))) {
+  if (!filename || !/^(?:agent_|scheduled_agent_|error_agent_|crash_agent_)[A-Za-z0-9._-]+_[0-9]{8}_[0-9]{6}\.log$/.test(filename)) {
     throw new Error("INVALID_AGENT_LOG_FILENAME");
   }
 
@@ -417,7 +539,7 @@ export async function uploadAgentRuntimeLogText(
     name: filename,
     parents: [env.LOGS_FOLDER_ID],
     mimeType: "text/plain",
-    appProperties: { project: "supra-inventory", source: "AGENT", severity: filename.startsWith("crash_") ? "ERROR" : "INFO" },
+    appProperties: { project: "supra-inventory", source: "AGENT", severity: /^(?:crash_|error_)/.test(filename) ? "ERROR" : "INFO" },
   });
   const multipart = [
     `--${boundary}`,
