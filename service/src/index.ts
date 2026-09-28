@@ -14,7 +14,7 @@ import { handleNotificationApi } from "./notification-api";
 import { handleUserManagementApi } from "./user-management-api";
 import { archiveStatus, runArchive } from "./archive";
 import { validateHrSheetSource } from "./hr-source";
-import { listRuntimeLogs, readRuntimeLog, uploadRuntimeLog } from "./runtime-logs";
+import { listRuntimeLogs, readRuntimeLog, retryBufferedRuntimeLogArchives, uploadRuntimeLog } from "./runtime-logs";
 import { drainAgentLogUploads } from "./agent-log-drain";
 import { collectSystemStatus } from "./system-status";
 import { handleSystemResetApi } from "./system-reset";
@@ -1352,6 +1352,8 @@ export default {
     if (controller.cron === "*/5 * * * *") {
       ctx.waitUntil(drainAgentLogUploads(env).then(() => undefined).catch((error) =>
         console.error("agent_log_drain_failed", error instanceof Error ? error.message : "unknown")));
+      ctx.waitUntil(retryBufferedRuntimeLogArchives(env).then(() => undefined).catch((error) =>
+        console.error("runtime_log_drive_retry_failed", error instanceof Error ? error.message : "unknown")));
       ctx.waitUntil(reconcileRecentAgentKicks(env).then(() => undefined).catch((error) =>
         console.error("agent_kick_reconcile_failed", error instanceof Error ? error.message : "unknown")));
       ctx.waitUntil(maybeRunRelayAuditExport(env).then(() => undefined).catch((error) =>
