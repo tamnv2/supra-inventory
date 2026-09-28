@@ -410,7 +410,8 @@ def main() -> None:
     require(app_tools, 'stable_download_path: "/downloads/pda/latest"', "D109 version-independent PDA download path")
     require(app_tools, 'stable_download_path: "/downloads/agent/latest"', "D112 version-independent Agent download path")
     forbid(app, 'downloads/beta-vc', "D109 no hard-coded Beta tag in PDA tools URL")
-    require(core, "const SCHEMA_VERSION = 12;", "D119 additive role schema target")
+    require(core, "const SCHEMA_VERSION = 13;", "D143 ROOT Pick Pack review schema target")
+    require(core, "role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN')", "D143 ROOT effective Pick Pack role constraint")
     require(core, 'ALTER TABLE audit_log ADD COLUMN actor_role TEXT', "D109 audit role migration")
     require(core, 'ALTER TABLE audit_log ADD COLUMN actor_display_name TEXT', "D109 audit display migration")
 
