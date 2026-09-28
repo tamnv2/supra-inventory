@@ -6,11 +6,11 @@
 
 - Project: `supra-inventory`
 - SQLite schema: `12`
-- Latest signed Beta APK: `beta-vc79`
-- Current released Agent: `relay-agent-v73`
-- Beta: `D134_OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS`
+- Latest signed Beta APK: `beta-vc80`
+- Current released Agent: `relay-agent-v74`
+- Beta: `D134_TECHNICAL_RUNTIME_RELEASE_PASS__OA060_FIELD_READY`
 - Web: `D120_RUNTIME_PASS_MAIN_43A94207__OWNER_FIELD_TEST_OK`
-- Android: `D133_SIGNED_BETA_VC79__D134_NEXT_MONOTONIC_TARGET`
+- Android: `D134_SIGNED_BETA_VC80__OA060_FIELD_READY`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -1030,3 +1030,13 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Candidate architecture: explicit Android session authority, generation-fenced Kick User, reusable 60-second specialist call, compact all-Agent Firestore listener, PRIMARY 5-minute reconciliation, 10-Agent fleet cap and 45k/day read soft target.
 - Agent Usage is a server-produced 10-minute Firestore snapshot; Office Agent no longer requires Worker-domain reachability to render Usage.
 - No new provider resource is introduced. Stable remains OWNER-GATED.
+
+## D134 release checkpoint — 2026-09-28
+
+- D134 implementation PR #266 merged to main `8b703f12ec6f1667e43dab101114f2fbcc1a8819`.
+- Beta Worker health proves exact source, SQLite `12/12`, Operational V2 `5/5`, missing bindings `0` and Agent migration `0/0`.
+- Firestore Rules deploy/readback and the four required notification/active-call Functions deployments PASS.
+- Released Agent: `relay-agent-v74`; released signed Android: `beta-vc80`.
+- Distribution channel has been refreshed to the v74/vc80 artifacts.
+- OA060 is READY_FOR_OWNER_FIELD_TEST for Usage, balanced Auto size, truthful Firestore health, reusable 60-second call, Login/Logout/PickList presence authority, Kick User generation fencing and Agent password gates.
+- Stable remains OWNER-GATED and untouched.
