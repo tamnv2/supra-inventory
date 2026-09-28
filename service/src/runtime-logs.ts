@@ -1,7 +1,5 @@
-import { getServiceAccountAccessToken } from "./hr-source";
-
 interface RuntimeLogsEnv {
-  GOOGLE_RUNTIME_SA_JSON?: string;
+  INVENTORY_CORE: DurableObjectNamespace;
   GOOGLE_DRIVE_OAUTH_CLIENT_ID?: string;
   GOOGLE_DRIVE_OAUTH_CLIENT_SECRET?: string;
   GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN?: string;
@@ -123,48 +121,60 @@ function vietnamStamp(input?: string): string {
   return `${pick("year")}${pick("month")}${pick("day")}_${pick("hour")}${pick("minute")}${pick("second")}`;
 }
 
-const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive";
+function core(env: RuntimeLogsEnv): DurableObjectStub {
+  return env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName("inventory-core"));
+}
 
 async function refreshGoogleAccessToken(env: RuntimeLogsEnv): Promise<string> {
-  let oauthFailure = "LOGS_OAUTH_NOT_CONFIGURED";
-  if (env.GOOGLE_DRIVE_OAUTH_CLIENT_ID && env.GOOGLE_DRIVE_OAUTH_CLIENT_SECRET && env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN) {
-    try {
-      const response = await fetch("https://oauth2.googleapis.com/token", {
-        method: "POST",
-        headers: { "content-type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          client_id: env.GOOGLE_DRIVE_OAUTH_CLIENT_ID,
-          client_secret: env.GOOGLE_DRIVE_OAUTH_CLIENT_SECRET,
-          refresh_token: env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN,
-          grant_type: "refresh_token",
-        }),
-      });
-      const payload = (await response.json()) as { access_token?: string; error?: string; error_description?: string };
-      if (response.ok && payload.access_token) return payload.access_token;
-      oauthFailure = `LOGS_OAUTH_FAILED:${payload.error_description || payload.error || response.status}`;
-    } catch {
-      oauthFailure = "LOGS_OAUTH_FAILED:token_endpoint_unreachable";
-    }
+  if (!env.GOOGLE_DRIVE_OAUTH_CLIENT_ID || !env.GOOGLE_DRIVE_OAUTH_CLIENT_SECRET || !env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN) {
+    throw new Error("LOGS_OAUTH_NOT_CONFIGURED");
   }
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: env.GOOGLE_DRIVE_OAUTH_CLIENT_ID,
+      client_secret: env.GOOGLE_DRIVE_OAUTH_CLIENT_SECRET,
+      refresh_token: env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN,
+      grant_type: "refresh_token",
+    }),
+  });
+  const payload = (await response.json()) as { access_token?: string; error?: string; error_description?: string };
+  if (!response.ok || !payload.access_token) {
+    throw new Error(`LOGS_OAUTH_FAILED:${payload.error_description || payload.error || response.status}`);
+  }
+  return payload.access_token;
+}
 
-  // D144: runtime logs must not become unreadable only because the user OAuth
-  // refresh token was revoked. Reuse the existing Beta runtime service account
-  // as a least-privilege fallback when the scoped Logs folder is shared to it.
-  if (env.GOOGLE_RUNTIME_SA_JSON) {
-    try {
-      return (await getServiceAccountAccessToken(env.GOOGLE_RUNTIME_SA_JSON, DRIVE_SCOPE)).accessToken;
-    } catch (error) {
-      const fallback = error instanceof Error ? error.message.slice(0, 160) : "service_account_failed";
-      throw new Error(`LOGS_AUTH_FAILED:${oauthFailure};SERVICE_ACCOUNT:${fallback}`);
-    }
-  }
-  throw new Error(oauthFailure);
+function archiveErrorCode(error: unknown): string {
+  const raw = error instanceof Error ? error.message : "drive_sync_failed";
+  return scrubText(raw).slice(0, 300);
+}
+
+async function markDriveState(
+  env: RuntimeLogsEnv,
+  logId: string,
+  driveFileId = "",
+  error = "",
+): Promise<void> {
+  if (!logId) return;
+  await core(env).fetch("https://inventory-core.internal/runtime-logs/mark-drive", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      log_id: logId,
+      drive_file_id: driveFileId,
+      error,
+    }),
+  }).catch(() => undefined);
 }
 
 function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
   source: RuntimeLogSource;
   severity: RuntimeLogSeverity;
   filename: string;
+  generatedAt: string;
+  receivedAt: string;
   content: string;
 } {
   const source = normalizeSource(body.source);
@@ -172,6 +182,7 @@ function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
   const generatedAt = body.generated_at && Number.isFinite(Date.parse(body.generated_at))
     ? new Date(body.generated_at).toISOString()
     : new Date().toISOString();
+  const receivedAt = new Date().toISOString();
   const device = sanitize(body.device || {}) as Record<string, unknown>;
   const deviceSlug = safeSlug(device.device_id || device.id || device.model || device.label, source.toLowerCase());
   const prefix = severity === "ERROR" ? "error_" : "";
@@ -180,7 +191,7 @@ function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
   const envelope: Record<string, unknown> = {
     format: "supra-inventory-runtime-log-v1",
     generated_at: generatedAt,
-    received_at: new Date().toISOString(),
+    received_at: receivedAt,
     source,
     severity,
     reason: scrubText(String(body.reason || (severity === "ERROR" ? "error" : "scheduled"))),
@@ -214,7 +225,7 @@ function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
       content = JSON.stringify(envelope, null, 2);
     }
   }
-  return { source, severity, filename, content };
+  return { source, severity, filename, generatedAt, receivedAt, content };
 }
 
 export async function uploadRuntimeLog(
@@ -222,83 +233,144 @@ export async function uploadRuntimeLog(
   actor: RuntimeLogActor,
   body: RuntimeLogBody,
 ): Promise<Record<string, unknown>> {
-  if (!env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID)) throw new Error("LOGS_FOLDER_NOT_CONFIGURED");
-  const token = await refreshGoogleAccessToken(env);
-  await maybeCleanupRuntimeLogs(env, token).catch(() => undefined);
-  const { source, severity, filename, content } = logEnvelope(actor, body);
+  const { source, severity, filename, generatedAt, receivedAt, content } = logEnvelope(actor, body);
 
-  const duplicateParams = new URLSearchParams({
-    q: `'${env.LOGS_FOLDER_ID}' in parents and trashed = false and name = '${filename.replaceAll("'", "\\'")}'`,
-    orderBy: "createdTime desc",
-    pageSize: "1",
-    spaces: "drive",
-    fields: "files(id,name,createdTime,size)",
+  // D144 authority: persist the sanitized support log in InventoryCore first.
+  // Google Drive is archive-only. A revoked user OAuth token must never make
+  // Web Nhật ký unreadable or make Android support-log upload fail.
+  const bufferedResponse = await core(env).fetch("https://inventory-core.internal/runtime-logs/upsert", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      filename,
+      source,
+      severity,
+      generated_at: generatedAt,
+      received_at: receivedAt,
+      content,
+    }),
   });
-  const duplicateResponse = await fetch(`https://www.googleapis.com/drive/v3/files?${duplicateParams.toString()}`, {
-    headers: { authorization: `Bearer ${token}`, accept: "application/json" },
-  });
-  if (duplicateResponse.ok) {
-    const duplicatePayload = (await duplicateResponse.json()) as { files?: Array<Record<string, unknown>> };
-    const existing = duplicatePayload.files?.[0];
-    if (existing) {
-      return {
-        status: "already_uploaded",
-        source,
-        severity,
-        file: {
-          id: existing.id,
-          name: existing.name || filename,
-          created_at: existing.createdTime || new Date().toISOString(),
-          size: Number(existing.size || content.length),
-        },
-      };
-    }
+  const buffered = await bufferedResponse.json() as {
+    error?: string;
+    file?: Record<string, unknown> | null;
+  };
+  if (!bufferedResponse.ok || !buffered.file) {
+    throw new Error(`LOGS_BUFFER_FAILED:${buffered.error || bufferedResponse.status}`);
   }
 
-  const boundary = `supra_inventory_${crypto.randomUUID().replaceAll("-", "")}`;
-  const metadata = JSON.stringify({
-    name: filename,
-    parents: [env.LOGS_FOLDER_ID],
-    mimeType: "application/json",
-    appProperties: { project: "supra-inventory", source, severity },
-  });
-  const multipart = [
-    `--${boundary}`,
-    "Content-Type: application/json; charset=UTF-8",
-    "",
-    metadata,
-    `--${boundary}`,
-    "Content-Type: application/json; charset=UTF-8",
-    "",
-    content,
-    `--${boundary}--`,
-    "",
-  ].join("\r\n");
-
-  const response = await fetch(
-    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,createdTime,modifiedTime,size",
-    {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${token}`,
-        "content-type": `multipart/related; boundary=${boundary}`,
+  const localFile = buffered.file;
+  const localId = String(localFile.log_id || "");
+  if (!env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID)) {
+    await markDriveState(env, localId, "", "LOGS_FOLDER_NOT_CONFIGURED");
+    return {
+      status: "buffered",
+      source,
+      severity,
+      file: {
+        id: localId,
+        name: filename,
+        created_at: receivedAt,
+        size: Number(localFile.size_bytes || content.length),
       },
-      body: multipart,
-    },
-  );
-  const payload = (await response.json()) as Record<string, unknown>;
-  if (!response.ok) throw new Error(`LOGS_DRIVE_UPLOAD_FAILED:${response.status}`);
-  return {
-    status: "uploaded",
-    source,
-    severity,
-    file: {
-      id: payload.id,
-      name: payload.name || filename,
-      created_at: payload.createdTime || new Date().toISOString(),
-      size: Number(payload.size || content.length),
-    },
-  };
+      archive_status: "DEFERRED",
+    };
+  }
+
+  try {
+    const token = await refreshGoogleAccessToken(env);
+    await maybeCleanupRuntimeLogs(env, token).catch(() => undefined);
+
+    const duplicateParams = new URLSearchParams({
+      q: `'${env.LOGS_FOLDER_ID}' in parents and trashed = false and name = '${filename.replaceAll("'", "\\'")}'`,
+      orderBy: "createdTime desc",
+      pageSize: "1",
+      spaces: "drive",
+      fields: "files(id,name,createdTime,size)",
+    });
+    const duplicateResponse = await fetch(`https://www.googleapis.com/drive/v3/files?${duplicateParams.toString()}`, {
+      headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+    });
+    if (duplicateResponse.ok) {
+      const duplicatePayload = (await duplicateResponse.json()) as { files?: Array<Record<string, unknown>> };
+      const existing = duplicatePayload.files?.[0];
+      if (existing?.id) {
+        await markDriveState(env, localId, String(existing.id));
+        return {
+          status: "buffered_and_archived",
+          source,
+          severity,
+          file: {
+            id: localId,
+            name: filename,
+            created_at: receivedAt,
+            size: Number(localFile.size_bytes || content.length),
+          },
+          archive_status: "DRIVE_SYNCED",
+        };
+      }
+    }
+
+    const boundary = `supra_inventory_${crypto.randomUUID().replaceAll("-", "")}`;
+    const metadata = JSON.stringify({
+      name: filename,
+      parents: [env.LOGS_FOLDER_ID],
+      mimeType: "application/json",
+      appProperties: { project: "supra-inventory", source, severity },
+    });
+    const multipart = [
+      `--${boundary}`,
+      "Content-Type: application/json; charset=UTF-8",
+      "",
+      metadata,
+      `--${boundary}`,
+      "Content-Type: application/json; charset=UTF-8",
+      "",
+      content,
+      `--${boundary}--`,
+      "",
+    ].join("\r\n");
+
+    const response = await fetch(
+      "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,createdTime,modifiedTime,size",
+      {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+          "content-type": `multipart/related; boundary=${boundary}`,
+        },
+        body: multipart,
+      },
+    );
+    const payload = (await response.json()) as Record<string, unknown>;
+    if (!response.ok || !payload.id) throw new Error(`LOGS_DRIVE_UPLOAD_FAILED:${response.status}`);
+    await markDriveState(env, localId, String(payload.id));
+    return {
+      status: "buffered_and_archived",
+      source,
+      severity,
+      file: {
+        id: localId,
+        name: filename,
+        created_at: receivedAt,
+        size: Number(localFile.size_bytes || content.length),
+      },
+      archive_status: "DRIVE_SYNCED",
+    };
+  } catch (error) {
+    await markDriveState(env, localId, "", archiveErrorCode(error));
+    return {
+      status: "buffered",
+      source,
+      severity,
+      file: {
+        id: localId,
+        name: filename,
+        created_at: receivedAt,
+        size: Number(localFile.size_bytes || content.length),
+      },
+      archive_status: "DEFERRED",
+    };
+  }
 }
 
 export async function uploadAgentRuntimeLogText(
@@ -381,60 +453,44 @@ export async function listRuntimeLogs(
   daysValue = 30,
   pageTokenValue = "",
 ): Promise<Record<string, unknown>> {
-  if (!env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID)) throw new Error("LOGS_FOLDER_NOT_CONFIGURED");
   const source = normalizeSource(sourceValue);
   const limit = Math.max(1, Math.min(500, Number(limitValue || 100)));
   const days = [30, 60, 90].includes(Number(daysValue)) ? Number(daysValue) : 30;
-  const token = await refreshGoogleAccessToken(env);
-  const needle = source.toLowerCase() + "_";
-  const from = new Date(Date.now() - days * 86_400_000).toISOString();
   const pageToken = String(pageTokenValue || "").trim();
   if (pageToken.length > 2048) throw new Error("INVALID_LOG_PAGE_TOKEN");
+
   const params = new URLSearchParams({
-    q: `'${env.LOGS_FOLDER_ID}' in parents and trashed = false and name contains '${needle}' and createdTime >= '${from}'`,
-    orderBy: "createdTime desc",
-    pageSize: String(limit),
-    spaces: "drive",
-    fields: "nextPageToken,files(id,name,createdTime,modifiedTime,size,mimeType,appProperties)",
-  });
-  if (pageToken) params.set("pageToken", pageToken);
-  const response = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
-    headers: { authorization: `Bearer ${token}`, accept: "application/json" },
-  });
-  const payload = (await response.json()) as { nextPageToken?: string; files?: Array<Record<string, unknown>> };
-  if (!response.ok) throw new Error(`LOGS_DRIVE_LIST_FAILED:${response.status}`);
-  const seenNames = new Set<string>();
-  const items = (payload.files || [])
-    .filter((file) => {
-      const name = String(file.name || "");
-      if (!name || seenNames.has(name)) return false;
-      seenNames.add(name);
-      return true;
-    })
-    .map((file) => ({
-      id: file.id,
-      name: file.name,
-      created_at: file.createdTime,
-      modified_at: file.modifiedTime,
-      size: Number(file.size || 0),
-      severity: String(file.name || "").startsWith("error_") ? "ERROR" : "INFO",
-      source,
-    }));
-  return {
     source,
-    days,
-    items,
-    count: items.length,
-    next_page_token: String(payload.nextPageToken || "") || null,
-  };
+    limit: String(limit),
+    days: String(days),
+  });
+  if (pageToken) params.set("page_token", pageToken);
+  const response = await core(env).fetch(
+    `https://inventory-core.internal/runtime-logs/list?${params.toString()}`,
+  );
+  const payload = await response.json() as Record<string, unknown>;
+  if (!response.ok) throw new Error(`LOGS_BUFFER_LIST_FAILED:${String(payload.error || response.status)}`);
+  return payload;
 }
 
 export async function readRuntimeLog(env: RuntimeLogsEnv, fileId: string): Promise<Record<string, unknown>> {
+  const id = String(fileId || "").trim();
+  if (/^local_[a-f0-9]{32}$/.test(id)) {
+    const response = await core(env).fetch(
+      `https://inventory-core.internal/runtime-logs/file?log_id=${encodeURIComponent(id)}`,
+    );
+    const payload = await response.json() as Record<string, unknown>;
+    if (!response.ok) throw new Error(`LOGS_BUFFER_READ_FAILED:${String(payload.error || response.status)}`);
+    return payload;
+  }
+
+  // Compatibility read for Drive-backed IDs that may be opened from an older
+  // browser state. New D144 list pages use InventoryCore local IDs.
   if (!env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID)) throw new Error("LOGS_FOLDER_NOT_CONFIGURED");
-  if (!FILE_ID_RE.test(fileId)) throw new Error("INVALID_LOG_FILE_ID");
+  if (!FILE_ID_RE.test(id)) throw new Error("INVALID_LOG_FILE_ID");
   const token = await refreshGoogleAccessToken(env);
   const metadataResponse = await fetch(
-    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?fields=id,name,parents,mimeType,size,createdTime`,
+    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}?fields=id,name,parents,mimeType,size,createdTime`,
     { headers: { authorization: `Bearer ${token}`, accept: "application/json" } },
   );
   const metadata = (await metadataResponse.json()) as { id?: string; name?: string; parents?: string[]; mimeType?: string; size?: string; createdTime?: string };
@@ -442,7 +498,7 @@ export async function readRuntimeLog(env: RuntimeLogsEnv, fileId: string): Promi
   if (!metadata.parents?.includes(env.LOGS_FOLDER_ID) || metadata.mimeType !== "application/json") throw new Error("LOG_FILE_OUTSIDE_SCOPE");
 
   const contentResponse = await fetch(
-    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`,
+    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}?alt=media`,
     { headers: { authorization: `Bearer ${token}`, accept: "application/json" } },
   );
   if (!contentResponse.ok) throw new Error(`LOGS_DRIVE_READ_FAILED:${contentResponse.status}`);
@@ -459,3 +515,4 @@ export async function readRuntimeLog(env: RuntimeLogsEnv, fileId: string): Promi
     content: sanitize(content),
   };
 }
+
