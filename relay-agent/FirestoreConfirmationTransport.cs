@@ -18,6 +18,7 @@ namespace SupraInventoryRelayAgent
         internal string PickerUserId;
         internal string PickerEmployeeCode;
         internal string PickerDisplayName;
+        internal long PickerSessionGeneration;
         internal long ClientSentAtMs;
         internal long CreatedAtMs;
     }
@@ -66,6 +67,7 @@ namespace SupraInventoryRelayAgent
         private readonly Action<bool> _relayHealth;
         private long _lastPollTelemetryMs;
         private long _hotUntilMs;
+        private int _lastBusinessPendingCount;
         private string _lastOutcomeState = "";
         private readonly object _currentBatchGate = new object();
         private readonly Dictionary<string, FirestoreConfirmationWorkItem> _currentBatchWorks =
@@ -133,7 +135,10 @@ namespace SupraInventoryRelayAgent
                         _coordinator.EnsureRoleCurrentBeforeBusiness(session);
                         var startedMs = NowMs();
                         var processed = ProcessOnce(session);
-                        if (processed > 0) _hotUntilMs = NowMs() + 15000L;
+                        if (processed > 0 && _lastBusinessPendingCount >= 2)
+                            _hotUntilMs = NowMs() + 15000L;
+                        else if (processed > 0)
+                            _hotUntilMs = 0L;
                         if (NowMs() - startedMs >= FirestoreAgentLeaderCoordinator.FailoverAfterMs)
                             _coordinator.RequestRoleRefreshBeforeBusiness();
                         _relayHealth(true);
@@ -149,12 +154,19 @@ namespace SupraInventoryRelayAgent
                                     : "Relay: PRIMARY · không có PDA hoạt động · 15s")));
                     }
                 }
-                catch (Exception ex)
+                catch (WebException ex)
                 {
                     waitMs = _coordinator == null ? 2000 : Math.Min(4000, Math.Max(1000, _coordinator.BusinessPollIntervalMs));
                     try { _relayHealth(false); } catch { }
                     try { _state("Relay: FIRESTORE tạm gián đoạn · giữ vai trò / đang kết nối lại"); } catch { }
-                    try { _log("FIRESTORE confirm loop fail role_preserved=true retry_ms=" + waitMs + " " + Describe(ex)); } catch { }
+                    try { _log("FIRESTORE confirm transport fail role_preserved=true retry_ms=" + waitMs + " " + Describe(ex)); } catch { }
+                }
+                catch (Exception ex)
+                {
+                    waitMs = _coordinator == null ? 2000 : Math.Min(4000, Math.Max(1000, _coordinator.BusinessPollIntervalMs));
+                    try { _relayHealth(true); } catch { }
+                    try { _state("Relay: lỗi xử lý nội bộ · Firestore vẫn kết nối"); } catch { }
+                    try { _log("FIRESTORE confirm logic fail transport_preserved=true retry_ms=" + waitMs + " " + Describe(ex)); } catch { }
                 }
 
                 if (token.WaitHandle.WaitOne(Math.Max(1000, waitMs))) break;
@@ -209,6 +221,7 @@ namespace SupraInventoryRelayAgent
                 eligible.Add(doc);
             }
 
+            _lastBusinessPendingCount = eligible.Count;
             if (eligible.Count == 0) return processed;
             if (!_coordinator.VerifyPrimaryBeforeMutation(session))
             {
@@ -424,7 +437,7 @@ namespace SupraInventoryRelayAgent
             if (string.Equals(source, "ANDROID_PRESENCE_V1", StringComparison.Ordinal))
             {
                 if (!string.Equals(jobId, "picker_presence_current", StringComparison.Ordinal) ||
-                    FieldLong(fields, "schema_version") != 3)
+                    FieldLong(fields, "schema_version") != 4)
                     return null;
                 return new PendingDocument
                 {
@@ -457,6 +470,7 @@ namespace SupraInventoryRelayAgent
                     PickerUserId = pickerUserId,
                     PickerEmployeeCode = FieldString(fields, "picker_employee_code"),
                     PickerDisplayName = FieldString(fields, "picker_display_name"),
+                    PickerSessionGeneration = FieldLong(fields, "picker_session_generation"),
                     ClientSentAtMs = FieldLong(fields, "client_sent_at_ms"),
                     CreatedAtMs = createdAtMs
                 }
@@ -485,6 +499,9 @@ namespace SupraInventoryRelayAgent
                 result.Add(new PickerPresenceView
                 {
                     UserId = userId,
+                    FirebaseUid = FieldString(item, "firebase_uid"),
+                    SessionGeneration = FieldLong(item, "session_generation"),
+                    Source = string.Equals(FieldString(item, "source"), "PICKLIST", StringComparison.Ordinal) ? "PICKLIST" : "LOGIN",
                     EmployeeCode = FieldString(item, "employee_code"),
                     DisplayName = FieldString(item, "display_name"),
                     DeviceId = FieldString(item, "device_id"),
@@ -566,7 +583,7 @@ namespace SupraInventoryRelayAgent
 
             try
             {
-                Send("PATCH", name + suffix, session.IdToken,
+                Send("PATCH", DocumentUrl(name) + suffix, session.IdToken,
                     Serialize(new Dictionary<string, object> { { "fields", fields } }),
                     false, "PRESENCE_ACK_CONTROL");
                 _log("FIRESTORE PRESENCE ACK PASS request=" + Short(jobId) +
@@ -792,7 +809,7 @@ namespace SupraInventoryRelayAgent
             {
                 var raw = Send(
                     "GET",
-                    "https://firestore.googleapis.com/v1/" + name,
+                    DocumentUrl(name),
                     session.IdToken,
                     null,
                     true,
@@ -836,6 +853,15 @@ namespace SupraInventoryRelayAgent
                 retrySafeRead,
                 _log,
                 component);
+        }
+
+        private static string DocumentUrl(string name)
+        {
+            var value = (name ?? "").Trim();
+            if (Uri.IsWellFormedUriString(value, UriKind.Absolute)) return value;
+            if (!value.StartsWith("projects/", StringComparison.Ordinal))
+                throw new InvalidOperationException("Firestore document resource name không hợp lệ.");
+            return "https://firestore.googleapis.com/v1/" + value;
         }
 
         private string Serialize(object value)
