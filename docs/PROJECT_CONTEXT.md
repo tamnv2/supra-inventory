@@ -476,3 +476,14 @@ D126 supersedes D125 as the current Owner-approved implementation direction.
 - Kích User revokes the current Android session generation; stale generations cannot create new PickList jobs.
 - Usage provider metrics are collected server-side and mirrored to Firestore every 10 minutes for direct Office Agent reads.
 - D134 Agent target is v74 and Android target is the next monotonic signed Beta after vc79.
+
+## D135 current implementation context — 2026-09-28
+
+- Owner confirmed the D134 hotfix core PickList send/receive path passes on `relay-agent-v75` + `beta-vc81`, then approved D135 follow-up field refinements.
+- Active branch: `fix/d135-post-d134-field-refinements`; target Agent is `relay-agent-v76`; Android target is the next monotonic signed Beta after `beta-vc81`.
+- The processing Agent updates its three PickList overlay totals immediately only after the existing durable terminal ACK + daily-summary commit succeeds. No additional Firestore read/write/listener/poll is added; compact/durable snapshots remain authority and deep-hibernate Agents retain D134 cadence.
+- PickList browser lookup keeps at most one **Tìm kiếm** click but replaces the former fixed eight-second miss loop with bounded local DOM stabilization and a 4.5-second hard safety bound.
+- Liên hệ picker and Kết thúc each require one confirmation. The initiating Agent reserves/greys the call action locally before the asynchronous shared write; successful calls retain the existing fleet-wide 60-second lock.
+- Both Báo hàng result full-screen paths are local-first: persist pending ACK, dismiss immediately, then acknowledge over the network. Logout, Kích User or lost connectivity must never trap the PDA behind a result screen.
+- Android Beta user-visible name becomes **1291 Báo hàng Beta**. Visible Agent identity is username-only; internal authorization/audit identity is retained.
+- Existing PickList 3–20 digit suffix taxonomy, anti-spam escalation, single-PRIMARY/guard fencing, D134 45k/day soft read target and Stable OWNER-GATE remain unchanged.
