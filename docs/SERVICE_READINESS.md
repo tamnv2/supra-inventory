@@ -1251,13 +1251,13 @@ Status: **OWNER FIELD PASS**.
 
 ## D144 field-repair workstream — 2026-09-29
 
-- Beta marker: `D144_FIELD_REPAIR_IMPLEMENTATION__D143_FIELD_FAIL_LOGS_CHAT_KICK`.
-- Web marker: `D144_LOGS_AUTH_FALLBACK_SOURCE_PENDING__D143_WEB_RUNTIME_BASELINE_PASS`.
-- Android marker: `D144_DIRECT_CHAT_SOURCE_PENDING__BASELINE_BETA_VC84`.
+- Beta marker: `D144_SOURCE_IMPLEMENTED__PENDING_PR_GATES`.
+- Web marker: `D144_INVENTORYCORE_RUNTIME_LOG_BUFFER_SOURCE_READY__D143_WEB_RUNTIME_BASELINE_PASS`.
+- Android marker: `D144_DIRECT_CHAT_AND_KICK_COMPAT_SOURCE_READY__BASELINE_BETA_VC84`.
 - D143 OA069 field acceptance failed on three bounded items: runtime-log OAuth refresh revoked, Agent chat input/delivery, and legacy Picker Kích User resurrection. Direct specialist call remains PASS.
-- D144 reuses existing Beta resources only: existing Logs folder + runtime service account, existing Firestore Picker session/control collections, existing Worker/InventoryCore and Android/Agent distribution.
-- Target Agent is `relay-agent-v82`; Android target is the next monotonic signed Beta after `beta-vc84`; SQLite remains schema 13.
-- Runtime logs gain existing-runtime-service-account fallback. OA072 is required once because the existing Logs folder is currently owner-only and must grant that existing Beta runtime service account direct Editor access; no public sharing.
-- Chat uses the existing per-Picker session-control listener as direct realtime authority, with FCM compatibility delivery and local-only PDA dismiss.
-- Kích User adds authoritative Worker Android-session revocation plus a bounded 5-minute fallback reconciliation from the existing compact Agent sync document when direct Worker access is unavailable.
+- D144 reuses existing Beta resources only: InventoryCore SQLite, existing Logs folder as optional archive, existing Firestore Picker session/control collections, existing Worker and Android/Agent distribution.
+- Target Agent is `relay-agent-v82`; Android target is the next monotonic signed Beta after `beta-vc84`; SQLite source target is schema 14 with an additive bounded runtime-log buffer.
+- Web/Android runtime logs persist to InventoryCore first and are listed/read there. Drive archival is best-effort only, so revoked OAuth no longer blocks log upload or Web Nhật ký. OA072 is superseded; no folder permission change is required.
+- Chat uses the existing per-Picker session-control listener as direct realtime authority, with FCM compatibility delivery and local-only PDA dismiss. The modal editor pauses periodic Agent UI refresh timers while typing.
+- Kích User adds authoritative Worker Android-session revocation plus a bounded 5-minute fallback reconciliation from the existing compact Agent sync document when direct Worker access is unavailable. Worker also sends one best-effort backward-compatible re-login command before disabling the old Android notification target.
 - Stable remains OWNER-GATED and untouched.
