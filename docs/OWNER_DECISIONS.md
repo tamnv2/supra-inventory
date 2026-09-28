@@ -2006,3 +2006,14 @@ Status: **OWNER-REPORTED DEFECT / IMPLEMENTATION AUTHORIZED BY BUG-FIX REQUEST**
 - Saving keeps the existing server-authoritative optimistic version check. Web may show success only when the immediate save response and the subsequent authoritative reload both return the exact mode selected by the operator.
 - The existing `FIRST_REPORT` / `PER_PICKER` business semantics, service schema and timing calculations are unchanged.
 - Scope is Beta Web/Worker asset deployment only. No provider resource, schema, Android or Agent change. D137 OA063 stays independently open. Stable remains OWNER-GATED.
+
+
+## D139 — Dirty SLA form is protected at the shared render boundary
+
+Status: **OWNER FIELD DEFECT / HOTFIX AUTHORIZED** — 2026-09-28
+
+- D138 did not fully solve the reported issue: Owner selected **Theo báo đầu tiên của SKU**, saved, refreshed, and the server-authoritative view still returned **Theo từng Picker**.
+- The D138 fix guarded only the realtime reconcile caller. Other shared `patchActiveSection(true)` callers can still rebuild the SLA form from the last server snapshot while the operator is editing: delayed section-load completion, network online/offline repaint, and generic action-finally repaint.
+- D139 moves dirty-form protection into the shared `patchActiveSection` boundary. While `slaFormDirty=true`, generic preserved-context patches must not rebuild the SLA form.
+- Save reads the actually checked `autoSkipMode` radio at submit time. Existing policy-version protection and server response + post-save GET verification remain mandatory.
+- Beta Web only. No schema/provider/Android/Agent change. D137 OA063 remains independent. Stable remains OWNER-GATED.
