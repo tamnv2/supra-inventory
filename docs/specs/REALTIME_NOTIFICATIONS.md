@@ -609,3 +609,13 @@ This subsection supersedes conflicting D131 max-6/RAM-counter wording above.
 - PRIMARY lease heartbeat is 10 seconds and failover expiry is 15 seconds. NEXT_A alone owns the fast lease watch; NEXT_B is coarse and DEEP_HIBERNATE Agents have zero business queue polling.
 - picker_presence_projection/current remains the event-driven PDA-presence authority. The former relay_poc_jobs/picker_presence_current pseudo-job is removed so presence changes never enter the business confirmation queue.
 - picker_active_calls/{picker_user_id} is the durable active specialist-call authority. FCM is a fast delivery/close signal only; Android also observes its own exact active-call document so unresolved calls restore after restart and resolved calls converge closed.
+
+
+### D132 Picker presence delivery repair
+
+- `picker_presence_projection/current` remains the durable current snapshot with schema 3 / `ACTIVE_ANDROID_EVENT_DRIVEN`.
+- Presence state changes additionally overwrite one fixed `relay_poc_jobs/picker_presence_current` control document with source `ANDROID_PRESENCE_V1`. This is a single-slot event signal, not a history queue and not a per-PDA heartbeat.
+- Only PRIMARY consumes the existing PENDING business query. Presence control ACK is conditional on document updateTime and must not increment daily PickList received/confirmed/error counters.
+- A real `ANDROID_CONFIRM_V1` request is an implicit zero-extra-write activity refresh for that Picker on PRIMARY.
+- Non-primary Agents never poll the business queue. Bringing an Agent window to foreground may issue one bounded projection refresh, rate-limited locally, to reconcile the operator view.
+- Login/logout/device/socket changes continue to update the projection from authoritative Android realtime/session state.
