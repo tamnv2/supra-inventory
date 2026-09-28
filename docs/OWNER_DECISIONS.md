@@ -1853,3 +1853,27 @@ Quota boundary: D132 presence delivery uses the already-running PRIMARY PENDING 
 - Windows Agent **relay-agent-v72** release id **397878131**; canonical EXE asset id **594118802**, size **411136 bytes**, SHA-256 **3de3db7f21f838341bf0c5f66057924cb72727fefa623537f1955866fd44114d**.
 - Android remains signed **beta-vc78** unchanged.
 - D132 is **TECHNICAL / RUNTIME / RELEASE PASS**. Remaining gate is **OA058 Owner field retest** for the visible status line, real login/logout/PickList presence, column-mode persistence and Windows normal-bounds restore. D131 OA056 remains a separate broader fleet/failover acceptance gate. Stable remains OWNER-GATED and untouched.
+
+## D132 Owner field acceptance — 2026-09-28
+
+Status: **OWNER FIELD PASS**.
+
+- Owner explicitly confirms the D132 hotfix passes the physical field check.
+- Accepted baseline is Beta Agent v72 with beta-vc78 Android unchanged.
+- OA058 is closed by Owner acceptance.
+- Stable remains OWNER-GATED and untouched.
+
+## D133 — Six-field reliability and alert-safety hotfix — 2026-09-28
+
+Status: **OWNER APPROVED — BETA IMPLEMENTATION / RELEASE TARGET**.
+
+After D132 field PASS, Owner approves the following coordinated Beta changes:
+
+1. **One Auto-size mode covers the entire Agent operational surface.** The per-Agent-account Auto size cột setting applies to the Hệ thống Agent fleet grid, Picker list and manual PickList grid. Hệ thống Agent exposes the same Bật/Tắt control and both controls stay synchronized. Manual widths remain per-account when Auto size is off.
+2. **Usage HTTP 401 is an Agent-auth contract defect.** The Windows Agent signs in directly through Firebase password auth and therefore has real ADMIN/PICKPACK_ADMIN role claims but no interactive Web/Android session channel. /api/agent/usage must authenticate this bounded direct-Agent token shape without weakening Web/Android session-generation guards; Web/Android tokens are not accepted through the Agent Usage path.
+3. **The three PickList counters are Firestore-authoritative across upgrades/restarts.** relay_poc_coordination/daily_<business-day> remains the source of truth for received / confirmed / error totals. The PickList overlay must never use process-RAM counters as authority. After a durable ACK commit, Agent performs a coalesced exact summary refresh so visible counts update promptly without a per-request polling loop.
+4. **Gọi về bàn CV uses two delivery paths and the current Picker identity.** Android refreshes the bounded relay custom token after restored sessions when required; the active-call listener must bind only when FirebaseAuth belongs to the current Picker account. Firestore listener is the reconciliation path and FCM is the fast path. The Functions deployment must include pickerActiveCallCreated and pickerActiveCallResolved.
+5. **Full-screen alerts must be locally dismissible and time-bounded.** For HAS_STOCK / SKIP_ALLOWED result overlays, tapping acknowledgement first persists the pending acknowledgement locally and closes the overlay immediately; upload is retried on resume and while the Activity remains alive. This is acknowledgement transport only and does not reopen offline Báo hàng. For Gọi về bàn CV, the overlay self-closes after at most 60 seconds even if network/session state is lost; the originating specialist Agent may resolve it earlier.
+6. **Required Android alert permissions are a hard startup gate.** The app may enter operational UI only when Android notifications are enabled (including POST_NOTIFICATIONS where runtime permission applies) and SYSTEM_ALERT_WINDOW / **Hiển thị trên ứng dụng khác** is granted. Missing permission shows a blocking permission screen with direct system-settings actions and no bypass. The product does not rely on Android full-screen-intent permission for this flow; the current mechanism is the application overlay.
+
+Implementation targets: **relay-agent-v73** and the next signed Beta Android release after beta-vc78. Existing Beta Worker, Firebase/Firestore/Functions and distribution resources are reused. No new provider resource is authorized. Stable remains OWNER-GATED and untouched.
