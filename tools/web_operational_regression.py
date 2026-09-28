@@ -236,7 +236,7 @@ def main() -> None:
     require(app, "let slaFormDirty = false;", "D120 SLA dirty-state guard")
     require(app, "patchSlaInsightCounts", "D120 SLA statistics patch without form rebuild")
     require(app, "if (activeSection === \"sla\" && slaFormDirty && slaResponse)", "D120 preserve edited SLA form against background refresh")
-    require(app, "Máy chủ trả về chính sách Deadline khác giá trị vừa lưu", "D120 post-save SLA mode verification")
+    require(app, "Xác minh ghi SQLite thất bại", "D120 post-save SLA mode verification")
     require(professional_css, '.sla-radio-row input[type="radio"]', "D120 compact SLA radio geometry")
     require(professional_css, "@supports (height: 100dvh)", "D120 visual viewport guard")
     require(users_core, "USER_ROLE_CHANGE_ROOT_ONLY", "D120 ROOT-only role mutation authority")
