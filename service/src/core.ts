@@ -776,10 +776,12 @@ export class InventoryCore {
         user_id?: string;
         firebase_uid?: string;
         revoked_generation?: number;
+        force_current?: boolean;
       };
       const userId = String(body.user_id || "").trim();
       const firebaseUid = String(body.firebase_uid || "").trim();
       const requestedGeneration = Math.max(0, Math.trunc(Number(body.revoked_generation || 0)));
+      const forceCurrent = body.force_current === true;
       if (!userId || !firebaseUid || requestedGeneration <= 0) {
         return response({ error: "invalid_input" }, 400);
       }
@@ -794,12 +796,20 @@ export class InventoryCore {
         return response({ error: "picker_session_not_found" }, 404);
       }
 
-      // D144 live kick is authoritative against the currently active Android
-      // generation, including a generation that raced ahead of the Agent row.
-      const nextGeneration = Math.max(
-        Number(current.android_session_generation || 0),
-        requestedGeneration,
-      ) + 1;
+      const currentGeneration = Number(current.android_session_generation || 0);
+      if (!forceCurrent && currentGeneration > requestedGeneration) {
+        return response({
+          status: "android_session_already_superseded",
+          user_id: userId,
+          previous_generation: currentGeneration,
+          revoked_generation: currentGeneration,
+        });
+      }
+
+      // D144 live Agent revoke uses force_current=true and always invalidates the
+      // current authoritative session, including a generation that raced ahead
+      // of the Agent row. The scheduled Firestore fallback is idempotent.
+      const nextGeneration = Math.max(currentGeneration, requestedGeneration) + 1;
       this.state.storage.sql.exec(
         `UPDATE users
             SET android_session_generation = ?,
