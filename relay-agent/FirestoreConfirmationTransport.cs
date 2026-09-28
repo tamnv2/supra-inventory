@@ -59,6 +59,7 @@ namespace SupraInventoryRelayAgent
         private readonly Action<string> _state;
         private readonly Func<List<FirestoreConfirmationWorkItem>, Dictionary<string, FirestoreConfirmationOutcome>> _batchHandler;
         private readonly Action<List<PickerPresenceView>, string> _presenceSnapshotHandler;
+        private readonly Action<FirestoreConfirmationWorkItem> _pickerActivityHandler;
         private readonly FirestoreAgentLeaderCoordinator _coordinator;
         private readonly Func<bool> _businessEnabled;
         private readonly Func<bool> _hasActivePda;
@@ -83,6 +84,7 @@ namespace SupraInventoryRelayAgent
             Action<string> state,
             Func<List<FirestoreConfirmationWorkItem>, Dictionary<string, FirestoreConfirmationOutcome>> batchHandler,
             Action<List<PickerPresenceView>, string> presenceSnapshotHandler,
+            Action<FirestoreConfirmationWorkItem> pickerActivityHandler,
             FirestoreAgentLeaderCoordinator coordinator,
             Func<bool> businessEnabled,
             Func<bool> hasActivePda,
@@ -99,6 +101,7 @@ namespace SupraInventoryRelayAgent
             _state = state ?? delegate { };
             _batchHandler = batchHandler;
             _presenceSnapshotHandler = presenceSnapshotHandler ?? delegate { };
+            _pickerActivityHandler = pickerActivityHandler ?? delegate { };
             _coordinator = coordinator;
             _businessEnabled = businessEnabled ?? (() => true);
             _hasActivePda = hasActivePda ?? (() => true);
@@ -188,12 +191,13 @@ namespace SupraInventoryRelayAgent
                         Route = "PRESENCE_SNAPSHOT",
                         Matches = doc.PresenceSnapshot.Count
                     };
-                    if (TryAck(session, doc.Name, doc.UpdateTime, "picker_presence_current", applied))
+                    if (TryAckControl(session, doc.Name, doc.UpdateTime, "picker_presence_current", applied))
                         processed++;
                     continue;
                 }
 
                 if (doc.Work == null) continue;
+                try { _pickerActivityHandler(doc.Work); } catch { }
                 var ageMs = NowMs() - doc.Work.CreatedAtMs;
                 if (doc.Work.CreatedAtMs <= 0 || ageMs > MaxPendingAgeMs)
                 {
@@ -535,6 +539,50 @@ namespace SupraInventoryRelayAgent
                 _log,
                 "CONFIRM_QUERY",
                 2);
+        }
+
+        private bool TryAckControl(
+            AgentSession session,
+            string name,
+            string updateTime,
+            string jobId,
+            FirestoreConfirmationOutcome outcome)
+        {
+            var fields = new Dictionary<string, object>
+            {
+                { "status", StringField("ACK") },
+                { "agent_id", StringField(Environment.MachineName) },
+                { "agent_instance_id", StringField(_instanceId) },
+                { "agent_admin_user_id", StringField(session.AppUserId ?? "") },
+                { "agent_ack_at_ms", IntField(NowMs()) },
+                { "lookup_status", StringField(outcome == null ? "PRESENCE_APPLIED" : (outcome.Result ?? "PRESENCE_APPLIED")) },
+                { "lookup_matches", IntField(outcome == null ? 0 : Math.Max(0, outcome.Matches)) },
+                { "lookup_route", StringField(outcome == null ? "PRESENCE_SNAPSHOT" : (outcome.Route ?? "PRESENCE_SNAPSHOT")) },
+                { "cache_mode", StringField(outcome == null ? "EVENT_DRIVEN" : (outcome.CacheMode ?? "EVENT_DRIVEN")) }
+            };
+            var suffix = BuildMask(fields.Keys);
+            if (!string.IsNullOrWhiteSpace(updateTime))
+                suffix += "&currentDocument.updateTime=" + Uri.EscapeDataString(updateTime);
+
+            try
+            {
+                Send("PATCH", name + suffix, session.IdToken,
+                    Serialize(new Dictionary<string, object> { { "fields", fields } }),
+                    false, "PRESENCE_ACK_CONTROL");
+                _log("FIRESTORE PRESENCE ACK PASS request=" + Short(jobId) +
+                     " count=" + (outcome == null ? 0 : Math.Max(0, outcome.Matches)) +
+                     " durable_business_counter=false");
+                return true;
+            }
+            catch (WebException ex)
+            {
+                var response = ex.Response as HttpWebResponse;
+                var status = response == null ? 0 : (int)response.StatusCode;
+                try { if (response != null) response.Dispose(); } catch { }
+                if ((status == 409 || status == 412) && AckAlreadyVisible(session, name, jobId))
+                    return true;
+                throw;
+            }
         }
 
         private bool TryAck(
