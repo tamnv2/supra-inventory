@@ -41,6 +41,7 @@ class StockMessagingService : FirebaseMessagingService() {
             "ticket_auto_skip_allowed", "batch_auto_skip_allowed",
         )
         val isPickerCommand = event == "picker_command"
+        val isPickerChat = isPickerCommand && message.data["command_type"].orEmpty() == "CHAT_MESSAGE"
         val resultEventId = message.data["result_event_id"].orEmpty().trim()
         // D120: only the Picker's authoritative red/blue result surface is projected
         // across other apps. Warning/report-created notices remain ordinary Android
@@ -55,7 +56,9 @@ class StockMessagingService : FirebaseMessagingService() {
                     this,
                     title,
                     body,
-                    if (isPickerCommand) CriticalOverlayService.MODE_PICKER_COMMAND else CriticalOverlayService.MODE_RESULT,
+                    if (isPickerChat) CriticalOverlayService.MODE_PICKER_CHAT
+                    else if (isPickerCommand) CriticalOverlayService.MODE_PICKER_COMMAND
+                    else CriticalOverlayService.MODE_RESULT,
                     message.data["alert_id"].orEmpty().ifBlank { resultEventId },
                     expiresAt,
                     message.data["resolution"].orEmpty(),
